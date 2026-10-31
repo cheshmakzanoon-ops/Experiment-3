@@ -31,6 +31,7 @@ import { loadPitWallStation } from './pit-wall-station.ts';
 import { loadHeroGarage } from './hero-garage.ts';
 import { loadTyreBlankets } from './tyre-blankets.ts';
 import { compileSceneTarget, PreparationTrace } from './preparation.ts';
+import { compileFullscreenTargets } from './fullscreen-preparation.ts';
 import { warmPitMaterials } from './pit-material-warmup.ts';
 import { frontToBackOpaque } from './opaque-order.ts';
 import { loadSuppliedPlayer, type SuppliedPlayerAsset } from './supplied-player.ts';
@@ -1121,6 +1122,34 @@ export class RacingRenderer {
           },
         );
         if (this.disposed || cancelled()) return false;
+        progress('Compiling scene ambient and composite materials…');
+        // SceneAmbientPass is the first composer pass. Do not use the circuit
+        // scene's fog/lights or invoke pass.render to discover these programs.
+        const lastPass = this.composer.passes.filter((pass) => pass.enabled).at(-1);
+        const outputTarget =
+          this.composer.renderToScreen && lastPass === this.scenePass
+            ? null
+            : this.composer.writeBuffer;
+        await this.preparation.observeAsync(
+          'fullscreen:compile-ready',
+          () =>
+            compileFullscreenTargets(
+              this.renderer,
+              this.scenePass.compilationSubjects(outputTarget),
+              {
+                cancelled,
+                yieldControl: yieldFrame,
+                initializeCaches: true,
+                report: (result) =>
+                  this.preparation.checkpoint(
+                    'mark',
+                    `fullscreen-programs:${result.status}:live=${result.livePrograms}:checked=${result.queriedPrograms}:queries=${result.queries}:primed=${result.initializedPrograms}:ms=${Math.round(result.elapsedMs)}`,
+                  ),
+              },
+            ),
+          cancelled,
+        );
+        if (cancelled()) return false;
         const views = menuPreview ? (['menu'] as const) : (['chase', 'cockpit'] as const);
         for (const mode of views) {
           progress(

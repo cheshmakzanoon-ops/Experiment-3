@@ -13,6 +13,8 @@ function fixture() {
     current: sample,
     lastTime: 0,
     presentationFrames: 0,
+    viewportRevision: 0,
+    localViewportRevision: 0,
     status: null,
     riders: null,
     traffic: null,

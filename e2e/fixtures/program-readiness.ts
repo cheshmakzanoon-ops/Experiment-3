@@ -1,5 +1,7 @@
 import * as T from 'three';
 import { waitForAllPrograms } from '../../src/rendering/preparation.ts';
+import { compileFullscreenTargets } from '../../src/rendering/fullscreen-preparation.ts';
+import { SceneAmbientPass } from '../../src/rendering/scene-ambient-pass.ts';
 
 /** Native program statuses only: query instrumentation forwards each original
  * call and never manufactures pending/ready results or disables shader errors. */
@@ -173,6 +175,124 @@ export async function probeProgramReadiness(canvas: HTMLCanvasElement) {
     shared.dispose();
     older.dispose();
     target.dispose();
+    renderer.dispose();
+    gl.getExtension('WEBGL_lose_context')?.loseContext();
+  }
+}
+
+/** Exercise the unmodified scene/AO/blur/composite draw after explicit public
+ * compile subjects. Only native query observation is installed, never renderer
+ * or fullscreen-quad interception. */
+export async function probeFullscreenPreparation(canvas: HTMLCanvasElement) {
+  const renderer = new T.WebGLRenderer({ canvas });
+  renderer.setSize(64, 64, false);
+  const gl = renderer.getContext();
+  const extension = gl.getExtension('KHR_parallel_shader_compile');
+  if (!extension) {
+    renderer.dispose();
+    throw new Error('KHR_parallel_shader_compile unavailable for fullscreen preparation probe');
+  }
+  const adapter = gl.getExtension('WEBGL_debug_renderer_info');
+  const backend = adapter ? String(gl.getParameter(adapter.UNMASKED_RENDERER_WEBGL)) : 'unknown';
+  const scene = new T.Scene(),
+    camera = new T.PerspectiveCamera(45, 1, 0.1, 100);
+  camera.position.z = 4;
+  const geometry = new T.BoxGeometry(),
+    material = new T.MeshBasicMaterial({ color: 0x6699cc });
+  scene.add(new T.Mesh(geometry, material));
+  const pass = new SceneAmbientPass(scene, camera, 0);
+  pass.setSize(64, 64);
+  pass.ambientOcclusion = true;
+  const output = new T.WebGLRenderTarget(64, 64, { type: T.HalfFloatType });
+  const counters = { prime: {} as Record<string, number>, draw: {} as Record<string, number> };
+  const primedPrograms = new Set<WebGLProgram>();
+  const restores: (() => void)[] = [];
+  let phase: 'prime' | 'draw' = 'prime';
+  const methods = [
+    'getProgramParameter',
+    'getProgramInfoLog',
+    'getShaderInfoLog',
+    'getActiveUniform',
+    'getActiveAttrib',
+    'getUniformLocation',
+    'getAttribLocation',
+  ] as const;
+  try {
+    // Prime the independent main scene first, so the measured cold programs
+    // belong only to the actual selected fullscreen pass materials.
+    renderer.setRenderTarget(pass.target);
+    renderer.compile(scene, camera);
+    renderer.setRenderTarget(null);
+    const sceneReady = await waitForAllPrograms(renderer, { initializeCaches: true });
+    if (sceneReady !== 'complete') throw new Error(`Scene was not ready: ${sceneReady}`);
+    const before = new Set(
+      (renderer.info.programs ?? []).map((program) => program.program as WebGLProgram),
+    );
+    for (const method of methods) {
+      const descriptor = Object.getOwnPropertyDescriptor(gl, method);
+      const original = Reflect.get(gl, method) as (...args: unknown[]) => unknown;
+      restores.push(() => {
+        if (descriptor) Object.defineProperty(gl, method, descriptor);
+        else Reflect.deleteProperty(gl, method);
+      });
+      Object.defineProperty(gl, method, {
+        configurable: true,
+        writable: true,
+        enumerable: descriptor?.enumerable ?? false,
+        value: function (this: unknown, ...args: unknown[]) {
+          if (method === 'getProgramParameter' && args[1] === extension.COMPLETION_STATUS_KHR)
+            return Reflect.apply(original, this, args);
+          const parameter =
+            args[1] === gl.LINK_STATUS
+              ? 'LINK_STATUS'
+              : args[1] === gl.ACTIVE_UNIFORMS
+                ? 'ACTIVE_UNIFORMS'
+                : args[1] === gl.ACTIVE_ATTRIBUTES
+                  ? 'ACTIVE_ATTRIBUTES'
+                  : String(args[1]);
+          const key = method === 'getProgramParameter' ? `${method}:${parameter}` : method;
+          counters[phase][key] = (counters[phase][key] ?? 0) + 1;
+          if (phase === 'prime' && method === 'getProgramInfoLog')
+            primedPrograms.add(args[0] as WebGLProgram);
+          return Reflect.apply(original, this, args);
+        },
+      });
+    }
+    const subjects = pass.compilationSubjects(output);
+    const viewport = renderer.getViewport(new T.Vector4()).toArray();
+    const complete = await compileFullscreenTargets(renderer, subjects, { initializeCaches: true });
+    const restored =
+      renderer.getRenderTarget() === null &&
+      renderer
+        .getViewport(new T.Vector4())
+        .toArray()
+        .every((value, index) => value === viewport[index]);
+    const programs = [...(renderer.info.programs ?? [])];
+    const fullscreenPrograms = programs.filter((program) => !before.has(program.program));
+    phase = 'draw';
+    pass.render(renderer, output);
+    return {
+      three: T.REVISION,
+      backend,
+      complete,
+      restored,
+      subjects: subjects.map((subject) => subject.material.name),
+      generatedFullscreenPrograms: fullscreenPrograms.length,
+      eachPrimed: fullscreenPrograms.every((program) => primedPrograms.has(program.program)),
+      programsBeforeDraw: programs.length,
+      programsAfterDraw: renderer.info.programs?.length ?? 0,
+      queries: counters,
+      frames: pass.frames,
+      shaderErrorsEnabled: renderer.debug.checkShaderErrors,
+      glError: gl.getError(),
+    };
+  } finally {
+    for (const restore of restores.reverse()) restore();
+    renderer.setRenderTarget(null);
+    pass.dispose();
+    output.dispose();
+    geometry.dispose();
+    material.dispose();
     renderer.dispose();
     gl.getExtension('WEBGL_lose_context')?.loseContext();
   }

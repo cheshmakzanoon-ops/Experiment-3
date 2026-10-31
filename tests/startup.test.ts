@@ -39,7 +39,12 @@ function fixture(vehicle = 'apx01', entrants = 3) {
     mode: 'pod',
     preparation: new PreparationTrace(),
     drawLedger: { mark: vi.fn() },
-    scenePass: { target: new T.WebGLRenderTarget(8, 8, { type: T.HalfFloatType }) },
+    scenePass: {
+      target: new T.WebGLRenderTarget(8, 8, { type: T.HalfFloatType }),
+      compilationSubjects: vi.fn(
+        (): { material: T.Material; target: T.WebGLRenderTarget | null }[] => [],
+      ),
+    },
     composer: { passes: [], readBuffer: new T.WebGLRenderTarget(8, 8, { type: T.HalfFloatType }) },
     warmupFrames: 0,
     preparationLight: new T.DirectionalLight(),
@@ -779,3 +784,84 @@ it('uses actual menu flags for environment-only setup and restores its ownership
   expect(target.warmingEnvironment).toBe(false);
   expect(submitted).toBe(1);
 });
+
+it('compiles explicit fullscreen materials after environment completion and before either race view', async () => {
+  const { target, typed, sample, calls } = fixture();
+  const material = new T.ShaderMaterial();
+  target.scenePass.compilationSubjects.mockImplementation(() => [
+    { material, target: target.scenePass.target },
+  ]);
+  target.renderer.compile.mockImplementation((scene) => {
+    calls.push(scene === target.scene || scene.type !== 'Scene' ? 'compile' : 'fullscreen');
+  });
+  expect(
+    await RacingRenderer.prototype.prepare.call(
+      typed,
+      sample,
+      vi.fn(),
+      () => false,
+      async () => {},
+    ),
+  ).toBe(true);
+  expect(calls.indexOf('fullscreen')).toBeGreaterThan(calls.indexOf('environment'));
+  expect(calls.indexOf('fullscreen')).toBeLessThan(calls.indexOf('chase'));
+  expect(target.draw).toHaveBeenCalledTimes(2);
+  expect(target.warmPitPresentation).toHaveBeenCalledTimes(1);
+});
+
+it('never draws a menu view after fullscreen submission fails', async () => {
+  const { target, typed, sample } = fixture();
+  target.scenePass.compilationSubjects.mockImplementation(() => [
+    { material: new T.ShaderMaterial(), target: target.scenePass.target },
+  ]);
+  const compile = target.renderer.compile.getMockImplementation()!;
+  target.renderer.compile.mockImplementation((scene, camera, targetScene) => {
+    if (scene instanceof T.Scene && scene !== target.scene)
+      throw new Error('fullscreen compile failed');
+    return compile(scene, camera, targetScene);
+  });
+  await expect(
+    RacingRenderer.prototype.prepareMenuPreview.call(
+      typed,
+      sample,
+      vi.fn(),
+      () => false,
+      async () => {},
+    ),
+  ).rejects.toThrow('fullscreen compile failed');
+  expect(target.draw).not.toHaveBeenCalled();
+});
+
+it.each(['disposed', 'cancelled'] as const)(
+  'does not record successful fullscreen completion or submit a view when %s during compilation',
+  async (stop) => {
+    const { target, typed, sample } = fixture();
+    let cancelled = false;
+    target.scenePass.compilationSubjects.mockImplementation(() => [
+      { material: new T.ShaderMaterial(), target: target.scenePass.target },
+    ]);
+    const compile = target.renderer.compile.getMockImplementation()!;
+    target.renderer.compile.mockImplementation((scene, camera, targetScene) => {
+      if (scene instanceof T.Scene && scene !== target.scene) {
+        if (stop === 'disposed') Object.assign(target, { disposed: true });
+        else cancelled = true;
+      }
+      return compile(scene, camera, targetScene);
+    });
+    expect(
+      await RacingRenderer.prototype.prepareMenuPreview.call(
+        typed,
+        sample,
+        vi.fn(),
+        () => cancelled,
+        async () => {},
+      ),
+    ).toBe(false);
+    expect(target.draw).not.toHaveBeenCalled();
+    const checkpoints = target.preparation
+      .snapshot()!
+      .checkpoints.filter((event) => event.label === 'fullscreen:compile-ready');
+    expect(checkpoints.map((event) => event.phase)).toEqual(['start', 'cancelled']);
+    expect(target.preparation.snapshot()!.status).toBe('cancelled');
+  },
+);

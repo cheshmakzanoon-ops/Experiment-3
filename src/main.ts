@@ -147,6 +147,7 @@ export class GameApp {
   /** Festival free roam: while set it owns input, frames and the canvas. */
   private festival: FestivalSession | null = null;
   private festivalStarting = false;
+  private festivalViewportRevision = 0;
   private festivalLifetime: AbortController | null = null;
   private programme = new PracticeProgramme();
   /** Driver career (src/career): licences, events, garage and payments. */
@@ -436,13 +437,16 @@ export class GameApp {
       .querySelectorAll<HTMLElement>('[data-touch]')
       .forEach((e) => this.input.bindTouch(e, e.dataset.touch as TouchAction));
     window.addEventListener('resize', () => {
+      this.festivalViewportRevision++;
       this.performanceCapture.interrupt('Viewport changed');
       this.interruptReview('Viewport changed');
       // Quality preparation owns render targets until its save settles. Apply
       // the latest viewport once afterward, not concurrently with compilation.
       if (this.academyPromotion.busy) this.academyResizePending = true;
       else if (this.savingSettings) this.settingsResizePending = true;
-      else if (this.festival) this.festival.resize();
+      else if (this.festivalStarting) {
+        // The unadopted candidate drains, resizes and re-prepares before reveal.
+      } else if (this.festival) this.festival.resize();
       else this.renderer?.resize();
       this.viewportRedrawPending = true;
       if (this.state === 'menu') this.menuPreviewReceipt.request('resize');
@@ -676,6 +680,8 @@ export class GameApp {
           canvas: this.canvas,
           renderer: renderer.renderer,
           presentation: {
+            current,
+            revision: () => this.festivalViewportRevision,
             ready: () => current() && renderer.canSubmitFrame(),
             submitted: () => renderer.submittedExternalFrame(),
           },
@@ -775,6 +781,7 @@ export class GameApp {
     holdOnGrid = false,
     career: CareerSession | null = null,
   ) {
+    if (this.festivalStarting) return;
     if (this.savingSettings || this.academyPromotion.busy) {
       this.ui.toast(
         this.academyPromotion.busy

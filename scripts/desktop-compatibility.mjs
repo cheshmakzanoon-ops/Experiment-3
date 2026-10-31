@@ -110,6 +110,13 @@ export async function verifyDesktopCompatibility(application, page, report, capt
     receipt.readyAt = Date.now();
     stage(`compatibility-${mode.id}-ready`);
     expect(receipt.ready.motion.autopilot).toBe(false);
+    if (mode.id === 'festival') {
+      const startup = receipt.ready.motion.startupPresentation;
+      expect(startup?.completed).toBe(true);
+      expect(startup.sampleTick).toBeGreaterThanOrEqual(0);
+      expect(startup.presentedTick).toBe(startup.sampleTick);
+      expect(startup.completedAt).toBeGreaterThanOrEqual(startup.submittedAt);
+    }
     expect(receipt.ready.motion.vehicleId).toBe(selectedVehicle);
     if (mode.id !== 'festival') {
       expect(receipt.ready.options.circuit).toBe(mode.circuit);

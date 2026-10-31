@@ -95,6 +95,20 @@ Academy promotion now awaits one exact menu=true/alpha=0 preparation and complet
 
 Final local validation passed **239 tests across 22 files**, root/desktop TypeScript, full project lint, workflow lint, whitespace checks and a source-stable build (43.00 seconds). Independent review found no concrete blocker. Native performance and original browser acceptance remain pending.
 
+### `5a24b7a` outcomes and fullscreen/Festival preparation
+
+[Required native run 41204721450](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41204721450) passed Windows and Apple Silicon four-mode journeys. Ubuntu22/Mesa completed 172/172 Babylon preparation jobs and 41/41 scene submissions without recorded loss, then failed during Formula cockpit warmup with GPU exit 512. The last retained pending fence was 18.363 seconds old. Publication was skipped; this is not a complete Linux repair.
+
+[SwiftShader comparison 41204721742](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41204721742) passed Formula, GP and MX, then exceeded the unchanged 30-second Festival first-presentation requirement. No GPU exits, context losses or CSP errors were recorded. Festival previously released its loading screen before any actual world draw. The next candidate holds worker/input ownership until its authoritative world frame and shared GPU completion fence finish, including career travel destinations.
+
+[Ubuntu24 comparison 41204721410](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41204721410) now retains the preconnection failure: Chromium requires root ownership and mode 4755 for the bundled chrome-sandbox helper. No sandbox or security-policy change has been made. Required Ubuntu22/Mesa is unchanged.
+
+The [transition run 41204721358](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41204721358) failed paused-grid loading but passed six other checks. Its real-GL cache probe passed: all seven programs were checked and primed; the matching final draw performed no first-use log/reflection queries. This does not cover programs created later by fullscreen post-processing.
+
+The unprofiled [interaction run 41204721464](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41204721464) recorded a 132.638-second first ambient fullscreen submission and ten new post-processing programs. Academy light/frozen-frame assertions were not reached before visibility failure; the run was later cancelled. Both [profile tests](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41204721447) failed. The next narrow preparation candidate targets original AO/blur/composite materials and exact render targets, without rendering a discovery frame or changing effects. Later DOF/bloom/output/grade programs remain separate work.
+
+The cloud workspace was replaced during local review. Candidates were reconstructed from retained code and reviewed again; earlier local test counts were not reused. Fresh checks passed 148 focused shader/preparation tests and 28 Festival tests. The latter cover initial shared-frame drainage before constructor/quality changes, resize drainage and redraw before adoption, direct resize requests, same-tick destination snapshots, cancellation and input hold. Native Actions results remain required before a new release claim.
+
 ## Remaining acceptance gates
 
 1. Resolve mixed-class GP pace and confirm the full suite under appropriate runner load without hiding failures or extending acceptance limits merely to pass.

@@ -1,7 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
-import type { probeProgramReadiness } from './fixtures/program-readiness.ts';
+import type {
+  probeProgramReadiness,
+  probeFullscreenPreparation,
+} from './fixtures/program-readiness.ts';
 
 /** Small native-GL coverage proof, not a preparation speed benchmark. */
 test('all live shader programs include shared-material and older variants', async ({
@@ -79,4 +82,66 @@ test('all live shader programs include shared-material and older variants', asyn
   expect(report.yields).toBeGreaterThan(0);
   expect(report.glError).toBe(0);
   expect(browserErrors).toEqual([]);
+});
+
+test('actual AO blur and composite are primed before their first fullscreen draw', async ({
+  page,
+}, info) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  page.on('console', (message) => {
+    if (message.type() === 'error') errors.push(message.text());
+  });
+  const built = await build({
+    configFile: false,
+    logLevel: 'error',
+    build: {
+      write: false,
+      lib: {
+        entry: resolve('e2e/fixtures/program-readiness.ts'),
+        name: 'ProgramReadiness',
+        formats: ['iife'],
+      },
+    },
+  });
+  const output = Array.isArray(built) ? built[0] : built;
+  if (!('output' in output)) throw new Error('Missing fullscreen preparation build');
+  const chunk = output.output.find((item) => item.type === 'chunk');
+  if (!chunk || chunk.type !== 'chunk') throw new Error('Missing fullscreen preparation code');
+  await page.setContent('<!doctype html><canvas width="64" height="64"></canvas>');
+  await page.addScriptTag({ content: chunk.code });
+  const report = await page.evaluate(async () => {
+    const probe = (
+      window as unknown as {
+        ProgramReadiness: { probeFullscreenPreparation: typeof probeFullscreenPreparation };
+      }
+    ).ProgramReadiness.probeFullscreenPreparation;
+    return probe(document.querySelector('canvas')!);
+  });
+  await info.attach('fullscreen-program-readiness.json', {
+    body: JSON.stringify(report, null, 2),
+    contentType: 'application/json',
+  });
+  expect(report.complete).toBe('complete');
+  expect(report.restored).toBe(true);
+  expect(report.subjects).toEqual([
+    'APEX scalable ambient obscurance',
+    'APEX depth-aware obscurance blur',
+    'APEX obscurance composite',
+  ]);
+  expect(report.generatedFullscreenPrograms).toBe(3);
+  expect(report.eachPrimed).toBe(true);
+  expect(report.queries.prime.getProgramInfoLog).toBe(3);
+  expect(report.queries.prime.getShaderInfoLog).toBe(6);
+  expect(report.queries.prime['getProgramParameter:LINK_STATUS']).toBe(3);
+  expect(report.queries.prime['getProgramParameter:ACTIVE_UNIFORMS']).toBe(3);
+  expect(report.queries.prime['getProgramParameter:ACTIVE_ATTRIBUTES']).toBe(3);
+  expect(report.queries.prime.getActiveUniform).toBeGreaterThan(0);
+  expect(report.queries.prime.getActiveAttrib).toBeGreaterThan(0);
+  expect(report.queries.draw).toEqual({});
+  expect(report.programsAfterDraw).toBe(report.programsBeforeDraw);
+  expect(report.frames).toBe(1);
+  expect(report.shaderErrorsEnabled).toBe(true);
+  expect(report.glError).toBe(0);
+  expect(errors).toEqual([]);
 });
