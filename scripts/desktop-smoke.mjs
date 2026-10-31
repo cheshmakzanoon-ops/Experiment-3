@@ -57,6 +57,24 @@ try {
   report.checks.push('packaged process architecture matches target');
   report.gpu = await application.evaluate(({ app }) => app.getGPUFeatureStatus());
   page = await application.firstWindow({ timeout: 120000 });
+  // A directly launched macOS bundle can remain behind the runner's desktop.
+  // Activate it before testing real pointer/keyboard input and RAF stability.
+  report.windowFocus = await application.evaluate(({ app, BrowserWindow }) => {
+    app.focus({ steal: true });
+    const window = BrowserWindow.getAllWindows()[0];
+    window.show();
+    window.focus();
+    return window.isFocused();
+  });
+  await page.bringToFront();
+  await page.waitForFunction(() => document.hasFocus() && !document.hidden, {}, { timeout: 30000 });
+  report.windowFocus = await application.evaluate(({ BrowserWindow }) =>
+    BrowserWindow.getAllWindows()[0].isFocused(),
+  );
+  report.documentFocus = await page.evaluate(() => ({
+    focused: document.hasFocus(),
+    hidden: document.hidden,
+  }));
   page.on('console', (message) =>
     report.console.push({ type: message.type(), text: message.text() }),
   );

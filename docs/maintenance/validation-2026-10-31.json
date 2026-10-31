@@ -134,6 +134,15 @@
     {
       "scope": "Full lint reporting correction",
       "result": "The a99/27 portability-test regex violated no-control-regex. A partial log had been mistaken for a completed pass; this was corrected explicitly. The control-byte check is now separate from the filename punctuation regex. Full lint, seven affected tests and TypeScript completed with exit code 0 on the corrected candidate."
+    },
+    {
+      "scope": "Frozen tracked-source full-suite run",
+      "commit": "207d5a6dc824695b15e88dc830e4f73ad927cf32",
+      "total": 5006,
+      "passed": 5004,
+      "failed": 2,
+      "skipped": 0,
+      "result": "All four local shards finished, with tracked files unchanged. Dependencies were linked into the checkout; this is a source test run, not a signed-package certification. Mixed GP/superbike pace reproduces the known assertion. The pit-release future service-bay sweep exceeded its 30 s wall-clock budget under parallel load (31.38 s). Its unchanged three-test file then passed in isolation (the case took 18.61 s; process exit 0). Preserve both outcomes; do not label the full run all-green."
     }
   ]
 }

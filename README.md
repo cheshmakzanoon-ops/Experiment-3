@@ -25,9 +25,10 @@ The desktop runtime uses Electron to provide a consistent bundled Chromium runti
 
 ## Latest verified progress · 2026-10-31
 
-- Windows x64, Linux x64 and Apple Silicon packages pass offline Babylon launch, keyboard driving, paused physics, original-model import and renderer isolation in [native run 41169800313](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41169800313). The Intel hosted VM still cannot initialize graphics. The x64 macOS lane now targets Rosetta execution on Apple Silicon; its rerun and physical Intel graphics validation remain outstanding. No four-platform prerelease has passed yet.
+- Windows x64, Linux x64 and Apple Silicon packages pass offline Babylon launch, keyboard driving, paused physics, original-model import and renderer isolation in [native run 41169800313](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41169800313). The Intel hosted VM still cannot initialize graphics. The x64 macOS lane now targets Rosetta execution on Apple Silicon; the translated x64 app now starts with Metal/WebGL, but input-test completion and physical Intel graphics validation remain outstanding. No four-platform prerelease has passed yet.
 - GP AI completes the real catch-and-pass without contact and reproduces its replay snapshot. Shared traffic and GP approach/riding checks: **28/28 passed**.
 - Motocross hard-stop recovery now exchanges momentum without inventing launch energy. Latest focused suite: **572/572 passed** after physical fixes and documented finite-inertia test-contract corrections. The separate mixed GP/superbike pace case remains open. Test-contract corrections for finite wheel inertia are itemized in the [validation ledger](docs/maintenance/validation-2026-10-31.json).
+- Full local suite on frozen `207d5a6` source: **5,004/5,006 passed**, zero skipped. The additional pit-release timeout passed an unchanged isolated rerun; the original full-run failure is retained in the ledger.
 - Babylon is still an integration workbench, not final-quality graphics. Native keyboard driving and original-model import are verified on the three passing platforms; full four-discipline presentation, performance and playtesting remain required.
 
 ## Engine and content ownership

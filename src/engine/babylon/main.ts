@@ -1,6 +1,7 @@
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode.js';
 import { Engine } from '@babylonjs/core/Engines/engine.js';
 import { BabylonCircuitScene } from './circuit-scene.ts';
+import { waitForPresentation } from './presentation-ready.ts';
 import { SimulationComponent } from '../simulation-component.ts';
 import { DEFAULT_OPTIONS } from '../../simulation/config.ts';
 import { InputController, type TouchAction } from '../../input/controller.ts';
@@ -91,6 +92,9 @@ try {
           if (node instanceof TransformNode) node.position.y -= 0.25; // Same suspension datum as the Three.js adapter.
         }
         currentScene.scene.getMeshByName('migration-proxy-0')?.setEnabled(false);
+        assetStatus.textContent = 'Preparing original model materials for rendering…';
+        await waitForPresentation(currentScene.scene, signal);
+        if (signal.aborted) return;
         assetStatus.textContent =
           'Original Formula asset loaded in Babylon. LOD, driver and wheel animation parity are still pending.';
       } catch (error) {

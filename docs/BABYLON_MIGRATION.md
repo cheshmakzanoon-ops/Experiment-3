@@ -51,3 +51,7 @@ This is staged migration, not a promise that installing a second renderer makes 
 Actions run `41163173580` passed real Babylon startup/pause/resume/restart and discipline switching on SwiftShader. The original-model import failed its compressed-byte check. The importer now accepts only either the exact compressed hash or the exact decoded hash, matching browser-transparent gzip transport; new tests verify both representations and corruption rejection. A repeat browser run is still required. This is a repaired candidate, not a claimed GPU pass.
 
 Actions run [41164885118](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41164885118), source `eff454e9`, passed the repaired importer, real renderer lifecycle, production keyboard/touch inputs and discipline switching. Its screenshots confirm the original model is present and road normals face the light. This remains an integration workbench: environment, materials, livery, animation and full-mode presentation parity are not complete.
+
+## Model presentation readiness
+
+Native screenshot inspection found that the decoded-model status could precede visible GPU output, particularly when the scene was already paused. Import success now waits for two completed frames with ready scene materials before announcing the model as loaded. Restart/scene disposal aborts that wait and removes its observers. Three focused lifecycle tests pass; fresh real-renderer/native captures remain required to confirm the visual result. This fixes readiness reporting, not material, livery or animation parity.

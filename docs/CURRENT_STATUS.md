@@ -4,7 +4,7 @@ Updated 2026-10-31. This page separates source integration from successful valid
 
 ## Shipping direction
 
-**Desktop first:** Windows EXE, macOS DMG/app and Linux AppImage/archive builds through GitHub Actions. Babylon.js is the main engine direction with the custom simulation retained; the website is secondary. Native run [41169800313](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41169800313), source `27bfb66`, passes packaged launch, keyboard driving, pause/restart, original Formula-model import and renderer isolation on Windows x64, Linux x64 (Mesa CI) and Apple Silicon. Intel macOS packages build but the hosted VM cannot initialize EGL/OpenGL. Its x64 lane now builds/runs under Rosetta on Apple Silicon with explicit target/host/runtime architecture checks; that rerun is pending. Physical Intel graphics validation, signing/notarization and a successful four-platform prerelease remain open. See [desktop delivery](DESKTOP_DELIVERY.md).
+**Desktop first:** Windows EXE, macOS DMG/app and Linux AppImage/archive builds through GitHub Actions. Babylon.js is the main engine direction with the custom simulation retained; the website is secondary. Native run [41169800313](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41169800313), source `27bfb66`, passes packaged launch, keyboard driving, pause/restart, original Formula-model import and renderer isolation on Windows x64, Linux x64 (Mesa CI) and Apple Silicon. Intel macOS packages build but the hosted VM cannot initialize EGL/OpenGL. Its x64 lane now builds/runs under Rosetta on Apple Silicon with explicit target/host/runtime architecture checks; the x64/Rosetta run starts Babylon with Metal/WebGL and reports the correct translated x64 process, but its pointer-action stability check timed out. Explicit native-window activation is being verified without extending that timeout. Physical Intel graphics validation, signing/notarization and a successful four-platform prerelease remain open. See [desktop delivery](DESKTOP_DELIVERY.md).
 
 ## Consolidation
 
@@ -12,7 +12,7 @@ All eight audited branch tips are ancestors of `29a6f871db184c39de791d8e210d9099
 
 ## Validation in progress
 
-- Lint passed locally on the consolidated source.
+- Full lint and TypeScript completed successfully after the documented portability-regex repair; do not confuse the earlier partial-log report with a completed pass.
 - TypeScript and the production build passed locally. The build reports a large application chunk (about 14.6 MB minified / 4.5 MB gzip), a loading/performance risk to investigate.
 - The broad integration diagnostic completed: **4,976 passed / 4,994 total, 18 failed, zero skipped**. See the [failure ledger and focused follow-ups](maintenance/validation-2026-10-31.json). Later focused fixes and test-contract reviews are recorded separately; this is not an exact-commit all-green release certification. The latest local motocross run is **572/572 passing** after physical fixes and explicitly documented test-contract corrections. GP mixed-class pace remains open.
 - A GP planner repair accounts for finite brake-lever application time. Wet-contact steering recovery is grip-aware without changing the dry controller; all three two-lap GP contact-race cases and the braking approach suite pass in the focused candidate run.
@@ -21,6 +21,10 @@ All eight audited branch tips are ancestors of `29a6f871db184c39de791d8e210d9099
 - Pages is enabled and deployment [41161818741](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41161818741) succeeded. The live site returned HTTP 200 and `BUILD_IDENTITY.json` identified `59fefcb065d38e5436994262b70896b5ddaf184d` when checked at 04:36 UTC. Later commits require their own deployment verification.
 - New direct Formula / GP / Open World shortcuts have compatible-session unit tests. Their browser switching checks passed in Babylon integration run 41164885118.
 - The motocross airborne limiter regression passes without clamping existing overspeed momentum. A subsequent telemetry fix distinguishes passive wheel pickup from requested braking and retains unloaded-wheel kinematic slip. The subsequent passive hard-stop and touchdown repairs resolve four more cases without new failures. Brake/settling tests now exercise the finite-inertia model rather than assume instantaneous kinematic wheel constraints; the ledger distinguishes those contract changes from code fixes.
+
+## Full-suite checkpoint
+
+Frozen tracked source `207d5a6` completed all four local shards: **5,004/5,006 passed, two failed, zero skipped**. The mixed-class GP pace case remains a logical failure. A pit-release service-bay sweep exceeded its unchanged 30-second timeout under parallel load; all three tests in that file passed when rerun alone (exit 0). The original full-suite failure remains in the [ledger](maintenance/validation-2026-10-31.json). This is not an all-green release claim.
 
 ## Latest handling verification
 
