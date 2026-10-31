@@ -123,7 +123,9 @@ Required Ubuntu22/Mesa passed Babylon control/model/wheel/capture checks, then r
 
 The next diagnostic retains fatal-time observations and bounded, document-identified preparation events outside the renderer. A separate opt-in menu-DOF comparison must not change the normal shipping build or weaken original acceptance. A narrow post-query context-loss check corrects secondary error classification while retaining healthy-context allocation validation. Neither is claimed as a Mesa crash fix.
 
-The full CI suite for this source remains separately monitored. Isolated GP traffic-planner experiments are not merged: one produced a green best-lap assertion only after a new crash created a clear lap. Crash-induced separation is rejected as a racecraft fix.
+The full CI unit partitions finished with **5,281 passed and one failed** (the known mixed GP/superbike pace assertion). Off-road scenarios also failed: Arena Nord car 0 remained stopped for 21.1 s; twenty jump calibrations passed their band checks. Investigation observes a traffic-induced full-brake hold under local caution, not terrain trapping of the stopped player; the queue leads to another rider stranded near turn one. Scenario/browser jobs remain monitored. Isolated GP traffic-planner experiments are not merged: one produced a green best-lap assertion only after a new crash created a clear lap. Crash-induced separation is rejected as a racecraft fix.
+
+Main validation now retains the running suite while only the newest pending revision waits, using [GitHub's default single pending concurrency slot](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency). This prevents repeated cancellation of long race/browser evidence without running multiple full matrices or removing any gate. Non-main superseded runs remain cancellable. Publication still requires every existing dependency and a tested SHA that is still main.
 
 ## Remaining acceptance gates
 

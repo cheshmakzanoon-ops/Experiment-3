@@ -6,11 +6,13 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
-# Only the newest validation of a ref can qualify its current source.
-# Cancel superseded work instead of accumulating eight-browser matrices.
+# Let a running main validation finish so long race/browser evidence is not
+# repeatedly lost to the next verified increment. GitHub's default single
+# pending slot retains only the newest waiting run, not an unbounded backlog.
+# Publication still requires all gates and that the tested SHA remains main.
 concurrency:
   group: motobound-validation-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 jobs:
   validate:
     runs-on: ubuntu-latest
