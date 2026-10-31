@@ -2,6 +2,10 @@
 
 Start with [README](../README.md) for play instructions and [current status](CURRENT_STATUS.md) for verified progress. Older delivery reports describe their recorded commits, not the present build.
 
+## Engine migration
+
+`src/engine/simulation-component.ts` hosts the existing physics for the new main-engine architecture. `src/engine/babylon/` contains Babylon rendering, snapshot transfer and existing-asset import. `babylon.html` is the explicitly labelled integration preview; the root `index.html` remains the complete Three.js fallback during migration. See [migration gates](BABYLON_MIGRATION.md).
+
 ## Runtime code
 
 | Path                                                             | Responsibility                                                                 |

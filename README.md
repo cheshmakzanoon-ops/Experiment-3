@@ -10,6 +10,10 @@ MOTOBOUND is an independent browser-based motorsport game built with TypeScript 
 
 > **In development.** The game is not a finished commercial release. Visual polish, target-hardware performance and release validation remain ongoing. Online racing is an [experimental networking implementation](docs/production/ONLINE_SLICE.md), not a public multiplayer service.
 
+## Engine direction
+
+**Babylon.js is the main-engine migration target**, with the existing custom simulation retained as a component. The current complete game still uses Three.js while modes and assets migrate. The initial Babylon integration is available locally at `/babylon.html`; it is explicitly a diagnostic preview, not visual/gameplay parity. See [implementation and migration gates](docs/BABYLON_MIGRATION.md).
+
 ## Development source and downloads
 
 `main` is the consolidated development source, including the latest GP motorcycle work integrated on **2026-10-31**. [Current validation status](docs/CURRENT_STATUS.md) is distinct from historical phase reports.

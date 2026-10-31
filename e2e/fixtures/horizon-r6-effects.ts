@@ -321,7 +321,9 @@ export async function captureHorizonR6Effects(scenario: Scenario) {
   renderer.debug.onShaderError = (context, program, vertex, fragment) => {
     shaderErrors.push(
       [
-        context.getProgramInfoLog(program),
+        // Three 0.180 passes the native handle here; @types/three incorrectly
+        // declares its internal wrapper. Babylon adds fields to the DOM type.
+        context.getProgramInfoLog(program as unknown as WebGLProgram),
         context.getShaderInfoLog(vertex),
         context.getShaderInfoLog(fragment),
       ].join('\n'),

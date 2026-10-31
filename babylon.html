@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>MOTOBOUND · Babylon engine migration</title>
+  </head>
+  <body>
+    <canvas id="game" aria-label="Babylon engine driving preview"></canvas>
+    <section id="panel">
+      <h1>MOTOBOUND / BABYLON</h1>
+      <p>Engine integration preview · diagnostic geometry, not final visuals.</p>
+      <p>
+        Existing vehicle physics runs unchanged as a component. W/S throttle/brake · A/D steer · G
+        AI demo · Escape pause.
+      </p>
+      <button id="pause">Pause</button> <button id="restart">Restart</button>
+      <a href="./">Full Three.js game</a
+      ><button id="loadAsset">Inspect existing Formula asset (35 MB)</button>
+      <output id="assetStatus" aria-live="polite"
+        >Original authored asset is optional in this diagnostic preview.</output
+      >
+      <output id="status" aria-live="polite">Starting Babylon…</output>
+    </section>
+    <script type="module" src="/src/engine/babylon/main.ts"></script>
+  </body>
+</html>

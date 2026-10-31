@@ -1,0 +1,56 @@
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #10141a;
+  color: #edf3f8;
+  font:
+    14px system-ui,
+    sans-serif;
+}
+#game {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+#panel {
+  position: absolute;
+  inset: 16px auto auto 16px;
+  width: min(440px, calc(100vw - 64px));
+  padding: 16px;
+  background: #111820ed;
+  border: 1px solid #56616d;
+  border-radius: 8px;
+}
+h1 {
+  font-size: 18px;
+  letter-spacing: 0.08em;
+  margin-top: 0;
+}
+p {
+  line-height: 1.5;
+}
+button,
+a {
+  display: inline-block;
+  padding: 10px;
+  margin: 3px;
+  color: white;
+  background: #293746;
+  border: 1px solid #7d96ad;
+  border-radius: 4px;
+}
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid #ffa35b;
+  outline-offset: 2px;
+}
+output {
+  display: block;
+  margin-top: 12px;
+  min-height: 2em;
+  font-variant-numeric: tabular-nums;
+}
