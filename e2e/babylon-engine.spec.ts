@@ -53,8 +53,26 @@ test('Babylon imports the existing authored Formula asset and restart cancels ob
     'Original Formula asset loaded in Babylon',
     { timeout: 120000 },
   );
+  const driverSteering = async () =>
+    Number(await page.locator('#assetStatus').getAttribute('data-steering'));
+  await page.keyboard.down('a');
+  try {
+    await expect.poll(driverSteering).toBeGreaterThan(0.7);
+  } finally {
+    await page.keyboard.up('a');
+  }
+  await page.keyboard.down('d');
+  try {
+    await expect.poll(driverSteering).toBeLessThan(0.3);
+  } finally {
+    await page.keyboard.up('d');
+  }
+  await expect.poll(async () => Math.abs((await driverSteering()) - 0.5)).toBeLessThan(0.05);
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
   await expect(page.locator('#status')).toContainText('PAUSED');
+  const frozenDriver = await driverSteering();
+  await page.waitForTimeout(300);
+  expect(await driverSteering()).toBe(frozenDriver);
   await info.attach('babylon-original-formula-model.png', {
     body: await page.screenshot(),
     contentType: 'image/png',

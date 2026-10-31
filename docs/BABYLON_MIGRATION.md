@@ -55,3 +55,9 @@ Actions run [41164885118](https://github.com/cheshmakzanoon-ops/Experiment-3/act
 ## Model presentation readiness
 
 Native screenshot inspection found that the decoded-model status could precede visible GPU output, particularly when the scene was already paused. Import success now waits for two completed frames with ready scene materials before announcing the model as loaded. Restart/scene disposal aborts that wait and removes its observers. Three focused lifecycle tests pass; fresh real-renderer/native captures remain required to confirm the visual result. This fixes readiness reporting, not material, livery or animation parity.
+
+The `395d7df` native Apple Silicon capture now shows the original car after the rendered-ready gate; the earlier blank-road capture is no longer accepted as visible-model evidence. Linux reached all gameplay/isolation checks but its page-wide screenshot preparation exceeded 30 seconds. The native harness now captures the existing viewport surface through CDP, following the project's established visual-test method, with the same 30-second deadline and lossless PNG validation.
+
+## Authored driver steering adapter
+
+`ExistingPlayerSteering` locates the original `PLAYER_STEERING` animation, pauses autonomous playback and samples it only from the authoritative snapshot's steering value. The existing `steeringSample` mapping was extracted unchanged into a renderer-independent module and re-exported for the Three.js implementation. Unit checks cover both locks, neutral, nonzero clip frame ranges, unchanged snapshots, paused rendering, invalid inputs, missing/ambiguous clips and disposal; the original supplied-player tests still pass. The real-renderer journey now exercises left/right keys and checks that the sampled clip freezes during pause. GPU verification is pending for this increment. Wheel deformation/rotation, driver-camera treatment, LOD and material parity remain separate work.

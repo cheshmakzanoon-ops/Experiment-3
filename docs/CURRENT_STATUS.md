@@ -26,6 +26,10 @@ All eight audited branch tips are ancestors of `29a6f871db184c39de791d8e210d9099
 
 Frozen tracked source `207d5a6` completed all four local shards: **5,004/5,006 passed, two failed, zero skipped**. The mixed-class GP pace case remains a logical failure. A pit-release service-bay sweep exceeded its unchanged 30-second timeout under parallel load; all three tests in that file passed when rerun alone (exit 0). The original full-suite failure remains in the [ledger](maintenance/validation-2026-10-31.json). This is not an all-green release claim.
 
+## Latest Babylon increment
+
+The rendered-ready import gate has visible-car evidence from the `395d7df` Apple Silicon native capture. Authored driver steering now has a snapshot-driven Babylon adapter sharing the original mapping; 42 focused engine/desktop/input/supplied-player tests, TypeScript, production build and completed lint pass locally. Real-input browser verification of this new driver adapter is pending. Native CI also retains the unchanged 30-second screenshot budget while switching to direct viewport capture, and treats Rosetta background scheduling explicitly as a test-host condition rather than shipping behavior.
+
 ## Latest handling verification
 
 - GP overtaking now reserves enough lane-target room for finite lean response. The unchanged real catch-and-pass test completes without contact and reproduces its snapshot exactly. Shared traffic and GP braking/riding checks pass (28 cases); mixed GP/superbike pace still fails.

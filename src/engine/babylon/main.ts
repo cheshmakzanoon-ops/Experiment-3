@@ -2,6 +2,7 @@ import { TransformNode } from '@babylonjs/core/Meshes/transformNode.js';
 import { Engine } from '@babylonjs/core/Engines/engine.js';
 import { BabylonCircuitScene } from './circuit-scene.ts';
 import { waitForPresentation } from './presentation-ready.ts';
+import { ExistingPlayerSteering } from './existing-player-steering.ts';
 import { SimulationComponent } from '../simulation-component.ts';
 import { DEFAULT_OPTIONS } from '../../simulation/config.ts';
 import { InputController, type TouchAction } from '../../input/controller.ts';
@@ -17,6 +18,7 @@ const restart = document.querySelector<HTMLButtonElement>('#restart')!;
 const loadAsset = document.querySelector<HTMLButtonElement>('#loadAsset')!;
 const assetStatus = document.querySelector<HTMLOutputElement>('#assetStatus')!;
 let assetLoad = new AbortController();
+let playerSteering: ExistingPlayerSteering | undefined;
 const controlStatus = document.querySelector<HTMLOutputElement>('#controlStatus')!;
 let input: InputController | undefined;
 let inputPump: InputPump | undefined;
@@ -38,6 +40,9 @@ function setPaused(value: boolean) {
 }
 function reset() {
   assetLoad.abort();
+  playerSteering?.dispose();
+  playerSteering = undefined;
+  delete assetStatus.dataset.steering;
   assetLoad = new AbortController();
   loadAsset.disabled = false;
   assetStatus.textContent = 'Original authored asset is optional in this diagnostic preview.';
@@ -86,7 +91,15 @@ try {
       try {
         const { loadExistingPlayer } = await import('./existing-player.ts');
         const container = await loadExistingPlayer(currentScene.scene, document.baseURI, signal);
+        let steering: ExistingPlayerSteering;
+        try {
+          steering = new ExistingPlayerSteering(container.animationGroups);
+        } catch (error) {
+          container.dispose();
+          throw error;
+        }
         container.addAllToScene();
+        playerSteering = steering;
         for (const node of container.rootNodes) {
           node.parent = currentScene.entrants[0];
           if (node instanceof TransformNode) node.position.y -= 0.25; // Same suspension datum as the Three.js adapter.
@@ -96,7 +109,7 @@ try {
         await waitForPresentation(currentScene.scene, signal);
         if (signal.aborted) return;
         assetStatus.textContent =
-          'Original Formula asset loaded in Babylon. LOD, driver and wheel animation parity are still pending.';
+          'Original Formula asset loaded in Babylon. Driver steering follows physics; LOD, wheels and full material parity are still pending.';
       } catch (error) {
         if (signal.aborted) return;
         loadAsset.disabled = false;
@@ -130,6 +143,8 @@ try {
       seconds = (now - last) / 1000;
     last = now;
     component.advance(seconds);
+    if (playerSteering)
+      assetStatus.dataset.steering = String(playerSteering.apply(component.frame));
     scene!.render(component.frame);
     if (now - lastStatus > 250) {
       lastStatus = now;
@@ -142,6 +157,7 @@ try {
     'pagehide',
     () => {
       assetLoad.abort();
+      playerSteering?.dispose();
       abort.abort();
       inputPump?.dispose();
       input?.dispose();
