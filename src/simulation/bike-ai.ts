@@ -187,10 +187,16 @@ export class BikeAIDriver extends AIDriver {
     const w = BIKE_AI.bandwidth;
     // Corrections are gentle: their lateral acceleration is bounded, so a
     // lane error never asks for a full-lean swerve on a straight.
+    // Wet contact needs gentler recovery than the calibrated dry line follower:
+    // a dry-sized correction consumes the slick's remaining lateral grip and
+    // sends the next correction to the opposite steering stop.
+    const wetContact = Math.max(c.contacts[0].water, c.contacts[2].water) > 0.01;
+    const correctionG =
+      d.motoGP && wetContact ? BIKE_AI.correctionG * clamp(d.grip, 0.15, 1) : BIKE_AI.correctionG;
     const correction = clamp(
       (w * w * error) / (v * v) + (2 * BIKE_AI.damping * w * headingError) / v,
-      (-BIKE_AI.correctionG * G) / (v * v),
-      (BIKE_AI.correctionG * G) / (v * v),
+      (-correctionG * G) / (v * v),
+      (correctionG * G) / (v * v),
     );
     return leanFromCurvature(c, feedForward + correction, steer);
   }
@@ -243,8 +249,12 @@ export class BikeAIDriver extends AIDriver {
         env.brakingBase * grip * env.brakingMargin,
         track.length,
       );
+    // The GP lever ramps to full pressure rather than applying instantly.
+    // Reserve the mean half-rise travel before the solved braking profile.
+    // Otherwise the planner promises deceleration the rider cannot yet supply.
+    const leverResponseDistance = d.speed / (2 * GP_AI_HANDS.brakeApply);
     for (let i = 0; i < count; i++) {
-      const k = this.steeringLineCurvature(track, c.s + i * ENVELOPE_STEP),
+      const k = this.steeringLineCurvature(track, c.s + leverResponseDistance + i * ENVELOPE_STEP),
         curvature = k / Math.max(0.5, 1 - k * tactical);
       this.approachCurvatures[i] = Math.abs(curvature);
       this.approachCorners[i] = envelopeCornerSpeed(curvature, grip, aero, env) * this.skill;

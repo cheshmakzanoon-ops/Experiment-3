@@ -10,10 +10,11 @@ All eight audited branch tips are ancestors of `29a6f871db184c39de791d8e210d9099
 
 - Lint passed locally on the consolidated source.
 - TypeScript and the production build passed locally. The build reports a large application chunk (about 14.6 MB minified / 4.5 MB gzip), a loading/performance risk to investigate.
-- Full unit tests are still running. No all-green claim yet.
+- Full unit tests are still running. More than 2,900 cases have been exercised; GP passing/mixed-class pace and multiple motocross contact/collision regressions remain. No all-green claim.
+- A GP planner repair accounts for finite brake-lever application time. Wet-contact steering recovery is grip-aware without changing the dry controller; all three two-lap GP contact-race cases and the braking approach suite pass in the focused candidate run.
 - Formula, GP motorcycles, motocross/supercross and festival must each pass actual browser journeys. Menu presence alone does not prove playability.
 - Latest downloadable release remains `playable-3a6036de` (2026-10-06). It is not the latest source.
-- Pages build passed, but deployment failed: the workflow token cannot create the Pages site. The repository owner must select **Settings → Pages → Source → GitHub Actions** before deployment can succeed.
+- Pages is enabled and deployment [41161818741](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41161818741) succeeded. The live site returned HTTP 200 and `BUILD_IDENTITY.json` identified `eebb4ec847e8e99b669994817a3bd7ec95769f51` when checked. Later commits require their own deployment verification.
 - New direct Formula / GP / Open World shortcuts have compatible-session unit tests. Their browser switching checks remain pending.
 - The motocross airborne limiter regression now passes without clamping existing overspeed momentum. Five wheel-pickup suite failures reproduce with and without the fix; these remain open.
 

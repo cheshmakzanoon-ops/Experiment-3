@@ -15,7 +15,11 @@ describe('independent CI diagnostics with strict release gates', () => {
       unit = job('unit-tests');
     expect(build).toContain('npm run lint && npm run validate:content && npm run build');
     expect(build).not.toMatch(/npm (?:test|run check)/);
-    expect(unit).toMatch(/scripts\/source-stability\.ts -- npm test(?:\n|$)/);
+    expect(unit).toContain(
+      'scripts/source-stability.ts -- npm test -- --shard=${{ matrix.shard }}/4 --reporter=verbose',
+    );
+    expect(unit).toContain('shard: [1, 2, 3, 4]');
+    expect(unit).toContain('fail-fast: false');
     expect(unit).not.toMatch(/continue-on-error|--exclude|--testNamePattern|--passWithNoTests/);
     expect(build).not.toMatch(/needs:/);
     expect(unit).not.toMatch(/needs:/);

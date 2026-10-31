@@ -32,3 +32,35 @@ test('Babylon migration entry renders existing simulation and supports pause, re
     contentType: 'image/png',
   });
 });
+
+test('Babylon imports the existing authored Formula asset and restart cancels obsolete loading', async ({
+  page,
+}, info) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/babylon.html');
+  await expect(page.locator('#status')).toContainText('DRIVING');
+  const load = page.getByRole('button', {
+    name: 'Inspect existing Formula asset (35 MB)',
+    exact: true,
+  });
+  await load.click();
+  await page.getByRole('button', { name: 'Restart', exact: true }).click();
+  await expect(load).toBeEnabled();
+  await expect(page.locator('#assetStatus')).toContainText('optional');
+  await load.click();
+  await expect(page.locator('#assetStatus')).toContainText(
+    'Original Formula asset loaded in Babylon',
+    { timeout: 120000 },
+  );
+  await page.getByRole('button', { name: 'Pause', exact: true }).click();
+  await expect(page.locator('#status')).toContainText('PAUSED');
+  await info.attach('babylon-original-formula-model.png', {
+    body: await page.screenshot(),
+    contentType: 'image/png',
+  });
+  await page.getByRole('button', { name: 'Restart', exact: true }).click();
+  await expect(load).toBeEnabled();
+  await expect(page.locator('#assetStatus')).toContainText('optional');
+  expect(errors).toEqual([]);
+});

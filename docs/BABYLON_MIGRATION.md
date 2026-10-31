@@ -13,11 +13,15 @@ Owner direction, 2026-10-31: Babylon.js is the main engine for future developmen
 
 Run `npm ci`, `npm run dev`, then open `/babylon.html` on the printed local server. This is a migration workbench, not a release-quality replacement for the four-discipline game.
 
+## Existing procedural geometry
+
+`src/engine/babylon/legacy-geometry.ts` transfers original indexed/interleaved geometry, normals, UVs, vertex colours, local transforms and material groups into Babylon without disposing or modifying the source asset. Plain PBR/basic materials retain their numerical properties. Textures, custom shader hooks, skins, morphs and instancing currently fail explicitly instead of silently losing content. This is an adapter foundation, not proof that every production model is ported. Three NullEngine contract tests currently verify the boundary.
+
 ## Verified and pending
 
 `tests/babylon-integration.test.ts` checks identical original simulation snapshots at 60 Hz and 144 Hz, bounded catch-up, pause/input release, actual Babylon node transfer, invalid-pose rejection, contact-track width and scene disposal using Babylon's NullEngine. **NullEngine tests are not visual/GPU acceptance.**
 
-`e2e/babylon-engine.spec.ts` exercises the real WebGL entry, pause/resume/restart and records a screenshot. Browser execution remains required. Optional high-detail asset import is not certified by that test.
+`e2e/babylon-engine.spec.ts` exercises the real WebGL entry, pause/resume/restart and records a screenshot. Browser execution remains required. The dedicated `Babylon engine integration` Actions workflow builds both entries, runs the boundary tests, checks real WebGL pause/restart and imports the original Formula model, retaining screenshots and failure traces. It supplements, rather than replaces, the full release gates. Optional high-detail asset import is not certified by that test.
 
 The existing Three.js type declarations incorrectly describe the native shader-error program argument as Three's internal wrapper. Babylon's DOM declarations exposed that mismatch. Three browser fixtures now explicitly cast this native handle at the diagnostic boundary; runtime diagnostics are unchanged, and type checking remains enabled.
 

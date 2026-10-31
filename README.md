@@ -18,7 +18,7 @@ MOTOBOUND is an independent browser-based motorsport game built with TypeScript 
 
 `main` is the consolidated development source, including the latest GP motorcycle work integrated on **2026-10-31**. [Current validation status](docs/CURRENT_STATUS.md) is distinct from historical phase reports.
 
-- **Website deployment pending:** GitHub Pages must first be enabled in repository settings; the intended URL is [here](https://cheshmakzanoon-ops.github.io/Experiment-3/).
+- [Playable development website](https://cheshmakzanoon-ops.github.io/Experiment-3/) · [Babylon migration preview](https://cheshmakzanoon-ops.github.io/Experiment-3/babylon.html)
 - [Downloadable releases](https://github.com/cheshmakzanoon-ops/Experiment-3/releases)
 - [Build and validation runs](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/workflows/ci.yml)
 

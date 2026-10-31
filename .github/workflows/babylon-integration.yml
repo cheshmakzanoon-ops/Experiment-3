@@ -1,0 +1,49 @@
+name: Babylon engine integration
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/engine/**'
+      - 'babylon.html'
+      - 'vite.config.ts'
+      - 'package*.json'
+      - 'tests/babylon-*.test.ts'
+      - 'e2e/babylon-engine.spec.ts'
+      - 'e2e/discipline-entry.spec.ts'
+      - '.github/workflows/babylon-integration.yml'
+permissions:
+  contents: read
+concurrency:
+  group: babylon-integration-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Validate source and both entry points
+        run: npm run lint && npm run build
+      - name: Engine component and existing asset geometry contracts
+        run: npx vitest run tests/babylon-integration.test.ts tests/babylon-legacy-geometry.test.ts tests/discipline-presets.test.ts
+      - run: npx playwright install --with-deps chromium
+      - name: Real WebGL engine, model import and mode-switching journeys
+        run: npx playwright test e2e/babylon-engine.spec.ts e2e/discipline-entry.spec.ts
+      - name: Preserve browser evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: babylon-integration-${{ github.sha }}
+          path: |
+            test-results/
+            playwright-report/
+            browser-backend.json
+            browser-progress.json
+            dist/BUILD_IDENTITY.json
+          retention-days: 14
