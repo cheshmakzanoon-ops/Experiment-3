@@ -31,6 +31,7 @@ export interface ProgramReadinessReport {
   status: 'complete' | 'cancelled' | 'unsupported' | 'failed';
   livePrograms: number;
   queriedPrograms: number;
+  initializedPrograms: number;
   queries: number;
   elapsedMs: number;
 }
@@ -41,6 +42,8 @@ export interface ProgramReadinessOptions {
   now?: () => number;
   maxWaitMs?: number;
   batchSize?: number;
+  /** Preserve Three first-use validation before any full warm draw. */
+  initializeCaches?: boolean;
   report?: (value: ProgramReadinessReport) => void;
 }
 
@@ -71,6 +74,7 @@ export async function waitForAllPrograms(
   const deadline = started + maxWaitMs;
   const queried = new Set<WebGLProgram>();
   let queries = 0;
+  let initializedPrograms = 0;
   let status: ProgramReadinessReport['status'] = 'failed';
   const finish = (value: 'complete' | 'cancelled' | 'unsupported') => {
     status = value;
@@ -130,12 +134,35 @@ export async function waitForAllPrograms(
       return finish(stopped() ? 'cancelled' : 'unsupported');
     }
     const complete = new Set<WebGLProgram>();
+    const initialized = new Set<WebGLProgram>();
     for (;;) {
       if (stopped()) return finish('cancelled');
       const pending = (renderer.info.programs ?? [])
         .map((program) => program.program as WebGLProgram)
         .filter((program) => !complete.has(program));
-      if (!pending.length) return finish('complete');
+      if (!pending.length) {
+        if (!options.initializeCaches) return finish('complete');
+        // The KHR phase observed these handles complete. Never reflect programs
+        // that appeared during a yield until the outer loop also checks them.
+        const caches = (renderer.info.programs ?? []).filter(
+          (program) => complete.has(program.program) && !initialized.has(program.program),
+        );
+        if (!caches.length) return finish('complete');
+        for (const program of caches.slice(0, Math.min(batchSize, 4))) {
+          if (stopped()) return finish('cancelled');
+          if (!(renderer.info.programs ?? []).includes(program)) continue;
+          // Preserve native receiver and normal error checks. r180's first
+          // getter initializes BOTH caches; the second must be a cache hit.
+          program.getUniforms();
+          if (stopped()) return finish('cancelled');
+          program.getAttributes();
+          if (stopped()) return finish('cancelled');
+          initialized.add(program.program);
+          initializedPrograms++;
+        }
+        await yieldObserved();
+        continue;
+      }
       for (let index = 0; index < pending.length; index++) {
         if (stopped()) return finish('cancelled');
         const program = pending[index];
@@ -164,6 +191,7 @@ export async function waitForAllPrograms(
         status,
         livePrograms: renderer.info.programs?.length ?? 0,
         queriedPrograms: queried.size,
+        initializedPrograms,
         queries,
         elapsedMs: Math.max(0, now() - started),
       });
@@ -182,7 +210,8 @@ export async function waitForAllPrograms(
  * borrowed view identity. Cancellation returns it without claiming readiness;
  * callers must honor their cancellation predicate before drawing. Native driver
  * calls cannot be preempted by JavaScript. The 45s budget starts AFTER
- * synchronous submission/restoration and bounds readiness polling, not total
+ * synchronous submission/restoration and bounds readiness polling plus opted-in
+ * cache initialization, not total
  * compilation. A readiness query returning over budget fails closed; no new
  * synchronous-compilation time cap is imposed. Scheduler timers may themselves
  * be throttled, so this is not a hard wall-clock preemption guarantee. */
@@ -223,6 +252,8 @@ export interface PreparationCheckpoint {
   phase: 'start' | 'end' | 'error' | 'cancelled' | 'mark';
   label: string;
   at: number;
+  /** Valid structured JSON, capped at32KiB UTF-8; never an arbitrary string slice. */
+  detailJSON?: string;
 }
 
 interface PreparationRecord {
@@ -245,10 +276,31 @@ export class PreparationTrace {
     private readonly now = () => performance.now(),
     private readonly observer?: (event: PreparationCheckpoint) => void,
   ) {}
-  checkpoint(phase: PreparationCheckpoint['phase'], label: string, span = 0) {
+  checkpoint(phase: PreparationCheckpoint['phase'], label: string, span = 0, detail?: unknown) {
     const record = this.current;
     if (!record || record.status !== 'preparing') return 0;
     const sequence = ++record.checkpointSequence;
+    let detailJSON: string | undefined;
+    if (detail !== undefined) {
+      try {
+        detailJSON = JSON.stringify(detail);
+        if (detailJSON !== undefined) {
+          const bytes = new TextEncoder().encode(detailJSON).byteLength;
+          if (bytes > 32768)
+            detailJSON = JSON.stringify({
+              truncated: true,
+              reason: 'checkpoint-detail-byte-limit',
+              originalBytes: bytes,
+              limitBytes: 32768,
+            });
+        }
+      } catch {
+        detailJSON = JSON.stringify({
+          truncated: true,
+          reason: 'checkpoint-detail-not-serializable',
+        });
+      }
+    }
     const event = {
       run: record.run,
       sequence,
@@ -256,6 +308,7 @@ export class PreparationTrace {
       phase,
       label: label.slice(0, 160),
       at: this.now(),
+      ...(detailJSON === undefined ? {} : { detailJSON }),
     };
     if (record.checkpoints.length === 256) {
       record.checkpoints.shift();

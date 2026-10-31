@@ -37,22 +37,80 @@ export async function probeProgramReadiness(canvas: HTMLCanvasElement) {
   skinned.position.x = 1.5;
   scene.add(mesh, instances, skinned, new T.HemisphereLight());
   oldScene.add(new T.Mesh(geometry, older));
-  const originalQuery = gl.getProgramParameter;
-  const descriptor = Object.getOwnPropertyDescriptor(gl, 'getProgramParameter');
   const baselineQueries: WebGLProgram[] = [],
     coverageQueries: WebGLProgram[] = [];
-  let phase: 'compile' | 'coverage' | 'render' = 'compile';
-  gl.getProgramParameter = function (program, parameter) {
-    if (parameter === extension.COMPLETION_STATUS_KHR) {
-      if (phase === 'compile') baselineQueries.push(program);
-      if (phase === 'coverage') coverageQueries.push(program);
-    } else if (phase === 'coverage') {
-      throw new Error('Readiness must only query COMPLETION_STATUS_KHR');
-    }
-    return originalQuery.call(this, program, parameter);
+  const primedPrograms = new Set<WebGLProgram>();
+  const queries = {
+    compile: {} as Record<string, number>,
+    prime: {} as Record<string, number>,
+    render: {} as Record<string, number>,
   };
+  let phase: 'compile' | 'coverage' | 'render' = 'compile';
+  let cacheDepth = 0;
   let yields = 0;
+  const restore: (() => void)[] = [];
+  const wrap = (
+    owner: object,
+    key: string,
+    observe: (
+      original: (...args: unknown[]) => unknown,
+      receiver: unknown,
+      args: unknown[],
+    ) => unknown,
+  ) => {
+    const descriptor = Object.getOwnPropertyDescriptor(owner, key);
+    const original = Reflect.get(owner, key) as (...args: unknown[]) => unknown;
+    restore.push(() => {
+      if (descriptor) Object.defineProperty(owner, key, descriptor);
+      else Reflect.deleteProperty(owner, key);
+    });
+    Object.defineProperty(owner, key, {
+      configurable: true,
+      enumerable: descriptor?.enumerable ?? false,
+      writable: true,
+      value: function (this: unknown, ...args: unknown[]) {
+        return observe(original, this, args);
+      },
+    });
+  };
+  const observeReflection = (method: string, args: unknown[]) => {
+    if (phase === 'coverage' && cacheDepth === 0)
+      throw new Error(`Readiness queried ${method} outside native cache initialization`);
+    const counters = queries[phase === 'coverage' ? 'prime' : phase];
+    counters[method] = (counters[method] ?? 0) + 1;
+    if (phase === 'coverage' && method === 'getProgramInfoLog')
+      primedPrograms.add(args[0] as WebGLProgram);
+  };
   try {
+    wrap(gl, 'getProgramParameter', (original, receiver, args) => {
+      if (args[1] === extension.COMPLETION_STATUS_KHR) {
+        if (phase === 'compile') baselineQueries.push(args[0] as WebGLProgram);
+        if (phase === 'coverage') coverageQueries.push(args[0] as WebGLProgram);
+      } else {
+        const parameter =
+          args[1] === gl.LINK_STATUS
+            ? 'LINK_STATUS'
+            : args[1] === gl.ACTIVE_UNIFORMS
+              ? 'ACTIVE_UNIFORMS'
+              : args[1] === gl.ACTIVE_ATTRIBUTES
+                ? 'ACTIVE_ATTRIBUTES'
+                : String(args[1]);
+        observeReflection(`getProgramParameter:${parameter}`, args);
+      }
+      return Reflect.apply(original, receiver, args);
+    });
+    for (const method of [
+      'getProgramInfoLog',
+      'getShaderInfoLog',
+      'getActiveUniform',
+      'getActiveAttrib',
+      'getUniformLocation',
+      'getAttribLocation',
+    ])
+      wrap(gl, method, (original, receiver, args) => {
+        observeReflection(method, args);
+        return Reflect.apply(original, receiver, args);
+      });
     renderer.setRenderTarget(target);
     // Submit an older live program, with no readiness wait of its own. It may
     // already finish on a fast driver; coverage must not depend on that timing.
@@ -62,9 +120,22 @@ export async function probeProgramReadiness(canvas: HTMLCanvasElement) {
     renderer.setRenderTarget(null);
     await compiling;
     const programs = [...(renderer.info.programs ?? [])];
+    // Observe the actual library cache getters rather than inventing a helper
+    // phase callback. All native reflection/log calls must be nested here.
+    for (const program of programs)
+      for (const method of ['getUniforms', 'getAttributes'])
+        wrap(program, method, (original, receiver, args) => {
+          cacheDepth++;
+          try {
+            return Reflect.apply(original, receiver, args);
+          } finally {
+            cacheDepth--;
+          }
+        });
     phase = 'coverage';
     const complete = await waitForAllPrograms(renderer, {
       batchSize: 2,
+      initializeCaches: true,
       yieldControl: async () => {
         yields++;
         await new Promise<void>((resolve) => setTimeout(resolve, 0));
@@ -87,13 +158,14 @@ export async function probeProgramReadiness(canvas: HTMLCanvasElement) {
       olderPrograms: olderPrograms.length,
       olderChecked: olderPrograms.every((program) => coverageQueries.includes(program.program)),
       eachChecked: programs.every((program) => coverageQueries.includes(program.program)),
+      cacheQueries: queries,
+      eachPrimed: programs.every((program) => primedPrograms.has(program.program)),
       shaderErrorsEnabled: renderer.debug.checkShaderErrors,
       yields,
       glError: gl.getError(),
     };
   } finally {
-    if (descriptor) Object.defineProperty(gl, 'getProgramParameter', descriptor);
-    else Reflect.deleteProperty(gl, 'getProgramParameter');
+    for (const undo of restore.reverse()) undo();
     renderer.setRenderTarget(null);
     skeleton.dispose();
     instances.dispose();

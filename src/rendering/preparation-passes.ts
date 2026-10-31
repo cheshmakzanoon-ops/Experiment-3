@@ -3,6 +3,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import type { Pass } from 'three/addons/postprocessing/Pass.js';
 import type { DrawLedger } from './draw-ledger.ts';
 import type { PreparationTrace } from './preparation.ts';
+import { describeProgramChanges, snapshotPrograms } from './program-inventory.ts';
 
 /** Installed only for the synchronous preparation submission. Never retain a
  * method wrapper across an await or in ordinary driving/menu frames. */
@@ -10,7 +11,7 @@ export function observePreparationDraw<TValue>(
   trace: PreparationTrace,
   view: string,
   targets: {
-    renderer: Pick<T.WebGLRenderer, 'render'>;
+    renderer: Pick<T.WebGLRenderer, 'render'> & Partial<Pick<T.WebGLRenderer, 'info'>>;
     scene: T.Scene;
     camera: T.Camera;
     ledger: Pick<DrawLedger, 'mark'>;
@@ -20,6 +21,21 @@ export function observePreparationDraw<TValue>(
   draw: () => TValue,
 ): TValue {
   const { renderer, scene, camera, ledger, composer } = targets;
+  let inventory: ReturnType<typeof snapshotPrograms> | undefined;
+  try {
+    if (renderer.info) {
+      const programs = renderer.info.programs ?? [];
+      inventory = snapshotPrograms(programs);
+      trace.checkpoint(
+        'mark',
+        `${view}:programs-before`,
+        0,
+        describeProgramChanges(inventory, programs),
+      );
+    }
+  } catch {
+    trace.checkpoint('mark', `${view}:program-inventory-unavailable`);
+  }
   const restoreMethod = (owner: object, key: string, descriptor?: PropertyDescriptor) => {
     if (descriptor) Object.defineProperty(owner, key, descriptor);
     else Reflect.deleteProperty(owner, key);
@@ -70,6 +86,19 @@ export function observePreparationDraw<TValue>(
       restoreMethod(ledger, 'mark', markDescriptor);
       for (const { pass, descriptor } of passes) restoreMethod(pass, 'render', descriptor);
       if (setupOpen) trace.checkpoint('mark', `${view}:setup-exited-before-render`);
+      // Pure JS evidence only, after restoration, including failed draws. An
+      // unavailable inventory must never replace the original draw failure.
+      try {
+        if (inventory && renderer.info)
+          trace.checkpoint(
+            'mark',
+            `${view}:programs-after`,
+            0,
+            describeProgramChanges(inventory, renderer.info.programs ?? []),
+          );
+      } catch {
+        trace.checkpoint('mark', `${view}:program-inventory-unavailable`);
+      }
     }
   });
 }

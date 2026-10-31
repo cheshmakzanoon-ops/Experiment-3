@@ -199,3 +199,95 @@ it('removes temporary own methods when the originals were inherited', async () =
   expect(Object.hasOwn(f.pass, 'render')).toBe(false);
   expect(f.pass.render).toBe(inherited);
 });
+
+it('records bounded identity inventories around preparation only, after wrapper restoration', async () => {
+  const f = fixture(),
+    originalRender = f.renderer.render;
+  const programs = [{ id: 1, name: 'old', cacheKey: 'old-key' }];
+  Object.assign(f.renderer, { info: { programs } });
+  const events: PreparationCheckpoint[] = [];
+  const trace = new PreparationTrace(
+    () => 1,
+    (event) => {
+      if (event.label.endsWith('programs-after')) expect(f.renderer.render).toBe(originalRender);
+      events.push(event);
+    },
+  );
+  await trace.run(
+    () => {},
+    async () => {
+      observePreparationDraw(trace, 'chase', f.targets, () => {
+        programs.splice(0, 1, { id: 2, name: 'new material', cacheKey: 'new-key' });
+      });
+      return true;
+    },
+  );
+  const before = JSON.parse(events.find((e) => e.label === 'chase:programs-before')!.detailJSON!);
+  const after = JSON.parse(events.find((e) => e.label === 'chase:programs-after')!.detailJSON!);
+  expect(before.oldIds).toEqual([1]);
+  expect(after).toMatchObject({
+    beforeCount: 1,
+    afterCount: 1,
+    oldIds: [1],
+    newIds: [2],
+    removedIds: [1],
+    newPrograms: [{ id: 2, name: 'new material', cacheKey: 'new-key' }],
+  });
+  const count = events.length;
+  f.renderer.render(f.targets.scene, f.targets.camera);
+  expect(events).toHaveLength(count);
+});
+
+it('never replaces the original draw failure with an unavailable inventory', async () => {
+  const f = fixture(),
+    original = f.renderer.render;
+  let unavailable = false;
+  Object.defineProperty(f.renderer, 'info', {
+    get() {
+      if (unavailable) throw new Error('inventory unavailable');
+      return { programs: [] };
+    },
+  });
+  await expect(
+    f.trace.run(
+      () => {},
+      async () => {
+        observePreparationDraw(f.trace, 'chase', f.targets, () => {
+          unavailable = true;
+          throw new Error('actual draw failure');
+        });
+        return true;
+      },
+    ),
+  ).rejects.toThrow('actual draw failure');
+  expect(f.renderer.render).toBe(original);
+  expect(f.events.some((e) => e.label === 'chase:program-inventory-unavailable')).toBe(true);
+});
+
+it('keeps structured checkpoint detail valid JSON within32KiB UTF-8 with explicit truncation', async () => {
+  const trace = new PreparationTrace();
+  const cyclic: { self?: unknown } = {};
+  cyclic.self = cyclic;
+  await trace.run(
+    () => {},
+    async () => {
+      trace.checkpoint('mark', 'valid', 0, { value: 'kept', ids: [1, 2] });
+      trace.checkpoint('mark', 'oversized', 0, { value: '😀'.repeat(20000) });
+      trace.checkpoint('mark', 'cyclic', 0, cyclic);
+      return true;
+    },
+  );
+  const events = trace.snapshot()!.checkpoints;
+  expect(JSON.parse(events[0].detailJSON!)).toEqual({ value: 'kept', ids: [1, 2] });
+  expect(JSON.parse(events[1].detailJSON!)).toMatchObject({
+    truncated: true,
+    reason: 'checkpoint-detail-byte-limit',
+    limitBytes: 32768,
+  });
+  expect(JSON.parse(events[2].detailJSON!)).toEqual({
+    truncated: true,
+    reason: 'checkpoint-detail-not-serializable',
+  });
+  for (const event of events)
+    expect(new TextEncoder().encode(event.detailJSON).byteLength).toBeLessThanOrEqual(32768);
+});

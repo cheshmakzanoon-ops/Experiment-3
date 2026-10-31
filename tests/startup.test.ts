@@ -16,6 +16,11 @@ function fixture(vehicle = 'apx01', entrants = 3) {
   const follow = 1;
   sample[carBase(follow) + RACE_BASE + R.VEHICLE] = vehicleIndex(vehicle);
   const target = {
+    preparePresentation: (
+      RacingRenderer.prototype as unknown as {
+        preparePresentation: (...args: unknown[]) => Promise<boolean>;
+      }
+    ).preparePresentation,
     cars: [] as { root: T.Group; update: ReturnType<typeof vi.fn> }[],
     follow,
     quality: 'high',
@@ -492,7 +497,7 @@ it('drains the complete environment and compiles its real light/map context befo
   ]);
   expect(calls.indexOf('shadow-casters')).toBeLessThan(environment);
   expect(calls.indexOf('draw')).toBeGreaterThan(environment + 3);
-  expect(target.warmEnvironmentFrame).toHaveBeenCalledExactlyOnceWith(sample);
+  expect(target.warmEnvironmentFrame).toHaveBeenCalledExactlyOnceWith(sample, false);
   expect(target.draw).toHaveBeenCalledTimes(2);
   expect(target.warmupFrames).toBe(2);
   expect(sample).toEqual(before);
@@ -659,4 +664,118 @@ it('does not submit shadows, views or restore disposed camera state after progra
   expect(target.draw).not.toHaveBeenCalled();
   expect(target.reset).not.toHaveBeenCalled();
   expect(target.renderer.getRenderTarget()).toBeNull();
+});
+
+it.each(['apx01', 'gpr1', 'mx450'])(
+  'prepares only the exact frozen menu view for selected %s without race/pit views or sample writes',
+  async (vehicle) => {
+    const { target, typed, sample, calls } = fixture(vehicle, 2);
+    target.follow = 0;
+    sample[H.CARS] = 1;
+    sample[H.TIME] = 42;
+    sample[H.WATER] = 0.25;
+    sample[H.CLOUD] = 0.6;
+    sample[carBase(0) + RACE_BASE + R.VEHICLE] = vehicleIndex(vehicle);
+    const before = sample.slice(),
+      ready = vi.fn(async () => {});
+    Object.assign(target, {
+      lighting: 'night',
+      guide: { mode: 'full' },
+      photoSky: { enabled: true, ready },
+      gpLook: { clearSky: null },
+    });
+    target.draw.mockImplementation((a, b, alpha, dt, menu, replay) => {
+      expect(a).toBe(sample);
+      expect(b).toBe(sample);
+      expect(alpha).toBe(0);
+      expect(dt).toBe(1 / 120);
+      expect(menu).toBe(true);
+      expect(replay).toBe(false);
+      expect(sample).toEqual(before);
+      calls.push('menu-draw');
+    });
+    expect(
+      await RacingRenderer.prototype.prepareMenuPreview.call(
+        typed,
+        sample,
+        vi.fn(),
+        () => false,
+        async () => {},
+      ),
+    ).toBe(true);
+    expect(ready).toHaveBeenCalledWith(sample[H.CLOUD], 'night');
+    expect(target.warmEnvironmentFrame).toHaveBeenCalledExactlyOnceWith(sample, true);
+    expect(target.renderer.compile).toHaveBeenCalledTimes(3);
+    expect(target.draw).toHaveBeenCalledTimes(1);
+    expect(target.warmPitPresentation).not.toHaveBeenCalled();
+    expect(target.reset).not.toHaveBeenCalled();
+    expect(target.mode).toBe('pod');
+    expect(calls).not.toContain('chase');
+    expect(calls).not.toContain('cockpit');
+    expect(target.warmupFrames).toBe(1);
+    expect(sample).toEqual(before);
+    expect(target.preparation.snapshot()?.status).toBe('complete');
+    expect(target.preparation.snapshot()?.stages.map((stage) => stage.label)).toContain(
+      'Warming the selected menu preview…',
+    );
+    expect(
+      target.preparation
+        .snapshot()
+        ?.checkpoints.some((event) => event.label === 'menu:fence-wait' && event.phase === 'end'),
+    ).toBe(true);
+  },
+);
+
+it('does not finish or adopt a menu view whose actual completion wait failed', async () => {
+  const { target, typed, sample } = fixture();
+  target.draw.mockImplementation(() => {});
+  target.waitForPreparedFrame.mockImplementation(async () => {
+    if (target.draw.mock.calls.length) throw new Error('menu GPU completion failed');
+  });
+  await expect(
+    RacingRenderer.prototype.prepareMenuPreview.call(
+      typed,
+      sample,
+      vi.fn(),
+      () => false,
+      async () => {},
+    ),
+  ).rejects.toThrow('menu GPU completion failed');
+  expect(target.draw).toHaveBeenCalledTimes(1);
+  expect(target.warmPitPresentation).not.toHaveBeenCalled();
+  expect(target.reset).not.toHaveBeenCalled();
+  expect(target.preparation.snapshot()?.status).toBe('failed');
+});
+
+it('uses actual menu flags for environment-only setup and restores its ownership', () => {
+  const sample = new Float32Array(HEADER + CAR_STRIDE);
+  let submitted = 0;
+  const target = {
+    warmingEnvironment: false,
+    environmentScopeRestored: false,
+    environmentWarmup: null as unknown,
+    draw: vi.fn((_a, _b, _alpha, _dt, _menu, _replay) => {
+      expect(target.warmingEnvironment).toBe(true);
+      target.environmentScopeRestored = true;
+    }),
+    drawLedger: {
+      snapshot: () => ({ probe: { calls: 0 }, mirrors: { calls: 0 }, composer: { calls: 0 } }),
+    },
+    gpuFrames: {
+      submittedFrame: vi.fn(() => {
+        expect(target.warmingEnvironment).toBe(false);
+        submitted++;
+      }),
+      diagnostics: () => ({ submitted }),
+    },
+  };
+  const warm = (
+    RacingRenderer.prototype as unknown as {
+      warmEnvironmentFrame(frame: Float32Array, menu: boolean): void;
+    }
+  ).warmEnvironmentFrame;
+  warm.call(target, sample, true);
+  expect(target.draw).toHaveBeenCalledExactlyOnceWith(sample, sample, 0, 1 / 120, true, false);
+  expect(target.warmingEnvironment).toBe(false);
+  expect(submitted).toBe(1);
 });

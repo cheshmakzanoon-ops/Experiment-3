@@ -81,6 +81,20 @@ The Babylon candidate prepares actual off-scene material/mesh variants one at a 
 
 Local shader-candidate checks passed **205 tests across 19 files**, root/desktop TypeScript, full project lint, workflow lint and a source-stable production build (44.76 s). Independent ownership review found no remaining concrete blocker. Real-GL probe execution and native/browser qualification remain pending.
 
+### `b224200` / diagnostic `b46950f` outcomes and menu-first-use candidate
+
+Windows/Apple Silicon native journeys and five Babylon WebGL cases passed on `b224200`. Mesa completed all 172 material preparations and presented the model, then recorded a later GPU loss while a draw fence waited 28.314 seconds (last draw CPU time 11.3 ms). The preparation owner was inactive and complete at loss; this is not a stuck preparation job. Publication was skipped. The native GL probe passed: baseline compileAsync checked one of seven programs, the repair checked every variant/older program, and the real draw retained shader diagnostics with no GL error or new program. [Native run](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41200260122) · [Readiness probe/transition run](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41200260021).
+
+The unprofiled paused-grid deadline still failed despite complete 143/143 then 283/283 readiness observations. First scene submission remained expensive and later teardown reached pit preparation. Profiles locate synchronous GL APIs, not proof that their target program alone was still compiling; those calls can wait behind earlier queued work. Broader interaction was cancelled with Academy visibility and reference-view timeouts still open.
+
+`b46950f` changed only two workflow files. Its [SwiftShader comparison](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41201622064) passed all modes without recorded graphics faults. Its [Ubuntu24/Mesa comparison](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41201622147) failed before Electron connection; no actual renderer or launch cause was observed. Early Electron stderr logging is added for the next run; no sandbox or policy change is made. Required Ubuntu22/Mesa remains unchanged.
+
+The next candidate retains Three's original first-use diagnostics and reflection by invoking its cache getters only after all KHR completion observations, in batches of at most four programs. This shares the existing 45-second post-submission budget; no additional wait is added. Preparation-only identity inventories retain new/removed programs and bounded keys, including failures. No ordinary-frame observer is installed.
+
+Academy promotion now awaits one exact menu=true/alpha=0 preparation and completed GPU fence while the candidate remains unpublished. It uses the same frozen menu sample, selected lighting and guide; resize drains and reprepares the latest viewport. Race preparation still warms chase/cockpit and its original pit capability. No extra simulation tick or normal GameApp presentation frame is fabricated. Academy evidence uses checkpoint-only streaming, without new RAF/GL/timer hooks; its original assertions and deadlines remain.
+
+Final local validation passed **239 tests across 22 files**, root/desktop TypeScript, full project lint, workflow lint, whitespace checks and a source-stable build (43.00 seconds). Independent review found no concrete blocker. Native performance and original browser acceptance remain pending.
+
 ## Remaining acceptance gates
 
 1. Resolve mixed-class GP pace and confirm the full suite under appropriate runner load without hiding failures or extending acceptance limits merely to pass.

@@ -40,3 +40,15 @@ A single program can still hang. glTF parsing and texture uploads remain loader-
 ## Local candidate checks
 
 The combined suite passed **205 tests across 19 files**. Root/desktop TypeScript, full project lint, workflow lint, whitespace checks and a source-stable production build (44.76 s) passed. Independent ownership review found no remaining concrete blocker. The real-GL probe is listed correctly but has not run locally; native and browser qualification of this candidate remains pending.
+
+## First-use and Academy follow-up
+
+The b224200 real-GL probe verified all seven variants, while later full-scene submission remained expensive. Synchronous log/status/buffer-allocation APIs can wait behind earlier driver commands; a profile sample in getProgramInfoLog does not prove that program alone is unfinished. Existing buffer-allocation validation remains unchanged.
+
+The next candidate invokes the pinned library's original getUniforms/getAttributes cache getters after KHR readiness. This preserves original shader logs, link/error checks and uniform/attribute reflection, rather than disabling diagnostics. Batches contain at most four programs and use the same existing 45 s post-submission budget, including cache initialization. Unsupported-extension fallback is not primed. Getters/native calls can still block; no measured speedup is claimed. The extended real-GL probe requires the original checks during preparation and zero first-use queries during the subsequent matching draw.
+
+Pure-JavaScript before/after preparation inventories identify old/new/removed program IDs even if net counts match. New-program keys and identities are bounded; valid detail JSON is capped at 32 KiB UTF-8 with explicit truncation/drop information. Inventory errors cannot replace the original rendering failure, and temporary methods are restored before asynchronous work.
+
+The first Academy full-venue draw previously bypassed preparation. Its unadopted candidate now prepares the exact frozen menu view, actual selected lighting and guide, then observes GPU completion. No cockpit/pit view or simulation advance is added; race preparation retains its original scope. Pending resize drains/reprepares before adoption. The chosen LIVE lighting context is held during preparation and the normal five-second cadence resumes after adoption. Existing cancellation/close/repeated-entry ownership remains. Checkpoint-only Academy evidence leaves original input, RAF, GL and timers untouched.
+
+Local combined checks passed **239 tests across 22 files**, TypeScript, full lint, workflow lint and a source-stable 43.00 s build. Independent review found no concrete blocker. These remain candidates for real-driver validation, not hardware certification.

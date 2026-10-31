@@ -880,14 +880,14 @@ export class RacingRenderer {
   } | null = null;
   /** Use the real frame setup and complete shadow/environment passes, but do
    * not submit mirrors, probes or the main view before final-state compilation. */
-  private warmEnvironmentFrame(frame: Float32Array) {
+  private warmEnvironmentFrame(frame: Float32Array, menuPreview = false) {
     if (this.warmingEnvironment) throw new Error('Environment preparation is already active');
     this.environmentWarmup = null;
     this.environmentScopeRestored = false;
     const submitted = this.gpuFrames.diagnostics().submitted;
     this.warmingEnvironment = true;
     try {
-      this.draw(frame, frame, 1, 1 / 120, false, true);
+      this.draw(frame, frame, menuPreview ? 0 : 1, 1 / 120, menuPreview, !menuPreview);
     } finally {
       this.warmingEnvironment = false;
     }
@@ -959,6 +959,28 @@ export class RacingRenderer {
     // callers without session rules retain the complete service warmup.
     pitService = true,
   ) {
+    return this.preparePresentation(frame, progress, cancelled, yieldFrame, false, pitService);
+  }
+  /** Prepare exactly the frozen menu presentation while its candidate is still
+   * exclusively owned. No race/onboard/pit view or simulation sample is added. */
+  prepareMenuPreview(
+    frame: Float32Array,
+    progress: (message: string) => void,
+    cancelled: () => boolean,
+    yieldFrame: () => Promise<void>,
+  ) {
+    return this.preparePresentation(frame, progress, cancelled, yieldFrame, true, false);
+  }
+  private async preparePresentation(
+    frame: Float32Array,
+    progress: (message: string) => void,
+    cancelled: () => boolean,
+    yieldFrame: () => Promise<void>,
+    menuPreview: boolean,
+    pitService: boolean,
+  ) {
+    const ownerCancelled = cancelled;
+    cancelled = () => this.disposed || ownerCancelled();
     return this.preparation.run(progress, async (progress) => {
       if (this.showroomOnly) throw new Error('Build the selected circuit before preparing a race');
       const total = frame[H.CARS];
@@ -1025,10 +1047,11 @@ export class RacingRenderer {
         {
           cancelled: () => this.disposed || cancelled(),
           yieldControl: yieldFrame,
+          initializeCaches: true,
           report: (result) =>
             this.preparation.checkpoint(
               'mark',
-              `programs:${result.status}:live=${result.livePrograms}:checked=${result.queriedPrograms}:queries=${result.queries}:ms=${Math.round(result.elapsedMs)}`,
+              `programs:${result.status}:live=${result.livePrograms}:checked=${result.queriedPrograms}:queries=${result.queries}:primed=${result.initializedPrograms}:ms=${Math.round(result.elapsedMs)}`,
             ),
         },
       );
@@ -1068,7 +1091,7 @@ export class RacingRenderer {
               [this.grade, 'grade'],
             ]),
           },
-          () => this.warmEnvironmentFrame(frame),
+          () => this.warmEnvironmentFrame(frame, menuPreview),
         );
         progress('Waiting for prepared environment GPU work…');
         await this.preparation.observeAsync(
@@ -1089,23 +1112,27 @@ export class RacingRenderer {
           {
             cancelled: () => this.disposed || cancelled(),
             yieldControl: yieldFrame,
+            initializeCaches: true,
             report: (result) =>
               this.preparation.checkpoint(
                 'mark',
-                `programs:${result.status}:live=${result.livePrograms}:checked=${result.queriedPrograms}:queries=${result.queries}:ms=${Math.round(result.elapsedMs)}`,
+                `programs:${result.status}:live=${result.livePrograms}:checked=${result.queriedPrograms}:queries=${result.queries}:primed=${result.initializedPrograms}:ms=${Math.round(result.elapsedMs)}`,
               ),
           },
         );
         if (this.disposed || cancelled()) return false;
-        for (const mode of ['chase', 'cockpit'] as const) {
+        const views = menuPreview ? (['menu'] as const) : (['chase', 'cockpit'] as const);
+        for (const mode of views) {
           progress(
-            mode === 'chase'
-              ? 'Warming shadows and scene reflections…'
-              : 'Warming cockpit, mirrors and post-processing…',
+            mode === 'menu'
+              ? 'Warming the selected menu preview…'
+              : mode === 'chase'
+                ? 'Warming shadows and scene reflections…'
+                : 'Warming cockpit, mirrors and post-processing…',
           );
           await yieldFrame();
           if (cancelled()) return false;
-          this.changeCamera(mode);
+          if (mode !== 'menu') this.changeCamera(mode);
           observePreparationDraw(
             this.preparation,
             mode,
@@ -1123,7 +1150,7 @@ export class RacingRenderer {
                 [this.grade, 'grade'],
               ]),
             },
-            () => this.draw(frame, frame, 1, 1 / 120, false, true),
+            () => this.draw(frame, frame, menuPreview ? 0 : 1, 1 / 120, menuPreview, !menuPreview),
           );
           this.warmupFrames++;
           if (mode === 'chase' && pitService) {
@@ -1144,10 +1171,11 @@ export class RacingRenderer {
             {
               cancelled: () => this.disposed || cancelled(),
               yieldControl: yieldFrame,
+              initializeCaches: true,
               report: (result) =>
                 this.preparation.checkpoint(
                   'mark',
-                  `programs:${result.status}:live=${result.livePrograms}:checked=${result.queriedPrograms}:queries=${result.queries}:ms=${Math.round(result.elapsedMs)}`,
+                  `programs:${result.status}:live=${result.livePrograms}:checked=${result.queriedPrograms}:queries=${result.queries}:primed=${result.initializedPrograms}:ms=${Math.round(result.elapsedMs)}`,
                 ),
             },
           );
@@ -1163,7 +1191,7 @@ export class RacingRenderer {
           if (cancelled()) return false;
         }
       } finally {
-        if (!this.disposed && !cancelled()) {
+        if (!menuPreview && !this.disposed && !cancelled()) {
           this.changeCamera(camera);
           this.reset();
         }
@@ -1197,6 +1225,7 @@ export class RacingRenderer {
       {
         cancelled: stopped,
         yieldControl,
+        initializeCaches: true,
       },
     );
     return !stopped();

@@ -22,9 +22,13 @@ interface TimingPacket {
 /** Test-only timing evidence. Native input, rendering, clocks and graphics stay
  * unchanged. Stream bounded batches to Node so a stuck page cannot prevent its
  * last successful heartbeat/fence observations from becoming an attachment. */
-export const menuTimingTest = base.extend<{ menuTimingEvidence: undefined }>({
+export const menuTimingTest = base.extend<{
+  menuTimingEvidence: undefined;
+  menuTimingMode: 'full' | 'preparation-only';
+}>({
+  menuTimingMode: ['full', { option: true }],
   menuTimingEvidence: [
-    async ({ page }, use, info) => {
+    async ({ page, menuTimingMode }, use, info) => {
       const events: RetainedRecord[] = [];
       const contexts: Record<string, RetainedRecord> = {};
       const initialMilestones: RetainedRecord[] = [];
@@ -76,7 +80,7 @@ export const menuTimingTest = base.extend<{ menuTimingEvidence: undefined }>({
       };
       page.on('console', listener);
       await page.addInitScript(
-        ({ prefix }) => {
+        ({ prefix, mode }) => {
           const limit = 512;
           const events: TimingRecord[] = [];
           let dropped = 0;
@@ -119,6 +123,22 @@ export const menuTimingTest = base.extend<{ menuTimingEvidence: undefined }>({
               !Number.isFinite(checkpoint.at)
             )
               return;
+            let detailJSON: string | undefined;
+            if (typeof checkpoint.detailJSON === 'string') {
+              try {
+                const bytes = new TextEncoder().encode(checkpoint.detailJSON).byteLength;
+                if (bytes > 32768) throw new Error('oversized detail');
+                JSON.parse(checkpoint.detailJSON);
+                detailJSON = checkpoint.detailJSON;
+              } catch {
+                detailJSON = JSON.stringify({
+                  truncated: true,
+                  reason: 'invalid-checkpoint-detail',
+                });
+              }
+            }
+            // Keep a bounded structured detail separate from accumulated heartbeats.
+            if (detailJSON !== undefined) emit(true);
             record('preparation', {
               label: checkpoint.label.slice(0, 160),
               phase: checkpoint.phase,
@@ -126,11 +146,15 @@ export const menuTimingTest = base.extend<{ menuTimingEvidence: undefined }>({
               checkpointSequence: checkpoint.sequence,
               span: checkpoint.span,
               checkpointAt: checkpoint.at,
+              ...(detailJSON === undefined ? {} : { detailJSON }),
             });
             // A synchronous driver stall must not strand the last start marker
             // in a timer-flushed browser buffer. Node retains the packet now.
             emit(true);
           });
+          // Academy acceptance observes preparation only: no ordinary-frame,
+          // GL, timer, DOM or performance hooks are installed in this mode.
+          if (mode === 'preparation-only') return;
           const nativeRAF = window.requestAnimationFrame.bind(window);
           let callback = 0;
           let activeCallback = 0;
@@ -265,7 +289,7 @@ export const menuTimingTest = base.extend<{ menuTimingEvidence: undefined }>({
           record('document', { visibility: document.visibilityState });
           emit(true);
         },
-        { prefix: PREFIX },
+        { prefix: PREFIX, mode: menuTimingMode },
       );
       try {
         await use(undefined);
@@ -278,6 +302,7 @@ export const menuTimingTest = base.extend<{ menuTimingEvidence: undefined }>({
           body: JSON.stringify({
             boundary:
               'Timing instrumentation only; original inputs, workload, deadlines and assertions.',
+            mode: menuTimingMode,
             test: info.title,
             status: info.status,
             packets,

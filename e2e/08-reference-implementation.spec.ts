@@ -1,6 +1,7 @@
 import { expect, type Page } from '@playwright/test';
-import { preparationProfileTest as test } from './preparation-profile.ts';
+import { menuTimingTest as test } from './menu-timing-evidence.ts';
 import { H, F, carBase } from '../src/simulation/protocol.ts';
+test.use({ menuTimingMode: 'preparation-only' });
 const diag = (page: Page) => page.evaluate(() => window.apexDiagnostics());
 async function ready(page: Page) {
   await page.goto('/?dev');
@@ -84,6 +85,14 @@ test('reference continuation: night and guide controls are real, reversible and 
   const venue = await diag(page);
   expect(venue.renderer!.presentationPurpose).toBe('circuit');
   expect(venue.renderer!.construction.tasks).toBeGreaterThan(100);
+  expect(venue.renderer!.preparation?.status).toBe('complete');
+  expect(venue.renderer!.warmupFrames).toBe(1);
+  expect(venue.renderer!.preparation?.stages.map((stage) => stage.label)).toContain(
+    'Warming the selected menu preview…',
+  );
+  expect(
+    venue.renderer!.preparation?.stages.some((stage) => /cockpit|pit-service/.test(stage.label)),
+  ).toBe(false);
   expect(venue.frame).toEqual(original.frame);
   expect(venue.frame![H.WATER]).toBe(original.frame![H.WATER]);
   expect(venue.practiceProgramme).toEqual(original.practiceProgramme);
@@ -197,6 +206,8 @@ test('Academy held previews acknowledge completed GPU work without advancing the
     .toBe(true);
   const first = await heldAcademy(page);
   const beforeGuide = await diag(page);
+  expect(beforeGuide.renderer!.preparation?.status).toBe('complete');
+  expect(beforeGuide.renderer!.warmupFrames).toBe(1);
   const previousRevision = beforeGuide.menuPreviewPresentation?.requested.revision ?? -1;
   expect(previousRevision).toBeGreaterThanOrEqual(0);
   await page.locator('[data-action="guide:full"]').click();

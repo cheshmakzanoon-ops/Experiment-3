@@ -1,4 +1,4 @@
-import { PreviewPromotion } from './core/preview-promotion.ts';
+import { PreviewPromotion, prepareOwnedMenuPreview } from './core/preview-promotion.ts';
 import { motionReceipt } from './core/motion-receipt.ts';
 import { installGraphicsObservation } from './core/graphics-observation.ts';
 import {
@@ -1960,12 +1960,14 @@ export class GameApp {
     const source = this.renderer;
     const generation = this.generation;
     const canvas = this.canvas;
+    const preview = this.menuMachineFrame;
     // Coalesced calls never execute this job; the first owner retains its
     // exact current/previous/menu samples, selected machine and circuit.
     return this.academyPromotion.run({
       current: () => !this.disposed && !this.errorStopped && this.generation === generation,
       create: async (cancelled) => {
         if (!source || !canvas) return null;
+        if (!preview) throw new Error('The selected menu preview is unavailable');
         const lighting = source.lighting;
         const guide = source.guide.mode;
         this.state = 'loading';
@@ -1998,10 +2000,23 @@ export class GameApp {
           candidate.setLivery(this.team.livery);
           candidate.lighting = this.liveSky.active ? (this.liveSky.update() ?? lighting) : lighting;
           candidate.guide.mode = guide;
-          if (this.academyResizePending) {
-            candidate.resize();
-            this.academyResizePending = false;
-          }
+          const prepared = await prepareOwnedMenuPreview(
+            candidate,
+            preview,
+            (message) => {
+              if (!cancelled()) this.ui.loading(message);
+            },
+            cancelled,
+            yieldBrowserTask,
+            {
+              pending: () => this.academyResizePending,
+              applied: () => {
+                this.academyResizePending = false;
+              },
+            },
+          );
+          if (!prepared && !cancelled())
+            throw new Error('Menu preview preparation was interrupted');
           return candidate;
         } catch (error) {
           candidate.dispose();
@@ -2010,6 +2025,9 @@ export class GameApp {
       },
       adopt: (candidate) => {
         this.renderer = candidate;
+        // Keep the first ordinary draw in the exact LIVE lighting context
+        // prepared above. The existing five-second LIVE cadence then resumes.
+        if (this.liveSky.active) this.liveSkyChecked = performance.now();
         this.state = 'menu';
         this.renderedState = null;
         this.menuPreviewReceipt.request('academy');

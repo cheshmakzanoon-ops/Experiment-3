@@ -54,6 +54,28 @@ test('all live shader programs include shared-material and older variants', asyn
   expect(report.eachChecked).toBe(true);
   expect(report.programsAfterDraw).toBe(report.generatedPrograms);
   expect(report.shaderErrorsEnabled).toBe(true);
+  expect(report.eachPrimed).toBe(true);
+  expect(report.cacheQueries.prime.getProgramInfoLog).toBe(report.generatedPrograms);
+  expect(report.cacheQueries.prime.getShaderInfoLog).toBe(report.generatedPrograms * 2);
+  expect(report.cacheQueries.prime['getProgramParameter:LINK_STATUS']).toBe(
+    report.generatedPrograms,
+  );
+  expect(report.cacheQueries.prime['getProgramParameter:ACTIVE_UNIFORMS']).toBe(
+    report.generatedPrograms,
+  );
+  expect(report.cacheQueries.prime['getProgramParameter:ACTIVE_ATTRIBUTES']).toBe(
+    report.generatedPrograms,
+  );
+  for (const method of [
+    'getActiveUniform',
+    'getActiveAttrib',
+    'getUniformLocation',
+    'getAttribLocation',
+  ])
+    expect(report.cacheQueries.prime[method]).toBeGreaterThan(0);
+  // No first-use diagnostics or interface reflection may migrate into the
+  // actual scene draw after the real library caches have been initialized.
+  expect(report.cacheQueries.render).toEqual({});
   expect(report.yields).toBeGreaterThan(0);
   expect(report.glError).toBe(0);
   expect(browserErrors).toEqual([]);

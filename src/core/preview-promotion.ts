@@ -51,3 +51,41 @@ export class PreviewPromotion {
     return this.pending;
   }
 }
+
+interface MenuPreviewCandidate {
+  waitForPreparedFrame(cancelled: () => boolean, yieldControl: () => Promise<void>): Promise<void>;
+  prepareMenuPreview(
+    frame: Float32Array,
+    progress: (message: string) => void,
+    cancelled: () => boolean,
+    yieldControl: () => Promise<void>,
+  ): Promise<boolean>;
+  resize(): void;
+}
+
+/** The caller retains the unadopted candidate throughout. A resize arriving
+ * during preparation is applied only after its GPU work drains, then the same
+ * frozen sample is prepared again for the latest viewport before adoption. */
+export async function prepareOwnedMenuPreview(
+  candidate: MenuPreviewCandidate,
+  frame: Float32Array,
+  progress: (message: string) => void,
+  cancelled: () => boolean,
+  yieldControl: () => Promise<void>,
+  viewport: { pending(): boolean; applied(): void },
+): Promise<boolean> {
+  while (!cancelled()) {
+    await candidate.waitForPreparedFrame(cancelled, yieldControl);
+    if (cancelled()) return false;
+    if (viewport.pending()) {
+      viewport.applied();
+      candidate.resize();
+    }
+    if (cancelled()) return false;
+    if (!(await candidate.prepareMenuPreview(frame, progress, cancelled, yieldControl)))
+      return false;
+    if (cancelled()) return false;
+    if (!viewport.pending()) return true;
+  }
+  return false;
+}
