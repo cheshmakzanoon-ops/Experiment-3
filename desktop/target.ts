@@ -15,3 +15,14 @@ export function desktopExecutable(platform: string, arch: string) {
     return `desktop-out/${arch === 'arm64' ? 'mac-arm64' : 'mac'}/MOTOBOUND.app/Contents/MacOS/MOTOBOUND`;
   return `desktop-out/linux-${arch === 'x64' ? '' : `${arch}-`}unpacked/motobound`;
 }
+
+/** Explicit CI graphics drivers. This never opts into Chromium's unsafe
+ * WebGL fallback and is not called by the shipped application's main process. */
+export function desktopGraphicsArguments(backend: string, platform: string, arch: string) {
+  if (backend === 'native') return [];
+  if (backend === 'mesa' && platform === 'linux')
+    return ['--use-gl=angle', '--use-angle=gl', '--ignore-gpu-blocklist'];
+  if (backend === 'swiftshader' && platform === 'darwin' && arch === 'x64')
+    return ['--use-gl=angle', '--use-angle=swiftshader'];
+  throw new Error(`Unsupported CI graphics backend: ${backend} on ${platform}/${arch}`);
+}

@@ -2,14 +2,15 @@ import { _electron as electron } from '@playwright/test';
 import { mkdtemp, mkdir, writeFile, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { desktopTarget, desktopExecutable } from '../desktop-dist/target.js';
+import {
+  desktopTarget,
+  desktopExecutable,
+  desktopGraphicsArguments,
+} from '../desktop-dist/target.js';
 const target = desktopTarget(process.platform, process.arch, process.env.MOTOBOUND_TARGET_ARCH);
 const startedAt = Date.now();
 const graphicsBackend = process.env.MOTOBOUND_CI_GL || 'native';
-if (!['native', 'mesa'].includes(graphicsBackend))
-  throw new Error(`Unknown CI graphics backend: ${graphicsBackend}`);
-if (graphicsBackend === 'mesa' && process.platform !== 'linux')
-  throw new Error('Mesa CI graphics requires Linux');
+const graphicsArguments = desktopGraphicsArguments(graphicsBackend, target.platform, target.arch);
 const executable = desktopExecutable(target.platform, target.arch);
 await mkdir('desktop-evidence', { recursive: true });
 const profile = await mkdtemp(join(tmpdir(), 'motobound-smoke-'));
@@ -67,13 +68,7 @@ try {
   stage('launch');
   application = await electron.launch({
     executablePath: resolve(executable),
-    args: [
-      `--user-data-dir=${profile}`,
-      '--enable-logging=stderr',
-      ...(graphicsBackend !== 'native'
-        ? ['--use-gl=angle', '--use-angle=gl', '--ignore-gpu-blocklist']
-        : []),
-    ],
+    args: [`--user-data-dir=${profile}`, '--enable-logging=stderr', ...graphicsArguments],
     timeout: 120000,
   });
   stage('electron-connected');
@@ -152,6 +147,8 @@ try {
   });
   if (process.env.MOTOBOUND_CI_GL === 'mesa' && !/llvmpipe/i.test(report.renderer ?? ''))
     throw new Error(`Requested Mesa CI renderer, received ${report.renderer}`);
+  if (graphicsBackend === 'swiftshader' && !/swiftshader/i.test(report.renderer ?? ''))
+    throw new Error(`Requested SwiftShader driver, received ${report.renderer}`);
   report.checks.push('packaged offline Babylon entry started');
   stage('babylon-ready');
   // A directly launched macOS bundle can remain behind the runner's desktop.
