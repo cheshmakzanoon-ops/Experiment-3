@@ -2,6 +2,10 @@
 
 Start with [README](../README.md) for play instructions and [current status](CURRENT_STATUS.md) for verified progress. Older delivery reports describe their recorded commits, not the present build.
 
+## Desktop product
+
+`desktop/` owns the native application lifecycle and offline asset protocol. `electron-builder.yml` and `.github/workflows/desktop-build.yml` define Windows/macOS/Linux packaging and native launch checks. `scripts/*desktop*.mjs` prepare payloads, launch packaged applications and record checksums. `desktop-out/` is generated output, not source. See [desktop delivery](DESKTOP_DELIVERY.md).
+
 ## Engine migration
 
 `src/engine/simulation-component.ts` hosts the existing physics for the new main-engine architecture. `src/engine/babylon/` contains Babylon rendering, snapshot transfer and existing-asset import. `babylon.html` is the explicitly labelled integration preview; the root `index.html` remains the complete Three.js fallback during migration. See [migration gates](BABYLON_MIGRATION.md).

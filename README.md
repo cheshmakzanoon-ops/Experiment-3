@@ -1,161 +1,117 @@
 # MOTOBOUND
 
-**Circuit racing. Open roads. Two wheels or four.**
+**A desktop motorsport game. Circuit racing, open roads, two wheels or four.**
 
-[![CI · main](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/workflows/ci.yml?query=branch%3Amain)
+MOTOBOUND targets **Windows, macOS and Linux executables**, built from TypeScript with **Babylon.js as the main-engine direction** and the existing custom vehicle/race simulation retained as a component. The shipping product is an installed, offline-capable desktop game, **not a browser website**.
 
-MOTOBOUND is an independent browser-based motorsport game built with TypeScript and Three.js. It brings together circuit racing, motorcycles, off-road competition and an open-world festival, with vehicle simulation driving the handling, sound and presentation.
+[Current status](docs/CURRENT_STATUS.md) · [Desktop delivery](docs/DESKTOP_DELIVERY.md) · [Repository map](docs/REPOSITORY_MAP.md) · [Babylon migration](docs/BABYLON_MIGRATION.md) · [Development releases](https://github.com/cheshmakzanoon-ops/Experiment-3/releases)
 
-[Repository map](docs/REPOSITORY_MAP.md) · [Current status](docs/CURRENT_STATUS.md) · [Run locally](#run-locally) · [Controls](#controls) · [Development](#development) · [Documentation](#documentation)
+> **In development, not a finished commercial release.** Desktop packaging and Babylon migration are being validated. The first Babylon scene is an explicitly labelled integration workbench, not the final graphics or complete game. Existing Three.js content remains available as a temporary migration fallback; it is not being discarded. Signing, macOS notarization, representative-hardware performance, full gameplay qualification and Steam integration remain open.
 
-> **In development.** The game is not a finished commercial release. Visual polish, target-hardware performance and release validation remain ongoing. Online racing is an [experimental networking implementation](docs/production/ONLINE_SLICE.md), not a public multiplayer service.
+## Desktop builds and downloads
 
-## Engine direction
+| Platform            | Development packages     | Native CI runner    |
+| ------------------- | ------------------------ | ------------------- |
+| Windows x64         | EXE installer            | Windows             |
+| macOS Apple Silicon | DMG and app ZIP          | Apple Silicon macOS |
+| macOS Intel         | DMG and app ZIP          | Intel macOS         |
+| Linux x64           | AppImage and tar archive | Linux               |
 
-**Babylon.js is the main-engine migration target**, with the existing custom simulation retained as a component. The current complete game still uses Three.js while modes and assets migrate. The initial Babylon integration is available locally at `/babylon.html`; it is explicitly a diagnostic preview, not visual/gameplay parity. See [implementation and migration gates](docs/BABYLON_MIGRATION.md).
+[Desktop build workflow](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/workflows/desktop-build.yml) builds and launches each packaged application on its target operating system. Source-addressed development prereleases are published only after all four native build/launch jobs succeed. Each package has SHA-256 checksums and embedded source identification. **Do not assume packages exist or passed until the workflow and release actually show them.**
 
-## Development source and downloads
+Initial packages are **unsigned development builds**. Windows reputation/signing and macOS signing/notarization have not been configured. These builds are for development testing, not a claim of retail distribution readiness.
 
-`main` is the consolidated development source, including the latest GP motorcycle work integrated on **2026-10-31**. [Current validation status](docs/CURRENT_STATUS.md) is distinct from historical phase reports.
+The desktop runtime uses Electron to provide a consistent bundled Chromium runtime for Babylon/TypeScript. It does not open a browser tab or depend on the hosted preview. Assets load from a restricted local application protocol. The renderer is sandboxed, has no Node.js access, and does not receive general filesystem or shell APIs.
 
-- [Playable development website](https://cheshmakzanoon-ops.github.io/Experiment-3/) · [Babylon migration preview](https://cheshmakzanoon-ops.github.io/Experiment-3/babylon.html)
-- [Downloadable releases](https://github.com/cheshmakzanoon-ops/Experiment-3/releases)
-- [Build and validation runs](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/workflows/ci.yml)
+## Engine and content ownership
 
-A passing build is not proof that every gameplay gate has passed. Releases include source identification; compare it with main before assuming the download contains the newest work.
+- **Babylon.js:** primary rendering/game-engine migration destination.
+- **Existing simulation:** vehicle physics, tyres, suspension, racing AI, race control, off-road and festival systems remain authoritative. A second physics engine must not double-integrate vehicles.
+- **Existing assets and systems:** preserve models, materials, animation, audio, controls, saves and progression. Reuse or port them with explicit fidelity checks.
+- **Three.js:** temporary compatibility path for the already-developed content while Babylon reaches parity.
+- **Desktop shell:** offline packaging, application lifecycle, window/fullscreen behaviour and platform delivery.
 
-## Find your discipline
+The quality target is a polished, enjoyable, replayable desktop game with high-end presentation. Passing tests, installing Babylon or producing an EXE alone does not satisfy that target. No revenue or profit is guaranteed.
 
-| Experience             | Entry in the game                                            | Main implementation                                           |
-| ---------------------- | ------------------------------------------------------------ | ------------------------------------------------------------- |
-| Formula circuit racing | **FORMULA** shortcut, then choose the session | `src/simulation/`, `src/rendering/`, `src/ui/f1-hud.ts`       |
-| GP motorcycle racing   | **GP MOTORCYCLES** shortcut, or select GP-R1/GP-R2 and a compatible venue      | `src/simulation/motogp-physics.ts`, `src/rendering/gp-*.ts`   |
-| Motocross / supercross | **OUTDOOR MX** or **STADIUM SX**, then choose a ride preset  | `src/simulation/offroad/`, `src/ui/motocross-presentation.ts` |
-| Open-world driving     | **OPEN WORLD** shortcut or **SESSION → Festival · open world**                          | `src/simulation/open-world/`, `src/session/free-roam.ts`      |
+## Find each discipline
 
-These are original fictional motorsport disciplines, not licensed F1, MotoGP or Forza products. Current end-to-end verification is tracked in the status page above.
+| Experience             | Existing content entry                                     | Main implementation                                           |
+| ---------------------- | ---------------------------------------------------------- | ------------------------------------------------------------- |
+| Formula circuit racing | **FORMULA**, then select the session                       | `src/simulation/`, `src/rendering/`, `src/ui/f1-hud.ts`       |
+| GP motorcycle racing   | **GP MOTORCYCLES**, or GP-R1/GP-R2 with a compatible venue | `src/simulation/motogp-physics.ts`, `src/rendering/gp-*.ts`   |
+| Motocross / supercross | **OUTDOOR MX** or **STADIUM SX**, then a ride preset       | `src/simulation/offroad/`, `src/ui/motocross-presentation.ts` |
+| Open-world driving     | **OPEN WORLD**, or **SESSION → Festival · open world**     | `src/simulation/open-world/`, `src/session/free-roam.ts`      |
 
-## The game
+These are original fictional motorsport disciplines, not licensed F1, MotoGP or Forza products. Their full migration into Babylon and the desktop experience is ongoing. The desktop **Game** menu provides the temporary existing-content fallback during that work.
 
-| Area         | Current scope                                                                                                                                                                           |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Racing       | Free practice, ghost time trials, qualifying, Grand Prix and endurance events.                                                                                                          |
-| Machines     | Multiple car classes, road-racing motorcycles and off-road machines, with vehicle-specific setup and assists.                                                                           |
-| Locations    | A circuit catalogue, dedicated off-road venues and the Solvane Coast festival region, with free roam, traffic and local events.                                                         |
-| Festival     | Sixteen activities, rolling speed and drift challenges, clean-driving skill chains, physical slipstream and clean-pass coaching, a route-preview map, and paused orbit/zoom photo mode. |
-| Racecraft    | AI rivals, changing weather, tyre temperature and wear, fuel, damage, pit stops and race control.                                                                                       |
-| Progression  | Career events, garage ownership, unlocks and festival rewards.                                                                                                                          |
-| Presentation | Cockpit and external cameras, authored 3D assets, photographic skies, scanned ground materials and state-driven audio.                                                                  |
-| Driver tools | Replays, flashback, telemetry, lap comparison and CSV export.                                                                                                                           |
+Existing systems include practice, ghost time trials, qualifying, Grand Prix and endurance events; AI rivals; weather, tyre wear, fuel, damage and pit service; a career and garage; replays, flashback and telemetry; and Solvane festival activities, traffic and photo mode. Availability and validation depend on the selected discipline. Online racing remains an experimental implementation, not a hosted multiplayer service.
 
-Feature availability depends on the vehicle, event and graphics preset.
+## Run the desktop development build
 
-## Run locally
-
-**Requirements:** Node.js **22.12 or newer**, npm, and a browser with WebGL2 and Web Worker support. Automated browser validation uses Chromium.
+Requirements: Node.js **22.12+**, npm, and a supported desktop OS with WebGL2-capable graphics. Dependencies are pinned in the lockfile.
 
 ```sh
 git clone https://github.com/cheshmakzanoon-ops/Experiment-3.git motobound
 cd motobound
 npm ci
-npm run dev
+npm run desktop:dev
 ```
 
-Open the local address printed by Vite. Start with **Free practice** and **Sport** assists, or press **G** during a circuit session for an AI-driving demonstration. **Garage & Settings** contains graphics options, input bindings and calibration.
-
-To build and preview the production bundle:
+Build native development packages for the current platform:
 
 ```sh
-npm run build
-npm run preview
+npm run desktop:package
 ```
 
-The output is written to `dist/`. Serve it over HTTP or HTTPS; do not open `index.html` directly. Development, build and unit-test commands prepare the required player-model detail assets automatically. The first browser load also prepares bundled assets and shaders.
+Products go to `desktop-out/`. Cross-platform delivery is performed by the native GitHub Actions matrix, not by assuming one operating system can certify another. The desktop app opens the Babylon migration entry; the complete existing-content fallback is available from its Game menu.
 
 ## Controls
 
-Default circuit-session keyboard controls:
+The existing input controller is retained, including saved mappings, gamepad calibration, steering smoothing, shift actions and focus-loss safety. Default bindings:
 
-| Input      | Action                          |
-| ---------- | ------------------------------- |
-| **W / S**  | Throttle / brake                |
-| **A / D**  | Steer left / right              |
-| **[ / ]**  | Downshift / upshift             |
-| **C**      | Change camera                   |
-| **P**      | Request or cancel a pit stop    |
-| **G**      | Toggle AI demonstration driving |
-| **T / R**  | Open telemetry / replay         |
-| **X**      | Flashback                       |
-| **Escape** | Pause                           |
+| Input            | Action                                                        |
+| ---------------- | ------------------------------------------------------------- |
+| W / S            | Throttle / brake                                              |
+| A / D            | Steer                                                         |
+| [ / ]            | Downshift / upshift                                           |
+| G                | AI demonstration                                              |
+| Escape           | Pause / resume                                                |
+| F11 or Alt+Enter | Desktop fullscreen                                            |
+| C                | Camera in the existing content; Babylon camera parity pending |
+| P                | Pit request                                                   |
+| T / R / X        | Existing-content telemetry / replay / flashback               |
 
-Bindings are configurable; gamepad and touch inputs are also supported. On motorcycles, the brake input operates the front brake and the clutch binding (**Left Shift** by default) operates the rear brake. See the [complete default bindings](src/input/bindings.ts).
+On motorcycles, the normal brake is the front brake and the clutch binding is the rear pedal. The full controls and per-mode support live in [bindings](src/input/bindings.ts) and [current status](docs/CURRENT_STATUS.md). Unsupported Babylon presentation actions must be reported honestly, not silently treated as implemented.
 
-In **Session → Festival · open world**, **T** opens the Solvane map and **R** resets to the road. Stop at a discovered race marker and press **Enter** to start; speed and drift zones activate as you drive through their entry. **Escape** opens the festival menu, including the garage, time of day, discovered-event travel and photo mode. Keyboard focus and standard gamepad **D-pad / A / B** work through the menu, map and photo controls.
+## Development and verification
 
-## Development
+| Command                   | Purpose                                                           |
+| ------------------------- | ----------------------------------------------------------------- |
+| `npm run desktop:compile` | Type-check and compile the desktop main process                   |
+| `npm run desktop:prepare` | Build renderer and prepare the offline application payload        |
+| `npm run desktop:package` | Produce current-platform native packages                          |
+| `npm run check:stable`    | Guarded lint, content validation, complete unit suite and build   |
+| `npm run test:physics`    | Dynamics, race control, wet pits and integrated driving           |
+| `npm run test:offroad`    | Off-road calibration and race scenarios                           |
+| `npm run test:open-world` | Festival routes, traffic and motorcycle scenarios                 |
+| `npm run test:e2e`        | Renderer/browser journeys, complementing native application tests |
 
-Dependencies are pinned in [`package-lock.json`](package-lock.json). Use `npm ci` to reproduce the toolchain.
+The full unit suite is divided into four **required** CI partitions with no excluded tests. Native build/launch checks and the focused Babylon WebGL workflow supplement the existing release gates. Software-renderer results do not certify physical GPU performance or PS5-level presentation.
 
-| Command                   | Purpose                                                                                      |
-| ------------------------- | -------------------------------------------------------------------------------------------- |
-| `npm run check:stable`    | Lint, content validation, unit tests, type checking and build, with source-change detection. |
-| `npm run test:physics`    | Vehicle dynamics, race control, wet pit stops and integrated driving scenarios.              |
-| `npm run test:vehicles`   | Vehicle calibration checks.                                                                  |
-| `npm run test:offroad`    | Off-road calibration and race scenarios.                                                     |
-| `npm run test:open-world` | Festival region, routes, traffic and motorcycle scenarios.                                   |
+## Secondary engineering previews
 
-Run the browser suite against a production build:
+The [hosted preview](https://cheshmakzanoon-ops.github.io/Experiment-3/) and [Babylon workbench](https://cheshmakzanoon-ops.github.io/Experiment-3/babylon.html) are secondary development tools. They are not the shipping product or proof of desktop readiness.
 
-```sh
-npm run build
-npx playwright install --with-deps chromium
-npm run test:e2e
-```
+For fast renderer iteration, `npm run dev` starts Vite. `npm run build` produces `dist/`, and `npm run preview` serves it locally. Browser-based automation remains useful for WebGL/UI diagnostics, while installers and desktop lifecycle are tested separately on Linux, Windows and macOS.
 
-Playwright starts the preview server automatically. The full script list is in [`package.json`](package.json), and live validation results are in [GitHub Actions](https://github.com/cheshmakzanoon-ops/Experiment-3/actions). The badge above tracks `main`, not every feature branch.
+## Repository and documentation
 
-### Source layout
+- [Repository map](docs/REPOSITORY_MAP.md): where code, models, authoring tools, tests and historical evidence live.
+- [Current status](docs/CURRENT_STATUS.md): verified progress, failures and deployment identity.
+- [Desktop delivery](docs/DESKTOP_DELIVERY.md): packaging, isolation, CI and signing limitations.
+- [Babylon migration](docs/BABYLON_MIGRATION.md): existing-engine component boundary and per-mode parity gates.
+- [Architecture](docs/ARCHITECTURE.md), [modes](docs/MODES.md), [asset provenance](docs/ASSET_PROVENANCE.md).
+- [GP physics](docs/motogp-physics-model.md), [motocross physics](docs/motocross-physics-model.md), [GP workstream history](docs/MOTOGP_HYPERREAL_PROGRAMME.md).
+- [Production specifications](docs/production/) and [original master directive](docs/MASTER_DIRECTIVE.md) retain historical requirements. The latest desktop product direction in this README and `AGENTS.md` supersedes browser-first delivery language in older reports.
 
-```text
-src/simulation/   Vehicle physics, race rules, AI and world simulation
-src/rendering/    Vehicles, environments, cameras and visual effects
-src/career/       Progression, garage and event rewards
-src/session/      Session lifecycle and festival integration
-src/input/       Keyboard, gamepad and touch controls
-src/audio/       Audio synthesis and spatial sound
-src/storage/     Persistence, recordings and telemetry
-src/ui/          Menus, HUD and settings
-src/workers/     Simulation workers and data transport
-tests/           Unit and integration tests
-e2e/             Browser validation
-assets/, public/ Source assets and bundled runtime resources
-scripts/, tools/ Validation and asset tooling
-```
-
-## Documentation
-
-| Reference                                                                                  | Contents                                                                                                                                                                           |
-| ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [Architecture](docs/ARCHITECTURE.md)                                                       | Application structure and simulation/rendering boundaries.                                                                                                                         |
-| [Physics model](docs/production/PHYSICS_MODEL.md)                                          | Vehicle dynamics, tyres, suspension, drivetrain and surface interaction.                                                                                                           |
-| [Physics v18 engine upgrade](docs/production/physics-v18-engine-upgrade.md)                | Tire-solver accuracy, suspension contact, regenerative braking, coherent animation, iRacing references and validation evidence.                                                    |
-| [Circuit catalogue](docs/CIRCUIT_CATALOGUE.md)                                             | Venues, layouts and implementation notes.                                                                                                                                          |
-| [MotoGP contact and control update](docs/MOTOGP_THREEJS_CONTACT_PASS.md)                   | Independent tyre grip, GP braking preview, two-contact effects, mechanical detail and riding feedback.                                                                             |
-| [MotoGP Three.js riding update](docs/MOTOGP_THREEJS_REFERENCE_REVIEW.md)                   | 100-image trace, forged wheels and tyre finish, bike grounding, corner guidance and GP racecraft.                                                                                  |
-| [MotoGP R6 race shell](docs/MOTOGP_R6_RACE_SHELL.md)                                       | Procedural GP-R1/GP-R2 race shell from the 100-image pack, painted liveries with a finish atlas, Fresnel screen, kerb wear and GP rubber, with before/after images and validation. |
-| [MotoGP R2 improvements](docs/MOTOGP_R2_DELIVERY.md)                                       | All 100 reference reviews, bike/rider and circuit changes, motorcycle interface, braking corrections and visual evidence.                                                          |
-| [MotoGP R3 visual upgrade](docs/MOTOGP_R3_VISUAL_UPGRADE.md)                               | Hard-surface GP-R1 bodywork, projected race livery, printed GP walls and padding, mown verges, before/after game captures.                                                         |
-| [Motocross reference upgrade](docs/production/motocross-reference-upgrade.md)              | All 100 motocross references, detailed bikes and riders, dirt and stadium scenery, riding/camera updates, race reliability and actual gameplay evidence.                           |
-| [Open-world festival](docs/production/OPEN_WORLD.md)                                       | Solvane Coast, free roam, events, traffic and known limits.                                                                                                                        |
-| [100-image festival reference record](docs/production/HORIZON_REFERENCE_IMPLEMENTATION.md) | Individual observations and original implementations for every supplied reference, with code links and limits.                                                                     |
-| [Festival upgrade validation](docs/production/HORIZON_UPGRADE_VALIDATION.md)               | Final screenshots, real driving/event evidence, test results and the guarded production build.                                                                                     |
-| [Horizon R7](docs/production/HORIZON_R7_IMPLEMENTATION.md)                                 | Camera-dependent storefront depth, bonded car glazing, slipstream passes, the original 100-image review and executable validation.                                                 |
-| [Solvane Blender continuation](docs/production/SOLVANE_CONTINUATION_VALIDATION.md)         | Native detail assets, all eight committed-source validation jobs, actual game captures and the 100-reference continuation ledger.                                                  |
-| [Solvane authoring guide](authoring/solvane/README.md)                                     | Editable Blender source, template contracts, safe re-export and reference-integrity verification.                                                                                  |
-| [Production documents](docs/production/README.md)                                          | Design, implementation status, development plans and validation protocols.                                                                                                         |
-
-### Assets and attribution
-
-The project combines procedural content, Blender-authored models, supplied player assets and third-party resources. Source details and applicable terms are recorded in [asset provenance](docs/ASSET_PROVENANCE.md), [supplied-player documentation](docs/SUPPLIED_PLAYER.md) and the [bundled third-party credits](public/assets/third-party/CREDITS.txt). This README does not grant an additional asset licence.
-
-The repository URL remains `Experiment-3`. Older engineering documents and internal identifiers may still use the previous project name; historical reports describe their recorded revisions rather than the current build.
+`main` is the sole development branch. The [consolidation receipt](docs/maintenance/branch-consolidation-2026-10-31.json) preserves the integrated branch tips. Historical reports are evidence for their own revisions, not automatic certification of current code.

@@ -2,6 +2,10 @@
 
 Updated 2026-10-31. This page separates source integration from successful validation and release readiness.
 
+## Shipping direction
+
+**Desktop first:** Windows EXE, macOS DMG/app and Linux AppImage/archive builds through native GitHub Actions. Babylon.js is the main engine direction with the custom simulation retained. The website is a secondary engineering preview. The desktop shell compiles and its offline-origin/security policy tests pass. A local Linux unpacked application was produced and its archive inspected: 507 entries, no duplicated node_modules tree. Native launch tests, Windows/macOS packages and signing are not yet certified. See [desktop delivery](DESKTOP_DELIVERY.md).
+
 ## Consolidation
 
 All eight audited branch tips are ancestors of `29a6f871db184c39de791d8e210d90999069ffe5`. Main was fast-forwarded from `2107a9f1`, retaining 53 MotoGP development commits without dropping history. See [branch receipt](maintenance/branch-consolidation-2026-10-31.json). Remote cleanup completed successfully in [run 41160579689](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41160579689). A subsequent remote listing contains only `main`.
