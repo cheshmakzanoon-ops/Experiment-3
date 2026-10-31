@@ -1150,6 +1150,52 @@ export class RacingRenderer {
           cancelled,
         );
         if (cancelled()) return false;
+        // Vite removes this opt-in experiment from flag-unset shipping builds.
+        // Neither original acceptance workflow sets this diagnostic build flag.
+        if (
+          menuPreview &&
+          (import.meta.env.VITE_APEX_DIAGNOSTIC_MENU_DOF_PRIME === '0' ||
+            import.meta.env.VITE_APEX_DIAGNOSTIC_MENU_DOF_PRIME === '1')
+        ) {
+          const diagnosticDof = import.meta.env.VITE_APEX_DIAGNOSTIC_MENU_DOF_PRIME;
+          this.preparation.checkpoint('mark', `menu-dof-diagnostic:flag:${diagnosticDof}`);
+          if (import.meta.env.VITE_APEX_DIAGNOSTIC_MENU_DOF_PRIME === '1') {
+            progress('Diagnostic: compiling exact menu depth of field…');
+            await this.preparation.observeAsync(
+              'menu-dof-diagnostic:compile-ready',
+              async () => {
+                if (cancelled()) return;
+                const lens = subjectLens(true, false, this.mode, this.camera.fov);
+                if (!lens || lens.thinLens) throw new Error('Unexpected diagnostic menu lens');
+                // Retain this exact material for the normal draw's existing
+                // insertion/focus/size path. No extra render or frame update.
+                this.photoFocus ??= new DepthOfFieldPass(
+                  this.camera,
+                  { focus: 10, ...lens },
+                  this.scenePass.target.depthTexture!,
+                );
+                // SceneAmbientPass swaps before index1 DOF, so its upcoming
+                // write target is the composer's current read buffer.
+                await compileFullscreenTargets(
+                  this.renderer,
+                  [{ material: this.photoFocus.materialBokeh, target: this.composer.readBuffer }],
+                  {
+                    cancelled,
+                    yieldControl: yieldFrame,
+                    initializeCaches: true,
+                    report: (result) =>
+                      this.preparation.checkpoint(
+                        'mark',
+                        `menu-dof-diagnostic:programs:${result.status}:live=${result.livePrograms}:checked=${result.queriedPrograms}:primed=${result.initializedPrograms}:ms=${Math.round(result.elapsedMs)}`,
+                      ),
+                  },
+                );
+              },
+              cancelled,
+            );
+            if (cancelled()) return false;
+          }
+        }
         const views = menuPreview ? (['menu'] as const) : (['chase', 'cockpit'] as const);
         for (const mode of views) {
           progress(
@@ -1191,22 +1237,27 @@ export class RacingRenderer {
             );
             if (cancelled()) return false;
           }
-          await compileSceneTarget(
-            this.renderer,
-            this.scene,
-            this.camera,
-            this.scenePass.target,
-            hiddenHosts,
-            {
-              cancelled: () => this.disposed || cancelled(),
-              yieldControl: yieldFrame,
-              initializeCaches: true,
-              report: (result) =>
-                this.preparation.checkpoint(
-                  'mark',
-                  `programs:${result.status}:live=${result.livePrograms}:checked=${result.queriedPrograms}:queries=${result.queries}:primed=${result.initializedPrograms}:ms=${Math.round(result.elapsedMs)}`,
-                ),
-            },
+          await this.preparation.observeAsync(
+            `${mode}:compile-ready`,
+            () =>
+              compileSceneTarget(
+                this.renderer,
+                this.scene,
+                this.camera,
+                this.scenePass.target,
+                hiddenHosts,
+                {
+                  cancelled: () => this.disposed || cancelled(),
+                  yieldControl: yieldFrame,
+                  initializeCaches: true,
+                  report: (result) =>
+                    this.preparation.checkpoint(
+                      'mark',
+                      `programs:${result.status}:live=${result.livePrograms}:checked=${result.queriedPrograms}:queries=${result.queries}:primed=${result.initializedPrograms}:ms=${Math.round(result.elapsedMs)}`,
+                    ),
+                },
+              ),
+            cancelled,
           );
           if (this.disposed || cancelled()) return false;
           // Shader linking alone does not finish GPU uploads or the warmup draw.

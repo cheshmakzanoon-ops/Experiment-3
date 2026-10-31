@@ -109,6 +109,22 @@ The unprofiled [interaction run 41204721464](https://github.com/cheshmakzanoon-o
 
 The cloud workspace was replaced during local review. Candidates were reconstructed from retained code and reviewed again; earlier local test counts were not reused. Fresh checks passed 148 focused shader/preparation tests and 28 Festival tests. The latter cover initial shared-frame drainage before constructor/quality changes, resize drainage and redraw before adoption, direct resize requests, same-tick destination snapshots, cancellation and input hold. Native Actions results remain required before a new release claim.
 
+### `1fe7e1d` native and real-GL outcome
+
+Fresh reconstructed source passed **225 tests across 26 files**, root/desktop TypeScript, full lint, workflow lint, content validation and a source-stable production build (58.60 s). This is focused local evidence, not a complete unit-suite pass.
+
+[Required native run 41208633458](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41208633458): Windows and Apple Silicon passed all four installed-game journeys with zero recorded GPU exits, context losses or renderer errors. Festival's initial authoritative and presented ticks were both zero, with observed held-frame completion of 51.7 ms (Windows) and 564.5 ms (ARM), followed by real throttle/pause/resume/return checks. Screenshots show rendered scenes behind pause menus; they do not establish detailed vehicle fidelity or physical-hardware performance.
+
+Required Ubuntu22/Mesa passed Babylon control/model/wheel/capture checks, then recorded GPU exit 512 during Formula preparation. The allocation error followed about 4 ms later and is not proof of out-of-memory: its synchronous size query can lose the context after the preceding loss check. Last readable preparation: fullscreen readiness 1.467 s, 280/280 checked; chase draw 20.834 s, scene submission 16.132 s; pit warmup ended with 4/4 shared submissions complete. Later blocked work was missing from the polling receipt. Publication was skipped.
+
+[SwiftShader comparison 41208633726](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41208633726) passed all four modes with zero recorded faults. Festival held-frame completion took 3343.3 ms and the original startup/post-ready/input budgets were retained. This supports the startup-ordering repair, not replacement of the failed required Mesa lane. [Ubuntu24 comparison 41208633477](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41208633477) again failed before renderer connection on the unchanged sandbox-helper configuration.
+
+[Transition run 41208633546](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41208633546) passed seven checks and failed the original paused-grid 60-second deadline. Both real-GL program probes passed: AO/blur/composite preparation ran all original shader diagnostics and reflection; the actual pass added no program and performed zero first-use setup queries, with GL error zero. The [profile run 41208633491](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41208633491) still failed its original workloads. In the night trace, AO preparation took 273 ms, the scene 8.739 s and complete SceneAmbient pass 8.744 s, followed by 157.481 s in DOF first use. The synchronous barrier moved; this does not distinguish shader compilation from waiting behind earlier GPU work.
+
+The next diagnostic retains fatal-time observations and bounded, document-identified preparation events outside the renderer. A separate opt-in menu-DOF comparison must not change the normal shipping build or weaken original acceptance. A narrow post-query context-loss check corrects secondary error classification while retaining healthy-context allocation validation. Neither is claimed as a Mesa crash fix.
+
+The full CI suite for this source remains separately monitored. Isolated GP traffic-planner experiments are not merged: one produced a green best-lap assertion only after a new crash created a clear lap. Crash-induced separation is rejected as a racecraft fix.
+
 ## Remaining acceptance gates
 
 1. Resolve mixed-class GP pace and confirm the full suite under appropriate runner load without hiding failures or extending acceptance limits merely to pass.

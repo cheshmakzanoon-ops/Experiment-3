@@ -1,4 +1,8 @@
 import { expect } from '@playwright/test';
+import {
+  readRetainedGameObservation,
+  retainCompatibilityObservation,
+} from './native-preparation-evidence.mjs';
 
 /** Exercise the retained production game through its installed native menu.
  * No fixture scripts, AI driver, frame writes, or synthetic simulation input. */
@@ -21,24 +25,8 @@ export async function verifyDesktopCompatibility(application, page, report, capt
   await page.getByRole('button', { name: 'APPLY & SAVE', exact: true }).click();
   await expect(page.locator('#modal')).toBeHidden({ timeout: 180000 });
   const read = async () => {
-    const observation = await page.evaluate(() => {
-      const failure = document.querySelector('#errorMessage')?.textContent?.trim();
-      if (failure) throw new Error(`Retained game stopped: ${failure}`);
-      const d = window.apexDiagnostics();
-      return {
-        state: d.state,
-        auto: d.auto,
-        options: d.options,
-        motion: d.motion,
-        workerPause: d.workerPause,
-        presentationFrames: d.presentation?.frames,
-        preparation: d.renderer?.preparation,
-        environmentWarmup: d.renderer?.environmentWarmup,
-        gpuFrameQueue: d.renderer?.gpuFrameQueue,
-      };
-    });
-    report.lastCompatibilityObservation = observation;
-    return observation;
+    const observation = await page.evaluate(readRetainedGameObservation);
+    return retainCompatibilityObservation(report, observation);
   };
   report.compatibility = [];
   const disciplines = [

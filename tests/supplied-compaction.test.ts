@@ -52,10 +52,10 @@ function context() {
     data,
     binding: () => bound,
     elementBinding: () => element,
-    lose: () => {
+    lose: (dispatch = true) => {
       lost = true;
       data.clear();
-      canvas.dispatchEvent(new Event('webglcontextlost'));
+      if (dispatch) canvas.dispatchEvent(new Event('webglcontextlost'));
     },
     restore: () => {
       lost = false;
@@ -311,6 +311,27 @@ describe('compacted GPU buffer ownership', () => {
     expect(c.elementBinding()).toBe(previousElement);
     expect(c.calls.deleteBuffer).toHaveBeenCalledTimes(1);
     expect(pool.diagnostics().buffers).toBe(0);
+    pool.dispose();
+  });
+  it('does not misclassify loss during the allocation query as a healthy allocation failure', () => {
+    const pool = new CompactIndexBuffers(),
+      c = context(),
+      key = {},
+      values = new Uint32Array([1, 2, 3]);
+    c.calls.getBufferParameter.mockImplementationOnce(() => {
+      // The loss event may be queued while this synchronous query is returning.
+      c.lose(false);
+      return 0;
+    });
+    expect(pool.get(c.gl, key, values, 3, 1)).toBeNull();
+    expect(c.calls.bufferSubData).not.toHaveBeenCalled();
+    expect(c.calls.deleteBuffer).not.toHaveBeenCalled();
+    expect(pool.diagnostics()).toEqual({ buffers: 0, uploads: 0, uploadedBytes: 0 });
+    c.restore();
+    expect(pool.get(c.gl, key, values, 3, 1)).not.toBeNull();
+    expect(c.calls.createBuffer).toHaveBeenCalledTimes(2);
+    expect(c.calls.bufferSubData).toHaveBeenCalledTimes(1);
+    expect(pool.diagnostics()).toEqual({ buffers: 1, uploads: 1, uploadedBytes: 12 });
     pool.dispose();
   });
   it('rejects invalid upload ranges before creating a buffer', () => {

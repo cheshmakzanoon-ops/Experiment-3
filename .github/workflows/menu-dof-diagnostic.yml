@@ -1,0 +1,131 @@
+name: Diagnose paired menu DOF preparation
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/menu-dof-diagnostic.yml'
+permissions:
+  contents: read
+jobs:
+  menu-dof:
+    # Diagnostic comparison only. Neither arm replaces the unchanged acceptance jobs.
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        prime: ['0', '1']
+    env:
+      # Vite substitutes this at build time; preview must serve that same bundle.
+      # Job-level scope also propagates the exact flag to Playwright's preview process.
+      VITE_APEX_DIAGNOSTIC_MENU_DOF_PRIME: ${{ matrix.prime }}
+      APEX_PREPARATION_PROFILE: '0'
+      DEBUG: pw:browser
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - name: Build the selected diagnostic variant
+        run: node --experimental-transform-types scripts/source-stability.ts -- npm run build
+      - name: Record source and flag-bearing build provenance
+        run: |
+          node --input-type=module <<'JS'
+          import { execFileSync } from 'node:child_process';
+          import { createHash } from 'node:crypto';
+          import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
+          const flag = process.env.VITE_APEX_DIAGNOSTIC_MENU_DOF_PRIME;
+          if (flag !== '0' && flag !== '1') throw new Error('Invalid menu DOF diagnostic flag');
+          const git = (...args) => execFileSync('git', args, { encoding: 'utf8' }).trim();
+          const commit = git('rev-parse', 'HEAD');
+          const buildIdentity = JSON.parse(readFileSync('dist/BUILD_IDENTITY.json', 'utf8'));
+          if (commit !== process.env.GITHUB_SHA || buildIdentity.commit !== commit)
+            throw new Error('Checked-out source and built identity do not match the workflow SHA');
+          const files = [
+            'dist/index.html',
+            'dist/BUILD_IDENTITY.json',
+            ...readdirSync('dist/assets').filter((name) => /\.(?:js|css)$/.test(name)).map((name) => `dist/assets/${name}`),
+          ].sort();
+          const assets = files.map((path) => {
+            const bytes = readFileSync(path);
+            return { path, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex') };
+          });
+          writeFileSync('menu-dof-build-provenance.json', JSON.stringify({
+            version: 1,
+            diagnosticOnly: true,
+            requestedCompileTimeFlag: flag,
+            browserCommandFlag: flag,
+            cpuProfilerEnabled: false,
+            commit,
+            tree: git('rev-parse', 'HEAD^{tree}'),
+            status: git('status', '--porcelain'),
+            buildIdentity,
+            // Source fingerprints alone cannot distinguish compile-time environment flags.
+            assets,
+            workflow: process.env.GITHUB_WORKFLOW,
+            runId: process.env.GITHUB_RUN_ID,
+            runAttempt: process.env.GITHUB_RUN_ATTEMPT,
+            preview: 'npm run preview -- --port 4173; CI reuseExistingServer=false',
+          }, null, 2) + '\n');
+          JS
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
+      - name: Original night reference workload and original deadlines
+        # No retry, forced input, timeout override, CPU profiler or modified assertion.
+        run: >-
+          xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/08-reference-implementation.spec.ts --grep 'reference continuation: night and guide controls are real, reversible and non-physical$' --trace on
+      - name: Record observed compiled flag without assuming reachability
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib, zipfile
+          expected = os.environ['VITE_APEX_DIAGNOSTIC_MENU_DOF_PRIME']
+          records, errors = [], []
+          prefix = '__APEX_MENU_TIMING__'
+          for path in pathlib.Path('test-results').rglob('trace.zip'):
+              try:
+                  with zipfile.ZipFile(path) as archive:
+                      for name in archive.namelist():
+                          if not name.endswith('.trace'):
+                              continue
+                          for line in archive.read(name).decode('utf-8').splitlines():
+                              event = json.loads(line)
+                              text = event.get('text', '')
+                              if event.get('type') != 'console' or not text.startswith(prefix):
+                                  continue
+                              packet = json.loads(text[len(prefix):])
+                              for checkpoint in packet.get('events', []):
+                                  if checkpoint.get('kind') == 'preparation' and checkpoint.get('label', '').startswith('menu-dof-diagnostic:'):
+                                      records.append({'trace': str(path), 'origin': packet.get('origin'), **checkpoint})
+              except (OSError, ValueError, zipfile.BadZipFile) as error:
+                  errors.append({'trace': str(path), 'error': str(error)})
+          flags = sorted({record['label'].removeprefix('menu-dof-diagnostic:flag:') for record in records if record['label'].startswith('menu-dof-diagnostic:flag:')})
+          status = 'verified' if flags == [expected] else 'mismatch' if flags else 'not-reached'
+          result = {'version': 1, 'diagnosticOnly': True, 'requestedFlag': expected, 'observedFlags': flags, 'runtimeFlagStatus': status, 'markers': records, 'parseErrors': errors}
+          pathlib.Path('menu-dof-runtime-evidence.json').write_text(json.dumps(result, indent=2) + '\n')
+          print(json.dumps({'requestedFlag': expected, 'observedFlags': flags, 'runtimeFlagStatus': status, 'parseErrors': errors}))
+          if status == 'mismatch' or errors:
+              raise SystemExit('Diagnostic runtime evidence mismatch or unreadable trace')
+          PY
+      - name: Retain each arm including original failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: menu-dof-diagnostic-prime-${{ matrix.prime }}
+          path: |
+            test-results/
+            playwright-report/
+            browser-backend.json
+            browser-progress.json
+            menu-dof-build-provenance.json
+            menu-dof-runtime-evidence.json
+            dist/BUILD_IDENTITY.json
+          retention-days: 7

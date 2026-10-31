@@ -2,6 +2,7 @@ import * as T from 'three';
 import { PreparationTrace } from '../src/rendering/preparation.ts';
 import { expect, it, vi } from 'vitest';
 import { RacingRenderer } from '../src/rendering/renderer.ts';
+import { DepthOfFieldPass } from '../src/rendering/studio/dof-pass.ts';
 import { CAR_STRIDE, HEADER, H, R, RACE_BASE, carBase } from '../src/simulation/protocol.ts';
 import { vehicleIndex } from '../src/simulation/vehicles.ts';
 import { rulesetFor } from '../src/simulation/events.ts';
@@ -21,6 +22,7 @@ function fixture(vehicle = 'apx01', entrants = 3) {
         preparePresentation: (...args: unknown[]) => Promise<boolean>;
       }
     ).preparePresentation,
+    photoFocus: null as DepthOfFieldPass | null,
     cars: [] as { root: T.Group; update: ReturnType<typeof vi.fn> }[],
     follow,
     quality: 'high',
@@ -865,3 +867,237 @@ it.each(['disposed', 'cancelled'] as const)(
     expect(target.preparation.snapshot()!.status).toBe('cancelled');
   },
 );
+
+it('names each post-view compilation before submitting it, after pit work and before its fence', async () => {
+  const { target, typed, sample } = fixture();
+  const compile = target.renderer.compile.getMockImplementation()!;
+  let calls = 0;
+  target.renderer.compile.mockImplementation((scene, camera, targetScene) => {
+    calls++;
+    if (calls >= 3)
+      expect(target.preparation.snapshot()!.checkpoints.at(-1)).toMatchObject({
+        phase: 'start',
+        label: `${calls === 3 ? 'chase' : 'cockpit'}:compile-ready`,
+      });
+    return compile(scene, camera, targetScene);
+  });
+  expect(
+    await RacingRenderer.prototype.prepare.call(
+      typed,
+      sample,
+      vi.fn(),
+      () => false,
+      async () => {},
+    ),
+  ).toBe(true);
+  const checkpoints = target.preparation.snapshot()!.checkpoints;
+  const index = (label: string, phase: string) =>
+    checkpoints.findIndex((event) => event.label === label && event.phase === phase);
+  expect(index('chase:compile-ready', 'start')).toBeGreaterThan(index('pit:warmup', 'end'));
+  for (const mode of ['chase', 'cockpit']) {
+    const start = index(`${mode}:compile-ready`, 'start'),
+      end = index(`${mode}:compile-ready`, 'end');
+    expect(start).toBeGreaterThanOrEqual(0);
+    expect(end).toBeGreaterThan(start);
+    expect(index(`${mode}:fence-wait`, 'start')).toBeGreaterThan(end);
+  }
+});
+
+it.each(['failed', 'cancelled', 'disposed'] as const)(
+  'retains a %s post-view compile span without claiming completion',
+  async (outcome) => {
+    const { target, typed, sample } = fixture();
+    const compile = target.renderer.compile.getMockImplementation()!;
+    let calls = 0,
+      cancelled = false;
+    target.renderer.compile.mockImplementation((scene, camera, targetScene) => {
+      if (++calls === 3) {
+        if (outcome === 'failed') throw new Error('post-view driver call failed');
+        if (outcome === 'disposed') Object.assign(target, { disposed: true });
+        else cancelled = true;
+      }
+      return compile(scene, camera, targetScene);
+    });
+    const pending = RacingRenderer.prototype.prepare.call(
+      typed,
+      sample,
+      vi.fn(),
+      () => cancelled,
+      async () => {},
+    );
+    if (outcome === 'failed') await expect(pending).rejects.toThrow('post-view driver call failed');
+    else expect(await pending).toBe(false);
+    const checkpoints = target.preparation.snapshot()!.checkpoints;
+    expect(
+      checkpoints
+        .filter((event) => event.label === 'chase:compile-ready')
+        .map((event) => event.phase),
+    ).toEqual(['start', outcome === 'failed' ? 'error' : 'cancelled']);
+    expect(checkpoints.some((event) => event.label === 'chase:fence-wait')).toBe(false);
+    expect(target.draw).toHaveBeenCalledTimes(1);
+  },
+);
+
+it.each([undefined, '0'] as const)(
+  'does not allocate diagnostic DOF in the menu when build flag is %s',
+  async (flag) => {
+    vi.stubEnv('VITE_APEX_DIAGNOSTIC_MENU_DOF_PRIME', flag);
+    try {
+      const { target, typed, sample } = fixture();
+      target.draw.mockImplementation(() => {});
+      expect(
+        await RacingRenderer.prototype.prepareMenuPreview.call(
+          typed,
+          sample,
+          vi.fn(),
+          () => false,
+          async () => {},
+        ),
+      ).toBe(true);
+      expect(target.photoFocus).toBeNull();
+      const labels = target.preparation.snapshot()!.checkpoints.map((event) => event.label);
+      if (flag === '0') expect(labels).toContain('menu-dof-diagnostic:flag:0');
+      else expect(labels.some((label) => label.startsWith('menu-dof-diagnostic:'))).toBe(false);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  },
+);
+
+it('retains the exact menu DOF material without inserting/rendering it early and skips race diagnostics', async () => {
+  vi.stubEnv('VITE_APEX_DIAGNOSTIC_MENU_DOF_PRIME', '1');
+  try {
+    const { target, typed, sample } = fixture();
+    target.draw.mockImplementation(() => {});
+    const compiled: T.Material[] = [];
+    target.renderer.compile.mockImplementation((scene) => {
+      if (scene instanceof T.Scene && scene !== target.scene)
+        compiled.push((scene.children[0] as T.Mesh).material as T.Material);
+    });
+    expect(
+      await RacingRenderer.prototype.prepareMenuPreview.call(
+        typed,
+        sample,
+        vi.fn(),
+        () => false,
+        async () => {},
+      ),
+    ).toBe(true);
+    const pass = target.photoFocus!;
+    expect(compiled).toEqual([pass.materialBokeh]);
+    expect(pass.materialBokeh.fragmentShader).toContain('i < 24');
+    expect(pass.materialBokeh.uniforms.lensK).toBeUndefined();
+    expect(pass.materialBokeh.uniforms.aperture.value).toBe(0.0011);
+    expect(pass.materialBokeh.uniforms.maxblur.value).toBe(0.012);
+    expect(pass.materialBokeh.uniforms.focus.value).toBe(10);
+    expect(target.composer.passes).toEqual([]);
+    expect(target.draw).toHaveBeenCalledTimes(1);
+    await RacingRenderer.prototype.prepareMenuPreview.call(
+      typed,
+      sample,
+      vi.fn(),
+      () => false,
+      async () => {},
+    );
+    expect(target.photoFocus).toBe(pass);
+    expect(compiled).toEqual([pass.materialBokeh, pass.materialBokeh]);
+    const disposed = vi.fn();
+    pass.materialBokeh.addEventListener('dispose', disposed);
+    disposeDiagnosticPreviewOwner(pass);
+    expect(disposed).toHaveBeenCalledTimes(1);
+    const race = fixture();
+    expect(
+      await RacingRenderer.prototype.prepare.call(
+        race.typed,
+        race.sample,
+        vi.fn(),
+        () => false,
+        async () => {},
+      ),
+    ).toBe(true);
+    expect(race.target.photoFocus).toBeNull();
+    expect(
+      race.target.preparation
+        .snapshot()!
+        .checkpoints.some((event) => event.label.startsWith('menu-dof-diagnostic:')),
+    ).toBe(false);
+  } finally {
+    vi.unstubAllEnvs();
+  }
+});
+
+it('retains cancelled diagnostic DOF for owner disposal and does not submit or report a completed menu view', async () => {
+  vi.stubEnv('VITE_APEX_DIAGNOSTIC_MENU_DOF_PRIME', '1');
+  try {
+    const { target, typed, sample } = fixture();
+    target.draw.mockImplementation(() => {});
+    let cancelled = false;
+    target.renderer.compile.mockImplementation((scene) => {
+      if (scene instanceof T.Scene && scene !== target.scene) cancelled = true;
+    });
+    expect(
+      await RacingRenderer.prototype.prepareMenuPreview.call(
+        typed,
+        sample,
+        vi.fn(),
+        () => cancelled,
+        async () => {},
+      ),
+    ).toBe(false);
+    expect(target.draw).not.toHaveBeenCalled();
+    expect(
+      target.preparation
+        .snapshot()!
+        .checkpoints.filter((event) => event.label === 'menu-dof-diagnostic:compile-ready')
+        .map((event) => event.phase),
+    ).toEqual(['start', 'cancelled']);
+    const dispose = vi.fn();
+    target.photoFocus!.materialBokeh.addEventListener('dispose', dispose);
+    disposeDiagnosticPreviewOwner(target.photoFocus!);
+    expect(dispose).toHaveBeenCalledTimes(1);
+  } finally {
+    vi.unstubAllEnvs();
+  }
+});
+
+/** Exercise the production ownership/disposal path without constructing a GPU. */
+function disposeDiagnosticPreviewOwner(photoFocus: DepthOfFieldPass) {
+  const resource = { dispose: vi.fn() };
+  const owner: Record<string, unknown> = {
+    disposed: false,
+    photoFocus,
+    renderer: resource,
+    circuit: {
+      secondaryStands: resource,
+      wetReflection: resource,
+      stateTexture: resource,
+      disposalMaterials: () => new Set<T.Material>(),
+    },
+    cars: [],
+    scene: new T.Scene(),
+    sun: { shadow: resource },
+  };
+  for (const name of [
+    'textures',
+    'pitCrew',
+    'gridPerformance',
+    'reflection',
+    'shadowProxies',
+    'farShadow',
+    'gpuTimer',
+    'gpuFrames',
+    'motionBlur',
+    'exposure',
+    'weatherPresentation',
+    'bloom',
+    'fxaa',
+    'scenePass',
+    'grade',
+    'ultra',
+    'environment',
+    'composer',
+  ])
+    owner[name] = resource;
+  RacingRenderer.prototype.dispose.call(owner as unknown as RacingRenderer);
+  RacingRenderer.prototype.dispose.call(owner as unknown as RacingRenderer);
+}

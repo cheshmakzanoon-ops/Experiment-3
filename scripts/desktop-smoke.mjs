@@ -4,6 +4,12 @@ import {
   observationFaults,
 } from '../desktop-dist/graphics-health.js';
 import { verifyDesktopCompatibility } from './desktop-compatibility.mjs';
+import {
+  NATIVE_PREPARATION_CAPTURE,
+  installNativePreparationObserver,
+  createNativePreparationSink,
+  createNativePreparationWriter,
+} from './native-preparation-evidence.mjs';
 import { _electron as electron } from '@playwright/test';
 import { mkdtemp, mkdir, writeFile, readFile } from 'node:fs/promises';
 import { writeFileSync } from 'node:fs';
@@ -22,6 +28,8 @@ const graphicsBackend = process.env.MOTOBOUND_CI_GL || 'native';
 const graphicsArguments = desktopGraphicsArguments(graphicsBackend, target.platform, target.arch);
 const executable = desktopExecutable(target.platform, target.arch);
 await mkdir('desktop-evidence', { recursive: true });
+const preparationEvidence = createNativePreparationSink();
+const preparationWriter = createNativePreparationWriter('desktop-evidence/preparation.json');
 const profile = await mkdtemp(join(tmpdir(), 'motobound-smoke-'));
 const report = {
   ...target,
@@ -214,12 +222,21 @@ try {
   }
   page.on('console', (message) => {
     const entry = { type: message.type(), text: message.text() };
+    // Parse the full packet before the generic console's 2048-character cap.
+    // The separate Node-owned JSON survives a blocked or disposed renderer.
+    const preparationPacket = preparationEvidence.consume(entry.text);
+    if (preparationPacket) {
+      report.preparationEvidence = preparationEvidence.snapshot();
+      preparationWriter.update(report.preparationEvidence);
+    }
     // Faults are sticky even when routine console diagnostics roll over.
     if (consoleGraphicsFaults.size < 32 && graphicsFaults([], [entry], 0).length)
       consoleGraphicsFaults.add(entry.text.slice(0, 2048));
+    if (preparationPacket) return;
     report.console.push({ ...entry, text: entry.text.slice(0, 2048) });
     if (report.console.length > 128) report.console.shift();
   });
+  await page.addInitScript(installNativePreparationObserver, NATIVE_PREPARATION_CAPTURE);
   page.on('pageerror', (error) => report.errors.push(error.stack ?? error.message));
   page.on('response', (response) => {
     if (response.status() >= 400)
@@ -430,6 +447,10 @@ try {
       }
     }
   }
+  report.preparationEvidence = preparationEvidence.snapshot();
+  preparationWriter.update(report.preparationEvidence);
+  const preparationWriteError = await preparationWriter.flush();
+  if (preparationWriteError) report.preparationEvidenceWriteError = preparationWriteError;
   await writeFile('desktop-evidence/report.json', JSON.stringify(report, null, 2) + '\n');
   await application?.close();
 }
