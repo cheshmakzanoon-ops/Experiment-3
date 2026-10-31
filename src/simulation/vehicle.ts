@@ -313,6 +313,17 @@ export class Vehicle {
     for (let i = 0; i < 4; i++) this.wheelOmega[i] = this.tires[i].omega;
     return carrierOmega(this.wheelOmega, this.frontShare);
   }
+  /** Previous solved driven contacts are on the pre-peak longitudinal branch.
+   * A still-spinning or unloaded wheel cannot certify recovery from a shift cut. */
+  private drivenTiresWithinPeak() {
+    for (let i = 0; i < 4; i++) {
+      if (this.frontShare === null && i !== this.drivenLeft && i !== this.drivenRight) continue;
+      const tire = this.tires[i];
+      if (!(tire.load > 1 && tire.peakSlip > 0 && Math.abs(tire.slip) <= tire.peakSlip))
+        return false;
+    }
+    return true;
+  }
   shift(direction: number) {
     if (this.shiftClock > 0) return;
     const spec = this.spec,
@@ -414,6 +425,8 @@ export class Vehicle {
       this.input.shift = 0;
       this.autoShift = false;
     }
+    const sampledShiftCut =
+      this.shiftClock > 0 && dynamics.gearbox.shiftCut > 0 && this.clutch.engagement === 0;
     this.shiftClock = Math.max(0, this.shiftClock - dt);
     // Driven-axle speed (the name is historical: rear for the rwd Formula car).
     const signedRearOmega = this.drivenOmega();
@@ -424,7 +437,19 @@ export class Vehicle {
       const coupledRPM =
         (rearOmega * Math.abs(spec.gearRatios[this.gear + 1] * spec.finalDrive) * 30) / Math.PI;
       if (coupledRPM > spec.shiftRPM && this.gear < spec.gearRatios.length - 2) this.shift(1);
-      else if (coupledRPM < spec.downshiftRPM && this.gear > 1) this.shift(-1);
+      else if (coupledRPM < spec.downshiftRPM && this.gear > 1) {
+        // At cut exit, recovered tyre grip can lower wheel RPM before the
+        // still-fast engine has had one normally coupled solve. Defer only
+        // that sample, never an upshift or a continuing wheelspin downshift.
+        const recoveringCut =
+          sampledShiftCut &&
+          this.shiftClock === 0 &&
+          this.rpm > spec.downshiftRPM &&
+          this.throttle > 0 &&
+          this.brake === 0 &&
+          this.drivenTiresWithinPeak();
+        if (!recoveringCut) this.shift(-1);
+      }
     }
     const ratio = spec.gearRatios[this.gear + 1] * spec.finalDrive;
     const shaft = Math.max(0, this.clutch.engineOmega);

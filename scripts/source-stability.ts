@@ -6,7 +6,16 @@ import { fileURLToPath } from 'node:url';
 
 // Compare against this invocation's input, not a sealed historical source hash.
 // Asset authoring and formatting remain explicit commands outside this guard.
-const INPUT_DIRECTORIES = ['src', 'public', 'scripts', 'tests', 'e2e', 'docs', '.github'];
+const INPUT_DIRECTORIES = [
+  'src',
+  'desktop',
+  'public',
+  'scripts',
+  'tests',
+  'e2e',
+  'docs',
+  '.github',
+];
 const GENERATED_ASSET = 'public/models/supplied-player-lods.bin.gz';
 const GENERATED_BROWSER_RECEIPTS = ['browser-backend.json', 'browser-progress.json'];
 export type SourceSnapshot = Map<string, string>;

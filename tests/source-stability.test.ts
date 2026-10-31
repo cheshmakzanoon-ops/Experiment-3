@@ -11,10 +11,11 @@ afterEach(() =>
 function fixture() {
   const root = mkdtempSync(join(tmpdir(), 'source-stability-'));
   directories.push(root);
-  for (const path of ['src', 'public/models', 'docs', 'node_modules', 'dist'])
+  for (const path of ['src', 'desktop', 'public/models', 'docs', 'node_modules', 'dist'])
     mkdirSync(join(root, path), { recursive: true });
   writeFileSync(join(root, 'src/example.ts'), 'export const version = 1;\n');
   writeFileSync(join(root, 'package.json'), '{}\n');
+  writeFileSync(join(root, 'desktop/main.ts'), 'export const desktop = true;\n');
   return root;
 }
 
@@ -24,18 +25,22 @@ it('accepts legitimate edits made before a normal invocation without historical 
   expect(runWithStableSource(root, process.execPath, ['-e', 'process.exit(0)'])).toBe(0);
 });
 
-it.each(['src/example.ts', 'src/new.ts', 'docs/guide.md', 'package.json'])(
-  'rejects a build-time modification or addition to %s',
-  (path) => {
-    const root = fixture();
-    expect(
-      runWithStableSource(root, process.execPath, [
-        '-e',
-        `require('node:fs').writeFileSync(${JSON.stringify(path)}, 'changed')`,
-      ]),
-    ).toBe(1);
-  },
-);
+it.each([
+  'src/example.ts',
+  'src/new.ts',
+  'desktop/main.ts',
+  'desktop/new.ts',
+  'docs/guide.md',
+  'package.json',
+])('rejects a build-time modification or addition to %s', (path) => {
+  const root = fixture();
+  expect(
+    runWithStableSource(root, process.execPath, [
+      '-e',
+      `require('node:fs').writeFileSync(${JSON.stringify(path)}, 'changed')`,
+    ]),
+  ).toBe(1);
+});
 
 it('rejects deleted input even when the child command fails', () => {
   const root = fixture();
@@ -127,4 +132,23 @@ it('keeps source materialization and Blender out of ordinary npm lifecycles', ()
     expect(pkg.scripts[name] ?? '').not.toMatch(/materialize|git\s+apply|blender|author-/i);
   expect(pkg.scripts['check:stable']).toContain('source-stability.ts');
   expect(pkg.scripts['generate:player-lods']).not.toContain('--update-manifest');
+});
+
+it('protects native source while allowing generated desktop staging output', () => {
+  const root = fixture();
+  expect(
+    runWithStableSource(root, process.execPath, [
+      '-e',
+      `
+    const fs = require('node:fs');
+    fs.mkdirSync('desktop-dist', { recursive: true });
+    fs.mkdirSync('desktop-stage/dist', { recursive: true });
+    fs.writeFileSync('desktop-dist/main.js', 'compiled native shell');
+    fs.writeFileSync('desktop-stage/dist/index.html', 'bundled game');
+  `,
+    ]),
+  ).toBe(0);
+  expect(readFileSync(join(root, 'desktop/main.ts'), 'utf8')).toBe(
+    'export const desktop = true;\n',
+  );
 });

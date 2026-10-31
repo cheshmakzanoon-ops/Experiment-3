@@ -43,10 +43,10 @@ const legacyGhost = () => {
   };
 };
 describe('WP12 recorded identity and schema policy', () => {
-  it.each([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19])(
+  it.each([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20])(
     'keeps physics v%i records out of the current physics category',
     (physics) => {
-      expect(SIMULATION_VERSION).toBe(20);
+      expect(SIMULATION_VERSION).toBe(21);
       expect(
         recordIncompatibility(
           { circuit: 'aurel', vehicle: 'apx01', physics },
@@ -58,7 +58,7 @@ describe('WP12 recorded identity and schema policy', () => {
       );
     },
   );
-  it.each([18, 19])(
+  it.each([18, 19, 20])(
     'rejects an integrity-checked v%i session record without relabelling or re-simulating it',
     (physics) => {
       const world = new AuthoritativeWorld(
@@ -75,24 +75,24 @@ describe('WP12 recorded identity and schema policy', () => {
       expect(verifyRecord(previous)).toEqual({
         ok: false,
         stage: 'content',
-        reason: `recorded with physics v${physics}; this verifier runs v20`,
+        reason: `recorded with physics v${physics}; this verifier runs v21`,
       });
       expect(previous).toEqual(preserved);
     },
   );
   it.each(['hf86', 'hf67'])(
-    'separates %s records and network identities from v18 and v19 after the upshift rollback',
+    'separates %s records and network identities from v18/v19/v20 after the automatic downshift cut-recovery repair',
     (vehicle) => {
       const options = { ...DEFAULT_OPTIONS, opponents: 0, vehicles: [vehicle] };
       const category = recordCategory(options);
-      expect(category).toEqual({ circuit: 'aurel', vehicle, physics: 20 });
+      expect(category).toEqual({ circuit: 'aurel', vehicle, physics: 21 });
       const current = sessionIdentity(options);
-      expect(BUILD_IDENTITY.simulationVersion).toBe(20);
+      expect(BUILD_IDENTITY.simulationVersion).toBe(21);
       expect(identityMismatch(current, current)).toBeNull();
-      for (const physics of [18, 19]) {
+      for (const physics of [18, 19, 20]) {
         const previous = { ...category, physics };
         expect(recordIncompatibility(previous, category)).toBe(
-          `recorded with physics v${physics}; current physics is v20`,
+          `recorded with physics v${physics}; current physics is v21`,
         );
         expect(leaderboardKey('aurel', vehicle, physics)).not.toBe(
           leaderboardKey('aurel', vehicle, category.physics),
@@ -100,13 +100,13 @@ describe('WP12 recorded identity and schema policy', () => {
         const old = { ...current, simulationVersion: physics };
         const preserved = structuredClone(old);
         expect(identityMismatch(current, old)).toBe(
-          `simulation version ${physics} does not match the server's version 20`,
+          `simulation version ${physics} does not match the server's version 21`,
         );
         expect(old).toEqual(preserved);
       }
     },
   );
-  it.each([18, 19])(
+  it.each([18, 19, 20])(
     'rejects v%i ghosts on load without writing or deleting the stored records',
     async (physics) => {
       const track = new Track();
@@ -145,19 +145,19 @@ describe('WP12 recorded identity and schema policy', () => {
         expect(records.trial?.best).toBe(0);
         expect(write).not.toHaveBeenCalled();
         expect(saved).toEqual(preserved);
-        // Rejection from v20 is not corruption or conversion of the old recording.
+        // Rejection from v21 is not corruption or conversion of the old recording.
         expect(validateGhost(oldGhost, 'aurel', track.length, previous)).toMatchObject({
           vehicle,
           physics,
         });
         expect(
           validateGhost(
-            { ...oldGhost, physics: 20 },
+            { ...oldGhost, physics: 21 },
             'aurel',
             track.length,
             recordCategory(options),
           ),
-        ).toMatchObject({ vehicle, physics: 20 });
+        ).toMatchObject({ vehicle, physics: 21 });
       }
     },
   );

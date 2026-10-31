@@ -159,6 +159,9 @@ function pointer(object: object, pattern: RegExp): string | undefined {
   return matches[0];
 }
 
+/** Reuse the same pinned metadata boundary for source-bound material adapters. */
+export { pointer as existingPlayerSourcePointer };
+
 /** Validate all bindings before returning. No vertex/index arrays, transforms, submeshes,
  * materials, skeletons or GPU resources are created, changed or disposed. The
  * container remains their sole owner; this table only holds existing references.

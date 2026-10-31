@@ -437,20 +437,35 @@ test('festival map: filters, event selection and keyboard focus survive redraws'
   expect(await eventIds()).toEqual(events.filter((event) => event.race).map((event) => event.id));
   const undiscovered = events.find((event) => event.race && !event.discovered)!;
   const preview = map.locator(`[data-fest="mapSelect"][data-value="${undiscovered.id}"]`);
+  const actions = page.locator('#festivalEvents');
+  const beforePreview = (await actions.textContent()) ?? '';
   await preview.focus();
   await page.keyboard.press('Enter');
   await expect(preview).toHaveAttribute('aria-pressed', 'true');
   await expect(preview).toBeFocused();
   await expect(page.locator('#festMapDetail h3')).toHaveText(undiscovered.name);
-  await expect(page.locator('#festMapDetail')).toContainText('Drive near the marker');
-  await expect(page.locator('#festMapDetail [data-fest="travel"]')).toHaveCount(0);
-  // A discovered event has a real travel action; a preview never grants it.
+  // Free-roam travel has allowed unvisited events since before this test's
+  // stale discovery gate (already failing on 56a2430). Preview is not travel;
+  // career entry retains its separate discovery/reputation requirements.
+  await expect(page.locator('#festMapDetail')).toContainText('NEW ROUTE');
+  await expect(actions).toHaveText(beforePreview);
+  const travel = page.locator('#festMapDetail [data-fest="travel"]');
+  await expect(travel).toHaveCount(1);
+  await expect(travel).toHaveAttribute('data-value', undiscovered.id);
+  await travel.click();
+  await expect(actions).toHaveText(`${beforePreview}travel:${undiscovered.id};`);
+  // Previously visited events retain the same explicit travel action.
   await map.getByRole('button', { name: 'All', exact: true }).click();
   const discovered = events.find((event) => event.discovered)!;
   await map.locator(`[data-fest="mapSelect"][data-value="${discovered.id}"]`).click();
   await expect(page.locator('#festMapDetail [data-fest="travel"]')).toHaveAttribute(
     'data-value',
     discovered.id,
+  );
+  await expect(actions).toHaveText(`${beforePreview}travel:${undiscovered.id};`);
+  await travel.click();
+  await expect(actions).toHaveText(
+    `${beforePreview}travel:${undiscovered.id};travel:${discovered.id};`,
   );
   await map.getByRole('button', { name: 'Skills', exact: true }).click();
   expect(await eventIds()).toEqual(events.filter((event) => !event.race).map((event) => event.id));
