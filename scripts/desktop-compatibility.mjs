@@ -20,8 +20,8 @@ export async function verifyDesktopCompatibility(application, page, report, capt
   await page.locator('[name=quality]').selectOption('low');
   await page.getByRole('button', { name: 'APPLY & SAVE', exact: true }).click();
   await expect(page.locator('#modal')).toBeHidden({ timeout: 180000 });
-  const read = () =>
-    page.evaluate(() => {
+  const read = async () => {
+    const observation = await page.evaluate(() => {
       const failure = document.querySelector('#errorMessage')?.textContent?.trim();
       if (failure) throw new Error(`Retained game stopped: ${failure}`);
       const d = window.apexDiagnostics();
@@ -32,8 +32,14 @@ export async function verifyDesktopCompatibility(application, page, report, capt
         motion: d.motion,
         workerPause: d.workerPause,
         presentationFrames: d.presentation?.frames,
+        preparation: d.renderer?.preparation,
+        environmentWarmup: d.renderer?.environmentWarmup,
+        gpuFrameQueue: d.renderer?.gpuFrameQueue,
       };
     });
+    report.lastCompatibilityObservation = observation;
+    return observation;
+  };
   report.compatibility = [];
   const disciplines = [
     { id: 'formula', title: 'FORMULA', circuit: 'aurel', vehicle: 'apx01', mode: 'practice' },
@@ -108,6 +114,13 @@ export async function verifyDesktopCompatibility(application, page, report, capt
     if (mode.id !== 'festival') {
       expect(receipt.ready.options.circuit).toBe(mode.circuit);
       expect(receipt.ready.options.mode).toBe(mode.mode);
+      expect(receipt.ready.environmentWarmup).toEqual({
+        restored: true,
+        fenceDelta: 1,
+        probeDraws: 0,
+        mirrorDraws: 0,
+        composerDraws: 0,
+      });
     }
     expect(receipt.ready.motion.sample).not.toBeNull();
     await page.keyboard.down('w');

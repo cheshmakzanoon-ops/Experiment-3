@@ -1,3 +1,4 @@
+import { abortableStartup } from '../core/abortable-startup.ts';
 import { motionReceipt } from '../core/motion-receipt.ts';
 import type * as T from 'three';
 import { scannedGround } from '../rendering/ground/scan-store.ts';
@@ -42,6 +43,8 @@ export interface FestivalHost {
   canvas: HTMLCanvasElement;
   /** The application's WebGL renderer (one context per canvas). */
   renderer: T.WebGLRenderer;
+  /** Shared with the host's circuit renderer, including the return transition. */
+  presentation: { ready(): boolean; submitted(): void };
   /** Container for the festival HUD. */
   element: HTMLElement;
   quality: QualityPreset;
@@ -74,6 +77,7 @@ export interface FestivalHost {
   save?(state: FestivalSave): Promise<void>;
 }
 export interface FestivalStartOptions {
+  signal?: AbortSignal;
   vehicle?: string;
   weather?: WeatherPreset;
   assist?: Assist;
@@ -148,12 +152,28 @@ export class FestivalSession {
     window.addEventListener('keydown', this.photoKeys, true);
   }
   static async start(host: FestivalHost, options: FestivalStartOptions = {}) {
+    options.signal?.throwIfAborted();
     host.loading('Building the Solvane festival region…');
-    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-    const save = validateFestivalSave(await host.load?.().catch(() => null));
+    let waitingFrame = 0;
+    await abortableStartup(
+      new Promise<void>((resolve) => {
+        waitingFrame = requestAnimationFrame(() => resolve());
+      }),
+      options.signal,
+      () => cancelAnimationFrame(waitingFrame),
+    );
+    const save = validateFestivalSave(
+      await abortableStartup(
+        host.load?.().catch(() => null) ?? Promise.resolve(null),
+        options.signal,
+        () => {},
+      ),
+    );
+    options.signal?.throwIfAborted();
     const session = new FestivalSession(host, save);
     try {
-      await session.boot(options);
+      await abortableStartup(session.boot(options), options.signal, () => session.dispose());
+      options.signal?.throwIfAborted();
     } catch (error) {
       session.dispose();
       throw error;
@@ -161,15 +181,22 @@ export class FestivalSession {
     return session;
   }
   private async boot(options: FestivalStartOptions) {
+    const active = () => {
+      options.signal?.throwIfAborted();
+      if (this.disposed) throw new DOMException('Festival startup cancelled', 'AbortError');
+    };
+    active();
     const host = this.host;
     const world = openWorld();
     host.loading('Planning event routes and town streets…');
     await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    active();
     const events = resolveEvents(world);
     this.events = events;
     const structures = regionStructures(world);
     host.loading('Building roads, buildings and water…');
     await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    active();
     const renderer = new FestivalRenderer(
       host.renderer,
       host.canvas,
@@ -183,8 +210,10 @@ export class FestivalSession {
     renderer.lighting = host.lighting;
     host.loading('Loading photographed trees…');
     await renderer.loadPhotoVegetation();
+    active();
     host.loading('Loading authored coastal details…');
     await Promise.all([renderer.loadAuthoredDetails(), renderer.loadStreetDetails()]);
+    active();
     for (const id of this.save.discovered) renderer.discovered.add(id);
     // Ambient traffic (instanced) and motorcycles (the bike presentation)
     // share the festival scene; both are posed before each draw.
@@ -260,13 +289,19 @@ export class FestivalSession {
       },
     });
     await ready;
+    active();
     // Stream the terrain around the spawn before the first frame.
     host.loading('Streaming terrain around Port Ilse…');
     const frame = this.current!;
     const x = frame[carBase(0) + F.X],
       z = frame[carBase(0) + F.Z];
     const deadline = performance.now() + 20000;
-    while (!renderer.ready(x, z) && performance.now() < deadline && !this.disposed) {
+    while (
+      !renderer.ready(x, z) &&
+      performance.now() < deadline &&
+      !this.disposed &&
+      !options.signal?.aborted
+    ) {
       renderer.prestream(x, z);
       await new Promise<void>((resolve) => setTimeout(resolve, 30));
     }
@@ -274,15 +309,19 @@ export class FestivalSession {
       renderer.prestream(x, z);
       await new Promise<void>((resolve) => setTimeout(resolve, 20));
     }
+    active();
     if (renderer.photoSky.enabled) {
       host.loading('Loading the photographed sky…');
       await renderer.photoSky.ready(frame[H.CLOUD], renderer.lighting);
+      active();
     }
     if (scannedGround.enabled) {
       host.loading('Loading photographed ground…');
       await scannedGround.ready();
+      active();
     }
     await host.audio?.start().catch(() => undefined);
+    active();
     host.loaded();
     this.post({ type: 'pause', value: false });
     // Any selected festival route is reachable on a fresh save. Race cards
@@ -303,6 +342,7 @@ export class FestivalSession {
     this.host.toast(`Festival error: ${error.message}`);
   }
   private receive(msg: FromOpenWorld) {
+    if (this.disposed) return;
     switch (msg.type) {
       case 'ready':
         break;
@@ -540,8 +580,11 @@ export class FestivalSession {
   }
   /** One animation frame. */
   frame(time: number) {
+    // Menu/controller actions must remain responsive while graphics is busy.
+    this.controls?.syncInput();
     const renderer = this.renderer;
     if (!renderer || !this.current || this.disposed || this.travelling) return;
+    if (!this.host.presentation.ready()) return;
     const live = this.liveFrames.sample(performance.now());
     if (!live) return;
     const { a, b, alpha } = live;
@@ -551,6 +594,7 @@ export class FestivalSession {
     this.riders?.update(a, b, alpha, renderer.camera, this.host.quality);
     this.traffic?.update(live.auxiliaryA, live.auxiliaryB, alpha, renderer.night, b[H.TIME]);
     renderer.draw(a, b, alpha, Math.min(0.08, wall));
+    this.host.presentation.submitted();
     this.presentationFrames++;
     const o = carBase(0),
       presented = renderer.presented.value;
@@ -573,7 +617,6 @@ export class FestivalSession {
         renderer.guidance.cue,
         renderer.driftCue,
       );
-    this.controls?.syncInput();
     this.host.audio?.update(
       presented,
       renderer.mode === 'hood',
@@ -588,6 +631,10 @@ export class FestivalSession {
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
+    this.readyReject?.(new DOMException('Festival startup cancelled', 'AbortError'));
+    this.readyReject = this.readyResolve = null;
+    this.worker.terminate();
+    this.tiles.terminate();
     for (const request of this.commandRequests.values()) {
       clearTimeout(request.timer);
       request.reject(new Error('Festival session closed'));
@@ -596,8 +643,6 @@ export class FestivalSession {
     window.removeEventListener('keydown', this.photoKeys, true);
     this.controls?.dispose();
     this.host.audio?.stop();
-    this.worker.terminate();
-    this.tiles.terminate();
     this.traffic?.dispose();
     this.traffic = null;
     this.riders?.dispose();

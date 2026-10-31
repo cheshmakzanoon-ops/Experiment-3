@@ -1,4 +1,5 @@
 import { motionReceipt } from './core/motion-receipt.ts';
+import { installGraphicsObservation } from './core/graphics-observation.ts';
 import {
   graphicsSettingsChanged,
   runSettingsChange,
@@ -125,6 +126,8 @@ import { PracticeProgramme } from './simulation/practice-programme.ts';
 import { CareerController, type CareerSession } from './career/controller.ts';
 import type { GuideMode } from './rendering/driving-guide.ts';
 import type { FestivalSession } from './session/free-roam.ts';
+installGraphicsObservation();
+
 type State = 'menu' | 'loading' | 'driving' | 'paused' | 'results' | 'replay' | 'photo' | 'pregame';
 export class GameApp {
   private readonly gridClock = new GridPresentationClock();
@@ -143,6 +146,7 @@ export class GameApp {
   /** Festival free roam: while set it owns input, frames and the canvas. */
   private festival: FestivalSession | null = null;
   private festivalStarting = false;
+  private festivalLifetime: AbortController | null = null;
   private programme = new PracticeProgramme();
   /** Driver career (src/career): licences, events, garage and payments. */
   private career: CareerController;
@@ -624,9 +628,27 @@ export class GameApp {
     options: SessionOptions,
     career: { travel: string | null; loaner: boolean } | null = null,
   ) {
-    if (this.festival || this.festivalStarting || !this.renderer || !this.canvas) return;
+    if (
+      this.disposed ||
+      this.errorStopped ||
+      this.festival ||
+      this.festivalStarting ||
+      !this.renderer ||
+      !this.canvas
+    )
+      return;
     this.festivalStarting = true;
     const renderer = this.renderer;
+    const generation = this.generation;
+    const lifetime = new AbortController();
+    this.festivalLifetime = lifetime;
+    const current = () =>
+      this.festivalLifetime === lifetime &&
+      !lifetime.signal.aborted &&
+      !this.disposed &&
+      !this.errorStopped &&
+      this.generation === generation &&
+      this.renderer === renderer;
     // Each festival session has its own identity: results carry run ids
     // under it, and the career pays each run once.
     const session = crypto.randomUUID();
@@ -636,39 +658,60 @@ export class GameApp {
     });
     try {
       const { FestivalSession, FESTIVAL_SAVE_KEY } = await import('./session/free-roam.ts');
+      if (!current()) return;
       this.ui.showMode('loading');
-      this.festival = await FestivalSession.start(
+      const festival = await FestivalSession.start(
         {
           canvas: this.canvas,
           renderer: renderer.renderer,
+          presentation: {
+            ready: () => current() && renderer.canSubmitFrame(),
+            submitted: () => renderer.submittedExternalFrame(),
+          },
           element: document.getElementById('app')!,
           quality: this.settings.quality,
           graphics: this.settings.graphics,
           lighting: renderer.lighting,
-          loading: (text) => this.ui.loading(text),
+          loading: (text) => {
+            if (current()) this.ui.loading(text);
+          },
           loaded: () => {
+            if (!current()) return;
             const screen = this.ui.get('loading');
             screen.hidden = true;
             screen.setAttribute('aria-busy', 'false');
           },
-          toast: (message) => this.ui.toast(message),
-          exit: () => this.exitFestival(),
+          toast: (message) => {
+            if (current()) this.ui.toast(message);
+          },
+          exit: () => {
+            if (current()) this.exitFestival();
+          },
           // Driving input off while a festival menu is open (keyboard focus
           // reaches its buttons), as in the circuit pause.
-          driving: (on) => this.input.setEnabled(on),
+          driving: (on) => {
+            if (current()) this.input.setEnabled(on);
+          },
           audio: {
-            start: () => this.audio.start(),
-            stop: () => this.audio.stop(),
-            update: (frame, cockpit, playing, view, liveHuman) =>
-              this.audio.update(frame, cockpit, playing, view, liveHuman),
+            start: () => (current() ? this.audio.start() : Promise.resolve()),
+            stop: () => {
+              if (current()) this.audio.stop();
+            },
+            update: (frame, cockpit, playing, view, liveHuman) => {
+              if (current()) this.audio.update(frame, cockpit, playing, view, liveHuman);
+            },
           },
           // Career hook: a typed FestivalResult per finished/abandoned event.
-          onResult: (result) =>
-            window.dispatchEvent(new CustomEvent('festival-result', { detail: result })),
+          onResult: (result) => {
+            if (current())
+              window.dispatchEvent(new CustomEvent('festival-result', { detail: result }));
+          },
           load: () => this.store.read(FESTIVAL_SAVE_KEY),
-          save: (state) => this.store.write(FESTIVAL_SAVE_KEY, state),
+          save: (state) =>
+            current() ? this.store.write(FESTIVAL_SAVE_KEY, state) : Promise.resolve(),
         },
         {
+          signal: lifetime.signal,
           vehicle: options.vehicles?.[0],
           weather: options.weather,
           assist: options.assist,
@@ -679,16 +722,28 @@ export class GameApp {
           loaner: career?.loaner ?? false,
         },
       );
-      this.input.setEnabled(this.festival.drivingInputEnabled);
+      if (!current()) {
+        festival.dispose();
+        return;
+      }
+      this.festival = festival;
+      this.input.setEnabled(festival.drivingInputEnabled);
     } catch (error) {
+      if (!current()) return;
       this.festival = null;
       this.exitFestival();
       throw error;
     } finally {
-      this.festivalStarting = false;
+      if (this.festivalLifetime === lifetime) {
+        this.festivalStarting = false;
+        if (!this.festival) this.festivalLifetime = null;
+      }
     }
   }
   private exitFestival() {
+    this.festivalLifetime?.abort();
+    this.festivalLifetime = null;
+    this.festivalStarting = false;
     this.festival?.dispose();
     this.festival = null;
     this.career.endFestival();
@@ -1007,6 +1062,7 @@ export class GameApp {
   }
   private frame = (time: number) => {
     this.timer = requestAnimationFrame(this.frame);
+    if (this.errorStopped) return;
     const menuActive = this.state === 'menu' && !this.festival && !this.festivalStarting;
     if (!menuActive && this.menuPresentationActive) this.resetMenuPresentation();
     this.menuPresentationActive = menuActive;
@@ -2771,6 +2827,11 @@ export class GameApp {
     this.performanceCapture.interrupt('Application error');
     this.interruptReview('Application error');
     this.errorStopped = true;
+    this.festivalLifetime?.abort();
+    this.festivalLifetime = null;
+    this.festivalStarting = false;
+    this.festival?.dispose();
+    this.festival = null;
     clearTimeout(this.initTimeout);
     this.worker?.terminate();
     this.input.setEnabled(false);
@@ -2899,6 +2960,9 @@ export class GameApp {
     this.reviewVideo.dispose();
     this.disposed = true;
     this.generation++;
+    this.festivalLifetime?.abort();
+    this.festivalLifetime = null;
+    this.festivalStarting = false;
     this.exporter.cancel();
     if (this.replay) void this.replay.dispose();
     this.inputPump.dispose();

@@ -15,6 +15,7 @@ import { SOLVANE } from '../../src/simulation/open-world/region-data.ts';
 import type { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { F, carBase } from '../../src/simulation/protocol.ts';
 import { pixelDifference } from './pixel-difference.ts';
+import { GpuFrameGate } from '../../src/rendering/gpu-frame-gate.ts';
 
 declare const __APEX_SOURCE_FINGERPRINT__: string;
 declare const __APEX_SOURCE_COMMIT__: string | null;
@@ -30,6 +31,10 @@ const gl = new T.WebGLRenderer({
   powerPreference: 'high-performance',
   preserveDrawingBuffer: params.get('capture') === '1',
 });
+const context = gl.getContext();
+if (!('fenceSync' in context)) throw new Error('Festival presentation requires WebGL2 fences');
+const presentationGate = new GpuFrameGate(context);
+window.addEventListener('pagehide', () => presentationGate.dispose(), { once: true });
 gl.toneMapping = T.ACESFilmicToneMapping;
 gl.outputColorSpace = T.SRGBColorSpace;
 gl.shadowMap.type = T.PCFSoftShadowMap;
@@ -214,10 +219,17 @@ Object.assign(window, {
       rendering = enabled;
     },
     image: () => canvas.toDataURL('image/png'),
-    draw: () => {
-      if (session) {
-        session.frame(performance.now());
-        draws++;
+    draw: async () => {
+      const owner = session;
+      const deadline = performance.now() + 30000;
+      while (owner && session === owner && !presentationGate.ready()) {
+        if (performance.now() >= deadline)
+          throw new Error('Festival capture frame did not become ready');
+        await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      }
+      if (owner && session === owner) {
+        owner.frame(performance.now());
+        draws = owner.motionDiagnostics().presentationFrames;
       }
     },
   },
@@ -227,6 +239,10 @@ async function boot() {
     {
       canvas,
       renderer: gl,
+      presentation: {
+        ready: () => presentationGate.ready(),
+        submitted: () => presentationGate.submittedFrame(),
+      },
       element: root,
       quality,
       graphics: graphicsPreset(quality),
@@ -274,7 +290,7 @@ async function boot() {
     previous = time;
     if (rendering) {
       session.frame(time);
-      draws++;
+      draws = session.motionDiagnostics().presentationFrames;
       if (captureFrames > 0 && draws >= captureFrames) rendering = false;
     }
     requestAnimationFrame(tick);

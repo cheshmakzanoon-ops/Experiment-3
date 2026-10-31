@@ -1,3 +1,8 @@
+import {
+  graphicsFaults,
+  createGraphicsLogScanner,
+  observationFaults,
+} from '../desktop-dist/graphics-health.js';
 import { verifyDesktopCompatibility } from './desktop-compatibility.mjs';
 import { _electron as electron } from '@playwright/test';
 import { mkdtemp, mkdir, writeFile, readFile } from 'node:fs/promises';
@@ -11,6 +16,8 @@ import {
 } from '../desktop-dist/target.js';
 const target = desktopTarget(process.platform, process.arch, process.env.MOTOBOUND_TARGET_ARCH);
 const startedAt = Date.now();
+const consoleGraphicsFaults = new Set();
+const processScanners = [createGraphicsLogScanner(), createGraphicsLogScanner()];
 const graphicsBackend = process.env.MOTOBOUND_CI_GL || 'native';
 const graphicsArguments = desktopGraphicsArguments(graphicsBackend, target.platform, target.arch);
 const executable = desktopExecutable(target.platform, target.arch);
@@ -28,12 +35,55 @@ const report = {
   errors: [],
   remoteRequests: [],
   assetFailures: [],
+  graphicsFaults: [],
+  contextLosses: 0,
 };
 function stage(name) {
   const entry = { name, elapsedMs: Date.now() - startedAt };
   report.stages.push(entry);
   writeFileSync('desktop-evidence/partial.json', JSON.stringify(report, null, 2));
   console.log(`[desktop smoke] ${JSON.stringify(entry)}`);
+}
+async function observeGraphicsHealth(page) {
+  let timer;
+  try {
+    const [processObservation, documentObservation] = await Promise.race([
+      Promise.all([
+        application.evaluate(() => globalThis.motoboundProcessGraphicsObservation?.()),
+        page.evaluate(() => window.motoboundGraphicsObservation?.()),
+      ]),
+      new Promise((_, reject) => {
+        timer = setTimeout(
+          () => reject(new Error('Graphics health observation exceeded 30000ms')),
+          30000,
+        );
+      }),
+    ]);
+    report.processGraphicsObservation = processObservation;
+    report.documentGraphicsObservation = documentObservation;
+    report.contextLosses = documentObservation?.documents?.reduce(
+      (sum, doc) => sum + doc.losses,
+      0,
+    );
+    report.graphicsFaults = [
+      ...new Set([
+        ...observationFaults(processObservation, documentObservation),
+        ...consoleGraphicsFaults,
+        ...graphicsFaults([], report.console, report.contextLosses),
+        ...processScanners.flatMap((scanner) => scanner.faults()),
+      ]),
+    ];
+  } finally {
+    clearTimeout(timer);
+  }
+  return report.graphicsFaults;
+}
+async function captureChecked(page, path) {
+  if ((await observeGraphicsHealth(page)).length)
+    throw new Error('GPU health failed before capture');
+  await captureViewport(page, path);
+  if ((await observeGraphicsHealth(page)).length)
+    throw new Error('GPU health failed during capture');
 }
 async function captureViewport(page, path) {
   const session = await page.context().newCDPSession(page);
@@ -76,8 +126,14 @@ try {
     timeout: 120000,
   });
   stage('electron-connected');
-  for (const stream of [application.process().stdout, application.process().stderr])
-    stream?.on('data', (data) => report.processLog.push(String(data).slice(0, 8000)));
+  [application.process().stdout, application.process().stderr].forEach((stream, index) =>
+    stream?.on('data', (data) => {
+      const chunk = String(data);
+      processScanners[index].push(chunk);
+      report.processLog.push(chunk.slice(0, 8000));
+      if (report.processLog.length > 128) report.processLog.shift();
+    }),
+  );
   report.runtime = await application.evaluate(({ app }) => ({
     platform: process.platform,
     arch: process.arch,
@@ -122,9 +178,14 @@ try {
       };
     });
   }
-  page.on('console', (message) =>
-    report.console.push({ type: message.type(), text: message.text() }),
-  );
+  page.on('console', (message) => {
+    const entry = { type: message.type(), text: message.text() };
+    // Faults are sticky even when routine console diagnostics roll over.
+    if (consoleGraphicsFaults.size < 32 && graphicsFaults([], [entry], 0).length)
+      consoleGraphicsFaults.add(entry.text.slice(0, 2048));
+    report.console.push({ ...entry, text: entry.text.slice(0, 2048) });
+    if (report.console.length > 128) report.console.shift();
+  });
   page.on('pageerror', (error) => report.errors.push(error.stack ?? error.message));
   page.on('response', (response) => {
     if (response.status() >= 400)
@@ -296,9 +357,11 @@ try {
   report.checks.push('sandbox/context isolation active, Node integration disabled');
   report.gpu = await application.evaluate(({ app }) => app.getGPUFeatureStatus());
   stage('capturing');
-  await captureViewport(page, 'desktop-evidence/packaged-babylon.png');
+  await captureChecked(page, 'desktop-evidence/packaged-babylon.png');
   stage('capture-passed');
-  await verifyDesktopCompatibility(application, page, report, captureViewport, stage);
+  await verifyDesktopCompatibility(application, page, report, captureChecked, stage);
+  if ((await observeGraphicsHealth(page)).length)
+    throw new Error('GPU health failed during the installed-game journeys');
   if (report.errors.length || report.remoteRequests.length || report.assetFailures.length)
     throw new Error('Unexpected renderer errors, asset failures or remote runtime requests');
   report.success = true;
@@ -314,6 +377,22 @@ try {
   }
   process.exitCode = 1;
 } finally {
+  if (page) {
+    try {
+      if ((await observeGraphicsHealth(page)).length && report.success) {
+        report.success = false;
+        report.failure = 'GPU health failed at final evidence collection';
+        process.exitCode = 1;
+      }
+    } catch (error) {
+      report.graphicsObservationError = String(error);
+      if (report.success) {
+        report.success = false;
+        report.failure = 'Final graphics health could not be observed';
+        process.exitCode = 1;
+      }
+    }
+  }
   await writeFile('desktop-evidence/report.json', JSON.stringify(report, null, 2) + '\n');
   await application?.close();
 }

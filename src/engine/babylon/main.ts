@@ -5,6 +5,7 @@ import { waitForPresentation } from './presentation-ready.ts';
 import { ExistingPlayerSteering } from './existing-player-steering.ts';
 import { ExistingPlayerWheels } from './existing-player-wheels.ts';
 import { PresentationSchedule } from './presentation-schedule.ts';
+import { installGraphicsObservation } from '../../core/graphics-observation.ts';
 import { SimulationComponent } from '../simulation-component.ts';
 import { DEFAULT_OPTIONS } from '../../simulation/config.ts';
 import { InputController, type TouchAction } from '../../input/controller.ts';
@@ -13,6 +14,7 @@ import { DEFAULT_SETTINGS, SaveStore, validateSettings } from '../../storage/dat
 import { F, carBase } from '../../simulation/protocol.ts';
 import './preview.css';
 
+installGraphicsObservation();
 const canvas = document.querySelector<HTMLCanvasElement>('#game')!;
 const status = document.querySelector<HTMLOutputElement>('#status')!;
 const pause = document.querySelector<HTMLButtonElement>('#pause')!;

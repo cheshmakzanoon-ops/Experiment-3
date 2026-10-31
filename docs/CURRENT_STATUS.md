@@ -39,6 +39,14 @@ On `d063029`, the rebuilt decoder produced no CSP errors in any native report. W
 
 A separate held-menu repair now polls an already submitted preview's GPU completion even while new drawing is suppressed. It preserves settings ownership, quiet intervals and immutable physics snapshots, and adds a real Academy receipt/held-frame journey. This does not resolve the forced-day showroom/night-preview mismatch or the cold graphics-preparation stalls.
 
+### Graphics and session-lifetime candidate
+
+Source `1cc9d94` passed the new real Academy held-preview completion journey. Windows and Apple Silicon passed native qualification, but required Linux Mesa failed Open World capture after completing the three circuit disciplines. Its report also recorded GPU-process crashes, including an earlier blank Babylon capture. The separate settings suites still contain failures; one passing Academy test is not a complete settings pass.
+
+The current candidate stages shadow and environment preparation before compiling the resulting lighting variants, retaining full-quality view warmups and unchanged deadlines. Open World uses the existing renderer's GPU-completion gate rather than submitting unbounded frames. Startup cancellation prevents stale imports, saved-state reads, worker readiness and late asset loaders from installing into a closed or replaced session. Process and document observations preserve graphics faults across navigation and require healthy observations around native screenshots and final acceptance.
+
+Local evidence: 131 focused rendering/lifecycle/graphics tests passed, followed by three late-asset teardown tests. After the final late-asset guards, all 14 affected lifecycle tests, TypeScript, desktop compilation, full project lint, production build, workflow lint and diff checks passed. Native verification of this candidate is pending. This is not yet a demonstrated Linux driver repair or four-mode release acceptance.
+
 ## Remaining acceptance gates
 
 1. Resolve mixed-class GP pace and confirm the full suite under appropriate runner load without hiding failures or extending acceptance limits merely to pass.

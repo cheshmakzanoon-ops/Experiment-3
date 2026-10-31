@@ -35,6 +35,9 @@ function fixture(vehicle = 'apx01', entrants = 3) {
     preparation: new PreparationTrace(),
     composer: { readBuffer: new T.WebGLRenderTarget(8, 8, { type: T.HalfFloatType }) },
     warmupFrames: 0,
+    preparationLight: new T.DirectionalLight(),
+    preparedEnvironment: new T.Texture(),
+    gpuFrames: { submittedFrame: vi.fn(() => calls.push('fence')) },
     waitForPreparedFrame: vi.fn(async () => {
       calls.push('gpu-ready');
     }),
@@ -43,6 +46,13 @@ function fixture(vehicle = 'apx01', entrants = 3) {
     }),
     warmShadowCasters: vi.fn(() => {
       calls.push('shadow-casters');
+      return true;
+    }),
+    warmEnvironmentFrame: vi.fn(() => {
+      calls.push('environment');
+      target.preparationLight.visible = true;
+      target.scene.environment = target.preparedEnvironment;
+      target.gpuFrames.submittedFrame();
     }),
     setCars(n: number) {
       while (this.cars.length < n) {
@@ -92,6 +102,8 @@ function fixture(vehicle = 'apx01', entrants = 3) {
       },
     ),
   };
+  target.preparationLight.visible = false;
+  target.scene.add(target.preparationLight);
   return { target, calls, sample, typed: target as unknown as RacingRenderer };
 }
 it.each([
@@ -173,8 +185,8 @@ it.each([
           false,
         ),
       ).toBe(true);
-      expect(target.renderer.compileAsync).toHaveBeenCalledTimes(3);
-      expect(target.waitForPreparedFrame).toHaveBeenCalledTimes(2);
+      expect(target.renderer.compileAsync).toHaveBeenCalledTimes(4);
+      expect(target.waitForPreparedFrame).toHaveBeenCalledTimes(4);
       expect(target.warmShadowCasters).toHaveBeenCalledTimes(1);
       expect(target.preparation.snapshot()?.status).toBe('complete');
       expect(sample).toEqual(before);
@@ -203,9 +215,9 @@ it.each([
       await RacingRenderer.prototype.prepare.call(typed, sample, vi.fn(), () => false, yieldFrame),
     ).toBe(true);
     expect(target.cars).toHaveLength(3);
-    expect(target.renderer.compileAsync).toHaveBeenCalledTimes(3);
+    expect(target.renderer.compileAsync).toHaveBeenCalledTimes(4);
     expect(target.draw).toHaveBeenCalledTimes(2);
-    expect(target.waitForPreparedFrame).toHaveBeenCalledTimes(2);
+    expect(target.waitForPreparedFrame).toHaveBeenCalledTimes(4);
     expect(target.warmPitPresentation).toHaveBeenCalledTimes(1);
     expect(calls.indexOf('pit-materials')).toBeGreaterThan(calls.indexOf('draw'));
     expect(target.mode).toBe('pod');
@@ -268,10 +280,10 @@ it.each([
     expect(target.warmPitPresentation).toHaveBeenCalledTimes(service ? 1 : 0);
     const stages = progress.mock.calls.map(([message]) => String(message));
     expect(stages.some((message) => message.includes('pit-service'))).toBe(service);
-    expect(target.renderer.compileAsync).toHaveBeenCalledTimes(3);
+    expect(target.renderer.compileAsync).toHaveBeenCalledTimes(4);
     expect(target.warmShadowCasters).toHaveBeenCalledTimes(1);
     expect(target.draw).toHaveBeenCalledTimes(2);
-    expect(target.waitForPreparedFrame).toHaveBeenCalledTimes(2);
+    expect(target.waitForPreparedFrame).toHaveBeenCalledTimes(4);
     expect(target.warmupFrames).toBe(2);
     expect(target.mode).toBe('pod');
     expect(sample).toEqual(before);
@@ -292,7 +304,8 @@ it('keeps the GPU completion gate when a no-service motocross warmup stalls', as
     ),
   ).rejects.toThrow('GPU preparation did not complete');
   expect(target.warmPitPresentation).not.toHaveBeenCalled();
-  expect(target.draw).toHaveBeenCalledTimes(1);
+  expect(target.draw).not.toHaveBeenCalled();
+  expect(target.warmEnvironmentFrame).not.toHaveBeenCalled();
   expect(target.preparation.snapshot()?.status).toBe('failed');
   expect(target.mode).toBe('pod');
 });
@@ -440,4 +453,173 @@ it('does not apply graphics or compile when preparation fails', async () => {
     ),
   ).rejects.toThrow('GPU preparation did not complete');
   expect(target.setQuality).not.toHaveBeenCalled();
+});
+
+it('drains the complete environment and compiles its real light/map context before full warmup views', async () => {
+  const { target, typed, sample, calls } = fixture();
+  const contexts: { far: boolean; environment: T.Texture | null }[] = [];
+  target.renderer.compileAsync.mockImplementation(async () => {
+    calls.push('compile');
+    contexts.push({ far: target.preparationLight.visible, environment: target.scene.environment });
+  });
+  const before = sample.slice();
+  expect(
+    await RacingRenderer.prototype.prepare.call(
+      typed,
+      sample,
+      vi.fn(),
+      () => false,
+      async () => {},
+    ),
+  ).toBe(true);
+  expect(contexts).toHaveLength(4);
+  expect(contexts[0]).toEqual({ far: false, environment: null });
+  for (const context of contexts.slice(1))
+    expect(context).toEqual({ far: true, environment: target.preparedEnvironment });
+  const environment = calls.indexOf('environment');
+  expect(calls.slice(environment, environment + 4)).toEqual([
+    'environment',
+    'fence',
+    'gpu-ready',
+    'compile',
+  ]);
+  expect(calls.indexOf('shadow-casters')).toBeLessThan(environment);
+  expect(calls.indexOf('draw')).toBeGreaterThan(environment + 3);
+  expect(target.warmEnvironmentFrame).toHaveBeenCalledExactlyOnceWith(sample);
+  expect(target.draw).toHaveBeenCalledTimes(2);
+  expect(target.warmupFrames).toBe(2);
+  expect(sample).toEqual(before);
+});
+
+it('does not compile final variants or draw live views after environment completion fails', async () => {
+  const { target, typed, sample } = fixture();
+  target.waitForPreparedFrame
+    .mockResolvedValueOnce(undefined)
+    .mockRejectedValueOnce(new Error('environment GPU stalled'));
+  await expect(
+    RacingRenderer.prototype.prepare.call(
+      typed,
+      sample,
+      vi.fn(),
+      () => false,
+      async () => {},
+    ),
+  ).rejects.toThrow('environment GPU stalled');
+  expect(target.renderer.compileAsync).toHaveBeenCalledTimes(1);
+  expect(target.warmEnvironmentFrame).toHaveBeenCalledTimes(1);
+  expect(target.draw).not.toHaveBeenCalled();
+  expect(target.mode).toBe('pod');
+  expect(target.preparation.snapshot()?.status).toBe('failed');
+});
+
+it('restores environment-only ownership before fencing and never fences a failed submission', () => {
+  const sample = new Float32Array(HEADER + CAR_STRIDE);
+  let submitted = 0;
+  const target = {
+    warmingEnvironment: false,
+    environmentScopeRestored: false,
+    environmentWarmup: null as unknown,
+    draw: vi.fn(),
+    drawLedger: {
+      snapshot: () => ({ probe: { calls: 0 }, mirrors: { calls: 0 }, composer: { calls: 0 } }),
+    },
+    gpuFrames: { submittedFrame: vi.fn(), diagnostics: () => ({ submitted }) },
+  };
+  const warm = (
+    RacingRenderer.prototype as unknown as { warmEnvironmentFrame(frame: Float32Array): void }
+  ).warmEnvironmentFrame;
+  target.draw.mockImplementation(() => {
+    expect(target.warmingEnvironment).toBe(true);
+    target.environmentScopeRestored = true;
+  });
+  target.gpuFrames.submittedFrame.mockImplementation(() => {
+    expect(target.warmingEnvironment).toBe(false);
+    submitted++;
+  });
+  warm.call(target, sample);
+  expect(target.gpuFrames.submittedFrame).toHaveBeenCalledTimes(1);
+  expect(target.environmentWarmup).toEqual({
+    restored: true,
+    fenceDelta: 1,
+    probeDraws: 0,
+    mirrorDraws: 0,
+    composerDraws: 0,
+  });
+  target.gpuFrames.submittedFrame.mockClear();
+  target.draw.mockImplementation(() => {
+    throw new Error('environment submission failed');
+  });
+  expect(() => warm.call(target, sample)).toThrow('environment submission failed');
+  expect(target.warmingEnvironment).toBe(false);
+  expect(target.gpuFrames.submittedFrame).not.toHaveBeenCalled();
+  expect(target.environmentWarmup).toBeNull();
+});
+
+it('does not invent a shadow submission when shadows are disabled', async () => {
+  const { target, typed, sample } = fixture();
+  target.warmShadowCasters.mockReturnValue(false);
+  expect(
+    await RacingRenderer.prototype.prepare.call(
+      typed,
+      sample,
+      vi.fn(),
+      () => false,
+      async () => {},
+    ),
+  ).toBe(true);
+  expect(target.waitForPreparedFrame).toHaveBeenCalledTimes(3);
+  expect(target.gpuFrames.submittedFrame).toHaveBeenCalledTimes(1);
+  expect(target.warmEnvironmentFrame).toHaveBeenCalledTimes(1);
+  expect(target.draw).toHaveBeenCalledTimes(2);
+});
+
+it.each([1, 2])(
+  'stops preparation after cancellation at GPU boundary %i without reaching full views',
+  async (boundary) => {
+    const { target, typed, sample } = fixture();
+    let cancelled = false,
+      completed = 0;
+    target.waitForPreparedFrame.mockImplementation(async () => {
+      if (++completed === boundary) cancelled = true;
+    });
+    const before = sample.slice();
+    expect(
+      await RacingRenderer.prototype.prepare.call(
+        typed,
+        sample,
+        vi.fn(),
+        () => cancelled,
+        async () => {},
+      ),
+    ).toBe(false);
+    expect(target.draw).not.toHaveBeenCalled();
+    expect(target.renderer.compileAsync).toHaveBeenCalledTimes(1);
+    expect(target.warmEnvironmentFrame).toHaveBeenCalledTimes(boundary === 1 ? 0 : 1);
+    expect(target.preparation.snapshot()?.status).toBe('cancelled');
+    expect(sample).toEqual(before);
+  },
+);
+
+it('still blocks cockpit and completion when the full no-service chase warmup stalls', async () => {
+  const { target, typed, sample } = fixture('mx450');
+  target.waitForPreparedFrame
+    .mockResolvedValueOnce(undefined)
+    .mockResolvedValueOnce(undefined)
+    .mockRejectedValueOnce(new Error('chase GPU did not complete'));
+  await expect(
+    RacingRenderer.prototype.prepare.call(
+      typed,
+      sample,
+      vi.fn(),
+      () => false,
+      async () => {},
+      false,
+    ),
+  ).rejects.toThrow('chase GPU did not complete');
+  expect(target.draw).toHaveBeenCalledTimes(1);
+  expect(target.warmEnvironmentFrame).toHaveBeenCalledTimes(1);
+  expect(target.warmPitPresentation).not.toHaveBeenCalled();
+  expect(target.warmupFrames).toBe(1);
+  expect(target.mode).toBe('pod');
+  expect(target.preparation.snapshot()?.status).toBe('failed');
 });

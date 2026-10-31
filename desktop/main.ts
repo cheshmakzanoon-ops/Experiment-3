@@ -1,3 +1,4 @@
+import { createProcessGraphicsObservation } from './graphics-health.js';
 import { app, BrowserWindow, Menu, dialog, net, protocol, session } from 'electron';
 import { join, extname } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -10,6 +11,14 @@ import {
   isGameNavigation,
   isGameURL,
 } from './policy.js';
+
+const graphicsObservation = createProcessGraphicsObservation();
+app.on('child-process-gone', (_event, details) => graphicsObservation.record(details));
+Object.defineProperty(globalThis, 'motoboundProcessGraphicsObservation', {
+  value: () => graphicsObservation.read(),
+  writable: false,
+  configurable: false,
+});
 
 app.setName('MOTOBOUND');
 app.enableSandbox();

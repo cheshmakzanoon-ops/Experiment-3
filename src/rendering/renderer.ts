@@ -862,6 +862,39 @@ export class RacingRenderer {
   readonly preparation = new PreparationTrace();
   warmupFrames = 0;
   warmupPitPasses = 0;
+  private warmingEnvironment = false;
+  private environmentScopeRestored = false;
+  private environmentWarmup: {
+    restored: boolean;
+    fenceDelta: number;
+    probeDraws: number;
+    mirrorDraws: number;
+    composerDraws: number;
+  } | null = null;
+  /** Use the real frame setup and complete shadow/environment passes, but do
+   * not submit mirrors, probes or the main view before final-state compilation. */
+  private warmEnvironmentFrame(frame: Float32Array) {
+    if (this.warmingEnvironment) throw new Error('Environment preparation is already active');
+    this.environmentWarmup = null;
+    this.environmentScopeRestored = false;
+    const submitted = this.gpuFrames.diagnostics().submitted;
+    this.warmingEnvironment = true;
+    try {
+      this.draw(frame, frame, 1, 1 / 120, false, true);
+    } finally {
+      this.warmingEnvironment = false;
+    }
+    // draw's presentation scope/timer/ledger have all restored before fencing.
+    this.gpuFrames.submittedFrame();
+    const passes = this.drawLedger.snapshot();
+    this.environmentWarmup = {
+      restored: this.environmentScopeRestored,
+      fenceDelta: this.gpuFrames.diagnostics().submitted - submitted,
+      probeDraws: passes.probe.calls,
+      mirrorDraws: passes.mirrors.calls,
+      composerDraws: passes.composer.calls,
+    };
+  }
   async waitForPreparedFrame(cancelled: () => boolean, yieldFrame: () => Promise<void>) {
     const deadline = performance.now() + 45000;
     while (!cancelled() && !this.gpuFrames.ready()) {
@@ -970,9 +1003,32 @@ export class RacingRenderer {
       progress('Compiling shadow casters around the circuit…');
       await yieldFrame();
       if (cancelled()) return false;
-      this.warmShadowCasters();
+      if (this.warmShadowCasters()) {
+        this.gpuFrames.submittedFrame();
+        progress('Waiting for compiled shadow-caster GPU work…');
+        await this.waitForPreparedFrame(cancelled, yieldFrame);
+        if (cancelled()) return false;
+      }
       const camera = this.mode;
       try {
+        progress('Preparing the complete far shadow and sky environment…');
+        await yieldFrame();
+        if (cancelled()) return false;
+        this.warmEnvironmentFrame(frame);
+        progress('Waiting for prepared environment GPU work…');
+        await this.waitForPreparedFrame(cancelled, yieldFrame);
+        if (cancelled()) return false;
+        // The first bake enables the far light and environment textures. Warm
+        // that actual program context before the full chase/onboard draws.
+        progress('Compiling final lighting and environment materials…');
+        await compileSceneTarget(
+          this.renderer,
+          this.scene,
+          this.camera,
+          this.composer.readBuffer,
+          hiddenHosts,
+        );
+        if (cancelled()) return false;
         for (const mode of ['chase', 'cockpit'] as const) {
           progress(
             mode === 'chase'
@@ -1149,6 +1205,11 @@ export class RacingRenderer {
   /** Called by the application's RAF loop before mutating presentation state. */
   canSubmitFrame(): boolean {
     return this.gpuFrames.ready();
+  }
+  /** The festival borrows this WebGL context; keep one ownership gate across
+   * scene changes rather than leaving its submissions invisible to the host. */
+  submittedExternalFrame(): void {
+    this.gpuFrames.submittedFrame();
   }
   /** Called immediately after draw; preserveDrawingBuffer is not required. */
   capturePhoto(): Promise<Blob> {
@@ -1837,6 +1898,14 @@ export class RacingRenderer {
     this.drawLedger.begin();
     this.gpuTimer.begin();
     const originalOverride = this.scene.overrideMaterial;
+    const originalMatrixUpdates = this.scene.matrixWorldAutoUpdate;
+    const environmentState = this.warmingEnvironment
+      ? {
+          background: this.scene.background,
+          fog: this.scene.fog,
+          fogColor: this.scene.fog?.color.getHex(),
+        }
+      : null;
     // World matrices were solved once above for this frame. Every pass below
     // (shadow, mirror, probe, wet plane, scene) would otherwise re-walk and
     // recompose the entire graph inside renderer.render(). Passes that move
@@ -1879,6 +1948,9 @@ export class RacingRenderer {
       )
         this.bakeFarShadow(illumination);
       this.environment.update(this.renderer, this.scene, daylight.cover, illumination);
+      // The preparation caller owns the fence after this scope is restored.
+      // No partial main-view/probe capture is presented as a completed frame.
+      if (this.warmingEnvironment) return;
       let wheelWater = 0;
       for (let wheel = 0; wheel < 4; wheel++)
         wheelWater = Math.max(wheelWater, b[o + WHEEL_BASE + wheel * WHEEL_STRIDE + W.WATER]);
@@ -2030,10 +2102,17 @@ export class RacingRenderer {
     } finally {
       // BokehPass temporarily installs a depth override; restore even on GPU failure.
       this.scene.overrideMaterial = originalOverride;
-      this.scene.matrixWorldAutoUpdate = true;
+      this.scene.matrixWorldAutoUpdate = originalMatrixUpdates;
       this.scenePresentation.restore();
       this.gpuTimer.end();
       this.drawLedger.end();
+      if (environmentState)
+        this.environmentScopeRestored =
+          this.scene.overrideMaterial === originalOverride &&
+          this.scene.matrixWorldAutoUpdate === originalMatrixUpdates &&
+          this.scene.background === environmentState.background &&
+          this.scene.fog === environmentState.fog &&
+          this.scene.fog?.color.getHex() === environmentState.fogColor;
     }
     this.gpuFrames.submittedFrame();
     this.renderedMode = cameraMode;
@@ -2055,7 +2134,7 @@ export class RacingRenderer {
   /** Compile every shadow caster's depth program while loading (see
    * FarShadow.warmCasters). */
   private warmShadowCasters() {
-    this.farShadow.warmCasters(
+    return this.farShadow.warmCasters(
       this.renderer,
       this.scene,
       this.sun,
@@ -2437,6 +2516,7 @@ export class RacingRenderer {
         : null,
       warmupFrames: this.warmupFrames,
       warmupPitPasses: this.warmupPitPasses,
+      environmentWarmup: this.environmentWarmup ? { ...this.environmentWarmup } : null,
       preparation: this.preparation.snapshot(),
       graphics: { ...this.graphics },
       renderWidth: this.renderWidth,
