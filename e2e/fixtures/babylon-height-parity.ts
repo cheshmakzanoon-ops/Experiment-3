@@ -531,7 +531,14 @@ export async function babylonOriginalHeightParity() {
     container = await loadExistingPlayer(h.scene, document.baseURI, h.abort.signal);
     steering = new ExistingPlayerSteering(container.animationGroups);
     const bindings = existingPlayerPrimitiveBindings(container);
-    adapter = await createExistingPlayerHeightAdapter(raw, bindings);
+    await h.gpu.prepare('scalar-height initialization', h.deadline, async (invalidated) => {
+      adapter = await createExistingPlayerHeightAdapter(
+        raw,
+        bindings,
+        AbortSignal.any([h.abort.signal, invalidated]),
+      );
+    });
+    if (!adapter) throw new Error('Scalar-height initialization did not return an adapter');
     selected = EXISTING_PLAYER_HEIGHT_SOURCES.map((source, i) => ({
       material: source.material,
       image: source.image,

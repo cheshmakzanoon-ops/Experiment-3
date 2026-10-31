@@ -8,6 +8,7 @@ import {
   createNativeGpuTrace,
   nativeGpuTraceEnabled,
   nativeGpuTraceCategories,
+  nativeGpuTraceCategoryInventory,
   NATIVE_GPU_TRACE,
   validateNativeGpuTraceEvidence,
   type NativeGpuTraceOptions,
@@ -68,6 +69,7 @@ describe('bounded native GPU trace diagnostic', () => {
     expect(adapter.stop).not.toHaveBeenCalled();
     expect(inspect).not.toHaveBeenCalled();
     expect(trace.receipt).toMatchObject({ status: 'disabled', diagnosticOnly: false });
+    expect(trace.receipt.categoryInventory).toBeUndefined();
     const original = new Error('default original error');
     await expect(
       trace.run(async () => {
@@ -87,6 +89,83 @@ describe('bounded native GPU trace diagnostic', () => {
     ]);
     for (const input of [null, ['viz'], [12], ['x'.repeat(513)], Array(4097).fill('gpu')])
       expect(() => nativeGpuTraceCategories(input)).toThrow();
+  });
+
+  it('retains empty and no-match category inventories without starting or broadening a trace', async () => {
+    for (const groups of [[], ['viz', 'unknown', '*']]) {
+      const { trace, adapter } = fixture();
+      adapter.categories.mockResolvedValue(groups);
+      expect(await trace.run(async () => 7)).toBe(7);
+      expect(adapter.start).not.toHaveBeenCalled();
+      expect(trace.receipt).toMatchObject({
+        status: 'incomplete',
+        config: null,
+        categoryInventory: {
+          input: 'array',
+          reportedGroups: groups.length,
+          sampledGroups: groups.length,
+          omittedGroups: 0,
+          truncated: false,
+          sample: groups,
+        },
+      });
+      expect(trace.receipt.errors.join(' ')).toContain('No supported GPU trace categories');
+    }
+  });
+
+  it('bounds category receipt count, characters and encoded bytes with honest omissions', () => {
+    const limits = NATIVE_GPU_TRACE.categoryInventory;
+    expect(Object.isFrozen(limits)).toBe(true);
+    const oversized = Array(4097).fill('gpu');
+    const receipt = nativeGpuTraceCategoryInventory(oversized);
+    expect(receipt).toMatchObject({
+      reportedGroups: 4097,
+      sampledGroups: 64,
+      omittedGroups: 4033,
+      truncated: true,
+    });
+    expect(() => nativeGpuTraceCategories(oversized)).toThrow('Invalid');
+    const gpuBeyondSample = [...Array(64).fill('unknown'), 'gpu'];
+    expect(nativeGpuTraceCategoryInventory(gpuBeyondSample).sample).not.toContain('gpu');
+    expect(nativeGpuTraceCategories(gpuBeyondSample)).toEqual(['gpu']);
+    for (const group of ['界'.repeat(600), '\u0000'.repeat(600), '😀'.repeat(600)]) {
+      const sampled = nativeGpuTraceCategoryInventory(Array(64).fill(group));
+      expect(sampled.truncated).toBe(true);
+      expect(sampled.truncatedSampledGroups).toBe(sampled.sampledGroups);
+      expect(sampled.sampledGroups + sampled.omittedGroups!).toBe(64);
+      expect(sampled.sample.every((name) => name!.length <= limits.maxGroupCharacters)).toBe(true);
+      expect(Buffer.byteLength(JSON.stringify(sampled), 'utf8')).toBeLessThanOrEqual(
+        limits.maxBytes,
+      );
+      expect(JSON.parse(JSON.stringify(sampled))).toEqual(sampled);
+    }
+    expect(
+      nativeGpuTraceCategoryInventory(Array(64).fill('\u0000'.repeat(600))).omittedGroups,
+    ).toBeGreaterThan(0);
+  });
+
+  it('describes malformed inventory entries without coercing or serializing their contents', () => {
+    const malicious = {
+      toJSON: vi.fn(() => {
+        throw new Error('must not serialize');
+      }),
+    };
+    expect(nativeGpuTraceCategoryInventory(null)).toMatchObject({
+      input: 'not-array',
+      reportedGroups: null,
+      sampledGroups: 0,
+      sample: [],
+    });
+    const input = [null, 12, malicious, 'gpu'];
+    expect(nativeGpuTraceCategoryInventory(input)).toMatchObject({
+      reportedGroups: 4,
+      sampledGroups: 4,
+      omittedGroups: 0,
+      malformedSampledGroups: 3,
+      sample: [null, null, null, 'gpu'],
+    });
+    expect(malicious.toJSON).not.toHaveBeenCalled();
+    expect(() => nativeGpuTraceCategories(input)).toThrow('Invalid');
   });
 
   it('records one bounded window with source/config and removes the first-fault watcher', async () => {

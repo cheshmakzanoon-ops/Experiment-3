@@ -16,11 +16,30 @@ export const NATIVE_GPU_TRACE: Readonly<{
   maxFileBytes: number;
   setupMs: number;
   stopMs: number;
+  categoryInventory: Readonly<{
+    maxGroups: number;
+    maxGroupCharacters: number;
+    maxBytes: number;
+  }>;
   categories: readonly NativeGpuTraceCategory[];
 }>;
 
 export function nativeGpuTraceEnabled(value?: string): boolean;
 export function nativeGpuTraceCategories(available: unknown): NativeGpuTraceCategory[];
+export interface NativeGpuTraceCategoryInventory {
+  input: 'array' | 'not-array';
+  reportedGroups: number | null;
+  sampledGroups: number;
+  omittedGroups: number | null;
+  malformedSampledGroups: number;
+  truncatedSampledGroups: number;
+  truncated: boolean;
+  limits: typeof NATIVE_GPU_TRACE.categoryInventory;
+  sample: (string | null)[];
+}
+export function nativeGpuTraceCategoryInventory(
+  available: unknown,
+): NativeGpuTraceCategoryInventory;
 
 export interface NativeGpuTraceSource {
   commit: string;
@@ -78,6 +97,7 @@ export interface NativeGpuTraceReceipt {
   maxFileBytes: number;
   completeness: NativeGpuTraceCompleteness;
   errors: string[];
+  categoryInventory?: NativeGpuTraceCategoryInventory;
   startRequestedAt?: number;
   startAcknowledgedAt?: number;
   stopRequestedAt?: number;

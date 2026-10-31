@@ -398,6 +398,13 @@ try {
         if (!report.assetStatus?.includes('Original Formula asset loaded'))
           throw new Error(report.assetStatus || 'The packaged model did not load');
         report.checks.push('original bundled Formula model imports through the offline protocol');
+        const heightCount = await page
+          .locator('#assetStatus')
+          .getAttribute('data-scalar-height-materials');
+        report.scalarHeight = { enabledMaterials: Number(heightCount) };
+        if (heightCount !== '10')
+          throw new Error('The original model did not retain ten enabled scalar-height materials');
+        report.checks.push('ten source-bound scalar-height materials enabled before presentation');
         stage('model-presented');
         report.drivingView = await page.evaluate(() => {
           const panel = document.querySelector('#panel').getBoundingClientRect();

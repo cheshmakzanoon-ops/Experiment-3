@@ -1,6 +1,7 @@
 import { createReadStream, createWriteStream } from 'node:fs';
 import { stat, lstat, rm, copyFile, readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+import { Buffer } from 'node:buffer';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Transform } from 'node:stream';
@@ -11,6 +12,7 @@ export const NATIVE_GPU_TRACE = Object.freeze({
   maxFileBytes: 64 * 1024 * 1024,
   setupMs: 5000,
   stopMs: 5000,
+  categoryInventory: Object.freeze({ maxGroups: 64, maxGroupCharacters: 128, maxBytes: 16384 }),
   categories: Object.freeze([
     'gpu',
     'gpu.service',
@@ -27,6 +29,43 @@ export const NATIVE_GPU_TRACE = Object.freeze({
 export function nativeGpuTraceEnabled(value = '0') {
   if (value !== '0' && value !== '1') throw new Error(`Unknown native GPU trace mode: ${value}`);
   return value === '1';
+}
+
+/** Receipt only: never substitute this truncated sample for category validation
+ * or selection. Malformed entries are not coerced or serialized. */
+export function nativeGpuTraceCategoryInventory(available) {
+  const limits = NATIVE_GPU_TRACE.categoryInventory;
+  const array = Array.isArray(available);
+  const reportedGroups = array ? available.length : null;
+  let receipt = {
+    input: array ? 'array' : 'not-array',
+    reportedGroups,
+    sampledGroups: 0,
+    omittedGroups: reportedGroups,
+    malformedSampledGroups: 0,
+    truncatedSampledGroups: 0,
+    truncated: array && reportedGroups > 0,
+    limits,
+    sample: [],
+  };
+  if (!array) return receipt;
+  for (let index = 0; index < Math.min(reportedGroups, limits.maxGroups); index++) {
+    const group = available[index];
+    const valid = typeof group === 'string';
+    const truncated = valid && group.length > limits.maxGroupCharacters;
+    const candidate = {
+      ...receipt,
+      sampledGroups: index + 1,
+      omittedGroups: reportedGroups - index - 1,
+      malformedSampledGroups: receipt.malformedSampledGroups + (valid ? 0 : 1),
+      truncatedSampledGroups: receipt.truncatedSampledGroups + (truncated ? 1 : 0),
+      truncated: reportedGroups > index + 1 || receipt.truncatedSampledGroups > 0 || truncated,
+      sample: [...receipt.sample, valid ? group.slice(0, limits.maxGroupCharacters) : null],
+    };
+    if (Buffer.byteLength(JSON.stringify(candidate), 'utf8') > limits.maxBytes) break;
+    receipt = candidate;
+  }
+  return receipt;
 }
 
 export function nativeGpuTraceCategories(available) {
@@ -205,6 +244,7 @@ export function createNativeGpuTrace({
           setupMs,
           'Native GPU trace categories',
         );
+        receipt.categoryInventory = nativeGpuTraceCategoryInventory(available);
         receipt.config = {
           included_categories: nativeGpuTraceCategories(available),
           recording_mode: 'record-continuously',

@@ -9,8 +9,8 @@ import {
   type ExistingPlayerPrimitiveBinding,
 } from './existing-player-primitives.ts';
 
-/** Experimental only: NOT installed by the production importer. Source IDs refer
- * to the hash-verified supplied GLB, not mutable imported texture names. */
+/** Source IDs refer to the hash-verified supplied GLB, not mutable imported
+ * texture names. The importer remains raw unless its owner opts into setup. */
 export const EXISTING_PLAYER_HEIGHT_SOURCES = Object.freeze([
   ...[74, 81, 82, 83, 86, 91, 92, 93].map((material, i) =>
     Object.freeze({
@@ -55,7 +55,7 @@ vec3 existingPlayerScalarNormal(vec3 position, vec3 surfaceNormal, vec2 uv, floa
   return normalize(abs(determinant) * surfaceNormal - gradient);
 }`;
 
-/** Probe-only API. Caller exclusively owns an idle scene: install before first
+/** Low-level material API. Caller exclusively owns an idle scene: install before first
  * material preparation, and toggle/dispose only after prior GPU work completes.
  * This class does not acquire the application's presentation/GPU ownership gate. */
 export class ScalarHeightPlugin extends MaterialPluginBase {
@@ -80,6 +80,9 @@ export class ScalarHeightPlugin extends MaterialPluginBase {
       true,
     );
     this.doNotSerialize = true;
+  }
+  get isEnabled() {
+    return !this.dead && this.enabled;
   }
   getClassName() {
     return 'ExistingPlayerScalarHeightPlugin';
@@ -136,21 +139,32 @@ if (existingPlayerHeightEnabled > 0.5) {
 export interface ExistingPlayerHeightAdapter {
   readonly materials: readonly PBRMaterial[];
   readonly scales: readonly number[];
+  /** Actual live enabled plugin count, including material-owned disposal. */
+  readonly enabledCount: number;
   setEnabled(enabled: boolean): void;
   dispose(): void;
 }
 
 /** Install disabled on ten validated source-bound materials only. Caller must
- * explicitly enable for an A/B probe. No texture/UV/property is rewritten.
+ * explicitly enable before preparation; diagnostics can retain the raw path.
+ * No original texture/UV/property is rewritten.
  * GLSL-only and fail-closed against the pinned normal-evaluation hook.
  * Caller must retain exclusive idle-scene ownership across this async install,
  * before first material preparation. Toggle/dispose only with prior GPU work
- * completed and no pending scene draw; this adapter does not acquire that gate. */
+ * completed and no pending scene draw; this adapter does not acquire that gate.
+ * The mandatory signal must include the caller's ownership/lease invalidation.
+ * Abort rejects without disposing borrowed resources: cleanup remains with the
+ * caller, after its preparation lane has settled or been invalidated. Validation
+ * precedes all installs, but a plugin constructor failure is not transactional:
+ * the caller must discard the uninstalled container, not retry partial materials. */
 export async function createExistingPlayerHeightAdapter(
   raw: Uint8Array<ArrayBuffer>,
   bindings: readonly ExistingPlayerPrimitiveBinding[],
+  signal: AbortSignal,
 ): Promise<ExistingPlayerHeightAdapter> {
-  const verified = await decodeExistingPlayerBytes(raw, new AbortController().signal);
+  signal.throwIfAborted();
+  const verified = await decodeExistingPlayerBytes(raw, signal);
+  signal.throwIfAborted();
   const size = new DataView(verified.buffer, verified.byteOffset).getUint32(12, true);
   const source = JSON.parse(new TextDecoder().decode(verified.subarray(20, 20 + size)));
   if (bumpFragment.shader.split(NORMAL_EVALUATION).length !== 2)
@@ -202,11 +216,17 @@ export async function createExistingPlayerHeightAdapter(
       throw new Error('Scalar height probe: linear source texture contract');
     return { material, texture, scale: entry.scale };
   });
+  // No await between this final lease/owner check and material mutation. A
+  // timed-out/lost/disposed lease must never install from a late hash result.
+  signal.throwIfAborted();
   const plugins = selected.map(
     ({ material, texture, scale }) => new ScalarHeightPlugin(material, texture, scale),
   );
   let disposed = false;
   return {
+    get enabledCount() {
+      return plugins.filter((plugin) => plugin.isEnabled).length;
+    },
     materials: Object.freeze(selected.map(({ material }) => material)),
     scales: Object.freeze(selected.map(({ scale }) => scale)),
     setEnabled(enabled) {

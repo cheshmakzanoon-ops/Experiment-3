@@ -55,6 +55,8 @@ test('Babylon imports the existing authored Formula asset and restart cancels ob
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/babylon.html');
   await expect(page.locator('#status')).toContainText('DRIVING');
+  const assetStatus = page.locator('#assetStatus');
+  await expect(assetStatus).not.toHaveAttribute('data-scalar-height-materials');
   const load = page.getByRole('button', {
     name: 'Inspect existing Formula asset (35 MB)',
     exact: true,
@@ -63,11 +65,15 @@ test('Babylon imports the existing authored Formula asset and restart cancels ob
   await page.getByRole('button', { name: 'Restart', exact: true }).click();
   await expect(load).toBeEnabled();
   await expect(page.locator('#assetStatus')).toContainText('optional');
+  await expect(assetStatus).not.toHaveAttribute('data-scalar-height-materials');
   await load.click();
   await expect(page.locator('#assetStatus')).toContainText(
     'Original Formula asset loaded in Babylon',
     { timeout: 120000 },
   );
+  // Read back actual enabled plugin state on the production load route, not
+  // the isolated parity fixture or a constant readiness label.
+  await expect(assetStatus).toHaveAttribute('data-scalar-height-materials', '10');
   const driverSteering = async () =>
     Number(await page.locator('#assetStatus').getAttribute('data-steering'));
   await page.keyboard.down('a');
@@ -108,6 +114,23 @@ test('Babylon imports the existing authored Formula asset and restart cancels ob
   await page.waitForTimeout(300);
   expect(await driverSteering()).toBe(frozenDriver);
   expect(await wheelPhase()).toBe(frozenWheel);
+  await expect(assetStatus).toHaveAttribute('data-scalar-height-materials', '10');
+  await info.attach('babylon-original-height-state.json', {
+    body: JSON.stringify(
+      {
+        enabledMaterials: Number(await assetStatus.getAttribute('data-scalar-height-materials')),
+        completedFrames: Number(
+          await page.locator('#status').getAttribute('data-completed-frames'),
+        ),
+        presentationSettled: await page
+          .locator('#status')
+          .getAttribute('data-presentation-settled'),
+      },
+      null,
+      2,
+    ),
+    contentType: 'application/json',
+  });
   // The reported phase is read back from the applied Babylon spin node.
   await info.attach('babylon-original-formula-model.png', {
     body: await page.screenshot(),
@@ -116,6 +139,7 @@ test('Babylon imports the existing authored Formula asset and restart cancels ob
   await page.getByRole('button', { name: 'Restart', exact: true }).click();
   await expect(load).toBeEnabled();
   await expect(page.locator('#assetStatus')).toContainText('optional');
+  await expect(assetStatus).not.toHaveAttribute('data-scalar-height-materials');
   await expect(page.locator('#assetStatus')).not.toHaveAttribute('data-wheel-phase');
   expect(errors).toEqual([]);
 });

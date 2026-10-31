@@ -49,6 +49,15 @@ least one supported GPU/ANGLE category must remain. There are no wildcard,
 heap-profiling or system-profiling categories. Recording uses
 `record-continuously`, a 16 MiB buffer and argument filtering.
 
+After discovery, `categoryInventory` records the original group count and a
+bounded sample before selection can reject the inventory. It retains at most 64
+groups, each capped at 128 JavaScript string code units, within a strict 16 KiB
+UTF-8 JSON limit. Omitted groups, sampled malformed entries and sampled truncated
+strings have separate counts. Malformed values become `null`, without coercing
+or serializing their contents. This sample is **not** used for validation or
+selection: the full original inventory still faces the same limits, fixed
+allowlist and no-supported-GPU rejection. Default-off calls produce no inventory.
+
 Category discovery and start each have a 5-second wait; stop and file inspection
 also each have a 5-second wait. These diagnostic waits do not extend the existing
 gameplay readiness budgets. A timeout does **not** cancel an underlying native
@@ -121,9 +130,47 @@ Scoped ESLint, Prettier, `git diff --check` and actionlint for both affected
 workflows passed. Combined type/build and Node 22 validation are owned by the
 integration run and are not claimed by this focused receipt.
 
-**Actual Electron trace execution has not yet been verified.** These are unit,
-workflow and source checks; no local native trace was collected. The existing
+At that handoff, actual Electron trace execution had not been verified. These
+were unit, workflow and source checks; no local native trace was collected. The existing
 `cf7672529fd7f2f47493393c74360188bc1c42c3` native results predate this diagnostic:
 Windows, Apple Silicon and SwiftShader passed; required Mesa and Mesa
 compatibility failed; Ubuntu 24 failed before connection on its existing sandbox
 configuration. None is a trace-runtime receipt or evidence of a GPU repair.
+
+## First packaged attempt and bounded inventory follow-up
+
+The first diagnostic job at source
+`1be6c704cdfb1816ebf5601fa8e41fedca5c7a95` (driver-review run `41236092096`, job
+`124640074155`) retained **no trace**. Its receipt has `config: null`, no start
+request timestamp, and `No supported GPU trace categories were reported`.
+Artifact `13055761794` (SHA-256
+`3fc567b70621e339272b8aff516e6c8dcabad18659775952eb29a7ae5ed9a473`)
+contains the failed evidence-validation receipt, not a `.pftrace`. The evidence
+gate correctly failed. This was category-selection failure, not a stop timeout
+or file-integrity failure; the original inventory was not retained in that run.
+
+Pinned [Electron 45.2.1 implementation](https://github.com/electron/electron/blob/v45.2.1/shell/browser/api/electron_api_content_tracing.cc)
+delegates category discovery to Chromium. Its pinned
+[Chromium 156.0.8078.75 implementation](https://github.com/chromium/chromium/blob/156.0.8078.75/services/tracing/public/cpp/perfetto/perfetto_session.cc)
+reads Perfetto service-state `track_event` descriptors; a failed query, parse
+failure or absent descriptors can yield an empty category vector. These source
+paths do **not** establish which condition occurred, or justify guessing new
+categories or changing the tracing configuration. The bounded receipt above is
+the next discriminating observation; it adds no retry, category expansion,
+deadline increase or driver/security switch.
+
+In that job, the unchanged Babylon model/wheel checks passed before a later Three
+cockpit fence was cancelled on GPU exit. Coverage remains
+`trace-window-unavailable-or-uncertain`; no trace explains that failure. The
+separate required, untraced Mesa lane failed the 15-second wheel-motion wait
+after model import. A still later GPU exit appears in its teardown job log, not
+its already-finalized report. A separate compatibility-only Mesa pass cannot
+replace that required full-journey failure. Actual retained Electron trace
+recording and its useful event coverage remain unverified.
+
+The inventory follow-up passed its 14 trace tests plus 7 workflow tests, scoped
+strict TypeScript, ESLint, Prettier and diff checks. New cases cover empty and
+no-match inventories, malformed values without coercion, oversized arrays,
+escaped/non-ASCII byte bounds, explicit omissions, default-off absence and a
+valid GPU category beyond the retained sample. This is receipt/selection unit
+proof, not successful native capture.

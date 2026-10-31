@@ -92,6 +92,7 @@ function setPaused(value: boolean) {
 function stop(error?: unknown) {
   if (stopped) return;
   stopped = true;
+  delete assetStatus.dataset.scalarHeightMaterials;
   status.dataset.presentationSettled = 'false';
   if (error !== undefined) {
     console.error(error);
@@ -114,6 +115,7 @@ function stop(error?: unknown) {
 }
 function reset() {
   if (stopped) return;
+  delete assetStatus.dataset.scalarHeightMaterials;
   try {
     graphicsRecovery.requestRestart();
     restartOwnership.request();
@@ -123,6 +125,7 @@ function reset() {
   }
 }
 function rebuildScene(owner: SimulationComponent) {
+  delete assetStatus.dataset.scalarHeightMaterials;
   status.dataset.presentationSettled = 'false';
   presentation.reset();
   assetLoad.abort();
@@ -169,6 +172,7 @@ try {
     throw new Error('Babylon presentation requires WebGL2 fences');
   gpu = new BabylonPresentationGpu(context);
   engine.onContextLostObservable.add(() => {
+    delete assetStatus.dataset.scalarHeightMaterials;
     gpu?.contextLost();
     graphicsRecovery.contextLost();
     assetLoad.abort();
@@ -209,7 +213,11 @@ try {
       let container: AssetContainer | undefined;
       let steering: ExistingPlayerSteering | undefined;
       let wheels: ExistingPlayerWheels | undefined;
+      let heightAdapter:
+        | import('./existing-player-height.ts').ExistingPlayerHeightAdapter
+        | undefined;
       let installed = false;
+      let disposeUninstalled = (): unknown[] => [];
       const active = () => {
         signal.throwIfAborted();
         if (performance.now() >= deadline)
@@ -223,11 +231,39 @@ try {
           throw new DOMException('Original model ownership changed', 'AbortError');
       };
       loadAsset.disabled = true;
+      delete assetStatus.dataset.scalarHeightMaterials;
       assetStatus.textContent = 'Loading and verifying the existing authored Formula asset…';
       try {
-        const { loadExistingPlayer } = await import('./existing-player.ts');
+        const { loadExistingPlayer, disposeUninstalledPlayer } = await import(
+          './existing-player.ts'
+        );
+        disposeUninstalled = () => disposeUninstalledPlayer(container, [steering, wheels]);
+        const { createExistingPlayerHeightAdapter } = await import('./existing-player-height.ts');
         active();
-        container = await loadExistingPlayer(currentScene.scene, document.baseURI, signal);
+        container = await loadExistingPlayer(
+          currentScene.scene,
+          document.baseURI,
+          signal,
+          async ({ raw, bindings }) => {
+            active();
+            await gpu!.prepare(
+              'Original scalar-height materials',
+              deadline,
+              async (invalidated) => {
+                // Owner cancellation is checked by the loader AFTER this lane
+                // drains, not injected as a fatal compiler/preparation failure.
+                const height = await createExistingPlayerHeightAdapter(raw, bindings, invalidated);
+                invalidated.throwIfAborted();
+                height.setEnabled(true);
+                if (height.enabledCount !== 10)
+                  throw new Error('Original scalar-height material activation incomplete');
+                heightAdapter = height;
+                // Materials own plugin lifetime; no per-frame toggle or new
+                // texture owner survives this one-time initialization stage.
+              },
+            );
+          },
+        );
         active();
         wheels = new ExistingPlayerWheels([...container.transformNodes, ...container.meshes]);
         steering = new ExistingPlayerSteering(container.animationGroups);
@@ -264,9 +300,13 @@ try {
           finishPreparation();
         }
         active();
+        if (heightAdapter?.enabledCount !== 10)
+          throw new Error('Original scalar-height material activation incomplete');
+        assetStatus.dataset.scalarHeightMaterials = String(heightAdapter.enabledCount);
         assetStatus.textContent =
           'Original Formula asset loaded in Babylon. Driver and rigid wheel motion follow physics; tyre deformation, LOD and full material parity are still pending.';
       } catch (error) {
+        delete assetStatus.dataset.scalarHeightMaterials;
         // Never retry against a compiler whose ownership could not be drained.
         if (gpu?.diagnostics().preparation.failure || (installed && !owner.signal.aborted)) {
           stop(error);
@@ -278,9 +318,8 @@ try {
       } finally {
         clearTimeout(timer);
         if (!installed) {
-          steering?.dispose();
-          wheels?.dispose();
-          container?.dispose();
+          for (const failure of disposeUninstalled())
+            console.error('Original model cleanup failed:', failure);
         }
       }
     },
