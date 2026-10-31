@@ -10,6 +10,27 @@ const job = (name: string) => {
 };
 
 describe('independent CI diagnostics with strict release gates', () => {
+  it('runs native contracts through the asset-generating npm test lifecycle', () => {
+    const native = readFileSync(
+      new URL('../.github/workflows/desktop-platform.yml', import.meta.url),
+      'utf8',
+    );
+    const contract = native
+      .split('name: Validate desktop isolation and engine contracts')[1]
+      ?.split('      - name:')[0];
+    const scripts = JSON.parse(
+      readFileSync(new URL('../package.json', import.meta.url), 'utf8'),
+    ).scripts;
+    expect(contract).toContain('run: npm test -- ');
+    expect(contract).toContain('tests/babylon-*.test.ts');
+    expect(contract).not.toMatch(/npx vitest|--ignore-scripts|--exclude|--passWithNoTests/);
+    expect(scripts.pretest).toBe('npm run generate:player-lods');
+    expect(scripts.test).toBe('vitest run');
+    expect(scripts['generate:player-lods']).toBe(
+      'node --experimental-strip-types scripts/build-player-lods.mjs',
+    );
+  });
+
   it('builds separately while the unfiltered unit suite remains required', () => {
     const build = job('validate'),
       unit = job('unit-tests');

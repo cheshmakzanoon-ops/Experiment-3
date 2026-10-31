@@ -191,6 +191,12 @@ The `ac270f7` Windows native job failed one new calibration Git-identity contrac
 
 Final combined checks for this increment passed **233 tests across 22 files**, root/desktop TypeScript, full lint, formatting, content and workflow validation, whitespace checks, and a source-stable production build (Vite stage 74 s). The three alias regressions also fail against the old provenance implementation and pass with the directory-identity correction. Native Windows and real-renderer validation of this increment remain pending.
 
+### `48bfd15` native prerequisite correction
+
+All three required native targets and the diagnostic jobs stopped before packaging: the new original-model binding suite reads the generated `public/models/supplied-player-lods.bin.gz`, but native CI called `npx vitest run` directly before `prebuild` had generated it. Each required lane passed its 545 collected tests and failed one suite during collection with ENOENT. No installed-game or new GPU evidence exists for these jobs. Windows did pass all 36 provenance tests, confirming the directory-identity correction on the actual platform. Publication was skipped. [Native run](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41225462632).
+
+The native contract command now uses `npm test --` with the exact same selected files. This invokes the existing `pretest` pinned-derivative generation before Vitest; it does not change assets, weaken assertions or remove any native launch gate. A new workflow contract prevents bypassing that lifecycle. An isolated fresh `48bfd15` archive, verified to lack the derivative, generated it through this exact npm lifecycle and passed all **51 tests across three affected suites on Node 22**. Workflow lint, affected ESLint, formatting and whitespace checks passed. A new native matrix remains required.
+
 ## Remaining acceptance gates
 
 1. Resolve mixed-class GP pace and confirm the full suite under appropriate runner load without hiding failures or extending acceptance limits merely to pass.
