@@ -7,15 +7,17 @@ import {
 /** Exercise the retained production game through its installed native menu.
  * No fixture scripts, AI driver, frame writes, or synthetic simulation input. */
 export async function verifyDesktopCompatibility(application, page, report, capture, stage) {
-  await application.evaluate(({ Menu, BrowserWindow }) => {
+  const entry = await application.evaluate(({ Menu, BrowserWindow }) => {
     const game = Menu.getApplicationMenu()?.items.find((item) => item.label === 'Game');
     const fallback = game?.submenu?.items.find(
       (item) => item.label === 'Existing content · migration fallback',
     );
     if (!fallback) throw new Error('Native compatibility menu entry is missing');
     fallback.click(fallback, BrowserWindow.getAllWindows()[0], {});
+    return { menu: game.label, item: fallback.label };
   });
   await page.waitForURL('motobound://game/index.html', { timeout: 180000 });
+  report.compatibilityEntry = { ...entry, url: page.url(), activated: true };
   await expect(page.locator('#menu')).toBeVisible({ timeout: 180000 });
   stage('compatibility-menu-ready');
   // Use the shipped settings UI for a repeatable software-runner workload.

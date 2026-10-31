@@ -15,6 +15,10 @@ on:
         required: false
         type: string
         default: mesa
+      smoke_journey:
+        required: false
+        type: string
+        default: full
 permissions:
   contents: read
 jobs:
@@ -32,6 +36,7 @@ jobs:
       DEBUG: pw:browser
       CSC_IDENTITY_AUTO_DISCOVERY: 'false'
       MOTOBOUND_TARGET_ARCH: ${{ inputs.arch }}
+      MOTOBOUND_SMOKE_JOURNEY: ${{ inputs.smoke_journey }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -40,7 +45,7 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - name: Validate desktop isolation and engine contracts
-        run: npx vitest run tests/preview-promotion.test.ts tests/startup.test.ts tests/preparation.test.ts tests/preparation-passes.test.ts tests/program-readiness.test.ts tests/program-first-use.test.ts tests/fullscreen-preparation.test.ts tests/owned-menu-preview.test.ts tests/menu-timing-mode.test.ts tests/menu-dof-diagnostic.test.ts tests/native-preparation-evidence.test.ts tests/supplied-compaction.test.ts tests/far-shadow.test.ts tests/festival-presentation-gate.test.ts tests/festival-startup-lifetime.test.ts tests/festival-startup-presentation.test.ts tests/festival-held-ready.test.ts tests/festival-travel-readiness.test.ts tests/festival-late-assets.test.ts tests/abortable-startup.test.ts tests/graphics-observation.test.ts tests/desktop-policy.test.ts tests/desktop-graphics-health.test.ts tests/desktop-target.test.ts tests/repository-portability.test.ts tests/motocross-ground-physics.test.ts tests/motocross-contact-impulse.test.ts tests/babylon-*.test.ts tests/input.test.ts tests/motion-receipt.test.ts tests/worker-pause.test.ts tests/open-world-traffic.test.ts tests/basis-transcoder.test.ts
+        run: npx vitest run tests/preview-promotion.test.ts tests/startup.test.ts tests/preparation.test.ts tests/preparation-passes.test.ts tests/program-readiness.test.ts tests/program-first-use.test.ts tests/fullscreen-preparation.test.ts tests/owned-menu-preview.test.ts tests/menu-timing-mode.test.ts tests/menu-dof-diagnostic.test.ts tests/native-preparation-evidence.test.ts tests/native-smoke-control.test.ts tests/automatic-shift-stability.test.ts tests/vehicle-calibration-ci.test.ts tests/supplied-compaction.test.ts tests/far-shadow.test.ts tests/festival-presentation-gate.test.ts tests/festival-startup-lifetime.test.ts tests/festival-startup-presentation.test.ts tests/festival-held-ready.test.ts tests/festival-travel-readiness.test.ts tests/festival-late-assets.test.ts tests/abortable-startup.test.ts tests/graphics-observation.test.ts tests/desktop-policy.test.ts tests/desktop-graphics-health.test.ts tests/desktop-target.test.ts tests/repository-portability.test.ts tests/motocross-ground-physics.test.ts tests/motocross-contact-impulse.test.ts tests/babylon-*.test.ts tests/input.test.ts tests/motion-receipt.test.ts tests/worker-pause.test.ts tests/open-world-traffic.test.ts tests/basis-transcoder.test.ts
       - name: Build the bundled offline desktop game
         run: npm run desktop:package -- --${{ inputs.target }} --${{ inputs.arch }} --publish never
       - name: Install Linux display dependencies
@@ -60,15 +65,17 @@ jobs:
           MOTOBOUND_CI_GL: ${{ inputs.target == 'mac' && inputs.arch == 'x64' && 'swiftshader' || '' }}
         run: node scripts/desktop-smoke.mjs
       - name: Record package checksums and exact source
+        if: inputs.smoke_journey == 'full'
         run: node scripts/desktop-checksums.mjs
       - name: Preserve native launch evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: desktop-evidence-${{ inputs.target }}-${{ inputs.arch }}
+          name: desktop-evidence-${{ inputs.target }}-${{ inputs.arch }}${{ inputs.smoke_journey != 'full' && '-compatibility-diagnostic' || '' }}
           path: desktop-evidence/
           retention-days: 7
       - name: Upload development installers
+        if: inputs.smoke_journey == 'full'
         uses: actions/upload-artifact@v4
         with:
           name: motobound-package-${{ inputs.target }}-${{ inputs.arch }}

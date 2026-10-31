@@ -313,6 +313,20 @@ export class Vehicle {
     for (let i = 0; i < 4; i++) this.wheelOmega[i] = this.tires[i].omega;
     return carrierOmega(this.wheelOmega, this.frontShare);
   }
+  /** Road-supported gearbox output speed, excluding transient wheelspin.
+   * Like TC and grounded clutch referral, these contact velocities, bases and
+   * loads belong to the previous solved substep; this is not a new road query. */
+  private drivenRoadOmega() {
+    for (let i = 0; i < 4; i++) {
+      if (this.frontShare === null && i !== this.drivenLeft && i !== this.drivenRight) continue;
+      if (this.tires[i].load <= 1) return 0;
+      this.wheelOmega[i] =
+        this.pointVelocities[i].dot(this.contactFrames[i].forward) / this.tires[i].radius;
+    }
+    if (this.frontShare === null)
+      return (this.wheelOmega[this.drivenLeft] + this.wheelOmega[this.drivenRight]) * 0.5;
+    return carrierOmega(this.wheelOmega, this.frontShare);
+  }
   shift(direction: number) {
     if (this.shiftClock > 0) return;
     const spec = this.spec,
@@ -423,8 +437,14 @@ export class Vehicle {
       // Wheel-coupled RPM excludes free-revving launch slip from shift decisions.
       const coupledRPM =
         (rearOmega * Math.abs(spec.gearRatios[this.gear + 1] * spec.finalDrive) * 30) / Math.PI;
-      if (coupledRPM > spec.shiftRPM && this.gear < spec.gearRatios.length - 2) this.shift(1);
-      else if (coupledRPM < spec.downshiftRPM && this.gear > 1) this.shift(-1);
+      if (coupledRPM > spec.shiftRPM && this.gear < spec.gearRatios.length - 2) {
+        // A power cut can remove wheelspin. Do not select a gear whose road-
+        // supported RPM would immediately request the opposite shift.
+        const nextRoadRPM =
+          (this.drivenRoadOmega() * spec.gearRatios[this.gear + 2] * spec.finalDrive * 30) /
+          Math.PI;
+        if (nextRoadRPM >= spec.downshiftRPM) this.shift(1);
+      } else if (coupledRPM < spec.downshiftRPM && this.gear > 1) this.shift(-1);
     }
     const ratio = spec.gearRatios[this.gear + 1] * spec.finalDrive;
     const shaft = Math.max(0, this.clutch.engineOmega);

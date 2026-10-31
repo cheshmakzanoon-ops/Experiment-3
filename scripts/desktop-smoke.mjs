@@ -10,6 +10,12 @@ import {
   createNativePreparationSink,
   createNativePreparationWriter,
 } from './native-preparation-evidence.mjs';
+import {
+  desktopSmokeJourney,
+  runDesktopSmokeJourneys,
+  createFirstGraphicsFault,
+  retainNativeSmokeFailure,
+} from './native-smoke-control.mjs';
 import { _electron as electron } from '@playwright/test';
 import { mkdtemp, mkdir, writeFile, readFile } from 'node:fs/promises';
 import { writeFileSync } from 'node:fs';
@@ -23,6 +29,7 @@ import {
 const target = desktopTarget(process.platform, process.arch, process.env.MOTOBOUND_TARGET_ARCH);
 const startedAt = Date.now();
 const consoleGraphicsFaults = new Set();
+const firstGraphicsFault = createFirstGraphicsFault();
 const processScanners = [createGraphicsLogScanner(), createGraphicsLogScanner()];
 const graphicsBackend = process.env.MOTOBOUND_CI_GL || 'native';
 const graphicsArguments = desktopGraphicsArguments(graphicsBackend, target.platform, target.arch);
@@ -87,34 +94,39 @@ async function observeGraphicsHealth(page) {
         ...processScanners.flatMap((scanner) => scanner.faults()),
       ]),
     ];
+    for (const fault of report.graphicsFaults) firstGraphicsFault.record(fault);
   } finally {
     clearTimeout(timer);
   }
   return report.graphicsFaults;
 }
 async function waitForBabylonPresentation(page) {
-  if ((await observeGraphicsHealth(page)).length)
+  if ((await firstGraphicsFault.wait(() => observeGraphicsHealth(page))).length)
     throw new Error('GPU health failed before paused presentation completion');
-  await page.waitForFunction(
-    () => {
-      const data = document.querySelector('#status')?.dataset;
-      const submitted = Number(data?.renderedFrames);
-      const completed = Number(data?.completedFrames);
-      return (
-        data?.presentationSettled === 'true' &&
-        Number.isSafeInteger(submitted) &&
-        submitted > 0 &&
-        completed === submitted
-      );
-    },
-    {},
-    { timeout: 30000, polling: 100 },
+  await firstGraphicsFault.wait(() =>
+    page.waitForFunction(
+      () => {
+        const data = document.querySelector('#status')?.dataset;
+        const submitted = Number(data?.renderedFrames);
+        const completed = Number(data?.completedFrames);
+        return (
+          data?.presentationSettled === 'true' &&
+          Number.isSafeInteger(submitted) &&
+          submitted > 0 &&
+          completed === submitted
+        );
+      },
+      {},
+      { timeout: 30000, polling: 100 },
+    ),
   );
-  const receipt = await page.locator('#status').evaluate((element) => ({
-    submitted: Number(element.dataset.renderedFrames),
-    completed: Number(element.dataset.completedFrames),
-    settled: element.dataset.presentationSettled,
-  }));
+  const receipt = await firstGraphicsFault.wait(() =>
+    page.locator('#status').evaluate((element) => ({
+      submitted: Number(element.dataset.renderedFrames),
+      completed: Number(element.dataset.completedFrames),
+      settled: element.dataset.presentationSettled,
+    })),
+  );
   (report.babylonPresentationReceipts ??= []).push(receipt);
 }
 async function captureChecked(page, path) {
@@ -156,6 +168,8 @@ async function captureViewport(page, path) {
 }
 let application, page;
 try {
+  const journey = desktopSmokeJourney(process.env.MOTOBOUND_SMOKE_JOURNEY ?? 'full');
+  report.smokeJourney = journey;
   if (report.source.arch !== target.arch || report.source.platform !== target.platform)
     throw new Error('Build receipt does not match the requested package target');
   stage('launch');
@@ -169,6 +183,7 @@ try {
     stream?.on('data', (data) => {
       const chunk = String(data);
       processScanners[index].push(chunk);
+      for (const fault of processScanners[index].faults()) firstGraphicsFault.record(fault);
       report.processLog.push(chunk.slice(0, 8000));
       if (report.processLog.length > 128) report.processLog.shift();
     }),
@@ -230,7 +245,9 @@ try {
       preparationWriter.update(report.preparationEvidence);
     }
     // Faults are sticky even when routine console diagnostics roll over.
-    if (consoleGraphicsFaults.size < 32 && graphicsFaults([], [entry], 0).length)
+    const faults = graphicsFaults([], [entry], 0);
+    for (const fault of faults) firstGraphicsFault.record(fault);
+    if (consoleGraphicsFaults.size < 32 && faults.length)
       consoleGraphicsFaults.add(entry.text.slice(0, 2048));
     if (preparationPacket) return;
     report.console.push({ ...entry, text: entry.text.slice(0, 2048) });
@@ -334,94 +351,102 @@ try {
   await page.waitForTimeout(300); // Explicit observation window for a frozen physics tick.
   if ((await page.locator('#status').textContent()) !== pausedStatus)
     throw new Error('Physics advanced while the desktop game was paused');
-  await page
-    .getByRole('button', { name: 'Inspect existing Formula asset (35 MB)', exact: true })
-    .click();
-  await page.waitForFunction(
-    () => {
-      const text = document.querySelector('#assetStatus')?.textContent ?? '';
-      return text.includes('Original Formula asset loaded') || text.includes('Model unavailable');
+  await runDesktopSmokeJourneys(journey, {
+    authoredModel: async () => {
+      await page
+        .getByRole('button', { name: 'Inspect existing Formula asset (35 MB)', exact: true })
+        .click();
+      await page.waitForFunction(
+        () => {
+          const text = document.querySelector('#assetStatus')?.textContent ?? '';
+          return (
+            text.includes('Original Formula asset loaded') || text.includes('Model unavailable')
+          );
+        },
+        {},
+        { timeout: 120000, polling: 100 },
+      );
+      report.assetStatus = await page.locator('#assetStatus').textContent();
+      if (!report.assetStatus?.includes('Original Formula asset loaded'))
+        throw new Error(report.assetStatus || 'The packaged model did not load');
+      report.checks.push('original bundled Formula model imports through the offline protocol');
+      stage('model-presented');
+      report.drivingView = await page.evaluate(() => {
+        const panel = document.querySelector('#panel').getBoundingClientRect();
+        const controls = document.querySelector('#touchDrive').getBoundingClientRect();
+        return {
+          panelRight: panel.right,
+          panelBottom: panel.bottom,
+          controlsTop: controls.top,
+          width: innerWidth,
+        };
+      });
+      if (
+        report.drivingView.panelRight >= report.drivingView.width * 0.45 ||
+        report.drivingView.panelBottom >= report.drivingView.controlsTop
+      )
+        throw new Error('Diagnostic panel obscures the central driving view or touch controls');
+      report.checks.push('diagnostic panel preserves the central driving view and touch controls');
+      const wheelPhase = await page.locator('#assetStatus').getAttribute('data-wheel-phase');
+      if (wheelPhase === null || !Number.isFinite(Number(wheelPhase)))
+        throw new Error('Imported wheel adapter did not publish an applied rotation');
+      await resume.click();
+      await page.keyboard.down('w');
+      try {
+        await page.waitForFunction(
+          (initial) => {
+            const value = document.querySelector('#assetStatus')?.getAttribute('data-wheel-phase');
+            if (value == null || !Number.isFinite(Number(value))) return false;
+            const delta = Number(value) - initial;
+            return Math.abs(Math.atan2(Math.sin(delta), Math.cos(delta))) > 0.1;
+          },
+          Number(wheelPhase),
+          { timeout: 15000, polling: 100 },
+        );
+      } finally {
+        await page.keyboard.up('w');
+      }
+      await page.getByRole('button', { name: 'Pause', exact: true }).click();
+      await page.waitForFunction(() =>
+        document.querySelector('#status')?.textContent?.includes('PAUSED'),
+      );
+      await waitForBabylonPresentation(page);
+      const frozenWheel = await page.locator('#assetStatus').getAttribute('data-wheel-phase');
+      await page.waitForTimeout(300);
+      if ((await page.locator('#assetStatus').getAttribute('data-wheel-phase')) !== frozenWheel)
+        throw new Error('Authored wheel rotation changed while paused');
+      report.checks.push(
+        'applied authored wheel rotation moves during simulation and freezes during pause',
+      );
+      stage('wheel-motion-passed');
     },
-    {},
-    { timeout: 120000, polling: 100 },
-  );
-  report.assetStatus = await page.locator('#assetStatus').textContent();
-  if (!report.assetStatus?.includes('Original Formula asset loaded'))
-    throw new Error(report.assetStatus || 'The packaged model did not load');
-  report.checks.push('original bundled Formula model imports through the offline protocol');
-  stage('model-presented');
-  report.drivingView = await page.evaluate(() => {
-    const panel = document.querySelector('#panel').getBoundingClientRect();
-    const controls = document.querySelector('#touchDrive').getBoundingClientRect();
-    return {
-      panelRight: panel.right,
-      panelBottom: panel.bottom,
-      controlsTop: controls.top,
-      width: innerWidth,
-    };
+    captureBabylon: async () => {
+      const preferences = await application.evaluate(({ BrowserWindow }) =>
+        BrowserWindow.getAllWindows()[0].webContents.getLastWebPreferences(),
+      );
+      if (
+        !preferences.contextIsolation ||
+        !preferences.sandbox ||
+        preferences.nodeIntegration ||
+        preferences.webSecurity === false
+      )
+        throw new Error('Desktop renderer isolation is not active');
+      report.checks.push('sandbox/context isolation active, Node integration disabled');
+      report.gpu = await application.evaluate(({ app }) => app.getGPUFeatureStatus());
+      stage('capturing');
+      await captureChecked(page, 'desktop-evidence/packaged-babylon.png');
+      stage('capture-passed');
+    },
+    compatibility: () =>
+      verifyDesktopCompatibility(application, page, report, captureChecked, stage),
   });
-  if (
-    report.drivingView.panelRight >= report.drivingView.width * 0.45 ||
-    report.drivingView.panelBottom >= report.drivingView.controlsTop
-  )
-    throw new Error('Diagnostic panel obscures the central driving view or touch controls');
-  report.checks.push('diagnostic panel preserves the central driving view and touch controls');
-  const wheelPhase = await page.locator('#assetStatus').getAttribute('data-wheel-phase');
-  if (wheelPhase === null || !Number.isFinite(Number(wheelPhase)))
-    throw new Error('Imported wheel adapter did not publish an applied rotation');
-  await resume.click();
-  await page.keyboard.down('w');
-  try {
-    await page.waitForFunction(
-      (initial) => {
-        const value = document.querySelector('#assetStatus')?.getAttribute('data-wheel-phase');
-        if (value == null || !Number.isFinite(Number(value))) return false;
-        const delta = Number(value) - initial;
-        return Math.abs(Math.atan2(Math.sin(delta), Math.cos(delta))) > 0.1;
-      },
-      Number(wheelPhase),
-      { timeout: 15000, polling: 100 },
-    );
-  } finally {
-    await page.keyboard.up('w');
-  }
-  await page.getByRole('button', { name: 'Pause', exact: true }).click();
-  await page.waitForFunction(() =>
-    document.querySelector('#status')?.textContent?.includes('PAUSED'),
-  );
-  await waitForBabylonPresentation(page);
-  const frozenWheel = await page.locator('#assetStatus').getAttribute('data-wheel-phase');
-  await page.waitForTimeout(300);
-  if ((await page.locator('#assetStatus').getAttribute('data-wheel-phase')) !== frozenWheel)
-    throw new Error('Authored wheel rotation changed while paused');
-  report.checks.push(
-    'applied authored wheel rotation moves during simulation and freezes during pause',
-  );
-  stage('wheel-motion-passed');
-  const preferences = await application.evaluate(({ BrowserWindow }) =>
-    BrowserWindow.getAllWindows()[0].webContents.getLastWebPreferences(),
-  );
-  if (
-    !preferences.contextIsolation ||
-    !preferences.sandbox ||
-    preferences.nodeIntegration ||
-    preferences.webSecurity === false
-  )
-    throw new Error('Desktop renderer isolation is not active');
-  report.checks.push('sandbox/context isolation active, Node integration disabled');
-  report.gpu = await application.evaluate(({ app }) => app.getGPUFeatureStatus());
-  stage('capturing');
-  await captureChecked(page, 'desktop-evidence/packaged-babylon.png');
-  stage('capture-passed');
-  await verifyDesktopCompatibility(application, page, report, captureChecked, stage);
   if ((await observeGraphicsHealth(page)).length)
     throw new Error('GPU health failed during the installed-game journeys');
   if (report.errors.length || report.remoteRequests.length || report.assetFailures.length)
     throw new Error('Unexpected renderer errors, asset failures or remote runtime requests');
   report.success = true;
 } catch (error) {
-  report.success = false;
-  report.failure = String(error);
+  retainNativeSmokeFailure(report, error, firstGraphicsFault);
   stage('failed');
   console.error(report.failure);
   try {
@@ -434,20 +459,27 @@ try {
   if (page) {
     try {
       if ((await observeGraphicsHealth(page)).length && report.success) {
-        report.success = false;
-        report.failure = 'GPU health failed at final evidence collection';
+        retainNativeSmokeFailure(
+          report,
+          new Error('GPU health failed at final evidence collection'),
+          firstGraphicsFault,
+        );
         process.exitCode = 1;
       }
     } catch (error) {
       report.graphicsObservationError = String(error);
       if (report.success) {
-        report.success = false;
-        report.failure = 'Final graphics health could not be observed';
+        retainNativeSmokeFailure(
+          report,
+          new Error('Final graphics health could not be observed'),
+          firstGraphicsFault,
+        );
         process.exitCode = 1;
       }
     }
   }
   report.preparationEvidence = preparationEvidence.snapshot();
+  report.firstGraphicsFault = firstGraphicsFault.read()?.message ?? null;
   preparationWriter.update(report.preparationEvidence);
   const preparationWriteError = await preparationWriter.flush();
   if (preparationWriteError) report.preparationEvidenceWriteError = preparationWriteError;

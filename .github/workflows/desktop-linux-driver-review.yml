@@ -11,6 +11,8 @@ on:
       - 'desktop/target.ts'
       - 'scripts/desktop-smoke.mjs'
       - 'scripts/desktop-compatibility.mjs'
+      - 'scripts/native-smoke-control.*'
+      - 'scripts/native-preparation-evidence.*'
       - 'public/assets/basis/**'
 permissions:
   contents: read
@@ -27,3 +29,15 @@ jobs:
       target: linux
       arch: x64
       linux_graphics: swiftshader
+  compatibility-mesa:
+    # A separate diagnostic scope reaches the real Game-menu compatibility
+    # journeys without the heavy Babylon model workload, explicitly omitted
+    # in its receipt. It cannot
+    # replace the required full Mesa lane and uploads no release installers.
+    uses: ./.github/workflows/desktop-platform.yml
+    with:
+      runner: ubuntu-22.04
+      target: linux
+      arch: x64
+      linux_graphics: mesa
+      smoke_journey: compatibility-diagnostic
