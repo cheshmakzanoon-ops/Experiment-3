@@ -1,3 +1,4 @@
+import { motionReceipt } from './core/motion-receipt.ts';
 import {
   graphicsSettingsChanged,
   runSettingsChange,
@@ -2770,6 +2771,17 @@ export class GameApp {
     return {
       buildIdentity: { commit: __APEX_SOURCE_COMMIT__, fingerprint: __APEX_SOURCE_FINGERPRINT__ },
       state: this.state,
+      motion: this.festival?.motionDiagnostics() ?? {
+        kind: 'circuit',
+        vehicleId: this.current
+          ? vehicleAt(Math.round(this.current[carBase(0) + RACE_BASE + R.VEHICLE])).id
+          : null,
+        paused: this.workerPause.status().paused,
+        autopilot: this.auto,
+        sample: motionReceipt(this.current),
+        presented: motionReceipt(this.renderer?.presented.value ?? null),
+        presentationFrames: this.presentationFrames,
+      },
       gridPresentation: {
         time: this.gridClock.time,
         playing: this.gridClock.playing,

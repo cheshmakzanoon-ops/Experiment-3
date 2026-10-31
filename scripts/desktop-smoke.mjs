@@ -1,3 +1,4 @@
+import { verifyDesktopCompatibility } from './desktop-compatibility.mjs';
 import { _electron as electron } from '@playwright/test';
 import { mkdtemp, mkdir, writeFile, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -25,6 +26,7 @@ const report = {
   processLog: [],
   errors: [],
   remoteRequests: [],
+  assetFailures: [],
 };
 function stage(name) {
   const entry = { name, elapsedMs: Date.now() - startedAt };
@@ -91,6 +93,8 @@ try {
   report.checks.push('packaged process architecture matches target');
   report.gpu = await application.evaluate(({ app }) => app.getGPUFeatureStatus());
   page = await application.firstWindow({ timeout: 120000 });
+  page.setDefaultTimeout(30000);
+  page.setDefaultNavigationTimeout(120000);
   stage('window-created');
   // A hidden ready-to-show window must not be required to produce the frame
   // that makes it visible. Show it before the existing startup deadline.
@@ -120,6 +124,15 @@ try {
     report.console.push({ type: message.type(), text: message.text() }),
   );
   page.on('pageerror', (error) => report.errors.push(error.message));
+  page.on('response', (response) => {
+    if (response.status() >= 400)
+      report.assetFailures.push({ url: response.url(), status: response.status() });
+  });
+  page.on('requestfailed', (request) => {
+    const error = request.failure()?.errorText;
+    // Navigation can intentionally cancel obsolete loads; retain other failures.
+    if (error !== 'net::ERR_ABORTED') report.assetFailures.push({ url: request.url(), error });
+  });
   page.on('request', (request) => {
     if (/^https?:/.test(request.url())) report.remoteRequests.push(request.url());
   });
@@ -283,8 +296,9 @@ try {
   stage('capturing');
   await captureViewport(page, 'desktop-evidence/packaged-babylon.png');
   stage('capture-passed');
-  if (report.errors.length || report.remoteRequests.length)
-    throw new Error('Unexpected renderer errors or remote runtime requests');
+  await verifyDesktopCompatibility(application, page, report, captureViewport, stage);
+  if (report.errors.length || report.remoteRequests.length || report.assetFailures.length)
+    throw new Error('Unexpected renderer errors, asset failures or remote runtime requests');
   report.success = true;
 } catch (error) {
   report.success = false;

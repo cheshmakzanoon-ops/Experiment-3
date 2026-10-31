@@ -1,3 +1,4 @@
+import { motionReceipt } from '../core/motion-receipt.ts';
 import type * as T from 'three';
 import { scannedGround } from '../rendering/ground/scan-store.ts';
 import type { Assist, Controls, WeatherPreset } from '../simulation/config.ts';
@@ -104,6 +105,7 @@ export class FestivalSession {
   private previous: Float32Array | null = null;
   private readonly liveFrames = new LiveFrameClock();
   private lastTime = 0;
+  private presentationFrames = 0;
   private status: FestivalStatus | null = null;
   private traffic: TrafficCars | null = null;
   private riders: FestivalRiders | null = null;
@@ -478,6 +480,17 @@ export class FestivalSession {
   setPaused(value: boolean) {
     this.controls?.setPaused(value);
   }
+  motionDiagnostics() {
+    return {
+      kind: 'festival',
+      vehicleId: this.status?.vehicleId ?? null,
+      paused: this.isPaused,
+      autopilot: this.status?.autopilot ?? null,
+      sample: motionReceipt(this.current),
+      presented: motionReceipt(this.renderer?.presented.value ?? null),
+      presentationFrames: this.presentationFrames,
+    };
+  }
   get isPaused() {
     return this.controls?.paused ?? false;
   }
@@ -538,6 +551,7 @@ export class FestivalSession {
     this.riders?.update(a, b, alpha, renderer.camera, this.host.quality);
     this.traffic?.update(live.auxiliaryA, live.auxiliaryB, alpha, renderer.night, b[H.TIME]);
     renderer.draw(a, b, alpha, Math.min(0.08, wall));
+    this.presentationFrames++;
     const o = carBase(0),
       presented = renderer.presented.value;
     const qx = presented[o + F.QX],

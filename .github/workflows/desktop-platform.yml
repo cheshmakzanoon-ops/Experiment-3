@@ -16,7 +16,9 @@ permissions:
 jobs:
   build:
     runs-on: ${{ inputs.runner }}
-    timeout-minutes: 35
+    # Includes four additional full-content installed-game journeys. Individual
+    # startup/input/capture budgets remain explicit in the smoke helper.
+    timeout-minutes: 50
     defaults:
       run:
         shell: bash
@@ -31,7 +33,7 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - name: Validate desktop isolation and engine contracts
-        run: npx vitest run tests/desktop-policy.test.ts tests/desktop-target.test.ts tests/repository-portability.test.ts tests/motocross-ground-physics.test.ts tests/motocross-contact-impulse.test.ts tests/babylon-*.test.ts tests/input.test.ts
+        run: npx vitest run tests/desktop-policy.test.ts tests/desktop-target.test.ts tests/repository-portability.test.ts tests/motocross-ground-physics.test.ts tests/motocross-contact-impulse.test.ts tests/babylon-*.test.ts tests/input.test.ts tests/motion-receipt.test.ts tests/worker-pause.test.ts tests/open-world-traffic.test.ts
       - name: Build the bundled offline desktop game
         run: npm run desktop:package -- --${{ inputs.target }} --${{ inputs.arch }} --publish never
       - name: Install Linux display dependencies
