@@ -139,6 +139,20 @@ A separate [automatic shift repair](maintenance/vehicle-shift-stability-2026-10-
 
 Motorcycle low-speed control and jump-corridor experiments remain outside production: improved isolated steering or Arena stopping times do not override newly introduced full-course crashes. No candidate from that investigation is claimed accepted.
 
+### `447b160` native outcome
+
+Windows and Apple Silicon passed the required full journeys in [run 41214789524](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41214789524); the [SwiftShader full comparison](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41214789518) also passed. Required Mesa failed and publication was skipped. Its 139-event native stream retained a completed cockpit draw with 283 unchanged programs, then a cancelled post-view readiness span after about 27.9 s (16 queries, zero cache primes). That interval can include native queries or the following yield; it is not proof of shader compilation cost. The fatal snapshot preserved the context-loss message, paused simulation and unfinished frame, while the primary failure correctly remained the observed GPU-process exit.
+
+The separate Mesa compatibility diagnostic verified its explicit three omitted model checks, real Game-menu entry, distinct artifact and no installer publication. It also failed: both mirror submissions completed, but the cockpit scene submission failed after 23.107 s. Its allocation message followed the GPU exit by about 4.9 ms, before the later loss event. Even a post-query loss check cannot guarantee immediate loss visibility; this is not healthy-context OOM evidence. The diagnostic does not replace the required full lane.
+
+### Physics v19 and non-destructive ghost separation
+
+The automatic-shift repair changes recorded performance, so the simulation identity advances from v18 to v19. Previous records remain in their prior leaderboard category and are rejected as current-physics comparisons without mutation. Content digests verify integrity, not player authentication or digital signatures.
+
+New ghost writes use a physics-specific key. Loading first checks that category, then validates a read-only legacy fallback. An incompatible v18 ghost is neither relabelled nor rewritten; a later v19 personal best no longer overwrites its legacy key. Valid current-category legacy data can still be read. Corrupt/mismatched data, read errors and cancelled/replaced sessions are covered; stale read rejection cannot show an error toast in a newer session. No existing keys or records are deleted.
+
+The combined identity/ghost/record/network checks passed **183 tests across 15 files**, followed by full lint, root/desktop TypeScript, workflow checks and a source-stable production code build (83 s). This follow-up changes identity/storage compatibility, not the solver or vehicle definitions. The repository instructions now require an identity/version review whenever physics, AI or driving-controller changes can alter lap times.
+
 ## Remaining acceptance gates
 
 1. Resolve mixed-class GP pace and confirm the full suite under appropriate runner load without hiding failures or extending acceptance limits merely to pass.

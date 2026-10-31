@@ -34,6 +34,12 @@ export function ghostKey(circuit: string, vehicle = 'apx01') {
   return `ghost:v${GHOST_VERSION}:${circuit}${vehicle === 'apx01' ? '' : `:${vehicle}`}`;
 }
 
+/** New personal bests are scoped by physics as well as vehicle. The legacy
+ * key remains a read-only fallback; saving a new model must not erase it. */
+export function ghostCategoryKey(circuit: string, vehicle = 'apx01', physics = SIMULATION_VERSION) {
+  return `${ghostKey(circuit, vehicle)}:p${physics}`;
+}
+
 /** Reject anything that is not a complete, time-ordered, finite recording. */
 export function validateGhost(
   value: unknown,

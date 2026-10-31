@@ -32,8 +32,9 @@ import {
  * direction-aware wheel-slip assists and contact-aware airborne clutch inertia;
  * v18: converged tire torque roots, planar water/cooling and lockup wear,
  * droop-reachable suspension, directional link geometry and connected brake blending;
+ * v19: road-supported automatic upshifts prevent wheelspin-induced gear hunting;
  * prior records remain in their original physics category. */
-export const SIMULATION_VERSION = 18;
+export const SIMULATION_VERSION = 19;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 

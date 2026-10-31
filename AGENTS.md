@@ -19,6 +19,8 @@ The owner approved Windows x64, Linux x64 and Apple Silicon macOS development do
 - Keep development on main. Preserve ancestry and all work before deleting any already-integrated branches. Never overwrite concurrent remote work.
 - Commit/publish verified increments. Keep the main README and current-status page truthful about source, packages, deployment and remaining limitations.
 - Run affected tests locally. Use GitHub Actions for native OS and WebGL checks unavailable locally. Preserve failure artifacts and inspect screenshots, not only exit codes.
+- When physics, AI or driving-controller changes can alter recorded lap times, advance `SIMULATION_VERSION` and test separation from the prior category without deleting stored records. Definition hashes alone do not identify solver changes.
+- Vehicle calibration uses the complete registry and `--strict`; report target-band results separately from near-edge and fitted AI-envelope contracts. Never reuse stale generated reports as fresh solver evidence.
 - Do not exclude tests, lower quality budgets or change assertions simply to obtain green checks. Diagnose and document actual defects and obsolete assumptions with stronger appropriate evidence.
 - Distinguish unit tests, real renderer/browser tests, packaged application smoke tests and physical-hardware/playtest acceptance.
 - Desktop signing/notarization and Steam credentials are not configured. Do not invent credentials, publish secrets, purchase services or claim signed retail builds.
