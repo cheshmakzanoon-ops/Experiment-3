@@ -14,7 +14,7 @@ All eight audited branch tips are ancestors of `29a6f871db184c39de791d8e210d9099
 
 - Lint passed locally on the consolidated source.
 - TypeScript and the production build passed locally. The build reports a large application chunk (about 14.6 MB minified / 4.5 MB gzip), a loading/performance risk to investigate.
-- The broad integration diagnostic completed: **4,976 passed / 4,994 total, 18 failed, zero skipped**. See the [failure ledger and focused follow-ups](maintenance/validation-2026-10-31.json). Later focused fixes and test-contract reviews are recorded separately; this is not an exact-commit all-green release certification. The latest motocross run is **568/572 passing**, with four soil-contact cases still failing. GP mixed-class pace also remains open.
+- The broad integration diagnostic completed: **4,976 passed / 4,994 total, 18 failed, zero skipped**. See the [failure ledger and focused follow-ups](maintenance/validation-2026-10-31.json). Later focused fixes and test-contract reviews are recorded separately; this is not an exact-commit all-green release certification. The latest local motocross run is **572/572 passing** after physical fixes and explicitly documented test-contract corrections. GP mixed-class pace remains open.
 - A GP planner repair accounts for finite brake-lever application time. Wet-contact steering recovery is grip-aware without changing the dry controller; all three two-lap GP contact-race cases and the braking approach suite pass in the focused candidate run.
 - Formula, GP motorcycles, motocross/supercross and festival must each pass actual browser journeys. Menu presence alone does not prove playability.
 - Latest downloadable release remains `playable-3a6036de` (2026-10-06). It is not the latest source.
@@ -28,6 +28,8 @@ All eight audited branch tips are ancestors of `29a6f871db184c39de791d8e210d9099
 - Deep MX overlap recovery exchanges forward, vertical and pitch momentum through a passive contact impulse. The original raw/sport launch-height and crash assertions pass. A new 270-case analytic sweep verifies energy loss, not invented launch energy.
 - The recovery test follows accumulated travel across the lap boundary and rejects station jumps; its original recovery-time/crash requirements remain intact.
 - Finite wheel-inertia acceptance is explicit: braking acts on the rotor immediately and reaches the ground-force check within 16.7 ms. Forward-rider support is checked before 1 mm of fork movement. Settling requires honest sub-0.1% tyre slip and timestep convergence, not an impossible exact rolling clamp under drag.
+
+The last four soil-contact assertions were reviewed against the finite-brush model: independent material coefficients remain exact, while forces can differ through shared chassis velocity and load transfer. The original 40 N material contrast is retained within 16.7 ms, each intermediate force is bounded by its own supported contact, and driven tyres must report nonzero slip. The solver was not changed for this acceptance correction. The full local motocross suite passes, but this does not certify hardware handling or visuals.
 
 ## Next acceptance gates
 

@@ -14,7 +14,11 @@ it('keeps tracked paths checkout-safe on Windows and case-insensitive macOS', ()
   const canonical = new Map<string, string>();
   for (const path of new Set(paths)) {
     for (const part of path.split('/')) {
-      expect(part, path).not.toMatch(/[<>:"\\|?*\x00-\x1f]|[. ]$/);
+      expect(part, path).not.toMatch(/[<>:"\\|?*]|[. ]$/);
+      expect(
+        Array.from(part).every((character) => character.charCodeAt(0) >= 32),
+        path,
+      ).toBe(true);
       expect(part, path).not.toMatch(/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i);
     }
     const key = path.normalize('NFC').toLowerCase();

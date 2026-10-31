@@ -123,6 +123,17 @@
     {
       "scope": "GP overtaking and shared traffic",
       "result": "A one-metre target-tracking reserve applies only while GP corridors are narrowed. Swept collision, longitudinal braking and full-width/mixed-class rules remain unchanged. Real catch-and-pass/replay, GP braking approach and shared traffic: 28/28 pass. Wider candidate run: 55/56 pass, with the same pre-existing mixed GP/superbike pace failure (83.57565 vs 83.12327 s); all dry/wet GP contact races pass."
+    },
+    {
+      "scope": "Soil-contact acceptance review, full motocross suite",
+      "total": 572,
+      "passed": 572,
+      "failed": 0,
+      "result": "The four remaining tests compared bit-identical forces across different coupled contact histories and assumed instantaneous force/zero drive slip. They now compare the independently sampled grip coefficients exactly, retain the original >40 N material contrast within 16.7 ms, check every intermediate force against its own supported load, and require nonzero slip for finite-brush drive. The actual tyre/soil solver is unchanged. Full local suite passes; exact-commit CI and physical playtesting remain required."
+    },
+    {
+      "scope": "Full lint reporting correction",
+      "result": "The a99/27 portability-test regex violated no-control-regex. A partial log had been mistaken for a completed pass; this was corrected explicitly. The control-byte check is now separate from the filename punctuation regex. Full lint, seven affected tests and TypeScript completed with exit code 0 on the corrected candidate."
     }
   ]
 }

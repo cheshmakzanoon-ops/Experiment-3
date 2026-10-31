@@ -54,7 +54,7 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - name: Validate desktop isolation and engine contracts
-        run: npx vitest run tests/desktop-policy.test.ts tests/repository-portability.test.ts tests/babylon-*.test.ts tests/input.test.ts
+        run: npx vitest run tests/desktop-policy.test.ts tests/repository-portability.test.ts tests/motocross-ground-physics.test.ts tests/motocross-contact-impulse.test.ts tests/babylon-*.test.ts tests/input.test.ts
       - name: Build the bundled offline desktop game
         run: npm run desktop:package -- --${{ matrix.target }} --${{ matrix.arch }} --publish never
       - name: Install Linux display dependencies
