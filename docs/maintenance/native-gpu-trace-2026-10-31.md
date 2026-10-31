@@ -239,8 +239,8 @@ underlying stall or a repair.
 Version 2 adds only the six parser-selected pairs and numeric ancestry above.
 The categories, recording window, 5-second processing budget, input/output caps,
 raw-private lifetime, first-fault handling and all required untraced lanes are
-unchanged. Actual Electron emission of these new scopes remains unverified
-until its own exact-source Actions artifact is inspected. General GPU coverage
+unchanged. Actual Electron emission was subsequently verified on `b451a2e`; the
+retained result is detailed below. General GPU coverage
 may still pass the diagnostic evidence gate with an inconclusive discriminator;
 neither status is gameplay success or GPU repair evidence.
 
@@ -264,3 +264,183 @@ first-use-only explanation.
 Pinned Chromium 156.0.8078.75 [POSIX process status](https://github.com/chromium/chromium/blob/156.0.8078.75/base/process/kill_posix.cc) preserves the raw wait status. The observed 512 decodes to exited status 2, rather than a direct SIGKILL receipt. The pinned [GPU result code](https://github.com/chromium/chromium/blob/156.0.8078.75/gpu/ipc/common/result_codes.h) names 2 as the hung-process result; the [watchdog termination path](https://github.com/chromium/chromium/blob/156.0.8078.75/gpu/ipc/service/gpu_watchdog_thread.cc) uses it after a final no-progress check. The Linux launcher/zygote and Electron child-process-gone propagation preserve that status.
 
 This is consistent with GPU hang termination. It does not establish that the watchdog was the only possible caller, or identify shader specialization, LLVM, memory pressure or another underlying stall. No watchdog, quality, security or gameplay deadline is relaxed by this interpretation. A later context-restored event does not erase the original fault.
+
+## Actual version 2 capture: `b451a2e`
+
+The dedicated Mesa run retained a verified 5,113-byte version 2 summary from
+8,698,878 privately processed bytes. The GPU fault was observed **inside** the
+unchanged Inspect/wheel window. Every selected new scope emitted. The only
+positive joint-open descendant was `CommandBufferService:PutChanged` under an
+unfinished `OnAsyncFlush`; all five selected compile/link rows completed and
+had zero joint-open ancestry. The discriminator therefore remained
+**inconclusive**. Error/loss statistic rows were present and zero, but
+`childTailCertified` remained false. No raw capture or parser output was uploaded.
+
+Preparation completed 403/403 cumulative leases (115 initial surface + 115
+restart surface + 173 original asset variants). Required and traced Mesa later
+lost the GPU during normal original-model presentation, whose scene still
+contained the live road/paint. Windows, Apple Silicon and diagnostic SwiftShader
+passed all four journeys. Compatibility Mesa returned its cockpit CPU draw and
+then lost the GPU while its fence remained pending. These observations neither
+identify the later failing command nor isolate road/paint, asset, LLVM or another
+backend owner. They are not a first-use-only failure proof or a Linux repair.
+
+## Manual service-API-boundary experiment (implemented, not yet run natively)
+
+This is a **separate, manual-only, nonpublishing configuration**, not an expansion
+of the existing trace mode. `desktop-gpu-service-api-review.yml` has only
+`workflow_dispatch`, read-only repository permissions, and one Ubuntu 22.04 /
+Linux x64 / Mesa / full-journey call. The reusable input
+`gpu_service_api_trace` and harness `MOTOBOUND_GPU_SERVICE_API_TRACE` default to
+`off`; the only other value is `service-api-boundary-v1`. Existing
+`MOTOBOUND_GPU_TRACE=0|1` semantics remain unchanged.
+
+The new selector is rejected unless private tracing is enabled, target and host
+are Linux x64, graphics is Mesa, journey is full, and GitHub's existing caller
+context identifies the exact dedicated manual workflow. This is checked before
+dependency/package work and independently before Electron launch. A manual
+launch of a required release workflow is insufficient. Package publication
+remains `--publish never`; installer/checksum steps additionally require the
+new selector to be off. Required lanes and the existing driver comparison do not
+select this mode. No security approval is implied; local Chromium restrictions
+and the separate Ubuntu 24.04 sandbox-helper blocker remain unchanged.
+
+The sole added launch switch is `--enable-gpu-service-tracing`. Chromium
+156.0.8078.75's
+[wrapper installation](https://github.com/chromium/chromium/blob/156.0.8078.75/ui/gl/gl_implementation_wrapper.h#L24-L34)
+requires this flag; selecting the existing `gpu` category alone does not install
+it. Its
+[switch-forwarding list](https://github.com/chromium/chromium/blob/156.0.8078.75/ui/gl/gl_switches.cc#L181-L188)
+passes it to the GPU process. Source Electron 45.2.1 is required before launch;
+the existing runtime observation must confirm Electron 45.2.1 and Chromium
+156.0.8078.75 before capture. No extra runtime observation API is introduced.
+A constant-only launch receipt records the guarded mode, sole switch and fixed
+platform/backend/journey facts. Actual event emission is checked separately.
+
+There is **no** GPU service logging, decoder-category addition, application
+bridge, draw/RAF hook, extra priming or fence, custom ANGLE build, watchdog
+change, quality reduction, security change, or deadline increase. The nine
+capture categories, Inspect-to-wheel/first-fault window, original authored
+operation, first-error precedence and cleanup ownership remain unchanged.
+The mode has no release dependency and may fail independently of gameplay.
+
+### Exact version 3 summary
+
+Version 2 remains the baseline parser/validator, with unchanged fixed SQL bytes
+and default output. Shared immutable parser limits, baseline pairs and fixed
+errors are factored into `native-gpu-trace-protocol.mjs` without changing their
+values. Version 3 is selected only by the explicit new mode and has a separate
+strict validator. It retains the original nine pairs and appends exactly these
+ten **`gpu`** pairs in this order:
+
+| Fixed event name                           | Pinned Chromium definition                                                                                       |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `TraceGLAPI::glDrawArrays`                 | [5283–5286](https://github.com/chromium/chromium/blob/156.0.8078.75/ui/gl/gl_bindings_autogen_gl.cc#L5283-L5286) |
+| `TraceGLAPI::glDrawArraysInstancedANGLE`   | [5288–5295](https://github.com/chromium/chromium/blob/156.0.8078.75/ui/gl/gl_bindings_autogen_gl.cc#L5288-L5295) |
+| `TraceGLAPI::glDrawElements`               | [5318–5324](https://github.com/chromium/chromium/blob/156.0.8078.75/ui/gl/gl_bindings_autogen_gl.cc#L5318-L5324) |
+| `TraceGLAPI::glDrawElementsInstancedANGLE` | [5326–5335](https://github.com/chromium/chromium/blob/156.0.8078.75/ui/gl/gl_bindings_autogen_gl.cc#L5326-L5335) |
+| `TraceGLAPI::glClientWaitSync`             | [4935–4940](https://github.com/chromium/chromium/blob/156.0.8078.75/ui/gl/gl_bindings_autogen_gl.cc#L4935-L4940) |
+| `TraceGLAPI::glWaitSync`                   | [7717–7720](https://github.com/chromium/chromium/blob/156.0.8078.75/ui/gl/gl_bindings_autogen_gl.cc#L7717-L7720) |
+| `TraceGLAPI::glGetSynciv`                  | [6223–6231](https://github.com/chromium/chromium/blob/156.0.8078.75/ui/gl/gl_bindings_autogen_gl.cc#L6223-L6231) |
+| `TraceGLAPI::glFenceSync`                  | [5426–5429](https://github.com/chromium/chromium/blob/156.0.8078.75/ui/gl/gl_bindings_autogen_gl.cc#L5426-L5429) |
+| `TraceGLAPI::glFlush`                      | [5441–5444](https://github.com/chromium/chromium/blob/156.0.8078.75/ui/gl/gl_bindings_autogen_gl.cc#L5441-L5444) |
+| `TraceGLAPI::glFinish`                     | [5431–5434](https://github.com/chromium/chromium/blob/156.0.8078.75/ui/gl/gl_bindings_autogen_gl.cc#L5431-L5434) |
+
+The query still requires the typed `chrome.process_type=Gpu` descriptor through
+`slice → thread_track → thread → process`, with exact category tokens. Two new
+numeric fields count (a) instances with an unfinished PutChanged ancestor that
+**itself** has an unfinished OnAsyncFlush ancestor, all on the same track, and
+(b) the conjunction of that ordered chain with the child's own unfinished state:
+`unfinishedDecoderFlushAncestorCount` and
+`unfinishedUnderUnfinishedDecoderFlushCount`. Nested `EXISTS` predicates count
+each child once even with duplicate qualifying ancestors. Separate parent/child
+marginals, temporal overlap, reversed parents and cross-thread instances cannot
+manufacture a positive chain. Validators enforce subset/intersection bounds,
+necessary open-parent evidence and exact aggregate sums.
+
+`serviceApiCoverage` requires actual emission of at least one of the ten new
+pairs. General GPU work alone cannot pass this mode's evidence gate. The
+`serviceApiBoundaryDiscriminator` is
+`same-track-open-service-api-under-unfinished-decoder-and-flush-observed` only
+when an added API row has positive joint count; otherwise it is `inconclusive`.
+The original compile/link discriminator still uses only its five original rows.
+`otherGpuEvents` in version 3 excludes the nineteen selected `gpu`/`gpu.angle`
+pairs while retaining its gpu-token-only counting scope. Neither version's
+counts are directly interchangeable without accounting for the different
+selected names.
+
+The separate successful evidence outcome is
+`retained-typed-gpu-service-api-summary`, not gameplay success. It also requires
+exact launch facts, pinned observed runtime, source, categories, settings,
+regular-file size/digest and numeric schema. Version 3 cannot satisfy the
+baseline version 2 validator, or vice versa. No event arguments, names discovered
+from traces, IDs, pointers, shader text, paths or raw parser output enter the
+sanitized summary. The new wrappers' argument-free definitions are **not** a
+privacy guarantee for other raw trace content.
+
+### Bounds, interpretation and stopping condition
+
+The existing 16 MiB recorder buffer, 64 MiB maximum raw input, 16 KiB parser
+stdout/summary, 4 KiB counted/discarded stderr, five-second shared processing
+budget, five-second tracing API waits and 50-minute outer job limit remain
+unchanged. Recorder/input bounds are **not total-process or RSS caps**. No new
+parser address-space restriction is introduced as an unqualified variable.
+Raw and staging remain private outside `desktop-evidence`; no raw upload is
+permitted on success or failure. Parser termination still settles on close;
+producer closure and inspection settlement still govern cleanup. Retention now
+also removes a prior sanitized summary if mode/schema validation, serialization
+or the size check fails before writing; successful version 2 bytes are unchanged.
+
+These scopes measure host-side Chromium-to-GL/ANGLE API calls, not native Mesa
+instructions, device execution time or CPU utilization. A captured open draw
+API can include validation, specialization, synchronization or other driver
+work. Even `glClientWaitSync` does not establish passive waiting: Chromium
+[adds `GL_SYNC_FLUSH_COMMANDS_BIT`](https://github.com/chromium/chromium/blob/156.0.8078.75/gpu/command_buffer/service/gles2_cmd_decoder_passthrough_doers.cc#L702-L710)
+to the call. Fence/flush/server-wait names retain their literal API meaning.
+No positive row establishes LLVM, OOM or a unique underlying cause; absence does
+not exclude uninstrumented work or a lost child tail. `childTailCertified` stays
+false. Additional wrapper traffic can change scheduling and recorder churn;
+filtering the later summary does not remove that instrumentation overhead.
+
+The alternative decoder category is intentionally excluded: it selects the
+[debug decoder path](https://github.com/chromium/chromium/blob/156.0.8078.75/gpu/command_buffer/service/gles2_cmd_decoder_passthrough.cc#L917-L995),
+and GPUTracer can
+[add device timers](https://github.com/chromium/chromium/blob/156.0.8078.75/gpu/command_buffer/service/gpu_tracer.cc#L110-L151)
+while emitting service events on
+[explicit tracks](https://github.com/chromium/chromium/blob/156.0.8078.75/gpu/command_buffer/service/gpu_tracer.cc#L85-L109).
+That would be a different perturbation and ancestry model.
+
+After separate dispatch authorization, the scope is **one bounded observation**
+through the existing window and terminal cleanup. Report observed API-boundary
+evidence, unavailable/inconclusive evidence, or non-reproduction under
+instrumentation. Do not broaden categories, extend the window, retry until a
+preferred result appears, or call a traced pass a repair. Native emission and
+this mode's fault coverage remain unverified until that exact-source run exists.
+
+### Offline engineering verification for the service-API mode
+
+On Node **22.23.4**, the final focused run passed **254 tests in 10 files**:
+existing trace/summary/parser/workflow and smoke-control/target regressions,
+plus the new service-API mode, summary, parser and workflow suites. This includes
+**99 required real-parser cases** (32 baseline + 67 service-API) using the exact
+SHA-pinned Perfetto 58.2 binary, without Electron/browser/network runtime access.
+Full-project TypeScript, final scoped strict TypeScript, scoped ESLint,
+formatting, workflow actionlint and whitespace checks passed.
+
+Every added wrapper has isolated open, completed-under-open and mixed-instance
+fixtures. Additional cases reject wrong category tokens at each ancestry layer,
+reversed/cross-track/missing/completed parents, spoofed process names, annotation
+spoofing, private names/paths, unknown events, malformed/truncated inputs,
+incorrect parser binaries, oversized input and symlinks. Duplicate ancestors
+count a child once. The stronger nested-subset intersection lower bound is
+independently exercised. New-mode timeout/output-limit/abort fixtures retain
+close-before-settlement; both modes remove stale sanitized output on pre-write
+validation/serialization/size/abort failures. Default-off workflow guards,
+source/runtime pins and actual-emission evidence gates have independent tests.
+
+The baseline SQL bytes and default real-parser summary bytes were compared
+against `cee488b3e399c67fcf5c4d94fc9defa02b355272` and matched exactly. Baseline
+query SHA-256 is
+`b4a1c214b63de669bdf4132826add06aff40e63a38b3de01bde46fea8f56c81e`.
+These are offline engineering results only: no service-API native run, source
+publication, GPU repair or new gameplay qualification is claimed here.

@@ -10,6 +10,8 @@ import {
   NATIVE_TRACE_PROCESSOR,
   NativeGpuTraceSummaryError,
 } from './native-gpu-trace-summary.mjs';
+import { validateNativeGpuServiceApiSummary } from './native-gpu-service-api-summary.mjs';
+import { nativeGpuServiceApiMode } from './native-gpu-service-api-mode.mjs';
 
 export const NATIVE_GPU_TRACE = Object.freeze({
   bufferKiB: 16384,
@@ -105,15 +107,18 @@ export async function retainNativeGpuTraceSummary({
   outputPath,
   signal,
   writeSummary = writeFile,
+  serviceApiMode = 'off',
 }) {
-  validateNativeGpuTraceSummary(summary);
-  const document = { source, summary };
-  const bytes = Buffer.from(JSON.stringify(document, null, 2) + '\n');
-  if (bytes.length > NATIVE_TRACE_PROCESSOR.maxSummaryBytes)
-    throw new Error('Native GPU trace summary exceeds its bound');
   let directory,
     retained = false;
   try {
+    if (nativeGpuServiceApiMode(serviceApiMode) === 'service-api-boundary-v1')
+      validateNativeGpuServiceApiSummary(summary);
+    else validateNativeGpuTraceSummary(summary);
+    const document = { source, summary };
+    const bytes = Buffer.from(JSON.stringify(document, null, 2) + '\n');
+    if (bytes.length > NATIVE_TRACE_PROCESSOR.maxSummaryBytes)
+      throw new Error('Native GPU trace summary exceeds its bound');
     await rm(outputPath, { force: true });
     signal.throwIfAborted();
     directory = await mkdtemp(join(dirname(outputPath), '.gpu-summary-'));
@@ -140,9 +145,23 @@ export async function retainNativeGpuTraceSummary({
   }
 }
 
-async function inspectTrace(path, outputPath, parserPath, source, budgetMs, signal) {
-  const summary = await summarizeNativeGpuTrace({ path, parserPath, deadlineMs: budgetMs, signal });
-  return retainNativeGpuTraceSummary({ summary, source, outputPath, signal });
+async function inspectTrace(
+  path,
+  outputPath,
+  parserPath,
+  source,
+  budgetMs,
+  signal,
+  serviceApiMode,
+) {
+  const summary = await summarizeNativeGpuTrace({
+    path,
+    parserPath,
+    deadlineMs: budgetMs,
+    signal,
+    serviceApiMode,
+  });
+  return retainNativeGpuTraceSummary({ summary, source, outputPath, signal, serviceApiMode });
 }
 
 /** Harness-only recorder. No app bridge, GL/render hooks, priming or action
@@ -161,11 +180,15 @@ export function createNativeGpuTrace({
   setupMs = NATIVE_GPU_TRACE.setupMs,
   stopMs = NATIVE_GPU_TRACE.stopMs,
   inspect,
+  serviceApiMode = 'off',
 }) {
+  const serviceApi = nativeGpuServiceApiMode(serviceApiMode) === 'service-api-boundary-v1';
+  if (serviceApi && !enabled) throw new Error('Service API tracing requires private GPU tracing');
   const receipt = {
     version: 1,
     enabled,
     diagnosticOnly: enabled,
+    ...(serviceApi ? { serviceApiMode } : {}),
     scope: NATIVE_GPU_TRACE.scope,
     omittedGameplayChecks: [],
     source: Object.fromEntries(
@@ -276,6 +299,7 @@ export function createNativeGpuTrace({
                     receipt.source,
                     stopMs,
                     controller.signal,
+                    serviceApiMode,
                   ),
             );
             inspections.set(inspection, controller);
@@ -378,6 +402,44 @@ export function createNativeGpuTrace({
 export async function validateNativeGpuTraceEvidence(report, directory) {
   const receipt = report?.gpuTrace;
   const output = receipt?.output;
+  const serviceApiMode = nativeGpuServiceApiMode(receipt?.serviceApiMode ?? 'off');
+  const serviceApi = serviceApiMode === 'service-api-boundary-v1';
+  if (serviceApi) {
+    const launch = report?.serviceApiLaunch;
+    const expected = {
+      mode: 'service-api-boundary-v1',
+      argument: '--enable-gpu-service-tracing',
+      platform: 'linux',
+      arch: 'x64',
+      graphicsBackend: 'mesa',
+      journey: 'full',
+      manualNonpublishing: true,
+    };
+    if (
+      !launch ||
+      typeof launch !== 'object' ||
+      Array.isArray(launch) ||
+      Object.keys(launch).sort().join(',') !== Object.keys(expected).sort().join(',') ||
+      Object.entries(expected).some(([key, value]) => launch[key] !== value) ||
+      report?.source?.electron !== '45.2.1' ||
+      report?.runtime?.electron !== '45.2.1' ||
+      report?.runtime?.chromium !== '156.0.8078.75' ||
+      report?.runtime?.platform !== 'linux' ||
+      report?.runtime?.arch !== 'x64' ||
+      report?.platform !== 'linux' ||
+      report?.arch !== 'x64' ||
+      report?.hostArch !== 'x64' ||
+      report?.graphicsBackend !== 'mesa' ||
+      report?.smokeJourney?.requestedJourney !== 'full' ||
+      report?.smokeJourney?.diagnosticOnly !== false ||
+      !Array.isArray(report?.smokeJourney?.omittedChecks) ||
+      report.smokeJourney.omittedChecks.length !== 0 ||
+      receipt.version !== 1
+    )
+      throw new Error('Invalid service API diagnostic launch receipt');
+  } else if (report?.serviceApiLaunch !== undefined || receipt?.serviceApiMode !== undefined) {
+    throw new Error('Unexpected service API diagnostic receipt');
+  }
   if (
     receipt?.enabled !== true ||
     receipt.diagnosticOnly !== true ||
@@ -476,11 +538,17 @@ export async function validateNativeGpuTraceEvidence(report, directory) {
       document.source?.[key] !== receipt.source[key]
     )
       throw new Error('GPU summary source mismatch');
-  const summary = validateNativeGpuTraceSummary(document.summary);
+  const summary = serviceApi
+    ? validateNativeGpuServiceApiSummary(document.summary)
+    : validateNativeGpuTraceSummary(document.summary);
   if (summary.coverage !== 'typed-gpu-work-observed' || output.gpuWorkObserved !== true)
     throw new Error('No typed GPU work coverage was recorded');
+  if (serviceApi && summary.serviceApiCoverage !== 'typed-gpu-service-api-observed')
+    throw new Error('No typed GPU service API emission was recorded');
   return {
-    outcome: 'retained-typed-gpu-work-summary',
+    outcome: serviceApi
+      ? 'retained-typed-gpu-service-api-summary'
+      : 'retained-typed-gpu-work-summary',
     completeness: receipt.completeness,
     fatalCoverage: receipt.fatalCoverage ?? 'trace-window-unavailable-or-uncertain',
     source: receipt.source,

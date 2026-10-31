@@ -1,3 +1,4 @@
+import type { NativeGpuServiceApiSummary } from './native-gpu-service-api-summary.mjs';
 import type { writeFile } from 'node:fs/promises';
 import type { NativeGpuWorkSummary } from './native-gpu-trace-summary.mjs';
 import type { FirstGraphicsFault } from './native-smoke-control.mjs';
@@ -103,6 +104,7 @@ export interface NativeGpuTraceReceipt {
   version: 1;
   enabled: boolean;
   diagnosticOnly: boolean;
+  serviceApiMode?: 'service-api-boundary-v1';
   scope: 'unchanged-babylon-inspect-through-authored-wheel-check-or-first-gpu-fault';
   omittedGameplayChecks: string[];
   source: NativeGpuTraceSource;
@@ -137,6 +139,7 @@ export interface NativeGpuTraceReceipt {
 
 export interface NativeGpuTraceOptions {
   enabled: boolean;
+  serviceApiMode?: 'off' | 'service-api-boundary-v1';
   source?: Partial<NativeGpuTraceSource>;
   adapter: NativeGpuTraceAdapter;
   firstFault: FirstGraphicsFault;
@@ -164,7 +167,7 @@ export interface NativeGpuTrace {
 export function createNativeGpuTrace(options: NativeGpuTraceOptions): NativeGpuTrace;
 
 export interface NativeGpuTraceEvidence {
-  outcome: 'retained-typed-gpu-work-summary';
+  outcome: 'retained-typed-gpu-work-summary' | 'retained-typed-gpu-service-api-summary';
   completeness: NativeGpuTraceCompleteness;
   fatalCoverage: NativeGpuTraceFatalCoverage;
   source: NativeGpuTraceSource;
@@ -177,7 +180,8 @@ export function validateNativeGpuTraceEvidence(
 ): Promise<NativeGpuTraceEvidence>;
 
 export function retainNativeGpuTraceSummary(options: {
-  summary: NativeGpuWorkSummary;
+  summary: NativeGpuWorkSummary | NativeGpuServiceApiSummary;
+  serviceApiMode?: 'off' | 'service-api-boundary-v1';
   source: NativeGpuTraceSource;
   outputPath: string;
   signal: AbortSignal;

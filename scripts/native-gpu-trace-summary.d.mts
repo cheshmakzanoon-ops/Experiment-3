@@ -1,3 +1,4 @@
+import type { NativeGpuServiceApiSummary } from './native-gpu-service-api-summary.mjs';
 import type { spawn } from 'node:child_process';
 import type { createReadStream } from 'node:fs';
 export const NATIVE_TRACE_PROCESSOR: Readonly<{
@@ -68,10 +69,20 @@ export function runBoundedTraceProcessor(options: {
   deadlineAt: number;
   signal?: AbortSignal;
   spawnProcess?: typeof spawn;
+  serviceApiMode?: 'off' | 'service-api-boundary-v1';
 }): Promise<string>;
-export function summarizeNativeGpuTrace(options: {
+export interface NativeGpuTraceSummaryOptions {
   path: string;
   parserPath?: string;
   deadlineMs?: number;
   signal?: AbortSignal;
-}): Promise<NativeGpuWorkSummary>;
+}
+export function summarizeNativeGpuTrace(
+  options: NativeGpuTraceSummaryOptions & { serviceApiMode: 'service-api-boundary-v1' },
+): Promise<NativeGpuServiceApiSummary>;
+export function summarizeNativeGpuTrace(
+  options: NativeGpuTraceSummaryOptions & { serviceApiMode?: 'off' },
+): Promise<NativeGpuWorkSummary>;
+export function summarizeNativeGpuTrace(
+  options: NativeGpuTraceSummaryOptions & { serviceApiMode?: 'off' | 'service-api-boundary-v1' },
+): Promise<NativeGpuWorkSummary | NativeGpuServiceApiSummary>;

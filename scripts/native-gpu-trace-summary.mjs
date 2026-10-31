@@ -7,30 +7,21 @@ import { spawn } from 'node:child_process';
 import { Transform, addAbortSignal } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 
-export const NATIVE_TRACE_PROCESSOR = Object.freeze({
-  version: '58.2',
-  bytes: 14897560,
-  sha256: '58042408e6cc861fb1a731c26bb082dc222285561eaa4e12a48a8b2b90dca7b9',
-  maxInputBytes: 64 * 1024 * 1024,
-  maxStdoutBytes: 16 * 1024,
-  maxStderrBytes: 4 * 1024,
-  maxSummaryBytes: 16 * 1024,
-  processingMs: 5000,
-});
-// Source-pinned static pairs only. No trace-derived names enter SQL or output.
-export const NATIVE_GPU_WORK_EVENTS = Object.freeze(
-  [
-    ['gpu', 'CommandBufferStub::OnAsyncFlush'],
-    ['gpu', 'CommandBufferStub::PerformWork'],
-    ['gpu', 'Scheduler::RunTask'],
-    ['gpu', 'CommandBufferService:PutChanged'],
-    ['gpu', 'GLES2DecoderPassthroughImpl::DoLinkProgram'],
-    ['gpu.angle', 'CompileEvent::wait'],
-    ['gpu.angle', 'Program::MainLinkLoadEvent::wait'],
-    ['gpu.angle', 'ProgramGL::linkJobImpl'],
-    ['gpu.angle', 'ProgramGL::postLinkJobImpl'],
-  ].map(([category, name]) => Object.freeze({ category, name })),
-);
+import {
+  NATIVE_TRACE_PROCESSOR,
+  NATIVE_GPU_WORK_EVENTS,
+  NativeGpuTraceSummaryError,
+} from './native-gpu-trace-protocol.mjs';
+import {
+  NATIVE_GPU_SERVICE_API_QUERY,
+  decodeNativeGpuServiceApiRows,
+} from './native-gpu-service-api-summary.mjs';
+export {
+  NATIVE_TRACE_PROCESSOR,
+  NATIVE_GPU_WORK_EVENTS,
+  NativeGpuTraceSummaryError,
+} from './native-gpu-trace-protocol.mjs';
+
 const eventCount = NATIVE_GPU_WORK_EVENTS.length;
 const errorRow = eventCount + 1;
 const lossRow = eventCount + 2;
@@ -39,33 +30,12 @@ const discriminator = (events) =>
   events.slice(4).some((row) => row.unfinishedUnderUnfinishedFlushCount > 0)
     ? 'same-track-open-compile-or-link-under-unfinished-flush-observed'
     : 'inconclusive';
-const reasons = new Set([
-  'processing-timeout',
-  'parser-unavailable',
-  'parser-integrity',
-  'trace-unavailable',
-  'trace-size',
-  'trace-changed',
-  'private-staging-failed',
-  'parser-launch-failed',
-  'parser-output-limit',
-  'parser-exit',
-  'parser-rows',
-  'summary-invalid',
-]);
-export class NativeGpuTraceSummaryError extends Error {
-  constructor(reason, parserExitStatus = null) {
-    super(`Native GPU trace summary: ${reasons.has(reason) ? reason : 'summary-invalid'}`);
-    this.name = 'NativeGpuTraceSummaryError';
-    this.reason = reasons.has(reason) ? reason : 'summary-invalid';
-    this.parserExitStatus =
-      Number.isInteger(parserExitStatus) && parserExitStatus >= 0 && parserExitStatus <= 255
-        ? parserExitStatus
-        : null;
-  }
-}
 const fail = (reason) => {
   throw new NativeGpuTraceSummaryError(reason);
+};
+const serviceApiEnabled = (mode) => {
+  if (mode !== 'off' && mode !== 'service-api-boundary-v1') fail('summary-invalid');
+  return mode === 'service-api-boundary-v1';
 };
 const active = (deadlineAt, signal) => {
   if (signal?.aborted || !Number.isFinite(deadlineAt) || Date.now() >= deadlineAt)
@@ -362,6 +332,7 @@ export function runBoundedTraceProcessor({
   deadlineAt,
   signal,
   spawnProcess = spawn,
+  serviceApiMode = 'off',
 }) {
   return new Promise((resolveResult, reject) => {
     let child,
@@ -382,7 +353,10 @@ export function runBoundedTraceProcessor({
     const aborted = () => terminate('processing-timeout');
     try {
       active(deadlineAt, signal);
-      child = spawnProcess(parserPath, ['-Q', NATIVE_GPU_TRACE_QUERY, path], {
+      const query = serviceApiEnabled(serviceApiMode)
+        ? NATIVE_GPU_SERVICE_API_QUERY
+        : NATIVE_GPU_TRACE_QUERY;
+      child = spawnProcess(parserPath, ['-Q', query, path], {
         shell: false,
         stdio: ['ignore', 'pipe', 'pipe'],
       });
@@ -432,7 +406,9 @@ export async function summarizeNativeGpuTrace({
   parserPath,
   deadlineMs = NATIVE_TRACE_PROCESSOR.processingMs,
   signal: parentSignal,
+  serviceApiMode = 'off',
 }) {
+  const serviceApi = serviceApiEnabled(serviceApiMode);
   if (!Number.isFinite(deadlineMs) || deadlineMs <= 0) fail('processing-timeout');
   const controller = new AbortController();
   const signal = controller.signal;
@@ -486,9 +462,12 @@ export async function summarizeNativeGpuTrace({
       path: staged,
       deadlineAt,
       signal,
+      serviceApiMode,
     });
     try {
-      return decodeNativeGpuTraceRows(stdout, bytes);
+      return serviceApi
+        ? decodeNativeGpuServiceApiRows(stdout, bytes)
+        : decodeNativeGpuTraceRows(stdout, bytes);
     } catch (error) {
       if (error instanceof NativeGpuTraceSummaryError)
         throw new NativeGpuTraceSummaryError(error.reason, 0);

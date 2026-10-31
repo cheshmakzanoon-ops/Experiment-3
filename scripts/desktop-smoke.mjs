@@ -6,6 +6,14 @@ import {
 import { verifyDesktopCompatibility } from './desktop-compatibility.mjs';
 import { createNativeGpuTrace, nativeGpuTraceEnabled } from './native-gpu-trace.mjs';
 import {
+  nativeGpuServiceApiMode,
+  nativeGpuServiceApiArguments,
+  nativeGpuServiceApiLaunchReceipt,
+  nativeGpuServiceApiManualContext,
+  validateNativeGpuServiceApiSource,
+  validateNativeGpuServiceApiRuntime,
+} from './native-gpu-service-api-mode.mjs';
+import {
   NATIVE_PREPARATION_CAPTURE,
   installNativePreparationObserver,
   createNativePreparationSink,
@@ -185,13 +193,35 @@ try {
   const traceEnabled = nativeGpuTraceEnabled(process.env.MOTOBOUND_GPU_TRACE ?? '0');
   if (traceEnabled && journey.diagnosticOnly)
     throw new Error('GPU trace requires the unchanged full Babylon model journey');
+  const serviceApiMode = nativeGpuServiceApiMode(
+    process.env.MOTOBOUND_GPU_SERVICE_API_TRACE ?? 'off',
+  );
+  const serviceApiOptions = {
+    mode: serviceApiMode,
+    traceEnabled,
+    platform: target.platform,
+    arch: target.arch,
+    hostArch: target.hostArch,
+    graphicsBackend,
+    journey: process.env.MOTOBOUND_SMOKE_JOURNEY ?? 'full',
+    manualNonpublishing: nativeGpuServiceApiManualContext(process.env),
+  };
+  const serviceApiArguments = nativeGpuServiceApiArguments(serviceApiOptions);
+  const serviceApiLaunch = nativeGpuServiceApiLaunchReceipt(serviceApiOptions);
+  validateNativeGpuServiceApiSource(serviceApiMode, report.source);
+  if (serviceApiLaunch) report.serviceApiLaunch = serviceApiLaunch;
   report.smokeJourney = journey;
   if (report.source.arch !== target.arch || report.source.platform !== target.platform)
     throw new Error('Build receipt does not match the requested package target');
   stage('launch');
   application = await electron.launch({
     executablePath: resolve(executable),
-    args: [`--user-data-dir=${profile}`, '--enable-logging=stderr', ...graphicsArguments],
+    args: [
+      `--user-data-dir=${profile}`,
+      '--enable-logging=stderr',
+      ...graphicsArguments,
+      ...serviceApiArguments,
+    ],
     timeout: 120000,
   });
   stage('electron-connected');
@@ -212,6 +242,7 @@ try {
     node: process.versions.node,
     translated: app.runningUnderARM64Translation,
   }));
+  validateNativeGpuServiceApiRuntime(serviceApiMode, report.runtime);
   if (report.runtime.arch !== target.arch || report.runtime.platform !== target.platform)
     throw new Error('Packaged process architecture does not match its target');
   if (
@@ -369,6 +400,7 @@ try {
     throw new Error('Physics advanced while the desktop game was paused');
   gpuTrace = createNativeGpuTrace({
     enabled: traceEnabled,
+    serviceApiMode,
     source: report.source,
     firstFault: firstGraphicsFault,
     onOperationFailure: (error) => retainNativeSmokeFailure(report, error, firstGraphicsFault),
