@@ -16,6 +16,8 @@ const report = {
   executable,
   source: JSON.parse(await readFile('desktop-stage/DESKTOP_BUILD.json', 'utf8')),
   checks: [],
+  console: [],
+  processLog: [],
   errors: [],
   remoteRequests: [],
 };
@@ -23,20 +25,34 @@ let application, page;
 try {
   application = await electron.launch({
     executablePath: resolve(executable),
-    args: [`--user-data-dir=${profile}`],
+    args: [
+      `--user-data-dir=${profile}`,
+      '--enable-logging=stderr',
+      ...(process.env.MOTOBOUND_CI_GL === 'mesa' ? ['--use-gl=angle', '--use-angle=gl'] : []),
+    ],
     timeout: 120000,
   });
+  for (const stream of [application.process().stdout, application.process().stderr])
+    stream?.on('data', (data) => report.processLog.push(String(data).slice(0, 8000)));
+  report.gpu = await application.evaluate(({ app }) => app.getGPUFeatureStatus());
   page = await application.firstWindow({ timeout: 120000 });
+  page.on('console', (message) =>
+    report.console.push({ type: message.type(), text: message.text() }),
+  );
   page.on('pageerror', (error) => report.errors.push(error.message));
   page.on('request', (request) => {
     if (/^https?:/.test(request.url())) report.remoteRequests.push(request.url());
   });
   await page.waitForURL('motobound://game/babylon.html', { timeout: 120000 });
   await page.waitForFunction(
-    () => /DRIVING|PAUSED/.test(document.querySelector('#status')?.textContent ?? ''),
+    () =>
+      /DRIVING|PAUSED|could not start/.test(document.querySelector('#status')?.textContent ?? ''),
     {},
     { timeout: 120000 },
   );
+  report.initialStatus = await page.locator('#status').textContent();
+  if (!/DRIVING|PAUSED/.test(report.initialStatus ?? ''))
+    throw new Error(report.initialStatus || 'Babylon did not start');
   report.checks.push('packaged offline Babylon entry started');
   const resume = page.getByRole('button', { name: 'Resume', exact: true });
   if (await resume.isVisible()) await resume.click();
@@ -69,6 +85,7 @@ try {
 } catch (error) {
   report.success = false;
   report.failure = String(error);
+  console.error(report.failure);
   try {
     await page?.screenshot({ path: 'desktop-evidence/failure.png' });
   } catch {

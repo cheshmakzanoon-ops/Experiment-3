@@ -52,14 +52,19 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - name: Validate desktop isolation and engine contracts
-        run: npx vitest run tests/desktop-policy.test.ts tests/babylon-*.test.ts tests/input.test.ts
+        run: npx vitest run tests/desktop-policy.test.ts tests/repository-portability.test.ts tests/babylon-*.test.ts tests/input.test.ts
       - name: Build the bundled offline desktop game
         run: npm run desktop:package -- --${{ matrix.target }} --${{ matrix.arch }} --publish never
       - name: Install Linux display dependencies
         if: runner.os == 'Linux'
-        run: npx playwright install-deps chromium
+        run: |
+          npx playwright install-deps chromium
+          sudo apt-get install -y libgl1-mesa-dri mesa-utils
       - name: Launch the packaged Linux executable
         if: runner.os == 'Linux'
+        env:
+          LIBGL_ALWAYS_SOFTWARE: '1'
+          MOTOBOUND_CI_GL: mesa
         run: xvfb-run -a node scripts/desktop-smoke.mjs
       - name: Launch the packaged Windows or macOS application
         if: runner.os != 'Linux'

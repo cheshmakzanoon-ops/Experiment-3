@@ -4,7 +4,7 @@ Updated 2026-10-31. This page separates source integration from successful valid
 
 ## Shipping direction
 
-**Desktop first:** Windows EXE, macOS DMG/app and Linux AppImage/archive builds through native GitHub Actions. Babylon.js is the main engine direction with the custom simulation retained. The website is a secondary engineering preview. The desktop shell compiles and its offline-origin/security policy tests pass. A local Linux unpacked application was produced and its archive inspected: 507 entries, no duplicated node_modules tree. Native launch tests, Windows/macOS packages and signing are not yet certified. See [desktop delivery](DESKTOP_DELIVERY.md).
+**Desktop first:** Windows EXE, macOS DMG/app and Linux AppImage/archive builds through native GitHub Actions. Babylon.js is the main engine direction with the custom simulation retained. The website is a secondary engineering preview. The desktop shell compiles and its offline-origin/security policy tests pass. A local Linux unpacked application was produced and its archive inspected: 507 entries, no duplicated node_modules tree. The first native run failed on Windows-invalid historical filenames, macOS LOD reproducibility and headless Linux WebGL availability. Repairs and richer diagnostics are in progress; native launch tests, Windows/macOS packages and signing are not yet certified. See [desktop delivery](DESKTOP_DELIVERY.md).
 
 ## Consolidation
 
@@ -19,7 +19,7 @@ All eight audited branch tips are ancestors of `29a6f871db184c39de791d8e210d9099
 - Formula, GP motorcycles, motocross/supercross and festival must each pass actual browser journeys. Menu presence alone does not prove playability.
 - Latest downloadable release remains `playable-3a6036de` (2026-10-06). It is not the latest source.
 - Pages is enabled and deployment [41161818741](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41161818741) succeeded. The live site returned HTTP 200 and `BUILD_IDENTITY.json` identified `eebb4ec847e8e99b669994817a3bd7ec95769f51` when checked. Later commits require their own deployment verification.
-- New direct Formula / GP / Open World shortcuts have compatible-session unit tests. Their browser switching checks remain pending.
+- New direct Formula / GP / Open World shortcuts have compatible-session unit tests. Their browser switching checks passed in Babylon integration run 41164885118.
 - The motocross airborne limiter regression passes without clamping existing overspeed momentum. A subsequent telemetry fix distinguishes passive wheel pickup from requested braking and retains unloaded-wheel kinematic slip. All 571 motocross tests were compared: three failures resolved, 12 baseline failures remain.
 
 ## Next acceptance gates
@@ -33,6 +33,6 @@ All eight audited branch tips are ancestors of `29a6f871db184c39de791d8e210d9099
 
 ## Engine direction and commercial target
 
-Owner direction (2026-10-31): **Babylon.js becomes the main engine**, retaining the existing physics/simulation as a component. Migration is underway with a built `/babylon.html` entry and four passing engine-boundary unit tests; see [Babylon migration](BABYLON_MIGRATION.md). Browser and authored-asset parity remain pending. Three.js stays available as the existing playable fallback until assets, all four disciplines, presentation and performance meet parity checks. Do not replace the playable game with unfinished diagnostic geometry or run competing render loops.
+Owner direction (2026-10-31): **Babylon.js becomes the main engine**, retaining the existing physics/simulation as a component. Migration is underway with a built `/babylon.html` entry and four passing engine-boundary unit tests; see [Babylon migration](BABYLON_MIGRATION.md). Four real-browser integration journeys passed in run 41164885118, including the existing Formula model import, controls and lifecycle. Full authored-asset and four-discipline Babylon parity remain pending. Three.js stays available as the existing playable fallback until assets, all four disciplines, presentation and performance meet parity checks. Do not replace the playable game with unfinished diagnostic geometry or run competing render loops.
 
 The owner's aspiration is US$10,000 profit. No technical test can guarantee sales or profit. Steam readiness requires product validation, packaging, asset rights, target-hardware QA and external demand evidence. This remains an in-development game, not a certified commercial release.

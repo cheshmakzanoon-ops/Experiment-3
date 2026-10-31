@@ -43,3 +43,9 @@ Steamworks features, cloud saves, achievements, installer upgrade/uninstall test
 - [Electron custom protocols](https://www.electronjs.org/docs/latest/api/protocol)
 - [electron-builder CLI/targets](https://www.electron.build/docs/cli/)
 - [Native GitHub runner architectures](https://docs.github.com/en/actions/reference/runners/github-hosted-runners)
+
+## First native run and portability repairs
+
+[Run 41167060442](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41167060442), source `59fefcb`, exposed three distinct issues. Windows could not check out five historical log filenames containing colons; their contents are preserved under hyphenated names, while the historical inventory retains the original names. A repository-path regression test now rejects Windows-invalid names and case collisions. Both macOS lanes rejected regenerated LOD bytes; the gzip producer-OS byte is now canonicalized to the existing Unix value, without changing or relaxing the pinned asset hashes. Native reruns must confirm whether this fully accounts for the mismatch. Linux produced its packages and opened the application, but the captured UI reported WebGL unavailable on the headless runner. Its smoke lane now selects Mesa/OpenGL software rendering explicitly and records GPU status, application output and startup errors. Sandbox and web security remain enabled. This is CI rendering coverage, not physical-GPU performance qualification.
+
+No native prerelease was published from that failed run. Repairs require a successful four-platform rerun before packages can be advertised as validated.
