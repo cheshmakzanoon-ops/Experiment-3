@@ -2,25 +2,18 @@ import { _electron as electron } from '@playwright/test';
 import { mkdtemp, mkdir, writeFile, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { desktopTarget, desktopExecutable } from '../desktop-dist/target.js';
+const target = desktopTarget(process.platform, process.arch, process.env.MOTOBOUND_TARGET_ARCH);
 const graphicsBackend = process.env.MOTOBOUND_CI_GL || 'native';
-if (!['native', 'mesa', 'mac-opengl'].includes(graphicsBackend))
+if (!['native', 'mesa'].includes(graphicsBackend))
   throw new Error(`Unknown CI graphics backend: ${graphicsBackend}`);
-if (
-  (graphicsBackend === 'mesa' && process.platform !== 'linux') ||
-  (graphicsBackend === 'mac-opengl' && (process.platform !== 'darwin' || process.arch !== 'x64'))
-)
-  throw new Error('CI graphics backend does not match the native platform');
-const executable =
-  process.platform === 'win32'
-    ? 'desktop-out/win-unpacked/MOTOBOUND.exe'
-    : process.platform === 'darwin'
-      ? `desktop-out/${process.arch === 'arm64' ? 'mac-arm64' : 'mac'}/MOTOBOUND.app/Contents/MacOS/MOTOBOUND`
-      : 'desktop-out/linux-unpacked/motobound';
+if (graphicsBackend === 'mesa' && process.platform !== 'linux')
+  throw new Error('Mesa CI graphics requires Linux');
+const executable = desktopExecutable(target.platform, target.arch);
 await mkdir('desktop-evidence', { recursive: true });
 const profile = await mkdtemp(join(tmpdir(), 'motobound-smoke-'));
 const report = {
-  platform: process.platform,
-  arch: process.arch,
+  ...target,
   executable,
   graphicsBackend,
   source: JSON.parse(await readFile('desktop-stage/DESKTOP_BUILD.json', 'utf8')),
@@ -32,6 +25,8 @@ const report = {
 };
 let application, page;
 try {
+  if (report.source.arch !== target.arch || report.source.platform !== target.platform)
+    throw new Error('Build receipt does not match the requested package target');
   application = await electron.launch({
     executablePath: resolve(executable),
     args: [
@@ -45,6 +40,21 @@ try {
   });
   for (const stream of [application.process().stdout, application.process().stderr])
     stream?.on('data', (data) => report.processLog.push(String(data).slice(0, 8000)));
+  report.runtime = await application.evaluate(({ app }) => ({
+    platform: process.platform,
+    arch: process.arch,
+    translated: app.runningUnderARM64Translation,
+  }));
+  if (report.runtime.arch !== target.arch || report.runtime.platform !== target.platform)
+    throw new Error('Packaged process architecture does not match its target');
+  if (
+    target.platform === 'darwin' &&
+    target.hostArch === 'arm64' &&
+    target.arch === 'x64' &&
+    !report.runtime.translated
+  )
+    throw new Error('Expected an x64 process under Rosetta, not an arm64 replacement');
+  report.checks.push('packaged process architecture matches target');
   report.gpu = await application.evaluate(({ app }) => app.getGPUFeatureStatus());
   page = await application.firstWindow({ timeout: 120000 });
   page.on('console', (message) =>
@@ -133,6 +143,21 @@ try {
   )
     throw new Error('Desktop renderer isolation is not active');
   report.checks.push('sandbox/context isolation active, Node integration disabled');
+  report.runtime = await application.evaluate(({ app }) => ({
+    platform: process.platform,
+    arch: process.arch,
+    translated: app.runningUnderARM64Translation,
+  }));
+  if (report.runtime.arch !== target.arch || report.runtime.platform !== target.platform)
+    throw new Error('Packaged process architecture does not match its target');
+  if (
+    target.platform === 'darwin' &&
+    target.hostArch === 'arm64' &&
+    target.arch === 'x64' &&
+    !report.runtime.translated
+  )
+    throw new Error('Expected an x64 process under Rosetta, not an arm64 replacement');
+  report.checks.push('packaged process architecture matches target');
   report.gpu = await application.evaluate(({ app }) => app.getGPUFeatureStatus());
   await page.screenshot({ path: 'desktop-evidence/packaged-babylon.png' });
   if (report.errors.length || report.remoteRequests.length)

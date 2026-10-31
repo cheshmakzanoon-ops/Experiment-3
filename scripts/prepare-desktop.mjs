@@ -1,5 +1,7 @@
 import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { deflateSync } from 'node:zlib';
+import { desktopTarget } from '../desktop-dist/target.js';
+const target = desktopTarget(process.platform, process.arch, process.env.MOTOBOUND_TARGET_ARCH);
 const pkg = JSON.parse(await readFile('package.json', 'utf8'));
 const identity = JSON.parse(await readFile('dist/BUILD_IDENTITY.json', 'utf8'));
 if (process.env.GITHUB_ACTIONS === 'true' && identity.commit !== process.env.GITHUB_SHA)
@@ -35,8 +37,7 @@ await writeFile(
       version: 1,
       ...identity,
       electron: pkg.devDependencies.electron,
-      platform: process.platform,
-      arch: process.arch,
+      ...target,
     },
     null,
     2,

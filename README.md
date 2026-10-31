@@ -14,7 +14,7 @@ MOTOBOUND targets **Windows, macOS and Linux executables**, built from TypeScrip
 | ------------------- | ------------------------ | ------------------- |
 | Windows x64         | EXE installer            | Windows             |
 | macOS Apple Silicon | DMG and app ZIP          | Apple Silicon macOS |
-| macOS Intel         | DMG and app ZIP          | Intel macOS         |
+| macOS Intel         | DMG and app ZIP          | Apple Silicon + Rosetta (x64 app) |
 | Linux x64           | AppImage and tar archive | Linux               |
 
 [Desktop build workflow](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/workflows/desktop-build.yml) builds and launches each packaged application on its target operating system. Source-addressed development prereleases are published only after all four native build/launch jobs succeed. Each package has SHA-256 checksums and embedded source identification. **Do not assume packages exist or passed until the workflow and release actually show them.**
@@ -25,10 +25,10 @@ The desktop runtime uses Electron to provide a consistent bundled Chromium runti
 
 ## Latest verified progress · 2026-10-31
 
-- Windows x64 and Apple Silicon packages build and pass offline Babylon launch, pause/restart and renderer-isolation checks in [native run 41168620134](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41168620134). Intel macOS and Linux build their packages but fail headless graphics initialization; CI renderer repairs are pending. No four-platform prerelease has passed yet.
+- Windows x64, Linux x64 and Apple Silicon packages pass offline Babylon launch, keyboard driving, paused physics, original-model import and renderer isolation in [native run 41169800313](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41169800313). The Intel hosted VM still cannot initialize graphics. The x64 macOS lane now targets Rosetta execution on Apple Silicon; its rerun and physical Intel graphics validation remain outstanding. No four-platform prerelease has passed yet.
 - GP AI completes the real catch-and-pass without contact and reproduces its replay snapshot. Shared traffic and GP approach/riding checks: **28/28 passed**.
 - Motocross hard-stop recovery now exchanges momentum without inventing launch energy. Latest focused suite: **572/572 passed** after physical fixes and documented finite-inertia test-contract corrections. The separate mixed GP/superbike pace case remains open. Test-contract corrections for finite wheel inertia are itemized in the [validation ledger](docs/maintenance/validation-2026-10-31.json).
-- Babylon is still an integration workbench, not final-quality graphics. Native keyboard driving and original-model import are added to the next desktop validation run; full four-discipline presentation, performance and playtesting remain required.
+- Babylon is still an integration workbench, not final-quality graphics. Native keyboard driving and original-model import are verified on the three passing platforms; full four-discipline presentation, performance and playtesting remain required.
 
 ## Engine and content ownership
 
