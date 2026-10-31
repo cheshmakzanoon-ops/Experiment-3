@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { exerciseBabylonContextRecovery } from './fixtures/babylon-context-recovery.ts';
 
 const surfaceKeys = [
   'surfaceKind',
@@ -81,34 +82,23 @@ test('Babylon migration entry renders existing simulation and supports pause, re
   );
   // Actual context loss invalidates readiness; restoration alone cannot publish
   // old scene counts or re-enable asset loading. No timeout/sleep extension.
-  const lostState = await page.evaluate(async (keys) => {
-    const canvas = document.querySelector('#game') as HTMLCanvasElement;
-    const gl = canvas.getContext('webgl2');
-    const extension = gl?.getExtension('WEBGL_lose_context');
-    if (!extension) throw new Error('Context-loss acceptance requires WEBGL_lose_context');
-    const lost = new Promise<void>((resolve) =>
-      canvas.addEventListener('webglcontextlost', () => queueMicrotask(resolve), { once: true }),
-    );
-    extension.loseContext();
-    await lost;
-    const status = document.querySelector('#status') as HTMLElement;
-    const result = {
-      absent: keys.every((key) => status.dataset[key] === undefined),
-      loadDisabled: (document.querySelector('#loadAsset') as HTMLButtonElement).disabled,
-    };
-    const restored = new Promise<void>((resolve) =>
-      canvas.addEventListener('webglcontextrestored', () => queueMicrotask(resolve), {
-        once: true,
-      }),
-    );
-    extension.restoreContext();
-    await restored;
-    return result;
-  }, surfaceKeys);
-  expect(lostState).toEqual({ absent: true, loadDisabled: true });
-  await expect(page.locator('#assetStatus')).toContainText('Restart is required');
+  const recovery = await page.evaluate(exerciseBabylonContextRecovery, surfaceKeys);
+  expect(recovery).toEqual({
+    lost: { contextLost: true, absent: true, sceneReady: 'false', loadDisabled: true },
+    restored: { contextLost: false, absent: true, sceneReady: 'false', loadDisabled: true },
+  });
+  // Babylon rebuilds its engine asynchronously after the native event. Observe
+  // that completion too, rather than accepting the earlier loss message.
+  await expect(page.locator('#assetStatus')).toContainText(
+    'Graphics context restored. Restart is required',
+  );
   await expect(page.locator('#loadAsset')).toBeDisabled();
   await expect(status).not.toHaveAttribute('data-surface-kind');
+  await expect(status).toHaveAttribute('data-scene-ready', 'false');
+  await info.attach('babylon-context-recovery-state.json', {
+    body: JSON.stringify(recovery, null, 2),
+    contentType: 'application/json',
+  });
   await restartAndCheckSurfaceInvalidation(page);
   await info.attach('babylon-live-formula-surface-state.json', {
     body: JSON.stringify(
