@@ -3,6 +3,12 @@ import { readFileSync } from 'node:fs';
 import { NullEngine } from '@babylonjs/core/Engines/nullEngine.js';
 import { Scene } from '@babylonjs/core/scene.js';
 import type { AssetContainer } from '@babylonjs/core/assetContainer.js';
+import { PBRMaterialDefines } from '@babylonjs/core/Materials/PBR/pbrBaseMaterial.js';
+import { MaterialPluginBase } from '@babylonjs/core/Materials/materialPluginBase.js';
+import {
+  MaterialPluginEvent,
+  type MaterialPluginGetDefineNames,
+} from '@babylonjs/core/Materials/materialPluginEvent.js';
 import { PBRMaterial } from '@babylonjs/core/Materials/PBR/pbrMaterial.js';
 import {
   decodeExistingPlayerBytes,
@@ -10,6 +16,7 @@ import {
   loadExistingPlayer,
 } from '../src/engine/babylon/existing-player.ts';
 import {
+  ScalarHeightPlugin,
   createExistingPlayerHeightAdapter,
   EXISTING_PLAYER_HEIGHT_SOURCES,
 } from '../src/engine/babylon/existing-player-height.ts';
@@ -175,6 +182,59 @@ describe('source-bound experimental scalar heights (NullEngine, not pixel proof)
       expect(texture?.gammaSpace).toBe(gamma);
       if (!adapter.materials.includes(m as PBRMaterial))
         expect(m.pluginManager?.getPlugin('ExistingPlayerScalarHeightProbe')).toBeFalsy();
+    }
+  });
+});
+
+/** Exact pinned manager composition: automatic class markers are not a stable
+ * shader key when a second plugin is added. This test inspects the same define
+ * event/PBR serialization used by preparation, not a hand-built key surrogate. */
+describe('scalar-height shader-cache composition', () => {
+  it('retains a unique layout key when another plugin is added last', () => {
+    const engine = new NullEngine(),
+      scene = new Scene(engine);
+    class OutputPlugin extends MaterialPluginBase {
+      constructor(material: PBRMaterial) {
+        super(material, 'height-test-output', 300, {}, true, true);
+      }
+      getClassName() {
+        return 'HeightTestOutputPlugin';
+      }
+      getCustomCode(type: string) {
+        return type === 'fragment'
+          ? { CUSTOM_FRAGMENT_MAIN_END: 'gl_FragColor=vec4(normalW,1.0);' }
+          : null;
+      }
+    }
+    const key = (material: PBRMaterial) => {
+      const info: MaterialPluginGetDefineNames = { defineNames: {} };
+      material._callbackPluginEventGeneric(MaterialPluginEvent.GetDefineNames, info);
+      return new PBRMaterialDefines(info.defineNames).toString();
+    };
+    try {
+      const composed = new PBRMaterial('scalar-and-output', scene);
+      const scalar = new ScalarHeightPlugin(composed, null, 0.00015);
+      new OutputPlugin(composed);
+      const control = new PBRMaterial('output-only', scene);
+      new OutputPlugin(control);
+      const composedKey = key(composed),
+        controlKey = key(control);
+      expect(composedKey).not.toBe(controlKey);
+      expect(composedKey).toContain('#define EXISTING_PLAYER_SCALAR_HEIGHT_V1');
+      expect(controlKey).not.toContain('EXISTING_PLAYER_SCALAR_HEIGHT_V1');
+      // Disabling only changes a uniform, not sampler/UBO layout. Keep the key
+      // even after explicit adapter disposal until owning material destruction.
+      scalar.setEnabled(true);
+      scalar.setEnabled(false);
+      scalar.dispose();
+      expect(key(composed)).toBe(composedKey);
+      const reversed = new PBRMaterial('output-then-scalar', scene);
+      new OutputPlugin(reversed);
+      new ScalarHeightPlugin(reversed, null, 0.0004);
+      expect(key(reversed)).toContain('#define EXISTING_PLAYER_SCALAR_HEIGHT_V1');
+    } finally {
+      scene.dispose();
+      engine.dispose();
     }
   });
 });

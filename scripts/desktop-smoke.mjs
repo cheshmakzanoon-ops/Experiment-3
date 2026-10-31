@@ -4,6 +4,7 @@ import {
   observationFaults,
 } from '../desktop-dist/graphics-health.js';
 import { verifyDesktopCompatibility } from './desktop-compatibility.mjs';
+import { createNativeGpuTrace, nativeGpuTraceEnabled } from './native-gpu-trace.mjs';
 import {
   NATIVE_PREPARATION_CAPTURE,
   installNativePreparationObserver,
@@ -166,9 +167,12 @@ async function captureViewport(page, path) {
     await session.detach();
   }
 }
-let application, page;
+let application, page, gpuTrace;
 try {
   const journey = desktopSmokeJourney(process.env.MOTOBOUND_SMOKE_JOURNEY ?? 'full');
+  const traceEnabled = nativeGpuTraceEnabled(process.env.MOTOBOUND_GPU_TRACE ?? '0');
+  if (traceEnabled && journey.diagnosticOnly)
+    throw new Error('GPU trace requires the unchanged full Babylon model journey');
   report.smokeJourney = journey;
   if (report.source.arch !== target.arch || report.source.platform !== target.platform)
     throw new Error('Build receipt does not match the requested package target');
@@ -351,75 +355,103 @@ try {
   await page.waitForTimeout(300); // Explicit observation window for a frozen physics tick.
   if ((await page.locator('#status').textContent()) !== pausedStatus)
     throw new Error('Physics advanced while the desktop game was paused');
-  await runDesktopSmokeJourneys(journey, {
-    authoredModel: async () => {
-      await page
-        .getByRole('button', { name: 'Inspect existing Formula asset (35 MB)', exact: true })
-        .click();
-      await page.waitForFunction(
-        () => {
-          const text = document.querySelector('#assetStatus')?.textContent ?? '';
-          return (
-            text.includes('Original Formula asset loaded') || text.includes('Model unavailable')
-          );
-        },
-        {},
-        { timeout: 120000, polling: 100 },
-      );
-      report.assetStatus = await page.locator('#assetStatus').textContent();
-      if (!report.assetStatus?.includes('Original Formula asset loaded'))
-        throw new Error(report.assetStatus || 'The packaged model did not load');
-      report.checks.push('original bundled Formula model imports through the offline protocol');
-      stage('model-presented');
-      report.drivingView = await page.evaluate(() => {
-        const panel = document.querySelector('#panel').getBoundingClientRect();
-        const controls = document.querySelector('#touchDrive').getBoundingClientRect();
-        return {
-          panelRight: panel.right,
-          panelBottom: panel.bottom,
-          controlsTop: controls.top,
-          width: innerWidth,
-        };
-      });
-      if (
-        report.drivingView.panelRight >= report.drivingView.width * 0.45 ||
-        report.drivingView.panelBottom >= report.drivingView.controlsTop
-      )
-        throw new Error('Diagnostic panel obscures the central driving view or touch controls');
-      report.checks.push('diagnostic panel preserves the central driving view and touch controls');
-      const wheelPhase = await page.locator('#assetStatus').getAttribute('data-wheel-phase');
-      if (wheelPhase === null || !Number.isFinite(Number(wheelPhase)))
-        throw new Error('Imported wheel adapter did not publish an applied rotation');
-      await resume.click();
-      await page.keyboard.down('w');
-      try {
-        await page.waitForFunction(
-          (initial) => {
-            const value = document.querySelector('#assetStatus')?.getAttribute('data-wheel-phase');
-            if (value == null || !Number.isFinite(Number(value))) return false;
-            const delta = Number(value) - initial;
-            return Math.abs(Math.atan2(Math.sin(delta), Math.cos(delta))) > 0.1;
-          },
-          Number(wheelPhase),
-          { timeout: 15000, polling: 100 },
-        );
-      } finally {
-        await page.keyboard.up('w');
-      }
-      await page.getByRole('button', { name: 'Pause', exact: true }).click();
-      await page.waitForFunction(() =>
-        document.querySelector('#status')?.textContent?.includes('PAUSED'),
-      );
-      await waitForBabylonPresentation(page);
-      const frozenWheel = await page.locator('#assetStatus').getAttribute('data-wheel-phase');
-      await page.waitForTimeout(300);
-      if ((await page.locator('#assetStatus').getAttribute('data-wheel-phase')) !== frozenWheel)
-        throw new Error('Authored wheel rotation changed while paused');
-      report.checks.push(
-        'applied authored wheel rotation moves during simulation and freezes during pause',
-      );
-      stage('wheel-motion-passed');
+  gpuTrace = createNativeGpuTrace({
+    enabled: traceEnabled,
+    source: report.source,
+    firstFault: firstGraphicsFault,
+    onOperationFailure: (error) => retainNativeSmokeFailure(report, error, firstGraphicsFault),
+    path: join(profile, 'gpu-trace-raw.pftrace'),
+    outputPath: resolve('desktop-evidence/gpu-trace.pftrace'),
+    adapter: {
+      categories: () =>
+        application.evaluate(({ contentTracing }) => contentTracing.getCategories()),
+      start: (config) =>
+        application.evaluate(
+          ({ contentTracing }, options) => contentTracing.startRecording(options),
+          config,
+        ),
+      stop: (path) =>
+        application.evaluate(
+          ({ contentTracing }, target) => contentTracing.stopRecording(target),
+          path,
+        ),
     },
+  });
+  report.gpuTrace = gpuTrace.receipt;
+  await runDesktopSmokeJourneys(journey, {
+    authoredModel: () =>
+      gpuTrace.run(async () => {
+        await page
+          .getByRole('button', { name: 'Inspect existing Formula asset (35 MB)', exact: true })
+          .click();
+        await page.waitForFunction(
+          () => {
+            const text = document.querySelector('#assetStatus')?.textContent ?? '';
+            return (
+              text.includes('Original Formula asset loaded') || text.includes('Model unavailable')
+            );
+          },
+          {},
+          { timeout: 120000, polling: 100 },
+        );
+        report.assetStatus = await page.locator('#assetStatus').textContent();
+        if (!report.assetStatus?.includes('Original Formula asset loaded'))
+          throw new Error(report.assetStatus || 'The packaged model did not load');
+        report.checks.push('original bundled Formula model imports through the offline protocol');
+        stage('model-presented');
+        report.drivingView = await page.evaluate(() => {
+          const panel = document.querySelector('#panel').getBoundingClientRect();
+          const controls = document.querySelector('#touchDrive').getBoundingClientRect();
+          return {
+            panelRight: panel.right,
+            panelBottom: panel.bottom,
+            controlsTop: controls.top,
+            width: innerWidth,
+          };
+        });
+        if (
+          report.drivingView.panelRight >= report.drivingView.width * 0.45 ||
+          report.drivingView.panelBottom >= report.drivingView.controlsTop
+        )
+          throw new Error('Diagnostic panel obscures the central driving view or touch controls');
+        report.checks.push(
+          'diagnostic panel preserves the central driving view and touch controls',
+        );
+        const wheelPhase = await page.locator('#assetStatus').getAttribute('data-wheel-phase');
+        if (wheelPhase === null || !Number.isFinite(Number(wheelPhase)))
+          throw new Error('Imported wheel adapter did not publish an applied rotation');
+        await resume.click();
+        await page.keyboard.down('w');
+        try {
+          await page.waitForFunction(
+            (initial) => {
+              const value = document
+                .querySelector('#assetStatus')
+                ?.getAttribute('data-wheel-phase');
+              if (value == null || !Number.isFinite(Number(value))) return false;
+              const delta = Number(value) - initial;
+              return Math.abs(Math.atan2(Math.sin(delta), Math.cos(delta))) > 0.1;
+            },
+            Number(wheelPhase),
+            { timeout: 15000, polling: 100 },
+          );
+        } finally {
+          await page.keyboard.up('w');
+        }
+        await page.getByRole('button', { name: 'Pause', exact: true }).click();
+        await page.waitForFunction(() =>
+          document.querySelector('#status')?.textContent?.includes('PAUSED'),
+        );
+        await waitForBabylonPresentation(page);
+        const frozenWheel = await page.locator('#assetStatus').getAttribute('data-wheel-phase');
+        await page.waitForTimeout(300);
+        if ((await page.locator('#assetStatus').getAttribute('data-wheel-phase')) !== frozenWheel)
+          throw new Error('Authored wheel rotation changed while paused');
+        report.checks.push(
+          'applied authored wheel rotation moves during simulation and freezes during pause',
+        );
+        stage('wheel-motion-passed');
+      }),
     captureBabylon: async () => {
       const preferences = await application.evaluate(({ BrowserWindow }) =>
         BrowserWindow.getAllWindows()[0].webContents.getLastWebPreferences(),
@@ -479,6 +511,7 @@ try {
     }
   }
   report.preparationEvidence = preparationEvidence.snapshot();
+  gpuTrace?.finalize();
   report.firstGraphicsFault = firstGraphicsFault.read()?.message ?? null;
   preparationWriter.update(report.preparationEvidence);
   const preparationWriteError = await preparationWriter.flush();

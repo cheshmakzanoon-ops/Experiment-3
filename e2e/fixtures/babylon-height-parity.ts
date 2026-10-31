@@ -279,6 +279,10 @@ export async function babylonControlledHeightParity() {
     threeImage: string;
     rawImage: string;
     completedFrames: number;
+    babylonGlError: number;
+    threeGlError: number;
+    shaderSamplers: string[];
+    scalarShaderCode: boolean;
     glError: number;
   }[] = [];
   let failure: string | null = null;
@@ -399,6 +403,13 @@ export async function babylonControlledHeightParity() {
             if (actual.pixels[i + c] !== raw.pixels[i + c]) changedFromRaw++;
           }
         }
+      const effect = mesh.subMeshes[0]?.effect;
+      if (!effect) throw new Error(`Missing controlled material effect: ${probe.name}`);
+      // Query each completed context independently: short-circuiting getError
+      // hid the context identity of the first uniform-buffer collision.
+      const threeImage = canvas.toDataURL('image/png');
+      const babylonGlError = h.gl.getError(),
+        threeGlError = gl.getError();
       rows.push({
         name: probe.name,
         scale: probe.scale,
@@ -408,10 +419,17 @@ export async function babylonControlledHeightParity() {
         changedFromRaw,
         diagnosticSignalChannels,
         babylonImage: actual.image,
-        threeImage: canvas.toDataURL('image/png'),
+        threeImage,
         rawImage: raw.image,
         completedFrames: threeGpu.diagnostics().completed - before,
-        glError: h.gl.getError() || gl.getError(),
+        babylonGlError,
+        threeGlError,
+        shaderSamplers: [...effect.getSamplers()],
+        scalarShaderCode:
+          /existingPlayer(?:ScalarNormal|HeightSampler|HeightScale|HeightEnabled)/.test(
+            effect._fragmentSourceCode,
+          ),
+        glError: babylonGlError || threeGlError,
       });
       threeScene.remove(threeMesh);
       threeMaterial.dispose();
@@ -480,6 +498,7 @@ export async function babylonOriginalHeightParity() {
   const rows: {
     view: string;
     enabled: boolean;
+    disposed: boolean;
     image: string;
     differentChannels: number;
     completedFrames: number;
@@ -602,8 +621,16 @@ export async function babylonOriginalHeightParity() {
       );
       camera.setTarget(view.center);
       let baseline: Uint8Array | undefined;
-      for (const enabled of [false, true, false]) {
-        adapter.setEnabled(enabled);
+      // Keep the last raw camera/pixel baseline and every container resource
+      // alive across adapter disposal. The plugin cannot detach; this final draw
+      // must prove its null borrowed sampler is inert, not just toggle-off.
+      const stages: readonly (boolean | 'disposed')[] =
+        view === views.at(-1) ? [false, true, false, 'disposed'] : [false, true, false];
+      for (const stage of stages) {
+        const disposed = stage === 'disposed',
+          enabled = stage === true;
+        if (disposed) adapter.dispose();
+        else adapter.setEnabled(enabled);
         const before = h.gpu.diagnostics().completed;
         await h.presented();
         pose ??= snapshotPose();
@@ -653,6 +680,7 @@ export async function babylonOriginalHeightParity() {
         rows.push({
           view: view.name,
           enabled,
+          disposed,
           image: shot.image,
           differentChannels,
           completedFrames: h.gpu.diagnostics().completed - before,

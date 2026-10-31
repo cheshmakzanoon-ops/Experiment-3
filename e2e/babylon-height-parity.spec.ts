@@ -94,6 +94,8 @@ test('scalar height plugin matches pinned Three view-space bump normals and leav
   ]);
   for (const row of report.rows) {
     expect(row.glError, row.name).toBe(0);
+    expect(row.babylonGlError, `${row.name}: Babylon`).toBe(0);
+    expect(row.threeGlError, `${row.name}: Three`).toBe(0);
     expect(row.completedFrames, row.name).toBeGreaterThanOrEqual(2);
     expect(row.comparedPixels, row.name).toBeGreaterThan(4000);
     // Two RGB8 steps allow independent raster/float quantization, not lighting
@@ -102,8 +104,11 @@ test('scalar height plugin matches pinned Three view-space bump normals and leav
     expect(row.meanChannelError, row.name).toBeLessThanOrEqual(0.5);
     if (row.name.startsWith('diagnostic-'))
       expect(row.diagnosticSignalChannels, row.name).toBeGreaterThan(100);
-    if (row.name === 'true-normal-control') expect(row.changedFromRaw).toBe(0);
-    else expect(row.changedFromRaw, row.name).toBeGreaterThan(1000);
+    if (row.name === 'true-normal-control') {
+      expect(row.changedFromRaw).toBe(0);
+      expect(row.shaderSamplers).not.toContain('existingPlayerHeightSampler');
+      expect(row.scalarShaderCode).toBe(false);
+    } else expect(row.changedFromRaw, row.name).toBeGreaterThan(1000);
   }
 });
 
@@ -120,7 +125,7 @@ test('original full-detail Babylon scalar-height A/B preserves source resources,
   for (const [i, row] of report.rows.entries())
     await attachImage(
       info,
-      `${i}-${row.view}-${row.enabled ? 'scalar-height' : 'raw-normal'}`,
+      `${i}-${row.view}-${row.disposed ? 'disposed-raw-normal' : row.enabled ? 'scalar-height' : 'raw-normal'}`,
       row.image,
     );
   expect(report.failure).toBeNull();
@@ -150,7 +155,13 @@ test('original full-detail Babylon scalar-height A/B preserves source resources,
     0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 0.00015, 0.0004, 0.0004,
   ]);
   expect(report.selected.every((row) => row.linearSampling)).toBe(true);
-  expect(report.rows).toHaveLength(9);
+  expect(report.rows).toHaveLength(10);
+  expect(report.rows.slice(0, 9).every((row) => !row.disposed)).toBe(true);
+  expect(report.rows.at(-1)).toMatchObject({
+    view: 'tyre-source-94',
+    enabled: false,
+    disposed: true,
+  });
   for (const row of report.rows) {
     expect(row.glError).toBe(0);
     expect(row.completedFrames).toBeGreaterThanOrEqual(2);

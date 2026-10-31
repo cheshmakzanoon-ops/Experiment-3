@@ -66,7 +66,19 @@ export class ScalarHeightPlugin extends MaterialPluginBase {
     private texture: BaseTexture | null,
     readonly scale: number,
   ) {
-    super(material, 'ExistingPlayerScalarHeightProbe', 200, {}, true, true);
+    // Babylon 9.33.1 rebuilds automatic class markers when another plugin is
+    // added. A persistent explicit define keeps this sampler/UBO/shader layout
+    // out of the effect cache used by otherwise identical non-height materials.
+    // It remains true when disabled/disposed: those operations change uniforms,
+    // not the compiled resource layout. No global shader/cache mutation.
+    super(
+      material,
+      'ExistingPlayerScalarHeightProbe',
+      200,
+      { EXISTING_PLAYER_SCALAR_HEIGHT_V1: true },
+      true,
+      true,
+    );
     this.doNotSerialize = true;
   }
   getClassName() {

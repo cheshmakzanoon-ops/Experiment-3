@@ -13,6 +13,8 @@ on:
       - 'scripts/desktop-compatibility.mjs'
       - 'scripts/native-smoke-control.*'
       - 'scripts/native-preparation-evidence.*'
+      - 'scripts/native-gpu-trace.*'
+      - 'tests/native-gpu-trace*.test.ts'
       - 'public/assets/basis/**'
 permissions:
   contents: read
@@ -41,3 +43,16 @@ jobs:
       arch: x64
       linux_graphics: mesa
       smoke_journey: compatibility-diagnostic
+  gpu-trace-mesa:
+    name: Mesa full journey GPU trace (nonpublishing diagnostic)
+    # Same real model/import and compatibility checks, with bounded built-in
+    # tracing only. Required Mesa and the existing comparisons stay untraced.
+    # Trace timing is diagnostic, never a replacement for native acceptance.
+    uses: ./.github/workflows/desktop-platform.yml
+    with:
+      runner: ubuntu-22.04
+      target: linux
+      arch: x64
+      linux_graphics: mesa
+      smoke_journey: full
+      gpu_trace: true

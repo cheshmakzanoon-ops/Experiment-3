@@ -26,3 +26,11 @@ Two new real-WebGL probes are prepared for Actions:
 - Capture the original full-detail model in raw/repaired/raw states, including carbon/tyre close views, frozen pose and untouched true-normal controls. Keep source/resource identity and require exact restoration. Retain bounded shader/sampler diagnostics and original failure causes.
 
 Both retain the existing 120000 ms total preparation budget. No local browser execution or visual improvement is claimed. Actual compilation, double-sided/scaling agreement and image review must pass before considering production activation. Later Three lookdev calibration, fictional sponsor artwork, coatings, environment/material parity and commercial rights review remain distinct work.
+
+## First real-WebGL outcome and cache correction
+
+On `cf76725`, Babylon integration run41232073412 passed7/8 cases. The original full-car raw/repaired/raw case passed across overview/carbon/tyre views: resources, pose and genuine-normal material controls were retained, every raw restoration was exact, and GL errors were zero. The first five controlled scalar cases matched Three r180 exactly, including amplified derivative, nonuniform-UV and backface cases. This is software-renderer evidence, not physical hardware qualification.
+
+The separate true-normal control rendered no comparable pixels and returned GL1282. Captured driver warnings explicitly reported an undersized uniform buffer; its cached shader incorrectly contained the scalar sampler. Babylon's last-added plugin automatic marker had allowed scalar-plus-output and output-only materials to share a shader key despite distinct layouts. The fix gives the scalar plugin a persistent explicit `EXISTING_PLAYER_SCALAR_HEIGHT_V1` define, preserved even when disabled/disposed because its compiled layout persists. A real define-serialization regression fails on the old code and passes with the correction, including plugin order/composition.
+
+The revised probe retains every original pixel/error requirement, records both contexts' GL errors independently, requires the normal control to contain no scalar sampler/code, and renders a final exact raw frame after adapter disposal while the original resources remain alive. Actual rerun is pending; the adapter remains inactive in production.
