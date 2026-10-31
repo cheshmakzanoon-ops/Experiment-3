@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { desktopTarget, desktopExecutable } from '../desktop-dist/target.js';
 const target = desktopTarget(process.platform, process.arch, process.env.MOTOBOUND_TARGET_ARCH);
+const startedAt = Date.now();
 const graphicsBackend = process.env.MOTOBOUND_CI_GL || 'native';
 if (!['native', 'mesa'].includes(graphicsBackend))
   throw new Error(`Unknown CI graphics backend: ${graphicsBackend}`);
@@ -18,11 +19,17 @@ const report = {
   graphicsBackend,
   source: JSON.parse(await readFile('desktop-stage/DESKTOP_BUILD.json', 'utf8')),
   checks: [],
+  stages: [],
   console: [],
   processLog: [],
   errors: [],
   remoteRequests: [],
 };
+function stage(name) {
+  const entry = { name, elapsedMs: Date.now() - startedAt };
+  report.stages.push(entry);
+  console.log(`[desktop smoke] ${JSON.stringify(entry)}`);
+}
 async function captureViewport(page, path) {
   const session = await page.context().newCDPSession(page);
   let timer;
@@ -57,6 +64,7 @@ let application, page;
 try {
   if (report.source.arch !== target.arch || report.source.platform !== target.platform)
     throw new Error('Build receipt does not match the requested package target');
+  stage('launch');
   application = await electron.launch({
     executablePath: resolve(executable),
     args: [
@@ -68,6 +76,7 @@ try {
     ],
     timeout: 120000,
   });
+  stage('electron-connected');
   for (const stream of [application.process().stdout, application.process().stderr])
     stream?.on('data', (data) => report.processLog.push(String(data).slice(0, 8000)));
   report.runtime = await application.evaluate(({ app }) => ({
@@ -87,6 +96,17 @@ try {
   report.checks.push('packaged process architecture matches target');
   report.gpu = await application.evaluate(({ app }) => app.getGPUFeatureStatus());
   page = await application.firstWindow({ timeout: 120000 });
+  stage('window-created');
+  // A hidden ready-to-show window must not be required to produce the frame
+  // that makes it visible. Show it before the existing startup deadline.
+  report.initialWindow = await application.evaluate(({ app, BrowserWindow }) => {
+    const window = BrowserWindow.getAllWindows()[0];
+    window.show();
+    app.focus({ steal: true });
+    window.focus();
+    return { visible: window.isVisible(), focused: window.isFocused() };
+  });
+  await page.bringToFront();
   if (process.env.GITHUB_ACTIONS === 'true' && report.runtime.translated) {
     // Rosetta's directly launched window may be backgrounded by the hosted
     // desktop. Keep foreground test scheduling without changing the package
@@ -109,11 +129,17 @@ try {
     if (/^https?:/.test(request.url())) report.remoteRequests.push(request.url());
   });
   await page.waitForURL('motobound://game/babylon.html', { timeout: 120000 });
+  stage('document-loaded');
+  report.startupObservation = await page.evaluate(() => ({
+    text: document.querySelector('#status')?.textContent,
+    readyState: document.readyState,
+    hidden: document.hidden,
+  }));
   await page.waitForFunction(
     () =>
       /DRIVING|PAUSED|could not start/.test(document.querySelector('#status')?.textContent ?? ''),
     {},
-    { timeout: 120000 },
+    { timeout: 120000, polling: 100 },
   );
   report.initialStatus = await page.locator('#status').textContent();
   if (!/DRIVING|PAUSED/.test(report.initialStatus ?? ''))
@@ -127,6 +153,7 @@ try {
   if (process.env.MOTOBOUND_CI_GL === 'mesa' && !/llvmpipe/i.test(report.renderer ?? ''))
     throw new Error(`Requested Mesa CI renderer, received ${report.renderer}`);
   report.checks.push('packaged offline Babylon entry started');
+  stage('babylon-ready');
   // A directly launched macOS bundle can remain behind the runner's desktop.
   // Activate it before testing real pointer/keyboard input and RAF stability.
   report.windowFocus = await application.evaluate(({ app, BrowserWindow }) => {
@@ -157,6 +184,7 @@ try {
   );
   await page.getByRole('button', { name: 'Restart', exact: true }).click();
   report.checks.push('pause/resume/restart');
+  stage('lifecycle-passed');
   await page.keyboard.down('w');
   try {
     await page.waitForFunction(
@@ -165,12 +193,13 @@ try {
         return speed && Number(speed[1]) > 5;
       },
       {},
-      { timeout: 30000 },
+      { timeout: 30000, polling: 100 },
     );
   } finally {
     await page.keyboard.up('w');
   }
   report.checks.push('native keyboard drives the existing simulation');
+  stage('keyboard-passed');
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
   await page.waitForFunction(() =>
     document.querySelector('#status')?.textContent?.includes('PAUSED'),
@@ -188,12 +217,13 @@ try {
       return text.includes('Original Formula asset loaded') || text.includes('Model unavailable');
     },
     {},
-    { timeout: 120000 },
+    { timeout: 120000, polling: 100 },
   );
   report.assetStatus = await page.locator('#assetStatus').textContent();
   if (!report.assetStatus?.includes('Original Formula asset loaded'))
     throw new Error(report.assetStatus || 'The packaged model did not load');
   report.checks.push('original bundled Formula model imports through the offline protocol');
+  stage('model-presented');
   const preferences = await application.evaluate(({ BrowserWindow }) =>
     BrowserWindow.getAllWindows()[0].webContents.getLastWebPreferences(),
   );
@@ -206,13 +236,16 @@ try {
     throw new Error('Desktop renderer isolation is not active');
   report.checks.push('sandbox/context isolation active, Node integration disabled');
   report.gpu = await application.evaluate(({ app }) => app.getGPUFeatureStatus());
+  stage('capturing');
   await captureViewport(page, 'desktop-evidence/packaged-babylon.png');
+  stage('capture-passed');
   if (report.errors.length || report.remoteRequests.length)
     throw new Error('Unexpected renderer errors or remote runtime requests');
   report.success = true;
 } catch (error) {
   report.success = false;
   report.failure = String(error);
+  stage('failed');
   console.error(report.failure);
   try {
     if (page) await captureViewport(page, 'desktop-evidence/failure.png');

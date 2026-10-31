@@ -22,6 +22,10 @@ All eight audited branch tips are ancestors of `29a6f871db184c39de791d8e210d9099
 - New direct Formula / GP / Open World shortcuts have compatible-session unit tests. Their browser switching checks passed in Babylon integration run 41164885118.
 - The motocross airborne limiter regression passes without clamping existing overspeed momentum. A subsequent telemetry fix distinguishes passive wheel pickup from requested braking and retains unloaded-wheel kinematic slip. The subsequent passive hard-stop and touchdown repairs resolve four more cases without new failures. Brake/settling tests now exercise the finite-inertia model rather than assume instantaneous kinematic wheel constraints; the ledger distinguishes those contract changes from code fixes.
 
+## Latest native and renderer evidence
+
+Source `704e933` passed all packaged smoke/capture checks on Linux x64, Windows x64 and native Apple Silicon. Reports identify the actual executable architecture, observed renderer and no remote runtime requests. The same source passed all four Babylon WebGL journeys, including authored steering response and frozen pause. These use CI graphics backends, not representative physical-hardware performance qualification. Rosetta x64 still failed startup observation before controls; later capture showed rendering. Window-show ordering and timer-based readiness observation are being tested with unchanged deadlines and better stage timings. No four-platform prerelease has been published.
+
 ## Full-suite checkpoint
 
 Frozen tracked source `207d5a6` completed all four local shards: **5,004/5,006 passed, two failed, zero skipped**. The mixed-class GP pace case remains a logical failure. A pit-release service-bay sweep exceeded its unchanged 30-second timeout under parallel load; all three tests in that file passed when rerun alone (exit 0). The original full-suite failure remains in the [ledger](maintenance/validation-2026-10-31.json). This is not an all-green release claim.

@@ -29,7 +29,7 @@ The desktop runtime uses Electron to provide a consistent bundled Chromium runti
 - GP AI completes the real catch-and-pass without contact and reproduces its replay snapshot. Shared traffic and GP approach/riding checks: **28/28 passed**.
 - Motocross hard-stop recovery now exchanges momentum without inventing launch energy. Latest focused suite: **572/572 passed** after physical fixes and documented finite-inertia test-contract corrections. The separate mixed GP/superbike pace case remains open. Test-contract corrections for finite wheel inertia are itemized in the [validation ledger](docs/maintenance/validation-2026-10-31.json).
 - Full local suite on frozen `207d5a6` source: **5,004/5,006 passed**, zero skipped. The additional pit-release timeout passed an unchanged isolated rerun; the original full-run failure is retained in the ledger.
-- The original driver steering clip now has a snapshot-driven Babylon adapter using the unchanged existing mapping. Unit/type/build/lint checks pass; real-renderer left/right/pause verification is pending.
+- The original driver steering clip now has a snapshot-driven Babylon adapter using the unchanged existing mapping. Unit/type/build/lint checks and the real WebGL left/right/pause journey pass on `704e933`.
 - Babylon is still an integration workbench, not final-quality graphics. Native keyboard driving and original-model import are verified on the three passing platforms; full four-discipline presentation, performance and playtesting remain required.
 
 ## Engine and content ownership
