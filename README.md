@@ -6,22 +6,43 @@
 
 MOTOBOUND is an independent browser-based motorsport game built with TypeScript and Three.js. It brings together circuit racing, motorcycles, off-road competition and an open-world festival, with vehicle simulation driving the handling, sound and presentation.
 
-[Run locally](#run-locally) · [Controls](#controls) · [Development](#development) · [Documentation](#documentation)
+[Repository map](docs/REPOSITORY_MAP.md) · [Current status](docs/CURRENT_STATUS.md) · [Run locally](#run-locally) · [Controls](#controls) · [Development](#development) · [Documentation](#documentation)
 
 > **In development.** The game is not a finished commercial release. Visual polish, target-hardware performance and release validation remain ongoing. Online racing is an [experimental networking implementation](docs/production/ONLINE_SLICE.md), not a public multiplayer service.
 
+## Development source and downloads
+
+`main` is the consolidated development source, including the latest GP motorcycle work integrated on **2026-10-31**. [Current validation status](docs/CURRENT_STATUS.md) is distinct from historical phase reports.
+
+- [Playable website](https://cheshmakzanoon-ops.github.io/Experiment-3/)
+- [Downloadable releases](https://github.com/cheshmakzanoon-ops/Experiment-3/releases)
+- [Build and validation runs](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/workflows/ci.yml)
+
+A passing build is not proof that every gameplay gate has passed. Releases include source identification; compare it with main before assuming the download contains the newest work.
+
+## Find your discipline
+
+| Experience             | Entry in the game                                            | Main implementation                                           |
+| ---------------------- | ------------------------------------------------------------ | ------------------------------------------------------------- |
+| Formula circuit racing | Select a formula machine, circuit and session in the paddock | `src/simulation/`, `src/rendering/`, `src/ui/f1-hud.ts`       |
+| GP motorcycle racing   | Select GP-R1/GP-R2 and a compatible motorcycle GP venue      | `src/simulation/motogp-physics.ts`, `src/rendering/gp-*.ts`   |
+| Motocross / supercross | **OUTDOOR MX** or **STADIUM SX**, then choose a ride preset  | `src/simulation/offroad/`, `src/ui/motocross-presentation.ts` |
+| Open-world driving     | **SESSION → Festival · open world**                          | `src/simulation/open-world/`, `src/session/free-roam.ts`      |
+
+These are original fictional motorsport disciplines, not licensed F1, MotoGP or Forza products. Current end-to-end verification is tracked in the status page above.
+
 ## The game
 
-| Area | Current scope |
-| --- | --- |
-| Racing | Free practice, ghost time trials, qualifying, Grand Prix and endurance events. |
-| Machines | Multiple car classes, road-racing motorcycles and off-road machines, with vehicle-specific setup and assists. |
-| Locations | A circuit catalogue, dedicated off-road venues and the Solvane Coast festival region, with free roam, traffic and local events. |
-| Festival | Sixteen activities, rolling speed and drift challenges, clean-driving skill chains, physical slipstream and clean-pass coaching, a route-preview map, and paused orbit/zoom photo mode. |
-| Racecraft | AI rivals, changing weather, tyre temperature and wear, fuel, damage, pit stops and race control. |
-| Progression | Career events, garage ownership, unlocks and festival rewards. |
-| Presentation | Cockpit and external cameras, authored 3D assets, photographic skies, scanned ground materials and state-driven audio. |
-| Driver tools | Replays, flashback, telemetry, lap comparison and CSV export. |
+| Area         | Current scope                                                                                                                                                                           |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Racing       | Free practice, ghost time trials, qualifying, Grand Prix and endurance events.                                                                                                          |
+| Machines     | Multiple car classes, road-racing motorcycles and off-road machines, with vehicle-specific setup and assists.                                                                           |
+| Locations    | A circuit catalogue, dedicated off-road venues and the Solvane Coast festival region, with free roam, traffic and local events.                                                         |
+| Festival     | Sixteen activities, rolling speed and drift challenges, clean-driving skill chains, physical slipstream and clean-pass coaching, a route-preview map, and paused orbit/zoom photo mode. |
+| Racecraft    | AI rivals, changing weather, tyre temperature and wear, fuel, damage, pit stops and race control.                                                                                       |
+| Progression  | Career events, garage ownership, unlocks and festival rewards.                                                                                                                          |
+| Presentation | Cockpit and external cameras, authored 3D assets, photographic skies, scanned ground materials and state-driven audio.                                                                  |
+| Driver tools | Replays, flashback, telemetry, lap comparison and CSV export.                                                                                                                           |
 
 Feature availability depends on the vehicle, event and graphics preset.
 
@@ -51,17 +72,17 @@ The output is written to `dist/`. Serve it over HTTP or HTTPS; do not open `inde
 
 Default circuit-session keyboard controls:
 
-| Input | Action |
-| --- | --- |
-| **W / S** | Throttle / brake |
-| **A / D** | Steer left / right |
-| **[ / ]** | Downshift / upshift |
-| **C** | Change camera |
-| **P** | Request or cancel a pit stop |
-| **G** | Toggle AI demonstration driving |
-| **T / R** | Open telemetry / replay |
-| **X** | Flashback |
-| **Escape** | Pause |
+| Input      | Action                          |
+| ---------- | ------------------------------- |
+| **W / S**  | Throttle / brake                |
+| **A / D**  | Steer left / right              |
+| **[ / ]**  | Downshift / upshift             |
+| **C**      | Change camera                   |
+| **P**      | Request or cancel a pit stop    |
+| **G**      | Toggle AI demonstration driving |
+| **T / R**  | Open telemetry / replay         |
+| **X**      | Flashback                       |
+| **Escape** | Pause                           |
 
 Bindings are configurable; gamepad and touch inputs are also supported. On motorcycles, the brake input operates the front brake and the clutch binding (**Left Shift** by default) operates the rear brake. See the [complete default bindings](src/input/bindings.ts).
 
@@ -71,13 +92,13 @@ In **Session → Festival · open world**, **T** opens the Solvane map and **R**
 
 Dependencies are pinned in [`package-lock.json`](package-lock.json). Use `npm ci` to reproduce the toolchain.
 
-| Command | Purpose |
-| --- | --- |
-| `npm run check:stable` | Lint, content validation, unit tests, type checking and build, with source-change detection. |
-| `npm run test:physics` | Vehicle dynamics, race control, wet pit stops and integrated driving scenarios. |
-| `npm run test:vehicles` | Vehicle calibration checks. |
-| `npm run test:offroad` | Off-road calibration and race scenarios. |
-| `npm run test:open-world` | Festival region, routes, traffic and motorcycle scenarios. |
+| Command                   | Purpose                                                                                      |
+| ------------------------- | -------------------------------------------------------------------------------------------- |
+| `npm run check:stable`    | Lint, content validation, unit tests, type checking and build, with source-change detection. |
+| `npm run test:physics`    | Vehicle dynamics, race control, wet pit stops and integrated driving scenarios.              |
+| `npm run test:vehicles`   | Vehicle calibration checks.                                                                  |
+| `npm run test:offroad`    | Off-road calibration and race scenarios.                                                     |
+| `npm run test:open-world` | Festival region, routes, traffic and motorcycle scenarios.                                   |
 
 Run the browser suite against a production build:
 
@@ -109,25 +130,25 @@ scripts/, tools/ Validation and asset tooling
 
 ## Documentation
 
-| Reference | Contents |
-| --- | --- |
-| [Architecture](docs/ARCHITECTURE.md) | Application structure and simulation/rendering boundaries. |
-| [Physics model](docs/production/PHYSICS_MODEL.md) | Vehicle dynamics, tyres, suspension, drivetrain and surface interaction. |
-| [Physics v18 engine upgrade](docs/production/physics-v18-engine-upgrade.md) | Tire-solver accuracy, suspension contact, regenerative braking, coherent animation, iRacing references and validation evidence. |
-| [Circuit catalogue](docs/CIRCUIT_CATALOGUE.md) | Venues, layouts and implementation notes. |
-| [MotoGP contact and control update](docs/MOTOGP_THREEJS_CONTACT_PASS.md) | Independent tyre grip, GP braking preview, two-contact effects, mechanical detail and riding feedback. |
-| [MotoGP Three.js riding update](docs/MOTOGP_THREEJS_REFERENCE_REVIEW.md) | 100-image trace, forged wheels and tyre finish, bike grounding, corner guidance and GP racecraft. |
-| [MotoGP R6 race shell](docs/MOTOGP_R6_RACE_SHELL.md) | Procedural GP-R1/GP-R2 race shell from the 100-image pack, painted liveries with a finish atlas, Fresnel screen, kerb wear and GP rubber, with before/after images and validation. |
-| [MotoGP R2 improvements](docs/MOTOGP_R2_DELIVERY.md) | All 100 reference reviews, bike/rider and circuit changes, motorcycle interface, braking corrections and visual evidence. |
-| [MotoGP R3 visual upgrade](docs/MOTOGP_R3_VISUAL_UPGRADE.md) | Hard-surface GP-R1 bodywork, projected race livery, printed GP walls and padding, mown verges, before/after game captures. |
-| [Motocross reference upgrade](docs/production/motocross-reference-upgrade.md) | All 100 motocross references, detailed bikes and riders, dirt and stadium scenery, riding/camera updates, race reliability and actual gameplay evidence. |
-| [Open-world festival](docs/production/OPEN_WORLD.md) | Solvane Coast, free roam, events, traffic and known limits. |
-| [100-image festival reference record](docs/production/HORIZON_REFERENCE_IMPLEMENTATION.md) | Individual observations and original implementations for every supplied reference, with code links and limits. |
-| [Festival upgrade validation](docs/production/HORIZON_UPGRADE_VALIDATION.md) | Final screenshots, real driving/event evidence, test results and the guarded production build. |
-| [Horizon R7](docs/production/HORIZON_R7_IMPLEMENTATION.md) | Camera-dependent storefront depth, bonded car glazing, slipstream passes, the original 100-image review and executable validation. |
-| [Solvane Blender continuation](docs/production/SOLVANE_CONTINUATION_VALIDATION.md) | Native detail assets, all eight committed-source validation jobs, actual game captures and the 100-reference continuation ledger. |
-| [Solvane authoring guide](authoring/solvane/README.md) | Editable Blender source, template contracts, safe re-export and reference-integrity verification. |
-| [Production documents](docs/production/README.md) | Design, implementation status, development plans and validation protocols. |
+| Reference                                                                                  | Contents                                                                                                                                                                           |
+| ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Architecture](docs/ARCHITECTURE.md)                                                       | Application structure and simulation/rendering boundaries.                                                                                                                         |
+| [Physics model](docs/production/PHYSICS_MODEL.md)                                          | Vehicle dynamics, tyres, suspension, drivetrain and surface interaction.                                                                                                           |
+| [Physics v18 engine upgrade](docs/production/physics-v18-engine-upgrade.md)                | Tire-solver accuracy, suspension contact, regenerative braking, coherent animation, iRacing references and validation evidence.                                                    |
+| [Circuit catalogue](docs/CIRCUIT_CATALOGUE.md)                                             | Venues, layouts and implementation notes.                                                                                                                                          |
+| [MotoGP contact and control update](docs/MOTOGP_THREEJS_CONTACT_PASS.md)                   | Independent tyre grip, GP braking preview, two-contact effects, mechanical detail and riding feedback.                                                                             |
+| [MotoGP Three.js riding update](docs/MOTOGP_THREEJS_REFERENCE_REVIEW.md)                   | 100-image trace, forged wheels and tyre finish, bike grounding, corner guidance and GP racecraft.                                                                                  |
+| [MotoGP R6 race shell](docs/MOTOGP_R6_RACE_SHELL.md)                                       | Procedural GP-R1/GP-R2 race shell from the 100-image pack, painted liveries with a finish atlas, Fresnel screen, kerb wear and GP rubber, with before/after images and validation. |
+| [MotoGP R2 improvements](docs/MOTOGP_R2_DELIVERY.md)                                       | All 100 reference reviews, bike/rider and circuit changes, motorcycle interface, braking corrections and visual evidence.                                                          |
+| [MotoGP R3 visual upgrade](docs/MOTOGP_R3_VISUAL_UPGRADE.md)                               | Hard-surface GP-R1 bodywork, projected race livery, printed GP walls and padding, mown verges, before/after game captures.                                                         |
+| [Motocross reference upgrade](docs/production/motocross-reference-upgrade.md)              | All 100 motocross references, detailed bikes and riders, dirt and stadium scenery, riding/camera updates, race reliability and actual gameplay evidence.                           |
+| [Open-world festival](docs/production/OPEN_WORLD.md)                                       | Solvane Coast, free roam, events, traffic and known limits.                                                                                                                        |
+| [100-image festival reference record](docs/production/HORIZON_REFERENCE_IMPLEMENTATION.md) | Individual observations and original implementations for every supplied reference, with code links and limits.                                                                     |
+| [Festival upgrade validation](docs/production/HORIZON_UPGRADE_VALIDATION.md)               | Final screenshots, real driving/event evidence, test results and the guarded production build.                                                                                     |
+| [Horizon R7](docs/production/HORIZON_R7_IMPLEMENTATION.md)                                 | Camera-dependent storefront depth, bonded car glazing, slipstream passes, the original 100-image review and executable validation.                                                 |
+| [Solvane Blender continuation](docs/production/SOLVANE_CONTINUATION_VALIDATION.md)         | Native detail assets, all eight committed-source validation jobs, actual game captures and the 100-reference continuation ledger.                                                  |
+| [Solvane authoring guide](authoring/solvane/README.md)                                     | Editable Blender source, template contracts, safe re-export and reference-integrity verification.                                                                                  |
+| [Production documents](docs/production/README.md)                                          | Design, implementation status, development plans and validation protocols.                                                                                                         |
 
 ### Assets and attribution
 

@@ -77,7 +77,7 @@ PY
 tag="playable-$VALIDATED_SHA"
 if ! gh release view "$tag" >/dev/null 2>&1; then
   gh release create "$tag" --target "$VALIDATED_SHA" --draft \
-    --title "Apex Formula · ${VALIDATED_SHA:0:7}" \
+    --title "MOTOBOUND · ${VALIDATED_SHA:0:7}" \
     --notes "Exact validated build of $VALIDATED_SHA. Validation: $VALIDATION_URL. Unzip and serve over HTTP; SOURCE_COMMIT.txt identifies the source. No hosting branch is required."
 fi
 # Recover an interrupted draft without clobbering any previously uploaded bytes.

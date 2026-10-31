@@ -32,6 +32,12 @@ jobs:
               echo "::error::Unmerged branch $branch retained. Integrate it before retrying."
               exit 1
             fi
+          done < <(git for-each-ref --format='%(refname) %(objectname)' refs/remotes/origin/)
+          # Preflight every branch before deleting any. Reuse the audited tips;
+          # lease checks below reject concurrent branch updates.
+          while read -r ref sha; do
+            branch=${ref#refs/remotes/origin/}
+            case "$branch" in main|HEAD) continue ;; esac
             # A concurrent change makes this deletion fail instead of losing it.
             git push --force-with-lease="refs/heads/$branch:$sha" origin ":refs/heads/$branch"
             printf 'Removed `%s` at `%s`; all commits are on main.\n' "$branch" "$sha" >> "$GITHUB_STEP_SUMMARY"

@@ -2,7 +2,7 @@
 
 This document records a coordinated attempt to take the MotoGP section (GP-R1 and GP-R2 prototypes, the `gp-motorcycle` ruleset and the four motorcycle-GP venues) from "amateurish and cartoony" towards the hyperrealism of the supplied MotoGP 26 PS5 reference pack. A project manager (PM) session planned the work, built the review tooling, wrote briefs and ran five specialist agents in parallel. It also integrated their branches. The user then asked for the remaining work to continue with a **single agent**. This record is the hand-off: what each agent did, where it stopped, and what is left.
 
-**Status:** in progress. Every agent's work is merged into `claude/elegant-hopper-xdwdz9` and pushed. It has not yet been reviewed, captured end-to-end or documented as a delivery; see [Remaining work](#remaining-work).
+**Status:** integrated into `main` on 2026-10-31 at `29a6f871`. This is a historical workstream hand-off, not a current all-tests-pass report. Follow [current status](CURRENT_STATUS.md) for integration verification and [Remaining work](#remaining-work) for the original open findings.
 
 ## Goal and references
 
