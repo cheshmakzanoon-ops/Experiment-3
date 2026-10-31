@@ -16,7 +16,7 @@ MOTOBOUND targets **Windows, macOS and Linux executables**, built from TypeScrip
 | macOS Apple Silicon | DMG and app ZIP          | Apple Silicon macOS |
 | Linux x64           | AppImage and tar archive | Linux               |
 
-[Desktop build workflow](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/workflows/desktop-build.yml) builds and launches each packaged application on its target operating system. Source-addressed development prereleases are published only after all three supported-target build/launch jobs succeed. Each package has SHA-256 checksums and embedded source identification. **Do not assume packages exist or passed until the workflow and release actually show them.**
+[Desktop build workflow](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/workflows/desktop-build.yml) builds and launches each packaged application on its target operating system. Source-addressed development prereleases are published only after all three supported-target build/launch jobs succeed. Each package has SHA-256 checksums and embedded source identification. **Verified development download:** [source `6afc763`](https://github.com/cheshmakzanoon-ops/Experiment-3/releases/tag/desktop-dev-6afc763500c7eb3b9f04b4facb7b1f652f5950af-41179328737-1), published after all three native lanes passed. Newer main commits require their own validation; this link identifies an immutable tested build.
 
 Initial packages are **unsigned development builds**. Windows reputation/signing and macOS signing/notarization have not been configured. These builds are for development testing, not a claim of retail distribution readiness.
 
@@ -24,11 +24,12 @@ The desktop runtime uses Electron to provide a consistent bundled Chromium runti
 
 ## Latest verified progress · 2026-10-31
 
-- Windows x64, Linux x64 and Apple Silicon passed packaged offline launch, driving, pause, original-model import, screenshots and isolation on `704e933`. The owner approved these three development-release targets. Intel Mac remains a manual experiment and is unreleased after hosted graphics/UI failures; no failure is relabelled as a pass. A fresh supported-target publication is being validated.
+- Windows x64, Linux x64 and Apple Silicon passed packaged offline launch, driving, pause, original-model import, screenshots and isolation on `704e933`. The owner approved these three development-release targets. Intel Mac remains a manual experiment and is unreleased after hosted graphics/UI failures; no failure is relabelled as a pass. The three supported native targets also passed on `6afc763`; its [desktop development release](https://github.com/cheshmakzanoon-ops/Experiment-3/releases/tag/desktop-dev-6afc763500c7eb3b9f04b4facb7b1f652f5950af-41179328737-1) is published.
 - GP AI completes the real catch-and-pass without contact and reproduces its replay snapshot. Shared traffic and GP approach/riding checks: **28/28 passed**.
 - Motocross hard-stop recovery now exchanges momentum without inventing launch energy. Latest focused suite: **572/572 passed** after physical fixes and documented finite-inertia test-contract corrections. The separate mixed GP/superbike pace case remains open. Test-contract corrections for finite wheel inertia are itemized in the [validation ledger](docs/maintenance/validation-2026-10-31.json).
 - Full local suite on frozen `207d5a6` source: **5,004/5,006 passed**, zero skipped. The additional pit-release timeout passed an unchanged isolated rerun; the original full-run failure is retained in the ledger.
 - The original driver steering clip now has a snapshot-driven Babylon adapter using the unchanged existing mapping. Unit/type/build/lint checks and the real WebGL left/right/pause journey pass on `704e933`.
+- The new Babylon increment transfers the original rigid wheel steering, camber, hub travel and measured spin, with 20 local Babylon checks and 21 desktop/legacy contracts passing. Renderer and packaged checks explicitly verify motion and pause; fresh CI evidence remains pending. Tyre deformation, blur and full presentation parity are not claimed.
 - Babylon is still an integration workbench, not final-quality graphics. Native keyboard driving and original-model import are verified on the three passing platforms; full four-discipline presentation, performance and playtesting remain required.
 
 Intel macOS validation remains available as a separate manual experimental workflow. It reuses the same build/check implementation, never publishes, and is not a supported download target yet.

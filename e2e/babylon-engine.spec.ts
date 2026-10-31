@@ -68,11 +68,31 @@ test('Babylon imports the existing authored Formula asset and restart cancels ob
     await page.keyboard.up('d');
   }
   await expect.poll(async () => Math.abs((await driverSteering()) - 0.5)).toBeLessThan(0.05);
+  const wheelPhase = async () =>
+    Number(await page.locator('#assetStatus').getAttribute('data-wheel-phase'));
+  const initialWheel = await wheelPhase();
+  await page.keyboard.down('w');
+  try {
+    await expect
+      .poll(
+        async () => {
+          const delta = (await wheelPhase()) - initialWheel;
+          return Math.abs(Math.atan2(Math.sin(delta), Math.cos(delta)));
+        },
+        { timeout: 15000 },
+      )
+      .toBeGreaterThan(0.1);
+  } finally {
+    await page.keyboard.up('w');
+  }
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
   await expect(page.locator('#status')).toContainText('PAUSED');
+  const frozenWheel = await wheelPhase();
   const frozenDriver = await driverSteering();
   await page.waitForTimeout(300);
   expect(await driverSteering()).toBe(frozenDriver);
+  expect(await wheelPhase()).toBe(frozenWheel);
+  // The reported phase is read back from the applied Babylon spin node.
   await info.attach('babylon-original-formula-model.png', {
     body: await page.screenshot(),
     contentType: 'image/png',
@@ -80,6 +100,7 @@ test('Babylon imports the existing authored Formula asset and restart cancels ob
   await page.getByRole('button', { name: 'Restart', exact: true }).click();
   await expect(load).toBeEnabled();
   await expect(page.locator('#assetStatus')).toContainText('optional');
+  await expect(page.locator('#assetStatus')).not.toHaveAttribute('data-wheel-phase');
   expect(errors).toEqual([]);
 });
 
@@ -113,4 +134,20 @@ test('Babylon uses the production driving inputs, including keyboard throttle an
   await expect(page.locator('#status')).toContainText('DRIVING');
   await page.getByRole('button', { name: 'Restart', exact: true }).click();
   await expect.poll(speed).toBeLessThan(3);
+});
+
+test('Babylon diagnostic panel leaves the native driving view clear at minimum window size', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1008, height: 689 });
+  await page.goto('/babylon.html');
+  await expect(page.locator('#status')).toContainText('DRIVING');
+  const panel = await page.locator('#panel').boundingBox();
+  const controls = await page.locator('#touchDrive').boundingBox();
+  expect(panel).not.toBeNull();
+  expect(controls).not.toBeNull();
+  expect(panel!.x + panel!.width).toBeLessThan(1008 * 0.45);
+  expect(panel!.y + panel!.height).toBeLessThan(controls!.y);
+  await page.getByRole('button', { name: 'Pause', exact: true }).click();
+  await expect(page.locator('#status')).toContainText('PAUSED');
 });

@@ -221,6 +221,53 @@ try {
     throw new Error(report.assetStatus || 'The packaged model did not load');
   report.checks.push('original bundled Formula model imports through the offline protocol');
   stage('model-presented');
+  report.drivingView = await page.evaluate(() => {
+    const panel = document.querySelector('#panel').getBoundingClientRect();
+    const controls = document.querySelector('#touchDrive').getBoundingClientRect();
+    return {
+      panelRight: panel.right,
+      panelBottom: panel.bottom,
+      controlsTop: controls.top,
+      width: innerWidth,
+    };
+  });
+  if (
+    report.drivingView.panelRight >= report.drivingView.width * 0.45 ||
+    report.drivingView.panelBottom >= report.drivingView.controlsTop
+  )
+    throw new Error('Diagnostic panel obscures the central driving view or touch controls');
+  report.checks.push('diagnostic panel preserves the central driving view and touch controls');
+  const wheelPhase = await page.locator('#assetStatus').getAttribute('data-wheel-phase');
+  if (wheelPhase === null || !Number.isFinite(Number(wheelPhase)))
+    throw new Error('Imported wheel adapter did not publish an applied rotation');
+  await resume.click();
+  await page.keyboard.down('w');
+  try {
+    await page.waitForFunction(
+      (initial) => {
+        const value = document.querySelector('#assetStatus')?.getAttribute('data-wheel-phase');
+        if (value == null || !Number.isFinite(Number(value))) return false;
+        const delta = Number(value) - initial;
+        return Math.abs(Math.atan2(Math.sin(delta), Math.cos(delta))) > 0.1;
+      },
+      Number(wheelPhase),
+      { timeout: 15000, polling: 100 },
+    );
+  } finally {
+    await page.keyboard.up('w');
+  }
+  await page.getByRole('button', { name: 'Pause', exact: true }).click();
+  await page.waitForFunction(() =>
+    document.querySelector('#status')?.textContent?.includes('PAUSED'),
+  );
+  const frozenWheel = await page.locator('#assetStatus').getAttribute('data-wheel-phase');
+  await page.waitForTimeout(300);
+  if ((await page.locator('#assetStatus').getAttribute('data-wheel-phase')) !== frozenWheel)
+    throw new Error('Authored wheel rotation changed while paused');
+  report.checks.push(
+    'applied authored wheel rotation moves during simulation and freezes during pause',
+  );
+  stage('wheel-motion-passed');
   const preferences = await application.evaluate(({ BrowserWindow }) =>
     BrowserWindow.getAllWindows()[0].webContents.getLastWebPreferences(),
   );

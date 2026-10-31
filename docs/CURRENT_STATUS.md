@@ -8,7 +8,7 @@ MOTOBOUND is a desktop-first Windows/macOS/Linux game, not a browser-first produ
 
 The owner approved development downloads for **Windows x64, Linux x64 and Apple Silicon macOS**. All three supported build/launch lanes must pass. Intel macOS is **experimental and unreleased**, with a separate manual workflow and no publishing job. Its failures remain failures. See [desktop delivery](DESKTOP_DELIVERY.md).
 
-Signing/notarization, Steam submission, physical-hardware qualification and a finished commercial game are not claimed. The first supported-target development publication is being validated.
+Signing/notarization, Steam submission, physical-hardware qualification and a finished commercial game are not claimed. All three supported native targets passed on `6afc763` in [run 41179328737](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41179328737); its [desktop development release](https://github.com/cheshmakzanoon-ops/Experiment-3/releases/tag/desktop-dev-6afc763500c7eb3b9f04b4facb7b1f652f5950af-41179328737-1) is published with five platform packages, three checksum lists and three source receipts.
 
 ## Repository consolidation
 
@@ -29,7 +29,9 @@ All eight audited branch tips are ancestors of `29a6f871db184c39de791d8e210d9099
 - Deep motocross overlap recovery exchanges forward/heave/pitch momentum through a passive contact impulse. Original launch-height and crash bounds pass; 270 analytic contact combinations verify non-increasing kinetic energy. AI/supermoto touchdown no longer arms an obsolete one-frame pickup flag.
 - Brake/soil tests now represent finite rotor and tyre response. They retain material-force contrast within 16.7 ms, check each intermediate force against supported load, verify independently sampled grip exactly and require honest slip. These contract corrections are not counted as newly changed vehicle behavior.
 - The original authored driver steering clip is sampled from physics snapshots in Babylon, sharing the unchanged Three.js mapping. Model-ready status waits for completed rendered-ready frames; cancellation/disposal is covered.
-- The chase camera now uses the stopped chassis' horizontal forward axis instead of snapping to world north. A vertical pose retains the last meaningful heading; moving velocity-following behavior is unchanged. A regression first demonstrated the old 12 m wrong-axis displacement. All 17 Babylon unit cases, TypeScript, completed lint and production build pass locally after the repair; its real-renderer check is pending.
+- The chase camera now uses the stopped chassis' horizontal forward axis instead of snapping to world north. A vertical pose retains the last meaningful heading; moving velocity-following behavior is unchanged. A regression first demonstrated the old 12 m wrong-axis displacement. All 17 Babylon unit cases, TypeScript, completed lint and production build pass locally after the repair; source `6afc763` passed all four real WebGL journeys in [run 41179328794](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41179328794). This is not a physical-GPU benchmark.
+
+The new Babylon increment ports original rigid wheel hub/steering/camber/spin motion from existing snapshots. It retains tyre deformation, blur, pit-service offsets and LOD as explicit remaining work. All 20 Babylon checks, 21 desktop/legacy contract checks, TypeScript, completed lint and the production build pass locally. Fresh real-renderer/native verification is pending; no visual pass is inferred from NullEngine tests. Inspection of the `6afc763` Windows capture also found the diagnostic panel overlapping the car at a 1008 px viewport. A bounded responsive panel and explicit central-view/touch-control layout checks are included in this increment; fresh screenshots are still required.
 
 ## Remaining acceptance gates
 

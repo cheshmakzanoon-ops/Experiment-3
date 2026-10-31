@@ -19,7 +19,11 @@ body {
 #panel {
   position: absolute;
   inset: 16px auto auto 16px;
-  width: min(440px, calc(100vw - 64px));
+  /* Preserve the central driving view at the native minimum window size. */
+  box-sizing: border-box;
+  width: min(474px, 40vw);
+  max-height: calc(100vh - 112px);
+  overflow-y: auto;
   padding: 16px;
   background: #111820ed;
   border: 1px solid #56616d;
