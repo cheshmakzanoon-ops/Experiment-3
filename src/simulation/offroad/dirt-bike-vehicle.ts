@@ -12,6 +12,7 @@ import { TrackTerrainSurface } from './course-terrain.ts';
 import { offroadCourse } from './venues.ts';
 import type { OffroadBikeSpec } from './types.ts';
 import { LANDING_RULES } from './riding-feedback.ts';
+import { hardStopImpulse } from './contact-impulse.ts';
 import { wheelPickupImpulse } from './wheel-pickup.ts';
 import { engineTorque } from '../vehicle.ts';
 import { stepMotocrossGround } from './mx-ground-physics.ts';
@@ -1112,12 +1113,40 @@ export class DirtBikeVehicle extends BikeVehicle {
       cF -= correction;
       cR -= correction;
     }
-    const vh = this.airborne ? this.flightSpeed : d.speed * Math.cos(this.roadPitch);
+    let vh = this.airborne ? this.flightSpeed : d.speed * Math.cos(this.roadPitch);
     const slope = (i: number) => {
       const n = this.contacts[i].normal,
         h = d.heading;
       return -(n.x * Math.sin(h) + n.z * Math.cos(h)) / Math.max(0.1, n.y);
     };
+    // A deep-overlap recovery removes only closing normal velocity. Exchange
+    // forward, heave and pitch momentum together instead of injecting heave
+    // while leaving the approach speed unchanged. Ordinary travel is untouched.
+    if (this.playerMotocross && this.projectedContact) {
+      for (const [compression, travel, i, lever] of [
+        [cF, spec.forkTravel, 0, fa * cos + HF * sin],
+        [cR, spec.shockTravel, 2, -ra * cos + HR * sin],
+      ]) {
+        if (compression < travel) continue;
+        const grade = slope(i),
+          closing = grade * vh - this.vy - lever * this.pitchRate;
+        if (closing <= 0) continue;
+        const impulse = hardStopImpulse(
+          vh,
+          this.vy,
+          this.pitchRate,
+          grade,
+          lever,
+          m,
+          a.pitchInertia,
+        );
+        vh -= (grade * impulse) / m;
+        this.vy += impulse / m;
+        this.pitchRate += (lever * impulse) / a.pitchInertia;
+      }
+      if (this.airborne) this.flightSpeed = Math.max(0, vh);
+      else d.speed = Math.max(0, vh / Math.cos(this.roadPitch));
+    }
     const vF = this.vy + (fa * cos + HF * sin) * this.pitchRate,
       vR = this.vy + (-ra * cos + HR * sin) * this.pitchRate;
     // A whipped chassis sweeps its contact patches across the ground while
@@ -1260,10 +1289,10 @@ export class DirtBikeVehicle extends BikeVehicle {
         // just because the air attitude channel is folded into heading.
         this.mxYawRate = this.playerMotocross ? touchdownYawRate : 0;
         d.pitch = 0;
-        this.wheelPickup =
-          !this.playerMotocross &&
-          this.airTime > LANDING_RULES.minimumAirTime &&
-          this.takeoffSpeed > LANDING_RULES.rollingHopSpeed;
+        // Player MX retains rotor momentum in the independent ground solver.
+        // AI/supermoto must not arm the obsolete player-only pickup flag for
+        // one touchdown frame before the next step clears it again.
+        this.wheelPickup = false;
         this.pickupSpeed = d.speed;
         if (!this.playerMotocross && !this.wheelPickup) {
           this.rearSpin = d.speed / spec.rearWheelRadius;

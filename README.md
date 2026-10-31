@@ -23,6 +23,13 @@ Initial packages are **unsigned development builds**. Windows reputation/signing
 
 The desktop runtime uses Electron to provide a consistent bundled Chromium runtime for Babylon/TypeScript. It does not open a browser tab or depend on the hosted preview. Assets load from a restricted local application protocol. The renderer is sandboxed, has no Node.js access, and does not receive general filesystem or shell APIs.
 
+## Latest verified progress · 2026-10-31
+
+- Windows x64 and Apple Silicon packages build and pass offline Babylon launch, pause/restart and renderer-isolation checks in [native run 41168620134](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41168620134). Intel macOS and Linux build their packages but fail headless graphics initialization; CI renderer repairs are pending. No four-platform prerelease has passed yet.
+- GP AI completes the real catch-and-pass without contact and reproduces its replay snapshot. Shared traffic and GP approach/riding checks: **28/28 passed**.
+- Motocross hard-stop recovery now exchanges momentum without inventing launch energy. Latest focused suite: **568/572 passed**. Four soil-contact cases and the separate mixed GP/superbike pace case remain open. Test-contract corrections for finite wheel inertia are itemized in the [validation ledger](docs/maintenance/validation-2026-10-31.json).
+- Babylon is still an integration workbench, not final-quality graphics. Native keyboard driving and original-model import are added to the next desktop validation run; full four-discipline presentation, performance and playtesting remain required.
+
 ## Engine and content ownership
 
 - **Babylon.js:** primary rendering/game-engine migration destination.

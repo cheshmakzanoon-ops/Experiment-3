@@ -79,6 +79,7 @@ describe('motocross suspension contact traction', () => {
   it.each([MX_250, MX_450])(
     '$id can cover a real wheelie with the rear pedal while its lifted front cannot brake the ground',
     (definition) => {
+      const firstRotors = new Map<string, number>();
       const sample = (pedal: 'coast' | 'front' | 'rear') => {
         const { bike, track } = flatBike(definition, true);
         bike.input.throttle = 1;
@@ -92,13 +93,22 @@ describe('motocross suspension contact traction', () => {
         Object.assign(bike.input, controls());
         bike.input.brake = Number(pedal === 'front');
         bike.input.clutch = Number(pedal === 'rear');
-        bike.step(DT, track);
+        // The rear rotor has finite inertia. Test the ground response over
+        // four 240 Hz ticks, not an instantaneous kinematic wheel clamp.
+        for (let n = 0; n < 4; n++) {
+          bike.step(DT, track);
+          if (n === 0) firstRotors.set(pedal, bike.rearSpin);
+          expect(bike.forceFront).toBe(0);
+          expect(bike.dynamics.frontBrakeForce).toBe(0);
+        }
         expect(bike.dynamics.crashes).toBe(0);
         return bike;
       };
       const coast = sample('coast'),
         front = sample('front'),
         rear = sample('rear');
+      // Torque acts immediately even while an overspeed tyre is still driving.
+      expect(firstRotors.get('rear')!).toBeLessThan(firstRotors.get('coast')!);
       expect(front.dynamics.frontBrakeForce).toBe(0);
       expect(front.dynamics.speed).toBe(coast.dynamics.speed);
       expect(front.dynamics.x).toBe(coast.dynamics.x);
@@ -115,14 +125,19 @@ describe('motocross suspension contact traction', () => {
       const { bike, track } = flatBike(MX_450, true);
       bike.input.riderLean = lean;
       for (let n = 0; n < 480; n++) bike.step(DT, track);
-      const supported = bike.forceFront;
+      const initialFork = bike.fork;
       bike.dynamics.speed = 15;
       bike.gear = 3;
       bike.input.brake = 1;
-      bike.step(DT, track);
-      expect(bike.dynamics.frontBrakeForce).toBeLessThanOrEqual(
-        supported * bike.dynamics.p.mu * bike.dynamics.frontGrip! + 1e-8,
-      );
+      for (let n = 0; n < 4; n++) {
+        const supported = bike.forceFront;
+        bike.step(DT, track);
+        expect(bike.dynamics.frontBrakeForce).toBeLessThanOrEqual(
+          supported * bike.dynamics.p.mu * bike.dynamics.frontGrip! + 1e-8,
+        );
+      }
+      // This is still the initial brake response, not settled fork dive.
+      expect(Math.abs(bike.fork - initialFork)).toBeLessThan(0.001);
       return bike.dynamics.frontBrakeForce;
     };
     const back = sample(-1),

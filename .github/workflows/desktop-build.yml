@@ -18,7 +18,9 @@ permissions:
   contents: read
 concurrency:
   group: motobound-desktop-${{ github.ref }}
-  cancel-in-progress: true
+  # Let native packaging finish so a source update cannot erase OS diagnostics.
+  # Publishing below still requires this exact source to be main.
+  cancel-in-progress: false
 jobs:
   build:
     strategy:
@@ -68,6 +70,8 @@ jobs:
         run: xvfb-run -a node scripts/desktop-smoke.mjs
       - name: Launch the packaged Windows or macOS application
         if: runner.os != 'Linux'
+        env:
+          MOTOBOUND_CI_GL: ${{ runner.os == 'macOS' && matrix.arch == 'x64' && 'mac-opengl' || '' }}
         run: node scripts/desktop-smoke.mjs
       - name: Record package checksums and exact source
         run: node scripts/desktop-checksums.mjs

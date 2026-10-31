@@ -108,6 +108,21 @@
       "passed": 559,
       "failed": 12,
       "result": "Three original wheel-pickup tests repaired; all remaining failures also reproduce in the broader baseline. No assertion thresholds changed."
+    },
+    {
+      "scope": "Passive deep-contact response and touchdown compatibility",
+      "result": "Hard-stop contact exchanges horizontal/heave/pitch momentum instead of adding heave at prescribed forward speed. 270 analytic contact combinations prove non-increasing kinetic energy and removal only of closing velocity. Original launch height, crash and riding checks pass unchanged. AI/supermoto no longer arm the obsolete pickup flag for one touchdown frame."
+    },
+    {
+      "scope": "Motocross final focused suite after contact fixes and contract review",
+      "total": 572,
+      "passed": 568,
+      "failed": 4,
+      "result": "Four terrain/tyre contact tests remain failing. Recovery distance now accumulates signed lap-wrapped travel and also rejects station jumps. Three brake assertions now test finite wheel response within 16.7 ms, preserve original force differences and add immediate rotor/unsupported-contact checks; fork movement remains below 1 mm. The finite-brush settling assertion verifies actual slip telemetry, <0.1% mismatch and coarse/fine agreement rather than forcing an ideal zero-slip constraint. These contract corrections are not counted as new physical behavior improvements."
+    },
+    {
+      "scope": "GP overtaking and shared traffic",
+      "result": "A one-metre target-tracking reserve applies only while GP corridors are narrowed. Swept collision, longitudinal braking and full-width/mixed-class rules remain unchanged. Real catch-and-pass/replay, GP braking approach and shared traffic: 28/28 pass. Wider candidate run: 55/56 pass, with the same pre-existing mixed GP/superbike pace failure (83.57565 vs 83.12327 s); all dry/wet GP contact races pass."
     }
   ]
 }

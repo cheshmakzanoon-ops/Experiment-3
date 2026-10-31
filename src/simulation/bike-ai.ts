@@ -271,6 +271,13 @@ export class BikeAIDriver extends AIDriver {
   protected override trafficScale() {
     return this.passingScale;
   }
+  protected override trafficTrackingMargin() {
+    // A narrow upright GP lane left only ~0.35 m beyond the follow corridor.
+    // Finite lean response kept the rider inside it, matching the slower
+    // target forever. Ask for more lateral room, not less stopping distance.
+    // Mixed-class and full-lean corridors retain their established behavior.
+    return this.passingScale < 1 ? 1 : 0;
+  }
 }
 
 /** GP racecraft tuning, expressed in the shared planner's car-width units.

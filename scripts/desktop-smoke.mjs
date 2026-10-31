@@ -2,6 +2,14 @@ import { _electron as electron } from '@playwright/test';
 import { mkdtemp, mkdir, writeFile, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+const graphicsBackend = process.env.MOTOBOUND_CI_GL || 'native';
+if (!['native', 'mesa', 'mac-opengl'].includes(graphicsBackend))
+  throw new Error(`Unknown CI graphics backend: ${graphicsBackend}`);
+if (
+  (graphicsBackend === 'mesa' && process.platform !== 'linux') ||
+  (graphicsBackend === 'mac-opengl' && (process.platform !== 'darwin' || process.arch !== 'x64'))
+)
+  throw new Error('CI graphics backend does not match the native platform');
 const executable =
   process.platform === 'win32'
     ? 'desktop-out/win-unpacked/MOTOBOUND.exe'
@@ -14,6 +22,7 @@ const report = {
   platform: process.platform,
   arch: process.arch,
   executable,
+  graphicsBackend,
   source: JSON.parse(await readFile('desktop-stage/DESKTOP_BUILD.json', 'utf8')),
   checks: [],
   console: [],
@@ -28,7 +37,9 @@ try {
     args: [
       `--user-data-dir=${profile}`,
       '--enable-logging=stderr',
-      ...(process.env.MOTOBOUND_CI_GL === 'mesa' ? ['--use-gl=angle', '--use-angle=gl'] : []),
+      ...(graphicsBackend !== 'native'
+        ? ['--use-gl=angle', '--use-angle=gl', '--ignore-gpu-blocklist']
+        : []),
     ],
     timeout: 120000,
   });
@@ -53,6 +64,14 @@ try {
   report.initialStatus = await page.locator('#status').textContent();
   if (!/DRIVING|PAUSED/.test(report.initialStatus ?? ''))
     throw new Error(report.initialStatus || 'Babylon did not start');
+  report.renderer = await page.evaluate(() => {
+    const canvas = document.querySelector('#game');
+    const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+    const debug = gl?.getExtension('WEBGL_debug_renderer_info');
+    return debug ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) : null;
+  });
+  if (process.env.MOTOBOUND_CI_GL === 'mesa' && !/llvmpipe/i.test(report.renderer ?? ''))
+    throw new Error(`Requested Mesa CI renderer, received ${report.renderer}`);
   report.checks.push('packaged offline Babylon entry started');
   const resume = page.getByRole('button', { name: 'Resume', exact: true });
   if (await resume.isVisible()) await resume.click();
@@ -66,6 +85,43 @@ try {
   );
   await page.getByRole('button', { name: 'Restart', exact: true }).click();
   report.checks.push('pause/resume/restart');
+  await page.keyboard.down('w');
+  try {
+    await page.waitForFunction(
+      () => {
+        const speed = document.querySelector('#status')?.textContent?.match(/(\d+) km\/h/);
+        return speed && Number(speed[1]) > 5;
+      },
+      {},
+      { timeout: 30000 },
+    );
+  } finally {
+    await page.keyboard.up('w');
+  }
+  report.checks.push('native keyboard drives the existing simulation');
+  await page.getByRole('button', { name: 'Pause', exact: true }).click();
+  await page.waitForFunction(() =>
+    document.querySelector('#status')?.textContent?.includes('PAUSED'),
+  );
+  const pausedStatus = await page.locator('#status').textContent();
+  await page.waitForTimeout(300); // Explicit observation window for a frozen physics tick.
+  if ((await page.locator('#status').textContent()) !== pausedStatus)
+    throw new Error('Physics advanced while the desktop game was paused');
+  await page
+    .getByRole('button', { name: 'Inspect existing Formula asset (35 MB)', exact: true })
+    .click();
+  await page.waitForFunction(
+    () => {
+      const text = document.querySelector('#assetStatus')?.textContent ?? '';
+      return text.includes('Original Formula asset loaded') || text.includes('Model unavailable');
+    },
+    {},
+    { timeout: 120000 },
+  );
+  report.assetStatus = await page.locator('#assetStatus').textContent();
+  if (!report.assetStatus?.includes('Original Formula asset loaded'))
+    throw new Error(report.assetStatus || 'The packaged model did not load');
+  report.checks.push('original bundled Formula model imports through the offline protocol');
   const preferences = await application.evaluate(({ BrowserWindow }) =>
     BrowserWindow.getAllWindows()[0].webContents.getLastWebPreferences(),
   );

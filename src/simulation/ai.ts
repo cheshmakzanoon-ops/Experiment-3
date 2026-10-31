@@ -241,6 +241,7 @@ export class AIDriver {
         preparingPit,
         lineAt,
         this.trafficScale(),
+        this.trafficTrackingMargin(),
       );
       this.desiredOffset = this.laneOverride(track, c.s, plan.offset);
       this.trafficSpeed = plan.speedLimit;
@@ -581,6 +582,10 @@ export class AIDriver {
   /** Lateral traffic separation scale (narrow machines on narrow courses). */
   protected trafficScale() {
     return 1;
+  }
+  /** Lane-target reserve beyond the physical passing corridor (metres). */
+  protected trafficTrackingMargin() {
+    return 0;
   }
   /** Further speed limits a venue driver applies (m/s); none by default. */
   protected limitSpeed(desired: number, track: Track, race: RaceDirector) {

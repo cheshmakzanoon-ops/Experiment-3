@@ -6,6 +6,11 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+# Only the newest validation of a ref can qualify its current source.
+# Cancel superseded work instead of accumulating eight-browser matrices.
+concurrency:
+  group: motobound-validation-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   validate:
     runs-on: ubuntu-latest
