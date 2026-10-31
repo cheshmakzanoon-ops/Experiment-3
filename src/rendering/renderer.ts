@@ -1,3 +1,5 @@
+import type { Pass } from 'three/addons/postprocessing/Pass.js';
+import { observePreparationDraw } from './preparation-passes.ts';
 import { loadAurelQuarry } from './aurel-quarry.ts';
 import { loadAurelVegetation } from './aurel-vegetation.ts';
 import { loadVenueVegetation } from './vegetation/index.ts';
@@ -859,7 +861,12 @@ export class RacingRenderer {
     }
     this.cars.forEach((c, i) => (c.root.visible = i < n));
   }
-  readonly preparation = new PreparationTrace();
+  readonly preparation = new PreparationTrace(
+    () => performance.now(),
+    (event) => {
+      window.dispatchEvent(new CustomEvent('apex-preparation-checkpoint', { detail: event }));
+    },
+  );
   warmupFrames = 0;
   warmupPitPasses = 0;
   private warmingEnvironment = false;
@@ -910,17 +917,34 @@ export class RacingRenderer {
     cancelled: () => boolean,
     yieldFrame: () => Promise<void>,
   ) {
+    let fenceSpan = 0;
     this.warmupPitPasses += await warmPitMaterials({
       renderer: this.renderer,
       scene: this.scene,
       camera: this.camera,
       crew: this.pitCrew,
       frame,
-      submitted: () => this.gpuFrames.submittedFrame(),
-      ready: () => this.gpuFrames.ready(),
+      submitted: () => {
+        this.preparation.observe('pit:submit-fence', () => this.gpuFrames.submittedFrame());
+        fenceSpan = this.preparation.begin('pit:fence-wait');
+      },
+      ready: () => {
+        const ready = this.gpuFrames.ready();
+        if (ready && fenceSpan) {
+          this.preparation.end(fenceSpan, 'pit:fence-wait');
+          fenceSpan = 0;
+        }
+        return ready;
+      },
       cancelled,
       yieldFrame,
     });
+    if (fenceSpan)
+      this.preparation.checkpoint(
+        cancelled() ? 'cancelled' : 'mark',
+        'pit:wait-exited-unacknowledged',
+        fenceSpan,
+      );
   }
   /** Build the grid and warm real GPU paths while the physics worker is paused.
    * Yield between car construction and shader stages so progress can repaint.
@@ -1006,7 +1030,11 @@ export class RacingRenderer {
       if (this.warmShadowCasters()) {
         this.gpuFrames.submittedFrame();
         progress('Waiting for compiled shadow-caster GPU work…');
-        await this.waitForPreparedFrame(cancelled, yieldFrame);
+        await this.preparation.observeAsync(
+          'shadow:fence-wait',
+          () => this.waitForPreparedFrame(cancelled, yieldFrame),
+          cancelled,
+        );
         if (cancelled()) return false;
       }
       const camera = this.mode;
@@ -1014,9 +1042,31 @@ export class RacingRenderer {
         progress('Preparing the complete far shadow and sky environment…');
         await yieldFrame();
         if (cancelled()) return false;
-        this.warmEnvironmentFrame(frame);
+        observePreparationDraw(
+          this.preparation,
+          'environment',
+          {
+            renderer: this.renderer,
+            scene: this.scene,
+            camera: this.camera,
+            ledger: this.drawLedger,
+            composer: this.composer,
+            passNames: new Map<Pass, string>([
+              [this.scenePass, 'scene-ambient'],
+              [this.exposure, 'exposure'],
+              [this.bloom, 'bloom'],
+              [this.fxaa, 'fxaa'],
+              [this.grade, 'grade'],
+            ]),
+          },
+          () => this.warmEnvironmentFrame(frame),
+        );
         progress('Waiting for prepared environment GPU work…');
-        await this.waitForPreparedFrame(cancelled, yieldFrame);
+        await this.preparation.observeAsync(
+          'environment:fence-wait',
+          () => this.waitForPreparedFrame(cancelled, yieldFrame),
+          cancelled,
+        );
         if (cancelled()) return false;
         // The first bake enables the far light and environment textures. Warm
         // that actual program context before the full chase/onboard draws.
@@ -1038,11 +1088,33 @@ export class RacingRenderer {
           await yieldFrame();
           if (cancelled()) return false;
           this.changeCamera(mode);
-          this.draw(frame, frame, 1, 1 / 120, false, true);
+          observePreparationDraw(
+            this.preparation,
+            mode,
+            {
+              renderer: this.renderer,
+              scene: this.scene,
+              camera: this.camera,
+              ledger: this.drawLedger,
+              composer: this.composer,
+              passNames: new Map<Pass, string>([
+                [this.scenePass, 'scene-ambient'],
+                [this.exposure, 'exposure'],
+                [this.bloom, 'bloom'],
+                [this.fxaa, 'fxaa'],
+                [this.grade, 'grade'],
+              ]),
+            },
+            () => this.draw(frame, frame, 1, 1 / 120, false, true),
+          );
           this.warmupFrames++;
           if (mode === 'chase' && pitService) {
             progress('Warming offscreen pit-service materials…');
-            await this.warmPitPresentation(frame, cancelled, yieldFrame);
+            await this.preparation.observeAsync(
+              'pit:warmup',
+              () => this.warmPitPresentation(frame, cancelled, yieldFrame),
+              cancelled,
+            );
             if (cancelled()) return false;
           }
           await compileSceneTarget(
@@ -1055,7 +1127,11 @@ export class RacingRenderer {
           // Shader linking alone does not finish GPU uploads or the warmup draw.
           // Keep the worker paused until its actual submission has completed.
           progress(`Waiting for completed ${mode} GPU work…`);
-          await this.waitForPreparedFrame(cancelled, yieldFrame);
+          await this.preparation.observeAsync(
+            `${mode}:fence-wait`,
+            () => this.waitForPreparedFrame(cancelled, yieldFrame),
+            cancelled,
+          );
           if (cancelled()) return false;
         }
       } finally {

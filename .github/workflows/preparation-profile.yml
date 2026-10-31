@@ -1,0 +1,45 @@
+name: Diagnose cold rendering preparation
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/preparation-profile.yml'
+      - 'e2e/preparation-profile.ts'
+permissions:
+  contents: read
+jobs:
+  profile:
+    # Diagnostic only; never substitutes for unchanged acceptance workflows.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      APEX_PREPARATION_PROFILE: '1'
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
+      - name: Profile original Academy and paused-grid workloads
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/08-reference-implementation.spec.ts e2e/30-menu-access.spec.ts --grep 'night and guide controls|paused grid' --trace on
+      - name: Retain profiles and original assertion outcomes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cold-preparation-profile
+          path: |
+            test-results/
+            playwright-report/
+            browser-backend.json
+            browser-progress.json
+          retention-days: 7

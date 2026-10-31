@@ -56,7 +56,21 @@ export function compileSceneTarget(
   }
 }
 
+export interface PreparationCheckpoint {
+  run: number;
+  sequence: number;
+  span: number;
+  phase: 'start' | 'end' | 'error' | 'cancelled' | 'mark';
+  label: string;
+  at: number;
+}
+
 interface PreparationRecord {
+  run: number;
+  checkpoints: PreparationCheckpoint[];
+  checkpointSequence: number;
+  checkpointsDropped: number;
+  observerErrors: number;
   status: 'preparing' | 'complete' | 'cancelled' | 'failed';
   started: number;
   ended: number | null;
@@ -66,12 +80,79 @@ interface PreparationRecord {
 /** Bounded wall-time diagnostics, not a simulation clock or a hardware FPS claim. */
 export class PreparationTrace {
   private current: PreparationRecord | null = null;
-  constructor(private readonly now = () => performance.now()) {}
+  private nextRun = 0;
+  constructor(
+    private readonly now = () => performance.now(),
+    private readonly observer?: (event: PreparationCheckpoint) => void,
+  ) {}
+  checkpoint(phase: PreparationCheckpoint['phase'], label: string, span = 0) {
+    const record = this.current;
+    if (!record || record.status !== 'preparing') return 0;
+    const sequence = ++record.checkpointSequence;
+    const event = {
+      run: record.run,
+      sequence,
+      span: span || sequence,
+      phase,
+      label: label.slice(0, 160),
+      at: this.now(),
+    };
+    if (record.checkpoints.length === 256) {
+      record.checkpoints.shift();
+      record.checkpointsDropped++;
+    }
+    record.checkpoints.push(event);
+    try {
+      this.observer?.({ ...event });
+    } catch {
+      record.observerErrors++;
+    }
+    return event.span;
+  }
+  begin(label: string) {
+    return this.checkpoint('start', label);
+  }
+  end(span: number, label: string) {
+    this.checkpoint('end', label, span);
+  }
+  observe<T>(label: string, operation: () => T): T {
+    const record = this.current;
+    const span = this.begin(label);
+    try {
+      const result = operation();
+      if (record === this.current) this.end(span, label);
+      return result;
+    } catch (error) {
+      if (record === this.current) this.checkpoint('error', label, span);
+      throw error;
+    }
+  }
+  async observeAsync<T>(
+    label: string,
+    operation: () => Promise<T>,
+    cancelled = () => false,
+  ): Promise<T> {
+    const record = this.current;
+    const span = this.begin(label);
+    try {
+      const result = await operation();
+      if (record === this.current) this.checkpoint(cancelled() ? 'cancelled' : 'end', label, span);
+      return result;
+    } catch (error) {
+      if (record === this.current) this.checkpoint('error', label, span);
+      throw error;
+    }
+  }
   async run(
     progress: (label: string) => void,
     prepare: (report: (label: string) => void) => Promise<boolean>,
   ) {
     const record: PreparationRecord = {
+      run: ++this.nextRun,
+      checkpoints: [],
+      checkpointSequence: 0,
+      checkpointsDropped: 0,
+      observerErrors: 0,
       status: 'preparing',
       started: this.now(),
       ended: null,
@@ -85,6 +166,7 @@ export class PreparationTrace {
       if (previous) previous.ended = time;
       if (record.stages.length === 32) record.stages.shift();
       record.stages.push({ label, started: time, ended: null });
+      if (this.current === record) this.checkpoint('mark', `stage:${label}`);
       progress(label);
     };
     try {
@@ -106,6 +188,9 @@ export class PreparationTrace {
     if (!record) return null;
     const time = record.ended ?? this.now();
     return {
+      checkpoints: record.checkpoints.map((event) => ({ ...event })),
+      checkpointsDropped: record.checkpointsDropped,
+      observerErrors: record.observerErrors,
       status: record.status,
       elapsedMs: Math.max(0, time - record.started),
       error: record.error,

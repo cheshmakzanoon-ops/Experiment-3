@@ -47,10 +47,13 @@ function stage(name) {
 async function observeGraphicsHealth(page) {
   let timer;
   try {
-    const [processObservation, documentObservation] = await Promise.race([
+    const [processObservation, rendererObservations] = await Promise.race([
       Promise.all([
         application.evaluate(() => globalThis.motoboundProcessGraphicsObservation?.()),
-        page.evaluate(() => window.motoboundGraphicsObservation?.()),
+        page.evaluate(() => ({
+          document: window.motoboundGraphicsObservation?.(),
+          babylon: window.babylonGraphicsDiagnostics?.(),
+        })),
       ]),
       new Promise((_, reject) => {
         timer = setTimeout(
@@ -59,6 +62,9 @@ async function observeGraphicsHealth(page) {
         );
       }),
     ]);
+    const documentObservation = rendererObservations.document;
+    if (rendererObservations.babylon)
+      report.babylonGraphicsObservation = rendererObservations.babylon;
     report.processGraphicsObservation = processObservation;
     report.documentGraphicsObservation = documentObservation;
     report.contextLosses = documentObservation?.documents?.reduce(
@@ -162,6 +168,9 @@ try {
   report.runtime = await application.evaluate(({ app }) => ({
     platform: process.platform,
     arch: process.arch,
+    electron: process.versions.electron,
+    chromium: process.versions.chrome,
+    node: process.versions.node,
     translated: app.runningUnderARM64Translation,
   }));
   if (report.runtime.arch !== target.arch || report.runtime.platform !== target.platform)

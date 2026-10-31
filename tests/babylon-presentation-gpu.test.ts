@@ -6,7 +6,7 @@ import {
 } from '../src/engine/babylon/presentation-gpu.ts';
 import { PresentationSchedule } from '../src/engine/babylon/presentation-schedule.ts';
 function fixture() {
-  const state = { wait: 2, lost: false, allocationFails: false };
+  const state = { wait: 2, lost: false, allocationFails: false, now: 0 };
   const gl = {
     SYNC_GPU_COMMANDS_COMPLETE: 1,
     TIMEOUT_EXPIRED: 2,
@@ -18,7 +18,12 @@ function fixture() {
     deleteSync: vi.fn(),
     flush: vi.fn(),
   } as unknown as WebGL2RenderingContext;
-  return { state, gl, gpu: new BabylonPresentationGpu(gl), schedule: new PresentationSchedule() };
+  return {
+    state,
+    gl,
+    gpu: new BabylonPresentationGpu(gl, () => state.now),
+    schedule: new PresentationSchedule(),
+  };
 }
 it('does not consume paused invalidations while busy; observes completion before the next submission', () => {
   const { gpu, state, schedule, gl } = fixture(),
@@ -172,4 +177,104 @@ it('guards startup after the asynchronous settings read before constructing reso
   expect(engine).toBeGreaterThan(input);
   const stop = source.slice(source.indexOf('function stop('), source.indexOf('function reset()'));
   expect(stop).toContain('abort.abort()');
+});
+
+it('retains an independent pre-clear loss receipt across restoration without inventing completion', () => {
+  const { gpu, state, schedule } = fixture();
+  gpu.frame(schedule, false, {}, () => {
+    state.now = 7;
+    return true;
+  });
+  state.now = 107;
+  gpu.ready();
+  state.lost = true;
+  gpu.contextLost();
+  const snapshot = gpu.diagnostics();
+  expect(snapshot.lastLoss).toMatchObject({
+    number: 1,
+    phase: 'waiting',
+    pendingSequence: 1,
+    submitted: 1,
+    completed: 0,
+    lastDrawCpuMs: 7,
+    drawStartedAtMs: null,
+    queue: { pending: true, pendingMs: 100, activeWaitMs: 100, submitted: 1, completed: 0 },
+  });
+  snapshot.lastLoss!.queue.pendingMs = -1;
+  snapshot.lastLoss!.pendingSequence = -1;
+  snapshot.queue.pendingMs = -1;
+  state.lost = false;
+  gpu.contextRestored();
+  expect(gpu.diagnostics()).toMatchObject({
+    completed: 0,
+    losses: 1,
+    phase: 'idle',
+    lastLoss: { pendingSequence: 1, queue: { pendingMs: 100, pending: true } },
+  });
+});
+it('keeps exactly the latest loss receipt and cumulative count through repeated recovery', () => {
+  const { gpu, state, schedule } = fixture();
+  for (let i = 1; i <= 40; i++) {
+    gpu.frame(schedule, false, {}, () => true);
+    state.now += 100;
+    state.lost = true;
+    gpu.contextLost();
+    gpu.contextLost(); // duplicate notification is not another loss
+    state.lost = false;
+    gpu.contextRestored();
+  }
+  const d = gpu.diagnostics();
+  expect(d).toMatchObject({
+    losses: 40,
+    completed: 0,
+    abandoned: 40,
+    lastLoss: { number: 40, pendingSequence: 40, submitted: 40 },
+  });
+  expect(JSON.stringify(d).length).toBeLessThan(2000);
+});
+it('reports draw CPU phase/duration and preserves a thrown draw as a failed phase', () => {
+  const { gpu, state, schedule } = fixture();
+  expect(() =>
+    gpu.frame(schedule, false, {}, () => {
+      expect(gpu.diagnostics()).toMatchObject({ phase: 'drawing', drawStartedAtMs: 0 });
+      state.now = 42;
+      throw new Error('draw failed');
+    }),
+  ).toThrow('draw failed');
+  expect(gpu.diagnostics()).toMatchObject({
+    phase: 'failed',
+    lastDrawCpuMs: 42,
+    drawStartedAtMs: null,
+    submitted: 0,
+  });
+});
+
+it('retains independent submission age when GL loss is polled before the loss observable fires', () => {
+  const { gpu, state, schedule } = fixture();
+  gpu.frame(schedule, false, {}, () => {
+    state.now = 7;
+    return true;
+  });
+  state.now = 107;
+  state.lost = true;
+  // The existing gate correctly drops its invalid sync before the engine's
+  // later context-loss notification; do not reconstruct a fake gate fence.
+  expect(gpu.ready()).toBe(false);
+  expect(gpu.diagnostics().queue.pending).toBe(false);
+  gpu.contextLost();
+  expect(gpu.diagnostics().lastLoss).toMatchObject({
+    pendingSequence: 1,
+    pendingSubmittedAtMs: 7,
+    pendingAgeMs: 100,
+    submitted: 1,
+    completed: 0,
+    queue: { pending: false, pendingMs: 0 },
+  });
+  state.lost = false;
+  gpu.contextRestored();
+  expect(gpu.diagnostics()).toMatchObject({
+    completed: 0,
+    abandoned: 1,
+    lastLoss: { pendingSubmittedAtMs: 7, pendingAgeMs: 100 },
+  });
 });

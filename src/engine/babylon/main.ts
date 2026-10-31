@@ -1,3 +1,4 @@
+import { RestartOwnership } from './restart-ownership.ts';
 import { BabylonPresentationGpu, cleanupPresentation } from './presentation-gpu.ts';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode.js';
 import { Engine } from '@babylonjs/core/Engines/engine.js';
@@ -34,11 +35,39 @@ const eventOptions = { signal: abort.signal };
 let engine: Engine | undefined;
 let scene: BabylonCircuitScene | undefined;
 let gpu: BabylonPresentationGpu | undefined;
+declare global {
+  interface Window {
+    babylonGraphicsDiagnostics: () => ReturnType<BabylonPresentationGpu['diagnostics']> | null;
+  }
+}
+Object.defineProperty(window, 'babylonGraphicsDiagnostics', {
+  value: () => gpu?.diagnostics() ?? null,
+  writable: false,
+  configurable: false,
+});
 let stopped = false;
 let resizePending = false;
-let resetPending = false;
+
 let component: SimulationComponent;
 const presentation = new PresentationSchedule();
+const restartOwnership = new RestartOwnership<SimulationComponent>(
+  () => {
+    assetLoad.abort();
+    loadAsset.disabled = true;
+    assetStatus.textContent = 'Restarting presentation…';
+  },
+  () => {
+    component = new SimulationComponent({
+      ...DEFAULT_OPTIONS,
+      setup: settings.setup,
+      mode: 'practice',
+      opponents: 0,
+    });
+    // Clear the previous run's input now, never after later keydown events.
+    setPaused(false);
+    return component;
+  },
+);
 let renderedFrames = 0;
 let paused = false,
   last = performance.now(),
@@ -79,11 +108,15 @@ function stop(error?: unknown) {
     console.error('Babylon cleanup failed:', failure);
 }
 function reset() {
-  assetLoad.abort();
-  resetPending = true;
-  requestPresentation();
+  if (stopped) return;
+  try {
+    restartOwnership.request();
+    requestPresentation();
+  } catch (error) {
+    stop(error);
+  }
 }
-function resetScene() {
+function rebuildScene(owner: SimulationComponent) {
   status.dataset.presentationSettled = 'false';
   presentation.reset();
   assetLoad.abort();
@@ -97,14 +130,7 @@ function resetScene() {
   loadAsset.disabled = false;
   assetStatus.textContent = 'Original authored asset is optional in this diagnostic preview.';
   scene?.dispose();
-  component = new SimulationComponent({
-    ...DEFAULT_OPTIONS,
-    setup: settings.setup,
-    mode: 'practice',
-    opponents: 0,
-  });
-  scene = new BabylonCircuitScene(engine!, component.simulation.track, 1);
-  setPaused(false);
+  scene = new BabylonCircuitScene(engine!, owner.simulation.track, 1);
 }
 window.addEventListener('pagehide', () => stop(), { once: true });
 try {
@@ -143,12 +169,14 @@ try {
     last = performance.now();
     requestPresentation();
   });
-  resetScene();
+  restartOwnership.request();
+  restartOwnership.drain(true, rebuildScene);
   pause.addEventListener('click', () => setPaused(!paused), eventOptions);
   restart.addEventListener('click', reset, eventOptions);
   loadAsset.addEventListener(
     'click',
     async () => {
+      if (stopped || restartOwnership.pending) return;
       const currentScene = scene!,
         signal = assetLoad.signal;
       loadAsset.disabled = true;
@@ -228,10 +256,7 @@ try {
       last = now;
       component.advance(seconds);
       if (gpu!.ready()) {
-        if (resetPending) {
-          resetPending = false;
-          resetScene();
-        }
+        restartOwnership.drain(true, rebuildScene);
         if (resizePending) {
           resizePending = false;
           engine!.resize();
@@ -257,7 +282,7 @@ try {
       status.dataset.abandonedFrames = String(graphics.abandoned);
       status.dataset.presentationSettled = String(
         paused &&
-          !resetPending &&
+          !restartOwnership.pending &&
           !resizePending &&
           !presentation.pending &&
           !graphics.lost &&

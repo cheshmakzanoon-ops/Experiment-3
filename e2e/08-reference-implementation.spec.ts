@@ -1,4 +1,5 @@
-import { test, expect, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { preparationProfileTest as test } from './preparation-profile.ts';
 import { H, F, carBase } from '../src/simulation/protocol.ts';
 const diag = (page: Page) => page.evaluate(() => window.apexDiagnostics());
 async function ready(page: Page) {

@@ -57,6 +57,18 @@ The next source increment bounds Babylon scene submissions with the existing GPU
 
 Academy circuit-lighting controls now promote the initial vehicle-only showroom to a complete venue without replacing held simulation samples or starting a race. Construction has one owner, repeated entry coalesces, Escape/controller pause cancels panel intent, resize waits for ownership, and late cancelled resources cannot reopen UI. Ordinary studio photographs retain their intentional daylight. These changes remain subject to native/browser qualification; local tests are not GPU or commercial acceptance. The combined local suite passed 175 focused tests; after the final recovery-accounting change, all 15 affected presentation tests passed again. TypeScript, desktop compilation, full project lint, workflow lint and production build passed; a final production build also passed with source-stability verification.
 
+### `8a24796` outcome and restart repair
+
+All five Babylon WebGL journeys passed. Apple Silicon passed all four native modes with zero recorded GPU exits/context losses. Windows and diagnostic SwiftShader failed their first throttle check after Restart: simulation kept advancing, but deferred scene replacement reset input after the new keydown. Required Mesa reached imported-model readiness, then recorded GPU exit 512 and context loss during wheel checks. Publication was skipped. [Native run](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41195048449).
+
+The settings transition run still failed paused-grid loading at 60 seconds (five other checks passed). The interaction job was cancelled after the showroom/grid journey passed, while night/held-preview checks failed waiting for Academy visibility, before their lighting or frozen-frame assertions ran. Both had reached the construction “Scene ready” label around 14 seconds, followed by 67–85-second screencast gaps; this does not yet isolate the create tail from the first full-venue draw. A separate programme trace spent about 63.65 seconds in initial material compilation. [Transition run](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41195048433) · [Interaction run](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41195048491).
+
+The repair separates immediate simulation/input restart ownership from GPU-delayed scene replacement. Deterministic tests preserve throttle pressed after Restart through a busy GPU, preserve later pause/resume input, and use only the latest repeated restart. It does not clear an unfinished fence or loosen the native throttle assertion.
+
+Preparation evidence now records bounded CPU pass checkpoints and separate fence waits, restoring temporary method wrappers before ordinary rendering. A separate opt-in CPU-profile workflow retains the original Academy and paused-grid assertions; profiling adds overhead and is diagnostic, not acceptance or a performance benchmark. No quality settings are lowered and no acceptance deadline is extended. The mixed-class GP pace experiment remains unmerged: a globally applied admission-only prototype worsened that existing criterion despite passing focused safety tests.
+
+Final local validation of this repair/diagnostic increment passed **117 tests across 15 files**, root and desktop TypeScript, full project lint, workflow lint and a source-stable production build (44.65 seconds). The optional profiler selected exactly the two intended original tests. Native restart repair, diagnostic artifact capture and performance acceptance remain pending.
+
 ## Remaining acceptance gates
 
 1. Resolve mixed-class GP pace and confirm the full suite under appropriate runner load without hiding failures or extending acceptance limits merely to pass.

@@ -33,7 +33,8 @@ function fixture(vehicle = 'apx01', entrants = 3) {
     camera: new T.PerspectiveCamera(),
     mode: 'pod',
     preparation: new PreparationTrace(),
-    composer: { readBuffer: new T.WebGLRenderTarget(8, 8, { type: T.HalfFloatType }) },
+    drawLedger: { mark: vi.fn() },
+    composer: { passes: [], readBuffer: new T.WebGLRenderTarget(8, 8, { type: T.HalfFloatType }) },
     warmupFrames: 0,
     preparationLight: new T.DirectionalLight(),
     preparedEnvironment: new T.Texture(),
@@ -63,6 +64,7 @@ function fixture(vehicle = 'apx01', entrants = 3) {
       calls.push(`cars:${n}`);
     },
     renderer: {
+      render: vi.fn(),
       getRenderTarget: () => bound,
       getActiveCubeFace: () => 0,
       getActiveMipmapLevel: () => 0,

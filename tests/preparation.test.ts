@@ -407,6 +407,19 @@ describe('grid preparation diagnostics and target ownership', () => {
     expect(await run).toBe(true);
     now = 99;
     expect(trace.snapshot()).toEqual({
+      checkpoints: [
+        {
+          run: 1,
+          sequence: 1,
+          span: 1,
+          phase: 'mark',
+          label: 'stage:materials',
+          at: 0,
+        },
+        { run: 1, sequence: 2, span: 2, phase: 'mark', label: 'stage:GPU', at: 12 },
+      ],
+      checkpointsDropped: 0,
+      observerErrors: 0,
       status: 'complete',
       elapsedMs: 32,
       error: null,

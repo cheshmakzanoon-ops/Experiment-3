@@ -1,4 +1,5 @@
-import { test as base, type ConsoleMessage } from '@playwright/test';
+import type { ConsoleMessage } from '@playwright/test';
+import { preparationProfileTest as base } from './preparation-profile.ts';
 
 const PREFIX = '__APEX_MENU_TIMING__';
 const RETAINED_EVENTS = 4096;
@@ -56,6 +57,7 @@ export const menuTimingTest = base.extend<{ menuTimingEvidence: undefined }>({
           }
           if (
             [
+              'preparation',
               'document',
               'context',
               'visibility',
@@ -108,6 +110,27 @@ export const menuTimingTest = base.extend<{ menuTimingEvidence: undefined }>({
                 }),
             );
           };
+          window.addEventListener('apex-preparation-checkpoint', (event) => {
+            const checkpoint = (event as CustomEvent).detail;
+            if (
+              !checkpoint ||
+              typeof checkpoint.label !== 'string' ||
+              typeof checkpoint.phase !== 'string' ||
+              !Number.isFinite(checkpoint.at)
+            )
+              return;
+            record('preparation', {
+              label: checkpoint.label.slice(0, 160),
+              phase: checkpoint.phase,
+              preparationRun: checkpoint.run,
+              checkpointSequence: checkpoint.sequence,
+              span: checkpoint.span,
+              checkpointAt: checkpoint.at,
+            });
+            // A synchronous driver stall must not strand the last start marker
+            // in a timer-flushed browser buffer. Node retains the packet now.
+            emit(true);
+          });
           const nativeRAF = window.requestAnimationFrame.bind(window);
           let callback = 0;
           let activeCallback = 0;

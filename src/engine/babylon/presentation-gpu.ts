@@ -8,13 +8,40 @@ export type PresentationReceipt =
 export interface PresentationCompletions {
   subscribe(listener: (receipt: PresentationReceipt) => void): () => void;
 }
+type PresentationPhase =
+  | 'idle'
+  | 'drawing'
+  | 'fencing'
+  | 'waiting'
+  | 'lost'
+  | 'failed'
+  | 'disposed';
+interface GraphicsLossReceipt {
+  number: number;
+  observedAtMs: number;
+  phase: PresentationPhase;
+  pendingSequence: number | null;
+  pendingSubmittedAtMs: number | null;
+  pendingAgeMs: number | null;
+  submitted: number;
+  completed: number;
+  lastCompletedSequence: number;
+  lastDrawCpuMs: number | null;
+  drawStartedAtMs: number | null;
+  queue: ReturnType<GpuFrameGate['diagnostics']>;
+}
 /** Own normal scene submissions, not asynchronous asset upload/compilation.
  * Fences cover scene.render commands; Babylon's normal endFrame only notifies
  * observers (and optionally flushes). Do not install drawing endFrame observers
  * outside this owner. No state-binding or private engine API is used here. */
 export class BabylonPresentationGpu implements PresentationCompletions {
   private gate: GpuFrameGate;
-  private pending: { owner: object; ready: boolean; sequence: number } | null = null;
+  private pending: {
+    owner: object;
+    ready: boolean;
+    sequence: number;
+    submittedAtMs: number;
+  } | null = null;
   private lost = false;
   private disposed = false;
   private readonly listeners = new Set<(receipt: PresentationReceipt) => void>();
@@ -22,8 +49,17 @@ export class BabylonPresentationGpu implements PresentationCompletions {
   private completed = 0;
   private lastCompletedSequence = 0;
   private abandoned = 0;
-  constructor(private readonly gl: WebGL2RenderingContext) {
-    this.gate = new GpuFrameGate(gl);
+  private phase: PresentationPhase = 'idle';
+  private lastDrawCpuMs: number | null = null;
+  private drawStartedAtMs: number | null = null;
+  private losses = 0;
+  // One bounded receipt only; never retain the owner/scene object graph.
+  private lastLoss: GraphicsLossReceipt | null = null;
+  constructor(
+    private readonly gl: WebGL2RenderingContext,
+    private readonly now: () => number = () => performance.now(),
+  ) {
+    this.gate = new GpuFrameGate(gl, now);
   }
   subscribe(listener: (receipt: PresentationReceipt) => void) {
     // A newly installed asset must not claim a frame submitted before it existed.
@@ -42,29 +78,75 @@ export class BabylonPresentationGpu implements PresentationCompletions {
   }
   /** Poll even held paused scenes so their final GPU receipt can complete. */
   ready() {
-    if (this.disposed || this.lost || !this.gate.ready()) return false;
+    if (this.disposed || this.lost) return false;
+    try {
+      if (!this.gate.ready()) return false;
+    } catch (error) {
+      this.phase = 'failed';
+      throw error;
+    }
     if (this.pending) {
       const receipt = this.pending;
       this.pending = null;
       this.completed++;
       this.lastCompletedSequence = receipt.sequence;
-      this.publish({ kind: 'completed', ...receipt });
+      this.phase = 'idle';
+      this.publish({
+        kind: 'completed',
+        owner: receipt.owner,
+        ready: receipt.ready,
+        sequence: receipt.sequence,
+      });
     }
     return true;
   }
   frame(schedule: PresentationSchedule, paused: boolean, owner: object, draw: () => boolean) {
     if (!this.ready() || !schedule.shouldRender(paused)) return false;
-    const ready = draw();
-    this.gate.submittedFrame();
+    this.phase = 'drawing';
+    this.drawStartedAtMs = this.now();
+    let ready: boolean;
+    try {
+      ready = draw();
+    } catch (error) {
+      this.phase = 'failed';
+      throw error;
+    } finally {
+      this.lastDrawCpuMs = Math.max(0, this.now() - this.drawStartedAtMs);
+      this.drawStartedAtMs = null;
+    }
+    this.phase = 'fencing';
+    const submittedAtMs = this.now();
+    try {
+      this.gate.submittedFrame();
+    } catch (error) {
+      this.phase = 'failed';
+      throw error;
+    }
     if (!this.gate.diagnostics().pending) {
       this.contextLost();
       return false;
     }
-    this.pending = { owner, ready, sequence: ++this.submitted };
+    this.pending = { owner, ready, sequence: ++this.submitted, submittedAtMs };
+    this.phase = 'waiting';
     return true;
   }
   contextLost() {
     if (this.disposed || this.lost) return;
+    this.lastLoss = {
+      number: ++this.losses,
+      observedAtMs: this.now(),
+      phase: this.phase,
+      pendingSequence: this.pending?.sequence ?? null,
+      pendingSubmittedAtMs: this.pending?.submittedAtMs ?? null,
+      pendingAgeMs: this.pending ? Math.max(0, this.now() - this.pending.submittedAtMs) : null,
+      submitted: this.submitted,
+      completed: this.completed,
+      lastCompletedSequence: this.lastCompletedSequence,
+      lastDrawCpuMs: this.lastDrawCpuMs,
+      drawStartedAtMs: this.drawStartedAtMs,
+      queue: this.gate.diagnostics(),
+    };
+    this.phase = 'lost';
     this.lost = true;
     if (this.pending) this.abandoned++;
     this.pending = null;
@@ -73,11 +155,18 @@ export class BabylonPresentationGpu implements PresentationCompletions {
   }
   contextRestored() {
     if (this.disposed || !this.lost) return;
-    this.gate = new GpuFrameGate(this.gl);
+    this.gate = new GpuFrameGate(this.gl, this.now);
     this.lost = false;
+    this.phase = 'idle';
   }
   diagnostics() {
+    const queue = this.gate.diagnostics();
     return {
+      phase: this.phase,
+      lastDrawCpuMs: this.lastDrawCpuMs,
+      drawStartedAtMs: this.drawStartedAtMs,
+      losses: this.losses,
+      lastLoss: this.lastLoss ? { ...this.lastLoss, queue: { ...this.lastLoss.queue } } : null,
       submitted: this.submitted,
       completed: this.completed,
       lastCompletedSequence: this.lastCompletedSequence,
@@ -86,17 +175,18 @@ export class BabylonPresentationGpu implements PresentationCompletions {
         !this.disposed &&
         !this.lost &&
         !this.pending &&
-        !this.gate.diagnostics().pending &&
-        !this.gate.diagnostics().failure &&
+        !queue.pending &&
+        !queue.failure &&
         this.lastCompletedSequence === this.submitted,
       lost: this.lost,
       disposed: this.disposed,
-      queue: this.gate.diagnostics(),
+      queue,
     };
   }
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
+    this.phase = 'disposed';
     this.pending = null;
     this.gate.dispose();
     this.publish({ kind: 'disposed' });
