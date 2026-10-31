@@ -14,7 +14,7 @@ MOTOBOUND is an independent browser-based motorsport game built with TypeScript 
 
 `main` is the consolidated development source, including the latest GP motorcycle work integrated on **2026-10-31**. [Current validation status](docs/CURRENT_STATUS.md) is distinct from historical phase reports.
 
-- [Playable website](https://cheshmakzanoon-ops.github.io/Experiment-3/)
+- **Website deployment pending:** GitHub Pages must first be enabled in repository settings; the intended URL is [here](https://cheshmakzanoon-ops.github.io/Experiment-3/).
 - [Downloadable releases](https://github.com/cheshmakzanoon-ops/Experiment-3/releases)
 - [Build and validation runs](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/workflows/ci.yml)
 
@@ -24,10 +24,10 @@ A passing build is not proof that every gameplay gate has passed. Releases inclu
 
 | Experience             | Entry in the game                                            | Main implementation                                           |
 | ---------------------- | ------------------------------------------------------------ | ------------------------------------------------------------- |
-| Formula circuit racing | Select a formula machine, circuit and session in the paddock | `src/simulation/`, `src/rendering/`, `src/ui/f1-hud.ts`       |
-| GP motorcycle racing   | Select GP-R1/GP-R2 and a compatible motorcycle GP venue      | `src/simulation/motogp-physics.ts`, `src/rendering/gp-*.ts`   |
+| Formula circuit racing | **FORMULA** shortcut, then choose the session | `src/simulation/`, `src/rendering/`, `src/ui/f1-hud.ts`       |
+| GP motorcycle racing   | **GP MOTORCYCLES** shortcut, or select GP-R1/GP-R2 and a compatible venue      | `src/simulation/motogp-physics.ts`, `src/rendering/gp-*.ts`   |
 | Motocross / supercross | **OUTDOOR MX** or **STADIUM SX**, then choose a ride preset  | `src/simulation/offroad/`, `src/ui/motocross-presentation.ts` |
-| Open-world driving     | **SESSION → Festival · open world**                          | `src/simulation/open-world/`, `src/session/free-roam.ts`      |
+| Open-world driving     | **OPEN WORLD** shortcut or **SESSION → Festival · open world**                          | `src/simulation/open-world/`, `src/session/free-roam.ts`      |
 
 These are original fictional motorsport disciplines, not licensed F1, MotoGP or Forza products. Current end-to-end verification is tracked in the status page above.
 

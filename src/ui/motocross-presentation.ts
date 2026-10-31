@@ -1,3 +1,4 @@
+import { DISCIPLINE_PRESETS, disciplinePreset } from './discipline-presets.ts';
 import { circuitDefinition, type CircuitId } from '../simulation/circuits.ts';
 import type { SessionOptions } from '../simulation/config.ts';
 import { offroadCourse } from '../simulation/offroad/venues.ts';
@@ -110,9 +111,15 @@ export function installMotocrossMenu(
   menu.append(style);
   const shortcuts = document.createElement('nav');
   shortcuts.className = 'mx-entry';
-  shortcuts.setAttribute('aria-label', 'Motocross venues');
-  shortcuts.innerHTML =
-    '<span>DIRT SERIES</span><button type="button" data-mx-venue="valley-ridge-mx">OUTDOOR MX</button><button type="button" data-mx-venue="arena-nord-sx">STADIUM SX</button>';
+  shortcuts.setAttribute('aria-label', 'Driving disciplines');
+  shortcuts.innerHTML = `<span>CHOOSE YOUR DRIVE</span>${Object.entries(DISCIPLINE_PRESETS)
+    .map(
+      ([id, p]) =>
+        `<button type="button" data-discipline-preset="${id}" aria-pressed="false">${p.title}</button>`,
+    )
+    .join(
+      '',
+    )}<button type="button" data-mx-venue="valley-ridge-mx">OUTDOOR MX</button><button type="button" data-mx-venue="arena-nord-sx">STADIUM SX</button>`;
   menu.querySelector('#sessionForm')!.before(shortcuts);
   const panel = document.createElement('section');
   panel.className = 'mx-setup';
@@ -184,8 +191,17 @@ export function installMotocrossMenu(
         ? `<kbd>${escape(keyName(bindings.throttle))}${escape(keyName(bindings.left))}${escape(keyName(bindings.brake))}${escape(keyName(bindings.right))}</kbd> RIDE · <kbd>${escape(keyName(bindings.riderForward))} / ${escape(keyName(bindings.riderBack))}</kbd> WEIGHT · RIGHT STICK READY`
         : originalMenuHint;
     panel.hidden = !kind;
-    for (const button of shortcuts.querySelectorAll<HTMLButtonElement>('button'))
-      button.setAttribute('aria-pressed', String(button.dataset.mxVenue === circuit.value));
+    for (const button of shortcuts.querySelectorAll<HTMLButtonElement>('button')) {
+      const preset = disciplinePreset(button.dataset.disciplinePreset ?? '');
+      const active = preset
+        ? preset.mode === 'festival'
+          ? select('mode').value === 'festival'
+          : select('mode').value !== 'festival' &&
+            circuit.value === preset.circuit &&
+            vehicle.value === preset.vehicle
+        : select('mode').value !== 'festival' && button.dataset.mxVenue === circuit.value;
+      button.setAttribute('aria-pressed', String(active));
+    }
     if (kind) {
       const def = circuitDefinition(circuit.value as CircuitId);
       title.innerHTML = kind === 'supercross' ? 'OWN THE<br>RHYTHM.' : 'FIND YOUR<br>FLOW.';
@@ -255,6 +271,28 @@ export function installMotocrossMenu(
     }
   };
   shortcuts.addEventListener('click', (event) => {
+    const shortcut = (event.target as HTMLElement).closest<HTMLButtonElement>(
+      '[data-discipline-preset]',
+    );
+    const preset = shortcut && disciplinePreset(shortcut.dataset.disciplinePreset!);
+    if (preset) {
+      // Populate the complete choice before notifying listeners, so previews
+      // never see a road-bike/dirt-venue intermediate combination.
+      const values = {
+        circuit: preset.circuit,
+        vehicle: preset.vehicle,
+        mode: preset.mode,
+        opponents: '0',
+        compound: 'medium',
+        weather: 'clear',
+        assist: 'sport',
+      };
+      for (const [id, value] of Object.entries(values)) select(id).value = value;
+      for (const id of Object.keys(values))
+        select(id).dispatchEvent(new Event('change', { bubbles: true }));
+      refresh();
+      return;
+    }
     const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-mx-venue]');
     if (!button) return;
     set('circuit', button.dataset.mxVenue!);

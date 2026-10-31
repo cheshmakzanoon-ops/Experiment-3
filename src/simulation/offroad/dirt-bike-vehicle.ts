@@ -723,11 +723,15 @@ export class DirtBikeVehicle extends BikeVehicle {
       limit = (spec.limiterRPM * Math.PI) / 30 / ratio,
       previous = this.rearSpin;
     // Cut torque at the limiter; never clamp a spinning wheel's momentum.
-    const spinDrive = this.rearSpin < limit ? pedal * a.spinUp : 0;
-    this.rearSpin = Math.max(
-      0,
-      this.rearSpin + (spinDrive - rearBrake * a.spinBrake - 2) * dt,
-    );
+    const spinResistance = rearBrake * a.spinBrake + 2;
+    // Integrate only the drive impulse available before the limiter cuts.
+    // A full-step torque pulse used to overshoot the selected gear's limit.
+    // Existing overspeed momentum is retained and coasts/brakes naturally.
+    const spinDrive =
+      this.rearSpin < limit
+        ? Math.min(pedal * a.spinUp, (limit - this.rearSpin) / dt + spinResistance)
+        : 0;
+    this.rearSpin = Math.max(0, this.rearSpin + (spinDrive - spinResistance) * dt);
     this.rpm = clamp((this.rearSpin * ratio * 30) / Math.PI, spec.idleRPM, spec.limiterRPM);
     const spinTorque = (a.spinInertia * (this.rearSpin - previous)) / dt;
     const frontCoast = this.frontSpin * Math.exp(-0.4 * dt);
