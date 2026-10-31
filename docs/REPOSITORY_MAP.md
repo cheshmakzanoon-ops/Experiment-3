@@ -12,6 +12,8 @@ Start with [README](../README.md) for play instructions and [current status](CUR
 
 `src/engine/assets/player-lod-data.ts` is the shared renderer-independent LOD codec. `src/engine/babylon/existing-player-primitives.ts` owns original GLB primitive/material/joint correspondence; it does not select LOD tiers. Asset-contract evidence is in [primitive bindings](maintenance/babylon-primitive-bindings-2026-10-31.md).
 
+`src/engine/assets/circuit-ribbon-data.ts` holds renderer-neutral circuit ribbon construction arrays. The Three owner retains its original materials, shader hooks, typed-buffer/normal generation and scheduling. The independent [pre-edit oracle](maintenance/circuit-ribbon-data-2026-10-31.md) validates this boundary; it does not activate Babylon road/paint.
+
 ## Runtime code
 
 | Path                                                             | Responsibility                                                                 |

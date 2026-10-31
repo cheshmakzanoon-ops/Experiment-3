@@ -23,6 +23,7 @@ describe('independent CI diagnostics with strict release gates', () => {
     ).scripts;
     expect(contract).toContain('run: npm test -- ');
     expect(contract).toContain('tests/babylon-*.test.ts');
+    expect(contract).toContain('tests/circuit-ribbon-data.test.ts');
     expect(contract).not.toMatch(/npx vitest|--ignore-scripts|--exclude|--passWithNoTests/);
     expect(scripts.pretest).toBe('npm run generate:player-lods');
     expect(scripts.test).toBe('vitest run');

@@ -1,3 +1,7 @@
+import {
+  circuitRibbonData,
+  type CircuitRibbonOptions as RibbonOptions,
+} from '../engine/assets/circuit-ribbon-data.ts';
 import { SecondaryGrandstands } from './secondary-grandstands.ts';
 import type { AurelQuarryKit } from './aurel-quarry.ts';
 import type { AurelVegetationKit } from './aurel-vegetation.ts';
@@ -91,21 +95,6 @@ export const START_LAMP_EMISSIVE = 25;
  * left-side pit lanes. Rendering must never show a kerb across a flat merge. */
 export function circuitKerbHeight(track: Track, s: number, lateral: number, across: number) {
   return track.inPitLane(s, lateral) ? 0 : kerbHeight(s, across);
-}
-interface RibbonOptions {
-  start?: number;
-  end?: number;
-  step?: number;
-  offset: (s: number, t: number) => number;
-  height?: (s: number, l: number, t: number) => number;
-  stripes?: boolean;
-  /** Run-off ribbon: per-vertex `runoffStyle` (D15). */
-  runoff?: boolean;
-  columns?: number;
-  road?: boolean;
-  include?: (s: number, lateral: number) => boolean;
-  /** Extra per-vertex float attributes by name (GP gravel cover). */
-  attributes?: Readonly<Record<string, (s: number, lateral: number) => number>>;
 }
 /** All surfaces are constructed from the same metre-valued track queries as physics. */
 export class CircuitScene {
@@ -673,78 +662,39 @@ export class CircuitScene {
       }
       return first!;
     }
-    const start = options.start ?? 0,
-      end = options.end ?? this.track.length,
-      rows = Math.ceil((end - start) / (options.step ?? 2)),
-      cols = options.columns ?? 1;
-    const vertices: number[] = [],
-      uv: number[] = [],
-      state: number[] = [],
-      colors: number[] = [],
-      edge: number[] = [],
-      apex: number[] = [],
-      bikeBrake: number[] = [],
-      kerb: number[] = [],
-      runoff: number[] = [],
-      gpPaint: number[] = [],
-      gpGravel: number[] = [],
-      custom = Object.entries(options.attributes ?? {}).map(
-        ([name, value]) => [name, value, [] as number[]] as const,
-      ),
-      indices: number[] = [];
-    const gpDesign = gpEdgeDesign(this.track);
-    const p = trackPoint(),
-      line: [number, number] = [0, 0];
-    for (let i = 0; i <= rows; i++) {
-      const s = start + ((end - start) * i) / rows;
-      this.track.at(s, p);
-      for (let j = 0; j <= cols; j++) {
-        const t = j / cols,
-          l = options.offset(s, t),
-          extra = options.height?.(s, l, t) ?? 0;
-        vertices.push(p.x + p.nx * l, p.y + p.bank * clamp(l, -12, 12) + extra, p.z + p.nz * l);
-        uv.push(l / 5, s / 5);
-        state.push(clamp((l / p.width) * 0.5 + 0.5, 0, 1), s / this.track.length);
-        // Signed metres beyond the asphalt edge (negative on the road), shared
-        // by the kerb, verge and terrain shaders.
-        edge.push(Math.abs(l) - p.width);
-        for (const [, value, out] of custom) out.push(value(s, l));
-        if (options.road) {
-          apex.push(...apexLineAt(this.track, s, l, line));
-          bikeBrake.push(apexLineAt(this.track, s, l, line, true)[1]);
-        }
+    const {
+      start,
+      end,
+      rows,
+      cols,
+      vertices,
+      uv,
+      state,
+      colors,
+      edge,
+      apex,
+      bikeBrake,
+      kerb,
+      runoff,
+      gpPaint,
+      gpGravel,
+      custom,
+      indices,
+      gpDesign,
+    } = circuitRibbonData(this.track, options, {
+      hasGpDesign: () => !!gpEdgeDesign(this.track),
+      apex: (s, l, line, motorcycle) => apexLineAt(this.track, s, l, line, motorcycle),
+      color: (s) => {
         const c = Math.floor(s / 3) % 2 === 0 ? new T.Color(0xdc553b) : new T.Color(0xe8e3cf);
-        colors.push(c.r, c.g, c.b);
-        if (options.stripes) {
-          // D15: kerb scheme and how much the racing line uses this kerb.
-          kerb.push(kerbStyleAt(this.track, s));
-          const side = Math.sign(l) || 1;
-          kerb.push(kerbUsage(Math.abs(apexLineAt(this.track, s, side * p.width, line)[0])));
-        }
-        if (options.runoff) {
-          runoff.push(runoffStyleAt(this.track, s));
-          const side = Math.sign(l) || 1;
-          runoff.push(kerbUsage(Math.abs(apexLineAt(this.track, s, side * p.width, line)[0])));
-          gpPaint.push(gpCornerPaint(this.track, s, l));
-          // GP: is the verge beyond this apron edge a gravel trap? (litter)
-          if (gpDesign)
-            gpGravel.push(
-              this.track.runoffSurface(p, side * (p.width + 5.5)) === SURFACE.GRAVEL ? 1 : 0,
-            );
-        }
-      }
-    }
-    const ascending = options.offset(start, 1) >= options.offset(start, 0);
-    for (let i = 0; i < rows; i++)
-      for (let j = 0; j < cols; j++) {
-        const centreS = start + ((end - start) * (i + 0.5)) / rows;
-        if (options.include && !options.include(centreS, options.offset(centreS, (j + 0.5) / cols)))
-          continue;
-        const a = i * (cols + 1) + j,
-          b = a + cols + 1;
-        if (ascending) indices.push(a, b, a + 1, b, b + 1, a + 1);
-        else indices.push(a, a + 1, b, b, a + 1, b + 1);
-      }
+        return c;
+      },
+      kerbStyle: (s) => kerbStyleAt(this.track, s),
+      runoffStyle: (s) => runoffStyleAt(this.track, s),
+      usage: kerbUsage,
+      gpPaint: (s, l) => gpCornerPaint(this.track, s, l),
+      gpGravel: (point, side) =>
+        this.track.runoffSurface(point, side * (point.width + 5.5)) === SURFACE.GRAVEL ? 1 : 0,
+    });
     const g = new T.BufferGeometry();
     g.setAttribute('position', new T.Float32BufferAttribute(vertices, 3));
     g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
