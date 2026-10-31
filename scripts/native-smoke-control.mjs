@@ -72,3 +72,35 @@ export function retainNativeSmokeFailure(report, error, graphicsFailure) {
   report.success = false;
   report.failure = String(graphicsFailure.read() ?? error);
 }
+
+/** Required native default route is canonical Aurel, not a generic fallback
+ * check. Consume only the existing readiness receipt's raw DOM dataset values;
+ * no browser/renderer dependency, new query, wait, or presentation operation. */
+export function validateNativeAurelSurface(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value))
+    throw new Error('Native Aurel surface readiness receipt is missing or malformed');
+  const expected = {
+    kind: 'formula-ribbon',
+    roadChunks: '38',
+    paintChunks: '76',
+    leftPaintChunks: '38',
+    rightPaintChunks: '38',
+    vertices: '31882',
+    paintFinishMaterials: '1',
+    coarseMeshes: '0',
+  };
+  for (const [key, required] of Object.entries(expected)) {
+    if (!Object.hasOwn(value, key) || value[key] !== required)
+      throw new Error(`Native Aurel surface readiness mismatch: ${key}`);
+  }
+  return {
+    kind: value.kind,
+    roadChunks: Number(value.roadChunks),
+    paintChunks: Number(value.paintChunks),
+    leftPaintChunks: Number(value.leftPaintChunks),
+    rightPaintChunks: Number(value.rightPaintChunks),
+    vertices: Number(value.vertices),
+    paintFinishMaterials: Number(value.paintFinishMaterials),
+    coarseMeshes: Number(value.coarseMeshes),
+  };
+}

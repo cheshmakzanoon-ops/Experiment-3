@@ -6,6 +6,7 @@ import {
   desktopSmokeJourney,
   retainNativeSmokeFailure,
   runDesktopSmokeJourneys,
+  validateNativeAurelSurface,
 } from '../scripts/native-smoke-control.mjs';
 
 describe('native smoke scope', () => {
@@ -180,5 +181,96 @@ describe('sticky first native GPU fault', () => {
     faults.record('later crash');
     retainNativeSmokeFailure(report, new Error('snapshot failed'), faults);
     expect(report.failure).toBe('Error: original assertion');
+  });
+});
+
+describe('same-readiness-receipt native Aurel surface acceptance', () => {
+  const raw = {
+    kind: 'formula-ribbon',
+    roadChunks: '38',
+    paintChunks: '76',
+    leftPaintChunks: '38',
+    rightPaintChunks: '38',
+    vertices: '31882',
+    paintFinishMaterials: '1',
+    coarseMeshes: '0',
+  };
+  it('returns observed counts without mutating the raw evidence', () => {
+    const snapshot = { ...raw };
+    expect(validateNativeAurelSurface(raw)).toEqual({
+      kind: 'formula-ribbon',
+      roadChunks: 38,
+      paintChunks: 76,
+      leftPaintChunks: 38,
+      rightPaintChunks: 38,
+      vertices: 31882,
+      paintFinishMaterials: 1,
+      coarseMeshes: 0,
+    });
+    expect(raw).toEqual(snapshot);
+  });
+  it('rejects missing, non-object and inherited receipts', () => {
+    for (const value of [undefined, null, [], true, 'formula-ribbon', 0, {}, Object.create(raw)])
+      expect(() => validateNativeAurelSurface(value)).toThrow('Native Aurel surface');
+    for (const key of Object.keys(raw)) {
+      const missing = { ...raw } as Record<string, unknown>;
+      delete missing[key];
+      expect(() => validateNativeAurelSurface(missing)).toThrow(key);
+    }
+  });
+  it('rejects each wrong count, unsupported surface kind and malformed numeric value', () => {
+    expect(() => validateNativeAurelSurface({ ...raw, kind: 'coarse' })).toThrow('kind');
+    for (const key of Object.keys(raw).filter((k) => k !== 'kind'))
+      for (const value of [
+        '999',
+        '',
+        null,
+        undefined,
+        NaN,
+        Infinity,
+        38,
+        '038',
+        '38.0',
+        ' 38',
+        {},
+        [],
+      ])
+        expect(() => validateNativeAurelSurface({ ...raw, [key]: value })).toThrow(key);
+    expect(() => validateNativeAurelSurface({ ...raw, coarseMeshes: '1' })).toThrow('coarseMeshes');
+    expect(() =>
+      validateNativeAurelSurface({
+        ...raw,
+        roadChunks: '50',
+        paintChunks: '100',
+        vertices: '42700',
+      }),
+    ).toThrow('roadChunks');
+  });
+  it('extends the existing readiness snapshot without another query or changing the frame budget', () => {
+    const source = readFileSync('scripts/desktop-smoke.mjs', 'utf8');
+    const body = source.slice(
+      source.indexOf('async function waitForBabylonPresentation('),
+      source.indexOf('async function captureChecked('),
+    );
+    expect(body.match(/\.evaluate\(/g)).toHaveLength(1);
+    expect(body.match(/page\.waitForFunction\(/g)).toHaveLength(1);
+    expect(body).toContain('{ timeout: 30000, polling: 100 }');
+    expect(body).toContain("data?.presentationSettled === 'true'");
+    expect(body).toContain('submitted > 0');
+    expect(body).toContain('completed === submitted');
+    expect(body.indexOf('validateNativeAurelSurface(receipt.surface)')).toBeGreaterThan(
+      body.indexOf('.push(receipt)'),
+    );
+    for (const name of [
+      'surfaceKind',
+      'surfaceRoadChunks',
+      'surfacePaintChunks',
+      'surfaceLeftPaintChunks',
+      'surfaceRightPaintChunks',
+      'surfaceVertices',
+      'surfacePaintFinishMaterials',
+      'surfaceCoarseMeshes',
+    ])
+      expect(body).toContain(`element.dataset.${name}`);
   });
 });

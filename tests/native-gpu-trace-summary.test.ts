@@ -14,6 +14,7 @@ import {
   summarizeNativeGpuTrace,
   NATIVE_TRACE_PROCESSOR,
   NATIVE_GPU_TRACE_QUERY,
+  NATIVE_GPU_WORK_EVENTS,
   NativeGpuTraceSummaryError,
 } from '../scripts/native-gpu-trace-summary.mjs';
 import {
@@ -24,14 +25,15 @@ import {
 import { createFirstGraphicsFault } from '../scripts/native-smoke-control.mjs';
 
 const csv = [
-  '"event_id","process_count","event_count","completed_count","unfinished_count","first_ns","last_ns","total_ns","max_ns"',
-  '0,1,3,2,1,0,43,12,10',
-  '1,1,1,1,0,0,10,10,10',
-  '2,1,1,1,0,20,22,2,2',
-  '3,1,1,0,1,43,43,0,0',
-  '4,2,0,0,0,0,0,0,0',
-  '5,0,0,0,0,0,0,0,0',
-  '6,0,4,0,0,0,0,0,0',
+  '"event_id","process_count","event_count","completed_count","unfinished_count","first_ns","last_ns","total_ns","max_ns","unfinished_flush_ancestor_count","unfinished_under_unfinished_flush_count"',
+  '0,1,3,2,1,0,43,12,10,0,0',
+  '1,1,1,1,0,0,10,10,10,0,0',
+  '2,1,1,1,0,20,22,2,2,0,0',
+  '3,1,1,0,1,43,43,0,0,0,0',
+  ...Array.from({ length: 6 }, (_, index) => `${index + 4},0,0,0,0,0,0,0,0,0,0`),
+  '10,2,0,0,0,0,0,0,0,0,0',
+  '11,0,0,0,0,0,0,0,0,0,0',
+  '12,0,4,0,0,0,0,0,0,0,0',
 ].join('\n');
 const output: NativeGpuTraceOutput = {
   retained: true,
@@ -69,19 +71,19 @@ describe('private constant-labelled trace summary', () => {
       aggregate: { count: 3, unfinished: 1, totalDurationNs: 12 },
     });
     // A missing statistic is unknown, not evidence of known zero loss.
-    const present = decodeNativeGpuTraceRows(csv.replace('5,0,0,', '5,3,0,'), 100);
+    const present = decodeNativeGpuTraceRows(csv.replace('11,0,0,', '11,3,0,'), 100);
     expect(present.dataLossStatRows).toBe(3);
     expect(present.reportedDataLoss).toBe(0);
   });
 
   it.each([
-    csv + '\n7,0,0,0,0,0,0,0,0',
-    csv.replace('6,0,4,', '6,0,PRIVATE_TRACE_SECRET,'),
-    csv.replace('6,0,4,', '6,0,9007199254740992,'),
-    csv.replace('6,0,4,', '6,0,-1,'),
-    csv.replace('6,0,4,', '6,0,1e4,'),
-    csv.replace('6,0,4,', '6,1,4,'),
-    csv.replace('5,0,0,', '5,0,2,'),
+    csv + '\n13,0,0,0,0,0,0,0,0,0',
+    csv.replace('12,0,4,', '12,0,PRIVATE_TRACE_SECRET,'),
+    csv.replace('12,0,4,', '12,0,9007199254740992,'),
+    csv.replace('12,0,4,', '12,0,-1,'),
+    csv.replace('12,0,4,', '12,0,1e4,'),
+    csv.replace('12,0,4,', '12,1,4,'),
+    csv.replace('11,0,0,', '11,0,2,'),
   ])('rejects malformed or inconsistent numeric rows without echoing input', (rows) => {
     expect(() => decodeNativeGpuTraceRows(rows, 100)).toThrow(
       /^Native GPU trace summary: (parser-rows|summary-invalid)$/,
@@ -116,6 +118,156 @@ describe('private constant-labelled trace summary', () => {
     const copy = structuredClone(valid);
     copy.events[0].name = '/private/SECRET';
     expect(() => validateNativeGpuTraceSummary(copy)).toThrow('summary-invalid');
+  });
+
+  it('pins exactly nine immutable category/name pairs with no input-driven labels', () => {
+    expect(NATIVE_GPU_WORK_EVENTS).toEqual([
+      { category: 'gpu', name: 'CommandBufferStub::OnAsyncFlush' },
+      { category: 'gpu', name: 'CommandBufferStub::PerformWork' },
+      { category: 'gpu', name: 'Scheduler::RunTask' },
+      { category: 'gpu', name: 'CommandBufferService:PutChanged' },
+      { category: 'gpu', name: 'GLES2DecoderPassthroughImpl::DoLinkProgram' },
+      { category: 'gpu.angle', name: 'CompileEvent::wait' },
+      { category: 'gpu.angle', name: 'Program::MainLinkLoadEvent::wait' },
+      { category: 'gpu.angle', name: 'ProgramGL::linkJobImpl' },
+      { category: 'gpu.angle', name: 'ProgramGL::postLinkJobImpl' },
+    ]);
+    expect(Object.isFrozen(NATIVE_GPU_WORK_EVENTS)).toBe(true);
+    expect(NATIVE_GPU_WORK_EVENTS.every(Object.isFrozen)).toBe(true);
+    const summary = decodeNativeGpuTraceRows(csv, 100);
+    expect(summary.version).toBe(2);
+    expect(summary.events.map(({ category, name }) => ({ category, name }))).toEqual(
+      NATIVE_GPU_WORK_EVENTS,
+    );
+    expect(summary.compileLinkDiscriminator).toBe('inconclusive');
+    expect(summary.aggregate.unfinishedFlushAncestorCount).toBe(0);
+  });
+
+  it('requires joint open compile/link ancestry separately from generic coverage or unrelated open instances', () => {
+    const rows = Array.from({ length: 13 }, (_, id) => [id, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+    rows[0] = [0, 1, 3, 1, 2, 0, 20, 5, 5, 2, 1];
+    rows[1] = [1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0];
+    rows[4] = [4, 1, 1, 1, 0, 10, 15, 5, 5, 1, 0];
+    rows[5] = [5, 1, 1, 0, 1, 20, 20, 0, 0, 1, 1];
+    const decode = () =>
+      decodeNativeGpuTraceRows(
+        [csv.split('\n')[0], ...rows.map((row) => row.join(','))].join('\n'),
+        100,
+      );
+    expect(decode()).toMatchObject({
+      coverage: 'typed-gpu-work-observed',
+      compileLinkDiscriminator: 'same-track-open-compile-or-link-under-unfinished-flush-observed',
+      aggregate: { unfinishedFlushAncestorCount: 2, unfinishedUnderUnfinishedFlushCount: 1 },
+    });
+    rows[5][10] = 0;
+    rows[0][10] = 0;
+    // One instance cannot be both open and nested with an empty intersection.
+    expect(decode).toThrow('summary-invalid');
+    // Completed nested link plus an unrelated open link: both marginal counts
+    // are positive, but their intersection is zero and remains inconclusive.
+    rows[5] = [5, 1, 2, 1, 1, 20, 30, 5, 5, 1, 0];
+    rows[0] = [0, 1, 4, 2, 2, 0, 30, 10, 5, 2, 0];
+    expect(decode()).toMatchObject({
+      coverage: 'typed-gpu-work-observed',
+      compileLinkDiscriminator: 'inconclusive',
+      aggregate: { unfinishedFlushAncestorCount: 2, unfinishedUnderUnfinishedFlushCount: 0 },
+    });
+    rows[0][10] = 1;
+    expect(decode).toThrow('summary-invalid'); // Joint counts must also sum exactly.
+    rows[0][10] = 0;
+    rows[5][10] = 2;
+    expect(decode).toThrow('summary-invalid'); // No more joint instances than open or nested.
+  });
+
+  it('strictly rejects old versions, changed pairs, impossible ancestry and arbitrary discriminator labels', () => {
+    const valid = decodeNativeGpuTraceRows(csv, 100);
+    const mutations: ((s: typeof valid) => void)[] = [
+      (s) => {
+        Object.assign(s, { version: 1 });
+      },
+      (s) => {
+        Object.assign(s, { version: 3 });
+      },
+      (s) => {
+        s.events[5].category = 'gpu';
+      },
+      (s) => {
+        s.events[5].name = '/private/SECRET';
+      },
+      (s) => {
+        s.events.reverse();
+      },
+      (s) => {
+        s.events.pop();
+      },
+      (s) => {
+        s.events.push(s.events[0]);
+      },
+      (s) => {
+        Object.assign(s.events[0], { args: 'PRIVATE' });
+      },
+      (s) => {
+        Object.assign(s.events[0], { track_id: 123 });
+      },
+      (s) => {
+        Object.assign(s, { ancestryScope: 'global-overlap' });
+      },
+      (s) => {
+        Object.assign(s, { compileLinkDiscriminator: 'private-result' });
+      },
+      (s) => {
+        s.compileLinkDiscriminator =
+          'same-track-open-compile-or-link-under-unfinished-flush-observed';
+      },
+      (s) => {
+        s.events[5].unfinishedFlushAncestorCount = 1;
+      },
+      (s) => {
+        s.aggregate.unfinishedFlushAncestorCount = 1;
+      },
+      (s) => {
+        s.events[0].unfinishedFlushAncestorCount = -1;
+      },
+      (s) => {
+        s.events[0].unfinishedUnderUnfinishedFlushCount = 1;
+      },
+      (s) => {
+        s.events[0].unfinishedUnderUnfinishedFlushCount = -1;
+      },
+      (s) => {
+        s.events[0].unfinishedUnderUnfinishedFlushCount = NaN;
+      },
+      (s) => {
+        s.aggregate.unfinishedUnderUnfinishedFlushCount = 1;
+      },
+      (s) => {
+        s.events[0].unfinishedFlushAncestorCount = NaN;
+      },
+      (s) => {
+        s.events[0].unfinishedFlushAncestorCount = 0.5;
+      },
+      (s) => {
+        s.events[0].unfinishedFlushAncestorCount = Number.MAX_SAFE_INTEGER + 1;
+      },
+      (s) => {
+        // Even otherwise-consistent ancestry needs an unfinished parent.
+        s.events[0].unfinishedFlushAncestorCount = 1;
+        s.aggregate.unfinishedFlushAncestorCount = 1;
+      },
+    ];
+    for (const mutate of mutations) {
+      const copy = structuredClone(valid);
+      mutate(copy);
+      expect(() => validateNativeGpuTraceSummary(copy)).toThrow(
+        /^Native GPU trace summary: summary-invalid$/,
+      );
+    }
+    const legacy = csv
+      .split('\n')
+      .slice(0, 8)
+      .map((line) => line.split(',').slice(0, 9).join(','))
+      .join('\n');
+    expect(() => decodeNativeGpuTraceRows(legacy, 100)).toThrow('parser-rows');
   });
 
   it('uses only the fixed SQL and waits for close after timeout before settling', async () => {

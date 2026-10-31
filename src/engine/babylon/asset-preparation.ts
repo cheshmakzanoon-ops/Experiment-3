@@ -125,7 +125,7 @@ export function yieldPreparationTurn(signal: AbortSignal, deadline: number): Pro
 /** No addAllToScene here: callers install atomically only after this returns.
  * One shared deadline belongs to the entire click, including load and final draws. */
 export async function prepareOriginalMaterials(
-  container: AssetContainer,
+  container: Pick<AssetContainer, 'meshes' | 'scene'>,
   gpu: Pick<BabylonPresentationGpu, 'prepare'>,
   signal: AbortSignal,
   deadline: number,

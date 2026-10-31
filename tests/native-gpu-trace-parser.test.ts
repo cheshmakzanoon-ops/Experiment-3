@@ -19,6 +19,7 @@ import {
   nativeGpuTraceFixture,
   PRIVATE_TRACE_SENTINEL,
   TRACE_FIXTURE_EVENTS,
+  TRACE_SUMMARY_EVENTS,
   type NativeGpuTraceFixture,
 } from './fixtures/native-gpu-trace';
 
@@ -116,7 +117,7 @@ describe.skipIf(!parserPath && !required)('official pinned offline GPU trace par
   it('runs the production summarizer on the real parser with exact duration/count receipts', async () => {
     const summary = await summarizeNativeGpuTrace({ path: await fixture('valid'), parserPath });
     expect(summary).toMatchObject({
-      version: 1,
+      version: 2,
       privacy: 'constant-label-numeric-summary-only',
       parserVersion: '58.2',
       captureBytes: nativeGpuTraceFixture('valid').length,
@@ -128,6 +129,8 @@ describe.skipIf(!parserPath && !required)('official pinned offline GPU trace par
       otherGpuEvents: 0,
       childTailCertified: false,
       coverage: 'typed-gpu-work-observed',
+      ancestryScope: 'same-track-descendants-of-unfinished-flush-not-causation',
+      compileLinkDiscriminator: 'inconclusive',
       aggregate: {
         id: 0,
         processCount: 1,
@@ -138,18 +141,39 @@ describe.skipIf(!parserPath && !required)('official pinned offline GPU trace par
         lastNs: 43_000_000,
         totalDurationNs: 15_000_000,
         maxDurationNs: 10_000_000,
+        unfinishedFlushAncestorCount: 0,
+        unfinishedUnderUnfinishedFlushCount: 0,
       },
     });
     for (const event of TRACE_FIXTURE_EVENTS) {
       expect(summary.events[event.id - 1]).toMatchObject({
         id: event.id,
         name: event.name,
+        category: 'gpu',
         processCount: 1,
         count: 1,
         completed: 1,
         unfinished: 0,
         totalDurationNs: event.durationNs,
         maxDurationNs: event.durationNs,
+        unfinishedFlushAncestorCount: 0,
+        unfinishedUnderUnfinishedFlushCount: 0,
+      });
+    }
+    expect(summary.events).toHaveLength(9);
+    for (const event of TRACE_SUMMARY_EVENTS.slice(3)) {
+      expect(summary.events[event.id - 1]).toEqual({
+        ...event,
+        processCount: 0,
+        count: 0,
+        completed: 0,
+        unfinished: 0,
+        firstNs: 0,
+        lastNs: 0,
+        totalDurationNs: 0,
+        maxDurationNs: 0,
+        unfinishedFlushAncestorCount: 0,
+        unfinishedUnderUnfinishedFlushCount: 0,
       });
     }
     expect(
@@ -183,7 +207,10 @@ describe.skipIf(!parserPath && !required)('official pinned offline GPU trace par
     expect(summary.aggregate.count).toBe(3);
     expect(summary.otherGpuEvents).toBe(1);
     expect(summary.events.map((event) => event.name)).toEqual(
-      TRACE_FIXTURE_EVENTS.map((event) => event.name),
+      TRACE_SUMMARY_EVENTS.map((event) => event.name),
+    );
+    expect(summary.events.map((event) => event.category)).toEqual(
+      TRACE_SUMMARY_EVENTS.map((event) => event.category),
     );
     const receipt = JSON.stringify(summary);
     expect(receipt).not.toContain(PRIVATE_TRACE_SENTINEL);
@@ -223,6 +250,271 @@ describe.skipIf(!parserPath && !required)('official pinned offline GPU trace par
     expect(
       (await readdir(directory)).filter((name) => name.startsWith('.gpu-trace-private-')),
     ).toEqual([]);
+  });
+
+  it('decodes completed compile/link descendants of an unfinished flush on the same real track', async () => {
+    const rows = await query(
+      'nested-completed-child',
+      `SELECT COUNT(*) AS link_count,
+       (SELECT COUNT(*) FROM ancestor_slice(s.id) a
+        WHERE a.name='CommandBufferStub::OnAsyncFlush' AND a.category='gpu'
+         AND a.dur=-1 AND a.track_id=s.track_id) AS unfinished_flush_ancestors
+       FROM slice s WHERE s.name='GLES2DecoderPassthroughImpl::DoLinkProgram';`,
+    );
+    expect(rows).toEqual(['"link_count","unfinished_flush_ancestors"', '1,1']);
+    const summary = await summarizeNativeGpuTrace({
+      path: await fixture('nested-completed-child'),
+      parserPath,
+    });
+    expect(summary).toMatchObject({
+      version: 2,
+      compileLinkDiscriminator: 'inconclusive',
+      childTailCertified: false,
+      aggregate: {
+        count: 7,
+        completed: 5,
+        unfinished: 2,
+        totalDurationNs: 5_000_000,
+        unfinishedFlushAncestorCount: 6,
+        unfinishedUnderUnfinishedFlushCount: 1, // Only the enclosing PutChanged remains open.
+      },
+    });
+    expect(summary.events[0]).toMatchObject({
+      count: 1,
+      unfinished: 1,
+      unfinishedFlushAncestorCount: 0, // A slice is not its own ancestor.
+      unfinishedUnderUnfinishedFlushCount: 0,
+    });
+    expect(summary.events[3].unfinishedFlushAncestorCount).toBe(1);
+    for (const event of summary.events.slice(4)) {
+      expect(event).toMatchObject({
+        count: 1,
+        completed: 1,
+        unfinished: 0,
+        totalDurationNs: 1_000_000,
+        unfinishedFlushAncestorCount: 1,
+        unfinishedUnderUnfinishedFlushCount: 0,
+      });
+    }
+  });
+
+  it('retains nested unfinished compile/link descendants without fabricating their durations', async () => {
+    const summary = await summarizeNativeGpuTrace({
+      path: await fixture('nested-unfinished-child'),
+      parserPath,
+    });
+    expect(summary.compileLinkDiscriminator).toBe(
+      'same-track-open-compile-or-link-under-unfinished-flush-observed',
+    );
+    expect(summary.aggregate).toMatchObject({
+      count: 7,
+      completed: 0,
+      unfinished: 7,
+      totalDurationNs: 0,
+      maxDurationNs: 0,
+      unfinishedFlushAncestorCount: 6,
+      unfinishedUnderUnfinishedFlushCount: 6,
+    });
+    for (const event of summary.events.slice(4)) {
+      expect(event).toMatchObject({
+        count: 1,
+        completed: 0,
+        unfinished: 1,
+        totalDurationNs: 0,
+        maxDurationNs: 0,
+        unfinishedFlushAncestorCount: 1,
+        unfinishedUnderUnfinishedFlushCount: 1,
+      });
+    }
+    expect(summary.childTailCertified).toBe(false);
+  });
+
+  it.each([5, 6, 7, 8, 9] as const)(
+    'recognizes isolated OPEN fixed compile/link ID %i under an unfinished flush',
+    async (id) => {
+      const summary = await summarizeNativeGpuTrace({
+        path: await fixture(`nested-only-${id}`),
+        parserPath,
+      });
+      expect(summary.aggregate).toMatchObject({
+        count: 3,
+        completed: 0,
+        unfinished: 3,
+        unfinishedFlushAncestorCount: 2,
+        unfinishedUnderUnfinishedFlushCount: 2,
+      });
+      for (const event of summary.events.slice(4)) {
+        expect(event).toMatchObject({
+          count: event.id === id ? 1 : 0,
+          unfinishedFlushAncestorCount: event.id === id ? 1 : 0,
+          unfinishedUnderUnfinishedFlushCount: event.id === id ? 1 : 0,
+        });
+      }
+      expect(summary.compileLinkDiscriminator).toBe(
+        'same-track-open-compile-or-link-under-unfinished-flush-observed',
+      );
+    },
+  );
+
+  it('does not discriminate completed-flush ancestry as unfinished work', async () => {
+    const summary = await summarizeNativeGpuTrace({
+      path: await fixture('completed-flush'),
+      parserPath,
+    });
+    expect(summary.compileLinkDiscriminator).toBe('inconclusive');
+    expect(summary.aggregate).toMatchObject({
+      count: 7,
+      completed: 7,
+      unfinished: 0,
+      unfinishedFlushAncestorCount: 0,
+      unfinishedUnderUnfinishedFlushCount: 0,
+    });
+    expect(summary.events.every((event) => event.unfinishedFlushAncestorCount === 0)).toBe(true);
+  });
+
+  it('does not turn cross-thread overlap in the same GPU process into flush ancestry', async () => {
+    const rows = await query(
+      'cross-track-overlap',
+      `SELECT COUNT(DISTINCT s.track_id) AS track_count,COUNT(DISTINCT p.upid) AS process_count
+       FROM slice s JOIN thread_track tt ON tt.id=s.track_id
+       JOIN thread t ON t.utid=tt.utid JOIN process p ON p.upid=t.upid;`,
+    );
+    expect(rows).toEqual(['"track_count","process_count"', '2,1']);
+    const summary = await summarizeNativeGpuTrace({
+      path: await fixture('cross-track-overlap'),
+      parserPath,
+    });
+    expect(summary.aggregate).toMatchObject({
+      count: 7,
+      processCount: 1,
+      unfinishedFlushAncestorCount: 1, // PutChanged only, not any compile/link child.
+      unfinishedUnderUnfinishedFlushCount: 1,
+    });
+    expect(summary.events[3].unfinishedFlushAncestorCount).toBe(1);
+    for (const event of summary.events.slice(4)) {
+      expect(event).toMatchObject({
+        count: 1,
+        unfinishedFlushAncestorCount: 0,
+        unfinishedUnderUnfinishedFlushCount: 0,
+      });
+    }
+    expect(summary.compileLinkDiscriminator).toBe('inconclusive');
+  });
+
+  it('does not combine completed nested link ancestry with an unrelated open same-name link', async () => {
+    const summary = await summarizeNativeGpuTrace({
+      path: await fixture('mixed-link-tracks'),
+      parserPath,
+    });
+    expect(summary.events[4]).toMatchObject({
+      count: 2,
+      completed: 1,
+      unfinished: 1,
+      unfinishedFlushAncestorCount: 1,
+      unfinishedUnderUnfinishedFlushCount: 0,
+    });
+    expect(summary.aggregate).toMatchObject({
+      count: 4,
+      completed: 1,
+      unfinished: 3,
+      unfinishedFlushAncestorCount: 2,
+      unfinishedUnderUnfinishedFlushCount: 1, // PutChanged only.
+    });
+    expect(summary.compileLinkDiscriminator).toBe('inconclusive');
+  });
+
+  it('requires the exact gpu token for an unfinished flush ancestor, not gpu.angle', async () => {
+    const summary = await summarizeNativeGpuTrace({
+      path: await fixture('wrong-ancestor-category'),
+      parserPath,
+    });
+    expect(summary.events[0].count).toBe(0);
+    expect(summary.aggregate).toMatchObject({ count: 6, unfinishedFlushAncestorCount: 0 });
+    expect(summary.events.slice(4).every((event) => event.count === 1)).toBe(true);
+    expect(summary.compileLinkDiscriminator).toBe('inconclusive');
+  });
+
+  it('requires each compile/link event name and category pair, not just its fixed name', async () => {
+    const summary = await summarizeNativeGpuTrace({
+      path: await fixture('wrong-child-category'),
+      parserPath,
+    });
+    expect(summary.aggregate).toMatchObject({ count: 2, unfinishedFlushAncestorCount: 1 });
+    expect(summary.events.slice(4).every((event) => event.count === 0)).toBe(true);
+    expect(summary.otherGpuEvents).toBe(4); // Wrong-category ANGLE names, still unnamed gpu work.
+    expect(summary.compileLinkDiscriminator).toBe('inconclusive');
+  });
+
+  it.each(['nested-renderer-spoof', 'nested-untyped-spoof'] as const)(
+    'does not accept nested %s despite GPU-looking process/thread names',
+    async (kind) => {
+      const summary = await summarizeNativeGpuTrace({ path: await fixture(kind), parserPath });
+      expect(summary.coverage).toBe('no-typed-gpu-work-observed');
+      expect(summary.aggregate).toMatchObject({ count: 0, unfinishedFlushAncestorCount: 0 });
+      expect(summary.compileLinkDiscriminator).toBe('inconclusive');
+    },
+  );
+
+  it('counts each descendant once even when two unfinished flushes are its ancestors', async () => {
+    const summary = await summarizeNativeGpuTrace({
+      path: await fixture('double-unfinished-flush'),
+      parserPath,
+    });
+    expect(summary.events[0]).toMatchObject({
+      count: 2,
+      unfinishedFlushAncestorCount: 1,
+      unfinishedUnderUnfinishedFlushCount: 1,
+    });
+    expect(summary.events[4]).toMatchObject({
+      count: 1,
+      unfinishedFlushAncestorCount: 1,
+      unfinishedUnderUnfinishedFlushCount: 0,
+    });
+    expect(summary.aggregate).toMatchObject({
+      count: 3,
+      unfinishedFlushAncestorCount: 2,
+      unfinishedUnderUnfinishedFlushCount: 1,
+    });
+    expect(summary.compileLinkDiscriminator).toBe('inconclusive');
+  });
+
+  it('does not count an unfinished flush as its own ancestor or as compile/link evidence', async () => {
+    const summary = await summarizeNativeGpuTrace({
+      path: await fixture('self-only-unfinished-flush'),
+      parserPath,
+    });
+    expect(summary.aggregate).toMatchObject({ count: 1, unfinishedFlushAncestorCount: 0 });
+    expect(summary.compileLinkDiscriminator).toBe('inconclusive');
+  });
+
+  it('keeps nested private names and annotations out of ancestry-aware fixed summaries', async () => {
+    const rows = await query(
+      'nested-privacy-negative',
+      `SELECT
+       (SELECT COUNT(*) FROM slice WHERE instr(name,'${PRIVATE_TRACE_SENTINEL}')>0) AS private_names,
+       (SELECT COUNT(DISTINCT s.id) FROM slice s JOIN args a ON a.arg_set_id=s.arg_set_id
+        WHERE instr(a.string_value,'${PRIVATE_TRACE_SENTINEL}')>0) AS private_annotations;`,
+    );
+    expect(rows).toEqual(['"private_names","private_annotations"', '1,8']);
+    const summary = await summarizeNativeGpuTrace({
+      path: await fixture('nested-privacy-negative'),
+      parserPath,
+    });
+    expect(summary.aggregate).toMatchObject({
+      count: 7,
+      unfinishedFlushAncestorCount: 6,
+      unfinishedUnderUnfinishedFlushCount: 1,
+    });
+    expect(summary.otherGpuEvents).toBe(1);
+    expect(summary.compileLinkDiscriminator).toBe('inconclusive');
+    expect(summary.events.map(({ id, name, category }) => ({ id, name, category }))).toEqual(
+      TRACE_SUMMARY_EVENTS,
+    );
+    const receipt = JSON.stringify(summary);
+    expect(receipt).not.toContain(PRIVATE_TRACE_SENTINEL);
+    expect(receipt).not.toContain('/private/');
+    expect(receipt).not.toContain(directory);
+    expect(Buffer.byteLength(receipt)).toBeLessThanOrEqual(16 * 1024);
   });
 
   it('rejects an oversized raw input and a raw symlink before creating parser staging', async () => {

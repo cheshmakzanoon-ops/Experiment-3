@@ -20,7 +20,7 @@ export interface FormulaSurfaceProbeContext {
   presentation: 'circuit';
   circuitId: 'aurel' | 'vellamar';
 }
-/** Isolated diagnostic, never activated by BabylonCircuitScene/main. Call only
+/** Source-equivalent Formula surface boundary (asphalt remains diagnostic). Call only
  * under exclusive idle GPU preparation ownership. No borrowed GPU resources.
  * Asphalt remains explicitly diagnostic; grounding/light pools are unported. */
 export function createFormulaSurfaceProbe(

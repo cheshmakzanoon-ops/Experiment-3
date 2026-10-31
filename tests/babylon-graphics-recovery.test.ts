@@ -98,8 +98,10 @@ it('wires loss/restore to explicit recovery UI and creates fresh asset ownership
   expect(rebuild.indexOf('assetLoad = new AbortController()')).toBeGreaterThan(
     rebuild.indexOf('graphicsRecovery.rebuilt()'),
   );
-  expect(source).toContain(
-    'stopped || restartOwnership.pending || graphicsRecovery.restartRequired',
+  expect(source).toMatch(
+    /if\s*\(\s*stopped\s*\|\|\s*restartOwnership\.pending\s*\|\|\s*graphicsRecovery\.restartRequired\s*\|\|\s*!surfacePreparation\?\.completed\s*\)\s*return;/,
   );
-  expect(source).toMatch(/if \(!graphicsRecovery\.restartRequired\)\s+gpu!\.frame/);
+  expect(source).toMatch(
+    /if\s*\(\s*!graphicsRecovery\.restartRequired\s*&&\s*surfacePreparation\?\.canDraw\s*&&\s*gpu!\.ready\(\)\s*\)\s*gpu!\.frame/,
+  );
 });

@@ -220,7 +220,7 @@ it('keeps a persistent paint shader key when composed with a later plugin', () =
   }
 });
 
-it('cleans partial construction without touching the live gameplay entrypoints', () => {
+it('cleans partial construction and retains explicit validated live integration', () => {
   const { scene, engine } = setup();
   const error = new Error('injected buffer upload failure');
   const upload = vi.spyOn(Mesh.prototype, 'setVerticesData').mockImplementationOnce(() => {
@@ -233,8 +233,9 @@ it('cleans partial construction without touching the live gameplay entrypoints',
     expect(scene.meshes).toHaveLength(0);
     expect(scene.materials).toHaveLength(0);
     expect(scene.textures).toEqual([scene.environmentBRDFTexture]);
-    for (const path of ['main.ts', 'circuit-scene.ts'])
-      expect(readFileSync(`src/engine/babylon/${path}`, 'utf8')).not.toContain('formula-surfaces');
+    const owner = readFileSync('src/engine/babylon/circuit-scene.ts', 'utf8');
+    expect(owner).toContain('formulaSurfaceContext(track, count, context)');
+    expect(owner).toContain('if (surfaceContext)');
   } finally {
     upload.mockRestore();
     scene.dispose();

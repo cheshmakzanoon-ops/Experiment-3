@@ -1,3 +1,4 @@
+import { SurfacePreparation, resizePresentationWhenIdle } from './surface-preparation.ts';
 import { GraphicsRecovery } from './graphics-recovery.ts';
 import type { AssetContainer } from '@babylonjs/core/assetContainer.js';
 import { prepareOriginalMaterials } from './asset-preparation.ts';
@@ -38,6 +39,21 @@ const eventOptions = { signal: abort.signal };
 let engine: Engine | undefined;
 let scene: BabylonCircuitScene | undefined;
 let gpu: BabylonPresentationGpu | undefined;
+let surfacePreparation: SurfacePreparation | undefined;
+function clearSurfaceDiagnostics() {
+  for (const key of [
+    'surfaceKind',
+    'surfaceRoadChunks',
+    'surfacePaintChunks',
+    'surfaceLeftPaintChunks',
+    'surfaceRightPaintChunks',
+    'surfaceCoarseMeshes',
+    'surfaceVertices',
+    'surfacePaintFinishMaterials',
+  ])
+    delete status.dataset[key];
+  status.dataset.sceneReady = 'false';
+}
 declare global {
   interface Window {
     babylonGraphicsDiagnostics: () => ReturnType<BabylonPresentationGpu['diagnostics']> | null;
@@ -57,6 +73,7 @@ const graphicsRecovery = new GraphicsRecovery();
 const restartOwnership = new RestartOwnership<SimulationComponent>(
   () => {
     assetLoad.abort();
+    clearSurfaceDiagnostics();
     loadAsset.disabled = true;
     assetStatus.textContent = 'Restarting presentation…';
   },
@@ -90,6 +107,7 @@ function setPaused(value: boolean) {
   pause.textContent = value ? 'Resume' : 'Pause';
 }
 function stop(error?: unknown) {
+  clearSurfaceDiagnostics();
   if (stopped) return;
   stopped = true;
   delete assetStatus.dataset.scalarHeightMaterials;
@@ -114,6 +132,7 @@ function stop(error?: unknown) {
     console.error('Babylon cleanup failed:', failure);
 }
 function reset() {
+  clearSurfaceDiagnostics();
   if (stopped) return;
   delete assetStatus.dataset.scalarHeightMaterials;
   try {
@@ -125,6 +144,8 @@ function reset() {
   }
 }
 function rebuildScene(owner: SimulationComponent) {
+  const deadline = performance.now() + 120000;
+  clearSurfaceDiagnostics();
   delete assetStatus.dataset.scalarHeightMaterials;
   status.dataset.presentationSettled = 'false';
   presentation.reset();
@@ -136,12 +157,67 @@ function rebuildScene(owner: SimulationComponent) {
   delete assetStatus.dataset.wheelPhase;
   delete assetStatus.dataset.steering;
   scene?.dispose();
-  scene = new BabylonCircuitScene(engine!, owner.simulation.track, 1);
+  scene = new BabylonCircuitScene(engine!, owner.simulation.track, 1, {
+    presentation: 'circuit',
+    vehicles: owner.simulation.cars.map((car) => car.definition),
+  });
   // Fresh model ownership is published only after an explicit safe rebuild.
   graphicsRecovery.rebuilt();
   assetLoad = new AbortController();
-  loadAsset.disabled = false;
-  assetStatus.textContent = 'Original authored asset is optional in this diagnostic preview.';
+  loadAsset.disabled = true;
+  assetStatus.textContent =
+    'Preparing original circuit surfaces; asphalt, grounding and light pools remain diagnostic.';
+  const currentScene = scene,
+    currentOwner = assetLoad;
+  surfacePreparation = new SurfacePreparation(
+    currentScene.scene,
+    currentScene.scene.meshes,
+    gpu!,
+    presentation,
+    currentOwner.signal,
+    deadline,
+  );
+  const pending = surfacePreparation;
+  void pending.completion
+    .then(() => {
+      if (
+        stopped ||
+        currentOwner.signal.aborted ||
+        scene !== currentScene ||
+        restartOwnership.pending ||
+        !pending.completed
+      )
+        return;
+      const diagnostics = currentScene.surfaceDiagnostics;
+      if (
+        diagnostics.kind === 'formula-ribbon' &&
+        (diagnostics.coarseMeshes !== 0 ||
+          diagnostics.roadChunks === 0 ||
+          diagnostics.paintChunks !== diagnostics.roadChunks * 2 ||
+          diagnostics.leftPaintChunks !== diagnostics.roadChunks ||
+          diagnostics.rightPaintChunks !== diagnostics.roadChunks ||
+          diagnostics.paintFinishMaterials !== 1)
+      )
+        throw new Error('Original Formula surface activation incomplete');
+      status.dataset.surfaceKind = diagnostics.kind;
+      for (const key of [
+        'roadChunks',
+        'paintChunks',
+        'leftPaintChunks',
+        'rightPaintChunks',
+        'coarseMeshes',
+        'vertices',
+        'paintFinishMaterials',
+      ] as const)
+        status.dataset[`surface${key[0].toUpperCase()}${key.slice(1)}`] = String(diagnostics[key]);
+      loadAsset.disabled = false;
+      assetStatus.textContent =
+        'Original authored asset is optional. Circuit paint construction is ported; asphalt, grounding and light pools remain diagnostic.';
+    })
+    .catch((error) => {
+      if (currentOwner.signal.aborted || stopped || scene !== currentScene) return;
+      stop(error);
+    });
 }
 window.addEventListener('pagehide', () => stop(), { once: true });
 try {
@@ -172,6 +248,7 @@ try {
     throw new Error('Babylon presentation requires WebGL2 fences');
   gpu = new BabylonPresentationGpu(context);
   engine.onContextLostObservable.add(() => {
+    clearSurfaceDiagnostics();
     delete assetStatus.dataset.scalarHeightMaterials;
     gpu?.contextLost();
     graphicsRecovery.contextLost();
@@ -199,7 +276,13 @@ try {
   loadAsset.addEventListener(
     'click',
     async () => {
-      if (stopped || restartOwnership.pending || graphicsRecovery.restartRequired) return;
+      if (
+        stopped ||
+        restartOwnership.pending ||
+        graphicsRecovery.restartRequired ||
+        !surfacePreparation?.completed
+      )
+        return;
       const currentScene = scene!,
         owner = assetLoad;
       const deadline = performance.now() + 120000;
@@ -363,10 +446,10 @@ try {
       if (gpu!.ready()) {
         restartOwnership.drain(true, rebuildScene);
         if (!graphicsRecovery.restartRequired && resizePending) {
-          resizePending = false;
-          engine!.resize();
+          if (resizePresentationWhenIdle(gpu!, () => engine!.resize())) resizePending = false;
         }
-        if (!graphicsRecovery.restartRequired)
+        // Rebuild may have claimed the preparation lane since the outer ready check.
+        if (!graphicsRecovery.restartRequired && surfacePreparation?.canDraw && gpu!.ready())
           gpu!.frame(presentation, paused, scene!.scene, () => {
             if (playerSteering)
               assetStatus.dataset.steering = String(playerSteering.apply(component.frame));
@@ -389,6 +472,7 @@ try {
       status.dataset.presentationSettled = String(
         paused &&
           !restartOwnership.pending &&
+          !!surfacePreparation?.completed &&
           !graphicsRecovery.restartRequired &&
           !resizePending &&
           !presentation.pending &&

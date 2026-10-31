@@ -3,10 +3,12 @@ import { build } from 'vite';
 import { resolve } from 'node:path';
 import type {
   babylonControlledPaintParity,
+  babylonFullFormulaScenes,
   babylonFormulaSurfaceVisibility,
 } from './fixtures/babylon-surface-parity.ts';
 
 type Probe = {
+  babylonFullFormulaScenes: typeof babylonFullFormulaScenes;
   babylonControlledPaintParity: typeof babylonControlledPaintParity;
   babylonFormulaSurfaceVisibility: typeof babylonFormulaSurfaceVisibility;
 };
@@ -173,4 +175,45 @@ test('isolated Formula ribbons expose both authored paint sides at bank and seam
   expect(result.diagnostics.losses).toBe(0);
   expect(result.diagnostics.submitted).toBe(result.diagnostics.completed);
   expect(result.diagnostics.preparation.failure).toBeNull();
+});
+
+test('full actual Formula scenes prepare and complete both canonical venue workloads', async ({
+  page,
+}, info) => {
+  const errors = await install(page);
+  const result = await page.evaluate(() =>
+    (
+      window as unknown as { BabylonSurfaceProbe: Probe }
+    ).BabylonSurfaceProbe.babylonFullFormulaScenes(),
+  );
+  await report(info, 'full-live-formula-scenes', result);
+  for (const row of result.rows) await image(info, `full-${row.circuit}-live-scene`, row.image);
+  expect(result.failure).toBeNull();
+  expect(errors).toEqual([]);
+  expect(result.rows.map((row) => row.circuit)).toEqual(['aurel', 'vellamar']);
+  for (const row of result.rows) {
+    const road = row.circuit === 'aurel' ? 38 : 50;
+    expect(row.surfaces).toMatchObject({
+      kind: 'formula-ribbon',
+      roadChunks: road,
+      paintChunks: road * 2,
+      leftPaintChunks: road,
+      rightPaintChunks: road,
+      coarseMeshes: 0,
+      paintFinishMaterials: 1,
+    });
+    expect(row.surfaces.vertices).toBe(row.circuit === 'aurel' ? 31882 : 42700);
+    expect(row.preparationVariants).toBe(road * 3 + 1);
+    expect(row.completedFrames).toBeGreaterThanOrEqual(2);
+    expect(row.glError).toBe(0);
+    expect(row.disposeGlError).toBe(0);
+    expect(row.restored).toEqual({ meshes: 0, geometries: 0, materials: 0, textures: 0 });
+    expect(row.diagnostics.losses).toBe(0);
+    expect(row.diagnostics.submitted).toBe(row.diagnostics.completed);
+    expect(row.diagnostics.preparation.failure).toBeNull();
+    for (const effect of row.shaders.effects) {
+      expect(effect.error).toBe('');
+      expect(effect.samplerCount).toBeLessThanOrEqual(row.shaders.maxFragmentSamplers);
+    }
+  }
 });

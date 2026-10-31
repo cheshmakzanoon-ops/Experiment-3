@@ -23,3 +23,14 @@ export function retainNativeSmokeFailure(
   error: unknown,
   graphicsFailure: FirstGraphicsFault,
 ): void;
+export interface NativeAurelSurfaceReceipt {
+  kind: 'formula-ribbon';
+  roadChunks: number;
+  paintChunks: number;
+  leftPaintChunks: number;
+  rightPaintChunks: number;
+  vertices: number;
+  paintFinishMaterials: number;
+  coarseMeshes: number;
+}
+export function validateNativeAurelSurface(value: unknown): NativeAurelSurfaceReceipt;

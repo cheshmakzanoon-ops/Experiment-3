@@ -98,19 +98,71 @@ Sanitized bytes are written to a private temporary sibling, then atomically
 renamed only after a successful, non-aborted write. Failure removes the
 temporary and prior output; no stale summary is accepted. Such temporary bytes
 contain only the validated sanitized schema, never raw trace content.
-The only named work rows are:
+The **version 2** summary has exactly these category/name pairs (the capture
+category list itself is unchanged):
 
-1. `CommandBufferStub::OnAsyncFlush`
-2. `CommandBufferStub::PerformWork`
-3. `Scheduler::RunTask`
+| Category    | Fixed event name                             |
+| ----------- | -------------------------------------------- |
+| `gpu`       | `CommandBufferStub::OnAsyncFlush`            |
+| `gpu`       | `CommandBufferStub::PerformWork`             |
+| `gpu`       | `Scheduler::RunTask`                         |
+| `gpu`       | `CommandBufferService:PutChanged`            |
+| `gpu`       | `GLES2DecoderPassthroughImpl::DoLinkProgram` |
+| `gpu.angle` | `CompileEvent::wait`                         |
+| `gpu.angle` | `Program::MainLinkLoadEvent::wait`           |
+| `gpu.angle` | `ProgramGL::linkJobImpl`                     |
+| `gpu.angle` | `ProgramGL::postLinkJobImpl`                 |
 
-These names are source-reviewed in Chromium
+The original three names are reviewed in Chromium
 [command_buffer_stub.cc](https://github.com/chromium/chromium/blob/156.0.8078.75/gpu/ipc/service/command_buffer_stub.cc)
 and [scheduler.cc](https://github.com/chromium/chromium/blob/156.0.8078.75/gpu/command_buffer/service/scheduler.cc).
-Association requires `slice → thread_track → thread → process` and the typed
-`chrome.process_type = Gpu` descriptor, plus an exact `gpu` category token.
-A process merely named “Gpu” or an identically named renderer event does not
-qualify. Other GPU event names produce only a numeric count.
+The new Chromium scopes cover the
+[command-buffer decode loop](https://github.com/chromium/chromium/blob/156.0.8078.75/gpu/command_buffer/service/command_buffer_service.cc#L250-L309)
+and [explicit passthrough link call](https://github.com/chromium/chromium/blob/156.0.8078.75/gpu/command_buffer/service/gles2_cmd_decoder_passthrough_doers.cc#L2146-L2163).
+Chromium's pinned ANGLE revision defines the
+[compile-result wait](https://github.com/google/angle/blob/127e783de33425c27a70a3f48da9d9202d6a0745/src/libANGLE/Shader.cpp#L174-L180),
+[link/load-result wait](https://github.com/google/angle/blob/127e783de33425c27a70a3f48da9d9202d6a0745/src/libANGLE/Program.cpp#L694-L701),
+and [GL link/post-link scopes](https://github.com/google/angle/blob/127e783de33425c27a70a3f48da9d9202d6a0745/src/libANGLE/renderer/gl/ProgramGL.cpp#L431-L603).
+These are host-side scopes, including task joins/status queries; they do not
+isolate native shader specialization or LLVM execution. Source definitions do
+not prove compiled-in emission: ANGLE's
+[trace macros](https://github.com/google/angle/blob/127e783de33425c27a70a3f48da9d9202d6a0745/src/libANGLE/trace.h#L12-L35)
+and [registration](https://github.com/google/angle/blob/127e783de33425c27a70a3f48da9d9202d6a0745/src/libANGLE/Display.cpp#L119-L142)
+are conditional. No draw-entrypoint or arbitrary marker names are enumerated.
+
+Association requires `slice → thread_track → thread → process`, the typed
+`chrome.process_type = Gpu` descriptor and the exact pair's category token.
+Names, categories and ordering are constant and strictly validated. A process
+merely named “Gpu” or an identically named renderer event does not qualify.
+`otherGpuEvents` retains its original **gpu-token-only** scope, excluding the
+five known `gpu` pairs; it does not count arbitrary `gpu.angle` events.
+Version 1 summaries remain historical evidence but cannot pass the version 2
+validator. The capture receipt schema and gameplay acceptance are unchanged.
+
+Each fixed row and the aggregate add `unfinishedFlushAncestorCount`: an
+[ancestor_slice](https://github.com/google/perfetto/blob/v58.2/docs/analysis/perfetto-sql-getting-started.md#L540-L575)
+`EXISTS` test requires a same-track, exact `gpu` / `OnAsyncFlush` ancestor with
+unfinished duration. Each child counts once, even with multiple qualifying
+ancestors. No slice/track/process IDs, arguments or dynamic labels are exported.
+
+One additional joint field, `unfinishedUnderUnfinishedFlushCount`, counts only
+instances where **both** the specific scope and its same-track flush ancestor
+are unfinished. The fixed query computes this conjunction per instance before
+aggregation. Validation checks its intersection bounds and exact aggregate sum.
+A completed nested link plus an unrelated open link cannot manufacture a
+positive joint count from their separate marginal totals.
+
+`coverage` remains general typed-GPU-work coverage. Independently,
+`compileLinkDiscriminator` is
+`same-track-open-compile-or-link-under-unfinished-flush-observed` only if one of
+the five compile/link rows has a positive **joint** count; otherwise it is
+**inconclusive**. This is an observed open scope in an uncertified child tail,
+not a proven blocked cause or GPU timing. The ordinary ancestor count separately
+retains completed nested work; it does not make the discriminator positive.
+Cross-thread workers cannot be attributed by same-track ancestry. Missing
+scopes, incomplete tails and decoding-only observations do not exclude
+compilation or establish draw specialization. No failure-tail window extension
+is included.
 
 Rows expose process/event/completed/unfinished counts, trace-relative first/last
 nanoseconds and summed/maximum completed duration. These are **overlapping CPU
@@ -167,17 +219,45 @@ typed GPU versus spoofed identity, annotated private names/paths, unfinished
 spans, truncated packets, wrong parser binaries, oversized input and symlinks.
 The parser fixtures run without Electron/browser/network runtime access.
 
-Actual Electron execution of this private protocol remains unverified until its
-own exact-source Actions artifact is inspected. Offline fixtures and unit tests
-do not establish GPU performance, a Linux failure cause, or a repair. Prior
-later-normal-frame losses remain counterevidence to a first-use-only explanation.
+## Actual version 1 capture and version 2 limits
 
-Final focused local receipt: Node **22.23.4**, **74 tests in 5 files passed**
+Source `2caf341` produced the first verified private summary. The dedicated
+[driver diagnostic](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41242964971)
+passed its trace-evidence gate while gameplay **failed** the original wheel
+readiness wait. The artifact contained seven expected JSON/PNG files and no raw
+trace or parser output. Empty discovery was recorded honestly; the same fixed
+categories were requested. The private 8,432,880-byte input produced a
+1,915-byte summary with one typed GPU process, 3,917 known events and two
+unfinished scopes (`OnAsyncFlush` and `Scheduler::RunTask`). Error/data-loss
+statistics were present and zero, but the child tail remained uncertified.
+The GPU exit 512 arrived **11.576 seconds after** the stopped capture window;
+that later fault is outside coverage. Original action failure retained
+precedence. Cleanup confirmed producer closure but recorded raw deletion as
+scheduled, not independently confirmed. These receipts do not establish the
+underlying stall or a repair.
+
+Version 2 adds only the six parser-selected pairs and numeric ancestry above.
+The categories, recording window, 5-second processing budget, input/output caps,
+raw-private lifetime, first-fault handling and all required untraced lanes are
+unchanged. Actual Electron emission of these new scopes remains unverified
+until its own exact-source Actions artifact is inspected. General GPU coverage
+may still pass the diagnostic evidence gate with an inconclusive discriminator;
+neither status is gameplay success or GPU repair evidence.
+
+The original version 1 local receipt was Node **22.23.4**, **74 tests in 5 files**
+including 15 required real-parser cases. Version 2 focused validation on Node **22.23.4** passed **94 tests in 5 files**
 (`native-gpu-trace`, `native-gpu-trace-summary`, `native-gpu-trace-parser`,
-`native-gpu-trace-workflow`, `native-smoke-control`); the 15 real-parser cases
-are included, with the required-parser flag enabled. Scoped strict TypeScript
-checking of the four trace suites/declarations passed. The focused evidence is retained in the development validation record.
-Full-project validation is reported separately in [current status](../CURRENT_STATUS.md).
+`native-gpu-trace-workflow`, `native-smoke-control`), including **32 real-parser
+cases** with `MOTOBOUND_TRACE_PARSER_REQUIRED=1`. Scoped strict TypeScript,
+ESLint and formatting passed. The fixtures include completed/unfinished nested
+children, each isolated compile/link pair, completed-flush and cross-track
+negatives, mixed completed-nested/open-cross-track instances, exact-category
+and typed-identity rejection, duplicate-ancestor
+once-only counting, schema-version rejection and private annotation exclusion.
+Full-project validation is reported separately in
+[current status](../CURRENT_STATUS.md). Offline fixtures do not establish GPU
+performance, and prior later-normal-frame losses remain counterevidence to a
+first-use-only explanation.
 
 ## Linux exit-status interpretation
 

@@ -16,6 +16,7 @@ import {
   runDesktopSmokeJourneys,
   createFirstGraphicsFault,
   retainNativeSmokeFailure,
+  validateNativeAurelSurface,
 } from './native-smoke-control.mjs';
 import { _electron as electron } from '@playwright/test';
 import { mkdtemp, mkdir, writeFile, readFile } from 'node:fs/promises';
@@ -126,9 +127,20 @@ async function waitForBabylonPresentation(page) {
       submitted: Number(element.dataset.renderedFrames),
       completed: Number(element.dataset.completedFrames),
       settled: element.dataset.presentationSettled,
+      surface: {
+        kind: element.dataset.surfaceKind,
+        roadChunks: element.dataset.surfaceRoadChunks,
+        paintChunks: element.dataset.surfacePaintChunks,
+        leftPaintChunks: element.dataset.surfaceLeftPaintChunks,
+        rightPaintChunks: element.dataset.surfaceRightPaintChunks,
+        vertices: element.dataset.surfaceVertices,
+        paintFinishMaterials: element.dataset.surfacePaintFinishMaterials,
+        coarseMeshes: element.dataset.surfaceCoarseMeshes,
+      },
     })),
   );
   (report.babylonPresentationReceipts ??= []).push(receipt);
+  report.formulaSurface = validateNativeAurelSurface(receipt.surface);
 }
 async function captureChecked(page, path) {
   if ((await observeGraphicsHealth(page)).length)

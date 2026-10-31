@@ -1,3 +1,7 @@
+import { BabylonCircuitScene } from '../../src/engine/babylon/circuit-scene.ts';
+import { SurfacePreparation } from '../../src/engine/babylon/surface-preparation.ts';
+import { SimulationComponent } from '../../src/engine/simulation-component.ts';
+import { DEFAULT_OPTIONS } from '../../src/simulation/config.ts';
 import { Engine } from '@babylonjs/core/Engines/engine.js';
 import type { AbstractEngine } from '@babylonjs/core/Engines/abstractEngine.js';
 import type { SubMesh } from '@babylonjs/core/Meshes/subMesh.js';
@@ -34,7 +38,7 @@ import {
 
 // Isolated engineering probe; neither game entry imports this file. No live road
 // switch, new texture, global shader mutation, reduced geometry or physics edit.
-function harness(width: number, height: number) {
+function harness(width: number, height: number, sceneFactory?: (engine: Engine) => Scene) {
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
@@ -42,9 +46,15 @@ function harness(width: number, height: number) {
   const engine = new Engine(canvas, false, { preserveDrawingBuffer: true });
   const gl = canvas.getContext('webgl2');
   if (!gl) throw new Error('Surface acceptance requires WebGL2');
-  const scene = new Scene(engine);
+  let scene: Scene;
+  try {
+    scene = sceneFactory ? sceneFactory(engine) : new Scene(engine);
+  } catch (error) {
+    cleanupPresentation([() => engine.dispose(), () => canvas.remove()]);
+    throw error;
+  }
   scene.useRightHandedSystem = true;
-  scene.clearColor = new Color4(0, 0, 0, 0);
+  if (!sceneFactory) scene.clearColor = new Color4(0, 0, 0, 0);
   const gpu = new BabylonPresentationGpu(gl),
     schedule = new PresentationSchedule();
   const abort = new AbortController(),
@@ -130,6 +140,7 @@ function harness(width: number, height: number) {
     gl,
     scene,
     gpu,
+    schedule,
     abort,
     deadline,
     presented,
@@ -761,5 +772,147 @@ export async function babylonFormulaSurfaceVisibility() {
       'runoff',
       'terrain',
     ],
+  };
+}
+
+/** Full workload through the actual live scene/readiness classes. The real
+ * /babylon.html journey selects Aurel; Vellamar is qualified here without a
+ * hidden production query parameter or fabricated route diagnostics. */
+export async function babylonFullFormulaScenes() {
+  const rows: {
+    circuit: string;
+    surfaces: BabylonCircuitScene['surfaceDiagnostics'];
+    resources: ReturnType<typeof resources>;
+    restored: ReturnType<typeof resources>;
+    completedFrames: number;
+    preparationVariants: number;
+    glError: number;
+    disposeGlError: number;
+    diagnostics: ReturnType<BabylonPresentationGpu['diagnostics']>;
+    image: string;
+    shaders: ReturnType<ReturnType<typeof harness>['shaders']>;
+  }[] = [];
+  let failure: string | null = null;
+  let failureEvidence: {
+    circuit: string;
+    shaders: ReturnType<ReturnType<typeof harness>['shaders']>;
+    diagnostics: ReturnType<BabylonPresentationGpu['diagnostics']>;
+    resources: ReturnType<typeof resources>;
+  } | null = null;
+  for (const circuit of ['aurel', 'vellamar'] as const) {
+    let h: ReturnType<typeof harness> | undefined;
+    try {
+      const host = new SimulationComponent({
+        ...DEFAULT_OPTIONS,
+        circuit,
+        mode: 'practice',
+        opponents: 0,
+      });
+      let view!: BabylonCircuitScene;
+      h = harness(1024, 768, (engine) => {
+        view = new BabylonCircuitScene(engine, host.simulation.track, 1, {
+          presentation: 'circuit',
+          vehicles: host.simulation.cars.map((car) => car.definition),
+        });
+        return view.scene;
+      });
+      for (const material of view.scene.materials) h.observe(material);
+      const ready = new SurfacePreparation(
+        view.scene,
+        view.scene.meshes,
+        h.gpu,
+        h.schedule,
+        h.abort.signal,
+        h.deadline,
+      );
+      let completed = false,
+        preparationFailure: unknown;
+      void ready.completion.then(
+        () => {
+          completed = true;
+        },
+        (error) => {
+          preparationFailure = error;
+        },
+      );
+      // Same gate as main: compile gaps never submit normal scene draws.
+      const schedule = h.schedule;
+      const finish = schedule.prepare();
+      const baselineCompleted = h.gpu.diagnostics().completed;
+      try {
+        while (!completed) {
+          h.abort.signal.throwIfAborted();
+          if (preparationFailure) throw preparationFailure;
+          const idle = h.gpu.ready();
+          await Promise.resolve();
+          if (ready.completed) {
+            await ready.completion;
+            completed = true;
+            break;
+          }
+          if (idle && ready.canDraw)
+            h.gpu.frame(schedule, false, view.scene, () => {
+              const before = view.scene.isReady();
+              h!.engine.beginFrame();
+              view.render(host.frame);
+              h!.engine.endFrame();
+              const after = view.scene.isReady();
+              schedule.rendered(before, after);
+              return before && after;
+            });
+          await yieldPreparationTurn(h.abort.signal, h.deadline);
+        }
+        await ready.completion;
+      } finally {
+        finish();
+      }
+      if (!ready.completed) throw new Error('Full scene did not complete readiness');
+      const capture = h.capture(),
+        surfaces = view.surfaceDiagnostics,
+        retained = resources(view.scene),
+        glError = h.gl.getError();
+      const beforeDispose = h.gpu.diagnostics();
+      const shaders = h.shaders(false);
+      await h.gpu.prepare(`dispose full ${circuit}`, h.deadline, async (signal) => {
+        signal.throwIfAborted();
+        view.dispose();
+      });
+      rows.push({
+        circuit,
+        surfaces,
+        resources: retained,
+        restored: resources(view.scene),
+        completedFrames: beforeDispose.completed - baselineCompleted,
+        preparationVariants: beforeDispose.preparation.completed,
+        glError,
+        disposeGlError: h.gl.getError(),
+        diagnostics: h.gpu.diagnostics(),
+        image: capture.image,
+        shaders,
+      });
+    } catch (error) {
+      failure = message(error);
+      if (h)
+        failureEvidence = {
+          circuit,
+          shaders: h.shaders(true),
+          diagnostics: h.gpu.diagnostics(),
+          resources: resources(h.scene),
+        };
+    } finally {
+      try {
+        h?.dispose();
+      } catch (error) {
+        failure ??= message(error);
+      }
+    }
+    if (failure) break;
+  }
+  return {
+    rows,
+    failure,
+    failureEvidence,
+    scope:
+      'Full actual BabylonCircuitScene and SurfacePreparation; diagnostic asphalt, no grounding/light pools',
   };
 }

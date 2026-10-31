@@ -353,14 +353,15 @@ describe('bounded native GPU trace diagnostic', () => {
       await writeFile(path, rawBytes);
       const summary = decodeNativeGpuTraceRows(
         [
-          'event_id,process_count,event_count,completed_count,unfinished_count,first_ns,last_ns,total_ns,max_ns',
-          '0,1,1,1,0,0,10,10,10',
-          '1,1,1,1,0,0,10,10,10',
-          '2,0,0,0,0,0,0,0,0',
-          '3,0,0,0,0,0,0,0,0',
-          '4,1,0,0,0,0,0,0,0',
-          '5,1,0,0,0,0,0,0,0',
-          '6,0,0,0,0,0,0,0,0',
+          'event_id,process_count,event_count,completed_count,unfinished_count,first_ns,last_ns,total_ns,max_ns,unfinished_flush_ancestor_count,unfinished_under_unfinished_flush_count',
+          '0,1,1,1,0,0,10,10,10,0,0',
+          '1,1,1,1,0,0,10,10,10,0,0',
+          '2,0,0,0,0,0,0,0,0,0,0',
+          '3,0,0,0,0,0,0,0,0,0,0',
+          ...Array.from({ length: 6 }, (_, index) => `${index + 4},0,0,0,0,0,0,0,0,0,0`),
+          '10,1,0,0,0,0,0,0,0,0,0',
+          '11,1,0,0,0,0,0,0,0,0,0',
+          '12,0,0,0,0,0,0,0,0,0,0',
         ].join('\n'),
         rawBytes.length,
       );
@@ -537,6 +538,12 @@ describe('bounded native GPU trace diagnostic', () => {
       const original = await readFile(outputPath);
       await writeFile(outputPath, Buffer.alloc(original.length, 32));
       await expect(validateNativeGpuTraceEvidence(report, evidence)).rejects.toThrow('digest');
+      for (const version of [1, 3]) {
+        trace.receipt.output = await publish({ source, summary: { ...summary, version } });
+        await expect(validateNativeGpuTraceEvidence(report, evidence)).rejects.toThrow(
+          'summary-invalid',
+        );
+      }
       trace.receipt.output = await publish({
         source,
         summary: { ...summary, secret: 'must not publish' },
