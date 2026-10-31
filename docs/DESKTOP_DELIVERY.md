@@ -70,3 +70,14 @@ The newer [b0b3ccc development release](https://github.com/cheshmakzanoon-ops/Ex
 ## Linux driver comparison
 
 Required release validation continues to use Mesa/llvmpipe with all existing checks and deadlines. A separate non-publishing workflow compares Chromium's documented full SwiftShader GLES driver on the same Linux source and full journeys. It does not enable the unsafe WebGL fallback or change the shipped app's driver selection/security. A passing comparison cannot turn a failed Mesa release lane green; it is diagnostic evidence to distinguish driver sensitivity from application behavior. [Chromium driver documentation](https://chromium.googlesource.com/chromium/src/+/main/docs/gpu/swiftshader.md).
+
+### d063029 qualification result
+
+| Lane | Four-mode result | Release effect |
+| --- | --- | --- |
+| Windows x64 | Passed; no CSP/runtime errors | Required lane passed |
+| Apple Silicon | Passed; no CSP/runtime errors | Required lane passed |
+| Linux Mesa | Graphics context lost during Formula preparation; no CSP errors | Required lane failed; publication skipped |
+| Linux SwiftShader comparison | All four journeys passed; no recorded GPU/context/CSP errors | Diagnostic only; cannot publish or override Mesa |
+
+Required run: [41187844014](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41187844014). Comparison: [41187844000](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41187844000). The published b0b3 development download remains a limited earlier baseline. A passing comparison is not hardware performance certification or proof of the failed driver's root cause.

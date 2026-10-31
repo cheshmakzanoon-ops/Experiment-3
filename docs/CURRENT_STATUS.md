@@ -35,6 +35,10 @@ The new Babylon increment ports original rigid wheel hub/steering/camber/spin mo
 
 The following qualification increment adds real installed-game compatibility journeys for Formula, GP, Outdoor MX and Open World. It observes each session's own authoritative/presented motion and autopilot state, then requires real throttle response, pause/resume/pause and return through production menus. All 37 focused local checks, TypeScript, completed lint and production build pass. On `710fb863`, Windows and Apple Silicon completed all four journeys but failed the aggregate guard on four Basis worker CSP EvalErrors. Linux had two GPU-process crashes and a fatal graphics-context loss during Formula preparation; its stale loading state then reached the 300 s readiness timeout. Publication was skipped. Native reports now retain error stacks and stage checkpoints and stop immediately on the production fatal panel. The strict-CSP decoder rebuild preserves all 3,543 output hashes locally; fresh native verification remains required. Separate settings tests also exposed a showroom/night-preview mismatch and blocking cold shadow/reflection preparation.
 
+On `d063029`, the rebuilt decoder produced no CSP errors in any native report. Windows and Apple Silicon passed every four-mode journey. Required Linux Mesa lost its graphics context during Formula preparation, so publication was skipped; a separate full-SwiftShader comparison passed all four journeys but does not override that failed gate or prove the driver's root cause.
+
+A separate held-menu repair now polls an already submitted preview's GPU completion even while new drawing is suppressed. It preserves settings ownership, quiet intervals and immutable physics snapshots, and adds a real Academy receipt/held-frame journey. This does not resolve the forced-day showroom/night-preview mismatch or the cold graphics-preparation stalls.
+
 ## Remaining acceptance gates
 
 1. Resolve mixed-class GP pace and confirm the full suite under appropriate runner load without hiding failures or extending acceptance limits merely to pass.

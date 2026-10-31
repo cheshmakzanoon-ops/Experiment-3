@@ -471,3 +471,53 @@ describe('adaptive recovery for active menu callbacks', () => {
     expect(state.allocated).toBe(1);
   });
 });
+
+it('settles a covered preview receipt without permitting another frame or counting held time as recovery', () => {
+  const { clock, pacing, source, gpu, gl, state, submit } = fixture();
+  expect(pacing.poll(source)).toBe('ready');
+  submit();
+  clock.now = 10;
+  expect(pacing.pollHeld(source)).toBe('busy');
+  expect(gpu.diagnostics().completed).toBe(0);
+  state.wait = gl.CONDITION_SATISFIED;
+  clock.now = 20;
+  expect(pacing.pollHeld(source)).toBe('completed');
+  expect(gpu.diagnostics()).toMatchObject({ submitted: 1, completed: 1, pending: false });
+  for (let i = 0; i < 20; i++) {
+    clock.now += 1000;
+    expect(pacing.pollHeld(source)).toBe('quiet');
+  }
+  expect(state.allocated).toBe(1);
+  expect(state.finishes).toBe(0);
+  expect(pacing.poll(source, true)).toBe('quiet');
+  clock.now += MenuFramePacing.quietMilliseconds + 1;
+  expect(pacing.poll(source, true)).toBe('ready');
+});
+
+it('does not consume recovery time on the first held poll after completion', () => {
+  const { clock, pacing, source, gl, state, submit } = fixture();
+  expect(pacing.poll(source)).toBe('ready');
+  submit();
+  state.wait = gl.CONDITION_SATISFIED;
+  clock.now = 10;
+  expect(pacing.poll(source)).toBe('completed');
+  clock.now += 1000;
+  expect(pacing.pollHeld(source)).toBe('quiet');
+  expect(pacing.poll(source, true)).toBe('quiet');
+  clock.now += MenuFramePacing.quietMilliseconds + 1;
+  expect(pacing.poll(source, true)).toBe('ready');
+  expect(state.allocated).toBe(1);
+});
+
+it('keeps a held completion poll closed after context loss without promoting a frame', () => {
+  const { pacing, source, gpu, state, submit } = fixture();
+  expect(pacing.poll(source)).toBe('ready');
+  submit();
+  state.lost = true;
+  // The context-loss event owns the application error. The gate stays busy.
+  expect(pacing.pollHeld(source)).toBe('busy');
+  expect(gpu.diagnostics().completed).toBe(0);
+  expect(state.finishes).toBe(0);
+  expect(state.polls).toBe(0);
+  expect(state.allocated).toBe(1);
+});

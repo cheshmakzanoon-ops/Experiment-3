@@ -1065,7 +1065,19 @@ export class GameApp {
         settingsBusy: this.savingSettings,
       })
     ) {
-      if (this.state === 'menu') this.menuFrames.suspend();
+      if (this.state === 'menu') {
+        // Holding a preview must stop new draws, not abandon the GPU receipt
+        // of its one requested draw. Settings transactions retain ownership.
+        try {
+          if (!this.savingSettings && this.menuPreviewSubmission) {
+            const readiness = this.menuFrames.pollHeld(this.renderer);
+            this.menuPreviewReceipt.observe(this.renderer, readiness, this.menuPreviewSubmission);
+            if (readiness === 'completed') this.menuPreviewSubmission = null;
+          } else this.menuFrames.suspend();
+        } catch (error) {
+          this.fail(error);
+        }
+      }
       return;
     }
     // Telemetry/settings own a replay's last presented frame immediately, even

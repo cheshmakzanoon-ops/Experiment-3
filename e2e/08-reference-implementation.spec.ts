@@ -176,3 +176,35 @@ test('reference continuation: explicit programme replacement, live chevrons and 
   expect((await diag(page)).practiceProgramme).toEqual(progress);
   expect(errors).toEqual([]);
 });
+
+test('Academy held previews acknowledge completed GPU work without advancing the session', async ({
+  page,
+}, info) => {
+  await ready(page);
+  const original = await diag(page);
+  await page.getByRole('button', { name: 'DRIVING ACADEMY', exact: true }).click();
+  await expect(page.locator('.driving-academy')).toBeVisible();
+  await expect
+    .poll(async () => (await diag(page)).menuPreviewPresentation?.current ?? false)
+    .toBe(true);
+  const first = await heldAcademy(page);
+  const beforeGuide = await diag(page);
+  const previousRevision = beforeGuide.menuPreviewPresentation?.requested.revision ?? -1;
+  expect(previousRevision).toBeGreaterThanOrEqual(0);
+  await page.locator('[data-action="guide:full"]').click();
+  await expect
+    .poll(async () => {
+      const preview = (await diag(page)).menuPreviewPresentation;
+      return !!preview && preview.current && preview.requested.revision > previousRevision;
+    })
+    .toBe(true);
+  const second = await heldAcademy(page);
+  expect(second.after).toBe(first.after + 1);
+  const completed = await diag(page);
+  expect(completed.frame).toEqual(original.frame);
+  expect(completed.renderer!.gpuFrameQueue.pending).toBe(false);
+  await info.attach('academy-held-completion.json', {
+    body: JSON.stringify({ first, second, receipt: completed.menuPreviewPresentation }, null, 2),
+    contentType: 'application/json',
+  });
+});

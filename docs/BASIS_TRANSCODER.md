@@ -32,3 +32,7 @@ The script checks both checkout identities, compiles a matched JS/WASM pair, cop
 - A prototype using newer upstream codec source was rejected because 157 ETC1S-to-BC7 outputs changed. A first v1.50 build without explicit HEAP8 export was also rejected. Neither prototype ships.
 
 These local checks do not replace the actual Three blob-worker/desktop CSP journey. Fresh native qualification must confirm that startup EvalErrors are absent. Linux graphics-context losses and the legacy night-preview/preparation failures are separate open issues; this change does not claim to fix them.
+
+## Native result on d063029
+
+The required [native run 41187844014](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41187844014) reports no former CSP EvalErrors on any platform. Windows and Apple Silicon completed every four-mode journey with empty runtime-error, failed-asset and remote-request lists. Linux Mesa separately lost its graphics context during Formula preparation, preventing publication. The [non-publishing SwiftShader comparison](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41187844000) also completed all four journeys without CSP errors. These results verify the decoder repair in the actual worker path; they do not resolve the separate Mesa graphics failure or establish a root cause from one comparison.
