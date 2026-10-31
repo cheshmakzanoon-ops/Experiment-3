@@ -80,6 +80,13 @@ test('reference continuation: night and guide controls are real, reversible and 
   await expect(page.locator('.driving-academy')).toBeVisible();
   await expect.poll(async () => (await diag(page)).renderer!.venueLighting.nearbyLights).toBe(4);
   expect((await diag(page)).renderer!.night).toBe(true);
+  const venue = await diag(page);
+  expect(venue.renderer!.presentationPurpose).toBe('circuit');
+  expect(venue.renderer!.construction.tasks).toBeGreaterThan(100);
+  expect(venue.frame).toEqual(original.frame);
+  expect(venue.frame![H.WATER]).toBe(original.frame![H.WATER]);
+  expect(venue.practiceProgramme).toEqual(original.practiceProgramme);
+  await expect.poll(async () => (await diag(page)).menuPreview?.current).toBe(true);
   const night = await heldAcademy(page);
   await info.attach('reference-079-night-preview-held.png', {
     body: await page.screenshot(),

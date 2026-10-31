@@ -78,6 +78,31 @@ async function observeGraphicsHealth(page) {
   }
   return report.graphicsFaults;
 }
+async function waitForBabylonPresentation(page) {
+  if ((await observeGraphicsHealth(page)).length)
+    throw new Error('GPU health failed before paused presentation completion');
+  await page.waitForFunction(
+    () => {
+      const data = document.querySelector('#status')?.dataset;
+      const submitted = Number(data?.renderedFrames);
+      const completed = Number(data?.completedFrames);
+      return (
+        data?.presentationSettled === 'true' &&
+        Number.isSafeInteger(submitted) &&
+        submitted > 0 &&
+        completed === submitted
+      );
+    },
+    {},
+    { timeout: 30000, polling: 100 },
+  );
+  const receipt = await page.locator('#status').evaluate((element) => ({
+    submitted: Number(element.dataset.renderedFrames),
+    completed: Number(element.dataset.completedFrames),
+    settled: element.dataset.presentationSettled,
+  }));
+  (report.babylonPresentationReceipts ??= []).push(receipt);
+}
 async function captureChecked(page, path) {
   if ((await observeGraphicsHealth(page)).length)
     throw new Error('GPU health failed before capture');
@@ -251,6 +276,7 @@ try {
   await page.waitForFunction(() =>
     document.querySelector('#status')?.textContent?.includes('PAUSED'),
   );
+  await waitForBabylonPresentation(page);
   await page.getByRole('button', { name: 'Resume', exact: true }).click();
   await page.waitForFunction(() =>
     document.querySelector('#status')?.textContent?.includes('DRIVING'),
@@ -277,6 +303,7 @@ try {
   await page.waitForFunction(() =>
     document.querySelector('#status')?.textContent?.includes('PAUSED'),
   );
+  await waitForBabylonPresentation(page);
   const pausedStatus = await page.locator('#status').textContent();
   await page.waitForTimeout(300); // Explicit observation window for a frozen physics tick.
   if ((await page.locator('#status').textContent()) !== pausedStatus)
@@ -336,6 +363,7 @@ try {
   await page.waitForFunction(() =>
     document.querySelector('#status')?.textContent?.includes('PAUSED'),
   );
+  await waitForBabylonPresentation(page);
   const frozenWheel = await page.locator('#assetStatus').getAttribute('data-wheel-phase');
   await page.waitForTimeout(300);
   if ((await page.locator('#assetStatus').getAttribute('data-wheel-phase')) !== frozenWheel)

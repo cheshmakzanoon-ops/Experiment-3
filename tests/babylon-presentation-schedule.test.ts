@@ -54,3 +54,17 @@ it('continues paused draws while initial or restored resources remain unready', 
   schedule.rendered(true, true);
   expect(schedule.shouldRender(true)).toBe(false);
 });
+
+it('reports pending demand without consuming invalidations or active preparations', () => {
+  const schedule = new PresentationSchedule();
+  expect(schedule.pending).toBe(true);
+  expect(schedule.pending).toBe(true);
+  expect(schedule.shouldRender(true)).toBe(true);
+  expect(schedule.pending).toBe(false);
+  const finish = schedule.prepare();
+  expect(schedule.pending).toBe(true);
+  finish();
+  expect(schedule.pending).toBe(false);
+  schedule.request();
+  expect(schedule.pending).toBe(true);
+});

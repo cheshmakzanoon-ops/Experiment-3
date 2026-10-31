@@ -13,6 +13,7 @@ test('Babylon migration entry renders existing simulation and supports pause, re
   await expect(status).toHaveAttribute('data-scene-ready', 'true');
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
   await expect(status).toContainText('PAUSED');
+  await expect(status).toHaveAttribute('data-presentation-settled', 'true');
   const stopped = await tick();
   const draws = await status.getAttribute('data-rendered-frames');
   await page.waitForTimeout(400);
@@ -25,6 +26,7 @@ test('Babylon migration entry renders existing simulation and supports pause, re
     .toBeGreaterThan(Number(draws));
   expect(await tick()).toBe(stopped);
   await expect(status).toHaveAttribute('data-scene-ready', 'true');
+  await expect(status).toHaveAttribute('data-presentation-settled', 'true');
   const resizedDraws = await status.getAttribute('data-rendered-frames');
   await page.waitForTimeout(400);
   expect(await status.getAttribute('data-rendered-frames')).toBe(resizedDraws);
@@ -100,6 +102,7 @@ test('Babylon imports the existing authored Formula asset and restart cancels ob
   }
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
   await expect(page.locator('#status')).toContainText('PAUSED');
+  await expect(page.locator('#status')).toHaveAttribute('data-presentation-settled', 'true');
   const frozenWheel = await wheelPhase();
   const frozenDriver = await driverSteering();
   await page.waitForTimeout(300);
@@ -143,6 +146,7 @@ test('Babylon uses the production driving inputs, including keyboard throttle an
 
   await page.keyboard.press('Escape');
   await expect(page.locator('#status')).toContainText('PAUSED');
+  await expect(page.locator('#status')).toHaveAttribute('data-presentation-settled', 'true');
   await page.keyboard.press('Escape');
   await expect(page.locator('#status')).toContainText('DRIVING');
   await page.getByRole('button', { name: 'Restart', exact: true }).click();
@@ -163,4 +167,5 @@ test('Babylon diagnostic panel leaves the native driving view clear at minimum w
   expect(panel!.y + panel!.height).toBeLessThan(controls!.y);
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
   await expect(page.locator('#status')).toContainText('PAUSED');
+  await expect(page.locator('#status')).toHaveAttribute('data-presentation-settled', 'true');
 });

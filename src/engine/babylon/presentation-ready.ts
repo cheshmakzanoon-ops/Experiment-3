@@ -1,17 +1,22 @@
 import type { Scene } from '@babylonjs/core/scene.js';
+import type { PresentationCompletions } from './presentation-gpu.ts';
 
-/** Asset decoding is not a rendered-frame guarantee. Wait for two completed
- * ready frames so an asynchronously compiled material has actually had a
- * chance to draw. Never leave observers or a pending load behind on restart. */
-export function waitForPresentation(scene: Scene, signal: AbortSignal): Promise<void> {
+/** Two ready scene submissions must actually complete on the GPU. CPU
+ * onAfterRender notifications alone cannot establish this receipt. */
+export function waitForPresentation(
+  scene: Scene,
+  signal: AbortSignal,
+  completions: PresentationCompletions,
+): Promise<void> {
   return new Promise((resolve, reject) => {
     if (signal.aborted || scene.isDisposed) {
       reject(new DOMException('Model presentation cancelled', 'AbortError'));
       return;
     }
     let readyFrames = 0;
+    let unsubscribe = () => {};
     const clean = () => {
-      scene.onAfterRenderObservable.remove(rendered);
+      unsubscribe();
       scene.onDisposeObservable.remove(disposed);
       signal.removeEventListener('abort', cancelled);
     };
@@ -19,14 +24,23 @@ export function waitForPresentation(scene: Scene, signal: AbortSignal): Promise<
       clean();
       reject(new DOMException('Model presentation cancelled', 'AbortError'));
     };
-    const rendered = scene.onAfterRenderObservable.add(() => {
-      readyFrames = scene.isReady() ? readyFrames + 1 : 0;
+    const disposed = scene.onDisposeObservable.add(cancelled);
+    signal.addEventListener('abort', cancelled, { once: true });
+    unsubscribe = completions.subscribe((receipt) => {
+      if (receipt.kind === 'disposed') {
+        cancelled();
+        return;
+      }
+      if (receipt.kind === 'lost') {
+        readyFrames = 0;
+        return;
+      }
+      if (receipt.owner !== scene) return;
+      readyFrames = receipt.ready ? readyFrames + 1 : 0;
       if (readyFrames >= 2) {
         clean();
         resolve();
       }
     });
-    const disposed = scene.onDisposeObservable.add(cancelled);
-    signal.addEventListener('abort', cancelled, { once: true });
   });
 }

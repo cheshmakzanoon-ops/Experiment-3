@@ -3,6 +3,10 @@
 export class PresentationSchedule {
   private requested = true;
   private readonly preparations = new Set<symbol>();
+  /** Read-only pending demand; querying it must not consume invalidation. */
+  get pending() {
+    return this.requested || this.preparations.size > 0;
+  }
   request() {
     this.requested = true;
   }

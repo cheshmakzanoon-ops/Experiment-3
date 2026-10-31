@@ -1,3 +1,4 @@
+import { PreviewPromotion } from './core/preview-promotion.ts';
 import { motionReceipt } from './core/motion-receipt.ts';
 import { installGraphicsObservation } from './core/graphics-observation.ts';
 import {
@@ -197,6 +198,8 @@ export class GameApp {
     gpuSequence: 0,
   };
   private savingSettings = false;
+  private readonly academyPromotion = new PreviewPromotion();
+  private academyResizePending = false;
   private settingsPhase: SettingsPhase = 'idle';
   private settingsResizePending = false;
   private disposed = false;
@@ -401,6 +404,11 @@ export class GameApp {
         }
         return;
       }
+      if (this.academyPromotion.busy) {
+        // Keep controller cancellation live without publishing driving input.
+        this.input.pollActions(['pause']);
+        return;
+      }
       if (this.state !== 'driving') {
         if (this.state === 'replay' && !this.ui.telemetryModal.open && !this.ui.modal.open)
           this.input.pollActions(['pause', 'camera', 'replay', 'mute', 'debug']);
@@ -432,7 +440,8 @@ export class GameApp {
       this.interruptReview('Viewport changed');
       // Quality preparation owns render targets until its save settles. Apply
       // the latest viewport once afterward, not concurrently with compilation.
-      if (this.savingSettings) this.settingsResizePending = true;
+      if (this.academyPromotion.busy) this.academyResizePending = true;
+      else if (this.savingSettings) this.settingsResizePending = true;
       else if (this.festival) this.festival.resize();
       else this.renderer?.resize();
       this.viewportRedrawPending = true;
@@ -482,6 +491,7 @@ export class GameApp {
       : menuPreview(this.track, this.track.length - 32, this.showroomMachine);
   }
   private previewSelectedMachine(id: string, selectionChanged = false) {
+    if (this.academyPromotion.busy) return;
     const changed = this.showroomMachine !== id;
     this.showroomMachine = id;
     // The interface deduplicates circuit + machine, so a same-machine callback
@@ -633,6 +643,7 @@ export class GameApp {
       this.errorStopped ||
       this.festival ||
       this.festivalStarting ||
+      this.academyPromotion.busy ||
       !this.renderer ||
       !this.canvas
     )
@@ -764,9 +775,11 @@ export class GameApp {
     holdOnGrid = false,
     career: CareerSession | null = null,
   ) {
-    if (this.savingSettings) {
+    if (this.savingSettings || this.academyPromotion.busy) {
       this.ui.toast(
-        'Preferences are still being applied. Start the session after saving completes.',
+        this.academyPromotion.busy
+          ? 'The circuit preview is still being prepared. Start after it completes.'
+          : 'Preferences are still being applied. Start the session after saving completes.',
       );
       return;
     }
@@ -1600,6 +1613,7 @@ export class GameApp {
     }
   }
   private async openPhoto() {
+    if (this.academyPromotion.busy) return;
     if (!this.renderer || !this.current || this.state === 'loading' || this.state === 'photo')
       return;
     this.photoReturnHub = !!document.querySelector('.team-hub');
@@ -1934,7 +1948,79 @@ export class GameApp {
     if (this.state === 'results') this.showResults();
     else this.ui.pause();
   }
-  private openAcademy() {
+  private openAcademy(): Promise<void> {
+    if (this.academyPromotion.busy) return this.promoteAcademy();
+    if (this.savingSettings || this.disposed || this.errorStopped || this.state === 'loading')
+      return Promise.resolve();
+    if (this.state === 'menu' && this.renderer?.showroomOnly) return this.promoteAcademy();
+    this.showAcademyPanel();
+    return Promise.resolve();
+  }
+  private promoteAcademy(): Promise<void> {
+    const source = this.renderer;
+    const generation = this.generation;
+    const canvas = this.canvas;
+    // Coalesced calls never execute this job; the first owner retains its
+    // exact current/previous/menu samples, selected machine and circuit.
+    return this.academyPromotion.run({
+      current: () => !this.disposed && !this.errorStopped && this.generation === generation,
+      create: async (cancelled) => {
+        if (!source || !canvas) return null;
+        const lighting = source.lighting;
+        const guide = source.guide.mode;
+        this.state = 'loading';
+        this.ui.closeModal();
+        this.ui.showMode('loading');
+        this.ui.loading('Preparing the circuit lighting preview…');
+        this.resetMenuPresentation();
+        // Drain the held showroom submission before releasing its GPU resources.
+        await source.waitForPreparedFrame(cancelled, yieldBrowserTask);
+        if (cancelled()) return null;
+        // No second renderer may own this canvas while the venue is built.
+        source.dispose();
+        this.renderer = null;
+        const candidate = await RacingRenderer.create(
+          canvas,
+          this.track,
+          (progress) => {
+            if (!cancelled())
+              this.ui.loading(`${Math.floor(progress.fraction * 100)}% · ${progress.label}…`);
+          },
+          cancelled,
+          { quality: this.settings.quality, graphics: this.settings.graphics },
+        );
+        if (!candidate) return null;
+        if (cancelled()) return candidate;
+        try {
+          candidate.setQuality(this.settings.quality, this.settings.graphics);
+          this.applyMotion(candidate, this.settings);
+          candidate.colorblind = this.settings.colorblind;
+          candidate.setLivery(this.team.livery);
+          candidate.lighting = this.liveSky.active ? (this.liveSky.update() ?? lighting) : lighting;
+          candidate.guide.mode = guide;
+          if (this.academyResizePending) {
+            candidate.resize();
+            this.academyResizePending = false;
+          }
+          return candidate;
+        } catch (error) {
+          candidate.dispose();
+          throw error;
+        }
+      },
+      adopt: (candidate) => {
+        this.renderer = candidate;
+        this.state = 'menu';
+        this.renderedState = null;
+        this.menuPreviewReceipt.request('academy');
+        this.ui.ready();
+        this.ui.showMode('menu');
+      },
+      dispose: (candidate) => candidate.dispose(),
+      reveal: () => this.showAcademyPanel(),
+    });
+  }
+  private showAcademyPanel() {
     this.suspendPlayback();
     this.ui.closeModal();
     this.ui.modalContent(
@@ -1953,7 +2039,11 @@ export class GameApp {
     const route = referenceRoute(entry);
     if (!route) return;
     this.inspectedReference = id;
-    if (route.night !== undefined && this.renderer) this.renderer.night = route.night;
+    if (route.night !== undefined && this.renderer) {
+      setLiveSkyPreferred(false);
+      this.liveSky.stop();
+      this.renderer.night = route.night;
+    }
     if (route.destination === 'media') this.openMedia();
     else if (route.destination === 'event') {
       this.suspendPlayback();
@@ -1973,7 +2063,7 @@ export class GameApp {
           `REFERENCE ${String(id).padStart(3, '0')} · ${entry.title}. ${route.instruction}`,
         );
       }
-    } else if (route.destination === 'academy') this.openAcademy();
+    } else if (route.destination === 'academy') await this.openAcademy();
     else if (route.destination === 'team') this.openTeam(route.hub);
     else {
       this.suspendPlayback();
@@ -2008,6 +2098,21 @@ export class GameApp {
   /** The machine whose setup the garage shows: the session's own machine
    * while one runs, else (undefined) the menu's MACHINE choice. */
   private action(name: string) {
+    if (this.academyPromotion.busy) {
+      if (name === 'modalClose' || name === 'menu' || name === 'pause') {
+        this.academyPromotion.closePanel();
+        this.ui.closeModal();
+        return;
+      }
+      if (name === 'academy') {
+        void this.openAcademy().catch((error) => this.fail(error));
+        return;
+      }
+      if (!['mute', 'blur', 'deviceLost', 'reload'].includes(name)) {
+        this.ui.toast('Preparing the circuit preview…');
+        return;
+      }
+    }
     if (this.festival?.action(name)) return;
     // Do not replace a renderer or resume simulation while it owns a graphics
     // transition. Closing the editor, muting, losing focus and reload remain
@@ -2138,7 +2243,7 @@ export class GameApp {
         this.performanceCapture.interrupt('Driving guide changed');
         this.interruptReview('Driving guide changed');
         this.renderer.guide.mode = mode as GuideMode;
-        this.openAcademy();
+        void this.openAcademy().catch((error) => this.fail(error));
       }
       return;
     }
@@ -2151,7 +2256,7 @@ export class GameApp {
         // answers, the stored fix or the time zone stands in.
         this.renderer.lighting = this.liveSky.start(storedObserver());
         this.renderer.reset();
-        this.openAcademy();
+        void this.openAcademy().catch((error) => this.fail(error));
         void requestObserver().then((observer) => {
           if (!this.renderer || !this.liveSky.active || observer.source === 'timezone') return;
           this.renderer.lighting = this.liveSky.start(observer);
@@ -2159,7 +2264,7 @@ export class GameApp {
           this.renderedState = null;
           // Refresh the academy's location line if it is still on screen.
           if (document.querySelector('.driving-academy [data-action="lighting:live"]'))
-            this.openAcademy();
+            void this.openAcademy().catch((error) => this.fail(error));
         });
       }
       return;
@@ -2173,7 +2278,7 @@ export class GameApp {
         this.renderer.lighting =
           name === 'lighting:sunset' ? 'sunset' : name === 'lighting:night' ? 'night' : 'day';
         this.renderer.reset();
-        this.openAcademy();
+        void this.openAcademy().catch((error) => this.fail(error));
       }
       return;
     }
@@ -2194,7 +2299,7 @@ export class GameApp {
       return;
     switch (name) {
       case 'academy':
-        this.openAcademy();
+        void this.openAcademy().catch((error) => this.fail(error));
         break;
       case 'academy:start':
         this.suspendPlayback();
@@ -2216,7 +2321,7 @@ export class GameApp {
         break;
       case 'academy:stop':
         this.programme.stop();
-        this.openAcademy();
+        void this.openAcademy().catch((error) => this.fail(error));
         break;
       case 'teamMedia':
         this.openMedia();
@@ -2720,7 +2825,8 @@ export class GameApp {
     return setupContext(inSession, this.options.vehicles, this.career.sessionSetup());
   }
   private async applySettings(settings: Settings) {
-    if (this.savingSettings || this.disposed || this.errorStopped) return;
+    if (this.savingSettings || this.academyPromotion.busy || this.disposed || this.errorStopped)
+      return;
     const form = document.querySelector<HTMLFormElement>('#settingsForm');
     const submit = form?.querySelector<HTMLButtonElement>('[type="submit"]');
     const renderer = this.renderer;
@@ -2827,6 +2933,7 @@ export class GameApp {
     this.performanceCapture.interrupt('Application error');
     this.interruptReview('Application error');
     this.errorStopped = true;
+    this.academyPromotion.invalidate();
     this.festivalLifetime?.abort();
     this.festivalLifetime = null;
     this.festivalStarting = false;
@@ -2959,6 +3066,7 @@ export class GameApp {
     this.interruptReview('Application disposed');
     this.reviewVideo.dispose();
     this.disposed = true;
+    this.academyPromotion.invalidate();
     this.generation++;
     this.festivalLifetime?.abort();
     this.festivalLifetime = null;

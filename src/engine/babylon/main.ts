@@ -1,3 +1,4 @@
+import { BabylonPresentationGpu, cleanupPresentation } from './presentation-gpu.ts';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode.js';
 import { Engine } from '@babylonjs/core/Engines/engine.js';
 import { BabylonCircuitScene } from './circuit-scene.ts';
@@ -32,21 +33,58 @@ const abort = new AbortController();
 const eventOptions = { signal: abort.signal };
 let engine: Engine | undefined;
 let scene: BabylonCircuitScene | undefined;
+let gpu: BabylonPresentationGpu | undefined;
+let stopped = false;
+let resizePending = false;
+let resetPending = false;
 let component: SimulationComponent;
 const presentation = new PresentationSchedule();
 let renderedFrames = 0;
 let paused = false,
   last = performance.now(),
   lastStatus = 0;
+function requestPresentation() {
+  status.dataset.presentationSettled = 'false';
+  presentation.request();
+}
 function setPaused(value: boolean) {
   paused = value;
-  presentation.request();
+  requestPresentation();
   input?.setEnabled(!value);
   component.setPaused(value);
   last = performance.now();
   pause.textContent = value ? 'Resume' : 'Pause';
 }
+function stop(error?: unknown) {
+  if (stopped) return;
+  stopped = true;
+  status.dataset.presentationSettled = 'false';
+  if (error !== undefined) {
+    console.error(error);
+    status.textContent = `Babylon could not start or continue: ${error instanceof Error ? error.message : String(error)}. The full game remains available through the link above.`;
+  }
+  // Stop scheduling first; a failed disposer must not skip other ownership.
+  for (const failure of cleanupPresentation([
+    () => engine?.stopRenderLoop(),
+    () => assetLoad.abort(),
+    () => abort.abort(),
+    () => gpu?.dispose(),
+    () => inputPump?.dispose(),
+    () => input?.dispose(),
+    () => playerSteering?.dispose(),
+    () => playerWheels?.dispose(),
+    () => scene?.dispose(),
+    () => engine?.dispose(),
+  ]))
+    console.error('Babylon cleanup failed:', failure);
+}
 function reset() {
+  assetLoad.abort();
+  resetPending = true;
+  requestPresentation();
+}
+function resetScene() {
+  status.dataset.presentationSettled = 'false';
   presentation.reset();
   assetLoad.abort();
   playerSteering?.dispose();
@@ -68,6 +106,7 @@ function reset() {
   scene = new BabylonCircuitScene(engine!, component.simulation.track, 1);
   setPaused(false);
 }
+window.addEventListener('pagehide', () => stop(), { once: true });
 try {
   try {
     const saved = await new SaveStore().read('settings');
@@ -75,6 +114,7 @@ try {
   } catch (error) {
     controlStatus.textContent = `Using default controls: ${error instanceof Error ? error.message : String(error)}`;
   }
+  abort.signal.throwIfAborted();
   input = new InputController(settings, (action) => {
     if (action === 'pause') setPaused(!paused);
     else if (action === 'blur' || action === 'deviceLost') setPaused(true);
@@ -90,8 +130,20 @@ try {
   for (const button of document.querySelectorAll<HTMLElement>('[data-drive]'))
     input.bindTouch(button, button.dataset.drive as TouchAction);
   engine = new Engine(canvas, true, { preserveDrawingBuffer: false, stencil: true });
-  engine.onContextRestoredObservable.add(() => presentation.request());
-  reset();
+  const context = canvas.getContext('webgl2');
+  if (!context || !('fenceSync' in context))
+    throw new Error('Babylon presentation requires WebGL2 fences');
+  gpu = new BabylonPresentationGpu(context);
+  engine.onContextLostObservable.add(() => {
+    gpu?.contextLost();
+    if (!stopped) setPaused(true);
+  });
+  engine.onContextRestoredObservable.add(() => {
+    gpu?.contextRestored();
+    last = performance.now();
+    requestPresentation();
+  });
+  resetScene();
   pause.addEventListener('click', () => setPaused(!paused), eventOptions);
   restart.addEventListener('click', reset, eventOptions);
   loadAsset.addEventListener(
@@ -122,9 +174,10 @@ try {
         }
         currentScene.scene.getMeshByName('migration-proxy-0')?.setEnabled(false);
         assetStatus.textContent = 'Preparing original model materials for rendering…';
+        status.dataset.presentationSettled = 'false';
         const finishPreparation = presentation.prepare();
         try {
-          await waitForPresentation(currentScene.scene, signal);
+          await waitForPresentation(currentScene.scene, signal, gpu!);
         } finally {
           finishPreparation();
         }
@@ -143,15 +196,15 @@ try {
     'visibilitychange',
     () => {
       if (document.hidden) setPaused(true);
-      else presentation.request();
+      else requestPresentation();
     },
     eventOptions,
   );
   window.addEventListener(
     'resize',
     () => {
-      engine?.resize();
-      presentation.request();
+      resizePending = true;
+      requestPresentation();
     },
     eventOptions,
   );
@@ -168,50 +221,60 @@ try {
   });
   inputPump.start();
   engine.runRenderLoop(() => {
-    const now = performance.now(),
-      seconds = (now - last) / 1000;
-    last = now;
-    component.advance(seconds);
-    if (playerSteering)
-      assetStatus.dataset.steering = String(playerSteering.apply(component.frame));
-    if (playerWheels) assetStatus.dataset.wheelPhase = String(playerWheels.apply(component.frame));
-    if (presentation.shouldRender(paused)) {
-      const readyBefore = scene!.scene.isReady();
-      scene!.render(component.frame);
-      const readyAfter = scene!.scene.isReady();
-      presentation.rendered(readyBefore, readyAfter);
-      const ready = readyBefore && readyAfter;
-      status.dataset.sceneReady = String(ready);
-      status.dataset.renderedFrames = String(++renderedFrames);
-    }
-    if (now - lastStatus > 250) {
-      lastStatus = now;
-      status.dataset.steer = String(component.frame[carBase(0) + F.STEER]);
-      status.dataset.throttle = String(component.frame[carBase(0) + F.THROTTLE]);
-      status.textContent = `${paused ? 'PAUSED' : component.simulation.autoPlayer ? 'AI DEMO' : 'DRIVING'} · ${Math.round(component.frame[carBase(0) + F.SPEED] * 3.6)} km/h · physics tick ${component.simulation.tick}`;
+    if (stopped) return;
+    try {
+      const now = performance.now(),
+        seconds = (now - last) / 1000;
+      last = now;
+      component.advance(seconds);
+      if (gpu!.ready()) {
+        if (resetPending) {
+          resetPending = false;
+          resetScene();
+        }
+        if (resizePending) {
+          resizePending = false;
+          engine!.resize();
+        }
+        gpu!.frame(presentation, paused, scene!.scene, () => {
+          if (playerSteering)
+            assetStatus.dataset.steering = String(playerSteering.apply(component.frame));
+          if (playerWheels)
+            assetStatus.dataset.wheelPhase = String(playerWheels.apply(component.frame));
+          const readyBefore = scene!.scene.isReady();
+          scene!.render(component.frame);
+          const readyAfter = scene!.scene.isReady();
+          presentation.rendered(readyBefore, readyAfter);
+          status.dataset.sceneReady = String(readyBefore && readyAfter);
+          return readyBefore && readyAfter;
+        });
+      }
+      const graphics = gpu!.diagnostics();
+      renderedFrames = graphics.submitted;
+      status.dataset.renderedFrames = String(renderedFrames);
+      status.dataset.completedFrames = String(graphics.completed);
+      status.dataset.lastCompletedSequence = String(graphics.lastCompletedSequence);
+      status.dataset.abandonedFrames = String(graphics.abandoned);
+      status.dataset.presentationSettled = String(
+        paused &&
+          !resetPending &&
+          !resizePending &&
+          !presentation.pending &&
+          !graphics.lost &&
+          !graphics.disposed &&
+          !graphics.queue.failure &&
+          graphics.settled,
+      );
+      if (now - lastStatus > 250) {
+        lastStatus = now;
+        status.dataset.steer = String(component.frame[carBase(0) + F.STEER]);
+        status.dataset.throttle = String(component.frame[carBase(0) + F.THROTTLE]);
+        status.textContent = `${paused ? 'PAUSED' : component.simulation.autoPlayer ? 'AI DEMO' : 'DRIVING'} · ${Math.round(component.frame[carBase(0) + F.SPEED] * 3.6)} km/h · physics tick ${component.simulation.tick}`;
+      }
+    } catch (error) {
+      stop(error);
     }
   });
-  window.addEventListener(
-    'pagehide',
-    () => {
-      assetLoad.abort();
-      playerSteering?.dispose();
-      playerWheels?.dispose();
-      abort.abort();
-      inputPump?.dispose();
-      input?.dispose();
-      engine?.stopRenderLoop();
-      scene?.dispose();
-      engine?.dispose();
-    },
-    { once: true },
-  );
 } catch (error) {
-  inputPump?.dispose();
-  input?.dispose();
-  engine?.stopRenderLoop();
-  scene?.dispose();
-  engine?.dispose();
-  abort.abort();
-  status.textContent = `Babylon could not start: ${error instanceof Error ? error.message : String(error)}. The full game remains available through the link above.`;
+  stop(error);
 }
