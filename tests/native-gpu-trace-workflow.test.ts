@@ -24,26 +24,14 @@ describe('opt-in nonpublishing native GPU trace workflow', () => {
     expect(platform).not.toMatch(/--no-sandbox|disable-gpu|disable-web-security|disable.*watchdog/);
   });
 
-  it('opts in only a separately labelled Mesa full-journey diagnostic job', () => {
-    const traced = job(diagnostic, 'gpu-trace-mesa');
-    expect(traced).toContain('name: Mesa full journey GPU trace (nonpublishing diagnostic)');
-    expect(traced).toContain('uses: ./.github/workflows/desktop-platform.yml');
-    for (const setting of [
-      'runner: ubuntu-22.04',
-      'target: linux',
-      'arch: x64',
-      'linux_graphics: mesa',
-      'smoke_journey: full',
-      'gpu_trace: true',
-    ])
-      expect(traced).toContain(setting);
-    expect(diagnostic.match(/gpu_trace: true/g)).toHaveLength(1);
+  it('pauses the old trace job until private parsing prevents raw trace uploads', () => {
+    expect(diagnostic).not.toContain('  gpu-trace-mesa:');
+    expect(diagnostic).not.toContain('gpu_trace: true');
+    expect(diagnostic).toContain('GPU trace diagnostic paused');
     expect(job(diagnostic, 'compare')).not.toContain('gpu_trace');
     expect(job(diagnostic, 'compatibility-mesa')).not.toContain('gpu_trace');
     expect(job(diagnostic, 'compare')).toContain('linux_graphics: swiftshader');
-    expect(job(diagnostic, 'compatibility-mesa')).toContain(
-      'smoke_journey: compatibility-diagnostic',
-    );
+    expect(job(diagnostic, 'compatibility-mesa')).toContain('smoke_journey: compatibility-diagnostic');
     expect(diagnostic).not.toMatch(/contents: write|publish-development|continue-on-error/);
   });
 
