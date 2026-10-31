@@ -12,6 +12,7 @@ type Fixture = {
 type FestivalWindow = {
   FestivalMenu: Fixture;
   festivalHarness: ReturnType<typeof mountFestivalMenu>;
+  festivalResultsHarness: ReturnType<typeof mountFestivalResults>;
 };
 
 test.use({ actionTimeout: 15000 });
@@ -172,9 +173,10 @@ test('festival results: keyboard and controller can retry without also continuin
   page,
 }) => {
   await load(page);
-  await page.evaluate(() =>
-    (window as unknown as { FestivalMenu: Fixture }).FestivalMenu.mountFestivalResults(),
-  );
+  await page.evaluate(() => {
+    const scope = window as unknown as FestivalWindow;
+    scope.festivalResultsHarness = scope.FestivalMenu.mountFestivalResults();
+  });
   const log = page.locator('#festivalEvents');
   const again = page.locator('#festResults [data-fest="retry"]');
   const event = await again.getAttribute('data-value');
@@ -211,7 +213,7 @@ test('festival results: keyboard and controller can retry without also continuin
   await expect(page.locator('#festMenu')).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.locator('#festMenu')).toBeHidden();
-  await page.evaluate(() => {
+  const neutralAfter = await page.evaluate(() => {
     const buttons = Array.from({ length: 17 }, () => ({
       pressed: false,
       touched: false,
@@ -219,19 +221,37 @@ test('festival results: keyboard and controller can retry without also continuin
     }));
     Object.defineProperty(navigator, 'getGamepads', {
       configurable: true,
-      value: () => [
-        {
-          id: 'Results controller',
-          index: 0,
-          connected: true,
-          mapping: 'standard',
-          axes: [0, 0, 0, 0],
-          buttons,
-        },
-      ],
+      value: () =>
+        (window as unknown as FestivalWindow).festivalResultsHarness.inputPolls.observe([
+          {
+            id: 'Results controller',
+            index: 0,
+            connected: true,
+            mapping: 'standard',
+            axes: [0, 0, 0, 0],
+            buttons,
+          },
+        ]),
     });
+    return (window as unknown as FestivalWindow).festivalResultsHarness.inputPolls.receipt.sequence;
   });
-  await page.waitForTimeout(100);
+  // A new identity first seen with Start held is correctly treated as a
+  // connection baseline. Wall time (or a HUD read) cannot prove neutral input
+  // was sampled: await the completed real InputController poll instead.
+  await expect
+    .poll(() =>
+      page.evaluate((neutralAfter) => {
+        const receipt = (window as unknown as FestivalWindow).festivalResultsHarness.inputPolls
+          .receipt;
+        return (
+          receipt.sequence > neutralAfter &&
+          receipt.pads.some(
+            (pad) => pad.id === 'Results controller' && pad.index === 0 && pad.pressed.length === 0,
+          )
+        );
+      }, neutralAfter),
+    )
+    .toBe(true);
   await page.evaluate(() => {
     Object.assign(navigator.getGamepads()[0]!.buttons[9], { pressed: true, value: 1 });
   });

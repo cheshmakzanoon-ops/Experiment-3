@@ -307,6 +307,19 @@ export function readRetainedGameObservation() {
   const failure = document.querySelector('#errorMessage')?.textContent?.trim() || null;
   try {
     const d = window.apexDiagnostics();
+    // These are existing CPU counters, not extra GL queries. Keep current info
+    // separate from the last ended ledger: offscreen submissions can advance
+    // the former, and a failed draw can leave a partial or previous-frame sample.
+    // Self-contained because Playwright serializes this function into the page.
+    const count = (value) => (Number.isSafeInteger(value) && value >= 0 ? value : null);
+    const lastEndedDrawPhases = {};
+    for (const phase of ['environment', 'probe', 'mirrors', 'wet', 'shadow', 'composer', 'other']) {
+      const value = d.renderer?.drawBreakdown?.[phase];
+      lastEndedDrawPhases[phase] = {
+        calls: count(value?.calls),
+        triangles: count(value?.triangles),
+      };
+    }
     return {
       failure,
       state: d.state,
@@ -318,6 +331,17 @@ export function readRetainedGameObservation() {
       preparation: d.renderer?.preparation,
       environmentWarmup: d.renderer?.environmentWarmup,
       gpuFrameQueue: d.renderer?.gpuFrameQueue,
+      renderWork: {
+        scope: 'aggregate-multipass-not-final-camera',
+        sampling: 'observation-time-cpu-counters',
+        gpuCompletion: 'not-measured',
+        mayBePartialOrPreviousFrame: true,
+        rendererInfo: {
+          calls: count(d.renderer?.drawCalls),
+          triangles: count(d.renderer?.triangles),
+        },
+        lastEndedDrawPhases,
+      },
     };
   } catch (error) {
     return { failure, diagnosticsError: error instanceof Error ? error.message : String(error) };

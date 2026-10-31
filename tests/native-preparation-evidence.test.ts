@@ -12,6 +12,7 @@ import {
   retainCompatibilityObservation,
 } from '../scripts/native-preparation-evidence.mjs';
 import { graphicsFaults } from '../desktop/graphics-health.ts';
+import { DRAW_PHASES, DrawLedger } from '../src/rendering/draw-ledger';
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -221,17 +222,82 @@ describe('fatal compatibility observations', () => {
     };
     return runInNewContext(`(${readRetainedGameObservation.toString()})()`, browser);
   };
+  it('retains the actual seven CPU ledger phases separately from later aggregate submissions', () => {
+    const info = { calls: 0, triangles: 0 };
+    const ledger = new DrawLedger(info);
+    ledger.begin();
+    ledger.mark('mirrors');
+    info.calls = 8;
+    info.triangles = 1200;
+    ledger.mark('composer');
+    info.calls = 15;
+    info.triangles = 4200;
+    ledger.end();
+    // A later offscreen pass changes renderer.info without ending a new ledger.
+    info.calls += 2;
+    info.triangles += 400;
+    const observation = read(null, () => ({
+      renderer: {
+        drawCalls: info.calls,
+        triangles: info.triangles,
+        drawBreakdown: { ...ledger.snapshot(), unboundedExtra: 'x'.repeat(100000) },
+      },
+    }));
+    expect(observation.renderWork).toEqual({
+      scope: 'aggregate-multipass-not-final-camera',
+      sampling: 'observation-time-cpu-counters',
+      gpuCompletion: 'not-measured',
+      mayBePartialOrPreviousFrame: true,
+      rendererInfo: { calls: 17, triangles: 4600 },
+      lastEndedDrawPhases: ledger.snapshot(),
+    });
+    expect(Object.keys(observation.renderWork.lastEndedDrawPhases)).toEqual([...DRAW_PHASES]);
+    expect(JSON.stringify(observation.renderWork).length).toBeLessThan(1000);
+    const report = {};
+    expect(retainCompatibilityObservation(report, observation)).toBe(observation);
+  });
+  it('reports absent or malformed CPU counters as unknown, never as zero work', () => {
+    for (const renderer of [
+      undefined,
+      {
+        drawCalls: Infinity,
+        triangles: '4200',
+        drawBreakdown: {
+          environment: { calls: -1, triangles: NaN },
+          probe: { calls: 0.5, triangles: Number.MAX_SAFE_INTEGER + 1 },
+          mirrors: null,
+          wet: { calls: '3', triangles: false },
+          shadow: { calls: 0, triangles: 0 },
+        },
+      },
+    ]) {
+      const work = read(null, () => ({ renderer })).renderWork;
+      expect(work.rendererInfo).toEqual({ calls: null, triangles: null });
+      expect(Object.keys(work.lastEndedDrawPhases)).toEqual([...DRAW_PHASES]);
+      for (const phase of DRAW_PHASES)
+        expect(work.lastEndedDrawPhases[phase]).toEqual(
+          phase === 'shadow' && renderer
+            ? { calls: 0, triangles: 0 }
+            : { calls: null, triangles: null },
+        );
+      expect(() => JSON.stringify(work)).not.toThrow();
+    }
+  });
   it('saves the final checkpoints before failing on the fatal panel', () => {
     const observation = read('GPU failed', () => ({
       state: 'loading',
-      renderer: { preparation: { checkpoints: [78] } },
+      renderer: { preparation: { checkpoints: [78] }, drawCalls: 17, triangles: 4600 },
     }));
     const report = {};
     expect(() => retainCompatibilityObservation(report, observation)).toThrow(
       'Retained game stopped: GPU failed',
     );
     expect(report).toMatchObject({
-      lastCompatibilityObservation: { failure: 'GPU failed', preparation: { checkpoints: [78] } },
+      lastCompatibilityObservation: {
+        failure: 'GPU failed',
+        preparation: { checkpoints: [78] },
+        renderWork: { rendererInfo: { calls: 17, triangles: 4600 } },
+      },
     });
   });
   it('preserves the fatal error when diagnostics also throws, without calling it success', () => {

@@ -11,6 +11,10 @@ on:
       - src/core/settings-transition.ts
       - e2e/30-menu-access.spec.ts
       - e2e/28-race-hud-layout.spec.ts
+      - e2e/49-festival-menu-access.spec.ts
+      - e2e/fixtures/festival-menu-access.ts
+      - e2e/fixtures/completed-input-poll.ts
+      - tests/completed-input-poll.test.ts
       - e2e/fixtures/race-hud-layout.ts
       - src/ui/interface.ts
       - src/ui/motocross-presentation.ts
@@ -59,10 +63,12 @@ jobs:
             ${{ runner.temp }}/dependency-source.txt
           retention-days: 1
       - run: node --experimental-transform-types scripts/source-stability.ts -- npm run build
+      - name: Validate completed controller sampling contracts
+        run: npm test -- tests/completed-input-poll.test.ts
       - run: npx playwright install --with-deps chromium
       - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
       - name: Original settings and paused-grid regression
-        run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/30-menu-access.spec.ts e2e/settings-transition.spec.ts e2e/gpu-frame-gate.spec.ts e2e/gpu-program-readiness.spec.ts e2e/gpu-index-preupload.spec.ts e2e/28-race-hud-layout.spec.ts --trace on
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/30-menu-access.spec.ts e2e/settings-transition.spec.ts e2e/gpu-frame-gate.spec.ts e2e/gpu-program-readiness.spec.ts e2e/gpu-index-preupload.spec.ts e2e/28-race-hud-layout.spec.ts e2e/49-festival-menu-access.spec.ts --trace on
       - name: Retain settings evidence including failures
         if: always()
         uses: actions/upload-artifact@v4

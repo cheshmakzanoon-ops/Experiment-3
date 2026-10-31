@@ -55,3 +55,5 @@ Start with [README](../README.md) for play instructions and [current status](CUR
 `docs/production/` holds production specifications and acceptance protocols. The many phase/delivery reports under `docs/`, along with `screenshots/`, `lookdev-tmp/` and `scratch-tmp/`, retain prior evidence. They are not alternate game entry points. They remain in place to preserve links and reproducibility; cleanup must not delete assets merely because a folder is called temporary.
 
 `playable/` is legacy publishing material. The supported build is the root Vite application and its `dist/` output. Do not start a second implementation there.
+
+The compact [current status](CURRENT_STATUS.md) lists present gates; [development evidence history](maintenance/development-history-2026-10-31.md) preserves the chronological run notes and rejected candidates.
