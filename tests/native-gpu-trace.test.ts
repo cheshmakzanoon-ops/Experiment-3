@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { mkdtemp, readFile, rm, truncate, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
@@ -14,6 +15,10 @@ import {
   type NativeGpuTraceOptions,
   type NativeGpuTraceOutput,
 } from '../scripts/native-gpu-trace.mjs';
+import {
+  decodeNativeGpuTraceRows,
+  NATIVE_TRACE_PROCESSOR,
+} from '../scripts/native-gpu-trace-summary.mjs';
 import {
   createFirstGraphicsFault,
   retainNativeSmokeFailure,
@@ -38,7 +43,11 @@ function fixture(overrides: Partial<NativeGpuTraceOptions> = {}) {
     async (): Promise<NativeGpuTraceOutput> => ({
       retained: true,
       bytes: 42,
-      file: 'trace.pftrace',
+      file: 'gpu-trace-summary.json',
+      rawTraceUploaded: false,
+      captureValid: true,
+      parsed: true,
+      gpuWorkObserved: true,
       sha256: '0'.repeat(64),
     }),
   );
@@ -79,69 +88,80 @@ describe('bounded native GPU trace diagnostic', () => {
     expect(onOperationFailure).not.toHaveBeenCalled();
   });
 
-  it('intersects a fixed GPU category allowlist, rejecting malformed or non-GPU inventories', () => {
+  it('requests only the fixed allowlist independently of discovery, rejecting malformed inventories', () => {
     expect(Object.isFrozen(NATIVE_GPU_TRACE.categories)).toBe(true);
     expect(() => Reflect.apply(Array.prototype.push, NATIVE_GPU_TRACE.categories, ['*'])).toThrow();
-    expect(nativeGpuTraceCategories(['gpu,viz', 'toplevel', 'unknown', '*'])).toEqual([
-      'gpu',
-      'viz',
-      'toplevel',
-    ]);
-    for (const input of [null, ['viz'], [12], ['x'.repeat(513)], Array(4097).fill('gpu')])
+    expect(nativeGpuTraceCategories(['gpu,viz', 'toplevel', 'unknown', '*'])).toEqual(
+      NATIVE_GPU_TRACE.categories,
+    );
+    expect(nativeGpuTraceCategories([])).toEqual(NATIVE_GPU_TRACE.categories);
+    expect(nativeGpuTraceCategories(['viz'])).toEqual(NATIVE_GPU_TRACE.categories);
+    for (const input of [null, [12], ['x'.repeat(513)], Array(4097).fill('gpu')])
       expect(() => nativeGpuTraceCategories(input)).toThrow();
   });
 
-  it('retains empty and no-match category inventories without starting or broadening a trace', async () => {
-    for (const groups of [[], ['viz', 'unknown', '*']]) {
+  it('retains empty and no-match discovery honestly while requesting the same nine fixed filters', async () => {
+    for (const groups of [[], ['unknown', '*']]) {
       const { trace, adapter } = fixture();
       adapter.categories.mockResolvedValue(groups);
       expect(await trace.run(async () => 7)).toBe(7);
-      expect(adapter.start).not.toHaveBeenCalled();
+      expect(adapter.start).toHaveBeenCalledOnce();
+      expect(adapter.start.mock.calls[0]).toEqual([
+        {
+          included_categories: NATIVE_GPU_TRACE.categories,
+          recording_mode: 'record-continuously',
+          trace_buffer_size_in_kb: 16384,
+          enable_argument_filter: true,
+        },
+      ]);
       expect(trace.receipt).toMatchObject({
-        status: 'incomplete',
-        config: null,
+        status: 'recorded',
+        categoryPolicy: 'fixed-allowlist-requested-not-discovered',
         categoryInventory: {
           input: 'array',
           reportedGroups: groups.length,
-          sampledGroups: groups.length,
+          scannedGroups: groups.length,
           omittedGroups: 0,
           truncated: false,
-          sample: groups,
+          matchedCategories: [],
         },
       });
-      expect(trace.receipt.errors.join(' ')).toContain('No supported GPU trace categories');
+      expect(trace.receipt.errors).toEqual([]);
     }
   });
 
-  it('bounds category receipt count, characters and encoded bytes with honest omissions', () => {
+  it('bounds discovery inspection and encoded receipt without exposing arbitrary group strings', () => {
     const limits = NATIVE_GPU_TRACE.categoryInventory;
     expect(Object.isFrozen(limits)).toBe(true);
     const oversized = Array(4097).fill('gpu');
     const receipt = nativeGpuTraceCategoryInventory(oversized);
     expect(receipt).toMatchObject({
       reportedGroups: 4097,
-      sampledGroups: 64,
-      omittedGroups: 4033,
+      scannedGroups: 4096,
+      omittedGroups: 1,
       truncated: true,
+      matchedCategories: ['gpu'],
     });
     expect(() => nativeGpuTraceCategories(oversized)).toThrow('Invalid');
-    const gpuBeyondSample = [...Array(64).fill('unknown'), 'gpu'];
-    expect(nativeGpuTraceCategoryInventory(gpuBeyondSample).sample).not.toContain('gpu');
-    expect(nativeGpuTraceCategories(gpuBeyondSample)).toEqual(['gpu']);
+    const gpuBeyondScan = [...Array(limits.maxGroups).fill('private-unknown'), 'gpu'];
+    expect(nativeGpuTraceCategoryInventory(gpuBeyondScan).matchedCategories).toEqual([]);
     for (const group of ['界'.repeat(600), '\u0000'.repeat(600), '😀'.repeat(600)]) {
-      const sampled = nativeGpuTraceCategoryInventory(Array(64).fill(group));
-      expect(sampled.truncated).toBe(true);
-      expect(sampled.truncatedSampledGroups).toBe(sampled.sampledGroups);
-      expect(sampled.sampledGroups + sampled.omittedGroups!).toBe(64);
-      expect(sampled.sample.every((name) => name!.length <= limits.maxGroupCharacters)).toBe(true);
-      expect(Buffer.byteLength(JSON.stringify(sampled), 'utf8')).toBeLessThanOrEqual(
+      const observed = nativeGpuTraceCategoryInventory(Array(64).fill(group));
+      expect(observed).toMatchObject({
+        scannedGroups: 64,
+        omittedGroups: 0,
+        oversizedGroups: 64,
+        matchedCategories: [],
+      });
+      expect(Buffer.byteLength(JSON.stringify(observed), 'utf8')).toBeLessThanOrEqual(
         limits.maxBytes,
       );
-      expect(JSON.parse(JSON.stringify(sampled))).toEqual(sampled);
+      expect(JSON.stringify(observed)).not.toContain(group);
+      expect(JSON.parse(JSON.stringify(observed))).toEqual(observed);
     }
-    expect(
-      nativeGpuTraceCategoryInventory(Array(64).fill('\u0000'.repeat(600))).omittedGroups,
-    ).toBeGreaterThan(0);
+    const unknown = nativeGpuTraceCategoryInventory(['private-unknown', 'gpu,viz']);
+    expect(unknown.matchedCategories).toEqual(['gpu', 'viz']);
+    expect(JSON.stringify(unknown)).not.toContain('private-unknown');
   });
 
   it('describes malformed inventory entries without coercing or serializing their contents', () => {
@@ -153,16 +173,16 @@ describe('bounded native GPU trace diagnostic', () => {
     expect(nativeGpuTraceCategoryInventory(null)).toMatchObject({
       input: 'not-array',
       reportedGroups: null,
-      sampledGroups: 0,
-      sample: [],
+      scannedGroups: 0,
+      matchedCategories: [],
     });
     const input = [null, 12, malicious, 'gpu'];
     expect(nativeGpuTraceCategoryInventory(input)).toMatchObject({
       reportedGroups: 4,
-      sampledGroups: 4,
+      scannedGroups: 4,
       omittedGroups: 0,
-      malformedSampledGroups: 3,
-      sample: [null, null, null, 'gpu'],
+      malformedGroups: 3,
+      matchedCategories: ['gpu'],
     });
     expect(malicious.toJSON).not.toHaveBeenCalled();
     expect(() => nativeGpuTraceCategories(input)).toThrow('Invalid');
@@ -172,7 +192,7 @@ describe('bounded native GPU trace diagnostic', () => {
     const { trace, adapter, firstFault } = fixture();
     expect(await trace.run(async () => 'original-result')).toBe('original-result');
     expect(adapter.start).toHaveBeenCalledWith({
-      included_categories: ['gpu', 'viz', 'toplevel'],
+      included_categories: NATIVE_GPU_TRACE.categories,
       recording_mode: 'record-continuously',
       trace_buffer_size_in_kb: 16384,
       enable_argument_filter: true,
@@ -181,7 +201,8 @@ describe('bounded native GPU trace diagnostic', () => {
     expect(trace.receipt).toMatchObject({
       source: { commit: 'exact-source', electron: '45.2.1' },
       status: 'recorded',
-      format: 'perfetto-protobuf',
+      format: 'private-perfetto-numeric-summary',
+      rawTraceUploaded: false,
       omittedGameplayChecks: [],
       completeness: 'window-flushed-child-tail-not-certified',
     });
@@ -228,7 +249,8 @@ describe('bounded native GPU trace diagnostic', () => {
       }),
     ).rejects.toBe(original);
     expect(trace.receipt.status).toBe('incomplete');
-    expect(trace.receipt.errors.join(' ')).toContain('trace writer failed');
+    expect(trace.receipt.errors).toContain('Native GPU trace stop or inspection failed');
+    expect(trace.receipt.errors.join(' ')).not.toContain('trace writer failed');
     firstFault.record('later loss with unavailable trace');
     trace.finalize();
     expect(trace.receipt.fatalCoverage).toBe('trace-window-unavailable-or-uncertain');
@@ -271,7 +293,8 @@ describe('bounded native GPU trace diagnostic', () => {
         throw original;
       }),
     ).rejects.toBe(original);
-    expect(trace.receipt.errors.join(' ')).toContain('snapshot failed');
+    expect(trace.receipt.errors).toContain('Native GPU trace failure snapshot failed');
+    expect(trace.receipt.errors.join(' ')).not.toContain('Error: snapshot failed');
   });
 
   it('bounds a never-resolving stop without changing the operation result', async () => {
@@ -282,7 +305,7 @@ describe('bounded native GPU trace diagnostic', () => {
     await vi.advanceTimersByTimeAsync(6);
     expect(await result).toBe(17);
     expect(trace.receipt.status).toBe('incomplete');
-    expect(trace.receipt.errors.join(' ')).toContain('stop exceeded 5ms');
+    expect(trace.receipt.errors).toContain('Native GPU trace stop or inspection failed');
   });
 
   it('closes a late start acknowledgement after bounded setup and marks uncertain coverage', async () => {
@@ -317,62 +340,237 @@ describe('bounded native GPU trace diagnostic', () => {
     expect(trace.receipt.status).toBe('incomplete');
   });
 
-  it('retains a bounded binary as-is and removes oversized output instead of corrupt truncation', async () => {
+  it('publishes only strict bounded summary evidence, verifies coverage/source/digest and keeps raw bytes private', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'native-gpu-trace-'));
     try {
-      const path = join(dir, 'gpu-trace-raw.pftrace');
-      const outputPath = join(dir, 'gpu-trace.pftrace');
-      const bytes = Buffer.from([10, 3, 1, 2, 3]);
-      await writeFile(path, bytes);
-      const { trace } = fixture({ path, outputPath, inspect: undefined });
+      const profile = join(dir, 'private');
+      const evidence = join(dir, 'evidence');
+      await mkdir(profile);
+      await mkdir(evidence);
+      const path = join(profile, 'gpu-trace-raw.pftrace');
+      const outputPath = join(evidence, 'gpu-trace-summary.json');
+      const rawBytes = Buffer.from([10, 3, 1, 2, 3]);
+      await writeFile(path, rawBytes);
+      const summary = decodeNativeGpuTraceRows(
+        [
+          'event_id,process_count,event_count,completed_count,unfinished_count,first_ns,last_ns,total_ns,max_ns',
+          '0,1,1,1,0,0,10,10,10',
+          '1,1,1,1,0,0,10,10,10',
+          '2,0,0,0,0,0,0,0,0',
+          '3,0,0,0,0,0,0,0,0',
+          '4,1,0,0,0,0,0,0,0',
+          '5,1,0,0,0,0,0,0,0',
+          '6,0,0,0,0,0,0,0,0',
+        ].join('\n'),
+        rawBytes.length,
+      );
+      const source = { commit: 'exact-source', fingerprint: 'exact-inputs', electron: '45.2.1' };
+      const publish = async (document: unknown): Promise<NativeGpuTraceOutput> => {
+        const bytes = Buffer.from(JSON.stringify(document));
+        await writeFile(outputPath, bytes);
+        return {
+          retained: true,
+          file: 'gpu-trace-summary.json',
+          bytes: bytes.length,
+          sha256: createHash('sha256').update(bytes).digest('hex'),
+          rawTraceUploaded: false,
+          captureValid: true,
+          parsed: true,
+          gpuWorkObserved: true,
+        };
+      };
+      const { trace } = fixture({ path, outputPath, inspect: () => publish({ source, summary }) });
       await trace.run(async () => {});
-      expect(await readFile(path)).toEqual(bytes);
+      expect(await readFile(path)).toEqual(rawBytes);
+      expect(await readdir(evidence)).toEqual(['gpu-trace-summary.json']);
       expect(trace.receipt.output).toMatchObject({
         retained: true,
-        bytes: 5,
+        rawTraceUploaded: false,
+        parsed: true,
+        captureValid: true,
+        gpuWorkObserved: true,
+        file: 'gpu-trace-summary.json',
         sha256: expect.any(String),
       });
-      // Collection can be useful after a crash without certifying child tails.
       trace.receipt.completeness = 'partial-or-uncertain';
       const report = { success: false, source: trace.receipt.source, gpuTrace: trace.receipt };
-      expect(await validateNativeGpuTraceEvidence(report, dir)).toMatchObject({
-        outcome: 'retained-bounded-trace',
+      expect(await validateNativeGpuTraceEvidence(report, evidence)).toMatchObject({
+        outcome: 'retained-typed-gpu-work-summary',
         completeness: 'partial-or-uncertain',
       });
-      const reportPath = join(dir, 'report.json');
+      const exactConfig = {
+        included_categories: [
+          'gpu',
+          'gpu.service',
+          'gpu.angle',
+          'viz',
+          'toplevel',
+          'disabled-by-default-gpu.service',
+          'disabled-by-default-gpu.device',
+          'disabled-by-default-gpu.debug',
+          'disabled-by-default-angle',
+        ],
+        recording_mode: 'record-continuously',
+        trace_buffer_size_in_kb: 16384,
+        enable_argument_filter: true,
+      };
+      expect(trace.receipt.config).toEqual(exactConfig);
+      expect(trace.receipt.scope).toBe(
+        'unchanged-babylon-inspect-through-authored-wheel-check-or-first-gpu-fault',
+      );
+      expect(trace.receipt.omittedGameplayChecks).toEqual([]);
+      const tamperedConfigs: [string, unknown][] = [
+        ['missing config', undefined],
+        ['null config', null],
+        ['sparse categories', { ...exactConfig, included_categories: Array(9) }],
+        [
+          'reordered categories',
+          { ...exactConfig, included_categories: [...exactConfig.included_categories].reverse() },
+        ],
+        [
+          'missing category',
+          { ...exactConfig, included_categories: exactConfig.included_categories.slice(1) },
+        ],
+        [
+          'extra category',
+          { ...exactConfig, included_categories: [...exactConfig.included_categories, '*'] },
+        ],
+        [
+          'duplicate category',
+          {
+            ...exactConfig,
+            included_categories: ['gpu', ...exactConfig.included_categories.slice(0, -1)],
+          },
+        ],
+        [
+          'replaced category',
+          {
+            ...exactConfig,
+            included_categories: ['private-category', ...exactConfig.included_categories.slice(1)],
+          },
+        ],
+        [
+          'nonarray categories',
+          { ...exactConfig, included_categories: exactConfig.included_categories.join(',') },
+        ],
+        ['larger buffer', { ...exactConfig, trace_buffer_size_in_kb: 16385 }],
+        ['smaller buffer', { ...exactConfig, trace_buffer_size_in_kb: 16383 }],
+        ['string buffer', { ...exactConfig, trace_buffer_size_in_kb: '16384' }],
+        ['different recording mode', { ...exactConfig, recording_mode: 'record-until-full' }],
+        ['disabled argument filter', { ...exactConfig, enable_argument_filter: false }],
+        ['coerced argument filter', { ...exactConfig, enable_argument_filter: 1 }],
+        ['extra config key', { ...exactConfig, excluded_categories: [] }],
+        ...Object.keys(exactConfig).map((key): [string, unknown] => [
+          `missing config key ${key}`,
+          Object.fromEntries(Object.entries(exactConfig).filter(([entry]) => entry !== key)),
+        ]),
+      ];
+      for (const [label, config] of tamperedConfigs) {
+        await expect(
+          validateNativeGpuTraceEvidence(
+            { ...report, gpuTrace: { ...trace.receipt, config } },
+            evidence,
+          ),
+          label,
+        ).rejects.toThrow();
+      }
+      for (const scope of [undefined, '', 'inspect-only', `${trace.receipt.scope} `]) {
+        await expect(
+          validateNativeGpuTraceEvidence(
+            { ...report, gpuTrace: { ...trace.receipt, scope } },
+            evidence,
+          ),
+          'altered or missing fixed scope',
+        ).rejects.toThrow();
+      }
+      for (const omittedGameplayChecks of [undefined, null, '', {}, ['authored-wheel-check']]) {
+        await expect(
+          validateNativeGpuTraceEvidence(
+            { ...report, gpuTrace: { ...trace.receipt, omittedGameplayChecks } },
+            evidence,
+          ),
+          'omitted gameplay checks must be exactly an empty array',
+        ).rejects.toThrow();
+      }
+      // Tampered reports never mutate the one valid receipt or its retained summary.
+      await expect(validateNativeGpuTraceEvidence(report, evidence)).resolves.toMatchObject({
+        outcome: 'retained-typed-gpu-work-summary',
+      });
+      const reportPath = join(evidence, 'report.json');
       await writeFile(reportPath, JSON.stringify(report));
       const script = fileURLToPath(new URL('../scripts/native-gpu-trace.mjs', import.meta.url));
       const valid = spawnSync(process.execPath, [script, '--validate', reportPath]);
       expect(valid.status, valid.stderr.toString()).toBe(0);
       expect(
-        JSON.parse(await readFile(join(dir, 'gpu-trace-validation.json'), 'utf8')).outcome,
-      ).toBe('retained-bounded-trace');
-      // A gameplay PASS must not masquerade as successful trace collection.
+        JSON.parse(await readFile(join(evidence, 'gpu-trace-validation.json'), 'utf8')).outcome,
+      ).toBe('retained-typed-gpu-work-summary');
+      // A gameplay PASS must not masquerade as useful GPU-work evidence.
       await writeFile(reportPath, JSON.stringify({ success: true }));
       const missing = spawnSync(process.execPath, [script, '--validate', reportPath]);
       expect(missing.status).toBe(1);
       expect(
-        JSON.parse(await readFile(join(dir, 'gpu-trace-validation.json'), 'utf8')).outcome,
+        JSON.parse(await readFile(join(evidence, 'gpu-trace-validation.json'), 'utf8')).outcome,
       ).toBe('trace-evidence-unavailable');
-      await expect(validateNativeGpuTraceEvidence({ ...report, source: {} }, dir)).rejects.toThrow(
-        'source',
-      );
+      await expect(
+        validateNativeGpuTraceEvidence({ ...report, source: {} }, evidence),
+      ).rejects.toThrow('source');
       const wrongPath = {
         ...report,
         gpuTrace: { ...trace.receipt, output: { ...trace.receipt.output, file: '../other' } },
       };
-      await expect(validateNativeGpuTraceEvidence(wrongPath, dir)).rejects.toThrow('bounded');
-      await writeFile(outputPath, Buffer.from([10, 3, 3, 2, 1]));
-      await expect(validateNativeGpuTraceEvidence(report, dir)).rejects.toThrow('digest');
-      await truncate(path, NATIVE_GPU_TRACE.maxFileBytes + 1);
-      const large = fixture({ path, inspect: undefined }).trace;
-      await large.run(async () => {});
-      expect(large.receipt.output).toMatchObject({
-        retained: false,
-        reason: 'oversized-trace-removed',
+      await expect(validateNativeGpuTraceEvidence(wrongPath, evidence)).rejects.toThrow('bounded');
+      const noCoverage = {
+        ...report,
+        gpuTrace: { ...trace.receipt, output: { ...trace.receipt.output, gpuWorkObserved: false } },
+      };
+      await expect(validateNativeGpuTraceEvidence(noCoverage, evidence)).rejects.toThrow(
+        'coverage',
+      );
+      const oversized = {
+        ...report,
+        gpuTrace: {
+          ...trace.receipt,
+          output: { ...trace.receipt.output, bytes: NATIVE_TRACE_PROCESSOR.maxSummaryBytes + 1 },
+        },
+      };
+      await expect(validateNativeGpuTraceEvidence(oversized, evidence)).rejects.toThrow('bounded');
+      const original = await readFile(outputPath);
+      await writeFile(outputPath, Buffer.alloc(original.length, 32));
+      await expect(validateNativeGpuTraceEvidence(report, evidence)).rejects.toThrow('digest');
+      trace.receipt.output = await publish({
+        source,
+        summary: { ...summary, secret: 'must not publish' },
       });
-      await expect(readFile(path)).rejects.toThrow('ENOENT');
-      expect(large.receipt.status).toBe('incomplete');
+      await expect(validateNativeGpuTraceEvidence(report, evidence)).rejects.toThrow(
+        'summary-invalid',
+      );
+      trace.receipt.output = await publish({
+        source: { ...source, secret: 'must not publish' },
+        summary,
+      });
+      await expect(validateNativeGpuTraceEvidence(report, evidence)).rejects.toThrow();
+      const malformed = Buffer.from('{"PRIVATE_TRACE_PARSE_ERROR_SENTINEL":');
+      await writeFile(outputPath, malformed);
+      trace.receipt.output = {
+        ...trace.receipt.output!,
+        bytes: malformed.length,
+        sha256: createHash('sha256').update(malformed).digest('hex'),
+      };
+      await writeFile(reportPath, JSON.stringify(report));
+      const invalid = spawnSync(process.execPath, [script, '--validate', reportPath]);
+      expect(invalid.status).toBe(1);
+      expect(JSON.parse(invalid.stdout.toString())).toEqual({
+        outcome: 'trace-evidence-unavailable',
+        error: 'trace-summary-validation-failed',
+      });
+      expect(invalid.stdout.toString() + invalid.stderr.toString()).not.toContain(
+        'PRIVATE_TRACE_PARSE_ERROR_SENTINEL',
+      );
+      expect(invalid.stdout.toString() + invalid.stderr.toString()).not.toContain(dir);
+      trace.cleanup({ producerClosed: true });
+      await vi.waitFor(async () => {
+        await expect(readFile(path)).rejects.toThrow('ENOENT');
+      });
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

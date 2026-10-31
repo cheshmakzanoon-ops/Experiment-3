@@ -24,14 +24,26 @@ describe('opt-in nonpublishing native GPU trace workflow', () => {
     expect(platform).not.toMatch(/--no-sandbox|disable-gpu|disable-web-security|disable.*watchdog/);
   });
 
-  it('pauses the old trace job until private parsing prevents raw trace uploads', () => {
-    expect(diagnostic).not.toContain('  gpu-trace-mesa:');
-    expect(diagnostic).not.toContain('gpu_trace: true');
-    expect(diagnostic).toContain('GPU trace diagnostic paused');
+  it('opts in only a separately labelled Mesa full-journey diagnostic job', () => {
+    const traced = job(diagnostic, 'gpu-trace-mesa');
+    expect(traced).toContain('name: Mesa full journey GPU trace (nonpublishing diagnostic)');
+    expect(traced).toContain('uses: ./.github/workflows/desktop-platform.yml');
+    for (const setting of [
+      'runner: ubuntu-22.04',
+      'target: linux',
+      'arch: x64',
+      'linux_graphics: mesa',
+      'smoke_journey: full',
+      'gpu_trace: true',
+    ])
+      expect(traced).toContain(setting);
+    expect(diagnostic.match(/gpu_trace: true/g)).toHaveLength(1);
     expect(job(diagnostic, 'compare')).not.toContain('gpu_trace');
     expect(job(diagnostic, 'compatibility-mesa')).not.toContain('gpu_trace');
     expect(job(diagnostic, 'compare')).toContain('linux_graphics: swiftshader');
-    expect(job(diagnostic, 'compatibility-mesa')).toContain('smoke_journey: compatibility-diagnostic');
+    expect(job(diagnostic, 'compatibility-mesa')).toContain(
+      'smoke_journey: compatibility-diagnostic',
+    );
     expect(diagnostic).not.toMatch(/contents: write|publish-development|continue-on-error/);
   });
 
@@ -73,6 +85,49 @@ describe('opt-in nonpublishing native GPU trace workflow', () => {
     expect(platform).not.toContain('continue-on-error');
   });
 
+  it('acquires and verifies an exact offline parser only for tracing before the real launch', () => {
+    const name = 'Acquire SHA-pinned offline GPU trace parser (diagnostic only)';
+    const step = platform.split(`name: ${name}`)[1]?.split('      - name:')[0];
+    expect(step).toContain('if: inputs.gpu_trace');
+    expect(step).toContain('timeout-minutes: 2');
+    expect(step).toContain("test '${{ runner.os }}' = Linux");
+    expect(step).toContain("test '${{ runner.arch }}' = X64");
+    expect(step).toContain('umask 077');
+    expect(step).toContain('mktemp -d "$RUNNER_TEMP/motobound-trace-parser.XXXXXX"');
+    expect(step).toContain('--max-time 60 --max-filesize 14897560');
+    expect(step).toContain(
+      'https://commondatastorage.googleapis.com/perfetto-luci-artifacts/v58.2/linux-amd64/trace_processor_shell',
+    );
+    expect(step).toContain('test "$(wc -c < "$parser.download")" = 14897560');
+    expect(step).toContain('58042408e6cc861fb1a731c26bb082dc222285561eaa4e12a48a8b2b90dca7b9');
+    expect(step).toContain('sha256sum --check --strict');
+    expect(step).toContain('MOTOBOUND_TRACE_PROCESSOR=%s');
+    expect(step).toContain('"$GITHUB_ENV"');
+    expect(step).not.toMatch(/latest|desktop-evidence|continue-on-error|\|\| true/);
+    expect(platform.indexOf(`name: ${name}`)).toBeLessThan(
+      platform.indexOf('name: Launch the packaged Linux executable'),
+    );
+  });
+
+  it('requires actual parser fixtures only in the diagnostic and before gameplay', () => {
+    const name = 'Validate real offline GPU trace parser fixtures (diagnostic only)';
+    const step = platform.split(`name: ${name}`)[1]?.split('      - name:')[0];
+    expect(step).toContain('if: inputs.gpu_trace');
+    expect(step).toContain("MOTOBOUND_TRACE_PARSER_REQUIRED: '1'");
+    expect(step).toContain('run: npm test -- tests/native-gpu-trace-parser.test.ts');
+    expect(platform.indexOf(`name: ${name}`)).toBeGreaterThan(
+      platform.indexOf('name: Acquire SHA-pinned offline GPU trace parser (diagnostic only)'),
+    );
+    expect(platform.indexOf(`name: ${name}`)).toBeLessThan(
+      platform.indexOf('name: Launch the packaged Linux executable'),
+    );
+    const defaultContracts = platform
+      .split('name: Validate desktop isolation and engine contracts')[1]
+      ?.split('      - name:')[0];
+    expect(defaultContracts).not.toContain('tests/native-gpu-trace-parser.test.ts');
+    expect(defaultContracts).toContain('tests/circuit-ribbon-data.test.ts');
+  });
+
   it('never labels a trace diagnostic as checksummed development installers', () => {
     for (const step of [
       'Record package checksums and exact source',
@@ -93,6 +148,7 @@ describe('opt-in nonpublishing native GPU trace workflow', () => {
     expect(contract).toContain('run: npm test -- ');
     for (const test of [
       'native-gpu-trace',
+      'native-gpu-trace-summary',
       'native-gpu-trace-workflow',
       'native-smoke-control',
       'native-preparation-evidence',
@@ -103,6 +159,8 @@ describe('opt-in nonpublishing native GPU trace workflow', () => {
     expect(contract).toContain('tests/babylon-*.test.ts');
     expect(contract).not.toMatch(/--exclude|--passWithNoTests|--ignore-scripts/);
     expect(diagnostic).toContain("- 'scripts/native-gpu-trace.*'");
+    expect(diagnostic).toContain("- 'scripts/native-gpu-trace-summary.*'");
     expect(diagnostic).toContain("- 'tests/native-gpu-trace*.test.ts'");
+    expect(diagnostic).toContain("- 'tests/fixtures/native-gpu-trace.ts'");
   });
 });

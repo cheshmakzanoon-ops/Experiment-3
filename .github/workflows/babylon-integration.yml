@@ -9,9 +9,22 @@ on:
       - 'vite.config.ts'
       - 'package*.json'
       - 'tests/babylon-*.test.ts'
+      - 'tests/formula-surfaces.test.ts'
+      - 'tests/circuit-line-profile.test.ts'
+      - 'tests/indexed-ribbon-normals.test.ts'
+      - 'tests/circuit-ribbon-data.test.ts'
+      - 'tests/road-detail.test.ts'
+      - 'tests/tyre-marks.test.ts'
+      - 'tests/fixtures/circuit-ribbon-*'
+      - 'src/rendering/circuit.ts'
+      - 'src/rendering/circuit-finish.ts'
+      - 'src/rendering/studio/road-detail.ts'
+      - 'src/rendering/tyre-marks.ts'
       - 'e2e/babylon-engine.spec.ts'
       - 'e2e/babylon-player-lods.spec.ts'
       - 'e2e/babylon-height-parity.spec.ts'
+      - 'e2e/babylon-surface-parity.spec.ts'
+      - 'e2e/fixtures/babylon-surface-parity.ts'
       - 'e2e/fixtures/babylon-height-parity.ts'
       - 'e2e/fixtures/babylon-player-lods.ts'
       - 'e2e/discipline-entry.spec.ts'
@@ -35,10 +48,10 @@ jobs:
       - name: Validate source and both entry points
         run: npm run lint && npm run build
       - name: Engine component and existing asset geometry contracts
-        run: npx vitest run tests/babylon-*.test.ts tests/discipline-presets.test.ts tests/input.test.ts
+        run: npx vitest run tests/babylon-*.test.ts tests/discipline-presets.test.ts tests/input.test.ts tests/formula-surfaces.test.ts tests/circuit-line-profile.test.ts tests/indexed-ribbon-normals.test.ts tests/circuit-ribbon-data.test.ts tests/road-detail.test.ts tests/tyre-marks.test.ts
       - run: npx playwright install --with-deps chromium
       - name: Real WebGL engine, model import and mode-switching journeys
-        run: npx playwright test e2e/babylon-engine.spec.ts e2e/discipline-entry.spec.ts e2e/babylon-player-lods.spec.ts e2e/babylon-height-parity.spec.ts
+        run: npx playwright test e2e/babylon-engine.spec.ts e2e/discipline-entry.spec.ts e2e/babylon-player-lods.spec.ts e2e/babylon-height-parity.spec.ts e2e/babylon-surface-parity.spec.ts
       - name: Preserve browser evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4

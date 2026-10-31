@@ -361,7 +361,8 @@ try {
     firstFault: firstGraphicsFault,
     onOperationFailure: (error) => retainNativeSmokeFailure(report, error, firstGraphicsFault),
     path: join(profile, 'gpu-trace-raw.pftrace'),
-    outputPath: resolve('desktop-evidence/gpu-trace.pftrace'),
+    outputPath: resolve('desktop-evidence/gpu-trace-summary.json'),
+    parserPath: process.env.MOTOBOUND_TRACE_PROCESSOR,
     adapter: {
       categories: () =>
         application.evaluate(({ contentTracing }) => contentTracing.getCategories()),
@@ -524,5 +525,18 @@ try {
   const preparationWriteError = await preparationWriter.flush();
   if (preparationWriteError) report.preparationEvidenceWriteError = preparationWriteError;
   await writeFile('desktop-evidence/report.json', JSON.stringify(report, null, 2) + '\n');
-  await application?.close();
+  let producerClosed = !application;
+  try {
+    await application?.close();
+    producerClosed = true;
+  } finally {
+    if (gpuTrace?.receipt.enabled) {
+      const cleanup = gpuTrace.cleanup({ producerClosed });
+      // Constant fields only, separate from the original pre-close failure.
+      await writeFile(
+        'desktop-evidence/gpu-trace-cleanup.json',
+        JSON.stringify(cleanup) + '\n',
+      ).catch(() => {});
+    }
+  }
 }

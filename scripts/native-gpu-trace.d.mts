@@ -1,3 +1,5 @@
+import type { writeFile } from 'node:fs/promises';
+import type { NativeGpuWorkSummary } from './native-gpu-trace-summary.mjs';
 import type { FirstGraphicsFault } from './native-smoke-control.mjs';
 
 export type NativeGpuTraceCategory =
@@ -13,6 +15,7 @@ export type NativeGpuTraceCategory =
 
 export const NATIVE_GPU_TRACE: Readonly<{
   bufferKiB: number;
+  scope: 'unchanged-babylon-inspect-through-authored-wheel-check-or-first-gpu-fault';
   maxFileBytes: number;
   setupMs: number;
   stopMs: number;
@@ -29,13 +32,13 @@ export function nativeGpuTraceCategories(available: unknown): NativeGpuTraceCate
 export interface NativeGpuTraceCategoryInventory {
   input: 'array' | 'not-array';
   reportedGroups: number | null;
-  sampledGroups: number;
+  scannedGroups: number;
   omittedGroups: number | null;
-  malformedSampledGroups: number;
-  truncatedSampledGroups: number;
+  malformedGroups: number;
+  oversizedGroups: number;
   truncated: boolean;
   limits: typeof NATIVE_GPU_TRACE.categoryInventory;
-  sample: (string | null)[];
+  matchedCategories: NativeGpuTraceCategory[];
 }
 export function nativeGpuTraceCategoryInventory(
   available: unknown,
@@ -65,11 +68,25 @@ export interface NativeGpuTraceRetainedOutput {
   file: string;
   bytes: number;
   sha256: string;
+  rawTraceUploaded: false;
+  captureValid: true;
+  parsed: true;
+  gpuWorkObserved: boolean;
 }
 
-export type NativeGpuTraceOutput =
-  | NativeGpuTraceRetainedOutput
-  | { retained: false; bytes: number; reason: 'oversized-trace-removed' };
+export type NativeGpuTraceOutput = NativeGpuTraceRetainedOutput;
+
+export interface NativeGpuTraceCleanup {
+  producerClosed: boolean;
+  pendingInspections: number;
+  rawDeletion:
+    | 'not-applicable'
+    | 'producer-unconfirmed'
+    | 'deferred-inspection-settlement'
+    | 'scheduled'
+    | 'removed'
+    | 'private-cleanup-failed';
+}
 
 export type NativeGpuTraceCompleteness =
   | 'not-recorded'
@@ -90,13 +107,17 @@ export interface NativeGpuTraceReceipt {
   omittedGameplayChecks: string[];
   source: NativeGpuTraceSource;
   status: 'not-started' | 'disabled' | 'recording' | 'recorded' | 'incomplete';
-  format: 'perfetto-protobuf';
+  format: 'private-perfetto-numeric-summary';
+  rawTraceUploaded: false;
+  categoryPolicy: 'fixed-allowlist-requested-not-discovered';
+  cleanup?: NativeGpuTraceCleanup;
   config: NativeGpuTraceConfig | null;
   setupBudgetMs: number;
   stopBudgetMs: number;
   maxFileBytes: number;
   completeness: NativeGpuTraceCompleteness;
   errors: string[];
+  parserExitStatus?: number;
   categoryInventory?: NativeGpuTraceCategoryInventory;
   startRequestedAt?: number;
   startAcknowledgedAt?: number;
@@ -122,27 +143,31 @@ export interface NativeGpuTraceOptions {
   onOperationFailure?: (failure: unknown) => void;
   path: string;
   outputPath?: string;
+  parserPath?: string;
   now?: () => number;
   setupMs?: number;
   stopMs?: number;
-  inspect?: (path: string, outputPath: string) => Promise<NativeGpuTraceOutput>;
+  inspect?: (
+    path: string,
+    outputPath: string,
+    signal: AbortSignal,
+  ) => Promise<NativeGpuTraceOutput>;
 }
 
 export interface NativeGpuTrace {
   receipt: NativeGpuTraceReceipt;
   finalize(): void;
+  cleanup(options?: { producerClosed?: boolean }): NativeGpuTraceCleanup;
   run<T>(operation: () => T | PromiseLike<T>): Promise<T>;
 }
 
 export function createNativeGpuTrace(options: NativeGpuTraceOptions): NativeGpuTrace;
 
 export interface NativeGpuTraceEvidence {
-  outcome: 'retained-bounded-trace';
-  // Retained verbatim from report JSON; the evidence gate does not validate
-  // the semantics of these metadata fields or parse the protobuf payload.
-  completeness: unknown;
-  fatalCoverage: unknown;
-  source: unknown;
+  outcome: 'retained-typed-gpu-work-summary';
+  completeness: NativeGpuTraceCompleteness;
+  fatalCoverage: NativeGpuTraceFatalCoverage;
+  source: NativeGpuTraceSource;
   output: NativeGpuTraceRetainedOutput;
 }
 
@@ -150,3 +175,11 @@ export function validateNativeGpuTraceEvidence(
   report: unknown,
   directory: string,
 ): Promise<NativeGpuTraceEvidence>;
+
+export function retainNativeGpuTraceSummary(options: {
+  summary: NativeGpuWorkSummary;
+  source: NativeGpuTraceSource;
+  outputPath: string;
+  signal: AbortSignal;
+  writeSummary?: typeof writeFile;
+}): Promise<NativeGpuTraceRetainedOutput>;

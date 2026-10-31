@@ -14,7 +14,9 @@ on:
       - 'scripts/native-smoke-control.*'
       - 'scripts/native-preparation-evidence.*'
       - 'scripts/native-gpu-trace.*'
+      - 'scripts/native-gpu-trace-summary.*'
       - 'tests/native-gpu-trace*.test.ts'
+      - 'tests/fixtures/native-gpu-trace.ts'
       - 'public/assets/basis/**'
 permissions:
   contents: read
@@ -43,6 +45,16 @@ jobs:
       arch: x64
       linux_graphics: mesa
       smoke_journey: compatibility-diagnostic
-  # GPU trace diagnostic paused: legacy argument filtering does not guarantee
-  # Perfetto annotation redaction. Restore only with verified private parsing
-  # and no raw trace upload. Required native acceptance remains unchanged.
+  gpu-trace-mesa:
+    name: Mesa full journey GPU trace (nonpublishing diagnostic)
+    # Same original journey and gates. Raw traces stay private; only verified,
+    # constant-label numeric summaries enter evidence. Required jobs stay untraced.
+    # Trace timing is diagnostic, never a replacement for native acceptance.
+    uses: ./.github/workflows/desktop-platform.yml
+    with:
+      runner: ubuntu-22.04
+      target: linux
+      arch: x64
+      linux_graphics: mesa
+      smoke_journey: full
+      gpu_trace: true

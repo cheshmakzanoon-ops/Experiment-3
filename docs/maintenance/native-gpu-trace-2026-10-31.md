@@ -1,36 +1,32 @@
-# Native GPU trace diagnostic — 2026-10-31
+# Private native GPU trace diagnostic — 2026-10-31
 
-## Scope and default-off contract
+## Scope and historical boundary
 
-This is a harness-only diagnostic, not a GPU failure repair or first-use draw
-priming. `scripts/native-gpu-trace.mjs` uses Electron's built-in `contentTracing`
-through Playwright `ElectronApplication.evaluate`; it adds no shipping
-main-process API or renderer bridge.
+This is an opt-in, nonpublishing harness diagnostic, **not a Linux GPU repair**.
+Required native lanes and normal driver comparisons remain untraced. The
+`gpu_trace` workflow input defaults to `false`; `MOTOBOUND_GPU_TRACE` accepts only
+`0` or `1`. The disabled path calls no tracing APIs, parser or new failure hook.
+The separate Linux Mesa trace job retains the full unchanged gameplay journey,
+assertions, budgets, quality, driver and security settings. It uploads no
+installers/checksums and is not a publication dependency.
 
-The reusable desktop workflow defaults `gpu_trace` to `false`.
-`MOTOBOUND_GPU_TRACE` accepts only `0` or `1`, defaults to `0`, and rejects other
-values. The disabled operation invokes neither tracing APIs nor the new failure
-snapshot callback. Required native lanes and existing driver comparisons remain
-untraced.
+The only capture window starts before the actual **Inspect** action and ends
+after its authored-model/wheel checks, or on the first sticky graphics fault.
+Playwright's `ElectronApplication.evaluate` calls Electron `contentTracing`;
+there is no shipping main-process API, renderer bridge, GL/RAF hook, first-use
+priming or added rendering/simulation work. A later Three cockpit or Festival
+failure is **outside coverage** of a successfully closed Babylon window.
 
-The existing Linux driver-review workflow adds a separately labelled
-`gpu-trace-mesa` job: Ubuntu 22.04, Mesa, the **full** unchanged Babylon and
-compatibility journeys. It cannot publish packages, uploads no installers or
-package checksums, and retains a distinct
-`desktop-evidence-linux-x64-gpu-trace` artifact. Required publication dependencies
-are unchanged. Tracing with the compatibility-only journey is rejected.
+Published `1be6c70` and `a937cac` attempts retained no raw trace. In `a937cac`,
+the inventory was actually `[]`: zero groups, no omissions or truncation. Its
+trace-evidence gate failed; its later GPU loss had no trace coverage. Empty
+discovery does not identify the reason for absent descriptors. The old
+raw-promotion diagnostic was paused in `0066f1c` while this private replacement
+was reviewed; a skipped/cancelled diagnostic is not a pass.
 
-Only one window is captured: setup immediately before the real **Inspect**
-action for the original Formula asset, through the existing authored-model and
-wheel-motion checks, or a stop request on the first sticky graphics fault.
-Tracing does not race or cancel the authored operation. Existing gameplay
-assertions, action deadlines, quality, driver selection and security settings
-remain unchanged. No additional draws, GL queries/hooks, RAF hooks or simulation
-updates are introduced.
+## Explicit categories, not discovery claims
 
-## Categories, storage and cleanup bounds
-
-The frozen allowlist is intersected with Electron's reported category inventory:
+The same frozen nine-name allowlist is requested, without wildcards or additions:
 
 ```text
 gpu
@@ -44,133 +40,147 @@ disabled-by-default-gpu.debug
 disabled-by-default-angle
 ```
 
-The inventory is limited to 4,096 entries of at most 512 characters each. At
-least one supported GPU/ANGLE category must remain. There are no wildcard,
-heap-profiling or system-profiling categories. Recording uses
-`record-continuously`, a 16 MiB buffer and argument filtering.
+The receipt says `fixed-allowlist-requested-not-discovered`. Discovery retains
+only counts and matches to these constant names, never arbitrary returned
+strings. At most 4,096 groups of 512 characters are accepted; malformed,
+oversized and omitted counts remain explicit. The receipt is under 16 KiB.
+Successful configuration is not evidence that any category emitted events.
 
-After discovery, `categoryInventory` records the original group count and a
-bounded sample before selection can reject the inventory. It retains at most 64
-groups, each capped at 128 JavaScript string code units, within a strict 16 KiB
-UTF-8 JSON limit. Omitted groups, sampled malformed entries and sampled truncated
-strings have separate counts. Malformed values become `null`, without coercing
-or serializing their contents. This sample is **not** used for validation or
-selection: the full original inventory still faces the same limits, fixed
-allowlist and no-supported-GPU rejection. Default-off calls produce no inventory.
+[Electron 45.2.1 StartTracing](https://github.com/electron/electron/blob/v45.2.1/shell/browser/api/electron_api_content_tracing.cc#L211-L292)
+accepts the supplied configuration independently of category discovery.
+[Chromium 156 discovery](https://github.com/chromium/chromium/blob/156.0.8078.75/services/tracing/public/cpp/perfetto/perfetto_session.cc#L130-L192)
+can return an empty list on failed queries or absent/unparseable descriptors.
+[Its category conversion](https://github.com/chromium/chromium/blob/156.0.8078.75/base/trace_event/trace_config.cc#L802-L835)
+accepts explicit filters. These sources support requesting the existing names,
+not guessing new categories or claiming why actual discovery was empty.
 
-Category discovery and start each have a 5-second wait; stop and file inspection
-also each have a 5-second wait. These diagnostic waits do not extend the existing
-gameplay readiness budgets. A timeout does **not** cancel an underlying native
-operation: a late start acknowledgement triggers another bounded best-effort
-stop, serialized after the prior stop and marked uncertain. The first-fault
-watcher is settled when the authored operation ends so its listener is removed.
+## Raw data is private, not presumed redacted
 
-Electron 45's output is Perfetto protobuf (`.pftrace`), not JSON. Raw output and
-the streaming staging file stay in the ephemeral profile outside the uploaded
-evidence directory. Only a size-checked, streaming-capped copy is promoted to
-`gpu-trace.pftrace`: at most 64 MiB, with byte count and SHA-256. Oversized output
-is removed rather than truncating protobuf and calling the prefix valid.
-Receipts retain source commit, package fingerprint, Electron version, selected
-configuration, times, completeness and up to four error strings of 2,048
-characters each.
+The legacy `enable_argument_filter: true` setting is unchanged, but is **not a
+privacy guarantee**. Electron passes `privacy_filtering_enabled=false` at
+lines 270–273 of its linked implementation. Chromium's Perfetto conversion uses
+that separate boolean for debug-annotation/dynamic-name filtering, not the
+legacy argument-filter member; its
+[Perfetto configuration forwarding](https://github.com/chromium/chromium/blob/156.0.8078.75/services/tracing/public/cpp/perfetto/perfetto_config.cc#L89-L97)
+retains the boolean. Thus raw protobuf may contain private annotations/paths.
 
-## First-error precedence
+Raw output and staging stay solely in the ephemeral profile, **outside
+`desktop-evidence`**, and are never copied/uploaded. Recording remains
+`record-continuously` with a 16 MiB configured buffer; Chromium may allocate
+additional metadata buffers, so this is not a total-process memory cap.
+Raw input is capped at 64 MiB. It must be a regular file. A capped private
+0600 staging copy is closed, checked for source size/mtime/inode changes, and
+made read-only before parsing. Symlinks and oversized files are rejected, not
+truncated and promoted as valid.
 
-When the traced operation throws, the harness synchronously calls the existing
-`retainNativeSmokeFailure` **before any cleanup await**. A later GPU exit during
-trace stop cannot replace an earlier readiness timeout. The later graphics fault
-remains separately retained. The snapshot callback is best-effort: even if it
-throws, the original operation error wins. Trace setup/stop/file errors are
-diagnostic evidence failures, not replacement gameplay failures.
+## Pinned offline parser and fixed summary
 
-## Separate evidence gate and interpretation
+Only the trace job downloads the official free Linux x64 Perfetto parser:
 
-The trace job always attempts this additional diagnostic-only step after launch:
+- Version: **58.2**, 14,897,560 bytes.
+- SHA-256: `58042408e6cc861fb1a731c26bb082dc222285561eaa4e12a48a8b2b90dca7b9`.
+- [Official binary](https://commondatastorage.googleapis.com/perfetto-luci-artifacts/v58.2/linux-amd64/trace_processor_shell).
+- [Pinned official manifest](https://github.com/google/perfetto/blob/403906f4adfbf287a02e5546f8430dcc9d56b649/tools/trace_processor#L63-L76).
 
-```sh
-node scripts/native-gpu-trace.mjs --validate desktop-evidence/report.json
-```
+The workflow verifies size/digest before execution; the production summarizer
+verifies them again. No shell interpolation or third-party parser is used.
+The parser receives one fixed SQL query. stdout is capped at 16 KiB and stderr
+at 4 KiB; stderr is counted/discarded, never copied into errors or artifacts.
+Untrusted parser/JSON failures yield fixed reason labels, not verbatim text.
+A parser exit code, when available, is retained only as an integer from 0–255
+(or unknown/null inside the private processing error); success records 0.
+This is the offline parser exit, not the Electron GPU-process exit code.
 
-It requires enabled diagnostic recording metadata, matching packaged source,
-the fixed file name, a nonempty regular file (not a symlink), size at most 64 MiB,
-and an independently recomputed matching size/SHA-256. Report input is bounded
-to 32 MiB. `gpu-trace-validation.json` records `retained-bounded-trace` or
-`trace-evidence-unavailable`; missing evidence fails this diagnostic step even
-if gameplay passed. This is an integrity/retention check, not a protobuf semantic
-parser or a claim that every GPU event was captured.
+`gpu-trace-summary.json` contains exact source identifiers and a strictly
+validated constant-labelled numeric schema, capped at 16 KiB. No event args,
+freeform process/thread/event names, paths or raw parser output are published.
+Sanitized bytes are written to a private temporary sibling, then atomically
+renamed only after a successful, non-aborted write. Failure removes the
+temporary and prior output; no stale summary is accepted. Such temporary bytes
+contain only the validated sanitized schema, never raw trace content.
+The only named work rows are:
 
-A retained partial/uncertain trace is accepted as diagnostic evidence. Even an
-acknowledged flush is labelled `window-flushed-child-tail-not-certified`:
-a crashed child can lose its tail, and a circular buffer can overwrite earlier
-events. Missing or late cleanup is marked `partial-or-uncertain`.
+1. `CommandBufferStub::OnAsyncFlush`
+2. `CommandBufferStub::PerformWork`
+3. `Scheduler::RunTask`
 
-If the Inspect/wheel window flushes successfully and a later Three cockpit frame
-fails, the receipt explicitly says
-`observed-after-trace-window-not-explained-by-this-capture`. A healthy captured
-Babylon window cannot explain that later failure. Unavailable or uncertain
-windows do not establish coverage. Backend specialization or LLVM cost remains
-a hypothesis; generic GPU exit/context loss alone does not prove it, an OOM,
-or a watchdog cause. Prior failures after completed preparation and subsequent
-normal frames remain relevant counterevidence to a first-use-only explanation.
+These names are source-reviewed in Chromium
+[command_buffer_stub.cc](https://github.com/chromium/chromium/blob/156.0.8078.75/gpu/ipc/service/command_buffer_stub.cc)
+and [scheduler.cc](https://github.com/chromium/chromium/blob/156.0.8078.75/gpu/command_buffer/service/scheduler.cc).
+Association requires `slice → thread_track → thread → process` and the typed
+`chrome.process_type = Gpu` descriptor, plus an exact `gpu` category token.
+A process merely named “Gpu” or an identically named renderer event does not
+qualify. Other GPU event names produce only a numeric count.
 
-## Validation at handoff
+Rows expose process/event/completed/unfinished counts, trace-relative first/last
+nanoseconds and summed/maximum completed duration. These are **overlapping CPU
+work spans**, not GPU execution time or a benchmark. Error/loss totals have
+separate statistics-row presence counts: zero rows means **unknown**, not known
+zero loss. Even present zero counters cannot certify completeness.
+`childTailCertified` is always `false`. An actual truncated protobuf fixture
+exits the pinned parser successfully with zero errors: neither `parseCompleted`
+nor the bounded-input `captureValid` flag proves complete protobuf/child tails.
 
-On 2026-10-31 at 19:34 UTC, the frozen implementation passed 55 focused tests in
-five files under local Node 24.22.1:
+## Deadlines, cancellation and first-error precedence
 
-- `native-gpu-trace.test.ts`: 11 tests, including default-off behavior, bounded
-  cleanup, late acknowledgements, evidence integrity and a late fault during
-  stop that cannot replace the original error.
-- `native-gpu-trace-workflow.test.ts`: 7 tests.
-- `native-smoke-control.test.ts`: 16 tests.
-- `native-preparation-evidence.test.ts`: 15 tests.
-- `ci-workflow.test.ts`: 6 tests.
+Discovery/start/stop retain their existing 5-second waits. Hash verification,
+private copying, parsing and summary writing share the existing 5-second
+file-processing budget; it is not extended. One AbortSignal stops file streams
+and kills the parser on deadline. Parser settlement requires its **close**
+event, not merely error/exit/a successful kill request. Staging deletion follows
+that settlement. Output limits also kill the parser and wait for close.
 
-Scoped ESLint, Prettier, `git diff --check` and actionlint for both affected
-workflows passed. Combined type/build and Node 22 validation are owned by the
-integration run and are not claimed by this focused receipt.
+A timeout does not falsely cancel native Electron tracing: a late start
+acknowledgement still requests a bounded stop, marked uncertain. The authored
+operation is neither raced nor cancelled by tracing. Its exception is
+synchronously retained through the existing failure ledger **before cleanup
+awaits**; later GPU loss or failed snapshots/trace cleanup cannot replace it.
+The first-fault watcher is explicitly settled on operation completion.
 
-At that handoff, actual Electron trace execution had not been verified. These
-were unit, workflow and source checks; no local native trace was collected. The existing
-`cf7672529fd7f2f47493393c74360188bc1c42c3` native results predate this diagnostic:
-Windows, Apple Silicon and SwiftShader passed; required Mesa and Mesa
-compatibility failed; Ubuntu 24 failed before connection on its existing sandbox
-configuration. None is a trace-runtime receipt or evidence of a GPU repair.
+A stalled OS metadata operation or non-cooperative inspection must not cause an
+unbounded outer cleanup wait. Cleanup aborts all active inspection owners and
+returns an honest constant-valued receipt. It schedules raw deletion only after
+inspection settlement **and confirmed Electron shutdown**. A rejected close
+records `producer-unconfirmed`; unsettled inspections record deferred cleanup.
+Private leftovers can remain until runner teardown; no uploaded receipt claims
+otherwise. `gpu-trace-cleanup.json` is separate from the original pre-close
+failure report and contains no paths or trace strings.
 
-## First packaged attempt and bounded inventory follow-up
+## Separate evidence gate and verification
 
-The first diagnostic job at source
-`1be6c704cdfb1816ebf5601fa8e41fedca5c7a95` (driver-review run `41236092096`, job
-`124640074155`) retained **no trace**. Its receipt has `config: null`, no start
-request timestamp, and `No supported GPU trace categories were reported`.
-Artifact `13055761794` (SHA-256
-`3fc567b70621e339272b8aff516e6c8dcabad18659775952eb29a7ae5ed9a473`)
-contains the failed evidence-validation receipt, not a `.pftrace`. The evidence
-gate correctly failed. This was category-selection failure, not a stop timeout
-or file-integrity failure; the original inventory was not retained in that run.
+The diagnostic-only `--validate desktop-evidence/report.json` step checks exact
+source, exact nine-category order, buffer/recording/filter settings, fixed
+scope/empty omitted checks, filename, regular-file size/digest, strict schema and
+actual **typed GPU
+work coverage**. Nonempty raw files, successful gameplay, metadata-only traces,
+unknown-name-only traces and successful parser exit are insufficient. A useful
+partial capture may pass while its child tail remains explicitly uncertain.
+The outcome is `retained-typed-gpu-work-summary`, never a gameplay/repair claim.
+Invalid evidence reports only `trace-summary-validation-failed`.
 
-Pinned [Electron 45.2.1 implementation](https://github.com/electron/electron/blob/v45.2.1/shell/browser/api/electron_api_content_tracing.cc)
-delegates category discovery to Chromium. Its pinned
-[Chromium 156.0.8078.75 implementation](https://github.com/chromium/chromium/blob/156.0.8078.75/services/tracing/public/cpp/perfetto/perfetto_session.cc)
-reads Perfetto service-state `track_event` descriptors; a failed query, parse
-failure or absent descriptors can yield an empty category vector. These source
-paths do **not** establish which condition occurred, or justify guessing new
-categories or changing the tracing configuration. The bounded receipt above is
-the next discriminating observation; it adds no retry, category expansion,
-deadline increase or driver/security switch.
+Focused checks include the unchanged first-fault/default-off regressions;
+malformed, oversized and privacy-negative summaries; shared stream abort;
+parser kill-before-close ordering; late/never-settling inspection cleanup;
+source/digest/coverage gates; workflow default/selector preservation; and an
+**actual SHA-pinned parser** suite independent of mocks. Real fixtures distinguish
+typed GPU versus spoofed identity, annotated private names/paths, unfinished
+spans, truncated packets, wrong parser binaries, oversized input and symlinks.
+The parser fixtures run without Electron/browser/network runtime access.
 
-In that job, the unchanged Babylon model/wheel checks passed before a later Three
-cockpit fence was cancelled on GPU exit. Coverage remains
-`trace-window-unavailable-or-uncertain`; no trace explains that failure. The
-separate required, untraced Mesa lane failed the 15-second wheel-motion wait
-after model import. A still later GPU exit appears in its teardown job log, not
-its already-finalized report. A separate compatibility-only Mesa pass cannot
-replace that required full-journey failure. Actual retained Electron trace
-recording and its useful event coverage remain unverified.
+Actual Electron execution of this private protocol remains unverified until its
+own exact-source Actions artifact is inspected. Offline fixtures and unit tests
+do not establish GPU performance, a Linux failure cause, or a repair. Prior
+later-normal-frame losses remain counterevidence to a first-use-only explanation.
 
-The inventory follow-up passed its 14 trace tests plus 7 workflow tests, scoped
-strict TypeScript, ESLint, Prettier and diff checks. New cases cover empty and
-no-match inventories, malformed values without coercion, oversized arrays,
-escaped/non-ASCII byte bounds, explicit omissions, default-off absence and a
-valid GPU category beyond the retained sample. This is receipt/selection unit
-proof, not successful native capture.
+Final focused local receipt: Node **22.23.4**, **74 tests in 5 files passed**
+(`native-gpu-trace`, `native-gpu-trace-summary`, `native-gpu-trace-parser`,
+`native-gpu-trace-workflow`, `native-smoke-control`); the 15 real-parser cases
+are included, with the required-parser flag enabled. Scoped strict TypeScript
+checking of the four trace suites/declarations passed. The focused evidence is retained in the development validation record.
+Full-project validation is reported separately in [current status](../CURRENT_STATUS.md).
+
+## Linux exit-status interpretation
+
+Pinned Chromium 156.0.8078.75 [POSIX process status](https://github.com/chromium/chromium/blob/156.0.8078.75/base/process/kill_posix.cc) preserves the raw wait status. The observed 512 decodes to exited status 2, rather than a direct SIGKILL receipt. The pinned [GPU result code](https://github.com/chromium/chromium/blob/156.0.8078.75/gpu/ipc/common/result_codes.h) names 2 as the hung-process result; the [watchdog termination path](https://github.com/chromium/chromium/blob/156.0.8078.75/gpu/ipc/service/gpu_watchdog_thread.cc) uses it after a final no-progress check. The Linux launcher/zygote and Electron child-process-gone propagation preserve that status.
+
+This is consistent with GPU hang termination. It does not establish that the watchdog was the only possible caller, or identify shader specialization, LLVM, memory pressure or another underlying stall. No watchdog, quality, security or gameplay deadline is relaxed by this interpretation. A later context-restored event does not erase the original fault.

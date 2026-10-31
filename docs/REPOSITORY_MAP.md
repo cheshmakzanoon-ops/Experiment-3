@@ -14,6 +14,10 @@ Start with [README](../README.md) for play instructions and [current status](CUR
 
 `src/engine/assets/circuit-ribbon-data.ts` holds renderer-neutral circuit ribbon construction arrays. The Three owner retains its original materials, shader hooks, typed-buffer/normal generation and scheduling. The independent [pre-edit oracle](maintenance/circuit-ribbon-data-2026-10-31.md) validates this boundary; it does not activate Babylon road/paint.
 
+`src/engine/assets/circuit-line-profile.ts`, `tyre-mark-zones.ts` and `indexed-ribbon-normals.ts` retain shared surface semantics and exact indexed normals. `src/engine/babylon/formula-surfaces.ts` and `circuit-paint-finish.ts` are isolated probe components, not live scene activation. [Surface scope](maintenance/formula-surface-probe-2026-10-31.md).
+
+`scripts/native-gpu-trace*.mjs` are harness-only diagnostics. The offline parser is acquired only for the explicit diagnostic job and is not bundled into the game; raw data remains private and only bounded numeric evidence is retained. [Trace protocol](maintenance/native-gpu-trace-2026-10-31.md).
+
 ## Runtime code
 
 | Path                                                             | Responsibility                                                                 |

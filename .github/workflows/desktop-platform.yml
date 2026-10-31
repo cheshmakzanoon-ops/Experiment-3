@@ -50,7 +50,7 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - name: Validate desktop isolation and engine contracts
-        run: npm test -- tests/preview-promotion.test.ts tests/startup.test.ts tests/preparation.test.ts tests/preparation-passes.test.ts tests/program-readiness.test.ts tests/program-first-use.test.ts tests/fullscreen-preparation.test.ts tests/owned-menu-preview.test.ts tests/menu-timing-mode.test.ts tests/menu-dof-diagnostic.test.ts tests/native-preparation-evidence.test.ts tests/native-smoke-control.test.ts tests/native-gpu-trace.test.ts tests/native-gpu-trace-workflow.test.ts tests/automatic-shift-stability.test.ts tests/vehicle-calibration-ci.test.ts tests/supplied-compaction.test.ts tests/supplied-index-preparation.test.ts tests/mirrors.test.ts tests/calibration-provenance.test.ts tests/ci-workflow.test.ts tests/far-shadow.test.ts tests/festival-presentation-gate.test.ts tests/festival-startup-lifetime.test.ts tests/festival-startup-presentation.test.ts tests/festival-held-ready.test.ts tests/festival-travel-readiness.test.ts tests/festival-late-assets.test.ts tests/abortable-startup.test.ts tests/graphics-observation.test.ts tests/desktop-policy.test.ts tests/desktop-graphics-health.test.ts tests/desktop-target.test.ts tests/repository-portability.test.ts tests/motocross-ground-physics.test.ts tests/motocross-contact-impulse.test.ts tests/babylon-*.test.ts tests/circuit-ribbon-data.test.ts tests/input.test.ts tests/motion-receipt.test.ts tests/worker-pause.test.ts tests/open-world-traffic.test.ts tests/basis-transcoder.test.ts
+        run: npm test -- tests/preview-promotion.test.ts tests/startup.test.ts tests/preparation.test.ts tests/preparation-passes.test.ts tests/program-readiness.test.ts tests/program-first-use.test.ts tests/fullscreen-preparation.test.ts tests/owned-menu-preview.test.ts tests/menu-timing-mode.test.ts tests/menu-dof-diagnostic.test.ts tests/native-preparation-evidence.test.ts tests/native-smoke-control.test.ts tests/native-gpu-trace.test.ts tests/native-gpu-trace-summary.test.ts tests/native-gpu-trace-workflow.test.ts tests/automatic-shift-stability.test.ts tests/vehicle-calibration-ci.test.ts tests/supplied-compaction.test.ts tests/supplied-index-preparation.test.ts tests/mirrors.test.ts tests/calibration-provenance.test.ts tests/ci-workflow.test.ts tests/far-shadow.test.ts tests/festival-presentation-gate.test.ts tests/festival-startup-lifetime.test.ts tests/festival-startup-presentation.test.ts tests/festival-held-ready.test.ts tests/festival-travel-readiness.test.ts tests/festival-late-assets.test.ts tests/abortable-startup.test.ts tests/graphics-observation.test.ts tests/desktop-policy.test.ts tests/desktop-graphics-health.test.ts tests/desktop-target.test.ts tests/repository-portability.test.ts tests/motocross-ground-physics.test.ts tests/motocross-contact-impulse.test.ts tests/babylon-*.test.ts tests/circuit-ribbon-data.test.ts tests/input.test.ts tests/motion-receipt.test.ts tests/worker-pause.test.ts tests/open-world-traffic.test.ts tests/basis-transcoder.test.ts
       - name: Build the bundled offline desktop game
         run: npm run desktop:package -- --${{ inputs.target }} --${{ inputs.arch }} --publish never
       - name: Install Linux display dependencies
@@ -58,6 +58,29 @@ jobs:
         run: |
           npx playwright install-deps chromium
           sudo apt-get install -y libgl1-mesa-dri mesa-utils
+      - name: Acquire SHA-pinned offline GPU trace parser (diagnostic only)
+        if: inputs.gpu_trace
+        timeout-minutes: 2
+        run: |
+          set -euo pipefail
+          test '${{ runner.os }}' = Linux
+          test '${{ runner.arch }}' = X64
+          umask 077
+          parser_dir=$(mktemp -d "$RUNNER_TEMP/motobound-trace-parser.XXXXXX")
+          parser="$parser_dir/trace_processor_shell"
+          curl --proto '=https' --tlsv1.2 --fail --location --max-redirs 3 --silent --show-error --connect-timeout 10 --max-time 60 --max-filesize 14897560 \
+            'https://commondatastorage.googleapis.com/perfetto-luci-artifacts/v58.2/linux-amd64/trace_processor_shell' \
+            --output "$parser.download"
+          test "$(wc -c < "$parser.download")" = 14897560
+          printf '%s  %s\n' '58042408e6cc861fb1a731c26bb082dc222285561eaa4e12a48a8b2b90dca7b9' "$parser.download" | sha256sum --check --strict
+          mv "$parser.download" "$parser"
+          chmod 700 "$parser"
+          printf 'MOTOBOUND_TRACE_PROCESSOR=%s\n' "$parser" >> "$GITHUB_ENV"
+      - name: Validate real offline GPU trace parser fixtures (diagnostic only)
+        if: inputs.gpu_trace
+        env:
+          MOTOBOUND_TRACE_PARSER_REQUIRED: '1'
+        run: npm test -- tests/native-gpu-trace-parser.test.ts
       - name: Launch the packaged Linux executable
         if: runner.os == 'Linux'
         env:

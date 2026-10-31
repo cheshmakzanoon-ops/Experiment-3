@@ -252,6 +252,17 @@ jobs:
       - name: Install Mesa software graphics and virtual display
         run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
       - run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- ${{ matrix.shard }}/${{ strategy.job-total }}
+      - name: Preserve compact browser acceptance receipts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-receipts-${{ matrix.shard }}-of-${{ strategy.job-total }}
+          path: |
+            browser-shard-plan.json
+            browser-backend.json
+            browser-progress.json
+            dist/BUILD_IDENTITY.json
+          retention-days: 7
       - name: Browser screenshots and diagnostics
         uses: actions/upload-artifact@v4
         if: always()

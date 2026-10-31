@@ -56,6 +56,31 @@ describe('independent CI diagnostics with strict release gates', () => {
     }
   });
 
+  it('preserves compact source/outcome receipts before the unchanged full browser archive', () => {
+    const browser = job('browser');
+    const receiptName = 'name: Preserve compact browser acceptance receipts';
+    const receipt = browser.split(receiptName)[1]?.split('      - name:')[0];
+    expect(receipt).toContain('if: always()');
+    expect(receipt).toContain(
+      'name: browser-receipts-${{ matrix.shard }}-of-${{ strategy.job-total }}',
+    );
+    for (const path of [
+      'browser-shard-plan.json',
+      'browser-backend.json',
+      'browser-progress.json',
+      'dist/BUILD_IDENTITY.json',
+    ])
+      expect(receipt).toContain(path);
+    expect(receipt).not.toMatch(/test-results\/|playwright-report\/|continue-on-error/);
+    expect(browser.indexOf(receiptName)).toBeLessThan(
+      browser.indexOf('name: Browser screenshots and diagnostics'),
+    );
+    const full = browser.split('name: Browser screenshots and diagnostics')[1];
+    expect(full).toContain('test-results/');
+    expect(full).toContain('playwright-report/');
+    expect(full).toContain('if: always()');
+  });
+
   it('runs the complete original offroad gate with guarded temporary reports', () => {
     const offroad = job('offroad-scenarios');
     expect(offroad).toContain('timeout-minutes: 35');
