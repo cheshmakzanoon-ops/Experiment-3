@@ -1,7 +1,22 @@
 import { LoadAssetContainerAsync } from '@babylonjs/core/Loading/sceneLoader.js';
 import type { Scene } from '@babylonjs/core/scene.js';
+import type { AssetContainer } from '@babylonjs/core/assetContainer.js';
 import '@babylonjs/loaders/glTF/index.js';
 import manifest from '../../rendering/supplied-player.manifest.json' with { type: 'json' };
+import {
+  existingPlayerPrimitiveSources,
+  bindExistingPlayerPrimitives,
+  type ExistingPlayerPrimitiveBinding,
+} from './existing-player-primitives.ts';
+
+const primitiveBindings = new WeakMap<AssetContainer, readonly ExistingPlayerPrimitiveBinding[]>();
+/** Existing resources only; the container still owns their lifetime. */
+export function existingPlayerPrimitiveBindings(container: AssetContainer) {
+  const bindings = primitiveBindings.get(container);
+  if (!bindings || bindings.some(({ mesh }) => mesh.isDisposed()))
+    throw new Error('Existing player primitive bindings are unavailable');
+  return bindings;
+}
 
 async function sha256(bytes: Uint8Array<ArrayBuffer>) {
   return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), (x) =>
@@ -40,10 +55,22 @@ export async function loadExistingPlayer(scene: Scene, base: string, signal: Abo
   const response = await fetch(url, { signal });
   if (!response.ok) throw new Error(`Existing model request failed: ${response.status}`);
   const raw = await decodeExistingPlayerBytes(new Uint8Array(await response.arrayBuffer()), signal);
+  const sources = existingPlayerPrimitiveSources(raw);
   const container = await LoadAssetContainerAsync(raw, scene, { pluginExtension: '.glb' });
-  if (signal.aborted || scene.isDisposed) {
-    container.dispose();
-    throw new DOMException('Model load cancelled', 'AbortError');
+  try {
+    if (signal.aborted || scene.isDisposed)
+      throw new DOMException('Model load cancelled', 'AbortError');
+    // No derivative download or tier switch: even the binding check retains the
+    // exact full-detail indices and every imported resource owner.
+    primitiveBindings.set(container, bindExistingPlayerPrimitives(container, sources));
+    return container;
+  } catch (error) {
+    // The caller cannot own a container from a rejected await.
+    try {
+      container.dispose();
+    } catch (cleanupError) {
+      console.error('Existing player cleanup failed:', cleanupError);
+    }
+    throw error;
   }
-  return container;
 }

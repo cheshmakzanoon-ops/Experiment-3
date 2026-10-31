@@ -25,6 +25,12 @@ The subsequent restart repair resets simulation/input authority at the Restart e
 
 Run `npm ci`, `npm run dev`, then open `/babylon.html` on the printed local server. This is a migration workbench, not a release-quality replacement for the four-discipline game.
 
+## Original-model primitive identity and shared LOD data
+
+The renderer-independent PLD2 codec now lives in `src/engine/assets/player-lod-data.ts`; existing Three.js imports remain compatible through re-exports. Babylon validates an immutable source-to-imported primitive/material/joint-palette binding table before returning the original model container. The optional derivative-row join does not fetch data or select a reduced tier. Full-detail geometry, materials, transforms, animation ownership and all graphics gates remain unchanged.
+
+The actual hash-verified GLB imported through NullEngine retains 172 primitives, 101 materials and 82 texture objects. Every original index and position/normal/UV/joint/weight value matches the binary source accessors. Its 58 authored palette joints correspond to 59 Babylon bones because an extra armature ancestor has palette index -1. This is data/ownership proof, not texture-pixel or visual parity. The loader's internal source-pointer dependency is isolated and checked; missing or ambiguous identities fail closed. [Contract, checks and remaining limits](maintenance/babylon-primitive-bindings-2026-10-31.md).
+
 ## Existing procedural geometry
 
 `src/engine/babylon/legacy-geometry.ts` transfers original indexed/interleaved geometry, normals, UVs, vertex colours, local transforms and material groups into Babylon without disposing or modifying the source asset. Plain PBR/basic materials retain their numerical properties. Textures, custom shader hooks, skins, morphs and instancing currently fail explicitly instead of silently losing content. This is an adapter foundation, not proof that every production model is ported. Three NullEngine contract tests currently verify the boundary.

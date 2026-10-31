@@ -41,3 +41,9 @@ Focused tests cover deterministic path-independent hashing, source/harness/confi
 This increment does not change physical behavior, authoring coefficients, fixtures, quality margins or acceptance bands. A complete new 57-vehicle run is not required to prove the metadata helper's unit behavior, and is not claimed by a selected smoke run. Final execution receipts identify which checks actually ran.
 
 Final selected smoke: official Node v22.23.4 ran `--only=apx01 --strict` from an empty temporary output directory on physics v20, exit 0. All four strict metric bands passed at both timesteps. The 844-input before/after fingerprint was `412f1a84c9c126b7745e887353eec3bb6de887b9691627068fe43e8012b924f4`; Git correctly identified dirty `652a00f` candidate source. The output directory remained empty and historical reports retained their hashes. This does not clear the known HF-86 failure or qualify the full registry.
+
+## Windows directory identity follow-up
+
+The first `ac270f7` Windows native job stopped in the clean-checkout metadata test (533 other contracts passed), before packaging or launch. Git identity returned null for a temporary checkout using a `RUNNER~1` path. Exact underlying path spelling was not retained in that initial log, so the specific Windows cause remains subject to rerun.
+
+Directory verification now compares bigint device/inode identities for the requested root and Git-discovered top-level, both required to be directories with nonzero identities. It does not case-fold paths or accept prefixes. Different parent/archive directories, unknown IDs and adjacent large inode values remain distinct. Returned metadata uses the source root's resolved spelling. Portable alias tests and a real junction/nested-archive test cover the boundary; the unchanged real clean-checkout assertion now includes path/stat diagnostics on failure. A native Windows pass is still required.

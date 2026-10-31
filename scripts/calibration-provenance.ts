@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { lstatSync, readdirSync, readFileSync, realpathSync } from 'node:fs';
+import { lstatSync, readdirSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -65,13 +65,28 @@ export function calibrationGitIdentity(root: string) {
         stdio: ['ignore', 'pipe', 'ignore'],
         env: environment,
       }).trim();
-    const verifiedRoot = realpathSync(git('rev-parse', '--show-toplevel'));
-    if (verifiedRoot !== realpathSync(root)) return null;
+    const sourceRoot = realpathSync(root);
+    const gitRoot = realpathSync(git('rev-parse', '--show-toplevel'));
+    // Windows Git can spell a directory differently (8.3, case or separators)
+    // from Node's realpath. Verify the actual directory, not a case-folded path:
+    // bigint IDs preserve all bits, and an archive has a different inode from
+    // its parent checkout even when Git discovers that parent's HEAD.
+    const source = statSync(sourceRoot, { bigint: true });
+    const discovered = statSync(gitRoot, { bigint: true });
+    if (
+      !source.isDirectory() ||
+      !discovered.isDirectory() ||
+      source.dev <= 0n ||
+      source.ino <= 0n ||
+      source.dev !== discovered.dev ||
+      source.ino !== discovered.ino
+    )
+      return null;
     const commit = git('rev-parse', 'HEAD');
     if (!/^[0-9a-f]{40}$/.test(commit)) return null;
     return {
       rootVerified: true as const,
-      root: verifiedRoot,
+      root: sourceRoot,
       commit,
       dirty: git('status', '--porcelain', '--untracked-files=normal') !== '',
     };

@@ -173,6 +173,24 @@ Calibration provenance records a scoped source fingerprint before and after meas
 
 Combined final local validation passed **296 tests across 15 files**, root/desktop TypeScript, full lint, content validation, workflow checks, new-test formatting/discovery and a source-stable production build (Vite stage 79 s). The actual Node 22 APX-01 strict smoke passed on physics v20 with 844 stable scoped inputs and no output writes; this is not a full-registry pass and does not clear HF-86. Native and real-GL outcomes for this new increment remain pending.
 
+### `ac270f7` settings, keyboard and real-GL outcome
+
+[Settings transition run 41223054212](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41223054212) passed **16/16** on verified Mesa llvmpipe. All six original menu viewports passed the stronger keyboard test: each retained 26 required controls and 69 forward/reverse/settings-return focus observations. The original action, paused-grid and both settings-transition cases passed too. One successful run does not prove repeatable cold-loading performance.
+
+The actual-WebGL index probe passed near/far/rear views with zero pixel-channel differences, identical selected index order, no GL error and no extra uploads during the prepared draw. Baseline and prepared paths retained three buffers/three uploads/12,288 bytes, then disposed all three. This validates the synthetic selector/resource oracle, not every authored primitive or the native Linux crash. Artifact `13049979845` matched its published SHA-256; screenshots and trace attachments were inspected. Native qualification remains separate.
+
+The `ac270f7` [native matrix](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41223054369) is terminal: Apple Silicon passed; Windows failed the calibration contract before packaging; required Mesa failed; publication was skipped. The [full SwiftShader comparison](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41223054297) passed, while the explicitly limited Mesa compatibility diagnostic failed. The latter completed cockpit index preparation in 32.7 ms and returned from the CPU draw in 113.5 ms, with unchanged post-draw compact-buffer counters and 283 unchanged programs. Its existing GPU-completion fence then timed out at 45,000.8 ms. That timeout preceded the recorded GPU exit by about 1.205 s, so retaining timeout as the primary failure is correct. This is not a completed-GPU performance win or a driver repair.
+
+Separate cold-profile validation still failed both original loading deadlines; menu offscreen work took about 104 s under instrumentation. The broader interaction job reached its original 15-minute cap after a showroom/grid timeout and failed Academy visibility; its third programme case and later cases were incomplete. These failures are not superseded by the passing 16-case transition suite.
+
+### Next Babylon binding and Windows metadata increment
+
+The original-model importer now validates source primitive, material and joint-palette correspondence before publishing the container. Shared PLD2 parsing/transport is renderer-independent, with existing Three.js exports preserved. Actual original-GLB NullEngine tests compare every source index and vertex attribute and retain resource identity; full detail stays selected and no derivative fetch or GPU resource is added. [Binding contract and limits](maintenance/babylon-primitive-bindings-2026-10-31.md).
+
+The `ac270f7` Windows native job failed one new calibration Git-identity contract (533 passed), before packaging or launch; this is not a Windows graphics failure. The temporary root used `RUNNER~1`, but the original log did not retain both path spellings. The correction verifies directory identity with exact bigint filesystem IDs instead of path-string equality, preserves parent/archive rejection and adds native failure diagnostics. Local alias coverage is not a substitute for the next Windows run. Apple Silicon passed the installed four-mode journeys with 469 clean packets; Formula preupload counters remained unchanged after drawing, and all six observed view fences completed before their post-view program queries. Linux qualification remains separate.
+
+Final combined checks for this increment passed **233 tests across 22 files**, root/desktop TypeScript, full lint, formatting, content and workflow validation, whitespace checks, and a source-stable production build (Vite stage 74 s). The three alias regressions also fail against the old provenance implementation and pass with the directory-identity correction. Native Windows and real-renderer validation of this increment remain pending.
+
 ## Remaining acceptance gates
 
 1. Resolve mixed-class GP pace and confirm the full suite under appropriate runner load without hiding failures or extending acceptance limits merely to pass.

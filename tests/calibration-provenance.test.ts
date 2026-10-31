@@ -5,13 +5,14 @@ import {
   readFileSync,
   realpathSync,
   rmSync,
+  statSync,
   symlinkSync,
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   beginCalibrationProvenance,
   CALIBRATION_SOURCE_SCOPE,
@@ -21,10 +22,17 @@ import {
   finishCalibrationProvenance,
 } from '../scripts/calibration-provenance.ts';
 
+// Only the identity-boundary tests replace these two filesystem operations;
+// Git init/commit/HEAD/status remain real, and all other tests use actual fs.
+vi.mock('node:fs', async (importOriginal) => {
+  const fs = await importOriginal<typeof import('node:fs')>();
+  return { ...fs, realpathSync: vi.fn(fs.realpathSync), statSync: vi.fn(fs.statSync) };
+});
 const temporary: string[] = [];
-afterEach(() =>
-  temporary.splice(0).forEach((path) => rmSync(path, { recursive: true, force: true })),
-);
+afterEach(() => {
+  vi.resetAllMocks();
+  temporary.splice(0).forEach((path) => rmSync(path, { recursive: true, force: true }));
+});
 const invocation = { simulationVersion: 19, strict: true, requestedVehicleIds: ['xf2'] };
 function directory() {
   const path = mkdtempSync(join(tmpdir(), 'calibration-provenance-'));
@@ -253,7 +261,23 @@ describe('calibration source provenance', () => {
     const root = fixture();
     repository(root);
     const before = beginCalibrationProvenance(root, invocation);
-    expect(before.git).toEqual({
+    const directoryIdentity = (path: string) => {
+      const resolved = realpathSync(path);
+      const stat = statSync(resolved, { bigint: true });
+      return {
+        resolved,
+        device: String(stat.dev),
+        inode: String(stat.ino),
+        directory: stat.isDirectory(),
+      };
+    };
+    // On a native runner, retain actionable path/ID diagnostics if verification
+    // fails; the helper deliberately treats unavailable Git metadata as unknown.
+    const diagnostic = JSON.stringify({
+      source: directoryIdentity(root),
+      git: directoryIdentity(git(root, 'rev-parse', '--show-toplevel')),
+    });
+    expect(before.git, diagnostic).toEqual({
       rootVerified: true,
       root: realpathSync(root),
       commit: git(root, 'rev-parse', 'HEAD'),
@@ -264,6 +288,80 @@ describe('calibration source provenance', () => {
     expect(result.source.gitBefore?.dirty).toBe(false);
     expect(result.source.gitAfter?.dirty).toBe(true);
     expect(result.source.stable).toBe(true);
+  });
+  it.each([
+    [
+      String.raw`C:\Users\RUNNER~1\AppData\Local\Temp\checkout`,
+      String.raw`C:\Users\runneradmin\AppData\Local\Temp\checkout`,
+    ],
+    [String.raw`C:\Users\RunnerAdmin\Checkout`, String.raw`c:\users\runneradmin\checkout`],
+    [String.raw`C:\Users\runneradmin\checkout`, 'C:/Users/runneradmin/checkout'],
+  ])('verifies directory identity across path spellings %s and %s', (sourcePath, gitPath) => {
+    const root = fixture();
+    repository(root);
+    const actual = statSync(root, { bigint: true });
+    // Model native Windows path spellings on every host, with distinct objects
+    // holding the same exact filesystem IDs. No Git results are mocked.
+    vi.mocked(realpathSync).mockReturnValueOnce(sourcePath).mockReturnValueOnce(gitPath);
+    vi.mocked(statSync)
+      .mockReturnValueOnce(actual)
+      .mockReturnValueOnce(Object.assign(Object.create(Object.getPrototypeOf(actual)), actual));
+    expect(calibrationGitIdentity(root)).toEqual({
+      rootVerified: true,
+      root: sourcePath,
+      commit: git(root, 'rev-parse', 'HEAD'),
+      dirty: false,
+    });
+    expect(statSync).toHaveBeenCalledWith(sourcePath, { bigint: true });
+    expect(statSync).toHaveBeenCalledWith(gitPath, { bigint: true });
+  });
+  it.each([
+    'different device',
+    'different inode',
+    'large adjacent inode',
+    'zero device',
+    'zero inode',
+    'not a directory',
+  ])('rejects unverifiable filesystem identity: %s', (kind) => {
+    const root = fixture();
+    repository(root);
+    const actual = statSync(root, { bigint: true });
+    const source = Object.assign(Object.create(Object.getPrototypeOf(actual)), actual);
+    const discovered = Object.assign(Object.create(Object.getPrototypeOf(actual)), actual);
+    if (kind === 'different device') discovered.dev += 1n;
+    if (kind === 'different inode') discovered.ino += 1n;
+    if (kind === 'large adjacent inode') {
+      source.ino = 2n ** 60n;
+      discovered.ino = source.ino + 1n;
+      expect(Number(source.ino)).toBe(Number(discovered.ino));
+    }
+    if (kind === 'zero device') source.dev = discovered.dev = 0n;
+    if (kind === 'zero inode') source.ino = discovered.ino = 0n;
+    if (kind === 'not a directory') discovered.isDirectory = () => false;
+    vi.mocked(statSync).mockReturnValueOnce(source).mockReturnValueOnce(discovered);
+    expect(calibrationGitIdentity(root)).toBeNull();
+  });
+  it('fails closed when directory identity cannot be read', () => {
+    const root = fixture();
+    repository(root);
+    vi.mocked(statSync).mockImplementationOnce(() => {
+      throw new Error('directory identity unavailable');
+    });
+    expect(calibrationGitIdentity(root)).toBeNull();
+  });
+  it('verifies a real directory alias without borrowing a nested archive identity', () => {
+    const root = fixture();
+    repository(root);
+    const alias = join(directory(), 'checkout-alias');
+    symlinkSync(root, alias, 'junction');
+    expect(calibrationGitIdentity(alias)).toEqual({
+      rootVerified: true,
+      root: realpathSync(alias),
+      commit: git(root, 'rev-parse', 'HEAD'),
+      dirty: false,
+    });
+    fixture(join(root, 'archive'));
+    expect(calibrationGitIdentity(join(alias, 'archive'))).toBeNull();
   });
   it('does not invent a commit for an unborn repository', () => {
     const root = fixture();

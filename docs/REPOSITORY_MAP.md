@@ -10,6 +10,8 @@ Start with [README](../README.md) for play instructions and [current status](CUR
 
 `src/engine/simulation-component.ts` hosts the existing physics for the new main-engine architecture. `src/engine/babylon/` contains Babylon rendering, snapshot transfer and existing-asset import. `babylon.html` is the explicitly labelled integration preview; the root `index.html` remains the complete Three.js fallback during migration. See [migration gates](BABYLON_MIGRATION.md).
 
+`src/engine/assets/player-lod-data.ts` is the shared renderer-independent LOD codec. `src/engine/babylon/existing-player-primitives.ts` owns original GLB primitive/material/joint correspondence; it does not select LOD tiers. Asset-contract evidence is in [primitive bindings](maintenance/babylon-primitive-bindings-2026-10-31.md).
+
 ## Runtime code
 
 | Path                                                             | Responsibility                                                                 |
