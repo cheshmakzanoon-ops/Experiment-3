@@ -10,11 +10,24 @@ test('Babylon migration entry renders existing simulation and supports pause, re
   await expect(status).toContainText('DRIVING');
   const tick = async () => Number((await status.textContent())?.match(/tick (\d+)/)?.[1] ?? -1);
   await expect.poll(tick).toBeGreaterThan(5);
+  await expect(status).toHaveAttribute('data-scene-ready', 'true');
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
   await expect(status).toContainText('PAUSED');
   const stopped = await tick();
+  const draws = await status.getAttribute('data-rendered-frames');
   await page.waitForTimeout(400);
   expect(await tick()).toBe(stopped);
+  expect(await status.getAttribute('data-rendered-frames')).toBe(draws);
+  // A resize invalidates the static canvas once, even while physics is paused.
+  await page.setViewportSize({ width: 1360, height: 820 });
+  await expect
+    .poll(async () => Number(await status.getAttribute('data-rendered-frames')))
+    .toBeGreaterThan(Number(draws));
+  expect(await tick()).toBe(stopped);
+  await expect(status).toHaveAttribute('data-scene-ready', 'true');
+  const resizedDraws = await status.getAttribute('data-rendered-frames');
+  await page.waitForTimeout(400);
+  expect(await status.getAttribute('data-rendered-frames')).toBe(resizedDraws);
   await page.getByRole('button', { name: 'Resume', exact: true }).click();
   await expect.poll(tick).toBeGreaterThan(stopped);
   await page.locator('#game').click();

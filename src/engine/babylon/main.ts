@@ -4,6 +4,7 @@ import { BabylonCircuitScene } from './circuit-scene.ts';
 import { waitForPresentation } from './presentation-ready.ts';
 import { ExistingPlayerSteering } from './existing-player-steering.ts';
 import { ExistingPlayerWheels } from './existing-player-wheels.ts';
+import { PresentationSchedule } from './presentation-schedule.ts';
 import { SimulationComponent } from '../simulation-component.ts';
 import { DEFAULT_OPTIONS } from '../../simulation/config.ts';
 import { InputController, type TouchAction } from '../../input/controller.ts';
@@ -30,17 +31,21 @@ const eventOptions = { signal: abort.signal };
 let engine: Engine | undefined;
 let scene: BabylonCircuitScene | undefined;
 let component: SimulationComponent;
+const presentation = new PresentationSchedule();
+let renderedFrames = 0;
 let paused = false,
   last = performance.now(),
   lastStatus = 0;
 function setPaused(value: boolean) {
   paused = value;
+  presentation.request();
   input?.setEnabled(!value);
   component.setPaused(value);
   last = performance.now();
   pause.textContent = value ? 'Resume' : 'Pause';
 }
 function reset() {
+  presentation.reset();
   assetLoad.abort();
   playerSteering?.dispose();
   playerSteering = undefined;
@@ -83,6 +88,7 @@ try {
   for (const button of document.querySelectorAll<HTMLElement>('[data-drive]'))
     input.bindTouch(button, button.dataset.drive as TouchAction);
   engine = new Engine(canvas, true, { preserveDrawingBuffer: false, stencil: true });
+  engine.onContextRestoredObservable.add(() => presentation.request());
   reset();
   pause.addEventListener('click', () => setPaused(!paused), eventOptions);
   restart.addEventListener('click', reset, eventOptions);
@@ -114,7 +120,12 @@ try {
         }
         currentScene.scene.getMeshByName('migration-proxy-0')?.setEnabled(false);
         assetStatus.textContent = 'Preparing original model materials for rendering…';
-        await waitForPresentation(currentScene.scene, signal);
+        const finishPreparation = presentation.prepare();
+        try {
+          await waitForPresentation(currentScene.scene, signal);
+        } finally {
+          finishPreparation();
+        }
         if (signal.aborted) return;
         assetStatus.textContent =
           'Original Formula asset loaded in Babylon. Driver and rigid wheel motion follow physics; tyre deformation, LOD and full material parity are still pending.';
@@ -130,10 +141,18 @@ try {
     'visibilitychange',
     () => {
       if (document.hidden) setPaused(true);
+      else presentation.request();
     },
     eventOptions,
   );
-  window.addEventListener('resize', () => engine?.resize(), eventOptions);
+  window.addEventListener(
+    'resize',
+    () => {
+      engine?.resize();
+      presentation.request();
+    },
+    eventOptions,
+  );
   inputPump = new InputPump((dt) => {
     if (document.hidden) return;
     if (paused) {
@@ -154,7 +173,15 @@ try {
     if (playerSteering)
       assetStatus.dataset.steering = String(playerSteering.apply(component.frame));
     if (playerWheels) assetStatus.dataset.wheelPhase = String(playerWheels.apply(component.frame));
-    scene!.render(component.frame);
+    if (presentation.shouldRender(paused)) {
+      const readyBefore = scene!.scene.isReady();
+      scene!.render(component.frame);
+      const readyAfter = scene!.scene.isReady();
+      presentation.rendered(readyBefore, readyAfter);
+      const ready = readyBefore && readyAfter;
+      status.dataset.sceneReady = String(ready);
+      status.dataset.renderedFrames = String(++renderedFrames);
+    }
     if (now - lastStatus > 250) {
       lastStatus = now;
       status.dataset.steer = String(component.frame[carBase(0) + F.STEER]);
