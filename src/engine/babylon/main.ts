@@ -2,7 +2,10 @@ import { TransformNode } from '@babylonjs/core/Meshes/transformNode.js';
 import { Engine } from '@babylonjs/core/Engines/engine.js';
 import { BabylonCircuitScene } from './circuit-scene.ts';
 import { SimulationComponent } from '../simulation-component.ts';
-import { DEFAULT_OPTIONS, controls } from '../../simulation/config.ts';
+import { DEFAULT_OPTIONS } from '../../simulation/config.ts';
+import { InputController, type TouchAction } from '../../input/controller.ts';
+import { InputPump } from '../../input/pump.ts';
+import { DEFAULT_SETTINGS, SaveStore, validateSettings } from '../../storage/data.ts';
 import { F, carBase } from '../../simulation/protocol.ts';
 import './preview.css';
 
@@ -13,7 +16,10 @@ const restart = document.querySelector<HTMLButtonElement>('#restart')!;
 const loadAsset = document.querySelector<HTMLButtonElement>('#loadAsset')!;
 const assetStatus = document.querySelector<HTMLOutputElement>('#assetStatus')!;
 let assetLoad = new AbortController();
-const keys = new Set<string>();
+const controlStatus = document.querySelector<HTMLOutputElement>('#controlStatus')!;
+let input: InputController | undefined;
+let inputPump: InputPump | undefined;
+let settings = structuredClone(DEFAULT_SETTINGS);
 const abort = new AbortController();
 const eventOptions = { signal: abort.signal };
 let engine: Engine | undefined;
@@ -24,7 +30,7 @@ let paused = false,
   lastStatus = 0;
 function setPaused(value: boolean) {
   paused = value;
-  keys.clear();
+  input?.setEnabled(!value);
   component.setPaused(value);
   last = performance.now();
   pause.textContent = value ? 'Resume' : 'Pause';
@@ -35,11 +41,36 @@ function reset() {
   loadAsset.disabled = false;
   assetStatus.textContent = 'Original authored asset is optional in this diagnostic preview.';
   scene?.dispose();
-  component = new SimulationComponent({ ...DEFAULT_OPTIONS, mode: 'practice', opponents: 0 });
+  component = new SimulationComponent({
+    ...DEFAULT_OPTIONS,
+    setup: settings.setup,
+    mode: 'practice',
+    opponents: 0,
+  });
   scene = new BabylonCircuitScene(engine!, component.simulation.track, 1);
   setPaused(false);
 }
 try {
+  try {
+    const saved = await new SaveStore().read('settings');
+    if (saved) settings = validateSettings(saved);
+  } catch (error) {
+    controlStatus.textContent = `Using default controls: ${error instanceof Error ? error.message : String(error)}`;
+  }
+  input = new InputController(settings, (action) => {
+    if (action === 'pause') setPaused(!paused);
+    else if (action === 'blur' || action === 'deviceLost') setPaused(true);
+    else if (action === 'autopilot')
+      component.simulation.autoPlayer = !component.simulation.autoPlayer;
+    else if (action === 'pit') component.simulation.requestPit();
+    else if (action === 'drs') input!.state.drs = true;
+    else if (action === 'overtake') input!.state.overtake = true;
+    else if (action === 'ers') input!.state.ers = ((input!.state.ers + 1) % 3) as 0 | 1 | 2;
+    else
+      controlStatus.textContent = `${action} is available in the full game; its Babylon presentation is not ported yet.`;
+  });
+  for (const button of document.querySelectorAll<HTMLElement>('[data-drive]'))
+    input.bindTouch(button, button.dataset.drive as TouchAction);
   engine = new Engine(canvas, true, { preserveDrawingBuffer: false, stencil: true });
   reset();
   pause.addEventListener('click', () => setPaused(!paused), eventOptions);
@@ -70,22 +101,6 @@ try {
     },
     eventOptions,
   );
-  window.addEventListener(
-    'keydown',
-    (event) => {
-      if (event.target instanceof HTMLButtonElement || event.target instanceof HTMLAnchorElement)
-        return;
-      if (['KeyW', 'KeyS', 'KeyA', 'KeyD', 'KeyG', 'Escape'].includes(event.code))
-        event.preventDefault();
-      if (!event.repeat && event.code === 'Escape') setPaused(!paused);
-      else if (!event.repeat && event.code === 'KeyG')
-        component.simulation.autoPlayer = !component.simulation.autoPlayer;
-      else keys.add(event.code);
-    },
-    eventOptions,
-  );
-  window.addEventListener('keyup', (event) => keys.delete(event.code), eventOptions);
-  window.addEventListener('blur', () => setPaused(true), eventOptions);
   document.addEventListener(
     'visibilitychange',
     () => {
@@ -94,20 +109,28 @@ try {
     eventOptions,
   );
   window.addEventListener('resize', () => engine?.resize(), eventOptions);
+  inputPump = new InputPump((dt) => {
+    if (document.hidden) return;
+    if (paused) {
+      input!.pollActions(['pause']);
+      return;
+    }
+    const command = input!.update(dt);
+    component.setInput(command);
+    command.shift = 0;
+    command.drs = command.overtake = false;
+  });
+  inputPump.start();
   engine.runRenderLoop(() => {
     const now = performance.now(),
       seconds = (now - last) / 1000;
     last = now;
-    component.setInput({
-      ...controls(),
-      throttle: Number(keys.has('KeyW')),
-      brake: Number(keys.has('KeyS')),
-      steer: Number(keys.has('KeyA')) - Number(keys.has('KeyD')),
-    });
     component.advance(seconds);
     scene!.render(component.frame);
     if (now - lastStatus > 250) {
       lastStatus = now;
+      status.dataset.steer = String(component.frame[carBase(0) + F.STEER]);
+      status.dataset.throttle = String(component.frame[carBase(0) + F.THROTTLE]);
       status.textContent = `${paused ? 'PAUSED' : component.simulation.autoPlayer ? 'AI DEMO' : 'DRIVING'} · ${Math.round(component.frame[carBase(0) + F.SPEED] * 3.6)} km/h · physics tick ${component.simulation.tick}`;
     }
   });
@@ -116,6 +139,8 @@ try {
     () => {
       assetLoad.abort();
       abort.abort();
+      inputPump?.dispose();
+      input?.dispose();
       engine?.stopRenderLoop();
       scene?.dispose();
       engine?.dispose();
@@ -123,6 +148,8 @@ try {
     { once: true },
   );
 } catch (error) {
+  inputPump?.dispose();
+  input?.dispose();
   engine?.stopRenderLoop();
   scene?.dispose();
   engine?.dispose();

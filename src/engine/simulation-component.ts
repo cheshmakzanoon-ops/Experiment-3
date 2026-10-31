@@ -9,18 +9,23 @@ export class SimulationComponent {
   readonly frame: Float32Array;
   private accumulator = 0;
   private paused = false;
+  private pendingShift = 0;
   droppedSeconds = 0;
   constructor(options: SessionOptions) {
     this.simulation = new Simulation(options);
     this.frame = this.simulation.makeFrame();
   }
   setInput(input: Controls) {
+    if (input.shift) this.pendingShift = Math.sign(input.shift);
     this.simulation.setInput(input);
   }
   setPaused(paused: boolean) {
     this.paused = paused;
     this.accumulator = 0;
-    if (paused) this.setInput(controls());
+    if (paused) {
+      this.pendingShift = 0;
+      this.setInput(controls());
+    }
   }
   advance(seconds: number) {
     if (!Number.isFinite(seconds) || seconds < 0) throw new Error('Invalid frame duration');
@@ -31,7 +36,9 @@ export class SimulationComponent {
     this.accumulator += accepted;
     let steps = 0;
     while (this.accumulator + 1e-12 >= SimulationComponent.stepSeconds && steps < 12) {
+      this.simulation.cars[0].input.shift = this.pendingShift;
       this.simulation.step(SimulationComponent.stepSeconds);
+      this.pendingShift = 0;
       this.accumulator = Math.max(0, this.accumulator - SimulationComponent.stepSeconds);
       steps++;
     }

@@ -6,9 +6,9 @@ Owner direction, 2026-10-31: Babylon.js is the main engine for future developmen
 
 - Pinned Babylon core and glTF loaders at 9.33.1.
 - `src/engine/simulation-component.ts` hosts the existing `Simulation`, unchanged, at 120 Hz. Rendering cadence cannot change fixed-step physics. Pause clears inputs and accumulated time; background catch-up is bounded and accounted for.
-- `src/engine/babylon/snapshot-bridge.ts` transfers existing position/quaternion snapshots into Babylon transform nodes. The scene uses the same right-handed coordinate system and metres. Transfer checks every pose before mutation. No Babylon physics plugin is enabled: there must be only one authoritative vehicle solver.
+- `src/engine/babylon/snapshot-bridge.ts` transfers existing position/quaternion snapshots into Babylon transform nodes. The scene uses the same right-handed coordinate system and metres. Transfer checks every pose before mutation. Single-shot gear inputs are retained until a physics tick consumes them, even above 120 Hz rendering. No Babylon physics plugin is enabled: there must be only one authoritative vehicle solver.
 - `src/engine/babylon/circuit-scene.ts` renders the actual sampled contact-track geometry. It intentionally uses diagnostic body proxies, not replacement production artwork.
-- `babylon.html` runs the integration preview, keyboard driving, AI demo, pause/resume/restart and a link to the complete current Three.js game. Both entry points build from one repository and one Vite build.
+- `babylon.html` runs the integration preview, the existing InputController/InputPump (saved keyboard mappings, gamepad calibration, touch and focus-loss safety), AI demo, pause/resume/restart and a link to the complete current Three.js game. Both entry points build from one repository and one Vite build.
 - Optional asset inspection loads the **existing** compressed Formula model, checks compressed and decoded hashes against the existing manifest and imports it into Babylon. It is an unoptimised inspection path: full LOD, wheel/driver animations, materials and performance are not yet at parity. No external asset CDN is introduced.
 
 Run `npm ci`, `npm run dev`, then open `/babylon.html` on the printed local server. This is a migration workbench, not a release-quality replacement for the four-discipline game.
@@ -41,3 +41,7 @@ This is staged migration, not a promise that installing a second renderer makes 
 
 - [Official Babylon ES module packages](https://doc.babylonjs.com/setup/frameworkPackages/npmSupport/)
 - [Official modular imports and tree shaking](https://doc.babylonjs.com/setup/frameworkPackages/es6Support/treeShaking/)
+
+## Browser verification, 2026-10-31
+
+Actions run `41163173580` passed real Babylon startup/pause/resume/restart and discipline switching on SwiftShader. The original-model import failed its compressed-byte check. The importer now accepts only either the exact compressed hash or the exact decoded hash, matching browser-transparent gzip transport; new tests verify both representations and corruption rejection. A repeat browser run is still required. This is a repaired candidate, not a claimed GPU pass.

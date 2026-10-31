@@ -20,8 +20,16 @@
       <output id="assetStatus" aria-live="polite"
         >Original authored asset is optional in this diagnostic preview.</output
       >
+      <output id="controlStatus" aria-live="polite"
+        >Keyboard, calibrated gamepad and touch input share the existing controller.</output
+      >
       <output id="status" aria-live="polite">Starting Babylon…</output>
     </section>
+    <nav id="touchDrive" aria-label="Touch driving controls">
+      <button data-drive="left" aria-label="Steer left">◀</button
+      ><button data-drive="right" aria-label="Steer right">▶</button
+      ><button data-drive="brake">BRAKE</button><button data-drive="throttle">THROTTLE</button>
+    </nav>
     <script type="module" src="/src/engine/babylon/main.ts"></script>
   </body>
 </html>

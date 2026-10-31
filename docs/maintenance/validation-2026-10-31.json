@@ -1,0 +1,113 @@
+{
+  "date": "2026-10-31",
+  "scope": "Rolling-worktree integration diagnostic, not an immutable release certification. Later repairs have focused follow-up results; final exact-commit CI remains required.",
+  "total": 4994,
+  "passed": 4976,
+  "failed": 18,
+  "skipped": 0,
+  "failures": [
+    {
+      "file": "bike-session.test.ts",
+      "test": "WP35 seeded AI bike race finishes a mixed GP/superbike race with bounded incidents and no stuck rider",
+      "error": "AssertionError: expected 83.57564831724306 to be less than 83.12327059325715"
+    },
+    {
+      "file": "gp-riding-control.test.ts",
+      "test": "GP passing corridors completes a real catch-and-pass without contact and reproduces the same snapshot",
+      "error": "AssertionError: expected null not to be null"
+    },
+    {
+      "file": "gp-tyre-contact.test.ts",
+      "test": "GP contact grip in production races classifies all eight GP riders at 'poggio-alto' in 'rain' without a contact or crash",
+      "error": "AssertionError: expected 0.9833333333333334 to be +0 // Object.is equality"
+    },
+    {
+      "file": "motocross-collision.test.ts",
+      "test": "motocross barriers between adjacent stadium lanes projects a deep manual terrain contact without an impossible launch in raw",
+      "error": "AssertionError: expected 6.154552833385291 to be less than 6"
+    },
+    {
+      "file": "motocross-collision.test.ts",
+      "test": "motocross barriers between adjacent stadium lanes projects a deep manual terrain contact without an impossible launch in sport",
+      "error": "AssertionError: expected 6.157689873875285 to be less than 6"
+    },
+    {
+      "file": "motocross-contact-traction.test.ts",
+      "test": "motocross suspension contact traction 'mx250' can cover a real wheelie with the rear pedal while its lifted front cannot brake the ground",
+      "error": "AssertionError: expected 0 to be greater than 300"
+    },
+    {
+      "file": "motocross-contact-traction.test.ts",
+      "test": "motocross suspension contact traction 'mx450' can cover a real wheelie with the rear pedal while its lifted front cannot brake the ground",
+      "error": "AssertionError: expected 0 to be greater than 300"
+    },
+    {
+      "file": "motocross-contact-traction.test.ts",
+      "test": "motocross suspension contact traction makes a real forward body stroke support front-brake grip before the fork settles",
+      "error": "AssertionError: expected 463.39099979524985 to be greater than 508.99031404301195"
+    },
+    {
+      "file": "motocross-shoulder-recovery.test.ts",
+      "test": "motocross shoulder recovery with intermittent wheel-speed pulses recovers a beached mx250 without waiting for repeated speed pulses",
+      "error": "AssertionError: expected 2.86869336706161 to be greater than 800"
+    },
+    {
+      "file": "motocross-tyre-contact.test.ts",
+      "test": "motocross independently sampled tyre grip 'mx250' keeps dry-rear drive while the front enters the real creek mud",
+      "error": "AssertionError: expected 280.61935096748584 to be 280.620791262999 // Object.is equality"
+    },
+    {
+      "file": "motocross-tyre-contact.test.ts",
+      "test": "motocross independently sampled tyre grip 'mx450' keeps dry-rear drive while the front enters the real creek mud",
+      "error": "AssertionError: expected 428.42312047475474 to be 428.42411095353515 // Object.is equality"
+    },
+    {
+      "file": "motocross-tyre-contact.test.ts",
+      "test": "motocross independently sampled tyre grip 'mx250' recovers dry-front braking while the rear is still crossing mud",
+      "error": "AssertionError: expected 368.6479060534145 to be 368.6408404023883 // Object.is equality"
+    },
+    {
+      "file": "motocross-tyre-contact.test.ts",
+      "test": "motocross independently sampled tyre grip 'mx450' recovers dry-front braking while the rear is still crossing mud",
+      "error": "AssertionError: expected 393.05619534049004 to be 393.04997925590993 // Object.is equality"
+    },
+    {
+      "file": "motocross-wheel-pickup.test.ts",
+      "test": "motocross wheel pickup on actual surveyed landings spins up a locked front tyre using its own contact grip, including a sudden wet patch",
+      "error": "AssertionError: expected 746.9078966743076 to be +0 // Object.is equality"
+    },
+    {
+      "file": "motocross-wheel-pickup.test.ts",
+      "test": "motocross wheel pickup on actual surveyed landings 'mx450' retains stopped front-wheel rotation through touchdown and picks it up only under load",
+      "error": "AssertionError: expected +0 to be 1 // Object.is equality"
+    },
+    {
+      "file": "motocross-wheel-pickup.test.ts",
+      "test": "motocross wheel pickup on actual surveyed landings keeps a real pickup and its ground exit stable when the contact substep is halved",
+      "error": "AssertionError: expected 0.0006970245803250087 to be +0 // Object.is equality"
+    },
+    {
+      "file": "motocross-wheel-pickup.test.ts",
+      "test": "motocross wheel pickup on actual surveyed landings keeps AI and the supermoto touchdown on their calibrated rolling path",
+      "error": "AssertionError: expected 7.233441399721354 to be close to 10.05204477183223, received difference is 2.8186033721108767, but expected 5e-10"
+    },
+    {
+      "file": "motocross-wheel-pickup.test.ts",
+      "test": "motocross wheel pickup on actual surveyed landings reconstructs the real manual landing and its wheel channels through the input journal",
+      "error": "AssertionError: expected false to be true // Object.is equality"
+    }
+  ],
+  "followUps": [
+    {
+      "scope": "GP braking and dry/wet two-lap contact races",
+      "result": "Braking suite and all three contact-race cases pass after finite lever response and wet-contact steering correction. Mixed-class pace and overtaking remain open."
+    },
+    {
+      "scope": "Motocross telemetry candidate, all motocross unit files",
+      "total": 571,
+      "passed": 559,
+      "failed": 12,
+      "result": "Three original wheel-pickup tests repaired; all remaining failures also reproduce in the broader baseline. No assertion thresholds changed."
+    }
+  ]
+}

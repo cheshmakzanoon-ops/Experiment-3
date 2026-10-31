@@ -95,3 +95,32 @@ describe('existing asset geometry inside Babylon', () => {
     }
   });
 });
+
+it('retains manually authored static matrices rather than stale position fields', () => {
+  const engine = new NullEngine(),
+    scene = new Scene(engine);
+  scene.useRightHandedSystem = true;
+  const geometry = new T.BoxGeometry(),
+    material = new T.MeshStandardMaterial(),
+    source = new T.Mesh(geometry, material);
+  source.matrixAutoUpdate = false;
+  source.matrix.compose(
+    new T.Vector3(7, 8, 9),
+    new T.Quaternion().setFromEuler(new T.Euler(0.2, 0.4, 0.1)),
+    new T.Vector3(2, 3, 4),
+  );
+  try {
+    const mesh = importLegacyMesh(source, scene);
+    const world = mesh.computeWorldMatrix(true).asArray();
+    for (let i = 0; i < 16; i++) expect(world[i]).toBeCloseTo(source.matrix.elements[i], 5);
+    const previous = mesh.position.clone();
+    source.matrix.elements[12] = NaN;
+    expect(() => syncLegacyPose(source, mesh)).toThrow('Invalid legacy matrix');
+    expect(mesh.position.equals(previous)).toBe(true);
+  } finally {
+    scene.dispose();
+    engine.dispose();
+    geometry.dispose();
+    material.dispose();
+  }
+});

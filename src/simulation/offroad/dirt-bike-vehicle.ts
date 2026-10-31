@@ -514,9 +514,11 @@ export class DirtBikeVehicle extends BikeVehicle {
         d.z = z0 + contact.dz;
         d.heading = contact.heading;
         d.longitudinal = contact.longitudinal;
-        d.frontBrakeForce = Math.max(0, -contact.front.fx);
+        // Contact drag also spins a slow rotor back up after landing. Report
+        // that in tyre fx, not as a brake application the rider never made.
+        d.frontBrakeForce = Math.min(frontPedal * d.p.frontBrake, Math.max(0, -contact.front.fx));
         d.driveForce = Math.max(0, contact.rear.fx);
-        d.rearBrakeForce = Math.max(0, -contact.rear.fx);
+        d.rearBrakeForce = Math.min(rearPedal * d.p.rearBrake + engineBraking, Math.max(0, -contact.rear.fx));
         d.engineBrakeForce = Math.min(d.rearBrakeForce, engineBraking);
         d.frontLoad = this.forceFront;
         d.rearLoad = this.forceRear;
@@ -1447,7 +1449,9 @@ export class DirtBikeVehicle extends BikeVehicle {
         grounded && (this.wheelPickup || this.playerMotocross)
           ? Math.abs(t.omega * t.radius - d.speed) / Math.max(3, d.speed)
           : 0;
-      t.slip = grounded && t.load > 0
+      // Slip is measured wheel/ground mismatch even while one wheel is
+      // unloaded on a rear-first landing. Force and heating stay load-gated.
+      t.slip = grounded
         ? Math.max(front ? 0 : Math.min(0.3, d.rearSlip), inheritedSlip)
         : 0;
       t.angle = front ? d.steer : 0;

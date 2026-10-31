@@ -72,11 +72,24 @@ it('constructs and disposes the Babylon scene using the actual contact-surface w
     expect(view.scene.useRightHandedSystem).toBe(true);
     const road = view.scene.getMeshByName('existing-physics-track')!;
     const positions = road.getVerticesData('position')!;
+    expect(road.getVerticesData('normal')![1]).toBeGreaterThan(0.9);
     const p = host.simulation.track.points[0];
     expect(Math.hypot(positions[3] - positions[0], positions[5] - positions[2])).toBeCloseTo(
       p.width * 2,
       4,
     );
+    for (let i = 0; i < host.simulation.track.points.length; i++) {
+      const point = host.simulation.track.points[i],
+        offset = i * 6;
+      expect(positions[offset + 1]).toBeCloseTo(
+        point.y - point.bank * Math.min(point.width, 12) + 0.01,
+        4,
+      );
+      expect(positions[offset + 4]).toBeCloseTo(
+        point.y + point.bank * Math.min(point.width, 12) + 0.01,
+        4,
+      );
+    }
     view.render(host.frame);
     expect(view.entrants[0].position.y).toBe(host.frame[carBase(0) + F.Y]);
   } finally {
@@ -84,4 +97,21 @@ it('constructs and disposes the Babylon scene using the actual contact-surface w
     engine.dispose();
   }
   expect(view.scene.isDisposed).toBe(true);
+});
+
+it('does not drop a gear-change edge between high-refresh render frames or repeat it across substeps', () => {
+  const host = new SimulationComponent(options),
+    direct = new Simulation(options);
+  host.setInput({ ...controls(), shift: 1 });
+  expect(host.advance(1 / 240)).toBe(0);
+  host.setInput(controls());
+  expect(host.advance(1 / 240)).toBe(1);
+  direct.setInput({ ...controls(), shift: 1 });
+  direct.step(1 / 120);
+  for (let i = 0; i < 11; i++) {
+    host.advance(1 / 120);
+    direct.setInput(controls());
+    direct.step(1 / 120);
+  }
+  expect(host.frame).toEqual(direct.makeFrame());
 });

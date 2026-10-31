@@ -64,3 +64,35 @@ test('Babylon imports the existing authored Formula asset and restart cancels ob
   await expect(page.locator('#assetStatus')).toContainText('optional');
   expect(errors).toEqual([]);
 });
+
+test('Babylon uses the production driving inputs, including keyboard throttle and touch steering', async ({
+  page,
+}) => {
+  await page.goto('/babylon.html');
+  await expect(page.locator('#status')).toContainText('DRIVING');
+  const speed = async () =>
+    Number((await page.locator('#status').textContent())?.match(/(\d+) km\/h/)?.[1] ?? -1);
+  await page.locator('#game').click();
+  await page.keyboard.down('w');
+  await expect.poll(speed, { timeout: 15000 }).toBeGreaterThan(8);
+  await page.keyboard.up('w');
+  await expect(page.getByRole('navigation', { name: 'Touch driving controls' })).toBeVisible();
+  const right = await page.getByRole('button', { name: 'Steer right', exact: true }).boundingBox();
+  expect(right).not.toBeNull();
+  await page.mouse.move(right!.x + right!.width / 2, right!.y + right!.height / 2);
+  await page.mouse.down();
+  await expect
+    .poll(async () => Number(await page.locator('#status').getAttribute('data-steer')))
+    .toBeLessThan(-0.02);
+  await page.mouse.up();
+  await expect
+    .poll(async () => Math.abs(Number(await page.locator('#status').getAttribute('data-steer'))))
+    .toBeLessThan(0.01);
+
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#status')).toContainText('PAUSED');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#status')).toContainText('DRIVING');
+  await page.getByRole('button', { name: 'Restart', exact: true }).click();
+  await expect.poll(speed).toBeLessThan(3);
+});

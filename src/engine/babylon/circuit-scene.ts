@@ -45,10 +45,10 @@ export class BabylonCircuitScene {
       const half = point.width;
       positions.push(
         point.x - point.nx * half,
-        point.y + 0.01,
+        point.y - point.bank * Math.min(half, 12) + 0.01,
         point.z - point.nz * half,
         point.x + point.nx * half,
-        point.y + 0.01,
+        point.y + point.bank * Math.min(half, 12) + 0.01,
         point.z + point.nz * half,
       );
     }
@@ -56,7 +56,7 @@ export class BabylonCircuitScene {
       const n = i * 2;
       indices.push(n, n + 2, n + 1, n + 1, n + 2, n + 3);
     }
-    VertexData.ComputeNormals(positions, indices, normals);
+    VertexData.ComputeNormals(positions, indices, normals, { useRightHandedSystem: true });
     const data = new VertexData();
     data.positions = positions;
     data.indices = indices;

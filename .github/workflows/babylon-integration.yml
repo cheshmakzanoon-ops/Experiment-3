@@ -31,7 +31,7 @@ jobs:
       - name: Validate source and both entry points
         run: npm run lint && npm run build
       - name: Engine component and existing asset geometry contracts
-        run: npx vitest run tests/babylon-integration.test.ts tests/babylon-legacy-geometry.test.ts tests/discipline-presets.test.ts
+        run: npx vitest run tests/babylon-*.test.ts tests/discipline-presets.test.ts tests/input.test.ts
       - run: npx playwright install --with-deps chromium
       - name: Real WebGL engine, model import and mode-switching journeys
         run: npx playwright test e2e/babylon-engine.spec.ts e2e/discipline-entry.spec.ts
