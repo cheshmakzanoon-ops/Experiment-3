@@ -868,7 +868,7 @@ it.each(['disposed', 'cancelled'] as const)(
   },
 );
 
-it('names each post-view compilation before submitting it, after pit work and before its fence', async () => {
+it('names each post-view compilation before submitting it, after pit work and its completed fence', async () => {
   const { target, typed, sample } = fixture();
   const compile = target.renderer.compile.getMockImplementation()!;
   let calls = 0;
@@ -899,9 +899,128 @@ it('names each post-view compilation before submitting it, after pit work and be
       end = index(`${mode}:compile-ready`, 'end');
     expect(start).toBeGreaterThanOrEqual(0);
     expect(end).toBeGreaterThan(start);
-    expect(index(`${mode}:fence-wait`, 'start')).toBeGreaterThan(end);
+    expect(index(`${mode}:fence-wait`, 'end')).toBeLessThan(start);
+    expect(index(`${mode}:fence-wait`, 'end')).toBeGreaterThan(
+      index(`${mode}:fence-wait`, 'start'),
+    );
   }
 });
+
+it.each(['chase', 'cockpit', 'menu'] as const)(
+  'does not submit compile or readiness queries before the pending %s view fence completes',
+  async (mode) => {
+    const { target, typed, sample } = fixture();
+    let pending = false;
+    let release!: () => void, enter!: () => void;
+    const entered = new Promise<void>((resolve) => {
+      enter = resolve;
+    });
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const query = vi.fn(() => {
+      expect(pending).toBe(false);
+      return true;
+    });
+    Object.assign(target.renderer, {
+      info: { programs: [{ program: {}, getUniforms: vi.fn(), getAttributes: vi.fn() }] },
+      getContext: () => ({
+        isContextLost: () => false,
+        getExtension: () => ({ COMPLETION_STATUS_KHR: 1 }),
+        getProgramParameter: query,
+      }),
+    });
+    const compile = target.renderer.compile.getMockImplementation()!;
+    target.renderer.compile.mockImplementation((...args) => {
+      expect(pending).toBe(false);
+      return compile(...args);
+    });
+    target.draw.mockImplementation(() => {
+      if (mode === 'menu' || target.mode === mode) pending = true;
+    });
+    target.waitForPreparedFrame.mockImplementation(async () => {
+      if (pending) {
+        enter();
+        await gate;
+        pending = false;
+      }
+    });
+    const result =
+      mode === 'menu'
+        ? RacingRenderer.prototype.prepareMenuPreview.call(
+            typed,
+            sample,
+            vi.fn(),
+            () => false,
+            async () => {},
+          )
+        : RacingRenderer.prototype.prepare.call(
+            typed,
+            sample,
+            vi.fn(),
+            () => false,
+            async () => {},
+            true,
+          );
+    await entered;
+    const compiles = target.renderer.compile.mock.calls.length,
+      queries = query.mock.calls.length;
+    expect(compiles).toBe(mode === 'cockpit' ? 3 : 2);
+    await Promise.resolve();
+    expect(query).toHaveBeenCalledTimes(queries);
+    release();
+    expect(await result).toBe(true);
+    expect(target.renderer.compile).toHaveBeenCalledTimes(mode === 'menu' ? 3 : 4);
+    expect(target.waitForPreparedFrame).toHaveBeenCalledTimes(mode === 'menu' ? 3 : 4);
+  },
+);
+
+it.each(['cancelled', 'disposed', 'loss'] as const)(
+  'prevents post-view compilation and the next view after %s at the pending fence',
+  async (outcome) => {
+    const { target, typed, sample } = fixture();
+    let cancelled = false,
+      release!: () => void,
+      enter!: () => void,
+      waits = 0;
+    const entered = new Promise<void>((resolve) => {
+      enter = resolve;
+    });
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    target.waitForPreparedFrame.mockImplementation(async () => {
+      if (++waits === 3) {
+        enter();
+        await gate;
+        if (outcome === 'loss') throw new Error('WebGL context lost at fence');
+      }
+    });
+    const result = RacingRenderer.prototype.prepare.call(
+      typed,
+      sample,
+      vi.fn(),
+      () => cancelled,
+      async () => {},
+      false,
+    );
+    const observed =
+      outcome === 'loss'
+        ? expect(result).rejects.toThrow('WebGL context lost')
+        : expect(result).resolves.toBe(false);
+    await entered;
+    expect(target.renderer.compile).toHaveBeenCalledTimes(2);
+    if (outcome === 'cancelled') cancelled = true;
+    if (outcome === 'disposed') Object.assign(target, { disposed: true });
+    release();
+    await observed;
+    expect(target.renderer.compile).toHaveBeenCalledTimes(2);
+    expect(target.draw).toHaveBeenCalledTimes(1);
+    expect(
+      target.preparation.snapshot()!.checkpoints.some((c) => c.label === 'chase:compile-ready'),
+    ).toBe(false);
+  },
+);
 
 it.each(['failed', 'cancelled', 'disposed'] as const)(
   'retains a %s post-view compile span without claiming completion',
@@ -933,7 +1052,10 @@ it.each(['failed', 'cancelled', 'disposed'] as const)(
         .filter((event) => event.label === 'chase:compile-ready')
         .map((event) => event.phase),
     ).toEqual(['start', outcome === 'failed' ? 'error' : 'cancelled']);
-    expect(checkpoints.some((event) => event.label === 'chase:fence-wait')).toBe(false);
+    expect(
+      checkpoints.filter((event) => event.label === 'chase:fence-wait').map((event) => event.phase),
+    ).toEqual(['start', 'end']);
+    expect(checkpoints.some((event) => event.label === 'cockpit:fence-wait')).toBe(false);
     expect(target.draw).toHaveBeenCalledTimes(1);
   },
 );
@@ -1101,3 +1223,25 @@ function disposeDiagnosticPreviewOwner(photoFocus: DepthOfFieldPass) {
   RacingRenderer.prototype.dispose.call(owner as unknown as RacingRenderer);
   RacingRenderer.prototype.dispose.call(owner as unknown as RacingRenderer);
 }
+
+it('post-draw index evidence cannot mask the original failure and is cleared with its owner', async () => {
+  const { target, typed, sample } = fixture();
+  const evidence = vi.fn(() => {
+    throw new Error('diagnostic failed');
+  });
+  target.draw.mockImplementation(() => {
+    Object.assign(target, { indexEvidenceAfterDraw: evidence });
+    throw new Error('original warm draw failed');
+  });
+  await expect(
+    RacingRenderer.prototype.prepare.call(
+      typed,
+      sample,
+      vi.fn(),
+      () => false,
+      async () => {},
+    ),
+  ).rejects.toThrow('original warm draw failed');
+  expect(evidence).toHaveBeenCalledExactlyOnceWith(false);
+  expect(target).toMatchObject({ indexEvidenceAfterDraw: null, preparingIndexStreams: null });
+});

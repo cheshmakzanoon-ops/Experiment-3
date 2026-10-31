@@ -268,38 +268,200 @@ for (const viewport of [
       await page.mouse.wheel(0, 10000);
       await expect.poll(() => region.evaluate((e) => e.scrollTop)).toBeGreaterThan(0);
     }
-    await region.focus();
-    await page.keyboard.press('Home');
-    await expect.poll(() => region.evaluate((e) => e.scrollTop)).toBe(0);
-    await page.keyboard.press('End');
-    if (initial.scrollHeight > initial.clientHeight)
-      await expect.poll(() => region.evaluate((e) => e.scrollTop)).toBeGreaterThan(0);
-    await page.keyboard.press('Home');
-    await expect.poll(() => region.evaluate((e) => e.scrollTop)).toBe(0);
-    // Nine selects (circuit first, machine last), two start controls, CAREER,
-    // then settings: focus must scroll each into view.
-    for (let i = 0; i < 13; i++) {
-      await page.keyboard.press('Tab');
-      const focused = await page.evaluate(() => {
+    // Run 41208633516 / 1fe7e1d preserved the original failure: 13 Tabs
+    // stopped at #startSlot, because five discipline buttons precede the nine
+    // selects. Replace that stale ordinal with the complete native contract,
+    // not another magic count or a filtered list that hides missing actions.
+    const required = [
+      '.menu-body',
+      ...['formula', 'gp', 'festival'].map((id) => `[data-discipline-preset="${id}"]`),
+      ...['valley-ridge-mx', 'arena-nord-sx'].map((id) => `[data-mx-venue="${id}"]`),
+      ...[
+        'circuit',
+        'mode',
+        'laps',
+        'weather',
+        'opponents',
+        'compound',
+        'assist',
+        'startSlot',
+        'vehicle',
+      ].map((id) => `select#${id}`),
+      '#sessionForm button.enter.primary',
+      '#sessionForm button[name="prepareGrid"]',
+      ...[
+        'career',
+        'settings',
+        'events',
+        'championship',
+        'team',
+        'academy',
+        'photo',
+        'controls',
+        'credits',
+      ].map((action) => `.menu-actions button[data-action="${action}"]`),
+    ];
+    await expect(page.locator('#menu .mx-entry button')).toHaveText([
+      'FORMULA',
+      'GP MOTORCYCLES',
+      'OPEN WORLD',
+      'OUTDOOR MX',
+      'STADIUM SX',
+    ]);
+    await expect(page.locator('#menu .menu-actions button')).toHaveText([
+      'CAREER',
+      'GARAGE & SETTINGS',
+      'EVENTS',
+      'CHAMPIONSHIP',
+      'TEAM HQ',
+      'DRIVING ACADEMY',
+      'PHOTO / LIVERY',
+      'CONTROLS',
+      'CREDITS & LICENCES',
+    ]);
+    const inventory = await page.locator('#menu').evaluate((menu, selectors) => {
+      const available = (element: HTMLElement) =>
+        element.getClientRects().length > 0 &&
+        getComputedStyle(element).visibility === 'visible' &&
+        !element.matches(':disabled') &&
+        !element.closest('[inert]');
+      for (const selector of selectors) {
+        const matches = menu.querySelectorAll<HTMLElement>(selector);
+        if (matches.length !== 1 || !available(matches[0]) || matches[0].tabIndex !== 0)
+          throw new Error(
+            `Required menu stop must be unique, visible, enabled and tabbable: ${selector}`,
+          );
+      }
+      // This road/race fixture has native buttons/selects and one scroll region,
+      // not radio groups, roving tabindex or MX's conditional nested scroll area.
+      // New patterns must receive an explicit contract rather than be guessed.
+      return Array.from(
+        menu.querySelectorAll<HTMLElement>(
+          'button, select, input, textarea, a[href], [tabindex], [contenteditable], summary',
+        ),
+      )
+        .filter((element) => available(element) && element.tabIndex >= 0)
+        .map((element) => {
+          const selector = selectors.find((candidate) => element.matches(candidate));
+          if (
+            !selector ||
+            element.tabIndex !== 0 ||
+            (selector !== '.menu-body' && !['BUTTON', 'SELECT'].includes(element.tagName)) ||
+            (element.hasAttribute('role') && selector !== '.menu-body')
+          )
+            throw new Error(`Unsupported menu focus pattern: ${element.outerHTML.slice(0, 200)}`);
+          return { selector, tag: element.tagName, tabIndex: element.tabIndex };
+        });
+    }, required);
+    expect(inventory.map(({ selector }) => selector).sort()).toEqual([...required].sort());
+    expect(inventory[0].selector).toBe('.menu-body');
+    const chain = inventory.map(({ selector }) => selector);
+    const readFocused = () =>
+      page.evaluate((selectors) => {
         const active = document.activeElement as HTMLElement;
+        const menuBody = document.querySelector<HTMLElement>('.menu-body')!;
         const a = active.getBoundingClientRect();
-        const body = document.querySelector('.menu-body')!.getBoundingClientRect();
+        const body = menuBody.getBoundingClientRect();
         return {
+          selector: selectors.find((candidate) => active.matches(candidate)) ?? null,
+          tag: active.tagName,
           inMenu: !!active.closest('.menu-body'),
+          left: a.left,
+          right: a.right,
           top: a.top,
           bottom: a.bottom,
           bodyTop: body.top,
           bodyBottom: body.bottom,
+          clipLeft: active === menuBody ? body.left : body.left + menuBody.clientLeft,
+          clipRight:
+            active === menuBody
+              ? body.right
+              : body.left + menuBody.clientLeft + menuBody.clientWidth,
+          clipTop: active === menuBody ? body.top : body.top + menuBody.clientTop,
+          clipBottom:
+            active === menuBody
+              ? body.bottom
+              : body.top + menuBody.clientTop + menuBody.clientHeight,
+          scrollTop: menuBody.scrollTop,
+          viewportWidth: innerWidth,
+          viewportHeight: innerHeight,
         };
-      });
+      }, chain);
+    const traversal: Array<{ phase: string; focused: Awaited<ReturnType<typeof readFocused>> }> =
+      [];
+    const checkFocused = async (selector: string, phase: string) => {
+      const focused = await readFocused();
+      traversal.push({ phase, focused });
+      expect(focused.selector, `${phase}: native focus must follow the menu chain`).toBe(selector);
       expect(focused.inMenu).toBe(true);
+      expect(focused.right).toBeGreaterThan(focused.left);
+      expect(focused.bottom).toBeGreaterThan(focused.top);
       expect(focused.top).toBeGreaterThanOrEqual(focused.bodyTop - 1);
       expect(focused.bottom).toBeLessThanOrEqual(focused.bodyBottom + 1);
-    }
+      expect(focused.left).toBeGreaterThanOrEqual(Math.max(0, focused.clipLeft) - 1);
+      expect(focused.right).toBeLessThanOrEqual(
+        Math.min(focused.viewportWidth, focused.clipRight) + 1,
+      );
+      expect(focused.top).toBeGreaterThanOrEqual(Math.max(0, focused.clipTop) - 1);
+      expect(focused.bottom).toBeLessThanOrEqual(
+        Math.min(focused.viewportHeight, focused.clipBottom) + 1,
+      );
+      return focused.selector;
+    };
     const settings = page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true });
-    await expect(settings).toBeFocused();
-    await page.keyboard.press('Enter');
-    await expect(page.locator('#settingsForm')).toBeVisible();
+    try {
+      // The fresh fixture's ready()/showMode() only toggle visibility; neither
+      // focuses anything. Wheel input above does not establish a focus anchor.
+      expect(await page.evaluate(() => document.activeElement === document.body)).toBe(true);
+      await page.keyboard.press('Tab');
+      await checkFocused(chain[0], 'entry');
+      await expect(region).toBeFocused();
+      await page.keyboard.press('Home');
+      await expect.poll(() => region.evaluate((e) => e.scrollTop)).toBe(0);
+      await page.keyboard.press('End');
+      if (initial.scrollHeight > initial.clientHeight)
+        await expect.poll(() => region.evaluate((e) => e.scrollTop)).toBeGreaterThan(0);
+      await page.keyboard.press('Home');
+      await expect.poll(() => region.evaluate((e) => e.scrollTop)).toBe(0);
+      const visited = new Set([chain[0]]);
+      for (const selector of chain.slice(1)) {
+        await page.keyboard.press('Tab');
+        const actual = await checkFocused(selector, 'forward');
+        expect(visited.has(actual!)).toBe(false);
+        visited.add(actual!);
+      }
+      expect([...visited]).toEqual(chain);
+      for (const selector of chain.slice(0, -1).reverse()) {
+        await page.keyboard.press('Shift+Tab');
+        await checkFocused(selector, 'reverse');
+      }
+      const settingsIndex = chain.indexOf('.menu-actions button[data-action="settings"]');
+      expect(settingsIndex).toBeGreaterThan(0);
+      for (const selector of chain.slice(1, settingsIndex + 1)) {
+        await page.keyboard.press('Tab');
+        await checkFocused(selector, 'settings-return');
+      }
+      await expect(settings).toBeFocused();
+      await page.keyboard.press('Enter');
+      await expect(page.locator('#settingsForm')).toBeVisible();
+    } finally {
+      // Keep partial observations when any focus/visibility assertion fails.
+      await info.attach('menu-keyboard-traversal.json', {
+        body: JSON.stringify(
+          {
+            viewport,
+            inventory,
+            traversal,
+            boundary: 'Production DOM/CSS fixture; real keyboard input, not gameplay acceptance.',
+            replacedAssumption:
+              '1fe7e1d / run 41208633516: fixed 13 Tabs missed five discipline buttons.',
+          },
+          null,
+          2,
+        ),
+        contentType: 'application/json',
+      });
+    }
     await page.locator('[name=quality]').selectOption('low');
     await page.getByRole('button', { name: 'APPLY & SAVE', exact: true }).click();
     await expect(page.locator('#modal')).toBeHidden();

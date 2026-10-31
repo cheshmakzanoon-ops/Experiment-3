@@ -156,3 +156,135 @@ it('alternates the two feeds in steady state, each at the quality rate, and refr
   expect(mirrors.passes).toBe(2);
   mirrors.dispose();
 });
+
+it('plans the exact upcoming feeds without consuming cadence, visibility or detail', () => {
+  const a = fixture(),
+    b = fixture();
+  const baseline = rendererMock(),
+    prepared = rendererMock();
+  const detail = { before: vi.fn(), after: vi.fn() };
+  b.mirrors.detail = detail;
+  a.mirrors.quality('high');
+  b.mirrors.quality('high');
+  const hidden = new T.Group();
+  b.mirrors.exclusions = [hidden];
+  const steps = [0, 0, 1 / 120, 1 / 120, 1 / 60, 1 / 60, 1 / 120, 1 / 120];
+  for (const dt of steps) {
+    const updates = b.mirrors.updates,
+      passes = b.mirrors.passes;
+    const before = detail.before.mock.calls.length;
+    const plan = b.mirrors.prepare(b.root, dt)!;
+    expect(b.mirrors.updates).toBe(updates);
+    expect(b.mirrors.passes).toBe(passes);
+    expect(detail.before).toHaveBeenCalledTimes(before);
+    expect(hidden.visible).toBe(true);
+    expect(b.surfaces.every((s) => s.visible)).toBe(true);
+    expect(plan.hiddenRoots).toEqual([...b.surfaces, hidden]);
+    a.mirrors.render(baseline.renderer as unknown as T.WebGLRenderer, new T.Scene(), a.root, dt);
+    const offset = prepared.renderer.render.mock.calls.length;
+    b.mirrors.render(
+      prepared.renderer as unknown as T.WebGLRenderer,
+      new T.Scene(),
+      b.root,
+      dt,
+      plan,
+    );
+    const actual = (prepared.renderer.render.mock.calls as unknown as [T.Scene, T.Camera][])
+      .slice(offset)
+      .map(([, camera]) => camera);
+    expect(actual).toEqual(plan.cameras);
+    expect(b.mirrors.updates).toBe(a.mirrors.updates);
+    expect(b.mirrors.passes).toBe(a.mirrors.passes);
+    b.mirrors.cameras.forEach((camera, i) =>
+      expect(camera.matrixWorld.elements).toEqual(a.mirrors.cameras[i].matrixWorld.elements),
+    );
+    expect(() =>
+      b.mirrors.render(
+        prepared.renderer as unknown as T.WebGLRenderer,
+        new T.Scene(),
+        b.root,
+        dt,
+        plan,
+      ),
+    ).toThrow('Stale mirror preparation plan');
+  }
+  a.mirrors.dispose();
+  b.mirrors.dispose();
+});
+
+it('does not plan invisible/unbound mirrors and invalidates a plan on quality or bind changes', () => {
+  const { root, mirrors, surfaces } = fixture();
+  const { renderer } = rendererMock();
+  root.visible = false;
+  expect(mirrors.prepare(root, 0)).toBeNull();
+  root.visible = true;
+  const plan = mirrors.prepare(root, 0)!;
+  mirrors.quality('low');
+  expect(() =>
+    mirrors.render(renderer as unknown as T.WebGLRenderer, new T.Scene(), root, 0, plan),
+  ).toThrow('Stale');
+  const next = mirrors.prepare(root, 0)!;
+  mirrors.bind(surfaces);
+  expect(() =>
+    mirrors.render(renderer as unknown as T.WebGLRenderer, new T.Scene(), root, 0, next),
+  ).toThrow('Stale');
+  mirrors.dispose();
+  expect(mirrors.prepare(root, 0)).toBeNull();
+});
+
+it('checks exclusion contents without rejecting an equivalent repopulated array', () => {
+  const { root, mirrors } = fixture();
+  const { renderer } = rendererMock();
+  const excluded = new T.Group();
+  mirrors.exclusions = [excluded];
+  const plan = mirrors.prepare(root, 0)!;
+  mirrors.exclusions = [excluded];
+  mirrors.render(renderer as unknown as T.WebGLRenderer, new T.Scene(), root, 0, plan);
+  const changed = mirrors.prepare(root, 1 / 30)!;
+  mirrors.exclusions[0] = new T.Group();
+  const count = renderer.render.mock.calls.length;
+  expect(() =>
+    mirrors.render(renderer as unknown as T.WebGLRenderer, new T.Scene(), root, 1 / 30, changed),
+  ).toThrow('Stale');
+  expect(renderer.render).toHaveBeenCalledTimes(count);
+  mirrors.dispose();
+});
+
+it('rejects a root pose changed after preparation before consuming cadence or submitting work', () => {
+  const { root, mirrors } = fixture();
+  const { renderer } = rendererMock();
+  const plan = mirrors.prepare(root, 0)!;
+  root.position.x += 3; // Deliberately do not call updateMatrixWorld.
+  expect(() =>
+    mirrors.render(renderer as unknown as T.WebGLRenderer, new T.Scene(), root, 0, plan),
+  ).toThrow('Stale mirror preparation pose');
+  expect(renderer.clear).not.toHaveBeenCalled();
+  expect(renderer.render).not.toHaveBeenCalled();
+  expect(mirrors.updates).toBe(0);
+  expect(mirrors.passes).toBe(0);
+  const fresh = mirrors.prepare(root, 0)!;
+  expect(fresh.cameras).toHaveLength(2);
+  mirrors.render(renderer as unknown as T.WebGLRenderer, new T.Scene(), root, 0, fresh);
+  expect(mirrors.updates).toBe(1);
+  expect(renderer.render).toHaveBeenCalledTimes(2);
+  mirrors.dispose();
+});
+
+it.each(['owner', 'before', 'after'] as const)(
+  'rejects changed detail %s identity before submission',
+  (changed) => {
+    const { root, mirrors } = fixture();
+    const { renderer } = rendererMock();
+    mirrors.detail = { before: vi.fn(), after: vi.fn() };
+    const plan = mirrors.prepare(root, 0)!;
+    if (changed === 'owner') mirrors.detail = { ...mirrors.detail };
+    else mirrors.detail[changed] = vi.fn();
+    expect(() =>
+      mirrors.render(renderer as unknown as T.WebGLRenderer, new T.Scene(), root, 0, plan),
+    ).toThrow('Stale mirror preparation plan');
+    expect(renderer.clear).not.toHaveBeenCalled();
+    expect(renderer.render).not.toHaveBeenCalled();
+    expect(mirrors.updates).toBe(0);
+    mirrors.dispose();
+  },
+);

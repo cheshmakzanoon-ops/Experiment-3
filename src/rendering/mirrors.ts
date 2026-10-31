@@ -1,5 +1,20 @@
 import * as T from 'three';
 
+/** Preparation borrows the exact upcoming feeds without consuming cadence. */
+export interface MirrorRenderPlan {
+  readonly owner: MirrorViews;
+  readonly root: T.Object3D;
+  readonly version: number;
+  readonly dt: number;
+  readonly mask: number;
+  readonly cameras: readonly T.PerspectiveCamera[];
+  readonly hiddenRoots: readonly T.Object3D[];
+  readonly rootMatrix: readonly number[] | null;
+  readonly detail: MirrorViews['detail'];
+  readonly detailBefore: ((camera: T.PerspectiveCamera, height: number) => void) | undefined;
+  readonly detailAfter: (() => void) | undefined;
+}
+
 /** Convex rear-view approximation: two actual rear-facing camera feeds. These
  * are independent of the forward view, not a duplicated screen-space image.
  * +X is the driver's left; mirrored texture coordinates preserve handedness. */
@@ -36,6 +51,7 @@ export class MirrorViews {
   private period = 1 / 15;
   /** The feed refreshed by the next steady-state update. */
   private next = 0;
+  private version = 0;
   updates = 0;
   passes = 0;
   /** Roots hidden during both mirror passes (restored afterwards). */
@@ -50,6 +66,7 @@ export class MirrorViews {
 
   invalidate() {
     this.clock = Infinity;
+    this.version++;
   }
   bind(surfaces: readonly T.Mesh[]) {
     if (surfaces.length !== 2) throw new Error('Two mirror surfaces are required');
@@ -60,7 +77,7 @@ export class MirrorViews {
     surfaces.forEach((s, i) => {
       s.material = this.materials[i];
     });
-    this.clock = Infinity;
+    this.invalidate();
   }
   private unbind() {
     this.surfaces.forEach((s, i) => {
@@ -73,7 +90,7 @@ export class MirrorViews {
     const width = value === 'high' ? 512 : value === 'medium' ? 256 : 128;
     this.period = 1 / (value === 'high' ? 30 : value === 'medium' ? 15 : 10);
     this.targets.forEach((t) => t.setSize(width, (width * 3) / 8));
-    this.clock = Infinity;
+    this.invalidate();
   }
   orient(root: T.Object3D) {
     root.updateWorldMatrix(true, true);
@@ -89,18 +106,78 @@ export class MirrorViews {
       c.updateMatrixWorld();
     });
   }
-  render(renderer: T.WebGLRenderer, scene: T.Scene, root: T.Object3D, dt: number) {
+  private scheduled(dt: number) {
+    const clock = this.clock + dt;
+    return clock === Infinity ? 3 : clock < this.period / 2 ? 0 : 1 << this.next;
+  }
+  prepare(root: T.Object3D, dt: number): MirrorRenderPlan | null {
+    if (this.surfaces.length !== 2 || !root.visible) return null;
+    const mask = this.scheduled(dt);
+    if (mask) this.orient(root);
+    return Object.freeze({
+      owner: this,
+      root,
+      version: this.version,
+      dt,
+      mask,
+      cameras: Object.freeze(this.cameras.filter((_, i) => mask & (1 << i))),
+      hiddenRoots: Object.freeze([...this.surfaces, ...this.exclusions]),
+      rootMatrix: mask ? Object.freeze(root.matrixWorld.elements.slice()) : null,
+      detail: this.detail,
+      detailBefore: this.detail?.before,
+      detailAfter: this.detail?.after,
+    });
+  }
+  render(
+    renderer: T.WebGLRenderer,
+    scene: T.Scene,
+    root: T.Object3D,
+    dt: number,
+    plan?: MirrorRenderPlan | null,
+  ) {
     this.passes = 0;
     if (this.surfaces.length !== 2 || !root.visible) return;
+    if (
+      plan &&
+      (plan.owner !== this ||
+        plan.root !== root ||
+        plan.version !== this.version ||
+        plan.dt !== dt ||
+        plan.detail !== this.detail ||
+        plan.detailBefore !== this.detail?.before ||
+        plan.detailAfter !== this.detail?.after ||
+        plan.hiddenRoots.length !== this.surfaces.length + this.exclusions.length ||
+        plan.hiddenRoots.some(
+          (root, i) =>
+            root !==
+            (i < this.surfaces.length
+              ? this.surfaces[i]
+              : this.exclusions[i - this.surfaces.length]),
+        ))
+    )
+      throw new Error('Stale mirror preparation plan');
+    const mask = plan?.mask ?? this.scheduled(dt);
+    if (plan && mask) {
+      // Preparation is an exact-pose lease, not permission to reuse a stream
+      // after a caller moved its subject. orient updates stale matrix flags too.
+      this.orient(root);
+      if (
+        !plan.rootMatrix ||
+        root.matrixWorld.elements.some((value, i) => value !== plan.rootMatrix![i])
+      )
+        throw new Error('Stale mirror preparation pose');
+    }
+    this.version++;
     this.clock += dt;
     // After a discontinuity both feeds refresh at once. Otherwise the feeds
     // alternate every half period: each keeps the quality's refresh rate, and
     // one mirror pass per update spreads the cost evenly over frames instead
     // of doubling it on every other frame.
-    const both = this.clock === Infinity;
-    if (!both && this.clock < this.period / 2) return;
+    const both = mask === 3;
+    if (!mask) return;
     this.clock = 0;
-    this.orient(root);
+    // Ordinary frames keep their original pose update with no plan snapshots.
+    if (!plan) this.orient(root);
     const previousTarget = renderer.getRenderTarget();
     const previousFace = renderer.getActiveCubeFace();
     const previousMip = renderer.getActiveMipmapLevel();
@@ -123,8 +200,8 @@ export class MirrorViews {
     renderer.shadowMap.autoUpdate = false;
     renderer.shadowMap.needsUpdate = false;
     try {
-      for (let k = 0; k < (both ? 2 : 1); k++) {
-        const i = both ? k : this.next;
+      for (let i = 0; i < 2; i++) {
+        if (!(mask & (1 << i))) continue;
         renderer.setRenderTarget(this.targets[i]);
         renderer.setScissorTest(false);
         renderer.clear();
