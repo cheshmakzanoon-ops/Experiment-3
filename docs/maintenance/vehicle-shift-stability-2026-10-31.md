@@ -1,5 +1,7 @@
 # Automatic shift stability · 2026-10-31
 
+**Disposition: road-RPM guard rejected and rolled back after broader launch/driving regressions.** The calibration results below describe the rejected candidate, not a current-game acceptance claim. Strict HF-86 calibration remains a known failure after rollback.
+
 ## Reproduced failure
 
 Frozen production source `80d9fe4` completes the full 57-vehicle calibration, but its strict mode fails one existing target: HF-86 top speed is 124.0867 / 124.1161 km/h at 1/240 / 1/120 s, outside the unchanged 305–345 km/h band. A separate 120-second full-throttle trace remains near that speed with 1,126 accepted first/second shifts. This is not the calibration fixture stopping early at a transient plateau.
@@ -36,3 +38,17 @@ Both measurements are identical in baseline and candidate, including the XF-2 fi
 The previous scenario job started the full vehicle command only after roughly 13 minutes 38 seconds and was cancelled at its 15-minute job cap before completion. Its command also omitted `--strict`, so printed `OUT` comparisons alone could not fail that invocation.
 
 Vehicle calibration now has its own **required** 15-minute job and 13-minute execution step. It runs every registered vehicle with `--strict`, keeps the existing bands, seeds the disclosure document in a temporary output directory, and preserves both generated reports plus the complete log on failure. The original scenario job retains its 15-minute cap. Publication explicitly depends on the new calibration job as well as every previous gate.
+
+## Broader regression and rollback
+
+Exact Node 22 comparisons establish that the guard is not safe as a general automatic-shift rule:
+
+- Original `1fe7e1d` passes all seven drivetrain tests. Guarded `56a2430` fails the unchanged split-grip launch: LSD speed 7.376571124 m/s does not exceed the required open-differential result × 1.15 (7.833239903 m/s).
+- Original full continuous-driving journey passes every check, finishing at race time 614.641 s with maximum speed 80.167 m/s and gear 8. Guarded source retires the player with zero laps, maximum 19.264272985 m/s, gear 1 and prolonged grass time; the other AI entrants finish.
+- Paired launch traces are identical through substep 2260. At substep 2261, on dry asphalt at 9.93 m/s, the original accepts a wheelspin-relieving first-to-second shift at 12,319 wheel RPM. The guard blocks it because road-supported next-gear RPM is 2,920, below 6,900. The original reaches normal following at 5.058 s; the guard never shifts and subsequently leaves the road.
+
+Two narrower isolated alternatives also fail the unchanged split-grip requirement and are not accepted: waiting one existing shift-cut substep, and requiring engine RPM below the existing downshift floor. No new timer, threshold, power increase or test relaxation was accepted.
+
+The production rollback restores the pre-guard `Vehicle` behavior exactly. Its implementation-specific road-RPM rejection tests encoded a disproved controller assumption; they are replaced by public launch/shift compatibility regressions while the original drivetrain, continuous-driving and strict calibration requirements remain unchanged. The rejected patches, tests and numerical receipts remain preserved in commit history and investigation evidence. The strict calibration job is retained and exposes the original HF-86 failure rather than hiding it.
+
+Physics identity advances to v20 because the rollback changes recorded performance relative to v19. Existing v18/v19 ghosts and leaderboard categories remain separate and unchanged; new v20 personal bests use their own physics-scoped storage keys. A future anti-hunting correction must pass uniform calibration **and** wheelspin-relieving launch/continuous-driving checks before acceptance.

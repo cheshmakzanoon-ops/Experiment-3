@@ -65,13 +65,13 @@ async function saveLap(records: TimeTrialRecords) {
   for (let i = 0; i < 40; i++) {
     frame[o + F.LAP_TIME] = 0.1 + i * 0.5;
     frame[o + F.S] = ((0.1 + i * 0.5) / 20) * track.length;
-    records.observe(frame, true, options, 'physics-19');
+    records.observe(frame, true, options, 'physics-20');
   }
   frame[o + F.LAPS] = 1;
   frame[o + F.LAP_TIME] = 0.05;
   frame[o + F.LAST_LAP] = 20;
   frame[o + F.LAST_LAP_VALID] = 1;
-  records.observe(frame, true, options, 'physics-19');
+  records.observe(frame, true, options, 'physics-20');
   // Flush the store promises used by the public snapshot observer.
   await Promise.resolve();
   await Promise.resolve();
@@ -81,45 +81,68 @@ describe('physics-scoped time-trial ghost preservation', () => {
   it('retains legacy keys and separates every new physics/vehicle category', () => {
     expect(ghostKey('aurel')).toBe('ghost:v1:aurel');
     expect(legacyKey).toBe('ghost:v1:aurel:hf86');
-    expect(currentKey).toBe('ghost:v1:aurel:hf86:p19');
+    expect(currentKey).toBe('ghost:v1:aurel:hf86:p20');
     expect(currentKey).not.toBe(ghostCategoryKey('aurel', 'hf86', 18));
-    expect(currentKey).not.toBe(ghostCategoryKey('aurel', 'hf67', 19));
-    expect(ghostCategoryKey('aurel')).toBe('ghost:v1:aurel:p19');
+    expect(currentKey).not.toBe(ghostCategoryKey('aurel', 'hf86', 19));
+    expect(currentKey).not.toBe(ghostCategoryKey('aurel', 'hf67', 20));
+    expect(ghostCategoryKey('aurel')).toBe('ghost:v1:aurel:p20');
   });
-  it('loads no v18 ghost, saves/reloads v19 separately, and preserves old ghost and leaderboard bytes', async () => {
-    const priorGhost = lap(18),
-      oldKey = ghostCategoryKey('aurel', 'hf86', 18);
-    const priorBoard = [
-      {
-        lapTime: 80,
-        driver: 'Driver',
-        assist: 'sport',
-        compound: 'medium',
-        weather: 'clear',
-        session: 'physics-18',
-      },
-    ];
-    const f = fixture([
-      [legacyKey, priorGhost],
-      [oldKey, priorGhost],
-      [leaderboardKey('aurel', 'hf86', 18), priorBoard],
-    ]);
-    const preserved = structuredClone(f.saved);
-    await f.records.prepare(options, track, () => true);
-    expect(f.records.player).toBeNull();
-    expect(f.write).not.toHaveBeenCalled();
-    await saveLap(f.records);
-    expect(f.saved.get(currentKey)).toMatchObject({ physics: 19, vehicle: 'hf86', lapTime: 20 });
-    for (const [key, value] of preserved) expect(f.saved.get(key), key).toEqual(value);
-    expect(f.write.mock.calls.map(([key]) => key).sort()).toEqual(
-      [currentKey, leaderboardKey('aurel', 'hf86', 19)].sort(),
-    );
-    f.read.mockClear();
-    await f.records.prepare(options, track, () => true);
-    expect(f.records.player?.lap).toMatchObject({ physics: 19, vehicle: 'hf86', lapTime: 20 });
-    expect(f.read.mock.calls).toEqual([[currentKey]]);
-    for (const [key, value] of preserved) expect(f.saved.get(key), key).toEqual(value);
-  });
+  it.each([18, 19])(
+    'rejects a v%i legacy ghost, saves/reloads v20, and preserves both v18/v19 scoped archives',
+    async (legacyPhysics) => {
+      const entries: [string, unknown][] = [[legacyKey, lap(legacyPhysics)]];
+      for (const physics of [18, 19]) {
+        entries.push(
+          [ghostCategoryKey('aurel', 'hf86', physics), lap(physics)],
+          [
+            leaderboardKey('aurel', 'hf86', physics),
+            [
+              {
+                lapTime: 80,
+                driver: 'Driver',
+                assist: 'sport',
+                compound: 'medium',
+                weather: 'clear',
+                session: `physics-${physics}`,
+              },
+            ],
+          ],
+        );
+      }
+      const f = fixture(entries);
+      const preserved = structuredClone(f.saved);
+      const boardBytes = [18, 19].map((physics) =>
+        JSON.stringify(f.saved.get(leaderboardKey('aurel', 'hf86', physics))),
+      );
+      const ghostBytes = [18, 19].map((physics) =>
+        new Uint8Array(
+          (f.saved.get(ghostCategoryKey('aurel', 'hf86', physics)) as GhostLap).samples.buffer,
+        ).slice(),
+      );
+      await f.records.prepare(options, track, () => true);
+      expect(f.records.player).toBeNull();
+      expect(f.read.mock.calls).toEqual([[currentKey], [legacyKey]]);
+      expect(f.write).not.toHaveBeenCalled();
+      await saveLap(f.records);
+      expect(f.saved.get(currentKey)).toMatchObject({ physics: 20, vehicle: 'hf86', lapTime: 20 });
+      for (const [key, value] of preserved) expect(f.saved.get(key), key).toEqual(value);
+      expect(f.write.mock.calls.map(([key]) => key).sort()).toEqual(
+        [currentKey, leaderboardKey('aurel', 'hf86', 20)].sort(),
+      );
+      f.read.mockClear();
+      await f.records.prepare(options, track, () => true);
+      expect(f.records.player?.lap).toMatchObject({ physics: 20, vehicle: 'hf86', lapTime: 20 });
+      expect(f.read.mock.calls).toEqual([[currentKey]]);
+      for (const [key, value] of preserved) expect(f.saved.get(key), key).toEqual(value);
+      for (const [i, physics] of [18, 19].entries()) {
+        expect(JSON.stringify(f.saved.get(leaderboardKey('aurel', 'hf86', physics)))).toBe(
+          boardBytes[i],
+        );
+        const ghost = f.saved.get(ghostCategoryKey('aurel', 'hf86', physics)) as GhostLap;
+        expect(new Uint8Array(ghost.samples.buffer)).toEqual(ghostBytes[i]);
+      }
+    },
+  );
   it('reads a compatible legacy fallback without rewriting it, then writes only the versioned key', async () => {
     const original = lap();
     const f = fixture([[legacyKey, original]]),
@@ -132,7 +155,7 @@ describe('physics-scoped time-trial ghost preservation', () => {
     expect(f.saved.get(legacyKey)).toEqual(preserved);
     expect(f.saved.get(currentKey)).toMatchObject({ lapTime: 20, physics: SIMULATION_VERSION });
   });
-  it.each(['corrupt', 'wrong physics', 'wrong vehicle', 'wrong circuit'])(
+  it.each(['corrupt', 'physics v18', 'physics v19', 'wrong vehicle', 'wrong circuit'])(
     'validates the %s current-key value before trying a compatible legacy fallback',
     async (kind) => {
       const invalid =
@@ -140,7 +163,8 @@ describe('physics-scoped time-trial ghost preservation', () => {
           ? { broken: true }
           : {
               ...lap(),
-              ...(kind === 'wrong physics' ? { physics: 18 } : {}),
+              ...(kind === 'physics v18' ? { physics: 18 } : {}),
+              ...(kind === 'physics v19' ? { physics: 19 } : {}),
               ...(kind === 'wrong vehicle' ? { vehicle: 'hf67' } : {}),
               ...(kind === 'wrong circuit' ? { circuit: 'vellamar' } : {}),
             };
@@ -156,14 +180,14 @@ describe('physics-scoped time-trial ghost preservation', () => {
       expect(f.saved).toEqual(preserved);
     },
   );
-  it.each(['corrupt', 'wrong physics', 'wrong vehicle'])(
+  it.each(['corrupt', 'physics v18', 'physics v19', 'wrong vehicle'])(
     'never loads or rewrites a %s legacy fallback',
     async (kind) => {
       const invalid =
         kind === 'corrupt'
           ? { broken: true }
           : lap(
-              kind === 'wrong physics' ? 18 : SIMULATION_VERSION,
+              kind === 'physics v18' ? 18 : kind === 'physics v19' ? 19 : SIMULATION_VERSION,
               kind === 'wrong vehicle' ? 'hf67' : 'hf86',
             );
       const f = fixture([[legacyKey, invalid]]),

@@ -50,10 +50,18 @@ describe('independent CI diagnostics with strict release gates', () => {
     expect(offroad).not.toMatch(/continue-on-error|OFFROAD_RACE=/);
   });
 
+  it('keeps the full strict vehicle registry as a required independent gate', () => {
+    const calibration = job('vehicle-calibration');
+    expect(calibration).toContain('scripts/vehicle-calibration.ts" --strict');
+    expect(calibration).not.toMatch(/continue-on-error|--only/);
+    expect(calibration).toContain('scripts/source-stability.ts -- bash -c');
+    expect(calibration).toContain('if: always()');
+  });
+
   it('cannot publish unless the unit suite and every other required job succeed', () => {
     const publish = job('publish');
     expect(publish).toContain(
-      'needs: [validate, unit-tests, scenarios, offroad-scenarios, browser, wet-presentation]',
+      'needs: [validate, unit-tests, scenarios, vehicle-calibration, offroad-scenarios, browser, wet-presentation]',
     );
     expect(publish).toContain('success() &&');
     expect(publish.split('    steps:')[0]).not.toContain('continue-on-error');

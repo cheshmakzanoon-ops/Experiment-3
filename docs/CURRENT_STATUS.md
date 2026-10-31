@@ -153,6 +153,14 @@ New ghost writes use a physics-specific key. Loading first checks that category,
 
 The combined identity/ghost/record/network checks passed **183 tests across 15 files**, followed by full lint, root/desktop TypeScript, workflow checks and a source-stable production code build (83 s). This follow-up changes identity/storage compatibility, not the solver or vehicle definitions. The repository instructions now require an identity/version review whenever physics, AI or driving-controller changes can alter lap times.
 
+### Physics v20 rollback: uniform calibration was insufficient
+
+The broader `56a2430` CI run records **5,369 passed / three failed unit tests**: the known GP pace case, a new split-grip launch failure, and a stale release-dependency test that did not yet name the newly required vehicle calibration job. Its continuous-driving scenario also fails with the player stuck in first gear, retired and zero laps. Matched original/current Node 22 traces establish the road-RPM guard as the launch regression; a uniform 57-vehicle calibration pass did not qualify that controller change.
+
+The guard is therefore rolled back, restoring pre-guard vehicle behavior. The original HF-86 hunting/top-speed failure remains visible in strict calibration. Existing drivetrain/journey assertions and all performance bands stay unchanged. The stale CI contract now requires the stronger seven-job release dependency list, not a weakened gate. See the [rejected candidate and rollback evidence](maintenance/vehicle-shift-stability-2026-10-31.md).
+
+Physics v20 separates this rollback from v19 recorded performance. Tests retain v18 and v19 ghost sample bytes and leaderboard data while saving/reloading v20 into a separate category. Graphics preupload and new provenance work are deliberately excluded from this rollback increment so its behavior can be verified independently.
+
 ## Remaining acceptance gates
 
 1. Resolve mixed-class GP pace and confirm the full suite under appropriate runner load without hiding failures or extending acceptance limits merely to pass.
