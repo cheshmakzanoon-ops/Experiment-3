@@ -1020,10 +1020,19 @@ export class RacingRenderer {
         this.renderer,
         this.scene,
         this.camera,
-        this.composer.readBuffer,
+        this.scenePass.target,
         hiddenHosts,
+        {
+          cancelled: () => this.disposed || cancelled(),
+          yieldControl: yieldFrame,
+          report: (result) =>
+            this.preparation.checkpoint(
+              'mark',
+              `programs:${result.status}:live=${result.livePrograms}:checked=${result.queriedPrograms}:queries=${result.queries}:ms=${Math.round(result.elapsedMs)}`,
+            ),
+        },
       );
-      if (cancelled()) return false;
+      if (this.disposed || cancelled()) return false;
       progress('Compiling shadow casters around the circuit…');
       await yieldFrame();
       if (cancelled()) return false;
@@ -1075,10 +1084,19 @@ export class RacingRenderer {
           this.renderer,
           this.scene,
           this.camera,
-          this.composer.readBuffer,
+          this.scenePass.target,
           hiddenHosts,
+          {
+            cancelled: () => this.disposed || cancelled(),
+            yieldControl: yieldFrame,
+            report: (result) =>
+              this.preparation.checkpoint(
+                'mark',
+                `programs:${result.status}:live=${result.livePrograms}:checked=${result.queriedPrograms}:queries=${result.queries}:ms=${Math.round(result.elapsedMs)}`,
+              ),
+          },
         );
-        if (cancelled()) return false;
+        if (this.disposed || cancelled()) return false;
         for (const mode of ['chase', 'cockpit'] as const) {
           progress(
             mode === 'chase'
@@ -1121,9 +1139,19 @@ export class RacingRenderer {
             this.renderer,
             this.scene,
             this.camera,
-            this.composer.readBuffer,
+            this.scenePass.target,
             hiddenHosts,
+            {
+              cancelled: () => this.disposed || cancelled(),
+              yieldControl: yieldFrame,
+              report: (result) =>
+                this.preparation.checkpoint(
+                  'mark',
+                  `programs:${result.status}:live=${result.livePrograms}:checked=${result.queriedPrograms}:queries=${result.queries}:ms=${Math.round(result.elapsedMs)}`,
+                ),
+            },
           );
+          if (this.disposed || cancelled()) return false;
           // Shader linking alone does not finish GPU uploads or the warmup draw.
           // Keep the worker paused until its actual submission has completed.
           progress(`Waiting for completed ${mode} GPU work…`);
@@ -1135,7 +1163,7 @@ export class RacingRenderer {
           if (cancelled()) return false;
         }
       } finally {
-        if (!cancelled()) {
+        if (!this.disposed && !cancelled()) {
           this.changeCamera(camera);
           this.reset();
         }
@@ -1160,7 +1188,17 @@ export class RacingRenderer {
     this.setQuality(quality, graphics);
     await yieldControl();
     if (stopped()) return false;
-    await compileSceneTarget(this.renderer, this.scene, this.camera, this.composer.readBuffer);
+    await compileSceneTarget(
+      this.renderer,
+      this.scene,
+      this.camera,
+      this.scenePass.target,
+      undefined,
+      {
+        cancelled: stopped,
+        yieldControl,
+      },
+    );
     return !stopped();
   }
   setQuality(preset: QualityPreset, options: GraphicsOptions = graphicsPreset(preset)) {

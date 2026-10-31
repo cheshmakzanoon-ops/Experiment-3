@@ -1,3 +1,6 @@
+import { GraphicsRecovery } from './graphics-recovery.ts';
+import type { AssetContainer } from '@babylonjs/core/assetContainer.js';
+import { prepareOriginalMaterials } from './asset-preparation.ts';
 import { RestartOwnership } from './restart-ownership.ts';
 import { BabylonPresentationGpu, cleanupPresentation } from './presentation-gpu.ts';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode.js';
@@ -50,6 +53,7 @@ let resizePending = false;
 
 let component: SimulationComponent;
 const presentation = new PresentationSchedule();
+const graphicsRecovery = new GraphicsRecovery();
 const restartOwnership = new RestartOwnership<SimulationComponent>(
   () => {
     assetLoad.abort();
@@ -77,6 +81,7 @@ function requestPresentation() {
   presentation.request();
 }
 function setPaused(value: boolean) {
+  if (!value && !graphicsRecovery.canResume) return;
   paused = value;
   requestPresentation();
   input?.setEnabled(!value);
@@ -110,6 +115,7 @@ function stop(error?: unknown) {
 function reset() {
   if (stopped) return;
   try {
+    graphicsRecovery.requestRestart();
     restartOwnership.request();
     requestPresentation();
   } catch (error) {
@@ -126,11 +132,13 @@ function rebuildScene(owner: SimulationComponent) {
   playerWheels = undefined;
   delete assetStatus.dataset.wheelPhase;
   delete assetStatus.dataset.steering;
+  scene?.dispose();
+  scene = new BabylonCircuitScene(engine!, owner.simulation.track, 1);
+  // Fresh model ownership is published only after an explicit safe rebuild.
+  graphicsRecovery.rebuilt();
   assetLoad = new AbortController();
   loadAsset.disabled = false;
   assetStatus.textContent = 'Original authored asset is optional in this diagnostic preview.';
-  scene?.dispose();
-  scene = new BabylonCircuitScene(engine!, owner.simulation.track, 1);
 }
 window.addEventListener('pagehide', () => stop(), { once: true });
 try {
@@ -162,10 +170,21 @@ try {
   gpu = new BabylonPresentationGpu(context);
   engine.onContextLostObservable.add(() => {
     gpu?.contextLost();
+    graphicsRecovery.contextLost();
+    assetLoad.abort();
+    loadAsset.disabled = true;
+    assetStatus.textContent =
+      'Graphics context was lost. Restart is required to rebuild the scene before loading or displaying the original model.';
     if (!stopped) setPaused(true);
   });
   engine.onContextRestoredObservable.add(() => {
     gpu?.contextRestored();
+    graphicsRecovery.contextRestored();
+    if (graphicsRecovery.restartRequired) {
+      loadAsset.disabled = true;
+      assetStatus.textContent =
+        'Graphics context restored. Restart is required before loading or displaying the original model.';
+    }
     last = performance.now();
     requestPresentation();
   });
@@ -176,46 +195,93 @@ try {
   loadAsset.addEventListener(
     'click',
     async () => {
-      if (stopped || restartOwnership.pending) return;
+      if (stopped || restartOwnership.pending || graphicsRecovery.restartRequired) return;
       const currentScene = scene!,
-        signal = assetLoad.signal;
+        owner = assetLoad;
+      const deadline = performance.now() + 120000;
+      const budget = new AbortController();
+      const signal = AbortSignal.any([owner.signal, budget.signal]);
+      const timer = setTimeout(
+        () =>
+          budget.abort(new Error('Original model readiness exceeded its 120000ms total budget')),
+        120000,
+      );
+      let container: AssetContainer | undefined;
+      let steering: ExistingPlayerSteering | undefined;
+      let wheels: ExistingPlayerWheels | undefined;
+      let installed = false;
+      const active = () => {
+        signal.throwIfAborted();
+        if (performance.now() >= deadline)
+          throw new Error('Original model readiness exceeded its 120000ms total budget');
+        if (
+          stopped ||
+          scene !== currentScene ||
+          currentScene.scene.isDisposed ||
+          restartOwnership.pending
+        )
+          throw new DOMException('Original model ownership changed', 'AbortError');
+      };
       loadAsset.disabled = true;
       assetStatus.textContent = 'Loading and verifying the existing authored Formula asset…';
       try {
         const { loadExistingPlayer } = await import('./existing-player.ts');
-        const container = await loadExistingPlayer(currentScene.scene, document.baseURI, signal);
-        let steering: ExistingPlayerSteering;
-        let wheels: ExistingPlayerWheels;
-        try {
-          wheels = new ExistingPlayerWheels([...container.transformNodes, ...container.meshes]);
-          steering = new ExistingPlayerSteering(container.animationGroups);
-        } catch (error) {
-          container.dispose();
-          throw error;
-        }
+        active();
+        container = await loadExistingPlayer(currentScene.scene, document.baseURI, signal);
+        active();
+        wheels = new ExistingPlayerWheels([...container.transformNodes, ...container.meshes]);
+        steering = new ExistingPlayerSteering(container.animationGroups);
+        // Keep the container's complete hierarchy off-scene until atomic add.
+        // The entrant contributes only rigid translation/rotation, not scale
+        // defines; retain every authored local transform and the existing datum.
+        const entrant = currentScene.entrants[0];
+        if (
+          entrant.parent ||
+          entrant.scaling.x !== 1 ||
+          entrant.scaling.y !== 1 ||
+          entrant.scaling.z !== 1
+        )
+          throw new Error('Original model preparation requires the existing unit-scale entrant');
+        for (const node of container.rootNodes)
+          if (node instanceof TransformNode) node.position.y -= 0.25;
+        status.dataset.presentationSettled = 'false';
+        await prepareOriginalMaterials(container, gpu!, signal, deadline, (done, total, label) => {
+          if (!signal.aborted && scene === currentScene)
+            assetStatus.textContent = `Preparing original model shader variants ${done}/${total}: ${label}`;
+        });
+        active();
         container.addAllToScene();
+        for (const node of container.rootNodes) node.parent = entrant;
+        installed = true;
         playerSteering = steering;
         playerWheels = wheels;
-        for (const node of container.rootNodes) {
-          node.parent = currentScene.entrants[0];
-          if (node instanceof TransformNode) node.position.y -= 0.25; // Same suspension datum as the Three.js adapter.
-        }
         currentScene.scene.getMeshByName('migration-proxy-0')?.setEnabled(false);
-        assetStatus.textContent = 'Preparing original model materials for rendering…';
-        status.dataset.presentationSettled = 'false';
+        assetStatus.textContent = 'Waiting for completed original-model presentation…';
         const finishPreparation = presentation.prepare();
         try {
           await waitForPresentation(currentScene.scene, signal, gpu!);
         } finally {
           finishPreparation();
         }
-        if (signal.aborted) return;
+        active();
         assetStatus.textContent =
           'Original Formula asset loaded in Babylon. Driver and rigid wheel motion follow physics; tyre deformation, LOD and full material parity are still pending.';
       } catch (error) {
-        if (signal.aborted) return;
+        // Never retry against a compiler whose ownership could not be drained.
+        if (gpu?.diagnostics().preparation.failure || (installed && !owner.signal.aborted)) {
+          stop(error);
+          return;
+        }
+        if (owner.signal.aborted || stopped || scene !== currentScene) return;
         loadAsset.disabled = false;
         assetStatus.textContent = `Model unavailable: ${error instanceof Error ? error.message : String(error)}. Retry is safe.`;
+      } finally {
+        clearTimeout(timer);
+        if (!installed) {
+          steering?.dispose();
+          wheels?.dispose();
+          container?.dispose();
+        }
       }
     },
     eventOptions,
@@ -257,22 +323,23 @@ try {
       component.advance(seconds);
       if (gpu!.ready()) {
         restartOwnership.drain(true, rebuildScene);
-        if (resizePending) {
+        if (!graphicsRecovery.restartRequired && resizePending) {
           resizePending = false;
           engine!.resize();
         }
-        gpu!.frame(presentation, paused, scene!.scene, () => {
-          if (playerSteering)
-            assetStatus.dataset.steering = String(playerSteering.apply(component.frame));
-          if (playerWheels)
-            assetStatus.dataset.wheelPhase = String(playerWheels.apply(component.frame));
-          const readyBefore = scene!.scene.isReady();
-          scene!.render(component.frame);
-          const readyAfter = scene!.scene.isReady();
-          presentation.rendered(readyBefore, readyAfter);
-          status.dataset.sceneReady = String(readyBefore && readyAfter);
-          return readyBefore && readyAfter;
-        });
+        if (!graphicsRecovery.restartRequired)
+          gpu!.frame(presentation, paused, scene!.scene, () => {
+            if (playerSteering)
+              assetStatus.dataset.steering = String(playerSteering.apply(component.frame));
+            if (playerWheels)
+              assetStatus.dataset.wheelPhase = String(playerWheels.apply(component.frame));
+            const readyBefore = scene!.scene.isReady();
+            scene!.render(component.frame);
+            const readyAfter = scene!.scene.isReady();
+            presentation.rendered(readyBefore, readyAfter);
+            status.dataset.sceneReady = String(readyBefore && readyAfter);
+            return readyBefore && readyAfter;
+          });
       }
       const graphics = gpu!.diagnostics();
       renderedFrames = graphics.submitted;
@@ -283,6 +350,7 @@ try {
       status.dataset.presentationSettled = String(
         paused &&
           !restartOwnership.pending &&
+          !graphicsRecovery.restartRequired &&
           !resizePending &&
           !presentation.pending &&
           !graphics.lost &&

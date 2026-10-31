@@ -2,7 +2,9 @@ import { describe, it, expect, vi } from 'vitest';
 import * as T from 'three';
 import { compileSceneTarget, PreparationTrace } from '../src/rendering/preparation.ts';
 
-function compilerHarness(compileAsync: T.WebGLRenderer['compileAsync']) {
+function compilerHarness(
+  compile: (view: T.Object3D, camera: T.Camera, scene?: T.Scene | null) => void,
+) {
   const original = new T.WebGLRenderTarget(),
     target = new T.WebGLRenderTarget(32, 20, { type: T.HalfFloatType });
   let current: T.WebGLRenderTarget | null = original,
@@ -12,6 +14,8 @@ function compilerHarness(compileAsync: T.WebGLRenderer['compileAsync']) {
     scissor = new T.Vector4(2, 3, 8, 8);
   let scissorTest = true;
   const renderer = {
+    info: { programs: [] },
+    getContext: () => ({ isContextLost: () => false, getExtension: () => null }),
     getRenderTarget: () => current,
     getActiveCubeFace: () => face,
     getActiveMipmapLevel: () => mip,
@@ -31,9 +35,9 @@ function compilerHarness(compileAsync: T.WebGLRenderer['compileAsync']) {
     setScissorTest: (v: boolean) => {
       scissorTest = v;
     },
-    compileAsync: (...args: Parameters<T.WebGLRenderer['compileAsync']>) => {
+    compile: (...args: Parameters<T.WebGLRenderer['compile']>) => {
       expect(current).toBe(target);
-      return compileAsync(...args);
+      return compile(...args);
     },
   };
   return {
@@ -204,6 +208,8 @@ describe('grid preparation diagnostics and target ownership', () => {
       finish = resolve;
     });
     const renderer = {
+      info: { programs: [] },
+      getContext: () => ({ isContextLost: () => false, getExtension: () => null }),
       getRenderTarget: () => current,
       getActiveCubeFace: () => face,
       getActiveMipmapLevel: () => mip,
@@ -226,9 +232,8 @@ describe('grid preparation diagnostics and target ownership', () => {
       setScissorTest: (v: boolean) => {
         scissorTest = v;
       },
-      compileAsync: () => {
+      compile: () => {
         expect(current).toBe(linear);
-        return compiling;
       },
     };
     const promise = compileSceneTarget(
@@ -236,6 +241,8 @@ describe('grid preparation diagnostics and target ownership', () => {
       new T.Scene(),
       new T.Camera(),
       linear,
+      undefined,
+      { yieldControl: () => compiling },
     );
     const restored = () => {
       expect(current).toBe(original);
@@ -247,7 +254,7 @@ describe('grid preparation diagnostics and target ownership', () => {
     restored();
     finish();
     await promise;
-    renderer.compileAsync = () => {
+    renderer.compile = () => {
       throw new Error('compile failed');
     };
     expect(() =>
@@ -262,12 +269,12 @@ describe('grid preparation diagnostics and target ownership', () => {
     original.dispose();
     linear.dispose();
   });
-  it.each(['success', 'synchronous failure', 'asynchronous failure'] as const)(
+  it.each(['success', 'synchronous failure', 'readiness failure'] as const)(
     'borrows all GP renderables with original identities and target lighting on %s',
     async (outcome) => {
       const fixture = gpCompilationFixture();
-      let finish: (object: T.Object3D) => void = () => {};
-      const held = new Promise<T.Object3D>((resolve) => {
+      let finish: () => void = () => {};
+      const held = new Promise<void>((resolve) => {
         finish = resolve;
       });
       let borrowed: T.Object3D | null = null;
@@ -307,9 +314,6 @@ describe('grid preparation diagnostics and target ownership', () => {
         expect(compilationLights).toEqual(targetLights);
         fixture.preserved();
         if (outcome === 'synchronous failure') throw new Error('sync compile failed');
-        if (outcome === 'asynchronous failure')
-          return Promise.reject(new Error('async compile failed'));
-        return held;
       });
       const run = () =>
         compileSceneTarget(
@@ -318,16 +322,22 @@ describe('grid preparation diagnostics and target ownership', () => {
           fixture.camera,
           harness.target,
           fixture.hiddenRoots,
+          {
+            yieldControl: () =>
+              outcome === 'readiness failure'
+                ? Promise.reject(new Error('readiness failed'))
+                : held,
+          },
         );
       if (outcome === 'synchronous failure') expect(run).toThrow('sync compile failed');
       else {
         const pending = run();
         harness.restored();
         fixture.preserved();
-        if (outcome === 'asynchronous failure')
-          await expect(pending).rejects.toThrow('async compile failed');
+        if (outcome === 'readiness failure')
+          await expect(pending).rejects.toThrow('readiness failed');
         else {
-          finish(borrowed!);
+          finish();
           expect(await pending).toBe(borrowed);
         }
       }
@@ -337,11 +347,45 @@ describe('grid preparation diagnostics and target ownership', () => {
       fixture.dispose();
     },
   );
+  it('restores target state before the first native readiness query and cancels its wait', async () => {
+    const harness = compilerHarness(() => {});
+    let cancelled = false;
+    const query = vi.fn(() => {
+      harness.restored();
+      return false;
+    });
+    Object.assign(harness.renderer, {
+      info: { programs: [{ program: {} }] },
+      getContext: () => ({
+        isContextLost: () => false,
+        getExtension: () => ({ COMPLETION_STATUS_KHR: 0x91b1 }),
+        getProgramParameter: query,
+      }),
+    });
+    const result = compileSceneTarget(
+      harness.renderer,
+      new T.Scene(),
+      new T.Camera(),
+      harness.target,
+      undefined,
+      {
+        cancelled: () => cancelled,
+        yieldControl: async () => {
+          harness.restored();
+          cancelled = true;
+        },
+      },
+    );
+    harness.restored();
+    await result;
+    expect(query).toHaveBeenCalledOnce();
+    harness.dispose();
+  });
   it('rebuilds the borrowed view for lazy GP parts and keeps a supplied root once it becomes visible', async () => {
     const fixture = gpCompilationFixture(),
       views: T.Object3D[] = [],
       enumerated: T.Object3D[][] = [];
-    const harness = compilerHarness(async (view) => {
+    const harness = compilerHarness((view) => {
       views.push(view);
       const objects: T.Object3D[] = [];
       view.traverse((object) => objects.push(object));

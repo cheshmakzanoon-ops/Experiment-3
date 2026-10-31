@@ -34,6 +34,7 @@ function fixture(vehicle = 'apx01', entrants = 3) {
     mode: 'pod',
     preparation: new PreparationTrace(),
     drawLedger: { mark: vi.fn() },
+    scenePass: { target: new T.WebGLRenderTarget(8, 8, { type: T.HalfFloatType }) },
     composer: { passes: [], readBuffer: new T.WebGLRenderTarget(8, 8, { type: T.HalfFloatType }) },
     warmupFrames: 0,
     preparationLight: new T.DirectionalLight(),
@@ -65,6 +66,8 @@ function fixture(vehicle = 'apx01', entrants = 3) {
     },
     renderer: {
       render: vi.fn(),
+      info: { programs: [] },
+      getContext: () => ({ isContextLost: () => false, getExtension: () => null }),
       getRenderTarget: () => bound,
       getActiveCubeFace: () => 0,
       getActiveMipmapLevel: () => 0,
@@ -77,8 +80,8 @@ function fixture(vehicle = 'apx01', entrants = 3) {
       setViewport: vi.fn(),
       setScissor: vi.fn(),
       setScissorTest: vi.fn(),
-      compileAsync: vi.fn(async (_scene: T.Object3D, _camera: T.Camera, _targetScene?: T.Scene) => {
-        expect(bound).toBe(target.composer.readBuffer);
+      compile: vi.fn((_scene: T.Object3D, _camera: T.Camera, _targetScene?: T.Scene) => {
+        expect(bound).toBe(target.scenePass.target);
         calls.push('compile');
       }),
     },
@@ -158,7 +161,7 @@ it.each([
       // Each later compile must inspect the current tree, not a stale list.
       if (bikeRoots[0]) retained.push(mesh(bikeRoots[0]));
     });
-    target.renderer.compileAsync.mockImplementation(async (view, camera, originalScene) => {
+    target.renderer.compile.mockImplementation((view, camera, originalScene) => {
       expect(camera).toBe(target.camera);
       if (bikeRoots.length) {
         expect(view).not.toBe(target.scene);
@@ -187,7 +190,7 @@ it.each([
           false,
         ),
       ).toBe(true);
-      expect(target.renderer.compileAsync).toHaveBeenCalledTimes(4);
+      expect(target.renderer.compile).toHaveBeenCalledTimes(4);
       expect(target.waitForPreparedFrame).toHaveBeenCalledTimes(4);
       expect(target.warmShadowCasters).toHaveBeenCalledTimes(1);
       expect(target.preparation.snapshot()?.status).toBe('complete');
@@ -217,7 +220,7 @@ it.each([
       await RacingRenderer.prototype.prepare.call(typed, sample, vi.fn(), () => false, yieldFrame),
     ).toBe(true);
     expect(target.cars).toHaveLength(3);
-    expect(target.renderer.compileAsync).toHaveBeenCalledTimes(4);
+    expect(target.renderer.compile).toHaveBeenCalledTimes(4);
     expect(target.draw).toHaveBeenCalledTimes(2);
     expect(target.waitForPreparedFrame).toHaveBeenCalledTimes(4);
     expect(target.warmPitPresentation).toHaveBeenCalledTimes(1);
@@ -282,7 +285,7 @@ it.each([
     expect(target.warmPitPresentation).toHaveBeenCalledTimes(service ? 1 : 0);
     const stages = progress.mock.calls.map(([message]) => String(message));
     expect(stages.some((message) => message.includes('pit-service'))).toBe(service);
-    expect(target.renderer.compileAsync).toHaveBeenCalledTimes(4);
+    expect(target.renderer.compile).toHaveBeenCalledTimes(4);
     expect(target.warmShadowCasters).toHaveBeenCalledTimes(1);
     expect(target.draw).toHaveBeenCalledTimes(2);
     expect(target.waitForPreparedFrame).toHaveBeenCalledTimes(4);
@@ -341,7 +344,7 @@ it.each([
       ),
     ).toBe(false);
     expect(target.bikeShells.update).toHaveBeenCalledTimes(bikeBuilds);
-    expect(target.renderer.compileAsync).not.toHaveBeenCalled();
+    expect(target.renderer.compile).not.toHaveBeenCalled();
     expect(target.draw).not.toHaveBeenCalled();
     expect(target.preparation.snapshot()?.status).toBe('cancelled');
     expect(sample).toEqual(before);
@@ -363,7 +366,7 @@ it('stops cancelled construction before touching any further GPU resources', asy
   expect(target.cars).toHaveLength(1);
   expect(target.preparation.snapshot()?.status).toBe('cancelled');
   expect(target.draw).not.toHaveBeenCalled();
-  expect(target.renderer.compileAsync).not.toHaveBeenCalled();
+  expect(target.renderer.compile).not.toHaveBeenCalled();
 });
 it('requires the complete selected circuit before a showroom can prepare driving', async () => {
   const { target, typed, sample } = fixture('mx450');
@@ -380,13 +383,15 @@ it('requires the complete selected circuit before a showroom can prepare driving
   ).rejects.toThrow('Build the selected circuit before preparing a race');
   expect(target.cars).toHaveLength(0);
   expect(target.draw).not.toHaveBeenCalled();
-  expect(target.renderer.compileAsync).not.toHaveBeenCalled();
+  expect(target.renderer.compile).not.toHaveBeenCalled();
   expect(sample).toEqual(before);
   expect(target.preparation.snapshot()?.status).toBe('failed');
 });
 it('a shader failure rejects initialization instead of starting unprepared gameplay', async () => {
   const { target, typed, sample } = fixture();
-  target.renderer.compileAsync.mockRejectedValueOnce(new Error('Shader failure'));
+  target.renderer.compile.mockImplementationOnce(() => {
+    throw new Error('Shader failure');
+  });
   await expect(
     RacingRenderer.prototype.prepare.call(
       typed,
@@ -460,7 +465,7 @@ it('does not apply graphics or compile when preparation fails', async () => {
 it('drains the complete environment and compiles its real light/map context before full warmup views', async () => {
   const { target, typed, sample, calls } = fixture();
   const contexts: { far: boolean; environment: T.Texture | null }[] = [];
-  target.renderer.compileAsync.mockImplementation(async () => {
+  target.renderer.compile.mockImplementation(() => {
     calls.push('compile');
     contexts.push({ far: target.preparationLight.visible, environment: target.scene.environment });
   });
@@ -507,7 +512,7 @@ it('does not compile final variants or draw live views after environment complet
       async () => {},
     ),
   ).rejects.toThrow('environment GPU stalled');
-  expect(target.renderer.compileAsync).toHaveBeenCalledTimes(1);
+  expect(target.renderer.compile).toHaveBeenCalledTimes(1);
   expect(target.warmEnvironmentFrame).toHaveBeenCalledTimes(1);
   expect(target.draw).not.toHaveBeenCalled();
   expect(target.mode).toBe('pod');
@@ -595,7 +600,7 @@ it.each([1, 2])(
       ),
     ).toBe(false);
     expect(target.draw).not.toHaveBeenCalled();
-    expect(target.renderer.compileAsync).toHaveBeenCalledTimes(1);
+    expect(target.renderer.compile).toHaveBeenCalledTimes(1);
     expect(target.warmEnvironmentFrame).toHaveBeenCalledTimes(boundary === 1 ? 0 : 1);
     expect(target.preparation.snapshot()?.status).toBe('cancelled');
     expect(sample).toEqual(before);
@@ -624,4 +629,34 @@ it('still blocks cockpit and completion when the full no-service chase warmup st
   expect(target.warmupFrames).toBe(1);
   expect(target.mode).toBe('pod');
   expect(target.preparation.snapshot()?.status).toBe('failed');
+});
+
+it('does not submit shadows, views or restore disposed camera state after program-wait cancellation', async () => {
+  const { target, typed, sample } = fixture();
+  Object.assign(target, { disposed: false });
+  Object.assign(target.renderer, {
+    info: { programs: [{ program: {} }] },
+    getContext: () => ({
+      isContextLost: () => false,
+      getExtension: () => ({ COMPLETION_STATUS_KHR: 0x91b1 }),
+      getProgramParameter: () => {
+        Object.assign(target, { disposed: true });
+        return false;
+      },
+    }),
+  });
+  expect(
+    await RacingRenderer.prototype.prepare.call(
+      typed,
+      sample,
+      vi.fn(),
+      () => false,
+      async () => {},
+    ),
+  ).toBe(false);
+  expect(target.renderer.compile).toHaveBeenCalledOnce();
+  expect(target.warmShadowCasters).not.toHaveBeenCalled();
+  expect(target.draw).not.toHaveBeenCalled();
+  expect(target.reset).not.toHaveBeenCalled();
+  expect(target.renderer.getRenderTarget()).toBeNull();
 });

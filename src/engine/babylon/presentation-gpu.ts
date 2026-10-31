@@ -13,9 +13,18 @@ type PresentationPhase =
   | 'drawing'
   | 'fencing'
   | 'waiting'
+  | 'compiling'
+  | 'preparation-wait'
   | 'lost'
   | 'failed'
   | 'disposed';
+interface PreparationDiagnostics {
+  active: boolean;
+  started: number;
+  completed: number;
+  failure: string | null;
+  last: { label: string; startedAtMs: number; elapsedMs: number; state: string } | null;
+}
 interface GraphicsLossReceipt {
   number: number;
   observedAtMs: number;
@@ -29,6 +38,7 @@ interface GraphicsLossReceipt {
   lastDrawCpuMs: number | null;
   drawStartedAtMs: number | null;
   queue: ReturnType<GpuFrameGate['diagnostics']>;
+  preparation: PreparationDiagnostics;
 }
 /** Own normal scene submissions, not asynchronous asset upload/compilation.
  * Fences cover scene.render commands; Babylon's normal endFrame only notifies
@@ -53,6 +63,11 @@ export class BabylonPresentationGpu implements PresentationCompletions {
   private lastDrawCpuMs: number | null = null;
   private drawStartedAtMs: number | null = null;
   private losses = 0;
+  private preparation: AbortController | null = null;
+  private preparationStarted = 0;
+  private preparationCompleted = 0;
+  private preparationFailure: string | null = null;
+  private lastPreparation: PreparationDiagnostics['last'] = null;
   // One bounded receipt only; never retain the owner/scene object graph.
   private lastLoss: GraphicsLossReceipt | null = null;
   constructor(
@@ -78,6 +93,11 @@ export class BabylonPresentationGpu implements PresentationCompletions {
   }
   /** Poll even held paused scenes so their final GPU receipt can complete. */
   ready() {
+    if (this.preparationFailure) throw new Error(this.preparationFailure);
+    if (this.preparation) return false;
+    return this.pollReady();
+  }
+  private pollReady() {
     if (this.disposed || this.lost) return false;
     try {
       if (!this.gate.ready()) return false;
@@ -99,6 +119,126 @@ export class BabylonPresentationGpu implements PresentationCompletions {
       });
     }
     return true;
+  }
+  /** Exclusive single-variant compiler lane on the same context. Cancellation
+   * of an asset does not cancel this lane: only completion, lost context,
+   * disposal or a fatal original deadline can end ownership. */
+  async prepare(
+    label: string,
+    deadline: number,
+    work: (invalidated: AbortSignal) => Promise<void>,
+  ) {
+    if (this.preparation || this.preparationFailure)
+      throw new Error(this.preparationFailure ?? 'GPU preparation already owns the context');
+    if (this.disposed || this.lost)
+      throw new DOMException('Graphics ownership unavailable', 'AbortError');
+    const controller = new AbortController();
+    this.preparation = controller;
+    this.preparationStarted++;
+    const startedAtMs = this.now();
+    this.lastPreparation = {
+      label: label.slice(0, 180),
+      startedAtMs,
+      elapsedMs: 0,
+      state: 'waiting-for-prior-frame',
+    };
+    const check = () => {
+      controller.signal.throwIfAborted();
+      if (this.now() >= deadline)
+        throw new Error('Original model GPU preparation exceeded its 120000ms total budget');
+    };
+    const yieldTask = () => new Promise<void>((resolve) => setTimeout(resolve, 16));
+    let abortListener = () => {};
+    const invalidated = new Promise<never>((_resolve, reject) => {
+      abortListener = () => reject(controller.signal.reason);
+      controller.signal.addEventListener('abort', abortListener, { once: true });
+    });
+    const timeout = setTimeout(
+      () => {
+        if (this.preparation !== controller) return;
+        this.preparationFailure =
+          'Original model GPU preparation exceeded its 120000ms total budget';
+        this.phase = 'failed';
+        controller.abort(new Error(this.preparationFailure));
+      },
+      Math.max(0, deadline - this.now()),
+    );
+    try {
+      await Promise.race([
+        invalidated,
+        (async () => {
+          check();
+          if (this.now() >= deadline)
+            throw new Error('Original model GPU preparation exceeded its 120000ms total budget');
+          while (!this.pollReady()) {
+            check();
+            await yieldTask();
+          }
+          check();
+          this.phase = 'compiling';
+          this.lastPreparation!.state = 'compiling';
+          await work(controller.signal);
+          check();
+          this.phase = 'preparation-wait';
+          this.lastPreparation!.state = 'waiting-for-fence';
+          this.gate.submittedFrame();
+          if (!this.gate.diagnostics().pending)
+            throw new Error('Context lost during original model preparation');
+          while (!this.gate.ready()) {
+            check();
+            await yieldTask();
+          }
+          check();
+        })(),
+      ]);
+      this.preparationCompleted++;
+      this.lastPreparation!.state = 'completed';
+      this.phase = 'idle';
+    } catch (error) {
+      if (this.preparation === controller) {
+        if (!this.lost && !this.disposed) {
+          this.preparationFailure = (error instanceof Error ? error.message : String(error)).slice(
+            0,
+            2048,
+          );
+          this.phase = 'failed';
+        }
+        this.lastPreparation!.state = 'failed-or-invalidated';
+        controller.abort(error);
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeout);
+      controller.signal.removeEventListener('abort', abortListener);
+      if (this.preparation === controller) {
+        this.lastPreparation!.elapsedMs = Math.max(0, this.now() - startedAtMs);
+        this.preparation = null;
+      }
+    }
+  }
+  private preparationDiagnostics(): PreparationDiagnostics {
+    return {
+      active: this.preparation !== null,
+      started: this.preparationStarted,
+      completed: this.preparationCompleted,
+      failure: this.preparationFailure,
+      last: this.lastPreparation
+        ? {
+            ...this.lastPreparation,
+            elapsedMs: this.preparation
+              ? Math.max(0, this.now() - this.lastPreparation.startedAtMs)
+              : this.lastPreparation.elapsedMs,
+          }
+        : null,
+    };
+  }
+  private invalidatePreparation(reason: Error) {
+    const controller = this.preparation;
+    if (!controller) return;
+    this.lastPreparation!.state = 'invalidated';
+    this.lastPreparation!.elapsedMs = Math.max(0, this.now() - this.lastPreparation!.startedAtMs);
+    this.preparation = null;
+    controller.abort(reason);
   }
   frame(schedule: PresentationSchedule, paused: boolean, owner: object, draw: () => boolean) {
     if (!this.ready() || !schedule.shouldRender(paused)) return false;
@@ -145,9 +285,11 @@ export class BabylonPresentationGpu implements PresentationCompletions {
       lastDrawCpuMs: this.lastDrawCpuMs,
       drawStartedAtMs: this.drawStartedAtMs,
       queue: this.gate.diagnostics(),
+      preparation: this.preparationDiagnostics(),
     };
     this.phase = 'lost';
     this.lost = true;
+    this.invalidatePreparation(new DOMException('WebGL context lost', 'AbortError'));
     if (this.pending) this.abandoned++;
     this.pending = null;
     this.gate.dispose();
@@ -166,7 +308,17 @@ export class BabylonPresentationGpu implements PresentationCompletions {
       lastDrawCpuMs: this.lastDrawCpuMs,
       drawStartedAtMs: this.drawStartedAtMs,
       losses: this.losses,
-      lastLoss: this.lastLoss ? { ...this.lastLoss, queue: { ...this.lastLoss.queue } } : null,
+      lastLoss: this.lastLoss
+        ? {
+            ...this.lastLoss,
+            queue: { ...this.lastLoss.queue },
+            preparation: {
+              ...this.lastLoss.preparation,
+              last: this.lastLoss.preparation.last ? { ...this.lastLoss.preparation.last } : null,
+            },
+          }
+        : null,
+      preparation: this.preparationDiagnostics(),
       submitted: this.submitted,
       completed: this.completed,
       lastCompletedSequence: this.lastCompletedSequence,
@@ -175,6 +327,8 @@ export class BabylonPresentationGpu implements PresentationCompletions {
         !this.disposed &&
         !this.lost &&
         !this.pending &&
+        !this.preparation &&
+        !this.preparationFailure &&
         !queue.pending &&
         !queue.failure &&
         this.lastCompletedSequence === this.submitted,
@@ -187,6 +341,7 @@ export class BabylonPresentationGpu implements PresentationCompletions {
     if (this.disposed) return;
     this.disposed = true;
     this.phase = 'disposed';
+    this.invalidatePreparation(new DOMException('Graphics disposed', 'AbortError'));
     this.pending = null;
     this.gate.dispose();
     this.publish({ kind: 'disposed' });
