@@ -6,15 +6,20 @@ import type {
   babylonFullFormulaScenes,
   babylonFormulaSurfaceVisibility,
 } from './fixtures/babylon-surface-parity.ts';
+import type { babylonControlledGroundingParity } from './fixtures/babylon-grounding-parity.ts';
 import type { babylonControlledAsphaltParity } from './fixtures/babylon-asphalt-parity.ts';
 
 type Probe = {
+  babylonControlledGroundingParity: typeof babylonControlledGroundingParity;
   babylonFullFormulaScenes: typeof babylonFullFormulaScenes;
   babylonControlledPaintParity: typeof babylonControlledPaintParity;
   babylonFormulaSurfaceVisibility: typeof babylonFormulaSurfaceVisibility;
   babylonControlledAsphaltParity: typeof babylonControlledAsphaltParity;
 };
-async function install(page: import('@playwright/test').Page, asphalt = false) {
+async function install(
+  page: import('@playwright/test').Page,
+  asphalt: boolean | 'grounding' = false,
+) {
   const bundle = await build({
     configFile: false,
     logLevel: 'error',
@@ -22,9 +27,11 @@ async function install(page: import('@playwright/test').Page, asphalt = false) {
       write: false,
       lib: {
         entry: resolve(
-          asphalt
-            ? 'e2e/fixtures/babylon-asphalt-parity.ts'
-            : 'e2e/fixtures/babylon-surface-parity.ts',
+          asphalt === 'grounding'
+            ? 'e2e/fixtures/babylon-grounding-parity.ts'
+            : asphalt
+              ? 'e2e/fixtures/babylon-asphalt-parity.ts'
+              : 'e2e/fixtures/babylon-surface-parity.ts',
         ),
         name: 'BabylonSurfaceProbe',
         formats: ['iife'],
@@ -373,5 +380,163 @@ test('full actual Formula scenes prepare and complete both canonical venue workl
       expect(effect.error).toBe('');
       expect(effect.samplerCount).toBeLessThanOrEqual(row.shaders.maxFragmentSamplers);
     }
+  }
+});
+
+test('isolated Formula grounding applies qualified original sky/sun attenuation to native road and paint terms', async ({
+  page,
+}, info) => {
+  const errors = await install(page, 'grounding');
+  const result = await page.evaluate(() =>
+    (
+      window as unknown as { BabylonSurfaceProbe: Probe }
+    ).BabylonSurfaceProbe.babylonControlledGroundingParity(),
+  );
+  await report(info, 'controlled-original-formula-grounding', result);
+  for (const [i, row] of result.captures.entries())
+    await image(
+      info,
+      `grounding-${i}-${row.renderer}-${row.layout}-${row.light}-${row.output}-${row.control}-${row.zero ? 'zero' : 'posed'}${row.repeat ? '-repeat' : ''}`,
+      row.image,
+    );
+  expect(result.failure).toBeNull();
+  expect(errors).toEqual([]);
+  expect(result.threeShaderErrors).toEqual([]);
+  expect(result.threeRevision).toBe('180');
+  expect(result.productionActivated).toBe(false);
+  expect(result.referenceQualified).toBe(true);
+  expect(result.candidateConstructed).toBe(true);
+  expect(result.phases).toEqual([
+    'original-reference',
+    'original-negative-controls',
+    'reference-qualified',
+    'candidate',
+    'disposed',
+  ]);
+  expect(result.poseOracleSha256).toBe(
+    '6156be159c6826b87dda551ee6dd0b564ff571a4fbd5695cb87a7d5b91fde7fe',
+  );
+  expect(result.limits).toEqual({
+    referenceMax: 0,
+    referenceMean: 0,
+    candidateMax: 1,
+    candidateMean: 0.1,
+    nativeRange: 16,
+    referenceClosureMaxUnits: 2,
+    closureQuantizationAllowance: 2,
+    negativeMinChangedPixels: 100,
+    negativeMinMaxError: 3,
+    minInteriorPixelsPerReceiver: 1000,
+  });
+  expect(result.captures).toHaveLength(145);
+  expect(result.repeats).toHaveLength(45);
+  expect(result.controls.map((c) => c.name)).toEqual([
+    'omitted',
+    'wrong-yaw',
+    'wrong-height',
+    'swapped-factors',
+  ]);
+  expect(result.comparisons).toHaveLength(6);
+  expect(result.presence).toHaveLength(18);
+  expect(result.nativeStats).toHaveLength(36);
+  expect(result.closures).toHaveLength(12);
+  expect(result.factors).toHaveLength(8);
+  expect(result.coverage).toHaveLength(3);
+  for (const row of result.captures) {
+    const name = `${row.renderer}/${row.layout}/${row.light}/${row.output}`;
+    expect(row.completedFrames, name).toBeGreaterThanOrEqual(2);
+    expect(row.glError, name).toBe(0);
+    if (row.output.startsWith('native-'))
+      expect(Buffer.from(row.rgbaBase64!, 'base64').byteLength, name).toBe(256 * 256 * 4);
+  }
+  expect(result.zeroApplication).toHaveLength(2);
+  for (const capture of [...result.repeats, ...result.factors, ...result.zeroApplication])
+    for (const row of Object.values(capture.metrics)) {
+      expect(row.comparedPixels).toBeGreaterThanOrEqual(1000);
+      expect(row.maxChannelError).toBe(0);
+      expect(row.meanChannelError).toBe(0);
+      expect(row.missingPixels).toBe(0);
+    }
+  for (const control of result.controls)
+    for (const row of Object.values(control.metrics)) {
+      expect(row.comparedPixels, control.name).toBeGreaterThanOrEqual(1000);
+      expect(row.changedPixels, control.name).toBeGreaterThanOrEqual(100);
+      expect(row.maxChannelError, control.name).toBeGreaterThanOrEqual(3);
+      expect(row.missingPixels).toBe(0);
+    }
+  for (const comparison of result.comparisons)
+    for (const row of Object.values(comparison.metrics)) {
+      expect(row.comparedPixels).toBeGreaterThanOrEqual(1000);
+      expect(row.maxChannelError).toBeLessThanOrEqual(1);
+      expect(row.meanChannelError).toBeLessThanOrEqual(0.1);
+      expect(row.missingPixels).toBe(0);
+    }
+  for (const receipt of result.presence)
+    for (const row of Object.values(receipt.metrics)) {
+      expect(row.missingRequired).toBe(0);
+      expect(row.unexpectedlyActive).toBe(0);
+      expect(row.invalidNative).toBe(0);
+      expect(row.pixels).toBeGreaterThanOrEqual(1000);
+      for (let channel = 0; channel < 4; channel++)
+        expect(row.absentBoth[channel]).toBe(
+          receipt.requiredBits & (1 << channel) ? 0 : row.pixels,
+        );
+    }
+  for (const receipt of result.nativeStats)
+    for (const row of Object.values(receipt.metrics)) {
+      const absent =
+        receipt.renderer === 'three' &&
+        receipt.light === 'sky' &&
+        receipt.output === 'native-specular';
+      if (absent) {
+        expect(row.maxBeforeUnits).toBe(0);
+        expect(row.maxAfterUnits).toBe(0);
+      } else {
+        expect(row.maxBeforeUnits).toBeGreaterThan(0);
+        expect(row.maxAfterUnits).toBeGreaterThan(0);
+      }
+    }
+  const originalMaximum = Math.max(
+    ...result.closures
+      .filter((c) => c.renderer === 'three')
+      .flatMap((c) =>
+        Object.values(c.metrics).flatMap((row) => [row.maxBeforeUnits, row.maxAfterUnits]),
+      ),
+  );
+  expect(originalMaximum).toBeLessThanOrEqual(2);
+  expect(result.closureBound).toBe(originalMaximum + 2);
+  for (const closure of result.closures.filter((c) => c.renderer === 'babylon'))
+    for (const row of Object.values(closure.metrics)) {
+      expect(row.maxBeforeUnits).toBeLessThanOrEqual(result.closureBound!);
+      expect(row.maxAfterUnits).toBeLessThanOrEqual(result.closureBound!);
+    }
+  for (const row of result.coverage)
+    expect(row.metrics).toEqual({ missingInterior: 0, wrongReceiver: 0, excessCoverage: 0 });
+  expect(result.displayUnchanged).toBe(true);
+  expect(result.countCacheStable).toBe(true);
+  expect(result.poseState).toEqual({ count: 0, poses: new Array(48).fill(0), valid: false });
+  expect(result.baseline).toEqual({ meshes: 0, geometries: 0, materials: 0, textures: 1 });
+  expect(result.retained).toEqual({ meshes: 2, geometries: 2, materials: 2, textures: 4 });
+  expect(result.restored).toEqual(result.baseline);
+  expect(result.repeatDisposeUnchanged).toBe(true);
+  expect(result.pluginResourceDelta).toEqual({
+    before: { meshes: 0, geometries: 0, materials: 2, textures: 4 },
+    after: { meshes: 0, geometries: 0, materials: 2, textures: 4 },
+  });
+  expect(result.nativeShaders).toHaveLength(6);
+  for (const shader of result.nativeShaders) {
+    expect(shader.error).toBe('');
+    expect(shader.samplers.length).toBeLessThanOrEqual(result.shaders!.maxFragmentSamplers);
+    expect(shader.fragmentSource).toContain('ORIGINAL_FORMULA_GROUNDING_V1');
+    expect(shader.fragmentSource).toContain('groundingNativeBefore=vec4(');
+    expect(shader.fragmentSource).toContain('groundingNativeAfter=vec4(');
+  }
+  for (const diagnostic of Object.values(result.diagnostics)) {
+    expect(diagnostic.losses).toBe(0);
+    expect(diagnostic.abandoned).toBe(0);
+    expect(diagnostic.settled).toBe(true);
+    expect(diagnostic.queue.pending).toBe(false);
+    expect(diagnostic.queue.failure).toBeNull();
+    expect(diagnostic.preparation.failure).toBeNull();
   }
 });

@@ -79,3 +79,5 @@ The compact [current status](CURRENT_STATUS.md) lists present gates; [developmen
 - `docs/experiments/motion-projection-22-stage3-results/`: complete strict/off-road validation and all 74 entrant comparisons; the unexplained Arena regression keeps the source unapplied.
 
 - `scripts/electron-runtime-ab-*` and matching tests: inert, nonpublishing official-runtime comparison infrastructure. No active launch/workflow or shipping runtime change. [Protocol](maintenance/electron-runtime-ab-offline-2026-11-01.md).
+
+- `src/engine/babylon/formula-grounding.ts` and `e2e/fixtures/*grounding*`: isolated original Formula grounding implementation/reference/metric probe. No live import; [real-GPU qualification remains pending](maintenance/babylon-grounding-probe-2026-11-01.md).

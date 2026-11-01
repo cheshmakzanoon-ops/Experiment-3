@@ -102,3 +102,7 @@ Local final verification passed 293 Babylon contracts, 27 native/CI contracts, f
 ## Grounding data prepared, lighting application pending
 
 The original Formula footprint, attenuation constants and presented-pose calculation now share a renderer-neutral owner. Pre-edit original outputs and composed hooks remain exact, including fixed contact mounts/defaults and the original GP/history behavior. This extraction does not add a Babylon plugin, footprint draw, texture or lighting change. The next isolated probe must distinguish sky/hemisphere from direct sun terms: Babylon accumulates hemispheric light differently from Three, so multiplying final color or all diffuse light by one factor would not preserve the original effect. No live activation is implied by the CPU/data checks. [Extraction evidence](maintenance/formula-grounding-data-2026-11-01.md).
+
+## Isolated grounding implementation, not live activation
+
+The bounded original Formula footprint now has a material-local plugin and an independent actual-original road/paint lighting probe. Its native sky/direct split is constrained to the actual original opaque BRDF/F0/IOR domain, with unsupported states rejected. Source/build checks passed; the new thirteenth journey must still qualify original repeats, controls, native post-AO terms and cleanup before any live adoption. The live scene does not import it. [Probe scope and gates](maintenance/babylon-grounding-probe-2026-11-01.md).
