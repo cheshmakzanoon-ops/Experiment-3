@@ -1,6 +1,71 @@
 import gantryManifest from '../src/rendering/start-gantry.manifest.json' with { type: 'json' };
 import { test, expect, type Page } from '@playwright/test';
+import { createHash } from 'node:crypto';
+import { createRequire } from 'node:module';
+import { dirname, join } from 'node:path';
 import { exerciseBabylonContextRecovery } from './fixtures/babylon-context-recovery.ts';
+
+// Use the exact PNG decoder shipped with the already pinned Playwright runtime.
+// No network dependency, tolerance, mask, resampling or image alteration.
+const require = createRequire(import.meta.url);
+const { PNG } = require(
+  join(dirname(require.resolve('playwright-core/package.json')), 'lib/utilsBundle.js'),
+) as {
+  PNG: { sync: { read(png: Buffer): { width: number; height: number; data: Buffer } } };
+};
+function compareDisplayedPng(before: Buffer, after: Buffer) {
+  const a = PNG.sync.read(before),
+    b = PNG.sync.read(after);
+  if (a.width !== b.width || a.height !== b.height)
+    return {
+      widthBefore: a.width,
+      heightBefore: a.height,
+      widthAfter: b.width,
+      heightAfter: b.height,
+      sameDimensions: false,
+      changedPixels: null,
+    };
+  let changedPixels = 0,
+    changedChannels = 0,
+    maxChannelDelta = 0;
+  let minX = a.width,
+    minY = a.height,
+    maxX = -1,
+    maxY = -1;
+  for (let offset = 0; offset < a.data.length; offset += 4) {
+    let changed = false;
+    for (let channel = 0; channel < 4; channel++) {
+      const delta = Math.abs(a.data[offset + channel] - b.data[offset + channel]);
+      if (delta !== 0) {
+        changed = true;
+        changedChannels++;
+        maxChannelDelta = Math.max(maxChannelDelta, delta);
+      }
+    }
+    if (!changed) continue;
+    changedPixels++;
+    const pixel = offset / 4,
+      x = pixel % a.width,
+      y = Math.floor(pixel / a.width);
+    minX = Math.min(minX, x);
+    minY = Math.min(minY, y);
+    maxX = Math.max(maxX, x);
+    maxY = Math.max(maxY, y);
+  }
+  return {
+    widthBefore: a.width,
+    heightBefore: a.height,
+    widthAfter: b.width,
+    heightAfter: b.height,
+    sameDimensions: true,
+    changedPixels,
+    changedChannels,
+    maxChannelDelta,
+    changedBounds: changedPixels ? { minX, minY, maxX, maxY } : null,
+    rgbaSha256Before: createHash('sha256').update(a.data).digest('hex'),
+    rgbaSha256After: createHash('sha256').update(b.data).digest('hex'),
+  };
+}
 
 const surfaceKeys = [
   'bannerState',
@@ -313,6 +378,177 @@ test('Babylon completes original environment startup while paused before gantry 
     await expectOriginalAurelSurface(page);
     await expect(status).toContainText('PAUSED');
     expect(await tick()).toBe(pausedTick);
+    const frozenReceipt = () =>
+      page.evaluate(() => {
+        const canvas = document.querySelector<HTMLCanvasElement>('#game')!;
+        const bounds = canvas.getBoundingClientRect();
+        const graphics = window.babylonGraphicsDiagnostics(true);
+        const data = document.querySelector<HTMLElement>('#status')!.dataset;
+        const count = (keys: string[]) => keys.reduce((sum, key) => sum + Number(data[key]), 0);
+        return {
+          viewport: { width: innerWidth, height: innerHeight, devicePixelRatio },
+          canvas: {
+            width: canvas.width,
+            height: canvas.height,
+            x: bounds.x,
+            y: bounds.y,
+            cssWidth: bounds.width,
+            cssHeight: bounds.height,
+          },
+          graphics,
+          expectedBindings: {
+            meshes: count([
+              'surfaceRoadChunks',
+              'surfacePaintChunks',
+              'gantryParts',
+              'lampParts',
+              'bannerParts',
+              'stripeParts',
+            ]),
+            materials: count([
+              'surfacePaintFinishMaterials',
+              'surfaceAsphaltSubstrateMaterials',
+              'gantryMaterials',
+              'lampMaterials',
+              'bannerMaterials',
+              'stripeMaterials',
+            ]),
+            textures: count([
+              'surfaceAsphaltSubstrateTextures',
+              'gantryTextures',
+              'bannerTextures',
+              'stripeTextures',
+            ]),
+          },
+          dom: {
+            panelText: document.querySelector('#panel')?.textContent,
+            activeElement: document.activeElement?.id,
+            animations: document.getAnimations().map((animation) => ({
+              playState: animation.playState,
+              currentTime: String(animation.currentTime),
+            })),
+            status: document.querySelector('#status')?.textContent,
+          },
+        };
+      });
+    const beforeVisual = await frozenReceipt();
+    evidence.push({ phase: 'paused-before-resize', visual: beforeVisual });
+    expect(beforeVisual.graphics?.startupPublicationDecision).toBe('reused-completed-image');
+    const assertCachedVisualState = (observed: typeof beforeVisual) => {
+      const cached = observed.graphics?.startupVisualState;
+      expect(cached?.source).toBe('last-owned-paused-draw');
+      expect(typeof cached?.state).toBe('string');
+      expect(cached!.state!.length).toBeGreaterThan(0);
+      expect(cached!.state!.length).toBeLessThanOrEqual(262144);
+      expect(Number.isSafeInteger(cached!.sequence)).toBe(true);
+      expect(cached!.sequence!).toBeGreaterThan(0);
+      expect(cached!.sequence!).toBeLessThanOrEqual(observed.graphics!.lastCompletedSequence);
+      expect(cached!.tick).toBe(pausedTick);
+      const state: unknown = JSON.parse(cached!.state!);
+      expect(Array.isArray(state)).toBe(true);
+      const tuple = state as unknown[];
+      expect(tuple).toHaveLength(25);
+      expect(Array.isArray(tuple[0])).toBe(true);
+      const cameraTransform = tuple[0] as unknown[];
+      expect(cameraTransform).toHaveLength(6);
+      expect(cameraTransform[2]).toHaveLength(3);
+      expect(cameraTransform[3]).toHaveLength(3);
+      expect(cameraTransform[5]).toBe(true);
+      for (const [index, count] of [
+        [21, observed.expectedBindings.meshes],
+        [22, observed.expectedBindings.materials],
+        [23, observed.expectedBindings.textures],
+      ]) {
+        expect(Number.isSafeInteger(count)).toBe(true);
+        expect(count).toBeGreaterThan(0);
+        expect(Array.isArray(tuple[index])).toBe(true);
+        expect((tuple[index] as unknown[]).length).toBeGreaterThanOrEqual(count);
+      }
+      return {
+        camera: tuple.slice(0, 15),
+        meshCount: (tuple[21] as unknown[]).length,
+        materialCount: (tuple[22] as unknown[]).length,
+        textureCount: (tuple[23] as unknown[]).length,
+      };
+    };
+    const beforeState = assertCachedVisualState(beforeVisual);
+    const screenshotOptions = { animations: 'allow' as const, caret: 'initial' as const };
+    // Locator capture is the unmasked composited canvas rectangle, NOT a raw
+    // framebuffer readback (the real engine uses preserveDrawingBuffer:false).
+    const beforeCanvas = await page.locator('#game').screenshot(screenshotOptions);
+    await info.attach('babylon-paused-before-resize-canvas.png', {
+      body: beforeCanvas,
+      contentType: 'image/png',
+    });
+    const beforePage = await page.screenshot({ ...screenshotOptions, fullPage: true });
+    await info.attach('babylon-paused-before-resize-page.png', {
+      body: beforePage,
+      contentType: 'image/png',
+    });
+    const viewport = page.viewportSize();
+    expect(viewport).not.toBeNull();
+    const completeAfterResize = async (completedBefore: number) => {
+      await expect
+        .poll(() => page.evaluate(() => window.babylonGraphicsDiagnostics()?.completed ?? -1))
+        .toBeGreaterThan(completedBefore);
+      await expect(status).toHaveAttribute('data-presentation-settled', 'true');
+      await expect(status).toContainText('PAUSED');
+      expect(await tick()).toBe(pausedTick);
+    };
+    // Real browser resize events exercise the existing application invalidation
+    // and GPU fence path. Round-trip to the exact original viewport before proof.
+    await page.setViewportSize({ width: viewport!.width + 1, height: viewport!.height });
+    await completeAfterResize(beforeVisual.graphics!.completed);
+    const intermediateVisual = await frozenReceipt();
+    evidence.push({ phase: 'paused-expanded-viewport', visual: intermediateVisual });
+    await page.setViewportSize(viewport!);
+    await completeAfterResize(intermediateVisual.graphics!.completed);
+    await expectOriginalAurelSurface(page);
+    const afterVisual = await frozenReceipt();
+    evidence.push({ phase: 'paused-restored-viewport', visual: afterVisual });
+    const afterState = assertCachedVisualState(afterVisual);
+    const afterCanvas = await page.locator('#game').screenshot(screenshotOptions);
+    await info.attach('babylon-paused-after-resize-canvas.png', {
+      body: afterCanvas,
+      contentType: 'image/png',
+    });
+    const afterPage = await page.screenshot({ ...screenshotOptions, fullPage: true });
+    await info.attach('babylon-paused-after-resize-page.png', {
+      body: afterPage,
+      contentType: 'image/png',
+    });
+    const canvasPixels = compareDisplayedPng(beforeCanvas, afterCanvas);
+    const pagePixels = compareDisplayedPng(beforePage, afterPage);
+    evidence.push({
+      phase: 'frozen-resize-pixel-proof',
+      captureScope: 'unmasked composited canvas rectangle; overlapping DOM retained',
+      beforeVisual,
+      intermediateVisual,
+      afterVisual,
+      canvasPixels,
+      pagePixels,
+      beforeState,
+      afterState,
+    });
+    expect(afterVisual.graphics?.startupPublicationDecision).toBe(
+      beforeVisual.graphics?.startupPublicationDecision,
+    );
+    expect(afterVisual.graphics!.startupVisualState!.state).toBe(
+      beforeVisual.graphics!.startupVisualState!.state,
+    );
+    expect(afterVisual.graphics!.startupVisualState!.sequence!).toBeGreaterThan(
+      beforeVisual.graphics!.startupVisualState!.sequence!,
+    );
+    expect(afterState).toEqual(beforeState);
+    expect(afterVisual.viewport).toEqual(beforeVisual.viewport);
+    expect(afterVisual.canvas).toEqual(beforeVisual.canvas);
+    expect(afterVisual.graphics!.completed).toBeGreaterThan(beforeVisual.graphics!.completed);
+    expect(canvasPixels.sameDimensions).toBe(true);
+    expect(
+      canvasPixels.changedPixels,
+      'Exact unmasked canvas rectangle changed; inspect page/DOM and visual receipts, do not mask differences',
+    ).toBe(0);
+    await observe('paused-same-viewport-redraw');
     await page.getByRole('button', { name: 'Resume', exact: true }).click();
     await expect(status).toContainText('DRIVING');
     await expect.poll(tick).toBeGreaterThan(pausedTick);

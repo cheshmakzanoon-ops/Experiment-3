@@ -89,7 +89,7 @@ it('schedule snapshots never consume pending demand or change preparation owners
 it('wires observation into existing diagnostics without GPU polling or scheduling changes', () => {
   const source = readFileSync('src/engine/babylon/main.ts', 'utf8');
   const body = source.slice(
-    source.indexOf('function readGraphicsDiagnostics()'),
+    source.indexOf('function readGraphicsDiagnostics('),
     source.indexOf("Object.defineProperty(window, 'babylonGraphicsDiagnostics'"),
   );
   expect(body).toContain('gpu?.diagnostics()');
@@ -117,13 +117,16 @@ function graphicsQuery(
   gpuRead: () => unknown,
   scheduleRead: () => unknown,
   environment: unknown = undefined,
+  visual: unknown = null,
 ) {
   const source = readFileSync('src/engine/babylon/main.ts', 'utf8');
   const body = source.slice(
-    source.indexOf('function readGraphicsDiagnostics()'),
+    source.indexOf('function readGraphicsDiagnostics('),
     source.indexOf("Object.defineProperty(window, 'babylonGraphicsDiagnostics'"),
   );
   return runInNewContext(`(${body})`, {
+    startupPublicationDecision: 'reused-completed-image',
+    renderedStartupVisualState: visual,
     gpu: { diagnostics: gpuRead },
     paused: true,
     stopped: false,
@@ -136,7 +139,18 @@ function graphicsQuery(
     presentation: { diagnostics: scheduleRead },
     observePreparationReadiness,
     observeReadinessSnapshot,
-  }) as () => { settled: boolean; readiness: unknown; readinessError: string | null };
+  }) as (includeStartupVisualState?: boolean) => {
+    settled: boolean;
+    readiness: unknown;
+    readinessError: string | null;
+    startupPublicationDecision?: string | null;
+    startupVisualState?: {
+      source: string;
+      state: string | null;
+      sequence: number | null;
+      tick: number;
+    } | null;
+  };
 }
 it.each([undefined, null, new Error('new metadata failed')])(
   'new metadata failure %s cannot reject existing graphics query',
@@ -171,15 +185,17 @@ it.each([undefined, null, false, 0, '', new Error('original graphics query faile
         return {};
       },
     );
-    let caught = false;
-    try {
-      query();
-    } catch (failure) {
-      caught = true;
-      expect(failure).toBe(error);
+    for (const includeVisual of [false, true]) {
+      let caught = false;
+      try {
+        query(includeVisual);
+      } catch (failure) {
+        caught = true;
+        expect(failure).toBe(error);
+      }
+      expect(caught).toBe(true);
+      expect(metadataCalls).toBe(0);
     }
-    expect(caught).toBe(true);
-    expect(metadataCalls).toBe(0);
   },
 );
 it('main read-only snapshot includes an absent banner owner as unknown without hiding graphics', () => {
@@ -232,4 +248,39 @@ it('main read-only snapshot includes an absent stripe owner as unknown without h
   expect(result.readiness).toMatchObject({
     owners: { stripe: { exists: false, completed: null, canDraw: null, errors: [] } },
   });
+});
+
+it('opt-in visual evidence is a detached cached draw record, never fresh scene traversal', () => {
+  const cached = {
+    source: 'last-owned-paused-draw',
+    state: '["canonical CPU state"]',
+    sequence: 6,
+    tick: 43,
+  };
+  const query = graphicsQuery(
+    () => ({ settled: true }),
+    () => ({ pending: false }),
+    undefined,
+    cached,
+  );
+  expect(query()).not.toHaveProperty('startupVisualState');
+  expect(query()).not.toHaveProperty('startupPublicationDecision');
+  const observed = query(true);
+  expect(observed.startupVisualState).toEqual(cached);
+  expect(observed.startupPublicationDecision).toBe('reused-completed-image');
+  observed.startupVisualState!.state = 'changed locally';
+  expect(cached.state).toBe('["canonical CPU state"]');
+  expect(
+    graphicsQuery(
+      () => ({ settled: true }),
+      () => ({}),
+    )(true).startupVisualState,
+  ).toBeNull();
+  const source = readFileSync('src/engine/babylon/main.ts', 'utf8');
+  const body = source.slice(
+    source.indexOf('function readGraphicsDiagnostics('),
+    source.indexOf("Object.defineProperty(window, 'babylonGraphicsDiagnostics'"),
+  );
+  expect(body).not.toContain('captureStartupVisualState(');
+  expect(body).not.toContain('isReady(');
 });

@@ -218,3 +218,12 @@ paused presentation7. These controlled receipts do not establish actual frame
 counts or startup time. Exact-source live GPU/native checks remain required.
 Car-crossing, final PBR/shadows and physical-device performance stay unqualified.
 See [combined startup ownership](babylon-environment-batch-2026-11-01.md).
+
+## Live result: `f0ca199`
+
+The combined live checkpoint passed all 28 GPU cases and Windows/macOS packaged
+checks, including four compatibility journeys each. Actual stripe receipts and
+screenshots confirm the original 128×32 checker alongside the banner and car.
+Linux reached all-assets-ready but its last presentation fence missed the
+unchanged first-pause deadline. See [exact combined results and artifacts](babylon-environment-batch-2026-11-01.md).
+This is not all-platform release or final-PBR/hardware qualification.

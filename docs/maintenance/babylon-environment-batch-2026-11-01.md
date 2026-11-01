@@ -79,3 +79,40 @@ All 28 required workflow cases were discovered offline; none was run locally.
 The new preparation tests are included by the existing `tests/babylon-*.test.ts`
 selectors and path filters on both GPU/native workflows. No workflow gate, case
 selection or timeout was changed for this combined implementation.
+
+## Combined runtime result: `f0ca199`
+
+[GPU run 41338152814](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41338152814)
+passed all **28 cases**, all four shards and aggregate 124946777005, without
+flaky/skipped results. Early pause held tick 696 through readiness (frames 3→8)
+and resumed to 699. The live stripe, banner, gantry and dark lamps had their
+required resource receipts; loss/restart invalidated readiness correctly. Live
+screenshots show the original checker, printed banner and Formula car. All 280
+isolated lamp/banner/stripe PNGs match the preceding qualified run byte-for-byte.
+This is SwiftShader functional evidence, not physical-GPU timing or final PBR.
+
+SHA-verified artifacts:
+- Retained 13097230390: `fce8c599a4adf26540820341ec3f0df144046bf25decd7d19a17d57c3b328503`.
+- Stripe 13096845303: `82c7fabe75a1ba559383bc33bed1b1b40eb98e7ad85695b713c9833b2cce8223`.
+- Banner 13096600888: `ecf2a6c0b0135f2d7a8ad863f94b4e03bf08d0886155a5990b66530fe88b4436`.
+- Lamps 13096406562: `03f719e47cd5b7db4b91d54850e99e1c62e4de549601f1d1182c47570360c13a`.
+
+[Native run 41338152768](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41338152768)
+passed Windows and Apple Silicon macOS, including all four compatibility journeys.
+Windows recorded 37/37 draws, macOS 24/24; both completed 443 preparations. Stripe
+receipts are 1/1/1 resources, two triangles, 128×32 and hardware-sRGB; earlier
+assets remain intact. Inspected screenshots show stripe, banner and original car.
+
+Linux still failed the **unchanged 30-second first-pause gate** after 288 polls.
+The last sample, 19 ms before failure, had all owners complete and sceneReady=true,
+135 preparations, but 7 submissions/6 completions; the pending GPU frame was
+970.8 ms old. No graphics fault or context loss was recorded. Final collection
+3.371 seconds later reached 7/7; that is not a pre-deadline pass. The intermediate
+samples bracket completion6 between renderer32,338.6–32,446.2ms, followed by pending
+frame7. This identifies the boundary, not a universal timing improvement.
+
+Native evidence: Linux 13097065312, macOS 13097105640, Windows 13097100690.
+All identify fingerprint
+`a4a13b6309c7a516d9a0591d2dfe1a4e1181e2172e1eb235af7c376e8d4a4401`.
+The final paused redraw is being investigated separately; no fence, deadline or
+owner completion requirement is weakened to count this failed run as success.

@@ -1,3 +1,4 @@
+import { PausedStartupPublication } from '../src/engine/babylon/paused-startup-publication.ts';
 import { afterEach, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { NullEngine } from '@babylonjs/core/Engines/nullEngine.js';
@@ -608,6 +609,17 @@ it('keeps stripe outside the batch and requires two fresh stripe receipts withou
   let batch: EnvironmentPreparation | undefined;
   let stripe: StripePreparation | undefined;
   const stripeReceipts: number[] = [];
+  const component = {},
+    frame = new Float32Array([43, 0]);
+  const publication = new PausedStartupPublication(h.gpu, h.scene, () => ({
+    component,
+    frame,
+    tick: 43,
+    paused: true,
+    visual: 'frozen CPU seam',
+  }));
+  cleanups.push(() => publication.dispose());
+  let sceneReady = false;
   const stripeCompiler = vi.fn(async () => {
     expect(h.gpu.diagnostics()).toMatchObject({ submitted: 4, completed: 4 });
     expect(batch?.completed).toBe(true);
@@ -680,7 +692,12 @@ it('keeps stripe outside the batch and requires two fresh stripe receipts withou
     await batch.completion;
     stripe = new StripePreparation(h.options, loadStripe);
     await stripe.completion;
-    h.schedule.request(); // Same final paused presentation request as main.
+    sceneReady = publication.canPublish(
+      h.gpu.diagnostics(),
+      surface.completed && batch.completed && stripe.completed && !h.schedule.pending,
+    );
+    if (!sceneReady) h.schedule.request(); // Same conservative fallback as main.
+    publication.dispose();
   });
   void combined.catch(() => {});
   cleanups.push(() => stripe?.dispose());
@@ -696,6 +713,7 @@ it('keeps stripe outside the batch and requires two fresh stripe receipts withou
     )
       h.gpu.frame(h.schedule, true, h.scene, () => {
         draws.push(stripe ? 'stripe' : batch ? 'batch' : 'surface');
+        publication.drawn();
         return true;
       });
   };
@@ -726,9 +744,14 @@ it('keeps stripe outside the batch and requires two fresh stripe receipts withou
   expect(stripeReceipts).toEqual([5, 6]);
   expect(stripe?.completed).toBe(true);
   expect(draws).toEqual(['surface', 'surface', 'batch', 'batch', 'stripe', 'stripe']);
-  expect(h.schedule.diagnostics()).toMatchObject({ preparationCount: 0, requested: true });
+  expect(sceneReady).toBe(true);
+  callback();
+  callback();
+  expect(h.gpu.diagnostics()).toMatchObject({ submitted: 6, completed: 6, settled: true });
+  expect(h.schedule.diagnostics()).toMatchObject({ preparationCount: 0, requested: false });
+  expect(h.schedule.pending).toBe(false);
+  h.schedule.request(); // A genuine later resize/input demand is never discarded.
   callback();
   callback();
   expect(h.gpu.diagnostics()).toMatchObject({ submitted: 7, completed: 7, settled: true });
-  expect(h.schedule.pending).toBe(false);
 });

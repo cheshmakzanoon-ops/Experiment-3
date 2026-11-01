@@ -14,6 +14,10 @@ Migration development stays exclusively on **babylon-js**. Main is frozen at res
 
 ## Latest recorded qualification
 
+**Current paused-startup candidate:** scene-scoped real completion receipts, exact snapshot bytes and a bounded canonical visual-state comparison can avoid the final UI-only draw when the paused image is proven unchanged. The fallback, real render demands, all owner receipts and deadlines remain intact. Clean CPU verification passed 1,342 tests/99 files; browser proof must require the actual optimized branch and unchanged unmasked pixels after a real redraw. GPU/native qualification is pending. [Scope](maintenance/babylon-paused-startup-publication-2026-11-01.md).
+
+**Latest combined result (`f0ca199`):** all 28 GPU cases plus Windows/macOS packaged checks and four compatibility journeys passed. Linux's original first-pause deadline still fails: all owners are ready, but its final fence is 7 submitted/6 completed before timeout. Later7/7 is not a pass. No graphics fault/loss was recorded. [Exact evidence](maintenance/babylon-environment-batch-2026-11-01.md).
+
 **Latest native repeat remains unqualified:** `a68a1ba` timed out in Linux's unchanged first-pause gate without a recorded GPU fault; the prior `6c1ded7` pass was not a stability guarantee. The corrected isolated stripe subsequently passed every GPU case on `e5609e7`. Current combined batch-and-stripe startup requires a fresh exact-source GPU/native run. [Native history](maintenance/babylon-paused-preparation-handoff-2026-11-01.md) · [Stripe evidence](maintenance/babylon-start-finish-stripe-2026-11-01.md).
 
 **Combined original-environment startup:** surface readiness remains first; gantry/lamps/banner prepare sequentially and install together, each retaining two real ready receipts. The original stripe follows with two fresh receipts of its own. Combined CPU verification passed 1,285 tests/97 files; original assets, physics and native deadlines remain unchanged. Live GPU/native qualification is pending. [Contract](maintenance/babylon-environment-batch-2026-11-01.md).

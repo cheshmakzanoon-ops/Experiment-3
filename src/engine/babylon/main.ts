@@ -1,4 +1,9 @@
 import {
+  PausedStartupPublication,
+  startupVisualSubmissionSequence,
+} from './paused-startup-publication.ts';
+import { captureStartupVisualState } from './startup-visual-state.ts';
+import {
   SurfacePreparation,
   resizePresentationWhenIdle,
   pollPresentationForRender,
@@ -50,7 +55,19 @@ let gpu: BabylonPresentationGpu | undefined;
 let surfacePreparation: SurfacePreparation | undefined;
 let environmentPreparation: EnvironmentPreparation | undefined;
 let stripePreparation: StripePreparation | undefined;
+let startupPublication: PausedStartupPublication | undefined;
+let startupPublicationDecision: 'reused-completed-image' | 'requested-redraw' | null = null;
+let renderedStartupVisualState: {
+  source: 'last-owned-paused-draw';
+  state: string | null;
+  sequence: number | null;
+  tick: number;
+} | null = null;
 function clearSurfaceDiagnostics() {
+  startupPublicationDecision = null;
+  renderedStartupVisualState = null;
+  startupPublication?.dispose();
+  startupPublication = undefined;
   for (const key of [
     'stripeState',
     'stripeParts',
@@ -108,11 +125,18 @@ declare global {
     babylonGraphicsDiagnostics: typeof readGraphicsDiagnostics;
   }
 }
-function readGraphicsDiagnostics() {
+function readGraphicsDiagnostics(includeStartupVisualState = false) {
   const graphics = gpu?.diagnostics();
   if (!graphics) return null;
   return {
     ...graphics,
+    // Opt-in cached CPU evidence only; default native queries do no extra work.
+    ...(includeStartupVisualState
+      ? {
+          startupPublicationDecision,
+          startupVisualState: renderedStartupVisualState ? { ...renderedStartupVisualState } : null,
+        }
+      : {}),
     ...observeReadinessSnapshot(() => ({
       paused,
       stopped,
@@ -251,6 +275,19 @@ function rebuildScene(owner: SimulationComponent) {
     'Preparing original circuit surfaces and dry asphalt substrate and vehicle grounding, then the original Aurel gantry, snapshot-driven lamps, printed banner and start/finish stripe; full environment parity remains unported.';
   const currentScene = scene,
     currentOwner = assetLoad;
+  const publication = new PausedStartupPublication(gpu!, currentScene.scene, (renderedVisual) => ({
+    component,
+    paused,
+    tick: component.simulation.tick,
+    frame: component.frame,
+    visual:
+      renderedVisual === undefined
+        ? paused
+          ? captureStartupVisualState(currentScene)
+          : null
+        : renderedVisual,
+  }));
+  startupPublication = publication;
   surfacePreparation = new SurfacePreparation(
     currentScene.scene,
     currentScene.scene.meshes,
@@ -364,7 +401,32 @@ function rebuildScene(owner: SimulationComponent) {
         return;
       for (const [key, value] of Object.entries(stripe.receipt()))
         status.dataset[`stripe${key[0].toUpperCase()}${key.slice(1)}`] = String(value);
-      requestPresentation();
+      // Completion changes metadata only. Reuse a proven unchanged paused image,
+      // never a pending fence or an old scene's receipt. All other cases redraw.
+      const graphics = gpu!.diagnostics();
+      const publishWithoutDraw = publication.canPublish(
+        graphics,
+        startupPublication === publication &&
+          component === owner &&
+          surfacePreparation === pending &&
+          pending.completed &&
+          environment.completed &&
+          stripe.eligible &&
+          !stopped &&
+          !restartOwnership.pending &&
+          !graphicsRecovery.restartRequired &&
+          !resizePending &&
+          !presentation.pending &&
+          !playerSteering &&
+          !playerWheels,
+      );
+      publication.dispose();
+      if (startupPublication === publication) startupPublication = undefined;
+      startupPublicationDecision = publishWithoutDraw
+        ? 'reused-completed-image'
+        : 'requested-redraw';
+      if (publishWithoutDraw) status.dataset.sceneReady = 'true';
+      else requestPresentation();
       loadAsset.disabled = false;
       assetStatus.textContent = `Original car is optional. Paint, dry asphalt and grounding are active${gantry.eligible ? '; Aurel gantry, snapshot-driven lamps, printed banner and start/finish stripe ready' : ''}. Practice lamps stay dark; bloom and full environment parity remain unported.`;
     })
@@ -601,6 +663,7 @@ try {
         seconds = (now - last) / 1000;
       last = now;
       component.advance(seconds);
+      let startupVisualCaptured = false;
       const polled = pollPresentationForRender(gpu!, presentation, paused);
       if (polled.ready) {
         restartOwnership.drain(true, rebuildScene);
@@ -634,10 +697,27 @@ try {
                   !!environmentPreparation?.banner?.completed &&
                   !!stripePreparation?.completed,
               );
+              renderedStartupVisualState = paused
+                ? {
+                    source: 'last-owned-paused-draw',
+                    state:
+                      !playerSteering && !playerWheels ? captureStartupVisualState(scene!) : null,
+                    sequence: null,
+                    tick: component.simulation.tick,
+                  }
+                : null;
+              startupVisualCaptured = true;
+              startupPublication?.drawn(renderedStartupVisualState?.state ?? null);
               return readyBefore && readyAfter;
             });
       }
       const graphics = gpu!.diagnostics();
+      if (renderedStartupVisualState?.sequence === null)
+        renderedStartupVisualState.sequence = startupVisualSubmissionSequence(
+          graphics,
+          startupVisualCaptured,
+          renderedFrames,
+        );
       renderedFrames = graphics.submitted;
       status.dataset.renderedFrames = String(renderedFrames);
       status.dataset.completedFrames = String(graphics.completed);
