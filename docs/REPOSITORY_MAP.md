@@ -65,3 +65,5 @@ Start with [README](../README.md) for play instructions and [current status](CUR
 The compact [current status](CURRENT_STATUS.md) lists present gates; [development evidence history](maintenance/development-history-2026-10-31.md) preserves the chronological run notes and rejected candidates.
 
 - `src/engine/assets/surface-texel-data.ts`: original deterministic surface/asphalt pixel data and constants, with compatibility exports in the original renderer. Independent pre-edit oracle and scope: [asphalt data boundary](maintenance/asphalt-data-boundary-2026-10-31.md).
+
+- `src/engine/babylon/asphalt-substrate.ts` and `asphalt-substrate-plugin.ts`: isolated procedural dry-substrate candidate, not imported by the live scene. Controlled original-reference probe: `e2e/fixtures/babylon-asphalt-parity.ts`; [scope](maintenance/asphalt-substrate-probe-2026-11-01.md).

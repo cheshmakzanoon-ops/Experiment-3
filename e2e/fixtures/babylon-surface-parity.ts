@@ -250,6 +250,13 @@ const prepare = (h: ReturnType<typeof harness>, meshes: readonly Mesh[]) =>
     () => {},
   );
 
+// Reuse the unchanged bounded GPU owner for other isolated material probes.
+export {
+  harness as createSurfaceProbeHarness,
+  resources as surfaceProbeResources,
+  prepare as prepareSurfaceProbeMeshes,
+};
+
 function compareInterior(actual: Uint8Array, expected: Uint8Array, size: number) {
   let comparedPixels = 0,
     maxChannelError = 0,

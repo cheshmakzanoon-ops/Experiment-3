@@ -6,20 +6,26 @@ import type {
   babylonFullFormulaScenes,
   babylonFormulaSurfaceVisibility,
 } from './fixtures/babylon-surface-parity.ts';
+import type { babylonControlledAsphaltParity } from './fixtures/babylon-asphalt-parity.ts';
 
 type Probe = {
   babylonFullFormulaScenes: typeof babylonFullFormulaScenes;
   babylonControlledPaintParity: typeof babylonControlledPaintParity;
   babylonFormulaSurfaceVisibility: typeof babylonFormulaSurfaceVisibility;
+  babylonControlledAsphaltParity: typeof babylonControlledAsphaltParity;
 };
-async function install(page: import('@playwright/test').Page) {
+async function install(page: import('@playwright/test').Page, asphalt = false) {
   const bundle = await build({
     configFile: false,
     logLevel: 'error',
     build: {
       write: false,
       lib: {
-        entry: resolve('e2e/fixtures/babylon-surface-parity.ts'),
+        entry: resolve(
+          asphalt
+            ? 'e2e/fixtures/babylon-asphalt-parity.ts'
+            : 'e2e/fixtures/babylon-surface-parity.ts',
+        ),
         name: 'BabylonSurfaceProbe',
         formats: ['iife'],
       },
@@ -56,6 +62,141 @@ async function image(info: import('@playwright/test').TestInfo, name: string, da
     contentType: 'image/png',
   });
 }
+
+test('isolated asphalt substrate matches qualified actual original factors and normals', async ({
+  page,
+}, info) => {
+  const errors = await install(page, true);
+  const result = await page.evaluate(() =>
+    (
+      window as unknown as { BabylonSurfaceProbe: Probe }
+    ).BabylonSurfaceProbe.babylonControlledAsphaltParity(),
+  );
+  await report(info, 'controlled-original-asphalt-substrate', result);
+  for (const row of result.referenceRows)
+    await image(info, `${row.name}-${row.output}-original-three`, row.image);
+  for (const row of result.controls)
+    await image(info, `${row.name}-${row.output}-negative-control`, row.image);
+  for (const row of result.rows)
+    await image(info, `${row.name}-${row.output}-isolated-babylon`, row.image);
+  expect(result.failure).toBeNull();
+  expect(errors).toEqual([]);
+  expect(result.threeShaderErrors).toEqual([]);
+  expect(result.threeRevision).toBe('180');
+  expect(result.productionActivated).toBe(false);
+  expect(result.sourceBoundary).toBe("surfaceMaterial('asphalt', undefined, false)");
+  expect(result.referenceQualified).toBe(true);
+  expect(result.candidateConstructed).toBe(true);
+  expect(result.phases).toEqual([
+    'original-reference',
+    'original-negative-controls',
+    'reference-qualified',
+    'candidate',
+    'disposed',
+  ]);
+  expect(result.referenceRows).toHaveLength(15);
+  expect(result.rows.map((row) => `${row.name}/${row.output}`)).toEqual(
+    result.referenceRows.map((row) => `${row.name}/${row.output}`),
+  );
+  expect(result.controls.map((row) => row.name)).toEqual([
+    'wrong-gamma',
+    'wrong-packed-channel',
+    'flipped-normal',
+    'omitted-meso-tone',
+  ]);
+  expect(result.limits).toEqual({
+    referenceMax: 0,
+    referenceMean: 0,
+    candidateMax: 1,
+    candidateMean: 0.1,
+    negativeMinChangedPixels: 100,
+    negativeMinMaxError: 3,
+    minInteriorPixels: 1000,
+  });
+  for (const row of result.referenceRows) {
+    const name = `${row.name}/${row.output}`;
+    expect(row.glError, name).toBe(0);
+    expect(row.completedFrames, name).toBeGreaterThanOrEqual(2);
+    expect(row.repeatCompletedFrames, name).toBeGreaterThanOrEqual(2);
+    expect(row.metrics.comparedPixels, name).toBeGreaterThanOrEqual(
+      result.limits.minInteriorPixels,
+    );
+    expect(row.metrics.maxChannelError, name).toBe(result.limits.referenceMax);
+    expect(row.metrics.meanChannelError, name).toBe(result.limits.referenceMean);
+    expect(row.metrics.alphaMismatchPixels, name).toBe(0);
+  }
+  for (const row of result.controls) {
+    expect(row.glError, row.name).toBe(0);
+    expect(row.completedFrames, row.name).toBeGreaterThanOrEqual(2);
+    expect(row.metrics.comparedPixels, row.name).toBeGreaterThanOrEqual(
+      result.limits.minInteriorPixels,
+    );
+    expect(row.metrics.changedPixels, row.name).toBeGreaterThanOrEqual(
+      result.limits.negativeMinChangedPixels,
+    );
+    expect(row.metrics.maxChannelError, row.name).toBeGreaterThanOrEqual(
+      result.limits.negativeMinMaxError,
+    );
+    expect(row.metrics.missingInteriorPixels, row.name).toBe(0);
+    expect(row.metrics.excessCoveragePixels, row.name).toBe(0);
+  }
+  for (const row of result.rows) {
+    const name = `${row.name}/${row.output}`;
+    expect(row.glError, name).toBe(0);
+    expect(row.completedFrames, name).toBeGreaterThanOrEqual(2);
+    expect(row.metrics.comparedPixels, name).toBeGreaterThanOrEqual(
+      result.limits.minInteriorPixels,
+    );
+    expect(row.metrics.maxChannelError, name).toBeLessThanOrEqual(result.limits.candidateMax);
+    expect(row.metrics.meanChannelError, name).toBeLessThanOrEqual(result.limits.candidateMean);
+    expect(row.metrics.missingInteriorPixels, name).toBe(0);
+    expect(row.metrics.excessCoveragePixels, name).toBe(0);
+    expect(row.sharedMaterial, name).toBe(true);
+    expect(row.retained.materials - result.baseline.materials, name).toBe(1);
+    expect(row.retained.textures - result.baseline.textures, name).toBe(3);
+    expect(row.retained.meshes - result.baseline.meshes, name).toBe(
+      row.name === 'grazing-seam' ? 2 : 1,
+    );
+    expect(row.retained.geometries - result.baseline.geometries, name).toBe(
+      row.name === 'grazing-seam' ? 2 : 1,
+    );
+    expect(row.samplers, name).toEqual(
+      expect.arrayContaining(['albedoSampler', 'bumpSampler', 'asphaltSubstrateData']),
+    );
+  }
+  // Actual WebGL allocation calls, not just the renderer's gamma metadata.
+  expect(result.allocations).toEqual([
+    { internalFormat: 35907, width: 512, height: 512, format: 6408, type: 5121, bytes: 1048576 },
+    { internalFormat: 32856, width: 512, height: 512, format: 6408, type: 5121, bytes: 1048576 },
+    { internalFormat: 32856, width: 512, height: 512, format: 6408, type: 5121, bytes: 1048576 },
+  ]);
+  expect(result.sampling).toEqual(
+    ['albedo', 'data', 'normal'].map((name) => ({
+      name,
+      srgb: name === 'albedo',
+      gammaSpace: false,
+      repeat: [7.8125, 7.8125],
+      anisotropy: 8,
+      flipY: true,
+      mipmaps: true,
+      samplingMode: 3,
+    })),
+  );
+  expect(result.shaders?.effects.length).toBeGreaterThan(0);
+  for (const effect of result.shaders?.effects ?? []) {
+    expect(effect.error).toBe('');
+    expect(effect.samplerCount).toBeLessThanOrEqual(result.shaders!.maxFragmentSamplers);
+  }
+  expect(result.restored).toEqual(result.baseline);
+  expect(result.repeatDisposeUnchanged).toBe(true);
+  for (const gpu of Object.values(result.diagnostics)) {
+    expect(gpu.losses).toBe(0);
+    expect(gpu.submitted).toBe(gpu.completed);
+    expect(gpu.preparation.failure).toBeNull();
+  }
+  expect(result.unported).toContain('PBR/environment parity');
+  expect(result.unported).toContain('wet road/water film');
+});
 
 test('isolated paint finish matches original Three grit and wear before lighting', async ({
   page,
