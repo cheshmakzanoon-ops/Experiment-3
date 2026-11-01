@@ -724,3 +724,185 @@ test('Babylon diagnostic panel leaves the native driving view clear at minimum w
   await expect(page.locator('#status')).toContainText('PAUSED');
   await expect(page.locator('#status')).toHaveAttribute('data-presentation-settled', 'true');
 });
+
+test('Babylon reuses the completed original startup scene on Restart with a fresh reset image', async ({
+  page,
+}, info) => {
+  test.setTimeout(120000);
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  let release!: () => void;
+  const heldFetch = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  let held = false;
+  const evidence: unknown[] = [];
+  await page.route('**/models/aurel-start-gantry.glb*', async (route) => {
+    if (!held) {
+      held = true;
+      await heldFetch;
+    }
+    await route.continue();
+  });
+  const observe = () =>
+    page.evaluate(() => {
+      const status = document.querySelector<HTMLElement>('#status')!;
+      const graphics = window.babylonGraphicsDiagnostics(true);
+      if (
+        !graphics ||
+        typeof graphics.componentEpoch !== 'number' ||
+        typeof graphics.sceneEpoch !== 'number' ||
+        !Number.isSafeInteger(graphics.componentEpoch) ||
+        !Number.isSafeInteger(graphics.sceneEpoch)
+      )
+        throw new Error('Missing actual restart epoch evidence');
+      return {
+        text: status.textContent,
+        statusText: status.textContent,
+        assetStatus: document.querySelector('#assetStatus')?.textContent ?? null,
+        activeElement: document.activeElement?.id ?? null,
+        focusVisible: document.activeElement?.matches(':focus-visible') ?? null,
+        tick: Number(status.textContent?.match(/tick (\d+)/)?.[1] ?? -1),
+        sceneReady: status.dataset.sceneReady,
+        presentationSettled: status.dataset.presentationSettled,
+        graphics: {
+          ...graphics,
+          componentEpoch: graphics.componentEpoch,
+          sceneEpoch: graphics.sceneEpoch,
+        },
+        submissions: window.babylonGraphicsDiagnostics({ submissionObservation: true })
+          ?.submissionObservation,
+      };
+    });
+  const restartThenPause = () =>
+    page.evaluate(() => {
+      // Programmatic UI dispatch (not a physical pointer click): invoke both
+      // existing button handlers in one task. Restart creates the fresh
+      // authoritative component, then Pause freezes it before the next RAF. This
+      // sets no simulation/renderer state and changes no application timer.
+      document.querySelector<HTMLButtonElement>('#restart')!.click();
+      document.querySelector<HTMLButtonElement>('#pause')!.click();
+      return document.querySelector('#pause')!.textContent;
+    });
+  const settledReset = async () => {
+    await expect(page.locator('#status')).toContainText('PAUSED');
+    await expectOriginalAurelSurface(page);
+    await expect(page.locator('#status')).toHaveAttribute('data-presentation-settled', 'true');
+    await expect.poll(async () => (await observe()).tick).toBe(0);
+    const observed = await observe();
+    const graphics = observed.graphics!;
+    const cached = graphics.startupVisualState!;
+    expect(cached?.source).toBe('last-owned-paused-draw');
+    expect(cached?.rejectionCode).toBeNull();
+    expect(cached?.tick).toBe(0);
+    expect(typeof cached?.state).toBe('string');
+    expect(cached.state!.length).toBeGreaterThan(0);
+    expect(cached.state!.length).toBeLessThanOrEqual(262144);
+    expect(cached.sequence).toBeGreaterThan(0);
+    expect(cached.sequence!).toBeLessThanOrEqual(graphics.lastCompletedSequence);
+    expect(graphics.settled).toBe(true);
+    expect(graphics.phase).toBe('idle');
+    expect(graphics.lost).toBe(false);
+    expect(graphics.disposed).toBe(false);
+    return observed;
+  };
+  try {
+    await page.goto('/babylon.html', { waitUntil: 'domcontentloaded' });
+    await expect.poll(() => held).toBe(true);
+    await expect(page.locator('#loadAsset')).toBeDisabled();
+    await expect(page.locator('#status')).toHaveAttribute('data-scene-ready', 'false');
+    // Match the real pointer focus used before the later reset screenshot.
+    // This pauses only the obsolete pre-reference component.
+    await page.getByRole('button', { name: 'Pause', exact: true }).click();
+    await expect(page.locator('#status')).toContainText('PAUSED');
+    const incomplete = await observe();
+    evidence.push({ phase: 'held-incomplete-before-reference-rebuild', ...incomplete });
+    expect(await restartThenPause()).toBe('Resume');
+    release();
+    const reference = await settledReset();
+    evidence.push({ phase: 'fresh-rebuilt-tick-zero-reference', ...reference });
+    expect(reference.graphics!.restartSceneDecision).toBe('rebuilt-scene');
+    expect(reference.graphics!.sceneEpoch).toBeGreaterThan(incomplete.graphics!.sceneEpoch);
+    expect(reference.graphics!.componentEpoch).toBe(incomplete.graphics!.componentEpoch + 1);
+    const canvas = page.locator('#game');
+    const screenshotOptions = { animations: 'allow' as const, caret: 'initial' as const };
+    const referenceImage = await canvas.screenshot(screenshotOptions);
+    await info.attach('restart-fresh-scene-tick-zero-reference.png', {
+      body: referenceImage,
+      contentType: 'image/png',
+    });
+
+    await page.getByRole('button', { name: 'Resume', exact: true }).click();
+    await page.keyboard.down('w');
+    try {
+      await expect
+        .poll(async () => {
+          const text = await page.locator('#status').textContent();
+          return Number(text?.match(/(\d+) km\/h/)?.[1] ?? 0);
+        })
+        .toBeGreaterThan(5);
+    } finally {
+      await page.keyboard.up('w');
+    }
+    await page.getByRole('button', { name: 'Pause', exact: true }).click();
+    await expect(page.locator('#status')).toHaveAttribute('data-presentation-settled', 'true');
+    const driven = await observe();
+    evidence.push({ phase: 'actually-driven-before-reuse', ...driven });
+    expect(driven.tick).toBeGreaterThan(0);
+    expect(driven.graphics!.startupVisualState!.state).not.toBe(
+      reference.graphics!.startupVisualState!.state,
+    );
+
+    expect(await restartThenPause()).toBe('Resume');
+    const reset = await settledReset();
+    evidence.push({ phase: 'reused-scene-fresh-reset-completed', ...reset });
+    expect(reset.graphics!.restartSceneDecision).toBe('reused-scene');
+    expect(reset.graphics!.componentEpoch).toBe(driven.graphics!.componentEpoch + 1);
+    expect(reset.graphics!.sceneEpoch).toBe(reference.graphics!.sceneEpoch);
+    expect(reset.graphics!.sceneEpoch).toBe(driven.graphics!.sceneEpoch);
+    expect(reset.graphics!.completed).toBeGreaterThanOrEqual(driven.graphics!.completed + 2);
+    expect(reset.graphics!.startupVisualState!.sequence!).toBeGreaterThan(
+      driven.graphics!.lastCompletedSequence,
+    );
+    const resetSubmissions = reset.submissions!.records.filter(
+      (row) =>
+        row.componentEpoch === reset.graphics!.componentEpoch &&
+        row.sceneEpoch === reset.graphics!.sceneEpoch &&
+        row.sequence <= reset.graphics!.lastCompletedSequence &&
+        row.readyBefore &&
+        row.readyAfter,
+    );
+    expect(resetSubmissions.length).toBeGreaterThanOrEqual(2);
+    for (const row of resetSubmissions) {
+      expect(row.paused).toBe(true);
+      expect(row.tick).toBe(0);
+      expect(row.throttle).toBe(0);
+      expect(row.provenance).toBe('current');
+    }
+    // Exact canonical equality includes camera, mesh/node transforms, resource
+    // unique IDs and texture/material bindings, not just copied target counts.
+    expect(reset.graphics!.startupVisualState!.state).toBe(
+      reference.graphics!.startupVisualState!.state,
+    );
+    const resetImage = await canvas.screenshot(screenshotOptions);
+    await info.attach('restart-reused-scene-tick-zero-completed.png', {
+      body: resetImage,
+      contentType: 'image/png',
+    });
+    const comparison = compareDisplayedPng(referenceImage, resetImage);
+    evidence.push({ phase: 'actual-reset-image-comparison', comparison });
+    expect(comparison.sameDimensions).toBe(true);
+    expect(comparison.changedPixels).toBe(0);
+    expect(errors).toEqual([]);
+  } finally {
+    release();
+    try {
+      await page.unrouteAll({ behavior: 'wait' });
+    } finally {
+      await info.attach('restart-scene-reuse.json', {
+        body: Buffer.from(JSON.stringify(evidence, null, 2)),
+        contentType: 'application/json',
+      });
+    }
+  }
+});

@@ -28,6 +28,8 @@ The desktop runtime uses Electron to provide a consistent bundled Chromium runti
 
 ## Current implementation and recorded qualification · 2026-11-01
 
+- **Guarded Restart optimization:** a completed healthy proxy-only scene can retain its track graphics while the simulation and Track reset. Two new completed frames are still required; model-loaded, incomplete, lost or changed scenes keep full rebuilding. Combined CPU/build checks pass, but actual reset-image/GPU/native qualification is pending. [Scope](docs/maintenance/babylon-restart-scene-reuse-2026-11-01.md).
+
 - **Original starting-grid markings:** an isolated Babylon owner preserves the original Formula grid geometry and dry paint finish. Exact `468c4cdb` passed all 31 GPU cases, including original-reference factors, all 324 fixed road-occlusion samples, ownership and recovery in the fifth shard. This is not live activation or wet/shadow parity. [Scope](docs/maintenance/babylon-grid-paint-isolated-2026-11-01.md).
 
 - **Original Aurel gantry:** the Aurel A07 gantry structure passed isolated GPU/image qualification with exact original geometry, placement and atlas pixels. Live startup on `9c3b04b` passed all 18 WebGL journeys and Windows/macOS installed-app checks. Linux still fails later after car presentation; banner/lamp behavior and full environment parity remain open. [Scope](docs/maintenance/babylon-start-gantry-2026-11-01.md).

@@ -14,6 +14,8 @@ Migration development stays exclusively on **babylon-js**. Main is frozen at res
 
 ## Latest recorded qualification
 
+**New Restart candidate:** completed healthy proxy scenes may retain graphics after exact identity checks and GPU drain, while physics/Track/input reset normally. Two fresh ready completions remain mandatory. The combined selection passed 804 tests/57 files, types, canonical lint, build and 32-case discovery. Actual reuse/reset-image and native qualification are pending; this is not a proven Linux repair. [Scope](maintenance/babylon-restart-scene-reuse-2026-11-01.md).
+
 **Native investigation:** bounded, explicitly opted-in submission receipts and host command timestamps have been added to distinguish Restart generations and delayed GPU submissions. The clean selection passed 1,393 tests/100 files, types, canonical lint and build. Exact `6c0cc646` native runs passed Windows/macOS but Linux again failed second-pause rebuilt-surface presentation; records identify paused epoch-2 surface frames, not a model frame. This is diagnostic evidence, not a Linux repair. [Scope](maintenance/babylon-submission-observation-2026-11-01.md).
 
 **Latest guard qualification (`ccb5fbe`):** all 28 GPU cases passed, including actual completed-image reuse, exact canonical-state equality and zero changed pixels in the unmasked 1440×900 composited canvas after a true resize round trip. Windows/macOS packaged checks passed all four compatibility journeys. Linux passed initial startup but failed the second paused-presentation gate after Restart, before model loading; later GPU loss does not establish its cause. [Evidence](maintenance/babylon-paused-startup-publication-2026-11-01.md).

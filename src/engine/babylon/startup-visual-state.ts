@@ -26,12 +26,21 @@ export function captureStartupVisualState(view: StartupVisualView): string | nul
   return inspectStartupVisualState(view).state;
 }
 
+/** The same audited static state, omitting only poses overwritten by the snapshot
+ * bridge/chase camera at the next owned draw. Never an image-equivalence proof. */
+export function captureRestartStaticState(view: StartupVisualView): string | null {
+  return inspectStartupVisualState(view, true).state;
+}
+
 /** A conservative CPU fingerprint for the audited static startup scene only.
  * Not general scene equivalence: original geometry and shader plugins are immutable
  * in this phase; the caller must separately retain the authoritative frame and
  * preparation-owner identity. Never asks readiness, computes matrices or polls GL.
  */
-export function inspectStartupVisualState(view: StartupVisualView): StartupVisualInspection {
+export function inspectStartupVisualState(
+  view: StartupVisualView,
+  resetPose = false,
+): StartupVisualInspection {
   let rejectionCode: StartupVisualRejectionCode = 'capture-exception';
   function reject(code: StartupVisualRejectionCode): never {
     rejectionCode = code;
@@ -79,15 +88,31 @@ export function inspectStartupVisualState(view: StartupVisualView): StartupVisua
       return { state: null, rejectionCode: 'unsupported-scene-or-camera' };
     const xyz = (v: { x: number; y: number; z: number }) => [v.x, v.y, v.z];
     const rgb = (v: { r: number; g: number; b: number }) => [v.r, v.g, v.b];
+    const snapshotWorld = (node: (typeof scene.transformNodes)[number]) => {
+      let current: typeof node | null = node;
+      for (let count = 0; current && count <= 128; count++) {
+        if (view.entrants.includes(current)) return true;
+        current = current.parent as typeof node | null;
+      }
+      return false;
+    };
     const transform = (node: typeof camera | (typeof scene.transformNodes)[number]) => {
       if (node.isDisposed() || node.animations.length) reject('unsupported-node');
       const q = node.rotationQuaternion;
       return [
         node.uniqueId,
         node.parent?.uniqueId ?? null,
-        xyz(node.position),
-        xyz(node.rotation),
-        q ? [q.x, q.y, q.z, q.w] : null,
+        resetPose && (node === camera || view.entrants.some((entrant) => entrant === node))
+          ? null
+          : xyz(node.position),
+        resetPose && (node === camera || view.entrants.some((entrant) => entrant === node))
+          ? null
+          : xyz(node.rotation),
+        resetPose && (node === camera || view.entrants.some((entrant) => entrant === node))
+          ? null
+          : q
+            ? [q.x, q.y, q.z, q.w]
+            : null,
         node.isEnabled(),
       ];
     };
@@ -166,6 +191,7 @@ export function inspectStartupVisualState(view: StartupVisualView): StartupVisua
       ];
     });
     const meshes = scene.meshes.map((m) => {
+      if (resetPose && snapshotWorld(m) && m.isWorldMatrixFrozen) reject('unsupported-node');
       if (
         !(m instanceof Mesh) ||
         m.skeleton ||
@@ -218,14 +244,16 @@ export function inspectStartupVisualState(view: StartupVisualView): StartupVisua
         ]),
         // Pinned Node/Matrix getters return their cached buffers directly.
         m.isWorldMatrixFrozen,
-        Array.from(m.worldMatrixFromCache.m),
+        resetPose && snapshotWorld(m) ? null : Array.from(m.worldMatrixFromCache.m),
       ];
     });
+    if (resetPose && scene.transformNodes.some((n) => snapshotWorld(n) && n.isWorldMatrixFrozen))
+      reject('unsupported-node');
     const nodes = scene.transformNodes.map((n) => [
       transform(n),
       xyz(n.scaling),
       n.isWorldMatrixFrozen,
-      Array.from(n.worldMatrixFromCache.m),
+      resetPose && snapshotWorld(n) ? null : Array.from(n.worldMatrixFromCache.m),
     ]);
     const lights = scene.lights.map((l) => {
       if (

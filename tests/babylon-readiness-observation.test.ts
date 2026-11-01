@@ -132,6 +132,7 @@ function graphicsQuery(
     submissionObservation,
     componentEpoch: 2,
     sceneEpoch: 1,
+    restartSceneDecision: null,
     startupPublicationDecision: 'reused-completed-image',
     startupPublicationRejection: rejection,
     renderedStartupVisualState: visual,

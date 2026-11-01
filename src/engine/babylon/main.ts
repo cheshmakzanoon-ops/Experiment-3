@@ -1,3 +1,4 @@
+import { RestartSceneReuse, RestartPresentation } from './restart-scene-reuse.ts';
 import { SubmissionObservation, type SubmissionCapture } from './submission-observation.ts';
 import {
   PausedStartupPublication,
@@ -60,6 +61,18 @@ let stripePreparation: StripePreparation | undefined;
 const submissionObservation = new SubmissionObservation();
 let componentEpoch = 0;
 let sceneEpoch = 0;
+let modelAttempted = false;
+let restartPresentation: RestartPresentation | undefined;
+let restartSceneDecision: 'reused-scene' | 'rebuilt-scene' | null = null;
+let sceneTrack: SimulationComponent['simulation']['track'] | undefined;
+let reuseCandidate: {
+  vehicle: SimulationComponent['simulation']['cars'][number]['definition'];
+  proof: RestartSceneReuse;
+  signal: AbortController;
+  surface: SurfacePreparation;
+  environment: EnvironmentPreparation;
+  stripe: StripePreparation;
+} | null = null;
 let startupPublication: PausedStartupPublication | undefined;
 let startupPublicationDecision: 'reused-completed-image' | 'requested-redraw' | null = null;
 let startupPublicationRejection: StartupPublicationRejection | null = null;
@@ -160,6 +173,9 @@ function readGraphicsDiagnostics(options: boolean | { submissionObservation?: bo
     // Opt-in cached CPU evidence only; default native queries do no extra work.
     ...(includeStartupVisualState
       ? {
+          restartSceneDecision,
+          componentEpoch,
+          sceneEpoch,
           startupPublicationDecision,
           startupPublicationRejection,
           startupVisualState: renderedStartupVisualState ? { ...renderedStartupVisualState } : null,
@@ -195,7 +211,51 @@ const presentation = new PresentationSchedule();
 const graphicsRecovery = new GraphicsRecovery();
 const restartOwnership = new RestartOwnership<SimulationComponent>(
   () => {
-    assetLoad.abort();
+    const graphics = gpu?.diagnostics();
+    let proof: RestartSceneReuse | null = null;
+    try {
+      const eligible =
+        !!scene &&
+        !!sceneTrack &&
+        !modelAttempted &&
+        component.simulation.cars.length === 1 &&
+        !playerWheels &&
+        !playerSteering &&
+        !stopped &&
+        !restartOwnership.pending &&
+        !graphicsRecovery.restartRequired &&
+        !resizePending &&
+        !restartPresentation &&
+        !assetLoad.signal.aborted &&
+        !!surfacePreparation?.completed &&
+        !!environmentPreparation?.completed &&
+        !!stripePreparation?.completed &&
+        stripePreparation.eligible;
+      if (eligible && scene && sceneTrack && graphics) {
+        readSurfaceDiagnostics(scene);
+        environmentPreparation!.gantry!.receipt();
+        environmentPreparation!.lamps!.receipt();
+        environmentPreparation!.banner!.receipt();
+        stripePreparation!.receipt();
+        proof = RestartSceneReuse.capture(scene, sceneTrack, graphics, true);
+      }
+    } catch {
+      /* Unknown retained state takes the original full rebuild. */
+    }
+    reuseCandidate = proof
+      ? {
+          proof,
+          vehicle: component.simulation.cars[0].definition,
+          signal: assetLoad,
+          surface: surfacePreparation!,
+          environment: environmentPreparation!,
+          stripe: stripePreparation!,
+        }
+      : null;
+    if (!reuseCandidate) assetLoad.abort();
+    restartPresentation?.dispose();
+    restartPresentation = undefined;
+    restartSceneDecision = null;
     clearSurfaceDiagnostics();
     loadAsset.disabled = true;
     assetStatus.textContent = 'Restarting presentation…';
@@ -231,6 +291,8 @@ function setPaused(value: boolean) {
   pause.textContent = value ? 'Resume' : 'Pause';
 }
 function stop(error?: unknown) {
+  reuseCandidate = null;
+  restartSceneDecision = null;
   clearSurfaceDiagnostics();
   if (stopped) return;
   stopped = true;
@@ -245,6 +307,7 @@ function stop(error?: unknown) {
     () => engine?.stopRenderLoop(),
     () => assetLoad.abort(),
     () => abort.abort(),
+    () => restartPresentation?.dispose(),
     () => gpu?.dispose(),
     () => inputPump?.dispose(),
     () => input?.dispose(),
@@ -258,7 +321,6 @@ function stop(error?: unknown) {
     console.error('Babylon cleanup failed:', failure);
 }
 function reset() {
-  clearSurfaceDiagnostics();
   if (stopped) return;
   delete assetStatus.dataset.scalarHeightMaterials;
   try {
@@ -269,10 +331,170 @@ function reset() {
     stop(error);
   }
 }
+function readSurfaceDiagnostics(view: BabylonCircuitScene) {
+  const diagnostics = view.surfaceDiagnostics;
+  if (
+    diagnostics.kind === 'formula-ribbon' &&
+    (diagnostics.coarseMeshes !== 0 ||
+      diagnostics.roadChunks === 0 ||
+      diagnostics.paintChunks !== diagnostics.roadChunks * 2 ||
+      diagnostics.leftPaintChunks !== diagnostics.roadChunks ||
+      diagnostics.rightPaintChunks !== diagnostics.roadChunks ||
+      diagnostics.paintFinishMaterials !== 1 ||
+      diagnostics.asphaltSubstrateRoadChunks !== diagnostics.roadChunks ||
+      diagnostics.asphaltSubstrateMaterials !== 1 ||
+      diagnostics.asphaltSubstrateTextures !== 3 ||
+      diagnostics.asphaltSubstrateSrgbTextures !== 1 ||
+      diagnostics.formulaGroundingRoadChunks !== diagnostics.roadChunks ||
+      diagnostics.formulaGroundingPaintChunks !== diagnostics.paintChunks ||
+      diagnostics.formulaGroundingMaterials !== 2 ||
+      diagnostics.formulaGroundingCars !== 1)
+  )
+    throw new Error('Original Formula surface activation incomplete');
+  return diagnostics;
+}
+function publishSurfaceDiagnostics(view: BabylonCircuitScene) {
+  const diagnostics = readSurfaceDiagnostics(view);
+  status.dataset.surfaceKind = diagnostics.kind;
+  for (const key of [
+    'roadChunks',
+    'paintChunks',
+    'leftPaintChunks',
+    'rightPaintChunks',
+    'coarseMeshes',
+    'vertices',
+    'paintFinishMaterials',
+    'asphaltSubstrateRoadChunks',
+    'asphaltSubstrateMaterials',
+    'asphaltSubstrateTextures',
+    'asphaltSubstrateSrgbTextures',
+    'formulaGroundingRoadChunks',
+    'formulaGroundingPaintChunks',
+    'formulaGroundingMaterials',
+    'formulaGroundingCars',
+  ] as const)
+    status.dataset[`surface${key[0].toUpperCase()}${key.slice(1)}`] = String(diagnostics[key]);
+}
+function publishEnvironmentDiagnostics() {
+  for (const [key, value] of Object.entries(environmentPreparation!.gantry!.receipt()))
+    status.dataset[`gantry${key[0].toUpperCase()}${key.slice(1)}`] = String(value);
+  publishLampDiagnostics(environmentPreparation!.lamps!);
+  for (const [key, value] of Object.entries(environmentPreparation!.banner!.receipt()))
+    status.dataset[`banner${key[0].toUpperCase()}${key.slice(1)}`] = String(value);
+  for (const [key, value] of Object.entries(stripePreparation!.receipt()))
+    status.dataset[`stripe${key[0].toUpperCase()}${key.slice(1)}`] = String(value);
+}
+function tryReuseScene(
+  owner: SimulationComponent,
+  deadline: number,
+  candidate: typeof reuseCandidate,
+) {
+  const graphics = gpu!.diagnostics();
+  if (
+    candidate &&
+    scene &&
+    candidate.proof.valid(
+      scene,
+      owner.simulation.track,
+      graphics,
+      !stopped &&
+        owner.simulation.cars.length === 1 &&
+        owner.simulation.cars[0].definition === candidate.vehicle &&
+        !modelAttempted &&
+        !playerWheels &&
+        !playerSteering &&
+        !resizePending &&
+        !graphicsRecovery.restartRequired &&
+        assetLoad === candidate.signal &&
+        !assetLoad.signal.aborted &&
+        surfacePreparation === candidate.surface &&
+        environmentPreparation === candidate.environment &&
+        stripePreparation === candidate.stripe,
+    )
+  ) {
+    restartSceneDecision = 'reused-scene';
+    sceneTrack = owner.simulation.track;
+    graphicsRecovery.rebuilt();
+    const currentScene = scene,
+      currentAssetOwner = assetLoad;
+    const proof = new PausedStartupPublication(gpu!, currentScene.scene, (renderedVisual) => ({
+      component,
+      paused,
+      tick: component.simulation.tick,
+      frame: component.frame,
+      visual:
+        renderedVisual === undefined
+          ? paused
+            ? captureStartupVisualState(currentScene)
+            : null
+          : renderedVisual,
+    }));
+    startupPublication = proof;
+    const resetPresentation = new RestartPresentation(
+      currentScene,
+      gpu!,
+      presentation,
+      assetLoad.signal,
+      deadline,
+    );
+    restartPresentation = resetPresentation;
+    void resetPresentation.completion
+      .then(() => {
+        if (
+          stopped ||
+          component !== owner ||
+          scene !== currentScene ||
+          currentAssetOwner.signal.aborted ||
+          restartOwnership.pending ||
+          restartPresentation !== resetPresentation
+        )
+          return;
+        publishSurfaceDiagnostics(currentScene);
+        publishEnvironmentDiagnostics();
+        const canPublish = proof.canPublish(
+          gpu!.diagnostics(),
+          !resizePending &&
+            !graphicsRecovery.restartRequired &&
+            !presentation.pending &&
+            !!surfacePreparation?.completed &&
+            !!environmentPreparation?.completed &&
+            !!stripePreparation?.completed,
+        );
+        proof.dispose();
+        if (startupPublication === proof) startupPublication = undefined;
+        restartPresentation = undefined;
+        if (canPublish) status.dataset.sceneReady = 'true';
+        else requestPresentation();
+        loadAsset.disabled = false;
+        assetStatus.textContent =
+          'Original car is optional. Paint, dry asphalt and grounding are active; Aurel gantry, snapshot-driven lamps, printed banner and start/finish stripe ready. Practice lamps stay dark; bloom and full environment parity remain unported.';
+      })
+      .catch((error) => {
+        if (
+          stopped ||
+          component !== owner ||
+          scene !== currentScene ||
+          currentAssetOwner.signal.aborted ||
+          restartPresentation !== resetPresentation
+        )
+          return;
+        stop(error);
+      });
+    return true;
+  }
+  return false;
+}
 function rebuildScene(owner: SimulationComponent) {
   const deadline = performance.now() + 120000;
   clearSurfaceDiagnostics();
   delete assetStatus.dataset.scalarHeightMaterials;
+  const candidate = reuseCandidate;
+  reuseCandidate = null;
+  if (tryReuseScene(owner, deadline, candidate)) return;
+  restartSceneDecision = 'rebuilt-scene';
+  restartPresentation?.dispose();
+  restartPresentation = undefined;
+  modelAttempted = false;
   status.dataset.presentationSettled = 'false';
   presentation.reset();
   assetLoad.abort();
@@ -297,6 +519,7 @@ function rebuildScene(owner: SimulationComponent) {
   };
   scene = new BabylonCircuitScene(engine!, owner.simulation.track, 1, context);
   sceneEpoch++;
+  sceneTrack = owner.simulation.track;
   // Fresh model ownership is published only after an explicit safe rebuild.
   graphicsRecovery.rebuilt();
   assetLoad = new AbortController();
@@ -337,44 +560,7 @@ function rebuildScene(owner: SimulationComponent) {
         !pending.completed
       )
         return;
-      const diagnostics = currentScene.surfaceDiagnostics;
-      if (
-        diagnostics.kind === 'formula-ribbon' &&
-        (diagnostics.coarseMeshes !== 0 ||
-          diagnostics.roadChunks === 0 ||
-          diagnostics.paintChunks !== diagnostics.roadChunks * 2 ||
-          diagnostics.leftPaintChunks !== diagnostics.roadChunks ||
-          diagnostics.rightPaintChunks !== diagnostics.roadChunks ||
-          diagnostics.paintFinishMaterials !== 1 ||
-          diagnostics.asphaltSubstrateRoadChunks !== diagnostics.roadChunks ||
-          diagnostics.asphaltSubstrateMaterials !== 1 ||
-          diagnostics.asphaltSubstrateTextures !== 3 ||
-          diagnostics.asphaltSubstrateSrgbTextures !== 1 ||
-          diagnostics.formulaGroundingRoadChunks !== diagnostics.roadChunks ||
-          diagnostics.formulaGroundingPaintChunks !== diagnostics.paintChunks ||
-          diagnostics.formulaGroundingMaterials !== 2 ||
-          diagnostics.formulaGroundingCars !== 1)
-      )
-        throw new Error('Original Formula surface activation incomplete');
-      status.dataset.surfaceKind = diagnostics.kind;
-      for (const key of [
-        'roadChunks',
-        'paintChunks',
-        'leftPaintChunks',
-        'rightPaintChunks',
-        'coarseMeshes',
-        'vertices',
-        'paintFinishMaterials',
-        'asphaltSubstrateRoadChunks',
-        'asphaltSubstrateMaterials',
-        'asphaltSubstrateTextures',
-        'asphaltSubstrateSrgbTextures',
-        'formulaGroundingRoadChunks',
-        'formulaGroundingPaintChunks',
-        'formulaGroundingMaterials',
-        'formulaGroundingCars',
-      ] as const)
-        status.dataset[`surface${key[0].toUpperCase()}${key.slice(1)}`] = String(diagnostics[key]);
+      publishSurfaceDiagnostics(currentScene);
       const environment = new EnvironmentPreparation(
         {
           scene: currentScene.scene,
@@ -497,6 +683,10 @@ try {
   engine.onContextLostObservable.add(() => {
     clearSurfaceDiagnostics();
     delete assetStatus.dataset.scalarHeightMaterials;
+    reuseCandidate = null;
+    restartPresentation?.dispose();
+    restartPresentation = undefined;
+    restartSceneDecision = null;
     gpu?.contextLost();
     graphicsRecovery.contextLost();
     assetLoad.abort();
@@ -533,7 +723,8 @@ try {
       if (!environmentPreparation?.gantry?.completed) return;
       if (!environmentPreparation?.lamps?.completed) return;
       if (!environmentPreparation?.banner?.completed) return;
-      if (!stripePreparation?.completed) return;
+      if (!stripePreparation?.completed || restartPresentation) return;
+      modelAttempted = true;
       const currentScene = scene!,
         owner = assetLoad;
       const deadline = performance.now() + 120000;
@@ -735,7 +926,8 @@ try {
                 gantryReady &&
                   !!environmentPreparation?.lamps?.completed &&
                   !!environmentPreparation?.banner?.completed &&
-                  !!stripePreparation?.completed,
+                  !!stripePreparation?.completed &&
+                  !restartPresentation,
               );
               const visualInspection =
                 paused && !playerSteering && !playerWheels
@@ -815,6 +1007,7 @@ try {
           !!environmentPreparation?.lamps?.completed &&
           !!environmentPreparation?.banner?.completed &&
           !!stripePreparation?.completed &&
+          !restartPresentation &&
           !graphicsRecovery.restartRequired &&
           !resizePending &&
           !presentation.pending &&

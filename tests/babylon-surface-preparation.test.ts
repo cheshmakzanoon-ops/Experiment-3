@@ -311,9 +311,16 @@ it('wires readiness, cancellation, live diagnostics and exclusive draw checks in
   expect(source).toContain(
     'if (resizePresentationWhenIdle(gpu!, () => engine!.resize())) resizePending = false;',
   );
-  expect(source.indexOf('const diagnostics = currentScene.surfaceDiagnostics')).toBeGreaterThan(
-    source.indexOf('void pending.completion'),
+  const validator = source.slice(
+    source.indexOf('function readSurfaceDiagnostics('),
+    source.indexOf('function publishSurfaceDiagnostics('),
   );
+  const publisher = source.slice(
+    source.indexOf('function publishSurfaceDiagnostics('),
+    source.indexOf('function publishEnvironmentDiagnostics('),
+  );
+  expect(validator).toContain('const diagnostics = view.surfaceDiagnostics');
+  expect(publisher).toContain('const diagnostics = readSurfaceDiagnostics(view)');
   const clear = source.slice(
     source.indexOf('function clearSurfaceDiagnostics()'),
     source.indexOf('declare global'),
@@ -329,8 +336,8 @@ it('wires readiness, cancellation, live diagnostics and exclusive draw checks in
     'asphaltSubstrateSrgbTextures',
   ]) {
     expect(clear).toContain(`'surface${key[0].toUpperCase()}${key.slice(1)}'`);
-    expect(completed).toContain(`'${key}'`);
-    expect(completed).toContain(`diagnostics.${key} !==`);
+    expect(publisher).toContain(`'${key}'`);
+    expect(validator).toContain(`diagnostics.${key} !==`);
   }
   expect(clear).toContain('delete status.dataset[key]');
   for (const guard of [
@@ -340,17 +347,91 @@ it('wires readiness, cancellation, live diagnostics and exclusive draw checks in
     '!pending.completed',
   ]) {
     expect(completed).toContain(guard);
-    expect(completed.indexOf(guard)).toBeLessThan(completed.indexOf('const diagnostics ='));
+    expect(completed.indexOf(guard)).toBeLessThan(
+      completed.indexOf('publishSurfaceDiagnostics(currentScene)'),
+    );
   }
-  expect(completed).toContain("throw new Error('Original Formula surface activation incomplete')");
-  for (const fn of [
-    'function reset()',
-    'function rebuildScene',
-    'engine.onContextLostObservable.add',
-  ])
+  expect(validator).toContain("throw new Error('Original Formula surface activation incomplete')");
+  expect(completed).toContain('publishSurfaceDiagnostics(currentScene)');
+  for (const fn of ['function rebuildScene', 'engine.onContextLostObservable.add'])
     expect(source.slice(source.indexOf(fn), source.indexOf(fn) + 180)).toContain(
       'clearSurfaceDiagnostics()',
     );
+  const request = source.slice(
+    source.indexOf('const restartOwnership = new RestartOwnership'),
+    source.indexOf('let renderedFrames = 0;'),
+  );
+  expect(request).toContain('clearSurfaceDiagnostics()');
+  expect(request.indexOf('RestartSceneReuse.capture')).toBeLessThan(
+    request.indexOf('clearSurfaceDiagnostics()'),
+  );
+  expect(request.indexOf('if (!reuseCandidate) assetLoad.abort()')).toBeLessThan(
+    request.indexOf('clearSurfaceDiagnostics()'),
+  );
+  const reset = source.slice(
+    source.indexOf('function reset()'),
+    source.indexOf('function readSurfaceDiagnostics('),
+  );
+  expect(reset).toContain('restartOwnership.request()');
+});
+
+it('rejects unguarded or synthetic surface-publication source controls', () => {
+  const source = readFileSync('src/engine/babylon/main.ts', 'utf8');
+  const valid = (text: string) => {
+    const completion = text.slice(
+      text.indexOf('void pending.completion'),
+      text.indexOf("window.addEventListener('pagehide'"),
+    );
+    const publication = completion.indexOf('publishSurfaceDiagnostics(currentScene)');
+    const guards = [
+      'currentOwner.signal.aborted',
+      'scene !== currentScene',
+      'restartOwnership.pending',
+      '!pending.completed',
+    ];
+    const validator = text.slice(
+      text.indexOf('function readSurfaceDiagnostics('),
+      text.indexOf('function publishSurfaceDiagnostics('),
+    );
+    const publisher = text.slice(
+      text.indexOf('function publishSurfaceDiagnostics('),
+      text.indexOf('function publishEnvironmentDiagnostics('),
+    );
+    return (
+      publication > 0 &&
+      guards.every(
+        (guard) => completion.indexOf(guard) >= 0 && completion.indexOf(guard) < publication,
+      ) &&
+      validator.includes('const diagnostics = view.surfaceDiagnostics') &&
+      publisher.includes('const diagnostics = readSurfaceDiagnostics(view)')
+    );
+  };
+  expect(valid(source)).toBe(true);
+  for (const guard of [
+    'currentOwner.signal.aborted',
+    'scene !== currentScene',
+    'restartOwnership.pending',
+    '!pending.completed',
+  ]) {
+    const start = source.indexOf('void pending.completion');
+    expect(valid(source.slice(0, start) + source.slice(start).replace(guard, 'false'))).toBe(false);
+  }
+  expect(
+    valid(
+      source.replace(
+        'const diagnostics = view.surfaceDiagnostics',
+        'const diagnostics = syntheticCounts',
+      ),
+    ),
+  ).toBe(false);
+  expect(
+    valid(
+      source.replace(
+        'const diagnostics = readSurfaceDiagnostics(view)',
+        'const diagnostics = syntheticCounts',
+      ),
+    ),
+  ).toBe(false);
 });
 
 it('hands paused surface completion to the next compiler before a surplus surface-only draw', async () => {

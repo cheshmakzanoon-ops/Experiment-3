@@ -239,10 +239,7 @@ it('publishes live grounding receipts only behind completed preparation and pres
   const main = readFileSync('src/engine/babylon/main.ts', 'utf8');
   const completion = main.indexOf('void pending.completion');
   const completed = main.indexOf('!pending.completed', completion);
-  const diagnostics = main.indexOf(
-    'const diagnostics = currentScene.surfaceDiagnostics',
-    completed,
-  );
+  const diagnostics = main.indexOf('publishSurfaceDiagnostics(currentScene)', completed);
   expect(completed).toBeGreaterThan(completion);
   expect(diagnostics).toBeGreaterThan(completed);
   for (const field of [
@@ -251,7 +248,12 @@ it('publishes live grounding receipts only behind completed preparation and pres
     'formulaGroundingMaterials',
     'formulaGroundingCars',
   ])
-    expect(main.slice(diagnostics)).toContain(field);
+    expect(
+      main.slice(
+        main.indexOf('function readSurfaceDiagnostics('),
+        main.indexOf('function publishEnvironmentDiagnostics('),
+      ),
+    ).toContain(field);
   expect(main).toContain('new SurfacePreparation(');
   expect(main).toContain('gpu!.frame(presentation, paused, scene!.scene, () => {');
   expect(main).toContain('surfacePreparation?.canDraw && gpu!.ready()');
