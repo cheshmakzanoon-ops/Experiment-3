@@ -1,4 +1,8 @@
-import { SurfacePreparation, resizePresentationWhenIdle } from './surface-preparation.ts';
+import {
+  SurfacePreparation,
+  resizePresentationWhenIdle,
+  pollPresentationForRender,
+} from './surface-preparation.ts';
 import { GantryPreparation } from './gantry-preparation.ts';
 import { LampPreparation } from './lamp-preparation.ts';
 import { BannerPreparation } from './banner-preparation.ts';
@@ -608,13 +612,15 @@ try {
         seconds = (now - last) / 1000;
       last = now;
       component.advance(seconds);
-      if (gpu!.ready()) {
+      const polled = pollPresentationForRender(gpu!, presentation, paused);
+      if (polled.ready) {
         restartOwnership.drain(true, rebuildScene);
         if (!graphicsRecovery.restartRequired && resizePending) {
           if (resizePresentationWhenIdle(gpu!, () => engine!.resize())) resizePending = false;
         }
         // Rebuild may have claimed the preparation lane since the outer ready check.
         if (
+          !polled.deferSubmission &&
           (!bannerPreparation || bannerPreparation.canDraw) &&
           (!lampPreparation || lampPreparation.canDraw) &&
           (!gantryPreparation || gantryPreparation.canDraw)

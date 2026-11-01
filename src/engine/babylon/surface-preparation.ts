@@ -101,3 +101,21 @@ export function resizePresentationWhenIdle(
   resize();
   return true;
 }
+
+/** A ready fence publishes synchronously, but preparation-owner continuations
+ * run as microtasks. While paused, leave this callback's next submission pending
+ * so those continuations can release their token or claim the next compiler lane.
+ * Only a newly observed completion defers; the following RAF cannot starve. */
+export function pollPresentationForRender(
+  gpu: Pick<BabylonPresentationGpu, 'ready' | 'diagnostics'>,
+  schedule: PresentationSchedule,
+  paused: boolean,
+) {
+  const before =
+    paused && schedule.diagnostics().preparationCount > 0 ? gpu.diagnostics().completed : null;
+  const ready = gpu.ready();
+  return {
+    ready,
+    deferSubmission: ready && before !== null && gpu.diagnostics().completed > before,
+  };
+}

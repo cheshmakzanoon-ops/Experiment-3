@@ -1,8 +1,8 @@
 # Original Aurel banner · staged live integration
 
 Work belongs only to `babylon-js`; `main` remains the exact restored snapshot.
-The isolated adapter passed its GPU gate on `757c162`. Live startup now stages
-the banner after the lamps; its expanded runtime checks are pending. Gantry and
+The isolated adapter passed its GPU gate on `757c162`. Live startup stages the banner after the lamps; `6b07b0a` passed the expanded
+GPU and Windows/macOS checks, while Linux remains unqualified. Gantry and
 lamps retain separate owners; this component does not replace or own either one.
 
 ## Original data and material semantics
@@ -144,3 +144,35 @@ active selection was rerun: **1,203 tests in 94 files passed**, including the
 expanded banner observations and repeated-poll regression. A separate affected
 six-file selection passed 113 tests. These are CPU checks, not installed-app
 or live GPU qualification.
+
+## Live qualification: `6b07b0a`
+
+[GPU run 41329124054](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41329124054)
+passed all **25 journeys** (19 retained, three banner, three lamps) and its
+required aggregate check. The strengthened early-paused startup case passed in
+14.729 seconds: tick 723 stayed fixed from held startup (three frames, banner
+absent, loading disabled) through fully settled readiness (13 frames, original
+banner ready), then advanced to 738 on resume. Actual banner receipts report
+1/1/1 resources, two triangles, 512×128 and hardware-sRGB; original gantry and
+five dark lamps remain intact. Inspected preview and original-car screenshots
+show the printed artwork above the original road and gantry.
+
+The isolated banner still passed 112 zero-error factor rows and exact reference
+repeats across four executions, including fresh restart. Lamp qualification
+retains 192 snapshot rows, zero runtime shader compilation/linking and 80 exact
+cap samples with the old-CW negative control. These are SwiftShader software
+WebGL results, not physical-GPU or final-lighting parity.
+
+SHA-verified artifacts:
+- Retained 13093106374:
+  `f89e12aa31aa9ba73b859e182739a4bf8a528ecb098a3cdbb0c640ca220116f2`.
+- Banner 13092372848:
+  `b69fe2ae936f57d572a0820f0b79df0532375b14ee4a7a60676dae384222d80b`.
+- Lamps 13092782817:
+  `b1a3a247e38ea8d98d6c056925977e434409243a3149c5fe88ef91dcbe9c4397`.
+
+[Native run 41329124072](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41329124072)
+passed Windows and macOS; Linux still failed the unchanged first-pause gate.
+This is not an all-platform release. The separate
+[paused handoff optimization](babylon-paused-preparation-handoff-2026-11-01.md)
+is a subsequent change requiring its own runtime qualification.

@@ -7,9 +7,11 @@ import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial.js'
 import {
   SurfacePreparation,
   resizePresentationWhenIdle,
+  pollPresentationForRender,
 } from '../src/engine/babylon/surface-preparation.ts';
 import { BabylonPresentationGpu } from '../src/engine/babylon/presentation-gpu.ts';
 import { PresentationSchedule } from '../src/engine/babylon/presentation-schedule.ts';
+import { RestartOwnership } from '../src/engine/babylon/restart-ownership.ts';
 import { prepareOriginalMaterials } from '../src/engine/babylon/asset-preparation.ts';
 function deferred() {
   let resolve!: () => void;
@@ -350,3 +352,242 @@ it('wires readiness, cancellation, live diagnostics and exclusive draw checks in
       'clearSurfaceDiagnostics()',
     );
 });
+
+it('hands paused surface completion to the next compiler before a surplus surface-only draw', async () => {
+  const h = setup();
+  const deadline = performance.now() + 120000;
+  const surface = new SurfacePreparation(
+    h.scene,
+    h.scene.meshes,
+    h.gpu,
+    h.schedule,
+    h.owner.signal,
+    deadline,
+    async () => {},
+  );
+  let next: SurfacePreparation | undefined;
+  const compiler = vi.fn(async () => {});
+  const handoff = surface.completion.then(() => {
+    next = new SurfacePreparation(
+      h.scene,
+      h.scene.meshes,
+      h.gpu,
+      h.schedule,
+      h.owner.signal,
+      deadline,
+      async (_container, gpu, _signal, sameDeadline) => {
+        expect(sameDeadline).toBe(deadline);
+        await gpu.prepare('next original environment owner', sameDeadline, compiler);
+      },
+    );
+    return next.completion;
+  });
+  const draws: string[] = [];
+  const callback = () => {
+    const polled = pollPresentationForRender(h.gpu, h.schedule, true);
+    if (polled.ready && !polled.deferSubmission && (next ?? surface).canDraw)
+      h.gpu.frame(h.schedule, true, h.scene, () => {
+        draws.push(next ? 'next' : 'surface');
+        return true;
+      });
+    return polled;
+  };
+  try {
+    await flush();
+    callback(); // Submit first surface frame.
+    h.schedule.request();
+    // One synchronous render callback per iteration, before owner microtasks.
+    // The old path submits surface frame three while publishing completion two.
+    for (let frame = 0; frame < 6 && h.gpu.diagnostics().completed < 2; frame++) {
+      if (h.gpu.diagnostics().submitted === 2) h.schedule.request();
+      callback();
+    }
+    expect(h.gpu.diagnostics()).toMatchObject({ submitted: 2, completed: 2 });
+    expect(surface.completed).toBe(false); // Owner continuation has not run yet.
+    expect(h.schedule.diagnostics().requested).toBe(true); // No consumed invalidation.
+    expect(draws).toEqual(['surface', 'surface']);
+    await flush();
+    expect(surface.completed).toBe(true);
+    expect(compiler).toHaveBeenCalledOnce(); // No third surface fence blocks the next lease.
+    expect(h.gpu.diagnostics().preparation).toMatchObject({ active: false, completed: 1 });
+    expect(next?.canDraw).toBe(true);
+    expect(next?.completed).toBe(false);
+    callback();
+    callback();
+    await flush();
+    expect(next?.completed).toBe(false); // One receipt cannot qualify next owner.
+    callback();
+    callback();
+    await handoff;
+    expect(draws).toEqual(['surface', 'surface', 'next', 'next']);
+    expect(h.gpu.diagnostics()).toMatchObject({ submitted: 4, completed: 4 });
+    expect(h.schedule.pending).toBe(false);
+    expect(callback()).toEqual({ ready: true, deferSubmission: false });
+    expect(draws).toHaveLength(4);
+  } finally {
+    h.dispose();
+    await handoff.catch(() => {});
+  }
+});
+
+it.each([false, true])(
+  'does not defer active driving or paused draws without preparation (paused=%s)',
+  (paused) => {
+    const h = setup();
+    const finish = paused ? () => {} : h.schedule.prepare();
+    try {
+      h.gpu.frame(h.schedule, paused, h.scene, () => true);
+      h.schedule.request();
+      const diagnostics = vi.spyOn(h.gpu, 'diagnostics');
+      expect(pollPresentationForRender(h.gpu, h.schedule, paused)).toEqual({
+        ready: true,
+        deferSubmission: false,
+      });
+      expect(diagnostics).not.toHaveBeenCalled();
+      expect(h.gpu.frame(h.schedule, paused, h.scene, () => true)).toBe(true);
+    } finally {
+      finish();
+      h.dispose();
+    }
+  },
+);
+it('defers only a new completion, preserving demand through busy and first-receipt handoffs', () => {
+  const h = setup(),
+    finish = h.schedule.prepare();
+  try {
+    h.gpu.frame(h.schedule, true, h.scene, () => true);
+    h.schedule.request();
+    h.state.wait = 2;
+    expect(pollPresentationForRender(h.gpu, h.schedule, true)).toEqual({
+      ready: false,
+      deferSubmission: false,
+    });
+    expect(h.schedule.diagnostics().requested).toBe(true);
+    h.state.wait = 3;
+    expect(pollPresentationForRender(h.gpu, h.schedule, true)).toEqual({
+      ready: true,
+      deferSubmission: true,
+    });
+    expect(h.schedule.diagnostics().requested).toBe(true);
+    expect(pollPresentationForRender(h.gpu, h.schedule, true)).toEqual({
+      ready: true,
+      deferSubmission: false,
+    });
+    expect(h.gpu.frame(h.schedule, true, h.scene, () => true)).toBe(true);
+    expect(h.gpu.diagnostics().submitted).toBe(2);
+  } finally {
+    finish();
+    h.dispose();
+  }
+});
+it('preserves fatal GPU failures rather than treating them as a yielding completion', () => {
+  const h = setup(),
+    finish = h.schedule.prepare();
+  try {
+    h.gpu.frame(h.schedule, true, h.scene, () => true);
+    h.state.wait = 99;
+    expect(() => pollPresentationForRender(h.gpu, h.schedule, true)).toThrow(
+      'Unable to check GPU frame completion',
+    );
+    expect(h.gpu.diagnostics().completed).toBe(0);
+    expect(h.schedule.diagnostics().preparationCount).toBe(1);
+  } finally {
+    finish();
+    h.dispose();
+  }
+});
+it('keeps restart and resize handling before the normal-submission-only deferral', () => {
+  const source = readFileSync('src/engine/babylon/main.ts', 'utf8');
+  const body = source.slice(source.indexOf('const polled = pollPresentationForRender'));
+  expect(body.indexOf('restartOwnership.drain(true, rebuildScene)')).toBeLessThan(
+    body.indexOf('!polled.deferSubmission'),
+  );
+  expect(body.indexOf('resizePresentationWhenIdle')).toBeLessThan(
+    body.indexOf('!polled.deferSubmission'),
+  );
+  expect(body.indexOf('!polled.deferSubmission')).toBeLessThan(body.indexOf('gpu!.frame('));
+});
+
+it.each(['restart', 'loss', 'dispose'] as const)(
+  'does not carry a paused handoff across %s',
+  async (reason) => {
+    const h = setup();
+    const deadline = performance.now() + 120000;
+    const surface = new SurfacePreparation(
+      h.scene,
+      h.scene.meshes,
+      h.gpu,
+      h.schedule,
+      h.owner.signal,
+      deadline,
+      async () => {},
+    );
+    const outcome = surface.completion.then(
+      () => 'ready',
+      () => 'cancelled',
+    );
+    let replacement: SurfacePreparation | undefined;
+    const replacementAbort = new AbortController();
+    try {
+      await flush();
+      h.gpu.frame(h.schedule, true, h.scene, () => true);
+      expect(pollPresentationForRender(h.gpu, h.schedule, true).deferSubmission).toBe(true);
+      if (reason === 'dispose') {
+        h.gpu.dispose();
+        expect(pollPresentationForRender(h.gpu, h.schedule, true)).toEqual({
+          ready: false,
+          deferSubmission: false,
+        });
+        expect(await outcome).toBe('cancelled');
+        expect(h.schedule.diagnostics().preparationCount).toBe(0);
+        return;
+      }
+      if (reason === 'restart') {
+        const reset = vi.fn(() => ({}));
+        const restart = new RestartOwnership(() => h.owner.abort(), reset);
+        restart.request();
+        restart.request();
+        const rebuild = vi.fn(() => {
+          h.schedule.reset();
+          replacement = new SurfacePreparation(
+            h.scene,
+            h.scene.meshes,
+            h.gpu,
+            h.schedule,
+            replacementAbort.signal,
+            deadline,
+            async () => {},
+          );
+        });
+        expect(restart.drain(true, rebuild)).toBe(true);
+        expect(reset).toHaveBeenCalledTimes(2);
+        expect(rebuild).toHaveBeenCalledOnce();
+        expect(await outcome).toBe('cancelled');
+        await flush();
+      } else {
+        h.gpu.contextLost();
+        expect(pollPresentationForRender(h.gpu, h.schedule, true)).toEqual({
+          ready: false,
+          deferSubmission: false,
+        });
+        h.gpu.contextRestored();
+        h.schedule.request();
+      }
+      const current = replacement ?? surface;
+      expect(pollPresentationForRender(h.gpu, h.schedule, true).deferSubmission).toBe(false);
+      for (let i = 0; i < 2; i++) {
+        h.gpu.frame(h.schedule, true, h.scene, () => true);
+        expect(pollPresentationForRender(h.gpu, h.schedule, true).deferSubmission).toBe(true);
+        await flush();
+        expect(current.completed).toBe(i === 1);
+      }
+      await current.completion;
+      expect(h.gpu.diagnostics()).toMatchObject({ submitted: 3, completed: 3 });
+      expect(h.schedule.diagnostics().preparationCount).toBe(0);
+    } finally {
+      replacementAbort.abort();
+      h.dispose();
+      await outcome;
+    }
+  },
+);
