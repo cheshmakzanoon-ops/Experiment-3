@@ -35,6 +35,7 @@ it('observes actual native terms before/after the applied plugin using the real 
   const engine = new NullEngine();
   engines.push(engine);
   Object.defineProperty(engine, 'supportsUniformBuffers', { value: true });
+  Object.defineProperty(engine, 'webGLVersion', { value: 2 });
   const scene = new Scene(engine);
   scene.useRightHandedSystem = true;
   const material = new PBRMaterial('original paint', scene);

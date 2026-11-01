@@ -197,10 +197,10 @@ it('explicitly clears and detaches the pose owner when scene disposal aborts bef
 it('cleans the unreachable owner when the second plugin installation fails, with no coarse fallback', () => {
   const engine = new NullEngine();
   engines.push(engine);
-  Object.defineProperty(engine, 'webGLVersion', { value: 2 });
+  Object.defineProperty(engine, 'supportsUniformBuffers', { value: true });
   Object.assign(engine.getCaps(), { supportSRGBBuffers: true, standardDerivatives: true });
   const installed: number[] = [];
-  Object.defineProperty(engine, 'supportsUniformBuffers', {
+  Object.defineProperty(engine, 'webGLVersion', {
     get: () => {
       installed.push(
         engine.scenes
@@ -208,7 +208,7 @@ it('cleans the unreachable owner when the second plugin installation fails, with
           .filter((material) => material.pluginManager?.getPlugin('OriginalFormulaGrounding'))
           .length,
       );
-      return installed.at(-1) === 0;
+      return installed.at(-1) === 0 ? 2 : 1;
     },
   });
   const disposed = vi.spyOn(FormulaGroundingPoses.prototype, 'dispose');
@@ -219,6 +219,7 @@ it('cleans the unreachable owner when the second plugin installation fails, with
         vehicles: [FORMULA_APX01],
       }),
   ).toThrow('install once before preparation');
+  // Inject loss of required WebGL2, not the supported non-UBO driver path.
   // Constructors query the capability too; reject only after the first
   // grounding plugin is actually registered, not after an assumed read count.
   expect(installed.at(-1)).toBe(1);

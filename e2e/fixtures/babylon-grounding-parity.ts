@@ -237,8 +237,8 @@ function present(metrics: ReturnType<typeof groundingPresence>, label: string) {
       throw new Error(`Required native grounding term invalid/absent: ${label}`);
 }
 
-export async function babylonControlledGroundingParity() {
-  const h = createSurfaceProbeHarness(SIZE, SIZE),
+export async function babylonControlledGroundingParity(forceStandalone = false) {
+  const h = createSurfaceProbeHarness(SIZE, SIZE, undefined, forceStandalone),
     canvas = document.createElement('canvas');
   document.body.append(canvas);
   const renderer = new THREE.WebGLRenderer({
@@ -699,6 +699,8 @@ export async function babylonControlledGroundingParity() {
       poses = new FormulaGroundingPoses(h.scene, h.abort.signal);
       const before = surfaceProbeResources(h.scene);
       for (const [i, material] of [owner.material, paint].entries()) {
+        if (material._uniformBuffer.useUbo !== (h.transport === 'ubo'))
+          throw new Error('Grounding material transport differs from observed engine transport');
         new GroundingNativeBefore(material);
         new FormulaGroundingPlugin(material, poses);
         observers.push(new GroundingNativeOutput(material, receivers[i]));
@@ -888,6 +890,8 @@ export async function babylonControlledGroundingParity() {
     }
   return {
     failure,
+    forceStandalone,
+    transport: h.transport,
     phases,
     referenceQualified,
     candidateConstructed,

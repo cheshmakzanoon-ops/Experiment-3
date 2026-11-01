@@ -26,6 +26,8 @@ The desktop runtime uses Electron to provide a consistent bundled Chromium runti
 
 ## Current implementation and recorded qualification · 2026-11-01
 
+- **macOS grounding compatibility:** live source `6ead398` passed 13 GPU journeys and Windows’s four installed-mode checks, but Mac startup exposed Babylon’s deliberate non-UBO driver path. Grounding now uses the correct vec4 uniform fallback while preserving that safeguard; new dual-transport GPU/native qualification is pending. Linux GPU-process loss remains unresolved. [Evidence and correction](docs/maintenance/babylon-live-grounding-2026-11-01.md).
+
 - **Branch-local live grounding:** the isolated implementation passed all 13 GPU journeys on `7e9cbb6`. Existing Formula road/paint materials now consume original vehicle grounding poses; no models, geometry or physics are replaced. The changed live workload and three-OS packages require their own results. [Scope and pending gates](docs/maintenance/babylon-live-grounding-2026-11-01.md).
 
 - **Latest native qualification (`0076e3c`):** Windows and Apple Silicon passed 855 contracts and all four installed compatibility journeys. Required Mesa passed original-model/wheel checks, then failed Formula preparation with final GPU loss; publication was skipped. The same source passed all 12 Babylon WebGL journeys. [Native run](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41272683767) · [GPU run](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41272683640).

@@ -42,12 +42,20 @@ import {
 
 // Isolated engineering probe; neither game entry imports this file. It exercises
 // the current surface owner without changing live selection, shaders or physics.
-function harness(width: number, height: number, sceneFactory?: (engine: Engine) => Scene) {
+function harness(
+  width: number,
+  height: number,
+  sceneFactory?: (engine: Engine) => Scene,
+  forceStandalone = false,
+) {
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
   document.body.append(canvas);
   const engine = new Engine(canvas, false, { preserveDrawingBuffer: true });
+  // Only disable: never override Babylon native driver exclusions.
+  if (forceStandalone) engine.disableUniformBuffers = true;
+  const transport = engine.supportsUniformBuffers ? ('ubo' as const) : ('standalone' as const);
   const gl = canvas.getContext('webgl2');
   if (!gl) throw new Error('Surface acceptance requires WebGL2');
   let scene: Scene;
@@ -140,6 +148,7 @@ function harness(width: number, height: number, sceneFactory?: (engine: Engine) 
   };
   return {
     canvas,
+    transport,
     engine,
     gl,
     scene,
@@ -799,7 +808,12 @@ export async function babylonFormulaSurfaceVisibility() {
   };
 }
 
-type LiveGroundingBind = { mesh: Mesh; effect: Effect; buffer: DataBuffer; notifications: number };
+type LiveGroundingBind = {
+  mesh: Mesh;
+  effect: Effect;
+  buffer: DataBuffer | null;
+  notifications: number;
+};
 const groundingShaderAnchors = [
   'highp int formulaGroundingCount;',
   'vec4 formulaGroundingPose[12];',
@@ -809,8 +823,9 @@ const groundingShaderAnchors = [
   'finalAmbient*=formulaIndirect;',
 ];
 /** Inspection is only called after completed draws under the existing GPU lease.
- * onBind receipts retain real draw objects; driver block metadata locates GPU
- * bytes, never plugin-private CPU state or fabricated effect identities. */
+ * onBind receipts retain real draw objects; driver metadata locates UBO bytes
+ * or actual standalone uniforms, never plugin-private CPU state or fabricated
+ * effect identities. The native Mac UBO exclusion is never overridden. */
 async function liveGroundingReceipt(
   h: ReturnType<typeof harness>,
   view: BabylonCircuitScene,
@@ -822,27 +837,32 @@ async function liveGroundingReceipt(
     | {
         expected: number[];
         receivers: {
+          transport: 'ubo' | 'standalone';
           surface: string;
           notifications: number;
           count: number;
           poses: number[];
-          block: number;
-          binding: number;
-          byteLength: number;
-          countOffset: number;
-          poseOffset: number;
-          poseStride: number;
+          block: number | null;
+          binding: number | null;
+          byteLength: number | null;
+          countOffset: number | null;
+          poseOffset: number | null;
+          poseStride: number | null;
           countType: number;
           poseType: number;
           poseSize: number;
         }[];
         completedSequence: number;
+        completedFrames: number;
       }
     | undefined;
-  await h.gpu.prepare('inspect completed live grounding UBOs', h.deadline, async (signal) => {
+  await h.gpu.prepare('inspect completed live grounding uniforms', h.deadline, async (signal) => {
     signal.throwIfAborted();
     const gl = h.gl;
-    const previous = gl.getParameter(gl.UNIFORM_BUFFER_BINDING) as WebGLBuffer | null;
+    const previous =
+      h.transport === 'ubo'
+        ? (gl.getParameter(gl.UNIFORM_BUFFER_BINDING) as WebGLBuffer | null)
+        : null;
     try {
       const root = view.entrants[0];
       const pose = writeFormulaGroundingPose(
@@ -861,14 +881,76 @@ async function liveGroundingReceipt(
           !view.scene.materials.includes(material) ||
           mesh.material !== material ||
           !mesh.subMeshes.some((submesh) => submesh.effect === effect) ||
-          material._uniformBuffer.getBuffer() !== buffer ||
+          (material._uniformBuffer.getBuffer() ?? null) !== buffer ||
+          material._uniformBuffer.useUbo !== (h.transport === 'ubo') ||
           material._uniformBuffer.currentEffect !== effect ||
-          !buffer.underlyingResource
+          (h.transport === 'ubo' ? !buffer?.underlyingResource : buffer !== null)
         )
           throw new Error('Stale live grounding bind receipt');
         const program = (effect.getPipelineContext() as WebGLPipelineContext | null)?.program;
         if (!program || !gl.isProgram(program) || !gl.getProgramParameter(program, gl.LINK_STATUS))
           throw new Error('Live grounding program was not linked');
+        if (h.transport === 'standalone') {
+          const indices = Array.from(
+            { length: gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS) as number },
+            (_, index) => index,
+          );
+          const find = (name: string) => {
+            const index = indices.find((i) => gl.getActiveUniform(program, i)?.name === name);
+            if (index === undefined)
+              throw new Error('Live standalone grounding uniform absent: ' + name);
+            return index;
+          };
+          const countIndex = find('formulaGroundingCount');
+          const poseIndex = find('formulaGroundingPose[0]');
+          const countInfo = gl.getActiveUniform(program, countIndex)!;
+          const poseInfo = gl.getActiveUniform(program, poseIndex)!;
+          const blocks = gl.getActiveUniforms(
+            program,
+            [countIndex, poseIndex],
+            gl.UNIFORM_BLOCK_INDEX,
+          ) as number[];
+          if (
+            countInfo.type !== gl.INT ||
+            countInfo.size !== 1 ||
+            poseInfo.type !== gl.FLOAT_VEC4 ||
+            poseInfo.size !== 12 ||
+            blocks.some((block) => block !== -1 && block !== gl.INVALID_INDEX)
+          )
+            throw new Error('Unexpected live grounding standalone uniform layout');
+          const location = (name: string) => {
+            const value = gl.getUniformLocation(program, name);
+            if (value === null) throw new Error('Live grounding uniform location absent: ' + name);
+            return value;
+          };
+          const count = gl.getUniform(program, location('formulaGroundingCount')) as number;
+          const poses = Array.from({ length: 12 }, (_, i) => {
+            const value = gl.getUniform(
+              program,
+              location(`formulaGroundingPose[${i}]`),
+            ) as Float32Array;
+            if (!(value instanceof Float32Array) || value.length !== 4)
+              throw new Error('Live grounding standalone pose is not vec4');
+            return Array.from(value);
+          }).flat();
+          return {
+            transport: h.transport,
+            surface: mesh.metadata.surface as string,
+            notifications,
+            count,
+            poses,
+            block: null,
+            binding: null,
+            byteLength: null,
+            countOffset: null,
+            poseOffset: null,
+            poseStride: null,
+            countType: countInfo.type,
+            poseType: poseInfo.type,
+            poseSize: poseInfo.size,
+          };
+        }
+        if (!buffer) throw new Error('Live grounding UBO buffer absent');
         const block = gl.getUniformBlockIndex(program, 'Material');
         if (block === gl.INVALID_INDEX) throw new Error('Live grounding Material block absent');
         const binding = gl.getActiveUniformBlockParameter(
@@ -931,6 +1013,7 @@ async function liveGroundingReceipt(
         const count = new Int32Array(bytes, offsets[0], 1)[0];
         const poses = Array.from(new Float32Array(bytes, offsets[1], 48));
         return {
+          transport: h.transport,
           surface: mesh.metadata.surface as string,
           notifications,
           count,
@@ -952,9 +1035,10 @@ async function liveGroundingReceipt(
         expected,
         receivers,
         completedSequence: h.gpu.diagnostics().lastCompletedSequence,
+        completedFrames: h.gpu.diagnostics().completed,
       };
     } finally {
-      gl.bindBuffer(gl.UNIFORM_BUFFER, previous);
+      if (h.transport === 'ubo') gl.bindBuffer(gl.UNIFORM_BUFFER, previous);
     }
   });
   if (!result) throw new Error('Missing live grounding GPU receipt');
@@ -992,8 +1076,9 @@ function sameLiveGeometry(
 /** Full workload through the actual live scene/readiness classes. The real
  * /babylon.html journey selects Aurel; Vellamar is qualified here without a
  * hidden production query parameter or fabricated route diagnostics. */
-export async function babylonFullFormulaScenes() {
+export async function babylonFullFormulaScenes(forceStandalone = false) {
   const rows: {
+    transport: 'ubo' | 'standalone';
     circuit: string;
     surfaces: BabylonCircuitScene['surfaceDiagnostics'];
     resources: ReturnType<typeof resources>;
@@ -1037,13 +1122,18 @@ export async function babylonFullFormulaScenes() {
         opponents: 0,
       });
       let view!: BabylonCircuitScene;
-      h = harness(1024, 768, (engine) => {
-        view = new BabylonCircuitScene(engine, host.simulation.track, 1, {
-          presentation: 'circuit',
-          vehicles: host.simulation.cars.map((car) => car.definition),
-        });
-        return view.scene;
-      });
+      h = harness(
+        1024,
+        768,
+        (engine) => {
+          view = new BabylonCircuitScene(engine, host.simulation.track, 1, {
+            presentation: 'circuit',
+            vehicles: host.simulation.cars.map((car) => car.definition),
+          });
+          return view.scene;
+        },
+        forceStandalone,
+      );
       const binds = new Map<PBRMaterial, LiveGroundingBind>();
       const bindings = new Map<DataBuffer, Set<number>>();
       // Forward every native binding unchanged; observe arguments only, with no
@@ -1077,9 +1167,9 @@ export async function babylonFullFormulaScenes() {
         )
           material.onBindObservable.add((mesh) => {
             const effect = mesh?.subMeshes[0]?.effect,
-              buffer = material._uniformBuffer.getBuffer();
-            if (!(mesh instanceof Mesh) || !effect || !buffer)
-              throw new Error('Live grounding bound without effect/UBO');
+              buffer = material._uniformBuffer.getBuffer() ?? null;
+            if (!(mesh instanceof Mesh) || !effect || (h!.transport === 'ubo' && !buffer))
+              throw new Error('Live grounding bound without effect or required UBO');
             binds.set(material, {
               mesh,
               effect,
@@ -1222,6 +1312,7 @@ export async function babylonFullFormulaScenes() {
         view.dispose();
       });
       rows.push({
+        transport: h.transport,
         circuit,
         surfaces,
         resources: retained,
@@ -1261,6 +1352,7 @@ export async function babylonFullFormulaScenes() {
   }
   return {
     rows,
+    forceStandalone,
     failure,
     failureEvidence,
     scope:

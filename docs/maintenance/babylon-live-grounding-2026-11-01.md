@@ -73,3 +73,44 @@ pinned Node 22 lane. Original renderer/simulation/public asset paths have zero
 Git diff. Initial workflow-test lint failure (regex spacing) was corrected and
 its test/format check rerun; no assertion was removed. These local passes are not
 GPU or installed-game acceptance. The existing large-chunk build warning remains.
+
+## Live checkpoint `6ead398` and macOS transport correction
+
+Exact `6ead3981b25e37c1546e4e5f678682c7703ff9a4` passed **13/13 real WebGL
+journeys** and 375 CI contracts in [run 41290879777](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41290879777).
+Both canonical venues produced correct initial/moved GPU count/pose arrays with
+44 inactive scalars zero, unchanged shader effects/geometry/resources and GL0.
+Actual images show grounding under the diagnostic proxy; plain environments and
+horizon fragments remain, so this is not final-art parity.
+
+[Native run 41290879836](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41290879836)
+finished with Windows passing Babylon controls/import/wheels and all four
+installed compatibility journeys. Linux lost its GPU process after model
+presentation (exit 512, cause unproven). macOS failed before drawing because the
+new grounding plugin required UBOs. All reports identify the exact source and
+fingerprint `17a232e15f44c4459bd16926c5996b89a822e1921f7c6c215fcfd0f2179feb9e`.
+
+Pinned Babylon deliberately disables uniform buffers for `Mac OS.+Chrome`.
+That driver safeguard is preserved. Grounding now supports Babylon's ordinary
+uniform path as well as UBOs: `updateFloatArray` uses registered vec4 array stride
+and dispatches `setFloatArray4`; the former `updateArray` would wrongly use scalar
+`uniform1fv` in fallback mode. Persistent Float32 storage preserves the original
+rounded pose bytes. Missing/disposed/foreign/mismatched bound effects still fail;
+WebGL2 and GLSL remain required. Production adds no driver query/readiness poll.
+
+Qualification now runs both full live venues and the complete isolated probe in
+native-default and deliberately UBO-disabled test modes. Ordinary-uniform proof
+reads actual linked program count and all twelve vec4 elements, verifies types,
+array size and non-block membership after completed draws, and repeats after
+movement. UBO-specific fields are null rather than fabricated in standalone mode.
+Both modes retain identical pixel/closure/control/resource/cache gates. No native
+exception or user agent is overridden. Exact correction-source GPU and native
+results remain pending; the earlier Mac failure is not a pass.
+
+Correction-source local checks: **495 tests across 43 files passed**, complete
+ESLint, TypeScript/Vite production build passed, and all **15** GPU journeys were
+discovered without launching a browser locally. Real UniformBuffer tests prove
+ordinary vec4 dispatch never calls scalar-array setters; 0/12/1/0 UBO uploads are
+byte-identical to the prior path. Missing/foreign/disposed/mismatched effects are
+rejected without draw-time readiness polling. Driver exceptions, shader algebra,
+original renderer/simulation/public assets and acceptance thresholds are unchanged.

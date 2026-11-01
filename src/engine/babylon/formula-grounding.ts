@@ -28,7 +28,7 @@ import {
  * finally path too: an unrelated earlier Scene observer may skip our observer. */
 export class FormulaGroundingPoses {
   private count = 0;
-  private readonly poses = new Array<number>(MAX * 4).fill(0);
+  private readonly poses = new Float32Array(MAX * 4);
   private dead = false;
   private readonly detach: () => void;
   constructor(
@@ -53,7 +53,7 @@ export class FormulaGroundingPoses {
     return !this.dead && !this.scene.isDisposed;
   }
   snapshot() {
-    return { count: this.count, poses: this.poses.slice(), valid: this.isValid };
+    return { count: this.count, poses: Array.from(this.poses), valid: this.isValid };
   }
   set(count: number, input: ArrayLike<number>) {
     if (!this.isValid) throw new Error('Formula grounding: invalidated pose owner');
@@ -92,9 +92,20 @@ export class FormulaGroundingPoses {
   }
   bind(buffer: UniformBuffer) {
     if (!this.isValid) throw new Error('Formula grounding: invalidated pose owner');
-    if (!buffer.useUbo) throw new Error('Formula grounding: WebGL2 material UBO required');
+    // Babylon deliberately disables UBOs on some WebGL2 platforms. Preserve
+    // that native safety policy; ordinary uniforms still need a live bound
+    // effect. Never poll effect readiness/driver state during a draw.
+    if (
+      !buffer.useUbo &&
+      (!buffer.currentEffect ||
+        buffer.currentEffect.isDisposed ||
+        buffer.currentEffect.getEngine() !== this.scene.getEngine())
+    )
+      throw new Error('Formula grounding: live bound uniform effect required');
     buffer.updateInt('formulaGroundingCount', this.count);
-    buffer.updateArray('formulaGroundingPose', this.poses);
+    // addUniform(name, 4, MAX) registers vec4 stride even without UBOs.
+    // updateArray would incorrectly fall back to uniform1fv for vec4[MAX].
+    buffer.updateFloatArray('formulaGroundingPose', this.poses);
   }
   dispose() {
     this.invalidate();
@@ -382,12 +393,15 @@ export class FormulaGroundingPlugin extends MaterialPluginBase {
     private readonly poses: FormulaGroundingPoses,
   ) {
     assertFormulaGroundingAnchors();
+    const engine = material.getScene().getEngine();
     if (
       !poses.isValid ||
       poses.scene !== material.getScene() ||
       material._uniformBufferLayoutBuilt ||
       material.shaderLanguage !== 0 ||
-      !material.getScene().getEngine().supportsUniformBuffers ||
+      engine.isWebGPU ||
+      !('webGLVersion' in engine) ||
+      engine.webGLVersion !== 2 ||
       material.pluginManager?.getPlugin('OriginalFormulaGrounding')
     )
       throw new Error(
@@ -454,6 +468,8 @@ export class FormulaGroundingPlugin extends MaterialPluginBase {
   ) {
     if (!this.isValid) throw new Error('Formula grounding: invalidated material');
     assertScope(this._material as PBRMaterial, scene, subMesh.getMesh());
+    if (!buffer.useUbo && buffer.currentEffect !== subMesh.effect)
+      throw new Error('Formula grounding: current submesh uniform effect required');
     this.poses.bind(buffer);
   }
   getCustomCode(type: string): Record<string, string> | null {

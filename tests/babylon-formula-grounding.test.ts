@@ -8,7 +8,8 @@ import {
   MaterialPluginEvent,
   type MaterialPluginGetDefineNames,
 } from '@babylonjs/core/Materials/materialPluginEvent.js';
-import type { UniformBuffer } from '@babylonjs/core/Materials/uniformBuffer.js';
+import { UniformBuffer } from '@babylonjs/core/Materials/uniformBuffer.js';
+import type { Effect } from '@babylonjs/core/Materials/effect.js';
 import { ShaderStore } from '@babylonjs/core/Engines/shaderStore.js';
 import { ProcessIncludes } from '@babylonjs/core/Engines/Processors/shaderProcessor.js';
 import { Mesh } from '@babylonjs/core/Meshes/mesh.js';
@@ -31,10 +32,11 @@ import {
 import { CircuitPaintFinishPlugin } from '../src/engine/babylon/circuit-paint-finish.ts';
 import { groundingOracle } from './fixtures/formula-grounding-oracle.ts';
 const engines: NullEngine[] = [];
-function setup() {
+function setup(ubo = true, webGLVersion = 2) {
   const engine = new NullEngine();
   engines.push(engine);
-  Object.defineProperty(engine, 'supportsUniformBuffers', { value: true });
+  Object.defineProperty(engine, 'supportsUniformBuffers', { value: ubo });
+  Object.defineProperty(engine, 'webGLVersion', { value: webGLVersion });
   const scene = new Scene(engine);
   scene.useRightHandedSystem = true;
   const light = new HemisphericLight('native sky', Vector3.Up(), scene);
@@ -133,7 +135,7 @@ it('uses the existing material UBO with no maps, meshes or independent GPU owner
       materials: s.scene.materials.length,
     };
   s.poses.set(1, [1, 2, 3, 4]);
-  const values = { useUbo: true, updateInt: vi.fn(), updateArray: vi.fn() };
+  const values = { useUbo: true, updateInt: vi.fn(), updateFloatArray: vi.fn() };
   s.plugin.hardBindForSubMesh(
     values as unknown as UniformBuffer,
     s.scene,
@@ -141,13 +143,10 @@ it('uses the existing material UBO with no maps, meshes or independent GPU owner
     s.mesh.subMeshes[0],
   );
   expect(values.updateInt).toHaveBeenCalledWith('formulaGroundingCount', 1);
-  expect(values.updateArray).toHaveBeenCalledWith('formulaGroundingPose', [
-    1,
-    2,
-    3,
-    4,
-    ...new Array(44).fill(0),
-  ]);
+  expect(values.updateFloatArray).toHaveBeenCalledWith(
+    'formulaGroundingPose',
+    new Float32Array([1, 2, 3, 4, ...new Array(44).fill(0)]),
+  );
   expect(s.plugin.getUniforms().ubo).toEqual([
     { name: 'formulaGroundingCount', size: 1, type: 'highp int' },
     { name: 'formulaGroundingPose', size: 4, type: 'vec4', arraySize: 12 },
@@ -158,7 +157,7 @@ it('uses the existing material UBO with no maps, meshes or independent GPU owner
     materials: s.scene.materials.length,
   }).toEqual(before);
   expect(() => s.poses.bind({ ...values, useUbo: false } as unknown as UniformBuffer)).toThrow(
-    'UBO',
+    'live bound uniform effect required',
   );
 });
 it('generates matching explicit integer precision in both native Material blocks without changing UBO layout or uploads', async () => {
@@ -233,6 +232,8 @@ it('generates matching explicit integer precision in both native Material blocks
   const standalone = await emit('fragment', false);
   expect(standalone).toContain('uniform highp int formulaGroundingCount;');
   expect(standalone).not.toContain('uniform int formulaGroundingCount;');
+  expect(standalone.match(/uniform vec4 formulaGroundingPose\[12\];/g)).toHaveLength(1);
+  expect(standalone).not.toMatch(/uniform Material\s*\{/);
 });
 it('keeps persistent shader/cache identity across zero, maximum and shrinking counts and later plugins', () => {
   const s = setup();
@@ -437,4 +438,113 @@ it('does not commit a staged pose if reading input cancels its owner', () => {
   };
   expect(() => poses.set(1, input)).toThrow('invalidated');
   expect(poses.snapshot()).toEqual({ count: 0, poses: new Array(48).fill(0), valid: false });
+});
+
+it('retains WebGL2 capability while permitting Babylon native non-UBO mode without overriding it', () => {
+  const s = setup(false);
+  expect(s.engine.webGLVersion).toBe(2);
+  expect(s.engine.supportsUniformBuffers).toBe(false);
+  expect(s.plugin.isValid).toBe(true);
+  expect(s.material._uniformBuffer.useUbo).toBe(false);
+  expect(() => setup(false, 1)).toThrow('live WebGL2 material');
+  expect(() => setup(true, 1)).toThrow('live WebGL2 material');
+});
+
+it('uses real UniformBuffer fallback integer/vec4 dispatch, never scalar float-array upload', () => {
+  const s = setup(false),
+    buffer = s.material._uniformBuffer;
+  const uploaded: { count: number; values: number[] }[] = [];
+  let count = -1;
+  const effect = {
+    isDisposed: false,
+    dispose: vi.fn(),
+    getEngine: () => s.engine,
+    isReady: vi.fn(() => {
+      throw new Error('no driver readiness polling during a draw');
+    }),
+    setInt: vi.fn((_name: string, value: number) => {
+      count = value;
+    }),
+    setFloatArray4: vi.fn((_name: string, values: Float32Array) => {
+      uploaded.push({ count, values: Array.from(values) });
+    }),
+    setArray: vi.fn(() => {
+      throw new Error('scalar uniform1fv is invalid for vec4[12]');
+    }),
+    setFloatArray: vi.fn(() => {
+      throw new Error('missing registered vec4 array stride');
+    }),
+  };
+  s.material.buildUniformLayout();
+  expect(buffer).toBeInstanceOf(UniformBuffer);
+  expect(buffer.useUbo).toBe(false);
+  expect(buffer.getBuffer()).toBeFalsy();
+  expect(() => s.poses.bind(buffer)).toThrow('live bound uniform effect required');
+  expect(effect.setInt).not.toHaveBeenCalled();
+  buffer.bindToEffect(effect as unknown as Effect, 'Material');
+  for (const active of [0, 12, 2, 0]) {
+    s.poses.set(
+      active,
+      Array.from({ length: active * 4 }, (_, i) => (i - 7) / 10),
+    );
+    s.poses.bind(buffer);
+    expect(uploaded.at(-1)).toEqual({ count: active, values: s.poses.snapshot().poses });
+  }
+  expect(effect.setInt.mock.calls.map(([name]) => name)).toEqual(
+    new Array(4).fill('formulaGroundingCount'),
+  );
+  expect(effect.setFloatArray4.mock.calls.map(([name]) => name)).toEqual(
+    new Array(4).fill('formulaGroundingPose'),
+  );
+  expect(new Set(effect.setFloatArray4.mock.calls.map(([, values]) => values)).size).toBe(1);
+  expect(effect.setArray).not.toHaveBeenCalled();
+  expect(effect.setFloatArray).not.toHaveBeenCalled();
+  expect(buffer.getBuffer()).toBeFalsy();
+  expect(() => s.plugin.hardBindForSubMesh(buffer, s.scene, s.engine, s.mesh.subMeshes[0])).toThrow(
+    'current submesh uniform effect required',
+  );
+  expect(effect.setInt).toHaveBeenCalledTimes(4);
+  s.mesh.subMeshes[0].setEffect(effect as unknown as Effect);
+  s.plugin.hardBindForSubMesh(buffer, s.scene, s.engine, s.mesh.subMeshes[0]);
+  expect(effect.setInt).toHaveBeenCalledTimes(5);
+  expect(effect.isReady).not.toHaveBeenCalled();
+  const otherEngine = new NullEngine();
+  engines.push(otherEngine);
+  effect.getEngine = () => otherEngine;
+  expect(() => s.poses.bind(buffer)).toThrow('live bound uniform effect required');
+  effect.getEngine = () => s.engine;
+  effect.isDisposed = true;
+  expect(() => s.poses.bind(buffer)).toThrow('live bound uniform effect required');
+  expect(effect.setInt).toHaveBeenCalledTimes(5);
+});
+
+it('keeps stride-aware UBO bytes identical to the qualified updateArray path', () => {
+  const s = setup(),
+    original = new UniformBuffer(s.engine);
+  for (const uniform of s.plugin.getUniforms().ubo)
+    original.addUniform(uniform.name, uniform.size, 'arraySize' in uniform ? uniform.arraySize : 0);
+  const candidate = new UniformBuffer(s.engine);
+  for (const uniform of s.plugin.getUniforms().ubo)
+    candidate.addUniform(
+      uniform.name,
+      uniform.size,
+      'arraySize' in uniform ? uniform.arraySize : 0,
+    );
+  try {
+    for (const active of [0, 12, 1, 0]) {
+      s.poses.set(
+        active,
+        Array.from({ length: active * 4 }, (_, i) => Math.sin(i) * 100),
+      );
+      original.updateInt('formulaGroundingCount', active);
+      original.updateArray('formulaGroundingPose', s.poses.snapshot().poses);
+      s.poses.bind(candidate);
+      expect(new Uint8Array(candidate.getData().buffer)).toEqual(
+        new Uint8Array(original.getData().buffer),
+      );
+    }
+  } finally {
+    original.dispose();
+    candidate.dispose();
+  }
 });
