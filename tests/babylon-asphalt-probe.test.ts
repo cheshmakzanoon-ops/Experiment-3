@@ -3,6 +3,27 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { compareAsphaltPixels } from '../e2e/fixtures/asphalt-parity-metrics.ts';
 
+const sourcePath = (path: string) => path.replaceAll('\\', '/');
+const isLiveAsphaltImport = (path: string, source: string) =>
+  !sourcePath(path).includes('/asphalt-substrate') &&
+  /from\s+['"][^'"]*asphalt-substrate/.test(source);
+
+it.each([
+  ['src/engine/babylon/asphalt-substrate.ts', false],
+  ['src\\engine\\babylon\\asphalt-substrate.ts', false],
+  ['src/engine/babylon/asphalt-substrate-plugin.ts', false],
+  ['src\\engine\\babylon\\asphalt-substrate-plugin.ts', false],
+  ['src/engine/babylon/formula-surfaces.ts', true],
+  ['src\\engine\\babylon\\formula-surfaces.ts', true],
+] as const)(
+  'classifies live asphalt imports independently of path separators: %s',
+  (path, live) => {
+    expect(isLiveAsphaltImport(path, "import { owner } from './asphalt-substrate.ts';")).toBe(live);
+    expect(isLiveAsphaltImport(path, "import { other } from './other.ts';")).toBe(false);
+    expect(sourcePath(path)).not.toContain('\\');
+  },
+);
+
 const image = (size = 16) => {
   const data = new Uint8Array(size * size * 4);
   for (let i = 0; i < data.length; i += 4) data.set([100, 110, 120, 255], i);
@@ -89,11 +110,9 @@ it('keeps the candidate outside every live import and leaves the actual original
     }
   };
   walk('src');
-  const imports = files.filter(
-    (path) =>
-      !path.includes('/asphalt-substrate') &&
-      /from\s+['"][^'"]*asphalt-substrate/.test(readFileSync(path, 'utf8')),
-  );
+  const imports = files
+    .filter((path) => isLiveAsphaltImport(path, readFileSync(path, 'utf8')))
+    .map(sourcePath);
   expect(imports).toEqual([]);
   const original = readFileSync('src/rendering/surface-detail.ts', 'utf8');
   expect(original).not.toContain('babylon');
