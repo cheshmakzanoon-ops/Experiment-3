@@ -14,6 +14,8 @@ Migration development stays exclusively on **babylon-js**. Main is frozen at res
 
 ## Latest recorded qualification
 
+**Grid handoff repair:** `57d5a475` passed 31 GPU cases but rebuilt instead of reusing the scene in the strict Restart case. Windows/macOS passed; Linux failed during rebuilt-surface presentation. A captured exact retained-resource proof now separates internal handoff validation from public pending readiness. Actual cohort/controller regressions and 878 workflow tests pass; fresh runtime verification remains required. [Evidence and correction](maintenance/babylon-live-grid-2026-11-01.md).
+
 **Live-grid candidate:** original dry grid markings join the existing environment cohort with independent fresh-frame receipts, strict resource validation and unchanged startup deadlines. Fault injection also fixed interrupted mesh cleanup when geometry disposal throws. The restart image fixture now uses identical real-pointer focus setup, preserving unmasked exact comparison. Fresh GPU/native qualification is required. [Scope](maintenance/babylon-live-grid-2026-11-01.md).
 
 **New Restart candidate:** completed healthy proxy scenes may retain graphics after exact identity checks and GPU drain, while physics/Track/input reset normally. Two fresh ready completions remain mandatory. The combined selection passed 804 tests/57 files, types, canonical lint, build and 32-case discovery. Actual reuse/reset-image and native qualification are pending; this is not a proven Linux repair. [Scope](maintenance/babylon-restart-scene-reuse-2026-11-01.md).

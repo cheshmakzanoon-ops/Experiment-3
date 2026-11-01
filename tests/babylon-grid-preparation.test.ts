@@ -484,3 +484,71 @@ it('disposal detaches but never adopts or disposes an unrelated replacement geom
   foreignGeometry.dispose(); // The independent external owner performs its own cleanup.
   h.baseline();
 });
+
+it('captures retained resource proof only after public completion, never while staged or currentness is blocked', async () => {
+  const h = harness(),
+    grid = new GridPreparation(h.options, h.load, { staged: true });
+  expect(grid.captureRetainedProof()).toBeNull();
+  h.stage.resolve();
+  await grid.prepared;
+  expect(grid.captureRetainedProof()).toBeNull();
+  const installing = grid.install();
+  h.completed();
+  expect(grid.captureRetainedProof()).toBeNull();
+  h.completed();
+  await installing;
+  const proof = grid.captureRetainedProof();
+  expect(proof).not.toBeNull();
+  h.stale();
+  expect(grid.completed).toBe(false);
+  expect(() => grid.receipt()).toThrow();
+  expect(grid.captureRetainedProof()).toBeNull();
+  // Resource retention is deliberately not current-generation authorization.
+  // Main independently validates current scene/component/GPU identity at drain.
+  expect(proof!.valid(h.scene)).toBe(true);
+  grid.dispose();
+  h.baseline();
+});
+it.each([
+  'signal',
+  'scene',
+  'abort',
+  'dispose',
+  'material',
+  'geometry',
+  'buffer',
+  'hidden',
+] as const)('rejects invalid retained resource proof: %s', async (kind) => {
+  const h = harness(),
+    grid = await ready(h),
+    proof = grid.captureRetainedProof()!;
+  expect(proof).not.toBeNull();
+  const mesh = h.owner().diagnostics().meshes[0];
+  if (kind === 'signal') h.options.signal = new AbortController().signal;
+  if (kind === 'abort') h.abort.abort();
+  if (kind === 'dispose') grid.dispose();
+  if (kind === 'material') h.owner().diagnostics().material.alpha = 0.5;
+  if (kind === 'geometry') mesh.geometry!.releaseForMesh(mesh, false);
+  if (kind === 'buffer') mesh.getVerticesData('position')![0] += 0.1;
+  if (kind === 'hidden') mesh.isVisible = false;
+  const other = kind === 'scene' ? new Scene(h.scene.getEngine()) : h.scene;
+  try {
+    expect(proof.valid(other)).toBe(false);
+  } finally {
+    if (other !== h.scene) other.dispose();
+    grid.dispose();
+  }
+  h.baseline();
+});
+it('does not issue a retained proof for an ineligible completed grid scope', async () => {
+  const h = harness();
+  h.options.track = new Track('rain');
+  const grid = new GridPreparation(h.options, h.load);
+  await grid.completion;
+  expect(grid.completed).toBe(true);
+  expect(grid.receipt().state).toBe('ineligible');
+  expect(grid.captureRetainedProof()).toBeNull();
+  expect(h.load).not.toHaveBeenCalled();
+  grid.dispose();
+  h.baseline();
+});

@@ -129,6 +129,45 @@ export class GridPreparation {
   /** Validate exact retained resources, not only diagnostic counts. No GPU query. */
   receipt() {
     if (!this.completed) throw new Error('Grid paint environment is not ready');
+    return this.bindingReceipt();
+  }
+  /** Internal resource-retention proof, NOT current-generation readiness. Capture
+   * only while publicly ready. The drained restart caller must independently
+   * authorize the current component/scene/GPU handoff; its pending flag deliberately
+   * keeps completed/receipt false until that synchronous handoff returns. */
+  captureRetainedProof() {
+    if (!this.eligible || !this.completed) return null;
+    try {
+      this.receipt();
+    } catch {
+      return null;
+    }
+    const owner = this.owner,
+      scene = this.options.scene,
+      signal = this.options.signal;
+    return {
+      valid: (expectedScene: BabylonGridPaintOptions['scene']) => {
+        if (
+          expectedScene !== scene ||
+          this.options.scene !== scene ||
+          this.options.signal !== signal ||
+          this.owner !== owner ||
+          this.disposed ||
+          !this.ready ||
+          signal.aborted ||
+          scene.isDisposed
+        )
+          return false;
+        try {
+          this.bindingReceipt();
+          return true;
+        } catch {
+          return false;
+        }
+      },
+    };
+  }
+  private bindingReceipt() {
     const scope = {
       dryOnly: true,
       gpSwitchingParity: false,

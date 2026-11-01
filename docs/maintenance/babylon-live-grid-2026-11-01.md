@@ -73,3 +73,73 @@ cases. These are not additive test totals. The earlier five injected cleanup
 failures, four source-layout assertion failures and two test-type errors remain
 retained as intermediate evidence; final checks ran on the unchanged corrected
 source. No GPU/native pass is inferred from local validation.
+
+## First runtime result: `57d5a475`
+
+[GPU run 41359235723](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41359235723)
+finished with 31 passed and one failed. The new Restart case expected
+`reused-scene` but received `rebuilt-scene`, after 27.412 s, not a timeout.
+Identical-focus assertions passed; the strict reset-image comparison was not
+reached. All four isolated shards passed, all 380 common PNGs stayed identical,
+and grid still verified 315 visible/nine occluded fixed samples and normal
+buffer disposal. Retained artifact 13105011223 SHA-256:
+`93265f66f31e7b93d33b1f985770868a4ef62d8f0ec22a70f0ed5061f2f52a38`.
+
+Source investigation and a regression using the real controller/wrapper found
+an integration error: RestartOwnership drains by invoking rebuild before clearing
+its pending flag. The new grid validation used public completed/receipt checks,
+whose current-owner predicate correctly rejects while restart is pending. It
+therefore rejected the internal retained-scene handoff too. The correction must
+separate a captured retained-resource proof from public readiness, not clear
+pending early or relax the two-new-frame requirement. Tests must also use the
+actual environment cohort's combined cancellation signal, not a raw-controller
+lookalike that misses this ownership boundary.
+
+[Native run 41359235735](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41359235735)
+passed Windows/macOS and all four compatibility journeys: 36/36 and 23/23 draws,
+449 preparations each. Actual grid receipts reported two parts, one material,
+12 slots, 36 boxes, 432 triangles and dry-only scope; screenshots visibly show
+those original grid markings. All platforms recorded component 2 / scene 2,
+confirming full rebuild, not reuse.
+
+Linux passed initial 6/6 with grid ready (28.500 s host readiness bracket), then
+failed second readiness before model import with a GPU-health error. GPU exit 512
+was logged about 7 ms before rejection, after a 29.594 s host gate bracket and
+285 polls. The last poll, 26 ms before rejection, showed 10/9 frames, 253 completed
+preparations and pending age 27.457 s. Epoch-2 frame 10 was paused at tick 30,
+surface preparation, zero throttle and no wheel adapter. Rebuilt grid was not
+yet installed. This differs from the preceding post-model Pause-click timeout;
+no driver-cause or Linux-repair claim follows.
+
+Verified artifacts: Windows 13105005582, macOS 13103734736, Linux 13104509374.
+Fingerprint: `4c60660b09972a8e55d17aa261b3d2cdf6569e777553d9610e475d54ae8a8d17`.
+
+## Retained-grid handoff correction
+
+A proof is captured only when the grid is publicly complete and its actual
+bindings are valid. During the drained restart handoff it revalidates the same
+wrapper, scene, owned resources and captured combined cancellation signal without
+mistaking the transient public pending gate for resource invalidity. Main still
+requires the exact current component, scene, controller and healthy drained GPU.
+The controller's pending flag is not cleared early. Public completed/receipt
+checks stay closed while pending, and two new ready reset frames remain mandatory.
+
+The regression now constructs actual EnvironmentPreparation, all four real
+preparation wrappers/subscriptions, the real grid owner and production
+RestartOwnership/main callbacks. Synthetic sibling resources are explicitly CPU
+fixtures. It reproduces the original pending-gate failure and an intermediate
+combined-signal identity error: the environment forwards AbortSignal.any, not the
+raw asset controller's signal. The proof retains that actual combined signal;
+main independently retains raw controller identity. Environment disposal with the
+raw signal still alive must invalidate the proof. Changed scene/component,
+missing proof, replaced/mutated grid, abort and repeated restart remain negatives.
+
+The corrected exact workflow selection passed 878 tests across 58 files, with
+93 focused checks, full types and canonical lint. These are overlapping selections,
+not additive totals. Earlier test-fixture typing/lint failures are retained.
+Runtime activation and unmasked reset-image equivalence still require a fresh
+published-source GPU/native run; no Linux reliability result is implied.
+
+Final frozen production build and discovery of all 32 browser cases also passed.
+The ordinary large-chunk warning remains. Independent review verified the exact
+four-file correction; no source changes occurred during the final check sequence.

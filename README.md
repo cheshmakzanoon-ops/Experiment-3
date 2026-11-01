@@ -28,7 +28,7 @@ The desktop runtime uses Electron to provide a consistent bundled Chromium runti
 
 ## Current implementation and recorded qualification · 2026-11-01
 
-- **Guarded Restart optimization:** a completed healthy proxy-only scene can retain its track graphics while the simulation and Track reset. Two new completed frames are still required; model-loaded, incomplete, lost or changed scenes keep full rebuilding. Combined CPU/build checks pass, but actual reset-image/GPU/native qualification is pending. [Scope](docs/maintenance/babylon-restart-scene-reuse-2026-11-01.md).
+- **Guarded Restart optimization:** a completed healthy proxy scene can retain graphics while simulation/Track reset, then requires two new completed frames. Live-grid qualification found a pending-readiness check incorrectly blocking this internal handoff; a narrowly scoped retained-resource proof corrects it without opening public readiness early. Fresh runtime qualification is pending. [Scope](docs/maintenance/babylon-restart-scene-reuse-2026-11-01.md) · [Grid regression and repair](docs/maintenance/babylon-live-grid-2026-11-01.md).
 
 - **Original starting-grid markings:** isolated `468c4cdb` passed all 31 GPU cases, including all 324 fixed road-occlusion samples and cleanup/recovery. The grid is now wired into live dry Formula startup as the fourth shared-presentation owner; fresh live GPU/native qualification is pending. Wet/shadow/final-lighting parity remains unqualified. [Live scope](docs/maintenance/babylon-live-grid-2026-11-01.md) · [Isolated evidence](docs/maintenance/babylon-grid-paint-isolated-2026-11-01.md).
 

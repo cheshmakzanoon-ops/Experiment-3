@@ -74,6 +74,7 @@ let reuseCandidate: {
   environment: EnvironmentPreparation;
   stripe: StripePreparation;
   grid: GridPreparation;
+  gridProof: NonNullable<ReturnType<GridPreparation['captureRetainedProof']>>;
 } | null = null;
 let startupPublication: PausedStartupPublication | undefined;
 let startupPublicationDecision: 'reused-completed-image' | 'requested-redraw' | null = null;
@@ -227,6 +228,7 @@ const restartOwnership = new RestartOwnership<SimulationComponent>(
   () => {
     const graphics = gpu?.diagnostics();
     let proof: RestartSceneReuse | null = null;
+    let gridProof: ReturnType<GridPreparation['captureRetainedProof']> = null;
     try {
       const eligible =
         !!scene &&
@@ -253,23 +255,25 @@ const restartOwnership = new RestartOwnership<SimulationComponent>(
         environmentPreparation!.lamps!.receipt();
         environmentPreparation!.banner!.receipt();
         stripePreparation!.receipt();
-        environmentPreparation!.grid!.receipt();
+        gridProof = environmentPreparation!.grid!.captureRetainedProof();
         proof = RestartSceneReuse.capture(scene, sceneTrack, graphics, true);
       }
     } catch {
       /* Unknown retained state takes the original full rebuild. */
     }
-    reuseCandidate = proof
-      ? {
-          proof,
-          vehicle: component.simulation.cars[0].definition,
-          signal: assetLoad,
-          surface: surfacePreparation!,
-          environment: environmentPreparation!,
-          stripe: stripePreparation!,
-          grid: environmentPreparation!.grid!,
-        }
-      : null;
+    reuseCandidate =
+      proof && gridProof
+        ? {
+            proof,
+            vehicle: component.simulation.cars[0].definition,
+            signal: assetLoad,
+            surface: surfacePreparation!,
+            environment: environmentPreparation!,
+            stripe: stripePreparation!,
+            grid: environmentPreparation!.grid!,
+            gridProof,
+          }
+        : null;
     if (!reuseCandidate) assetLoad.abort();
     restartPresentation?.dispose();
     restartPresentation = undefined;
@@ -418,6 +422,7 @@ function tryReuseScene(
       owner.simulation.track,
       graphics,
       !stopped &&
+        owner === component &&
         owner.simulation.cars.length === 1 &&
         owner.simulation.cars[0].definition === candidate.vehicle &&
         !modelAttempted &&
@@ -432,7 +437,8 @@ function tryReuseScene(
         stripePreparation === candidate.stripe &&
         environmentPreparation?.grid === candidate.grid &&
         !!candidate.grid &&
-        gridPreparationValid(environmentPreparation?.grid, candidate.grid),
+        !!candidate.gridProof &&
+        candidate.gridProof.valid(scene.scene),
     )
   ) {
     restartSceneDecision = 'reused-scene';

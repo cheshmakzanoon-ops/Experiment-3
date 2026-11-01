@@ -1,3 +1,11 @@
+import { EnvironmentPreparation } from '../src/engine/babylon/environment-preparation.ts';
+import { waitForPresentation } from '../src/engine/babylon/presentation-ready.ts';
+import { CreatePlane } from '@babylonjs/core/Meshes/Builders/planeBuilder.js';
+import { PBRMaterial } from '@babylonjs/core/Materials/PBR/pbrMaterial.js';
+import { RawTexture } from '@babylonjs/core/Materials/Textures/rawTexture.js';
+import type { BabylonStartGantryOptions } from '../src/engine/babylon/start-gantry.ts';
+import gantryManifest from '../src/rendering/start-gantry.manifest.json' with { type: 'json' };
+import { PausedStartupPublication } from '../src/engine/babylon/paused-startup-publication.ts';
 import { GridPreparation, gridPreparationValid } from '../src/engine/babylon/grid-preparation.ts';
 import { createBabylonGridPaint } from '../src/engine/babylon/grid-paint.ts';
 import { FORMULA_APX01 } from '../src/simulation/vehicles.ts';
@@ -305,7 +313,23 @@ describe('production restart selection before invalidation', () => {
   function requestHarness() {
     const { view, component } = setup();
     const abort = new AbortController();
-    const complete = { completed: true, eligible: true, receipt: () => ({}) };
+    const complete = {
+      completed: true,
+      eligible: true,
+      receipt: () => ({}),
+      captureRetainedProof() {
+        return {
+          valid: () => {
+            try {
+              this.receipt();
+              return this.completed && this.eligible;
+            } catch {
+              return false;
+            }
+          },
+        };
+      },
+    };
     const context: Record<string, unknown> = {
       RestartOwnership,
       RestartSceneReuse,
@@ -364,6 +388,240 @@ describe('production restart selection before invalidation', () => {
       request: () => (context.testOwnership as RestartOwnership<SimulationComponent>).request(),
     };
   }
+  it.each([
+    'retained',
+    'changed-scene',
+    'changed-component',
+    'aborted',
+    'environment-aborted',
+    'replaced-grid',
+    'missing-proof',
+    'mutated-grid',
+    'repeat',
+  ] as const)(
+    'actual pending RestartOwnership drain with real grid: %s (retention still requires a fresh reset pair)',
+    async (mode) => {
+      const h = requestHarness(),
+        events = receipts(),
+        schedule = new PresentationSchedule();
+      const view = h.context.scene as BabylonCircuitScene;
+      const controller = h.context.restartOwnership as RestartOwnership<SimulationComponent>;
+      h.context.currentScene = view;
+      const main = readFileSync('src/engine/babylon/main.ts', 'utf8');
+      const environmentSource = main.slice(
+        main.indexOf('const environment = new EnvironmentPreparation('),
+      );
+      const currentSource = environmentSource.match(/isCurrent: (\(\) => [^\n]+),/)!;
+      expect(currentSource).not.toBeNull();
+      const isCurrent = runInNewContext(`(${currentSource[1]})`, h.context) as () => boolean;
+      const gpu = {
+        ...events.gpu,
+        diagnostics: graphics,
+        prepare: async (
+          _label: string,
+          _deadline: number,
+          work: (signal: AbortSignal) => Promise<void>,
+        ) => work(h.abort.signal),
+      } as BabylonPresentationGpu;
+      h.context.gpu = gpu;
+      // Sibling meshes/materials are synthetic CPU fixtures, not art/parity proof.
+      // The actual cohort, all four wrappers, grid adapter and receipt subscriptions
+      // are production code, including the cohort's combined cancellation signal.
+      const forwarded: AbortSignal[] = [];
+      const sibling = async (
+        kind: 'gantry' | 'lamps' | 'banner',
+        options: Pick<BabylonStartGantryOptions, 'scene' | 'signal'>,
+      ) => {
+        forwarded.push(options.signal);
+        const scene = options.scene,
+          count = kind === 'gantry' ? 4 : kind === 'lamps' ? 5 : 1;
+        const materials = Array.from({ length: kind === 'lamps' ? 5 : 1 }, (_, i) => {
+          const material = new PBRMaterial(`${kind}-${i}`, scene);
+          material.emissiveIntensity = 0;
+          scene.removeMaterial(material);
+          return material;
+        });
+        const meshes = Array.from({ length: count }, (_, i) => {
+          const mesh = CreatePlane(`${kind}-${i}`, {}, scene);
+          mesh.setIndices(
+            Array.from(
+              { length: kind === 'gantry' ? 7140 : kind === 'lamps' ? 240 : 6 },
+              (_, j) => j % 3,
+            ),
+          );
+          mesh.material = materials[kind === 'lamps' ? i : 0];
+          mesh.computeWorldMatrix(true);
+          scene.removeMesh(mesh);
+          return mesh;
+        });
+        const texture =
+          kind === 'banner'
+            ? RawTexture.CreateRGBATexture(new Uint8Array(512 * 128 * 4), 512, 128, scene)
+            : undefined;
+        if (texture) {
+          materials[0].albedoTexture = texture;
+          scene.removeTexture(texture);
+        }
+        let state = 'prepared';
+        const abort = new AbortController();
+        return {
+          apply: () => {},
+          diagnostics: () => ({
+            state,
+            parts: meshes.map((mesh) => ({ mesh, material: mesh.material })),
+            activeParts: meshes.filter((mesh) => scene.meshes.includes(mesh)).length,
+            activeMaterials: materials.filter((m) => scene.materials.includes(m)).length,
+            activeTextures:
+              kind === 'gantry' ? 3 : texture && scene.textures.includes(texture) ? 1 : 0,
+            sha256: gantryManifest.sha256,
+            mesh: meshes[0],
+            material: materials[0],
+            texture,
+            hardwareSrgb: true,
+          }),
+          async install() {
+            state = 'installing';
+            meshes.forEach((mesh) => scene.addMesh(mesh));
+            materials.forEach((m) => scene.addMaterial(m));
+            if (texture) scene.addTexture(texture);
+            await waitForPresentation(scene, AbortSignal.any([options.signal, abort.signal]), gpu);
+            state = 'ready';
+          },
+          dispose() {
+            abort.abort();
+            state = 'disposed';
+            meshes.forEach((m) => m.dispose());
+            materials.forEach((m) => m.dispose());
+            texture?.dispose();
+          },
+        };
+      };
+      type Dependencies = NonNullable<ConstructorParameters<typeof EnvironmentPreparation>[2]>;
+      const environment = new EnvironmentPreparation(
+        {
+          scene: view.scene,
+          track: (h.context.component as SimulationComponent).simulation.track,
+          context: { presentation: 'circuit', vehicles: [FORMULA_APX01] },
+          base: 'https://example.invalid/',
+          signal: h.abort.signal,
+          gpu,
+          schedule,
+          deadline: performance.now() + 120000,
+          isCurrent,
+        },
+        () => (h.context.component as SimulationComponent).frame,
+        {
+          gantry: ((o: Pick<BabylonStartGantryOptions, 'scene' | 'signal'>) =>
+            sibling('gantry', o)) as unknown as Dependencies['gantry'],
+          lamps: ((o: Pick<BabylonStartGantryOptions, 'scene' | 'signal'>) =>
+            sibling('lamps', o)) as unknown as Dependencies['lamps'],
+          banner: ((o: Pick<BabylonStartGantryOptions, 'scene' | 'signal'>) =>
+            sibling('banner', o)) as unknown as Dependencies['banner'],
+          grid: (options) => {
+            forwarded.push(options.signal);
+            return createBabylonGridPaint(options, { prepare: async () => {} });
+          },
+        },
+      );
+      cleanup.push(() => {
+        environment.grid = grid;
+        environment.dispose();
+      });
+      for (let turn = 0; turn < 100; turn++) await Promise.resolve();
+      expect(environment.canDraw).toBe(true);
+      expect(forwarded).toHaveLength(4);
+      expect(new Set(forwarded).size).toBe(1);
+      expect(forwarded[0]).not.toBe(h.abort.signal);
+      events.emit(view.scene);
+      events.emit(view.scene);
+      await environment.completion;
+      const grid = environment.grid!;
+      h.context.environmentPreparation = environment;
+      Object.assign(h.context, {
+        PausedStartupPublication,
+        RestartPresentation,
+        presentation: schedule,
+        paused: true,
+        captureStartupVisualState,
+        graphicsRecovery: { restartRequired: false, rebuilt: vi.fn() },
+        publishSurfaceDiagnostics: vi.fn(),
+        publishEnvironmentDiagnostics: vi.fn(),
+        requestPresentation: vi.fn(),
+        status: { dataset: {} },
+        stop: vi.fn(),
+      });
+      h.request();
+      expect(h.context.reuseCandidate).not.toBeNull();
+      expect(h.abort.signal.aborted).toBe(false);
+      expect(controller.pending).toBe(true);
+      expect(grid.completed).toBe(false);
+      expect(() => grid.receipt()).toThrow();
+      expect(grid.captureRetainedProof()).toBeNull();
+      const helper = main.slice(
+        main.indexOf('function tryReuseScene('),
+        main.indexOf('function rebuildScene('),
+      );
+      const reuse = runInNewContext(transpileModule(`(${helper})`, {}).outputText, h.context) as (
+        owner: SimulationComponent,
+        deadline: number,
+        candidate: unknown,
+      ) => boolean;
+      let accepted = false;
+      if (mode === 'changed-scene') h.context.scene = setup().view;
+      if (mode === 'changed-component') h.context.component = fresh();
+      if (mode === 'aborted') h.abort.abort();
+      if (mode === 'environment-aborted') {
+        environment.dispose();
+        expect(h.abort.signal.aborted).toBe(false);
+      }
+      if (mode === 'replaced-grid')
+        (h.context.environmentPreparation as { grid: unknown }).grid = {};
+      if (mode === 'missing-proof')
+        (h.context.reuseCandidate as { gridProof: unknown }).gridProof = null;
+      if (mode === 'mutated-grid') {
+        const material = view.scene.materials.find((m) =>
+          m.name.startsWith('Original Aurel Formula grid paint'),
+        )!;
+        material.alpha = 0.5;
+      }
+      if (mode === 'repeat') h.request();
+      try {
+        expect(
+          controller.drain(false, () => {
+            throw new Error('undrained GPU handoff');
+          }),
+        ).toBe(false);
+        expect(
+          controller.drain(true, (owner) => {
+            expect(controller.pending).toBe(true);
+            expect(gridPreparationValid(grid)).toBe(false);
+            accepted = reuse(owner, performance.now() + 120000, h.context.reuseCandidate);
+          }),
+        ).toBe(true);
+        if (mode !== 'retained') {
+          expect(accepted).toBe(false);
+          expect(h.context.restartPresentation).toBeUndefined();
+          return;
+        }
+        expect(accepted).toBe(true);
+        expect(grid.completed).toBe(true);
+        const reset = h.context.restartPresentation as RestartPresentation;
+        expect(reset).toBeInstanceOf(RestartPresentation);
+        expect(reset.completed).toBe(false);
+        events.emit(view.scene);
+        await Promise.resolve();
+        expect(reset.completed).toBe(false);
+        events.emit(view.scene);
+        await reset.completion;
+        expect(reset.completed).toBe(true);
+        expect(h.context.stop).not.toHaveBeenCalled();
+      } finally {
+        h.context.stopped = true;
+        (h.context.restartPresentation as RestartPresentation | undefined)?.dispose();
+        (h.context.startupPublication as PausedStartupPublication | undefined)?.dispose();
+      }
+    },
+  );
   it('retains completed scene ownership before invalidation and freshens physics immediately (old unconditional rebuild regresses)', () => {
     const h = requestHarness(),
       old = h.context.component as SimulationComponent;
@@ -470,9 +728,12 @@ describe('production restart selection before invalidation', () => {
       expect(enable).toBeGreaterThanOrEqual(0);
       const expression = source.slice(enable).match(/assetStatus\.textContent\s*=\s*([\s\S]*?);\n/);
       expect(expression).not.toBeNull();
-      const value: unknown = runInNewContext(transpileModule(`(${expression![1]})`, {}).outputText, {
-        environmentPreparation: { gantry: { eligible: true }, grid: { eligible } },
-      });
+      const value: unknown = runInNewContext(
+        transpileModule(`(${expression![1]})`, {}).outputText,
+        {
+          environmentPreparation: { gantry: { eligible: true }, grid: { eligible } },
+        },
+      );
       expect(typeof value).toBe('string');
       expect((value as string).length).toBeGreaterThan(0);
       return value;
@@ -505,7 +766,7 @@ describe('production restart selection before invalidation', () => {
     expect(publication).toContain('gridPreparationValid(environmentPreparation?.grid)');
     expect(settled).toContain('gridPreparationValid(environmentPreparation?.grid)');
     expect(model).toContain('if (!gridPreparationValid(environmentPreparation?.grid)) return;');
-    expect(main).toContain('gridPreparationValid(environmentPreparation?.grid, candidate.grid)');
+    expect(main).toContain('candidate.gridProof.valid(scene.scene)');
     expect(main).toContain('gridPreparationValid(environment.grid)');
     expect(
       main.match(/loadAsset\.disabled = !gridPreparationValid\(environmentPreparation\?\.grid\);/g),
