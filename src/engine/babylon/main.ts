@@ -1,8 +1,9 @@
 import {
   PausedStartupPublication,
   startupVisualSubmissionSequence,
+  type StartupPublicationRejection,
 } from './paused-startup-publication.ts';
-import { captureStartupVisualState } from './startup-visual-state.ts';
+import { captureStartupVisualState, inspectStartupVisualState } from './startup-visual-state.ts';
 import {
   SurfacePreparation,
   resizePresentationWhenIdle,
@@ -57,14 +58,19 @@ let environmentPreparation: EnvironmentPreparation | undefined;
 let stripePreparation: StripePreparation | undefined;
 let startupPublication: PausedStartupPublication | undefined;
 let startupPublicationDecision: 'reused-completed-image' | 'requested-redraw' | null = null;
+let startupPublicationRejection: StartupPublicationRejection | null = null;
 let renderedStartupVisualState: {
   source: 'last-owned-paused-draw';
+  rejectionCode:
+    | ReturnType<typeof inspectStartupVisualState>['rejectionCode']
+    | 'authored-player-active';
   state: string | null;
   sequence: number | null;
   tick: number;
 } | null = null;
 function clearSurfaceDiagnostics() {
   startupPublicationDecision = null;
+  startupPublicationRejection = null;
   renderedStartupVisualState = null;
   startupPublication?.dispose();
   startupPublication = undefined;
@@ -134,6 +140,7 @@ function readGraphicsDiagnostics(includeStartupVisualState = false) {
     ...(includeStartupVisualState
       ? {
           startupPublicationDecision,
+          startupPublicationRejection,
           startupVisualState: renderedStartupVisualState ? { ...renderedStartupVisualState } : null,
         }
       : {}),
@@ -420,6 +427,7 @@ function rebuildScene(owner: SimulationComponent) {
           !playerSteering &&
           !playerWheels,
       );
+      startupPublicationRejection = publication.rejectionReason;
       publication.dispose();
       if (startupPublication === publication) startupPublication = undefined;
       startupPublicationDecision = publishWithoutDraw
@@ -697,11 +705,17 @@ try {
                   !!environmentPreparation?.banner?.completed &&
                   !!stripePreparation?.completed,
               );
+              const visualInspection =
+                paused && !playerSteering && !playerWheels
+                  ? inspectStartupVisualState(scene!)
+                  : null;
               renderedStartupVisualState = paused
                 ? {
                     source: 'last-owned-paused-draw',
-                    state:
-                      !playerSteering && !playerWheels ? captureStartupVisualState(scene!) : null,
+                    state: visualInspection?.state ?? null,
+                    rejectionCode:
+                      visualInspection?.rejectionCode ??
+                      (!visualInspection ? 'authored-player-active' : null),
                     sequence: null,
                     tick: component.simulation.tick,
                   }

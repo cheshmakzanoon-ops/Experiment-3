@@ -118,6 +118,7 @@ function graphicsQuery(
   scheduleRead: () => unknown,
   environment: unknown = undefined,
   visual: unknown = null,
+  rejection: string | null = null,
 ) {
   const source = readFileSync('src/engine/babylon/main.ts', 'utf8');
   const body = source.slice(
@@ -126,6 +127,7 @@ function graphicsQuery(
   );
   return runInNewContext(`(${body})`, {
     startupPublicationDecision: 'reused-completed-image',
+    startupPublicationRejection: rejection,
     renderedStartupVisualState: visual,
     gpu: { diagnostics: gpuRead },
     paused: true,
@@ -144,8 +146,10 @@ function graphicsQuery(
     readiness: unknown;
     readinessError: string | null;
     startupPublicationDecision?: string | null;
+    startupPublicationRejection?: string | null;
     startupVisualState?: {
       source: string;
+      rejectionCode: string | null;
       state: string | null;
       sequence: number | null;
       tick: number;
@@ -253,6 +257,7 @@ it('main read-only snapshot includes an absent stripe owner as unknown without h
 it('opt-in visual evidence is a detached cached draw record, never fresh scene traversal', () => {
   const cached = {
     source: 'last-owned-paused-draw',
+    rejectionCode: 'unsupported-texture',
     state: '["canonical CPU state"]',
     sequence: 6,
     tick: 43,
@@ -265,9 +270,12 @@ it('opt-in visual evidence is a detached cached draw record, never fresh scene t
   );
   expect(query()).not.toHaveProperty('startupVisualState');
   expect(query()).not.toHaveProperty('startupPublicationDecision');
+  expect(query()).not.toHaveProperty('startupPublicationRejection');
   const observed = query(true);
   expect(observed.startupVisualState).toEqual(cached);
   expect(observed.startupPublicationDecision).toBe('reused-completed-image');
+  expect(observed.startupPublicationRejection).toBeNull();
+  expect(observed.startupVisualState?.rejectionCode).toBe('unsupported-texture');
   observed.startupVisualState!.state = 'changed locally';
   expect(cached.state).toBe('["canonical CPU state"]');
   expect(
@@ -282,5 +290,35 @@ it('opt-in visual evidence is a detached cached draw record, never fresh scene t
     source.indexOf("Object.defineProperty(window, 'babylonGraphicsDiagnostics'"),
   );
   expect(body).not.toContain('captureStartupVisualState(');
+  expect(body).not.toContain('inspectStartupVisualState(');
   expect(body).not.toContain('isReady(');
+});
+
+it('clears startup rejection evidence with the existing surface restart/loss reset', () => {
+  const source = readFileSync('src/engine/babylon/main.ts', 'utf8');
+  const body = source.slice(
+    source.indexOf('function clearSurfaceDiagnostics()'),
+    source.indexOf('function readGraphicsDiagnostics('),
+  );
+  expect(body).toContain('startupPublicationRejection = null;');
+  expect(body).toContain('renderedStartupVisualState = null;');
+});
+
+it('opt-in reports the cached actual publication rejection independently of GPU idle', () => {
+  const query = graphicsQuery(
+    () => ({ settled: true }),
+    () => ({ pending: false }),
+    undefined,
+    {
+      source: 'last-owned-paused-draw',
+      state: null,
+      rejectionCode: 'unsupported-texture',
+      sequence: 6,
+      tick: 43,
+    },
+    'unavailable-completion',
+  );
+  expect(query()).not.toHaveProperty('startupPublicationRejection');
+  expect(query(true).startupPublicationRejection).toBe('unavailable-completion');
+  expect(query(true).startupVisualState?.rejectionCode).toBe('unsupported-texture');
 });

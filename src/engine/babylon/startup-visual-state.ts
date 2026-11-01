@@ -6,14 +6,37 @@ import { DirectionalLight } from '@babylonjs/core/Lights/directionalLight.js';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight.js';
 import { Texture } from '@babylonjs/core/Materials/Textures/texture.js';
 
+export type StartupVisualRejectionCode =
+  | 'unsupported-scene-or-camera'
+  | 'unsupported-node'
+  | 'unsupported-material'
+  | 'unsupported-texture'
+  | 'unsupported-mesh'
+  | 'unproven-mesh-draw-metadata'
+  | 'unsupported-light'
+  | 'nonfinite-or-oversized-state'
+  | 'capture-exception';
+type StartupVisualView = Pick<BabylonCircuitScene, 'scene' | 'camera' | 'entrants'>;
+export interface StartupVisualInspection {
+  state: string | null;
+  rejectionCode: StartupVisualRejectionCode | null;
+}
+/** Existing exact-state API. Rejection never grants readiness. */
+export function captureStartupVisualState(view: StartupVisualView): string | null {
+  return inspectStartupVisualState(view).state;
+}
+
 /** A conservative CPU fingerprint for the audited static startup scene only.
  * Not general scene equivalence: original geometry and shader plugins are immutable
  * in this phase; the caller must separately retain the authoritative frame and
  * preparation-owner identity. Never asks readiness, computes matrices or polls GL.
  */
-export function captureStartupVisualState(
-  view: Pick<BabylonCircuitScene, 'scene' | 'camera' | 'entrants'>,
-): string | null {
+export function inspectStartupVisualState(view: StartupVisualView): StartupVisualInspection {
+  let rejectionCode: StartupVisualRejectionCode = 'capture-exception';
+  function reject(code: StartupVisualRejectionCode): never {
+    rejectionCode = code;
+    throw undefined; // Internal capture boundary only; no original render/GPU work is caught.
+  }
   try {
     const { scene, camera } = view;
     const zero = (v: { x: number; y: number; z: number }) => v.x === 0 && v.y === 0 && v.z === 0;
@@ -53,11 +76,11 @@ export function captureStartupVisualState(
       scene.textures.length > 256 ||
       scene.lights.length > 8
     )
-      return null;
+      return { state: null, rejectionCode: 'unsupported-scene-or-camera' };
     const xyz = (v: { x: number; y: number; z: number }) => [v.x, v.y, v.z];
     const rgb = (v: { r: number; g: number; b: number }) => [v.r, v.g, v.b];
     const transform = (node: typeof camera | (typeof scene.transformNodes)[number]) => {
-      if (node.isDisposed() || node.animations.length) throw new Error('Unproven node');
+      if (node.isDisposed() || node.animations.length) reject('unsupported-node');
       const q = node.rotationQuaternion;
       return [
         node.uniqueId,
@@ -70,7 +93,7 @@ export function captureStartupVisualState(
     };
     const materials = scene.materials.map((m) => {
       if (!(m instanceof StandardMaterial) && !(m instanceof PBRMaterial))
-        throw new Error('Unsupported material');
+        reject('unsupported-material');
       const base = [
         m.uniqueId,
         m.alpha,
@@ -120,7 +143,7 @@ export function captureStartupVisualState(
     });
     const textures = scene.textures.map((t) => {
       if (!(t instanceof Texture) || t.animations.length || t.isRenderTarget)
-        throw new Error('Unsupported texture');
+        reject('unsupported-texture');
       return [
         t.uniqueId,
         t.level,
@@ -148,10 +171,33 @@ export function captureStartupVisualState(
         m.skeleton ||
         m.morphTargetManager ||
         m.hasInstances ||
-        m.hasThinInstances ||
-        m.subMeshes.length > 128
+        m.hasThinInstances
       )
-        throw new Error('Unsupported mesh');
+        reject('unsupported-mesh');
+      // Native glTF retains a geometryless Mesh('__root__') with undefined
+      // subMeshes. It submits no draws, but its identity/parent/transforms and
+      // cached world matrix must still participate in exact-state comparison.
+      const subMeshes =
+        m.subMeshes === undefined &&
+        m.geometry === null &&
+        m.getTotalVertices() === 0 &&
+        m.getTotalIndices() === 0
+          ? []
+          : m.subMeshes;
+      if (!Array.isArray(subMeshes) || subMeshes.length > 128)
+        reject('unproven-mesh-draw-metadata');
+      for (const part of subMeshes)
+        if (
+          !part ||
+          ![
+            part.materialIndex,
+            part.verticesStart,
+            part.verticesCount,
+            part.indexStart,
+            part.indexCount,
+          ].every((value) => Number.isSafeInteger(value) && value >= 0)
+        )
+          reject('unproven-mesh-draw-metadata');
       return [
         transform(m),
         xyz(m.scaling),
@@ -163,7 +209,7 @@ export function captureStartupVisualState(
         m.renderingGroupId,
         m.sideOrientation,
         m.receiveShadows,
-        m.subMeshes?.map((s) => [
+        subMeshes.map((s) => [
           s.materialIndex,
           s.verticesStart,
           s.verticesCount,
@@ -187,7 +233,7 @@ export function captureStartupVisualState(
         l.parent ||
         (!(l instanceof DirectionalLight) && !(l instanceof HemisphericLight))
       )
-        throw new Error('Unsupported light');
+        reject('unsupported-light');
       return [
         l.uniqueId,
         l.isEnabled(),
@@ -231,8 +277,10 @@ export function captureStartupVisualState(
       if (typeof value === 'string' && value.length > 2048) valid = false;
       return value;
     });
-    return valid && signature.length <= 262144 ? signature : null;
+    return valid && signature.length <= 262144
+      ? { state: signature, rejectionCode: null }
+      : { state: null, rejectionCode: 'nonfinite-or-oversized-state' };
   } catch {
-    return null;
+    return { state: null, rejectionCode };
   }
 }

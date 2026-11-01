@@ -77,3 +77,55 @@ production Vite build and discovery of all 28 cases in nine workflow spec files.
 The ordinary chunk-size warning remains. No local browser/native execution is
 claimed; real-renderer branch selection, unchanged pixels and native deadline
 acceptance remain pending until the published checkpoint runs.
+
+## First runtime result: `b0dc8a3`
+
+[GPU run 41344313764](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41344313764)
+finished with **27 passed and one failed**. The strengthened early-pause case
+correctly rejected `requested-redraw` where it required `reused-completed-image`.
+The cached visual state was null despite complete owners, tick 630 frozen and
+eight completed frames. No GPU fault/loss was recorded. Resize/pixel-repeat
+verification was not reached. The failed aggregate is not a visual-equivalence
+or optimization-activation pass; all 280 isolated asset PNGs remain unchanged.
+
+Retained artifact 13098942096, SHA-256
+`bd893dff2a253471be420822ef03af0ade7877307e9cd549b014922e523d3280`,
+preserves the failure. Source and actual-adapter reproduction identified a valid
+GLTF `__root__` Mesh with null geometry, zero vertices/indices and undefined
+subMeshes. The capture attempted `.subMeshes.length`, threw and correctly fell
+back to unknown. This was a missing supported non-rendering container case,
+not permission to treat unknown drawable geometry as ready.
+
+The narrow correction canonicalizes absent draw metadata only for that proven
+geometryless/zero-count shape. It preserves identity, parent, local/cached world
+matrices and frozen state without mutating the graph. Geometry-bearing omissions,
+null/malformed rows and contradictory counts still reject. Bounded opt-in
+rejection codes aid diagnosis; default native diagnostics and all acceptance
+predicates remain unchanged. Fresh GPU execution must still prove the actual
+optimized branch and unchanged pixels.
+
+[Native run 41344313838](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41344313838)
+passed Windows/macOS and all four compatibility journeys, with 38/38 and 23/23
+draws respectively, both 443 preparations. Linux passed its first pause receipt
+7/7 and second 17/17, but these counts do not prove shortcut selection. First-gate
+polling history was evicted. Lifecycle completed at 31.420 s and the model was
+presented at 76.877 s; the subsequent 15-second wheel-motion wait timed out at 91.931 s,
+followed 0.692 s later by GPU exit 512/context loss. Draws were 19/20 with pending
+sequence 20 aged 15.675 s. Full Linux qualification therefore remains failed.
+
+Native artifacts: Linux 13098991158, macOS 13099575044, Windows 13099470391.
+Fingerprint:
+`1a56ccc3803d5f3f9e8db3e5706400332a29f247628349d89d13a6376a16d718`.
+The post-model GPU failure is separate from the unknown startup-state proof;
+no causal driver or repair claim is inferred from the timeout alone.
+
+## Geometryless-root correction verification
+
+The reviewed six-file correction passed **1,371 tests across 99 files**, including
+162 focused checks, full TypeScript and project ESLint, production Vite build,
+and discovery of the unchanged 28 browser cases. The real pinned GLTF graph
+reproduces the original rejection and now yields a supported canonical state.
+Malformed/contradictory geometry metadata and changed root transforms remain
+negative cases. The original rejected graph is not mutated. These are local CPU
+checks, not a GPU reuse/pixel or Linux-native pass. The next exact-source runs
+remain mandatory; all existing deadlines and assertions are unchanged.

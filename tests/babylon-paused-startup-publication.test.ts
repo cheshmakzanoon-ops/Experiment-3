@@ -212,3 +212,61 @@ it("attributes only this callback's new submission, even when its real fence is 
   gpu.dispose();
   expect(startupVisualSubmissionSequence(gpu.diagnostics(), true, 1)).toBeNull();
 });
+
+it('records bounded rejection categories without changing publication acceptance', () => {
+  const h = harness();
+  expect(h.proof.rejectionReason).toBeNull();
+  expect(h.proof.canPublish(h.graphics, false)).toBe(false);
+  expect(h.proof.rejectionReason).toBe('ineligible-or-invalidated');
+  expect(h.proof.canPublish(h.graphics, true)).toBe(false);
+  expect(h.proof.rejectionReason).toBe('unavailable-completion');
+  h.complete();
+  h.graphics.queue.pending = true;
+  expect(h.proof.canPublish(h.graphics, true)).toBe(false);
+  expect(h.proof.rejectionReason).toBe('gpu-unhealthy');
+  h.graphics.queue.pending = false;
+  h.graphics.submitted++;
+  expect(h.proof.canPublish(h.graphics, true)).toBe(false);
+  expect(h.proof.rejectionReason).toBe('stale-sequence');
+  h.graphics.submitted--;
+  expect(h.proof.canPublish(h.graphics, true)).toBe(true);
+  expect(h.proof.rejectionReason).toBeNull();
+});
+it.each(['component', 'snapshot', 'visual', 'null'] as const)(
+  'distinguishes changed %s evidence',
+  (kind) => {
+    const h = harness();
+    h.complete();
+    if (kind === 'component') h.state.component = {};
+    if (kind === 'snapshot') h.state.frame[1]++;
+    if (kind === 'visual') h.state.visual += 'changed';
+    if (kind === 'null') h.state.visual = null;
+    expect(h.proof.canPublish(h.graphics, true)).toBe(false);
+    expect(h.proof.rejectionReason).toBe(kind === 'null' ? 'capture-null' : `changed-${kind}`);
+    h.proof.dispose();
+    expect(h.proof.rejectionReason).toBeNull();
+    expect(h.proof.canPublish(h.graphics, true)).toBe(false);
+    expect(h.proof.rejectionReason).toBe('ineligible-or-invalidated');
+  },
+);
+it.each([undefined, null, false, 0, ''])(
+  'records falsy capture exception %s without leaking it',
+  (error) => {
+    const h = harness();
+    h.complete();
+    h.fail(error);
+    expect(h.proof.canPublish(h.graphics, true)).toBe(false);
+    expect(h.proof.rejectionReason).toBe('capture-exception');
+    h.proof.drawn();
+    expect(h.proof.rejectionReason).toBe('capture-exception');
+    h.proof.dispose();
+    expect(h.proof.rejectionReason).toBeNull();
+  },
+);
+it('diagnostic reads do not capture, consume a receipt or alter a decision', () => {
+  const h = harness();
+  h.complete();
+  expect(h.proof.canPublish(h.graphics, true)).toBe(true);
+  for (let i = 0; i < 10; i++) expect(h.proof.rejectionReason).toBeNull();
+  expect(h.proof.canPublish(h.graphics, true)).toBe(true);
+});

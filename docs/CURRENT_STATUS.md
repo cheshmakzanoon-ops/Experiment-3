@@ -14,6 +14,8 @@ Migration development stays exclusively on **babylon-js**. Main is frozen at res
 
 ## Latest recorded qualification
 
+**Latest guard qualification (`b0dc8a3`):** 27 GPU cases passed; the strict early-pause case failed because canonical state was unknown and the optimized branch did not run. A real geometryless GLTF root exposed the missing supported-container case; its narrow correction remains to be requalified. Windows/macOS packaged checks passed. Linux passed startup this run but later timed out on model-wheel motion and lost its GPU, so full Linux remains failed. [Evidence](maintenance/babylon-paused-startup-publication-2026-11-01.md).
+
 **Current paused-startup candidate:** scene-scoped real completion receipts, exact snapshot bytes and a bounded canonical visual-state comparison can avoid the final UI-only draw when the paused image is proven unchanged. The fallback, real render demands, all owner receipts and deadlines remain intact. Clean CPU verification passed 1,342 tests/99 files; browser proof must require the actual optimized branch and unchanged unmasked pixels after a real redraw. GPU/native qualification is pending. [Scope](maintenance/babylon-paused-startup-publication-2026-11-01.md).
 
 **Latest combined result (`f0ca199`):** all 28 GPU cases plus Windows/macOS packaged checks and four compatibility journeys passed. Linux's original first-pause deadline still fails: all owners are ready, but its final fence is 7 submitted/6 completed before timeout. Later7/7 is not a pass. No graphics fault/loss was recorded. [Exact evidence](maintenance/babylon-environment-batch-2026-11-01.md).

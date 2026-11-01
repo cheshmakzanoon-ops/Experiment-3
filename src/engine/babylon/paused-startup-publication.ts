@@ -1,5 +1,16 @@
 import type { BabylonPresentationGpu, PresentationCompletions } from './presentation-gpu.ts';
 
+export type StartupPublicationRejection =
+  | 'ineligible-or-invalidated'
+  | 'unavailable-completion'
+  | 'gpu-unhealthy'
+  | 'stale-sequence'
+  | 'changed-component'
+  | 'changed-snapshot'
+  | 'changed-visual'
+  | 'capture-exception'
+  | 'capture-null';
+
 export interface StartupSubmissionState {
   component: object;
   paused: boolean;
@@ -13,6 +24,14 @@ export class PausedStartupPublication {
   private submitted: StartupSubmissionState | undefined;
   private completed: { state: StartupSubmissionState; sequence: number } | undefined;
   private dead = false;
+  private rejection: StartupPublicationRejection | null = null;
+  get rejectionReason(): StartupPublicationRejection | null {
+    return this.rejection;
+  }
+  private reject(reason: StartupPublicationRejection): false {
+    this.rejection = reason;
+    return false;
+  }
   private readonly unsubscribe: () => void;
   constructor(
     completions: PresentationCompletions,
@@ -32,7 +51,11 @@ export class PausedStartupPublication {
   drawn(renderedVisual?: string | null) {
     this.submitted = undefined;
     this.completed = undefined;
-    if (this.dead) return;
+    this.rejection = null;
+    if (this.dead) {
+      this.reject('ineligible-or-invalidated');
+      return;
+    }
     try {
       const state = this.capture(renderedVisual);
       if (
@@ -44,16 +67,17 @@ export class PausedStartupPublication {
         Number.isSafeInteger(state.tick)
       )
         this.submitted = { ...state, frame: state.frame.slice() };
+      else this.reject(state.visual === null ? 'capture-null' : 'changed-snapshot');
     } catch {
+      this.reject('capture-exception');
       // Original rendering succeeded; unproven metadata takes the normal redraw.
     }
   }
   canPublish(graphics: ReturnType<BabylonPresentationGpu['diagnostics']>, eligible: boolean) {
     const receipt = this.completed;
+    if (this.dead || !eligible) return this.reject('ineligible-or-invalidated');
+    if (!receipt) return this.reject('unavailable-completion');
     if (
-      this.dead ||
-      !eligible ||
-      !receipt ||
       graphics.settled !== true ||
       graphics.phase !== 'idle' ||
       graphics.lost !== false ||
@@ -61,11 +85,14 @@ export class PausedStartupPublication {
       graphics.queue.failure !== null ||
       graphics.queue.pending !== false ||
       graphics.preparation.active !== false ||
-      graphics.preparation.failure !== null ||
+      graphics.preparation.failure !== null
+    )
+      return this.reject('gpu-unhealthy');
+    if (
       receipt.sequence !== graphics.submitted ||
       receipt.sequence !== graphics.lastCompletedSequence
     )
-      return false;
+      return this.reject('stale-sequence');
     try {
       const current = this.capture(),
         previous = receipt.state;
@@ -79,22 +106,26 @@ export class PausedStartupPublication {
         previous.frame.byteOffset,
         previous.frame.byteLength,
       );
-      return (
-        current.paused &&
-        current.component === previous.component &&
-        current.tick === previous.tick &&
-        current.visual !== null &&
-        current.visual === previous.visual &&
-        current.frame.length === previous.frame.length &&
-        current.frame.every(Number.isFinite) &&
-        bytes.every((value, index) => value === previousBytes[index])
-      );
+      if (!current.paused) return this.reject('ineligible-or-invalidated');
+      if (current.component !== previous.component) return this.reject('changed-component');
+      if (current.tick !== previous.tick) return this.reject('changed-snapshot');
+      if (current.visual === null) return this.reject('capture-null');
+      if (current.visual !== previous.visual) return this.reject('changed-visual');
+      if (
+        current.frame.length !== previous.frame.length ||
+        !current.frame.every(Number.isFinite) ||
+        !bytes.every((value, index) => value === previousBytes[index])
+      )
+        return this.reject('changed-snapshot');
+      this.rejection = null;
+      return true;
     } catch {
-      return false;
+      return this.reject('capture-exception');
     }
   }
   dispose() {
     this.dead = true;
+    this.rejection = null;
     this.submitted = this.completed = undefined;
     this.unsubscribe();
   }
