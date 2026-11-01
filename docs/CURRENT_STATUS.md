@@ -14,6 +14,8 @@ Migration development stays exclusively on **babylon-js**. Main is frozen at res
 
 ## Latest recorded qualification
 
+**A07 structure candidate:** original Aurel gantry geometry/atlas loader and isolated GPU probe are prepared, with no live-entry import yet. Exact-source GPU/image qualification remains required before activation. [Scope](maintenance/babylon-start-gantry-2026-11-01.md).
+
 **Bounded Mesa browser check:** both live-scene transports passed in two repetitions; the isolated comparisons failed at the original Three reference gate before Babylon candidate qualification. The automatic diagnostic trigger is retired. No native Linux repair or transport-policy change follows from this result. [Evidence](maintenance/babylon-mesa-transport-review-2026-11-01.md).
 
 **Current exact source `f996583`:** 15/15 SwiftShader WebGL journeys and 378 CI engine contracts passed, including native-default and forced-standalone uniforms. Windows and Apple Silicon macOS passed packaged Babylon and all four existing-content compatibility journeys. The Mac startup regression is fixed without overriding its driver safeguard. Linux failed after keyboard/pause before authored import: a 30-second presentation wait expired, followed by GPU-process exit 512/context loss. This remains a failed native qualification with no established cause. [Results](maintenance/babylon-live-grounding-2026-11-01.md).
