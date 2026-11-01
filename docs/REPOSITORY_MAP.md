@@ -67,3 +67,5 @@ The compact [current status](CURRENT_STATUS.md) lists present gates; [developmen
 - `src/engine/assets/surface-texel-data.ts`: original deterministic surface/asphalt pixel data and constants, with compatibility exports in the original renderer. Independent pre-edit oracle and scope: [asphalt data boundary](maintenance/asphalt-data-boundary-2026-10-31.md).
 
 - `src/engine/babylon/asphalt-substrate.ts` and `asphalt-substrate-plugin.ts`: isolated procedural dry-substrate candidate, not imported by the live scene. Controlled original-reference probe: `e2e/fixtures/babylon-asphalt-parity.ts`; [scope](maintenance/asphalt-substrate-probe-2026-11-01.md).
+
+- `docs/experiments/motion-projection-22-stage1/`: archived, unapplied physics experiment with exact-base patch, read-only verifier and hashes. It does not change main physics21; see its explicit acceptance limits.

@@ -1,0 +1,3347 @@
+--- /dev/null
++++ b/src/simulation/substep-motion.ts
+@@ -0,0 +1,453 @@
++import { Quat, Vec3 } from '../core/math.ts';
++import type { RigidBody } from './rigid.ts';
++import type { Vehicle } from './vehicle.ts';
++
++/** Experimental solver-owned metadata; never an integrator or arbitrary path API. */
++export type PoseValue = Readonly<{ p: readonly number[]; q: readonly number[] }>;
++export type MotionPublication = Readonly<{
++  kind: 'dab-end-projection-v1';
++  physicalStart: PoseValue;
++  physicalEnd: PoseValue;
++  publishedEnd: PoseValue;
++  physicalVelocity: readonly number[];
++  physicalOmega: readonly number[];
++  dabDelta: number;
++  postDabLeanIncrement: number;
++}>;
++export type MotionStamp = Readonly<{ integration: number; placement: number; mutation: number }>;
++export interface StepTicket {
++  readonly start: PoseValue;
++  readonly capturedStamp: MotionStamp;
++  readonly publication: MotionPublication | null;
++  readonly reason: string;
++  readonly exclusionBlockReason: string | undefined;
++  readonly state: string;
++}
++export interface CollisionFrame {
++  readonly dt: number;
++  readonly cars: readonly Vehicle[];
++  readonly tickets: readonly StepTicket[];
++  ticketFor(car: Vehicle): StepTicket | undefined;
++}
++export function poseValue(body: Pick<RigidBody, 'position' | 'orientation'>): PoseValue {
++  const p = body.position,
++    q = body.orientation;
++  return Object.freeze({
++    p: Object.freeze([p.x, p.y, p.z]),
++    q: Object.freeze([q.x, q.y, q.z, q.w]),
++  });
++}
++export function copyPose(value: PoseValue): PoseValue {
++  if (
++    value.p.length !== 3 ||
++    value.q.length !== 4 ||
++    ![...value.p, ...value.q].every(Number.isFinite) ||
++    Math.abs(Math.hypot(...value.q) - 1) > 1e-8
++  )
++    throw new Error('Invalid motion pose');
++  return Object.freeze({ p: Object.freeze([...value.p]), q: Object.freeze([...value.q]) });
++}
++export function setPose(body: Pick<RigidBody, 'position' | 'orientation'>, value: PoseValue) {
++  body.position.set(value.p[0], value.p[1], value.p[2]);
++  [body.orientation.x, body.orientation.y, body.orientation.z, body.orientation.w] = value.q;
++}
++const vector = (v: Vec3) => Object.freeze([v.x, v.y, v.z]);
++const same = (a: readonly number[], b: readonly number[]) =>
++  a.length === b.length && a.every((x, i) => x === b[i]);
++export function samePose(a: PoseValue, b: PoseValue) {
++  return same(a.p, b.p) && same(a.q, b.q);
++}
++export function worldInertia(q: Quat, diagonal: Vec3, v: Vec3, out: Vec3, inverse = false) {
++  q.inverseRotate(v, out);
++  if (inverse) out.set(out.x / diagonal.x, out.y / diagonal.y, out.z / diagonal.z);
++  else out.set(out.x * diagonal.x, out.y * diagonal.y, out.z * diagonal.z);
++  return q.rotate(out, out);
++}
++const stamps = new WeakMap<Vehicle, { integration: number; placement: number; mutation: number }>();
++const owners = new WeakMap<Vehicle, TicketState>();
++const solving = new WeakMap<Vehicle, FrameState>();
++const poisoned = new WeakMap<Vehicle, string>();
++const frameStates = new WeakMap<CollisionFrame, FrameState>();
++const placements = new WeakMap<Vehicle, { depth: number; failed: boolean; ticket?: TicketState }>();
++function mutableStamp(car: Vehicle) {
++  let s = stamps.get(car);
++  if (!s) {
++    s = { integration: 0, placement: 0, mutation: 0 };
++    stamps.set(car, s);
++  }
++  return s;
++}
++export function motionStamp(car: Vehicle): MotionStamp {
++  return { ...mutableStamp(car) };
++}
++export function assertMotionUsable(car: Vehicle) {
++  if (poisoned.has(car))
++    throw new Error(`Discarded motion step requires explicit placement: ${poisoned.get(car)}`);
++}
++export function assertLegacyCollisionAccess(car: Vehicle) {
++  assertMotionUsable(car);
++  if (owners.has(car) || solving.has(car)) throw new Error('Vehicle has an active motion frame');
++}
++export function assertImpulseAccess(owner: object, car: Vehicle) {
++  assertMotionUsable(car);
++  if (owners.has(car) || (solving.has(car) && solving.get(car)!.owner !== owner))
++    throw new Error('Foreign impulse during an active motion frame');
++}
++export function advancingTicket(car: Vehicle) {
++  const t = owners.get(car);
++  return t?.state === 'advancing' ? t.view : undefined;
++}
++export function noteAdapterStep(car: Vehicle) {
++  assertMotionUsable(car);
++  if (solving.has(car)) throw new Error('Cannot advance a vehicle during collision solve');
++  const ticket = owners.get(car);
++  if (ticket && ticket.state !== 'advancing')
++    throw new Error('Unframed advance during motion capture');
++  mutableStamp(car).integration++;
++}
++/** Nested actual placement APIs form one transaction. No public ticket mutator
++ * can declare a teleport. Failure keeps partial state, but cannot seal it. */
++export function withPlacement<T>(car: Vehicle, run: () => T): T {
++  if (solving.has(car)) throw new Error('Cannot place a vehicle during collision solve');
++  let tx = placements.get(car);
++  if (!tx) {
++    tx = { depth: 0, failed: false, ticket: owners.get(car) };
++    placements.set(car, tx);
++    mutableStamp(car).placement++;
++    tx.ticket?.beginPlacement();
++  }
++  tx.depth++;
++  let outcome: { ok: true; value: T } | { ok: false; error: unknown };
++  try {
++    outcome = { ok: true, value: run() };
++  } catch (error) {
++    tx.failed = true;
++    outcome = { ok: false, error };
++  }
++  if (--tx.depth === 0) {
++    placements.delete(car);
++    if (tx.failed) tx.ticket?.frame.fail();
++    else {
++      try {
++        tx.ticket?.finishPlacement();
++        poisoned.delete(car);
++      } catch (error) {
++        tx.ticket?.frame.fail();
++        throw error;
++      }
++    }
++  }
++  if (!outcome.ok) throw outcome.error;
++  return outcome.value;
++}
++/** Assisted remount is not a teleport or a sweep exemption. */
++export function noteUnsupportedReset(car: Vehicle) {
++  assertMotionUsable(car);
++  if (solving.has(car)) throw new Error('Cannot reset a vehicle during collision solve');
++  mutableStamp(car).mutation++;
++  const ticket = owners.get(car);
++  if (ticket) {
++    ticket.blocked = 'unsupported-reset';
++    ticket.reason = 'unsupported-reset';
++  }
++}
++type BodySeal = {
++  body: RigidBody;
++  pose: PoseValue;
++  velocity: readonly number[];
++  omega: readonly number[];
++  mass: number;
++  inertia: readonly number[];
++  stamp: MotionStamp;
++};
++function sealBody(car: Vehicle): BodySeal {
++  return {
++    body: car.body,
++    pose: poseValue(car.body),
++    velocity: vector(car.body.velocity),
++    omega: vector(car.body.omega),
++    mass: car.body.mass,
++    inertia: vector(car.body.inertia),
++    stamp: motionStamp(car),
++  };
++}
++function matches(car: Vehicle, s: BodySeal) {
++  const b = car.body,
++    now = motionStamp(car);
++  return (
++    b === s.body &&
++    samePose(poseValue(b), s.pose) &&
++    same(vector(b.velocity), s.velocity) &&
++    same(vector(b.omega), s.omega) &&
++    b.mass === s.mass &&
++    same(vector(b.inertia), s.inertia) &&
++    now.integration === s.stamp.integration &&
++    now.placement === s.stamp.placement &&
++    now.mutation === s.stamp.mutation
++  );
++}
++function ticketView(t: TicketState): StepTicket {
++  return Object.freeze({
++    get start() {
++      return t.start;
++    },
++    get capturedStamp() {
++      return t.capturedStamp;
++    },
++    get publication() {
++      return t.publication;
++    },
++    get reason() {
++      return t.reason;
++    },
++    get exclusionBlockReason() {
++      return t.blocked;
++    },
++    get state() {
++      return t.state;
++    },
++  });
++}
++function frameView(f: FrameState): CollisionFrame {
++  return Object.freeze({
++    dt: f.dt,
++    cars: f.cars,
++    tickets: Object.freeze(f.tickets.map((t) => t.view)),
++    ticketFor(car: Vehicle) {
++      return f.tickets.find((t) => t.vehicle === car)?.view;
++    },
++  });
++}
++class TicketState {
++  state: 'captured' | 'advancing' | 'placing' | 'sealed' | 'discontinuous' | 'consumed' | 'failed' =
++    'captured';
++  readonly start: PoseValue;
++  readonly capturedStamp: MotionStamp;
++  readonly view: StepTicket;
++  publication: MotionPublication | null = null;
++  reason = 'ordinary';
++  blocked: string | undefined;
++  private seal: BodySeal | null = null;
++  private captured: BodySeal;
++  private entryEpoch = 0;
++  advanced = false;
++  constructor(
++    readonly frame: FrameState,
++    readonly vehicle: Vehicle,
++    readonly body: RigidBody,
++  ) {
++    // Ordinary frame capture retains legacy validity; stricter normalized-pose
++    // validation belongs only to a qualified projection publication.
++    this.start = poseValue(body);
++    this.capturedStamp = Object.freeze(motionStamp(vehicle));
++    this.captured = sealBody(vehicle);
++    this.view = ticketView(this);
++  }
++  enter(car: Vehicle, dt: number) {
++    this.frame.assertOpen();
++    if (
++      this.state !== 'captured' ||
++      car !== this.vehicle ||
++      car.body !== this.body ||
++      dt !== this.frame.dt ||
++      owners.get(car) !== this
++    )
++      throw new Error('Invalid motion ticket advance');
++    if (!matches(car, this.captured)) throw new Error('Changed motion capture origin');
++    this.entryEpoch = motionStamp(car).integration;
++    this.state = 'advancing';
++  }
++  publish(
++    physicalEnd: PoseValue,
++    publishedEnd: PoseValue,
++    dabDelta: number,
++    postDabLeanIncrement: number,
++    commitRates: () => void,
++  ) {
++    this.frame.assertOpen();
++    if (
++      this.state !== 'advancing' ||
++      this.publication ||
++      this.blocked ||
++      this.body !== this.vehicle.body ||
++      motionStamp(this.vehicle).placement !== this.capturedStamp.placement ||
++      !Number.isFinite(dabDelta + postDabLeanIncrement) ||
++      dabDelta === 0
++    )
++      throw new Error('Invalid motion publication');
++    const physicalStart = copyPose(this.start),
++      physical = copyPose(physicalEnd),
++      actual = copyPose(publishedEnd);
++    if (!samePose(actual, poseValue(this.body)))
++      throw new Error('Motion publication does not match actual pose');
++    commitRates();
++    if (!this.body.velocity.finite() || !this.body.omega.finite())
++      throw new Error('Non-finite physical rates');
++    this.publication = Object.freeze({
++      kind: 'dab-end-projection-v1',
++      physicalStart,
++      physicalEnd: physical,
++      publishedEnd: actual,
++      physicalVelocity: vector(this.body.velocity),
++      physicalOmega: vector(this.body.omega),
++      dabDelta,
++      postDabLeanIncrement,
++    });
++    this.reason = 'dab-end-projection-v1';
++  }
++  finish() {
++    this.frame.assertOpen();
++    this.advanced = motionStamp(this.vehicle).integration !== this.entryEpoch;
++    if (motionStamp(this.vehicle).integration !== this.entryEpoch + 1)
++      throw new Error('Motion advance must integrate exactly once');
++    if (this.state === 'discontinuous') {
++      this.validate();
++      return;
++    }
++    if (this.state !== 'advancing' || this.vehicle.body !== this.body)
++      throw new Error('Invalid motion seal');
++    if (
++      this.publication &&
++      (!samePose(poseValue(this.body), this.publication.publishedEnd) ||
++        !same(vector(this.body.velocity), this.publication.physicalVelocity) ||
++        !same(vector(this.body.omega), this.publication.physicalOmega))
++    )
++      throw new Error('Body changed after motion publication');
++    this.seal = sealBody(this.vehicle);
++    this.state = 'sealed';
++  }
++  beginPlacement() {
++    this.frame.assertOpen();
++    this.publication = null;
++    this.reason = 'explicit-placement';
++    this.state = 'placing';
++  }
++  finishPlacement() {
++    this.frame.assertOpen();
++    if (this.state !== 'placing' || this.vehicle.body !== this.body)
++      throw new Error('Invalid placement completion');
++    this.seal = sealBody(this.vehicle);
++    this.state = 'discontinuous';
++  }
++  validate() {
++    if (this.vehicle.body !== this.body) throw new Error('Motion body replaced');
++    if (this.state === 'discontinuous') {
++      if (!this.seal || !matches(this.vehicle, this.seal))
++        throw new Error('Changed or incomplete placement');
++    } else if (this.state !== 'sealed' || !this.seal || !matches(this.vehicle, this.seal))
++      throw new Error('Unsealed or changed motion step');
++  }
++  dirty() {
++    return (
++      this.advanced ||
++      motionStamp(this.vehicle).integration !== this.capturedStamp.integration ||
++      motionStamp(this.vehicle).placement !== this.capturedStamp.placement ||
++      motionStamp(this.vehicle).mutation !== this.capturedStamp.mutation
++    );
++  }
++}
++class FrameState {
++  readonly view: CollisionFrame;
++  readonly cars: readonly Vehicle[];
++  readonly tickets: readonly TicketState[];
++  private state: 'open' | 'consumed' | 'failed' = 'open';
++  constructor(
++    readonly owner: object,
++    cars: readonly Vehicle[],
++    readonly dt: number,
++  ) {
++    if (!Number.isFinite(dt) || dt <= 0 || new Set(cars).size !== cars.length)
++      throw new Error('Invalid collision substep');
++    for (const car of cars) {
++      assertMotionUsable(car);
++      if (owners.has(car) || solving.has(car))
++        throw new Error('Vehicle already has a motion owner');
++    }
++    this.cars = Object.freeze([...cars]);
++    this.tickets = Object.freeze(cars.map((car) => new TicketState(this, car, car.body)));
++    for (const t of this.tickets) owners.set(t.vehicle, t);
++    this.view = frameView(this);
++    frameStates.set(this.view, this);
++  }
++  assertOpen() {
++    if (this.state !== 'open') throw new Error('Motion frame is not open');
++  }
++  consume() {
++    this.assertOpen();
++    for (const t of this.tickets) t.validate();
++    this.state = 'consumed';
++    this.release();
++    for (const t of this.tickets) {
++      solving.set(t.vehicle, this);
++      t.state = 'consumed';
++    }
++    return this.view.tickets;
++  }
++  finishSolve() {
++    for (const t of this.tickets) if (solving.get(t.vehicle) === this) solving.delete(t.vehicle);
++  }
++  fail() {
++    if (this.state === 'failed') {
++      this.release();
++      this.finishSolve();
++      return;
++    }
++    // An advanced/discarded frame cannot be silently continued as legacy.
++    const dirty = this.tickets.some((t) => t.dirty());
++    if (dirty)
++      for (const t of this.tickets) poisoned.set(t.vehicle, 'failed or cancelled captured step');
++    this.state = 'failed';
++    for (const t of this.tickets) t.state = 'failed';
++    this.release();
++    this.finishSolve();
++  }
++  private release() {
++    for (const t of this.tickets) if (owners.get(t.vehicle) === t) owners.delete(t.vehicle);
++  }
++}
++function ownedFrame(owner: object, frame: CollisionFrame) {
++  const f = frameStates.get(frame);
++  if (!f || f.owner !== owner) throw new Error('Foreign collision frame');
++  return f;
++}
++export function createCollisionFrame(owner: object, cars: readonly Vehicle[], dt: number) {
++  return new FrameState(owner, cars, dt).view;
++}
++export function consumeCollisionFrame(owner: object, frame: CollisionFrame) {
++  return ownedFrame(owner, frame).consume();
++}
++export function failCollisionFrame(owner: object, frame: CollisionFrame) {
++  ownedFrame(owner, frame).fail();
++}
++export function finishCollisionFrame(owner: object, frame: CollisionFrame) {
++  ownedFrame(owner, frame).finishSolve();
++}
++export function advanceWithTicket(car: Vehicle, dt: number, ticket: StepTicket, run: () => void) {
++  const t = owners.get(car);
++  if (!t || t.view !== ticket) throw new Error('Invalid motion ticket advance');
++  t.enter(car, dt);
++  try {
++    run();
++    t.finish();
++  } catch (error) {
++    t.frame.fail();
++    throw error;
++  }
++}
++export function rejectMotion(car: Vehicle, reason: string) {
++  const t = owners.get(car);
++  if (!t || t.state !== 'advancing') throw new Error('Motion rejection outside advance');
++  t.reason = reason;
++}
++export function publishMotion(
++  car: Vehicle,
++  physical: PoseValue,
++  actual: PoseValue,
++  delta: number,
++  post: number,
++  rates: () => void,
++) {
++  const t = owners.get(car);
++  if (!t) throw new Error('Motion publication without ownership');
++  t.publish(physical, actual, delta, post, rates);
++}
+--- /dev/null
++++ b/src/simulation/motion-response.ts
+@@ -0,0 +1,264 @@
++import { Quat, Vec3 } from '../core/math.ts';
++import type { ChassisBox } from './obb.ts';
++import type { Vehicle } from './vehicle.ts';
++import { motionStamp, poseValue, worldInertia, type PoseValue } from './substep-motion.ts';
++
++export class MotionResponseState {
++  readonly omega0 = new Vec3();
++  readonly angularImpulse = new Vec3();
++  active = false;
++  constructor(car: Vehicle) {
++    this.omega0.copy(car.body.omega);
++  }
++  preview(car: Vehicle, orientation: Quat, out: Vec3) {
++    const b = car.body;
++    const L = this.active
++      ? this.angularImpulse
++      : worldInertia(
++          b.orientation,
++          b.inertia,
++          new Vec3().copy(b.omega).sub(this.omega0),
++          new Vec3(),
++        );
++    return worldInertia(orientation, b.inertia, L, out, true).add(this.omega0);
++  }
++  activate(car: Vehicle) {
++    if (!this.active) {
++      worldInertia(
++        car.body.orientation,
++        car.body.inertia,
++        new Vec3().copy(car.body.omega).sub(this.omega0),
++        this.angularImpulse,
++      );
++      this.active = true;
++    }
++  }
++}
++const xyz = (v: Vec3) => [v.x, v.y, v.z];
++const xyzw = (q: Quat) => [q.x, q.y, q.z, q.w];
++const equal = (a: readonly number[], b: readonly number[]) =>
++  a.length === b.length && a.every((x, i) => x === b[i]);
++type Saved = {
++  car: Vehicle;
++  body: Vehicle['body'];
++  state: MotionResponseState;
++  end: PoseValue;
++  event: PoseValue;
++  position: Vec3;
++  orientation: Quat;
++  velocity: Vec3;
++  omega: Vec3;
++  inertia: Vec3;
++  mass: number;
++  diagonal: number[];
++  stamp: ReturnType<typeof motionStamp>;
++  beforeV: number[];
++  beforeW: number[];
++  expectedV: number[];
++  expectedW: number[];
++};
++
++/** One accepted CCD event. Only audited event-pose reads are supported; changed
++ * callback physics fields are preserved and cause a failed, non-replayable solve. */
++export class MotionEventResponse {
++  private readonly saved: Saved[];
++  private readonly guarded: Saved[];
++  private readonly pointValue: number[];
++  private readonly normalValue: number[];
++  private entered = 0;
++  private mechanical = false;
++  private mutations = new Set<string>();
++  constructor(
++    private readonly a: Vehicle,
++    private readonly b: Vehicle,
++    states: readonly MotionResponseState[],
++    events: readonly ChassisBox[],
++    private readonly point: Vec3,
++    private readonly normal: Vec3,
++    private readonly remaining: number,
++    guardedCars: readonly Vehicle[] = [a, b],
++  ) {
++    this.pointValue = xyz(point);
++    this.normalValue = xyz(normal);
++    this.saved = [a, b].map((car, i) => {
++      const body = car.body,
++        state = states[i];
++      if (
++        !(body.mass > 0) ||
++        !Number.isFinite(body.mass) ||
++        !body.inertia.finite() ||
++        Math.min(body.inertia.x, body.inertia.y, body.inertia.z) <= 0
++      )
++        throw new Error('Invalid event response inertia');
++      const e = events[i],
++        q = e.orientation;
++      return {
++        car,
++        body,
++        state,
++        end: poseValue(body),
++        event: { p: xyz(e.center), q: xyzw(q) },
++        position: body.position,
++        orientation: body.orientation,
++        velocity: body.velocity,
++        omega: body.omega,
++        inertia: body.inertia,
++        mass: body.mass,
++        diagonal: xyz(body.inertia),
++        stamp: motionStamp(car),
++        beforeV: xyz(body.velocity),
++        beforeW: [],
++        expectedV: xyz(body.velocity),
++        expectedW: [],
++      };
++    });
++    this.guarded = [
++      ...this.saved,
++      ...guardedCars
++        .filter((car) => car !== a && car !== b)
++        .map((car) => {
++          const body = car.body,
++            pose = poseValue(body);
++          return {
++            car,
++            body,
++            state: new MotionResponseState(car),
++            end: pose,
++            event: pose,
++            position: body.position,
++            orientation: body.orientation,
++            velocity: body.velocity,
++            omega: body.omega,
++            inertia: body.inertia,
++            mass: body.mass,
++            diagonal: xyz(body.inertia),
++            stamp: motionStamp(car),
++            beforeV: xyz(body.velocity),
++            beforeW: xyz(body.omega),
++            expectedV: xyz(body.velocity),
++            expectedW: xyz(body.omega),
++          };
++        }),
++    ];
++    for (const s of this.saved) {
++      s.state.activate(s.car);
++      const q = new Quat(s.event.q[0], s.event.q[1], s.event.q[2], s.event.q[3]);
++      const omega = s.state.preview(s.car, q, new Vec3());
++      s.body.position.set(s.event.p[0], s.event.p[1], s.event.p[2]);
++      [s.body.orientation.x, s.body.orientation.y, s.body.orientation.z, s.body.orientation.w] =
++        s.event.q;
++      s.body.omega.copy(omega);
++      s.beforeW = s.expectedW = xyz(omega);
++    }
++  }
++  enter(a: Vehicle, b: Vehicle | null, point: Vec3, normal: Vec3, penetration: number) {
++    if (this.entered++ !== 0) throw new Error('Repeated or recursive event impulse');
++    if (
++      a !== this.a ||
++      b !== this.b ||
++      point !== this.point ||
++      normal !== this.normal ||
++      penetration !== 0
++    )
++      throw new Error('Changed event impulse arguments');
++    this.check(true);
++  }
++  mechanicalDone() {
++    if (this.entered !== 1 || this.mechanical) throw new Error('Repeated event mechanical receipt');
++    this.check(false);
++    for (const s of this.saved) {
++      const delta = new Vec3().copy(s.body.omega).sub(new Vec3(...s.beforeW));
++      worldInertia(s.body.orientation, s.body.inertia, delta, delta);
++      s.state.angularImpulse.add(delta);
++      s.expectedV = xyz(s.body.velocity);
++      s.expectedW = xyz(s.body.omega);
++    }
++    this.mechanical = true;
++  }
++  callback(run: () => void) {
++    let failure: unknown,
++      failed = false;
++    try {
++      run();
++    } catch (error) {
++      failure = error;
++      failed = true;
++    }
++    try {
++      this.check(true);
++    } catch (error) {
++      if (failed) throw new Error((error as Error).message, { cause: failure });
++      throw error;
++    }
++    if (failed) throw failure;
++  }
++  complete() {
++    if (this.entered !== 1 || !this.mechanical)
++      throw new Error('Event override must call base impulse exactly once');
++    this.check(true);
++  }
++  private inspect(s: Saved, rates: boolean) {
++    const b = s.body,
++      prefix = `vehicle ${s.car.id}: `;
++    const put = (name: string, okay: boolean) => {
++      if (!okay) this.mutations.add(prefix + name);
++      return okay;
++    };
++    put('body', s.car.body === b);
++    put('position', b.position === s.position && equal(xyz(b.position), s.event.p));
++    put('orientation', b.orientation === s.orientation && equal(xyzw(b.orientation), s.event.q));
++    put('mass', b.mass === s.mass);
++    put('inertia', b.inertia === s.inertia && equal(xyz(b.inertia), s.diagonal));
++    const stamp = motionStamp(s.car);
++    put(
++      'integration/placement',
++      stamp.integration === s.stamp.integration &&
++        stamp.placement === s.stamp.placement &&
++        stamp.mutation === s.stamp.mutation,
++    );
++    if (rates) {
++      put('velocity', b.velocity === s.velocity && equal(xyz(b.velocity), s.expectedV));
++      put('omega', b.omega === s.omega && equal(xyz(b.omega), s.expectedW));
++    }
++  }
++  private check(rates: boolean) {
++    for (const s of this.guarded) this.inspect(s, this.saved.includes(s) ? rates : true);
++    if (!equal(xyz(this.point), this.pointValue)) this.mutations.add('contact point');
++    if (!equal(xyz(this.normal), this.normalValue)) this.mutations.add('contact normal');
++    if (this.mutations.size)
++      throw new Error(`Unsupported event response mutation: ${[...this.mutations].join(', ')}`);
++  }
++  /** Best-effort removal of owned temporaries, never a whole-body rollback. */
++  cleanup() {
++    for (const s of this.guarded) this.inspect(s, true);
++    if (!equal(xyz(this.point), this.pointValue)) this.mutations.add('contact point');
++    if (!equal(xyz(this.normal), this.normalValue)) this.mutations.add('contact normal');
++    for (const s of this.saved) {
++      const b = s.body;
++      const positionOwned = b.position === s.position && equal(xyz(b.position), s.event.p);
++      const orientationOwned =
++        b.orientation === s.orientation && equal(xyzw(b.orientation), s.event.q);
++      const omegaOwned = b.omega === s.omega && equal(xyz(b.omega), s.expectedW);
++      const inertiaUnchanged =
++        b.mass === s.mass && b.inertia === s.inertia && equal(xyz(b.inertia), s.diagonal);
++      if (positionOwned) {
++        b.position.set(s.end.p[0], s.end.p[1], s.end.p[2]);
++        if (this.mechanical)
++          b.position.addScaled(
++            new Vec3(...s.expectedV).sub(new Vec3(...s.beforeV)),
++            this.remaining,
++          );
++      }
++      if (orientationOwned)
++        [b.orientation.x, b.orientation.y, b.orientation.z, b.orientation.w] = s.end.q;
++      // This also restores an OLD accumulated impulse after a zero-super throw.
++      if (orientationOwned && omegaOwned && inertiaUnchanged)
++        worldInertia(b.orientation, b.inertia, s.state.angularImpulse, b.omega, true).add(
++          s.state.omega0,
++        );
++    }
++    return this.mutations.size
++      ? new Error(`Unsupported event response mutation: ${[...this.mutations].join(', ')}`)
++      : null;
++  }
++}
+--- a/src/simulation/collision.ts
++++ b/src/simulation/collision.ts
+@@ -2,8 +2,28 @@
+ import { clamp, mod, Vec3 } from '../core/math.ts';
+ import { trackPoint, type Track } from './track.ts';
+ import type { Vehicle } from './vehicle.ts';
++import {
++  assertLegacyCollisionAccess,
++  assertImpulseAccess,
++  createCollisionFrame,
++  consumeCollisionFrame,
++  failCollisionFrame,
++  finishCollisionFrame,
++  setPose,
++  type CollisionFrame,
++  type StepTicket,
++} from './substep-motion.ts';
++import { MotionEventResponse, MotionResponseState } from './motion-response.ts';
+ /** Scratch state is owned per collision solver, not by a mutable module singleton. */
+ export class CollisionSolver {
++  private motionFrame: CollisionFrame | null = null;
++  private motionRecords: readonly StepTicket[] | null = null;
++  private motionEnds: ChassisBox[] | null = null;
++  private motionStates: MotionResponseState[] = [];
++  private response: MotionEventResponse | null = null;
++  private solvingSubstep = false;
++  private eventA = new ChassisBox();
++  private eventB = new ChassisBox();
+   private n = new Vec3();
+   private boxes: ChassisBox[] = [];
+   private starts: ChassisBox[] = [];
+@@ -42,6 +62,12 @@
+    * this call starts a new path, so teleporting a car cannot hit everything
+    * between its previous and new positions. A capture is consumed once. */
+   beginStep(cars: Vehicle[]) {
++    if (this.motionFrame || this.solvingSubstep)
++      throw new Error('Cannot mix a live motion frame and legacy capture');
++    for (const car of cars) assertLegacyCollisionAccess(car);
++    this.captureStep(cars);
++  }
++  private captureStep(cars: Vehicle[]) {
+     while (this.starts.length < cars.length) this.starts.push(new ChassisBox());
+     this.captured.length = cars.length;
+     for (let i = 0; i < cars.length; i++) {
+@@ -54,7 +80,52 @@
+     }
+     this.pendingSweep = true;
+   }
++  beginSubstep(cars: readonly Vehicle[], dt: number) {
++    if (this.motionFrame || this.solvingSubstep) throw new Error('Unconsumed collision frame');
++    const frame = createCollisionFrame(this, cars, dt);
++    try {
++      this.captureStep([...cars]);
++    } catch (error) {
++      failCollisionFrame(this, frame);
++      throw error;
++    }
++    this.motionFrame = frame;
++    return frame;
++  }
++  cancelSubstep(frame: CollisionFrame) {
++    if (this.motionFrame !== frame || this.solvingSubstep)
++      throw new Error('Invalid collision cancellation');
++    failCollisionFrame(this, frame);
++    this.motionFrame = null;
++    this.pendingSweep = false;
++  }
++  solveSubstep(frame: CollisionFrame, track: Track) {
++    if (frame !== this.motionFrame || this.solvingSubstep)
++      throw new Error('Invalid collision frame solve');
++    try {
++      this.motionRecords = consumeCollisionFrame(this, frame);
++      this.motionFrame = null;
++      this.solvingSubstep = true;
++      this.motionStates = frame.cars.map((car) => new MotionResponseState(car));
++      this.solveInternal([...frame.cars], track, frame.dt);
++    } catch (error) {
++      failCollisionFrame(this, frame);
++      throw error;
++    } finally {
++      finishCollisionFrame(this, frame);
++      this.motionFrame = null;
++      this.motionRecords = null;
++      this.motionEnds = null;
++      this.motionStates = [];
++      this.pendingSweep = false;
++      this.solvingSubstep = false;
++      this.response = null;
++    }
++  }
+   impulse(a: Vehicle, b: Vehicle | null, contact: Vec3, normal: Vec3, penetration: number) {
++    assertImpulseAccess(this, a);
++    if (b) assertImpulseAccess(this, b);
++    this.response?.enter(a, b, contact, normal, penetration);
+     const { rA, rB, vA, vB, cross, inertia } = this,
+       A = a.body,
+       B = b?.body;
+@@ -116,14 +187,26 @@
+         }
+       }
+       const energy = (0.5 * vn * vn) / denominator;
+-      a.impactAt(energy, contact);
+-      if (b) b.impactAt(energy, contact);
+-    }
++      this.response?.mechanicalDone();
++      if (this.response) {
++        this.response.callback(() => a.impactAt(energy, contact));
++        if (b) this.response.callback(() => b.impactAt(energy, contact));
++      } else {
++        a.impactAt(energy, contact);
++        if (b) b.impactAt(energy, contact);
++      }
++    } else this.response?.mechanicalDone();
+     const correction = (Math.max(0, penetration - 0.004) * 0.48) / inverseMass;
+     A.position.addScaled(normal, correction / A.mass);
+     if (B) B.position.addScaled(normal, -correction / B.mass);
+   }
+   solve(cars: Vehicle[], track: Track, dt = 0) {
++    if (this.motionFrame || this.solvingSubstep)
++      throw new Error('Cannot mix a live motion frame and legacy solve');
++    for (const car of cars) assertLegacyCollisionAccess(car);
++    this.solveInternal(cars, track, dt);
++  }
++  private solveInternal(cars: Vehicle[], track: Track, dt: number) {
+     const { n, point, trackPos } = this;
+     this.sweptContacts = 0;
+     this.sweepQueries = 0;
+@@ -134,6 +217,18 @@
+     for (let i = 0; i < cars.length; i++) {
+       this.boxes[i].half = cars[i].definition.halfExtents;
+       this.boxes[i].update(cars[i].body);
++    }
++    if (this.motionRecords?.some((record) => record.publication)) {
++      this.motionEnds = this.boxes.slice(0, cars.length).map((box, i) => {
++        const end = new ChassisBox().copy(box),
++          publication = this.motionRecords![i].publication;
++        if (publication) {
++          const body = { position: new Vec3(), orientation: end.orientation };
++          setPose(body, publication.physicalEnd);
++          end.update(body as Vehicle['body']);
++        }
++        return end;
++      });
+     }
+     if (
+       this.pendingSweep &&
+@@ -223,24 +318,27 @@
+   }
+ 
+   private solveSwept(cars: Vehicle[], dt: number) {
++    const ends = this.motionEnds ?? this.boxes;
+     for (let i = 0; i < cars.length; i++) {
+       const car = cars[i],
+         start = this.starts[i],
+-        end = this.boxes[i],
++        end = ends[i],
+         travel = Math.sqrt(start.center.distanceSq(end.center)),
+         speed = Math.max(this.capturedSpeed[i], car.body.velocity.length()),
+         spin = Math.max(this.capturedSpin[i], car.body.omega.length());
+       // Resets inside an adapter step have no physical velocity connecting
+       // their poses. The allowance admits small contact/suspension corrections.
+       this.sweepEligible[i] =
+-        travel <= speed * dt + 0.05 && start.rotationTo(end) <= spin * dt + 0.05;
++        this.motionRecords?.[i].reason !== 'explicit-placement' &&
++        travel <= speed * dt + 0.05 &&
++        start.rotationTo(end) <= spin * dt + 0.05;
+     }
+     let remaining = dt;
+     const eventBudget = Math.max(8, cars.length * 2);
+     for (let event = 0; event < eventBudget; event++) {
+       for (let i = 0; i < cars.length; i++) {
+         const start = this.starts[i],
+-          end = this.boxes[i],
++          end = ends[i],
+           radius = Math.hypot(...start.half);
+         // A centre segment expanded by the bounding sphere also contains
+         // every intermediate rotation outside the two endpoint AABBs.
+@@ -259,12 +357,7 @@
+           if (this.sweepMinX[j] > this.sweepMaxX[i]) break;
+           if (!this.sweepEligible[j] || !this.sweptBoundsOverlap(i, j)) continue;
+           this.sweepQueries++;
+-          const hit = this.sweep.intersect(
+-            this.starts[i],
+-            this.boxes[i],
+-            this.starts[j],
+-            this.boxes[j],
+-          );
++          const hit = this.sweep.intersect(this.starts[i], ends[i], this.starts[j], ends[j]);
+           if (this.sweep.exhausted) this.sweepIterationLimits++;
+           if (hit && this.sweep.fraction < fraction && this.approachingAt(cars, i, j)) {
+             fraction = this.sweep.fraction;
+@@ -281,10 +374,60 @@
+       // drift responds to this impulse. Rotation from the impulse drifts in
+       // the next substep, retaining the integrated inertia orientation here.
+       for (let i = 0; i < cars.length; i++)
+-        this.starts[i].interpolate(this.starts[i], this.boxes[i], fraction);
++        this.starts[i].interpolate(this.starts[i], ends[i], fraction);
+       remaining *= 1 - fraction;
+       const a = cars[first],
+         b = cars[second];
++      if (this.usesMotionResponse(first, second)) {
++        const physicalA = new Vec3().copy(ends[first].center),
++          physicalB = new Vec3().copy(ends[second].center);
++        this.speedA.copy(a.body.velocity);
++        this.speedB.copy(b.body.velocity);
++        const response = new MotionEventResponse(
++          a,
++          b,
++          [this.motionStates[first], this.motionStates[second]],
++          [this.starts[first], this.starts[second]],
++          this.sweepPoint,
++          this.sweepNormal,
++          remaining,
++          cars,
++        );
++        this.response = response;
++        let failed: unknown,
++          hasFailure = false;
++        try {
++          this.impulse(a, b, this.sweepPoint, this.sweepNormal, 0);
++          response.complete();
++        } catch (error) {
++          failed = error;
++          hasFailure = true;
++        } finally {
++          this.response = null;
++          const cleanupError = response.cleanup();
++          if (cleanupError) {
++            failed = new Error(cleanupError.message, { cause: failed });
++            hasFailure = true;
++          }
++        }
++        if (hasFailure) throw failed;
++        this.speedA.scale(-1).add(a.body.velocity);
++        this.speedB.scale(-1).add(b.body.velocity);
++        physicalA.addScaled(this.speedA, remaining);
++        physicalB.addScaled(this.speedB, remaining);
++        this.boxes[first].update(a.body);
++        this.boxes[second].update(b.body);
++        // Preserve the zero-duration projection offset; never overwrite these
++        // physical ends with an actual projected body's orientation/centre.
++        ends[first].center.copy(physicalA);
++        ends[second].center.copy(physicalB);
++        // Rebuild axes/AABB without changing the physical orientation.
++        ends[first].copy(ends[first]);
++        ends[second].copy(ends[second]);
++        this.sweptContacts++;
++        if (remaining <= 0) return;
++        continue;
++      }
+       this.endA.copy(a.body.position);
+       this.endB.copy(b.body.position);
+       this.speedA.copy(a.body.velocity);
+@@ -298,16 +441,21 @@
+       b.body.position.copy(this.endB).addScaled(this.speedB, remaining);
+       this.boxes[first].update(a.body);
+       this.boxes[second].update(b.body);
++      if (this.motionEnds) {
++        ends[first].copy(this.boxes[first]);
++        ends[second].copy(this.boxes[second]);
++      }
+       this.sweptContacts++;
+       if (remaining <= 0) return;
+     }
+     this.sweepLimitReached = true;
+   }
+   private sweptBoundsOverlap(i: number, j: number) {
++    const ends = this.motionEnds ?? this.boxes;
+     const a = this.starts[i].center,
+-      endA = this.boxes[i].center,
++      endA = ends[i].center,
+       b = this.starts[j].center,
+-      endB = this.boxes[j].center,
++      endB = ends[j].center,
+       radius = Math.hypot(...this.starts[i].half) + Math.hypot(...this.starts[j].half);
+     return (
+       Math.min(a.y, endA.y) <= Math.max(b.y, endB.y) + radius &&
+@@ -318,16 +466,20 @@
+   }
+   private approachingAt(cars: Vehicle[], i: number, j: number) {
+     const t = this.sweep.fraction;
+-    this.rA
+-      .copy(this.boxes[i].center)
+-      .sub(this.starts[i].center)
+-      .scale(t)
+-      .add(this.starts[i].center);
+-    this.rB
+-      .copy(this.boxes[j].center)
+-      .sub(this.starts[j].center)
+-      .scale(t)
+-      .add(this.starts[j].center);
++    const ends = this.motionEnds ?? this.boxes;
++    if (this.usesMotionResponse(i, j)) {
++      this.eventA.interpolate(this.starts[i], ends[i], t);
++      this.eventB.interpolate(this.starts[j], ends[j], t);
++      this.rA.copy(this.sweep.point).sub(this.eventA.center);
++      this.rB.copy(this.sweep.point).sub(this.eventB.center);
++      this.motionStates[i].preview(cars[i], this.eventA.orientation, this.vA);
++      this.motionStates[j].preview(cars[j], this.eventB.orientation, this.vB);
++      this.vA.cross(this.vA, this.rA).add(cars[i].body.velocity);
++      this.vB.cross(this.vB, this.rB).add(cars[j].body.velocity);
++      return this.vA.sub(this.vB).dot(this.sweep.normal) < -1e-8;
++    }
++    this.rA.copy(ends[i].center).sub(this.starts[i].center).scale(t).add(this.starts[i].center);
++    this.rB.copy(ends[j].center).sub(this.starts[j].center).scale(t).add(this.starts[j].center);
+     this.rA.scale(-1).add(this.sweep.point);
+     this.rB.scale(-1).add(this.sweep.point);
+     this.vA.cross(cars[i].body.omega, this.rA).add(cars[i].body.velocity);
+@@ -336,4 +488,13 @@
+     // integration. Reject geometrically rediscovered but separating contacts.
+     return this.vA.sub(this.vB).dot(this.sweep.normal) < -1e-8;
+   }
++  private usesMotionResponse(i: number, j: number) {
++    return (
++      !!this.motionRecords &&
++      (!!this.motionRecords[i].publication ||
++        !!this.motionRecords[j].publication ||
++        this.motionStates[i].active ||
++        this.motionStates[j].active)
++    );
++  }
+ }
+--- a/src/simulation/vehicle.ts
++++ b/src/simulation/vehicle.ts
+@@ -1,4 +1,11 @@
+ import { RoadContactFrame } from './road-contact.ts';
++import {
++  advanceWithTicket,
++  advancingTicket,
++  noteAdapterStep,
++  withPlacement,
++  type StepTicket,
++} from './substep-motion.ts';
+ import { SkidContact, SKID_CONTACT } from './skid-contact.ts';
+ import { MARSHAL } from './marshal.ts';
+ import { FrictionClutch } from './clutch.ts';
+@@ -50,6 +57,17 @@
+  * this step whatever the caller's rate (60/120/240 Hz give the same physics). */
+ export const MAX_SUBSTEP = 1 / 240;
+ export class Vehicle {
++  /** The wrapper owns metadata only; the existing polymorphic integrator runs once. */
++  advanceSubstep(dt: number, track: Track, ticket?: StepTicket) {
++    if (!ticket) {
++      this.step(dt, track);
++      return;
++    }
++    advanceWithTicket(this, dt, ticket, () => this.step(dt, track));
++  }
++  protected get motionTicket() {
++    return advancingTicket(this);
++  }
+   readonly body = new RigidBody();
+   readonly input: Controls = controls();
+   readonly tires: Tire[];
+@@ -244,23 +262,25 @@
+     this.updateWheelAlignment();
+   }
+   place(track: Track, s: number, offset = 0) {
+-    track.at(s, this.trackPosition);
+-    const p = this.trackPosition;
+-    this.body.position.set(
+-      p.x + p.nx * offset,
+-      p.y + p.bank * offset + (this.definition.restHeight ?? 0.516),
+-      p.z + p.nz * offset,
+-    );
+-    this.body.orientation.yaw(Math.atan2(p.tx, p.tz));
+-    this.body.velocity.set(0, 0, 0);
+-    this.body.omega.set(0, 0, 0);
+-    this.s = s;
+-    this.pitLastS = s;
+-    this.lateral = offset;
+-    this.hub.reset();
+-    for (const tire of this.tires) resetTireContact(tire);
+-    this.jacking.fill(0);
+-    this.aeroFront = this.aeroRear = NaN;
++    return withPlacement(this, () => {
++      track.at(s, this.trackPosition);
++      const p = this.trackPosition;
++      this.body.position.set(
++        p.x + p.nx * offset,
++        p.y + p.bank * offset + (this.definition.restHeight ?? 0.516),
++        p.z + p.nz * offset,
++      );
++      this.body.orientation.yaw(Math.atan2(p.tx, p.tz));
++      this.body.velocity.set(0, 0, 0);
++      this.body.omega.set(0, 0, 0);
++      this.s = s;
++      this.pitLastS = s;
++      this.lateral = offset;
++      this.hub.reset();
++      for (const tire of this.tires) resetTireContact(tire);
++      this.jacking.fill(0);
++      this.aeroFront = this.aeroRear = NaN;
++    });
+   }
+   replaceTires(compound: Compound) {
+     this.compoundsUsed.add(compound);
+@@ -360,6 +380,7 @@
+     }
+   }
+   step(dt: number, track: Track) {
++    noteAdapterStep(this);
+     if (!Number.isFinite(dt) || dt <= 0) throw new Error('Invalid vehicle timestep');
+     const count = dt <= MAX_SUBSTEP * (1 + 1e-9) ? 1 : Math.ceil(dt / MAX_SUBSTEP - 1e-9);
+     for (let k = 0; k < count; k++) this.integrate(dt / count, track);
+--- a/src/simulation/bike-vehicle.ts
++++ b/src/simulation/bike-vehicle.ts
+@@ -1,6 +1,7 @@
+ import { gpBrakeEfficiency } from './gp-brake-fade.ts';
+ import { advanceWheelRotation } from './wheel-rotation.ts';
+ import { OrientationKinematics } from './pose-kinematics.ts';
++import { noteAdapterStep, withPlacement } from './substep-motion.ts';
+ import { GP_ENGINE_BRAKE_RELEASE_THROTTLE, gpEngineBrakingGain } from './gp-engine-braking.ts';
+ import { approach, clamp, G, lerp, mod, Quat, Vec3 } from '../core/math.ts';
+ import { BIKE_STATES, Bike, EXPERT, NOVICE, type BikeAssists } from './bike.ts';
+@@ -190,33 +191,37 @@
+     this.fitFrontRadius();
+   }
+   override place(track: Track, s: number, offset = 0) {
+-    super.place(track, s, offset);
+-    const p = this.trackPosition,
+-      d = this.dynamics;
+-    d.x = p.x + p.nx * offset;
+-    d.z = p.z + p.nz * offset;
+-    d.heading = Math.atan2(p.tx, p.tz);
+-    d.speed = d.lean = d.leanRate = d.steer = d.pitch = 0;
+-    d.motoGP?.reset();
+-    this.slide = this.yawKick = this.gpThrottle = 0;
+-    this.groundY = p.y;
+-    this.writeBody(track, 0);
++    return withPlacement(this, () => {
++      super.place(track, s, offset);
++      const p = this.trackPosition,
++        d = this.dynamics;
++      d.x = p.x + p.nx * offset;
++      d.z = p.z + p.nz * offset;
++      d.heading = Math.atan2(p.tx, p.tz);
++      d.speed = d.lean = d.leanRate = d.steer = d.pitch = 0;
++      d.motoGP?.reset();
++      this.slide = this.yawKick = this.gpThrottle = 0;
++      this.groundY = p.y;
++      this.writeBody(track, 0);
++    });
+   }
+   /** At rest at a world point (x, z) facing `heading` (rad from +z), on the
+    * ground of height `groundY` (the layer to sample: a bridge deck or the
+    * road below it). For surfaces without lap distance (the festival region);
+    * circuit sessions use `place`. */
+   placeFree(track: Track, x: number, z: number, heading: number, groundY: number) {
+-    const d = this.dynamics;
+-    d.x = x;
+-    d.z = z;
+-    d.heading = heading;
+-    d.speed = d.lean = d.leanRate = d.steer = d.pitch = 0;
+-    d.motoGP?.reset();
+-    this.slide = this.yawKick = this.gpThrottle = 0;
+-    this.stuckClock = 0;
+-    this.groundY = groundY;
+-    this.writeBody(track, 0);
++    return withPlacement(this, () => {
++      const d = this.dynamics;
++      d.x = x;
++      d.z = z;
++      d.heading = heading;
++      d.speed = d.lean = d.leanRate = d.steer = d.pitch = 0;
++      d.motoGP?.reset();
++      this.slide = this.yawKick = this.gpThrottle = 0;
++      this.stuckClock = 0;
++      this.groundY = groundY;
++      this.writeBody(track, 0);
++    });
+   }
+   /** Seamless (or quickshifted) sequential gearbox; no reverse or neutral in a session. */
+   override shift(direction: number) {
+@@ -327,6 +332,7 @@
+     return (torque * current * b.drivelineEfficiency) / spec.wheelRadius;
+   }
+   override step(dt: number, track: Track) {
++    noteAdapterStep(this);
+     const d = this.dynamics,
+       b = this.body,
+       spec = this.bikeSpec,
+@@ -793,15 +799,23 @@
+    * is a discrete pose convention, not an angular impulse. Subsequent fall and
+    * remount motion is measured even when the reduced core's leanRate is zero.
+    * Finishing a remount explicitly resets the core's lean/pitch coordinates. */
+-  protected writeAngularKinematics(dt: number, fallen: boolean) {
++  protected angularMotionOriginMatches(q: Quat) {
++    return (
++      this.orientationKinematics.originMatches(q) &&
++      !this.writtenFallen &&
++      this.writtenState === 'riding'
++    );
++  }
++  protected writeAngularKinematics(dt: number, fallen: boolean, physicalOrientation?: Quat) {
+     const b = this.body,
+       reset = this.writtenState === 'remount' && this.dynamics.state === 'riding';
+     this.orientationKinematics.sample(
+-      b.orientation,
++      physicalOrientation ?? b.orientation,
+       !reset && fallen === this.writtenFallen ? dt : 0,
+       b.omega,
+       b.angularAcceleration,
+     );
++    if (physicalOrientation) this.orientationKinematics.rebase(b.orientation);
+     this.writtenFallen = fallen;
+     this.writtenState = this.dynamics.state;
+   }
+@@ -846,17 +860,19 @@
+   }
+   /** Marshal restart: the bike at rest and upright at its remount point. */
+   restart(track: Track) {
+-    const d = this.dynamics;
+-    this.planRemount(track);
+-    d.x = this.remount.x;
+-    d.z = this.remount.z;
+-    d.heading = this.remount.heading;
+-    d.lean = d.leanRate = d.steer = d.pitch = 0;
+-    d.motoGP?.reset(d.speed);
+-    this.remount.active = false;
+-    this.slide = this.yawKick = 0;
+-    this.stuckClock = 0;
+-    this.writeBody(track, 0);
++    return withPlacement(this, () => {
++      const d = this.dynamics;
++      this.planRemount(track);
++      d.x = this.remount.x;
++      d.z = this.remount.z;
++      d.heading = this.remount.heading;
++      d.lean = d.leanRate = d.steer = d.pitch = 0;
++      d.motoGP?.reset(d.speed);
++      this.remount.active = false;
++      this.slide = this.yawKick = 0;
++      this.stuckClock = 0;
++      this.writeBody(track, 0);
++    });
+   }
+ }
+ /** The dynamics adapter for a definition's family (§6.3 / D13). */
+--- a/src/simulation/pose-kinematics.ts
++++ b/src/simulation/pose-kinematics.ts
+@@ -11,6 +11,31 @@
+   private readonly previousOmega = new Vec3();
+   private previousDt = 0;
+   private initialized = false;
++
++  originMatches(q: Quat) {
++    const n = Math.hypot(q.x, q.y, q.z, q.w),
++      p = this.previous;
++    if (!this.initialized || !Number.isFinite(n) || n < 1e-12) return false;
++    const sign = q.x * p.x + q.y * p.y + q.z * p.z + q.w * p.w < 0 ? -1 : 1;
++    return (
++      Math.max(
++        Math.abs((sign * q.x) / n - p.x),
++        Math.abs((sign * q.y) / n - p.y),
++        Math.abs((sign * q.z) / n - p.z),
++        Math.abs((sign * q.w) / n - p.w),
++      ) <= 1e-12
++    );
++  }
++  rebase(q: Quat) {
++    const n = Math.hypot(q.x, q.y, q.z, q.w);
++    if (!this.initialized || !Number.isFinite(n) || n < 1e-12)
++      throw new Error('Invalid authoritative orientation rebase');
++    const p = this.previous;
++    p.x = q.x / n;
++    p.y = q.y / n;
++    p.z = q.z / n;
++    p.w = q.w / n;
++  }
+ 
+   /** dt=0 establishes a placement/recovery baseline without manufacturing a
+    * spin or acceleration from an instantaneous change of pose convention. */
+--- a/src/simulation/offroad/dirt-bike-vehicle.ts
++++ b/src/simulation/offroad/dirt-bike-vehicle.ts
+@@ -1,4 +1,12 @@
+-import { approach, clamp, G, lerp, mod } from '../../core/math.ts';
++import { approach, clamp, G, lerp, mod, Quat } from '../../core/math.ts';
++import {
++  noteAdapterStep,
++  poseValue,
++  publishMotion,
++  rejectMotion,
++  withPlacement,
++  noteUnsupportedReset,
++} from '../substep-motion.ts';
+ import { advanceWheelRotation } from '../wheel-rotation.ts';
+ import { NOVICE } from '../bike.ts';
+ import { BIKE_RECOVERY, BikeVehicle, bikeOrientation } from '../bike-vehicle.ts';
+@@ -36,6 +44,7 @@
+   STOP_COMPLIANCE = 0.015;
+ /** Nose-up margin (rad) the pitch aid aims for over the landing slope. */
+ const LANDING_NOSE_UP = 0.1;
++type DabMotion = { reason?: string; delta: number; postLean: number; clampedLean: number };
+ 
+ /** Resolve an incoming horizontal velocity in a yawed tyre basis. This is
+  * an orthogonal change of axes, including any pre-existing contact slide;
+@@ -209,12 +218,16 @@
+     return front ? this.setup.frontPreload : this.setup.rearPreload;
+   }
+   override place(track: Track, s: number, offset = 0) {
+-    super.place(track, s, offset);
+-    this.settle();
++    return withPlacement(this, () => {
++      super.place(track, s, offset);
++      this.settle();
++    });
+   }
+   override placeFree(track: Track, x: number, z: number, heading: number, groundY: number) {
+-    super.placeFree(track, x, z, heading, groundY);
+-    this.settle();
++    return withPlacement(this, () => {
++      super.placeFree(track, x, z, heading, groundY);
++      this.settle();
++    });
+   }
+   /** Static contact pose for the current spring load and preload. The fixed
+    * wheel geometry supplies two independent gap equations. Solve their
+@@ -286,8 +299,7 @@
+     const next = clamp(this.gear + Math.sign(direction), 1, spec.gearRatios.length - 2);
+     if (next === this.gear) return;
+     const nextRpm =
+-      (this.rearSpin * spec.gearRatios[next + 1] * spec.finalDrive * this.gearing * 30) /
+-      Math.PI;
++      (this.rearSpin * spec.gearRatios[next + 1] * spec.finalDrive * this.gearing * 30) / Math.PI;
+     if (nextRpm > spec.limiterRPM) return;
+     this.gear = next;
+     this.shiftClock = Math.max(0.02, this.bikeSpec.shiftCut);
+@@ -309,30 +321,44 @@
+     if (this.autoShift) {
+       // Wheelspin alone is not a full-speed upshift. A locked rotor
+       // cannot demand a downshift that over-revs when traction returns.
+-      if (wheelRpm > spec.shiftRPM && roadRpm > 0.78 * spec.shiftRPM)
+-        this.shift(1);
+-      else if (roadRpm < spec.downshiftRPM && this.gear > 1)
+-        this.shift(-1);
++      if (wheelRpm > spec.shiftRPM && roadRpm > 0.78 * spec.shiftRPM) this.shift(1);
++      else if (roadRpm < spec.downshiftRPM && this.gear > 1) this.shift(-1);
+     }
+     ratio = spec.gearRatios[this.gear + 1] * spec.finalDrive * this.gearing;
+     const coupled = (this.rearSpin * ratio * 30) / Math.PI;
+-    const launch = this.gear === 1
+-      ? lerp(spec.idleRPM, this.bikeSpec.launchRPM, throttle)
+-      : spec.idleRPM;
++    const launch =
++      this.gear === 1 ? lerp(spec.idleRPM, this.bikeSpec.launchRPM, throttle) : spec.idleRPM;
+     this.rpm = approach(
+       this.rpm,
+       Math.min(Math.max(coupled, launch), spec.limiterRPM + 150),
+       40000 * dt,
+     );
+-    let torque = this.riding && this.fuel > 0 && this.rpm <= spec.limiterRPM
+-      ? engineTorque(this.rpm, spec) * throttle
+-      : 0;
++    let torque =
++      this.riding && this.fuel > 0 && this.rpm <= spec.limiterRPM
++        ? engineTorque(this.rpm, spec) * throttle
++        : 0;
+     if (this.shiftClock > 0) torque = 0;
+     this.engineOutputTorque = torque;
+     this.clutch.engineOmega = (this.rpm * Math.PI) / 30;
+     return (torque * ratio * this.bikeSpec.drivelineEfficiency) / spec.wheelRadius;
+   }
+   override step(dt: number, track: Track) {
++    noteAdapterStep(this);
++    const ticket = this.motionTicket;
++    const motion: DabMotion | undefined = ticket
++      ? { delta: 0, postLean: 0, clampedLean: 0 }
++      : undefined;
++    if (motion && ticket) {
++      if (!this.riding || this.airborne) motion.reason = 'not-grounded-riding';
++      else if (this.pendingLanding || this.settleTime > 0) motion.reason = 'landing-settlement';
++      else if (this.projectedContact) motion.reason = 'deep-contact-active';
++      else if (Math.abs(ticket.start.p[1] - this.written.position.y) > 1e-12)
++        motion.reason = 'prior-y-depenetration';
++      else if (Math.abs(Math.hypot(...ticket.start.q) - 1) > 1e-8)
++        motion.reason = 'nonunit-motion-origin';
++      else if (!this.angularMotionOriginMatches(new Quat(...ticket.start.q)))
++        motion.reason = 'angular-origin';
++    }
+     this.lastTrack = track;
+     this.clock += dt;
+     const d = this.dynamics,
+@@ -341,6 +367,8 @@
+     this.debris.step(dt, track);
+     const speedBeforeCollision = d.speed;
+     this.absorbExternal(dt);
++    if (motion && (Math.abs(d.x - b.position.x) > 1e-12 || Math.abs(d.z - b.position.z) > 1e-12))
++      motion.reason ||= 'unabsorbed-planar-origin';
+     const externalSpeedImpulse = Math.abs(d.speed - speedBeforeCollision) > 0.05;
+     const ai = this.aiSteps > 0;
+     d.assists = ai ? NOVICE : this.riderAids;
+@@ -389,7 +417,8 @@
+     // A test harness can explicitly set road speed without driving the
+     // wheels first. This is distinct from collision and landing impulses.
+     if (
+-      mxGround && !externalSpeedImpulse &&
++      mxGround &&
++      !externalSpeedImpulse &&
+       this.clock - (this.lastLanding?.time ?? -100) > 0.3 &&
+       Math.abs(d.speed - this.mxReferenceSpeed) > 2.5
+     ) {
+@@ -497,7 +526,8 @@
+             driveTorque: force * spec.rearWheelRadius,
+             frontBrakeTorque: frontPedal * d.p.frontBrake * spec.frontWheelRadius,
+             rearBrakeTorque: (rearPedal * d.p.rearBrake + engineBraking) * spec.rearWheelRadius,
+-            drag: d.p.drag * d.dragScale * initialSpeed ** 2 +
++            drag:
++              d.p.drag * d.dragScale * initialSpeed ** 2 +
+               (initialSpeed > 0.05 ? (d.p.rolling ?? 0) * d.mass * G : 0),
+             slope: G * d.slope,
+             tractionControl: d.assists.traction,
+@@ -508,7 +538,8 @@
+         const coreLateral = d.speed * d.speed * d.curvature;
+         d.leanRate += clamp(
+           ((coreLateral - contact.lateralAcceleration) * Math.cos(d.lean) * dt) / spec.cgHeight,
+-          -0.3, 0.3,
++          -0.3,
++          0.3,
+         );
+         d.speed = contact.speed;
+         d.x = x0 + contact.dx;
+@@ -519,7 +550,10 @@
+         // that in tyre fx, not as a brake application the rider never made.
+         d.frontBrakeForce = Math.min(frontPedal * d.p.frontBrake, Math.max(0, -contact.front.fx));
+         d.driveForce = Math.max(0, contact.rear.fx);
+-        d.rearBrakeForce = Math.min(rearPedal * d.p.rearBrake + engineBraking, Math.max(0, -contact.rear.fx));
++        d.rearBrakeForce = Math.min(
++          rearPedal * d.p.rearBrake + engineBraking,
++          Math.max(0, -contact.rear.fx),
++        );
+         d.engineBrakeForce = Math.min(d.rearBrakeForce, engineBraking);
+         d.frontLoad = this.forceFront;
+         d.rearLoad = this.forceRear;
+@@ -574,6 +608,10 @@
+         if (Math.abs(this.dab) > 0.5) {
+           const limit = this.air.dabLean + 0.12;
+           if (Math.abs(d.lean) > limit) {
++            if (motion) {
++              motion.delta = Math.sign(d.lean) * limit - d.lean;
++              motion.clampedLean = Math.sign(d.lean) * limit;
++            }
+             d.lean = Math.sign(d.lean) * limit;
+             d.leanRate *= 0.5;
+           }
+@@ -584,17 +622,20 @@
+         const hold = Math.atan(0.8 * d.p.mu * d.grip),
+           over = Math.abs(d.lean) - Math.min(d.leanLimit + 0.06, hold - 0.02);
+         if (over > 0 && Math.sign(d.leanRate) === Math.sign(d.lean)) {
++          const beforeBleed = d.lean;
+           d.leanRate *= Math.exp(-12 * dt);
+           d.lean -= Math.sign(d.lean) * Math.min(over, 1.2 * dt);
++          if (motion) motion.postLean += d.lean - beforeBleed;
+           d.speed = Math.max(0, d.speed - 1.5 * dt);
+         }
+       }
+-      if (!mxGround) this.longitudinal =
+-        d.driveForce -
+-        d.frontBrakeForce -
+-        d.rearBrakeForce +
+-        this.pickupFrontForce +
+-        this.pickupRearForce;
++      if (!mxGround)
++        this.longitudinal =
++          d.driveForce -
++          d.frontBrakeForce -
++          d.rearBrakeForce +
++          this.pickupFrontForce +
++          this.pickupRearForce;
+     }
+     if (this.pendingLanding) this.judgeLanding(this.pendingLanding);
+     if (was === 'riding' && d.state !== 'riding') {
+@@ -648,7 +689,9 @@
+     this.updateRider(dt, track);
+     const power = Math.max(0, this.engineOutputTorque * this.clutch.engineOmega);
+     this.fuel = Math.max(0, this.fuel - (power / (0.3 * 43e6) + 0.0002) * dt);
+-    this.writeBody(track, dt);
++    if (motion && (!this.riding || this.airborne || was !== 'riding'))
++      motion.reason ||= 'state-boundary';
++    this.writeBody(track, dt, motion);
+     this.updateSuspensionAndTyres(dt);
+     this.updateSkid(dt);
+     this.updateMud(dt);
+@@ -1055,7 +1098,7 @@
+   }
+   /** The 2-DOF sprung chassis over the two contact patches (heave + pitch),
+    * integrated semi-implicitly; detects take-off, touchdown and bottoming. */
+-  private vertical(dt: number) {
++  private vertical(dt: number, motion?: DabMotion) {
+     const d = this.dynamics,
+       spec = this.bikeSpec,
+       a = this.air,
+@@ -1108,6 +1151,7 @@
+     if (penetration <= 0) this.projectedContact = false;
+     if (penetration > DEEP_CONTACT) this.projectedContact = true;
+     if (this.projectedContact && penetration > STOP_COMPLIANCE) {
++      if (motion) motion.reason ||= 'deep-contact-projection';
+       const correction = penetration - STOP_COMPLIANCE;
+       this.cgY += correction;
+       cF -= correction;
+@@ -1480,9 +1524,7 @@
+           : 0;
+       // Slip is measured wheel/ground mismatch even while one wheel is
+       // unloaded on a rear-first landing. Force and heating stay load-gated.
+-      t.slip = grounded
+-        ? Math.max(front ? 0 : Math.min(0.3, d.rearSlip), inheritedSlip)
+-        : 0;
++      t.slip = grounded ? Math.max(front ? 0 : Math.min(0.3, d.rearSlip), inheritedSlip) : 0;
+       t.angle = front ? d.steer : 0;
+       t.compression = front ? this.fork : this.shock;
+       t.length = (front ? spec.forkTravel : spec.shockTravel) - t.compression + 0.2;
+@@ -1511,7 +1553,7 @@
+   }
+   /** Contact patches on the terrain, the vertical model, then the rigid-body
+    * pose: CG at the sprung height, pitched by the chassis pitch. */
+-  protected override writeBody(track: Track, dt: number) {
++  protected override writeBody(track: Track, dt: number, motion?: DabMotion) {
+     this.lastTrack = track;
+     const d = this.dynamics,
+       b = this.body,
+@@ -1540,7 +1582,7 @@
+     // Differentiate our last authoritative pose so that correction cannot
+     // become a false vertical speed fed back into the next contact impulse.
+     const previousY = this.written.position.y;
+-    if (dt > 0) this.vertical(dt);
++    if (dt > 0) this.vertical(dt, motion);
+     else if (this.cgY === 0 && this.pitch === 0) this.settlePose();
+     // Touchdown commits chassis yaw to the grounded heading in vertical().
+     h = d.heading + this.airYaw;
+@@ -1565,12 +1607,52 @@
+     const planar = this.airborne ? this.flightSpeed : d.speed * Math.cos(this.roadPitch),
+       travelSin = Math.sin(d.heading),
+       travelCos = Math.cos(d.heading);
+-    b.velocity.set(
+-      travelSin * planar + travelCos * this.slide,
+-      dt > 0 && Math.abs(b.position.y - previousY) < 0.5 ? (b.position.y - previousY) / dt : 0,
+-      travelCos * planar - travelSin * this.slide,
+-    );
+-    this.writeAngularKinematics(dt, fallen);
++    const ticket = this.motionTicket;
++    let physicalY = b.position.y,
++      physicalOrientation: Quat | undefined;
++    if (motion?.delta && ticket) {
++      motion.reason ||= ticket.exclusionBlockReason;
++      if (!this.riding || this.airborne || fallen) motion.reason ||= 'vertical-state-boundary';
++      else if (this.pendingLanding || this.settleTime > 0) motion.reason ||= 'landing-settlement';
++      else if (this.projectedContact) motion.reason ||= 'deep-contact-active';
++      else if (Math.abs(d.lean - (motion.clampedLean + motion.postLean)) > 1e-12)
++        motion.reason ||= 'unaccounted-lean-write';
++      // Factoring the dab must not cross the writer's existing upright/lying
++      // convention. That branch has a different pitch and pivot, not just lean.
++      else if ((!this.airborne && Math.abs(d.lean - motion.delta) > 1.2) !== fallen)
++        motion.reason ||= 'factored-pose-convention';
++      if (!motion.reason) {
++        const lean = chassisLean(d.lean - motion.delta, spec);
++        physicalY = this.cgY - (spec.cgHeight - spec.crownRadius) * (1 - Math.cos(lean));
++        physicalOrientation = bikeOrientation(new Quat(), h, chassisPitch, lean);
++        if (!(dt > 0) || Math.abs(physicalY - previousY) >= 0.5)
++          motion.reason = 'vertical-discontinuity';
++      }
++      if (motion.reason) {
++        rejectMotion(this, motion.reason);
++        physicalY = b.position.y;
++        physicalOrientation = undefined;
++      }
++    }
++    const publishRates = () => {
++      b.velocity.set(
++        travelSin * planar + travelCos * this.slide,
++        dt > 0 && Math.abs(physicalY - previousY) < 0.5 ? (physicalY - previousY) / dt : 0,
++        travelCos * planar - travelSin * this.slide,
++      );
++      this.writeAngularKinematics(dt, fallen, physicalOrientation);
++    };
++    if (physicalOrientation && motion && ticket) {
++      const q = physicalOrientation;
++      publishMotion(
++        this,
++        { p: [b.position.x, physicalY, b.position.z], q: [q.x, q.y, q.z, q.w] },
++        poseValue(b),
++        motion.delta,
++        motion.postLean,
++        publishRates,
++      );
++    } else publishRates();
+     b.orientation.rotate(this.scratch.set(0, 0, 1), this.forward);
+     b.orientation.rotate(this.scratch.set(0, 1, 0), this.up);
+     b.orientation.inverseRotate(b.velocity, this.localVelocity);
+@@ -1578,11 +1660,12 @@
+     this.steer = d.steer;
+     this.lateral = track.nearest(d.x, d.z, this.trackPosition, this.groundY);
+     this.s = this.trackPosition.s;
+-    const lateralAccel = this.riding && !this.airborne
+-      ? this.playerMotocross
+-        ? this.mxLateralAcceleration
+-        : d.speed * d.speed * d.curvature
+-      : 0;
++    const lateralAccel =
++      this.riding && !this.airborne
++        ? this.playerMotocross
++          ? this.mxLateralAcceleration
++          : d.speed * d.speed * d.curvature
++        : 0;
+     this.gLong = d.longitudinal / G;
+     this.gLat = lateralAccel / G;
+     this.gVert = (this.forceFront + this.forceRear) / (d.mass * G);
+@@ -1606,6 +1689,7 @@
+     }
+   }
+   override restart(track: Track) {
++    noteUnsupportedReset(this);
+     this.planRemount(track);
+     const d = this.dynamics;
+     if (!this.inPit && Math.hypot(this.remount.x - d.x, this.remount.z - d.z) > 3) {
+@@ -1623,8 +1707,10 @@
+       this.settle();
+       return;
+     }
+-    super.restart(track);
+-    this.settle();
++    withPlacement(this, () => {
++      super.restart(track);
++      this.settle();
++    });
+   }
+   protected override pushToRemount(dt: number) {
+     if (!(dt > 0) || !this.remount.active) return;
+--- a/src/simulation/world.ts
++++ b/src/simulation/world.ts
+@@ -188,9 +188,9 @@
+     }
+     this.offroad?.beforePhysics(dt, this.autoPlayer);
+     for (let sub = 0; sub < 2; sub++) {
+-      this.collisions.beginStep(this.cars);
+-      for (const c of this.cars) c.step(dt * 0.5, this.track);
+-      this.collisions.solve(this.cars, this.track, dt * 0.5);
++      const frame = this.collisions.beginSubstep(this.cars, dt * 0.5);
++      for (const c of this.cars) c.advanceSubstep(dt * 0.5, this.track, frame.ticketFor(c));
++      this.collisions.solveSubstep(frame, this.track);
+     }
+     for (const c of this.cars) c.recoverIfUpset(dt, this.track);
+     this.recoverStranded(dt);
+--- a/src/simulation/open-world/session.ts
++++ b/src/simulation/open-world/session.ts
+@@ -4,6 +4,7 @@
+ import { wakeFields } from '../aero.ts';
+ import { BikeVehicle, createVehicle, writeBikeBlock } from '../bike-vehicle.ts';
+ import { CollisionSolver } from '../collision.ts';
++import { withPlacement } from '../substep-motion.ts';
+ import { BoxContact, ChassisBox } from '../obb.ts';
+ import {
+   COMPOUNDS,
+@@ -334,28 +335,30 @@
+   // --- Placement ----------------------------------------------------------
+   /** Put a car at rest on the ground at (x, z) facing `heading` (rad, from +z). */
+   placeAt(car: Vehicle, x: number, z: number, heading: number, layerY?: number) {
+-    if (car === this.player) {
+-      this.skills.reset();
+-      this.run?.practice?.invalidate('reset');
+-    }
+-    this.run?.racecraft?.reset();
+-    const ground = this.track.groundHeight(x, z, layerY);
+-    const b = car.body;
+-    b.position.set(x, ground + 0.62, z);
+-    b.orientation.x = 0;
+-    b.orientation.y = 0;
+-    b.orientation.z = 0;
+-    b.orientation.w = 1;
+-    b.orientation.yaw(heading);
+-    b.velocity.set(0, 0, 0);
+-    b.omega.set(0, 0, 0);
+-    for (const t of car.tires) t.omega = 0;
+-    car.retired = false;
+-    car.upsetClock = 0;
+-    // A motorcycle's pose is its dynamics state: place that, the body follows.
+-    if (car instanceof BikeVehicle) car.placeFree(this.asTrack, x, z, heading, ground);
+-    car.lateral = this.track.nearest(x, z, car.trackPosition, ground + 1);
+-    car.s = car.trackPosition.s;
++    return withPlacement(car, () => {
++      if (car === this.player) {
++        this.skills.reset();
++        this.run?.practice?.invalidate('reset');
++      }
++      this.run?.racecraft?.reset();
++      const ground = this.track.groundHeight(x, z, layerY);
++      const b = car.body;
++      b.position.set(x, ground + 0.62, z);
++      b.orientation.x = 0;
++      b.orientation.y = 0;
++      b.orientation.z = 0;
++      b.orientation.w = 1;
++      b.orientation.yaw(heading);
++      b.velocity.set(0, 0, 0);
++      b.omega.set(0, 0, 0);
++      for (const t of car.tires) t.omega = 0;
++      car.retired = false;
++      car.upsetClock = 0;
++      // A motorcycle's pose is its dynamics state: place that, the body follows.
++      if (car instanceof BikeVehicle) car.placeFree(this.asTrack, x, z, heading, ground);
++      car.lateral = this.track.nearest(x, z, car.trackPosition, ground + 1);
++      car.s = car.trackPosition.s;
++    });
+   }
+   /** Place on a route at distance d and lateral offset, facing along it. */
+   private placeOnPath(car: Vehicle, path: RoutePath, d: number, lateral: number) {
+@@ -952,7 +955,7 @@
+     else if (this.traffic.cars.length) this.traffic.clear();
+     this.collisions.touched = 0;
+     for (let sub = 0; sub < 2; sub++) {
+-      this.collisions.beginStep(contact);
++      const frame = this.collisions.beginSubstep(contact, dt * 0.5);
+       // Use the shared physical drag tow and downforce wake. Read every
+       // leader's current pose before advancing any car; finished rivals
+       // are excluded by the same active set as physical car contacts.
+@@ -967,8 +970,8 @@
+           wakeFields(car, contact);
+         else car.wake = car.slipstream = 0;
+       }
+-      for (const c of this.cars) c.step(dt * 0.5, track);
+-      this.collisions.solve(contact, track, dt * 0.5);
++      for (const c of this.cars) c.advanceSubstep(dt * 0.5, track, frame.ticketFor(c));
++      this.collisions.solveSubstep(frame, track);
+       for (const c of this.cars) this.collideStatic(c);
+       if (traffic && traffic.cars.length) traffic.collide(this.player);
+     }
+--- a/src/core/session-identity.ts
++++ b/src/core/session-identity.ts
+@@ -38,7 +38,9 @@
+  * v21: let a still-fast engine complete one normally coupled solve at automatic
+  * shift-cut exit when driven tyres recover longitudinal grip, preventing hunting;
+  * prior records retain their original physics category. */
+-export const SIMULATION_VERSION = 21;
++// Unpublished isolated motion-contract prototype. Distinct source fingerprint;
++// not the frozen v22 rate-only candidate and not release qualification.
++export const SIMULATION_VERSION = 22;
+ /** Fixed physics tick used by the worker and headless simulation. */
+ export const SIMULATION_TICK_HZ = 120;
+ 
+--- a/scripts/physics-cost.ts
++++ b/scripts/physics-cost.ts
+@@ -70,11 +70,11 @@
+       wake(c, cars);
+     }
+     for (let sub = 0; sub < 2; sub++) {
+-      collisions.beginStep(cars);
++      const frame = collisions.beginSubstep(cars, TICK * 0.5);
+       const before = performance.now();
+-      for (const c of cars) c.step(TICK * 0.5, track);
++      for (const c of cars) c.advanceSubstep(TICK * 0.5, track, frame.ticketFor(c));
+       vehicleMs += performance.now() - before;
+-      collisions.solve(cars, track, TICK * 0.5);
++      collisions.solveSubstep(frame, track);
+     }
+     for (const c of cars) c.recoverIfUpset(TICK, track);
+     for (const c of cars) updatePit(c, track, TICK, cars);
+--- /dev/null
++++ b/tests/motion-projection-contract.test.ts
+@@ -0,0 +1,776 @@
++import { describe, expect, it } from 'vitest';
++import { Quat, Vec3 } from '../src/core/math.ts';
++import { CollisionSolver } from '../src/simulation/collision.ts';
++import { DEFAULT_SETUP } from '../src/simulation/config.ts';
++import {
++  DirtBikeVehicle,
++  type LandingRecord,
++} from '../src/simulation/offroad/dirt-bike-vehicle.ts';
++import { MX_450 } from '../src/simulation/offroad/dirt-bikes.ts';
++import { Track } from '../src/simulation/track.ts';
++import { chassisLean } from '../src/simulation/bike-definitions.ts';
++import { bikeOrientation } from '../src/simulation/bike-vehicle.ts';
++import { ChassisBox } from '../src/simulation/obb.ts';
++import { motionStamp, withPlacement } from '../src/simulation/substep-motion.ts';
++import { Vehicle } from '../src/simulation/vehicle.ts';
++
++const track = new Track('clear', true);
++const pairOnly = {
++  circuit: { offroad: false },
++  nearest: () => 0,
++  boundaryAt: () => Infinity,
++} as unknown as Track;
++class Probe extends DirtBikeVehicle {
++  constructor(id = 0) {
++    super(id, 'medium', DEFAULT_SETUP, 'sport', MX_450);
++  }
++  pose(dt = 0) {
++    this.writeBody(track, dt);
++  }
++  poseOn(surface: Track, dt = 0) {
++    this.writeBody(surface, dt);
++  }
++  absorb(dt: number) {
++    this.absorbExternal(dt);
++  }
++  get baseline() {
++    return this.written;
++  }
++  get kick() {
++    return this.yawKick;
++  }
++}
++type ProbeInternals = {
++  automaticBody: number;
++  smoothGrip: number;
++  freeSteps: number;
++  referenceSag: { fork: number; shock: number };
++  pendingLanding: LandingRecord | null;
++  settleTime: number;
++  contactCrash: boolean;
++  lastState: Probe['dynamics']['state'];
++  projectedContact: boolean;
++  frontLight: number;
++  noseTorque: number;
++  faceSlope: number;
++  flightSpeed: number;
++  crashReason: string;
++};
++const internals = (b: Probe) => b as unknown as ProbeInternals;
++function fixture(sign = 1, dt = 1 / 240, active = true, mixed = false) {
++  const b = new Probe();
++  b.place(track, 100);
++  b.aiControlled(10000);
++  b.dynamics.speed = 6.4;
++  b.dynamics.lean = sign * 0.78;
++  b.dynamics.leanRate = sign * 0.01;
++  b.dynamics.steer = 0;
++  b.dab = active ? sign * (0.5 - 3 * dt) : 0;
++  if (mixed) {
++    b.pitch = 0.2;
++    b.pitchRate = 0.4;
++    b.vy = 0.3;
++    b.dynamics.steer = sign * 0.1;
++  }
++  b.pose();
++  return b;
++}
++function rates(b: Probe) {
++  return [
++    ...Object.values(b.body.position),
++    ...Object.values(b.body.orientation),
++    ...Object.values(b.body.velocity),
++    ...Object.values(b.body.omega),
++    ...Object.values(b.body.angularAcceleration),
++  ];
++}
++function framed(b: Probe, dt = 1 / 240, solver = new CollisionSolver()) {
++  const frame = solver.beginSubstep([b], dt);
++  b.advanceSubstep(dt, track, frame.ticketFor(b));
++  return {
++    frame,
++    ticket: frame.ticketFor(b)!,
++    solver,
++    finish: () => solver.solveSubstep(frame, pairOnly),
++  };
++}
++
++describe('consume-once motion ownership', () => {
++  it.each([0, -1, NaN, Infinity])('rejects invalid frame dt %s before any adapter work', (dt) => {
++    const b = fixture(),
++      before = rates(b),
++      stamp = motionStamp(b);
++    expect(() => new CollisionSolver().beginSubstep([b], dt)).toThrow('Invalid collision substep');
++    expect(rates(b)).toEqual(before);
++    expect(motionStamp(b)).toEqual(stamp);
++  });
++  it('rejects duplicate participant identities', () => {
++    const b = fixture();
++    expect(() => new CollisionSolver().beginSubstep([b, b], 1 / 240)).toThrow(
++      'Invalid collision substep',
++    );
++  });
++  it.each([undefined, null, 0, false, ''])(
++    'retains the exact placement failure %s after cleanup',
++    (thrown) => {
++      const b = fixture(),
++        solver = new CollisionSolver(),
++        frame = solver.beginSubstep([b], 1 / 240);
++      let caught: unknown = Symbol('not-thrown');
++      let failed = false;
++      try {
++        withPlacement(b, () => {
++          b.body.position.x += 1;
++          throw thrown;
++        });
++      } catch (error) {
++        caught = error;
++        failed = true;
++      }
++      expect(failed).toBe(true);
++      expect(caught).toBe(thrown);
++      expect(frame.ticketFor(b)!.state).toBe('failed');
++      expect(() => solver.solveSubstep(frame, pairOnly)).toThrow('not open');
++      expect(() => b.step(1 / 240, track)).toThrow('requires explicit placement');
++      b.place(track, 100);
++      const next = framed(b);
++      next.finish();
++    },
++  );
++  it('does not seal an outer placement after a nested failure was caught by its caller', () => {
++    const b = fixture(),
++      solver = new CollisionSolver(),
++      frame = solver.beginSubstep([b], 1 / 240);
++    withPlacement(b, () => {
++      try {
++        withPlacement(b, () => {
++          b.body.position.x += 1;
++          throw 0;
++        });
++      } catch {
++        /* Actual caller swallowed the failure. */
++      }
++    });
++    expect(frame.ticketFor(b)!.state).toBe('failed');
++    expect(() => solver.solveSubstep(frame, pairOnly)).toThrow('not open');
++    expect(() => b.step(1 / 240, track)).toThrow('requires explicit placement');
++  });
++
++  it('rejects foreign, wrong-dt and double advances before physical mutation', () => {
++    const b = fixture(),
++      other = fixture(),
++      solver = new CollisionSolver(),
++      frame = solver.beginSubstep([b], 1 / 240);
++    const before = rates(b),
++      epoch = motionStamp(b);
++    expect(() => b.advanceSubstep(1 / 120, track, frame.ticketFor(b))).toThrow('ticket');
++    expect(() => other.advanceSubstep(1 / 240, track, frame.ticketFor(b))).toThrow('ticket');
++    expect(rates(b)).toEqual(before);
++    expect(motionStamp(b)).toEqual(epoch);
++    b.advanceSubstep(1 / 240, track, frame.ticketFor(b));
++    const after = rates(b);
++    expect(() => b.advanceSubstep(1 / 240, track, frame.ticketFor(b))).toThrow('ticket');
++    expect(rates(b)).toEqual(after);
++    expect(() => new CollisionSolver().solveSubstep(frame, pairOnly)).toThrow('frame');
++    solver.solveSubstep(frame, pairOnly);
++    expect(frame.ticketFor(b)!.state).toBe('consumed');
++    expect(() => solver.solveSubstep(frame, pairOnly)).toThrow('frame');
++    expect(() => b.advanceSubstep(1 / 240, track, frame.ticketFor(b))).toThrow(
++      'Invalid motion ticket',
++    );
++  });
++  it('rejects raw intervening steps and old/new API mixing, including stationary integration', () => {
++    const b = fixture(),
++      solver = new CollisionSolver();
++    b.dynamics.speed = 0;
++    b.pose();
++    const frame = solver.beginSubstep([b], 1 / 240),
++      before = motionStamp(b);
++    expect(() => b.step(1 / 240, track)).toThrow('Unframed');
++    expect(motionStamp(b)).toEqual(before);
++    expect(() => solver.beginStep([b])).toThrow('mix');
++    expect(() => solver.solve([b], pairOnly, 1 / 240)).toThrow('mix');
++    expect(() => solver.beginSubstep([b], 1 / 240)).toThrow('Unconsumed');
++    expect(() => new CollisionSolver().beginSubstep([b], 1 / 240)).toThrow('owner');
++    solver.cancelSubstep(frame);
++    b.step(1 / 240, track);
++  });
++  it('rejects unstepped/changed seals and releases ownership after a failed solve', () => {
++    const b = fixture(),
++      solver = new CollisionSolver(),
++      frame = solver.beginSubstep([b], 1 / 240);
++    expect(() => solver.solveSubstep(frame, pairOnly)).toThrow('Unsealed');
++    const next = framed(b, 1 / 240, solver);
++    b.body.velocity.x += 1;
++    expect(next.finish).toThrow('changed');
++    expect(() => framed(b, 1 / 240, solver)).toThrow('requires explicit placement');
++    b.place(track, 100);
++    const last = framed(b, 1 / 240, solver);
++    last.finish();
++  });
++  it('cannot cancel an advanced publication into silent legacy continuation', () => {
++    const b = fixture(),
++      run = framed(b);
++    expect(run.ticket.publication).not.toBeNull();
++    run.solver.cancelSubstep(run.frame);
++    expect(() => b.step(1 / 240, track)).toThrow('requires explicit placement');
++    expect(() => run.solver.solve([b], pairOnly)).toThrow('requires explicit placement');
++    expect(() => run.solver.beginStep([b])).toThrow('requires explicit placement');
++    b.place(track, 100);
++    const next = framed(b);
++    next.finish();
++  });
++  it('exposes immutable receipts, not placement/publication/consumption capabilities', () => {
++    const b = fixture(),
++      solver = new CollisionSolver(),
++      frame = solver.beginSubstep([b], 1 / 240),
++      ticket = frame.ticketFor(b)!;
++    expect(Object.isFrozen(frame)).toBe(true);
++    expect(Object.isFrozen(ticket)).toBe(true);
++    for (const key of ['enter', 'publish', 'placed', 'beginPlacement', 'finish', 'fail'])
++      expect(key in ticket).toBe(false);
++    for (const key of ['consume', 'fail', 'cancel', 'finishSolve'])
++      expect(key in frame).toBe(false);
++    expect(() => {
++      (ticket as unknown as { reason: string }).reason = 'explicit-placement';
++    }).toThrow();
++    solver.cancelSubstep(frame);
++  });
++  it('does not accept a caught partial placement or a changed completed placement', () => {
++    const b = fixture(),
++      solver = new CollisionSolver(),
++      frame = solver.beginSubstep([b], 1 / 240);
++    const x = b.dynamics.x,
++      sample = track.sample;
++    track.sample = () => {
++      throw new Error('placement terrain failure');
++    };
++    try {
++      expect(() => b.placeFree(track, x + 5, b.dynamics.z, 0, 0)).toThrow(
++        'placement terrain failure',
++      );
++    } finally {
++      track.sample = sample;
++    }
++    expect(b.dynamics.x).toBe(x + 5); // Genuine partial writes are not rolled back.
++    expect(frame.ticketFor(b)!.state).toBe('failed');
++    expect(() => solver.solveSubstep(frame, pairOnly)).toThrow('not open');
++    b.place(track, 100);
++    const next = solver.beginSubstep([b], 1 / 240);
++    b.place(track, 101);
++    b.body.position.x += 0.001;
++    expect(() => solver.solveSubstep(next, pairOnly)).toThrow('Changed or incomplete placement');
++  });
++  it('keeps ordinary source-valid slightly nonunit quaternions inside the legacy domain', () => {
++    const tracks = [new Track('clear', true), new Track('clear', true)],
++      cars = [new Vehicle(0), new Vehicle(0)];
++    cars.forEach((c, i) => {
++      c.place(tracks[i], 100);
++      const q = c.body.orientation;
++      q.x *= 1.000001;
++      q.y *= 1.000001;
++      q.z *= 1.000001;
++      q.w *= 1.000001;
++    });
++    const legacy = new CollisionSolver();
++    legacy.beginStep([cars[0]]);
++    cars[0].step(1 / 240, tracks[0]);
++    legacy.solve([cars[0]], pairOnly, 1 / 240);
++    const solver = new CollisionSolver(),
++      frame = solver.beginSubstep([cars[1]], 1 / 240);
++    cars[1].advanceSubstep(1 / 240, tracks[1], frame.ticketFor(cars[1]));
++    solver.solveSubstep(frame, pairOnly);
++    expect(cars[1].body).toEqual(cars[0].body);
++  });
++  it('safely refuses poisoned dirt-bike restart and requires a completed place/placeFree reset', () => {
++    const b = fixture(),
++      run = framed(b);
++    run.solver.cancelSubstep(run.frame);
++    b.inPit = true;
++    const before = rates(b);
++    expect(() => b.restart(track)).toThrow('requires explicit placement');
++    expect(rates(b)).toEqual(before);
++    b.placeFree(track, b.dynamics.x, b.dynamics.z, b.dynamics.heading, 0);
++    const next = framed(b);
++    next.finish();
++  });
++  it('seals an actual placement as a discontinuity, not a connecting sweep', () => {
++    const b = fixture(),
++      solver = new CollisionSolver(),
++      frame = solver.beginSubstep([b], 1 / 240);
++    b.placeFree(track, b.dynamics.x + 10, b.dynamics.z, 0, b.body.position.y);
++    expect(frame.ticketFor(b)!.reason).toBe('explicit-placement');
++    solver.solveSubstep(frame, pairOnly);
++    expect(solver.sweepQueries).toBe(0);
++  });
++  it('invalidates a thrown adapter without pretending its partial state rolled back', () => {
++    const b = fixture(),
++      solver = new CollisionSolver(),
++      frame = solver.beginSubstep([b], 1 / 240);
++    const step = b.step;
++    b.step = function (dt, t) {
++      step.call(this, dt, t);
++      this.frontHealth = 0.7;
++      throw new Error('adapter failure');
++    };
++    expect(() => b.advanceSubstep(1 / 240, track, frame.ticketFor(b))).toThrow('adapter failure');
++    expect(b.frontHealth).toBe(0.7);
++    expect(() => solver.solveSubstep(frame, pairOnly)).toThrow('not open');
++  });
++});
++
++describe('atomic grounded dab publication', () => {
++  // These are two separate fresh environments, not two cars sharing Track
++  // caches. An optional post-core value is an explicit operator-boundary
++  // fixture; only the four undefined-value cases retain unmodified core output.
++  function checkPoseConventionBoundary(sign: number, initialRate: number, postCoreLean?: number) {
++    const dt = 1 / 240;
++    const arms = [false, true].map((wrapped) => {
++      const surface = new Track('clear', true),
++        b = new Probe(),
++        solver = new CollisionSolver();
++      b.place(surface, 100);
++      b.aiControlled(10000);
++      const d = b.dynamics;
++      d.speed = 2;
++      d.lean = sign * 1.19;
++      d.leanRate = sign * initialRate;
++      d.steer = 0;
++      b.dab = sign * (0.5 - 3 * dt);
++      b.poseOn(surface);
++      const start = new ChassisBox().update(b.body),
++        previousY = b.body.position.y,
++        step = d.step;
++      let coreCalls = 0,
++        coreLean = 0,
++        coreRate = 0;
++      d.step = function (...args) {
++        const result = step.apply(this, args);
++        coreCalls++;
++        if (postCoreLean !== undefined) {
++          this.lean = sign * postCoreLean;
++          this.leanRate = sign * 0.5;
++        }
++        coreLean = this.lean;
++        coreRate = this.leanRate;
++        return result;
++      };
++      const frame = wrapped ? solver.beginSubstep([b], dt) : null;
++      if (!frame) solver.beginStep([b]);
++      try {
++        if (frame) b.advanceSubstep(dt, surface, frame.ticketFor(b));
++        else b.step(dt, surface);
++      } finally {
++        d.step = step;
++      }
++      const ticket = frame?.ticketFor(b),
++        delta = Math.sign(coreLean) * (b.air.dabLean + 0.12) - coreLean,
++        factoredRaw = d.lean - delta,
++        actualFallen = !b.airborne && Math.abs(d.lean) > 1.2,
++        factoredFallen = !b.airborne && Math.abs(factoredRaw) > 1.2;
++      expect(coreCalls).toBe(1);
++      expect(b.riding).toBe(true);
++      expect(b.airborne).toBe(false);
++      expect(actualFallen).toBe(false);
++      expect(d.lean).toBe(sign * 0.54);
++      expect(d.leanRate).toBe(coreRate * 0.5);
++      expect(factoredRaw).toBe(coreLean); // No additive bleed in these fixed inputs.
++      if (postCoreLean !== undefined) expect(factoredRaw).toBe(sign * postCoreLean);
++      if (wrapped) {
++        if (factoredFallen) {
++          expect(ticket!.publication).toBeNull();
++          expect(ticket!.reason).toBe('factored-pose-convention');
++          const expected = start
++            .rotationVectorTo(new ChassisBox().update(b.body), new Vec3())
++            .scale(1 / dt);
++          expect(expected.sub(b.body.omega).length()).toBeLessThan(1e-8);
++          expect(b.body.velocity.y).toBe((b.body.position.y - previousY) / dt);
++        } else {
++          expect(ticket!.publication).not.toBeNull();
++          expect(ticket!.publication!.dabDelta).toBe(delta);
++          expect(ticket!.publication!.postDabLeanIncrement).toBe(0);
++        }
++      }
++      const firstRates = rates(b),
++        actualPose = [...Object.values(b.body.position), ...Object.values(b.body.orientation)];
++      if (frame) solver.solveSubstep(frame, pairOnly);
++      else solver.solve([b], pairOnly, dt);
++      expect(solver.sweepQueries).toBe(0);
++      if (wrapped) {
++        // Both a supported publication and an honest legacy fallback leave
++        // the next interval based on the real published pose, never old metadata.
++        b.dab = 0;
++        const nextStart = new ChassisBox().update(b.body),
++          nextY = b.body.position.y,
++          next = solver.beginSubstep([b], dt);
++        b.advanceSubstep(dt, surface, next.ticketFor(b));
++        expect(next.ticketFor(b)!.publication).toBeNull();
++        expect(next.ticketFor(b)!.reason).toBe('ordinary');
++        const expected = nextStart
++          .rotationVectorTo(new ChassisBox().update(b.body), new Vec3())
++          .scale(1 / dt);
++        expect(expected.sub(b.body.omega).length()).toBeLessThan(1e-8);
++        expect(b.body.velocity.y).toBe((b.body.position.y - nextY) / dt);
++        solver.solveSubstep(next, pairOnly);
++      }
++      return { actualPose, firstRates, factoredRaw, factoredFallen, coreLean, coreRate };
++    });
++    expect(arms[1].actualPose).toEqual(arms[0].actualPose);
++    expect(arms[1].coreLean).toBe(arms[0].coreLean);
++    expect(arms[1].coreRate).toBe(arms[0].coreRate);
++    if (arms[1].factoredFallen) expect(arms[1].firstRates).toEqual(arms[0].firstRates);
++    return arms[1];
++  }
++
++  it.each([-1, 1].flatMap((sign) => [0, 7].map((initialRate) => ({ sign, initialRate }))))(
++    'retains actual core clamp/damping but rejects a factored convention crossing: $sign $initialRate',
++    ({ sign, initialRate }) => {
++      const result = checkPoseConventionBoundary(sign, initialRate);
++      expect(result.factoredFallen).toBe(initialRate === 7);
++      expect(Math.abs(result.factoredRaw)).toBe(
++        initialRate === 7 ? 1.21767994075114 : 1.189565963239738,
++      );
++    },
++  );
++  it.each(
++    [-1, 1].flatMap((sign) =>
++      [1.2 - 1e-6, 1.2, 1.2 + 1e-6].map((postCoreLean) => ({ sign, postCoreLean })),
++    ),
++  )(
++    'uses the exact existing predicate at the post-core operator boundary: $sign $postCoreLean',
++    ({ sign, postCoreLean }) => {
++      const result = checkPoseConventionBoundary(sign, 0, postCoreLean);
++      expect(result.factoredFallen).toBe(postCoreLean > 1.2);
++    },
++  );
++
++  it('rejects an actual vertical loop-out after the dab without a teleport label', () => {
++    const b = fixture(),
++      state = internals(b);
++    b.cgY += 3;
++    b.pitch = 1.1;
++    b.pitchRate = 1;
++    state.freeSteps = 2;
++    state.frontLight = 0.5;
++    state.noseTorque = 1;
++    state.faceSlope = 0;
++    b.pose();
++    expect(b.pitch).toBeGreaterThan(
++      Math.atan(b.bikeSpec.cgToRear / (b.bikeSpec.cgHeight + state.referenceSag.shock)),
++    );
++    expect(b.riding).toBe(true);
++    expect(b.airborne).toBe(false);
++    const run = framed(b);
++    expect(state.crashReason).toBe('loop-out');
++    expect(b.riding).toBe(false);
++    expect(run.ticket.publication).toBeNull();
++    expect(run.ticket.reason).toBe('vertical-state-boundary');
++    run.finish();
++  });
++  it('keeps a real touchdown and its following settlement step outside the correction', () => {
++    const b = fixture(),
++      state = internals(b);
++    b.airborne = true;
++    state.flightSpeed = 6.4;
++    b.vy = -1;
++    b.pose();
++    const before = b.landings,
++      touchdown = framed(b);
++    expect(b.landings).toBe(before + 1);
++    expect(b.airborne).toBe(false);
++    expect(state.pendingLanding).not.toBeNull();
++    expect(touchdown.ticket.publication).toBeNull();
++    expect(touchdown.ticket.reason).not.toBe('explicit-placement');
++    touchdown.finish();
++    b.dynamics.lean = 0.78;
++    b.dynamics.leanRate = 0.01;
++    b.dab = 0.5;
++    b.pose();
++    const settlement = framed(b);
++    expect(settlement.ticket.publication).toBeNull();
++    expect(settlement.ticket.reason).toBe('landing-settlement');
++    settlement.finish();
++  });
++  it('rebases a supported interval before an ordinary following step without a stale descriptor or rate echo', () => {
++    const b = fixture(),
++      first = framed(b);
++    expect(first.ticket.publication).not.toBeNull();
++    first.finish();
++    b.dab = 0;
++    const start = new ChassisBox().update(b.body),
++      y = b.body.position.y,
++      ordinary = framed(b);
++    expect(ordinary.ticket.publication).toBeNull();
++    expect(ordinary.ticket.reason).toBe('ordinary');
++    const expected = start.rotationVectorTo(new ChassisBox().update(b.body), new Vec3()).scale(240);
++    expect(expected.sub(b.body.omega).length()).toBeLessThan(1e-8);
++    expect(b.body.velocity.y).toBeCloseTo((b.body.position.y - y) * 240, 10);
++    ordinary.finish();
++  });
++
++  it.each(
++    [-1, 1].flatMap((sign) =>
++      [1 / 120, 1 / 240, 1 / 480, 0.003].flatMap((dt) =>
++        [false, true].map((mixed) => ({ sign, dt, mixed })),
++      ),
++    ),
++  )('preserves actual pose/damping and physical rates: $sign $dt $mixed', ({ sign, dt, mixed }) => {
++    const b = fixture(sign, dt, true, mixed),
++      d = b.dynamics;
++    let coreLean = 0,
++      coreRate = 0,
++      calls = 0;
++    const step = d.step;
++    d.step = function (...args) {
++      const result = step.apply(this, args);
++      coreLean = this.lean;
++      coreRate = this.leanRate;
++      calls++;
++      return result;
++    };
++    for (let repeat = 0; repeat < 2; repeat++) {
++      const old = new ChassisBox().update(b.body),
++        oldY = b.body.position.y;
++      const run = framed(b, dt),
++        publication = run.ticket.publication;
++      expect(publication).not.toBeNull();
++      const delta = Math.sign(coreLean) * (b.air.dabLean + 0.12) - coreLean;
++      expect(publication!.dabDelta).toBe(delta);
++      expect(d.leanRate).toBe(coreRate * 0.5);
++      const lean = chassisLean(d.lean - delta, b.bikeSpec);
++      const physicalQ = bikeOrientation(
++        new Quat(),
++        d.heading + b.airYaw,
++        b.pitch + internals(b).automaticBody * 0.06,
++        lean,
++      );
++      const physical = new ChassisBox().update({
++        position: b.body.position,
++        orientation: physicalQ,
++      } as Vehicle['body']);
++      const expectedOmega = old.rotationVectorTo(physical, new Vec3()).scale(1 / dt);
++      expect(new Vec3().copy(b.body.omega).sub(expectedOmega).length()).toBeLessThan(1e-8);
++      const expectedY =
++        b.cgY - (b.bikeSpec.cgHeight - b.bikeSpec.crownRadius) * (1 - Math.cos(lean));
++      expect(b.body.velocity.y).toBeCloseTo((expectedY - oldY) / dt, 8);
++      expect(publication!.publishedEnd.p).toEqual([
++        b.body.position.x,
++        b.body.position.y,
++        b.body.position.z,
++      ]);
++      expect(Object.isFrozen(publication!.physicalEnd.p)).toBe(true);
++      run.finish();
++    }
++    expect(calls).toBe(2);
++  });
++  it('preserves raw direct-call legacy rates without a descriptor', () => {
++    const b = fixture(),
++      before = new ChassisBox().update(b.body);
++    b.step(1 / 240, track);
++    const expected = before
++      .rotationVectorTo(new ChassisBox().update(b.body), new Vec3())
++      .scale(240);
++    expect(new Vec3().copy(expected).sub(b.body.omega).length()).toBeLessThan(1e-8);
++    expect(b.body.omega.length()).toBeGreaterThan(20);
++  });
++  it('falls back atomically for a source-valid nonunit active-dab origin', () => {
++    const b = fixture(),
++      q = b.body.orientation;
++    q.x *= 1.000001;
++    q.y *= 1.000001;
++    q.z *= 1.000001;
++    q.w *= 1.000001;
++    const run = framed(b);
++    expect(run.ticket.publication).toBeNull();
++    expect(run.ticket.reason).toBe('nonunit-motion-origin');
++    expect(b.body.omega.length()).toBeGreaterThan(20);
++    run.finish();
++  });
++  it.each([-1, 1].flatMap((sign) => [1 / 120, 1 / 240, 1 / 480].map((dt) => ({ sign, dt }))))(
++    'retains actual additive post-dab bleed: $sign $dt',
++    ({ sign, dt }) => {
++      const b = fixture(sign, dt),
++        d = b.dynamics;
++      internals(b).smoothGrip = 0.3;
++      d.leanRate = sign * 0.5;
++      let coreLean = 0,
++        coreRate = 0;
++      const step = d.step;
++      d.step = function (...args) {
++        const r = step.apply(this, args);
++        coreLean = this.lean;
++        coreRate = this.leanRate;
++        return r;
++      };
++      for (let repeat = 0; repeat < 2; repeat++) {
++        const start = new ChassisBox().update(b.body),
++          run = framed(b, dt),
++          limit = b.air.dabLean + 0.12;
++        const projected = Math.abs(b.dab) > 0.5 && Math.abs(coreLean) > limit;
++        if (!repeat) expect(projected).toBe(true);
++        const supportedLean = projected ? Math.sign(coreLean) * limit : coreLean,
++          bleed = Math.sign(supportedLean) * 1.2 * dt;
++        expect(d.lean).toBeCloseTo(supportedLean - bleed, 14);
++        expect(d.leanRate).toBeCloseTo(coreRate * (projected ? 0.5 : 1) * Math.exp(-12 * dt), 14);
++        if (projected) expect(run.ticket.publication!.postDabLeanIncrement).toBeCloseTo(-bleed, 14);
++        const orientation = bikeOrientation(
++          new Quat(),
++          d.heading + b.airYaw,
++          b.pitch + internals(b).automaticBody * 0.06,
++          chassisLean(coreLean - bleed, b.bikeSpec),
++        );
++        const end = new ChassisBox().update({
++          position: b.body.position,
++          orientation,
++        } as Vehicle['body']);
++        expect(
++          start
++            .rotationVectorTo(end, new Vec3())
++            .scale(1 / dt)
++            .sub(b.body.omega)
++            .length(),
++        ).toBeLessThan(1e-8);
++        run.finish();
++      }
++    },
++  );
++  it('rejects a deep correction and takeoff detected after the dab, before rate publication', () => {
++    for (const branch of ['deep', 'takeoff']) {
++      const b = fixture();
++      b.cgY += branch === 'deep' ? -0.5 : 3;
++      if (branch === 'takeoff') internals(b).freeSteps = 2;
++      b.pose();
++      if (branch === 'deep') {
++        const sag = internals(b).referenceSag,
++          spec = b.bikeSpec,
++          sine = Math.sin(b.pitch),
++          cosine = Math.cos(b.pitch);
++        const front =
++          b.contacts[0].height -
++          (b.cgY + spec.cgToFront * sine - (spec.cgHeight + sag.fork) * cosine) -
++          spec.forkTravel;
++        const rear =
++          b.contacts[2].height -
++          (b.cgY - spec.cgToRear * sine - (spec.cgHeight + sag.shock) * cosine) -
++          spec.shockTravel;
++        expect(Math.max(front, rear)).toBeGreaterThan(0.12); // Existing deep-contact boundary, not a tuned threshold.
++      }
++      const run = framed(b);
++      expect(run.ticket.publication).toBeNull();
++      expect(run.ticket.reason).toBe(
++        branch === 'deep' ? 'deep-contact-projection' : 'vertical-state-boundary',
++      );
++      if (branch === 'takeoff') expect(b.airborne).toBe(true);
++      run.finish();
++    }
++  });
++  it('retains the entry landing flag even when judgment clears it after a dab and falls the rider', () => {
++    const b = fixture();
++    const landing: LandingRecord = {
++      time: 0,
++      s: 100,
++      distance: 10,
++      takeoffSpeed: 25,
++      airTime: 0.8,
++      pitchError: -2,
++      slope: 0,
++      normalSpeed: 12,
++      yawError: 0,
++      lateralSpeed: 0,
++      bottomSpeed: 0,
++      outcome: 'clean',
++    };
++    internals(b).pendingLanding = landing;
++    b.lastLanding = landing;
++    internals(b).settleTime = 0.1;
++    const run = framed(b);
++    expect(run.ticket.publication).toBeNull();
++    expect(run.ticket.reason).toBe('landing-settlement');
++    expect(b.riding).toBe(false);
++    expect(landing.outcome).toBe('crash-front');
++    run.finish();
++  });
++  it('does not turn fallen/remount boundaries into projection descriptors or teleports', () => {
++    for (const mode of ['fall', 'remount']) {
++      const b = fixture();
++      if (mode === 'fall') internals(b).contactCrash = true;
++      else {
++        b.dynamics.state = 'remount';
++        b.dynamics.stateClock = 1.499;
++        b.dynamics.riderReady = true;
++        internals(b).lastState = 'remount';
++        b.pose();
++      }
++      const run = framed(b);
++      expect(run.ticket.publication).toBeNull();
++      expect(run.ticket.reason).not.toBe('explicit-placement');
++      if (mode === 'fall') expect(b.riding).toBe(false);
++      else {
++        expect(b.riding).toBe(true);
++        expect(b.body.omega.length()).toBe(0);
++      }
++      run.finish();
++    }
++  });
++  it.each(['prior-y-depenetration', 'angular-origin', 'deep-contact-active', 'landing-settlement'])(
++    'rejects %s without excluding rates or mislabeling a teleport',
++    (reason) => {
++      const b = fixture();
++      if (reason === 'prior-y-depenetration') b.body.position.y += 0.001;
++      if (reason === 'angular-origin') b.body.orientation.yaw(0.01);
++      if (reason === 'deep-contact-active') internals(b).projectedContact = true;
++      if (reason === 'landing-settlement') internals(b).settleTime = 0.1;
++      const run = framed(b);
++      expect(run.ticket.publication).toBeNull();
++      expect(run.ticket.reason).toBe(reason);
++      expect(run.ticket.reason).not.toBe('explicit-placement');
++      expect(b.body.omega.length()).toBeGreaterThan(20);
++      run.finish();
++    },
++  );
++  it('does not invent a continuous origin after an ignored large planar depenetration', () => {
++    const b = fixture();
++    b.body.position.x += 6;
++    const run = framed(b);
++    expect(run.ticket.publication).toBeNull();
++    expect(run.ticket.reason).toBe('unabsorbed-planar-origin');
++    expect(run.ticket.reason).not.toBe('explicit-placement');
++    run.finish();
++  });
++  it('keeps ordinary no-projection framed and legacy body states identical', () => {
++    const raw = fixture(1, 1 / 240, false),
++      wrapped = fixture(1, 1 / 240, false);
++    const solver = new CollisionSolver();
++    solver.beginStep([raw]);
++    raw.step(1 / 240, track);
++    solver.solve([raw], pairOnly, 1 / 240);
++    const run = framed(wrapped);
++    expect(run.ticket.publication).toBeNull();
++    run.finish();
++    expect(rates(wrapped)).toEqual(rates(raw));
++    expect(wrapped.dynamics).toEqual(raw.dynamics);
++  });
++  it('retains existing single absorption channels and does not invent Y/pitch absorption', () => {
++    const b = fixture(),
++      run = framed(b);
++    run.finish();
++    const oldVy = b.vy,
++      pitch = b.pitchRate,
++      heading = b.dynamics.heading,
++      rate = b.dynamics.leanRate;
++    b.body.velocity.y += 2;
++    b.body.omega.add(new Vec3(-0.3 * Math.sin(heading), 0.4, -0.3 * Math.cos(heading)));
++    b.absorb(1 / 240);
++    expect(b.vy).toBe(oldVy);
++    expect(b.pitchRate).toBe(pitch);
++    expect(b.kick).toBeCloseTo(0.4, 10);
++    expect(b.dynamics.leanRate - rate).toBeCloseTo(0.3, 10);
++    // A real next write commits the new baseline. The solver does not do this early.
++    b.pose();
++    const nextRate = b.dynamics.leanRate,
++      nextKick = b.kick;
++    b.absorb(1 / 240);
++    expect(b.dynamics.leanRate).toBe(nextRate);
++    expect(b.kick).toBe(nextKick);
++  });
++});
+--- /dev/null
++++ b/tests/motion-response.test.ts
+@@ -0,0 +1,577 @@
++import { describe, expect, it } from 'vitest';
++import { Quat, Vec3 } from '../src/core/math.ts';
++import { BikeVehicle } from '../src/simulation/bike-vehicle.ts';
++import { CollisionSolver } from '../src/simulation/collision.ts';
++import { DEFAULT_SETUP } from '../src/simulation/config.ts';
++import { BoxContact, ChassisBox, SweptBoxContact } from '../src/simulation/obb.ts';
++import { MotionEventResponse, MotionResponseState } from '../src/simulation/motion-response.ts';
++import {
++  motionStamp,
++  noteAdapterStep,
++  poseValue,
++  publishMotion,
++} from '../src/simulation/substep-motion.ts';
++import type { Track } from '../src/simulation/track.ts';
++import { Vehicle } from '../src/simulation/vehicle.ts';
++import { VEHICLES } from '../src/simulation/vehicles.ts';
++import { RigidBody } from '../src/simulation/rigid.ts';
++import { OpenWorldSimulation } from '../src/simulation/open-world/session.ts';
++
++type SolverInternals = {
++  response: MotionEventResponse | null;
++  sweep: SweptBoxContact;
++  motionEnds: ChassisBox[] | null;
++  motionStates: MotionResponseState[];
++  solveSwept(cars: Vehicle[], dt: number): void;
++};
++const internals = (solver: CollisionSolver) => solver as unknown as SolverInternals;
++const track = {
++  circuit: { offroad: false },
++  nearest: () => 0,
++  boundaryAt: () => Infinity,
++} as unknown as Track;
++const dt = 0.02;
++const v = (x: Vec3) => new Vec3(x.x, x.y, x.z);
++const q = (x: Quat) => new Quat(x.x, x.y, x.z, x.w);
++function angularImpulse(orientation: Quat, inertia: Vec3, deltaOmega: Vec3) {
++  const local = orientation.inverseRotate(deltaOmega, new Vec3());
++  local.set(local.x * inertia.x, local.y * inertia.y, local.z * inertia.z);
++  return orientation.rotate(local, local);
++}
++/** Deliberately scripted adapter for protocol/error tests only. The separate
++ * frozen fixture runner tests actual MX450 dynamics, not this defined path. */
++class Scripted extends BikeVehicle {
++  constructor(
++    id: number,
++    readonly projection = false,
++  ) {
++    super(id, 'medium', DEFAULT_SETUP, 'sport', VEHICLES.gpr1);
++  }
++  override step(step: number, _track: Track) {
++    noteAdapterStep(this);
++    const b = this.body;
++    b.position.addScaled(b.velocity, step);
++    b.orientation.integrateWorld(b.omega, step);
++    const physical = poseValue(b);
++    if (this.projection) {
++      b.position.y += 0.12;
++      b.orientation.integrateWorld(new Vec3(0, 0, 1), 0.24);
++      publishMotion(this, physical, poseValue(b), 0.24, 0, () => {});
++    }
++  }
++}
++function pair(third = false, secondProjected = false) {
++  const a = new Scripted(0, true),
++    b = new Scripted(1, secondProjected);
++  a.body.position.set(-1, 10, 0);
++  b.body.position.set(0, 10, 0.15);
++  a.body.velocity.set(100, 0, 0);
++  b.body.velocity.set(0, 0, 0);
++  a.body.omega.set(0.2, -0.1, 0.3);
++  b.body.omega.set(-0.1, 0.15, -0.2);
++  a.body.mass = 190;
++  b.body.mass = 310;
++  a.body.inertia.set(55, 110, 70);
++  b.body.inertia.set(90, 130, 80);
++  const cars = [a, b];
++  if (third) {
++    const c = new Scripted(2);
++    c.body.position.set(8, 10, 0);
++    cars.push(c);
++  }
++  return { a, b, cars };
++}
++function capture(cars: Scripted[], solver = new CollisionSolver()) {
++  const frame = solver.beginSubstep(cars, dt);
++  for (const car of cars) car.advanceSubstep(dt, track, frame.ticketFor(car));
++  const before = cars.map((car) => ({
++    p: v(car.body.position),
++    q: q(car.body.orientation),
++    v: v(car.body.velocity),
++    w: v(car.body.omega),
++  }));
++  return { solver, frame, before, solve: () => solver.solveSubstep(frame, track) };
++}
++
++describe('physical event response and collision-only angular impulse', () => {
++  it('retains the actual Festival override touched mask and one bike damage delivery per event', () => {
++    const { a, b, cars } = pair(),
++      solver = new OpenWorldSimulation().collisions;
++    const energies = [0, 0];
++    const ledger: {
++      explicit: boolean;
++      penetration: number;
++      deliveries: number[];
++      rateChanged: boolean;
++    }[] = [];
++    const impulse = solver.impulse;
++    solver.impulse = function (...args) {
++      const row = {
++        explicit: !!internals(this).response,
++        penetration: args[4],
++        deliveries: [0, 0],
++        rateChanged: false,
++      };
++      const rates = () =>
++        cars.map((c) => [...Object.values(c.body.velocity), ...Object.values(c.body.omega)]);
++      const before = JSON.stringify(rates());
++      ledger.push(row);
++      impulse.apply(this, args);
++      row.rateChanged = before !== JSON.stringify(rates());
++    };
++    for (const car of [a, b]) {
++      const original = car.impactAt;
++      car.impactAt = function (energy, point) {
++        ledger[ledger.length - 1].deliveries[this.id]++;
++        energies[this.id] = Math.max(energies[this.id], energy);
++        original.call(this, energy, point);
++      };
++    }
++    const run = capture(cars, solver);
++    run.solve();
++    console.info('Festival dispatch receipt', JSON.stringify(ledger));
++    expect(solver.sweptContacts).toBeGreaterThan(0);
++    expect(ledger.filter((row) => row.explicit)).toHaveLength(solver.sweptContacts);
++    expect(ledger.some((row) => !row.explicit && row.penetration > 0)).toBe(true);
++    for (const row of ledger) expect(row.deliveries).toEqual(row.rateChanged ? [1, 1] : [0, 0]);
++
++    expect(solver.touched).toBe((1 << a.id) | (1 << b.id));
++    for (const car of [a, b])
++      expect((car as unknown as { contactCrash: boolean }).contactCrash).toBe(
++        energies[car.id] > car.bikeSpec.crashEnergy,
++      );
++  });
++
++  it.each(['projected-first', 'legacy-first'] as const)(
++    'preserves impulse history and split endpoints through a three-body %s chain',
++    (order) => {
++      function execute(observed: boolean) {
++        const { a, b, cars } = pair(true),
++          c = cars[2];
++        const separation = b.definition.halfExtents[0] + c.definition.halfExtents[0] + 0.15;
++        c.body.position.set(separation, 10, 0.3);
++        c.body.mass = 230;
++        c.body.inertia.set(75, 120, 65);
++        c.body.omega.set(0.12, -0.08, 0.05);
++        if (order === 'legacy-first') {
++          a.body.position.x = 1.3;
++          a.body.velocity.x = -80;
++          c.body.position.x = -separation;
++          c.body.velocity.x = 60;
++        } else
++          for (const car of cars) {
++            // Central aligned impacts give the intended A→B→C topology by the
++            // unchanged 1-D mass response. Rotating off-centre transport is covered
++            // separately, including the legacy-before-explicit branch below.
++            car.body.position.z = 0;
++            car.body.omega.set(0, 0, 0);
++          }
++        const initialBoxes = cars.map((car) => {
++          const box = new ChassisBox();
++          box.half = car.definition.halfExtents;
++          return box.update(car.body);
++        });
++        for (let i = 0; i < cars.length; i++)
++          for (let j = i + 1; j < cars.length; j++)
++            expect(new BoxContact().intersect(initialBoxes[i], initialBoxes[j])).toBe(false);
++        const solver = new CollisionSolver(),
++          ledger: { ids: number[]; explicit: boolean }[] = [],
++          sums = cars.map(() => new Vec3());
++        let terminal: { active: boolean; L: Vec3; omega0: Vec3 }[] = [];
++        if (observed) {
++          const original = solver.impulse;
++          solver.impulse = function (A, B, point, normal, penetration) {
++            const participants = B ? [A, B] : [A],
++              old = participants.map((car) => ({
++                p: v(car.body.position),
++                v: v(car.body.velocity),
++              }));
++            const explicit = !!internals(this).response;
++            original.call(this, A, B, point, normal, penetration);
++            ledger.push({ ids: participants.map((car) => car.id), explicit });
++            participants.forEach((car, i) =>
++              sums[car.id].add(
++                new Vec3().cross(
++                  v(point).sub(old[i].p),
++                  v(car.body.velocity).sub(old[i].v).scale(car.body.mass),
++                ),
++              ),
++            );
++          };
++          const query = internals(solver).sweep.intersect;
++          internals(solver).sweep.intersect = function (...args) {
++            const ends = internals(solver).motionEnds;
++            cars.forEach((car, i) => {
++              const offset = v(car.body.position).sub(ends![i].center);
++              expect(offset.x).toBeCloseTo(0, 12);
++              expect(offset.z).toBeCloseTo(0, 12);
++              expect(offset.y).toBeCloseTo(i === 0 ? 0.12 : 0, 12);
++            });
++            return query.apply(this, args);
++          };
++          const swept = internals(solver).solveSwept;
++          internals(solver).solveSwept = function (...args) {
++            const result = swept.apply(this, args);
++            terminal = this.motionStates.map((s: MotionResponseState) => ({
++              active: s.active,
++              L: v(s.angularImpulse),
++              omega0: v(s.omega0),
++            }));
++            return result;
++          };
++        }
++        const run = capture(cars, solver);
++        run.solve();
++        return {
++          cars,
++          solver,
++          ledger,
++          sums,
++          terminal,
++          before: run.before,
++          hash: JSON.stringify(cars.map((car) => car.body)),
++        };
++      }
++      const control = execute(false),
++        observed = execute(true);
++      expect(observed.hash).toBe(control.hash);
++      expect(observed.solver.sweptContacts).toBeGreaterThanOrEqual(2);
++      expect(observed.solver.sweepLimitReached).toBe(false);
++      if (order === 'projected-first') {
++        expect(
++          observed.ledger.some((e) => e.explicit && e.ids.includes(1) && e.ids.includes(2)),
++          JSON.stringify({
++            ledger: observed.ledger,
++            terminal: observed.terminal,
++            bodies: observed.cars.map((c) => ({ p: c.body.position, v: c.body.velocity })),
++          }),
++        ).toBe(true);
++        expect(observed.terminal.every((s) => s.active)).toBe(true);
++      } else {
++        expect(observed.ledger[0].explicit).toBe(false);
++        expect([...observed.ledger[0].ids].sort()).toEqual([1, 2]);
++        expect(
++          observed.ledger.some((e) => e.explicit && e.ids.includes(0) && e.ids.includes(1)),
++        ).toBe(true);
++      }
++      observed.cars.forEach((car, i) => {
++        const L = angularImpulse(
++          car.body.orientation,
++          car.body.inertia,
++          v(car.body.omega).sub(observed.before[i].w),
++        );
++        expect(L.sub(observed.sums[i]).length()).toBeLessThan(1e-8);
++      });
++    },
++  );
++  it.each([false, true])(
++    'uses event inertia and publishes the same world angular impulse, second projected=%s',
++    (secondProjected) => {
++      const { cars } = pair(false, secondProjected);
++      const solver = new CollisionSolver();
++      const accumulated = cars.map(() => new Vec3());
++      let events = 0;
++      const original = solver.impulse;
++      solver.impulse = function (a, b, point, normal, penetration) {
++        const participants = b ? [a, b] : [a];
++        const before = participants.map((c) => ({
++          p: v(c.body.position),
++          q: q(c.body.orientation),
++          v: v(c.body.velocity),
++          w: v(c.body.omega),
++        }));
++        original.call(this, a, b, point, normal, penetration);
++        if (internals(this).response) events++;
++        const linear = new Vec3();
++        participants.forEach((car, i) => {
++          const impulse = v(car.body.velocity).sub(before[i].v).scale(car.body.mass);
++          const torque = new Vec3().cross(v(point).sub(before[i].p), impulse);
++          const measured = angularImpulse(
++            before[i].q,
++            car.body.inertia,
++            v(car.body.omega).sub(before[i].w),
++          );
++          expect(v(measured).sub(torque).length()).toBeLessThan(1e-8);
++          accumulated[car.id].add(torque);
++          linear.add(impulse);
++        });
++        if (b) expect(linear.length()).toBeLessThan(1e-8);
++      };
++      const run = capture(cars, solver);
++      run.solve();
++      expect(events).toBeGreaterThan(0);
++      for (let i = 0; i < cars.length; i++) {
++        const body = cars[i].body;
++        expect(poseValue(body).q).toEqual([
++          run.before[i].q.x,
++          run.before[i].q.y,
++          run.before[i].q.z,
++          run.before[i].q.w,
++        ]);
++        const measured = angularImpulse(
++          body.orientation,
++          body.inertia,
++          v(body.omega).sub(run.before[i].w),
++        );
++        expect(measured.sub(accumulated[i]).length()).toBeLessThan(1e-8);
++      }
++    },
++  );
++  it.each(['return', 'throw'])(
++    'restores an already accumulated impulse after zero-super %s',
++    (mode) => {
++      const { a, b } = pair(),
++        cars = [a, b],
++        states = cars.map((c) => new MotionResponseState(c));
++      for (let i = 0; i < 2; i++) {
++        const c = cars[i];
++        c.body.orientation.integrateWorld(new Vec3(0.3, 0.5, 0.2), 0.4);
++        c.body.omega.add(new Vec3(0.7, -0.2, 0.9));
++        states[i].activate(c);
++      }
++      const before = cars.map((c) => ({
++        q: q(c.body.orientation),
++        w: v(c.body.omega),
++        p: v(c.body.position),
++      }));
++      const events = cars.map((c) => {
++        const box = new ChassisBox().update(c.body);
++        box.orientation.yaw(-0.4);
++        return box;
++      });
++      const response = new MotionEventResponse(
++        a,
++        b,
++        states,
++        events,
++        new Vec3(0, 10, 0),
++        new Vec3(-1, 0, 0),
++        0.01,
++      );
++      expect(v(a.body.omega).sub(before[0].w).length()).toBeGreaterThan(0.001);
++      try {
++        if (mode === 'throw') throw new Error('before super');
++        response.complete();
++      } catch (error) {
++        expect(String(error)).toMatch(/before super|exactly once/);
++      } finally {
++        expect(response.cleanup()).toBeNull();
++      }
++      cars.forEach((c, i) => {
++        expect(v(c.body.omega).sub(before[i].w).length()).toBeLessThan(1e-12);
++        expect(poseValue(c.body).q).toEqual([
++          before[i].q.x,
++          before[i].q.y,
++          before[i].q.z,
++          before[i].q.w,
++        ]);
++        expect(v(c.body.position).sub(before[i].p).length()).toBe(0);
++      });
++    },
++  );
++  it('preserves actual event geometry for damage/debris callbacks, without changing body inertia', () => {
++    const { a, b, cars } = pair();
++    a.frontHealth = 0.01;
++    let expected: { p: Vec3; v: Vec3 } | undefined;
++    a.impactAt = function (energy, point) {
++      const station = this.definition.stations.frontElement;
++      const p = this.body.orientation
++        .rotate(new Vec3(0, 0.1, station[0]), new Vec3())
++        .add(this.body.position);
++      const velocity = this.body.pointVelocity(p, new Vec3());
++      expected = { p: v(p), v: v(velocity) };
++      Vehicle.prototype.impactAt.call(this, energy, point);
++    };
++    const run = capture(cars);
++    run.solve();
++    expect(expected).toBeDefined();
++    const debris = a.debris.pieces.find((piece) => piece.active && piece.kind === 1)!;
++    expect(debris).toBeDefined();
++    expect(v(debris.position).sub(expected!.p).length()).toBeLessThan(1e-12);
++    expect(v(debris.velocity).sub(expected!.v).length()).toBeLessThan(1e-12);
++    expect(a.body.mass).toBe(190);
++    expect(b.body.mass).toBe(310);
++  });
++});
++
++describe('non-replayable callback errors and guarded cleanup', () => {
++  it.each([undefined, null, 0, false, '', new Error('callback failure')])(
++    'propagates the exact thrown value %s',
++    (thrown) => {
++      const { a, b, cars } = pair();
++      let aCalls = 0,
++        bCalls = 0;
++      a.impactAt = () => {
++        aCalls++;
++        a.frontHealth = 0.61;
++        throw thrown;
++      };
++      b.impactAt = () => {
++        bCalls++;
++      };
++      const run = capture(cars);
++      let caught: unknown = Symbol('not thrown'),
++        didThrow = false;
++      try {
++        run.solve();
++      } catch (error) {
++        caught = error;
++        didThrow = true;
++      }
++      expect(didThrow).toBe(true);
++      expect(caught).toBe(thrown);
++      expect(aCalls).toBe(1);
++      expect(bCalls).toBe(0);
++      expect(a.frontHealth).toBe(0.61);
++      expect(a.body.velocity.x).not.toBe(run.before[0].v.x);
++      expect(poseValue(a.body).q).toEqual([
++        run.before[0].q.x,
++        run.before[0].q.y,
++        run.before[0].q.z,
++        run.before[0].q.w,
++      ]);
++      expect(() => run.solver.solveSubstep(run.frame, track)).toThrow('frame');
++      expect(() => a.step(dt, track)).toThrow('requires explicit placement');
++    },
++  );
++  it('retains A delivery when B throws, without a replay', () => {
++    const { a, b, cars } = pair();
++    let aCalls = 0,
++      bCalls = 0;
++    a.impactAt = () => {
++      aCalls++;
++      a.frontHealth = 0.5;
++    };
++    b.impactAt = () => {
++      bCalls++;
++      throw new Error('B failed');
++    };
++    const run = capture(cars);
++    expect(run.solve).toThrow('B failed');
++    expect([aCalls, bCalls, a.frontHealth]).toEqual([1, 1, 0.5]);
++  });
++  it.each([
++    'position',
++    'orientation',
++    'velocity',
++    'omega',
++    'mass',
++    'inertia',
++    'position-reference',
++    'orientation-reference',
++    'velocity-reference',
++    'omega-reference',
++    'inertia-reference',
++    'body-reference',
++    'other-position',
++    'third-body',
++    'contact-point',
++  ])('preserves and rejects callback mutation of %s before B delivery', (field) => {
++    const { a, b, cars } = pair(true);
++    let bCalls = 0;
++    let changed: unknown;
++    a.impactAt = (_energy, point) => {
++      if (field === 'position') a.body.position.x = 1337;
++      if (field === 'orientation') a.body.orientation.yaw(0.71);
++      if (field === 'velocity') a.body.velocity.z = 123;
++      if (field === 'omega') a.body.omega.x = 123;
++      if (field === 'mass') a.body.mass = 191;
++      if (field === 'inertia') a.body.inertia.x = 56;
++      if (field === 'position-reference') {
++        changed = v(a.body.position);
++        a.body.position = changed as Vec3;
++      }
++      if (field === 'orientation-reference') {
++        changed = q(a.body.orientation);
++        a.body.orientation = changed as Quat;
++      }
++      if (field === 'velocity-reference') {
++        changed = v(a.body.velocity);
++        a.body.velocity = changed as Vec3;
++      }
++      if (field === 'omega-reference') {
++        changed = v(a.body.omega);
++        a.body.omega = changed as Vec3;
++      }
++      if (field === 'inertia-reference') {
++        changed = v(a.body.inertia);
++        a.body.inertia = changed as Vec3;
++      }
++      if (field === 'body-reference') {
++        changed = new RigidBody();
++        (a as unknown as { body: RigidBody }).body = changed as RigidBody;
++      }
++      if (field === 'other-position') b.body.position.z = 555;
++      if (field === 'third-body') cars[2].body.velocity.z = 9;
++      if (field === 'contact-point') point.x += 1;
++    };
++    b.impactAt = () => {
++      bCalls++;
++    };
++    const run = capture(cars);
++    expect(run.solve).toThrow('Unsupported event response mutation');
++    expect(bCalls).toBe(0);
++    if (field === 'position') expect(a.body.position.x).toBe(1337);
++    if (field === 'orientation') expect(a.body.orientation.y).toBeCloseTo(Math.sin(0.71 / 2), 12);
++    if (field === 'velocity') expect(a.body.velocity.z).toBe(123);
++    if (field === 'omega') expect(a.body.omega.x).toBe(123);
++    if (field === 'mass') expect(a.body.mass).toBe(191);
++    if (field === 'inertia') expect(a.body.inertia.x).toBe(56);
++    if (field === 'position-reference') expect(a.body.position).toBe(changed);
++    if (field === 'orientation-reference') expect(a.body.orientation).toBe(changed);
++    if (field === 'velocity-reference') expect(a.body.velocity).toBe(changed);
++    if (field === 'omega-reference') expect(a.body.omega).toBe(changed);
++    if (field === 'inertia-reference') expect(a.body.inertia).toBe(changed);
++    if (field === 'body-reference') expect(a.body).toBe(changed);
++    if (field === 'other-position') expect(b.body.position.z).toBe(555);
++    if (field === 'third-body') expect(cars[2].body.velocity.z).toBe(9);
++  });
++  it('rejects reentrant integration/capture before any extra physical update', () => {
++    const { a, cars } = pair();
++    let called = 0;
++    a.impactAt = () => {
++      called++;
++      const stamp = motionStamp(a),
++        before = poseValue(a.body);
++      expect(() => a.step(dt, track)).toThrow('during collision solve');
++      expect(() => a.advanceSubstep(dt, track)).toThrow('during collision solve');
++      expect(() => new CollisionSolver().beginSubstep([a], dt)).toThrow('owner');
++      expect(() => new CollisionSolver().beginStep([a])).toThrow('active motion frame');
++      expect(() => new CollisionSolver().solve([a], track)).toThrow('active motion frame');
++      expect(() =>
++        new CollisionSolver().impulse(a, null, new Vec3(), new Vec3(1, 0, 0), 0),
++      ).toThrow('Foreign impulse');
++      expect(motionStamp(a)).toEqual(stamp);
++      expect(poseValue(a.body)).toEqual(before);
++    };
++    const run = capture(cars);
++    run.solve();
++    expect(called).toBeGreaterThan(0);
++  });
++  it.each(['double-super', 'recursive', 'wrong-arguments', 'no-super'])(
++    'rejects %s without duplicate mechanical response',
++    (mode) => {
++      const { a, b, cars } = pair();
++      const solver = new CollisionSolver(),
++        original = solver.impulse;
++      let callbacks = 0;
++      a.impactAt = () => {
++        callbacks++;
++        if (mode === 'recursive') solver.impulse(a, b, new Vec3(), new Vec3(1, 0, 0), 0);
++      };
++      solver.impulse = function (A, B, point, normal, penetration) {
++        if (!internals(this).response) return original.call(this, A, B, point, normal, penetration);
++        if (mode === 'no-super') return;
++        if (mode === 'wrong-arguments')
++          return original.call(this, B!, A, point, normal, penetration);
++        original.call(this, A, B, point, normal, penetration);
++        if (mode === 'double-super') original.call(this, A, B, point, normal, penetration);
++      };
++      const run = capture(cars, solver);
++      expect(run.solve).toThrow(/event impulse|exactly once/);
++      expect(callbacks).toBe(mode === 'wrong-arguments' || mode === 'no-super' ? 0 : 1);
++      if (mode === 'wrong-arguments' || mode === 'no-super')
++        expect(a.body.velocity.x).toBe(run.before[0].v.x);
++    },
++  );
++});
+--- a/tests/session-identity.test.ts
++++ b/tests/session-identity.test.ts
+@@ -43,10 +43,10 @@
+   };
+ };
+ describe('WP12 recorded identity and schema policy', () => {
+-  it.each([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20])(
++  it.each([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21])(
+     'keeps physics v%i records out of the current physics category',
+     (physics) => {
+-      expect(SIMULATION_VERSION).toBe(21);
++      expect(SIMULATION_VERSION).toBe(22);
+       expect(
+         recordIncompatibility(
+           { circuit: 'aurel', vehicle: 'apx01', physics },
+@@ -58,7 +58,7 @@
+       );
+     },
+   );
+-  it.each([18, 19, 20])(
++  it.each([18, 19, 20, 21])(
+     'rejects an integrity-checked v%i session record without relabelling or re-simulating it',
+     (physics) => {
+       const world = new AuthoritativeWorld(
+@@ -75,24 +75,24 @@
+       expect(verifyRecord(previous)).toEqual({
+         ok: false,
+         stage: 'content',
+-        reason: `recorded with physics v${physics}; this verifier runs v21`,
++        reason: `recorded with physics v${physics}; this verifier runs v22`,
+       });
+       expect(previous).toEqual(preserved);
+     },
+   );
+   it.each(['hf86', 'hf67'])(
+-    'separates %s records and network identities from v18/v19/v20 after the automatic downshift cut-recovery repair',
++    'separates %s records and network identities from v18/v19/v20/v21 after the explicit motion/end-projection contract',
+     (vehicle) => {
+       const options = { ...DEFAULT_OPTIONS, opponents: 0, vehicles: [vehicle] };
+       const category = recordCategory(options);
+-      expect(category).toEqual({ circuit: 'aurel', vehicle, physics: 21 });
++      expect(category).toEqual({ circuit: 'aurel', vehicle, physics: 22 });
+       const current = sessionIdentity(options);
+-      expect(BUILD_IDENTITY.simulationVersion).toBe(21);
++      expect(BUILD_IDENTITY.simulationVersion).toBe(22);
+       expect(identityMismatch(current, current)).toBeNull();
+-      for (const physics of [18, 19, 20]) {
++      for (const physics of [18, 19, 20, 21]) {
+         const previous = { ...category, physics };
+         expect(recordIncompatibility(previous, category)).toBe(
+-          `recorded with physics v${physics}; current physics is v21`,
++          `recorded with physics v${physics}; current physics is v22`,
+         );
+         expect(leaderboardKey('aurel', vehicle, physics)).not.toBe(
+           leaderboardKey('aurel', vehicle, category.physics),
+@@ -100,13 +100,13 @@
+         const old = { ...current, simulationVersion: physics };
+         const preserved = structuredClone(old);
+         expect(identityMismatch(current, old)).toBe(
+-          `simulation version ${physics} does not match the server's version 21`,
++          `simulation version ${physics} does not match the server's version 22`,
+         );
+         expect(old).toEqual(preserved);
+       }
+     },
+   );
+-  it.each([18, 19, 20])(
++  it.each([18, 19, 20, 21])(
+     'rejects v%i ghosts on load without writing or deleting the stored records',
+     async (physics) => {
+       const track = new Track();
+@@ -145,19 +145,19 @@
+         expect(records.trial?.best).toBe(0);
+         expect(write).not.toHaveBeenCalled();
+         expect(saved).toEqual(preserved);
+-        // Rejection from v21 is not corruption or conversion of the old recording.
++        // Rejection by v22 is not corruption or conversion of the old recording.
+         expect(validateGhost(oldGhost, 'aurel', track.length, previous)).toMatchObject({
+           vehicle,
+           physics,
+         });
+         expect(
+           validateGhost(
+-            { ...oldGhost, physics: 21 },
++            { ...oldGhost, physics: 22 },
+             'aurel',
+             track.length,
+             recordCategory(options),
+           ),
+-        ).toMatchObject({ vehicle, physics: 21 });
++        ).toMatchObject({ vehicle, physics: 22 });
+       }
+     },
+   );
+--- a/tests/time-trial-physics-archive.test.ts
++++ b/tests/time-trial-physics-archive.test.ts
+@@ -65,13 +65,13 @@
+   for (let i = 0; i < 40; i++) {
+     frame[o + F.LAP_TIME] = 0.1 + i * 0.5;
+     frame[o + F.S] = ((0.1 + i * 0.5) / 20) * track.length;
+-    records.observe(frame, true, options, 'physics-21');
++    records.observe(frame, true, options, `physics-${SIMULATION_VERSION}`);
+   }
+   frame[o + F.LAPS] = 1;
+   frame[o + F.LAP_TIME] = 0.05;
+   frame[o + F.LAST_LAP] = 20;
+   frame[o + F.LAST_LAP_VALID] = 1;
+-  records.observe(frame, true, options, 'physics-21');
++  records.observe(frame, true, options, `physics-${SIMULATION_VERSION}`);
+   // Flush the store promises used by the public snapshot observer.
+   await Promise.resolve();
+   await Promise.resolve();
+@@ -81,18 +81,19 @@
+   it('retains legacy keys and separates every new physics/vehicle category', () => {
+     expect(ghostKey('aurel')).toBe('ghost:v1:aurel');
+     expect(legacyKey).toBe('ghost:v1:aurel:hf86');
+-    expect(currentKey).toBe('ghost:v1:aurel:hf86:p21');
++    expect(currentKey).toBe('ghost:v1:aurel:hf86:p22');
+     expect(currentKey).not.toBe(ghostCategoryKey('aurel', 'hf86', 18));
+     expect(currentKey).not.toBe(ghostCategoryKey('aurel', 'hf86', 19));
+     expect(currentKey).not.toBe(ghostCategoryKey('aurel', 'hf86', 20));
+-    expect(currentKey).not.toBe(ghostCategoryKey('aurel', 'hf67', 21));
+-    expect(ghostCategoryKey('aurel')).toBe('ghost:v1:aurel:p21');
+-  });
+-  it.each([18, 19, 20])(
+-    'rejects a v%i legacy ghost, saves/reloads v21, and preserves v18/v19/v20 scoped archives',
++    expect(currentKey).not.toBe(ghostCategoryKey('aurel', 'hf86', 21));
++    expect(currentKey).not.toBe(ghostCategoryKey('aurel', 'hf67', 22));
++    expect(ghostCategoryKey('aurel')).toBe('ghost:v1:aurel:p22');
++  });
++  it.each([18, 19, 20, 21])(
++    'rejects a v%i legacy ghost, saves/reloads v22, and preserves v18/v19/v20/v21 scoped archives',
+     async (legacyPhysics) => {
+       const entries: [string, unknown][] = [[legacyKey, lap(legacyPhysics)]];
+-      for (const physics of [18, 19, 20]) {
++      for (const physics of [18, 19, 20, 21]) {
+         entries.push(
+           [ghostCategoryKey('aurel', 'hf86', physics), lap(physics)],
+           [
+@@ -112,10 +113,10 @@
+       }
+       const f = fixture(entries);
+       const preserved = structuredClone(f.saved);
+-      const boardBytes = [18, 19, 20].map((physics) =>
++      const boardBytes = [18, 19, 20, 21].map((physics) =>
+         JSON.stringify(f.saved.get(leaderboardKey('aurel', 'hf86', physics))),
+       );
+-      const ghostBytes = [18, 19, 20].map((physics) =>
++      const ghostBytes = [18, 19, 20, 21].map((physics) =>
+         new Uint8Array(
+           (f.saved.get(ghostCategoryKey('aurel', 'hf86', physics)) as GhostLap).samples.buffer,
+         ).slice(),
+@@ -125,17 +126,17 @@
+       expect(f.read.mock.calls).toEqual([[currentKey], [legacyKey]]);
+       expect(f.write).not.toHaveBeenCalled();
+       await saveLap(f.records);
+-      expect(f.saved.get(currentKey)).toMatchObject({ physics: 21, vehicle: 'hf86', lapTime: 20 });
++      expect(f.saved.get(currentKey)).toMatchObject({ physics: 22, vehicle: 'hf86', lapTime: 20 });
+       for (const [key, value] of preserved) expect(f.saved.get(key), key).toEqual(value);
+       expect(f.write.mock.calls.map(([key]) => key).sort()).toEqual(
+-        [currentKey, leaderboardKey('aurel', 'hf86', 21)].sort(),
++        [currentKey, leaderboardKey('aurel', 'hf86', 22)].sort(),
+       );
+       f.read.mockClear();
+       await f.records.prepare(options, track, () => true);
+-      expect(f.records.player?.lap).toMatchObject({ physics: 21, vehicle: 'hf86', lapTime: 20 });
++      expect(f.records.player?.lap).toMatchObject({ physics: 22, vehicle: 'hf86', lapTime: 20 });
+       expect(f.read.mock.calls).toEqual([[currentKey]]);
+       for (const [key, value] of preserved) expect(f.saved.get(key), key).toEqual(value);
+-      for (const [i, physics] of [18, 19, 20].entries()) {
++      for (const [i, physics] of [18, 19, 20, 21].entries()) {
+         expect(JSON.stringify(f.saved.get(leaderboardKey('aurel', 'hf86', physics)))).toBe(
+           boardBytes[i],
+         );
+@@ -161,6 +162,7 @@
+     'physics v18',
+     'physics v19',
+     'physics v20',
++    'physics v21',
+     'wrong vehicle',
+     'wrong circuit',
+   ])(
+@@ -174,6 +176,7 @@
+               ...(kind === 'physics v18' ? { physics: 18 } : {}),
+               ...(kind === 'physics v19' ? { physics: 19 } : {}),
+               ...(kind === 'physics v20' ? { physics: 20 } : {}),
++              ...(kind === 'physics v21' ? { physics: 21 } : {}),
+               ...(kind === 'wrong vehicle' ? { vehicle: 'hf67' } : {}),
+               ...(kind === 'wrong circuit' ? { circuit: 'vellamar' } : {}),
+             };
+@@ -189,7 +192,7 @@
+       expect(f.saved).toEqual(preserved);
+     },
+   );
+-  it.each(['corrupt', 'physics v18', 'physics v19', 'physics v20', 'wrong vehicle'])(
++  it.each(['corrupt', 'physics v18', 'physics v19', 'physics v20', 'physics v21', 'wrong vehicle'])(
+     'never loads or rewrites a %s legacy fallback',
+     async (kind) => {
+       const invalid =
+@@ -202,7 +205,9 @@
+                   ? 19
+                   : kind === 'physics v20'
+                     ? 20
+-                    : SIMULATION_VERSION,
++                    : kind === 'physics v21'
++                      ? 21
++                      : SIMULATION_VERSION,
+               kind === 'wrong vehicle' ? 'hf67' : 'hf86',
+             );
+       const f = fixture([[legacyKey, invalid]]),
