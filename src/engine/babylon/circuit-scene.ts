@@ -1,6 +1,11 @@
 import { createFormulaSurfaceProbe, type FormulaSurfaceProbeContext } from './formula-surfaces.ts';
 import { AUREL, VELLAMAR } from '../../simulation/circuits.ts';
 import type { VehicleDefinition } from '../../simulation/vehicles.ts';
+import { FormulaGroundingPlugin, FormulaGroundingPoses } from './formula-grounding.ts';
+import {
+  formulaGroundingCarCount,
+  writeFormulaGroundingPose,
+} from '../assets/formula-grounding.ts';
 import { CircuitPaintFinishPlugin } from './circuit-paint-finish.ts';
 
 import { Scene } from '@babylonjs/core/scene.js';
@@ -54,6 +59,11 @@ export class BabylonCircuitScene {
   private target = new Vector3();
   private desired = new Vector3();
   private heading = 0;
+  private grounding?: FormulaGroundingPoses;
+  private roadGrounding?: FormulaGroundingPlugin;
+  private paintGrounding?: FormulaGroundingPlugin;
+  private readonly groundingPose = { x: 0, y: 0, z: 0, w: 0 };
+  private readonly groundingValues: number[] = [];
   private surfaces?: ReturnType<typeof createFormulaSurfaceProbe>;
   constructor(
     engine: AbstractEngine,
@@ -76,6 +86,14 @@ export class BabylonCircuitScene {
       const surfaceContext = formulaSurfaceContext(track, count, context);
       if (surfaceContext) {
         this.surfaces = createFormulaSurfaceProbe(this.scene, track, surfaceContext);
+        // Borrow the view's CPU poses through the original two material UBOs.
+        // Install before any preparation; no new geometry, texture or draw owner.
+        this.grounding = new FormulaGroundingPoses(this.scene);
+        this.roadGrounding = new FormulaGroundingPlugin(this.surfaces.roadMaterial, this.grounding);
+        this.paintGrounding = new FormulaGroundingPlugin(
+          this.surfaces.paintMaterial,
+          this.grounding,
+        );
       } else {
         const material = new StandardMaterial('road', this.scene);
         material.diffuseColor = new Color3(0.16, 0.18, 0.2);
@@ -162,7 +180,32 @@ export class BabylonCircuitScene {
               texture.getInternalTexture() !== null,
           )
         : [];
+    const grounded = (
+      meshes: typeof road,
+      material: ReturnType<typeof createFormulaSurfaceProbe>['roadMaterial'] | undefined,
+      plugin: FormulaGroundingPlugin | undefined,
+    ) =>
+      this.grounding?.isValid &&
+      plugin?.isValid &&
+      material &&
+      this.scene.materials.includes(material) &&
+      material.pluginManager?.getPlugin('OriginalFormulaGrounding') === plugin
+        ? meshes.filter(
+            (mesh) =>
+              mesh.material === material &&
+              mesh.subMeshes.length > 0 &&
+              mesh.subMeshes.every((submesh) => submesh.getMaterial() === material),
+          )
+        : [];
+    const groundedRoad = grounded(road, this.surfaces?.roadMaterial, this.roadGrounding);
+    const groundedPaint = grounded(paint, this.surfaces?.paintMaterial, this.paintGrounding);
     return {
+      formulaGroundingRoadChunks: groundedRoad.length,
+      formulaGroundingPaintChunks: groundedPaint.length,
+      formulaGroundingMaterials: new Set(
+        [...groundedRoad, ...groundedPaint].map((mesh) => mesh.material),
+      ).size,
+      formulaGroundingCars: this.grounding?.isValid ? this.grounding.snapshot().count : 0,
       kind: this.scene.isDisposed ? 'disposed' : this.surfaces ? 'formula-ribbon' : 'coarse',
       roadChunks: road.length,
       paintChunks: paint.length,
@@ -192,6 +235,27 @@ export class BabylonCircuitScene {
   }
   render(frame: Float32Array) {
     applySimulationSnapshot(frame, this.entrants);
+    if (this.grounding) {
+      const count = formulaGroundingCarCount(this.entrants.length);
+      for (let i = 0; i < count; i++) {
+        const root = this.entrants[i];
+        const pose = writeFormulaGroundingPose(
+          frame,
+          carBase(i),
+          root.position,
+          root.rotationQuaternion!,
+          this.groundingPose,
+        );
+        const offset = i * 4;
+        this.groundingValues[offset] = pose.x;
+        this.groundingValues[offset + 1] = pose.y;
+        this.groundingValues[offset + 2] = pose.z;
+        this.groundingValues[offset + 3] = pose.w;
+      }
+      // Validate all packed values before one atomic commit. No independent
+      // clock, simulation, chassis normalization or fitted ground plane.
+      this.grounding.set(count, this.groundingValues);
+    }
     const o = carBase(0),
       root = this.entrants[0];
     this.target.copyFrom(root.position);
@@ -221,7 +285,11 @@ export class BabylonCircuitScene {
       failed = false;
     // Scene callbacks can be skipped; the view remains the authoritative owner.
     // Preserve Scene's first thrown value while still draining our resources.
-    for (const cleanup of [() => this.scene.dispose(), () => this.surfaces?.dispose()]) {
+    for (const cleanup of [
+      () => this.scene.dispose(),
+      () => this.surfaces?.dispose(),
+      () => this.grounding?.dispose(),
+    ]) {
       try {
         cleanup();
       } catch (error) {

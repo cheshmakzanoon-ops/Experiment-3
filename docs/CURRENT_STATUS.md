@@ -14,6 +14,8 @@ Migration development stays exclusively on **babylon-js**. Main is frozen at res
 
 ## Latest recorded qualification
 
+**Live grounding increment:** prerequisite `7e9cbb6` passed 13/13 WebGL journeys and 358 CI contracts. The new live Formula road/paint integration retains original assets/physics and is now subject to full-scene GPU pose-upload/movement checks and branch-only native packaging. Live-source results remain pending. [Scope](maintenance/babylon-live-grounding-2026-11-01.md).
+
 **Migration restart:** `ec93c56` passed the twelve retained GPU journeys but the isolated grounding candidate failed linking before its first draw. Explicit integer precision now aligns the vertex/fragment Material UBO declarations. On `9e59cc3` the corrected shader linked and image/control checks passed, but final shader-inventory assertions failed. The exact light-order inventory and processed-source checks are corrected; a fresh GPU run remains required. This is not live grounding activation. [Correction and failure boundary](maintenance/babylon-grounding-probe-2026-11-01.md).
 
 | Scope                                | Exact source | Result and boundary                                                                                                                                                                                                                                                                                                                                                            |

@@ -108,3 +108,12 @@ The original Formula footprint, attenuation constants and presented-pose calcula
 ## Isolated grounding implementation, not live activation
 
 The bounded original Formula footprint now has a material-local plugin and an independent actual-original road/paint lighting probe. Its native sky/direct split is constrained to the actual original opaque BRDF/F0/IOR domain, with unsupported states rejected. Source/build checks passed; the new thirteenth journey must still qualify original repeats, controls, native post-AO terms and cleanup before any live adoption. The live scene does not import it. [Probe scope and gates](maintenance/babylon-grounding-probe-2026-11-01.md).
+
+
+## Live Formula grounding
+
+The isolated prerequisite passed all 13 GPU journeys on `7e9cbb6`. The live scene
+now installs two plugins on existing road/paint materials and updates their shared
+original pose data before drawing. Source, models and physics are preserved.
+Exact live-source GPU and native qualification remain pending; see [scope and
+gates](maintenance/babylon-live-grounding-2026-11-01.md).

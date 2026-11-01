@@ -14,6 +14,7 @@ function engineWithAsphaltCapabilities() {
   const engine = new NullEngine();
   // Explicit capability simulation, not a real-GPU or native readiness claim.
   Object.defineProperty(engine, 'webGLVersion', { value: 2 });
+  Object.defineProperty(engine, 'supportsUniformBuffers', { value: true });
   Object.assign(engine.getCaps(), { supportSRGBBuffers: true, standardDerivatives: true });
   return engine;
 }
@@ -39,6 +40,10 @@ for (const [circuit, chunks, vertices] of [
         expect(view.scene.getMeshByName('existing-physics-track')).toBeNull();
         expect(view.surfaceDiagnostics).toEqual({
           kind: 'formula-ribbon',
+          formulaGroundingRoadChunks: chunks,
+          formulaGroundingPaintChunks: chunks * 2,
+          formulaGroundingMaterials: 2,
+          formulaGroundingCars: 0,
           roadChunks: chunks,
           paintChunks: chunks * 2,
           leftPaintChunks: chunks,
@@ -221,6 +226,10 @@ it('lets scene disposal own every surface resource exactly once, including scene
     spies.forEach((spy) => expect(spy).toHaveBeenCalledTimes(1));
     expect(view.surfaceDiagnostics).toEqual({
       kind: 'disposed',
+      formulaGroundingRoadChunks: 0,
+      formulaGroundingPaintChunks: 0,
+      formulaGroundingMaterials: 0,
+      formulaGroundingCars: 0,
       roadChunks: 0,
       paintChunks: 0,
       leftPaintChunks: 0,

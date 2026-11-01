@@ -178,3 +178,8 @@ samplers and one paint sampler against device cap 32. Babylon 96/96 and Three
 The corrected complete assertion body passes against this saved result; that
 replay is not a new GPU run. Exact corrected-source Actions qualification remains
 required before the separately prepared live integration is applied.
+
+
+Corrected exact source `7e9cbb6` subsequently passed **13/13 WebGL journeys** and
+358 CI contracts in [run 41289334167](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41289334167).
+This closes the isolated probe gate, not the separately changed live scene.

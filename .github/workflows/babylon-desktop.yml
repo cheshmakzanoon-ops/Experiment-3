@@ -1,0 +1,47 @@
+name: Validate Babylon migration desktop builds
+on:
+  workflow_dispatch:
+  push:
+    branches: [babylon-js]
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'desktop/**'
+      - 'tests/babylon-*.test.ts'
+      - 'tests/native-smoke-control.test.ts'
+      - 'scripts/*desktop*'
+      - 'scripts/native-smoke-control.mjs'
+      - 'package*.json'
+      - '*.html'
+      - 'vite.config.ts'
+      - 'electron-builder.yml'
+      - '.github/workflows/babylon-desktop.yml'
+      - '.github/workflows/desktop-platform.yml'
+permissions:
+  contents: read
+concurrency:
+  group: babylon-desktop-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    if: github.ref == 'refs/heads/babylon-js'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            target: linux
+            arch: x64
+          - os: windows-2022
+            target: win
+            arch: x64
+          - os: macos-15
+            target: mac
+            arch: arm64
+    uses: ./.github/workflows/desktop-platform.yml
+    with:
+      runner: ${{ matrix.os }}
+      target: ${{ matrix.target }}
+      arch: ${{ matrix.arch }}
+# Same installed-game gates as supported desktop targets. Artifacts only:
+# no release/deployment job, branch mutation, diagnostic capture or sandbox change.

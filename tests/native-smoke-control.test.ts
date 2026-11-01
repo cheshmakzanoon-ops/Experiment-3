@@ -197,6 +197,10 @@ describe('same-readiness-receipt native Aurel surface acceptance', () => {
     asphaltSubstrateMaterials: '1',
     asphaltSubstrateTextures: '3',
     asphaltSubstrateSrgbTextures: '1',
+    formulaGroundingRoadChunks: '38',
+    formulaGroundingPaintChunks: '76',
+    formulaGroundingMaterials: '2',
+    formulaGroundingCars: '1',
     coarseMeshes: '0',
   };
   it('returns observed counts without mutating the raw evidence', () => {
@@ -213,6 +217,10 @@ describe('same-readiness-receipt native Aurel surface acceptance', () => {
       asphaltSubstrateMaterials: 1,
       asphaltSubstrateTextures: 3,
       asphaltSubstrateSrgbTextures: 1,
+      formulaGroundingRoadChunks: 38,
+      formulaGroundingPaintChunks: 76,
+      formulaGroundingMaterials: 2,
+      formulaGroundingCars: 1,
       coarseMeshes: 0,
     });
     expect(raw).toEqual(snapshot);

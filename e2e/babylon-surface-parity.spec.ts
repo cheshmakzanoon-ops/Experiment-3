@@ -340,7 +340,10 @@ test('full actual Formula scenes prepare and complete both canonical venue workl
     ).BabylonSurfaceProbe.babylonFullFormulaScenes(),
   );
   await report(info, 'full-live-formula-scenes', result);
-  for (const row of result.rows) await image(info, `full-${row.circuit}-live-scene`, row.image);
+  for (const row of result.rows) {
+    await image(info, `full-${row.circuit}-live-scene`, row.image);
+    await image(info, `full-${row.circuit}-moved-grounding`, row.grounding.movedImage);
+  }
   expect(result.failure).toBeNull();
   expect(errors).toEqual([]);
   expect(result.rows.map((row) => row.circuit)).toEqual(['aurel', 'vellamar']);
@@ -358,11 +361,44 @@ test('full actual Formula scenes prepare and complete both canonical venue workl
       asphaltSubstrateMaterials: 1,
       asphaltSubstrateTextures: 3,
       asphaltSubstrateSrgbTextures: 1,
+      formulaGroundingRoadChunks: road,
+      formulaGroundingPaintChunks: road * 2,
+      formulaGroundingMaterials: 2,
+      formulaGroundingCars: 1,
     });
     expect(row.surfaces.vertices).toBe(row.circuit === 'aurel' ? 31882 : 42700);
     expect(row.preparationVariants).toBe(road * 3 + 1);
     expect(row.asphaltShaderChunks).toBe(road);
     expect(row.paintAsphaltShaderChunks).toBe(0);
+    expect(row.grounding.appliedRoadChunks).toBe(road);
+    expect(row.grounding.appliedPaintChunks).toBe(road * 2);
+    expect(row.grounding.effectsStable).toBe(true);
+    expect(row.grounding.glErrorAfterMove).toBe(0);
+    expect(row.grounding.resourcesStable).toBe(true);
+    expect(row.grounding.geometryStable).toBe(true);
+    expect(row.grounding.moved.completedSequence).toBeGreaterThan(
+      row.grounding.initial.completedSequence,
+    );
+    expect(row.grounding.moved.expected).not.toEqual(row.grounding.initial.expected);
+    expect(row.grounding.moved.expected[0]).not.toBe(row.grounding.initial.expected[0]);
+    expect(row.grounding.moved.expected[1]).not.toBe(row.grounding.initial.expected[1]);
+    expect(row.grounding.moved.expected[2]).not.toBe(row.grounding.initial.expected[2]);
+    for (const receipt of [row.grounding.initial, row.grounding.moved]) {
+      expect(receipt.receivers.map((r) => r.surface).sort()).toEqual(['edge-paint', 'road']);
+      for (const receiver of receipt.receivers) {
+        expect(receiver.notifications).toBeGreaterThan(0);
+        expect(receiver.count).toBe(1);
+        expect(receiver.poses).toEqual([...receipt.expected, ...new Array(44).fill(0)]);
+        expect(receiver.poseStride).toBe(16);
+        expect(receiver.poseSize).toBe(12);
+        expect(receiver.countType).toBe(5124); // GL_INT, not a float reinterpretation.
+        expect(receiver.poseType).toBe(35666); // GL_FLOAT_VEC4.
+      }
+    }
+    for (const moved of row.grounding.moved.receivers)
+      expect(moved.notifications).toBeGreaterThan(
+        row.grounding.initial.receivers.find((r) => r.surface === moved.surface)!.notifications,
+      );
     expect(row.resources).toEqual({
       meshes: road * 3 + 1,
       geometries: road * 3 + 1,

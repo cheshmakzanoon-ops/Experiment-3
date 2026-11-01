@@ -165,7 +165,7 @@ it('gates real original repeats, native denominators, controls and own-baseline 
   expect(source).toContain('poses?.dispose()');
   expect(source).toContain('productionActivated: false');
 });
-it('keeps the plugin isolated from all live entries/owners and keeps Windows path classification portable', () => {
+it('restricts live plugin integration to the explicit circuit scene owner and keeps Windows path classification portable', () => {
   const files: string[] = [];
   function walk(path: string) {
     for (const entry of readdirSync(path, { withFileTypes: true })) {
@@ -181,7 +181,9 @@ it('keeps the plugin isolated from all live entries/owners and keeps Windows pat
       (match) => relative('.', resolve(dirname(file), match[1])).replaceAll('\\', '/') === target,
     ),
   );
-  expect(imports).toEqual([]);
+  expect(imports.map((file) => file.replaceAll('\\', '/'))).toEqual([
+    'src/engine/babylon/circuit-scene.ts',
+  ]);
 });
 
 it('preserves exact qualified extraction, original hooks, live asphalt/paint and consumed pinned native sources', () => {
@@ -204,10 +206,11 @@ it('preserves exact qualified extraction, original hooks, live asphalt/paint and
       '461b189e5c3018404c20ec3a239020228f6f144989bd9bb2d039db588a5c18ae',
     'src/engine/babylon/formula-surfaces.ts':
       'b3322b728fa549f415696d42dd3dd5616d8a270e6079cb6a7085fc5ac2971824',
-    'src/engine/babylon/circuit-scene.ts':
-      'aad71a9e94fbce9c7297ae514f190e1ab9afc912d9de360f0c9fedd9968ec0a4',
-    'src/engine/babylon/main.ts':
-      'b699584e6b7d39cd0e09313a928b5b0e67f2b12c1144143a89af77e5b6f17ef2',
+    // Circuit-scene was frozen during isolated qualification. Live integration
+    // now has an explicit importer allowlist above plus geometry/pose/lifetime
+    // regression contracts; do not replace that historical hash with a new one.
+    // Main's isolated baseline hash was b699584e6b7d39cd0e09313a928b5b0e67f2b12c1144143a89af77e5b6f17ef2.
+    // Live readiness receipt wiring is covered structurally below instead.
     'src/rendering/surface-detail.ts':
       '8df708b5a48541371a570c1c3b6e0e65bdfc832539a3bdf686d67a640ebef4d4',
     'src/rendering/circuit-finish.ts':
@@ -229,6 +232,28 @@ it('preserves exact qualified extraction, original hooks, live asphalt/paint and
   };
   for (const [path, expected] of Object.entries(hashes))
     expect(createHash('sha256').update(readFileSync(path)).digest('hex'), path).toBe(expected);
+});
+
+it('publishes live grounding receipts only behind completed preparation and preserved GPU ownership', () => {
+  const main = readFileSync('src/engine/babylon/main.ts', 'utf8');
+  const completion = main.indexOf('void pending.completion');
+  const completed = main.indexOf('!pending.completed', completion);
+  const diagnostics = main.indexOf(
+    'const diagnostics = currentScene.surfaceDiagnostics',
+    completed,
+  );
+  expect(completed).toBeGreaterThan(completion);
+  expect(diagnostics).toBeGreaterThan(completed);
+  for (const field of [
+    'formulaGroundingRoadChunks',
+    'formulaGroundingPaintChunks',
+    'formulaGroundingMaterials',
+    'formulaGroundingCars',
+  ])
+    expect(main.slice(diagnostics)).toContain(field);
+  expect(main).toContain('new SurfacePreparation(');
+  expect(main).toContain('gpu!.frame(presentation, paused, scene!.scene, () => {');
+  expect(main).toContain('surfacePreparation?.canDraw && gpu!.ready()');
 });
 
 it('does not accept an unbound draw wrapper as a stable count-zero effect witness', () => {

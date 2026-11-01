@@ -14,6 +14,10 @@ const surfaceKeys = [
   'surfaceAsphaltSubstrateMaterials',
   'surfaceAsphaltSubstrateTextures',
   'surfaceAsphaltSubstrateSrgbTextures',
+  'surfaceFormulaGroundingRoadChunks',
+  'surfaceFormulaGroundingPaintChunks',
+  'surfaceFormulaGroundingMaterials',
+  'surfaceFormulaGroundingCars',
 ] as const;
 async function expectOriginalAurelSurface(page: Page) {
   const status = page.locator('#status');
@@ -29,6 +33,10 @@ async function expectOriginalAurelSurface(page: Page) {
   await expect(status).toHaveAttribute('data-surface-asphalt-substrate-materials', '1');
   await expect(status).toHaveAttribute('data-surface-asphalt-substrate-textures', '3');
   await expect(status).toHaveAttribute('data-surface-asphalt-substrate-srgb-textures', '1');
+  await expect(status).toHaveAttribute('data-surface-formula-grounding-road-chunks', '38');
+  await expect(status).toHaveAttribute('data-surface-formula-grounding-paint-chunks', '76');
+  await expect(status).toHaveAttribute('data-surface-formula-grounding-materials', '2');
+  await expect(status).toHaveAttribute('data-surface-formula-grounding-cars', '1');
   await expect(status).toHaveAttribute('data-scene-ready', 'true');
   expect(Number(await status.getAttribute('data-completed-frames'))).toBeGreaterThanOrEqual(2);
   await expect(page.locator('#loadAsset')).toBeEnabled();

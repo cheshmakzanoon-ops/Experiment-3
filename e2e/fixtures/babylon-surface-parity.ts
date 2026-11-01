@@ -1,3 +1,7 @@
+import type { WebGLPipelineContext } from '@babylonjs/core/Engines/WebGL/webGLPipelineContext.js';
+import type { DataBuffer } from '@babylonjs/core/Buffers/dataBuffer.js';
+import { F, carBase } from '../../src/simulation/protocol.ts';
+import { writeFormulaGroundingPose } from '../../src/engine/assets/formula-grounding.ts';
 import { BabylonCircuitScene } from '../../src/engine/babylon/circuit-scene.ts';
 import { SurfacePreparation } from '../../src/engine/babylon/surface-preparation.ts';
 import { SimulationComponent } from '../../src/engine/simulation-component.ts';
@@ -10,7 +14,7 @@ import { UniversalCamera } from '@babylonjs/core/Cameras/universalCamera.js';
 import { Camera } from '@babylonjs/core/Cameras/camera.js';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight.js';
 import { DirectionalLight } from '@babylonjs/core/Lights/directionalLight.js';
-import { Color3, Color4, Vector3 } from '@babylonjs/core/Maths/math.js';
+import { Color3, Color4, Vector3, Quaternion } from '@babylonjs/core/Maths/math.js';
 import { Mesh } from '@babylonjs/core/Meshes/mesh.js';
 import { VertexData } from '@babylonjs/core/Meshes/mesh.vertexData.js';
 import type { Effect } from '@babylonjs/core/Materials/effect.js';
@@ -101,7 +105,7 @@ function harness(width: number, height: number, sceneFactory?: (engine: Engine) 
       }),
     };
   };
-  const presented = async () => {
+  const presented = async (draw = () => scene.render()) => {
     let done = false,
       failure: unknown;
     const completed = waitForPresentation(scene, abort.signal, gpu).then(() => {
@@ -119,7 +123,7 @@ function harness(width: number, height: number, sceneFactory?: (engine: Engine) 
       gpu.frame(schedule, false, scene, () => {
         const before = scene.isReady();
         engine.beginFrame();
-        scene.render();
+        draw();
         engine.endFrame();
         const after = scene.isReady();
         schedule.rendered(before, after);
@@ -795,6 +799,196 @@ export async function babylonFormulaSurfaceVisibility() {
   };
 }
 
+type LiveGroundingBind = { mesh: Mesh; effect: Effect; buffer: DataBuffer; notifications: number };
+const groundingShaderAnchors = [
+  'highp int formulaGroundingCount;',
+  'vec4 formulaGroundingPose[12];',
+  'float formulaGround= formulaGrounding(vPositionW);',
+  'finalDiffuse=finalDiffuse*formulaDirect+formulaSkyDiffuse*(formulaIndirect-formulaDirect);',
+  'finalSpecularScaled=finalSpecularScaled*formulaDirect+formulaSkySpecular*(formulaIndirect-formulaDirect);',
+  'finalAmbient*=formulaIndirect;',
+];
+/** Inspection is only called after completed draws under the existing GPU lease.
+ * onBind receipts retain real draw objects; driver block metadata locates GPU
+ * bytes, never plugin-private CPU state or fabricated effect identities. */
+async function liveGroundingReceipt(
+  h: ReturnType<typeof harness>,
+  view: BabylonCircuitScene,
+  binds: Map<PBRMaterial, LiveGroundingBind>,
+  bindings: Map<DataBuffer, Set<number>>,
+  frame: Float32Array,
+) {
+  let result:
+    | {
+        expected: number[];
+        receivers: {
+          surface: string;
+          notifications: number;
+          count: number;
+          poses: number[];
+          block: number;
+          binding: number;
+          byteLength: number;
+          countOffset: number;
+          poseOffset: number;
+          poseStride: number;
+          countType: number;
+          poseType: number;
+          poseSize: number;
+        }[];
+        completedSequence: number;
+      }
+    | undefined;
+  await h.gpu.prepare('inspect completed live grounding UBOs', h.deadline, async (signal) => {
+    signal.throwIfAborted();
+    const gl = h.gl;
+    const previous = gl.getParameter(gl.UNIFORM_BUFFER_BINDING) as WebGLBuffer | null;
+    try {
+      const root = view.entrants[0];
+      const pose = writeFormulaGroundingPose(
+        frame,
+        carBase(0),
+        root.position,
+        root.rotationQuaternion!,
+        { x: 0, y: 0, z: 0, w: 0 },
+      );
+      const expected = [pose.x, pose.y, pose.z, pose.w].map(Math.fround);
+      const receivers = [...binds].map(([material, receipt]) => {
+        const { mesh, effect, buffer, notifications } = receipt;
+        if (
+          view.scene.isDisposed ||
+          mesh.isDisposed() ||
+          !view.scene.materials.includes(material) ||
+          mesh.material !== material ||
+          !mesh.subMeshes.some((submesh) => submesh.effect === effect) ||
+          material._uniformBuffer.getBuffer() !== buffer ||
+          material._uniformBuffer.currentEffect !== effect ||
+          !buffer.underlyingResource
+        )
+          throw new Error('Stale live grounding bind receipt');
+        const program = (effect.getPipelineContext() as WebGLPipelineContext | null)?.program;
+        if (!program || !gl.isProgram(program) || !gl.getProgramParameter(program, gl.LINK_STATUS))
+          throw new Error('Live grounding program was not linked');
+        const block = gl.getUniformBlockIndex(program, 'Material');
+        if (block === gl.INVALID_INDEX) throw new Error('Live grounding Material block absent');
+        const binding = gl.getActiveUniformBlockParameter(
+          program,
+          block,
+          gl.UNIFORM_BLOCK_BINDING,
+        ) as number;
+        if (!bindings.get(buffer)?.has(binding) || !gl.isBuffer(buffer.underlyingResource))
+          throw new Error('Live grounding UBO lacks actual native binding receipt');
+        const indices = Array.from(
+          gl.getActiveUniformBlockParameter(
+            program,
+            block,
+            gl.UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES,
+          ) as Uint32Array,
+        );
+        const find = (suffix: string) => {
+          const index = indices.find((index) => {
+            const name = gl.getActiveUniform(program, index)?.name;
+            return name === suffix || name?.endsWith('.' + suffix);
+          });
+          if (index === undefined) throw new Error('Live grounding uniform absent: ' + suffix);
+          return index;
+        };
+        const countIndex = find('formulaGroundingCount'),
+          poseIndex = find('formulaGroundingPose[0]');
+        const countInfo = gl.getActiveUniform(program, countIndex)!;
+        const poseInfo = gl.getActiveUniform(program, poseIndex)!;
+        const offsets = gl.getActiveUniforms(
+          program,
+          [countIndex, poseIndex],
+          gl.UNIFORM_OFFSET,
+        ) as number[];
+        const strides = gl.getActiveUniforms(
+          program,
+          [poseIndex],
+          gl.UNIFORM_ARRAY_STRIDE,
+        ) as number[];
+        const byteLength = gl.getActiveUniformBlockParameter(
+          program,
+          block,
+          gl.UNIFORM_BLOCK_DATA_SIZE,
+        ) as number;
+        if (
+          countInfo.type !== gl.INT ||
+          countInfo.size !== 1 ||
+          poseInfo.type !== gl.FLOAT_VEC4 ||
+          poseInfo.size !== 12 ||
+          strides[0] !== 16 ||
+          offsets.some((offset) => !Number.isInteger(offset) || offset < 0 || offset % 4 !== 0) ||
+          offsets[0] + 4 > byteLength ||
+          offsets[1] + 12 * strides[0] > byteLength
+        )
+          throw new Error('Unexpected live grounding driver UBO layout');
+        gl.bindBuffer(gl.UNIFORM_BUFFER, buffer.underlyingResource);
+        if (gl.getBufferParameter(gl.UNIFORM_BUFFER, gl.BUFFER_SIZE) < byteLength)
+          throw new Error('Live grounding GPU buffer is too short');
+        const bytes = new ArrayBuffer(byteLength);
+        gl.getBufferSubData(gl.UNIFORM_BUFFER, 0, new Uint8Array(bytes));
+        const count = new Int32Array(bytes, offsets[0], 1)[0];
+        const poses = Array.from(new Float32Array(bytes, offsets[1], 48));
+        return {
+          surface: mesh.metadata.surface as string,
+          notifications,
+          count,
+          poses,
+          block,
+          binding,
+          byteLength,
+          countOffset: offsets[0],
+          poseOffset: offsets[1],
+          poseStride: strides[0],
+          countType: countInfo.type,
+          poseType: poseInfo.type,
+          poseSize: poseInfo.size,
+        };
+      });
+      if (receivers.length !== 2 || new Set(receivers.map((r) => r.surface)).size !== 2)
+        throw new Error('Both live grounding receiver materials must actually bind');
+      result = {
+        expected,
+        receivers,
+        completedSequence: h.gpu.diagnostics().lastCompletedSequence,
+      };
+    } finally {
+      gl.bindBuffer(gl.UNIFORM_BUFFER, previous);
+    }
+  });
+  if (!result) throw new Error('Missing live grounding GPU receipt');
+  return result;
+}
+function liveGeometrySnapshot(scene: Scene) {
+  return scene.meshes.map((mesh) => {
+    if (!(mesh instanceof Mesh)) throw new Error('Unexpected non-Mesh in original Formula scene');
+    const kinds = mesh.getVerticesDataKinds().sort();
+    return {
+      kinds,
+      vertices: kinds.map((kind) => Array.from(mesh.getVerticesData(kind)!)),
+      indices: Array.from(mesh.getIndices()!),
+    };
+  });
+}
+function sameLiveGeometry(
+  before: ReturnType<typeof liveGeometrySnapshot>,
+  after: ReturnType<typeof liveGeometrySnapshot>,
+) {
+  const equal = (a: readonly number[], b: readonly number[]) =>
+    a.length === b.length && a.every((value, i) => Object.is(value, b[i]));
+  return (
+    before.length === after.length &&
+    before.every(
+      (mesh, i) =>
+        mesh.kinds.length === after[i].kinds.length &&
+        mesh.kinds.every((kind, j) => kind === after[i].kinds[j]) &&
+        mesh.vertices.every((values, j) => equal(values, after[i].vertices[j])) &&
+        equal(mesh.indices, after[i].indices),
+    )
+  );
+}
+
 /** Full workload through the actual live scene/readiness classes. The real
  * /babylon.html journey selects Aurel; Vellamar is qualified here without a
  * hidden production query parameter or fabricated route diagnostics. */
@@ -808,6 +1002,17 @@ export async function babylonFullFormulaScenes() {
     preparationVariants: number;
     asphaltShaderChunks: number;
     paintAsphaltShaderChunks: number;
+    grounding: {
+      initial: Awaited<ReturnType<typeof liveGroundingReceipt>>;
+      moved: Awaited<ReturnType<typeof liveGroundingReceipt>>;
+      appliedRoadChunks: number;
+      appliedPaintChunks: number;
+      effectsStable: boolean;
+      resourcesStable: boolean;
+      geometryStable: boolean;
+      movedImage: string;
+      glErrorAfterMove: number;
+    };
     glError: number;
     disposeGlError: number;
     diagnostics: ReturnType<BabylonPresentationGpu['diagnostics']>;
@@ -823,6 +1028,7 @@ export async function babylonFullFormulaScenes() {
   } | null = null;
   for (const circuit of ['aurel', 'vellamar'] as const) {
     let h: ReturnType<typeof harness> | undefined;
+    let restoreBinding: (() => void) | undefined;
     try {
       const host = new SimulationComponent({
         ...DEFAULT_OPTIONS,
@@ -838,7 +1044,50 @@ export async function babylonFullFormulaScenes() {
         });
         return view.scene;
       });
-      for (const material of view.scene.materials) h.observe(material);
+      const binds = new Map<PBRMaterial, LiveGroundingBind>();
+      const bindings = new Map<DataBuffer, Set<number>>();
+      // Forward every native binding unchanged; observe arguments only, with no
+      // driver query during a draw. This engine is private to this fixture.
+      const engine = h.engine;
+      const nativeBind = engine.bindUniformBufferBase;
+      const bindingDescriptor = Object.getOwnPropertyDescriptor(engine, 'bindUniformBufferBase');
+      restoreBinding = () => {
+        if (bindingDescriptor)
+          Object.defineProperty(engine, 'bindUniformBufferBase', bindingDescriptor);
+        else Reflect.deleteProperty(engine, 'bindUniformBufferBase');
+      };
+      engine.bindUniformBufferBase = function (
+        this: Engine,
+        ...args: Parameters<Engine['bindUniformBufferBase']>
+      ) {
+        const result = nativeBind.apply(this, args);
+        const [buffer, location, name] = args;
+        if (name === 'Material') {
+          const locations = bindings.get(buffer) ?? new Set<number>();
+          locations.add(location);
+          bindings.set(buffer, locations);
+        }
+        return result;
+      };
+      for (const material of view.scene.materials) {
+        h.observe(material);
+        if (
+          material instanceof PBRMaterial &&
+          material.pluginManager?.getPlugin('OriginalFormulaGrounding')
+        )
+          material.onBindObservable.add((mesh) => {
+            const effect = mesh?.subMeshes[0]?.effect,
+              buffer = material._uniformBuffer.getBuffer();
+            if (!(mesh instanceof Mesh) || !effect || !buffer)
+              throw new Error('Live grounding bound without effect/UBO');
+            binds.set(material, {
+              mesh,
+              effect,
+              buffer,
+              notifications: (binds.get(material)?.notifications ?? 0) + 1,
+            });
+          });
+      }
       const ready = new SurfacePreparation(
         view.scene,
         view.scene.meshes,
@@ -893,6 +1142,69 @@ export async function babylonFullFormulaScenes() {
         surfaces = view.surfaceDiagnostics,
         retained = resources(view.scene),
         glError = h.gl.getError();
+      // Preserve original preparation receipt before test-only inspection leases.
+      const preparationVariants = h.gpu.diagnostics().preparation.completed;
+      const initial = await liveGroundingReceipt(h, view, binds, bindings, host.frame);
+      const receivers = view.scene.meshes.filter(
+        (mesh) => mesh.metadata?.surface === 'road' || mesh.metadata?.surface === 'edge-paint',
+      );
+      const effects = receivers.map((mesh) => mesh.subMeshes.map((submesh) => submesh.effect));
+      if (effects.some((list) => !list.length || list.some((effect) => !effect)))
+        throw new Error('Missing prepared live receiver effect');
+      const applied = (surface: string) =>
+        receivers.filter(
+          (mesh) =>
+            mesh.metadata.surface === surface &&
+            mesh.subMeshes.every((submesh) =>
+              groundingShaderAnchors.every((anchor) =>
+                submesh.effect!._fragmentSourceCode.includes(anchor),
+              ),
+            ),
+        ).length;
+      const appliedRoadChunks = applied('road'),
+        appliedPaintChunks = applied('edge-paint');
+      const geometry = liveGeometrySnapshot(view.scene);
+      const retainedObjects = [
+        ...view.scene.meshes,
+        ...view.scene.geometries,
+        ...view.scene.materials,
+        ...view.scene.textures,
+      ];
+      // Synthetic presentation-only movement. Never modify the simulation frame,
+      // solver, model, receiver geometry or original qualification oracle.
+      const movedFrame = host.frame.slice(),
+        offset = carBase(0);
+      movedFrame[offset + F.X] += 3;
+      movedFrame[offset + F.Z] += 2;
+      const q = Quaternion.RotationAxis(Vector3.Up(), 0.65).multiply(
+        view.entrants[0].rotationQuaternion!,
+      );
+      movedFrame.set([q.x, q.y, q.z, q.w], offset + F.QX);
+      await h.presented(() => view.render(movedFrame));
+      const moved = await liveGroundingReceipt(h, view, binds, bindings, movedFrame);
+      const currentObjects = [
+        ...view.scene.meshes,
+        ...view.scene.geometries,
+        ...view.scene.materials,
+        ...view.scene.textures,
+      ];
+      const grounding = {
+        initial,
+        moved,
+        appliedRoadChunks,
+        appliedPaintChunks,
+        effectsStable: receivers.every(
+          (mesh, i) =>
+            mesh.subMeshes.length === effects[i].length &&
+            mesh.subMeshes.every((submesh, j) => submesh.effect === effects[i][j]),
+        ),
+        resourcesStable:
+          retainedObjects.length === currentObjects.length &&
+          retainedObjects.every((object, i) => object === currentObjects[i]),
+        geometryStable: sameLiveGeometry(geometry, liveGeometrySnapshot(view.scene)),
+        movedImage: h.capture().image,
+        glErrorAfterMove: h.gl.getError(),
+      };
       const beforeDispose = h.gpu.diagnostics();
       const shaders = h.shaders(false);
       const asphaltShaderChunks = view.scene.meshes.filter(
@@ -915,7 +1227,8 @@ export async function babylonFullFormulaScenes() {
         resources: retained,
         restored: resources(view.scene),
         completedFrames: beforeDispose.completed - baselineCompleted,
-        preparationVariants: beforeDispose.preparation.completed,
+        preparationVariants,
+        grounding,
         asphaltShaderChunks,
         paintAsphaltShaderChunks,
         glError,
@@ -935,7 +1248,11 @@ export async function babylonFullFormulaScenes() {
         };
     } finally {
       try {
-        h?.dispose();
+        try {
+          restoreBinding?.();
+        } finally {
+          h?.dispose();
+        }
       } catch (error) {
         failure ??= message(error);
       }
@@ -947,6 +1264,6 @@ export async function babylonFullFormulaScenes() {
     failure,
     failureEvidence,
     scope:
-      'Full actual BabylonCircuitScene and SurfacePreparation with procedural dry asphalt; no wet/scanned/road-state, grounding, light pools or PBR/environment parity',
+      'Full actual BabylonCircuitScene and SurfacePreparation with dry asphalt and live Formula grounding; synthetic pose movement is renderer-only evidence, not simulation acceptance; no wet/scanned/road-state, light pools or PBR/environment parity',
   };
 }

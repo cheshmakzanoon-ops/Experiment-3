@@ -54,6 +54,10 @@ function clearSurfaceDiagnostics() {
     'surfaceAsphaltSubstrateMaterials',
     'surfaceAsphaltSubstrateTextures',
     'surfaceAsphaltSubstrateSrgbTextures',
+    'surfaceFormulaGroundingRoadChunks',
+    'surfaceFormulaGroundingPaintChunks',
+    'surfaceFormulaGroundingMaterials',
+    'surfaceFormulaGroundingCars',
   ])
     delete status.dataset[key];
   status.dataset.sceneReady = 'false';
@@ -170,7 +174,7 @@ function rebuildScene(owner: SimulationComponent) {
   assetLoad = new AbortController();
   loadAsset.disabled = true;
   assetStatus.textContent =
-    'Preparing original circuit surfaces and dry asphalt substrate; wet/scanned/road-state layers, grounding and light pools remain unported.';
+    'Preparing original circuit surfaces and dry asphalt substrate and original vehicle grounding; wet/scanned/road-state layers and light pools remain unported.';
   const currentScene = scene,
     currentOwner = assetLoad;
   surfacePreparation = new SurfacePreparation(
@@ -204,7 +208,11 @@ function rebuildScene(owner: SimulationComponent) {
           diagnostics.asphaltSubstrateRoadChunks !== diagnostics.roadChunks ||
           diagnostics.asphaltSubstrateMaterials !== 1 ||
           diagnostics.asphaltSubstrateTextures !== 3 ||
-          diagnostics.asphaltSubstrateSrgbTextures !== 1)
+          diagnostics.asphaltSubstrateSrgbTextures !== 1 ||
+          diagnostics.formulaGroundingRoadChunks !== diagnostics.roadChunks ||
+          diagnostics.formulaGroundingPaintChunks !== diagnostics.paintChunks ||
+          diagnostics.formulaGroundingMaterials !== 2 ||
+          diagnostics.formulaGroundingCars !== 1)
       )
         throw new Error('Original Formula surface activation incomplete');
       status.dataset.surfaceKind = diagnostics.kind;
@@ -220,11 +228,15 @@ function rebuildScene(owner: SimulationComponent) {
         'asphaltSubstrateMaterials',
         'asphaltSubstrateTextures',
         'asphaltSubstrateSrgbTextures',
+        'formulaGroundingRoadChunks',
+        'formulaGroundingPaintChunks',
+        'formulaGroundingMaterials',
+        'formulaGroundingCars',
       ] as const)
         status.dataset[`surface${key[0].toUpperCase()}${key.slice(1)}`] = String(diagnostics[key]);
       loadAsset.disabled = false;
       assetStatus.textContent =
-        'Original authored asset is optional. Original paint and dry asphalt substrate are active; wet/scanned/road-state layers, grounding, light pools and PBR/environment parity remain unported.';
+        'Original authored asset is optional. Original paint, dry asphalt substrate and vehicle grounding are active; wet/scanned/road-state layers, light pools and PBR/environment parity remain unported.';
     })
     .catch((error) => {
       if (currentOwner.signal.aborted || stopped || scene !== currentScene) return;

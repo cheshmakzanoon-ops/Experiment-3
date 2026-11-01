@@ -26,6 +26,7 @@ function engine() {
   const value = new NullEngine();
   // Explicit NullEngine ownership simulation; no GPU result is inferred here.
   Object.defineProperty(value, 'webGLVersion', { value: 2 });
+  Object.defineProperty(value, 'supportsUniformBuffers', { value: true });
   Object.assign(value.getCaps(), { supportSRGBBuffers: true, standardDerivatives: true });
   engines.push(value);
   return value;
