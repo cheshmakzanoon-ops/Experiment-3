@@ -66,3 +66,36 @@ complete ESLint, TypeScript/Vite production build, fixture bundling/formatting,
 read-only workflow selectors and discovery of 18 GPU journeys (three new A07
 cases). These are not GPU execution or live-entry acceptance. Original renderer,
 simulation and public asset paths have no diff.
+
+
+## First GPU result and fixture colour-space correction
+
+Exact `2a19b5a9fac0337fcbafdfb744f83f1326200380` passed all fifteen retained
+GPU journeys, but all three new A07 cases failed the texture-metadata predicate
+in [run 41298826385](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41298826385).
+They reached this predicate after exact original CPU/GPU pixel checks, geometry,
+material and linked-program checks; each retained three first-cycle views. Later
+repeat/disposal/context-loss assertions were not reached, so remain unqualified.
+The failed report omitted the partial receipt, preventing direct inspection of
+the actual flag that failed. Artifact `13080902463` SHA-256:
+`be80beef4dc8182799621484daef5e047d0ce859afc5e7099908ff40c6673275`.
+
+Pinned Babylon's `BaseTexture.gammaSpace` returns the semantic gamma tag AND
+NOT hardware-sRGB storage. The old test incorrectly required it to be true for
+base colour even when hardware already performs decoding. A fixture-only
+correction records semantic tag, hardware storage, effective getter and actual
+compiled defines; it requires exactly one hardware/shader base-colour decode,
+with no gamma on normal/metal data. Native `#ifdef` macro presence is respected
+even for a zero-valued definition. All exact pixel/data/lifecycle/deadline gates
+remain unchanged, and partial receipts are retained before assertions.
+
+Real pinned-getter regressions demonstrated the invalid expectation (four tests
+failed before correction). The corrected helper and existing loader/atlas tests
+pass 37 focused contracts. The archived result alone does not prove this was the
+sole runtime defect; a fresh receipt-bearing GPU run is required. No production
+asset, material, loader or live-entry change is made for this correction.
+
+[Native run 41298826397](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41298826397)
+passed on Windows and Apple Silicon with the full four existing-content journeys.
+Linux retained the known pre-import presentation stall/GPU exit 512. A07 is not
+live in that source, so these are not A07 native-rendering passes.

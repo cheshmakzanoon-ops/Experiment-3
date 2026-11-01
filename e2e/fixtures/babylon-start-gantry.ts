@@ -1,3 +1,8 @@
+import {
+  a07TextureGamma,
+  a07ProgramGamma,
+  assertA07GammaTransport,
+} from './babylon-start-gantry-gamma.ts';
 import * as T from 'three';
 import atlasOracle from '../../tests/fixtures/a07-atlas-pixels.json' with { type: 'json' };
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -131,6 +136,7 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
   let owner: Awaited<ReturnType<typeof loadBabylonStartGantry>> | undefined;
   let oracle: Awaited<ReturnType<typeof decodeStartGantry>> | undefined;
   const rows: object[] = [];
+  const receipts: object[] = [];
   const images: { name: string; image: string }[] = [];
   let failure: string | null = null;
   let loss: object | null = null;
@@ -376,6 +382,13 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
           }),
         );
       }
+      images.push(...views.map(({ name, image }) => ({ name: `cycle-${cycle}-${name}`, image })));
+      const partialReceipt: { cycle: number; textures: object[]; programs: object[] } = {
+        cycle,
+        textures: [],
+        programs: [],
+      };
+      receipts.push(partialReceipt);
       const receipt = await lease('A07 native texture/program evidence', async () => ({
         normalScale: material.bumpTexture!.level,
         ambientAbsent: material.ambientTexture === null,
@@ -385,59 +398,11 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
         metallicBlue: material.useMetallnessFromMetallicTextureBlue,
         roughnessGreen: material.useRoughnessFromMetallicTextureGreen,
         roughnessAlpha: material.useRoughnessFromMetallicTextureAlpha,
-        textures: await (async () => {
-          const textures = [];
-          for (const texture of [
-            material.albedoTexture!,
-            material.bumpTexture!,
-            material.metallicTexture!,
-          ]) {
-            const source: (typeof sourceAtlases)[number] = sourceAtlases[textures.length];
-            // Native glTF uploads invertY=false. GL row zero therefore contains
-            // source PNG row zero; readPixels returns that same row first. Compare
-            // directly: no flip search, colour conversion or gamma reinterpretation.
-            invariant(
-              texture instanceof Texture && !texture.invertY,
-              'Unexpected native glTF PNG row orientation',
-            );
-            const pixels = await texture.readPixels();
-            invariant(pixels, 'Native PNG texture has no GPU pixels');
-            const data = new Uint8Array(pixels!.buffer, pixels!.byteOffset, pixels!.byteLength);
-            const digest = await crypto.subtle.digest('SHA-256', new Uint8Array(data));
-            invariant(
-              hex(digest) === atlasOracle.roles[source.role].rgbaSha256,
-              `GPU ${source.role} hash differs from frozen independent PNG oracle`,
-            );
-            invariant(
-              equal(data, source.pixels),
-              `Native ${source.role} GPU pixels differ from original PNG bytes`,
-            );
-            textures.push({
-              name: texture.name,
-              role: source.role,
-              sourceSha256: source.sha256,
-              sourcePngSha256: source.pngSha256,
-              exactSourcePixels: true,
-              rowOrientation: 'source-top-row-is-GL-row-zero (native invertY=false)',
-              ready: texture.isReady(),
-              size: texture.getSize(),
-              level: texture.level,
-              gammaSpace: texture.gammaSpace,
-              uv: Array.from(texture.getTextureMatrix().asArray()),
-              sha256: Array.from(new Uint8Array(digest), (n) =>
-                n.toString(16).padStart(2, '0'),
-              ).join(''),
-              min: data.reduce((a, b) => Math.min(a, b), 255),
-              max: data.reduce((a, b) => Math.max(a, b), 0),
-            });
-          }
-          return textures;
-        })(),
         programs: d.parts.map(({ name, mesh }) => {
           const effect = mesh.subMeshes[0]?.effect;
           const program = (effect?.getPipelineContext() as WebGLPipelineContext | null)?.program;
-          return {
-            name,
+          const programReceipt = {
+            ...a07ProgramGamma(name, effect?.defines ?? ''),
             binds: binds.get(name) ?? 0,
             linked:
               !!program &&
@@ -447,14 +412,78 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
             samplers: effect?.getSamplers(),
             ubo: material._uniformBuffer.useUbo,
           };
+          partialReceipt.programs.push(programReceipt);
+          return programReceipt;
         }),
+        textures: await (async () => {
+          const textures = [];
+          for (const texture of [
+            material.albedoTexture!,
+            material.bumpTexture!,
+            material.metallicTexture!,
+          ]) {
+            const source: (typeof sourceAtlases)[number] = sourceAtlases[textures.length];
+            const textureInspection = {
+              name: texture.name,
+              ...a07TextureGamma(texture, source.role),
+              ready: texture.isReady(),
+              size: texture.getSize(),
+              sourceSha256: source.sha256,
+              sourcePngSha256: source.pngSha256,
+            };
+            partialReceipt.textures.push(textureInspection);
+            // Native glTF uploads invertY=false. GL row zero therefore contains
+            // source PNG row zero; readPixels returns that same row first. Compare
+            // directly: no flip search, colour conversion or gamma reinterpretation.
+            invariant(
+              texture instanceof Texture && !texture.invertY,
+              `A07 ${source.role} native glTF PNG invertY must be false`,
+            );
+            const pixels = await texture.readPixels();
+            invariant(pixels, `A07 ${source.role} native PNG texture has no GPU pixels`);
+            const data = new Uint8Array(pixels!.buffer, pixels!.byteOffset, pixels!.byteLength);
+            const digest = await crypto.subtle.digest('SHA-256', new Uint8Array(data));
+            Object.assign(textureInspection, {
+              sha256: hex(digest),
+              exactSourcePixels: equal(data, source.pixels),
+            });
+            invariant(
+              hex(digest) === atlasOracle.roles[source.role].rgbaSha256,
+              `GPU ${source.role} hash differs from frozen independent PNG oracle`,
+            );
+            invariant(
+              equal(data, source.pixels),
+              `Native ${source.role} GPU pixels differ from original PNG bytes`,
+            );
+            const textureReceipt = {
+              name: texture.name,
+              ...a07TextureGamma(texture, source.role),
+              sourceSha256: source.sha256,
+              sourcePngSha256: source.pngSha256,
+              exactSourcePixels: true,
+              rowOrientation: 'source-top-row-is-GL-row-zero (native invertY=false)',
+              ready: texture.isReady(),
+              size: texture.getSize(),
+              level: texture.level,
+              uv: Array.from(texture.getTextureMatrix().asArray()),
+              sha256: Array.from(new Uint8Array(digest), (n) =>
+                n.toString(16).padStart(2, '0'),
+              ).join(''),
+              min: data.reduce((a, b) => Math.min(a, b), 255),
+              max: data.reduce((a, b) => Math.max(a, b), 0),
+            };
+            textures.push(textureReceipt);
+            Object.assign(textureInspection, textureReceipt);
+          }
+          return textures;
+        })(),
         active: h.scene.meshes
           .filter((m) => m.getTotalVertices() > 0 && m.isEnabled())
           .map((m) => m.name),
         retained: resources(),
         glError: h.gl.getError(),
       }));
-      images.push(...views.map(({ name, image }) => ({ name: `cycle-${cycle}-${name}`, image })));
+      receipts.push({ cycle, complete: true, ...receipt });
       invariant(rejectedDuplicate, 'Duplicate install accepted');
       invariant(
         receipt.active.length === 4 &&
@@ -480,18 +509,22 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
         'Original A07 parts did not bind actual linked native effects',
       );
       invariant(
-        receipt.textures.length === 3 &&
-          new Set(receipt.textures.map((t) => t.sha256)).size === 3 &&
-          receipt.textures.every(
-            (t, i) =>
-              t.ready &&
-              t.size.width === 512 &&
-              t.size.height === 512 &&
-              t.min < t.max &&
-              t.gammaSpace === (i === 0),
-          ),
-        'Native PNG GPU texture decode missing or substituted',
+        receipt.textures.length === 3,
+        `A07 texture count: expected 3, got ${receipt.textures.length}`,
       );
+      invariant(
+        new Set(receipt.textures.map((t) => t.sha256)).size === 3,
+        'A07 texture role hashes must be distinct',
+      );
+      for (const texture of receipt.textures) {
+        invariant(texture.ready, `A07 ${texture.role} texture is not ready`);
+        invariant(
+          texture.size.width === 512 && texture.size.height === 512,
+          `A07 ${texture.role} dimensions must be 512x512; got ${texture.size.width}x${texture.size.height}`,
+        );
+        invariant(texture.min < texture.max, `A07 ${texture.role} readback is constant`);
+      }
+      assertA07GammaTransport(receipt.textures, receipt.programs);
       invariant(
         receipt.glError === 0 && views.every((v) => v.glError === 0 && v.visiblePixels > 1000),
         'Original A07 draw/readback failed',
@@ -574,6 +607,7 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
     transport: h.transport,
     baseline,
     rows,
+    receipts,
     images,
     failure,
     loss,

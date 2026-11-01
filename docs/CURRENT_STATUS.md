@@ -14,7 +14,7 @@ Migration development stays exclusively on **babylon-js**. Main is frozen at res
 
 ## Latest recorded qualification
 
-**A07 structure candidate:** original Aurel gantry geometry/atlas loader and isolated GPU probe are prepared, with no live-entry import yet. Exact-source GPU/image qualification remains required before activation. [Scope](maintenance/babylon-start-gantry-2026-11-01.md).
+**A07 structure candidate:** source `2a19b5a` passed fifteen retained GPU journeys, but three A07 cases failed a colour-space metadata predicate after their strict pixel checks. The fixture expectation is corrected for native hardware-sRGB decoding and now preserves partial receipts. Fresh GPU qualification is required; no live-entry import is enabled. [Scope](maintenance/babylon-start-gantry-2026-11-01.md).
 
 **Bounded Mesa browser check:** both live-scene transports passed in two repetitions; the isolated comparisons failed at the original Three reference gate before Babylon candidate qualification. The automatic diagnostic trigger is retired. No native Linux repair or transport-policy change follows from this result. [Evidence](maintenance/babylon-mesa-transport-review-2026-11-01.md).
 
