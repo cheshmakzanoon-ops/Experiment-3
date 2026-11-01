@@ -87,7 +87,7 @@ The compact [current status](CURRENT_STATUS.md) lists present gates; [developmen
 
 - `src/engine/babylon/formula-grounding.ts` and `e2e/fixtures/*grounding*`: live original Formula contact shading with UBO/ordinary-uniform transports and independent reference/metric probes. [Qualified source and remaining platform limits](maintenance/babylon-live-grounding-2026-11-01.md).
 
-- `src/engine/babylon/start-gantry.ts` and `e2e/fixtures/babylon-start-gantry.ts`: original Aurel A07 structure adapter and qualified isolated native-image/GPU ownership probe. Live startup integration has its own pending qualification. [Scope](maintenance/babylon-start-gantry-2026-11-01.md).
+- `src/engine/babylon/start-gantry.ts` and `e2e/fixtures/babylon-start-gantry.ts`: original Aurel A07 structure adapter and qualified isolated native-image/GPU ownership probe. Live startup passed its GPU and Windows/macOS checks; Linux remains failed. [Scope](maintenance/babylon-start-gantry-2026-11-01.md).
 
 
 `src/engine/babylon/gantry-preparation.ts` owns original Aurel A07 startup staging,

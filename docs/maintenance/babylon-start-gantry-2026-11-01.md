@@ -2,7 +2,7 @@
 
 This work belongs only to `babylon-js`. `main` remains the exact restored
 pre-migration snapshot. The isolated adapter passed on `b27d585`; the live startup integration below
-is now awaiting its own exact-source GPU/native qualification.
+has passed exact-source GPU and Windows/macOS checks; Linux remains failed.
 
 ## Original content retained
 
@@ -180,7 +180,7 @@ production fingerprint remains unchanged from the previous isolated checkpoint;
 A07 is not live in `b27d585`. No all-platform release qualifies.
 
 
-## Live startup integration (qualification pending)
+## Live startup integration
 
 `GantryPreparation` stages the qualified original A07 structure only after the
 existing circuit surface preparation completes, under the same absolute startup
@@ -201,7 +201,7 @@ Local candidate lifecycle/native-receipt/gamma contracts passed 41/41; full lint
 TypeScript and production build passed. The npm wrapper's ancillary registry
 request was blocked by the local network policy; the existing installed toolchain
 completed the same offline generator/typecheck/Vite stages without any download
-or security change. Exact live-source GPU/native results remain pending. Original
+or security change. Exact live-source results are recorded below. Original
 asset, Three construction, simulation and physics data are unchanged. Banner,
 lamp behavior, weather, shadows, occluders and runtime LOD switching remain open.
 
@@ -209,3 +209,47 @@ After applying to the current migration checkpoint, the final combined selection
 passed 460/460 contracts across 43 files; complete lint, TypeScript and the
 production build passed, and all 18 GPU cases were discovered without executing
 a local browser. These results precede exact live-source CI qualification.
+
+
+## Live GPU qualification on 9c3b04b
+
+[Run 41306459287](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41306459287)
+passed **18/18 real-WebGL journeys** and **440/440 CI contracts** for exact
+`9c3b04bdf21a2cdc115edc39521d22436e52994c`. The local 460 count additionally
+includes 20 native-smoke receipt contracts. Artifact `13084041150` is
+15,161,807 bytes, SHA-256
+`ac8c519fb19783c41b2eff8532adbe921f29a912088d8280670034f5dc4602d2`.
+
+The live surface receipt contains gantry ready, four parts, one material, three
+textures, 9,520 triangles and the original asset hash, with 27 completed frames
+and scene readiness true. The in-game preview shows the original structure over
+the road. Context loss and browser restoration leave readiness false, loading
+disabled and all surface/gantry receipts cleared until explicit rebuild; the
+existing recovery/restart journeys pass with the new gantry readiness gate.
+The original authored car import and all retained renderer comparisons pass.
+This remains SwiftShader evidence, not physical GPU or final visual parity.
+
+
+## Live installed-app result
+
+[Native run 41306459321](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41306459321)
+for the same `9c3b04b` source is terminal:
+
+- Windows x64 passed the full installed-app and four compatibility journeys,
+  with 36/36 completed Babylon draws and no context loss.
+- Apple Silicon macOS passed the same journeys, with 25/25 completed draws and
+  no context loss.
+- Linux x64 passed the actual gantry readiness receipts (4/1/3 resources, 9,520
+  triangles, original hash) and presented the original car, then failed a
+  15-second wait followed by GPU-process exit 512. At loss, 413/413 preparations
+  had completed and draw 21 remained pending after 20 completed draws. This is a
+  failed platform result; similarity to earlier post-model failures does not
+  establish causality or prove the live change is irrelevant.
+
+All three reports identify production fingerprint
+`08ee14c13229e8f9fbe7a217f3f3260b5706407621eb178c29cfb37e43b34f1a`.
+Windows/macOS packaged screenshots show the original Formula car and gantry over
+the original road, without obvious missing or duplicated structure. The gantry
+is partially obscured by the diagnostic UI; isolated images provide detail.
+No all-platform release, physical-hardware certification, full PBR/environment
+parity or complete Babylon conversion follows from this milestone.
