@@ -22,7 +22,15 @@ describe('independent CI diagnostics with strict release gates', () => {
       readFileSync(new URL('../package.json', import.meta.url), 'utf8'),
     ).scripts;
     expect(contract).toContain('run: npm test -- ');
-    expect(contract).toContain('tests/babylon-*.test.ts');
+    const babylonContracts = 'tests/babylon-*.test.ts';
+    expect(contract).toContain(babylonContracts);
+    const desktop = readFileSync(
+      new URL('../.github/workflows/desktop-build.yml', import.meta.url),
+      'utf8',
+    );
+    const nativePush = desktop.split('  push:\n')[1]?.split('\npermissions:')[0];
+    expect(nativePush).toContain('    branches: [main]');
+    expect(nativePush).toContain(`      - '${babylonContracts}'`);
     expect(contract).toContain('tests/circuit-ribbon-data.test.ts');
     expect(contract).not.toMatch(/npx vitest|--ignore-scripts|--exclude|--passWithNoTests/);
     expect(scripts.pretest).toBe('npm run generate:player-lods');
