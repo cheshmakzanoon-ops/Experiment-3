@@ -1,7 +1,7 @@
 import type { BaseTexture } from '@babylonjs/core/Materials/Textures/baseTexture.js';
 
 export type A07TextureRole = 'baseColor' | 'normal' | 'metallicRoughness';
-/** Pinned Babylon getter is effective shader decode, not the source colour tag.
+/** Pinned Babylon getter is generic metadata, consumed only by selected PBR slots.
  * These cached fields do not query GL; call from the fixture's GPU-owned receipt. */
 export function a07TextureGamma(texture: BaseTexture, role: A07TextureRole) {
   const gammaSpace = texture.gammaSpace;
@@ -9,11 +9,11 @@ export function a07TextureGamma(texture: BaseTexture, role: A07TextureRole) {
   return {
     role,
     gammaSpace,
-    semanticGammaSpace: internal?._gammaSpace ?? null,
+    diagnosticGenericGammaSpace: internal?._gammaSpace ?? null,
     hardwareSrgb: internal?._useSRGBBuffer ?? null,
   };
 }
-export function a07ProgramGamma(name: string, defines: string) {
+export function a07ProgramGamma(name: string, defines: string, samplers: readonly string[] = []) {
   // Pinned PBR uses #ifdef/defined, so even a macro defined as 0 is present.
   const defined = (name: string) => new RegExp(`^\\s*#define\\s+${name}\\b`, 'm').test(defines);
   return {
@@ -21,6 +21,27 @@ export function a07ProgramGamma(name: string, defines: string) {
     defines,
     gammaAlbedo: defined('GAMMAALBEDO'),
     reflectivityGamma: defined('REFLECTIVITY_GAMMA'),
+    samplers: [...samplers],
+    requiredDataPaths: Object.fromEntries(
+      [
+        'ALBEDO',
+        'BUMP',
+        'NORMAL',
+        'METALLICWORKFLOW',
+        'REFLECTIVITY',
+        'ROUGHNESSSTOREINMETALMAPGREEN',
+        'METALLNESSSTOREINMETALMAPBLUE',
+      ].map((key) => [key, defined(key)]),
+    ),
+    unexpectedDataPaths: [
+      'UNLIT',
+      'OBJECTSPACE_NORMALMAP',
+      'PARALLAX',
+      'PARALLAXOCCLUSION',
+      'DETAIL',
+      'ROUGHNESSSTOREINMETALMAPALPHA',
+      'AOSTOREINMETALMAPRED',
+    ].filter(defined),
   };
 }
 export function assertA07GammaTransport(
@@ -33,8 +54,8 @@ export function assertA07GammaTransport(
     if (matches.length !== 1) throw new Error(`A07 ${role} requires exactly one texture receipt`);
     const texture = matches[0];
     if (role === 'baseColor') {
-      if (texture.semanticGammaSpace !== true)
-        throw new Error('A07 baseColor semantic gamma tag must be true');
+      if (texture.diagnosticGenericGammaSpace !== true)
+        throw new Error('A07 baseColor generic gamma tag must be true');
       for (const program of programs) {
         if (
           typeof texture.hardwareSrgb !== 'boolean' ||
@@ -49,14 +70,32 @@ export function assertA07GammaTransport(
           );
       }
     } else {
-      for (const field of ['semanticGammaSpace', 'hardwareSrgb', 'gammaSpace'] as const)
-        if (texture[field] !== false)
-          throw new Error(`A07 ${role} data texture ${field} must be false; got ${texture[field]}`);
+      // glTF nonColorData disables sRGB storage. The generic gamma getter/tag
+      // remain true by default, but bump and metallic PBR paths do not use them.
+      // Never mutate production textures to make unused metadata look linear.
+      if (texture.hardwareSrgb !== false)
+        throw new Error(
+          `A07 ${role} data texture hardwareSrgb must be false; got ${texture.hardwareSrgb}`,
+        );
     }
   }
-  for (const program of programs)
+  for (const program of programs) {
+    for (const [macro, present] of Object.entries(program.requiredDataPaths))
+      if (!present)
+        throw new Error(`A07 ${program.name} required native data sampling macro ${macro} absent`);
+    for (const sampler of ['albedoSampler', 'bumpSampler', 'reflectivitySampler'])
+      if (!program.samplers.includes(sampler))
+        throw new Error(`A07 ${program.name} required native data sampler ${sampler} absent`);
+    if (program.unexpectedDataPaths.length)
+      throw new Error(
+        `A07 ${program.name} unexpected data sampling path: ${program.unexpectedDataPaths.join(', ')}`,
+      );
+    // Pinned metallic define production forces this off. The fragment also
+    // guards its conversion with !METALLICWORKFLOW; reject a non-native define
+    // contract here, not an alleged active conversion on the metallic branch.
     if (program.reflectivityGamma)
       throw new Error(
-        `A07 metallicRoughness data texture has REFLECTIVITY_GAMMA in ${program.name}`,
+        `A07 metallicRoughness native define contract has unexpected REFLECTIVITY_GAMMA in ${program.name}`,
       );
+  }
 }

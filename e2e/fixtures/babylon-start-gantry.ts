@@ -402,14 +402,13 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
           const effect = mesh.subMeshes[0]?.effect;
           const program = (effect?.getPipelineContext() as WebGLPipelineContext | null)?.program;
           const programReceipt = {
-            ...a07ProgramGamma(name, effect?.defines ?? ''),
+            ...a07ProgramGamma(name, effect?.defines ?? '', effect?.getSamplers() ?? []),
             binds: binds.get(name) ?? 0,
             linked:
               !!program &&
               h.gl.isProgram(program) &&
               !!h.gl.getProgramParameter(program, h.gl.LINK_STATUS),
             compilationError: effect?.getCompilationError(),
-            samplers: effect?.getSamplers(),
             ubo: material._uniformBuffer.useUbo,
           };
           partialReceipt.programs.push(programReceipt);

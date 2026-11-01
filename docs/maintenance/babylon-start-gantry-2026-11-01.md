@@ -56,7 +56,7 @@ per-role pixel hashes and each other byte-for-byte, with no flip search or gamma
 reinterpretation. Image comparisons are data-preservation evidence, not a claim
 of final lighting/PBR parity.
 
-**Real GPU execution and screenshot review are pending.** No live activation
+**Complete real-GPU qualification and screenshot review remain pending.** No live activation
 follows from NullEngine, type/build checks or test discovery. Existing source
 `f996583` platform results remain historical: Windows/macOS passed, Linux remains
 unqualified. The retired Mesa diagnostic is not restarted by this work.
@@ -99,3 +99,51 @@ asset, material, loader or live-entry change is made for this correction.
 passed on Windows and Apple Silicon with the full four existing-content journeys.
 Linux retained the known pre-import presentation stall/GPU exit 512. A07 is not
 live in that source, so these are not A07 native-rendering passes.
+
+
+## Receipt-bearing GPU result: generic flags are not data-map transfer functions
+
+Exact `da7ea87a53a2e2f6c269657715516b3c21c351bd` again passed all fifteen
+retained GPU journeys and failed the three A07 cases in
+[run 41301759966](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41301759966).
+The new partial receipts establish the precise failure:
+`A07 normal data texture semanticGammaSpace must be false; got true`.
+Artifact `13082038170` is 33,576,799 bytes, SHA-256
+`1194b98c9b1483e1d34f4c5edf1f5ca7319e564a7e55863c45c16c29a95cf24a`.
+
+All three cases retain exact original CPU/GPU pixels for all three atlases.
+Base colour uses hardware sRGB (`_useSRGBBuffer=true`), generic cached gamma
+flag true, effective getter false and no `GAMMAALBEDO`. Both normal and metallic/
+roughness textures have hardware sRGB false, but their generic cached gamma
+flags and getters are true. Four bound, linked programs have `BUMP` and
+`METALLICWORKFLOW`, with no `REFLECTIVITY_GAMMA`.
+
+The pinned glTF loader marks these data maps `nonColorData`, disabling hardware
+sRGB storage. The PBR bump path reads raw XYZ, and the metallic workflow explicitly
+disables reflectivity gamma conversion. The generic texture gamma property is
+not a transfer-function requirement for those slots. Requiring it to be false
+was another invalid fixture assumption, not evidence of altered original pixels.
+The corrected fixture validates hardware-linear data storage plus actual compiled
+PBR sampling macros and native samplers, and rejects alternate data-map paths.
+The cached flag is named `diagnosticGenericGammaSpace`, not a claimed slot transfer function.
+All exact pixel, geometry, ownership and deadline checks remain. No production
+texture property is rewritten to satisfy the test.
+Repeat/disposal/context-loss qualification is still blocked behind this assertion;
+the A07 owner remains absent from the live entry.
+
+[Native run 41301759887](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41301759887)
+passed Windows and Apple Silicon existing-content journeys. Linux failed after
+model presentation with a pending draw and GPU-process loss. These builds share
+production fingerprint `50d27194329d479c03e2a407d0df53717727904e43bea3c5fb77052fc4f66972`
+with the preceding checkpoint. A07 is not live, and these native results neither
+qualify A07 rendering nor establish a new cause for the Linux failure.
+
+Offline replay of all three archived complete texture/program receipts passes the
+corrected sampling predicate. The front and ladder-detail captures show the
+original structure intact; all three transports share the same captured image
+files. This is inspection of the failed run, not fresh lifecycle qualification.
+
+Correction checkpoint: all 428 contracts in the GPU workflow's local CPU selection
+passed (41 files), including 40 focused loader/atlas/gamma contracts. Full lint
+and TypeScript checks passed. Fresh GPU execution is still required before any
+live-entry activation; replay and NullEngine tests are not substitutes.
