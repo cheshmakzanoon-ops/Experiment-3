@@ -96,6 +96,7 @@ preserves the original structural asset, atlas and conformed geometry. Browser
 and native receipts verify actual ready resources; full environment migration
 remains separate. See [A07 qualification](maintenance/babylon-start-gantry-2026-11-01.md).
 
-`src/engine/babylon/start-lamps.ts` is the isolated original five-lamp owner. Its
-CPU and GPU probes retain original geometry and snapshot authority; no live
-entry import is enabled. [Scope](maintenance/babylon-start-lamps-2026-11-01.md).
+`src/engine/babylon/start-lamps.ts` is the original five-lamp owner;
+`lamp-preparation.ts` connects it to guarded startup after the gantry. Its isolated
+GPU probes passed; live qualification is pending. Original geometry and snapshot
+authority are retained. [Scope](maintenance/babylon-start-lamps-2026-11-01.md).

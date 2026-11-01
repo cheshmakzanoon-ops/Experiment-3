@@ -3,6 +3,11 @@ import { test, expect, type Page } from '@playwright/test';
 import { exerciseBabylonContextRecovery } from './fixtures/babylon-context-recovery.ts';
 
 const surfaceKeys = [
+  'lampState',
+  'lampParts',
+  'lampMaterials',
+  'lampTriangles',
+  'lampLights',
   'gantryState',
   'gantryParts',
   'gantryMaterials',
@@ -27,6 +32,16 @@ const surfaceKeys = [
   'surfaceFormulaGroundingMaterials',
   'surfaceFormulaGroundingCars',
 ] as const;
+async function expectOriginalStartLamps(page: Page) {
+  const status = page.locator('#status');
+  await expect(status).toHaveAttribute('data-lamp-state', 'ready');
+  await expect(status).toHaveAttribute('data-lamp-parts', '5');
+  await expect(status).toHaveAttribute('data-lamp-materials', '5');
+  await expect(status).toHaveAttribute('data-lamp-triangles', '400');
+  // The unchanged practice session has no start countdown. Observe actual
+  // bound emission rather than injecting a synthetic race state into gameplay.
+  await expect(status).toHaveAttribute('data-lamp-lights', '0');
+}
 async function expectOriginalAurelSurface(page: Page) {
   const status = page.locator('#status');
   await expect(status).toHaveAttribute('data-surface-kind', 'formula-ribbon');
@@ -51,6 +66,7 @@ async function expectOriginalAurelSurface(page: Page) {
   await expect(status).toHaveAttribute('data-gantry-textures', '3');
   await expect(status).toHaveAttribute('data-gantry-triangles', '9520');
   await expect(status).toHaveAttribute('data-gantry-sha256', gantryManifest.sha256);
+  await expectOriginalStartLamps(page);
   await expect(status).toHaveAttribute('data-scene-ready', 'true');
   expect(Number(await status.getAttribute('data-completed-frames'))).toBeGreaterThanOrEqual(2);
   await expect(page.locator('#loadAsset')).toBeEnabled();
@@ -124,6 +140,8 @@ test('Babylon migration entry renders existing simulation and supports pause, re
   );
   await expect(page.locator('#loadAsset')).toBeDisabled();
   await expect(status).not.toHaveAttribute('data-surface-kind');
+  for (const key of ['state', 'parts', 'materials', 'triangles', 'lights'])
+    await expect(status).not.toHaveAttribute(`data-lamp-${key}`);
   await expect(status).toHaveAttribute('data-scene-ready', 'false');
   await info.attach('babylon-context-recovery-state.json', {
     body: JSON.stringify(recovery, null, 2),
@@ -154,6 +172,95 @@ test('Babylon migration entry renders existing simulation and supports pause, re
   });
 });
 
+test('Babylon completes original environment startup while paused before gantry preparation', async ({
+  page,
+}, info) => {
+  // One absolute test budget also bounds the held request and startup; do not
+  // grant preparation a second budget after release or inject simulation state.
+  test.setTimeout(120000);
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const evidence: unknown[] = [];
+  const observe = async (phase: string) => {
+    const observed = await page.locator('#status').evaluate((status) => {
+      const text = status.textContent ?? '';
+      const keys = [
+        'sceneReady',
+        'presentationSettled',
+        'completedFrames',
+        'gantryState',
+        'gantryParts',
+        'gantryMaterials',
+        'gantryTextures',
+        'gantryTriangles',
+        'gantrySha256',
+        'lampState',
+        'lampParts',
+        'lampMaterials',
+        'lampTriangles',
+        'lampLights',
+      ];
+      return {
+        text,
+        tick: Number(text.match(/tick (\d+)/)?.[1] ?? -1),
+        loadDisabled: document.querySelector<HTMLButtonElement>('#loadAsset')?.disabled,
+        pauseButton: document.querySelector('#pause')?.textContent,
+        readiness: Object.fromEntries(
+          keys.map((key) => [key, (status as HTMLElement).dataset[key] ?? null]),
+        ),
+      };
+    });
+    evidence.push({ phase, ...observed });
+  };
+  let held = false;
+  await page.route('**/models/aurel-start-gantry.glb*', async (route) => {
+    held = true;
+    await gate;
+    await route.continue();
+  });
+  try {
+    await page.goto('/babylon.html', { waitUntil: 'domcontentloaded' });
+    const status = page.locator('#status');
+    await expect.poll(() => held, { timeout: 120000 }).toBe(true);
+    await expect(status).toHaveAttribute('data-scene-ready', 'false');
+    await expect(page.locator('#loadAsset')).toBeDisabled();
+    await expect(status).not.toHaveAttribute('data-gantry-state');
+    await expect(status).not.toHaveAttribute('data-lamp-state');
+    await page.getByRole('button', { name: 'Pause', exact: true }).click();
+    await expect(status).toContainText('PAUSED');
+    const tick = async () => Number((await status.textContent())?.match(/tick (\d+)/)?.[1] ?? -1);
+    const pausedTick = await tick();
+    expect(pausedTick).toBeGreaterThanOrEqual(0);
+    await expect(status).toHaveAttribute('data-presentation-settled', 'false');
+    await observe('gantry-fetch-held-paused');
+    release();
+    await expect(status).toHaveAttribute('data-presentation-settled', 'true', { timeout: 120000 });
+    await observe('released-settled');
+    await expectOriginalAurelSurface(page);
+    await expect(status).toContainText('PAUSED');
+    expect(await tick()).toBe(pausedTick);
+    await page.getByRole('button', { name: 'Resume', exact: true }).click();
+    await expect(status).toContainText('DRIVING');
+    await expect.poll(tick).toBeGreaterThan(pausedTick);
+    await observe('resumed-advancing');
+    expect(errors).toEqual([]);
+  } finally {
+    release();
+    try {
+      await page.unrouteAll({ behavior: 'wait' });
+    } finally {
+      await info.attach('babylon-early-paused-startup.json', {
+        body: JSON.stringify(evidence, null, 2),
+        contentType: 'application/json',
+      });
+    }
+  }
+});
+
 test('Babylon imports the existing authored Formula asset and restart cancels obsolete loading', async ({
   page,
 }, info) => {
@@ -171,6 +278,7 @@ test('Babylon imports the existing authored Formula asset and restart cancels ob
   await load.click();
   await page.getByRole('button', { name: 'Restart', exact: true }).click();
   await expect(load).toBeEnabled();
+  await expectOriginalAurelSurface(page);
   await expect(page.locator('#assetStatus')).toContainText('optional');
   await expect(assetStatus).not.toHaveAttribute('data-scalar-height-materials');
   await load.click();
@@ -184,6 +292,7 @@ test('Babylon imports the existing authored Formula asset and restart cancels ob
   // Live surface readiness and full-lap counts survive the original model load.
   await expect(page.locator('#status')).toHaveAttribute('data-surface-kind', 'formula-ribbon');
   await expect(page.locator('#status')).toHaveAttribute('data-surface-paint-chunks', '76');
+  await expectOriginalStartLamps(page);
   const driverSteering = async () =>
     Number(await page.locator('#assetStatus').getAttribute('data-steering'));
   await page.keyboard.down('a');
@@ -219,6 +328,7 @@ test('Babylon imports the existing authored Formula asset and restart cancels ob
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
   await expect(page.locator('#status')).toContainText('PAUSED');
   await expect(page.locator('#status')).toHaveAttribute('data-presentation-settled', 'true');
+  await expectOriginalStartLamps(page);
   const frozenWheel = await wheelPhase();
   const frozenDriver = await driverSteering();
   await page.waitForTimeout(300);
@@ -248,6 +358,7 @@ test('Babylon imports the existing authored Formula asset and restart cancels ob
   });
   await page.getByRole('button', { name: 'Restart', exact: true }).click();
   await expect(load).toBeEnabled();
+  await expectOriginalAurelSurface(page);
   await expect(page.locator('#assetStatus')).toContainText('optional');
   await expect(assetStatus).not.toHaveAttribute('data-scalar-height-materials');
   await expect(page.locator('#assetStatus')).not.toHaveAttribute('data-wheel-phase');

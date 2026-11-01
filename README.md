@@ -27,7 +27,7 @@ The desktop runtime uses Electron to provide a consistent bundled Chromium runti
 ## Current implementation and recorded qualification · 2026-11-01
 
 - **Original Aurel gantry:** the Aurel A07 gantry structure passed isolated GPU/image qualification with exact original geometry, placement and atlas pixels. Live startup on `9c3b04b` passed all 18 WebGL journeys and Windows/macOS installed-app checks. Linux still fails later after car presentation; banner/lamp behavior and full environment parity remain open. [Scope](docs/maintenance/babylon-start-gantry-2026-11-01.md).
-- **Next isolated signal component:** the five original start lamps preserve original geometry/material values and use existing race snapshots only. They are not enabled in live startup; real GPU emission, program reuse and ownership checks remain required. [Scope](docs/maintenance/babylon-start-lamps-2026-11-01.md).
+- **Original start lamps:** the five original start lamps preserve original geometry/material values and use existing race snapshots only. Their isolated 21-case GPU suite passed; the guarded startup connection is now awaiting its own live/native and early-pause checks. Practice remains dark. [Scope](docs/maintenance/babylon-start-lamps-2026-11-01.md).
 
 - **Qualified application checkpoint (`f996583`):** live Formula grounding and both uniform transports passed all **15 SwiftShader WebGL journeys**. Windows x64 and Apple Silicon macOS passed packaged Babylon checks plus all four existing-content compatibility journeys. Linux still fails during a native graphics wait followed by GPU-process loss; no all-platform release is qualified. Original models, renderer and physics remain preserved. [Exact scope/results](docs/maintenance/babylon-live-grounding-2026-11-01.md).
 

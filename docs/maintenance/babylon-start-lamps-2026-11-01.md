@@ -1,7 +1,8 @@
 # Original five start lamps · isolated migration candidate
 
 Development belongs only to `babylon-js`; `main` remains the exact restored
-pre-Babylon snapshot. This adapter is **not imported by the live entry**.
+pre-Babylon snapshot. The isolated adapter passed on `6aad563`; its live startup integration now
+awaits separate exact-source GPU/native qualification.
 The original A07 structural gantry remains independently owned and qualified
 as recorded in [its evidence](babylon-start-gantry-2026-11-01.md).
 
@@ -48,7 +49,8 @@ snapshot updater. This avoids testing only against duplicated candidate constant
 
 ## Explicit limits
 
-This is an isolated candidate, not live lamp activation or final visual parity.
+The first checkpoint was isolated; the later live integration below has its own
+qualification gate. Neither checkpoint establishes final visual parity.
 Banner printing/back-face treatment is a separate port. Shadows, HDR bloom,
 exposure and complete environment/PBR parity remain open. Original lamps are
 emissive surfaces, not lights that illuminate surrounding geometry. No new
@@ -70,3 +72,67 @@ standalone uniforms, real emission pixels, effect/program/cache identity and
 compile/link counts. A co-presence cycle retains the original A07 structure
 through lamp cancellation and disposal, then independently cleans that owner.
 These are implemented acceptance gates, not results until the real run completes.
+
+
+## Isolated GPU result on 6aad563
+
+[Run 41309156739](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41309156739)
+passed **21/21 GPU journeys** and **458/458 CI CPU contracts** for exact
+`6aad5634b84d35ab66cd8d3a05ec6737389e317c`. Local 478 additionally includes
+20 native-smoke receipt contracts. Artifact `13085147767`, 15,177,860 bytes,
+SHA-256 `ccfab045ee108c169687e4b5d86bc10797871831b2c6e5428e37aa2907ef79c0`.
+
+All 192 state/view/cycle receipts contain five actual GPU emission readings,
+correct 0/25 intensities, original linear emission, zero GL errors, completed
+frames and unchanged snapshots. State changes reused programs with zero runtime
+shader compile/link calls. Effect-created notifications do increase when dirty
+material state rebinds; those are not new shader compilations.
+
+Native/standalone/loss/fresh-restart pixel arrays match. All 24 captures collapse
+to six byte-identical view/state groups: dark, one lit and five lit from front
+and grid views. Those images were inspected. A07 co-presence receipts preserve
+its four structural parts through independent lamp cleanup. All cycles return
+to baseline; cancellation and real context loss followed by a fresh-context
+restart pass. This is SwiftShader evidence, not physical-GPU or final PBR,
+exposure, bloom or shadow parity. Co-presence is established by resource/geometry
+receipts; the saved lamp captures are isolated views.
+
+[Native run 41309156858](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41309156858)
+passed Windows (40/40 draws) and macOS (27/27) with all four compatibility
+journeys. Linux presented the car and later lost its GPU process (exit 512;
+22/23 draws, pending age 21.853 seconds). All 413 preparations completed and
+all platforms verified the live gantry. Production fingerprint:
+`30e0563ed72467e2b1645fb7a29e07284de2ef1d51a4fc3580c06a9905c04b93`.
+The lamps are not live in that source, so these native runs do not qualify them.
+
+## Live integration awaiting exact-source checks
+
+`LampPreparation` follows surfaces and the structural gantry under the same
+absolute startup deadline and GPU owner. It applies the latest existing
+simulation snapshot before installation and each draw; practice remains dark.
+Installation allows required frame receipts without claiming final readiness.
+Scene-ready, settled presentation and optional car loading wait for all three
+owners. Independent cleanup and diagnostic clearing cover restart, loss and
+errors even when scene disposal throws.
+
+Browser/native receipts now require actual bound five parts, five materials,
+400 triangles and zero lit lamps in practice. An additional browser journey
+holds the real gantry fetch, pauses through the UI before readiness, releases
+loading, checks ready/settled state with an unchanged physics tick, then resumes.
+It preserves actual DOM evidence in JSON and has one total 120-second budget.
+This test is implemented but not yet executed on the live source.
+
+The expanded GPU suite is split into two required parallel shards because the
+preceding 21-case job used 18 of its 20 minutes. All prior cases remain, with
+separate artifacts, unchanged case/shard deadlines and fail-fast disabled.
+The original aggregate `verify` check requires every shard to succeed. This is
+CI scheduling, not a relaxation of game readiness or performance acceptance.
+
+Final local live checkpoint: 494 selected contracts across 45 files passed
+(including 21 native-smoke contracts), alongside lint, TypeScript and production
+build. The initial split exposed two existing workflow-selector assertions;
+literal selectors were retained, those assertions left unchanged, and two new
+contracts now enforce exact shard coverage and fail-closed aggregation. The
+focused 25-contract workflow/probe rerun passed after the final lint-only regex
+formatting correction. Discovery confirms 19 retained plus three lamp cases.
+Exact live-source execution remains pending.

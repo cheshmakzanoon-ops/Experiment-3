@@ -25,3 +25,51 @@ it('qualifies migration desktop artifacts only on babylon-js through unchanged s
     /contents: write|secrets:|\brun:|\bsteps:|gpu_trace:|gpu_service_api_trace:|smoke_journey:|linux_graphics:/,
   );
 });
+
+it('retains the exact GPU selector union in two required, non-filtered shards', () => {
+  const source = readFileSync('.github/workflows/babylon-integration.yml', 'utf8');
+  expect([...source.matchAll(/^ {10}- suite: (.+)$/gm)].map((m) => m[1])).toEqual([
+    'retained',
+    'start-lamps',
+  ]);
+  expect(
+    [...source.matchAll(/^ {8}run: npx playwright test (.+)$/gm)].map((m) => m[1].split(' ')),
+  ).toEqual([
+    [
+      'e2e/babylon-engine.spec.ts',
+      'e2e/discipline-entry.spec.ts',
+      'e2e/babylon-player-lods.spec.ts',
+      'e2e/babylon-height-parity.spec.ts',
+      'e2e/babylon-surface-parity.spec.ts',
+      'e2e/babylon-start-gantry.spec.ts',
+    ],
+    ['e2e/babylon-start-lamps.spec.ts'],
+  ]);
+  const step = (name: string) => source.split(`      - name: ${name}\n`)[1]?.split('      - ')[0];
+  expect(step('Real WebGL engine, model import and mode-switching journeys')).toContain(
+    "if: matrix.suite == 'retained'",
+  );
+  expect(step('Original start lamps GPU qualification')).toContain(
+    "if: matrix.suite == 'start-lamps'",
+  );
+  expect(source).toContain('fail-fast: false');
+  expect(source).toContain('timeout-minutes: 20');
+  expect(source).toContain('name: babylon-integration-${{ matrix.suite }}-${{ github.sha }}');
+  expect(source).not.toMatch(
+    /continue-on-error|--exclude|--testNamePattern|--passWithNoTests|--grep|--retries/,
+  );
+});
+
+it('keeps the original verify check fail-closed over every GPU shard on babylon-js', () => {
+  const source = readFileSync('.github/workflows/babylon-integration.yml', 'utf8');
+  expect(source).toContain('branches: [babylon-js]');
+  expect(source).toContain('permissions:\n  contents: read');
+  const gpu = source.split('  gpu:\n')[1]?.split('  verify:\n')[0];
+  expect(gpu).toContain("if: github.ref == 'refs/heads/babylon-js'");
+  const gate = source.split('  verify:\n')[1];
+  expect(gate).toContain("if: always() && github.ref == 'refs/heads/babylon-js'");
+  expect(gate).toContain('needs: gpu');
+  expect(gate).toContain("run: test '${{ needs.gpu.result }}' = success");
+  expect(gate.match(/\brun:/g)).toHaveLength(1);
+  expect(source).not.toMatch(/contents: write|continue-on-error/);
+});

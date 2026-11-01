@@ -202,6 +202,11 @@ describe('same-readiness-receipt native Aurel surface acceptance', () => {
     formulaGroundingPaintChunks: '76',
     formulaGroundingMaterials: '2',
     formulaGroundingCars: '1',
+    lampState: 'ready',
+    lampParts: '5',
+    lampMaterials: '5',
+    lampTriangles: '400',
+    lampLights: '0',
     gantryState: 'ready',
     gantryParts: '4',
     gantryMaterials: '1',
@@ -228,6 +233,11 @@ describe('same-readiness-receipt native Aurel surface acceptance', () => {
       formulaGroundingPaintChunks: 76,
       formulaGroundingMaterials: 2,
       formulaGroundingCars: 1,
+      lampState: 'ready',
+      lampParts: 5,
+      lampMaterials: 5,
+      lampTriangles: 400,
+      lampLights: 0,
       gantryState: 'ready',
       gantryParts: 4,
       gantryMaterials: 1,
@@ -275,6 +285,18 @@ describe('same-readiness-receipt native Aurel surface acceptance', () => {
       }),
     ).toThrow('roadChunks');
   });
+  it('rejects staged, cleared, partially installed, and illuminated practice lamps', () => {
+    for (const lampState of ['prepared', 'installing', 'disposed', 'ineligible', undefined])
+      expect(() => validateNativeAurelSurface({ ...raw, lampState })).toThrow('lampState');
+    for (const [key, value] of [
+      ['lampParts', '4'],
+      ['lampMaterials', '4'],
+      ['lampTriangles', '320'],
+      ['lampLights', '1'],
+      ['lampLights', '5'],
+    ])
+      expect(() => validateNativeAurelSurface({ ...raw, [key]: value })).toThrow(key);
+  });
   it('extends the existing readiness snapshot without another query or changing the frame budget', () => {
     const source = readFileSync('scripts/desktop-smoke.mjs', 'utf8');
     const body = source.slice(
@@ -291,6 +313,11 @@ describe('same-readiness-receipt native Aurel surface acceptance', () => {
       body.indexOf('.push(receipt)'),
     );
     for (const name of [
+      'lampState',
+      'lampParts',
+      'lampMaterials',
+      'lampTriangles',
+      'lampLights',
       'surfaceKind',
       'surfaceRoadChunks',
       'surfacePaintChunks',

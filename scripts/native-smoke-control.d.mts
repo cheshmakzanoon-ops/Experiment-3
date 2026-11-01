@@ -35,6 +35,11 @@ export interface NativeAurelSurfaceReceipt {
   asphaltSubstrateMaterials: number;
   asphaltSubstrateTextures: number;
   asphaltSubstrateSrgbTextures: number;
+  lampState: 'ready';
+  lampParts: number;
+  lampMaterials: number;
+  lampTriangles: number;
+  lampLights: number;
   gantryState: string;
   gantryParts: number;
   gantryMaterials: number;
