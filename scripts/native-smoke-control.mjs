@@ -1,3 +1,4 @@
+import gantryManifest from '../src/rendering/start-gantry.manifest.json' with { type: 'json' };
 /** Harness-only scopes. Required callers remain full; diagnostics cannot claim
  * that an intentionally omitted authored-model workload passed. */
 export function desktopSmokeJourney(value = 'full') {
@@ -95,6 +96,12 @@ export function validateNativeAurelSurface(value) {
     formulaGroundingPaintChunks: '76',
     formulaGroundingMaterials: '2',
     formulaGroundingCars: '1',
+    gantryState: 'ready',
+    gantryParts: '4',
+    gantryMaterials: '1',
+    gantryTextures: '3',
+    gantryTriangles: '9520',
+    gantrySha256: gantryManifest.sha256,
     coarseMeshes: '0',
   };
   for (const [key, required] of Object.entries(expected)) {
@@ -117,6 +124,12 @@ export function validateNativeAurelSurface(value) {
     formulaGroundingPaintChunks: Number(value.formulaGroundingPaintChunks),
     formulaGroundingMaterials: Number(value.formulaGroundingMaterials),
     formulaGroundingCars: Number(value.formulaGroundingCars),
+    gantryState: value.gantryState,
+    gantryParts: Number(value.gantryParts),
+    gantryMaterials: Number(value.gantryMaterials),
+    gantryTextures: Number(value.gantryTextures),
+    gantryTriangles: Number(value.gantryTriangles),
+    gantrySha256: value.gantrySha256,
     coarseMeshes: Number(value.coarseMeshes),
   };
 }

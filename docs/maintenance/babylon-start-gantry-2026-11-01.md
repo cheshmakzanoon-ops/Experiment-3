@@ -1,7 +1,8 @@
 # Original A07 start-gantry adapter · isolated qualification
 
 This work belongs only to `babylon-js`. `main` remains the exact restored
-pre-migration snapshot. The adapter is **not yet imported by the live entry**.
+pre-migration snapshot. The isolated adapter passed on `b27d585`; the live startup integration below
+is now awaiting its own exact-source GPU/native qualification.
 
 ## Original content retained
 
@@ -56,8 +57,9 @@ per-role pixel hashes and each other byte-for-byte, with no flip search or gamma
 reinterpretation. Image comparisons are data-preservation evidence, not a claim
 of final lighting/PBR parity.
 
-**Complete real-GPU qualification and screenshot review remain pending.** No live activation
-follows from NullEngine, type/build checks or test discovery. Existing source
+**At the initial checkpoint, complete GPU qualification was pending.** The later
+`b27d585` result below closes that isolated gate. No activation follows solely
+from NullEngine, type/build checks or test discovery. Existing source
 `f996583` platform results remain historical: Windows/macOS passed, Linux remains
 unqualified. The retired Mesa diagnostic is not restarted by this work.
 
@@ -147,3 +149,63 @@ Correction checkpoint: all 428 contracts in the GPU workflow's local CPU selecti
 passed (41 files), including 40 focused loader/atlas/gamma contracts. Full lint
 and TypeScript checks passed. Fresh GPU execution is still required before any
 live-entry activation; replay and NullEngine tests are not substitutes.
+
+
+## Isolated qualification passed on b27d585
+
+[GPU run 41304298334](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41304298334)
+passed all **18/18** journeys and **428/428** CPU contracts for exact
+`b27d5852dd12666e2e16138c382da400e1d3faa5`. Artifact `13082823809`
+is 15,145,296 bytes, SHA-256
+`e971fe03570a10704990b0fbf9d7ba46b295b969f95a27f2ac988c05a98151a1`.
+
+All three A07 cases now reach repeated installation, complete disposal and
+baseline restoration. Native UBO and forced-standalone each complete two cycles;
+the context-loss case completes two cycles, loses its real context and completes
+two more cycles on a fresh context. Every cycle records nine completed frames,
+exact original position/normal/UV/index/world arrays, exact independent PNG/GPU
+hashes, four linked and bound original-part effects, and zero GL errors.
+Resource disposal notifications occur once each, and scene resources return to
+the original baseline (including the retained shared BRDF texture).
+
+Front, rear and ladder-detail images have been inspected. This establishes
+original structural/data preservation and the bounded lifecycle, not final
+lighting, shadow, banner, lamp or environment parity. In-game startup is a
+separate integration gate, not implied by this isolated pass.
+
+[Native run 41304298346](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41304298346)
+passed Windows and Apple Silicon full existing-content journeys. Linux failed
+after model presentation with a pending draw and GPU-process exit 512. The
+production fingerprint remains unchanged from the previous isolated checkpoint;
+A07 is not live in `b27d585`. No all-platform release qualifies.
+
+
+## Live startup integration (qualification pending)
+
+`GantryPreparation` stages the qualified original A07 structure only after the
+existing circuit surface preparation completes, under the same absolute startup
+deadline and GPU owner. Compilation keeps normal draws suppressed; installation
+allows its required ready-frame receipts. Public scene-ready/presentation-settled
+state and optional car loading wait for gantry completion. A paused startup
+requests the presentation needed to expose readiness, without changing input or
+simulation authority.
+
+Canonical Aurel Formula receives four LOD0 parts, one original PBR material and
+three source textures. Other contexts remain ineligible with no fetch. The six
+`gantry*` status fields are derived from actual bound resources and the original
+asset digest; browser and packaged-app checks now require those fields. Restart,
+context loss and errors clear them. Explicit owner cleanup still runs if scene
+cleanup throws; pending/stale ownership cannot publish into the replacement.
+
+Local candidate lifecycle/native-receipt/gamma contracts passed 41/41; full lint,
+TypeScript and production build passed. The npm wrapper's ancillary registry
+request was blocked by the local network policy; the existing installed toolchain
+completed the same offline generator/typecheck/Vite stages without any download
+or security change. Exact live-source GPU/native results remain pending. Original
+asset, Three construction, simulation and physics data are unchanged. Banner,
+lamp behavior, weather, shadows, occluders and runtime LOD switching remain open.
+
+After applying to the current migration checkpoint, the final combined selection
+passed 460/460 contracts across 43 files; complete lint, TypeScript and the
+production build passed, and all 18 GPU cases were discovered without executing
+a local browser. These results precede exact live-source CI qualification.

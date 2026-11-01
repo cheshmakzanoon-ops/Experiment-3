@@ -1,7 +1,15 @@
+import gantryManifest from '../src/rendering/start-gantry.manifest.json' with { type: 'json' };
 import { test, expect, type Page } from '@playwright/test';
 import { exerciseBabylonContextRecovery } from './fixtures/babylon-context-recovery.ts';
 
 const surfaceKeys = [
+  'gantryState',
+  'gantryParts',
+  'gantryMaterials',
+  'gantryTextures',
+  'gantryTriangles',
+  'gantrySha256',
+
   'surfaceKind',
   'surfaceRoadChunks',
   'surfacePaintChunks',
@@ -37,6 +45,12 @@ async function expectOriginalAurelSurface(page: Page) {
   await expect(status).toHaveAttribute('data-surface-formula-grounding-paint-chunks', '76');
   await expect(status).toHaveAttribute('data-surface-formula-grounding-materials', '2');
   await expect(status).toHaveAttribute('data-surface-formula-grounding-cars', '1');
+  await expect(status).toHaveAttribute('data-gantry-state', 'ready');
+  await expect(status).toHaveAttribute('data-gantry-parts', '4');
+  await expect(status).toHaveAttribute('data-gantry-materials', '1');
+  await expect(status).toHaveAttribute('data-gantry-textures', '3');
+  await expect(status).toHaveAttribute('data-gantry-triangles', '9520');
+  await expect(status).toHaveAttribute('data-gantry-sha256', gantryManifest.sha256);
   await expect(status).toHaveAttribute('data-scene-ready', 'true');
   expect(Number(await status.getAttribute('data-completed-frames'))).toBeGreaterThanOrEqual(2);
   await expect(page.locator('#loadAsset')).toBeEnabled();

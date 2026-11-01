@@ -14,7 +14,7 @@ Migration development stays exclusively on **babylon-js**. Main is frozen at res
 
 ## Latest recorded qualification
 
-**A07 structure candidate:** `da7ea87` passed fifteen retained GPU journeys but failed three A07 cases. Partial receipts prove exact original atlas pixels and native hardware-sRGB base-colour decoding; the test incorrectly treats generic normal/metal texture gamma flags as active shader conversions. Source-backed shader-path and sampler checks replace the invalid assumption. Complete lifecycle qualification remains pending, and no live-entry import is enabled. [Evidence and scope](maintenance/babylon-start-gantry-2026-11-01.md).
+**A07 original gantry:** isolated source `b27d585` passed all 18 GPU journeys and 428 CPU contracts, including both uniform modes, repeated cleanup and real context loss/fresh restart. Original geometry and all atlas pixels match exactly. The structure is now connected to canonical Aurel Formula startup; readiness, restart cleanup and native/browser receipts include its actual resources. Exact live-source GPU/native qualification is pending. Banner/lamp behavior and full environment parity remain open. [Evidence and scope](maintenance/babylon-start-gantry-2026-11-01.md).
 
 **Bounded Mesa browser check:** both live-scene transports passed in two repetitions; the isolated comparisons failed at the original Three reference gate before Babylon candidate qualification. The automatic diagnostic trigger is retired. No native Linux repair or transport-policy change follows from this result. [Evidence](maintenance/babylon-mesa-transport-review-2026-11-01.md).
 

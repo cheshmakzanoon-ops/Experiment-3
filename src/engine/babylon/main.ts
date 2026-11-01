@@ -1,4 +1,5 @@
 import { SurfacePreparation, resizePresentationWhenIdle } from './surface-preparation.ts';
+import { GantryPreparation } from './gantry-preparation.ts';
 import { GraphicsRecovery } from './graphics-recovery.ts';
 import type { AssetContainer } from '@babylonjs/core/assetContainer.js';
 import { prepareOriginalMaterials } from './asset-preparation.ts';
@@ -40,8 +41,15 @@ let engine: Engine | undefined;
 let scene: BabylonCircuitScene | undefined;
 let gpu: BabylonPresentationGpu | undefined;
 let surfacePreparation: SurfacePreparation | undefined;
+let gantryPreparation: GantryPreparation | undefined;
 function clearSurfaceDiagnostics() {
   for (const key of [
+    'gantryState',
+    'gantryParts',
+    'gantryMaterials',
+    'gantryTextures',
+    'gantryTriangles',
+    'gantrySha256',
     'surfaceKind',
     'surfaceRoadChunks',
     'surfacePaintChunks',
@@ -135,6 +143,7 @@ function stop(error?: unknown) {
     () => playerSteering?.dispose(),
     () => playerWheels?.dispose(),
     () => scene?.dispose(),
+    () => gantryPreparation?.dispose(),
     () => engine?.dispose(),
   ]))
     console.error('Babylon cleanup failed:', failure);
@@ -164,17 +173,24 @@ function rebuildScene(owner: SimulationComponent) {
   playerWheels = undefined;
   delete assetStatus.dataset.wheelPhase;
   delete assetStatus.dataset.steering;
-  scene?.dispose();
-  scene = new BabylonCircuitScene(engine!, owner.simulation.track, 1, {
+  const cleanupFailures = cleanupPresentation([
+    () => scene?.dispose(),
+    () => gantryPreparation?.dispose(),
+  ]);
+  if (cleanupFailures.length)
+    throw new AggregateError(cleanupFailures, 'Scene replacement cleanup failed');
+  gantryPreparation = undefined;
+  const context = {
     presentation: 'circuit',
     vehicles: owner.simulation.cars.map((car) => car.definition),
-  });
+  };
+  scene = new BabylonCircuitScene(engine!, owner.simulation.track, 1, context);
   // Fresh model ownership is published only after an explicit safe rebuild.
   graphicsRecovery.rebuilt();
   assetLoad = new AbortController();
   loadAsset.disabled = true;
   assetStatus.textContent =
-    'Preparing original circuit surfaces and dry asphalt substrate and original vehicle grounding; wet/scanned/road-state layers and light pools remain unported.';
+    'Preparing original circuit surfaces and dry asphalt substrate and vehicle grounding, then the original Aurel gantry structure; banner, lamps and environment parity remain unported.';
   const currentScene = scene,
     currentOwner = assetLoad;
   surfacePreparation = new SurfacePreparation(
@@ -187,7 +203,7 @@ function rebuildScene(owner: SimulationComponent) {
   );
   const pending = surfacePreparation;
   void pending.completion
-    .then(() => {
+    .then(async () => {
       if (
         stopped ||
         currentOwner.signal.aborted ||
@@ -234,9 +250,34 @@ function rebuildScene(owner: SimulationComponent) {
         'formulaGroundingCars',
       ] as const)
         status.dataset[`surface${key[0].toUpperCase()}${key.slice(1)}`] = String(diagnostics[key]);
+      const gantry = new GantryPreparation({
+        scene: currentScene.scene,
+        track: owner.simulation.track,
+        context,
+        base: document.baseURI,
+        signal: currentOwner.signal,
+        gpu: gpu!,
+        deadline,
+        schedule: presentation,
+        isCurrent: () => !stopped && scene === currentScene && !restartOwnership.pending,
+      });
+      gantryPreparation = gantry;
+      await gantry.completion;
+      if (
+        stopped ||
+        currentOwner.signal.aborted ||
+        scene !== currentScene ||
+        restartOwnership.pending ||
+        gantryPreparation !== gantry ||
+        !gantry.completed
+      )
+        return;
+      const gantryReceipt = gantry.receipt();
+      for (const [key, value] of Object.entries(gantryReceipt))
+        status.dataset[`gantry${key[0].toUpperCase()}${key.slice(1)}`] = String(value);
+      requestPresentation();
       loadAsset.disabled = false;
-      assetStatus.textContent =
-        'Original authored asset is optional. Original paint, dry asphalt substrate and vehicle grounding are active; wet/scanned/road-state layers, light pools and PBR/environment parity remain unported.';
+      assetStatus.textContent = `Original car is optional. Paint, dry asphalt and grounding are active${gantry.eligible ? '; Aurel gantry structure ready' : ''}. Banner, lamps and full environment parity remain unported.`;
     })
     .catch((error) => {
       if (currentOwner.signal.aborted || stopped || scene !== currentScene) return;
@@ -307,6 +348,7 @@ try {
         !surfacePreparation?.completed
       )
         return;
+      if (!gantryPreparation?.completed) return;
       const currentScene = scene!,
         owner = assetLoad;
       const deadline = performance.now() + 120000;
@@ -473,19 +515,22 @@ try {
           if (resizePresentationWhenIdle(gpu!, () => engine!.resize())) resizePending = false;
         }
         // Rebuild may have claimed the preparation lane since the outer ready check.
-        if (!graphicsRecovery.restartRequired && surfacePreparation?.canDraw && gpu!.ready())
-          gpu!.frame(presentation, paused, scene!.scene, () => {
-            if (playerSteering)
-              assetStatus.dataset.steering = String(playerSteering.apply(component.frame));
-            if (playerWheels)
-              assetStatus.dataset.wheelPhase = String(playerWheels.apply(component.frame));
-            const readyBefore = scene!.scene.isReady();
-            scene!.render(component.frame);
-            const readyAfter = scene!.scene.isReady();
-            presentation.rendered(readyBefore, readyAfter);
-            status.dataset.sceneReady = String(readyBefore && readyAfter);
-            return readyBefore && readyAfter;
-          });
+        if (!gantryPreparation || gantryPreparation.canDraw)
+          if (!graphicsRecovery.restartRequired && surfacePreparation?.canDraw && gpu!.ready())
+            gpu!.frame(presentation, paused, scene!.scene, () => {
+              if (playerSteering)
+                assetStatus.dataset.steering = String(playerSteering.apply(component.frame));
+              if (playerWheels)
+                assetStatus.dataset.wheelPhase = String(playerWheels.apply(component.frame));
+              const readyBefore = scene!.scene.isReady();
+              scene!.render(component.frame);
+              const readyAfter = scene!.scene.isReady();
+              presentation.rendered(readyBefore, readyAfter);
+              status.dataset.sceneReady = String(
+                readyBefore && readyAfter && !!gantryPreparation?.completed,
+              );
+              return readyBefore && readyAfter;
+            });
       }
       const graphics = gpu!.diagnostics();
       renderedFrames = graphics.submitted;
@@ -497,6 +542,7 @@ try {
         paused &&
           !restartOwnership.pending &&
           !!surfacePreparation?.completed &&
+          !!gantryPreparation?.completed &&
           !graphicsRecovery.restartRequired &&
           !resizePending &&
           !presentation.pending &&

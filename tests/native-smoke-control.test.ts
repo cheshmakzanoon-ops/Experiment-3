@@ -1,3 +1,4 @@
+import gantryManifest from '../src/rendering/start-gantry.manifest.json' with { type: 'json' };
 import { readFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 import { createGraphicsLogScanner } from '../desktop/graphics-health.ts';
@@ -201,6 +202,12 @@ describe('same-readiness-receipt native Aurel surface acceptance', () => {
     formulaGroundingPaintChunks: '76',
     formulaGroundingMaterials: '2',
     formulaGroundingCars: '1',
+    gantryState: 'ready',
+    gantryParts: '4',
+    gantryMaterials: '1',
+    gantryTextures: '3',
+    gantryTriangles: '9520',
+    gantrySha256: gantryManifest.sha256,
     coarseMeshes: '0',
   };
   it('returns observed counts without mutating the raw evidence', () => {
@@ -221,6 +228,12 @@ describe('same-readiness-receipt native Aurel surface acceptance', () => {
       formulaGroundingPaintChunks: 76,
       formulaGroundingMaterials: 2,
       formulaGroundingCars: 1,
+      gantryState: 'ready',
+      gantryParts: 4,
+      gantryMaterials: 1,
+      gantryTextures: 3,
+      gantryTriangles: 9520,
+      gantrySha256: gantryManifest.sha256,
       coarseMeshes: 0,
     });
     expect(raw).toEqual(snapshot);

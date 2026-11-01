@@ -35,6 +35,12 @@ export interface NativeAurelSurfaceReceipt {
   asphaltSubstrateMaterials: number;
   asphaltSubstrateTextures: number;
   asphaltSubstrateSrgbTextures: number;
+  gantryState: string;
+  gantryParts: number;
+  gantryMaterials: number;
+  gantryTextures: number;
+  gantryTriangles: number;
+  gantrySha256: string;
   coarseMeshes: number;
 }
 export function validateNativeAurelSurface(value: unknown): NativeAurelSurfaceReceipt;

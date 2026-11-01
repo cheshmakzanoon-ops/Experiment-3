@@ -26,7 +26,7 @@ The desktop runtime uses Electron to provide a consistent bundled Chromium runti
 
 ## Current implementation and recorded qualification · 2026-11-01
 
-- **Next original environment asset:** the Aurel A07 gantry structure has an isolated loader/probe preserving original geometry, placement and atlas data. It is not live yet; real GPU and image qualification come first. [Scope](docs/maintenance/babylon-start-gantry-2026-11-01.md).
+- **Next original environment asset:** the Aurel A07 gantry structure passed isolated GPU/image qualification with exact original geometry, placement and atlas pixels. Its startup integration is now awaiting exact live-scene/native checks; banner/lamp behavior and environment parity remain open. [Scope](docs/maintenance/babylon-start-gantry-2026-11-01.md).
 
 - **Qualified application checkpoint (`f996583`):** live Formula grounding and both uniform transports passed all **15 SwiftShader WebGL journeys**. Windows x64 and Apple Silicon macOS passed packaged Babylon checks plus all four existing-content compatibility journeys. Linux still fails during a native graphics wait followed by GPU-process loss; no all-platform release is qualified. Original models, renderer and physics remain preserved. [Exact scope/results](docs/maintenance/babylon-live-grounding-2026-11-01.md).
 
