@@ -18,12 +18,18 @@ on:
       - 'tests/fixtures/circuit-ribbon-*'
       - 'src/rendering/circuit.ts'
       - 'src/rendering/circuit-finish.ts'
+      - 'src/rendering/grid-paint.ts'
+      - 'src/rendering/geometry.ts'
+      - 'tests/gp-grid-paint.test.ts'
       - 'src/rendering/studio/road-detail.ts'
       - 'src/rendering/tyre-marks.ts'
       - 'e2e/babylon-start-gantry.spec.ts'
       - 'e2e/babylon-start-lamps.spec.ts'
       - 'e2e/babylon-start-banner.spec.ts'
       - 'e2e/babylon-start-finish-stripe.spec.ts'
+      - 'e2e/babylon-grid-paint.spec.ts'
+      - 'e2e/fixtures/babylon-grid-paint.ts'
+      - 'e2e/fixtures/babylon-grid-paint-reference.ts'
       - 'e2e/fixtures/babylon-start-finish-stripe.ts'
       - 'e2e/fixtures/babylon-start-banner.ts'
       - 'e2e/fixtures/babylon-start-lamps.ts'
@@ -63,6 +69,7 @@ jobs:
           - suite: start-lamps
           - suite: start-banner
           - suite: start-finish-stripe
+          - suite: grid-paint
     if: github.ref == 'refs/heads/babylon-js'
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -76,7 +83,7 @@ jobs:
       - name: Validate source and both entry points
         run: npm run lint && npm run build
       - name: Engine component and existing asset geometry contracts
-        run: npx vitest run tests/babylon-*.test.ts tests/discipline-presets.test.ts tests/input.test.ts tests/formula-surfaces.test.ts tests/circuit-line-profile.test.ts tests/indexed-ribbon-normals.test.ts tests/circuit-ribbon-data.test.ts tests/road-detail.test.ts tests/tyre-marks.test.ts tests/start-gantry.test.ts
+        run: npx vitest run tests/babylon-*.test.ts tests/discipline-presets.test.ts tests/input.test.ts tests/formula-surfaces.test.ts tests/circuit-line-profile.test.ts tests/indexed-ribbon-normals.test.ts tests/circuit-ribbon-data.test.ts tests/road-detail.test.ts tests/tyre-marks.test.ts tests/start-gantry.test.ts tests/gp-grid-paint.test.ts
       - run: npx playwright install --with-deps chromium
       # Keep literal selectors: existing asphalt/grounding contracts inspect this step.
       - name: Real WebGL engine, model import and mode-switching journeys
@@ -91,6 +98,9 @@ jobs:
       - name: Original start finish stripe GPU qualification
         if: matrix.suite == 'start-finish-stripe'
         run: npx playwright test e2e/babylon-start-finish-stripe.spec.ts
+      - name: Original Formula grid paint GPU qualification
+        if: matrix.suite == 'grid-paint'
+        run: npx playwright test e2e/babylon-grid-paint.spec.ts
       - name: Preserve browser evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4

@@ -33,6 +33,7 @@ it('retains the exact GPU selector union in required, non-filtered shards', () =
     'start-lamps',
     'start-banner',
     'start-finish-stripe',
+    'grid-paint',
   ]);
   expect(
     [...source.matchAll(/^ {8}run: npx playwright test (.+)$/gm)].map((m) => m[1].split(' ')),
@@ -48,6 +49,7 @@ it('retains the exact GPU selector union in required, non-filtered shards', () =
     ['e2e/babylon-start-lamps.spec.ts'],
     ['e2e/babylon-start-banner.spec.ts'],
     ['e2e/babylon-start-finish-stripe.spec.ts'],
+    ['e2e/babylon-grid-paint.spec.ts'],
   ]);
   const step = (name: string) => source.split(`      - name: ${name}\n`)[1]?.split('      - ')[0];
   expect(step('Real WebGL engine, model import and mode-switching journeys')).toContain(
@@ -61,6 +63,9 @@ it('retains the exact GPU selector union in required, non-filtered shards', () =
   );
   expect(step('Original start finish stripe GPU qualification')).toContain(
     "if: matrix.suite == 'start-finish-stripe'",
+  );
+  expect(step('Original Formula grid paint GPU qualification')).toContain(
+    "if: matrix.suite == 'grid-paint'",
   );
   expect(source).toContain("- 'e2e/babylon-start-finish-stripe.spec.ts'");
   expect(source).toContain("- 'e2e/fixtures/babylon-start-finish-stripe.ts'");
@@ -84,4 +89,24 @@ it('keeps the original verify check fail-closed over every GPU shard on babylon-
   expect(gate).toContain("run: test '${{ needs.gpu.result }}' = success");
   expect(gate.match(/\brun:/g)).toHaveLength(1);
   expect(source).not.toMatch(/contents: write|continue-on-error/);
+});
+
+it('triggers isolated grid qualification for every original reference and fixture input', () => {
+  const source = readFileSync('.github/workflows/babylon-integration.yml', 'utf8');
+  for (const path of [
+    'src/engine/**',
+    'tests/babylon-*.test.ts',
+    'src/rendering/grid-paint.ts',
+    'src/rendering/geometry.ts',
+    'tests/gp-grid-paint.test.ts',
+    'e2e/babylon-grid-paint.spec.ts',
+    'e2e/fixtures/babylon-grid-paint.ts',
+    'e2e/fixtures/babylon-grid-paint-reference.ts',
+  ])
+    expect(source).toContain(`- '${path}'`);
+  const contracts = source
+    .split('      - name: Engine component and existing asset geometry contracts\n')[1]
+    ?.split('      - ')[0];
+  expect(contracts).toContain('tests/babylon-*.test.ts');
+  expect(contracts).toContain('tests/gp-grid-paint.test.ts');
 });

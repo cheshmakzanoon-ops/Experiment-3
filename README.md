@@ -28,6 +28,8 @@ The desktop runtime uses Electron to provide a consistent bundled Chromium runti
 
 ## Current implementation and recorded qualification · 2026-11-01
 
+- **Original starting-grid markings:** an isolated Babylon owner preserves the original Formula grid geometry and dry paint finish. CPU/build checks pass; a fifth GPU shard now checks original-reference factors, road occlusion, ownership and recovery. This is not live activation or wet/shadow parity. [Scope](docs/maintenance/babylon-grid-paint-isolated-2026-11-01.md).
+
 - **Original Aurel gantry:** the Aurel A07 gantry structure passed isolated GPU/image qualification with exact original geometry, placement and atlas pixels. Live startup on `9c3b04b` passed all 18 WebGL journeys and Windows/macOS installed-app checks. Linux still fails later after car presentation; banner/lamp behavior and full environment parity remain open. [Scope](docs/maintenance/babylon-start-gantry-2026-11-01.md).
 - **Original start lamps:** the five original start lamps preserve original geometry/material values and use existing race snapshots only. Live `3a3e977` passed all 22 GPU journeys, including early-paused startup, and Windows/macOS installed checks. Practice remains dark; Linux still fails later after car presentation. [Scope](docs/maintenance/babylon-start-lamps-2026-11-01.md).
 - **Lamp facing correction:** `6164be1` preserves original CCW faces and passed all 22 GPU journeys, including cap-position/normal comparison and an old-error negative control. Windows/macOS installed checks passed. Linux instead timed out during an early paused-startup wait without a recorded GPU loss; cause remains unproven. [Evidence](docs/maintenance/babylon-procedural-facing-2026-11-01.md).
