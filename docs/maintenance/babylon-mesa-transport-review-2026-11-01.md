@@ -69,4 +69,50 @@ APEX_BROWSER_BACKEND=mesa LIBGL_ALWAYS_SOFTWARE=true GALLIUM_DRIVER=llvmpipe \
 ```
 
 The workflow matrix supplies the two planned repetitions; failed tests are not
-retried. This document records the plan, not a result.
+retried. The original plan above is retained; the completed result is recorded below.
+
+
+## Completed bounded result and automatic-trigger retirement
+
+[Run 41294269727](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41294269727)
+completed both planned pairs on exact `0979c6afae978614a8b393269dfa8043c93ff223`.
+Its application fingerprint equals qualified application source `f996583`:
+`e402919509adc82f51f43de9349cd9c791b6d3816cd0f8d3bac4f7be838fa0da`.
+Both jobs observed Chromium 140.0.7339.186 and ANGLE Mesa/llvmpipe LLVM 15.0.7,
+OpenGL 4.5, on Ubuntu 22.04.
+
+- All **four full live-scene cases passed**, covering both transports in both
+  repetitions and both canonical circuits per case.
+- All **four isolated cases failed** at the original Three reference gate:
+  `Required native grounding term invalid/absent: three/flat-one/sky`.
+  This is not evidence of a Babylon transport failure or of native Linux repair.
+- Each job therefore records two passes and two failures. Failures are retained;
+  no assertions or tolerances are relaxed and there are no additional retries.
+
+Artifacts (SHA-256 verified):
+
+- Pair 1, `13078244191`, 9,337,867 bytes:
+  `1de6ff9d308039eda45c29eaf5258b8d1c09d72a76ead63c025e5fd272bf6442`.
+- Pair 2, `13078668591`, 9,336,956 bytes:
+  `a47632f6982b822f7f0c417a7a567b6af69d821b021fb21e06127bcca74e4433`.
+
+The automatic push trigger is retired. The workflow retains only an explicit
+workflow_dispatch definition for future authorized use; no automatic follow-on
+run is requested. Current evidence does not justify changing production uniform
+transport or driver policy. Native Linux remains unqualified and unexplained.
+
+Independent audit found the same precise reference issue in all four failures:
+required indirect-diffuse bit 4 was absent both before and after on **9,025 of
+11,844 road interior pixels**; paint had zero missing pixels. Both receivers had
+zero invalid or unexpectedly active terms. `referenceQualified` and
+`candidateConstructed` are false, with only `original-reference` in the phase
+list. Three completed 10/10 draws and 2/2 preparations without context loss;
+Babylon submitted zero draws for each failed isolated case. No reference-term
+threshold or support mask is changed to turn these failures green.
+
+All eight successful live venue receipts (two venues × two modes × two pairs)
+have correct initial/moved uploads, stable effects/geometry/resources, four
+completed frames, GL0 and disposal to zero resources. Sixteen live screenshots
+reduce to four byte-identical images across modes and repetitions. These retain
+the existing diagnostic-proxy/environment limitations. No live transport
+sensitivity was observed here; native Linux's separate failure stays open.

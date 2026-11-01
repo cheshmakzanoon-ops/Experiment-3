@@ -26,7 +26,7 @@ The desktop runtime uses Electron to provide a consistent bundled Chromium runti
 
 ## Current implementation and recorded qualification · 2026-11-01
 
-- **Current migration checkpoint (`f996583`):** live Formula grounding and both uniform transports passed all **15 WebGL journeys**. Windows x64 and Apple Silicon macOS passed packaged Babylon checks plus all four existing-content compatibility journeys. Linux still fails during a native graphics wait followed by GPU-process loss; no all-platform release is qualified. Original models, renderer and physics remain preserved. [Exact scope/results](docs/maintenance/babylon-live-grounding-2026-11-01.md).
+- **Current migration checkpoint (`f996583`):** live Formula grounding and both uniform transports passed all **15 SwiftShader WebGL journeys**. Windows x64 and Apple Silicon macOS passed packaged Babylon checks plus all four existing-content compatibility journeys. Linux still fails during a native graphics wait followed by GPU-process loss; no all-platform release is qualified. Original models, renderer and physics remain preserved. [Exact scope/results](docs/maintenance/babylon-live-grounding-2026-11-01.md).
 
 - **Branch-local live grounding:** the isolated implementation passed all 13 GPU journeys on `7e9cbb6`. Existing Formula road/paint materials now consume original vehicle grounding poses; no models, geometry or physics are replaced. The live workload passed on `f996583`; native Linux remains unqualified. [Scope and pending gates](docs/maintenance/babylon-live-grounding-2026-11-01.md).
 

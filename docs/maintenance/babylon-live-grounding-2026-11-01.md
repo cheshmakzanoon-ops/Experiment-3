@@ -153,6 +153,6 @@ null; regular uniform metadata/readback is used instead. Diagnostic proxies and
 horizon-fragment limitations remain visible; no final-art claim is made.
 
 A separately bounded [Mesa browser transport comparison](babylon-mesa-transport-review-2026-11-01.md)
-will test sensitivity without changing production policy. Its Chromium version
+completed its fixed observation without changing production policy. Four live-scene cases passed in both transports, but four isolated cases failed at the original Three reference gate before candidate qualification. Its automatic trigger is retired. Its Chromium version
 and existing browser watchdog/blocklist configuration differ from native Electron,
 so it cannot itself close Linux native qualification.

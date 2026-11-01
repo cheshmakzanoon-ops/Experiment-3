@@ -1,11 +1,7 @@
 name: Babylon Mesa transport sensitivity review
 on:
   workflow_dispatch:
-  # One bounded branch-only observation; retire this trigger after its results.
-  push:
-    branches: [babylon-js]
-    paths:
-      - '.github/workflows/babylon-mesa-transport-review.yml'
+  # Automatic observation completed; no push trigger remains.
 permissions:
   contents: read
 concurrency:
