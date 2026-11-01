@@ -100,7 +100,7 @@ it('qualifies original repeats and damaged-source controls before allocating the
   expect(source).not.toContain('asphaltSubstrateRoughness');
   expect(source).toContain('mat3(asphaltSubstrateView)*normalW');
 });
-it('keeps the candidate outside every live import and leaves the actual original factory untouched', () => {
+it('limits live substrate imports to the canonical Formula surface owner and leaves the actual original factory untouched', () => {
   const files: string[] = [];
   const walk = (path: string) => {
     for (const entry of readdirSync(path, { withFileTypes: true })) {
@@ -113,7 +113,7 @@ it('keeps the candidate outside every live import and leaves the actual original
   const imports = files
     .filter((path) => isLiveAsphaltImport(path, readFileSync(path, 'utf8')))
     .map(sourcePath);
-  expect(imports).toEqual([]);
+  expect(imports).toEqual(['src/engine/babylon/formula-surfaces.ts']);
   const original = readFileSync('src/rendering/surface-detail.ts', 'utf8');
   expect(original).not.toContain('babylon');
 });

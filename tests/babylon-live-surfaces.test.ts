@@ -10,6 +10,13 @@ import { FORMULA_APX01 } from '../src/simulation/vehicles.ts';
 import { renderRibbonCase } from './fixtures/circuit-ribbon-cases.ts';
 
 const context = { presentation: 'circuit', vehicles: [FORMULA_APX01] };
+function engineWithAsphaltCapabilities() {
+  const engine = new NullEngine();
+  // Explicit capability simulation, not a real-GPU or native readiness claim.
+  Object.defineProperty(engine, 'webGLVersion', { value: 2 });
+  Object.assign(engine.getCaps(), { supportSRGBBuffers: true, standardDerivatives: true });
+  return engine;
+}
 const bytes = (array: ArrayBufferView) =>
   Buffer.from(array.buffer, array.byteOffset, array.byteLength);
 const surfaces = (view: BabylonCircuitScene, kind: string, side?: number) =>
@@ -24,7 +31,7 @@ for (const [circuit, chunks, vertices] of [
 ] as const)
   describe(`live original ${circuit.id} Formula surface`, () => {
     it('replaces the coarse road with full-lap source-equivalent road and both authored paint bands', () => {
-      const engine = new NullEngine();
+      const engine = engineWithAsphaltCapabilities();
       const track = new Track('clear', false, undefined, circuit);
       const before = JSON.stringify(track.points);
       const view = new BabylonCircuitScene(engine, track, 1, context);
@@ -39,6 +46,10 @@ for (const [circuit, chunks, vertices] of [
           coarseMeshes: 0,
           vertices,
           paintFinishMaterials: 1,
+          asphaltSubstrateRoadChunks: chunks,
+          asphaltSubstrateMaterials: 1,
+          asphaltSubstrateTextures: 3,
+          asphaltSubstrateSrgbTextures: 1,
         });
         const point = trackPoint();
         const options = [
@@ -151,7 +162,11 @@ it('retains the original coarse +.010 road for absent, non-Formula, noncanonical
             d.paintChunks +
             d.leftPaintChunks +
             d.rightPaintChunks +
-            d.paintFinishMaterials,
+            d.paintFinishMaterials +
+            d.asphaltSubstrateRoadChunks +
+            d.asphaltSubstrateMaterials +
+            d.asphaltSubstrateTextures +
+            d.asphaltSubstrateSrgbTextures,
         ).toBe(0);
         expect(surfaces(view, 'road')).toHaveLength(0);
         expect(surfaces(view, 'edge-paint')).toHaveLength(0);
@@ -174,7 +189,7 @@ it('retains the original coarse +.010 road for absent, non-Formula, noncanonical
 });
 
 it('cleans the unreachable scene after an eligible-path constructor failure instead of silently falling back', () => {
-  const engine = new NullEngine();
+  const engine = engineWithAsphaltCapabilities();
   const before = engine.scenes.length;
   const failure = new Error('injected original surface upload failure');
   const upload = vi.spyOn(Mesh.prototype, 'setVerticesData').mockImplementationOnce(() => {
@@ -191,11 +206,15 @@ it('cleans the unreachable scene after an eligible-path constructor failure inst
 
 it('lets scene disposal own every surface resource exactly once, including scene-first shutdown', () => {
   for (const sceneFirst of [false, true]) {
-    const engine = new NullEngine();
+    const engine = engineWithAsphaltCapabilities();
     const view = new BabylonCircuitScene(engine, new Track('clear'), 1, context);
     const meshes: AbstractMesh[] = [...surfaces(view, 'road'), ...surfaces(view, 'edge-paint')];
     const materials = [...new Set(meshes.map((m) => m.material!))];
-    const spies = [...meshes, ...materials].map((resource) => vi.spyOn(resource, 'dispose'));
+    const textures = view.scene.textures.filter((t) => t !== view.scene.environmentBRDFTexture);
+    expect(textures).toHaveLength(3);
+    const spies = [...meshes, ...materials, ...textures].map((resource) =>
+      vi.spyOn(resource, 'dispose'),
+    );
     if (sceneFirst) view.scene.dispose();
     view.dispose();
     view.dispose();
@@ -209,6 +228,10 @@ it('lets scene disposal own every surface resource exactly once, including scene
       coarseMeshes: 0,
       vertices: 0,
       paintFinishMaterials: 0,
+      asphaltSubstrateRoadChunks: 0,
+      asphaltSubstrateMaterials: 0,
+      asphaltSubstrateTextures: 0,
+      asphaltSubstrateSrgbTextures: 0,
     });
     engine.dispose();
   }

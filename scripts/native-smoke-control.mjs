@@ -87,6 +87,10 @@ export function validateNativeAurelSurface(value) {
     rightPaintChunks: '38',
     vertices: '31882',
     paintFinishMaterials: '1',
+    asphaltSubstrateRoadChunks: '38',
+    asphaltSubstrateMaterials: '1',
+    asphaltSubstrateTextures: '3',
+    asphaltSubstrateSrgbTextures: '1',
     coarseMeshes: '0',
   };
   for (const [key, required] of Object.entries(expected)) {
@@ -101,6 +105,10 @@ export function validateNativeAurelSurface(value) {
     rightPaintChunks: Number(value.rightPaintChunks),
     vertices: Number(value.vertices),
     paintFinishMaterials: Number(value.paintFinishMaterials),
+    asphaltSubstrateRoadChunks: Number(value.asphaltSubstrateRoadChunks),
+    asphaltSubstrateMaterials: Number(value.asphaltSubstrateMaterials),
+    asphaltSubstrateTextures: Number(value.asphaltSubstrateTextures),
+    asphaltSubstrateSrgbTextures: Number(value.asphaltSubstrateSrgbTextures),
     coarseMeshes: Number(value.coarseMeshes),
   };
 }

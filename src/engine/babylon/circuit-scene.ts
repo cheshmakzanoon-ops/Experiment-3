@@ -126,7 +126,7 @@ export class BabylonCircuitScene {
     } catch (error) {
       // Constructor failure otherwise leaves an unreachable engine-owned Scene.
       try {
-        this.scene.dispose();
+        this.dispose();
       } catch {
         /* Preserve the construction error. */
       }
@@ -140,6 +140,28 @@ export class BabylonCircuitScene {
     const road = live.filter((m) => m.metadata?.surface === 'road');
     const paint = live.filter((m) => m.metadata?.surface === 'edge-paint');
     const coarse = live.filter((m) => m.name === 'existing-physics-track');
+    const substrate = this.surfaces?.asphaltSubstrate;
+    const asphaltRoad =
+      substrate?.isValid &&
+      this.scene.materials.includes(substrate.material) &&
+      substrate.material.pluginManager?.getPlugin('OriginalAsphaltSubstrate') === substrate.plugin
+        ? road.filter(
+            (mesh) =>
+              mesh.material === substrate.material &&
+              mesh.subMeshes.length > 0 &&
+              mesh.subMeshes.every((submesh) => submesh.getMaterial() === substrate.material),
+          )
+        : [];
+    const attached = new Set(asphaltRoad.flatMap((mesh) => mesh.material!.getActiveTextures()));
+    const asphaltTextures =
+      substrate && asphaltRoad.length
+        ? Object.values(substrate.textures).filter(
+            (texture) =>
+              attached.has(texture) &&
+              this.scene.textures.includes(texture) &&
+              texture.getInternalTexture() !== null,
+          )
+        : [];
     return {
       kind: this.scene.isDisposed ? 'disposed' : this.surfaces ? 'formula-ribbon' : 'coarse',
       roadChunks: road.length,
@@ -157,6 +179,15 @@ export class BabylonCircuitScene {
               CircuitPaintFinishPlugin,
           ),
       ).size,
+      // Cached live ownership/binding metadata only: no new GPU query, render,
+      // readiness shortcut, or copied target count. Publication waits for the
+      // existing completed-presentation boundary in main.
+      asphaltSubstrateRoadChunks: asphaltRoad.length,
+      asphaltSubstrateMaterials: new Set(asphaltRoad.map((mesh) => mesh.material)).size,
+      asphaltSubstrateTextures: new Set(asphaltTextures).size,
+      asphaltSubstrateSrgbTextures: asphaltTextures.filter(
+        (texture) => texture.getInternalTexture()?._useSRGBBuffer === true,
+      ).length,
     };
   }
   render(frame: Float32Array) {
@@ -186,6 +217,18 @@ export class BabylonCircuitScene {
     this.scene.render();
   }
   dispose() {
-    this.scene.dispose();
+    let failure: unknown,
+      failed = false;
+    // Scene callbacks can be skipped; the view remains the authoritative owner.
+    // Preserve Scene's first thrown value while still draining our resources.
+    for (const cleanup of [() => this.scene.dispose(), () => this.surfaces?.dispose()]) {
+      try {
+        cleanup();
+      } catch (error) {
+        if (!failed) failure = error;
+        failed = true;
+      }
+    }
+    if (failed) throw failure;
   }
 }

@@ -66,6 +66,9 @@ The compact [current status](CURRENT_STATUS.md) lists present gates; [developmen
 
 - `src/engine/assets/surface-texel-data.ts`: original deterministic surface/asphalt pixel data and constants, with compatibility exports in the original renderer. Independent pre-edit oracle and scope: [asphalt data boundary](maintenance/asphalt-data-boundary-2026-10-31.md).
 
-- `src/engine/babylon/asphalt-substrate.ts` and `asphalt-substrate-plugin.ts`: isolated procedural dry-substrate candidate, not imported by the live scene. Controlled original-reference probe: `e2e/fixtures/babylon-asphalt-parity.ts`; [scope](maintenance/asphalt-substrate-probe-2026-11-01.md).
+- `src/engine/babylon/asphalt-substrate.ts` and `asphalt-substrate-plugin.ts`: original procedural dry substrate, now used by eligible Formula road meshes; full live qualification is separate from its isolated factor probes. Controlled original-reference probe: `e2e/fixtures/babylon-asphalt-parity.ts`; [scope](maintenance/asphalt-substrate-probe-2026-11-01.md).
 
-- `docs/experiments/motion-projection-22-stage1/`: archived, unapplied physics experiment with exact-base patch, read-only verifier and hashes. It does not change main physics21; see its explicit acceptance limits.
+- `docs/experiments/motion-projection-22-stage1/`: archived, unapplied physics experiment with exact-base patch, read-only verifier and hashes. It does not change main physics 21; see its explicit acceptance limits.
+
+- `docs/experiments/motion-projection-22-stage2-results/`: bounded final-source results supplement, including actual fallback qualifications; no runtime physics activation.
+- Live material ownership/readiness evidence and limitations: [dry asphalt integration](maintenance/babylon-live-dry-asphalt-2026-11-01.md).

@@ -312,6 +312,35 @@ it('wires readiness, cancellation, live diagnostics and exclusive draw checks in
   expect(source.indexOf('const diagnostics = currentScene.surfaceDiagnostics')).toBeGreaterThan(
     source.indexOf('void pending.completion'),
   );
+  const clear = source.slice(
+    source.indexOf('function clearSurfaceDiagnostics()'),
+    source.indexOf('declare global'),
+  );
+  const completed = source.slice(
+    source.indexOf('void pending.completion'),
+    source.indexOf("window.addEventListener('pagehide'"),
+  );
+  for (const key of [
+    'asphaltSubstrateRoadChunks',
+    'asphaltSubstrateMaterials',
+    'asphaltSubstrateTextures',
+    'asphaltSubstrateSrgbTextures',
+  ]) {
+    expect(clear).toContain(`'surface${key[0].toUpperCase()}${key.slice(1)}'`);
+    expect(completed).toContain(`'${key}'`);
+    expect(completed).toContain(`diagnostics.${key} !==`);
+  }
+  expect(clear).toContain('delete status.dataset[key]');
+  for (const guard of [
+    'currentOwner.signal.aborted',
+    'scene !== currentScene',
+    'restartOwnership.pending',
+    '!pending.completed',
+  ]) {
+    expect(completed).toContain(guard);
+    expect(completed.indexOf(guard)).toBeLessThan(completed.indexOf('const diagnostics ='));
+  }
+  expect(completed).toContain("throw new Error('Original Formula surface activation incomplete')");
   for (const fn of [
     'function reset()',
     'function rebuildScene',

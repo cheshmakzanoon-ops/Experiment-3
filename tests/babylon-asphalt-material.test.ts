@@ -153,6 +153,39 @@ describe('isolated asphalt owner (NullEngine/source contracts, not GPU evidence)
     expect(() => createAsphaltSubstrate(scene)).toThrow(failure);
     expect(counts(scene)).toEqual(before);
   });
+  it('cleans a registered partial PBR constructor before the actual deferred material notification', async () => {
+    vi.useFakeTimers();
+    const { scene } = setup(),
+      before = counts(scene),
+      failure = new Error('injected PBR constructor failure after registration'),
+      added = scene.addMaterial.bind(scene),
+      notified = vi.fn(),
+      released = vi.fn();
+    let partial: PBRMaterial | undefined;
+    const observer = scene.onNewMaterialAddedObservable.add((material) => {
+      if (material === partial) notified();
+    });
+    vi.spyOn(scene, 'addMaterial').mockImplementationOnce((material) => {
+      added(material);
+      partial = material as PBRMaterial;
+      material.onDisposeObservable.add(released);
+      throw failure;
+    });
+    try {
+      expect(() => createAsphaltSubstrate(scene)).toThrow(failure);
+      expect(partial).toBeDefined();
+      expect(notified).not.toHaveBeenCalled();
+      expect(released).toHaveBeenCalledTimes(1);
+      expect(counts(scene)).toEqual(before);
+      await vi.runOnlyPendingTimersAsync();
+      expect(notified).toHaveBeenCalledTimes(1);
+      expect(counts(scene)).toEqual(before);
+      expect(released).toHaveBeenCalledTimes(1);
+    } finally {
+      scene.onNewMaterialAddedObservable.remove(observer);
+      vi.useRealTimers();
+    }
+  });
   it('rejects capability/context failures before allocating and never substitutes a reduced-quality path', () => {
     const { scene, engine } = setup(),
       before = counts(scene);

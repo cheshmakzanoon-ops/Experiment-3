@@ -36,8 +36,8 @@ import {
   yieldPreparationTurn,
 } from '../../src/engine/babylon/asset-preparation.ts';
 
-// Isolated engineering probe; neither game entry imports this file. No live road
-// switch, new texture, global shader mutation, reduced geometry or physics edit.
+// Isolated engineering probe; neither game entry imports this file. It exercises
+// the current surface owner without changing live selection, shaders or physics.
 function harness(width: number, height: number, sceneFactory?: (engine: Engine) => Scene) {
   const canvas = document.createElement('canvas');
   canvas.width = width;
@@ -604,6 +604,8 @@ export async function babylonFormulaSurfaceVisibility() {
     geometryUnchanged: boolean;
     shaderPaint: boolean;
     shaderRoadPaint: boolean;
+    shaderRoadAsphalt: boolean;
+    shaderPaintAsphalt: boolean;
   }[] = [];
   let failure: string | null = null,
     shaders: ReturnType<typeof h.shaders> | null = null;
@@ -697,6 +699,12 @@ export async function babylonFormulaSurfaceVisibility() {
       const shaderRoadPaint = surface.roadMeshes.some((m) =>
         m.subMeshes[0]?.effect?._fragmentSourceCode.includes('float finishFilteredNoise'),
       );
+      const shaderRoadAsphalt = surface.roadMeshes.every((m) =>
+        m.subMeshes[0]?.effect?._fragmentSourceCode.includes('float asphaltSubstrateMicro;'),
+      );
+      const shaderPaintAsphalt = surface.paintMeshes.some((m) =>
+        m.subMeshes[0]?.effect?._fragmentSourceCode.includes('float asphaltSubstrateMicro;'),
+      );
       const roadChunks = surface.roadMeshes.length,
         paintChunks = surface.paintMeshes.length;
       await h.gpu.prepare(`dispose ${probe.name}`, h.deadline, async (signal) => {
@@ -739,6 +747,8 @@ export async function babylonFormulaSurfaceVisibility() {
         geometryUnchanged,
         shaderPaint,
         shaderRoadPaint,
+        shaderRoadAsphalt,
+        shaderPaintAsphalt,
       });
     }
   } catch (error) {
@@ -766,12 +776,15 @@ export async function babylonFormulaSurfaceVisibility() {
     shaders,
     diagnostics,
     productionActivated: false,
-    scope: 'Original Formula road/edge-paint geometry and paint construction finish only',
+    scope: 'Original Formula ribbons, edge-paint finish and procedural dry asphalt substrate',
     sideEncoding: 'road blue; authored side -1 yellow; authored side +1 magenta',
     seamEvidence:
       'Exact geometry is covered by byte-oracle tests; these counts establish visibility, not seam continuity. Inspect retained lit and ID images.',
     unported: [
-      'asphalt material layers',
+      'scanned asphalt',
+      'road macro/detail and rubber wear',
+      'wet road/water film',
+      'PBR/environment parity',
       'car grounding',
       'light pools',
       'pit lanes',
@@ -793,6 +806,8 @@ export async function babylonFullFormulaScenes() {
     restored: ReturnType<typeof resources>;
     completedFrames: number;
     preparationVariants: number;
+    asphaltShaderChunks: number;
+    paintAsphaltShaderChunks: number;
     glError: number;
     disposeGlError: number;
     diagnostics: ReturnType<BabylonPresentationGpu['diagnostics']>;
@@ -880,6 +895,16 @@ export async function babylonFullFormulaScenes() {
         glError = h.gl.getError();
       const beforeDispose = h.gpu.diagnostics();
       const shaders = h.shaders(false);
+      const asphaltShaderChunks = view.scene.meshes.filter(
+        (mesh) =>
+          mesh.metadata?.surface === 'road' &&
+          mesh.subMeshes[0]?.effect?._fragmentSourceCode.includes('float asphaltSubstrateMicro;'),
+      ).length;
+      const paintAsphaltShaderChunks = view.scene.meshes.filter(
+        (mesh) =>
+          mesh.metadata?.surface === 'edge-paint' &&
+          mesh.subMeshes[0]?.effect?._fragmentSourceCode.includes('float asphaltSubstrateMicro;'),
+      ).length;
       await h.gpu.prepare(`dispose full ${circuit}`, h.deadline, async (signal) => {
         signal.throwIfAborted();
         view.dispose();
@@ -891,6 +916,8 @@ export async function babylonFullFormulaScenes() {
         restored: resources(view.scene),
         completedFrames: beforeDispose.completed - baselineCompleted,
         preparationVariants: beforeDispose.preparation.completed,
+        asphaltShaderChunks,
+        paintAsphaltShaderChunks,
         glError,
         disposeGlError: h.gl.getError(),
         diagnostics: h.gpu.diagnostics(),
@@ -920,6 +947,6 @@ export async function babylonFullFormulaScenes() {
     failure,
     failureEvidence,
     scope:
-      'Full actual BabylonCircuitScene and SurfacePreparation; diagnostic asphalt, no grounding/light pools',
+      'Full actual BabylonCircuitScene and SurfacePreparation with procedural dry asphalt; no wet/scanned/road-state, grounding, light pools or PBR/environment parity',
   };
 }

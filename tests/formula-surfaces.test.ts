@@ -26,6 +26,9 @@ const bytes = (a: ArrayBufferView) => Buffer.from(a.buffer, a.byteOffset, a.byte
 const context = { discipline: 'formula', presentation: 'circuit', circuitId: 'aurel' } as const;
 function setup() {
   const engine = new NullEngine();
+  // Ownership/geometry contracts only. Real WebGL allocation remains an Actions gate.
+  Object.defineProperty(engine, 'webGLVersion', { value: 2 });
+  Object.assign(engine.getCaps(), { supportSRGBBuffers: true, standardDerivatives: true });
   const scene = new Scene(engine);
   scene.useRightHandedSystem = true;
   return { engine, scene };
@@ -105,7 +108,10 @@ for (const circuit of [AUREL, VELLAMAR])
         expect(built.paintMaterial.albedoColor.asArray()).toEqual([c.r, c.g, c.b]);
         expect(built.paintMaterial.roughness).toBe(0.55);
         expect(built.paintMaterial.metallic).toBe(0);
-        expect(scene.textures).toEqual([scene.environmentBRDFTexture]);
+        expect(scene.textures).toEqual([
+          scene.environmentBRDFTexture,
+          ...Object.values(built.asphaltSubstrate.textures),
+        ]);
         expect(built.paintMaterial.albedoTexture).toBeNull();
         expect(built.paintMaterial.bumpTexture).toBeNull();
       } finally {
@@ -145,7 +151,7 @@ it('rejects GP/MX/open-world/unknown/non-Formula before resources are created', 
     engine.dispose();
   }
 });
-it('owns and disposes only its meshes/materials once, including scene-first teardown', () => {
+it('owns and disposes only its meshes/materials/three asphalt maps once, including scene-first teardown', () => {
   for (const sceneFirst of [false, true]) {
     const { scene, engine } = setup();
     const borrowed = new PBRMaterial('unrelated', scene);
@@ -153,9 +159,12 @@ it('owns and disposes only its meshes/materials once, including scene-first tear
       start: 0,
       end: 160,
     });
-    const spies = [...built.meshes, built.roadMaterial, built.paintMaterial].map((x) =>
-      vi.spyOn(x, 'dispose'),
-    );
+    const spies = [
+      ...built.meshes,
+      built.roadMaterial,
+      built.paintMaterial,
+      ...Object.values(built.asphaltSubstrate.textures),
+    ].map((x) => vi.spyOn(x, 'dispose'));
     if (sceneFirst) scene.dispose();
     built.dispose();
     built.dispose();

@@ -1,5 +1,8 @@
 import type { Scene } from '@babylonjs/core/scene.js';
+import type { Observer } from '@babylonjs/core/Misc/observable.js';
 import { Mesh } from '@babylonjs/core/Meshes/mesh.js';
+import { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh.js';
+import { TransformNode } from '@babylonjs/core/Meshes/transformNode.js';
 import { VertexData } from '@babylonjs/core/Meshes/mesh.vertexData.js';
 import { Material } from '@babylonjs/core/Materials/material.js';
 import { PBRMaterial } from '@babylonjs/core/Materials/PBR/pbrMaterial.js';
@@ -14,15 +17,17 @@ import { indexedRibbonNormals } from '../assets/indexed-ribbon-normals.ts';
 import { trackPoint, type Track } from '../../simulation/track.ts';
 import { AUREL, VELLAMAR } from '../../simulation/circuits.ts';
 import { CircuitPaintFinishPlugin, circuitPaintLinearChannel } from './circuit-paint-finish.ts';
+import { createAsphaltSubstrate } from './asphalt-substrate.ts';
 
 export interface FormulaSurfaceProbeContext {
   discipline: 'formula';
   presentation: 'circuit';
   circuitId: 'aurel' | 'vellamar';
 }
-/** Source-equivalent Formula surface boundary (asphalt remains diagnostic). Call only
- * under exclusive idle GPU preparation ownership. No borrowed GPU resources.
- * Asphalt remains explicitly diagnostic; grounding/light pools are unported. */
+/** Original Formula ribbons, edge paint and procedural dry asphalt substrate.
+ * Call only under exclusive idle GPU preparation ownership. Each surface owner
+ * owns one shared asphalt material/three maps; no borrowed material resources.
+ * Wet/scanned/road-state layers, grounding and light pools remain unported. */
 export function createFormulaSurfaceProbe(
   scene: Scene,
   track: Track,
@@ -54,36 +59,56 @@ export function createFormulaSurfaceProbe(
     roadMeshes: Mesh[] = [],
     paintMeshes: Mesh[] = [];
   const materials: PBRMaterial[] = [];
+  const disposedMaterials = new Set<Material>();
+  let asphaltSubstrate: ReturnType<typeof createAsphaltSubstrate> | undefined;
+  let sceneDisposal: Observer<Scene> | null = null;
   let disposed = false;
+  // Registration is synchronous but Babylon's mesh/material-added notifications
+  // are deferred. Snapshot this exclusive allocation interval so a constructor
+  // that registers and then throws cannot escape synchronous failure cleanup.
+  const previousMeshes = new Set(scene.meshes),
+    previousMaterials = new Set(scene.materials);
   const dispose = () => {
     if (disposed) return;
     disposed = true;
-    // Scene owns resources after scene disposal; do not invoke them twice.
-    if (scene.isDisposed) return;
-    let failure: unknown;
-    for (const resource of [...meshes, ...materials]) {
+    scene.onDisposeObservable.remove(sceneDisposal);
+    // Scene notification can be skipped by another observer; explicit ownership
+    // still drains retained detached resources after the scene is disposed.
+    let failure: unknown,
+      failed = false;
+    for (const resource of [
+      ...meshes.filter((mesh) => !mesh.isDisposed()),
+      ...materials.filter(
+        (material) => material !== asphaltSubstrate?.material && !disposedMaterials.has(material),
+      ),
+    ]) {
       try {
         resource.dispose(false, false);
       } catch (error) {
-        failure ??= error;
+        if (!failed) failure = error;
+        failed = true;
       }
     }
-    if (failure !== undefined) throw failure;
+    try {
+      asphaltSubstrate?.dispose();
+    } catch (error) {
+      if (!failed) failure = error;
+      failed = true;
+    }
+    if (failed) throw failure;
   };
   try {
-    const roadMaterial = new PBRMaterial(
-      'Diagnostic asphalt — original shader layers unported',
-      scene,
-    );
+    asphaltSubstrate = createAsphaltSubstrate(scene);
+    const roadMaterial = asphaltSubstrate.material;
     materials.push(roadMaterial);
-    roadMaterial.albedoColor = new Color3(0.16, 0.18, 0.2);
-    roadMaterial.roughness = 1;
-    roadMaterial.metallic = 0;
     const paintMaterial = new PBRMaterial(
       'Original edge paint construction finish — grounding/light pools unported',
       scene,
     );
     materials.push(paintMaterial);
+    paintMaterial.onDisposeObservable.addOnce(() => {
+      disposedMaterials.add(paintMaterial);
+    });
     paintMaterial.albedoColor = new Color3(
       ...([0xe9, 0xe7, 0xe0].map((c) => circuitPaintLinearChannel(c / 255)) as [
         number,
@@ -216,8 +241,75 @@ export function createFormulaSurfaceProbe(
         paintMeshes,
         side,
       );
-    return { meshes, roadMeshes, paintMeshes, roadMaterial, paintMaterial, dispose };
+    // Removing a resource from scene registration does not transfer ownership.
+    // Pinned Scene.dispose notifies before its material/mesh/texture teardown.
+    sceneDisposal = scene.onDisposeObservable.addOnce(() => {
+      try {
+        dispose();
+      } catch (error) {
+        // Pinned Scene passes this error as Logger's numeric limit, which can
+        // suppress the log. Report only this owner's failure, then preserve it.
+        try {
+          console.error('Original Formula surface cleanup failed:', error);
+        } catch {
+          /* A reporting failure must not replace the original cleanup error. */
+        }
+        throw error;
+      }
+    });
+    return {
+      meshes,
+      roadMeshes,
+      paintMeshes,
+      roadMaterial,
+      paintMaterial,
+      asphaltSubstrate,
+      dispose,
+    };
   } catch (error) {
+    // Only failed constructors are absent from the explicit normal-path lists.
+    // Their derived disposer can require fields that construction never reached;
+    // in that case finish the already-registered base resource's disposal.
+    for (const mesh of scene.meshes.filter(
+      (mesh) => !previousMeshes.has(mesh) && !meshes.includes(mesh as Mesh),
+    )) {
+      try {
+        mesh.dispose(false, false);
+      } catch {
+        try {
+          if (!mesh.isDisposed()) AbstractMesh.prototype.dispose.call(mesh, false, false);
+        } catch {
+          // AbstractMesh registers before constructing its UBO. Its disposer
+          // removes the mesh but then requires that absent UBO; complete only
+          // this pinned partial-constructor case via the fully built base.
+          if (!mesh._uniformBuffer && !scene.meshes.includes(mesh) && !mesh.isDisposed()) {
+            try {
+              mesh.onCollideObservable.clear();
+              mesh.onCollisionPositionChangeObservable.clear();
+              mesh.onRebuildObservable.clear();
+              TransformNode.prototype.dispose.call(mesh, false, false);
+            } catch {
+              /* Preserve construction failure and continue the other ownership. */
+            }
+          }
+        }
+      }
+    }
+    for (const material of scene.materials.filter(
+      (material) =>
+        !previousMaterials.has(material) && !materials.includes(material as PBRMaterial),
+    )) {
+      try {
+        material.dispose(false, false);
+      } catch {
+        try {
+          if (scene.materials.includes(material))
+            Material.prototype.dispose.call(material, false, false);
+        } catch {
+          /* Preserve construction failure and continue the other ownership. */
+        }
+      }
+    }
     try {
       dispose();
     } catch {

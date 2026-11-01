@@ -271,7 +271,10 @@ test('isolated Formula ribbons expose both authored paint sides at bank and seam
   expect(result.failure).toBeNull();
   expect(errors).toEqual([]);
   expect(result.productionActivated).toBe(false);
-  expect(result.unported).toContain('asphalt material layers');
+  expect(result.unported).toContain('scanned asphalt');
+  expect(result.unported).toContain('road macro/detail and rubber wear');
+  expect(result.unported).toContain('wet road/water film');
+  expect(result.unported).toContain('PBR/environment parity');
   expect(result.unported).toContain('car grounding');
   expect(result.unported).toContain('light pools');
   expect(result.rows.map((row) => row.name)).toEqual([
@@ -303,12 +306,14 @@ test('isolated Formula ribbons expose both authored paint sides at bank and seam
     expect(row.geometryUnchanged).toBe(true);
     expect(row.shaderPaint).toBe(true);
     expect(row.shaderRoadPaint).toBe(false);
+    expect(row.shaderRoadAsphalt).toBe(true);
+    expect(row.shaderPaintAsphalt).toBe(false);
     expect(row.retained.meshes - row.baseline.meshes).toBe(row.roadChunks + row.paintChunks);
     expect(row.retained.geometries - row.baseline.geometries).toBe(
       row.roadChunks + row.paintChunks,
     );
     expect(row.retained.materials - row.baseline.materials).toBe(2);
-    expect(row.retained.textures).toBe(row.baseline.textures);
+    expect(row.retained.textures - row.baseline.textures).toBe(3);
     expect(row.restored, row.name).toEqual(row.baseline);
     expect(row.repeatDisposeUnchanged).toBe(true);
     expect(row.allMeshesDisposed).toBe(true);
@@ -342,9 +347,21 @@ test('full actual Formula scenes prepare and complete both canonical venue workl
       rightPaintChunks: road,
       coarseMeshes: 0,
       paintFinishMaterials: 1,
+      asphaltSubstrateRoadChunks: road,
+      asphaltSubstrateMaterials: 1,
+      asphaltSubstrateTextures: 3,
+      asphaltSubstrateSrgbTextures: 1,
     });
     expect(row.surfaces.vertices).toBe(row.circuit === 'aurel' ? 31882 : 42700);
     expect(row.preparationVariants).toBe(road * 3 + 1);
+    expect(row.asphaltShaderChunks).toBe(road);
+    expect(row.paintAsphaltShaderChunks).toBe(0);
+    expect(row.resources).toEqual({
+      meshes: road * 3 + 1,
+      geometries: road * 3 + 1,
+      materials: 3,
+      textures: 4,
+    });
     expect(row.completedFrames).toBeGreaterThanOrEqual(2);
     expect(row.glError).toBe(0);
     expect(row.disposeGlError).toBe(0);

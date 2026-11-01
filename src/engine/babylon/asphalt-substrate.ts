@@ -12,8 +12,8 @@ import {
 } from '../assets/surface-texel-data.ts';
 import { AsphaltSubstratePlugin, assertAsphaltShaderAnchors } from './asphalt-substrate-plugin.ts';
 
-/** Isolated, unscanned dry surfaceMaterial('asphalt', undefined, false) boundary.
- * NO game entry/live scene imports this factory. Caller owns an exclusive idle
+/** Unscanned dry surfaceMaterial('asphalt', undefined, false) boundary, qualified
+ * independently before canonical Formula activation. Caller owns an exclusive idle
  * preparation lease across allocation, compilation, drawing and disposal.
  * One material and exactly three original 512² textures may serve many chunks;
  * no scene-global texture cache, asset replacement or automatic quality policy.
@@ -34,34 +34,43 @@ export function createAsphaltSubstrate(scene: Scene) {
   const source = surfacePixels('asphalt');
   const means = asphaltTexelMeans(source);
   const textures: RawTexture[] = [];
+  const textureDisposalNotified = new Set<RawTexture>();
+  const ownTexture = (texture: RawTexture) => {
+    if (textures.includes(texture)) return;
+    textures.push(texture);
+    texture.onDisposeObservable.addOnce(() => textureDisposalNotified.add(texture));
+  };
   let material: PBRMaterial | undefined;
   let disposed = false;
   let released = false;
-  // Base constructors register resources before derived construction finishes.
-  // Observe only this exclusive allocation interval so a throwing constructor
-  // cannot leave an inaccessible partial RawTexture/material in the scene.
+  // Texture notifications are synchronous; material notifications are deferred.
+  // Capture this exclusive allocation interval without depending on a later
+  // task to discover a base material whose derived constructor throws.
+  const previousMaterials = new Set(scene.materials);
   const textureAdded = scene.onNewTextureAddedObservable.add((texture) => {
-    if (texture instanceof RawTexture) textures.push(texture);
-  });
-  const materialAdded = scene.onNewMaterialAddedObservable.add((value) => {
-    if (value instanceof PBRMaterial) material = value;
+    if (texture instanceof RawTexture) ownTexture(texture);
   });
   const releaseTextures = () => {
     if (released) return;
     released = true;
-    let failure: unknown;
+    let failure: unknown,
+      failed = false;
     for (const texture of textures) {
+      // BaseTexture notifies before ThinTexture releases the actual allocation.
+      // A notification alone is not proof of release if a listener throws.
+      if (textureDisposalNotified.has(texture) && texture.getInternalTexture() === null) continue;
       try {
         texture.dispose();
       } catch (error) {
-        failure ??= error;
+        if (!failed) failure = error;
+        failed = true;
       }
     }
-    if (failure !== undefined) throw failure;
+    if (failed) throw failure;
   };
   try {
     material = new PBRMaterial(
-      'Isolated original asphalt substrate — road/wet/scan layers unported',
+      'Original dry asphalt substrate — road-state/wet/scan layers unported',
       scene,
     );
     const make = (name: string, bytes: Uint8ClampedArray, srgb: boolean) => {
@@ -79,7 +88,7 @@ export function createAsphaltSubstrate(scene: Scene) {
         0,
         srgb,
       );
-      if (!textures.includes(texture)) textures.push(texture);
+      ownTexture(texture);
       texture.name = name;
       texture.wrapU = texture.wrapV = Texture.WRAP_ADDRESSMODE;
       texture.uScale = texture.vScale = 5 / ASPHALT_TEXELS.microTile;
@@ -129,27 +138,42 @@ export function createAsphaltSubstrate(scene: Scene) {
         disposed = true;
         // Material disposal owns its plugin and releases these three textures.
         // The engine-managed BRDF LUT is never among them and stays scene-owned.
-        let failure: unknown;
+        let failure: unknown,
+          failed = false;
         try {
           material!.dispose(false, false);
         } catch (error) {
           failure = error;
+          failed = true;
         }
         try {
           releaseTextures();
         } catch (error) {
-          failure ??= error;
+          if (!failed) failure = error;
+          failed = true;
         }
         engine.onContextLostObservable.remove(loss);
-        if (failure !== undefined) throw failure;
+        if (failed) throw failure;
       },
     };
   } catch (error) {
     // Preserve the original construction failure even if cleanup also fails.
-    try {
-      material?.dispose(false, false);
-    } catch {
-      /* original failure retained */
+    const ownedMaterials = material
+      ? [material]
+      : scene.materials.filter((value) => !previousMaterials.has(value));
+    for (const value of ownedMaterials) {
+      try {
+        value.dispose(false, false);
+      } catch {
+        try {
+          // A PBR constructor can fail before its derived disposer fields exist.
+          // Its already-registered Material base still owns a UBO/draw wrapper.
+          if (!material && scene.materials.includes(value))
+            Material.prototype.dispose.call(value, false, false);
+        } catch {
+          /* original failure retained */
+        }
+      }
     }
     try {
       releaseTextures();
@@ -159,6 +183,5 @@ export function createAsphaltSubstrate(scene: Scene) {
     throw error;
   } finally {
     scene.onNewTextureAddedObservable.remove(textureAdded);
-    scene.onNewMaterialAddedObservable.remove(materialAdded);
   }
 }

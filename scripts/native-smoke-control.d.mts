@@ -31,6 +31,10 @@ export interface NativeAurelSurfaceReceipt {
   rightPaintChunks: number;
   vertices: number;
   paintFinishMaterials: number;
+  asphaltSubstrateRoadChunks: number;
+  asphaltSubstrateMaterials: number;
+  asphaltSubstrateTextures: number;
+  asphaltSubstrateSrgbTextures: number;
   coarseMeshes: number;
 }
 export function validateNativeAurelSurface(value: unknown): NativeAurelSurfaceReceipt;

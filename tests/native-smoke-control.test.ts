@@ -193,6 +193,10 @@ describe('same-readiness-receipt native Aurel surface acceptance', () => {
     rightPaintChunks: '38',
     vertices: '31882',
     paintFinishMaterials: '1',
+    asphaltSubstrateRoadChunks: '38',
+    asphaltSubstrateMaterials: '1',
+    asphaltSubstrateTextures: '3',
+    asphaltSubstrateSrgbTextures: '1',
     coarseMeshes: '0',
   };
   it('returns observed counts without mutating the raw evidence', () => {
@@ -205,6 +209,10 @@ describe('same-readiness-receipt native Aurel surface acceptance', () => {
       rightPaintChunks: 38,
       vertices: 31882,
       paintFinishMaterials: 1,
+      asphaltSubstrateRoadChunks: 38,
+      asphaltSubstrateMaterials: 1,
+      asphaltSubstrateTextures: 3,
+      asphaltSubstrateSrgbTextures: 1,
       coarseMeshes: 0,
     });
     expect(raw).toEqual(snapshot);
@@ -269,6 +277,10 @@ describe('same-readiness-receipt native Aurel surface acceptance', () => {
       'surfaceRightPaintChunks',
       'surfaceVertices',
       'surfacePaintFinishMaterials',
+      'surfaceAsphaltSubstrateRoadChunks',
+      'surfaceAsphaltSubstrateMaterials',
+      'surfaceAsphaltSubstrateTextures',
+      'surfaceAsphaltSubstrateSrgbTextures',
       'surfaceCoarseMeshes',
     ])
       expect(body).toContain(`element.dataset.${name}`);
