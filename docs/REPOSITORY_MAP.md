@@ -98,5 +98,5 @@ remains separate. See [A07 qualification](maintenance/babylon-start-gantry-2026-
 
 `src/engine/babylon/start-lamps.ts` is the original five-lamp owner;
 `lamp-preparation.ts` connects it to guarded startup after the gantry. Its isolated
-GPU probes passed; live qualification is pending. Original geometry and snapshot
+and live GPU plus Windows/macOS checks passed; Linux remains failed. Original geometry and snapshot
 authority are retained. [Scope](maintenance/babylon-start-lamps-2026-11-01.md).

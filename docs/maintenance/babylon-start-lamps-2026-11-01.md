@@ -1,8 +1,8 @@
 # Original five start lamps · isolated migration candidate
 
 Development belongs only to `babylon-js`; `main` remains the exact restored
-pre-Babylon snapshot. The isolated adapter passed on `6aad563`; its live startup integration now
-awaits separate exact-source GPU/native qualification.
+pre-Babylon snapshot. The isolated adapter passed on `6aad563`; its live startup integration passed exact-source GPU and Windows/macOS checks
+on `3a3e977`; Linux remains failed.
 The original A07 structural gantry remains independently owned and qualified
 as recorded in [its evidence](babylon-start-gantry-2026-11-01.md).
 
@@ -105,7 +105,7 @@ all platforms verified the live gantry. Production fingerprint:
 `30e0563ed72467e2b1645fb7a29e07284de2ef1d51a4fc3580c06a9905c04b93`.
 The lamps are not live in that source, so these native runs do not qualify them.
 
-## Live integration awaiting exact-source checks
+## Live integration
 
 `LampPreparation` follows surfaces and the structural gantry under the same
 absolute startup deadline and GPU owner. It applies the latest existing
@@ -120,7 +120,7 @@ Browser/native receipts now require actual bound five parts, five materials,
 holds the real gantry fetch, pauses through the UI before readiness, releases
 loading, checks ready/settled state with an unchanged physics tick, then resumes.
 It preserves actual DOM evidence in JSON and has one total 120-second budget.
-This test is implemented but not yet executed on the live source.
+The exact live-source execution and captured state evidence follow below.
 
 The expanded GPU suite is split into two required parallel shards because the
 preceding 21-case job used 18 of its 20 minutes. All prior cases remain, with
@@ -136,3 +136,46 @@ contracts now enforce exact shard coverage and fail-closed aggregation. The
 focused 25-contract workflow/probe rerun passed after the final lint-only regex
 formatting correction. Discovery confirms 19 retained plus three lamp cases.
 Exact live-source execution remains pending.
+
+
+## Live qualification on 3a3e977
+
+[GPU run 41311886785](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41311886785)
+passed both required shards and the aggregate `verify` gate for exact
+`3a3e977b2254fe5b4ba825e4a7f21e86aa0cde5f`: **19 retained + 3 lamp = 22 GPU
+journeys**. Each shard passed the same 473 CPU contracts; these are not 946
+distinct tests. Artifacts:
+
+- Retained `13086432076`, 15,118,994 bytes; SHA-256
+  `b2038ff6b40051b107891c996b88ec221fe5c8caaa52bfe5ab014674229d5adb`.
+- Lamps `13085453951`, 264,989 bytes; SHA-256
+  `9513ffb499920481a5d84cebd3f8ca6b4d9009dfbbd0a7c8dea887a4fec8a31b`.
+
+The early-paused startup case completed in 14.1 seconds. Its actual DOM receipt
+records held-fetch readiness false and physics tick 700; after release, tick
+700 remains unchanged while both gantry and lamps are ready and presentation is
+settled at ten completed frames. Resume advances the observed tick to 745.
+The practice lamps report five parts/materials, 400 triangles and zero lit.
+Original-car import, driving input, resize, restart and context recovery checks
+also pass. The separate lamp group re-establishes all 192 state receipts and
+independent cleanup; its per-cycle baseline deliberately retains the separately
+owned structure until that structure's own cleanup.
+
+[Native run 41311886765](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41311886765)
+is terminal:
+
+- Windows passed all four installed compatibility journeys, 45/45 Babylon draws.
+- Apple Silicon macOS passed all four journeys, 34/34 draws.
+- Linux reached valid gantry/lamp readiness and car presentation at 80.260s,
+  then failed a 15-second wait at 100.319s, followed by GPU exit 512/context loss.
+  It completed 435 preparations and 26/27 draws; pending age was 20.152s.
+  Cause remains unresolved; the platform remains failed.
+
+All three native reports contain lamps ready/5 parts/5 materials/400 triangles/
+0 lit and the original gantry ready/4 parts/1 material/3 textures/9,520 triangles.
+Their shared production fingerprint is
+`84e3f4bde198d91e9497b2cba61c0617bd029df103a2056388b963f036f698c7`.
+Windows/macOS screenshots were inspected and show the original car, gantry and
+dark lamp row. This completes the bounded lamp integration milestone, not an
+all-platform release, physical-GPU certification or full PBR/environment parity.
+Banner, shadow, bloom and exposure work remain separate.
