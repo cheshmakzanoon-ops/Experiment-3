@@ -20,6 +20,17 @@ export interface NativeBabylonReadiness {
   graphics: NativeReadinessPlain;
   errors: string[];
 }
+export function readNativeBabylonReadiness(options: {
+  mode: 'poll';
+  gateId: number;
+  binding: string;
+  failurePrefix: string;
+}): boolean;
+export function readNativeBabylonReadiness(options: { mode: 'health' }): {
+  document: unknown;
+  babylon: unknown;
+  readiness: NativeBabylonReadiness | { observationError: string };
+};
 export function readNativeBabylonReadiness(): NativeBabylonReadiness;
 export interface NativeReadinessHistorySnapshot {
   version: 1;

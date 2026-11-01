@@ -306,9 +306,11 @@ describe('same-readiness-receipt native Aurel surface acceptance', () => {
     expect(body.match(/\.evaluate\(/g)).toHaveLength(1);
     expect(body.match(/page\.waitForFunction\(/g)).toHaveLength(1);
     expect(body).toContain('{ timeout: 30000, polling: 100 }');
-    expect(body).toContain("data?.presentationSettled === 'true'");
-    expect(body).toContain('submitted > 0');
-    expect(body).toContain('completed === submitted');
+    expect(body).toContain('readNativeBabylonReadiness,');
+    const callback = readFileSync('scripts/native-readiness-observation.mjs', 'utf8');
+    expect(callback).toContain("data?.presentationSettled === 'true'");
+    expect(callback).toContain('submitted > 0');
+    expect(callback).toContain('completed === submitted');
     expect(body.indexOf('validateNativeAurelSurface(receipt.surface)')).toBeGreaterThan(
       body.indexOf('.push(receipt)'),
     );

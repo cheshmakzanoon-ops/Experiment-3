@@ -1,6 +1,6 @@
 import { expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { runInNewContext } from 'node:vm';
+import { createContext, runInContext, runInNewContext } from 'node:vm';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { readNativeBabylonReadiness } from '../scripts/native-readiness-observation.mjs';
@@ -8,6 +8,8 @@ const source = readFileSync('scripts/desktop-smoke.mjs', 'utf8');
 const require = createRequire(import.meta.url);
 const playwrightRoot = dirname(require.resolve('playwright-core/package.json'));
 const { Frame } = require(join(playwrightRoot, 'lib/client/frame.js'));
+const { parseResult } = require(join(playwrightRoot, 'lib/client/jsHandle.js'));
+const { normalizeEvaluationExpression } = require(join(playwrightRoot, 'lib/server/javascript.js'));
 const server = readFileSync(join(playwrightRoot, 'lib/server/frames.js'), 'utf8');
 const serverStart = server.indexOf(
   '        let evaledExpression;',
@@ -20,14 +22,14 @@ interface Wire {
   isFunction: boolean;
   pollingInterval: number;
   timeout: number;
+  arg: { value: unknown };
 }
 
-const begin = source.indexOf('`', source.indexOf('page.waitForFunction('));
-const end = source.indexOf('`,', begin);
-const printer = source.slice(
-  source.indexOf('function diagnosticErrorText('),
-  source.indexOf('function readinessDiagnosticFailure('),
-);
+const callStart = source.indexOf('page.waitForFunction(');
+const call = source
+  .slice(callStart, source.indexOf('\n    );', callStart))
+  .trim()
+  .replace(/,$/, '');
 function predicate(
   data: Record<string, string>,
   binding: (gate: number, sample: unknown) => Promise<void>,
@@ -46,14 +48,6 @@ function predicate(
   const timer = vi.fn(() => {
     throw new Error('observer must not schedule');
   });
-  // Build the exact host template, including JSON-serialized gate arguments.
-  const expression = runInNewContext(source.slice(begin, end + 1), {
-    readinessReaderSource: readNativeBabylonReadiness.toString(),
-    diagnosticErrorText: runInNewContext(`(${printer})`),
-    gateId: args.gateId,
-    readinessBinding: args.binding,
-    readinessFailurePrefix: args.failurePrefix,
-  });
   const realm = {
     document,
     window: { [args.binding]: binding },
@@ -63,38 +57,47 @@ function predicate(
     setInterval: timer,
     console: { debug: (message: string) => diagnosticErrors.push(message) },
   };
+  let poll: (() => boolean) | undefined;
+  let evalCount = 0;
+  const frame = {
+    _timeout: (options: { timeout: number }) => options.timeout,
+    _channel: {
+      waitForFunction: async (wire: Wire) => {
+        expect(wire.isFunction).toBe(true);
+        expect(wire.pollingInterval).toBe(100);
+        expect(wire.timeout).toBe(30000);
+        const context = createContext({
+          ...realm,
+          expression2: normalizeEvaluationExpression(wire.expression, wire.isFunction),
+          isFunction2: wire.isFunction,
+          arg2: parseResult(wire.arg.value),
+        });
+        context.eval = (expression: string) => {
+          evalCount++;
+          if (evalCount > 1) throw new EvalError('CSP disallows subsequent unsafe-eval');
+          return runInContext(expression, context);
+        };
+        // Keep this exact pinned server closure alive across every poll.
+        poll = runInContext(`(() => { ${serverPredicate} return predicate; })()`, context);
+        return { handle: { _object: poll!() } };
+      },
+    },
+  };
   return {
     run: async () => {
-      const result = await Frame.prototype.waitForFunction.call(
-        {
-          _timeout: (options: { timeout: number }) => options.timeout,
-          _channel: {
-            waitForFunction: async (wire: Wire) => {
-              expect(wire.isFunction).toBe(false);
-              expect(wire.pollingInterval).toBe(100);
-              expect(wire.timeout).toBe(30000);
-              // The real pinned server calls only isFunction:true or unspecified.
-              // A string returning a function stays truthy; NEVER auto-invoke it here.
-              const value = runInNewContext(
-                `(() => { ${serverPredicate} return predicate(); })()`,
-                {
-                  ...realm,
-                  expression2: wire.expression,
-                  isFunction2: wire.isFunction,
-                  arg2: undefined,
-                },
-              );
-              expect(typeof value).not.toBe('function');
-              return { handle: { _object: value } };
-            },
-          },
-        },
-        expression,
-        undefined,
-        { timeout: 30000, polling: 100 },
-      );
-      return result;
+      const value = poll
+        ? poll()
+        : await runInNewContext(call, {
+            page: { waitForFunction: Frame.prototype.waitForFunction.bind(frame) },
+            readNativeBabylonReadiness,
+            gateId: args.gateId,
+            readinessBinding: args.binding,
+            readinessFailurePrefix: args.failurePrefix,
+          });
+      expect(typeof value).toBe('boolean');
+      return value;
     },
+    evalCount: () => evalCount,
     timer,
     diagnosticErrors,
     status,
@@ -180,7 +183,7 @@ it('does not attribute late observer errors to another gate clock bracket', () =
   expect(source).toContain('normalizeNativeBabylonReadiness(sample)');
 });
 
-it('re-evaluates the string on each pinned server poll and safely embeds gate arguments', async () => {
+it('uses the cached actual function for false-false-true polls when subsequent eval violates CSP', async () => {
   let settled = 'false';
   const data = {
     get presentationSettled() {
@@ -204,9 +207,12 @@ it('re-evaluates the string on each pinned server poll and safely embeds gate ar
   );
   expect(await h.run()).toBe(false);
   expect(samples).toEqual([7]);
+  expect(await h.run()).toBe(false);
+  expect(samples).toEqual([7, 7]);
   settled = 'true';
   expect(await h.run()).toBe(true);
-  expect(samples).toEqual([7, 7]);
+  expect(samples).toEqual([7, 7, 7]);
+  expect(h.evalCount()).toBe(1);
   const failedObservation = predicate(
     data,
     () => {
@@ -217,14 +223,51 @@ it('re-evaluates the string on each pinned server poll and safely embeds gate ar
   expect(await failedObservation.run()).toBe(true);
   expect(failedObservation.diagnosticErrors[0].startsWith(args.failurePrefix)).toBe(true);
 });
-it('pins the server admission semantics and inventories the two harness string sites', () => {
+it('passes actual function objects at both observation sites without executable string construction', () => {
   expect(serverPredicate).toContain('if (isFunction2 === true)');
-  expect(serverPredicate).toContain('else if (isFunction2 === false)');
-  expect(server.slice(serverEnd)).toContain(
-    'const success = predicate();\n            if (success)',
-  );
-  expect(source.match(/page\.evaluate\(`/g)).toHaveLength(1);
-  expect(source.match(/page\.waitForFunction\(\s*`/g)).toHaveLength(1);
-  expect(source).toContain('page.evaluate(`(() => ({');
-  expect(source).toContain('}))()`),');
+  expect(serverPredicate).toContain('evaledExpression = result2');
+  expect(source).toContain("page.evaluate(readNativeBabylonReadiness, { mode: 'health' })");
+  expect(call).toContain('readNativeBabylonReadiness,');
+  for (const pattern of [
+    /readNativeBabylonReadiness\.toString\(/,
+    /\beval\(/,
+    /new Function\(/,
+    /page\.evaluate\(`/,
+    /page\.waitForFunction\(\s*`/,
+  ])
+    expect(source).not.toMatch(pattern);
+  const reader = readNativeBabylonReadiness.toString();
+  expect(reader).not.toMatch(/\beval\(|new Function\(/);
+});
+it('reproduces the rejected expression-string wire path when a second poll requires unsafe eval', async () => {
+  let evals = 0;
+  let poll!: () => boolean;
+  const frame = {
+    _timeout: () => 30000,
+    _channel: {
+      waitForFunction: async (wire: Wire) => {
+        expect(wire.isFunction).toBe(false);
+        const context = createContext({
+          expression2: normalizeEvaluationExpression(wire.expression, wire.isFunction),
+          isFunction2: wire.isFunction,
+          arg2: undefined,
+        });
+        context.eval = (expression: string) => {
+          evals++;
+          if (evals > 1) throw new EvalError('CSP disallows subsequent unsafe-eval');
+          return runInContext(expression, context);
+        };
+        poll = runInContext(`(() => { ${serverPredicate} return predicate; })()`, context);
+        return { handle: { _object: poll() } };
+      },
+    },
+  };
+  expect(
+    await Frame.prototype.waitForFunction.call(frame, '(() => false)()', undefined, {
+      timeout: 30000,
+      polling: 100,
+    }),
+  ).toBe(false);
+  expect(() => poll()).toThrow('CSP disallows subsequent unsafe-eval');
+  expect(evals).toBe(2);
 });

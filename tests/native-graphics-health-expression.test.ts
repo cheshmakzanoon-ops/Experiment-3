@@ -1,62 +1,96 @@
 import { expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
+import { createRequire } from 'node:module';
+import { dirname, join } from 'node:path';
 import { readNativeBabylonReadiness } from '../scripts/native-readiness-observation.mjs';
 
-// Execute the exact string sent to Playwright. Evaluating an uninvoked arrow
-// returns a function, which cannot be transported as the required health object.
+// Exercise the pinned client wire and its actual function serialization, without a browser.
+const require = createRequire(import.meta.url);
+const root = dirname(require.resolve('playwright-core/package.json'));
+const { Frame } = require(join(root, 'lib/client/frame.js'));
+const { parseResult, serializeArgument } = require(join(root, 'lib/client/jsHandle.js'));
 const source = readFileSync('scripts/desktop-smoke.mjs', 'utf8');
 const health = source.slice(
   source.indexOf('async function observeGraphicsHealth('),
   source.indexOf('async function waitForBabylonPresentation('),
 );
-const begin = health.indexOf('page.evaluate(`') + 'page.evaluate(`'.length;
-const template = health.slice(begin, health.indexOf('`)', begin));
-const printer = source.slice(
-  source.indexOf('function diagnosticErrorText('),
-  source.indexOf('function readinessDiagnosticFailure('),
-);
-function evaluate(
+const call = health.match(
+  /page\.evaluate\(readNativeBabylonReadiness, \{ mode: 'health' \}\)/,
+)?.[0];
+async function evaluate(
   documentQuery: () => unknown,
   babylonQuery: () => unknown,
-  reader: () => unknown = readNativeBabylonReadiness,
+  metadataFailure = false,
 ) {
-  const expression = template
-    .replace('${readinessReaderSource}', () => reader.toString())
-    .replace('${diagnosticErrorText.toString()}', () => printer);
-  return runInNewContext(expression, {
-    window: {
-      motoboundGraphicsObservation: documentQuery,
-      babylonGraphicsDiagnostics: babylonQuery,
+  expect(call).toBeDefined();
+  const blockedEval = vi.fn(() => {
+    throw new EvalError('CSP blocks unsafe-eval');
+  });
+  const frame = {
+    _channel: {
+      evaluateExpression: async (wire: {
+        expression: string;
+        isFunction: boolean;
+        arg: { value: unknown };
+      }) => {
+        expect(wire.isFunction).toBe(true);
+        // VM compilation models the one privileged CDP function injection, while
+        // renderer eval/Function are forbidden. The callback must be closure-free.
+        const callback = runInNewContext(`(${wire.expression})`, {
+          window: {
+            motoboundGraphicsObservation: documentQuery,
+            babylonGraphicsDiagnostics: babylonQuery,
+          },
+          document: { hidden: false, hasFocus: () => true, querySelector: () => null },
+          TextEncoder: metadataFailure
+            ? class {
+                constructor() {
+                  throw undefined;
+                }
+              }
+            : TextEncoder,
+          performance: { now: () => 123, timeOrigin: 1000 },
+          eval: blockedEval,
+          Function: blockedEval,
+        });
+        const value = callback(parseResult(wire.arg.value));
+        expect(blockedEval).not.toHaveBeenCalled();
+        return { value: serializeArgument(value).value };
+      },
     },
-    document: { hidden: false, hasFocus: () => true, querySelector: () => null },
-    TextEncoder,
-    performance: { now: () => 123, timeOrigin: 1000 },
+  };
+  return runInNewContext(call!, {
+    page: { evaluate: Frame.prototype.evaluate.bind(frame) },
+    readNativeBabylonReadiness,
   });
 }
-it('returns the actual document/Babylon/readiness object, not an uninvoked function', () => {
+it('returns the actual document/Babylon/readiness object, not an uninvoked function', async () => {
   const documentReceipt = Object.freeze({ documents: [{ losses: 0 }] });
   const graphics = Object.freeze({ settled: true, submitted: 10, completed: 10 });
-  const result = evaluate(
+  const result = await evaluate(
     () => documentReceipt,
     () => graphics,
   );
   expect(typeof result).toBe('object');
-  expect(result.document).toBe(documentReceipt);
-  expect(result.babylon).toBe(graphics);
+  expect(result.document).toEqual(documentReceipt);
+  expect(result.babylon).toEqual(graphics);
   expect(result.readiness).toMatchObject({ renderer: { nowMs: 123, timeOriginMs: 1000 } });
   expect(result.readiness).not.toBeUndefined();
 });
 it.each(['document', 'babylon'] as const)(
   'propagates original %s query errors including falsy values',
-  (query) => {
+  async (query) => {
     for (const failure of [undefined, null, false, 0, '', new Error('original query failed')]) {
       const fail = () => {
         throw failure;
       };
       let caught = false;
       try {
-        evaluate(query === 'document' ? fail : () => ({}), query === 'babylon' ? fail : () => ({}));
+        await evaluate(
+          query === 'document' ? fail : () => ({}),
+          query === 'babylon' ? fail : () => ({}),
+        );
       } catch (error) {
         caught = true;
         expect(error).toBe(failure);
@@ -65,17 +99,15 @@ it.each(['document', 'babylon'] as const)(
     }
   },
 );
-it('isolates new metadata errors without hiding original health receipts', () => {
+it('isolates new metadata errors without hiding original health receipts', async () => {
   const documentQuery = vi.fn(() => ({ documents: [] }));
   const babylonQuery = vi.fn(() => ({ settled: true }));
-  const result = evaluate(documentQuery, babylonQuery, () => {
-    throw undefined;
-  });
+  const result = await evaluate(documentQuery, babylonQuery, true);
   expect(result.document).toEqual({ documents: [] });
   expect(result.babylon).toEqual({ settled: true });
   expect(result.readiness).toEqual({ observationError: 'undefined' });
   expect(documentQuery).toHaveBeenCalledOnce();
-  expect(babylonQuery).toHaveBeenCalledOnce();
+  expect(babylonQuery).toHaveBeenCalledTimes(2);
 });
 it('keeps the strict health timeout and does not optional-chain away missing health evidence', () => {
   expect(health).toContain("new Error('Graphics health observation exceeded 30000ms')");

@@ -130,3 +130,37 @@ settled false and an empty surface; no poll samples or first graphics fault were
 recorded. Artifacts 13091466997 (Linux), 13091695515 (Windows) and 13091775138
 (macOS) preserve reports/screenshots. The unchanged production fingerprint is
 `ad6787e8c2439af3873e985da4b4297343379e2e8db5837e3d88a08113ea048a`.
+
+## CSP failure on repeated polling: `ee10c383`
+
+[Run 41326715565](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41326715565)
+exposed the remaining string-evaluation incompatibility with the application's
+unchanged strict Content Security Policy. Windows failed at 2.949 seconds with
+a `page.waitForFunction` EvalError. One actual false poll was received: surface
+preparation had started, draws remained 0/0, later owners were absent and the
+presentation schedule was pending. The approximately 113-ms gate did not time
+out or establish a GPU fault; the retained poll is correctly labeled stale.
+
+The installed Playwright server caches a function only for its actual-function
+path. The invoked string was evaluated initially, then evaluated again by the
+poll timer under CSP, which prohibits unsafe eval. Testing single evaluation
+semantics had not exercised that second timer invocation. The failed evidence
+is retained; security is not relaxed to accommodate the harness.
+
+Both health and polling calls now pass the actual self-contained reader function
+with serializable mode arguments. Its nested snapshot reader has no imported
+closure dependencies. Default snapshot calls retain their existing behavior;
+health mode preserves original query failures outside metadata catches, and poll
+mode retains the exact admission predicate and fire-and-forget observations.
+No executable string, eval, new Function, CSP exception, driver or timeout change
+is added to the application. Tests exercise the installed client's function flag
+and the same cached server predicate through repeated false/false/true polls,
+with evaluation allowed once and rejected thereafter to model the CSP boundary.
+This correction still requires a fresh installed-app run.
+
+All three targets ultimately failed at the same repeated-evaluation CSP boundary:
+Linux 109 ms, macOS 111 ms and Windows 113 ms from gate start, with one false poll
+each. No native journey completed. Artifacts 13091997053 (Linux), 13092305363
+(macOS) and 13091293869 (Windows) retain SHA-verified reports and preparation-UI
+screenshots. The production fingerprint remained
+`ad6787e8c2439af3873e985da4b4297343379e2e8db5837e3d88a08113ea048a`.

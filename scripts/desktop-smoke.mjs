@@ -51,7 +51,6 @@ let nextReadinessGate = 0;
 let activeReadinessGate = null;
 const readinessBinding = '__motoboundNativeReadinessObservation';
 const readinessFailurePrefix = '__MOTOBOUND_READINESS_OBSERVATION_FAILURE__';
-const readinessReaderSource = readNativeBabylonReadiness.toString();
 const processScanners = [createGraphicsLogScanner(), createGraphicsLogScanner()];
 const graphicsBackend = process.env.MOTOBOUND_CI_GL || 'native';
 const graphicsArguments = desktopGraphicsArguments(graphicsBackend, target.platform, target.arch);
@@ -117,14 +116,7 @@ async function observeGraphicsHealth(page, readinessPhase = 'graphics-health') {
     const [processObservation, rendererObservations] = await Promise.race([
       Promise.all([
         application.evaluate(() => globalThis.motoboundProcessGraphicsObservation?.()),
-        page.evaluate(`(() => ({
-          document: window.motoboundGraphicsObservation?.(),
-          babylon: window.babylonGraphicsDiagnostics?.(),
-          readiness: (() => {
-            try { return (${readinessReaderSource})(); }
-            catch (error) { return { observationError: (${diagnosticErrorText.toString()})(error) }; }
-          })(),
-        }))()`),
+        page.evaluate(readNativeBabylonReadiness, { mode: 'health' }),
       ]),
       new Promise((_, reject) => {
         timer = setTimeout(
@@ -167,32 +159,8 @@ async function waitForBabylonPresentation(page) {
     activeReadinessGate = gate;
     await firstGraphicsFault.wait(() =>
       page.waitForFunction(
-        `(({ gateId, binding, failurePrefix }) => {
-          const data = document.querySelector('#status')?.dataset;
-          const submitted = Number(data?.renderedFrames);
-          const completed = Number(data?.completedFrames);
-          const ready = (
-            data?.presentationSettled === 'true' &&
-            Number.isSafeInteger(submitted) &&
-            submitted > 0 &&
-            completed === submitted
-          );
-          // Existing console transport is only a fallback for diagnostic errors.
-          const observationFailure = (phase, error) => {
-            try {
-              console.debug(failurePrefix + JSON.stringify({ gateId, phase,
-                error: (${diagnosticErrorText.toString()})(error) }));
-            } catch { /* Lost observation transport remains unavailable, not a pass. */ }
-          };
-          // Evidence only: never await transport or let it decide this predicate.
-          try {
-            const sample = (${readinessReaderSource})();
-            if (typeof window[binding] === 'function')
-              void window[binding](gateId, sample).catch((error) => observationFailure('binding-rejection', error));
-          } catch (error) { observationFailure('poll-capture', error); }
-          return ready;
-        })(${JSON.stringify({ gateId, binding: readinessBinding, failurePrefix: readinessFailurePrefix })})`,
-        undefined,
+        readNativeBabylonReadiness,
+        { mode: 'poll', gateId, binding: readinessBinding, failurePrefix: readinessFailurePrefix },
         { timeout: 30000, polling: 100 },
       ),
     );
