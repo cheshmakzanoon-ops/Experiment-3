@@ -9,7 +9,7 @@ import {
   nativeGpuServiceApiMode,
   nativeGpuServiceApiArguments,
   nativeGpuServiceApiLaunchReceipt,
-  nativeGpuServiceApiAuthorization,
+  nativeGpuServiceApiManualContext,
   validateNativeGpuServiceApiSource,
   validateNativeGpuServiceApiRuntime,
 } from './native-gpu-service-api-mode.mjs';
@@ -196,7 +196,6 @@ try {
   const serviceApiMode = nativeGpuServiceApiMode(
     process.env.MOTOBOUND_GPU_SERVICE_API_TRACE ?? 'off',
   );
-  const serviceApiAuthorization = nativeGpuServiceApiAuthorization(serviceApiMode, process.env);
   const serviceApiOptions = {
     mode: serviceApiMode,
     traceEnabled,
@@ -205,14 +204,11 @@ try {
     hostArch: target.hostArch,
     graphicsBackend,
     journey: process.env.MOTOBOUND_SMOKE_JOURNEY ?? 'full',
-    ...serviceApiAuthorization,
+    manualNonpublishing: nativeGpuServiceApiManualContext(process.env),
   };
   const serviceApiArguments = nativeGpuServiceApiArguments(serviceApiOptions);
   const serviceApiLaunch = nativeGpuServiceApiLaunchReceipt(serviceApiOptions);
-  validateNativeGpuServiceApiSource(serviceApiMode, report.source, {
-    ...serviceApiAuthorization,
-    githubSha: process.env.GITHUB_SHA,
-  });
+  validateNativeGpuServiceApiSource(serviceApiMode, report.source);
   if (serviceApiLaunch) report.serviceApiLaunch = serviceApiLaunch;
   report.smokeJourney = journey;
   if (report.source.arch !== target.arch || report.source.platform !== target.platform)

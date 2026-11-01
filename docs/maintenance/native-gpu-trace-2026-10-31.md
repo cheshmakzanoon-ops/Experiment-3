@@ -285,22 +285,23 @@ then lost the GPU while its fence remained pending. These observations neither
 identify the later failing command nor isolate road/paint, asset, LLVM or another
 backend owner. They are not a first-use-only failure proof or a Linux repair.
 
-## Service-API-boundary experiment (implemented, not yet run natively)
+## Service-API-boundary experiment (one observation complete; manual-only)
 
 This is a **separate, nonpublishing configuration**, not an expansion of the
-existing trace mode. It was initially manual-only. Its unchanged manual path
-and the temporary, explicitly authorized one-shot push path below share
-`desktop-gpu-service-api-review.yml`, read-only repository permissions, and one
-Ubuntu 22.04 / Linux x64 / Mesa / full-journey call. The reusable input
+existing trace mode. The single explicitly authorized temporary push observation
+is complete and that launch authorization is retired. The unchanged manual-only
+`desktop-gpu-service-api-review.yml` retains read-only repository permissions and
+one Ubuntu 22.04 / Linux x64 / Mesa / full-journey call. The temporary exception
+is preserved as history below, not as a current trigger. The reusable input
 `gpu_service_api_trace` and harness `MOTOBOUND_GPU_SERVICE_API_TRACE` default to
 `off`; the only other value is `service-api-boundary-v1`. Existing
 `MOTOBOUND_GPU_TRACE=0|1` semantics remain unchanged.
 
 The new selector is rejected unless private tracing is enabled, target and host
 are Linux x64, graphics is Mesa, journey is full, and GitHub's existing caller
-context identifies the dedicated manual workflow or the exact one-shot push
-below. This is checked before
-dependency/package work and independently before Electron launch. A manual
+context identifies the dedicated manual workflow. This is checked before
+dependency/package work and independently before Electron launch. The retired
+push authorization no longer reads an event file or grants a launch. A manual
 launch of a required release workflow is insufficient. Package publication
 remains `--publish never`; installer/checksum steps additionally require the
 new selector to be off. Required lanes and the existing driver comparison do not
@@ -416,11 +417,14 @@ The authorized execution scope remains **one bounded observation**
 through the existing window and terminal cleanup. Report observed API-boundary
 evidence, unavailable/inconclusive evidence, or non-reproduction under
 instrumentation. Do not broaden categories, extend the window, retry until a
-preferred result appears, or call a traced pass a repair. Native emission and
-this mode's fault coverage remain unverified until that exact-source run exists.
+preferred result appears, or call a traced pass a repair. The completed run below
+established actual emission and in-window fault coverage, not a unique cause.
+No second observation is authorized by that completed one-shot scope.
 
-### Temporary exact-push authorization — 2026-11-01
+### Temporary exact-push authorization — 2026-11-01 (historical; retired)
 
+This subsection describes the authorization implemented in `89a04a8`, now
+removed from the launch surface. Historical push receipts remain validatable.
 The owner could not click Run workflow and explicitly requested an autonomous
 way forward. The narrow alternative uses ordinary repository-write/Actions
 authorization, not credentials, an API restriction bypass or security changes.
@@ -467,11 +471,11 @@ enters the summary. Existing source/runtime pins, ten wrapper pairs, typed GPU
 identity, actual-emission gate, categories, window, parser, limits, first-error
 precedence and no-raw-upload policy remain unchanged.
 
-Publish only the tested direct child with that exact message, verify one run,
-and follow it through terminal compact-evidence review. Then remove the push
-trigger and launch authorization. If it does not qualify, stop and report the
-failed guard; do not broaden the trigger, retry until a desired result appears,
-or claim native service-API evidence without actual emitted wrappers.
+The authorization was limited to publishing the tested direct child with that
+exact message, verifying one run and reviewing its terminal compact evidence,
+then removing the push trigger and launch authorization. This scope is now
+complete. It never authorized broadening the trigger, retries until a desired
+result, or claiming native evidence without actual emitted wrappers.
 
 The one-shot guard's offline regression passed **350 tests in 10 files**,
 including all **99 real pinned-parser cases**, with one deliberately
@@ -519,5 +523,77 @@ The baseline SQL bytes and default real-parser summary bytes were compared
 against `cee488b3e399c67fcf5c4d94fc9defa02b355272` and matched exactly. Baseline
 query SHA-256 is
 `b4a1c214b63de669bdf4132826add06aff40e63a38b3de01bde46fea8f56c81e`.
-These are offline engineering results only: no service-API native run, source
-publication, GPU repair or new gameplay qualification is claimed here.
+These are the historical offline engineering results, before the native
+observation below. They did not establish a GPU repair or gameplay qualification.
+
+### Completed one-shot observation and retirement — 2026-11-01
+
+[Run 41257666992](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41257666992)
+completed its first and only observed attempt at exact source
+`89a04a8841ebabf64807f901c2386a0c5b4532f0`, tree
+`c4575787d48424d76e5c1fb4b7403204cad4df8c`. Package fingerprint was
+`0b36af617f9da4ab2b697ecff8c8ffcb013d8877a2b3e673c7510e44c226afcb`.
+The exact preflight, source/runtime checks and both real-parser fixture steps
+passed. Native gameplay failed; retained version-3 evidence validation passed
+in CI and was reproduced byte-for-byte offline. This is **valid emission
+coverage with an inconclusive discriminator**, not a native fix.
+
+The actual launch contained the approved service switch and original ANGLE GL
+flags, no sandbox/watchdog bypass. Its constant receipt records only
+`oneShotPushNonpublishing: true`, not manual authorization. Installer and
+checksum steps were skipped. Artifact `13064671789` is 75,489 bytes, SHA-256
+`a7109ecb601a26553ea47ce78cc4c395847377bba031d0c9bc7043be34c69833`:
+seven allowlisted JSON/PNG entries, no raw capture. The 11,510-byte summary SHA is
+`58e92d15e0e947210a071ee2a7b63a76869bc6cb517aea27c82e4360f5cb7ee6`.
+
+Four selected wrappers emitted: `glDrawElements` **208**, `glClientWaitSync`
+**178**, `glFenceSync` **174**, `glFlush` **349**. Every observed instance
+completed; the other six selected wrapper pairs did not emit. No selected
+wrapper instance was captured under the ordered unfinished
+PutChanged→OnAsyncFlush chain. OnAsyncFlush, Scheduler and PutChanged each
+retain one open instance (504, 911 and 504 total); PutChanged has one open-flush
+ancestor. Compile/link counts **17 / 74 / 20 / 20 / 20** all completed. Both
+compile/link and service-API discriminators remain `inconclusive`.
+
+These are aggregate per-pair results. Their `lastNs` maxima do **not** identify
+individual unfinished decoder start times or prove ordering between that
+instance and a wrapper completion. Closed observed wrappers do not exclude
+unselected GL work or an unretained final GPU-producer tail. Parser errors and
+reported loss are zero (165 and 48 stat rows respectively), but
+`childTailCertified` remains false. The 9,139,117-byte private input, unchanged
+nine categories and original bounds do not remove this uncertainty. No raw
+capture was downloaded, inspected or uploaded.
+
+The fault occurred inside the original capture window (34,913 ms from start
+acknowledgement to stop request). Babylon presented **3/3 → 9/9** before Inspect
+and completed **403/403** preparation leases. Ordinary frame 10 then remained
+pending for **26.506 seconds** at GPU exit **512**, with nine frames completed;
+its CPU draw returned in 55.8 ms. Model-presented/wheel-motion and subsequent
+compatibility journeys did not complete. The failure PNG was inspected: an
+empty canvas with the restored-context/restart-required message. This neither
+isolates road/paint versus original asset nor attributes LLVM, OOM, watchdog or
+another unique cause. Instrumentation can perturb scheduling and trace churn.
+
+Cleanup reports `producerClosed: true`, `pendingInspections: 0`, and raw deletion
+**scheduled**. Job logs record temporary-directory cleanup; independent raw-file
+deletion is not claimed. The one-observation stopping condition is met.
+
+The dedicated workflow is again **workflow_dispatch-only**. Temporary push
+conditions, constants, event-file reader, source-equality extension and launch
+receipt capability are removed; original manual/off behavior is restored.
+The offline evidence validator and its strict dual-receipt tests retain the
+historical push form so this archived observation remains verifiable. Accepting
+an old compact receipt cannot authorize a new launch. Parser queries, category
+filters, capture window, runtime pins, privacy, security and budgets are unchanged.
+
+The retirement regression passed **258 tests in 10 files**, including all
+**99 real pinned-parser fixtures**, in an exact-source same-computer snapshot.
+The shared checkout then passed the unchanged native-workflow selector,
+**821 tests in 69 files**, including the separately reviewed asphalt increment,
+and full TypeScript, scoped lint, formatting and workflow lint checks. Archived
+version-3 one-shot and default version-2 receipts revalidated byte-for-byte
+against their CI validation output. The dedicated workflow, launch harness, mode
+module and declaration are byte-identical to their pre-exception `b3a0cc2`
+versions; parsing and historical receipt validation are unchanged. These offline
+checks retire a launch authorization; they neither repeat native execution nor
+qualify a Linux fix.
