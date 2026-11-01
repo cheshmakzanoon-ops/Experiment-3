@@ -14,6 +14,8 @@ Available artifacts (GitHub reports expiry 2026-11-08):
 - Apple Silicon: `motobound-package-mac-arm64`, artifact 13093326989.
 
 These are unsigned migration test builds, not a new release or a change to main.
+A later `a68a1ba` repeat failed Linux’s unchanged startup gate; the earlier pass
+is not evidence of stable startup performance across runs.
 The bundled application was launch-tested; installer upgrade/uninstall, signing,
 physical-hardware performance and complete four-discipline Babylon parity remain
 unqualified. See the [paused handoff qualification](maintenance/babylon-paused-preparation-handoff-2026-11-01.md)

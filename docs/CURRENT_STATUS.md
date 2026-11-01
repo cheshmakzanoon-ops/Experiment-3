@@ -14,6 +14,8 @@ Migration development stays exclusively on **babylon-js**. Main is frozen at res
 
 ## Latest recorded qualification
 
+**Latest repeat remains unqualified:** `a68a1ba` again timed out in Linux's unchanged first-pause gate, without a recorded GPU fault. The previous three-platform `6c1ded7` pass was not a stability guarantee. The isolated stripe's first GPU run also failed an invalid all-visible road-depth oracle; original geometry remains unchanged and live activation is held. [Native repeat](maintenance/babylon-paused-preparation-handoff-2026-11-01.md) · [Stripe failure evidence](maintenance/babylon-start-finish-stripe-2026-11-01.md).
+
 **Isolated start/finish stripe:** original canvas/batching/material/depth behavior is implemented without a live import. Three new GPU cases are added as a required shard, retaining the existing 25 cases and aggregate gate. GPU sampling/culling/depth, car-crossing and final lighting are not certified by CPU checks. [Scope](maintenance/babylon-start-finish-stripe-2026-11-01.md).
 
 **Paused preparation handoff:** a newly completed GPU frame now yields only the next paused scene submission while a preparation owner is held. This lets owner continuations release their token or start the next compiler lease before a surplus draw. All fences, two-completion receipts, active driving and deadlines remain intact. Exact `6c1ded7` passed 1,212 active tests, types/lint/build, all 25 GPU cases and all three native targets. Linux passed its unchanged first-pause gate and all four compatibility journeys. First-gate polling history was evicted, so no exact timing speedup or universal repair is claimed. [Mechanism and limits](maintenance/babylon-paused-preparation-handoff-2026-11-01.md).

@@ -69,7 +69,7 @@ for (const mode of ['native', 'standalone', 'context-loss'] as const)
     });
     expect(report.failure).toBeNull();
     expect(report.rows).toHaveLength(2);
-    expect(report.images).toHaveLength(20);
+    expect(report.images).toHaveLength(22);
     expect(errors).toEqual([]);
     if (mode === 'standalone') expect(report.transport).toBe('standalone');
     if (mode === 'context-loss') expect(report.loss).toMatchObject({ lost: true, losses: 1 });
@@ -77,6 +77,6 @@ for (const mode of ['native', 'standalone', 'context-loss'] as const)
     if (mode === 'context-loss') {
       expect(report.restart?.failure).toBeNull();
       expect(report.restart?.rows).toHaveLength(2);
-      expect(report.restart?.images).toHaveLength(20);
+      expect(report.restart?.images).toHaveLength(22);
     }
   });

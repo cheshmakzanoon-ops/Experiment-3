@@ -71,8 +71,8 @@ and ownership intact.
 
 Actual car-crossing occlusion is **not tested** by this bounded fixture; no proxy
 car is used to claim original-model acceptance. Cross-mode eligibility, final PBR,
-lighting/shadows and physical-GPU performance remain separate gates. No GPU run
-or live activation is claimed for this candidate yet.
+lighting/shadows and physical-GPU performance remain separate gates. The first GPU run failed the depth oracle described below; no live activation
+is claimed.
 
 ## Combined branch preparation
 
@@ -84,3 +84,72 @@ remains. Formatting and YAML parsing passed. Offline discovery confirms all
 stripe cases. This is test discovery, not GPU execution. Independent final review
 confirmed the four stripe files match the reviewed candidate and the new shard
 is additive, required and read-only.
+
+## First real GPU result: `a68a1ba` — failed depth oracle
+
+[Run 41332598102](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41332598102)
+failed all three stripe cases at the first road-co-presence patch, not in the
+isolated sampling/culling stage. Artifact 13094207129, SHA-256
+`fa2b0a07a6f1fab1cb71776338e7213c5af833d05076b27c96e02cf324a5c305`,
+retains the failed receipts and images. At the unchanged first patch (-7, -0.3),
+the composite differs from the isolated stripe by 70 RGBA codes while remaining
+opaque. The error value `glError: -1` means that assertion occurred before the GL
+query; it is not an observed GL error.
+
+All 27 preceding factor rows have zero reported error/coverage difference/GL
+error. Twenty-four attached factor-image pairs independently decode to exact
+RGBA equality. Original geometry/material/15-mm placement contracts and hardware-
+sRGB bytes/samplers passed before this boundary. One cycle completed; the later
+co-presence cycle aborted, so its loss/restart and remaining cleanup checks are
+not claimed as passed.
+
+The fixture incorrectly assumed the stripe stayed visible at every fixed patch.
+Independent interpolation of the original source road triangles gives road Y
+0.02166193049 m at the first patch, above the original flat stripe Y 0.015 m by
+6.662 mm. The captured road-plus-stripe image shows corresponding partial
+occlusion. This supports an invalid all-visible expectation; it does not justify
+raising the stripe, changing the road/camera, dropping patches or widening limits.
+
+The correction must compare against an independent original **Three road plus
+stripe** composite at the same fixed patches, with original repeats, road-only
+and stripe-only witnesses, and source-triangle visible/occluded classification.
+Both visible and occluded samples must be exercised. Until that GPU oracle passes,
+the adapter remains isolated and unqualified for live activation.
+
+## Corrected independent depth oracle
+
+The reference correction retains all nine fixed 3×3 patches (81 pixels), the
+rendered camera matrices, original plane/road geometry, 15-mm placement and
+existing maximum 2-code / mean 0.25 factor limits. Source-only Three triangle
+rays predict **54 visible and 27 occluded pixels**, with a minimum separation
+of 2.874 mm; missing hits or separation at/below 10 micrometres fail rather than
+silently defaulting to visible. Pixel centres and bottom-origin readback are
+explicit. Near/far metadata is synchronized with the already shared rendered
+projection for the CPU ray calculation; the rendered matrices are not changed.
+
+An independent Three road allocation comes from the original ribbon producer,
+not Babylon buffers. Its fixture-local magenta output isolates geometry/depth,
+not original road PBR shading. The actual Three composite and road-only image
+must repeat exactly after completed draws and confirm every source classification.
+Visible native samples must match the original stripe-only reference; occluded
+native samples must match the actual native road-only witness. Both classes,
+opacity, distinct witnesses and all 81 samples are required. Full composite
+alpha coverage is also checked, with at most eight boundary differences and no
+partial alpha. Full composite RGB/PBR equality is deliberately not claimed.
+
+Temporary reference resources use idempotent disposal, with primary errors
+preserved. No production adapter, geometry, material, camera placement, clipping
+matrix, polygon offset or shader tolerance is adjusted. Earlier sampling,
+culling, cancellation, disposal and context-loss/restart gates remain required.
+The corrected oracle requires its own new GPU execution; CPU agreement alone is
+not a passing renderer result.
+
+The original `a68a1ba` GPU run finished with 25 retained cases passing and all
+three stripe cases failing; the aggregate correctly failed. Retained artifact
+13095105076 has SHA-256
+`81904b2aa62c567b323715a3db643ff24e5ad142f5796394e976f9bf2dfa3015`.
+The existing early-pause receipt kept tick 697 fixed through readiness and
+advanced to 706 after resume. The corrected two-file fixture/spec passed fresh
+TypeScript, focused lint/format, three-case discovery and IIFE bundling; 24
+applicable CPU/workflow contracts passed after applying the patch. This does
+not replace the required new real-GPU result.

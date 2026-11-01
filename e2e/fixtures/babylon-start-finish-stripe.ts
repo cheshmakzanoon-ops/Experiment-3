@@ -11,6 +11,8 @@ import type { WebGLPipelineContext } from '@babylonjs/core/Engines/WebGL/webGLPi
 import { Track, trackPoint } from '../../src/simulation/track.ts';
 import { batchScene, mesh as originalMesh } from '../../src/rendering/geometry.ts';
 import { createBabylonStartFinishStripe } from '../../src/engine/babylon/start-finish-stripe.ts';
+import { circuitRibbonData } from '../../src/engine/assets/circuit-ribbon-data.ts';
+import { apexLineAt } from '../../src/engine/assets/circuit-line-profile.ts';
 import { createFormulaSurfaceProbe } from '../../src/engine/babylon/formula-surfaces.ts';
 import {
   BabylonPresentationGpu,
@@ -269,6 +271,10 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
     camera.orthoBottom = (-extent * height) / width;
     camera.getViewMatrix(true);
     camera.getProjectionMatrix(true);
+    // CPU Raycaster uses near/far in addition to the shared projection matrix.
+    // Synchronize metadata only; rendered matrices/camera positions are unchanged.
+    threeCamera.near = camera.minZ;
+    threeCamera.far = camera.maxZ;
     threeCamera.projectionMatrix.fromArray(camera.getProjectionMatrix().asArray());
     threeCamera.projectionMatrixInverse.copy(threeCamera.projectionMatrix).invert();
     threeCamera.matrixWorldInverse.fromArray(camera.getViewMatrix().asArray());
@@ -355,6 +361,7 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
     road: ReturnType<typeof createFormulaSurfaceProbe> | undefined;
   let referenceMaterial: T.MeshStandardMaterial | undefined,
     referenceMap: T.CanvasTexture | undefined;
+  const depthReferenceCleanup: (() => void)[] = [];
   const receipts: object[] = [],
     rows: object[] = [],
     images: { name: string; image: string }[] = [];
@@ -797,78 +804,335 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
               cycle,
               phase: 'original-road-depth',
               roadParts: road.roadMeshes.length,
+              stage:
+                'Original Three road depth with diagnostic magenta output; native road shading is compared only to its own road-only witness',
               samples: [] as object[],
+              visiblePixels: 0,
+              occludedPixels: 0,
+              // Frozen source-only CPU ray oracle, not observed native colors.
+              expectedSourceClassification: { visible: 54, occluded: 27, total: 81 },
+              minimumTriangleGap: Number.POSITIVE_INFINITY,
               max: 0,
-              roadOnlyDifferences: 0,
+              maxVisible: 0,
+              maxOccluded: 0,
+              meanVisible: 0,
+              meanOccluded: 0,
+              compositeCoverage: { missing: 0, excess: 0, partialAlpha: 0 },
               glError: -1,
+              referenceRepeat: false,
+              roadOnlyRepeat: false,
+              referenceErrors: [] as number[],
+              referenceRoadDraws: [] as number[],
             };
             receipts.push(depth);
-            let withRoad: ReturnType<typeof h.capture>, roadOnly: ReturnType<typeof h.capture>;
+            // Independently allocate Three geometry from the shared neutral
+            // ORIGINAL circuitRibbonData producer, not candidate native buffers.
+            // This is not an independent ribbon algorithm: the frozen original
+            // ribbon geometry oracles establish producer equivalence. Preserve
+            // range/columns/step; diagnostic color isolates depth, not PBR parity.
+            const point = trackPoint();
+            const data = circuitRibbonData(
+              track,
+              {
+                start: -8,
+                end: 8,
+                columns: 14,
+                road: true,
+                step: 1.8,
+                offset: (s, t) => (t * 2 - 1) * track.at(s, point).width,
+              },
+              {
+                hasGpDesign: () => false,
+                apex: (s, l, out, motorcycle) => apexLineAt(track, s, l, out, motorcycle),
+                color: () => ({ r: 0, g: 0, b: 0 }),
+                kerbStyle: () => {
+                  throw new Error('Unexpected reference kerb request');
+                },
+                runoffStyle: () => {
+                  throw new Error('Unexpected reference runoff request');
+                },
+                usage: () => {
+                  throw new Error('Unexpected reference usage request');
+                },
+                gpPaint: () => {
+                  throw new Error('Unexpected reference paint request');
+                },
+                gpGravel: () => {
+                  throw new Error('Unexpected reference gravel request');
+                },
+              },
+            );
+            const roadGeometry = new T.BufferGeometry();
+            let geometryReleaseAttempted = false;
+            const disposeRoadGeometry = () => {
+              if (geometryReleaseAttempted) return;
+              geometryReleaseAttempted = true;
+              roadGeometry.dispose();
+            };
+            depthReferenceCleanup.push(disposeRoadGeometry);
+            roadGeometry.setAttribute(
+              'position',
+              new T.BufferAttribute(new Float32Array(data.vertices), 3),
+            );
+            roadGeometry.setIndex(data.indices);
+            const roadMaterial = new T.MeshBasicMaterial({ color: 0xff00ff, toneMapped: false });
+            let materialReleaseAttempted = false;
+            const disposeRoadMaterial = () => {
+              if (materialReleaseAttempted) return;
+              materialReleaseAttempted = true;
+              roadMaterial.dispose();
+            };
+            depthReferenceCleanup.push(disposeRoadMaterial);
+            const referenceRoad = new T.Mesh(roadGeometry, roadMaterial);
+            let roadDraws = 0;
+            referenceRoad.onAfterRender = () => {
+              roadDraws++;
+            };
+            threeScene.add(referenceRoad);
+            let depthFailed = false,
+              depthFailure: unknown;
             try {
-              coVisibility.forEach(({ mesh, enabled }) => mesh.setEnabled(enabled));
-              await h.presented();
-              withRoad = await lease('Original road and stripe depth capture', async () =>
-                h.capture(),
+              await threeGpu.prepare(
+                'Original Three composite depth reference compile',
+                deadline,
+                async () => {
+                  await renderer.compileAsync(threeScene, threeCamera);
+                },
               );
-              d.mesh.setEnabled(false);
-              await h.presented();
-              roadOnly = await lease('Actual original road-only coverage witness', async () =>
-                h.capture(),
+              let priorRoadDraws = roadDraws;
+              const composite = await referenceFrame(),
+                compositeRepeat = await referenceFrame();
+              depth.referenceRoadDraws.push(roadDraws - priorRoadDraws);
+              depth.referenceRepeat = equal(composite.pixels, compositeRepeat.pixels);
+              reference.visible = false;
+              priorRoadDraws = roadDraws;
+              const referenceRoadOnly = await referenceFrame(),
+                referenceRoadRepeat = await referenceFrame();
+              depth.referenceRoadDraws.push(roadDraws - priorRoadDraws);
+              reference.visible = true;
+              depth.roadOnlyRepeat = equal(referenceRoadOnly.pixels, referenceRoadRepeat.pixels);
+              depth.referenceErrors = [
+                composite.glError,
+                compositeRepeat.glError,
+                referenceRoadOnly.glError,
+                referenceRoadRepeat.glError,
+              ];
+              images.push(
+                { name: 'original-three-road-depth', image: composite.image },
+                { name: 'original-three-road-only', image: referenceRoadOnly.image },
               );
-            } finally {
-              d.mesh.setEnabled(true);
-              coVisibility.forEach(({ mesh }) => mesh.setEnabled(false));
-            }
-            images.push(
-              { name: 'original-road-depth', image: withRoad.image },
-              { name: 'original-road-only', image: roadOnly.image },
-            );
-            // Predetermined 3x3 patches at nine road-interior coordinates; exclude
-            // only original edge paint and stripe boundaries, never error pixels.
-            for (const x of [-station.width + 1, 0, station.width - 1])
-              for (const z of [-0.3, 0, 0.3]) {
-                const projected = Vector3.Project(
-                  Vector3.FromArray(
-                    new T.Vector3(x, z, 0).applyMatrix4(originalPlane.matrixWorld).toArray(),
-                  ),
-                  Matrix.Identity(),
-                  h.scene.getTransformMatrix(),
-                  camera.viewport.toGlobal(width, height),
+              check(
+                depth.referenceRepeat &&
+                  depth.roadOnlyRepeat &&
+                  depth.referenceErrors.every((n) => n === 0) &&
+                  depth.referenceRoadDraws.every((n) => n >= 4) &&
+                  composite.draws >= 2 &&
+                  compositeRepeat.draws >= 2,
+                'Original Three composite/road-only reference did not repeat after actual draws',
+              );
+              let withRoad: ReturnType<typeof h.capture>, roadOnly: ReturnType<typeof h.capture>;
+              try {
+                coVisibility.forEach(({ mesh, enabled }) => mesh.setEnabled(enabled));
+                await h.presented();
+                withRoad = await lease('Original road and stripe depth capture', async () =>
+                  h.capture(),
                 );
-                const px = Math.round(projected.x),
-                  py = height - 1 - Math.round(projected.y);
-                let max = 0,
-                  difference = 0,
-                  opaque = true;
-                for (let dy = -1; dy <= 1; dy++)
-                  for (let dx = -1; dx <= 1; dx++) {
-                    const i = ((py + dy) * width + px + dx) * 4;
-                    opaque &&=
-                      first.pixels[i + 3] === 255 &&
-                      withRoad.pixels[i + 3] === 255 &&
-                      roadOnly.pixels[i + 3] === 255;
-                    for (let c = 0; c < 3; c++) {
-                      max = Math.max(max, Math.abs(first.pixels[i + c] - withRoad.pixels[i + c]));
-                      difference = Math.max(
-                        difference,
-                        Math.abs(first.pixels[i + c] - roadOnly.pixels[i + c]),
-                      );
-                    }
-                  }
-                depth.samples.push({ x, z, max, difference, opaque });
-                depth.max = Math.max(depth.max, max);
-                depth.roadOnlyDifferences += difference > 2 ? 1 : 0;
-                check(
-                  opaque && max <= FACTOR_LIMITS.max,
-                  'Original 15mm stripe/road interior depth differs',
+                d.mesh.setEnabled(false);
+                await h.presented();
+                roadOnly = await lease('Actual original road-only coverage witness', async () =>
+                  h.capture(),
                 );
+              } finally {
+                d.mesh.setEnabled(true);
+                coVisibility.forEach(({ mesh }) => mesh.setEnabled(false));
               }
-            depth.glError = await lease('Original road depth GL status', async () => gl.getError());
-
-            check(
-              depth.roadOnlyDifferences > 0 && depth.glError === 0,
-              'Actual original road did not establish occluded background',
-            );
+              images.push(
+                { name: 'original-road-depth', image: withRoad.image },
+                { name: 'original-road-only', image: roadOnly.image },
+              );
+              // Marker changes RGB only. Full composite alpha coverage remains
+              // comparable against the original independently generated road.
+              for (let i = 3; i < composite.pixels.length; i += 4) {
+                const expected = composite.pixels[i],
+                  actual = withRoad.pixels[i];
+                depth.compositeCoverage.missing += expected === 255 && actual !== 255 ? 1 : 0;
+                depth.compositeCoverage.excess += actual === 255 && expected === 0 ? 1 : 0;
+                depth.compositeCoverage.partialAlpha +=
+                  (expected !== 0 && expected !== 255) || (actual !== 0 && actual !== 255) ? 1 : 0;
+              }
+              check(
+                depth.compositeCoverage.missing + depth.compositeCoverage.excess <=
+                  FACTOR_LIMITS.coverageMismatchPixels &&
+                  depth.compositeCoverage.partialAlpha === 0,
+                'Original road/stripe composite alpha coverage differs',
+              );
+              let visibleErrorSum = 0,
+                occludedErrorSum = 0;
+              const ray = new T.Raycaster();
+              // The SAME nine 3x3 patches: classification comes from ORIGINAL
+              // composite visibility and independent CPU triangle intersections,
+              // never from observed native errors or a changed/masked coordinate.
+              for (const x of [-station.width + 1, 0, station.width - 1])
+                for (const z of [-0.3, 0, 0.3]) {
+                  const projected = Vector3.Project(
+                    Vector3.FromArray(
+                      new T.Vector3(x, z, 0).applyMatrix4(originalPlane.matrixWorld).toArray(),
+                    ),
+                    Matrix.Identity(),
+                    h.scene.getTransformMatrix(),
+                    camera.viewport.toGlobal(width, height),
+                  );
+                  const px = Math.round(projected.x),
+                    py = height - 1 - Math.round(projected.y);
+                  const sample = { x, z, pixels: [] as object[], max: 0, visible: 0, occluded: 0 };
+                  depth.samples.push(sample);
+                  for (let dy = -1; dy <= 1; dy++)
+                    for (let dx = -1; dx <= 1; dx++) {
+                      const sx = px + dx,
+                        sy = py + dy,
+                        i = (sy * width + sx) * 4;
+                      // readPixels row zero is bottom; +.5 samples the SAME
+                      // framebuffer pixel center in normalized device coordinates.
+                      ray.setFromCamera(
+                        new T.Vector2(((sx + 0.5) / width) * 2 - 1, ((sy + 0.5) / height) * 2 - 1),
+                        threeCamera,
+                      );
+                      const stripeHit = ray.intersectObject(reference, false)[0],
+                        roadHit = ray.intersectObject(referenceRoad, false)[0];
+                      const opaque = [
+                        first,
+                        composite,
+                        referenceRoadOnly,
+                        withRoad,
+                        roadOnly,
+                      ].every((c) => c.pixels[i + 3] === 255);
+                      const gap =
+                        stripeHit && roadHit ? roadHit.distance - stripeHit.distance : null;
+                      const expectedVisible = gap !== null && gap > 0;
+                      if (gap !== null)
+                        depth.minimumTriangleGap = Math.min(
+                          depth.minimumTriangleGap,
+                          Math.abs(gap),
+                        );
+                      let originalRoadError = 0,
+                        originalStripeError = 0,
+                        nativeRoadError = 0,
+                        nativeStripeError = 0,
+                        distinct = 0;
+                      for (let c = 0; c < 3; c++) {
+                        originalRoadError = Math.max(
+                          originalRoadError,
+                          Math.abs(composite.pixels[i + c] - referenceRoadOnly.pixels[i + c]),
+                        );
+                        originalStripeError = Math.max(
+                          originalStripeError,
+                          Math.abs(composite.pixels[i + c] - first.pixels[i + c]),
+                        );
+                        nativeRoadError = Math.max(
+                          nativeRoadError,
+                          Math.abs(withRoad.pixels[i + c] - roadOnly.pixels[i + c]),
+                        );
+                        nativeStripeError = Math.max(
+                          nativeStripeError,
+                          Math.abs(withRoad.pixels[i + c] - first.pixels[i + c]),
+                        );
+                        distinct = Math.max(
+                          distinct,
+                          Math.abs(roadOnly.pixels[i + c] - first.pixels[i + c]),
+                        );
+                      }
+                      const nativeError = expectedVisible ? nativeStripeError : nativeRoadError;
+                      for (let c = 0; c < 3; c++) {
+                        if (expectedVisible)
+                          visibleErrorSum += Math.abs(withRoad.pixels[i + c] - first.pixels[i + c]);
+                        else
+                          occludedErrorSum += Math.abs(
+                            withRoad.pixels[i + c] - roadOnly.pixels[i + c],
+                          );
+                      }
+                      sample.pixels.push({
+                        sx,
+                        sy,
+                        opaque,
+                        triangleDepthGap: gap,
+                        expectedVisible,
+                        originalRoadError,
+                        originalStripeError,
+                        nativeRoadError,
+                        nativeStripeError,
+                        roadStripeDifference: distinct,
+                      });
+                      check(
+                        opaque &&
+                          gap !== null &&
+                          Math.abs(gap) > 1e-5 &&
+                          distinct > FACTOR_LIMITS.max,
+                        'Fixed depth patch lacks distinct opaque road/stripe and unambiguous original triangles',
+                      );
+                      check(
+                        expectedVisible
+                          ? originalStripeError <= FACTOR_LIMITS.max &&
+                              originalRoadError > FACTOR_LIMITS.max
+                          : originalRoadError === 0 && originalStripeError > FACTOR_LIMITS.max,
+                        'Original Three composite disagrees with original triangle-depth classification',
+                      );
+                      check(
+                        nativeError <= FACTOR_LIMITS.max &&
+                          (expectedVisible ? nativeRoadError : nativeStripeError) >
+                            FACTOR_LIMITS.max,
+                        'Native original road/stripe visible-or-occluded classification differs',
+                      );
+                      sample.max = Math.max(sample.max, nativeError);
+                      depth.max = Math.max(depth.max, nativeError);
+                      if (expectedVisible) {
+                        sample.visible++;
+                        depth.visiblePixels++;
+                        depth.maxVisible = Math.max(depth.maxVisible, nativeError);
+                      } else {
+                        sample.occluded++;
+                        depth.occludedPixels++;
+                        depth.maxOccluded = Math.max(depth.maxOccluded, nativeError);
+                      }
+                    }
+                }
+              depth.meanVisible = visibleErrorSum / (depth.visiblePixels * 3);
+              depth.meanOccluded = occludedErrorSum / (depth.occludedPixels * 3);
+              depth.glError = await lease('Original road depth GL status', async () =>
+                gl.getError(),
+              );
+              check(
+                depth.visiblePixels === depth.expectedSourceClassification.visible &&
+                  depth.occludedPixels === depth.expectedSourceClassification.occluded &&
+                  depth.visiblePixels + depth.occludedPixels ===
+                    depth.expectedSourceClassification.total &&
+                  depth.meanVisible <= FACTOR_LIMITS.mean &&
+                  depth.meanOccluded <= FACTOR_LIMITS.mean &&
+                  depth.glError === 0,
+                'Both original visible and occluded depth cases must be exercised',
+              );
+            } catch (error) {
+              depthFailed = true;
+              depthFailure = error;
+            } finally {
+              reference.visible = true;
+              threeScene.remove(referenceRoad);
+              try {
+                await threeGpu.prepare(
+                  'Original Three depth reference cleanup',
+                  deadline,
+                  async () => {
+                    const errors = cleanupPresentation([disposeRoadGeometry, disposeRoadMaterial]);
+                    if (errors.length) throw errors[0];
+                  },
+                );
+              } catch (error) {
+                if (!depthFailed) {
+                  depthFailed = true;
+                  depthFailure = error;
+                }
+              }
+            }
+            if (depthFailed) throw depthFailure;
           }
           check(
             (
@@ -993,6 +1257,7 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
     const errors = cleanupPresentation([
       () => owner?.dispose(),
       () => road?.dispose(),
+      ...depthReferenceCleanup,
       () => referenceMaterial?.dispose(),
       () => referenceMap?.dispose(),
       () => originalGeometry.dispose(),

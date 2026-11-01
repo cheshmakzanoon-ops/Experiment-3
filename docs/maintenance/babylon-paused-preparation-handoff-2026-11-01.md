@@ -104,3 +104,27 @@ Prior timeouts and GPU-loss failures remain historical evidence; physical-device
 performance, full Babylon presentation across disciplines and retail readiness
 remain separate work. This branch's workflow uploads unsigned development
 artifacts; it does not publish a release or modify main.
+
+## Subsequent native repeat: `a68a1ba`
+
+[Run 41332598104](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41332598104)
+again failed Linux's unchanged first-pause gate. The new stripe is not imported
+by live startup; no causal attribution to it is established. The configured
+30-second gate lasted 30,014 ms with 288 received polls. The final pre-error poll
+was received 68 ms before failure: 7/6 draws, 133/133 preparations, surface/gantry/
+lamps complete and the banner still drawable but incomplete; a GPU submission
+was pending for 1.85 seconds. No graphics fault or context loss was recorded.
+Later collection approximately 6.5 seconds after failure showed 9/8 draws and all
+owners complete, but presentation still unsettled. That is not a pre-timeout pass.
+
+Thus the successful `6c1ded7` run is retained as evidence of one pass, not stable
+Linux performance. Startup headroom remains open. Existing deadlines, original
+geometry, shader preparation and two-ready-completion requirements are preserved.
+
+The `a68a1ba` native run finished with Windows and macOS passing all four
+compatibility journeys, respectively 43/43 and 30/30 draws, both 439 preparations.
+Retained live banner/gantry/lamp receipts and screenshots were correct. Linux
+remained failed as recorded above. Evidence artifacts: Linux 13094197742,
+macOS 13093779825, Windows 13093329557. All reports identify fingerprint
+`e9cf8284f8ef62dfd955a08aa64d64be04f3c45500b9d414912e3bd470d967ba`;
+it differs from `6c1ded7`, so binary identity is not assumed.
