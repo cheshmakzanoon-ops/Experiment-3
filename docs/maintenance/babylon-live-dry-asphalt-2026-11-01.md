@@ -156,3 +156,38 @@ acceptance, **not** a complete supported desktop matrix, full original lighting,
 weather/material parity, four-mode Babylon completion or retail qualification.
 Separate driver diagnostics remain source-qualified and do not replace required
 Mesa acceptance.
+
+### Same-source Linux driver comparison
+
+[Run 41268495964](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41268495964)
+is terminal failure on the same `f2cf877` source. All three jobs passed 855
+contracts. Diagnostic SwiftShader passed model/wheel acceptance and all four
+journeys, with 403 preparation leases and road presentations 3→9→16. This does
+not qualify required Mesa or authorize publication.
+
+V2 Mesa reached model presentation, then wheel acceptance timed out. Final
+failure evidence records frame 13 pending 15.456 seconds after CPU draw returned
+in 13.4 ms, GPU exit 512/context loss. The unchanged validator exactly reproduces
+the retained numeric receipt: selected compile/link scopes closed; flush,
+Scheduler and PutChanged each have one unfinished scope, with one joint
+PutChanged/flush ancestry. Capture size is 7,523,892 bytes; summary 5,107 bytes.
+Selected error/loss totals are zero, but the producer tail is uncertified and
+fault coverage is `trace-window-unavailable-or-uncertain`. This is inconclusive;
+no raw trace was retrieved/reparsed, and scheduled deletion is not independently
+verified deletion.
+
+Compatibility-only Mesa completed live-road readiness (230 leases, nine
+presentations), then reached the original Formula cockpit. CPU draw returned in
+130.2 ms; its fence cancelled after 39.366 seconds, with queue 5/4 and GPU
+512/context loss. Unchanged upload/compaction counters do not establish GPU
+completion or isolate a cause. All eight driver PNGs and compact member hashes
+were checked; the failed graphics results remain failures.
+
+Compact artifact SHA-256:
+
+- SwiftShader **13068678768**:
+  `117375ca749be69e7ce4bf30e1599442be63c5ddfa199ce492800b3f4646c544`.
+- V2 Mesa **13068024161**:
+  `5e81be03bbb05d31f799cc5d841844b5dbda3089a076c8240861e4dcb1f2e60f`.
+- Compatibility Mesa **13068633305**:
+  `2f127f20717e3dc55c5f00f890872666e3d1eb6f70e1f00a3ce9b6aca09ec274`.
