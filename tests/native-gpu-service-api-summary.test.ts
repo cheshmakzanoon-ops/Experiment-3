@@ -150,6 +150,12 @@ describe('private service API schema and per-instance ancestry', () => {
         Object.assign(v, { private: '/private/SECRET' });
       },
       (v) => {
+        Object.assign(v, { oneShotPushNonpublishing: true });
+      },
+      (v) => {
+        Object.assign(v, { manualNonpublishing: true });
+      },
+      (v) => {
         v.childTailCertified = true as false;
       },
       (v) => {
@@ -380,6 +386,11 @@ describe('service API receipt and actual-emission evidence gate', () => {
       path: 'private',
     });
     expect(trace.receipt).not.toHaveProperty('serviceApiMode');
+    // Frozen default receipt bytes from the reviewed b3a0cc2 parent; the new
+    // authorization path must not leak a field into uninstrumented launches.
+    expect(createHash('sha256').update(JSON.stringify(trace.receipt)).digest('hex')).toBe(
+      'd8d8a5c0e26e9737f288dcaaa0276e93c47c120fbeb14111617523bec3d9f29d',
+    );
     expect(await trace.run(async () => 1)).toBe(1);
     expect(adapter.start).not.toHaveBeenCalled();
     expect(() =>
@@ -393,161 +404,189 @@ describe('service API receipt and actual-emission evidence gate', () => {
     ).toThrow('requires');
   });
 
-  it('requires both strict launch facts and actual wrapper emission, never raw artifacts or causal certainty', async () => {
-    const directory = await mkdtemp(join(tmpdir(), 'service-api-evidence-'));
-    const evidence = join(directory, 'evidence');
-    await mkdir(evidence);
-    const outputPath = join(evidence, 'gpu-trace-summary.json');
-    const source = { commit: 'exact-source', fingerprint: 'exact-inputs', electron: '45.2.1' };
-    const value = summary();
-    const launch = {
-      mode,
-      argument: '--enable-gpu-service-tracing',
-      platform: 'linux',
-      arch: 'x64',
-      graphicsBackend: 'mesa',
-      journey: 'full',
-      manualNonpublishing: true,
-    };
-    const runtime = {
-      platform: 'linux',
-      arch: 'x64',
-      electron: '45.2.1',
-      chromium: '156.0.8078.75',
-    };
-    const retain = (s = value) =>
-      retainNativeGpuTraceSummary({
-        summary: s,
-        source,
-        outputPath,
-        signal: new AbortController().signal,
-        serviceApiMode: mode,
-      });
-    try {
-      const trace = createNativeGpuTrace({
-        enabled: true,
-        serviceApiMode: mode,
-        source,
-        path: join(directory, 'private.pftrace'),
-        outputPath,
-        firstFault: createFirstGraphicsFault(),
-        adapter: { categories: async () => [], start: async () => {}, stop: async () => 'private' },
-        inspect: () => retain(),
-      });
-      await trace.run(async () => {});
-      const report = {
-        success: false,
+  it.each(['manualNonpublishing', 'oneShotPushNonpublishing'] as const)(
+    'requires strict %s launch facts and actual wrapper emission, never raw artifacts or causal certainty',
+    async (authorizationField) => {
+      const directory = await mkdtemp(join(tmpdir(), 'service-api-evidence-'));
+      const evidence = join(directory, 'evidence');
+      await mkdir(evidence);
+      const outputPath = join(evidence, 'gpu-trace-summary.json');
+      const source = { commit: 'exact-source', fingerprint: 'exact-inputs', electron: '45.2.1' };
+      const value = summary();
+      const launch = {
+        mode,
+        argument: '--enable-gpu-service-tracing',
         platform: 'linux',
         arch: 'x64',
-        hostArch: 'x64',
         graphicsBackend: 'mesa',
-        smokeJourney: { requestedJourney: 'full', diagnosticOnly: false, omittedChecks: [] },
-        source,
-        runtime,
-        serviceApiLaunch: launch,
-        gpuTrace: trace.receipt,
+        journey: 'full',
+        [authorizationField]: true,
       };
-      expect(trace.receipt).toMatchObject({
-        serviceApiMode: mode,
-        scope: NATIVE_GPU_TRACE.scope,
-        config: {
-          included_categories: NATIVE_GPU_TRACE.categories,
-          trace_buffer_size_in_kb: 16384,
-        },
-      });
-      expect(await validateNativeGpuTraceEvidence(report, evidence)).toMatchObject({
-        outcome: 'retained-typed-gpu-service-api-summary',
-      });
-      expect(await readdir(evidence)).toEqual(['gpu-trace-summary.json']);
-      const text = await readFile(outputPath, 'utf8');
-      expect(text).not.toContain(directory);
-      expect(Buffer.byteLength(text)).toBeLessThanOrEqual(16384);
-      await expect(
+      const runtime = {
+        platform: 'linux',
+        arch: 'x64',
+        electron: '45.2.1',
+        chromium: '156.0.8078.75',
+      };
+      const retain = (s = value) =>
         retainNativeGpuTraceSummary({
-          summary: value,
+          summary: s,
           source,
           outputPath,
           signal: new AbortController().signal,
-        }),
-      ).rejects.toThrow('summary-invalid');
-      trace.receipt.output = await retain(); // Invalid-mode retention removed the prior sanitized file.
-      for (const field of Object.keys(launch)) {
-        const altered = { ...launch, [field]: 'SECRET' };
+          serviceApiMode: mode,
+        });
+      try {
+        const trace = createNativeGpuTrace({
+          enabled: true,
+          serviceApiMode: mode,
+          source,
+          path: join(directory, 'private.pftrace'),
+          outputPath,
+          firstFault: createFirstGraphicsFault(),
+          adapter: {
+            categories: async () => [],
+            start: async () => {},
+            stop: async () => 'private',
+          },
+          inspect: () => retain(),
+        });
+        await trace.run(async () => {});
+        const report = {
+          success: false,
+          platform: 'linux',
+          arch: 'x64',
+          hostArch: 'x64',
+          graphicsBackend: 'mesa',
+          smokeJourney: { requestedJourney: 'full', diagnosticOnly: false, omittedChecks: [] },
+          source,
+          runtime,
+          serviceApiLaunch: launch,
+          gpuTrace: trace.receipt,
+        };
+        expect(trace.receipt).toMatchObject({
+          serviceApiMode: mode,
+          scope: NATIVE_GPU_TRACE.scope,
+          config: {
+            included_categories: NATIVE_GPU_TRACE.categories,
+            trace_buffer_size_in_kb: 16384,
+          },
+        });
+        expect(await validateNativeGpuTraceEvidence(report, evidence)).toMatchObject({
+          outcome: 'retained-typed-gpu-service-api-summary',
+        });
+        expect(await readdir(evidence)).toEqual(['gpu-trace-summary.json']);
+        const text = await readFile(outputPath, 'utf8');
+        expect(text).not.toContain(directory);
+        expect(text).not.toMatch(
+          /manualNonpublishing|oneShotPushNonpublishing|GITHUB_|head_commit|8dc45f7a/,
+        );
+        expect(trace.receipt).not.toHaveProperty('manualNonpublishing');
+        expect(trace.receipt).not.toHaveProperty('oneShotPushNonpublishing');
+        expect(Buffer.byteLength(text)).toBeLessThanOrEqual(16384);
         await expect(
-          validateNativeGpuTraceEvidence({ ...report, serviceApiLaunch: altered }, evidence),
-        ).rejects.toThrow('launch receipt');
-      }
-      for (const changed of [undefined, { ...launch, extra: 'SECRET' }])
-        await expect(
-          validateNativeGpuTraceEvidence({ ...report, serviceApiLaunch: changed }, evidence),
-        ).rejects.toThrow('launch receipt');
-      for (const field of ['platform', 'arch', 'hostArch', 'graphicsBackend'])
-        await expect(
-          validateNativeGpuTraceEvidence({ ...report, [field]: 'unexpected' }, evidence),
-        ).rejects.toThrow('launch receipt');
-      for (const smokeJourney of [
-        undefined,
-        { ...report.smokeJourney, requestedJourney: 'compatibility-diagnostic' },
-        { ...report.smokeJourney, diagnosticOnly: true },
-        { ...report.smokeJourney, omittedChecks: ['original asset'] },
-      ])
-        await expect(
-          validateNativeGpuTraceEvidence({ ...report, smokeJourney }, evidence),
-        ).rejects.toThrow('launch receipt');
-      for (const field of Object.keys(runtime))
+          retainNativeGpuTraceSummary({
+            summary: value,
+            source,
+            outputPath,
+            signal: new AbortController().signal,
+          }),
+        ).rejects.toThrow('summary-invalid');
+        trace.receipt.output = await retain(); // Invalid-mode retention removed the prior sanitized file.
+        for (const field of Object.keys(launch)) {
+          const altered = { ...launch, [field]: 'SECRET' };
+          await expect(
+            validateNativeGpuTraceEvidence({ ...report, serviceApiLaunch: altered }, evidence),
+          ).rejects.toThrow('launch receipt');
+        }
+        const otherAuthorizationField =
+          authorizationField === 'manualNonpublishing'
+            ? 'oneShotPushNonpublishing'
+            : 'manualNonpublishing';
+        for (const changed of [
+          undefined,
+          null,
+          [],
+          { ...launch, extra: 'SECRET' },
+          { ...launch, [otherAuthorizationField]: true },
+          { ...launch, [otherAuthorizationField]: false },
+          { ...launch, [otherAuthorizationField]: undefined },
+          { ...launch, [authorizationField]: false },
+          { ...launch, [authorizationField]: undefined },
+          { ...launch, [authorizationField]: 'true' },
+          Object.fromEntries(Object.entries(launch).filter(([key]) => key !== authorizationField)),
+        ])
+          await expect(
+            validateNativeGpuTraceEvidence({ ...report, serviceApiLaunch: changed }, evidence),
+          ).rejects.toThrow(/^Invalid service API diagnostic launch receipt$/);
+        for (const field of ['platform', 'arch', 'hostArch', 'graphicsBackend'])
+          await expect(
+            validateNativeGpuTraceEvidence({ ...report, [field]: 'unexpected' }, evidence),
+          ).rejects.toThrow('launch receipt');
+        for (const smokeJourney of [
+          undefined,
+          { ...report.smokeJourney, requestedJourney: 'compatibility-diagnostic' },
+          { ...report.smokeJourney, diagnosticOnly: true },
+          { ...report.smokeJourney, omittedChecks: ['original asset'] },
+        ])
+          await expect(
+            validateNativeGpuTraceEvidence({ ...report, smokeJourney }, evidence),
+          ).rejects.toThrow('launch receipt');
+        for (const field of Object.keys(runtime))
+          await expect(
+            validateNativeGpuTraceEvidence(
+              { ...report, runtime: { ...runtime, [field]: 'unexpected' } },
+              evidence,
+            ),
+          ).rejects.toThrow('launch receipt');
         await expect(
           validateNativeGpuTraceEvidence(
-            { ...report, runtime: { ...runtime, [field]: 'unexpected' } },
+            { ...report, gpuTrace: { ...trace.receipt, serviceApiMode: undefined } },
             evidence,
           ),
-        ).rejects.toThrow('launch receipt');
-      await expect(
-        validateNativeGpuTraceEvidence(
-          { ...report, gpuTrace: { ...trace.receipt, serviceApiMode: undefined } },
-          evidence,
-        ),
-      ).rejects.toThrow('Unexpected');
-      trace.receipt.output = await retain(summary(false));
-      await expect(validateNativeGpuTraceEvidence(report, evidence)).rejects.toThrow(
-        'No typed GPU service API emission',
-      );
-      // Completed wrappers establish instrumentation, not an open-boundary cause.
-      const completed = rows();
-      completed[10] = [10, 1, 1, 1, 0, 20, 25, 5, 5, 1, 0, 1, 0];
-      trace.receipt.output = await retain(
-        decodeNativeGpuServiceApiRows(csv(aggregate(completed)), 100),
-      );
-      await expect(validateNativeGpuTraceEvidence(report, evidence)).resolves.toMatchObject({
-        outcome: 'retained-typed-gpu-service-api-summary',
-      });
-      const reportPath = join(evidence, 'report.json');
-      await writeFile(reportPath, JSON.stringify(report));
-      const script = fileURLToPath(new URL('../scripts/native-gpu-trace.mjs', import.meta.url));
-      const valid = spawnSync(process.execPath, [script, '--validate', reportPath]);
-      expect(valid.status).toBe(0);
-      expect(JSON.parse(valid.stdout.toString()).outcome).toBe(
-        'retained-typed-gpu-service-api-summary',
-      );
-      const bad = Buffer.from('{"PRIVATE_SERVICE_API_SECRET":');
-      await writeFile(outputPath, bad);
-      trace.receipt.output = {
-        ...trace.receipt.output,
-        bytes: bad.length,
-        sha256: createHash('sha256').update(bad).digest('hex'),
-      } as NativeGpuTraceOutput;
-      await writeFile(reportPath, JSON.stringify(report));
-      const invalid = spawnSync(process.execPath, [script, '--validate', reportPath]);
-      expect(invalid.status).toBe(1);
-      expect(JSON.parse(invalid.stdout.toString())).toEqual({
-        outcome: 'trace-evidence-unavailable',
-        error: 'trace-summary-validation-failed',
-      });
-      expect(invalid.stdout.toString() + invalid.stderr.toString()).not.toContain(
-        'PRIVATE_SERVICE_API_SECRET',
-      );
-      expect(invalid.stdout.toString() + invalid.stderr.toString()).not.toContain(directory);
-    } finally {
-      await rm(directory, { recursive: true, force: true });
-    }
-  });
+        ).rejects.toThrow('Unexpected');
+        trace.receipt.output = await retain(summary(false));
+        await expect(validateNativeGpuTraceEvidence(report, evidence)).rejects.toThrow(
+          'No typed GPU service API emission',
+        );
+        // Completed wrappers establish instrumentation, not an open-boundary cause.
+        const completed = rows();
+        completed[10] = [10, 1, 1, 1, 0, 20, 25, 5, 5, 1, 0, 1, 0];
+        trace.receipt.output = await retain(
+          decodeNativeGpuServiceApiRows(csv(aggregate(completed)), 100),
+        );
+        await expect(validateNativeGpuTraceEvidence(report, evidence)).resolves.toMatchObject({
+          outcome: 'retained-typed-gpu-service-api-summary',
+        });
+        const reportPath = join(evidence, 'report.json');
+        await writeFile(reportPath, JSON.stringify(report));
+        const script = fileURLToPath(new URL('../scripts/native-gpu-trace.mjs', import.meta.url));
+        const valid = spawnSync(process.execPath, [script, '--validate', reportPath]);
+        expect(valid.status).toBe(0);
+        expect(JSON.parse(valid.stdout.toString()).outcome).toBe(
+          'retained-typed-gpu-service-api-summary',
+        );
+        const bad = Buffer.from('{"PRIVATE_SERVICE_API_SECRET":');
+        await writeFile(outputPath, bad);
+        trace.receipt.output = {
+          ...trace.receipt.output,
+          bytes: bad.length,
+          sha256: createHash('sha256').update(bad).digest('hex'),
+        } as NativeGpuTraceOutput;
+        await writeFile(reportPath, JSON.stringify(report));
+        const invalid = spawnSync(process.execPath, [script, '--validate', reportPath]);
+        expect(invalid.status).toBe(1);
+        expect(JSON.parse(invalid.stdout.toString())).toEqual({
+          outcome: 'trace-evidence-unavailable',
+          error: 'trace-summary-validation-failed',
+        });
+        expect(invalid.stdout.toString() + invalid.stderr.toString()).not.toContain(
+          'PRIVATE_SERVICE_API_SECRET',
+        );
+        expect(invalid.stdout.toString() + invalid.stderr.toString()).not.toContain(directory);
+      } finally {
+        await rm(directory, { recursive: true, force: true });
+      }
+    },
+  );
 });

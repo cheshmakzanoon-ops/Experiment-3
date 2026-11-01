@@ -1,6 +1,10 @@
 name: Diagnose Linux GPU service API boundary
 on:
   workflow_dispatch:
+  # Temporary one-shot path; remove after its terminal compact-evidence review.
+  push:
+    branches: [main]
+    paths: [.github/workflows/desktop-gpu-service-api-review.yml]
 permissions:
   contents: read
 concurrency:
@@ -8,7 +12,32 @@ concurrency:
   cancel-in-progress: true
 jobs:
   service-api-mesa:
-    name: Mesa full journey GPU service API boundary (manual nonpublishing diagnostic)
+    name: Mesa full journey GPU service API boundary (nonpublishing diagnostic)
+    # Actions string equality ignores case. The shared preflight independently
+    # repeats every push check case-sensitively before dependency/package work.
+    if: >-
+      ${{ github.event_name == 'workflow_dispatch' || (
+        github.event_name == 'push' &&
+        github.repository == 'cheshmakzanoon-ops/Experiment-3' &&
+        github.ref == 'refs/heads/main' &&
+        github.workflow_ref == 'cheshmakzanoon-ops/Experiment-3/.github/workflows/desktop-gpu-service-api-review.yml@refs/heads/main' &&
+        github.run_attempt == 1 &&
+        github.event.repository.full_name == 'cheshmakzanoon-ops/Experiment-3' &&
+        github.event.repository.fork == false &&
+        github.event.ref == 'refs/heads/main' &&
+        github.event.created == false &&
+        github.event.deleted == false &&
+        github.event.forced == false &&
+        github.event.before == 'b3a0cc29a78f03ac019e701592b4788d468f124e' &&
+        github.event.after == github.sha &&
+        github.event.head_commit.id == github.sha &&
+        github.workflow_sha == github.sha &&
+        github.sha != 'b3a0cc29a78f03ac019e701592b4788d468f124e' &&
+        github.event.head_commit.message == 'diagnostic: authorize gpu-service-api once 2026-11-01-8dc45f7a' &&
+        github.event.commits[0].id == github.sha &&
+        github.event.commits[0].message == 'diagnostic: authorize gpu-service-api once 2026-11-01-8dc45f7a' &&
+        github.event.commits[1] == null
+      ) }}
     # Harness-only instrumentation. The required Mesa lane and the existing
     # uninstrumented GPU trace job remain unchanged. Raw captures stay private.
     uses: ./.github/workflows/desktop-platform.yml

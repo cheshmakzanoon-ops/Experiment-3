@@ -285,19 +285,21 @@ then lost the GPU while its fence remained pending. These observations neither
 identify the later failing command nor isolate road/paint, asset, LLVM or another
 backend owner. They are not a first-use-only failure proof or a Linux repair.
 
-## Manual service-API-boundary experiment (implemented, not yet run natively)
+## Service-API-boundary experiment (implemented, not yet run natively)
 
-This is a **separate, manual-only, nonpublishing configuration**, not an expansion
-of the existing trace mode. `desktop-gpu-service-api-review.yml` has only
-`workflow_dispatch`, read-only repository permissions, and one Ubuntu 22.04 /
-Linux x64 / Mesa / full-journey call. The reusable input
+This is a **separate, nonpublishing configuration**, not an expansion of the
+existing trace mode. It was initially manual-only. Its unchanged manual path
+and the temporary, explicitly authorized one-shot push path below share
+`desktop-gpu-service-api-review.yml`, read-only repository permissions, and one
+Ubuntu 22.04 / Linux x64 / Mesa / full-journey call. The reusable input
 `gpu_service_api_trace` and harness `MOTOBOUND_GPU_SERVICE_API_TRACE` default to
 `off`; the only other value is `service-api-boundary-v1`. Existing
 `MOTOBOUND_GPU_TRACE=0|1` semantics remain unchanged.
 
 The new selector is rejected unless private tracing is enabled, target and host
 are Linux x64, graphics is Mesa, journey is full, and GitHub's existing caller
-context identifies the exact dedicated manual workflow. This is checked before
+context identifies the dedicated manual workflow or the exact one-shot push
+below. This is checked before
 dependency/package work and independently before Electron launch. A manual
 launch of a required release workflow is insufficient. Package publication
 remains `--publish never`; installer/checksum steps additionally require the
@@ -410,12 +412,87 @@ while emitting service events on
 [explicit tracks](https://github.com/chromium/chromium/blob/156.0.8078.75/gpu/command_buffer/service/gpu_tracer.cc#L85-L109).
 That would be a different perturbation and ancestry model.
 
-After separate dispatch authorization, the scope is **one bounded observation**
+The authorized execution scope remains **one bounded observation**
 through the existing window and terminal cleanup. Report observed API-boundary
 evidence, unavailable/inconclusive evidence, or non-reproduction under
 instrumentation. Do not broaden categories, extend the window, retry until a
 preferred result appears, or call a traced pass a repair. Native emission and
 this mode's fault coverage remain unverified until that exact-source run exists.
+
+### Temporary exact-push authorization — 2026-11-01
+
+The owner could not click Run workflow and explicitly requested an autonomous
+way forward. The narrow alternative uses ordinary repository-write/Actions
+authorization, not credentials, an API restriction bypass or security changes.
+No service-API observation had run when this exception was implemented.
+
+The temporary push trigger matches only `main` and changes to this dedicated
+workflow file. The job condition requires this repository and workflow, first
+attempt, a non-created/non-deleted/non-forced push, and exactly one commit from
+previous head `b3a0cc29a78f03ac019e701592b4788d468f124e`. The complete commit
+message must be exactly:
+
+```text
+diagnostic: authorize gpu-service-api once 2026-11-01-8dc45f7a
+```
+
+Event `after`, head commit, sole commit, `github.sha` and workflow SHA must
+agree. A later ordinary push cannot reuse the fixed previous head; ordinary
+messages do not select the diagnostic. A rerun is not an authorized second
+observation. The original manual-dispatch behavior remains unchanged.
+
+GitHub's preliminary expression equality is case-insensitive. Before dependency
+installation, and again before Electron launch, the same guard repeats the
+checks case-sensitively using the documented
+[GitHub default context and event-file variables](https://docs.github.com/en/actions/reference/workflows-and-actions/variables)
+and [push payload fields](https://docs.github.com/en/webhooks/webhook-events-and-payloads#push).
+The push path also rejects fork identity and requires the packaged source
+commit to equal the authorized GitHub SHA. Workflow SHA is the documented
+[workflow revision identity](https://docs.github.com/en/actions/reference/workflows-and-actions/contexts#github-context),
+not a branch-name approximation. These checks bind the run to its source; they
+do not protect against a repository writer deliberately editing the guard.
+
+Only this push path reads `GITHUB_EVENT_PATH`: at most 256 KiB, regular file,
+no-follow open, nonblocking open to prevent a FIFO replacement from hanging,
+stable descriptor identity/size/mtime, and bounded reads. Malformed, oversized,
+symlink, nonregular or unavailable input fails closed with no payload/path/OS
+error reflected in logs or artifacts. Off and manual modes never read it.
+This is an input/allocation bound, **not an RSS or OS-latency cap**.
+
+The push launch receipt has the same fixed facts but uses
+`oneShotPushNonpublishing: true` instead of `manualNonpublishing: true`.
+Both flags, extras and other receipt values are rejected; manual receipts and
+default V2 behavior are unchanged. No event payload or new trace-derived field
+enters the summary. Existing source/runtime pins, ten wrapper pairs, typed GPU
+identity, actual-emission gate, categories, window, parser, limits, first-error
+precedence and no-raw-upload policy remain unchanged.
+
+Publish only the tested direct child with that exact message, verify one run,
+and follow it through terminal compact-evidence review. Then remove the push
+trigger and launch authorization. If it does not qualify, stop and report the
+failed guard; do not broaden the trigger, retry until a desired result appears,
+or claim native service-API evidence without actual emitted wrappers.
+
+The one-shot guard's offline regression passed **350 tests in 10 files**,
+including all **99 real pinned-parser cases**, with one deliberately
+non-host-platform branch skipped. The three directly affected suites passed
+178 tests with that same skip. Tests exercise exact identity/token/parent/SHA,
+trailing LF/CRLF and case differences, first-attempt/force/fork/commit-count
+rejection, actual bounded UTF-8 file reads, symlink/directory/FIFO refusal,
+off/manual no-read behavior, source mismatch, fixed error privacy, both exact
+receipt forms and unchanged default receipt bytes.
+
+The shared-worktree native selector passed **893 tests / one platform-branch
+skip in 67 files**. This included seven unpublished asphalt-reference cases
+outside the diagnostic manifest; it is not described as an isolated 66-file
+snapshot run. Two overlapping broad type checks were killed with exit 137 and
+are not counted as passing. One subsequent serial **full TypeScript check
+passed** in a same-computer source snapshot of exact parent `b3a0cc2` plus only
+the nine-file diagnostic patch. Scoped strict types, ESLint, Prettier,
+actionlint and whitespace checks passed. Both summary parser modules, the
+shared parser protocol and reusable platform workflow remained byte-unchanged;
+the baseline SQL hash below still matches. These are engineering results, not
+native service-API emission or a graphics repair.
 
 ### Offline engineering verification for the service-API mode
 

@@ -1,5 +1,9 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import {
+  NATIVE_GPU_SERVICE_API_ONE_SHOT,
+  NATIVE_GPU_SERVICE_API_WORKFLOW,
+} from '../scripts/native-gpu-service-api-mode.mjs';
 import { NATIVE_GPU_TRACE } from '../scripts/native-gpu-trace.mjs';
 import { NATIVE_TRACE_PROCESSOR } from '../scripts/native-gpu-trace-summary.mjs';
 
@@ -10,7 +14,7 @@ const diagnostic = workflow('desktop-gpu-service-api-review.yml');
 const harness = read('scripts/desktop-smoke.mjs');
 const step = (name: string) => platform.split(`name: ${name}\n`)[1]?.split('      - ')[0];
 
-describe('manual-only nonpublishing service API diagnostic workflow', () => {
+describe('manual or exact one-shot nonpublishing service API diagnostic workflow', () => {
   it('defaults every reusable invocation to off while retaining the original trace selector', () => {
     expect(platform).toMatch(
       /gpu_service_api_trace:\n\s+required: false\n\s+type: string\n\s+default: 'off'/,
@@ -22,9 +26,21 @@ describe('manual-only nonpublishing service API diagnostic workflow', () => {
     expect(platform).toContain("MOTOBOUND_GPU_TRACE: ${{ inputs.gpu_trace && '1' || '0' }}");
   });
 
-  it('offers only a fixed manual Linux x64 Mesa full-journey diagnostic', () => {
-    expect(diagnostic).toMatch(/on:\n {2}workflow_dispatch:\npermissions:\n {2}contents: read/);
-    expect(diagnostic).not.toMatch(/\b(push|pull_request|schedule|workflow_call|inputs):/);
+  it('offers only manual dispatch or the dedicated workflow-path main push trigger', () => {
+    const triggers = diagnostic
+      .split('on:\n')[1]
+      ?.split('\npermissions:')[0]
+      .split('\n')
+      .filter((line) => !line.trimStart().startsWith('#'))
+      .join('\n');
+    expect(triggers).toBe(`  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [${NATIVE_GPU_SERVICE_API_WORKFLOW}]`);
+    expect(diagnostic).toMatch(/permissions:\n {2}contents: read\n/);
+    expect(diagnostic).not.toMatch(
+      /\b(pull_request|pull_request_target|schedule|workflow_call|workflow_run|inputs):/,
+    );
     expect(diagnostic).toContain('uses: ./.github/workflows/desktop-platform.yml');
     for (const setting of [
       'runner: ubuntu-22.04',
@@ -39,6 +55,45 @@ describe('manual-only nonpublishing service API diagnostic workflow', () => {
     expect(diagnostic.match(/uses: \.\/.github\/workflows\/desktop-platform.yml/g)).toHaveLength(1);
     expect(diagnostic).not.toMatch(
       /contents: write|needs:|publish-development|continue-on-error|desktop-out|desktop-checksums/,
+    );
+  });
+
+  it('requires the entire one-shot push context, with no general automatic opt-in', () => {
+    const allowed = NATIVE_GPU_SERVICE_API_ONE_SHOT;
+    const expression = diagnostic.match(/ {4}if: >-\n([\s\S]*?)\n {4}(?:#|uses:)/)?.[1];
+    const normalize = (value: string | undefined) => value?.replace(/\s+/g, ' ').trim();
+    expect(normalize(expression)).toBe(
+      normalize(`
+      \${{ github.event_name == 'workflow_dispatch' || (
+        github.event_name == 'push' &&
+        github.repository == '${allowed.repository}' &&
+        github.ref == '${allowed.ref}' &&
+        github.workflow_ref == '${allowed.repository}/${NATIVE_GPU_SERVICE_API_WORKFLOW}@${allowed.ref}' &&
+        github.run_attempt == 1 &&
+        github.event.repository.full_name == '${allowed.repository}' &&
+        github.event.repository.fork == false &&
+        github.event.ref == '${allowed.ref}' &&
+        github.event.created == false &&
+        github.event.deleted == false &&
+        github.event.forced == false &&
+        github.event.before == '${allowed.baseCommit}' &&
+        github.event.after == github.sha &&
+        github.event.head_commit.id == github.sha &&
+        github.workflow_sha == github.sha &&
+        github.sha != '${allowed.baseCommit}' &&
+        github.event.head_commit.message == '${allowed.message}' &&
+        github.event.commits[0].id == github.sha &&
+        github.event.commits[0].message == '${allowed.message}' &&
+        github.event.commits[1] == null
+      ) }}
+    `),
+    );
+    expect(diagnostic).not.toMatch(
+      /contains\(|startsWith\(|endsWith\(|secrets:|secrets\.|github\.token|actions: write/,
+    );
+    expect(diagnostic).toContain('Actions string equality ignores case.');
+    expect(diagnostic).toContain(
+      'repeats every push check case-sensitively before dependency/package work.',
     );
   });
 
@@ -163,13 +218,20 @@ describe('service API launch wiring preserves the existing native experiment', (
       'hostArch: target.hostArch',
       'graphicsBackend,',
       "journey: process.env.MOTOBOUND_SMOKE_JOURNEY ?? 'full'",
-      'manualNonpublishing: nativeGpuServiceApiManualContext(process.env)',
+      'const serviceApiAuthorization = nativeGpuServiceApiAuthorization(serviceApiMode, process.env)',
+      '...serviceApiAuthorization,',
       'const serviceApiArguments = nativeGpuServiceApiArguments(serviceApiOptions)',
       'const serviceApiLaunch = nativeGpuServiceApiLaunchReceipt(serviceApiOptions)',
-      'validateNativeGpuServiceApiSource(serviceApiMode, report.source)',
+      'validateNativeGpuServiceApiSource(serviceApiMode, report.source, {',
+      'githubSha: process.env.GITHUB_SHA',
       'if (serviceApiLaunch) report.serviceApiLaunch = serviceApiLaunch',
     ])
       expect(harness.slice(selector, launch)).toContain(binding);
+    expect(harness.slice(selector, launch)).toMatch(
+      /validateNativeGpuServiceApiSource\(serviceApiMode, report\.source, \{\s+\.\.\.serviceApiAuthorization,\s+githubSha: process\.env\.GITHUB_SHA,\s+\}\)/,
+    );
+    expect(harness).not.toContain('nativeGpuServiceApiManualContext');
+    expect(harness).not.toContain('GITHUB_EVENT_PATH');
     expect(harness.slice(launch, harness.indexOf("stage('electron-connected')"))).toContain(
       '...serviceApiArguments',
     );

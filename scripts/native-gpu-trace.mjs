@@ -413,7 +413,9 @@ export async function validateNativeGpuTraceEvidence(report, directory) {
       arch: 'x64',
       graphicsBackend: 'mesa',
       journey: 'full',
-      manualNonpublishing: true,
+      ...(launch?.oneShotPushNonpublishing === true
+        ? { oneShotPushNonpublishing: true }
+        : { manualNonpublishing: true }),
     };
     if (
       !launch ||
