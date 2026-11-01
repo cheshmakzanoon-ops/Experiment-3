@@ -104,3 +104,55 @@ workspace. This is not relabelled as a renderer result. No local Chromium bypass
 was attempted. **GPU and native acceptance of this live increment remain pending
 its exact-source Actions runs and image review.** No deadline, quality, security
 or comparison gate is relaxed.
+
+## Exact-source Actions qualification
+
+The preceding pending statement describes the pre-publication checkpoint. Source
+`f2cf877b4d5e6984ab8f193f2083684fcb3a7cb0` now has these independent outcomes:
+
+- [Babylon run 41268495905](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41268495905)
+  passed **293 contracts and all 12 real-WebGL journeys**, with no retries,
+  skips or flaky cases. All **56 unique PNGs / 87 image attachments** were
+  inspected. Full Aurel/Vellamar scenes bind the asphalt shader to all 38/50
+  road chunks and no paint chunk, share one material/three maps/one sRGB map,
+  prepare 115/151 variants and return owned scene resources to zero. Loss invalidates readiness/counts; restoration alone leaves them invalid,
+  and explicit restart rebuilds them.
+  Original references/negative controls remain independently qualified before
+  candidate allocation. Recomputed pixel comparisons retain the earlier two
+  one-channel, one-byte deviations; no comparison tolerance changed.
+- GPU artifact **13069050168**, 7,930,891 bytes, SHA-256
+  `f597398a03c57615107fdd41b65272ed001fd6d6d63ce975f368a7f6ee5de6e4`.
+- [Required native run 41268495872](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41268495872):
+  Windows and Apple Silicon passed **855 contracts each**, original model/wheel
+  acceptance and all four compatibility journeys. Actual live-substrate counts
+  remain 38/1/3/1 through initial/restart/model observations. Preparation is
+  403/403; completed presentations are Windows 3→19→31 and ARM 3→9→21.
+  All ten native images were inspected; the original car and textured road are
+  visible. These are CI-hosted smoke tests, not representative physical-hardware benchmarks.
+- Required Mesa completed initial/restart road presentations 3→9 and all 403
+  preparation leases. The model loaded with ten scalar-height materials. Later
+  normal frame 13 stayed pending for 30.063 seconds with 12 completed; CPU draw
+  had returned in 14.2 ms. Wheel acceptance timed out; final failure evidence records GPU exit
+  512/context loss with frame 13 pending. These observations use different clocks
+  and do not establish the ordering of timeout and GPU exit. Compatibility
+  journeys never began. The failure image shows the
+  cleared scene and explicit context-loss/rebuild message. This is neither an
+  initial road-readiness failure nor proof that road/model work caused the fault.
+  No driver/watchdog/OOM cause is established. Development publication was
+  **skipped**, so the older downloadable baseline remains unchanged.
+- Windows artifact **13067639290**, SHA-256
+  `a1d45a7194976a0a0772ad9f2bdaa3c9091ebc4210b3263dad312d93a199835a`;
+  ARM artifact **13067943647**, SHA-256
+  `f6ed5d04099c9bd6769cacdb7fced1f7630bc49d4c7c7ae383b50e70f66216a5`;
+  Mesa artifact **13067659471**, SHA-256
+  `ca16f806dd3767310000c96cd9e070c4e6409c9a1934de457196a1ad89ce12b0`.
+- [Ubuntu24 diagnostic 41268495953](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41268495953)
+  passed 855 contracts but stopped before application connection on the unchanged
+  sandbox-helper requirement. It provides no graphics observation. No security
+  setting, permission, watchdog or acceptance deadline was changed.
+
+Live dry-substrate integration therefore has real renderer and two native-target
+acceptance, **not** a complete supported desktop matrix, full original lighting,
+weather/material parity, four-mode Babylon completion or retail qualification.
+Separate driver diagnostics remain source-qualified and do not replace required
+Mesa acceptance.

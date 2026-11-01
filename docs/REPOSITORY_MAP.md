@@ -72,3 +72,5 @@ The compact [current status](CURRENT_STATUS.md) lists present gates; [developmen
 
 - `docs/experiments/motion-projection-22-stage2-results/`: bounded final-source results supplement, including actual fallback qualifications; no runtime physics activation.
 - Live material ownership/readiness evidence and limitations: [dry asphalt integration](maintenance/babylon-live-dry-asphalt-2026-11-01.md).
+
+- `scripts/offline-gpu-structure-*` and matching tests: offline-only fixed structural query and private bounded processor. No application/workflow capture integration. [Qualification and limits](maintenance/offline-gpu-structural-route-2026-11-01.md).
