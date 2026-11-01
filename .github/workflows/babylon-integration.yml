@@ -21,6 +21,22 @@ on:
       - 'src/rendering/grid-paint.ts'
       - 'src/rendering/geometry.ts'
       - 'tests/gp-grid-paint.test.ts'
+      - 'public/models/aurel-track-boards.glb'
+      - 'src/rendering/track-boards.ts'
+      - 'src/rendering/track-boards.manifest.json'
+      - 'src/rendering/track-board-plan.ts'
+      - 'src/rendering/studio/branding-plan.ts'
+      - 'src/rendering/studio/brand-atlas.ts'
+      - 'src/rendering/ground-profile.ts'
+      - 'src/rendering/grandstand.ts'
+      - 'src/rendering/venue-plan.ts'
+      - 'src/rendering/track-signal-plan.ts'
+      - 'src/simulation/track.ts'
+      - 'src/simulation/circuits.ts'
+      - 'tests/track-boards.test.ts'
+      - 'tests/fixtures/a09-triplet-original.ts'
+      - 'e2e/babylon-braking-triplet.spec.ts'
+      - 'e2e/fixtures/babylon-braking-triplet.ts'
       - 'src/rendering/studio/road-detail.ts'
       - 'src/rendering/tyre-marks.ts'
       - 'e2e/babylon-start-gantry.spec.ts'
@@ -70,6 +86,7 @@ jobs:
           - suite: start-banner
           - suite: start-finish-stripe
           - suite: grid-paint
+          - suite: braking-triplet
     if: github.ref == 'refs/heads/babylon-js'
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -83,7 +100,7 @@ jobs:
       - name: Validate source and both entry points
         run: npm run lint && npm run build
       - name: Engine component and existing asset geometry contracts
-        run: npx vitest run tests/babylon-*.test.ts tests/discipline-presets.test.ts tests/input.test.ts tests/formula-surfaces.test.ts tests/circuit-line-profile.test.ts tests/indexed-ribbon-normals.test.ts tests/circuit-ribbon-data.test.ts tests/road-detail.test.ts tests/tyre-marks.test.ts tests/start-gantry.test.ts tests/gp-grid-paint.test.ts
+        run: npx vitest run tests/babylon-*.test.ts tests/discipline-presets.test.ts tests/input.test.ts tests/formula-surfaces.test.ts tests/circuit-line-profile.test.ts tests/indexed-ribbon-normals.test.ts tests/circuit-ribbon-data.test.ts tests/road-detail.test.ts tests/tyre-marks.test.ts tests/start-gantry.test.ts tests/gp-grid-paint.test.ts tests/track-boards.test.ts
       - run: npx playwright install --with-deps chromium
       # Keep literal selectors: existing asphalt/grounding contracts inspect this step.
       - name: Real WebGL engine, model import and mode-switching journeys
@@ -101,6 +118,9 @@ jobs:
       - name: Original Formula grid paint GPU qualification
         if: matrix.suite == 'grid-paint'
         run: npx playwright test e2e/babylon-grid-paint.spec.ts
+      - name: Original A09 first braking triplet GPU qualification
+        if: matrix.suite == 'braking-triplet'
+        run: npx playwright test e2e/babylon-braking-triplet.spec.ts
       - name: Preserve browser evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4

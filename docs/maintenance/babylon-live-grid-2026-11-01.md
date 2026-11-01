@@ -143,3 +143,39 @@ published-source GPU/native run; no Linux reliability result is implied.
 Final frozen production build and discovery of all 32 browser cases also passed.
 The ordinary large-chunk warning remains. Independent review verified the exact
 four-file correction; no source changes occurred during the final check sequence.
+
+## Corrected handoff result: `6f6812b5`
+
+[GPU run 41362626902](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41362626902)
+passed all 32 cases, all five shards and the aggregate with no flaky/skipped
+cases. Restart actually retained scene epoch 2 while component advanced 2 → 3;
+after driving to tick 54, two fresh reset receipts completed (11 → 13) at tick 0.
+Canonical state matched, BODY/no-focus UI setup matched, and unmasked 1440×900
+RGBA had zero changed pixels. Both image hashes were
+`5e339c6c5c5b3bcac1d1d63e5cd9b247762d542650dee38f0956fcbfa296b11f`.
+The separate early-pause viewport proof also had zero differences (tick 700 held,
+then 730 resumed). Live grid receipts remained exact and all 380 isolated PNGs
+were unchanged. Retained artifact 13106945048 SHA-256:
+`cd7dc8877cbbcc81f0991cf3628fe8bc18da67357b48afb78dac89cca182bc9f`.
+This is SwiftShader proof, not physical-device performance.
+
+[Native run 41362626885](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41362626885)
+passed the complete Babylon path on all three platforms: initial readiness,
+restart, keyboard, model import, wheel movement, pause/freeze and screenshot.
+All recorded component 2 / scene 1 reuse, 311 preparations and exact live-grid
+counts. Linux reached 18/18 draws, Windows 50/50 and macOS 49/49. Linux retained
+its two ready reset submissions 10/11 followed by 12/12 completion; the earliest
+Mac/Windows pair was evicted, so their later retained receipts must not be
+presented as a capture of that exact pair.
+
+Windows/macOS passed all four compatibility journeys. Linux passed Formula, GP
+and MX, then lost its GPU context in the retained Three.js Festival resume
+segment after a paused receipt (tick 1516). Festival failed at 484.984 s; the
+loss named retained `index.html`/Three renderer, not the already completed Babylon
+path. The saved healthy Babylon snapshot is historical, not proof of health at
+the later failure. Full Linux workflow remains failed; no driver-cause or general
+reliability claim follows. The fully validated download baseline stays `468c4cdb`.
+
+Verified native artifacts: Linux 13106138991, Windows 13105374602,
+macOS 13106530819. Fingerprint:
+`907ff36bfa24699fee21cd796356fa0fb0694bbdcb56be7910d0159c18123e9f`.

@@ -34,6 +34,7 @@ it('retains the exact GPU selector union in required, non-filtered shards', () =
     'start-banner',
     'start-finish-stripe',
     'grid-paint',
+    'braking-triplet',
   ]);
   expect(
     [...source.matchAll(/^ {8}run: npx playwright test (.+)$/gm)].map((m) => m[1].split(' ')),
@@ -50,6 +51,7 @@ it('retains the exact GPU selector union in required, non-filtered shards', () =
     ['e2e/babylon-start-banner.spec.ts'],
     ['e2e/babylon-start-finish-stripe.spec.ts'],
     ['e2e/babylon-grid-paint.spec.ts'],
+    ['e2e/babylon-braking-triplet.spec.ts'],
   ]);
   const step = (name: string) => source.split(`      - name: ${name}\n`)[1]?.split('      - ')[0];
   expect(step('Real WebGL engine, model import and mode-switching journeys')).toContain(
@@ -66,6 +68,9 @@ it('retains the exact GPU selector union in required, non-filtered shards', () =
   );
   expect(step('Original Formula grid paint GPU qualification')).toContain(
     "if: matrix.suite == 'grid-paint'",
+  );
+  expect(step('Original A09 first braking triplet GPU qualification')).toContain(
+    "if: matrix.suite == 'braking-triplet'",
   );
   expect(source).toContain("- 'e2e/babylon-start-finish-stripe.spec.ts'");
   expect(source).toContain("- 'e2e/fixtures/babylon-start-finish-stripe.ts'");
@@ -109,4 +114,35 @@ it('triggers isolated grid qualification for every original reference and fixtur
     ?.split('      - ')[0];
   expect(contracts).toContain('tests/babylon-*.test.ts');
   expect(contracts).toContain('tests/gp-grid-paint.test.ts');
+});
+
+it('triggers isolated A09 qualification for original geometry, artwork and CPU contracts', () => {
+  const source = readFileSync('.github/workflows/babylon-integration.yml', 'utf8');
+  for (const path of [
+    'src/engine/**',
+    'tests/babylon-*.test.ts',
+    'src/rendering/geometry.ts',
+    'public/models/aurel-track-boards.glb',
+    'src/rendering/track-boards.ts',
+    'src/rendering/track-boards.manifest.json',
+    'src/rendering/track-board-plan.ts',
+    'src/rendering/studio/branding-plan.ts',
+    'src/rendering/studio/brand-atlas.ts',
+    'src/rendering/ground-profile.ts',
+    'src/rendering/grandstand.ts',
+    'src/rendering/venue-plan.ts',
+    'src/rendering/track-signal-plan.ts',
+    'src/simulation/track.ts',
+    'src/simulation/circuits.ts',
+    'tests/track-boards.test.ts',
+    'tests/fixtures/a09-triplet-original.ts',
+    'e2e/babylon-braking-triplet.spec.ts',
+    'e2e/fixtures/babylon-braking-triplet.ts',
+  ])
+    expect(source).toContain(`- '${path}'`);
+  const contracts = source
+    .split('      - name: Engine component and existing asset geometry contracts\n')[1]
+    ?.split('      - ')[0];
+  expect(contracts).toContain('tests/babylon-*.test.ts');
+  expect(contracts).toContain('tests/track-boards.test.ts');
 });
