@@ -1,0 +1,81 @@
+name: Babylon Mesa transport sensitivity review
+on:
+  workflow_dispatch:
+  # One bounded branch-only observation; retire this trigger after its results.
+  push:
+    branches: [babylon-js]
+    paths:
+      - '.github/workflows/babylon-mesa-transport-review.yml'
+permissions:
+  contents: read
+concurrency:
+  group: babylon-mesa-transport-review-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  paired-browser-review:
+    if: github.ref == 'refs/heads/babylon-js'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        pair: [1, 2]
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
+      - name: Retain source and browser runtime identity
+        env:
+          REVIEW_PAIR: ${{ matrix.pair }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          import { execFileSync } from 'node:child_process';
+          import { createHash } from 'node:crypto';
+          import { chromium } from '@playwright/test';
+          const lock = JSON.parse(readFileSync('package-lock.json', 'utf8'));
+          const source = JSON.parse(readFileSync('dist/BUILD_IDENTITY.json', 'utf8'));
+          if (source.commit !== process.env.GITHUB_SHA) throw new Error('Build source mismatch');
+          writeFileSync('mesa-transport-review.json', JSON.stringify({
+            version: 1, diagnosticOnly: true, nativeElectronQualification: false,
+            pair: Number(process.env.REVIEW_PAIR), source,
+            runId: process.env.GITHUB_RUN_ID, runAttempt: process.env.GITHUB_RUN_ATTEMPT,
+            runner: 'ubuntu-22.04', node: process.version,
+            playwright: lock.packages['node_modules/@playwright/test'].version,
+            chromium: execFileSync(chromium.executablePath(), ['--version'], { encoding: 'utf8' }).trim(),
+            electronDependencyNotExecuted: lock.packages['node_modules/electron'].version,
+            lockSha256: createHash('sha256').update(readFileSync('package-lock.json')).digest('hex'),
+            scope: 'Existing full live Formula scenes and isolated grounding; both uniform transports',
+            limitation: 'Playwright Chromium and existing browser Mesa policy differ from native Electron; no native acceptance claim'
+          }, null, 2) + '\n');
+          NODE
+      - name: Unchanged full live and isolated probes in both transports
+        run: >-
+          xvfb-run -a -s '-screen 0 1920x1080x24'
+          npx playwright test e2e/babylon-surface-parity.spec.ts
+          --grep 'full actual Formula scenes prepare and complete both canonical venue workloads|isolated Formula grounding applies qualified original sky/sun attenuation to native road and paint terms'
+      - name: Preserve each pair including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: babylon-mesa-transport-pair-${{ matrix.pair }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            test-results/
+            playwright-report/
+            browser-backend.json
+            browser-progress.json
+            mesa-transport-review.json
+            dist/BUILD_IDENTITY.json
+          retention-days: 14

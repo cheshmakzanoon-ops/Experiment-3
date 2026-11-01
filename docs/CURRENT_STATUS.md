@@ -14,7 +14,7 @@ Migration development stays exclusively on **babylon-js**. Main is frozen at res
 
 ## Latest recorded qualification
 
-**Uniform transport correction:** `6ead398` passed 13 GPU journeys and Windows native four-mode checks. Mac startup rejected its valid non-UBO driver path; Linux lost its GPU process after model presentation. The Mac-compatible vec4 uniform transport is implemented with the driver safeguard intact, pending new exact-source dual-transport GPU and native checks. [Scope/results](maintenance/babylon-live-grounding-2026-11-01.md).
+**Current exact source `f996583`:** 15/15 real WebGL journeys and 378 CI engine contracts passed, including native-default and forced-standalone uniforms. Windows and Apple Silicon macOS passed packaged Babylon and all four existing-content compatibility journeys. The Mac startup regression is fixed without overriding its driver safeguard. Linux failed after keyboard/pause before authored import: a 30-second presentation wait expired, followed by GPU-process exit 512/context loss. This remains a failed native qualification with no established cause. [Results](maintenance/babylon-live-grounding-2026-11-01.md).
 
 **Live grounding increment:** prerequisite `7e9cbb6` passed 13/13 WebGL journeys and 358 CI contracts. The new live Formula road/paint integration retains original assets/physics and is now subject to full-scene GPU pose-upload/movement checks and branch-only native packaging. Live-source results remain pending. [Scope](maintenance/babylon-live-grounding-2026-11-01.md).
 

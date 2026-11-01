@@ -114,3 +114,45 @@ ordinary vec4 dispatch never calls scalar-array setters; 0/12/1/0 UBO uploads ar
 byte-identical to the prior path. Missing/foreign/disposed/mismatched effects are
 rejected without draw-time readiness polling. Driver exceptions, shader algebra,
 original renderer/simulation/public assets and acceptance thresholds are unchanged.
+
+
+## Exact correction result `f996583`
+
+[GPU run 41292582915](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41292582915)
+passed all **15 journeys** and 378 CI contracts. Artifact `13078810748` SHA-256:
+`5d36e7db76a63bb1f6e77918aecc88edee92b50cc12988b4eb24841ca129be17`.
+Both native-default and deliberately disabled-UBO modes passed the identical
+isolated and full live-scene acceptance bodies.
+
+[Native run 41292582992](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41292582992)
+completed on all three targets:
+
+- Windows x64: passed, 30/30 completed Babylon draws and 403/403 preparations,
+  all four installed compatibility journeys.
+- Apple Silicon macOS: passed, 16/16 completed Babylon draws and 403/403
+  preparations, all four compatibility journeys; former startup rejection fixed.
+- Linux x64: failed after keyboard/pause, before authored model import. Draw 7
+  remained pending for 29.33 seconds after six completed draws and 230 completed
+  preparations. The 30-second presentation wait failed, then GPU-process exit
+  512/context loss was recorded. This does not prove a shader, uniform-buffer,
+  scheduler or driver root cause. No assertion, detail or deadline was relaxed.
+
+All native reports identify `f99658386d56540fed83c41d277752f0b28d21ac` and
+fingerprint `e402919509adc82f51f43de9349cd9c791b6d3816cd0f8d3bac4f7be838fa0da`.
+Windows and macOS screenshots show the authored car on asphalt; Linux records
+the explicit context-loss recovery screen. Installer artifacts are retained by
+Actions, not published as an all-platform release.
+
+Independent artifact audit verified actual default transport **UBO** and forced
+transport **standalone**. All 145 isolated image pairs, four initial/moved live
+image pairs and 54 raw payload pairs are byte-identical across transports. Each
+mode retains 14,155,776 raw bytes. All sixteen live receiver receipts have count
+one, exact active pose, 44 zero inactive scalars, valid native types/array size,
+stable effects/geometry/resources and GL0. Standalone UBO metadata is genuinely
+null; regular uniform metadata/readback is used instead. Diagnostic proxies and
+horizon-fragment limitations remain visible; no final-art claim is made.
+
+A separately bounded [Mesa browser transport comparison](babylon-mesa-transport-review-2026-11-01.md)
+will test sensitivity without changing production policy. Its Chromium version
+and existing browser watchdog/blocklist configuration differ from native Electron,
+so it cannot itself close Linux native qualification.
