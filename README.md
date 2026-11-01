@@ -1,5 +1,7 @@
 # MOTOBOUND
 
+> **Migration branch: `babylon-js`.** Babylon development continues only here. `main` remains the exact pre-migration snapshot restored from `20e0716`; do not merge this branch into main or run branch cleanup. Historical results below identify their own source commits.
+
 **A desktop motorsport game. Circuit racing, open roads, two wheels or four.**
 
 MOTOBOUND targets **Windows, macOS and Linux executables**, built from TypeScript with **Babylon.js as the main-engine direction** and the existing custom vehicle/race simulation retained as a component. The shipping product is an installed, offline-capable desktop game, **not a browser website**.
@@ -44,7 +46,7 @@ The desktop runtime uses Electron to provide a consistent bundled Chromium runti
 - **Offline graphics investigation:** a separate, source-pinned structural-summary tool is checked in with bounded private processing and synthetic parser/lifecycle tests. It is not connected to application/workflow capture, does not reprocess historical raw traces and does not diagnose or repair the Linux failure. [Scope](docs/maintenance/offline-gpu-structural-route-2026-11-01.md).
 - **Runtime-comparison infrastructure:** fixed official 45.2.1/44.10.1 archives and an isolated comparison harness passed offline checks, including 79 top-level tests. No native launch, active workflow or shipped downgrade is enabled. [Scope and remaining gates](docs/maintenance/electron-runtime-ab-offline-2026-11-01.md).
 - **Original grounding data preserved:** the Formula footprint/constants and presented-pose calculations now have a renderer-neutral owner, checked against a frozen pre-edit original oracle. Full types/lint/build, 293 Babylon contracts and 160 original/neutral/look checks passed. This does not yet activate grounding in Babylon. [Boundary](docs/maintenance/formula-grounding-data-2026-11-01.md).
-- **Isolated grounding probe:** the original Formula grounding plugin and independent road/paint lighting probe pass source/build checks (357 Babylon contracts and 160 original/neutral/look checks, with overlap). A thirteenth real-GPU journey is now wired for qualification; the live scene does not import the plugin. [Scope and pending GPU gate](docs/maintenance/babylon-grounding-probe-2026-11-01.md).
+- **Isolated grounding probe:** the original Formula grounding plugin and independent road/paint lighting probe pass source/build checks (357 Babylon contracts and 160 original/neutral/look checks, with overlap). The first real-GPU run on `ec93c56` passed the twelve retained journeys but the new candidate failed shader linking due to integer precision mismatch. An explicit precision correction is awaiting exact-source GPU qualification on this branch; the live scene does not import the plugin. [Scope and pending GPU gate](docs/maintenance/babylon-grounding-probe-2026-11-01.md).
 - **Physics experiment held:** the isolated motion/contact candidate passed all 57 strict calibrations and ten off-road race gates, but Arena’s AI-driven player slot crashes more often. Its code remains unapplied; the complete 74-entrant comparison is [archived here](docs/experiments/motion-projection-22-stage3-results/RESULTS.md).
 - **Still in development:** Babylon remains a labelled integration workbench. Complete four-discipline presentation, material/environment parity, controller-only qualification, representative-hardware performance and playtesting remain open. Academy promotion exposes the full venue, but its cold visibility/loading deadlines are not yet met. [Detailed evidence and remaining gates](docs/CURRENT_STATUS.md).
 
@@ -80,6 +82,7 @@ Requirements: Node.js **22.12+**, npm, and a supported desktop OS with WebGL2-ca
 ```sh
 git clone https://github.com/cheshmakzanoon-ops/Experiment-3.git motobound
 cd motobound
+git switch babylon-js
 npm ci
 npm run desktop:dev
 ```

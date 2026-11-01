@@ -414,10 +414,10 @@ export class FormulaGroundingPlugin extends MaterialPluginBase {
   getUniforms() {
     return {
       ubo: [
-        { name: 'formulaGroundingCount', size: 1, type: 'int' },
+        { name: 'formulaGroundingCount', size: 1, type: 'highp int' },
         { name: 'formulaGroundingPose', size: 4, type: 'vec4', arraySize: MAX },
       ],
-      fragment: `uniform int formulaGroundingCount; uniform vec4 formulaGroundingPose[${MAX}];`,
+      fragment: `uniform highp int formulaGroundingCount; uniform vec4 formulaGroundingPose[${MAX}];`,
     };
   }
   isReadyForSubMesh(

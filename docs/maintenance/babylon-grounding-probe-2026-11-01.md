@@ -127,3 +127,27 @@ reference/control/native result. A failed original control, budget or cleanup
 check remains failure. Live grounding, GP grounding, shadows/environment,
 wet/scanned layers, light pools, full-mode migration and physical-hardware/native
 Linux reliability are separate work; none is accepted by this offline checkpoint.
+
+
+## Branch-local precision correction
+
+Migration work resumes on `babylon-js` only; main remains untouched. The exact
+`ec93c56` GPU run [41278209540](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41278209540)
+passed the twelve retained journeys and qualified original grounding controls,
+but the new candidate failed shader linking before its first draw: the Material
+UBO count inherited different vertex/fragment integer precision. No candidate
+pixel parity or live grounding was established.
+
+The count now declares `highp int` explicitly in both UBO metadata and standalone
+uniform declaration. A regression expands the pinned Babylon PBR includes and
+uses its real plugin manager to verify identical Material blocks, unchanged UBO
+layout, and exact integer/pose uploads. Bounds, lighting equations and GPU test
+thresholds are unchanged. The integration workflow runs only for this branch
+and has read-only repository permissions; it cannot publish or modify main.
+Local checks and a new exact-source GPU run must qualify this correction before
+any live scene integration.
+
+Restart validation: full ESLint and TypeScript/Vite production build passed;
+349 Babylon/surface contracts across 33 files and 46 input/discipline/shared
+pose contracts across three files passed. Workflow syntax passed actionlint.
+These are CPU/source checks, not evidence of successful GPU linking.

@@ -10,6 +10,7 @@ import {
 } from '@babylonjs/core/Materials/materialPluginEvent.js';
 import type { UniformBuffer } from '@babylonjs/core/Materials/uniformBuffer.js';
 import { ShaderStore } from '@babylonjs/core/Engines/shaderStore.js';
+import { ProcessIncludes } from '@babylonjs/core/Engines/Processors/shaderProcessor.js';
 import { Mesh } from '@babylonjs/core/Meshes/mesh.js';
 import { VertexData } from '@babylonjs/core/Meshes/mesh.vertexData.js';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight.js';
@@ -148,7 +149,7 @@ it('uses the existing material UBO with no maps, meshes or independent GPU owner
     ...new Array(44).fill(0),
   ]);
   expect(s.plugin.getUniforms().ubo).toEqual([
-    { name: 'formulaGroundingCount', size: 1, type: 'int' },
+    { name: 'formulaGroundingCount', size: 1, type: 'highp int' },
     { name: 'formulaGroundingPose', size: 4, type: 'vec4', arraySize: 12 },
   ]);
   expect({
@@ -159,6 +160,79 @@ it('uses the existing material UBO with no maps, meshes or independent GPU owner
   expect(() => s.poses.bind({ ...values, useUbo: false } as unknown as UniformBuffer)).toThrow(
     'UBO',
   );
+});
+it('generates matching explicit integer precision in both native Material blocks without changing UBO layout or uploads', async () => {
+  const s = setup(),
+    buffer = s.material._uniformBuffer,
+    addUniform = vi.spyOn(buffer, 'addUniform');
+  s.material.buildUniformLayout();
+  expect(addUniform).toHaveBeenCalledWith('formulaGroundingCount', 1, 0);
+  expect(addUniform).toHaveBeenCalledWith('formulaGroundingPose', 4, 12);
+  const layout = buffer as unknown as {
+    _uniformLocations: Record<string, number>;
+    _uniformSizes: Record<string, number>;
+  };
+  const countOffset = layout._uniformLocations.formulaGroundingCount,
+    poseOffset = layout._uniformLocations.formulaGroundingPose;
+  expect(layout._uniformSizes.formulaGroundingCount).toBe(1);
+  expect(layout._uniformSizes.formulaGroundingPose).toBe(48);
+  expect(poseOffset).toBe(Math.ceil((countOffset + 1) / 4) * 4);
+  const poses = Array.from({ length: 48 }, (_, i) => Math.fround((i + 1) / 10));
+  s.poses.set(12, poses);
+  s.poses.bind(buffer);
+  const data = buffer.getData(),
+    words = new Int32Array(data.buffer, data.byteOffset, data.length);
+  expect(words[countOffset]).toBe(12);
+  expect(Array.from(data.slice(poseOffset, poseOffset + 48))).toEqual(poses);
+
+  const manager = s.material.pluginManager as unknown as {
+    _injectCustomCode(
+      data: { indexParameters: Record<string, number> },
+      existing: undefined,
+    ): (type: string, code: string) => string;
+  };
+  const emit = async (stage: 'vertex' | 'fragment', ubo: boolean) => {
+    const expanded = await new Promise<string>((resolve) =>
+      ProcessIncludes(
+        stage === 'vertex' ? pbrVertexShader.shader : pbrPixelShader.shader,
+        {
+          defines: [],
+          indexParameters: { maxSimultaneousLights: 2 },
+          isFragment: stage === 'fragment',
+          shouldUseHighPrecisionShader: true,
+          supportsUniformBuffers: ubo,
+          shadersRepository: '',
+          includesShadersStore: ShaderStore.IncludesShadersStore,
+          processor: null,
+          version: '300',
+          platformName: 'WEBGL2',
+          processingContext: null,
+          isNDCHalfZRange: false,
+          useReverseDepthBuffer: false,
+        },
+        resolve,
+      ),
+    );
+    return manager._injectCustomCode({ indexParameters: { maxSimultaneousLights: 2 } }, undefined)(
+      stage,
+      expanded,
+    );
+  };
+  const blocks: string[] = [];
+  for (const stage of ['vertex', 'fragment'] as const) {
+    const emitted = await emit(stage, true),
+      block = emitted.match(/uniform Material\s*\{([\s\S]*?)\};/)?.[1];
+    expect(block, stage).toBeDefined();
+    expect(block, stage).toContain('highp int formulaGroundingCount;');
+    expect(block?.match(/formulaGroundingCount/g), stage).toHaveLength(1);
+    expect(block, stage).toContain('vec4 formulaGroundingPose[12];');
+    expect(emitted).not.toContain('#define ADDITIONAL_UBO_DECLARATION');
+    blocks.push(block!);
+  }
+  expect(blocks[0]).toBe(blocks[1]);
+  const standalone = await emit('fragment', false);
+  expect(standalone).toContain('uniform highp int formulaGroundingCount;');
+  expect(standalone).not.toContain('uniform int formulaGroundingCount;');
 });
 it('keeps persistent shader/cache identity across zero, maximum and shrinking counts and later plugins', () => {
   const s = setup();

@@ -1,5 +1,7 @@
 # Babylon main-engine migration
 
+**Branch policy, 2026-11-01:** continue migration exclusively on `babylon-js`. Keep `main` at its restored pre-migration state. The engine direction below applies to this experimental branch, not main.
+
 Owner direction, 2026-10-31: Babylon.js is the main engine for future development. Retain the existing custom vehicle/simulation engine as a component; do not discard prior Three.js assets or gameplay.
 
 ## Desktop delivery is primary

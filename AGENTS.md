@@ -16,8 +16,8 @@ The owner approved Windows x64, Linux x64 and Apple Silicon macOS development do
 
 ## Execution and evidence
 
-- Keep development on main. Preserve ancestry and all work before deleting any already-integrated branches. Never overwrite concurrent remote work.
-- Commit/publish verified increments. Keep the main README and current-status page truthful about source, packages, deployment and remaining limitations.
+- Work exclusively on `babylon-js` for Babylon migration. Never modify, merge into, push to or delete `main`; it is the exact restored pre-migration snapshot. Do not run main-only branch cleanup. Preserve ancestry and concurrent work.
+- Commit/publish verified increments. Keep this branch’s README and current-status page truthful about source, packages, deployment and remaining limitations.
 - Run affected tests locally. Use GitHub Actions for native OS and WebGL checks unavailable locally. Preserve failure artifacts and inspect screenshots, not only exit codes.
 - When physics, AI or driving-controller changes can alter recorded lap times, advance `SIMULATION_VERSION` and test separation from the prior category without deleting stored records. Definition hashes alone do not identify solver changes.
 - Vehicle calibration uses the complete registry and `--strict`; report target-band results separately from near-edge and fitted AI-envelope contracts. Never reuse stale generated reports as fresh solver evidence.

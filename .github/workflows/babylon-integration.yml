@@ -2,7 +2,7 @@ name: Babylon engine integration
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [babylon-js]
     paths:
       - 'src/engine/**'
       - 'babylon.html'
@@ -43,6 +43,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   verify:
+    if: github.ref == 'refs/heads/babylon-js'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
