@@ -103,18 +103,6 @@ export class MenuFramePacing {
     return 'ready';
   }
 
-  /** A covered preview can finish a submitted GPU frame without authorizing
-   * another draw. Covered time never pays the automatic-orbit recovery budget. */
-  pollHeld(source: MenuFrameSource): MenuFrameReadiness {
-    this.suspend();
-    try {
-      const readiness = this.poll(source);
-      return readiness === 'ready' ? 'quiet' : readiness;
-    } finally {
-      this.suspend();
-    }
-  }
-
   /** Hidden/covered/loading/non-menu time is neither an observed active gap nor
    * usable control recovery. Keep the genuine pending receipt and any already
    * measured gap; the next eligible poll starts a fresh observation chain. */

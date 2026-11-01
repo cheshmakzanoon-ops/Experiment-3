@@ -1,10 +1,3 @@
-import type { Pass } from 'three/addons/postprocessing/Pass.js';
-import { observePreparationDraw } from './preparation-passes.ts';
-import {
-  compactIndexCounts,
-  snapshotSuppliedIndexEvidence,
-  INDEX_EVIDENCE_CAMERA_LIMIT,
-} from './supplied-index-evidence.ts';
 import { loadAurelQuarry } from './aurel-quarry.ts';
 import { loadAurelVegetation } from './aurel-vegetation.ts';
 import { loadVenueVegetation } from './vegetation/index.ts';
@@ -36,7 +29,6 @@ import { loadPitWallStation } from './pit-wall-station.ts';
 import { loadHeroGarage } from './hero-garage.ts';
 import { loadTyreBlankets } from './tyre-blankets.ts';
 import { compileSceneTarget, PreparationTrace } from './preparation.ts';
-import { compileFullscreenTargets } from './fullscreen-preparation.ts';
 import { warmPitMaterials } from './pit-material-warmup.ts';
 import { frontToBackOpaque } from './opaque-order.ts';
 import { loadSuppliedPlayer, type SuppliedPlayerAsset } from './supplied-player.ts';
@@ -867,49 +859,9 @@ export class RacingRenderer {
     }
     this.cars.forEach((c, i) => (c.root.visible = i < n));
   }
-  readonly preparation = new PreparationTrace(
-    () => performance.now(),
-    (event) => {
-      window.dispatchEvent(new CustomEvent('apex-preparation-checkpoint', { detail: event }));
-    },
-  );
+  readonly preparation = new PreparationTrace();
   warmupFrames = 0;
   warmupPitPasses = 0;
-  private warmingEnvironment = false;
-  private preparingIndexStreams: (() => boolean) | null = null;
-  private indexEvidenceAfterDraw: ((returned: boolean) => void) | null = null;
-  private environmentScopeRestored = false;
-  private environmentWarmup: {
-    restored: boolean;
-    fenceDelta: number;
-    probeDraws: number;
-    mirrorDraws: number;
-    composerDraws: number;
-  } | null = null;
-  /** Use the real frame setup and complete shadow/environment passes, but do
-   * not submit mirrors, probes or the main view before final-state compilation. */
-  private warmEnvironmentFrame(frame: Float32Array, menuPreview = false) {
-    if (this.warmingEnvironment) throw new Error('Environment preparation is already active');
-    this.environmentWarmup = null;
-    this.environmentScopeRestored = false;
-    const submitted = this.gpuFrames.diagnostics().submitted;
-    this.warmingEnvironment = true;
-    try {
-      this.draw(frame, frame, menuPreview ? 0 : 1, 1 / 120, menuPreview, !menuPreview);
-    } finally {
-      this.warmingEnvironment = false;
-    }
-    // draw's presentation scope/timer/ledger have all restored before fencing.
-    this.gpuFrames.submittedFrame();
-    const passes = this.drawLedger.snapshot();
-    this.environmentWarmup = {
-      restored: this.environmentScopeRestored,
-      fenceDelta: this.gpuFrames.diagnostics().submitted - submitted,
-      probeDraws: passes.probe.calls,
-      mirrorDraws: passes.mirrors.calls,
-      composerDraws: passes.composer.calls,
-    };
-  }
   async waitForPreparedFrame(cancelled: () => boolean, yieldFrame: () => Promise<void>) {
     const deadline = performance.now() + 45000;
     while (!cancelled() && !this.gpuFrames.ready()) {
@@ -925,34 +877,17 @@ export class RacingRenderer {
     cancelled: () => boolean,
     yieldFrame: () => Promise<void>,
   ) {
-    let fenceSpan = 0;
     this.warmupPitPasses += await warmPitMaterials({
       renderer: this.renderer,
       scene: this.scene,
       camera: this.camera,
       crew: this.pitCrew,
       frame,
-      submitted: () => {
-        this.preparation.observe('pit:submit-fence', () => this.gpuFrames.submittedFrame());
-        fenceSpan = this.preparation.begin('pit:fence-wait');
-      },
-      ready: () => {
-        const ready = this.gpuFrames.ready();
-        if (ready && fenceSpan) {
-          this.preparation.end(fenceSpan, 'pit:fence-wait');
-          fenceSpan = 0;
-        }
-        return ready;
-      },
+      submitted: () => this.gpuFrames.submittedFrame(),
+      ready: () => this.gpuFrames.ready(),
       cancelled,
       yieldFrame,
     });
-    if (fenceSpan)
-      this.preparation.checkpoint(
-        cancelled() ? 'cancelled' : 'mark',
-        'pit:wait-exited-unacknowledged',
-        fenceSpan,
-      );
   }
   /** Build the grid and warm real GPU paths while the physics worker is paused.
    * Yield between car construction and shader stages so progress can repaint.
@@ -967,28 +902,6 @@ export class RacingRenderer {
     // callers without session rules retain the complete service warmup.
     pitService = true,
   ) {
-    return this.preparePresentation(frame, progress, cancelled, yieldFrame, false, pitService);
-  }
-  /** Prepare exactly the frozen menu presentation while its candidate is still
-   * exclusively owned. No race/onboard/pit view or simulation sample is added. */
-  prepareMenuPreview(
-    frame: Float32Array,
-    progress: (message: string) => void,
-    cancelled: () => boolean,
-    yieldFrame: () => Promise<void>,
-  ) {
-    return this.preparePresentation(frame, progress, cancelled, yieldFrame, true, false);
-  }
-  private async preparePresentation(
-    frame: Float32Array,
-    progress: (message: string) => void,
-    cancelled: () => boolean,
-    yieldFrame: () => Promise<void>,
-    menuPreview: boolean,
-    pitService: boolean,
-  ) {
-    const ownerCancelled = cancelled;
-    cancelled = () => this.disposed || ownerCancelled();
     return this.preparation.run(progress, async (progress) => {
       if (this.showroomOnly) throw new Error('Build the selected circuit before preparing a race');
       const total = frame[H.CARS];
@@ -1050,252 +963,47 @@ export class RacingRenderer {
         this.renderer,
         this.scene,
         this.camera,
-        this.scenePass.target,
+        this.composer.readBuffer,
         hiddenHosts,
-        {
-          cancelled: () => this.disposed || cancelled(),
-          yieldControl: yieldFrame,
-          initializeCaches: true,
-          report: (result) =>
-            this.preparation.checkpoint(
-              'mark',
-              `programs:${result.status}:live=${result.livePrograms}:checked=${result.queriedPrograms}:queries=${result.queries}:primed=${result.initializedPrograms}:ms=${Math.round(result.elapsedMs)}`,
-            ),
-        },
       );
-      if (this.disposed || cancelled()) return false;
+      if (cancelled()) return false;
       progress('Compiling shadow casters around the circuit…');
       await yieldFrame();
       if (cancelled()) return false;
-      if (this.warmShadowCasters()) {
-        this.gpuFrames.submittedFrame();
-        progress('Waiting for compiled shadow-caster GPU work…');
-        await this.preparation.observeAsync(
-          'shadow:fence-wait',
-          () => this.waitForPreparedFrame(cancelled, yieldFrame),
-          cancelled,
-        );
-        if (cancelled()) return false;
-      }
+      this.warmShadowCasters();
       const camera = this.mode;
       try {
-        progress('Preparing the complete far shadow and sky environment…');
-        await yieldFrame();
-        if (cancelled()) return false;
-        observePreparationDraw(
-          this.preparation,
-          'environment',
-          {
-            renderer: this.renderer,
-            scene: this.scene,
-            camera: this.camera,
-            ledger: this.drawLedger,
-            composer: this.composer,
-            passNames: new Map<Pass, string>([
-              [this.scenePass, 'scene-ambient'],
-              [this.exposure, 'exposure'],
-              [this.bloom, 'bloom'],
-              [this.fxaa, 'fxaa'],
-              [this.grade, 'grade'],
-            ]),
-          },
-          () => this.warmEnvironmentFrame(frame, menuPreview),
-        );
-        progress('Waiting for prepared environment GPU work…');
-        await this.preparation.observeAsync(
-          'environment:fence-wait',
-          () => this.waitForPreparedFrame(cancelled, yieldFrame),
-          cancelled,
-        );
-        if (cancelled()) return false;
-        // The first bake enables the far light and environment textures. Warm
-        // that actual program context before the full chase/onboard draws.
-        progress('Compiling final lighting and environment materials…');
-        await compileSceneTarget(
-          this.renderer,
-          this.scene,
-          this.camera,
-          this.scenePass.target,
-          hiddenHosts,
-          {
-            cancelled: () => this.disposed || cancelled(),
-            yieldControl: yieldFrame,
-            initializeCaches: true,
-            report: (result) =>
-              this.preparation.checkpoint(
-                'mark',
-                `programs:${result.status}:live=${result.livePrograms}:checked=${result.queriedPrograms}:queries=${result.queries}:primed=${result.initializedPrograms}:ms=${Math.round(result.elapsedMs)}`,
-              ),
-          },
-        );
-        if (this.disposed || cancelled()) return false;
-        progress('Compiling scene ambient and composite materials…');
-        // SceneAmbientPass is the first composer pass. Do not use the circuit
-        // scene's fog/lights or invoke pass.render to discover these programs.
-        const lastPass = this.composer.passes.filter((pass) => pass.enabled).at(-1);
-        const outputTarget =
-          this.composer.renderToScreen && lastPass === this.scenePass
-            ? null
-            : this.composer.writeBuffer;
-        await this.preparation.observeAsync(
-          'fullscreen:compile-ready',
-          () =>
-            compileFullscreenTargets(
-              this.renderer,
-              this.scenePass.compilationSubjects(outputTarget),
-              {
-                cancelled,
-                yieldControl: yieldFrame,
-                initializeCaches: true,
-                report: (result) =>
-                  this.preparation.checkpoint(
-                    'mark',
-                    `fullscreen-programs:${result.status}:live=${result.livePrograms}:checked=${result.queriedPrograms}:queries=${result.queries}:primed=${result.initializedPrograms}:ms=${Math.round(result.elapsedMs)}`,
-                  ),
-              },
-            ),
-          cancelled,
-        );
-        if (cancelled()) return false;
-        // Vite removes this opt-in experiment from flag-unset shipping builds.
-        // Neither original acceptance workflow sets this diagnostic build flag.
-        if (
-          menuPreview &&
-          (import.meta.env.VITE_APEX_DIAGNOSTIC_MENU_DOF_PRIME === '0' ||
-            import.meta.env.VITE_APEX_DIAGNOSTIC_MENU_DOF_PRIME === '1')
-        ) {
-          const diagnosticDof = import.meta.env.VITE_APEX_DIAGNOSTIC_MENU_DOF_PRIME;
-          this.preparation.checkpoint('mark', `menu-dof-diagnostic:flag:${diagnosticDof}`);
-          if (import.meta.env.VITE_APEX_DIAGNOSTIC_MENU_DOF_PRIME === '1') {
-            progress('Diagnostic: compiling exact menu depth of field…');
-            await this.preparation.observeAsync(
-              'menu-dof-diagnostic:compile-ready',
-              async () => {
-                if (cancelled()) return;
-                const lens = subjectLens(true, false, this.mode, this.camera.fov);
-                if (!lens || lens.thinLens) throw new Error('Unexpected diagnostic menu lens');
-                // Retain this exact material for the normal draw's existing
-                // insertion/focus/size path. No extra render or frame update.
-                this.photoFocus ??= new DepthOfFieldPass(
-                  this.camera,
-                  { focus: 10, ...lens },
-                  this.scenePass.target.depthTexture!,
-                );
-                // SceneAmbientPass swaps before index1 DOF, so its upcoming
-                // write target is the composer's current read buffer.
-                await compileFullscreenTargets(
-                  this.renderer,
-                  [{ material: this.photoFocus.materialBokeh, target: this.composer.readBuffer }],
-                  {
-                    cancelled,
-                    yieldControl: yieldFrame,
-                    initializeCaches: true,
-                    report: (result) =>
-                      this.preparation.checkpoint(
-                        'mark',
-                        `menu-dof-diagnostic:programs:${result.status}:live=${result.livePrograms}:checked=${result.queriedPrograms}:primed=${result.initializedPrograms}:ms=${Math.round(result.elapsedMs)}`,
-                      ),
-                  },
-                );
-              },
-              cancelled,
-            );
-            if (cancelled()) return false;
-          }
-        }
-        const views = menuPreview ? (['menu'] as const) : (['chase', 'cockpit'] as const);
-        for (const mode of views) {
+        for (const mode of ['chase', 'cockpit'] as const) {
           progress(
-            mode === 'menu'
-              ? 'Warming the selected menu preview…'
-              : mode === 'chase'
-                ? 'Warming shadows and scene reflections…'
-                : 'Warming cockpit, mirrors and post-processing…',
+            mode === 'chase'
+              ? 'Warming shadows and scene reflections…'
+              : 'Warming cockpit, mirrors and post-processing…',
           );
           await yieldFrame();
           if (cancelled()) return false;
-          if (mode !== 'menu') this.changeCamera(mode);
-          this.preparingIndexStreams = cancelled;
-          this.indexEvidenceAfterDraw = null;
-          let drawReturned = false;
-          try {
-            observePreparationDraw(
-              this.preparation,
-              mode,
-              {
-                renderer: this.renderer,
-                scene: this.scene,
-                camera: this.camera,
-                ledger: this.drawLedger,
-                composer: this.composer,
-                passNames: new Map<Pass, string>([
-                  [this.scenePass, 'scene-ambient'],
-                  [this.exposure, 'exposure'],
-                  [this.bloom, 'bloom'],
-                  [this.fxaa, 'fxaa'],
-                  [this.grade, 'grade'],
-                ]),
-              },
-              () =>
-                this.draw(frame, frame, menuPreview ? 0 : 1, 1 / 120, menuPreview, !menuPreview),
-            );
-            drawReturned = true;
-          } finally {
-            try {
-              // The synchronous draw may install this callback after the reset.
-              (this.indexEvidenceAfterDraw as ((returned: boolean) => void) | null)?.(drawReturned);
-            } catch {
-              // Evidence must not replace the original draw failure.
-            }
-            this.indexEvidenceAfterDraw = null;
-            this.preparingIndexStreams = null;
-          }
-          if (cancelled()) return false;
+          this.changeCamera(mode);
+          this.draw(frame, frame, 1, 1 / 120, false, true);
           this.warmupFrames++;
           if (mode === 'chase' && pitService) {
             progress('Warming offscreen pit-service materials…');
-            await this.preparation.observeAsync(
-              'pit:warmup',
-              () => this.warmPitPresentation(frame, cancelled, yieldFrame),
-              cancelled,
-            );
+            await this.warmPitPresentation(frame, cancelled, yieldFrame);
             if (cancelled()) return false;
           }
-          // Drain the actual draw before synchronous program/cache queries can
-          // wait behind it. Linking alone is not GPU-frame completion.
+          await compileSceneTarget(
+            this.renderer,
+            this.scene,
+            this.camera,
+            this.composer.readBuffer,
+            hiddenHosts,
+          );
+          // Shader linking alone does not finish GPU uploads or the warmup draw.
+          // Keep the worker paused until its actual submission has completed.
           progress(`Waiting for completed ${mode} GPU work…`);
-          await this.preparation.observeAsync(
-            `${mode}:fence-wait`,
-            () => this.waitForPreparedFrame(cancelled, yieldFrame),
-            cancelled,
-          );
+          await this.waitForPreparedFrame(cancelled, yieldFrame);
           if (cancelled()) return false;
-          await this.preparation.observeAsync(
-            `${mode}:compile-ready`,
-            () =>
-              compileSceneTarget(
-                this.renderer,
-                this.scene,
-                this.camera,
-                this.scenePass.target,
-                hiddenHosts,
-                {
-                  cancelled: () => this.disposed || cancelled(),
-                  yieldControl: yieldFrame,
-                  initializeCaches: true,
-                  report: (result) =>
-                    this.preparation.checkpoint(
-                      'mark',
-                      `programs:${result.status}:live=${result.livePrograms}:checked=${result.queriedPrograms}:queries=${result.queries}:primed=${result.initializedPrograms}:ms=${Math.round(result.elapsedMs)}`,
-                    ),
-                },
-              ),
-            cancelled,
-          );
-          if (this.disposed || cancelled()) return false;
         }
       } finally {
-        if (!menuPreview && !this.disposed && !cancelled()) {
+        if (!cancelled()) {
           this.changeCamera(camera);
           this.reset();
         }
@@ -1320,18 +1028,7 @@ export class RacingRenderer {
     this.setQuality(quality, graphics);
     await yieldControl();
     if (stopped()) return false;
-    await compileSceneTarget(
-      this.renderer,
-      this.scene,
-      this.camera,
-      this.scenePass.target,
-      undefined,
-      {
-        cancelled: stopped,
-        yieldControl,
-        initializeCaches: true,
-      },
-    );
+    await compileSceneTarget(this.renderer, this.scene, this.camera, this.composer.readBuffer);
     return !stopped();
   }
   setQuality(preset: QualityPreset, options: GraphicsOptions = graphicsPreset(preset)) {
@@ -1452,11 +1149,6 @@ export class RacingRenderer {
   /** Called by the application's RAF loop before mutating presentation state. */
   canSubmitFrame(): boolean {
     return this.gpuFrames.ready();
-  }
-  /** The festival borrows this WebGL context; keep one ownership gate across
-   * scene changes rather than leaving its submissions invisible to the host. */
-  submittedExternalFrame(): void {
-    this.gpuFrames.submittedFrame();
   }
   /** Called immediately after draw; preserveDrawingBuffer is not required. */
   capturePhoto(): Promise<Blob> {
@@ -2143,23 +1835,8 @@ export class RacingRenderer {
     car.root.worldToLocal(this.eyeLocal);
     this.renderer.info.reset();
     this.drawLedger.begin();
-    // Ordinary frames retain their timer placement. An owned preparation view
-    // must validate the idle gate and preupload before even beginning a query.
-    let timerStarted = false;
-    if (!this.preparingIndexStreams || this.warmingEnvironment) {
-      this.gpuTimer.begin();
-      timerStarted = true;
-    }
-    let preparedMirrors: ReturnType<ReflectionSystem['prepareMirrorViews']> = null;
+    this.gpuTimer.begin();
     const originalOverride = this.scene.overrideMaterial;
-    const originalMatrixUpdates = this.scene.matrixWorldAutoUpdate;
-    const environmentState = this.warmingEnvironment
-      ? {
-          background: this.scene.background,
-          fog: this.scene.fog,
-          fogColor: this.scene.fog?.color.getHex(),
-        }
-      : null;
     // World matrices were solved once above for this frame. Every pass below
     // (shadow, mirror, probe, wet plane, scene) would otherwise re-walk and
     // recompose the entire graph inside renderer.render(). Passes that move
@@ -2191,19 +1868,6 @@ export class RacingRenderer {
         this.scenePresentation.begin(this.venueLighting.nightBackground, false, this.nightFog);
         // Retain the real skydome and its recorded-cloud night shader.
       }
-      if (this.preparingIndexStreams && !this.warmingEnvironment) {
-        preparedMirrors = this.prepareSuppliedIndexStreams(
-          car,
-          dt,
-          menu ? 'menu' : cameraMode,
-          studio,
-        );
-        if (this.preparingIndexStreams()) return;
-      }
-      if (!timerStarted) {
-        this.gpuTimer.begin();
-        timerStarted = true;
-      }
       // The wet-road reflection is re-rendered for this camera below; until then
       // the environment, probe and mirror passes must not sample last frame's.
       this.circuit.wetReflection.suspend();
@@ -2215,9 +1879,6 @@ export class RacingRenderer {
       )
         this.bakeFarShadow(illumination);
       this.environment.update(this.renderer, this.scene, daylight.cover, illumination);
-      // The preparation caller owns the fence after this scope is restored.
-      // No partial main-view/probe capture is presented as a completed frame.
-      if (this.warmingEnvironment) return;
       let wheelWater = 0;
       for (let wheel = 0; wheel < 4; wheel++)
         wheelWater = Math.max(wheelWater, b[o + WHEEL_BASE + wheel * WHEEL_STRIDE + W.WATER]);
@@ -2234,13 +1895,7 @@ export class RacingRenderer {
         this.sky.material.uniforms.probeSkyIntensity,
       );
       this.drawLedger.mark('mirrors');
-      this.reflection.renderMirrors(
-        this.renderer,
-        this.scene,
-        this.mirrorRoot ?? car.root,
-        dt,
-        preparedMirrors,
-      );
+      this.reflection.renderMirrors(this.renderer, this.scene, this.mirrorRoot ?? car.root, dt);
       this.drawLedger.mark('wet');
       // Planar reflection about the road under the followed car, only while the
       // track carries water; the film's own masks decide where it shows.
@@ -2375,170 +2030,15 @@ export class RacingRenderer {
     } finally {
       // BokehPass temporarily installs a depth override; restore even on GPU failure.
       this.scene.overrideMaterial = originalOverride;
-      this.scene.matrixWorldAutoUpdate = originalMatrixUpdates;
+      this.scene.matrixWorldAutoUpdate = true;
       this.scenePresentation.restore();
-      if (timerStarted) this.gpuTimer.end();
+      this.gpuTimer.end();
       this.drawLedger.end();
-      if (environmentState)
-        this.environmentScopeRestored =
-          this.scene.overrideMaterial === originalOverride &&
-          this.scene.matrixWorldAutoUpdate === originalMatrixUpdates &&
-          this.scene.background === environmentState.background &&
-          this.scene.fog === environmentState.fog &&
-          this.scene.fog?.color.getHex() === environmentState.fogColor;
     }
     this.gpuFrames.submittedFrame();
     this.renderedMode = cameraMode;
     this.lastRenderCPUms = performance.now() - start;
     this.renderMs = this.renderMs * 0.9 + this.lastRenderCPUms * 0.1;
-  }
-  /** Only the exclusively owned preparation draw calls this after posing its
-   * real view. No render, cadence consumption or simulation update occurs here. */
-  private prepareSuppliedIndexStreams(car: FormulaCar, dt: number, mode: string, studio: boolean) {
-    let preparedMirrors: ReturnType<ReflectionSystem['prepareMirrorViews']> = null;
-    const stopped = this.preparingIndexStreams;
-    if (!stopped) return null;
-    if (stopped()) return null;
-    if (!this.gpuFrames.ready())
-      throw new Error('Index preparation requires an idle GPU frame gate');
-    const gl = this.renderer.getContext();
-    if (gl.isContextLost()) throw new Error('WebGL context lost before index preparation');
-    // This exact CPU pose, LOD and visibility is the upcoming draw's, not
-    // a discovery render or a second simulation sample. Exotic overrides
-    // retain their normal hooks without speculative allocations.
-    const supported = !this.photo && !studio && !this.debug && !this.scene.overrideMaterial;
-    if (supported) {
-      this.refreshReflectionExclusions(car);
-      preparedMirrors = this.reflection.prepareMirrorViews(this.mirrorRoot ?? car.root, dt);
-    }
-    const snapshot = () => {
-      try {
-        return snapshotSuppliedIndexEvidence(this.cars);
-      } catch {
-        return null;
-      }
-    };
-    const counters = (ranges: Parameters<typeof compactIndexCounts>[0]) => {
-      try {
-        return compactIndexCounts(ranges);
-      } catch {
-        return null;
-      }
-    };
-    const before = snapshot();
-    const cameras: {
-      subject: number;
-      kind: 'mirror' | 'main';
-      cameraId: number;
-      prepared: boolean;
-      returned: boolean;
-      before: ReturnType<typeof compactIndexCounts> | null;
-      after: ReturnType<typeof compactIndexCounts> | null;
-    }[] = [];
-    let cameraRowsDropped = 0;
-    let status = supported ? 'preparing' : 'declined:unsupported-presentation';
-    let afterPreparation: ReturnType<typeof snapshotSuppliedIndexEvidence> | null = null;
-    const detail = () => ({
-      view: mode,
-      scope: 'owned-pool-counters-all-cameras; preparation-only-main-and-scheduled-mirrors',
-      status,
-      declined: status.startsWith('declined') || status === 'error',
-      scheduledMirrors: supported ? (preparedMirrors?.cameras.length ?? 0) : null,
-      before,
-      afterPreparation,
-      cameras,
-      cameraRowsDropped,
-    });
-    const checkpoint = (label: string, extra?: object) => {
-      try {
-        this.preparation.checkpoint('mark', label, 0, { ...detail(), ...extra });
-      } catch {
-        // Pure CPU evidence is best effort, never an allocation/draw gate.
-      }
-    };
-    this.indexEvidenceAfterDraw = (returned) => {
-      checkpoint('indices:after-draw', {
-        drawReturned: returned,
-        gpuCompletionClaimed: false,
-        afterDraw: snapshot(),
-      });
-    };
-    checkpoint('indices:before-preparation');
-    if (supported) {
-      this.preparation.observe(`${mode}:indices-ready`, () => {
-        let prepared = true;
-        status = 'error';
-        try {
-          for (let subject = 0; subject < this.cars.length; subject++) {
-            if (stopped() || gl.isContextLost()) {
-              prepared = false;
-              break;
-            }
-            const ranges = this.cars[subject].suppliedPlayer?.lods?.drawRanges;
-            if (!ranges) continue;
-            const prepare = (camera: T.Camera, kind: 'mirror' | 'main') => {
-              const counted = cameras.length < INDEX_EVIDENCE_CAMERA_LIMIT;
-              const prior = counted ? counters(ranges) : null;
-              let result = false,
-                returned = false;
-              try {
-                result = ranges.prepareCamera(
-                  this.renderer,
-                  this.scene,
-                  camera,
-                  stopped,
-                  kind === 'mirror' ? preparedMirrors!.hiddenRoots : undefined,
-                );
-                returned = true;
-                return result;
-              } finally {
-                if (counted)
-                  cameras.push({
-                    subject,
-                    kind,
-                    cameraId: camera.id,
-                    prepared: result,
-                    returned,
-                    before: prior,
-                    after: counters(ranges),
-                  });
-                else cameraRowsDropped++;
-              }
-            };
-            // Mirrors do not select a different LOD for the supplied player.
-            for (const camera of preparedMirrors?.cameras ?? []) {
-              if (stopped() || gl.isContextLost()) {
-                prepared = false;
-                break;
-              }
-              prepared = prepare(camera, 'mirror') && prepared;
-            }
-            if (stopped() || gl.isContextLost()) {
-              prepared = false;
-              break;
-            }
-            prepared = prepare(this.camera, 'main') && prepared;
-          }
-          status =
-            before && !before.truncated && before.eligibleOwners === 0
-              ? 'not-applicable'
-              : !prepared
-                ? 'declined'
-                : !before || before.truncated
-                  ? 'evidence-unavailable'
-                  : 'prepared';
-        } finally {
-          afterPreparation = snapshot();
-          checkpoint(`indices:${status}`);
-        }
-      });
-    } else {
-      afterPreparation = snapshot();
-      checkpoint(`indices:${status}`);
-    }
-    if (stopped()) return null;
-    if (gl.isContextLost()) throw new Error('WebGL context lost during index preparation');
-    return preparedMirrors;
   }
   /** Rebuilt in place each frame (no allocation): the car set, follow target
    * and lazily loaded pit kits can change between frames. */
@@ -2555,7 +2055,7 @@ export class RacingRenderer {
   /** Compile every shadow caster's depth program while loading (see
    * FarShadow.warmCasters). */
   private warmShadowCasters() {
-    return this.farShadow.warmCasters(
+    this.farShadow.warmCasters(
       this.renderer,
       this.scene,
       this.sun,
@@ -2937,7 +2437,6 @@ export class RacingRenderer {
         : null,
       warmupFrames: this.warmupFrames,
       warmupPitPasses: this.warmupPitPasses,
-      environmentWarmup: this.environmentWarmup ? { ...this.environmentWarmup } : null,
       preparation: this.preparation.snapshot(),
       graphics: { ...this.graphics },
       renderWidth: this.renderWidth,

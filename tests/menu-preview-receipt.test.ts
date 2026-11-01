@@ -234,51 +234,47 @@ describe('menu preview requests and completed display receipts', () => {
     expect(() => submit()).toThrow('disposed');
   });
 
-  it.each(['visible', 'held'] as const)(
-    'promotes only after the %s menu pacing observes the real gate completion',
-    (mode) => {
-      const clock = { now: 0 };
-      const state = { wait: 2, polls: 0, finishes: 0 };
-      const gl = {
-        SYNC_GPU_COMMANDS_COMPLETE: 1,
-        TIMEOUT_EXPIRED: 2,
-        ALREADY_SIGNALED: 3,
-        CONDITION_SATISFIED: 4,
-        isContextLost: () => false,
-        fenceSync: () => ({}) as WebGLSync,
-        clientWaitSync: (_fence: WebGLSync, flags: number, timeout: number) => {
-          expect([flags, timeout]).toEqual([0, 0]);
-          state.polls++;
-          return state.wait;
-        },
-        deleteSync: () => {},
-        flush: () => {},
-        finish: () => state.finishes++,
-      } as unknown as WebGL2RenderingContext;
-      const gpu = new GpuFrameGate(gl, () => clock.now);
-      const owner = { canSubmitFrame: () => gpu.ready() };
-      const pacing = new MenuFramePacing(() => clock.now);
-      const receipt = new MenuPreviewReceipt();
-      const poll = () => (mode === 'held' ? pacing.pollHeld(owner) : pacing.poll(owner));
-      expect(receipt.observe(owner, poll(), null)).toBe(false);
-      gpu.submittedFrame();
-      pacing.submittedFrame(owner);
-      const ticket = receipt.submittedFrame(owner, receipt.revision, frame(), view);
-      for (let callback = 0; callback < 12; callback++) {
-        clock.now += 16;
-        expect(receipt.observe(owner, poll(), ticket)).toBe(false);
-        expect(receipt.report().completed).toBeNull();
-      }
-      state.wait = gl.CONDITION_SATISFIED;
+  it('promotes only after the real menu pacing observes the real gate completion', () => {
+    const clock = { now: 0 };
+    const state = { wait: 2, polls: 0, finishes: 0 };
+    const gl = {
+      SYNC_GPU_COMMANDS_COMPLETE: 1,
+      TIMEOUT_EXPIRED: 2,
+      ALREADY_SIGNALED: 3,
+      CONDITION_SATISFIED: 4,
+      isContextLost: () => false,
+      fenceSync: () => ({}) as WebGLSync,
+      clientWaitSync: (_fence: WebGLSync, flags: number, timeout: number) => {
+        expect([flags, timeout]).toEqual([0, 0]);
+        state.polls++;
+        return state.wait;
+      },
+      deleteSync: () => {},
+      flush: () => {},
+      finish: () => state.finishes++,
+    } as unknown as WebGL2RenderingContext;
+    const gpu = new GpuFrameGate(gl, () => clock.now);
+    const owner = { canSubmitFrame: () => gpu.ready() };
+    const pacing = new MenuFramePacing(() => clock.now);
+    const receipt = new MenuPreviewReceipt();
+    expect(receipt.observe(owner, pacing.poll(owner), null)).toBe(false);
+    gpu.submittedFrame();
+    pacing.submittedFrame(owner);
+    const ticket = receipt.submittedFrame(owner, receipt.revision, frame(), view);
+    for (let callback = 0; callback < 12; callback++) {
       clock.now += 16;
-      expect(receipt.observe(owner, poll(), ticket)).toBe(true);
-      expect(gpu.diagnostics()).toMatchObject({ submitted: 1, completed: 1, pending: false });
-      expect(receipt.report()).toMatchObject({ current: true, completed: { machine: 'gpr1' } });
-      expect(poll()).toBe('quiet');
-      expect(state.polls).toBe(13);
-      expect(state.finishes).toBe(0);
-      pacing.dispose();
-      gpu.dispose();
-    },
-  );
+      expect(receipt.observe(owner, pacing.poll(owner), ticket)).toBe(false);
+      expect(receipt.report().completed).toBeNull();
+    }
+    state.wait = gl.CONDITION_SATISFIED;
+    clock.now += 16;
+    expect(receipt.observe(owner, pacing.poll(owner), ticket)).toBe(true);
+    expect(gpu.diagnostics()).toMatchObject({ submitted: 1, completed: 1, pending: false });
+    expect(receipt.report()).toMatchObject({ current: true, completed: { machine: 'gpr1' } });
+    expect(pacing.poll(owner)).toBe('quiet');
+    expect(state.polls).toBe(13);
+    expect(state.finishes).toBe(0);
+    pacing.dispose();
+    gpu.dispose();
+  });
 });

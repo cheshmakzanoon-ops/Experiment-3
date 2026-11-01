@@ -104,9 +104,6 @@ export class TrafficPlanner {
     line: (s: number) => number = () => 0,
     /** Lateral separation scale for narrow machines (1: car widths). */
     lateralScale = 1,
-    /** Extra lane-target room for finite tracking response; never reduces
-     * collision corridors, braking distance or the swept safety tests. */
-    trackingMargin = 0,
   ) {
     const lineOffset = line(car.s);
     // Lateral shift of a line-relative path between here and distance `s`.
@@ -125,9 +122,8 @@ export class TrafficPlanner {
     const held = lineOffset + this.heldOffset;
     this.candidates[0] = clamp(now < this.holdUntil ? held : lineOffset, -limit, limit);
     this.candidates[1] = closest;
-    const laneStep = 3.5 * lateralScale + Math.max(0, trackingMargin);
-    this.candidates[2] = clamp(closest - laneStep, -limit, limit);
-    this.candidates[3] = clamp(closest + laneStep, -limit, limit);
+    this.candidates[2] = clamp(closest - 3.5 * lateralScale, -limit, limit);
+    this.candidates[3] = clamp(closest + 3.5 * lateralScale, -limit, limit);
     this.candidates[4] = clamp(lineOffset, -limit, limit);
     this.candidates[5] = clamp(preferredOffset, -limit, limit);
     // Stalled cars ahead (STALLED), each with its footprint across and along

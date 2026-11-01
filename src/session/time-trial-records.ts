@@ -1,7 +1,6 @@
 import {
   GhostPlayer,
   GhostRecorder,
-  ghostCategoryKey,
   ghostKey,
   ghostPose,
   validateGhost,
@@ -52,20 +51,15 @@ export class TimeTrialRecords {
       vehicle: category.vehicle,
     });
     let saved: GhostLap | null = null;
-    // Legacy saves are readable only in their original physics category. Do
-    // not migrate, rewrite or delete them when the current model rejects them.
-    for (const key of [
-      ghostCategoryKey(circuit, category.vehicle, category.physics),
-      ghostKey(circuit, category.vehicle),
-    ]) {
-      try {
-        saved = validateGhost(await this.host.store.read(key), circuit, length, category);
-      } catch (error) {
-        if (!current()) return;
-        this.host.toast(`Saved ghost unavailable: ${String(error)}`);
-      }
-      if (!current()) return;
-      if (saved) break;
+    try {
+      saved = validateGhost(
+        await this.host.store.read(ghostKey(circuit, category.vehicle)),
+        circuit,
+        length,
+        category,
+      );
+    } catch (error) {
+      this.host.toast(`Saved ghost unavailable: ${String(error)}`);
     }
     if (!current()) return;
     this.player = saved ? new GhostPlayer(saved) : null;
@@ -97,7 +91,7 @@ export class TimeTrialRecords {
     this.player = new GhostPlayer(lap);
     if (this.trial) this.trial.best = lap.lapTime;
     void this.host.store
-      .write(ghostCategoryKey(lap.circuit, lap.vehicle, lap.physics), lap)
+      .write(ghostKey(lap.circuit, lap.vehicle), lap)
       .then(() =>
         this.host.toast(
           `PERSONAL BEST ${lapTime(lap.lapTime)}${improvement > 0 ? ` · −${improvement.toFixed(3)} S` : ''} · GHOST SAVED`,

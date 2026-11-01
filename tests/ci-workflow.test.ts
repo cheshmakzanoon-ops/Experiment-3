@@ -10,46 +10,12 @@ const job = (name: string) => {
 };
 
 describe('independent CI diagnostics with strict release gates', () => {
-  it('runs native contracts through the asset-generating npm test lifecycle', () => {
-    const native = readFileSync(
-      new URL('../.github/workflows/desktop-platform.yml', import.meta.url),
-      'utf8',
-    );
-    const contract = native
-      .split('name: Validate desktop isolation and engine contracts')[1]
-      ?.split('      - name:')[0];
-    const scripts = JSON.parse(
-      readFileSync(new URL('../package.json', import.meta.url), 'utf8'),
-    ).scripts;
-    expect(contract).toContain('run: npm test -- ');
-    const babylonContracts = 'tests/babylon-*.test.ts';
-    expect(contract).toContain(babylonContracts);
-    const desktop = readFileSync(
-      new URL('../.github/workflows/desktop-build.yml', import.meta.url),
-      'utf8',
-    );
-    const nativePush = desktop.split('  push:\n')[1]?.split('\npermissions:')[0];
-    expect(nativePush).toContain('    branches: [main]');
-    expect(nativePush).toContain(`      - '${babylonContracts}'`);
-    expect(contract).toContain('tests/circuit-ribbon-data.test.ts');
-    expect(contract).not.toMatch(/npx vitest|--ignore-scripts|--exclude|--passWithNoTests/);
-    expect(scripts.pretest).toBe('npm run generate:player-lods');
-    expect(scripts.test).toBe('vitest run');
-    expect(scripts['generate:player-lods']).toBe(
-      'node --experimental-strip-types scripts/build-player-lods.mjs',
-    );
-  });
-
   it('builds separately while the unfiltered unit suite remains required', () => {
     const build = job('validate'),
       unit = job('unit-tests');
     expect(build).toContain('npm run lint && npm run validate:content && npm run build');
     expect(build).not.toMatch(/npm (?:test|run check)/);
-    expect(unit).toContain(
-      'scripts/source-stability.ts -- npm test -- --shard=${{ matrix.shard }}/4 --reporter=verbose',
-    );
-    expect(unit).toContain('shard: [1, 2, 3, 4]');
-    expect(unit).toContain('fail-fast: false');
+    expect(unit).toMatch(/scripts\/source-stability\.ts -- npm test(?:\n|$)/);
     expect(unit).not.toMatch(/continue-on-error|--exclude|--testNamePattern|--passWithNoTests/);
     expect(build).not.toMatch(/needs:/);
     expect(unit).not.toMatch(/needs:/);
@@ -62,31 +28,6 @@ describe('independent CI diagnostics with strict release gates', () => {
       expect(browser).toContain('name: apex-formula-web');
       expect(browser).not.toContain('needs: unit-tests');
     }
-  });
-
-  it('preserves compact source/outcome receipts before the unchanged full browser archive', () => {
-    const browser = job('browser');
-    const receiptName = 'name: Preserve compact browser acceptance receipts';
-    const receipt = browser.split(receiptName)[1]?.split('      - name:')[0];
-    expect(receipt).toContain('if: always()');
-    expect(receipt).toContain(
-      'name: browser-receipts-${{ matrix.shard }}-of-${{ strategy.job-total }}',
-    );
-    for (const path of [
-      'browser-shard-plan.json',
-      'browser-backend.json',
-      'browser-progress.json',
-      'dist/BUILD_IDENTITY.json',
-    ])
-      expect(receipt).toContain(path);
-    expect(receipt).not.toMatch(/test-results\/|playwright-report\/|continue-on-error/);
-    expect(browser.indexOf(receiptName)).toBeLessThan(
-      browser.indexOf('name: Browser screenshots and diagnostics'),
-    );
-    const full = browser.split('name: Browser screenshots and diagnostics')[1];
-    expect(full).toContain('test-results/');
-    expect(full).toContain('playwright-report/');
-    expect(full).toContain('if: always()');
   });
 
   it('runs the complete original offroad gate with guarded temporary reports', () => {
@@ -105,18 +46,10 @@ describe('independent CI diagnostics with strict release gates', () => {
     expect(offroad).not.toMatch(/continue-on-error|OFFROAD_RACE=/);
   });
 
-  it('keeps the full strict vehicle registry as a required independent gate', () => {
-    const calibration = job('vehicle-calibration');
-    expect(calibration).toContain('scripts/vehicle-calibration.ts" --strict');
-    expect(calibration).not.toMatch(/continue-on-error|--only/);
-    expect(calibration).toContain('scripts/source-stability.ts -- bash -c');
-    expect(calibration).toContain('if: always()');
-  });
-
   it('cannot publish unless the unit suite and every other required job succeed', () => {
     const publish = job('publish');
     expect(publish).toContain(
-      'needs: [validate, unit-tests, scenarios, vehicle-calibration, offroad-scenarios, browser, wet-presentation]',
+      'needs: [validate, unit-tests, scenarios, offroad-scenarios, browser, wet-presentation]',
     );
     expect(publish).toContain('success() &&');
     expect(publish.split('    steps:')[0]).not.toContain('continue-on-error');

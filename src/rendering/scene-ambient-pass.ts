@@ -1,5 +1,4 @@
 import * as T from 'three';
-import type { FullscreenCompilationSubject } from './fullscreen-preparation.ts';
 import { Pass, FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import type { MotionBlur } from './motion-blur.ts';
 import { MOTION_BLUR, MOTION_VELOCITY_GLSL, createMotionUniforms } from './studio/velocity.ts';
@@ -612,22 +611,6 @@ export class SceneAmbientPass extends Pass {
       u.sunShadowTexel.value.set(1 / map.image.width, 1 / map.image.height);
       u.sunShadowBias.value = sun.shadow.bias;
     }
-  }
-  /** Exact active fullscreen materials; no temporal, uniform or render work.
-   * Both blur directions share one program and equivalent linear targets.
-   * outputTarget is the upcoming composer destination, not the stale
-   * renderToScreen flag left by its previous render. */
-  compilationSubjects(outputTarget: T.WebGLRenderTarget | null): FullscreenCompilationSubject[] {
-    if (!this.enabled) return [];
-    return [
-      ...(this.ambientOcclusion
-        ? [
-            { material: this.obscuranceMaterial, target: this.obscurance },
-            { material: this.blurMaterial, target: this.blurred },
-          ]
-        : []),
-      { material: this.compositeMaterial, target: outputTarget },
-    ];
   }
   override render(renderer: T.WebGLRenderer, writeBuffer: T.WebGLRenderTarget) {
     const autoClear = renderer.autoClear;

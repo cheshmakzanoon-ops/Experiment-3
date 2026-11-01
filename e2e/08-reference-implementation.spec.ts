@@ -1,7 +1,5 @@
-import { expect, type Page } from '@playwright/test';
-import { menuTimingTest as test } from './menu-timing-evidence.ts';
+import { test, expect, type Page } from '@playwright/test';
 import { H, F, carBase } from '../src/simulation/protocol.ts';
-test.use({ menuTimingMode: 'preparation-only' });
 const diag = (page: Page) => page.evaluate(() => window.apexDiagnostics());
 async function ready(page: Page) {
   await page.goto('/?dev');
@@ -82,21 +80,6 @@ test('reference continuation: night and guide controls are real, reversible and 
   await expect(page.locator('.driving-academy')).toBeVisible();
   await expect.poll(async () => (await diag(page)).renderer!.venueLighting.nearbyLights).toBe(4);
   expect((await diag(page)).renderer!.night).toBe(true);
-  const venue = await diag(page);
-  expect(venue.renderer!.presentationPurpose).toBe('circuit');
-  expect(venue.renderer!.construction.tasks).toBeGreaterThan(100);
-  expect(venue.renderer!.preparation?.status).toBe('complete');
-  expect(venue.renderer!.warmupFrames).toBe(1);
-  expect(venue.renderer!.preparation?.stages.map((stage) => stage.label)).toContain(
-    'Warming the selected menu preview…',
-  );
-  expect(
-    venue.renderer!.preparation?.stages.some((stage) => /cockpit|pit-service/.test(stage.label)),
-  ).toBe(false);
-  expect(venue.frame).toEqual(original.frame);
-  expect(venue.frame![H.WATER]).toBe(original.frame![H.WATER]);
-  expect(venue.practiceProgramme).toEqual(original.practiceProgramme);
-  await expect.poll(async () => (await diag(page)).menuPreview?.current).toBe(true);
   const night = await heldAcademy(page);
   await info.attach('reference-079-night-preview-held.png', {
     body: await page.screenshot(),
@@ -192,38 +175,4 @@ test('reference continuation: explicit programme replacement, live chevrons and 
   await expect(page.locator('#programmeHud')).toContainText('AWARDS PAUSED');
   expect((await diag(page)).practiceProgramme).toEqual(progress);
   expect(errors).toEqual([]);
-});
-
-test('Academy held previews acknowledge completed GPU work without advancing the session', async ({
-  page,
-}, info) => {
-  await ready(page);
-  const original = await diag(page);
-  await page.getByRole('button', { name: 'DRIVING ACADEMY', exact: true }).click();
-  await expect(page.locator('.driving-academy')).toBeVisible();
-  await expect
-    .poll(async () => (await diag(page)).menuPreviewPresentation?.current ?? false)
-    .toBe(true);
-  const first = await heldAcademy(page);
-  const beforeGuide = await diag(page);
-  expect(beforeGuide.renderer!.preparation?.status).toBe('complete');
-  expect(beforeGuide.renderer!.warmupFrames).toBe(1);
-  const previousRevision = beforeGuide.menuPreviewPresentation?.requested.revision ?? -1;
-  expect(previousRevision).toBeGreaterThanOrEqual(0);
-  await page.locator('[data-action="guide:full"]').click();
-  await expect
-    .poll(async () => {
-      const preview = (await diag(page)).menuPreviewPresentation;
-      return !!preview && preview.current && preview.requested.revision > previousRevision;
-    })
-    .toBe(true);
-  const second = await heldAcademy(page);
-  expect(second.after).toBe(first.after + 1);
-  const completed = await diag(page);
-  expect(completed.frame).toEqual(original.frame);
-  expect(completed.renderer!.gpuFrameQueue.pending).toBe(false);
-  await info.attach('academy-held-completion.json', {
-    body: JSON.stringify({ first, second, receipt: completed.menuPreviewPresentation }, null, 2),
-    contentType: 'application/json',
-  });
 });

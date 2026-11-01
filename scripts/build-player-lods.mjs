@@ -194,9 +194,6 @@ const bytes = Buffer.concat([
   ...chunks,
 ]);
 const compressed = gzipSync(bytes, { level: 9 });
-// gzip's OS header byte describes the producing host, not asset content.
-// Keep the established Unix header so native builds retain identical bytes.
-compressed[9] = 3;
 const result = {
   version: 2,
   generator:
@@ -212,16 +209,7 @@ const result = {
   levels,
 };
 if (!update && JSON.stringify(result) !== JSON.stringify(existing))
-  throw new Error(
-    'LOD derivative differs from pinned manifest. Review before --update-manifest. Differences: ' +
-      JSON.stringify(
-        Object.fromEntries(
-          Object.entries(result).filter(
-            ([key, value]) => JSON.stringify(value) !== JSON.stringify(existing?.[key]),
-          ),
-        ),
-      ),
-  );
+  throw new Error('LOD derivative differs from pinned manifest. Review before --update-manifest.');
 writeFileSync(outputPath, compressed);
 if (update) writeFileSync(manifestPath, `${JSON.stringify(result, null, 2)}\n`);
 console.log(JSON.stringify(result, null, 2));

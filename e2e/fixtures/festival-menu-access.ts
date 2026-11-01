@@ -6,7 +6,6 @@ import { FestivalSkillChain } from '../../src/simulation/open-world/skill-chain.
 import { openWorld } from '../../src/simulation/open-world/world.ts';
 import { DEFAULT_SETTINGS } from '../../src/storage/data.ts';
 import { FestivalHud } from '../../src/ui/festival-hud.ts';
-import { CompletedInputPoll } from './completed-input-poll.ts';
 
 /** The real festival HUD, pause/keyboard controls and application input
  * controller, wired as FestivalSession and GameApp.startFestival wire them;
@@ -287,16 +286,12 @@ export function mountFestivalResults() {
     continue: () => (log.textContent += 'continue;'),
   });
   setInterval(() => (status = structuredClone(source)), 100);
-  const inputPolls = new CompletedInputPoll();
   const frame = () => {
-    inputPolls.sample(() => {
-      if (!controls.drivingInputEnabled) input.pollActions(['pause']);
-      else input.update(1 / 60);
-    });
+    if (!controls.drivingInputEnabled) input.pollActions(['pause']);
+    else input.update(1 / 60);
     hud.update(status as never, 0, 0, 0, 0, 0);
     controls.syncInput();
     requestAnimationFrame(frame);
   };
   frame();
-  return { inputPolls };
 }

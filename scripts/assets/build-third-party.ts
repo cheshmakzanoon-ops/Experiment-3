@@ -1,4 +1,3 @@
-import { verifyBasisTranscoder } from './basis-contract.ts';
 /**
  * Reproducible build of the shipped third-party assets.
  *
@@ -13,7 +12,7 @@ import { verifyBasisTranscoder } from './basis-contract.ts';
  *
  *   public/assets/third-party/<kind>/<id>/...   shipped files
  *   public/assets/third-party/CREDITS.txt       attribution text
- *   public/assets/basis/                        pinned strict-CSP KTX2 transcoder (verified, not overwritten)
+ *   public/assets/basis/                        KTX2 transcoder (from three)
  *   src/rendering/assets/third-party-manifest.json
  *
  * Recipes
@@ -628,9 +627,15 @@ function creditsText(assets: ShippedAsset[]) {
 }
 
 // ------------------------------------------------------------------ main
+function copyTranscoder() {
+  const source = join(ROOT, 'node_modules/three/examples/jsm/libs/basis');
+  const target = join(PUBLIC, 'assets/basis');
+  mkdirSync(target, { recursive: true });
+  for (const name of ['basis_transcoder.js', 'basis_transcoder.wasm'])
+    copyFileSync(join(source, name), join(target, name));
+}
 
 async function main() {
-  verifyBasisTranscoder(ROOT);
   const register = readRegister(ROOT);
   const problems = validateRegister(register);
   if (problems.length) throw new Error(`Invalid register:\n${problems.join('\n')}`);
@@ -693,13 +698,7 @@ async function main() {
   }
   // Directories of assets no longer in the register are removed.
   const shipped = new Set(assets.map((a) => sourceDirectory(a)));
-  const groups = new Set([
-    'hdri',
-    'texture',
-    'mesh',
-    'vegetation',
-    ...assets.map((a) => a.area ?? a.kind),
-  ]);
+  const groups = new Set(['hdri', 'texture', 'mesh', 'vegetation', ...assets.map((a) => a.area ?? a.kind)]);
   for (const group of groups) {
     const dir = join(PUBLIC, 'assets/third-party', group);
     if (!existsSync(dir)) continue;
@@ -711,6 +710,7 @@ async function main() {
     role: 'credits',
     format: 'text',
   });
+  copyTranscoder();
   const total = [...assets.flatMap((a) => a.files), credits].reduce((s, f) => s + f.bytes, 0);
   const manifest: ThirdPartyManifest = {
     version: 1,

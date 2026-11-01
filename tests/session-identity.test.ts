@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { GHOST_FIELDS, GHOST_VERSION, ghostKey, validateGhost } from '../src/core/ghost-lap.ts';
 import {
   SIMULATION_VERSION,
@@ -8,12 +8,7 @@ import {
   sessionIdentity,
 } from '../src/core/session-identity.ts';
 import { AUREL, VELLAMAR } from '../src/simulation/circuits.ts';
-import { DEFAULT_OPTIONS, validateOptions } from '../src/simulation/config.ts';
-import { BUILD_IDENTITY, identityMismatch } from '../src/net/identity.ts';
-import { AuthoritativeWorld } from '../src/net/authority.ts';
-import { createRecord, recordDigest, verifyRecord } from '../src/net/records.ts';
-import { TimeTrialRecords } from '../src/session/time-trial-records.ts';
-import { Track } from '../src/simulation/track.ts';
+import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
 import {
   CAR_STRIDE,
   HEADER,
@@ -43,10 +38,10 @@ const legacyGhost = () => {
   };
 };
 describe('WP12 recorded identity and schema policy', () => {
-  it.each([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20])(
+  it.each([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17])(
     'keeps physics v%i records out of the current physics category',
     (physics) => {
-      expect(SIMULATION_VERSION).toBe(21);
+      expect(SIMULATION_VERSION).toBe(18);
       expect(
         recordIncompatibility(
           { circuit: 'aurel', vehicle: 'apx01', physics },
@@ -56,109 +51,6 @@ describe('WP12 recorded identity and schema policy', () => {
       expect(leaderboardKey('aurel', 'apx01', physics)).not.toBe(
         leaderboardKey('aurel', 'apx01', SIMULATION_VERSION),
       );
-    },
-  );
-  it.each([18, 19, 20])(
-    'rejects an integrity-checked v%i session record without relabelling or re-simulating it',
-    (physics) => {
-      const world = new AuthoritativeWorld(
-        validateOptions({ ...DEFAULT_OPTIONS, opponents: 0, vehicles: ['hf86'] }),
-      );
-      world.step();
-      const current = createRecord(world);
-      expect(verifyRecord(current)).toMatchObject({ ok: true, ticks: 1 });
-      const previous = structuredClone(current);
-      previous.identity.simulationVersion = physics;
-      previous.category.physics = physics;
-      previous.digest = recordDigest(previous);
-      const preserved = structuredClone(previous);
-      expect(verifyRecord(previous)).toEqual({
-        ok: false,
-        stage: 'content',
-        reason: `recorded with physics v${physics}; this verifier runs v21`,
-      });
-      expect(previous).toEqual(preserved);
-    },
-  );
-  it.each(['hf86', 'hf67'])(
-    'separates %s records and network identities from v18/v19/v20 after the automatic downshift cut-recovery repair',
-    (vehicle) => {
-      const options = { ...DEFAULT_OPTIONS, opponents: 0, vehicles: [vehicle] };
-      const category = recordCategory(options);
-      expect(category).toEqual({ circuit: 'aurel', vehicle, physics: 21 });
-      const current = sessionIdentity(options);
-      expect(BUILD_IDENTITY.simulationVersion).toBe(21);
-      expect(identityMismatch(current, current)).toBeNull();
-      for (const physics of [18, 19, 20]) {
-        const previous = { ...category, physics };
-        expect(recordIncompatibility(previous, category)).toBe(
-          `recorded with physics v${physics}; current physics is v21`,
-        );
-        expect(leaderboardKey('aurel', vehicle, physics)).not.toBe(
-          leaderboardKey('aurel', vehicle, category.physics),
-        );
-        const old = { ...current, simulationVersion: physics };
-        const preserved = structuredClone(old);
-        expect(identityMismatch(current, old)).toBe(
-          `simulation version ${physics} does not match the server's version 21`,
-        );
-        expect(old).toEqual(preserved);
-      }
-    },
-  );
-  it.each([18, 19, 20])(
-    'rejects v%i ghosts on load without writing or deleting the stored records',
-    async (physics) => {
-      const track = new Track();
-      for (const vehicle of ['hf86', 'hf67']) {
-        const options = {
-          ...DEFAULT_OPTIONS,
-          mode: 'time-trial' as const,
-          opponents: 0,
-          vehicles: [vehicle],
-        };
-        const previous = { ...recordCategory(options), physics };
-        const oldGhost = { ...legacyGhost(), trackLength: track.length, vehicle, physics };
-        const oldBoard = [
-          {
-            lapTime: 80,
-            driver: 'Driver',
-            assist: 'sport',
-            compound: 'medium',
-            weather: 'clear',
-            session: `physics-${physics}`,
-          },
-        ];
-        const saved = new Map<string, unknown>([
-          [ghostKey('aurel', vehicle), oldGhost],
-          [leaderboardKey('aurel', vehicle, physics), oldBoard],
-        ]);
-        const preserved = structuredClone(saved);
-        const write = vi.fn(async (key: string, value: unknown) => void saved.set(key, value));
-        const records = new TimeTrialRecords({
-          store: { read: async (key) => saved.get(key), write },
-          toast: () => undefined,
-          playerName: () => 'Driver',
-        });
-        await records.prepare(options, track, () => true);
-        expect(records.player).toBeNull();
-        expect(records.trial?.best).toBe(0);
-        expect(write).not.toHaveBeenCalled();
-        expect(saved).toEqual(preserved);
-        // Rejection from v21 is not corruption or conversion of the old recording.
-        expect(validateGhost(oldGhost, 'aurel', track.length, previous)).toMatchObject({
-          vehicle,
-          physics,
-        });
-        expect(
-          validateGhost(
-            { ...oldGhost, physics: 21 },
-            'aurel',
-            track.length,
-            recordCategory(options),
-          ),
-        ).toMatchObject({ vehicle, physics: 21 });
-      }
     },
   );
   it.each(['gpr1', 'gpr2'])('separates %s records after GP contact model updates', (vehicle) => {

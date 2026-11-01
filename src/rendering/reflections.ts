@@ -1,5 +1,5 @@
 import * as T from 'three';
-import { MirrorViews, type MirrorRenderPlan } from './mirrors.ts';
+import { MirrorViews } from './mirrors.ts';
 import { STUDIO_REFLECTION_LAYER } from './photo-stage.ts';
 import { cullProbeDetail, type ProbeDetail } from './probe-detail.ts';
 import { hasSpecularIBL, setOwnEnvMap } from './studio/ibl-energy.ts';
@@ -182,17 +182,8 @@ export class ReflectionSystem {
     this.enabled = cockpit;
     for (const mirror of this.mirrors) mirror.visible = cockpit;
   }
-  prepareMirrorViews(root: T.Object3D, dt: number) {
-    return this.enabled && !this.activePass ? this.views.prepare(root, dt) : null;
-  }
-  renderMirrors(
-    renderer: T.WebGLRenderer,
-    scene: T.Scene,
-    root: T.Object3D,
-    dt: number,
-    plan?: MirrorRenderPlan | null,
-  ) {
-    if (this.enabled && !this.activePass) this.views.render(renderer, scene, root, dt, plan);
+  renderMirrors(renderer: T.WebGLRenderer, scene: T.Scene, root: T.Object3D, dt: number) {
+    if (this.enabled && !this.activePass) this.views.render(renderer, scene, root, dt);
   }
   /** Roots omitted from the rear-view feeds (spectators, pit people, props). */
   set mirrorExclusions(roots: T.Object3D[]) {

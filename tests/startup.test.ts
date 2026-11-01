@@ -2,7 +2,6 @@ import * as T from 'three';
 import { PreparationTrace } from '../src/rendering/preparation.ts';
 import { expect, it, vi } from 'vitest';
 import { RacingRenderer } from '../src/rendering/renderer.ts';
-import { DepthOfFieldPass } from '../src/rendering/studio/dof-pass.ts';
 import { CAR_STRIDE, HEADER, H, R, RACE_BASE, carBase } from '../src/simulation/protocol.ts';
 import { vehicleIndex } from '../src/simulation/vehicles.ts';
 import { rulesetFor } from '../src/simulation/events.ts';
@@ -17,12 +16,6 @@ function fixture(vehicle = 'apx01', entrants = 3) {
   const follow = 1;
   sample[carBase(follow) + RACE_BASE + R.VEHICLE] = vehicleIndex(vehicle);
   const target = {
-    preparePresentation: (
-      RacingRenderer.prototype as unknown as {
-        preparePresentation: (...args: unknown[]) => Promise<boolean>;
-      }
-    ).preparePresentation,
-    photoFocus: null as DepthOfFieldPass | null,
     cars: [] as { root: T.Group; update: ReturnType<typeof vi.fn> }[],
     follow,
     quality: 'high',
@@ -40,18 +33,8 @@ function fixture(vehicle = 'apx01', entrants = 3) {
     camera: new T.PerspectiveCamera(),
     mode: 'pod',
     preparation: new PreparationTrace(),
-    drawLedger: { mark: vi.fn() },
-    scenePass: {
-      target: new T.WebGLRenderTarget(8, 8, { type: T.HalfFloatType }),
-      compilationSubjects: vi.fn(
-        (): { material: T.Material; target: T.WebGLRenderTarget | null }[] => [],
-      ),
-    },
-    composer: { passes: [], readBuffer: new T.WebGLRenderTarget(8, 8, { type: T.HalfFloatType }) },
+    composer: { readBuffer: new T.WebGLRenderTarget(8, 8, { type: T.HalfFloatType }) },
     warmupFrames: 0,
-    preparationLight: new T.DirectionalLight(),
-    preparedEnvironment: new T.Texture(),
-    gpuFrames: { submittedFrame: vi.fn(() => calls.push('fence')) },
     waitForPreparedFrame: vi.fn(async () => {
       calls.push('gpu-ready');
     }),
@@ -60,13 +43,6 @@ function fixture(vehicle = 'apx01', entrants = 3) {
     }),
     warmShadowCasters: vi.fn(() => {
       calls.push('shadow-casters');
-      return true;
-    }),
-    warmEnvironmentFrame: vi.fn(() => {
-      calls.push('environment');
-      target.preparationLight.visible = true;
-      target.scene.environment = target.preparedEnvironment;
-      target.gpuFrames.submittedFrame();
     }),
     setCars(n: number) {
       while (this.cars.length < n) {
@@ -77,9 +53,6 @@ function fixture(vehicle = 'apx01', entrants = 3) {
       calls.push(`cars:${n}`);
     },
     renderer: {
-      render: vi.fn(),
-      info: { programs: [] },
-      getContext: () => ({ isContextLost: () => false, getExtension: () => null }),
       getRenderTarget: () => bound,
       getActiveCubeFace: () => 0,
       getActiveMipmapLevel: () => 0,
@@ -92,8 +65,8 @@ function fixture(vehicle = 'apx01', entrants = 3) {
       setViewport: vi.fn(),
       setScissor: vi.fn(),
       setScissorTest: vi.fn(),
-      compile: vi.fn((_scene: T.Object3D, _camera: T.Camera, _targetScene?: T.Scene) => {
-        expect(bound).toBe(target.scenePass.target);
+      compileAsync: vi.fn(async (_scene: T.Object3D, _camera: T.Camera, _targetScene?: T.Scene) => {
+        expect(bound).toBe(target.composer.readBuffer);
         calls.push('compile');
       }),
     },
@@ -119,8 +92,6 @@ function fixture(vehicle = 'apx01', entrants = 3) {
       },
     ),
   };
-  target.preparationLight.visible = false;
-  target.scene.add(target.preparationLight);
   return { target, calls, sample, typed: target as unknown as RacingRenderer };
 }
 it.each([
@@ -173,7 +144,7 @@ it.each([
       // Each later compile must inspect the current tree, not a stale list.
       if (bikeRoots[0]) retained.push(mesh(bikeRoots[0]));
     });
-    target.renderer.compile.mockImplementation((view, camera, originalScene) => {
+    target.renderer.compileAsync.mockImplementation(async (view, camera, originalScene) => {
       expect(camera).toBe(target.camera);
       if (bikeRoots.length) {
         expect(view).not.toBe(target.scene);
@@ -202,8 +173,8 @@ it.each([
           false,
         ),
       ).toBe(true);
-      expect(target.renderer.compile).toHaveBeenCalledTimes(4);
-      expect(target.waitForPreparedFrame).toHaveBeenCalledTimes(4);
+      expect(target.renderer.compileAsync).toHaveBeenCalledTimes(3);
+      expect(target.waitForPreparedFrame).toHaveBeenCalledTimes(2);
       expect(target.warmShadowCasters).toHaveBeenCalledTimes(1);
       expect(target.preparation.snapshot()?.status).toBe('complete');
       expect(sample).toEqual(before);
@@ -232,9 +203,9 @@ it.each([
       await RacingRenderer.prototype.prepare.call(typed, sample, vi.fn(), () => false, yieldFrame),
     ).toBe(true);
     expect(target.cars).toHaveLength(3);
-    expect(target.renderer.compile).toHaveBeenCalledTimes(4);
+    expect(target.renderer.compileAsync).toHaveBeenCalledTimes(3);
     expect(target.draw).toHaveBeenCalledTimes(2);
-    expect(target.waitForPreparedFrame).toHaveBeenCalledTimes(4);
+    expect(target.waitForPreparedFrame).toHaveBeenCalledTimes(2);
     expect(target.warmPitPresentation).toHaveBeenCalledTimes(1);
     expect(calls.indexOf('pit-materials')).toBeGreaterThan(calls.indexOf('draw'));
     expect(target.mode).toBe('pod');
@@ -297,10 +268,10 @@ it.each([
     expect(target.warmPitPresentation).toHaveBeenCalledTimes(service ? 1 : 0);
     const stages = progress.mock.calls.map(([message]) => String(message));
     expect(stages.some((message) => message.includes('pit-service'))).toBe(service);
-    expect(target.renderer.compile).toHaveBeenCalledTimes(4);
+    expect(target.renderer.compileAsync).toHaveBeenCalledTimes(3);
     expect(target.warmShadowCasters).toHaveBeenCalledTimes(1);
     expect(target.draw).toHaveBeenCalledTimes(2);
-    expect(target.waitForPreparedFrame).toHaveBeenCalledTimes(4);
+    expect(target.waitForPreparedFrame).toHaveBeenCalledTimes(2);
     expect(target.warmupFrames).toBe(2);
     expect(target.mode).toBe('pod');
     expect(sample).toEqual(before);
@@ -321,8 +292,7 @@ it('keeps the GPU completion gate when a no-service motocross warmup stalls', as
     ),
   ).rejects.toThrow('GPU preparation did not complete');
   expect(target.warmPitPresentation).not.toHaveBeenCalled();
-  expect(target.draw).not.toHaveBeenCalled();
-  expect(target.warmEnvironmentFrame).not.toHaveBeenCalled();
+  expect(target.draw).toHaveBeenCalledTimes(1);
   expect(target.preparation.snapshot()?.status).toBe('failed');
   expect(target.mode).toBe('pod');
 });
@@ -356,7 +326,7 @@ it.each([
       ),
     ).toBe(false);
     expect(target.bikeShells.update).toHaveBeenCalledTimes(bikeBuilds);
-    expect(target.renderer.compile).not.toHaveBeenCalled();
+    expect(target.renderer.compileAsync).not.toHaveBeenCalled();
     expect(target.draw).not.toHaveBeenCalled();
     expect(target.preparation.snapshot()?.status).toBe('cancelled');
     expect(sample).toEqual(before);
@@ -378,7 +348,7 @@ it('stops cancelled construction before touching any further GPU resources', asy
   expect(target.cars).toHaveLength(1);
   expect(target.preparation.snapshot()?.status).toBe('cancelled');
   expect(target.draw).not.toHaveBeenCalled();
-  expect(target.renderer.compile).not.toHaveBeenCalled();
+  expect(target.renderer.compileAsync).not.toHaveBeenCalled();
 });
 it('requires the complete selected circuit before a showroom can prepare driving', async () => {
   const { target, typed, sample } = fixture('mx450');
@@ -395,15 +365,13 @@ it('requires the complete selected circuit before a showroom can prepare driving
   ).rejects.toThrow('Build the selected circuit before preparing a race');
   expect(target.cars).toHaveLength(0);
   expect(target.draw).not.toHaveBeenCalled();
-  expect(target.renderer.compile).not.toHaveBeenCalled();
+  expect(target.renderer.compileAsync).not.toHaveBeenCalled();
   expect(sample).toEqual(before);
   expect(target.preparation.snapshot()?.status).toBe('failed');
 });
 it('a shader failure rejects initialization instead of starting unprepared gameplay', async () => {
   const { target, typed, sample } = fixture();
-  target.renderer.compile.mockImplementationOnce(() => {
-    throw new Error('Shader failure');
-  });
+  target.renderer.compileAsync.mockRejectedValueOnce(new Error('Shader failure'));
   await expect(
     RacingRenderer.prototype.prepare.call(
       typed,
@@ -472,776 +440,4 @@ it('does not apply graphics or compile when preparation fails', async () => {
     ),
   ).rejects.toThrow('GPU preparation did not complete');
   expect(target.setQuality).not.toHaveBeenCalled();
-});
-
-it('drains the complete environment and compiles its real light/map context before full warmup views', async () => {
-  const { target, typed, sample, calls } = fixture();
-  const contexts: { far: boolean; environment: T.Texture | null }[] = [];
-  target.renderer.compile.mockImplementation(() => {
-    calls.push('compile');
-    contexts.push({ far: target.preparationLight.visible, environment: target.scene.environment });
-  });
-  const before = sample.slice();
-  expect(
-    await RacingRenderer.prototype.prepare.call(
-      typed,
-      sample,
-      vi.fn(),
-      () => false,
-      async () => {},
-    ),
-  ).toBe(true);
-  expect(contexts).toHaveLength(4);
-  expect(contexts[0]).toEqual({ far: false, environment: null });
-  for (const context of contexts.slice(1))
-    expect(context).toEqual({ far: true, environment: target.preparedEnvironment });
-  const environment = calls.indexOf('environment');
-  expect(calls.slice(environment, environment + 4)).toEqual([
-    'environment',
-    'fence',
-    'gpu-ready',
-    'compile',
-  ]);
-  expect(calls.indexOf('shadow-casters')).toBeLessThan(environment);
-  expect(calls.indexOf('draw')).toBeGreaterThan(environment + 3);
-  expect(target.warmEnvironmentFrame).toHaveBeenCalledExactlyOnceWith(sample, false);
-  expect(target.draw).toHaveBeenCalledTimes(2);
-  expect(target.warmupFrames).toBe(2);
-  expect(sample).toEqual(before);
-});
-
-it('does not compile final variants or draw live views after environment completion fails', async () => {
-  const { target, typed, sample } = fixture();
-  target.waitForPreparedFrame
-    .mockResolvedValueOnce(undefined)
-    .mockRejectedValueOnce(new Error('environment GPU stalled'));
-  await expect(
-    RacingRenderer.prototype.prepare.call(
-      typed,
-      sample,
-      vi.fn(),
-      () => false,
-      async () => {},
-    ),
-  ).rejects.toThrow('environment GPU stalled');
-  expect(target.renderer.compile).toHaveBeenCalledTimes(1);
-  expect(target.warmEnvironmentFrame).toHaveBeenCalledTimes(1);
-  expect(target.draw).not.toHaveBeenCalled();
-  expect(target.mode).toBe('pod');
-  expect(target.preparation.snapshot()?.status).toBe('failed');
-});
-
-it('restores environment-only ownership before fencing and never fences a failed submission', () => {
-  const sample = new Float32Array(HEADER + CAR_STRIDE);
-  let submitted = 0;
-  const target = {
-    warmingEnvironment: false,
-    environmentScopeRestored: false,
-    environmentWarmup: null as unknown,
-    draw: vi.fn(),
-    drawLedger: {
-      snapshot: () => ({ probe: { calls: 0 }, mirrors: { calls: 0 }, composer: { calls: 0 } }),
-    },
-    gpuFrames: { submittedFrame: vi.fn(), diagnostics: () => ({ submitted }) },
-  };
-  const warm = (
-    RacingRenderer.prototype as unknown as { warmEnvironmentFrame(frame: Float32Array): void }
-  ).warmEnvironmentFrame;
-  target.draw.mockImplementation(() => {
-    expect(target.warmingEnvironment).toBe(true);
-    target.environmentScopeRestored = true;
-  });
-  target.gpuFrames.submittedFrame.mockImplementation(() => {
-    expect(target.warmingEnvironment).toBe(false);
-    submitted++;
-  });
-  warm.call(target, sample);
-  expect(target.gpuFrames.submittedFrame).toHaveBeenCalledTimes(1);
-  expect(target.environmentWarmup).toEqual({
-    restored: true,
-    fenceDelta: 1,
-    probeDraws: 0,
-    mirrorDraws: 0,
-    composerDraws: 0,
-  });
-  target.gpuFrames.submittedFrame.mockClear();
-  target.draw.mockImplementation(() => {
-    throw new Error('environment submission failed');
-  });
-  expect(() => warm.call(target, sample)).toThrow('environment submission failed');
-  expect(target.warmingEnvironment).toBe(false);
-  expect(target.gpuFrames.submittedFrame).not.toHaveBeenCalled();
-  expect(target.environmentWarmup).toBeNull();
-});
-
-it('does not invent a shadow submission when shadows are disabled', async () => {
-  const { target, typed, sample } = fixture();
-  target.warmShadowCasters.mockReturnValue(false);
-  expect(
-    await RacingRenderer.prototype.prepare.call(
-      typed,
-      sample,
-      vi.fn(),
-      () => false,
-      async () => {},
-    ),
-  ).toBe(true);
-  expect(target.waitForPreparedFrame).toHaveBeenCalledTimes(3);
-  expect(target.gpuFrames.submittedFrame).toHaveBeenCalledTimes(1);
-  expect(target.warmEnvironmentFrame).toHaveBeenCalledTimes(1);
-  expect(target.draw).toHaveBeenCalledTimes(2);
-});
-
-it.each([1, 2])(
-  'stops preparation after cancellation at GPU boundary %i without reaching full views',
-  async (boundary) => {
-    const { target, typed, sample } = fixture();
-    let cancelled = false,
-      completed = 0;
-    target.waitForPreparedFrame.mockImplementation(async () => {
-      if (++completed === boundary) cancelled = true;
-    });
-    const before = sample.slice();
-    expect(
-      await RacingRenderer.prototype.prepare.call(
-        typed,
-        sample,
-        vi.fn(),
-        () => cancelled,
-        async () => {},
-      ),
-    ).toBe(false);
-    expect(target.draw).not.toHaveBeenCalled();
-    expect(target.renderer.compile).toHaveBeenCalledTimes(1);
-    expect(target.warmEnvironmentFrame).toHaveBeenCalledTimes(boundary === 1 ? 0 : 1);
-    expect(target.preparation.snapshot()?.status).toBe('cancelled');
-    expect(sample).toEqual(before);
-  },
-);
-
-it('still blocks cockpit and completion when the full no-service chase warmup stalls', async () => {
-  const { target, typed, sample } = fixture('mx450');
-  target.waitForPreparedFrame
-    .mockResolvedValueOnce(undefined)
-    .mockResolvedValueOnce(undefined)
-    .mockRejectedValueOnce(new Error('chase GPU did not complete'));
-  await expect(
-    RacingRenderer.prototype.prepare.call(
-      typed,
-      sample,
-      vi.fn(),
-      () => false,
-      async () => {},
-      false,
-    ),
-  ).rejects.toThrow('chase GPU did not complete');
-  expect(target.draw).toHaveBeenCalledTimes(1);
-  expect(target.warmEnvironmentFrame).toHaveBeenCalledTimes(1);
-  expect(target.warmPitPresentation).not.toHaveBeenCalled();
-  expect(target.warmupFrames).toBe(1);
-  expect(target.mode).toBe('pod');
-  expect(target.preparation.snapshot()?.status).toBe('failed');
-});
-
-it('does not submit shadows, views or restore disposed camera state after program-wait cancellation', async () => {
-  const { target, typed, sample } = fixture();
-  Object.assign(target, { disposed: false });
-  Object.assign(target.renderer, {
-    info: { programs: [{ program: {} }] },
-    getContext: () => ({
-      isContextLost: () => false,
-      getExtension: () => ({ COMPLETION_STATUS_KHR: 0x91b1 }),
-      getProgramParameter: () => {
-        Object.assign(target, { disposed: true });
-        return false;
-      },
-    }),
-  });
-  expect(
-    await RacingRenderer.prototype.prepare.call(
-      typed,
-      sample,
-      vi.fn(),
-      () => false,
-      async () => {},
-    ),
-  ).toBe(false);
-  expect(target.renderer.compile).toHaveBeenCalledOnce();
-  expect(target.warmShadowCasters).not.toHaveBeenCalled();
-  expect(target.draw).not.toHaveBeenCalled();
-  expect(target.reset).not.toHaveBeenCalled();
-  expect(target.renderer.getRenderTarget()).toBeNull();
-});
-
-it.each(['apx01', 'gpr1', 'mx450'])(
-  'prepares only the exact frozen menu view for selected %s without race/pit views or sample writes',
-  async (vehicle) => {
-    const { target, typed, sample, calls } = fixture(vehicle, 2);
-    target.follow = 0;
-    sample[H.CARS] = 1;
-    sample[H.TIME] = 42;
-    sample[H.WATER] = 0.25;
-    sample[H.CLOUD] = 0.6;
-    sample[carBase(0) + RACE_BASE + R.VEHICLE] = vehicleIndex(vehicle);
-    const before = sample.slice(),
-      ready = vi.fn(async () => {});
-    Object.assign(target, {
-      lighting: 'night',
-      guide: { mode: 'full' },
-      photoSky: { enabled: true, ready },
-      gpLook: { clearSky: null },
-    });
-    target.draw.mockImplementation((a, b, alpha, dt, menu, replay) => {
-      expect(a).toBe(sample);
-      expect(b).toBe(sample);
-      expect(alpha).toBe(0);
-      expect(dt).toBe(1 / 120);
-      expect(menu).toBe(true);
-      expect(replay).toBe(false);
-      expect(sample).toEqual(before);
-      calls.push('menu-draw');
-    });
-    expect(
-      await RacingRenderer.prototype.prepareMenuPreview.call(
-        typed,
-        sample,
-        vi.fn(),
-        () => false,
-        async () => {},
-      ),
-    ).toBe(true);
-    expect(ready).toHaveBeenCalledWith(sample[H.CLOUD], 'night');
-    expect(target.warmEnvironmentFrame).toHaveBeenCalledExactlyOnceWith(sample, true);
-    expect(target.renderer.compile).toHaveBeenCalledTimes(3);
-    expect(target.draw).toHaveBeenCalledTimes(1);
-    expect(target.warmPitPresentation).not.toHaveBeenCalled();
-    expect(target.reset).not.toHaveBeenCalled();
-    expect(target.mode).toBe('pod');
-    expect(calls).not.toContain('chase');
-    expect(calls).not.toContain('cockpit');
-    expect(target.warmupFrames).toBe(1);
-    expect(sample).toEqual(before);
-    expect(target.preparation.snapshot()?.status).toBe('complete');
-    expect(target.preparation.snapshot()?.stages.map((stage) => stage.label)).toContain(
-      'Warming the selected menu preview…',
-    );
-    expect(
-      target.preparation
-        .snapshot()
-        ?.checkpoints.some((event) => event.label === 'menu:fence-wait' && event.phase === 'end'),
-    ).toBe(true);
-  },
-);
-
-it('does not finish or adopt a menu view whose actual completion wait failed', async () => {
-  const { target, typed, sample } = fixture();
-  target.draw.mockImplementation(() => {});
-  target.waitForPreparedFrame.mockImplementation(async () => {
-    if (target.draw.mock.calls.length) throw new Error('menu GPU completion failed');
-  });
-  await expect(
-    RacingRenderer.prototype.prepareMenuPreview.call(
-      typed,
-      sample,
-      vi.fn(),
-      () => false,
-      async () => {},
-    ),
-  ).rejects.toThrow('menu GPU completion failed');
-  expect(target.draw).toHaveBeenCalledTimes(1);
-  expect(target.warmPitPresentation).not.toHaveBeenCalled();
-  expect(target.reset).not.toHaveBeenCalled();
-  expect(target.preparation.snapshot()?.status).toBe('failed');
-});
-
-it('uses actual menu flags for environment-only setup and restores its ownership', () => {
-  const sample = new Float32Array(HEADER + CAR_STRIDE);
-  let submitted = 0;
-  const target = {
-    warmingEnvironment: false,
-    environmentScopeRestored: false,
-    environmentWarmup: null as unknown,
-    draw: vi.fn((_a, _b, _alpha, _dt, _menu, _replay) => {
-      expect(target.warmingEnvironment).toBe(true);
-      target.environmentScopeRestored = true;
-    }),
-    drawLedger: {
-      snapshot: () => ({ probe: { calls: 0 }, mirrors: { calls: 0 }, composer: { calls: 0 } }),
-    },
-    gpuFrames: {
-      submittedFrame: vi.fn(() => {
-        expect(target.warmingEnvironment).toBe(false);
-        submitted++;
-      }),
-      diagnostics: () => ({ submitted }),
-    },
-  };
-  const warm = (
-    RacingRenderer.prototype as unknown as {
-      warmEnvironmentFrame(frame: Float32Array, menu: boolean): void;
-    }
-  ).warmEnvironmentFrame;
-  warm.call(target, sample, true);
-  expect(target.draw).toHaveBeenCalledExactlyOnceWith(sample, sample, 0, 1 / 120, true, false);
-  expect(target.warmingEnvironment).toBe(false);
-  expect(submitted).toBe(1);
-});
-
-it('compiles explicit fullscreen materials after environment completion and before either race view', async () => {
-  const { target, typed, sample, calls } = fixture();
-  const material = new T.ShaderMaterial();
-  target.scenePass.compilationSubjects.mockImplementation(() => [
-    { material, target: target.scenePass.target },
-  ]);
-  target.renderer.compile.mockImplementation((scene) => {
-    calls.push(scene === target.scene || scene.type !== 'Scene' ? 'compile' : 'fullscreen');
-  });
-  expect(
-    await RacingRenderer.prototype.prepare.call(
-      typed,
-      sample,
-      vi.fn(),
-      () => false,
-      async () => {},
-    ),
-  ).toBe(true);
-  expect(calls.indexOf('fullscreen')).toBeGreaterThan(calls.indexOf('environment'));
-  expect(calls.indexOf('fullscreen')).toBeLessThan(calls.indexOf('chase'));
-  expect(target.draw).toHaveBeenCalledTimes(2);
-  expect(target.warmPitPresentation).toHaveBeenCalledTimes(1);
-});
-
-it('never draws a menu view after fullscreen submission fails', async () => {
-  const { target, typed, sample } = fixture();
-  target.scenePass.compilationSubjects.mockImplementation(() => [
-    { material: new T.ShaderMaterial(), target: target.scenePass.target },
-  ]);
-  const compile = target.renderer.compile.getMockImplementation()!;
-  target.renderer.compile.mockImplementation((scene, camera, targetScene) => {
-    if (scene instanceof T.Scene && scene !== target.scene)
-      throw new Error('fullscreen compile failed');
-    return compile(scene, camera, targetScene);
-  });
-  await expect(
-    RacingRenderer.prototype.prepareMenuPreview.call(
-      typed,
-      sample,
-      vi.fn(),
-      () => false,
-      async () => {},
-    ),
-  ).rejects.toThrow('fullscreen compile failed');
-  expect(target.draw).not.toHaveBeenCalled();
-});
-
-it.each(['disposed', 'cancelled'] as const)(
-  'does not record successful fullscreen completion or submit a view when %s during compilation',
-  async (stop) => {
-    const { target, typed, sample } = fixture();
-    let cancelled = false;
-    target.scenePass.compilationSubjects.mockImplementation(() => [
-      { material: new T.ShaderMaterial(), target: target.scenePass.target },
-    ]);
-    const compile = target.renderer.compile.getMockImplementation()!;
-    target.renderer.compile.mockImplementation((scene, camera, targetScene) => {
-      if (scene instanceof T.Scene && scene !== target.scene) {
-        if (stop === 'disposed') Object.assign(target, { disposed: true });
-        else cancelled = true;
-      }
-      return compile(scene, camera, targetScene);
-    });
-    expect(
-      await RacingRenderer.prototype.prepareMenuPreview.call(
-        typed,
-        sample,
-        vi.fn(),
-        () => cancelled,
-        async () => {},
-      ),
-    ).toBe(false);
-    expect(target.draw).not.toHaveBeenCalled();
-    const checkpoints = target.preparation
-      .snapshot()!
-      .checkpoints.filter((event) => event.label === 'fullscreen:compile-ready');
-    expect(checkpoints.map((event) => event.phase)).toEqual(['start', 'cancelled']);
-    expect(target.preparation.snapshot()!.status).toBe('cancelled');
-  },
-);
-
-it('names each post-view compilation before submitting it, after pit work and its completed fence', async () => {
-  const { target, typed, sample } = fixture();
-  const compile = target.renderer.compile.getMockImplementation()!;
-  let calls = 0;
-  target.renderer.compile.mockImplementation((scene, camera, targetScene) => {
-    calls++;
-    if (calls >= 3)
-      expect(target.preparation.snapshot()!.checkpoints.at(-1)).toMatchObject({
-        phase: 'start',
-        label: `${calls === 3 ? 'chase' : 'cockpit'}:compile-ready`,
-      });
-    return compile(scene, camera, targetScene);
-  });
-  expect(
-    await RacingRenderer.prototype.prepare.call(
-      typed,
-      sample,
-      vi.fn(),
-      () => false,
-      async () => {},
-    ),
-  ).toBe(true);
-  const checkpoints = target.preparation.snapshot()!.checkpoints;
-  const index = (label: string, phase: string) =>
-    checkpoints.findIndex((event) => event.label === label && event.phase === phase);
-  expect(index('chase:compile-ready', 'start')).toBeGreaterThan(index('pit:warmup', 'end'));
-  for (const mode of ['chase', 'cockpit']) {
-    const start = index(`${mode}:compile-ready`, 'start'),
-      end = index(`${mode}:compile-ready`, 'end');
-    expect(start).toBeGreaterThanOrEqual(0);
-    expect(end).toBeGreaterThan(start);
-    expect(index(`${mode}:fence-wait`, 'end')).toBeLessThan(start);
-    expect(index(`${mode}:fence-wait`, 'end')).toBeGreaterThan(
-      index(`${mode}:fence-wait`, 'start'),
-    );
-  }
-});
-
-it.each(['chase', 'cockpit', 'menu'] as const)(
-  'does not submit compile or readiness queries before the pending %s view fence completes',
-  async (mode) => {
-    const { target, typed, sample } = fixture();
-    let pending = false;
-    let release!: () => void, enter!: () => void;
-    const entered = new Promise<void>((resolve) => {
-      enter = resolve;
-    });
-    const gate = new Promise<void>((resolve) => {
-      release = resolve;
-    });
-    const query = vi.fn(() => {
-      expect(pending).toBe(false);
-      return true;
-    });
-    Object.assign(target.renderer, {
-      info: { programs: [{ program: {}, getUniforms: vi.fn(), getAttributes: vi.fn() }] },
-      getContext: () => ({
-        isContextLost: () => false,
-        getExtension: () => ({ COMPLETION_STATUS_KHR: 1 }),
-        getProgramParameter: query,
-      }),
-    });
-    const compile = target.renderer.compile.getMockImplementation()!;
-    target.renderer.compile.mockImplementation((...args) => {
-      expect(pending).toBe(false);
-      return compile(...args);
-    });
-    target.draw.mockImplementation(() => {
-      if (mode === 'menu' || target.mode === mode) pending = true;
-    });
-    target.waitForPreparedFrame.mockImplementation(async () => {
-      if (pending) {
-        enter();
-        await gate;
-        pending = false;
-      }
-    });
-    const result =
-      mode === 'menu'
-        ? RacingRenderer.prototype.prepareMenuPreview.call(
-            typed,
-            sample,
-            vi.fn(),
-            () => false,
-            async () => {},
-          )
-        : RacingRenderer.prototype.prepare.call(
-            typed,
-            sample,
-            vi.fn(),
-            () => false,
-            async () => {},
-            true,
-          );
-    await entered;
-    const compiles = target.renderer.compile.mock.calls.length,
-      queries = query.mock.calls.length;
-    expect(compiles).toBe(mode === 'cockpit' ? 3 : 2);
-    await Promise.resolve();
-    expect(query).toHaveBeenCalledTimes(queries);
-    release();
-    expect(await result).toBe(true);
-    expect(target.renderer.compile).toHaveBeenCalledTimes(mode === 'menu' ? 3 : 4);
-    expect(target.waitForPreparedFrame).toHaveBeenCalledTimes(mode === 'menu' ? 3 : 4);
-  },
-);
-
-it.each(['cancelled', 'disposed', 'loss'] as const)(
-  'prevents post-view compilation and the next view after %s at the pending fence',
-  async (outcome) => {
-    const { target, typed, sample } = fixture();
-    let cancelled = false,
-      release!: () => void,
-      enter!: () => void,
-      waits = 0;
-    const entered = new Promise<void>((resolve) => {
-      enter = resolve;
-    });
-    const gate = new Promise<void>((resolve) => {
-      release = resolve;
-    });
-    target.waitForPreparedFrame.mockImplementation(async () => {
-      if (++waits === 3) {
-        enter();
-        await gate;
-        if (outcome === 'loss') throw new Error('WebGL context lost at fence');
-      }
-    });
-    const result = RacingRenderer.prototype.prepare.call(
-      typed,
-      sample,
-      vi.fn(),
-      () => cancelled,
-      async () => {},
-      false,
-    );
-    const observed =
-      outcome === 'loss'
-        ? expect(result).rejects.toThrow('WebGL context lost')
-        : expect(result).resolves.toBe(false);
-    await entered;
-    expect(target.renderer.compile).toHaveBeenCalledTimes(2);
-    if (outcome === 'cancelled') cancelled = true;
-    if (outcome === 'disposed') Object.assign(target, { disposed: true });
-    release();
-    await observed;
-    expect(target.renderer.compile).toHaveBeenCalledTimes(2);
-    expect(target.draw).toHaveBeenCalledTimes(1);
-    expect(
-      target.preparation.snapshot()!.checkpoints.some((c) => c.label === 'chase:compile-ready'),
-    ).toBe(false);
-  },
-);
-
-it.each(['failed', 'cancelled', 'disposed'] as const)(
-  'retains a %s post-view compile span without claiming completion',
-  async (outcome) => {
-    const { target, typed, sample } = fixture();
-    const compile = target.renderer.compile.getMockImplementation()!;
-    let calls = 0,
-      cancelled = false;
-    target.renderer.compile.mockImplementation((scene, camera, targetScene) => {
-      if (++calls === 3) {
-        if (outcome === 'failed') throw new Error('post-view driver call failed');
-        if (outcome === 'disposed') Object.assign(target, { disposed: true });
-        else cancelled = true;
-      }
-      return compile(scene, camera, targetScene);
-    });
-    const pending = RacingRenderer.prototype.prepare.call(
-      typed,
-      sample,
-      vi.fn(),
-      () => cancelled,
-      async () => {},
-    );
-    if (outcome === 'failed') await expect(pending).rejects.toThrow('post-view driver call failed');
-    else expect(await pending).toBe(false);
-    const checkpoints = target.preparation.snapshot()!.checkpoints;
-    expect(
-      checkpoints
-        .filter((event) => event.label === 'chase:compile-ready')
-        .map((event) => event.phase),
-    ).toEqual(['start', outcome === 'failed' ? 'error' : 'cancelled']);
-    expect(
-      checkpoints.filter((event) => event.label === 'chase:fence-wait').map((event) => event.phase),
-    ).toEqual(['start', 'end']);
-    expect(checkpoints.some((event) => event.label === 'cockpit:fence-wait')).toBe(false);
-    expect(target.draw).toHaveBeenCalledTimes(1);
-  },
-);
-
-it.each([undefined, '0'] as const)(
-  'does not allocate diagnostic DOF in the menu when build flag is %s',
-  async (flag) => {
-    vi.stubEnv('VITE_APEX_DIAGNOSTIC_MENU_DOF_PRIME', flag);
-    try {
-      const { target, typed, sample } = fixture();
-      target.draw.mockImplementation(() => {});
-      expect(
-        await RacingRenderer.prototype.prepareMenuPreview.call(
-          typed,
-          sample,
-          vi.fn(),
-          () => false,
-          async () => {},
-        ),
-      ).toBe(true);
-      expect(target.photoFocus).toBeNull();
-      const labels = target.preparation.snapshot()!.checkpoints.map((event) => event.label);
-      if (flag === '0') expect(labels).toContain('menu-dof-diagnostic:flag:0');
-      else expect(labels.some((label) => label.startsWith('menu-dof-diagnostic:'))).toBe(false);
-    } finally {
-      vi.unstubAllEnvs();
-    }
-  },
-);
-
-it('retains the exact menu DOF material without inserting/rendering it early and skips race diagnostics', async () => {
-  vi.stubEnv('VITE_APEX_DIAGNOSTIC_MENU_DOF_PRIME', '1');
-  try {
-    const { target, typed, sample } = fixture();
-    target.draw.mockImplementation(() => {});
-    const compiled: T.Material[] = [];
-    target.renderer.compile.mockImplementation((scene) => {
-      if (scene instanceof T.Scene && scene !== target.scene)
-        compiled.push((scene.children[0] as T.Mesh).material as T.Material);
-    });
-    expect(
-      await RacingRenderer.prototype.prepareMenuPreview.call(
-        typed,
-        sample,
-        vi.fn(),
-        () => false,
-        async () => {},
-      ),
-    ).toBe(true);
-    const pass = target.photoFocus!;
-    expect(compiled).toEqual([pass.materialBokeh]);
-    expect(pass.materialBokeh.fragmentShader).toContain('i < 24');
-    expect(pass.materialBokeh.uniforms.lensK).toBeUndefined();
-    expect(pass.materialBokeh.uniforms.aperture.value).toBe(0.0011);
-    expect(pass.materialBokeh.uniforms.maxblur.value).toBe(0.012);
-    expect(pass.materialBokeh.uniforms.focus.value).toBe(10);
-    expect(target.composer.passes).toEqual([]);
-    expect(target.draw).toHaveBeenCalledTimes(1);
-    await RacingRenderer.prototype.prepareMenuPreview.call(
-      typed,
-      sample,
-      vi.fn(),
-      () => false,
-      async () => {},
-    );
-    expect(target.photoFocus).toBe(pass);
-    expect(compiled).toEqual([pass.materialBokeh, pass.materialBokeh]);
-    const disposed = vi.fn();
-    pass.materialBokeh.addEventListener('dispose', disposed);
-    disposeDiagnosticPreviewOwner(pass);
-    expect(disposed).toHaveBeenCalledTimes(1);
-    const race = fixture();
-    expect(
-      await RacingRenderer.prototype.prepare.call(
-        race.typed,
-        race.sample,
-        vi.fn(),
-        () => false,
-        async () => {},
-      ),
-    ).toBe(true);
-    expect(race.target.photoFocus).toBeNull();
-    expect(
-      race.target.preparation
-        .snapshot()!
-        .checkpoints.some((event) => event.label.startsWith('menu-dof-diagnostic:')),
-    ).toBe(false);
-  } finally {
-    vi.unstubAllEnvs();
-  }
-});
-
-it('retains cancelled diagnostic DOF for owner disposal and does not submit or report a completed menu view', async () => {
-  vi.stubEnv('VITE_APEX_DIAGNOSTIC_MENU_DOF_PRIME', '1');
-  try {
-    const { target, typed, sample } = fixture();
-    target.draw.mockImplementation(() => {});
-    let cancelled = false;
-    target.renderer.compile.mockImplementation((scene) => {
-      if (scene instanceof T.Scene && scene !== target.scene) cancelled = true;
-    });
-    expect(
-      await RacingRenderer.prototype.prepareMenuPreview.call(
-        typed,
-        sample,
-        vi.fn(),
-        () => cancelled,
-        async () => {},
-      ),
-    ).toBe(false);
-    expect(target.draw).not.toHaveBeenCalled();
-    expect(
-      target.preparation
-        .snapshot()!
-        .checkpoints.filter((event) => event.label === 'menu-dof-diagnostic:compile-ready')
-        .map((event) => event.phase),
-    ).toEqual(['start', 'cancelled']);
-    const dispose = vi.fn();
-    target.photoFocus!.materialBokeh.addEventListener('dispose', dispose);
-    disposeDiagnosticPreviewOwner(target.photoFocus!);
-    expect(dispose).toHaveBeenCalledTimes(1);
-  } finally {
-    vi.unstubAllEnvs();
-  }
-});
-
-/** Exercise the production ownership/disposal path without constructing a GPU. */
-function disposeDiagnosticPreviewOwner(photoFocus: DepthOfFieldPass) {
-  const resource = { dispose: vi.fn() };
-  const owner: Record<string, unknown> = {
-    disposed: false,
-    photoFocus,
-    renderer: resource,
-    circuit: {
-      secondaryStands: resource,
-      wetReflection: resource,
-      stateTexture: resource,
-      disposalMaterials: () => new Set<T.Material>(),
-    },
-    cars: [],
-    scene: new T.Scene(),
-    sun: { shadow: resource },
-  };
-  for (const name of [
-    'textures',
-    'pitCrew',
-    'gridPerformance',
-    'reflection',
-    'shadowProxies',
-    'farShadow',
-    'gpuTimer',
-    'gpuFrames',
-    'motionBlur',
-    'exposure',
-    'weatherPresentation',
-    'bloom',
-    'fxaa',
-    'scenePass',
-    'grade',
-    'ultra',
-    'environment',
-    'composer',
-  ])
-    owner[name] = resource;
-  RacingRenderer.prototype.dispose.call(owner as unknown as RacingRenderer);
-  RacingRenderer.prototype.dispose.call(owner as unknown as RacingRenderer);
-}
-
-it('post-draw index evidence cannot mask the original failure and is cleared with its owner', async () => {
-  const { target, typed, sample } = fixture();
-  const evidence = vi.fn(() => {
-    throw new Error('diagnostic failed');
-  });
-  target.draw.mockImplementation(() => {
-    Object.assign(target, { indexEvidenceAfterDraw: evidence });
-    throw new Error('original warm draw failed');
-  });
-  await expect(
-    RacingRenderer.prototype.prepare.call(
-      typed,
-      sample,
-      vi.fn(),
-      () => false,
-      async () => {},
-    ),
-  ).rejects.toThrow('original warm draw failed');
-  expect(evidence).toHaveBeenCalledExactlyOnceWith(false);
-  expect(target).toMatchObject({ indexEvidenceAfterDraw: null, preparingIndexStreams: null });
 });

@@ -1,4 +1,3 @@
-import { verifyBasisTranscoder } from '../scripts/assets/basis-contract.ts';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -7,6 +6,7 @@ import {
   auditShipment,
   forbiddenNameIn,
   readRegister,
+  sha256,
   validateRegister,
 } from '../scripts/assets/register.ts';
 import { brandWordIn } from '../scripts/assets/brands.ts';
@@ -70,8 +70,11 @@ describe('third-party asset register and shipment', () => {
         expect(forbiddenNameIn(text), text).toBeNull();
   });
 
-  it('serves the pinned original codec rebuilt for strict desktop CSP', () => {
-    expect(verifyBasisTranscoder(ROOT).settings.DYNAMIC_EXECUTION).toBe(0);
+  it('serves the KTX2 transcoder exactly as three ships it', () => {
+    for (const name of ['basis_transcoder.js', 'basis_transcoder.wasm'])
+      expect(sha256(readFileSync(join(ROOT, 'public/assets/basis', name)))).toBe(
+        sha256(readFileSync(join(ROOT, 'node_modules/three/examples/jsm/libs/basis', name))),
+      );
   });
 
   it('every sky is an Ultra HDR JPEG pair (4k and 2k) with a half-size gain map at the recorded offset', () => {

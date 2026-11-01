@@ -68,7 +68,6 @@ scope.onmessage = (event: MessageEvent<ToOpenWorld>) => {
         send({ type: 'ready', buildMs: performance.now() - start, vehicle: simulation.player.definition.id });
         snapshot(true);
         status();
-        send({ type: 'held-ready', tick: simulation.tick });
         break;
       }
       case 'input':

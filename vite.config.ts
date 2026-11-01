@@ -19,7 +19,6 @@ for (const path of [
   ...sourceFiles(join(root, 'src')),
   join(root, 'package-lock.json'),
   join(root, 'index.html'),
-  join(root, 'babylon.html'),
   join(root, 'vite.config.ts'),
 ].sort()) {
   hash.update(relative(root, path).replaceAll('\\', '/') + '\0');
@@ -60,10 +59,7 @@ export default defineConfig({
   build: {
     target: 'es2022',
     sourcemap: true,
-    rollupOptions: {
-      input: { game: join(root, 'index.html'), babylon: join(root, 'babylon.html') },
-      output: { manualChunks: { three: ['three'] } },
-    },
+    rollupOptions: { output: { manualChunks: { three: ['three'] } } },
   },
   worker: { format: 'es' },
 });

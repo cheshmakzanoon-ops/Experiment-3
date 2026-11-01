@@ -1,10 +1,3 @@
-import { CAR_GROUNDING, CAR_FOOTPRINT, CAR_TYRES } from '../../engine/assets/formula-grounding.ts';
-export {
-  CAR_GROUNDING,
-  CAR_FOOTPRINT,
-  CAR_TYRES,
-  carGroundingAt,
-} from '../../engine/assets/formula-grounding.ts';
 import type * as T from 'three';
 import { chainShaderHook, injectAfter, injectDeclarations } from './shader-hooks.ts';
 import { useStudioUniforms } from './studio-frame.ts';
@@ -31,6 +24,31 @@ import { useStudioUniforms } from './studio-frame.ts';
  * than `CAR_GROUNDING.height` metres from the cars' ground level are left
  * alone. Deterministic: the pose is presented simulation state.
  */
+export const CAR_GROUNDING = Object.freeze({
+  indirect: 0.6,
+  direct: 0.32,
+  falloff: 0.2,
+  tyreFalloff: 0.09,
+  height: 0.45,
+  /** Cars further than this (metres, footprint centre) are skipped per pixel. */
+  reach: 4,
+});
+
+/** Footprint parts in car-local (across, along) metres: centre, half size,
+ * strength. Wheel contacts are at (±0.83, 1.82) and (±0.83, -1.62). */
+export const CAR_FOOTPRINT = Object.freeze([
+  { name: 'floor', centre: [0, -0.3], half: [0.78, 1.5], strength: 1 },
+  { name: 'nose', centre: [0, 1.9], half: [0.28, 0.7], strength: 0.45 },
+  { name: 'front wing', centre: [0, 2.5], half: [0.95, 0.28], strength: 0.5 },
+  { name: 'rear wing', centre: [0, -2.3], half: [0.5, 0.35], strength: 0.5 },
+] as const);
+export const CAR_TYRES = Object.freeze({
+  across: 0.83,
+  front: 1.82,
+  rear: -1.62,
+  half: [0.19, 0.34],
+});
+
 /** GP slick contact half sizes in metres. These fit inside the rendered
  * front/rear crowns (0.12/0.20 m wide); soft indirect occlusion extends beyond
  * the loaded patch. Body values are a lighting approximation, not collision
@@ -175,6 +193,42 @@ function groundBox(
   const sdf = Math.hypot(Math.max(dx, 0), Math.max(dz, 0)) + Math.min(Math.max(dx, dz), 0);
   return 1 - smooth(-falloff, falloff, sdf);
 }
+/** CPU reference of the shader's `apexCarGrounding` for one car: occlusion
+ * 0..1 at car-local (across, height above ground, along). */
+export function carGroundingAt(across: number, height: number, along: number) {
+  const gate = 1 - smooth(CAR_GROUNDING.height * 0.4, CAR_GROUNDING.height, Math.abs(height));
+  if (gate <= 0) return 0;
+  let occ = 0;
+  for (const part of CAR_FOOTPRINT)
+    occ = Math.max(
+      occ,
+      part.strength *
+        groundBox(
+          across,
+          along,
+          part.centre[0],
+          part.centre[1],
+          part.half[0],
+          part.half[1],
+          CAR_GROUNDING.falloff,
+        ),
+    );
+  for (const z of [CAR_TYRES.front, CAR_TYRES.rear])
+    occ = Math.max(
+      occ,
+      groundBox(
+        Math.abs(across),
+        along,
+        CAR_TYRES.across,
+        z,
+        CAR_TYRES.half[0],
+        CAR_TYRES.half[1],
+        CAR_GROUNDING.tyreFalloff,
+      ),
+    );
+  return occ * gate;
+}
+
 /** CPU reference for GP footprint inspection, using StudioFrame's world
  * contacts. Ground plane and lit-material application match the shader;
  * no separate translucent shadow card or wet-surface overlay is created. */

@@ -32,13 +32,8 @@ import {
  * direction-aware wheel-slip assists and contact-aware airborne clutch inertia;
  * v18: converged tire torque roots, planar water/cooling and lockup wear,
  * droop-reachable suspension, directional link geometry and connected brake blending;
- * v19: road-supported automatic upshifts prevent wheelspin-induced gear hunting;
- * v20: roll back the v19 road-supported upshift guard after LSD-launch and
- * continuous-driving regressions;
- * v21: let a still-fast engine complete one normally coupled solve at automatic
- * shift-cut exit when driven tyres recover longitudinal grip, preventing hunting;
- * prior records retain their original physics category. */
-export const SIMULATION_VERSION = 21;
+ * prior records remain in their original physics category. */
+export const SIMULATION_VERSION = 18;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 

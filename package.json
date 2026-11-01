@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Desktop motorsport game: TypeScript and Babylon.js with an independent custom vehicle simulation",
+  "description": "Original instrumented Formula racing simulation in TypeScript and Three.js",
   "engines": {
     "node": ">=22.12.0"
   },
@@ -15,7 +15,7 @@
     "test:physics": "node --experimental-transform-types scripts/validate.ts && npm run test:dynamics && npm run test:race-control && npm run test:wet-pits && npm run test:journey",
     "test:endurance": "node --experimental-transform-types scripts/endurance.ts",
     "test:e2e": "playwright test",
-    "lint": "eslint src tests e2e scripts desktop",
+    "lint": "eslint src tests e2e scripts",
     "format": "prettier --write src tests e2e scripts *.json *.ts *.html",
     "check": "npm run lint && npm run validate:content && npm test && npm run build",
     "validate:content": "node --experimental-transform-types scripts/validate-content.ts",
@@ -42,15 +42,9 @@
     "predev": "npm run generate:player-lods",
     "pretest": "npm run generate:player-lods",
     "test:e2e:shard": "node --experimental-strip-types scripts/run-browser-shard.ts",
-    "check:stable": "node --experimental-transform-types scripts/source-stability.ts -- npm run check",
-    "desktop:compile": "tsc -p desktop/tsconfig.json",
-    "desktop:prepare": "npm run build && npm run desktop:compile && node scripts/prepare-desktop.mjs",
-    "desktop:dev": "npm run desktop:prepare && electron desktop-stage",
-    "desktop:package": "npm run desktop:prepare && electron-builder --config electron-builder.yml"
+    "check:stable": "node --experimental-transform-types scripts/source-stability.ts -- npm run check"
   },
   "dependencies": {
-    "@babylonjs/core": "9.33.1",
-    "@babylonjs/loaders": "9.33.1",
     "@fontsource-variable/saira": "5.3.0",
     "three": "0.180.0"
   },
@@ -59,8 +53,6 @@
     "@playwright/test": "1.55.1",
     "@types/node": "22.18.6",
     "@types/three": "0.180.0",
-    "electron": "45.2.1",
-    "electron-builder": "26.18.0",
     "eslint": "9.36.0",
     "globals": "16.4.0",
     "meshoptimizer": "0.25.0",

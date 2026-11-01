@@ -1,5 +1,3 @@
-import { steeringSample } from './supplied-steering.ts';
-export { steeringSample } from './supplied-steering.ts';
 import { applySuppliedCharacterLookdev } from './studio/supplied-character-lookdev.ts';
 import { installSuppliedWheelBlur, type SuppliedWheelBlur } from './studio/wheel-blur.ts';
 import { wheelBlur } from './studio/tyre-letters.ts';
@@ -194,6 +192,19 @@ function release(root: T.Object3D) {
     if (typeof ImageBitmap !== 'undefined' && t.image instanceof ImageBitmap) t.image.close();
   });
   skeletons.forEach((s) => s.dispose());
+}
+
+export function steeringSample(steering: number, duration: number) {
+  if (!Number.isFinite(steering) || !Number.isFinite(duration) || duration <= 0)
+    throw new Error('Invalid supplied driver steering sample');
+  // The authored clip runs from the right lock (-35 degrees, driver's left hand
+  // raised) to the left lock (+35 degrees). Positive steering is a left turn.
+  const normalized = clamp(
+    (steering * 2.2) / T.MathUtils.degToRad(manifest.steeringDegrees),
+    -1,
+    1,
+  );
+  return (normalized + 1) * 0.5 * duration;
 }
 
 /** One owned assembly for car zero, not a replacement for every AI opponent. */

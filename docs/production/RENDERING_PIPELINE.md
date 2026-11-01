@@ -310,7 +310,7 @@ scene.backgroundRotation.y = scene.environmentRotation.y = env.rotationFor(sunDi
 import { thirdPartyAsset, creditLines } from '../rendering/assets/third-party.ts';
 ```
 
-`loadPbrSet` prefers KTX2 (pinned strict-CSP Basis v1.50 transcoder at `assets/basis/`, verified by the build; see `docs/BASIS_TRANSCODER.md`) and
+`loadPbrSet` prefers KTX2 (transcoder at `assets/basis/`, copied from three by the build) and
 falls back to WebP per map; textures are cached per renderer and cloned per call. `loadEnvironment`
 decodes the gain map on the GPU into a half-float equirect + PMREM (three's `UltraHDRLoader` /
 `HDRLoader` for files without a manifest layout) and is reference counted. All loaders reject in

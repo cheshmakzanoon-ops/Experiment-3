@@ -13,7 +13,7 @@ import { DEFAULT_SETUP } from '../src/simulation/config.ts';
 import { Vehicle } from '../src/simulation/vehicle.ts';
 import { VEHICLES, type VehicleDefinition } from '../src/simulation/vehicles.ts';
 import { CATALOGUE_BANDS } from '../src/simulation/vehicle-catalogue/index.ts';
-import { SIMULATION_VERSION, vehicleHash } from '../src/core/session-identity.ts';
+import { vehicleHash } from '../src/core/session-identity.ts';
 import { DynamicsTrack } from './dynamics-fixtures.ts';
 import { BIKE_TARGETS, measureBike } from './bike-calibration.ts';
 import {
@@ -22,22 +22,12 @@ import {
   withNearEdgeTable,
   type CalibrationReport,
 } from './calibration-margins.ts';
-import {
-  beginCalibrationProvenance,
-  calibrationSourceRoot,
-  finishCalibrationProvenance,
-} from './calibration-provenance.ts';
 
 const strict = process.argv.includes('--strict');
 const only = process.argv
   .find((a) => a.startsWith('--only='))
   ?.slice('--only='.length)
   .split(',');
-const provenance = beginCalibrationProvenance(calibrationSourceRoot(import.meta.url), {
-  simulationVersion: SIMULATION_VERSION,
-  strict,
-  requestedVehicleIds: only ?? null,
-});
 type Band = readonly [number, number];
 /** Design-brief target bands. Formula: public F1 figures (reference-targets.ts).
  * TC-1: an original 1.3 t front-drive touring saloon on slicks. Catalogue
@@ -267,7 +257,6 @@ function measure(def: VehicleDefinition, dt: number) {
   };
 }
 const report: Record<string, unknown> = {
-  schemaVersion: 1,
   fixture: 'Production Vehicle per definition on isolated analytic runway/skidpad',
   timesteps: [1 / 240, 1 / 120],
   vehicles: {},
@@ -334,13 +323,6 @@ for (const def of Object.values(VEHICLES)) {
       `  aero @${aero.speedKmh.toFixed(0)} km/h: ClA ${aero.clA.toFixed(2)} m², CdA ${aero.cdA.toFixed(2)} m², front ${aero.balance === null ? '—' : (aero.balance * 100).toFixed(1) + '%'}`,
     );
 }
-report.provenance = finishCalibrationProvenance(
-  provenance,
-  Object.keys(report.vehicles as Record<string, unknown>),
-);
-// Selection runs keep their existing no-write contract; the console receipt
-// still identifies exactly which source/runtime produced those measurements.
-console.log(`\nCalibration provenance: ${JSON.stringify(report.provenance)}`);
 if (!only) {
   writeFileSync('docs/vehicle-calibration.json', JSON.stringify(report, null, 2) + '\n');
   // The near-edge disclosure (CONTENT_PIPELINE.md §1.3) is generated here.

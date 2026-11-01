@@ -12,7 +12,6 @@ type Fixture = {
 type FestivalWindow = {
   FestivalMenu: Fixture;
   festivalHarness: ReturnType<typeof mountFestivalMenu>;
-  festivalResultsHarness: ReturnType<typeof mountFestivalResults>;
 };
 
 test.use({ actionTimeout: 15000 });
@@ -173,10 +172,9 @@ test('festival results: keyboard and controller can retry without also continuin
   page,
 }) => {
   await load(page);
-  await page.evaluate(() => {
-    const scope = window as unknown as FestivalWindow;
-    scope.festivalResultsHarness = scope.FestivalMenu.mountFestivalResults();
-  });
+  await page.evaluate(() =>
+    (window as unknown as { FestivalMenu: Fixture }).FestivalMenu.mountFestivalResults(),
+  );
   const log = page.locator('#festivalEvents');
   const again = page.locator('#festResults [data-fest="retry"]');
   const event = await again.getAttribute('data-value');
@@ -213,7 +211,7 @@ test('festival results: keyboard and controller can retry without also continuin
   await expect(page.locator('#festMenu')).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.locator('#festMenu')).toBeHidden();
-  const neutralAfter = await page.evaluate(() => {
+  await page.evaluate(() => {
     const buttons = Array.from({ length: 17 }, () => ({
       pressed: false,
       touched: false,
@@ -221,37 +219,19 @@ test('festival results: keyboard and controller can retry without also continuin
     }));
     Object.defineProperty(navigator, 'getGamepads', {
       configurable: true,
-      value: () =>
-        (window as unknown as FestivalWindow).festivalResultsHarness.inputPolls.observe([
-          {
-            id: 'Results controller',
-            index: 0,
-            connected: true,
-            mapping: 'standard',
-            axes: [0, 0, 0, 0],
-            buttons,
-          },
-        ]),
+      value: () => [
+        {
+          id: 'Results controller',
+          index: 0,
+          connected: true,
+          mapping: 'standard',
+          axes: [0, 0, 0, 0],
+          buttons,
+        },
+      ],
     });
-    return (window as unknown as FestivalWindow).festivalResultsHarness.inputPolls.receipt.sequence;
   });
-  // A new identity first seen with Start held is correctly treated as a
-  // connection baseline. Wall time (or a HUD read) cannot prove neutral input
-  // was sampled: await the completed real InputController poll instead.
-  await expect
-    .poll(() =>
-      page.evaluate((neutralAfter) => {
-        const receipt = (window as unknown as FestivalWindow).festivalResultsHarness.inputPolls
-          .receipt;
-        return (
-          receipt.sequence > neutralAfter &&
-          receipt.pads.some(
-            (pad) => pad.id === 'Results controller' && pad.index === 0 && pad.pressed.length === 0,
-          )
-        );
-      }, neutralAfter),
-    )
-    .toBe(true);
+  await page.waitForTimeout(100);
   await page.evaluate(() => {
     Object.assign(navigator.getGamepads()[0]!.buttons[9], { pressed: true, value: 1 });
   });
@@ -437,35 +417,20 @@ test('festival map: filters, event selection and keyboard focus survive redraws'
   expect(await eventIds()).toEqual(events.filter((event) => event.race).map((event) => event.id));
   const undiscovered = events.find((event) => event.race && !event.discovered)!;
   const preview = map.locator(`[data-fest="mapSelect"][data-value="${undiscovered.id}"]`);
-  const actions = page.locator('#festivalEvents');
-  const beforePreview = (await actions.textContent()) ?? '';
   await preview.focus();
   await page.keyboard.press('Enter');
   await expect(preview).toHaveAttribute('aria-pressed', 'true');
   await expect(preview).toBeFocused();
   await expect(page.locator('#festMapDetail h3')).toHaveText(undiscovered.name);
-  // Free-roam travel has allowed unvisited events since before this test's
-  // stale discovery gate (already failing on 56a2430). Preview is not travel;
-  // career entry retains its separate discovery/reputation requirements.
-  await expect(page.locator('#festMapDetail')).toContainText('NEW ROUTE');
-  await expect(actions).toHaveText(beforePreview);
-  const travel = page.locator('#festMapDetail [data-fest="travel"]');
-  await expect(travel).toHaveCount(1);
-  await expect(travel).toHaveAttribute('data-value', undiscovered.id);
-  await travel.click();
-  await expect(actions).toHaveText(`${beforePreview}travel:${undiscovered.id};`);
-  // Previously visited events retain the same explicit travel action.
+  await expect(page.locator('#festMapDetail')).toContainText('Drive near the marker');
+  await expect(page.locator('#festMapDetail [data-fest="travel"]')).toHaveCount(0);
+  // A discovered event has a real travel action; a preview never grants it.
   await map.getByRole('button', { name: 'All', exact: true }).click();
   const discovered = events.find((event) => event.discovered)!;
   await map.locator(`[data-fest="mapSelect"][data-value="${discovered.id}"]`).click();
   await expect(page.locator('#festMapDetail [data-fest="travel"]')).toHaveAttribute(
     'data-value',
     discovered.id,
-  );
-  await expect(actions).toHaveText(`${beforePreview}travel:${undiscovered.id};`);
-  await travel.click();
-  await expect(actions).toHaveText(
-    `${beforePreview}travel:${undiscovered.id};travel:${discovered.id};`,
   );
   await map.getByRole('button', { name: 'Skills', exact: true }).click();
   expect(await eventIds()).toEqual(events.filter((event) => !event.race).map((event) => event.id));

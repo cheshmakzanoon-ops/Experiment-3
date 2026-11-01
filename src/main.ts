@@ -1,6 +1,3 @@
-import { PreviewPromotion, prepareOwnedMenuPreview } from './core/preview-promotion.ts';
-import { motionReceipt } from './core/motion-receipt.ts';
-import { installGraphicsObservation } from './core/graphics-observation.ts';
 import {
   graphicsSettingsChanged,
   runSettingsChange,
@@ -127,8 +124,6 @@ import { PracticeProgramme } from './simulation/practice-programme.ts';
 import { CareerController, type CareerSession } from './career/controller.ts';
 import type { GuideMode } from './rendering/driving-guide.ts';
 import type { FestivalSession } from './session/free-roam.ts';
-installGraphicsObservation();
-
 type State = 'menu' | 'loading' | 'driving' | 'paused' | 'results' | 'replay' | 'photo' | 'pregame';
 export class GameApp {
   private readonly gridClock = new GridPresentationClock();
@@ -147,8 +142,6 @@ export class GameApp {
   /** Festival free roam: while set it owns input, frames and the canvas. */
   private festival: FestivalSession | null = null;
   private festivalStarting = false;
-  private festivalViewportRevision = 0;
-  private festivalLifetime: AbortController | null = null;
   private programme = new PracticeProgramme();
   /** Driver career (src/career): licences, events, garage and payments. */
   private career: CareerController;
@@ -199,8 +192,6 @@ export class GameApp {
     gpuSequence: 0,
   };
   private savingSettings = false;
-  private readonly academyPromotion = new PreviewPromotion();
-  private academyResizePending = false;
   private settingsPhase: SettingsPhase = 'idle';
   private settingsResizePending = false;
   private disposed = false;
@@ -405,11 +396,6 @@ export class GameApp {
         }
         return;
       }
-      if (this.academyPromotion.busy) {
-        // Keep controller cancellation live without publishing driving input.
-        this.input.pollActions(['pause']);
-        return;
-      }
       if (this.state !== 'driving') {
         if (this.state === 'replay' && !this.ui.telemetryModal.open && !this.ui.modal.open)
           this.input.pollActions(['pause', 'camera', 'replay', 'mute', 'debug']);
@@ -437,16 +423,12 @@ export class GameApp {
       .querySelectorAll<HTMLElement>('[data-touch]')
       .forEach((e) => this.input.bindTouch(e, e.dataset.touch as TouchAction));
     window.addEventListener('resize', () => {
-      this.festivalViewportRevision++;
       this.performanceCapture.interrupt('Viewport changed');
       this.interruptReview('Viewport changed');
       // Quality preparation owns render targets until its save settles. Apply
       // the latest viewport once afterward, not concurrently with compilation.
-      if (this.academyPromotion.busy) this.academyResizePending = true;
-      else if (this.savingSettings) this.settingsResizePending = true;
-      else if (this.festivalStarting) {
-        // The unadopted candidate drains, resizes and re-prepares before reveal.
-      } else if (this.festival) this.festival.resize();
+      if (this.savingSettings) this.settingsResizePending = true;
+      else if (this.festival) this.festival.resize();
       else this.renderer?.resize();
       this.viewportRedrawPending = true;
       if (this.state === 'menu') this.menuPreviewReceipt.request('resize');
@@ -495,7 +477,6 @@ export class GameApp {
       : menuPreview(this.track, this.track.length - 32, this.showroomMachine);
   }
   private previewSelectedMachine(id: string, selectionChanged = false) {
-    if (this.academyPromotion.busy) return;
     const changed = this.showroomMachine !== id;
     this.showroomMachine = id;
     // The interface deduplicates circuit + machine, so a same-machine callback
@@ -642,28 +623,9 @@ export class GameApp {
     options: SessionOptions,
     career: { travel: string | null; loaner: boolean } | null = null,
   ) {
-    if (
-      this.disposed ||
-      this.errorStopped ||
-      this.festival ||
-      this.festivalStarting ||
-      this.academyPromotion.busy ||
-      !this.renderer ||
-      !this.canvas
-    )
-      return;
+    if (this.festival || this.festivalStarting || !this.renderer || !this.canvas) return;
     this.festivalStarting = true;
     const renderer = this.renderer;
-    const generation = this.generation;
-    const lifetime = new AbortController();
-    this.festivalLifetime = lifetime;
-    const current = () =>
-      this.festivalLifetime === lifetime &&
-      !lifetime.signal.aborted &&
-      !this.disposed &&
-      !this.errorStopped &&
-      this.generation === generation &&
-      this.renderer === renderer;
     // Each festival session has its own identity: results carry run ids
     // under it, and the career pays each run once.
     const session = crypto.randomUUID();
@@ -673,62 +635,39 @@ export class GameApp {
     });
     try {
       const { FestivalSession, FESTIVAL_SAVE_KEY } = await import('./session/free-roam.ts');
-      if (!current()) return;
       this.ui.showMode('loading');
-      const festival = await FestivalSession.start(
+      this.festival = await FestivalSession.start(
         {
           canvas: this.canvas,
           renderer: renderer.renderer,
-          presentation: {
-            current,
-            revision: () => this.festivalViewportRevision,
-            ready: () => current() && renderer.canSubmitFrame(),
-            submitted: () => renderer.submittedExternalFrame(),
-          },
           element: document.getElementById('app')!,
           quality: this.settings.quality,
           graphics: this.settings.graphics,
           lighting: renderer.lighting,
-          loading: (text) => {
-            if (current()) this.ui.loading(text);
-          },
+          loading: (text) => this.ui.loading(text),
           loaded: () => {
-            if (!current()) return;
             const screen = this.ui.get('loading');
             screen.hidden = true;
             screen.setAttribute('aria-busy', 'false');
           },
-          toast: (message) => {
-            if (current()) this.ui.toast(message);
-          },
-          exit: () => {
-            if (current()) this.exitFestival();
-          },
+          toast: (message) => this.ui.toast(message),
+          exit: () => this.exitFestival(),
           // Driving input off while a festival menu is open (keyboard focus
           // reaches its buttons), as in the circuit pause.
-          driving: (on) => {
-            if (current()) this.input.setEnabled(on);
-          },
+          driving: (on) => this.input.setEnabled(on),
           audio: {
-            start: () => (current() ? this.audio.start() : Promise.resolve()),
-            stop: () => {
-              if (current()) this.audio.stop();
-            },
-            update: (frame, cockpit, playing, view, liveHuman) => {
-              if (current()) this.audio.update(frame, cockpit, playing, view, liveHuman);
-            },
+            start: () => this.audio.start(),
+            stop: () => this.audio.stop(),
+            update: (frame, cockpit, playing, view, liveHuman) =>
+              this.audio.update(frame, cockpit, playing, view, liveHuman),
           },
           // Career hook: a typed FestivalResult per finished/abandoned event.
-          onResult: (result) => {
-            if (current())
-              window.dispatchEvent(new CustomEvent('festival-result', { detail: result }));
-          },
+          onResult: (result) =>
+            window.dispatchEvent(new CustomEvent('festival-result', { detail: result })),
           load: () => this.store.read(FESTIVAL_SAVE_KEY),
-          save: (state) =>
-            current() ? this.store.write(FESTIVAL_SAVE_KEY, state) : Promise.resolve(),
+          save: (state) => this.store.write(FESTIVAL_SAVE_KEY, state),
         },
         {
-          signal: lifetime.signal,
           vehicle: options.vehicles?.[0],
           weather: options.weather,
           assist: options.assist,
@@ -739,28 +678,16 @@ export class GameApp {
           loaner: career?.loaner ?? false,
         },
       );
-      if (!current()) {
-        festival.dispose();
-        return;
-      }
-      this.festival = festival;
-      this.input.setEnabled(festival.drivingInputEnabled);
+      this.input.setEnabled(this.festival.drivingInputEnabled);
     } catch (error) {
-      if (!current()) return;
       this.festival = null;
       this.exitFestival();
       throw error;
     } finally {
-      if (this.festivalLifetime === lifetime) {
-        this.festivalStarting = false;
-        if (!this.festival) this.festivalLifetime = null;
-      }
+      this.festivalStarting = false;
     }
   }
   private exitFestival() {
-    this.festivalLifetime?.abort();
-    this.festivalLifetime = null;
-    this.festivalStarting = false;
     this.festival?.dispose();
     this.festival = null;
     this.career.endFestival();
@@ -781,12 +708,9 @@ export class GameApp {
     holdOnGrid = false,
     career: CareerSession | null = null,
   ) {
-    if (this.festivalStarting) return;
-    if (this.savingSettings || this.academyPromotion.busy) {
+    if (this.savingSettings) {
       this.ui.toast(
-        this.academyPromotion.busy
-          ? 'The circuit preview is still being prepared. Start after it completes.'
-          : 'Preferences are still being applied. Start the session after saving completes.',
+        'Preferences are still being applied. Start the session after saving completes.',
       );
       return;
     }
@@ -1082,7 +1006,6 @@ export class GameApp {
   }
   private frame = (time: number) => {
     this.timer = requestAnimationFrame(this.frame);
-    if (this.errorStopped) return;
     const menuActive = this.state === 'menu' && !this.festival && !this.festivalStarting;
     if (!menuActive && this.menuPresentationActive) this.resetMenuPresentation();
     this.menuPresentationActive = menuActive;
@@ -1141,19 +1064,7 @@ export class GameApp {
         settingsBusy: this.savingSettings,
       })
     ) {
-      if (this.state === 'menu') {
-        // Holding a preview must stop new draws, not abandon the GPU receipt
-        // of its one requested draw. Settings transactions retain ownership.
-        try {
-          if (!this.savingSettings && this.menuPreviewSubmission) {
-            const readiness = this.menuFrames.pollHeld(this.renderer);
-            this.menuPreviewReceipt.observe(this.renderer, readiness, this.menuPreviewSubmission);
-            if (readiness === 'completed') this.menuPreviewSubmission = null;
-          } else this.menuFrames.suspend();
-        } catch (error) {
-          this.fail(error);
-        }
-      }
+      if (this.state === 'menu') this.menuFrames.suspend();
       return;
     }
     // Telemetry/settings own a replay's last presented frame immediately, even
@@ -1620,7 +1531,6 @@ export class GameApp {
     }
   }
   private async openPhoto() {
-    if (this.academyPromotion.busy) return;
     if (!this.renderer || !this.current || this.state === 'loading' || this.state === 'photo')
       return;
     this.photoReturnHub = !!document.querySelector('.team-hub');
@@ -1955,97 +1865,7 @@ export class GameApp {
     if (this.state === 'results') this.showResults();
     else this.ui.pause();
   }
-  private openAcademy(): Promise<void> {
-    if (this.academyPromotion.busy) return this.promoteAcademy();
-    if (this.savingSettings || this.disposed || this.errorStopped || this.state === 'loading')
-      return Promise.resolve();
-    if (this.state === 'menu' && this.renderer?.showroomOnly) return this.promoteAcademy();
-    this.showAcademyPanel();
-    return Promise.resolve();
-  }
-  private promoteAcademy(): Promise<void> {
-    const source = this.renderer;
-    const generation = this.generation;
-    const canvas = this.canvas;
-    const preview = this.menuMachineFrame;
-    // Coalesced calls never execute this job; the first owner retains its
-    // exact current/previous/menu samples, selected machine and circuit.
-    return this.academyPromotion.run({
-      current: () => !this.disposed && !this.errorStopped && this.generation === generation,
-      create: async (cancelled) => {
-        if (!source || !canvas) return null;
-        if (!preview) throw new Error('The selected menu preview is unavailable');
-        const lighting = source.lighting;
-        const guide = source.guide.mode;
-        this.state = 'loading';
-        this.ui.closeModal();
-        this.ui.showMode('loading');
-        this.ui.loading('Preparing the circuit lighting preview…');
-        this.resetMenuPresentation();
-        // Drain the held showroom submission before releasing its GPU resources.
-        await source.waitForPreparedFrame(cancelled, yieldBrowserTask);
-        if (cancelled()) return null;
-        // No second renderer may own this canvas while the venue is built.
-        source.dispose();
-        this.renderer = null;
-        const candidate = await RacingRenderer.create(
-          canvas,
-          this.track,
-          (progress) => {
-            if (!cancelled())
-              this.ui.loading(`${Math.floor(progress.fraction * 100)}% · ${progress.label}…`);
-          },
-          cancelled,
-          { quality: this.settings.quality, graphics: this.settings.graphics },
-        );
-        if (!candidate) return null;
-        if (cancelled()) return candidate;
-        try {
-          candidate.setQuality(this.settings.quality, this.settings.graphics);
-          this.applyMotion(candidate, this.settings);
-          candidate.colorblind = this.settings.colorblind;
-          candidate.setLivery(this.team.livery);
-          candidate.lighting = this.liveSky.active ? (this.liveSky.update() ?? lighting) : lighting;
-          candidate.guide.mode = guide;
-          const prepared = await prepareOwnedMenuPreview(
-            candidate,
-            preview,
-            (message) => {
-              if (!cancelled()) this.ui.loading(message);
-            },
-            cancelled,
-            yieldBrowserTask,
-            {
-              pending: () => this.academyResizePending,
-              applied: () => {
-                this.academyResizePending = false;
-              },
-            },
-          );
-          if (!prepared && !cancelled())
-            throw new Error('Menu preview preparation was interrupted');
-          return candidate;
-        } catch (error) {
-          candidate.dispose();
-          throw error;
-        }
-      },
-      adopt: (candidate) => {
-        this.renderer = candidate;
-        // Keep the first ordinary draw in the exact LIVE lighting context
-        // prepared above. The existing five-second LIVE cadence then resumes.
-        if (this.liveSky.active) this.liveSkyChecked = performance.now();
-        this.state = 'menu';
-        this.renderedState = null;
-        this.menuPreviewReceipt.request('academy');
-        this.ui.ready();
-        this.ui.showMode('menu');
-      },
-      dispose: (candidate) => candidate.dispose(),
-      reveal: () => this.showAcademyPanel(),
-    });
-  }
-  private showAcademyPanel() {
+  private openAcademy() {
     this.suspendPlayback();
     this.ui.closeModal();
     this.ui.modalContent(
@@ -2064,11 +1884,7 @@ export class GameApp {
     const route = referenceRoute(entry);
     if (!route) return;
     this.inspectedReference = id;
-    if (route.night !== undefined && this.renderer) {
-      setLiveSkyPreferred(false);
-      this.liveSky.stop();
-      this.renderer.night = route.night;
-    }
+    if (route.night !== undefined && this.renderer) this.renderer.night = route.night;
     if (route.destination === 'media') this.openMedia();
     else if (route.destination === 'event') {
       this.suspendPlayback();
@@ -2088,7 +1904,7 @@ export class GameApp {
           `REFERENCE ${String(id).padStart(3, '0')} · ${entry.title}. ${route.instruction}`,
         );
       }
-    } else if (route.destination === 'academy') await this.openAcademy();
+    } else if (route.destination === 'academy') this.openAcademy();
     else if (route.destination === 'team') this.openTeam(route.hub);
     else {
       this.suspendPlayback();
@@ -2123,21 +1939,6 @@ export class GameApp {
   /** The machine whose setup the garage shows: the session's own machine
    * while one runs, else (undefined) the menu's MACHINE choice. */
   private action(name: string) {
-    if (this.academyPromotion.busy) {
-      if (name === 'modalClose' || name === 'menu' || name === 'pause') {
-        this.academyPromotion.closePanel();
-        this.ui.closeModal();
-        return;
-      }
-      if (name === 'academy') {
-        void this.openAcademy().catch((error) => this.fail(error));
-        return;
-      }
-      if (!['mute', 'blur', 'deviceLost', 'reload'].includes(name)) {
-        this.ui.toast('Preparing the circuit preview…');
-        return;
-      }
-    }
     if (this.festival?.action(name)) return;
     // Do not replace a renderer or resume simulation while it owns a graphics
     // transition. Closing the editor, muting, losing focus and reload remain
@@ -2268,7 +2069,7 @@ export class GameApp {
         this.performanceCapture.interrupt('Driving guide changed');
         this.interruptReview('Driving guide changed');
         this.renderer.guide.mode = mode as GuideMode;
-        void this.openAcademy().catch((error) => this.fail(error));
+        this.openAcademy();
       }
       return;
     }
@@ -2281,7 +2082,7 @@ export class GameApp {
         // answers, the stored fix or the time zone stands in.
         this.renderer.lighting = this.liveSky.start(storedObserver());
         this.renderer.reset();
-        void this.openAcademy().catch((error) => this.fail(error));
+        this.openAcademy();
         void requestObserver().then((observer) => {
           if (!this.renderer || !this.liveSky.active || observer.source === 'timezone') return;
           this.renderer.lighting = this.liveSky.start(observer);
@@ -2289,7 +2090,7 @@ export class GameApp {
           this.renderedState = null;
           // Refresh the academy's location line if it is still on screen.
           if (document.querySelector('.driving-academy [data-action="lighting:live"]'))
-            void this.openAcademy().catch((error) => this.fail(error));
+            this.openAcademy();
         });
       }
       return;
@@ -2303,7 +2104,7 @@ export class GameApp {
         this.renderer.lighting =
           name === 'lighting:sunset' ? 'sunset' : name === 'lighting:night' ? 'night' : 'day';
         this.renderer.reset();
-        void this.openAcademy().catch((error) => this.fail(error));
+        this.openAcademy();
       }
       return;
     }
@@ -2324,7 +2125,7 @@ export class GameApp {
       return;
     switch (name) {
       case 'academy':
-        void this.openAcademy().catch((error) => this.fail(error));
+        this.openAcademy();
         break;
       case 'academy:start':
         this.suspendPlayback();
@@ -2346,7 +2147,7 @@ export class GameApp {
         break;
       case 'academy:stop':
         this.programme.stop();
-        void this.openAcademy().catch((error) => this.fail(error));
+        this.openAcademy();
         break;
       case 'teamMedia':
         this.openMedia();
@@ -2850,8 +2651,7 @@ export class GameApp {
     return setupContext(inSession, this.options.vehicles, this.career.sessionSetup());
   }
   private async applySettings(settings: Settings) {
-    if (this.savingSettings || this.academyPromotion.busy || this.disposed || this.errorStopped)
-      return;
+    if (this.savingSettings || this.disposed || this.errorStopped) return;
     const form = document.querySelector<HTMLFormElement>('#settingsForm');
     const submit = form?.querySelector<HTMLButtonElement>('[type="submit"]');
     const renderer = this.renderer;
@@ -2958,12 +2758,6 @@ export class GameApp {
     this.performanceCapture.interrupt('Application error');
     this.interruptReview('Application error');
     this.errorStopped = true;
-    this.academyPromotion.invalidate();
-    this.festivalLifetime?.abort();
-    this.festivalLifetime = null;
-    this.festivalStarting = false;
-    this.festival?.dispose();
-    this.festival = null;
     clearTimeout(this.initTimeout);
     this.worker?.terminate();
     this.input.setEnabled(false);
@@ -2976,17 +2770,6 @@ export class GameApp {
     return {
       buildIdentity: { commit: __APEX_SOURCE_COMMIT__, fingerprint: __APEX_SOURCE_FINGERPRINT__ },
       state: this.state,
-      motion: this.festival?.motionDiagnostics() ?? {
-        kind: 'circuit',
-        vehicleId: this.current
-          ? vehicleAt(Math.round(this.current[carBase(0) + RACE_BASE + R.VEHICLE])).id
-          : null,
-        paused: this.workerPause.status().paused,
-        autopilot: this.auto,
-        sample: motionReceipt(this.current),
-        presented: motionReceipt(this.renderer?.presented.value ?? null),
-        presentationFrames: this.presentationFrames,
-      },
       gridPresentation: {
         time: this.gridClock.time,
         playing: this.gridClock.playing,
@@ -3091,11 +2874,7 @@ export class GameApp {
     this.interruptReview('Application disposed');
     this.reviewVideo.dispose();
     this.disposed = true;
-    this.academyPromotion.invalidate();
     this.generation++;
-    this.festivalLifetime?.abort();
-    this.festivalLifetime = null;
-    this.festivalStarting = false;
     this.exporter.cancel();
     if (this.replay) void this.replay.dispose();
     this.inputPump.dispose();

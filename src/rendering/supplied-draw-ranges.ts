@@ -22,13 +22,6 @@ interface RangeBounds {
    * re-select and re-upload the whole compacted stream for every pass. */
   selections: WeakMap<T.Camera, Selection>;
 }
-const supportedMaterial = (material: T.Material) =>
-  (material instanceof T.MeshStandardMaterial ||
-    material instanceof T.MeshBasicMaterial ||
-    material instanceof T.MeshDepthMaterial ||
-    material instanceof T.MeshDistanceMaterial) &&
-  !('displacementMap' in material && material.displacementMap) &&
-  !('wireframe' in material && material.wireframe);
 const TRIANGLES_PER_BLOCK = 128;
 const BLOCK = TRIANGLES_PER_BLOCK * 3;
 const version = (a: T.BufferAttribute | T.InterleavedBufferAttribute) =>
@@ -51,19 +44,6 @@ export class SuppliedDrawRanges {
   private readonly frustum = new T.Frustum();
   private readonly matrix = new T.Matrix4();
   private readonly point = new T.Vector3();
-  private readonly preparations: {
-    mesh: T.Mesh;
-    safe: () => boolean;
-    held: () => boolean;
-    select: (
-      renderer: T.WebGLRenderer,
-      camera: T.Camera,
-      geometry: T.BufferGeometry,
-      material: T.Material,
-      prepareOnly?: boolean,
-    ) => boolean | void;
-  }[] = [];
-  private readonly sharedGeometries = new Set<T.BufferGeometry>();
   private submissions = 0;
   private omittedIndices = 0;
   constructor(
@@ -71,13 +51,6 @@ export class SuppliedDrawRanges {
     compact = false,
   ) {
     this.compact = compact;
-    const owners = new Map<T.BufferGeometry, T.Mesh>();
-    for (const { mesh, geometries } of bindings)
-      for (const geometry of new Set(geometries)) {
-        const owner = owners.get(geometry);
-        if (owner && owner !== mesh) this.sharedGeometries.add(geometry);
-        owners.set(geometry, mesh);
-      }
     for (const { mesh, geometries } of bindings) {
       // Skinned, instanced and morphing geometry needs deformation-aware bounds;
       // retain the existing full submission for those paths.
@@ -105,13 +78,22 @@ export class SuppliedDrawRanges {
         camera: T.Camera,
         geometry: T.BufferGeometry,
         material: T.Material,
-        prepareOnly = false,
       ) => {
-        if (!prepareOnly) reset();
+        reset();
         if (!this.enabled || this.disposed || camera instanceof T.ArrayCamera) return;
         // Unknown vertex programs or displacement may move an otherwise rejected
         // triangle into view. Fall back rather than guessing its envelope.
-        if (!supportedMaterial(material)) return;
+        if (
+          !(
+            material instanceof T.MeshStandardMaterial ||
+            material instanceof T.MeshBasicMaterial ||
+            material instanceof T.MeshDepthMaterial ||
+            material instanceof T.MeshDistanceMaterial
+          ) ||
+          ('displacementMap' in material && material.displacementMap) ||
+          ('wireframe' in material && material.wireframe)
+        )
+          return;
         const b = this.bounds.get(geometry);
         if (
           !b ||
@@ -156,7 +138,7 @@ export class SuppliedDrawRanges {
         while (last >= first && !this.frustum.intersectsBox(b.boxes[last])) last--;
         const lo = Math.min(first * BLOCK, b.index.count);
         const hi = last < first ? lo : Math.min((last + 1) * BLOCK, b.index.count);
-        if (!prepareOnly) this.submissions++;
+        this.submissions++;
         // Remove wholly invisible interior blocks too, copying surviving source
         // indices in exactly the same order. No spatial reordering, simplification
         // or backface guess is made, including on transparent surface sheets.
@@ -197,9 +179,7 @@ export class SuppliedDrawRanges {
               visibleCount,
               selection.revision,
             );
-            if (prepareOnly && !compacted) return false;
             if (compacted) {
-              if (prepareOnly) return;
               held = { geometry, index: geometry.index, start, count };
               geometry.setIndex(compacted);
               geometry.setDrawRange(0, visibleCount);
@@ -208,24 +188,15 @@ export class SuppliedDrawRanges {
             }
           }
         }
-        if (prepareOnly) return;
         this.omittedIndices += b.index.count - (hi - lo);
         if (hi - lo === b.index.count) return;
         held = { geometry, index: geometry.index, start, count };
         geometry.setDrawRange(lo, hi - lo);
       };
-      const installedBefore: T.Mesh['onBeforeRender'] = (...args) => {
+      mesh.onBeforeRender = (...args) => {
         before.apply(mesh, args);
         select(args[0], args[2], args[3], args[4]);
       };
-      this.preparations.push({
-        mesh,
-        safe: () =>
-          before === T.Object3D.prototype.onBeforeRender && mesh.onBeforeRender === installedBefore,
-        held: () => held !== null,
-        select,
-      });
-      mesh.onBeforeRender = installedBefore;
       mesh.onAfterRender = (...args) => {
         reset();
         after.apply(mesh, args);
@@ -252,93 +223,6 @@ export class SuppliedDrawRanges {
         else mesh.userData[RANGE_ONLY_SHADOW_HOOK] = rangeOnly;
       });
     }
-  }
-  /** Preparation-only: fill exactly the streams the upcoming camera can draw.
-   * Never invoke render hooks or install a temporary index/range. Unsupported
-   * cases decline before allocating; normal hooks retain their existing path. */
-  prepareCamera(
-    renderer: T.WebGLRenderer,
-    scene: T.Scene,
-    camera: T.Camera,
-    cancelled: () => boolean = () => false,
-    hiddenRoots: readonly T.Object3D[] = [],
-  ): boolean {
-    if (
-      !this.enabled ||
-      !this.compact ||
-      this.disposed ||
-      cancelled() ||
-      camera instanceof T.ArrayCamera ||
-      scene.onBeforeRender !== T.Object3D.prototype.onBeforeRender ||
-      scene.overrideMaterial
-    )
-      return false;
-    const gl = renderer.getContext();
-    if (!('COPY_WRITE_BUFFER' in gl) || gl.isContextLost()) return false;
-    const hidden = new Set(hiddenRoots);
-    const matrix = new T.Matrix4().multiplyMatrices(
-      camera.projectionMatrix,
-      camera.matrixWorldInverse,
-    );
-    if (!allFinite(matrix.elements) || matrix.determinant() === 0) return false;
-    const frustum = new T.Frustum().setFromProjectionMatrix(matrix, camera.coordinateSystem);
-    const selected: typeof this.preparations = [];
-    const selectedGeometries = new Set<T.BufferGeometry>();
-    for (const entry of this.preparations) {
-      const { mesh } = entry;
-      let visible = true,
-        inScene = false;
-      for (let object: T.Object3D | null = mesh; object; object = object.parent) {
-        // The renderer may change child visibility during traversal. Do not
-        // predict that update or invoke caller hooks to discover a selection.
-        if (object instanceof T.LOD && object.autoUpdate) return false;
-        if (!object.visible || hidden.has(object)) visible = false;
-        if (object === scene) inScene = true;
-      }
-      if (!visible || !inScene || !mesh.layers.test(camera.layers)) continue;
-      if (mesh.frustumCulled && !frustum.intersectsObject(mesh)) continue;
-      // The current tiny/unsupported LOD has no range hook work to prime.
-      // This is also exactly the normal selector's bounds miss fallback.
-      const bounds = this.bounds.get(mesh.geometry);
-      if (!bounds) continue;
-      if (Array.isArray(mesh.material)) return false;
-      if (!mesh.material.visible) continue;
-      if (
-        !entry.safe() ||
-        entry.held() ||
-        this.sharedGeometries.has(mesh.geometry) ||
-        !supportedMaterial(mesh.material)
-      )
-        return false;
-      if (
-        mesh.geometry.index !== bounds.index ||
-        mesh.geometry.attributes.position !== bounds.position ||
-        version(bounds.index) !== bounds.indexVersion ||
-        version(bounds.position) !== bounds.positionVersion ||
-        mesh.geometry.groups.length ||
-        mesh.geometry.morphAttributes.position?.length ||
-        mesh.geometry.drawRange.start !== 0 ||
-        mesh.geometry.drawRange.count !== Infinity
-      )
-        return false;
-      if (selectedGeometries.has(mesh.geometry)) return false;
-      selectedGeometries.add(mesh.geometry);
-      selected.push(entry);
-    }
-    for (const entry of selected) {
-      if (this.disposed || cancelled() || gl.isContextLost()) return false;
-      if (
-        entry.select(
-          renderer,
-          camera,
-          entry.mesh.geometry,
-          entry.mesh.material as T.Material,
-          true,
-        ) === false
-      )
-        return false;
-    }
-    return !this.disposed && !cancelled() && !gl.isContextLost();
   }
   private prepare(geometry: T.BufferGeometry) {
     if (this.bounds.has(geometry)) return;
@@ -396,8 +280,6 @@ export class SuppliedDrawRanges {
     for (const restore of this.restore) restore();
     this.restore.length = 0;
     this.bounds.clear();
-    this.preparations.length = 0;
-    this.sharedGeometries.clear();
     this.buffers.dispose();
     this.disposed = true;
   }

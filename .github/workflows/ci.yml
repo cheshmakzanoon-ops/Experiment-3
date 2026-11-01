@@ -6,13 +6,6 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
-# Let a running main validation finish so long race/browser evidence is not
-# repeatedly lost to the next verified increment. GitHub's default single
-# pending slot retains only the newest waiting run, not an unbounded backlog.
-# Publication still requires all gates and that the tested SHA remains main.
-concurrency:
-  group: motobound-validation-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -48,12 +41,6 @@ jobs:
             ${{ runner.temp }}/source-commit.txt
           retention-days: 7
   unit-tests:
-    # Native Vitest partitions cover the complete suite exactly once. Each
-    # matrix result remains required by publish; no assertions are excluded.
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3, 4]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -63,9 +50,10 @@ jobs:
           node-version: '22'
           cache: npm
       - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
-      # Retain pretest asset generation and all tests across four partitions.
-      - name: Full unit suite partition without source changes
-        run: node --experimental-transform-types scripts/source-stability.ts -- npm test -- --shard=${{ matrix.shard }}/4 --reporter=verbose
+      # npm test retains pretest asset generation and runs the whole suite.
+      # No filters or skipped regressions; failures remain blocking for publication.
+      - name: Full unit suite without source changes
+        run: node --experimental-transform-types scripts/source-stability.ts -- npm test
   scenarios:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -82,6 +70,7 @@ jobs:
       - run: node --experimental-transform-types scripts/race-classification.ts
       - run: node --experimental-transform-types scripts/vellamar-race.ts clear,changeable
       - run: node --experimental-transform-types scripts/reference-targets.ts
+      - run: npm run test:vehicles
       - name: Scenario evidence, including failures
         if: always()
         uses: actions/upload-artifact@v4
@@ -98,43 +87,6 @@ jobs:
             docs/race-classification.json
             docs/vellamar-race.json
             docs/reference-targets.json
-          retention-days: 7
-  vehicle-calibration:
-    # Keep the full registry out of the preceding scenario job's 15-minute
-    # aggregate budget. This is required, not a replacement or optional subset.
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: npm
-      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
-      - name: Enforce every existing vehicle calibration band
-        timeout-minutes: 13
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/vehicle-gate/docs/production"
-          cp docs/production/CONTENT_PIPELINE.md "$RUNNER_TEMP/vehicle-gate/docs/production/CONTENT_PIPELINE.md"
-          # The authoring command normally reports OUT without failing. Strict
-          # mode enforces its existing fine/coarse target bands, unchanged.
-          # Both generated reports belong outside committed source inputs.
-          node --experimental-transform-types scripts/source-stability.ts -- bash -c '
-            set -euo pipefail
-            cd "$RUNNER_TEMP/vehicle-gate"
-            node --experimental-transform-types "$GITHUB_WORKSPACE/scripts/vehicle-calibration.ts" --strict
-          ' 2>&1 | tee "$RUNNER_TEMP/vehicle-gate/vehicle-calibration.log"
-      - name: Preserve full calibration and near-edge disclosure, including failures
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: vehicle-calibration
-          path: |
-            ${{ runner.temp }}/vehicle-gate/docs/vehicle-calibration.json
-            ${{ runner.temp }}/vehicle-gate/docs/production/CONTENT_PIPELINE.md
-            ${{ runner.temp }}/vehicle-gate/vehicle-calibration.log
           retention-days: 7
   offroad-scenarios:
     runs-on: ubuntu-latest
@@ -252,17 +204,6 @@ jobs:
       - name: Install Mesa software graphics and virtual display
         run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
       - run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- ${{ matrix.shard }}/${{ strategy.job-total }}
-      - name: Preserve compact browser acceptance receipts
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: browser-receipts-${{ matrix.shard }}-of-${{ strategy.job-total }}
-          path: |
-            browser-shard-plan.json
-            browser-backend.json
-            browser-progress.json
-            dist/BUILD_IDENTITY.json
-          retention-days: 7
       - name: Browser screenshots and diagnostics
         uses: actions/upload-artifact@v4
         if: always()
@@ -364,7 +305,7 @@ jobs:
   publish:
     # Ship exactly the build tested above, never a parallel unvalidated rebuild.
     # The CDN workflow consumes this gated artifact, not an independent build.
-    needs: [validate, unit-tests, scenarios, vehicle-calibration, offroad-scenarios, browser, wet-presentation]
+    needs: [validate, unit-tests, scenarios, offroad-scenarios, browser, wet-presentation]
     # Manual validation of the current main must produce the SAME gated artifact.
     # Keep success() and all needs: a dispatch never bypasses a failed test.
     if: >-

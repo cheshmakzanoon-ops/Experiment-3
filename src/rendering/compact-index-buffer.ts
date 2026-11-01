@@ -62,12 +62,10 @@ export class CompactIndexBuffers {
       gl.bindBuffer(gl.COPY_WRITE_BUFFER, buffer);
       if (!stream) {
         gl.bufferData(gl.COPY_WRITE_BUFFER, indices.byteLength, gl.DYNAMIC_DRAW);
-        if (gl.isContextLost()) return null;
-        const allocatedBytes = gl.getBufferParameter(gl.COPY_WRITE_BUFFER, gl.BUFFER_SIZE);
-        // The synchronous query can observe a GPU-process failure after the
-        // preceding loss check. Its empty result is not allocation evidence.
-        if (gl.isContextLost()) return null;
-        if (allocatedBytes !== indices.byteLength)
+        if (
+          !gl.isContextLost() &&
+          gl.getBufferParameter(gl.COPY_WRITE_BUFFER, gl.BUFFER_SIZE) !== indices.byteLength
+        )
           throw new Error('Unable to allocate compacted index buffer');
       }
       gl.bufferSubData(gl.COPY_WRITE_BUFFER, 0, indices, 0, count);

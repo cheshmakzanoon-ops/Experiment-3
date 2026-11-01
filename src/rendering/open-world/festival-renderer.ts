@@ -364,13 +364,13 @@ export class FestivalRenderer {
    * world streams so every tile is planted the same way. Failures keep the
    * procedural crowns. */
   async loadPhotoVegetation() {
-    if (this.disposed || this.photoVegetation || !photoVegetationEnabled(this.preset)) return false;
+    if (this.photoVegetation || !photoVegetationEnabled(this.preset)) return false;
     try {
       const library = await VegetationLibrary.load(
         this.renderer,
         speciesForPalette(FESTIVAL_PALETTE, true, true),
       );
-      if (this.disposed || !library.trees.length) {
+      if (!library.trees.length) {
         library.dispose();
         return false;
       }
@@ -380,20 +380,15 @@ export class FestivalRenderer {
       this.vegetation.setPhotoLibrary(library, (x, z) => this.world.field.height(x, z));
       return true;
     } catch (error) {
-      if (!this.disposed) console.warn('Festival photographic vegetation unavailable:', error);
+      console.warn('Festival photographic vegetation unavailable:', error);
       return false;
     }
   }
   loadAuthoredDetails(): Promise<boolean> {
-    if (this.disposed) return Promise.resolve(false);
     if (this.details) return Promise.resolve(true);
     if (this.detailLoading) return this.detailLoading;
     this.detailLoading = SolvaneDetails.load(this.world, this.structures, () => this.disposed)
       .then((kit) => {
-        if (this.disposed) {
-          kit.dispose();
-          return false;
-        }
         this.details = kit;
         this.atmosphere.install(kit.root);
         this.scene.add(kit.root);

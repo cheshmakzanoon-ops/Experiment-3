@@ -52,10 +52,10 @@ function context() {
     data,
     binding: () => bound,
     elementBinding: () => element,
-    lose: (dispatch = true) => {
+    lose: () => {
       lost = true;
       data.clear();
-      if (dispatch) canvas.dispatchEvent(new Event('webglcontextlost'));
+      canvas.dispatchEvent(new Event('webglcontextlost'));
     },
     restore: () => {
       lost = false;
@@ -83,7 +83,6 @@ function fixture() {
   camera.updateMatrixWorld(true);
   const renderer = { getContext: () => c.gl } as unknown as T.WebGLRenderer,
     scene = new T.Scene();
-  scene.add(mesh);
   const ranges = new SuppliedDrawRanges([{ mesh, geometries: [geometry] }], true);
   const before = () =>
     mesh.onBeforeRender(renderer, scene, camera, geometry, material, null as unknown as T.Group);
@@ -314,27 +313,6 @@ describe('compacted GPU buffer ownership', () => {
     expect(pool.diagnostics().buffers).toBe(0);
     pool.dispose();
   });
-  it('does not misclassify loss during the allocation query as a healthy allocation failure', () => {
-    const pool = new CompactIndexBuffers(),
-      c = context(),
-      key = {},
-      values = new Uint32Array([1, 2, 3]);
-    c.calls.getBufferParameter.mockImplementationOnce(() => {
-      // The loss event may be queued while this synchronous query is returning.
-      c.lose(false);
-      return 0;
-    });
-    expect(pool.get(c.gl, key, values, 3, 1)).toBeNull();
-    expect(c.calls.bufferSubData).not.toHaveBeenCalled();
-    expect(c.calls.deleteBuffer).not.toHaveBeenCalled();
-    expect(pool.diagnostics()).toEqual({ buffers: 0, uploads: 0, uploadedBytes: 0 });
-    c.restore();
-    expect(pool.get(c.gl, key, values, 3, 1)).not.toBeNull();
-    expect(c.calls.createBuffer).toHaveBeenCalledTimes(2);
-    expect(c.calls.bufferSubData).toHaveBeenCalledTimes(1);
-    expect(pool.diagnostics()).toEqual({ buffers: 1, uploads: 1, uploadedBytes: 12 });
-    pool.dispose();
-  });
   it('rejects invalid upload ranges before creating a buffer', () => {
     const pool = new CompactIndexBuffers(),
       c = context(),
@@ -344,223 +322,5 @@ describe('compacted GPU buffer ownership', () => {
     expect(() => pool.get(c.gl, {}, values, 3, NaN)).toThrow('Invalid compacted');
     expect(c.calls.createBuffer).not.toHaveBeenCalled();
     pool.dispose();
-  });
-});
-
-describe('owned preparation of exact upcoming index streams', () => {
-  it('skips a current tiny LOD that the ordinary selector cannot compact', () => {
-    const f = fixture(),
-      tiny = new T.BoxGeometry();
-    f.mesh.geometry = tiny;
-    expect(f.ranges.prepareCamera(f.renderer, f.scene, f.camera)).toBe(true);
-    expect(f.calls.createBuffer).not.toHaveBeenCalled();
-    f.ranges.dispose();
-    tiny.dispose();
-  });
-  it('does not claim prepared after a failed native buffer creation', () => {
-    const f = fixture();
-    f.calls.createBuffer.mockReturnValueOnce(null as unknown as WebGLBuffer);
-    expect(f.ranges.prepareCamera(f.renderer, f.scene, f.camera)).toBe(false);
-    expect(f.ranges.diagnostics().compacted.buffers).toBe(0);
-    f.ranges.dispose();
-  });
-  const submit = (f: ReturnType<typeof fixture>, camera: T.Camera) => {
-    f.mesh.onBeforeRender(
-      f.renderer,
-      f.scene,
-      camera,
-      f.geometry,
-      f.material,
-      null as unknown as T.Group,
-    );
-    const attribute = f.geometry.index as unknown as T.GLBufferAttribute;
-    const bytes = attribute.isGLBufferAttribute
-      ? [...f.data.get(attribute.buffer)!.slice(0, f.geometry.drawRange.count)]
-      : [...f.geometry.index!.array];
-    f.mesh.onAfterRender(
-      f.renderer,
-      f.scene,
-      camera,
-      f.geometry,
-      f.material,
-      null as unknown as T.Group,
-    );
-    return bytes;
-  };
-  it('matches ordered baseline bytes and exact buffers/uploads for main and mirror cameras', () => {
-    const baseline = fixture(),
-      prepared = fixture();
-    const cameras = [
-      prepared.camera,
-      new T.PerspectiveCamera(60, 1, 0.01, 100),
-      new T.PerspectiveCamera(60, 1, 0.01, 100),
-    ];
-    cameras[1].lookAt(0, 0, 5);
-    cameras[2].lookAt(0.3, 0, -5);
-    cameras.forEach((camera) => camera.updateMatrixWorld(true));
-    const source = prepared.geometry.index!,
-      sourceBytes = source.array.slice();
-    const range = { ...prepared.geometry.drawRange },
-      material = prepared.mesh.material;
-    const expected = cameras.map((camera) => submit(baseline, camera));
-    for (const camera of cameras)
-      expect(prepared.ranges.prepareCamera(prepared.renderer, prepared.scene, camera)).toBe(true);
-    expect(prepared.geometry.index).toBe(source);
-    expect(prepared.geometry.drawRange).toEqual(range);
-    expect(source.array).toEqual(sourceBytes);
-    expect(prepared.mesh.material).toBe(material);
-    expect(prepared.ranges.diagnostics().submissions).toBe(0);
-    const before = prepared.ranges.diagnostics().compacted;
-    const queries = prepared.calls.getBufferParameter.mock.calls.length;
-    const bindingQueries = prepared.calls.getParameter.mock.calls.length;
-    expect(cameras.map((camera) => submit(prepared, camera))).toEqual(expected);
-    expect(prepared.ranges.diagnostics().compacted).toEqual(before);
-    expect(prepared.calls.getBufferParameter).toHaveBeenCalledTimes(queries);
-    expect(prepared.calls.getParameter).toHaveBeenCalledTimes(bindingQueries);
-    expect(prepared.ranges.diagnostics()).toEqual(baseline.ranges.diagnostics());
-    prepared.ranges.dispose();
-    baseline.ranges.dispose();
-  });
-  it.each(['ancestor', 'layer', 'frustum', 'material', 'excluded'] as const)(
-    'allocates no stream for %s-hidden bindings',
-    (hidden) => {
-      const f = fixture(),
-        parent = new T.Group();
-      f.scene.add(parent);
-      parent.add(f.mesh);
-      if (hidden === 'ancestor') parent.visible = false;
-      if (hidden === 'layer') f.mesh.layers.set(2);
-      if (hidden === 'frustum') {
-        f.mesh.position.x = 1000;
-        f.mesh.updateMatrixWorld(true);
-      }
-      if (hidden === 'material') f.material.visible = false;
-      expect(
-        f.ranges.prepareCamera(
-          f.renderer,
-          f.scene,
-          f.camera,
-          undefined,
-          hidden === 'excluded' ? [parent] : [],
-        ),
-      ).toBe(true);
-      expect(f.calls.createBuffer).not.toHaveBeenCalled();
-      f.ranges.dispose();
-    },
-  );
-  it.each([
-    'override',
-    'array',
-    'groups',
-    'displacement',
-    'wireframe',
-    'shader',
-    'range',
-    'version',
-    'hook',
-    'scene-hook',
-    'auto-lod',
-  ] as const)('declines unsupported %s before allocations', (unsupported) => {
-    const f = fixture();
-    if (unsupported === 'override') f.scene.overrideMaterial = new T.MeshBasicMaterial();
-    if (unsupported === 'array')
-      f.mesh.material = [f.material] as unknown as T.MeshStandardMaterial;
-    if (unsupported === 'groups') f.geometry.addGroup(0, 384);
-    if (unsupported === 'displacement') f.material.displacementMap = new T.Texture();
-    if (unsupported === 'wireframe') f.material.wireframe = true;
-    if (unsupported === 'shader')
-      f.mesh.material = new T.ShaderMaterial() as unknown as T.MeshStandardMaterial;
-    if (unsupported === 'range') f.geometry.setDrawRange(3, 99);
-    if (unsupported === 'version') f.geometry.attributes.position.needsUpdate = true;
-    if (unsupported === 'hook') f.mesh.onBeforeRender = () => {};
-    const sceneHook = vi.fn(() => {
-      f.mesh.visible = false;
-    });
-    if (unsupported === 'scene-hook') f.scene.onBeforeRender = sceneHook;
-    if (unsupported === 'auto-lod') {
-      const lod = new T.LOD();
-      lod.addLevel(f.mesh, 0);
-      lod.addLevel(new T.Mesh(new T.BoxGeometry(), f.material), 0.1);
-      f.scene.add(lod);
-      f.scene.updateMatrixWorld(true);
-    }
-    expect(f.ranges.prepareCamera(f.renderer, f.scene, f.camera)).toBe(false);
-    expect(f.calls.createBuffer).not.toHaveBeenCalled();
-    expect(sceneHook).not.toHaveBeenCalled();
-    f.ranges.dispose();
-  });
-  it('declines shared geometry across different transforms without extra buffers', () => {
-    const f = fixture();
-    f.ranges.dispose();
-    const other = new T.Mesh(f.geometry, f.material);
-    other.position.x = 0.1;
-    f.scene.add(other);
-    other.updateMatrixWorld(true);
-    const ranges = new SuppliedDrawRanges(
-      [
-        { mesh: f.mesh, geometries: [f.geometry] },
-        { mesh: other, geometries: [f.geometry] },
-      ],
-      true,
-    );
-    expect(ranges.prepareCamera(f.renderer, f.scene, f.camera)).toBe(false);
-    expect(f.calls.createBuffer).not.toHaveBeenCalled();
-    ranges.dispose();
-  });
-  it('updates the same stream after a camera change without changing the source', () => {
-    const f = fixture(),
-      source = f.geometry.index;
-    expect(f.ranges.prepareCamera(f.renderer, f.scene, f.camera)).toBe(true);
-    f.camera.lookAt(0, 0, 5);
-    f.camera.updateMatrixWorld(true);
-    expect(f.ranges.prepareCamera(f.renderer, f.scene, f.camera)).toBe(true);
-    expect(f.calls.createBuffer).toHaveBeenCalledTimes(1);
-    expect(f.calls.bufferSubData).toHaveBeenCalledTimes(2);
-    submit(f, f.camera);
-    expect(f.calls.bufferSubData).toHaveBeenCalledTimes(2);
-    expect(f.geometry.index).toBe(source);
-    f.ranges.dispose();
-  });
-  it.each(['cancelled', 'lost', 'disposed'] as const)(
-    'does not allocate for an already %s owner',
-    (state) => {
-      const f = fixture();
-      if (state === 'lost') f.lose();
-      if (state === 'disposed') f.ranges.dispose();
-      expect(
-        f.ranges.prepareCamera(f.renderer, f.scene, f.camera, () => state === 'cancelled'),
-      ).toBe(false);
-      expect(f.calls.createBuffer).not.toHaveBeenCalled();
-      f.ranges.dispose();
-    },
-  );
-  it('keeps healthy short allocations fatal and never installs a partial prepared stream', () => {
-    const f = fixture(),
-      source = f.geometry.index;
-    f.calls.getBufferParameter.mockReturnValueOnce(0);
-    expect(() => f.ranges.prepareCamera(f.renderer, f.scene, f.camera)).toThrow(
-      'Unable to allocate compacted index buffer',
-    );
-    expect(f.calls.bufferSubData).not.toHaveBeenCalled();
-    expect(f.geometry.index).toBe(source);
-    expect(f.geometry.drawRange.count).toBe(Infinity);
-    expect(f.ranges.diagnostics().compacted.buffers).toBe(0);
-    f.ranges.dispose();
-  });
-  it('stops on loss during allocation validation and recreates only after restoration', () => {
-    const f = fixture(),
-      source = f.geometry.index;
-    f.calls.getBufferParameter.mockImplementationOnce(() => {
-      f.lose();
-      return 0;
-    });
-    expect(f.ranges.prepareCamera(f.renderer, f.scene, f.camera)).toBe(false);
-    expect(f.calls.bufferSubData).not.toHaveBeenCalled();
-    expect(f.geometry.index).toBe(source);
-    f.restore();
-    expect(f.ranges.prepareCamera(f.renderer, f.scene, f.camera)).toBe(true);
-    submit(f, f.camera);
-    expect(f.calls.bufferSubData).toHaveBeenCalledTimes(1);
-    f.ranges.dispose();
   });
 });
