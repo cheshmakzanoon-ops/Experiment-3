@@ -23,6 +23,8 @@ on:
       - 'e2e/babylon-start-gantry.spec.ts'
       - 'e2e/babylon-start-lamps.spec.ts'
       - 'e2e/babylon-start-banner.spec.ts'
+      - 'e2e/babylon-start-finish-stripe.spec.ts'
+      - 'e2e/fixtures/babylon-start-finish-stripe.ts'
       - 'e2e/fixtures/babylon-start-banner.ts'
       - 'e2e/fixtures/babylon-start-lamps.ts'
       - 'e2e/fixtures/babylon-start-gantry.ts'
@@ -60,6 +62,7 @@ jobs:
           - suite: retained
           - suite: start-lamps
           - suite: start-banner
+          - suite: start-finish-stripe
     if: github.ref == 'refs/heads/babylon-js'
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -85,6 +88,9 @@ jobs:
       - name: Original start banner GPU qualification
         if: matrix.suite == 'start-banner'
         run: npx playwright test e2e/babylon-start-banner.spec.ts
+      - name: Original start finish stripe GPU qualification
+        if: matrix.suite == 'start-finish-stripe'
+        run: npx playwright test e2e/babylon-start-finish-stripe.spec.ts
       - name: Preserve browser evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4

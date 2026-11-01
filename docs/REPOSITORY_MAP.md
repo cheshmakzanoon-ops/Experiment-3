@@ -110,3 +110,8 @@ with actual binding and completed-frame receipts; live runtime checks are pendin
 `src/engine/babylon/readiness-observation.ts` exposes detached read-only owner
 metadata through the existing graphics query. Neither changes readiness gates.
 [Scope](maintenance/native-startup-readiness-observation-2026-11-01.md).
+
+`src/engine/babylon/start-finish-stripe.ts` owns the isolated original checker
+plane/texture with source-batched geometry. Its fixture checks fixed sampling,
+facing and bounded original-road depth; there is no live startup import yet.
+[Scope](maintenance/babylon-start-finish-stripe-2026-11-01.md).

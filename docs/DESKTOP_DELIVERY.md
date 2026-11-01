@@ -2,6 +2,23 @@
 
 MOTOBOUND targets installed Windows, macOS and Linux applications. Babylon.js is the primary engine direction; the existing custom simulation stays authoritative. The website is a secondary engineering preview. Packaging alone does not qualify visuals, handling, performance or the full game.
 
+## Latest migration test artifacts · 2026-11-01
+
+Source `6c1ded75f96e92786595d261a3f5c7a1651b535f` passed all three supported
+packaged-app lanes and four existing-content compatibility journeys per target in
+[run 41330696588](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41330696588).
+Available artifacts (GitHub reports expiry 2026-11-08):
+
+- Windows x64: `motobound-package-win-x64`, artifact 13093317314.
+- Linux x64: `motobound-package-linux-x64`, artifact 13093961345.
+- Apple Silicon: `motobound-package-mac-arm64`, artifact 13093326989.
+
+These are unsigned migration test builds, not a new release or a change to main.
+The bundled application was launch-tested; installer upgrade/uninstall, signing,
+physical-hardware performance and complete four-discipline Babylon parity remain
+unqualified. See the [paused handoff qualification](maintenance/babylon-paused-preparation-handoff-2026-11-01.md)
+for exact source evidence and the bounded first-gate timing limitation.
+
 ## Runtime and ownership
 
 `desktop/main.ts` launches the bundled Babylon entry, with a temporary existing-content compatibility route in the Game menu. There is no hosted-site dependency or listening HTTP server. `motobound://game/` serves only bundled renderer files. Node integration is disabled; context isolation, process sandboxing and web security remain enabled. Popups, foreign navigation and unrelated permissions are denied.

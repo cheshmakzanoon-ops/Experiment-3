@@ -69,3 +69,38 @@ tests across 94 files**, followed by full TypeScript, focused lint and a serial
 Vite production build. Both independent reviews found no blocker. The existing
 large-chunk warning remains. The deterministic fences in CPU tests are mocked;
 no native latency improvement follows merely from those results.
+
+## Exact-source qualification: `6c1ded7`
+
+[GPU run 41330696576](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41330696576)
+passed all **25 cases** and the required aggregate. The retained early-pause case
+held physics tick 700 through readiness (ten frames, original banner/gantry/lamps
+ready), then resumed to tick 743. Loss/restart correctly cleared readiness and
+disabled loading until rebuilt. All isolated banner/lamp checks still passed;
+inspected preview and original-car images retain the original road and artwork.
+This is functional SwiftShader evidence, not a timing comparison or physical-GPU
+benchmark. Retained artifact 13094071397 has SHA-256
+`56fa26c4555fe0390ed6eca14467fdcf56c63262f7014ef780b919f0a0ee05aa`.
+
+[Native run 41330696588](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41330696588)
+passed on **Linux x64, Windows x64 and Apple Silicon macOS**, including all four
+existing-content compatibility journeys on each target. Linux and macOS recorded
+27/27 draws, Windows 43/43; all completed 439 preparations with correct banner,
+gantry and lamp bindings. Screenshots show the printed banner and original car.
+Linux's first presentation receipt is 9/9 and settled with every required asset
+ready: the original first-pause gate passed in this run without a deadline change.
+
+The bounded Linux history received 535 observations and evicted 471. Its first-
+gate polls are no longer present in final/partial evidence, so exact first-gate
+duration and owner transitions cannot be reconstructed. Later false-to-true
+polling is retained. Lifecycle completion at 34.059 seconds is not the duration
+of that gate. No precise speedup, universal reliability or general driver repair
+is claimed from this single successful CI run.
+
+Native evidence artifacts: Linux 13093272166, macOS 13093661436,
+Windows 13093008007. All identify production fingerprint
+`8e0537ded4d228fb8ae04ec7e712fe694bdaea3765eb84271b6d1c4ce27aaad8`.
+Prior timeouts and GPU-loss failures remain historical evidence; physical-device
+performance, full Babylon presentation across disciplines and retail readiness
+remain separate work. This branch's workflow uploads unsigned development
+artifacts; it does not publish a release or modify main.

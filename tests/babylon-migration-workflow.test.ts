@@ -32,6 +32,7 @@ it('retains the exact GPU selector union in required, non-filtered shards', () =
     'retained',
     'start-lamps',
     'start-banner',
+    'start-finish-stripe',
   ]);
   expect(
     [...source.matchAll(/^ {8}run: npx playwright test (.+)$/gm)].map((m) => m[1].split(' ')),
@@ -46,6 +47,7 @@ it('retains the exact GPU selector union in required, non-filtered shards', () =
     ],
     ['e2e/babylon-start-lamps.spec.ts'],
     ['e2e/babylon-start-banner.spec.ts'],
+    ['e2e/babylon-start-finish-stripe.spec.ts'],
   ]);
   const step = (name: string) => source.split(`      - name: ${name}\n`)[1]?.split('      - ')[0];
   expect(step('Real WebGL engine, model import and mode-switching journeys')).toContain(
@@ -57,6 +59,11 @@ it('retains the exact GPU selector union in required, non-filtered shards', () =
   expect(step('Original start banner GPU qualification')).toContain(
     "if: matrix.suite == 'start-banner'",
   );
+  expect(step('Original start finish stripe GPU qualification')).toContain(
+    "if: matrix.suite == 'start-finish-stripe'",
+  );
+  expect(source).toContain("- 'e2e/babylon-start-finish-stripe.spec.ts'");
+  expect(source).toContain("- 'e2e/fixtures/babylon-start-finish-stripe.ts'");
   expect(source).toContain('fail-fast: false');
   expect(source).toContain('timeout-minutes: 20');
   expect(source).toContain('name: babylon-integration-${{ matrix.suite }}-${{ github.sha }}');
