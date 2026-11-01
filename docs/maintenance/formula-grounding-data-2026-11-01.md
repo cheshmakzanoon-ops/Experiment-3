@@ -173,3 +173,41 @@ SHA-256 of the reviewed seven-file increment, excluding later documentation:
 - `tests/formula-grounding-compatibility.test.ts`: `4e54cee4e63031d11503401c71ba1958d1eb26c75c09baba1df4f72f25be4aa7`.
 - `tests/fixtures/formula-grounding-oracle.ts`: `dcaa58caa37ec103dfeed507553424185bd99e3f1220cd498e7bf4392e45636e`.
 - `tests/fixtures/formula-grounding-source-2041020.json.gz`: `6156be159c6826b87dda551ee6dd0b564ff571a4fbd5695cb87a7d5b91fde7fe`.
+
+## Published-source regression qualification
+
+Exact source `0076e3cc08ff3d133558315d4e8271bb450b2a9e` passed
+[all 12 real-WebGL journeys and 293 contracts](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41272683640),
+with no retries, skips or flaky cases. Full Aurel/Vellamar retained their
+115/151 prepared variants, 38/50 asphalt chunks, zero paint contamination and
+zero resources after disposal. Context restoration still requires explicit
+rebuild. All 170 inspected GL/shader/failure/loss fields were clear.
+
+Artifact **13070685750**, 7,926,049 bytes, SHA-256
+`eaf2039b25564471e27fcb2900ba81cf54f66bde4ab298b9ad8a1ccb9dba3bf0`.
+Of 87 image attachments / 56 unique images, 85 attachments / 54 unique images
+are byte-identical to the previously individually inspected f2cf877 set.
+The two changed actual-route images were freshly viewed, alongside three
+unchanged full/banked views. This is inherited exact-image review plus changed
+image inspection, not a claim of reopening every image. Original factor
+repeats, negative controls and candidate pixel comparisons remained unchanged.
+
+[Required native run 41272683767](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41272683767)
+passed Windows and Apple Silicon (855 contracts and all four journeys each).
+Mesa completed 403 preparation leases, model and wheel acceptance, then failed
+Formula readiness with a 45.0045-second GPU-preparation fence error and final
+GPU512/context loss. CPU draw returned in 126.2 ms; queue 5/4 is not GPU
+completion. Publication job 124754910748 was skipped. A later failure phase
+than f2cf877 is neither repair nor cause isolation.
+
+The same-source [driver run](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41272683625)
+passed SwiftShader's four journeys. Compatibility Mesa completed Formula/GP/MX
+but Festival capture timed out before return, with final GPU loss. V2 retained
+valid numeric evidence while gameplay failed; the final fault was observed
+after its trace window and is not explained by that capture. Raw deletion was
+scheduled, not independently verified; no raw trace was retrieved. Ubuntu24
+remained blocked before connection on its unchanged sandbox-helper requirement.
+Seven compact archives/member hashes and 23 native PNGs were reviewed.
+
+These are source-qualified regression observations, not physical-hardware,
+retail, complete four-mode Babylon or new grounding-lighting acceptance.

@@ -77,3 +77,5 @@ The compact [current status](CURRENT_STATUS.md) lists present gates; [developmen
 
 - `src/engine/assets/formula-grounding.ts`: original Formula grounding constants and presented-pose calculation, with original renderer compatibility. No live Babylon grounding yet. [Boundary and oracle](maintenance/formula-grounding-data-2026-11-01.md).
 - `docs/experiments/motion-projection-22-stage3-results/`: complete strict/off-road validation and all 74 entrant comparisons; the unexplained Arena regression keeps the source unapplied.
+
+- `scripts/electron-runtime-ab-*` and matching tests: inert, nonpublishing official-runtime comparison infrastructure. No active launch/workflow or shipping runtime change. [Protocol](maintenance/electron-runtime-ab-offline-2026-11-01.md).
