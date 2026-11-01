@@ -13,6 +13,7 @@ import { waitForPresentation } from './presentation-ready.ts';
 import { ExistingPlayerSteering } from './existing-player-steering.ts';
 import { ExistingPlayerWheels } from './existing-player-wheels.ts';
 import { PresentationSchedule } from './presentation-schedule.ts';
+import { observePreparationReadiness, observeReadinessSnapshot } from './readiness-observation.ts';
 import { installGraphicsObservation } from '../../core/graphics-observation.ts';
 import { SimulationComponent } from '../simulation-component.ts';
 import { DEFAULT_OPTIONS } from '../../simulation/config.ts';
@@ -83,11 +84,31 @@ function publishLampDiagnostics(lamps: LampPreparation) {
 }
 declare global {
   interface Window {
-    babylonGraphicsDiagnostics: () => ReturnType<BabylonPresentationGpu['diagnostics']> | null;
+    babylonGraphicsDiagnostics: typeof readGraphicsDiagnostics;
   }
 }
+function readGraphicsDiagnostics() {
+  const graphics = gpu?.diagnostics();
+  if (!graphics) return null;
+  return {
+    ...graphics,
+    ...observeReadinessSnapshot(() => ({
+      paused,
+      stopped,
+      restartPending: restartOwnership.pending,
+      restartRequired: graphicsRecovery.restartRequired,
+      resizePending,
+      owners: {
+        surface: observePreparationReadiness(surfacePreparation),
+        gantry: observePreparationReadiness(gantryPreparation),
+        lamps: observePreparationReadiness(lampPreparation),
+      },
+      schedule: presentation.diagnostics(),
+    })),
+  };
+}
 Object.defineProperty(window, 'babylonGraphicsDiagnostics', {
-  value: () => gpu?.diagnostics() ?? null,
+  value: readGraphicsDiagnostics,
   writable: false,
   configurable: false,
 });

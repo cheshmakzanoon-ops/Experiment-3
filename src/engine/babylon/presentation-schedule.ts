@@ -7,6 +7,14 @@ export class PresentationSchedule {
   get pending() {
     return this.requested || this.preparations.size > 0;
   }
+  /** Detached numeric/boolean diagnostics; reading never consumes draw demand. */
+  diagnostics() {
+    return {
+      requested: this.requested,
+      preparationCount: this.preparations.size,
+      pending: this.pending,
+    };
+  }
   request() {
     this.requested = true;
   }

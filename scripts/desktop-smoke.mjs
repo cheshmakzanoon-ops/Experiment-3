@@ -26,6 +26,12 @@ import {
   retainNativeSmokeFailure,
   validateNativeAurelSurface,
 } from './native-smoke-control.mjs';
+import {
+  readNativeBabylonReadiness,
+  normalizeNativeBabylonReadiness,
+  createNativeReadinessHistory,
+  preserveNativeFailureWhileObserving,
+} from './native-readiness-observation.mjs';
 import { _electron as electron } from '@playwright/test';
 import { mkdtemp, mkdir, writeFile, readFile } from 'node:fs/promises';
 import { writeFileSync } from 'node:fs';
@@ -40,6 +46,12 @@ const target = desktopTarget(process.platform, process.arch, process.env.MOTOBOU
 const startedAt = Date.now();
 const consoleGraphicsFaults = new Set();
 const firstGraphicsFault = createFirstGraphicsFault();
+const readinessHistory = createNativeReadinessHistory();
+let nextReadinessGate = 0;
+let activeReadinessGate = null;
+const readinessBinding = '__motoboundNativeReadinessObservation';
+const readinessFailurePrefix = '__MOTOBOUND_READINESS_OBSERVATION_FAILURE__';
+const readinessReaderSource = readNativeBabylonReadiness.toString();
 const processScanners = [createGraphicsLogScanner(), createGraphicsLogScanner()];
 const graphicsBackend = process.env.MOTOBOUND_CI_GL || 'native';
 const graphicsArguments = desktopGraphicsArguments(graphicsBackend, target.platform, target.arch);
@@ -63,22 +75,56 @@ const report = {
   graphicsFaults: [],
   contextLosses: 0,
 };
-function stage(name) {
-  const entry = { name, elapsedMs: Date.now() - startedAt };
+function diagnosticErrorText(error) {
+  try {
+    return String(error).slice(0, 256);
+  } catch {
+    return 'Unprintable readiness observation error';
+  }
+}
+function readinessDiagnosticFailure(phase, error) {
+  const failures = (report.readinessObservationErrors ??= []);
+  failures.push({ phase, error: diagnosticErrorText(error), hostAtMs: Date.now() });
+  if (failures.length > 16) failures.shift();
+}
+function recordReadiness(phase, sample, hostBefore, hostAfter) {
+  try {
+    return readinessHistory.record(phase, sample, hostBefore, hostAfter);
+  } catch (error) {
+    readinessDiagnosticFailure('history-record', error);
+    return false;
+  }
+}
+function readinessSnapshot() {
+  try {
+    return readinessHistory.snapshot();
+  } catch (error) {
+    readinessDiagnosticFailure('history-snapshot', error);
+    return null;
+  }
+}
+function stage(name, qualification = {}) {
+  report.babylonReadiness = readinessSnapshot();
+  const entry = { name, elapsedMs: Date.now() - startedAt, ...qualification };
   report.stages.push(entry);
   writeFileSync('desktop-evidence/partial.json', JSON.stringify(report, null, 2));
   console.log(`[desktop smoke] ${JSON.stringify(entry)}`);
 }
-async function observeGraphicsHealth(page) {
+async function observeGraphicsHealth(page, readinessPhase = 'graphics-health') {
   let timer;
+  const hostBefore = Date.now();
   try {
     const [processObservation, rendererObservations] = await Promise.race([
       Promise.all([
         application.evaluate(() => globalThis.motoboundProcessGraphicsObservation?.()),
-        page.evaluate(() => ({
+        page.evaluate(`() => ({
           document: window.motoboundGraphicsObservation?.(),
           babylon: window.babylonGraphicsDiagnostics?.(),
-        })),
+          readiness: (() => {
+            try { return (${readinessReaderSource})(); }
+            catch (error) { return { observationError: (${diagnosticErrorText.toString()})(error) }; }
+          })(),
+        })`),
       ]),
       new Promise((_, reject) => {
         timer = setTimeout(
@@ -87,6 +133,7 @@ async function observeGraphicsHealth(page) {
         );
       }),
     ]);
+    recordReadiness(readinessPhase, rendererObservations.readiness, hostBefore, Date.now());
     const documentObservation = rendererObservations.document;
     if (rendererObservations.babylon)
       report.babylonGraphicsObservation = rendererObservations.babylon;
@@ -111,25 +158,71 @@ async function observeGraphicsHealth(page) {
   return report.graphicsFaults;
 }
 async function waitForBabylonPresentation(page) {
-  if ((await firstGraphicsFault.wait(() => observeGraphicsHealth(page))).length)
-    throw new Error('GPU health failed before paused presentation completion');
-  await firstGraphicsFault.wait(() =>
-    page.waitForFunction(
-      () => {
-        const data = document.querySelector('#status')?.dataset;
-        const submitted = Number(data?.renderedFrames);
-        const completed = Number(data?.completedFrames);
-        return (
-          data?.presentationSettled === 'true' &&
-          Number.isSafeInteger(submitted) &&
-          submitted > 0 &&
-          completed === submitted
-        );
-      },
-      {},
-      { timeout: 30000, polling: 100 },
-    ),
-  );
+  const gateId = ++nextReadinessGate;
+  let gate = null;
+  try {
+    if ((await firstGraphicsFault.wait(() => observeGraphicsHealth(page, 'gate-entry'))).length)
+      throw new Error('GPU health failed before paused presentation completion');
+    gate = { id: gateId, hostBefore: Date.now(), pollsReceived: 0 };
+    activeReadinessGate = gate;
+    await firstGraphicsFault.wait(() =>
+      page.waitForFunction(
+        `({ gateId, binding, failurePrefix }) => {
+          const data = document.querySelector('#status')?.dataset;
+          const submitted = Number(data?.renderedFrames);
+          const completed = Number(data?.completedFrames);
+          const ready = (
+            data?.presentationSettled === 'true' &&
+            Number.isSafeInteger(submitted) &&
+            submitted > 0 &&
+            completed === submitted
+          );
+          // Existing console transport is only a fallback for diagnostic errors.
+          const observationFailure = (phase, error) => {
+            try {
+              console.debug(failurePrefix + JSON.stringify({ gateId, phase,
+                error: (${diagnosticErrorText.toString()})(error) }));
+            } catch { /* Lost observation transport remains unavailable, not a pass. */ }
+          };
+          // Evidence only: never await transport or let it decide this predicate.
+          try {
+            const sample = (${readinessReaderSource})();
+            if (typeof window[binding] === 'function')
+              void window[binding](gateId, sample).catch((error) => observationFailure('binding-rejection', error));
+          } catch (error) { observationFailure('poll-capture', error); }
+          return ready;
+        }`,
+        { gateId, binding: readinessBinding, failurePrefix: readinessFailurePrefix },
+        { timeout: 30000, polling: 100 },
+      ),
+    );
+  } catch (error) {
+    activeReadinessGate = null;
+    // Retain what arrived BEFORE failure, even if subsequent screenshot/final
+    // collection sees a recovered renderer. No fresh query or new wait is added.
+    return preserveNativeFailureWhileObserving(error, () => {
+      const snapshot = readinessSnapshot();
+      const lastPoll =
+        snapshot?.observations.findLast(
+          (entry) => entry.phase === 'poll' && entry.sample?.gateId === gateId,
+        ) ?? null;
+      recordReadiness(
+        error?.name === 'TimeoutError' ? 'gate-timeout' : 'gate-failure',
+        {
+          gateId,
+          pollsReceived: gate?.pollsReceived ?? 0,
+          sampleSource: lastPoll
+            ? 'last-received-poll-not-fresh-at-failure'
+            : 'absent-before-failure',
+          lastPoll,
+        },
+        gate?.hostBefore ?? null,
+        Date.now(),
+      );
+    });
+  } finally {
+    activeReadinessGate = null;
+  }
   const receipt = await firstGraphicsFault.wait(() =>
     page.locator('#status').evaluate((element) => ({
       submitted: Number(element.dataset.renderedFrames),
@@ -277,6 +370,35 @@ try {
   page.setDefaultTimeout(30000);
   page.setDefaultNavigationTimeout(120000);
   stage('window-created');
+  try {
+    await page.exposeBinding(readinessBinding, (source, gateId, sample) => {
+      const gate = activeReadinessGate;
+      if (!gate || gate.id !== gateId || source.frame !== page.mainFrame()) return;
+      gate.pollsReceived++;
+      // Wide, explicit clock bracket: host wait invocation -> transport arrival.
+      // It is not a claim that a host timestamp equals the renderer sample time.
+      const observation = normalizeNativeBabylonReadiness(sample);
+      if (!observation) {
+        recordReadiness(
+          'poll-observation-failure',
+          { gateId, error: 'Malformed readiness packet' },
+          gate.hostBefore,
+          Date.now(),
+        );
+        return;
+      }
+      recordReadiness('poll', { gateId, observation }, gate.hostBefore, Date.now());
+    });
+    report.readinessObservationTransport = { installed: true };
+  } catch (error) {
+    report.readinessObservationTransport = { installed: false };
+    recordReadiness(
+      'observer-install-failure',
+      { error: diagnosticErrorText(error) },
+      null,
+      Date.now(),
+    );
+  }
   // A hidden ready-to-show window must not be required to produce the frame
   // that makes it visible. Show it before the existing startup deadline.
   report.initialWindow = await application.evaluate(({ app, BrowserWindow }) => {
@@ -303,6 +425,35 @@ try {
   }
   page.on('console', (message) => {
     const entry = { type: message.type(), text: message.text() };
+    if (entry.text.startsWith(readinessFailurePrefix)) {
+      // Fixed-schema diagnostic messages never become graphics/runtime failures.
+      try {
+        if (entry.text.length > readinessFailurePrefix.length + 1024) return;
+        const failure = JSON.parse(entry.text.slice(readinessFailurePrefix.length));
+        if (
+          Number.isSafeInteger(failure.gateId) &&
+          failure.gateId > 0 &&
+          failure.gateId <= nextReadinessGate &&
+          ['binding-rejection', 'poll-capture'].includes(failure.phase) &&
+          typeof failure.error === 'string'
+        )
+          recordReadiness(
+            'poll-observation-failure',
+            {
+              gateId: failure.gateId,
+              phase: failure.phase,
+              error: failure.error.slice(0, 256),
+              delivery:
+                activeReadinessGate?.id === failure.gateId ? 'active-gate' : 'late-for-closed-gate',
+            },
+            activeReadinessGate?.id === failure.gateId ? activeReadinessGate.hostBefore : null,
+            Date.now(),
+          );
+      } catch {
+        /* Malformed diagnostic packets cannot alter journey outcome. */
+      }
+      return;
+    }
     // Parse the full packet before the generic console's 2048-character cap.
     // The separate Node-owned JSON survives a blocked or disposed renderer.
     const preparationPacket = preparationEvidence.consume(entry.text);
@@ -360,7 +511,10 @@ try {
   if (graphicsBackend === 'swiftshader' && !/swiftshader/i.test(report.renderer ?? ''))
     throw new Error(`Requested SwiftShader driver, received ${report.renderer}`);
   report.checks.push('packaged offline Babylon entry started');
-  stage('babylon-ready');
+  stage('babylon-ready', {
+    scope: 'simulation-entry-started',
+    environmentReadiness: 'not-asserted',
+  });
   // A directly launched macOS bundle can remain behind the runner's desktop.
   // Activate it before testing real pointer/keyboard input and RAF stability.
   report.windowFocus = await application.evaluate(({ app, BrowserWindow }) => {
@@ -561,7 +715,7 @@ try {
 } finally {
   if (page) {
     try {
-      if ((await observeGraphicsHealth(page)).length && report.success) {
+      if ((await observeGraphicsHealth(page, 'final-collection')).length && report.success) {
         retainNativeSmokeFailure(
           report,
           new Error('GPU health failed at final evidence collection'),
@@ -581,6 +735,7 @@ try {
       }
     }
   }
+  report.babylonReadiness = readinessSnapshot();
   report.preparationEvidence = preparationEvidence.snapshot();
   gpuTrace?.finalize();
   report.firstGraphicsFault = firstGraphicsFault.read()?.message ?? null;

@@ -14,7 +14,11 @@ Migration development stays exclusively on **babylon-js**. Main is frozen at res
 
 ## Latest recorded qualification
 
-**Lamp facing correction:** `6164be1` passed 22 GPU journeys and Windows/macOS installed checks. Actual CCW state and 80 central cap patches match the original; the old-CW control exposes the opposite cap. Linux timed out in the first paused-startup presentation wait without a recorded GPU/context/JS fault. Final ready/idle evidence was collected after timeout, so cause remains unproven; read-only readiness observations are next, without changing deadlines. [Evidence and limits](maintenance/babylon-procedural-facing-2026-11-01.md).
+**Native readiness evidence:** bounded, read-only observations now capture the existing pause predicate and owner/schedule state without changing its 30-second limit, 100-ms polling or the app startup deadline. New runtime evidence is pending; this is not a Linux fix. [Scope](maintenance/native-startup-readiness-observation-2026-11-01.md).
+
+**Lamp facing correction:** `6164be1` passed 22 GPU journeys and Windows/macOS installed checks. Actual CCW state and 80 central cap patches match the original; the old-CW control exposes the opposite cap. Linux timed out in the first paused-startup presentation wait without a recorded GPU/context/JS fault. Final ready/idle evidence was collected after timeout, so cause remains unproven; read-only readiness observations are now implemented for the next run, without changing deadlines. [Evidence and limits](maintenance/babylon-procedural-facing-2026-11-01.md).
+
+**Next isolated banner:** the original label canvas, geometry and unprinted back-face behavior are preserved; hardware-sRGB sampling is required. CPU checks do not establish font/GPU parity, and no live import is enabled. [Scope](maintenance/babylon-start-banner-2026-11-01.md).
 
 **Original start lamps:** live `3a3e977` passed all 22 GPU journeys, the required aggregate gate and Windows/macOS installed-app plus four compatibility journeys. Actual lamp bindings report five parts/materials, 400 triangles and zero lit in practice. The early-paused startup receipt preserves tick 700 through readiness, then advances to 745 on resume. Linux reaches valid lamp/gantry readiness and the car but still fails later with GPU loss. [Evidence and remaining limits](maintenance/babylon-start-lamps-2026-11-01.md).
 

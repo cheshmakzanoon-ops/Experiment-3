@@ -26,11 +26,12 @@ it('qualifies migration desktop artifacts only on babylon-js through unchanged s
   );
 });
 
-it('retains the exact GPU selector union in two required, non-filtered shards', () => {
+it('retains the exact GPU selector union in required, non-filtered shards', () => {
   const source = readFileSync('.github/workflows/babylon-integration.yml', 'utf8');
   expect([...source.matchAll(/^ {10}- suite: (.+)$/gm)].map((m) => m[1])).toEqual([
     'retained',
     'start-lamps',
+    'start-banner',
   ]);
   expect(
     [...source.matchAll(/^ {8}run: npx playwright test (.+)$/gm)].map((m) => m[1].split(' ')),
@@ -44,6 +45,7 @@ it('retains the exact GPU selector union in two required, non-filtered shards', 
       'e2e/babylon-start-gantry.spec.ts',
     ],
     ['e2e/babylon-start-lamps.spec.ts'],
+    ['e2e/babylon-start-banner.spec.ts'],
   ]);
   const step = (name: string) => source.split(`      - name: ${name}\n`)[1]?.split('      - ')[0];
   expect(step('Real WebGL engine, model import and mode-switching journeys')).toContain(
@@ -51,6 +53,9 @@ it('retains the exact GPU selector union in two required, non-filtered shards', 
   );
   expect(step('Original start lamps GPU qualification')).toContain(
     "if: matrix.suite == 'start-lamps'",
+  );
+  expect(step('Original start banner GPU qualification')).toContain(
+    "if: matrix.suite == 'start-banner'",
   );
   expect(source).toContain('fail-fast: false');
   expect(source).toContain('timeout-minutes: 20');

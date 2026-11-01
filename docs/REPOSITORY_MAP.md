@@ -100,3 +100,12 @@ remains separate. See [A07 qualification](maintenance/babylon-start-gantry-2026-
 `lamp-preparation.ts` connects it to guarded startup after the gantry. Its isolated
 and live GPU plus Windows/macOS checks passed; Linux remains failed. Original geometry and snapshot
 authority are retained. [Scope](maintenance/babylon-start-lamps-2026-11-01.md).
+
+`src/engine/babylon/start-banner.ts` and `start-banner-material.ts` own the isolated
+original banner canvas/plane and plain backing shader behavior. Same-canvas GPU
+qualification precedes live activation. [Scope](maintenance/babylon-start-banner-2026-11-01.md).
+
+`scripts/native-readiness-observation.mjs` owns bounded harness observations;
+`src/engine/babylon/readiness-observation.ts` exposes detached read-only owner
+metadata through the existing graphics query. Neither changes readiness gates.
+[Scope](maintenance/native-startup-readiness-observation-2026-11-01.md).
