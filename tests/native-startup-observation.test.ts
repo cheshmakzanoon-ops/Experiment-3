@@ -1,3 +1,4 @@
+import { createNativeActionMarks } from '../scripts/native-action-marks.mjs';
 import { expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { createContext, runInContext, runInNewContext } from 'node:vm';
@@ -226,7 +227,7 @@ it('uses the cached actual function for false-false-true polls when subsequent e
 it('passes actual function objects at both observation sites without executable string construction', () => {
   expect(serverPredicate).toContain('if (isFunction2 === true)');
   expect(serverPredicate).toContain('evaledExpression = result2');
-  expect(source).toContain("page.evaluate(readNativeBabylonReadiness, { mode: 'health' })");
+  expect(source).toContain("page.evaluate(readNativeBabylonReadiness, { mode: 'health', submissionObservation: true })");
   expect(call).toContain('readNativeBabylonReadiness,');
   for (const pattern of [
     /readNativeBabylonReadiness\.toString\(/,
@@ -270,4 +271,65 @@ it('reproduces the rejected expression-string wire path when a second poll requi
   ).toBe(false);
   expect(() => poll()).toThrow('CSP disallows subsequent unsafe-eval');
   expect(evals).toBe(2);
+});
+
+it('host action brackets observe existing operations once without retries or waits', async () => {
+  let time = 100,
+    calls = 0;
+  const marks = createNativeActionMarks(() => time++);
+  const result = await marks.run('restart', () => {
+    calls++;
+    return 7;
+  });
+  expect(result).toBe(7);
+  expect(calls).toBe(1);
+  expect(marks.snapshot().records).toEqual([
+    { action: 'restart', hostBefore: 100, hostAfter: 101, outcome: 'fulfilled' },
+  ]);
+  const copy = marks.snapshot();
+  copy.records[0].action = 'changed';
+  expect(marks.snapshot().records[0].action).toBe('restart');
+});
+it.each([undefined, null, false, 0, ''])(
+  'host diagnostic clock failure retains exact primary thrown value %s',
+  async (error) => {
+    const marks = createNativeActionMarks(() => {
+      throw new Error('clock');
+    });
+    let caught = false;
+    try {
+      await marks.run('w-up', () => {
+        throw error;
+      });
+    } catch (actual) {
+      caught = true;
+      expect(actual).toBe(error);
+    }
+    expect(caught).toBe(true);
+    expect(marks.snapshot().records[0]).toEqual({
+      action: 'w-up',
+      hostBefore: null,
+      hostAfter: null,
+      outcome: 'rejected',
+    });
+  },
+);
+it('host marks are bounded and record an unfinished action without another renderer query', async () => {
+  const marks = createNativeActionMarks(() => 1);
+  for (let i = 0; i < 70; i++) await marks.run('x'.repeat(100), () => undefined);
+  expect(marks.snapshot().records).toHaveLength(64);
+  expect(marks.snapshot().evicted).toBe(6);
+  expect(marks.snapshot().records[0].action).toHaveLength(64);
+  let finish!: () => void;
+  const pending = marks.run(
+    'readiness',
+    () =>
+      new Promise<void>((resolve) => {
+        finish = resolve;
+      }),
+  );
+  expect(marks.snapshot().records.at(-1)?.outcome).toBe('pending');
+  finish();
+  await pending;
+  expect(marks.snapshot().records.at(-1)?.outcome).toBe('fulfilled');
 });

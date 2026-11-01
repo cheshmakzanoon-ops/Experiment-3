@@ -117,7 +117,39 @@ export function readNativeBabylonReadiness(options) {
       canDraw: 'boolean',
       errors: ['string'],
     };
+    // rendererNowMs is capture-after-render CPU time, not an exact fence timestamp.
+    const submissionSchema = {
+      version: 'number',
+      enabled: 'boolean',
+      currentComponentEpoch: 'number',
+      currentSceneEpoch: 'number',
+      losses: 'number',
+      records: [
+        {
+          sequence: 'number',
+          rendererNowMs: 'number',
+          timeOriginMs: 'number',
+          componentEpoch: 'number',
+          sceneEpoch: 'number',
+          paused: 'boolean',
+          tick: 'number',
+          throttle: 'number',
+          speed: 'number',
+          readyBefore: 'boolean',
+          readyAfter: 'boolean',
+          preparationStage: 'string',
+          requested: 'boolean',
+          preparationCount: 'number',
+          wheelPhase: 'number',
+          lossesAtSubmission: 'number',
+          provenance: 'string',
+        },
+      ],
+    };
     const schema = {
+      ...(options?.submissionObservation === true
+        ? { submissionObservation: submissionSchema }
+        : {}),
       phase: 'string',
       lastDrawCpuMs: 'number',
       drawStartedAtMs: 'number',
@@ -197,11 +229,38 @@ export function readNativeBabylonReadiness(options) {
       return result;
     };
     let graphics = safely('graphics', () =>
-      select(globalThis.window?.babylonGraphicsDiagnostics?.(), schema, 'graphics'),
+      select(
+        options?.submissionObservation === true
+          ? globalThis.window?.babylonGraphicsDiagnostics?.({ submissionObservation: true })
+          : globalThis.window?.babylonGraphicsDiagnostics?.(),
+        schema,
+        'graphics',
+      ),
     );
-    if (new TextEncoder().encode(JSON.stringify(graphics)).length > 4096) {
+    const submission = graphics?.submissionObservation;
+    if (
+      submission &&
+      (submission.version !== 1 ||
+        submission.enabled !== true ||
+        !Array.isArray(submission.records) ||
+        submission.records.some(
+          (row) =>
+            !row ||
+            (row.preparationStage !== null &&
+              !['surface', 'environment', 'stripe', 'model', 'none'].includes(
+                row.preparationStage,
+              )) ||
+            (row.provenance !== null &&
+              !['current', 'previous-generation', 'pre-loss'].includes(row.provenance)),
+        ))
+    ) {
+      graphics.submissionObservation = null;
+      errors.push('graphics.submissionObservation: invalid record');
+    }
+    const graphicsLimit = graphics?.submissionObservation ? 12288 : 4096;
+    if (new TextEncoder().encode(JSON.stringify(graphics)).length > graphicsLimit) {
       graphics = null;
-      errors.push('graphics: snapshot exceeds 4096-byte limit');
+      errors.push(`graphics: snapshot exceeds ${graphicsLimit}-byte limit`);
     }
     return {
       renderer: {
@@ -246,7 +305,10 @@ export function readNativeBabylonReadiness(options) {
   if (options?.mode === 'health') {
     // Original health-query failures, including falsy ones, must still reject.
     const document = window.motoboundGraphicsObservation?.();
-    const babylon = window.babylonGraphicsDiagnostics?.();
+    const babylon =
+      options?.submissionObservation === true
+        ? window.babylonGraphicsDiagnostics?.({ submissionObservation: true })
+        : window.babylonGraphicsDiagnostics?.();
     let readiness;
     try {
       readiness = read();
@@ -476,6 +538,34 @@ export function normalizeNativeBabylonReadiness(value) {
     last: { label: 'string', startedAtMs: 'number', elapsedMs: 'number', state: 'string' },
   };
   const owner = { exists: 'boolean', completed: 'boolean', canDraw: 'boolean', errors: ['string'] };
+  const submissionSchema = {
+    version: 'number',
+    enabled: 'boolean',
+    currentComponentEpoch: 'number',
+    currentSceneEpoch: 'number',
+    losses: 'number',
+    records: [
+      {
+        sequence: 'number',
+        rendererNowMs: 'number',
+        timeOriginMs: 'number',
+        componentEpoch: 'number',
+        sceneEpoch: 'number',
+        paused: 'boolean',
+        tick: 'number',
+        throttle: 'number',
+        speed: 'number',
+        readyBefore: 'boolean',
+        readyAfter: 'boolean',
+        preparationStage: 'string',
+        requested: 'boolean',
+        preparationCount: 'number',
+        wheelPhase: 'number',
+        lossesAtSubmission: 'number',
+        provenance: 'string',
+      },
+    ],
+  };
   const graphicsSchema = {
     phase: 'string',
     lastDrawCpuMs: 'number',
@@ -563,6 +653,13 @@ export function normalizeNativeBabylonReadiness(value) {
       const descriptor = Object.getOwnPropertyDescriptor(value, key);
       if (!descriptor || !Object.hasOwn(descriptor, 'value')) return null;
     }
+    const graphicsValue = Object.getOwnPropertyDescriptor(value, 'graphics')?.value;
+    const submissionDescriptor =
+      graphicsValue && typeof graphicsValue === 'object'
+        ? Object.getOwnPropertyDescriptor(graphicsValue, 'submissionObservation')
+        : undefined;
+    if (submissionDescriptor && !Object.hasOwn(submissionDescriptor, 'value')) return null;
+    const hasSubmissions = submissionDescriptor?.value != null;
     const result = select(value, {
       renderer: { nowMs: 'number', timeOriginMs: 'number' },
       dom: {
@@ -575,7 +672,9 @@ export function normalizeNativeBabylonReadiness(value) {
         truncatedFields: ['string', keys.length],
       },
       predicate: { submitted: 'number', completed: 'number', ready: 'boolean' },
-      graphics: graphicsSchema,
+      graphics: hasSubmissions
+        ? { ...graphicsSchema, submissionObservation: submissionSchema }
+        : graphicsSchema,
       errors: ['string', 16],
     });
     if (
@@ -588,7 +687,33 @@ export function normalizeNativeBabylonReadiness(value) {
     if (Object.values(result.dom.data).some((field) => field !== null && field.length > 128))
       return null;
     if (result.dom.truncatedFields.some((key) => !keys.includes(key))) return null;
-    if (new TextEncoder().encode(JSON.stringify(result.graphics)).length > 4096) return null;
+    if (hasSubmissions) {
+      const observation = result.graphics?.submissionObservation;
+      if (
+        !observation ||
+        observation.version !== 1 ||
+        observation.enabled !== true ||
+        !Array.isArray(observation.records)
+      )
+        return null;
+      for (const row of observation.records) {
+        if (
+          !row ||
+          (row.preparationStage !== null &&
+            !['surface', 'environment', 'stripe', 'model', 'none'].includes(
+              row.preparationStage,
+            )) ||
+          (row.provenance !== null &&
+            !['current', 'previous-generation', 'pre-loss'].includes(row.provenance))
+        )
+          return null;
+      }
+    }
+    if (
+      new TextEncoder().encode(JSON.stringify(result.graphics)).length >
+      (hasSubmissions ? 12288 : 4096)
+    )
+      return null;
     if (new TextEncoder().encode(JSON.stringify(result)).length > 16384) return null;
     return result;
   } catch {

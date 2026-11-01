@@ -1,3 +1,4 @@
+import { createNativeActionMarks } from './native-action-marks.mjs';
 import {
   graphicsFaults,
   createGraphicsLogScanner,
@@ -47,6 +48,7 @@ const startedAt = Date.now();
 const consoleGraphicsFaults = new Set();
 const firstGraphicsFault = createFirstGraphicsFault();
 const readinessHistory = createNativeReadinessHistory();
+const actionMarks = createNativeActionMarks();
 let nextReadinessGate = 0;
 let activeReadinessGate = null;
 const readinessBinding = '__motoboundNativeReadinessObservation';
@@ -102,8 +104,16 @@ function readinessSnapshot() {
     return null;
   }
 }
+function actionSnapshot() {
+  try {
+    return actionMarks.snapshot();
+  } catch {
+    return null;
+  }
+}
 function stage(name, qualification = {}) {
   report.babylonReadiness = readinessSnapshot();
+  report.nativeActionMarks = actionSnapshot();
   const entry = { name, elapsedMs: Date.now() - startedAt, ...qualification };
   report.stages.push(entry);
   writeFileSync('desktop-evidence/partial.json', JSON.stringify(report, null, 2));
@@ -116,7 +126,7 @@ async function observeGraphicsHealth(page, readinessPhase = 'graphics-health') {
     const [processObservation, rendererObservations] = await Promise.race([
       Promise.all([
         application.evaluate(() => globalThis.motoboundProcessGraphicsObservation?.()),
-        page.evaluate(readNativeBabylonReadiness, { mode: 'health' }),
+        page.evaluate(readNativeBabylonReadiness, { mode: 'health', submissionObservation: true }),
       ]),
       new Promise((_, reject) => {
         timer = setTimeout(
@@ -160,7 +170,13 @@ async function waitForBabylonPresentation(page) {
     await firstGraphicsFault.wait(() =>
       page.waitForFunction(
         readNativeBabylonReadiness,
-        { mode: 'poll', gateId, binding: readinessBinding, failurePrefix: readinessFailurePrefix },
+        {
+          mode: 'poll',
+          gateId,
+          binding: readinessBinding,
+          failurePrefix: readinessFailurePrefix,
+          submissionObservation: true,
+        },
         { timeout: 30000, polling: 100 },
       ),
     );
@@ -475,11 +491,13 @@ try {
     readyState: document.readyState,
     hidden: document.hidden,
   }));
-  await page.waitForFunction(
-    () =>
-      /DRIVING|PAUSED|could not start/.test(document.querySelector('#status')?.textContent ?? ''),
-    {},
-    { timeout: 120000, polling: 100 },
+  await actionMarks.run('simulation-entry-readiness', () =>
+    page.waitForFunction(
+      () =>
+        /DRIVING|PAUSED|could not start/.test(document.querySelector('#status')?.textContent ?? ''),
+      {},
+      { timeout: 120000, polling: 100 },
+    ),
   );
   report.initialStatus = await page.locator('#status').textContent();
   if (!/DRIVING|PAUSED/.test(report.initialStatus ?? ''))
@@ -518,39 +536,50 @@ try {
   }));
 
   const resume = page.getByRole('button', { name: 'Resume', exact: true });
-  if (await resume.isVisible()) await resume.click();
-  await page.getByRole('button', { name: 'Pause', exact: true }).click();
-  await page.waitForFunction(() =>
-    document.querySelector('#status')?.textContent?.includes('PAUSED'),
+  if (await resume.isVisible())
+    await actionMarks.run('startup-visible-resume', () => resume.click());
+  await actionMarks.run('startup-pause', () =>
+    page.getByRole('button', { name: 'Pause', exact: true }).click(),
   );
-  await waitForBabylonPresentation(page);
-  await page.getByRole('button', { name: 'Resume', exact: true }).click();
+  await actionMarks.run('startup-paused-status', () =>
+    page.waitForFunction(() => document.querySelector('#status')?.textContent?.includes('PAUSED')),
+  );
+  await actionMarks.run('startup-readiness', () => waitForBabylonPresentation(page));
+  await actionMarks.run('lifecycle-resume', () =>
+    page.getByRole('button', { name: 'Resume', exact: true }).click(),
+  );
   await page.waitForFunction(() =>
     document.querySelector('#status')?.textContent?.includes('DRIVING'),
   );
-  await page.getByRole('button', { name: 'Restart', exact: true }).click();
+  await actionMarks.run('restart', () =>
+    page.getByRole('button', { name: 'Restart', exact: true }).click(),
+  );
   report.checks.push('pause/resume/restart');
   stage('lifecycle-passed');
-  await page.keyboard.down('w');
+  await actionMarks.run('drive-w-down', () => page.keyboard.down('w'));
   try {
-    await page.waitForFunction(
-      () => {
-        const speed = document.querySelector('#status')?.textContent?.match(/(\d+) km\/h/);
-        return speed && Number(speed[1]) > 5;
-      },
-      {},
-      { timeout: 30000, polling: 100 },
+    await actionMarks.run('drive-speed-wait', () =>
+      page.waitForFunction(
+        () => {
+          const speed = document.querySelector('#status')?.textContent?.match(/(\d+) km\/h/);
+          return speed && Number(speed[1]) > 5;
+        },
+        {},
+        { timeout: 30000, polling: 100 },
+      ),
     );
   } finally {
-    await page.keyboard.up('w');
+    await actionMarks.run('drive-w-up', () => page.keyboard.up('w'));
   }
   report.checks.push('native keyboard drives the existing simulation');
   stage('keyboard-passed');
-  await page.getByRole('button', { name: 'Pause', exact: true }).click();
-  await page.waitForFunction(() =>
-    document.querySelector('#status')?.textContent?.includes('PAUSED'),
+  await actionMarks.run('drive-pause', () =>
+    page.getByRole('button', { name: 'Pause', exact: true }).click(),
   );
-  await waitForBabylonPresentation(page);
+  await actionMarks.run('drive-paused-status', () =>
+    page.waitForFunction(() => document.querySelector('#status')?.textContent?.includes('PAUSED')),
+  );
+  await actionMarks.run('drive-readiness', () => waitForBabylonPresentation(page));
   const pausedStatus = await page.locator('#status').textContent();
   await page.waitForTimeout(300); // Explicit observation window for a frozen physics tick.
   if ((await page.locator('#status').textContent()) !== pausedStatus)
@@ -586,15 +615,17 @@ try {
         await page
           .getByRole('button', { name: 'Inspect existing Formula asset (35 MB)', exact: true })
           .click();
-        await page.waitForFunction(
-          () => {
-            const text = document.querySelector('#assetStatus')?.textContent ?? '';
-            return (
-              text.includes('Original Formula asset loaded') || text.includes('Model unavailable')
-            );
-          },
-          {},
-          { timeout: 120000, polling: 100 },
+        await actionMarks.run('model-load-readiness', () =>
+          page.waitForFunction(
+            () => {
+              const text = document.querySelector('#assetStatus')?.textContent ?? '';
+              return (
+                text.includes('Original Formula asset loaded') || text.includes('Model unavailable')
+              );
+            },
+            {},
+            { timeout: 120000, polling: 100 },
+          ),
         );
         report.assetStatus = await page.locator('#assetStatus').textContent();
         if (!report.assetStatus?.includes('Original Formula asset loaded'))
@@ -629,29 +660,35 @@ try {
         const wheelPhase = await page.locator('#assetStatus').getAttribute('data-wheel-phase');
         if (wheelPhase === null || !Number.isFinite(Number(wheelPhase)))
           throw new Error('Imported wheel adapter did not publish an applied rotation');
-        await resume.click();
-        await page.keyboard.down('w');
+        await actionMarks.run('model-resume', () => resume.click());
+        await actionMarks.run('model-w-down', () => page.keyboard.down('w'));
         try {
-          await page.waitForFunction(
-            (initial) => {
-              const value = document
-                .querySelector('#assetStatus')
-                ?.getAttribute('data-wheel-phase');
-              if (value == null || !Number.isFinite(Number(value))) return false;
-              const delta = Number(value) - initial;
-              return Math.abs(Math.atan2(Math.sin(delta), Math.cos(delta))) > 0.1;
-            },
-            Number(wheelPhase),
-            { timeout: 15000, polling: 100 },
+          await actionMarks.run('model-wheel-motion-wait', () =>
+            page.waitForFunction(
+              (initial) => {
+                const value = document
+                  .querySelector('#assetStatus')
+                  ?.getAttribute('data-wheel-phase');
+                if (value == null || !Number.isFinite(Number(value))) return false;
+                const delta = Number(value) - initial;
+                return Math.abs(Math.atan2(Math.sin(delta), Math.cos(delta))) > 0.1;
+              },
+              Number(wheelPhase),
+              { timeout: 15000, polling: 100 },
+            ),
           );
         } finally {
-          await page.keyboard.up('w');
+          await actionMarks.run('model-w-up', () => page.keyboard.up('w'));
         }
-        await page.getByRole('button', { name: 'Pause', exact: true }).click();
-        await page.waitForFunction(() =>
-          document.querySelector('#status')?.textContent?.includes('PAUSED'),
+        await actionMarks.run('model-pause', () =>
+          page.getByRole('button', { name: 'Pause', exact: true }).click(),
         );
-        await waitForBabylonPresentation(page);
+        await actionMarks.run('model-paused-status', () =>
+          page.waitForFunction(() =>
+            document.querySelector('#status')?.textContent?.includes('PAUSED'),
+          ),
+        );
+        await actionMarks.run('model-readiness', () => waitForBabylonPresentation(page));
         const frozenWheel = await page.locator('#assetStatus').getAttribute('data-wheel-phase');
         await page.waitForTimeout(300);
         if ((await page.locator('#assetStatus').getAttribute('data-wheel-phase')) !== frozenWheel)
@@ -720,6 +757,7 @@ try {
     }
   }
   report.babylonReadiness = readinessSnapshot();
+  report.nativeActionMarks = actionSnapshot();
   report.preparationEvidence = preparationEvidence.snapshot();
   gpuTrace?.finalize();
   report.firstGraphicsFault = firstGraphicsFault.read()?.message ?? null;

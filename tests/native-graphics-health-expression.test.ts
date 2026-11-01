@@ -16,7 +16,7 @@ const health = source.slice(
   source.indexOf('async function waitForBabylonPresentation('),
 );
 const call = health.match(
-  /page\.evaluate\(readNativeBabylonReadiness, \{ mode: 'health' \}\)/,
+  /page\.evaluate\(readNativeBabylonReadiness, \{ mode: 'health', submissionObservation: true \}\)/,
 )?.[0];
 async function evaluate(
   documentQuery: () => unknown,
@@ -35,6 +35,10 @@ async function evaluate(
         arg: { value: unknown };
       }) => {
         expect(wire.isFunction).toBe(true);
+        expect(parseResult(wire.arg.value)).toEqual({
+          mode: 'health',
+          submissionObservation: true,
+        });
         // VM compilation models the one privileged CDP function injection, while
         // renderer eval/Function are forbidden. The callback must be closure-free.
         const callback = runInNewContext(`(${wire.expression})`, {
@@ -108,6 +112,8 @@ it('isolates new metadata errors without hiding original health receipts', async
   expect(result.readiness).toEqual({ observationError: 'undefined' });
   expect(documentQuery).toHaveBeenCalledOnce();
   expect(babylonQuery).toHaveBeenCalledTimes(2);
+  expect(babylonQuery).toHaveBeenNthCalledWith(1, { submissionObservation: true });
+  expect(babylonQuery).toHaveBeenNthCalledWith(2, { submissionObservation: true });
 });
 it('keeps the strict health timeout and does not optional-chain away missing health evidence', () => {
   expect(health).toContain("new Error('Graphics health observation exceeded 30000ms')");

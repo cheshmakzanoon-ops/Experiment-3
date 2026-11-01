@@ -22,16 +22,22 @@ export interface NativeBabylonReadiness {
 }
 export function readNativeBabylonReadiness(options: {
   mode: 'poll';
+  submissionObservation?: boolean;
   gateId: number;
   binding: string;
   failurePrefix: string;
 }): boolean;
-export function readNativeBabylonReadiness(options: { mode: 'health' }): {
+export function readNativeBabylonReadiness(options: {
+  mode: 'health';
+  submissionObservation?: boolean;
+}): {
   document: unknown;
   babylon: unknown;
   readiness: NativeBabylonReadiness | { observationError: string };
 };
-export function readNativeBabylonReadiness(): NativeBabylonReadiness;
+export function readNativeBabylonReadiness(options?: {
+  submissionObservation?: boolean;
+}): NativeBabylonReadiness;
 export interface NativeReadinessHistorySnapshot {
   version: 1;
   limits: { maxEntries: number; maxSampleBytes: number; maxTotalBytes: number };

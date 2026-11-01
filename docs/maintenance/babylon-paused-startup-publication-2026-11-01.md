@@ -129,3 +129,35 @@ Malformed/contradictory geometry metadata and changed root transforms remain
 negative cases. The original rejected graph is not mutated. These are local CPU
 checks, not a GPU reuse/pixel or Linux-native pass. The next exact-source runs
 remain mandatory; all existing deadlines and assertions are unchanged.
+
+## Corrected runtime result: `ccb5fbe`
+
+[GPU run 41347997017](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41347997017)
+passed all **28 cases**, with no flaky/skipped cases. The actual decision was
+`reused-completed-image`; canonical state was non-null (26,455 characters), with
+no rejection code. Tick 699 stayed frozen while completed frames advanced
+7 → 8 → 9 across genuine viewport changes. Canonical state, camera and resources
+matched before/after. Unmasked 1440×900 composited-canvas RGBA had zero changed
+pixels/channels and zero maximum delta. Both image-byte hashes were
+`d756fcd85793a51df019473328d432addb3d0794785452d182809f9ca2cfdd06`.
+Resume advanced to tick 716. All 280 isolated asset PNGs remained byte-identical
+to `f0ca199`. This is SwiftShader qualification, not representative hardware.
+
+Retained artifact 13100651099 SHA-256:
+`66a90425644121fa3537de24b7819745e05223d9792800846fb5119fa422110a`.
+
+[Native run 41347996995](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41347996995)
+passed Windows (36/36 draws) and macOS (27/27), with 443 preparations and all four
+compatibility journeys each. Linux passed its initial pause at 6/6, lifecycle
+and keyboard, then failed the second pause after Restart before model import:
+289 polls over 30.005 seconds. Its last pre-timeout sample had 11 submitted/10
+completed frames, rebuilt surface incomplete, 250 preparations completed and
+pending GPU age 5.746 seconds. The preceding frame had remained pending for
+21.110 seconds. GPU exit 512 followed the timeout by 9.903 seconds; the later
+loss receipt's 15.702-second pending age is not the timeout age. No concrete
+synchronous ownership defect or driver cause follows from these observations.
+Full Linux qualification, model motion and compatibility journeys did not pass.
+
+Native evidence artifacts: Linux 13100526480, macOS 13100905269,
+Windows 13100144440. Shared fingerprint:
+`c73f0487f758f1af24471680c6024bd5800b56c061c2814f900530b4219a140a`.

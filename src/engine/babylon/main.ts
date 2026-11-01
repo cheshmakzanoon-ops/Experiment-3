@@ -1,3 +1,4 @@
+import { SubmissionObservation, type SubmissionCapture } from './submission-observation.ts';
 import {
   PausedStartupPublication,
   startupVisualSubmissionSequence,
@@ -56,6 +57,9 @@ let gpu: BabylonPresentationGpu | undefined;
 let surfacePreparation: SurfacePreparation | undefined;
 let environmentPreparation: EnvironmentPreparation | undefined;
 let stripePreparation: StripePreparation | undefined;
+const submissionObservation = new SubmissionObservation();
+let componentEpoch = 0;
+let sceneEpoch = 0;
 let startupPublication: PausedStartupPublication | undefined;
 let startupPublicationDecision: 'reused-completed-image' | 'requested-redraw' | null = null;
 let startupPublicationRejection: StartupPublicationRejection | null = null;
@@ -131,11 +135,28 @@ declare global {
     babylonGraphicsDiagnostics: typeof readGraphicsDiagnostics;
   }
 }
-function readGraphicsDiagnostics(includeStartupVisualState = false) {
+function readGraphicsDiagnostics(options: boolean | { submissionObservation?: boolean } = false) {
+  const includeStartupVisualState = options === true;
   const graphics = gpu?.diagnostics();
   if (!graphics) return null;
+  let submissionSnapshot = null;
+  if (typeof options === 'object' && options?.submissionObservation === true) {
+    try {
+      submissionObservation.enabled = true;
+      submissionSnapshot = submissionObservation.snapshot(
+        componentEpoch,
+        sceneEpoch,
+        graphics.losses,
+      );
+    } catch {
+      /* New optional evidence must not change graphics error semantics. */
+    }
+  }
   return {
     ...graphics,
+    ...(typeof options === 'object' && options?.submissionObservation === true
+      ? { submissionObservation: submissionSnapshot }
+      : {}),
     // Opt-in cached CPU evidence only; default native queries do no extra work.
     ...(includeStartupVisualState
       ? {
@@ -180,6 +201,7 @@ const restartOwnership = new RestartOwnership<SimulationComponent>(
     assetStatus.textContent = 'Restarting presentation…';
   },
   () => {
+    componentEpoch++;
     component = new SimulationComponent({
       ...DEFAULT_OPTIONS,
       setup: settings.setup,
@@ -274,6 +296,7 @@ function rebuildScene(owner: SimulationComponent) {
     vehicles: owner.simulation.cars.map((car) => car.definition),
   };
   scene = new BabylonCircuitScene(engine!, owner.simulation.track, 1, context);
+  sceneEpoch++;
   // Fresh model ownership is published only after an explicit safe rebuild.
   graphicsRecovery.rebuilt();
   assetLoad = new AbortController();
@@ -672,11 +695,20 @@ try {
       last = now;
       component.advance(seconds);
       let startupVisualCaptured = false;
+      let submissionCapture: SubmissionCapture | null = null;
+      let submissionDemand: ReturnType<PresentationSchedule['diagnostics']> | null = null;
       const polled = pollPresentationForRender(gpu!, presentation, paused);
       if (polled.ready) {
         restartOwnership.drain(true, rebuildScene);
         if (!graphicsRecovery.restartRequired && resizePending) {
           if (resizePresentationWhenIdle(gpu!, () => engine!.resize())) resizePending = false;
+        }
+        if (submissionObservation.enabled) {
+          try {
+            submissionDemand = presentation.diagnostics();
+          } catch {
+            /* Optional evidence only. */
+          }
         }
         // Rebuild may have claimed the preparation lane since the outer ready check.
         if (
@@ -722,10 +754,47 @@ try {
                 : null;
               startupVisualCaptured = true;
               startupPublication?.drawn(renderedStartupVisualState?.state ?? null);
+              if (submissionObservation.enabled && submissionDemand) {
+                try {
+                  submissionCapture = {
+                    rendererNowMs: performance.now(),
+                    timeOriginMs: performance.timeOrigin,
+                    componentEpoch,
+                    sceneEpoch,
+                    paused,
+                    tick: component.simulation.tick,
+                    throttle: component.frame[carBase(0) + F.THROTTLE],
+                    speed: component.frame[carBase(0) + F.SPEED],
+                    readyBefore,
+                    readyAfter,
+                    preparationStage: !surfacePreparation?.completed
+                      ? 'surface'
+                      : !environmentPreparation?.completed
+                        ? 'environment'
+                        : !stripePreparation?.completed
+                          ? 'stripe'
+                          : playerWheels && submissionDemand.preparationCount > 0
+                            ? 'model'
+                            : 'none',
+                    requested: submissionDemand.requested,
+                    preparationCount: submissionDemand.preparationCount,
+                    wheelPhase: playerWheels ? Number(assetStatus.dataset.wheelPhase) : null,
+                  };
+                } catch {
+                  /* Optional evidence only; never change draw outcome. */
+                }
+              }
               return readyBefore && readyAfter;
             });
       }
       const graphics = gpu!.diagnostics();
+      if (submissionObservation.enabled) {
+        try {
+          submissionObservation.record(submissionCapture, renderedFrames, graphics);
+        } catch {
+          /* Optional evidence cannot stop rendering or hide GPU failures. */
+        }
+      }
       if (renderedStartupVisualState?.sequence === null)
         renderedStartupVisualState.sequence = startupVisualSubmissionSequence(
           graphics,

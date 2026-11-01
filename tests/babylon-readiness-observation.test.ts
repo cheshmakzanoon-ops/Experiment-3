@@ -1,3 +1,5 @@
+import { transpileModule } from 'typescript';
+import { SubmissionObservation } from '../src/engine/babylon/submission-observation.ts';
 import { expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
@@ -119,13 +121,17 @@ function graphicsQuery(
   environment: unknown = undefined,
   visual: unknown = null,
   rejection: string | null = null,
+  submissionObservation = new SubmissionObservation(),
 ) {
   const source = readFileSync('src/engine/babylon/main.ts', 'utf8');
   const body = source.slice(
     source.indexOf('function readGraphicsDiagnostics('),
     source.indexOf("Object.defineProperty(window, 'babylonGraphicsDiagnostics'"),
   );
-  return runInNewContext(`(${body})`, {
+  return runInNewContext(transpileModule(`(${body})`, {}).outputText, {
+    submissionObservation,
+    componentEpoch: 2,
+    sceneEpoch: 1,
     startupPublicationDecision: 'reused-completed-image',
     startupPublicationRejection: rejection,
     renderedStartupVisualState: visual,
@@ -141,7 +147,8 @@ function graphicsQuery(
     presentation: { diagnostics: scheduleRead },
     observePreparationReadiness,
     observeReadinessSnapshot,
-  }) as (includeStartupVisualState?: boolean) => {
+  }) as (options?: boolean | { submissionObservation?: boolean }) => {
+    submissionObservation?: ReturnType<SubmissionObservation['snapshot']> | null;
     settled: boolean;
     readiness: unknown;
     readinessError: string | null;
@@ -322,3 +329,67 @@ it('opt-in reports the cached actual publication rejection independently of GPU 
   expect(query(true).startupPublicationRejection).toBe('unavailable-completion');
   expect(query(true).startupVisualState?.rejectionCode).toBe('unsupported-texture');
 });
+
+it('submission capture is explicit opt-in, isolated, and does not expose canonical visuals', () => {
+  const observer = new SubmissionObservation();
+  const query = graphicsQuery(
+    () => ({ settled: true, losses: 0 }),
+    () => ({}),
+    undefined,
+    null,
+    null,
+    observer,
+  );
+  expect(query()).not.toHaveProperty('submissionObservation');
+  expect(observer.enabled).toBe(false);
+  expect(query(true)).not.toHaveProperty('submissionObservation');
+  expect(observer.enabled).toBe(false);
+  const result = query({ submissionObservation: true });
+  expect(observer.enabled).toBe(true);
+  expect(result).not.toHaveProperty('startupVisualState');
+  expect(result.submissionObservation).toMatchObject({
+    version: 1,
+    currentComponentEpoch: 2,
+    currentSceneEpoch: 1,
+    records: [],
+  });
+});
+it.each([undefined, null, false, 0, ''])(
+  'optional submission observer failure %s cannot mask original health',
+  (failure) => {
+    const observer = new SubmissionObservation();
+    observer.snapshot = () => {
+      throw failure;
+    };
+    const query = graphicsQuery(
+      () => ({ settled: true, losses: 0 }),
+      () => ({}),
+      undefined,
+      null,
+      null,
+      observer,
+    );
+    expect(query({ submissionObservation: true })).toMatchObject({
+      settled: true,
+      submissionObservation: null,
+    });
+    const broken = graphicsQuery(
+      () => {
+        throw failure;
+      },
+      () => ({}),
+      undefined,
+      null,
+      null,
+      observer,
+    );
+    let caught = false;
+    try {
+      broken({ submissionObservation: true });
+    } catch (error) {
+      caught = true;
+      expect(error).toBe(failure);
+    }
+    expect(caught).toBe(true);
+  },
+);

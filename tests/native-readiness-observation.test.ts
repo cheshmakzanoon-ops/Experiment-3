@@ -552,3 +552,79 @@ describe('bounded native readiness history', () => {
     expect(preserveNativeFailureWhileObserving.toString()).not.toContain('await');
   });
 });
+
+describe('explicit scalar submission observations', () => {
+  const row = {
+    sequence: 1,
+    rendererNowMs: 20,
+    timeOriginMs: 1000,
+    componentEpoch: 1,
+    sceneEpoch: 1,
+    paused: false,
+    tick: 3,
+    throttle: 1,
+    speed: 4,
+    readyBefore: true,
+    readyAfter: true,
+    preparationStage: 'none',
+    requested: true,
+    preparationCount: 0,
+    wheelPhase: null,
+    lossesAtSubmission: 0,
+    provenance: 'current',
+  };
+  function packet() {
+    return {
+      version: 1,
+      enabled: true,
+      currentComponentEpoch: 1,
+      currentSceneEpoch: 1,
+      losses: 0,
+      records: [{ ...row }],
+    };
+  }
+  it('explicit opt-in forwards only the options object and preserves default shape/calls', () => {
+    install({}, null);
+    const diagnostics = vi.fn(() => ({ submissionObservation: packet(), secret: 'discard' }));
+    vi.stubGlobal('window', { babylonGraphicsDiagnostics: diagnostics });
+    const ordinary = readNativeBabylonReadiness();
+    expect(diagnostics).toHaveBeenLastCalledWith();
+    expect(ordinary.graphics).not.toHaveProperty('submissionObservation');
+    const observed = readNativeBabylonReadiness({ submissionObservation: true });
+    expect(diagnostics).toHaveBeenLastCalledWith({ submissionObservation: true });
+    expect(observed.graphics).toHaveProperty('submissionObservation.records.0.sequence', 1);
+    expect(observed.graphics).not.toHaveProperty('secret');
+    expect(normalizeNativeBabylonReadiness(observed)).not.toBeNull();
+  });
+  it('strict host bounds records and rejects getters/invalid categories without invoking them', () => {
+    install({}, { submissionObservation: packet() });
+    const sample = readNativeBabylonReadiness({ submissionObservation: true });
+    const value = sample.graphics as Record<string, unknown>;
+    value.submissionObservation = { ...packet(), records: Array(9).fill(row) };
+    expect(normalizeNativeBabylonReadiness(sample)).toBeNull();
+    value.submissionObservation = { ...packet(), records: [{ ...row, provenance: 'invented' }] };
+    expect(normalizeNativeBabylonReadiness(sample)).toBeNull();
+    const getter = vi.fn(() => packet());
+    Object.defineProperty(value, 'submissionObservation', { get: getter, configurable: true });
+    expect(normalizeNativeBabylonReadiness(sample)).toBeNull();
+    expect(getter).not.toHaveBeenCalled();
+  });
+  it('missing scalar values stay unknown and unknown root/nested keys are dropped', () => {
+    install(
+      {},
+      {
+        submissionObservation: {
+          ...packet(),
+          secret: { resource: 1 },
+          records: [{ sequence: 1, secret: () => 1 }],
+        },
+      },
+    );
+    const sample = readNativeBabylonReadiness({ submissionObservation: true });
+    const observed = normalizeNativeBabylonReadiness(sample);
+    expect(observed).not.toBeNull();
+    expect(observed?.graphics).toHaveProperty('submissionObservation.records.0.throttle', null);
+    expect(observed?.graphics).not.toHaveProperty('submissionObservation.secret');
+    expect(observed?.graphics).not.toHaveProperty('submissionObservation.records.0.secret');
+  });
+});
