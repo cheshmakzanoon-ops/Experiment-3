@@ -167,7 +167,7 @@ async function waitForBabylonPresentation(page) {
     activeReadinessGate = gate;
     await firstGraphicsFault.wait(() =>
       page.waitForFunction(
-        `({ gateId, binding, failurePrefix }) => {
+        `(({ gateId, binding, failurePrefix }) => {
           const data = document.querySelector('#status')?.dataset;
           const submitted = Number(data?.renderedFrames);
           const completed = Number(data?.completedFrames);
@@ -191,8 +191,8 @@ async function waitForBabylonPresentation(page) {
               void window[binding](gateId, sample).catch((error) => observationFailure('binding-rejection', error));
           } catch (error) { observationFailure('poll-capture', error); }
           return ready;
-        }`,
-        { gateId, binding: readinessBinding, failurePrefix: readinessFailurePrefix },
+        })(${JSON.stringify({ gateId, binding: readinessBinding, failurePrefix: readinessFailurePrefix })})`,
+        undefined,
         { timeout: 30000, polling: 100 },
       ),
     );

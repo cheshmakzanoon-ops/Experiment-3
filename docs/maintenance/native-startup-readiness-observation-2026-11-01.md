@@ -98,3 +98,35 @@ Original document/Babylon query errors, including falsy thrown values, must stil
 propagate; only new metadata errors are isolated. No optional-chain fallback,
 readiness predicate, timeout or polling adjustment is made. The native workflow
 selects the regression test explicitly. Corrected native execution is pending.
+
+## Second runtime boundary: `2fd2604`
+
+[Run 41325609398](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41325609398)
+exposed a second evaluation error after the health-query correction. Windows
+reached the strict surface receipt at 5.496 seconds and failed on `kind`: the
+entry observation recorded a false predicate, zero submitted/completed frames,
+and a preparing surface, with no delivered polls. The strict downstream asset
+receipt prevented the premature wait from becoming a passing native run.
+
+The pinned Playwright client also marks a string passed to `waitForFunction` as
+`isFunction: false`; the server leaves an evaluated function object unchanged,
+so an uninvoked arrow is truthy and admits immediately. The earlier CPU helper
+manually invoked that function and therefore did not model the actual API.
+The first correction did not address this second site. No native readiness or
+Linux repair is established by either failed run.
+
+The second correction explicitly invokes the unchanged predicate with
+JSON-serialized host-owned gate arguments. The regression now uses the installed
+Playwright client's wire serialization and extracted installed server predicate
+evaluation: false remains false, ready becomes true, real samples are delivered,
+and quoted/backslash/newline arguments stay data. Both string sites are audited;
+all other harness evaluation callbacks are actual function objects. The original
+30-second timeout, 100-ms polling, exact readiness predicate and diagnostic-error
+isolation remain unchanged. The corrected runtime still needs its own CI run.
+
+The run subsequently finished with the same strict receipt failure on Linux
+(3.523 seconds) and macOS (8.121 seconds). All three receipts showed 0/0 frames,
+settled false and an empty surface; no poll samples or first graphics fault were
+recorded. Artifacts 13091466997 (Linux), 13091695515 (Windows) and 13091775138
+(macOS) preserve reports/screenshots. The unchanged production fingerprint is
+`ad6787e8c2439af3873e985da4b4297343379e2e8db5837e3d88a08113ea048a`.
