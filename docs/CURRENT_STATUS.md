@@ -14,6 +14,8 @@ Migration development stays exclusively on **babylon-js**. Main is frozen at res
 
 ## Latest recorded qualification
 
+**Next isolated candidate:** the five original start lamps retain exact cylinder geometry, linearized material colours and authoritative snapshot state. The current practice session remains dark. No live import is enabled; GPU emission/program/lifecycle qualification is required. [Scope](maintenance/babylon-start-lamps-2026-11-01.md).
+
 **A07 original gantry:** live source `9c3b04b` passed 18/18 GPU journeys, 440 CI contracts and Windows/macOS installed-app plus four compatibility journeys. Canonical Aurel Formula startup now presents the original structure and verifies its actual resources; restart and context-loss gates pass. Linux reached gantry readiness and car presentation but failed later with GPU-process loss, so no all-platform release qualifies. Original geometry and atlas pixels are preserved; banner/lamp behavior and full environment parity remain open. [Evidence and scope](maintenance/babylon-start-gantry-2026-11-01.md).
 
 **Bounded Mesa browser check:** both live-scene transports passed in two repetitions; the isolated comparisons failed at the original Three reference gate before Babylon candidate qualification. The automatic diagnostic trigger is retired. No native Linux repair or transport-policy change follows from this result. [Evidence](maintenance/babylon-mesa-transport-review-2026-11-01.md).

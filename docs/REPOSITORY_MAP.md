@@ -95,3 +95,7 @@ ready-frame installation and cleanup after the surface gate. `start-gantry.ts`
 preserves the original structural asset, atlas and conformed geometry. Browser
 and native receipts verify actual ready resources; full environment migration
 remains separate. See [A07 qualification](maintenance/babylon-start-gantry-2026-11-01.md).
+
+`src/engine/babylon/start-lamps.ts` is the isolated original five-lamp owner. Its
+CPU and GPU probes retain original geometry and snapshot authority; no live
+entry import is enabled. [Scope](maintenance/babylon-start-lamps-2026-11-01.md).

@@ -21,6 +21,8 @@ on:
       - 'src/rendering/studio/road-detail.ts'
       - 'src/rendering/tyre-marks.ts'
       - 'e2e/babylon-start-gantry.spec.ts'
+      - 'e2e/babylon-start-lamps.spec.ts'
+      - 'e2e/fixtures/babylon-start-lamps.ts'
       - 'e2e/fixtures/babylon-start-gantry.ts'
       - 'e2e/fixtures/babylon-start-gantry-gamma.ts'
       - 'tests/fixtures/a07-atlas-pixels.json'
@@ -64,7 +66,7 @@ jobs:
         run: npx vitest run tests/babylon-*.test.ts tests/discipline-presets.test.ts tests/input.test.ts tests/formula-surfaces.test.ts tests/circuit-line-profile.test.ts tests/indexed-ribbon-normals.test.ts tests/circuit-ribbon-data.test.ts tests/road-detail.test.ts tests/tyre-marks.test.ts tests/start-gantry.test.ts
       - run: npx playwright install --with-deps chromium
       - name: Real WebGL engine, model import and mode-switching journeys
-        run: npx playwright test e2e/babylon-engine.spec.ts e2e/discipline-entry.spec.ts e2e/babylon-player-lods.spec.ts e2e/babylon-height-parity.spec.ts e2e/babylon-surface-parity.spec.ts e2e/babylon-start-gantry.spec.ts
+        run: npx playwright test e2e/babylon-engine.spec.ts e2e/discipline-entry.spec.ts e2e/babylon-player-lods.spec.ts e2e/babylon-height-parity.spec.ts e2e/babylon-surface-parity.spec.ts e2e/babylon-start-gantry.spec.ts e2e/babylon-start-lamps.spec.ts
       - name: Preserve browser evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4
