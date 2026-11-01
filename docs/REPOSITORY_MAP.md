@@ -63,3 +63,5 @@ Start with [README](../README.md) for play instructions and [current status](CUR
 `playable/` is legacy publishing material. The supported build is the root Vite application and its `dist/` output. Do not start a second implementation there.
 
 The compact [current status](CURRENT_STATUS.md) lists present gates; [development evidence history](maintenance/development-history-2026-10-31.md) preserves the chronological run notes and rejected candidates.
+
+- `src/engine/assets/surface-texel-data.ts`: original deterministic surface/asphalt pixel data and constants, with compatibility exports in the original renderer. Independent pre-edit oracle and scope: [asphalt data boundary](maintenance/asphalt-data-boundary-2026-10-31.md).

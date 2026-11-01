@@ -1,6 +1,6 @@
 # Current development status
 
-Updated **2026-10-31**. Source integration, automated tests, installed-game checks and release readiness are separate claims. [README](../README.md) · [Repository map](REPOSITORY_MAP.md) · [Desktop delivery](DESKTOP_DELIVERY.md) · [Detailed source/run history](maintenance/development-history-2026-10-31.md).
+Updated **2026-11-01**. Source integration, automated tests, installed-game checks and release readiness are separate claims. [README](../README.md) · [Repository map](REPOSITORY_MAP.md) · [Desktop delivery](DESKTOP_DELIVERY.md) · [Detailed source/run history](maintenance/development-history-2026-10-31.md).
 
 ## Product and repository
 
@@ -82,3 +82,13 @@ The retained `b451a2e` trace records context loss followed by Chromium rejecting
 A separate manual-only, nonpublishing Linux x64/Mesa workflow now offers `service-api-boundary-v1`, default off. It adds only Chromium service-API trace wrappers, preserves the nine categories and original capture/gameplay budgets, and requires actual source-pinned wrapper emission. Schema 3 uses exact per-instance open API → open PutChanged → open flush ancestry; these are API-boundary observations, not native-driver causation. Raw traces remain private. Existing V2 SQL and default real-parser summary bytes are unchanged. A stale-summary cleanup gap was fixed for both modes.
 
 Local verification passed **254 focused tests**, including **99 real pinned-parser tests**, plus the complete native contract selector (**760 tests / 64 files**). TypeScript, lint, formatting and actionlint passed. No native service-API observation has run; this is not a graphics repair. The diagnostic is [documented here](maintenance/native-gpu-trace-2026-10-31.md).
+
+## Original asphalt data extraction
+
+The shared surface texel generator and aggregate/constants now have a renderer-neutral owner, with original Three exports/factory/scan behavior preserved. A pre-edit original-source oracle records bytes, hashes, means and complete material-hook shaders independently of the new helper. All 30 new tests, the exact 232-test Babylon contract selector and 113 affected original-surface/scan tests passed. Full types/lint and the source-locked build/content checks passed; all 5,490 guarded input hashes stayed unchanged. The initial test-only typing failure and limitations are recorded in the [capture report](maintenance/asphalt-data-boundary-2026-10-31.md). No Babylon asphalt shader or GPU texture is enabled by this extraction.
+
+## Completed full validation and native repeat
+
+The exact `b451a2e` full run finished with publication skipped: browser 198 passed, 82 nonpasses, one skipped and 42 of 323 cases without completed receipts. All 12 Festival DOM cases passed. Units recorded 5,673 passed, the known GP pace failure and 32 skipped; strict 57-vehicle calibration, scenarios and wet presentation (8/8) passed. Arena Nord still fails its unchanged stop limit. Compact receipts verify source/backend; oversized full visual archives remain uninspected. [Full run](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41248657910).
+
+The `fa84129` default native repeat passed Windows, Apple Silicon and diagnostic SwiftShader. Required Mesa passed Babylon/model/wheel checks this time, then failed the original 45-second Formula preparation gate before a later GPU fault. This changed failure phase with the same application fingerprint is variability, not a repair. Compatibility Mesa also lost its GPU; baseline V2 trace retained valid numeric evidence while gameplay failed. Ubuntu24 remains blocked before launch by the unchanged sandbox helper. The separate manual service-API workflow has not run. [Required native run](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41252233731) · [Driver/trace repeat](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41252233759).

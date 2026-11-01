@@ -1,3 +1,5 @@
+import { ASPHALT_DETAIL } from '../../engine/assets/surface-texel-data.ts';
+export { ASPHALT_DETAIL } from '../../engine/assets/surface-texel-data.ts';
 import { CIRCUIT_LINE_PROFILE_STEP } from '../../engine/assets/circuit-line-profile.ts';
 export { apexLineAt, apexLineProfile } from '../../engine/assets/circuit-line-profile.ts';
 import type * as T from 'three';
@@ -30,27 +32,6 @@ import { chainShaderHook, injectAfter, injectBefore, injectDeclarations } from '
  * Both chain through `chainShaderHook`, so the hook order of the finish, the
  * wet road and later departments' hooks is preserved.
  */
-export const ASPHALT_DETAIL = Object.freeze({
-  /** Distance band over which the chip tile converges to its mean, metres. */
-  microFade: [15, 40] as const,
-  /** Near-field chip contrast gain over the texels (1 = as authored). The
-   * chip tile now spans binder voids to polished chips, so only a light lift. */
-  microContrast: 1.15,
-  /** Meso tile size, metres; albedo, roughness and relief gains per unit field. */
-  mesoTile: 4.5,
-  mesoTone: 0.4,
-  mesoRoughness: 0.12,
-  /** Relief of the meso field, metres per unit (about +-0.6 mm at one sigma). */
-  mesoRelief: 0.0035,
-  /** Glints: range from the camera (m), facet grid (m), share of cells holding
-   * a fractured facet, facet radius (share of a cell) and facet roughness. */
-  glintRange: 6,
-  glintCell: 0.025,
-  glintShare: 0.14,
-  glintRadius: 0.3,
-  glintRoughness: 0.26,
-});
-
 export const ROAD_DETAIL = Object.freeze({
   /** Racing-line rubber: Gaussian sigma across the line, metres. */
   lineSigma: 0.85,
