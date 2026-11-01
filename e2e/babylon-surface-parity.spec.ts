@@ -523,11 +523,50 @@ test('isolated Formula grounding applies qualified original sky/sun attenuation 
     before: { meshes: 0, geometries: 0, materials: 2, textures: 4 },
     after: { meshes: 0, geometries: 0, materials: 2, textures: 4 },
   });
-  expect(result.nativeShaders).toHaveLength(6);
+  // Disabling/re-enabling lights changes Babylon's active-light ordering.
+  // The final mixed pass is sun/sky, unlike the initial sky/sun pass. Both
+  // programs must be present for both receivers; count changes remain uniform-only.
+  expect(result.nativeShaders).toHaveLength(8);
+  const lightDefines = (defines: string) =>
+    defines
+      .split('\n')
+      .filter((line) => /^#define (?:LIGHT\d+|HEMILIGHT\d+|DIRLIGHT\d+|LIGHTCOUNT \d+)$/.test(line))
+      .join(';');
+  const nonLightDefines = (defines: string) =>
+    defines
+      .split('\n')
+      .filter(
+        (line) => !/^#define (?:LIGHT\d+|HEMILIGHT\d+|DIRLIGHT\d+|LIGHTCOUNT \d+)$/.test(line),
+      )
+      .join('\n');
+  for (const material of [
+    'Original dry asphalt substrate — road-state/wet/scan layers unported',
+    'original offwhite paint',
+  ]) {
+    const variants = result.nativeShaders.filter((shader) => shader.material === material);
+    expect(new Set(variants.map((shader) => nonLightDefines(shader.defines))).size).toBe(1);
+    expect(variants.map((shader) => lightDefines(shader.defines)).sort()).toEqual(
+      [
+        '#define LIGHT0;#define HEMILIGHT0;#define LIGHT1;#define DIRLIGHT1;#define LIGHTCOUNT 2',
+        '#define LIGHT0;#define HEMILIGHT0;#define LIGHTCOUNT 1',
+        '#define LIGHT0;#define DIRLIGHT0;#define LIGHTCOUNT 1',
+        '#define LIGHT0;#define DIRLIGHT0;#define LIGHT1;#define HEMILIGHT1;#define LIGHTCOUNT 2',
+      ].sort(),
+    );
+  }
   for (const shader of result.nativeShaders) {
     expect(shader.error).toBe('');
     expect(shader.samplers.length).toBeLessThanOrEqual(result.shaders!.maxFragmentSamplers);
-    expect(shader.fragmentSource).toContain('ORIGINAL_FORMULA_GROUNDING_V1');
+    expect(shader.defines).toContain('#define ORIGINAL_FORMULA_GROUNDING_V1');
+    for (const applied of [
+      'highp int formulaGroundingCount;',
+      'vec4 formulaGroundingPose[12];',
+      'float formulaGround= formulaGrounding(vPositionW);',
+      'finalDiffuse=finalDiffuse*formulaDirect+formulaSkyDiffuse*(formulaIndirect-formulaDirect);',
+      'finalSpecularScaled=finalSpecularScaled*formulaDirect+formulaSkySpecular*(formulaIndirect-formulaDirect);',
+      'finalAmbient*=formulaIndirect;',
+    ])
+      expect(shader.fragmentSource).toContain(applied);
     expect(shader.fragmentSource).toContain('groundingNativeBefore=vec4(');
     expect(shader.fragmentSource).toContain('groundingNativeAfter=vec4(');
   }

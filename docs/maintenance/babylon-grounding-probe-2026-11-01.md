@@ -151,3 +151,30 @@ Restart validation: full ESLint and TypeScript/Vite production build passed;
 349 Babylon/surface contracts across 33 files and 46 input/discipline/shared
 pose contracts across three files passed. Workflow syntax passed actionlint.
 These are CPU/source checks, not evidence of successful GPU linking.
+
+### Exact `9e59cc3` GPU result and inventory correction
+
+[Run 41286939792](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41286939792)
+passed the twelve retained journeys. The grounding candidate now linked and
+completed all 145 captures, original controls, six attenuation comparisons,
+coverage, zero-count, cache-stability and disposal checks. The overall run still
+failed: its final shader inventory assertion expected six effects instead of
+eight. Each receiver has sky-only, sun-only, initial sky/sun and reordered
+sun/sky programs. Babylon removes disabled lights and appends re-enabled lights,
+so the return to mixed lighting legitimately changes light slots. Within each
+receiver the remaining defines are identical.
+
+The correction asserts all four exact light signatures per material and equal
+non-light defines, rather than simply relaxing the count. It also checks the
+plugin flag in effect defines (preprocessing removes it from final GLSL), and
+checks actual UBO declarations and diffuse/specular/ambient application in the
+processed fragment source. All image thresholds and production code are unchanged.
+
+Independent recorded-result review: maximum attenuation error 1, maximum mean
+0.00223742, zero missing pixels; 45 exact original repeats; twelve native closure
+receipts max error 1 against bound 3. All eight shaders compiled, using four road
+samplers and one paint sampler against device cap 32. Babylon 96/96 and Three
+194/194 submissions completed with no losses or abandonment and settled queues.
+The corrected complete assertion body passes against this saved result; that
+replay is not a new GPU run. Exact corrected-source Actions qualification remains
+required before the separately prepared live integration is applied.
