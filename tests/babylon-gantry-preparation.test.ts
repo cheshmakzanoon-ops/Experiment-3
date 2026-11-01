@@ -255,9 +255,9 @@ it('wires startup after surfaces with the same deadline and keeps draw receipts 
     startup.indexOf('const diagnostics = currentScene.surfaceDiagnostics'),
   );
   expect(startup).toContain('await environment.completion');
-  expect(startup.indexOf('loadAsset.disabled = false')).toBeGreaterThan(
-    startup.indexOf('await environment.completion'),
-  );
+  expect(
+    startup.indexOf('loadAsset.disabled = !gridPreparationValid(environmentPreparation?.grid)'),
+  ).toBeGreaterThan(startup.indexOf('await environment.completion'));
   expect(source).toContain('!environmentPreparation?.gantry?.completed');
   expect(source).toContain('(!environmentPreparation || environmentPreparation.canDraw)');
   expect(source).toContain(

@@ -1,3 +1,6 @@
+import { GridPreparation, gridPreparationValid } from '../src/engine/babylon/grid-preparation.ts';
+import { createBabylonGridPaint } from '../src/engine/babylon/grid-paint.ts';
+import { FORMULA_APX01 } from '../src/simulation/vehicles.ts';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { NullEngine } from '@babylonjs/core/Engines/nullEngine.js';
 import { Matrix } from '@babylonjs/core/Maths/math.vector.js';
@@ -306,6 +309,7 @@ describe('production restart selection before invalidation', () => {
     const context: Record<string, unknown> = {
       RestartOwnership,
       RestartSceneReuse,
+      gridPreparationValid,
       SimulationComponent,
       DEFAULT_OPTIONS,
       settings: { setup: DEFAULT_OPTIONS.setup },
@@ -323,7 +327,13 @@ describe('production restart selection before invalidation', () => {
       restartPresentation: undefined,
       assetLoad: abort,
       surfacePreparation: complete,
-      environmentPreparation: { ...complete, gantry: complete, lamps: complete, banner: complete },
+      environmentPreparation: {
+        ...complete,
+        gantry: complete,
+        lamps: complete,
+        banner: complete,
+        grid: complete,
+      },
       stripePreparation: complete,
       reuseCandidate: null,
       startupPublication: undefined,
@@ -391,16 +401,183 @@ describe('production restart selection before invalidation', () => {
     expect(incomplete.context.reuseCandidate).toBeNull();
     expect(incomplete.abort.signal.aborted).toBe(true);
   });
+  it.each(['missing', 'incomplete', 'ineligible', 'mutated'] as const)(
+    'never selects retained reuse with %s grid evidence',
+    (kind) => {
+      const h = requestHarness();
+      const environment = h.context.environmentPreparation as { grid: unknown };
+      environment.grid =
+        kind === 'missing'
+          ? undefined
+          : {
+              completed: kind !== 'incomplete',
+              eligible: kind !== 'ineligible',
+              receipt() {
+                if (kind === 'mutated') throw undefined;
+                return {};
+              },
+            };
+      h.request();
+      expect(h.context.reuseCandidate).toBeNull();
+      expect(h.abort.signal.aborted).toBe(true);
+    },
+  );
+  it.each(['missing', 'missing-captured', 'replaced', 'mutated'] as const)(
+    'revalidates %s grid at drained handoff, not only the first Restart click',
+    (kind) => {
+      const h = requestHarness();
+      h.request();
+      const candidate = h.context.reuseCandidate;
+      expect(candidate).not.toBeNull();
+      if (kind === 'missing-captured') (candidate as { grid?: unknown }).grid = undefined;
+      const environment = h.context.environmentPreparation as {
+        grid: { completed: boolean; eligible: boolean; receipt(): unknown };
+      };
+      if (kind === 'missing') environment.grid = undefined as unknown as typeof environment.grid;
+      if (kind === 'replaced')
+        environment.grid = { completed: true, eligible: true, receipt: () => ({}) };
+      if (kind === 'mutated')
+        environment.grid.receipt = () => {
+          throw null;
+        };
+      const source = readFileSync('src/engine/babylon/main.ts', 'utf8');
+      const helper = source.slice(
+        source.indexOf('function tryReuseScene('),
+        source.indexOf('function rebuildScene('),
+      );
+      const reuse = runInNewContext(transpileModule(`(${helper})`, {}).outputText, h.context) as (
+        owner: SimulationComponent,
+        deadline: number,
+        candidate: unknown,
+      ) => boolean;
+      expect(
+        reuse(h.context.component as SimulationComponent, performance.now() + 120000, candidate),
+      ).toBe(false);
+      expect(h.context.restartPresentation).toBeUndefined();
+    },
+  );
+  it('keeps eligible rebuilt and retained readiness copy identical for the unmasked reset image proof', () => {
+    const main = readFileSync('src/engine/babylon/main.ts', 'utf8');
+    const reuse = main.slice(
+      main.indexOf('function tryReuseScene('),
+      main.indexOf('function rebuildScene('),
+    );
+    const startup = main.slice(main.indexOf('function rebuildScene('));
+    const message = (source: string, eligible: boolean) => {
+      const enable = source.indexOf(
+        'loadAsset.disabled = !gridPreparationValid(environmentPreparation?.grid);',
+      );
+      expect(enable).toBeGreaterThanOrEqual(0);
+      const expression = source.slice(enable).match(/assetStatus\.textContent\s*=\s*([\s\S]*?);\n/);
+      expect(expression).not.toBeNull();
+      const value: unknown = runInNewContext(transpileModule(`(${expression![1]})`, {}).outputText, {
+        environmentPreparation: { gantry: { eligible: true }, grid: { eligible } },
+      });
+      expect(typeof value).toBe('string');
+      expect((value as string).length).toBeGreaterThan(0);
+      return value;
+    };
+    expect(message(reuse, true)).toBe(message(startup, true));
+    expect(message(startup, false)).toContain('ineligible');
+    // A changed success message must not silently satisfy the screenshot parity contract.
+    expect(
+      message(reuse.replace('Original car is optional.', 'Changed retained message.'), true),
+    ).not.toBe(message(startup, true));
+  });
   it('gates all public readiness while reset receipts are pending, without gating drawability', () => {
     const main = readFileSync('src/engine/babylon/main.ts', 'utf8');
     expect(main).toContain('if (!stripePreparation?.completed || restartPresentation) return;');
     expect(main).toMatch(/stripePreparation\?\.completed &&\s*!restartPresentation/);
     expect(main).toContain('restartOwnership.drain(true, rebuildScene)');
     expect(main).toContain('new RestartPresentation(');
+    const publication = main.slice(
+      main.indexOf('status.dataset.sceneReady = String('),
+      main.indexOf('const visualInspection ='),
+    );
+    const settled = main.slice(
+      main.indexOf('status.dataset.presentationSettled = String('),
+      main.indexOf('if (now - lastStatus > 250)'),
+    );
+    const model = main.slice(
+      main.indexOf('loadAsset.addEventListener('),
+      main.indexOf("document.addEventListener(\n    'visibilitychange'"),
+    );
+    expect(publication).toContain('gridPreparationValid(environmentPreparation?.grid)');
+    expect(settled).toContain('gridPreparationValid(environmentPreparation?.grid)');
+    expect(model).toContain('if (!gridPreparationValid(environmentPreparation?.grid)) return;');
+    expect(main).toContain('gridPreparationValid(environmentPreparation?.grid, candidate.grid)');
+    expect(main).toContain('gridPreparationValid(environment.grid)');
+    expect(
+      main.match(/loadAsset\.disabled = !gridPreparationValid\(environmentPreparation\?\.grid\);/g),
+    ).toHaveLength(3);
+
     const drawGate = main.slice(
       main.indexOf('if (polled.ready)'),
       main.indexOf('gpu!.frame(presentation'),
     );
     expect(drawGate).not.toContain('!restartPresentation');
   });
+});
+
+it('retains actual original grid buffers on reset but rejects removed or mutated grid resources', async () => {
+  const { view, component } = setup(),
+    events = receipts(),
+    schedule = new PresentationSchedule(),
+    abort = new AbortController();
+  const gpu = {
+    ...events.gpu,
+    prepare: async (
+      _label: string,
+      _deadline: number,
+      work: (signal: AbortSignal) => Promise<void>,
+    ) => work(abort.signal),
+  } as BabylonPresentationGpu;
+  const grid = new GridPreparation(
+    {
+      scene: view.scene,
+      track: component.simulation.track,
+      context: { presentation: 'circuit', vehicles: [FORMULA_APX01] },
+      signal: abort.signal,
+      gpu,
+      schedule,
+      deadline: performance.now() + 120000,
+      isCurrent: () => true,
+    },
+    (options) => createBabylonGridPaint(options, { prepare: async () => {} }),
+  );
+  cleanup.push(() => grid.dispose());
+  await grid.prepared;
+  events.emit(view.scene);
+  events.emit(view.scene);
+  await grid.completion;
+  expect(gridPreparationValid(grid)).toBe(true);
+  const actual = view.scene.meshes.filter(
+    (mesh) => mesh.name === 'Original Aurel Formula grid paint batch',
+  );
+  expect(actual).toHaveLength(2);
+  expect(grid.receipt()).toMatchObject({
+    parts: 2,
+    materials: 1,
+    textures: 0,
+    slots: 12,
+    boxes: 36,
+    triangles: 432,
+  });
+  const proof = RestartSceneReuse.capture(view, component.simulation.track, graphics(), true);
+  expect(proof).not.toBeNull();
+  const next = fresh();
+  view.render(next.frame);
+  expect(proof!.valid(view, next.simulation.track, graphics(), gridPreparationValid(grid))).toBe(
+    true,
+  );
+  const positions = actual[0].getVerticesData('position')!;
+  const changed = Array.from(positions);
+  changed[0] += 0.001;
+  actual[0].setVerticesData('position', changed);
+  expect(gridPreparationValid(grid)).toBe(false);
+  expect(proof!.valid(view, next.simulation.track, graphics(), gridPreparationValid(grid))).toBe(
+    false,
+  );
+  expect(gridPreparationValid(undefined)).toBe(false);
+  expect(gridPreparationValid(grid, {} as GridPreparation)).toBe(false);
 });

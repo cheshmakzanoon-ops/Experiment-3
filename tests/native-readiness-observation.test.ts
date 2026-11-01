@@ -628,3 +628,94 @@ describe('explicit scalar submission observations', () => {
     expect(observed?.graphics).not.toHaveProperty('submissionObservation.records.0.secret');
   });
 });
+
+describe('grid readiness observation boundary', () => {
+  const grid = {
+    gridState: 'ready',
+    gridParts: '2',
+    gridMaterials: '1',
+    gridTextures: '0',
+    gridSlots: '12',
+    gridBoxes: '36',
+    gridTriangles: '432',
+    gridDryOnly: 'true',
+    gridGpSwitchingParity: 'false',
+    gridWeatherParity: 'false',
+    gridShadowParity: 'false',
+  };
+  it.each(['false', 'true'])(
+    'preserves actual grid raw fields and owner state, including dry-only %s',
+    (hardware) => {
+      const owner = Object.freeze({ exists: true, completed: true, canDraw: true, errors: [] });
+      install(
+        {
+          ...grid,
+          gridDryOnly: hardware,
+          presentationSettled: 'false',
+          renderedFrames: '10',
+          completedFrames: '10',
+        },
+        { settled: true, readiness: { owners: { grid: owner } } },
+      );
+      const observed = readNativeBabylonReadiness();
+      const normalized = normalizeNativeBabylonReadiness(observed);
+      expect(observed.dom.data).toMatchObject({ ...grid, gridDryOnly: hardware });
+      expect(normalized?.dom.data).toMatchObject({ ...grid, gridDryOnly: hardware });
+      expect(observed.graphics).toMatchObject({ readiness: { owners: { grid: owner } } });
+      expect(normalized?.graphics).toMatchObject({ readiness: { owners: { grid: owner } } });
+      // Grid/GPU availability cannot substitute for the unchanged DOM predicate.
+      expect(observed.predicate.ready).toBe(false);
+      expect(normalized?.predicate.ready).toBe(false);
+    },
+  );
+  it('keeps absent grid fields and owner unknown instead of inventing zero counts or readiness', () => {
+    install({}, { readiness: { owners: {} } });
+    const observed = readNativeBabylonReadiness();
+    const normalized = normalizeNativeBabylonReadiness(observed);
+    for (const key of Object.keys(grid)) {
+      expect(observed.dom.data[key]).toBeNull();
+      expect(normalized?.dom.data[key]).toBeNull();
+    }
+    expect(observed.graphics).toMatchObject({ readiness: { owners: { grid: null } } });
+    expect(normalized?.graphics).toMatchObject({ readiness: { owners: { grid: null } } });
+  });
+  it('does not broaden strict host acceptance beyond grid scalar fields and owner diagnostics', () => {
+    install(grid, {
+      readiness: {
+        owners: { grid: { exists: true, completed: false, canDraw: true, errors: [] } },
+      },
+    });
+    const observed = readNativeBabylonReadiness();
+    const getter = vi.fn(() => '1');
+    const data = { ...observed.dom.data };
+    Object.defineProperty(data, 'gridParts', { get: getter });
+    expect(
+      normalizeNativeBabylonReadiness({ ...observed, dom: { ...observed.dom, data } }),
+    ).toBeNull();
+    expect(getter).not.toHaveBeenCalled();
+    expect(
+      normalizeNativeBabylonReadiness({
+        ...observed,
+        dom: { ...observed.dom, data: { ...observed.dom.data, gridDryOnly: true } },
+      }),
+    ).toBeNull();
+    const normalized = normalizeNativeBabylonReadiness({
+      ...observed,
+      dom: { ...observed.dom, data: { ...observed.dom.data, gridSecret: 'drop' } },
+      graphics: {
+        readiness: {
+          owners: {
+            grid: { exists: true, completed: false, canDraw: true, errors: [], resource: {} },
+          },
+        },
+      },
+    });
+    expect(normalized?.dom.data).not.toHaveProperty('gridSecret');
+    expect(normalized?.graphics).toMatchObject({
+      readiness: { owners: { grid: { exists: true, completed: false, canDraw: true } } },
+    });
+    expect(
+      (normalized?.graphics as { readiness: { owners: { grid: object } } }).readiness.owners.grid,
+    ).not.toHaveProperty('resource');
+  });
+});

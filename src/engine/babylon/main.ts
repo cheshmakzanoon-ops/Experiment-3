@@ -12,6 +12,7 @@ import {
   pollPresentationForRender,
 } from './surface-preparation.ts';
 import { EnvironmentPreparation } from './environment-preparation.ts';
+import { gridPreparationValid, type GridPreparation } from './grid-preparation.ts';
 import { StripePreparation } from './stripe-preparation.ts';
 import type { LampPreparation } from './lamp-preparation.ts';
 import { GraphicsRecovery } from './graphics-recovery.ts';
@@ -72,6 +73,7 @@ let reuseCandidate: {
   surface: SurfacePreparation;
   environment: EnvironmentPreparation;
   stripe: StripePreparation;
+  grid: GridPreparation;
 } | null = null;
 let startupPublication: PausedStartupPublication | undefined;
 let startupPublicationDecision: 'reused-completed-image' | 'requested-redraw' | null = null;
@@ -92,6 +94,17 @@ function clearSurfaceDiagnostics() {
   startupPublication?.dispose();
   startupPublication = undefined;
   for (const key of [
+    'gridState',
+    'gridParts',
+    'gridMaterials',
+    'gridTextures',
+    'gridSlots',
+    'gridBoxes',
+    'gridTriangles',
+    'gridDryOnly',
+    'gridGpSwitchingParity',
+    'gridWeatherParity',
+    'gridShadowParity',
     'stripeState',
     'stripeParts',
     'stripeMaterials',
@@ -193,6 +206,7 @@ function readGraphicsDiagnostics(options: boolean | { submissionObservation?: bo
         lamps: observePreparationReadiness(environmentPreparation?.lamps),
         banner: observePreparationReadiness(environmentPreparation?.banner),
         stripe: observePreparationReadiness(stripePreparation),
+        grid: observePreparationReadiness(environmentPreparation?.grid),
       },
       schedule: presentation.diagnostics(),
     })),
@@ -230,13 +244,16 @@ const restartOwnership = new RestartOwnership<SimulationComponent>(
         !!surfacePreparation?.completed &&
         !!environmentPreparation?.completed &&
         !!stripePreparation?.completed &&
-        stripePreparation.eligible;
+        stripePreparation.eligible &&
+        !!environmentPreparation?.grid?.eligible &&
+        gridPreparationValid(environmentPreparation.grid);
       if (eligible && scene && sceneTrack && graphics) {
         readSurfaceDiagnostics(scene);
         environmentPreparation!.gantry!.receipt();
         environmentPreparation!.lamps!.receipt();
         environmentPreparation!.banner!.receipt();
         stripePreparation!.receipt();
+        environmentPreparation!.grid!.receipt();
         proof = RestartSceneReuse.capture(scene, sceneTrack, graphics, true);
       }
     } catch {
@@ -250,6 +267,7 @@ const restartOwnership = new RestartOwnership<SimulationComponent>(
           surface: surfacePreparation!,
           environment: environmentPreparation!,
           stripe: stripePreparation!,
+          grid: environmentPreparation!.grid!,
         }
       : null;
     if (!reuseCandidate) assetLoad.abort();
@@ -379,6 +397,8 @@ function publishEnvironmentDiagnostics() {
   for (const [key, value] of Object.entries(environmentPreparation!.gantry!.receipt()))
     status.dataset[`gantry${key[0].toUpperCase()}${key.slice(1)}`] = String(value);
   publishLampDiagnostics(environmentPreparation!.lamps!);
+  for (const [key, value] of Object.entries(environmentPreparation!.grid!.receipt()))
+    status.dataset[`grid${key[0].toUpperCase()}${key.slice(1)}`] = String(value);
   for (const [key, value] of Object.entries(environmentPreparation!.banner!.receipt()))
     status.dataset[`banner${key[0].toUpperCase()}${key.slice(1)}`] = String(value);
   for (const [key, value] of Object.entries(stripePreparation!.receipt()))
@@ -409,7 +429,10 @@ function tryReuseScene(
         !assetLoad.signal.aborted &&
         surfacePreparation === candidate.surface &&
         environmentPreparation === candidate.environment &&
-        stripePreparation === candidate.stripe,
+        stripePreparation === candidate.stripe &&
+        environmentPreparation?.grid === candidate.grid &&
+        !!candidate.grid &&
+        gridPreparationValid(environmentPreparation?.grid, candidate.grid),
     )
   ) {
     restartSceneDecision = 'reused-scene';
@@ -458,6 +481,7 @@ function tryReuseScene(
             !presentation.pending &&
             !!surfacePreparation?.completed &&
             !!environmentPreparation?.completed &&
+            gridPreparationValid(environmentPreparation?.grid) &&
             !!stripePreparation?.completed,
         );
         proof.dispose();
@@ -465,9 +489,8 @@ function tryReuseScene(
         restartPresentation = undefined;
         if (canPublish) status.dataset.sceneReady = 'true';
         else requestPresentation();
-        loadAsset.disabled = false;
-        assetStatus.textContent =
-          'Original car is optional. Paint, dry asphalt and grounding are active; Aurel gantry, snapshot-driven lamps, printed banner and start/finish stripe ready. Practice lamps stay dark; bloom and full environment parity remain unported.';
+        loadAsset.disabled = !gridPreparationValid(environmentPreparation?.grid);
+        assetStatus.textContent = `Original car is optional. Paint, dry asphalt and grounding are active${environmentPreparation!.gantry!.eligible ? '; Aurel gantry, snapshot-driven lamps, printed banner and start/finish stripe ready' : ''}. Original Formula grid: ${environmentPreparation!.grid!.eligible ? 'dry clear-Aurel ready' : 'ineligible'}; wet/GP/shadow parity is unqualified. Practice lamps stay dark; bloom and full environment parity remain unported.`;
       })
       .catch((error) => {
         if (
@@ -525,7 +548,7 @@ function rebuildScene(owner: SimulationComponent) {
   assetLoad = new AbortController();
   loadAsset.disabled = true;
   assetStatus.textContent =
-    'Preparing original circuit surfaces and dry asphalt substrate and vehicle grounding, then the original Aurel gantry, snapshot-driven lamps, printed banner and start/finish stripe; full environment parity remains unported.';
+    'Preparing original circuit surfaces and dry asphalt substrate and vehicle grounding, then the original Aurel gantry, snapshot-driven lamps, printed banner, dry original Formula grid and start/finish stripe; full environment parity remains unported.';
   const currentScene = scene,
     currentOwner = assetLoad;
   const publication = new PausedStartupPublication(gpu!, currentScene.scene, (renderedVisual) => ({
@@ -592,6 +615,8 @@ function rebuildScene(owner: SimulationComponent) {
       for (const [key, value] of Object.entries(gantry.receipt()))
         status.dataset[`gantry${key[0].toUpperCase()}${key.slice(1)}`] = String(value);
       publishLampDiagnostics(lamps);
+      for (const [key, value] of Object.entries(environment.grid!.receipt()))
+        status.dataset[`grid${key[0].toUpperCase()}${key.slice(1)}`] = String(value);
       for (const [key, value] of Object.entries(banner.receipt()))
         status.dataset[`banner${key[0].toUpperCase()}${key.slice(1)}`] = String(value);
       const stripe = new StripePreparation({
@@ -627,6 +652,7 @@ function rebuildScene(owner: SimulationComponent) {
           surfacePreparation === pending &&
           pending.completed &&
           environment.completed &&
+          gridPreparationValid(environment.grid) &&
           stripe.eligible &&
           !stopped &&
           !restartOwnership.pending &&
@@ -644,8 +670,8 @@ function rebuildScene(owner: SimulationComponent) {
         : 'requested-redraw';
       if (publishWithoutDraw) status.dataset.sceneReady = 'true';
       else requestPresentation();
-      loadAsset.disabled = false;
-      assetStatus.textContent = `Original car is optional. Paint, dry asphalt and grounding are active${gantry.eligible ? '; Aurel gantry, snapshot-driven lamps, printed banner and start/finish stripe ready' : ''}. Practice lamps stay dark; bloom and full environment parity remain unported.`;
+      loadAsset.disabled = !gridPreparationValid(environmentPreparation?.grid);
+      assetStatus.textContent = `Original car is optional. Paint, dry asphalt and grounding are active${environmentPreparation!.gantry!.eligible ? '; Aurel gantry, snapshot-driven lamps, printed banner and start/finish stripe ready' : ''}. Original Formula grid: ${environmentPreparation!.grid!.eligible ? 'dry clear-Aurel ready' : 'ineligible'}; wet/GP/shadow parity is unqualified. Practice lamps stay dark; bloom and full environment parity remain unported.`;
     })
     .catch((error) => {
       if (currentOwner.signal.aborted || stopped || scene !== currentScene) return;
@@ -723,6 +749,7 @@ try {
       if (!environmentPreparation?.gantry?.completed) return;
       if (!environmentPreparation?.lamps?.completed) return;
       if (!environmentPreparation?.banner?.completed) return;
+      if (!gridPreparationValid(environmentPreparation?.grid)) return;
       if (!stripePreparation?.completed || restartPresentation) return;
       modelAttempted = true;
       const currentScene = scene!,
@@ -838,7 +865,7 @@ try {
           return;
         }
         if (owner.signal.aborted || stopped || scene !== currentScene) return;
-        loadAsset.disabled = false;
+        loadAsset.disabled = !gridPreparationValid(environmentPreparation?.grid);
         assetStatus.textContent = `Model unavailable: ${error instanceof Error ? error.message : String(error)}. Retry is safe.`;
       } finally {
         clearTimeout(timer);
@@ -926,6 +953,7 @@ try {
                 gantryReady &&
                   !!environmentPreparation?.lamps?.completed &&
                   !!environmentPreparation?.banner?.completed &&
+                  gridPreparationValid(environmentPreparation?.grid) &&
                   !!stripePreparation?.completed &&
                   !restartPresentation,
               );
@@ -1006,6 +1034,7 @@ try {
           !!environmentPreparation?.gantry?.completed &&
           !!environmentPreparation?.lamps?.completed &&
           !!environmentPreparation?.banner?.completed &&
+          gridPreparationValid(environmentPreparation?.grid) &&
           !!stripePreparation?.completed &&
           !restartPresentation &&
           !graphicsRecovery.restartRequired &&

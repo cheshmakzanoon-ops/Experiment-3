@@ -339,9 +339,9 @@ it('wires banner after structural readiness under the existing deadline and keep
     batch.indexOf('await this.lamps.prepared'),
   );
   expect(batch).toContain('await this.banner.prepared');
-  expect(startup.indexOf('loadAsset.disabled = false')).toBeGreaterThan(
-    startup.indexOf('await environment.completion'),
-  );
+  expect(
+    startup.indexOf('loadAsset.disabled = !gridPreparationValid(environmentPreparation?.grid)'),
+  ).toBeGreaterThan(startup.indexOf('await environment.completion'));
   expect(startup.slice(startup.indexOf('await environment.completion'))).toContain(
     'requestPresentation()',
   );

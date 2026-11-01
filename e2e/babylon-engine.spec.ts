@@ -76,6 +76,17 @@ const surfaceKeys = [
   'bannerWidth',
   'bannerHeight',
   'bannerHardwareSrgb',
+  'gridState',
+  'gridParts',
+  'gridMaterials',
+  'gridTextures',
+  'gridSlots',
+  'gridBoxes',
+  'gridTriangles',
+  'gridDryOnly',
+  'gridGpSwitchingParity',
+  'gridWeatherParity',
+  'gridShadowParity',
   'stripeState',
   'stripeParts',
   'stripeMaterials',
@@ -135,6 +146,20 @@ async function expectOriginalStartStripe(page: Page) {
   await expect(status).toHaveAttribute('data-stripe-height', '32');
   await expect(status).toHaveAttribute('data-stripe-hardware-srgb', '1');
 }
+async function expectOriginalGridPaint(page: Page) {
+  const status = page.locator('#status');
+  await expect(status).toHaveAttribute('data-grid-state', 'ready');
+  await expect(status).toHaveAttribute('data-grid-parts', '2');
+  await expect(status).toHaveAttribute('data-grid-materials', '1');
+  await expect(status).toHaveAttribute('data-grid-textures', '0');
+  await expect(status).toHaveAttribute('data-grid-slots', '12');
+  await expect(status).toHaveAttribute('data-grid-boxes', '36');
+  await expect(status).toHaveAttribute('data-grid-triangles', '432');
+  await expect(status).toHaveAttribute('data-grid-dry-only', 'true');
+  await expect(status).toHaveAttribute('data-grid-gp-switching-parity', 'false');
+  await expect(status).toHaveAttribute('data-grid-weather-parity', 'false');
+  await expect(status).toHaveAttribute('data-grid-shadow-parity', 'false');
+}
 async function expectOriginalStartLamps(page: Page) {
   const status = page.locator('#status');
   await expect(status).toHaveAttribute('data-lamp-state', 'ready');
@@ -172,6 +197,7 @@ async function expectOriginalAurelSurface(page: Page) {
   await expectOriginalStartLamps(page);
   await expectOriginalStartBanner(page);
   await expectOriginalStartStripe(page);
+  await expectOriginalGridPaint(page);
   await expect(status).toHaveAttribute('data-scene-ready', 'true');
   expect(Number(await status.getAttribute('data-completed-frames'))).toBeGreaterThanOrEqual(2);
   await expect(page.locator('#loadAsset')).toBeEnabled();
@@ -257,6 +283,20 @@ test('Babylon migration entry renders existing simulation and supports pause, re
   ])
     for (const prefix of ['banner', 'stripe'])
       await expect(status).not.toHaveAttribute(`data-${prefix}-${key}`);
+  for (const key of [
+    'state',
+    'parts',
+    'materials',
+    'textures',
+    'slots',
+    'boxes',
+    'triangles',
+    'dry-only',
+    'gp-switching-parity',
+    'weather-parity',
+    'shadow-parity',
+  ])
+    await expect(status).not.toHaveAttribute(`data-grid-${key}`);
   for (const key of ['state', 'parts', 'materials', 'triangles', 'lights'])
     await expect(status).not.toHaveAttribute(`data-lamp-${key}`);
   await expect(status).toHaveAttribute('data-scene-ready', 'false');
@@ -314,6 +354,17 @@ test('Babylon completes original environment startup while paused before gantry 
         'bannerWidth',
         'bannerHeight',
         'bannerHardwareSrgb',
+        'gridState',
+        'gridParts',
+        'gridMaterials',
+        'gridTextures',
+        'gridSlots',
+        'gridBoxes',
+        'gridTriangles',
+        'gridDryOnly',
+        'gridGpSwitchingParity',
+        'gridWeatherParity',
+        'gridShadowParity',
         'stripeState',
         'stripeParts',
         'stripeMaterials',
@@ -404,6 +455,7 @@ test('Babylon completes original environment startup while paused before gantry 
               'lampParts',
               'bannerParts',
               'stripeParts',
+              'gridParts',
             ]),
             materials: count([
               'surfacePaintFinishMaterials',
@@ -412,12 +464,14 @@ test('Babylon completes original environment startup while paused before gantry 
               'lampMaterials',
               'bannerMaterials',
               'stripeMaterials',
+              'gridMaterials',
             ]),
             textures: count([
               'surfaceAsphaltSubstrateTextures',
               'gantryTextures',
               'bannerTextures',
               'stripeTextures',
+              'gridTextures',
             ]),
           },
           dom: {
@@ -601,6 +655,7 @@ test('Babylon imports the existing authored Formula asset and restart cancels ob
   await expectOriginalStartLamps(page);
   await expectOriginalStartBanner(page);
   await expectOriginalStartStripe(page);
+  await expectOriginalGridPaint(page);
   const driverSteering = async () =>
     Number(await page.locator('#assetStatus').getAttribute('data-steering'));
   await page.keyboard.down('a');
@@ -639,6 +694,7 @@ test('Babylon imports the existing authored Formula asset and restart cancels ob
   await expectOriginalStartLamps(page);
   await expectOriginalStartBanner(page);
   await expectOriginalStartStripe(page);
+  await expectOriginalGridPaint(page);
   const frozenWheel = await wheelPhase();
   const frozenDriver = await driverSteering();
   await page.waitForTimeout(300);
@@ -761,6 +817,7 @@ test('Babylon reuses the completed original startup scene on Restart with a fres
         statusText: status.textContent,
         assetStatus: document.querySelector('#assetStatus')?.textContent ?? null,
         activeElement: document.activeElement?.id ?? null,
+        activeElementTag: document.activeElement?.tagName ?? null,
         focusVisible: document.activeElement?.matches(':focus-visible') ?? null,
         tick: Number(status.textContent?.match(/tick (\d+)/)?.[1] ?? -1),
         sceneReady: status.dataset.sceneReady,
@@ -789,7 +846,17 @@ test('Babylon reuses the completed original startup scene on Restart with a fres
     await expectOriginalAurelSurface(page);
     await expect(page.locator('#status')).toHaveAttribute('data-presentation-settled', 'true');
     await expect.poll(async () => (await observe()).tick).toBe(0);
+    // Use the same real pointer modality before both unmasked captures. Clicking
+    // the existing noninteractive heading clears the button's keyboard focus ring
+    // without invoking an application handler or altering the paused simulation.
+    await page.getByRole('heading', { name: 'MOTOBOUND / BABYLON', exact: true }).click();
     const observed = await observe();
+    expect(observed.activeElementTag).toBe('BODY');
+    expect(observed.activeElement).toBe('');
+    expect(observed.focusVisible).toBe(false);
+    expect(observed.tick).toBe(0);
+    expect(observed.sceneReady).toBe('true');
+    expect(observed.presentationSettled).toBe('true');
     const graphics = observed.graphics!;
     const cached = graphics.startupVisualState!;
     expect(cached?.source).toBe('last-owned-paused-draw');
@@ -811,8 +878,8 @@ test('Babylon reuses the completed original startup scene on Restart with a fres
     await expect.poll(() => held).toBe(true);
     await expect(page.locator('#loadAsset')).toBeDisabled();
     await expect(page.locator('#status')).toHaveAttribute('data-scene-ready', 'false');
-    // Match the real pointer focus used before the later reset screenshot.
-    // This pauses only the obsolete pre-reference component.
+    // This pauses only the obsolete pre-reference component; settledReset later
+    // establishes identical real pointer modality before both image captures.
     await page.getByRole('button', { name: 'Pause', exact: true }).click();
     await expect(page.locator('#status')).toContainText('PAUSED');
     const incomplete = await observe();
@@ -856,6 +923,9 @@ test('Babylon reuses the completed original startup scene on Restart with a fres
     expect(await restartThenPause()).toBe('Resume');
     const reset = await settledReset();
     evidence.push({ phase: 'reused-scene-fresh-reset-completed', ...reset });
+    expect(reset.activeElementTag).toBe(reference.activeElementTag);
+    expect(reset.activeElement).toBe(reference.activeElement);
+    expect(reset.focusVisible).toBe(reference.focusVisible);
     expect(reset.graphics!.restartSceneDecision).toBe('reused-scene');
     expect(reset.graphics!.componentEpoch).toBe(driven.graphics!.componentEpoch + 1);
     expect(reset.graphics!.sceneEpoch).toBe(reference.graphics!.sceneEpoch);

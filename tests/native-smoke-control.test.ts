@@ -210,6 +210,17 @@ describe('same-readiness-receipt native Aurel surface acceptance', () => {
     bannerWidth: '512',
     bannerHeight: '128',
     bannerHardwareSrgb: '1',
+    gridState: 'ready',
+    gridParts: '2',
+    gridMaterials: '1',
+    gridTextures: '0',
+    gridSlots: '12',
+    gridBoxes: '36',
+    gridTriangles: '432',
+    gridDryOnly: 'true',
+    gridGpSwitchingParity: 'false',
+    gridWeatherParity: 'false',
+    gridShadowParity: 'false',
     stripeState: 'ready',
     stripeParts: '1',
     stripeMaterials: '1',
@@ -231,6 +242,23 @@ describe('same-readiness-receipt native Aurel surface acceptance', () => {
     gantrySha256: gantryManifest.sha256,
     coarseMeshes: '0',
   };
+  it('rejects incomplete original grid resources and unsupported parity receipts', () => {
+    for (const [key, value] of [
+      ['gridState', 'prepared'],
+      ['gridState', 'ineligible'],
+      ['gridParts', '1'],
+      ['gridMaterials', '0'],
+      ['gridTextures', '1'],
+      ['gridSlots', '11'],
+      ['gridBoxes', '35'],
+      ['gridTriangles', '431'],
+      ['gridDryOnly', 'false'],
+      ['gridGpSwitchingParity', 'true'],
+      ['gridWeatherParity', 'true'],
+      ['gridShadowParity', 'true'],
+    ])
+      expect(() => validateNativeAurelSurface({ ...raw, [key]: value })).toThrow(key);
+  });
   it('returns observed counts without mutating the raw evidence', () => {
     const snapshot = { ...raw };
     expect(validateNativeAurelSurface(raw)).toEqual({
@@ -257,6 +285,17 @@ describe('same-readiness-receipt native Aurel surface acceptance', () => {
       bannerWidth: 512,
       bannerHeight: 128,
       bannerHardwareSrgb: 1,
+      gridState: 'ready',
+      gridParts: 2,
+      gridMaterials: 1,
+      gridTextures: 0,
+      gridSlots: 12,
+      gridBoxes: 36,
+      gridTriangles: 432,
+      gridDryOnly: true,
+      gridGpSwitchingParity: false,
+      gridWeatherParity: false,
+      gridShadowParity: false,
       stripeState: 'ready',
       stripeParts: 1,
       stripeMaterials: 1,

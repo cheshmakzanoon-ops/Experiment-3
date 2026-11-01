@@ -1,3 +1,4 @@
+import { createBabylonGridPaint } from '../src/engine/babylon/grid-paint.ts';
 import { PausedStartupPublication } from '../src/engine/babylon/paused-startup-publication.ts';
 import { afterEach, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
@@ -44,11 +45,12 @@ afterEach(() => {
   for (const cleanup of cleanups.splice(0)) cleanup();
   vi.restoreAllMocks();
 });
-type Kind = 'gantry' | 'lamps' | 'banner';
+type Kind = 'gantry' | 'lamps' | 'banner' | 'grid';
 function harness() {
   const engine = new NullEngine(),
     scene = new Scene(engine),
     abort = new AbortController();
+  scene.useRightHandedSystem = true;
   const baselineMaterial = new PBRMaterial('baseline', scene);
   baselineMaterial.dispose();
   const baselineTextures = [...scene.textures];
@@ -79,7 +81,7 @@ function harness() {
     isCurrent: () => state.current,
   };
   const events: string[] = [],
-    receipts: Record<Kind, number[]> = { gantry: [], lamps: [], banner: [] };
+    receipts: Record<Kind, number[]> = { gantry: [], lamps: [], banner: [], grid: [] };
   const holds: Partial<Record<Kind, ReturnType<typeof deferred>>> = {};
   const prepareFailures = new Map<Kind, unknown>(),
     installFailures = new Map<Kind, unknown>();
@@ -200,6 +202,55 @@ function harness() {
       make('lamps', o)) as unknown as typeof createBabylonStartLamps,
     banner: ((o: BabylonStartGantryOptions) =>
       make('banner', o)) as unknown as typeof createBabylonStartBanner,
+    grid: (async (received) => {
+      events.push('prepare:grid');
+      expect(received.deadline).toBe(options.deadline);
+      expect(received.gpu).toBe(gpu);
+      const real = await createBabylonGridPaint(received, {
+        prepare: async () => {
+          await gpu.prepare('grid original variants CPU seam', received.deadline, async () => {
+            state.activeCompilers++;
+            state.peakCompilers = Math.max(state.peakCompilers, state.activeCompilers);
+            try {
+              await holds.grid?.promise;
+            } finally {
+              state.activeCompilers--;
+            }
+          });
+          if (prepareFailures.has('grid')) throw prepareFailures.get('grid');
+        },
+        present: async (ownerScene, signal) => {
+          if (installFailures.has('grid')) throw installFailures.get('grid');
+          events.push('subscribe:grid');
+          await waitForPresentation(ownerScene, signal, {
+            subscribe(listener) {
+              return gpu.subscribe((receipt) => {
+                if (receipt.kind === 'completed' && receipt.owner === scene && receipt.ready)
+                  receipts.grid.push(receipt.sequence);
+                listener(receipt);
+              });
+            },
+          });
+        },
+      });
+      const owner = {
+        ...real,
+        disposed: false,
+        install() {
+          events.push('install:grid');
+          return real.install();
+        },
+        dispose() {
+          expect(state.activeCompilers).toBe(0);
+          events.push('dispose:grid');
+          owner.disposed = true;
+          if (disposalFailures.delete('grid')) throw undefined;
+          real.dispose();
+        },
+      };
+      owners.grid = owner;
+      return owner;
+    }) as typeof createBabylonGridPaint,
   };
   let batch: EnvironmentPreparation | undefined;
   const start = () => {
@@ -215,7 +266,7 @@ function harness() {
           events
             .slice(events.lastIndexOf('prepare:gantry'))
             .filter((e) => e.startsWith('subscribe:')),
-        ).toHaveLength(3);
+        ).toHaveLength(batch!.grid!.eligible ? 4 : 3);
         events.push('draw');
         batch!.lamps!.apply(frame);
         return ready;
@@ -286,12 +337,15 @@ it('keeps surface pair unchanged then shares two actual future ready completions
     'prepare:gantry',
     'prepare:lamps',
     'prepare:banner',
+    'prepare:grid',
     'install:gantry',
     'subscribe:gantry',
     'install:lamps',
     'subscribe:lamps',
     'install:banner',
     'subscribe:banner',
+    'install:grid',
+    'subscribe:grid',
   ]);
   expect(h.applied).toEqual([1]);
   expect(batch.canDraw).toBe(true);
@@ -305,12 +359,12 @@ it('keeps surface pair unchanged then shares two actual future ready completions
   h.tick();
   await batch.completion;
   expect(batch.completed).toBe(true);
-  expect(h.receipts).toEqual({ gantry: [3, 4], lamps: [3, 4], banner: [3, 4] });
+  expect(h.receipts).toEqual({ gantry: [3, 4], lamps: [3, 4], banner: [3, 4], grid: [3, 4] });
   expect(h.applied.at(-1)).toBe(0);
   expect(h.gpu.diagnostics()).toMatchObject({
     submitted: 4,
     completed: 4,
-    preparation: { started: 3, completed: 3 },
+    preparation: { started: 5, completed: 5 },
   });
   expect(h.state.peakCompilers).toBe(1);
   expect(h.schedule.diagnostics().preparationCount).toBe(0);
@@ -340,7 +394,7 @@ it('nonready completions and context loss reset each independent consecutive-rea
   await batch.completion;
   expect(batch.completed).toBe(true);
 });
-it.each(['gantry', 'lamps', 'banner'] as const)(
+it.each(['gantry', 'lamps', 'banner', 'grid'] as const)(
   'rolls back every staged/installed owner on %s partial install failure with falsy primary error',
   async (kind) => {
     const h = harness();
@@ -362,7 +416,7 @@ it.each(['gantry', 'lamps', 'banner'] as const)(
     expect(h.schedule.diagnostics().preparationCount).toBe(0);
   },
 );
-it.each(['gantry', 'lamps', 'banner'] as const)(
+it.each(['gantry', 'lamps', 'banner', 'grid'] as const)(
   'retains %s prepare failure, drains current lease and disposes earlier staged owners',
   async (kind) => {
     const h = harness();
@@ -390,6 +444,29 @@ it('cancellation during a held sibling compiler defers all resource disposal unt
   expect(h.owners.gantry?.disposed).toBe(true);
   expect(h.events).not.toContain('prepare:banner');
 });
+it('holds all three prepared siblings off-scene throughout the grid compiler and drains before cancellation cleanup', async () => {
+  const h = harness();
+  h.holds.grid = deferred();
+  const batch = h.start();
+  const failure = batch.completion.catch((error: unknown) => error);
+  await flush();
+  expect(h.events).toEqual(['prepare:gantry', 'prepare:lamps', 'prepare:banner', 'prepare:grid']);
+  expect(h.state.activeCompilers).toBe(1);
+  expect(batch.canDraw).toBe(false);
+  h.tick();
+  expect(h.events).not.toContain('draw');
+  batch.dispose();
+  expect(h.events.some((event) => event.startsWith('dispose:'))).toBe(false);
+  expect(h.scene.meshes).toHaveLength(0);
+  h.holds.grid.resolve();
+  expect(await failure).toBeInstanceOf(DOMException);
+  expect(h.state.activeCompilers).toBe(0);
+  for (const kind of ['gantry', 'lamps', 'banner'] as const)
+    expect(h.owners[kind]?.disposed).toBe(true);
+  expect(h.events.some((event) => event.startsWith('install:'))).toBe(false);
+  expect(h.schedule.diagnostics().preparationCount).toBe(0);
+});
+
 it('staged prepared owner neither installs early nor hangs on preactivation cancellation; repeated install reuses completion', async () => {
   const h = harness();
   const owner = new GantryPreparation(h.options, h.dependencies.gantry, { staged: true });
@@ -439,8 +516,32 @@ it('ineligible environment creates no adapters, promises still settle, no compil
   expect(batch.gantry!.receipt().state).toBe('ineligible');
   expect(batch.lamps!.receipt().state).toBe('ineligible');
   expect(batch.banner!.receipt().state).toBe('ineligible');
+  expect(batch.grid!.receipt().state).toBe('ineligible');
 });
-it('preserves active draws after completion and confines batch wiring to existing three props after surface completion', async () => {
+it.each([new Track('rain'), new Track('changeable'), new Track('clear', true)])(
+  'never adds the isolated non-dry grid to a live cohort',
+  async (track) => {
+    const h = harness();
+    h.options.track = track;
+    const batch = h.start();
+    await flush();
+    expect(h.events).not.toContain('prepare:grid');
+    expect(batch.grid?.eligible).toBe(false);
+    // Other existing owners keep their previous eligibility; only grid is ineligible.
+    for (let count = 0; count < 4; count++) h.tick();
+    await batch.completion;
+    expect(batch.grid!.receipt()).toMatchObject({
+      state: 'ineligible',
+      parts: 0,
+      materials: 0,
+      slots: 0,
+      triangles: 0,
+    });
+    expect(h.receipts.grid).toEqual([]);
+  },
+);
+
+it('preserves active draws after completion and confines batch wiring to four original props after surface completion', async () => {
   const h = harness(),
     batch = h.start();
   await flush();
@@ -509,7 +610,7 @@ it('a restart cancels old subscriptions and requires two new receipts for the re
   replacementAbort.abort();
 });
 
-it.each(['start-gantry', 'start-lamps', 'start-banner'])(
+it.each(['start-gantry', 'start-lamps', 'start-banner', 'grid-paint'])(
   'keeps %s adapter installation synchronous through its real presentation subscription',
   (name) => {
     const source = readFileSync(`src/engine/babylon/${name}.ts`, 'utf8');
@@ -531,7 +632,7 @@ it('does not borrow other-scene completions for any installed owner', async () =
   h.gpu.ready();
   await flush();
   expect(batch.completed).toBe(false);
-  expect(h.receipts).toEqual({ gantry: [], lamps: [], banner: [] });
+  expect(h.receipts).toEqual({ gantry: [], lamps: [], banner: [], grid: [] });
   h.tick();
   h.tick();
   await flush();
@@ -539,7 +640,7 @@ it('does not borrow other-scene completions for any installed owner', async () =
   h.tick();
   h.tick();
   await batch.completion;
-  expect(h.receipts).toEqual({ gantry: [2, 3], lamps: [2, 3], banner: [2, 3] });
+  expect(h.receipts).toEqual({ gantry: [2, 3], lamps: [2, 3], banner: [2, 3], grid: [2, 3] });
 });
 it('expired installation receipts fail the original absolute deadline without publication', async () => {
   const h = harness(),
@@ -576,7 +677,7 @@ it('retains the exact pre-owned BRDF baseline until final scene disposal release
   expect(h.scene.textures).toHaveLength(0);
 });
 
-it.each(['lamps', 'banner'] as const)(
+it.each(['lamps', 'banner', 'grid'] as const)(
   'a throwing %s cleanup reporter cannot replace the falsy primary error or skip settlement',
   async (kind) => {
     const h = harness();
@@ -728,7 +829,7 @@ it('keeps stripe outside the batch and requires two fresh stripe receipts withou
   expect(h.gpu.diagnostics()).toMatchObject({ submitted: 4, completed: 4 });
   expect(draws).toEqual(['surface', 'surface', 'batch', 'batch']);
   await flush();
-  expect(h.receipts).toEqual({ gantry: [3, 4], lamps: [3, 4], banner: [3, 4] });
+  expect(h.receipts).toEqual({ gantry: [3, 4], lamps: [3, 4], banner: [3, 4], grid: [3, 4] });
   expect(stripeCompiler).toHaveBeenCalledOnce();
   expect(stripe?.canDraw).toBe(true);
   expect(stripe?.completed).toBe(false);

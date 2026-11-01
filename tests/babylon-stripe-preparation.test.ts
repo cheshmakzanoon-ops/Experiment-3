@@ -327,7 +327,7 @@ it.each(['material', 'texture', 'srgb', 'dimensions', 'triangles'] as const)(
     expect(() => stripe.receipt()).toThrow('activation incomplete');
   },
 );
-it('wires stripe after the completed three-owner batch under the existing deadline and keeps GPU receipts independent', () => {
+it('wires stripe after the completed four-owner batch under the existing deadline and keeps GPU receipts independent', () => {
   const source = readFileSync('src/engine/babylon/main.ts', 'utf8');
   const startup = source.slice(
     source.indexOf('function rebuildScene'),
@@ -341,9 +341,9 @@ it('wires stripe after the completed three-owner batch under the existing deadli
   expect(readFileSync('src/engine/babylon/environment-preparation.ts', 'utf8')).not.toContain(
     'StripePreparation',
   );
-  expect(startup.indexOf('loadAsset.disabled = false')).toBeGreaterThan(
-    startup.indexOf('await stripe.completion'),
-  );
+  expect(
+    startup.indexOf('loadAsset.disabled = !gridPreparationValid(environmentPreparation?.grid)'),
+  ).toBeGreaterThan(startup.indexOf('await stripe.completion'));
   expect(startup.slice(startup.indexOf('await stripe.completion'))).toContain(
     'requestPresentation()',
   );

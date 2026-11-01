@@ -1,3 +1,5 @@
+import { GridPreparation } from './grid-preparation.ts';
+import type { createBabylonGridPaint } from './grid-paint.ts';
 import { GantryPreparation } from './gantry-preparation.ts';
 import { LampPreparation } from './lamp-preparation.ts';
 import { BannerPreparation } from './banner-preparation.ts';
@@ -10,15 +12,17 @@ interface EnvironmentDependencies {
   gantry?: typeof loadBabylonStartGantry;
   lamps?: typeof createBabylonStartLamps;
   banner?: typeof createBabylonStartBanner;
+  grid?: typeof createBabylonGridPaint;
 }
 
-/** Only the existing gantry, lamps and banner. Surface readiness precedes this
+/** The original gantry, lamps, banner and dry Formula grid. Surface readiness precedes this
  * owner. Compilation stays sequential; all installations subscribe before the
  * shared scene can draw. Each owner still requires its own two real receipts. */
 export class EnvironmentPreparation {
   gantry: GantryPreparation | undefined;
   lamps: LampPreparation | undefined;
   banner: BannerPreparation | undefined;
+  grid: GridPreparation | undefined;
   readonly completion: Promise<void>;
   private readonly abort = new AbortController();
   private disposed = false;
@@ -55,7 +59,8 @@ export class EnvironmentPreparation {
       this.drawable &&
       !!this.gantry?.canDraw &&
       !!this.lamps?.canDraw &&
-      !!this.banner?.canDraw
+      !!this.banner?.canDraw &&
+      !!this.grid?.canDraw
     );
   }
   get completed() {
@@ -64,11 +69,13 @@ export class EnvironmentPreparation {
       this.ready &&
       !!this.gantry?.completed &&
       !!this.lamps?.completed &&
-      !!this.banner?.completed
+      !!this.banner?.completed &&
+      !!this.grid?.completed
     );
   }
   private cleanup() {
     const failures = cleanupPresentation([
+      () => this.grid?.dispose(),
       () => this.banner?.dispose(),
       () => this.lamps?.dispose(),
       () => this.gantry?.dispose(),
@@ -98,10 +105,13 @@ export class EnvironmentPreparation {
       this.banner = new BannerPreparation(this.options, dependencies.banner, { staged: true });
       await this.banner.prepared;
       this.active();
+      this.grid = new GridPreparation(this.options, dependencies.grid, { staged: true });
+      await this.grid.prepared;
+      this.active();
       this.preparing = false;
       // Deliberately no await between installs: all scene additions and each
       // independent future-frame subscription precede any normal submission.
-      for (const owner of [this.gantry, this.lamps, this.banner])
+      for (const owner of [this.gantry, this.lamps, this.banner, this.grid])
         installations.push(owner.install());
       this.active();
       this.drawable = true;

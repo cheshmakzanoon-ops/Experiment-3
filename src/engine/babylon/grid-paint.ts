@@ -259,7 +259,15 @@ export async function createBabylonGridPaint(
           meshes.push(mesh);
           remember(
             mesh,
-            () => mesh.dispose(true, false),
+            () => {
+              // Pinned Mesh.dispose normally disposes geometry before its base
+              // resources. A throwing geometry disposer would interrupt that
+              // cleanup. Detach this owned mesh without disposing geometry:
+              // only exact allocations in our independent ledger are released.
+              // A foreign replacement geometry is detached, never adopted.
+              mesh.geometry?.releaseForMesh(mesh, false);
+              mesh.dispose(true, false);
+            },
             () => mesh.isDisposed(),
             (done) => mesh.onDisposeObservable.addOnce(done),
           );

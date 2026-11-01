@@ -1,6 +1,6 @@
 import { transpileModule } from 'typescript';
 import { SubmissionObservation } from '../src/engine/babylon/submission-observation.ts';
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import {
@@ -101,6 +101,7 @@ it('wires observation into existing diagnostics without GPU polling or schedulin
     'environmentPreparation?.gantry',
     'environmentPreparation?.lamps',
     'environmentPreparation?.banner',
+    'environmentPreparation?.grid',
   ])
     expect(body).toContain(`observePreparationReadiness(${name})`);
   for (const mutation of [
@@ -394,3 +395,31 @@ it.each([undefined, null, false, 0, ''])(
     expect(caught).toBe(true);
   },
 );
+
+it('main read-only snapshot exposes grid owner without allocating or invoking a receipt', () => {
+  const receipt = vi.fn(() => {
+    throw new Error('must not inspect resources');
+  });
+  const result = graphicsQuery(
+    () => ({ settled: false }),
+    () => ({ requested: true, preparationCount: 1, pending: true }),
+    { grid: { completed: false, canDraw: true, receipt } },
+  )();
+  expect(result.readiness).toHaveProperty('owners.grid', {
+    exists: true,
+    completed: false,
+    canDraw: true,
+    errors: [],
+  });
+  expect(receipt).not.toHaveBeenCalled();
+  const absent = graphicsQuery(
+    () => ({}),
+    () => ({}),
+  )();
+  expect(absent.readiness).toHaveProperty('owners.grid', {
+    exists: false,
+    completed: null,
+    canDraw: null,
+    errors: [],
+  });
+});
