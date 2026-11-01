@@ -245,20 +245,24 @@ it('does not accept retained references as active binding evidence', async () =>
 });
 it('wires startup after surfaces with the same deadline and keeps draw receipts independent of readiness', () => {
   const source = readFileSync('src/engine/babylon/main.ts', 'utf8');
+  const batch = readFileSync('src/engine/babylon/environment-preparation.ts', 'utf8');
   const startup = source.slice(
     source.indexOf('function rebuildScene'),
     source.indexOf("window.addEventListener('pagehide'"),
   );
   expect(startup.match(/performance.now\(\) \+ 120000/g)).toHaveLength(1);
-  expect(startup.indexOf('new GantryPreparation')).toBeGreaterThan(
+  expect(startup.indexOf('new EnvironmentPreparation')).toBeGreaterThan(
     startup.indexOf('const diagnostics = currentScene.surfaceDiagnostics'),
   );
-  expect(startup).toContain('await gantry.completion');
+  expect(startup).toContain('await environment.completion');
   expect(startup.indexOf('loadAsset.disabled = false')).toBeGreaterThan(
-    startup.indexOf('await gantry.completion'),
+    startup.indexOf('await environment.completion'),
   );
-  expect(source).toContain('!gantryPreparation?.completed');
-  expect(source).toContain('(!gantryPreparation || gantryPreparation.canDraw)');
-  expect(source).toContain('readyBefore && readyAfter && !!gantryPreparation?.completed');
-  expect(source.match(/\(\) => gantryPreparation\?\.dispose\(\)/g)).toHaveLength(2);
+  expect(source).toContain('!environmentPreparation?.gantry?.completed');
+  expect(source).toContain('(!environmentPreparation || environmentPreparation.canDraw)');
+  expect(source).toContain(
+    'readyBefore && readyAfter && !!environmentPreparation?.gantry?.completed',
+  );
+  expect(source.match(/\(\) => environmentPreparation\?\.dispose\(\)/g)).toHaveLength(2);
+  expect(batch).toContain('() => this.gantry?.dispose()');
 });

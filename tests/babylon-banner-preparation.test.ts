@@ -329,25 +329,28 @@ it.each(['material', 'texture', 'srgb', 'dimensions', 'triangles'] as const)(
 );
 it('wires banner after structural readiness under the existing deadline and keeps GPU receipts independent', () => {
   const source = readFileSync('src/engine/babylon/main.ts', 'utf8');
+  const batch = readFileSync('src/engine/babylon/environment-preparation.ts', 'utf8');
   const startup = source.slice(
     source.indexOf('function rebuildScene'),
     source.indexOf("window.addEventListener('pagehide'"),
   );
   expect(startup.match(/performance.now\(\) \+ 120000/g)).toHaveLength(1);
-  expect(startup.indexOf('new BannerPreparation')).toBeGreaterThan(
-    startup.indexOf('await lamps.completion'),
+  expect(batch.indexOf('new BannerPreparation')).toBeGreaterThan(
+    batch.indexOf('await this.lamps.prepared'),
   );
+  expect(batch).toContain('await this.banner.prepared');
   expect(startup.indexOf('loadAsset.disabled = false')).toBeGreaterThan(
-    startup.indexOf('await banner.completion'),
+    startup.indexOf('await environment.completion'),
   );
-  expect(startup.slice(startup.indexOf('await banner.completion'))).toContain(
+  expect(startup.slice(startup.indexOf('await environment.completion'))).toContain(
     'requestPresentation()',
   );
   expect(source).toContain("mode: 'practice'");
-  expect(source).toContain('!bannerPreparation?.completed');
-  expect(source).toContain('(!bannerPreparation || bannerPreparation.canDraw)');
+  expect(source).toContain('!environmentPreparation?.banner?.completed');
+  expect(source).toContain('(!environmentPreparation || environmentPreparation.canDraw)');
   expect(source).toContain('return readyBefore && readyAfter;');
-  expect(source.match(/\(\) => bannerPreparation\?\.dispose\(\)/g)).toHaveLength(2);
+  expect(source.match(/\(\) => environmentPreparation\?\.dispose\(\)/g)).toHaveLength(2);
+  expect(batch).toContain('() => this.banner?.dispose()');
   for (const field of [
     'bannerState',
     'bannerParts',

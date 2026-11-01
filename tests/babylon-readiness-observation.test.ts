@@ -94,7 +94,12 @@ it('wires observation into existing diagnostics without GPU polling or schedulin
   );
   expect(body).toContain('gpu?.diagnostics()');
   expect(body).toContain('schedule: presentation.diagnostics()');
-  for (const name of ['surfacePreparation', 'gantryPreparation', 'lampPreparation'])
+  for (const name of [
+    'surfacePreparation',
+    'environmentPreparation?.gantry',
+    'environmentPreparation?.lamps',
+    'environmentPreparation?.banner',
+  ])
     expect(body).toContain(`observePreparationReadiness(${name})`);
   for (const mutation of [
     '.ready(',
@@ -108,7 +113,11 @@ it('wires observation into existing diagnostics without GPU polling or schedulin
     expect(body).not.toContain(mutation);
 });
 
-function graphicsQuery(gpuRead: () => unknown, scheduleRead: () => unknown) {
+function graphicsQuery(
+  gpuRead: () => unknown,
+  scheduleRead: () => unknown,
+  environment: unknown = undefined,
+) {
   const source = readFileSync('src/engine/babylon/main.ts', 'utf8');
   const body = source.slice(
     source.indexOf('function readGraphicsDiagnostics()'),
@@ -122,9 +131,8 @@ function graphicsQuery(gpuRead: () => unknown, scheduleRead: () => unknown) {
     restartOwnership: { pending: false },
     graphicsRecovery: { restartRequired: false },
     surfacePreparation: undefined,
-    gantryPreparation: undefined,
-    lampPreparation: undefined,
-    bannerPreparation: undefined,
+    environmentPreparation: environment,
+    stripePreparation: undefined,
     presentation: { diagnostics: scheduleRead },
     observePreparationReadiness,
     observeReadinessSnapshot,
@@ -134,13 +142,16 @@ it.each([undefined, null, new Error('new metadata failed')])(
   'new metadata failure %s cannot reject existing graphics query',
   (error) => {
     const original = Object.freeze({ settled: true });
+    let metadataCalls = 0;
     const query = graphicsQuery(
       () => original,
       () => {
+        metadataCalls++;
         throw error;
       },
     );
     const observed = query();
+    expect(metadataCalls).toBe(1);
     expect(observed.settled).toBe(true);
     expect(observed.readiness).toBeNull();
     expect(observed.readinessError).toBe(String(error));
@@ -180,5 +191,45 @@ it('main read-only snapshot includes an absent banner owner as unknown without h
   expect(result.readinessError).toBeNull();
   expect(result.readiness).toMatchObject({
     owners: { banner: { exists: false, completed: null, canDraw: null, errors: [] } },
+  });
+});
+
+it('reads actual staged batch owners without altering the legacy graphics observation', () => {
+  const environment = {
+    gantry: { completed: false, canDraw: false },
+    lamps: { completed: false, canDraw: true },
+    banner: { completed: true, canDraw: true },
+  };
+  let metadataCalls = 0;
+  const result = graphicsQuery(
+    () => ({ settled: false }),
+    () => {
+      metadataCalls++;
+      return { requested: true, preparationCount: 3, pending: true };
+    },
+    environment,
+  )();
+  expect(metadataCalls).toBe(1);
+  expect(result.readinessError).toBeNull();
+  expect(result.settled).toBe(false);
+  expect(result.readiness).toMatchObject({
+    owners: {
+      gantry: { exists: true, completed: false, canDraw: false, errors: [] },
+      lamps: { exists: true, completed: false, canDraw: true, errors: [] },
+      banner: { exists: true, completed: true, canDraw: true, errors: [] },
+    },
+    schedule: { requested: true, preparationCount: 3, pending: true },
+  });
+});
+
+it('main read-only snapshot includes an absent stripe owner as unknown without hiding graphics', () => {
+  const result = graphicsQuery(
+    () => ({ settled: true }),
+    () => ({ requested: false, preparationCount: 0, pending: false }),
+  )();
+  expect(result.settled).toBe(true);
+  expect(result.readinessError).toBeNull();
+  expect(result.readiness).toMatchObject({
+    owners: { stripe: { exists: false, completed: null, canDraw: null, errors: [] } },
   });
 });

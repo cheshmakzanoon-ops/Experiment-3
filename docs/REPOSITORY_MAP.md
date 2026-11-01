@@ -111,7 +111,14 @@ with actual binding and completed-frame receipts; live runtime checks are pendin
 metadata through the existing graphics query. Neither changes readiness gates.
 [Scope](maintenance/native-startup-readiness-observation-2026-11-01.md).
 
-`src/engine/babylon/start-finish-stripe.ts` owns the isolated original checker
-plane/texture with source-batched geometry. Its fixture checks fixed sampling,
-facing and bounded original-road depth; there is no live startup import yet.
+`src/engine/babylon/start-finish-stripe.ts` owns the original checker plane/texture
+with source-batched geometry. `stripe-preparation.ts` connects it after the shared
+environment batch, with independent fresh-frame receipts. Its isolated fixture
+checks fixed sampling, facing and bounded original-road depth.
 [Scope](maintenance/babylon-start-finish-stripe-2026-11-01.md).
+
+`src/engine/babylon/environment-preparation.ts` stages existing gantry, lamps and
+banner sequentially, then installs all three before a shared presentation pair.
+Each owner still validates its own actual bindings and ready completions. Surfaces
+remain first; stripe remains an independent subsequent stage.
+[Contract](maintenance/babylon-environment-batch-2026-11-01.md).

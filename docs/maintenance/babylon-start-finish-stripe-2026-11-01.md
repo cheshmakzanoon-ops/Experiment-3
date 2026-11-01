@@ -1,7 +1,8 @@
-# Original start/finish stripe · isolated candidate
+# Original start/finish stripe · migration and qualification
 
-Work belongs only to `babylon-js`; main remains frozen. This component has no
-live startup import. The existing road, gantry, lamps and banner keep their owners.
+Work belongs only to `babylon-js`; main remains frozen. The isolated adapter passed `e5609e7`. This checkpoint adds live startup after
+the shared gantry/lamp/banner presentation batch; combined runtime qualification
+is pending. The original owners remain independent.
 
 ## Original data and bounded scope
 
@@ -47,7 +48,7 @@ were active; its evidence is retained and the unchanged build subsequently passe
 Final combined fixture/source typecheck passed. CPU canvas and fence mocks do not
 qualify real GPU sampling, driver behavior or frame timing.
 
-## GPU qualification required before activation
+## Isolated GPU qualification contract
 
 The isolated fixture uses the same original canvas for the original reference
 and native upload, with actual source-batched geometry. Three cases cover native
@@ -71,8 +72,8 @@ and ownership intact.
 
 Actual car-crossing occlusion is **not tested** by this bounded fixture; no proxy
 car is used to claim original-model acceptance. Cross-mode eligibility, final PBR,
-lighting/shadows and physical-GPU performance remain separate gates. The first GPU run failed the depth oracle described below; no live activation
-is claimed.
+lighting/shadows and physical-GPU performance remain separate gates. The initial GPU run failed the depth oracle described below. Its correction and
+the later live-startup checkpoint are recorded separately.
 
 ## Combined branch preparation
 
@@ -153,3 +154,67 @@ advanced to 706 after resume. The corrected two-file fixture/spec passed fresh
 TypeScript, focused lint/format, three-case discovery and IIFE bundling; 24
 applicable CPU/workflow contracts passed after applying the patch. This does
 not replace the required new real-GPU result.
+
+## Corrected isolated qualification: `e5609e7`
+
+[Run 41334739498](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41334739498)
+passed all **28 cases**, every required shard and aggregate check 124936790334.
+All three stripe cases passed, including actual context loss and a fresh restart.
+Across four executions, each reports 16 zero-error factor rows and all 81 fixed
+co-presence samples: 54 visible, 27 occluded, zero conditional color error, zero
+coverage mismatch and exact original composite/road-only repeats. Factor-stage
+GL errors are zero; intentional context loss remains a separate test event.
+
+The runtime source-ray minimum triangle separation is 0.0027179287875 m. The
+separate offline source calculation was 0.0028737623316 m; these are not described
+as identical measurements or used to claim a camera change. Both exceed the
+predeclared ambiguity rejection threshold and produce the same classification.
+All 60 common PNG attachments between the old failing and corrected runs are
+byte-for-byte identical, including the isolated factors and unchanged native
+road composite. The old failed receipt did not store projected pixel indices,
+so those indices cannot be directly compared retrospectively.
+
+Original 128×32 hardware-sRGB allocation, uploaded bytes, samplers, front-face
+culling, cancellation and independent cleanup checks passed. Mesh disposal and
+resource-baseline restoration are distinct from hardware texture deletion;
+the latter is deliberately not queried after context loss. Restart uses a fresh
+context. Actual original/native composite images were inspected and show the
+same partial-occlusion silhouette. No production geometry was raised or altered.
+
+Verified artifacts:
+- Stripe 13094986457:
+  `067bb9ac83df16649e49f600d55ae0950e58c81ea62a4bb27fcca6dc1a7c5822`.
+- Retained 13095087863:
+  `1710b0a9400b82d51921f4e4aa49e8470172cd46721f311736ac202ffe993768`.
+- Lamps 13094728912:
+  `b8ce726f50df87b4335dcb8463fde4655b32984abd493a04ef2e5489c7208038`.
+- Banner 13095311975:
+  `1a6951fa00b1633832a57fa3d01e20c1321625ea61b83a971a69e36690ddc8a5`.
+
+This is **SwiftShader software-WebGL isolated qualification**. The retained live
+scene's early-pause tick 702 stayed frozen through readiness and resumed to 706,
+but that scene did not yet import the stripe. Live startup, packaged/native
+rendering of the stripe, car-crossing occlusion, final PBR and physical-hardware
+performance require their own evidence. Fixture-only source changes did not run
+a new native workflow or repair the prior Linux startup repeat failure.
+
+## Live startup after the shared environment batch
+
+`StripePreparation` now runs only after the existing gantry/lamp/banner batch has
+completed. It retains its own preparation ownership and requires two fresh ready
+GPU completions; it cannot reuse the batch's receipts. The original absolute
+startup deadline and native 30-second paused gate are unchanged. The final paused
+redraw remains, and optional car loading waits for stripe readiness as well.
+
+Actual resource validation requires one bound part/material/texture, two
+triangles, 128×32 storage and hardware-sRGB. Both readiness whitelists, native
+receipts and browser pause/loss/restart assertions include these fields. Scene
+replacement and teardown dispose the stripe independently and clear stale state.
+No original geometry, canvas, material or physics is changed by this integration.
+
+The combined source passed **1,285 CPU tests in 97 files** and independent review;
+its source-level handoff case observes surface1–2, props3–4, stripe5–6 and final
+paused presentation7. These controlled receipts do not establish actual frame
+counts or startup time. Exact-source live GPU/native checks remain required.
+Car-crossing, final PBR/shadows and physical-device performance stay unqualified.
+See [combined startup ownership](babylon-environment-batch-2026-11-01.md).

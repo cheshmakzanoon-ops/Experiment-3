@@ -210,6 +210,14 @@ describe('same-readiness-receipt native Aurel surface acceptance', () => {
     bannerWidth: '512',
     bannerHeight: '128',
     bannerHardwareSrgb: '1',
+    stripeState: 'ready',
+    stripeParts: '1',
+    stripeMaterials: '1',
+    stripeTextures: '1',
+    stripeTriangles: '2',
+    stripeWidth: '128',
+    stripeHeight: '32',
+    stripeHardwareSrgb: '1',
     lampState: 'ready',
     lampParts: '5',
     lampMaterials: '5',
@@ -249,6 +257,14 @@ describe('same-readiness-receipt native Aurel surface acceptance', () => {
       bannerWidth: 512,
       bannerHeight: 128,
       bannerHardwareSrgb: 1,
+      stripeState: 'ready',
+      stripeParts: 1,
+      stripeMaterials: 1,
+      stripeTextures: 1,
+      stripeTriangles: 2,
+      stripeWidth: 128,
+      stripeHeight: 32,
+      stripeHardwareSrgb: 1,
       lampState: 'ready',
       lampParts: 5,
       lampMaterials: 5,
@@ -327,6 +343,20 @@ describe('same-readiness-receipt native Aurel surface acceptance', () => {
     ])
       expect(() => validateNativeAurelSurface({ ...raw, [key]: value })).toThrow(key);
   });
+  it('rejects staged, cleared, incomplete, and incorrectly encoded stripe resources', () => {
+    for (const stripeState of ['prepared', 'installing', 'disposed', 'ineligible', undefined])
+      expect(() => validateNativeAurelSurface({ ...raw, stripeState })).toThrow('stripeState');
+    for (const [key, value] of [
+      ['stripeParts', '0'],
+      ['stripeMaterials', '0'],
+      ['stripeTextures', '0'],
+      ['stripeTriangles', '1'],
+      ['stripeWidth', '64'],
+      ['stripeHeight', '16'],
+      ['stripeHardwareSrgb', '0'],
+    ])
+      expect(() => validateNativeAurelSurface({ ...raw, [key]: value })).toThrow(key);
+  });
   it('extends the existing readiness snapshot without another query or changing the frame budget', () => {
     const source = readFileSync('scripts/desktop-smoke.mjs', 'utf8');
     const body = source.slice(
@@ -353,6 +383,14 @@ describe('same-readiness-receipt native Aurel surface acceptance', () => {
       'bannerWidth',
       'bannerHeight',
       'bannerHardwareSrgb',
+      'stripeState',
+      'stripeParts',
+      'stripeMaterials',
+      'stripeTextures',
+      'stripeTriangles',
+      'stripeWidth',
+      'stripeHeight',
+      'stripeHardwareSrgb',
       'lampState',
       'lampParts',
       'lampMaterials',

@@ -284,26 +284,29 @@ it('rejects retained or replaced resources and counts actual emission rather tha
 });
 it('wires lamps after structural readiness under the existing deadline and keeps GPU receipts independent', () => {
   const source = readFileSync('src/engine/babylon/main.ts', 'utf8');
+  const batch = readFileSync('src/engine/babylon/environment-preparation.ts', 'utf8');
   const startup = source.slice(
     source.indexOf('function rebuildScene'),
     source.indexOf("window.addEventListener('pagehide'"),
   );
   expect(startup.match(/performance.now\(\) \+ 120000/g)).toHaveLength(1);
-  expect(startup.indexOf('new LampPreparation')).toBeGreaterThan(
-    startup.indexOf('await gantry.completion'),
+  expect(batch.indexOf('new LampPreparation')).toBeGreaterThan(
+    batch.indexOf('await this.gantry.prepared'),
   );
+  expect(batch).toContain('await this.lamps.prepared');
   expect(startup.indexOf('loadAsset.disabled = false')).toBeGreaterThan(
-    startup.indexOf('await lamps.completion'),
+    startup.indexOf('await environment.completion'),
   );
-  expect(startup.slice(startup.indexOf('await lamps.completion'))).toContain(
+  expect(startup.slice(startup.indexOf('await environment.completion'))).toContain(
     'requestPresentation()',
   );
   expect(source).toContain("mode: 'practice'");
-  expect(source).toContain('!lampPreparation?.completed');
-  expect(source).toContain('(!lampPreparation || lampPreparation.canDraw)');
-  expect(source).toContain('lampPreparation?.apply(component.frame)');
+  expect(source).toContain('!environmentPreparation?.lamps?.completed');
+  expect(source).toContain('(!environmentPreparation || environmentPreparation.canDraw)');
+  expect(source).toContain('environmentPreparation?.lamps?.apply(component.frame)');
   expect(source).toContain('return readyBefore && readyAfter;');
-  expect(source.match(/\(\) => lampPreparation\?\.dispose\(\)/g)).toHaveLength(2);
+  expect(source.match(/\(\) => environmentPreparation\?\.dispose\(\)/g)).toHaveLength(2);
+  expect(batch).toContain('() => this.lamps?.dispose()');
   for (const field of ['lampState', 'lampParts', 'lampMaterials', 'lampTriangles', 'lampLights'])
     expect(
       source.slice(

@@ -43,6 +43,14 @@ export interface NativeAurelSurfaceReceipt {
   bannerWidth: number;
   bannerHeight: number;
   bannerHardwareSrgb: number;
+  stripeState: 'ready';
+  stripeParts: number;
+  stripeMaterials: number;
+  stripeTextures: number;
+  stripeTriangles: number;
+  stripeWidth: number;
+  stripeHeight: number;
+  stripeHardwareSrgb: number;
   lampState: 'ready';
   lampParts: number;
   lampMaterials: number;

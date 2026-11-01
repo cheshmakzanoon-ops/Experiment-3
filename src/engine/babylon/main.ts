@@ -3,9 +3,9 @@ import {
   resizePresentationWhenIdle,
   pollPresentationForRender,
 } from './surface-preparation.ts';
-import { GantryPreparation } from './gantry-preparation.ts';
-import { LampPreparation } from './lamp-preparation.ts';
-import { BannerPreparation } from './banner-preparation.ts';
+import { EnvironmentPreparation } from './environment-preparation.ts';
+import { StripePreparation } from './stripe-preparation.ts';
+import type { LampPreparation } from './lamp-preparation.ts';
 import { GraphicsRecovery } from './graphics-recovery.ts';
 import type { AssetContainer } from '@babylonjs/core/assetContainer.js';
 import { prepareOriginalMaterials } from './asset-preparation.ts';
@@ -48,11 +48,18 @@ let engine: Engine | undefined;
 let scene: BabylonCircuitScene | undefined;
 let gpu: BabylonPresentationGpu | undefined;
 let surfacePreparation: SurfacePreparation | undefined;
-let gantryPreparation: GantryPreparation | undefined;
-let lampPreparation: LampPreparation | undefined;
-let bannerPreparation: BannerPreparation | undefined;
+let environmentPreparation: EnvironmentPreparation | undefined;
+let stripePreparation: StripePreparation | undefined;
 function clearSurfaceDiagnostics() {
   for (const key of [
+    'stripeState',
+    'stripeParts',
+    'stripeMaterials',
+    'stripeTextures',
+    'stripeTriangles',
+    'stripeWidth',
+    'stripeHeight',
+    'stripeHardwareSrgb',
     'bannerState',
     'bannerParts',
     'bannerMaterials',
@@ -114,9 +121,10 @@ function readGraphicsDiagnostics() {
       resizePending,
       owners: {
         surface: observePreparationReadiness(surfacePreparation),
-        gantry: observePreparationReadiness(gantryPreparation),
-        lamps: observePreparationReadiness(lampPreparation),
-        banner: observePreparationReadiness(bannerPreparation),
+        gantry: observePreparationReadiness(environmentPreparation?.gantry),
+        lamps: observePreparationReadiness(environmentPreparation?.lamps),
+        banner: observePreparationReadiness(environmentPreparation?.banner),
+        stripe: observePreparationReadiness(stripePreparation),
       },
       schedule: presentation.diagnostics(),
     })),
@@ -190,9 +198,8 @@ function stop(error?: unknown) {
     () => playerSteering?.dispose(),
     () => playerWheels?.dispose(),
     () => scene?.dispose(),
-    () => gantryPreparation?.dispose(),
-    () => lampPreparation?.dispose(),
-    () => bannerPreparation?.dispose(),
+    () => environmentPreparation?.dispose(),
+    () => stripePreparation?.dispose(),
     () => engine?.dispose(),
   ]))
     console.error('Babylon cleanup failed:', failure);
@@ -224,15 +231,13 @@ function rebuildScene(owner: SimulationComponent) {
   delete assetStatus.dataset.steering;
   const cleanupFailures = cleanupPresentation([
     () => scene?.dispose(),
-    () => gantryPreparation?.dispose(),
-    () => lampPreparation?.dispose(),
-    () => bannerPreparation?.dispose(),
+    () => environmentPreparation?.dispose(),
+    () => stripePreparation?.dispose(),
   ]);
   if (cleanupFailures.length)
     throw new AggregateError(cleanupFailures, 'Scene replacement cleanup failed');
-  gantryPreparation = undefined;
-  lampPreparation = undefined;
-  bannerPreparation = undefined;
+  environmentPreparation = undefined;
+  stripePreparation = undefined;
   const context = {
     presentation: 'circuit',
     vehicles: owner.simulation.cars.map((car) => car.definition),
@@ -243,7 +248,7 @@ function rebuildScene(owner: SimulationComponent) {
   assetLoad = new AbortController();
   loadAsset.disabled = true;
   assetStatus.textContent =
-    'Preparing original circuit surfaces and dry asphalt substrate and vehicle grounding, then the original Aurel gantry, snapshot-driven lamps and printed banner; full environment parity remains unported.';
+    'Preparing original circuit surfaces and dry asphalt substrate and vehicle grounding, then the original Aurel gantry, snapshot-driven lamps, printed banner and start/finish stripe; full environment parity remains unported.';
   const currentScene = scene,
     currentOwner = assetLoad;
   surfacePreparation = new SurfacePreparation(
@@ -303,36 +308,12 @@ function rebuildScene(owner: SimulationComponent) {
         'formulaGroundingCars',
       ] as const)
         status.dataset[`surface${key[0].toUpperCase()}${key.slice(1)}`] = String(diagnostics[key]);
-      const gantry = new GantryPreparation({
-        scene: currentScene.scene,
-        track: owner.simulation.track,
-        context,
-        base: document.baseURI,
-        signal: currentOwner.signal,
-        gpu: gpu!,
-        deadline,
-        schedule: presentation,
-        isCurrent: () => !stopped && scene === currentScene && !restartOwnership.pending,
-      });
-      gantryPreparation = gantry;
-      await gantry.completion;
-      if (
-        stopped ||
-        currentOwner.signal.aborted ||
-        scene !== currentScene ||
-        restartOwnership.pending ||
-        gantryPreparation !== gantry ||
-        !gantry.completed
-      )
-        return;
-      const gantryReceipt = gantry.receipt();
-      for (const [key, value] of Object.entries(gantryReceipt))
-        status.dataset[`gantry${key[0].toUpperCase()}${key.slice(1)}`] = String(value);
-      const lamps = new LampPreparation(
+      const environment = new EnvironmentPreparation(
         {
           scene: currentScene.scene,
           track: owner.simulation.track,
           context,
+          base: document.baseURI,
           signal: currentOwner.signal,
           gpu: gpu!,
           deadline,
@@ -341,19 +322,26 @@ function rebuildScene(owner: SimulationComponent) {
         },
         () => component.frame,
       );
-      lampPreparation = lamps;
-      await lamps.completion;
+      environmentPreparation = environment;
+      await environment.completion;
       if (
         stopped ||
         currentOwner.signal.aborted ||
         scene !== currentScene ||
         restartOwnership.pending ||
-        lampPreparation !== lamps ||
-        !lamps.completed
+        environmentPreparation !== environment ||
+        !environment.completed
       )
         return;
+      const gantry = environment.gantry!,
+        lamps = environment.lamps!,
+        banner = environment.banner!;
+      for (const [key, value] of Object.entries(gantry.receipt()))
+        status.dataset[`gantry${key[0].toUpperCase()}${key.slice(1)}`] = String(value);
       publishLampDiagnostics(lamps);
-      const banner = new BannerPreparation({
+      for (const [key, value] of Object.entries(banner.receipt()))
+        status.dataset[`banner${key[0].toUpperCase()}${key.slice(1)}`] = String(value);
+      const stripe = new StripePreparation({
         scene: currentScene.scene,
         track: owner.simulation.track,
         context,
@@ -363,22 +351,22 @@ function rebuildScene(owner: SimulationComponent) {
         schedule: presentation,
         isCurrent: () => !stopped && scene === currentScene && !restartOwnership.pending,
       });
-      bannerPreparation = banner;
-      await banner.completion;
+      stripePreparation = stripe;
+      await stripe.completion;
       if (
         stopped ||
         currentOwner.signal.aborted ||
         scene !== currentScene ||
         restartOwnership.pending ||
-        bannerPreparation !== banner ||
-        !banner.completed
+        stripePreparation !== stripe ||
+        !stripe.completed
       )
         return;
-      for (const [key, value] of Object.entries(banner.receipt()))
-        status.dataset[`banner${key[0].toUpperCase()}${key.slice(1)}`] = String(value);
+      for (const [key, value] of Object.entries(stripe.receipt()))
+        status.dataset[`stripe${key[0].toUpperCase()}${key.slice(1)}`] = String(value);
       requestPresentation();
       loadAsset.disabled = false;
-      assetStatus.textContent = `Original car is optional. Paint, dry asphalt and grounding are active${gantry.eligible ? '; Aurel gantry, snapshot-driven lamps and printed banner ready' : ''}. Practice lamps stay dark; bloom and full environment parity remain unported.`;
+      assetStatus.textContent = `Original car is optional. Paint, dry asphalt and grounding are active${gantry.eligible ? '; Aurel gantry, snapshot-driven lamps, printed banner and start/finish stripe ready' : ''}. Practice lamps stay dark; bloom and full environment parity remain unported.`;
     })
     .catch((error) => {
       if (currentOwner.signal.aborted || stopped || scene !== currentScene) return;
@@ -449,9 +437,10 @@ try {
         !surfacePreparation?.completed
       )
         return;
-      if (!gantryPreparation?.completed) return;
-      if (!lampPreparation?.completed) return;
-      if (!bannerPreparation?.completed) return;
+      if (!environmentPreparation?.gantry?.completed) return;
+      if (!environmentPreparation?.lamps?.completed) return;
+      if (!environmentPreparation?.banner?.completed) return;
+      if (!stripePreparation?.completed) return;
       const currentScene = scene!,
         owner = assetLoad;
       const deadline = performance.now() + 120000;
@@ -621,9 +610,8 @@ try {
         // Rebuild may have claimed the preparation lane since the outer ready check.
         if (
           !polled.deferSubmission &&
-          (!bannerPreparation || bannerPreparation.canDraw) &&
-          (!lampPreparation || lampPreparation.canDraw) &&
-          (!gantryPreparation || gantryPreparation.canDraw)
+          (!environmentPreparation || environmentPreparation.canDraw) &&
+          (!stripePreparation || stripePreparation.canDraw)
         )
           if (!graphicsRecovery.restartRequired && surfacePreparation?.canDraw && gpu!.ready())
             gpu!.frame(presentation, paused, scene!.scene, () => {
@@ -631,15 +619,20 @@ try {
                 assetStatus.dataset.steering = String(playerSteering.apply(component.frame));
               if (playerWheels)
                 assetStatus.dataset.wheelPhase = String(playerWheels.apply(component.frame));
-              lampPreparation?.apply(component.frame);
-              if (lampPreparation?.completed) publishLampDiagnostics(lampPreparation);
+              environmentPreparation?.lamps?.apply(component.frame);
+              if (environmentPreparation?.lamps?.completed)
+                publishLampDiagnostics(environmentPreparation?.lamps);
               const readyBefore = scene!.scene.isReady();
               scene!.render(component.frame);
               const readyAfter = scene!.scene.isReady();
               presentation.rendered(readyBefore, readyAfter);
-              const gantryReady = readyBefore && readyAfter && !!gantryPreparation?.completed;
+              const gantryReady =
+                readyBefore && readyAfter && !!environmentPreparation?.gantry?.completed;
               status.dataset.sceneReady = String(
-                gantryReady && !!lampPreparation?.completed && !!bannerPreparation?.completed,
+                gantryReady &&
+                  !!environmentPreparation?.lamps?.completed &&
+                  !!environmentPreparation?.banner?.completed &&
+                  !!stripePreparation?.completed,
               );
               return readyBefore && readyAfter;
             });
@@ -654,9 +647,11 @@ try {
         paused &&
           !restartOwnership.pending &&
           !!surfacePreparation?.completed &&
-          !!gantryPreparation?.completed &&
-          !!lampPreparation?.completed &&
-          !!bannerPreparation?.completed &&
+          !!environmentPreparation?.completed &&
+          !!environmentPreparation?.gantry?.completed &&
+          !!environmentPreparation?.lamps?.completed &&
+          !!environmentPreparation?.banner?.completed &&
+          !!stripePreparation?.completed &&
           !graphicsRecovery.restartRequired &&
           !resizePending &&
           !presentation.pending &&

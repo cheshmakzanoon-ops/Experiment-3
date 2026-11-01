@@ -360,6 +360,95 @@ describe('banner readiness observation boundary', () => {
   });
 });
 
+describe('stripe readiness observation boundary', () => {
+  const stripe = {
+    stripeState: 'ready',
+    stripeParts: '1',
+    stripeMaterials: '1',
+    stripeTextures: '1',
+    stripeTriangles: '2',
+    stripeWidth: '256',
+    stripeHeight: '64',
+    stripeHardwareSrgb: '1',
+  };
+  it.each(['0', '1'])(
+    'preserves actual stripe raw fields and owner state, including hardware sRGB %s',
+    (hardware) => {
+      const owner = Object.freeze({ exists: true, completed: true, canDraw: true, errors: [] });
+      install(
+        {
+          ...stripe,
+          stripeHardwareSrgb: hardware,
+          presentationSettled: 'false',
+          renderedFrames: '10',
+          completedFrames: '10',
+        },
+        { settled: true, readiness: { owners: { stripe: owner } } },
+      );
+      const observed = readNativeBabylonReadiness();
+      const normalized = normalizeNativeBabylonReadiness(observed);
+      expect(observed.dom.data).toMatchObject({ ...stripe, stripeHardwareSrgb: hardware });
+      expect(normalized?.dom.data).toMatchObject({ ...stripe, stripeHardwareSrgb: hardware });
+      expect(observed.graphics).toMatchObject({ readiness: { owners: { stripe: owner } } });
+      expect(normalized?.graphics).toMatchObject({ readiness: { owners: { stripe: owner } } });
+      // Stripe/GPU availability cannot substitute for the unchanged DOM predicate.
+      expect(observed.predicate.ready).toBe(false);
+      expect(normalized?.predicate.ready).toBe(false);
+    },
+  );
+  it('keeps absent stripe fields and owner unknown instead of inventing zero counts or readiness', () => {
+    install({}, { readiness: { owners: {} } });
+    const observed = readNativeBabylonReadiness();
+    const normalized = normalizeNativeBabylonReadiness(observed);
+    for (const key of Object.keys(stripe)) {
+      expect(observed.dom.data[key]).toBeNull();
+      expect(normalized?.dom.data[key]).toBeNull();
+    }
+    expect(observed.graphics).toMatchObject({ readiness: { owners: { stripe: null } } });
+    expect(normalized?.graphics).toMatchObject({ readiness: { owners: { stripe: null } } });
+  });
+  it('does not broaden strict host acceptance beyond stripe scalar fields and owner diagnostics', () => {
+    install(stripe, {
+      readiness: {
+        owners: { stripe: { exists: true, completed: false, canDraw: true, errors: [] } },
+      },
+    });
+    const observed = readNativeBabylonReadiness();
+    const getter = vi.fn(() => '1');
+    const data = { ...observed.dom.data };
+    Object.defineProperty(data, 'stripeParts', { get: getter });
+    expect(
+      normalizeNativeBabylonReadiness({ ...observed, dom: { ...observed.dom, data } }),
+    ).toBeNull();
+    expect(getter).not.toHaveBeenCalled();
+    expect(
+      normalizeNativeBabylonReadiness({
+        ...observed,
+        dom: { ...observed.dom, data: { ...observed.dom.data, stripeHardwareSrgb: true } },
+      }),
+    ).toBeNull();
+    const normalized = normalizeNativeBabylonReadiness({
+      ...observed,
+      dom: { ...observed.dom, data: { ...observed.dom.data, stripeSecret: 'drop' } },
+      graphics: {
+        readiness: {
+          owners: {
+            stripe: { exists: true, completed: false, canDraw: true, errors: [], resource: {} },
+          },
+        },
+      },
+    });
+    expect(normalized?.dom.data).not.toHaveProperty('stripeSecret');
+    expect(normalized?.graphics).toMatchObject({
+      readiness: { owners: { stripe: { exists: true, completed: false, canDraw: true } } },
+    });
+    expect(
+      (normalized?.graphics as { readiness: { owners: { stripe: object } } }).readiness.owners
+        .stripe,
+    ).not.toHaveProperty('resource');
+  });
+});
+
 describe('bounded native readiness history', () => {
   it('retains clock brackets verbatim without reading clocks, setting timers or resetting budgets', () => {
     const history = createNativeReadinessHistory({ maxEntries: 2 });

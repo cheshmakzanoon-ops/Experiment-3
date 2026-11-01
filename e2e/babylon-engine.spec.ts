@@ -11,6 +11,14 @@ const surfaceKeys = [
   'bannerWidth',
   'bannerHeight',
   'bannerHardwareSrgb',
+  'stripeState',
+  'stripeParts',
+  'stripeMaterials',
+  'stripeTextures',
+  'stripeTriangles',
+  'stripeWidth',
+  'stripeHeight',
+  'stripeHardwareSrgb',
   'lampState',
   'lampParts',
   'lampMaterials',
@@ -51,6 +59,17 @@ async function expectOriginalStartBanner(page: Page) {
   await expect(status).toHaveAttribute('data-banner-height', '128');
   await expect(status).toHaveAttribute('data-banner-hardware-srgb', '1');
 }
+async function expectOriginalStartStripe(page: Page) {
+  const status = page.locator('#status');
+  await expect(status).toHaveAttribute('data-stripe-state', 'ready');
+  await expect(status).toHaveAttribute('data-stripe-parts', '1');
+  await expect(status).toHaveAttribute('data-stripe-materials', '1');
+  await expect(status).toHaveAttribute('data-stripe-textures', '1');
+  await expect(status).toHaveAttribute('data-stripe-triangles', '2');
+  await expect(status).toHaveAttribute('data-stripe-width', '128');
+  await expect(status).toHaveAttribute('data-stripe-height', '32');
+  await expect(status).toHaveAttribute('data-stripe-hardware-srgb', '1');
+}
 async function expectOriginalStartLamps(page: Page) {
   const status = page.locator('#status');
   await expect(status).toHaveAttribute('data-lamp-state', 'ready');
@@ -87,6 +106,7 @@ async function expectOriginalAurelSurface(page: Page) {
   await expect(status).toHaveAttribute('data-gantry-sha256', gantryManifest.sha256);
   await expectOriginalStartLamps(page);
   await expectOriginalStartBanner(page);
+  await expectOriginalStartStripe(page);
   await expect(status).toHaveAttribute('data-scene-ready', 'true');
   expect(Number(await status.getAttribute('data-completed-frames'))).toBeGreaterThanOrEqual(2);
   await expect(page.locator('#loadAsset')).toBeEnabled();
@@ -170,7 +190,8 @@ test('Babylon migration entry renders existing simulation and supports pause, re
     'height',
     'hardware-srgb',
   ])
-    await expect(status).not.toHaveAttribute(`data-banner-${key}`);
+    for (const prefix of ['banner', 'stripe'])
+      await expect(status).not.toHaveAttribute(`data-${prefix}-${key}`);
   for (const key of ['state', 'parts', 'materials', 'triangles', 'lights'])
     await expect(status).not.toHaveAttribute(`data-lamp-${key}`);
   await expect(status).toHaveAttribute('data-scene-ready', 'false');
@@ -228,6 +249,14 @@ test('Babylon completes original environment startup while paused before gantry 
         'bannerWidth',
         'bannerHeight',
         'bannerHardwareSrgb',
+        'stripeState',
+        'stripeParts',
+        'stripeMaterials',
+        'stripeTextures',
+        'stripeTriangles',
+        'stripeWidth',
+        'stripeHeight',
+        'stripeHardwareSrgb',
         'sceneReady',
         'presentationSettled',
         'completedFrames',
@@ -270,6 +299,7 @@ test('Babylon completes original environment startup while paused before gantry 
     await expect(status).not.toHaveAttribute('data-gantry-state');
     await expect(status).not.toHaveAttribute('data-lamp-state');
     await expect(status).not.toHaveAttribute('data-banner-state');
+    await expect(status).not.toHaveAttribute('data-stripe-state');
     await page.getByRole('button', { name: 'Pause', exact: true }).click();
     await expect(status).toContainText('PAUSED');
     const tick = async () => Number((await status.textContent())?.match(/tick (\d+)/)?.[1] ?? -1);
@@ -334,6 +364,7 @@ test('Babylon imports the existing authored Formula asset and restart cancels ob
   await expect(page.locator('#status')).toHaveAttribute('data-surface-paint-chunks', '76');
   await expectOriginalStartLamps(page);
   await expectOriginalStartBanner(page);
+  await expectOriginalStartStripe(page);
   const driverSteering = async () =>
     Number(await page.locator('#assetStatus').getAttribute('data-steering'));
   await page.keyboard.down('a');
@@ -371,6 +402,7 @@ test('Babylon imports the existing authored Formula asset and restart cancels ob
   await expect(page.locator('#status')).toHaveAttribute('data-presentation-settled', 'true');
   await expectOriginalStartLamps(page);
   await expectOriginalStartBanner(page);
+  await expectOriginalStartStripe(page);
   const frozenWheel = await wheelPhase();
   const frozenDriver = await driverSteering();
   await page.waitForTimeout(300);
