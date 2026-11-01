@@ -1,16 +1,11 @@
 import * as T from 'three';
 import { TAU } from '../../core/math.ts';
+import { F, H, R, RACE_BASE, carBase } from '../../simulation/protocol.ts';
 import {
-  F,
-  H,
-  R,
-  RACE_BASE,
-  W,
-  WHEEL_BASE,
-  WHEEL_STRIDE,
-  carBase,
-} from '../../simulation/protocol.ts';
-import { WHEEL_POSITIONS } from '../../simulation/vehicle.ts';
+  FORMULA_GROUNDING_MAX_CARS,
+  formulaGroundingCarCount,
+  writeFormulaGroundingPose,
+} from '../../engine/assets/formula-grounding.ts';
 import { vehicleAt } from '../../simulation/vehicles.ts';
 import { GpTyreContactProjector } from '../gp-tyre-contacts.ts';
 import { renderWind } from '../../simulation/weather.ts';
@@ -57,7 +52,7 @@ import { injectDeclarations, type ShaderStage, type StudioShader } from './shade
  * be gated to the main scene pass by the consumer.
  */
 
-export const STUDIO_MAX_CARS = 12;
+export const STUDIO_MAX_CARS = FORMULA_GROUNDING_MAX_CARS;
 export const STUDIO_CAR_HALF_EXTENTS = Object.freeze({ length: 2.8, width: 1.0 });
 /** A forward presented-time jump longer than this is a seek, not motion. */
 export const STUDIO_SEEK_SECONDS = 2;
@@ -241,7 +236,7 @@ export class StudioFrame {
   ) {
     const u = this.uniforms;
     const time = presented[H.TIME];
-    const cars = Math.min(STUDIO_MAX_CARS, Math.max(0, Math.floor(presented[H.CARS] || 0)));
+    const cars = formulaGroundingCarCount(presented[H.CARS]);
     if (!Number.isFinite(time)) throw new Error('Invalid studio frame time');
     const aspect = (camera as T.PerspectiveCamera).aspect ?? 1;
     const elapsed = time - this.time;
@@ -307,42 +302,27 @@ export class StudioFrame {
       const reach = 2 + 2 * Math.abs(presented[o + F.SPEED]) * elapsed;
       prev.copy(advancing && id < this.cars && jump <= reach ? last : now);
       last.copy(now);
-      this.point.set(0, 0, 1).applyQuaternion(this.quaternion);
-      const heading = Math.atan2(this.point.x, this.point.z);
       const definition = vehicleAt(Math.round(presented[o + RACE_BASE + R.VEHICLE]));
-      const ground =
-        definition.classId === 'gp-bike' && definition.bike
-          ? this.gpContacts.project(
-              presented,
-              o,
-              definition,
-              this.position,
-              this.quaternion,
-              heading,
-              gpFront,
-              gpRear,
-              gpShape,
-            )
-          : this.groundHeight(presented, o);
-      pose.set(this.position.x, this.position.z, heading, ground);
+      if (definition.classId === 'gp-bike' && definition.bike) {
+        this.point.set(0, 0, 1).applyQuaternion(this.quaternion);
+        const heading = Math.atan2(this.point.x, this.point.z);
+        const ground = this.gpContacts.project(
+          presented,
+          o,
+          definition,
+          this.position,
+          this.quaternion,
+          heading,
+          gpFront,
+          gpRear,
+          gpShape,
+        );
+        pose.set(this.position.x, this.position.z, heading, ground);
+      } else {
+        writeFormulaGroundingPose(presented, o, this.position, this.quaternion, pose);
+      }
     }
     this.cars = cars;
-  }
-
-  /** Mean world height of the four presented tyre contacts. */
-  private groundHeight(presented: Float32Array, o: number) {
-    let sum = 0;
-    for (let wheel = 0; wheel < 4; wheel++) {
-      const p = o + WHEEL_BASE + wheel * WHEEL_STRIDE,
-        mount = WHEEL_POSITIONS[wheel];
-      const length = presented[p + W.LENGTH] || 0.25,
-        radius = presented[p + W.RADIUS] || 0.335;
-      this.point
-        .set(mount[0], mount[1] - length - radius, mount[2])
-        .applyQuaternion(this.quaternion);
-      sum += this.position.y + this.point.y;
-    }
-    return sum / 4;
   }
 
   diagnostics() {

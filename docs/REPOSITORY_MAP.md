@@ -74,3 +74,6 @@ The compact [current status](CURRENT_STATUS.md) lists present gates; [developmen
 - Live material ownership/readiness evidence and limitations: [dry asphalt integration](maintenance/babylon-live-dry-asphalt-2026-11-01.md).
 
 - `scripts/offline-gpu-structure-*` and matching tests: offline-only fixed structural query and private bounded processor. No application/workflow capture integration. [Qualification and limits](maintenance/offline-gpu-structural-route-2026-11-01.md).
+
+- `src/engine/assets/formula-grounding.ts`: original Formula grounding constants and presented-pose calculation, with original renderer compatibility. No live Babylon grounding yet. [Boundary and oracle](maintenance/formula-grounding-data-2026-11-01.md).
+- `docs/experiments/motion-projection-22-stage3-results/`: complete strict/off-road validation and all 74 entrant comparisons; the unexplained Arena regression keeps the source unapplied.
