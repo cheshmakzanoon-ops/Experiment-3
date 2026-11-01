@@ -7,6 +7,7 @@ import { Scene } from '@babylonjs/core/scene.js';
 import { VertexData } from '@babylonjs/core/Meshes/mesh.vertexData.js';
 import type { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh.js';
 import { PBRMaterial } from '@babylonjs/core/Materials/PBR/pbrMaterial.js';
+import { Material } from '@babylonjs/core/Materials/material.js';
 import { PresentationSchedule } from '../src/engine/babylon/presentation-schedule.ts';
 import { createBabylonStartLamps } from '../src/engine/babylon/start-lamps.ts';
 import { CircuitScene } from '../src/rendering/circuit.ts';
@@ -166,6 +167,81 @@ describe('A07 original start lamps (NullEngine CPU contracts, not GPU/pixel pari
       expect(new Set(d.parts.map((p) => p.material)).size).toBe(5);
       expect(opts.scene.lights).toHaveLength(0);
       expect(opts.scene.environmentTexture).toBeNull();
+    } finally {
+      owner.dispose();
+      ref.dispose();
+    }
+  });
+
+  it('preserves original outward cap winding through native effective orientation and pre-bind culling', async () => {
+    const opts = options(),
+      ref = original(opts.track),
+      owner = await createBabylonStartLamps(opts, prepared);
+    const state = vi.spyOn(opts.scene.getEngine(), 'setState');
+    try {
+      for (const { index, mesh, material } of owner.diagnostics().parts) {
+        const source = ref.lamps[index];
+        expect(source.material.side).toBe(T.FrontSide);
+        expect(source.matrixWorld.determinant()).toBeCloseTo(1, 10);
+        // Positive rigid placement needs no determinant-induced orientation flip.
+        expect(mesh.computeWorldMatrix(true).determinant()).toBeGreaterThan(0);
+        const positions = source.geometry.getAttribute('position');
+        const normals = source.geometry.getAttribute('normal');
+        const indices = source.geometry.index!;
+        const caps = { near: 0, far: 0 };
+        for (let triangle = 0; triangle < indices.count; triangle += 3) {
+          const ids = [0, 1, 2].map((corner) => indices.getX(triangle + corner));
+          const vertices = ids.map((id) => new T.Vector3().fromBufferAttribute(positions, id));
+          const normal = new T.Vector3().fromBufferAttribute(normals, ids[0]);
+          const cross = vertices[1]
+            .clone()
+            .sub(vertices[0])
+            .cross(vertices[2].clone().sub(vertices[0]));
+          // The unchanged index order is CCW when viewed from the authored normal.
+          expect(cross.dot(normal)).toBeGreaterThan(0);
+          if (Math.abs(normal.y) !== 1) continue;
+          const near = normal.y === -1;
+          caps[near ? 'near' : 'far']++;
+          for (const vertex of vertices) {
+            expect(vertex.y).toBeCloseTo(near ? -0.04 : 0.04, 7);
+            expect(vertex.clone().applyMatrix4(source.matrix).z).toBeCloseTo(
+              near ? -0.34 : -0.26,
+              7,
+            );
+          }
+          const localNormal = normal.clone().transformDirection(source.matrix);
+          expect(localNormal.z).toBeCloseTo(near ? -1 : 1, 10);
+          const worldVertices = vertices.map((vertex) =>
+            vertex.clone().applyMatrix4(source.matrixWorld),
+          );
+          const worldCross = worldVertices[1]
+            .clone()
+            .sub(worldVertices[0])
+            .cross(worldVertices[2].clone().sub(worldVertices[0]));
+          expect(
+            worldCross.dot(normal.clone().transformDirection(source.matrixWorld)),
+          ).toBeGreaterThan(0);
+        }
+        expect(caps).toEqual({ near: 20, far: 20 });
+        expect(material.backFaceCulling).toBe(true);
+        expect(material.cullBackFaces).toBe(true);
+        expect(material.sideOrientation).toBeNull();
+        const orientation = material._getEffectiveOrientation(mesh);
+        state.mockClear();
+        const reverse = material._preBind(undefined, orientation);
+        // Exercise the native binding path, not just the configured mesh property.
+        expect(reverse).toBe(false);
+        expect(state).toHaveBeenCalledWith(
+          true,
+          material.zOffset,
+          false,
+          false,
+          true,
+          material.stencil,
+          material.zOffsetUnits,
+        );
+        expect(orientation).toBe(Material.CounterClockWiseSideOrientation);
+      }
     } finally {
       owner.dispose();
       ref.dispose();

@@ -3,6 +3,9 @@ import { UniversalCamera } from '@babylonjs/core/Cameras/universalCamera.js';
 import { Camera } from '@babylonjs/core/Cameras/camera.js';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector.js';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight.js';
+import { Material } from '@babylonjs/core/Materials/material.js';
+import { MaterialPluginBase } from '@babylonjs/core/Materials/materialPluginBase.js';
+import type { UniformBuffer } from '@babylonjs/core/Materials/uniformBuffer.js';
 import { PBRMaterial } from '@babylonjs/core/Materials/PBR/pbrMaterial.js';
 import type { Effect } from '@babylonjs/core/Materials/effect.js';
 import type { WebGLPipelineContext } from '@babylonjs/core/Engines/WebGL/webGLPipelineContext.js';
@@ -11,7 +14,11 @@ import { DEFAULT_OPTIONS } from '../../src/simulation/config.ts';
 import { H } from '../../src/simulation/protocol.ts';
 import { trackPoint } from '../../src/simulation/track.ts';
 import { loadBabylonStartGantry } from '../../src/engine/babylon/start-gantry.ts';
-import { cleanupPresentation } from '../../src/engine/babylon/presentation-gpu.ts';
+import {
+  BabylonPresentationGpu,
+  cleanupPresentation,
+} from '../../src/engine/babylon/presentation-gpu.ts';
+import { PresentationSchedule } from '../../src/engine/babylon/presentation-schedule.ts';
 import { createBabylonStartLamps } from '../../src/engine/babylon/start-lamps.ts';
 import {
   prepareOriginalMaterials,
@@ -26,6 +33,44 @@ const equal = (a: ArrayLike<number>, b: ArrayLike<number>) =>
   a.length === b.length && Array.from(a).every((n, i) => n === b[i]);
 const close = (a: ArrayLike<number>, b: ArrayLike<number>) =>
   a.length === b.length && Array.from(a).every((n, i) => Math.abs(n - b[i]) < 1e-6);
+
+/** Fixture-local output after native normal processing, not a lighting oracle. */
+class LampCapFactors extends MaterialPluginBase {
+  mode = 0;
+  constructor(material: PBRMaterial) {
+    super(material, 'IsolatedLampCapFactors', 300, { LAMP_CAP_FACTORS: true }, true, false);
+    this.registerForExtraEvents = true;
+    this._enable(true);
+  }
+  getUniforms() {
+    return {
+      ubo: [
+        { name: 'lampCapMode', size: 1, type: 'float' },
+        { name: 'lampCapView', size: 16, type: 'mat4' },
+      ],
+      fragment: 'uniform float lampCapMode; uniform mat4 lampCapView;',
+    };
+  }
+  hardBindForSubMesh(buffer: UniformBuffer) {
+    buffer.updateFloat('lampCapMode', this.mode);
+    buffer.updateMatrix('lampCapView', this._material.getScene().getViewMatrix());
+  }
+  getCustomCode(type: string): Record<string, string> | null {
+    return type === 'vertex'
+      ? {
+          CUSTOM_VERTEX_DEFINITIONS: 'varying float lampOriginalAxial;',
+          CUSTOM_VERTEX_MAIN_BEGIN: 'lampOriginalAxial=position.y;',
+        }
+      : type === 'fragment'
+        ? {
+            CUSTOM_FRAGMENT_DEFINITIONS: 'varying float lampOriginalAxial; vec3 lampViewNormal;',
+            CUSTOM_FRAGMENT_BEFORE_LIGHTS: 'lampViewNormal=normalize(mat3(lampCapView)*normalW);',
+            CUSTOM_FRAGMENT_MAIN_END:
+              'gl_FragColor=vec4(lampCapMode<.5 ? vec3(clamp(.5+lampOriginalAxial/.08,0.,1.)) : lampViewNormal*.5+.5,1.);',
+          }
+        : null;
+  }
+}
 
 export const originalLampSourceSha256 =
   'd11fbbbb5dd7efc427dc230da026dfe8e33f0f6aad191f282de5704248f948bc';
@@ -159,6 +204,276 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
   const receipts: object[] = [],
     rows: object[] = [],
     images: { name: string; image: string }[] = [];
+  const capProof = async (
+    parts: ReturnType<Awaited<ReturnType<typeof createBabylonStartLamps>>['diagnostics']>['parts'],
+  ) => {
+    const canvas = document.createElement('canvas');
+    document.body.append(canvas);
+    const renderer = new T.WebGLRenderer({
+      canvas,
+      antialias: false,
+      alpha: true,
+      preserveDrawingBuffer: true,
+    });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(1);
+    renderer.setClearColor(0, 0);
+    const gl = renderer.getContext() as WebGL2RenderingContext;
+    const gpu = new BabylonPresentationGpu(gl),
+      schedule = new PresentationSchedule();
+    canvas.addEventListener(
+      'webglcontextlost',
+      (event) => {
+        event.preventDefault();
+        gpu.contextLost();
+        h.abort.abort(new Error('Lamp reference context lost'));
+      },
+      { signal: h.abort.signal },
+    );
+    const scene = new T.Scene(),
+      referenceCamera = new T.OrthographicCamera();
+    referenceCamera.matrixAutoUpdate = false;
+    referenceCamera.matrixWorldAutoUpdate = false;
+    const mode = { value: 0 };
+    const materials = originals.map((original) => {
+      const material = original.material.clone();
+      material.onBeforeCompile = (shader) => {
+        shader.uniforms.lampCapMode = mode;
+        shader.vertexShader =
+          'varying float lampOriginalAxial;\n' +
+          shader.vertexShader.replace(
+            '#include <begin_vertex>',
+            '#include <begin_vertex>\nlampOriginalAxial=position.y;',
+          );
+        shader.fragmentShader =
+          'varying float lampOriginalAxial; uniform float lampCapMode;\n' +
+          shader.fragmentShader.replace(
+            '#include <dithering_fragment>',
+            '#include <dithering_fragment>\ngl_FragColor=vec4(lampCapMode<.5 ? vec3(clamp(.5+lampOriginalAxial/.08,0.,1.)) : normalize(normal)*.5+.5,1.);',
+          );
+      };
+      material.customProgramCacheKey = () => 'isolated-original-lamp-cap-factors';
+      const mesh = new T.Mesh(original.geometry, material);
+      mesh.matrixAutoUpdate = false;
+      mesh.matrix.fromArray(new Float32Array(original.matrixWorld.elements));
+      scene.add(mesh);
+      return material;
+    });
+    const orientation = parts.map((p) => p.mesh.sideOrientation);
+    const referenceFrame = async () => {
+      const completed = gpu.diagnostics().completed;
+      while (gpu.diagnostics().completed < completed + 2) {
+        h.abort.signal.throwIfAborted();
+        gpu.ready();
+        if (gpu.diagnostics().completed >= completed + 2) break;
+        gpu.frame(schedule, false, scene, () => {
+          renderer.render(scene, referenceCamera);
+          return true;
+        });
+        await yieldPreparationTurn(h.abort.signal, deadline);
+      }
+      let result!: { pixels: Uint8Array; image: string; error: number };
+      await gpu.prepare('Original cylinder reference readback', deadline, async () => {
+        const pixels = new Uint8Array(width * height * 4);
+        gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+        result = { pixels, image: canvas.toDataURL('image/png'), error: gl.getError() };
+      });
+      return result;
+    };
+    let capFailure: unknown;
+    let capFailed = false;
+    try {
+      const plugins = await lease('Install isolated lamp cap factor outputs', async () =>
+        parts.map((p) => new LampCapFactors(p.material)),
+      );
+      await prepareOriginalMaterials(
+        { scene: h.scene, meshes: parts.map((p) => p.mesh) },
+        h.gpu,
+        h.abort.signal,
+        deadline,
+        () => {},
+      );
+      for (const view of ['front', 'rear'] as const) {
+        camera.position.copyFrom(world(0, 4.95, view === 'front' ? -8 : 8));
+        camera.setTarget(world(0, 4.95, -0.3));
+        camera.getViewMatrix(true);
+        camera.getProjectionMatrix(true);
+        referenceCamera.projectionMatrix.fromArray(camera.getProjectionMatrix().asArray());
+        referenceCamera.projectionMatrixInverse.copy(referenceCamera.projectionMatrix).invert();
+        referenceCamera.matrixWorldInverse.fromArray(camera.getViewMatrix().asArray());
+        referenceCamera.matrixWorld.copy(referenceCamera.matrixWorldInverse).invert();
+        for (const stage of [0, 1]) {
+          mode.value = stage;
+          plugins.forEach((p) => (p.mode = stage));
+          const row = {
+            stage: stage === 0 ? 'original-local-axial-position' : 'view-space-normal',
+            view,
+            referenceExact: false,
+            referenceErrors: [] as number[],
+            samples: [] as object[],
+            negativeSamples: [] as object[],
+            errors: [] as number[],
+            nativeDraws: [] as object[],
+            negativeDraws: [] as object[],
+          };
+          receipts.push({ capProof: row });
+          const reference = await referenceFrame(),
+            repeat = await referenceFrame();
+          row.referenceExact = equal(reference.pixels, repeat.pixels);
+          row.referenceErrors = [reference.error, repeat.error];
+          requireValue(
+            row.referenceExact && row.referenceErrors.every((n) => n === 0),
+            'Original cylinder reference did not repeat exactly',
+          );
+          const capture = async (negativeControl: boolean) => {
+            let owned = false;
+            const draws = new Map<
+              number,
+              { index: number; frontFace: number; culling: boolean; cullMode: number }
+            >();
+            const observers = parts.map((part) =>
+              part.mesh.onAfterRenderObservable.add(() => {
+                requireValue(owned, 'Cap facing callback outside owned draw');
+                draws.set(part.index, {
+                  index: part.index,
+                  frontFace: h.gl.getParameter(h.gl.FRONT_FACE) as number,
+                  culling: h.gl.isEnabled(h.gl.CULL_FACE),
+                  cullMode: h.gl.getParameter(h.gl.CULL_FACE_MODE) as number,
+                });
+              }),
+            );
+            try {
+              await h.presented(() => {
+                owned = true;
+                try {
+                  h.scene.render();
+                } finally {
+                  owned = false;
+                }
+              });
+              return await lease('Lamp cap factor pixels', async () => {
+                const result = h.capture();
+                const receipt = Array.from(draws.values());
+                if (negativeControl) row.negativeDraws = receipt;
+                else row.nativeDraws = receipt;
+                row.errors.push(h.gl.getError());
+                requireValue(
+                  receipt.length === 5 &&
+                    receipt.every(
+                      (d) =>
+                        d.frontFace === (negativeControl ? h.gl.CW : h.gl.CCW) &&
+                        d.culling &&
+                        d.cullMode === h.gl.BACK,
+                    ),
+                  'Cap draw winding/culling state differs',
+                );
+                return result;
+              });
+            } finally {
+              parts.forEach((part, i) => part.mesh.onAfterRenderObservable.remove(observers[i]));
+            }
+          };
+          const native = await capture(false);
+          // Deliberate pre-fix orientation only; never change geometry, UVs,
+          // camera, source normals or culling. Restore even if a witness fails.
+          let negative: typeof native;
+          try {
+            parts.forEach((p) => (p.mesh.sideOrientation = Material.ClockWiseSideOrientation));
+            negative = await capture(true);
+          } finally {
+            parts.forEach((p, i) => (p.mesh.sideOrientation = orientation[i]));
+          }
+          images.push(
+            { name: `cap-${view}-${row.stage}-three`, image: reference.image },
+            { name: `cap-${view}-${row.stage}-babylon`, image: native.image },
+            { name: `cap-${view}-${row.stage}-old-cw`, image: negative.image },
+          );
+          for (const part of parts) {
+            const center = Vector3.Project(
+              Vector3.Zero(),
+              part.mesh.getWorldMatrix(),
+              h.scene.getTransformMatrix(),
+              camera.viewport.toGlobal(width, height),
+            );
+            const x = Math.round(center.x),
+              y = height - 1 - Math.round(center.y);
+            requireValue(
+              x >= 2 && y >= 2 && x < width - 2 && y < height - 2,
+              'Lamp cap patch outside frame',
+            );
+            let max = 0,
+              negativeMinimum = 255,
+              opaque = true;
+            const expected: number[] = [],
+              actual: number[] = [],
+              old: number[] = [];
+            for (let dy = -2; dy <= 2; dy++)
+              for (let dx = -2; dx <= 2; dx++) {
+                const offset = ((y + dy) * width + x + dx) * 4;
+                opaque &&=
+                  reference.pixels[offset + 3] === 255 &&
+                  native.pixels[offset + 3] === 255 &&
+                  negative.pixels[offset + 3] === 255;
+                for (let channel = 0; channel < 3; channel++)
+                  max = Math.max(
+                    max,
+                    Math.abs(native.pixels[offset + channel] - reference.pixels[offset + channel]),
+                  );
+                const channel = stage === 0 ? 0 : 2;
+                negativeMinimum = Math.min(
+                  negativeMinimum,
+                  Math.abs(negative.pixels[offset + channel] - reference.pixels[offset + channel]),
+                );
+                expected.push(reference.pixels[offset + channel]);
+                actual.push(native.pixels[offset + channel]);
+                old.push(negative.pixels[offset + channel]);
+              }
+            row.samples.push({
+              index: part.index,
+              opaque,
+              max,
+              expected,
+              actual,
+              axialUnitsPerCode: stage === 0 ? 0.08 / 255 : null,
+            });
+            row.negativeSamples.push({ index: part.index, negativeMinimum, old });
+            // Preregistered: <=2 RGBA8 codes from independent pipeline rounding.
+            // Central 5x5 patches are geometrically inside both planar caps;
+            // no difference-selected mask. Old CW must expose opposite cap:
+            // 255-code axial difference = original .08-unit cylinder height.
+            requireValue(
+              opaque && max <= 2,
+              `Lamp ${part.index} ${view}/${row.stage} differs from original visible cap`,
+            );
+            requireValue(
+              negativeMinimum >= 250,
+              `Old-CW control did not expose opposite ${view}/${row.stage} cap`,
+            );
+          }
+          requireValue(
+            row.errors.every((n) => n === 0),
+            'Lamp cap factor GL error',
+          );
+        }
+      }
+    } catch (error) {
+      capFailed = true;
+      capFailure = error;
+    } finally {
+      parts.forEach((p, i) => (p.mesh.sideOrientation = orientation[i]));
+      const errors = cleanupPresentation([
+        () => gpu.dispose(),
+        ...materials.map((m) => () => m.dispose()),
+        () => renderer.dispose(),
+        () => canvas.remove(),
+      ]);
+      if (!capFailed && errors.length) {
+        capFailed = true;
+        capFailure = errors[0];
+      }
+    }
+    if (capFailed) throw capFailure;
+  };
   let owner: Awaited<ReturnType<typeof createBabylonStartLamps>> | undefined;
   let structure: Awaited<ReturnType<typeof loadBabylonStartGantry>> | undefined;
   let failure: string | null = null,
@@ -340,6 +655,23 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
       const compiled = compileCalls,
         linked = linkCalls;
       let ownedDraw = false;
+      const drawCleanups: (() => void)[] = [];
+      const facingDraws = new Map<
+        number,
+        { frontFace: number; culling: boolean; cullMode: number; draws: number }
+      >();
+      for (const part of parts) {
+        const observer = part.mesh.onAfterRenderObservable.add(() => {
+          requireValue(ownedDraw, 'Lamp facing callback outside GPU-owned draw');
+          facingDraws.set(part.index, {
+            frontFace: h.gl.getParameter(h.gl.FRONT_FACE) as number,
+            culling: h.gl.isEnabled(h.gl.CULL_FACE),
+            cullMode: h.gl.getParameter(h.gl.CULL_FACE_MODE) as number,
+            draws: (facingDraws.get(part.index)?.draws ?? 0) + 1,
+          });
+        });
+        drawCleanups.push(() => part.mesh.onAfterRenderObservable.remove(observer));
+      }
       const standaloneDraws = new Map<
         number,
         { intensity: number[]; emission: number[]; currentProgram: boolean; draws: number }
@@ -356,7 +688,7 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
             // Pinned Mesh.render: _processRendering -> material.unbind ->
             // onAfterRenderObservable, before the next mesh. Queries are explicitly
             // guarded by this fixture's existing GPU-owned frame, never a timer.
-            part.mesh.onAfterRenderObservable.add(() => {
+            const observer = part.mesh.onAfterRenderObservable.add(() => {
               requireValue(ownedDraw, 'Lamp native uniform callback outside GPU-owned draw');
               const currentProgram = h.gl.getParameter(h.gl.CURRENT_PROGRAM) === program;
               requireValue(
@@ -370,6 +702,7 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
                 draws: (standaloneDraws.get(part.index)?.draws ?? 0) + 1,
               });
             });
+            drawCleanups.push(() => part.mesh.onAfterRenderObservable.remove(observer));
           }
         });
 
@@ -403,6 +736,7 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
             state: step.name,
             lights: step.frame[H.LIGHTS],
             uniforms: [] as object[],
+            facing: [] as object[],
             pixels: [] as number[],
             glError: -1,
             snapshotUnchanged: false,
@@ -413,6 +747,7 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
             linkCalls: linkCalls - linked,
           };
           receipts.push(row);
+          const priorFacing = parts.map((p) => facingDraws.get(p.index)?.draws ?? 0);
           const priorDraws = parts.map((p) => standaloneDraws.get(p.index)?.draws ?? 0);
           owner.apply(step.frame);
           row.snapshotUnchanged = equal(before, new Uint8Array(step.frame.buffer));
@@ -435,6 +770,16 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
           await lease('Original lamp native uniforms and pixels', async () => {
             const gl = h.gl;
             for (const part of parts) {
+              const facing = facingDraws.get(part.index);
+              row.facing.push({ index: part.index, ...facing });
+              requireValue(
+                facing &&
+                  facing.draws > priorFacing[part.index] &&
+                  facing.frontFace === gl.CCW &&
+                  facing.culling &&
+                  facing.cullMode === gl.BACK,
+                `Lamp ${part.index} lacks fresh CCW/back-culling draw evidence`,
+              );
               const effect = part.mesh.subMeshes[0]?.effect;
               const program = (effect?.getPipelineContext() as WebGLPipelineContext | null)
                 ?.program;
@@ -588,6 +933,8 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
           );
         }
       }
+      drawCleanups.forEach((cleanup) => cleanup());
+      if (cycle === 0) await capProof(parts);
       if (loseContext && cycle === 1) {
         const ext = await lease('Lamp context loss extension', async () =>
           h.gl.getExtension('WEBGL_lose_context'),
@@ -698,7 +1045,7 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
     failure,
     loss,
     scope:
-      'Original five cylinder lamps, native emission, authoritative snapshots and independent A07 structural co-presence; no banner, bloom, shadow or final PBR/environment parity',
+      'Original five cylinder lamps, original visible front/rear cap axial position and view normals, old-CW negative control, native emission, authoritative snapshots and independent A07 structural co-presence; no banner, bloom, shadow or final PBR/environment parity',
   };
 }
 export async function babylonStartLamps(forceStandalone = false, loseContext = false) {

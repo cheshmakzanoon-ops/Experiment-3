@@ -6,7 +6,7 @@ import { resolve } from 'node:path';
 import type { babylonStartLamps } from './fixtures/babylon-start-lamps.ts';
 
 for (const mode of ['native', 'standalone', 'context-loss'] as const)
-  test(`original five start lamps, snapshots and native emission (${mode}; not final PBR parity)`, async ({
+  test(`original five start lamps, visible caps, snapshots and native emission (${mode}; not final PBR parity)`, async ({
     page,
   }, info) => {
     expect(
@@ -64,7 +64,8 @@ for (const mode of ['native', 'standalone', 'context-loss'] as const)
     });
     expect(report.failure).toBeNull();
     expect(report.rows).toHaveLength(2);
-    expect(report.images).toHaveLength(6);
+    expect(report.receipts.filter((row) => 'capProof' in row)).toHaveLength(4);
+    expect(report.images).toHaveLength(18);
     expect(errors).toEqual([]);
     if (mode === 'standalone') expect(report.transport).toBe('standalone');
     if (mode === 'context-loss') expect(report.loss).toMatchObject({ lost: true, losses: 1 });
@@ -72,6 +73,7 @@ for (const mode of ['native', 'standalone', 'context-loss'] as const)
     if (mode === 'context-loss') {
       expect(report.restart?.failure).toBeNull();
       expect(report.restart?.rows).toHaveLength(2);
-      expect(report.restart?.images).toHaveLength(6);
+      expect(report.restart?.receipts.filter((row) => 'capProof' in row)).toHaveLength(4);
+      expect(report.restart?.images).toHaveLength(18);
     }
   });

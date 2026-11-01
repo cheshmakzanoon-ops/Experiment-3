@@ -3,6 +3,7 @@ import type { Scene } from '@babylonjs/core/scene.js';
 import { Mesh } from '@babylonjs/core/Meshes/mesh.js';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode.js';
 import { PBRMaterial } from '@babylonjs/core/Materials/PBR/pbrMaterial.js';
+import { Material } from '@babylonjs/core/Materials/material.js';
 import { Color3 } from '@babylonjs/core/Maths/math.color.js';
 import { Matrix } from '@babylonjs/core/Maths/math.vector.js';
 import { AUREL } from '../../simulation/circuits.ts';
@@ -160,6 +161,9 @@ export async function createBabylonStartLamps(
             originalRoot.add(source);
             source.updateWorldMatrix(true, false);
             const mesh = new Mesh(`original-start-lamp-${index}`, scene);
+            // Original Three indices are outward CCW; RH Babylon defaults to CW.
+            // Preserve FrontSide under this positive-determinant rigid placement.
+            mesh.sideOrientation = Material.CounterClockWiseSideOrientation;
             meshes.push(mesh);
             remember(
               mesh,

@@ -14,6 +14,8 @@ Migration development stays exclusively on **babylon-js**. Main is frozen at res
 
 ## Latest recorded qualification
 
+**Lamp facing correction:** the native default winding exposed far caps of retained Three cylinders. Explicit CCW preserves original faces without changing buffers/materials; a red-before native-prebind regression now passes. Earlier emission/startup passes did not establish face/normal parity. Strengthened real-GPU cap qualification is pending. [Evidence and scope](maintenance/babylon-procedural-facing-2026-11-01.md).
+
 **Original start lamps:** live `3a3e977` passed all 22 GPU journeys, the required aggregate gate and Windows/macOS installed-app plus four compatibility journeys. Actual lamp bindings report five parts/materials, 400 triangles and zero lit in practice. The early-paused startup receipt preserves tick 700 through readiness, then advances to 745 on resume. Linux reaches valid lamp/gantry readiness and the car but still fails later with GPU loss. [Evidence and remaining limits](maintenance/babylon-start-lamps-2026-11-01.md).
 
 **A07 original gantry:** live source `9c3b04b` passed 18/18 GPU journeys, 440 CI contracts and Windows/macOS installed-app plus four compatibility journeys. Canonical Aurel Formula startup now presents the original structure and verifies its actual resources; restart and context-loss gates pass. Linux reached gantry readiness and car presentation but failed later with GPU-process loss, so no all-platform release qualifies. Original geometry and atlas pixels are preserved; banner/lamp behavior and full environment parity remain open. [Evidence and scope](maintenance/babylon-start-gantry-2026-11-01.md).
