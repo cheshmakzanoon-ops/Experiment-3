@@ -164,3 +164,34 @@ each. No native journey completed. Artifacts 13091997053 (Linux), 13092305363
 (macOS) and 13091293869 (Windows) retain SHA-verified reports and preparation-UI
 screenshots. The production fingerprint remained
 `ad6787e8c2439af3873e985da4b4297343379e2e8db5837e3d88a08113ea048a`.
+
+## CSP-safe native result: `e10eefe`
+
+[Run 41327862050](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41327862050)
+completed with Windows and Apple Silicon macOS passing their installed-app
+checks and all four compatibility journeys. Windows recorded 45/45 draws,
+macOS 31/31; both completed 435 preparations. Repeated false-to-true polls now
+execute normally. Lamps report five parts/materials, 400 triangles and zero lit
+in practice; the gantry reports 4/1/3 resources, 9,520 triangles and its original
+SHA. Screenshots show the original gantry and dark lamps.
+
+Linux still failed the unchanged first paused-presentation gate: 289 real polls
+and a 30,008-ms host interval. The last pre-timeout sample arrived 26 ms before
+failure (renderer time 33,537.4 ms): four draws submitted, three completed;
+surface complete; gantry present, drawable but incomplete; lamps absent; all
+120 preparations completed, a GPU submission pending for 1.9295 seconds, and
+the presentation schedule pending with one preparation owner. No graphics
+fault, context loss or CSP error was recorded.
+
+Final collection approximately 24.4 seconds later is not a pre-timeout receipt:
+it showed 6/6 draws, gantry ready and lamps preparing (124 started/123 completed),
+with the readiness predicate still false. The screenshot shows an intact proxy-
+car scene. This identifies the observed startup boundary, not a proven root
+cause or repair. The 30-second early-pause gate remains failed; no timeout,
+initial-state requirement or graphics/security setting is weakened.
+
+Artifacts 13092541604 (Windows), 13092371532 (macOS), 13092810569 (Linux) retain
+SHA-verified logs, reports and inspected screenshots. All targets identify the
+unchanged production fingerprint
+`ad6787e8c2439af3873e985da4b4297343379e2e8db5837e3d88a08113ea048a`.
+The live banner is a subsequent source change requiring its own GPU/native run.

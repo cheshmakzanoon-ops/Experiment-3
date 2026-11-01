@@ -1,8 +1,9 @@
-# Original Aurel banner · isolated migration candidate
+# Original Aurel banner · staged live integration
 
 Work belongs only to `babylon-js`; `main` remains the exact restored snapshot.
-The banner has **no live startup import**. Gantry and lamps retain their own
-qualified owners; this component does not replace or own either one.
+The isolated adapter passed its GPU gate on `757c162`. Live startup now stages
+the banner after the lamps; its expanded runtime checks are pending. Gantry and
+lamps retain separate owners; this component does not replace or own either one.
 
 ## Original data and material semantics
 
@@ -67,7 +68,7 @@ shared-material opposite-facing meshes in alternating order, both uniform
 transports, independent cleanup/co-presence and context loss/fresh restart under
 one 120-second case deadline. Partial receipts must precede assertions.
 
-No GPU execution is claimed at this checkpoint. The banner remains isolated.
+The initial candidate was isolated; its subsequent GPU result is recorded below.
 Final lighting, exposure, bloom, shadows and quality-budget parity remain open;
 no lights or replacement artwork are added to hide those omissions. The known
 Linux post-model GPU loss still prevents an all-platform release.
@@ -80,3 +81,66 @@ contracts. Full lint, TypeScript, production build and formatting passed.
 Discovery confirms 25 GPU cases: 19 retained, three lamps and three banner cases,
 all required with unchanged deadlines. No banner GPU execution or live activation
 is implied by these local results.
+
+## Isolated GPU qualification: `757c162`
+
+[Run 41323821362](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41323821362)
+passed all 25 GPU journeys (19 retained, three lamps, three banner), every shard
+and the aggregate gate. Each shard passed 513 CPU contracts in 46 files.
+Banner artifact **13090573461**, SHA-256
+`c04048e882e4827fcc3e9a18099ad6e8dd8ef06fe01fd3e652a3653a052b64c7`,
+contains the inspected receipts and images.
+
+Three banner cases include four executions with a fresh-context restart, eight
+install/dispose cycles, 112 factor rows and 144 linked-program receipts. Every
+factor row has zero reported RGB error and zero missing/excess/interior/partial-
+alpha coverage difference. All reference repeats are exact, GL errors are zero,
+and actual front-face state is CCW. Both UBO and standalone transports passed.
+Independently decoded pixels of all 56 attached reference/candidate factor PNG
+pairs were equal over their entire 1024×384 RGBA images. Front/back, magnified,
+minified, oblique and opposite-facing pair images were visually inspected.
+
+All eight allocations record actual 512×128 SRGB8_ALPHA8 storage, exact original
+row-reversed bytes, trilinear/linear filtering, clamp wrapping, anisotropy 8 and
+mipmap generation. Original geometry/world/canvas checks, cancellation and
+independent cleanup passed; the co-presence cycle retained all four structural
+parts and five lamps. Native texture deletion after actual context loss is
+intentionally unknown, not claimed as an observed deletion.
+
+The backend was **ANGLE SwiftShader software WebGL**, explicitly recording
+`physicalHardwareValidated=false`. These results qualify the isolated component,
+not a physical GPU, installed-app startup, cross-OS font equality, or final PBR,
+exposure, bloom and shadow parity. The separate native run on this commit failed
+in the newly added observation harness before readiness; see the
+[retained failure and correction](native-startup-readiness-observation-2026-11-01.md).
+
+## Live startup integration and remaining gate
+
+`BannerPreparation` follows surface, structural gantry and lamp preparation under
+the same generation, GPU owner and absolute 120-second startup deadline. The
+banner may draw during its installation receipts; completion requests the final
+paused redraw. Restart/loss invalidates its status, and independent cleanup does
+not take ownership of the gantry, lamps or borrowed source canvas.
+
+Readiness requires actual bound resources: one part/material/texture, two
+triangles, 512×128 dimensions and hardware-sRGB storage. Both detached readiness
+whitelists and the native/browser receipts include these values. The early-pause
+journey must still hold the physics tick through complete environment readiness
+and advance after resume. No new start-light timer or simulation writes are added.
+
+CPU/build checks do not qualify live startup. The exact integrated source must
+pass expanded GPU and installed-app journeys; the known Linux failures and
+physical-hardware, full lighting and four-discipline migration gates remain open.
+
+Before publication, the integrated active contract selection passed **1,200 tests
+in 94 files**, with the project's full lint command, TypeScript and production
+build. The build retains its existing chunk-size warning. An accidental broader
+`eslint .` invocation also scanned historical/scratch files outside the project's
+configured lint command and failed; it is not relabeled as a passing check.
+The prescribed `eslint src tests e2e scripts desktop` command passed unchanged.
+
+After integrating the CSP-safe actual-function harness from `e10eefe`, the full
+active selection was rerun: **1,203 tests in 94 files passed**, including the
+expanded banner observations and repeated-poll regression. A separate affected
+six-file selection passed 113 tests. These are CPU checks, not installed-app
+or live GPU qualification.

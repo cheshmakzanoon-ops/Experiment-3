@@ -124,6 +124,7 @@ function graphicsQuery(gpuRead: () => unknown, scheduleRead: () => unknown) {
     surfacePreparation: undefined,
     gantryPreparation: undefined,
     lampPreparation: undefined,
+    bannerPreparation: undefined,
     presentation: { diagnostics: scheduleRead },
     observePreparationReadiness,
     observeReadinessSnapshot,
@@ -170,3 +171,14 @@ it.each([undefined, null, false, 0, '', new Error('original graphics query faile
     expect(metadataCalls).toBe(0);
   },
 );
+it('main read-only snapshot includes an absent banner owner as unknown without hiding graphics', () => {
+  const result = graphicsQuery(
+    () => ({ settled: true }),
+    () => ({ requested: false, preparationCount: 0, pending: false }),
+  )();
+  expect(result.settled).toBe(true);
+  expect(result.readinessError).toBeNull();
+  expect(result.readiness).toMatchObject({
+    owners: { banner: { exists: false, completed: null, canDraw: null, errors: [] } },
+  });
+});

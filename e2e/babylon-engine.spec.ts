@@ -3,6 +3,14 @@ import { test, expect, type Page } from '@playwright/test';
 import { exerciseBabylonContextRecovery } from './fixtures/babylon-context-recovery.ts';
 
 const surfaceKeys = [
+  'bannerState',
+  'bannerParts',
+  'bannerMaterials',
+  'bannerTextures',
+  'bannerTriangles',
+  'bannerWidth',
+  'bannerHeight',
+  'bannerHardwareSrgb',
   'lampState',
   'lampParts',
   'lampMaterials',
@@ -32,6 +40,17 @@ const surfaceKeys = [
   'surfaceFormulaGroundingMaterials',
   'surfaceFormulaGroundingCars',
 ] as const;
+async function expectOriginalStartBanner(page: Page) {
+  const status = page.locator('#status');
+  await expect(status).toHaveAttribute('data-banner-state', 'ready');
+  await expect(status).toHaveAttribute('data-banner-parts', '1');
+  await expect(status).toHaveAttribute('data-banner-materials', '1');
+  await expect(status).toHaveAttribute('data-banner-textures', '1');
+  await expect(status).toHaveAttribute('data-banner-triangles', '2');
+  await expect(status).toHaveAttribute('data-banner-width', '512');
+  await expect(status).toHaveAttribute('data-banner-height', '128');
+  await expect(status).toHaveAttribute('data-banner-hardware-srgb', '1');
+}
 async function expectOriginalStartLamps(page: Page) {
   const status = page.locator('#status');
   await expect(status).toHaveAttribute('data-lamp-state', 'ready');
@@ -67,6 +86,7 @@ async function expectOriginalAurelSurface(page: Page) {
   await expect(status).toHaveAttribute('data-gantry-triangles', '9520');
   await expect(status).toHaveAttribute('data-gantry-sha256', gantryManifest.sha256);
   await expectOriginalStartLamps(page);
+  await expectOriginalStartBanner(page);
   await expect(status).toHaveAttribute('data-scene-ready', 'true');
   expect(Number(await status.getAttribute('data-completed-frames'))).toBeGreaterThanOrEqual(2);
   await expect(page.locator('#loadAsset')).toBeEnabled();
@@ -140,6 +160,17 @@ test('Babylon migration entry renders existing simulation and supports pause, re
   );
   await expect(page.locator('#loadAsset')).toBeDisabled();
   await expect(status).not.toHaveAttribute('data-surface-kind');
+  for (const key of [
+    'state',
+    'parts',
+    'materials',
+    'textures',
+    'triangles',
+    'width',
+    'height',
+    'hardware-srgb',
+  ])
+    await expect(status).not.toHaveAttribute(`data-banner-${key}`);
   for (const key of ['state', 'parts', 'materials', 'triangles', 'lights'])
     await expect(status).not.toHaveAttribute(`data-lamp-${key}`);
   await expect(status).toHaveAttribute('data-scene-ready', 'false');
@@ -189,6 +220,14 @@ test('Babylon completes original environment startup while paused before gantry 
     const observed = await page.locator('#status').evaluate((status) => {
       const text = status.textContent ?? '';
       const keys = [
+        'bannerState',
+        'bannerParts',
+        'bannerMaterials',
+        'bannerTextures',
+        'bannerTriangles',
+        'bannerWidth',
+        'bannerHeight',
+        'bannerHardwareSrgb',
         'sceneReady',
         'presentationSettled',
         'completedFrames',
@@ -230,6 +269,7 @@ test('Babylon completes original environment startup while paused before gantry 
     await expect(page.locator('#loadAsset')).toBeDisabled();
     await expect(status).not.toHaveAttribute('data-gantry-state');
     await expect(status).not.toHaveAttribute('data-lamp-state');
+    await expect(status).not.toHaveAttribute('data-banner-state');
     await page.getByRole('button', { name: 'Pause', exact: true }).click();
     await expect(status).toContainText('PAUSED');
     const tick = async () => Number((await status.textContent())?.match(/tick (\d+)/)?.[1] ?? -1);
@@ -293,6 +333,7 @@ test('Babylon imports the existing authored Formula asset and restart cancels ob
   await expect(page.locator('#status')).toHaveAttribute('data-surface-kind', 'formula-ribbon');
   await expect(page.locator('#status')).toHaveAttribute('data-surface-paint-chunks', '76');
   await expectOriginalStartLamps(page);
+  await expectOriginalStartBanner(page);
   const driverSteering = async () =>
     Number(await page.locator('#assetStatus').getAttribute('data-steering'));
   await page.keyboard.down('a');
@@ -329,6 +370,7 @@ test('Babylon imports the existing authored Formula asset and restart cancels ob
   await expect(page.locator('#status')).toContainText('PAUSED');
   await expect(page.locator('#status')).toHaveAttribute('data-presentation-settled', 'true');
   await expectOriginalStartLamps(page);
+  await expectOriginalStartBanner(page);
   const frozenWheel = await wheelPhase();
   const frozenDriver = await driverSteering();
   await page.waitForTimeout(300);

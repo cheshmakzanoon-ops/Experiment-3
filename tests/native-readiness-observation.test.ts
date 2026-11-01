@@ -271,6 +271,95 @@ describe('host readiness packet whitelist', () => {
   });
 });
 
+describe('banner readiness observation boundary', () => {
+  const banner = {
+    bannerState: 'ready',
+    bannerParts: '1',
+    bannerMaterials: '1',
+    bannerTextures: '1',
+    bannerTriangles: '2',
+    bannerWidth: '2048',
+    bannerHeight: '256',
+    bannerHardwareSrgb: '1',
+  };
+  it.each(['0', '1'])(
+    'preserves actual banner raw fields and owner state, including hardware sRGB %s',
+    (hardware) => {
+      const owner = Object.freeze({ exists: true, completed: true, canDraw: true, errors: [] });
+      install(
+        {
+          ...banner,
+          bannerHardwareSrgb: hardware,
+          presentationSettled: 'false',
+          renderedFrames: '10',
+          completedFrames: '10',
+        },
+        { settled: true, readiness: { owners: { banner: owner } } },
+      );
+      const observed = readNativeBabylonReadiness();
+      const normalized = normalizeNativeBabylonReadiness(observed);
+      expect(observed.dom.data).toMatchObject({ ...banner, bannerHardwareSrgb: hardware });
+      expect(normalized?.dom.data).toMatchObject({ ...banner, bannerHardwareSrgb: hardware });
+      expect(observed.graphics).toMatchObject({ readiness: { owners: { banner: owner } } });
+      expect(normalized?.graphics).toMatchObject({ readiness: { owners: { banner: owner } } });
+      // Banner/GPU availability cannot substitute for the unchanged DOM predicate.
+      expect(observed.predicate.ready).toBe(false);
+      expect(normalized?.predicate.ready).toBe(false);
+    },
+  );
+  it('keeps absent banner fields and owner unknown instead of inventing zero counts or readiness', () => {
+    install({}, { readiness: { owners: {} } });
+    const observed = readNativeBabylonReadiness();
+    const normalized = normalizeNativeBabylonReadiness(observed);
+    for (const key of Object.keys(banner)) {
+      expect(observed.dom.data[key]).toBeNull();
+      expect(normalized?.dom.data[key]).toBeNull();
+    }
+    expect(observed.graphics).toMatchObject({ readiness: { owners: { banner: null } } });
+    expect(normalized?.graphics).toMatchObject({ readiness: { owners: { banner: null } } });
+  });
+  it('does not broaden strict host acceptance beyond banner scalar fields and owner diagnostics', () => {
+    install(banner, {
+      readiness: {
+        owners: { banner: { exists: true, completed: false, canDraw: true, errors: [] } },
+      },
+    });
+    const observed = readNativeBabylonReadiness();
+    const getter = vi.fn(() => '1');
+    const data = { ...observed.dom.data };
+    Object.defineProperty(data, 'bannerParts', { get: getter });
+    expect(
+      normalizeNativeBabylonReadiness({ ...observed, dom: { ...observed.dom, data } }),
+    ).toBeNull();
+    expect(getter).not.toHaveBeenCalled();
+    expect(
+      normalizeNativeBabylonReadiness({
+        ...observed,
+        dom: { ...observed.dom, data: { ...observed.dom.data, bannerHardwareSrgb: true } },
+      }),
+    ).toBeNull();
+    const normalized = normalizeNativeBabylonReadiness({
+      ...observed,
+      dom: { ...observed.dom, data: { ...observed.dom.data, bannerSecret: 'drop' } },
+      graphics: {
+        readiness: {
+          owners: {
+            banner: { exists: true, completed: false, canDraw: true, errors: [], resource: {} },
+          },
+        },
+      },
+    });
+    expect(normalized?.dom.data).not.toHaveProperty('bannerSecret');
+    expect(normalized?.graphics).toMatchObject({
+      readiness: { owners: { banner: { exists: true, completed: false, canDraw: true } } },
+    });
+    expect(
+      (normalized?.graphics as { readiness: { owners: { banner: object } } }).readiness.owners
+        .banner,
+    ).not.toHaveProperty('resource');
+  });
+});
+
 describe('bounded native readiness history', () => {
   it('retains clock brackets verbatim without reading clocks, setting timers or resetting budgets', () => {
     const history = createNativeReadinessHistory({ maxEntries: 2 });

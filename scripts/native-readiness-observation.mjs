@@ -63,6 +63,14 @@ export function readNativeBabylonReadiness(options) {
       'lampMaterials',
       'lampTriangles',
       'lampLights',
+      'bannerState',
+      'bannerParts',
+      'bannerMaterials',
+      'bannerTextures',
+      'bannerTriangles',
+      'bannerWidth',
+      'bannerHeight',
+      'bannerHardwareSrgb',
     ];
     const values = Object.fromEntries(
       keys.map((key) => [key, safely(`dataset.${key}`, () => data?.[key])]),
@@ -137,7 +145,7 @@ export function readNativeBabylonReadiness(options) {
         restartPending: 'boolean',
         restartRequired: 'boolean',
         resizePending: 'boolean',
-        owners: { surface: owner, gantry: owner, lamps: owner },
+        owners: { surface: owner, gantry: owner, lamps: owner, banner: owner },
         schedule: { requested: 'boolean', preparationCount: 'number', pending: 'boolean' },
       },
     };
@@ -424,6 +432,14 @@ export function normalizeNativeBabylonReadiness(value) {
     'lampMaterials',
     'lampTriangles',
     'lampLights',
+    'bannerState',
+    'bannerParts',
+    'bannerMaterials',
+    'bannerTextures',
+    'bannerTriangles',
+    'bannerWidth',
+    'bannerHeight',
+    'bannerHardwareSrgb',
   ];
   const queue = {
     pending: 'boolean',
@@ -480,7 +496,7 @@ export function normalizeNativeBabylonReadiness(value) {
       restartPending: 'boolean',
       restartRequired: 'boolean',
       resizePending: 'boolean',
-      owners: { surface: owner, gantry: owner, lamps: owner },
+      owners: { surface: owner, gantry: owner, lamps: owner, banner: owner },
       schedule: { requested: 'boolean', preparationCount: 'number', pending: 'boolean' },
     },
   };

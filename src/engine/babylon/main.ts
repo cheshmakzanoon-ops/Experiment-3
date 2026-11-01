@@ -1,6 +1,7 @@
 import { SurfacePreparation, resizePresentationWhenIdle } from './surface-preparation.ts';
 import { GantryPreparation } from './gantry-preparation.ts';
 import { LampPreparation } from './lamp-preparation.ts';
+import { BannerPreparation } from './banner-preparation.ts';
 import { GraphicsRecovery } from './graphics-recovery.ts';
 import type { AssetContainer } from '@babylonjs/core/assetContainer.js';
 import { prepareOriginalMaterials } from './asset-preparation.ts';
@@ -45,8 +46,17 @@ let gpu: BabylonPresentationGpu | undefined;
 let surfacePreparation: SurfacePreparation | undefined;
 let gantryPreparation: GantryPreparation | undefined;
 let lampPreparation: LampPreparation | undefined;
+let bannerPreparation: BannerPreparation | undefined;
 function clearSurfaceDiagnostics() {
   for (const key of [
+    'bannerState',
+    'bannerParts',
+    'bannerMaterials',
+    'bannerTextures',
+    'bannerTriangles',
+    'bannerWidth',
+    'bannerHeight',
+    'bannerHardwareSrgb',
     'lampState',
     'lampParts',
     'lampMaterials',
@@ -102,6 +112,7 @@ function readGraphicsDiagnostics() {
         surface: observePreparationReadiness(surfacePreparation),
         gantry: observePreparationReadiness(gantryPreparation),
         lamps: observePreparationReadiness(lampPreparation),
+        banner: observePreparationReadiness(bannerPreparation),
       },
       schedule: presentation.diagnostics(),
     })),
@@ -177,6 +188,7 @@ function stop(error?: unknown) {
     () => scene?.dispose(),
     () => gantryPreparation?.dispose(),
     () => lampPreparation?.dispose(),
+    () => bannerPreparation?.dispose(),
     () => engine?.dispose(),
   ]))
     console.error('Babylon cleanup failed:', failure);
@@ -210,11 +222,13 @@ function rebuildScene(owner: SimulationComponent) {
     () => scene?.dispose(),
     () => gantryPreparation?.dispose(),
     () => lampPreparation?.dispose(),
+    () => bannerPreparation?.dispose(),
   ]);
   if (cleanupFailures.length)
     throw new AggregateError(cleanupFailures, 'Scene replacement cleanup failed');
   gantryPreparation = undefined;
   lampPreparation = undefined;
+  bannerPreparation = undefined;
   const context = {
     presentation: 'circuit',
     vehicles: owner.simulation.cars.map((car) => car.definition),
@@ -225,7 +239,7 @@ function rebuildScene(owner: SimulationComponent) {
   assetLoad = new AbortController();
   loadAsset.disabled = true;
   assetStatus.textContent =
-    'Preparing original circuit surfaces and dry asphalt substrate and vehicle grounding, then the original Aurel gantry and snapshot-driven start lamps; banner and environment parity remain unported.';
+    'Preparing original circuit surfaces and dry asphalt substrate and vehicle grounding, then the original Aurel gantry, snapshot-driven lamps and printed banner; full environment parity remains unported.';
   const currentScene = scene,
     currentOwner = assetLoad;
   surfacePreparation = new SurfacePreparation(
@@ -335,9 +349,32 @@ function rebuildScene(owner: SimulationComponent) {
       )
         return;
       publishLampDiagnostics(lamps);
+      const banner = new BannerPreparation({
+        scene: currentScene.scene,
+        track: owner.simulation.track,
+        context,
+        signal: currentOwner.signal,
+        gpu: gpu!,
+        deadline,
+        schedule: presentation,
+        isCurrent: () => !stopped && scene === currentScene && !restartOwnership.pending,
+      });
+      bannerPreparation = banner;
+      await banner.completion;
+      if (
+        stopped ||
+        currentOwner.signal.aborted ||
+        scene !== currentScene ||
+        restartOwnership.pending ||
+        bannerPreparation !== banner ||
+        !banner.completed
+      )
+        return;
+      for (const [key, value] of Object.entries(banner.receipt()))
+        status.dataset[`banner${key[0].toUpperCase()}${key.slice(1)}`] = String(value);
       requestPresentation();
       loadAsset.disabled = false;
-      assetStatus.textContent = `Original car is optional. Paint, dry asphalt and grounding are active${gantry.eligible ? '; Aurel gantry and snapshot-driven lamps ready' : ''}. Practice lamps stay dark; banner, bloom and full environment parity remain unported.`;
+      assetStatus.textContent = `Original car is optional. Paint, dry asphalt and grounding are active${gantry.eligible ? '; Aurel gantry, snapshot-driven lamps and printed banner ready' : ''}. Practice lamps stay dark; bloom and full environment parity remain unported.`;
     })
     .catch((error) => {
       if (currentOwner.signal.aborted || stopped || scene !== currentScene) return;
@@ -410,6 +447,7 @@ try {
         return;
       if (!gantryPreparation?.completed) return;
       if (!lampPreparation?.completed) return;
+      if (!bannerPreparation?.completed) return;
       const currentScene = scene!,
         owner = assetLoad;
       const deadline = performance.now() + 120000;
@@ -577,6 +615,7 @@ try {
         }
         // Rebuild may have claimed the preparation lane since the outer ready check.
         if (
+          (!bannerPreparation || bannerPreparation.canDraw) &&
           (!lampPreparation || lampPreparation.canDraw) &&
           (!gantryPreparation || gantryPreparation.canDraw)
         )
@@ -593,7 +632,9 @@ try {
               const readyAfter = scene!.scene.isReady();
               presentation.rendered(readyBefore, readyAfter);
               const gantryReady = readyBefore && readyAfter && !!gantryPreparation?.completed;
-              status.dataset.sceneReady = String(gantryReady && !!lampPreparation?.completed);
+              status.dataset.sceneReady = String(
+                gantryReady && !!lampPreparation?.completed && !!bannerPreparation?.completed,
+              );
               return readyBefore && readyAfter;
             });
       }
@@ -609,6 +650,7 @@ try {
           !!surfacePreparation?.completed &&
           !!gantryPreparation?.completed &&
           !!lampPreparation?.completed &&
+          !!bannerPreparation?.completed &&
           !graphicsRecovery.restartRequired &&
           !resizePending &&
           !presentation.pending &&

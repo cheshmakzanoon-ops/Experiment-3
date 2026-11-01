@@ -202,6 +202,14 @@ describe('same-readiness-receipt native Aurel surface acceptance', () => {
     formulaGroundingPaintChunks: '76',
     formulaGroundingMaterials: '2',
     formulaGroundingCars: '1',
+    bannerState: 'ready',
+    bannerParts: '1',
+    bannerMaterials: '1',
+    bannerTextures: '1',
+    bannerTriangles: '2',
+    bannerWidth: '512',
+    bannerHeight: '128',
+    bannerHardwareSrgb: '1',
     lampState: 'ready',
     lampParts: '5',
     lampMaterials: '5',
@@ -233,6 +241,14 @@ describe('same-readiness-receipt native Aurel surface acceptance', () => {
       formulaGroundingPaintChunks: 76,
       formulaGroundingMaterials: 2,
       formulaGroundingCars: 1,
+      bannerState: 'ready',
+      bannerParts: 1,
+      bannerMaterials: 1,
+      bannerTextures: 1,
+      bannerTriangles: 2,
+      bannerWidth: 512,
+      bannerHeight: 128,
+      bannerHardwareSrgb: 1,
       lampState: 'ready',
       lampParts: 5,
       lampMaterials: 5,
@@ -297,6 +313,20 @@ describe('same-readiness-receipt native Aurel surface acceptance', () => {
     ])
       expect(() => validateNativeAurelSurface({ ...raw, [key]: value })).toThrow(key);
   });
+  it('rejects staged, cleared, incomplete, and incorrectly encoded banner resources', () => {
+    for (const bannerState of ['prepared', 'installing', 'disposed', 'ineligible', undefined])
+      expect(() => validateNativeAurelSurface({ ...raw, bannerState })).toThrow('bannerState');
+    for (const [key, value] of [
+      ['bannerParts', '0'],
+      ['bannerMaterials', '0'],
+      ['bannerTextures', '0'],
+      ['bannerTriangles', '1'],
+      ['bannerWidth', '256'],
+      ['bannerHeight', '64'],
+      ['bannerHardwareSrgb', '0'],
+    ])
+      expect(() => validateNativeAurelSurface({ ...raw, [key]: value })).toThrow(key);
+  });
   it('extends the existing readiness snapshot without another query or changing the frame budget', () => {
     const source = readFileSync('scripts/desktop-smoke.mjs', 'utf8');
     const body = source.slice(
@@ -315,6 +345,14 @@ describe('same-readiness-receipt native Aurel surface acceptance', () => {
       body.indexOf('.push(receipt)'),
     );
     for (const name of [
+      'bannerState',
+      'bannerParts',
+      'bannerMaterials',
+      'bannerTextures',
+      'bannerTriangles',
+      'bannerWidth',
+      'bannerHeight',
+      'bannerHardwareSrgb',
       'lampState',
       'lampParts',
       'lampMaterials',
