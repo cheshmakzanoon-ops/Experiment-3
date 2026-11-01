@@ -117,14 +117,14 @@ async function observeGraphicsHealth(page, readinessPhase = 'graphics-health') {
     const [processObservation, rendererObservations] = await Promise.race([
       Promise.all([
         application.evaluate(() => globalThis.motoboundProcessGraphicsObservation?.()),
-        page.evaluate(`() => ({
+        page.evaluate(`(() => ({
           document: window.motoboundGraphicsObservation?.(),
           babylon: window.babylonGraphicsDiagnostics?.(),
           readiness: (() => {
             try { return (${readinessReaderSource})(); }
             catch (error) { return { observationError: (${diagnosticErrorText.toString()})(error) }; }
           })(),
-        })`),
+        }))()`),
       ]),
       new Promise((_, reject) => {
         timer = setTimeout(

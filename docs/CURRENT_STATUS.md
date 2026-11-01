@@ -14,7 +14,7 @@ Migration development stays exclusively on **babylon-js**. Main is frozen at res
 
 ## Latest recorded qualification
 
-**Native readiness evidence:** bounded, read-only observations now capture the existing pause predicate and owner/schedule state without changing its 30-second limit, 100-ms polling or the app startup deadline. New runtime evidence is pending; this is not a Linux fix. [Scope](maintenance/native-startup-readiness-observation-2026-11-01.md).
+**Native readiness evidence:** bounded, read-only observations now capture the existing pause predicate and owner/schedule state without changing its 30-second limit, 100-ms polling or the app startup deadline. The first runtime on `757c162` failed on all three OSes before polling because the new harness evaluated an uninvoked function string. No native readiness or compatibility pass is claimed; the correction is being verified without changing deadlines. This is not a Linux fix. [Scope](maintenance/native-startup-readiness-observation-2026-11-01.md).
 
 **Lamp facing correction:** `6164be1` passed 22 GPU journeys and Windows/macOS installed checks. Actual CCW state and 80 central cap patches match the original; the old-CW control exposes the opposite cap. Linux timed out in the first paused-startup presentation wait without a recorded GPU/context/JS fault. Final ready/idle evidence was collected after timeout, so cause remains unproven; read-only readiness observations are now implemented for the next run, without changing deadlines. [Evidence and limits](maintenance/babylon-procedural-facing-2026-11-01.md).
 

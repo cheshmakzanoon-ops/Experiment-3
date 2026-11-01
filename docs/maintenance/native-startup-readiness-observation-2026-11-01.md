@@ -67,3 +67,34 @@ The combined active native/GPU contract selection passed 1,169 tests across 92
 files, with full lint, types and build. This is an explicit active-gate result,
 not a claim that every historical/frozen repository experiment passes. New
 native observations still require the exact published checkpoint's runtime.
+
+## First runtime result: `757c162`
+
+[Native run 41323821395](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41323821395)
+failed on all three targets before the paused-presentation predicate ran. The
+new graphics-health wrapper passed an uninvoked arrow-function **string** to
+Playwright `page.evaluate`; evaluating that string returned a function rather
+than the intended observation object. Its serialized result was undefined, and
+the subsequent `.readiness` access threw. This is a harness regression, not an
+established game/GPU failure.
+
+Linux failed at 2.804 seconds, Windows at 3.429 seconds and Apple Silicon macOS
+at 5.410 seconds. All histories honestly contain only `gate-failure`, zero
+received polls, `absent-before-failure` and a null host start. Screenshots show
+preparation, not completed environment readiness. No compatibility journey was
+reached. The production fingerprint was
+`ad6787e8c2439af3873e985da4b4297343379e2e8db5837e3d88a08113ea048a`.
+Artifacts 13091070593 (Linux), 13089869997 (Windows) and 13090418316 (macOS)
+retain the failed evidence.
+
+The separate [GPU run 41323821362](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41323821362)
+passed all three groups and the aggregate check. Those browser tests do not use
+this desktop observation wrapper and cannot certify its runtime semantics.
+
+The correction invokes the existing expression explicitly. New Node VM tests
+execute the exact extracted expression, rather than calling a returned function:
+they fail on the original source and require the actual health/readiness object.
+Original document/Babylon query errors, including falsy thrown values, must still
+propagate; only new metadata errors are isolated. No optional-chain fallback,
+readiness predicate, timeout or polling adjustment is made. The native workflow
+selects the regression test explicitly. Corrected native execution is pending.
