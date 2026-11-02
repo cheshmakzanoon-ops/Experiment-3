@@ -184,3 +184,40 @@ The frozen A/B/A fixture passed full types, focused lint, IIFE bundling and
 35-case discovery, with independent review. Only that fixture changes executable
 test code; no production owner/material, original reference, camera or acceptance
 limit is changed. Actual experimental results remain pending GPU execution.
+
+## Sampler control result: `80a0c3f4`
+
+[GPU run 41368811413](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41368811413)
+retained the original three A09 failures. In every case attempt, highp B used a
+distinct actual effect/program with only the intended submitted-shader changes,
+but its full RGBA image and max3/mean0.0006131146 were identical to baseline A.
+Matrices/mips/print program remained unchanged. Restored A recovered the original
+actual effect/program and exact image. Controls completed two frames with zero
+GL errors; restoration succeeded without errors. This disproves the tested
+albedo-sampler-precision explanation on this backend, not every precision-related
+mechanism. No production sampler change follows. A09 artifact13108376982 SHA256:
+`f336d20da05e730909061d7c63cd8730caeba03047217d268961a04d5b5d3bdd`.
+All existing isolated PNGs and baseline A09 PNGs stayed unchanged.
+
+## Next single-variable control: transform grouping
+
+The submitted shaders show native precombined viewProjection × worldPos versus
+the original projection × (modelView × position). The next fixture-only A/B/A
+keeps the same camera matrices and world geometry but tests native separate
+projection × (view × worldPos) grouping. Two explicit ordinary diagnostic matrix
+uniforms are required: the pinned standalone PBR path does not supply a usable
+projection uniform. Actual B draw readbacks must equal the unchanged native and
+original view/projection values. A material-local bind observer supplies them;
+exact hook/observer/cache state must be restored afterward.
+
+Only the intended vertex expression, its explicit uniform declarations and unused
+cache marker may differ. Fragment shaders, original reference, UVs, textures,
+mips, sampling, camera and limits remain fixed. The original baseline failure
+still determines qualification. A positive experiment would demonstrate grouping
+sensitivity, not automatically qualify a production repair; a negative result
+would reject that tested explanation and require different evidence.
+
+The frozen transform-control fixture passed full TypeScript, focused lint, IIFE
+bundling and discovery of all 35 cases, with independent review. It retains the
+sampler control and original failing gate; no production/reference change or
+local GPU execution occurred. Actual transform-control evidence remains pending.

@@ -51,12 +51,13 @@ const hash = async (data: Uint8Array<ArrayBuffer>) =>
 class BoardFactorOutput extends MaterialPluginBase {
   mode = 0;
   highpAlbedo = false;
+  groupedClip = false;
   constructor(material: PBRMaterial) {
     super(
       material,
       'IsolatedOriginalBoardFactors',
       300,
-      { BOARD_FACTOR_OUTPUT: true, BOARD_ALBEDO_HIGHP: false },
+      { BOARD_FACTOR_OUTPUT: true, BOARD_ALBEDO_HIGHP: false, BOARD_CLIP_GROUPED: false },
       true,
       false,
     );
@@ -64,8 +65,12 @@ class BoardFactorOutput extends MaterialPluginBase {
     this._enable(true);
   }
   prepareDefines(defines: MaterialDefines) {
-    (defines as MaterialDefines & { BOARD_ALBEDO_HIGHP: boolean }).BOARD_ALBEDO_HIGHP =
-      this.highpAlbedo;
+    const flags = defines as MaterialDefines & {
+      BOARD_ALBEDO_HIGHP: boolean;
+      BOARD_CLIP_GROUPED: boolean;
+    };
+    flags.BOARD_ALBEDO_HIGHP = this.highpAlbedo;
+    flags.BOARD_CLIP_GROUPED = this.groupedClip;
   }
   getUniforms() {
     return {
@@ -1520,281 +1525,456 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
                 0;
             }
             if (diagnosticTarget) {
-              try {
-                // This is an observation-only A/B/A. The baseline row above remains
-                // authoritative and its unchanged factor gate runs below regardless.
-                const structure = d.parts.find((p) => p.text === '150' && p.kind === 'structure')!;
-                const atlasPlugin = plugins[0]; // Same insertion order as d.parts[0].material.
-                const previousHook = atlas.customShaderNameResolve;
-                const previousHookDescriptor = Object.getOwnPropertyDescriptor(
-                  atlas,
-                  'customShaderNameResolve',
-                );
-                const previousFlag = atlasPlugin.highpAlbedo;
-                const baselineEffect = structure.mesh.subMeshes[0].effect!;
-                const baselineProgram = (
-                  baselineEffect.getPipelineContext() as WebGLPipelineContext
-                ).program;
-                const baselinePixels = baselineFactorPixels!;
-                const control: {
-                  phase: string;
-                  stages: object[];
-                  errors: string[];
-                  restored?: boolean;
-                } = {
-                  phase: 'rear150-native-albedo-sampler-precision-ABA',
-                  stages: [
-                    {
-                      stage: 'baseline',
-                      metrics: row.metrics,
-                      glError: row.glError,
-                      programs: nativePrograms,
-                      imageName: '150-rear-linear-albedo-native',
-                    },
-                  ],
-                  errors: [],
-                };
-                receipts.push(control);
-                const baselineShaders = nativePrograms.find((p) => p.name === structure.name)!
-                  .state!.shaders;
-                const matrixSignature = (state: ReturnType<typeof submittedProgramDiagnostic>) =>
-                  JSON.stringify(state.matrices.map((matrix) => JSON.stringify(matrix)).sort());
-                const normalizeHighp = (source: string) =>
-                  source
-                    .replace(/^#define BOARD_ALBEDO_HIGHP[ \t]*\r?\n/gm, '')
-                    .replace(
-                      'uniform highp sampler2D albedoSampler;',
-                      'uniform sampler2D albedoSampler;',
-                    );
-                const captureControl = async (stage: 'highp' | 'restored-baseline') => {
-                  const programs: ProgramDiagnostic[] = [];
-                  const result: {
-                    stage: string;
-                    programs: ProgramDiagnostic[];
-                    metrics?: ReturnType<typeof metrics>;
-                    frames?: number;
-                    glError?: number;
-                    baselineImageExact?: boolean;
-                    effectIsBaseline?: boolean;
-                    programIsBaseline?: boolean;
-                    shaderOnlyIntendedDifference?: boolean;
-                    matricesIdentical?: boolean;
-                    cpuMirrorsIdentical?: boolean;
-                    printProgramUnchanged?: boolean;
-                    mips?: Awaited<ReturnType<typeof existingMipDiagnostic>>;
-                    mipHashesIdentical?: boolean;
-                    error?: string;
-                  } = { stage, programs };
-                  control.stages.push(result);
-                  nativeDiagnosticPrograms = programs;
-                  seenNative.clear();
-                  try {
-                    await prepareOriginalMaterials(
-                      {
-                        scene: h.scene,
-                        meshes: d.parts.filter((p) => p.text === '150').map((p) => p.mesh),
-                      },
-                      h.gpu,
-                      h.abort.signal,
-                      deadline,
-                      () => {},
-                    );
-                    const before = h.gpu.diagnostics().completed;
-                    await h.presented(() => {
-                      drawing = true;
-                      try {
-                        h.scene.render();
-                      } finally {
-                        drawing = false;
-                      }
-                    });
-                    result.frames = h.gpu.diagnostics().completed - before;
-                    await lease(`A09 sampler ${stage} actual image and source`, async () => {
-                      const actual = h.capture();
-                      images.push({ name: `150-rear-linear-albedo-${stage}`, image: actual.image });
-                      result.metrics = metrics(actual.pixels, first.pixels, width, height);
-                      result.baselineImageExact = equal(actual.pixels, baselinePixels);
-                      result.glError =
-                        gl.getError() || nativeRenderErrors.find((error) => error !== 0) || 0;
-                      const effect = structure.mesh.subMeshes[0].effect!;
-                      result.effectIsBaseline = effect === baselineEffect;
-                      result.programIsBaseline =
-                        (effect.getPipelineContext() as WebGLPipelineContext).program ===
-                        baselineProgram;
-                      const state = programs.find((p) => p.name === structure.name)?.state;
-                      result.shaderOnlyIntendedDifference =
-                        !!state &&
-                        state.shaders.length === 2 &&
-                        state.shaders.every((shader) => {
-                          const old = baselineShaders.find((s) => s.type === shader.type)!;
-                          if (stage === 'restored-baseline') return shader.source === old.source;
-                          const marker =
-                            shader.source.match(/^#define BOARD_ALBEDO_HIGHP[ \t]*$/gm) ?? [];
-                          const qualifier =
-                            shader.source.match(/uniform highp sampler2D albedoSampler;/g) ?? [];
-                          return (
-                            marker.length === 1 &&
-                            qualifier.length === (shader.type === gl.FRAGMENT_SHADER ? 1 : 0) &&
-                            normalizeHighp(shader.source) === old.source
-                          );
-                        });
-                      result.cpuMirrorsIdentical = programs.every(
-                        (p) =>
-                          JSON.stringify(p.cpuMirrors) ===
-                          JSON.stringify(nativePrograms.find((a) => a.name === p.name)?.cpuMirrors),
-                      );
-                      const print = programs.find((p) => p.name !== structure.name);
-                      const oldPrint = nativePrograms.find((p) => p.name === print?.name);
-                      result.printProgramUnchanged =
-                        !!print?.state &&
-                        !!oldPrint?.state &&
-                        JSON.stringify(print.state.shaders) ===
-                          JSON.stringify(oldPrint.state.shaders) &&
-                        matrixSignature(print.state) === matrixSignature(oldPrint.state);
-                      result.matricesIdentical =
-                        !!state &&
-                        matrixSignature(state) ===
-                          matrixSignature(
-                            nativePrograms.find((p) => p.name === structure.name)!.state!,
-                          );
-                    });
-                    result.mips = await lease(
-                      `A09 sampler ${stage} existing mip readbacks`,
-                      async () =>
-                        existingMipDiagnostic(
-                          gl,
-                          atlas.albedoTexture!.getInternalTexture()!._hardwareTexture!
-                            .underlyingResource as WebGLTexture,
-                          512,
-                          512,
-                        ),
-                    );
-                    result.mipHashesIdentical =
-                      result.mips.rows.length === 10 &&
-                      result.mips.rows.every(
-                        (r, i) => r.hash === diagnostic.nativeMips?.rows[i]?.hash,
-                      );
-                    check(
-                      result.frames >= 2 &&
-                        result.glError === 0 &&
-                        result.shaderOnlyIntendedDifference &&
-                        result.matricesIdentical &&
-                        result.cpuMirrorsIdentical &&
-                        result.printProgramUnchanged &&
-                        result.mipHashesIdentical &&
-                        result.mips.preExistingGlError === 0 &&
-                        !result.mips.error &&
-                        result.mips.restoredGlError === 0 &&
-                        (result.mips.additionalRestoredErrors ?? []).length === 0 &&
-                        result.mips.rows.every(
-                          (m) =>
-                            m.status === gl.FRAMEBUFFER_COMPLETE &&
-                            m.glError === 0 &&
-                            m.additionalDiagnosticErrors?.length === 0,
-                        ) &&
-                        programs.length === 2 &&
-                        programs.every(
-                          (p) =>
-                            !p.error &&
-                            p.preExistingGlError === 0 &&
-                            p.diagnosticGlErrors?.length === 0,
-                        ),
-                      'A09 sampler diagnostic observation incomplete',
-                    );
-                    check(
-                      stage === 'highp'
-                        ? !result.effectIsBaseline && !result.programIsBaseline
-                        : result.effectIsBaseline &&
-                            result.programIsBaseline &&
-                            result.baselineImageExact,
-                      'A09 sampler diagnostic cache/restoration mismatch',
-                    );
-                  } catch (error) {
-                    result.error = String(error);
-                    control.errors.push(String(error));
-                  }
-                };
+              samplerControlComplete = true;
+              for (const controlKind of ['sampler', 'clip'] as const) {
                 try {
-                  await lease('A09 material-local highp sampler control', async () => {
-                    atlas.customShaderNameResolve = function (
-                      name,
-                      uniforms,
-                      buffers,
-                      samplers,
-                      defines,
-                      attributes,
-                      options,
-                    ) {
-                      const resolved = previousHook
-                        ? previousHook.call(
-                            this,
-                            name,
-                            uniforms,
-                            buffers,
-                            samplers,
-                            defines,
-                            attributes,
-                            options,
+                  // This is an observation-only A/B/A. The baseline row above remains
+                  // authoritative and its unchanged factor gate runs below regardless.
+                  const structure = d.parts.find(
+                    (p) => p.text === '150' && p.kind === 'structure',
+                  )!;
+                  const atlasPlugin = plugins[0]; // Same insertion order as d.parts[0].material.
+                  const previousHook = atlas.customShaderNameResolve;
+                  const previousHookDescriptor = Object.getOwnPropertyDescriptor(
+                    atlas,
+                    'customShaderNameResolve',
+                  );
+                  const previousFlag = atlasPlugin.highpAlbedo;
+                  const previousClipFlag = atlasPlugin.groupedClip;
+                  let removeBinding: (() => void) | undefined;
+                  let bindCount = 0;
+                  const diagnosticDeclarations =
+                    'uniform mat4 boardDiagnosticView;\nuniform mat4 boardDiagnosticProjection;\n';
+                  const baselinePosition = 'gl_Position=viewProjection*worldPos;';
+                  const groupedPosition =
+                    'gl_Position=boardDiagnosticProjection*(boardDiagnosticView*worldPos);';
+                  const baselineEffect = structure.mesh.subMeshes[0].effect!;
+                  const baselineProgram = (
+                    baselineEffect.getPipelineContext() as WebGLPipelineContext
+                  ).program;
+                  const baselinePixels = baselineFactorPixels!;
+                  const control: {
+                    phase: string;
+                    stages: object[];
+                    errors: string[];
+                    restored?: boolean;
+                  } = {
+                    phase:
+                      controlKind === 'sampler'
+                        ? 'rear150-native-albedo-sampler-precision-ABA'
+                        : 'rear150-native-clip-grouping-ABA',
+                    stages: [
+                      {
+                        stage: 'baseline',
+                        metrics: row.metrics,
+                        glError: row.glError,
+                        programs: nativePrograms,
+                        imageName: '150-rear-linear-albedo-native',
+                      },
+                    ],
+                    errors: [],
+                  };
+                  receipts.push(control);
+                  const baselineShaders = nativePrograms.find((p) => p.name === structure.name)!
+                    .state!.shaders;
+                  const matrixSignature = (
+                    state: ReturnType<typeof submittedProgramDiagnostic>,
+                    clip = false,
+                  ) =>
+                    JSON.stringify(
+                      state.matrices
+                        .filter(
+                          (matrix) =>
+                            !clip ||
+                            ![
+                              'viewProjection',
+                              'boardDiagnosticView',
+                              'boardDiagnosticProjection',
+                            ].includes((matrix as { name: string }).name),
+                        )
+                        .map((matrix) => JSON.stringify(matrix))
+                        .sort(),
+                    );
+                  const normalizeControl = (source: string) =>
+                    controlKind === 'sampler'
+                      ? source
+                          .replace(/^#define BOARD_ALBEDO_HIGHP[ \t]*\r?\n/gm, '')
+                          .replace(
+                            'uniform highp sampler2D albedoSampler;',
+                            'uniform sampler2D albedoSampler;',
                           )
-                        : name;
-                      check(options, 'A09 pinned material shader-processing options absent');
-                      const previousProcessing = options!.processFinalCode;
-                      options!.processFinalCode = (type, code) => {
-                        const original = previousProcessing ? previousProcessing(type, code) : code;
-                        if (type !== 'fragment') return original;
-                        check(
-                          (original.match(/uniform sampler2D albedoSampler;/g) ?? []).length === 1,
-                          'A09 exact albedo sampler declaration absent',
+                      : source
+                          .replace(/^#define BOARD_CLIP_GROUPED[ \t]*\r?\n/gm, '')
+                          .replace(diagnosticDeclarations, '')
+                          .replace(groupedPosition, baselinePosition);
+                  const captureControl = async (
+                    stage: 'highp' | 'grouped-clip' | 'restored-baseline',
+                  ) => {
+                    const programs: ProgramDiagnostic[] = [];
+                    const result: {
+                      stage: string;
+                      programs: ProgramDiagnostic[];
+                      metrics?: ReturnType<typeof metrics>;
+                      frames?: number;
+                      glError?: number;
+                      baselineImageExact?: boolean;
+                      effectIsBaseline?: boolean;
+                      programIsBaseline?: boolean;
+                      shaderOnlyIntendedDifference?: boolean;
+                      matricesIdentical?: boolean;
+                      addedMatrices?: object;
+                      addedMatricesMatchNativeAndOriginal?: boolean;
+                      bindCount?: number;
+                      bindingCallsThisStage?: number;
+                      cpuMirrorsIdentical?: boolean;
+                      printProgramUnchanged?: boolean;
+                      mips?: Awaited<ReturnType<typeof existingMipDiagnostic>>;
+                      mipHashesIdentical?: boolean;
+                      error?: string;
+                    } = { stage, programs };
+                    control.stages.push(result);
+                    const bindsBefore = bindCount;
+                    nativeDiagnosticPrograms = programs;
+                    seenNative.clear();
+                    try {
+                      await prepareOriginalMaterials(
+                        {
+                          scene: h.scene,
+                          meshes: d.parts.filter((p) => p.text === '150').map((p) => p.mesh),
+                        },
+                        h.gpu,
+                        h.abort.signal,
+                        deadline,
+                        () => {},
+                      );
+                      const before = h.gpu.diagnostics().completed;
+                      await h.presented(() => {
+                        drawing = true;
+                        try {
+                          h.scene.render();
+                        } finally {
+                          drawing = false;
+                        }
+                      });
+                      result.frames = h.gpu.diagnostics().completed - before;
+                      await lease(
+                        `A09 ${controlKind} ${stage} actual image and source`,
+                        async () => {
+                          const actual = h.capture();
+                          images.push({
+                            name: `150-rear-linear-albedo-${controlKind === 'clip' && stage === 'restored-baseline' ? 'restored-clip-baseline' : stage}`,
+                            image: actual.image,
+                          });
+                          result.metrics = metrics(actual.pixels, first.pixels, width, height);
+                          result.baselineImageExact = equal(actual.pixels, baselinePixels);
+                          result.glError =
+                            gl.getError() || nativeRenderErrors.find((error) => error !== 0) || 0;
+                          const effect = structure.mesh.subMeshes[0].effect!;
+                          result.effectIsBaseline = effect === baselineEffect;
+                          result.programIsBaseline =
+                            (effect.getPipelineContext() as WebGLPipelineContext).program ===
+                            baselineProgram;
+                          const state = programs.find((p) => p.name === structure.name)?.state;
+                          result.shaderOnlyIntendedDifference =
+                            !!state &&
+                            state.shaders.length === 2 &&
+                            state.shaders.every((shader) => {
+                              const old = baselineShaders.find((s) => s.type === shader.type)!;
+                              if (stage === 'restored-baseline')
+                                return shader.source === old.source;
+                              const marker =
+                                shader.source.match(
+                                  controlKind === 'sampler'
+                                    ? /^#define BOARD_ALBEDO_HIGHP[ \t]*$/gm
+                                    : /^#define BOARD_CLIP_GROUPED[ \t]*$/gm,
+                                ) ?? [];
+                              if (controlKind === 'sampler') {
+                                const qualifier =
+                                  shader.source.match(/uniform highp sampler2D albedoSampler;/g) ??
+                                  [];
+                                return (
+                                  marker.length === 1 &&
+                                  qualifier.length ===
+                                    (shader.type === gl.FRAGMENT_SHADER ? 1 : 0) &&
+                                  normalizeControl(shader.source) === old.source
+                                );
+                              }
+                              const declarations =
+                                shader.source.split(diagnosticDeclarations).length - 1;
+                              const positions = shader.source.split(groupedPosition).length - 1;
+                              return (
+                                marker.length === 1 &&
+                                declarations === (shader.type === gl.VERTEX_SHADER ? 1 : 0) &&
+                                positions === (shader.type === gl.VERTEX_SHADER ? 1 : 0) &&
+                                normalizeControl(shader.source) === old.source
+                              );
+                            });
+                          result.cpuMirrorsIdentical = programs.every(
+                            (p) =>
+                              JSON.stringify(p.cpuMirrors) ===
+                              JSON.stringify(
+                                nativePrograms.find((a) => a.name === p.name)?.cpuMirrors,
+                              ),
+                          );
+                          const print = programs.find((p) => p.name !== structure.name);
+                          const oldPrint = nativePrograms.find((p) => p.name === print?.name);
+                          result.printProgramUnchanged =
+                            !!print?.state &&
+                            !!oldPrint?.state &&
+                            JSON.stringify(print.state.shaders) ===
+                              JSON.stringify(oldPrint.state.shaders) &&
+                            matrixSignature(print.state) === matrixSignature(oldPrint.state);
+                          const clipVariant = controlKind === 'clip' && stage === 'grouped-clip';
+                          result.matricesIdentical =
+                            !!state &&
+                            matrixSignature(state, clipVariant) ===
+                              matrixSignature(
+                                nativePrograms.find((p) => p.name === structure.name)!.state!,
+                                clipVariant,
+                              );
+                          result.bindCount = bindCount;
+                          result.bindingCallsThisStage = bindCount - bindsBefore;
+                          if (clipVariant && state) {
+                            type MatrixRead = { name: string; storage: string; values?: number[] };
+                            const matrices = state.matrices as MatrixRead[];
+                            const view = matrices.find((m) => m.name === 'boardDiagnosticView');
+                            const projection = matrices.find(
+                              (m) => m.name === 'boardDiagnosticProjection',
+                            );
+                            const source = originalPrograms.find((p) => p.name === structure.name)!;
+                            const original = source.state!.matrices as MatrixRead[];
+                            const mirrors = programs.find((p) => p.name === structure.name)!
+                              .cpuMirrors as {
+                              view: number[];
+                              projection: number[];
+                              world: number[];
+                            };
+                            const originalMirrors = source.cpuMirrors as { world: number[] };
+                            const identity = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+                            result.addedMatrices = {
+                              view,
+                              projection,
+                              originalModelView: original.find((m) => m.name === 'modelViewMatrix'),
+                              originalProjection: original.find(
+                                (m) => m.name === 'projectionMatrix',
+                              ),
+                              label:
+                                'Actual ordinary matrix uniform readbacks; baseline native UBO bytes remain unqueried',
+                            };
+                            result.addedMatricesMatchNativeAndOriginal =
+                              !!view?.values &&
+                              !!projection?.values &&
+                              view.storage === 'actual ordinary uniform readback for this draw' &&
+                              projection.storage === view.storage &&
+                              equal(view.values, mirrors.view) &&
+                              equal(projection.values, mirrors.projection) &&
+                              equal(
+                                view.values,
+                                original.find((m) => m.name === 'modelViewMatrix')!.values!,
+                              ) &&
+                              equal(
+                                projection.values,
+                                original.find((m) => m.name === 'projectionMatrix')!.values!,
+                              ) &&
+                              equal(mirrors.world, identity) &&
+                              equal(originalMirrors.world, identity) &&
+                              bindCount > 0;
+                          } else result.addedMatricesMatchNativeAndOriginal = true;
+                        },
+                      );
+                      result.mips = await lease(
+                        `A09 ${controlKind} ${stage} existing mip readbacks`,
+                        async () =>
+                          existingMipDiagnostic(
+                            gl,
+                            atlas.albedoTexture!.getInternalTexture()!._hardwareTexture!
+                              .underlyingResource as WebGLTexture,
+                            512,
+                            512,
+                          ),
+                      );
+                      result.mipHashesIdentical =
+                        result.mips.rows.length === 10 &&
+                        result.mips.rows.every(
+                          (r, i) => r.hash === diagnostic.nativeMips?.rows[i]?.hash,
                         );
-                        return original.replace(
-                          'uniform sampler2D albedoSampler;',
-                          'uniform highp sampler2D albedoSampler;',
-                        );
+                      check(
+                        result.frames >= 2 &&
+                          result.glError === 0 &&
+                          (stage !== 'restored-baseline' || result.bindingCallsThisStage === 0) &&
+                          result.shaderOnlyIntendedDifference &&
+                          result.matricesIdentical &&
+                          result.addedMatricesMatchNativeAndOriginal &&
+                          result.cpuMirrorsIdentical &&
+                          result.printProgramUnchanged &&
+                          result.mipHashesIdentical &&
+                          result.mips.preExistingGlError === 0 &&
+                          !result.mips.error &&
+                          result.mips.restoredGlError === 0 &&
+                          (result.mips.additionalRestoredErrors ?? []).length === 0 &&
+                          result.mips.rows.every(
+                            (m) =>
+                              m.status === gl.FRAMEBUFFER_COMPLETE &&
+                              m.glError === 0 &&
+                              m.additionalDiagnosticErrors?.length === 0,
+                          ) &&
+                          programs.length === 2 &&
+                          programs.every(
+                            (p) =>
+                              !p.error &&
+                              p.preExistingGlError === 0 &&
+                              p.diagnosticGlErrors?.length === 0,
+                          ),
+                        'A09 material-local diagnostic observation incomplete',
+                      );
+                      check(
+                        stage !== 'restored-baseline'
+                          ? !result.effectIsBaseline && !result.programIsBaseline
+                          : result.effectIsBaseline &&
+                              result.programIsBaseline &&
+                              result.baselineImageExact,
+                        'A09 material-local diagnostic cache/restoration mismatch',
+                      );
+                    } catch (error) {
+                      result.error = String(error);
+                      control.errors.push(String(error));
+                    }
+                  };
+                  try {
+                    await lease(`A09 material-local ${controlKind} control`, async () => {
+                      atlas.customShaderNameResolve = function (
+                        name,
+                        uniforms,
+                        buffers,
+                        samplers,
+                        defines,
+                        attributes,
+                        options,
+                      ) {
+                        const resolved = previousHook
+                          ? previousHook.call(
+                              this,
+                              name,
+                              uniforms,
+                              buffers,
+                              samplers,
+                              defines,
+                              attributes,
+                              options,
+                            )
+                          : name;
+                        check(options, 'A09 pinned material shader-processing options absent');
+                        if (controlKind === 'clip')
+                          uniforms.push('boardDiagnosticView', 'boardDiagnosticProjection');
+                        const previousProcessing = options!.processFinalCode;
+                        options!.processFinalCode = (type, code) => {
+                          const original = previousProcessing
+                            ? previousProcessing(type, code)
+                            : code;
+                          if (controlKind === 'clip') {
+                            if (type !== 'vertex') return original;
+                            check(
+                              original.split(baselinePosition).length === 2 &&
+                                original.split('void main(void)').length === 2,
+                              'A09 exact native vertex anchors absent',
+                            );
+                            return original
+                              .replace(
+                                'void main(void)',
+                                diagnosticDeclarations + 'void main(void)',
+                              )
+                              .replace(baselinePosition, groupedPosition);
+                          }
+                          if (type !== 'fragment') return original;
+                          check(
+                            (original.match(/uniform sampler2D albedoSampler;/g) ?? []).length ===
+                              1,
+                            'A09 exact albedo sampler declaration absent',
+                          );
+                          return original.replace(
+                            'uniform sampler2D albedoSampler;',
+                            'uniform highp sampler2D albedoSampler;',
+                          );
+                        };
+                        return resolved;
                       };
-                      return resolved;
-                    };
-                    atlasPlugin.highpAlbedo = true;
-                    atlas.markAsDirty(Material.AllDirtyFlag);
-                  });
-                  await captureControl('highp');
+                      if (controlKind === 'sampler') atlasPlugin.highpAlbedo = true;
+                      else {
+                        atlasPlugin.groupedClip = true;
+                        const observer = atlas.onBindObservable.add((mesh) => {
+                          check(
+                            drawing && mesh === structure.mesh,
+                            'A09 diagnostic matrix binding outside selected owned draw',
+                          );
+                          const effect = structure.mesh.subMeshes[0].effect!;
+                          const program = (effect.getPipelineContext() as WebGLPipelineContext)
+                            .program;
+                          check(
+                            gl.getParameter(gl.CURRENT_PROGRAM) === program,
+                            'A09 matrix binding active program mismatch',
+                          );
+                          effect.setMatrix('boardDiagnosticView', h.scene.getViewMatrix());
+                          effect.setMatrix(
+                            'boardDiagnosticProjection',
+                            h.scene.getProjectionMatrix(),
+                          );
+                          bindCount++;
+                        });
+                        removeBinding = () => {
+                          check(
+                            atlas.onBindObservable.remove(observer),
+                            'A09 diagnostic binding observer removal failed',
+                          );
+                        };
+                      }
+                      atlas.markAsDirty(Material.AllDirtyFlag);
+                    });
+                    await captureControl(controlKind === 'sampler' ? 'highp' : 'grouped-clip');
+                  } catch (error) {
+                    control.errors.push(String(error));
+                  } finally {
+                    const restoreErrors = cleanupPresentation([
+                      () => removeBinding?.(),
+                      () => {
+                        if (previousHookDescriptor)
+                          Object.defineProperty(
+                            atlas,
+                            'customShaderNameResolve',
+                            previousHookDescriptor,
+                          );
+                        else
+                          check(
+                            Reflect.deleteProperty(atlas, 'customShaderNameResolve'),
+                            'A09 shader hook descriptor restore failed',
+                          );
+                      },
+                      () => {
+                        atlasPlugin.highpAlbedo = previousFlag;
+                        atlasPlugin.groupedClip = previousClipFlag;
+                      },
+                      () => atlas.markAsDirty(Material.AllDirtyFlag),
+                    ]);
+                    control.errors.push(...restoreErrors.map(String));
+                    control.restored =
+                      atlas.customShaderNameResolve === previousHook &&
+                      atlasPlugin.highpAlbedo === previousFlag &&
+                      atlasPlugin.groupedClip === previousClipFlag;
+                  }
+                  // Recompile/select and draw A again; callback restoration alone is
+                  // explicitly insufficient evidence. Rejections remain diagnostics.
+                  await captureControl('restored-baseline');
+                  nativeDiagnosticPrograms = nativePrograms;
+                  samplerControlComplete =
+                    samplerControlComplete && control.restored && control.errors.length === 0;
                 } catch (error) {
-                  control.errors.push(String(error));
+                  receipts.push({
+                    phase: `rear150-${controlKind}-control-setup-error`,
+                    error: String(error),
+                  });
+                  samplerControlComplete = false;
                 } finally {
-                  const restoreErrors = cleanupPresentation([
-                    () => {
-                      if (previousHookDescriptor)
-                        Object.defineProperty(
-                          atlas,
-                          'customShaderNameResolve',
-                          previousHookDescriptor,
-                        );
-                      else
-                        check(
-                          Reflect.deleteProperty(atlas, 'customShaderNameResolve'),
-                          'A09 shader hook descriptor restore failed',
-                        );
-                    },
-                    () => {
-                      atlasPlugin.highpAlbedo = previousFlag;
-                    },
-                    () => atlas.markAsDirty(Material.AllDirtyFlag),
-                  ]);
-                  control.errors.push(...restoreErrors.map(String));
-                  control.restored =
-                    atlas.customShaderNameResolve === previousHook &&
-                    atlasPlugin.highpAlbedo === previousFlag;
+                  nativeDiagnosticPrograms = nativePrograms;
                 }
-                // Recompile/select and draw A again; callback restoration alone is
-                // explicitly insufficient evidence. Rejections remain diagnostics.
-                await captureControl('restored-baseline');
-                nativeDiagnosticPrograms = nativePrograms;
-                samplerControlComplete = control.restored && control.errors.length === 0;
-              } catch (error) {
-                receipts.push({
-                  phase: 'rear150-sampler-control-setup-error',
-                  error: String(error),
-                });
-                samplerControlComplete = false;
               }
             }
             check(
