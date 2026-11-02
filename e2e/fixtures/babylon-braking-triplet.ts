@@ -127,6 +127,211 @@ function metrics(actual: Uint8Array, expected: Uint8Array, width: number, height
   };
 }
 
+/** Read only inside the existing renderer-owned frame. These are the GLSL
+ * strings supplied to GL, not driver-translated machine code. Block-backed
+ * matrices are deliberately NOT mislabeled as getUniform readbacks. */
+function diagnosticErrors(gl: WebGL2RenderingContext) {
+  const errors: number[] = [];
+  for (let i = 0; i < 16; i++) {
+    const error = gl.getError();
+    if (error === gl.NO_ERROR) break;
+    errors.push(error);
+  }
+  return errors;
+}
+function submittedProgramDiagnostic(gl: WebGL2RenderingContext, program: WebGLProgram) {
+  const matrixTypes = new Set<number>([
+    gl.FLOAT_MAT2,
+    gl.FLOAT_MAT3,
+    gl.FLOAT_MAT4,
+    gl.FLOAT_MAT2x3,
+    gl.FLOAT_MAT2x4,
+    gl.FLOAT_MAT3x2,
+    gl.FLOAT_MAT3x4,
+    gl.FLOAT_MAT4x2,
+    gl.FLOAT_MAT4x3,
+  ]);
+  const matrices: object[] = [];
+  const uniformCount = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS) as number;
+  for (let index = 0; index < Math.min(uniformCount, 1024); index++) {
+    const info = gl.getActiveUniform(program, index);
+    if (!info || !matrixTypes.has(info.type) || matrices.length >= 48) continue;
+    const block = (gl.getActiveUniforms(program, [index], gl.UNIFORM_BLOCK_INDEX) as number[])[0];
+    if (block !== -1 && block !== gl.INVALID_INDEX) {
+      matrices.push({
+        name: info.name,
+        type: info.type,
+        size: info.size,
+        storage: 'uniform block; actual GPU matrix bytes NOT read',
+        block: gl.getActiveUniformBlockName(program, block),
+      });
+      continue;
+    }
+    const location = gl.getUniformLocation(program, info.name);
+    const values = location ? (gl.getUniform(program, location) as Float32Array | null) : null;
+    matrices.push({
+      name: info.name,
+      type: info.type,
+      size: info.size,
+      storage: 'actual ordinary uniform readback for this draw',
+      values: values ? Array.from(values).slice(0, 1024) : null,
+      truncated: values ? values.length > 1024 : false,
+    });
+  }
+  const attributes: object[] = [];
+  const count = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES) as number;
+  for (let i = 0; i < Math.min(count, 16); i++) {
+    const info = gl.getActiveAttrib(program, i);
+    if (!info) continue;
+    const location = gl.getAttribLocation(program, info.name);
+    attributes.push({
+      name: info.name,
+      location,
+      type: info.type,
+      enabled: gl.getVertexAttrib(location, gl.VERTEX_ATTRIB_ARRAY_ENABLED),
+      components: gl.getVertexAttrib(location, gl.VERTEX_ATTRIB_ARRAY_SIZE),
+      componentType: gl.getVertexAttrib(location, gl.VERTEX_ATTRIB_ARRAY_TYPE),
+      normalized: gl.getVertexAttrib(location, gl.VERTEX_ATTRIB_ARRAY_NORMALIZED),
+      stride: gl.getVertexAttrib(location, gl.VERTEX_ATTRIB_ARRAY_STRIDE),
+      offset: gl.getVertexAttribOffset(location, gl.VERTEX_ATTRIB_ARRAY_POINTER),
+      bufferBound: !!gl.getVertexAttrib(location, gl.VERTEX_ATTRIB_ARRAY_BUFFER_BINDING),
+    });
+  }
+  return {
+    label:
+      'Actual attached GL shader-source strings and current-draw state; not driver-translated output',
+    currentProgram: gl.getParameter(gl.CURRENT_PROGRAM) === program,
+    linked: !!gl.getProgramParameter(program, gl.LINK_STATUS),
+    shaders: (gl.getAttachedShaders(program) ?? []).slice(0, 2).map((shader) => {
+      const source = gl.getShaderSource(shader) ?? '';
+      return {
+        type: gl.getShaderParameter(shader, gl.SHADER_TYPE),
+        source: source.slice(0, 1048576),
+        sourceLength: source.length,
+        truncated: source.length > 1048576,
+      };
+    }),
+    matrices,
+    attributes,
+  };
+}
+type ProgramDiagnostic = {
+  name: string;
+  state?: ReturnType<typeof submittedProgramDiagnostic>;
+  cpuMirrors?: object;
+  error?: string;
+  preExistingGlError: number;
+  diagnosticGlErrors?: number[];
+};
+/** Readback only after completed frames, under that context's existing prepare
+ * lease. Attach an already-owned albedo texture; never replace/regenerate mips.
+ * Restore READ_FRAMEBUFFER/read-buffer and all pixel-pack state independently. */
+async function existingMipDiagnostic(
+  gl: WebGL2RenderingContext,
+  texture: WebGLTexture,
+  width: number,
+  height: number,
+) {
+  const rows: {
+    level: number;
+    width: number;
+    height: number;
+    status: number;
+    format: number;
+    type: number;
+    hash?: string;
+    rgba?: number[];
+    glError?: number;
+    additionalDiagnosticErrors?: number[];
+  }[] = [];
+  const preExistingGlError = gl.getError();
+  if (preExistingGlError !== 0)
+    return {
+      label: 'Skipped diagnostics after prior lane GL error',
+      rows,
+      error: null,
+      preExistingGlError,
+      restoredGlError: 0,
+    };
+  const savedFramebuffer = gl.getParameter(gl.READ_FRAMEBUFFER_BINDING) as WebGLFramebuffer | null;
+  const savedReadBuffer = gl.getParameter(gl.READ_BUFFER) as number;
+  const savedPack = gl.getParameter(gl.PIXEL_PACK_BUFFER_BINDING) as WebGLBuffer | null;
+  const packing = [
+    gl.PACK_ALIGNMENT,
+    gl.PACK_ROW_LENGTH,
+    gl.PACK_SKIP_PIXELS,
+    gl.PACK_SKIP_ROWS,
+  ].map((parameter) => ({ parameter, value: gl.getParameter(parameter) as number }));
+  const framebuffer = gl.createFramebuffer();
+  let error: string | null = null;
+  try {
+    check(framebuffer, 'A09 diagnostic read framebuffer unavailable');
+    gl.bindFramebuffer(gl.READ_FRAMEBUFFER, framebuffer);
+    gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
+    packing.forEach(({ parameter }) =>
+      gl.pixelStorei(parameter, parameter === gl.PACK_ALIGNMENT ? 1 : 0),
+    );
+    const levels = Math.min(10, 1 + Math.floor(Math.log2(Math.max(width, height))));
+    for (let level = 0; level < levels; level++) {
+      const w = Math.max(1, width >> level),
+        h = Math.max(1, height >> level);
+      gl.framebufferTexture2D(
+        gl.READ_FRAMEBUFFER,
+        gl.COLOR_ATTACHMENT0,
+        gl.TEXTURE_2D,
+        texture,
+        level,
+      );
+      gl.readBuffer(gl.COLOR_ATTACHMENT0);
+      const status = gl.checkFramebufferStatus(gl.READ_FRAMEBUFFER);
+      const row: {
+        level: number;
+        width: number;
+        height: number;
+        status: number;
+        format: number;
+        type: number;
+        hash?: string;
+        rgba?: number[];
+        glError?: number;
+        additionalDiagnosticErrors?: number[];
+      } = { level, width: w, height: h, status, format: gl.RGBA, type: gl.UNSIGNED_BYTE };
+      rows.push(row);
+      if (status === gl.FRAMEBUFFER_COMPLETE) {
+        const pixels = new Uint8Array(w * h * 4);
+        gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+        row.hash = await hash(pixels);
+        if (level === 4 || level === 5) row.rgba = Array.from(pixels);
+      }
+      row.glError = gl.getError();
+      row.additionalDiagnosticErrors = diagnosticErrors(gl);
+    }
+  } catch (cause) {
+    error = String(cause);
+  } finally {
+    const failures = cleanupPresentation([
+      () => gl.bindFramebuffer(gl.READ_FRAMEBUFFER, savedFramebuffer),
+      () => gl.readBuffer(savedReadBuffer),
+      () => gl.bindBuffer(gl.PIXEL_PACK_BUFFER, savedPack),
+      ...packing.map(
+        ({ parameter, value }) =>
+          () =>
+            gl.pixelStorei(parameter, value),
+      ),
+      () => gl.deleteFramebuffer(framebuffer),
+    ]);
+    if (failures.length && error === null) error = String(failures[0]);
+  }
+  return {
+    label: 'Actual existing albedo mip RGBA readbacks, GPU row order; no mip regeneration',
+    rows,
+    error,
+    preExistingGlError,
+    restoredGlError: gl.getError(),
+    additionalRestoredErrors: diagnosticErrors(gl),
+  };
+}
+
 // Each acquisition registers an idempotent cleanup immediately. Setup failures
 // therefore retain partial evidence and drain later owners independently.
 async function probe(forceStandalone: boolean, loseContext: boolean, deadline: number) {
@@ -162,6 +367,8 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
     retain(() => clearTimeout(timer));
     const gl = h.gl,
       track = new Track();
+    const nativeRenderErrors: number[] = [],
+      originalRenderErrors: number[] = [];
     const camera = new UniversalCamera(
       'A09 fixed source inspection',
       new Vector3(0, 3, 10),
@@ -272,6 +479,7 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
       },
       { signal: h.abort.signal },
     );
+    let referenceDrawing = false;
     const referenceFrame = async () => {
       const before = threeGpu.diagnostics().completed;
       while (threeGpu.diagnostics().completed < before + 2) {
@@ -279,7 +487,12 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
         threeGpu.ready();
         if (threeGpu.diagnostics().completed >= before + 2) break;
         threeGpu.frame(threeSchedule, false, threeScene, () => {
-          renderer.render(threeScene, threeCamera);
+          referenceDrawing = true;
+          try {
+            renderer.render(threeScene, threeCamera);
+          } finally {
+            referenceDrawing = false;
+          }
           return true;
         });
         await yieldPreparationTurn(h.abort.signal, deadline);
@@ -291,7 +504,7 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
         result = {
           pixels,
           image: threeCanvas.toDataURL('image/png'),
-          glError: threeGl.getError(),
+          glError: threeGl.getError() || originalRenderErrors.find((error) => error !== 0) || 0,
           frames: threeGpu.diagnostics().completed - before,
         };
       });
@@ -994,6 +1207,47 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
         deadline,
         () => {},
       );
+      let diagnosticTarget = false;
+      const nativePrograms: ProgramDiagnostic[] = [],
+        originalPrograms: ProgramDiagnostic[] = [];
+      const seenNative = new Set<string>(),
+        seenOriginal = new Set<string>();
+      const referenceCallbacks = refs.map((ref) => {
+        const previous = ref.onAfterRender;
+        ref.onAfterRender = (...args) => {
+          previous.apply(ref, args);
+          if (!diagnosticTarget || seenOriginal.has(ref.name)) return;
+          check(referenceDrawing, 'A09 reference diagnostic outside owned draw');
+          seenOriginal.add(ref.name);
+          const preExistingGlError = threeGl.getError();
+          originalRenderErrors.push(preExistingGlError);
+          const row: ProgramDiagnostic = { name: ref.name, preExistingGlError };
+          originalPrograms.push(row);
+          if (preExistingGlError !== 0) return;
+          try {
+            const program = threeGl.getParameter(threeGl.CURRENT_PROGRAM) as WebGLProgram | null;
+            check(program, 'A09 original diagnostic program absent');
+            row.state = submittedProgramDiagnostic(threeGl, program!);
+            row.cpuMirrors = {
+              label: 'Original CPU mirrors immediately after this draw; NOT uniform readbacks',
+              view: threeCamera.matrixWorldInverse.toArray(),
+              projection: threeCamera.projectionMatrix.toArray(),
+              world: ref.matrixWorld.toArray(),
+              modelView: ref.modelViewMatrix.toArray(),
+            };
+          } catch (error) {
+            row.error = String(error);
+          } finally {
+            row.diagnosticGlErrors = diagnosticErrors(threeGl);
+          }
+        };
+        return () => {
+          ref.onAfterRender = previous;
+        };
+      });
+      const removeReferenceDiagnostics = retain(() =>
+        referenceCallbacks.forEach((cleanup) => cleanup()),
+      );
       const draws: {
         name: string;
         kind: string;
@@ -1013,6 +1267,31 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
         mesh: part.mesh,
         observer: part.mesh.onAfterRenderObservable.add(() => {
           check(drawing, 'A09 draw receipt outside owned frame');
+          if (diagnosticTarget && !seenNative.has(part.name)) {
+            seenNative.add(part.name);
+            const preExistingGlError = gl.getError();
+            nativeRenderErrors.push(preExistingGlError);
+            const row: ProgramDiagnostic = { name: part.name, preExistingGlError };
+            nativePrograms.push(row);
+            if (preExistingGlError === 0)
+              try {
+                const program = gl.getParameter(gl.CURRENT_PROGRAM) as WebGLProgram | null;
+                check(program, 'A09 native diagnostic program absent');
+                row.state = submittedProgramDiagnostic(gl, program!);
+                row.cpuMirrors = {
+                  label: 'Native CPU mirrors immediately after this draw; NOT actual UBO bytes',
+                  view: Array.from(h.scene.getViewMatrix().asArray()),
+                  projection: Array.from(h.scene.getProjectionMatrix().asArray()),
+                  transform: Array.from(h.scene.getTransformMatrix().asArray()),
+                  world: Array.from(part.mesh.getWorldMatrix().asArray()),
+                };
+              } catch (error) {
+                row.error = String(error);
+              } finally {
+                row.diagnosticGlErrors = diagnosticErrors(gl);
+              }
+          }
+
           const program = (
             part.mesh.subMeshes[0]?.effect?.getPipelineContext() as WebGLPipelineContext | null
           )?.program;
@@ -1069,6 +1348,46 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
               camera: cameraReceipt,
             };
             receipts.push(row);
+            diagnosticTarget = cycle === 0 && text === '150' && view === 'rear' && mode === 0;
+            const diagnostic: {
+              phase: string;
+              cycle: number;
+              text: string;
+              view: string;
+              nativePrograms: object[];
+              originalPrograms: object[];
+              sourceGeometry?: object;
+              nativeMips?: Awaited<ReturnType<typeof existingMipDiagnostic>>;
+              originalMips?: Awaited<ReturnType<typeof existingMipDiagnostic>>;
+              error?: string;
+            } = {
+              phase: 'rear150-readonly-diagnostic',
+              cycle,
+              text,
+              view,
+              nativePrograms,
+              originalPrograms,
+            };
+            if (diagnosticTarget) {
+              receipts.push(diagnostic);
+              const source = refs.find(
+                (ref) =>
+                  ref.name ===
+                  d.parts.find((p) => p.text === '150' && p.kind === 'structure')!.name,
+              )!;
+              diagnostic.sourceGeometry = {
+                label: 'Original CPU geometry for offline interpolation; NOT GPU varying readback',
+                name: source.name,
+                position: Array.from(source.geometry.attributes.position.array).slice(0, 50000),
+                uv: Array.from(source.geometry.attributes.uv.array).slice(0, 50000),
+                indices: Array.from(source.geometry.index!.array).slice(0, 50000),
+                complete: [
+                  source.geometry.attributes.position.array,
+                  source.geometry.attributes.uv.array,
+                  source.geometry.index!.array,
+                ].every((a) => a.length <= 50000),
+              };
+            }
             const first = await referenceFrame();
             if (cycle === 0)
               images.push({ name: `${text}-${view}-${row.stage}-original`, image: first.image });
@@ -1099,7 +1418,7 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
               if (cycle === 0)
                 images.push({ name: `${text}-${view}-${row.stage}-native`, image: actual.image });
               row.metrics = metrics(actual.pixels, first.pixels, width, height);
-              row.glError = gl.getError();
+              row.glError = gl.getError() || nativeRenderErrors.find((error) => error !== 0) || 0;
               row.draws = [...draws];
               const active = d.parts.filter((p) => p.text === text);
               const programs = active.map((p) => {
@@ -1144,6 +1463,51 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
                 'A09 print hardware sRGB must not double-decode in shader',
               );
             });
+            if (diagnosticTarget) {
+              try {
+                await threeGpu.prepare(
+                  'A09 existing original albedo mip diagnostics',
+                  deadline,
+                  async () => {
+                    const source = refs.find(
+                      (ref) =>
+                        ref.name ===
+                        d.parts.find((p) => p.text === '150' && p.kind === 'structure')!.name,
+                    )!;
+                    const texture = (
+                      renderer.properties.get(source.material.map!) as {
+                        __webglTexture?: WebGLTexture;
+                      }
+                    ).__webglTexture;
+                    check(texture, 'A09 original mip allocation absent');
+                    diagnostic.originalMips = await existingMipDiagnostic(
+                      threeGl,
+                      texture!,
+                      512,
+                      512,
+                    );
+                  },
+                );
+                diagnostic.nativeMips = await lease(
+                  'A09 existing native albedo mip diagnostics',
+                  async () =>
+                    existingMipDiagnostic(
+                      gl,
+                      atlas.albedoTexture!.getInternalTexture()!._hardwareTexture!
+                        .underlyingResource as WebGLTexture,
+                      512,
+                      512,
+                    ),
+                );
+              } catch (error) {
+                diagnostic.error = String(error);
+              }
+              row.glError =
+                row.glError ||
+                diagnostic.nativeMips?.preExistingGlError ||
+                diagnostic.originalMips?.preExistingGlError ||
+                0;
+            }
             check(
               row.nativeFrames >= 2 &&
                 row.glError === 0 &&
@@ -1156,6 +1520,41 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
                 row.metrics!.partialAlpha === 0,
               `A09 ${text}/${view}/${row.stage} original factor mismatch`,
             );
+            if (diagnosticTarget)
+              check(
+                !diagnostic.error &&
+                  nativePrograms.length === 2 &&
+                  originalPrograms.length === 2 &&
+                  [...nativePrograms, ...originalPrograms].every(
+                    (program) =>
+                      !program.error &&
+                      program.preExistingGlError === 0 &&
+                      program.diagnosticGlErrors?.length === 0 &&
+                      program.state?.currentProgram &&
+                      program.state.linked &&
+                      program.state.shaders.length === 2 &&
+                      program.state.shaders.every(
+                        (shader) => shader.sourceLength > 0 && !shader.truncated,
+                      ),
+                  ) &&
+                  [diagnostic.originalMips, diagnostic.nativeMips].every(
+                    (m) =>
+                      m &&
+                      !m.error &&
+                      m.preExistingGlError === 0 &&
+                      m.restoredGlError === 0 &&
+                      (m.additionalRestoredErrors ?? []).length === 0 &&
+                      m.rows.length === 10 &&
+                      m.rows.every(
+                        (level) =>
+                          level.status === gl.FRAMEBUFFER_COMPLETE &&
+                          level.glError === 0 &&
+                          level.additionalDiagnosticErrors?.length === 0 &&
+                          !!level.hash,
+                      ),
+                  ),
+                'A09 read-only diagnostic incomplete',
+              );
             check(
               draws.length >= 4 &&
                 draws.every(
@@ -1178,6 +1577,7 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
           }
         }
       removeObservers();
+      removeReferenceDiagnostics();
       await threeGpu.prepare('A09 original reference cleanup', deadline, async () => disposeKit());
       // Restore all selected parts before checking ownership; no hidden LOD copies.
       d.parts.forEach((p) => p.mesh.setEnabled(true));

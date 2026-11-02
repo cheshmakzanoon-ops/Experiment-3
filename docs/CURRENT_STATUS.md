@@ -1,6 +1,6 @@
 # Current development status
 
-Updated **2026-11-01**. Source integration, automated tests, installed-game checks and release readiness are separate claims. [README](../README.md) · [Repository map](REPOSITORY_MAP.md) · [Desktop delivery](DESKTOP_DELIVERY.md) · [Detailed source/run history](maintenance/development-history-2026-10-31.md).
+Updated **2026-11-02 UTC**. Source integration, automated tests, installed-game checks and release readiness are separate claims. [README](../README.md) · [Repository map](REPOSITORY_MAP.md) · [Desktop delivery](DESKTOP_DELIVERY.md) · [Detailed source/run history](maintenance/development-history-2026-10-31.md).
 
 ## Product and repository
 
@@ -13,6 +13,8 @@ Migration development stays exclusively on **babylon-js**. Main is frozen at res
 **Current implementation:** canonical Formula road meshes retain original asphalt/grounding, and the original gantry, lamps, banner and checker stripe are live. Original dry Formula grid paint is live; corrected `6f6812b5` passed strict GPU reset/resize proof and the complete Babylon path on all three desktop targets. Linux later failed in retained Festival compatibility, so the full-workflow download baseline remains `468c4cdb`. Exact `468c4cdb` passed all 31 GPU cases and all three packaged-app targets, including four existing-content compatibility journeys each. Earlier intermittent Linux failures remain recorded; a single pass does not establish a repair, universal performance or completed four-mode Babylon parity. Physics remains **21**. [Latest branch test artifacts](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41353495335) are unsigned and retained until 2026-11-08; no new release was published.
 
 ## Latest recorded qualification
+
+**A09 first runtime result (`1c1109de`):** all 32 existing GPU cases passed, but three isolated braking-board cases failed a rear-support albedo comparison (max3 versus limit2). No live A09 activation. A bounded fixture-only shader/mip evidence extension retains the failing assertion and original camera/materials. Windows/macOS passed native checks; Linux lost GPU health after model movement. [Evidence](maintenance/babylon-a09-triplet-isolated-2026-11-01.md).
 
 **Latest corrected live-grid result (`6f6812b5`):** 32/32 GPU cases passed, including actual retained-scene restart and exact unmasked reset/resize pixels. All three native targets passed the complete Babylon path with grid present. Windows/macOS passed all retained journeys; Linux later lost its GPU during retained Festival resume. A09 braking boards are now isolated for GPU qualification, not live. [Results](maintenance/babylon-live-grid-2026-11-01.md) · [A09 scope](maintenance/babylon-a09-triplet-isolated-2026-11-01.md).
 
