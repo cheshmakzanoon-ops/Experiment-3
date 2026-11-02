@@ -144,3 +144,43 @@ IIFE bundling and discovery of all 35 cases, with independent source review.
 No production owner or material changed. The original failing max2 comparison
 remains before diagnostic-completeness assertions; diagnostic collection cannot
 turn its failure into a pass. No local GPU execution occurred.
+
+## Captured diagnostic evidence: `41de2bb9`
+
+[GPU run 41366976040](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41366976040)
+reproduced the same three A09 failures at board150/rear albedo. All 36 partial
+A09 PNGs were byte-identical to the initial run. Rendering/observation errors
+were zero. All ten native/original mip hashes matched exactly, including the
+captured level4/5 bytes. Submitted shaders and standalone bound matrices were
+captured successfully; UBO-unread state and draw-stamped CPU mirrors remain
+separately labeled. Verified A09 artifact 13108090954 SHA-256:
+`78cb57e30157259933a60358275853fec82d9dc4c65e282d40b56a1c0523e88f`.
+
+A concrete shader declaration difference exists: original Three explicitly
+selects highp sampler2D, while native albedoSampler is unqualified with no sampler
+default statement. The [GLSL ES3 specification](https://registry.khronos.org/OpenGL/specs/es/3.0/GLSL_ES_Specification_3.00.pdf)
+sections4.5.4 and8 state the sampler default and texture-result precision rules.
+This supports a testable precision hypothesis, not proof of the pixel-error cause.
+CPU interpolation/filtering using the actual matrices, source vertices and mip
+bytes did not reproduce the observed red49-versus46 difference; it is not driver
+emulation and does not justify changing projection arithmetic.
+
+## Single-variable precision experiment
+
+The next fixture-only experiment renders baseline A, explicit highp native albedo
+sampling B, then restored A. It changes neither original reference nor camera,
+geometry, texture/mip data, filtering parameters, limits or deadlines. A material-
+local shader hook and otherwise-unused diagnostic define separate the effect-cache
+keys without mutating global shader stores/caches or the production owner.
+Actual submitted shaders must differ only by that define and sampler qualifier;
+B must have a different effect/program. Restored A must recover the original
+program and exact full image. Matrix values, print program and mip evidence must
+remain unchanged. Callback descriptors and flags are independently restored.
+The original baseline max2 assertion stays authoritative; a diagnostic B result
+cannot qualify baseline rendering or replace the original failure. Causality and
+any production repair remain pending actual execution.
+
+The frozen A/B/A fixture passed full types, focused lint, IIFE bundling and
+35-case discovery, with independent review. Only that fixture changes executable
+test code; no production owner/material, original reference, camera or acceptance
+limit is changed. Actual experimental results remain pending GPU execution.
