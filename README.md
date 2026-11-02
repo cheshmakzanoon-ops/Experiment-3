@@ -26,6 +26,12 @@ Initial packages are **unsigned development builds**. Windows reputation/signing
 
 The desktop runtime uses Electron to provide a consistent bundled Chromium runtime for Babylon/TypeScript. It does not open a browser tab or depend on the hosted preview. Assets load from a restricted local application protocol. The renderer is sandboxed, has no Node.js access, and does not receive general filesystem or shell APIs.
 
+## Native integration preview
+
+![Babylon Formula integration workbench captured from the packaged macOS application](docs/screenshots/babylon-macos-native-1f1be9d.png)
+
+Unmodified screenshot from the [packaged macOS test, source `1f1be9d3`](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41373827175). The original Formula car, gantry/banner, checker stripe and dry grid are visible. **This is an integration workbench, not final retail graphics; braking boards are not live.** That macOS run passed, while Linux missed its initial readiness deadline. [Image provenance](docs/screenshots/babylon-macos-native-1f1be9d.json).
+
 ## Current implementation and recorded qualification · 2026-11-01
 
 - **Original braking boards:** the first clean 150/100/50 Aurel triplet preserves its original asset and prints. Controlled testing traced a rear-view mismatch to transform arithmetic order; a board-only adaptation now preserves the original order on structure and prints. All local checks pass, but full production rendering qualification remains pending. No live activation or full-board/LOD/wet/shadow parity is claimed. [Correction](docs/maintenance/babylon-a09-clip-order-2026-11-02.md) · [Original scope and evidence](docs/maintenance/babylon-a09-triplet-isolated-2026-11-01.md).
