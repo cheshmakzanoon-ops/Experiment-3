@@ -14,6 +14,8 @@ Migration development stays exclusively on **babylon-js**. Main is frozen at res
 
 ## Latest recorded qualification
 
+**GPU scheduling:** a queued historical summary blocked the workflow-wide concurrency group. Cancellation now applies per GPU suite, while the verifier and all required tests remain unchanged. This permits new test jobs independently of old summaries, but does not guarantee runner availability or mark old runs passed. Native audits remain separate. [Scope and checks](maintenance/babylon-gpu-job-concurrency-2026-11-02.md).
+
 **A09 submitted-shader check correction:** `1f1be9d3` emitted the intended production transform, but the fixture incorrectly required preprocessor delimiters in processed GLSL and failed before image comparison. A fixture-only predicate now checks the actual submitted assignment and retains missing/old/duplicate/malformed negatives. Production code, raw-anchor checks and all visual limits are unchanged; fresh rendering qualification remains pending. [Evidence](maintenance/babylon-a09-clip-order-2026-11-02.md).
 
 **A09 original-clip-order candidate:** controlled A/B/A testing reproduced max3 → max0 → max3 with exact restoration and unchanged reference inputs. A board-only material adaptation now applies original projection-after-view order to the atlas and three prints. The combined source passed 978 tests/62 files, types, lint, build and 35-case discovery. Full production-plugin GPU qualification is pending; A09 remains outside live startup. [Scope](maintenance/babylon-a09-clip-order-2026-11-02.md).

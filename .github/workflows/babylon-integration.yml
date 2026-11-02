@@ -9,6 +9,7 @@ on:
       - 'vite.config.ts'
       - 'package*.json'
       - 'tests/babylon-*.test.ts'
+      - 'tests/migration-gpu-scheduling.test.ts'
       - 'tests/formula-surfaces.test.ts'
       - 'tests/circuit-line-profile.test.ts'
       - 'tests/indexed-ribbon-normals.test.ts'
@@ -73,12 +74,13 @@ on:
       - '.github/workflows/babylon-integration.yml'
 permissions:
   contents: read
-concurrency:
-  group: babylon-integration-${{ github.ref }}
-  cancel-in-progress: true
 jobs:
   gpu:
     name: GPU ${{ matrix.suite }}
+    # Cancel obsolete heavy jobs per suite, without locking behind a queued verifier.
+    concurrency:
+      group: babylon-integration-${{ github.ref }}-${{ matrix.suite }}
+      cancel-in-progress: true
     strategy:
       fail-fast: false
       matrix:
@@ -103,6 +105,8 @@ jobs:
         run: npm run lint && npm run build
       - name: Engine component and existing asset geometry contracts
         run: npx vitest run tests/babylon-*.test.ts tests/discipline-presets.test.ts tests/input.test.ts tests/formula-surfaces.test.ts tests/circuit-line-profile.test.ts tests/indexed-ribbon-normals.test.ts tests/circuit-ribbon-data.test.ts tests/road-detail.test.ts tests/tyre-marks.test.ts tests/start-gantry.test.ts tests/gp-grid-paint.test.ts tests/track-boards.test.ts tests/a09-submitted-shader-contract.test.ts
+      - name: GPU scheduling contracts
+        run: npx vitest run tests/migration-gpu-scheduling.test.ts
       - run: npx playwright install --with-deps chromium
       # Keep literal selectors: existing asphalt/grounding contracts inspect this step.
       - name: Real WebGL engine, model import and mode-switching journeys
