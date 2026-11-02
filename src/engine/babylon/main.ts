@@ -1070,6 +1070,8 @@ try {
       status.dataset.completedFrames = String(graphics.completed);
       status.dataset.lastCompletedSequence = String(graphics.lastCompletedSequence);
       status.dataset.abandonedFrames = String(graphics.abandoned);
+      // A pending/unsettled presentation cannot qualify. Check cheap guards first;
+      // every potentially ready path still scans both exact resource receipts.
       status.dataset.presentationSettled = String(
         paused &&
           !restartOwnership.pending &&
@@ -1078,8 +1080,6 @@ try {
           !!environmentPreparation?.gantry?.completed &&
           !!environmentPreparation?.lamps?.completed &&
           !!environmentPreparation?.banner?.completed &&
-          gridPreparationValid(environmentPreparation?.grid) &&
-          brakingTripletPreparationValid(environmentPreparation?.brakingTriplet) &&
           !!stripePreparation?.completed &&
           !restartPresentation &&
           !graphicsRecovery.restartRequired &&
@@ -1088,7 +1088,9 @@ try {
           !graphics.lost &&
           !graphics.disposed &&
           !graphics.queue.failure &&
-          graphics.settled,
+          graphics.settled &&
+          gridPreparationValid(environmentPreparation?.grid) &&
+          brakingTripletPreparationValid(environmentPreparation?.brakingTriplet),
       );
       if (now - lastStatus > 250) {
         lastStatus = now;
