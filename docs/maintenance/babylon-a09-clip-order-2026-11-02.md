@@ -61,3 +61,35 @@ Initial test-setup failures and three genuine partial-super-constructor cleanup
 failures are retained. The latter now require falsy primary preservation and
 normal native material UBO/disposal notifications exactly once after registration
 throws. No local GPU or full production-plugin visual pass is claimed.
+
+## First production-plugin attempt: `1f1be9d3`
+
+[GPU run 41373827088](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41373827088)
+failed all three A09 cases before factor/image comparison. The fixture incorrectly
+looked for raw `#else`/`#endif` delimiters in the submitted shader after Babylon
+preprocessing had removed them. Captured actual shaders contain the correct
+production grouped assignment, marker and ordinary declarations; the linked
+program and other source checks passed. This is a stage-attribution error in the
+test, not evidence of a rendering pass or a production-image defect. Later
+fixed views and lifecycle stages remain unqualified.
+
+Verified A09 artifact 13110831092 SHA-256:
+`a47c64a657a3bd7dd34a5938b733799cb290f7bf43395d56fe31b62ae8656643`.
+Production raw-template anchor validation remains unchanged. The fixture-only
+correction instead requires the unique intended submitted assignment, ordinary
+uniforms/marker and no old, duplicate, component or malformed position writes.
+It retains all actual matrix, binding, image, depth and lifecycle assertions.
+A pure helper has regression cases based on the captured processed shape; the
+old predicate reproduces two positive failures while negatives remain rejected.
+
+The helper and `tests/a09-submitted-shader-contract.test.ts` are explicitly added
+to the required GPU workflow triggers and CPU selection. Existing selectors and
+fail-closed aggregate remain intact. Native workflows and `tests/babylon-*` files
+are untouched: a test-only correction must not cancel the still-running exact-
+source desktop audit. This does not skip any existing native or GPU acceptance.
+
+The frozen four-file correction passed 23 focused contract/workflow tests, full
+TypeScript, canonical project lint, production build, IIFE bundling, YAML/format
+checks and discovery of all 35 cases. Independent review verified the exact
+source and captured submitted-shader shape. Existing native-triggering files
+are byte-identical; no local GPU execution or image pass is inferred.

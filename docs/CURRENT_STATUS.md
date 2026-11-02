@@ -14,6 +14,8 @@ Migration development stays exclusively on **babylon-js**. Main is frozen at res
 
 ## Latest recorded qualification
 
+**A09 submitted-shader check correction:** `1f1be9d3` emitted the intended production transform, but the fixture incorrectly required preprocessor delimiters in processed GLSL and failed before image comparison. A fixture-only predicate now checks the actual submitted assignment and retains missing/old/duplicate/malformed negatives. Production code, raw-anchor checks and all visual limits are unchanged; fresh rendering qualification remains pending. [Evidence](maintenance/babylon-a09-clip-order-2026-11-02.md).
+
 **A09 original-clip-order candidate:** controlled A/B/A testing reproduced max3 → max0 → max3 with exact restoration and unchanged reference inputs. A board-only material adaptation now applies original projection-after-view order to the atlas and three prints. The combined source passed 978 tests/62 files, types, lint, build and 35-case discovery. Full production-plugin GPU qualification is pending; A09 remains outside live startup. [Scope](maintenance/babylon-a09-clip-order-2026-11-02.md).
 
 **A09 first runtime result (`1c1109de`):** all 32 existing GPU cases passed, but three isolated braking-board cases failed a rear-support albedo comparison (max3 versus limit2). No live A09 activation. A bounded fixture-only shader/mip evidence extension retains the failing assertion and original camera/materials. Windows/macOS passed native checks; Linux lost GPU health after model movement. [Evidence](maintenance/babylon-a09-triplet-isolated-2026-11-01.md).

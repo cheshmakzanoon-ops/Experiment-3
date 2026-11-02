@@ -1,3 +1,4 @@
+import { a09SubmittedClipShader } from './babylon-braking-triplet-shader.ts';
 import * as T from 'three';
 import { UniversalCamera } from '@babylonjs/core/Cameras/universalCamera.js';
 import { Camera } from '@babylonjs/core/Cameras/camera.js';
@@ -922,6 +923,7 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
             ordinarySite?: boolean;
             declarations?: boolean;
             fragmentHasNoClipUniforms?: boolean;
+            submittedSite?: ReturnType<typeof a09SubmittedClipShader>;
           } = { phase: 'production-original-clip-program', cycle, index };
           receipts.push(programRow);
           const sources = (gl.getAttachedShaders(program) ?? []).map((shader) => ({
@@ -934,16 +936,11 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
           programRow.vertexSource = vertex.slice(0, 262144);
           programRow.vertexSourceLength = vertex.length;
           programRow.sourceComplete = vertex.length > 0 && vertex.length <= 262144;
-          programRow.marker =
-            /^#define ORIGINAL_A09_CLIP_ORDER\b/m.test(vertex) &&
-            !/^#define MULTIVIEW\b/m.test(vertex);
-          programRow.ordinarySite =
-            vertex.split(
-              '#else\ngl_Position=a09OriginalProjection*(a09OriginalView*worldPos);\n#endif',
-            ).length === 2;
-          programRow.declarations =
-            vertex.split('uniform mat4 a09OriginalView;').length === 2 &&
-            vertex.split('uniform mat4 a09OriginalProjection;').length === 2;
+          const submittedSite = a09SubmittedClipShader(vertex);
+          programRow.submittedSite = submittedSite;
+          programRow.marker = submittedSite.marker;
+          programRow.ordinarySite = submittedSite.ordinarySite;
+          programRow.declarations = submittedSite.declarations;
           programRow.fragmentHasNoClipUniforms =
             fragment.length > 0 && !/a09OriginalView|a09OriginalProjection/.test(fragment);
           check(
