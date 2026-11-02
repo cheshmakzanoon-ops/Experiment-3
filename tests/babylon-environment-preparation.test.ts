@@ -1,3 +1,10 @@
+import { loadBabylonBrakingTriplet } from '../src/engine/babylon/braking-triplet.ts';
+import { LoadAssetContainerAsync } from '@babylonjs/core/Loading/sceneLoader.js';
+import {
+  a09Bytes,
+  allocateA09Texture,
+  installA09CanvasFixture,
+} from './fixtures/a09-triplet-original.ts';
 import { createBabylonGridPaint } from '../src/engine/babylon/grid-paint.ts';
 import { PausedStartupPublication } from '../src/engine/babylon/paused-startup-publication.ts';
 import { afterEach, expect, it, vi } from 'vitest';
@@ -30,8 +37,13 @@ import { Track } from '../src/simulation/track.ts';
 import { VELLAMAR } from '../src/simulation/circuits.ts';
 import { FORMULA_APX01 } from '../src/simulation/vehicles.ts';
 
+const cpuLoads = new Set<Promise<void>>();
 const flush = async () => {
-  for (let i = 0; i < 60; i++) await Promise.resolve();
+  for (let round = 0; round < 3; round++) {
+    for (let i = 0; i < 100; i++) await Promise.resolve();
+    // Drain actual CPU asset decode to compiler entry, never a held compiler.
+    if (cpuLoads.size) await Promise.all([...cpuLoads]);
+  }
 };
 function deferred() {
   let resolve!: () => void;
@@ -44,13 +56,16 @@ const cleanups: (() => void)[] = [];
 afterEach(() => {
   for (const cleanup of cleanups.splice(0)) cleanup();
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
-type Kind = 'gantry' | 'lamps' | 'banner' | 'grid';
+type Kind = 'gantry' | 'lamps' | 'banner' | 'grid' | 'brakingTriplet';
 function harness() {
   const engine = new NullEngine(),
     scene = new Scene(engine),
     abort = new AbortController();
   scene.useRightHandedSystem = true;
+  engine.getCaps().supportSRGBBuffers = true;
+  installA09CanvasFixture();
   const baselineMaterial = new PBRMaterial('baseline', scene);
   baselineMaterial.dispose();
   const baselineTextures = [...scene.textures];
@@ -81,7 +96,13 @@ function harness() {
     isCurrent: () => state.current,
   };
   const events: string[] = [],
-    receipts: Record<Kind, number[]> = { gantry: [], lamps: [], banner: [], grid: [] };
+    receipts: Record<Kind, number[]> = {
+      gantry: [],
+      lamps: [],
+      banner: [],
+      grid: [],
+      brakingTriplet: [],
+    };
   const holds: Partial<Record<Kind, ReturnType<typeof deferred>>> = {};
   const prepareFailures = new Map<Kind, unknown>(),
     installFailures = new Map<Kind, unknown>();
@@ -251,6 +272,89 @@ function harness() {
       owners.grid = owner;
       return owner;
     }) as typeof createBabylonGridPaint,
+    brakingTriplet: (async (received) => {
+      events.push('prepare:brakingTriplet');
+      const entered = deferred();
+      cpuLoads.add(entered.promise);
+      let real: Awaited<ReturnType<typeof loadBabylonBrakingTriplet>>;
+      try {
+        real = await loadBabylonBrakingTriplet(received, {
+          fetcher: async () => new Response(a09Bytes()),
+          decode: (bytes, target) =>
+            LoadAssetContainerAsync(bytes, target, { pluginExtension: '.glb' }),
+          allocateTexture: allocateA09Texture,
+          prepare: async () => {
+            entered.resolve();
+            cpuLoads.delete(entered.promise);
+            await gpu.prepare('A09 original variants CPU seam', received.deadline, async () => {
+              state.activeCompilers++;
+              state.peakCompilers = Math.max(state.peakCompilers, state.activeCompilers);
+              try {
+                await holds.brakingTriplet?.promise;
+              } finally {
+                state.activeCompilers--;
+              }
+            });
+            if (prepareFailures.has('brakingTriplet')) throw prepareFailures.get('brakingTriplet');
+          },
+          present: async (ownerScene, signal) => {
+            if (installFailures.has('brakingTriplet')) throw installFailures.get('brakingTriplet');
+            events.push('subscribe:brakingTriplet');
+            await waitForPresentation(ownerScene, signal, {
+              subscribe(listener) {
+                return gpu.subscribe((receipt) => {
+                  if (receipt.kind === 'completed' && receipt.owner === scene && receipt.ready)
+                    receipts.brakingTriplet.push(receipt.sequence);
+                  listener(receipt);
+                });
+              },
+            });
+          },
+        });
+      } finally {
+        entered.resolve();
+        cpuLoads.delete(entered.promise);
+      }
+      // Explicit opaque NullEngine identity seams: not native upload/raster evidence.
+      for (const { mesh } of real.diagnostics().parts) {
+        for (const kind of ['position', 'normal', 'uv'])
+          Object.defineProperty(mesh.getVertexBuffer(kind)!.getBuffer()!, 'underlyingResource', {
+            configurable: true,
+            value: {},
+          });
+        Object.defineProperty(mesh.geometry!.getIndexBuffer()!, 'underlyingResource', {
+          configurable: true,
+          value: {},
+        });
+      }
+      for (const material of new Set(real.diagnostics().parts.map((p) => p.material)))
+        for (const texture of material.getActiveTextures()) {
+          const internal = texture.getInternalTexture()!;
+          internal.isReady = true;
+          internal._hardwareTexture = {
+            underlyingResource: {},
+            release() {},
+            reset() {},
+          } as unknown as NonNullable<typeof internal._hardwareTexture>;
+        }
+      const owner = {
+        ...real,
+        disposed: false,
+        install() {
+          events.push('install:brakingTriplet');
+          return real.install();
+        },
+        dispose() {
+          expect(state.activeCompilers).toBe(0);
+          events.push('dispose:brakingTriplet');
+          owner.disposed = true;
+          real.dispose();
+          if (disposalFailures.delete('brakingTriplet')) throw undefined;
+        },
+      };
+      owners.brakingTriplet = owner;
+      return owner;
+    }) as typeof loadBabylonBrakingTriplet,
   };
   let batch: EnvironmentPreparation | undefined;
   const start = () => {
@@ -266,7 +370,7 @@ function harness() {
           events
             .slice(events.lastIndexOf('prepare:gantry'))
             .filter((e) => e.startsWith('subscribe:')),
-        ).toHaveLength(batch!.grid!.eligible ? 4 : 3);
+        ).toHaveLength(3 + Number(batch!.grid!.eligible) + Number(batch!.brakingTriplet!.eligible));
         events.push('draw');
         batch!.lamps!.apply(frame);
         return ready;
@@ -338,6 +442,7 @@ it('keeps surface pair unchanged then shares two actual future ready completions
     'prepare:lamps',
     'prepare:banner',
     'prepare:grid',
+    'prepare:brakingTriplet',
     'install:gantry',
     'subscribe:gantry',
     'install:lamps',
@@ -346,6 +451,8 @@ it('keeps surface pair unchanged then shares two actual future ready completions
     'subscribe:banner',
     'install:grid',
     'subscribe:grid',
+    'install:brakingTriplet',
+    'subscribe:brakingTriplet',
   ]);
   expect(h.applied).toEqual([1]);
   expect(batch.canDraw).toBe(true);
@@ -359,12 +466,18 @@ it('keeps surface pair unchanged then shares two actual future ready completions
   h.tick();
   await batch.completion;
   expect(batch.completed).toBe(true);
-  expect(h.receipts).toEqual({ gantry: [3, 4], lamps: [3, 4], banner: [3, 4], grid: [3, 4] });
+  expect(h.receipts).toEqual({
+    gantry: [3, 4],
+    lamps: [3, 4],
+    banner: [3, 4],
+    grid: [3, 4],
+    brakingTriplet: [3, 4],
+  });
   expect(h.applied.at(-1)).toBe(0);
   expect(h.gpu.diagnostics()).toMatchObject({
     submitted: 4,
     completed: 4,
-    preparation: { started: 5, completed: 5 },
+    preparation: { started: 7, completed: 7 },
   });
   expect(h.state.peakCompilers).toBe(1);
   expect(h.schedule.diagnostics().preparationCount).toBe(0);
@@ -394,7 +507,7 @@ it('nonready completions and context loss reset each independent consecutive-rea
   await batch.completion;
   expect(batch.completed).toBe(true);
 });
-it.each(['gantry', 'lamps', 'banner', 'grid'] as const)(
+it.each(['gantry', 'lamps', 'banner', 'grid', 'brakingTriplet'] as const)(
   'rolls back every staged/installed owner on %s partial install failure with falsy primary error',
   async (kind) => {
     const h = harness();
@@ -416,7 +529,7 @@ it.each(['gantry', 'lamps', 'banner', 'grid'] as const)(
     expect(h.schedule.diagnostics().preparationCount).toBe(0);
   },
 );
-it.each(['gantry', 'lamps', 'banner', 'grid'] as const)(
+it.each(['gantry', 'lamps', 'banner', 'grid', 'brakingTriplet'] as const)(
   'retains %s prepare failure, drains current lease and disposes earlier staged owners',
   async (kind) => {
     const h = harness();
@@ -610,7 +723,7 @@ it('a restart cancels old subscriptions and requires two new receipts for the re
   replacementAbort.abort();
 });
 
-it.each(['start-gantry', 'start-lamps', 'start-banner', 'grid-paint'])(
+it.each(['start-gantry', 'start-lamps', 'start-banner', 'grid-paint', 'braking-triplet'])(
   'keeps %s adapter installation synchronous through its real presentation subscription',
   (name) => {
     const source = readFileSync(`src/engine/babylon/${name}.ts`, 'utf8');
@@ -632,7 +745,7 @@ it('does not borrow other-scene completions for any installed owner', async () =
   h.gpu.ready();
   await flush();
   expect(batch.completed).toBe(false);
-  expect(h.receipts).toEqual({ gantry: [], lamps: [], banner: [], grid: [] });
+  expect(h.receipts).toEqual({ gantry: [], lamps: [], banner: [], grid: [], brakingTriplet: [] });
   h.tick();
   h.tick();
   await flush();
@@ -640,7 +753,13 @@ it('does not borrow other-scene completions for any installed owner', async () =
   h.tick();
   h.tick();
   await batch.completion;
-  expect(h.receipts).toEqual({ gantry: [2, 3], lamps: [2, 3], banner: [2, 3], grid: [2, 3] });
+  expect(h.receipts).toEqual({
+    gantry: [2, 3],
+    lamps: [2, 3],
+    banner: [2, 3],
+    grid: [2, 3],
+    brakingTriplet: [2, 3],
+  });
 });
 it('expired installation receipts fail the original absolute deadline without publication', async () => {
   const h = harness(),
@@ -677,7 +796,7 @@ it('retains the exact pre-owned BRDF baseline until final scene disposal release
   expect(h.scene.textures).toHaveLength(0);
 });
 
-it.each(['lamps', 'banner', 'grid'] as const)(
+it.each(['lamps', 'banner', 'grid', 'brakingTriplet'] as const)(
   'a throwing %s cleanup reporter cannot replace the falsy primary error or skip settlement',
   async (kind) => {
     const h = harness();
@@ -829,7 +948,13 @@ it('keeps stripe outside the batch and requires two fresh stripe receipts withou
   expect(h.gpu.diagnostics()).toMatchObject({ submitted: 4, completed: 4 });
   expect(draws).toEqual(['surface', 'surface', 'batch', 'batch']);
   await flush();
-  expect(h.receipts).toEqual({ gantry: [3, 4], lamps: [3, 4], banner: [3, 4], grid: [3, 4] });
+  expect(h.receipts).toEqual({
+    gantry: [3, 4],
+    lamps: [3, 4],
+    banner: [3, 4],
+    grid: [3, 4],
+    brakingTriplet: [3, 4],
+  });
   expect(stripeCompiler).toHaveBeenCalledOnce();
   expect(stripe?.canDraw).toBe(true);
   expect(stripe?.completed).toBe(false);
@@ -855,4 +980,32 @@ it('keeps stripe outside the batch and requires two fresh stripe receipts withou
   callback();
   callback();
   expect(h.gpu.diagnostics()).toMatchObject({ submitted: 7, completed: 7, settled: true });
+});
+
+it('holds all four siblings off-scene until the fifth A09 compiler drains, even on cancellation', async () => {
+  const h = harness();
+  h.holds.brakingTriplet = deferred();
+  const batch = h.start();
+  const failed = expect(batch.completion).rejects.toThrow();
+  await flush();
+  expect(h.events).toEqual([
+    'prepare:gantry',
+    'prepare:lamps',
+    'prepare:banner',
+    'prepare:grid',
+    'prepare:brakingTriplet',
+  ]);
+  expect(h.state.activeCompilers).toBe(1);
+  expect(batch.canDraw).toBe(false);
+  expect(h.scene.meshes).toHaveLength(0);
+  h.tick();
+  expect(h.events).not.toContain('draw');
+  batch.dispose();
+  expect(h.events.some((e) => e.startsWith('dispose:'))).toBe(false);
+  h.holds.brakingTriplet.resolve();
+  await failed;
+  expect(Object.values(h.owners).every((o) => o!.disposed)).toBe(true);
+  expect(h.scene.meshes).toHaveLength(0);
+  expect(h.scene.materials).toHaveLength(0);
+  expect(h.scene.textures).toEqual(h.baselineTextures);
 });

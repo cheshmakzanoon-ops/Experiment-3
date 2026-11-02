@@ -76,6 +76,10 @@ const surfaceKeys = [
   'bannerWidth',
   'bannerHeight',
   'bannerHardwareSrgb',
+  'brakingTripletState',
+  'brakingTripletParts',
+  'brakingTripletTriangles',
+  'brakingTripletScope',
   'gridState',
   'gridParts',
   'gridMaterials',
@@ -148,6 +152,13 @@ async function expectOriginalStartStripe(page: Page) {
 }
 async function expectOriginalGridPaint(page: Page) {
   const status = page.locator('#status');
+  await expect(status).toHaveAttribute('data-braking-triplet-state', 'ready');
+  await expect(status).toHaveAttribute('data-braking-triplet-parts', '6');
+  await expect(status).toHaveAttribute('data-braking-triplet-triangles', '4950');
+  await expect(status).toHaveAttribute(
+    'data-braking-triplet-scope',
+    'dry-formula-first-clean-triplet-fixed-lod0',
+  );
   await expect(status).toHaveAttribute('data-grid-state', 'ready');
   await expect(status).toHaveAttribute('data-grid-parts', '2');
   await expect(status).toHaveAttribute('data-grid-materials', '1');
@@ -297,6 +308,8 @@ test('Babylon migration entry renders existing simulation and supports pause, re
     'shadow-parity',
   ])
     await expect(status).not.toHaveAttribute(`data-grid-${key}`);
+  for (const key of ['state', 'parts', 'triangles', 'scope'])
+    await expect(status).not.toHaveAttribute(`data-braking-triplet-${key}`);
   for (const key of ['state', 'parts', 'materials', 'triangles', 'lights'])
     await expect(status).not.toHaveAttribute(`data-lamp-${key}`);
   await expect(status).toHaveAttribute('data-scene-ready', 'false');
@@ -354,6 +367,10 @@ test('Babylon completes original environment startup while paused before gantry 
         'bannerWidth',
         'bannerHeight',
         'bannerHardwareSrgb',
+        'brakingTripletState',
+        'brakingTripletParts',
+        'brakingTripletTriangles',
+        'brakingTripletScope',
         'gridState',
         'gridParts',
         'gridMaterials',
@@ -456,23 +473,26 @@ test('Babylon completes original environment startup while paused before gantry 
               'bannerParts',
               'stripeParts',
               'gridParts',
+              'brakingTripletParts',
             ]),
-            materials: count([
-              'surfacePaintFinishMaterials',
-              'surfaceAsphaltSubstrateMaterials',
-              'gantryMaterials',
-              'lampMaterials',
-              'bannerMaterials',
-              'stripeMaterials',
-              'gridMaterials',
-            ]),
-            textures: count([
-              'surfaceAsphaltSubstrateTextures',
-              'gantryTextures',
-              'bannerTextures',
-              'stripeTextures',
-              'gridTextures',
-            ]),
+            materials:
+              count([
+                'surfacePaintFinishMaterials',
+                'surfaceAsphaltSubstrateMaterials',
+                'gantryMaterials',
+                'lampMaterials',
+                'bannerMaterials',
+                'stripeMaterials',
+                'gridMaterials',
+              ]) + (data.brakingTripletState === 'ready' ? 4 : 0),
+            textures:
+              count([
+                'surfaceAsphaltSubstrateTextures',
+                'gantryTextures',
+                'bannerTextures',
+                'stripeTextures',
+                'gridTextures',
+              ]) + (data.brakingTripletState === 'ready' ? 6 : 0),
           },
           dom: {
             panelText: document.querySelector('#panel')?.textContent,

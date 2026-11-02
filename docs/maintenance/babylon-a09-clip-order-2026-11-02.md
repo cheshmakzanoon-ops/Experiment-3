@@ -1,7 +1,9 @@
 # A09 original clip-transform order
 
-Base `8ce503c31f67a06c57bf7629217fedbd185acf9c`. This adaptation is limited to
-isolated original A09 first-clean-triplet LOD0 ownership. No live integration.
+Historical base `8ce503c31f67a06c57bf7629217fedbd185acf9c`. This adaptation was
+initially isolated to original A09 first-clean-triplet LOD0 ownership. Subsequent
+isolated qualification is recorded below; [live integration](babylon-live-a09-2026-11-02.md)
+now has separate pending rendering and native acceptance gates.
 
 ## Evidence and scope
 
@@ -93,3 +95,47 @@ TypeScript, canonical project lint, production build, IIFE bundling, YAML/format
 checks and discovery of all 35 cases. Independent review verified the exact
 source and captured submitted-shader shape. Existing native-triggering files
 are byte-identical; no local GPU execution or image pass is inferred.
+
+## Isolated production qualification: `e2633582`
+
+The corrected submitted-stage guard allowed the actual production plugin to reach
+all fixed views in [run 41378684226](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41378684226).
+All three A09 cases passed, including fresh-context restart after genuine loss.
+Four probe reports each contain 36 factor rows: all 144 comparisons passed.
+Albedo error was exactly zero; view-normal maximum error was one code, worst mean
+0.00014071483134322357. Coverage mismatch was zero, original repeats were exact,
+and no GL errors were reported. This covers all three labels, front/rear/grazing
+views and both ownership cycles, not only the original rear150 failure.
+
+All six meshes' original positions/normals/UVs/indices/worlds matched; six texture
+byte witnesses per cycle matched original data. Actual ordinary view/projection
+readbacks matched the original reference on every draw. All 32 submitted program
+witnesses contained one grouped assignment and no legacy combined assignment.
+Culling/depth receipts retained CCW, double-sided structure, print BACK culling,
+LEQUAL, depth writes and original -1/-1 print offset.
+
+Independent decoding checked 168 PNGs: each of 42 captures is byte-identical across
+the four probe streams. Owned cleanup/restored baselines passed. Normal-context
+buffer/texture deletion was verified; loss-context deletion was explicitly
+unqueried, not falsely reported as a live query. Recovery here means fresh-context
+reconstruction, not qualification of same-context restoration.
+
+Verified A09 artifact 13114152589 SHA-256:
+`5e0c4818301a959e3a61d85c2720fa5106c5ccc55c573145814eb138dc074d09`.
+The backend is ANGLE/SwiftShader. This qualifies the isolated original-factor and
+lifecycle scope—not live startup, physical hardware, native Electron, full PBR
+lighting, wet weather, shadows, sector boards or dynamic LOD selection. The rest
+of the workflow and future live-source runs retain their own acceptance gates.
+
+The complete `e2633582` workflow subsequently passed all 35 cases and its required
+aggregate. Retained artifact 13114832436 has SHA-256
+`11196bdad1be7d8c0acff98e29905cc38da4198a0ff71e62579bccb891f7c952`.
+Actual same-scene Restart reset tick 53 to zero, advanced component 2 to 3 while
+retaining scene 2, and required fresh ready completions 12/13. Canonical state
+and the unmasked reset image were exact. Early pause held tick 699 through genuine
+resize/redraw, with completions 7/8/9, then resumed at 716 with exact paused pixels.
+
+The earlier corrected `81af5607` run 41376978171 also passed all 35 cases and its
+aggregate. All six artifacts were independently SHA-verified in each run; all
+548 isolated PNGs (380 existing and 168 A09) were byte-identical between runs.
+The earlier `1f1be9d3` submitted-source fixture failure remains a recorded failure.

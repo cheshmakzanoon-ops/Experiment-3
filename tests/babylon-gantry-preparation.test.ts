@@ -255,9 +255,25 @@ it('wires startup after surfaces with the same deadline and keeps draw receipts 
     startup.indexOf('const diagnostics = currentScene.surfaceDiagnostics'),
   );
   expect(startup).toContain('await environment.completion');
+  const modelEnable =
+    /loadAsset\.disabled\s*=\s*!gridPreparationValid\(environmentPreparation\?\.grid\)\s*\|\|\s*!brakingTripletPreparationValid\(environmentPreparation\?\.brakingTriplet\)\s*;/;
+  expect(startup.search(modelEnable)).toBeGreaterThan(
+    startup.indexOf('await environment.completion'),
+  );
+  const assignment = startup.match(modelEnable)?.[0];
+  expect(assignment).toBeDefined();
+  // Neither missing guard nor an AND (which enables with one invalid owner)
+  // may satisfy this startup ordering/enable contract.
   expect(
-    startup.indexOf('loadAsset.disabled = !gridPreparationValid(environmentPreparation?.grid)'),
-  ).toBeGreaterThan(startup.indexOf('await environment.completion'));
+    assignment!.replace('!gridPreparationValid(environmentPreparation?.grid)', 'false'),
+  ).not.toMatch(modelEnable);
+  expect(
+    assignment!.replace(
+      '!brakingTripletPreparationValid(environmentPreparation?.brakingTriplet)',
+      'false',
+    ),
+  ).not.toMatch(modelEnable);
+  expect(assignment!.replace('||', '&&')).not.toMatch(modelEnable);
   expect(source).toContain('!environmentPreparation?.gantry?.completed');
   expect(source).toContain('(!environmentPreparation || environmentPreparation.canDraw)');
   expect(source).toContain(

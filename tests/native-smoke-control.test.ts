@@ -210,6 +210,10 @@ describe('same-readiness-receipt native Aurel surface acceptance', () => {
     bannerWidth: '512',
     bannerHeight: '128',
     bannerHardwareSrgb: '1',
+    brakingTripletState: 'ready',
+    brakingTripletParts: '6',
+    brakingTripletTriangles: '4950',
+    brakingTripletScope: 'dry-formula-first-clean-triplet-fixed-lod0',
     gridState: 'ready',
     gridParts: '2',
     gridMaterials: '1',
@@ -242,6 +246,28 @@ describe('same-readiness-receipt native Aurel surface acceptance', () => {
     gantrySha256: gantryManifest.sha256,
     coarseMeshes: '0',
   };
+  it('rejects partial or malformed braking triplet numeric and bounded scope receipts', () => {
+    for (const [key, value] of [
+      ['brakingTripletState', 'prepared'],
+      ['brakingTripletState', 'ineligible'],
+      ['brakingTripletState', ''],
+      ['brakingTripletParts', '5'],
+      ['brakingTripletParts', '06'],
+      ['brakingTripletParts', '6.0'],
+      ['brakingTripletParts', 6],
+      ['brakingTripletTriangles', '4949'],
+      ['brakingTripletTriangles', '4950x'],
+      ['brakingTripletTriangles', 'NaN'],
+      ['brakingTripletTriangles', null],
+      ['brakingTripletScope', 'full-environment'],
+      ['brakingTripletScope', 'dry-formula-first-clean-triplet-fixed-lod1'],
+      ['brakingTripletScope', 'dry-formula-first-clean-triplet-fixed-lod0 '],
+      ['brakingTripletScope', true],
+    ])
+      expect(() => validateNativeAurelSurface({ ...raw, [key as string]: value })).toThrow(
+        String(key),
+      );
+  });
   it('rejects incomplete original grid resources and unsupported parity receipts', () => {
     for (const [key, value] of [
       ['gridState', 'prepared'],
@@ -285,6 +311,10 @@ describe('same-readiness-receipt native Aurel surface acceptance', () => {
       bannerWidth: 512,
       bannerHeight: 128,
       bannerHardwareSrgb: 1,
+      brakingTripletState: 'ready',
+      brakingTripletParts: 6,
+      brakingTripletTriangles: 4950,
+      brakingTripletScope: 'dry-formula-first-clean-triplet-fixed-lod0',
       gridState: 'ready',
       gridParts: 2,
       gridMaterials: 1,

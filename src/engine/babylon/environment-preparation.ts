@@ -1,3 +1,5 @@
+import { BrakingTripletPreparation } from './braking-triplet-preparation.ts';
+import type { loadBabylonBrakingTriplet } from './braking-triplet.ts';
 import { GridPreparation } from './grid-preparation.ts';
 import type { createBabylonGridPaint } from './grid-paint.ts';
 import { GantryPreparation } from './gantry-preparation.ts';
@@ -13,9 +15,10 @@ interface EnvironmentDependencies {
   lamps?: typeof createBabylonStartLamps;
   banner?: typeof createBabylonStartBanner;
   grid?: typeof createBabylonGridPaint;
+  brakingTriplet?: typeof loadBabylonBrakingTriplet;
 }
 
-/** The original gantry, lamps, banner and dry Formula grid. Surface readiness precedes this
+/** The original gantry, lamps, banner, dry Formula grid and first clean A09 triplet. Surface readiness precedes this
  * owner. Compilation stays sequential; all installations subscribe before the
  * shared scene can draw. Each owner still requires its own two real receipts. */
 export class EnvironmentPreparation {
@@ -23,6 +26,7 @@ export class EnvironmentPreparation {
   lamps: LampPreparation | undefined;
   banner: BannerPreparation | undefined;
   grid: GridPreparation | undefined;
+  brakingTriplet: BrakingTripletPreparation | undefined;
   readonly completion: Promise<void>;
   private readonly abort = new AbortController();
   private disposed = false;
@@ -60,7 +64,8 @@ export class EnvironmentPreparation {
       !!this.gantry?.canDraw &&
       !!this.lamps?.canDraw &&
       !!this.banner?.canDraw &&
-      !!this.grid?.canDraw
+      !!this.grid?.canDraw &&
+      !!this.brakingTriplet?.canDraw
     );
   }
   get completed() {
@@ -70,11 +75,13 @@ export class EnvironmentPreparation {
       !!this.gantry?.completed &&
       !!this.lamps?.completed &&
       !!this.banner?.completed &&
-      !!this.grid?.completed
+      !!this.grid?.completed &&
+      !!this.brakingTriplet?.completed
     );
   }
   private cleanup() {
     const failures = cleanupPresentation([
+      () => this.brakingTriplet?.dispose(),
       () => this.grid?.dispose(),
       () => this.banner?.dispose(),
       () => this.lamps?.dispose(),
@@ -108,10 +115,17 @@ export class EnvironmentPreparation {
       this.grid = new GridPreparation(this.options, dependencies.grid, { staged: true });
       await this.grid.prepared;
       this.active();
+      this.brakingTriplet = new BrakingTripletPreparation(
+        this.options,
+        dependencies.brakingTriplet,
+        { staged: true },
+      );
+      await this.brakingTriplet.prepared;
+      this.active();
       this.preparing = false;
       // Deliberately no await between installs: all scene additions and each
       // independent future-frame subscription precede any normal submission.
-      for (const owner of [this.gantry, this.lamps, this.banner, this.grid])
+      for (const owner of [this.gantry, this.lamps, this.banner, this.grid, this.brakingTriplet])
         installations.push(owner.install());
       this.active();
       this.drawable = true;

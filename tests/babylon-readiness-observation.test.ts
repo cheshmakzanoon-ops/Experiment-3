@@ -423,3 +423,35 @@ it('main read-only snapshot exposes grid owner without allocating or invoking a 
     errors: [],
   });
 });
+
+it('main observes the A09 preparation owner as plain readonly readiness without touching resource receipts', () => {
+  const receipt = vi.fn(() => {
+    throw new Error('resource traversal forbidden');
+  });
+  const owner = Object.freeze({ completed: false, canDraw: true, receipt });
+  const query = graphicsQuery(
+    () => ({ settled: true }),
+    () => ({ requested: false, preparationCount: 1, pending: true }),
+    Object.freeze({ brakingTriplet: owner }),
+  );
+  const observed = query();
+  expect(observed.readiness).toHaveProperty('owners.brakingTriplet', {
+    exists: true,
+    completed: false,
+    canDraw: true,
+    errors: [],
+  });
+  expect(receipt).not.toHaveBeenCalled();
+  expect(observed).not.toHaveProperty('startupVisualState');
+  expect(observed).not.toHaveProperty('submissionObservation');
+  const absent = graphicsQuery(
+    () => ({ settled: false }),
+    () => ({}),
+  )();
+  expect(absent.readiness).toHaveProperty('owners.brakingTriplet', {
+    exists: false,
+    completed: null,
+    canDraw: null,
+    errors: [],
+  });
+});

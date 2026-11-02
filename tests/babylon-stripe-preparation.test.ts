@@ -327,7 +327,7 @@ it.each(['material', 'texture', 'srgb', 'dimensions', 'triangles'] as const)(
     expect(() => stripe.receipt()).toThrow('activation incomplete');
   },
 );
-it('wires stripe after the completed four-owner batch under the existing deadline and keeps GPU receipts independent', () => {
+it('wires stripe after the completed five-owner batch under the existing deadline and keeps GPU receipts independent', () => {
   const source = readFileSync('src/engine/babylon/main.ts', 'utf8');
   const startup = source.slice(
     source.indexOf('function rebuildScene'),
@@ -341,9 +341,23 @@ it('wires stripe after the completed four-owner batch under the existing deadlin
   expect(readFileSync('src/engine/babylon/environment-preparation.ts', 'utf8')).not.toContain(
     'StripePreparation',
   );
+  const modelEnable =
+    /loadAsset\.disabled\s*=\s*!gridPreparationValid\(environmentPreparation\?\.grid\)\s*\|\|\s*!brakingTripletPreparationValid\(environmentPreparation\?\.brakingTriplet\)\s*;/;
+  expect(startup.search(modelEnable)).toBeGreaterThan(startup.indexOf('await stripe.completion'));
+  const assignment = startup.match(modelEnable)?.[0];
+  expect(assignment).toBeDefined();
+  // Neither missing guard nor an AND (which enables with one invalid owner)
+  // may satisfy this startup ordering/enable contract.
   expect(
-    startup.indexOf('loadAsset.disabled = !gridPreparationValid(environmentPreparation?.grid)'),
-  ).toBeGreaterThan(startup.indexOf('await stripe.completion'));
+    assignment!.replace('!gridPreparationValid(environmentPreparation?.grid)', 'false'),
+  ).not.toMatch(modelEnable);
+  expect(
+    assignment!.replace(
+      '!brakingTripletPreparationValid(environmentPreparation?.brakingTriplet)',
+      'false',
+    ),
+  ).not.toMatch(modelEnable);
+  expect(assignment!.replace('||', '&&')).not.toMatch(modelEnable);
   expect(startup.slice(startup.indexOf('await stripe.completion'))).toContain(
     'requestPresentation()',
   );

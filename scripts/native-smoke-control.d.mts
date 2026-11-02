@@ -43,6 +43,10 @@ export interface NativeAurelSurfaceReceipt {
   bannerWidth: number;
   bannerHeight: number;
   bannerHardwareSrgb: number;
+  brakingTripletState: 'ready';
+  brakingTripletParts: number;
+  brakingTripletTriangles: number;
+  brakingTripletScope: 'dry-formula-first-clean-triplet-fixed-lod0';
   gridState: 'ready';
   gridParts: number;
   gridMaterials: number;

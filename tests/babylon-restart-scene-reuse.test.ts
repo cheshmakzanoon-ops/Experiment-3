@@ -1,3 +1,11 @@
+import { loadBabylonBrakingTriplet } from '../src/engine/babylon/braking-triplet.ts';
+import { brakingTripletPreparationValid } from '../src/engine/babylon/braking-triplet-preparation.ts';
+import { LoadAssetContainerAsync } from '@babylonjs/core/Loading/sceneLoader.js';
+import {
+  a09Bytes,
+  allocateA09Texture,
+  installA09CanvasFixture,
+} from './fixtures/a09-triplet-original.ts';
 import { EnvironmentPreparation } from '../src/engine/babylon/environment-preparation.ts';
 import { waitForPresentation } from '../src/engine/babylon/presentation-ready.ts';
 import { CreatePlane } from '@babylonjs/core/Meshes/Builders/planeBuilder.js';
@@ -42,6 +50,7 @@ afterEach(() => {
     .reverse()
     .forEach((fn) => fn());
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 const fresh = () => new SimulationComponent({ ...DEFAULT_OPTIONS, mode: 'practice', opponents: 0 });
 function setup() {
@@ -334,6 +343,7 @@ describe('production restart selection before invalidation', () => {
       RestartOwnership,
       RestartSceneReuse,
       gridPreparationValid,
+      brakingTripletPreparationValid,
       SimulationComponent,
       DEFAULT_OPTIONS,
       settings: { setup: DEFAULT_OPTIONS.setup },
@@ -357,6 +367,7 @@ describe('production restart selection before invalidation', () => {
         lamps: complete,
         banner: complete,
         grid: complete,
+        brakingTriplet: complete,
       },
       stripePreparation: complete,
       reuseCandidate: null,
@@ -397,6 +408,9 @@ describe('production restart selection before invalidation', () => {
     'replaced-grid',
     'missing-proof',
     'mutated-grid',
+    'replaced-braking-triplet',
+    'missing-braking-triplet-proof',
+    'mutated-braking-triplet',
     'repeat',
   ] as const)(
     'actual pending RestartOwnership drain with real grid: %s (retention still requires a fresh reset pair)',
@@ -425,9 +439,15 @@ describe('production restart selection before invalidation', () => {
       } as BabylonPresentationGpu;
       h.context.gpu = gpu;
       // Sibling meshes/materials are synthetic CPU fixtures, not art/parity proof.
-      // The actual cohort, all four wrappers, grid adapter and receipt subscriptions
+      // The actual cohort, all five wrappers, grid and A09 adapters and receipt subscriptions
       // are production code, including the cohort's combined cancellation signal.
       const forwarded: AbortSignal[] = [];
+      installA09CanvasFixture();
+      view.scene.getEngine().getCaps().supportSRGBBuffers = true;
+      let a09Loaded!: () => void;
+      const a09Prepared = new Promise<void>((resolve) => {
+        a09Loaded = resolve;
+      });
       const sibling = async (
         kind: 'gantry' | 'lamps' | 'banner',
         options: Pick<BabylonStartGantryOptions, 'scene' | 'signal'>,
@@ -521,21 +541,61 @@ describe('production restart selection before invalidation', () => {
             forwarded.push(options.signal);
             return createBabylonGridPaint(options, { prepare: async () => {} });
           },
+          brakingTriplet: async (options) => {
+            forwarded.push(options.signal);
+            const owner = await loadBabylonBrakingTriplet(options, {
+              fetcher: async () => new Response(a09Bytes()),
+              decode: (bytes, scene) =>
+                LoadAssetContainerAsync(bytes, scene, { pluginExtension: '.glb' }),
+              allocateTexture: allocateA09Texture,
+              prepare: async () => {},
+            });
+            // NullEngine opaque handles exercise CPU identity only, not native rendering.
+            for (const { mesh } of owner.diagnostics().parts) {
+              for (const kind of ['position', 'normal', 'uv'])
+                Object.defineProperty(
+                  mesh.getVertexBuffer(kind)!.getBuffer()!,
+                  'underlyingResource',
+                  { configurable: true, value: {} },
+                );
+              Object.defineProperty(mesh.geometry!.getIndexBuffer()!, 'underlyingResource', {
+                configurable: true,
+                value: {},
+              });
+            }
+            for (const material of new Set(owner.diagnostics().parts.map((p) => p.material)))
+              for (const texture of material.getActiveTextures()) {
+                const internal = texture.getInternalTexture()!;
+                internal.isReady = true;
+                internal._hardwareTexture = {
+                  underlyingResource: {},
+                  release() {},
+                  reset() {},
+                } as unknown as NonNullable<typeof internal._hardwareTexture>;
+              }
+            a09Loaded();
+            return owner;
+          },
         },
       );
       cleanup.push(() => {
         environment.grid = grid;
+        environment.brakingTriplet = brakingTriplet;
         environment.dispose();
       });
+      await a09Prepared;
       for (let turn = 0; turn < 100; turn++) await Promise.resolve();
       expect(environment.canDraw).toBe(true);
-      expect(forwarded).toHaveLength(4);
-      expect(new Set(forwarded).size).toBe(1);
+      expect(forwarded).toHaveLength(5);
+      expect(new Set(forwarded.slice(0, 4)).size).toBe(1);
+      expect(forwarded[4]).not.toBe(forwarded[0]);
+      expect(forwarded[4].aborted).toBe(false);
       expect(forwarded[0]).not.toBe(h.abort.signal);
       events.emit(view.scene);
       events.emit(view.scene);
       await environment.completion;
-      const grid = environment.grid!;
+      const grid = environment.grid!,
+        brakingTriplet = environment.brakingTriplet!;
       h.context.environmentPreparation = environment;
       Object.assign(h.context, {
         PausedStartupPublication,
@@ -557,6 +617,9 @@ describe('production restart selection before invalidation', () => {
       expect(grid.completed).toBe(false);
       expect(() => grid.receipt()).toThrow();
       expect(grid.captureRetainedProof()).toBeNull();
+      expect(brakingTriplet.completed).toBe(false);
+      expect(() => brakingTriplet.receipt()).toThrow();
+      expect(brakingTriplet.captureRetainedProof()).toBeNull();
       const helper = main.slice(
         main.indexOf('function tryReuseScene('),
         main.indexOf('function rebuildScene('),
@@ -584,6 +647,18 @@ describe('production restart selection before invalidation', () => {
         )!;
         material.alpha = 0.5;
       }
+      if (mode === 'replaced-braking-triplet')
+        environment.brakingTriplet = {} as typeof brakingTriplet;
+      if (mode === 'missing-braking-triplet-proof')
+        (h.context.reuseCandidate as { brakingTripletProof: unknown }).brakingTripletProof = null;
+      if (mode === 'mutated-braking-triplet') {
+        const mesh = view.scene.meshes.find(
+          (m) => m.material?.name === 'A09 retained graphic 150',
+        )!;
+        expect(mesh).toBeDefined();
+        mesh.visibility = 0.5;
+      }
+      if (mode === 'environment-aborted') expect(forwarded[4].aborted).toBe(true);
       if (mode === 'repeat') h.request();
       try {
         expect(
@@ -595,6 +670,7 @@ describe('production restart selection before invalidation', () => {
           controller.drain(true, (owner) => {
             expect(controller.pending).toBe(true);
             expect(gridPreparationValid(grid)).toBe(false);
+            expect(brakingTripletPreparationValid(brakingTriplet)).toBe(false);
             accepted = reuse(owner, performance.now() + 120000, h.context.reuseCandidate);
           }),
         ).toBe(true);
@@ -605,6 +681,7 @@ describe('production restart selection before invalidation', () => {
         }
         expect(accepted).toBe(true);
         expect(grid.completed).toBe(true);
+        expect(brakingTripletPreparationValid(brakingTriplet)).toBe(true);
         const reset = h.context.restartPresentation as RestartPresentation;
         expect(reset).toBeInstanceOf(RestartPresentation);
         expect(reset.completed).toBe(false);
@@ -714,6 +791,63 @@ describe('production restart selection before invalidation', () => {
       expect(h.context.restartPresentation).toBeUndefined();
     },
   );
+  it.each(['missing', 'incomplete', 'ineligible', 'mutated'] as const)(
+    'never selects retained reuse with %s brakingTriplet evidence',
+    (kind) => {
+      const h = requestHarness();
+      const environment = h.context.environmentPreparation as { brakingTriplet: unknown };
+      environment.brakingTriplet =
+        kind === 'missing'
+          ? undefined
+          : {
+              completed: kind !== 'incomplete',
+              eligible: kind !== 'ineligible',
+              receipt() {
+                if (kind === 'mutated') throw undefined;
+                return {};
+              },
+            };
+      h.request();
+      expect(h.context.reuseCandidate).toBeNull();
+      expect(h.abort.signal.aborted).toBe(true);
+    },
+  );
+  it.each(['missing', 'missing-captured', 'replaced', 'mutated'] as const)(
+    'revalidates %s brakingTriplet at drained handoff, not only the first Restart click',
+    (kind) => {
+      const h = requestHarness();
+      h.request();
+      const candidate = h.context.reuseCandidate;
+      expect(candidate).not.toBeNull();
+      if (kind === 'missing-captured')
+        (candidate as { brakingTriplet?: unknown }).brakingTriplet = undefined;
+      const environment = h.context.environmentPreparation as {
+        brakingTriplet: { completed: boolean; eligible: boolean; receipt(): unknown };
+      };
+      if (kind === 'missing')
+        environment.brakingTriplet = undefined as unknown as typeof environment.brakingTriplet;
+      if (kind === 'replaced')
+        environment.brakingTriplet = { completed: true, eligible: true, receipt: () => ({}) };
+      if (kind === 'mutated')
+        environment.brakingTriplet.receipt = () => {
+          throw null;
+        };
+      const source = readFileSync('src/engine/babylon/main.ts', 'utf8');
+      const helper = source.slice(
+        source.indexOf('function tryReuseScene('),
+        source.indexOf('function rebuildScene('),
+      );
+      const reuse = runInNewContext(transpileModule(`(${helper})`, {}).outputText, h.context) as (
+        owner: SimulationComponent,
+        deadline: number,
+        candidate: unknown,
+      ) => boolean;
+      expect(
+        reuse(h.context.component as SimulationComponent, performance.now() + 120000, candidate),
+      ).toBe(false);
+      expect(h.context.restartPresentation).toBeUndefined();
+    },
+  );
   it('keeps eligible rebuilt and retained readiness copy identical for the unmasked reset image proof', () => {
     const main = readFileSync('src/engine/babylon/main.ts', 'utf8');
     const reuse = main.slice(
@@ -722,8 +856,8 @@ describe('production restart selection before invalidation', () => {
     );
     const startup = main.slice(main.indexOf('function rebuildScene('));
     const message = (source: string, eligible: boolean) => {
-      const enable = source.indexOf(
-        'loadAsset.disabled = !gridPreparationValid(environmentPreparation?.grid);',
+      const enable = source.search(
+        /loadAsset\.disabled\s*=\s*!gridPreparationValid\(environmentPreparation\?\.grid\)\s*\|\|\s*!brakingTripletPreparationValid\(environmentPreparation\?\.brakingTriplet\)/,
       );
       expect(enable).toBeGreaterThanOrEqual(0);
       const expression = source.slice(enable).match(/assetStatus\.textContent\s*=\s*([\s\S]*?);\n/);
@@ -731,7 +865,11 @@ describe('production restart selection before invalidation', () => {
       const value: unknown = runInNewContext(
         transpileModule(`(${expression![1]})`, {}).outputText,
         {
-          environmentPreparation: { gantry: { eligible: true }, grid: { eligible } },
+          environmentPreparation: {
+            gantry: { eligible: true },
+            grid: { eligible },
+            brakingTriplet: { eligible },
+          },
         },
       );
       expect(typeof value).toBe('string');
@@ -765,11 +903,25 @@ describe('production restart selection before invalidation', () => {
     );
     expect(publication).toContain('gridPreparationValid(environmentPreparation?.grid)');
     expect(settled).toContain('gridPreparationValid(environmentPreparation?.grid)');
-    expect(model).toContain('if (!gridPreparationValid(environmentPreparation?.grid)) return;');
+    expect(publication).toContain(
+      'brakingTripletPreparationValid(environmentPreparation?.brakingTriplet)',
+    );
+    expect(settled).toContain(
+      'brakingTripletPreparationValid(environmentPreparation?.brakingTriplet)',
+    );
+    expect(model).toContain('gridPreparationValid(environmentPreparation?.grid)');
+    expect(model).toContain(
+      'brakingTripletPreparationValid(environmentPreparation?.brakingTriplet)',
+    );
     expect(main).toContain('candidate.gridProof.valid(scene.scene)');
+    expect(main).toContain('candidate.brakingTripletProof.valid(scene.scene)');
+    expect(main).toContain('environmentPreparation?.brakingTriplet === candidate.brakingTriplet');
+    expect(main).toContain('brakingTripletPreparationValid(environment.brakingTriplet)');
     expect(main).toContain('gridPreparationValid(environment.grid)');
     expect(
-      main.match(/loadAsset\.disabled = !gridPreparationValid\(environmentPreparation\?\.grid\);/g),
+      main.match(
+        /loadAsset\.disabled\s*=\s*!gridPreparationValid\(environmentPreparation\?\.grid\)\s*\|\|\s*!brakingTripletPreparationValid\(environmentPreparation\?\.brakingTriplet\);/g,
+      ),
     ).toHaveLength(3);
 
     const drawGate = main.slice(

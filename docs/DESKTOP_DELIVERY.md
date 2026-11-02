@@ -2,24 +2,24 @@
 
 MOTOBOUND targets installed Windows, macOS and Linux applications. Babylon.js is the primary engine direction; the existing custom simulation stays authoritative. The website is a secondary engineering preview. Packaging alone does not qualify visuals, handling, performance or the full game.
 
-## Latest migration test artifacts · 2026-11-01
+## Latest fully validated migration test artifacts · 2026-11-02
 
-Source `6c1ded75f96e92786595d261a3f5c7a1651b535f` passed all three supported
+Source `468c4cdbafdb8f30dc4444d15c0ed72d40b18e64` passed all three supported
 packaged-app lanes and four existing-content compatibility journeys per target in
-[run 41330696588](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41330696588).
+[run 41353495335](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41353495335).
 Available artifacts (GitHub reports expiry 2026-11-08):
 
-- Windows x64: `motobound-package-win-x64`, artifact 13093317314.
-- Linux x64: `motobound-package-linux-x64`, artifact 13093961345.
-- Apple Silicon: `motobound-package-mac-arm64`, artifact 13093326989.
+- [Windows x64](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41353495335/artifacts/13102698392): artifact 13102698392.
+- [Linux x64](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41353495335/artifacts/13102683189): artifact 13102683189.
+- [Apple Silicon](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/41353495335/artifacts/13102219201): artifact 13102219201.
 
 These are unsigned migration test builds, not a new release or a change to main.
-A later `a68a1ba` repeat failed Linux’s unchanged startup gate; the earlier pass
-is not evidence of stable startup performance across runs.
+They predate live grid and A09 braking-board integration. Later Linux runs have
+failed startup or retained-content journeys, so this successful baseline does not
+establish a general Linux repair. New live A09 source requires its own full matrix.
 The bundled application was launch-tested; installer upgrade/uninstall, signing,
 physical-hardware performance and complete four-discipline Babylon parity remain
-unqualified. See the [paused handoff qualification](maintenance/babylon-paused-preparation-handoff-2026-11-01.md)
-for exact source evidence and the bounded first-gate timing limitation.
+unqualified. See [current status](CURRENT_STATUS.md) for later source-specific results.
 
 ## Runtime and ownership
 

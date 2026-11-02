@@ -719,3 +719,122 @@ describe('grid readiness observation boundary', () => {
     ).not.toHaveProperty('resource');
   });
 });
+
+describe('bounded first A09 braking triplet observation', () => {
+  const triplet = {
+    brakingTripletState: 'ready',
+    brakingTripletParts: '6',
+    brakingTripletTriangles: '4950',
+    brakingTripletScope: 'dry-formula-first-clean-triplet-fixed-lod0',
+  };
+  const stripe = {
+    stripeState: 'ready',
+    stripeParts: '1',
+    stripeMaterials: '1',
+    stripeTextures: '1',
+    stripeTriangles: '2',
+    stripeWidth: '128',
+    stripeHeight: '32',
+    stripeHardwareSrgb: '1',
+  };
+  it('roundtrips exactly64 known scalar keys without dropping trailing stripe evidence or changing the predicate', () => {
+    const owner = { exists: true, completed: true, canDraw: true, errors: [] };
+    install(
+      {
+        ...triplet,
+        ...stripe,
+        presentationSettled: 'false',
+        renderedFrames: '4',
+        completedFrames: '4',
+      },
+      { settled: true, readiness: { owners: { brakingTriplet: owner } } },
+    );
+    const observed = readNativeBabylonReadiness(),
+      normalized = normalizeNativeBabylonReadiness(observed);
+    expect(Object.keys(observed.dom.data)).toHaveLength(64);
+    expect(Object.keys(normalized!.dom.data)).toEqual(Object.keys(observed.dom.data));
+    expect(Object.keys(observed.dom.data).slice(-8)).toEqual(Object.keys(stripe));
+    expect(observed.dom.data).toMatchObject({ ...triplet, ...stripe });
+    expect(normalized!.dom.data).toMatchObject({ ...triplet, ...stripe });
+    expect(normalized!.graphics).toMatchObject({
+      readiness: { owners: { brakingTriplet: owner } },
+    });
+    expect(observed.predicate.ready).toBe(false);
+    expect(normalized!.predicate.ready).toBe(false);
+    expect(observed.graphics).not.toHaveProperty('startupVisualState');
+    expect(observed.graphics).not.toHaveProperty('submissionObservation');
+    const history = createNativeReadinessHistory();
+    expect(history.record('poll', observed, 1, 2)).toBe(true);
+    const recorded = history.snapshot().observations[0] as {
+      sample: { dom: { data: Record<string, string | null> } };
+    };
+    expect(Object.keys(recorded.sample.dom.data)).toHaveLength(64);
+    expect(recorded.sample.dom.data).toMatchObject({ ...triplet, ...stripe });
+  });
+  it('does not invent completed readiness, zero counts or scope for absent fields', () => {
+    install({}, { readiness: { owners: {} } });
+    const observed = readNativeBabylonReadiness(),
+      normalized = normalizeNativeBabylonReadiness(observed);
+    for (const key of Object.keys(triplet)) {
+      expect(observed.dom.data[key]).toBeNull();
+      expect(normalized!.dom.data[key]).toBeNull();
+    }
+    expect(observed.graphics).toHaveProperty('readiness.owners.brakingTriplet', null);
+    expect(normalized!.graphics).toHaveProperty('readiness.owners.brakingTriplet', null);
+  });
+  it('preserves malformed raw strings as evidence rather than converting them into qualified counts', () => {
+    install({ ...triplet, brakingTripletParts: 'NaN', brakingTripletScope: 'unqualified' }, null);
+    const observed = normalizeNativeBabylonReadiness(readNativeBabylonReadiness());
+    expect(observed!.dom.data.brakingTripletParts).toBe('NaN');
+    expect(observed!.dom.data.brakingTripletScope).toBe('unqualified');
+    expect(observed!.predicate.ready).toBe(false);
+  });
+  it('rejects typed scalars/getters and drops unknown data/resources without traversing them', () => {
+    install(triplet, {
+      readiness: {
+        owners: { brakingTriplet: { exists: true, completed: false, canDraw: true, errors: [] } },
+      },
+    });
+    const sample = readNativeBabylonReadiness(),
+      getter = vi.fn(() => '6');
+    const data = { ...sample.dom.data };
+    Object.defineProperty(data, 'brakingTripletParts', { get: getter });
+    expect(normalizeNativeBabylonReadiness({ ...sample, dom: { ...sample.dom, data } })).toBeNull();
+    expect(getter).not.toHaveBeenCalled();
+    for (const [key, value] of [
+      ['brakingTripletParts', 6],
+      ['brakingTripletTriangles', 4950],
+      ['brakingTripletScope', true],
+    ])
+      expect(
+        normalizeNativeBabylonReadiness({
+          ...sample,
+          dom: { ...sample.dom, data: { ...sample.dom.data, [key as string]: value } },
+        }),
+      ).toBeNull();
+    const normalized = normalizeNativeBabylonReadiness({
+      ...sample,
+      dom: { ...sample.dom, data: { ...sample.dom.data, brakingTripletSecret: 'drop' } },
+      graphics: {
+        readiness: {
+          owners: {
+            brakingTriplet: {
+              exists: true,
+              completed: false,
+              canDraw: true,
+              errors: [],
+              resource: { secret: true },
+            },
+          },
+        },
+      },
+    });
+    expect(normalized!.dom.data).not.toHaveProperty('brakingTripletSecret');
+    expect(normalized!.graphics).toHaveProperty('readiness.owners.brakingTriplet', {
+      exists: true,
+      completed: false,
+      canDraw: true,
+      errors: [],
+    });
+  });
+});
