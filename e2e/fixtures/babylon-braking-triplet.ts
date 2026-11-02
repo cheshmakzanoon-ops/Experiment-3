@@ -4,8 +4,6 @@ import { Camera } from '@babylonjs/core/Cameras/camera.js';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector.js';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight.js';
 import { PBRMaterial } from '@babylonjs/core/Materials/PBR/pbrMaterial.js';
-import { Material } from '@babylonjs/core/Materials/material.js';
-import type { MaterialDefines } from '@babylonjs/core/Materials/materialDefines.js';
 import { MaterialPluginBase } from '@babylonjs/core/Materials/materialPluginBase.js';
 import type { UniformBuffer } from '@babylonjs/core/Materials/uniformBuffer.js';
 import type { WebGLPipelineContext } from '@babylonjs/core/Engines/WebGL/webGLPipelineContext.js';
@@ -50,27 +48,17 @@ const hash = async (data: Uint8Array<ArrayBuffer>) =>
  * or actual view-space normal BEFORE lighting. No global shader edit. */
 class BoardFactorOutput extends MaterialPluginBase {
   mode = 0;
-  highpAlbedo = false;
-  groupedClip = false;
   constructor(material: PBRMaterial) {
     super(
       material,
       'IsolatedOriginalBoardFactors',
       300,
-      { BOARD_FACTOR_OUTPUT: true, BOARD_ALBEDO_HIGHP: false, BOARD_CLIP_GROUPED: false },
+      { BOARD_FACTOR_OUTPUT: true },
       true,
       false,
     );
     this.registerForExtraEvents = true;
     this._enable(true);
-  }
-  prepareDefines(defines: MaterialDefines) {
-    const flags = defines as MaterialDefines & {
-      BOARD_ALBEDO_HIGHP: boolean;
-      BOARD_CLIP_GROUPED: boolean;
-    };
-    flags.BOARD_ALBEDO_HIGHP = this.highpAlbedo;
-    flags.BOARD_CLIP_GROUPED = this.groupedClip;
   }
   getUniforms() {
     return {
@@ -227,6 +215,14 @@ function submittedProgramDiagnostic(gl: WebGL2RenderingContext, program: WebGLPr
     attributes,
   };
 }
+type ClipDrawReceipt = {
+  currentProgram?: boolean;
+  pluginPresent?: boolean;
+  programIndex?: number;
+  uniforms?: { name: string; block: number | null; values: number[] | null }[];
+  worldIdentity?: boolean;
+  sameSceneMatrices?: boolean;
+};
 type ProgramDiagnostic = {
   name: string;
   state?: ReturnType<typeof submittedProgramDiagnostic>;
@@ -900,12 +896,107 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
             }
         });
       };
+      // Production owner, not a fixture transform override. All reflection and
+      // ordinary uniform reads occur immediately after this mesh's owned draw.
+      const clipPrograms = new Map<WebGLProgram, number>();
+      const captureClip = (
+        part: (typeof d.parts)[number],
+        program: WebGLProgram,
+        result: ClipDrawReceipt,
+      ) => {
+        result.currentProgram = gl.getParameter(gl.CURRENT_PROGRAM) === program;
+        result.pluginPresent = !!part.material.pluginManager?.getPlugin('OriginalA09ClipOrder');
+        if (!clipPrograms.has(program)) {
+          check(clipPrograms.size < 16, 'A09 bounded production clip program inventory exceeded');
+          const index = clipPrograms.size;
+          clipPrograms.set(program, index);
+          const programRow: {
+            phase: string;
+            cycle: number;
+            index: number;
+            linked?: boolean;
+            vertexSource?: string;
+            vertexSourceLength?: number;
+            sourceComplete?: boolean;
+            marker?: boolean;
+            ordinarySite?: boolean;
+            declarations?: boolean;
+            fragmentHasNoClipUniforms?: boolean;
+          } = { phase: 'production-original-clip-program', cycle, index };
+          receipts.push(programRow);
+          const sources = (gl.getAttachedShaders(program) ?? []).map((shader) => ({
+            type: gl.getShaderParameter(shader, gl.SHADER_TYPE) as number,
+            source: gl.getShaderSource(shader) ?? '',
+          }));
+          const vertex = sources.find((s) => s.type === gl.VERTEX_SHADER)?.source ?? '';
+          const fragment = sources.find((s) => s.type === gl.FRAGMENT_SHADER)?.source ?? '';
+          programRow.linked = !!gl.getProgramParameter(program, gl.LINK_STATUS);
+          programRow.vertexSource = vertex.slice(0, 262144);
+          programRow.vertexSourceLength = vertex.length;
+          programRow.sourceComplete = vertex.length > 0 && vertex.length <= 262144;
+          programRow.marker =
+            /^#define ORIGINAL_A09_CLIP_ORDER\b/m.test(vertex) &&
+            !/^#define MULTIVIEW\b/m.test(vertex);
+          programRow.ordinarySite =
+            vertex.split(
+              '#else\ngl_Position=a09OriginalProjection*(a09OriginalView*worldPos);\n#endif',
+            ).length === 2;
+          programRow.declarations =
+            vertex.split('uniform mat4 a09OriginalView;').length === 2 &&
+            vertex.split('uniform mat4 a09OriginalProjection;').length === 2;
+          programRow.fragmentHasNoClipUniforms =
+            fragment.length > 0 && !/a09OriginalView|a09OriginalProjection/.test(fragment);
+          check(
+            sources.length === 2 &&
+              programRow.linked &&
+              programRow.sourceComplete &&
+              programRow.marker &&
+              programRow.ordinarySite &&
+              programRow.declarations &&
+              programRow.fragmentHasNoClipUniforms,
+            'A09 actual production clip shader source/site missing',
+          );
+        }
+        result.programIndex = clipPrograms.get(program);
+        const names = ['a09OriginalView', 'a09OriginalProjection'];
+        const indices = gl.getUniformIndices(program, names);
+        result.uniforms = names.map((name, i) => {
+          const index = indices?.[i] ?? gl.INVALID_INDEX;
+          const block =
+            index === gl.INVALID_INDEX
+              ? null
+              : (gl.getActiveUniforms(program, [index], gl.UNIFORM_BLOCK_INDEX) as number[])[0];
+          const location = gl.getUniformLocation(program, name);
+          const values = location
+            ? (gl.getUniform(program, location) as Float32Array | null)
+            : null;
+          return { name, block, values: values ? Array.from(values) : null };
+        });
+        const identity = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+        result.worldIdentity = equal(part.mesh.getWorldMatrix().asArray(), identity);
+        result.sameSceneMatrices =
+          !!result.uniforms[0].values &&
+          !!result.uniforms[1].values &&
+          equal(result.uniforms[0].values, h.scene.getViewMatrix().asArray()) &&
+          equal(result.uniforms[1].values, h.scene.getProjectionMatrix().asArray());
+        check(
+          result.currentProgram &&
+            result.pluginPresent &&
+            result.worldIdentity &&
+            result.sameSceneMatrices &&
+            result.uniforms.every(
+              (u) => (u.block === -1 || u.block === gl.INVALID_INDEX) && u.values?.length === 16,
+            ),
+          `A09 ${part.name} actual production ordinary clip matrices mismatch`,
+        );
+      };
       let pbrDrawing = false;
       const pbrDraws: {
         name: string;
         kind: string;
         currentProgram: boolean;
         bindings: { sampler: string; unit: number; matches: boolean }[];
+        clip: ClipDrawReceipt;
       }[] = [];
       receipts.push({ cycle, phase: 'native-PBR-draw-bindings', draws: pbrDraws });
       const pbrObservers = d.parts.map((part) => ({
@@ -919,9 +1010,11 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
             kind: part.kind,
             currentProgram: !!program && gl.getParameter(gl.CURRENT_PROGRAM) === program,
             bindings: [] as { sampler: string; unit: number; matches: boolean }[],
+            clip: {} as ClipDrawReceipt,
           };
           pbrDraws.push(row);
           check(program && row.currentProgram, 'A09 native PBR current program missing');
+          captureClip(part, program!, row.clip);
           const slots =
             part.kind === 'structure'
               ? ([
@@ -1222,13 +1315,53 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
       let diagnosticTarget = false;
       const nativePrograms: ProgramDiagnostic[] = [],
         originalPrograms: ProgramDiagnostic[] = [];
-      let nativeDiagnosticPrograms = nativePrograms;
       const seenNative = new Set<string>(),
         seenOriginal = new Set<string>();
+      let referenceClipMatrices: {
+        name: string;
+        view?: number[];
+        projection?: number[];
+        worldIdentity?: boolean;
+        currentProgram?: boolean;
+      }[] = [];
       const referenceCallbacks = refs.map((ref) => {
         const previous = ref.onAfterRender;
         ref.onAfterRender = (...args) => {
           previous.apply(ref, args);
+          check(referenceDrawing, 'A09 original clip matrices outside owned draw');
+          const matrixRow: {
+            name: string;
+            view?: number[];
+            projection?: number[];
+            worldIdentity?: boolean;
+            currentProgram?: boolean;
+          } = { name: ref.name };
+          referenceClipMatrices.push(matrixRow);
+          const originalProgram = threeGl.getParameter(
+            threeGl.CURRENT_PROGRAM,
+          ) as WebGLProgram | null;
+          matrixRow.currentProgram = !!originalProgram;
+          check(originalProgram, 'A09 original actual draw program absent');
+          for (const [field, name] of [
+            ['view', 'modelViewMatrix'],
+            ['projection', 'projectionMatrix'],
+          ] as const) {
+            const location = threeGl.getUniformLocation(originalProgram!, name);
+            const values = location
+              ? (threeGl.getUniform(originalProgram!, location) as Float32Array | null)
+              : null;
+            if (values) matrixRow[field] = Array.from(values);
+          }
+          matrixRow.worldIdentity = equal(
+            ref.matrixWorld.elements,
+            [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+          );
+          check(
+            matrixRow.worldIdentity &&
+              matrixRow.view?.length === 16 &&
+              matrixRow.projection?.length === 16,
+            'A09 original identity-world matrix readbacks absent',
+          );
           if (!diagnosticTarget || seenOriginal.has(ref.name)) return;
           check(referenceDrawing, 'A09 reference diagnostic outside owned draw');
           seenOriginal.add(ref.name);
@@ -1274,6 +1407,7 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
         factor: number;
         units: number;
         currentProgram: boolean;
+        clip: ClipDrawReceipt;
       }[] = [];
       let drawing = false;
       const observers = d.parts.map((part) => ({
@@ -1285,7 +1419,7 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
             const preExistingGlError = gl.getError();
             nativeRenderErrors.push(preExistingGlError);
             const row: ProgramDiagnostic = { name: part.name, preExistingGlError };
-            nativeDiagnosticPrograms.push(row);
+            nativePrograms.push(row);
             if (preExistingGlError === 0)
               try {
                 const program = gl.getParameter(gl.CURRENT_PROGRAM) as WebGLProgram | null;
@@ -1308,7 +1442,7 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
           const program = (
             part.mesh.subMeshes[0]?.effect?.getPipelineContext() as WebGLPipelineContext | null
           )?.program;
-          draws.push({
+          const drawRow = {
             name: part.name,
             kind: part.kind,
             frontFace: gl.getParameter(gl.FRONT_FACE),
@@ -1321,7 +1455,11 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
             factor: gl.getParameter(gl.POLYGON_OFFSET_FACTOR),
             units: gl.getParameter(gl.POLYGON_OFFSET_UNITS),
             currentProgram: !!program && gl.getParameter(gl.CURRENT_PROGRAM) === program,
-          });
+            clip: {} as ClipDrawReceipt,
+          };
+          draws.push(drawRow);
+          check(program, 'A09 factor draw program absent');
+          captureClip(part, program!, drawRow.clip);
         }),
       }));
       const removeObservers = retain(() =>
@@ -1353,6 +1491,8 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
               glError?: number;
               draws?: typeof draws;
               programs?: object[];
+              referenceClipMatrices?: typeof referenceClipMatrices;
+              productionClipMatchesOriginal?: boolean;
             } = {
               cycle,
               text,
@@ -1401,8 +1541,8 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
                 ].every((a) => a.length <= 50000),
               };
             }
-            let baselineFactorPixels: Uint8Array | undefined;
-            let samplerControlComplete = false;
+            referenceClipMatrices = [];
+            row.referenceClipMatrices = referenceClipMatrices;
             const first = await referenceFrame();
             if (cycle === 0)
               images.push({ name: `${text}-${view}-${row.stage}-original`, image: first.image });
@@ -1430,12 +1570,33 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
             row.nativeFrames = h.gpu.diagnostics().completed - before;
             await lease('A09 linked factor program and image receipt', async () => {
               const actual = h.capture();
-              if (diagnosticTarget) baselineFactorPixels = actual.pixels;
               if (cycle === 0)
                 images.push({ name: `${text}-${view}-${row.stage}-native`, image: actual.image });
               row.metrics = metrics(actual.pixels, first.pixels, width, height);
               row.glError = gl.getError() || nativeRenderErrors.find((error) => error !== 0) || 0;
               row.draws = [...draws];
+              row.productionClipMatchesOriginal =
+                draws.length >= 4 &&
+                draws.every((draw) => {
+                  const source = referenceClipMatrices.filter((ref) => ref.name === draw.name);
+                  return (
+                    source.length >= 2 &&
+                    source.every(
+                      (ref) =>
+                        ref.worldIdentity &&
+                        ref.view &&
+                        ref.projection &&
+                        draw.clip.uniforms?.[0].values &&
+                        draw.clip.uniforms?.[1].values &&
+                        equal(draw.clip.uniforms[0].values, ref.view) &&
+                        equal(draw.clip.uniforms[1].values, ref.projection),
+                    )
+                  );
+                });
+              check(
+                row.productionClipMatchesOriginal,
+                'A09 production matrices differ from actual original view/projection',
+              );
               const active = d.parts.filter((p) => p.text === text);
               const programs = active.map((p) => {
                 const effect = p.mesh.subMeshes[0]?.effect,
@@ -1524,459 +1685,6 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
                 diagnostic.originalMips?.preExistingGlError ||
                 0;
             }
-            if (diagnosticTarget) {
-              samplerControlComplete = true;
-              for (const controlKind of ['sampler', 'clip'] as const) {
-                try {
-                  // This is an observation-only A/B/A. The baseline row above remains
-                  // authoritative and its unchanged factor gate runs below regardless.
-                  const structure = d.parts.find(
-                    (p) => p.text === '150' && p.kind === 'structure',
-                  )!;
-                  const atlasPlugin = plugins[0]; // Same insertion order as d.parts[0].material.
-                  const previousHook = atlas.customShaderNameResolve;
-                  const previousHookDescriptor = Object.getOwnPropertyDescriptor(
-                    atlas,
-                    'customShaderNameResolve',
-                  );
-                  const previousFlag = atlasPlugin.highpAlbedo;
-                  const previousClipFlag = atlasPlugin.groupedClip;
-                  let removeBinding: (() => void) | undefined;
-                  let bindCount = 0;
-                  const diagnosticDeclarations =
-                    'uniform mat4 boardDiagnosticView;\nuniform mat4 boardDiagnosticProjection;\n';
-                  const baselinePosition = 'gl_Position=viewProjection*worldPos;';
-                  const groupedPosition =
-                    'gl_Position=boardDiagnosticProjection*(boardDiagnosticView*worldPos);';
-                  const baselineEffect = structure.mesh.subMeshes[0].effect!;
-                  const baselineProgram = (
-                    baselineEffect.getPipelineContext() as WebGLPipelineContext
-                  ).program;
-                  const baselinePixels = baselineFactorPixels!;
-                  const control: {
-                    phase: string;
-                    stages: object[];
-                    errors: string[];
-                    restored?: boolean;
-                  } = {
-                    phase:
-                      controlKind === 'sampler'
-                        ? 'rear150-native-albedo-sampler-precision-ABA'
-                        : 'rear150-native-clip-grouping-ABA',
-                    stages: [
-                      {
-                        stage: 'baseline',
-                        metrics: row.metrics,
-                        glError: row.glError,
-                        programs: nativePrograms,
-                        imageName: '150-rear-linear-albedo-native',
-                      },
-                    ],
-                    errors: [],
-                  };
-                  receipts.push(control);
-                  const baselineShaders = nativePrograms.find((p) => p.name === structure.name)!
-                    .state!.shaders;
-                  const matrixSignature = (
-                    state: ReturnType<typeof submittedProgramDiagnostic>,
-                    clip = false,
-                  ) =>
-                    JSON.stringify(
-                      state.matrices
-                        .filter(
-                          (matrix) =>
-                            !clip ||
-                            ![
-                              'viewProjection',
-                              'boardDiagnosticView',
-                              'boardDiagnosticProjection',
-                            ].includes((matrix as { name: string }).name),
-                        )
-                        .map((matrix) => JSON.stringify(matrix))
-                        .sort(),
-                    );
-                  const normalizeControl = (source: string) =>
-                    controlKind === 'sampler'
-                      ? source
-                          .replace(/^#define BOARD_ALBEDO_HIGHP[ \t]*\r?\n/gm, '')
-                          .replace(
-                            'uniform highp sampler2D albedoSampler;',
-                            'uniform sampler2D albedoSampler;',
-                          )
-                      : source
-                          .replace(/^#define BOARD_CLIP_GROUPED[ \t]*\r?\n/gm, '')
-                          .replace(diagnosticDeclarations, '')
-                          .replace(groupedPosition, baselinePosition);
-                  const captureControl = async (
-                    stage: 'highp' | 'grouped-clip' | 'restored-baseline',
-                  ) => {
-                    const programs: ProgramDiagnostic[] = [];
-                    const result: {
-                      stage: string;
-                      programs: ProgramDiagnostic[];
-                      metrics?: ReturnType<typeof metrics>;
-                      frames?: number;
-                      glError?: number;
-                      baselineImageExact?: boolean;
-                      effectIsBaseline?: boolean;
-                      programIsBaseline?: boolean;
-                      shaderOnlyIntendedDifference?: boolean;
-                      matricesIdentical?: boolean;
-                      addedMatrices?: object;
-                      addedMatricesMatchNativeAndOriginal?: boolean;
-                      bindCount?: number;
-                      bindingCallsThisStage?: number;
-                      cpuMirrorsIdentical?: boolean;
-                      printProgramUnchanged?: boolean;
-                      mips?: Awaited<ReturnType<typeof existingMipDiagnostic>>;
-                      mipHashesIdentical?: boolean;
-                      error?: string;
-                    } = { stage, programs };
-                    control.stages.push(result);
-                    const bindsBefore = bindCount;
-                    nativeDiagnosticPrograms = programs;
-                    seenNative.clear();
-                    try {
-                      await prepareOriginalMaterials(
-                        {
-                          scene: h.scene,
-                          meshes: d.parts.filter((p) => p.text === '150').map((p) => p.mesh),
-                        },
-                        h.gpu,
-                        h.abort.signal,
-                        deadline,
-                        () => {},
-                      );
-                      const before = h.gpu.diagnostics().completed;
-                      await h.presented(() => {
-                        drawing = true;
-                        try {
-                          h.scene.render();
-                        } finally {
-                          drawing = false;
-                        }
-                      });
-                      result.frames = h.gpu.diagnostics().completed - before;
-                      await lease(
-                        `A09 ${controlKind} ${stage} actual image and source`,
-                        async () => {
-                          const actual = h.capture();
-                          images.push({
-                            name: `150-rear-linear-albedo-${controlKind === 'clip' && stage === 'restored-baseline' ? 'restored-clip-baseline' : stage}`,
-                            image: actual.image,
-                          });
-                          result.metrics = metrics(actual.pixels, first.pixels, width, height);
-                          result.baselineImageExact = equal(actual.pixels, baselinePixels);
-                          result.glError =
-                            gl.getError() || nativeRenderErrors.find((error) => error !== 0) || 0;
-                          const effect = structure.mesh.subMeshes[0].effect!;
-                          result.effectIsBaseline = effect === baselineEffect;
-                          result.programIsBaseline =
-                            (effect.getPipelineContext() as WebGLPipelineContext).program ===
-                            baselineProgram;
-                          const state = programs.find((p) => p.name === structure.name)?.state;
-                          result.shaderOnlyIntendedDifference =
-                            !!state &&
-                            state.shaders.length === 2 &&
-                            state.shaders.every((shader) => {
-                              const old = baselineShaders.find((s) => s.type === shader.type)!;
-                              if (stage === 'restored-baseline')
-                                return shader.source === old.source;
-                              const marker =
-                                shader.source.match(
-                                  controlKind === 'sampler'
-                                    ? /^#define BOARD_ALBEDO_HIGHP[ \t]*$/gm
-                                    : /^#define BOARD_CLIP_GROUPED[ \t]*$/gm,
-                                ) ?? [];
-                              if (controlKind === 'sampler') {
-                                const qualifier =
-                                  shader.source.match(/uniform highp sampler2D albedoSampler;/g) ??
-                                  [];
-                                return (
-                                  marker.length === 1 &&
-                                  qualifier.length ===
-                                    (shader.type === gl.FRAGMENT_SHADER ? 1 : 0) &&
-                                  normalizeControl(shader.source) === old.source
-                                );
-                              }
-                              const declarations =
-                                shader.source.split(diagnosticDeclarations).length - 1;
-                              const positions = shader.source.split(groupedPosition).length - 1;
-                              return (
-                                marker.length === 1 &&
-                                declarations === (shader.type === gl.VERTEX_SHADER ? 1 : 0) &&
-                                positions === (shader.type === gl.VERTEX_SHADER ? 1 : 0) &&
-                                normalizeControl(shader.source) === old.source
-                              );
-                            });
-                          result.cpuMirrorsIdentical = programs.every(
-                            (p) =>
-                              JSON.stringify(p.cpuMirrors) ===
-                              JSON.stringify(
-                                nativePrograms.find((a) => a.name === p.name)?.cpuMirrors,
-                              ),
-                          );
-                          const print = programs.find((p) => p.name !== structure.name);
-                          const oldPrint = nativePrograms.find((p) => p.name === print?.name);
-                          result.printProgramUnchanged =
-                            !!print?.state &&
-                            !!oldPrint?.state &&
-                            JSON.stringify(print.state.shaders) ===
-                              JSON.stringify(oldPrint.state.shaders) &&
-                            matrixSignature(print.state) === matrixSignature(oldPrint.state);
-                          const clipVariant = controlKind === 'clip' && stage === 'grouped-clip';
-                          result.matricesIdentical =
-                            !!state &&
-                            matrixSignature(state, clipVariant) ===
-                              matrixSignature(
-                                nativePrograms.find((p) => p.name === structure.name)!.state!,
-                                clipVariant,
-                              );
-                          result.bindCount = bindCount;
-                          result.bindingCallsThisStage = bindCount - bindsBefore;
-                          if (clipVariant && state) {
-                            type MatrixRead = { name: string; storage: string; values?: number[] };
-                            const matrices = state.matrices as MatrixRead[];
-                            const view = matrices.find((m) => m.name === 'boardDiagnosticView');
-                            const projection = matrices.find(
-                              (m) => m.name === 'boardDiagnosticProjection',
-                            );
-                            const source = originalPrograms.find((p) => p.name === structure.name)!;
-                            const original = source.state!.matrices as MatrixRead[];
-                            const mirrors = programs.find((p) => p.name === structure.name)!
-                              .cpuMirrors as {
-                              view: number[];
-                              projection: number[];
-                              world: number[];
-                            };
-                            const originalMirrors = source.cpuMirrors as { world: number[] };
-                            const identity = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
-                            result.addedMatrices = {
-                              view,
-                              projection,
-                              originalModelView: original.find((m) => m.name === 'modelViewMatrix'),
-                              originalProjection: original.find(
-                                (m) => m.name === 'projectionMatrix',
-                              ),
-                              label:
-                                'Actual ordinary matrix uniform readbacks; baseline native UBO bytes remain unqueried',
-                            };
-                            result.addedMatricesMatchNativeAndOriginal =
-                              !!view?.values &&
-                              !!projection?.values &&
-                              view.storage === 'actual ordinary uniform readback for this draw' &&
-                              projection.storage === view.storage &&
-                              equal(view.values, mirrors.view) &&
-                              equal(projection.values, mirrors.projection) &&
-                              equal(
-                                view.values,
-                                original.find((m) => m.name === 'modelViewMatrix')!.values!,
-                              ) &&
-                              equal(
-                                projection.values,
-                                original.find((m) => m.name === 'projectionMatrix')!.values!,
-                              ) &&
-                              equal(mirrors.world, identity) &&
-                              equal(originalMirrors.world, identity) &&
-                              bindCount > 0;
-                          } else result.addedMatricesMatchNativeAndOriginal = true;
-                        },
-                      );
-                      result.mips = await lease(
-                        `A09 ${controlKind} ${stage} existing mip readbacks`,
-                        async () =>
-                          existingMipDiagnostic(
-                            gl,
-                            atlas.albedoTexture!.getInternalTexture()!._hardwareTexture!
-                              .underlyingResource as WebGLTexture,
-                            512,
-                            512,
-                          ),
-                      );
-                      result.mipHashesIdentical =
-                        result.mips.rows.length === 10 &&
-                        result.mips.rows.every(
-                          (r, i) => r.hash === diagnostic.nativeMips?.rows[i]?.hash,
-                        );
-                      check(
-                        result.frames >= 2 &&
-                          result.glError === 0 &&
-                          (stage !== 'restored-baseline' || result.bindingCallsThisStage === 0) &&
-                          result.shaderOnlyIntendedDifference &&
-                          result.matricesIdentical &&
-                          result.addedMatricesMatchNativeAndOriginal &&
-                          result.cpuMirrorsIdentical &&
-                          result.printProgramUnchanged &&
-                          result.mipHashesIdentical &&
-                          result.mips.preExistingGlError === 0 &&
-                          !result.mips.error &&
-                          result.mips.restoredGlError === 0 &&
-                          (result.mips.additionalRestoredErrors ?? []).length === 0 &&
-                          result.mips.rows.every(
-                            (m) =>
-                              m.status === gl.FRAMEBUFFER_COMPLETE &&
-                              m.glError === 0 &&
-                              m.additionalDiagnosticErrors?.length === 0,
-                          ) &&
-                          programs.length === 2 &&
-                          programs.every(
-                            (p) =>
-                              !p.error &&
-                              p.preExistingGlError === 0 &&
-                              p.diagnosticGlErrors?.length === 0,
-                          ),
-                        'A09 material-local diagnostic observation incomplete',
-                      );
-                      check(
-                        stage !== 'restored-baseline'
-                          ? !result.effectIsBaseline && !result.programIsBaseline
-                          : result.effectIsBaseline &&
-                              result.programIsBaseline &&
-                              result.baselineImageExact,
-                        'A09 material-local diagnostic cache/restoration mismatch',
-                      );
-                    } catch (error) {
-                      result.error = String(error);
-                      control.errors.push(String(error));
-                    }
-                  };
-                  try {
-                    await lease(`A09 material-local ${controlKind} control`, async () => {
-                      atlas.customShaderNameResolve = function (
-                        name,
-                        uniforms,
-                        buffers,
-                        samplers,
-                        defines,
-                        attributes,
-                        options,
-                      ) {
-                        const resolved = previousHook
-                          ? previousHook.call(
-                              this,
-                              name,
-                              uniforms,
-                              buffers,
-                              samplers,
-                              defines,
-                              attributes,
-                              options,
-                            )
-                          : name;
-                        check(options, 'A09 pinned material shader-processing options absent');
-                        if (controlKind === 'clip')
-                          uniforms.push('boardDiagnosticView', 'boardDiagnosticProjection');
-                        const previousProcessing = options!.processFinalCode;
-                        options!.processFinalCode = (type, code) => {
-                          const original = previousProcessing
-                            ? previousProcessing(type, code)
-                            : code;
-                          if (controlKind === 'clip') {
-                            if (type !== 'vertex') return original;
-                            check(
-                              original.split(baselinePosition).length === 2 &&
-                                original.split('void main(void)').length === 2,
-                              'A09 exact native vertex anchors absent',
-                            );
-                            return original
-                              .replace(
-                                'void main(void)',
-                                diagnosticDeclarations + 'void main(void)',
-                              )
-                              .replace(baselinePosition, groupedPosition);
-                          }
-                          if (type !== 'fragment') return original;
-                          check(
-                            (original.match(/uniform sampler2D albedoSampler;/g) ?? []).length ===
-                              1,
-                            'A09 exact albedo sampler declaration absent',
-                          );
-                          return original.replace(
-                            'uniform sampler2D albedoSampler;',
-                            'uniform highp sampler2D albedoSampler;',
-                          );
-                        };
-                        return resolved;
-                      };
-                      if (controlKind === 'sampler') atlasPlugin.highpAlbedo = true;
-                      else {
-                        atlasPlugin.groupedClip = true;
-                        const observer = atlas.onBindObservable.add((mesh) => {
-                          check(
-                            drawing && mesh === structure.mesh,
-                            'A09 diagnostic matrix binding outside selected owned draw',
-                          );
-                          const effect = structure.mesh.subMeshes[0].effect!;
-                          const program = (effect.getPipelineContext() as WebGLPipelineContext)
-                            .program;
-                          check(
-                            gl.getParameter(gl.CURRENT_PROGRAM) === program,
-                            'A09 matrix binding active program mismatch',
-                          );
-                          effect.setMatrix('boardDiagnosticView', h.scene.getViewMatrix());
-                          effect.setMatrix(
-                            'boardDiagnosticProjection',
-                            h.scene.getProjectionMatrix(),
-                          );
-                          bindCount++;
-                        });
-                        removeBinding = () => {
-                          check(
-                            atlas.onBindObservable.remove(observer),
-                            'A09 diagnostic binding observer removal failed',
-                          );
-                        };
-                      }
-                      atlas.markAsDirty(Material.AllDirtyFlag);
-                    });
-                    await captureControl(controlKind === 'sampler' ? 'highp' : 'grouped-clip');
-                  } catch (error) {
-                    control.errors.push(String(error));
-                  } finally {
-                    const restoreErrors = cleanupPresentation([
-                      () => removeBinding?.(),
-                      () => {
-                        if (previousHookDescriptor)
-                          Object.defineProperty(
-                            atlas,
-                            'customShaderNameResolve',
-                            previousHookDescriptor,
-                          );
-                        else
-                          check(
-                            Reflect.deleteProperty(atlas, 'customShaderNameResolve'),
-                            'A09 shader hook descriptor restore failed',
-                          );
-                      },
-                      () => {
-                        atlasPlugin.highpAlbedo = previousFlag;
-                        atlasPlugin.groupedClip = previousClipFlag;
-                      },
-                      () => atlas.markAsDirty(Material.AllDirtyFlag),
-                    ]);
-                    control.errors.push(...restoreErrors.map(String));
-                    control.restored =
-                      atlas.customShaderNameResolve === previousHook &&
-                      atlasPlugin.highpAlbedo === previousFlag &&
-                      atlasPlugin.groupedClip === previousClipFlag;
-                  }
-                  // Recompile/select and draw A again; callback restoration alone is
-                  // explicitly insufficient evidence. Rejections remain diagnostics.
-                  await captureControl('restored-baseline');
-                  nativeDiagnosticPrograms = nativePrograms;
-                  samplerControlComplete =
-                    samplerControlComplete && control.restored && control.errors.length === 0;
-                } catch (error) {
-                  receipts.push({
-                    phase: `rear150-${controlKind}-control-setup-error`,
-                    error: String(error),
-                  });
-                  samplerControlComplete = false;
-                } finally {
-                  nativeDiagnosticPrograms = nativePrograms;
-                }
-              }
-            }
             check(
               row.nativeFrames >= 2 &&
                 row.glError === 0 &&
@@ -1991,8 +1699,7 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
             );
             if (diagnosticTarget)
               check(
-                samplerControlComplete &&
-                  !diagnostic.error &&
+                !diagnostic.error &&
                   nativePrograms.length === 2 &&
                   originalPrograms.length === 2 &&
                   [...nativePrograms, ...originalPrograms].every(

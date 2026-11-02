@@ -28,7 +28,7 @@ The desktop runtime uses Electron to provide a consistent bundled Chromium runti
 
 ## Current implementation and recorded qualification · 2026-11-01
 
-- **Original braking boards:** an isolated owner preserves the first clean 150/100/50 Aurel board triplet, original atlas and stroke-font prints. CPU/build checks pass; its first GPU run failed a narrow rear-albedo comparison, so visual qualification remains open and targeted evidence is being collected. No live activation or full-board/LOD/wet/shadow parity is claimed. [Scope](docs/maintenance/babylon-a09-triplet-isolated-2026-11-01.md).
+- **Original braking boards:** the first clean 150/100/50 Aurel triplet preserves its original asset and prints. Controlled testing traced a rear-view mismatch to transform arithmetic order; a board-only adaptation now preserves the original order on structure and prints. All local checks pass, but full production rendering qualification remains pending. No live activation or full-board/LOD/wet/shadow parity is claimed. [Correction](docs/maintenance/babylon-a09-clip-order-2026-11-02.md) · [Original scope and evidence](docs/maintenance/babylon-a09-triplet-isolated-2026-11-01.md).
 
 - **Guarded Restart optimization:** corrected `6f6812b5` passed all 32 GPU cases, including actual same-scene reuse and exact unmasked reset-image equality. The full Babylon path passed on Windows, macOS and Linux. Linux later failed in the retained Three.js Festival journey, so complete Linux reliability remains unqualified. [Evidence](docs/maintenance/babylon-live-grid-2026-11-01.md).
 

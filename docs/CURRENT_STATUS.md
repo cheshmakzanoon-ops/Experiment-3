@@ -14,6 +14,8 @@ Migration development stays exclusively on **babylon-js**. Main is frozen at res
 
 ## Latest recorded qualification
 
+**A09 original-clip-order candidate:** controlled A/B/A testing reproduced max3 → max0 → max3 with exact restoration and unchanged reference inputs. A board-only material adaptation now applies original projection-after-view order to the atlas and three prints. The combined source passed 978 tests/62 files, types, lint, build and 35-case discovery. Full production-plugin GPU qualification is pending; A09 remains outside live startup. [Scope](maintenance/babylon-a09-clip-order-2026-11-02.md).
+
 **A09 first runtime result (`1c1109de`):** all 32 existing GPU cases passed, but three isolated braking-board cases failed a rear-support albedo comparison (max3 versus limit2). No live A09 activation. A bounded fixture-only shader/mip evidence extension retains the failing assertion and original camera/materials. Windows/macOS passed native checks; Linux lost GPU health after model movement. [Evidence](maintenance/babylon-a09-triplet-isolated-2026-11-01.md).
 
 **Latest corrected live-grid result (`6f6812b5`):** 32/32 GPU cases passed, including actual retained-scene restart and exact unmasked reset/resize pixels. All three native targets passed the complete Babylon path with grid present. Windows/macOS passed all retained journeys; Linux later lost its GPU during retained Festival resume. A09 braking boards are now isolated for GPU qualification, not live. [Results](maintenance/babylon-live-grid-2026-11-01.md) · [A09 scope](maintenance/babylon-a09-triplet-isolated-2026-11-01.md).

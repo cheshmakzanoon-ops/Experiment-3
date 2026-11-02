@@ -1,3 +1,5 @@
+import { A09ClipOrderPlugin } from '../src/engine/babylon/braking-triplet-clip-order.ts';
+import { MaterialDefines } from '@babylonjs/core/Materials/materialDefines.js';
 import { TrackBoardsKit } from '../src/rendering/track-boards.ts';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
@@ -657,4 +659,286 @@ describe('independent original source cleanup failure boundary', () => {
       h.baseline();
     },
   );
+});
+
+describe('actual A09 owner clip-order plugin attachments and lifetime', () => {
+  type Parts = ReturnType<
+    Awaited<ReturnType<typeof loadBabylonBrakingTriplet>>['diagnostics']
+  >['parts'];
+  const pluginsOf = (parts: Parts) => {
+    const plugins = parts.map((part) => {
+      const plugin = part.material.pluginManager?.getPlugin('OriginalA09ClipOrder');
+      expect(plugin).toBeInstanceOf(A09ClipOrderPlugin);
+      return plugin as A09ClipOrderPlugin;
+    });
+    return [...new Set(plugins)];
+  };
+  it('attaches exactly four actual local plugins before compilation and registers all six original meshes', async () => {
+    const h = harness();
+    const registered: {
+      plugin: A09ClipOrderPlugin;
+      mesh: Parameters<A09ClipOrderPlugin['registerOwnedMesh']>[0];
+    }[] = [];
+    const register = A09ClipOrderPlugin.prototype.registerOwnedMesh;
+    vi.spyOn(A09ClipOrderPlugin.prototype, 'registerOwnedMesh').mockImplementation(function (
+      this: A09ClipOrderPlugin,
+      mesh,
+    ) {
+      registered.push({ plugin: this, mesh });
+      return register.call(this, mesh);
+    });
+    const owner = await h.load({
+      prepare: async () => {
+        expect(registered).toHaveLength(6);
+        expect(new Set(registered.map((row) => row.plugin)).size).toBe(4);
+        expect(registered.every((row) => row.plugin.isValid)).toBe(true);
+      },
+    });
+    const parts = owner.diagnostics().parts,
+      plugins = pluginsOf(parts);
+    expect(plugins).toHaveLength(4);
+    expect(h.baselineMaterial.pluginManager?.getPlugin('OriginalA09ClipOrder') ?? null).toBeNull();
+    const structures = parts.filter((part) => part.kind === 'structure');
+    expect(
+      new Set(
+        structures.map((part) => part.material.pluginManager!.getPlugin('OriginalA09ClipOrder')),
+      ).size,
+    ).toBe(1);
+    for (const part of parts) {
+      const plugin =
+        part.material.pluginManager!.getPlugin<A09ClipOrderPlugin>('OriginalA09ClipOrder')!;
+      expect(registered.some((row) => row.plugin === plugin && row.mesh === part.mesh)).toBe(true);
+      expect(() => plugin.prepareDefines(new MaterialDefines(), h.scene, part.mesh)).not.toThrow();
+    }
+    const print = parts.find((part) => part.kind === 'print')!;
+    const printPlugin =
+      print.material.pluginManager!.getPlugin<A09ClipOrderPlugin>('OriginalA09ClipOrder')!;
+    expect(() =>
+      printPlugin.prepareDefines(new MaterialDefines(), h.scene, structures[0].mesh),
+    ).toThrow('invalidated');
+    const installing = owner.install();
+    h.completed();
+    expect(plugins.every((plugin) => plugin.isValid)).toBe(true);
+    h.completed();
+    await installing;
+    expect(owner.diagnostics().activeMaterials).toBe(4);
+    const ownedBindings = parts.map((part) => ({
+      mesh: part.mesh,
+      plugin: part.material.pluginManager!.getPlugin<A09ClipOrderPlugin>('OriginalA09ClipOrder')!,
+    }));
+    owner.dispose();
+    expect(plugins.every((plugin) => !plugin.isValid)).toBe(true);
+    // Native Material.dispose clears pluginManager; inspect the exact saved
+    // attachment instead of asking a disposed material to recover its owner.
+    for (const { mesh, plugin } of ownedBindings) {
+      expect(plugin.isValid).toBe(false);
+      expect(() => plugin.prepareDefines(new MaterialDefines(), h.scene, mesh)).toThrow();
+    }
+    owner.dispose();
+    h.baseline();
+  });
+  it('keeps staged plugin ownership alive until a cancelled compiler has drained', async () => {
+    const h = harness(),
+      entered = deferred(),
+      drain = deferred();
+    let plugins: A09ClipOrderPlugin[] = [];
+    const pending = h.load({
+      prepare: async (container, gpu, _signal, deadline) => {
+        plugins = [
+          ...new Set(
+            container.meshes.map(
+              (mesh) =>
+                (mesh.material as PBRMaterial).pluginManager!.getPlugin<A09ClipOrderPlugin>(
+                  'OriginalA09ClipOrder',
+                )!,
+            ),
+          ),
+        ];
+        await gpu.prepare('held A09 clip-order compilation', deadline, async () => {
+          entered.resolve();
+          await drain.promise;
+        });
+      },
+    });
+    const failed = expect(pending).rejects.toThrow();
+    await entered.promise;
+    expect(plugins).toHaveLength(4);
+    h.abort.abort();
+    expect(plugins.every((plugin) => plugin.isValid)).toBe(true);
+    expect(h.inLane()).toBe(true);
+    drain.resolve();
+    await failed;
+    expect(plugins.every((plugin) => !plugin.isValid)).toBe(true);
+    h.baseline();
+  });
+  it.each(['cancel', 'stale', 'disposed'] as const)(
+    'invalidates every actual staged plugin on %s ownership loss',
+    async (reason) => {
+      const h = harness(),
+        owner = await h.load(),
+        plugins = pluginsOf(owner.diagnostics().parts);
+      if (reason === 'cancel') h.abort.abort();
+      else if (reason === 'stale') h.stale();
+      else owner.dispose();
+      await expect(owner.install()).rejects.toThrow();
+      expect(plugins.every((plugin) => !plugin.isValid)).toBe(true);
+      h.baseline();
+    },
+  );
+  it('invalidates all four plugins when installation is cancelled after one actual ready receipt', async () => {
+    const h = harness(),
+      owner = await h.load(),
+      plugins = pluginsOf(owner.diagnostics().parts);
+    const pending = owner.install(),
+      failed = expect(pending).rejects.toThrow();
+    h.completed();
+    h.abort.abort();
+    await failed;
+    expect(plugins.every((plugin) => !plugin.isValid)).toBe(true);
+    expect(h.listeners.size).toBe(0);
+    h.baseline();
+  });
+  it.each([undefined, null, false, 0, ''])(
+    'partial scene installation preserves primary %s and invalidates all four plugins',
+    async (failure) => {
+      const h = harness(),
+        owner = await h.load(),
+        plugins = pluginsOf(owner.diagnostics().parts);
+      const add = h.scene.addMesh.bind(h.scene);
+      let count = 0;
+      vi.spyOn(h.scene, 'addMesh').mockImplementation((mesh, recursive) => {
+        add(mesh, recursive);
+        if (++count === 2) throw failure;
+      });
+      await expect(owner.install()).rejects.toBe(failure);
+      expect(plugins.every((plugin) => !plugin.isValid)).toBe(true);
+      h.baseline();
+    },
+  );
+  it('partial mesh registration invalidates local plugins and preserves a falsy construction failure', async () => {
+    const h = harness(),
+      invalidated = new Set<A09ClipOrderPlugin>();
+    const register = A09ClipOrderPlugin.prototype.registerOwnedMesh,
+      invalidate = A09ClipOrderPlugin.prototype.invalidate;
+    let count = 0;
+    vi.spyOn(A09ClipOrderPlugin.prototype, 'registerOwnedMesh').mockImplementation(function (
+      this: A09ClipOrderPlugin,
+      mesh,
+    ) {
+      register.call(this, mesh);
+      if (++count === 3) throw false;
+    });
+    vi.spyOn(A09ClipOrderPlugin.prototype, 'invalidate').mockImplementation(function (
+      this: A09ClipOrderPlugin,
+    ) {
+      invalidated.add(this);
+      return invalidate.call(this);
+    });
+    await expect(h.load()).rejects.toBe(false);
+    expect(count).toBe(3);
+    expect(invalidated.size).toBeGreaterThanOrEqual(2);
+    expect([...invalidated].every((plugin) => !plugin.isValid)).toBe(true);
+    h.baseline();
+  });
+  it('explicit owner disposal invalidates plugins even when a material disposer throws falsy', async () => {
+    const h = harness(),
+      owner = await h.load(),
+      parts = owner.diagnostics().parts,
+      plugins = pluginsOf(parts);
+    const material = parts[0].material,
+      dispose = material.dispose.bind(material);
+    vi.spyOn(material, 'dispose').mockImplementation((...args) => {
+      dispose(...args);
+      throw undefined;
+    });
+    let threw = false;
+    try {
+      owner.dispose();
+    } catch (error) {
+      threw = true;
+      expect(error).toBeUndefined();
+    }
+    expect(threw).toBe(true);
+    expect(plugins.every((plugin) => !plugin.isValid)).toBe(true);
+    expect(parts.every((part) => part.mesh.isDisposed())).toBe(true);
+    h.baseline();
+  });
+});
+
+describe('clip-order diagnostics are actual saved plugin bindings', () => {
+  it.each(['structure', 'print'] as const)(
+    'invalidated %s plugin removes only its actual active bindings',
+    async (kind) => {
+      const h = harness(),
+        owner = await h.load(),
+        installing = owner.install();
+      h.completed();
+      h.completed();
+      await installing;
+      const part = owner.diagnostics().parts.find((p) => p.kind === kind)!;
+      const plugin =
+        part.material.pluginManager!.getPlugin<A09ClipOrderPlugin>('OriginalA09ClipOrder')!;
+      plugin.invalidate();
+      const diagnostic = owner.diagnostics();
+      expect(diagnostic.activeParts).toBe(kind === 'structure' ? 3 : 5);
+      expect(diagnostic.activeMaterials).toBe(3);
+      expect(diagnostic.activeTextures).toBe(kind === 'structure' ? 3 : 5);
+      expect(diagnostic.retainedMaterials).toBe(4);
+      owner.dispose();
+      h.baseline();
+    },
+  );
+  it('does not mistake a valid foreign plugin manager for its saved original plugin or adopt it on disposal', async () => {
+    const h = harness(),
+      owner = await h.load(),
+      installing = owner.install();
+    h.completed();
+    h.completed();
+    await installing;
+    const part = owner.diagnostics().parts.find((p) => p.kind === 'print')!;
+    const originalManager = part.material.pluginManager!,
+      originalPlugin = originalManager.getPlugin<A09ClipOrderPlugin>('OriginalA09ClipOrder')!;
+    const foreign = new PBRMaterial('external clip-order owner', h.scene),
+      foreignPlugin = new A09ClipOrderPlugin(foreign);
+    part.material.pluginManager = foreign.pluginManager;
+    expect(foreignPlugin.isValid).toBe(true);
+    expect(originalPlugin.isValid).toBe(true);
+    expect(owner.diagnostics().activeParts).toBe(5);
+    expect(owner.diagnostics().activeMaterials).toBe(3);
+    owner.dispose();
+    expect(originalPlugin.isValid).toBe(false);
+    expect(foreignPlugin.isValid).toBe(true);
+    expect(h.scene.materials).toContain(foreign);
+    foreign.dispose();
+    h.baseline();
+  });
+  it('one falsy plugin invalidation failure cannot skip remaining plugin/resource cleanup', async () => {
+    const h = harness(),
+      owner = await h.load(),
+      parts = owner.diagnostics().parts;
+    const plugins = [
+      ...new Set(
+        parts.map(
+          (part) =>
+            part.material.pluginManager!.getPlugin<A09ClipOrderPlugin>('OriginalA09ClipOrder')!,
+        ),
+      ),
+    ];
+    const invalidate = plugins[0].invalidate.bind(plugins[0]);
+    vi.spyOn(plugins[0], 'invalidate').mockImplementationOnce(() => {
+      invalidate();
+      throw false;
+    });
+    let caught = false;
+    try {
+      owner.dispose();
+    } catch (error) {
+      caught = true;
+      expect(error).toBe(false);
+    }
+    expect(caught).toBe(true);
+    expect(plugins.every((plugin) => !plugin.isValid)).toBe(true);
+    expect(parts.every((part) => part.mesh.isDisposed())).toBe(true);
+    h.baseline();
+  });
 });

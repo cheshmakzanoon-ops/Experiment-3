@@ -1,3 +1,4 @@
+import { A09ClipOrderPlugin } from './braking-triplet-clip-order.ts';
 import * as T from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { LoadAssetContainerAsync } from '@babylonjs/core/Loading/sceneLoader.js';
@@ -300,6 +301,7 @@ export async function loadBabylonBrakingTriplet(
     kind: 'structure' | 'print';
   }[] = [];
   const ownedMaterialTextures = new Map<PBRMaterial, BaseTexture[]>();
+  const clipOrderPlugins = new Map<PBRMaterial, A09ClipOrderPlugin>();
   const labels: {
     text: string;
     sourceCanvas: HTMLCanvasElement;
@@ -380,6 +382,7 @@ export async function loadBabylonBrakingTriplet(
         failed = true;
       }
     };
+    for (const plugin of clipOrderPlugins.values()) attempt(() => plugin.invalidate());
     // Detach even a resource whose own disposer will throw; never leave a
     // half-cleaned candidate visible. Each removal is independently guarded.
     for (const mesh of container?.meshes ?? []) {
@@ -444,6 +447,7 @@ export async function loadBabylonBrakingTriplet(
             container.textures.length !== 3
           )
             throw new Error('A09 original native atlas contract');
+          clipOrderPlugins.set(atlas, new A09ClipOrderPlugin(atlas));
           ownedMaterialTextures.set(atlas, [
             atlas.albedoTexture,
             atlas.bumpTexture,
@@ -579,6 +583,7 @@ export async function loadBabylonBrakingTriplet(
               graphic.twoSidedLighting = false;
               graphic.zOffset = print.material.polygonOffsetFactor;
               graphic.zOffsetUnits = print.material.polygonOffsetUnits;
+              clipOrderPlugins.set(graphic, new A09ClipOrderPlugin(graphic));
               ownedMaterialTextures.set(graphic, [texture]);
               labels.push({ text: site.text, sourceCanvas, pixels, texture, material: graphic });
               for (const [i, source] of group.children.entries()) {
@@ -601,6 +606,7 @@ export async function loadBabylonBrakingTriplet(
                   }
                 }
                 mesh.freezeWorldMatrix(Matrix.FromArray(source.matrixWorld.elements));
+                clipOrderPlugins.get(i === 0 ? atlas : graphic)!.registerOwnedMesh(mesh);
                 parts.push({
                   name: source.name,
                   mesh,
@@ -674,6 +680,9 @@ export async function loadBabylonBrakingTriplet(
             p.mesh.isVisible &&
             p.mesh.visibility > 0 &&
             p.mesh.material === p.material &&
+            !!clipOrderPlugins.get(p.material)?.isValid &&
+            p.material.pluginManager?.getPlugin('OriginalA09ClipOrder') ===
+              clipOrderPlugins.get(p.material) &&
             p.mesh.geometry === p.geometry &&
             !p.geometry.isDisposed(),
         );
