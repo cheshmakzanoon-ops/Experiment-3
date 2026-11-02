@@ -11,7 +11,10 @@ import type { WebGLPipelineContext } from '@babylonjs/core/Engines/WebGL/webGLPi
 import { distanceBoardLabel } from '../../src/rendering/studio/branding-plan.ts';
 import { Track } from '../../src/simulation/track.ts';
 import { TRACK_BOARDS, decodeTrackBoards } from '../../src/rendering/track-boards.ts';
-import { loadBabylonBrakingTriplet } from '../../src/engine/babylon/braking-triplet.ts';
+import {
+  loadBabylonBrakingTriplet,
+  loadBabylonSecondBrakingTriplet,
+} from '../../src/engine/babylon/braking-triplet.ts';
 import {
   BabylonPresentationGpu,
   cleanupPresentation,
@@ -343,7 +346,15 @@ async function existingMipDiagnostic(
 
 // Each acquisition registers an idempotent cleanup immediately. Setup failures
 // therefore retain partial evidence and drain later owners independently.
-async function probe(forceStandalone: boolean, loseContext: boolean, deadline: number) {
+async function probe(
+  forceStandalone: boolean,
+  loseContext: boolean,
+  deadline: number,
+  second = false,
+) {
+  // Fixed original placements only; no caller-authored sites or live selection.
+  const loadTriplet = second ? loadBabylonSecondBrakingTriplet : loadBabylonBrakingTriplet;
+  const stations = second ? [1020, 1070, 1120] : [420, 470, 520];
   const rows: object[] = [],
     receipts: object[] = [],
     images: { name: string; image: string }[] = [];
@@ -632,7 +643,7 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
     const cancellationStart = allocations.length;
     try {
       await pump(
-        loadBabylonBrakingTriplet(options(AbortSignal.any([h.abort.signal, cancelled.signal])), {
+        loadTriplet(options(AbortSignal.any([h.abort.signal, cancelled.signal])), {
           prepare: async (...args) => {
             await prepareOriginalMaterials(...args);
             cancelled.abort();
@@ -663,7 +674,7 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
       'A09 cancellation leaked scene ownership',
     );
     for (let cycle = 0; cycle < 2; cycle++) {
-      const owner = await pump(loadBabylonBrakingTriplet(options()));
+      const owner = await pump(loadTriplet(options()));
       const disposeOwner = retain(() => owner.dispose());
       const d = owner.diagnostics();
       const canvasHashes = await Promise.all(
@@ -687,9 +698,9 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
           d.activeParts === 0 &&
           d.retainedMaterials === 4 &&
           d.retainedTextures === 6 &&
-          d.retainedTriangles === 4950 &&
+          d.retainedTriangles === (second ? 4994 : 4950) &&
           d.retainedMeshes === 6 &&
-          equal(d.stations, [420, 470, 520]) &&
+          equal(d.stations, stations) &&
           JSON.stringify(resources()) === JSON.stringify(baseline),
         'A09 exact off-scene triplet inventory',
       );
@@ -720,7 +731,7 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
           (site) =>
             site.s === part.station &&
             site.text === part.text &&
-            site.variant === 'clean' &&
+            site.variant === (second && part.station === 1020 ? 'worn' : 'clean') &&
             site.lateral === -18,
         );
         check(index >= 0, 'Original A09 fixed station missing');
@@ -1843,8 +1854,9 @@ async function probe(forceStandalone: boolean, loseContext: boolean, deadline: n
     failure,
     loss,
     factorLimits: FACTOR_LIMITS,
-    scope:
-      'Original first clean 150/100/50 A09 triplet only: same source canvases, exact GLB/geometry, native texture sampling and normal factors. No final PBR/weather/shadow/LOD-selection/sector-board parity.',
+    scope: second
+      ? 'Original second A09 triplet only: worn 150 at 1020, clean 100/50 at 1070/1120; same source canvases, exact GLB/geometry, native texture sampling and normal factors. No final PBR/weather/shadow/LOD-selection/sector-board parity.'
+      : 'Original first clean 150/100/50 A09 triplet only: same source canvases, exact GLB/geometry, native texture sampling and normal factors. No final PBR/weather/shadow/LOD-selection/sector-board parity.',
   };
 }
 export async function babylonBrakingTriplet(forceStandalone = false, loseContext = false) {
@@ -1852,5 +1864,16 @@ export async function babylonBrakingTriplet(forceStandalone = false, loseContext
   const report = await probe(forceStandalone, loseContext, deadline);
   const restart =
     loseContext && report.failure === null ? await probe(forceStandalone, false, deadline) : null;
+  return { ...report, restart };
+}
+
+/** Isolated second original triplet; does not activate or combine live owners. */
+export async function babylonSecondBrakingTriplet(forceStandalone = false, loseContext = false) {
+  const deadline = performance.now() + 120000;
+  const report = await probe(forceStandalone, loseContext, deadline, true);
+  const restart =
+    loseContext && report.failure === null
+      ? await probe(forceStandalone, false, deadline, true)
+      : null;
   return { ...report, restart };
 }

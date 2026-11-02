@@ -211,11 +211,38 @@ export interface BrakingTripletDependencies {
   prepare?: typeof prepareOriginalMaterials;
   present?: typeof waitForPresentation;
 }
-/** Isolated first original clean braking triplet, LOD0 only. No live activation,
- * wet/shadow/LOD-switching or sector-board claim. Test seams are not GPU proof. */
-export async function loadBabylonBrakingTriplet(
+const firstTriplet = Object.freeze({
+  name: 'first',
+  corner: 570,
+  variants: Object.freeze(['clean', 'clean', 'clean'] as const),
+  triangles: 4950,
+});
+const secondTriplet = Object.freeze({
+  name: 'second',
+  corner: 1170,
+  variants: Object.freeze(['worn', 'clean', 'clean'] as const),
+  triangles: 4994,
+});
+/** Original first clean triplet. The existing live entry point and its exact
+ * default contract are unchanged; test seams are not GPU proof. */
+export function loadBabylonBrakingTriplet(
   options: BabylonBrakingTripletOptions,
   dependencies: BrakingTripletDependencies = {},
+) {
+  return loadFixedBrakingTriplet(options, dependencies, firstTriplet);
+}
+/** Explicit isolated-only second original triplet, fixed LOD0. This does not
+ * extend the live first-triplet owner/readiness or allow arbitrary selections. */
+export function loadBabylonSecondBrakingTriplet(
+  options: BabylonBrakingTripletOptions,
+  dependencies: BrakingTripletDependencies = {},
+) {
+  return loadFixedBrakingTriplet(options, dependencies, secondTriplet);
+}
+async function loadFixedBrakingTriplet(
+  options: BabylonBrakingTripletOptions,
+  dependencies: BrakingTripletDependencies,
+  profile: typeof firstTriplet | typeof secondTriplet,
 ) {
   const { scene, track, signal, deadline, gpu, schedule } = options;
   const active = () => {
@@ -475,15 +502,15 @@ export async function loadBabylonBrakingTriplet(
             const parent = new T.Group();
             original.build(track, parent);
             parent.updateMatrixWorld(true);
-            const selected = ['150', '100', '50'].map((text) => {
+            const selected = ['150', '100', '50'].map((text, position) => {
               const index = original.sites.findIndex(
                 (site) =>
-                  site.s === 570 - Number(text) &&
+                  site.s === profile.corner - Number(text) &&
                   site.text === text &&
                   site.lateral === -18 &&
-                  site.variant === 'clean',
+                  site.variant === profile.variants[position],
               );
-              if (index < 0) throw new Error('A09 original first triplet changed');
+              if (index < 0) throw new Error(`A09 original ${profile.name} triplet changed`);
               return { site: original.sites[index], group: original.chunks[index].levels[0] };
             });
             // Native source nodes supply atlas ownership only. Dispose their exact
@@ -620,9 +647,9 @@ export async function loadBabylonBrakingTriplet(
             }
             if (
               parts.length !== 6 ||
-              parts.reduce((sum, p) => sum + p.mesh.getTotalIndices() / 3, 0) !== 4950
+              parts.reduce((sum, p) => sum + p.mesh.getTotalIndices() / 3, 0) !== profile.triangles
             )
-              throw new Error('A09 exact first-triplet topology changed');
+              throw new Error(`A09 exact ${profile.name}-triplet topology changed`);
           } catch (error) {
             originalWorkFailed = true;
             throw error;
