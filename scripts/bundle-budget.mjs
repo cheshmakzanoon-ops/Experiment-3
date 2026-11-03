@@ -1,7 +1,8 @@
 /**
  * Release gate G7 (cold load budget): measure the JavaScript a player must
- * download, parse and run before the menu (index.html's entry module plus its
- * static import closure) and fail when it exceeds the budget.
+ * download, parse and run before the menu (index.html's entry module, its
+ * modulepreload hints and their static import closure) and fail when it
+ * exceeds the budget.
  *
  *   npm run build && npm run check:bundle
  *   node scripts/bundle-budget.mjs [--dist dist] [--max-gzip-mb 4] [--json]

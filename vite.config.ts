@@ -21,7 +21,6 @@ for (const path of [
   join(root, 'package-lock.json'),
   join(root, 'index.html'),
   join(root, 'vite.config.ts'),
-  join(root, 'scripts/vite-lazy-data.ts'),
 ].sort()) {
   hash.update(relative(root, path).replaceAll('\\', '/') + '\0');
   hash.update(readFileSync(path));
@@ -69,7 +68,7 @@ export default defineConfig({
   plugins: [
     // Authored geometry tables load on demand instead of inflating the entry
     // chunk (see src/core/lazy-data.ts for the loading contract).
-    lazyData({ root, files: LAZY_DATA }),
+    lazyData({ root, files: LAZY_DATA, preload: ['showroom'] }),
     {
       name: 'source-identity',
       generateBundle() {

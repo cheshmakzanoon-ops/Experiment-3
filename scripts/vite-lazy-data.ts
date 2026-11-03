@@ -18,6 +18,12 @@ export interface LazyDataOptions {
   minBytes?: number;
   /** The runtime module the facades import (default `src/core/lazy-data.ts`). */
   runtime?: string;
+  /**
+   * Groups whose chunks index.html should modulepreload: the browser fetches
+   * and parses them beside the entry instead of after it, for data that the
+   * first screen always needs.
+   */
+  preload?: readonly string[];
 }
 
 export const LAZY_KEY_BYTES = 16 * 1024;
@@ -55,10 +61,15 @@ export function lazyData(options: LazyDataOptions): Plugin {
   );
   const runtime = resolve(root, options.runtime ?? 'src/core/lazy-data.ts');
   const idOf = (file: string) => relative(root, file).replaceAll('\\', '/');
+  const preload = new Set(options.preload ?? []);
+  let base = '/';
   return {
     name: 'apex-lazy-data',
     apply: 'build',
     enforce: 'pre',
+    configResolved(config) {
+      base = config.base.endsWith('/') ? config.base : `${config.base}/`;
+    },
     async resolveId(source, importer, resolveOptions) {
       if (source.startsWith(PAYLOAD_SPECIFIER))
         return PAYLOAD + resolve(root, source.slice(PAYLOAD_SPECIFIER.length)) + SUFFIX;
@@ -91,6 +102,25 @@ export function lazyData(options: LazyDataOptions): Plugin {
         return { code: `export default ${jsonLiteral(lazy)};`, map: { mappings: '' } };
       }
       return null;
+    },
+    transformIndexHtml: {
+      order: 'post',
+      handler(_html, context) {
+        if (!preload.size || !context.bundle) return;
+        return Object.values(context.bundle).flatMap((item) => {
+          const id = item.type === 'chunk' ? item.facadeModuleId : null;
+          if (!id?.startsWith(PAYLOAD)) return [];
+          const group = targets.get(id.slice(PAYLOAD.length, -SUFFIX.length));
+          if (!group || !preload.has(group)) return [];
+          return [
+            {
+              tag: 'link',
+              attrs: { rel: 'modulepreload', crossorigin: '', href: base + item.fileName },
+              injectTo: 'head' as const,
+            },
+          ];
+        });
+      },
     },
   };
 }
