@@ -45,7 +45,7 @@ function pocketRay(model: ClosedBodyModel, pocket: FestivalLampPocket, x: number
   return new T.Raycaster(start, end.clone().sub(start).normalize(), 0, start.distanceTo(end));
 }
 
-describe('RH3 and SC7 integrated front ends', () => {
+describe('RH3, SC7 and EH3 integrated front ends', () => {
   it('cuts actual lamp holes, retains nearby painted skin and exposes recessed optics', () => {
     for (const id of ['rh3', 'sc7', 'eh3']) {
       const { model, body } = build(id);
@@ -229,7 +229,9 @@ describe('RH3 and SC7 integrated front ends', () => {
                 const key = pointKey(side * x, y, z),
                   label = `${id}/LOD${detail} ${axleName}/${side}/${fraction} ${part}`;
                 expect(originalPoints.has(key), `${label} baseline anchor exists`).toBe(true);
-                expect(revisedPoints.has(key), `${label} stays at its physical position`).toBe(true);
+                expect(revisedPoints.has(key), `${label} stays at its physical position`).toBe(
+                  true,
+                );
               }
           }
         }

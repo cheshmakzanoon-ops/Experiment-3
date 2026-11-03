@@ -64,7 +64,7 @@ export const COLOURWAYS: Readonly<Record<string, Colourway>> = Object.freeze({
   // Prototype, hypercar and experimental
   hy9: cw(0x9fb4c8, 0x15233a, 0xff6a00, ['lower']),
   hy11: cw(0x1b1e22, 0x0d0e10, 0xe0232a),
-  pr2: cw(0xc4162a, INK, BONE, ['lower']),
+  pr2: cw(0x1e3a9c, INK, BONE, ['lower']),
   pr3: cw(0x2ec4a6, 0x0f2433, 0x0f2433, ['lower']),
   sp71: cw(0xe8dfc8, 0x2a5a3a, 0x2a5a3a, ['lower']),
   xf2: cw(0xa6e22e, INK, INK, ['lower']),

@@ -143,7 +143,7 @@ function boundaryClearance(box: T.Box3, points: Pt[]) {
   return closest;
 }
 
-describe('RH3 and SC7 pressed flanks, recessed door joints and folded sills', () => {
+describe('RH3, SC7 and EH3 pressed flanks, recessed door joints and folded sills', () => {
   const fixtures: {
     id: string;
     model: ClosedBodyModel;

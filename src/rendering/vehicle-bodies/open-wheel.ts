@@ -577,9 +577,9 @@ export function buildKart(
     const shell = (rx: number, ry: number, rz: number) =>
       new T.SphereGeometry(1, detail === 0 ? 24 : 12, detail === 0 ? 14 : 8).scale(rx, ry, rz);
     parts.add(
-      compact ? shell(0.34, 0.085, 0.2) : shell(0.44, 0.095, 0.27),
+      compact ? shell(0.25, 0.08, 0.27) : shell(0.3, 0.085, 0.4),
       mats.paint,
-      compact ? placed(0, y(0.2), zF + 0.22, 0.22) : placed(0, y(0.2), zF + 0.28, 0.18),
+      compact ? placed(0, y(0.18), zF + 0.2, 0.16) : placed(0, y(0.17), zF + 0.3, 0.12),
     );
     // The gearbox kart's front bumper: a chrome tube round the nose, on stays.
     if (!compact) {
