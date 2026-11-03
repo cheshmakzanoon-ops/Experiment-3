@@ -89,6 +89,10 @@ Steam depot needs. Forge would need a separate maker package per target and has 
   override with `MOTOBOUND_SANDBOX=1`). Windows and macOS always keep the sandbox. On Linux
   the switch is read by the browser process very early; if a distro blocks unprivileged user
   namespaces the safe route is the Steam launch option `--no-sandbox` (see STEAM.md).
+- **Crash recovery.** If the renderer or the GPU process dies, the window is reloaded (at most twice a
+  minute; saves are already on disk) instead of leaving a frozen "graphics context was lost" screen. Smoke
+  runs never auto-reload so they can report the failure. `GPU abnormal-exit` was seen once under heavy CPU
+  starvation with software rendering (see the release report).
 - **Screens stay awake** while the window exists (`powerSaveBlocker`), because a gamepad-only
   session never trips the OS idle timer.
 - **Photo mode and exports** (`<a download>`) are saved without a dialog to

@@ -302,15 +302,9 @@ function createWindow(requestedMode) {
     log(`did-fail-load ${code} ${description} ${url}`),
   );
   win.webContents.on('will-attach-webview', (event) => event.preventDefault());
-  // A crashed renderer is reloaded (at most twice a minute) instead of leaving a dead window; the
-  // saves are already on disk. Not applied to smoke runs, which must report the crash instead.
-  const reloads = [];
   win.webContents.on('render-process-gone', (_e, details) => {
     log(`renderer gone: ${details.reason} (exit ${details.exitCode})`);
-    if (details.reason === 'clean-exit' || options.smokeOut || win.isDestroyed()) return;
-    const now = Date.now();
-    while (reloads.length && now - reloads[0] > 60000) reloads.shift();
-    if (reloads.push(now) <= 2) win.webContents.reload();
+    if (details.reason !== 'clean-exit') recoverWindow(win, 'renderer process gone');
   });
   win.on('unresponsive', () => log('window unresponsive'));
   win.on('responsive', () => log('window responsive again'));
@@ -347,6 +341,17 @@ function createWindow(requestedMode) {
   win.loadURL(`${ORIGIN}/index.html`).catch((error) => log(`load failed: ${String(error)}`));
   if (devToolsAllowed && options.devtools) win.webContents.openDevTools({ mode: 'detach' });
   return win;
+}
+
+/** Reload a dead window at most twice a minute. Smoke runs must report the failure instead. */
+const recoveries = [];
+function recoverWindow(win, reason) {
+  if (options.smokeOut || win.isDestroyed()) return;
+  const now = Date.now();
+  while (recoveries.length && now - recoveries[0] > 60000) recoveries.shift();
+  if (recoveries.push(now) > 2) return log(`not reloading again (${reason}): too many recoveries`);
+  log(`reloading the window: ${reason}`);
+  win.webContents.reload();
 }
 
 function toggleFullscreen() {
@@ -481,9 +486,14 @@ app.on('will-quit', () => {
   steam.clearPresence();
   steam.shutdown();
 });
-app.on('child-process-gone', (_event, details) =>
-  log(`child process gone: ${details.type} ${details.reason} (exit ${details.exitCode})`),
-);
+app.on('child-process-gone', (_event, details) => {
+  log(`child process gone: ${details.type} ${details.reason} (exit ${details.exitCode})`);
+  // Chromium restarts a dead GPU process by itself, but the game only reports "graphics context
+  // was lost, reload to recover" (seen once when software rendering starved: the load then sat at
+  // 94% forever), so reload for the player. The saves are already on disk.
+  if (details.type === 'GPU' && details.reason !== 'clean-exit' && mainWindow)
+    recoverWindow(mainWindow, 'GPU process gone');
+});
 app.on('window-all-closed', () => app.quit());
 app.on('web-contents-created', (_event, contents) => {
   contents.on('will-navigate', (event, url) => {

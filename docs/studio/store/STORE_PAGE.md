@@ -112,7 +112,7 @@ the page.
 | Download size (zip of that folder) | Linux zip 236.3 MB, Linux AppImage 243.7 MB, Windows zip 270.2 MB (built from Linux, never run) | `desktop/release/*` |
 | Main JavaScript | 14.6 MB raw, 4.5 MB gzip | `dist/assets/index-*.js`, `gzip -c` (gate G7 wants <= 4 MB gz) |
 | Memory at the menu | 1.42-1.45 GiB in total (browser 167 MiB, renderer 539-544 MiB, GPU process 637-659 MiB, utility 75 MiB); the GPU-process share is SwiftShader's software rasteriser and will differ on a real GPU | `app.getAppMetrics()`, all processes, working set |
-| Memory in a practice session | not measured: the session never finished loading inside the 7-15 minute allowance on the loaded software-GL machine | same, 5 s after the car was on track |
+| Memory in a practice session | not measured: on the loaded software-GL machine the session load stalled at 94% after the GPU process died (see the release report) | same, 5 s after the car was on track |
 | Time to menu | 89 s (existing profile) to 100 s (fresh profile), packaged build, machine at load average 14-18; **not representative** of a GPU | software GL |
 | Simulation cost | not measured (needs a running session) | physics step in the worker (`H.STEP_MS`), CPU only |
 | Frame rate | not measurable | SwiftShader on shared CPUs gives single digits and says nothing about a GPU |

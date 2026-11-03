@@ -8,7 +8,7 @@
  *                    the real settings screen -> the save mirror file holds it
  *   phase "restore": (after the harness deleted Chromium's IndexedDB) the
  *                    setting is restored from the mirror into IndexedDB
- *   MOTOBOUND_SMOKE_DRIVE=1: additionally start a practice session and count
+ *   MOTOBOUND_SMOKE_DRIVE=1: (restore phase only; the write phase leaves the settings transition open) additionally start a practice session and count
  *                    rendered frames once the car is on track
  */
 const fs = require('node:fs');
@@ -238,15 +238,22 @@ async function run({ getWindow, out, mirrors, savesDir, steam, log, quit }) {
     }
 
     if (process.env.MOTOBOUND_SMOKE_DRIVE === '1') {
+      // The settings dialog is modal and leaves the menu inert; close it like a player would.
       await js(`(async () => {
+        document.querySelector('[aria-label="Close settings"]')?.click();
+        await new Promise((r) => setTimeout(r, 800));
+        return !document.getElementById('settingsForm');
+      })()`);
+      const clicked = await js(`(async () => {
         const mode = document.getElementById('mode');
         if (mode) { mode.value = 'practice'; mode.dispatchEvent(new Event('change', { bubbles: true })); }
         const opponents = document.getElementById('opponents');
         if (opponents) { opponents.value = '3'; opponents.dispatchEvent(new Event('change', { bubbles: true })); }
-        const enter = [...document.querySelectorAll('button')].find((b) => b.textContent.trim() === 'ENTER CIRCUIT');
+        const enter = [...document.querySelectorAll('button')].find((b) => b.textContent.trim().startsWith('ENTER CIRCUIT'));
         enter && enter.click();
         return Boolean(enter);
       })()`);
+      if (!clicked) throw new Error('ENTER CIRCUIT button not found');
       step('enter-circuit-clicked', {});
       const state = await waitFor(
         'driving',

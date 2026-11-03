@@ -55,7 +55,7 @@ function run(phase) {
     ...process.env,
     MOTOBOUND_SMOKE_OUT: report,
     MOTOBOUND_SMOKE_PHASE: phase,
-    MOTOBOUND_SMOKE_DRIVE: phase === 'write' && flag('drive') ? '1' : '0',
+    MOTOBOUND_SMOKE_DRIVE: phase === 'restore' && flag('drive') ? '1' : '0',
     MOTOBOUND_SOFTWARE_GL: '1',
     MOTOBOUND_LOG_STDERR: '0',
     MOTOBOUND_LOG_CONSOLE: '1',
