@@ -1,4 +1,5 @@
-// R encodes millimetres / 2, G local laid rubber, B local loose marbles. This is the same spatial
+// R encodes millimetres / 2, G local laid rubber, B local loose marbles, A snow / ice cover
+// (millimetres of water equivalent / 8; 0 outside the snow preset). This is the same spatial
 // surface state sent by the simulation worker, not a global rain tint.
 vec4 roadState = texture2D(trackState, vTrackUV);
 roadState.gb *= surfaceDeposits;
@@ -27,3 +28,12 @@ float filteredMarbles = mix(roadState.b * 0.065, marbleFleck, marbleDetail);
 float roadDustFilm = roadDust * smoothstep(0.0, 0.07, roadState.b);
 diffuseColor.rgb *= 1.0 - filteredMarbles * 0.55 * (1.0 - roadDust);
 diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * 0.45 + vec3(0.30, 0.22, 0.13), roadDustFilm * 0.8);
+
+// Snow and ice (weather.ts FROST): the cell's cover whitens the road; where traffic has
+// polished it (the laid-rubber line) it is a dark, glossy glaze, and thick fresh snow hides
+// that again. The same two terms (cover, glaze) the tyre model's grip reads.
+float frozenMm = roadState.a * 8.0;
+float snowCover = smoothstep(0.0, 0.8, frozenMm);
+float snowGlaze = clamp(roadState.g / 0.45, 0.0, 1.0) * (1.0 - 0.6 * smoothstep(0.8, 4.0, frozenMm));
+vec3 snowColour = mix(vec3(0.74, 0.78, 0.84), vec3(0.2, 0.225, 0.26), snowGlaze * 0.85);
+diffuseColor.rgb = mix(diffuseColor.rgb, snowColour, snowCover);

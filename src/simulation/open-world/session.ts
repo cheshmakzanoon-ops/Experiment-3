@@ -31,7 +31,7 @@ import {
   carBase,
 } from '../protocol.ts';
 import { RouteProgress } from '../route-graph.ts';
-import { particulateExtinctionPerKm } from '../weather.ts';
+import { particulateExtinctionPerKm, reportedSurface } from '../weather.ts';
 import { DirtBikeVehicle } from '../offroad/dirt-bike-vehicle.ts';
 import { isDirtBike } from '../offroad/dirt-bikes.ts';
 import { trackPoint, type Track } from '../track.ts';
@@ -1511,7 +1511,7 @@ function writeCar(out: Float32Array, id: number, c: Vehicle) {
     out[p + W.COMPRESSION] = w.compression;
     out[p + W.DISC_TEMP] = w.discTemp;
     out[p + W.WATER] = w.water;
-    out[p + W.SURFACE] = w.surface;
+    out[p + W.SURFACE] = reportedSurface(w.surface, c.contacts[i]?.frozen, c.contacts[i]?.rubber ?? 0);
     out[p + W.ROTATION] = w.rotation;
     out[p + W.FLAT] = w.flatSpot;
     out[p + W.PRESSURE] = w.pressure;

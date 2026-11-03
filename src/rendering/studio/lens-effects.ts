@@ -1,6 +1,7 @@
 import * as T from 'three';
 import type { LightingMode } from '../daylight.ts';
 import { H } from '../../simulation/protocol.ts';
+import { frameLiquidRain } from '../../simulation/weather.ts';
 import { surfaceDampness } from '../weather-presentation.ts';
 import type { BroadcastGradePass } from '../broadcast-grade.ts';
 import type { LensBloomPass } from '../lens-bloom.ts';
@@ -193,7 +194,7 @@ export class LensEffects {
     u.lensFlare.value = night ? 0 : LENS.flare * flareWeight(angle);
     const dirt = physical ? LENS.physicalDirt : LENS.dirt;
     u.lensDirt.value = exterior ? dirt : dirt * 0.35;
-    u.lensRain.value = exterior ? lensRainAmount(presented[H.RAIN]) : 0;
+    u.lensRain.value = exterior ? lensRainAmount(frameLiquidRain(presented)) : 0;
     u.lensStreak.value = smooth(8, LENS.streakSpeed, Math.abs(speed));
   }
   dispose() {
@@ -311,7 +312,7 @@ export function postLensFrame(
   speed: number,
   lens: LensEffects = lensEffects,
 ) {
-  const rain = presented[H.RAIN],
+  const rain = frameLiquidRain(presented),
     water = presented[H.WATER];
   const wetness =
     Number.isFinite(rain) && Number.isFinite(water) ? surfaceDampness(rain, water) : 0;

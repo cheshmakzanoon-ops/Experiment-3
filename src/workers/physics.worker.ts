@@ -49,11 +49,13 @@ function finishFlashback(job: Resimulation) {
   const water = simulation.track.water.slice(),
     rubber = simulation.track.rubber.slice(),
     marbles = simulation.track.marbles.slice(),
+    frozen = simulation.track.cold && simulation.track.frozen.length ? simulation.track.frozen.slice() : undefined,
     terrain = simulation.offroad?.terrain.renderDelta(true);
-  send({ type: 'surface', water, rubber, marbles, time: simulation.race.time, terrain }, [
+  send({ type: 'surface', water, rubber, marbles, frozen, time: simulation.race.time, terrain }, [
     water.buffer,
     rubber.buffer,
     marbles.buffer,
+    ...(frozen ? [frozen.buffer] : []),
     ...(terrain ? [terrain.blocks.buffer] : []),
   ]);
   snapshot(true);
@@ -224,18 +226,23 @@ setInterval(() => {
       const water = simulation.track.water.slice(),
         rubber = simulation.track.rubber.slice(),
         marbles = simulation.track.marbles.slice(),
+        frozen = simulation.track.cold && simulation.track.frozen.length ? simulation.track.frozen.slice() : undefined,
         // Terrain venues: the soil deformed since the last keyframe (the
         // whole field on a session's first keyframe).
         terrain = simulation.offroad?.terrain.renderDelta(lastSurface < 0);
       // Surface keyframes are independently timestamped. Flushing replay here
       // would send half-empty pages every 0.5 s and halve the configured stall reserve.
       // SessionReplay carries leading surface keyframes across pose-page boundaries.
-      send({ type: 'surface', water, rubber, marbles, time: simulation.race.time, terrain }, [
-        water.buffer,
-        rubber.buffer,
-        marbles.buffer,
-        ...(terrain ? [terrain.blocks.buffer] : []),
-      ]);
+      send(
+        { type: 'surface', water, rubber, marbles, frozen, time: simulation.race.time, terrain },
+        [
+          water.buffer,
+          rubber.buffer,
+          marbles.buffer,
+          ...(frozen ? [frozen.buffer] : []),
+          ...(terrain ? [terrain.blocks.buffer] : []),
+        ],
+      );
       lastSurface = simulation.tick;
     }
   } catch (error) {

@@ -1,5 +1,6 @@
 import * as T from 'three';
 import { H } from '../simulation/protocol.ts';
+import { liquidRain } from '../simulation/weather.ts';
 import { clamp } from '../core/math.ts';
 
 export type WeatherSurface =
@@ -33,6 +34,36 @@ export const WEATHER_SURFACES: Readonly<Record<WeatherSurface, readonly [number,
   rubber: [0.1, 0.48],
   leather: [0.08, 0.44],
 };
+/** Share of the snow a surface role holds on its upward faces (a roof or the
+ * ground collects it all; a car body, rubber and leather none; foliage a
+ * little). Art response, scaled by the scenery cover uniform. */
+export const SNOW_CATCH: Readonly<Record<WeatherSurface, number>> = {
+  stone: 0.85,
+  paving: 0.9,
+  concrete: 0.9,
+  timber: 0.8,
+  metal: 0.35,
+  paint: 0.15,
+  kerb: 0.6,
+  grass: 1,
+  gravel: 1,
+  fabric: 0.5,
+  foliage: 0.55,
+  rubber: 0.05,
+  leather: 0,
+};
+/** Road-state texture alpha maps 0..255 to 0..this many millimetres of snow /
+ * ice cover (water equivalent). Shared by the uploader and the road shader. */
+export const ROAD_COVER_FULL_SCALE_MM = 8;
+/** Scenery snow cover 0..1, shared by every tagged outdoor material: set each
+ * frame from the mean cover of the last recorded road-surface keyframe (so a
+ * replay shows the cover its session had). Zero outside the snow preset. */
+export const sceneryCoverUniform = { value: 0 };
+/** Mean road cover (mm water equivalent) to the scenery's white coat: a trace
+ * is nothing, about a millimetre (1 cm of snow) is a full white landscape. */
+export function sceneryCover(meanFrozenMm: number) {
+  return Number.isFinite(meanFrozenMm) ? smooth(0.05, 1, meanFrozenMm) : 0;
+}
 const roads = new WeakMap<T.Material, { value: T.Vector4 }>();
 /** Share (0..1) of the road's settled marble coverage that is dust rather than
  * tyre rubber: set each frame from the snapshot's dust share and obscuration
@@ -177,6 +208,7 @@ export class WeatherPresentation {
           '#include <common>',
           `#include <common>
           uniform vec4 aurelSurfaceWeather;
+          uniform float aurelSnowCover;
           varying float vWeatherUp;
           varying vec3 vWeatherWorld;`,
         )
@@ -200,17 +232,27 @@ export class WeatherPresentation {
             (.94 + .06*weatherBroad*weatherResolved);
           diffuseColor.rgb *= 1.-surfaceWet*${darkening.toFixed(3)};
           roughnessFactor = mix(roughnessFactor, min(roughnessFactor, ${wetRoughness.toFixed(3)}), surfaceWet);
+          // Settled snow: upward faces whiten in proportion to the role's catch.
+          // aurelSnowCover is exactly 0 outside the snow preset, so the mix is
+          // an identity there.
+          float surfaceSnow = aurelSnowCover * ${SNOW_CATCH[role].toFixed(3)} * smoothstep(.3,.85,weatherUp) *
+            (.92 + .08*weatherBroad*weatherResolved);
+          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.78,.82,.88), surfaceSnow);
+          roughnessFactor = mix(roughnessFactor, .9, surfaceSnow);
           #include <lights_physical_fragment>`,
         );
+      shader.uniforms.aurelSnowCover = sceneryCoverUniform;
     };
     material.customProgramCacheKey = () =>
-      `${key}|aurel-snapshot-dampness-v3:${role}:${exposure}:${mask}`;
+      `${key}|aurel-snapshot-dampness-v4:${role}:${exposure}:${mask}`;
     material.needsUpdate = true;
   }
-  update(frame: Float32Array, enabled = true) {
+  update(frame: Float32Array, enabled = true, meanFrozenMm = 0) {
     const time = frame[H.TIME],
-      rain = frame[H.RAIN],
+      // Below freezing the precipitation channel is snow: it wets nothing.
+      rain = liquidRain(frame[H.RAIN], Number.isFinite(frame[H.AMBIENT]) ? frame[H.AMBIENT] : 20),
       water = frame[H.WATER];
+    sceneryCoverUniform.value = enabled ? sceneryCover(meanFrozenMm) : 0;
     const windX = frame[H.WIND_X],
       windZ = frame[H.WIND_Z];
     if (![time, rain, water, windX, windZ].every(Number.isFinite) || time < 0)

@@ -3,11 +3,18 @@ import { AUREL, STANDARD_PIT, type CircuitDefinition } from '../circuits.ts';
 import type { WeatherPreset } from '../config.ts';
 import { SURFACE, trackPoint, type SurfaceSample, type Track, type TrackPoint } from '../track.ts';
 import { MATERIAL } from '../surface-material.ts';
-import { SurfaceThermalStep } from '../surface-thermal.ts';
+import { SURFACE_THERMAL, SurfaceThermalStep } from '../surface-thermal.ts';
 import {
   CLEAR_VISIBILITY_M,
+  FROST,
+  PRECIPITATION,
+  frozenCover,
+  settlePhase,
+  snowShare,
   weatherKeyframes,
+  weatherSurfaceStart,
   WeatherTimeline,
+  type PhaseCell,
   type WeatherKeyframe,
 } from '../weather.ts';
 import { MAX_ROAD_CANDIDATES, ROAD_FLAG, roadCandidates } from './road-network.ts';
@@ -130,6 +137,7 @@ export class OpenWorldTrack {
   readonly water = new Float32Array(0);
   readonly rubber = new Float32Array(0);
   readonly marbles = new Float32Array(0);
+  readonly frozen = new Float32Array(0);
   readonly temperature = new Float32Array(0);
   readonly substrateTemperature = new Float32Array(0);
   readonly drainage = new Float32Array(0);
@@ -152,6 +160,13 @@ export class OpenWorldTrack {
   surfaceClock = 0;
   /** Standing water on a reference road surface (mm). */
   wetness: number;
+  /** Frost is possible (a keyframe below the rain threshold, or a snowy
+   * start); warm presets never run the phase-change code. */
+  readonly cold: boolean;
+  /** Snow / ice cover on the reference road (mm water equivalent). The
+   * region has one climate column, so the cover is uniform; biome ground
+   * that is already snow or water keeps its own material. */
+  #frozen = 0;
   /** The festival adapter has one reference climate column rather than a
    * circuit grid. Its contact temperature still retains pavement history. */
   #surfaceTemperature = 0;
@@ -206,6 +221,14 @@ export class OpenWorldTrack {
       preset === 'rain' ? 0.9 : preset === 'storm' ? 1 : preset === 'fog' ? 0.03 : 0;
     this.#surfaceTemperature =
       preset === 'rain' || preset === 'storm' ? 22 : this.ambient + 12 * (1 - this.cloud);
+    const start = weatherSurfaceStart(preset);
+    this.cold =
+      keyframes.some((k) => k.ambientTempC < PRECIPITATION.rainAboveC) ||
+      (start.frozenMm ?? 0) > 0;
+    if (preset === 'snow') {
+      this.#surfaceTemperature = start.tempC;
+      this.#frozen = (start.frozenMm ?? 0) * 0.85;
+    }
     this.#substrateTemperature = this.#surfaceTemperature;
     this.circuit = Object.freeze({
       ...AUREL,
@@ -576,6 +599,11 @@ export class OpenWorldTrack {
     out.grip = physics.grip * (onRoad && paved ? spec.grip : 1);
     out.resistance = physics.resistance;
     out.water = Math.min(3, this.wetness * physics.water);
+    out.frozen =
+      this.#frozen > 0 && surface !== WORLD_SURFACE.SNOW && surface !== WORLD_SURFACE.WATER
+        ? this.#frozen
+        : 0;
+    if (out.frozen > 0) out.resistance += FROST.rolling * frozenCover(out.frozen);
     // A light general rubber coat on public asphalt; no racing line.
     out.rubber = physics.code === SURFACE.ASPHALT || physics.code === SURFACE.PAINT ? 0.08 : 0;
     out.marbles = 0;
@@ -646,12 +674,27 @@ export class OpenWorldTrack {
           this.#surfaceTemperature,
           this.#substrateTemperature,
           this.wetness,
-          this.rain / 3600 + this.moisture / 3600,
+          (this.cold ? this.rain * (1 - snowShare(this.ambient)) : this.rain) / 3600 +
+            this.moisture / 3600,
           0.004,
         );
       this.wetness = this.#thermal.water;
       this.#surfaceTemperature = this.#thermal.surface;
       this.#substrateTemperature = this.#thermal.substrate;
+      if (this.cold) {
+        const snowy = snowShare(this.ambient),
+          cell = PHASE_CELL;
+        cell.surface = this.#surfaceTemperature;
+        cell.water = this.wetness;
+        cell.frozen = Math.min(
+          FROST.maxCoverMm,
+          this.#frozen + (this.rain / 3600) * snowy * step,
+        );
+        settlePhase(cell, SURFACE_THERMAL.surfaceCapacity);
+        this.#surfaceTemperature = cell.surface;
+        this.wetness = cell.water;
+        this.#frozen = cell.frozen;
+      }
       this.surfaceClock = Math.max(0, this.surfaceClock - step);
     }
     this.weather.sample(time, this);
@@ -660,7 +703,11 @@ export class OpenWorldTrack {
   meanWater() {
     return this.wetness;
   }
+  meanFrozen() {
+    return this.#frozen;
+  }
 }
+const PHASE_CELL: PhaseCell = { surface: 0, water: 0, frozen: 0 };
 const SCRATCH: SurfaceSample = {
   s: 0,
   width: 0,

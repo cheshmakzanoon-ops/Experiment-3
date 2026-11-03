@@ -71,6 +71,7 @@ import {
 import { installWetDetail } from './studio/wet-detail.ts';
 import { kerbHeight } from '../simulation/contact.ts';
 import { Track, CELL_ROWS, CELL_COLS, SURFACE, trackPoint } from '../simulation/track.ts';
+import { ROAD_COVER_FULL_SCALE_MM } from './weather-presentation.ts';
 import { H } from '../simulation/protocol.ts';
 import { allFinite, clamp } from '../core/math.ts';
 import { buildTracksideBranding, type BrandingBuild } from './studio/trackside-branding.ts';
@@ -206,7 +207,7 @@ export class CircuitScene {
     this.stateTexture = new T.DataTexture(this.stateBytes, CELL_COLS, CELL_ROWS, T.RGBAFormat);
     this.stateTexture.magFilter = T.LinearFilter;
     this.stateTexture.minFilter = T.LinearFilter;
-    this.updateSurface(track.water, track.rubber, track.marbles);
+    this.updateSurface(track.water, track.rubber, track.marbles, track.cold ? track.frozen : undefined);
     this.tyreRubber = new TyreMarkPresentation(track, this.stateTexture);
     this.roadMaterial = surfaceMaterial('asphalt', undefined, true);
     installWetRoad(
@@ -841,23 +842,40 @@ export class CircuitScene {
           );
       });
   }
-  updateSurface(water: Float32Array, rubber: Float32Array, marbles: Float32Array) {
+  /** Mean snow / ice cover of the last surface keyframe (mm water equivalent):
+   * the scenery's whitening follows it, so a replay shows the cover the
+   * recorded session had. 0 in every warm preset. */
+  meanFrozen = 0;
+  updateSurface(
+    water: Float32Array,
+    rubber: Float32Array,
+    marbles: Float32Array,
+    frozen?: Float32Array,
+  ) {
     const count = CELL_ROWS * CELL_COLS;
     if (
       water.length !== count ||
       rubber.length !== count ||
       marbles.length !== count ||
+      (frozen !== undefined && frozen.length !== count) ||
       !allFinite(water) ||
       !allFinite(rubber) ||
-      !allFinite(marbles)
+      !allFinite(marbles) ||
+      (frozen !== undefined && !allFinite(frozen))
     )
       throw new Error('Invalid rendered track surface');
+    // Alpha carries the cover: 255 = FROZEN_FULL_SCALE_MM of water equivalent.
+    // Warm presets send none, so alpha is 0 and the road shader sees no snow.
+    let cover = 0;
     for (let i = 0; i < water.length; i++) {
       this.stateBytes[i * 4] = clamp((water[i] / 2) * 255, 0, 255);
       this.stateBytes[i * 4 + 1] = Math.round(clamp(rubber[i], 0, 1) * 255);
       this.stateBytes[i * 4 + 2] = Math.round(clamp(marbles[i], 0, 1) * 255);
-      this.stateBytes[i * 4 + 3] = 255;
+      const f = frozen ? frozen[i] : 0;
+      this.stateBytes[i * 4 + 3] = Math.round(clamp(f / ROAD_COVER_FULL_SCALE_MM, 0, 1) * 255);
+      cover += f;
     }
+    this.meanFrozen = cover / water.length;
     this.stateTexture.needsUpdate = true;
   }
   at(s: number, l: number, y = 0) {

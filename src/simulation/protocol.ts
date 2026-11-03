@@ -340,6 +340,10 @@ export type FromWorker =
       water: Float32Array;
       rubber: Float32Array;
       marbles: Float32Array;
+      /** Snow / ice cover per cell (mm water equivalent); present only when
+       * the weather can freeze the road, so warm sessions send exactly the
+       * keyframe they always did. */
+      frozen?: Float32Array;
       time: number;
       /** Terrain venues: the deformed soil since the last keyframe. */
       terrain?: TerrainRenderDelta;

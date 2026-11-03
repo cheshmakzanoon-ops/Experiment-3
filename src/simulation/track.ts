@@ -8,13 +8,20 @@ import { clamp, lerp, mod, smooth, Vec3 } from '../core/math.ts';
 import type { WeatherPreset } from './config.ts';
 import {
   CLEAR_VISIBILITY_M,
+  FROST,
+  PRECIPITATION,
   WeatherTimeline,
   dustSettlingTarget,
+  frozenCover,
   settleDust,
+  settlePhase,
+  snowShare,
   weatherKeyframes,
   weatherSurfaceStart,
+  type PhaseCell,
   type WeatherKeyframe,
 } from './weather.ts';
+import { SURFACE_THERMAL } from './surface-thermal.ts';
 import { AUREL, STANDARD_PIT, type CircuitDefinition, type PitLaneDefinition } from './circuits.ts';
 import { RUNOFF } from './circuit-catalogue/venue-data.ts';
 import type { OffroadSurface } from './offroad/types.ts';
@@ -56,6 +63,10 @@ export interface SurfaceSample {
   resistance: number;
   cell: number;
   pit: boolean;
+  /** Snow or ice cover on the cell, mm water equivalent (weather.ts FROST).
+   * Absent or 0 elsewhere and in every warm preset: the tyre model then
+   * takes exactly its unfrozen path. */
+  frozen?: number;
   /** Set (true) only by a terrain venue's deformable ground (offroad/): its
    * loose soils give loose-construction tyres their recovery. Absent or false
    * elsewhere, where only grass and gravel do (festival dirt is unchanged). */
@@ -104,6 +115,12 @@ export class Track {
   readonly water = new Float32Array(CELL_ROWS * CELL_COLS);
   readonly rubber = new Float32Array(CELL_ROWS * CELL_COLS);
   readonly marbles = new Float32Array(CELL_ROWS * CELL_COLS);
+  /** Snow / ice cover per cell, mm water equivalent (weather.ts FROST). */
+  readonly frozen = new Float32Array(CELL_ROWS * CELL_COLS);
+  /** Frost is possible at all (some keyframe is near or below freezing, or the
+   * road starts covered). Every warm preset keeps this false and so never
+   * enters the phase-change code: its surface state is bit-for-bit as before. */
+  readonly cold: boolean;
   readonly temperature = new Float32Array(CELL_ROWS * CELL_COLS);
   /** Thermal history beneath the road, separate from the tire-contact surface. */
   readonly substrateTemperature = new Float32Array(CELL_ROWS * CELL_COLS);
@@ -188,6 +205,9 @@ export class Track {
     this.pit = circuit.pit ?? STANDARD_PIT;
     this.weather = new WeatherTimeline(keyframes);
     this.weather.sample(0, this);
+    this.cold =
+      keyframes.some((k) => k.ambientTempC < PRECIPITATION.rainAboveC) ||
+      (weatherSurfaceStart(preset).frozenMm ?? 0) > 0;
     const count = circuit.samples ?? 1536;
     let distance = 0;
     for (let i = 0; i <= count; i++) {
@@ -304,6 +324,12 @@ export class Track {
       if (this.dust > 0 && !this.sheltered[row])
         this.marbles[i] =
           0.8 * dustSettlingTarget(this.dust, this.visibility, this.rubber[i]);
+      // Settled snow: worn thin on the rubbered racing line, where earlier
+      // traffic scoured and compacted it into dark, polished wheel tracks
+      // (the glaze share reads the same rubber), a full white cover beside it.
+      if (start.frozenMm && !this.sheltered[row])
+        this.frozen[i] =
+          start.frozenMm - 1.25 * clamp(this.rubber[i] / FROST.polishRubber, 0, 1);
     }
     this.#offroad = circuit.offroad?.createSurface(this) ?? null;
   }
@@ -466,6 +492,7 @@ export class Track {
       resistance = 0.015,
       kerb = 0;
     if (this.#offroad) out.terrain = false;
+    out.frozen = 0;
     if (this.#offroad && !pit) {
       const row = Math.min(CELL_ROWS - 1, Math.floor((p.s / this.length) * CELL_ROWS)),
         col = clamp(Math.floor(((l / p.width) * 0.5 + 0.5) * CELL_COLS), 0, CELL_COLS - 1),
@@ -520,6 +547,11 @@ export class Track {
     out.resistance = resistance;
     out.cell = cell;
     out.water = this.water[cell];
+    if (this.cold) {
+      // Snow lies on the run-off too; it adds the plough drag of a loose cover.
+      out.frozen = this.frozen[cell];
+      if (out.frozen > 0) out.resistance += FROST.rolling * frozenCover(out.frozen);
+    }
     const onRoad =
       surface === SURFACE.ASPHALT || surface === SURFACE.PAINT || surface === SURFACE.KERB;
     out.rubber = onRoad ? this.rubber[cell] : 0;
@@ -542,7 +574,9 @@ export class Track {
       // Dust settles on (and blows off) the open tarmac only while dust is in
       // the air; every other preset leaves the marble field to the tyres.
       const dusty = this.dust > 0,
-        wind = Math.hypot(this.windX, this.windZ);
+        wind = Math.hypot(this.windX, this.windZ),
+        // Below freezing the precipitation channel falls as snow (weather.ts).
+        snowy = this.cold ? snowShare(this.ambient) : 0;
       for (let r = 0; r < CELL_ROWS; r++)
         for (let c = 0; c < CELL_COLS; c++) {
           const i = r * CELL_COLS + c,
@@ -550,7 +584,9 @@ export class Track {
             // Rain plus fog drip / dew (mm/h water equivalent, even over the cell).
             rainfall = this.sheltered[r]
               ? 0
-              : (this.rain / 3600) * depression + this.moisture / 3600,
+              : snowy > 0
+                ? (this.rain / 3600) * (1 - snowy) * depression + this.moisture / 3600
+                : (this.rain / 3600) * depression + this.moisture / 3600,
             thermal = this.sheltered[r] ? this.#coveredThermal : this.#exposedThermal;
           if (dusty && !this.sheltered[r])
             this.marbles[i] = settleDust(
@@ -572,6 +608,23 @@ export class Track {
           this.water[i] = thermal.water;
           this.temperature[i] = thermal.surface;
           this.substrateTemperature[i] = thermal.substrate;
+          if (this.cold) {
+            // Snowfall lands first, then the enthalpy balance decides what
+            // of the cover and the film is ice at the end of the step.
+            const cell = PHASE_CELL;
+            cell.surface = this.temperature[i];
+            cell.water = this.water[i];
+            cell.frozen = this.frozen[i];
+            if (snowy > 0 && !this.sheltered[r])
+              cell.frozen = Math.min(
+                FROST.maxCoverMm,
+                cell.frozen + (this.rain / 3600) * snowy * depression * step,
+              );
+            settlePhase(cell, SURFACE_THERMAL.surfaceCapacity);
+            this.temperature[i] = cell.surface;
+            this.water[i] = cell.water;
+            this.frozen[i] = cell.frozen;
+          }
           this.#surfaceHeat[i] = 0;
           this.rubber[i] = Math.max(0, this.rubber[i] - rainfall * 0.0036 * step);
         }
@@ -615,4 +668,11 @@ export class Track {
     for (const w of this.water) total += w;
     return total / this.water.length;
   }
+  /** Mean snow / ice cover over the road cells (mm water equivalent). */
+  meanFrozen() {
+    let total = 0;
+    for (const f of this.frozen) total += f;
+    return total / this.frozen.length;
+  }
 }
+const PHASE_CELL: PhaseCell = { surface: 0, water: 0, frozen: 0 };

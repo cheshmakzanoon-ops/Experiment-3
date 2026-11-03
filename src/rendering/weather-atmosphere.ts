@@ -1,7 +1,13 @@
 import * as T from 'three';
 import { clamp, lerp, smooth } from '../core/math.ts';
 import { H } from '../simulation/protocol.ts';
-import { effectiveVisibilityM, lightningFlash, lightningIntensity } from '../simulation/weather.ts';
+import {
+  effectiveVisibilityM,
+  lightningFlash,
+  lightningIntensity,
+  liquidRain,
+  snowfallMmHr,
+} from '../simulation/weather.ts';
 import {
   aerialUniforms,
   setAerialExtinction,
@@ -48,6 +54,20 @@ export const WEATHER_LOOK = Object.freeze({
     skyTint: Object.freeze([0.92, 0.56, 0.3] as const),
     fogBrightness: 0.8,
   }),
+  /** Falling snow and a settled white ground: a soft, cool, shadowless light
+   * (the sun is mostly lost in the deck, the sky and the white ground fill),
+   * and a bluish haze. `cover` is the settled scenery cover (0..1). */
+  snow: Object.freeze({
+    sun: 0.75,
+    fill: 1.18,
+    exposure: 1.04,
+    /** Extra fill a white ground bounces back up at full cover. */
+    bounce: 1.12,
+    /** Exposure given back at full cover so a white road does not clip. */
+    coverExposure: 0.93,
+    chroma: Object.freeze([0.88, 0.97, 1.12] as const),
+    fogBrightness: 0.96,
+  }),
   storm: Object.freeze({
     sun: 0.8,
     exposure: 1.2,
@@ -73,6 +93,10 @@ export interface WeatherAtmosphere {
   fog: number;
   dustAmount: number;
   storm: number;
+  /** Falling snow 0..1 (water-equivalent rate against its onset and full). */
+  snow: number;
+  /** Settled snow on the scenery 0..1 (from the road-surface keyframe). */
+  cover: number;
   flash: number;
   /** FogExp2 density that puts the unlit fallback at ~98 % at the visibility. */
   exp2Density: number;
@@ -91,6 +115,8 @@ export const newWeatherAtmosphere = (): WeatherAtmosphere => ({
   fog: 0,
   dustAmount: 0,
   storm: 0,
+  snow: 0,
+  cover: 0,
   flash: 0,
   exp2Density: 0,
   sunScale: 1,
@@ -104,11 +130,22 @@ const finite = (v: number) => (Number.isFinite(v) ? v : 0);
 
 /** Read the obscuring air from a presented snapshot. Missing or non-finite
  * channels (older recordings) read as clear air. */
-export function weatherAtmosphere(frame: Float32Array, out = newWeatherAtmosphere()) {
+export function weatherAtmosphere(
+  frame: Float32Array,
+  out = newWeatherAtmosphere(),
+  /** Settled scenery cover 0..1 (weather-presentation.ts sceneryCover). */
+  cover = 0,
+) {
   const look = WEATHER_LOOK;
   out.extinctionPerKm = Math.max(0, finite(frame[H.EXTINCTION]));
   out.dust = clamp(finite(frame[H.DUST]), 0, 1);
-  out.rain = Math.max(0, finite(frame[H.RAIN]));
+  // Below freezing the precipitation channel is snow, not rain: rain extinction,
+  // wet surfaces and lightning follow the liquid part only.
+  const precipitation = Math.max(0, finite(frame[H.RAIN])),
+    ambient = Number.isFinite(frame[H.AMBIENT]) ? frame[H.AMBIENT] : 20;
+  out.rain = Math.max(0, liquidRain(precipitation, ambient));
+  out.snow = smooth(0.05, 1.2, snowfallMmHr(precipitation, ambient));
+  out.cover = clamp(finite(cover), 0, 1);
   out.time = finite(frame[H.TIME]);
   out.visibilityM = effectiveVisibilityM(out.extinctionPerKm, out.rain);
   const body = smooth(look.onsetPerKm, look.fullPerKm, out.extinctionPerKm);
@@ -120,12 +157,19 @@ export function weatherAtmosphere(frame: Float32Array, out = newWeatherAtmospher
   out.sunScale =
     lerp(1, look.fog.sun, out.fog) *
     lerp(1, look.dust.sun, out.dustAmount) *
-    lerp(1, look.storm.sun, out.storm);
-  out.fillScale = lerp(1, look.fog.fill, out.fog) * lerp(1, look.dust.fill, out.dustAmount);
+    lerp(1, look.storm.sun, out.storm) *
+    lerp(1, look.snow.sun, out.snow);
+  out.fillScale =
+    lerp(1, look.fog.fill, out.fog) *
+    lerp(1, look.dust.fill, out.dustAmount) *
+    lerp(1, look.snow.fill, out.snow) *
+    lerp(1, look.snow.bounce, out.cover);
   out.exposureScale =
     lerp(1, look.fog.exposure, out.fog) *
     lerp(1, look.dust.exposure, out.dustAmount) *
-    lerp(1, look.storm.exposure, out.storm);
+    lerp(1, look.storm.exposure, out.storm) *
+    lerp(1, look.snow.exposure, out.snow) *
+    lerp(1, look.snow.coverExposure, out.cover);
   return out;
 }
 
@@ -143,7 +187,7 @@ export interface DaylightRecord {
 }
 export function adjustDaylight(daylight: DaylightRecord, a: WeatherAtmosphere, night = false) {
   const look = WEATHER_LOOK;
-  if (a.extinctionPerKm <= 0 && a.storm <= 0) return daylight;
+  if (a.extinctionPerKm <= 0 && a.storm <= 0 && a.snow <= 0 && a.cover <= 0) return daylight;
   // Floodlit nights keep their authored exposure; the obscuring air still
   // extinguishes (aerial uniforms) and recolours the haze.
   daylight.sun *= night ? 1 : a.sunScale;
@@ -157,6 +201,18 @@ export function adjustDaylight(daylight: DaylightRecord, a: WeatherAtmosphere, n
     const norm = 1 / (0.2126 * r + 0.7152 * g + 0.0722 * b);
     const k = a.dustAmount * 0.92,
       target = luma * look.dust.fogBrightness * norm;
+    daylight.fogRed = lerp(daylight.fogRed, target * r, k);
+    daylight.fogGreen = lerp(daylight.fogGreen, target * g, k);
+    daylight.fogBlue = lerp(daylight.fogBlue, target * b, k);
+  }
+  if (a.snow > 0 || a.cover > 0) {
+    // Cold, bluish haze over snow: the lighting's own haze brightness in a
+    // cool hue (the air over a white ground reads blue-white, not brown).
+    const luma = 0.2126 * daylight.fogRed + 0.7152 * daylight.fogGreen + 0.0722 * daylight.fogBlue;
+    const [r, g, b] = look.snow.chroma;
+    const norm = 1 / (0.2126 * r + 0.7152 * g + 0.0722 * b);
+    const k = Math.max(a.snow, a.cover * 0.6) * 0.8,
+      target = luma * look.snow.fogBrightness * norm;
     daylight.fogRed = lerp(daylight.fogRed, target * r, k);
     daylight.fogGreen = lerp(daylight.fogGreen, target * g, k);
     daylight.fogBlue = lerp(daylight.fogBlue, target * b, k);

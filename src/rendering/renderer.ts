@@ -58,7 +58,7 @@ import {
 import { focusOnSubject, subjectLens, type SubjectLens } from './studio/subject-focus.ts';
 import { reflectInWetRoad } from './wet-reflection.ts';
 import { ghostPose, type GhostPose } from '../core/ghost-lap.ts';
-import { WeatherPresentation } from './weather-presentation.ts';
+import { WeatherPresentation, sceneryCover } from './weather-presentation.ts';
 import { applyCircuitLightPalette } from './lighting-coherence.ts';
 import { iblUniforms, installSpecularIBL, setIblEnergy } from './studio/ibl-energy.ts';
 import { PEOPLE_ASSET } from './people-asset.ts';
@@ -191,6 +191,7 @@ import {
   WHEEL_STRIDE,
   carBase,
 } from '../simulation/protocol.ts';
+import { frameLiquidRain } from '../simulation/weather.ts';
 import { vehicleAt } from '../simulation/vehicles.ts';
 import { clamp } from '../core/math.ts';
 import { VehicleBodies } from './vehicle-bodies/index.ts';
@@ -1320,7 +1321,8 @@ export class RacingRenderer {
       ? this.gpLook
       : null;
     if (this.photoSky) this.photoSky.clearDay = gpLook?.clearSky ?? null;
-    const daylight = circuitLightState(presented[H.CLOUD], presented[H.RAIN], illumination);
+    const liquidRain = frameLiquidRain(presented);
+    const daylight = circuitLightState(presented[H.CLOUD], liquidRain, illumination);
     // Distant haze takes the horizon colours of the photographed sky.
     const photoPalette =
       illumination === 'night' || studio
@@ -1329,13 +1331,13 @@ export class RacingRenderer {
     if (photoPalette)
       [daylight.fogRed, daylight.fogGreen, daylight.fogBlue] = aerialFogColor(
         daylight.cover,
-        presented[H.RAIN],
+        liquidRain,
         illumination,
         photoPalette,
       );
     // Fog, dust and thunderstorm (weather-atmosphere.ts): scale and tint the
     // daylight for the obscuring air; clear air leaves it untouched.
-    const air = weatherAtmosphere(presented, this.weatherAir);
+    const air = weatherAtmosphere(presented, this.weatherAir, sceneryCover(this.circuit.meanFrozen));
     if (!studio) adjustDaylight(daylight, air, illumination === 'night');
     if (this.night && !studio)
       this.nightFog.setRGB(daylight.fogRed, daylight.fogGreen, daylight.fogBlue);
@@ -1821,7 +1823,7 @@ export class RacingRenderer {
     this.circuit.update(b);
     this.circuit.startFinish.update(presented, this.camera, this.night);
     this.atmosphere.update(presented, this.graphics.localFog && !studio);
-    this.weatherPresentation.update(presented, !studio);
+    this.weatherPresentation.update(presented, !studio, this.circuit.meanFrozen);
     this.circuit.staff.update(
       presented,
       this.camera.position,
@@ -1832,7 +1834,7 @@ export class RacingRenderer {
         cluster.update(
           presented[H.TIME],
           this.camera.position,
-          presented[H.RAIN],
+          frameLiquidRain(presented),
           presented,
           this.camera.fov,
           this.camera.aspect,
@@ -1928,7 +1930,7 @@ export class RacingRenderer {
       let wheelWater = 0;
       for (let wheel = 0; wheel < 4; wheel++)
         wheelWater = Math.max(wheelWater, b[o + WHEEL_BASE + wheel * WHEEL_STRIDE + W.WATER]);
-      const wetReflection = wheelWater > 0.04 || b[H.RAIN] > 0.01;
+      const wetReflection = wheelWater > 0.04 || frameLiquidRain(b) > 0.01;
       this.refreshReflectionExclusions(car);
       this.drawLedger.mark('probe');
       this.reflection.updateProbe(

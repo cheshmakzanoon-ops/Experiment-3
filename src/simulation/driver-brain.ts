@@ -10,7 +10,7 @@ import type { RaceDirector } from './race.ts';
 import type { Track } from './track.ts';
 import { trackPoint } from './track.ts';
 import type { DriverPersonality } from './traffic.ts';
-import { trackVisibilityM, visibilityPace } from './weather.ts';
+import { frozenPace, trackVisibilityM, visibilityPace } from './weather.ts';
 import type { Vehicle } from './vehicle.ts';
 
 /** Seeded correlated control mistakes. The stochastic hazard changes requests,
@@ -183,10 +183,17 @@ export class DriverBrain {
     // Fog, dust and heavy rain shorten the view: drivers lift in proportion
     // to what they can see (1 in clear air, so the dry race is unchanged).
     const sight = visibilityPace(trackVisibilityM(track));
+    // Snow and ice under the front tyre: keep a margin (weather.ts frozenPace).
+    const covered = frozenPace(car.contacts[0].frozen);
     this.pace =
-      (1 - this.tireCare * 0.035 - wet * (1 - traits.wetSkill) * 0.07) *
-      (1 - 0.22 * mismatch) *
-      sight;
+      covered === 1
+        ? (1 - this.tireCare * 0.035 - wet * (1 - traits.wetSkill) * 0.07) *
+          (1 - 0.22 * mismatch) *
+          sight
+        : (1 - this.tireCare * 0.035 - wet * (1 - traits.wetSkill) * 0.07) *
+          (1 - 0.22 * mismatch) *
+          sight *
+          covered;
     const caution = yellowFlag(race.control.flags[car.id]);
     const safe = !car.inPit && !car.pitRequested && !car.finishTime && !car.retired && !caution;
     const reserve = 4e6 * (0.13 + 0.12 * traits.tireManagement);

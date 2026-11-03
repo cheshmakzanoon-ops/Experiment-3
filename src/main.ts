@@ -271,6 +271,7 @@ export class GameApp {
     water: Float32Array;
     rubber: Float32Array;
     marbles: Float32Array;
+    frozen?: Float32Array;
     time: number;
   } | null = null;
   private appliedReplaySurfaceTime = -Infinity;
@@ -948,11 +949,23 @@ export class GameApp {
           water: message.water,
           rubber: message.rubber,
           marbles: message.marbles,
+          frozen: message.frozen,
           time: message.time,
         };
-        this.replay?.recordSurface(message.water, message.rubber, message.time, message.marbles);
+        this.replay?.recordSurface(
+          message.water,
+          message.rubber,
+          message.time,
+          message.marbles,
+          message.frozen,
+        );
         if (this.state !== 'replay')
-          this.renderer?.circuit.updateSurface(message.water, message.rubber, message.marbles);
+          this.renderer?.circuit.updateSurface(
+            message.water,
+            message.rubber,
+            message.marbles,
+            message.frozen,
+          );
         // Terrain venues: rut keyframes, kept for replays (WP41).
         this.renderer?.circuit.offroad?.record(
           message.terrain,
@@ -1010,13 +1023,21 @@ export class GameApp {
     });
     // The initial surface is retained even before the first full recording batch.
     const initialTrack = new Track(this.options.weather, false, undefined, this.track.circuit);
+    const initialFrozen = initialTrack.cold ? initialTrack.frozen : undefined;
     this.liveSurface = {
       water: initialTrack.water,
       rubber: initialTrack.rubber,
       marbles: initialTrack.marbles,
+      frozen: initialFrozen,
       time: 0,
     };
-    this.replay.recordSurface(initialTrack.water, initialTrack.rubber, 0, initialTrack.marbles);
+    this.replay.recordSurface(
+      initialTrack.water,
+      initialTrack.rubber,
+      0,
+      initialTrack.marbles,
+      initialFrozen,
+    );
     this.telemetry = new TelemetryRecorder();
     this.replayA = this.replay.makeFrame();
     this.replayB = this.replay.makeFrame();
@@ -1257,7 +1278,12 @@ export class GameApp {
       alpha = fraction;
       const surface = this.replay.surfaceState;
       if (surface.water.length && surface.time !== this.appliedReplaySurfaceTime) {
-        this.renderer.circuit.updateSurface(surface.water, surface.rubber, surface.marbles);
+        this.renderer.circuit.updateSurface(
+          surface.water,
+          surface.rubber,
+          surface.marbles,
+          surface.frozen,
+        );
         this.appliedReplaySurfaceTime = surface.time;
       }
       this.renderer.circuit.offroad?.showAt(this.replayB[H.TIME]);
@@ -1978,6 +2004,7 @@ export class GameApp {
         this.liveSurface.water,
         this.liveSurface.rubber,
         this.liveSurface.marbles,
+        this.liveSurface.frozen,
       );
     this.renderer?.circuit.offroad?.showAt(null);
     this.input.setEnabled(false);

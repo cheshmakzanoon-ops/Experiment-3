@@ -1,4 +1,4 @@
-import { clamp, G, smooth } from '../core/math.ts';
+import { clamp, G, lerp, smooth } from '../core/math.ts';
 import { COMPOUNDS, VEHICLE, type Compound } from './config.ts';
 import { SURFACE, type SurfaceSample } from './track.ts';
 import { updateContamination } from './contamination.ts';
@@ -30,6 +30,7 @@ import {
   type TyreConstruction,
 } from './tyre-force.ts';
 import { advanceWheelTemperatures, hotPressure, type ThermalInputs } from './tyre-thermal.ts';
+import { frozenCover, frozenGripFactor, winterRecovery } from './weather.ts';
 import { advanceWheelRotation } from './wheel-rotation.ts';
 export interface Tire {
   compound: Compound;
@@ -73,6 +74,9 @@ export interface Tire {
   /** Share of loose-surface (grass/gravel) grip loss the construction
    * recovers (tire-families.ts); absent or 0 for racing slicks. */
   looseGrip?: number;
+  /** Share of the grip a snow or ice cover removes that the construction wins
+   * back (tire-families.ts winterGrip); absent for a racing slick. */
+  winterGrip?: number;
   /** Carcass construction: slip stiffness, camber, relaxation, pressure laws. */
   construction: TyreConstruction;
   /** Filtered slip-angle diagnostic (rad), retained for telemetry continuity.
@@ -144,6 +148,17 @@ export const TREAD_DEPTH_MM: Record<Compound, number> = {
   intermediate: 2.5,
   wet: 4,
 };
+/** Share of the friction a snow or ice cover takes away that each compound's
+ * tread wins back (sipes, a rubber that stays pliable in the cold). Slicks
+ * have none; the deep-grooved full wet is this model's winter tyre. Stacks
+ * with the family's own share (tire-families.ts) through `winterRecovery`. */
+export const WINTER_COMPOUND: Record<Compound, number> = {
+  soft: 0,
+  medium: 0,
+  hard: 0,
+  intermediate: 0.05,
+  wet: 0.1,
+};
 /** Weight of the tread-surface temperature in the grip window; the bulk
  * (carcass) temperature sets the rest of the rubber's viscoelastic state. */
 export const GRIP_SURFACE_WEIGHT = 0.3;
@@ -155,6 +170,7 @@ export function makeTire(
   gripScale = 1,
   looseGrip = 0,
   construction: TyreConstruction = FORMULA_SLICK,
+  winterGrip = 0,
 ): Tire {
   const temp = COMPOUNDS[compound].ideal - 5;
   return {
@@ -215,6 +231,7 @@ export function makeTire(
     peakSlip: REFERENCE_PEAK_SLIP,
     usage: 0,
     ...(looseGrip > 0 ? { looseGrip } : {}),
+    ...(winterGrip > 0 ? { winterGrip } : {}),
   };
 }
 /** Teleport/recovery starts a new contact; retained patch strain must not
@@ -304,13 +321,33 @@ export function peakGrip(t: Tire, load: number, s: SurfaceSample, speed: number)
     wetRatio = s.water / (s.water + c.waterTolerance),
     wetPenalty =
       (t.compound === 'wet' ? 0.1 : t.compound === 'intermediate' ? 0.22 : 0.63) * wetRatio,
-    hydro = aquaplaning(t.compound, load, s.water, speed, t.wear, t.pressure, m.textureMm),
-    ground = materialGrip(m, s.water, s.temp) / m.grip;
+    hydro = aquaplaning(t.compound, load, s.water, speed, t.wear, t.pressure, m.textureMm);
+  let ground = materialGrip(m, s.water, s.temp) / m.grip,
+    surface = surfaceGrip(t, s),
+    rubber = rubberGrip(m, s.rubber, s.water) - s.marbles * 0.14;
+  // Snow or ice on the cell hides the road beneath it: its own friction
+  // replaces the surface's (never above it) and the laid rubber and the wet
+  // material factor no longer reach the tread. No cover leaves every term
+  // exactly as it was.
+  const frozen = s.frozen;
+  if (frozen !== undefined && frozen > 0) {
+    const cover = frozenCover(frozen),
+      covered = frozenGripFactor(
+        frozen,
+        s.rubber,
+        s.water,
+        s.temp,
+        winterRecovery(WINTER_COMPOUND[t.compound], t.winterGrip ?? 0),
+      );
+    surface = lerp(surface, Math.min(surface, covered), cover);
+    ground = lerp(ground, 1, cover);
+    rubber = lerp(rubber, 1, cover);
+  }
   return (
     c.mu *
     t.gripScale *
     loadRatio ** -k.loadSensitivity *
-    surfaceGrip(t, s) *
+    surface *
     ground *
     temperatureGrip(t.compound, gripTemperature(t)) *
     (1 - wetPenalty) *
@@ -321,7 +358,7 @@ export function peakGrip(t: Tire, load: number, s: SurfaceSample, speed: number)
     (1 - 0.18 * t.blistering - 0.12 * t.graining) *
     (t.punctured ? 0.28 : 1) *
     pressureGrip(k, t.pressure) *
-    (rubberGrip(m, s.rubber, s.water) - s.marbles * 0.14)
+    rubber
   );
 }
 export function ellipse(fx: number, fy: number, limit: number, out: { fx: number; fy: number }) {
