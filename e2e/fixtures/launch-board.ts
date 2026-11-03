@@ -7,6 +7,7 @@ import { Simulation } from '../../src/simulation/world.ts';
 import { DEFAULT_OPTIONS } from '../../src/simulation/config.ts';
 import { wildcardBoardHtml, wildcardProgress } from '../../src/ui/wildcard-board.ts';
 import { newCareer } from '../../src/career/save.ts';
+import { UiSounds } from '../../src/audio/ui-sounds.ts';
 
 /** The production Interface with no renderer: the paddock board, its form and
  * its controller handler. Start requests are recorded as JSON in #boardEvents
@@ -117,4 +118,13 @@ export function installFakePad() {
 export function press(index: number, down: boolean) {
   const pad = (window as unknown as { fakePad: { buttons: { pressed: boolean }[] } }).fakePad;
   pad.buttons[index].pressed = down;
+}
+
+/** The menu sounds as the application builds them (main.ts): the cue hook on `window`, the
+ * player's volume and the mute flag read at every cue. Volume and mute are page globals here. */
+export function mountSounds() {
+  const w = window as unknown as { soundVolume?: number; soundMuted?: boolean };
+  (window as unknown as { sounds: UiSounds }).sounds = new UiSounds({
+    settings: () => ({ volume: w.soundVolume ?? 0.5, muted: !!w.soundMuted }),
+  });
 }

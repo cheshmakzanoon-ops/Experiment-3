@@ -11,8 +11,10 @@
 import { chromium } from 'playwright';
 import { mkdirSync, statSync, writeFileSync } from 'node:fs';
 const [url, out, prefix, ...rest] = process.argv.slice(2);
-const scenes = (rest[rest.indexOf('--scenes') + 1] ?? 'menu-circuit').split(',');
-const eventId = rest[rest.indexOf('--event') + 1] ?? null;
+const scenes = (
+  rest.includes('--scenes') ? rest[rest.indexOf('--scenes') + 1] : 'menu-circuit'
+).split(',');
+const eventId = rest.includes('--event') ? rest[rest.indexOf('--event') + 1] : null;
 mkdirSync(out, { recursive: true });
 const browser = await chromium.launch({
   headless: true,

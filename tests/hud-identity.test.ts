@@ -58,10 +58,23 @@ describe('the HUD identity layer', () => {
     expect(f1).not.toContain('f1-wordmark">APEX');
     expect(readFileSync('src/ui/bike-hud.ts', 'utf8')).toContain("textContent = 'MOTOBOUND'");
   });
-  it('is injected last, after the older HUD sheets', () => {
+  it('is injected last, inside #hud after the older HUD sheets', () => {
     const board = readFileSync('src/ui/launch-board.ts', 'utf8');
-    expect(board).toMatch(
-      /\$\{frontEndCss\}[\s\S]*\$\{wildcardCss\}[\s\S]*\$\{loadingCss\}[\s\S]*\$\{hudCss\}/,
-    );
+    // The older sheets are appended inside #hud as it is built, so a head style loses to them.
+    expect(board).toContain('export function installHudIdentity(hud: HTMLElement)');
+    expect(board).toContain('hud.append(style)');
+    expect(board).not.toMatch(/\$\{loadingCss\}\\n\$\{hudCss\}/);
+    const face = readFileSync('src/ui/interface.ts', 'utf8');
+    const built = [
+      'installCompactRaceHud(',
+      'installRaceDayHud(',
+      'installF1Hud(',
+      'new BikeHud(',
+      'new OffroadHud(',
+      'new MotocrossStatusStack(',
+    ];
+    const last = Math.max(...built.map((call) => face.indexOf(call)));
+    expect(last).toBeGreaterThan(0);
+    expect(face.indexOf('installHudIdentity(this.hud)')).toBeGreaterThan(last);
   });
 });

@@ -33,6 +33,7 @@ import {
 } from './wildcard-series.ts';
 import {
   bestMedal,
+  revealInList,
   wildcardBoardHtml,
   wildcardResultHtml,
   type WildcardResultView,
@@ -525,7 +526,7 @@ export class CareerController {
     const selected = this.host
       .modalRoot()
       .querySelector<HTMLElement>('.wc-row[aria-checked="true"]');
-    selected?.scrollIntoView({ block: 'nearest' });
+    if (selected) revealInList(selected);
   }
   /** Start a Wildcard event: the series' own session (its machine, venue, weather,
    * field and seed) over the player's setup, paid and medalled by `finish`. The

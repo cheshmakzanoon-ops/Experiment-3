@@ -54,6 +54,9 @@ const session = (id: string) => {
     },
   };
 };
+/** Let the worker answer the runner between long simulation stretches (a synchronous
+ * minute of stepping would otherwise starve its RPC heartbeat on a loaded host). */
+const breathe = () => new Promise<void>((resolve) => setImmediate(resolve));
 const settled = async (controller: CareerController) => {
   // The payment is written through the controller's queue; let it drain.
   await controller.transact((save) => save);
@@ -65,7 +68,10 @@ describe('a Wildcard race through the career, from a real simulated session', ()
     const sim = new Simulation(wildcardSession(entry, DEFAULT_OPTIONS));
     sim.autoPlayer = true;
     const DT = 1 / 120;
-    for (let t = 0; t < 600 && sim.race.phase !== PHASE.FINISHED; t += DT) sim.step(DT);
+    for (let t = 0, n = 0; t < 600 && sim.race.phase !== PHASE.FINISHED; t += DT, n++) {
+      sim.step(DT);
+      if (n % 1200 === 0) await breathe();
+    }
     expect(sim.race.phase).toBe(PHASE.FINISHED);
     const frame = sim.makeFrame();
     expect(frame[H.PHASE]).toBe(3);
@@ -133,9 +139,10 @@ describe('a Wildcard time attack (a time trial has no chequered flag)', () => {
     const DT = 1 / 120;
     let ended: Float32Array | null = null,
       firstLap: Float32Array | null = null;
-    for (let t = 0; t < 400 && !ended; t += DT) {
+    for (let t = 0, n = 0; t < 400 && !ended; t += DT, n++) {
       sim.step(DT);
-      if (Math.round(t / DT) % 60) continue; // look once a (simulated) half second
+      if (n % 1200 === 0) await breathe();
+      if (n % 60) continue; // look once a (simulated) half second
       const frame = sim.makeFrame();
       const lapsDone = Math.round(frame[carBase(0) + F.LAPS]);
       // It never ends early, and the session itself never reaches the chequered flag.

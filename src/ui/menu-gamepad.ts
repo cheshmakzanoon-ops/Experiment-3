@@ -1,6 +1,7 @@
 import type { LaunchBoard } from './launch-board.ts';
 import type { BoardDiscipline } from './disciplines.ts';
 import { uiCue } from './ui-cue.ts';
+import { revealInList } from './wildcard-board.ts';
 
 /** Controller navigation for the paddock board and every modal screen (art
  * direction section 8). Console conventions: D-pad or left stick up/down moves
@@ -157,6 +158,18 @@ export class MenuGamepad {
     if (!inside) return this.enter(scope);
     if (dir === 'left' || dir === 'right') {
       if (this.step(inside, dir === 'right' ? 1 : -1)) return;
+    }
+    // The Wildcard board's events are a roving radio group (one tab stop, the rest
+    // tabindex -1), which the spatial search skips: up and down walk the list itself,
+    // and focus selects the event whose page is then shown.
+    if ((dir === 'up' || dir === 'down') && inside.matches('.wc-row')) {
+      const rows = [...scope.querySelectorAll<HTMLElement>('.wc-row')];
+      const next = rows[rows.indexOf(inside) + (dir === 'down' ? 1 : -1)];
+      if (next) {
+        next.focus({ preventScroll: true });
+        revealInList(next);
+        return;
+      }
     }
     const list = this.focusables(scope).filter((e) => e !== inside);
     const at = nearestInDirection(

@@ -157,7 +157,13 @@ import {
   motocrossSessionTitle,
 } from './motocross-presentation.ts';
 import { CreditsGamepad, creditsHtml } from './credits.ts';
-import { boardPlatesHtml, dialHtml, installLaunchBoard, type LaunchBoard } from './launch-board.ts';
+import {
+  boardPlatesHtml,
+  dialHtml,
+  installHudIdentity,
+  installLaunchBoard,
+  type LaunchBoard,
+} from './launch-board.ts';
 import type { ContinueEntry } from './continue-entry.ts';
 import { bindWildcardBoard, type WildcardProgress } from './wildcard-board.ts';
 import { lightOptionsHtml, type LightChoice } from '../rendering/light-choice.ts';
@@ -449,7 +455,7 @@ export class Interface {
       }
       if (select('mode') === 'festival') {
         this.get('sessionRules').textContent =
-          'Festival: explore Solvane, drive to event markers or travel to any route from the world map. Weather and assists apply; a road machine chosen in MACHINE is used, otherwise pick one in the festival menu.';
+          'Weather, light and assists apply. A road machine chosen in MACHINE is used; otherwise pick one in the festival menu.';
         return;
       }
       // The circuit matters: the motorcycle rulesets need a bike-safe one.
@@ -496,6 +502,8 @@ export class Interface {
     // handler (mode, weather, rules preview, motocross presenter) has run.
     board = installLaunchBoard(this.menu);
     this.board = board;
+    // Last: every HUD sheet has been appended inside #hud by now (race-day, compact, F1, bike).
+    installHudIdentity(this.hud);
     this.get('light').addEventListener('change', () => {
       const choice = (this.get('light') as HTMLSelectElement).value as LightChoice;
       this.callbacks.light?.(choice);

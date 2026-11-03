@@ -194,6 +194,17 @@ export function wildcardBoardHtml(save: CareerSave | null, selected?: string): s
 </div>`;
 }
 
+/** Scroll the event list, and only it, so `row` is in view. (scrollIntoView would
+ * also scroll every ancestor, the dialog included, and leave the page stale.) */
+export function revealInList(row: HTMLElement) {
+  const list = row.closest<HTMLElement>('.wc-list');
+  if (!list) return;
+  const r = row.getBoundingClientRect(),
+    l = list.getBoundingClientRect();
+  if (r.top < l.top) list.scrollTop -= l.top - r.top;
+  else if (r.bottom > l.bottom) list.scrollTop += r.bottom - l.bottom;
+}
+
 /** Selection and keys on a rendered board: the rows are a roving radio group
  * (arrow keys, Home and End move and select; focus selects, so a controller
  * walking the list also reads each event). Returns a disposer. */
@@ -210,7 +221,7 @@ export function bindWildcardBoard(root: HTMLElement): () => void {
       row.setAttribute('aria-checked', String(on));
       row.tabIndex = on ? 0 : -1;
       if (on && focus) row.focus({ preventScroll: true });
-      if (on) row.scrollIntoView({ block: 'nearest' });
+      if (on) revealInList(row);
     }
     for (const page of root.querySelectorAll<HTMLElement>('.wc-detail'))
       page.hidden = page.dataset.id !== id;

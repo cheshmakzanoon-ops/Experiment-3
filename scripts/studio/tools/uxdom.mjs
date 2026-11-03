@@ -60,7 +60,11 @@ for (const scene of scenesArg.split(',')) {
   else if (scene === 'dirt') await run("f.menu(); f.plate('dirt')");
   else if (scene === 'festival') await run("f.menu(); f.plate('festival')");
   else if (scene === 'menu-scaled') await run('f.menu(1.35)');
-  else await run(`await f.${scene}()`);
+  else if (scene === 'wildcardPick') {
+    // The board opens on the first event; a click selects another (real pointer input).
+    await run("f.wildcardBoard('descent-in-the-cloud')");
+    await page.locator('.wc-row[data-id="karts-after-dark"]').click();
+  } else await run(`await f.${scene}()`);
   await page.evaluate(() => document.fonts.ready);
   await shot(scene);
 }

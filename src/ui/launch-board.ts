@@ -42,8 +42,20 @@ export function installFrontEnd(doc: Document = document) {
   if (doc.getElementById(FRONT_END_STYLE_ID)) return false;
   const style = doc.createElement('style');
   style.id = FRONT_END_STYLE_ID;
-  style.textContent = `@font-face{font-family:'Saira Stencil One';font-style:normal;font-weight:400;font-display:swap;src:url(${stencilUrl}) format('woff2')}\n${frontEndCss}\n${wildcardCss}\n${loadingCss}\n${hudCss}`;
+  style.textContent = `@font-face{font-family:'Saira Stencil One';font-style:normal;font-weight:400;font-display:swap;src:url(${stencilUrl}) format('woff2')}\n${frontEndCss}\n${wildcardCss}\n${loadingCss}`;
   doc.head.append(style);
+  return true;
+}
+export const HUD_IDENTITY_STYLE_ID = 'mb-hud-identity';
+/** The race HUD's Paddock Board layer (hud-identity.css). The older HUD sheets
+ * (race-day, compact, F1, bike) are appended inside `#hud` as the HUD is built,
+ * so this one goes in last, after them, to win on equal specificity. */
+export function installHudIdentity(hud: HTMLElement) {
+  if (hud.querySelector(`#${HUD_IDENTITY_STYLE_ID}`)) return false;
+  const style = hud.ownerDocument.createElement('style');
+  style.id = HUD_IDENTITY_STYLE_ID;
+  style.textContent = hudCss;
+  hud.append(style);
   return true;
 }
 
