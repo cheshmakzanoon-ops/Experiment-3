@@ -11,7 +11,7 @@ open. Everything below was run; "not tested" is stated where it applies.
 | --- | --- |
 | Build under test | `main` @ `7f2d2ed` (baseline), `npm run build` bundle served by `npx vite preview --port 4214` from this worktree |
 | Browser | Chromium 1243 headless, software GL (`--use-angle=swiftshader`), 960x540 viewport, device scale 1 |
-| Graphics preset | **LOW** for every circuit journey (set through Garage & Settings, like a player). **MEDIUM (the shipped default)** for the first two Festival runs, LOW for the third |
+| Graphics preset | **LOW** for every circuit journey (set through Garage & Settings, like a player). **MEDIUM (the shipped default)** for the two baseline Festival runs and the after-fix Festival runs, LOW for the third baseline Festival run |
 | Host | 4 CPUs shared with other agents, load average 5 to 12 during the runs. The page rendered at **0.1 to 2 frames per second**, so every wall-clock time below is an upper bound for the software path, not a hardware claim. G8 (60 fps on min-spec) is not touched by this report |
 | Input | Real keyboard events (`page.keyboard.down/up`) through a closed-loop digital driver (`scripts/studio/tools/keyboard-driver.mjs`, tuned headless on the production `Simulation`). Menu inputs are real clicks and `selectOption` |
 | State | `window.apexDiagnostics()` (the existing hook) for the heavy reads, plus a read-only tap on the physics worker's `frame` messages (an init script in the tool, nothing added to the product) so the driving loop reads speed, lap and rank every few milliseconds |
@@ -40,7 +40,7 @@ directories are under `docs/studio/reports/qa-full-flow/baseline/` (each holds `
 | a | Formula APX-01, Aurel, Free practice, solo | **Completed** both sessions, 30 s of sim time driven, pause/resume, exit, second session | 80.7 s | 157.7 s / 166.6 s | 32.1 s / 40.4 s | 16 + 340 | 0 errors; 1 SwiftShader warning (`KHR_parallel_shader_compile` unsupported) | `baseline/formula-practice/` |
 | b | Formula race, 3 laps, 4 cars, Arroyo Oro | **Completed** race to the chequered flag (201.9 s sim), results screen read and checked, exit, second race | 64.0 s | 138.9 s / 144.1 s (race briefing taken: ENTER, then GO STRAIGHT TO LIGHTS) | 27.9 s / 29.5 s | 18 + 604 | same | `baseline/formula-race/` |
 | c | Time trial with a stored personal-best ghost | **Completed**; ghost loaded (50.03 s PB), visible, HUD label `DELTA TO PB`, delta format `+3.077 S` | 79.1 s | 195.7 s / 207.3 s | 44.9 s / 57.5 s | 15 + 210 | same | `baseline/time-trial/` |
-| d | GP bike race, `gpr1`, Kansai East, 3 laps, 4 bikes | **Completed** (race ended in results). The keyboard could not keep the bike on track, so AI DRIVER was used from sim 62 s | 109.9 s | 151.6 s / 156.2 s | 48.4 s / 55.9 s | 19 + 762 | same | `baseline/gp-race/` |
+| d | GP bike race, `gpr1`, Kansai East, 3 laps, 4 bikes | **Completed** (race ended in results). The keyboard could not keep the bike on track, so AI DRIVER was used from sim 62 s; the tool then pressed G a second time at 122 s (it had lost track of the toggle, fixed), which switched the AI off again, so the player bike sat retired and the row reads DNF. That is a tool artifact, not a game result | 109.9 s | 151.6 s / 156.2 s | 48.4 s / 55.9 s | 19 + 762 | same | `baseline/gp-race/` |
 | e | Wildcard pairing "Formula on the Wall" (`fx26` on the Mesa Speedbowl) | **Completed**, started through the **menu form** (the series is not wired into the menu, finding W1) | 116.9 s | 159.0 s / 165.1 s | 14.8 s / 18.8 s | 19 + 322 | same | `baseline/wildcard/` |
 | f1 | Festival, MEDIUM (shipped default), two runs | World **built and drawn**; car drove (peak 256 km/h within 8 s of free roam, then stopped at the end of the road it was driven straight down); festival menu opened; exit to the menu worked. Rendering then ran at 0.01 to 0.03 fps | 83.8 s and 39.4 s | loading overlay hidden 8.7 to 11.4 s after ENTER; first presented festival frames 100 to 136 s later | not run (single) | 4 + 1 | 0 | `baseline/festival-medium/`, `baseline/festival-medium-2/` |
 | f2 | Festival, LOW | **Completed**: ENTER to world visible 75 s (the first festival draw alone held the main thread for 61 s, 46.6 s of it in the bake's `readPixels`), then 0.4 to 0.8 fps, car 304 km/h peak, 1,557 m driven, menu, exit in 2.3 s | 128.6 s | n/a | not run | 7 + 1 | 0 | `baseline/festival-low/` |
@@ -80,11 +80,11 @@ a sane bound, the lap counter never went backwards, laps were valid or invalidat
 expected (invalid laps give an empty best-lap cell). AI cars in the formula race finished 3 laps in
 3:49 / 3:57 / 4:07 with best laps 1:12.7 to 1:17.7 on Arroyo Oro (3,602 m).
 
-**Pause and resume** (all six journeys): ESC pauses within 16 to 31 ms of the key event; the pause
+**Pause and resume** (the five circuit journeys a to e): ESC pauses within 16 to 119 ms of the key event; the pause
 menu offers RESUME SESSION, RESTART SESSION, GARAGE & SETTINGS, RETURN TO PADDOCK and the second row;
 after the worker acknowledges the pause the simulation clock and the car's position do not move over
-three seconds (tick 5909 to 5909, 6225 to 6225, 9016 to 9016); RESUME SESSION resumes with the clock
-advancing 2.53 to 2.58 s in 2.5 s and no catch-up jump. The first two journeys flagged "simulation
+three seconds (tick 5909 to 5909, 6225 to 6225, 8633 to 8633, 9016 to 9016); RESUME SESSION resumes with the clock
+advancing 2.53 to 2.58 s in 2.5 s and no catch-up jump. The first journey (a) flagged "simulation
 advanced while paused (one tick)": that was my check reading before the worker's pause barrier, not a
 bug, and the tool now waits for the handshake. **One real defect:** Escape on the open pause menu did
 not resume (finding D1, fixed).
@@ -97,8 +97,9 @@ rest in order. The result of the leader's flag classifying lapped cars after one
 correct racing procedure, not a bug.
 
 **Exit and start another.** PADDOCK / RETURN TO PADDOCK returned to a clean menu in 13.6 to 50.8 s with
-the HUD hidden and no modal open (checked), and the second session started. No state leaked into the
-second session that the tool could see (race 2 started from the grid with 3 cars, TT ghost reloaded).
+the HUD hidden and no modal open (checked), and the second session started. The second session started from the
+form's current values each time (race 2 as a 1-lap race, practice 2 and trial 2 as before); no
+stale HUD or modal was left behind that the tool could see.
 
 **Memory across two back-to-back sessions** (`HeapProfiler.collectGarbage` then `Runtime.getHeapUsage`,
 renderer counters, process-tree RSS):
@@ -120,8 +121,8 @@ after a session (GPU process included); a hardware figure was not measured.
 the player. **GP race (finding D5):** the AI bikes crashed 2, 3 and 5 times each in a 3-lap, 4-bike
 race on Kansai East (`B.CRASHES`), one was on the ground after the flag. My player's bike was off the
 track for the first minute, so I ran an all-AI control (`ai-only-race.mjs`, the player on autopilot
-too, three seeds): 6, 4 and 5 crashes among four bikes, 39 to 51 car-seconds stationary while racing.
-The AI alone crashes about once per bike per race there.
+too, three seeds): 6, 4 and 5 crashes among four bikes, 39 to 51 car-seconds below 0.5 m/s while
+racing (this includes the standing start). The AI alone crashes about once per bike per race there.
 
 ## 4. Festival: hang, or just slow?
 
@@ -168,7 +169,7 @@ behind a progress bar. First version (scene compile only) measured in
 `after-scene-compile-only/festival-medium`: the loading stage grew to 88 s with 71 s in
 `getProgramInfoLog`, but the first frames still cost 80 s of shader links (60 s in
 `getShaderInfoLog`: shadow-depth and post-processing programs the scene compile does not touch), so
-the warm-up was extended to draw the real view twice. Final measurement: see section 6.
+the warm-up was extended to draw the real view twice. Final measurement: section 6.3.
 
 Safe speed-up that exists but was **not** done: none that leaves the default visuals unchanged. The
 cost is GPU work software GL cannot parallelise; on hardware the same links are tens of milliseconds
@@ -177,16 +178,17 @@ each, so the benefit of the move there is a removed first-frame hitch, which I c
 ## 5. Defects, ranked
 
 Severity: blocker (cannot complete the flow) · major (flow completes but a core promise is broken) ·
-minor · polish. "Fixed" means a change on this branch plus the stated test or journey re-run.
+minor · polish. **No blocker was found: all six journeys completed.** "Fixed" means a change on this
+branch plus the stated test or journey re-run.
 
 | ID | Sev | Defect | Evidence | Status |
 | --- | --- | --- | --- | --- |
 | D5 | major | GP bikes crash about once per bike per race on Kansai East even with the player removed (AI-only control: 6, 4, 5 crashes in 4 bikes, 3 seeds; with the player 2, 3, 5, 2); one bike lay on the ground after the flag | `baseline/gp-race/`, `scripts/studio/tools/ai-only-race.mjs` | **Open**, owner QA Bikes & Dirt |
-| D3 | major (software GL) / unmeasured on hardware | Festival pays 59 s of shader links and a 26 s synchronous readback inside the first frames, after the loading screen has gone (no warm-up stage) | section 4 | **Fixed** (`prepareGpu`); measured in section 6; hardware effect not measured |
+| D3 | major (software GL) / unmeasured on hardware | Festival pays 59 s of shader links and a 26 s synchronous readback inside the first frames, after the loading screen has gone (no warm-up stage) | section 4 | **Fixed in structure** (`prepareGpu`: bake, scene compile and two real draws now precede `loaded()`); 25 s of lazily created programs still link after the overlay on software GL; hardware effect not measured (6.3) |
 | W1 | major (feature gap) | The Wildcard series cannot be reached from the menu: `registerSeries()` is never called in `src`, the series strip has no chips, and the grid selector offers 0/3/7/11 rivals while events use 4 to 5 | `baseline/wildcard/progress.log` (`wildcard.ui`, `wildcard.grid-mismatch`) | **Open**, UX wave 2 "Wildcard UI integration" |
 | D2 | major | The Festival loading bar stayed at **2 %** for the entire load: none of the festival's stage texts had a mapping in `loadingStage` (`Building ...` matched the circuit rule, the rest returned the previous value) | `baseline/*/festival.stage` lines all `"percent":"2%"` | **Fixed** (`src/ui/loading-copy.ts`, test `tests/frontend-retail.test.ts`, failing before and passing after); journey after: 0 to 8 to 30 to 40 to 55 to 84 to 90 % |
-| D4 | minor | `#app[data-mode]` stayed `loading` for the whole festival, so Steam rich presence read "Loading a session" for a player roaming the open world; `#Status_Festival` is documented in `desktop/STEAM.md` but nothing produced it. It also misled the earlier "stall" diagnosis | journey finding `festival: data-mode still reads "loading"` | **Fixed** (`showMode('festival')` on `loaded()`, `MODE_STATUS.festival`, diagnostics `festival.{starting,active}`; test `tests/steam-integration.test.ts` failing before, passing after) |
-| D1 | minor | Escape on the open pause menu closed and re-opened it; only the RESUME button returned to the car | all six journeys (`FINDING resume`) | **Fixed** (`src/core/dialog-close.ts`, test `tests/dialog-close.test.ts`, verified in the after journey, section 6) |
+| D4 | minor | `#app[data-mode]` stayed `loading` for the whole festival, so Steam rich presence read "Loading a session" for a player roaming the open world; `#Status_Festival` is documented in `desktop/STEAM.md` but nothing produced it. It also misled the earlier "stall" diagnosis | the tool's probe read `dataMode: "loading"` with `festival` diagnostics absent on an unmodified older bundle (a mis-aimed run, discarded as an "after" measurement because another agent's preview held that port); code reading agrees (`showMode('loading')`, never reset); the baseline runs predate the probe | **Fixed** (`showMode('festival')` on `loaded()`, `MODE_STATUS.festival`, diagnostics `festival.{starting,active}`; test `tests/steam-integration.test.ts` failing before, passing after) |
+| D1 | minor | Escape on the open pause menu closed and re-opened it (the browser's Escape default cancelled the menu, and a `cancel` handler re-opened it every time), so only the RESUME button returned to the car | all six journeys (`FINDING resume`) | **Fixed** in two steps (`src/input/controller.ts` preventDefault for the consumed Escape, `src/core/dialog-close.ts`; tests `tests/bindings.test.ts`, `tests/dialog-close.test.ts`); the first step alone made Escape never pause and was caught by re-running the journey (6.2); final build verified |
 | T1 | minor (test red on main) | `tests/studio-look-contracts.test.ts` P19 failed on `main`: the Wildcard validator's `BANNED_COPY` denylist names real marks and tripped the brand scan | `vitest run tests/studio-look-contracts.test.ts` before: 1 failed | **Fixed** (only that array exempt, asserted present; any other mention still fails) |
 | P1 | minor | First session start blocks the main thread for 43 to 84 s on software GL; `drawImage` in `TextureBudget.apply` (19 to 30 %) and shader links (15 to 17 %) lead | section 3 profiles | **Open**, measure on hardware first |
 | P2 | minor | MEDIUM Festival renders at 0.01 to 0.03 fps on software GL (LOW: 0.4 to 0.8 fps). Hardware unmeasured | section 4 | **Open**, needs a hardware run |
@@ -196,18 +198,84 @@ minor · polish. "Fixed" means a change on this branch plus the stated test or j
 
 ## 6. Verification after the fixes
 
-AFTER2_PLACEHOLDER
+### 6.1 Commands run on the final branch state (`6b6f230`)
+
+| Command | Result |
+| --- | --- |
+| `npm run build` (`tsc --noEmit` + `vite build`) | exit 0 |
+| `npm run lint` (`eslint src tests e2e scripts`) | exit 0 |
+| `npx vitest run tests/dialog-close.test.ts tests/bindings.test.ts tests/input.test.ts tests/frontend-retail.test.ts tests/steam-integration.test.ts tests/studio-look-contracts.test.ts tests/meeting-flow.test.ts tests/startup.test.ts tests/race-view-continuity.test.ts tests/renderer-resource-lifecycle.test.ts tests/studio-frame.test.ts tests/open-world-session.test.ts tests/wildcard-series.test.ts` | 13 files, 160 tests passed |
+| `node scripts/studio/tools/driver-selftest.mjs aurel apx01 130 practice` (and Kansai East, Arroyo Oro) | 1 to 2 laps, 0 to 0.5 s off the track edge in 130 s |
+
+Not run: the full vitest suite, `npm run check`, the Playwright e2e suite (host rules).
+
+Tests that **failed before their fix and pass after** (each run against the old source, then the new):
+
+| Test | Before | After |
+| --- | --- | --- |
+| `tests/bindings.test.ts` "Escape consumed by the game stops the browser default..." | spy called 0 times | called once; disabled input leaves the default alone |
+| `tests/frontend-retail.test.ts` "moves the festival loading bar through every stage..." | `Planning event routes...` titled `Loading` at the previous fraction | titled, strictly increasing 0.02 to 0.95 |
+| `tests/steam-integration.test.ts` rich-presence statuses | `statusForMode('festival')` gave `Menu` | `Festival` |
+| `tests/studio-look-contracts.test.ts` P19 | `src/career/wildcard-validation.ts: red bull` | passes; only the `BANNED_COPY` array is exempt |
+| `tests/dialog-close.test.ts` (new, 5 cases) | n/a (new module); the old behaviour is quoted in the module comment | passes. It pins the pause-menu/sub-dialog/results decision, **not** the browser behaviour; that was verified in the browser |
+
+### 6.2 Escape: a regression I introduced, caught, and fixed
+
+My first Escape fix (`dialog-close.ts` alone, commit `5ecea5d`) passed its unit test and made things
+**worse**: Escape never paused. The re-run of the practice journey on that build failed at "pause"
+(`regression-caught/formula-practice-escape-never-pauses/`, the keydown probe shows the Escape
+reached the page, not default-prevented, target BODY, state still `driving` after 120 s). Cause:
+Escape pauses by opening the pause `<dialog>` during the keydown, and the browser's default for the
+same Escape (a dialog close request) cancelled it at once. The old `cancel` handler re-opened the
+menu every time, which hid that, and also made Escape unable to resume. Final fix: the controller
+calls `preventDefault()` on the Escape it consumes while input is enabled (`src/input/controller.ts`),
+plus the `dialog-close.ts` decision for Escape on the open menu. Re-run on the final build
+(`after/formula-practice/`, port 4233): **0 findings**, ESC paused (clock and position frozen over 3 s,
+tick 6149 to 6149), RESUME SESSION resumed (2.51 s in 2.5 s, no jump), the second ESC pair paused then
+resumed (`escResume: "resumed"`), exit and the second session worked, 0 console errors.
+
+### 6.3 Festival, MEDIUM, before and after (software GL, 960x540)
+
+The three runs are on different bundles and different host load (load average roughly 7 to 11 for
+the baseline, 12 to 14 for the final run), so compare the **structure and the ratios**, not the
+absolute seconds.
+
+| | Baseline (`baseline/festival-medium-2`) | Scene compile only (`after-scene-compile-only/`) | Final warm-up (`after/festival-medium`, bundle `f75c477`) |
+| --- | --- | --- | --- |
+| Loading overlay hidden after ENTER | 8.7 s | 88 s | 38.9 s |
+| Loading bar | 2 % flat | 8, 30, 40, 55, 84, 90 % | 14, 30, 40, 55, 84, 90, 95 % |
+| Stage labels after the last data load | none (stale `Loading photographed ground...`) | Baking / Compiling | Baking / Compiling / Warming the festival view |
+| Main thread in program links *during* loading | 0 s | 71.1 s | 19.9 s |
+| Program links + readback *after* the overlay | 58.7 s `getProgramInfoLog` + 26.1 s `readPixels` in 165 s | 80.4 s (60.4 s `getShaderInfoLog`) in 209 s | **25.1 s** `getProgramInfoLog` in 221 s (11 %), no `readPixels` (1.3 s of it happened during loading) |
+| Main thread idle after the overlay | 46 % | 60 % | **87 %** |
+| `#app[data-mode]` and `apexDiagnostics().festival` | `loading` by code (`showMode('loading')`, nothing reset it; the baseline runs predate the probe) / absent | `festival` / `{starting:false, active:true}` | same |
+| First screenshot after the overlay | 103 s | 111 s | 178 s |
+| Console and page errors | 0 | 0 | 0 |
+
+What this shows: the festival's compile and bake cost is now paid behind a moving, labelled progress
+bar instead of inside the first frames (program links after the overlay fell from 36 % to 11 % of
+the main thread, the synchronous readback from 26 s to 1.3 s), and the world is correctly reported
+as live. What it does **not** show is a faster festival: after the work moved, the main thread is
+87 % idle and every frame still takes minutes. That is the steady-state GPU cost of a MEDIUM
+festival frame on SwiftShader (0.01 to 0.03 fps; LOW is 30x faster), which has no safe fix that
+leaves the default visuals alone. Whether the warm-up removes a first-frame hitch on a real GPU is
+**unmeasured**.
+
 
 ## 7. What I changed
 
 | File | Change |
 | --- | --- |
-| `src/core/dialog-close.ts` (new), `src/main.ts`, `src/ui/interface.ts` | Escape on the pause menu resumes; sub-dialogs, the briefing and results keep their return paths |
+| `src/input/controller.ts`, `src/core/dialog-close.ts` (new), `src/main.ts`, `src/ui/interface.ts`, `tests/bindings.test.ts` | Escape pauses without the browser's close request cancelling the menu, and resumes from the open menu; sub-dialogs, the briefing and results keep their return paths |
 | `src/ui/loading-copy.ts`, `tests/frontend-retail.test.ts` | festival stage titles and monotonic progress |
 | `src/rendering/open-world/festival-renderer.ts`, `src/session/free-roam.ts` | `prepareGpu()` warm-up behind the loading screen |
 | `src/ui/interface.ts`, `src/main.ts`, `src/steam/runtime.ts`, `tests/steam-integration.test.ts` | `festival` UI mode and Steam status; `apexDiagnostics().festival` |
 | `tests/dialog-close.test.ts` (new), `tests/studio-look-contracts.test.ts` | new contract test; P19 denylist scoped |
 | `scripts/studio/tools/*` | journey tool and helpers (below) |
+
+The two earliest baseline directories (`formula-practice`, `formula-race`) were recorded with earlier
+versions of the tool (slower state reads, the one-tick pause false positive, no RSS); the numbers in
+them are valid; the findings in them that came from my tool's own checks are explained in section 3.
 
 Tooling added under `scripts/studio/tools/`: `journey.mjs`, `keyboard-driver.mjs`,
 `driver-selftest.mjs`, `journey-summary.mjs`, `journey-evidence.py`, `profile-callers.mjs`,

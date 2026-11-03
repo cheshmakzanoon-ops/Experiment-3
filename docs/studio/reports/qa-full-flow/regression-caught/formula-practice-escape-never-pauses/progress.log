@@ -1,0 +1,50 @@
+[    0.9s] browser.open {"viewport":[960,540],"quality":"low"}
+[    0.9s] step.begin {"name":"boot"}
+[    3.3s] boot.domcontentloaded {"ms":2362}
+[    5.9s] worker {"url":"blob:http://127.0.0.1:4232/e32d3974-6ff1-4f30-a5ce-bcb597efc20d"}
+[    5.9s] worker {"url":"blob:http://127.0.0.1:4232/e32d3974-6ff1-4f30-a5ce-bcb597efc20d"}
+[    5.9s] worker {"url":"blob:http://127.0.0.1:4232/e32d3974-6ff1-4f30-a5ce-bcb597efc20d"}
+[    5.9s] worker {"url":"blob:http://127.0.0.1:4232/e32d3974-6ff1-4f30-a5ce-bcb597efc20d"}
+[   52.2s] wait {"label":"menu visible","waited":49,"mode":null,"stage":"0% · Preparing vehicle showroom…","percent":"0%","rafFrames":113,"maxGapMs":2000}
+[   68.1s] boot.done {"timeToMenuS":67.2,"timeToFirstMenuFrameS":67.2,"paint":{"first-paint":668,"first-contentful-paint":2648},"domContentLoadedMs":2362}
+[   68.1s] step.end {"name":"boot","seconds":67.2}
+[   70.3s] screenshot {"file":"01-menu-boot.png","ms":2157}
+[   70.5s] memory {"label":"menu-after-boot","t":70.5,"jsHeapMB":33.8,"jsHeapTotalMB":35.1,"nodes":2417,"listeners":134,"documents":2,"rssMB":2099,"textures":83,"geometries":190}
+[   70.5s] step.begin {"name":"quality-low"}
+[   70.5s] input.click {"n":1,"label":"GARAGE & SETTINGS"}
+[   70.7s] input.select {"n":2,"label":"quality","value":"low"}
+[   70.7s] input.click {"n":3,"label":"APPLY & SAVE"}
+[   72.8s] quality.applied {"quality":"low","seconds":2.304,"busy":false}
+[   72.8s] step.end {"name":"quality-low","seconds":2.3}
+[   72.8s] step.begin {"name":"configure"}
+[   73.1s] input.select {"n":4,"label":"mode","value":"practice"}
+[   73.1s] input.select {"n":5,"label":"opponents","value":"0"}
+[   73.2s] configured {"circuit":"aurel","vehicle":"apx01","mode":"practice","laps":"3","weather":"clear","compound":"medium","assist":"sport","opponents":"0","startSlot":"pole"}
+[   73.2s] sessionRules {"text":"PRACTICE: no mandatory stop · DRS on · no points."}
+[   73.2s] step.end {"name":"configure","seconds":0.4}
+[   92.1s] screenshot {"file":"02-configured.png","ms":18865}
+[   92.1s] step.begin {"name":"enter-practice-1"}
+[   92.1s] input.click {"n":6,"label":"ENTER"}
+[  154.5s] wait {"label":"briefing or driving","waited":62,"mode":"loading","stage":"32% · Player car and live instruments…","percent":"27%","rafFrames":383,"maxGapMs":43815}
+[  173.0s] worker {"url":"blob:http://127.0.0.1:4232/2a9cfbf0-cb35-4931-9443-b38c10e1f9e8"}
+[  210.1s] wait {"label":"briefing or driving","waited":118,"mode":"loading","stage":"Compiling circuit and vehicle materials…","percent":"90%","rafFrames":530,"maxGapMs":50948}
+[  240.6s] wait {"label":"briefing or driving","waited":148,"mode":"loading","stage":"Warming offscreen pit-service materials…","percent":"90%","rafFrames":534,"maxGapMs":50948}
+[  270.8s] wait {"label":"briefing or driving","waited":178,"mode":"loading","stage":"Waiting for completed cockpit GPU work…","percent":"94%","rafFrames":559,"maxGapMs":50948}
+[  291.1s] session.started {"label":"practice-1","startedAt":92.055,"briefing":false,"timeToDrivingS":188,"timeToFirstFrameS":199.1}
+[  291.1s] step.end {"name":"enter-practice-1","seconds":199.1}
+[  306.1s] screenshot {"file":"03-practice-1-first-frame.png","ms":15024}
+[  306.1s] step.begin {"name":"drive-practice-1"}
+[  306.2s] driving {"sim":30.5,"kph":1,"lap":0,"rank":1,"s":2935,"lat":-2.2,"keys":"LT","rafFps":0,"auto":false}
+[  321.3s] driving {"sim":45.6,"kph":39,"lap":0,"rank":1,"s":210,"lat":23.6,"keys":"TR","rafFps":0,"auto":false}
+[  326.2s] drive.done {"label":"practice-1","ended":"sim-seconds","simElapsed":20,"wallS":20.1,"rtf":1,"maxKph":173,"offTrackS":11.5,"stuckS":0,"keyEvents":190}
+[  326.2s] step.end {"name":"drive-practice-1","seconds":20.1}
+[  326.2s] page.stall {"maxGapMs":50948,"longTasks":100,"longMs":163026}
+[  326.2s] step.begin {"name":"pause-resume"}
+[  326.3s] input.key {"label":"ESC (pause)","code":"Escape"}
+[  356.3s] wait {"label":"paused","waited":30,"mode":"driving","stage":"Waiting for completed cockpit GPU work…","percent":"94%","rafFrames":591,"maxGapMs":50948}
+[  386.3s] wait {"label":"paused","waited":60,"mode":"driving","stage":"Waiting for completed cockpit GPU work…","percent":"94%","rafFrames":603,"maxGapMs":50948}
+[  416.4s] wait {"label":"paused","waited":90,"mode":"driving","stage":"Waiting for completed cockpit GPU work…","percent":"94%","rafFrames":618,"maxGapMs":50948}
+[  446.4s] step.failed.probe {"keys":[["KeyA",false,false,"BODY",323840],["KeyA",false,false,"BODY",324079],["KeyA",false,false,"BODY",324406],["KeyS",false,false,"BODY",324615],["KeyA",false,false,"BODY",324701],["KeyA",false,false,"BODY",325013],["KeyA",false,false,"BODY",325222],["Escape",false,false,"BODY",325321]],"active":"BODY#","hasFocus":true,"visibility":"visible","state":"driving","now":445489}
+[  446.4s] FINDING {"severity":"blocker","where":"pause-resume","message":"Step failed: Timed out after 120s waiting for paused: {\"mode\":\"driving\",\"menu\":false,\"loading\":false,\"loadingText\":\"Waiting for completed cockpit GPU work…\",\"stage\":\"Warming up tyres\",\"percent\":\"94%\",\"modal\":false,\"frames\":627,\"maxGap\":50948}"}
+[  470.0s] screenshot {"file":"04-FAIL-pause-resume.png","ms":23548}
+[  470.0s] JOURNEY.ABORTED {"error":"Timed out after 120s waiting for paused: {\"mode\":\"driving\",\"menu\":false,\"loading\":false,\"loadingText\":\"Waiting for completed cockpit GPU work…\",\"stage\":\"Warming up tyres\",\"percent\":\"94%\",\"modal\":false,\"frames\":627,\"maxGap\":50948}"}

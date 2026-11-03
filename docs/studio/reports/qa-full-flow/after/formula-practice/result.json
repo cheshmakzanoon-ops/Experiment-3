@@ -1,0 +1,1774 @@
+{
+ "journey": "formula-practice",
+ "cfg": {
+  "url": "http://127.0.0.1:4233",
+  "journey": "formula-practice",
+  "out": "/tmp/claude-0/-home-user-Experiment-3/d7f7b547-44bc-5977-9962-da1e5626b4ba/scratchpad/j/after3-formula-practice",
+  "quality": "low",
+  "simSeconds": 20,
+  "viewport": [
+   960,
+   540
+  ],
+  "bootTimeoutS": 900,
+  "startTimeoutS": 900,
+  "festivalMaxS": 1500,
+  "profile": false,
+  "shots": true,
+  "wildcardId": "formula-on-the-wall",
+  "secondSimSeconds": 15,
+  "festivalSingle": false
+ },
+ "timeline": [
+  {
+   "t": 0.6,
+   "kind": "browser.open",
+   "viewport": [
+    960,
+    540
+   ],
+   "quality": "low"
+  },
+  {
+   "t": 0.6,
+   "kind": "step.begin",
+   "name": "boot"
+  },
+  {
+   "t": 2,
+   "kind": "boot.domcontentloaded",
+   "ms": 1407
+  },
+  {
+   "t": 5.2,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4233/53f548ab-6ec3-4b49-8a61-c14fb60a3b62"
+  },
+  {
+   "t": 5.3,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4233/53f548ab-6ec3-4b49-8a61-c14fb60a3b62"
+  },
+  {
+   "t": 5.3,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4233/53f548ab-6ec3-4b49-8a61-c14fb60a3b62"
+  },
+  {
+   "t": 5.4,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4233/53f548ab-6ec3-4b49-8a61-c14fb60a3b62"
+  },
+  {
+   "t": 68.7,
+   "kind": "wait",
+   "label": "menu visible",
+   "waited": 67,
+   "mode": null,
+   "stage": "0% · Preparing vehicle showroom…",
+   "percent": "0%",
+   "rafFrames": 78,
+   "maxGapMs": 2517
+  },
+  {
+   "t": 86.8,
+   "kind": "boot.done",
+   "timeToMenuS": 86.2,
+   "timeToFirstMenuFrameS": 86.2,
+   "paint": {
+    "first-paint": 1756,
+    "first-contentful-paint": 1756
+   },
+   "domContentLoadedMs": 1407
+  },
+  {
+   "t": 86.8,
+   "kind": "step.end",
+   "name": "boot",
+   "seconds": 86.2
+  },
+  {
+   "t": 89.3,
+   "kind": "screenshot",
+   "file": "01-menu-boot.png",
+   "ms": 2508
+  },
+  {
+   "t": 89.6,
+   "kind": "memory",
+   "label": "menu-after-boot",
+   "jsHeapMB": 33.8,
+   "jsHeapTotalMB": 35.1,
+   "nodes": 2417,
+   "listeners": 134,
+   "documents": 2,
+   "rssMB": 2069,
+   "textures": 83,
+   "geometries": 190
+  },
+  {
+   "t": 89.7,
+   "kind": "step.begin",
+   "name": "quality-low"
+  },
+  {
+   "t": 89.7,
+   "kind": "input.click",
+   "n": 1,
+   "label": "GARAGE & SETTINGS"
+  },
+  {
+   "t": 90,
+   "kind": "input.select",
+   "n": 2,
+   "label": "quality",
+   "value": "low"
+  },
+  {
+   "t": 90,
+   "kind": "input.click",
+   "n": 3,
+   "label": "APPLY & SAVE"
+  },
+  {
+   "t": 103.7,
+   "kind": "quality.applied",
+   "quality": "low",
+   "seconds": 14.01,
+   "busy": false
+  },
+  {
+   "t": 103.7,
+   "kind": "step.end",
+   "name": "quality-low",
+   "seconds": 14
+  },
+  {
+   "t": 103.7,
+   "kind": "step.begin",
+   "name": "configure"
+  },
+  {
+   "t": 103.8,
+   "kind": "input.select",
+   "n": 4,
+   "label": "mode",
+   "value": "practice"
+  },
+  {
+   "t": 104.1,
+   "kind": "input.select",
+   "n": 5,
+   "label": "opponents",
+   "value": "0"
+  },
+  {
+   "t": 104.1,
+   "kind": "configured",
+   "circuit": "aurel",
+   "vehicle": "apx01",
+   "mode": "practice",
+   "laps": "3",
+   "weather": "clear",
+   "compound": "medium",
+   "assist": "sport",
+   "opponents": "0",
+   "startSlot": "pole"
+  },
+  {
+   "t": 104.1,
+   "kind": "sessionRules",
+   "text": "PRACTICE: no mandatory stop · DRS on · no points."
+  },
+  {
+   "t": 104.1,
+   "kind": "step.end",
+   "name": "configure",
+   "seconds": 0.5
+  },
+  {
+   "t": 118.2,
+   "kind": "screenshot",
+   "file": "02-configured.png",
+   "ms": 14039
+  },
+  {
+   "t": 118.2,
+   "kind": "step.begin",
+   "name": "enter-practice-1"
+  },
+  {
+   "t": 118.2,
+   "kind": "input.click",
+   "n": 6,
+   "label": "ENTER"
+  },
+  {
+   "t": 200.4,
+   "kind": "wait",
+   "label": "briefing or driving",
+   "waited": 82,
+   "mode": "loading",
+   "stage": "32% · Player car and live instruments…",
+   "percent": "27%",
+   "rafFrames": 392,
+   "maxGapMs": 60914
+  },
+  {
+   "t": 220.2,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4233/bbbafb03-ecf7-43ac-b5a8-f3cc9e80a703"
+  },
+  {
+   "t": 257,
+   "kind": "wait",
+   "label": "briefing or driving",
+   "waited": 138,
+   "mode": "loading",
+   "stage": "Warming offscreen pit-service materials…",
+   "percent": "90%",
+   "rafFrames": 527,
+   "maxGapMs": 64897
+  },
+  {
+   "t": 287.1,
+   "kind": "wait",
+   "label": "briefing or driving",
+   "waited": 168,
+   "mode": "loading",
+   "stage": "Warming offscreen pit-service materials…",
+   "percent": "90%",
+   "rafFrames": 528,
+   "maxGapMs": 64897
+  },
+  {
+   "t": 317.8,
+   "kind": "wait",
+   "label": "briefing or driving",
+   "waited": 199,
+   "mode": "loading",
+   "stage": "Waiting for completed cockpit GPU work…",
+   "percent": "94%",
+   "rafFrames": 547,
+   "maxGapMs": 64897
+  },
+  {
+   "t": 329.3,
+   "kind": "session.started",
+   "label": "practice-1",
+   "startedAt": 118.178,
+   "briefing": false,
+   "timeToDrivingS": 200.6,
+   "timeToFirstFrameS": 211.1
+  },
+  {
+   "t": 329.3,
+   "kind": "step.end",
+   "name": "enter-practice-1",
+   "seconds": 211.1
+  },
+  {
+   "t": 350.5,
+   "kind": "screenshot",
+   "file": "03-practice-1-first-frame.png",
+   "ms": 21158
+  },
+  {
+   "t": 350.5,
+   "kind": "step.begin",
+   "name": "drive-practice-1"
+  },
+  {
+   "t": 350.7,
+   "kind": "driving",
+   "sim": 37.1,
+   "kph": 1,
+   "lap": 0,
+   "rank": 1,
+   "s": 2933,
+   "lat": -2.3,
+   "keys": "LT",
+   "rafFps": 0,
+   "auto": false
+  },
+  {
+   "t": 365.7,
+   "kind": "driving",
+   "sim": 52.4,
+   "kph": 146,
+   "lap": 0,
+   "rank": 1,
+   "s": 639,
+   "lat": -0.4,
+   "keys": "",
+   "rafFps": 0,
+   "auto": false
+  },
+  {
+   "t": 370.5,
+   "kind": "drive.done",
+   "label": "practice-1",
+   "ended": "sim-seconds",
+   "simElapsed": 19.9,
+   "wallS": 20,
+   "rtf": 0.99,
+   "maxKph": 255,
+   "offTrackS": 1.7,
+   "stuckS": 0,
+   "keyEvents": 238
+  },
+  {
+   "t": 370.5,
+   "kind": "step.end",
+   "name": "drive-practice-1",
+   "seconds": 20
+  },
+  {
+   "t": 370.5,
+   "kind": "page.stall",
+   "maxGapMs": 64897,
+   "longTasks": 113,
+   "longMs": 204127
+  },
+  {
+   "t": 370.5,
+   "kind": "step.begin",
+   "name": "pause-resume"
+  },
+  {
+   "t": 370.5,
+   "kind": "input.key",
+   "label": "ESC (pause)",
+   "code": "Escape"
+  },
+  {
+   "t": 388.7,
+   "kind": "screenshot",
+   "file": "04-paused.png",
+   "ms": 14871
+  },
+  {
+   "t": 388.7,
+   "kind": "input.click",
+   "n": 8,
+   "label": "RESUME SESSION"
+  },
+  {
+   "t": 405.8,
+   "kind": "screenshot",
+   "file": "05-resumed.png",
+   "ms": 8837
+  },
+  {
+   "t": 405.8,
+   "kind": "input.key",
+   "label": "ESC (pause 2)",
+   "code": "Escape"
+  },
+  {
+   "t": 405.8,
+   "kind": "input.key",
+   "label": "ESC (resume 2)",
+   "code": "Escape"
+  },
+  {
+   "t": 405.8,
+   "kind": "step.end",
+   "name": "pause-resume",
+   "seconds": 35.3
+  },
+  {
+   "t": 405.8,
+   "kind": "step.begin",
+   "name": "drive-practice-1-after-resume"
+  },
+  {
+   "t": 406,
+   "kind": "driving",
+   "sim": 68.6,
+   "kph": 0,
+   "lap": 0,
+   "rank": 1,
+   "s": 898,
+   "lat": 17.5,
+   "keys": "LT",
+   "rafFps": 0,
+   "auto": false
+  },
+  {
+   "t": 414,
+   "kind": "drive.done",
+   "label": "practice-1-after-resume",
+   "ended": "sim-seconds",
+   "simElapsed": 7.9,
+   "wallS": 8.2,
+   "rtf": 0.96,
+   "maxKph": 41,
+   "offTrackS": 6.9,
+   "stuckS": 0,
+   "keyEvents": 72
+  },
+  {
+   "t": 414,
+   "kind": "step.end",
+   "name": "drive-practice-1-after-resume",
+   "seconds": 8.2
+  },
+  {
+   "t": 414,
+   "kind": "page.stall",
+   "maxGapMs": 64897,
+   "longTasks": 121,
+   "longMs": 204699
+  },
+  {
+   "t": 414,
+   "kind": "input.key",
+   "label": "ESC (pause to exit)",
+   "code": "Escape"
+  },
+  {
+   "t": 414,
+   "kind": "step.begin",
+   "name": "exit-to-menu"
+  },
+  {
+   "t": 414,
+   "kind": "input.click",
+   "n": 12,
+   "label": "RETURN TO PADDOCK"
+  },
+  {
+   "t": 448,
+   "kind": "step.end",
+   "name": "exit-to-menu",
+   "seconds": 33.9
+  },
+  {
+   "t": 448,
+   "kind": "exit.done",
+   "seconds": 33.9
+  },
+  {
+   "t": 453,
+   "kind": "screenshot",
+   "file": "06-menu-after-exit.png",
+   "ms": 5059
+  },
+  {
+   "t": 453.3,
+   "kind": "memory",
+   "label": "menu-after-session-1",
+   "jsHeapMB": 71,
+   "jsHeapTotalMB": 73,
+   "nodes": 2596,
+   "listeners": 162,
+   "documents": 2,
+   "rssMB": 3637,
+   "textures": 203,
+   "geometries": 1667
+  },
+  {
+   "t": 453.3,
+   "kind": "step.begin",
+   "name": "configure"
+  },
+  {
+   "t": 453.4,
+   "kind": "configured",
+   "circuit": "aurel",
+   "vehicle": "apx01",
+   "mode": "practice",
+   "laps": "3",
+   "weather": "clear",
+   "compound": "medium",
+   "assist": "sport",
+   "opponents": "0",
+   "startSlot": "pole"
+  },
+  {
+   "t": 453.4,
+   "kind": "sessionRules",
+   "text": "PRACTICE: no mandatory stop · DRS on · no points."
+  },
+  {
+   "t": 453.4,
+   "kind": "step.end",
+   "name": "configure",
+   "seconds": 0.1
+  },
+  {
+   "t": 453.6,
+   "kind": "screenshot",
+   "file": "07-configured.png",
+   "ms": 172
+  },
+  {
+   "t": 453.6,
+   "kind": "step.begin",
+   "name": "enter-practice-2"
+  },
+  {
+   "t": 453.6,
+   "kind": "input.click",
+   "n": 13,
+   "label": "ENTER"
+  },
+  {
+   "t": 453.7,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4233/0f8c8045-c94f-44d4-b15e-93b758eeed6a"
+  },
+  {
+   "t": 487.4,
+   "kind": "session.started",
+   "label": "practice-2",
+   "startedAt": 453.576,
+   "briefing": false,
+   "timeToDrivingS": 27.3,
+   "timeToFirstFrameS": 33.8
+  },
+  {
+   "t": 487.4,
+   "kind": "step.end",
+   "name": "enter-practice-2",
+   "seconds": 33.8
+  },
+  {
+   "t": 505.1,
+   "kind": "screenshot",
+   "file": "08-practice-2-first-frame.png",
+   "ms": 17705
+  },
+  {
+   "t": 505.1,
+   "kind": "step.begin",
+   "name": "drive-practice-2"
+  },
+  {
+   "t": 505.1,
+   "kind": "driving",
+   "sim": 28.8,
+   "kph": 1,
+   "lap": 0,
+   "rank": 1,
+   "s": 2936,
+   "lat": -2.2,
+   "keys": "LT",
+   "rafFps": 0,
+   "auto": false
+  },
+  {
+   "t": 520.2,
+   "kind": "drive.done",
+   "label": "practice-2",
+   "ended": "sim-seconds",
+   "simElapsed": 15,
+   "wallS": 15.1,
+   "rtf": 0.99,
+   "maxKph": 143,
+   "offTrackS": 8,
+   "stuckS": 1.4,
+   "keyEvents": 150
+  },
+  {
+   "t": 520.2,
+   "kind": "step.end",
+   "name": "drive-practice-2",
+   "seconds": 15.1
+  },
+  {
+   "t": 520.2,
+   "kind": "page.stall",
+   "maxGapMs": 64897,
+   "longTasks": 134,
+   "longMs": 226082
+  },
+  {
+   "t": 520.2,
+   "kind": "input.key",
+   "label": "ESC (pause to exit)",
+   "code": "Escape"
+  },
+  {
+   "t": 520.2,
+   "kind": "step.begin",
+   "name": "exit-to-menu"
+  },
+  {
+   "t": 520.2,
+   "kind": "input.click",
+   "n": 15,
+   "label": "RETURN TO PADDOCK"
+  },
+  {
+   "t": 535.7,
+   "kind": "step.end",
+   "name": "exit-to-menu",
+   "seconds": 15.5
+  },
+  {
+   "t": 535.7,
+   "kind": "exit.done",
+   "seconds": 15.5
+  },
+  {
+   "t": 539.5,
+   "kind": "screenshot",
+   "file": "09-menu-after-exit.png",
+   "ms": 3833
+  },
+  {
+   "t": 539.8,
+   "kind": "memory",
+   "label": "menu-after-session-2",
+   "jsHeapMB": 71.5,
+   "jsHeapTotalMB": 74,
+   "nodes": 2595,
+   "listeners": 162,
+   "documents": 2,
+   "rssMB": 3651,
+   "textures": 203,
+   "geometries": 1706
+  }
+ ],
+ "findings": [],
+ "console": [
+  {
+   "t": 91.8,
+   "type": "warning",
+   "text": "THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported.",
+   "at": "three-CuIIN4MI.js"
+  }
+ ],
+ "requestFailures": [],
+ "summary": {
+  "boot": {
+   "timeToMenuS": 86.2,
+   "timeToFirstMenuFrameS": 86.2,
+   "paint": {
+    "first-paint": 1756,
+    "first-contentful-paint": 1756
+   },
+   "domContentLoadedMs": 1407
+  },
+  "sessions": [
+   {
+    "label": "practice-1",
+    "startedAt": 118.178,
+    "briefing": false,
+    "timeToDrivingS": 200.6,
+    "timeToFirstFrameS": 211.1,
+    "timeToMenuAfterExitS": 33.9
+   },
+   {
+    "label": "practice-2",
+    "startedAt": 453.576,
+    "briefing": false,
+    "timeToDrivingS": 27.3,
+    "timeToFirstFrameS": 33.8,
+    "timeToMenuAfterExitS": 15.5
+   }
+  ],
+  "inputs": {
+   "menuInputs": 15,
+   "driveKeyEvents": 460,
+   "log": [
+    "89.7s click GARAGE & SETTINGS",
+    "90.0s select quality=low",
+    "90.0s click APPLY & SAVE",
+    "103.8s select mode=practice",
+    "104.1s select opponents=0",
+    "118.2s click ENTER",
+    "370.5s key ESC (pause)",
+    "388.7s click RESUME SESSION",
+    "405.8s key ESC (pause 2)",
+    "405.8s key ESC (resume 2)",
+    "414.0s key ESC (pause to exit)",
+    "414.0s click RETURN TO PADDOCK",
+    "453.6s click ENTER",
+    "520.2s key ESC (pause to exit)",
+    "520.2s click RETURN TO PADDOCK"
+   ]
+  },
+  "memory": {
+   "samples": [
+    {
+     "label": "menu-after-boot",
+     "t": 89.6,
+     "jsHeapMB": 33.8,
+     "jsHeapTotalMB": 35.1,
+     "nodes": 2417,
+     "listeners": 134,
+     "documents": 2,
+     "rssMB": 2069,
+     "textures": 83,
+     "geometries": 190
+    },
+    {
+     "label": "menu-after-session-1",
+     "t": 453.3,
+     "jsHeapMB": 71,
+     "jsHeapTotalMB": 73,
+     "nodes": 2596,
+     "listeners": 162,
+     "documents": 2,
+     "rssMB": 3637,
+     "textures": 203,
+     "geometries": 1667
+    },
+    {
+     "label": "menu-after-session-2",
+     "t": 539.8,
+     "jsHeapMB": 71.5,
+     "jsHeapTotalMB": 74,
+     "nodes": 2595,
+     "listeners": 162,
+     "documents": 2,
+     "rssMB": 3651,
+     "textures": 203,
+     "geometries": 1706
+    }
+   ],
+   "jsHeapGrowthSession1MB": 37.2,
+   "jsHeapGrowthSession2MB": 0.5,
+   "rssGrowthSession2MB": 14,
+   "textureGrowthSession2": 0,
+   "geometryGrowthSession2": 39
+  },
+  "outcome": "ok",
+  "drives": [
+   {
+    "label": "practice-1",
+    "rows": [
+     {
+      "wall": 0.2,
+      "sim": 37.13,
+      "tick": 3747,
+      "phase": 2,
+      "kph": 1,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 2933,
+      "lat": -2.3,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 2872.45,
+      "tapAgeMs": 17,
+      "keys": "LT",
+      "dropped": 1.2086000442504883
+     },
+     {
+      "wall": 1.2,
+      "sim": 38.3,
+      "tick": 3887,
+      "phase": 2,
+      "kph": 30,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 2937,
+      "lat": -1.6,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 2,
+      "keys": "TR",
+      "dropped": 1.2086000442504883
+     },
+     {
+      "wall": 2.3,
+      "sim": 39.36,
+      "tick": 4014,
+      "phase": 2,
+      "kph": 70,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 2951,
+      "lat": 0,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 17,
+      "keys": "TL",
+      "dropped": 1.2086000442504883
+     },
+     {
+      "wall": 3.3,
+      "sim": 40.37,
+      "tick": 4136,
+      "phase": 2,
+      "kph": 113,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 4,
+      "lat": -0.8,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 3,
+      "keys": "T",
+      "dropped": 1.2086000442504883
+     },
+     {
+      "wall": 4.4,
+      "sim": 41.47,
+      "tick": 4268,
+      "phase": 2,
+      "kph": 155,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 45,
+      "lat": -1.2,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 5,
+      "keys": "T",
+      "dropped": 1.2086000442504883
+     },
+     {
+      "wall": 5.4,
+      "sim": 42.47,
+      "tick": 4388,
+      "phase": 2,
+      "kph": 189,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 93,
+      "lat": 0.2,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 15,
+      "keys": "T",
+      "dropped": 1.2086000442504883
+     },
+     {
+      "wall": 6.4,
+      "sim": 43.38,
+      "tick": 4497,
+      "phase": 2,
+      "kph": 212,
+      "hudSpeed": "210",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 143,
+      "lat": -0.6,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0.98,
+      "tapAgeMs": 1,
+      "keys": "T",
+      "dropped": 1.2086000442504883
+     },
+     {
+      "wall": 7.5,
+      "sim": 44.6,
+      "tick": 4643,
+      "phase": 2,
+      "kph": 236,
+      "hudSpeed": "210",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 219,
+      "lat": 0.2,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 2.86,
+      "tapAgeMs": 4,
+      "keys": "T",
+      "dropped": 1.2086000442504883
+     },
+     {
+      "wall": 8.5,
+      "sim": 45.6,
+      "tick": 4763,
+      "phase": 2,
+      "kph": 248,
+      "hudSpeed": "210",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 286,
+      "lat": 3.2,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 16,
+      "keys": "TL",
+      "dropped": 1.2086000442504883
+     },
+     {
+      "wall": 9.6,
+      "sim": 46.64,
+      "tick": 4888,
+      "phase": 2,
+      "kph": 226,
+      "hudSpeed": "210",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 357,
+      "lat": -1.5,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 23,
+      "keys": "TR",
+      "dropped": 1.2086000442504883
+     },
+     {
+      "wall": 10.6,
+      "sim": 47.67,
+      "tick": 5011,
+      "phase": 2,
+      "kph": 202,
+      "hudSpeed": "210",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 416,
+      "lat": 1.5,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 51,
+      "keys": "B",
+      "dropped": 1.2086000442504883
+     },
+     {
+      "wall": 11.6,
+      "sim": 48.7,
+      "tick": 5135,
+      "phase": 2,
+      "kph": 186,
+      "hudSpeed": "210",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 468,
+      "lat": -2.3,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 50,
+      "keys": "T",
+      "dropped": 1.2086000442504883
+     },
+     {
+      "wall": 12.7,
+      "sim": 49.77,
+      "tick": 5264,
+      "phase": 2,
+      "kph": 191,
+      "hudSpeed": "210",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 527,
+      "lat": 0.2,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 10,
+      "keys": "",
+      "dropped": 1.2086000442504883
+     },
+     {
+      "wall": 13.7,
+      "sim": 50.79,
+      "tick": 5386,
+      "phase": 2,
+      "kph": 166,
+      "hudSpeed": "210",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 577,
+      "lat": -0.6,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 4,
+      "keys": "BL",
+      "dropped": 1.2086000442504883
+     },
+     {
+      "wall": 14.8,
+      "sim": 51.87,
+      "tick": 5515,
+      "phase": 2,
+      "kph": 137,
+      "hudSpeed": "210",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 619,
+      "lat": 0.4,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 2,
+      "keys": "LT",
+      "dropped": 1.2086000442504883
+     },
+     {
+      "wall": 15.8,
+      "sim": 52.9,
+      "tick": 5639,
+      "phase": 2,
+      "kph": 150,
+      "hudSpeed": "210",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 660,
+      "lat": -0.7,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 13,
+      "keys": "T",
+      "dropped": 1.2086000442504883
+     },
+     {
+      "wall": 16.8,
+      "sim": 53.9,
+      "tick": 5759,
+      "phase": 2,
+      "kph": 184,
+      "hudSpeed": "166",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 706,
+      "lat": -0.5,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 4.84,
+      "tapAgeMs": 46,
+      "keys": "T",
+      "dropped": 1.2086000442504883
+     },
+     {
+      "wall": 17.9,
+      "sim": 54.95,
+      "tick": 5885,
+      "phase": 2,
+      "kph": 201,
+      "hudSpeed": "166",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 763,
+      "lat": -0.5,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 18,
+      "keys": "TR",
+      "dropped": 1.2086000442504883
+     },
+     {
+      "wall": 18.9,
+      "sim": 56.02,
+      "tick": 6013,
+      "phase": 2,
+      "kph": 154,
+      "hudSpeed": "166",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 815,
+      "lat": 17.3,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 12,
+      "keys": "BL",
+      "dropped": 1.2086000442504883
+     },
+     {
+      "wall": 20,
+      "sim": 57,
+      "tick": 6131,
+      "phase": 2,
+      "kph": 84,
+      "hudSpeed": "166",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 845,
+      "lat": 18.5,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 14,
+      "keys": "BL",
+      "dropped": 1.2086000442504883
+     }
+    ],
+    "offTrackS": 1.7,
+    "stuckS": 0,
+    "maxKph": 255,
+    "keyEvents": 238,
+    "fallbackAt": null,
+    "ended": "sim-seconds",
+    "simElapsed": 19.9,
+    "wallS": 20,
+    "realTimeFactor": 0.99
+   },
+   {
+    "label": "practice-1-after-resume",
+    "rows": [
+     {
+      "wall": 0.1,
+      "sim": 68.64,
+      "tick": 7528,
+      "phase": 2,
+      "kph": 0,
+      "hudSpeed": "0",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 898,
+      "lat": 17.5,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 53818.18,
+      "tapAgeMs": 12,
+      "keys": "LT",
+      "dropped": 1.2086000442504883
+     },
+     {
+      "wall": 1.2,
+      "sim": 69.46,
+      "tick": 7626,
+      "phase": 2,
+      "kph": 7,
+      "hudSpeed": "0",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 897,
+      "lat": 17.5,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 15,
+      "keys": "T",
+      "dropped": 1.2086000442504883
+     },
+     {
+      "wall": 2.2,
+      "sim": 70.68,
+      "tick": 7773,
+      "phase": 2,
+      "kph": 17,
+      "hudSpeed": "0",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 893,
+      "lat": 16.5,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 47,
+      "keys": "TL",
+      "dropped": 1.2086000442504883
+     },
+     {
+      "wall": 3.3,
+      "sim": 71.77,
+      "tick": 7903,
+      "phase": 2,
+      "kph": 26,
+      "hudSpeed": "0",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 887,
+      "lat": 12.7,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 16,
+      "keys": "L",
+      "dropped": 1.2086000442504883
+     },
+     {
+      "wall": 4.4,
+      "sim": 72.85,
+      "tick": 8033,
+      "phase": 2,
+      "kph": 32,
+      "hudSpeed": "0",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 883,
+      "lat": 4.7,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 47,
+      "keys": "L",
+      "dropped": 1.2086000442504883
+     },
+     {
+      "wall": 5.4,
+      "sim": 73.87,
+      "tick": 8155,
+      "phase": 2,
+      "kph": 27,
+      "hudSpeed": "0",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 884,
+      "lat": -3.8,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 46,
+      "keys": "L",
+      "dropped": 1.2086000442504883
+     },
+     {
+      "wall": 6.5,
+      "sim": 75.05,
+      "tick": 8297,
+      "phase": 2,
+      "kph": 32,
+      "hudSpeed": "32",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 891,
+      "lat": -10.4,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 3.52,
+      "tapAgeMs": 1,
+      "keys": "L",
+      "dropped": 1.2086000442504883
+     },
+     {
+      "wall": 7.6,
+      "sim": 76.1,
+      "tick": 8423,
+      "phase": 2,
+      "kph": 41,
+      "hudSpeed": "32",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 901,
+      "lat": -11.7,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 13,
+      "keys": "T",
+      "dropped": 1.2086000442504883
+     }
+    ],
+    "offTrackS": 6.9,
+    "stuckS": 0,
+    "maxKph": 41,
+    "keyEvents": 72,
+    "fallbackAt": null,
+    "ended": "sim-seconds",
+    "simElapsed": 7.9,
+    "wallS": 8.2,
+    "realTimeFactor": 0.96
+   },
+   {
+    "label": "practice-2",
+    "rows": [
+     {
+      "wall": 0,
+      "sim": 28.84,
+      "tick": 2752,
+      "phase": 2,
+      "kph": 1,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 2936,
+      "lat": -2.2,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 114111.11,
+      "tapAgeMs": 16,
+      "keys": "LT",
+      "dropped": 1.382099986076355
+     },
+     {
+      "wall": 1.1,
+      "sim": 29.89,
+      "tick": 2878,
+      "phase": 2,
+      "kph": 32,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 2940,
+      "lat": -1.2,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 4,
+      "keys": "TR",
+      "dropped": 1.382099986076355
+     },
+     {
+      "wall": 2.1,
+      "sim": 30.92,
+      "tick": 3001,
+      "phase": 2,
+      "kph": 69,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 2954,
+      "lat": 0.9,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 15,
+      "keys": "T",
+      "dropped": 1.382099986076355
+     },
+     {
+      "wall": 3.1,
+      "sim": 31.98,
+      "tick": 3129,
+      "phase": 2,
+      "kph": 107,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 8,
+      "lat": -0.5,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 5,
+      "keys": "TR",
+      "dropped": 1.382099986076355
+     },
+     {
+      "wall": 4.2,
+      "sim": 32.92,
+      "tick": 3241,
+      "phase": 2,
+      "kph": 138,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 39,
+      "lat": -0.8,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 2,
+      "keys": "TL",
+      "dropped": 1.382099986076355
+     },
+     {
+      "wall": 5.5,
+      "sim": 33.83,
+      "tick": 3351,
+      "phase": 2,
+      "kph": 134,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 74,
+      "lat": 6.2,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 15,
+      "keys": "BR",
+      "dropped": 1.382099986076355
+     },
+     {
+      "wall": 6.6,
+      "sim": 35.42,
+      "tick": 3541,
+      "phase": 2,
+      "kph": 57,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 112,
+      "lat": 23,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 17,
+      "keys": "T",
+      "dropped": 1.382099986076355
+     },
+     {
+      "wall": 7.6,
+      "sim": 36.45,
+      "tick": 3665,
+      "phase": 2,
+      "kph": 27,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 124,
+      "lat": 21.6,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 10,
+      "keys": "",
+      "dropped": 1.382099986076355
+     },
+     {
+      "wall": 8.7,
+      "sim": 37.5,
+      "tick": 3791,
+      "phase": 2,
+      "kph": 5,
+      "hudSpeed": "19",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 127,
+      "lat": 18.4,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 1.92,
+      "tapAgeMs": 5,
+      "keys": "TL",
+      "dropped": 1.382099986076355
+     },
+     {
+      "wall": 9.7,
+      "sim": 38.47,
+      "tick": 3907,
+      "phase": 2,
+      "kph": 9,
+      "hudSpeed": "19",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 127,
+      "lat": 18.9,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 57,
+      "keys": "TL",
+      "dropped": 1.382099986076355
+     },
+     {
+      "wall": 10.7,
+      "sim": 39.57,
+      "tick": 4039,
+      "phase": 2,
+      "kph": 29,
+      "hudSpeed": "19",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 122,
+      "lat": 22.1,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 1,
+      "keys": "L",
+      "dropped": 1.382099986076355
+     },
+     {
+      "wall": 11.8,
+      "sim": 40.61,
+      "tick": 4164,
+      "phase": 2,
+      "kph": 34,
+      "hudSpeed": "19",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 115,
+      "lat": 18.4,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 13,
+      "keys": "LB",
+      "dropped": 1.382099986076355
+     },
+     {
+      "wall": 12.8,
+      "sim": 41.63,
+      "tick": 4287,
+      "phase": 2,
+      "kph": 37,
+      "hudSpeed": "19",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 112,
+      "lat": 9.1,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 12,
+      "keys": "TL",
+      "dropped": 1.382099986076355
+     },
+     {
+      "wall": 13.9,
+      "sim": 42.66,
+      "tick": 4410,
+      "phase": 2,
+      "kph": 24,
+      "hudSpeed": "19",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 116,
+      "lat": 2,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 12,
+      "keys": "",
+      "dropped": 1.382099986076355
+     },
+     {
+      "wall": 14.9,
+      "sim": 43.73,
+      "tick": 4539,
+      "phase": 2,
+      "kph": 2,
+      "hudSpeed": "19",
+      "lap": 0,
+      "hudLap": "PRACTICE / LAP 1",
+      "s": 120,
+      "lat": 1.9,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 1,
+      "keys": "TL",
+      "dropped": 1.382099986076355
+     }
+    ],
+    "offTrackS": 8,
+    "stuckS": 1.4,
+    "maxKph": 143,
+    "keyEvents": 150,
+    "fallbackAt": null,
+    "ended": "sim-seconds",
+    "simElapsed": 15,
+    "wallS": 15.1,
+    "realTimeFactor": 0.99
+   }
+  ],
+  "pause": {
+   "pauseLatencyMs": 59,
+   "workerAcknowledgedPause": {
+    "pending": false,
+    "paused": true,
+    "tick": 6149,
+    "sequence": 2
+   },
+   "paused": {
+    "simBefore": 57.132442474365234,
+    "simAtPause": 57.14910888671875,
+    "simAfter3s": 57.14910888671875,
+    "tickAtPause": 6149,
+    "tickAfter3s": 6149,
+    "workerPause": {
+     "pending": false,
+     "paused": true,
+     "tick": 6149,
+     "sequence": 2
+    },
+    "modalHeading": "Free Practice",
+    "speedAtPause": 78.2,
+    "speedAfter3s": 78.2,
+    "posAtPause": [
+     -56.576873779296875,
+     446.0483093261719
+    ],
+    "posAfter3s": [
+     -56.576873779296875,
+     446.0483093261719
+    ]
+   },
+   "pauseButtons": [
+    "RESUME SESSION",
+    "RESTART SESSION",
+    "GARAGE & SETTINGS",
+    "RETURN TO PADDOCK",
+    "CHANGE CAMERA",
+    "WATCH REPLAY",
+    "PHOTO STUDIO",
+    "AI DRIVER",
+    "ACADEMY"
+   ],
+   "resumeLatencyMs": 5729,
+   "resumed": {
+    "simAdvanced": 2.51,
+    "wall": 2.5,
+    "jumpAtResume": 0
+   },
+   "escResume": "resumed"
+  }
+ },
+ "pageCounters": {
+  "frames": 1305,
+  "maxGap": 64897.30000000002,
+  "longTasks": 137,
+  "longMs": 230303,
+  "stalls": [
+   [
+    4395,
+    2517
+   ],
+   [
+    67976,
+    60914
+   ],
+   [
+    86092,
+    18099
+   ],
+   [
+    103041,
+    11550
+   ],
+   [
+    117290,
+    14233
+   ],
+   [
+    130740,
+    2317
+   ],
+   [
+    198654,
+    64897
+   ],
+   [
+    219370,
+    5600
+   ],
+   [
+    256118,
+    34582
+   ],
+   [
+    294267,
+    38149
+   ],
+   [
+    317349,
+    20383
+   ],
+   [
+    328265,
+    10033
+   ],
+   [
+    334198,
+    5783
+   ],
+   [
+    341765,
+    7450
+   ],
+   [
+    349231,
+    7366
+   ],
+   [
+    356097,
+    6416
+   ],
+   [
+    366214,
+    9866
+   ],
+   [
+    375147,
+    8650
+   ],
+   [
+    382930,
+    7716
+   ],
+   [
+    388029,
+    4866
+   ],
+   [
+    393796,
+    5700
+   ],
+   [
+    398646,
+    4783
+   ],
+   [
+    404579,
+    5866
+   ],
+   [
+    411162,
+    6183
+   ],
+   [
+    420295,
+    9066
+   ],
+   [
+    435528,
+    14899
+   ],
+   [
+    441011,
+    5483
+   ],
+   [
+    452194,
+    5117
+   ],
+   [
+    464993,
+    11000
+   ],
+   [
+    480126,
+    14216
+   ],
+   [
+    486126,
+    5667
+   ],
+   [
+    492442,
+    6216
+   ],
+   [
+    498075,
+    5567
+   ],
+   [
+    504291,
+    6166
+   ],
+   [
+    512458,
+    8083
+   ],
+   [
+    520491,
+    8016
+   ],
+   [
+    525707,
+    3533
+   ],
+   [
+    530440,
+    4300
+   ],
+   [
+    538723,
+    3917
+   ]
+  ]
+ }
+}
