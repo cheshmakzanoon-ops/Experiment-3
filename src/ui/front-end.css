@@ -1,0 +1,1509 @@
+/* MOTOBOUND front end: "Paddock Board" (docs/studio/ART_DIRECTION.md).
+ *
+ * Injected once by installFrontEnd() (launch-board.ts), after style.css, so these
+ * rules win on equal specificity; menu rules are scoped by #menu and screens by
+ * #app dialog so the older HUD skin is untouched. Everything is a token: colours
+ * (--mb-*), spacing (--mb-s*), type (--mb-f-*) and motion (--mb-d-*, --mb-ease-*).
+ * Sizes scale with the player's interface scale (--ui-scale) and with the display
+ * (--mb-base), never with raw px literals in components. */
+
+:root {
+  /* Display scale: roomy on big screens. Player scale (Settings) multiplies it. */
+  --mb-base: 1;
+  --mb-u: calc(var(--mb-base) * var(--ui-scale, 1));
+
+  /* Surfaces: asphalt steps and ink. */
+  --mb-ink: #0b0c0d;
+  --mb-asphalt-0: #121315;
+  --mb-asphalt-1: #1a1b1e;
+  --mb-asphalt-2: #24262a;
+  --mb-asphalt-3: #33353a;
+  /* Text: chalk on asphalt, ink on paper. */
+  --mb-chalk: #f1ecdf;
+  --mb-chalk-dim: #c9c3b3;
+  --mb-chalk-faint: #a39e92;
+  --mb-paper: #e8dfc8;
+  --mb-paper-ink: #14110c;
+  /* Signals: amber selects and acts; flag warns; go confirms; wet is wet. */
+  --mb-amber: #ffb21a;
+  --mb-amber-deep: #c98600;
+  --mb-flag: #e4412e;
+  --mb-flag-text: #ff6a55;
+  --mb-go: #4fd36a;
+  --mb-wet: #5bc7d9;
+  /* One plate colour per discipline (shape and numeral carry it too). */
+  --mb-plate-circuit: #e8dfc8;
+  --mb-plate-gp: #3cc8b4;
+  --mb-plate-dirt: #d9843f;
+  --mb-plate-fest: #b4dc4c;
+  --mb-line: rgba(241, 236, 223, 0.14);
+  --mb-line-strong: rgba(241, 236, 223, 0.32);
+
+  /* Type. */
+  --mb-sans: 'Saira Variable', 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  --mb-stencil: 'Saira Stencil One', 'Saira Variable', 'Arial Narrow', Arial, sans-serif;
+  --mb-f-label: calc(11px * var(--mb-u));
+  --mb-f-value: calc(14px * var(--mb-u));
+  --mb-f-lead: calc(13px * var(--mb-u));
+  --mb-f-title: calc(22px * var(--mb-u));
+  --mb-f-board: calc(17px * var(--mb-u));
+  /* Spacing: 4 px grid. */
+  --mb-s1: calc(4px * var(--mb-u));
+  --mb-s2: calc(8px * var(--mb-u));
+  --mb-s3: calc(12px * var(--mb-u));
+  --mb-s4: calc(16px * var(--mb-u));
+  --mb-s5: calc(24px * var(--mb-u));
+  --mb-s6: calc(32px * var(--mb-u));
+  --mb-notch: calc(12px * var(--mb-u));
+  --mb-field: calc(42px * var(--mb-u));
+  /* Motion: mechanical, short. */
+  --mb-ease-snap: cubic-bezier(0.5, 0, 0.1, 1);
+  --mb-ease-out: cubic-bezier(0.2, 0.7, 0.1, 1);
+  --mb-d-tick: 90ms;
+  --mb-d-plate: 140ms;
+  --mb-d-board: 220ms;
+}
+@media (min-width: 1600px) and (min-height: 900px) {
+  :root {
+    --mb-base: 1.2;
+  }
+}
+@media (min-width: 2200px) and (min-height: 1200px) {
+  :root {
+    --mb-base: 1.5;
+  }
+}
+:root[data-high-contrast='true'] {
+  --mb-chalk-dim: #e0dacb;
+  --mb-chalk-faint: #c4beaf;
+  --mb-line: rgba(241, 236, 223, 0.4);
+  --mb-line-strong: rgba(241, 236, 223, 0.7);
+}
+
+/* ---------- Shared primitives ---------------------------------------------- */
+#app :is(button, select, input, [tabindex]):focus-visible,
+#app[data-pad] :is(button, select, input, [tabindex]):focus {
+  outline: 2px solid var(--mb-amber);
+  outline-offset: 2px;
+}
+#app .primary {
+  background: var(--mb-amber);
+  color: var(--mb-ink);
+  border-color: var(--mb-amber);
+  box-shadow: none;
+}
+#app .primary:hover {
+  background: #ffc652;
+  border-color: #ffc652;
+  box-shadow: none;
+}
+#app .primary:active {
+  background: var(--mb-amber-deep);
+  border-color: var(--mb-amber-deep);
+}
+/* Kicker: a paper tab, the "ink on paper" half of the system. */
+#menu .eyebrow,
+#app dialog .eyebrow {
+  display: inline-block;
+  background: var(--mb-paper);
+  color: var(--mb-paper-ink);
+  font: 650 var(--mb-f-label) / 1 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: var(--mb-s1) var(--mb-s2);
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 0 100%);
+}
+#menu .eyebrow i,
+#app dialog .eyebrow i {
+  display: none;
+}
+#menu kbd,
+#app dialog kbd {
+  display: inline-block;
+  min-width: 1.7em;
+  padding: 1px calc(5px * var(--mb-u));
+  border: 1px solid var(--mb-line-strong);
+  border-bottom-width: 2px;
+  border-radius: 2px;
+  background: var(--mb-asphalt-0);
+  color: var(--mb-chalk);
+  font: 700 var(--mb-f-label) / 1.5 var(--mb-sans);
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-shadow: none;
+}
+
+/* ---------- Brand ------------------------------------------------------------ */
+#menu .brand,
+.loading .brand {
+  font: 400 calc(27px * var(--mb-u)) / 1 var(--mb-stencil);
+  font-style: normal;
+  letter-spacing: 0.07em;
+  color: var(--mb-chalk);
+  text-shadow: 0 1px 0 var(--mb-ink);
+}
+#menu .brand span,
+.loading .brand span {
+  margin-left: var(--mb-s3);
+  padding-left: var(--mb-s2);
+  border-left: 3px solid var(--mb-amber);
+  font: 650 var(--mb-f-label) / 1 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.22em;
+  color: var(--mb-chalk-dim);
+}
+
+/* ---------- Menu frame -------------------------------------------------------- */
+#menu {
+  --menu-header-height: calc(56px * var(--mb-u));
+  --menu-footer-height: calc(40px * var(--mb-u));
+  --board-w: min(calc(488px * var(--mb-u)), calc(100vw - 2 * var(--mb-s5)), 56vw);
+  font-family: var(--mb-sans);
+  color: var(--mb-chalk);
+  /* A functional scrim so the footer reads over the showroom floor. */
+  background: linear-gradient(0deg, rgba(5, 6, 7, 0.72), transparent calc(var(--menu-footer-height) * 2.4));
+}
+#menu .masthead {
+  left: var(--mb-s6);
+  right: var(--mb-s6);
+  border-bottom: 0;
+}
+#menu .edition {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--mb-s2);
+  padding: var(--mb-s1) var(--mb-s3) var(--mb-s1) var(--mb-s2);
+  background: var(--mb-paper);
+  color: var(--mb-paper-ink);
+  font: 650 var(--mb-f-label) / 1.2 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.16em;
+  text-shadow: none;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+}
+#menu .edition b {
+  margin: 0;
+  color: var(--mb-paper-ink);
+  font: 800 var(--mb-f-value) / 1.2 var(--mb-sans);
+  font-stretch: 100%;
+  letter-spacing: 0.08em;
+}
+
+/* The body is a transparent scroll region: the entry board on the left, the
+ * paddock index riding sticky on the right (it never scrolls out of reach). */
+#menu {
+  --rail-w: calc(204px * var(--mb-u));
+}
+#menu .menu-body,
+#menu .mx-menu-scroll {
+  display: grid;
+  grid-template-columns: var(--board-w) minmax(0, 1fr) var(--rail-w);
+  column-gap: var(--mb-s4);
+  align-items: start;
+  align-content: start;
+}
+#menu .menu-body {
+  left: var(--mb-s6);
+  right: var(--mb-s6);
+  /* Never closer than 8 px to the masthead and footer, at any interface scale. */
+  top: calc(var(--menu-header-height) + max(8px, var(--mb-s2)));
+  bottom: calc(var(--menu-footer-height) + max(8px, var(--mb-s2)));
+  width: auto;
+  max-width: none;
+  padding: 0;
+  scroll-padding-block: var(--mb-s2) calc(76px * var(--mb-u));
+  font-size: var(--mb-f-value);
+  scrollbar-color: var(--mb-asphalt-3) transparent;
+}
+#menu .menu-body.mx-menu-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  overflow: hidden;
+}
+/* The board: an opaque pit board holding the whole entry. */
+#menu .lb-board {
+  grid-column: 1;
+  min-width: 0;
+  padding: var(--mb-s4);
+  background: rgba(26, 27, 30, 0.96);
+  box-shadow: inset 0 0 0 1px var(--mb-line);
+  clip-path: polygon(0 0, calc(100% - var(--mb-notch)) 0, 100% var(--mb-notch), 100% 100%, 0 100%);
+}
+
+/* ---------- Discipline plates -------------------------------------------------- */
+#menu .lb-plates {
+  display: grid;
+  /* Plates share the row whatever their number (a fifth fits without CSS changes). */
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: var(--mb-s2);
+  margin-bottom: var(--mb-s2);
+}
+#menu .lb-plate {
+  --plate: var(--mb-plate-circuit);
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 2px;
+  min-height: 0;
+  padding: var(--mb-s2) var(--mb-s1) var(--mb-s2);
+  background: var(--mb-asphalt-0);
+  border: 1px solid var(--mb-line);
+  border-radius: 0;
+  color: var(--mb-chalk-dim);
+  text-transform: none;
+  letter-spacing: 0;
+  transition:
+    transform var(--mb-d-plate) var(--mb-ease-out),
+    background var(--mb-d-tick),
+    border-color var(--mb-d-tick);
+}
+#menu .lb-plate[data-discipline='gp'] {
+  --plate: var(--mb-plate-gp);
+}
+#menu .lb-plate[data-discipline='dirt'] {
+  --plate: var(--mb-plate-dirt);
+}
+#menu .lb-plate[data-discipline='festival'] {
+  --plate: var(--mb-plate-fest);
+}
+#menu .lb-plate-art svg {
+  display: block;
+  width: calc(50px * var(--mb-u));
+  height: calc(43px * var(--mb-u));
+  overflow: visible;
+  filter: saturate(0.55) brightness(0.74);
+  transition: filter var(--mb-d-plate);
+}
+#menu .lb-plate .plate-body {
+  fill: var(--plate);
+}
+#menu .lb-plate .plate-rim {
+  fill: none;
+  stroke: var(--mb-ink);
+  stroke-width: 1.3;
+  opacity: 0.5;
+}
+#menu .lb-plate .plate-numeral {
+  font: 400 26px var(--mb-stencil);
+  fill: var(--mb-paper-ink);
+}
+#menu .lb-plate .plate-caption {
+  font: 400 6px var(--mb-stencil);
+  letter-spacing: 0.1em;
+  fill: var(--mb-paper-ink);
+}
+#menu .lb-plate b {
+  font: 750 var(--mb-f-label) / 1.2 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+}
+#menu .lb-plate small {
+  font: 600 var(--mb-f-label) / 1.2 var(--mb-sans);
+  font-stretch: 90%;
+  letter-spacing: 0.06em;
+  color: var(--mb-chalk-faint);
+  white-space: nowrap;
+}
+#menu .lb-plate:hover {
+  background: var(--mb-asphalt-2);
+  border-color: var(--mb-line-strong);
+}
+#menu .lb-plate[aria-checked='true'] {
+  transform: translateY(-2px);
+  background: var(--mb-asphalt-2);
+  border-color: var(--mb-amber);
+  box-shadow: 0 2px 0 var(--mb-amber);
+  color: var(--mb-chalk);
+}
+#menu .lb-plate[aria-checked='true'] .lb-plate-art svg {
+  filter: none;
+}
+/* The tech-inspection sticker: the chosen plate has been scrutineered. */
+#menu .lb-plate[aria-checked='true']::after {
+  content: '';
+  position: absolute;
+  top: calc(-6px * var(--mb-u));
+  right: calc(-6px * var(--mb-u));
+  width: calc(18px * var(--mb-u));
+  height: calc(18px * var(--mb-u));
+  border-radius: 50%;
+  background: var(--mb-amber)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230b0c0d' stroke-width='3.2' stroke-linecap='square'%3E%3Cpath d='M5 12.5l5 5L19 7'/%3E%3C/svg%3E")
+    center / 72% no-repeat;
+  box-shadow: 0 0 0 2px var(--mb-asphalt-1);
+  animation: mb-stamp var(--mb-d-plate) var(--mb-ease-out);
+}
+#menu .lb-plate[aria-checked='true'] small {
+  color: var(--mb-chalk-dim);
+}
+/* The pit-board message under the plates. */
+#menu .menu-body h1 {
+  margin: 0 0 var(--mb-s3);
+  background: none;
+  color: var(--mb-chalk);
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  font: 400 var(--mb-f-board) / 1.1 var(--mb-stencil);
+  font-style: normal;
+  font-stretch: 100%;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+#menu .menu-body .intro {
+  margin: calc(-1 * var(--mb-s2)) 0 var(--mb-s3);
+  color: var(--mb-chalk-dim);
+  font: 500 var(--mb-f-lead) / 1.45 var(--mb-sans);
+  letter-spacing: 0;
+}
+
+/* ---------- Series strip (dirt shortcuts today; Wildcard Series next) ---------- */
+#menu .lb-series {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--mb-s2) var(--mb-s4);
+  margin: 0 0 var(--mb-s2);
+}
+#menu .lb-series .mx-entry,
+#menu .lb-series .lb-series-group,
+#menu .lb-series .lb-series-extra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--mb-s1) var(--mb-s2);
+  margin: 0;
+}
+#menu .lb-series .lb-series-extra {
+  display: contents;
+}
+#menu .lb-series :is(.mx-entry, .lb-series-group) > span {
+  margin: 0;
+  color: var(--mb-chalk-faint);
+  font: 650 var(--mb-f-label) / 1 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.14em;
+}
+#menu .lb-series button {
+  min-height: calc(28px * var(--mb-u));
+  padding: 0 var(--mb-s3);
+  background: var(--mb-asphalt-0);
+  border: 1px solid var(--mb-line-strong);
+  border-radius: 2px;
+  color: var(--mb-chalk);
+  font: 700 var(--mb-f-label) / 1 var(--mb-sans);
+  font-stretch: 94%;
+  letter-spacing: 0.12em;
+}
+#menu .lb-series button:hover {
+  border-color: var(--mb-amber);
+  background: var(--mb-asphalt-2);
+}
+#menu .lb-series button[aria-pressed='true'] {
+  background: var(--mb-paper);
+  color: var(--mb-paper-ink);
+  border-color: var(--mb-paper);
+}
+
+/* ---------- Form grid --------------------------------------------------------- */
+#menu .session-form {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--mb-s2);
+  max-width: none;
+}
+#menu .session-form > :is(.lb-sheet, .session-rules, .mx-setup),
+#menu .session-form > .lb-dial.lb-dial-machine {
+  grid-column: 1 / -1;
+}
+#menu .session-form > .lb-dial {
+  grid-column: span 3;
+}
+#menu .session-form > .lb-dial:is([data-dial='weather'], [data-dial='compound'], [data-dial='assist']) {
+  grid-column: span 2;
+}
+#menu .session-rules {
+  margin: 0;
+  min-height: 0;
+  opacity: 1;
+  color: var(--mb-chalk-dim);
+  font: 500 calc(12.5px * var(--mb-u)) / 1.4 var(--mb-sans);
+  letter-spacing: 0;
+}
+#menu .session-rules:empty {
+  display: none;
+}
+#menu #sessionRules[data-state='error'] {
+  color: var(--mb-flag-text);
+  font-weight: 650;
+}
+#menu .circuit-blurb {
+  margin-top: auto;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Venue sheet: the programme page for the chosen venue. */
+#menu .lb-sheet {
+  display: grid;
+  gap: var(--mb-s2);
+  padding: var(--mb-s2);
+  background: var(--mb-asphalt-0);
+  border: 1px solid var(--mb-line);
+}
+#menu .lb-sheet-row {
+  display: grid;
+  grid-template-columns: calc(112px * var(--mb-u)) minmax(0, 1fr);
+  gap: var(--mb-s3);
+}
+#menu[data-board='festival'] .lb-sheet-row {
+  grid-template-columns: calc(150px * var(--mb-u)) minmax(0, 1fr);
+}
+#menu[data-board='festival'] .lb-map {
+  aspect-ratio: 1;
+}
+#menu .lb-map {
+  align-self: start;
+  aspect-ratio: 4 / 3;
+  background: var(--mb-asphalt-1);
+  box-shadow: inset 0 0 0 1px var(--mb-line);
+  --tint: var(--mb-plate-circuit);
+}
+#menu[data-board='gp'] .lb-map {
+  --tint: var(--mb-plate-gp);
+}
+#menu[data-board='dirt'] .lb-map {
+  --tint: var(--mb-plate-dirt);
+}
+#menu[data-board='festival'] .lb-map {
+  --tint: var(--mb-plate-fest);
+}
+.ta {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  --tint: var(--mb-plate-circuit);
+}
+.ta-road {
+  fill: none;
+  stroke: rgba(241, 236, 223, 0.15);
+  stroke-width: 7;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.ta-line {
+  fill: none;
+  stroke: var(--tint);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+.ta-drs {
+  fill: none;
+  stroke: var(--mb-amber);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.ta-start {
+  fill: none;
+  stroke: var(--mb-chalk);
+  stroke-width: 2.4;
+  stroke-linecap: butt;
+}
+.ta-bead {
+  fill: var(--mb-asphalt-0);
+  stroke: var(--mb-chalk-faint);
+  stroke-width: 0.7;
+}
+.ta-num {
+  font: 400 5.6px var(--mb-stencil);
+  fill: var(--mb-chalk);
+}
+.ta-jump {
+  fill: var(--mb-amber);
+}
+.mx-venue-card .ta {
+  --tint: var(--mb-plate-dirt);
+  height: auto;
+}
+.ta-frame {
+  fill: none;
+  stroke: var(--mb-line-strong);
+  stroke-width: 0.6;
+  stroke-dasharray: 2 2;
+}
+.ta-sea {
+  fill: rgba(91, 199, 217, 0.1);
+}
+.ta-coast {
+  fill: none;
+  stroke: var(--mb-wet);
+  stroke-width: 1;
+  opacity: 0.7;
+}
+.ta-rd {
+  fill: none;
+  stroke: var(--tint);
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  opacity: 0.85;
+}
+.ta-rd[data-class='town'],
+.ta-rd[data-class='dirt'] {
+  opacity: 0.55;
+}
+.ta-event {
+  fill: var(--mb-amber);
+}
+#menu .lb-sheet-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mb-s2);
+  min-width: 0;
+  min-height: 0;
+}
+#menu .lb-sheet-body .eyebrow {
+  align-self: flex-start;
+}
+#menu .lb-region-title {
+  display: grid;
+  min-height: var(--mb-field);
+  align-content: center;
+  padding: 0 var(--mb-s3);
+  background: var(--mb-asphalt-2);
+  border-bottom: 2px solid var(--mb-line-strong);
+}
+#menu .lb-region-title .lb-dial-name {
+  font: 650 var(--mb-f-label) / 1.3 var(--mb-sans);
+  letter-spacing: 0.14em;
+  color: var(--mb-chalk-faint);
+}
+#menu .lb-region-title b {
+  font: 750 calc(17px * var(--mb-u)) / 1.2 var(--mb-sans);
+  letter-spacing: 0.05em;
+}
+#menu .lb-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mb-s1) var(--mb-s4);
+  color: var(--mb-chalk-faint);
+  font: 650 var(--mb-f-label) / 1 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.12em;
+}
+#menu .lb-stats b {
+  margin-right: 5px;
+  font: 400 calc(21px * var(--mb-u)) / 1 var(--mb-stencil);
+  letter-spacing: 0.02em;
+  color: var(--mb-amber);
+}
+
+/* ---------- Dials ------------------------------------------------------------- */
+#menu .lb-dial {
+  --hand: calc(28px * var(--mb-u));
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--hand) minmax(0, 1fr) var(--hand);
+  min-width: 0;
+}
+#menu .lb-dial:is([data-dial='weather'], [data-dial='compound'], [data-dial='assist']) {
+  --hand: calc(22px * var(--mb-u));
+}
+#menu .lb-dial > label {
+  grid-column: 2;
+  grid-row: 1;
+  display: block;
+  margin: 0;
+  min-width: 0;
+  color: inherit;
+  letter-spacing: 0;
+  font-weight: inherit;
+}
+#menu .lb-dial-face {
+  position: relative;
+  display: block;
+  height: var(--mb-field);
+  background: var(--mb-asphalt-2);
+  border-bottom: 2px solid var(--mb-line-strong);
+  transition: border-color var(--mb-d-tick);
+}
+#menu .lb-dial-venue .lb-dial-face {
+  height: calc(48px * var(--mb-u));
+}
+#menu .lb-dial:hover .lb-dial-face,
+#menu .lb-dial:focus-within .lb-dial-face {
+  border-bottom-color: var(--mb-amber);
+}
+/* Label row: icon, name, and the "07 / 42" position counter. */
+#menu .lb-dial-label {
+  position: absolute;
+  z-index: 1;
+  left: var(--mb-s2);
+  right: var(--mb-s2);
+  top: calc(5px * var(--mb-u));
+  display: flex;
+  align-items: center;
+  gap: var(--mb-s1);
+  pointer-events: none;
+  color: var(--mb-chalk-faint);
+  font: 650 var(--mb-f-label) / 1.1 var(--mb-sans);
+  font-stretch: 90%;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+#menu .lb-dial-venue .lb-dial-label {
+  left: var(--mb-s3);
+}
+#menu .lb-dial-count {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+}
+#menu .lb-dial-glyph {
+  flex: none;
+  width: calc(12px * var(--mb-u));
+  height: calc(12px * var(--mb-u));
+  color: var(--mb-chalk-dim);
+}
+#menu .lb-dial-venue .lb-dial-glyph {
+  display: none;
+}
+#menu .lb-dial-face[data-value='soft'] .lb-dial-glyph {
+  color: var(--tyre-soft);
+}
+#menu .lb-dial-face[data-value='medium'] .lb-dial-glyph {
+  color: var(--tyre-medium);
+}
+#menu .lb-dial-face[data-value='hard'] .lb-dial-glyph {
+  color: var(--tyre-hard);
+}
+#menu .lb-dial-face[data-value='intermediate'] .lb-dial-glyph {
+  color: var(--tyre-intermediate);
+}
+#menu .lb-dial-face[data-value='wet'] .lb-dial-glyph {
+  color: var(--mb-wet);
+}
+#menu .lb-dial-caret {
+  position: absolute;
+  right: var(--mb-s1);
+  bottom: calc(var(--mb-s2) + 1px);
+  width: var(--mb-s3);
+  height: var(--mb-s3);
+  pointer-events: none;
+  color: var(--mb-chalk-faint);
+}
+#menu .lb-dial select {
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: calc(15px * var(--mb-u)) calc(var(--mb-s4) + var(--mb-s1)) 0 var(--mb-s2);
+  background: transparent;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  color: var(--mb-chalk);
+  font: 650 var(--mb-f-value) / 1 var(--mb-sans);
+  font-stretch: 96%;
+  letter-spacing: 0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  appearance: none;
+  cursor: pointer;
+}
+#menu .lb-dial-venue select {
+  padding-left: var(--mb-s3);
+  padding-top: calc(16px * var(--mb-u));
+  font-size: calc(16px * var(--mb-u));
+  font-weight: 750;
+}
+#menu .lb-dial select:focus-visible {
+  outline-offset: -2px;
+}
+#menu .lb-dial select option,
+#menu .lb-dial select optgroup {
+  background: var(--mb-asphalt-1);
+  color: var(--mb-chalk);
+  font: 500 14px var(--mb-sans);
+}
+#menu .lb-step {
+  grid-row: 1;
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-bottom: 2px solid var(--mb-line-strong);
+  border-radius: 0;
+  background: var(--mb-asphalt-2);
+  color: var(--mb-chalk-dim);
+  transition:
+    background var(--mb-d-tick),
+    color var(--mb-d-tick);
+}
+#menu .lb-step[data-step='-1'] {
+  grid-column: 1;
+  box-shadow: inset -1px 0 0 var(--mb-line);
+}
+#menu .lb-step[data-step='1'] {
+  grid-column: 3;
+  box-shadow: inset 1px 0 0 var(--mb-line);
+}
+#menu .lb-step svg {
+  width: var(--mb-s4);
+  height: var(--mb-s4);
+}
+#menu .lb-step:hover:not(:disabled) {
+  background: var(--mb-amber);
+  color: var(--mb-ink);
+  border-bottom-color: var(--mb-amber);
+}
+#menu .lb-step:active:not(:disabled) {
+  background: var(--mb-amber-deep);
+}
+#menu .lb-dial[data-na] {
+  opacity: 0.5;
+}
+#menu .lb-dial[data-flip] select {
+  animation: mb-flip var(--mb-d-plate) var(--mb-ease-snap);
+}
+#menu .lb-dial[data-flip='prev'] select {
+  animation-name: mb-flip-prev;
+}
+
+/* ---------- Go dock ------------------------------------------------------------ */
+#menu .session-form > .enter {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  grid-column: 1 / 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: auto;
+  min-height: calc(54px * var(--mb-u));
+  margin: var(--mb-s1) 0 0;
+  padding: 0 var(--mb-s4);
+  border-radius: 0;
+  font: 800 calc(15px * var(--mb-u)) / 1 var(--mb-sans);
+  font-style: normal;
+  font-stretch: 112%;
+  letter-spacing: 0.16em;
+  text-align: left;
+  clip-path: none;
+}
+#menu .session-form > .enter.primary {
+  z-index: 4;
+  clip-path: polygon(0 0, 100% 0, calc(100% - var(--mb-s4)) 100%, 0 100%);
+  padding-right: calc(var(--mb-s5) + var(--mb-s1));
+}
+#menu .session-form > .enter:not(.primary) {
+  grid-column: 5 / 7;
+  /* Tuck under the primary's diagonal so no scrolled content shows through. */
+  margin-left: calc(-1 * (var(--mb-s2) + var(--mb-s4)));
+  padding-left: calc(var(--mb-s4) + var(--mb-s5));
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 3px;
+  background: var(--mb-asphalt-3);
+  border: 0;
+  color: var(--mb-chalk);
+  font-size: var(--mb-f-label);
+  letter-spacing: 0.14em;
+}
+#menu .session-form > .enter:not(.primary):hover {
+  background: #44464c;
+}
+#menu .session-form > .enter span {
+  font: 600 var(--mb-f-label) / 1 var(--mb-sans);
+  letter-spacing: 0.14em;
+  color: var(--mb-chalk-dim);
+}
+#menu .enter-glyph {
+  width: calc(22px * var(--mb-u));
+  height: calc(22px * var(--mb-u));
+  stroke-width: 2.4;
+}
+
+/* ---------- Paddock index ---------------------------------------------------- */
+#menu .menu-actions {
+  grid-column: 3;
+  grid-row: 1;
+  position: sticky;
+  top: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  margin: 0;
+  padding: var(--mb-s3) var(--mb-s3) var(--mb-s2);
+  max-width: none;
+  background: rgba(18, 19, 21, 0.92);
+  box-shadow: inset 0 0 0 1px var(--mb-line);
+  clip-path: polygon(0 0, calc(100% - var(--mb-notch)) 0, 100% var(--mb-notch), 100% 100%, 0 100%);
+  counter-reset: paddock;
+}
+#menu .menu-actions::before {
+  content: 'PADDOCK';
+  padding-bottom: var(--mb-s2);
+  color: var(--mb-chalk-faint);
+  font: 650 var(--mb-f-label) / 1 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.2em;
+}
+#menu .menu-actions button {
+  counter-increment: paddock;
+  display: flex;
+  align-items: baseline;
+  gap: var(--mb-s2);
+  min-height: calc(34px * var(--mb-u));
+  padding: 0 var(--mb-s1);
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--mb-line);
+  border-radius: 0;
+  color: var(--mb-chalk-dim);
+  font: 650 calc(12.5px * var(--mb-u)) / calc(34px * var(--mb-u)) var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.08em;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition:
+    background var(--mb-d-tick),
+    color var(--mb-d-tick);
+}
+#menu .menu-actions button::before {
+  content: counter(paddock, decimal-leading-zero);
+  font: 400 calc(12px * var(--mb-u)) / 1 var(--mb-stencil);
+  color: var(--mb-amber-deep);
+  letter-spacing: 0.04em;
+}
+#menu .menu-actions button:is(:hover, :focus-visible) {
+  background: var(--mb-asphalt-2);
+  border-color: var(--mb-line);
+  border-top-color: var(--mb-amber);
+  color: var(--mb-chalk);
+  outline-offset: -2px;
+}
+#menu .menu-actions button:is(:hover, :focus-visible)::before {
+  color: var(--mb-amber);
+}
+#menu .menu-actions button[data-action='career'] {
+  color: var(--mb-chalk);
+}
+#menu .dev-tools {
+  grid-column: 3;
+  grid-row: 2;
+  margin-top: var(--mb-s2);
+  border-color: var(--mb-line);
+  border-radius: 0;
+}
+
+/* ---------- Machine nameplate (right) ----------------------------------------- */
+#menu .car-label {
+  right: var(--mb-s6);
+  bottom: calc(var(--menu-footer-height) + var(--mb-s6));
+  display: grid;
+  justify-items: end;
+  gap: var(--mb-s2);
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.8);
+}
+#menu .car-label > span {
+  font: 400 clamp(44px, calc(4.4vw * var(--mb-u)), 84px) / 0.95 var(--mb-stencil);
+  font-style: normal;
+  font-stretch: 100%;
+  letter-spacing: 0.03em;
+}
+#menu .car-label > b {
+  margin: 0;
+  padding: var(--mb-s1) var(--mb-s3);
+  background: var(--mb-paper);
+  color: var(--mb-paper-ink);
+  font: 700 var(--mb-f-label) / 1.2 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.18em;
+  text-shadow: none;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%);
+}
+#menu .car-label > div {
+  margin: 0;
+  color: var(--mb-chalk);
+  font: 650 var(--mb-f-label) / 1.2 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.16em;
+}
+
+/* ---------- Footer ------------------------------------------------------------- */
+#menu .menu-footer {
+  left: var(--mb-s6);
+  right: var(--mb-s6);
+  gap: var(--mb-s5);
+  border-top: 1px solid var(--mb-line);
+  color: var(--mb-chalk-dim);
+  font: 650 var(--mb-f-label) / 1 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.14em;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.9);
+}
+#menu .menu-keys {
+  display: flex;
+  gap: var(--mb-s4);
+}
+#menu .menu-keys [data-device] {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mb-s1);
+  white-space: nowrap;
+}
+#menu .menu-keys [data-device='pad'],
+#app[data-pad] #menu .menu-keys [data-device='keys'] {
+  display: none;
+}
+#app[data-pad] #menu .menu-keys [data-device='pad'] {
+  display: inline-flex;
+}
+#menu .menu-footer .menu-hint {
+  margin-left: auto;
+  color: var(--mb-chalk-faint);
+  font-size: var(--mb-f-label);
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+/* ---------- Dirt panel (motocross.css keeps its layout; this is the skin) ------ */
+#menu .mx-setup .mx-venue-card {
+  display: block;
+  padding: var(--mb-s2) var(--mb-s3);
+  background: var(--mb-asphalt-0);
+  border: 1px solid var(--mb-line);
+  border-left: 3px solid var(--mb-plate-dirt);
+}
+#menu .mx-setup .mx-venue-card .mx-layout,
+#menu .mx-setup .mx-venue-card p {
+  display: none;
+}
+#menu .mx-setup .mx-kicker,
+#menu .mx-setup .mx-ride-presets legend {
+  color: var(--mb-chalk-faint);
+  font: 650 var(--mb-f-label) / 1.2 var(--mb-sans);
+  letter-spacing: 0.14em;
+}
+#menu .mx-setup .mx-venue-card strong {
+  color: var(--mb-chalk);
+  font: 750 calc(16px * var(--mb-u)) / 1.2 var(--mb-sans);
+  letter-spacing: 0.04em;
+}
+#menu .mx-setup .mx-venue-card p,
+#menu .mx-setup .mx-technique {
+  color: var(--mb-chalk-dim);
+}
+#menu .mx-setup .mx-ride-presets button {
+  background: var(--mb-asphalt-0);
+  border: 1px solid var(--mb-line);
+  border-radius: 0;
+  color: var(--mb-chalk);
+}
+#menu .mx-setup .mx-ride-presets button span {
+  color: var(--mb-chalk-dim);
+}
+#menu .mx-setup .mx-ride-presets button[aria-pressed='true'] {
+  background: var(--mb-paper);
+  border-color: var(--mb-paper);
+  color: var(--mb-paper-ink);
+}
+#menu .mx-setup .mx-ride-presets button[aria-pressed='true'] span {
+  color: #3b352a;
+}
+#menu .mx-start-dock {
+  width: var(--board-w);
+  padding: var(--mb-s2) var(--mb-s4) 0;
+  background: rgba(26, 27, 30, 0.96);
+  border-top: 1px solid var(--mb-line);
+}
+#menu .mx-start-dock .enter.primary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: calc(54px * var(--mb-u));
+  padding: 0 calc(var(--mb-s5) + var(--mb-s1)) 0 var(--mb-s4);
+  border: 0;
+  border-radius: 0;
+  background: var(--mb-amber);
+  color: var(--mb-ink);
+  font: 800 calc(15px * var(--mb-u)) / 1 var(--mb-sans);
+  font-style: normal;
+  font-stretch: 112%;
+  letter-spacing: 0.16em;
+  clip-path: polygon(0 0, 100% 0, calc(100% - var(--mb-s4)) 100%, 0 100%);
+}
+#menu .mx-menu-scroll {
+  padding: 0 0 var(--mb-s2);
+}
+#menu .mx-menu-layout .session-form > .enter:not(.primary) {
+  position: static;
+  grid-column: 1 / -1;
+  margin: var(--mb-s1) 0 0;
+}
+
+/* ---------- Responsive --------------------------------------------------------- */
+/* The pit-board message needs a little height; style.css hid it below 1200 px. */
+@media (min-height: 761px) {
+  #menu .menu-body h1 {
+    display: block;
+  }
+}
+@media (min-height: 901px) {
+  #menu .menu-body .intro {
+    display: block;
+  }
+}
+@media (max-height: 800px) {
+  #menu .lb-plate small {
+    display: none;
+  }
+  #menu .menu-body h1 {
+    margin-bottom: var(--mb-s2);
+  }
+  #menu .circuit-blurb {
+    -webkit-line-clamp: 1;
+  }
+}
+@media (max-width: 1440px) {
+  /* Keep the rail clear of the showroom car's rear wheel on 1280 screens. */
+  #menu {
+    --rail-w: calc(184px * var(--mb-u));
+  }
+  #menu .menu-actions button {
+    min-height: calc(30px * var(--mb-u));
+    line-height: calc(30px * var(--mb-u));
+  }
+}
+@media (max-height: 640px) {
+  #menu {
+    --mb-field: calc(38px * var(--mb-u));
+  }
+  #menu .lb-dial-venue .lb-dial-face {
+    height: calc(44px * var(--mb-u));
+  }
+  #menu .lb-dial select {
+    padding-top: calc(13px * var(--mb-u));
+  }
+  #menu .menu-body h1 {
+    display: none;
+  }
+  #menu .lb-plate-art svg {
+    width: calc(40px * var(--mb-u));
+    height: calc(35px * var(--mb-u));
+  }
+  #menu .lb-sheet-row {
+    grid-template-columns: calc(96px * var(--mb-u)) minmax(0, 1fr);
+  }
+}
+@media (max-width: 1180px) {
+  #menu .menu-footer .menu-hint {
+    display: none;
+  }
+  #menu .menu-body,
+  #menu .mx-menu-scroll {
+    grid-template-columns: var(--board-w);
+    row-gap: var(--mb-s3);
+  }
+  #menu .menu-actions,
+  #menu .dev-tools {
+    grid-column: 1;
+    grid-row: auto;
+    position: static;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--mb-s4);
+  }
+  #menu .menu-actions::before {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 900px) {
+  #menu {
+    --board-w: calc(100vw - 2 * var(--mb-s3));
+  }
+  #menu .menu-body,
+  #menu .masthead,
+  #menu .menu-footer {
+    left: var(--mb-s3);
+    right: var(--mb-s3);
+  }
+  #menu .mx-start-dock {
+    width: 100%;
+  }
+  #menu .car-label {
+    display: none;
+  }
+}
+@media (max-width: 560px) {
+  #menu .lb-board {
+    padding: var(--mb-s3);
+  }
+  #menu .masthead .brand span {
+    display: none;
+  }
+  #menu .lb-sheet-row {
+    grid-template-columns: calc(88px * var(--mb-u)) minmax(0, 1fr);
+    gap: var(--mb-s2);
+  }
+  #menu .session-form > .lb-dial:is([data-dial='weather'], [data-dial='compound'], [data-dial='assist']) {
+    grid-column: span 3;
+  }
+  #menu .session-form > .enter {
+    grid-column: 1 / 5;
+  }
+  /* Keep the full accessible name ("PREPARE GRID START PAUSED") while the
+     second line gives way on a narrow phone. */
+  #menu .session-form > .enter:not(.primary) span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  #menu .menu-keys [data-device] {
+    display: none;
+  }
+  #menu .menu-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Motion -------------------------------------------------------------- */
+@keyframes mb-flip {
+  from {
+    transform: translateX(7px);
+    opacity: 0.25;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes mb-flip-prev {
+  from {
+    transform: translateX(-7px);
+    opacity: 0.25;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes mb-stamp {
+  from {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes mb-rise {
+  from {
+    transform: translateY(6px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #menu *,
+  #app dialog {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ---------- Screens: pause, results, settings and the other modals -------------- */
+#app dialog {
+  max-width: min(960px, calc(100vw - 2 * var(--mb-s3)));
+  padding: var(--mb-s5) calc(28px * var(--mb-u));
+  background: var(--mb-asphalt-1);
+  color: var(--mb-chalk);
+  border: 0;
+  border-radius: 0;
+  box-shadow: inset 0 0 0 1px var(--mb-line-strong);
+  font-family: var(--mb-sans);
+  clip-path: polygon(0 0, calc(100% - var(--mb-notch)) 0, 100% var(--mb-notch), 100% 100%, 0 100%);
+  animation: mb-rise var(--mb-d-board) var(--mb-ease-out);
+}
+#app dialog::backdrop {
+  background: rgba(5, 6, 7, 0.74);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+#app dialog h2 {
+  margin: var(--mb-s3) 0 var(--mb-s3);
+  font: 750 var(--mb-f-title) / 1.1 var(--mb-sans);
+  font-style: normal;
+  font-stretch: 96%;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--mb-chalk);
+}
+#app dialog h2::after {
+  content: '';
+  display: block;
+  width: calc(36px * var(--mb-u));
+  height: 3px;
+  margin-top: var(--mb-s2);
+  background: var(--mb-amber);
+}
+#app dialog p {
+  color: var(--mb-chalk-dim);
+  font: 500 var(--mb-f-lead) / 1.55 var(--mb-sans);
+  letter-spacing: 0;
+}
+#app dialog header button[aria-label^='Close'] {
+  min-width: var(--mb-field);
+  min-height: var(--mb-field);
+  background: transparent;
+  border: 1px solid var(--mb-line-strong);
+  border-radius: 0;
+}
+#app dialog footer {
+  border-top: 1px solid var(--mb-line);
+}
+#app dialog button {
+  border-radius: 0;
+  font-family: var(--mb-sans);
+  font-stretch: 94%;
+  letter-spacing: 0.12em;
+}
+#app dialog .dialog-buttons button {
+  min-height: var(--mb-field);
+  padding: 0 var(--mb-s4);
+  background: var(--mb-asphalt-2);
+  border: 0;
+  border-left: 3px solid var(--mb-line-strong);
+  color: var(--mb-chalk);
+  font-size: calc(12px * var(--mb-u));
+  letter-spacing: 0.14em;
+}
+#app dialog .dialog-buttons button:hover {
+  background: var(--mb-asphalt-3);
+  border-left-color: var(--mb-amber);
+}
+#app dialog .dialog-buttons button.primary {
+  background: var(--mb-amber);
+  border-left-color: var(--mb-ink);
+  color: var(--mb-ink);
+  font-weight: 800;
+}
+#app dialog .dialog-buttons button.primary:hover {
+  background: #ffc652;
+}
+#app dialog .dialog-buttons button:disabled {
+  opacity: 0.4;
+}
+#app dialog :is(select, input[type='number']) {
+  background-color: var(--mb-asphalt-2);
+  background-image: none;
+  border: 0;
+  border-bottom: 2px solid var(--mb-line-strong);
+  border-radius: 0;
+  color: var(--mb-chalk);
+  font-family: var(--mb-sans);
+}
+#app dialog select {
+  background-image: linear-gradient(45deg, transparent 50%, var(--mb-amber) 50%),
+    linear-gradient(135deg, var(--mb-amber) 50%, transparent 50%);
+}
+#app dialog :is(select, input[type='number']):hover {
+  border-bottom-color: var(--mb-amber);
+}
+#app dialog label {
+  color: var(--mb-chalk-dim);
+  font-family: var(--mb-sans);
+  letter-spacing: 0.12em;
+}
+#app dialog input[type='range'],
+#app dialog input[type='checkbox'] {
+  accent-color: var(--mb-amber);
+}
+#app dialog .range-row output,
+#app dialog .control-grid b {
+  color: var(--mb-amber);
+  font-family: var(--mb-sans);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+#app dialog .settings-columns h3 {
+  display: inline-block;
+  margin: var(--mb-s2) 0 var(--mb-s3);
+  padding: var(--mb-s1) var(--mb-s2);
+  background: var(--mb-paper);
+  color: var(--mb-paper-ink);
+  border: 0;
+  font: 650 var(--mb-f-label) / 1 var(--mb-sans);
+  font-style: normal;
+  font-stretch: 92%;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+#app dialog .settings-columns h3:not(:first-child) {
+  margin-top: var(--mb-s5);
+}
+
+/* Controls: key and action pairs flow two to a row, so the list fits the screen. */
+#app dialog .control-grid {
+  grid-template-columns: max-content minmax(0, 1fr) max-content minmax(0, 1fr);
+  gap: var(--mb-s2) var(--mb-s4);
+  align-items: baseline;
+}
+#app dialog:has(.control-grid) {
+  width: min(calc(860px * var(--mb-u)), calc(100vw - 2 * var(--mb-s3)));
+}
+@media (max-width: 640px) {
+  #app dialog .control-grid {
+    grid-template-columns: max-content minmax(0, 1fr);
+  }
+}
+
+/* Pause: the session plate. */
+#app #modal:has(.pause-menu) {
+  width: min(calc(560px * var(--mb-u)), calc(100vw - 2 * var(--mb-s3)));
+}
+#app .pause-menu .pause-head h2 {
+  margin: var(--mb-s2) 0 0;
+  font-size: calc(30px * var(--mb-u));
+}
+#app .pause-circuit {
+  margin-top: var(--mb-s3);
+  color: var(--mb-chalk-dim);
+  font: 650 var(--mb-f-label) / 1 var(--mb-sans);
+  letter-spacing: 0.16em;
+}
+#app .pause-summary {
+  gap: 0;
+  border-radius: 0;
+  background: var(--mb-asphalt-0);
+  box-shadow: inset 0 0 0 1px var(--mb-line);
+}
+#app .pause-summary > div {
+  padding: var(--mb-s2) var(--mb-s3) var(--mb-s3);
+  background: transparent;
+  box-shadow: inset 1px 0 0 var(--mb-line);
+}
+#app .pause-summary > div:first-child {
+  box-shadow: none;
+}
+#app .pause-summary dt {
+  color: var(--mb-chalk-faint);
+  font: 650 var(--mb-f-label) / 1.2 var(--mb-sans);
+  letter-spacing: 0.12em;
+}
+#app .pause-summary dd {
+  margin-top: var(--mb-s1);
+  color: var(--mb-amber);
+  font: 400 calc(18px * var(--mb-u)) / 1.1 var(--mb-stencil);
+  font-stretch: 100%;
+  letter-spacing: 0.02em;
+}
+#app .pause-summary dd small {
+  color: var(--mb-chalk-dim);
+  font: 600 calc(11px * var(--mb-u)) var(--mb-sans);
+}
+#app .pause-more button {
+  background: transparent;
+  border: 1px solid var(--mb-line-strong);
+  color: var(--mb-chalk-dim);
+}
+#app .pause-more button:hover {
+  background: var(--mb-asphalt-2);
+  border-color: var(--mb-amber);
+  color: var(--mb-chalk);
+}
+
+/* Results and standings: a timing sheet. */
+#app .results {
+  border-collapse: collapse;
+  font-size: calc(13px * var(--mb-u));
+}
+#app .results th {
+  padding: var(--mb-s2);
+  background: var(--mb-paper);
+  color: var(--mb-paper-ink);
+  border: 0;
+  font: 700 var(--mb-f-label) / 1 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.14em;
+}
+#app .results td {
+  padding: var(--mb-s2);
+  border-bottom: 1px solid var(--mb-line);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--mb-chalk);
+}
+#app .results td:first-child {
+  width: 3.2em;
+  color: var(--mb-amber);
+  font: 400 calc(15px * var(--mb-u)) / 1 var(--mb-stencil);
+  font-style: normal;
+}
+#app .results .you {
+  background: var(--mb-amber);
+  color: var(--mb-ink);
+}
+#app .results .you td,
+#app .results .you td:first-child {
+  color: var(--mb-ink);
+  border-bottom-color: var(--mb-amber-deep);
+}
+#app .championship-calendar li.next {
+  border-left-color: var(--mb-amber);
+}
+#app .championship-note {
+  border-left: 3px solid var(--mb-amber);
+  color: var(--mb-chalk);
+}
+#app .error-detail {
+  border-left-color: var(--mb-flag);
+}
+
+/* Career, team and review hubs: same frame, token colours. */
+#app :is(.team-hub, .career-hub) :is(nav, .career-disciplines-nav, .career-presets) button[aria-pressed='true'] {
+  background: var(--mb-amber);
+  border-color: var(--mb-amber);
+  color: var(--mb-ink);
+}
+#app .career-state[data-state='open'] {
+  border-color: var(--mb-go);
+  color: var(--mb-go);
+}
+#app .career-state[data-state='locked'] {
+  border-color: var(--mb-amber);
+  color: var(--mb-amber);
+}
+#app .team-stats strong {
+  color: var(--mb-amber);
+  font-family: var(--mb-stencil);
+  font-weight: 400;
+}
+#app .team-hub header h2,
+#app .career-hub > header h2 {
+  margin-bottom: var(--mb-s4);
+}
+
+/* Loading: the same wordmark and bar, no new layout. */
+.loading .brand {
+  font-size: calc(36px * var(--mb-u));
+}

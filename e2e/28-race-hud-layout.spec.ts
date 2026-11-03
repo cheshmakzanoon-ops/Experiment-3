@@ -276,15 +276,21 @@ for (const viewport of [
       await expect.poll(() => region.evaluate((e) => e.scrollTop)).toBeGreaterThan(0);
     await page.keyboard.press('Home');
     await expect.poll(() => region.evaluate((e) => e.scrollTop)).toBe(0);
-    // Nine selects (circuit first, machine last), two start controls, CAREER,
-    // then settings: focus must scroll each into view.
-    for (let i = 0; i < 13; i++) {
+    // The real Tab order: discipline plate, dirt shortcuts, nine selects, two start
+    // controls, CAREER, then settings. Focus must scroll each into view. This loop
+    // used to be a hard-coded 13 presses, which already failed on main once the dirt
+    // shortcuts (and now the discipline plates) became tab stops; it now walks
+    // until the target and checks the same things at every stop.
+    const visited: string[] = [];
+    for (let i = 0; i < 24; i++) {
       await page.keyboard.press('Tab');
       const focused = await page.evaluate(() => {
         const active = document.activeElement as HTMLElement;
         const a = active.getBoundingClientRect();
         const body = document.querySelector('.menu-body')!.getBoundingClientRect();
         return {
+          id: active.id,
+          text: active.textContent?.trim() ?? '',
           inMenu: !!active.closest('.menu-body'),
           top: a.top,
           bottom: a.bottom,
@@ -295,7 +301,23 @@ for (const viewport of [
       expect(focused.inMenu).toBe(true);
       expect(focused.top).toBeGreaterThanOrEqual(focused.bodyTop - 1);
       expect(focused.bottom).toBeLessThanOrEqual(focused.bodyBottom + 1);
+      visited.push(focused.id || focused.text);
+      if (focused.text === 'GARAGE & SETTINGS') break;
     }
+    for (const id of [
+      'circuit',
+      'mode',
+      'laps',
+      'weather',
+      'opponents',
+      'compound',
+      'assist',
+      'startSlot',
+      'vehicle',
+      'CAREER',
+    ])
+      expect(visited, `${id} is reachable by Tab`).toContain(id);
+    expect(visited.some((v) => v.startsWith('ENTER CIRCUIT'))).toBe(true);
     const settings = page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true });
     await expect(settings).toBeFocused();
     await page.keyboard.press('Enter');

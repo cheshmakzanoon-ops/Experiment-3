@@ -32,12 +32,11 @@ export const CIRCUIT_MENU_LABELS: Readonly<Record<CircuitId, string>> = Object.f
     CIRCUIT_IDS.map((id) => [id, ORIGINAL_LABELS[id] ?? catalogueLabel(id)]),
   ) as Record<CircuitId, string>,
 );
-/** One line under the selector: group, corners, DRS zones and the brief. */
+/** The venue's brief, shown under the sheet. The group, corner count and DRS
+ * zones are the sheet's own kicker and stats, so they are not repeated here. */
 export function circuitBlurb(id: CircuitId) {
-  const def = CIRCUITS[id],
-    group = CIRCUIT_GROUPS.find((g) => g.group === circuitGroup(id))!.label,
-    text = def.catalogue?.description ?? ORIGINAL_BLURBS[id] ?? '';
-  return `${group} · ${def.corners.length} named corners · ${def.drsZones.length} DRS · ${text}`;
+  const def = CIRCUITS[id];
+  return def.catalogue?.description ?? ORIGINAL_BLURBS[id] ?? '';
 }
 const escape = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 /** `<optgroup>`ed options for the CIRCUIT selector. */

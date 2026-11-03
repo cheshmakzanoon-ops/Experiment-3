@@ -10,6 +10,9 @@ set `CHROMIUM_PATH` if Playwright cannot find one.
 | `qcap.sh` | Shader check then `scripts/studio/capture-matrix.mjs`, both under a capture lock. Scratch dir: `$STUDIO_SCRATCH` (default `$TMPDIR/apex-studio`). |
 | `shadercheck.mjs` | Loads the build and fails on shader compile / page errors. |
 | `menushot.mjs` | Front-end menu screenshots. |
+| `uxshots.mjs` | Real-game menu screenshots at 1280x720, 1920x1080, 1024x600 and 390x844, plus the GP, dirt, festival and settings scenes (JPEG). |
+| `uxdom.mjs` + `ux-fixture.ts` | Fast DOM-only screens of the real Interface (menu per discipline, pause, results, settings, controls, championship) with no WebGL boot. |
+| `quickstart.mjs` | Menu-to-driving probe counting inputs (G3). Software GL on a shared host is far slower than hardware: the time is an upper bound. |
 | `flashcheck.mjs` | End-to-end flashback check in a live session. |
 | `fastcheck.sh <area>` | Per-area vitest subsets (render, world, car, character, ui, assets, sim). |
 | `pw-port.config.ts` | Playwright config for a worktree build on a private port (`APEX_WT`, `APEX_PORT`). |
