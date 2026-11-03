@@ -92,7 +92,7 @@ export const WEATHER_CATALOGUE: Readonly<Record<WeatherId, WeatherDescriptor>> =
     card: 'Snowfall, packed snow and ice, sub-zero',
     tag: 'SNOW',
     brief:
-      'Sub-zero snowfall on a snow-covered road: loose snow gives about a quarter of dry grip and the polished racing line a tenth, so the line is the slippery part. Visibility closes to 400 m in the squall. Winter tread helps.',
+      'Sub-zero snowfall on a snow-covered road: deep snow gives about a quarter of dry grip and the worn, polished wheel tracks along the racing line about two-fifths, so stay in the tracks. Visibility closes to 400 m in the squall. Winter tread helps.',
     suggestedTyre: 'wet',
   },
 });
