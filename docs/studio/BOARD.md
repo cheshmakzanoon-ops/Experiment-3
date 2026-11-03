@@ -21,6 +21,18 @@ Updated by the PM after every merge. Status: TODO · DOING · MERGED · BLOCKED.
 
 Integration done by PM: weather glyphs on the board dial, weather options data-driven inside Paddock markup, e2e D-pad test no longer expected-fail (passes on merged main).
 
+## Wave 2a — merged to main (6ffc9c5)
+
+| Dept | Result |
+| --- | --- |
+| QA Bikes & Dirt | Re-landed contact-impulse physics + GP racecraft fixes dropped by the restore commit; GP standstill-launch fix; e2e fixture fix. Previously red files now green. Physics version bumped 18 → 19 (PM decision). 7 test expectations were re-landed from upstream ec93c56 (listed in qa-bikes-dirt.md). |
+| Vehicle Art | 57/57 machines captured; EH-3/SC-7 white-hole fix (25 bodies); showroom framing per machine size; rigged driver arms (steering follows); numeric pose probe. |
+
+### New blockers/defects from wave 2a
+- **G15 IP blocker:** default APX-01 uses `supplied-player.glb.gz` = real F1 car + real sponsor sheets (D4). Needs replacement/licence decision. Also the 36 MB asset is the largest boot fetch.
+- `tests/bike-session.test.ts` 'mixed GP/superbike race' still red; margin worse (GP 0.45 s *slower* than superbike). Real balance defect.
+- Open art defects D5–D11 (SS/SBK/CR fairings, open-cockpit drivers, 37 bodies share one livery, kart/truck low detail, showroom backdrop).
+
 ## Wave 2 (queued)
 
 - QA Circuit · QA Bikes & Dirt (start with the wheel-pickup failures) · QA Festival

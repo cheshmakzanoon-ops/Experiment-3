@@ -29,6 +29,7 @@ Status key: **V** verified in repo with evidence · **P** partly · **X** needs 
 | G11 | Store page assets: capsule, trailer script, screenshots, description | drafted in repo | N |
 | G12 | ≥ 10 external playtesters, ≥ 70% would recommend | human data | X |
 | G13 | ≥ 10k wishlists before launch | Steam dashboard | X |
+| G15 | No third-party IP in shipped assets: no real team/sponsor marks, car silhouettes or node names; every asset has a provenance row | asset audit + replacement | **OPEN BLOCKER** — `public/models/supplied-player.glb.gz` (36 MB) is documented as a real F1 car with real sponsor decal sheets (vehicle-art report D4) |
 | G14 | Refund rate < 10 %, review ≥ 80 % positive | Steam dashboard | X |
 
 The studio can close G1–G11 inside this repository. G8, G12–G14 depend on hardware, people and
