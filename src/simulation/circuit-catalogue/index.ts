@@ -6,6 +6,7 @@ import { NIGHT_AND_STREET_SPECS } from './night-and-street.ts';
 import { REAL_WORLD_CLASSIC_SPECS } from './real-world-classics.ts';
 import { REAL_WORLD_SPECS } from './real-world.ts';
 import { UNCONVENTIONAL_SPECS } from './unconventional.ts';
+import { WILDCARD_VENUE_SPECS } from './wildcard-venues.ts';
 import { CATALOGUE_CIRCUIT_IDS, type CatalogueCircuitId } from './venue-data.ts';
 
 /** Every authored catalogue layout spec (WP29-WP30 and catalogue wave 2). */
@@ -17,6 +18,7 @@ export const CATALOGUE_SPECS = Object.freeze([
   ...REAL_WORLD_CLASSIC_SPECS,
   ...NIGHT_AND_STREET_SPECS,
   ...INDUSTRIAL_SPECS,
+  ...WILDCARD_VENUE_SPECS,
 ]);
 /** Every catalogue layout by id. Order follows CATALOGUE_CIRCUIT_IDS. */
 const all = new Map<string, CatalogueCircuit>(

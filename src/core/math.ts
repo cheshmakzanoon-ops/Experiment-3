@@ -89,6 +89,37 @@ export class Quat {
     this.w = Math.cos(a / 2);
     return this;
   }
+  /** The rotation taking the local axes to the orthonormal right-handed basis
+   * (`x`, `y`, `z`): its matrix columns. */
+  fromBasis(x: Vec3, y: Vec3, z: Vec3) {
+    const trace = x.x + y.y + z.z;
+    if (trace > 0) {
+      const s = 2 * Math.sqrt(trace + 1);
+      this.w = s / 4;
+      this.x = (y.z - z.y) / s;
+      this.y = (z.x - x.z) / s;
+      this.z = (x.y - y.x) / s;
+    } else if (x.x > y.y && x.x > z.z) {
+      const s = 2 * Math.sqrt(1 + x.x - y.y - z.z);
+      this.w = (y.z - z.y) / s;
+      this.x = s / 4;
+      this.y = (y.x + x.y) / s;
+      this.z = (z.x + x.z) / s;
+    } else if (y.y > z.z) {
+      const s = 2 * Math.sqrt(1 + y.y - x.x - z.z);
+      this.w = (z.x - x.z) / s;
+      this.x = (y.x + x.y) / s;
+      this.y = s / 4;
+      this.z = (z.y + y.z) / s;
+    } else {
+      const s = 2 * Math.sqrt(1 + z.z - x.x - y.y);
+      this.w = (x.y - y.x) / s;
+      this.x = (z.x + x.z) / s;
+      this.y = (z.y + y.z) / s;
+      this.z = s / 4;
+    }
+    return this;
+  }
   rotate(v: Vec3, out: Vec3) {
     const tx = 2 * (this.y * v.z - this.z * v.y),
       ty = 2 * (this.z * v.x - this.x * v.z),

@@ -46,6 +46,8 @@ export const CATALOGUE_CIRCUIT_IDS = Object.freeze([
   'gantry-point',
   'gantry-point-reverse',
   'salt-flat',
+  // Wildcard series venues (wildcard-venues.ts).
+  'level-nine',
 ] as const);
 export type CatalogueCircuitId = (typeof CATALOGUE_CIRCUIT_IDS)[number];
 /** Terrain venues (src/simulation/offroad/venues.ts), after the catalogue. */

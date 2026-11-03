@@ -4,6 +4,7 @@
 // exits 1 if any definition is invalid.
 import { validateContent } from '../src/simulation/content-validation.ts';
 import { validateCareerContent } from '../src/career/validation.ts';
+import { validateWildcardSeries } from '../src/career/wildcard-validation.ts';
 import { validateRegion } from '../src/simulation/open-world/region-validation.ts';
 import { auditShipment, readRegister, validateRegister } from './assets/register.ts';
 import { thirdPartyManifest } from '../src/rendering/assets/third-party.ts';
@@ -15,7 +16,13 @@ const thirdParty = [
   ...validateRegister(readRegister(root)),
   ...auditShipment(root, thirdPartyManifest, false).errors,
 ].map((e) => `third-party ${e}`);
-const errors = [...validateContent(), ...validateCareerContent(), ...validateRegion(), ...thirdParty];
+const errors = [
+  ...validateContent(),
+  ...validateCareerContent(),
+  ...validateWildcardSeries(),
+  ...validateRegion(),
+  ...thirdParty,
+];
 for (const error of errors) console.error(`INVALID  ${error}`);
 console.log(errors.length ? `${errors.length} content error(s)` : 'Content valid');
 if (errors.length) process.exitCode = 1;

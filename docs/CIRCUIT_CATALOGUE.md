@@ -93,6 +93,28 @@ character; names are original.
 Every wave-2 real-world layout was authored within 0.93–1.12× of its
 published length before scaling (validate:content allows 0.85–1.2).
 
+### Wildcard series venue
+
+One more original layout, authored for the Wildcard series
+(`src/career/wildcard-series.ts`, `circuit-catalogue/wildcard-venues.ts`),
+appended to `CATALOGUE_CIRCUIT_IDS` after wave 2 (earlier geometry, sampling and
+seeded results are untouched).
+
+| Layout | Group | Lap (m) | Reference (m) | Corners | DRS | Pit | Elevation (m) | Max grade | Max bank | Special |
+|---|---|---:|---:|---:|---:|---|---:|---:|---:|---|
+| Level Nine Multi-Storey — Roof Deck (`level-nine`) | unconventional | 1424 | — | 8 | 0 | right | 8 | 4.0% | 1° | fully roofed multi-storey car park: concrete walls 1.4 m off the asphalt, 8 m ramps, six pillar slaloms, two 20 m hairpins |
+
+The whole lap is one venue-kit tunnel (walls, slab roof, strip lights and the
+plaza block above), so rain never reaches the road and the roof spans the lap
+with no new renderer code. The ramps climb 8 m in 200 m (4%) and the crest is
+2.3 km in radius, which keeps a flat-out formula car on the road; the first
+authoring (130 m ramps, 16 m hairpins) launched the field and jammed it, which
+`catalogue-races.ts` caught. It is not `bikeSafe` (walls 1.4 m away, a roof): a
+motorcycle runs it only in the Wildcard series, where dirt and supermoto bikes
+have a passing seeded race. Seeded Formula race (6 cars, 2 laps): best lap
+36.44 s (140.6 km/h), contact 0.011, nothing stuck; its report was merged into
+`circuit-catalogue-races.json` with `catalogue-races.ts level-nine --merge`.
+
 ### Motorcycle safety (`bikeSafe`)
 
 `CircuitDefinition.bikeSafe` (and `catalogue.bikeSafe`) marks a circuit
