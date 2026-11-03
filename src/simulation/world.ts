@@ -3,7 +3,7 @@ import { writeWheelRotation } from './wheel-rotation.ts';
 import { writeWheelContact } from './wheel-contact-state.ts';
 import { K, SKID_BASE } from './protocol.ts';
 import { clamp } from '../core/math.ts';
-import { particulateExtinctionPerKm, reportedSurface } from './weather.ts';
+import { FROST, particulateExtinctionPerKm, reportedSurface } from './weather.ts';
 import type { AIDriver } from './ai.ts';
 import { BikeVehicle, writeBikeBlock } from './bike-vehicle.ts';
 import { gpGridForVehicles, gpGridSlot } from './gp-grid.ts';
@@ -168,7 +168,7 @@ export class Simulation {
       return;
     }
     c.nextCompound =
-      this.track.meanWater() > 0.85
+      this.track.meanWater() > 0.85 || (this.track.cold && this.track.meanFrozen() > FROST.fullCoverMm * 0.5)
         ? 'wet'
         : this.track.meanWater() > 0.3
           ? 'intermediate'
