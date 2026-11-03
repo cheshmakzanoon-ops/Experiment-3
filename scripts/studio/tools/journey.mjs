@@ -737,7 +737,9 @@ class Run {
         lastTick = -1,
         rowFrames = 0,
         rowWall = Date.now(),
-        auto = false;
+        // The AI DRIVER is a toggle that outlives this call: read its real state so a
+        // later fallback never switches it OFF by pressing G a second time.
+        auto = !!first.auto;
       let current = first;
       for (;;) {
         if (stats.ended) break;
