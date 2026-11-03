@@ -13,7 +13,7 @@ performance claim.
 | --- | --- | --- | --- |
 | 1 | DIRT SERIES chips only on the DIRT plate | Done | e2e/60 test written first and seen failing on the old code, then passing; real-game before/after screens of the Circuit and Festival plates |
 | 2 | Wildcard Series as the front door | Done, with two caveats (section 6) | Board of 19 events, door on the paddock board, start from the event, medal and pay on the results screen, persisted by the career save; unit tests drive the real simulation into the real career controller; 3 events re-run headlessly after a weather change |
-| 3 | LIGHT dial | Done | Dial on the board, stored per profile, applied at session load; unit and DOM tests; effect seen in the real race (different sky and shadows), not measured |
+| 3 | LIGHT dial | Done | Dial on the board, stored per profile, applied at session load; unit and DOM tests; real-game A/B: the same dirt race with the default light and with SUNSET chosen on the dial (`after-race-hud` and `after-light-race-hud`); not measured |
 | 4 | HUD identity | Done for tokens, wordmark, numerals, shapes; layout untouched | unit test forbids geometry in the layer; e2e 28, 49, 52 results in section 3 |
 | 5 | CONTINUE | Done (the career hub as front door is not) | DOM test: one input relaunches a form entry or a Wildcard event; stored in the save store |
 | 6 | Loading screen and menu sounds | Done | loading board with the real venue line art and tips per discipline; six WebAudio sounds wired to `motobound:cue` (autoplay, volume and mute tested in a browser with a counting AudioContext; not listened to) |
@@ -58,12 +58,12 @@ Reproduction: `before-menu-circuit` and `before-menu-festival` show the chips un
   catalogue (rain and storm ask for wets). Each changed event was re-run with `scripts/wildcard-races.ts`:
   all three PASS, evidence hashes current (rain 195.5 s became fog 164.8 s at 159 km/h; clear 102.1 s became
   storm 139.4 s at 86 km/h; clear 56.5 s became dust 61.6 s at 55 km/h; AI pace, one seed, loaded host).
-  Pitches were edited to match (`the pitch is read on the board`).
+  The three pitches were edited to match (the pitch is what the board prints).
 
 ### 2.3 LIGHT dial
 
 `rendering/light-choice.ts` (pure): `auto` (the venue's own light: floodlit at night venues, as before),
-`day`, `sunset`, `night`, `live`. Today the presets were not stored at all and a circuit change rebuilt the
+`day`, `sunset`, `night`, `live`. Before this wave the presets were not stored at all and a circuit change rebuilt the
 renderer and dropped them; LIVE was stored in `apex.sky.live.v1`. The choice is now stored per profile (LIVE
 under its old key, presets beside it), applied by `GameApp.applyLight` after the circuit is built and before
 the session reads it (and for the festival), and shared with the driving academy's CIRCUIT LIGHTING buttons.
@@ -142,7 +142,7 @@ Real game (Chromium on SwiftShader, 1280x720, `scripts/studio/tools/ux2shots.mjs
 | Circuit plate (bug 1) | `before-menu-circuit` | `after-menu-circuit` | The DIRT SERIES row is gone and the ticket takes its place: a paper stub with a perforation reads as a different object from the dials below it, which is the point. The row says "WILDCARD SERIES / 0 OF 19 MEDALLED" and nothing about what the series is; a first-time player learns that only by opening it. Nine dials still read as a form in the lower half. |
 | Festival plate (bug 1) | `before-menu-festival` | `after-menu-festival` | Before: motocross chips under a festival, the last dial row under the GO dock. After: no chips, the four dials the festival ignores are gone, SESSION takes the row, and the rules line is two lines; it fits 720p. The region atlas is now lime (the plate colour): coherent, a little loud. |
 | Dirt plate | `before-menu-dirt` | `after-menu-dirt` | The chips stay here and the ticket sits below them, so this plate scrolls a little earlier than before (its own scroll region, as it already did). The map line is now clay (the tint fix), with the amber jump marks. |
-| LIGHT dial | none | `after-light` | The dial shows SUNSET with its glyph. The showroom does not change (it is studio-lit): the dial's tooltip says so, but a player who changes it and sees nothing happen may think it is broken. A swatch of the sky on the dial would fix that. |
+| LIGHT dial | `after-race-hud` (venue default) | `after-light` (the dial), `after-light-race-hud` (the race with SUNSET chosen) | The dial shows SUNSET with its glyph, and the same dirt race starts under a warmer, directional light with long shadows instead of the soft overcast one: the existing renderer preset, now reachable and remembered. It is a modest change, not a dramatic sunset. The dial does not move the menu. The showroom does not change (it is studio-lit): the dial's tooltip says so, but a player who changes it and sees nothing happen may think it is broken. A swatch of the sky on the dial would fix that. |
 | Wildcard door with medals and CONTINUE | none | `after-dom-menu-progress` (DOM) | "5 OF 19 MEDALLED" beside CONTINUE "APX-01 · VELLAMAR COAST": both fit one row of the board. The DOM fixture's data is synthetic (a played career made for the shot). |
 | Wildcard board | none | `after-board`, `after-board-selected` (real game, empty career) | A list of 19 with real line art and a programme page, not a card grid; a dirt bike on a circuit map draws a clay line on a circuit outline. Honest weak points: the right column leaves the bottom third empty at 720p, the machine and the venue share one small grey line in each row, and the dashed "no medal" rings repeat 19 times on a new career (a calm list, but nothing to see yet). `after-board-selected` shows KNOBBLIES ON THE BANKING: the clay line of the dirt bike on the oval. |
 | Wildcard result | none | `after-dom-wildcard-result` (DOM, the real career controller and `settleRace`, synthetic finishing frame) | The medal, what it asked for, NEW BEST and the pay lead the screen. At 720p the classification and the payment table are below the fold; the medal and the total are not. |
@@ -151,8 +151,8 @@ Real game (Chromium on SwiftShader, 1280x720, `scripts/studio/tools/ux2shots.mjs
 | Race HUD (Wildcard night race) | none | `after-wildcard-hud` | The whole chain in the real game: board, START EVENT, loading, a wet-tyre grid on the neon street circuit at night, the new tower header. The pause and briefing screens say GRAND PRIX, not the event's name (listed below). |
 | Briefing and pause | `before-race-briefing`, `before-race-pause` | `after-race-briefing`, `after-race-pause`, `after-wildcard-briefing`, `after-wildcard-pause` | Unchanged chrome (wave 1 had moved them); only the HUD behind them changed. |
 
-The earlier `after-*` captures of the sunset race (first run of the session) were dropped: that build had only
-the token part of the HUD layer.
+Captures taken on earlier builds of the session (the HUD with only the token part of the layer, the board with
+the dialog scrolled) were dropped and retaken.
 
 
 ## 5. Files
@@ -163,7 +163,7 @@ New: `src/ui/wildcard-board.ts` and `.css`, `continue-entry.ts`, `loading-tips.t
 `pw-dom.config.ts`; `docs/studio/reports/ux2-screens/`.
 Changed: `src/ui/launch-board.ts` (strip, door, CONTINUE, LIGHT glyphs, HUD layer injection),
 `interface.ts` (LIGHT dial, board binding, `resultsLead`, `loadingScene`, cues on modals), `glyphs.ts`
-(sunset, night, live, venue, close; weather and light glyph tables), `front-end.css` (12-column grid),
+(sunset, night, live, venue, close; weather and light glyph tables), `front-end.css` (12-column grid, festival dials, the track-art tint fix),
 `menu-gamepad.ts`, `src/career/controller.ts` (wildcard open/start/finish, `attackFinished`, `changed` hook),
 `wildcard-series.ts` (three weather states, wet-tyre rule), `docs/wildcard-races.json` (re-run evidence),
 `src/main.ts` (LIGHT, CONTINUE, the door tally, loading scene, time attack end), `live-sky.ts` (key constant),
@@ -176,9 +176,9 @@ Changed: `src/ui/launch-board.ts` (strip, door, CONTINUE, LIGHT glyphs, HUD laye
 * **Career hub as the front door (ux.md next task 2) is not done**: the hub is still four identical cards.
   Wildcard is reached from the paddock board and from the results screen, not from CAREER.
 * **Pause and briefing do not name a Wildcard event**: they say GRAND PRIX and the venue.
-* **The LIGHT dial shows nothing in the menu** (studio-lit showroom). The light in the race was seen in
-  screenshots (shadows and sky differ between the before and the sunset run) but not measured, and I did not
-  verify LIVE (the real sun) at all: it uses the existing LIVE code with a stored fix or the time zone.
+* **The LIGHT dial shows nothing in the menu** (studio-lit showroom). Its effect in the race is in the A/B screens
+  (default light and SUNSET on the same dirt race); NIGHT and DAY were not captured, and LIVE (the real sun) was
+  not verified at all: it uses the existing LIVE code with a stored fix or the time zone.
 * **Weather does not suggest a light** (no weather data carries one): not invented.
 * **Wildcard results in the real game:** the medal banner is verified by the real career controller fed with
   real simulated sessions (a race and the time attack) and by a DOM screenshot; I did not play a Wildcard race
