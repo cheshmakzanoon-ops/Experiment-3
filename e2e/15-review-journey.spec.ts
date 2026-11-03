@@ -4,8 +4,6 @@ import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { readPresentationReport } from '../src/rendering/presentation-review.ts';
 import { REVIEW_BUILD, REVIEW_ONLY_REASON } from './fixtures/owner-build.ts';
-// G15: the reference catalogue and review panel are compiled out of product builds.
-test.skip(!REVIEW_BUILD, REVIEW_ONLY_REASON);
 const diag = (page: Page) => page.evaluate(() => window.apexDiagnostics());
 async function ready(page: Page) {
   await page.goto('/?dev');
@@ -19,6 +17,7 @@ async function ready(page: Page) {
 test('reference capture uses the actual production PNG and can be unlinked without overwriting its audit', async ({
   page,
 }, info) => {
+  test.skip(!REVIEW_BUILD, REVIEW_ONLY_REASON);
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await ready(page);

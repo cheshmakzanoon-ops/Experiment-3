@@ -3,8 +3,6 @@ import { readFile } from 'node:fs/promises';
 import { test, expect, type Page, type TestInfo } from '@playwright/test';
 import { H, carBase, F } from '../src/simulation/protocol.ts';
 import { REVIEW_BUILD, REVIEW_ONLY_REASON } from './fixtures/owner-build.ts';
-// G15: the reference catalogue and review panel are compiled out of product builds.
-test.skip(!REVIEW_BUILD, REVIEW_ONLY_REASON);
 const diag = (page: Page) => page.evaluate(() => window.apexDiagnostics());
 async function ready(page: Page) {
   await page.goto('/?dev');
@@ -229,6 +227,7 @@ test('reference tools: race and replay photo transitions freeze the displayed fr
 test('reference tools: every supplied number is searchable with duplicates and exclusions visible', async ({
   page,
 }, info) => {
+  test.skip(!REVIEW_BUILD, REVIEW_ONLY_REASON);
   await ready(page);
   await page.getByRole('button', { name: 'REFERENCE REVIEW', exact: true }).click();
   await expect(page.locator('[data-reference]')).toHaveCount(100);

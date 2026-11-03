@@ -269,8 +269,10 @@ export class FormulaCar {
       mesh(s, hero.copy('airbox_paint'), this.paint);
       mesh(s, hero.copy('airbox_carbon'), carbon);
       mesh(s, hero.copy('airbox_dark'), dark);
-      // D18: a halo painted in the team primary (merges with the bodywork).
-      mesh(s, hero.copy('safety'), this.paint);
+      // D18: a halo painted in the team primary (merges with the bodywork). The player's own
+      // car (G15 hero) wears it in carbon instead: in the cockpit and chase views the halo is the
+      // largest object in frame and a saturated livery colour made it read as a toy.
+      mesh(s, hero.copy('safety'), id === 0 ? carbon : this.paint);
     } else {
       addAirbox(s, this.paint, carbon, dark, 'high');
       addSafetyCell(s, carbon, 'high');
