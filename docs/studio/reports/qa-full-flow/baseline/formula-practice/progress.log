@@ -1,0 +1,94 @@
+[    1.8s] browser.open {"viewport":[960,540],"quality":"low"}
+[    1.8s] step.begin {"name":"boot"}
+[    4.0s] boot.domcontentloaded {"ms":2187}
+[    7.9s] worker {"url":"blob:http://127.0.0.1:4214/5d2a45ef-d762-4a4e-aa0a-83dd36acf86a"}
+[    7.9s] worker {"url":"blob:http://127.0.0.1:4214/5d2a45ef-d762-4a4e-aa0a-83dd36acf86a"}
+[    7.9s] worker {"url":"blob:http://127.0.0.1:4214/5d2a45ef-d762-4a4e-aa0a-83dd36acf86a"}
+[    7.9s] worker {"url":"blob:http://127.0.0.1:4214/5d2a45ef-d762-4a4e-aa0a-83dd36acf86a"}
+[   63.2s] wait {"label":"menu visible","waited":59,"mode":null,"stage":"0% · Preparing vehicle showroom…","percent":"0%","rafFrames":143,"maxGapMs":2983}
+[   82.6s] boot.done {"timeToMenuS":80.7,"timeToFirstMenuFrameS":80.7,"paint":{"first-paint":316,"first-contentful-paint":2652},"domContentLoadedMs":2187}
+[   82.6s] step.end {"name":"boot","seconds":80.7}
+[   84.7s] screenshot {"file":"01-menu-boot.png","ms":2129}
+[   84.9s] rss.unavailable {"why":"this.browser.process is not a function"}
+[   84.9s] memory {"label":"menu-after-boot","t":84.9,"jsHeapMB":33.7,"jsHeapTotalMB":34.6,"nodes":2417,"listeners":129,"documents":2,"rssMB":null,"textures":83,"geometries":190}
+[   84.9s] step.begin {"name":"quality-low"}
+[   84.9s] input.click {"n":1,"label":"GARAGE & SETTINGS"}
+[   85.1s] input.select {"n":2,"label":"quality","value":"low"}
+[   85.1s] input.click {"n":3,"label":"APPLY & SAVE"}
+[   95.2s] quality.applied {"quality":"low","seconds":10.258,"busy":false}
+[   95.2s] step.end {"name":"quality-low","seconds":10.3}
+[   95.2s] step.begin {"name":"configure"}
+[   95.3s] input.select {"n":4,"label":"mode","value":"practice"}
+[   95.4s] input.select {"n":5,"label":"opponents","value":"0"}
+[   95.4s] configured {"circuit":"aurel","vehicle":"apx01","mode":"practice","laps":"3","weather":"clear","compound":"medium","assist":"sport","opponents":"0","startSlot":"pole"}
+[   95.5s] sessionRules {"text":"PRACTICE: no mandatory stop · DRS on · no points."}
+[   95.5s] step.end {"name":"configure","seconds":0.3}
+[  106.1s] screenshot {"file":"02-configured.png","ms":10646}
+[  106.1s] step.begin {"name":"enter-practice-1"}
+[  106.1s] input.click {"n":6,"label":"ENTER"}
+[  158.8s] wait {"label":"briefing or driving","waited":52,"mode":"loading","stage":"32% · Player car and live instruments…","percent":"27%","rafFrames":420,"maxGapMs":52398}
+[  175.0s] worker {"url":"blob:http://127.0.0.1:4214/23b39208-81a7-4037-af67-cd6df5aa9878"}
+[  207.3s] wait {"label":"briefing or driving","waited":101,"mode":"loading","stage":"Warming offscreen pit-service materials…","percent":"90%","rafFrames":590,"maxGapMs":52398}
+[  237.6s] wait {"label":"briefing or driving","waited":131,"mode":"loading","stage":"Warming offscreen pit-service materials…","percent":"90%","rafFrames":592,"maxGapMs":52398}
+[  272.7s] session.started {"label":"practice-1","startedAt":106.112,"briefing":false,"timeToDrivingS":157.7,"timeToFirstFrameS":166.6}
+[  272.7s] step.end {"name":"enter-practice-1","seconds":166.6}
+[  291.3s] screenshot {"file":"03-practice-1-first-frame.png","ms":18601}
+[  291.3s] step.begin {"name":"drive-practice-1"}
+[  291.5s] driving {"sim":32.7,"kph":1,"lap":0,"rank":1,"s":2935,"lat":-2.3,"keys":"leftthrottle","fps":0.13040562122603214,"auto":false}
+[  306.8s] driving {"sim":48,"kph":63,"lap":0,"rank":1,"s":489,"lat":-2.4,"keys":"throttleright","fps":0.1289362290784103,"auto":false}
+[  321.4s] drive.done {"label":"practice-1","ended":"sim-seconds","simElapsed":29.9,"wallS":30.1,"rtf":0.99,"maxKph":250,"offTrackS":13.4,"stuckS":1.9,"keyEvents":194}
+[  321.4s] step.end {"name":"drive-practice-1","seconds":30.1}
+[  321.4s] FINDING {"severity":"minor","where":"hud-speed","message":"HUD speed disagrees with the simulation speed in 26/29 samples"}
+[  321.4s] page.stall {"maxGapMs":52398,"longTasks":96,"longMs":155521}
+[  321.4s] step.begin {"name":"pause-resume"}
+[  321.4s] input.key {"label":"ESC (pause)","code":"Escape"}
+[  324.5s] FINDING {"severity":"major","where":"pause","message":"Simulation advanced while paused (tick 6819 -> 6820, time 62.732 -> 62.741)"}
+[  324.5s] FINDING {"severity":"major","where":"pause","message":"Player moved while paused"}
+[  345.3s] screenshot {"file":"04-paused.png","ms":20790}
+[  345.3s] input.click {"n":8,"label":"RESUME SESSION"}
+[  372.7s] screenshot {"file":"05-resumed.png","ms":19100}
+[  372.7s] input.key {"label":"ESC (pause 2)","code":"Escape"}
+[  372.7s] input.key {"label":"ESC (resume 2)","code":"Escape"}
+[  402.7s] wait {"label":"driving after ESC resume","waited":30,"mode":"paused","stage":"Waiting for completed cockpit GPU work…","percent":"94%","rafFrames":672,"maxGapMs":52398}
+[  432.8s] FINDING {"severity":"major","where":"resume","message":"ESC does not resume a paused session (the pause menu stays open)"}
+[  432.8s] input.click {"n":11,"label":"RESUME SESSION (fallback)"}
+[  433.1s] step.end {"name":"pause-resume","seconds":111.7}
+[  433.1s] step.begin {"name":"drive-practice-1-after-resume"}
+[  433.1s] driving {"sim":84.4,"kph":0,"lap":0,"rank":1,"s":562,"lat":16.1,"keys":"rightthrottle","fps":0.15749020710124187,"auto":false}
+[  441.2s] drive.done {"label":"practice-1-after-resume","ended":"sim-seconds","simElapsed":7.9,"wallS":8.1,"rtf":0.98,"maxKph":6,"offTrackS":8,"stuckS":2,"keyEvents":54}
+[  441.2s] step.end {"name":"drive-practice-1-after-resume","seconds":8.1}
+[  441.2s] page.stall {"maxGapMs":52398,"longTasks":106,"longMs":156595}
+[  441.2s] input.key {"label":"ESC (pause to exit)","code":"Escape"}
+[  441.2s] step.begin {"name":"exit-to-menu"}
+[  441.2s] input.click {"n":13,"label":"RETURN TO PADDOCK"}
+[  456.8s] step.end {"name":"exit-to-menu","seconds":15.7}
+[  456.8s] exit.done {"seconds":15.7}
+[  462.8s] screenshot {"file":"06-menu-after-exit.png","ms":5948}
+[  463.1s] rss.unavailable {"why":"this.browser.process is not a function"}
+[  463.1s] memory {"label":"menu-after-session-1","t":463.1,"jsHeapMB":71.8,"jsHeapTotalMB":73.8,"nodes":2596,"listeners":160,"documents":2,"rssMB":null,"textures":203,"geometries":1670}
+[  463.1s] step.begin {"name":"configure"}
+[  463.2s] configured {"circuit":"aurel","vehicle":"apx01","mode":"practice","laps":"3","weather":"clear","compound":"medium","assist":"sport","opponents":"0","startSlot":"pole"}
+[  463.2s] sessionRules {"text":"PRACTICE: no mandatory stop · DRS on · no points."}
+[  463.2s] step.end {"name":"configure","seconds":0.1}
+[  463.4s] screenshot {"file":"07-configured.png","ms":286}
+[  463.4s] step.begin {"name":"enter-practice-2"}
+[  463.4s] input.click {"n":14,"label":"ENTER"}
+[  463.5s] worker {"url":"blob:http://127.0.0.1:4214/9dc8a25d-95b2-48de-b328-84ea456efa1b"}
+[  494.1s] wait {"label":"briefing or driving","waited":31,"mode":"loading","stage":"Waiting for completed cockpit GPU work…","percent":"94%","rafFrames":971,"maxGapMs":52398}
+[  503.8s] session.started {"label":"practice-2","startedAt":463.443,"briefing":false,"timeToDrivingS":32.1,"timeToFirstFrameS":40.4}
+[  503.8s] step.end {"name":"enter-practice-2","seconds":40.4}
+[  529.3s] screenshot {"file":"08-practice-2-first-frame.png","ms":25505}
+[  529.3s] step.begin {"name":"drive-practice-2"}
+[  529.6s] driving {"sim":38,"kph":1,"lap":0,"rank":1,"s":2933,"lat":-2.3,"keys":"leftthrottle","fps":0.14633286664112008,"auto":false}
+[  544.7s] drive.done {"label":"practice-2","ended":"sim-seconds","simElapsed":15,"wallS":15.3,"rtf":0.98,"maxKph":217,"offTrackS":2.4,"stuckS":0,"keyEvents":92}
+[  544.7s] step.end {"name":"drive-practice-2","seconds":15.3}
+[  544.7s] FINDING {"severity":"minor","where":"hud-speed","message":"HUD speed disagrees with the simulation speed in 12/15 samples"}
+[  544.7s] page.stall {"maxGapMs":52398,"longTasks":126,"longMs":163904}
+[  544.7s] input.key {"label":"ESC (pause to exit)","code":"Escape"}
+[  544.7s] step.begin {"name":"exit-to-menu"}
+[  544.7s] input.click {"n":16,"label":"RETURN TO PADDOCK"}
+[  573.2s] step.end {"name":"exit-to-menu","seconds":28.5}
+[  573.2s] exit.done {"seconds":28.5}
+[  579.6s] screenshot {"file":"09-menu-after-exit.png","ms":6373}
+[  580.0s] rss.unavailable {"why":"this.browser.process is not a function"}
+[  579.9s] memory {"label":"menu-after-session-2","t":579.9,"jsHeapMB":72.1,"jsHeapTotalMB":74.3,"nodes":2596,"listeners":160,"documents":2,"rssMB":null,"textures":203,"geometries":1697}

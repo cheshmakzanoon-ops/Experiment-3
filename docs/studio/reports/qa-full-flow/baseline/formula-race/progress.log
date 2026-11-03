@@ -1,0 +1,108 @@
+[    0.5s] browser.open {"viewport":[960,540],"quality":"low"}
+[    0.5s] step.begin {"name":"boot"}
+[    2.0s] boot.domcontentloaded {"ms":1557}
+[    4.5s] worker {"url":"blob:http://127.0.0.1:4214/3f995511-f0af-4330-b800-06add51a10c3"}
+[    4.5s] worker {"url":"blob:http://127.0.0.1:4214/3f995511-f0af-4330-b800-06add51a10c3"}
+[    4.5s] worker {"url":"blob:http://127.0.0.1:4214/3f995511-f0af-4330-b800-06add51a10c3"}
+[    4.5s] worker {"url":"blob:http://127.0.0.1:4214/3f995511-f0af-4330-b800-06add51a10c3"}
+[   49.3s] wait {"label":"menu visible","waited":47,"mode":null,"stage":"0% · Preparing vehicle showroom…","percent":"0%","rafFrames":63,"maxGapMs":2033}
+[   64.4s] boot.done {"timeToMenuS":64,"timeToFirstMenuFrameS":64,"paint":{"first-paint":676,"first-contentful-paint":1820},"domContentLoadedMs":1557}
+[   64.4s] step.end {"name":"boot","seconds":64}
+[   67.0s] screenshot {"file":"01-menu-boot.png","ms":2607}
+[   67.3s] memory {"label":"menu-after-boot","t":67.3,"jsHeapMB":33.7,"jsHeapTotalMB":34.8,"nodes":2417,"listeners":133,"documents":2,"rssMB":2098,"textures":83,"geometries":190}
+[   67.3s] step.begin {"name":"quality-low"}
+[   67.3s] input.click {"n":1,"label":"GARAGE & SETTINGS"}
+[   67.6s] input.select {"n":2,"label":"quality","value":"low"}
+[   67.6s] input.click {"n":3,"label":"APPLY & SAVE"}
+[   81.0s] quality.applied {"quality":"low","seconds":13.672,"busy":false}
+[   81.0s] step.end {"name":"quality-low","seconds":13.7}
+[   81.0s] step.begin {"name":"configure"}
+[   81.1s] input.select {"n":4,"label":"circuit","value":"arroyo-oro"}
+[   81.2s] input.select {"n":5,"label":"opponents","value":"3"}
+[   81.2s] configured {"circuit":"arroyo-oro","vehicle":"apx01","mode":"race","laps":"3","weather":"clear","compound":"medium","assist":"sport","opponents":"3","startSlot":"pole"}
+[   81.2s] sessionRules {"text":"FORMULA GRAND PRIX: no mandatory stop · DRS on · points scored."}
+[   81.2s] step.end {"name":"configure","seconds":0.2}
+[   95.4s] screenshot {"file":"02-configured.png","ms":14175}
+[   95.4s] step.begin {"name":"enter-race-1"}
+[   95.4s] input.click {"n":6,"label":"ENTER"}
+[  144.8s] wait {"label":"briefing or driving","waited":49,"mode":"loading","stage":"43% · Player car and live instruments…","percent":"37%","rafFrames":311,"maxGapMs":43082}
+[  151.2s] worker {"url":"blob:http://127.0.0.1:4214/63d77e71-1f7f-40e6-bbfe-0110d3a82198"}
+[  183.8s] wait {"label":"briefing or driving","waited":88,"mode":"loading","stage":"Warming offscreen pit-service materials…","percent":"90%","rafFrames":402,"maxGapMs":43082}
+[  214.0s] wait {"label":"briefing or driving","waited":118,"mode":"loading","stage":"Waiting for completed cockpit GPU work…","percent":"94%","rafFrames":421,"maxGapMs":43082}
+[  226.1s] input.click {"n":7,"label":"briefing: GO STRAIGHT TO LIGHTS"}
+[  239.5s] session.started {"label":"race-1","startedAt":95.407,"briefing":true,"timeToDrivingS":138.9,"timeToFirstFrameS":144.1}
+[  239.5s] step.end {"name":"enter-race-1","seconds":144.1}
+[  254.9s] screenshot {"file":"03-race-1-first-frame.png","ms":15384}
+[  254.9s] step.begin {"name":"drive-race-1-opening"}
+[  255.0s] driving {"sim":19.2,"kph":0,"lap":0,"rank":3,"s":3569,"lat":-2.2,"keys":"LT","rafFps":0,"auto":false}
+[  270.1s] driving {"sim":34.3,"kph":158,"lap":0,"rank":3,"s":655,"lat":-2.5,"keys":"B","rafFps":0,"auto":false}
+[  284.9s] drive.done {"label":"race-1-opening","ended":"sim-seconds","simElapsed":30,"wallS":30,"rtf":1,"maxKph":248,"offTrackS":9.8,"stuckS":0.3,"keyEvents":384}
+[  284.9s] step.end {"name":"drive-race-1-opening","seconds":30}
+[  284.9s] page.stall {"maxGapMs":43082,"longTasks":59,"longMs":142454}
+[  284.9s] step.begin {"name":"pause-resume"}
+[  285.0s] input.key {"label":"ESC (pause)","code":"Escape"}
+[  295.1s] screenshot {"file":"04-paused.png","ms":6773}
+[  295.1s] input.click {"n":9,"label":"RESUME SESSION"}
+[  307.1s] screenshot {"file":"05-resumed.png","ms":6937}
+[  307.1s] input.key {"label":"ESC (pause 2)","code":"Escape"}
+[  307.1s] input.key {"label":"ESC (resume 2)","code":"Escape"}
+[  337.2s] wait {"label":"driving after ESC resume","waited":30,"mode":"paused","stage":"Waiting for completed cockpit GPU work…","percent":"94%","rafFrames":544,"maxGapMs":43082}
+[  367.2s] FINDING {"severity":"major","where":"resume","message":"ESC does not resume a paused session (the pause menu stays open)"}
+[  367.2s] input.click {"n":12,"label":"RESUME SESSION (fallback)"}
+[  367.9s] step.end {"name":"pause-resume","seconds":82.9}
+[  367.9s] step.begin {"name":"drive-race-1-to-finish"}
+[  367.9s] driving {"sim":58.7,"kph":0,"lap":0,"rank":4,"s":819,"lat":-16.2,"keys":"LT","rafFps":0,"auto":false}
+[  380.1s] FINDING {"severity":"major","where":"keyboard-driver","message":"Keyboard driver off the track edge for >10 s at t=71 s; switching on the in-game AI DRIVER (G)"}
+[  380.1s] input.key {"label":"AI DRIVER (G)","code":"KeyG"}
+[  382.9s] driving {"sim":73.6,"kph":0,"lap":0,"rank":4,"s":818,"lat":-17.5,"keys":"","rafFps":0,"auto":true}
+[  397.9s] driving {"sim":88.6,"kph":64,"lap":0,"rank":4,"s":875,"lat":0.2,"keys":"","rafFps":0,"auto":true}
+[  412.9s] driving {"sim":103.7,"kph":71,"lap":0,"rank":4,"s":1144,"lat":-2.8,"keys":"","rafFps":0,"auto":true}
+[  427.9s] driving {"sim":118.6,"kph":41,"lap":0,"rank":4,"s":1376,"lat":4.9,"keys":"","rafFps":0,"auto":true}
+[  443.0s] driving {"sim":133.7,"kph":95,"lap":0,"rank":4,"s":1734,"lat":2.7,"keys":"","rafFps":0,"auto":true}
+[  458.0s] driving {"sim":148.7,"kph":38,"lap":0,"rank":4,"s":1949,"lat":-4.6,"keys":"","rafFps":0,"auto":true}
+[  473.1s] driving {"sim":163.8,"kph":76,"lap":0,"rank":4,"s":2241,"lat":4.6,"keys":"","rafFps":0,"auto":true}
+[  488.1s] driving {"sim":178.8,"kph":67,"lap":0,"rank":4,"s":2454,"lat":2.2,"keys":"","rafFps":4.7,"auto":true}
+[  503.1s] driving {"sim":193.8,"kph":57,"lap":0,"rank":4,"s":2702,"lat":-3.4,"keys":"","rafFps":7.83,"auto":true}
+[  518.1s] driving {"sim":208.4,"kph":67,"lap":0,"rank":4,"s":3040,"lat":-4.5,"keys":"","rafFps":0,"auto":true}
+[  533.2s] driving {"sim":223.4,"kph":46,"lap":0,"rank":4,"s":3228,"lat":-4.5,"keys":"","rafFps":0,"auto":true}
+[  548.2s] driving {"sim":238.4,"kph":19,"lap":0,"rank":4,"s":3362,"lat":-5.1,"keys":"","rafFps":0,"auto":true}
+[  563.2s] driving {"sim":253.4,"kph":39,"lap":0,"rank":4,"s":3523,"lat":-20.4,"keys":"","rafFps":0,"auto":true}
+[  570.6s] drive.done {"label":"race-1-to-finish","ended":"results","simElapsed":201.9,"wallS":202.7,"rtf":1,"maxKph":146,"offTrackS":125.7,"stuckS":13.6,"keyEvents":90}
+[  570.6s] step.end {"name":"drive-race-1-to-finish","seconds":202.7}
+[  570.6s] page.stall {"maxGapMs":43082,"longTasks":92,"longMs":146700}
+[  570.6s] step.begin {"name":"results"}
+[  572.2s] results {"heading":"Across the line.","rows":4,"buttons":["WATCH REPLAY","TELEMETRY","PHOTO STUDIO","RACE AGAIN","PADDOCK"]}
+[  582.7s] screenshot {"file":"06-results.png","ms":10535}
+[  582.7s] step.end {"name":"results","seconds":12.1}
+[  582.7s] step.begin {"name":"exit-to-menu"}
+[  582.7s] input.click {"n":13,"label":"PADDOCK"}
+[  597.2s] step.end {"name":"exit-to-menu","seconds":14.4}
+[  597.2s] exit.done {"seconds":14.4}
+[  601.8s] screenshot {"file":"07-menu-after-exit.png","ms":4659}
+[  602.1s] memory {"label":"menu-after-session-1","t":602.1,"jsHeapMB":73.2,"jsHeapTotalMB":75.9,"nodes":2734,"listeners":162,"documents":2,"rssMB":2975,"textures":149,"geometries":2464}
+[  602.1s] step.begin {"name":"configure"}
+[  602.2s] input.select {"n":14,"label":"laps","value":"1"}
+[  602.3s] configured {"circuit":"arroyo-oro","vehicle":"apx01","mode":"race","laps":"1","weather":"clear","compound":"medium","assist":"sport","opponents":"3","startSlot":"pole"}
+[  602.3s] sessionRules {"text":"FORMULA GRAND PRIX: no mandatory stop · DRS on · points scored."}
+[  602.3s] step.end {"name":"configure","seconds":0.1}
+[  602.9s] screenshot {"file":"08-configured.png","ms":568}
+[  602.9s] step.begin {"name":"enter-race-2"}
+[  602.9s] input.click {"n":15,"label":"ENTER"}
+[  602.9s] worker {"url":"blob:http://127.0.0.1:4214/9fdbf18e-1054-44c9-9bd5-cb3b7e7e6a0e"}
+[  627.7s] input.click {"n":16,"label":"briefing: GO STRAIGHT TO LIGHTS"}
+[  632.4s] session.started {"label":"race-2","startedAt":602.865,"briefing":true,"timeToDrivingS":27.9,"timeToFirstFrameS":29.5}
+[  632.4s] step.end {"name":"enter-race-2","seconds":29.5}
+[  645.5s] screenshot {"file":"09-race-2-first-frame.png","ms":13159}
+[  645.5s] step.begin {"name":"drive-race-2"}
+[  645.6s] driving {"sim":13.4,"kph":0,"lap":0,"rank":3,"s":3570,"lat":-2.2,"keys":"RT","rafFps":0,"auto":false}
+[  660.6s] driving {"sim":28.3,"kph":7,"lap":0,"rank":4,"s":179,"lat":-12.3,"keys":"T","rafFps":0,"auto":false}
+[  660.8s] drive.done {"label":"race-2","ended":"sim-seconds","simElapsed":15,"wallS":15.3,"rtf":0.98,"maxKph":139,"offTrackS":9,"stuckS":1,"keyEvents":130}
+[  660.8s] step.end {"name":"drive-race-2","seconds":15.3}
+[  660.8s] page.stall {"maxGapMs":43082,"longTasks":109,"longMs":152047}
+[  660.8s] input.key {"label":"ESC (pause to exit)","code":"Escape"}
+[  660.8s] step.begin {"name":"exit-to-menu"}
+[  660.8s] input.click {"n":18,"label":"RETURN TO PADDOCK"}
+[  676.8s] step.end {"name":"exit-to-menu","seconds":15.9}
+[  676.8s] exit.done {"seconds":15.9}
+[  680.6s] screenshot {"file":"10-menu-after-exit.png","ms":3799}
+[  680.9s] memory {"label":"menu-after-session-2","t":680.9,"jsHeapMB":73.3,"jsHeapTotalMB":76.2,"nodes":2712,"listeners":162,"documents":2,"rssMB":2923,"textures":149,"geometries":2464}

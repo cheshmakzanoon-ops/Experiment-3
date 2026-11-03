@@ -161,6 +161,15 @@ const INIT_SCRIPT = () => {
   // window.__jr.frame so the driving loop reads state in microseconds instead of
   // calling the (heavy) apexDiagnostics() ten times a second. Read-only: the
   // listener runs before the application's own handler and never touches the data.
+  s.keys = [];
+  window.addEventListener(
+    'keydown',
+    (e) => {
+      s.keys.push([e.code, e.defaultPrevented, e.repeat, (e.target && e.target.tagName) || '', Math.round(performance.now())]);
+      if (s.keys.length > 40) s.keys.shift();
+    },
+    true,
+  );
   s.frame = null;
   s.frameAt = 0;
   s.frameMessages = 0;
@@ -480,7 +489,18 @@ class Run {
       say('step.end', { name, seconds: Number(((Date.now() - start) / 1000).toFixed(1)) });
       return result;
     } catch (error) {
-      finding('blocker', name, `Step failed: ${String(error.message ?? error).slice(0, 400)}`);
+      const probe = await this.page
+        .evaluate(() => ({
+          keys: window.__jr?.keys?.slice(-8),
+          active: document.activeElement ? document.activeElement.tagName + '#' + document.activeElement.id : null,
+          hasFocus: document.hasFocus(),
+          visibility: document.visibilityState,
+          state: window.apexDiagnostics?.().state,
+          now: Math.round(performance.now()),
+        }))
+        .catch((e) => ({ probeFailed: String(e.message).slice(0, 100) }));
+      say('step.failed.probe', probe);
+      finding('blocker', name, `Step failed: ${String(error.message ?? error).slice(0, 400)}`, { probe });
       await this.shot(`FAIL-${name}`).catch((e) => say('shot.failed', { why: String(e.message).slice(0, 120) }));
       throw error;
     }

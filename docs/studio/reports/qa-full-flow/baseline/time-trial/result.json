@@ -1,0 +1,2285 @@
+{
+ "journey": "time-trial",
+ "cfg": {
+  "url": "http://127.0.0.1:4214",
+  "journey": "time-trial",
+  "out": "/tmp/claude-0/-home-user-Experiment-3/d7f7b547-44bc-5977-9962-da1e5626b4ba/scratchpad/j/time-trial",
+  "quality": "low",
+  "simSeconds": 30,
+  "viewport": [
+   960,
+   540
+  ],
+  "bootTimeoutS": 900,
+  "startTimeoutS": 900,
+  "festivalMaxS": 1500,
+  "profile": true,
+  "shots": true,
+  "wildcardId": "formula-on-the-wall",
+  "secondSimSeconds": 15,
+  "festivalSingle": false
+ },
+ "timeline": [
+  {
+   "t": 1.2,
+   "kind": "browser.open",
+   "viewport": [
+    960,
+    540
+   ],
+   "quality": "low"
+  },
+  {
+   "t": 1.2,
+   "kind": "step.begin",
+   "name": "boot"
+  },
+  {
+   "t": 4.2,
+   "kind": "boot.domcontentloaded",
+   "ms": 3044
+  },
+  {
+   "t": 7,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4214/b62328ee-30c5-4143-932f-a04b3c0935a1"
+  },
+  {
+   "t": 7.1,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4214/b62328ee-30c5-4143-932f-a04b3c0935a1"
+  },
+  {
+   "t": 7.1,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4214/b62328ee-30c5-4143-932f-a04b3c0935a1"
+  },
+  {
+   "t": 7.1,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4214/b62328ee-30c5-4143-932f-a04b3c0935a1"
+  },
+  {
+   "t": 64.9,
+   "kind": "wait",
+   "label": "menu visible",
+   "waited": 61,
+   "mode": null,
+   "stage": "0% · Preparing vehicle showroom…",
+   "percent": "0%",
+   "rafFrames": 100,
+   "maxGapMs": 2183
+  },
+  {
+   "t": 80.3,
+   "kind": "boot.done",
+   "timeToMenuS": 79.1,
+   "timeToFirstMenuFrameS": 79.1,
+   "paint": {
+    "first-paint": 976,
+    "first-contentful-paint": 3812
+   },
+   "domContentLoadedMs": 3044
+  },
+  {
+   "t": 80.3,
+   "kind": "step.end",
+   "name": "boot",
+   "seconds": 79.1
+  },
+  {
+   "t": 82.7,
+   "kind": "screenshot",
+   "file": "01-menu-boot.png",
+   "ms": 2317
+  },
+  {
+   "t": 82.8,
+   "kind": "memory",
+   "label": "menu-after-boot",
+   "jsHeapMB": 33.8,
+   "jsHeapTotalMB": 35.1,
+   "nodes": 2417,
+   "listeners": 133,
+   "documents": 2,
+   "rssMB": 2059,
+   "textures": 83,
+   "geometries": 190
+  },
+  {
+   "t": 82.8,
+   "kind": "step.begin",
+   "name": "quality-low"
+  },
+  {
+   "t": 82.8,
+   "kind": "input.click",
+   "n": 1,
+   "label": "GARAGE & SETTINGS"
+  },
+  {
+   "t": 83,
+   "kind": "input.select",
+   "n": 2,
+   "label": "quality",
+   "value": "low"
+  },
+  {
+   "t": 83.1,
+   "kind": "input.click",
+   "n": 3,
+   "label": "APPLY & SAVE"
+  },
+  {
+   "t": 93.5,
+   "kind": "quality.applied",
+   "quality": "low",
+   "seconds": 10.733,
+   "busy": false
+  },
+  {
+   "t": 93.5,
+   "kind": "step.end",
+   "name": "quality-low",
+   "seconds": 10.7
+  },
+  {
+   "t": 93.5,
+   "kind": "step.begin",
+   "name": "seed-ghost"
+  },
+  {
+   "t": 104.6,
+   "kind": "ghost.seeded",
+   "lapTime": 50.02914943695068
+  },
+  {
+   "t": 104.6,
+   "kind": "step.end",
+   "name": "seed-ghost",
+   "seconds": 11.1
+  },
+  {
+   "t": 104.6,
+   "kind": "step.begin",
+   "name": "configure"
+  },
+  {
+   "t": 104.8,
+   "kind": "input.select",
+   "n": 4,
+   "label": "mode",
+   "value": "time-trial"
+  },
+  {
+   "t": 104.8,
+   "kind": "configured",
+   "circuit": "aurel",
+   "vehicle": "apx01",
+   "mode": "time-trial",
+   "laps": "3",
+   "weather": "clear",
+   "compound": "medium",
+   "assist": "sport",
+   "opponents": "7",
+   "startSlot": "pole"
+  },
+  {
+   "t": 104.9,
+   "kind": "sessionRules",
+   "text": "TIME TRIAL: no mandatory stop · DRS on · no points."
+  },
+  {
+   "t": 104.9,
+   "kind": "step.end",
+   "name": "configure",
+   "seconds": 0.2
+  },
+  {
+   "t": 115.3,
+   "kind": "screenshot",
+   "file": "02-configured.png",
+   "ms": 10467
+  },
+  {
+   "t": 115.3,
+   "kind": "step.begin",
+   "name": "enter-trial-1"
+  },
+  {
+   "t": 115.6,
+   "kind": "input.click",
+   "n": 5,
+   "label": "ENTER"
+  },
+  {
+   "t": 176.8,
+   "kind": "wait",
+   "label": "briefing or driving",
+   "waited": 61,
+   "mode": "loading",
+   "stage": "33% · Track surface…",
+   "percent": "28%",
+   "rafFrames": 519,
+   "maxGapMs": 55298
+  },
+  {
+   "t": 196.1,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4214/13b3591e-2106-452e-ab9e-15343a848840"
+  },
+  {
+   "t": 231.4,
+   "kind": "wait",
+   "label": "briefing or driving",
+   "waited": 115,
+   "mode": "loading",
+   "stage": "Warming offscreen pit-service materials…",
+   "percent": "90%",
+   "rafFrames": 676,
+   "maxGapMs": 55298
+  },
+  {
+   "t": 262,
+   "kind": "wait",
+   "label": "briefing or driving",
+   "waited": 146,
+   "mode": "loading",
+   "stage": "Warming offscreen pit-service materials…",
+   "percent": "90%",
+   "rafFrames": 678,
+   "maxGapMs": 55298
+  },
+  {
+   "t": 292.5,
+   "kind": "wait",
+   "label": "briefing or driving",
+   "waited": 177,
+   "mode": "loading",
+   "stage": "Waiting for completed cockpit GPU work…",
+   "percent": "94%",
+   "rafFrames": 696,
+   "maxGapMs": 55298
+  },
+  {
+   "t": 323.9,
+   "kind": "session.profile",
+   "totalMs": 207276,
+   "idlePct": 47,
+   "files": [
+    {
+     "file": "(idle)",
+     "ms": 98037
+    },
+    {
+     "file": "drawImage",
+     "ms": 40168
+    },
+    {
+     "file": "getProgramInfoLog",
+     "ms": 30621
+    },
+    {
+     "file": "index.js",
+     "ms": 17091
+    },
+    {
+     "file": "three.js",
+     "ms": 8923
+    },
+    {
+     "file": "(garbage collector)",
+     "ms": 3166
+    }
+   ],
+   "top": [
+    {
+     "fn": "(idle) :-1",
+     "ms": 98037
+    },
+    {
+     "fn": "drawImage :-1",
+     "ms": 40168
+    },
+    {
+     "fn": "getProgramInfoLog :-1",
+     "ms": 30621
+    },
+    {
+     "fn": "(garbage collector) :-1",
+     "ms": 3166
+    },
+    {
+     "fn": "d index-CbE6jY_R.js:1",
+     "ms": 2966
+    },
+    {
+     "fn": "(program) :-1",
+     "ms": 2879
+    },
+    {
+     "fn": "fX index-CbE6jY_R.js:1560",
+     "ms": 1593
+    },
+    {
+     "fn": "bufferData :-1",
+     "ms": 1551
+    }
+   ]
+  },
+  {
+   "t": 323.9,
+   "kind": "session.started",
+   "label": "trial-1",
+   "startedAt": 115.324,
+   "briefing": false,
+   "timeToDrivingS": 195.7,
+   "timeToFirstFrameS": 207.3,
+   "profile": {
+    "totalMs": 207276,
+    "idlePct": 47,
+    "top": [
+     {
+      "fn": "(idle) :-1",
+      "ms": 98037
+     },
+     {
+      "fn": "drawImage :-1",
+      "ms": 40168
+     },
+     {
+      "fn": "getProgramInfoLog :-1",
+      "ms": 30621
+     },
+     {
+      "fn": "(garbage collector) :-1",
+      "ms": 3166
+     },
+     {
+      "fn": "d index-CbE6jY_R.js:1",
+      "ms": 2966
+     },
+     {
+      "fn": "(program) :-1",
+      "ms": 2879
+     },
+     {
+      "fn": "fX index-CbE6jY_R.js:1560",
+      "ms": 1593
+     },
+     {
+      "fn": "bufferData :-1",
+      "ms": 1551
+     },
+     {
+      "fn": "fromBufferAttribute three-CuIIN4MI.js:4",
+      "ms": 1224
+     },
+     {
+      "fn": "yS index-CbE6jY_R.js:854",
+      "ms": 1205
+     },
+     {
+      "fn": "getBufferParameter :-1",
+      "ms": 1112
+     },
+     {
+      "fn": "setFromBufferAttribute three-CuIIN4MI.js:4",
+      "ms": 967
+     },
+     {
+      "fn": "update index-CbE6jY_R.js:81",
+      "ms": 951
+     },
+     {
+      "fn": "getX three-CuIIN4MI.js:4",
+      "ms": 679
+     },
+     {
+      "fn": "copy three-CuIIN4MI.js:4",
+      "ms": 589
+     },
+     {
+      "fn": "f4e index-CbE6jY_R.js:6580",
+      "ms": 573
+     },
+     {
+      "fn": "setXYZ three-CuIIN4MI.js:4",
+      "ms": 494
+     },
+     {
+      "fn": "shaderSource :-1",
+      "ms": 441
+     },
+     {
+      "fn": "ep index-CbE6jY_R.js:2873",
+      "ms": 434
+     },
+     {
+      "fn": "(anonymous) index-CbE6jY_R.js:6580",
+      "ms": 434
+     },
+     {
+      "fn": "DP index-CbE6jY_R.js:3849",
+      "ms": 433
+     },
+     {
+      "fn": "computeBoundingSphere three-CuIIN4MI.js:4",
+      "ms": 416
+     },
+     {
+      "fn": "d index-CbE6jY_R.js:3995",
+      "ms": 412
+     },
+     {
+      "fn": "computeVertexNormals three-CuIIN4MI.js:4",
+      "ms": 404
+     },
+     {
+      "fn": "getShaderInfoLog :-1",
+      "ms": 394
+     }
+    ],
+    "files": [
+     {
+      "file": "(idle)",
+      "ms": 98037
+     },
+     {
+      "file": "drawImage",
+      "ms": 40168
+     },
+     {
+      "file": "getProgramInfoLog",
+      "ms": 30621
+     },
+     {
+      "file": "index.js",
+      "ms": 17091
+     },
+     {
+      "file": "three.js",
+      "ms": 8923
+     },
+     {
+      "file": "(garbage collector)",
+      "ms": 3166
+     },
+     {
+      "file": "(program)",
+      "ms": 2879
+     },
+     {
+      "file": "bufferData",
+      "ms": 1551
+     },
+     {
+      "file": "getBufferParameter",
+      "ms": 1112
+     },
+     {
+      "file": "shaderSource",
+      "ms": 441
+     },
+     {
+      "file": "getShaderInfoLog",
+      "ms": 394
+     },
+     {
+      "file": "",
+      "ms": 389
+     }
+    ]
+   }
+  },
+  {
+   "t": 323.9,
+   "kind": "step.end",
+   "name": "enter-trial-1",
+   "seconds": 208.6
+  },
+  {
+   "t": 356.2,
+   "kind": "screenshot",
+   "file": "03-trial-1-first-frame.png",
+   "ms": 32268
+  },
+  {
+   "t": 356.2,
+   "kind": "step.begin",
+   "name": "drive-trial-1"
+  },
+  {
+   "t": 356.4,
+   "kind": "driving",
+   "sim": 51,
+   "kph": 1,
+   "lap": 0,
+   "rank": 1,
+   "s": 2929,
+   "lat": -2.4,
+   "keys": "LT",
+   "rafFps": 0,
+   "auto": false
+  },
+  {
+   "t": 386.3,
+   "kind": "driving",
+   "sim": 60,
+   "kph": 69,
+   "lap": 0,
+   "rank": 1,
+   "s": 118,
+   "lat": -2.2,
+   "keys": "BR",
+   "rafFps": 0,
+   "auto": false
+  },
+  {
+   "t": 386.8,
+   "kind": "drive.done",
+   "label": "trial-1",
+   "ended": "sim-seconds",
+   "simElapsed": 30,
+   "wallS": 30.6,
+   "rtf": 0.98,
+   "maxKph": 124,
+   "offTrackS": 3.8,
+   "stuckS": 0.4,
+   "keyEvents": 84
+  },
+  {
+   "t": 386.8,
+   "kind": "step.end",
+   "name": "drive-trial-1",
+   "seconds": 30.6
+  },
+  {
+   "t": 386.8,
+   "kind": "page.stall",
+   "maxGapMs": 55298,
+   "longTasks": 99,
+   "longMs": 173198
+  },
+  {
+   "t": 386.8,
+   "kind": "time-trial.hud",
+   "hud": {
+    "speed": "70",
+    "gear": "1",
+    "rpm": "8119",
+    "lap": "TIME TRIAL / LAP 1",
+    "position": "P1",
+    "field": "/ 1",
+    "flag": "GREEN FLAG",
+    "weather": "24°C / DRY TRACK",
+    "lapTime": "0:05.905",
+    "best": "0:50.029",
+    "last": "—:——.———",
+    "delta": "+3.077 S",
+    "deltaLabel": "DELTA TO PB",
+    "message": "",
+    "start": "BUILD REVS. HOLD THE BRAKE.",
+    "camera": "CHASE",
+    "auto": "AI OFF"
+   },
+   "ghostVisible": true,
+   "delta": 23.73600102853555
+  },
+  {
+   "t": 386.8,
+   "kind": "step.begin",
+   "name": "pause-resume"
+  },
+  {
+   "t": 386.8,
+   "kind": "input.key",
+   "label": "ESC (pause)",
+   "code": "Escape"
+  },
+  {
+   "t": 407.2,
+   "kind": "screenshot",
+   "file": "04-paused.png",
+   "ms": 17064
+  },
+  {
+   "t": 407.2,
+   "kind": "input.click",
+   "n": 7,
+   "label": "RESUME SESSION"
+  },
+  {
+   "t": 444.4,
+   "kind": "screenshot",
+   "file": "05-resumed.png",
+   "ms": 25704
+  },
+  {
+   "t": 444.4,
+   "kind": "input.key",
+   "label": "ESC (pause 2)",
+   "code": "Escape"
+  },
+  {
+   "t": 444.4,
+   "kind": "input.key",
+   "label": "ESC (resume 2)",
+   "code": "Escape"
+  },
+  {
+   "t": 474.5,
+   "kind": "wait",
+   "label": "driving after ESC resume",
+   "waited": 30,
+   "mode": "paused",
+   "stage": "Waiting for completed cockpit GPU work…",
+   "percent": "94%",
+   "rafFrames": 753,
+   "maxGapMs": 55298
+  },
+  {
+   "t": 504.4,
+   "kind": "FINDING",
+   "severity": "major",
+   "where": "resume",
+   "message": "ESC does not resume a paused session (the pause menu stays open)"
+  },
+  {
+   "t": 504.4,
+   "kind": "input.click",
+   "n": 10,
+   "label": "RESUME SESSION (fallback)"
+  },
+  {
+   "t": 511.1,
+   "kind": "step.end",
+   "name": "pause-resume",
+   "seconds": 124.3
+  },
+  {
+   "t": 511.1,
+   "kind": "input.key",
+   "label": "ESC (pause to exit)",
+   "code": "Escape"
+  },
+  {
+   "t": 511.2,
+   "kind": "step.begin",
+   "name": "exit-to-menu"
+  },
+  {
+   "t": 511.2,
+   "kind": "input.click",
+   "n": 12,
+   "label": "RETURN TO PADDOCK"
+  },
+  {
+   "t": 554.7,
+   "kind": "step.end",
+   "name": "exit-to-menu",
+   "seconds": 43.5
+  },
+  {
+   "t": 554.7,
+   "kind": "exit.done",
+   "seconds": 43.5
+  },
+  {
+   "t": 563.1,
+   "kind": "screenshot",
+   "file": "06-menu-after-exit.png",
+   "ms": 8471
+  },
+  {
+   "t": 564.3,
+   "kind": "memory",
+   "label": "menu-after-session-1",
+   "jsHeapMB": 73.1,
+   "jsHeapTotalMB": 75.3,
+   "nodes": 2598,
+   "listeners": 161,
+   "documents": 2,
+   "rssMB": 3491,
+   "textures": 201,
+   "geometries": 1603
+  },
+  {
+   "t": 564.4,
+   "kind": "step.begin",
+   "name": "configure"
+  },
+  {
+   "t": 564.5,
+   "kind": "configured",
+   "circuit": "aurel",
+   "vehicle": "apx01",
+   "mode": "time-trial",
+   "laps": "3",
+   "weather": "clear",
+   "compound": "medium",
+   "assist": "sport",
+   "opponents": "7",
+   "startSlot": "pole"
+  },
+  {
+   "t": 564.5,
+   "kind": "sessionRules",
+   "text": "TIME TRIAL: no mandatory stop · DRS on · no points."
+  },
+  {
+   "t": 564.5,
+   "kind": "step.end",
+   "name": "configure",
+   "seconds": 0.1
+  },
+  {
+   "t": 564.9,
+   "kind": "screenshot",
+   "file": "07-configured.png",
+   "ms": 475
+  },
+  {
+   "t": 564.9,
+   "kind": "step.begin",
+   "name": "enter-trial-2"
+  },
+  {
+   "t": 565.5,
+   "kind": "input.click",
+   "n": 13,
+   "label": "ENTER"
+  },
+  {
+   "t": 565.6,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4214/972e69fb-cab6-4859-9f2f-5c7fcf94ba06"
+  },
+  {
+   "t": 596.3,
+   "kind": "wait",
+   "label": "briefing or driving",
+   "waited": 31,
+   "mode": "loading",
+   "stage": "Waiting for completed cockpit GPU work…",
+   "percent": "94%",
+   "rafFrames": 1513,
+   "maxGapMs": 55298
+  },
+  {
+   "t": 622.9,
+   "kind": "session.profile",
+   "totalMs": 57548,
+   "idlePct": 95,
+   "files": [
+    {
+     "file": "(idle)",
+     "ms": 54809
+    },
+    {
+     "file": "(program)",
+     "ms": 1022
+    },
+    {
+     "file": "three.js",
+     "ms": 602
+    },
+    {
+     "file": "index.js",
+     "ms": 367
+    },
+    {
+     "file": "postMessage",
+     "ms": 131
+    },
+    {
+     "file": "",
+     "ms": 122
+    }
+   ],
+   "top": [
+    {
+     "fn": "(idle) :-1",
+     "ms": 54809
+    },
+    {
+     "fn": "(program) :-1",
+     "ms": 1022
+    },
+    {
+     "fn": "get telemetryModal index-CbE6jY_R.js:81",
+     "ms": 201
+    },
+    {
+     "fn": "postMessage :-1",
+     "ms": 131
+    },
+    {
+     "fn": "(garbage collector) :-1",
+     "ms": 120
+    },
+    {
+     "fn": "m three-CuIIN4MI.js:3787",
+     "ms": 113
+    },
+    {
+     "fn": "(anonymous) :-1",
+     "ms": 90
+    },
+    {
+     "fn": "vs three-CuIIN4MI.js:3839",
+     "ms": 57
+    }
+   ]
+  },
+  {
+   "t": 622.9,
+   "kind": "session.started",
+   "label": "trial-2",
+   "startedAt": 564.927,
+   "briefing": false,
+   "timeToDrivingS": 44.9,
+   "timeToFirstFrameS": 57.5,
+   "profile": {
+    "totalMs": 57548,
+    "idlePct": 95,
+    "top": [
+     {
+      "fn": "(idle) :-1",
+      "ms": 54809
+     },
+     {
+      "fn": "(program) :-1",
+      "ms": 1022
+     },
+     {
+      "fn": "get telemetryModal index-CbE6jY_R.js:81",
+      "ms": 201
+     },
+     {
+      "fn": "postMessage :-1",
+      "ms": 131
+     },
+     {
+      "fn": "(garbage collector) :-1",
+      "ms": 120
+     },
+     {
+      "fn": "m three-CuIIN4MI.js:3787",
+      "ms": 113
+     },
+     {
+      "fn": "(anonymous) :-1",
+      "ms": 90
+     },
+     {
+      "fn": "vs three-CuIIN4MI.js:3839",
+      "ms": 57
+     },
+     {
+      "fn": "innerSerialize :169",
+      "ms": 47
+     },
+     {
+      "fn": "$ three-CuIIN4MI.js:3815",
+      "ms": 43
+     },
+     {
+      "fn": "query :4723",
+      "ms": 34
+     },
+     {
+      "fn": "Rr three-CuIIN4MI.js:3839",
+      "ms": 34
+     },
+     {
+      "fn": "p three-CuIIN4MI.js:3787",
+      "ms": 30
+     },
+     {
+      "fn": "elementSafeTagName :2635",
+      "ms": 26
+     },
+     {
+      "fn": "upload three-CuIIN4MI.js:3736",
+      "ms": 26
+     },
+     {
+      "fn": "toArray three-CuIIN4MI.js:4",
+      "ms": 25
+     },
+     {
+      "fn": "e three-CuIIN4MI.js:3787",
+      "ms": 25
+     },
+     {
+      "fn": "renderBufferDirect three-CuIIN4MI.js:3839",
+      "ms": 24
+     },
+     {
+      "fn": "getAttribute :-1",
+      "ms": 24
+     },
+     {
+      "fn": "isElementHiddenForAria :2930",
+      "ms": 21
+     },
+     {
+      "fn": "traverse three-CuIIN4MI.js:4",
+      "ms": 20
+     },
+     {
+      "fn": "worker.onmessage index-CbE6jY_R.js:8122",
+      "ms": 19
+     },
+     {
+      "fn": "updateMatrix three-CuIIN4MI.js:4",
+      "ms": 18
+     },
+     {
+      "fn": "bindVertexArray :-1",
+      "ms": 18
+     },
+     {
+      "fn": "flush :-1",
+      "ms": 17
+     }
+    ],
+    "files": [
+     {
+      "file": "(idle)",
+      "ms": 54809
+     },
+     {
+      "file": "(program)",
+      "ms": 1022
+     },
+     {
+      "file": "three.js",
+      "ms": 602
+     },
+     {
+      "file": "index.js",
+      "ms": 367
+     },
+     {
+      "file": "postMessage",
+      "ms": 131
+     },
+     {
+      "file": "",
+      "ms": 122
+     },
+     {
+      "file": "(garbage collector)",
+      "ms": 120
+     },
+     {
+      "file": "innerSerialize",
+      "ms": 47
+     },
+     {
+      "file": "query",
+      "ms": 34
+     },
+     {
+      "file": "elementSafeTagName",
+      "ms": 26
+     },
+     {
+      "file": "getAttribute",
+      "ms": 24
+     },
+     {
+      "file": "isElementHiddenForAria",
+      "ms": 21
+     }
+    ]
+   }
+  },
+  {
+   "t": 622.9,
+   "kind": "step.end",
+   "name": "enter-trial-2",
+   "seconds": 57.9
+  },
+  {
+   "t": 663.8,
+   "kind": "screenshot",
+   "file": "08-trial-2-first-frame.png",
+   "ms": 40896
+  },
+  {
+   "t": 663.8,
+   "kind": "step.begin",
+   "name": "drive-trial-2"
+  },
+  {
+   "t": 663.8,
+   "kind": "driving",
+   "sim": 57.2,
+   "kph": 1,
+   "lap": 0,
+   "rank": 1,
+   "s": 2928,
+   "lat": -2.4,
+   "keys": "LT",
+   "rafFps": 0,
+   "auto": false
+  },
+  {
+   "t": 678.8,
+   "kind": "driving",
+   "sim": 71.9,
+   "kph": 29,
+   "lap": 0,
+   "rank": 1,
+   "s": 226,
+   "lat": 2.8,
+   "keys": "R",
+   "rafFps": 0,
+   "auto": false
+  },
+  {
+   "t": 679.1,
+   "kind": "drive.done",
+   "label": "trial-2",
+   "ended": "sim-seconds",
+   "simElapsed": 15,
+   "wallS": 15.3,
+   "rtf": 0.98,
+   "maxKph": 171,
+   "offTrackS": 4.4,
+   "stuckS": 0,
+   "keyEvents": 126
+  },
+  {
+   "t": 679.1,
+   "kind": "step.end",
+   "name": "drive-trial-2",
+   "seconds": 15.3
+  },
+  {
+   "t": 679.1,
+   "kind": "page.stall",
+   "maxGapMs": 55298,
+   "longTasks": 128,
+   "longMs": 186277
+  },
+  {
+   "t": 679.1,
+   "kind": "input.key",
+   "label": "ESC (pause to exit)",
+   "code": "Escape"
+  },
+  {
+   "t": 679.1,
+   "kind": "step.begin",
+   "name": "exit-to-menu"
+  },
+  {
+   "t": 679.1,
+   "kind": "input.click",
+   "n": 15,
+   "label": "RETURN TO PADDOCK"
+  },
+  {
+   "t": 730,
+   "kind": "step.end",
+   "name": "exit-to-menu",
+   "seconds": 50.8
+  },
+  {
+   "t": 730,
+   "kind": "exit.done",
+   "seconds": 50.8
+  },
+  {
+   "t": 740.3,
+   "kind": "screenshot",
+   "file": "09-menu-after-exit.png",
+   "ms": 10311
+  },
+  {
+   "t": 741,
+   "kind": "memory",
+   "label": "menu-after-session-2",
+   "jsHeapMB": 73.6,
+   "jsHeapTotalMB": 76,
+   "nodes": 2598,
+   "listeners": 161,
+   "documents": 2,
+   "rssMB": 3530,
+   "textures": 202,
+   "geometries": 1647
+  }
+ ],
+ "findings": [
+  {
+   "severity": "major",
+   "where": "resume",
+   "message": "ESC does not resume a paused session (the pause menu stays open)",
+   "evidence": {
+    "error": "Timed out after 60s waiting for driving after ESC resume: {\"mode\":\"paused\",\"menu\":false,\"loading\":false,\"loadingText\":\"Waiting for completed cockpit GPU work…\",\"stage\":\"Warming up tyres\",\"percent\":\"94"
+   },
+   "t": 504.4
+  }
+ ],
+ "console": [
+  {
+   "t": 84.6,
+   "type": "warning",
+   "text": "THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported.",
+   "at": "three-CuIIN4MI.js"
+  }
+ ],
+ "requestFailures": [],
+ "summary": {
+  "boot": {
+   "timeToMenuS": 79.1,
+   "timeToFirstMenuFrameS": 79.1,
+   "paint": {
+    "first-paint": 976,
+    "first-contentful-paint": 3812
+   },
+   "domContentLoadedMs": 3044
+  },
+  "sessions": [
+   {
+    "label": "trial-1",
+    "startedAt": 115.324,
+    "briefing": false,
+    "timeToDrivingS": 195.7,
+    "timeToFirstFrameS": 207.3,
+    "profile": {
+     "totalMs": 207276,
+     "idlePct": 47,
+     "top": [
+      {
+       "fn": "(idle) :-1",
+       "ms": 98037
+      },
+      {
+       "fn": "drawImage :-1",
+       "ms": 40168
+      },
+      {
+       "fn": "getProgramInfoLog :-1",
+       "ms": 30621
+      },
+      {
+       "fn": "(garbage collector) :-1",
+       "ms": 3166
+      },
+      {
+       "fn": "d index-CbE6jY_R.js:1",
+       "ms": 2966
+      },
+      {
+       "fn": "(program) :-1",
+       "ms": 2879
+      },
+      {
+       "fn": "fX index-CbE6jY_R.js:1560",
+       "ms": 1593
+      },
+      {
+       "fn": "bufferData :-1",
+       "ms": 1551
+      },
+      {
+       "fn": "fromBufferAttribute three-CuIIN4MI.js:4",
+       "ms": 1224
+      },
+      {
+       "fn": "yS index-CbE6jY_R.js:854",
+       "ms": 1205
+      },
+      {
+       "fn": "getBufferParameter :-1",
+       "ms": 1112
+      },
+      {
+       "fn": "setFromBufferAttribute three-CuIIN4MI.js:4",
+       "ms": 967
+      },
+      {
+       "fn": "update index-CbE6jY_R.js:81",
+       "ms": 951
+      },
+      {
+       "fn": "getX three-CuIIN4MI.js:4",
+       "ms": 679
+      },
+      {
+       "fn": "copy three-CuIIN4MI.js:4",
+       "ms": 589
+      },
+      {
+       "fn": "f4e index-CbE6jY_R.js:6580",
+       "ms": 573
+      },
+      {
+       "fn": "setXYZ three-CuIIN4MI.js:4",
+       "ms": 494
+      },
+      {
+       "fn": "shaderSource :-1",
+       "ms": 441
+      },
+      {
+       "fn": "ep index-CbE6jY_R.js:2873",
+       "ms": 434
+      },
+      {
+       "fn": "(anonymous) index-CbE6jY_R.js:6580",
+       "ms": 434
+      },
+      {
+       "fn": "DP index-CbE6jY_R.js:3849",
+       "ms": 433
+      },
+      {
+       "fn": "computeBoundingSphere three-CuIIN4MI.js:4",
+       "ms": 416
+      },
+      {
+       "fn": "d index-CbE6jY_R.js:3995",
+       "ms": 412
+      },
+      {
+       "fn": "computeVertexNormals three-CuIIN4MI.js:4",
+       "ms": 404
+      },
+      {
+       "fn": "getShaderInfoLog :-1",
+       "ms": 394
+      }
+     ],
+     "files": [
+      {
+       "file": "(idle)",
+       "ms": 98037
+      },
+      {
+       "file": "drawImage",
+       "ms": 40168
+      },
+      {
+       "file": "getProgramInfoLog",
+       "ms": 30621
+      },
+      {
+       "file": "index.js",
+       "ms": 17091
+      },
+      {
+       "file": "three.js",
+       "ms": 8923
+      },
+      {
+       "file": "(garbage collector)",
+       "ms": 3166
+      },
+      {
+       "file": "(program)",
+       "ms": 2879
+      },
+      {
+       "file": "bufferData",
+       "ms": 1551
+      },
+      {
+       "file": "getBufferParameter",
+       "ms": 1112
+      },
+      {
+       "file": "shaderSource",
+       "ms": 441
+      },
+      {
+       "file": "getShaderInfoLog",
+       "ms": 394
+      },
+      {
+       "file": "",
+       "ms": 389
+      }
+     ]
+    },
+    "timeToMenuAfterExitS": 43.5
+   },
+   {
+    "label": "trial-2",
+    "startedAt": 564.927,
+    "briefing": false,
+    "timeToDrivingS": 44.9,
+    "timeToFirstFrameS": 57.5,
+    "profile": {
+     "totalMs": 57548,
+     "idlePct": 95,
+     "top": [
+      {
+       "fn": "(idle) :-1",
+       "ms": 54809
+      },
+      {
+       "fn": "(program) :-1",
+       "ms": 1022
+      },
+      {
+       "fn": "get telemetryModal index-CbE6jY_R.js:81",
+       "ms": 201
+      },
+      {
+       "fn": "postMessage :-1",
+       "ms": 131
+      },
+      {
+       "fn": "(garbage collector) :-1",
+       "ms": 120
+      },
+      {
+       "fn": "m three-CuIIN4MI.js:3787",
+       "ms": 113
+      },
+      {
+       "fn": "(anonymous) :-1",
+       "ms": 90
+      },
+      {
+       "fn": "vs three-CuIIN4MI.js:3839",
+       "ms": 57
+      },
+      {
+       "fn": "innerSerialize :169",
+       "ms": 47
+      },
+      {
+       "fn": "$ three-CuIIN4MI.js:3815",
+       "ms": 43
+      },
+      {
+       "fn": "query :4723",
+       "ms": 34
+      },
+      {
+       "fn": "Rr three-CuIIN4MI.js:3839",
+       "ms": 34
+      },
+      {
+       "fn": "p three-CuIIN4MI.js:3787",
+       "ms": 30
+      },
+      {
+       "fn": "elementSafeTagName :2635",
+       "ms": 26
+      },
+      {
+       "fn": "upload three-CuIIN4MI.js:3736",
+       "ms": 26
+      },
+      {
+       "fn": "toArray three-CuIIN4MI.js:4",
+       "ms": 25
+      },
+      {
+       "fn": "e three-CuIIN4MI.js:3787",
+       "ms": 25
+      },
+      {
+       "fn": "renderBufferDirect three-CuIIN4MI.js:3839",
+       "ms": 24
+      },
+      {
+       "fn": "getAttribute :-1",
+       "ms": 24
+      },
+      {
+       "fn": "isElementHiddenForAria :2930",
+       "ms": 21
+      },
+      {
+       "fn": "traverse three-CuIIN4MI.js:4",
+       "ms": 20
+      },
+      {
+       "fn": "worker.onmessage index-CbE6jY_R.js:8122",
+       "ms": 19
+      },
+      {
+       "fn": "updateMatrix three-CuIIN4MI.js:4",
+       "ms": 18
+      },
+      {
+       "fn": "bindVertexArray :-1",
+       "ms": 18
+      },
+      {
+       "fn": "flush :-1",
+       "ms": 17
+      }
+     ],
+     "files": [
+      {
+       "file": "(idle)",
+       "ms": 54809
+      },
+      {
+       "file": "(program)",
+       "ms": 1022
+      },
+      {
+       "file": "three.js",
+       "ms": 602
+      },
+      {
+       "file": "index.js",
+       "ms": 367
+      },
+      {
+       "file": "postMessage",
+       "ms": 131
+      },
+      {
+       "file": "",
+       "ms": 122
+      },
+      {
+       "file": "(garbage collector)",
+       "ms": 120
+      },
+      {
+       "file": "innerSerialize",
+       "ms": 47
+      },
+      {
+       "file": "query",
+       "ms": 34
+      },
+      {
+       "file": "elementSafeTagName",
+       "ms": 26
+      },
+      {
+       "file": "getAttribute",
+       "ms": 24
+      },
+      {
+       "file": "isElementHiddenForAria",
+       "ms": 21
+      }
+     ]
+    },
+    "timeToMenuAfterExitS": 50.8
+   }
+  ],
+  "inputs": {
+   "menuInputs": 15,
+   "driveKeyEvents": 210,
+   "log": [
+    "82.8s click GARAGE & SETTINGS",
+    "83.0s select quality=low",
+    "83.1s click APPLY & SAVE",
+    "104.8s select mode=time-trial",
+    "115.6s click ENTER",
+    "386.8s key ESC (pause)",
+    "407.2s click RESUME SESSION",
+    "444.4s key ESC (pause 2)",
+    "444.4s key ESC (resume 2)",
+    "504.4s click RESUME SESSION (fallback)",
+    "511.1s key ESC (pause to exit)",
+    "511.2s click RETURN TO PADDOCK",
+    "565.5s click ENTER",
+    "679.1s key ESC (pause to exit)",
+    "679.1s click RETURN TO PADDOCK"
+   ]
+  },
+  "memory": {
+   "samples": [
+    {
+     "label": "menu-after-boot",
+     "t": 82.8,
+     "jsHeapMB": 33.8,
+     "jsHeapTotalMB": 35.1,
+     "nodes": 2417,
+     "listeners": 133,
+     "documents": 2,
+     "rssMB": 2059,
+     "textures": 83,
+     "geometries": 190
+    },
+    {
+     "label": "menu-after-session-1",
+     "t": 564.3,
+     "jsHeapMB": 73.1,
+     "jsHeapTotalMB": 75.3,
+     "nodes": 2598,
+     "listeners": 161,
+     "documents": 2,
+     "rssMB": 3491,
+     "textures": 201,
+     "geometries": 1603
+    },
+    {
+     "label": "menu-after-session-2",
+     "t": 741,
+     "jsHeapMB": 73.6,
+     "jsHeapTotalMB": 76,
+     "nodes": 2598,
+     "listeners": 161,
+     "documents": 2,
+     "rssMB": 3530,
+     "textures": 202,
+     "geometries": 1647
+    }
+   ],
+   "jsHeapGrowthSession1MB": 39.3,
+   "jsHeapGrowthSession2MB": 0.5,
+   "rssGrowthSession2MB": 39,
+   "textureGrowthSession2": 1,
+   "geometryGrowthSession2": 44
+  },
+  "outcome": "ok",
+  "drives": [
+   {
+    "label": "trial-1",
+    "rows": [
+     {
+      "wall": 0.1,
+      "sim": 50.98,
+      "tick": 5409,
+      "phase": 2,
+      "kph": 1,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "TIME TRIAL / LAP 1",
+      "s": 2929,
+      "lat": -2.4,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 10098.59,
+      "tapAgeMs": 7,
+      "keys": "LT",
+      "dropped": 1.510200023651123
+     },
+     {
+      "wall": 1.3,
+      "sim": 52.02,
+      "tick": 5534,
+      "phase": 2,
+      "kph": 31,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "TIME TRIAL / LAP 1",
+      "s": 2933,
+      "lat": -1.8,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 3,
+      "keys": "TR",
+      "dropped": 1.510200023651123
+     },
+     {
+      "wall": 2.4,
+      "sim": 53.27,
+      "tick": 5683,
+      "phase": 2,
+      "kph": 78,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "TIME TRIAL / LAP 1",
+      "s": 2951,
+      "lat": -0.1,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 14,
+      "keys": "T",
+      "dropped": 1.510200023651123
+     },
+     {
+      "wall": 3.6,
+      "sim": 54.27,
+      "tick": 5803,
+      "phase": 2,
+      "kph": 118,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "TIME TRIAL / LAP 1",
+      "s": 6,
+      "lat": -0.1,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 7,
+      "keys": "TR",
+      "dropped": 1.510200023651123
+     },
+     {
+      "wall": 4.6,
+      "sim": 55.48,
+      "tick": 5949,
+      "phase": 2,
+      "kph": 97,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "TIME TRIAL / LAP 1",
+      "s": 45,
+      "lat": 10,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 1,
+      "keys": "BL",
+      "dropped": 1.510200023651123
+     },
+     {
+      "wall": 5.6,
+      "sim": 56.5,
+      "tick": 6071,
+      "phase": 2,
+      "kph": 54,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "TIME TRIAL / LAP 1",
+      "s": 64,
+      "lat": 18.2,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 13,
+      "keys": "LT",
+      "dropped": 1.510200023651123
+     },
+     {
+      "wall": 6.6,
+      "sim": 57.51,
+      "tick": 6192,
+      "phase": 2,
+      "kph": 51,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "TIME TRIAL / LAP 1",
+      "s": 78,
+      "lat": 17.3,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 7,
+      "keys": "T",
+      "dropped": 1.510200023651123
+     },
+     {
+      "wall": 7.7,
+      "sim": 58.47,
+      "tick": 6307,
+      "phase": 2,
+      "kph": 62,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "TIME TRIAL / LAP 1",
+      "s": 90,
+      "lat": 8.5,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 1,
+      "keys": "TL",
+      "dropped": 1.510200023651123
+     },
+     {
+      "wall": 8.7,
+      "sim": 59.57,
+      "tick": 6440,
+      "phase": 2,
+      "kph": 76,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "TIME TRIAL / LAP 1",
+      "s": 109,
+      "lat": -2.3,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 20,
+      "keys": "TR",
+      "dropped": 1.510200023651123
+     },
+     {
+      "wall": 30,
+      "sim": 60.03,
+      "tick": 6495,
+      "phase": 2,
+      "kph": 69,
+      "hudSpeed": "70",
+      "lap": 0,
+      "hudLap": "TIME TRIAL / LAP 1",
+      "s": 118,
+      "lat": -2.2,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0.09,
+      "tapAgeMs": 1,
+      "keys": "BR",
+      "dropped": 1.510200023651123
+     }
+    ],
+    "offTrackS": 3.8,
+    "stuckS": 0.4,
+    "maxKph": 124,
+    "keyEvents": 84,
+    "fallbackAt": null,
+    "ended": "sim-seconds",
+    "simElapsed": 30,
+    "wallS": 30.6,
+    "realTimeFactor": 0.98
+   },
+   {
+    "label": "trial-2",
+    "rows": [
+     {
+      "wall": 0,
+      "sim": 57.2,
+      "tick": 6155,
+      "phase": 2,
+      "kph": 1,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "TIME TRIAL / LAP 1",
+      "s": 2928,
+      "lat": -2.4,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 117923.08,
+      "tapAgeMs": 6,
+      "keys": "LT",
+      "dropped": 3.2374000549316406
+     },
+     {
+      "wall": 1.1,
+      "sim": 58.23,
+      "tick": 6279,
+      "phase": 2,
+      "kph": 32,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "TIME TRIAL / LAP 1",
+      "s": 2932,
+      "lat": -1.6,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 7,
+      "keys": "T",
+      "dropped": 3.2374000549316406
+     },
+     {
+      "wall": 2.1,
+      "sim": 59.25,
+      "tick": 6401,
+      "phase": 2,
+      "kph": 71,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "TIME TRIAL / LAP 1",
+      "s": 2946,
+      "lat": 0.2,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 15,
+      "keys": "TL",
+      "dropped": 3.2374000549316406
+     },
+     {
+      "wall": 3.2,
+      "sim": 60.24,
+      "tick": 6520,
+      "phase": 2,
+      "kph": 114,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "TIME TRIAL / LAP 1",
+      "s": 2971,
+      "lat": 0,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 12,
+      "keys": "TR",
+      "dropped": 3.2374000549316406
+     },
+     {
+      "wall": 4.2,
+      "sim": 61.39,
+      "tick": 6658,
+      "phase": 2,
+      "kph": 157,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "TIME TRIAL / LAP 1",
+      "s": 42,
+      "lat": 0.3,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 7,
+      "keys": "TL",
+      "dropped": 3.2374000549316406
+     },
+     {
+      "wall": 5.3,
+      "sim": 62.42,
+      "tick": 6782,
+      "phase": 2,
+      "kph": 165,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "TIME TRIAL / LAP 1",
+      "s": 90,
+      "lat": -0.8,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 3,
+      "keys": "TR",
+      "dropped": 3.2374000549316406
+     },
+     {
+      "wall": 6.3,
+      "sim": 63.47,
+      "tick": 6907,
+      "phase": 2,
+      "kph": 94,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "TIME TRIAL / LAP 1",
+      "s": 127,
+      "lat": 8,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 5,
+      "keys": "LT",
+      "dropped": 3.2374000549316406
+     },
+     {
+      "wall": 7.7,
+      "sim": 64.84,
+      "tick": 7072,
+      "phase": 2,
+      "kph": 61,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "TIME TRIAL / LAP 1",
+      "s": 155,
+      "lat": 20.7,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 13,
+      "keys": "BL",
+      "dropped": 3.2374000549316406
+     },
+     {
+      "wall": 9.4,
+      "sim": 65.99,
+      "tick": 7210,
+      "phase": 2,
+      "kph": 36,
+      "hudSpeed": "1",
+      "lap": 0,
+      "hudLap": "TIME TRIAL / LAP 1",
+      "s": 164,
+      "lat": 21.3,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 1,
+      "keys": "TR",
+      "dropped": 3.3092000484466553
+     },
+     {
+      "wall": 10.5,
+      "sim": 67.37,
+      "tick": 7376,
+      "phase": 2,
+      "kph": 61,
+      "hudSpeed": "60",
+      "lap": 0,
+      "hudLap": "TIME TRIAL / LAP 1",
+      "s": 182,
+      "lat": 19.1,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0.9,
+      "tapAgeMs": 1,
+      "keys": "TR",
+      "dropped": 3.3201000690460205
+     },
+     {
+      "wall": 11.6,
+      "sim": 68.61,
+      "tick": 7524,
+      "phase": 2,
+      "kph": 69,
+      "hudSpeed": "60",
+      "lap": 0,
+      "hudLap": "TIME TRIAL / LAP 1",
+      "s": 204,
+      "lat": 12.9,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 1.92,
+      "tapAgeMs": 65,
+      "keys": "TL",
+      "dropped": 3.3201000690460205
+     },
+     {
+      "wall": 12.7,
+      "sim": 69.67,
+      "tick": 7651,
+      "phase": 2,
+      "kph": 48,
+      "hudSpeed": "60",
+      "lap": 0,
+      "hudLap": "TIME TRIAL / LAP 1",
+      "s": 218,
+      "lat": 1.1,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 85,
+      "keys": "BR",
+      "dropped": 3.3201000690460205
+     },
+     {
+      "wall": 13.8,
+      "sim": 70.56,
+      "tick": 7758,
+      "phase": 2,
+      "kph": 15,
+      "hudSpeed": "60",
+      "lap": 0,
+      "hudLap": "TIME TRIAL / LAP 1",
+      "s": 222,
+      "lat": -4.2,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 2,
+      "keys": "TL",
+      "dropped": 3.3201000690460205
+     },
+     {
+      "wall": 14.8,
+      "sim": 71.91,
+      "tick": 7920,
+      "phase": 2,
+      "kph": 31,
+      "hudSpeed": "60",
+      "lap": 0,
+      "hudLap": "TIME TRIAL / LAP 1",
+      "s": 226,
+      "lat": 2.6,
+      "rank": 1,
+      "hudPos": "P1",
+      "rafFps": 0,
+      "tapAgeMs": 8,
+      "keys": "",
+      "dropped": 3.3201000690460205
+     }
+    ],
+    "offTrackS": 4.4,
+    "stuckS": 0,
+    "maxKph": 171,
+    "keyEvents": 126,
+    "fallbackAt": null,
+    "ended": "sim-seconds",
+    "simElapsed": 15,
+    "wallS": 15.3,
+    "realTimeFactor": 0.98
+   }
+  ],
+  "pause": {
+   "pauseLatencyMs": 31,
+   "workerAcknowledgedPause": {
+    "pending": false,
+    "paused": true,
+    "tick": 9016,
+    "sequence": 2
+   },
+   "paused": {
+    "simBefore": 81.00743865966797,
+    "simAtPause": 81.040771484375,
+    "simAfter3s": 81.040771484375,
+    "tickAtPause": 9016,
+    "tickAfter3s": 9016,
+    "workerPause": {
+     "pending": false,
+     "paused": true,
+     "tick": 9016,
+     "sequence": 2
+    },
+    "modalHeading": "Time Trial",
+    "speedAtPause": 4.4,
+    "speedAfter3s": 4.4,
+    "posAtPause": [
+     -361.8844299316406,
+     -43.08332443237305
+    ],
+    "posAfter3s": [
+     -361.8844299316406,
+     -43.08332443237305
+    ]
+   },
+   "pauseButtons": [
+    "RESUME SESSION",
+    "RESTART SESSION",
+    "GARAGE & SETTINGS",
+    "RETURN TO PADDOCK",
+    "CHANGE CAMERA",
+    "WATCH REPLAY",
+    "PHOTO STUDIO",
+    "AI DRIVER",
+    "ACADEMY"
+   ],
+   "resumeLatencyMs": 8882,
+   "resumed": {
+    "simAdvanced": 2.53,
+    "wall": 2.5,
+    "jumpAtResume": 0
+   },
+   "escResume": "did-not-resume"
+  },
+  "timeTrial": {
+   "hud": {
+    "speed": "70",
+    "gear": "1",
+    "rpm": "8119",
+    "lap": "TIME TRIAL / LAP 1",
+    "position": "P1",
+    "field": "/ 1",
+    "flag": "GREEN FLAG",
+    "weather": "24°C / DRY TRACK",
+    "lapTime": "0:05.905",
+    "best": "0:50.029",
+    "last": "—:——.———",
+    "delta": "+3.077 S",
+    "deltaLabel": "DELTA TO PB",
+    "message": "",
+    "start": "BUILD REVS. HOLD THE BRAKE.",
+    "camera": "CHASE",
+    "auto": "AI OFF"
+   },
+   "ghostVisible": true,
+   "delta": 23.73600102853555
+  }
+ },
+ "pageCounters": {
+  "frames": 2048,
+  "maxGap": 55297.7,
+  "longTasks": 130,
+  "longMs": 207522,
+  "stalls": [
+   [
+    3074,
+    2183
+   ],
+   [
+    63638,
+    55298
+   ],
+   [
+    78738,
+    15066
+   ],
+   [
+    92204,
+    8466
+   ],
+   [
+    113653,
+    21416
+   ],
+   [
+    117853,
+    2800
+   ],
+   [
+    128019,
+    2567
+   ],
+   [
+    130352,
+    2167
+   ],
+   [
+    133819,
+    2083
+   ],
+   [
+    175334,
+    41515
+   ],
+   [
+    194633,
+    5633
+   ],
+   [
+    230048,
+    33299
+   ],
+   [
+    278046,
+    47982
+   ],
+   [
+    281379,
+    2650
+   ],
+   [
+    308345,
+    26899
+   ],
+   [
+    321111,
+    11316
+   ],
+   [
+    331811,
+    10566
+   ],
+   [
+    343244,
+    11250
+   ],
+   [
+    354293,
+    10983
+   ],
+   [
+    364160,
+    9550
+   ],
+   [
+    385059,
+    20299
+   ],
+   [
+    395142,
+    10016
+   ],
+   [
+    405525,
+    10300
+   ],
+   [
+    414824,
+    9083
+   ],
+   [
+    421907,
+    7016
+   ],
+   [
+    434057,
+    12033
+   ],
+   [
+    442840,
+    8700
+   ],
+   [
+    452973,
+    10100
+   ],
+   [
+    462472,
+    9383
+   ],
+   [
+    470789,
+    7816
+   ],
+   [
+    481588,
+    10150
+   ],
+   [
+    492521,
+    10850
+   ],
+   [
+    500754,
+    8083
+   ],
+   [
+    509870,
+    9050
+   ],
+   [
+    521587,
+    11650
+   ],
+   [
+    531719,
+    9750
+   ],
+   [
+    542802,
+    10416
+   ],
+   [
+    561668,
+    8333
+   ],
+   [
+    581051,
+    14916
+   ],
+   [
+    607933,
+    25599
+   ],
+   [
+    620166,
+    11933
+   ],
+   [
+    632116,
+    11650
+   ],
+   [
+    645932,
+    13733
+   ],
+   [
+    660631,
+    14599
+   ],
+   [
+    672814,
+    11683
+   ],
+   [
+    686930,
+    13983
+   ],
+   [
+    707779,
+    20766
+   ],
+   [
+    718395,
+    9866
+   ],
+   [
+    738711,
+    10350
+   ]
+  ]
+ }
+}

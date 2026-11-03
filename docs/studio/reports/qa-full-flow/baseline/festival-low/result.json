@@ -1,0 +1,1277 @@
+{
+ "journey": "festival",
+ "cfg": {
+  "url": "http://127.0.0.1:4214",
+  "journey": "festival",
+  "out": "/tmp/claude-0/-home-user-Experiment-3/d7f7b547-44bc-5977-9962-da1e5626b4ba/scratchpad/j/festival-low",
+  "quality": "low",
+  "simSeconds": 40,
+  "viewport": [
+   960,
+   540
+  ],
+  "bootTimeoutS": 900,
+  "startTimeoutS": 900,
+  "festivalMaxS": 900,
+  "profile": true,
+  "shots": true,
+  "wildcardId": "formula-on-the-wall",
+  "secondSimSeconds": 15,
+  "festivalSingle": true
+ },
+ "timeline": [
+  {
+   "t": 1.6,
+   "kind": "browser.open",
+   "viewport": [
+    960,
+    540
+   ],
+   "quality": "low"
+  },
+  {
+   "t": 1.6,
+   "kind": "step.begin",
+   "name": "boot"
+  },
+  {
+   "t": 3.9,
+   "kind": "boot.domcontentloaded",
+   "ms": 2323
+  },
+  {
+   "t": 11.8,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4214/de2c9134-c494-41a1-b388-03e7af0b4ca6"
+  },
+  {
+   "t": 11.9,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4214/de2c9134-c494-41a1-b388-03e7af0b4ca6"
+  },
+  {
+   "t": 12,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4214/de2c9134-c494-41a1-b388-03e7af0b4ca6"
+  },
+  {
+   "t": 12,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4214/de2c9134-c494-41a1-b388-03e7af0b4ca6"
+  },
+  {
+   "t": 100.9,
+   "kind": "wait",
+   "label": "menu visible",
+   "waited": 97,
+   "mode": null,
+   "stage": "0% · Preparing vehicle showroom…",
+   "percent": "0%",
+   "rafFrames": 122,
+   "maxGapMs": 4516
+  },
+  {
+   "t": 130.2,
+   "kind": "boot.done",
+   "timeToMenuS": 128.6,
+   "timeToFirstMenuFrameS": 128.6,
+   "paint": {
+    "first-paint": 2956,
+    "first-contentful-paint": 2956
+   },
+   "domContentLoadedMs": 2323
+  },
+  {
+   "t": 130.2,
+   "kind": "step.end",
+   "name": "boot",
+   "seconds": 128.6
+  },
+  {
+   "t": 133.3,
+   "kind": "screenshot",
+   "file": "01-menu-boot.png",
+   "ms": 3044
+  },
+  {
+   "t": 133.6,
+   "kind": "memory",
+   "label": "menu-after-boot",
+   "jsHeapMB": 33.7,
+   "jsHeapTotalMB": 34.6,
+   "nodes": 2417,
+   "listeners": 133,
+   "documents": 2,
+   "rssMB": 2066,
+   "textures": 83,
+   "geometries": 190
+  },
+  {
+   "t": 133.6,
+   "kind": "step.begin",
+   "name": "quality-low"
+  },
+  {
+   "t": 133.7,
+   "kind": "input.click",
+   "n": 1,
+   "label": "GARAGE & SETTINGS"
+  },
+  {
+   "t": 134.2,
+   "kind": "input.select",
+   "n": 2,
+   "label": "quality",
+   "value": "low"
+  },
+  {
+   "t": 134.2,
+   "kind": "input.click",
+   "n": 3,
+   "label": "APPLY & SAVE"
+  },
+  {
+   "t": 137.4,
+   "kind": "quality.applied",
+   "quality": "low",
+   "seconds": 3.757,
+   "busy": false
+  },
+  {
+   "t": 137.4,
+   "kind": "step.end",
+   "name": "quality-low",
+   "seconds": 3.8
+  },
+  {
+   "t": 137.4,
+   "kind": "step.begin",
+   "name": "festival-load-1"
+  },
+  {
+   "t": 137.4,
+   "kind": "step.begin",
+   "name": "configure"
+  },
+  {
+   "t": 137.4,
+   "kind": "input.click",
+   "n": 4,
+   "label": "plate festival"
+  },
+  {
+   "t": 149.6,
+   "kind": "configured",
+   "circuit": "aurel",
+   "vehicle": "eh3",
+   "mode": "festival",
+   "laps": "3",
+   "weather": "clear",
+   "compound": "medium",
+   "assist": "sport",
+   "opponents": "7",
+   "startSlot": "pole"
+  },
+  {
+   "t": 149.7,
+   "kind": "sessionRules",
+   "text": "Festival: explore Solvane, drive to event markers or travel to any route from the world map. Weather and assists apply; a road machine chosen in MACHINE is used, otherwise pick one in the festival men"
+  },
+  {
+   "t": 149.7,
+   "kind": "step.end",
+   "name": "configure",
+   "seconds": 12.3
+  },
+  {
+   "t": 176,
+   "kind": "screenshot",
+   "file": "02-configured.png",
+   "ms": 26288
+  },
+  {
+   "t": 176.7,
+   "kind": "input.click",
+   "n": 5,
+   "label": "ENTER FESTIVAL"
+  },
+  {
+   "t": 177.2,
+   "kind": "festival.stage",
+   "at": 0.5,
+   "text": "0% · Preparing vehicle showroom…",
+   "percent": "0%",
+   "mainThreadMaxGapMs": 83063
+  },
+  {
+   "t": 178.6,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4214/6aa358c2-d480-4aa2-9235-ff71c3f63c3e"
+  },
+  {
+   "t": 178.6,
+   "kind": "festival.stage",
+   "at": 1.5,
+   "text": "Planning event routes and town streets…",
+   "percent": "2%",
+   "mainThreadMaxGapMs": 83063
+  },
+  {
+   "t": 179.5,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4214/da3d1a09-dbc1-4678-9c69-257cb4d0acf4"
+  },
+  {
+   "t": 187.1,
+   "kind": "festival.stage",
+   "at": 2.9,
+   "text": "Loading authored coastal details…",
+   "percent": "2%",
+   "mainThreadMaxGapMs": 83063
+  },
+  {
+   "t": 188.2,
+   "kind": "festival.stage",
+   "at": 11.4,
+   "text": "Starting the festival simulation…",
+   "percent": "2%",
+   "mainThreadMaxGapMs": 83063
+  },
+  {
+   "t": 190.7,
+   "kind": "festival.stage",
+   "at": 13.5,
+   "text": "Streaming terrain around Port Ilse…",
+   "percent": "2%",
+   "mainThreadMaxGapMs": 83063
+  },
+  {
+   "t": 251.4,
+   "kind": "festival.profile",
+   "name": "load1-final",
+   "totalMs": 75054,
+   "idlePct": 5,
+   "files": [
+    {
+     "file": "readPixels",
+     "ms": 46614
+    },
+    {
+     "file": "getProgramInfoLog",
+     "ms": 7222
+    },
+    {
+     "file": "free-roam.js",
+     "ms": 5728
+    },
+    {
+     "file": "index.js",
+     "ms": 4614
+    },
+    {
+     "file": "(idle)",
+     "ms": 4066
+    },
+    {
+     "file": "three.js",
+     "ms": 2513
+    }
+   ],
+   "top": [
+    {
+     "fn": "readPixels :-1",
+     "ms": 46614
+    },
+    {
+     "fn": "getProgramInfoLog :-1",
+     "ms": 7222
+    },
+    {
+     "fn": "(idle) :-1",
+     "ms": 4066
+    },
+    {
+     "fn": "fX index-CbE6jY_R.js:1560",
+     "ms": 2113
+    },
+    {
+     "fn": "(program) :-1",
+     "ms": 1303
+    },
+    {
+     "fn": "(garbage collector) :-1",
+     "ms": 1250
+    },
+    {
+     "fn": "master index-CbE6jY_R.js:780",
+     "ms": 1126
+    },
+    {
+     "fn": "(anonymous) free-roam-BrX8f8HW.js:269",
+     "ms": 964
+    }
+   ]
+  },
+  {
+   "t": 252,
+   "kind": "festival.loaded",
+   "seconds": 15
+  },
+  {
+   "t": 252,
+   "kind": "step.end",
+   "name": "festival-load-1",
+   "seconds": 114.7
+  },
+  {
+   "t": 267.9,
+   "kind": "screenshot",
+   "file": "03-festival-1-loaded.png",
+   "ms": 15887
+  },
+  {
+   "t": 267.9,
+   "kind": "step.begin",
+   "name": "festival-drive"
+  },
+  {
+   "t": 267.9,
+   "kind": "festival.hud",
+   "speed": "0",
+   "road": "Harbour Front",
+   "limit": "50",
+   "machine": "EH-3 ELECTRIC HYPERCAR",
+   "state": "FREE ROAM",
+   "discovered": "1/18 DISCOVERED"
+  },
+  {
+   "t": 308.2,
+   "kind": "festival.drive",
+   "peakKph": 304,
+   "distanceM": 1557,
+   "last": {
+    "wall": 40.2,
+    "simTime": 115.02,
+    "kph": 8,
+    "x": 2152,
+    "z": -2605,
+    "cars": 1,
+    "hudSpeed": "0",
+    "rafFps": 0.772,
+    "cpuPct": {
+     "gpuProcess": 94,
+     "rendererProcess": 19,
+     "browser": 1,
+     "utility": 1
+    }
+   }
+  },
+  {
+   "t": 308.4,
+   "kind": "festival.profile",
+   "name": "festival-after-load",
+   "totalMs": 56781,
+   "idlePct": 64,
+   "files": [
+    {
+     "file": "(idle)",
+     "ms": 36490
+    },
+    {
+     "file": "bufferData",
+     "ms": 11334
+    },
+    {
+     "file": "getProgramInfoLog",
+     "ms": 6224
+    },
+    {
+     "file": "(program)",
+     "ms": 748
+    },
+    {
+     "file": "free-roam.js",
+     "ms": 540
+    },
+    {
+     "file": "postMessage",
+     "ms": 470
+    }
+   ],
+   "top": [
+    {
+     "fn": "(idle) :-1",
+     "ms": 36490
+    },
+    {
+     "fn": "bufferData :-1",
+     "ms": 11334
+    },
+    {
+     "fn": "getProgramInfoLog :-1",
+     "ms": 6224
+    },
+    {
+     "fn": "(program) :-1",
+     "ms": 748
+    },
+    {
+     "fn": "postMessage :-1",
+     "ms": 470
+    },
+    {
+     "fn": "(garbage collector) :-1",
+     "ms": 266
+    },
+    {
+     "fn": "receive free-roam-BrX8f8HW.js:882",
+     "ms": 207
+    },
+    {
+     "fn": "copy three-CuIIN4MI.js:4",
+     "ms": 185
+    }
+   ]
+  },
+  {
+   "t": 321.3,
+   "kind": "screenshot",
+   "file": "04-festival-driving.png",
+   "ms": 12901
+  },
+  {
+   "t": 321.3,
+   "kind": "input.key",
+   "label": "ESC (festival menu)",
+   "code": "Escape"
+  },
+  {
+   "t": 323.9,
+   "kind": "festival.menu",
+   "open": true,
+   "buttons": [
+    "RESUME",
+    "RESET TO ROAD",
+    "EXIT FESTIVAL",
+    "WORLD MAP",
+    "PHOTO MODE",
+    "Day",
+    "Golden hour",
+    "Night",
+    "EH-3 ELECTRIC HYPERCARROAD · 1,980 KG",
+    "LX-12 LUXURY GTROAD · 2,080 KG",
+    "RD-2 ROADSTERROAD · 1,110 KG",
+    "RG-63 CLASSIC GRAND TOURERROAD · 1,250 KG",
+    "RH-3 HOT HATCHROAD · 1,500 KG",
+    "RM-8 MUSCLE COUPEROAD · 1,820 KG",
+    "RP-6 DESERT PICKUPROAD · 2,650 KG",
+    "RR-4 RALLY-BRED ROAD CARROAD · 1,600 KG",
+    "RS-5 SPORTS SEDANROAD · 1,820 KG",
+    "SC-7 SUPERCARROAD · 1,480 KG",
+    "CR-1 CLUB ROADSTERCLUB · 620 KG",
+    "GS-4 GT SPORTGT-SPORT · 1,460 KG",
+    "GS-6M MID-ENGINE GT SPORTGT-SPORT · 1,400 KG",
+    "GT-10M MID-ENGINE GTGT · 1,290 KG",
+    "GT-6R REAR-ENGINE GTGT · 1,270 KG",
+    "GT-6S STRAIGHT-SIX GTGT · 1,340 KG",
+    "GT-8F FRONT-ENGINE GTGT · 1,310 KG",
+    "HH-2 HOT-HATCH RACERCLUB · 1,180 KG",
+    "BG-2 DESERT BUGGYOFFROAD · 1,650 KG",
+    "DX-8 TROPHY TRUCKOFFROAD · 2,720 KG",
+    "RCX-6 RALLYCROSSRALLYCROSS · 1,300 KG",
+    "RL-2 RALLYRALLY · 1,330 KG",
+    "RX-E ELECTRIC RALLYCROSSRALLYCROSS · 1,490 KG",
+    "TC-1 TOURINGTOURING · 1,265 KG",
+    "TC-2 TOURINGTOURING · 1,240 KG",
+    "TC-3 AWD TOURINGTOURING · 1,300 KG",
+    "HY-11 HYPERCARHYPERCAR · 1,030 KG",
+    "HY-9 HYPERCARHYPERCAR · 1,030 KG",
+    "PR-2 PROTOTYPEPROTOTYPE · 950 KG",
+    "PR-3 OPEN PROTOTYPEPROTOTYPE · 930 KG",
+    "APX-01 FORMULAFORMULA · 770 KG",
+    "FE-4 ENTRY FORMULAFORMULA-ENTRY · 570 KG",
+    "FR-3 FEEDER FORMULAFORMULA-FEEDER · 675 KG",
+    "FX-26 FORMULAFORMULA · 768 KG",
+    "GB-4 GROUP RALLYHISTORIC-RALLY · 1,120 KG",
+    "HF-67 HISTORIC FORMULAHISTORIC · 595 KG",
+    "HF-76 HISTORIC FORMULAHISTORIC-AERO · 650 KG",
+    "HF-86 TURBO FORMULAHISTORIC-TURBO · 620 KG",
+    "JF-2 JUNIOR FORMULAFORMULA-JUNIOR · 790 KG",
+    "RL-7 CLASSIC RALLYHISTORIC-RALLY · 1,100 KG",
+    "SP-71 LONG-TAIL PROTOTYPEHISTORIC-PROTOTYPE · 860 KG",
+    "VC-62 VINTAGE ROADSTERVINTAGE · 760 KG",
+    "XE-1 ELECTRIC TIME ATTACKEXPERIMENTAL · 1,000 KG",
+    "XF-2 FAN PROTOTYPEEXPERIMENTAL · 780 KG",
+    "XH-3 HYDROGEN PROTOTYPEEXPERIMENTAL · 1,250 KG",
+    "XT-1 TRACK HYPERCAREXPERIMENTAL · 1,120 KG",
+    "CR-750 CLASSIC RACERCLASSIC-BIKE · 232 KG",
+    "GP-R1 PROTOTYPEGP-BIKE · 229 KG",
+    "GP-R2 PROTOTYPEGP-BIKE · 229 KG",
+    "NR-900 NAKED ROADSTERROAD-BIKE · 257 KG",
+    "SBK-1000 SUPERBIKESUPERBIKE · 272 KG",
+    "SM-450 SUPERMOTOSUPERMOTO · 183 KG",
+    "SS-600 SUPERSPORTSUPERSPORT · 247 KG",
+    "On",
+    "Off",
+    "Traffic on",
+    "Traffic off",
+    "Coast to Summit · Road race",
+    "Solvane Grand Loop · Circuit",
+    "Port Ilse Street Loop · Circuit",
+    "Kestrel Airfield Circuit · Circuit",
+    "Ashvale Sprint · Sprint",
+    "Thornwood Dirt Sprint · Sprint",
+    "Ridge Highway Speed Trap · Speed trap",
+    "Coast Highway Speed Trap · Speed trap",
+    "Varda Pass Speed Zone · Speed zone",
+    "Plateau Speed Zone · Speed zone",
+    "Varda Hairpins Drift Zone · Drift zone",
+    "Quarry Track Drift Zone · Drift zone",
+    "Runway Showcase · Showcase",
+    "Harbour Opening Run · Sprint",
+    "Kestrel Drift Playground · Drift zone",
+    "Kestrel Launch Run · Speed trap",
+    "Saltmarsh Club Race · Circuit",
+    "Saltmarsh Practice Lap · Circuit"
+   ]
+  },
+  {
+   "t": 333.4,
+   "kind": "screenshot",
+   "file": "05-festival-menu.png",
+   "ms": 9517
+  },
+  {
+   "t": 333.4,
+   "kind": "step.end",
+   "name": "festival-drive",
+   "seconds": 65.5
+  },
+  {
+   "t": 333.4,
+   "kind": "step.begin",
+   "name": "festival-exit"
+  },
+  {
+   "t": 333.4,
+   "kind": "input.click",
+   "n": 7,
+   "label": "EXIT FESTIVAL"
+  },
+  {
+   "t": 335.7,
+   "kind": "festival.exit",
+   "seconds": 2.301
+  },
+  {
+   "t": 335.7,
+   "kind": "step.end",
+   "name": "festival-exit",
+   "seconds": 2.3
+  },
+  {
+   "t": 341.9,
+   "kind": "screenshot",
+   "file": "06-menu-after-festival.png",
+   "ms": 6210
+  },
+  {
+   "t": 342.5,
+   "kind": "memory",
+   "label": "menu-after-festival-1",
+   "jsHeapMB": 71,
+   "jsHeapTotalMB": 73.5,
+   "nodes": 4373,
+   "listeners": 182,
+   "documents": 2,
+   "rssMB": 2690,
+   "textures": 86,
+   "geometries": 243
+  }
+ ],
+ "findings": [],
+ "console": [
+  {
+   "t": 137.2,
+   "type": "warning",
+   "text": "THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported.",
+   "at": "three-CuIIN4MI.js"
+  }
+ ],
+ "requestFailures": [],
+ "summary": {
+  "boot": {
+   "timeToMenuS": 128.6,
+   "timeToFirstMenuFrameS": 128.6,
+   "paint": {
+    "first-paint": 2956,
+    "first-contentful-paint": 2956
+   },
+   "domContentLoadedMs": 2323
+  },
+  "sessions": [],
+  "inputs": {
+   "menuInputs": 7,
+   "driveKeyEvents": 1,
+   "log": [
+    "133.7s click GARAGE & SETTINGS",
+    "134.2s select quality=low",
+    "134.2s click APPLY & SAVE",
+    "137.4s click plate festival",
+    "176.7s click ENTER FESTIVAL",
+    "321.3s key ESC (festival menu)",
+    "333.4s click EXIT FESTIVAL"
+   ]
+  },
+  "memory": {
+   "samples": [
+    {
+     "label": "menu-after-boot",
+     "t": 133.6,
+     "jsHeapMB": 33.7,
+     "jsHeapTotalMB": 34.6,
+     "nodes": 2417,
+     "listeners": 133,
+     "documents": 2,
+     "rssMB": 2066,
+     "textures": 83,
+     "geometries": 190
+    },
+    {
+     "label": "menu-after-festival-1",
+     "t": 342.5,
+     "jsHeapMB": 71,
+     "jsHeapTotalMB": 73.5,
+     "nodes": 4373,
+     "listeners": 182,
+     "documents": 2,
+     "rssMB": 2690,
+     "textures": 86,
+     "geometries": 243
+    }
+   ],
+   "jsHeapGrowthSession1MB": 37.3,
+   "jsHeapGrowthSession2MB": null,
+   "rssGrowthSession2MB": null,
+   "textureGrowthSession2": null,
+   "geometryGrowthSession2": null
+  },
+  "outcome": "ok",
+  "loads": [
+   {
+    "attempt": 1,
+    "completed": true,
+    "stages": [
+     {
+      "at": 0.5,
+      "text": "0% · Preparing vehicle showroom…",
+      "percent": "0%"
+     },
+     {
+      "at": 1.5,
+      "text": "Planning event routes and town streets…",
+      "percent": "2%"
+     },
+     {
+      "at": 2.9,
+      "text": "Loading authored coastal details…",
+      "percent": "2%"
+     },
+     {
+      "at": 11.4,
+      "text": "Starting the festival simulation…",
+      "percent": "2%"
+     },
+     {
+      "at": 13.5,
+      "text": "Streaming terrain around Port Ilse…",
+      "percent": "2%"
+     }
+    ],
+    "samples": [
+     {
+      "at": 11,
+      "frames": 225,
+      "maxGap": 83063,
+      "longTasks": 30,
+      "longMs": 121947,
+      "text": "Starting the festival simulation…"
+     }
+    ],
+    "profile": {
+     "chunks": [
+      {
+       "name": "load1-final",
+       "totalMs": 75054,
+       "idlePct": 5,
+       "top": [
+        {
+         "fn": "readPixels :-1",
+         "ms": 46614
+        },
+        {
+         "fn": "getProgramInfoLog :-1",
+         "ms": 7222
+        },
+        {
+         "fn": "(idle) :-1",
+         "ms": 4066
+        },
+        {
+         "fn": "fX index-CbE6jY_R.js:1560",
+         "ms": 2113
+        },
+        {
+         "fn": "(program) :-1",
+         "ms": 1303
+        },
+        {
+         "fn": "(garbage collector) :-1",
+         "ms": 1250
+        },
+        {
+         "fn": "master index-CbE6jY_R.js:780",
+         "ms": 1126
+        },
+        {
+         "fn": "(anonymous) free-roam-BrX8f8HW.js:269",
+         "ms": 964
+        },
+        {
+         "fn": "getProgramParameter :-1",
+         "ms": 665
+        },
+        {
+         "fn": "start index-CbE6jY_R.js:8107",
+         "ms": 441
+        },
+        {
+         "fn": "solveLine free-roam-BrX8f8HW.js:0",
+         "ms": 403
+        },
+        {
+         "fn": "kt three-CuIIN4MI.js:4",
+         "ms": 319
+        },
+        {
+         "fn": "shopfronts free-roam-BrX8f8HW.js:825",
+         "ms": 309
+        },
+        {
+         "fn": "getShaderInfoLog :-1",
+         "ms": 305
+        },
+        {
+         "fn": "R three-CuIIN4MI.js:43",
+         "ms": 290
+        },
+        {
+         "fn": "$ae index-CbE6jY_R.js:3458",
+         "ms": 271
+        },
+        {
+         "fn": "fill :-1",
+         "ms": 245
+        },
+        {
+         "fn": "(anonymous) index-CbE6jY_R.js:6319",
+         "ms": 227
+        },
+        {
+         "fn": "paintMap free-roam-BrX8f8HW.js:867",
+         "ms": 204
+        },
+        {
+         "fn": "vh three-CuIIN4MI.js:3839",
+         "ms": 199
+        },
+        {
+         "fn": "fc three-CuIIN4MI.js:3746",
+         "ms": 194
+        },
+        {
+         "fn": "build free-roam-BrX8f8HW.js:0",
+         "ms": 190
+        },
+        {
+         "fn": "carveSegment free-roam-BrX8f8HW.js:0",
+         "ms": 171
+        },
+        {
+         "fn": "bufferData :-1",
+         "ms": 170
+        },
+        {
+         "fn": "setFromBufferAttribute three-CuIIN4MI.js:4",
+         "ms": 156
+        }
+       ],
+       "files": [
+        {
+         "file": "readPixels",
+         "ms": 46614
+        },
+        {
+         "file": "getProgramInfoLog",
+         "ms": 7222
+        },
+        {
+         "file": "free-roam.js",
+         "ms": 5728
+        },
+        {
+         "file": "index.js",
+         "ms": 4614
+        },
+        {
+         "file": "(idle)",
+         "ms": 4066
+        },
+        {
+         "file": "three.js",
+         "ms": 2513
+        },
+        {
+         "file": "(program)",
+         "ms": 1303
+        },
+        {
+         "file": "(garbage collector)",
+         "ms": 1250
+        },
+        {
+         "file": "getProgramParameter",
+         "ms": 665
+        },
+        {
+         "file": "getShaderInfoLog",
+         "ms": 305
+        },
+        {
+         "file": "fill",
+         "ms": 245
+        },
+        {
+         "file": "bufferData",
+         "ms": 170
+        }
+       ]
+      }
+     ]
+    },
+    "loadSeconds": 15
+   }
+  ],
+  "drive": {
+   "rows": [
+    {
+     "wall": 2.6,
+     "simTime": 77.91,
+     "kph": 101,
+     "x": 595,
+     "z": -2598,
+     "cars": 1,
+     "hudSpeed": "93",
+     "rafFps": 0.377,
+     "cpuPct": {
+      "gpuProcess": 129,
+      "rendererProcess": 24,
+      "browser": 1,
+      "utility": 1
+     }
+    },
+    {
+     "wall": 5.2,
+     "simTime": 80.42,
+     "kph": 194,
+     "x": 699,
+     "z": -2598,
+     "cars": 1,
+     "hudSpeed": "194",
+     "rafFps": 0.39,
+     "cpuPct": {
+      "gpuProcess": 129,
+      "rendererProcess": 17,
+      "browser": 1,
+      "utility": 1
+     }
+    },
+    {
+     "wall": 7.8,
+     "simTime": 83.04,
+     "kph": 259,
+     "x": 866,
+     "z": -2597,
+     "cars": 1,
+     "hudSpeed": "194",
+     "rafFps": 0,
+     "cpuPct": {
+      "gpuProcess": 111,
+      "rendererProcess": 17,
+      "browser": 1,
+      "utility": 1
+     }
+    },
+    {
+     "wall": 10.6,
+     "simTime": 85.68,
+     "kph": 304,
+     "x": 1074,
+     "z": -2595,
+     "cars": 1,
+     "hudSpeed": "272",
+     "rafFps": 0.357,
+     "cpuPct": {
+      "gpuProcess": 118,
+      "rendererProcess": 20,
+      "browser": 1,
+      "utility": 1
+     }
+    },
+    {
+     "wall": 13.1,
+     "simTime": 88.42,
+     "kph": 277,
+     "x": 1293,
+     "z": -2600,
+     "cars": 1,
+     "hudSpeed": "290",
+     "rafFps": 0.395,
+     "cpuPct": {
+      "gpuProcess": 132,
+      "rendererProcess": 25,
+      "browser": 1,
+      "utility": 1
+     }
+    },
+    {
+     "wall": 18.9,
+     "simTime": 89.2,
+     "kph": 275,
+     "x": 1352,
+     "z": -2603,
+     "cars": 1,
+     "hudSpeed": "210",
+     "rafFps": 0.174,
+     "cpuPct": {
+      "gpuProcess": 170,
+      "rendererProcess": 16,
+      "browser": 1,
+      "utility": 1
+     }
+    },
+    {
+     "wall": 21.5,
+     "simTime": 96.75,
+     "kph": 193,
+     "x": 1821,
+     "z": -2606,
+     "cars": 1,
+     "hudSpeed": "210",
+     "rafFps": 0.764,
+     "cpuPct": {
+      "gpuProcess": 104,
+      "rendererProcess": 16,
+      "browser": 1,
+      "utility": 1
+     }
+    },
+    {
+     "wall": 29.7,
+     "simTime": 98.07,
+     "kph": 184,
+     "x": 1890,
+     "z": -2603,
+     "cars": 1,
+     "hudSpeed": "17",
+     "rafFps": 0.122,
+     "cpuPct": {
+      "gpuProcess": 118,
+      "rendererProcess": 14,
+      "browser": 1,
+      "utility": 1
+     }
+    },
+    {
+     "wall": 32.4,
+     "simTime": 107.13,
+     "kph": 35,
+     "x": 2152,
+     "z": -2590,
+     "cars": 1,
+     "hudSpeed": "17",
+     "rafFps": 0.372,
+     "cpuPct": {
+      "gpuProcess": 100,
+      "rendererProcess": 19,
+      "browser": 1,
+      "utility": 1
+     }
+    },
+    {
+     "wall": 37.6,
+     "simTime": 108.63,
+     "kph": 10,
+     "x": 2152,
+     "z": -2601,
+     "cars": 1,
+     "hudSpeed": "0",
+     "rafFps": 0.193,
+     "cpuPct": {
+      "gpuProcess": 95,
+      "rendererProcess": 16,
+      "browser": 1,
+      "utility": 1
+     }
+    },
+    {
+     "wall": 40.2,
+     "simTime": 115.02,
+     "kph": 8,
+     "x": 2152,
+     "z": -2605,
+     "cars": 1,
+     "hudSpeed": "0",
+     "rafFps": 0.772,
+     "cpuPct": {
+      "gpuProcess": 94,
+      "rendererProcess": 19,
+      "browser": 1,
+      "utility": 1
+     }
+    }
+   ],
+   "start": {
+    "speed": "0",
+    "road": "Harbour Front",
+    "limit": "50",
+    "machine": "EH-3 ELECTRIC HYPERCAR",
+    "state": "FREE ROAM",
+    "discovered": "1/18 DISCOVERED"
+   },
+   "peakKph": 304,
+   "distanceM": 1557,
+   "tapped": true,
+   "menu": {
+    "open": true,
+    "buttons": [
+     "RESUME",
+     "RESET TO ROAD",
+     "EXIT FESTIVAL",
+     "WORLD MAP",
+     "PHOTO MODE",
+     "Day",
+     "Golden hour",
+     "Night",
+     "EH-3 ELECTRIC HYPERCARROAD · 1,980 KG",
+     "LX-12 LUXURY GTROAD · 2,080 KG",
+     "RD-2 ROADSTERROAD · 1,110 KG",
+     "RG-63 CLASSIC GRAND TOURERROAD · 1,250 KG",
+     "RH-3 HOT HATCHROAD · 1,500 KG",
+     "RM-8 MUSCLE COUPEROAD · 1,820 KG",
+     "RP-6 DESERT PICKUPROAD · 2,650 KG",
+     "RR-4 RALLY-BRED ROAD CARROAD · 1,600 KG",
+     "RS-5 SPORTS SEDANROAD · 1,820 KG",
+     "SC-7 SUPERCARROAD · 1,480 KG",
+     "CR-1 CLUB ROADSTERCLUB · 620 KG",
+     "GS-4 GT SPORTGT-SPORT · 1,460 KG",
+     "GS-6M MID-ENGINE GT SPORTGT-SPORT · 1,400 KG",
+     "GT-10M MID-ENGINE GTGT · 1,290 KG",
+     "GT-6R REAR-ENGINE GTGT · 1,270 KG",
+     "GT-6S STRAIGHT-SIX GTGT · 1,340 KG",
+     "GT-8F FRONT-ENGINE GTGT · 1,310 KG",
+     "HH-2 HOT-HATCH RACERCLUB · 1,180 KG",
+     "BG-2 DESERT BUGGYOFFROAD · 1,650 KG",
+     "DX-8 TROPHY TRUCKOFFROAD · 2,720 KG",
+     "RCX-6 RALLYCROSSRALLYCROSS · 1,300 KG",
+     "RL-2 RALLYRALLY · 1,330 KG",
+     "RX-E ELECTRIC RALLYCROSSRALLYCROSS · 1,490 KG",
+     "TC-1 TOURINGTOURING · 1,265 KG",
+     "TC-2 TOURINGTOURING · 1,240 KG",
+     "TC-3 AWD TOURINGTOURING · 1,300 KG",
+     "HY-11 HYPERCARHYPERCAR · 1,030 KG",
+     "HY-9 HYPERCARHYPERCAR · 1,030 KG",
+     "PR-2 PROTOTYPEPROTOTYPE · 950 KG",
+     "PR-3 OPEN PROTOTYPEPROTOTYPE · 930 KG",
+     "APX-01 FORMULAFORMULA · 770 KG",
+     "FE-4 ENTRY FORMULAFORMULA-ENTRY · 570 KG",
+     "FR-3 FEEDER FORMULAFORMULA-FEEDER · 675 KG",
+     "FX-26 FORMULAFORMULA · 768 KG",
+     "GB-4 GROUP RALLYHISTORIC-RALLY · 1,120 KG",
+     "HF-67 HISTORIC FORMULAHISTORIC · 595 KG",
+     "HF-76 HISTORIC FORMULAHISTORIC-AERO · 650 KG",
+     "HF-86 TURBO FORMULAHISTORIC-TURBO · 620 KG",
+     "JF-2 JUNIOR FORMULAFORMULA-JUNIOR · 790 KG",
+     "RL-7 CLASSIC RALLYHISTORIC-RALLY · 1,100 KG",
+     "SP-71 LONG-TAIL PROTOTYPEHISTORIC-PROTOTYPE · 860 KG",
+     "VC-62 VINTAGE ROADSTERVINTAGE · 760 KG",
+     "XE-1 ELECTRIC TIME ATTACKEXPERIMENTAL · 1,000 KG",
+     "XF-2 FAN PROTOTYPEEXPERIMENTAL · 780 KG",
+     "XH-3 HYDROGEN PROTOTYPEEXPERIMENTAL · 1,250 KG",
+     "XT-1 TRACK HYPERCAREXPERIMENTAL · 1,120 KG",
+     "CR-750 CLASSIC RACERCLASSIC-BIKE · 232 KG",
+     "GP-R1 PROTOTYPEGP-BIKE · 229 KG",
+     "GP-R2 PROTOTYPEGP-BIKE · 229 KG",
+     "NR-900 NAKED ROADSTERROAD-BIKE · 257 KG",
+     "SBK-1000 SUPERBIKESUPERBIKE · 272 KG",
+     "SM-450 SUPERMOTOSUPERMOTO · 183 KG",
+     "SS-600 SUPERSPORTSUPERSPORT · 247 KG",
+     "On",
+     "Off",
+     "Traffic on",
+     "Traffic off",
+     "Coast to Summit · Road race",
+     "Solvane Grand Loop · Circuit",
+     "Port Ilse Street Loop · Circuit",
+     "Kestrel Airfield Circuit · Circuit",
+     "Ashvale Sprint · Sprint",
+     "Thornwood Dirt Sprint · Sprint",
+     "Ridge Highway Speed Trap · Speed trap",
+     "Coast Highway Speed Trap · Speed trap",
+     "Varda Pass Speed Zone · Speed zone",
+     "Plateau Speed Zone · Speed zone",
+     "Varda Hairpins Drift Zone · Drift zone",
+     "Quarry Track Drift Zone · Drift zone",
+     "Runway Showcase · Showcase",
+     "Harbour Opening Run · Sprint",
+     "Kestrel Drift Playground · Drift zone",
+     "Kestrel Launch Run · Speed trap",
+     "Saltmarsh Club Race · Circuit",
+     "Saltmarsh Practice Lap · Circuit"
+    ]
+   }
+  }
+ },
+ "pageCounters": {
+  "frames": 287,
+  "maxGap": 83063.4,
+  "longTasks": 54,
+  "longMs": 201446,
+  "stalls": [
+   [
+    8157,
+    4516
+   ],
+   [
+    99254,
+    83063
+   ],
+   [
+    128219,
+    28932
+   ],
+   [
+    147452,
+    11433
+   ],
+   [
+    167118,
+    19649
+   ],
+   [
+    170834,
+    3683
+   ],
+   [
+    173984,
+    3133
+   ],
+   [
+    185400,
+    7216
+   ],
+   [
+    189617,
+    4183
+   ],
+   [
+    249314,
+    59664
+   ],
+   [
+    255848,
+    6533
+   ],
+   [
+    258297,
+    2450
+   ],
+   [
+    261947,
+    3650
+   ],
+   [
+    265730,
+    3783
+   ],
+   [
+    268847,
+    2783
+   ],
+   [
+    271514,
+    2667
+   ],
+   [
+    274730,
+    3217
+   ],
+   [
+    277930,
+    3200
+   ],
+   [
+    280230,
+    2300
+   ],
+   [
+    285230,
+    5000
+   ],
+   [
+    289096,
+    3833
+   ],
+   [
+    295963,
+    6866
+   ],
+   [
+    300112,
+    4150
+   ],
+   [
+    303779,
+    3667
+   ],
+   [
+    306629,
+    2817
+   ],
+   [
+    308745,
+    2117
+   ],
+   [
+    313112,
+    2650
+   ],
+   [
+    315562,
+    2450
+   ],
+   [
+    319512,
+    2017
+   ],
+   [
+    322762,
+    2317
+   ],
+   [
+    327178,
+    2883
+   ]
+  ]
+ }
+}

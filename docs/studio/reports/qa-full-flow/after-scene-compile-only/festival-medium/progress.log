@@ -1,0 +1,49 @@
+[    0.8s] browser.open {"viewport":[960,540],"quality":"saved/default"}
+[    0.8s] step.begin {"name":"boot"}
+[    2.8s] boot.domcontentloaded {"ms":1943}
+[    5.6s] worker {"url":"blob:http://127.0.0.1:4231/92b29370-5671-403a-895a-854c67568a78"}
+[    5.6s] worker {"url":"blob:http://127.0.0.1:4231/92b29370-5671-403a-895a-854c67568a78"}
+[    5.6s] worker {"url":"blob:http://127.0.0.1:4231/92b29370-5671-403a-895a-854c67568a78"}
+[    5.6s] worker {"url":"blob:http://127.0.0.1:4231/92b29370-5671-403a-895a-854c67568a78"}
+[   45.4s] wait {"label":"menu visible","waited":43,"mode":null,"stage":"0% · Preparing vehicle showroom…","percent":"0%","rafFrames":81,"maxGapMs":1917}
+[   59.6s] boot.done {"timeToMenuS":58.8,"timeToFirstMenuFrameS":58.8,"paint":{"first-paint":1360,"first-contentful-paint":2644},"domContentLoadedMs":1943}
+[   59.6s] step.end {"name":"boot","seconds":58.8}
+[   61.7s] screenshot {"file":"01-menu-boot.png","ms":2032}
+[   61.8s] memory {"label":"menu-after-boot","t":61.8,"jsHeapMB":33.8,"jsHeapTotalMB":35.1,"nodes":2417,"listeners":133,"documents":2,"rssMB":2097,"textures":83,"geometries":190}
+[   61.8s] step.begin {"name":"festival-load-1"}
+[   61.8s] step.begin {"name":"configure"}
+[   61.8s] input.click {"n":1,"label":"plate festival"}
+[   64.2s] configured {"circuit":"aurel","vehicle":"eh3","mode":"festival","laps":"3","weather":"clear","compound":"medium","assist":"sport","opponents":"7","startSlot":"pole"}
+[   64.2s] sessionRules {"text":"Festival: explore Solvane, drive to event markers or travel to any route from the world map. Weather and assists apply; a road machine chosen in MACHINE is used, otherwise pick one in the festival men"}
+[   64.2s] step.end {"name":"configure","seconds":2.4}
+[   68.5s] screenshot {"file":"02-configured.png","ms":4280}
+[   68.8s] input.click {"n":2,"label":"ENTER FESTIVAL"}
+[   68.9s] festival.stage {"at":0.1,"text":"0% · Preparing vehicle showroom…","percent":"0%","mainThreadMaxGapMs":37932}
+[   70.1s] worker {"url":"blob:http://127.0.0.1:4231/1b97cabb-ab5a-48ab-9829-0a2c0950a35a"}
+[   70.2s] festival.stage {"at":1.1,"text":"Planning event routes and town streets…","percent":"8%","mainThreadMaxGapMs":37932}
+[   70.8s] worker {"url":"blob:http://127.0.0.1:4231/4a98c896-7483-4167-be67-0a593d787bf7"}
+[   75.7s] festival.stage {"at":2.3,"text":"Loading authored coastal details…","percent":"30%","mainThreadMaxGapMs":37932}
+[   76.8s] festival.stage {"at":7.9,"text":"Starting the festival simulation…","percent":"40%","mainThreadMaxGapMs":37932}
+[   77.8s] festival.stage {"at":8.9,"text":"Streaming terrain around Port Ilse…","percent":"55%","mainThreadMaxGapMs":37932}
+[   78.8s] festival.stage {"at":9.9,"text":"Baking festival materials…","percent":"84%","mainThreadMaxGapMs":37932}
+[   87.3s] festival.stage {"at":12,"text":"Compiling the festival materials…","percent":"90%","mainThreadMaxGapMs":37932}
+[  155.7s] festival.mode {"dataMode":"festival","diag":{"starting":false,"active":true}}
+[  156.0s] festival.profile {"name":"load1-final","totalMs":87357,"idlePct":5,"files":[{"file":"getProgramInfoLog","ms":71099},{"file":"free-roam.js","ms":4361},{"file":"(idle)","ms":4035},{"file":"index.js","ms":2858},{"file":"three.js","ms":1365},{"file":"readPixels","ms":1237}],"top":[{"fn":"getProgramInfoLog :-1","ms":71099},{"fn":"(idle) :-1","ms":4035},{"fn":"fX index-BEwkuEMf.js:1560","ms":1461},{"fn":"readPixels :-1","ms":1237},{"fn":"(garbage collector) :-1","ms":952},{"fn":"(anonymous) free-roam-CpXUCLEQ.js:269","ms":690},{"fn":"master index-BEwkuEMf.js:780","ms":633},{"fn":"(program) :-1","ms":594}]}
+[  156.4s] festival.loaded {"seconds":19.4}
+[  156.4s] step.end {"name":"festival-load-1","seconds":94.5}
+[  267.8s] screenshot {"file":"03-festival-1-loaded.png","ms":111459}
+[  267.8s] step.begin {"name":"festival-drive"}
+[  267.8s] festival.hud {"speed":"0","road":"Harbour Front","limit":"50","machine":"EH-3 ELECTRIC HYPERCAR","state":"FREE ROAM","discovered":"1/18 DISCOVERED"}
+[  365.4s] festival.drive {"peakKph":192,"distanceM":313,"last":{"wall":97.6,"simTime":196.86,"kph":49,"x":780,"z":-2349,"cars":1,"hudSpeed":"0","rafFps":0.012,"cpuPct":{"gpuProcess":151,"rendererProcess":13,"browser":1,"utility":1}}}
+[  365.6s] festival.profile {"name":"festival-after-load","totalMs":209407,"idlePct":60,"files":[{"file":"(idle)","ms":126416},{"file":"getShaderInfoLog","ms":60405},{"file":"getProgramInfoLog","ms":20007},{"file":"(program)","ms":857},{"file":"postMessage","ms":571},{"file":"(garbage collector)","ms":288}],"top":[{"fn":"(idle) :-1","ms":126416},{"fn":"getShaderInfoLog :-1","ms":60405},{"fn":"getProgramInfoLog :-1","ms":20007},{"fn":"(program) :-1","ms":857},{"fn":"postMessage :-1","ms":571},{"fn":"(garbage collector) :-1","ms":288},{"fn":"(anonymous) :43","ms":191},{"fn":"copy three-CuIIN4MI.js:4","ms":85}]}
+[  504.7s] screenshot {"file":"04-festival-driving.png","ms":139095}
+[  504.8s] input.key {"label":"ESC (festival menu)","code":"Escape"}
+[  507.3s] festival.menu {"open":true,"buttons":["RESUME","RESET TO ROAD","EXIT FESTIVAL","WORLD MAP","PHOTO MODE","Day","Golden hour","Night","EH-3 ELECTRIC HYPERCARROAD · 1,980 KG","LX-12 LUXURY GTROAD · 2,080 KG","RD-2 ROADSTERROAD · 1,110 KG","RG-63 CLASSIC GRAND TOURERROAD · 1,250 KG","RH-3 HOT HATCHROAD · 1,500 KG","RM-8 MUSCLE COUPEROAD · 1,820 KG","RP-6 DESERT PICKUPROAD · 2,650 KG","RR-4 RALLY-BRED ROAD CARROAD · 1,600 KG","RS-5 SPORTS SEDANROAD · 1,820 KG","SC-7 SUPERCARROAD · 1,480 KG","CR-1 CLUB ROADSTERCLUB · 620 KG","GS-4 GT SPORTGT-SPORT · 1,460 KG","GS-6M MID-ENGINE GT SPORTGT-SPORT · 1,400 KG","GT-10M MID-ENGINE GTGT · 1,290 KG","GT-6R REAR-ENGINE GTGT · 1,270 KG","GT-6S STRAIGHT-SIX GTGT · 1,340 KG","GT-8F FRONT-ENGINE GTGT · 1,310 KG","HH-2 HOT-HATCH RACERCLUB · 1,180 KG","BG-2 DESERT BUGGYOFFROAD · 1,650 KG","DX-8 TROPHY TRUCKOFFROAD · 2,720 KG","RCX-6 RALLYCROSSRALLYCROSS · 1,300 KG","RL-2 RALLYRALLY · 1,330 KG","RX-E ELECTRIC RALLYCROSSRALLYCROSS · 1,490 KG","TC-1 TOURINGTOURING · 1,265 KG","TC-2 TOURINGTOURING · 1,240 KG","TC-3 AWD TOURINGTOURING · 1,300 KG","HY-11 HYPERCARHYPERCAR · 1,030 KG","HY-9 HYPERCARHYPERCAR · 1,030 KG","PR-2 PROTOTYPEPROTOTYPE · 950 KG","PR-3 OPEN PROTOTYPEPROTOTYPE · 930 KG","APX-01 FORMULAFORMULA · 770 KG","FE-4 ENTRY FORMULAFORMULA-ENTRY · 570 KG","FR-3 FEEDER FORMULAFORMULA-FEEDER · 675 KG","FX-26 FORMULAFORMULA · 768 KG","GB-4 GROUP RALLYHISTORIC-RALLY · 1,120 KG","HF-67 HISTORIC FORMULAHISTORIC · 595 KG","HF-76 HISTORIC FORMULAHISTORIC-AERO · 650 KG","HF-86 TURBO FORMULAHISTORIC-TURBO · 620 KG","JF-2 JUNIOR FORMULAFORMULA-JUNIOR · 790 KG","RL-7 CLASSIC RALLYHISTORIC-RALLY · 1,100 KG","SP-71 LONG-TAIL PROTOTYPEHISTORIC-PROTOTYPE · 860 KG","VC-62 VINTAGE ROADSTERVINTAGE · 760 KG","XE-1 ELECTRIC TIME ATTACKEXPERIMENTAL · 1,000 KG","XF-2 FAN PROTOTYPEEXPERIMENTAL · 780 KG","XH-3 HYDROGEN PROTOTYPEEXPERIMENTAL · 1,250 KG","XT-1 TRACK HYPERCAREXPERIMENTAL · 1,120 KG","CR-750 CLASSIC RACERCLASSIC-BIKE · 232 KG","GP-R1 PROTOTYPEGP-BIKE · 229 KG","GP-R2 PROTOTYPEGP-BIKE · 229 KG","NR-900 NAKED ROADSTERROAD-BIKE · 257 KG","SBK-1000 SUPERBIKESUPERBIKE · 272 KG","SM-450 SUPERMOTOSUPERMOTO · 183 KG","SS-600 SUPERSPORTSUPERSPORT · 247 KG","On","Off","Traffic on","Traffic off","Coast to Summit · Road race","Solvane Grand Loop · Circuit","Port Ilse Street Loop · Circuit","Kestrel Airfield Circuit · Circuit","Ashvale Sprint · Sprint","Thornwood Dirt Sprint · Sprint","Ridge Highway Speed Trap · Speed trap","Coast Highway Speed Trap · Speed trap","Varda Pass Speed Zone · Speed zone","Plateau Speed Zone · Speed zone","Varda Hairpins Drift Zone · Drift zone","Quarry Track Drift Zone · Drift zone","Runway Showcase · Showcase","Harbour Opening Run · Sprint","Kestrel Drift Playground · Drift zone","Kestrel Launch Run · Speed trap","Saltmarsh Club Race · Circuit","Saltmarsh Practice Lap · Circuit"]}
+[  578.9s] screenshot {"file":"05-festival-menu.png","ms":71597}
+[  578.9s] step.end {"name":"festival-drive","seconds":311.1}
+[  578.9s] step.begin {"name":"festival-exit"}
+[  578.9s] input.click {"n":4,"label":"EXIT FESTIVAL"}
+[  641.2s] festival.exit {"seconds":62.296}
+[  641.2s] step.end {"name":"festival-exit","seconds":62.3}
+[  741.7s] screenshot {"file":"06-menu-after-festival.png","ms":100472}
+[  742.5s] memory {"label":"menu-after-festival-1","t":742.5,"jsHeapMB":68.8,"jsHeapTotalMB":71.3,"nodes":3024,"listeners":155,"documents":2,"rssMB":2893,"textures":107,"geometries":244}
