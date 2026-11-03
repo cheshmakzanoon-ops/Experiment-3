@@ -97,7 +97,10 @@ for (;;) {
   if (state.mode === 'driving' || state.app === 'driving' || /CAMERA · T MAP/.test(state.text))
     break;
   if (await briefing.isVisible().catch(() => false)) await briefing.click();
-  if (Date.now() > deadline) throw new Error(`session did not reach driving: ${line}`);
+  if (Date.now() > deadline)
+    throw new Error(
+      `session did not reach driving: ${line} | ${[...new Set(errors)].slice(-3).join(' | ')}`,
+    );
   await page.waitForTimeout(5000);
 }
 console.log(`${stamp()} driving`);
