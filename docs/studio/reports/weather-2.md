@@ -157,11 +157,59 @@ The series is now 21 events (14 cross-discipline): `tests/wildcard-board.test.ts
 
 ## 5. Screens
 
-SCREENS_PLACEHOLDER
+`docs/studio/reports/weather-screens-2/` (1024x576 JPEG, 36 to 61 KB each, SwiftShader, Medium quality, practice session on the Formula car with the autopilot, 3 rivals), captured
+with `scripts/studio/weather-capture-2.mjs` from a production build on port 4222 (it adds a venue per shot and a replay-parked lightning mode to wave 1's tool). A session took 9 to 19 minutes
+to reach its first frame on this box (load average 4 to 8, other agents capturing at the same time), so the set is small. The first pass of each frame is kept where the retake changed the verdict.
+
+| File | Venue, state | What it shows |
+| --- | --- | --- |
+| `snow-day-alpine-pass.jpg` | Col d'Argent pass, snow, day | -4 C, `VIS 450 M · SNOW 3.3 MM/H · SNOW AND ICE ON TRACK`; white scenery, white road with the dark worn tracks along the line, cool grey light, flakes |
+| `snow-night-alpine-pass.jpg` | same, night | Floodlit pass in snowfall: lit snow on the verges, glazed gloss on the road under the lamps, the lamp shafts visible in the falling snow |
+| `fog-dawn-pass1-too-orange-hochwald.jpg` | Hochwald forest ring, fog, golden hour, first pass | Warm, but a saturated orange: it read as a sandstorm, not a dawn. Kept as the record of the retune |
+| `fog-dawn-hochwald.jpg` | same, after the softer peach chroma | Pale cream-peach haze, the bank glows instead of greying, the grandstand and gantry dissolve into it at 110 m. Reads as a warm dawn mist |
+| `fog-night-hochwald-shafts.jpg` | same venue, fog, night | Floodlight shafts in 120 m of fog, `8C / FOG 120 M · DAMP TRACK` |
+| `dust-day-desert-canyon.jpg` | Red canyon circuit, dust storm, day | Amber haze, sand-coloured road, tan-tinted trackside, 200 km/h, `DUST` bank (a retake of wave 1's dust at a venue that suits it) |
+| `storm-rising-riviera-replay-start.jpg` | Riviera harbour streets, storm, day | Replay start (rain 18 mm/h, wind 11 m/s): not yet at the storm's peak; kept as an honest record of a mis-aimed replay seek, not as a flash |
+| `storm-peak-riviera-tunnel-replay-on-strike.jpg` | same, the replay parked 20 ms after the strongest strike of the session (t = 76.13 s, expected flash 0.68) | HUD `RAIN 70.4 MM/H`, 9 m/s wind. **The car was inside the harbour tunnel at that second: no sky, lamps on, so the strike is not visible. It proves the park, not the flash.** |
+STORM_AUREL_ROW
+
+What works:
+
+* **Snow** is the strongest result: the cover is white and the dark wheel tracks along the racing line read as a polished path, exactly where the grip model puts the faster line; the HUD says what the road is;
+  at night the glaze catches the floodlights and the shafts show the falling snow.
+* **Dawn** after the retune. The same fog scene at the same light is no longer the gloomy dusk of wave 1.
+* **Shafts** are visible and read as lamp beams in fog and snow.
+
+What does not, or is unproven:
+
+* **The shafts are hard-edged geometric wedges**, with a bright crisp rim where the cone's back and front faces overlap (fog night). They need a softer radial falloff (a higher facing exponent) or a depth-aware pass. Not changed after the capture, so the code is as shown.
+* **Mist wisps are not visible in any frame.** They are bounded and faint (alpha 0.1) and the bank is dense around the car; the unit tests prove the births, nothing in a frame proves the look.
+* **Flakes are small and sparse** in stills (600-particle pool shared with rain; a slow fall at 4 to 6 s); in motion on a GPU they may read better, which I cannot check. The snow stills are mostly won by the white ground and the haze.
+* **Kerbs stay red** through the cover (paint and kerb surfaces are not whitened); the tyre-mark geometry is still drawn over the snow-covered road.
+* **The fog frames show the car at 0 to 1 km/h with a double-yellow:** the capture script presses G after the page loads, and the player's car had been standing on the grid road for those 9 to 19 minutes of load. A capture artefact, not a weather effect (the same session driven headlessly runs at 70 m/s).
+* The HUD weather label at the top (grey, no plate) is still hard to read on bright skies: UX item, unchanged.
+* No dust night frame (a run was stopped to retake the lightning), no festival frame (SwiftShader cannot finish one), no GPU frame-rate evidence.
+
 
 ## Verified (commands run in this worktree, results)
 
-VERIFIED_PLACEHOLDER
+Run in this worktree (`/home/user/Experiment-3/.claude/worktrees/wf_599b5e93-53e-2`), on a shared 4-CPU box:
+
+* `npx tsc --noEmit`: pass (no output), re-run after the final source edit.
+* `npx eslint` on all 51 changed or added `.ts` / `.mjs` files (sources, tests, scripts, the e2e spec): pass (no output).
+* `npx vitest run --maxWorkers=2` over 33 files: `weather-states weather aerial-perspective wet-broadcast-fidelity wet-detail wet-night-traffic-start wet-presentation wet-reflection wet-review-start
+  wet-rubber-grip surface-material surface-thermal drs driver-brain audio frontend-menus frontend-retail front-end-board front-end-light-sound wildcard-series wildcard-board wildcard-career-flow
+  weather-snow weather-dawn race-control-visibility recording marbles phase27f-atmosphere-audio photoreal-wet weather-reconciliation daylight-environment material-library tyre-model`:
+  **33 files, 425 tests pass**. Earlier in the work also green: `race-control marshal safety gp-race-control motocross-race-control drivetrain physics road-contact wheel-thermal longitudinal-contact open-world
+  offroad skid-contact light-pools point-light-work phase27g-venue venue-landmark spray-lighting renderer-resource-lifecycle race-surface-atmosphere festival-atmosphere festival-effects-integration
+  effects-upload open-world-session motocross-venue-integration venue-kit replay-seek-preparation flashback-recording`.
+* `node --experimental-transform-types scripts/weather-selftest.ts`: 14 / 14 oracles pass.
+* `node --experimental-transform-types scripts/weather-matrix.ts` (all seven presets, solo stints and 8-car races): finite everywhere, every race classified 8/8 with 0 retirements; table above, JSON in `docs/studio/reports/weather-matrix.json`.
+* `node --experimental-transform-types scripts/weather-hash.ts` against a copy of the baseline sources (`aecec04`): `clear changeable rain storm dust` and the GP-bike `rain`/`clear` field **identical** (frame and road-grid hashes at 50 / 100 / 150 s); `fog` differs (cloud slot, by design).
+* `node --experimental-transform-types scripts/wildcard-races.ts desert-trucks-on-the-iced-col,haboob-in-the-canyon`: both PASS (re-run after the grip fix).
+* `npx vite build` (production bundle, 13 to 17 s) and the captures above.
+
+Not run: the e2e specs, the full vitest suite, `npm run check` (CPU rule), any GPU or festival frame.
 
 ## Not built / unverified
 
