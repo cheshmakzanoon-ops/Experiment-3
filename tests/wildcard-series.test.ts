@@ -33,6 +33,7 @@ import { EVENTS, RULESETS, sessionIncompatibilities } from '../src/simulation/ev
 import { offroadCourse, venueAdmits } from '../src/simulation/offroad/venues.ts';
 import { CROSSOVER_ADMITS, WILDCARD_RULESETS } from '../src/simulation/wildcard-rulesets.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
+import { WEATHER_CATALOGUE } from '../src/simulation/weather-catalogue.ts';
 import { Simulation } from '../src/simulation/world.ts';
 
 const BIKE_ROAD = new Set(['gp-bike', 'superbike', 'supersport', 'classic-bike']);
@@ -138,6 +139,28 @@ describe('the wildcard series data', () => {
       WILDCARD_SERIES.map((e) => vehicleFamily(VEHICLES[[e.event.vehicles].flat()[0]])),
     );
     expect(families.size).toBeGreaterThanOrEqual(2);
+  });
+  it('uses the fog, thunderstorm and dust presets where they fit the venue', () => {
+    const weather = (id: string) => wildcardEntry(id)!.event.weather;
+    // "In the cloud" is fog; a harbour street takes a thunderstorm; a rallycross
+    // gravel circuit takes a dust storm. Each was re-run headlessly after the change.
+    expect(weather('descent-in-the-cloud')).toBe('fog');
+    expect(weather('hypercars-in-the-harbour')).toBe('storm');
+    expect(weather('supermoto-meets-the-joker')).toBe('dust');
+    const used = new Set(WILDCARD_SERIES.map((e) => e.event.weather));
+    for (const id of ['fog', 'storm', 'dust'] as const) expect(used.has(id), id).toBe(true);
+    // The copy describes the weather the data runs (the pitch is read on the board).
+    expect(wildcardEntry('descent-in-the-cloud')!.pitch).toMatch(/fog/i);
+    expect(wildcardEntry('hypercars-in-the-harbour')!.pitch).toMatch(/thunderstorm/i);
+    expect(wildcardEntry('supermoto-meets-the-joker')!.pitch).toMatch(/dust/i);
+  });
+  it('races on wets in every weather the catalogue asks wets for', () => {
+    for (const e of WILDCARD_SERIES) {
+      const wanted = WEATHER_CATALOGUE[e.event.weather].suggestedTyre === 'wet';
+      const allowed = RULESETS[e.event.ruleset].tires.allowed.includes('wet');
+      expect(e.event.compound, e.id).toBe(wanted && allowed ? 'wet' : 'medium');
+    }
+    expect(wildcardEntry('hypercars-in-the-harbour')!.event.compound).toBe('wet');
   });
 });
 

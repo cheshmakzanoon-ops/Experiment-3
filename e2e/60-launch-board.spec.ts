@@ -20,7 +20,11 @@ async function load(page: Page) {
     logLevel: 'error',
     build: {
       write: false,
-      lib: { entry: resolve('e2e/fixtures/launch-board.ts'), name: 'LaunchBoard', formats: ['iife'] },
+      lib: {
+        entry: resolve('e2e/fixtures/launch-board.ts'),
+        name: 'LaunchBoard',
+        formats: ['iife'],
+      },
     },
   });
   const output = Array.isArray(built) ? built[0] : built;
@@ -113,9 +117,9 @@ test('keyboard: plates are a roving radio group; selects keep native behaviour',
   await page.keyboard.press('Home');
   await expect(page.getByRole('radio', { name: /^CIRCUIT/ })).toBeChecked();
   // One tab stop for the whole group.
-  const tabbable = await page.locator('.lb-plate').evaluateAll(
-    (els) => els.filter((e) => (e as HTMLElement).tabIndex >= 0).length,
-  );
+  const tabbable = await page
+    .locator('.lb-plate')
+    .evaluateAll((els) => els.filter((e) => (e as HTMLElement).tabIndex >= 0).length);
   expect(tabbable).toBe(1);
   // The weather dial is a real select: Down changes it, the glyph follows.
   await page.locator('#weather').focus();
@@ -133,7 +137,9 @@ test('keyboard: plates are a roving radio group; selects keep native behaviour',
   expect(await hands.count()).toBeGreaterThan(8);
   expect(
     await hands.evaluateAll((els) =>
-      els.every((e) => (e as HTMLElement).tabIndex === -1 && e.getAttribute('aria-hidden') === 'true'),
+      els.every(
+        (e) => (e as HTMLElement).tabIndex === -1 && e.getAttribute('aria-hidden') === 'true',
+      ),
     ),
   ).toBe(true);
 });
@@ -146,8 +152,12 @@ test('venue sheet draws the real circuit and follows the selection', async ({ pa
   await page.locator('#circuit').selectOption('vellamar');
   expect(await outline()).not.toBe(aurel);
   // The sheet states the chosen circuit's own lap length (label: 4.00 km), not the loaded track's.
-  expect(Math.abs(Number(await page.locator('#circuitLength').textContent()) - 4)).toBeLessThan(0.05);
-  await expect(page.locator('.lb-dial[data-dial="circuit"] .lb-dial-count')).toHaveText(/^02 \/ \d+$/);
+  expect(Math.abs(Number(await page.locator('#circuitLength').textContent()) - 4)).toBeLessThan(
+    0.05,
+  );
+  await expect(page.locator('.lb-dial[data-dial="circuit"] .lb-dial-count')).toHaveText(
+    /^02 \/ \d+$/,
+  );
   // Festival swaps the sheet for the region map: roads, not a lap.
   await page.getByRole('radio', { name: /^FESTIVAL/ }).click();
   await expect(page.locator('#venueMap .ta-rd').first()).toBeVisible();
@@ -179,7 +189,10 @@ test('controller: LB/RB switch discipline, D-pad walks the board, A steps, Start
     throw new Error(`controller button ${index} was not handled`);
   };
   const checked = (name: RegExp) => () =>
-    page.getByRole('radio', { name }).getAttribute('aria-checked').then((v) => v === 'true');
+    page
+      .getByRole('radio', { name })
+      .getAttribute('aria-checked')
+      .then((v) => v === 'true');
   await tapUntil(5, checked(/^GP BIKE/)); // RB
   await expect(page.getByRole('radio', { name: /^GP BIKE/ })).toBeChecked();
   await tapUntil(5, checked(/^DIRT/));
@@ -240,4 +253,326 @@ test('board fits 1280x720 without scrolling and keeps type at 11px or larger', a
     return smallest;
   });
   expect(small).toEqual([]);
+});
+
+const logged = async (page: Page) =>
+  JSON.parse((await page.locator('#boardEvents').textContent()) ?? '[]') as Record<
+    string,
+    unknown
+  >[];
+
+test('wildcard door opens the board: 19 events, arrow keys select, START is wired', async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await load(page);
+  const door = page.getByRole('button', {
+    name: /^WILDCARD SERIES, 19 events, 12 cross-discipline/,
+  });
+  await expect(door).toBeVisible();
+  await expect(door).toContainText('0 OF 19 MEDALLED');
+  await door.click();
+  const board = page.locator('.wc-board');
+  await expect(board).toBeVisible();
+  const rows = page.locator('.wc-row');
+  await expect(rows).toHaveCount(19);
+  // One radio group, one tab stop, the chosen event focused and showing its page.
+  const checked = () => page.locator('.wc-row[aria-checked="true"]');
+  await expect(checked()).toHaveCount(1);
+  await expect(checked()).toBeFocused();
+  await expect(page.locator('.wc-detail:not([hidden])')).toHaveCount(1);
+  const first = await checked().getAttribute('data-id');
+  // Arrow keys move and select; Home and End jump.
+  await page.keyboard.press('ArrowDown');
+  const second = await checked().getAttribute('data-id');
+  expect(second).not.toBe(first);
+  await expect(page.locator(`.wc-detail[data-id="${second}"]`)).toBeVisible();
+  await expect(page.locator(`.wc-detail[data-id="${first}"]`)).toBeHidden();
+  await page.keyboard.press('End');
+  await expect(rows.last()).toHaveAttribute('aria-checked', 'true');
+  await page.keyboard.press('Home');
+  await expect(rows.first()).toHaveAttribute('aria-checked', 'true');
+  // A pointer click on a row selects it too, and the page shows the real venue art.
+  await rows.nth(3).click();
+  const page3 = page.locator('.wc-detail:not([hidden])');
+  await expect(page3.locator('svg.wc-map-art .ta-line')).toHaveCount(1);
+  await expect(page3).toContainText('MACHINE');
+  await expect(page3).toContainText('PAYS UP TO');
+  // The medal ladder reads gold, silver, bronze.
+  await expect(page3.locator('.wc-ladder li')).toHaveText([/GOLD/, /SILVER/, /BRONZE/]);
+  // START EVENT names the event it starts (the career controller owns the launch).
+  const id = await rows.nth(3).getAttribute('data-id');
+  await page3.getByRole('button', { name: /^START EVENT/ }).click();
+  expect((await logged(page)).some((e) => e.action === `career:wildcardGo:${id}`)).toBe(true);
+  // Type stays at 11 px or more, and the dialog fits the 1280x720 screen.
+  const geometry = await page.evaluate(() => {
+    const small: string[] = [];
+    for (const el of document.querySelectorAll<HTMLElement>('.wc-board *')) {
+      if (el instanceof SVGElement || !el.getClientRects().length) continue;
+      const own = [...el.childNodes].some(
+        (n) => n.nodeType === Node.TEXT_NODE && (n.textContent ?? '').trim(),
+      );
+      if (own && parseFloat(getComputedStyle(el).fontSize) < 11) small.push(el.className);
+    }
+    const box = document.querySelector('dialog')!.getBoundingClientRect();
+    return { small, top: box.top, bottom: box.bottom, width: box.width };
+  });
+  expect(geometry.small).toEqual([]);
+  expect(geometry.top).toBeGreaterThanOrEqual(0);
+  expect(geometry.bottom).toBeLessThanOrEqual(720);
+  // Close returns to the paddock.
+  await page.getByRole('button', { name: 'Close Wildcard Series' }).click();
+  await expect(board).toBeHidden();
+  expect(errors).toEqual([]);
+});
+
+test('the door shows medal progress; CONTINUE relaunches the last entry in one input', async ({
+  page,
+}) => {
+  await load(page);
+  // No remembered entry yet: no CONTINUE.
+  await expect(page.getByRole('button', { name: /^CONTINUE/ })).toHaveCount(0);
+  await page.evaluate(() => window.LaunchBoard.setProgress());
+  await expect(page.locator('.lb-wild')).toContainText('1 OF 19 MEDALLED');
+  await expect(page.locator('.lb-wild')).toHaveAttribute('title', 'Next: FORMULA ON THE WALL');
+  // A remembered form entry writes the same selects and launches: one input.
+  await page.evaluate(() => window.LaunchBoard.setContinue('form'));
+  const resume = page.getByRole('button', { name: /^CONTINUE: GP-R1 · VELLAMAR COAST, 5 LAPS/ });
+  await expect(resume).toBeVisible();
+  await resume.click();
+  const entry = (await started(page)).at(-1)!;
+  expect(entry).toMatchObject({ circuit: 'vellamar', mode: 'race', weather: 'rain' });
+  expect(entry.vehicles[0]).toBe('gpr1');
+  await expect(page.locator('#vehicle')).toHaveValue('gpr1');
+  await expect(page.locator('#laps')).toHaveValue('5');
+  await expect(page.locator('#startSlot')).toHaveValue('back');
+  await expect(page.getByRole('radio', { checked: true })).toHaveAccessibleName(/^GP BIKE/);
+  // A remembered Wildcard event routes to its start action instead of the form.
+  await page.evaluate(() => window.LaunchBoard.setContinue('wildcard'));
+  const wild = page.getByRole('button', { name: /^CONTINUE: KARTS AFTER DARK/ });
+  await expect(wild).toHaveAttribute('data-action', 'career:wildcardGo:karts-after-dark');
+  await wild.click();
+  expect((await logged(page)).some((e) => e.action === 'career:wildcardGo:karts-after-dark')).toBe(
+    true,
+  );
+});
+
+test('LIGHT dial: venue default, midday, sunset, night or the live sky, announced to the shell', async ({
+  page,
+}) => {
+  await load(page);
+  const light = page.locator('#light');
+  await expect(light.locator('option')).toHaveText([
+    'Venue',
+    'Midday',
+    'Sunset',
+    'Night',
+    'Live sky',
+  ]);
+  await expect(light).toHaveValue('auto');
+  const glyphOf = () =>
+    page.locator('.lb-dial[data-dial="light"] .lb-dial-glyph').getAttribute('data-glyph');
+  expect(await glyphOf()).toBe('venue');
+  await light.selectOption('sunset');
+  expect(await glyphOf()).toBe('sunset');
+  await light.selectOption('night');
+  expect(await glyphOf()).toBe('night');
+  // The hands step it like every dial, and the shell hears each change.
+  await page.locator('.lb-dial[data-dial="light"] .lb-step[data-step="1"]').click();
+  await expect(light).toHaveValue('live');
+  expect((await logged(page)).filter((e) => 'light' in e).map((e) => e.light)).toEqual([
+    'sunset',
+    'night',
+    'live',
+  ]);
+  // The submit does not carry the light: it is the shell's own choice, not a session option.
+  await page.getByRole('button', { name: 'ENTER CIRCUIT', exact: true }).click();
+  expect((await started(page)).at(-1)).not.toHaveProperty('light');
+  // And every dial label still fits: the board scrolls none at 1280x720.
+  const body = await page
+    .locator('.menu-body')
+    .evaluate((el) => ({ c: el.clientHeight, s: el.scrollHeight }));
+  expect(body.s).toBeLessThanOrEqual(body.c + 1);
+});
+
+test('controller: the D-pad walks the Wildcard events and B closes the board', async ({ page }) => {
+  await load(page);
+  await page.evaluate(() => window.LaunchBoard.installFakePad());
+  await page.waitForTimeout(200); // the first poll only records held buttons
+  await page.getByRole('button', { name: /^WILDCARD SERIES/ }).click();
+  await expect(page.locator('.wc-board')).toBeVisible();
+  const chosen = () => page.locator('.wc-row[aria-checked="true"]').getAttribute('data-id');
+  const first = await chosen();
+  // Held for several animation frames, and retried until handled (a loaded host polls late).
+  const tapUntil = async (index: number, done: () => Promise<boolean>) => {
+    for (let attempt = 0; attempt < 6; attempt++) {
+      await page.evaluate((i) => window.LaunchBoard.press(i, true), index);
+      await page.waitForTimeout(300);
+      await page.evaluate((i) => window.LaunchBoard.press(i, false), index);
+      await page.waitForTimeout(300);
+      if (await done()) return;
+    }
+    throw new Error(`controller button ${index} was not handled`);
+  };
+  await tapUntil(13, async () => (await chosen()) !== first); // down
+  const second = await chosen();
+  await expect(page.locator(`.wc-detail[data-id="${second}"]`)).toBeVisible();
+  await tapUntil(13, async () => (await chosen()) !== second); // down again
+  await tapUntil(12, async () => (await chosen()) === second); // up
+  // B closes the board (the modal offers a close action).
+  await tapUntil(1, async () => !(await page.locator('.wc-board').isVisible()));
+});
+
+test('menu sounds: silent before the first input, then the cue hook makes sound, mute and volume obeyed', async ({
+  page,
+}) => {
+  // Playwright's own evaluate() grants user activation, so the page's activation flag is
+  // replaced by one that follows the real rule: false until a real pointer or key event.
+  await page.addInitScript(() => {
+    let active = false;
+    Object.defineProperty(Navigator.prototype, 'userActivation', {
+      configurable: true,
+      get: () => ({ hasBeenActive: active, isActive: active }),
+    });
+    (window as unknown as { markActive: () => void }).markActive = () => (active = true);
+  });
+  // A counting AudioContext (the real one cannot be heard here): what the sounds build.
+  await page.addInitScript(() => {
+    const w = window as unknown as Record<string, unknown>;
+    w.audioStats = { contexts: 0, oscillators: 0, noises: 0, masterGain: [] as number[] };
+    const stats = w.audioStats as {
+      contexts: number;
+      oscillators: number;
+      noises: number;
+      masterGain: number[];
+    };
+    const param = (record?: boolean) => ({
+      value: 0,
+      setValueAtTime(v: number) {
+        if (record) stats.masterGain.push(v);
+      },
+      linearRampToValueAtTime() {},
+      exponentialRampToValueAtTime() {},
+    });
+    const node = () => ({ connect: (n: unknown) => n });
+    let gains = 0;
+    w.AudioContext = class {
+      state = 'running';
+      get currentTime() {
+        return performance.now() / 1000;
+      }
+      sampleRate = 48000;
+      destination = {};
+      constructor() {
+        stats.contexts++;
+      }
+      async resume() {}
+      async close() {}
+      createGain() {
+        gains++;
+        return { ...node(), gain: param(gains === 1) };
+      }
+      createOscillator() {
+        stats.oscillators++;
+        return { ...node(), type: '', frequency: param(), start() {}, stop() {} };
+      }
+      createBufferSource() {
+        stats.noises++;
+        return { ...node(), buffer: null, start() {}, stop() {} };
+      }
+      createBiquadFilter() {
+        return { ...node(), type: '', frequency: param(), Q: { value: 0 } };
+      }
+      createBuffer(_c: number, length: number) {
+        return { getChannelData: () => new Float32Array(length) };
+      }
+    };
+  });
+  // Init scripts run on navigation, not on setContent: navigate once so they are in place.
+  await page.goto('about:blank');
+  await load(page);
+  await page.evaluate(() => window.LaunchBoard.mountSounds());
+  // (document.open in setContent erased init-time listeners: attach after the load.)
+  await page.evaluate(() => {
+    for (const type of ['pointerdown', 'keydown'])
+      window.addEventListener(
+        type,
+        () => (window as unknown as { markActive: () => void }).markActive(),
+        true,
+      );
+  });
+  const stats = () =>
+    page.evaluate(
+      () =>
+        (
+          window as unknown as {
+            audioStats: {
+              contexts: number;
+              oscillators: number;
+              noises: number;
+              masterGain: number[];
+            };
+          }
+        ).audioStats,
+    );
+  // The page has had no user input: a cue is announced, and nothing is heard or even created.
+  expect(await page.evaluate(() => navigator.userActivation?.hasBeenActive ?? false)).toBe(false);
+  await page.evaluate(() =>
+    window.dispatchEvent(new CustomEvent('motobound:cue', { detail: { cue: 'confirm' } })),
+  );
+  expect((await stats()).contexts).toBe(0);
+  // A real click is the first input: the next cue (a dial step) plays.
+  await page.locator('.lb-dial[data-dial="weather"] .lb-step[data-step="1"]').click();
+  const played = await stats();
+  expect(played.contexts).toBe(1);
+  expect(played.oscillators + played.noises).toBeGreaterThan(0);
+  // Level: the quiet ceiling times the player's volume.
+  expect(played.masterGain[0]).toBeCloseTo(0.35 * 0.5, 5);
+  // Mute (the M key's flag) and a zero volume stop every further cue.
+  await page.evaluate(() => ((window as unknown as { soundMuted: boolean }).soundMuted = true));
+  await page.waitForTimeout(80);
+  const muted = await stats();
+  await page.locator('.lb-dial[data-dial="weather"] .lb-step[data-step="1"]').click();
+  await page.keyboard.press('Escape');
+  expect(await stats()).toEqual(muted);
+  await page.evaluate(() => {
+    const w = window as unknown as { soundMuted: boolean; soundVolume: number };
+    w.soundMuted = false;
+    w.soundVolume = 0;
+  });
+  await page.locator('.lb-dial[data-dial="weather"] .lb-step[data-step="1"]').click();
+  expect(await stats()).toEqual(muted);
+  // Unmuted at volume, a modal opening and closing makes the latch sounds.
+  await page.evaluate(() => ((window as unknown as { soundVolume: number }).soundVolume = 0.8));
+  await page.waitForTimeout(80);
+  const before = (await stats()).oscillators + (await stats()).noises;
+  await page.getByRole('button', { name: /^WILDCARD SERIES/ }).click();
+  await expect(page.locator('.wc-board')).toBeVisible();
+  expect((await stats()).oscillators + (await stats()).noises).toBeGreaterThan(before);
+});
+
+test('the DIRT SERIES shortcuts belong to the DIRT plate only', async ({ page }) => {
+  await load(page);
+  const outdoor = page.getByRole('button', { name: 'OUTDOOR MX', exact: true });
+  const stadium = page.getByRole('button', { name: 'STADIUM SX', exact: true });
+  const heading = page.getByLabel('Motocross venues').getByText('DIRT SERIES', { exact: true });
+  // Circuit, GP bike and Festival have no use for motocross venues: no chips, no heading.
+  for (const plate of [/^CIRCUIT/, /^GP BIKE/, /^FESTIVAL/]) {
+    await page.getByRole('radio', { name: plate }).click();
+    await expect(outdoor).toBeHidden();
+    await expect(stadium).toBeHidden();
+    await expect(heading).toBeHidden();
+  }
+  // Dirt shows them, and the chip of the chosen venue is pressed.
+  await page.getByRole('radio', { name: /^DIRT/ }).click();
+  await expect(heading).toBeVisible();
+  await expect(outdoor).toBeVisible();
+  await expect(outdoor).toHaveAttribute('aria-pressed', 'true');
+  await stadium.click();
+  await expect(page.locator('#circuit')).toHaveValue('arena-nord-sx');
+  await expect(stadium).toHaveAttribute('aria-pressed', 'true');
+  // Leaving dirt for a circuit hides them again.
+  await page.getByRole('radio', { name: /^CIRCUIT/ }).click();
+  await expect(outdoor).toBeHidden();
 });

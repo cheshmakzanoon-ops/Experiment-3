@@ -62,6 +62,8 @@ test('motocross entry, live race alerts and landing HUD remain usable at small s
       ),
     ).toBe(true);
     const originalLength = await page.locator('#circuitLength').textContent();
+    // The dirt shortcuts belong to the DIRT plate (they are hidden under the other plates).
+    await page.getByRole('radio', { name: /^DIRT/ }).click();
     await page.getByRole('button', { name: 'OUTDOOR MX', exact: true }).click();
     await expect(page.locator('#circuit')).toHaveValue('valley-ridge-mx');
     await expect(page.locator('#vehicle')).toHaveValue('mx450');

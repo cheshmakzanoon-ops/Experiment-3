@@ -1,0 +1,653 @@
+/* WILDCARD SERIES board and result banner (src/ui/wildcard-board.ts), the door on the
+ * paddock board (launch-board.ts) and the CONTINUE button. Injected with front-end.css
+ * by installFrontEnd(); tokens only (--mb-*). Paper means "chosen" or "label", asphalt
+ * is the board, amber is the thing you press. Medals are a disc with a letter, so the
+ * colour is never the only signal. */
+
+:root {
+  --mb-medal-gold: #e9b949;
+  --mb-medal-silver: #c3c7cc;
+  --mb-medal-bronze: #c27a43;
+}
+
+/* ---------- Medal discs ---------------------------------------------------------- */
+.wc-medal {
+  --m: var(--mb-line-strong);
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: calc(22px * var(--mb-u));
+  height: calc(22px * var(--mb-u));
+  border: 2px solid var(--m);
+  border-radius: 50%;
+  background: var(--m);
+  color: var(--mb-ink);
+  font: 400 calc(12px * var(--mb-u)) / 1 var(--mb-stencil);
+}
+.wc-medal b {
+  font: inherit;
+}
+.wc-medal[data-medal='gold'] {
+  --m: var(--mb-medal-gold);
+}
+.wc-medal[data-medal='silver'] {
+  --m: var(--mb-medal-silver);
+}
+.wc-medal[data-medal='bronze'] {
+  --m: var(--mb-medal-bronze);
+}
+.wc-medal[data-medal='none'] {
+  background: transparent;
+  border-style: dashed;
+}
+.wc-medal-lg {
+  width: calc(68px * var(--mb-u));
+  height: calc(68px * var(--mb-u));
+  border-width: 4px;
+  font-size: calc(30px * var(--mb-u));
+  box-shadow:
+    0 0 0 3px var(--mb-asphalt-1),
+    0 0 0 5px var(--m);
+}
+.wc-medal-lg[data-medal='none'] {
+  box-shadow: none;
+}
+
+/* ---------- The door on the paddock board ------------------------------------------ */
+#menu .lb-door {
+  display: flex;
+  flex: 1 1 100%;
+  gap: var(--mb-s2);
+  align-items: stretch;
+  min-width: 0;
+}
+/* A ticket stub: paper with a stencil count, a perforation, then the title. */
+#menu .lb-series .lb-wild {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--mb-s3);
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: calc(32px * var(--mb-u));
+  padding: 0 var(--mb-s3) 0 0;
+  background: var(--mb-paper);
+  border: 0;
+  border-radius: 0;
+  color: var(--mb-paper-ink);
+  text-align: left;
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% 38%,
+    calc(100% - 5px) 50%,
+    100% 62%,
+    100% 100%,
+    0 100%,
+    0 62%,
+    5px 50%,
+    0 38%
+  );
+}
+#menu .lb-series .lb-wild:hover {
+  background: #f3ead3;
+}
+#menu .lb-wild-count {
+  display: grid;
+  place-items: center;
+  align-self: stretch;
+  min-width: calc(44px * var(--mb-u));
+  padding: 0 var(--mb-s2) 0 var(--mb-s3);
+  border-right: 2px dashed rgba(20, 17, 12, 0.4);
+  font: 400 calc(20px * var(--mb-u)) / 1 var(--mb-stencil);
+  letter-spacing: 0.02em;
+}
+#menu .lb-wild-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+#menu .lb-wild-text b {
+  font: 800 calc(13px * var(--mb-u)) / 1.1 var(--mb-sans);
+  font-stretch: 94%;
+  letter-spacing: 0.14em;
+}
+#menu .lb-wild-text small {
+  overflow: hidden;
+  font: 650 var(--mb-f-label) / 1.2 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#menu .lb-wild .lb-wild-go {
+  width: calc(18px * var(--mb-u));
+  height: calc(18px * var(--mb-u));
+}
+#menu .lb-series .lb-continue {
+  display: grid;
+  gap: 2px;
+  align-content: center;
+  flex: 0 1 auto;
+  max-width: 54%;
+  min-width: 0;
+  min-height: calc(32px * var(--mb-u));
+  padding: 0 var(--mb-s3);
+  background: var(--mb-asphalt-0);
+  border: 1px solid var(--mb-amber);
+  border-radius: 0;
+  text-align: left;
+}
+#menu .lb-series .lb-continue[hidden] {
+  display: none;
+}
+#menu .lb-series .lb-continue b {
+  color: var(--mb-amber);
+  font: 800 var(--mb-f-label) / 1 var(--mb-sans);
+  font-stretch: 94%;
+  letter-spacing: 0.16em;
+}
+#menu .lb-series .lb-continue small {
+  overflow: hidden;
+  color: var(--mb-chalk);
+  font: 650 var(--mb-f-label) / 1.2 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.06em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#menu .lb-series .lb-continue:hover {
+  background: var(--mb-asphalt-2);
+}
+
+/* ---------- The board ------------------------------------------------------------------ */
+#app dialog:has(.wc-board) {
+  width: min(1180px, calc(100vw - 2 * var(--mb-s3)));
+  max-width: none;
+  padding: var(--mb-s4) var(--mb-s5);
+}
+.wc-board {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: var(--mb-s3);
+  height: min(calc(100vh - 6 * var(--mb-s4)), calc(640px * var(--mb-u)));
+  min-height: calc(420px * var(--mb-u));
+}
+.wc-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: start;
+  gap: var(--mb-s4);
+}
+.wc-head h2 {
+  margin: var(--mb-s2) 0 0;
+}
+.wc-tally {
+  display: flex;
+  gap: var(--mb-s4);
+  align-items: center;
+  margin: var(--mb-s2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.wc-tally li {
+  display: flex;
+  align-items: center;
+  gap: var(--mb-s2);
+}
+.wc-tally b {
+  font: 400 calc(20px * var(--mb-u)) / 1 var(--mb-stencil);
+  color: var(--mb-chalk);
+  font-variant-numeric: tabular-nums;
+}
+.wc-tally-name {
+  color: var(--mb-chalk-faint);
+  font: 650 var(--mb-f-label) / 1 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.12em;
+}
+.wc-tally-total {
+  padding-left: var(--mb-s4);
+  border-left: 1px solid var(--mb-line-strong);
+}
+.wc-body {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  gap: var(--mb-s4);
+  min-height: 0;
+}
+.wc-list {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  min-height: 0;
+  margin: 0;
+  padding: 0 var(--mb-s1) 0 0;
+  overflow-y: auto;
+  list-style: none;
+  scrollbar-color: var(--mb-asphalt-3) transparent;
+  scrollbar-width: thin;
+}
+.wc-row {
+  --tint: var(--mb-plate-circuit);
+  display: grid;
+  grid-template-columns: calc(26px * var(--mb-u)) calc(60px * var(--mb-u)) minmax(0, 1fr) auto;
+  gap: var(--mb-s3);
+  align-items: center;
+  width: 100%;
+  min-height: calc(54px * var(--mb-u));
+  padding: var(--mb-s1) var(--mb-s3) var(--mb-s1) var(--mb-s2);
+  background: var(--mb-asphalt-2);
+  border: 0;
+  border-left: 3px solid var(--tint);
+  border-radius: 0;
+  color: var(--mb-chalk);
+  text-align: left;
+  letter-spacing: 0;
+}
+.wc-row:hover {
+  background: var(--mb-asphalt-3);
+}
+.wc-no {
+  color: var(--mb-amber);
+  font: 400 calc(15px * var(--mb-u)) / 1 var(--mb-stencil);
+  font-variant-numeric: tabular-nums;
+}
+.wc-mini {
+  aspect-ratio: 4 / 3;
+  background: var(--mb-asphalt-1);
+}
+.wc-mini .ta-road {
+  stroke-width: 9;
+}
+.wc-mini .ta-line {
+  stroke-width: 3.4;
+}
+.wc-mini .ta-drs,
+.wc-mini .ta-start {
+  display: none;
+}
+.wc-row-text {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.wc-row-text b {
+  overflow: hidden;
+  font: 750 calc(13px * var(--mb-u)) / 1.15 var(--mb-sans);
+  font-stretch: 94%;
+  letter-spacing: 0.07em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.wc-row-text span {
+  overflow: hidden;
+  color: var(--mb-chalk-faint);
+  font: 650 var(--mb-f-label) / 1.2 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wc-row-text i {
+  color: var(--mb-amber);
+  font-style: normal;
+}
+.wc-row-flags {
+  display: flex;
+  align-items: center;
+  gap: var(--mb-s2);
+  color: var(--mb-chalk-dim);
+}
+.wc-flag {
+  width: calc(17px * var(--mb-u));
+  height: calc(17px * var(--mb-u));
+  flex: none;
+}
+/* Chosen: the paper label, ink on paper. */
+.wc-row[aria-checked='true'] {
+  background: var(--mb-paper);
+  color: var(--mb-paper-ink);
+}
+.wc-row[aria-checked='true'] .wc-no,
+.wc-row[aria-checked='true'] .wc-row-text i {
+  color: #7a4f00;
+}
+.wc-row[aria-checked='true'] .wc-row-text span,
+.wc-row[aria-checked='true'] .wc-row-flags {
+  color: #3a342a;
+}
+.wc-row[aria-checked='true'] .wc-mini {
+  background: #f4ecd6;
+}
+.wc-row[aria-checked='true'] .wc-medal[data-medal='none'] {
+  --m: rgba(20, 17, 12, 0.5);
+}
+.wc-row[aria-checked='true'] .ta-road {
+  stroke: rgba(20, 17, 12, 0.16);
+}
+.wc-row[aria-checked='true'] .ta-line {
+  stroke: var(--mb-paper-ink);
+}
+
+/* ---------- The programme page ------------------------------------------------------ */
+.wc-pages {
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--mb-s3);
+  background: var(--mb-asphalt-0);
+  box-shadow: inset 0 0 0 1px var(--mb-line);
+  scrollbar-color: var(--mb-asphalt-3) transparent;
+  scrollbar-width: thin;
+}
+.wc-detail {
+  --tint: var(--mb-plate-circuit);
+  display: grid;
+  gap: var(--mb-s3);
+}
+.wc-detail[hidden] {
+  display: none;
+}
+.wc-detail-top {
+  display: grid;
+  grid-template-columns: calc(188px * var(--mb-u)) minmax(0, 1fr);
+  gap: var(--mb-s3);
+  align-items: start;
+}
+.wc-map {
+  aspect-ratio: 4 / 3;
+  background: var(--mb-asphalt-1);
+  box-shadow: inset 0 0 0 1px var(--mb-line);
+}
+.wc-kind {
+  display: inline-block;
+  padding: var(--mb-s1) var(--mb-s2);
+  background: var(--mb-paper);
+  color: var(--mb-paper-ink);
+  font: 650 var(--mb-f-label) / 1 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.14em;
+}
+.wc-detail h3 {
+  margin: var(--mb-s2) 0 var(--mb-s2);
+  color: var(--mb-chalk);
+  font: 400 calc(21px * var(--mb-u)) / 1.1 var(--mb-stencil);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.wc-facts {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+}
+.wc-facts > div {
+  display: grid;
+  grid-template-columns: calc(66px * var(--mb-u)) minmax(0, 1fr);
+  gap: var(--mb-s2);
+  align-items: center;
+  min-height: calc(24px * var(--mb-u));
+}
+.wc-facts dt {
+  color: var(--mb-chalk-faint);
+  font: 650 var(--mb-f-label) / 1 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.14em;
+}
+.wc-facts dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--mb-s1) var(--mb-s2);
+  margin: 0;
+  color: var(--mb-chalk);
+  font: 650 calc(12.5px * var(--mb-u)) / 1.25 var(--mb-sans);
+  font-stretch: 96%;
+  letter-spacing: 0.03em;
+}
+.wc-facts small {
+  color: var(--mb-chalk-faint);
+  font: 650 var(--mb-f-label) / 1 var(--mb-sans);
+  letter-spacing: 0.08em;
+}
+.wc-plate svg {
+  display: block;
+  width: calc(26px * var(--mb-u));
+  height: calc(22px * var(--mb-u));
+}
+.wc-plate .plate-body {
+  fill: var(--tint);
+}
+.wc-plate .plate-rim {
+  fill: none;
+  stroke: var(--mb-ink);
+  stroke-width: 1.3;
+  opacity: 0.5;
+}
+.wc-plate .plate-numeral {
+  font: 400 26px var(--mb-stencil);
+  fill: var(--mb-paper-ink);
+}
+.wc-sep {
+  width: 1px;
+  height: calc(14px * var(--mb-u));
+  background: var(--mb-line-strong);
+}
+.wc-rules {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mb-s1);
+  margin-top: var(--mb-s2);
+}
+.wc-rule {
+  padding: var(--mb-s1) var(--mb-s2);
+  border: 1px solid var(--mb-flag-text);
+  color: var(--mb-flag-text);
+  font: 700 var(--mb-f-label) / 1 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.12em;
+}
+#app dialog .wc-pitch {
+  margin: 0;
+  color: var(--mb-chalk);
+  font: 500 calc(14px * var(--mb-u)) / 1.45 var(--mb-sans);
+}
+.wc-ladder {
+  display: grid;
+  gap: var(--mb-s2);
+}
+.wc-ladder ol {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--mb-s2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.wc-ladder li {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--mb-s2);
+  align-items: center;
+  padding: var(--mb-s2);
+  background: var(--mb-asphalt-2);
+  border: 1px solid var(--mb-line);
+}
+.wc-ladder li span {
+  display: grid;
+  gap: 2px;
+}
+.wc-ladder b {
+  font: 800 var(--mb-f-label) / 1 var(--mb-sans);
+  font-stretch: 94%;
+  letter-spacing: 0.14em;
+}
+.wc-ladder small {
+  color: var(--mb-chalk-dim);
+  font: 650 var(--mb-f-label) / 1.2 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.04em;
+}
+.wc-ladder li em {
+  grid-column: 1 / -1;
+  color: var(--mb-go);
+  font: 750 var(--mb-f-label) / 1 var(--mb-sans);
+  font-style: normal;
+  letter-spacing: 0.14em;
+}
+.wc-ladder li[data-best='true'] {
+  border-color: var(--mb-amber);
+  box-shadow: 0 2px 0 var(--mb-amber);
+}
+#app dialog .wc-best {
+  margin: 0;
+  color: var(--mb-chalk-dim);
+  font: 700 var(--mb-f-label) / 1 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.14em;
+}
+.wc-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mb-s4);
+}
+#app dialog .wc-pay {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+}
+.wc-pay small {
+  color: var(--mb-chalk-faint);
+  font: 650 var(--mb-f-label) / 1.2 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.12em;
+}
+.wc-pay b {
+  color: var(--mb-amber);
+  font: 400 calc(22px * var(--mb-u)) / 1 var(--mb-stencil);
+  font-variant-numeric: tabular-nums;
+}
+#app dialog .wc-go {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mb-s3);
+  min-height: var(--mb-field);
+  padding: 0 var(--mb-s5);
+  border: 0;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+  font: 800 calc(13px * var(--mb-u)) / 1 var(--mb-sans);
+  letter-spacing: 0.16em;
+}
+.wc-go .enter-glyph {
+  width: calc(16px * var(--mb-u));
+  height: calc(16px * var(--mb-u));
+}
+
+/* ---------- The result banner (head of the results screen) -------------------------- */
+.wc-result {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--mb-s4);
+  align-items: center;
+  margin: var(--mb-s3) 0;
+  padding: var(--mb-s3) var(--mb-s4);
+  background: var(--mb-asphalt-0);
+  border-left: 4px solid var(--mb-line-strong);
+  box-shadow: inset 0 0 0 1px var(--mb-line);
+}
+.wc-result[data-medal='gold'] {
+  border-left-color: var(--mb-medal-gold);
+}
+.wc-result[data-medal='silver'] {
+  border-left-color: var(--mb-medal-silver);
+}
+.wc-result[data-medal='bronze'] {
+  border-left-color: var(--mb-medal-bronze);
+}
+.wc-result-text {
+  display: grid;
+  gap: var(--mb-s1);
+  justify-items: start;
+  min-width: 0;
+}
+.wc-result-head {
+  color: var(--mb-chalk);
+  font: 400 calc(26px * var(--mb-u)) / 1.1 var(--mb-stencil);
+  letter-spacing: 0.04em;
+}
+.wc-result-head em {
+  margin-left: var(--mb-s2);
+  padding: var(--mb-s1) var(--mb-s2);
+  background: var(--mb-amber);
+  color: var(--mb-ink);
+  font: 800 var(--mb-f-label) / 1 var(--mb-sans);
+  font-style: normal;
+  letter-spacing: 0.14em;
+  vertical-align: middle;
+}
+#app dialog .wc-result p {
+  margin: 0;
+  font-size: calc(13px * var(--mb-u));
+}
+.wc-result-side {
+  display: grid;
+  gap: var(--mb-s2);
+  justify-items: end;
+  align-self: stretch;
+  align-content: space-between;
+}
+#app dialog .wc-result-side button {
+  min-height: calc(32px * var(--mb-u));
+  padding: 0 var(--mb-s3);
+  background: var(--mb-asphalt-2);
+  border: 0;
+  border-left: 3px solid var(--mb-line-strong);
+  color: var(--mb-chalk);
+  font-size: calc(11px * var(--mb-u));
+  letter-spacing: 0.14em;
+}
+#app dialog .wc-result-side button:hover {
+  background: var(--mb-asphalt-3);
+  border-left-color: var(--mb-amber);
+}
+#app dialog p.wc-result-pay {
+  display: grid;
+  gap: 2px;
+  justify-items: end;
+  margin: 0;
+}
+.wc-result-pay small {
+  color: var(--mb-chalk-faint);
+  font: 650 var(--mb-f-label) / 1 var(--mb-sans);
+  letter-spacing: 0.14em;
+}
+.wc-result-pay b {
+  color: var(--mb-amber);
+  font: 400 calc(26px * var(--mb-u)) / 1 var(--mb-stencil);
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 900px) {
+  .wc-board {
+    height: auto;
+  }
+  .wc-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .wc-list {
+    max-height: 34vh;
+  }
+}
+/* The payment table under a result: its first column is a label here, not a position. */
+#app dialog .career-payout .results td:first-child {
+  color: var(--mb-chalk);
+  font: 500 var(--mb-f-value) / 1.3 var(--mb-sans);
+  letter-spacing: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .wc-row {
+    transition: none;
+  }
+}

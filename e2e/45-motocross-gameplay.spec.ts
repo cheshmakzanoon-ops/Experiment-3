@@ -55,6 +55,8 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
     ['arena-nord-sx', 'STADIUM SX', 'mx250'],
   ] as const) {
     console.info(`[MX journey] Selecting ${circuit} and ${machine}`);
+    // The dirt shortcuts belong to the DIRT plate (they are hidden under the other plates).
+    await page.getByRole('radio', { name: /^DIRT/ }).click();
     await page.getByRole('button', { name: entry, exact: true }).click();
     await page.locator('#vehicle').selectOption(machine);
     await expect

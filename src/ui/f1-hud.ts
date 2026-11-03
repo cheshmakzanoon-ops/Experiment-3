@@ -504,7 +504,7 @@ export class F1Hud {
     const head = document.createElement('span');
     head.className = 'f1-tower-head';
     head.setAttribute('aria-hidden', 'true');
-    head.innerHTML = '<b class="f1-wordmark">APEX</b><em class="f1-session">RACE</em>';
+    head.innerHTML = '<b class="f1-wordmark">MOTOBOUND</b><em class="f1-session">RACE</em>';
     const lap = document.createElement('span');
     lap.className = 'f1-tower-lap';
     lap.setAttribute('aria-hidden', 'true');

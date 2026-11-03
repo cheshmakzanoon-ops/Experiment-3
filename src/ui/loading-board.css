@@ -1,0 +1,143 @@
+/* Loading screen in the Paddock Board identity (docs/studio/ART_DIRECTION.md).
+ *
+ * A pit board, not a splash: the session line, the stage and percent, and a tip
+ * on the left; the real line art of the venue being loaded on the right (the same
+ * curve the race uses, or the festival region), so the screen carries data. Flat
+ * asphalt, no stripes, no glow, no gradient. Injected by installFrontEnd() after
+ * front-end.css. */
+#app .loading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: auto 1fr 1fr auto;
+  column-gap: calc(6vw * var(--ui-scale, 1));
+  align-items: stretch;
+  justify-content: stretch;
+  padding: var(--mb-s5) calc(5vw);
+  background: var(--mb-asphalt-0);
+  color: var(--mb-chalk);
+  text-align: left;
+}
+#app .loading .brand {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  justify-self: start;
+  margin: 0;
+  font-size: calc(27px * var(--mb-u));
+}
+#app .loading .loading-map {
+  grid-column: 2;
+  grid-row: 2 / 4;
+  align-self: center;
+  justify-self: end;
+  width: min(100%, calc(560px * var(--mb-u)));
+  aspect-ratio: 4 / 3;
+  padding: var(--mb-s4);
+  background: var(--mb-asphalt-1);
+  box-shadow: inset 0 0 0 1px var(--mb-line);
+  clip-path: polygon(0 0, calc(100% - var(--mb-notch)) 0, 100% var(--mb-notch), 100% 100%, 0 100%);
+  --tint: var(--mb-plate-circuit);
+}
+#app .loading .loading-map:empty {
+  visibility: hidden;
+}
+#app .loading .loading-map[data-kind='gp'] {
+  --tint: var(--mb-plate-gp);
+}
+#app .loading .loading-map[data-kind='dirt'] {
+  --tint: var(--mb-plate-dirt);
+}
+#app .loading .loading-map[data-kind='festival'] {
+  --tint: var(--mb-plate-fest);
+  aspect-ratio: 1;
+  width: min(100%, calc(440px * var(--mb-u)));
+}
+#app .loading .loading-session {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: end;
+  margin: 0 0 var(--mb-s5);
+  padding: var(--mb-s1) 0 var(--mb-s1) var(--mb-s3);
+  border-left: 3px solid var(--mb-amber);
+  color: var(--mb-chalk);
+  font: 650 calc(15px * var(--mb-u)) / 1.5 var(--mb-sans);
+  font-stretch: 94%;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+#app .loading .loading-progress {
+  grid-column: 1;
+  grid-row: 3;
+  align-self: start;
+  width: min(100%, calc(520px * var(--mb-u)));
+  margin: 0;
+}
+#app .loading .loading-row {
+  align-items: flex-end;
+}
+#app .loading .loading-row b {
+  color: var(--mb-chalk);
+  font: 750 calc(13px * var(--mb-u)) / 1 var(--mb-sans);
+  font-stretch: 94%;
+  letter-spacing: 0.16em;
+}
+#app .loading .loading-row span {
+  color: var(--mb-amber);
+  font: 400 calc(26px * var(--mb-u)) / 1 var(--mb-stencil);
+  letter-spacing: 0.02em;
+}
+#app .loading .loader {
+  height: calc(8px * var(--mb-u));
+  margin-top: var(--mb-s2);
+  border-radius: 0;
+  background: var(--mb-asphalt-3);
+  transform: none;
+}
+#app .loading .loader i {
+  min-width: 2%;
+  border-radius: 0;
+  background: var(--mb-amber);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+  animation: none;
+  transition: width 0.3s linear;
+}
+#app .loading .loading-tip {
+  position: static;
+  grid-column: 1 / -1;
+  grid-row: 4;
+  align-self: end;
+  width: min(100%, calc(720px * var(--mb-u)));
+  margin: 0;
+  translate: none;
+  color: var(--mb-chalk-dim);
+  font: 500 calc(14px * var(--mb-u)) / 1.5 var(--mb-sans);
+  letter-spacing: 0;
+  text-align: left;
+  text-transform: none;
+}
+#app .loading .loading-tip b {
+  margin-right: var(--mb-s3);
+  padding: var(--mb-s1) var(--mb-s2);
+  border-radius: 0;
+  background: var(--mb-paper);
+  color: var(--mb-paper-ink);
+  font: 650 var(--mb-f-label) / 1 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.14em;
+}
+#app .loading .loading-detail {
+  grid-column: 1 / -1;
+  grid-row: 4;
+  align-self: end;
+  position: absolute;
+  right: var(--mb-s4);
+  bottom: var(--mb-s2);
+  left: auto;
+}
+@media (max-width: 900px) {
+  #app .loading {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  #app .loading .loading-map {
+    display: none;
+  }
+}

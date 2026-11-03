@@ -26,6 +26,19 @@ import {
 } from '../ui/career-hub.ts';
 import { ContactMeter } from './contact.ts';
 import {
+  wildcardCareerEvent,
+  wildcardEntry,
+  wildcardMedal,
+  wildcardSession,
+} from './wildcard-series.ts';
+import {
+  bestMedal,
+  revealInList,
+  wildcardBoardHtml,
+  wildcardResultHtml,
+  type WildcardResultView,
+} from '../ui/wildcard-board.ts';
+import {
   festivalEvents,
   festivalMachine,
   festivalRoamKey,
@@ -91,6 +104,9 @@ export interface CareerSession {
   setup: Setup | null;
   /** Championship round index this session races, or -1. */
   round: number;
+  /** Light the event names for itself (a Wildcard event run after dark): it wins
+   * over the player's LIGHT choice for this session, and for a restart of it. */
+  light?: 'day' | 'sunset' | 'night' | null;
   /** A session of a two-moto meeting (offroad/meeting.ts): the career pays
    * the meeting once, on its combined classification, after the final moto;
    * qualifying and the first moto ('part') are not settled on their own. */
@@ -129,6 +145,10 @@ export interface CareerHost {
   modalRoot(): HTMLElement;
   toast(message: string): void;
   setResultsExtra(html: string): void;
+  /** A banner directly under the results heading (the Wildcard medal). */
+  setResultsLead?(html: string): void;
+  /** The career save changed (loaded, or a settled result was written). */
+  changed?(save: CareerSave): void;
   start(options: SessionOptions, career: CareerSession): void;
   /** Run a career event as a two-moto meeting (absent: not offered). */
   meeting?(options: SessionOptions, career: CareerSession, name: string): void;
@@ -172,6 +192,8 @@ export class CareerController {
   private pendingLicence: LicenceId | null = null;
   private readonly contact = new ContactMeter(0);
   private aiUsed = false;
+  /** A Wildcard time attack ends once; this remembers that it has. */
+  private attackEnded = false;
   private persistence: Persistence = { saving: true };
   /** An unreadable primary to keep aside before the first overwrite. */
   private quarantine: unknown = undefined;
@@ -190,6 +212,7 @@ export class CareerController {
    * build, or storage that could not be read) is played without saving. */
   async load(legacy: LegacySaves) {
     await this.loadCareer(legacy);
+    this.host.changed?.(this.save);
     await this.refreshFestival();
   }
   private async loadCareer(legacy: LegacySaves) {
@@ -254,6 +277,7 @@ export class CareerController {
       if (!this.persistence.saving) {
         // Played without saving: the change lasts for this session only.
         this.save = change(this.save);
+        this.host.changed?.(this.save);
         return this.save;
       }
       return exclusive(async () => {
@@ -267,6 +291,7 @@ export class CareerController {
         const written = { ...next, revision: base.revision + 1 };
         await this.host.store.writeWithBackup(CAREER_KEY, written);
         this.save = written;
+        this.host.changed?.(written);
         return written;
       });
     });
@@ -354,6 +379,8 @@ export class CareerController {
         return void this.startEvent(name.slice('career:start:'.length)).catch((error) =>
           this.fail(error),
         );
+      if (command === 'wildcard') return this.openWildcard(a);
+      if (command === 'wildcardGo') return this.startWildcard(a);
       if (command === 'meeting') return this.startMeeting(name.slice('career:meeting:'.length));
       if (command === 'licence' && LICENCE_IDS.includes(a as LicenceId))
         return this.briefLicence(a as LicenceId);
@@ -489,6 +516,34 @@ export class CareerController {
       vehicle: player.id,
       setup: careerSetup(this.save, player),
       round,
+    });
+  }
+  /** The WILDCARD SERIES board (ui/wildcard-board.ts), on `id` when given. The
+   * list keeps its scroll position when the board is shown again. */
+  openWildcard(id?: string) {
+    if (!this.canStart()) return;
+    this.host.modal(wildcardBoardHtml(this.save, id));
+    const selected = this.host
+      .modalRoot()
+      .querySelector<HTMLElement>('.wc-row[aria-checked="true"]');
+    if (selected) revealInList(selected);
+  }
+  /** Start a Wildcard event: the series' own session (its machine, venue, weather,
+   * field and seed) over the player's setup, paid and medalled by `finish`. The
+   * machine is loaned, so no ownership is needed. */
+  private startWildcard(id: string) {
+    const entry = wildcardEntry(id);
+    if (!entry) return this.fail(new Error('Unknown Wildcard event.'));
+    if (!this.canStart()) return;
+    const options = wildcardSession(entry, this.base());
+    this.host.start(options, {
+      kind: 'race',
+      event: { ...wildcardCareerEvent(entry), tier: 'wildcard' },
+      licence: null,
+      vehicle: [entry.event.vehicles].flat()[0],
+      setup: null,
+      round: -1,
+      light: entry.lighting,
     });
   }
   /** A career race event with a two-moto format, run as a full meeting: the
@@ -651,7 +706,26 @@ export class CareerController {
     this.attemptBuilt = false;
     this.contact.reset();
     this.aiUsed = false;
+    this.attackEnded = false;
     this.host.setResultsExtra('');
+    this.host.setResultsLead?.('');
+  }
+  /** A Wildcard time attack is a time trial, which has no chequered flag (the
+   * session is open-ended), so its event ends when the laps are done. Once the
+   * player has completed them this returns the frame to settle: a copy of the
+   * snapshot whose finish time is the race time. Null before that, for any other
+   * session, and after it has ended. */
+  attackFinished(frame: Float32Array): Float32Array | null {
+    const key = this.active?.event?.key;
+    if (!key?.startsWith('wildcard.') || this.attackEnded) return null;
+    const entry = wildcardEntry(key.slice('wildcard.'.length));
+    if (!entry?.rules.includes('time-attack')) return null;
+    const o = carBase(0);
+    if (Math.round(frame[o + F.LAPS]) < entry.event.laps || !(frame[o + F.BEST_LAP] > 0)) return null;
+    this.attackEnded = true;
+    const done = new Float32Array(frame);
+    if (!(done[o + F.FINISH] > 0)) done[o + F.FINISH] = frame[H.RACE_TIME];
+    return done;
   }
   restartContext() {
     return this.active;
@@ -779,11 +853,42 @@ export class CareerController {
       );
     };
     let payout = settle(this.save).payout;
+    // A Wildcard event also shows its medal (and what it asked for) above the table.
+    const wildcard = event.key.startsWith('wildcard.')
+      ? wildcardEntry(event.key.slice('wildcard.'.length))
+      : undefined;
+    const previous = wildcard ? bestMedal(wildcard, this.save) : null;
+    const lead = (state: PaymentState) => {
+      if (!wildcard) return '';
+      const view: WildcardResultView = {
+        entry: wildcard,
+        position: outcome.position,
+        cars: outcome.cars,
+        classified: outcome.classified,
+        bestLap: outcome.bestLap,
+        demonstration: outcome.demonstration,
+        previous,
+        payout,
+        state,
+      };
+      const medal = wildcardMedal(wildcard, {
+        position: outcome.position,
+        classified: outcome.classified,
+        bestLap: outcome.bestLap,
+      });
+      return wildcardResultHtml(view, medal);
+    };
     const render = (state: PaymentState) => {
-      const html = payoutPanel(payout, state, this.registry);
+      const html = payoutPanel(payout, state, this.registry, !wildcard);
       this.host.setResultsExtra(html);
       const node = this.host.modalRoot().querySelector('.career-payout');
       if (node) node.outerHTML = html;
+      if (wildcard) {
+        const banner = lead(state);
+        this.host.setResultsLead?.(banner);
+        const old = this.host.modalRoot().querySelector('.wc-result');
+        if (old) old.outerHTML = banner;
+      }
     };
     render('saving');
     this.transact((s) => {

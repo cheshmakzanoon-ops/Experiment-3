@@ -1,8 +1,9 @@
 # MOTOBOUND front-end art direction: "Paddock Board"
 
-Owner: UX/UI Director. Status: v1, implemented for the paddock menu, pause menu, results,
-settings and the other modal screens. The race HUD still uses the older `--apex-*` tokens
-(see section 11 for the migration map). Companion docs: `ART_BIBLE_B.md` (HUD sizes, now
+Owner: UX/UI Director. Status: v2, implemented for the paddock menu, the Wildcard Series
+board, pause menu, results, settings, the loading screen and (tokens, type, wordmark; layout
+untouched) the race HUD. Not yet migrated: Team HQ, photo studio, festival HUD detail
+(see section 11). Companion docs: `ART_BIBLE_B.md` (HUD sizes, now
 superseded for menus), `reports/ux.md` (audit and verification).
 
 ## 1. Concept
@@ -130,6 +131,9 @@ Track and region art (`src/ui/track-art.ts`) is generated, never hand-drawn: the
 Catmull-Rom of `CircuitDefinition.design` (the same curve `Track` samples), corner
 numbers at the real corner stations, DRS zones from `drsZones`, the start/finish tick at
 station 0; the festival map draws `SOLVANE.roads`, `coast` and event waypoints.
+The line takes `--tint` from its container (the venue sheet by plate, the loading board by kind, a Wildcard
+row and page by the *machine's* discipline), so a dirt bike on a circuit draws a clay line on a circuit
+outline. (`.ta` used to re-declare `--tint`, which overrode every container; wave 2 removed that.)
 
 ## 8. Interaction model (keyboard, pointer, controller)
 
@@ -146,7 +150,42 @@ station 0; the festival map draws `SOLVANE.roads`, `coast` and event waypoints.
 * Quick start is at most three inputs: pick a discipline (or keep the default), press GO. The
   entry remembers each discipline's own sheet while the menu is open.
 
-## 9. Extension point: Wildcard Series
+### 8b. LIGHT and CONTINUE
+
+* **LIGHT** is the ninth dial (`#light`, beside WEATHER): Venue, Midday, Sunset, Night, Live sky. It is
+  the renderer's own `LightingMode` plus LIVE (`rendering/light-choice.ts`); the choice is stored per profile
+  (LIVE under its old key `apex.sky.live.v1`, presets beside it) and applied when the session loads, so it
+  survives a circuit change. Venue is the old behaviour (floodlit at night venues). The driving
+  academy's CIRCUIT LIGHTING buttons set the same choice. Lighting is visual only. The menu showroom is
+  studio-lit, so the dial shows its effect in the race, not in the menu.
+* **CONTINUE** (the strip, beside the door) relaunches the last entry in one input: the form's own select
+  values, or a Wildcard event id, kept in the save store under `board:last:v1` and validated on read.
+
+## 9. Wildcard Series: the door, the board and the result
+
+The series is the game's signature hook, so it has its own front door instead of a row of chips.
+
+* **Door.** A ticket stub on the series strip under the plates, under every plate (the DIRT
+  SERIES chips next to it belong to the DIRT plate only): a stencil count, a perforation,
+  "WILDCARD SERIES" and "N OF 19 MEDALLED" from the career save. Next to it, CONTINUE (section 8b).
+* **Board** (`src/ui/wildcard-board.ts`, `wildcard-board.css`, opened by `career:wildcard`): a modal
+  on one screen. Left, the 19 events as a roving radio group (arrow keys, Home, End and a controller
+  walking the list all select): number, the venue's real line art, title, machine on venue, weather
+  and light glyphs, and the player's best medal disc (a dashed ring when none). Right, the programme
+  page of the chosen event: the venue map with corner numbers, the machine's plate, venue, field, sky,
+  rules (no ABS, time attack), the one-line pitch, the medal ladder (the player's rungs say EARNED), the
+  best result and what it pays at most (computed by the career's own `racePayout`). The line and
+  machine plate take the machine's discipline colour, so a dirt bike on a circuit draws a clay line on a
+  circuit map. Not a card grid: a master list and a detail page.
+* **Medals** are a disc with a letter (G, S, B) and a colour token (`--mb-medal-*`): never colour alone.
+* **Result** (`resultsLead`, the head of the results screen): the medal earned (or why none: not
+  classified, the AI drove, outside the ladder), what it asked for, NEW BEST or MATCHED YOUR BEST, and
+  the pay; the career payment table follows. Medals come from the series' own `wildcardMedal`.
+* **Start** is `career:wildcardGo:<id>`: `wildcardSession`, the machine loaned, the career's
+  `settleRace` paying and recording `save.results['wildcard.<id>']` (no save schema change). An event that
+  names a light (`lighting`) runs in it for that session.
+
+### Extension point: registerSeries
 
 The SERIES strip sits under the discipline plates (`<div id="boardSeries" class="lb-series">`).
 Today it holds the two dirt shortcuts (OUTDOOR MX, STADIUM SX, built by
@@ -190,12 +229,23 @@ a pitch). No "Welcome", no "Experience", no lorem, no "Get started", no exclamat
 Prefer a number or a noun from the data ("26 venues", "5 named corners") to an adjective.
 Errors say what is wrong and what to do ("Cannot start: ...").
 
-## 11. HUD migration map (phase 2, not done)
+## 11. Race HUD (migrated in `src/ui/hud-identity.css`)
 
-`--apex-flame` -> `--mb-amber` for selection and `--mb-flag` for alerts; `--apex-text` ->
-`--mb-chalk`; `--apex-dim` -> `--mb-chalk-dim`; `--hud-panel` -> `--mb-asphalt-1`;
-`--apex-cut` clip-paths -> the single 10 px notch. Timing colours (`--t-purple`, `--t-green`,
-`--t-yellow`) stay: they are broadcast timing semantics.
+The HUD keeps its layout and footprint contracts; `hud-identity.css` is injected last and changes
+colour, type and shape only. `--apex-flame` and `--accent` are now `--mb-amber`; `--apex-text` and
+`--hud-text` chalk; `--hud-panel` asphalt; `--hud-radius` 0; the player's tower row is amber with
+ink text (the marshal's highlighter, as in the results sheet). The tower header is a paper strip with
+the MOTOBOUND wordmark in stencil; gear, speed, rpm, position and lap numerals are stencil, upright.
+Timing colours (`--t-purple`, `--t-green`, `--t-yellow`, `--t-red`), compound colours and flag colours
+stay: they are broadcast timing semantics. The older `style.css` skins are not edited (a unit test reads
+two of their strings); the layer wins by order.
+
+## 11b. Loading screen
+
+A pit board, not a splash (`loading-board.css`): the session line, the stage and a stencil percent on
+the left, an amber bar with a notched end, the real line art of the venue being loaded on the right
+(circuit centreline or the festival region), and one tip chosen for the discipline, the weather, the
+light and the player's own keys (`loading-tips.ts`, every line taken from a rule or in-game copy).
 
 ## 12. Anti-slop checklist (review gate for every front-end change)
 
@@ -218,7 +268,10 @@ Reject the change if any answer is yes.
 ## 13. Sound-cue hooks
 
 `src/ui/ui-cue.ts` dispatches `window` events `motobound:cue` with `detail.cue` in
-`tick` (dial step), `select` (plate, venue, machine), `confirm` (launch), `open`, `close`,
-`back` and `deny` (an invalid entry). No audio is played yet; the audio engine can subscribe in
-one place without touching UI code. Suggested character: mechanical (a relay click for
-`tick`, a stencil-stamp thud for `select`, a pit-exit light chime for `confirm`).
+`tick` (dial step), `select` (plate, venue, machine), `confirm` (launch), `open` and `close` (a
+modal), `back` and `deny` (an invalid entry). `src/audio/ui-sounds.ts` plays them: six sounds
+synthesised in WebAudio, mechanical and short (a relay click for `tick`, a stencil-stamp thud for
+`select`, a pit-exit light chime for `confirm`, a latch for `open`, the latch released for `close` and
+`back`, a two-tone buzz for `deny`). It plays only after the person has interacted with the page (the
+browser's autoplay rule; no context is created before), obeys the master volume and the mute key, thins a
+key-repeat train, and leaves a suspended context alone. It does not touch the race audio graph.

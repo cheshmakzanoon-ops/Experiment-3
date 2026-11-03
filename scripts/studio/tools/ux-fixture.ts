@@ -12,6 +12,15 @@ import { F, H, carBase } from '../../../src/simulation/protocol.ts';
 import { Simulation } from '../../../src/simulation/world.ts';
 import { Interface } from '../../../src/ui/interface.ts';
 import type { RacingRenderer } from '../../../src/rendering/renderer.ts';
+import { newCareer, type CareerSave } from '../../../src/career/save.ts';
+import { CareerController } from '../../../src/career/controller.ts';
+import {
+  wildcardCareerEvent,
+  wildcardEntry,
+  wildcardKey,
+  wildcardSession,
+} from '../../../src/career/wildcard-series.ts';
+import { wildcardBoardHtml, wildcardProgress } from '../../../src/ui/wildcard-board.ts';
 
 let ui: Interface;
 const renderer = {
@@ -97,4 +106,99 @@ export function controls() {
 export function championship() {
   mount();
   ui.championship(null);
+}
+
+// ---- Wave 2: the Wildcard board, its result banner, the door with progress -------------
+/** A career a few events in: medals from every rung of the ladder. */
+function playedCareer(): CareerSave {
+  const save = newCareer();
+  const record = (id: string, bestPosition: number, bestLap = 0) => {
+    save.results[wildcardKey({ id })] = { bestPosition, bestLap, starts: 2 };
+  };
+  record('descent-in-the-cloud', 1);
+  record('formula-on-the-wall', 2);
+  record('hypercars-in-the-harbour', 5);
+  record('karts-after-dark', 6);
+  record('knobblies-on-the-banking', 3);
+  record('hypercar-roof-deck-attack', 1, 40.8);
+  return save;
+}
+export function menuProgress() {
+  menu();
+  ui.setWildcardProgress(wildcardProgress(playedCareer()));
+  ui.setContinue({
+    version: 1,
+    kind: 'form',
+    fields: {
+      mode: 'race',
+      circuit: 'vellamar',
+      vehicle: 'apx01',
+      laps: '3',
+      weather: 'clear',
+      opponents: '7',
+      compound: 'medium',
+      assist: 'sport',
+      startSlot: 'pole',
+    },
+  });
+}
+export function wildcardBoard(id = 'karts-after-dark') {
+  mount();
+  ui.showMode('menu');
+  ui.modalContent(wildcardBoardHtml(playedCareer(), id));
+}
+/** Drive the real CareerController through a finished Wildcard race (settleRace, medal, pay). */
+export async function wildcardResult(id = 'karts-after-dark', position = 2) {
+  const entry = wildcardEntry(id)!;
+  const simulation = mount(wildcardSession(entry));
+  ui.options = simulation.options;
+  ui.showMode('results');
+  const stored = new Map<string, unknown>();
+  const career: CareerController = new CareerController({
+    store: {
+      read: async (key) => stored.get(key),
+      write: async (key, value) => void stored.set(key, value),
+      writeWithBackup: async (key, value) => void stored.set(key, value),
+    },
+    modal: (html) => ui.modalContent(html),
+    modalRoot: () => document.getElementById('modalContent')!,
+    toast: () => {},
+    setResultsExtra: (html) => (ui.resultsExtra = html),
+    setResultsLead: (html) => (ui.resultsLead = html),
+    start: () => {},
+    pause: () => {},
+    state: () => 'results',
+    track: () => simulation.track,
+    setup: () => simulation.options.setup,
+    assist: () => 'sport',
+  });
+  career.save = playedCareer();
+  career.begin(
+    {
+      kind: 'race',
+      event: { ...wildcardCareerEvent(entry), tier: 'wildcard' },
+      licence: null,
+      vehicle: [entry.event.vehicles].flat()[0],
+      setup: null,
+      round: -1,
+      light: entry.lighting,
+    },
+    'fixture-session',
+  );
+  const frame = finishedFrame(simulation);
+  // The snapshot's rank is 1-based (1 leads): the player takes `position`, the others fill the rest in order.
+  const cars = Math.round(frame[H.CARS]);
+  let next = 1;
+  for (let id = 0; id < cars; id++) {
+    if (id === 0) frame[carBase(0) + F.RANK] = position;
+    else {
+      if (next === position) next++;
+      frame[carBase(id) + F.RANK] = next++;
+    }
+  }
+  career.finish(frame, undefined);
+  ui.results(frame);
+  await new Promise((resolve) => setTimeout(resolve, 80));
+  // The payment settles after the write: show the saved state.
+  ui.results(frame);
 }

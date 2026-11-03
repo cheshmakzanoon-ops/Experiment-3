@@ -40,6 +40,10 @@ import { presentationControls, bindPresentation, weatherReadout } from './presen
 import { DeviceCalibrationPanel } from './device-calibration.ts';
 import { developerMode } from './dev-mode.ts';
 import { LOADING_TIPS, loadingStage } from './loading-copy.ts';
+import { loadingTipsFor, type TipDiscipline } from './loading-tips.ts';
+import { circuitArtSvg, regionArtSvg } from './track-art.ts';
+import type { WildcardEntry } from '../career/wildcard-series.ts';
+import { gridDrs } from '../simulation/drs.ts';
 import {
   BINDING_LABELS,
   DEFAULT_BINDINGS,
@@ -63,7 +67,7 @@ import {
   type Setup,
   type StartSlot,
 } from '../simulation/config.ts';
-import { sessionIncompatibilities } from '../simulation/events.ts';
+import { rulesetFor, sessionIncompatibilities } from '../simulation/events.ts';
 import {
   WEATHER_CATALOGUE,
   weatherOptionsHtml,
@@ -153,9 +157,19 @@ import {
   motocrossSessionTitle,
 } from './motocross-presentation.ts';
 import { CreditsGamepad, creditsHtml } from './credits.ts';
-import { boardPlatesHtml, dialHtml, installLaunchBoard, type LaunchBoard } from './launch-board.ts';
+import {
+  boardPlatesHtml,
+  dialHtml,
+  installHudIdentity,
+  installLaunchBoard,
+  type LaunchBoard,
+} from './launch-board.ts';
+import type { ContinueEntry } from './continue-entry.ts';
+import { bindWildcardBoard, type WildcardProgress } from './wildcard-board.ts';
+import { lightOptionsHtml, type LightChoice } from '../rendering/light-choice.ts';
 import { glyph } from './glyphs.ts';
 import { MenuGamepad } from './menu-gamepad.ts';
+import { uiCue } from './ui-cue.ts';
 import { SOLVANE } from '../simulation/open-world/region-data.ts';
 export const lapTime = (seconds: number) =>
   seconds > 0
@@ -187,6 +201,10 @@ interface Callbacks {
   previewAudio?: (settings: DrivingAudioSettings) => void;
   /** Resolved player machine after a menu machine or circuit selection. */
   previewMachine?: (id: string) => void;
+  /** The LIGHT dial changed (a player choice: the application stores and applies it). */
+  light?: (choice: LightChoice) => void;
+  /** A session was launched from the board's form: what CONTINUE should remember. */
+  remember?: (entry: ContinueEntry) => void;
 }
 /** DOM writes only when the value changed: unchanged writes still dirty layout. */
 function writeText(e: Element, value: string) {
@@ -220,6 +238,10 @@ export class Interface {
   /** Controller navigation for the paddock board and modal screens. */
   private menuPad: MenuGamepad | null = null;
   private bindingCapture: AbortController | null = null;
+  /** The paddock board (plates, dials, WILDCARD door, CONTINUE). */
+  private board: LaunchBoard | null = null;
+  /** Selection and keys of the Wildcard board while it is the modal. */
+  private wildcardBinding: (() => void) | null = null;
   private driverName = DRIVERS[0];
   /** The player's driver name (timing tower, results and paddock masthead). */
   get playerName() {
@@ -259,7 +281,7 @@ export class Interface {
   ) {
     const DEV = this.developer;
     element.innerHTML = `
-  <div id="loading" class="loading" role="status" aria-live="polite" aria-busy="true"><div class="brand">MOTOBOUND<span>MOTORSPORT</span></div><p id="loadingSession" class="loading-session" hidden></p><div class="loading-progress"><div class="loading-row"><b id="loadingStage">Loading</b><span id="loadingPercent">0%</span></div><div class="loader" id="loadingBar" role="progressbar" aria-label="Loading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div></div><p id="loadingText" class="loading-detail"${DEV ? '' : ' hidden'}>Preparing circuit and car systems…</p><p id="loadingTip" class="loading-tip"><b>TIP</b> ${LOADING_TIPS[0]}</p></div>
+  <div id="loading" class="loading" role="status" aria-live="polite" aria-busy="true"><div class="brand">MOTOBOUND<span>MOTORSPORT</span></div><div id="loadingMap" class="loading-map" aria-hidden="true"></div><p id="loadingSession" class="loading-session" hidden></p><div class="loading-progress"><div class="loading-row"><b id="loadingStage">Loading</b><span id="loadingPercent">0%</span></div><div class="loader" id="loadingBar" role="progressbar" aria-label="Loading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div></div><p id="loadingText" class="loading-detail"${DEV ? '' : ' hidden'}>Preparing circuit and car systems…</p><p id="loadingTip" class="loading-tip"><b>TIP</b> ${LOADING_TIPS[0]}</p></div>
   <section id="menu" class="menu" hidden>
    <header class="masthead"><div class="brand">MOTOBOUND<span>MOTORSPORT</span></div><span class="edition">DRIVER <b id="menuDriver">${escapeHtml(this.playerName.toUpperCase())}</b></span></header>
    <div class="menu-body" tabindex="0" role="region" aria-label="Race setup and tools"><div class="lb-board">${boardPlatesHtml()}<h1>EVERY INPUT. EVERY FORCE.</h1><p class="intro">Braking points, tyre management and racecraft.</p><div id="boardSeries" class="lb-series" hidden></div>
@@ -273,10 +295,11 @@ export class Interface {
     ${dialHtml('mode', 'SESSION', 'flag', `<select id="mode"><option value="race">Grand Prix</option><option value="practice">Free practice</option><option value="time-trial">Time trial · ghost</option><option value="qualifying">Race weekend · qualifying</option><option value="endurance">Endurance · mandatory stop</option><option value="festival">Festival · open world</option></select>`)}
     ${dialHtml('laps', 'DISTANCE', 'laps', `<select id="laps"><option value="1">1 lap · Sprint</option><option value="3" selected>3 laps · Standard</option><option value="5">5 laps</option><option value="10">10 laps</option><option value="15">15 laps · Endurance</option><option value="25">25 laps · Endurance</option></select>`)}
     ${dialHtml('weather', 'WEATHER', 'sun', `<select id="weather">${weatherOptionsHtml()}</select>`)}
+    ${dialHtml('light', 'LIGHT', 'venue', `<select id="light" title="Applies when the session loads. The showroom stays studio-lit.">${lightOptionsHtml()}</select>`)}
     ${dialHtml('compound', 'TYRES', 'tyre', `<select id="compound"><option value="soft">Soft</option><option value="medium" selected>Medium</option><option value="hard">Hard</option><option value="intermediate">Intermediate</option><option value="wet">Full wet</option></select>`)}
     ${dialHtml('assist', 'ASSISTS', 'wheel', `<select id="assist"><option value="sport">ABS + TC</option><option value="raw">Off</option></select>`)}
     ${dialHtml('opponents', 'GRID', 'grid', `<select id="opponents"><option value="0">Solo</option><option value="3">4 cars</option><option value="7" selected>8 cars</option><option value="11">12 cars</option></select>`)}
-    ${dialHtml('startSlot', 'START', 'start', `<select id="startSlot"><option value="pole" selected>Pole position</option><option value="midfield">Mid-field</option><option value="back">Back of the grid</option></select>`)}
+    ${dialHtml('startSlot', 'START', 'start', `<select id="startSlot"><option value="pole" selected>Pole</option><option value="midfield">Midfield</option><option value="back">Back row</option></select>`)}
     <p class="session-rules" id="sessionRules" aria-live="polite"></p>
     <button class="primary enter" type="submit">ENTER CIRCUIT ${glyph('go', 'enter-glyph')}</button>
     <button class="enter" type="submit" name="prepareGrid" value="yes">PREPARE GRID <span>START PAUSED</span></button>
@@ -392,6 +415,7 @@ export class Interface {
       }
       // Preparation is presentation/session control, not a physics option or save.
       const submitter = (e as SubmitEvent).submitter as HTMLButtonElement | null;
+      if (this.board) this.callbacks.remember?.(this.board.entry());
       this.callbacks.start(this.options, submitter?.name === 'prepareGrid');
     });
     // Restore the original menu structure before applying the selected road
@@ -431,7 +455,7 @@ export class Interface {
       }
       if (select('mode') === 'festival') {
         this.get('sessionRules').textContent =
-          'Festival: explore Solvane, drive to event markers or travel to any route from the world map. Weather and assists apply; a road machine chosen in MACHINE is used, otherwise pick one in the festival menu.';
+          'Weather, light and assists apply. A road machine chosen in MACHINE is used; otherwise pick one in the festival menu.';
         return;
       }
       // The circuit matters: the motorcycle rulesets need a bike-safe one.
@@ -477,6 +501,13 @@ export class Interface {
     // above. Installed last so its change listeners run after every rule
     // handler (mode, weather, rules preview, motocross presenter) has run.
     board = installLaunchBoard(this.menu);
+    this.board = board;
+    // Last: every HUD sheet has been appended inside #hud by now (race-day, compact, F1, bike).
+    installHudIdentity(this.hud);
+    this.get('light').addEventListener('change', () => {
+      const choice = (this.get('light') as HTMLSelectElement).value as LightChoice;
+      this.callbacks.light?.(choice);
+    });
     this.menuPad = new MenuGamepad(this.element, () => board!);
     this.get('replaySeek').addEventListener('input', (e) =>
       this.callbacks.seek(Number((e.target as HTMLInputElement).value)),
@@ -484,6 +515,21 @@ export class Interface {
     this.get('replaySpeed').addEventListener('change', (e) =>
       this.callbacks.replaySpeed(Number((e.target as HTMLSelectElement).value)),
     );
+  }
+  /** Medal tally and next event on the paddock board's WILDCARD SERIES door. */
+  setWildcardProgress(progress: WildcardProgress | null) {
+    this.board?.setWildcard(progress);
+  }
+  /** The remembered entry behind the board's CONTINUE button (null hides it). */
+  setContinue(entry: ContinueEntry | null) {
+    this.board?.setContinue(entry);
+  }
+  /** Show a LIGHT choice made elsewhere (the driving academy, a stored preference). */
+  setLightChoice(choice: LightChoice) {
+    const select = this.get('light') as HTMLSelectElement;
+    if (select.value === choice) return;
+    select.value = choice;
+    this.board?.sync();
   }
   get(id: string) {
     let node = this.nodes.get(id);
@@ -543,6 +589,51 @@ export class Interface {
     ]
       .filter(Boolean)
       .join('  ·  ');
+  }
+  /** The loading board for a session: the venue's real line art (the same curve the
+   * race uses, or the festival region) and a tip chosen for this discipline,
+   * weather and light, in the player's own keys (loading-tips.ts). */
+  loadingScene(options: SessionOptions, context: { wildcard?: WildcardEntry; night?: boolean } = {}) {
+    const festival = (options.mode as string) === 'festival';
+    const def = circuitDefinition(options.circuit);
+    const map = this.get('loadingMap');
+    map.innerHTML = festival
+      ? regionArtSvg(SOLVANE)
+      : circuitArtSvg(def.id, { numbers: true, className: 'ta loading-map-art' });
+    const offroad = def.offroad?.kind;
+    const bike = gpGridForVehicles(options.vehicles);
+    const discipline: TipDiscipline = festival
+      ? 'festival'
+      : offroad === 'motocross' ||
+          offroad === 'supercross' ||
+          offroad === 'rallycross' ||
+          offroad === 'rally-stage'
+        ? (offroad === 'rally-stage' ? 'stage' : offroad)
+        : bike
+          ? 'gp'
+          : 'circuit';
+    map.dataset.kind = festival ? 'festival' : bike ? 'gp' : offroad ? 'dirt' : 'circuit';
+    const first = vehicleDefinition(options.vehicles?.[0] ?? 'apx01');
+    const race = options.mode === 'race' || options.mode === 'endurance';
+    const tips = loadingTipsFor({
+      discipline,
+      weather: options.weather,
+      night: !!context.night,
+      drs: race && gridDrs(rulesetFor(options)?.drs ?? false, [first]),
+      hybrid: first.classId === 'formula',
+      race,
+      solo: options.opponents === 0 || options.mode === 'practice' || options.mode === 'time-trial',
+      wildcard: context.wildcard,
+      bindings: this.bindings,
+    });
+    if (tips.length) {
+      const tip = tips[this.loadingTipIndex % tips.length];
+      this.get('loadingTip').innerHTML = `<b>TIP</b> ${escapeHtml(tip)}`;
+    }
+    if (context.wildcard) {
+      const line = this.get('loadingSession');
+      line.textContent = `WILDCARD SERIES  ·  ${context.wildcard.title}  ·  ${line.textContent ?? ''}`;
+    }
   }
   ready() {
     const screen = this.get('loading');
@@ -1019,6 +1110,8 @@ export class Interface {
     }
   }
   modalContent(html: string) {
+    this.wildcardBinding?.();
+    this.wildcardBinding = null;
     this.creditsPad?.dispose();
     this.creditsPad = null;
     this.bindingCapture?.abort();
@@ -1026,24 +1119,39 @@ export class Interface {
     this.deviceCalibration?.dispose();
     this.deviceCalibration = null;
     this.get('modalContent').innerHTML = html;
-    if (!this.modal.open) this.modal.showModal();
+    if (!this.modal.open) {
+      this.modal.showModal();
+      uiCue('open');
+    }
     // Open at the top. showModal() focuses the first control, which in a tall
     // screen (the controls list, a long classification) is at the bottom and
     // would scroll the heading out of view.
     this.modal.scrollTop = 0;
+    // The Wildcard board: its rows are a radio group that selects the programme
+    // page; the chosen event takes the focus.
+    const content = this.get('modalContent');
+    if (content.querySelector('.wc-board')) {
+      this.wildcardBinding = bindWildcardBoard(content);
+      content.querySelector<HTMLElement>('.wc-row[aria-checked="true"]')?.focus({ preventScroll: true });
+    }
   }
   /** The dialog that is open right now is the pause menu (not a dialog opened from it). */
   get pauseMenuOpen() {
     return this.modal.open && !!this.modal.querySelector('.pause-menu');
   }
   closeModal() {
+    this.wildcardBinding?.();
+    this.wildcardBinding = null;
     this.creditsPad?.dispose();
     this.creditsPad = null;
     this.bindingCapture?.abort();
     this.bindingCapture = null;
     this.deviceCalibration?.dispose();
     this.deviceCalibration = null;
-    if (this.modal.open) this.modal.close();
+    if (this.modal.open) {
+      this.modal.close();
+      uiCue('close');
+    }
   }
   applyBindings(bindings: Bindings) {
     this.bindings = { ...bindings };
@@ -1237,6 +1345,8 @@ export class Interface {
   championshipNote = '';
   /** Career payment panel under a classification (trusted HTML from career-hub.ts). */
   resultsExtra = '';
+  /** A banner directly under the results heading (the Wildcard medal; trusted HTML). */
+  resultsLead = '';
   results(frame: Float32Array) {
     if (this.options.mode === 'qualifying') {
       this.qualifyingResults(frame);
@@ -1250,7 +1360,7 @@ export class Interface {
       })
       .join('');
     this.modalContent(
-      `<span class="eyebrow">CHEQUERED FLAG / SESSION CLASSIFICATION</span><h2>${frame[carBase(0) + F.FINISH] > 0 ? 'Across the line.' : 'Session ended.'}</h2><p>Classified by laps completed, then race time including penalties.</p><table class="results"><thead><tr><th>POS</th><th>DRIVER</th><th>LAPS</th><th>TIME + PEN.</th><th>BEST LAP</th><th>PEN.</th></tr></thead><tbody>${rows}</tbody></table>${this.offroadHud.results(frame, this.track, this.options, (id) => (id === 0 ? this.playerName : DRIVERS[id]))}${this.championshipNote ? `<p class="championship-note">${escapeHtml(this.championshipNote)}</p>` : ''}${this.resultsExtra}<div class="dialog-buttons inline"><button class="primary" data-action="replay">WATCH REPLAY</button><button data-action="telemetry">TELEMETRY</button>${this.championshipNote ? '<button data-action="championship">STANDINGS</button>' : ''}<button data-action="photo">PHOTO STUDIO</button><button data-action="restart">RACE AGAIN</button><button data-action="menu">PADDOCK</button></div>`,
+      `<span class="eyebrow">CHEQUERED FLAG / SESSION CLASSIFICATION</span><h2>${frame[carBase(0) + F.FINISH] > 0 ? 'Across the line.' : 'Session ended.'}</h2>${this.resultsLead}<p>Classified by laps completed, then race time including penalties.</p><table class="results"><thead><tr><th>POS</th><th>DRIVER</th><th>LAPS</th><th>TIME + PEN.</th><th>BEST LAP</th><th>PEN.</th></tr></thead><tbody>${rows}</tbody></table>${this.offroadHud.results(frame, this.track, this.options, (id) => (id === 0 ? this.playerName : DRIVERS[id]))}${this.championshipNote ? `<p class="championship-note">${escapeHtml(this.championshipNote)}</p>` : ''}${this.resultsExtra}<div class="dialog-buttons inline"><button class="primary" data-action="replay">WATCH REPLAY</button><button data-action="telemetry">TELEMETRY</button>${this.championshipNote ? '<button data-action="championship">STANDINGS</button>' : ''}<button data-action="photo">PHOTO STUDIO</button><button data-action="restart">RACE AGAIN</button><button data-action="menu">PADDOCK</button></div>`,
     );
   }
   /** Qualifying classification: the fastest valid lap sets the race grid. */

@@ -16,6 +16,9 @@ set `CHROMIUM_PATH` if Playwright cannot find one.
 | `vehicle-sheet.py` | Contact sheet (cropped car region, labelled tiles) from vehicle-shots captures. |
 | `vehicle-drive.mjs` | In-session capture (pick discipline:machine, start, hold keys, JPEG chase/cockpit shots). Reaches the festival HUD but SwiftShader cannot complete a screenshot of the open world: use on a GPU host. |
 | `body-audit.mts` | Headless geometry audit of every catalogue body (size vs collision box, tyre radius, hub error, arch clearance): `npx vite-node scripts/studio/tools/body-audit.mts [id ...]`. |
+| `uxdom.mjs` + `ux-fixture.ts` | Fast DOM-only screens of the real Interface (menu per discipline, pause, results, settings, controls, championship, `menuProgress`, `wildcardBoard`, `wildcardResult`) with no WebGL boot. |
+| `ux2shots.mjs` | Wave-2 real-game shots in one boot: menu per discipline, the LIGHT dial, the Wildcard board, and a race (loading, briefing, HUD, pause) from the board or the form. |
+| `pw-dom.config.ts` | Playwright config for the DOM-only component specs (`e2e/60-launch-board`, `44-motocross-interface`): no server, no WebGL check. |
 | `quickstart.mjs` | Menu-to-driving probe counting inputs (G3). Software GL on a shared host is far slower than hardware: the time is an upper bound. |
 | `flashcheck.mjs` | End-to-end flashback check in a live session. |
 | `fastcheck.sh <area>` | Per-area vitest subsets (render, world, car, character, ui, assets, sim). |
