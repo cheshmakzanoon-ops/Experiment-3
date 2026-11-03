@@ -371,6 +371,39 @@ const SPECS: readonly WildcardSpec[] = [
     lighting: 'night',
     ladder: podium(5),
   },
+  // ---- The weather states, put to work ----------------------------------
+  {
+    id: 'desert-trucks-on-the-iced-col',
+    title: 'DESERT TRUCKS ON THE ICED COL',
+    pitch:
+      'Trophy trucks climb a mountain pass in a snowfall: loose snow on the climb, polished wheel tracks, 400 m of view in the squall.',
+    kind: 'cross-discipline',
+    vehicles: 'dx8',
+    circuit: 'alpine-pass',
+    ruleset: 'rallycross-heat',
+    weather: 'snow',
+    laps: 1,
+    cars: 5,
+    aiSkill: 0.92,
+    seed: 50601,
+    ladder: podium(5),
+  },
+  {
+    id: 'haboob-in-the-canyon',
+    title: 'HABOOB IN THE RED CANYON',
+    pitch:
+      'Trophy trucks race a slot-canyon circuit inside a dust storm: 170 m of amber haze and a loose film over the tarmac, thinnest on the line.',
+    kind: 'cross-discipline',
+    vehicles: 'dx8',
+    circuit: 'desert-canyon',
+    ruleset: 'rallycross-heat',
+    weather: 'dust',
+    laps: 2,
+    cars: 5,
+    aiSkill: 0.92,
+    seed: 50602,
+    ladder: podium(5),
+  },
   // ---- Level Nine: a multi-storey car park ------------------------------
   {
     id: 'roof-deck-hatchbacks',
