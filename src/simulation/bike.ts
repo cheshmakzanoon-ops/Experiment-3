@@ -431,8 +431,11 @@ export class Bike {
     // --- Steering: assisted intention or direct steer.
     const v = Math.max(this.speed, 0.1);
     let steerTarget: number;
-    if (a.lean && this.motoGP && this.speed > 3)
-      steerTarget = this.gpSteer(input.lean, frontMu, rearMu, dt);
+    // The GP roll assist runs above 3 m/s only. Below that the rider steers the
+    // bars directly and gpSteer leaves its lean target and roll demand at the
+    // last values it computed, which traction control must not treat as live.
+    const gpAssistLive = !!(a.lean && this.motoGP && this.speed > 3);
+    if (gpAssistLive) steerTarget = this.gpSteer(input.lean, frontMu, rearMu, dt);
     else if (a.lean) {
       // Stable intention: the requested lean is capped by what grip allows.
       // The assist commands the lateral acceleration that makes the lean
@@ -510,6 +513,9 @@ export class Bike {
       // spends the margin leaves nothing to stand the bike up with.
       // The lean itself sets that need (it changes slowly), so the reserve
       // cannot collapse and re-arm the drive within one roll correction.
+      // The assist's own target and demand count only while it is running:
+      // frozen at their hand-over values they cut the drive of a bike that is
+      // slow on low grip, which then never regains the speed that refreshes them.
       gpReserve = this.motoGP
         ? m *
           Math.max(
@@ -520,11 +526,11 @@ export class Bike {
                   1.3,
                   Math.max(
                     Math.abs(this.lean + gpHangOffAngle(this.riderOffset, p.cgHeight)),
-                    a.lean ? Math.abs(this.motoGP.leanTarget) : 0,
+                    gpAssistLive ? Math.abs(this.motoGP.leanTarget) : 0,
                   ),
                 ),
               ),
-            a.lean ? this.motoGP.lateralDemand : 0,
+            gpAssistLive ? this.motoGP.lateralDemand : 0,
           ) *
           (GP_ASSIST.recovery / GP_ASSIST.leanMargin)
         : 0,
