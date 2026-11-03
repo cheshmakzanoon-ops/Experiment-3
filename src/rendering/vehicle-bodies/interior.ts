@@ -3,7 +3,8 @@ import type { VehicleDefinition } from '../../simulation/vehicles.ts';
 import type { CabinLayout } from './cabin.ts';
 import { CabinDisplay, type DisplayKind } from './cabin-display.ts';
 import type { Greenhouse } from './closed-body.ts';
-import { addDriver, type BuiltLod, type CarMaterials } from './common.ts';
+import { addDriver, type BuiltLod, type CarMaterials, type DriverArmAnchor } from './common.ts';
+import { DriverArms } from './driver-arms.ts';
 import {
   insetProfile,
   rodGeometry,
@@ -42,6 +43,8 @@ export interface BuiltCabin {
   /** Rear-view feed surfaces [right, left] (MirrorViews order), or none. */
   mirrors: T.Mesh[];
   display: CabinDisplay | null;
+  /** Driver arms posed from the steering rotation (null: none built). */
+  arms: DriverArms | null;
 }
 /** Cockpit cell of a body: the open floor between `rear` and `front`, and
  * the inner wall at a station (x > 0 and the wall's top y). */
@@ -445,7 +448,8 @@ export function buildClosedCabin(input: {
       placed(0, y + 0.28, zb - 0.2, -0.2),
     );
   }
-  const pedals = cell.front - 0.06;
+  const pedals = cell.front - 0.06,
+    anchors: DriverArmAnchor[] = [];
   addDriver(
     shell,
     mats,
@@ -460,6 +464,7 @@ export function buildClosedCabin(input: {
       wheel: false,
       legs: { floor: op.floor, pedals },
       handDrop: layout.wheel.handDrop,
+      arms: anchors,
     },
   );
   const w = layout.wheel;
@@ -472,6 +477,8 @@ export function buildClosedCabin(input: {
   addInstruments(detailParts, layout, display, detail, dash.rear, dash.top);
   const steering = buildSteering(layout, wheelDetail, display);
   input.lod.group.add(steering);
+  const arms = new DriverArms(anchors, steering, mats);
+  input.lod.group.add(arms.group);
   // Centre furniture.
   const consoleTop = layout.seat[1] + 0.05;
   if (layout.race) {
@@ -621,6 +628,7 @@ export function buildClosedCabin(input: {
     display,
     glass: [] as T.Mesh[],
     layout,
+    arms,
   } satisfies BuiltCabin;
 }
 /** Roll cage inside a roofed race car: main hoop behind the seats, A-pillar
@@ -743,7 +751,8 @@ export function buildOpenWheelCabin(input: {
     slab(-xf, xf, op.floor + 0.12, op.edge(op.front)[1], op.front, op.front + 0.03),
     carbon,
   );
-  const [x, y, z] = layout.seat;
+  const [x, y, z] = layout.seat,
+    anchors: DriverArmAnchor[] = [];
   addDriver(
     shell,
     mats,
@@ -758,6 +767,7 @@ export function buildOpenWheelCabin(input: {
       wheel: false,
       legs: { floor: op.floor, pedals: op.front + 0.55 },
       handDrop: layout.wheel.handDrop,
+      arms: anchors,
     },
   );
   const w = layout.wheel;
@@ -773,6 +783,8 @@ export function buildOpenWheelCabin(input: {
   const display = new CabinDisplay('wheel', input.def.spec);
   const steering = buildSteering(layout, wheelDetail, display);
   input.lod.group.add(steering);
+  const arms = new DriverArms(anchors, steering, mats);
+  input.lod.group.add(arms.group);
   addBelts(
     detailParts,
     layout,
@@ -793,6 +805,7 @@ export function buildOpenWheelCabin(input: {
     display,
     glass: [] as T.Mesh[],
     layout,
+    arms,
   } satisfies BuiltCabin;
 }
 /** Karts and buggies: the turning wheel (and a display), the helmet group and,
@@ -801,9 +814,12 @@ export function buildOpenWheelCabin(input: {
 export function buildFrameCabin(input: {
   layout: CabinLayout;
   def: VehicleDefinition;
+  mats: CarMaterials;
   shell: Parts;
   lod: BuiltLod;
   headParts: Parts;
+  /** Rest arms collected by addDriver (`arms` option). */
+  arms: readonly DriverArmAnchor[];
   dash?: { z: number; y: number; floor: number };
 }) {
   const { layout, lod } = input;
@@ -817,6 +833,8 @@ export function buildFrameCabin(input: {
   const display = new CabinDisplay(kind, input.def.spec);
   const steering = buildSteering(layout, wheelDetail, display);
   lod.group.add(steering);
+  const arms = new DriverArms(input.arms, steering, input.mats);
+  lod.group.add(arms.group);
   const w = layout.wheel;
   if (input.dash) {
     const d = input.dash;
@@ -852,5 +870,6 @@ export function buildFrameCabin(input: {
     display,
     glass: [] as T.Mesh[],
     layout,
+    arms,
   } satisfies BuiltCabin;
 }

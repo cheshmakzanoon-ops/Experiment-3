@@ -1,6 +1,6 @@
 import * as T from 'three';
 import type { BuggySheet } from './body-sheet.ts';
-import { addDriver, type BuiltLod, type CarMaterials } from './common.ts';
+import { addDriver, type BuiltLod, type CarMaterials, type DriverArmAnchor } from './common.ts';
 import type { BodyFrame } from './frame.ts';
 import { rodGeometry, roundedBox, tubeGeometry } from './loft.ts';
 import { sharedMaterials } from './materials.ts';
@@ -178,17 +178,20 @@ export function buildBuggy(
     );
   }
   const near = detail === 0 && cabin ? cabin : null;
-  const headParts = new Parts();
+  const headParts = new Parts(),
+    arms: DriverArmAnchor[] = [];
   addDriver(parts, mats, 0.28, floor + 0.08, zCockpit - 0.1, 0.92, zCockpit + 0.36, false, {
-    ...(near ? { head: headParts, wheel: false, handDrop: near.layout.wheel.handDrop } : {}),
+    ...(near ? { head: headParts, wheel: false, handDrop: near.layout.wheel.handDrop, arms } : {}),
   });
   if (near)
     lod.cabin = buildFrameCabin({
       layout: near.layout,
       def: near.def,
+      mats,
       shell: parts,
       lod,
       headParts,
+      arms,
       dash: { z: zCockpit + 0.56, y: floor + 0.4, floor },
     });
   parts.build(lod.group, detail === 0);
