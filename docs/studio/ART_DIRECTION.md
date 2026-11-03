@@ -131,6 +131,9 @@ Track and region art (`src/ui/track-art.ts`) is generated, never hand-drawn: the
 Catmull-Rom of `CircuitDefinition.design` (the same curve `Track` samples), corner
 numbers at the real corner stations, DRS zones from `drsZones`, the start/finish tick at
 station 0; the festival map draws `SOLVANE.roads`, `coast` and event waypoints.
+The line takes `--tint` from its container (the venue sheet by plate, the loading board by kind, a Wildcard
+row and page by the *machine's* discipline), so a dirt bike on a circuit draws a clay line on a circuit
+outline. (`.ta` used to re-declare `--tint`, which overrode every container; wave 2 removed that.)
 
 ## 8. Interaction model (keyboard, pointer, controller)
 

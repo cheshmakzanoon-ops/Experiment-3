@@ -5,6 +5,7 @@
 //   menu-circuit | menu-gp | menu-dirt | menu-festival   plate click, then a 1280x720 shot
 //   light            pick SUNSET on the LIGHT dial (after only) and shoot the menu
 //   board            open the Wildcard board, shoot it, select another event, shoot again (after only)
+//   loading          ENTER CIRCUIT and shoot the loading screen only
 //   race             ENTER CIRCUIT: loading, briefing, HUD (driving) and pause shots
 //   wildcard-race    start the selected Wildcard event from its board: loading, HUD
 // Output: OUTDIR/PREFIX-<scene>-1280x720.jpg, JPEG, shrunk until it is at most 190 KB.
@@ -96,6 +97,12 @@ for (const scene of scenes) {
     await page.locator(`.wc-row[data-id="${target}"]`).click();
     await page.waitForTimeout(1200);
     await shot('board-selected');
+  } else if (scene === 'loading') {
+    // Just the loading screen of the current entry, then stop (a race takes minutes on SwiftShader).
+    await page.getByRole('button', { name: 'ENTER CIRCUIT', exact: true }).click();
+    await page.waitForFunction(() => !document.querySelector('#loading')?.hidden);
+    await page.waitForTimeout(2500);
+    await shot('loading');
   } else if (scene === 'race') {
     await race('race', () =>
       page.getByRole('button', { name: 'ENTER CIRCUIT', exact: true }).click(),

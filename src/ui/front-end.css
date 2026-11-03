@@ -501,12 +501,14 @@
 #menu[data-board='festival'] .lb-map {
   --tint: var(--mb-plate-fest);
 }
+/* --tint comes from the container (the venue sheet, the loading board, a Wildcard row), so the
+   line takes the discipline's plate colour; this sheet used to re-declare it on .ta itself,
+   which overrode every container. */
 .ta {
   display: block;
   width: 100%;
   height: 100%;
   overflow: visible;
-  --tint: var(--mb-plate-circuit);
 }
 .ta-road {
   fill: none;
@@ -517,7 +519,7 @@
 }
 .ta-line {
   fill: none;
-  stroke: var(--tint);
+  stroke: var(--tint, var(--mb-plate-circuit));
   stroke-width: 1.5;
   stroke-linejoin: round;
 }
@@ -566,7 +568,7 @@
 }
 .ta-rd {
   fill: none;
-  stroke: var(--tint);
+  stroke: var(--tint, var(--mb-plate-circuit));
   stroke-linejoin: round;
   stroke-linecap: round;
   opacity: 0.85;
