@@ -68,6 +68,8 @@ describe('disciplines are views over the session form', () => {
     expect(new Set(ids.map((d) => DISCIPLINE_SPECS[d].shape)).size).toBe(4);
     expect(new Set(ids.map((d) => DISCIPLINE_SPECS[d].motto)).size).toBe(4);
     expect(new Set(ids.map((d) => DISCIPLINE_SPECS[d].numeral)).size).toBe(4);
+    // The one-line brief under the plates is the career's own description of the skill.
+    expect(DISCIPLINE_SPECS.gp.skill).toMatch(/lean angle/i);
   });
   it('derives the discipline from mode, machine and venue', () => {
     expect(disciplineOf({ mode: 'race', circuit: 'aurel', vehicle: 'apx01' })).toBe('circuit');
@@ -110,6 +112,10 @@ describe('disciplines are views over the session form', () => {
     const fest = entryDefaults('festival', { ...base, vehicle: 'sk125' });
     expect(fest.mode).toBe('festival');
     expect(machinesFor('festival', '')).toContain(fest.vehicle);
+    // A motocross track is not left selected under the open-world plate.
+    expect(
+      entryDefaults('festival', { ...base, circuit: 'valley-ridge-mx', vehicle: 'mx450' }).circuit,
+    ).toBe(venuesFor('circuit')[0]);
     // A machine the festival already admits is kept.
     expect(entryDefaults('festival', { ...base, vehicle: 'sc7' }).vehicle).toBeUndefined();
   });

@@ -6,10 +6,7 @@
  */
 export type UiCue = 'tick' | 'select' | 'confirm' | 'open' | 'close' | 'back' | 'deny';
 export const UI_CUE_EVENT = 'motobound:cue';
-export function uiCue(cue: UiCue, target: EventTarget = window) {
-  try {
-    target.dispatchEvent(new CustomEvent(UI_CUE_EVENT, { detail: { cue } }));
-  } catch {
-    /* a missing window (unit tests) is not an error */
-  }
+export function uiCue(cue: UiCue, target: EventTarget | undefined = globalThis.window) {
+  // No window (unit tests, workers): nothing to announce to.
+  target?.dispatchEvent(new CustomEvent(UI_CUE_EVENT, { detail: { cue } }));
 }

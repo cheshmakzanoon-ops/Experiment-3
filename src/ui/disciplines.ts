@@ -7,6 +7,7 @@ import {
   festivalVehicles,
 } from '../simulation/open-world/festival-machines.ts';
 import { SOLVANE } from '../simulation/open-world/region-data.ts';
+import { DISCIPLINES } from '../career/registry.ts';
 import { BIKE_MACHINES } from './bike-machines.ts';
 import { machineChoices } from './machine-options.ts';
 
@@ -27,6 +28,8 @@ export interface DisciplineSpec {
   motto: string;
   /** What the first stage of the board is called. */
   venueNoun: string;
+  /** What the discipline tests, in the career's words (career/registry.ts). */
+  skill: string;
 }
 export const DISCIPLINE_SPECS: Readonly<Record<BoardDiscipline, DisciplineSpec>> = Object.freeze({
   circuit: {
@@ -36,6 +39,7 @@ export const DISCIPLINE_SPECS: Readonly<Record<BoardDiscipline, DisciplineSpec>>
     shape: 'roundel',
     motto: 'EVERY INPUT. EVERY FORCE.',
     venueNoun: 'CIRCUIT',
+    skill: DISCIPLINES['circuit-cars'].skill,
   },
   gp: {
     id: 'gp',
@@ -44,6 +48,7 @@ export const DISCIPLINE_SPECS: Readonly<Record<BoardDiscipline, DisciplineSpec>>
     shape: 'fairing',
     motto: 'LEAN IN. LET GO LATE.',
     venueNoun: 'CIRCUIT',
+    skill: DISCIPLINES['road-bikes'].skill,
   },
   dirt: {
     id: 'dirt',
@@ -52,6 +57,7 @@ export const DISCIPLINE_SPECS: Readonly<Record<BoardDiscipline, DisciplineSpec>>
     shape: 'arch',
     motto: 'FIND YOUR FLOW.',
     venueNoun: 'VENUE',
+    skill: DISCIPLINES['off-road'].skill,
   },
   festival: {
     id: 'festival',
@@ -60,6 +66,7 @@ export const DISCIPLINE_SPECS: Readonly<Record<BoardDiscipline, DisciplineSpec>>
     shape: 'licence',
     motto: 'ONE COAST. NO FENCES.',
     venueNoun: 'REGION',
+    skill: DISCIPLINES.festival.skill,
   },
 });
 
@@ -163,6 +170,10 @@ export function entryDefaults(
       break;
     case 'festival': {
       out.mode = 'festival';
+      // The festival ignores the circuit, but the dirt presenter keys on it: do
+      // not leave a motocross track selected under the open-world plate.
+      if (Object.hasOwn(CIRCUITS, current.circuit) && CIRCUITS[current.circuit as CircuitId].offroad)
+        out.circuit = venuesFor('circuit')[0];
       const def = Object.hasOwn(VEHICLES, current.vehicle) ? VEHICLES[current.vehicle] : null;
       // The festival admits every road-legal car, but a single-seater is a poor
       // first drive on public roads: start from the festival's own default.

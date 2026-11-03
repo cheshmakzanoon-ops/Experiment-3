@@ -168,25 +168,39 @@ test('controller: LB/RB switch discipline, D-pad walks the board, A steps, Start
     await page.evaluate((i) => window.LaunchBoard.press(i, false), index);
     await page.waitForTimeout(300);
   };
-  await tap(5); // RB
+  /** Tap until the handler has acted. A host so loaded that the first poll comes late
+   * treats an early press as one held when the screen opened (by design); the check
+   * runs before every retry, so a handled press is never repeated. */
+  const tapUntil = async (index: number, done: () => Promise<boolean>) => {
+    for (let attempt = 0; attempt < 6; attempt++) {
+      await tap(index);
+      if (await done()) return;
+    }
+    throw new Error(`controller button ${index} was not handled`);
+  };
+  const checked = (name: RegExp) => () =>
+    page.getByRole('radio', { name }).getAttribute('aria-checked').then((v) => v === 'true');
+  await tapUntil(5, checked(/^GP BIKE/)); // RB
   await expect(page.getByRole('radio', { name: /^GP BIKE/ })).toBeChecked();
-  await tap(5);
+  await tapUntil(5, checked(/^DIRT/));
   await expect(page.getByRole('radio', { name: /^DIRT/ })).toBeChecked();
-  await tap(4); // LB
+  await tapUntil(4, checked(/^GP BIKE/)); // LB
   await expect(page.getByRole('radio', { name: /^GP BIKE/ })).toBeChecked();
   await expect(page.locator('#app')).toHaveAttribute('data-pad', 'true');
   // D-pad down from the plates lands on a control and the focus ring is drawn.
   await page.locator('.lb-plate[aria-checked="true"]').focus();
-  await tap(13);
+  await tapUntil(13, async () =>
+    page.evaluate(() => !document.activeElement?.matches('.lb-plate')),
+  );
   expect(await page.evaluate(() => document.activeElement?.tagName)).not.toBe('BODY');
   // Left/right on a focused dial steps its value.
+  const weather = () => page.locator('#weather').inputValue();
   await page.locator('#weather').focus();
-  await tap(15);
-  await expect(page.locator('#weather')).toHaveValue('changeable');
-  await tap(14);
-  await expect(page.locator('#weather')).toHaveValue('clear');
+  await tapUntil(15, async () => (await weather()) === 'changeable');
+  await tapUntil(14, async () => (await weather()) === 'clear');
   // Start launches the current entry.
-  await tap(9);
+  const launches = (await started(page)).length;
+  await tapUntil(9, async () => (await started(page)).length > launches);
   expect((await started(page)).at(-1)).toMatchObject({ weather: 'clear' });
   // Footer hints switch to controller glyphs.
   await expect(page.locator('.menu-keys [data-device="pad"]')).toBeVisible();

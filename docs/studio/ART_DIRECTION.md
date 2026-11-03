@@ -54,14 +54,15 @@ front end over a 3D scene); high-contrast mode lifts the dim tiers.
 | `--mb-asphalt-1` | `#1a1b1e` | board surface |
 | `--mb-asphalt-2` | `#24262a` | raised field (dial, input) |
 | `--mb-asphalt-3` | `#33353a` | hover, strong hairline |
-| `--mb-chalk` | `#f1ecdf` | primary text (contrast on asphalt-1 about 14:1) |
-| `--mb-chalk-dim` | `#b5afa0` | secondary text (about 7.6:1) |
-| `--mb-chalk-faint` | `#8a8578` | tertiary, units (about 4.6:1, never for essential text) |
+| `--mb-chalk` | `#f1ecdf` | primary text (14.6:1 on asphalt-1) |
+| `--mb-chalk-dim` | `#c9c3b3` | secondary text (9.8:1) |
+| `--mb-chalk-faint` | `#a39e92` | labels, units (6.5:1 on asphalt-1, 5.7:1 on asphalt-2, 4.6:1 on asphalt-3) |
 | `--mb-paper` | `#e8dfc8` | labels, stickers, table header strip |
-| `--mb-paper-ink` | `#14110c` | text on paper (about 15:1) |
+| `--mb-paper-ink` | `#14110c` | text on paper (14.2:1) |
 | `--mb-amber` | `#ffb21a` | selection, primary action, timing numerals |
-| `--mb-amber-deep` | `#b87700` | pressed, rules on paper |
-| `--mb-flag` | `#e4412e` | danger, DNF, live recording |
+| `--mb-amber-deep` | `#c98600` | pressed fill, index numerals (5.7:1 on asphalt-1) |
+| `--mb-flag` | `#e4412e` | danger fill (DNF, live recording) |
+| `--mb-flag-text` | `#ff6a55` | danger text on asphalt (6.1:1) |
 | `--mb-go` | `#4fd36a` | OK, green flag, "applied" |
 | `--mb-wet` | `#5bc7d9` | wet weather and wet tyres |
 | `--mb-plate-*` | see section 2 | plate fills |
@@ -90,7 +91,9 @@ No italics except the wordmark's slant; no gradient text.
 
 ## 5. Spacing, shape, elevation
 
-* 4 px base unit: 4, 8, 12, 16, 24, 32, 48. Board padding 16, dial height 44 (touch minimum).
+* 4 px base unit: 4, 8, 12, 16, 24, 32, 48. Board padding 16, dial 42 high (48 for the venue dial; the whole dial including both hands is the
+  target, well above the 24 px WCAG 2.5.8 minimum; it is below the 44 px touch guideline, which is a
+  known trade for fitting the entry on a 720p screen).
 * Radii: boards 0 with one notched corner (10 px), fields 2 px, plates their own shapes.
 * No drop-shadow cards. Elevation is shown by a 1 px chalk hairline and a 2 px ink offset
   line ("hard shadow"), never a blur. Exceptions: none.
@@ -118,8 +121,9 @@ lift 3 px and the sticker stamps in. Modal in: 6 px rise. All of it is removed b
 
 Hand-written inline SVG in `src/ui/glyphs.ts`: 24x24 viewBox, 2 px stroke, square caps and
 mitre joins (it should look stencilled, not rounded-friendly). No icon pack, no emoji, no
-unicode pictographs. Drawn today: sun, mixed sky, rain, tyre, flag, stopwatch, grid, wheel
-(assists), start slot, chevrons, check, lock. Icons are decorative (`aria-hidden`) next to
+unicode pictographs. Drawn today: sun, mixed sky, rain, tyre, flag, laps, grid, wheel
+(assists), start slot, chevrons, caret and the go chevrons; the scrutineering check on the
+chosen plate is a CSS-embedded SVG of the same construction. Icons are decorative (`aria-hidden`) next to
 a text label; icon-only controls carry an `aria-label`.
 
 Track and region art (`src/ui/track-art.ts`) is generated, never hand-drawn: the closed
@@ -133,7 +137,8 @@ station 0; the festival map draws `SOLVANE.roads`, `coast` and event waypoints.
   Tab, Up/Down/Left/Right, type-ahead and the full list all work natively. The stepper
   arrows and the discipline plates are extra affordances, not replacements.
 * Discipline plates are a `tablist` with roving tabindex: Left/Right/Home/End move and select.
-* Controller (`src/ui/menu-gamepad.ts`, opt-in poll only while the menu or a modal is open):
+* Controller (`src/ui/menu-gamepad.ts`; it reads the Gamepad API each frame but acts only while the
+  menu board or a modal is on screen):
   D-pad/left stick up-down moves focus, left-right steps a focused dial or plate,
   A activates, B closes a modal that offers a close action, Start launches the entry,
   LB/RB switch discipline. Buttons held on open are not treated as presses.
@@ -143,15 +148,21 @@ station 0; the festival map draws `SOLVANE.roads`, `coast` and event waypoints.
 
 ## 9. Extension point: Wildcard Series
 
-`registerSeries()` in `src/ui/launch-board.ts` adds a chip to the SERIES strip (under the
-plates). A series is a curated one-click setup:
+The SERIES strip sits under the discipline plates (`<div id="boardSeries" class="lb-series">`).
+Today it holds the two dirt shortcuts (OUTDOOR MX, STADIUM SX, built by
+`motocross-presentation.ts`). `registerSeries()` in `src/ui/launch-board.ts` adds more chips,
+grouped by heading, from anywhere (call it at module load or on boot; it is idempotent per `id`).
+A series is a curated one-click setup:
 
 ```ts
+import { registerSeries } from './ui/launch-board.ts';
+
 registerSeries({
-  id: 'wildcard-hill-climb-hypercar',
-  label: 'WILDCARD',          // chip text, caps
-  title: 'Hypercar up the pass', // aria-label / tooltip
-  apply: (set) => {           // write the same selects the form owns
+  id: 'wildcard-alpine-hypercar', // unique, stable
+  group: 'WILDCARD',              // strip heading; entries with the same group share a row
+  label: 'ALPINE HYPERCAR',       // chip text, caps, short
+  title: 'Hypercar on the alpine pass', // tooltip
+  apply: (set) => {               // write the same selects the form owns
     set('circuit', 'alpine-pass');
     set('vehicle', 'hy9');
     set('mode', 'race');
@@ -159,11 +170,18 @@ registerSeries({
 });
 ```
 
-`set(id, value)` assigns the select and dispatches `change`, so every existing rule
-(`describeRules`, the MX presenter, machine preview) runs. Content that needs its own
-plate can pass `plate: { numeral, shape: 'roundel'|'fairing'|'arch'|'licence', colour }`;
-the strip is hidden while no series is registered and the DIRT shortcuts
-(OUTDOOR MX, STADIUM SX) are the first registered entries.
+`set(id, value)` assigns the select and dispatches `input` and `change`, so every existing rule
+(`describeRules`, the dirt presenter, the machine preview, the rules line) runs exactly as for a
+hand edit. After `apply` the board repairs a dirt machine/venue mismatch and repaints; the plate
+follows the entry (`disciplineOf`: mode, machine family, venue), so a Hypercar on the alpine pass
+stays under CIRCUIT. Ids are the form's own: `mode`, `circuit`, `vehicle`, `laps`, `weather`,
+`opponents`, `compound`, `assist`, `startSlot`. The strip stays hidden only if it has no chips.
+
+A fifth *plate* is deliberately not an API: a plate must own a rule in `disciplineOf()` so the
+board can say which plate an arbitrary form state belongs to. If Wildcard needs one, add an entry
+to `BOARD_DISCIPLINES` / `DISCIPLINE_SPECS` (`disciplines.ts`), a plate shape in `glyphs.ts`, a
+`--mb-plate-*` token, and the plate row (`grid-auto-flow: column`) takes it without CSS changes.
+`e2e/60-launch-board.spec.ts` ("wildcard series extension point") is the contract test.
 
 ## 10. Copy rules
 

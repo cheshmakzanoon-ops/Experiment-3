@@ -257,7 +257,7 @@ export class Interface {
   <div id="loading" class="loading" role="status" aria-live="polite" aria-busy="true"><div class="brand">MOTOBOUND<span>MOTORSPORT</span></div><p id="loadingSession" class="loading-session" hidden></p><div class="loading-progress"><div class="loading-row"><b id="loadingStage">Loading</b><span id="loadingPercent">0%</span></div><div class="loader" id="loadingBar" role="progressbar" aria-label="Loading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div></div><p id="loadingText" class="loading-detail"${DEV ? '' : ' hidden'}>Preparing circuit and car systems…</p><p id="loadingTip" class="loading-tip"><b>TIP</b> ${LOADING_TIPS[0]}</p></div>
   <section id="menu" class="menu" hidden>
    <header class="masthead"><div class="brand">MOTOBOUND<span>MOTORSPORT</span></div><span class="edition">DRIVER <b id="menuDriver">${escapeHtml(this.playerName.toUpperCase())}</b></span></header>
-   <div class="menu-body" tabindex="0" role="region" aria-label="Race setup and tools"><div class="lb-board">${boardPlatesHtml()}<h1>EVERY INPUT. EVERY FORCE.</h1><p class="intro">Four contact patches. One racing line.<br>Find the limit between them.</p><div id="boardSeries" class="lb-series" hidden></div>
+   <div class="menu-body" tabindex="0" role="region" aria-label="Race setup and tools"><div class="lb-board">${boardPlatesHtml()}<h1>EVERY INPUT. EVERY FORCE.</h1><p class="intro">Braking points, tyre management and racecraft.</p><div id="boardSeries" class="lb-series" hidden></div>
    <form id="sessionForm" class="session-form">
     <section class="lb-sheet" aria-label="Event">
      ${dialHtml('circuit', 'CIRCUIT', null, `<select id="circuit">${circuitOptionsHtml()}</select>`, 'lb-dial-venue')}
@@ -416,10 +416,6 @@ export class Interface {
           ? `${Math.round(definition.spec.dryMass - definition.bike!.riderMass)} KG BIKE · ${definition.spec.gearRatios.length - 2} SPEED · ${definition.bike!.gearbox.toUpperCase()}`
           : `${definition.spec.dryMass} KG DRY · ${definition.spec.gearRatios.length - 2} SPEED`;
       }
-      if (!motocross)
-        this.menu.querySelector('.intro')!.innerHTML = bike
-          ? 'Two contact patches. One racing line.<br>Feel the balance through every corner.'
-          : 'Four contact patches. One racing line.<br>Find the limit between them.';
       for (const option of (this.get('opponents') as HTMLSelectElement).options)
         if (option.value !== '0')
           option.textContent = `${Number(option.value) + 1} ${bike || motocross ? 'riders' : 'cars'}`;
@@ -1001,6 +997,10 @@ export class Interface {
     this.deviceCalibration = null;
     this.get('modalContent').innerHTML = html;
     if (!this.modal.open) this.modal.showModal();
+    // Open at the top. showModal() focuses the first control, which in a tall
+    // screen (the controls list, a long classification) is at the bottom and
+    // would scroll the heading out of view.
+    this.modal.scrollTop = 0;
   }
   closeModal() {
     this.creditsPad?.dispose();

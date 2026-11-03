@@ -10,8 +10,6 @@ const PATHS = {
   rain: '<path d="M5 14h13l2-2V8l-3-2-4 1-3-2-4 2z"/><path d="M8 17l-1 3M13 17l-1 3M18 17l-1 3"/>',
   tyre: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>',
   flag: '<path d="M5 3v18"/><path d="M5 4h14v10H5z"/><path d="M5 9h14M10 4v10M15 4v10" stroke-width="1.5"/>',
-  stopwatch:
-    '<circle cx="12" cy="13.5" r="7.5"/><path d="M9.5 3h5M12 13.5V9M18.5 6.5 20 5"/>',
   laps: '<path d="M4 9h13l-3-3M20 15H7l3 3"/>',
   grid: '<path d="M4 4h7v4H4zM13 9h7v4h-7zM4 14h7v4H4z"/><path d="M13 19h7" />',
   wheel:
@@ -20,8 +18,6 @@ const PATHS = {
   chevLeft: '<path d="M15 5 8 12l7 7"/>',
   chevRight: '<path d="M9 5l7 7-7 7"/>',
   caret: '<path d="M6 9l6 6 6-6"/>',
-  check: '<path d="M4 12.5l5 5L20 6.5"/>',
-  lock: '<path d="M6 11h12v9H6z"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
   /** Chevron stack painted on the pit exit: the go mark. */
   go: '<path d="M4 5l7 7-7 7M12 5l7 7-7 7"/>',
 } as const;

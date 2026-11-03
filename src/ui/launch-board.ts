@@ -130,6 +130,7 @@ export function installLaunchBoard(menu: HTMLElement): LaunchBoard {
   const kicker = menu.querySelector<HTMLElement>('#circuitEyebrow')!;
   const blurb = menu.querySelector<HTMLElement>('#circuitBlurb')!;
   const motto = menu.querySelector<HTMLElement>('h1')!;
+  const intro = menu.querySelector<HTMLElement>('.intro')!;
   const regionTitle = menu.querySelector<HTMLElement>('#regionTitle')!;
   const circuitStats = menu.querySelector<HTMLElement>('#circuitStats')!;
   const lengthStat = menu.querySelector<HTMLElement>('#circuitLength')!;
@@ -344,8 +345,10 @@ export function installLaunchBoard(menu: HTMLElement): LaunchBoard {
     }
     // The headline is the discipline's pit-board message. The motocross
     // presenter owns it at its own venues (MX and SX have their own lines).
-    if (menu.dataset.discipline !== 'motocross' && menu.dataset.discipline !== 'supercross')
+    if (menu.dataset.discipline !== 'motocross' && menu.dataset.discipline !== 'supercross') {
       text(motto, spec.motto);
+      text(intro, spec.skill);
+    }
     const festival = d === 'festival';
     // Stage 1: the venue sheet.
     const circuitDial = dials.get('circuit')!;

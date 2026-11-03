@@ -20,14 +20,15 @@
   --mb-asphalt-3: #33353a;
   /* Text: chalk on asphalt, ink on paper. */
   --mb-chalk: #f1ecdf;
-  --mb-chalk-dim: #b5afa0;
-  --mb-chalk-faint: #8a8578;
+  --mb-chalk-dim: #c9c3b3;
+  --mb-chalk-faint: #a39e92;
   --mb-paper: #e8dfc8;
   --mb-paper-ink: #14110c;
   /* Signals: amber selects and acts; flag warns; go confirms; wet is wet. */
   --mb-amber: #ffb21a;
-  --mb-amber-deep: #b87700;
+  --mb-amber-deep: #c98600;
   --mb-flag: #e4412e;
+  --mb-flag-text: #ff6a55;
   --mb-go: #4fd36a;
   --mb-wet: #5bc7d9;
   /* One plate colour per discipline (shape and numeral carry it too). */
@@ -205,8 +206,9 @@
 #menu .menu-body {
   left: var(--mb-s6);
   right: var(--mb-s6);
-  top: calc(var(--menu-header-height) + var(--mb-s1));
-  bottom: calc(var(--menu-footer-height) + var(--mb-s2));
+  /* Never closer than 8 px to the masthead and footer, at any interface scale. */
+  top: calc(var(--menu-header-height) + max(8px, var(--mb-s2)));
+  bottom: calc(var(--menu-footer-height) + max(8px, var(--mb-s2)));
   width: auto;
   max-width: none;
   padding: 0;
@@ -233,12 +235,15 @@
 /* ---------- Discipline plates -------------------------------------------------- */
 #menu .lb-plates {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  /* Plates share the row whatever their number (a fifth fits without CSS changes). */
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
   gap: var(--mb-s2);
-  margin-bottom: var(--mb-s3);
+  margin-bottom: var(--mb-s2);
 }
 #menu .lb-plate {
   --plate: var(--mb-plate-circuit);
+  position: relative;
   display: grid;
   justify-items: center;
   align-content: start;
@@ -318,6 +323,21 @@
 #menu .lb-plate[aria-checked='true'] .lb-plate-art svg {
   filter: none;
 }
+/* The tech-inspection sticker: the chosen plate has been scrutineered. */
+#menu .lb-plate[aria-checked='true']::after {
+  content: '';
+  position: absolute;
+  top: calc(-6px * var(--mb-u));
+  right: calc(-6px * var(--mb-u));
+  width: calc(18px * var(--mb-u));
+  height: calc(18px * var(--mb-u));
+  border-radius: 50%;
+  background: var(--mb-amber)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230b0c0d' stroke-width='3.2' stroke-linecap='square'%3E%3Cpath d='M5 12.5l5 5L19 7'/%3E%3C/svg%3E")
+    center / 72% no-repeat;
+  box-shadow: 0 0 0 2px var(--mb-asphalt-1);
+  animation: mb-stamp var(--mb-d-plate) var(--mb-ease-out);
+}
 #menu .lb-plate[aria-checked='true'] small {
   color: var(--mb-chalk-dim);
 }
@@ -340,9 +360,6 @@
   font: 500 var(--mb-f-lead) / 1.45 var(--mb-sans);
   letter-spacing: 0;
 }
-#menu .menu-body .intro br {
-  display: none;
-}
 
 /* ---------- Series strip (dirt shortcuts today; Wildcard Series next) ---------- */
 #menu .lb-series {
@@ -350,7 +367,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--mb-s2) var(--mb-s4);
-  margin: 0 0 var(--mb-s3);
+  margin: 0 0 var(--mb-s2);
 }
 #menu .lb-series .mx-entry,
 #menu .lb-series .lb-series-group,
@@ -421,7 +438,7 @@
   display: none;
 }
 #menu #sessionRules[data-state='error'] {
-  color: var(--mb-flag);
+  color: var(--mb-flag-text);
   font-weight: 650;
 }
 #menu .circuit-blurb {
@@ -1039,9 +1056,19 @@
 }
 
 /* ---------- Responsive --------------------------------------------------------- */
-@media (max-height: 800px) {
-  #menu .lb-plate small,
+/* The pit-board message needs a little height; style.css hid it below 1200 px. */
+@media (min-height: 761px) {
+  #menu .menu-body h1 {
+    display: block;
+  }
+}
+@media (min-height: 901px) {
   #menu .menu-body .intro {
+    display: block;
+  }
+}
+@media (max-height: 800px) {
+  #menu .lb-plate small {
     display: none;
   }
   #menu .menu-body h1 {
@@ -1051,7 +1078,26 @@
     -webkit-line-clamp: 1;
   }
 }
+@media (max-width: 1440px) {
+  /* Keep the rail clear of the showroom car's rear wheel on 1280 screens. */
+  #menu {
+    --rail-w: calc(184px * var(--mb-u));
+  }
+  #menu .menu-actions button {
+    min-height: calc(30px * var(--mb-u));
+    line-height: calc(30px * var(--mb-u));
+  }
+}
 @media (max-height: 640px) {
+  #menu {
+    --mb-field: calc(38px * var(--mb-u));
+  }
+  #menu .lb-dial-venue .lb-dial-face {
+    height: calc(44px * var(--mb-u));
+  }
+  #menu .lb-dial select {
+    padding-top: calc(13px * var(--mb-u));
+  }
   #menu .menu-body h1 {
     display: none;
   }
@@ -1150,6 +1196,16 @@
   from {
     transform: translateX(-7px);
     opacity: 0.25;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes mb-stamp {
+  from {
+    transform: scale(1.8);
+    opacity: 0;
   }
   to {
     transform: none;
@@ -1304,6 +1360,21 @@
 
 #app dialog .settings-columns h3:not(:first-child) {
   margin-top: var(--mb-s5);
+}
+
+/* Controls: key and action pairs flow two to a row, so the list fits the screen. */
+#app dialog .control-grid {
+  grid-template-columns: max-content minmax(0, 1fr) max-content minmax(0, 1fr);
+  gap: var(--mb-s2) var(--mb-s4);
+  align-items: baseline;
+}
+#app dialog:has(.control-grid) {
+  width: min(calc(860px * var(--mb-u)), calc(100vw - 2 * var(--mb-s3)));
+}
+@media (max-width: 640px) {
+  #app dialog .control-grid {
+    grid-template-columns: max-content minmax(0, 1fr);
+  }
 }
 
 /* Pause: the session plate. */

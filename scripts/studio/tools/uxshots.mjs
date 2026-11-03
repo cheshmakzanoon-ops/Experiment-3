@@ -1,5 +1,5 @@
 // UX screenshots of the paddock menu and its modals at the four review viewports.
-// Usage: node uxshots.mjs URL OUTDIR PREFIX [--scenes menu,dirt,festival,gp,settings]
+// Usage: node uxshots.mjs URL OUTDIR PREFIX [--scenes menu,gp,dirt,festival,circuit-back,settings]
 // One browser, one boot (software GL boots in ~45 s); the viewport is resized between shots.
 // Output: OUTDIR/PREFIX-<scene>-<w>x<h>.jpg (JPEG, quality 62, each well under 300 KB).
 import { chromium } from 'playwright';
@@ -43,22 +43,21 @@ const shot = async (scene, [w, h]) => {
   await page.screenshot({ path, type: 'jpeg', quality: 62, timeout: 240000 });
   log.push(`${path} ${(statSync(path).size / 1024).toFixed(0)} KB`);
 };
-const pick = async (id, value) => {
-  await page.evaluate(
-    ([i, v]) => {
-      const el = document.getElementById(i);
-      el.value = v;
-      el.dispatchEvent(new Event('change', { bubbles: true }));
-    },
-    [id, value],
-  );
+const plate = async (discipline) => {
+  await page.locator(`.lb-plate[data-discipline="${discipline}"]`).click();
+  await page.waitForTimeout(6000);
 };
 for (const scene of scenes) {
-  if (scene === 'dirt') await pick('circuit', 'valley-ridge-mx');
-  if (scene === 'gp') {
-    await pick('vehicle', 'gpr1');
+  if (scene === 'dirt' || scene === 'gp' || scene === 'festival') {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await plate(scene);
+    await shot(scene, [1280, 720]);
+    continue;
   }
-  if (scene === 'festival') await pick('mode', 'festival');
+  if (scene === 'circuit-back') {
+    await plate('circuit');
+    continue;
+  }
   if (scene === 'settings') {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
