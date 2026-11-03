@@ -1,6 +1,7 @@
 import { DEFAULT_OPTIONS, type SessionOptions, type WeatherPreset } from '../simulation/config.ts';
 import type { CircuitId } from '../simulation/circuits.ts';
 import { RULESETS, eventSession, type EventDefinition } from '../simulation/events.ts';
+import { WEATHER_CATALOGUE } from '../simulation/weather-catalogue.ts';
 import { VEHICLES } from '../simulation/vehicles.ts';
 import type { CareerEvent } from './ladder.ts';
 import { MEDALS, type Medal } from './licences.ts';
@@ -82,10 +83,13 @@ const cycle = (ids: string | readonly string[], count: number) =>
   typeof ids === 'string'
     ? ids
     : Object.freeze(Array.from({ length: count }, (_, i) => ids[i % ids.length]));
-/** Rain races on wets where the ruleset allows them, as the career builds them. */
+/** Weather that asks for full wets (rain, thunderstorm: the catalogue's own
+ * suggestion) races on wets where the ruleset allows them, as the career builds them. */
 function compoundFor(ruleset: string, weather: WeatherPreset): EventDefinition['compound'] {
   const allowed = RULESETS[ruleset]?.tires.allowed ?? [];
-  return weather === 'rain' && allowed.includes('wet') ? 'wet' : 'medium';
+  return WEATHER_CATALOGUE[weather].suggestedTyre === 'wet' && allowed.includes('wet')
+    ? 'wet'
+    : 'medium';
 }
 function entry(spec: WildcardSpec): WildcardEntry {
   const timeAttack = spec.rules?.includes('time-attack') ?? false;
@@ -142,12 +146,12 @@ const SPECS: readonly WildcardSpec[] = [
     id: 'descent-in-the-cloud',
     title: 'THE DESCENT IN THE CLOUD',
     pitch:
-      'A formula car runs a mountain pass downhill in a storm: stacked switchbacks, rock on one side and a long drop on the other.',
+      'A formula car runs a mountain pass downhill in cold fog: stacked switchbacks, rock on one side and a long drop on the other.',
     kind: 'class-mismatch',
     vehicles: 'apx01',
     circuit: 'alpine-pass-reverse',
     ruleset: 'formula-grand-prix',
-    weather: 'rain',
+    weather: 'fog',
     laps: 2,
     cars: 6,
     aiSkill: 0.92,
@@ -174,12 +178,12 @@ const SPECS: readonly WildcardSpec[] = [
     id: 'hypercars-in-the-harbour',
     title: 'HYPERCARS IN THE HARBOUR TUNNEL',
     pitch:
-      'Prototype hypercars squeeze through a curving tunnel and between 2.6 m walls on a harbour street circuit.',
+      'Prototype hypercars race a harbour street circuit in a thunderstorm: a curving tunnel, 2.6 m walls and gusts off the water.',
     kind: 'class-mismatch',
     vehicles: 'hy9',
     circuit: 'riviera',
     ruleset: 'prototype-sprint',
-    weather: 'clear',
+    weather: 'storm',
     laps: 2,
     cars: 6,
     aiSkill: 0.92,
@@ -273,12 +277,12 @@ const SPECS: readonly WildcardSpec[] = [
     id: 'supermoto-meets-the-joker',
     title: 'SUPERMOTO MEETS THE JOKER',
     pitch:
-      'Supermotos on a rallycross circuit: tarmac, rolled gravel and a crest jump; the joker road is for cars, not for them.',
+      'Supermotos on a rallycross circuit in a dust storm: tarmac, rolled gravel and a crest jump; the joker road is for cars.',
     kind: 'cross-discipline',
     vehicles: 'sm450',
     circuit: 'kestrel-rx',
     ruleset: 'wildcard-riders',
-    weather: 'clear',
+    weather: 'dust',
     laps: 4,
     cars: 6,
     aiSkill: 0.92,
