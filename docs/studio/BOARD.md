@@ -9,15 +9,17 @@ Updated by the PM after every merge. Status: TODO · DOING · MERGED · BLOCKED.
 - Full vitest: see below once complete. Known red: `tests/motocross-wheel-pickup.test.ts` (5 failed).
 - Boots to menu in Chromium (software GL ≈ 45 s; hardware time unmeasured).
 
-## Wave 1 (dispatched)
+## Wave 1 — all merged to main (3899af8)
 
-| Dept | Branch | Scope | Status |
-| --- | --- | --- | --- |
-| UX/UI Director | worktree | art direction, main menu redesign, pause/results restyle | DOING |
-| Content | merged a26811b | 19 Wildcard events (38 tests, 19/19 seeded races), Level Nine car park, banked-grid jump-start fix | MERGED (no UI, no visual check yet) |
-| Environment | worktree | ≥ 3 new weather states (physics + visuals + audio + UI option) | DOING |
-| Performance | worktree | split 14.6 MB chunk, measure boot | DOING |
-| Release Eng | worktree | Electron shell, Steamworks hooks, achievements, store kit | DOING |
+| Dept | Result | Evidence |
+| --- | --- | --- |
+| Content | 19 Wildcard events, Level Nine car park, banked-grid jump-start fix | 38 tests, 19/19 seeded races (agent run) |
+| UX/UI | "Paddock Board" front end, 4 discipline plates, venue sheets from real centreline, controller menu nav | build, 22 UI test files, e2e menu-access + launch-board |
+| Performance | entry JS 14.6 MB → 3.2 MB raw; 4.47 → 3.54 MB gzip initial (budget 4) | `npm run check:bundle`, lazy-chunk e2e |
+| Release Eng | Electron shell, atomic save mirror, 54 achievements, Steamworks hooks (fail-closed), store kit | Linux packaged smoke under Xvfb; NOT run on Win/mac/Steam/real GPU |
+| Weather | fog, thunderstorm, dust (6 presets total); snow/ice NOT built | weather-states 40 tests, selftest 14/14, matrix |
+
+Integration done by PM: weather glyphs on the board dial, weather options data-driven inside Paddock markup, e2e D-pad test no longer expected-fail (passes on merged main).
 
 ## Wave 2 (queued)
 
