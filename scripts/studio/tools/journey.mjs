@@ -1286,7 +1286,7 @@ async function festivalLoad(run, attempt) {
       lastFrames = 0,
       lastFramesAt = Date.now();
     for (;;) {
-      const waited = (Date.now() - t) / 1000;
+      let waited = (Date.now() - t) / 1000;
       const c = await run.page
         .evaluate(() => ({
           mode: document.getElementById('app')?.dataset.mode ?? null,
@@ -1308,6 +1308,9 @@ async function festivalLoad(run, attempt) {
           })(),
         }))
         .catch((e) => ({ evalError: String(e.message).slice(0, 160) }));
+      // The evaluate waits for the main thread: a blocked page (a long shader link) must
+      // count against the load time, so take the time after it returns.
+      waited = (Date.now() - t) / 1000;
       if (c.evalError) {
         say('festival.eval-stalled', { waited: Math.round(waited), why: c.evalError });
         await new Promise((r) => setTimeout(r, 2000));

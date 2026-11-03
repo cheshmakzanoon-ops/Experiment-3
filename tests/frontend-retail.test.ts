@@ -73,6 +73,7 @@ describe('retail front end', () => {
       'Loading photographed ground…',
       'Baking festival materials…',
       'Compiling the festival materials…',
+      'Warming the festival view…',
     ];
     let previous = 0;
     const seen: number[] = [];
@@ -88,6 +89,7 @@ describe('retail front end', () => {
     }
     expect(seen[0]).toBeLessThan(0.1);
     expect(seen.at(-1)).toBeGreaterThanOrEqual(0.9);
+    expect(seen.at(-1)).toBeLessThan(1);
     // Fast travel inside the world is a stage too, not an unnamed "Loading".
     expect(loadingStage('Travelling to Port Ilse Street Loop…').title).toBe('Travelling');
     expect(loadingStage('Preparing another run at Port Ilse Street Loop…').title).toBe(

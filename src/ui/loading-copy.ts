@@ -57,6 +57,7 @@ export function loadingStage(raw: string, previous = 0): LoadingStage {
     [/photographed ground/i, 'Laying the ground', 0.76],
     [/baking festival materials/i, 'Preparing materials', 0.84],
     [/compiling the festival/i, 'Preparing graphics', 0.9],
+    [/warming the festival view/i, 'Setting up cameras', 0.95],
     [/^(travelling to|preparing another run at)\b/i, 'Travelling', 0.5],
     [/bodywork, materials and/i, 'Loading circuit', 0],
     [/^building GP motorcycles and riders$/i, 'Preparing motorcycles', 0.42],
