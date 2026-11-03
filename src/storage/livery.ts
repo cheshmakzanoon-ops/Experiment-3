@@ -15,7 +15,7 @@ export function emptyDecal(id: number): DecalSlot {
   return {
     id: bounded,
     side: bounded <= 5 ? 'left' : 'right',
-    text: 'APEX',
+    text: 'MOTOBOUND',
     color: '#f6f1e3',
     x: (((bounded - 1) % 3) - 1) * 0.65,
     y: (bounded - 1) % 5 < 3 ? -0.85 : 0.85,
@@ -50,7 +50,7 @@ export function validateDecals(value: unknown): DecalSlot[] {
               .toUpperCase()
               .replace(/[^A-Z0-9 .-]/g, '')
               .trim()
-              .slice(0, 14) || 'APEX'
+              .slice(0, 14) || 'MOTOBOUND'
           : base.text,
       color:
         typeof row.color === 'string' && /^#[a-f0-9]{6}$/i.test(row.color)
@@ -79,7 +79,7 @@ export const DEFAULT_LIVERY: Readonly<Livery> = Object.freeze({
   primary: '#c97235',
   accent: '#e3ddc9',
   number: 7,
-  sponsor: 'APEX',
+  sponsor: 'MOTOBOUND',
   pattern: 'sweep',
 });
 /** Whether `value` paints the car differently from the default identity. The
@@ -124,8 +124,8 @@ export function validateLivery(value: unknown): Livery {
             .toUpperCase()
             .replace(/[^A-Z0-9 .-]/g, '')
             .trim()
-            .slice(0, 14) || 'APEX'
-        : 'APEX',
+            .slice(0, 14) || 'MOTOBOUND'
+        : 'MOTOBOUND',
     pattern: p.pattern === 'split' || p.pattern === 'minimal' ? p.pattern : 'sweep',
   };
 }

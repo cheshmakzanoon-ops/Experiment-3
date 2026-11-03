@@ -1,0 +1,144 @@
+/* The graphics guide in GARAGE & SETTINGS (src/ui/settings-guide.ts): a comparison table of the
+ * four presets, a suggestion from the GPU's name and a frame-rate readout. Injected with
+ * front-end.css by installFrontEnd(); tokens only (--mb-*). The chosen preset's column carries
+ * an amber rim and aria-current; the readout's band is written as a word (OK, LOW), never colour
+ * alone. No motion is authored here. */
+
+#app .gq {
+  display: grid;
+  gap: var(--mb-s3);
+  margin: var(--mb-s3) 0 var(--mb-s4);
+  padding: var(--mb-s3);
+  background: var(--mb-asphalt-0);
+  box-shadow: inset 0 0 0 1px var(--mb-line);
+  font-family: var(--mb-sans);
+}
+#app .gq .gq-label {
+  justify-self: start;
+  margin: 0;
+  padding: var(--mb-s1) var(--mb-s2);
+  background: var(--mb-paper);
+  color: var(--mb-paper-ink);
+  font: 650 var(--mb-f-label) / 1 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.14em;
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 0 100%);
+}
+#app .gq .gq-list {
+  display: grid;
+  gap: var(--mb-s1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+#app .gq .gq-list li {
+  display: grid;
+  grid-template-columns: calc(76px * var(--mb-u)) minmax(0, 1fr);
+  gap: var(--mb-s2);
+  padding: var(--mb-s2) var(--mb-s3);
+  background: var(--mb-asphalt-1);
+  border-left: 3px solid var(--mb-line-strong);
+  color: var(--mb-chalk-dim);
+  font: 500 var(--mb-f-label) / 1.45 var(--mb-sans);
+}
+#app .gq .gq-list b {
+  color: var(--mb-chalk);
+  font: 750 var(--mb-f-label) / 1.45 var(--mb-sans);
+  letter-spacing: 0.12em;
+}
+#app .gq .gq-list [aria-current='true'] {
+  background: var(--mb-asphalt-2);
+  border-left-color: var(--mb-amber);
+  color: var(--mb-chalk);
+}
+#app .gq .gq-list [aria-current='true'] b {
+  color: var(--mb-amber);
+}
+#app .gq .gq-list [aria-current='true'] b::after {
+  content: ' · NOW';
+  color: var(--mb-chalk-dim);
+}
+
+#app .gq .gq-rec,
+#app .gq .gq-fps {
+  display: grid;
+  gap: var(--mb-s1);
+  padding: var(--mb-s3);
+  background: var(--mb-asphalt-1);
+  border-left: 3px solid var(--mb-line-strong);
+}
+#app .gq .gq-rec[data-basis='guess'] {
+  border-left-color: var(--mb-amber);
+}
+#app .gq b {
+  color: var(--mb-chalk);
+  font: 750 var(--mb-f-label) / 1.2 var(--mb-sans);
+  letter-spacing: 0.14em;
+}
+#app .gq .gq-gpu {
+  color: var(--mb-chalk-dim);
+  font: 600 var(--mb-f-label) / 1.3 var(--mb-sans);
+  overflow-wrap: anywhere;
+}
+#app .gq p {
+  margin: 0;
+  color: var(--mb-chalk-dim);
+  font: 500 var(--mb-f-label) / 1.45 var(--mb-sans);
+}
+#app .gq .gq-use {
+  justify-self: start;
+  margin-top: var(--mb-s1);
+  min-height: var(--mb-field);
+  padding: 0 var(--mb-s4);
+  background: var(--mb-asphalt-2);
+  color: var(--mb-chalk);
+  border: 0;
+  border-left: 3px solid var(--mb-amber);
+  border-radius: 0;
+  font: 700 calc(12px * var(--mb-u)) / 1 var(--mb-sans);
+  font-stretch: 94%;
+  letter-spacing: 0.14em;
+}
+#app .gq .gq-use:hover {
+  background: var(--mb-asphalt-3);
+}
+#app .gq .gq-fps-now {
+  color: var(--mb-amber);
+  font: 400 calc(26px * var(--mb-u)) / 1.1 var(--mb-stencil);
+  font-variant-numeric: tabular-nums;
+}
+#app .gq .gq-fps-now[data-band]::after {
+  margin-left: var(--mb-s2);
+  color: var(--mb-chalk-dim);
+  font: 700 var(--mb-f-label) / 1 var(--mb-sans);
+  letter-spacing: 0.14em;
+}
+#app .gq .gq-fps-now[data-band='good']::after {
+  content: 'SMOOTH';
+  color: var(--mb-go);
+}
+#app .gq .gq-fps-now[data-band='fair']::after {
+  content: 'PLAYABLE';
+}
+#app .gq .gq-fps-now[data-band='low']::after {
+  content: 'LOW';
+  color: var(--mb-flag-text);
+}
+#app .gq .gq-fps-low {
+  color: var(--mb-chalk-dim);
+  font: 650 var(--mb-f-label) / 1.2 var(--mb-sans);
+  letter-spacing: 0.1em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #app .gq,
+  #app .gq * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+:root[data-reduced-motion='true'] #app .gq,
+:root[data-reduced-motion='true'] #app .gq * {
+  animation: none !important;
+  transition: none !important;
+}

@@ -53,7 +53,7 @@ describe('photo camera and safe original livery', () => {
       pattern: 'sweep',
     });
     expect(validateLivery({ sponsor: 'a'.repeat(100), number: NaN }).sponsor).toHaveLength(14);
-    expect(validateLivery({ sponsor: '😀' }).sponsor).toBe('APEX');
+    expect(validateLivery({ sponsor: '😀' }).sponsor).toBe('MOTOBOUND');
     for (const preset of Object.values(LIVERY_PRESETS))
       expect(validateLivery(preset)).toEqual(preset);
   });

@@ -1,0 +1,12 @@
+/* Colour-blind-safe HUD (Settings > Accessibility). Injected after the identity layer
+ * (hud-identity.css, which must not redefine timing colours) by installHudIdentity().
+ * Only under html[data-colorblind='true']: the four timing colours become the Okabe-Ito
+ * rose, sky blue, yellow and orange, which stay apart under the common colour-vision
+ * differences. Compound and flag colours stay (flags are patterned and lettered). The times
+ * themselves are always printed, so colour is never the only signal. */
+html[data-colorblind='true'] #hud {
+  --t-purple: #cc79a7;
+  --t-green: #56b4e9;
+  --t-yellow: #f0e442;
+  --t-red: #e69f00;
+}

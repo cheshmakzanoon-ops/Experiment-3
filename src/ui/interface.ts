@@ -168,6 +168,15 @@ import type { ContinueEntry } from './continue-entry.ts';
 import { bindWildcardBoard, type WildcardProgress } from './wildcard-board.ts';
 import { lightOptionsHtml, type LightChoice } from '../rendering/light-choice.ts';
 import { glyph } from './glyphs.ts';
+import { bindQualityGuide, qualityGuideHtml, readGpuName } from './settings-guide.ts';
+import { resultRows, resultsBoardHtml, type ResultsNext } from './results-board.ts';
+import {
+  bindFirstRun,
+  firstRunChoice,
+  firstRunHtml,
+  type FirstRunDevice,
+} from './first-run.ts';
+import type { BoardDiscipline } from './disciplines.ts';
 import { MenuGamepad } from './menu-gamepad.ts';
 import { uiCue } from './ui-cue.ts';
 import { SOLVANE } from '../simulation/open-world/region-data.ts';
@@ -234,6 +243,8 @@ export class Interface {
   private panelTime = -Infinity;
   private lastAnnounced = '';
   private deviceCalibration: DeviceCalibrationPanel | null = null;
+  /** The GPU's name from the browser (read once, for the settings guide); null when not reported. */
+  private gpu: string | null | undefined;
   private creditsPad: CreditsGamepad | null = null;
   /** Controller navigation for the paddock board and modal screens. */
   private menuPad: MenuGamepad | null = null;
@@ -242,6 +253,10 @@ export class Interface {
   private board: LaunchBoard | null = null;
   /** Selection and keys of the Wildcard board while it is the modal. */
   private wildcardBinding: (() => void) | null = null;
+  /** Roving radios of the first-launch screen while it is the modal. */
+  private firstRunBinding: (() => void) | null = null;
+  /** The settings screen's live parts (frame-rate meter, text-size preview), stopped when it closes. */
+  private settingsBinding: (() => void) | null = null;
   private driverName = DRIVERS[0];
   /** The player's driver name (timing tower, results and paddock masthead). */
   get playerName() {
@@ -386,29 +401,8 @@ export class Interface {
     });
     this.get('sessionForm').addEventListener('submit', (e) => {
       e.preventDefault();
-      const select = (id: string) => (this.get(id) as HTMLSelectElement).value;
-      this.options = {
-        ...DEFAULT_OPTIONS,
-        circuit: select('circuit') as CircuitId,
-        mode: select('mode') as SessionOptions['mode'],
-        laps: Number(select('laps')),
-        opponents: select('mode') === 'time-trial' ? 0 : Number(select('opponents')),
-        weather: select('weather') as SessionOptions['weather'],
-        compound: select('compound') as SessionOptions['compound'],
-        assist: select('assist') as SessionOptions['assist'],
-      };
-      // Races and endurance start from the chosen slot; timed sessions ignore it.
-      if (racingSession(this.options.mode)) {
-        const grid = startingGrid(this.options.opponents + 1, select('startSlot') as StartSlot);
-        if (grid) this.options.grid = grid;
-      }
-      Object.assign(this.options, machineOptions(this.options, select('vehicle')));
-      // Reject incompatible machine/ruleset/tyre combinations with reasons
-      // (the festival picks its own road machine and has no circuit rules).
-      const problems =
-        select('mode') === 'festival'
-          ? []
-          : sessionIncompatibilities(validateOptions(this.options));
+      const { options, problems } = this.formOptions();
+      this.options = options;
       if (problems.length) {
         this.get('sessionRules').textContent = `Cannot start: ${problems.join('; ')}.`;
         return;
@@ -515,6 +509,71 @@ export class Interface {
     this.get('replaySpeed').addEventListener('change', (e) =>
       this.callbacks.replaySpeed(Number((e.target as HTMLSelectElement).value)),
     );
+  }
+  /** The session the form describes right now, and what is wrong with it (empty when it can start). */
+  private formOptions(): { options: SessionOptions; problems: string[] } {
+    const select = (id: string) => (this.get(id) as HTMLSelectElement).value;
+    const options: SessionOptions = {
+      ...DEFAULT_OPTIONS,
+      circuit: select('circuit') as CircuitId,
+      mode: select('mode') as SessionOptions['mode'],
+      laps: Number(select('laps')),
+      opponents: select('mode') === 'time-trial' ? 0 : Number(select('opponents')),
+      weather: select('weather') as SessionOptions['weather'],
+      compound: select('compound') as SessionOptions['compound'],
+      assist: select('assist') as SessionOptions['assist'],
+    };
+    // Races and endurance start from the chosen slot; timed sessions ignore it.
+    if (racingSession(options.mode)) {
+      const grid = startingGrid(options.opponents + 1, select('startSlot') as StartSlot);
+      if (grid) options.grid = grid;
+    }
+    Object.assign(options, machineOptions(options, select('vehicle')));
+    // Reject incompatible machine/ruleset/tyre combinations with reasons
+    // (the festival picks its own road machine and has no circuit rules).
+    const problems =
+      select('mode') === 'festival' ? [] : sessionIncompatibilities(validateOptions(options));
+    return { options, problems };
+  }
+  /** FIRST LAUNCH: open the screen (see first-run.ts). The radios come preselected. */
+  firstRun(device: FirstRunDevice, bindings: Bindings = this.bindings) {
+    this.modalContent(firstRunHtml({ device, bindings }));
+  }
+  /** What the open first-launch screen has chosen. */
+  firstRunChoice() {
+    return firstRunChoice(this.get('modalContent'));
+  }
+  /** The Driving Academy's first lap in a discipline: the board is set to that plate and
+   * the form to a solo, dry, medium-tyre practice of five laps, then read like a hand
+   * entry (the same rules, the same machine preview). Null (with the reason in the
+   * rules line) when the form refuses it. The festival keeps its own session. */
+  firstLapOptions(discipline: BoardDiscipline): SessionOptions | null {
+    const set = (id: string, value: string) => {
+      const select = this.get(id) as HTMLSelectElement;
+      if (select.value === value || ![...select.options].some((o) => o.value === value)) return;
+      select.value = value;
+      select.dispatchEvent(new Event('input', { bubbles: true }));
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+    this.board?.setDiscipline(discipline);
+    if (discipline !== 'festival') {
+      set('mode', 'practice');
+      set('opponents', '0');
+      set('laps', '5');
+      set('weather', 'clear');
+      set('compound', 'medium');
+    }
+    const { options, problems } = this.formOptions();
+    if (problems.length) {
+      this.get('sessionRules').textContent = `Cannot start: ${problems.join('; ')}.`;
+      return null;
+    }
+    this.options = options;
+    return options;
+  }
+  /** The form as CONTINUE remembers it. */
+  boardEntry() {
+    return this.board?.entry() ?? null;
   }
   /** Medal tally and next event on the paddock board's WILDCARD SERIES door. */
   setWildcardProgress(progress: WildcardProgress | null) {
@@ -1112,6 +1171,10 @@ export class Interface {
   modalContent(html: string) {
     this.wildcardBinding?.();
     this.wildcardBinding = null;
+    this.firstRunBinding?.();
+    this.firstRunBinding = null;
+    this.settingsBinding?.();
+    this.settingsBinding = null;
     this.creditsPad?.dispose();
     this.creditsPad = null;
     this.bindingCapture?.abort();
@@ -1130,6 +1193,7 @@ export class Interface {
     // The Wildcard board: its rows are a radio group that selects the programme
     // page; the chosen event takes the focus.
     const content = this.get('modalContent');
+    if (content.querySelector('.fr')) this.firstRunBinding = bindFirstRun(content);
     if (content.querySelector('.wc-board')) {
       this.wildcardBinding = bindWildcardBoard(content);
       content.querySelector<HTMLElement>('.wc-row[aria-checked="true"]')?.focus({ preventScroll: true });
@@ -1142,6 +1206,10 @@ export class Interface {
   closeModal() {
     this.wildcardBinding?.();
     this.wildcardBinding = null;
+    this.firstRunBinding?.();
+    this.firstRunBinding = null;
+    this.settingsBinding?.();
+    this.settingsBinding = null;
     this.creditsPad?.dispose();
     this.creditsPad = null;
     this.bindingCapture?.abort();
@@ -1175,14 +1243,14 @@ export class Interface {
     const vehicle = setupMachine(context?.machine, menuChoice, this.options),
       preset = context?.preset ?? null;
     this.modalContent(
-      `<header><div><span class="eyebrow">GARAGE / PREFERENCES</span><h2>Garage &amp; settings.</h2></div><button data-action="modalClose" aria-label="Close settings">✕</button></header><form id="settingsForm"><div class="settings-columns"><section><h3>Presentation</h3><label>RENDER QUALITY<select name="quality"><option value="low">Low · No shadows / crowd / particles</option><option value="medium">Medium · 2× MSAA / AO / bloom</option><option value="high">High · 4× MSAA / local reflections / specular AA</option><option value="ultra">Ultra · TAA / SSR / 3 shadow cascades (opt-in, fast GPUs)</option></select></label>${presentationControls(settings)}${[
+      `<header><div><span class="eyebrow">GARAGE / PREFERENCES</span><h2>Garage &amp; settings.</h2></div><button data-action="modalClose" aria-label="Close settings">✕</button></header><form id="settingsForm"><div class="settings-columns"><section><h3>Presentation</h3><label>RENDER QUALITY<select name="quality"><option value="low">Low · No shadows / crowd / particles</option><option value="medium">Medium · 2× MSAA / AO / bloom</option><option value="high">High · 4× MSAA / local reflections / specular AA</option><option value="ultra">Ultra · TAA / SSR / 3 shadow cascades (opt-in, fast GPUs)</option></select></label>${qualityGuideHtml(settings.quality, this.gpu ?? (this.gpu = readGpuName()))}${presentationControls(settings)}${[
         ['volume', 'Volume', 0, 1, 0.01],
         ['shake', 'Camera vibration', 0, 1, 0.01],
-        ['uiScale', 'Interface scale', 0.8, 1.35, 0.05],
+        ['uiScale', 'Text and interface size', 0.8, 1.35, 0.05],
       ]
         .map(
           ([key, title, min, max, step]) =>
-            `<label class="range-row">${title}<output>${settings[key as 'volume' | 'shake' | 'uiScale']}</output><input name="${key}" type="range" min="${min}" max="${max}" step="${step}" value="${settings[key as 'volume' | 'shake' | 'uiScale']}"></label>`,
+            `<label class="range-row">${title}<output>${key === 'uiScale' ? `${Math.round(settings.uiScale * 100)}%` : settings[key as 'volume' | 'shake']}</output><input name="${key}" type="range" min="${min}" max="${max}" step="${step}" value="${settings[key as 'volume' | 'shake' | 'uiScale']}"></label>`,
         )
         .join(
           '',
@@ -1231,12 +1299,23 @@ export class Interface {
     );
     (form.elements.namedItem('quality') as HTMLSelectElement).value = settings.quality;
     const graphics = bindPresentation(form, settings);
+    // The frame-rate meter runs while the screen is open; the text size previews as it is dragged
+    // and goes back to the saved size when the screen closes without applying.
+    const root = document.documentElement;
+    const savedScale = root.style.getPropertyValue('--ui-scale');
+    let applied = false;
+    const stopGuide = bindQualityGuide(form);
+    this.settingsBinding = () => {
+      stopGuide();
+      if (!applied) root.style.setProperty('--ui-scale', savedScale || String(settings.uiScale));
+    };
     form.querySelector<HTMLButtonElement>('#previewDrivingAudio')!.onclick = () =>
       this.callbacks.previewAudio?.(readDrivingAudio(form));
     form.addEventListener('input', (e) => {
       const input = e.target as HTMLInputElement;
       const output = input.parentElement?.querySelector('output');
-      if (output) output.value = input.value;
+      if (output) output.value = input.name === 'uiScale' ? `${Math.round(Number(input.value) * 100)}%` : input.value;
+      if (input.name === 'uiScale') root.style.setProperty('--ui-scale', input.value);
       // The one value a machine reads as its own baseline saves as its neighbour.
       if (input.dataset.setup !== undefined) {
         const note = form.querySelector<HTMLElement>(`#note-${input.name}`);
@@ -1295,6 +1374,7 @@ export class Interface {
     };
     form.onsubmit = (e) => {
       e.preventDefault();
+      applied = true;
       const value = (key: string) => (form.elements.namedItem(key) as HTMLInputElement).value;
       const next = structuredClone(settings);
       next.quality = value('quality') as Settings['quality'];
@@ -1347,20 +1427,25 @@ export class Interface {
   resultsExtra = '';
   /** A banner directly under the results heading (the Wildcard medal; trusted HTML). */
   resultsLead = '';
+  /** What to do next, from the career plan (set by the application; null hides the card). */
+  resultsNext: ResultsNext | null = null;
   results(frame: Float32Array) {
     if (this.options.mode === 'qualifying') {
       this.qualifyingResults(frame);
       return;
     }
-    const rows = Array.from({ length: frame[H.CARS] }, (_, id) => id)
-      .sort((a, b) => frame[carBase(a) + F.RANK] - frame[carBase(b) + F.RANK])
-      .map((id, index) => {
-        const p = carBase(id);
-        return `<tr${id === 0 ? ' class="you"' : ''}><td>${index + 1}</td><td>${id === 0 ? this.playerName : DRIVERS[id]}</td><td>${Math.round(frame[p + F.LAPS])}</td><td>${frame[p + F.FINISH] > 0 ? lapTime(frame[p + F.FINISH]) : frame[p + F.RETIRED] ? 'DNF' : 'RUNNING'}</td><td>${lapTime(frame[p + F.BEST_LAP])}</td><td>${frame[p + F.PENALTY].toFixed(0)}s</td></tr>`;
-      })
-      .join('');
+    const name = (id: number) => (id === 0 ? this.playerName : DRIVERS[id]);
     this.modalContent(
-      `<span class="eyebrow">CHEQUERED FLAG / SESSION CLASSIFICATION</span><h2>${frame[carBase(0) + F.FINISH] > 0 ? 'Across the line.' : 'Session ended.'}</h2>${this.resultsLead}<p>Classified by laps completed, then race time including penalties.</p><table class="results"><thead><tr><th>POS</th><th>DRIVER</th><th>LAPS</th><th>TIME + PEN.</th><th>BEST LAP</th><th>PEN.</th></tr></thead><tbody>${rows}</tbody></table>${this.offroadHud.results(frame, this.track, this.options, (id) => (id === 0 ? this.playerName : DRIVERS[id]))}${this.championshipNote ? `<p class="championship-note">${escapeHtml(this.championshipNote)}</p>` : ''}${this.resultsExtra}<div class="dialog-buttons inline"><button class="primary" data-action="replay">WATCH REPLAY</button><button data-action="telemetry">TELEMETRY</button>${this.championshipNote ? '<button data-action="championship">STANDINGS</button>' : ''}<button data-action="photo">PHOTO STUDIO</button><button data-action="restart">RACE AGAIN</button><button data-action="menu">PADDOCK</button></div>`,
+      resultsBoardHtml({
+        rows: resultRows(frame, name),
+        heading: frame[carBase(0) + F.FINISH] > 0 ? 'Across the line.' : 'Session ended.',
+        lead: this.resultsLead,
+        extra: this.resultsExtra,
+        offroad: this.offroadHud.results(frame, this.track, this.options, name),
+        note: this.championshipNote,
+        next: this.resultsNext,
+        standings: !!this.championshipNote,
+      }),
     );
   }
   /** Qualifying classification: the fastest valid lap sets the race grid. */

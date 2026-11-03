@@ -12,7 +12,7 @@ export class HeadquartersStage {
   readonly structure = new T.Group();
   private orientation = new T.Euler();
   constructor(withLettering = true) {
-    this.root.name = 'Original APEX workshop / atrium · references 011–016 035 081 086';
+    this.root.name = 'Original MOTOBOUND workshop / atrium · references 011–016 035 081 086';
     this.root.add(this.structure);
     const concrete = new T.MeshStandardMaterial({ color: 0xa2aaa8, roughness: 0.8 });
     const floor = new T.MeshStandardMaterial({ color: 0x66767b, roughness: 0.34, metalness: 0.16 });
@@ -187,7 +187,7 @@ export class HeadquartersStage {
         c.fillRect(0, 0, 1024, 256);
         c.fillStyle = '#e8efed';
         c.font = '800 104px Arial';
-        c.fillText('APEX / WORKSHOP', 40, 130, 944);
+        c.fillText('MOTOBOUND / WORKSHOP', 40, 130, 944);
         c.fillStyle = '#d89b66';
         c.font = '600 30px Arial';
         c.fillText('DESIGN  ·  FABRICATE  ·  TEST  ·  LEARN', 42, 198);
