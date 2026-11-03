@@ -14,7 +14,16 @@ import {
 import { PitCrewView } from '../src/rendering/pit-crew.ts';
 import { Simulation } from '../src/simulation/world.ts';
 import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
-import { F, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../src/simulation/protocol.ts';
+import {
+  C,
+  F,
+  W,
+  WHEEL_BASE,
+  WHEEL_CONTACT_BASE,
+  WHEEL_STRIDE,
+  carBase,
+  wheelContactBase,
+} from '../src/simulation/protocol.ts';
 const bytes = () => new Uint8Array(readFileSync('public/models/aurel-wheel-gun.glb'));
 const decode = () =>
   decodeWheelGuns(
@@ -215,6 +224,57 @@ describe('A31 wheel-gun production handoff', () => {
       expect(guns.count).toBe(0);
       expect(crew.root.visible).toBe(false);
       expect(() => crew.installWheelGuns(guns)).toThrow('before');
+    } finally {
+      disposeCrew(crew);
+    }
+  });
+  it('puts the gun on the hub the car draws: the measured contact hub when the snapshot has one, the wheel length otherwise', async () => {
+    // A31 survey on the player's car: the socket sat 5 to 7 mm above the nut because the crew
+    // used W.LENGTH while every car draws its wheel at the contact block's hub length.
+    const guns = await decode(),
+      crew = new PitCrewView(),
+      f = serviceFrame(),
+      o = carBase(0),
+      contact = wheelContactBase(o, 0);
+    crew.installWheelGuns(guns);
+    crew.setWheelGunFits(
+      0,
+      [0, 1, 2, 3].map(() => ({
+        axial: 0.177,
+        radius: 0.031,
+        socketScale: 1,
+        source: 'supplied-player' as const,
+      })),
+    );
+    const camera = new T.Vector3(f[o + F.X], f[o + F.Y], f[o + F.Z]);
+    let tick = 0;
+    const nutY = () => {
+      // The crew caches a pose per service state: step the clock a hair (the gun is still,
+      // below 1 s) so every sample is built, not replayed.
+      f[o + F.PIT_CLOCK] = 0.85 + 1e-5 * ++tick;
+      crew.update(f, camera);
+      return new T.Vector3().setFromMatrixPosition(
+        guns.socketTransform(0, 'SOCKET_WHEEL_NUT', new T.Matrix4()),
+      ).y;
+    };
+    try {
+      f[o + WHEEL_CONTACT_BASE] = 15;
+      f[contact + C.RADIAL] = 0.3;
+      f[contact + C.NORMAL_X] = 0;
+      f[contact + C.NORMAL_Y] = 1;
+      f[contact + C.NORMAL_Z] = 0;
+      f[contact + C.HUB_LENGTH] = 0.3;
+      const measured = nutY();
+      f[contact + C.HUB_LENGTH] = 0.31;
+      expect(measured - nutY()).toBeCloseTo(0.01, 6);
+      // With a valid contact block the geometric wheel length is not what places the socket.
+      f[o + WHEEL_BASE + W.LENGTH] = 0.4;
+      expect(measured - nutY()).toBeCloseTo(0.01, 6);
+      // A snapshot without one (old or synthetic) keeps the wheel-length convention.
+      f[o + WHEEL_CONTACT_BASE] = 0;
+      const fallback = nutY();
+      f[o + WHEEL_BASE + W.LENGTH] = 0.41;
+      expect(fallback - nutY()).toBeCloseTo(0.01, 6);
     } finally {
       disposeCrew(crew);
     }

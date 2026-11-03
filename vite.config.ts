@@ -145,7 +145,7 @@ export default defineConfig({
           if (variant !== 'product') {
             writeFileSync(
               join(outDir, 'NOT_FOR_RELEASE.txt'),
-              `This is a ${variant} QA build (MOTOBOUND_SUPPLIED_PLAYER / MOTOBOUND_REVIEW_TOOLS).\n` +
+              `This is ${variant === 'owner' ? 'an owner' : 'a review'} QA build (MOTOBOUND_SUPPLIED_PLAYER / MOTOBOUND_REVIEW_TOOLS).\n` +
                 'It contains a real-brand model or commercial-game material by design.\n' +
                 'Never publish, deploy, package or share it. scripts/ip-guard.mjs refuses it.\n',
             );

@@ -113,6 +113,17 @@ it('keeps the owner-supplied path available for owner builds only', () => {
   expect(sourceCar).toContain('OWNER_BUILD && this.suppliedPlayer');
 });
 
+it("the player's cockpit lens setting applies to the authored cockpit, not only to the owner-supplied one", () => {
+  // Found by e2e/p0-cockpit-framing on the product build: the original car took the T-cam
+  // lens (58 degrees) and ignored the Graphics "Cockpit field of view" setting, because the
+  // lens was only selected when a supplied model was loaded.
+  const renderer = readFileSync('src/rendering/renderer.ts', 'utf8');
+  expect(renderer).not.toMatch(/cameraMode === 'cockpit' && car\.suppliedPlayer\s*\?\s*cockpitFov/);
+  expect(renderer).toMatch(
+    /: cameraMode === 'cockpit'\s*\?[^:]*?cockpitFov\(this\.graphics\.cockpitFov\)/s,
+  );
+});
+
 it('the default livery is the hero scheme and drives the body, covers and identity together', () => {
   canvasStub();
   expect(DEFAULT_LIVERY.primary).toBe('#5b2bd6');

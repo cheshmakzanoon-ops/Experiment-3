@@ -1,7 +1,9 @@
 # IP / legal asset audit and hero car (release gate G15)
 
-Branch `studio/legal-ip-hero-car`, cut from `main` at 4b66e0e. Department: Legal/IP asset audit + hero car.
-Everything below was measured on this branch; "not tested" is stated where it applies.
+Branch `studio/legal-ip-hero-car`, cut from `main` at 4b66e0e; `main` at 2cc4438 (vehicle art 2) is merged in.
+Department: Legal/IP asset audit + hero car. The first version of this branch was rejected by an independent
+review; section 8 lists each blocker, what changed and what was run. Everything below was measured on this
+branch; "not tested" is stated where it applies.
 
 **This is an engineering audit, not legal advice.** It records what the repository contains, where
 each asset came from according to the repository itself and an independent scan of the binaries, and
@@ -16,7 +18,8 @@ section 6. Nothing here clears a trademark, a trade dress or a copyright questio
 | Real-brand binary in `dist/`                                  | yes (`models/supplied-player.glb.gz` 34.5 MB and `supplied-player-lods.bin.gz` 4.0 MB)                                           | no (owner-only, `MOTOBOUND_SUPPLIED_PLAYER=1`)                                                                                                       |
 | `dist/` size                                                  | 166.4 MB                                                                                                                         | 127.9 MB (-38.5 MB, -23 %)                                                                                                                           |
 | Initial JS (gzip, budget 4 MB)                                | 3.55 MB                                                                                                                          | 3.51 MB                                                                                                                                              |
-| Real-brand strings in the shipped JS / GLB name tables        | 41 hits (sponsor decal keys, `RB19_*`, `p6-rb19-r06-r02`, "supplied-RB19", 10 commercial-game URLs ...)                          | 0 (`scripts/ip-guard.mjs`: clean)                                                                                                                    |
+| Real-brand strings in the shipped JS / GLB name tables        | 41 hits (sponsor decal keys, `RB19_*`, `p6-rb19-r06-r02`, "supplied-RB19", 10 commercial-game URLs ...)                          | 0 (`scripts/ip-guard.mjs`: clean; matches any spelling, section 4.2)                                                                                 |
+| Is the guard enforced?                                        | no (a manual `npm run check:bundle`)                                                                                             | yes: inside every product `vite build`, in CI `validate`, in the release script and the desktop stager; an owner or review build can never pass      |
 | Commercial-game URLs in the bundle (`reference-catalogue.ts`) | yes (about 100 entries, EA / PlayStation / review-site pages)                                                                    | compiled out (`__REVIEW_TOOLS__`)                                                                                                                    |
 | Third-party notices shipped in the build                      | only the art `CREDITS.txt`                                                                                                       | `THIRD_PARTY_NOTICES.txt`: three.js MIT, Basis Apache-2.0, Saira + Saira Stencil One OFL, CC0 / CC BY attributions; linked from the credits screen   |
 | Legacy "APEX" visible to players                              | HUD wordmark, nose panel, workshop wall, tyre brand, default sponsor, `apex-*` export file names, `CREDITS.txt` heading          | all renamed; storage identifiers kept (section 4.4)                                                                                                  |
@@ -150,9 +153,42 @@ Changes:
   `brand-atlas.ts` into an owner-only module with a header saying so.
 - `scripts/build-player-lods.mjs --owner-only` in `prebuild` / `predev`: a product build no longer
   generates the 4 MB LOD index it will not use (`pretest` still generates it for the unit tests).
-- `package.json`: `check:bundle` = budget + `scripts/ip-guard.mjs`; `check:ip`; `notices`.
-- Verified both ways: product build has no `supplied-player*` file or chunk; `MOTOBOUND_SUPPLIED_PLAYER=1`
-  build contains both binaries and the chunk (checked in `/tmp` builds, section 7).
+- Verified both ways: product build has no `supplied-player*` file or chunk; an owner QA build contains
+  both binaries and the chunk (checked in scratch builds, section 7).
+
+**Build variants and the enforced guard** (rework, section 8). A build is exactly one of three variants,
+recorded as `variant` in `BUILD_IDENTITY.json`:
+
+| Variant   | Made by                                         | Contains                                    | Certifiable / publishable |
+| --------- | ----------------------------------------------- | ------------------------------------------- | ------------------------- |
+| `product` | `npm run build` (the only certifying path)      | the original authored APX-01, nothing owner | yes, after the guard      |
+| `owner`   | `npm run build:qa` (`MOTOBOUND_SUPPLIED_PLAYER`) | the real-brand supplied model, its LOD index | never                     |
+| `review`  | `npm run build:qa` (`MOTOBOUND_REVIEW_TOOLS`)    | the commercial-game reference catalogue     | never                     |
+
+- `vite.config.ts` (plugin `ip-guard`): every product build runs `scripts/ip-guard.mjs` on its output when it is
+  written, so a brand name or an owner asset makes `npm run build` (and any `vite build`) fail. A QA build is
+  labelled instead (`variant`, `NOT_FOR_RELEASE.txt`). Plugin `certifiable-build`: `npm run build` throws if
+  `MOTOBOUND_SUPPLIED_PLAYER` or `MOTOBOUND_REVIEW_TOOLS` is set (it names `npm run build:qa`), so a QA
+  variable cannot reach the certifying path by accident.
+- `scripts/build-qa.mjs` (`npm run build:qa`): the only way to make a QA build; it sets both variables and
+  `MOTOBOUND_QA_BUILD=1`, generates the owner LOD index, and never calls `tsc` or the guard.
+- `scripts/ip-guard.mjs`: refuses an owner or review build outright (a `supplied-player*` file or chunk, or
+  `variant` other than `product`): exit 1, "can never be certified, published, deployed or packaged". There is
+  no flag, option or environment variable that certifies one: the old `--owner-build`, which exited 0, is
+  removed (it now exits 2). A product build is scanned for brand names in every text file, GLB name table and
+  gzipped asset (3 s on a 128 MB `dist/`).
+- Where it runs: inside `vite build`; CI `validate` (`node scripts/ip-guard.mjs --dist dist`, before the
+  `apex-formula-web` upload); CI `publish` on the downloaded artifact; `scripts/publish-validated-release.sh`
+  (also requires `variant: "product"`); `desktop/scripts/stage-web.cjs` before packaging.
+- The deny list matches **words**, not byte patterns (rule in the header of `scripts/ip-denylist.mjs`, pinned by
+  `tests/ip-denylist.test.ts`): case, `_`, `-`, spaces, dots between words, camelCase humps and letter / digit
+  boundaries are normalised, so `RB19_BODY`, `redbull_wordmark`, `tyre_pirelli`, `hard_rock`, `cash_app`,
+  `tag_heuer`, `charging_bull`, `front_bull`, `arctic_wolf` and bare `oracle` / `honda` all hit. Generic words
+  (`shell`, `bull`, `rock`, `bullet`, `mobility`, `oracles`) do not, other punctuation is a hard break, and
+  random base64 or hash text is not split into accidental words. Limits: names that are ordinary words alone
+  (`zoom`, `att`, `front_red`, decal keys of the owner model) cannot be caught by name; they exist only beside
+  detectable keys and the owner binaries are refused by file. A shipped identifier containing the whole word
+  `oracle` (`testOracle`) is a hit by design.
 
 ### 4.3 Real-brand names in shipped text, docs, credits
 
@@ -187,25 +223,52 @@ confined to the owner build.
 
 ### 4.5 Tests: ported, not deleted
 
-| Test                                                                                                                              | Change and reason                                                                                                                                              |
-| --------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `tests/hero-car-original.test.ts` (new)                                                                                           | Pins what a player now sees: `FormulaCar(0)` without a supplied asset uses the A61 levels, has the procedural cockpit, follows the livery on body and covers   |
-| `tests/ip-audit.test.ts` (new, 54 cases)                                                                                          | Every shipped GLB names no real brand; brand tables fictional; vite config contract; notices current and linked                                                |
-| `tests/brand-atlas.test.ts`                                                                                                       | Imports the decal table from its new owner-only module; `APEX CORSA` -> `MOTOBOUND`                                                                            |
-| `tests/paint-livery.test.ts`, `tyre-wheels`, `trackside-branding`, `studio-look-contracts`, `supplied-lookdev`, `photo-reference` | Pinned values updated for the renamed brand, the hero team colour and the default sponsor `VOLTEX`                                                             |
-| `tests/supplied-player*.test.ts`, `supplied-*`                                                                                    | Unchanged: they still test the owner-only asset directly; `vitest.config.ts` defines the flags true so owner-only code stays covered                           |
-| `e2e/application.spec.ts`, `24-coupled-driver`, `53-a61-rival`                                                                    | Dual-mode: owner build keeps the supplied assertions, product build asserts the original car (no supplied rig, no request for the binary, A61 on car 0)        |
-| `e2e/39-supplied-player`, `41-player-render-budget`, `p0-cockpit-framing`                                                         | Owner-build only (they frame or measure the supplied model); skip with a stated reason otherwise                                                               |
-| `e2e/08` and the single test in `07`, `09`, `14`, `15` that opens the reference review                                            | Skip with a stated reason unless the build has `MOTOBOUND_REVIEW_TOOLS=1`; the other tests in those files are untouched (not run against a product build here) |
-| `e2e/61-original-hero-car.spec.ts` (new)                                                                                          | Product-build check that the player's car is the authored one and the owner binary is never requested                                                          |
+| Test                                                                                                                              | Change and reason                                                                                                                                                                                                                                                                  |
+| --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tests/hero-car-original.test.ts` (new)                                                                                           | Pins what a player now sees: `FormulaCar(0)` without a supplied asset uses the A61 levels, has the procedural cockpit, follows the livery on body and covers                                                                                                                       |
+| `tests/ip-audit.test.ts` (new, 54 cases)                                                                                          | Every shipped GLB names no real brand (word-aware matcher); brand tables fictional; vite config contract; notices current and linked                                                                                                                                               |
+| `tests/ip-denylist.test.ts` (new, rework)                                                                                         | Table-driven: the reviewer's identifiers and ~90 spellings MUST match, ~80 innocuous strings (this game's own names, `shell`, `bullet`, `mobility`, `oracles`, hash blobs, `red,bull`) MUST NOT; the canonical form and a minified-bundle case                                       |
+| `tests/ip-guard.test.ts` (new, rework)                                                                                            | The guard on synthetic outputs: clean product passes; brand in JS / JSON / HTML / GLB / gzipped GLB fails; owner binary, owner chunk, owner or review identity are refused with no way around (`--owner-build` exits 2, environment variables do not help); `vite build` refuses QA variables |
+| `tests/ci-workflow.test.ts`                                                                                                       | Existing assertions untouched. Added: the guard step in `validate` before the upload, in `publish` before the release, a separate `owner-qa` job that never uses the certifying path or uploads the build, `publish` needs it, only `ci.yml` and `cockpit-framing.yml` make QA builds     |
+| `tests/branchless-release.test.ts`                                                                                                | Existing negative cases untouched; the script now needs the guard next to it and `variant: "product"`. Added: owner / review / missing variant and a brand in a shipped file are refused                                                                                           |
+| `tests/e2e-fixture-bundles.test.ts` (new, rework)                                                                                 | Static audit of the 107 ad-hoc `build({ configFile: false })` calls in 81 specs: each defines `__SUPPLIED_PLAYER__` through `fixtureDefine()`; no fixture asserts `suppliedPlayer!`; exactly 3 specs skip as owner-only; 42, A31 and P0 run in both builds                          |
+| `tests/vehicle-colourways.test.ts` (merge fix)                                                                                    | `colourways.ts` kept a copy of the OLD copper default livery, so after the merge every catalogue machine wore the new default as an "edit". It now reads `DEFAULT_LIVERY`; the test skips the default preset (`voltage`, formerly `copper`) and asserts there is exactly one            |
+| `tests/brand-atlas.test.ts`                                                                                                       | Imports the decal table from its new owner-only module; `APEX CORSA` -> `MOTOBOUND`                                                                                                                                                                                                |
+| `tests/paint-livery.test.ts`, `tyre-wheels`, `trackside-branding`, `studio-look-contracts`, `supplied-lookdev`, `photo-reference` | Pinned values updated for the renamed brand, the hero team colour and the default sponsor `VOLTEX`                                                                                                                                                                                 |
+| `tests/supplied-player*.test.ts`, `supplied-*`                                                                                    | Unchanged: they still test the owner-only asset directly; `vitest.config.ts` defines the flags true so owner-only code stays covered                                                                                                                                               |
+| `e2e/application.spec.ts`, `24-coupled-driver`, `53-a61-rival`                                                                    | Dual-mode: owner build keeps the supplied assertions, product build asserts the original car (no supplied rig, no request for the binary, A61 on car 0)                                                                                                                            |
+| `e2e/39-supplied-player`, `41-player-render-budget`                                                                               | Owner-build only (they measure the supplied model itself); skip with a stated reason otherwise, and run in CI job `owner-qa` against a QA build. The product-build equivalents are `61-original-hero-car` and `42-full-scene-index-budget`                                         |
+| `e2e/42-full-scene-index-budget.spec.ts` (ported, rework)                                                                         | The supplied-only `suppliedPlayer!.lods!.drawRanges!` is gone. Product build: the real eight-car main pass with the authored player car: held frames repeat exactly in 3 cameras, the player is 228,936 triangles (below the A61 250,000 ceiling) in 94 draws (budget 110) over 143 index buffers of 1,752,816 bytes (budget 2,000,000), no index past its vertex buffer. The point-light work check on the whole scene is unchanged. Owner build: the original compaction before / after rows (pixel identity, fewer triangles, buffers reused) as the extra half |
+| `e2e/a31-wheel-gun.spec.ts` + fixture (ported, rework)                                                                            | The witness carrier is the authored car's `wheelPivots[n]` (the supplied car's `PLAYER_WHEEL_n` in an owner build); thresholds unchanged (2 mm, 0.5 degree, 0.9 mm clearance). The startup test was also red on `main` since the lazy-showroom change (`ebc2e06`: the menu renderer no longer builds pit tooling): it now asserts the menu has no wheel guns and no request, and that the GLB is fetched once with a 200 and resident when practice starts |
+| `e2e/p0-cockpit-framing.spec.ts` + fixture (rework)                                                                               | Its owner path was never real: the ad-hoc bundle did not define the flag, so even an owner run measured the original car and crashed on `suppliedPlayer!`. The bundle now defines it from the environment, the fixture no longer asserts the supplied car, and the identical framing criteria run on the authored cockpit in a product build (and on the supplied one in an owner build) |
+| every other spec that bundles `RacingRenderer` / `FormulaCar` ad hoc (81 specs, 107 builds)                                       | `define: fixtureDefine()` added to each build (`__SUPPLIED_PLAYER__` from `MOTOBOUND_SUPPLIED_PLAYER`; false tree-shakes the owner loader out of the bundle). `a32-pit-jacks-offline` hands the owner binary to `FormulaCar` directly from the working tree and does not depend on the flag |
+| `e2e/08` and the single test in `07`, `09`, `14`, `15` that opens the reference review                                            | Skip with a stated reason unless the build has `MOTOBOUND_REVIEW_TOOLS=1` (CI job `owner-qa`); the other tests in those files are untouched                                                                                                                                         |
+| `e2e/61-original-hero-car.spec.ts` (new)                                                                                          | Product-build check that the player's car is the authored one and the owner binary is never requested                                                                                                                                                                              |
 
-### 4.6 What the CI still needs (not changed here)
+### 4.6 CI: one product build, one QA build
 
-`ci.yml` builds `dist` once and uses it both for the e2e shards and for the release / Pages artifacts.
-The e2e specs listed above now need a QA build (`MOTOBOUND_REVIEW_TOOLS=1`, and `MOTOBOUND_SUPPLIED_PLAYER=1`
-for the owner specs) that must never be published. The release artifact must stay the product build.
-That is a two-build change to the pipeline, owned by Release Engineering, and was not attempted without a
-way to run CI. Until then the review and owner specs skip in CI rather than run.
+`ci.yml` has two builds that never meet:
+
+1. **Product build** (`validate`): `npm run build` (the guard runs inside it), then `node scripts/ip-guard.mjs --dist dist`,
+   then the upload `apex-formula-web`. The 8 `browser` shards, `wet-presentation` (now `00-wet-presentation`, `weather`,
+   `42-full-scene-index-budget`, `30-race-finish`) and `publish` all use exactly this artifact; `publish` runs the guard on it again
+   before anything is prepared, and the release script a third time.
+2. **QA build** (`owner-qa`, `needs: validate`): `npm run build:qa` inside the job, then `39`, `41`, `p0-cockpit-framing`, `24`, `53`,
+   `application`, `42`, `a31`, and the review specs `07`, `08`, `09`, `14`, `15`, all with `MOTOBOUND_SUPPLIED_PLAYER=1`
+   and `MOTOBOUND_REVIEW_TOOLS=1`. Only test results are uploaded, never the build; `publish` needs the job but does not
+   download anything it makes; no step of the job calls `npm run build`, `check:ip` or the guard (which would refuse the output anyway).
+
+`cockpit-framing.yml` (a QA workflow) builds with `build:qa` and sets the owner variable for its Playwright step.
+
+**Not done, first release-engineering task:** four path-triggered validation workflows still run owner- or review-gated specs
+against a product build, where those cases skip with their stated reason instead of running. They do not fail and do not
+publish the QA material, but they no longer test what their names say: `settings-validation.yml` and
+`tyre-blankets-validation.yml` (`07` / `08` review tooling) and `phase27h-production.yml` (`24-coupled-driver`, owner half).
+(`aurel-quarry-validation.yml` and `aurel-vegetation-validation.yml` run `p0-cockpit-framing`, which now measures the
+authored cockpit on their product build.) Exact steps for each: add a job `qa` with `needs` on the build job, `npm ci`,
+`npm run build:qa`, `npx playwright install --with-deps chromium`, then the same spec command with
+`MOTOBOUND_SUPPLIED_PLAYER=1 MOTOBOUND_REVIEW_TOOLS=1` in `env`; do not upload `dist/`, do not call `npm run build` there, and add
+the workflow name to the allowed list in `tests/ci-workflow.test.ts` ("no workflow that makes an owner or review build ...").
 
 ## 5. Visual quality of the replacement (honest comparison)
 
@@ -270,9 +333,11 @@ What would close the gap, ranked by value for the cost:
    searched (`LEGAL_CHECKLIST.md`). `VANTA`, `ORBITEL`, `NORTHLINE`, `KESTREL TIME`, `OBSIDIAN` are
    plausible existing company names.
 7. **Vegetation licence version** (Laubwerk via `pbrt-v4-scenes`): confirm or replace (3.1).
-8. **Owner build discipline.** Anyone holding `MOTOBOUND_SUPPLIED_PLAYER=1` can produce a build with the
-   real car. It must never be uploaded to Steam, a CDN, GitHub Pages or sent to press. The guard refuses
-   to certify such a build (`--owner-build` only prints a warning).
+8. **Owner build discipline.** Anyone with the owner binary can make an owner QA build (`npm run build:qa`). It
+   must never be uploaded to Steam, a CDN, GitHub Pages or sent to press. The build labels itself (`variant: "owner"`,
+   `NOT_FOR_RELEASE.txt`), `scripts/ip-guard.mjs`, the release script and the desktop stager refuse it, and `npm run
+   build` refuses the variables. Nothing here stops a person from zipping the folder by hand, or from uploading a
+   `build:qa` workflow artifact: CI never does, and the checks above only protect the pipeline.
 9. **Steam AI-content disclosure** (code, and possibly art scripts, were written with AI assistance): the
    producer must collect the answer from every department (`LEGAL_CHECKLIST.md` section 4).
 10. **Persisted-storage names** (`apex-*`): keep, or schedule a migration (4.4).

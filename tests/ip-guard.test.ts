@@ -169,6 +169,15 @@ describe('the certifying build path', () => {
     expect(qa).toContain("MOTOBOUND_QA_BUILD: '1'");
     expect(qa).not.toMatch(/ip-guard|tsc|check:ip/);
   });
+  it('the desktop packager and the release script certify what they package or publish', () => {
+    const stage = readFileSync(join(root, 'desktop/scripts/stage-web.cjs'), 'utf8');
+    expect(stage).toContain('scripts');
+    expect(stage).toContain('ip-guard.mjs');
+    expect(stage).toMatch(/guard\.status !== 0/);
+    const release = readFileSync(join(root, 'scripts/publish-validated-release.sh'), 'utf8');
+    expect(release).toContain('ip-guard.mjs');
+    expect(release).toContain("identity.variant !== 'product'");
+  });
   it('vite.config.ts runs the guard on product builds and labels every other build', () => {
     const config = readFileSync(join(root, 'vite.config.ts'), 'utf8');
     expect(config).toContain("name: 'ip-guard'");

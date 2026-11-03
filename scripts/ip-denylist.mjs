@@ -92,9 +92,10 @@ const ALNUM = String.raw`\p{L}\p{N}`;
 /** Canonical form: words split, separators unified, lower case (see the header). */
 export function canonicalise(text) {
   return text
+    .replace(/[\u200b-\u200d\u2060\ufeff]/g, '')
     .replace(new RegExp(`[${ALNUM}]+|[^${ALNUM}]+`, 'gu'), (run, offset, whole) => {
       if (/^[\p{L}\p{N}]/u.test(run)) return splitRun(run);
-      if (/^[\s_-]+$/.test(run)) return ' ';
+      if (/^[\s_\-\u2010-\u2015\u2212]+$/.test(run)) return ' ';
       // A single dot between two words (`ea.com`) joins them; `p.zero` (a minified property
       // access) and any other punctuation do not.
       if (

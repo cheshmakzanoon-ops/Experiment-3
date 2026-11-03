@@ -1662,8 +1662,11 @@ export class RacingRenderer {
             ? cameraMode === 'cockpit'
               ? cabinFov(cabin, this.graphics.cockpitFov)
               : mountFov(cabin, speed)
-            : cameraMode === 'cockpit' && car.suppliedPlayer
-              ? cockpitFov(this.graphics.cockpitFov)
+            : cameraMode === 'cockpit'
+              ? // The Graphics "Cockpit field of view" setting belongs to the player's cockpit, the
+                // original APX-01's procedural one (a product build) as much as the owner-supplied
+                // model's; only the T-cam keeps its own lens.
+                cockpitFov(this.graphics.cockpitFov)
               : cameraMode === 'chase'
                 ? motocrossFollow
                   ? this.motocrossCamera.fov
