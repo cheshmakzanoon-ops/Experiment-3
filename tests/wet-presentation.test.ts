@@ -17,6 +17,8 @@ import {
 function wetFrame(cars = 1) {
   const frame = new Float32Array(HEADER + CAR_STRIDE * cars);
   frame[H.CARS] = cars;
+  // A mild day: precipitation below 2 C is snow (weather.ts snowShare).
+  frame[H.AMBIENT] = 18;
   frame[H.RAIN] = 100;
   frame[H.WIND_X] = 6;
   frame[H.WIND_Z] = -3;
