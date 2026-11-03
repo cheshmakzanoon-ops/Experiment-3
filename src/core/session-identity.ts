@@ -32,8 +32,11 @@ import {
  * direction-aware wheel-slip assists and contact-aware airborne clutch inertia;
  * v18: converged tire torque roots, planar water/cooling and lockup wear,
  * droop-reachable suspension, directional link geometry and connected brake blending;
+ * v19: re-landed motocross contact impulse and GP racecraft/standstill-launch
+ * fixes, tilted chassis placement on banked grids, and the fog/storm/dust
+ * weather channels (existing presets replay bit-identically);
  * prior records remain in their original physics category. */
-export const SIMULATION_VERSION = 18;
+export const SIMULATION_VERSION = 19;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 
