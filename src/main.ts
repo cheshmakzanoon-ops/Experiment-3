@@ -58,6 +58,7 @@ import { safetyCarPose } from './rendering/studio/safety-car.ts';
 import { RacingRenderer } from './rendering/renderer.ts';
 import { Interface, shortTime } from './ui/interface.ts';
 import { ghostPose } from './core/ghost-lap.ts';
+import { dialogCloseOutcome } from './core/dialog-close.ts';
 import { selectedPitCompound } from './ui/race-day-hud.ts';
 import { ReplayDirector, ReplayHud } from './ui/replay-hud.ts';
 import { FlashbackPanel, flashbackAllowed } from './ui/flashback.ts';
@@ -652,6 +653,9 @@ export class GameApp {
             const screen = this.ui.get('loading');
             screen.hidden = true;
             screen.setAttribute('aria-busy', 'false');
+            // The world is live: the mode must stop saying "loading" (Steam rich
+            // presence and any observer read it from #app[data-mode]).
+            this.ui.showMode('festival');
           },
           toast: (message) => this.ui.toast(message),
           exit: () => this.exitFestival(),
@@ -2284,12 +2288,20 @@ export class GameApp {
       case 'credits':
         this.ui.credits();
         break;
-      case 'modalClose':
+      case 'modalClose': {
+        // Escape on the pause menu itself resumes; a sub-dialog returns to it.
+        const outcome = dialogCloseOutcome({
+          state: this.state,
+          pauseMenuOpen: this.ui.pauseMenuOpen,
+          briefingOpen: this.gridBriefingOpen,
+        });
         this.gridBriefingOpen = false;
         this.ui.closeModal();
-        if (this.state === 'paused') this.ui.pause();
-        else if (this.state === 'results') this.showResults();
+        if (outcome === 'resume') this.resume();
+        else if (outcome === 'pause-menu') this.ui.pause();
+        else if (outcome === 'results') this.showResults();
         break;
+      }
       case 'camera':
         this.referenceSession.interrupt('Camera changed.');
         this.performanceCapture.interrupt('Camera changed');
@@ -2794,6 +2806,7 @@ export class GameApp {
     return {
       buildIdentity: { commit: __APEX_SOURCE_COMMIT__, fingerprint: __APEX_SOURCE_FINGERPRINT__ },
       state: this.state,
+      festival: { starting: this.festivalStarting, active: !!this.festival },
       gridPresentation: {
         time: this.gridClock.time,
         playing: this.gridClock.playing,

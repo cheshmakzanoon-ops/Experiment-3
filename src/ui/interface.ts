@@ -558,11 +558,25 @@ export class Interface {
     this.toastTimer = window.setTimeout(() => (e.hidden = true), 6000);
   }
   showMode(
-    mode: 'menu' | 'driving' | 'paused' | 'results' | 'replay' | 'loading' | 'photo' | 'pregame',
+    mode:
+      | 'menu'
+      | 'driving'
+      | 'paused'
+      | 'results'
+      | 'replay'
+      | 'loading'
+      | 'photo'
+      | 'pregame'
+      | 'festival',
   ) {
     this.menu.hidden = mode !== 'menu';
+    // The festival draws its own HUD (src/ui/festival-hud.ts); the race HUD stays hidden.
     this.hud.hidden =
-      mode === 'menu' || mode === 'loading' || mode === 'photo' || mode === 'pregame';
+      mode === 'menu' ||
+      mode === 'loading' ||
+      mode === 'photo' ||
+      mode === 'pregame' ||
+      mode === 'festival';
     this.get('debug').hidden ||= mode === 'photo';
     this.replayBar.hidden = mode !== 'replay';
     this.element.dataset.mode = mode;
@@ -1017,6 +1031,10 @@ export class Interface {
     // screen (the controls list, a long classification) is at the bottom and
     // would scroll the heading out of view.
     this.modal.scrollTop = 0;
+  }
+  /** The dialog that is open right now is the pause menu (not a dialog opened from it). */
+  get pauseMenuOpen() {
+    return this.modal.open && !!this.modal.querySelector('.pause-menu');
   }
   closeModal() {
     this.creditsPad?.dispose();

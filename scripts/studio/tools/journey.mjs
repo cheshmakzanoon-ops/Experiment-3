@@ -19,6 +19,7 @@
 // #opponents #weather ...) and the modal buttons. Inputs are real keyboard events.
 import { chromium } from 'playwright';
 import { mkdir, writeFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -514,6 +515,39 @@ class Run {
     say('memory', row);
     return row;
   }
+  /** Cumulative CPU ticks of this browser's processes by kind (gpu / renderer / browser / utility). */
+  cpuTicks() {
+    const rows = execFileSync('ps', ['-eo', 'pid=,ppid='], { encoding: 'utf8' })
+      .trim()
+      .split('\n')
+      .map((l) => l.trim().split(/\s+/).map(Number));
+    const keep = new Set([process.pid]);
+    let grew = true;
+    while (grew) {
+      grew = false;
+      for (const [pid, ppid] of rows)
+        if (keep.has(ppid) && !keep.has(pid)) {
+          keep.add(pid);
+          grew = true;
+        }
+    }
+    const out = { gpu: 0, renderer: 0, utility: 0, browser: 0 };
+    for (const pid of keep) {
+      if (pid === process.pid) continue;
+      let stat, cmd;
+      try {
+        stat = readFileSync(`/proc/${pid}/stat`, 'utf8');
+        cmd = readFileSync(`/proc/${pid}/cmdline`, 'utf8');
+      } catch {
+        continue; // the process exited between ps and the read
+      }
+      const f = stat.slice(stat.lastIndexOf(')') + 2).split(' ');
+      const ticks = Number(f[11]) + Number(f[12]); // utime + stime
+      const kind = /--type=gpu-process/.test(cmd) ? 'gpu' : /--type=renderer/.test(cmd) ? 'renderer' : /--type=/.test(cmd) ? 'utility' : 'browser';
+      out[kind] += ticks;
+    }
+    return out;
+  }
   /** Sum of resident set sizes of this browser's process tree. */
   rssMB() {
     try {
@@ -626,6 +660,11 @@ class Run {
     this.sessions.push(session);
     await this.step(`enter-${label}`, async () => {
       const t = Date.now();
+      if (cfg.profile) {
+        await this.cdp.send('Profiler.enable');
+        await this.cdp.send('Profiler.setSamplingInterval', { interval: 5000 });
+        await this.cdp.send('Profiler.start');
+      }
       await this.click('ENTER', this.page.getByRole('button', { name: /^ENTER (CIRCUIT|FESTIVAL)/ }).first());
       let briefing = false;
       await this.until('briefing or driving', async (c) => {
@@ -644,6 +683,12 @@ class Run {
       const before = (await this.state()).presentationFrames ?? 0;
       await this.until('first session frame', async () => ((await this.state()).presentationFrames ?? 0) > before, 600, 700);
       session.timeToFirstFrameS = Number(((Date.now() - t) / 1000).toFixed(1));
+      if (cfg.profile) {
+        const { profile } = await this.cdp.send('Profiler.stop');
+        session.profile = summariseProfile(profile);
+        await writeFile(join(cfg.out, `cpu-session-${label}.cpuprofile.gz`), gzipSync(JSON.stringify(profile)));
+        say('session.profile', { totalMs: session.profile.totalMs, idlePct: session.profile.idlePct, files: session.profile.files.slice(0, 6), top: session.profile.top.slice(0, 8) });
+      }
       say('session.started', session);
     });
     await this.shot(`${label}-first-frame`);
@@ -1301,7 +1346,7 @@ async function festivalLoad(run, attempt) {
       }
       await new Promise((r) => setTimeout(r, 1000));
     }
-    if (cfg.profile) await saveProfile(run, rec, `load${attempt}-final`, false);
+    if (cfg.profile) await saveProfile(run, rec, `load${attempt}-final`, rec.completed);
     if (!rec.completed) {
       finding(rec.timedOut ? 'blocker' : 'blocker', 'festival', `Festival did not finish loading in ${cfg.festivalMaxS}s; last stage "${lastText}"`, { stages: rec.stages.slice(-6) });
     } else {
@@ -1317,13 +1362,14 @@ async function saveProfile(run, rec, name, restart) {
   rec.profile.chunks.push({ name, ...summary });
   const file = join(cfg.out, `cpu-${name}.cpuprofile.gz`);
   await writeFile(file, gzipSync(JSON.stringify(profile)));
-  say('festival.profile', { name, totalMs: summary.totalMs, idlePct: summary.idlePct, top: summary.top.slice(0, 5) });
+  say('festival.profile', { name, totalMs: summary.totalMs, idlePct: summary.idlePct, files: summary.files.slice(0, 6), top: summary.top.slice(0, 8) });
   if (restart) await run.cdp.send('Profiler.start');
 }
 /** Self time per function from a V8 CPU profile. */
 function summariseProfile(profile) {
   const byId = new Map(profile.nodes.map((n) => [n.id, n]));
   const self = new Map();
+  const byFile = new Map();
   let total = 0;
   const { samples, timeDeltas } = profile;
   for (let i = 0; i < samples.length; i++) {
@@ -1334,10 +1380,13 @@ function summariseProfile(profile) {
     const cf = n.callFrame;
     const key = `${cf.functionName || '(anonymous)'} ${cf.url.split('/').pop()}:${cf.lineNumber}`;
     self.set(key, (self.get(key) ?? 0) + dt);
+    const file = cf.url ? cf.url.split('/').pop().replace(/[-.][A-Za-z0-9_-]{8}\.js$/, '.js') : cf.functionName;
+    byFile.set(file, (byFile.get(file) ?? 0) + dt);
   }
   const rows = [...self.entries()].sort((a, b) => b[1] - a[1]).slice(0, 25).map(([k, ms]) => ({ fn: k, ms: Math.round(ms) }));
   const idle = (self.get('(idle) :-1') ?? 0) + (self.get('(program) :-1') ?? 0) * 0;
-  return { totalMs: Math.round(total), idlePct: total ? Math.round((100 * idle) / total) : 0, top: rows };
+  const files = [...byFile.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12).map(([k, ms]) => ({ file: k, ms: Math.round(ms) }));
+  return { totalMs: Math.round(total), idlePct: total ? Math.round((100 * idle) / total) : 0, top: rows, files };
 }
 async function festivalDrive(run) {
   const out = { rows: [] };
@@ -1345,37 +1394,61 @@ async function festivalDrive(run) {
     const readHud = () =>
       run.page.evaluate(() => ({
         speed: document.getElementById('festSpeed')?.textContent ?? null,
-        gear: document.getElementById('festGear')?.textContent ?? null,
         road: document.getElementById('festRoad')?.textContent ?? null,
-        surface: document.getElementById('festSurface')?.textContent ?? null,
         limit: document.getElementById('festLimit')?.textContent ?? null,
         machine: document.getElementById('festMachineName')?.textContent ?? null,
         state: document.getElementById('festDriveState')?.textContent ?? null,
         discovered: document.getElementById('festDiscovered')?.textContent ?? null,
-        menuOpen: !!document.getElementById('festMenu') && !document.getElementById('festMenu').hidden,
-        cardOpen: !!document.getElementById('festCard') && !document.getElementById('festCard').hidden,
-        frames: window.__jr?.frames ?? 0,
-        maxGap: Math.round(window.__jr?.maxGap ?? 0),
       }));
     out.start = await readHud();
     say('festival.hud', out.start);
-    await run.shot('festival-hud');
+    const tick = Number(execFileSync('getconf', ['CLK_TCK'], { encoding: 'utf8' }).trim()) || 100;
+    let prevCpu = run.cpuTicks(),
+      prevWall = Date.now(),
+      prevFrames = (await run.fast()).page.frames;
     await run.page.keyboard.down('KeyW');
     run.inputs.drive++;
     const begin = Date.now();
-    let peak = 0;
+    let peak = 0,
+      first = null,
+      last = null;
     while ((Date.now() - begin) / 1000 < Math.max(cfg.simSeconds, 25)) {
       await new Promise((r) => setTimeout(r, 2500));
-      const h = await readHud();
-      peak = Math.max(peak, Number(h.speed) || 0);
-      out.rows.push({ wall: Number(((Date.now() - begin) / 1000).toFixed(1)), ...h });
+      const f = await run.fast();
+      const cpu = run.cpuTicks(),
+        wall = (Date.now() - prevWall) / 1000;
+      const pct = (k) => Math.round(((cpu[k] - prevCpu[k]) / tick / wall) * 100);
+      const row = {
+        wall: Number(((Date.now() - begin) / 1000).toFixed(1)),
+        simTime: f.sim ? Number(f.sim.time.toFixed(2)) : null,
+        kph: f.player ? Math.round(f.player.speed * 3.6) : null,
+        x: f.player ? Math.round(f.player.x) : null,
+        z: f.player ? Math.round(f.player.z) : null,
+        cars: f.sim?.cars ?? null,
+        hudSpeed: (await readHud()).speed,
+        rafFps: Number(((f.page.frames - prevFrames) / wall).toFixed(3)),
+        cpuPct: { gpuProcess: pct('gpu'), rendererProcess: pct('renderer'), browser: pct('browser'), utility: pct('utility') },
+      };
+      prevCpu = cpu;
+      prevWall = Date.now();
+      prevFrames = f.page.frames;
+      if (f.player) {
+        peak = Math.max(peak, f.player.speed * 3.6);
+        first ??= { x: f.player.x, z: f.player.z };
+        last = { x: f.player.x, z: f.player.z };
+      }
+      out.rows.push(row);
     }
-    out.peakKph = peak;
-    say('festival.drive', { peakKph: peak, last: out.rows.at(-1) });
+    out.peakKph = Math.round(peak);
+    out.distanceM = first && last ? Math.round(Math.hypot(last.x - first.x, last.z - first.z)) : null;
+    out.tapped = out.rows.some((r) => r.kph !== null);
+    say('festival.drive', { peakKph: out.peakKph, distanceM: out.distanceM, last: out.rows.at(-1) });
+    if (cfg.profile) await saveProfile(run, { profile: { chunks: [] } }, 'festival-after-load', false);
     await run.shot('festival-driving');
     await run.page.keyboard.up('KeyW');
-    if (peak < 5) finding('major', 'festival', `Holding throttle for 25 s never moved the car (peak ${peak} km/h)`, { rows: out.rows.slice(-3) });
-    // Pause menu.
+    if (!out.tapped) finding('minor', 'festival', 'No simulation frames reached the page during the festival drive (tool could not read speed)', { rows: out.rows.slice(-2) });
+    else if (out.peakKph < 5) finding('major', 'festival', `Holding throttle for ${Math.max(cfg.simSeconds, 25)} s never moved the car (peak ${out.peakKph} km/h)`, { rows: out.rows.slice(-3) });
+    // Festival menu.
     await run.key('ESC (festival menu)', 'Escape');
     await new Promise((r) => setTimeout(r, 2500));
     out.menu = await run.page.evaluate(() => {

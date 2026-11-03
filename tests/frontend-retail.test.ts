@@ -57,6 +57,40 @@ describe('retail front end', () => {
     expect(LOADING_TIPS.length).toBeGreaterThan(3);
   });
 
+  it('moves the festival loading bar through every stage the Solvane session reports', () => {
+    // Journey evidence: the festival load sat at "2%" from "Building the Solvane
+    // festival region" to the world appearing, because none of its messages had a
+    // stage. These are the exact strings src/session/free-roam.ts passes to host.loading.
+    const raw = [
+      'Building the Solvane festival region…',
+      'Planning event routes and town streets…',
+      'Building roads, buildings and water…',
+      'Loading photographed trees…',
+      'Loading authored coastal details…',
+      'Starting the festival simulation…',
+      'Streaming terrain around Port Ilse…',
+      'Loading the photographed sky…',
+      'Loading photographed ground…',
+      'Baking festival materials…',
+      'Compiling the festival materials…',
+    ];
+    let previous = 0;
+    const seen: number[] = [];
+    for (const text of raw) {
+      const stage = loadingStage(text, previous);
+      expect(stage.title, text).not.toMatch(/GPU|offscreen|compil|buffer|Blender|authored|photographed/i);
+      expect(stage.title, text).not.toBe('Loading');
+      expect(stage.fraction, text).toBeGreaterThan(previous);
+      previous = stage.fraction;
+      seen.push(stage.fraction);
+    }
+    expect(seen[0]).toBeLessThan(0.1);
+    expect(seen.at(-1)).toBeGreaterThanOrEqual(0.9);
+    // Fast travel inside the world is a stage too, not an unnamed "Loading".
+    expect(loadingStage('Travelling to Port Ilse Street Loop…').title).toBe('Travelling');
+    expect(loadingStage('Preparing another run at Port Ilse Street Loop…').title).toBe('Travelling');
+  });
+
   it('uses the whole GP field for loading context and retains MX and mixed-field labels', () => {
     const line = { hidden: true, textContent: '' };
     const resetPractice = vi.fn();

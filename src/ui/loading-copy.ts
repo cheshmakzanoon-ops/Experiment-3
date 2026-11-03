@@ -43,6 +43,21 @@ export function loadingStage(raw: string, previous = 0): LoadingStage {
     return { title: 'Preparing cars', fraction: 0.1 + 0.3 * Math.min(1, n / total) };
   }
   const stages: readonly [RegExp, string, number][] = [
+    // The Solvane festival's own stages (src/session/free-roam.ts). Without these
+    // the bar sat at 2 % for the whole festival load ("Building ..." matched the
+    // generic circuit rule and nothing else matched at all).
+    [/solvane festival region/i, 'Preparing the festival', 0.02],
+    [/event routes and town streets/i, 'Planning the roads', 0.08],
+    [/roads, buildings and water/i, 'Building Solvane', 0.14],
+    [/photographed trees/i, 'Planting the coast', 0.22],
+    [/authored coastal details/i, 'Dressing the harbour', 0.3],
+    [/festival simulation/i, 'Starting the world', 0.4],
+    [/streaming terrain/i, 'Streaming the terrain', 0.55],
+    [/photographed sky/i, 'Painting the sky', 0.68],
+    [/photographed ground/i, 'Laying the ground', 0.76],
+    [/baking festival materials/i, 'Preparing materials', 0.84],
+    [/compiling the festival/i, 'Preparing graphics', 0.9],
+    [/^(travelling to|preparing another run at)\b/i, 'Travelling', 0.5],
     [/bodywork, materials and/i, 'Loading circuit', 0],
     [/^building GP motorcycles and riders$/i, 'Preparing motorcycles', 0.42],
     [/^building (.+)$/i, '', 0.02],

@@ -404,6 +404,9 @@ describe('achievement runtime', () => {
       }),
     ).toBeNull();
     expect(statusForMode('driving')).toBe('Racing');
+    // The festival has its own status (desktop/STEAM.md "#Status_Festival").
+    expect(statusForMode('festival')).toBe('Festival');
+    expect(statusForMode('loading')).toBe('Loading');
     expect(statusForMode('results')).toBe('Results');
     expect(statusForMode(undefined)).toBe('Menu');
     expect(statusForMode('something-new')).toBe('Menu');
