@@ -44,8 +44,8 @@ describe('tyre sidewall art', () => {
   });
 
   it('uses only original wordmarks on the tyres', () => {
-    expect(TYRE_ART.words).toEqual(['APEX CORSA', 'SLICK 18']);
-    const allowed = new Set<string>([...BRANDS, 'APEX', 'CORSA', 'SLICK', '18']);
+    expect(TYRE_ART.words).toEqual(['MOTOBOUND', 'SLICK 18']);
+    const allowed = new Set<string>([...BRANDS, 'SLICK', '18']);
     for (const word of TYRE_ART.words.flatMap((w) => w.split(' ')))
       expect(allowed.has(word)).toBe(true);
   });

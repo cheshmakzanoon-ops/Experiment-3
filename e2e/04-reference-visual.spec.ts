@@ -1,12 +1,13 @@
 import { test, expect } from '@playwright/test';
 import { build } from 'vite';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 import { resolve } from 'node:path';
 import type { captureReferenceViews } from './fixtures/reference-visual.ts';
 
 for (const weather of ['clear', 'rain'] as const) {
   test(`reference review: production high-quality ${weather} car and cockpit`, async ({ page }, info) => {
     test.setTimeout(300000);
-    const bundled = await build({ configFile: false, logLevel: 'error', build: { write: false, lib: { entry: resolve('e2e/fixtures/reference-visual.ts'), name: 'ReferenceProbe', formats: ['iife'] } } });
+    const bundled = await build({ configFile: false, define: fixtureDefine(), logLevel: 'error', build: { write: false, lib: { entry: resolve('e2e/fixtures/reference-visual.ts'), name: 'ReferenceProbe', formats: ['iife'] } } });
     const output = Array.isArray(bundled) ? bundled[0] : bundled;
     if (!('output' in output)) throw new Error('Missing reference fixture output');
     const chunk = output.output.find((entry) => entry.type === 'chunk');

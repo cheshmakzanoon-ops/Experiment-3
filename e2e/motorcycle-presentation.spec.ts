@@ -5,6 +5,7 @@ import { readFile } from 'node:fs/promises';
 import type * as Fixture from './fixtures/motorcycle-presentation.ts';
 import { FLAG } from '../src/simulation/marshal.ts';
 import { SURFACE } from '../src/simulation/track.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 declare global {
   interface Window {
@@ -15,6 +16,7 @@ declare global {
 async function mountMotorcycleHud(page: Page) {
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

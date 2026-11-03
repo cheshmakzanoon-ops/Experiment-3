@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
 import type { GpuFrameGate } from '../src/rendering/gpu-frame-gate.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 /** Real WebGL fences with no further draw to kick the driver after submission.
  * This specifically guards held replay/settings, independently of scene assets.
@@ -13,6 +14,7 @@ for (const scheduling of ['timer', 'animation-frame'] as const) {
   }, info) => {
     const built = await build({
       configFile: false,
+      define: fixtureDefine(),
       logLevel: 'error',
       build: {
         write: false,

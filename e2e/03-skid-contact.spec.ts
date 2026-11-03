@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { build } from 'vite';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 import { resolve } from 'node:path';
 import type { verifySkidContact } from './fixtures/skid-contact.ts';
 
@@ -8,6 +9,7 @@ test('real floor-contact work renders sparks at recorded points and survives rep
 }, info) => {
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

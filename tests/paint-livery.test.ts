@@ -130,7 +130,7 @@ describe('D06 team liveries', () => {
   it('derives one saturated two-tone scheme per team colour with fictional sponsors', () => {
     expect(LIVERY_SCHEMES).toHaveLength(LIVERIES.length);
     expect(LIVERIES.map((c) => `#${c.toString(16).padStart(6, '0')}`)).toEqual([
-      '#b3121e',
+      '#5b2bd6',
       '#f27c1e',
       '#0b5e4f',
       '#13235e',

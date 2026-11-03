@@ -2,11 +2,11 @@ import { Vector3 } from 'three';
 import { clamp } from '../core/math.ts';
 import { COCKPIT_FOV } from './options.ts';
 
-/** Chassis-space calibration relative to the retained RB19/R06 eye socket.
+/** Chassis-space calibration relative to the cockpit eye socket.
  * Lens and pitch belong to the seated driver, independently from the pod.
  * No source mesh, skeleton, suspension datum or recorded pose is altered. */
 export const COCKPIT_FRAMING = Object.freeze({
-  revision: 'p6-rb19-r06-r02',
+  revision: 'p6-cockpit-r02',
   // P6: a lower, further-forward eye (the halo top bar sits high in frame,
   // the wheel fills the lower centre) and a 54 deg default lens.
   eyeOffset: Object.freeze([0, -0.03, -0.04] as const),

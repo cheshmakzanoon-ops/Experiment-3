@@ -6,24 +6,23 @@ release=${1:?Expected the validated artifact directory}
 [[ "$VALIDATED_SHA" =~ ^[0-9a-f]{40}$ ]]
 test "$(cat "$release/SOURCE_COMMIT.txt")" = "$VALIDATED_SHA"
 test -s "$release/index.html"
+# G15 (docs/studio/reports/ip-audit.md): the owner-supplied real-brand player model is owner-only.
+# A release artifact that contains it is an owner QA build (`npm run build:qa`) and is never published.
+if find "$release" -iname 'supplied-player*' -print -quit | grep -q .; then
+  echo 'Owner-only supplied-player asset found in the release artifact; refusing to publish.' >&2
+  exit 1
+fi
+# The artifact is certified here again, whatever job built it: product variant only, and no
+# real-brand identifier in any shipped file (scripts/ip-guard.mjs, which also refuses owner and
+# review builds with no way to switch that off). A QA build is NOT_FOR_RELEASE.
+node "$(dirname "${BASH_SOURCE[0]}")/ip-guard.mjs" --dist "$release"
 node --input-type=module - "$release" <<'NODE'
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 const identity = JSON.parse(readFileSync(`${process.argv[2]}/BUILD_IDENTITY.json`, 'utf8'));
 if (identity.version !== 1 || identity.commit !== process.env.VALIDATED_SHA ||
-    !/^[0-9a-f]{64}$/.test(identity.fingerprint)) {
+    !/^[0-9a-f]{64}$/.test(identity.fingerprint) || identity.variant !== 'product') {
   throw new Error('Validated build identity differs from the gated source commit');
-}
-for (const [manifestPath, asset] of [
-  ['src/rendering/supplied-player.manifest.json', 'supplied-player.glb.gz'],
-  ['src/rendering/supplied-player-lods.manifest.json', 'supplied-player-lods.bin.gz'],
-]) {
-  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
-  const bytes = readFileSync(`${process.argv[2]}/models/${asset}`);
-  if (bytes.length !== manifest.compressedBytes ||
-      createHash('sha256').update(bytes).digest('hex') !== manifest.compressedSHA256) {
-    throw new Error(`Validated asset differs from its source manifest: ${asset}`);
-  }
 }
 for (const [family, filename] of [
   ['track-signal-hardware', 'aurel-track-signal-hardware.glb'],

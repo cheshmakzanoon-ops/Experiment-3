@@ -70,6 +70,11 @@ gold, number plates, rider boots), APX-01 (hero asset, 1.45 M triangles, readabl
 Weakest: SS-600, SBK-1000, CR-750 (D5); both karts (D10, D2); every open-cockpit single-seater driver (D6);
 the trucks (D11); and, as a group, the ~25 closed bodies that differ only in proportion (D7).
 
+> **Update (G15, Legal/IP):** D4 is resolved in code. The supplied model is owner-only and out of every
+> product build; APX-01 is now the original authored car with an original violet/volt livery. The APX-01
+> captures, the hero proposal 2 and the "strongest" ranking in this report describe the superseded asset.
+> See [ip-audit.md](ip-audit.md) for the before/after captures and the quality comparison.
+
 ## 4. Animation probe (numbers, not images)
 
 `tests/vehicle-pose-probe.test.ts` runs a real `Simulation` (production AI as the player, 24-26 s,

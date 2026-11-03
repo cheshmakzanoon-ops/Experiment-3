@@ -82,7 +82,7 @@ export function bindReferenceReview(root: HTMLElement, context?: ReferenceReview
         const url = URL.createObjectURL(blob),
           anchor = document.createElement('a');
         anchor.href = url;
-        anchor.download = `apex-reference-acceptance-${context.source.slice(0, 12)}.json`;
+        anchor.download = `motobound-reference-acceptance-${context.source.slice(0, 12)}.json`;
         anchor.click();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
       }

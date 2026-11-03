@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { resolve } from 'node:path';
 import { build } from 'vite';
 import type * as Fixture from './fixtures/gp-contact-effects.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 declare global {
   interface Window {
@@ -19,6 +20,7 @@ test('GP contact effects use two actual tyres, readable moving spray and fixed W
   });
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

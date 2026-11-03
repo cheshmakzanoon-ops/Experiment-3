@@ -2,12 +2,14 @@ import { finishRaceEntry } from './race-entry.ts';
 import { test, expect } from '@playwright/test';
 import { F, H, carBase } from '../src/simulation/protocol.ts';
 import manifest from '../src/rendering/supplied-player.manifest.json' with { type: 'json' };
+import { OWNER_BUILD, OWNER_ONLY_REASON } from './fixtures/owner-build.ts';
 
 test.use({ video: { mode: 'on', size: { width: 960, height: 600 } } });
 
 test('27H.2 normal application: coupled driver survives both locks, countersteering, moving cameras and replay seeks', async ({
   page,
 }, info) => {
+  test.skip(!OWNER_BUILD, OWNER_ONLY_REASON);
   test.setTimeout(420000);
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
@@ -164,14 +166,26 @@ test('27H.2 normal application rejects a missing driver without silently display
   await expect(page.locator('#menu')).not.toBeVisible();
 });
 
-test('normal application rejects a missing supplied player without falling back to legacy geometry', async ({
+test('normal application rejects a missing supplied player without falling back to legacy geometry (owner build) / never requests it (product build)', async ({
   page,
 }) => {
-  await page.route('**/models/supplied-player.glb.gz*', (route) =>
-    route.fulfill({ status: 404, body: 'Supplied model unavailable' }),
-  );
+  const requested: string[] = [];
+  await page.route('**/models/supplied-player*', (route) => {
+    requested.push(route.request().url());
+    return route.fulfill({ status: 404, body: 'Supplied model unavailable' });
+  });
   await page.goto('/');
-  await expect(page.locator('#errorMessage')).toBeVisible({ timeout: 90000 });
-  await expect(page.locator('#errorMessage')).toContainText(/supplied player/i);
-  await expect(page.locator('#menu')).not.toBeVisible();
+  if (OWNER_BUILD) {
+    await expect(page.locator('#errorMessage')).toBeVisible({ timeout: 90000 });
+    await expect(page.locator('#errorMessage')).toContainText(/supplied player/i);
+    await expect(page.locator('#menu')).not.toBeVisible();
+  } else {
+    // G15 port: a product build has no supplied model. The menu must boot on the original
+    // APX-01 without ever asking for the owner-only binary, even with it blocked.
+    await expect(page.locator('#menu')).toBeVisible({ timeout: 180000 });
+    await expect(page.locator('#errorMessage')).not.toBeVisible();
+    const showroom = (await page.evaluate(() => window.apexDiagnostics())).renderer!;
+    expect(showroom.presentationPurpose).toBe('showroom');
+    expect(requested).toEqual([]);
+  }
 });

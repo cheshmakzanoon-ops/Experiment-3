@@ -320,7 +320,7 @@ export class GameApp {
           new Blob([JSON.stringify({ version: 1, setup: this.settings.setup }, null, 2)], {
             type: 'application/json',
           }),
-          'apex-setup.json',
+          'motobound-setup.json',
         ),
       importSetup: (file) => void this.importSetup(file),
     });
@@ -1361,8 +1361,8 @@ export class GameApp {
       const referenceId = this.inspectedReference;
       const filename =
         referenceId === null
-          ? `apex-photo-${Date.now()}.png`
-          : `apex-reference-${String(referenceId).padStart(3, '0')}-${__APEX_SOURCE_FINGERPRINT__.slice(0, 12)}-${Date.now()}.png`;
+          ? `motobound-photo-${Date.now()}.png`
+          : `motobound-reference-${String(referenceId).padStart(3, '0')}-${__APEX_SOURCE_FINGERPRINT__.slice(0, 12)}-${Date.now()}.png`;
       const captureMeta = {
         source: __APEX_SOURCE_FINGERPRINT__,
         imageFile: filename,
@@ -1386,7 +1386,8 @@ export class GameApp {
         .capturePhoto()
         .then(async (blob) => {
           downloadBlob(blob, filename);
-          if (referenceId === null) emitGameEvent({ type: 'photo.taken', context: this.photoReturn });
+          if (referenceId === null)
+            emitGameEvent({ type: 'photo.taken', context: this.photoReturn });
           if (referenceId !== null) {
             this.referenceEvidence.capture(
               referenceId,
@@ -1877,8 +1878,7 @@ export class GameApp {
         .read(key)
         .then((old) => {
           if (typeof old !== 'number' || best < old) {
-            if (!this.usedDemonstration)
-              emitLapRecord(this.options, best, typeof old !== 'number');
+            if (!this.usedDemonstration) emitLapRecord(this.options, best, typeof old !== 'number');
             return this.store.write(key, best);
           }
         })
@@ -2551,7 +2551,7 @@ export class GameApp {
         if (report)
           downloadBlob(
             new Blob([JSON.stringify(report) + '\n'], { type: 'application/json' }),
-            `apex-session146-${report.identity.source.slice(0, 12)}.json`,
+            `motobound-session146-${report.identity.source.slice(0, 12)}.json`,
           );
         break;
       }
@@ -2584,7 +2584,7 @@ export class GameApp {
               ],
               { type: 'application/json' },
             ),
-            `apex-review-${report.context.workload}-${report.context.camera}-${report.context.source.slice(0, 12)}.json`,
+            `motobound-review-${report.context.workload}-${report.context.camera}-${report.context.source.slice(0, 12)}.json`,
           );
         break;
       }
@@ -2592,7 +2592,7 @@ export class GameApp {
         if (this.reviewVideo.blob)
           downloadBlob(
             this.reviewVideo.blob,
-            `apex-review-${__APEX_SOURCE_FINGERPRINT__.slice(0, 12)}.webm`,
+            `motobound-review-${__APEX_SOURCE_FINGERPRINT__.slice(0, 12)}.webm`,
           );
         break;
       case 'performance':
@@ -2613,7 +2613,7 @@ export class GameApp {
         if (report)
           downloadBlob(
             new Blob([JSON.stringify(report, null, 2) + '\n'], { type: 'application/json' }),
-            'apex-performance.json',
+            'motobound-performance.json',
           );
         break;
       }
@@ -2759,7 +2759,7 @@ export class GameApp {
     }
     try {
       const blob = await this.exporter.export(this.telemetry.snapshot(), this.telemetry.count);
-      if (generation === this.generation) downloadBlob(blob, 'apex-telemetry.csv');
+      if (generation === this.generation) downloadBlob(blob, 'motobound-telemetry.csv');
     } catch (error) {
       if (generation === this.generation) this.ui.toast(`Export failed: ${String(error)}`);
     } finally {

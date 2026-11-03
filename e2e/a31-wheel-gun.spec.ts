@@ -6,6 +6,7 @@ import { Simulation } from '../src/simulation/world.ts';
 import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../src/simulation/protocol.ts';
 import type { surveyA31 } from './fixtures/a31-wheel-gun.ts';
+import { OWNER_BUILD, fixtureDefine } from './fixtures/owner-build.ts';
 
 test('A31 loads the real GLB before normal practice entry', async ({ page }, info) => {
   const errors: string[] = [];
@@ -19,13 +20,14 @@ test('A31 loads the real GLB before normal practice entry', async ({ page }, inf
   });
   await page.goto('/');
   await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
-  const loaded = await page.evaluate(() => window.apexDiagnostics());
-  expect(loaded.renderer?.pitPersonnel.wheelGuns).toMatchObject({
-    assetId: 'A31',
-    capacity: 48,
-    instances: 0,
-  });
-  expect(loads).toEqual(['200']);
+  // The menu renders the vehicle showroom only; the pit tooling belongs to the circuit and is
+  // built (and fetched) with it, not for the showroom (lazy loading, ebc2e06). Before that
+  // change the wheel guns were already resident at the menu, and this test asserted them
+  // there; the guarantee it exists for is unchanged: the real GLB is fetched once, with a 200,
+  // and is resident before the player enters normal practice.
+  const menu = await page.evaluate(() => window.apexDiagnostics());
+  expect(menu.renderer?.pitPersonnel.wheelGuns ?? null).toBeNull();
+  expect(loads).toEqual([]);
   await page.selectOption('#mode', 'practice');
   await page.selectOption('#opponents', '0');
   await page.getByRole('button', { name: 'ENTER CIRCUIT', exact: true }).click();
@@ -33,6 +35,13 @@ test('A31 loads the real GLB before normal practice entry', async ({ page }, inf
   await expect
     .poll(() => page.evaluate(() => window.apexDiagnostics().state), { timeout: 90000 })
     .toBe('driving');
+  const loaded = await page.evaluate(() => window.apexDiagnostics());
+  expect(loaded.renderer?.pitPersonnel.wheelGuns).toMatchObject({
+    assetId: 'A31',
+    capacity: 48,
+    instances: 0,
+  });
+  expect(loads).toEqual(['200']);
   await page.keyboard.press('Escape');
   await expect
     .poll(() => page.evaluate(() => window.apexDiagnostics().workerPause))
@@ -80,6 +89,7 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
     expect(samples[samples.length - 1][H.TIME]).toBeGreaterThan(samples[0][H.TIME] + 4);
     const result = await build({
       configFile: false,
+      define: fixtureDefine(),
       logLevel: 'error',
       build: {
         write: false,
@@ -142,6 +152,12 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
     ).toBe(true);
     expect(report.states.every((r) => r.unreachableArms === 0 && r.maxGripError < 0.0001)).toBe(
       true,
+    );
+    // The witnesses and fits are measured on the player's actual car (G15): the original
+    // authored APX-01 in a product build, the owner-supplied model only in an owner build.
+    expect(report.playerKind).toBe(OWNER_BUILD ? 'supplied' : 'authored');
+    expect(report.fits.map((fit) => fit.source)).toEqual(
+      Array(4).fill(OWNER_BUILD ? 'supplied-player' : 'authored-rival'),
     );
     expect(report.errors.length).toBeGreaterThanOrEqual(4);
     for (const e of report.errors) {

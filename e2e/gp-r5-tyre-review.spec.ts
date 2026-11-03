@@ -2,12 +2,14 @@ import { expect, test } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
 import type { captureGpTyreConditions } from './fixtures/gp-r5-tyre-review.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('GP R5: actual slick, intermediate and wet tyre shader holds and rewinds with constant geometry/resources', async ({
   page,
 }, info) => {
   const result = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

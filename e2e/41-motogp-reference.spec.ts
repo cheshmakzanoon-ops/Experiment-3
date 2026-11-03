@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
 import type { captureBike, captureBikeSequence } from './fixtures/motogp-reference-review.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 function expectPrepared(result: ReturnType<typeof captureBike>) {
   expect(result.preparation).toHaveLength(3);
@@ -22,6 +23,7 @@ test('GP reference R1.1: authored LODs, production onboard and same-instance wet
 }, info) => {
   const bundle = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

@@ -2,12 +2,14 @@ import { expect, test } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
 import type { captureGpEdges } from './fixtures/gp-edge-review.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('four GP venue edge schemes render through dry, wet and restored production materials', async ({
   page,
 }, info) => {
   const bundle = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

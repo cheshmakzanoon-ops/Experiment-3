@@ -7,6 +7,7 @@ import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import manifest from '../src/rendering/hero-garage.manifest.json' with { type: 'json' };
 import type { captureHeroGarage } from './fixtures/hero-garage.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('A22 normal startup loads one authored garage and retains it through practice entry', async ({
   page,
@@ -58,6 +59,7 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
     expect(createHash('sha256').update(bytes).digest('hex')).toBe(manifest.sha256);
     const bundle = await build({
       configFile: false,
+      define: fixtureDefine(),
       logLevel: 'error',
       build: {
         write: false,

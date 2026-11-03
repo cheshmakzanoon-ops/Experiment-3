@@ -108,7 +108,7 @@ npx playwright install --with-deps chromium
 npm run test:e2e
 ```
 
-Playwright starts the preview server automatically. The full script list is in [`package.json`](package.json), and live validation results are in [GitHub Actions](https://github.com/cheshmakzanoon-ops/Experiment-3/actions). The badge above tracks `main`, not every feature branch.
+Playwright starts the preview server automatically. A product build deliberately omits two things some specs exercise: the owner-supplied real-brand player model and the internal review tooling (the reference catalogue of commercial-game pages). Those specs skip with a stated reason unless they run against a QA build made by `npm run build:qa` (owner model and review tooling; never published, never certified) with `MOTOBOUND_SUPPLIED_PLAYER=1` / `MOTOBOUND_REVIEW_TOOLS=1` set when running Playwright (`e2e/fixtures/owner-build.ts`); CI runs them in the separate `owner-qa` job. The IP guard (`scripts/ip-guard.mjs`) runs inside every product `vite build`, so `npm run build` fails on a real-brand name or an owner-only asset, and again in CI and in the release script; it refuses a QA build outright. The full script list is in [`package.json`](package.json), and live validation results are in [GitHub Actions](https://github.com/cheshmakzanoon-ops/Experiment-3/actions). The badge above tracks `main`, not every feature branch.
 
 ### Source layout
 
@@ -152,6 +152,6 @@ scripts/, tools/ Validation and asset tooling
 
 ### Assets and attribution
 
-The project combines procedural content, Blender-authored models, supplied player assets and third-party resources. Source details and applicable terms are recorded in [asset provenance](docs/ASSET_PROVENANCE.md), [supplied-player documentation](docs/SUPPLIED_PLAYER.md) and the [bundled third-party credits](public/assets/third-party/CREDITS.txt). This README does not grant an additional asset licence.
+The project combines procedural content, Blender-authored models and third-party resources. Source details and applicable terms are recorded in the [IP / asset audit](docs/studio/reports/ip-audit.md) (release gate G15), [asset provenance](docs/ASSET_PROVENANCE.md) and the [bundled third-party notices](public/THIRD_PARTY_NOTICES.txt). An owner-supplied model of a real Formula 1 car stays in the repository for owner-only QA builds (`npm run build:qa`, see [supplied-player documentation](docs/SUPPLIED_PLAYER.md)); it is excluded from every default build, and the IP guard that `npm run build` runs fails the build if it ships that model or any real team, sponsor or maker name (any spelling). This README does not grant an additional asset licence.
 
 The repository URL remains `Experiment-3`. Older engineering documents and internal identifiers may still use the previous project name; historical reports describe their recorded revisions rather than the current build.

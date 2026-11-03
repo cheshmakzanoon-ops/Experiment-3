@@ -288,7 +288,7 @@ export class TeamMediaView {
         this.status('Scene capture failed.');
         return;
       }
-      downloadBlob(blob, 'apex-original-team-briefing.png');
+      downloadBlob(blob, 'motobound-team-briefing.png');
       this.status(
         'Captured the original 3D scene only. Captions are available in the transcript; this is not race footage.',
       );

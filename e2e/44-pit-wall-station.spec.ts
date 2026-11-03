@@ -6,6 +6,7 @@ import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import manifest from '../src/rendering/pit-wall-station.manifest.json' with { type: 'json' };
 import type { capturePitWall } from './fixtures/pit-wall-station.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('A24 normal startup loads the authored station and retains it through practice', async ({
   page,
@@ -49,6 +50,7 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
     expect(createHash('sha256').update(bytes).digest('hex')).toBe(manifest.sha256);
     const result = await build({
       configFile: false,
+      define: fixtureDefine(),
       logLevel: 'error',
       build: {
         write: false,

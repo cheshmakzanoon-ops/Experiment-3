@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
 import type { verifyInstrumentCanvas } from './fixtures/instruments.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('actual cockpit canvas refreshes after hitches, shifts and replay rewinds', async ({
   page,
@@ -9,6 +10,7 @@ test('actual cockpit canvas refreshes after hitches, shifts and replay rewinds',
   test.setTimeout(60000);
   const result = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

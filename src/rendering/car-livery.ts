@@ -39,11 +39,13 @@ export interface LiveryScheme {
 const hex = (value: number) => `#${value.toString(16).padStart(6, '0')}`;
 const SCHEME_DETAILS: readonly Omit<LiveryScheme, 'primary'>[] = [
   {
-    secondary: '#1b1d22',
-    accent: '#f4f1ea',
-    finish: 'gloss',
+    // Team 0 is the player's APX-01 (G15 hero livery): electric violet over an
+    // indigo-black belly with a volt accent. No real team uses this scheme.
+    secondary: '#0d0b24',
+    accent: '#d8ff3c',
+    finish: 'metallic',
     pattern: 'sweep',
-    title: 'MERIDIAN OIL',
+    title: 'VOLTEX',
     partners: ['KESTREL TIME', 'AUREL BANK'],
   },
   {
@@ -463,7 +465,7 @@ export function flankLivery(paint: T.MeshPhysicalMaterial, side: number, id: num
   });
   sourceCanvases.set(material.map, material.map.image as HTMLCanvasElement);
   material.userData.liverySide = side;
-  material.map.name = `Original APEX car ${id + 7} ${side > 0 ? 'left' : 'right'} skin`;
+  material.map.name = `Original MOTOBOUND car ${id + 7} ${side > 0 ? 'left' : 'right'} skin`;
   material.name = 'Clear-coated UV-conforming original livery';
   return material;
 }

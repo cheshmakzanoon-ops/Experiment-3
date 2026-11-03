@@ -126,7 +126,7 @@ export class TabEvidence {
     this.changed();
     try {
       const handle = await picker.call(window, {
-        suggestedName: `apex-session-${this.data.source.slice(0, 12)}.webm`,
+        suggestedName: `motobound-session-${this.data.source.slice(0, 12)}.webm`,
         types: [{ description: 'Recorded WebM video', accept: { 'video/webm': ['.webm'] } }],
       });
       if (this.disposed || owner !== this.owner) return;
@@ -368,7 +368,7 @@ export class TabEvidence {
       );
       const a = document.createElement('a');
       a.href = url;
-      a.download = `apex-tab-${this.data.source.slice(0, 12)}.json`;
+      a.download = `motobound-tab-${this.data.source.slice(0, 12)}.json`;
       a.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     };

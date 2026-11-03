@@ -187,7 +187,7 @@ export class HeadquartersStage {
         c.fillRect(0, 0, 1024, 256);
         c.fillStyle = '#e8efed';
         c.font = '800 104px Arial';
-        c.fillText('APEX / WORKSHOP', 40, 130, 944);
+        c.fillText('MOTOBOUND / WORKSHOP', 40, 130, 944);
         c.fillStyle = '#d89b66';
         c.font = '600 30px Arial';
         c.fillText('DESIGN  ·  FABRICATE  ·  TEST  ·  LEARN', 42, 198);

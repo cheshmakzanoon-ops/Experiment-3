@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { REVIEW_BUILD, REVIEW_ONLY_REASON } from './fixtures/owner-build.ts';
 const diag = (page: Page) => page.evaluate(() => window.apexDiagnostics());
 async function ready(page: Page) {
   await page.goto('/?dev');
@@ -15,6 +16,7 @@ async function input(page: Page, selector: string, value: string) {
 test('reference depth: survey, focus and headquarters render without advancing the held scene', async ({
   page,
 }, info) => {
+  test.skip(!REVIEW_BUILD, REVIEW_ONLY_REASON);
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await ready(page);

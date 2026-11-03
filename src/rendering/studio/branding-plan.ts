@@ -28,7 +28,7 @@ export const COLOURWAYS: readonly Colourway[] = Object.freeze([
 
 /** The sponsor brands seen at the track (the tyre wordmarks stay on tyres). */
 export const TRACKSIDE_BRANDS: readonly Brand[] = Object.freeze(
-  BRANDS.filter((brand) => brand !== 'APEX CORSA' && brand !== 'SLICK 18'),
+  BRANDS.filter((brand) => brand !== 'MOTOBOUND' && brand !== 'SLICK 18'),
 );
 
 /** Atlas layout: 2 columns × 16 rows of 512×128 panels in a 1024×2048 canvas. */

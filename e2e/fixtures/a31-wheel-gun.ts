@@ -66,7 +66,11 @@ export async function surveyA31(samples: number[][], lighting: 'day' | 'sunset' 
       // These are independent of the frame-based placement calculation.
       if (frame[o + F.PIT_PHASE] === 3 && frame[o + F.PIT_CLOCK] < 1)
         for (let w = 0; w < 4; w++) {
-          const carrier = view.cars[0].suppliedPlayer!.wheels[w];
+          // G15: the player's car is the original authored APX-01 in a product build; its
+          // steered, cambered wheel carrier is the pivot (the owner-supplied model's is
+          // `PLAYER_WHEEL_n`). Either way it is the actual imported/authored node, not a
+          // value derived from the placement code under test.
+          const carrier = view.cars[0].suppliedPlayer?.wheels[w] ?? view.cars[0].wheelPivots[w];
           carrier.updateWorldMatrix(true, false);
           const wanted = carrier.localToWorld(
             new T.Vector3((w % 2 ? 1 : -1) * fits[w].axial, 0, 0),
@@ -148,6 +152,7 @@ export async function surveyA31(samples: number[][], lighting: 'day' | 'sunset' 
       states,
       errors,
       fits,
+      playerKind: view.cars[0].suppliedPlayer ? ('supplied' as const) : ('authored' as const),
       before,
       after,
       rewindSame,

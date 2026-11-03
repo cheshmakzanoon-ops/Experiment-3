@@ -5,6 +5,7 @@ import { writeFile } from 'node:fs/promises';
 import type { surveyEventHall } from './fixtures/event-hall.ts';
 import { requireOperationsInspectionBudget } from '../scripts/operations-render-budget.ts';
 import { requireInfrastructureRenderBudget } from '../scripts/infrastructure-render-budget.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 for (const lighting of ['day', 'sunset', 'night'] as const) {
   test(`A71 ${lighting}: full production hall, cockpit and unchanged physical traversal`, async ({
@@ -13,6 +14,7 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
     test.setTimeout(600000);
     const built = await build({
       configFile: false,
+      define: fixtureDefine(),
       logLevel: 'error',
       build: {
         write: false,

@@ -169,7 +169,7 @@ export class MotoGPChassis {
 
   constructor(readonly geometry: MotoGPGeometry) {
     if (!(geometry.yawInertia > 0 && geometry.frontRadius > 0 && geometry.rearRadius > 0))
-      throw new Error('Invalid MotoGP geometry');
+      throw new Error('Invalid GP bike geometry');
   }
 
   reset(speed = 0) {
@@ -187,7 +187,7 @@ export class MotoGPChassis {
     const g = this.geometry;
     const v = Math.max(0, q.speed);
     const dt = q.dt;
-    if (!(dt > 0 && dt <= 0.05)) throw new Error('Invalid MotoGP timestep');
+    if (!(dt > 0 && dt <= 0.05)) throw new Error('Invalid GP bike timestep');
     // Grid placement, teleportation and tests that set speed explicitly are
     // not dual-wheel lockups: reinitialize the contact rotations.
     if (Math.abs(v - this.lastSpeed) > 5) {

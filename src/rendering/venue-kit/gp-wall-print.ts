@@ -11,7 +11,7 @@ import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shad
 export const GP_WALL_BOARD = Object.freeze({ length: 8, joint: 0.25, base: 0.12, height: 0.78 });
 
 const BOARDS = [
-  ['APEX CORSA', '#a9262b', '#f1efe8'],
+  ['MOTOBOUND', '#a9262b', '#f1efe8'],
   ['ORBITEL', '#1d3f80', '#f1efe8'],
   ['SLICK 18', '#151719', '#efc23a'],
   ['MERIDIAN OIL', '#e6e3da', '#1b2a33'],

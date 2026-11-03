@@ -9,6 +9,7 @@ import { writeFile } from 'node:fs/promises';
 import type { surveySecondaryStands } from './fixtures/secondary-grandstands.ts';
 import { requireOperationsInspectionBudget } from '../scripts/operations-render-budget.ts';
 import { requireInfrastructureRenderBudget } from '../scripts/infrastructure-render-budget.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 for (const lighting of ['day', 'sunset', 'night'] as const) {
   test(`A12 ${lighting}: six production stands, cockpit and unchanged physical traversal`, async ({
@@ -20,6 +21,7 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
     test.setTimeout(1800000);
     const built = await build({
       configFile: false,
+      define: fixtureDefine(),
       logLevel: 'error',
       build: {
         write: false,

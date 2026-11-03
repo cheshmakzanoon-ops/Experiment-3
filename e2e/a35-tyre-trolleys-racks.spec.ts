@@ -6,6 +6,7 @@ import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import manifest from '../src/rendering/tyre-trolleys-racks.manifest.json' with { type: 'json' };
 import type { captureTyreEquipment } from './fixtures/tyre-trolleys-racks.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('A35 normal menu/practice startup retains the authored logistics kit', async ({
   page,
@@ -59,6 +60,7 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
     expect(createHash('sha256').update(bytes).digest('hex')).toBe(manifest.sha256);
     const bundle = await build({
       configFile: false,
+      define: fixtureDefine(),
       logLevel: 'error',
       build: {
         write: false,

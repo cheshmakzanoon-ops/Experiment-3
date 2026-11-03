@@ -1,6 +1,7 @@
 import { finishRaceEntry } from './race-entry.ts';
 import { expect, test } from '@playwright/test';
 import { build } from 'vite';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 import { resolve } from 'node:path';
 import { readFile } from 'node:fs/promises';
 import type { visualCoherenceGPU } from './fixtures/visual-coherence.ts';
@@ -14,6 +15,7 @@ test('27H.5 GPU: damp surfaces, clearcoat ripples and precipitation share revers
 }, info) => {
   const bundled = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

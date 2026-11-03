@@ -5,10 +5,12 @@ import { build } from 'vite';
 import { resolve } from 'node:path';
 import manifest from '../src/rendering/apx01-driver.manifest.json' with { type: 'json' };
 import type * as Probe from './fixtures/character-quality.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 let code: string;
 test.beforeAll(async () => {
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

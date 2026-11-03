@@ -2,12 +2,14 @@ import { expect, test } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
 import type { captureGpStartGrid } from './fixtures/gp-start-grid.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('GP start paint and single-contact launch paths retain dry/wet replay and bounded resources', async ({
   page,
 }, info) => {
   const bundle = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

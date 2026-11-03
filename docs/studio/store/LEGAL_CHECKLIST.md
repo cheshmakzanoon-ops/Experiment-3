@@ -10,7 +10,7 @@ or the relevant authority before release. Status: **Done (repo)**, **Open**, **C
 | End-user licence agreement (EULA) | **Open / Counsel** | None exists. Steam allows the standard Steam Subscriber Agreement alone; a custom EULA is optional. If one is shown in-game, it must be controller-navigable (Deck) and only shown once. Minimum content if written: licence grant, no reverse engineering of paid content, user-generated content (photos, liveries) licence, limitation of liability, governing law. |
 | Privacy policy (store page link is required) | **Open / Counsel** | Facts the policy must state, true today: the game makes **no network requests** (CSP and a request allow-list in `desktop/src/protocol.cjs` enforce it in the desktop build) and has **no analytics, accounts, ads or telemetry upload**. Data stored locally only: settings, career/team/championship saves, achievements, lap bests, ghost laps, logs (`userData/logs/main.log`). Steam itself processes achievements, cloud saves and rich presence under Valve's policy. If an opt-in crash/analytics service is added later, this changes and must be re-reviewed (GDPR/UK GDPR/CCPA). |
 | Store content descriptions / age ratings | **Open** | Steam asks a content survey (violence, mature themes, microtransactions, online interactions). Expected answers for the current build: no violence beyond vehicle collisions and rider falls (confirm what the crash presentation shows), no sexual content, no gambling, no in-app purchases, no multiplayer chat. Fill the survey from a full playthrough, not from memory. Some regional ratings (IARC-style questionnaire via Steam for some regions; Germany USK, Korea GRAC, Australia, Brazil) are partly handled by Steam; check the partner site for what is required per region. |
-| Third-party notices screen / file shipped with the game | **Partly done** | An in-game **CREDITS & LICENCES** screen lists every third-party art asset, and `public/assets/third-party/CREDITS.txt` ships in the build. Missing: notices for code and fonts (below). |
+| Third-party notices screen / file shipped with the game | **Done (repo)** | The in-game **CREDITS & LICENCES** screen lists every third-party art asset and links `THIRD_PARTY_NOTICES.txt`; `public/THIRD_PARTY_NOTICES.txt` ships in every build and carries the three.js (MIT), Basis (Apache-2.0) and Saira / Saira Stencil One (OFL 1.1) texts plus the CC0 / CC BY attributions (`scripts/third-party-notices.mjs`, checked by `tests/ip-audit.test.ts`). Desktop packaging must keep Electron's `LICENSE` and `LICENSES.chromium.html`. |
 | Trademark clearance of the name "MOTOBOUND" | **Counsel** | Not searched. Also search the circuit, vehicle and series names that were chosen to be original (`validate:content` rejects a list of protected real names, which is not a clearance). |
 | Company/tax set-up for Steamworks | **Counsel** | Steam Direct app fee (US$100 per app at the time of writing, recoupable against sales) and the bank/tax identity forms are required; not an engineering task. |
 
@@ -34,9 +34,9 @@ Policy in the repository: only CC0-1.0, CC-BY-4.0, CC-BY-2.0 and MIT content may
 
 | Component | Licence | Obligation | Status |
 | --- | --- | --- | --- |
-| three.js 0.180.0 | MIT | Keep the copyright notice with distributed copies | **Open**: not in the in-game credits or a shipped NOTICE file. |
-| Basis Universal transcoder (`public/assets/basis`, copied from `three`) | Apache-2.0 (Binomial LLC) | Include the licence text and notices | **Open** (same). |
-| Saira Variable font (`@fontsource-variable/saira`, files in `dist/assets/saira-*.woff2`) | SIL Open Font License 1.1 (Omnibus-Type) | Ship the copyright notice and the OFL text with the font; the font may not be sold alone | **Open**. Note `ASSET_PROVENANCE.md` still says "system fonts are used / no external font files": that statement is out of date; `src/main.ts` imports Saira and `style.css` uses it. |
+| three.js 0.180.0 | MIT | Keep the copyright notice with distributed copies | **Done (repo)**: `THIRD_PARTY_NOTICES.txt` (shipped, linked from the credits screen). |
+| Basis Universal transcoder (`public/assets/basis`, copied from `three`) | Apache-2.0 (Binomial LLC) | Include the licence text and notices | **Done (repo)**: full Apache-2.0 text in `THIRD_PARTY_NOTICES.txt`. |
+| Saira Variable font (`@fontsource-variable/saira`, files in `dist/assets/saira-*.woff2`) and Saira Stencil One | SIL Open Font License 1.1 (Omnibus-Type) | Ship the copyright notice and the OFL text with the font; the font may not be sold alone | **Done (repo)**: both copyright lines and the OFL text are in `THIRD_PARTY_NOTICES.txt`; `ASSET_PROVENANCE.md` corrected. |
 | Electron 44 (Chromium 152, Node 24) | MIT + the Chromium/third-party licences | Electron's distribution already carries `LICENSE` and `LICENSES.chromium.html` in the app folder; **keep them in the depot and list Electron/Chromium in the credits** | Present in `linux-unpacked` (verified in the release report); credits mention **Open**. |
 | electron-builder | MIT | Build tool only; no redistribution | n/a |
 | steamworks.js 0.4.0 | MIT | Ship its licence with the module (it is inside `node_modules/steamworks.js`, in the asar-unpacked folder) | Done by the packager; confirm in the depot. |
@@ -52,8 +52,8 @@ installed here and no such list has been generated.
 | Item | Status | Notes |
 | --- | --- | --- |
 | No licensed names, logos or liveries in shipped content | **Done (repo) / ongoing** | Enforced by `validate:content` and `forbiddenNameIn`; the Content/Art departments own new entries. |
-| Licensed-product references inside the shipped JS | **Open** | `src/ui/reference-catalogue.ts` holds URLs and titles of commercial racing games' official pages (reference review tooling). The UI to reach it is gated behind `?dev` (`src/ui/dev-mode.ts`) and a player cannot add a query string in the desktop build, but the strings still ship in the bundle. Strip or exclude the module from production builds so a store page, a bundle grep or a takedown reviewer never finds them. |
-| Legacy "APEX" product naming | **Open** | Still visible in: `CREDITS.txt` heading ("APEX — third-party assets…"), exported file names (`apex-photo-*.png`, `apex-telemetry.csv`, `apex-setup.json`), the IndexedDB name (`apex-formula`, kept for save compatibility). Rename user-visible strings before release; keep the database name or migrate it. |
+| Licensed-product references inside the shipped JS | **Done (repo)** | `src/ui/reference-catalogue.ts` is compiled out of product builds (`__REVIEW_TOOLS__`, default off; `MOTOBOUND_REVIEW_TOOLS=1` keeps it for the e2e review specs). `scripts/ip-guard.mjs` runs inside every product `vite build` (so `npm run build` fails), in the CI `validate` job and in the release script; it fails on a commercial-game or coverage URL, a real team/sponsor/maker name (any spelling: `RB19_BODY`, `tag_heuer`, `HardRock`) or an owner-only binary in `dist/`, and refuses owner and review QA builds outright. |
+| Legacy "APEX" product naming | **Done for everything a player or a file listing shows; storage identifiers kept** | `CREDITS.txt`, exported file names (`motobound-photo-*.png`, `motobound-telemetry.csv`, `motobound-setup.json`, review/evidence exports), the race-HUD wordmark (`MB`), the nose and workshop lettering, the default livery sponsor and the tyre brand (now `MOTOBOUND`) were renamed. Kept on purpose, never shown: IndexedDB `apex-formula` / `apex-replay-cache`, localStorage keys, the career lock name and the `apex-verified-session` record format. Renaming them orphans existing saves; a migration (open old DB, copy stores, keep a read fallback) is about a day plus tests and is only worth doing if the owner wants clean storage names. |
 | Music and trailer audio | **Open** | No music is shipped with the game today (audio is synthesised). Any trailer track needs a written licence (original, CC0 or CC-BY with credit) stored with the trailer project. |
 | Fonts, icons and capsule art | **Open** | `desktop/build/icon.png` is the placeholder rendered from `public/icon.svg` (an "A" glyph from the former name). Replace with the final brand mark. |
 | Photo-mode and exported files | **Done (repo)** | Users own their screenshots; the EULA should say they may share them. |
@@ -77,8 +77,11 @@ installed here and no such list has been generated.
 
 1. EULA decision recorded (Steam default or custom).
 2. Privacy policy published and linked on the store page.
-3. `CREDITS & LICENCES` updated with code and font notices; OFL text and three.js/Basis notices shipped.
+3. `CREDITS & LICENCES` updated with code and font notices; OFL text and three.js/Basis notices shipped. **Done (repo).**
 4. Steamworks libraries only in Steam depots.
-5. Reference-catalogue module excluded from the production bundle.
+5. Reference-catalogue module excluded from the production bundle. **Done (repo)**, enforced by the IP guard in `npm run build`, CI `validate` and the release script.
 6. Name clearance result and the circuit-approximation opinion from counsel.
 7. Ratings questionnaire answers signed off from a full playthrough.
+
+
+See also [../reports/ip-audit.md](../reports/ip-audit.md): the per-asset provenance and risk audit (gate G15), with the owner / counsel decision list.

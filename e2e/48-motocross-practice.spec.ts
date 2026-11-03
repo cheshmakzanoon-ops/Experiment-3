@@ -1,10 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 async function loadPracticeFixture(page: Page) {
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

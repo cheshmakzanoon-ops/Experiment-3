@@ -3,6 +3,7 @@ import { build } from 'vite';
 import { resolve } from 'node:path';
 import type { surveyStartFinish } from './fixtures/start-finish.ts';
 import { H } from '../src/simulation/protocol.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 // Baseline keeps the same rendering, frame and image checks; only assertions
 // for newly introduced diagnostics are conditional in matched comparison runs.
@@ -15,6 +16,7 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
     test.setTimeout(420000);
     const built = await build({
       configFile: false,
+      define: fixtureDefine(),
       logLevel: 'error',
       build: {
         write: false,
@@ -142,6 +144,7 @@ test('A45 explicit signal controls compile colour and directional/point shadows 
 }, info) => {
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

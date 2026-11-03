@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { build } from 'vite';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 import { resolve } from 'node:path';
 import type * as Fixture from './fixtures/presentation-continuity.ts';
 
@@ -11,6 +12,7 @@ async function load(page: Page) {
   });
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

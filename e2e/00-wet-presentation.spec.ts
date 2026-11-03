@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { build } from 'vite';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 import { resolve } from 'node:path';
 import type { captureWetRace } from './fixtures/wet-presentation.ts';
 
@@ -8,6 +9,7 @@ test('rain is directional geometry with fog, occlusion and near-plane safety', a
 }, info) => {
   const result = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,
@@ -68,6 +70,7 @@ test('wet race presentation survives moving frames and held chase, cockpit and t
   test.setTimeout(900000);
   const bundled = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

@@ -129,15 +129,16 @@ describe('studio look contracts', () => {
       'VANTA',
       'NORTHLINE',
       'OBSIDIAN',
-      'APEX CORSA',
+      'MOTOBOUND',
       'SLICK 18',
     ]);
     // Real sponsor and team marks must never appear in source strings.
     const forbidden =
       /\b(bybit|oracle|red bull|redbull|pirelli|rolex|aramco|heineken|dhl|crypto\.com|petronas|ferrari|mercedes|mclaren|williams|haas|sauber|aston martin|visa cash app|mobil ?1|emirates|lenovo|tag heuer|infinitum|hard rock|honda|ford)\b/i;
-    // P13: brand-atlas.ts maps the supplied car's real decal sheet names to
-    // fictional marks at runtime; those keys are identifiers, never drawn.
-    const replacementMap = join('src', 'rendering', 'studio', 'brand-atlas.ts');
+    // P13: supplied-decal-art.ts (owner-only since G15, out of every product bundle) maps the
+    // supplied car's real decal sheet names to fictional marks at runtime; those keys are
+    // identifiers, never drawn.
+    const suppliedDecalArt = join('src', 'rendering', 'studio', 'supplied-decal-art.ts');
     const files: string[] = [];
     const walk = (dir: string) => {
       for (const name of readdirSync(dir)) {
@@ -159,7 +160,7 @@ describe('studio look contracts', () => {
     ]);
     const hits: string[] = [];
     for (const file of files) {
-      if (file === replacementMap) continue;
+      if (file === suppliedDecalArt) continue;
       const denylist = denylists.get(file);
       let text = readFileSync(file, 'utf8');
       if (denylist) {

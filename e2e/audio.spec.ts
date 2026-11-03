@@ -11,6 +11,7 @@ import {
   WHEEL_STRIDE,
   carBase,
 } from '../src/simulation/protocol.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 // Bundle the actual contact graph as a test script; no mocked AudioContext and
 // no running WebGL scene. This isolates signal measurements from GPU timing.
@@ -19,6 +20,7 @@ test('real offline audio distinguishes surface spectra and guards airborne conta
 }, info) => {
   const result = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'silent',
     build: {
       write: false,

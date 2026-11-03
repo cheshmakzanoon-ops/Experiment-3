@@ -3,11 +3,13 @@ import { build } from 'vite';
 import { resolve } from 'node:path';
 import type * as Probe from './fixtures/race-surface-atmosphere.ts';
 import manifest from '../src/rendering/apx01-driver.manifest.json' with { type: 'json' };
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 let code: string;
 test.beforeAll(async () => {
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

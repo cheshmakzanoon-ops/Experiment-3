@@ -5,6 +5,7 @@ import { build } from 'vite';
 import { resolve } from 'node:path';
 import { readFile } from 'node:fs/promises';
 import type { mountMenuAccess } from './fixtures/menu-access.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test.use({ actionTimeout: 15000 });
 
@@ -14,6 +15,7 @@ test('27H.6 menu access: real interface keeps all actions reachable with mouse a
   test.setTimeout(120000);
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

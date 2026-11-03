@@ -295,8 +295,8 @@ reporter at `$APEX_WT`, starts `npx vite preview --port $APEX_PORT --strictPort`
 
 `38-fog-quadrature` (max channel Δ ≤ 1, mean < 0.01, held Δ = 0), `30-race-finish` (max Δ ≤ 1), `13-wet-lighting-closure`
 (axial max diff ≤ 2), `37-race-surface-atmosphere` (registered asphalt must *change* by mean > 0.1; rewind is exact),
-`39-supplied-player` (LOD review mean Δ < 2; tier 4 exact), `41-player-render-budget` (decal Δ mean < 0.5, opaque and
-coverage < 0.05), `42-full-scene-index-budget` (every held HDR channel preserved), `scenery-shadow-budget` (**0 changed
+`39-supplied-player` (owner QA build only; LOD review mean Δ < 2; tier 4 exact), `41-player-render-budget` (owner QA build only; decal Δ mean < 0.5, opaque and
+coverage < 0.05), `42-full-scene-index-budget` (every held HDR channel preserved; authored player car budget, owner compaction in a QA build), `scenery-shadow-budget` (**0 changed
 bytes** in shadow equivalence), `12-presentation-continuity` and `27-visual-coherence` (held and rewound identical),
 `35-aurel-race-quality` (dusk balanced luma > prior), `03-skid-contact` / `motion` / `weather` / `aurel-quarry` (pixels
 must change: > 5, > 100, > 100, > 500). These compare two renders of the same build, so global look changes pass

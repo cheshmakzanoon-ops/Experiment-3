@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
 import type { cabinRenderCost } from './fixtures/cabin-render-cost.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 /** Records what a catalogue cockpit submits on a full grid at the low and
  * medium tiers, next to the Formula cockpit in the same grid frame, and holds
@@ -15,6 +16,7 @@ test('catalogue cockpit cabin and mirror-feed cost on a full grid', async ({ pag
   test.setTimeout(900000);
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

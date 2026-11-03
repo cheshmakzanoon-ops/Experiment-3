@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { build } from 'vite';
 import type { captureMotocrossWorld } from './fixtures/motocross-world-review.ts';
 import type { captureMotocrossTerrainControls } from './fixtures/motocross-terrain-controls.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('MX and SX production terrain loads photographed soil with correct macros and reversible wetness on WebGL2', async ({
   page,
@@ -19,6 +20,7 @@ test('MX and SX production terrain loads photographed soil with correct macros a
   });
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,
@@ -107,6 +109,7 @@ for (const filter of ['native', 'production'] as const) {
     });
     const built = await build({
       configFile: false,
+      define: fixtureDefine(),
       logLevel: 'error',
       build: {
         write: false,

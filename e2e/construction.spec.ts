@@ -2,12 +2,14 @@ import { test, expect } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
 import type { compareConstruction } from './construction-scene.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('progressive circuit construction preserves all geometry while yielding to the page', async ({
   page,
 }, info) => {
   const bundled = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'silent',
     build: {
       write: false,

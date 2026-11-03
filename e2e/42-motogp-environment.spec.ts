@@ -3,12 +3,14 @@ import { build } from 'vite';
 import { resolve } from 'node:path';
 import { readFileSync } from 'node:fs';
 import type { captureCircuitSurfaces } from './fixtures/motogp-environment-review.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('GP surface references: staggered tyre rubber, wet holds and bounded three-family switches on WebGL2', async ({
   page,
 }, info) => {
   const bundle = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

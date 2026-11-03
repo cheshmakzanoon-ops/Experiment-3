@@ -2,12 +2,14 @@ import { expect, test } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
 import type { captureGpPaddocks } from './fixtures/gp-paddock-review.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('four GP pit complexes render with the existing garages, stable weather restoration and resource release', async ({
   page,
 }, info) => {
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

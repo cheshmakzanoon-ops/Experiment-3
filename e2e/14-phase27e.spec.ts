@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { REFERENCES } from '../src/ui/reference-catalogue.ts';
 import type * as Fixture from './fixtures/phase27e.ts';
+import { REVIEW_BUILD, REVIEW_ONLY_REASON, fixtureDefine } from './fixtures/owner-build.ts';
 async function load(page: Page) {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
@@ -12,6 +13,7 @@ async function load(page: Page) {
   });
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,
@@ -58,6 +60,7 @@ test('actual rear-signal uniforms tint nearby spray and freeze/rewind without mu
 test('reference comparison UI requires a real capture and explicit reviewer without hiding original routes', async ({
   page,
 }) => {
+  test.skip(!REVIEW_BUILD, REVIEW_ONLY_REASON);
   const errors = await load(page);
   const setup = await page.evaluate(() =>
     (window as unknown as { Phase27E: typeof Fixture }).Phase27E.beginReferenceEvidenceUI(),

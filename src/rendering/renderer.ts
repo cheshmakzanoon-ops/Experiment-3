@@ -32,7 +32,7 @@ import { loadTyreBlankets } from './tyre-blankets.ts';
 import { compileSceneTarget, PreparationTrace } from './preparation.ts';
 import { warmPitMaterials } from './pit-material-warmup.ts';
 import { frontToBackOpaque } from './opaque-order.ts';
-import { loadSuppliedPlayer, type SuppliedPlayerAsset } from './supplied-player.ts';
+import type { SuppliedPlayerAsset } from './supplied-player.ts';
 import { detailDistance, feedDetailDistance } from './view-detail.ts';
 import { readRaceReviewFrame } from './race-review.ts';
 import { GhostCar } from './ghost-car.ts';
@@ -257,6 +257,8 @@ export const FAR_SHADOW_MARGIN_M = 150;
 /** Local-probe cube faces rendered per frame by a periodic refresh. */
 export const PROBE_FACES_PER_FRAME = 1;
 export type { Quality } from './options.ts';
+/** G15: true only in an owner build (MOTOBOUND_SUPPLIED_PLAYER=1); see src/build-flags.d.ts. */
+const OWNER_BUILD = typeof __SUPPLIED_PLAYER__ !== 'undefined' && __SUPPLIED_PLAYER__ === true;
 export class RacingRenderer {
   readonly renderer: T.WebGLRenderer;
   readonly scene = new T.Scene();
@@ -649,17 +651,24 @@ export class RacingRenderer {
       if (!showroomOnly) await scannedGround.ready(20000);
       progress({ completed: 0, total: 1, fraction: 0, label: 'Loading Blender-authored bodywork' });
       renderer.heroShells = await loadHeroShells(cancelled);
-      // Rival bodywork dresses opponents only (FormulaCar id > 0); the showroom
-      // shows the player's car alone, so it skips three decoded rival exports.
-      if (!showroomOnly) renderer.rivalLevels = await loadRivalLevels(cancelled);
+      // Rival bodywork dresses opponents (FormulaCar id > 0) and, in a product
+      // build, the player's own APX-01. Only an owner build's showroom (which
+      // shows the supplied player car alone) skips the three decoded exports.
+      if (!showroomOnly || !OWNER_BUILD) renderer.rivalLevels = await loadRivalLevels(cancelled);
       renderer.driverAsset = await loadDriverAsset(cancelled);
-      progress({
-        completed: 0,
-        total: 1,
-        fraction: 0,
-        label: 'Loading your car, driver and cockpit',
-      });
-      renderer.suppliedPlayerAsset = await loadSuppliedPlayer(cancelled);
+      // G15: the owner-supplied real-brand player model is only fetched by an
+      // owner build (MOTOBOUND_SUPPLIED_PLAYER=1). Product builds drive the
+      // original APX-01 (hero shells + driver asset loaded above).
+      if (OWNER_BUILD) {
+        progress({
+          completed: 0,
+          total: 1,
+          fraction: 0,
+          label: 'Loading owner-supplied player model',
+        });
+        const { loadSuppliedPlayer } = await import('./supplied-player.ts');
+        renderer.suppliedPlayerAsset = await loadSuppliedPlayer(cancelled);
+      }
       if (showroomOnly) {
         if (cancelled()) {
           renderer.dispose();
@@ -1653,8 +1662,11 @@ export class RacingRenderer {
             ? cameraMode === 'cockpit'
               ? cabinFov(cabin, this.graphics.cockpitFov)
               : mountFov(cabin, speed)
-            : cameraMode === 'cockpit' && car.suppliedPlayer
-              ? cockpitFov(this.graphics.cockpitFov)
+            : cameraMode === 'cockpit'
+              ? // The Graphics "Cockpit field of view" setting belongs to the player's cockpit, the
+                // original APX-01's procedural one (a product build) as much as the owner-supplied
+                // model's; only the T-cam keeps its own lens.
+                cockpitFov(this.graphics.cockpitFov)
               : cameraMode === 'chase'
                 ? motocrossFollow
                   ? this.motocrossCamera.fov

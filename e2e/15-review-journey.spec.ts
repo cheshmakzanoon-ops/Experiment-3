@@ -3,6 +3,7 @@ import { test, expect, type Page } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { readPresentationReport } from '../src/rendering/presentation-review.ts';
+import { REVIEW_BUILD, REVIEW_ONLY_REASON } from './fixtures/owner-build.ts';
 const diag = (page: Page) => page.evaluate(() => window.apexDiagnostics());
 async function ready(page: Page) {
   await page.goto('/?dev');
@@ -16,6 +17,7 @@ async function ready(page: Page) {
 test('reference capture uses the actual production PNG and can be unlinked without overwriting its audit', async ({
   page,
 }, info) => {
+  test.skip(!REVIEW_BUILD, REVIEW_ONLY_REASON);
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await ready(page);
@@ -28,7 +30,7 @@ test('reference capture uses the actual production PNG and can be unlinked witho
   await page.getByRole('button', { name: 'DOWNLOAD PNG', exact: true }).click();
   const download = await pending,
     path = await download.path();
-  expect(download.suggestedFilename()).toMatch(/^apex-reference-002-[0-9a-f]{12}-\d+\.png$/);
+  expect(download.suggestedFilename()).toMatch(/^motobound-reference-002-[0-9a-f]{12}-\d+\.png$/);
   const png = await readFile(path!);
   await expect(page.locator('#photoStatus')).toContainText('exported and hashed', {
     timeout: 90000,

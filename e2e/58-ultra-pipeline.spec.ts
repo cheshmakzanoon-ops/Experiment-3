@@ -5,6 +5,7 @@ import { finishRaceEntry } from './race-entry.ts';
 import { DEFAULT_SETTINGS, validateSettings } from '../src/storage/data.ts';
 import { graphicsPreset } from '../src/rendering/options.ts';
 import type * as Fixture from './fixtures/ultra-pipeline.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 /** ULTRA is opt-in: these cases select it explicitly; every other spec keeps
  * its own preset and budgets. Software rendering proves function, not speed. */
@@ -12,6 +13,7 @@ let code: string;
 test.beforeAll(async () => {
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

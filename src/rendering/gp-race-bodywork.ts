@@ -1153,7 +1153,7 @@ function drawLivery(p: LiveryPen, entrant: number, variant: GpShellVariant) {
     return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
   };
   const keelInk = luminance(keel) > 0.55 ? '#15191d' : '#f1f2ed';
-  const reserved = new Set<string>([scheme.title, ...scheme.partners, 'APEX CORSA', 'SLICK 18']);
+  const reserved = new Set<string>([scheme.title, ...scheme.partners, 'MOTOBOUND', 'SLICK 18']);
   const extras = Object.keys(BRAND_ART).filter((b) => !reserved.has(b));
   const extra = (k: number) => extras[(entrant * 3 + k) % extras.length];
   // Race number: dark keyline under the ink, heavy italic.
@@ -1194,7 +1194,7 @@ function drawLivery(p: LiveryPen, entrant: number, variant: GpShellVariant) {
   p.mark(extra(1), [0.5, 0.198], 0.14, 0.034, ink);
   p.mark(extra(2), [-0.7, 0.356], 0.12, 0.028, ink);
   // Tyre partner beside the front wheel, constructor on the belly.
-  p.mark('APEX CORSA', [0.385, -0.128], 0.12, 0.028, ink);
+  p.mark('MOTOBOUND', [0.385, -0.128], 0.12, 0.028, ink);
   p.text('MOTOBOUND', [0.0, -0.44], 0.032, 0.3, keelInk, {
     weight: 0.22,
     slant: 0.16,

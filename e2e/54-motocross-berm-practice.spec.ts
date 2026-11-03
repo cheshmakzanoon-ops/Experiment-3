@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('berm line practice shows measured comparisons in the production HUD without hiding controls', async ({
   page,
@@ -9,6 +10,7 @@ test('berm line practice shows measured comparisons in the production HUD withou
   page.on('pageerror', (error) => errors.push(error.message));
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

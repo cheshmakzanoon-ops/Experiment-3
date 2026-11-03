@@ -5,6 +5,7 @@ import { writeFile } from 'node:fs/promises';
 import { requireInfrastructureRenderBudget } from '../scripts/infrastructure-render-budget.ts';
 import { requireOperationsInspectionBudget } from '../scripts/operations-render-budget.ts';
 import type { surveyTracksideOperations } from './fixtures/trackside-operations.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 const baseline = process.env.OPERATIONS_BASELINE === '1';
 for (const lighting of ['day', 'sunset', 'night'] as const) {
   test(`A08-A10 complete production ${lighting} operations and recorded local signals`, async ({
@@ -13,6 +14,7 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
     test.setTimeout(420000);
     const built = await build({
       configFile: false,
+      define: fixtureDefine(),
       logLevel: 'error',
       build: {
         write: false,

@@ -83,7 +83,7 @@ export const AUREL_VENUE: VenuePlan = Object.freeze({
     { endFraction: 1, canopyRatio: 0.84, species: 'broadleaf' },
   ]),
   signs: Object.freeze([
-    { text: 'APEX  /  FORMULA', s: 360, lateral: -19, width: 18, height: 2 },
+    { text: 'MOTOBOUND  /  FORMULA', s: 360, lateral: -19, width: 18, height: 2 },
     { text: 'AUREL MOTORSPORT', s: 870, lateral: 19, width: 20, height: 2 },
     { text: 'NORTHLINE', s: 1540, lateral: -19, width: 15, height: 1.8 },
     { text: 'PULSE / ENGINEERING', s: 2300, lateral: 19, width: 20, height: 2 },
@@ -130,7 +130,7 @@ export const VELLAMAR_VENUE: VenuePlan = Object.freeze({
   ]),
   signs: Object.freeze([
     { text: 'VELLAMAR / COAST', s: 380, lateral: -19, width: 20, height: 2 },
-    { text: 'APEX  /  FORMULA', s: 1450, lateral: 19, width: 18, height: 2 },
+    { text: 'MOTOBOUND  /  FORMULA', s: 1450, lateral: 19, width: 18, height: 2 },
     { text: 'RIDGE ENERGY', s: 2200, lateral: -19, width: 16, height: 1.8 },
     { text: 'PORTO LUX', s: 3700, lateral: 19, width: 14, height: 1.8 },
   ]),

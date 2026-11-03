@@ -6,6 +6,7 @@ import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import manifest from '../src/rendering/pit-building-frontage.manifest.json' with { type: 'json' };
 import type { capturePitBuilding } from './fixtures/pit-building-frontage.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('A21 normal startup retains four frontage chunks and A22/A24 through practice entry', async ({
   page,
@@ -69,6 +70,7 @@ for (const scenario of [
     expect(createHash('sha256').update(bytes).digest('hex')).toBe(manifest.sha256);
     const bundle = await build({
       configFile: false,
+      define: fixtureDefine(),
       logLevel: 'error',
       build: {
         write: false,

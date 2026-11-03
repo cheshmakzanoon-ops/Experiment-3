@@ -1,5 +1,6 @@
 import { test, expect, type Page, type TestInfo } from '@playwright/test';
 import { build } from 'vite';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 import { resolve } from 'node:path';
 import type * as Hero from './fixtures/phase27c-hero.ts';
 import type * as Crowd from './fixtures/phase27c-crowd.ts';
@@ -9,7 +10,7 @@ async function fixture(page: Page, file: string) {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
-  const built = await build({ configFile: false, logLevel: 'error',
+  const built = await build({ configFile: false, define: fixtureDefine(), logLevel: 'error',
     build: { write: false, lib: { entry: resolve(`e2e/fixtures/${file}.ts`), name: 'Phase27Fixture', formats: ['iife'] } } });
   const output = Array.isArray(built) ? built[0] : built;
   if (!('output' in output)) throw new Error('No Phase 27C fixture output');

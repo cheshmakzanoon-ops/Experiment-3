@@ -8,7 +8,7 @@ import { drawWordmark, fitHeight } from './brand-atlas.ts';
  *
  *  - Compound band: two 150° arcs between radius `band[0]` and `band[1]` in
  *    the compound colour (P8), the classic broken sidewall ring.
- *  - Lettering: original wordmarks (P19: APEX CORSA, SLICK 18) between
+ *  - Lettering: original wordmarks (P19: MOTOBOUND, SLICK 18) between
  *    `letters[0]` and `letters[1]`, twice around the tyre, from a 1024×128
  *    lettering atlas (white strokes, red channel = coverage).
  *  - Rotational blur: above `blur.start` rad/s the art is smeared along the
@@ -19,7 +19,7 @@ export const TYRE_ART = Object.freeze({
   band: Object.freeze([0.312, 0.326] as const),
   bandArc: 150,
   letters: Object.freeze([0.268, 0.308] as const),
-  words: Object.freeze(['APEX CORSA', 'SLICK 18'] as const),
+  words: Object.freeze(['MOTOBOUND', 'SLICK 18'] as const),
   ink: 0xe9e8e3,
   atlas: Object.freeze({ width: 1024, height: 128 }),
   blur: Object.freeze({ start: 18, full: 45 }),

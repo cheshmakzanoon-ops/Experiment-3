@@ -5,6 +5,7 @@ import { Simulation } from '../src/simulation/world.ts';
 import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
 import { F, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../src/simulation/protocol.ts';
 import type { renderPitScene } from './pit-scene.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('actual unloaded pit-service snapshot renders mechanics and removed wheels', async ({
   page,
@@ -29,6 +30,7 @@ test('actual unloaded pit-service snapshot renders mechanics and removed wheels'
     expect(frame[base + WHEEL_BASE + wheel * WHEEL_STRIDE + W.LOAD]).toBeLessThan(50);
   const bundled = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'silent',
     build: {
       write: false,

@@ -9,6 +9,7 @@ import jacks from '../src/rendering/a32-pit-jacks.manifest.json' with { type: 'j
 import player from '../src/rendering/supplied-player.manifest.json' with { type: 'json' };
 import guns from '../src/rendering/wheel-gun.manifest.json' with { type: 'json' };
 import type { inspectA32Offline } from './fixtures/a32-pit-jacks-offline.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 /** Supplemental GPU evidence. Never replace the normal-startup/circuit suite
  * with this fixture: it purposefully has no HTTP acquisition or navigation. */
@@ -53,6 +54,7 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
     expect(samples.length).toBeGreaterThanOrEqual(16);
     const bundle = await build({
       configFile: false,
+      define: fixtureDefine(),
       logLevel: 'error',
       build: {
         write: false,

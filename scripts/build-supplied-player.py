@@ -220,7 +220,7 @@ for key in ['extensionsUsed','extensionsRequired']:
 encoded=json.dumps(doc,separators=(',',':'),ensure_ascii=False).encode(); encoded+=b' '*((-len(encoded))%4); binary=raw[20+length:]
 raw=struct.pack('<4sII',b'glTF',2,20+len(encoded)+len(binary))+struct.pack('<I4s',len(encoded),b'JSON')+encoded+binary; path.write_bytes(raw)
 compressed=gzip.compress(raw,compresslevel=9,mtime=0); (out/'supplied-player.glb.gz').write_bytes(compressed)
-manifest={'revision':'RB19-R06-player-1','bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest(),'compressedBytes':len(compressed),'compressedSHA256':hashlib.sha256(compressed).hexdigest(),
+manifest={'revision':'owner-supplied-player-1','bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest(),'compressedBytes':len(compressed),'compressedSHA256':hashlib.sha256(compressed).hexdigest(),
  'sourceSHA256':source_hashes,'triangles':sum(doc['accessors'][p['indices']]['count']//3 for m in doc['meshes'] for p in m['primitives']),
  'nodes':len(doc['nodes']),'meshes':len(doc['meshes']),'materials':len(doc['materials']),'images':len(doc.get('images',[])),'joints':len(doc['skins'][0]['joints']),
  'sockets':report['sockets'],'steeringDegrees':35,'steeringClip':'PLAYER_STEERING','maxRawBytes':max(len(raw)+4096,64*1024*1024),'fit':report['fit']}

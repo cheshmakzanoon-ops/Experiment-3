@@ -30,8 +30,8 @@ export interface CockpitSurveyRow {
   image: string;
 }
 
-/** Production loader, original binary/skeleton, full circuit and unmodified
- * simulation snapshots. These are real GPU frames, not a target-hardware FPS test. */
+/** Production loader, full circuit and unmodified simulation snapshots (the owner-supplied
+ * cockpit in an owner build, the authored one otherwise). These are real GPU frames, not a target-hardware FPS test. */
 export async function cockpitFramingSurvey(
   group: 'framing' | 'controls' | 'driving' | 'braking' | 'weather',
   onRow?: (row: CockpitSurveyRow) => Promise<void>,
@@ -50,8 +50,12 @@ export async function cockpitFramingSurvey(
   renderer.setQuality('medium');
   renderer.changeCamera('cockpit');
   renderer.shake = 1;
-  const player = renderer.cars[0].suppliedPlayer!;
-  const sourceEye = player.eye.toArray();
+  // G15: the player's cockpit is the authored one in a product build (the procedural cockpit
+  // of the original APX-01), and the owner-supplied cockpit, with its own eye / screen / wheel
+  // sockets, only in an owner build. The framing criteria (wheel projection, near-plane
+  // clearance, field of view, road sightlines) are measured on whichever car is the player's.
+  const player = renderer.cars[0].suppliedPlayer;
+  const sourceEye = player ? player.eye.toArray() : null;
   const o = carBase(0);
   const rows: CockpitSurveyRow[] = [];
   const inputs: { frame: Float32Array; copy: Float32Array }[] = [];
@@ -226,7 +230,8 @@ export async function cockpitFramingSurvey(
       rows,
       calibration: COCKPIT_FRAMING,
       sourceEye,
-      sourceEyeRetained: player.eye.toArray().every((v, i) => v === sourceEye[i]),
+      // Owner build only: the supplied asset's own eye socket must not be mutated by the camera.
+      sourceEyeRetained: player ? player.eye.toArray().every((v, i) => v === sourceEye![i]) : null,
       sourceFramesUnchanged: inputs.every(({ frame, copy }) =>
         frame.every((v, i) => v === copy[i]),
       ),

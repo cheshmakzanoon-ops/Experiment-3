@@ -4,11 +4,13 @@ import { resolve } from 'node:path';
 import { writeFile } from 'node:fs/promises';
 import type { sceneryShadowBudget } from './fixtures/scenery-shadow-budget.ts';
 import { requireInfrastructureRenderBudget } from '../scripts/infrastructure-render-budget.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 for (const lighting of ['day', 'sunset', 'night'] as const) {
   test(`scenery shadow budget ${lighting}`, async ({ page }, info) => {
     const built = await build({
       configFile: false,
+      define: fixtureDefine(),
       logLevel: 'error',
       build: {
         write: false,

@@ -12,7 +12,7 @@ preallocated detail levels. There is no per-frame geometry generation.
 `SecondaryGrandstands` is a separate renderer component. It does not broaden
 `StartFinishVenue.accepts()`: the two hero stands and their live race board are
 unchanged. Vellamar does not allocate or install the A12 family. The supplied
-RB19/R06 player, cockpit, driver, original cockpit calibration, track surfaces,
+supplied car/cockpit player, cockpit, driver, original cockpit calibration, track surfaces,
 collision boundaries, physics, race rules, saves and replay format are unchanged.
 A71 remains installed. A72–A75 are separate, unfinished district refinements.
 

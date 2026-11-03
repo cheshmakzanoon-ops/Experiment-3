@@ -28,7 +28,7 @@ one additional untextured dielectric reflector material for A02. No per-module
 texture or material variant is allocated. The combined GLB transfer is below
 8 MiB; exact hashes, sizes and triangle counts are in the authoring receipt.
 
-The pit approach, pit openings, apron, service choreography, supplied RB19/R06,
+The pit approach, pit openings, apron, service choreography, supplied supplied car/cockpit,
 A61 rivals, current A41/A42 crew, A11/A13/A14 stands, A18 dynamic screen, HUD,
 physics worker, race rules, replay protocol, saved data and quality presets are
 not replaced or recalibrated. Gates share one owned scene root; the same root

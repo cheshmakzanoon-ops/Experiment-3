@@ -29,7 +29,7 @@ Status key: **V** verified in repo with evidence · **P** partly · **X** needs 
 | G11 | Store page assets: capsule, trailer script, screenshots, description | drafted in repo | N |
 | G12 | ≥ 10 external playtesters, ≥ 70% would recommend | human data | X |
 | G13 | ≥ 10k wishlists before launch | Steam dashboard | X |
-| G15 | No third-party IP in shipped assets: no real team/sponsor marks, car silhouettes or node names; every asset has a provenance row | asset audit + replacement | **OPEN BLOCKER** — `public/models/supplied-player.glb.gz` (36 MB) is documented as a real F1 car with real sponsor decal sheets (vehicle-art report D4) |
+| G15 | No third-party IP in shipped assets: no real team/sponsor marks, car silhouettes or node names; every asset has a provenance row | asset audit + replacement | **P (code closed, decisions open)** — the real-brand `supplied-player.glb.gz` is owner-only (`MOTOBOUND_SUPPLIED_PLAYER=1`), out of `dist/` and the bundle; APX-01 is the original authored car; every shipped asset has a row in [reports/ip-audit.md](reports/ip-audit.md); `scripts/ip-guard.mjs` fails `npm run build`, the CI `validate` job and the release script on a real-brand string (any spelling) or an owner-only binary, and refuses owner / review QA builds (`npm run build:qa`) outright. Open: owner/counsel decisions listed there (history purge, reference material in the repo, name clearance, look-alike risk). Not legal advice. |
 | G14 | Refund rate < 10 %, review ≥ 80 % positive | Steam dashboard | X |
 
 The studio can close G1–G11 inside this repository. G8, G12–G14 depend on hardware, people and

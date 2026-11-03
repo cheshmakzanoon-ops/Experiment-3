@@ -5,6 +5,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import manifest from '../src/rendering/workshop-equipment.manifest.json' with { type: 'json' };
 import type { captureWorkshop } from './fixtures/workshop-equipment.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('A36 normal startup retains four authored workshop props through practice and pause', async ({
   page,
@@ -58,6 +59,7 @@ for (const wet of [false, true]) {
     test.setTimeout(900000);
     const bundled = await build({
       configFile: false,
+      define: fixtureDefine(),
       logLevel: 'error',
       build: {
         write: false,

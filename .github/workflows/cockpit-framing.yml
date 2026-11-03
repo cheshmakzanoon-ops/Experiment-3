@@ -27,9 +27,14 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - run: npm run build
+      # Release gate G15: this spec measures the owner-supplied cockpit, which a product build does
+      # not contain. It runs on a QA build (never uploaded, never certified: `build:qa` does not call
+      # the IP guard and the guard refuses its output).
+      - run: npm run build:qa
       - run: npx playwright install --with-deps chromium
       - run: npx playwright test e2e/p0-cockpit-framing.spec.ts
+        env:
+          MOTOBOUND_SUPPLIED_PLAYER: '1'
       - uses: actions/upload-artifact@v4
         if: always()
         with:

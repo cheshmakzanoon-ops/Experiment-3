@@ -192,7 +192,7 @@ float gpPaddingLine(float d, float width) {
  * of the texture (from the bottom) holds brand b's wordmark in its ink. */
 function gpPaddingPrintAtlas() {
   const brands = [
-    ['APEX CORSA', '#b3242b'],
+    ['MOTOBOUND', '#b3242b'],
     ['ORBITEL', '#1f4387'],
     ['SLICK 18', '#17191b'],
     ['VOLTEX', '#c7861a'],

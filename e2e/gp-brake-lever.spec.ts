@@ -2,12 +2,14 @@ import { expect, test } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
 import type { captureBikeSequence } from './fixtures/motogp-reference-review.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('GP front lever renders recorded squeeze, hold, release and rewind without new resources', async ({
   page,
 }, info) => {
   const bundle = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

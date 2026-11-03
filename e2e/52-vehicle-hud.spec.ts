@@ -3,12 +3,14 @@ import { build } from 'vite';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import type * as Fixture from './fixtures/race-hud-layout.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('Race-Day V2 DOM: vehicle pages, urgent warning, scale and keyboard ownership', async ({
   page,
 }, info) => {
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

@@ -25,6 +25,7 @@ import type { WheelGunFit } from './wheel-gun-contact.ts';
 import { A33WheelBatches, a33GripX } from './a33-spare-wheel-set.ts';
 import { PIT_CREW_MAX_DISTANCE, PitPoseCache } from './pit-presentation.ts';
 import { PitMachinery } from './pit-machinery.ts';
+import { contactHubLength, sampleWheelContact, wheelContactPose } from './wheel-contact.ts';
 import * as T from 'three';
 import { clamp } from '../core/math.ts';
 import {
@@ -83,6 +84,7 @@ interface ActorEvidence {
  * wall-clock animation, new simulation state or asynchronous primitive swap. */
 export class PitCrewView {
   readonly root = new T.Group();
+  private readonly contactPose = wheelContactPose();
   private readonly boneData = new Float32Array(ACTORS * CREW_BONES * 16);
   private readonly bones = new T.DataTexture(
     this.boneData,
@@ -752,7 +754,12 @@ export class PitCrewView {
         const p = o + WHEEL_BASE + wheel * WHEEL_STRIDE;
         if (!Number.isFinite(frame[p + W.LENGTH]) || frame[p + W.LENGTH] < 0)
           throw new Error('Invalid crew wheel contact');
-        const length = frame[p + W.LENGTH] || 0.25,
+        // The hub the car itself draws: its measured suspension hub (the contact block) where
+        // the snapshot has one, the geometric wheel length otherwise. The wheel gun, the
+        // carried wheel and the crew are placed on THIS hub: using W.LENGTH alone left the
+        // socket 5 to 7 mm above the nut of every car in a live snapshot (A31 survey).
+        const contact = sampleWheelContact(frame, frame, o, wheel, 1, this.contactPose);
+        const length = contactHubLength(contact, frame, frame, p, 1) || 0.25,
           hubY = 0.05 - length;
         this.wheelLoad = frame[p + W.LOAD];
         const yaw = (-side * Math.PI) / 2;

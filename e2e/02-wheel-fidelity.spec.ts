@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { build } from 'vite';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 import { resolve } from 'node:path';
 import type { verifyWheelFidelity } from './fixtures/wheel-fidelity.ts';
 
@@ -8,6 +9,7 @@ test('actual wheel geometry follows recorded alignment without deforming rigid p
 }, info) => {
   const result = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

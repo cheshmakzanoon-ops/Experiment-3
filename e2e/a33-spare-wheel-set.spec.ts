@@ -6,6 +6,7 @@ import { Simulation } from '../src/simulation/world.ts';
 import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../src/simulation/protocol.ts';
 import type { surveyA33 } from './fixtures/a33-spare-wheel-set.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('A33 ships in normal startup and survives entry, pause and garage registration', async ({
   page,
@@ -83,6 +84,7 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
     expect(samples[samples.length - 1][H.TIME]).toBeGreaterThan(samples[0][H.TIME] + 4);
     const result = await build({
       configFile: false,
+      define: fixtureDefine(),
       logLevel: 'error',
       build: {
         write: false,

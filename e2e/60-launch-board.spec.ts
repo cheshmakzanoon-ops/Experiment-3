@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { readFile } from 'node:fs/promises';
 import { build } from 'vite';
 import type * as API from './fixtures/launch-board.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 declare global {
   interface Window {
@@ -17,6 +18,7 @@ declare global {
 async function load(page: Page) {
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,
