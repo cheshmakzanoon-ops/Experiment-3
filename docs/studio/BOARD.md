@@ -33,7 +33,27 @@ Integration done by PM: weather glyphs on the board dial, weather options data-d
 - `tests/bike-session.test.ts` 'mixed GP/superbike race' still red; margin worse (GP 0.45 s *slower* than superbike). Real balance defect.
 - Open art defects D5–D11 (SS/SBK/CR fairings, open-cockpit drivers, 37 bodies share one livery, kart/truck low detail, showroom backdrop).
 
-## Wave 2 (queued)
+## Wave 2b / 3a — merged to main (aecec04)
+
+| Dept | Result |
+| --- | --- |
+| UX wave 2 | Wildcard board (19 events, medals, start from card, results medal + pay), LIGHT dial, HUD identity layer, UI sound cues, CONTINUE; DIRT-series chip bug fixed |
+| QA full-flow | 6 journeys (formula practice/race, time trial, GP bike, wildcard, festival) complete with 0 console errors on software GL; Escape-pause bug fixed; festival loading bar stages; P19 test fixed. Festival "hang" was slow software GL, not a deadlock |
+| Vehicle Art 2 | EH-3 hero pass, 47 colourways, shared driver rework, sport bike shells |
+
+## Wave 3 in flight
+
+| Dept | Scope | Status |
+| --- | --- | --- |
+| IP/Legal + hero car | original APX-01 hero, supplied real-brand asset out of default builds (dist 166 → 128 MB), IP guard, notices | REWORK after skeptic REJECT (e2e 42/a31 fixtures, CI enforcement, deny-list recall) |
+| QA Bikes 2 | GP bike AI crash rate, GP-vs-superbike pace, dirt journeys | DOING |
+| Environment 2 | snow/ice, dawn, visibility rules, wildcard pairings | DOING |
+| UX 3 | career front door, first-run, results, settings, remaining screens | DOING |
+
+## Not measurable in this sandbox (open, honest)
+- Frame rate / load time on real GPUs, Steam Deck, Windows; Steam client; external playtesters; wishlists; refunds. These decide whether US$5k/month is reachable and no amount of in-repo work closes them.
+
+## Remaining queue
 
 - QA Circuit · QA Bikes & Dirt (start with the wheel-pickup failures) · QA Festival
 - Vehicle art & animation audit (46 vehicle ids; model/rig/livery/animation review via renders)
