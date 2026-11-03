@@ -31,6 +31,33 @@ export const SHOWROOM = Object.freeze({
   aperture: 0.0011,
   maxblur: 0.012,
 });
+/** Showroom lens for a four-wheel machine. The fixed 9.4 m orbit was authored for
+ * a 4.2-5.7 m car: a 2.1 m kart filled a sixth of the frame, a 6.8 m pickup left
+ * it on both edges. Inside that band the original SHOWROOM is returned unchanged;
+ * smaller or larger machines scale radius, aim offset, eye and aim heights with
+ * their length (collision-box length, m) so every machine fills the free
+ * right-hand part of the frame about equally. */
+const SHOWROOM_BAND = Object.freeze({ min: 4.2, max: 5.7, floor: 0.55, ceiling: 1.3 });
+export function showroomFit(length: number) {
+  if (!Number.isFinite(length) || length <= 0) return 1;
+  const { min, max, floor, ceiling } = SHOWROOM_BAND;
+  return length < min
+    ? Math.max(floor, length / min)
+    : length > max
+      ? Math.min(ceiling, length / max)
+      : 1;
+}
+export function showroomFor(length: number) {
+  const fit = showroomFit(length);
+  if (fit === 1) return SHOWROOM;
+  return Object.freeze({
+    ...SHOWROOM,
+    radius: SHOWROOM.radius * fit,
+    shift: SHOWROOM.shift * fit,
+    height: SHOWROOM.height * (0.6 + 0.4 * fit),
+    aim: SHOWROOM.aim * (0.7 + 0.3 * fit),
+  });
+}
 /** The same three-quarter showroom composition scaled to a 2 m motorcycle. */
 export const BIKE_SHOWROOM = Object.freeze({
   ...SHOWROOM,
