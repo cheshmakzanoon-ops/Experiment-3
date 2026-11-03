@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { build } from 'vite';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 import { resolve } from 'node:path';
 import manifest from '../src/rendering/apx01-shell.manifest.json' with { type: 'json' };
 import driverManifest from '../src/rendering/apx01-driver.manifest.json' with { type: 'json' };
@@ -11,6 +12,7 @@ test('27H.1 CPU component: complete car preserves physical motion, live material
 }, info) => {
   const result = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

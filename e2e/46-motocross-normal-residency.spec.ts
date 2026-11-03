@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { resolve } from 'node:path';
 import { build } from 'vite';
 import type { inspectNormalResidency } from './fixtures/motocross-normal-residency.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 for (const linearMetadata of [false, true]) {
   const title = linearMetadata
@@ -15,6 +16,7 @@ for (const linearMetadata of [false, true]) {
     });
     const built = await build({
       configFile: false,
+      define: fixtureDefine(),
       logLevel: 'error',
       build: {
         write: false,

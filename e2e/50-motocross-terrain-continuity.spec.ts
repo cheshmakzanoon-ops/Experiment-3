@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { resolve } from 'node:path';
 import { build } from 'vite';
 import type { captureMotocrossTerrainContinuity } from './fixtures/motocross-terrain-continuity.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('MX and SX display continuous lit receiver normals across worn chunk edges', async ({
   page,
@@ -13,6 +14,7 @@ test('MX and SX display continuous lit receiver normals across worn chunk edges'
   });
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

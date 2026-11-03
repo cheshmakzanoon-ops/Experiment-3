@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
 import { join, relative } from 'node:path';
-import { FORBIDDEN_RE, ALLOW } from '../scripts/ip-denylist.mjs';
+import { findBrands } from '../scripts/ip-denylist.mjs';
 import { buildNotices, NOTICES_PATH } from '../scripts/third-party-notices.mjs';
 import { BRANDS } from '../src/rendering/studio/brand-atlas.ts';
 import { DEFAULT_LIVERY, LIVERY_PRESETS } from '../src/storage/livery.ts';
@@ -26,16 +26,9 @@ function* walk(dir: string): Generator<string> {
     else yield path;
   }
 }
+/** Brand hits in `text` (separator-, case- and camelCase-insensitive; rule in ip-denylist.mjs). */
 function hits(text: string) {
-  const found: string[] = [];
-  for (const [label, re] of FORBIDDEN_RE) {
-    const global = new RegExp(re.source, 'gi');
-    for (const match of text.matchAll(global)) {
-      const around = text.slice(Math.max(0, match.index - 12), match.index + match[0].length + 12);
-      if (!ALLOW.some((a) => a.test(around))) found.push(`${label}: ${match[0]}`);
-    }
-  }
-  return found;
+  return findBrands(text).map((hit) => `${hit.label}: ${hit.word}`);
 }
 function glbNames(path: string) {
   const file = readFileSync(path);

@@ -5,10 +5,12 @@ import { readFile } from 'node:fs/promises';
 import type { raceHudLayout } from './fixtures/race-hud-layout.ts';
 import type { inspectAurelQuality } from './fixtures/aurel-race-quality.ts';
 import manifest from '../src/rendering/apx01-driver.manifest.json' with { type: 'json' };
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 async function fixture(path: string, name: string) {
   const output = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

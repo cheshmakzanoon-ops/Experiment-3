@@ -2,15 +2,15 @@ import { test, expect } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
 import type { cockpitFramingSurvey, CockpitSurveyRow } from './fixtures/cockpit-framing.ts';
-import { OWNER_BUILD, OWNER_ONLY_REASON } from './fixtures/owner-build.ts';
+import { OWNER_BUILD, fixtureDefine } from './fixtures/owner-build.ts';
 
 for (const group of ['framing', 'controls', 'driving', 'braking', 'weather'] as const)
-  test(`P0 actual supplied cockpit: ${group}, full circuit and camera framing evidence`, async ({
+  test(`P0 actual cockpit: ${group}, full circuit and camera framing evidence`, async ({
     page,
   }, info) => {
-    test.skip(!OWNER_BUILD, OWNER_ONLY_REASON);
     const bundled = await build({
       configFile: false,
+      define: fixtureDefine(),
       logLevel: 'error',
       build: {
         write: false,
@@ -56,7 +56,9 @@ for (const group of ['framing', 'controls', 'driving', 'braking', 'weather'] as 
       return api.CockpitSurvey.cockpitFramingSurvey(group, (row) => api.recordCockpit(row));
     }, group);
     for (const row of report.rows) {
-      expect(row.visual.suppliedPlayer).not.toBeNull();
+      // The owner-supplied cockpit only in an owner build; the authored one otherwise (G15).
+      if (OWNER_BUILD) expect(row.visual.suppliedPlayer).not.toBeNull();
+      else expect(row.visual.suppliedPlayer).toBeNull();
       expect(row.camera.position.every(Number.isFinite)).toBe(true);
       expect(row.nearIntersections, row.name).toEqual([]);
       if (row.name !== 'pod-retained') {
@@ -73,7 +75,7 @@ for (const group of ['framing', 'controls', 'driving', 'braking', 'weather'] as 
       contentType: 'application/json',
     });
     expect(report.sourceFramesUnchanged).toBe(true);
-    expect(report.sourceEyeRetained).toBe(true);
+    expect(report.sourceEyeRetained).toBe(OWNER_BUILD ? true : null);
     expect(report.glError).toBe(0);
     if (group === 'driving') {
       expect(report.rows.map((row) => row.name)).toEqual(['moving']);

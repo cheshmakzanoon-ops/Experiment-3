@@ -3,7 +3,7 @@ import { build } from 'vite';
 import { resolve } from 'node:path';
 import type { captureSuppliedPlayer } from './fixtures/supplied-player.ts';
 import manifest from '../src/rendering/supplied-player.manifest.json' with { type: 'json' };
-import { OWNER_BUILD, OWNER_ONLY_REASON } from './fixtures/owner-build.ts';
+import { OWNER_BUILD, OWNER_ONLY_REASON, fixtureDefine } from './fixtures/owner-build.ts';
 
 test('owner-supplied player (owner build only): actual binary fit, both locks, POV, T-cam and rewind', async ({
   page,
@@ -12,6 +12,7 @@ test('owner-supplied player (owner build only): actual binary fit, both locks, P
   test.setTimeout(300000);
   const bundled = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { REFERENCES } from '../src/ui/reference-catalogue.ts';
 import type * as Fixture from './fixtures/phase27e.ts';
-import { REVIEW_BUILD, REVIEW_ONLY_REASON } from './fixtures/owner-build.ts';
+import { REVIEW_BUILD, REVIEW_ONLY_REASON, fixtureDefine } from './fixtures/owner-build.ts';
 async function load(page: Page) {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
@@ -13,6 +13,7 @@ async function load(page: Page) {
   });
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

@@ -6,6 +6,7 @@ import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import manifest from '../src/rendering/tyre-blankets.manifest.json' with { type: 'json' };
 import type { captureBlankets } from './fixtures/tyre-blankets.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('A34 normal startup, practice and pause retain the real blanket kit', async ({
   page,
@@ -50,6 +51,7 @@ for (const lighting of ['day', 'sunset', 'night'] as const)
     expect(createHash('sha256').update(bytes).digest('hex')).toBe(manifest.sha256);
     const built = await build({
       configFile: false,
+      define: fixtureDefine(),
       logLevel: 'error',
       build: {
         write: false,

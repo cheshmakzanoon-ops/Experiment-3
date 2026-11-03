@@ -24,10 +24,13 @@ it('publishes exact validated bytes, recovers reruns, and rejects altered or sta
       state = join(root, 'mock-release');
     for (const path of [bin, models, manifests]) mkdirSync(path, { recursive: true });
     copyFileSync(script, join(root, 'publish.sh'));
+    // G15: the script certifies the artifact with the IP guard that sits next to it.
+    for (const guard of ['ip-guard.mjs', 'ip-denylist.mjs'])
+      copyFileSync(new URL(`../scripts/${guard}`, import.meta.url), join(root, guard));
     const sha = 'a'.repeat(40);
     writeFileSync(join(release, 'SOURCE_COMMIT.txt'), sha + '\n');
     writeFileSync(join(release, 'index.html'), '<html>exact tested build</html>');
-    const identity = { version: 1, commit: sha, fingerprint: 'c'.repeat(64) };
+    const identity = { version: 1, commit: sha, fingerprint: 'c'.repeat(64), variant: 'product' };
     writeFileSync(join(release, 'BUILD_IDENTITY.json'), JSON.stringify(identity));
     const families = [
       ['track-signal-hardware', 'aurel-track-signal-hardware.glb'],
@@ -134,6 +137,10 @@ else: raise ValueError(cmd)
       { ...identity, commit: 'b'.repeat(40) },
       { ...identity, fingerprint: 'invalid' },
       { ...identity, version: 2 },
+      // G15: only a product build is publishable; owner and review QA builds never are.
+      { ...identity, variant: 'owner' },
+      { ...identity, variant: 'review' },
+      { version: 1, commit: sha, fingerprint: 'c'.repeat(64) },
     ]) {
       writeFileSync(join(release, 'BUILD_IDENTITY.json'), JSON.stringify(invalid));
       expect(run().status).not.toBe(0);
@@ -145,6 +152,15 @@ else: raise ValueError(cmd)
     writeFileSync(join(models, 'supplied-player.glb.gz'), 'owner-only asset');
     expect(run().status).not.toBe(0);
     rmSync(join(models, 'supplied-player.glb.gz'));
+    // G15: a real-brand identifier in any shipped file fails the artifact's own IP guard run,
+    // in snake_case as well as in prose (and a clean artifact above passed the same run).
+    for (const leak of ['const d={"redbull_wordmark":1}', 'tyre_pirelli', 'Honda']) {
+      writeFileSync(join(release, 'index.html'), `<html>${leak}</html>`);
+      const refused = run();
+      expect(refused.status, leak).not.toBe(0);
+      expect(refused.stderr, leak).toContain('IP guard');
+    }
+    writeFileSync(join(release, 'index.html'), '<html>exact tested build</html>');
     // A mismatched source identity also fails before interacting with release APIs.
     writeFileSync(join(release, 'SOURCE_COMMIT.txt'), 'b'.repeat(40));
     expect(run().status).not.toBe(0);

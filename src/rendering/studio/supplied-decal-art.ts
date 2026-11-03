@@ -8,7 +8,7 @@
  * identifiers of somebody else's artwork, not product content: this module is
  * reachable only through `supplied-lookdev.ts`, which is only reachable behind
  * `SUPPLIED_PLAYER_BUILD`, so a product bundle contains none of these strings
- * (`npm run check:bundle` fails the build if one appears).
+ * (`vite build` runs `scripts/ip-guard.mjs`, which fails the build if one appears).
  */
 import { BRAND_ART, type MarkArt } from './brand-atlas.ts';
 

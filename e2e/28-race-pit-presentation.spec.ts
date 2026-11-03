@@ -9,6 +9,7 @@ import { readPerformanceReport } from '../src/core/performance.ts';
 import type { SessionReviewReport } from '../src/core/session-review.ts';
 import { PIT_SERVICE_RADIUS } from '../src/rendering/pit-presentation.ts';
 import { recordedPitMoment } from './fixtures/pit-replay-selection.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test.use({ video: { mode: 'on', size: { width: 960, height: 600 } } });
 const machine = 'Hosted Chromium software GPU; not physical hardware acceptance';
@@ -616,6 +617,7 @@ test('27H.6 GPU material: a damp film retains aggregate while deep standing wate
   const { resolve } = await import('node:path');
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

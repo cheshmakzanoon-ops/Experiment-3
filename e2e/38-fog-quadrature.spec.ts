@@ -2,12 +2,14 @@ import { expect, test } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
 import type { fogQuadratureGPU } from './fixtures/race-surface-atmosphere.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('vector fog quadrature preserves the scalar density model on low, high and long rays', async ({
   page,
 }, info) => {
   const result = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

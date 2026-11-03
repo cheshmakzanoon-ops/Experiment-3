@@ -6,6 +6,7 @@ import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import manifest from '../src/rendering/overhead-garage-service-rig.manifest.json' with { type: 'json' };
 import type { captureA26 } from './fixtures/a26-overhead-services.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('A26 production startup and practice entry retain the overhead rig with A22 and A33', async ({
   page,
@@ -57,6 +58,7 @@ for (const [lighting, wet] of [
     expect(createHash('sha256').update(rig).digest('hex')).toBe(manifest.sha256);
     const bundle = await build({
       configFile: false,
+      define: fixtureDefine(),
       logLevel: 'error',
       build: {
         write: false,

@@ -3,9 +3,10 @@ import { build } from 'vite';
 import { resolve } from 'node:path';
 import { readFileSync } from 'node:fs';
 import type * as Probe from './fixtures/race-surface-finish.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('production tyre states survive every LOD and metric venues render without shader errors', async ({ page }, info) => {
-  const built = await build({ configFile: false, logLevel: 'error', build: { write: false,
+  const built = await build({ configFile: false, define: fixtureDefine(), logLevel: 'error', build: { write: false,
     lib: { entry: resolve('e2e/fixtures/race-surface-finish.ts'), name: 'RaceSurfaceProbe', formats: ['iife'] } } });
   const output = Array.isArray(built) ? built[0] : built;
   if (!('output' in output)) throw new Error('Missing fixture output');

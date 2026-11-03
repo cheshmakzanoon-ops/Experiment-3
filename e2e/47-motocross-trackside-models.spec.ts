@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { build } from 'vite';
 import { MX_TRACKSIDE_MODELS } from '../src/rendering/offroad/mx-trackside-models.ts';
 import type { captureMxTracksideModel } from './fixtures/mx-trackside-model-review.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('all six production MX trackside models render with complete material batches on WebGL2', async ({
   page,
@@ -14,6 +15,7 @@ test('all six production MX trackside models render with complete material batch
   });
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

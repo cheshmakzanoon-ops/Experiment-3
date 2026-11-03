@@ -6,9 +6,10 @@
 > game. Since G15 the default build neither bundles its loader nor copies its binaries
 > (`public/models/supplied-player.glb.gz`, `supplied-player-lods.bin.gz`): the player's
 > APX-01 is the original authored car (`apx01-shell` + A61 levels, procedural cockpit).
-> Build the owner-only variant with `MOTOBOUND_SUPPLIED_PLAYER=1 npm run build` (and the same
-> variable for `npm run dev`); never publish, package or share that build. Audit and the
-> owner/counsel decisions: [docs/studio/reports/ip-audit.md](studio/reports/ip-audit.md).
+> Build the owner-only variant with `npm run build:qa` (and `MOTOBOUND_SUPPLIED_PLAYER=1` for
+> `npm run dev`). `npm run build` refuses that variable, and `scripts/ip-guard.mjs` and the
+> release script refuse the output, so it can never be certified or published; never publish,
+> package or share that build. Audit and the owner/counsel decisions: [docs/studio/reports/ip-audit.md](studio/reports/ip-audit.md).
 > The sections below describe the owner build only. Node names inside the binary keep the
 > source file's own naming because the binary is hash-pinned; the real-brand wording in this
 > document has been generalised.

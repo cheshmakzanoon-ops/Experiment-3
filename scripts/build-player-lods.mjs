@@ -22,7 +22,7 @@ const update = process.argv.includes('--update-manifest');
 // `pretest` keeps generating it: the unit tests still cover the owner-only path.
 if (process.argv.includes('--owner-only') && process.env.MOTOBOUND_SUPPLIED_PLAYER !== '1') {
   console.log(
-    'Player LODs skipped: product build (set MOTOBOUND_SUPPLIED_PLAYER=1 for an owner build).',
+    'Player LODs skipped: product build (an owner QA build, npm run build:qa, generates them).',
   );
   process.exit(0);
 }

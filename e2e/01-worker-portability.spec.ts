@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { build } from 'vite';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 import { resolve } from 'node:path';
 import type { verifyWorkerPortability } from './fixtures/worker-portability.ts';
 
@@ -9,6 +10,7 @@ test('physics and CSV workers run when the JS bundle is served from a different 
   test.setTimeout(60000);
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     worker: { format: 'es' },
     build: {

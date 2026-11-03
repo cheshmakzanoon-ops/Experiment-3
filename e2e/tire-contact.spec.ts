@@ -2,12 +2,14 @@ import { expect, test } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
 import type { captureTireContact } from './fixtures/tire-contact.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('recorded tyre strain: GPU plane, bead, normals, authored transform, catalogue shadows and rewind', async ({
   page,
 }, info) => {
   const bundled = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

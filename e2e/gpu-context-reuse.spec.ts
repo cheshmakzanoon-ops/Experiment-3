@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { resolve } from 'node:path';
 import { build } from 'vite';
 import type * as Fixture from './fixtures/webgl-renderer-reuse.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 declare global {
   interface Window {
@@ -23,6 +24,7 @@ test('renderer context reuse clears fallback upload state and preserves 2D textu
   });
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

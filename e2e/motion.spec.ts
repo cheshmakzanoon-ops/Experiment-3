@@ -2,11 +2,12 @@ import { expect, test } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
 import type { verifyMotionGPU } from './fixtures/motion.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('real GPU motion vectors follow object movement and preserve a co-moving cockpit', async ({ page }, info) => {
   test.setTimeout(60000);
   // A separate test bundle avoids exposing private mutation/test APIs in the app.
-  const result = await build({ configFile: false, logLevel: 'error', build: {
+  const result = await build({ configFile: false, define: fixtureDefine(), logLevel: 'error', build: {
     write: false, minify: false, lib: { entry: resolve('e2e/fixtures/motion.ts'), name: 'APEXMotionTest', formats: ['iife'] },
   } });
   const output = (Array.isArray(result) ? result[0] : result);

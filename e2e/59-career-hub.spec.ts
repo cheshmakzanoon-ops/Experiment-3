@@ -3,6 +3,7 @@ import { build } from 'vite';
 import { resolve } from 'node:path';
 import { readFile } from 'node:fs/promises';
 import type { mountCareerHub } from './fixtures/career-hub.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test.use({ actionTimeout: 15000 });
 
@@ -14,6 +15,7 @@ test('career hub: CAREER entry, keyboard reach, licences, dealership, garage and
   page.setDefaultTimeout(10000);
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

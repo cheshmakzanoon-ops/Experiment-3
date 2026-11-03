@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { resolve } from 'node:path';
 import { build } from 'vite';
 import type { captureMotocrossWorkedSoil } from './fixtures/motocross-worked-soil.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('MX and SX prepared traffic remains visible and reversible with resident production soil', async ({
   page,
@@ -13,6 +14,7 @@ test('MX and SX prepared traffic remains visible and reversible with resident pr
   });
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

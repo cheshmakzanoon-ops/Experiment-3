@@ -2,11 +2,13 @@ import { expect, test } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
 import type * as Probe from './fixtures/race-finish.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 let code: string;
 test.beforeAll(async () => {
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

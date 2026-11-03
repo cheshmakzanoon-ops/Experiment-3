@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build",
+    "build:qa": "node scripts/build-qa.mjs",
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run",
     "test:physics": "node --experimental-transform-types scripts/validate.ts && npm run test:dynamics && npm run test:race-control && npm run test:wet-pits && npm run test:journey",
@@ -44,7 +45,7 @@
     "pretest": "npm run generate:player-lods",
     "test:e2e:shard": "node --experimental-strip-types scripts/run-browser-shard.ts",
     "check:bundle": "node scripts/bundle-budget.mjs && node scripts/ip-guard.mjs",
-    "check:ip": "node scripts/ip-guard.mjs",
+    "check:ip": "node scripts/ip-guard.mjs --dist dist",
     "notices": "node scripts/third-party-notices.mjs",
     "check:stable": "node --experimental-transform-types scripts/source-stability.ts -- npm run check",
     "desktop:install": "npm --prefix desktop install",

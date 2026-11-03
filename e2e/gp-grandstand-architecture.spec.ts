@@ -2,12 +2,14 @@ import { expect, test } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
 import type { captureGpGrandstands } from './fixtures/gp-grandstand-review.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('four GP grandstands render production crowds and stable wet/held/reset materials', async ({
   page,
 }, info) => {
   const bundle = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

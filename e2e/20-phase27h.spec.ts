@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { build } from 'vite';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 import manifest from '../src/rendering/apx01-shell.manifest.json' with { type: 'json' };
 import { F, H, carBase } from '../src/simulation/protocol.ts';
 
@@ -74,6 +75,7 @@ test('27H: isolated renderer imports do not resolve an asset URL or fetch bodywo
 }) => {
   const bundle = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

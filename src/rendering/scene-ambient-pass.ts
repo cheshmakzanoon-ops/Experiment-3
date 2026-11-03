@@ -305,7 +305,7 @@ const compositeFragment = /* glsl */ `
   void main() {
     vec4 color = texture2D(tColor, vUv);
     #ifdef MOTION_DEBUG_VELOCITY
-      // Test oracle: unclamped streak (uv units), linear depth, geometry mask.
+      // Test reference output: unclamped streak (uv units), linear depth, geometry mask.
       float debugZ = viewZAt(vUv);
       vec2 debugStreak = motionActive > 0.5 ? motionPixels(viewAtZ(vUv, debugZ), colorResolution) : vec2(0.0);
       gl_FragColor = vec4(debugStreak / colorResolution, -debugZ, sceneDepth(vUv) < 0.99999 ? 1.0 : 0.0);

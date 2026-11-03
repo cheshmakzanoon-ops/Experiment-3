@@ -2,12 +2,14 @@ import { expect, test } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
 import type { captureGpCourse } from './fixtures/gp-course-review.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('GP course markers, protective covers and approach bridge render through dry, wet, held and restored views', async ({
   page,
 }, info) => {
   const bundle = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

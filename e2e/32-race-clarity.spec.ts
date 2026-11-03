@@ -2,6 +2,7 @@ import { expect, test, type Page, type TestInfo } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
 import type * as Probe from './fixtures/probe-radiance.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 const read = (page: Page) => page.evaluate(() => window.apexDiagnostics());
 async function capture(page: Page, info: TestInfo, name: string) {
@@ -28,6 +29,7 @@ test('local night radiance is not attenuated twice and rewind does not accumulat
 }, info) => {
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

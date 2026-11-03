@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { build } from 'vite';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 import { resolve } from 'node:path';
 import type { captureCircuitSurvey } from './fixtures/circuit-survey.ts';
 
@@ -8,6 +9,7 @@ for (const weather of ['clear', 'rain'] as const) {
     test.setTimeout(300000);
     const built = await build({
       configFile: false,
+      define: fixtureDefine(),
       logLevel: 'error',
       build: {
         write: false,

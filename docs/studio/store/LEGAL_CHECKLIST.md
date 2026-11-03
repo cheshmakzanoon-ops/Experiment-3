@@ -52,7 +52,7 @@ installed here and no such list has been generated.
 | Item | Status | Notes |
 | --- | --- | --- |
 | No licensed names, logos or liveries in shipped content | **Done (repo) / ongoing** | Enforced by `validate:content` and `forbiddenNameIn`; the Content/Art departments own new entries. |
-| Licensed-product references inside the shipped JS | **Done (repo)** | `src/ui/reference-catalogue.ts` is compiled out of product builds (`__REVIEW_TOOLS__`, default off; `MOTOBOUND_REVIEW_TOOLS=1` keeps it for the e2e review specs). `npm run check:bundle` runs `scripts/ip-guard.mjs`, which fails the build if a commercial-game or coverage URL, real team/sponsor/maker name or owner-only binary appears in `dist/`. |
+| Licensed-product references inside the shipped JS | **Done (repo)** | `src/ui/reference-catalogue.ts` is compiled out of product builds (`__REVIEW_TOOLS__`, default off; `MOTOBOUND_REVIEW_TOOLS=1` keeps it for the e2e review specs). `scripts/ip-guard.mjs` runs inside every product `vite build` (so `npm run build` fails), in the CI `validate` job and in the release script; it fails on a commercial-game or coverage URL, a real team/sponsor/maker name (any spelling: `RB19_BODY`, `tag_heuer`, `HardRock`) or an owner-only binary in `dist/`, and refuses owner and review QA builds outright. |
 | Legacy "APEX" product naming | **Done for everything a player or a file listing shows; storage identifiers kept** | `CREDITS.txt`, exported file names (`motobound-photo-*.png`, `motobound-telemetry.csv`, `motobound-setup.json`, review/evidence exports), the race-HUD wordmark (`MB`), the nose and workshop lettering, the default livery sponsor and the tyre brand (now `MOTOBOUND`) were renamed. Kept on purpose, never shown: IndexedDB `apex-formula` / `apex-replay-cache`, localStorage keys, the career lock name and the `apex-verified-session` record format. Renaming them orphans existing saves; a migration (open old DB, copy stores, keep a read fallback) is about a day plus tests and is only worth doing if the owner wants clean storage names. |
 | Music and trailer audio | **Open** | No music is shipped with the game today (audio is synthesised). Any trailer track needs a written licence (original, CC0 or CC-BY with credit) stored with the trailer project. |
 | Fonts, icons and capsule art | **Open** | `desktop/build/icon.png` is the placeholder rendered from `public/icon.svg` (an "A" glyph from the former name). Replace with the final brand mark. |
@@ -79,7 +79,7 @@ installed here and no such list has been generated.
 2. Privacy policy published and linked on the store page.
 3. `CREDITS & LICENCES` updated with code and font notices; OFL text and three.js/Basis notices shipped. **Done (repo).**
 4. Steamworks libraries only in Steam depots.
-5. Reference-catalogue module excluded from the production bundle. **Done (repo)**, enforced by `npm run check:bundle`.
+5. Reference-catalogue module excluded from the production bundle. **Done (repo)**, enforced by the IP guard in `npm run build`, CI `validate` and the release script.
 6. Name clearance result and the circuit-approximation opinion from counsel.
 7. Ratings questionnaire answers signed off from a full playthrough.
 

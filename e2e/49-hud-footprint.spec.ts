@@ -3,6 +3,7 @@ import { build } from 'vite';
 import { resolve } from 'node:path';
 import { readFile } from 'node:fs/promises';
 import type { raceHudLayout } from './fixtures/race-hud-layout.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 /** Broadcast racing HUDs keep the road visible: small peripheral clusters for
  * standings, timing, telemetry and car state. This measures the opaque panel
@@ -14,6 +15,7 @@ const MAX_SHARE = 0.12;
 test('race HUD panels leave the road visible at desktop resolutions', async ({ page }, info) => {
   const bundled = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

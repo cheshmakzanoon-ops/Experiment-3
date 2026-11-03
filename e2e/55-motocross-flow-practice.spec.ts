@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
 import { writeFile } from 'node:fs/promises';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('linked MX sections display real practice-judge results and keep mobile controls clear', async ({
   page,
@@ -10,6 +11,7 @@ test('linked MX sections display real practice-judge results and keep mobile con
   page.on('pageerror', (error) => errors.push(error.message));
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

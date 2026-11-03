@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { resolve } from 'node:path';
 import { build } from 'vite';
 import type * as API from './fixtures/motocross-interface.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 declare global {
   interface Window {
@@ -16,6 +17,7 @@ test('motocross entry, live race alerts and landing HUD remain usable at small s
   page.on('pageerror', (error) => errors.push(error.message));
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

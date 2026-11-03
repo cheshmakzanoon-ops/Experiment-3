@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { build } from 'vite';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 import { resolve } from 'node:path';
 import { controlAngles } from '../src/rendering/cockpit.ts';
 import type { captureCockpitArticulation } from './fixtures/cockpit-detail.ts';
@@ -10,6 +11,7 @@ test('detailed cockpit retains physical steering, recorded selectors, pause and 
   test.setTimeout(300000);
   const bundled = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

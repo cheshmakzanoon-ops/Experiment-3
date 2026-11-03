@@ -5,6 +5,7 @@ import type {
   captureMotocrossDustLighting,
   captureMotocrossRoostLighting,
 } from './fixtures/motocross-roost-lighting.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('opaque motocross soil fragments respond to scene lighting while dust and contact remain bounded', async ({
   page,
@@ -16,6 +17,7 @@ test('opaque motocross soil fragments respond to scene lighting while dust and c
   });
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,
@@ -81,6 +83,7 @@ test('motocross dust scatters actual sun and lamp light without glowing in the d
   });
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

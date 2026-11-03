@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { build } from 'vite';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 import { resolve } from 'node:path';
 import { readFile } from 'node:fs/promises';
 import type { raceHudLayout, gridPreparationControls } from './fixtures/race-hud-layout.ts';
@@ -9,6 +10,7 @@ test('Race-Day V2 DOM-only: lower-corner telemetry clears the road, lights and t
 }, info) => {
   const bundled = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,
@@ -205,6 +207,7 @@ for (const viewport of [
     page.setDefaultTimeout(5000);
     const bundled = await build({
       configFile: false,
+      define: fixtureDefine(),
       logLevel: 'error',
       build: {
         write: false,

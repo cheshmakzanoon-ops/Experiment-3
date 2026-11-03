@@ -3,6 +3,7 @@ import { build } from 'vite';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import type { captureMotocrossBike } from './fixtures/motocross-bike-review.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 type CaptureOptions = {
   id: string;
@@ -22,6 +23,7 @@ let bundleCode: Promise<string> | undefined;
 async function compileReview() {
   const bundle = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

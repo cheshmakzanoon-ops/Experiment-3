@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
 import type { cameraContinuity } from './fixtures/camera-continuity.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('cockpit remains framed after slow turns and camera diagnostics commit with the listener', async ({
   page,
@@ -10,6 +11,7 @@ test('cockpit remains framed after slow turns and camera diagnostics commit with
   await page.setViewportSize({ width: 480, height: 300 });
   const result = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

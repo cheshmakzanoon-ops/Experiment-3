@@ -3,12 +3,14 @@ import { build } from 'vite';
 import { resolve } from 'node:path';
 import manifest from '../src/rendering/apx01-driver.manifest.json' with { type: 'json' };
 import type { raceViewContinuity } from './fixtures/race-view-continuity.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('current-camera car detail and active wheel poses survive immediate cuts and long-lens review', async ({
   page,
 }, info) => {
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,
@@ -94,6 +96,7 @@ test('loading compiles the actual first-service colour variant without concealin
 }, info) => {
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { build } from 'vite';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 import { resolve } from 'node:path';
 import type { verifyMarbleGPU } from './fixtures/marbles.ts';
 
@@ -9,6 +10,7 @@ test('physical marble pickup drives road texture, individual tire materials and 
   test.setTimeout(60000);
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

@@ -3,10 +3,12 @@ import { build } from 'vite';
 import { resolve } from 'node:path';
 import { writeFile } from 'node:fs/promises';
 import type { captureMxCourseIdentities } from './fixtures/motocross-course-landmarks.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 async function loadCourseReview(page: Page) {
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

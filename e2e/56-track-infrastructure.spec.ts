@@ -3,6 +3,7 @@ import { build } from 'vite';
 import { resolve } from 'node:path';
 import { requireInfrastructureRenderBudget } from '../scripts/infrastructure-render-budget.ts';
 import type { surveyInfrastructure } from './fixtures/track-infrastructure.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 // Same camera/snapshot/render workload on the unchanged baseline. Only new-kit
 // existence/negative controls are unavailable in that deliberately older source.
@@ -14,6 +15,7 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
     test.setTimeout(420000);
     const built = await build({
       configFile: false,
+      define: fixtureDefine(),
       logLevel: 'error',
       build: {
         write: false,

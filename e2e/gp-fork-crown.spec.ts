@@ -2,11 +2,13 @@ import { expect, test } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
 import type { captureBike } from './fixtures/motogp-reference-review.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 let fixtureScript: string;
 test.beforeAll(async () => {
   const bundle = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

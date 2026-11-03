@@ -7,6 +7,7 @@ import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
 import { F, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../src/simulation/protocol.ts';
 import type { surveyA32 } from './fixtures/a32-pit-jacks.ts';
 import manifest from '../src/rendering/a32-pit-jacks.manifest.json' with { type: 'json' };
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('A32 loads the retained GLB before ordinary practice entry', async ({ page }, info) => {
   const errors: string[] = [],
@@ -90,6 +91,7 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
       expect(raised[o + WHEEL_BASE + wheel * WHEEL_STRIDE + W.LOAD]).toBeLessThan(50);
     const result = await build({
       configFile: false,
+      define: fixtureDefine(),
       logLevel: 'error',
       build: {
         write: false,

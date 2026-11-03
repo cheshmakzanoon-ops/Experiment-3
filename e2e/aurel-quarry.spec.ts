@@ -5,6 +5,7 @@ import { writeFile } from 'node:fs/promises';
 import type { surveyAurelQuarry } from './fixtures/aurel-quarry.ts';
 import { requireOperationsInspectionBudget } from '../scripts/operations-render-budget.ts';
 import { requireInfrastructureRenderBudget } from '../scripts/infrastructure-render-budget.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 for (const lighting of ['day', 'sunset', 'night'] as const) {
   test(`A55-A60 ${lighting} full production landscape, cockpit and stable camera cycles`, async ({
@@ -16,6 +17,7 @@ for (const lighting of ['day', 'sunset', 'night'] as const) {
     test.setTimeout(1200000);
     const built = await build({
       configFile: false,
+      define: fixtureDefine(),
       logLevel: 'error',
       build: {
         write: false,

@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 import { CAR_STRIDE, F, H, HEADER, carBase } from '../src/simulation/protocol.ts';
 import type { EngineVoices } from '../src/audio/engine-voices.ts';
 import type { AudioView } from '../src/audio/spatial.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 // This is the production synthesis graph in a real browser's offline audio
 // renderer. The prescribed source trajectory is an isolated acoustic fixture,
@@ -13,6 +14,7 @@ test('actual engine output follows camera stereo, Doppler, distance and pass-by 
 }, info) => {
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

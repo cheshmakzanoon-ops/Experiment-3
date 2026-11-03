@@ -22,6 +22,12 @@ jobs:
       # publication still requires both jobs and every existing browser gate.
       - name: Lint, validate content, typecheck and build without source changes
         run: node --experimental-transform-types scripts/source-stability.ts -- bash -c 'npm run lint && npm run validate:content && npm run build'
+      # Release gate G15 (docs/studio/reports/ip-audit.md). The same guard already ran inside
+      # `vite build` (a brand name or an owner-only asset in dist/ fails the build itself); this is
+      # the separate, visible step on the exact directory uploaded below, which publication
+      # downloads. It refuses an owner or review build and has no switch that turns that off.
+      - name: IP guard on the built output
+        run: node scripts/ip-guard.mjs --dist dist
       - name: Static application build
         uses: actions/upload-artifact@v4
         with:
@@ -289,8 +295,8 @@ jobs:
           test -s dist/index.html
           test -d dist/assets
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/41-player-render-budget.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts
-      - name: Wet and supplied-player presentation screenshots and GPU measurements
+      - run: npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts
+      - name: Wet presentation and original-player-car screenshots and GPU measurements
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -302,10 +308,49 @@ jobs:
             browser-progress.json
           retention-days: 7
 
+  owner-qa:
+    # Release gate G15. The player's car is the original authored APX-01 in the product build
+    # tested above, so the specs that need the owner-supplied real-brand model, or the internal
+    # review tooling (the reference catalogue), cannot run against it and skip there with a stated
+    # reason. They run HERE, against a separate QA build made by `npm run build:qa`
+    # (MOTOBOUND_SUPPLIED_PLAYER=1, MOTOBOUND_REVIEW_TOOLS=1). That build stays inside this job: it
+    # is never uploaded, `publish` never downloads it, and scripts/ip-guard.mjs and the release
+    # script refuse it. It never goes through `npm run build` or `npm run check:ip`.
+    env:
+      APEX_BROWSER_BACKEND: swiftshader
+      MOTOBOUND_SUPPLIED_PLAYER: '1'
+      MOTOBOUND_REVIEW_TOOLS: '1'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - name: QA build (owner model and review tooling, not for release)
+        run: npm run build:qa
+      - run: npx playwright install --with-deps chromium
+      - name: Owner-only and review-tool specs, plus the owner half of the dual-mode specs
+        run: npm run test:e2e -- e2e/39-supplied-player.spec.ts e2e/41-player-render-budget.spec.ts e2e/p0-cockpit-framing.spec.ts e2e/24-coupled-driver.spec.ts e2e/53-a61-rival.spec.ts e2e/application.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/a31-wheel-gun.spec.ts e2e/07-reference-tools.spec.ts e2e/08-reference-implementation.spec.ts e2e/09-reference-depth.spec.ts e2e/14-phase27e.spec.ts e2e/15-review-journey.spec.ts
+      - name: Owner QA screenshots and measurements (test results only, never the build)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: owner-qa
+          path: |
+            test-results/
+            playwright-report/
+            browser-backend.json
+            browser-progress.json
+          retention-days: 7
+
   publish:
     # Ship exactly the build tested above, never a parallel unvalidated rebuild.
     # The CDN workflow consumes this gated artifact, not an independent build.
-    needs: [validate, unit-tests, scenarios, offroad-scenarios, browser, wet-presentation]
+    needs: [validate, unit-tests, scenarios, offroad-scenarios, browser, wet-presentation, owner-qa]
     # Manual validation of the current main must produce the SAME gated artifact.
     # Keep success() and all needs: a dispatch never bypasses a failed test.
     if: >-
@@ -373,6 +418,11 @@ jobs:
           test "$DOWNLOAD_SUCCEEDED" = true
           test -s dist/index.html
           test -d dist/assets
+      # Release gate G15: certify the downloaded artifact itself (product variant, no owner asset,
+      # no real-brand identifier) before anything is prepared from it. The release script runs the
+      # same guard again on the bytes it zips.
+      - name: IP guard on the artifact to release
+        run: node scripts/ip-guard.mjs --dist dist
       - name: Prepare tested main-branch release artifact
         id: release
         shell: bash

@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { resolve } from 'node:path';
 import { build } from 'vite';
 import type { captureMotocrossShoulderPlants } from './fixtures/motocross-shoulder-plants.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('production MX shoulder plants compile and reproduce held and rewound wind pixels', async ({
   page,
@@ -13,6 +14,7 @@ test('production MX shoulder plants compile and reproduce held and rewound wind 
   });
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

@@ -2,10 +2,11 @@ import { expect, test } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
 import type { verifyWeatherGPU } from './fixtures/weather.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 test('actual wet simulation drives rendered spray, rain, wind and particle cleanup', async ({ page }, info) => {
   test.setTimeout(60000);
-  const result = await build({ configFile: false, logLevel: 'error', build: {
+  const result = await build({ configFile: false, define: fixtureDefine(), logLevel: 'error', build: {
     write: false, minify: false,
     lib: { entry: resolve('e2e/fixtures/weather.ts'), name: 'APEXWeatherTest', formats: ['iife'] },
   } });

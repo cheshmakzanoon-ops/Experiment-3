@@ -1,11 +1,13 @@
 import { test, expect } from '@playwright/test';
 import { build } from 'vite';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 import { resolve } from 'node:path';
 import type { captureAeroSurfaces } from './fixtures/aero-surface.ts';
 
 test('original aero surfaces: production car studio review', async ({ page }, info) => {
   const bundled = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

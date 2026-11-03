@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { resolve } from 'node:path';
 import { build } from 'vite';
 import type * as Fixture from './fixtures/gp-grounding.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 declare global {
   interface Window {
@@ -19,6 +20,7 @@ test('GP grounding: real WebGL2 receivers, two tyre footprints and deterministic
   });
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

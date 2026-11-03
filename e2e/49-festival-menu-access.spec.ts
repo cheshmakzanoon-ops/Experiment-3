@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 import { readFile } from 'node:fs/promises';
 import type { mountFestivalMenu, mountFestivalResults } from './fixtures/festival-menu-access.ts';
 import type { FestivalStatus } from '../src/simulation/open-world/session.ts';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 
 type Fixture = {
   mountFestivalMenu: typeof mountFestivalMenu;
@@ -19,6 +20,7 @@ test.use({ actionTimeout: 15000 });
 async function load(page: import('@playwright/test').Page) {
   const built = await build({
     configFile: false,
+    define: fixtureDefine(),
     logLevel: 'error',
     build: {
       write: false,

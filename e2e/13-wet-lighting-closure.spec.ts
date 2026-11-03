@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { build } from 'vite';
+import { fixtureDefine } from './fixtures/owner-build.ts';
 import { resolve } from 'node:path';
 import type * as Fixture from './fixtures/wet-lighting-closure.ts';
 
@@ -7,7 +8,7 @@ test('lit spray follows scene lights, projected wake, pause, clear and near-plan
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
-  const built = await build({ configFile: false, logLevel: 'error', build: { write: false,
+  const built = await build({ configFile: false, define: fixtureDefine(), logLevel: 'error', build: { write: false,
     lib: { entry: resolve('e2e/fixtures/wet-lighting-closure.ts'), name: 'WetClosure', formats: ['iife'] } } });
   const output = Array.isArray(built) ? built[0] : built;
   if (!('output' in output)) throw new Error('Missing wet closure fixture');
