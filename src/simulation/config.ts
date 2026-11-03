@@ -149,7 +149,13 @@ export interface SessionOptions {
   compound: Compound;
   setup: Setup;
   seed: number;
+  /** Base skill of the AI drivers (0.8-1): each rival adds up to 0.042 to it by
+   * car id. Absent: AI_BASE_SKILL, which keeps every existing session as it was. */
+  aiSkill?: number;
 }
+/** The AI field's base skill when a session does not name one. */
+export const AI_BASE_SKILL = 0.92;
+export const AI_SKILL_LIMITS = Object.freeze({ min: 0.8, max: 1 });
 export const DEFAULT_OPTIONS: SessionOptions = {
   mode: 'race',
   laps: 3,
@@ -260,6 +266,9 @@ export function validateOptions(v: unknown): SessionOptions {
     compound: o.compound && Object.hasOwn(COMPOUNDS, o.compound) ? o.compound : 'medium',
     setup: validateSetup(o.setup ?? DEFAULT_SETUP),
     seed: Number.isFinite(o.seed) ? (o.seed as number) >>> 0 : 73021,
+    ...(Number.isFinite(o.aiSkill)
+      ? { aiSkill: clamp(o.aiSkill as number, AI_SKILL_LIMITS.min, AI_SKILL_LIMITS.max) }
+      : {}),
   };
 }
 export interface Controls {

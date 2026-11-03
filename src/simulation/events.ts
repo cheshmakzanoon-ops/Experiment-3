@@ -11,7 +11,9 @@ import {
   OFFROAD_RULESETS,
   type OffroadFormat,
 } from './offroad/formats.ts';
-import { venueAdmits } from './offroad/venues.ts';
+import { offroadCourse, venueAdmits } from './offroad/venues.ts';
+import type { OffroadKind } from './offroad/types.ts';
+import { WILDCARD_RULESETS } from './wildcard-rulesets.ts';
 
 /** Composable sporting rules (WP09 / F07, masterplan §6.3). A session format
  * (practice, qualifying, race...) is separate from its ruleset (tyre, service,
@@ -51,6 +53,11 @@ export interface RulesetDefinition {
   /** Runs only on circuits assessed bike-safe (`CircuitDefinition.bikeSafe`),
    * and only the classes cleared there (`CircuitDefinition.bikeClasses`). */
   bikeSafeCircuits?: boolean;
+  /** Wildcard rulesets: classes admitted at a terrain venue of each course
+   * kind in addition to the venue's own discipline (a pairing the series has
+   * evidence for, wildcard-rulesets.ts). Absent: terrain venues keep to their
+   * own machines. */
+  crossVenue?: Readonly<Partial<Record<OffroadKind, readonly VehicleClass[]>>>;
 }
 const DRY: readonly Compound[] = Object.freeze(['soft', 'medium', 'hard']);
 const ALL: readonly Compound[] = Object.freeze([...DRY, 'intermediate', 'wet']);
@@ -195,6 +202,7 @@ export const RULESETS: Readonly<Record<string, RulesetDefinition>> = Object.free
   }),
   ...CATALOGUE_RULESETS,
   ...OFFROAD_RULESETS,
+  ...WILDCARD_RULESETS,
 });
 /** The ruleset each legacy mode always implied. */
 export const DEFAULT_RULESET: Readonly<Record<SessionMode, string>> = Object.freeze({
@@ -245,9 +253,11 @@ export function sessionIncompatibilities(options: SessionOptions): string[] {
     errors.push(`${rules.name} needs eligible vehicles; the default Formula field is not`);
   // Terrain venues admit their own families (no Formula car on a motocross track).
   const venue = circuitDefinition(options.circuit);
+  const terrainKind = offroadCourse(venue)?.kind,
+    crossover = terrainKind ? rules.crossVenue?.[terrainKind] : undefined;
   vehicles.forEach((id, car) => {
     const def = VEHICLES[id];
-    if (def && !venueAdmits(venue, def.classId))
+    if (def && !venueAdmits(venue, def.classId) && !crossover?.includes(def.classId))
       errors.push(`Car ${car + 1} (${def.name}) cannot race at ${venue.name}`);
   });
   if (!options.vehicles && venue.offroad) errors.push(`${venue.name} needs off-road machines`);
@@ -286,6 +296,8 @@ export interface EventDefinition {
   vehicles: readonly string[] | string;
   compound: Compound;
   seed: number;
+  /** Base AI skill (config.ts AI_SKILL_LIMITS); absent: the default field. */
+  aiSkill?: number;
 }
 /** Resolve an event into the session the simulation loads, rejecting
  * incompatible combinations before anything is built. */
@@ -311,6 +323,7 @@ export function eventSession(event: EventDefinition, base: SessionOptions): Sess
     seed: event.seed,
     vehicles,
     ...(event.durationSeconds !== undefined ? { durationSeconds: event.durationSeconds } : {}),
+    ...(event.aiSkill !== undefined ? { aiSkill: event.aiSkill } : {}),
   };
   const errors = sessionIncompatibilities(options);
   if (errors.length) throw new Error(`${event.name}: ${errors.join('; ')}`);

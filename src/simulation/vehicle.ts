@@ -49,6 +49,10 @@ export function engineTorque(rpm: number, spec: VehicleSpec = FORMULA_APX01.spec
  * equal substeps, so stiff contact, tyre and suspension modes see at most
  * this step whatever the caller's rate (60/120/240 Hz give the same physics). */
 export const MAX_SUBSTEP = 1 / 240;
+/** Road slope (banking or gradient, rise over run) above which `place` tilts
+ * the chassis onto the road plane. The catalogue's cross-fall and grid
+ * gradients are well under it, so their placement is unchanged. */
+export const PLACE_ALIGN_SLOPE = 0.03;
 export class Vehicle {
   readonly body = new RigidBody();
   readonly input: Controls = controls();
@@ -243,6 +247,9 @@ export class Vehicle {
     this.compoundsUsed.add(compound);
     this.updateWheelAlignment();
   }
+  private readonly placeForward = new Vec3();
+  private readonly placeUp = new Vec3();
+  private readonly placeLeft = new Vec3();
   place(track: Track, s: number, offset = 0) {
     track.at(s, this.trackPosition);
     const p = this.trackPosition;
@@ -252,6 +259,18 @@ export class Vehicle {
       p.z + p.nz * offset,
     );
     this.body.orientation.yaw(Math.atan2(p.tx, p.tz));
+    // A steep or banked road (an oval's banking, a hillside grid) is a
+    // surface to rest on, not a floor to fall onto: start with the chassis on
+    // the road's own plane so the grid does not settle (and read as a jump
+    // start). Slopes under PLACE_ALIGN_SLOPE keep the flat placement exactly.
+    if (Math.hypot(p.bank, p.gradient) > PLACE_ALIGN_SLOPE) {
+      const f = this.placeForward.set(p.tx, p.gradient, p.tz).normalize(),
+        up = this.placeUp
+          .set(-p.tx * p.gradient - p.nx * p.bank, 1, -p.tz * p.gradient - p.nz * p.bank)
+          .normalize(),
+        left = this.placeLeft.cross(up, f);
+      this.body.orientation.fromBasis(left, up, f);
+    }
     this.body.velocity.set(0, 0, 0);
     this.body.omega.set(0, 0, 0);
     this.s = s;

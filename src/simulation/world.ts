@@ -11,6 +11,7 @@ import { OffroadSession, createEntrant, writeOffroadBlock } from './offroad/sess
 import { wakeFields } from './aero.ts';
 import { CollisionSolver } from './collision.ts';
 import {
+  AI_BASE_SKILL,
   COMPOUNDS,
   alternateDryCompound,
   mandatoryStopSatisfied,
@@ -110,7 +111,7 @@ export class Simulation {
     this.ai = this.cars.map((c) =>
       createEntrantDriver(
         c,
-        0.92 + (c.id % 4) * 0.014,
+        (this.options.aiSkill ?? AI_BASE_SKILL) + (c.id % 4) * 0.014,
         this.options.seed,
         this.track,
         this.options.laps,

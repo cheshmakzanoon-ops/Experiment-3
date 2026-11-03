@@ -3,7 +3,9 @@
 // a full field with no teleport, grip bonus or pose override. Asserts every car
 // classifies, nothing is stuck, laps are valid-length and lap times plausible.
 // Writes docs/circuit-catalogue-races.json.
-//   node --experimental-transform-types scripts/catalogue-races.ts [ids] [--laps N] [--cars N]
+//   node --experimental-transform-types scripts/catalogue-races.ts [ids] [--laps N] [--cars N] [--merge]
+// With ids and --merge the named layouts' reports replace (or join) those in the
+// existing document, so a new layout needs no full 40-layout rerun.
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { CIRCUITS } from '../src/simulation/circuits.ts';
@@ -21,13 +23,14 @@ const laps = flag('--laps', 2),
   cars = flag('--cars', 6),
   seed = 29030;
 const requested = argv.find((a) => !a.startsWith('--') && !/^\d+$/.test(a));
+const merge = argv.includes('--merge');
 const ids = requested ? requested.split(',') : [...CATALOGUE_CIRCUIT_IDS];
 /** Plausible best-lap average speed band for the Formula field (km/h). */
 const PLAUSIBLE_KMH = [90, 320] as const;
 /** A car below 1 m/s on track (not serviced, not finished) this long is stuck. */
 const STUCK_SECONDS = 8;
 
-const reports = [];
+const reports: { id: string; passed: boolean }[] = [];
 for (const id of ids) {
   const circuit = CIRCUITS[id as keyof typeof CIRCUITS];
   if (!circuit) throw new Error(`Unknown circuit ${id}`);
@@ -134,21 +137,39 @@ const sources = [
   'src/simulation/circuit-catalogue/real-world-classics.ts',
   'src/simulation/circuit-catalogue/night-and-street.ts',
   'src/simulation/circuit-catalogue/industrial.ts',
+  'src/simulation/circuit-catalogue/wildcard-venues.ts',
 ];
-if (!requested) {
+if (!requested || merge) {
+  // A merge keeps every other layout's report as recorded.
+  const existing: { reports: { id: string }[]; sources?: Record<string, string> } = merge
+    ? JSON.parse(readFileSync('docs/circuit-catalogue-races.json', 'utf8'))
+    : { reports: [] };
+  const kept: { id: string }[] = merge
+    ? CATALOGUE_CIRCUIT_IDS.flatMap((id) => {
+        const fresh = reports.find((r) => r.id === id);
+        return fresh ? [fresh] : existing.reports.filter((r) => r.id === id);
+      })
+    : reports;
   const document = {
     description:
       'Seeded AI races on every circuit-catalogue layout (WP29/WP30). Production simulation, AI and race control; no assists beyond the default sport setting. Lap times are AI pace, not reference lap records.',
     generatedBy: 'npm run test:catalogue-races',
-    sources: Object.fromEntries(
-      sources.map((p) => [p, createHash('sha256').update(readFileSync(p)).digest('hex')]),
-    ),
+    // A merge leaves the recorded hashes of the other layouts' sources alone
+    // (they describe the code those reports ran on) and adds only new files.
+    sources: {
+      ...(merge ? existing.sources : {}),
+      ...Object.fromEntries(
+        sources
+          .filter((p) => !merge || !existing.sources || !(p in existing.sources))
+          .map((p) => [p, createHash('sha256').update(readFileSync(p)).digest('hex')]),
+      ),
+    },
     criteria: {
       everyCarCompletesLaps: laps,
       stuckSecondsAtMost: STUCK_SECONDS,
       bestLapAverageKmh: PLAUSIBLE_KMH,
     },
-    reports,
+    reports: kept,
   };
   writeFileSync('docs/circuit-catalogue-races.json', JSON.stringify(document, null, 2) + '\n');
 }
