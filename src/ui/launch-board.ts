@@ -2,6 +2,7 @@ import frontEndCss from './front-end.css?inline';
 import wildcardCss from './wildcard-board.css?inline';
 import hudCss from './hud-identity.css?inline';
 import loadingCss from './loading-board.css?inline';
+import careerBoardCss from './career-board.css?inline';
 import stencilUrl from './fonts/saira-stencil-one-latin-400-normal.woff2?url';
 import { LIGHT_GLYPH, WEATHER_GLYPH, glyph, plateSvg, type GlyphName } from './glyphs.ts';
 import {
@@ -42,7 +43,7 @@ export function installFrontEnd(doc: Document = document) {
   if (doc.getElementById(FRONT_END_STYLE_ID)) return false;
   const style = doc.createElement('style');
   style.id = FRONT_END_STYLE_ID;
-  style.textContent = `@font-face{font-family:'Saira Stencil One';font-style:normal;font-weight:400;font-display:swap;src:url(${stencilUrl}) format('woff2')}\n${frontEndCss}\n${wildcardCss}\n${loadingCss}`;
+  style.textContent = `@font-face{font-family:'Saira Stencil One';font-style:normal;font-weight:400;font-display:swap;src:url(${stencilUrl}) format('woff2')}\n${frontEndCss}\n${wildcardCss}\n${loadingCss}\n${careerBoardCss}`;
   doc.head.append(style);
   return true;
 }

@@ -202,3 +202,85 @@ export async function wildcardResult(id = 'karts-after-dark', position = 2) {
   // The payment settles after the write: show the saved state.
   ui.results(frame);
 }
+
+// ---- Wave 3: the season board, Team HQ, loading ----------------------------------------
+import { teamHub } from '../../../src/ui/team-hub.ts';
+import { newTeam } from '../../../src/storage/team-career.ts';
+import { buyVehicle } from '../../../src/career/economy.ts';
+import { liveRegistry } from '../../../src/career/registry.ts';
+
+/** A real CareerController over an in-memory store, with the player's save given. */
+function careerOn(save: CareerSave | null, simulation: Simulation) {
+  const stored = new Map<string, unknown>();
+  const career: CareerController = new CareerController({
+    store: {
+      read: async (key) => stored.get(key),
+      write: async (key, value) => void stored.set(key, value),
+      writeWithBackup: async (key, value) => void stored.set(key, value),
+    },
+    modal: (html) => ui.modalContent(html),
+    modalRoot: () => document.getElementById('modalContent')!,
+    toast: () => {},
+    setResultsExtra: () => {},
+    start: () => {},
+    pause: () => {},
+    state: () => 'menu',
+    track: () => simulation.track,
+    setup: () => simulation.options.setup,
+    assist: () => 'sport',
+  });
+  if (save) career.save = save;
+  return career;
+}
+/** The career opened on a page for a brand-new driver (nothing earned yet). */
+export function career(page: 'hub' | 'events' | 'licences' | 'garage' | 'dealership' = 'hub') {
+  const simulation = mount();
+  ui.showMode('menu');
+  careerOn(null, simulation).open(page);
+}
+/** A driver a few weeks in: a machine, two licence medals, reputation and results. */
+export function careerPlayed(
+  page: 'hub' | 'events' | 'licences' | 'garage' | 'dealership' = 'hub',
+) {
+  const simulation = mount();
+  ui.showMode('menu');
+  const registry = liveRegistry();
+  let save = buyVehicle(newCareer(), registry, 'tc1');
+  save = {
+    ...save,
+    credits: 61250,
+    reputation: {
+      ...save.reputation,
+      'circuit-cars': 14,
+      'road-bikes': 4,
+      'off-road': 0,
+      festival: 2,
+    },
+    licences: {
+      braking: { medal: 'silver', best: 1.9, attempts: 3 },
+      cornering: { medal: 'bronze', best: 1.2, attempts: 2 },
+    },
+    results: { 'circuit-cars.recovery': { bestPosition: 2, bestLap: 0, starts: 1 } },
+  };
+  careerOn(save, simulation).open(page);
+}
+/** The played season board scrolled to its licence ladder (the part below the fold). */
+export function careerLadder() {
+  careerPlayed('hub');
+  document.querySelector('.cb-ladder')!.scrollIntoView({ block: 'start' });
+  (document.getElementById('modal') as HTMLElement).scrollTop += 0;
+}
+export function team() {
+  mount();
+  ui.showMode('menu');
+  ui.modalContent(teamHub(newTeam(), 'overview'));
+}
+/** The loading board for a Vellamar race (bar at 62 percent). */
+export function loadingScreen() {
+  const simulation = mount();
+  ui.showMode('loading');
+  ui.options = simulation.options;
+  ui.loadingSession(simulation.options);
+  ui.loadingScene(simulation.options);
+  ui.loading('62% · Building the circuit…');
+}

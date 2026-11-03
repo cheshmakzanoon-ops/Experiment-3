@@ -1,0 +1,527 @@
+/* SEASON BOARD: the career hub's first page (src/ui/career-hub.ts, art direction
+ * "Paddock Board"). Injected with front-end.css by installFrontEnd(); tokens only
+ * (--mb-*). It is a pit board: a NEXT UP ticket with the one action that matters,
+ * the first steps while the driver is new, the wallet and garage, then one lane per
+ * discipline with its plate, reputation and ladder rungs. Ink on paper for labels,
+ * amber on asphalt for the thing to press. Rung and step states are written as
+ * words (CLEARED, NEXT, LOCKED, NOW, DONE), never colour alone. No motion. */
+
+#app .career-hub[data-career-page='hub'] {
+  --tint: var(--mb-plate-circuit);
+}
+/* The board has its own wallet, so the page header and tabs sit tighter. */
+#app .career-hub[data-career-page='hub'] > header h2 {
+  margin: var(--mb-s2) 0 var(--mb-s3);
+}
+#app .career-hub[data-career-page='hub'] > nav {
+  padding-bottom: var(--mb-s2);
+}
+#app .cb {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  gap: var(--mb-s3) var(--mb-s4);
+  margin-top: var(--mb-s3);
+  align-items: start;
+  font-family: var(--mb-sans);
+}
+#app .cb .cb-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mb-s3);
+  min-width: 0;
+}
+#app .cb .cb-col > .cb-next:only-child {
+  flex: 1;
+}
+#app .cb section,
+#app .cb aside {
+  background: var(--mb-asphalt-0);
+  box-shadow: inset 0 0 0 1px var(--mb-line);
+  padding: var(--mb-s4);
+  min-width: 0;
+}
+/* A paper tab: the label half of ink on paper. */
+#app .cb .cb-label {
+  display: inline-block;
+  margin: 0 0 var(--mb-s3);
+  padding: var(--mb-s1) var(--mb-s2);
+  background: var(--mb-paper);
+  color: var(--mb-paper-ink);
+  font: 650 var(--mb-f-label) / 1 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 0 100%);
+}
+#app .cb p {
+  margin: 0;
+  color: var(--mb-chalk-dim);
+  font: 500 var(--mb-f-lead) / 1.5 var(--mb-sans);
+}
+#app .cb .cb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mb-s2);
+  margin-top: var(--mb-s3);
+}
+#app .cb .cb-actions button {
+  min-height: var(--mb-field);
+  padding: 0 var(--mb-s4);
+  background: var(--mb-asphalt-2);
+  color: var(--mb-chalk);
+  border: 0;
+  border-left: 3px solid var(--mb-line-strong);
+  border-radius: 0;
+  font: 700 calc(12px * var(--mb-u)) / 1 var(--mb-sans);
+  font-stretch: 94%;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+#app .cb .cb-actions button:hover {
+  background: var(--mb-asphalt-3);
+  border-left-color: var(--mb-amber);
+}
+#app .cb .cb-actions button.primary {
+  background: var(--mb-amber);
+  border-left-color: var(--mb-ink);
+  color: var(--mb-ink);
+  font-weight: 800;
+}
+#app .cb .cb-actions button.primary:hover {
+  background: #ffc652;
+}
+
+/* ---------- NEXT UP: the pit-exit ticket ------------------------------------ */
+#app .cb .cb-next {
+  border-left: calc(6px * var(--mb-u)) solid var(--mb-amber);
+}
+#app .cb .cb-next .cb-label {
+  justify-self: start;
+}
+/* The venue's own line art on the ticket, in the discipline's plate colour. */
+#app .cb .cb-next {
+  --tint: var(--mb-plate-circuit);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-auto-rows: auto;
+  align-content: center;
+  column-gap: var(--mb-s4);
+}
+#app .cb .cb-next[data-board='gp'] {
+  --tint: var(--mb-plate-gp);
+}
+#app .cb .cb-next[data-board='dirt'] {
+  --tint: var(--mb-plate-dirt);
+}
+#app .cb .cb-next[data-board='festival'] {
+  --tint: var(--mb-plate-fest);
+}
+#app .cb .cb-next > :not(.cb-map) {
+  grid-column: 1;
+}
+#app .cb .cb-map {
+  grid-column: 2;
+  grid-row: 1 / span 4;
+  align-self: center;
+  margin: 0;
+  width: calc(190px * var(--mb-u));
+}
+#app .cb .cb-map svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 200 / 150;
+  background: var(--mb-asphalt-1);
+  box-shadow: inset 0 0 0 1px var(--mb-line);
+}
+#app .cb .cb-map figcaption {
+  margin-top: var(--mb-s1);
+  color: var(--mb-chalk-faint);
+  font: 650 calc(11px * var(--mb-u)) / 1.3 var(--mb-sans);
+  letter-spacing: 0.12em;
+}
+#app .cb .cb-next h4 {
+  margin: 0 0 var(--mb-s2);
+  font: 400 clamp(22px, 2.6vw, 30px) / 1.1 var(--mb-stencil);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--mb-chalk);
+}
+#app .cb .cb-next .cb-actions button.primary {
+  min-height: calc(var(--mb-field) * 1.15);
+  padding-right: calc(var(--mb-s6) + var(--mb-s2));
+  position: relative;
+}
+/* The go chevrons painted on the pit lane, as a mask so they take the ink colour. */
+#app .cb .cb-next .cb-actions button.primary::after {
+  content: '';
+  position: absolute;
+  right: var(--mb-s3);
+  top: 50%;
+  width: calc(18px * var(--mb-u));
+  height: calc(18px * var(--mb-u));
+  margin-top: calc(-9px * var(--mb-u));
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='square'%3E%3Cpath d='M4 5l7 7-7 7M12 5l7 7-7 7'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='square'%3E%3Cpath d='M4 5l7 7-7 7M12 5l7 7-7 7'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+/* ---------- First steps ---------------------------------------------------- */
+#app .cb .cb-path ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--mb-s1);
+}
+#app .cb .cb-path li {
+  display: grid;
+  grid-template-columns: calc(26px * var(--mb-u)) minmax(0, 1fr) auto;
+  gap: var(--mb-s3);
+  align-items: start;
+  padding: var(--mb-s2) var(--mb-s3);
+  background: var(--mb-asphalt-1);
+  border-left: 3px solid var(--mb-line-strong);
+}
+#app .cb .cb-path li > b {
+  font: 400 calc(20px * var(--mb-u)) / 1 var(--mb-stencil);
+  color: var(--mb-chalk-faint);
+}
+#app .cb .cb-path li strong {
+  display: block;
+  color: var(--mb-chalk);
+  font: 700 var(--mb-f-value) / 1.25 var(--mb-sans);
+  letter-spacing: 0.03em;
+}
+#app .cb .cb-path li:not([data-state='now']) span {
+  display: none;
+}
+#app .cb .cb-path li span {
+  display: block;
+  margin-top: 2px;
+  color: var(--mb-chalk-dim);
+  font: 500 var(--mb-f-label) / 1.4 var(--mb-sans);
+}
+#app .cb .cb-path li em {
+  font: 700 var(--mb-f-label) / 1 var(--mb-sans);
+  font-style: normal;
+  letter-spacing: 0.14em;
+  color: var(--mb-chalk-faint);
+  white-space: nowrap;
+}
+#app .cb .cb-path li[data-state='now'] {
+  border-left-color: var(--mb-amber);
+  background: var(--mb-asphalt-2);
+}
+#app .cb .cb-path li[data-state='now'] > b,
+#app .cb .cb-path li[data-state='now'] em {
+  color: var(--mb-amber);
+}
+#app .cb .cb-path li[data-state='done'] {
+  border-left-color: var(--mb-go);
+}
+#app .cb .cb-path li[data-state='done'] em {
+  color: var(--mb-go);
+}
+#app .cb .cb-check {
+  width: 1em;
+  height: 1em;
+  margin-right: 0.35em;
+  vertical-align: -0.12em;
+}
+
+/* ---------- Wallet and garage ------------------------------------------------ */
+#app .cb .cb-credits {
+  display: block;
+  color: var(--mb-amber);
+  font: 400 calc(34px * var(--mb-u)) / 1 var(--mb-stencil);
+  font-variant-numeric: tabular-nums;
+}
+#app .cb .cb-ledger {
+  list-style: none;
+  margin: var(--mb-s2) 0 var(--mb-s3);
+  padding: 0;
+  color: var(--mb-chalk-dim);
+  font: 500 var(--mb-f-label) / 1.5 var(--mb-sans);
+}
+#app .cb .cb-ledger b {
+  color: var(--mb-chalk);
+  font-variant-numeric: tabular-nums;
+}
+#app .cb .cb-medals {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--mb-s2);
+}
+#app .cb .cb-medals > span {
+  display: grid;
+  justify-items: center;
+  gap: var(--mb-s1);
+}
+#app .cb .cb-medals small {
+  color: var(--mb-chalk-faint);
+  font: 650 calc(11px * var(--mb-u)) / 1 var(--mb-sans);
+  letter-spacing: 0.1em;
+}
+#app .cb .cb-machines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--mb-s1);
+}
+#app .cb .cb-machines li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--mb-s2);
+  min-width: 0;
+}
+#app .cb .cb-chip {
+  flex: none;
+  padding: 2px var(--mb-s2);
+  border: 1px solid var(--mb-line-strong);
+  color: var(--mb-chalk-dim);
+  font: 650 calc(11px * var(--mb-u)) / 1.3 var(--mb-sans);
+  letter-spacing: 0.12em;
+}
+#app .cb .cb-machines b {
+  color: var(--mb-chalk);
+  font: 700 var(--mb-f-value) / 1.3 var(--mb-sans);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#app .cb .cb-machines small {
+  margin-left: auto;
+  color: var(--mb-chalk-faint);
+  font: 650 calc(11px * var(--mb-u)) / 1 var(--mb-sans);
+  letter-spacing: 0.1em;
+}
+#app .cb .cb-empty {
+  color: var(--mb-chalk-dim);
+}
+
+/* ---------- The licence ladder ------------------------------------------------ */
+#app .cb .cb-ladder {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 0;
+  padding: var(--mb-s4);
+}
+#app .cb .cb-ladder-head p {
+  max-width: 78ch;
+  margin-bottom: var(--mb-s3);
+}
+#app .cb .cb-lane {
+  --plate: var(--mb-plate-circuit);
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.65fr) minmax(0, 2.5fr) auto;
+  gap: var(--mb-s2) var(--mb-s4);
+  align-items: center;
+  padding: var(--mb-s3) 0;
+  border-top: 1px solid var(--mb-line);
+}
+#app .cb .cb-lane[data-board='gp'] {
+  --plate: var(--mb-plate-gp);
+}
+#app .cb .cb-lane[data-board='dirt'] {
+  --plate: var(--mb-plate-dirt);
+}
+#app .cb .cb-lane[data-board='festival'] {
+  --plate: var(--mb-plate-fest);
+}
+#app .cb .cb-id {
+  display: flex;
+  align-items: center;
+  gap: var(--mb-s3);
+  min-width: 0;
+}
+#app .cb .cb-plate svg {
+  display: block;
+  width: calc(50px * var(--mb-u));
+  height: calc(43px * var(--mb-u));
+  overflow: visible;
+}
+#app .cb .cb-plate .plate-body {
+  fill: var(--plate);
+}
+#app .cb .cb-plate .plate-rim {
+  fill: none;
+  stroke: var(--mb-ink);
+  stroke-width: 1.3;
+  opacity: 0.5;
+}
+#app .cb .cb-plate .plate-numeral {
+  fill: var(--mb-paper-ink);
+  font: 400 26px var(--mb-stencil);
+}
+#app .cb .cb-id h4 {
+  margin: 0;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--mb-s2);
+  color: var(--mb-chalk);
+  font: 750 var(--mb-f-value) / 1.2 var(--mb-sans);
+  font-stretch: 96%;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+#app .cb .cb-id p {
+  margin-top: 2px;
+  font-size: var(--mb-f-label);
+  line-height: 1.35;
+}
+#app .cb .cb-rep {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--mb-s3);
+}
+#app .cb .cb-track {
+  position: relative;
+  display: block;
+  height: calc(8px * var(--mb-u));
+  background: var(--mb-asphalt-3);
+}
+#app .cb .cb-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--mb-amber);
+}
+/* A tick where a rung asks for that much reputation. */
+#app .cb .cb-tick {
+  position: absolute;
+  top: calc(-4px * var(--mb-u));
+  width: 2px;
+  height: calc(16px * var(--mb-u));
+  background: var(--mb-chalk);
+}
+#app .cb .cb-rep > b {
+  min-width: 4.6em;
+  text-align: right;
+  color: var(--mb-amber);
+  font: 400 calc(16px * var(--mb-u)) / 1 var(--mb-stencil);
+  font-variant-numeric: tabular-nums;
+}
+#app .cb .cb-rep > b small {
+  color: var(--mb-chalk-faint);
+  font: 650 calc(11px * var(--mb-u)) var(--mb-sans);
+}
+#app .cb .cb-rungs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: var(--mb-s1);
+  min-width: 0;
+}
+#app .cb .cb-rungs li {
+  flex: 1 1 0;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+  padding: var(--mb-s1) var(--mb-s2) var(--mb-s2);
+  border: 1px solid var(--mb-line-strong);
+  background: var(--mb-asphalt-1);
+}
+#app .cb .cb-rungs li > b {
+  font: 400 calc(15px * var(--mb-u)) / 1 var(--mb-stencil);
+  color: var(--mb-chalk-dim);
+}
+#app .cb .cb-rungs li > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--mb-chalk);
+  font: 700 calc(11px * var(--mb-u)) / 1.2 var(--mb-sans);
+  letter-spacing: 0.08em;
+}
+#app .cb .cb-rungs li > small {
+  color: var(--mb-chalk-faint);
+  font: 700 calc(11px * var(--mb-u)) / 1.2 var(--mb-sans);
+  letter-spacing: 0.1em;
+}
+#app .cb .cb-rungs li[data-state='cleared'] {
+  border-color: var(--mb-go);
+}
+#app .cb .cb-rungs li[data-state='cleared'] > small {
+  color: var(--mb-go);
+}
+#app .cb .cb-rungs li[data-state='next'] {
+  border-color: var(--mb-amber);
+  background: var(--mb-asphalt-2);
+}
+#app .cb .cb-rungs li[data-state='next'] > b,
+#app .cb .cb-rungs li[data-state='next'] > small {
+  color: var(--mb-amber);
+}
+#app .cb .cb-rungs li[data-state='locked'] > span {
+  color: var(--mb-chalk-dim);
+}
+#app .cb .cb-rungs li[data-state='coming'] {
+  border-style: dashed;
+}
+#app .cb .cb-lane-go button {
+  min-height: var(--mb-field);
+  padding: 0 var(--mb-s4);
+  background: var(--mb-asphalt-2);
+  color: var(--mb-chalk);
+  border: 0;
+  border-left: 3px solid var(--mb-line-strong);
+  border-radius: 0;
+  font: 700 calc(12px * var(--mb-u)) / 1 var(--mb-sans);
+  font-stretch: 94%;
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+}
+#app .cb .cb-lane-go button:hover {
+  background: var(--mb-asphalt-3);
+  border-left-color: var(--mb-amber);
+}
+#app .cb .cb-need,
+#app .cb .cb-lane .career-reasons,
+#app .cb .cb-lane .career-caveat {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+#app .cb .cb-need {
+  color: var(--mb-chalk-dim);
+  font-size: var(--mb-f-label);
+  line-height: 1.45;
+}
+#app .cb .cb-need b {
+  margin-right: var(--mb-s2);
+  color: var(--mb-amber);
+  letter-spacing: 0.12em;
+}
+
+/* ---------- Narrow screens: one column --------------------------------------- */
+@media (max-width: 900px) {
+  #app .cb {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  #app .cb .cb-lane {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  #app .cb .cb-rep,
+  #app .cb .cb-rungs {
+    grid-column: 1 / -1;
+  }
+}
+
+/* No motion is authored here; this guards anything inherited. */
+@media (prefers-reduced-motion: reduce) {
+  #app .cb,
+  #app .cb * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+:root[data-reduced-motion='true'] #app .cb,
+:root[data-reduced-motion='true'] #app .cb * {
+  animation: none !important;
+  transition: none !important;
+}
