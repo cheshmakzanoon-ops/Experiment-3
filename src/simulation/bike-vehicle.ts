@@ -21,6 +21,7 @@ import { B, BIKE_STRIDE } from './protocol.ts';
 import { peakGrip } from './tire.ts';
 import { SURFACE, surfaceSample, trackPoint, type Track } from './track.ts';
 import { Vehicle, engineTorque } from './vehicle.ts';
+import { CROSSWIND, crosswindForce, windLoadFactor } from './weather.ts';
 import { FORMULA_APX01, type VehicleDefinition } from './vehicles.ts';
 
 /** Rider aids from the session assist setting: 'sport' (the ABS/TC setting
@@ -390,6 +391,7 @@ export class BikeVehicle extends Vehicle {
     const rearBrakeGain = gpPrototype
       ? gpBrakeEfficiency((this.tires[2].discTemp + this.tires[3].discTemp) * 0.5)
       : 1;
+    this.applyCrosswind(dt, track);
     d.step(
       {
         lean: this.input.steer,
@@ -440,6 +442,28 @@ export class BikeVehicle extends Vehicle {
     // recorded in the snapshot (F.JACK_HEIGHT) and never fed to the dynamics.
     this.jackHeight = this.inPit ? bikeStandLift(this.pitPhase, this.pitClock) : 0;
     if (b.position.y < this.groundY - 4) this.retired = true;
+  }
+  /** Strong or gusting wind (weather.ts CROSSWIND; zero in the mild-breeze
+   * presets) pushes the machine sideways. The side acceleration enters the
+   * existing contact-slide state (so a low-grip surface lets it build and a
+   * big one unseats the rider) and, acting a little ahead of the centre of
+   * mass, kicks the heading; the rider/AI steers it back. */
+  private applyCrosswind(dt: number, track: Track) {
+    const windLoad = windLoadFactor(Math.hypot(track.windX, track.windZ));
+    if (windLoad <= 0 || this.riding === false) return;
+    const d = this.dynamics,
+      sh = Math.sin(d.heading),
+      ch = Math.cos(d.heading),
+      across = track.windX * ch - track.windZ * sh,
+      along = track.windX * sh + track.windZ * ch,
+      airspeed = Math.hypot(d.speed - along, across),
+      he = this.definition.halfExtents,
+      accel = crosswindForce(airspeed, across, he[1], he[2], windLoad) / Math.max(1, this.body.mass);
+    if (!Number.isFinite(accel)) return;
+    this.slide += accel * dt;
+    // z_cp / k^2 for a bike (0.05 * wheelbase over a ~0.45 m radius of gyration).
+    const yawGain = (CROSSWIND.centrePressure * this.definition.spec.wheelbase) / 0.2;
+    this.yawKick = clamp(this.yawKick - accel * yawGain * dt, -3, 3);
   }
   /** Fold collision-solver impulses and position corrections into the bike state. */
   protected absorbExternal(dt: number) {

@@ -6,7 +6,15 @@ import { SurfaceThermalStep } from './surface-thermal.ts';
 import { TYRE_THERMAL } from './tyre-thermal.ts';
 import { clamp, lerp, mod, smooth, Vec3 } from '../core/math.ts';
 import type { WeatherPreset } from './config.ts';
-import { WeatherTimeline, weatherKeyframes, type WeatherKeyframe } from './weather.ts';
+import {
+  CLEAR_VISIBILITY_M,
+  WeatherTimeline,
+  dustSettlingTarget,
+  settleDust,
+  weatherKeyframes,
+  weatherSurfaceStart,
+  type WeatherKeyframe,
+} from './weather.ts';
 import { AUREL, STANDARD_PIT, type CircuitDefinition, type PitLaneDefinition } from './circuits.ts';
 import { RUNOFF } from './circuit-catalogue/venue-data.ts';
 import type { OffroadSurface } from './offroad/types.ts';
@@ -162,6 +170,13 @@ export class Track {
   ambient = 24;
   windX = 1.5;
   windZ = 0.6;
+  /** Atmosphere channels (weather.ts): meteorological visibility of the air
+   * (m), its dust share, the current gust surge (m/s, already inside
+   * windX/windZ) and non-rain surface moisture (mm/h). Clear air defaults. */
+  visibility = CLEAR_VISIBILITY_M;
+  dust = 0;
+  gust = 0;
+  moisture = 0;
   surfaceClock = 0;
   constructor(
     readonly preset: WeatherPreset = 'clear',
@@ -268,18 +283,14 @@ export class Track {
       for (let row = 0; row < CELL_ROWS; row++)
         this.sheltered[row] = circuit.covered(((row + 0.5) / CELL_ROWS) * this.length) ? 1 : 0;
     const line = racingLineFor(this),
-      rowPoint = trackPoint();
+      rowPoint = trackPoint(),
+      start = weatherSurfaceStart(preset);
     for (let i = 0; i < this.water.length; i++) {
-      this.temperature[i] = this.sheltered[Math.floor(i / CELL_COLS)]
-        ? this.ambient
-        : preset === 'rain'
-          ? 22
-          : 34;
+      this.temperature[i] = this.sheltered[Math.floor(i / CELL_COLS)] ? this.ambient : start.tempC;
       this.substrateTemperature[i] = this.temperature[i];
-      this.water[i] =
-        preset === 'rain' && !this.sheltered[Math.floor(i / CELL_COLS)]
-          ? 0.7 + 0.35 * (0.5 + 0.5 * Math.sin(i * 0.27))
-          : 0;
+      this.water[i] = !this.sheltered[Math.floor(i / CELL_COLS)]
+        ? start.waterMm + start.waterVariationMm * (0.5 + 0.5 * Math.sin(i * 0.27))
+        : 0;
       const row = Math.floor(i / CELL_COLS),
         col = i % CELL_COLS,
         s = ((row + 0.5) / CELL_ROWS) * this.length;
@@ -288,6 +299,11 @@ export class Track {
       const lateral = (((col + 0.5) / CELL_COLS) * 2 - 1) * rowPoint.width;
       const fromLine = (lateral - line.offsetAt(s)) / 1.8;
       this.rubber[i] = 0.035 + 0.415 * Math.exp(-0.5 * fromLine * fromLine);
+      // The dust storm has been blowing before the lights: the open tarmac
+      // already carries most of its settled film (less on the rubbered line).
+      if (this.dust > 0 && !this.sheltered[row])
+        this.marbles[i] =
+          0.8 * dustSettlingTarget(this.dust, this.visibility, this.rubber[i]);
     }
     this.#offroad = circuit.offroad?.createSurface(this) ?? null;
   }
@@ -523,12 +539,26 @@ export class Track {
       this.weather.sample(time - this.surfaceClock + step, this);
       this.#exposedThermal.prepare(step, this);
       this.#coveredThermal.prepare(step, this, true);
+      // Dust settles on (and blows off) the open tarmac only while dust is in
+      // the air; every other preset leaves the marble field to the tyres.
+      const dusty = this.dust > 0,
+        wind = Math.hypot(this.windX, this.windZ);
       for (let r = 0; r < CELL_ROWS; r++)
         for (let c = 0; c < CELL_COLS; c++) {
           const i = r * CELL_COLS + c,
             depression = 0.65 + 0.35 * Math.sin(r * 0.113 + c * 0.4) ** 2,
-            rainfall = this.sheltered[r] ? 0 : (this.rain / 3600) * depression,
+            // Rain plus fog drip / dew (mm/h water equivalent, even over the cell).
+            rainfall = this.sheltered[r]
+              ? 0
+              : (this.rain / 3600) * depression + this.moisture / 3600,
             thermal = this.sheltered[r] ? this.#coveredThermal : this.#exposedThermal;
+          if (dusty && !this.sheltered[r])
+            this.marbles[i] = settleDust(
+              this.marbles[i],
+              dustSettlingTarget(this.dust, this.visibility, this.rubber[i]),
+              step,
+              wind,
+            );
           // Rain carries sensible heat as well as water. Match the local
           // catchment rate used by the film balance, including depressions.
           thermal.advanceWet(

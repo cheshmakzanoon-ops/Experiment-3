@@ -67,16 +67,45 @@ const MIE_SPECTRUM = [680, 550, 440].map((nm) => (nm / 550) ** -ATMOSPHERE.mieAn
 /** Extinction (1/m, at 680/550/440 nm) of the air at the circuit datum: the
  * atmosphere's Rayleigh scattering plus its Mie aerosols at `haze` (multiples
  * of the reference aerosols, the sky's own level), plus grey rain extinction
- * for a rain rate in mm/h. */
-export function aerialExtinction(haze: number, rain = 0, out = new T.Vector3()) {
-  if (!Number.isFinite(haze) || haze < 0 || !Number.isFinite(rain))
+ * for a rain rate in mm/h.
+ *
+ * `particulatePerKm` adds fog or dust extinction (weather.ts: the snapshot's
+ * H.EXTINCTION, per km at 550 nm) on top, with `dust` (0..1) choosing the
+ * spectrum: fog droplets are far larger than the wavelength and extinguish all
+ * colours alike; mineral dust takes more of the blue than the red, so the
+ * transmitted view and the distance turn tan. Both default to none: the
+ * result is then exactly the clear/rain value. */
+export const PARTICULATE_SPECTRUM = Object.freeze({
+  droplets: Object.freeze([1, 1, 1] as const),
+  dust: Object.freeze([0.84, 1, 1.34] as const),
+});
+export function aerialExtinction(
+  haze: number,
+  rain = 0,
+  out = new T.Vector3(),
+  particulatePerKm = 0,
+  dust = 0,
+) {
+  if (
+    !Number.isFinite(haze) ||
+    haze < 0 ||
+    !Number.isFinite(rain) ||
+    !Number.isFinite(particulatePerKm) ||
+    particulatePerKm < 0 ||
+    !Number.isFinite(dust)
+  )
     throw new Error('Invalid aerial extinction');
   const mie = (ATMOSPHERE.mieScattering + ATMOSPHERE.mieAbsorption) * haze;
   const wet = AERIAL_PERSPECTIVE.rainExtinction * Math.min(60, Math.max(0, rain));
+  const share = Math.min(1, Math.max(0, dust)),
+    solids = particulatePerKm / 1000;
+  const particle = (k: 0 | 1 | 2) =>
+    solids *
+    (PARTICULATE_SPECTRUM.droplets[k] * (1 - share) + PARTICULATE_SPECTRUM.dust[k] * share);
   return out.set(
-    ATMOSPHERE.rayleighScattering[0] + mie * MIE_SPECTRUM[0] + wet,
-    ATMOSPHERE.rayleighScattering[1] + mie * MIE_SPECTRUM[1] + wet,
-    ATMOSPHERE.rayleighScattering[2] + mie * MIE_SPECTRUM[2] + wet,
+    ATMOSPHERE.rayleighScattering[0] + mie * MIE_SPECTRUM[0] + wet + particle(0),
+    ATMOSPHERE.rayleighScattering[1] + mie * MIE_SPECTRUM[1] + wet + particle(1),
+    ATMOSPHERE.rayleighScattering[2] + mie * MIE_SPECTRUM[2] + wet + particle(2),
   );
 }
 
@@ -182,8 +211,10 @@ export function setAerialExtinction(
   haze: number,
   rain: number,
   uniforms: AerialUniforms = aerialUniforms,
+  particulatePerKm = 0,
+  dust = 0,
 ) {
-  aerialExtinction(haze, rain, uniforms.apexAerialExtinction.value);
+  aerialExtinction(haze, rain, uniforms.apexAerialExtinction.value, particulatePerKm, dust);
 }
 
 /** Write this frame's lighting into the shared uniforms (SkyEnvironment.update). */

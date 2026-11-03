@@ -14,6 +14,7 @@ import {
   type SessionOptions,
 } from './config.ts';
 import type { Vehicle } from './vehicle.ts';
+import { trackVisibilityM } from './weather.ts';
 import type { Track } from './track.ts';
 export const PHASE = { GRID: 0, LIGHTS: 1, RACING: 2, FINISHED: 3 } as const;
 export class LapTracker {
@@ -248,6 +249,7 @@ export class RaceDirector {
       racing: racing && this.ruleset.drs,
       leaderLaps,
       water: this.track.meanWater(),
+      visibility: trackVisibilityM(this.track),
       neutralised: this.safetyCar.neutralised,
       yellow: (car) => yellowFlag(this.control.flags[car]),
     });

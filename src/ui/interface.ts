@@ -64,6 +64,11 @@ import {
   type StartSlot,
 } from '../simulation/config.ts';
 import { sessionIncompatibilities } from '../simulation/events.ts';
+import {
+  WEATHER_CATALOGUE,
+  weatherOptionsHtml,
+  type WeatherId,
+} from '../simulation/weather-catalogue.ts';
 import { setupStep } from './setup-page.ts';
 import {
   F,
@@ -256,7 +261,7 @@ export class Interface {
     <div class="form-row"><label>CIRCUIT<select id="circuit">${circuitOptionsHtml()}</select></label></div>
     <p class="session-rules circuit-blurb" id="circuitBlurb">${escapeHtml(circuitBlurb(track.circuit.id))}</p>
     <div class="form-row"><label>SESSION<select id="mode"><option value="race">Grand Prix</option><option value="practice">Free practice</option><option value="time-trial">Time trial · ghost</option><option value="qualifying">Race weekend · qualifying</option><option value="endurance">Endurance · mandatory stop</option><option value="festival">Festival · open world</option></select></label><label>DISTANCE<select id="laps"><option value="1">1 lap · Sprint</option><option value="3" selected>3 laps · Standard</option><option value="5">5 laps</option><option value="10">10 laps</option><option value="15">15 laps · Endurance</option><option value="25">25 laps · Endurance</option></select></label></div>
-    <div class="form-row"><label>WEATHER<select id="weather"><option value="clear">Clear / Dry</option><option value="changeable">Dry → Rain</option><option value="rain">Heavy rain</option></select></label><label>GRID<select id="opponents"><option value="0">Solo</option><option value="3">4 cars</option><option value="7" selected>8 cars</option><option value="11">12 cars</option></select></label></div>
+    <div class="form-row"><label>WEATHER<select id="weather">${weatherOptionsHtml()}</select></label><label>GRID<select id="opponents"><option value="0">Solo</option><option value="3">4 cars</option><option value="7" selected>8 cars</option><option value="11">12 cars</option></select></label></div>
     <div class="form-row"><label>TYRES<select id="compound"><option value="soft">Soft</option><option value="medium" selected>Medium</option><option value="hard">Hard</option><option value="intermediate">Intermediate</option><option value="wet">Full wet</option></select></label><label>ASSISTS<select id="assist"><option value="sport">ABS + TC</option><option value="raw">Off</option></select></label></div>
     <div class="form-row"><label>START<select id="startSlot"><option value="pole" selected>Pole position</option><option value="midfield">Mid-field</option><option value="back">Back of the grid</option></select></label><label>MACHINE<select id="vehicle">${machineSelectOptions()}</select></label></div>
     <p class="session-rules" id="sessionRules" aria-live="polite"></p>
@@ -439,8 +444,9 @@ export class Interface {
     };
     this.refreshMotocrossMenu();
     this.get('weather').addEventListener('change', () => {
-      if ((this.get('weather') as HTMLSelectElement).value === 'rain')
-        (this.get('compound') as HTMLSelectElement).value = 'wet';
+      // The catalogue names the tyre each weather suggests (rain: full wets).
+      const suggested = WEATHER_CATALOGUE[(this.get('weather') as HTMLSelectElement).value as WeatherId]?.suggestedTyre;
+      if (suggested) (this.get('compound') as HTMLSelectElement).value = suggested;
     });
     // Time Trial is solo and open-ended: the field and distance do not apply.
     this.get('mode').addEventListener('change', () => {
@@ -509,7 +515,7 @@ export class Interface {
     if (!options) return;
     const timed = options.mode === 'time-trial' || options.mode === 'practice';
     const riders = !!motocrossKind(options.circuit) || gpGridForVehicles(options.vehicles);
-    const weather = { clear: 'Dry', changeable: 'Changeable', rain: 'Wet' }[options.weather];
+    const weather = WEATHER_CATALOGUE[options.weather].loading;
     line.textContent = [
       motocrossSessionTitle(options) ?? SESSION_TITLES[options.mode],
       circuitTitle(circuitDefinition(options.circuit).id),
@@ -664,7 +670,17 @@ export class Interface {
     this.get('lapDelta').dataset.ahead = deltaValid ? String(delta < 0) : 'none';
     this.setText('flag', flag);
     this.get('flag').dataset.flag = String(frame[H.FLAG]);
-    this.setText('weatherLabel', weatherReadout(frame[H.AMBIENT], frame[H.RAIN], frame[H.WATER]));
+    this.setText(
+      'weatherLabel',
+      weatherReadout(
+        frame[H.AMBIENT],
+        frame[H.RAIN],
+        frame[H.WATER],
+        frame[H.EXTINCTION],
+        frame[H.DUST],
+        Math.hypot(frame[H.WIND_X], frame[H.WIND_Z]),
+      ),
+    );
     for (const [id, field] of [
       ['lapTime', F.LAP_TIME],
       ['bestLap', F.BEST_LAP],

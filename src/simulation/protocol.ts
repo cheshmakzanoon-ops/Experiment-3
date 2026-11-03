@@ -184,6 +184,13 @@ export const H = {
   DRS_ENABLED: 19,
   LAP_LEADER: 20,
   FORMATION: 21,
+  /** Particulate (fog, mist, dust) extinction per km BEYOND clear air, from
+   * the weather's visibility (weather.ts particulateExtinctionPerKm); 0 for
+   * clear air, so every older recording reads as clear. Rain's own extinction
+   * is added by the consumer from H.RAIN. */
+  EXTINCTION: 22,
+  /** Share of that extinction that is mineral dust (0 droplets .. 1 dust). */
+  DUST: 23,
 } as const;
 export const F = {
   X: 0,

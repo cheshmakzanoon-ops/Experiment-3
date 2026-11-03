@@ -1,6 +1,7 @@
 import { CIRCUITS } from '../simulation/circuits.ts';
 import { RULESETS, type EventDefinition } from '../simulation/events.ts';
 import { VEHICLES } from '../simulation/vehicles.ts';
+import { WEATHER_CATALOGUE } from '../simulation/weather-catalogue.ts';
 import { gridDrs } from '../simulation/drs.ts';
 import { meetingEvent } from './offroad-meeting.ts';
 import { motocrossKind, motocrossVenueCard } from './motocross-presentation.ts';
@@ -19,7 +20,7 @@ export function eventCard(event: EventDefinition, index: number) {
     rules.classification === 'timed'
       ? `${Math.round((event.durationSeconds ?? 0) / 60)} minutes + 1 lap`
       : `${event.laps} laps`;
-  const weather = { clear: 'Dry', changeable: 'Dry, rain expected', rain: 'Wet' }[event.weather];
+  const weather = WEATHER_CATALOGUE[event.weather].card;
   const motocross = motocrossKind(event.circuit);
   // Two-moto formats also run as a full meeting (qualifying, gate pick, both
   // motos, combined points); a "· MOTO 2" event is that meeting's second half.

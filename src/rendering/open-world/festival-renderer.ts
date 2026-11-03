@@ -88,6 +88,13 @@ import { driftFeedback, type DriftCue } from '../../simulation/open-world/drift-
 import { HorizonGuidance } from './horizon-guidance.ts';
 import { FestivalTrails } from './festival-trails.ts';
 import { HorizonDressing } from './horizon-dressing.ts';
+import {
+  adjustDaylight,
+  bindWeatherAtmosphere,
+  newWeatherAtmosphere,
+  tintLights,
+  weatherAtmosphere,
+} from '../weather-atmosphere.ts';
 import { FestivalAtmosphere } from './festival-atmosphere.ts';
 import {
   createFestivalContactOffset,
@@ -131,6 +138,7 @@ export class FestivalRenderer {
   private streetLoading: Promise<boolean> | null = null;
   readonly contacts = new FestivalContactShadows();
   private readonly cameraAnchor = new T.Vector3();
+  private readonly weatherAir = newWeatherAtmosphere();
   readonly chaseDynamics = new FestivalChaseDynamics();
   driftCue: DriftCue | null = null;
   readonly vegetation = new Vegetation();
@@ -721,7 +729,11 @@ export class FestivalRenderer {
         mode,
         photoPalette,
       );
+    // Fog, dust and thunderstorm (weather-atmosphere.ts); clear air is a no-op.
+    const air = weatherAtmosphere(presented, this.weatherAir);
+    adjustDaylight(daylight, air, mode === 'night');
     applyCircuitLightPalette(this.sun, this.hemisphere, daylight.cover, mode);
+    tintLights(this.sun, this.hemisphere, air);
     this.sun.intensity = daylight.sun;
     this.hemisphere.intensity = daylight.fill;
     this.scene.environmentIntensity = daylight.environment;
@@ -747,6 +759,14 @@ export class FestivalRenderer {
       mode,
       photoPalette ?? skyFogPalette(daylight.cover, mode),
     );
+    bindWeatherAtmosphere(air, {
+      haze: daylight.haze,
+      studio: false,
+      fog,
+      sky: this.sky.material,
+      aerial: this.atmosphere.uniforms,
+      baseScaleHeight: 1 / this.atmosphere.uniforms.apexAerialFalloff.value.y,
+    });
     const uniforms = this.sky.material.uniforms;
     uniforms.cloudCover.value = daylight.cover;
     uniforms.skyRadiance.value = daylight.skyRadiance;

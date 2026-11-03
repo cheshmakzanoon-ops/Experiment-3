@@ -39,7 +39,14 @@ import { SafetyCarView } from './studio/safety-car.ts';
 import type { LightPools } from './studio/light-pools.ts';
 import { setBrandLedLighting } from './studio/trackside-branding.ts';
 import { REAR_LAMP, REAR_LAMP_PHYSICAL_GAIN } from './rear-signal.ts';
-import { setAerialExtinction } from './studio/aerial-perspective.ts';
+import { AERIAL_PERSPECTIVE } from './studio/aerial-perspective.ts';
+import {
+  adjustDaylight,
+  bindWeatherAtmosphere,
+  newWeatherAtmosphere,
+  tintLights,
+  weatherAtmosphere,
+} from './weather-atmosphere.ts';
 import { BIKE_SHOWROOM, MENU_CAR_DATUM, MENU_CLOUD_COVER, SHOWROOM } from './menu-preview.ts';
 import { focusOnSubject, subjectLens, type SubjectLens } from './studio/subject-focus.ts';
 import { reflectInWetRoad } from './wet-reflection.ts';
@@ -296,6 +303,7 @@ export class RacingRenderer {
   /** D28: lap-space floodlight pools and their visible pole rows. */
   readonly lightPools: LightPools;
   private lightingMode: LightingMode = 'day';
+  private readonly weatherAir = newWeatherAtmosphere();
   get lighting(): LightingMode {
     return this.lightingMode;
   }
@@ -1301,6 +1309,10 @@ export class RacingRenderer {
         illumination,
         photoPalette,
       );
+    // Fog, dust and thunderstorm (weather-atmosphere.ts): scale and tint the
+    // daylight for the obscuring air; clear air leaves it untouched.
+    const air = weatherAtmosphere(presented, this.weatherAir);
+    if (!studio) adjustDaylight(daylight, air, illumination === 'night');
     if (this.night && !studio)
       this.nightFog.setRGB(daylight.fogRed, daylight.fogGreen, daylight.fogBlue);
     if (studio) {
@@ -1318,6 +1330,7 @@ export class RacingRenderer {
     REAR_LAMP.gain = this.bloom.energyConserving ? REAR_LAMP_PHYSICAL_GAIN : 1;
     setBrandLedLighting(studio ? 'day' : illumination);
     applyCircuitLightPalette(this.sun, this.hemisphere, daylight.cover, illumination);
+    if (!studio) tintLights(this.sun, this.hemisphere, air);
     if (gpLook) tintGpSun(this.sun.color, gpLook);
     this.sun.intensity = daylight.sun;
     this.hemisphere.intensity = daylight.fill;
@@ -1338,9 +1351,14 @@ export class RacingRenderer {
     const fog = this.scene.fog as T.FogExp2;
     fog.density = daylight.fogDensity;
     // The local atmosphere's extinction: the sky's own air plus rain.
-    const rainRate = presented[H.RAIN];
-    setAerialExtinction(daylight.haze, studio || !Number.isFinite(rainRate) ? 0 : rainRate);
     fog.color.setRGB(daylight.fogRed, daylight.fogGreen, daylight.fogBlue);
+    bindWeatherAtmosphere(air, {
+      haze: daylight.haze,
+      studio,
+      fog,
+      sky: this.sky.material,
+      baseScaleHeight: AERIAL_PERSPECTIVE.scaleHeight,
+    });
     // Catalogue night cities: urban skyglow on the dome and in the haze.
     const urban = illumination === 'night' && !studio && !!this.circuit.venueKit?.urban;
     this.sky.material.uniforms.urbanGlow.value = urban ? 1 : 0;

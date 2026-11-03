@@ -1,4 +1,5 @@
 import { standings, type RoundResult } from '../core/championship.ts';
+import { WEATHER_CATALOGUE, isWeatherId } from '../simulation/weather-catalogue.ts';
 import { RULESETS } from '../simulation/events.ts';
 import { careerSetup, demonstrationRounds, presetEffects, type Payout } from '../career/economy.ts';
 import {
@@ -98,7 +99,7 @@ function calendarList(
   registry: CareerRegistry,
 ) {
   if (event.kind !== 'championship' || !event.calendar.length) return '';
-  const weather = (w: string) => (w === 'clear' ? 'DRY' : w === 'rain' ? 'RAIN' : 'CHANGEABLE');
+  const weather = (w: string) => (isWeatherId(w) ? WEATHER_CATALOGUE[w].tag : 'CHANGEABLE');
   return `<ol class="championship-calendar career-calendar" aria-label="Season calendar">${event.calendar
     .map((r, i) => {
       const done = recorded[i];

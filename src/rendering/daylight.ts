@@ -474,6 +474,10 @@ uniform float probeSkyIntensity;
 uniform float nightAmount;
 uniform float sunsetAmount;
 uniform float urbanGlow;
+// Fog / dust / storm-deck veil (rgb radiance, alpha amount) fading with
+// elevation over x radians, and the lightning flash (y); weather-atmosphere.ts.
+uniform vec4 apexSkyVeil;
+uniform vec2 apexSkyVeilShape;
 ${SKY_CLOUD_UNIFORMS}${SKY_CLOUD_SAMPLE}${SKY_CLOUD_LIGHTING}${SKY_GROUND_UNIFORMS}${CELESTIAL_GLSL}${PHOTO_SKY_UNIFORMS}${PHOTO_SKY_SAMPLE}
 const float SKY_PI = 3.141592653589793;
 const vec2 SKY_VIEW_SIZE = vec2(${SKY_DOME.size[0].toFixed(1)}, ${SKY_DOME.size[1].toFixed(1)});
@@ -573,6 +577,14 @@ void main() {
   if (photoAmount > 0.0)
     radiance = mix(radiance, photoSky(direction, sunDiscAmount <= 0.0), photoAmount);
   ${SKY_GROUND_GLSL}
+  // Weather veil on the visible dome only (sunDiscAmount is 0 in captures, so
+  // the baked environment and mirrors keep the measured sky). The air hides
+  // the sun disc and clouds in proportion; lightning lights what is left.
+  float veilElevation = asin(clamp(direction.y, -1.0, 1.0));
+  float veilFalloff = exp(-max(veilElevation, 0.0) / max(apexSkyVeilShape.x, 0.05));
+  radiance = mix(radiance, apexSkyVeil.rgb, clamp(apexSkyVeil.a * veilFalloff, 0.0, 1.0) * sunDiscAmount);
+  radiance += vec3(0.62, 0.7, 1.0) * apexSkyVeilShape.y * sunDiscAmount * 1.4 *
+    (0.3 + 0.7 * exp(-max(veilElevation, 0.0) / 0.55));
   gl_FragColor=vec4(radiance * probeSkyIntensity,1.0);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
@@ -590,6 +602,8 @@ export function configureSky(sky: Sky) {
   u.nightAmount = { value: 0 };
   u.sunsetAmount = { value: 0 };
   u.urbanGlow = { value: 0 };
+  u.apexSkyVeil = { value: new T.Vector4(0, 0, 0, 0) };
+  u.apexSkyVeilShape = { value: new T.Vector2(1, 0) };
   u.skyRadiance = { value: daylightState(0, 0).skyRadiance };
   u.skyViewLow = { value: null };
   u.skyViewHigh = { value: null };

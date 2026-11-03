@@ -2,6 +2,7 @@ import { mod } from '../core/math.ts';
 import type { DrsZone } from './circuits.ts';
 import type { Vehicle } from './vehicle.ts';
 import type { VehicleDefinition } from './vehicles.ts';
+import { DRS_MIN_VISIBILITY_M } from './weather.ts';
 
 /** Original session rules for the drag-reduction flap (not a claim of any
  * sporting regulation). Distances metres, times seconds. */
@@ -56,6 +57,8 @@ export interface DrsContext {
   leaderLaps: number;
   /** Mean water film (track.meanWater()). */
   water: number;
+  /** What the drivers can see (m; weather.ts trackVisibilityM). Absent: clear. */
+  visibility?: number;
   /** A safety car or VSC neutralises the race. */
   neutralised: boolean;
   /** Per-car yellow flags at the car. */
@@ -97,6 +100,7 @@ export class DrsControl {
     const length = this.length;
     this.enabled =
       context.water <= DRS.wetLimit &&
+      (context.visibility ?? Infinity) >= DRS_MIN_VISIBILITY_M &&
       !context.neutralised &&
       (!context.racing || context.leaderLaps >= DRS.fromLap - 1);
     // Detection: interpolate this step's crossing times first, then judge the

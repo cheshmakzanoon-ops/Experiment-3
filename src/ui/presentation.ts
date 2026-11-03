@@ -6,6 +6,7 @@ import {
   type QualityPreset,
 } from '../rendering/options.ts';
 import type { Settings } from '../storage/data.ts';
+import { CLEAR_VISIBILITY_M, KOSCHMIEDER } from '../simulation/weather.ts';
 
 const choices: [keyof GraphicsOptions, string, (string | number)[], string[]][] = [
   [
@@ -111,9 +112,38 @@ export function bindPresentation(form: HTMLFormElement, settings: Settings) {
   };
 }
 
+/** What the air is doing, for the HUD: the fog or dust bank's visibility and a
+ * strong wind. Empty in clear air and ordinary breezes, so the dry and rain
+ * readouts are unchanged. Visibility is the particulate's own (H.EXTINCTION;
+ * rain is already reported as rain). */
+export function airReadout(extinctionPerKm: number, dust: number, windMS: number) {
+  const parts: string[] = [];
+  if (Number.isFinite(extinctionPerKm) && extinctionPerKm > 0) {
+    // Koschmieder: V = 3.912 / sigma, with the clear-air baseline restored.
+    const visibilityM = (KOSCHMIEDER / (extinctionPerKm + KOSCHMIEDER / (CLEAR_VISIBILITY_M / 1000))) * 1000;
+    if (visibilityM < 5000) {
+      const label = Number.isFinite(dust) && dust >= 0.5 ? 'DUST' : 'FOG';
+      parts.push(
+        `${label} ${visibilityM >= 1000 ? `${(visibilityM / 1000).toFixed(1)} KM` : `${Math.max(10, Math.round(visibilityM / 10) * 10)} M`}`,
+      );
+    }
+  }
+  if (Number.isFinite(windMS) && windMS >= 8) parts.push(`WIND ${Math.round(windMS)} M/S`);
+  return parts.length ? `${parts.join(' · ')} · ` : '';
+}
+
 /** Rainfall and water left on the surface are distinct observations. The water
- * label explicitly describes the circuit mean, not a claim about every cell. */
-export function weatherReadout(ambientC: number, rainMmHr: number, meanWaterMm: number) {
+ * label explicitly describes the circuit mean, not a claim about every cell.
+ * Optional air terms (fog/dust visibility, strong wind) lead the surface
+ * state; clear air adds nothing. */
+export function weatherReadout(
+  ambientC: number,
+  rainMmHr: number,
+  meanWaterMm: number,
+  extinctionPerKm = 0,
+  dust = 0,
+  windMS = 0,
+) {
   if (![ambientC, rainMmHr, meanWaterMm].every(Number.isFinite) || rainMmHr < 0 || meanWaterMm < 0)
     return 'WEATHER DATA UNAVAILABLE';
   const rain = rainMmHr > 0.01 ? `RAIN ${rainMmHr.toFixed(1)} MM/H · ` : '';
@@ -125,5 +155,5 @@ export function weatherReadout(ambientC: number, rainMmHr: number, meanWaterMm: 
         : rainMmHr > 0.01
           ? 'TRACK WETTING'
           : 'DRY TRACK';
-  return `${Math.round(ambientC)}°C / ${rain}${surface}`;
+  return `${Math.round(ambientC)}°C / ${airReadout(extinctionPerKm, dust, windMS)}${rain}${surface}`;
 }

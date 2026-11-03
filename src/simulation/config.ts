@@ -2,8 +2,9 @@ import { circuitDefinition, type CircuitId } from './circuits.ts';
 import { clamp } from '../core/math.ts';
 import { FORMULA_APX01, VEHICLES } from './vehicles.ts';
 import { RULESETS, TIMED_LIMITS } from './events.ts';
+import { isWeatherId, type WeatherId } from './weather-catalogue.ts';
 export type Compound = 'soft' | 'medium' | 'hard' | 'intermediate' | 'wet';
-export type WeatherPreset = 'clear' | 'changeable' | 'rain';
+export type WeatherPreset = WeatherId;
 export type Assist = 'sport' | 'raw';
 export interface Setup {
   frontWing: number;
@@ -255,7 +256,7 @@ export function validateOptions(v: unknown): SessionOptions {
           ),
         }
       : {}),
-    weather: o.weather === 'rain' || o.weather === 'changeable' ? o.weather : 'clear',
+    weather: isWeatherId(o.weather) ? o.weather : 'clear',
     assist: o.assist === 'raw' ? 'raw' : 'sport',
     compound: o.compound && Object.hasOwn(COMPOUNDS, o.compound) ? o.compound : 'medium',
     setup: validateSetup(o.setup ?? DEFAULT_SETUP),

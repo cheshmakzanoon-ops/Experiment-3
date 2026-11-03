@@ -3,6 +3,7 @@ import { writeWheelRotation } from './wheel-rotation.ts';
 import { writeWheelContact } from './wheel-contact-state.ts';
 import { K, SKID_BASE } from './protocol.ts';
 import { clamp } from '../core/math.ts';
+import { particulateExtinctionPerKm } from './weather.ts';
 import type { AIDriver } from './ai.ts';
 import { BikeVehicle, writeBikeBlock } from './bike-vehicle.ts';
 import { gpGridForVehicles, gpGridSlot } from './gp-grid.ts';
@@ -267,8 +268,8 @@ export class Simulation {
     for (const lap of this.race.laps) leaderLaps = Math.max(leaderLaps, lap.completed);
     out[H.LAP_LEADER] = leaderLaps + 1;
     out[H.FORMATION] = 0;
-    out[H.FORMATION + 1] = 0;
-    out[H.FORMATION + 2] = 0;
+    out[H.EXTINCTION] = particulateExtinctionPerKm(this.track.visibility);
+    out[H.DUST] = this.track.dust;
     for (let id = 0; id < this.cars.length; id++) {
       const c = this.cars[id],
         b = c.body,
