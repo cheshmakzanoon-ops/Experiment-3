@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import * as T from 'three';
-import {
-  DEFAULT_OPTIONS,
-  validateOptions,
-  type WeatherPreset,
-} from '../src/simulation/config.ts';
+import { DEFAULT_OPTIONS, validateOptions, type WeatherPreset } from '../src/simulation/config.ts';
 import {
   WEATHER_CATALOGUE,
   WEATHER_IDS,
@@ -45,7 +41,6 @@ import { updateContamination } from '../src/simulation/contamination.ts';
 import { CAR_STRIDE, H, HEADER } from '../src/simulation/protocol.ts';
 import {
   adjustDaylight,
-  newWeatherAtmosphere,
   skyVeil,
   tintLights,
   weatherAtmosphere,
@@ -55,6 +50,8 @@ import { aerialAmount, aerialExtinction } from '../src/rendering/studio/aerial-p
 import { circuitLightState } from '../src/rendering/daylight.ts';
 import { weatherAmbience } from '../src/audio/weather-ambience.ts';
 import { airReadout, weatherReadout } from '../src/ui/presentation.ts';
+import { WeatherPresentation, roadDustUniform } from '../src/rendering/weather-presentation.ts';
+import wetRoadShader from '../src/shaders/wetRoad.frag?raw';
 
 const NEW_STATES = ['fog', 'storm', 'dust'] as const;
 const state = (): WeatherState => ({ cloud: 0, rain: 0, ambient: 0, windX: 0, windZ: 0 });
@@ -149,7 +146,11 @@ describe('the original presets are unchanged by the atmosphere channels', () => 
   it('leaves the marble field alone and the surface start exactly as before', () => {
     const clear = new Track('clear');
     expect(weatherSurfaceStart('clear')).toEqual({ tempC: 34, waterMm: 0, waterVariationMm: 0 });
-    expect(weatherSurfaceStart('rain')).toEqual({ tempC: 22, waterMm: 0.7, waterVariationMm: 0.35 });
+    expect(weatherSurfaceStart('rain')).toEqual({
+      tempC: 22,
+      waterMm: 0.7,
+      waterVariationMm: 0.35,
+    });
     expect(clear.temperature[100]).toBe(34);
     const rain = new Track('rain');
     expect(rain.water[40]).toBeCloseTo(0.7 + 0.35 * (0.5 + 0.5 * Math.sin(40 * 0.27)), 6);
@@ -428,7 +429,12 @@ describe('fog: cold air and a damp film', () => {
     expect(fog.rain).toBe(0);
   });
   it('is reported in the snapshot as visibility, with no dust share', () => {
-    const sim = new Simulation({ ...DEFAULT_OPTIONS, opponents: 0, mode: 'practice', weather: 'fog' });
+    const sim = new Simulation({
+      ...DEFAULT_OPTIONS,
+      opponents: 0,
+      mode: 'practice',
+      weather: 'fog',
+    });
     sim.track.evolve(0.5, 0.5);
     const frame = new Float32Array(HEADER + CAR_STRIDE);
     sim.writeFrame(frame);
@@ -436,7 +442,12 @@ describe('fog: cold air and a damp film', () => {
     expect(frame[H.DUST]).toBe(0);
     expect(frame[H.RAIN]).toBe(0);
     expect(frame[H.AMBIENT]).toBeLessThan(10);
-    const dust = new Simulation({ ...DEFAULT_OPTIONS, opponents: 0, mode: 'practice', weather: 'dust' });
+    const dust = new Simulation({
+      ...DEFAULT_OPTIONS,
+      opponents: 0,
+      mode: 'practice',
+      weather: 'dust',
+    });
     dust.writeFrame(frame);
     expect(frame[H.DUST]).toBe(1);
     expect(frame[H.EXTINCTION]).toBeGreaterThan(1);
@@ -484,15 +495,21 @@ describe('storm: heavy rain with lightning', () => {
     // ~72 % of the 6.5 s slots: a strike roughly every 9 s at full intensity.
     expect(strikes / 400).toBeGreaterThan(0.6);
     expect(strikes / 400).toBeLessThan(0.85);
-    expect(strikeInSlot(5, 0.001) === null || typeof strikeInSlot(5, 0.001)!.timeSec === 'number').toBe(true);
+    expect(
+      strikeInSlot(5, 0.001) === null || typeof strikeInSlot(5, 0.001)!.timeSec === 'number',
+    ).toBe(true);
   });
   it('flashes at the strike and rumbles after the speed-of-sound delay', () => {
     let slot = 0;
     while (!strikeInSlot(slot, 1)) slot++;
     const strike = strikeInSlot(slot, 1)!;
-    expect(lightningFlash(strike.timeSec - 0.05, 1)).toBeLessThan(0.2 + lightningFlash(strike.timeSec - 6.4, 1));
+    expect(lightningFlash(strike.timeSec - 0.05, 1)).toBeLessThan(
+      0.2 + lightningFlash(strike.timeSec - 6.4, 1),
+    );
     expect(lightningFlash(strike.timeSec + 0.005, 1)).toBeGreaterThan(0.25);
-    expect(lightningFlash(strike.timeSec + 1.5, 1)).toBeLessThan(0.02 + lightningFlash(strike.timeSec - 6, 1));
+    expect(lightningFlash(strike.timeSec + 1.5, 1)).toBeLessThan(
+      0.02 + lightningFlash(strike.timeSec - 6, 1),
+    );
     for (let t = 0; t < 120; t += 0.02) {
       const f = lightningFlash(t, 1);
       expect(f).toBeGreaterThanOrEqual(0);
@@ -504,7 +521,9 @@ describe('storm: heavy rain with lightning', () => {
     const arrival = strike.timeSec + strike.distanceM / LIGHTNING.speedOfSound;
     // The rumble is measured at the strike's own arrival, over earlier strikes' tails.
     expect(thunderLevel(arrival + 0.4, 1)).toBeGreaterThan(0.05);
-    expect(thunderLevel(strike.timeSec + 0.1, 1)).toBeLessThan(thunderLevel(arrival + 0.4, 1) + 1e-9);
+    expect(thunderLevel(strike.timeSec + 0.1, 1)).toBeLessThan(
+      thunderLevel(arrival + 0.4, 1) + 1e-9,
+    );
   });
 });
 
@@ -586,7 +605,9 @@ describe('atmosphere rendering state (pure functions of the presented snapshot)'
     expect(air.visibilityM).toBeGreaterThan(29000);
   });
   it('smothers the sun and veils the dome in dense fog, hazing the unlit fallback', () => {
-    const air = weatherAtmosphere(frame({ EXTINCTION: particulateExtinctionPerKm(110), CLOUD: 0.82 }));
+    const air = weatherAtmosphere(
+      frame({ EXTINCTION: particulateExtinctionPerKm(110), CLOUD: 0.82 }),
+    );
     expect(air.fog).toBeCloseTo(1, 6);
     expect(air.dustAmount).toBe(0);
     expect(air.visibilityM).toBeCloseTo(110, 3);
@@ -604,7 +625,9 @@ describe('atmosphere rendering state (pure functions of the presented snapshot)'
     expect(veil.x).toBeCloseTo(base.fogRed, 6);
   });
   it('turns the light, haze and veil amber under dust and darkens a storm deck', () => {
-    const dust = weatherAtmosphere(frame({ EXTINCTION: particulateExtinctionPerKm(170), DUST: 1, CLOUD: 0.55 }));
+    const dust = weatherAtmosphere(
+      frame({ EXTINCTION: particulateExtinctionPerKm(170), DUST: 1, CLOUD: 0.55 }),
+    );
     expect(dust.dustAmount).toBeCloseTo(1, 6);
     expect(dust.fog).toBe(0);
     const base = daylight(),
@@ -650,7 +673,9 @@ describe('atmosphere rendering state (pure functions of the presented snapshot)'
     expect(dust.y - clearAir.y).toBeGreaterThan(dust.x - clearAir.x);
     const camera = new T.Vector3(0, 1.5, 0);
     const at = (d: number, e: T.Vector3) => aerialAmount(camera, new T.Vector3(0, 1.5, d), e.y);
-    expect(at(110, aerialExtinction(18, 0, new T.Vector3(), particulateExtinctionPerKm(110), 0))).toBeGreaterThan(0.95);
+    expect(
+      at(110, aerialExtinction(18, 0, new T.Vector3(), particulateExtinctionPerKm(110), 0)),
+    ).toBeGreaterThan(0.95);
     expect(at(110, clearAir)).toBeLessThan(0.02);
     expect(() => aerialExtinction(18, 0, new T.Vector3(), -1, 0)).toThrow();
   });
@@ -663,7 +688,11 @@ describe('weather ambience and HUD words', () => {
     return f;
   };
   it('is silent in clear air and ordinary rain', () => {
-    for (const f of [frame(), frame({ RAIN: 24, WIND_X: 1.5, WIND_Z: 0.6 }), frame({ RAIN: 36, WIND_X: 4 })]) {
+    for (const f of [
+      frame(),
+      frame({ RAIN: 24, WIND_X: 1.5, WIND_Z: 0.6 }),
+      frame({ RAIN: 36, WIND_X: 4 }),
+    ]) {
       const a = weatherAmbience(f);
       // Under the 3 m/s breeze the gale bed is shut; 4 m/s opens it by a hair.
       expect(a.gale).toBeLessThan(1e-4);
@@ -697,7 +726,9 @@ describe('weather ambience and HUD words', () => {
     expect(weatherReadout(19, 24, 1.1)).toBe('19°C / RAIN 24.0 MM/H · TRACK AVG 1.10 MM WATER');
     expect(airReadout(0, 0, 1.6)).toBe('');
     expect(airReadout(particulateExtinctionPerKm(110), 0, 0.8)).toBe('FOG 110 M · ');
-    expect(airReadout(particulateExtinctionPerKm(170), 1, 12.4)).toBe('DUST 170 M · WIND 12 M/S · ');
+    expect(airReadout(particulateExtinctionPerKm(170), 1, 12.4)).toBe(
+      'DUST 170 M · WIND 12 M/S · ',
+    );
     expect(airReadout(particulateExtinctionPerKm(1500), 0, 0)).toBe('FOG 1.5 KM · ');
     expect(airReadout(particulateExtinctionPerKm(8000), 0, 0)).toBe('');
     expect(weatherReadout(9, 0, 0.03, particulateExtinctionPerKm(120), 0, 0.8)).toBe(
@@ -708,5 +739,68 @@ describe('weather ambience and HUD words', () => {
   it('names all six states in the new catalogue (G6: six weather states)', () => {
     expect(NEW_STATES.every((id) => isWeatherId(id))).toBe(true);
     expect(WEATHER_IDS.length).toBeGreaterThanOrEqual(6);
+  });
+});
+
+describe('road surface presentation of damp and dust', () => {
+  const frame = (over: Partial<Record<keyof typeof H, number>> = {}) => {
+    const f = new Float32Array(HEADER + CAR_STRIDE);
+    f[H.TIME] = 1;
+    for (const [k, v] of Object.entries(over)) f[H[k as keyof typeof H]] = v as number;
+    return f;
+  };
+  it('shares one dust uniform: zero outside a dust storm, full inside one, off when disabled', () => {
+    const presentation = new WeatherPresentation();
+    presentation.update(frame());
+    expect(roadDustUniform.value).toBe(0);
+    presentation.update(frame({ EXTINCTION: 35, DUST: 0 }));
+    expect(roadDustUniform.value).toBe(0);
+    presentation.update(frame({ EXTINCTION: 20, DUST: 1 }));
+    expect(roadDustUniform.value).toBe(1);
+    presentation.update(frame({ EXTINCTION: 1.2, DUST: 1 }));
+    expect(roadDustUniform.value).toBeGreaterThan(0);
+    expect(roadDustUniform.value).toBeLessThan(0.1);
+    presentation.update(frame({ EXTINCTION: 20, DUST: 1 }), false);
+    expect(roadDustUniform.value).toBe(0);
+    presentation.update(frame());
+    expect(roadDustUniform.value).toBe(0);
+  });
+  it('lets the road shader read a fine film as damp and the settled film as sand', () => {
+    // A 0.03 mm film (fog drip) is already damp; the sheet still starts at 0.65 mm.
+    expect(wetRoadShader).toContain('roadDamp = smoothstep(0.004, 0.05, waterMm)');
+    expect(wetRoadShader).toContain('smoothstep(0.0, 0.65, waterMm)');
+    expect(wetRoadShader).toContain('float puddle = smoothstep(0.65, 1.5, waterMm)');
+    expect(wetRoadShader).toContain('roadDust');
+    // Black rubber pellets are suppressed by exactly the dust share.
+    expect(wetRoadShader).toContain('(1.0 - roadDust)');
+  });
+});
+
+describe('determinism: every new state replays bit for bit', () => {
+  it('produces identical snapshots from identical seeds, and finite state throughout', () => {
+    for (const weather of NEW_STATES) {
+      const run = () => {
+        const sim = new Simulation({
+          ...DEFAULT_OPTIONS,
+          opponents: 2,
+          weather,
+          seed: 91,
+          compound: WEATHER_CATALOGUE[weather].suggestedTyre ?? 'medium',
+        });
+        sim.autoPlayer = true;
+        const frame = new Float32Array(HEADER + 3 * CAR_STRIDE);
+        for (let i = 0; i < 900; i++) {
+          sim.step(1 / 120);
+          for (const c of sim.cars)
+            expect(Number.isFinite(c.speed) && c.body.position.finite()).toBe(true);
+        }
+        sim.writeFrame(frame);
+        return frame;
+      };
+      const a = run(),
+        b = run();
+      expect(Array.from(a)).toEqual(Array.from(b));
+      expect(a.every(Number.isFinite)).toBe(true);
+    }
   });
 });

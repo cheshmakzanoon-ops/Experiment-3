@@ -93,5 +93,7 @@ export function isWeatherId(value: unknown): value is WeatherId {
 
 /** `<option>` markup for the session form's weather select, in catalogue order. */
 export function weatherOptionsHtml() {
-  return WEATHER_IDS.map((id) => `<option value="${id}">${WEATHER_CATALOGUE[id].option}</option>`).join('');
+  return WEATHER_IDS.map(
+    (id) => `<option value="${id}">${WEATHER_CATALOGUE[id].option}</option>`,
+  ).join('');
 }

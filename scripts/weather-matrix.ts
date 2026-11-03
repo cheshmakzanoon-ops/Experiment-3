@@ -5,7 +5,8 @@
 // Usage:
 //   node --experimental-transform-types scripts/weather-matrix.ts \
 //     [--circuit aurel] [--laps 3] [--weathers clear,fog,storm,dust] \
-//     [--tyres medium,intermediate,wet] [--field 8] [--json out.json]
+//     [--tyres medium,intermediate,wet] [--field 8] [--json out.json] \
+//     [--vehicle gpr1] [--races 0]
 //
 // Two parts: (1) a solo practice stint per weather x tyre (clean lap times,
 // 1/120 s steps), (2) a populated race per weather on its suggested tyre
@@ -34,6 +35,8 @@ const field = Number(arg('field', '8'));
 const weathers = arg('weathers', WEATHER_IDS.join(',')).split(',') as WeatherPreset[];
 const tyres = arg('tyres', 'medium,intermediate,wet').split(',') as Compound[];
 const jsonPath = arg('json', '');
+/** A vehicle definition id for every entrant (e.g. gpr1 for the GP motorcycle). */
+const vehicle = arg('vehicle', '');
 const doRaces = arg('races', '1') === '1';
 const DT = 1 / 120;
 
@@ -60,6 +63,7 @@ function stint(weather: WeatherPreset, tyre: Compound): StintRow {
     weather,
     compound: tyre,
     seed: 4417,
+    ...(vehicle ? { vehicles: [vehicle] } : {}),
   });
   sim.autoPlayer = true;
   const car = sim.cars[0],
@@ -126,6 +130,7 @@ function race(weather: WeatherPreset, tyre: Compound): RaceRow {
     weather,
     compound: tyre,
     seed: 4417,
+    ...(vehicle ? { vehicles: Array(field).fill(vehicle) } : {}),
   });
   sim.autoPlayer = true;
   let finite = true,
@@ -173,18 +178,22 @@ for (const weather of doRaces ? weathers : []) {
   );
 }
 
-const dry = (tyre: Compound) => stints.find((s) => s.weather === 'clear' && s.tyre === tyre)?.meanLap;
+const dry = (tyre: Compound) =>
+  stints.find((s) => s.weather === 'clear' && s.tyre === tyre)?.meanLap;
 const best = (weather: WeatherPreset) =>
   Math.min(...stints.filter((s) => s.weather === weather).map((s) => s.meanLap));
 const base = dry('medium') ?? best('clear');
-console.log('\n| weather | tyre | mean lap (s) | vs dry medium | min vis (m) | mean water (mm) | front-left grip | tyre T (C) |');
+console.log(
+  '\n| weather | tyre | mean lap (s) | vs dry medium | min vis (m) | mean water (mm) | front-left grip | tyre T (C) |',
+);
 console.log('| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |');
 for (const s of stints)
   console.log(
     `| ${s.weather} | ${s.tyre} | ${s.meanLap.toFixed(2)} | ${(((s.meanLap - base) / base) * 100).toFixed(1)} % | ${s.minVisibilityM.toFixed(0)} | ${s.meanWaterMm.toFixed(3)} | ${s.gripFrontLeft.toFixed(2)} | ${s.tyreTempC.toFixed(0)} |`,
   );
 console.log(`\ncompleted in ${((Date.now() - started) / 1000).toFixed(0)} s`);
-if (jsonPath) writeFileSync(jsonPath, JSON.stringify({ circuit, laps, field, stints, races }, null, 2));
+if (jsonPath)
+  writeFileSync(jsonPath, JSON.stringify({ circuit, laps, field, stints, races }, null, 2));
 const bad = [...stints, ...races].filter((r) => !r.finite);
 if (bad.length) {
   console.error(`non-finite state in ${bad.length} run(s)`);

@@ -1,11 +1,7 @@
 import * as T from 'three';
 import { clamp, lerp, smooth } from '../core/math.ts';
 import { H } from '../simulation/protocol.ts';
-import {
-  effectiveVisibilityM,
-  lightningFlash,
-  lightningIntensity,
-} from '../simulation/weather.ts';
+import { effectiveVisibilityM, lightningFlash, lightningIntensity } from '../simulation/weather.ts';
 import {
   aerialUniforms,
   setAerialExtinction,
@@ -120,7 +116,10 @@ export function weatherAtmosphere(frame: Float32Array, out = newWeatherAtmospher
   out.storm = lightningIntensity(out.rain);
   out.flash = lightningFlash(out.time, out.storm);
   out.exp2Density = out.extinctionPerKm > 0 ? 1.978 / out.visibilityM : 0;
-  out.sunScale = lerp(1, look.fog.sun, out.fog) * lerp(1, look.dust.sun, out.dustAmount) * lerp(1, look.storm.sun, out.storm);
+  out.sunScale =
+    lerp(1, look.fog.sun, out.fog) *
+    lerp(1, look.dust.sun, out.dustAmount) *
+    lerp(1, look.storm.sun, out.storm);
   out.fillScale = lerp(1, look.fog.fill, out.fog) * lerp(1, look.dust.fill, out.dustAmount);
   out.exposureScale =
     lerp(1, look.fog.exposure, out.fog) *
@@ -244,7 +243,11 @@ export function bindWeatherAtmosphere(
   // Fog is a bank a couple of hundred metres deep; dust fills a deeper
   // column. Blend by weight so a lifting fog hands the sky back smoothly.
   const bank = quiet ? 0 : Math.min(1, a.fog + a.dustAmount);
-  const scale = bank > 0 ? (a.fog * WEATHER_LOOK.fogScaleHeight + a.dustAmount * WEATHER_LOOK.dustScaleHeight) / (a.fog + a.dustAmount) : targets.baseScaleHeight;
+  const scale =
+    bank > 0
+      ? (a.fog * WEATHER_LOOK.fogScaleHeight + a.dustAmount * WEATHER_LOOK.dustScaleHeight) /
+        (a.fog + a.dustAmount)
+      : targets.baseScaleHeight;
   aerial.apexAerialFalloff.value.y = 1 / lerp(targets.baseScaleHeight, scale, bank);
   const u = targets.sky.uniforms;
   if (u.apexSkyVeil) {
