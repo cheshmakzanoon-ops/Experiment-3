@@ -1,4 +1,5 @@
 import { LIVERIES } from '../../simulation/config.ts';
+import { DEFAULT_LIVERY } from '../../storage/livery.ts';
 import type { BodySheet } from './body-sheet.ts';
 
 /** Default colourways for the catalogue (D7). Every machine had been painted
@@ -152,10 +153,11 @@ export function mixHex(a: number, b: number, t: number) {
   return out;
 }
 /** The default livery identity (storage/livery.ts DEFAULT_LIVERY): a player who
- * has not changed it keeps the machine colourway. Kept as numbers here so this
- * module needs no storage import. */
-const DEFAULT_PRIMARY = 0xc97235,
-  DEFAULT_ACCENT = 0xe3ddc9;
+ * has not changed it keeps the machine colourway. Read from DEFAULT_LIVERY, not
+ * copied: G15 replaced the default identity (the original APX-01 violet / volt),
+ * and a stale copy here made every catalogue machine wear it as an "edit". */
+const DEFAULT_PRIMARY = hexNumber(DEFAULT_LIVERY.primary, 0),
+  DEFAULT_ACCENT = hexNumber(DEFAULT_LIVERY.accent, 0);
 export function liveryOverrides(livery: LiveryInput | null | undefined): livery is LiveryInput {
   if (!livery) return false;
   return (

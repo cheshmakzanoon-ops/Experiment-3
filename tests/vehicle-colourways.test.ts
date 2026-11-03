@@ -162,8 +162,15 @@ describe('who wears what (team colour, colourway, livery edit)', () => {
     expect(liveryOverrides(DEFAULT_LIVERY)).toBe(false);
     expect(liveryOverrides(null)).toBe(false);
     expect(bodyLook('rm8', 0, sheet, DEFAULT_LIVERY).source).toBe('colourway');
+    // The default preset IS the default identity (G15: `voltage`, the original APX-01
+    // violet / volt, formerly `copper`), so it keeps the colourway; exactly one preset is it.
+    const defaults = Object.entries(LIVERY_PRESETS).filter(
+      ([, preset]) =>
+        preset.primary === DEFAULT_LIVERY.primary && preset.accent === DEFAULT_LIVERY.accent,
+    );
+    expect(defaults.map(([name]) => name)).toEqual(['voltage']);
     for (const [name, preset] of Object.entries(LIVERY_PRESETS)) {
-      if (name === 'copper') continue;
+      if (name === 'voltage') continue;
       const look = bodyLook('rm8', 0, sheet, preset);
       expect(look.source, name).toBe('livery');
       expect(look.primary).toBe(parseInt(preset.primary.slice(1), 16));
