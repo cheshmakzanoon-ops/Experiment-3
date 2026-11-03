@@ -884,6 +884,47 @@ export function buildClosedBody(
       sharedMaterials.steel(),
     );
   }
+  if (s.style === 'truck' && s.extras.includes('bullbar') && detail < 2) {
+    // Trophy-truck front end (D11): the bullbar carries a row of driving lamps,
+    // the grille sits in an accent-colour frame above a steel bumper beam with
+    // tow hooks, so the nose reads as structure instead of one black block.
+    const zb = model.zFront + 0.04,
+      half = hw(model.zFront) * 0.9;
+    const y0 = f.y(s.nose) + 0.1;
+    for (const x of [-0.34, -0.11, 0.11, 0.34]) {
+      parts.add(
+        new T.CylinderGeometry(0.058, 0.058, 0.05, detail === 0 ? 20 : 10).rotateX(Math.PI / 2),
+        sharedMaterials.trim(),
+        placed(x * half * 1.6, y0 + 0.035, zb + 0.02),
+      );
+      parts.add(
+        new T.CylinderGeometry(0.046, 0.046, 0.02, detail === 0 ? 20 : 10).rotateX(Math.PI / 2),
+        mats.head,
+        placed(x * half * 1.6, y0 + 0.035, zb + 0.052),
+      );
+    }
+    const frame = hw(model.zFront) * 1.1 * s.grille;
+    const yg = f.y(s.nose * 0.55 + s.floor * 0.45),
+      hg = 0.12;
+    for (const [w, h, x, y] of [
+      [frame + 0.08, 0.03, 0, yg + hg / 2],
+      [frame + 0.08, 0.03, 0, yg - hg / 2],
+      [0.03, hg, -(frame / 2 + 0.015), yg],
+      [0.03, hg, frame / 2 + 0.015, yg],
+    ] as const)
+      parts.add(roundedBox(w, h, 0.05, 0.01, 1), mats.accent, placed(x, y, model.zFront + 0.005));
+    parts.add(
+      roundedBox(half * 2.1, 0.1, 0.12, 0.03, 2),
+      sharedMaterials.steel(),
+      placed(0, f.y(s.floor + 0.14), model.zFront + 0.03),
+    );
+    for (const side of [-1, 1])
+      parts.add(
+        new T.TorusGeometry(0.035, 0.009, 6, 14),
+        sharedMaterials.harness(),
+        placed(side * half * 0.5, f.y(s.floor + 0.14), model.zFront + 0.1, Math.PI / 2),
+      );
+  }
   if (s.extras.includes('snorkel') && detail < 2) {
     const zs = zWs - 0.04;
     const x = -(hw(zs) * 0.8 + 0.02);

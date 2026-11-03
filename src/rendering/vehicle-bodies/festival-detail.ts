@@ -410,7 +410,7 @@ function addFascia(
     if (model.s.style === 'truck' && !rear)
       parts.add(
         roundedBox(mouth.width * 0.92, 0.025, 0.03, 0.005, 1),
-        sharedMaterials.chrome(),
+        sharedMaterials.steel(),
         placed(mouth.x, mouth.y, z + 0.002),
       );
   }
@@ -655,6 +655,92 @@ function addTailLamps(parts: Parts, model: ClosedBodyModel, mats: CarMaterials, 
       placed(x + width * 0.27, y - height * 0.29, z - 0.014),
     );
     parts.add(roundedBox(width, height, 0.006, 0.007, 2), opticalCover, placed(x, y, z - 0.024));
+  }
+}
+
+/** Electric signature lighting for a sheet with `signature`: a continuous light
+ * blade across the nose, a thin lit line along each wheel-arch ceiling and a
+ * continuous tail bar bridging the two tapered lamps. Everything is authored on
+ * the un-swept body at the end faces; the shared nose/rear warp then carries it
+ * over the swept surface with the skin. The bars are emissive and always on
+ * (the tail bar is the brake-driven tail material); no light source is added. */
+export function addSignatureLighting(
+  parts: Parts,
+  model: ClosedBodyModel,
+  mats: CarMaterials,
+  detail: Detail,
+) {
+  const { f, s } = model;
+  if (s.signature === undefined) return;
+  const bar = sharedMaterials.lightBar(s.signature);
+  const profile = model.ring(model.zFront, 0).half;
+  const top = Math.max(...profile.map((p) => p[1])),
+    bottom = Math.min(...profile.map((p) => p[1]));
+  // Front: the blade sits in a dark channel above the intake mouths.
+  const yFront = top - Math.max(0.03, (top - bottom) * 0.14);
+  const halfFront = Math.max(0.2, model.sideX(model.zFront, yFront) - 0.035);
+  const steps = detail === 0 ? 24 : 12;
+  parts.add(
+    roundedBox(halfFront * 2 + 0.03, 0.024, 0.008, 0.003, 1),
+    darkOptics,
+    placed(0, yFront, model.zFront + 0.001),
+  );
+  parts.add(
+    tubeGeometry(
+      Array.from({ length: steps + 1 }, (_, k) => {
+        const u = (k / steps) * 2 - 1;
+        // The blade thins into a tapered tip at each corner.
+        return [u * halfFront, yFront + 0.002 * (1 - u * u), model.zFront + 0.006] as [
+          number,
+          number,
+          number,
+        ];
+      }),
+      0.0065,
+      steps * 2,
+      6,
+    ),
+    bar,
+  );
+  // Lit arches: a line along the arch ceiling, between the tub wall and the lip.
+  for (const axle of [f.frontAxle, f.rearAxle]) {
+    const radius = f.radius + 0.045;
+    const points: [number, number, number][] = [];
+    const n = detail === 0 ? 14 : 8;
+    for (let k = 0; k <= n; k++) {
+      const z = axle + ((k / n) * 2 - 1) * radius * 0.96,
+        arch = model.arch(z);
+      if (!arch) continue;
+      const half = model.halfWidth(z),
+        x = arch.tub + (half - arch.tub) * 0.55;
+      points.push([x, arch.y - 0.006, z]);
+    }
+    if (points.length < 3) continue;
+    for (const side of [-1, 1])
+      parts.add(
+        tubeGeometry(
+          points.map(([x, y, z]) => [side * x, y, z] as [number, number, number]),
+          0.0045,
+          n * 2,
+          5,
+        ),
+        bar,
+      );
+  }
+  // Rear: one continuous bar through the painted bridge between the lamps.
+  const tail = festivalTailPockets(model);
+  if (tail.length === 2) {
+    const inner = Math.min(...tail.map((p) => Math.abs(p.x) - p.width * 0.4));
+    parts.add(
+      roundedBox(inner * 2 + 0.04, 0.02, 0.008, 0.003, 1),
+      darkOptics,
+      placed(0, tail[0].y + 0.004, model.zRear - 0.002),
+    );
+    parts.add(
+      roundedBox(inner * 2, 0.011, 0.01, 0.003, 1),
+      mats.tail,
+      placed(0, tail[0].y + 0.004, model.zRear - 0.008),
+    );
   }
 }
 
@@ -1078,6 +1164,7 @@ export function buildFestivalDetail(
   addFascia(parts, model, mats, detail, true);
   addHeadlamps(parts, model, mats, detail);
   addTailLamps(parts, model, mats, detail);
+  addSignatureLighting(parts, model, mats, detail);
   addFestivalRearBodywork(parts, model, mats, detail);
   addFestivalSills(parts, model, mats, detail);
   addExhausts(parts, model, detail);

@@ -42,7 +42,7 @@ describe('Festival rear shoulder, lamps and side intakes', () => {
   const revised = new Map<string, ReturnType<typeof build>>(),
     previous = new Map<string, ReturnType<typeof build>>();
   beforeAll(() => {
-    for (const id of ['rh3', 'sc7']) {
+    for (const id of ['rh3', 'sc7', 'eh3']) {
       revised.set(id, build(id));
       previous.set(id, build(id, false));
     }

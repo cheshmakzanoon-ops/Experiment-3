@@ -7,7 +7,6 @@ import {
 import * as T from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
-import { gpUpperCowl } from './gp-bodywork.ts';
 import { gpRaceBodywork, gpSwingarmSpoon } from './gp-race-bodywork.ts';
 import { gpRadialBrakeCaliper } from './gp-radial-caliper.ts';
 import { GPFrontHydraulics } from './gp-front-hydraulics.ts';
@@ -54,7 +53,7 @@ import { liveryScheme } from './car-livery.ts';
 import { canvasTexture } from './geometry.ts';
 import { detailDistance } from './view-detail.ts';
 import { Rider, type RiderDetail } from './rider.ts';
-import { bikeSheetFor } from './bike-sheet.ts';
+import { bikeSheetFor, SHELL_SCHEME } from './bike-sheet.ts';
 import { isDirtBike } from '../simulation/offroad/dirt-bikes.ts';
 import { factoryBikeSag } from '../simulation/offroad/suspension-geometry.ts';
 import { DirtBikeModel } from './offroad/dirt-bike-model.ts';
@@ -741,7 +740,13 @@ export class BikeModel {
       naked = look.fairing === 'naked',
       classic = look.fairing === 'classic',
       authored = definition.id === 'gpr1',
-      gp = authored || definition.id === 'gpr2';
+      gp = authored || definition.id === 'gpr2',
+      // The catalogue's full-fairing road bikes (SS-600, SBK-1000) wear the GP
+      // race shell's moulding set (nose, tank, tail, screen, ram-air mouth,
+      // inner fairing) without its box wings and ground-effect scoops, in place
+      // of the former egg cowl and black belly pan (vehicle-art D5).
+      sport = full && !gp,
+      shell = gp || sport;
     calibrateGpMaterials(m, definition.id);
     const gpPrototype = authored || definition.id === 'gpr2';
     this.sag = staticSag(definition);
@@ -1369,101 +1374,43 @@ export class BikeModel {
       bottom: number,
       topWidth = 1,
     ): Section => ({ z, y, w, top, bottom, topWidth });
-    // Upper fairing: a wedge nose over the front wheel, clear of fork travel,
-    // whose cheeks drop behind the wheel to meet the lower fairing. Both GP
-    // prototypes use the R6 race shell below instead.
-    if (full && !gp) this.sprung.add(gpUpperCowl(m, detail));
-    // Lower fairing and belly pan.
-    if (full && !gp)
-      add(
-        this.sprung,
-        superLoft(
-          [
-            section(-0.24, -0.37, 0.12, 0.06, 0.08),
-            section(-0.08, -0.23, 0.17, 0.18, 0.22),
-            section(0.1, -0.18, 0.21, 0.24, 0.28),
-            section(0.26, -0.15, 0.235, 0.24, 0.29),
-            section(0.36, -0.13, 0.24, 0.2, 0.24),
-            section(0.395, -0.12, 0.235, 0.16, 0.2),
-          ],
-          sides,
-          3.2,
-        ),
-        m.secondary,
-      );
-    // Catalogue bikes retain the original separate accent stripe.
-    if (full && !gp && detail !== 'far')
-      add(
-        this.sprung,
-        superLoft(
-          [
-            section(-0.02, -0.12, 0.185, 0.02, 0.02),
-            section(0.2, -0.06, 0.232, 0.02, 0.02),
-            section(0.36, -0.02, 0.24, 0.02, 0.02),
-          ],
-          sides,
-          3.2,
-        ),
-        m.accent,
-      );
-    // Number plates on the nose and the flanks.
-    if (full && !gp && detail !== 'far') {
-      const plate = add(
-        this.sprung,
-        new T.CircleGeometry(0.062, 24),
-        m.plate,
-        0,
-        0.226,
-        0.865,
-        false,
-      );
-      plate.rotation.x = -1.05;
-      for (const side of [1, -1]) {
-        const flank = add(
-          this.sprung,
-          new T.CircleGeometry(0.075, 24),
-          m.plate,
-          side * 0.242,
-          -0.08,
-          0.2,
-          false,
-        );
-        flank.rotation.y = side * (Math.PI / 2 - 0.08);
-      }
-      // Ram-air intake at the nose tip.
-      if (!authored)
-        add(this.sprung, new T.CircleGeometry(0.03, 16), m.dark, 0, 0.15, 0.957, false);
-    }
+    // Upper and lower fairing, belly pan, accent stripe, number plates and the
+    // ram-air mouth of the full-fairing bikes are the R6 race shell below (GP
+    // prototypes and the sport bikes alike).
     // Classic round-nosed fairing: one bulbous shell over the forks with a
     // round number plate; no belly pan, so the engine and chambers show.
     if (classic) {
+      // A bullet half-fairing at headlamp height, ahead of the fork legs (which
+      // stay in view below and behind it), with a round lens in a bright rim.
       add(
         this.sprung,
         superLoft(
           [
-            section(0.3, 0.0, 0.2, 0.24, 0.2),
-            section(0.45, 0.08, 0.25, 0.22, 0.2),
-            section(0.6, 0.13, 0.25, 0.18, 0.16),
-            section(0.75, 0.15, 0.2, 0.13, 0.12),
-            section(0.86, 0.14, 0.12, 0.08, 0.08),
-            section(0.9, 0.13, 0.04, 0.03, 0.03),
+            section(0.56, 0.15, 0.1, 0.085, 0.075),
+            section(0.64, 0.16, 0.15, 0.11, 0.095),
+            section(0.75, 0.16, 0.165, 0.12, 0.105),
+            section(0.85, 0.15, 0.145, 0.105, 0.095),
+            section(0.915, 0.145, 0.105, 0.08, 0.075),
+            section(0.935, 0.142, 0.02, 0.02, 0.02),
           ],
           sides,
-          2.2,
+          2.0,
         ),
         m.paint,
       );
       if (detail !== 'far') {
+        add(this.sprung, new T.CircleGeometry(0.088, 24), m.screenLight, 0, 0.142, 0.931, false);
+        add(this.sprung, new T.TorusGeometry(0.09, 0.008, 8, 28), m.aluminium, 0, 0.142, 0.929);
         const plate = add(
           this.sprung,
-          new T.CircleGeometry(0.09, 24),
+          new T.CircleGeometry(0.07, 24),
           m.plate,
           0,
-          0.17,
-          0.85,
+          0.262,
+          0.74,
           false,
         );
-        plate.rotation.x = -0.75;
+        plate.rotation.x = -1.2;
       }
     }
     // Naked roadster: radiator and engine on show, a round lamp on the fork
@@ -1559,7 +1506,7 @@ export class BikeModel {
     // Windscreen bubble: transmissive near, cheap tinted beyond; its height
     // follows the sheet (a classic screen is low, a naked bike has none).
     const sh = look.screen;
-    if (sh > 0 && !gp)
+    if (sh > 0 && !shell)
       add(
         this.sprung,
         arcSheet(
@@ -1647,7 +1594,7 @@ export class BikeModel {
     // classic machine has a big rounded steel tank, a naked bike a sculpted
     // tank with knee scallops that reaches further forward.
     const tankScale = classic ? 1.18 : naked ? 1.08 : 1;
-    if (!gp)
+    if (!shell)
       add(
         this.sprung,
         superLoft(
@@ -1666,17 +1613,18 @@ export class BikeModel {
     // Seat unit and tail hump with the rain/brake light: the race tail, a
     // short roadster tail with a pillion pad, or a classic flat seat ending in
     // a rounded hump.
-    if (gp) {
+    if (shell) {
       // R6 race shell: one procedural moulding set per LOD, entrant livery
       // painted into its own UVs (gp-race-bodywork.ts).
-      const shell = gpRaceBodywork(
+      const moulding = gpRaceBodywork(
         m,
         detail,
-        definition.id === 'gpr2' ? 'gpr2' : 'gpr1',
+        sport ? 'sport' : definition.id === 'gpr2' ? 'gpr2' : 'gpr1',
         id,
         transmissive,
+        { screen: sport ? look.screen : 1 },
       );
-      this.sprung.add(shell.root);
+      this.sprung.add(moulding.root);
       const lamp = add(
         this.sprung,
         new RoundedBoxGeometry(0.07, 0.022, 0.012, 2, 0.004),
@@ -2158,13 +2106,16 @@ export class BikeShells {
     return chassisLean(sampleBikeField(a, b, o, B.LEAN, t), def.bike);
   }
   private build(id: number, definition: VehicleDefinition): Entry {
-    const materials = new BikeMaterials(id);
+    // The player's SS-600 and SBK-1000 wear their own team scheme (bike-sheet.ts
+    // SHELL_SCHEME) on shell, paint and rider; every other entrant its team's.
+    const scheme = id === 0 ? (SHELL_SCHEME[definition.id] ?? id) : id;
+    const materials = new BikeMaterials(scheme);
     // Off-road machines (WP41) have their own model; one mud coat per entrant.
     const mud = mudUniforms();
     const levels = (['high', 'mid', 'far'] as const).map((detail) =>
       isDirtBike(definition)
         ? new DirtBikeModel(definition, id, detail, materials, mud)
-        : new BikeModel(definition, id, detail, materials, detail === 'high'),
+        : new BikeModel(definition, scheme, detail, materials, detail === 'high'),
     );
     for (const level of levels) {
       this.root.add(level.root);

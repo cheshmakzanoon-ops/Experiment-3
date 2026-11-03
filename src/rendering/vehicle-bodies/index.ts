@@ -29,7 +29,9 @@ import {
 import { bodySheetFor, type BodySheet } from './body-sheet.ts';
 import { buildClosedBody, ClosedBodyModel } from './closed-body.ts';
 import { festivalDetailFor } from './festival-detail.ts';
-import { carMaterials, emptyLod, type BuiltLod, type CarMaterials } from './common.ts';
+import { applyLook, carMaterials, emptyLod, type BuiltLod, type CarMaterials } from './common.ts';
+import { bodyLook, type LiveryInput } from './colourways.ts';
+import type { LayerFrame } from './body-livery.ts';
 import { bodyFrame, type BodyFrame } from './frame.ts';
 import { buildKart, buildOpenWheel, type Link } from './open-wheel.ts';
 import { buildBuggy } from './buggy.ts';
@@ -87,7 +89,29 @@ interface ShadowWheel {
   local: Float32Array;
 }
 const shadowWheels = new WeakMap<T.Mesh, ShadowWheel[]>();
-export function buildVehicleBody(id: number, definition: VehicleDefinition, sheet: BodySheet) {
+/** Where the colourway layers sit on a closed body (car-frame metres). */
+export function layerFrameFor(frame: BodyFrame, model: ClosedBodyModel): LayerFrame {
+  const s = model.s;
+  return {
+    belt: frame.y(s.belt),
+    low: frame.y(s.floor + (s.belt - s.floor) * 0.58),
+    roof: frame.y(s.roof),
+    windscreen: frame.z(s.cabin[0]),
+    rearGlass: frame.z(s.cabin[3]),
+    front: model.zFront,
+    rear: model.zRear,
+    half: model.halfBase,
+  };
+}
+/** Build one catalogue body for entrant `id`. `livery` is the player's own
+ * edit: it only affects entrant 0, and only once it differs from the default
+ * identity (colourways.ts). */
+export function buildVehicleBody(
+  id: number,
+  definition: VehicleDefinition,
+  sheet: BodySheet,
+  livery?: LiveryInput | null,
+) {
   const frame = bodyFrame(definition);
   const cabin = { layout: cabinLayout(definition, sheet), def: definition };
   const closed = sheet.kind === 'closed' ? sheet : null;
@@ -95,7 +119,13 @@ export function buildVehicleBody(id: number, definition: VehicleDefinition, shee
   const model = closed
     ? new ClosedBodyModel(frame, closed, [sheet.wheels.width[0] / 2, sheet.wheels.width[1] / 2])
     : null;
-  const materials = carMaterials(id, finish, model ? model.gaps() : []);
+  const materials = carMaterials(
+    id,
+    finish,
+    model ? model.gaps() : [],
+    bodyLook(definition.id, id, sheet, livery),
+    model ? layerFrameFor(frame, model) : null,
+  );
   const root = new T.Group();
   root.name = `${definition.name} ${id + 1} (procedural body)`;
   const fine = new T.Group();
@@ -267,8 +297,21 @@ export class VehicleBodies {
     for (const lod of body.lods)
       for (const node of lod.rear) if (node.name === 'Rear wing (detachable)') node.visible = false;
   }
+  /** The player's livery edit (entrant 0). Applies to the body already built
+   * and to every later build; null (or the default identity) returns the
+   * machine colourway. */
+  private livery: LiveryInput | null = null;
+  setPlayerLivery(livery: LiveryInput | null) {
+    this.livery = livery ? { ...livery } : null;
+    const body = this.bodies.get(0);
+    if (!body) return;
+    applyLook(
+      body.materials,
+      bodyLook(body.definition.id, 0, bodySheetFor(body.definition)!, this.livery),
+    );
+  }
   private build(id: number, definition: VehicleDefinition, sheet: BodySheet) {
-    const built = buildVehicleBody(id, definition, sheet);
+    const built = buildVehicleBody(id, definition, sheet, id === 0 ? this.livery : null);
     this.root.add(built.root);
     this.onBuild(built.root);
     return built;
@@ -516,8 +559,8 @@ export class VehicleBodies {
     // Paint, live lamps and wheel shaders belong to this car. Glass, trim,
     // rims, suits and optical covers are shared by the whole catalogue;
     // traversing and disposing every material would invalidate other cars.
-    const { paint, accent, helmet, head, tail, board } = body.materials;
-    const materials = new Set<T.Material>([paint, accent, helmet, head, tail, board]);
+    const { paint, accent, helmet, suit, head, tail, board } = body.materials;
+    const materials = new Set<T.Material>([paint, accent, helmet, suit, head, tail, board]);
     for (const wheels of body.wheels)
       for (const wheel of wheels) {
         if (wheel.tyre.customDepthMaterial) materials.add(wheel.tyre.customDepthMaterial);
