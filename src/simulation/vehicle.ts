@@ -19,6 +19,7 @@ import { combustionTorque, curveTorque, EngineState, frictionTorque } from './po
 import { geometricLoad, HubSolver, kinematicCamber, resolveSuspension } from './suspension.ts';
 import { vehicleDynamics, type VehicleDynamics } from './vehicle-dynamics.ts';
 import { DRS, OVERTAKE } from './drs.ts';
+import { CROSSWIND, crosswindForce, windLoadFactor } from './weather.ts';
 import { FORMULA_APX01, setupFor, type VehicleDefinition, type VehicleSpec } from './vehicles.ts';
 import {
   controls,
@@ -892,6 +893,24 @@ export class Vehicle {
       b.apply(this.force, this.point);
     }
     if (airspeed > 0.01) b.force.addScaled(this.relativeAir, -this.aero.drag / airspeed);
+    // Strong or gusting wind also loads the bodywork sideways (weather.ts
+    // CROSSWIND): zero, bit for bit, in the original mild-breeze presets.
+    const windLoad = windLoadFactor(Math.hypot(track.windX, track.windZ));
+    if (windLoad > 0) {
+      b.orientation.inverseRotate(this.force.set(track.windX, 0, track.windZ), this.localAccel);
+      const side = crosswindForce(
+        airspeed,
+        this.localAccel.x,
+        this.definition.halfExtents[1],
+        this.definition.halfExtents[2],
+        windLoad,
+      );
+      b.orientation.rotate(this.force.set(side, 0, 0), this.axis);
+      b.orientation
+        .rotate(this.localPoint.set(0, 0, CROSSWIND.centrePressure * this.spec.wheelbase), this.point)
+        .add(b.position);
+      b.apply(this.axis, this.point);
+    }
     track.sample(b.position.x, b.position.z, this.surface, b.position.y);
     this.bottomEnergy = this.skid.apply(b, track, dt);
     // Abrasion cannot repair a floor already damaged below the wear limit.

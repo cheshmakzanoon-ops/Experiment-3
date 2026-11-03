@@ -8,6 +8,13 @@ const PATHS = {
   mixed:
     '<path d="M8 11a4 4 0 0 1 8 0"/><path d="M12 3v2M4.5 6.5 6 8M19.5 6.5 18 8"/><path d="M4 21h14l3-3v-3H8l-4 3z"/>',
   rain: '<path d="M5 14h13l2-2V8l-3-2-4 1-3-2-4 2z"/><path d="M8 17l-1 3M13 17l-1 3M18 17l-1 3"/>',
+  /** Fog: a cloud with banded mist lines beneath. */
+  fog: '<path d="M6 12h12l2-2V7l-3-2-4 1-3-2-4 2z"/><path d="M3 15h18M6 18h12M9 21h6"/>',
+  /** Storm: rain cloud with a lightning bolt. */
+  storm:
+    '<path d="M5 12h13l2-2V6l-3-2-4 1-3-2-4 2z"/><path d="M13 12l-3 5h4l-3 5"/><path d="M6 15l-1 3M18 15l-1 3"/>',
+  /** Dust: a low sun over blown grit lines. */
+  dust: '<path d="M7 12a5 5 0 0 1 10 0"/><path d="M12 3v2M4 6l2 2M20 6l-2 2"/><path d="M3 15h9M14 15h7M5 18h6M13 18h6M8 21h8"/>',
   tyre: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>',
   flag: '<path d="M5 3v18"/><path d="M5 4h14v10H5z"/><path d="M5 9h14M10 4v10M15 4v10" stroke-width="1.5"/>',
   laps: '<path d="M4 9h13l-3-3M20 15H7l3 3"/>',

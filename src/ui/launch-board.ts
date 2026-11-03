@@ -106,6 +106,9 @@ const WEATHER_GLYPH: Readonly<Record<string, GlyphName>> = Object.freeze({
   clear: 'sun',
   changeable: 'mixed',
   rain: 'rain',
+  fog: 'fog',
+  storm: 'storm',
+  dust: 'dust',
 });
 const REGION_BLURB =
   'Harbour to massif on open roads. Drive to an event marker or travel from the world map.';

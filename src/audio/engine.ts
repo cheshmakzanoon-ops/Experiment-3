@@ -12,6 +12,7 @@ import { PowerUnitAudio } from './power-unit.ts';
 import type { AudioView } from './spatial.ts';
 import { H } from '../simulation/protocol.ts';
 import { clamp, Random } from '../core/math.ts';
+import { newWeatherAmbience, weatherAmbience } from './weather-ambience.ts';
 
 /** The live context owns the master bus, ambient wind/rain, spatial engine graph
  * and player contact graph. Rendering supplies the actual listener pose; no
@@ -62,6 +63,13 @@ export class RacingAudio {
   private nodes: AudioNode[] = [];
   private wind: GainNode | null = null;
   private rain: GainNode | null = null;
+  /** Atmosphere beds (weather-ambience.ts): gale pitch, sand grit, thunder
+   * and the damp-air low-pass on the master bus. */
+  private windFilter: BiquadFilterNode | null = null;
+  private grit: GainNode | null = null;
+  private thunder: GainNode | null = null;
+  private muffle: BiquadFilterNode | null = null;
+  private readonly ambience = newWeatherAmbience();
   private contactPan: StereoPannerNode | null = null;
   private contactAudio: ContactAudio | null = null;
   private powerUnit: PowerUnitAudio | null = null;
@@ -84,7 +92,13 @@ export class RacingAudio {
     this.compressor.ratio.value = 5;
     this.compressor.attack.value = 0.004;
     this.compressor.release.value = 0.18;
-    this.master.connect(this.compressor).connect(ctx.destination);
+    // Damp air hushes the world: a master low-pass that fog closes (open at
+    // 18 kHz otherwise, inaudible) ahead of the compressor.
+    this.muffle = ctx.createBiquadFilter();
+    this.muffle.type = 'lowpass';
+    this.muffle.frequency.value = 18000;
+    this.muffle.Q.value = 0.5;
+    this.master.connect(this.muffle).connect(this.compressor).connect(ctx.destination);
     this.engines = new EngineVoices(ctx, this.master);
     this.cueSynth = new CueSynth(ctx, this.master);
     this.previewSynth = new CueSynth(ctx, this.compressor);
@@ -96,7 +110,7 @@ export class RacingAudio {
       previous = 0.83 * previous + 0.17 * (random.next() * 2 - 1);
       data[i] = previous * 2;
     }
-    const noise = (type: BiquadFilterType, frequency: number) => {
+    const bed = (type: BiquadFilterType, frequency: number, q = 1) => {
       const source = ctx.createBufferSource(),
         filter = ctx.createBiquadFilter(),
         gain = ctx.createGain();
@@ -104,18 +118,24 @@ export class RacingAudio {
       source.loop = true;
       filter.type = type;
       filter.frequency.value = frequency;
+      filter.Q.value = q;
       gain.gain.value = 0;
       source.connect(filter).connect(gain).connect(this.master!);
       source.start();
       this.sources.push(source);
       this.nodes.push(source, filter, gain);
-      return gain;
+      return { gain, filter };
     };
-    this.wind = noise('lowpass', 700);
+    const noise = (type: BiquadFilterType, frequency: number) => bed(type, frequency).gain;
+    const windBed = bed('lowpass', 700);
+    this.wind = windBed.gain;
+    this.windFilter = windBed.filter;
     this.rain = noise('highpass', 1700);
+    this.grit = bed('bandpass', 2800, 0.8).gain;
+    this.thunder = bed('lowpass', 150).gain;
     this.contactPan = ctx.createStereoPanner();
     this.contactPan.connect(this.master);
-    this.nodes.push(this.contactPan, this.master, this.compressor);
+    this.nodes.push(this.contactPan, this.master, this.muffle, this.compressor);
     this.contactAudio = new ContactAudio(ctx, this.contactPan);
     // Player power-unit character shares the contact bus stereo position.
     this.powerUnit = new PowerUnitAudio(ctx, this.contactPan);
@@ -140,7 +160,11 @@ export class RacingAudio {
     );
     if (cue) this.cueSynth?.play(cue, time, this.cueSettings.volume);
     if (!playing || !liveHuman || this.muted) this.cueSynth?.silence();
-    this.master.gain.setTargetAtTime(playing && !this.muted ? this.volume * 0.8 : 0, time, 0.06);
+    this.master.gain.setTargetAtTime(
+      playing && !this.muted ? this.volume * 0.8 * this.ambience.masterGain : 0,
+      time,
+      0.06,
+    );
     if (!playing) {
       if (this.wasPlaying) this.resetPresentation();
       this.wasPlaying = false;
@@ -157,7 +181,18 @@ export class RacingAudio {
     // Trackside listeners hear ambient wind, not 300 km/h cockpit wind. Rain
     // remains local to the listener even when the player's contact bus is distant.
     const airSpeed = Math.hypot(view.vx - frame[H.WIND_X], view.vy, view.vz - frame[H.WIND_Z]);
-    this.wind!.gain.setTargetAtTime(Math.min(0.25, (airSpeed / 100) ** 2 * 0.23), time, 0.04);
+    // Gale, sand and thunder (weather-ambience.ts): audible at a standstill,
+    // from the presented wind and the session clock; absent in clear air.
+    const air = weatherAmbience(frame, this.ambience);
+    this.wind!.gain.setTargetAtTime(
+      Math.min(0.3, Math.min(0.25, (airSpeed / 100) ** 2 * 0.23) + air.gale),
+      time,
+      0.04,
+    );
+    this.windFilter!.frequency.setTargetAtTime(air.gale > 0 ? air.galeHz : 700, time, 0.15);
+    this.grit!.gain.setTargetAtTime(air.grit, time, 0.1);
+    this.thunder!.gain.setTargetAtTime(air.thunder, time, 0.03);
+    this.muffle!.frequency.setTargetAtTime(air.masterLowpassHz, time, 0.4);
     this.rain!.gain.setTargetAtTime(
       clamp(frame[H.RAIN] * 0.0025, 0, 0.12) * (1 - this.contactAttenuation) * 0.85,
       time,
@@ -211,7 +246,8 @@ export class RacingAudio {
     this.context = null;
     this.master = null;
     this.compressor = null;
-    this.wind = this.rain = null;
+    this.wind = this.rain = this.grit = this.thunder = null;
+    this.windFilter = this.muffle = null;
     this.contactPan = null;
     this.last = -Infinity;
     this.wasPlaying = false;

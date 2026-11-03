@@ -26,7 +26,7 @@ export function raceBriefing(options: SessionOptions, frame: Float32Array) {
       <div><dt>FITTED TYRES</dt><dd>${compound.toUpperCase()}</dd></div>
       <div><dt>FUEL ON BOARD</dt><dd>${frame[o + F.FUEL].toFixed(1)} <small>KG</small></dd></div>
     </dl>
-    <p class="briefing-weather">${weatherReadout(frame[H.AMBIENT], frame[H.RAIN], frame[H.WATER])}</p>
+    <p class="briefing-weather">${weatherReadout(frame[H.AMBIENT], frame[H.RAIN], frame[H.WATER], frame[H.EXTINCTION], frame[H.DUST], Math.hypot(frame[H.WIND_X], frame[H.WIND_Z]))}</p>
     <p class="small-note">Your garage setup is fitted. To change tyres, weather or setup, return to the paddock.</p>
     <div class="dialog-buttons"><button class="primary" data-action="raceDayPrepare">WATCH GRID PREPARATION</button><button data-action="raceDaySkip">GO STRAIGHT TO LIGHTS</button><button data-action="menu">BACK TO PADDOCK</button></div>
     <label class="check"><input id="raceDayQuickStart" type="checkbox">Use Quick Start for future races</label>

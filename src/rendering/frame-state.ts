@@ -57,7 +57,15 @@ const SMOOTH_SKID = [
   K.SPARK_WORK,
   K.TOTAL_WORK,
 ] as const;
-const SMOOTH_WEATHER = [H.RAIN, H.CLOUD, H.AMBIENT, H.WIND_X, H.WIND_Z] as const;
+const SMOOTH_WEATHER = [
+  H.RAIN,
+  H.CLOUD,
+  H.AMBIENT,
+  H.WIND_X,
+  H.WIND_Z,
+  H.EXTINCTION,
+  H.DUST,
+] as const;
 
 /** Reusable presentation-only snapshot. This buffer NEVER goes back to physics,
  * timing, CSV or replay storage; those retain original measured snapshots. */

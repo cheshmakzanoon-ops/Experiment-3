@@ -34,6 +34,11 @@ export const WEATHER_SURFACES: Readonly<Record<WeatherSurface, readonly [number,
   leather: [0.08, 0.44],
 };
 const roads = new WeakMap<T.Material, { value: T.Vector4 }>();
+/** Share (0..1) of the road's settled marble coverage that is dust rather than
+ * tyre rubber: set each frame from the snapshot's dust share and obscuration
+ * (WeatherPresentation.update), read by every wet-road shader. One shared
+ * uniform; zero everywhere outside a dust storm. */
+export const roadDustUniform = { value: 0 };
 /** Each road material owns a small uniform; its spatial water still comes from
  * the original track-state texture, including deposit-free pit cells. */
 export function roadWeatherUniform(material: T.Material) {
@@ -211,6 +216,14 @@ export class WeatherPresentation {
     if (![time, rain, water, windX, windZ].every(Number.isFinite) || time < 0)
       throw new Error('Invalid weather presentation snapshot');
     this.surface.value.set(enabled ? surfaceDampness(rain, water) : 0, time, rain, water);
+    // Dust share of the air, scaled up from nothing as the bank thickens
+    // (the same onset the renderer's dust look uses: 0.4 to 14 per km).
+    const dust = frame[H.DUST],
+      extinction = frame[H.EXTINCTION];
+    roadDustUniform.value =
+      enabled && Number.isFinite(dust) && Number.isFinite(extinction)
+        ? clamp(dust, 0, 1) * smooth(0.4, 14, extinction)
+        : 0;
     for (const uniform of this.roadUniforms)
       uniform.value.set(
         enabled ? clamp(rain, 0, 60) : 0,

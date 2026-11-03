@@ -31,6 +31,7 @@ import {
   carBase,
 } from '../protocol.ts';
 import { RouteProgress } from '../route-graph.ts';
+import { particulateExtinctionPerKm } from '../weather.ts';
 import { DirtBikeVehicle } from '../offroad/dirt-bike-vehicle.ts';
 import { isDirtBike } from '../offroad/dirt-bikes.ts';
 import { trackPoint, type Track } from '../track.ts';
@@ -1353,6 +1354,8 @@ export class OpenWorldSimulation {
     out[H.LENGTH] = this.track.length;
     out[H.WIND_X] = this.track.windX;
     out[H.WIND_Z] = this.track.windZ;
+    out[H.EXTINCTION] = particulateExtinctionPerKm(this.track.visibility);
+    out[H.DUST] = this.track.dust;
     out[H.LAP_LEADER] = 1;
     this.cars.forEach((c, id) => writeCar(out, id, c));
     return out;

@@ -4,7 +4,12 @@ import type { WeatherPreset } from '../config.ts';
 import { SURFACE, trackPoint, type SurfaceSample, type Track, type TrackPoint } from '../track.ts';
 import { MATERIAL } from '../surface-material.ts';
 import { SurfaceThermalStep } from '../surface-thermal.ts';
-import { weatherKeyframes, WeatherTimeline, type WeatherKeyframe } from '../weather.ts';
+import {
+  CLEAR_VISIBILITY_M,
+  weatherKeyframes,
+  WeatherTimeline,
+  type WeatherKeyframe,
+} from '../weather.ts';
 import { MAX_ROAD_CANDIDATES, ROAD_FLAG, roadCandidates } from './road-network.ts';
 import { festivalMarkings, type FestivalMarkings } from './festival-markings.ts';
 import { smoothstep } from './noise.ts';
@@ -139,6 +144,11 @@ export class OpenWorldTrack {
   ambient = 22;
   windX = 1.5;
   windZ = 0.6;
+  /** Atmosphere channels (weather.ts); clear-air defaults. */
+  visibility = CLEAR_VISIBILITY_M;
+  dust = 0;
+  gust = 0;
+  moisture = 0;
   surfaceClock = 0;
   /** Standing water on a reference road surface (mm). */
   wetness: number;
@@ -190,8 +200,12 @@ export class OpenWorldTrack {
     this.length = world.network.totalStation;
     this.weather = new WeatherTimeline(keyframes);
     this.weather.sample(0, this);
-    this.wetness = preset === 'rain' ? 0.9 : 0;
-    this.#surfaceTemperature = preset === 'rain' ? 22 : this.ambient + 12 * (1 - this.cloud);
+    // The wet presets (heavy rain, thunderstorm) open on a soaked road; fog on
+    // a damp one. Clear, changeable and dust keep their original dry start.
+    this.wetness =
+      preset === 'rain' ? 0.9 : preset === 'storm' ? 1 : preset === 'fog' ? 0.03 : 0;
+    this.#surfaceTemperature =
+      preset === 'rain' || preset === 'storm' ? 22 : this.ambient + 12 * (1 - this.cloud);
     this.#substrateTemperature = this.#surfaceTemperature;
     this.circuit = Object.freeze({
       ...AUREL,
@@ -632,7 +646,7 @@ export class OpenWorldTrack {
           this.#surfaceTemperature,
           this.#substrateTemperature,
           this.wetness,
-          this.rain / 3600,
+          this.rain / 3600 + this.moisture / 3600,
           0.004,
         );
       this.wetness = this.#thermal.water;

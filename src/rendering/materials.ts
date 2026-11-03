@@ -1,5 +1,5 @@
 import { LIGHT_FOOTPRINT_GLSL } from './light-footprint.ts';
-import { roadWeatherUniform } from './weather-presentation.ts';
+import { roadDustUniform, roadWeatherUniform } from './weather-presentation.ts';
 import { WET_REFLECTION_GLSL, type WetReflectionUniforms } from './wet-reflection.ts';
 import { ROAD_MACRO_APPLY, ROAD_MACRO_GLSL } from './road-macro.ts';
 import { MeshPhysicalMaterial, MeshStandardMaterial, ShaderChunk, type DataTexture } from 'three';
@@ -124,6 +124,7 @@ export function installWetRoad(
   material.onBeforeCompile = (shader, renderer) => {
     previous.call(material, shader, renderer);
     shader.uniforms.roadWeather = weather;
+    shader.uniforms.roadDust = roadDustUniform;
     shader.uniforms.trackState = { value: stateTexture };
     shader.uniforms.surfaceDeposits = { value: deposits ? 1 : 0 };
     shader.uniforms.roadLampRadius = { value: lampRadius };
@@ -139,7 +140,7 @@ export function installWetRoad(
       );
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <common>',
-      '#include <common>\nuniform sampler2D trackState; uniform float surfaceDeposits; uniform vec4 roadWeather; uniform float roadLampRadius; varying vec2 vTrackUV; varying vec2 vRoadMetres;\n' +
+      '#include <common>\nuniform sampler2D trackState; uniform float surfaceDeposits; uniform vec4 roadWeather; uniform float roadDust; uniform float roadLampRadius; varying vec2 vTrackUV; varying vec2 vRoadMetres;\n' +
         (reflection
           ? 'uniform sampler2D wetReflection; uniform mat4 wetReflectionMatrix; uniform vec4 wetReflectionState;\n'
           : '') +
@@ -156,7 +157,8 @@ export function installWetRoad(
       // Water depth, not only the puddle mask, drives the film: from about
       // ${ROAD_FILM.sheetMm[1]} mm the racing surface carries a continuous sheet of water.
       float roadSheet = max(puddle, smoothstep(${ROAD_FILM.sheetMm[0].toFixed(2)}, ${ROAD_FILM.sheetMm[1].toFixed(2)}, waterMm));
-      roughnessFactor=mix(roughnessFactor,mix(0.22,0.08,roadSheet),wet);`,
+      roughnessFactor=mix(roughnessFactor,mix(0.22,0.08,roadSheet),wet);
+      roughnessFactor=mix(roughnessFactor,0.95,roadDustFilm*0.7);`,
     );
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <normal_fragment_maps>',
@@ -251,7 +253,7 @@ export function installWetRoad(
       );
   };
   material.customProgramCacheKey = () =>
-    `${previousKey}|apex-physical-asphalt-v6-water-sheet|water-fresnel-footprint-v1|venue-lamp-footprint-v1|road-macro-v1${reflection ? '|wet-planar-v1' : ''}`;
+    `${previousKey}|apex-physical-asphalt-v6-water-sheet|water-fresnel-footprint-v1|venue-lamp-footprint-v1|road-macro-v1|road-damp-dust-v1${reflection ? '|wet-planar-v1' : ''}`;
 }
 
 /** At grazing angles, collapsed screen derivatives can make the stock bump
