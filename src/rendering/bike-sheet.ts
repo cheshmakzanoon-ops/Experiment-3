@@ -57,11 +57,19 @@ export const BIKE_SHEETS: Readonly<Record<string, BikeSheet>> = Object.freeze({
     fairing: 'classic',
     exhaust: 'expansion',
     tail: 'hump',
-    screen: 0.7,
+    screen: 0,
     frame: 'cradle',
     wheels: 'spoked',
     shocks: 'twin',
   }),
+});
+/** Team scheme (car-livery.ts, an index into the team palette) the race shell
+ * of a full-fairing road bike wears for the player's entrant, so SS-600 and
+ * SBK-1000 are not the GP prototypes' red: blue for the SS-600, white and
+ * sky blue for the SBK-1000. Other entrants wear their own team scheme. */
+export const SHELL_SCHEME: Readonly<Record<string, number>> = Object.freeze({
+  ss600: 5,
+  sbk1000: 4,
 });
 /** The sheet of a motorcycle definition: its own, or the original design
  * (stacked wings when the bike carries downforce). */
