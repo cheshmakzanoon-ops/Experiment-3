@@ -2288,18 +2288,19 @@ export class GameApp {
       case 'credits':
         this.ui.credits();
         break;
+      // Escape on the pause menu itself resumes; a sub-dialog returns to it
+      // (src/core/dialog-close.ts).
       case 'modalClose': {
-        // Escape on the pause menu itself resumes; a sub-dialog returns to it.
-        const outcome = dialogCloseOutcome({
+        const closing = dialogCloseOutcome({
           state: this.state,
           pauseMenuOpen: this.ui.pauseMenuOpen,
           briefingOpen: this.gridBriefingOpen,
         });
         this.gridBriefingOpen = false;
         this.ui.closeModal();
-        if (outcome === 'resume') this.resume();
-        else if (outcome === 'pause-menu') this.ui.pause();
-        else if (outcome === 'results') this.showResults();
+        if (closing === 'results') this.showResults();
+        else if (closing === 'resume') this.resume();
+        else if (closing === 'pause-menu') this.ui.pause();
         break;
       }
       case 'camera':

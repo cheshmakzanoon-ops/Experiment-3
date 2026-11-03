@@ -78,7 +78,9 @@ describe('retail front end', () => {
     const seen: number[] = [];
     for (const text of raw) {
       const stage = loadingStage(text, previous);
-      expect(stage.title, text).not.toMatch(/GPU|offscreen|compil|buffer|Blender|authored|photographed/i);
+      expect(stage.title, text).not.toMatch(
+        /GPU|offscreen|compil|buffer|Blender|authored|photographed/i,
+      );
       expect(stage.title, text).not.toBe('Loading');
       expect(stage.fraction, text).toBeGreaterThan(previous);
       previous = stage.fraction;
@@ -88,7 +90,9 @@ describe('retail front end', () => {
     expect(seen.at(-1)).toBeGreaterThanOrEqual(0.9);
     // Fast travel inside the world is a stage too, not an unnamed "Loading".
     expect(loadingStage('Travelling to Port Ilse Street Loop…').title).toBe('Travelling');
-    expect(loadingStage('Preparing another run at Port Ilse Street Loop…').title).toBe('Travelling');
+    expect(loadingStage('Preparing another run at Port Ilse Street Loop…').title).toBe(
+      'Travelling',
+    );
   });
 
   it('uses the whole GP field for loading context and retains MX and mixed-field labels', () => {

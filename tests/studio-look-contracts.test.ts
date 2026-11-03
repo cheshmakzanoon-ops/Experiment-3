@@ -147,10 +147,26 @@ describe('studio look contracts', () => {
       }
     };
     walk('src');
+    // A content validator's DENYLIST has to name the real marks it forbids; that array
+    // is data that is never drawn (found by the full-flow QA run: the Wildcard
+    // validator's BANNED_COPY failed this scan on main). Only that array is exempt:
+    // any other mention in the same file still fails.
+    const denylists = new Map([
+      [
+        join('src', 'career', 'wildcard-validation.ts'),
+        /const BANNED_COPY = Object\.freeze\(\[[\s\S]*?\]\);/,
+      ],
+    ]);
     const hits: string[] = [];
     for (const file of files) {
       if (file === replacementMap) continue;
-      const text = readFileSync(file, 'utf8')
+      const denylist = denylists.get(file);
+      let text = readFileSync(file, 'utf8');
+      if (denylist) {
+        expect(text, `${file} must keep its denylist in the exempted array`).toMatch(denylist);
+        text = text.replace(denylist, '');
+      }
+      text = text
         // Comments may name a removed real mark when explaining its replacement.
         .replace(/\/\*[\s\S]*?\*\//g, '')
         .replace(/(^|[^:])\/\/.*$/gm, '$1');

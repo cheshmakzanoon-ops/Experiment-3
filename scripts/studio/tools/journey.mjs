@@ -887,7 +887,8 @@ class Run {
     if (f.maxGap > 5000) say('page.stall', { maxGapMs: f.maxGap, longTasks: f.longTasks, longMs: f.longMs });
     // AI behaviour: every rival moved, none stationary, none overlapping the player.
     if (last.field?.length) {
-      const still = last.field.filter((c) => c.speed < 1 && !c.retired && last.sim.phase === 2 && last.sim.time > 25);
+      // A car that has taken the flag may park; only a car still racing must not sit still.
+      const still = last.field.filter((c) => c.speed < 1 && !c.retired && !(c.finish > 0) && last.sim.phase === 2 && last.sim.time > 25);
       if (still.length) finding('major', 'ai', `${still.length} AI car(s) stationary but not retired: ids ${still.map((c) => c.id).join(',')}`, { still });
       const near = last.field.filter((c) => Math.hypot(c.x - last.player.x, c.z - last.player.z) < 0.8);
       if (near.length) finding('major', 'ai', `AI car(s) overlap the player's position (<0.8 m): ids ${near.map((c) => c.id).join(',')}`, { near });
@@ -1215,7 +1216,7 @@ const JOURNEY_FNS = {
     }));
     say('wildcard.ui', seriesUi);
     if (!seriesUi.chips.length)
-      finding('major', 'wildcard-ui', 'No Wildcard series entry is reachable from the menu (series strip is hidden; registerSeries() is never called in src). The pairing below is started through the menu form instead.', seriesUi);
+      finding('major', 'wildcard-ui', 'No Wildcard series entry is reachable from the menu (no [data-series] chip exists; registerSeries() is never called in src). The pairing below is started through the menu form instead.', seriesUi);
     run.driverOptions = session.vehicles?.[0] && /^(gpr|sbk|ss6|nr9|cr7|mx|sm4|sk1)/.test(session.vehicles[0]) ? { gLat: 8, brake: 9, steerGain: 1.0, steerRate: 0.4, lookBase: 10, lookGain: 0.5 } : { gLat: 9, brake: 11, steerGain: 1.6 };
     // The grid selector offers 0/3/7/11 rivals; the event's own grid (4-5) is not one of them.
     const gridOptions = await run.page.evaluate(() => [...document.getElementById('opponents').options].map((o) => Number(o.value)));
@@ -1335,6 +1336,11 @@ async function festivalLoad(run, attempt) {
         if (c.hud && !c.loading) {
           rec.completed = true;
           rec.loadSeconds = Number(waited.toFixed(1));
+          rec.modeAtLoaded = c.mode;
+          rec.festivalDiag = await run.page.evaluate(() => window.apexDiagnostics().festival ?? null);
+          say('festival.mode', { dataMode: c.mode, diag: rec.festivalDiag });
+          if (c.mode === 'loading')
+            finding('minor', 'festival', 'The festival is live but #app[data-mode] still reads "loading" (Steam rich presence reads this attribute)', { mode: c.mode });
           break;
         }
       }
