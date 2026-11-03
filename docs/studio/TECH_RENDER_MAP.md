@@ -298,7 +298,7 @@ inputs are named `graphics_<key>`; **string-valued keys must be added to the con
 
   Used by `e2e/56-track-infrastructure`, `57-trackside-operations`, `aurel-quarry`, `aurel-vegetation`,
   `event-hall`, `secondary-grandstands` and `scenery-shadow-budget`.
-- `e2e/41-player-render-budget` and `42-full-scene-index-budget`: triangle and call monotonicity of player and index work.
+- `e2e/41-player-render-budget` (owner-supplied model, QA build only) and `42-full-scene-index-budget` (the authored player car's triangle / draw / index-buffer budget in the real eight-car pass in every build, plus the owner model's compaction in a QA build): triangle and call monotonicity of player and index work.
 - `GpuFrameGate` (`gpu-frame-gate.ts`) allows at most one unfinished submission. The RAF skips the frame
   rather than queueing it.
 - Profiling: `core/performance.ts` (30 s capture, p99, 1% low, GPU ms); `stats().drawBreakdown`;

@@ -2,8 +2,8 @@
  * Release gate G15 (docs/studio/reports/ip-audit.md): certify that a build's OUTPUT ships no
  * third-party brand identifier and no owner-only asset. It is enforced, not advisory:
  *
- *  - `vite build` runs it on every product build (`vite.config.ts`, plugin
- *    `owner-only-assets`), so `npm run build` fails when the output is not clean;
+ *  - `vite build` runs it on every product build (`vite.config.ts`, plugin `ip-guard`), so
+ *    `npm run build` fails when the output is not clean;
  *  - the CI `validate` job runs `npm run check:ip` again on the uploaded `dist/`;
  *  - `scripts/publish-validated-release.sh` runs it on the artifact it is about to release.
  *

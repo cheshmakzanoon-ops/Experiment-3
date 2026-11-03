@@ -4,11 +4,13 @@ import { resolve } from 'node:path';
 import type { fullSceneIndexBudget } from './fixtures/full-scene-index-budget.ts';
 import { OWNER_BUILD, fixtureDefine } from './fixtures/owner-build.ts';
 
-/** The authored player car measures 228,936 triangles in 94 draws over 143 index buffers of
- * 1,752,816 bytes in total (A61 census, tests/a61-rival.test.ts; the same figures from
- * FormulaCar(0) in node). The budgets keep ~14 % headroom on the bytes and the draws, and the
- * suite's existing 250,000-triangle near ceiling on the triangles. */
-const INDEX_BYTES_BUDGET = 2_000_000;
+/** Measured on the product build in the real eight-car main pass (SwiftShader, Low): the
+ * authored player car is 228,852 triangles in 92 draws (pod and trackside; 220,456 in 90 draws
+ * in the cockpit, helmet hidden) with 176 index buffers of 2,986,236 bytes, inside a scene of
+ * 574 to 1,140 calls and 1.71 to 3.98 M triangles. The A61 census in node gives the same
+ * triangles (228,936 in 94 draws, tests/a61-rival.test.ts, whose 250,000 near ceiling is reused).
+ * The index and draw budgets keep about 17 % and 20 % headroom over the measurement. */
+const INDEX_BYTES_BUDGET = 3_500_000;
 const DRAW_BUDGET = 110;
 
 /**
