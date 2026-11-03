@@ -35,7 +35,6 @@ import {
   type ClientMessage,
   type WorkerMessage,
 } from './workers/diagnostics.ts';
-import PhysicsWorker from './workers/physics.worker.ts?worker&inline';
 import '@fontsource-variable/saira/wdth.css';
 import '@fontsource-variable/saira/wdth-italic.css';
 import './ui/style.css';
@@ -747,6 +746,10 @@ export class GameApp {
     this.ui.loading('Preparing grid, race timing and recording buffers…');
     this.ui.loadingSession(options);
     this.input.setEnabled(false);
+    // The inlined physics worker is its own chunk: only a session needs it, so
+    // fetch it while audio and the circuit prepare (awaited before the worker starts).
+    const physicsWorker = import('./workers/physics.worker.ts?worker&inline');
+    physicsWorker.catch(() => undefined); // The await below reports a failure.
     this.audio.stop();
     try {
       await this.audio.start();
@@ -758,6 +761,8 @@ export class GameApp {
     if (this.disposed) return;
     const circuit = circuitDefinition(options.circuit).id;
     if (!(await this.switchCircuit(circuit)) || this.disposed) return;
+    const { default: PhysicsWorker } = await physicsWorker;
+    if (this.disposed) return;
     this.options = {
       ...options,
       circuit,

@@ -43,6 +43,7 @@
     "predev": "npm run generate:player-lods",
     "pretest": "npm run generate:player-lods",
     "test:e2e:shard": "node --experimental-strip-types scripts/run-browser-shard.ts",
+    "check:bundle": "node scripts/bundle-budget.mjs",
     "check:stable": "node --experimental-transform-types scripts/source-stability.ts -- npm run check"
   },
   "dependencies": {

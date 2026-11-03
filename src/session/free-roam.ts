@@ -1,4 +1,5 @@
 import type * as T from 'three';
+import { loadLazyData } from '../core/lazy-data.ts';
 import { scannedGround } from '../rendering/ground/scan-store.ts';
 import type { Assist, Controls, WeatherPreset } from '../simulation/config.ts';
 import {
@@ -147,6 +148,9 @@ export class FestivalSession {
   }
   static async start(host: FestivalHost, options: FestivalStartOptions = {}) {
     host.loading('Building the Solvane festival region…');
+    // The festival shares the circuit scenery and crew kits; production builds
+    // serve their authored tables from separate chunks (src/core/lazy-data.ts).
+    await loadLazyData();
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     const save = validateFestivalSave(await host.load?.().catch(() => null));
     const session = new FestivalSession(host, save);

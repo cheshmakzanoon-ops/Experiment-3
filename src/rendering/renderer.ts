@@ -1,3 +1,4 @@
+import { loadLazyData } from '../core/lazy-data.ts';
 import { loadAurelQuarry } from './aurel-quarry.ts';
 import { loadAurelVegetation } from './aurel-vegetation.ts';
 import { loadVenueVegetation } from './vegetation/index.ts';
@@ -600,6 +601,18 @@ export class RacingRenderer {
     initial?: { quality: QualityPreset; graphics?: GraphicsOptions },
     showroomOnly = false,
   ): Promise<RacingRenderer | null> {
+    // The showroom builds the pit and grid crew; a circuit also reads crowd,
+    // venue and course tables. The production bundle serves these authored
+    // tables from separate chunks (src/core/lazy-data.ts) that must be
+    // resident before anything below constructs them.
+    progress({
+      completed: 0,
+      total: 1,
+      fraction: 0,
+      label: 'Loading authored venue and crew data',
+    });
+    await (showroomOnly ? loadLazyData('showroom') : loadLazyData());
+    if (cancelled()) return null;
     const renderer = new RacingRenderer(canvas, track, true, showroomOnly);
     // Night venues open floodlit (a live sky, if enabled, still overrides).
     if (track.circuit.catalogue?.night) renderer.lighting = 'night';
@@ -622,7 +635,9 @@ export class RacingRenderer {
       if (!showroomOnly) await scannedGround.ready(20000);
       progress({ completed: 0, total: 1, fraction: 0, label: 'Loading Blender-authored bodywork' });
       renderer.heroShells = await loadHeroShells(cancelled);
-      renderer.rivalLevels = await loadRivalLevels(cancelled);
+      // Rival bodywork dresses opponents only (FormulaCar id > 0); the showroom
+      // shows the player's car alone, so it skips three decoded rival exports.
+      if (!showroomOnly) renderer.rivalLevels = await loadRivalLevels(cancelled);
       renderer.driverAsset = await loadDriverAsset(cancelled);
       progress({
         completed: 0,
