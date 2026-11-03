@@ -54,7 +54,7 @@ Snow/ice was **not** built (reasons below). Time of day is reported as already s
    `FOG 110 M` / `DUST 170 M` and `WIND 12 M/S` (`ui/presentation.ts airReadout`). Loading line,
    event cards and career calendar use the catalogue.
 10. **AI.** Unchanged envelope already derives grip from `peakGrip`, so water, cold and dust flow in
-    automatically. New: `DriverBrain.pace` is scaled by `visibilityPace` (1.0 from 600 m to 0.8 at <= 60 m).
+    automatically. New: `DriverBrain.pace` is scaled by `visibilityPace` (1.0 from 600 m to 0.88 at <= 60 m).
     Tyre decisions still follow track water.
 11. **Race control.** DRS is locked out below 250 m visibility (`DrsContext.visibility`). The safety car
     director only reacts to marshal obstructions and was not changed.
@@ -64,41 +64,47 @@ Snow/ice was **not** built (reasons below). Time of day is reported as already s
 All from `scripts/weather-matrix.ts` (production `Simulation`, AI driver, Aurel, 120 Hz, seed 4417):
 `docs/studio/reports/weather-matrix.json`. Solo practice stint (3 timed laps after the out lap) and an
 8-car 3-lap race per preset on its suggested tyre. The Vitest assertions in `tests/weather-states.test.ts`
-pin the model numbers below.
+pin the model numbers below. Sight pace floor 0.88.
 
 | weather | tyre | mean lap | vs dry medium | min view | mean water | front-left grip | tyre T |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | clear | medium | 49.87 s | 0 % | 30 km | 0 mm | 0.98 | 93 C |
 | rain (24 mm/h) | wet | 68.05 s | +36.4 % | 2.4 km | 1.09 | 0.71 | 35 C |
-| rain | medium | 78.56 s | +57.5 % | | | 0.71 | |
-| **fog** | medium | 62.14 s | **+24.6 %** | 110 m | 0.029 | 0.84 | 68 C |
-| fog | intermediate | 70.58 s | +41.5 % | | | 0.84 | |
-| **storm** (60 to 76 mm/h) | wet | 71.33 s | **+43.0 %** | 483 m | 2.11 | 0.64 | 25 C |
-| storm | intermediate | 75.47 s | +51.3 % | | 2.15 | 0.45 | |
-| storm | medium | 82.81 s | +66.0 % | | 2.45 | 0.63 | |
-| **dust** | medium | 59.74 s | **+19.8 %** | 170 m | 0 | 0.90 | 89 C |
-| dust | intermediate / wet | 68.9 s | +38 % | | | 0.90 | |
+| rain | medium | 78.56 s | +57.5 % | | 1.14 | 0.71 | 34 C |
+| **fog** | medium | 57.92 s | **+16.1 %** | 110 m | 0.029 | 0.84 | 73 C |
+| fog | intermediate | 66.81 s | +34.0 % | | 0.029 | 0.84 | 73 C |
+| **storm** (60 to 76 mm/h) | wet | 70.99 s | **+42.3 %** | 483 m | 2.11 | 0.64 | 25 C |
+| storm | intermediate | 75.11 s | +50.6 % | | 2.15 | 0.45 | 25 C |
+| storm | medium | 82.61 s | +65.6 % | | 2.45 | 0.61 | 24 C |
+| **dust** | medium | 56.32 s | **+12.9 %** | 170 m | 0 | 0.88 | 94 C |
+| dust | intermediate / wet | 65.5 s | +31.3 % | | 0 | 0.88 | 92 C |
+| changeable (storm arrives at ~2 min) | medium | 83.95 s | +68.3 % | 1.6 km | 0.46 | 0.69 | 41 C |
+
+(`changeable` is listed for completeness: with a fixed dry tyre the stint spans the dry-to-storm transition.)
 
 Races (8 cars, 3 laps, suggested tyre): every car finishes, 0 retirements, max impact <= 0.01, all state
-finite in every preset: clear 172 s, changeable 237 s (3 pit stops), rain 230 s, fog 203 s, storm 237 s,
-dust 198 s. A GP-motorcycle field (4 bikes, 2 laps, Aurel) finishes the storm 179 s vs 136 s dry (4/4,
+finite in every preset: clear 172 s, changeable 237 s (3 pit stops), rain 230 s, fog 192 s, storm 236 s,
+dust 189 s. A GP-motorcycle field (4 bikes, 2 laps, Aurel) finishes the storm 179 s vs 136 s dry (4/4,
 0 retirements), `weather-matrix.ts --vehicle gpr1`.
 
 How the deltas decompose (so they can be tuned honestly):
 
-* **Fog +24.6 %.** About two thirds is the AI's sight limit (`visibilityPace(110 m)` = 0.80), the rest is
-  grip: a 0.03 mm film costs a slick ~16 % (front-left 0.98 to 0.84; `wetPenalty` 0.63 x 0.03/(0.03+0.1)
-  plus cold tyres 68 C vs a 92 C window, -9 %). A human driver is only limited by the grip and what he can see.
-  Intermediates are *slower* than slicks here (+41 %): the film is too thin for them, which is why the
-  menu suggests Medium for fog.
-* **Storm +43 % on wets.** 2.1 mm mean standing water and 25 C tyres. Slicks lose +66 %, intermediates
+* **Fog +16.1 %.** Measured by removing only the drivers' sight limit (`decompose` check, same stint):
+  grip alone is +7.9 %, so sight pace (`visibilityPace(110 m)` = 0.88) is the other ~8 points. The grip part:
+  a 0.03 mm film costs a slick ~15 % (front-left 0.98 to 0.84; `wetPenalty` 0.63 x 0.03/(0.03+0.1)) and cold
+  tyres sit 73 C against a 92 C window (-5 %). A human driver is limited only by that grip and by what he can
+  see. Intermediates are *slower* than slicks here (+34 %): the film is too thin for them, which is why the
+  menu suggests Medium for fog. (The first draft's 0.80 floor made the AI 17 points slower on sight alone and
+  was relaxed to 0.88 after this measurement.)
+* **Storm +42 % on wets.** 2.1 mm mean standing water and 25 C tyres. Slicks lose +66 %, intermediates
   show front-left grip 0.45 (aquaplaning). Deeper water barely hurts wets in this tyre model
   (waterTolerance 3.2 mm), so the storm is only ~7 points slower than 24 mm/h rain for the AI; the
   difference a human feels is the gusts, the dark, the lightning and the aquaplaning margin. Not tuned
   further because the tyre model owns that.
-* **Dust +19.8 %.** Grip 0.90 (-8 % on the line, from marbles + tread dirt), the rest is the sight limit
-  at 170 m. Soft is fastest on the hot road (57.0 s vs medium 58.1 s vs hard 59.4 s, 2-lap check) since
-  the tyres stay in their window at 39 C; Medium is the suggested default for wear.
+* **Dust +12.9 %.** Grip alone is +3.2 % of lap time (front-left grip 0.88 against 0.98: marbles film
+  plus tread dirt), the rest is the 170 m sight limit. Soft is fastest on the hot road (57.0 s vs medium
+  58.1 s vs hard 59.4 s, 2-lap check at the earlier 0.80 floor) since the tyres stay in their window at
+  39 C; Medium is the suggested default for wear.
 * **Crosswind.** `crosswindForce`: 1/2 rho |V| (0.55 x 4 hy hz) w. Formula car, 70 m/s, 12 m/s across:
   ~1.1 kN, 0.14 g. A real car integrated 0.7 s at 60 m/s in a 14 m/s gust gains > 0.2 m/s toward the wind
   (tyres resist most of it), exactly 0 difference in a 4.2 m/s breeze.

@@ -29,6 +29,7 @@ const { values: v, positionals } = parseArgs({
     shots: { type: 'string' },
     opponents: { type: 'string', default: '3' },
     quality: { type: 'string', default: 'medium' },
+    size: { type: 'string', default: '1280x720' },
   },
 });
 const out = positionals[0];
@@ -60,7 +61,8 @@ const browser = await chromium.launch({
     '--no-sandbox',
   ],
 });
-const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+const [width, height] = v.size.split('x').map(Number);
+const page = await browser.newPage({ viewport: { width, height } });
 page.setDefaultTimeout(240000);
 page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
 page.on('console', (m) => {
@@ -127,8 +129,8 @@ async function setView(view) {
 }
 async function encode(file) {
   // JPEG under 300 KB: lower the quality until the screenshot fits.
-  for (const quality of [74, 64, 54, 44]) {
-    const buffer = await page.screenshot({ type: 'jpeg', quality, timeout: 240000 });
+  for (const quality of [72, 58, 44]) {
+    const buffer = await page.screenshot({ type: 'jpeg', quality, timeout: 1200000 });
     if (buffer.length <= 300 * 1024 || quality === 44) {
       writeFileSync(file, buffer);
       return { bytes: buffer.length, quality };
@@ -185,8 +187,9 @@ for (const group of groups) {
           document.head.append(s);
         });
       }
-      const start = (await probe())?.frames ?? 0;
-      await waitFor('two frames', (x) => x.frames >= start + 2, 120000, 200);
+      // On a loaded software-GL box a frame takes minutes: give the held scene a
+      // few seconds to settle, then let the screenshot itself wait for a frame.
+      await sleep(4000);
       const name = `${String(index++).padStart(2, '0')}-${group.weather}-${group.lighting}-${shot.view}.jpg`;
       const info = await encode(join(out, name));
       const d = await probe();

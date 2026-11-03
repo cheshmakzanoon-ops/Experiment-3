@@ -211,9 +211,9 @@ describe('visibility: Koschmieder extinction shared by renderer, HUD and drivers
       expect(p).toBeGreaterThanOrEqual(previous);
       previous = p;
     }
-    expect(visibilityPace(110)).toBeLessThan(0.82);
-    expect(visibilityPace(250)).toBeGreaterThan(0.83);
-    expect(visibilityPace(250)).toBeLessThan(0.9);
+    expect(visibilityPace(110)).toBeLessThan(0.9);
+    expect(visibilityPace(250)).toBeGreaterThan(0.9);
+    expect(visibilityPace(250)).toBeLessThan(0.95);
     expect(() => visibilityPace(NaN)).toThrow();
     expect(trackVisibilityM({ visibility: CLEAR_VISIBILITY_M, rain: 24 })).toBeGreaterThan(600);
   });
@@ -564,8 +564,8 @@ describe('race control and drivers respond to the view', () => {
       lifted = pace('fog', 1500);
     expect(clear).toBeGreaterThan(0.97);
     expect(rain).toBeGreaterThan(0.9);
-    expect(fog).toBeLessThan(clear * 0.85);
-    expect(dust).toBeLessThan(clear * 0.85);
+    expect(fog).toBeLessThan(clear * 0.92);
+    expect(dust).toBeLessThan(clear * 0.93);
     expect(lifted).toBeGreaterThan(fog + 0.1);
   });
 });

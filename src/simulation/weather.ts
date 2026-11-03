@@ -102,10 +102,13 @@ export function trackVisibilityM(track: { visibility: number; rain: number }) {
   return effectiveVisibilityM(particulateExtinctionPerKm(track.visibility), track.rain);
 }
 /** Pace a sensible driver holds with the view that far ahead: full pace from
- * 600 m, falling smoothly to 80 % at 60 m or less. A braking zone of 150 m at
+ * 600 m, falling smoothly to 88 % at 60 m or less. A braking zone of 150 m at
  * 70 m/s is 2 s of sight; below ~250 m the limit is what the driver can stop
- * for, not what the tyres allow. Pace only: grip is the tyre model's. */
-export const VISIBILITY_PACE = Object.freeze({ floor: 0.8, near: 60, far: 600 });
+ * for, not what the tyres allow. Pace only: grip is the tyre model's. The
+ * floor was measured, not guessed: on Aurel (weather-matrix.ts) 0.80 made the
+ * AI lap 17 points slower than its grip alone in fog, which would leave a
+ * human driver alone at the front; 0.88 costs about 9 points. */
+export const VISIBILITY_PACE = Object.freeze({ floor: 0.88, near: 60, far: 600 });
 export function visibilityPace(visibilityM: number) {
   if (!Number.isFinite(visibilityM)) throw new Error('Invalid visibility');
   return (
