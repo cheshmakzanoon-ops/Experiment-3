@@ -61,6 +61,12 @@ export class InputController {
     this.keys.add(e.code);
     if (e.repeat) return;
     if (e.code === 'Escape') {
+      // While the game consumes Escape it must also stop the browser's own default for
+      // it (a dialog close request): the pause menu opens during this very keydown, and
+      // the default would cancel it at once. That cancel used to be hidden because the
+      // pause menu re-opened itself on every cancel, i.e. Escape flickered the menu and
+      // could never resume (journey finding D1).
+      if (this.enabled) e.preventDefault();
       this.action('pause');
       return;
     }

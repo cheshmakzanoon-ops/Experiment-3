@@ -293,6 +293,12 @@ export class FestivalSession {
       host.loading('Loading photographed ground…');
       await scannedGround.ready();
     }
+    // Bake and link what the first frames need while the loading screen is still up.
+    await renderer.prepareGpu(
+      this.current!,
+      (message) => host.loading(message),
+      () => this.disposed,
+    );
     await host.audio?.start().catch(() => undefined);
     host.loaded();
     this.post({ type: 'pause', value: false });

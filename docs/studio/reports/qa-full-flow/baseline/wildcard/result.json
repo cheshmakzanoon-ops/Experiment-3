@@ -1,0 +1,2688 @@
+{
+ "journey": "wildcard",
+ "cfg": {
+  "url": "http://127.0.0.1:4214",
+  "journey": "wildcard",
+  "out": "/tmp/claude-0/-home-user-Experiment-3/d7f7b547-44bc-5977-9962-da1e5626b4ba/scratchpad/j/wildcard",
+  "quality": "low",
+  "simSeconds": 30,
+  "viewport": [
+   960,
+   540
+  ],
+  "bootTimeoutS": 900,
+  "startTimeoutS": 900,
+  "festivalMaxS": 1500,
+  "profile": true,
+  "shots": true,
+  "wildcardId": "formula-on-the-wall",
+  "secondSimSeconds": 15,
+  "festivalSingle": false
+ },
+ "timeline": [
+  {
+   "t": 1.8,
+   "kind": "browser.open",
+   "viewport": [
+    960,
+    540
+   ],
+   "quality": "low"
+  },
+  {
+   "t": 2.2,
+   "kind": "wildcard.session",
+   "id": "formula-on-the-wall",
+   "title": "FORMULA ON THE WALL",
+   "options": {
+    "circuit": "speedbowl",
+    "mode": "race",
+    "laps": 3,
+    "opponents": 5,
+    "vehicles": [
+     "fx26",
+     "fx26",
+     "fx26",
+     "fx26",
+     "fx26",
+     "fx26"
+    ],
+    "weather": "clear",
+    "assist": "sport"
+   }
+  },
+  {
+   "t": 2.2,
+   "kind": "step.begin",
+   "name": "boot"
+  },
+  {
+   "t": 5.3,
+   "kind": "boot.domcontentloaded",
+   "ms": 3180
+  },
+  {
+   "t": 9.2,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4214/14930d66-d11c-4de4-a3d8-ba6a07829a2b"
+  },
+  {
+   "t": 9.2,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4214/14930d66-d11c-4de4-a3d8-ba6a07829a2b"
+  },
+  {
+   "t": 9.2,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4214/14930d66-d11c-4de4-a3d8-ba6a07829a2b"
+  },
+  {
+   "t": 9.2,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4214/14930d66-d11c-4de4-a3d8-ba6a07829a2b"
+  },
+  {
+   "t": 98.7,
+   "kind": "wait",
+   "label": "menu visible",
+   "waited": 93,
+   "mode": null,
+   "stage": "0% · Preparing vehicle showroom…",
+   "percent": "0%",
+   "rafFrames": 212,
+   "maxGapMs": 2500
+  },
+  {
+   "t": 119.1,
+   "kind": "boot.done",
+   "timeToMenuS": 116.9,
+   "timeToFirstMenuFrameS": 116.9,
+   "paint": {
+    "first-paint": 276,
+    "first-contentful-paint": 3388
+   },
+   "domContentLoadedMs": 3180
+  },
+  {
+   "t": 119.1,
+   "kind": "step.end",
+   "name": "boot",
+   "seconds": 116.9
+  },
+  {
+   "t": 122.4,
+   "kind": "screenshot",
+   "file": "01-menu-boot.png",
+   "ms": 3300
+  },
+  {
+   "t": 122.8,
+   "kind": "memory",
+   "label": "menu-after-boot",
+   "jsHeapMB": 34.4,
+   "jsHeapTotalMB": 35.6,
+   "nodes": 2417,
+   "listeners": 133,
+   "documents": 2,
+   "rssMB": 2044,
+   "textures": 83,
+   "geometries": 190
+  },
+  {
+   "t": 122.8,
+   "kind": "step.begin",
+   "name": "quality-low"
+  },
+  {
+   "t": 122.8,
+   "kind": "input.click",
+   "n": 1,
+   "label": "GARAGE & SETTINGS"
+  },
+  {
+   "t": 123.4,
+   "kind": "input.select",
+   "n": 2,
+   "label": "quality",
+   "value": "low"
+  },
+  {
+   "t": 123.4,
+   "kind": "input.click",
+   "n": 3,
+   "label": "APPLY & SAVE"
+  },
+  {
+   "t": 128.4,
+   "kind": "quality.applied",
+   "quality": "low",
+   "seconds": 5.562,
+   "busy": false
+  },
+  {
+   "t": 128.4,
+   "kind": "step.end",
+   "name": "quality-low",
+   "seconds": 5.6
+  },
+  {
+   "t": 128.4,
+   "kind": "wildcard.ui",
+   "boardSeries": true,
+   "chips": [],
+   "eventsButton": true
+  },
+  {
+   "t": 128.4,
+   "kind": "FINDING",
+   "severity": "major",
+   "where": "wildcard-ui",
+   "message": "No Wildcard series entry is reachable from the menu (series strip is hidden; registerSeries() is never called in src). The pairing below is started through the menu form instead."
+  },
+  {
+   "t": 128.4,
+   "kind": "wildcard.grid-mismatch",
+   "eventRivals": 5,
+   "menuOffers": [
+    0,
+    3,
+    7,
+    11
+   ],
+   "used": 3
+  },
+  {
+   "t": 128.4,
+   "kind": "step.begin",
+   "name": "configure"
+  },
+  {
+   "t": 128.7,
+   "kind": "input.select",
+   "n": 4,
+   "label": "circuit",
+   "value": "speedbowl"
+  },
+  {
+   "t": 129.1,
+   "kind": "input.select",
+   "n": 5,
+   "label": "vehicle",
+   "value": "fx26"
+  },
+  {
+   "t": 135.2,
+   "kind": "input.select",
+   "n": 6,
+   "label": "opponents",
+   "value": "3"
+  },
+  {
+   "t": 135.4,
+   "kind": "configured",
+   "circuit": "speedbowl",
+   "vehicle": "fx26",
+   "mode": "race",
+   "laps": "3",
+   "weather": "clear",
+   "compound": "medium",
+   "assist": "sport",
+   "opponents": "3",
+   "startSlot": "pole"
+  },
+  {
+   "t": 135.4,
+   "kind": "sessionRules",
+   "text": "FORMULA GRAND PRIX: no mandatory stop · DRS on · points scored."
+  },
+  {
+   "t": 135.4,
+   "kind": "step.end",
+   "name": "configure",
+   "seconds": 7
+  },
+  {
+   "t": 160.9,
+   "kind": "screenshot",
+   "file": "02-configured.png",
+   "ms": 25437
+  },
+  {
+   "t": 160.9,
+   "kind": "step.begin",
+   "name": "enter-wildcard-1"
+  },
+  {
+   "t": 161.5,
+   "kind": "input.click",
+   "n": 7,
+   "label": "ENTER"
+  },
+  {
+   "t": 243,
+   "kind": "wait",
+   "label": "briefing or driving",
+   "waited": 81,
+   "mode": "loading",
+   "stage": "44% · Player car and live instruments…",
+   "percent": "37%",
+   "rafFrames": 538,
+   "maxGapMs": 83530
+  },
+  {
+   "t": 246,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4214/003657e3-b8e6-419e-9f07-4fc6255f760a"
+  },
+  {
+   "t": 273.3,
+   "kind": "wait",
+   "label": "briefing or driving",
+   "waited": 111,
+   "mode": "loading",
+   "stage": "Warming offscreen pit-service materials…",
+   "percent": "90%",
+   "rafFrames": 640,
+   "maxGapMs": 83530
+  },
+  {
+   "t": 303.6,
+   "kind": "wait",
+   "label": "briefing or driving",
+   "waited": 141,
+   "mode": "loading",
+   "stage": "Warming cockpit, mirrors and post-processing…",
+   "percent": "90%",
+   "rafFrames": 697,
+   "maxGapMs": 83530
+  },
+  {
+   "t": 315.2,
+   "kind": "input.click",
+   "n": 8,
+   "label": "briefing: GO STRAIGHT TO LIGHTS"
+  },
+  {
+   "t": 326.8,
+   "kind": "session.profile",
+   "totalMs": 165111,
+   "idlePct": 35,
+   "files": [
+    {
+     "file": "(idle)",
+     "ms": 57174
+    },
+    {
+     "file": "drawImage",
+     "ms": 57084
+    },
+    {
+     "file": "getProgramInfoLog",
+     "ms": 18160
+    },
+    {
+     "file": "index.js",
+     "ms": 14249
+    },
+    {
+     "file": "three.js",
+     "ms": 8753
+    },
+    {
+     "file": "(program)",
+     "ms": 3105
+    }
+   ],
+   "top": [
+    {
+     "fn": "(idle) :-1",
+     "ms": 57174
+    },
+    {
+     "fn": "drawImage :-1",
+     "ms": 57084
+    },
+    {
+     "fn": "getProgramInfoLog :-1",
+     "ms": 18160
+    },
+    {
+     "fn": "(program) :-1",
+     "ms": 3105
+    },
+    {
+     "fn": "(garbage collector) :-1",
+     "ms": 2620
+    },
+    {
+     "fn": "fX index-CbE6jY_R.js:1560",
+     "ms": 2341
+    },
+    {
+     "fn": "fromBufferAttribute three-CuIIN4MI.js:4",
+     "ms": 1631
+    },
+    {
+     "fn": "yS index-CbE6jY_R.js:854",
+     "ms": 1605
+    }
+   ]
+  },
+  {
+   "t": 326.8,
+   "kind": "session.started",
+   "label": "wildcard-1",
+   "startedAt": 160.858,
+   "briefing": true,
+   "timeToDrivingS": 159,
+   "timeToFirstFrameS": 165.1,
+   "profile": {
+    "totalMs": 165111,
+    "idlePct": 35,
+    "top": [
+     {
+      "fn": "(idle) :-1",
+      "ms": 57174
+     },
+     {
+      "fn": "drawImage :-1",
+      "ms": 57084
+     },
+     {
+      "fn": "getProgramInfoLog :-1",
+      "ms": 18160
+     },
+     {
+      "fn": "(program) :-1",
+      "ms": 3105
+     },
+     {
+      "fn": "(garbage collector) :-1",
+      "ms": 2620
+     },
+     {
+      "fn": "fX index-CbE6jY_R.js:1560",
+      "ms": 2341
+     },
+     {
+      "fn": "fromBufferAttribute three-CuIIN4MI.js:4",
+      "ms": 1631
+     },
+     {
+      "fn": "yS index-CbE6jY_R.js:854",
+      "ms": 1605
+     },
+     {
+      "fn": "are index-CbE6jY_R.js:2901",
+      "ms": 753
+     },
+     {
+      "fn": "sample index-CbE6jY_R.js:6580",
+      "ms": 611
+     },
+     {
+      "fn": "applyMatrix4 three-CuIIN4MI.js:4",
+      "ms": 576
+     },
+     {
+      "fn": "getShaderInfoLog :-1",
+      "ms": 558
+     },
+     {
+      "fn": "Dpe index-CbE6jY_R.js:3983",
+      "ms": 508
+     },
+     {
+      "fn": "d index-CbE6jY_R.js:6580",
+      "ms": 420
+     },
+     {
+      "fn": "setFromBufferAttribute three-CuIIN4MI.js:4",
+      "ms": 402
+     },
+     {
+      "fn": "ep index-CbE6jY_R.js:2873",
+      "ms": 379
+     },
+     {
+      "fn": "getX three-CuIIN4MI.js:4",
+      "ms": 370
+     },
+     {
+      "fn": "(anonymous) index-CbE6jY_R.js:6580",
+      "ms": 349
+     },
+     {
+      "fn": "recordSurface index-CbE6jY_R.js:8107",
+      "ms": 344
+     },
+     {
+      "fn": "digest :-1",
+      "ms": 338
+     },
+     {
+      "fn": "create index-CbE6jY_R.js:3995",
+      "ms": 309
+     },
+     {
+      "fn": "Blob :-1",
+      "ms": 282
+     },
+     {
+      "fn": "shaderSource :-1",
+      "ms": 280
+     },
+     {
+      "fn": "ve three-CuIIN4MI.js:4",
+      "ms": 278
+     },
+     {
+      "fn": "he three-CuIIN4MI.js:4",
+      "ms": 269
+     }
+    ],
+    "files": [
+     {
+      "file": "(idle)",
+      "ms": 57174
+     },
+     {
+      "file": "drawImage",
+      "ms": 57084
+     },
+     {
+      "file": "getProgramInfoLog",
+      "ms": 18160
+     },
+     {
+      "file": "index.js",
+      "ms": 14249
+     },
+     {
+      "file": "three.js",
+      "ms": 8753
+     },
+     {
+      "file": "(program)",
+      "ms": 3105
+     },
+     {
+      "file": "(garbage collector)",
+      "ms": 2620
+     },
+     {
+      "file": "getShaderInfoLog",
+      "ms": 558
+     },
+     {
+      "file": "digest",
+      "ms": 338
+     },
+     {
+      "file": "Blob",
+      "ms": 282
+     },
+     {
+      "file": "shaderSource",
+      "ms": 280
+     },
+     {
+      "file": "blob",
+      "ms": 243
+     }
+    ]
+   }
+  },
+  {
+   "t": 326.8,
+   "kind": "step.end",
+   "name": "enter-wildcard-1",
+   "seconds": 166
+  },
+  {
+   "t": 347.7,
+   "kind": "screenshot",
+   "file": "03-wildcard-1-first-frame.png",
+   "ms": 20845
+  },
+  {
+   "t": 347.7,
+   "kind": "step.begin",
+   "name": "drive-wildcard-1"
+  },
+  {
+   "t": 347.8,
+   "kind": "driving",
+   "sim": 20.8,
+   "kph": 0,
+   "lap": 0,
+   "rank": 3,
+   "s": 3973,
+   "lat": -2.2,
+   "keys": "LT",
+   "rafFps": 0,
+   "auto": false
+  },
+  {
+   "t": 362.8,
+   "kind": "driving",
+   "sim": 34.8,
+   "kph": 19,
+   "lap": 0,
+   "rank": 4,
+   "s": 76,
+   "lat": 3.2,
+   "keys": "LT",
+   "rafFps": 3.42,
+   "auto": false
+  },
+  {
+   "t": 377.8,
+   "kind": "driving",
+   "sim": 49.4,
+   "kph": 0,
+   "lap": 0,
+   "rank": 4,
+   "s": 103,
+   "lat": 8.8,
+   "keys": "TR",
+   "rafFps": 0,
+   "auto": false
+  },
+  {
+   "t": 379.6,
+   "kind": "drive.done",
+   "label": "wildcard-1",
+   "ended": "sim-seconds",
+   "simElapsed": 30,
+   "wallS": 31.9,
+   "rtf": 0.94,
+   "maxKph": 103,
+   "offTrackS": 19.2,
+   "stuckS": 2.9,
+   "keyEvents": 208
+  },
+  {
+   "t": 379.6,
+   "kind": "step.end",
+   "name": "drive-wildcard-1",
+   "seconds": 31.9
+  },
+  {
+   "t": 379.6,
+   "kind": "page.stall",
+   "maxGapMs": 83530,
+   "longTasks": 76,
+   "longMs": 202185
+  },
+  {
+   "t": 379.6,
+   "kind": "step.begin",
+   "name": "pause-resume"
+  },
+  {
+   "t": 380.2,
+   "kind": "input.key",
+   "label": "ESC (pause)",
+   "code": "Escape"
+  },
+  {
+   "t": 387.4,
+   "kind": "screenshot",
+   "file": "04-paused.png",
+   "ms": 3814
+  },
+  {
+   "t": 387.4,
+   "kind": "input.click",
+   "n": 10,
+   "label": "RESUME SESSION"
+  },
+  {
+   "t": 398.9,
+   "kind": "screenshot",
+   "file": "05-resumed.png",
+   "ms": 6966
+  },
+  {
+   "t": 398.9,
+   "kind": "input.key",
+   "label": "ESC (pause 2)",
+   "code": "Escape"
+  },
+  {
+   "t": 398.9,
+   "kind": "input.key",
+   "label": "ESC (resume 2)",
+   "code": "Escape"
+  },
+  {
+   "t": 429.1,
+   "kind": "wait",
+   "label": "driving after ESC resume",
+   "waited": 30,
+   "mode": "paused",
+   "stage": "Waiting for completed cockpit GPU work…",
+   "percent": "94%",
+   "rafFrames": 1228,
+   "maxGapMs": 83530
+  },
+  {
+   "t": 459.1,
+   "kind": "FINDING",
+   "severity": "major",
+   "where": "resume",
+   "message": "ESC does not resume a paused session (the pause menu stays open)"
+  },
+  {
+   "t": 459.1,
+   "kind": "input.click",
+   "n": 13,
+   "label": "RESUME SESSION (fallback)"
+  },
+  {
+   "t": 460.3,
+   "kind": "step.end",
+   "name": "pause-resume",
+   "seconds": 80.7
+  },
+  {
+   "t": 460.3,
+   "kind": "input.key",
+   "label": "ESC (pause to exit)",
+   "code": "Escape"
+  },
+  {
+   "t": 460.3,
+   "kind": "step.begin",
+   "name": "exit-to-menu"
+  },
+  {
+   "t": 460.3,
+   "kind": "input.click",
+   "n": 15,
+   "label": "RETURN TO PADDOCK"
+  },
+  {
+   "t": 473.9,
+   "kind": "step.end",
+   "name": "exit-to-menu",
+   "seconds": 13.6
+  },
+  {
+   "t": 473.9,
+   "kind": "exit.done",
+   "seconds": 13.6
+  },
+  {
+   "t": 477.1,
+   "kind": "screenshot",
+   "file": "06-menu-after-exit.png",
+   "ms": 3214
+  },
+  {
+   "t": 477.6,
+   "kind": "memory",
+   "label": "menu-after-session-1",
+   "jsHeapMB": 74.1,
+   "jsHeapTotalMB": 76.3,
+   "nodes": 2683,
+   "listeners": 161,
+   "documents": 2,
+   "rssMB": 2727,
+   "textures": 64,
+   "geometries": 2201
+  },
+  {
+   "t": 477.6,
+   "kind": "step.begin",
+   "name": "configure"
+  },
+  {
+   "t": 477.7,
+   "kind": "configured",
+   "circuit": "speedbowl",
+   "vehicle": "fx26",
+   "mode": "race",
+   "laps": "3",
+   "weather": "clear",
+   "compound": "medium",
+   "assist": "sport",
+   "opponents": "3",
+   "startSlot": "pole"
+  },
+  {
+   "t": 477.7,
+   "kind": "sessionRules",
+   "text": "FORMULA GRAND PRIX: no mandatory stop · DRS on · points scored."
+  },
+  {
+   "t": 477.7,
+   "kind": "step.end",
+   "name": "configure",
+   "seconds": 0.1
+  },
+  {
+   "t": 478,
+   "kind": "screenshot",
+   "file": "07-configured.png",
+   "ms": 326
+  },
+  {
+   "t": 478,
+   "kind": "step.begin",
+   "name": "enter-wildcard-2"
+  },
+  {
+   "t": 478.5,
+   "kind": "input.click",
+   "n": 16,
+   "label": "ENTER"
+  },
+  {
+   "t": 478.6,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4214/e42617c9-c48d-42c5-b34d-4d1066bef154"
+  },
+  {
+   "t": 488.9,
+   "kind": "input.click",
+   "n": 17,
+   "label": "briefing: GO STRAIGHT TO LIGHTS"
+  },
+  {
+   "t": 496.8,
+   "kind": "session.profile",
+   "totalMs": 18778,
+   "idlePct": 90,
+   "files": [
+    {
+     "file": "(idle)",
+     "ms": 16857
+    },
+    {
+     "file": "(program)",
+     "ms": 946
+    },
+    {
+     "file": "three.js",
+     "ms": 367
+    },
+    {
+     "file": "index.js",
+     "ms": 162
+    },
+    {
+     "file": "(garbage collector)",
+     "ms": 104
+    },
+    {
+     "file": "",
+     "ms": 55
+    }
+   ],
+   "top": [
+    {
+     "fn": "(idle) :-1",
+     "ms": 16857
+    },
+    {
+     "fn": "(program) :-1",
+     "ms": 946
+    },
+    {
+     "fn": "m three-CuIIN4MI.js:3787",
+     "ms": 132
+    },
+    {
+     "fn": "(garbage collector) :-1",
+     "ms": 104
+    },
+    {
+     "fn": "requestAnimationFrame :-1",
+     "ms": 51
+    },
+    {
+     "fn": "modalContent index-CbE6jY_R.js:99",
+     "ms": 50
+    },
+    {
+     "fn": "(anonymous) :-1",
+     "ms": 49
+    },
+    {
+     "fn": "drawImage :-1",
+     "ms": 47
+    }
+   ]
+  },
+  {
+   "t": 496.8,
+   "kind": "session.started",
+   "label": "wildcard-2",
+   "startedAt": 477.99,
+   "briefing": true,
+   "timeToDrivingS": 14.8,
+   "timeToFirstFrameS": 18.8,
+   "profile": {
+    "totalMs": 18778,
+    "idlePct": 90,
+    "top": [
+     {
+      "fn": "(idle) :-1",
+      "ms": 16857
+     },
+     {
+      "fn": "(program) :-1",
+      "ms": 946
+     },
+     {
+      "fn": "m three-CuIIN4MI.js:3787",
+      "ms": 132
+     },
+     {
+      "fn": "(garbage collector) :-1",
+      "ms": 104
+     },
+     {
+      "fn": "requestAnimationFrame :-1",
+      "ms": 51
+     },
+     {
+      "fn": "modalContent index-CbE6jY_R.js:99",
+      "ms": 50
+     },
+     {
+      "fn": "(anonymous) :-1",
+      "ms": 49
+     },
+     {
+      "fn": "drawImage :-1",
+      "ms": 47
+     },
+     {
+      "fn": "vs three-CuIIN4MI.js:3839",
+      "ms": 33
+     },
+     {
+      "fn": "bindVertexArray :-1",
+      "ms": 26
+     },
+     {
+      "fn": "p three-CuIIN4MI.js:3787",
+      "ms": 25
+     },
+     {
+      "fn": "update index-CbE6jY_R.js:2439",
+      "ms": 25
+     },
+     {
+      "fn": "Rr three-CuIIN4MI.js:3839",
+      "ms": 21
+     },
+     {
+      "fn": "clear :-1",
+      "ms": 16
+     },
+     {
+      "fn": "texSubImage2D :-1",
+      "ms": 16
+     },
+     {
+      "fn": "uniformMatrix4fv :-1",
+      "ms": 15
+     },
+     {
+      "fn": "(anonymous) index-CbE6jY_R.js:3995",
+      "ms": 15
+     },
+     {
+      "fn": "toArray three-CuIIN4MI.js:4",
+      "ms": 15
+     },
+     {
+      "fn": "query :4723",
+      "ms": 15
+     },
+     {
+      "fn": "compose three-CuIIN4MI.js:4",
+      "ms": 13
+     },
+     {
+      "fn": "Gg three-CuIIN4MI.js:3736",
+      "ms": 13
+     },
+     {
+      "fn": "f three-CuIIN4MI.js:3586",
+      "ms": 12
+     },
+     {
+      "fn": "vh three-CuIIN4MI.js:3839",
+      "ms": 12
+     },
+     {
+      "fn": "updateMatrix three-CuIIN4MI.js:4",
+      "ms": 12
+     },
+     {
+      "fn": "frame index-CbE6jY_R.js:8122",
+      "ms": 12
+     }
+    ],
+    "files": [
+     {
+      "file": "(idle)",
+      "ms": 16857
+     },
+     {
+      "file": "(program)",
+      "ms": 946
+     },
+     {
+      "file": "three.js",
+      "ms": 367
+     },
+     {
+      "file": "index.js",
+      "ms": 162
+     },
+     {
+      "file": "(garbage collector)",
+      "ms": 104
+     },
+     {
+      "file": "",
+      "ms": 55
+     },
+     {
+      "file": "requestAnimationFrame",
+      "ms": 51
+     },
+     {
+      "file": "drawImage",
+      "ms": 47
+     },
+     {
+      "file": "bindVertexArray",
+      "ms": 26
+     },
+     {
+      "file": "clear",
+      "ms": 16
+     },
+     {
+      "file": "texSubImage2D",
+      "ms": 16
+     },
+     {
+      "file": "uniformMatrix4fv",
+      "ms": 15
+     }
+    ]
+   }
+  },
+  {
+   "t": 496.8,
+   "kind": "step.end",
+   "name": "enter-wildcard-2",
+   "seconds": 18.8
+  },
+  {
+   "t": 506.7,
+   "kind": "screenshot",
+   "file": "08-wildcard-2-first-frame.png",
+   "ms": 9872
+  },
+  {
+   "t": 506.7,
+   "kind": "step.begin",
+   "name": "drive-wildcard-2"
+  },
+  {
+   "t": 506.7,
+   "kind": "driving",
+   "sim": 13.2,
+   "kph": 0,
+   "lap": 0,
+   "rank": 3,
+   "s": 3973,
+   "lat": -2.2,
+   "keys": "LT",
+   "rafFps": 0,
+   "auto": false
+  },
+  {
+   "t": 522,
+   "kind": "driving",
+   "sim": 26.4,
+   "kph": 36,
+   "lap": 0,
+   "rank": 4,
+   "s": 119,
+   "lat": -14.1,
+   "keys": "LB",
+   "rafFps": 0,
+   "auto": false
+  },
+  {
+   "t": 523.7,
+   "kind": "drive.done",
+   "label": "wildcard-2",
+   "ended": "sim-seconds",
+   "simElapsed": 15,
+   "wallS": 17,
+   "rtf": 0.88,
+   "maxKph": 139,
+   "offTrackS": 5.8,
+   "stuckS": 0.4,
+   "keyEvents": 114
+  },
+  {
+   "t": 523.7,
+   "kind": "step.end",
+   "name": "drive-wildcard-2",
+   "seconds": 17
+  },
+  {
+   "t": 523.7,
+   "kind": "page.stall",
+   "maxGapMs": 83530,
+   "longTasks": 97,
+   "longMs": 212134
+  },
+  {
+   "t": 523.7,
+   "kind": "input.key",
+   "label": "ESC (pause to exit)",
+   "code": "Escape"
+  },
+  {
+   "t": 523.7,
+   "kind": "step.begin",
+   "name": "exit-to-menu"
+  },
+  {
+   "t": 523.7,
+   "kind": "input.click",
+   "n": 19,
+   "label": "RETURN TO PADDOCK"
+  },
+  {
+   "t": 542.1,
+   "kind": "step.end",
+   "name": "exit-to-menu",
+   "seconds": 18.4
+  },
+  {
+   "t": 542.1,
+   "kind": "exit.done",
+   "seconds": 18.4
+  },
+  {
+   "t": 545.5,
+   "kind": "screenshot",
+   "file": "09-menu-after-exit.png",
+   "ms": 3424
+  },
+  {
+   "t": 546.3,
+   "kind": "memory",
+   "label": "menu-after-session-2",
+   "jsHeapMB": 74.7,
+   "jsHeapTotalMB": 76.8,
+   "nodes": 2684,
+   "listeners": 161,
+   "documents": 2,
+   "rssMB": 2735,
+   "textures": 64,
+   "geometries": 2297
+  }
+ ],
+ "findings": [
+  {
+   "severity": "major",
+   "where": "wildcard-ui",
+   "message": "No Wildcard series entry is reachable from the menu (series strip is hidden; registerSeries() is never called in src). The pairing below is started through the menu form instead.",
+   "evidence": {
+    "boardSeries": true,
+    "chips": [],
+    "eventsButton": true
+   },
+   "t": 128.4
+  },
+  {
+   "severity": "major",
+   "where": "resume",
+   "message": "ESC does not resume a paused session (the pause menu stays open)",
+   "evidence": {
+    "error": "Timed out after 60s waiting for driving after ESC resume: {\"mode\":\"paused\",\"menu\":false,\"loading\":false,\"loadingText\":\"Waiting for completed cockpit GPU work…\",\"stage\":\"Warming up tyres\",\"percent\":\"94"
+   },
+   "t": 459.1
+  }
+ ],
+ "console": [
+  {
+   "t": 127.8,
+   "type": "warning",
+   "text": "THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported.",
+   "at": "three-CuIIN4MI.js"
+  }
+ ],
+ "requestFailures": [],
+ "summary": {
+  "boot": {
+   "timeToMenuS": 116.9,
+   "timeToFirstMenuFrameS": 116.9,
+   "paint": {
+    "first-paint": 276,
+    "first-contentful-paint": 3388
+   },
+   "domContentLoadedMs": 3180
+  },
+  "sessions": [
+   {
+    "label": "wildcard-1",
+    "startedAt": 160.858,
+    "briefing": true,
+    "timeToDrivingS": 159,
+    "timeToFirstFrameS": 165.1,
+    "profile": {
+     "totalMs": 165111,
+     "idlePct": 35,
+     "top": [
+      {
+       "fn": "(idle) :-1",
+       "ms": 57174
+      },
+      {
+       "fn": "drawImage :-1",
+       "ms": 57084
+      },
+      {
+       "fn": "getProgramInfoLog :-1",
+       "ms": 18160
+      },
+      {
+       "fn": "(program) :-1",
+       "ms": 3105
+      },
+      {
+       "fn": "(garbage collector) :-1",
+       "ms": 2620
+      },
+      {
+       "fn": "fX index-CbE6jY_R.js:1560",
+       "ms": 2341
+      },
+      {
+       "fn": "fromBufferAttribute three-CuIIN4MI.js:4",
+       "ms": 1631
+      },
+      {
+       "fn": "yS index-CbE6jY_R.js:854",
+       "ms": 1605
+      },
+      {
+       "fn": "are index-CbE6jY_R.js:2901",
+       "ms": 753
+      },
+      {
+       "fn": "sample index-CbE6jY_R.js:6580",
+       "ms": 611
+      },
+      {
+       "fn": "applyMatrix4 three-CuIIN4MI.js:4",
+       "ms": 576
+      },
+      {
+       "fn": "getShaderInfoLog :-1",
+       "ms": 558
+      },
+      {
+       "fn": "Dpe index-CbE6jY_R.js:3983",
+       "ms": 508
+      },
+      {
+       "fn": "d index-CbE6jY_R.js:6580",
+       "ms": 420
+      },
+      {
+       "fn": "setFromBufferAttribute three-CuIIN4MI.js:4",
+       "ms": 402
+      },
+      {
+       "fn": "ep index-CbE6jY_R.js:2873",
+       "ms": 379
+      },
+      {
+       "fn": "getX three-CuIIN4MI.js:4",
+       "ms": 370
+      },
+      {
+       "fn": "(anonymous) index-CbE6jY_R.js:6580",
+       "ms": 349
+      },
+      {
+       "fn": "recordSurface index-CbE6jY_R.js:8107",
+       "ms": 344
+      },
+      {
+       "fn": "digest :-1",
+       "ms": 338
+      },
+      {
+       "fn": "create index-CbE6jY_R.js:3995",
+       "ms": 309
+      },
+      {
+       "fn": "Blob :-1",
+       "ms": 282
+      },
+      {
+       "fn": "shaderSource :-1",
+       "ms": 280
+      },
+      {
+       "fn": "ve three-CuIIN4MI.js:4",
+       "ms": 278
+      },
+      {
+       "fn": "he three-CuIIN4MI.js:4",
+       "ms": 269
+      }
+     ],
+     "files": [
+      {
+       "file": "(idle)",
+       "ms": 57174
+      },
+      {
+       "file": "drawImage",
+       "ms": 57084
+      },
+      {
+       "file": "getProgramInfoLog",
+       "ms": 18160
+      },
+      {
+       "file": "index.js",
+       "ms": 14249
+      },
+      {
+       "file": "three.js",
+       "ms": 8753
+      },
+      {
+       "file": "(program)",
+       "ms": 3105
+      },
+      {
+       "file": "(garbage collector)",
+       "ms": 2620
+      },
+      {
+       "file": "getShaderInfoLog",
+       "ms": 558
+      },
+      {
+       "file": "digest",
+       "ms": 338
+      },
+      {
+       "file": "Blob",
+       "ms": 282
+      },
+      {
+       "file": "shaderSource",
+       "ms": 280
+      },
+      {
+       "file": "blob",
+       "ms": 243
+      }
+     ]
+    },
+    "timeToMenuAfterExitS": 13.6
+   },
+   {
+    "label": "wildcard-2",
+    "startedAt": 477.99,
+    "briefing": true,
+    "timeToDrivingS": 14.8,
+    "timeToFirstFrameS": 18.8,
+    "profile": {
+     "totalMs": 18778,
+     "idlePct": 90,
+     "top": [
+      {
+       "fn": "(idle) :-1",
+       "ms": 16857
+      },
+      {
+       "fn": "(program) :-1",
+       "ms": 946
+      },
+      {
+       "fn": "m three-CuIIN4MI.js:3787",
+       "ms": 132
+      },
+      {
+       "fn": "(garbage collector) :-1",
+       "ms": 104
+      },
+      {
+       "fn": "requestAnimationFrame :-1",
+       "ms": 51
+      },
+      {
+       "fn": "modalContent index-CbE6jY_R.js:99",
+       "ms": 50
+      },
+      {
+       "fn": "(anonymous) :-1",
+       "ms": 49
+      },
+      {
+       "fn": "drawImage :-1",
+       "ms": 47
+      },
+      {
+       "fn": "vs three-CuIIN4MI.js:3839",
+       "ms": 33
+      },
+      {
+       "fn": "bindVertexArray :-1",
+       "ms": 26
+      },
+      {
+       "fn": "p three-CuIIN4MI.js:3787",
+       "ms": 25
+      },
+      {
+       "fn": "update index-CbE6jY_R.js:2439",
+       "ms": 25
+      },
+      {
+       "fn": "Rr three-CuIIN4MI.js:3839",
+       "ms": 21
+      },
+      {
+       "fn": "clear :-1",
+       "ms": 16
+      },
+      {
+       "fn": "texSubImage2D :-1",
+       "ms": 16
+      },
+      {
+       "fn": "uniformMatrix4fv :-1",
+       "ms": 15
+      },
+      {
+       "fn": "(anonymous) index-CbE6jY_R.js:3995",
+       "ms": 15
+      },
+      {
+       "fn": "toArray three-CuIIN4MI.js:4",
+       "ms": 15
+      },
+      {
+       "fn": "query :4723",
+       "ms": 15
+      },
+      {
+       "fn": "compose three-CuIIN4MI.js:4",
+       "ms": 13
+      },
+      {
+       "fn": "Gg three-CuIIN4MI.js:3736",
+       "ms": 13
+      },
+      {
+       "fn": "f three-CuIIN4MI.js:3586",
+       "ms": 12
+      },
+      {
+       "fn": "vh three-CuIIN4MI.js:3839",
+       "ms": 12
+      },
+      {
+       "fn": "updateMatrix three-CuIIN4MI.js:4",
+       "ms": 12
+      },
+      {
+       "fn": "frame index-CbE6jY_R.js:8122",
+       "ms": 12
+      }
+     ],
+     "files": [
+      {
+       "file": "(idle)",
+       "ms": 16857
+      },
+      {
+       "file": "(program)",
+       "ms": 946
+      },
+      {
+       "file": "three.js",
+       "ms": 367
+      },
+      {
+       "file": "index.js",
+       "ms": 162
+      },
+      {
+       "file": "(garbage collector)",
+       "ms": 104
+      },
+      {
+       "file": "",
+       "ms": 55
+      },
+      {
+       "file": "requestAnimationFrame",
+       "ms": 51
+      },
+      {
+       "file": "drawImage",
+       "ms": 47
+      },
+      {
+       "file": "bindVertexArray",
+       "ms": 26
+      },
+      {
+       "file": "clear",
+       "ms": 16
+      },
+      {
+       "file": "texSubImage2D",
+       "ms": 16
+      },
+      {
+       "file": "uniformMatrix4fv",
+       "ms": 15
+      }
+     ]
+    },
+    "timeToMenuAfterExitS": 18.4
+   }
+  ],
+  "inputs": {
+   "menuInputs": 19,
+   "driveKeyEvents": 322,
+   "log": [
+    "122.8s click GARAGE & SETTINGS",
+    "123.4s select quality=low",
+    "123.4s click APPLY & SAVE",
+    "128.7s select circuit=speedbowl",
+    "129.1s select vehicle=fx26",
+    "135.2s select opponents=3",
+    "161.5s click ENTER",
+    "315.2s click briefing: GO STRAIGHT TO LIGHTS",
+    "380.2s key ESC (pause)",
+    "387.4s click RESUME SESSION",
+    "398.9s key ESC (pause 2)",
+    "398.9s key ESC (resume 2)",
+    "459.1s click RESUME SESSION (fallback)",
+    "460.3s key ESC (pause to exit)",
+    "460.3s click RETURN TO PADDOCK",
+    "478.5s click ENTER",
+    "488.9s click briefing: GO STRAIGHT TO LIGHTS",
+    "523.7s key ESC (pause to exit)",
+    "523.7s click RETURN TO PADDOCK"
+   ]
+  },
+  "memory": {
+   "samples": [
+    {
+     "label": "menu-after-boot",
+     "t": 122.8,
+     "jsHeapMB": 34.4,
+     "jsHeapTotalMB": 35.6,
+     "nodes": 2417,
+     "listeners": 133,
+     "documents": 2,
+     "rssMB": 2044,
+     "textures": 83,
+     "geometries": 190
+    },
+    {
+     "label": "menu-after-session-1",
+     "t": 477.6,
+     "jsHeapMB": 74.1,
+     "jsHeapTotalMB": 76.3,
+     "nodes": 2683,
+     "listeners": 161,
+     "documents": 2,
+     "rssMB": 2727,
+     "textures": 64,
+     "geometries": 2201
+    },
+    {
+     "label": "menu-after-session-2",
+     "t": 546.3,
+     "jsHeapMB": 74.7,
+     "jsHeapTotalMB": 76.8,
+     "nodes": 2684,
+     "listeners": 161,
+     "documents": 2,
+     "rssMB": 2735,
+     "textures": 64,
+     "geometries": 2297
+    }
+   ],
+   "jsHeapGrowthSession1MB": 39.7,
+   "jsHeapGrowthSession2MB": 0.6,
+   "rssGrowthSession2MB": 8,
+   "textureGrowthSession2": 0,
+   "geometryGrowthSession2": 96
+  },
+  "outcome": "ok",
+  "drives": [
+   {
+    "label": "wildcard-1",
+    "rows": [
+     {
+      "wall": 0.1,
+      "sim": 20.8,
+      "tick": 2496,
+      "phase": 2,
+      "kph": 0,
+      "hudSpeed": "0",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 3973,
+      "lat": -2.2,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 11833.33,
+      "tapAgeMs": 3,
+      "keys": "LT",
+      "dropped": 7.842100143432617
+     },
+     {
+      "wall": 1.8,
+      "sim": 21.44,
+      "tick": 2573,
+      "phase": 2,
+      "kph": 18,
+      "hudSpeed": "0",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 3974,
+      "lat": -2.1,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 1.2,
+      "tapAgeMs": 1090,
+      "keys": "TR",
+      "dropped": 7.842100143432617
+     },
+     {
+      "wall": 2.8,
+      "sim": 23.3,
+      "tick": 2796,
+      "phase": 2,
+      "kph": 64,
+      "hudSpeed": "0",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 3994,
+      "lat": 4,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 11,
+      "keys": "TL",
+      "dropped": 8.133999824523926
+     },
+     {
+      "wall": 3.9,
+      "sim": 24.33,
+      "tick": 2919,
+      "phase": 2,
+      "kph": 67,
+      "hudSpeed": "0",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 7,
+      "lat": -3.2,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 22,
+      "keys": "BL",
+      "dropped": 8.133999824523926
+     },
+     {
+      "wall": 4.9,
+      "sim": 25.3,
+      "tick": 3036,
+      "phase": 2,
+      "kph": 17,
+      "hudSpeed": "0",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 14,
+      "lat": -10.7,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 38,
+      "keys": "RT",
+      "dropped": 8.133999824523926
+     },
+     {
+      "wall": 5.9,
+      "sim": 26.39,
+      "tick": 3167,
+      "phase": 2,
+      "kph": 6,
+      "hudSpeed": "7",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 13,
+      "lat": -12.6,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 2.87,
+      "tapAgeMs": 3,
+      "keys": "TR",
+      "dropped": 8.133999824523926
+     },
+     {
+      "wall": 7.8,
+      "sim": 27.41,
+      "tick": 3289,
+      "phase": 2,
+      "kph": 25,
+      "hudSpeed": "7",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 14,
+      "lat": -8.9,
+      "rank": 4,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 40,
+      "keys": "T",
+      "dropped": 8.133999824523926
+     },
+     {
+      "wall": 8.8,
+      "sim": 28.48,
+      "tick": 3418,
+      "phase": 2,
+      "kph": 56,
+      "hudSpeed": "7",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 23,
+      "lat": -1.6,
+      "rank": 4,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 14,
+      "keys": "T",
+      "dropped": 8.951499938964844
+     },
+     {
+      "wall": 10.2,
+      "sim": 29.51,
+      "tick": 3541,
+      "phase": 2,
+      "kph": 92,
+      "hudSpeed": "7",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 43,
+      "lat": -1.8,
+      "rank": 4,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 291,
+      "keys": "TR",
+      "dropped": 8.951499938964844
+     },
+     {
+      "wall": 11.2,
+      "sim": 30.46,
+      "tick": 3655,
+      "phase": 2,
+      "kph": 98,
+      "hudSpeed": "100",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 69,
+      "lat": 2.8,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0.98,
+      "tapAgeMs": 1,
+      "keys": "B",
+      "dropped": 8.951499938964844
+     },
+     {
+      "wall": 12.2,
+      "sim": 31.64,
+      "tick": 3797,
+      "phase": 2,
+      "kph": 22,
+      "hudSpeed": "100",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 86,
+      "lat": 10.7,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 5.85,
+      "tapAgeMs": 1,
+      "keys": "T",
+      "dropped": 8.951499938964844
+     },
+     {
+      "wall": 13.2,
+      "sim": 32.81,
+      "tick": 3937,
+      "phase": 2,
+      "kph": 13,
+      "hudSpeed": "100",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 87,
+      "lat": 10.7,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 23,
+      "keys": "TL",
+      "dropped": 8.97439956665039
+     },
+     {
+      "wall": 14.2,
+      "sim": 33.85,
+      "tick": 4062,
+      "phase": 2,
+      "kph": 20,
+      "hudSpeed": "100",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 81,
+      "lat": 8.1,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 1,
+      "keys": "LT",
+      "dropped": 8.97439956665039
+     },
+     {
+      "wall": 15.3,
+      "sim": 34.88,
+      "tick": 4186,
+      "phase": 2,
+      "kph": 23,
+      "hudSpeed": "34",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 76,
+      "lat": 2.6,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 2.94,
+      "tapAgeMs": 2,
+      "keys": "L",
+      "dropped": 8.97439956665039
+     },
+     {
+      "wall": 16.3,
+      "sim": 35.93,
+      "tick": 4312,
+      "phase": 2,
+      "kph": 28,
+      "hudSpeed": "34",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 73,
+      "lat": -5.2,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 4,
+      "keys": "L",
+      "dropped": 8.97439956665039
+     },
+     {
+      "wall": 17.4,
+      "sim": 36.85,
+      "tick": 4422,
+      "phase": 2,
+      "kph": 33,
+      "hudSpeed": "34",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 74,
+      "lat": -12.9,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 208,
+      "keys": "B",
+      "dropped": 8.97439956665039
+     },
+     {
+      "wall": 18.4,
+      "sim": 37.78,
+      "tick": 4533,
+      "phase": 2,
+      "kph": 27,
+      "hudSpeed": "34",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 77,
+      "lat": -17.9,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 11,
+      "keys": "L",
+      "dropped": 9.252699851989746
+     },
+     {
+      "wall": 19.4,
+      "sim": 38.76,
+      "tick": 4651,
+      "phase": 2,
+      "kph": 32,
+      "hudSpeed": "34",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 85,
+      "lat": -21.8,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 20,
+      "keys": "LB",
+      "dropped": 9.252699851989746
+     },
+     {
+      "wall": 20.5,
+      "sim": 39.83,
+      "tick": 4780,
+      "phase": 2,
+      "kph": 37,
+      "hudSpeed": "27",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 94,
+      "lat": -22,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 2.87,
+      "tapAgeMs": 7,
+      "keys": "T",
+      "dropped": 9.252699851989746
+     },
+     {
+      "wall": 21.5,
+      "sim": 40.88,
+      "tick": 4905,
+      "phase": 2,
+      "kph": 42,
+      "hudSpeed": "27",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 103,
+      "lat": -15.2,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 1,
+      "keys": "T",
+      "dropped": 9.252699851989746
+     },
+     {
+      "wall": 22.6,
+      "sim": 41.89,
+      "tick": 5027,
+      "phase": 2,
+      "kph": 14,
+      "hudSpeed": "27",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 107,
+      "lat": -7.8,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 1,
+      "keys": "TL",
+      "dropped": 9.252699851989746
+     },
+     {
+      "wall": 23.6,
+      "sim": 42.99,
+      "tick": 5159,
+      "phase": 2,
+      "kph": 15,
+      "hudSpeed": "27",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 106,
+      "lat": -8.1,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 9,
+      "keys": "TL",
+      "dropped": 9.252699851989746
+     },
+     {
+      "wall": 24.7,
+      "sim": 43.99,
+      "tick": 5279,
+      "phase": 2,
+      "kph": 17,
+      "hudSpeed": "27",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 109,
+      "lat": -11.6,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 3,
+      "keys": "TR",
+      "dropped": 9.252699851989746
+     },
+     {
+      "wall": 25.7,
+      "sim": 45.03,
+      "tick": 5404,
+      "phase": 2,
+      "kph": 9,
+      "hudSpeed": "17",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 112,
+      "lat": -9.5,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 3.99,
+      "tapAgeMs": 16,
+      "keys": "TR",
+      "dropped": 9.252699851989746
+     },
+     {
+      "wall": 27,
+      "sim": 46.08,
+      "tick": 5529,
+      "phase": 2,
+      "kph": 31,
+      "hudSpeed": "17",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 108,
+      "lat": -6.2,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 3,
+      "keys": "R",
+      "dropped": 9.252699851989746
+     },
+     {
+      "wall": 28.2,
+      "sim": 47.31,
+      "tick": 5677,
+      "phase": 2,
+      "kph": 1,
+      "hudSpeed": "17",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 103,
+      "lat": -0.6,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 72,
+      "keys": "RT",
+      "dropped": 9.287799835205078
+     },
+     {
+      "wall": 29.4,
+      "sim": 48.67,
+      "tick": 5840,
+      "phase": 2,
+      "kph": 32,
+      "hudSpeed": "12",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 102,
+      "lat": 5.6,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 2.56,
+      "tapAgeMs": 1,
+      "keys": "",
+      "dropped": 9.287799835205078
+     },
+     {
+      "wall": 30.5,
+      "sim": 49.78,
+      "tick": 5974,
+      "phase": 2,
+      "kph": 0,
+      "hudSpeed": "12",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 103,
+      "lat": 8.9,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 15,
+      "keys": "TR",
+      "dropped": 9.287799835205078
+     }
+    ],
+    "offTrackS": 19.2,
+    "stuckS": 2.9,
+    "maxKph": 103,
+    "keyEvents": 208,
+    "fallbackAt": null,
+    "ended": "sim-seconds",
+    "simElapsed": 30,
+    "wallS": 31.9,
+    "realTimeFactor": 0.94
+   },
+   {
+    "label": "wildcard-2",
+    "rows": [
+     {
+      "wall": 0,
+      "sim": 13.21,
+      "tick": 1585,
+      "phase": 2,
+      "kph": 0,
+      "hudSpeed": "0",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 3973,
+      "lat": -2.2,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 115142.86,
+      "tapAgeMs": 204,
+      "keys": "LT",
+      "dropped": 1.2071000337600708
+     },
+     {
+      "wall": 1.4,
+      "sim": 14.28,
+      "tick": 1714,
+      "phase": 2,
+      "kph": 28,
+      "hudSpeed": "0",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 3976,
+      "lat": -1.4,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 4,
+      "keys": "TR",
+      "dropped": 1.6721999645233154
+     },
+     {
+      "wall": 2.7,
+      "sim": 15.04,
+      "tick": 1805,
+      "phase": 2,
+      "kph": 56,
+      "hudSpeed": "0",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 3984,
+      "lat": 2.9,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 3,
+      "keys": "TR",
+      "dropped": 2.0638999938964844
+     },
+     {
+      "wall": 3.7,
+      "sim": 16.24,
+      "tick": 1949,
+      "phase": 2,
+      "kph": 88,
+      "hudSpeed": "0",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 3,
+      "lat": 10.8,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 3,
+      "keys": "T",
+      "dropped": 2.0638999938964844
+     },
+     {
+      "wall": 4.9,
+      "sim": 17.15,
+      "tick": 2058,
+      "phase": 2,
+      "kph": 121,
+      "hudSpeed": "0",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 28,
+      "lat": 4.9,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 51,
+      "keys": "TR",
+      "dropped": 2.0638999938964844
+     },
+     {
+      "wall": 6,
+      "sim": 18.32,
+      "tick": 2198,
+      "phase": 2,
+      "kph": 131,
+      "hudSpeed": "121",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 70,
+      "lat": -2.3,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 2.89,
+      "tapAgeMs": 4,
+      "keys": "RB",
+      "dropped": 2.180999994277954
+     },
+     {
+      "wall": 7.3,
+      "sim": 19.03,
+      "tick": 2284,
+      "phase": 2,
+      "kph": 83,
+      "hudSpeed": "121",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 92,
+      "lat": 1.3,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 28,
+      "keys": "BL",
+      "dropped": 2.180999994277954
+     },
+     {
+      "wall": 8.5,
+      "sim": 20.05,
+      "tick": 2406,
+      "phase": 2,
+      "kph": 49,
+      "hudSpeed": "121",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 107,
+      "lat": 2.1,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 1,
+      "keys": "TL",
+      "dropped": 2.773900032043457
+     },
+     {
+      "wall": 9.8,
+      "sim": 21.23,
+      "tick": 2547,
+      "phase": 2,
+      "kph": 59,
+      "hudSpeed": "64",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 126,
+      "lat": 2.6,
+      "rank": 4,
+      "hudPos": "P3",
+      "rafFps": 2.2,
+      "tapAgeMs": 1,
+      "keys": "BR",
+      "dropped": 2.8689000606536865
+     },
+     {
+      "wall": 10.9,
+      "sim": 22.42,
+      "tick": 2691,
+      "phase": 2,
+      "kph": 2,
+      "hudSpeed": "64",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 133,
+      "lat": 5.8,
+      "rank": 4,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 58,
+      "keys": "T",
+      "dropped": 2.878499984741211
+     },
+     {
+      "wall": 12,
+      "sim": 23.62,
+      "tick": 2834,
+      "phase": 2,
+      "kph": 33,
+      "hudSpeed": "64",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 126,
+      "lat": 4.2,
+      "rank": 4,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 13,
+      "keys": "B",
+      "dropped": 2.878499984741211
+     },
+     {
+      "wall": 13,
+      "sim": 24.6,
+      "tick": 2952,
+      "phase": 2,
+      "kph": 33,
+      "hudSpeed": "32",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 121,
+      "lat": -0.4,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 3,
+      "tapAgeMs": 8,
+      "keys": "B",
+      "dropped": 2.878499984741211
+     },
+     {
+      "wall": 14.1,
+      "sim": 25.75,
+      "tick": 3090,
+      "phase": 2,
+      "kph": 33,
+      "hudSpeed": "32",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 118,
+      "lat": -9.7,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0.96,
+      "tapAgeMs": 22,
+      "keys": "LB",
+      "dropped": 2.878499984741211
+     },
+     {
+      "wall": 15.3,
+      "sim": 26.41,
+      "tick": 3169,
+      "phase": 2,
+      "kph": 36,
+      "hudSpeed": "32",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 119,
+      "lat": -14.1,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 1,
+      "keys": "LB",
+      "dropped": 3.1217000484466553
+     },
+     {
+      "wall": 16.3,
+      "sim": 27.68,
+      "tick": 3322,
+      "phase": 2,
+      "kph": 32,
+      "hudSpeed": "32",
+      "lap": 0,
+      "hudLap": "LAP 1 / 3",
+      "s": 122,
+      "lat": -25.6,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 14,
+      "keys": "L",
+      "dropped": 3.23009991645813
+     }
+    ],
+    "offTrackS": 5.8,
+    "stuckS": 0.4,
+    "maxKph": 139,
+    "keyEvents": 114,
+    "fallbackAt": null,
+    "ended": "sim-seconds",
+    "simElapsed": 15,
+    "wallS": 17,
+    "realTimeFactor": 0.88
+   }
+  ],
+  "pause": {
+   "pauseLatencyMs": 17,
+   "workerAcknowledgedPause": {
+    "pending": false,
+    "paused": true,
+    "tick": 6225,
+    "sequence": 3
+   },
+   "paused": {
+    "simBefore": 51.358333587646484,
+    "simAtPause": 51.875,
+    "simAfter3s": 51.875,
+    "tickAtPause": 6225,
+    "tickAfter3s": 6225,
+    "workerPause": {
+     "pending": false,
+     "paused": true,
+     "tick": 6225,
+     "sequence": 3
+    },
+    "modalHeading": "Grand Prix",
+    "speedAtPause": 1.9,
+    "speedAfter3s": 1.9,
+    "posAtPause": [
+     304.2659606933594,
+     -443.7080383300781
+    ],
+    "posAfter3s": [
+     304.2659606933594,
+     -443.7080383300781
+    ]
+   },
+   "pauseButtons": [
+    "RESUME SESSION",
+    "RESTART SESSION",
+    "GARAGE & SETTINGS",
+    "RETURN TO PADDOCK",
+    "CHANGE CAMERA",
+    "WATCH REPLAY",
+    "PHOTO STUDIO",
+    "AI DRIVER",
+    "ACADEMY"
+   ],
+   "resumeLatencyMs": 1919,
+   "resumed": {
+    "simAdvanced": 2.58,
+    "wall": 2.5,
+    "jumpAtResume": 0
+   },
+   "escResume": "did-not-resume"
+  },
+  "wildcard": "formula-on-the-wall"
+ },
+ "pageCounters": {
+  "frames": 1872,
+  "maxGap": 83530,
+  "longTasks": 99,
+  "longMs": 217007,
+  "stalls": [
+   [
+    6104,
+    2500
+   ],
+   [
+    96367,
+    83530
+   ],
+   [
+    116283,
+    19899
+   ],
+   [
+    124399,
+    2017
+   ],
+   [
+    132349,
+    5266
+   ],
+   [
+    158165,
+    25799
+   ],
+   [
+    164748,
+    4766
+   ],
+   [
+    176947,
+    3600
+   ],
+   [
+    240428,
+    63481
+   ],
+   [
+    267993,
+    20399
+   ],
+   [
+    299192,
+    31165
+   ],
+   [
+    304842,
+    3567
+   ],
+   [
+    316642,
+    3717
+   ],
+   [
+    323125,
+    5750
+   ],
+   [
+    331308,
+    7966
+   ],
+   [
+    337174,
+    5466
+   ],
+   [
+    345007,
+    7750
+   ],
+   [
+    350357,
+    4750
+   ],
+   [
+    356140,
+    5267
+   ],
+   [
+    360123,
+    3750
+   ],
+   [
+    365056,
+    4767
+   ],
+   [
+    370073,
+    4933
+   ],
+   [
+    373873,
+    3700
+   ],
+   [
+    377356,
+    3433
+   ],
+   [
+    381806,
+    3883
+   ],
+   [
+    384822,
+    2950
+   ],
+   [
+    389289,
+    2433
+   ],
+   [
+    393955,
+    2767
+   ],
+   [
+    398522,
+    2200
+   ],
+   [
+    401638,
+    3067
+   ],
+   [
+    404471,
+    2133
+   ],
+   [
+    407121,
+    2600
+   ],
+   [
+    410488,
+    3300
+   ],
+   [
+    412738,
+    2200
+   ],
+   [
+    415188,
+    2417
+   ],
+   [
+    419421,
+    2083
+   ],
+   [
+    423937,
+    2583
+   ],
+   [
+    426337,
+    2250
+   ],
+   [
+    429654,
+    3267
+   ],
+   [
+    431904,
+    2217
+   ],
+   [
+    434303,
+    2283
+   ],
+   [
+    439487,
+    3533
+   ],
+   [
+    447320,
+    3250
+   ],
+   [
+    449720,
+    2333
+   ],
+   [
+    452336,
+    2567
+   ],
+   [
+    456769,
+    2167
+   ],
+   [
+    467436,
+    7983
+   ],
+   [
+    474335,
+    2933
+   ],
+   [
+    481252,
+    3167
+   ],
+   [
+    486068,
+    3433
+   ],
+   [
+    493801,
+    3117
+   ],
+   [
+    496701,
+    2783
+   ],
+   [
+    501267,
+    4483
+   ],
+   [
+    504151,
+    2783
+   ],
+   [
+    509051,
+    4850
+   ],
+   [
+    513384,
+    3950
+   ],
+   [
+    517217,
+    3767
+   ],
+   [
+    521283,
+    4000
+   ],
+   [
+    525433,
+    3933
+   ],
+   [
+    530116,
+    4550
+   ]
+  ]
+ }
+}

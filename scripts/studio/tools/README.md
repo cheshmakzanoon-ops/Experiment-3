@@ -19,6 +19,9 @@ set `CHROMIUM_PATH` if Playwright cannot find one.
 | `quickstart.mjs` | Menu-to-driving probe counting inputs (G3). Software GL on a shared host is far slower than hardware: the time is an upper bound. |
 | `flashcheck.mjs` | End-to-end flashback check in a live session. |
 | `fastcheck.sh <area>` | Per-area vitest subsets (render, world, car, character, ui, assets, sim). |
+| `journey.mjs` | FULL-FLOW QA: menu -> configure -> start -> keyboard drive -> pause -> resume -> results -> exit -> second session, for `formula-practice`, `formula-race`, `time-trial`, `gp-race`, `wildcard`, `festival` (`--list`). Records timings, console/page errors, simulation snapshots tapped from the physics worker, screenshots, memory, optional CPU profiles (`--profile`) and machine-checked findings into `--out`. Run with `node --no-warnings --experimental-transform-types scripts/studio/tools/journey.mjs --journey <name> --out <dir> [--url ...] [--quality low]`. |
+| `keyboard-driver.mjs`, `driver-selftest.mjs` | The journey tool's closed-loop digital driver (throttle/brake/left/right from centreline pursuit) and its headless tuning harness against the production `Simulation` (`... driver-selftest.mjs aurel apx01 150 practice`). Tuned for four-wheel cars; it cannot hold a GP bike on keyboard steering. |
+| `journey-summary.mjs`, `journey-evidence.py`, `profile-callers.mjs`, `ai-only-race.mjs` | Digest of a journey directory; copy it into the repo as JPEG + JSON evidence; attribute a CPU profile's hot native calls to their JS callers; an all-AI control race (`... ai-only-race.mjs kansai-east gpr1 4 3 73021`) to tell an AI fault from one the player caused. |
 | `pw-port.config.ts` | Playwright config for a worktree build on a private port (`APEX_WT`, `APEX_PORT`). |
 | `stats.py`, `px.py`, `crop.py`, `mergeshots.py`, `frametimes.py` | Image crop statistics, pixel probes, montages and frame-time extraction from capture `diag.json`. |
 

@@ -1,0 +1,84 @@
+[    0.6s] browser.open {"viewport":[960,540],"quality":"low"}
+[    0.6s] step.begin {"name":"boot"}
+[    2.0s] boot.domcontentloaded {"ms":1407}
+[    5.2s] worker {"url":"blob:http://127.0.0.1:4233/53f548ab-6ec3-4b49-8a61-c14fb60a3b62"}
+[    5.3s] worker {"url":"blob:http://127.0.0.1:4233/53f548ab-6ec3-4b49-8a61-c14fb60a3b62"}
+[    5.3s] worker {"url":"blob:http://127.0.0.1:4233/53f548ab-6ec3-4b49-8a61-c14fb60a3b62"}
+[    5.4s] worker {"url":"blob:http://127.0.0.1:4233/53f548ab-6ec3-4b49-8a61-c14fb60a3b62"}
+[   68.7s] wait {"label":"menu visible","waited":67,"mode":null,"stage":"0% · Preparing vehicle showroom…","percent":"0%","rafFrames":78,"maxGapMs":2517}
+[   86.8s] boot.done {"timeToMenuS":86.2,"timeToFirstMenuFrameS":86.2,"paint":{"first-paint":1756,"first-contentful-paint":1756},"domContentLoadedMs":1407}
+[   86.8s] step.end {"name":"boot","seconds":86.2}
+[   89.3s] screenshot {"file":"01-menu-boot.png","ms":2508}
+[   89.6s] memory {"label":"menu-after-boot","t":89.6,"jsHeapMB":33.8,"jsHeapTotalMB":35.1,"nodes":2417,"listeners":134,"documents":2,"rssMB":2069,"textures":83,"geometries":190}
+[   89.7s] step.begin {"name":"quality-low"}
+[   89.7s] input.click {"n":1,"label":"GARAGE & SETTINGS"}
+[   90.0s] input.select {"n":2,"label":"quality","value":"low"}
+[   90.0s] input.click {"n":3,"label":"APPLY & SAVE"}
+[  103.7s] quality.applied {"quality":"low","seconds":14.01,"busy":false}
+[  103.7s] step.end {"name":"quality-low","seconds":14}
+[  103.7s] step.begin {"name":"configure"}
+[  103.8s] input.select {"n":4,"label":"mode","value":"practice"}
+[  104.1s] input.select {"n":5,"label":"opponents","value":"0"}
+[  104.1s] configured {"circuit":"aurel","vehicle":"apx01","mode":"practice","laps":"3","weather":"clear","compound":"medium","assist":"sport","opponents":"0","startSlot":"pole"}
+[  104.1s] sessionRules {"text":"PRACTICE: no mandatory stop · DRS on · no points."}
+[  104.1s] step.end {"name":"configure","seconds":0.5}
+[  118.2s] screenshot {"file":"02-configured.png","ms":14039}
+[  118.2s] step.begin {"name":"enter-practice-1"}
+[  118.2s] input.click {"n":6,"label":"ENTER"}
+[  200.4s] wait {"label":"briefing or driving","waited":82,"mode":"loading","stage":"32% · Player car and live instruments…","percent":"27%","rafFrames":392,"maxGapMs":60914}
+[  220.2s] worker {"url":"blob:http://127.0.0.1:4233/bbbafb03-ecf7-43ac-b5a8-f3cc9e80a703"}
+[  257.0s] wait {"label":"briefing or driving","waited":138,"mode":"loading","stage":"Warming offscreen pit-service materials…","percent":"90%","rafFrames":527,"maxGapMs":64897}
+[  287.1s] wait {"label":"briefing or driving","waited":168,"mode":"loading","stage":"Warming offscreen pit-service materials…","percent":"90%","rafFrames":528,"maxGapMs":64897}
+[  317.8s] wait {"label":"briefing or driving","waited":199,"mode":"loading","stage":"Waiting for completed cockpit GPU work…","percent":"94%","rafFrames":547,"maxGapMs":64897}
+[  329.3s] session.started {"label":"practice-1","startedAt":118.178,"briefing":false,"timeToDrivingS":200.6,"timeToFirstFrameS":211.1}
+[  329.3s] step.end {"name":"enter-practice-1","seconds":211.1}
+[  350.5s] screenshot {"file":"03-practice-1-first-frame.png","ms":21158}
+[  350.5s] step.begin {"name":"drive-practice-1"}
+[  350.7s] driving {"sim":37.1,"kph":1,"lap":0,"rank":1,"s":2933,"lat":-2.3,"keys":"LT","rafFps":0,"auto":false}
+[  365.7s] driving {"sim":52.4,"kph":146,"lap":0,"rank":1,"s":639,"lat":-0.4,"keys":"","rafFps":0,"auto":false}
+[  370.5s] drive.done {"label":"practice-1","ended":"sim-seconds","simElapsed":19.9,"wallS":20,"rtf":0.99,"maxKph":255,"offTrackS":1.7,"stuckS":0,"keyEvents":238}
+[  370.5s] step.end {"name":"drive-practice-1","seconds":20}
+[  370.5s] page.stall {"maxGapMs":64897,"longTasks":113,"longMs":204127}
+[  370.5s] step.begin {"name":"pause-resume"}
+[  370.5s] input.key {"label":"ESC (pause)","code":"Escape"}
+[  388.7s] screenshot {"file":"04-paused.png","ms":14871}
+[  388.7s] input.click {"n":8,"label":"RESUME SESSION"}
+[  405.8s] screenshot {"file":"05-resumed.png","ms":8837}
+[  405.8s] input.key {"label":"ESC (pause 2)","code":"Escape"}
+[  405.8s] input.key {"label":"ESC (resume 2)","code":"Escape"}
+[  405.8s] step.end {"name":"pause-resume","seconds":35.3}
+[  405.8s] step.begin {"name":"drive-practice-1-after-resume"}
+[  406.0s] driving {"sim":68.6,"kph":0,"lap":0,"rank":1,"s":898,"lat":17.5,"keys":"LT","rafFps":0,"auto":false}
+[  414.0s] drive.done {"label":"practice-1-after-resume","ended":"sim-seconds","simElapsed":7.9,"wallS":8.2,"rtf":0.96,"maxKph":41,"offTrackS":6.9,"stuckS":0,"keyEvents":72}
+[  414.0s] step.end {"name":"drive-practice-1-after-resume","seconds":8.2}
+[  414.0s] page.stall {"maxGapMs":64897,"longTasks":121,"longMs":204699}
+[  414.0s] input.key {"label":"ESC (pause to exit)","code":"Escape"}
+[  414.0s] step.begin {"name":"exit-to-menu"}
+[  414.0s] input.click {"n":12,"label":"RETURN TO PADDOCK"}
+[  448.0s] step.end {"name":"exit-to-menu","seconds":33.9}
+[  448.0s] exit.done {"seconds":33.9}
+[  453.0s] screenshot {"file":"06-menu-after-exit.png","ms":5059}
+[  453.3s] memory {"label":"menu-after-session-1","t":453.3,"jsHeapMB":71,"jsHeapTotalMB":73,"nodes":2596,"listeners":162,"documents":2,"rssMB":3637,"textures":203,"geometries":1667}
+[  453.3s] step.begin {"name":"configure"}
+[  453.4s] configured {"circuit":"aurel","vehicle":"apx01","mode":"practice","laps":"3","weather":"clear","compound":"medium","assist":"sport","opponents":"0","startSlot":"pole"}
+[  453.4s] sessionRules {"text":"PRACTICE: no mandatory stop · DRS on · no points."}
+[  453.4s] step.end {"name":"configure","seconds":0.1}
+[  453.6s] screenshot {"file":"07-configured.png","ms":172}
+[  453.6s] step.begin {"name":"enter-practice-2"}
+[  453.6s] input.click {"n":13,"label":"ENTER"}
+[  453.7s] worker {"url":"blob:http://127.0.0.1:4233/0f8c8045-c94f-44d4-b15e-93b758eeed6a"}
+[  487.4s] session.started {"label":"practice-2","startedAt":453.576,"briefing":false,"timeToDrivingS":27.3,"timeToFirstFrameS":33.8}
+[  487.4s] step.end {"name":"enter-practice-2","seconds":33.8}
+[  505.1s] screenshot {"file":"08-practice-2-first-frame.png","ms":17705}
+[  505.1s] step.begin {"name":"drive-practice-2"}
+[  505.1s] driving {"sim":28.8,"kph":1,"lap":0,"rank":1,"s":2936,"lat":-2.2,"keys":"LT","rafFps":0,"auto":false}
+[  520.2s] drive.done {"label":"practice-2","ended":"sim-seconds","simElapsed":15,"wallS":15.1,"rtf":0.99,"maxKph":143,"offTrackS":8,"stuckS":1.4,"keyEvents":150}
+[  520.2s] step.end {"name":"drive-practice-2","seconds":15.1}
+[  520.2s] page.stall {"maxGapMs":64897,"longTasks":134,"longMs":226082}
+[  520.2s] input.key {"label":"ESC (pause to exit)","code":"Escape"}
+[  520.2s] step.begin {"name":"exit-to-menu"}
+[  520.2s] input.click {"n":15,"label":"RETURN TO PADDOCK"}
+[  535.7s] step.end {"name":"exit-to-menu","seconds":15.5}
+[  535.7s] exit.done {"seconds":15.5}
+[  539.5s] screenshot {"file":"09-menu-after-exit.png","ms":3833}
+[  539.8s] memory {"label":"menu-after-session-2","t":539.8,"jsHeapMB":71.5,"jsHeapTotalMB":74,"nodes":2595,"listeners":162,"documents":2,"rssMB":3651,"textures":203,"geometries":1706}

@@ -30,6 +30,35 @@ it('an arrow alias cannot activate a second action after explicit reassignment',
   expect(isHeld(keys, bindings, 'right', ['ArrowRight'])).toBe(false);
   expect(isHeld(new Set(['ArrowLeft']), bindings, 'left', ['ArrowLeft'])).toBe(true);
 });
+it('Escape consumed by the game stops the browser default that would cancel the pause dialog it opens', () => {
+  const listeners = new Map<string, EventListener>();
+  vi.stubGlobal('window', {
+    addEventListener: (type: string, fn: EventListener) => listeners.set(type, fn),
+    removeEventListener: vi.fn(),
+  });
+  vi.stubGlobal('navigator', { getGamepads: () => [] });
+  const action = vi.fn(),
+    input = new InputController(structuredClone(DEFAULT_SETTINGS), action);
+  const escape = () => {
+    const preventDefault = vi.fn();
+    listeners.get('keydown')!({
+      code: 'Escape',
+      repeat: false,
+      target: { matches: () => false },
+      preventDefault,
+    } as unknown as Event);
+    return preventDefault;
+  };
+  // Driving: the key pauses, and the browser's close request is cancelled (without
+  // this the dialog the pause just opened is cancelled by the same key press).
+  input.setEnabled(true);
+  expect(escape()).toHaveBeenCalledTimes(1);
+  expect(action).toHaveBeenLastCalledWith('pause');
+  // Menus and dialogs own Escape natively (select popups, dialog cancel): untouched.
+  input.setEnabled(false);
+  expect(escape()).not.toHaveBeenCalled();
+  expect(action).toHaveBeenLastCalledWith('pause');
+});
 it('routes remapped camera and paddle keys once, retaining unconditional Escape pause', () => {
   const listeners = new Map<string, EventListener>();
   vi.stubGlobal('window', {

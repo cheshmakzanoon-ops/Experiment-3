@@ -60,6 +60,9 @@ const MODE_STATUS: Readonly<Record<string, string>> = {
   results: 'Results',
   replay: 'Replay',
   photo: 'Photo',
+  // desktop/STEAM.md already lists "#Status_Festival"; nothing set this mode before,
+  // so the open world reported "Loading" for the whole session.
+  festival: 'Festival',
 };
 
 /** Rich-presence status for the game's `data-mode` attribute (src/ui/interface.ts showMode). */

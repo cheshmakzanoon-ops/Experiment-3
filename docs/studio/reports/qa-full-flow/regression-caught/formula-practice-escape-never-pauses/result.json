@@ -1,0 +1,734 @@
+{
+ "journey": "formula-practice",
+ "cfg": {
+  "url": "http://127.0.0.1:4232",
+  "journey": "formula-practice",
+  "out": "/tmp/claude-0/-home-user-Experiment-3/d7f7b547-44bc-5977-9962-da1e5626b4ba/scratchpad/j/after2-formula-practice-b",
+  "quality": "low",
+  "simSeconds": 20,
+  "viewport": [
+   960,
+   540
+  ],
+  "bootTimeoutS": 900,
+  "startTimeoutS": 900,
+  "festivalMaxS": 1500,
+  "profile": false,
+  "shots": true,
+  "wildcardId": "formula-on-the-wall",
+  "secondSimSeconds": 15,
+  "festivalSingle": false
+ },
+ "timeline": [
+  {
+   "t": 0.9,
+   "kind": "browser.open",
+   "viewport": [
+    960,
+    540
+   ],
+   "quality": "low"
+  },
+  {
+   "t": 0.9,
+   "kind": "step.begin",
+   "name": "boot"
+  },
+  {
+   "t": 3.3,
+   "kind": "boot.domcontentloaded",
+   "ms": 2362
+  },
+  {
+   "t": 5.9,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4232/e32d3974-6ff1-4f30-a5ce-bcb597efc20d"
+  },
+  {
+   "t": 5.9,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4232/e32d3974-6ff1-4f30-a5ce-bcb597efc20d"
+  },
+  {
+   "t": 5.9,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4232/e32d3974-6ff1-4f30-a5ce-bcb597efc20d"
+  },
+  {
+   "t": 5.9,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4232/e32d3974-6ff1-4f30-a5ce-bcb597efc20d"
+  },
+  {
+   "t": 52.2,
+   "kind": "wait",
+   "label": "menu visible",
+   "waited": 49,
+   "mode": null,
+   "stage": "0% · Preparing vehicle showroom…",
+   "percent": "0%",
+   "rafFrames": 113,
+   "maxGapMs": 2000
+  },
+  {
+   "t": 68.1,
+   "kind": "boot.done",
+   "timeToMenuS": 67.2,
+   "timeToFirstMenuFrameS": 67.2,
+   "paint": {
+    "first-paint": 668,
+    "first-contentful-paint": 2648
+   },
+   "domContentLoadedMs": 2362
+  },
+  {
+   "t": 68.1,
+   "kind": "step.end",
+   "name": "boot",
+   "seconds": 67.2
+  },
+  {
+   "t": 70.3,
+   "kind": "screenshot",
+   "file": "01-menu-boot.png",
+   "ms": 2157
+  },
+  {
+   "t": 70.5,
+   "kind": "memory",
+   "label": "menu-after-boot",
+   "jsHeapMB": 33.8,
+   "jsHeapTotalMB": 35.1,
+   "nodes": 2417,
+   "listeners": 134,
+   "documents": 2,
+   "rssMB": 2099,
+   "textures": 83,
+   "geometries": 190
+  },
+  {
+   "t": 70.5,
+   "kind": "step.begin",
+   "name": "quality-low"
+  },
+  {
+   "t": 70.5,
+   "kind": "input.click",
+   "n": 1,
+   "label": "GARAGE & SETTINGS"
+  },
+  {
+   "t": 70.7,
+   "kind": "input.select",
+   "n": 2,
+   "label": "quality",
+   "value": "low"
+  },
+  {
+   "t": 70.7,
+   "kind": "input.click",
+   "n": 3,
+   "label": "APPLY & SAVE"
+  },
+  {
+   "t": 72.8,
+   "kind": "quality.applied",
+   "quality": "low",
+   "seconds": 2.304,
+   "busy": false
+  },
+  {
+   "t": 72.8,
+   "kind": "step.end",
+   "name": "quality-low",
+   "seconds": 2.3
+  },
+  {
+   "t": 72.8,
+   "kind": "step.begin",
+   "name": "configure"
+  },
+  {
+   "t": 73.1,
+   "kind": "input.select",
+   "n": 4,
+   "label": "mode",
+   "value": "practice"
+  },
+  {
+   "t": 73.1,
+   "kind": "input.select",
+   "n": 5,
+   "label": "opponents",
+   "value": "0"
+  },
+  {
+   "t": 73.2,
+   "kind": "configured",
+   "circuit": "aurel",
+   "vehicle": "apx01",
+   "mode": "practice",
+   "laps": "3",
+   "weather": "clear",
+   "compound": "medium",
+   "assist": "sport",
+   "opponents": "0",
+   "startSlot": "pole"
+  },
+  {
+   "t": 73.2,
+   "kind": "sessionRules",
+   "text": "PRACTICE: no mandatory stop · DRS on · no points."
+  },
+  {
+   "t": 73.2,
+   "kind": "step.end",
+   "name": "configure",
+   "seconds": 0.4
+  },
+  {
+   "t": 92.1,
+   "kind": "screenshot",
+   "file": "02-configured.png",
+   "ms": 18865
+  },
+  {
+   "t": 92.1,
+   "kind": "step.begin",
+   "name": "enter-practice-1"
+  },
+  {
+   "t": 92.1,
+   "kind": "input.click",
+   "n": 6,
+   "label": "ENTER"
+  },
+  {
+   "t": 154.5,
+   "kind": "wait",
+   "label": "briefing or driving",
+   "waited": 62,
+   "mode": "loading",
+   "stage": "32% · Player car and live instruments…",
+   "percent": "27%",
+   "rafFrames": 383,
+   "maxGapMs": 43815
+  },
+  {
+   "t": 173,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4232/2a9cfbf0-cb35-4931-9443-b38c10e1f9e8"
+  },
+  {
+   "t": 210.1,
+   "kind": "wait",
+   "label": "briefing or driving",
+   "waited": 118,
+   "mode": "loading",
+   "stage": "Compiling circuit and vehicle materials…",
+   "percent": "90%",
+   "rafFrames": 530,
+   "maxGapMs": 50948
+  },
+  {
+   "t": 240.6,
+   "kind": "wait",
+   "label": "briefing or driving",
+   "waited": 148,
+   "mode": "loading",
+   "stage": "Warming offscreen pit-service materials…",
+   "percent": "90%",
+   "rafFrames": 534,
+   "maxGapMs": 50948
+  },
+  {
+   "t": 270.8,
+   "kind": "wait",
+   "label": "briefing or driving",
+   "waited": 178,
+   "mode": "loading",
+   "stage": "Waiting for completed cockpit GPU work…",
+   "percent": "94%",
+   "rafFrames": 559,
+   "maxGapMs": 50948
+  },
+  {
+   "t": 291.1,
+   "kind": "session.started",
+   "label": "practice-1",
+   "startedAt": 92.055,
+   "briefing": false,
+   "timeToDrivingS": 188,
+   "timeToFirstFrameS": 199.1
+  },
+  {
+   "t": 291.1,
+   "kind": "step.end",
+   "name": "enter-practice-1",
+   "seconds": 199.1
+  },
+  {
+   "t": 306.1,
+   "kind": "screenshot",
+   "file": "03-practice-1-first-frame.png",
+   "ms": 15024
+  },
+  {
+   "t": 306.1,
+   "kind": "step.begin",
+   "name": "drive-practice-1"
+  },
+  {
+   "t": 306.2,
+   "kind": "driving",
+   "sim": 30.5,
+   "kph": 1,
+   "lap": 0,
+   "rank": 1,
+   "s": 2935,
+   "lat": -2.2,
+   "keys": "LT",
+   "rafFps": 0,
+   "auto": false
+  },
+  {
+   "t": 321.3,
+   "kind": "driving",
+   "sim": 45.6,
+   "kph": 39,
+   "lap": 0,
+   "rank": 1,
+   "s": 210,
+   "lat": 23.6,
+   "keys": "TR",
+   "rafFps": 0,
+   "auto": false
+  },
+  {
+   "t": 326.2,
+   "kind": "drive.done",
+   "label": "practice-1",
+   "ended": "sim-seconds",
+   "simElapsed": 20,
+   "wallS": 20.1,
+   "rtf": 1,
+   "maxKph": 173,
+   "offTrackS": 11.5,
+   "stuckS": 0,
+   "keyEvents": 190
+  },
+  {
+   "t": 326.2,
+   "kind": "step.end",
+   "name": "drive-practice-1",
+   "seconds": 20.1
+  },
+  {
+   "t": 326.2,
+   "kind": "page.stall",
+   "maxGapMs": 50948,
+   "longTasks": 100,
+   "longMs": 163026
+  },
+  {
+   "t": 326.2,
+   "kind": "step.begin",
+   "name": "pause-resume"
+  },
+  {
+   "t": 326.3,
+   "kind": "input.key",
+   "label": "ESC (pause)",
+   "code": "Escape"
+  },
+  {
+   "t": 356.3,
+   "kind": "wait",
+   "label": "paused",
+   "waited": 30,
+   "mode": "driving",
+   "stage": "Waiting for completed cockpit GPU work…",
+   "percent": "94%",
+   "rafFrames": 591,
+   "maxGapMs": 50948
+  },
+  {
+   "t": 386.3,
+   "kind": "wait",
+   "label": "paused",
+   "waited": 60,
+   "mode": "driving",
+   "stage": "Waiting for completed cockpit GPU work…",
+   "percent": "94%",
+   "rafFrames": 603,
+   "maxGapMs": 50948
+  },
+  {
+   "t": 416.4,
+   "kind": "wait",
+   "label": "paused",
+   "waited": 90,
+   "mode": "driving",
+   "stage": "Waiting for completed cockpit GPU work…",
+   "percent": "94%",
+   "rafFrames": 618,
+   "maxGapMs": 50948
+  },
+  {
+   "t": 446.4,
+   "kind": "step.failed.probe",
+   "keys": [
+    [
+     "KeyA",
+     false,
+     false,
+     "BODY",
+     323840
+    ],
+    [
+     "KeyA",
+     false,
+     false,
+     "BODY",
+     324079
+    ],
+    [
+     "KeyA",
+     false,
+     false,
+     "BODY",
+     324406
+    ],
+    [
+     "KeyS",
+     false,
+     false,
+     "BODY",
+     324615
+    ],
+    [
+     "KeyA",
+     false,
+     false,
+     "BODY",
+     324701
+    ],
+    [
+     "KeyA",
+     false,
+     false,
+     "BODY",
+     325013
+    ],
+    [
+     "KeyA",
+     false,
+     false,
+     "BODY",
+     325222
+    ],
+    [
+     "Escape",
+     false,
+     false,
+     "BODY",
+     325321
+    ]
+   ],
+   "active": "BODY#",
+   "hasFocus": true,
+   "visibility": "visible",
+   "state": "driving",
+   "now": 445489
+  },
+  {
+   "t": 446.4,
+   "kind": "FINDING",
+   "severity": "blocker",
+   "where": "pause-resume",
+   "message": "Step failed: Timed out after 120s waiting for paused: {\"mode\":\"driving\",\"menu\":false,\"loading\":false,\"loadingText\":\"Waiting for completed cockpit GPU work…\",\"stage\":\"Warming up tyres\",\"percent\":\"94%\",\"modal\":false,\"frames\":627,\"maxGap\":50948}"
+  },
+  {
+   "t": 470,
+   "kind": "screenshot",
+   "file": "04-FAIL-pause-resume.png",
+   "ms": 23548
+  },
+  {
+   "t": 470,
+   "kind": "JOURNEY.ABORTED",
+   "error": "Timed out after 120s waiting for paused: {\"mode\":\"driving\",\"menu\":false,\"loading\":false,\"loadingText\":\"Waiting for completed cockpit GPU work…\",\"stage\":\"Warming up tyres\",\"percent\":\"94%\",\"modal\":false,\"frames\":627,\"maxGap\":50948}"
+  }
+ ],
+ "findings": [
+  {
+   "severity": "blocker",
+   "where": "pause-resume",
+   "message": "Step failed: Timed out after 120s waiting for paused: {\"mode\":\"driving\",\"menu\":false,\"loading\":false,\"loadingText\":\"Waiting for completed cockpit GPU work…\",\"stage\":\"Warming up tyres\",\"percent\":\"94%\",\"modal\":false,\"frames\":627,\"maxGap\":50948}",
+   "evidence": {
+    "probe": {
+     "keys": [
+      [
+       "KeyA",
+       false,
+       false,
+       "BODY",
+       323840
+      ],
+      [
+       "KeyA",
+       false,
+       false,
+       "BODY",
+       324079
+      ],
+      [
+       "KeyA",
+       false,
+       false,
+       "BODY",
+       324406
+      ],
+      [
+       "KeyS",
+       false,
+       false,
+       "BODY",
+       324615
+      ],
+      [
+       "KeyA",
+       false,
+       false,
+       "BODY",
+       324701
+      ],
+      [
+       "KeyA",
+       false,
+       false,
+       "BODY",
+       325013
+      ],
+      [
+       "KeyA",
+       false,
+       false,
+       "BODY",
+       325222
+      ],
+      [
+       "Escape",
+       false,
+       false,
+       "BODY",
+       325321
+      ]
+     ],
+     "active": "BODY#",
+     "hasFocus": true,
+     "visibility": "visible",
+     "state": "driving",
+     "now": 445489
+    }
+   },
+   "t": 446.4
+  }
+ ],
+ "console": [
+  {
+   "t": 72.5,
+   "type": "warning",
+   "text": "THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported.",
+   "at": "three-CuIIN4MI.js"
+  }
+ ],
+ "requestFailures": [],
+ "summary": {
+  "boot": {
+   "timeToMenuS": 67.2,
+   "timeToFirstMenuFrameS": 67.2,
+   "paint": {
+    "first-paint": 668,
+    "first-contentful-paint": 2648
+   },
+   "domContentLoadedMs": 2362
+  },
+  "sessions": [
+   {
+    "label": "practice-1",
+    "startedAt": 92.055,
+    "briefing": false,
+    "timeToDrivingS": 188,
+    "timeToFirstFrameS": 199.1
+   }
+  ],
+  "inputs": {
+   "menuInputs": 7,
+   "driveKeyEvents": 190,
+   "log": [
+    "70.5s click GARAGE & SETTINGS",
+    "70.7s select quality=low",
+    "70.7s click APPLY & SAVE",
+    "73.1s select mode=practice",
+    "73.1s select opponents=0",
+    "92.1s click ENTER",
+    "326.3s key ESC (pause)"
+   ]
+  },
+  "memory": {
+   "samples": [
+    {
+     "label": "menu-after-boot",
+     "t": 70.5,
+     "jsHeapMB": 33.8,
+     "jsHeapTotalMB": 35.1,
+     "nodes": 2417,
+     "listeners": 134,
+     "documents": 2,
+     "rssMB": 2099,
+     "textures": 83,
+     "geometries": 190
+    }
+   ],
+   "jsHeapGrowthSession1MB": null,
+   "jsHeapGrowthSession2MB": null,
+   "rssGrowthSession2MB": null,
+   "textureGrowthSession2": null,
+   "geometryGrowthSession2": null
+  },
+  "outcome": "aborted"
+ },
+ "pageCounters": {
+  "frames": 634,
+  "maxGap": 50947.90000000001,
+  "longTasks": 111,
+  "longMs": 163992,
+  "stalls": [
+   [
+    51214,
+    43815
+   ],
+   [
+    66714,
+    15466
+   ],
+   [
+    80230,
+    6933
+   ],
+   [
+    91013,
+    10733
+   ],
+   [
+    153177,
+    50948
+   ],
+   [
+    170326,
+    3733
+   ],
+   [
+    209074,
+    34899
+   ],
+   [
+    253256,
+    44148
+   ],
+   [
+    256573,
+    2450
+   ],
+   [
+    279038,
+    22449
+   ],
+   [
+    289471,
+    10116
+   ],
+   [
+    295988,
+    6383
+   ],
+   [
+    300738,
+    4633
+   ],
+   [
+    305004,
+    4183
+   ],
+   [
+    313304,
+    8100
+   ],
+   [
+    323153,
+    9766
+   ],
+   [
+    337369,
+    14033
+   ],
+   [
+    346736,
+    9250
+   ],
+   [
+    355585,
+    8650
+   ],
+   [
+    364252,
+    8583
+   ],
+   [
+    373168,
+    8833
+   ],
+   [
+    380151,
+    6783
+   ],
+   [
+    388834,
+    8616
+   ],
+   [
+    400334,
+    11433
+   ],
+   [
+    407783,
+    7316
+   ],
+   [
+    414566,
+    6633
+   ],
+   [
+    421199,
+    6583
+   ],
+   [
+    428149,
+    6866
+   ],
+   [
+    437599,
+    9383
+   ],
+   [
+    452365,
+    14683
+   ],
+   [
+    468347,
+    15866
+   ]
+  ]
+ }
+}

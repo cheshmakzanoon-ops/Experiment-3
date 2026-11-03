@@ -49,6 +49,8 @@ import {
 } from '../options.ts';
 import { SceneAmbientPass } from '../scene-ambient-pass.ts';
 import { prewarmSky } from '../sky-light.ts';
+import { compileSceneTarget } from '../preparation.ts';
+import { prepareMaterials } from '../materials/library.ts';
 import { postLensFrame } from '../studio/lens-effects.ts';
 import { SKY_CLOUDS, SkyClouds } from '../studio/sky-clouds.ts';
 import { studioUniforms } from '../studio/studio-frame.ts';
@@ -520,6 +522,40 @@ export class FestivalRenderer {
   /** Night amount of the current lighting (lamps, windows, headlights). */
   get night() {
     return this.lighting === 'night' ? 1 : this.lighting === 'sunset' ? 0.25 : 0;
+  }
+  /** Do, behind the loading screen, the GPU work the first draws would otherwise
+   * do in front of the player: bake the procedural material maps, link the scene's
+   * shader programs, then draw the real view twice so the shadow pass and the
+   * post-processing chain build theirs too (the circuit does the same in
+   * Renderer.prepare). Journey evidence (software GL, medium preset): with no
+   * warm-up the first festival frames spent 59 s in getProgramInfoLog (program
+   * links) and 26 s in a synchronous readRenderTargetPixels (the procedural bake)
+   * inside 165 s of "frozen" world, after the loading screen had already gone; a
+   * scene-only compile left 80 s of shadow/post-processing links for the first
+   * frames (60 s in getShaderInfoLog). Nothing drawn changes. */
+  async prepareGpu(
+    frame: Float32Array,
+    progress: (message: string) => void,
+    cancelled: () => boolean,
+    yieldFrame: () => Promise<void> = () =>
+      new Promise<void>((resolve) => requestAnimationFrame(() => resolve())),
+  ) {
+    const stopped = () => cancelled() || this.disposed;
+    progress('Baking festival materials…');
+    await yieldFrame();
+    if (stopped()) return false;
+    prepareMaterials(this.renderer);
+    progress('Compiling the festival materials…');
+    await yieldFrame();
+    if (stopped()) return false;
+    await compileSceneTarget(this.renderer, this.scene, this.camera, this.composer.readBuffer);
+    progress('Warming the festival view…');
+    for (let i = 0; i < 2; i++) {
+      await yieldFrame();
+      if (stopped()) return false;
+      this.draw(frame, frame, 1, 1 / 60);
+    }
+    return !stopped();
   }
   /** Is the terrain under (x, z) and the coarse cover resident? */
   ready(x: number, z: number) {
