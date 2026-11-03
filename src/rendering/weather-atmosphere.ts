@@ -38,15 +38,15 @@ export const WEATHER_LOOK = Object.freeze({
   fog: Object.freeze({ sun: 0.45, fill: 1.35, exposure: 1.06, veil: 0.92, veilReach: 0.55 }),
   dust: Object.freeze({
     sun: 0.14,
-    fill: 2,
-    exposure: 1.12,
+    fill: 1.7,
+    exposure: 1,
     veil: 0.9,
     veilReach: 1.4,
     /** Linear chroma of dust-laden light, normalised to luminance 1. */
-    chroma: Object.freeze([1.0, 0.6, 0.3] as const),
+    chroma: Object.freeze([1.0, 0.52, 0.22] as const),
     sunTint: Object.freeze([1.0, 0.55, 0.24] as const),
     skyTint: Object.freeze([0.92, 0.56, 0.3] as const),
-    fogBrightness: 1.2,
+    fogBrightness: 0.8,
   }),
   storm: Object.freeze({
     sun: 0.55,
