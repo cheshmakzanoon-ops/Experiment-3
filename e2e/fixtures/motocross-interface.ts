@@ -202,7 +202,7 @@ export function sampleMotocrossPractice(
     riding: [4.9, landingS + 45, 0, 0.85],
     approach: [6.1, jump.start - 45, 0, 0],
   } as const;
-  const [sampleTime, s, airborne, airTime] = samples[stage];
+  const [sampleTime, sampleS, airborne, airTime] = samples[stage];
   const time = sampleTime + (details.timeOffset ?? 0);
   const reference = jumpHoldSpeed(jump);
   const speed =
@@ -212,6 +212,33 @@ export function sampleMotocrossPractice(
       : stage === 'settled' || stage === 'riding'
         ? (details.exitSpeed ?? details.takeoffSpeed ?? 20)
         : (details.takeoffSpeed ?? 20);
+  // The practice HUD gives a berm's approach card priority over the target
+  // checklist (see OffroadHud). The "riding" and "approach" samples exist to
+  // read the checklist and the recalled takeoff, so they sit at the first
+  // station at or after the nominal one that the HUD reads as plain riding.
+  const course = offroadCourse(simulation.track.circuit)!,
+    length = simulation.track.length,
+    sectors = motocrossBermSectors(simulation.track, course);
+  const plainRiding = (at: number) => {
+    let distance = Infinity;
+    for (const j of course.jumps) {
+      const d = at >= j.start && at <= j.end ? 0 : (((j.start - at) % length) + length) % length;
+      if (d < distance) distance = d;
+    }
+    // A close jump keeps priority over any berm card.
+    if (distance <= Math.max(25, speed * 1.5)) return true;
+    const bermDistance = Math.min(
+      ...sectors.map((sector) => (((sector.from - at) % length) + length) % length),
+    );
+    return !(bermDistance < Math.min(70, distance));
+  };
+  let s = sampleS;
+  if (stage === 'riding' || stage === 'approach') {
+    // The recalled takeoff needs time to read: more than max(10 m, one second).
+    const room = (at: number) => stage !== 'approach' || jump.start - at > Math.max(10, speed) + 1;
+    for (let step = 0; step < 400 && !(plainRiding(s) && room(s)); step++) s = sampleS + step * 0.5;
+    if (!plainRiding(s) || !room(s)) throw new Error(`No plain-riding station near ${sampleS}`);
+  }
   frame[H.TIME] = frame[H.RACE_TIME] = time;
   frame[H.TICK] = Math.round(time * 120);
   frame[H.PHASE] = 2;

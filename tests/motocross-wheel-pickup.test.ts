@@ -302,9 +302,14 @@ describe('motocross wheel pickup on actual surveyed landings', () => {
     ).toBeLessThan(0.2);
     for (const { bike } of [normal, finer]) {
       expect(bike.dynamics.crashes).toBe(0);
-      expect(bike.tires[0].slip).toBe(0);
-      expect(bike.tires[0].omega * bike.tires[0].radius).toBeCloseTo(bike.dynamics.speed, 9);
+      // The finite brush needs small nonzero shear to spin a free rotor as
+      // road speed changes. An exact rolling constraint would erase that
+      // momentum exchange. Require <0.1% mismatch and exact honest telemetry.
+      const mismatch = Math.abs(bike.tires[0].omega * bike.tires[0].radius - bike.dynamics.speed);
+      expect(bike.tires[0].slip).toBeCloseTo(mismatch / Math.max(3, bike.dynamics.speed), 12);
+      expect(bike.tires[0].slip).toBeLessThan(0.001);
     }
+    expect(Math.abs(normal.bike.tires[0].slip - finer.bike.tires[0].slip)).toBeLessThan(0.0001);
   });
 
   it('keeps AI and the supermoto touchdown on their calibrated rolling path', () => {

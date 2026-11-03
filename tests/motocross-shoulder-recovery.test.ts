@@ -1,3 +1,4 @@
+import { mod } from '../src/core/math.ts';
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
 import { DirtBikeAIDriver } from '../src/simulation/offroad/ai.ts';
@@ -27,11 +28,21 @@ describe('motocross shoulder recovery with intermittent wheel-speed pulses', () 
       bike.dynamics.heading = -1.855;
       bike.gear = 2;
       sim.autoPlayer = true;
+      const initialStation = bike.s;
       let firstPush = -1,
         stopped = 0,
-        longest = 0;
+        longest = 0,
+        previousStation = bike.s,
+        forwardDistance = 0,
+        largestStationStep = 0;
       for (let i = 0; i < 120 * 20; i++) {
         sim.step(1 / 120);
+        const advance =
+          mod(bike.s - previousStation + sim.track.length / 2, sim.track.length) -
+          sim.track.length / 2;
+        forwardDistance += advance;
+        largestStationStep = Math.max(largestStationStep, Math.abs(advance));
+        previousStation = bike.s;
         stopped = bike.speed < 1 ? stopped + 1 / 120 : 0;
         longest = Math.max(longest, stopped);
         if (ai.decisions.pushes && firstPush < 0) firstPush = i / 120;
@@ -40,7 +51,12 @@ describe('motocross shoulder recovery with intermittent wheel-speed pulses', () 
       expect(firstPush).toBeLessThan(6);
       expect(longest).toBeLessThan(6);
       expect(ai.decisions.pushes).toBe(1);
-      expect(bike.s).toBeGreaterThan(800);
+      // Station wraps at 919.684 m. The recovered 250 can cross the line
+      // inside this trial; its ~3 m final station is ~200 m of real progress,
+      // not a failure to reach station 800. Preserve the original target and
+      // additionally reject a discontinuous station jump masquerading as travel.
+      expect(initialStation + forwardDistance).toBeGreaterThan(800);
+      expect(largestStationStep).toBeLessThan(2);
       expect(bike.riding).toBe(true);
       expect(bike.dynamics.crashes).toBe(0);
     },
