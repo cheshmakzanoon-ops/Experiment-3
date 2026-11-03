@@ -10,6 +10,7 @@ import {
   CLEAR_VISIBILITY_M,
   FROST,
   PRECIPITATION,
+  groundCloud,
   WeatherTimeline,
   dustSettlingTarget,
   frozenCover,
@@ -21,7 +22,7 @@ import {
   type PhaseCell,
   type WeatherKeyframe,
 } from './weather.ts';
-import { SURFACE_THERMAL } from './surface-thermal.ts';
+import { SURFACE_THERMAL, type SurfaceWeather } from './surface-thermal.ts';
 import { AUREL, STANDARD_PIT, type CircuitDefinition, type PitLaneDefinition } from './circuits.ts';
 import { RUNOFF } from './circuit-catalogue/venue-data.ts';
 import type { OffroadSurface } from './offroad/types.ts';
@@ -194,6 +195,10 @@ export class Track {
   dust = 0;
   gust = 0;
   moisture = 0;
+  /** Shade a ground fog puts on the pavement on top of the sky's `cloud`. */
+  fogCover = 0;
+  /** What the pavement's heat and humidity balance reads (weather.ts groundCloud). */
+  readonly #ground = { ambient: 0, cloud: 0, rain: 0, windX: 0, windZ: 0 };
   surfaceClock = 0;
   constructor(
     readonly preset: WeatherPreset = 'clear',
@@ -569,8 +574,19 @@ export class Track {
     const step = 0.5;
     while (this.surfaceClock >= step - 1e-9) {
       this.weather.sample(time - this.surfaceClock + step, this);
-      this.#exposedThermal.prepare(step, this);
-      this.#coveredThermal.prepare(step, this, true);
+      // The pavement sees the fog's shade as well as the sky's cloud.
+      const ground: SurfaceWeather =
+        this.fogCover > 0
+          ? Object.assign(this.#ground, {
+              ambient: this.ambient,
+              cloud: groundCloud(this.cloud, this.fogCover),
+              rain: this.rain,
+              windX: this.windX,
+              windZ: this.windZ,
+            })
+          : this;
+      this.#exposedThermal.prepare(step, ground);
+      this.#coveredThermal.prepare(step, ground, true);
       // Dust settles on (and blows off) the open tarmac only while dust is in
       // the air; every other preset leaves the marble field to the tyres.
       const dusty = this.dust > 0,

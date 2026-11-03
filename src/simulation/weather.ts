@@ -18,7 +18,13 @@ import { H } from './protocol.ts';
  *  - gustMS: peak extra wind speed (m/s) of the gust envelope on top of the
  *    mean wind. The envelope is a pure function of session time.
  *  - moistureMmHr: water deposited on the surface without rainfall (fog drip
- *    and dew), mm/hour water equivalent. */
+ *    and dew), mm/hour water equivalent.
+ *  - fogCover01: how much of the sun a ground fog shades from the PAVEMENT,
+ *    on top of `cloudCover01` (the sky). A radiation fog forms under a clear
+ *    sky: the surface sees no sun while the air above the bank is bright. The
+ *    surface heat balance and humidity read the combined cover
+ *    (`groundCloud`); the snapshot's cloud slot and so the sky, the sun and
+ *    the grade carry the sky alone. Omitted means 0: the sky is all there is. */
 export interface WeatherKeyframe {
   timeSec: number;
   cloudCover01: number;
@@ -30,6 +36,7 @@ export interface WeatherKeyframe {
   dust01?: number;
   gustMS?: number;
   moistureMmHr?: number;
+  fogCover01?: number;
 }
 export interface WeatherState {
   cloud: number;
@@ -42,9 +49,13 @@ export interface WeatherState {
   dust?: number;
   gust?: number;
   moisture?: number;
+  fogCover?: number;
 }
 const LIMITS: Record<
-  Exclude<keyof WeatherKeyframe, 'visibilityM' | 'dust01' | 'gustMS' | 'moistureMmHr'>,
+  Exclude<
+    keyof WeatherKeyframe,
+    'visibilityM' | 'dust01' | 'gustMS' | 'moistureMmHr' | 'fogCover01'
+  >,
   readonly [number, number]
 > = {
   timeSec: [0, 86400],
@@ -62,14 +73,20 @@ export const CLEAR_VISIBILITY_M = 30000;
  * meteorological visibility, V = 3.912 / sigma. */
 export const KOSCHMIEDER = 3.912;
 const OPTIONAL: Record<
-  'visibilityM' | 'dust01' | 'gustMS' | 'moistureMmHr',
+  'visibilityM' | 'dust01' | 'gustMS' | 'moistureMmHr' | 'fogCover01',
   readonly [number, number, number]
 > = {
   visibilityM: [20, 50000, CLEAR_VISIBILITY_M],
   dust01: [0, 1, 0],
   gustMS: [0, 30, 0],
   moistureMmHr: [0, 5, 0],
+  fogCover01: [0, 1, 0],
 };
+/** Cloud cover the PAVEMENT sees: the sky's, plus the shade of a ground fog.
+ * Exactly the sky's cover when there is no fog cover. */
+export function groundCloud(cloud: number, fogCover: number) {
+  return fogCover > 0 ? 1 - (1 - cloud) * (1 - fogCover) : cloud;
+}
 /** The wind never exceeds the validated 40 m/s even with a gust on top. */
 const MAX_WIND = LIMITS.windSpeedMS[1];
 
@@ -356,6 +373,7 @@ export class WeatherTimeline {
         : Math.exp(lerp(Math.log(a.visibilityM!), Math.log(b.visibilityM!), t));
     out.dust = lerp(a.dust01!, b.dust01!, t);
     out.moisture = lerp(a.moistureMmHr!, b.moistureMmHr!, t);
+    out.fogCover = lerp(a.fogCover01!, b.fogCover01!, t);
     const gustPeak = lerp(a.gustMS!, b.gustMS!, t);
     out.gust = gustPeak > 0 ? gustPeak * gustEnvelope(timeSec) : 0;
     // Interpolate direction on the short arc: 350° -> 10° crosses north, not south.
@@ -605,7 +623,7 @@ export function weatherKeyframes(preset: WeatherPreset): readonly WeatherKeyfram
     windSpeedMS = calmSpeed,
     windDirection = calmDirection,
     extra: Partial<
-      Pick<WeatherKeyframe, 'visibilityM' | 'dust01' | 'gustMS' | 'moistureMmHr'>
+      Pick<WeatherKeyframe, 'visibilityM' | 'dust01' | 'gustMS' | 'moistureMmHr' | 'fogCover01'>
     > = {},
   ): WeatherKeyframe => ({
     timeSec,
@@ -622,13 +640,20 @@ export function weatherKeyframes(preset: WeatherPreset): readonly WeatherKeyfram
     case 'rain':
       return [frame(0, 0.95, 24, 19)];
     case 'fog':
+      // Radiation fog: a clear sky over a shallow bank. `cloudCover01` is the
+      // sky (0.12, a few high wisps) and `fogCover01` the shade the bank puts on
+      // the pavement; groundCloud(0.12, f) is the cover the preset has always
+      // had (0.82, 0.82, 0.70, 0.50, 0.30, 0.20), so the road's heat and
+      // humidity balance is as before while the sun is no longer shut out of the
+      // sky and the grade. The sun the bank itself smothers is the renderer's
+      // (weather-atmosphere.ts), from the extinction.
       return [
-        frame(0, 0.82, 0, 8, 0.8, 0.6, { visibilityM: 110, moistureMmHr: 0.3 }),
-        frame(180, 0.82, 0, 8.5, 0.8, 0.6, { visibilityM: 130, moistureMmHr: 0.3 }),
-        frame(420, 0.7, 0, 10.5, 1.1, 0.5, { visibilityM: 280, moistureMmHr: 0.22 }),
-        frame(720, 0.5, 0, 13.5, 1.4, 0.4, { visibilityM: 900, moistureMmHr: 0.1 }),
-        frame(1020, 0.3, 0, 16, 2, 0.3, { visibilityM: 4200, moistureMmHr: 0.02 }),
-        frame(1500, 0.2, 0, 18.5, 2.4, 0.3, { visibilityM: 18000 }),
+        frame(0, 0.12, 0, 8, 0.8, 0.6, { visibilityM: 110, moistureMmHr: 0.3, fogCover01: 0.7955 }),
+        frame(180, 0.12, 0, 8.5, 0.8, 0.6, { visibilityM: 130, moistureMmHr: 0.3, fogCover01: 0.7955 }),
+        frame(420, 0.12, 0, 10.5, 1.1, 0.5, { visibilityM: 280, moistureMmHr: 0.22, fogCover01: 0.6591 }),
+        frame(720, 0.12, 0, 13.5, 1.4, 0.4, { visibilityM: 900, moistureMmHr: 0.1, fogCover01: 0.4318 }),
+        frame(1020, 0.12, 0, 16, 2, 0.3, { visibilityM: 4200, moistureMmHr: 0.02, fogCover01: 0.2045 }),
+        frame(1500, 0.12, 0, 18.5, 2.4, 0.3, { visibilityM: 18000, fogCover01: 0.0909 }),
       ];
     case 'storm':
       return [

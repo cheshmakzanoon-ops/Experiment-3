@@ -8,6 +8,7 @@ import {
   CLEAR_VISIBILITY_M,
   FROST,
   PRECIPITATION,
+  groundCloud,
   frozenCover,
   settlePhase,
   snowShare,
@@ -157,6 +158,8 @@ export class OpenWorldTrack {
   dust = 0;
   gust = 0;
   moisture = 0;
+  /** Shade a ground fog puts on the pavement on top of the sky (weather.ts). */
+  fogCover = 0;
   surfaceClock = 0;
   /** Standing water on a reference road surface (mm). */
   wetness: number;
@@ -220,7 +223,9 @@ export class OpenWorldTrack {
     this.wetness =
       preset === 'rain' ? 0.9 : preset === 'storm' ? 1 : preset === 'fog' ? 0.03 : 0;
     this.#surfaceTemperature =
-      preset === 'rain' || preset === 'storm' ? 22 : this.ambient + 12 * (1 - this.cloud);
+      preset === 'rain' || preset === 'storm'
+        ? 22
+        : this.ambient + 12 * (1 - groundCloud(this.cloud, this.fogCover));
     const start = weatherSurfaceStart(preset);
     this.cold =
       keyframes.some((k) => k.ambientTempC < PRECIPITATION.rainAboveC) ||
@@ -669,7 +674,18 @@ export class OpenWorldTrack {
     while (this.surfaceClock >= step - 1e-9) {
       this.weather.sample(time - this.surfaceClock + step, this);
       this.#thermal
-        .prepare(step, this)
+        .prepare(
+          step,
+          this.fogCover > 0
+            ? {
+                ambient: this.ambient,
+                cloud: groundCloud(this.cloud, this.fogCover),
+                rain: this.rain,
+                windX: this.windX,
+                windZ: this.windZ,
+              }
+            : this,
+        )
         .advanceWet(
           this.#surfaceTemperature,
           this.#substrateTemperature,

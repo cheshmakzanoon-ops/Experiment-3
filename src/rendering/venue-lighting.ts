@@ -8,6 +8,9 @@ import { grassApronOffset } from './ground-profile.ts';
 import { inStandFootprint } from './grandstand.ts';
 import { tracksideRigs } from './trackside.ts';
 import { LightPools } from './studio/light-pools.ts';
+import { FogLightShafts, type ShaftAir } from './fog-light-shafts.ts';
+
+const CLEAR_AIR: ShaftAir = Object.freeze({ extinctionPerKm: 0, dust: 0, snow: 0 });
 
 export interface VenueLampSite {
   s: number;
@@ -93,6 +96,8 @@ export class VenueLighting {
   readonly hardware = new T.Group();
   readonly lamps: T.InstancedMesh;
   readonly sites: readonly VenueLampSite[];
+  /** Beams visible in fog, dust and snow at night (fog-light-shafts.ts). */
+  readonly shafts: FogLightShafts;
   readonly lights: T.PointLight[];
   readonly nightBackground = new T.Color(0x030711);
   private locations: T.Vector3[] = [];
@@ -118,9 +123,11 @@ export class VenueLighting {
       count,
     );
     const p = trackPoint(),
-      transform = new T.Object3D();
+      transform = new T.Object3D(),
+      inward: [number, number][] = [];
     for (const [i, site] of this.sites.entries()) {
       track.at(site.s, p);
+      inward.push([-site.side * p.nx, -site.side * p.nz]);
       const height = site.topY - site.baseY;
       transform.position.set(site.x, site.baseY + height * 0.5, site.z);
       transform.rotation.set(0, Math.atan2(p.tx, p.tz), 0);
@@ -142,7 +149,8 @@ export class VenueLighting {
     // sources, but their compact adjacent lanes cannot host the road hardware.
     this.hardware.name = 'Road floodlight mast hardware';
     this.hardware.visible = roadHardware;
-    this.hardware.add(poles, this.lamps);
+    this.shafts = new FogLightShafts(this.sites.map((site, i) => ({ ...site, inward: inward[i] })));
+    this.hardware.add(poles, this.lamps, this.shafts.mesh);
     this.root.add(this.hardware, ...this.lights);
     const landmark = buildVenueLandmark(track);
     this.display = landmark.display;
@@ -159,9 +167,10 @@ export class VenueLighting {
     this.sightlineOwners.add(sightlines);
   }
 
-  update(night: boolean, anchor: T.Vector3, strength = 1) {
+  update(night: boolean, anchor: T.Vector3, strength = 1, air: ShaftAir = CLEAR_AIR) {
     if (!Number.isFinite(strength) || strength < 0 || strength > 1)
       throw new Error('Invalid venue light strength');
+    this.shafts.update(air, night ? strength : 0);
     this.lampMaterial.color.setHex(night ? 0xebf5ff : 0x62666b);
     this.distances.fill(Infinity);
     this.nearest.fill(-1);
@@ -201,6 +210,7 @@ export class VenueLighting {
         emission: this.display.material.emissiveIntensity,
         authored: this.display.geometry.userData.authoredAsset ?? null,
       },
+      shaftDensity: this.shafts.mesh.material.uniforms.density.value as number,
       nearbyLights: this.lights.filter((light) => light.visible).length,
       lightIntensity: this.lights.map((light) => light.intensity),
       lightSites: Array.from(this.nearest),

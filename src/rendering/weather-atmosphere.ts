@@ -41,7 +41,26 @@ export const WEATHER_LOOK = Object.freeze({
   /** Scale height (m) of the obscuring layer: fog bank, dust column. */
   fogScaleHeight: 240,
   dustScaleHeight: 650,
-  fog: Object.freeze({ sun: 0.45, fill: 1.35, exposure: 1.06, veil: 0.92, veilReach: 0.55 }),
+  fog: Object.freeze({
+    sun: 0.45,
+    fill: 1.35,
+    exposure: 1.06,
+    veil: 0.92,
+    veilReach: 0.55,
+    /** Golden hour (the circuit's sunset lighting) over a ground fog is a dawn:
+     * a low sun behind a shallow bank is lit through its length, so the bank
+     * glows with the sun's colour rather than closing it out. The bank still
+     * smothers the disc, much less, and the haze takes the warm chroma. */
+    golden: Object.freeze({
+      sun: 0.92,
+      fill: 1.12,
+      /** Linear chroma of the lit bank, normalised to luminance 1. */
+      chroma: Object.freeze([1.0, 0.76, 0.52] as const),
+      brightness: 1.05,
+      sunTint: Object.freeze([1.0, 0.8, 0.58] as const),
+      skyTint: Object.freeze([1.0, 0.86, 0.7] as const),
+    }),
+  }),
   dust: Object.freeze({
     sun: 0.14,
     fill: 1.7,
@@ -185,13 +204,20 @@ export interface DaylightRecord {
   fogGreen: number;
   fogBlue: number;
 }
-export function adjustDaylight(daylight: DaylightRecord, a: WeatherAtmosphere, night = false) {
+export function adjustDaylight(
+  daylight: DaylightRecord,
+  a: WeatherAtmosphere,
+  night = false,
+  /** Golden-hour lighting (sunset): fog becomes a warm dawn bank. */
+  golden = false,
+) {
   const look = WEATHER_LOOK;
   if (a.extinctionPerKm <= 0 && a.storm <= 0 && a.snow <= 0 && a.cover <= 0) return daylight;
+  const dawn = golden && !night ? a.fog : 0;
   // Floodlit nights keep their authored exposure; the obscuring air still
   // extinguishes (aerial uniforms) and recolours the haze.
-  daylight.sun *= night ? 1 : a.sunScale;
-  daylight.fill *= night ? 1 : a.fillScale;
+  daylight.sun *= night ? 1 : a.sunScale * lerp(1, look.fog.golden.sun / look.fog.sun, dawn);
+  daylight.fill *= night ? 1 : a.fillScale * lerp(1, look.fog.golden.fill / look.fog.fill, dawn);
   daylight.exposure *= night ? 1 : a.exposureScale;
   daylight.fogDensity = Math.max(daylight.fogDensity, a.exp2Density);
   if (a.dustAmount > 0) {
@@ -201,6 +227,18 @@ export function adjustDaylight(daylight: DaylightRecord, a: WeatherAtmosphere, n
     const norm = 1 / (0.2126 * r + 0.7152 * g + 0.0722 * b);
     const k = a.dustAmount * 0.92,
       target = luma * look.dust.fogBrightness * norm;
+    daylight.fogRed = lerp(daylight.fogRed, target * r, k);
+    daylight.fogGreen = lerp(daylight.fogGreen, target * g, k);
+    daylight.fogBlue = lerp(daylight.fogBlue, target * b, k);
+  }
+  if (dawn > 0) {
+    // The bank takes the colour of the low sun: its own haze brightness in the
+    // warm chroma, so a golden-hour fog glows instead of greying.
+    const luma = 0.2126 * daylight.fogRed + 0.7152 * daylight.fogGreen + 0.0722 * daylight.fogBlue;
+    const [r, g, b] = look.fog.golden.chroma;
+    const norm = 1 / (0.2126 * r + 0.7152 * g + 0.0722 * b);
+    const k = dawn * 0.9,
+      target = luma * look.fog.golden.brightness * norm;
     daylight.fogRed = lerp(daylight.fogRed, target * r, k);
     daylight.fogGreen = lerp(daylight.fogGreen, target * g, k);
     daylight.fogBlue = lerp(daylight.fogBlue, target * b, k);
@@ -230,7 +268,21 @@ export function tintLights(
   sun: { color: T.Color },
   hemisphere: { color: T.Color },
   a: WeatherAtmosphere,
+  /** Golden-hour lighting: a fog bank warms the key and the sky light. */
+  golden = false,
 ) {
+  if (golden && a.fog > 0) {
+    const [sr, sg, sb] = WEATHER_LOOK.fog.golden.sunTint,
+      [kr, kg, kb] = WEATHER_LOOK.fog.golden.skyTint,
+      s = a.fog * 0.8,
+      k = a.fog * 0.7;
+    sun.color.r = lerp(sun.color.r, sun.color.r * sr, s);
+    sun.color.g = lerp(sun.color.g, sun.color.g * sg, s);
+    sun.color.b = lerp(sun.color.b, sun.color.b * sb, s);
+    hemisphere.color.r = lerp(hemisphere.color.r, hemisphere.color.r * kr, k);
+    hemisphere.color.g = lerp(hemisphere.color.g, hemisphere.color.g * kg, k);
+    hemisphere.color.b = lerp(hemisphere.color.b, hemisphere.color.b * kb, k);
+  }
   if (a.dustAmount <= 0) return;
   const [sr, sg, sb] = WEATHER_LOOK.dust.sunTint,
     [kr, kg, kb] = WEATHER_LOOK.dust.skyTint,

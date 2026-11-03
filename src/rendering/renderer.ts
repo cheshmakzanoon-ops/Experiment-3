@@ -1338,7 +1338,7 @@ export class RacingRenderer {
     // Fog, dust and thunderstorm (weather-atmosphere.ts): scale and tint the
     // daylight for the obscuring air; clear air leaves it untouched.
     const air = weatherAtmosphere(presented, this.weatherAir, sceneryCover(this.circuit.meanFrozen));
-    if (!studio) adjustDaylight(daylight, air, illumination === 'night');
+    if (!studio) adjustDaylight(daylight, air, illumination === 'night', illumination === 'sunset');
     if (this.night && !studio)
       this.nightFog.setRGB(daylight.fogRed, daylight.fogGreen, daylight.fogBlue);
     if (studio) {
@@ -1351,12 +1351,13 @@ export class RacingRenderer {
       illumination !== 'day',
       car.root.position,
       illumination === 'sunset' ? 0.18 : 1,
+      studio ? undefined : { extinctionPerKm: air.extinctionPerKm, dust: air.dust, snow: air.snow },
     );
     this.lightPools.update(studio ? 'day' : illumination, this.bloom.energyConserving);
     REAR_LAMP.gain = this.bloom.energyConserving ? REAR_LAMP_PHYSICAL_GAIN : 1;
     setBrandLedLighting(studio ? 'day' : illumination);
     applyCircuitLightPalette(this.sun, this.hemisphere, daylight.cover, illumination);
-    if (!studio) tintLights(this.sun, this.hemisphere, air);
+    if (!studio) tintLights(this.sun, this.hemisphere, air, illumination === 'sunset');
     if (gpLook) tintGpSun(this.sun.color, gpLook);
     this.sun.intensity = daylight.sun;
     this.hemisphere.intensity = daylight.fill;

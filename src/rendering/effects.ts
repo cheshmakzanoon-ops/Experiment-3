@@ -3,6 +3,7 @@ import * as T from 'three';
 import { Random, clamp } from '../core/math.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
 import { liquidRain, renderWind, snowShare } from '../simulation/weather.ts';
+import { MIST, mistAmount } from './mist.ts';
 import { RainStreaks } from './rain-streaks.ts';
 import { SprayClouds, SPRAY_PROFILE } from './spray-clouds.ts';
 import { markAll, markItems } from './attribute-ranges.ts';
@@ -104,6 +105,7 @@ export class Effects {
   private viewport = new T.Vector4();
   private rainEmission = 0;
   private snowEmission = 0;
+  private mistEmission = 0;
   /** Roofed ground (tunnels) where no rain is born; null everywhere open. */
   sheltered: ((x: number, z: number) => boolean) | null = null;
   /** Optional venue adapter for catalogue wheel positions. It writes the
@@ -556,6 +558,36 @@ export class Effects {
         this.life[k] = this.maxLife[k] = 4 + r.next() * 2;
       }
     } else if (emit) this.snowEmission = 0;
+    // Ground mist: a few large, faint, slow wisps drifting at knee height in a
+    // fog bank, in the soft-cloud pool. None in clear air, rain, dust or snow.
+    const mist = mistAmount(frame[H.EXTINCTION], frame[H.DUST], snowing);
+    if (emit && mist > 0) {
+      const o = carBase(0);
+      this.mistEmission += MIST.rate * mist * dt * density;
+      const births = Math.min(MIST.maxBirths, Math.floor(this.mistEmission + 1e-9));
+      this.mistEmission = Math.max(0, this.mistEmission - births);
+      for (let i = 0; i < births; i++) {
+        const x = frame[o] + (r.next() - 0.5) * MIST.spread,
+          z = frame[o + 2] + (r.next() - 0.5) * MIST.spread,
+          ground = frame[o + 1] - 0.35,
+          y = ground + 0.15 + r.next() * 0.9;
+        if (this.sheltered?.(x, z)) continue;
+        const k = this.spawn(
+          x,
+          y,
+          z,
+          this.windX * 0.85 + (r.next() - 0.5) * 0.5,
+          0.02,
+          this.windZ * 0.85 + (r.next() - 0.5) * 0.5,
+          PARTICLE_KIND.SMOKE,
+          MIST.owner,
+          ground,
+        );
+        this.life[k] = this.maxLife[k] = MIST.life[0] + r.next() * (MIST.life[1] - MIST.life[0]);
+        this.sizes[k] = MIST.size[0] + r.next() * (MIST.size[1] - MIST.size[0]);
+        this.gravity[k] = 0;
+      }
+    } else if (emit) this.mistEmission = 0;
     const entrainment = -Math.expm1(-dt * 0.65);
     // Only live particles change (a dead one already holds zero opacity, set
     // in the step it expired or by clear()). Track the changed span of each
@@ -610,9 +642,12 @@ export class Effects {
               : this.kind[i] === PARTICLE_KIND.RAIN
                 ? 0.34
                 : this.kind[i] === PARTICLE_KIND.SMOKE
-                  ? 0.42
+                  ? this.owners[i] === MIST.owner
+                    ? MIST.alpha
+                    : 0.42
                   : 0.31);
-        if (this.kind[i] === PARTICLE_KIND.SMOKE) this.sizes[i] += dt * 0.95;
+        if (this.kind[i] === PARTICLE_KIND.SMOKE)
+          this.sizes[i] += dt * (this.owners[i] === MIST.owner ? MIST.growth : 0.95);
         else if (this.kind[i] === PARTICLE_KIND.DUST) this.sizes[i] += dt * 0.6;
       }
     }
