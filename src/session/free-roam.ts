@@ -24,6 +24,7 @@ import { LiveFrameClock } from '../rendering/live-frame-clock.ts';
 import { TrafficCars } from '../rendering/traffic-cars.ts';
 import type { GraphicsOptions, QualityPreset } from '../rendering/options.ts';
 import type { AudioView } from '../audio/spatial.ts';
+import type { Livery } from '../storage/livery.ts';
 import { FestivalHud } from '../ui/festival-hud.ts';
 import { minimapHeading } from '../ui/festival-map.ts';
 import { FestivalControls, festivalMenuState } from './festival-controls.ts';
@@ -54,6 +55,9 @@ export interface FestivalHost {
   toast(message: string): void;
   /** Leave the festival (the host restores its own presentation). */
   exit(): void;
+  /** The player's saved livery edit: catalogue bodies wear it over the
+   * machine's default colourway (VehicleBodies.setPlayerLivery). */
+  livery?(): Livery | null;
   /** Driving input on or off: off while a festival menu is open, so the
    * keyboard reaches its buttons (the host's InputController). */
   driving?(on: boolean): void;
@@ -187,6 +191,7 @@ export class FestivalSession {
     this.renderer = renderer;
     renderer.setQuality(host.quality, host.graphics);
     renderer.lighting = host.lighting;
+    renderer.cars.bodies.setPlayerLivery(host.livery?.() ?? null);
     host.loading('Loading photographed trees…');
     await renderer.loadPhotoVegetation();
     host.loading('Loading authored coastal details…');

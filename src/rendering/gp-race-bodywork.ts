@@ -33,7 +33,7 @@ import {
  *
  * Frame: BikeModel's sprung CG frame (+Z forward, road at y = -0.62 for the
  * GP prototypes, front axle at z = +0.70, steering head top near y = 0.31). */
-export type GpShellVariant = 'gpr1' | 'gpr2';
+export type GpShellVariant = 'gpr1' | 'gpr2' | 'sport';
 
 /** Front tyre clearance: inside the fork (|x| < 0.16) the skin must clear
  * the fully compressed (125 mm) tyre and fender; outside it, the side
@@ -478,8 +478,8 @@ function seatNet(): P3[][] {
 
 /** Transmissive bubble from the nose's open upper edge to its free top
  * edge. Columns: base on the fairing edge, side, upper side, crown. */
-function screenNet(variant: GpShellVariant): P3[][] {
-  const tall = variant === 'gpr2' ? 0.95 : 1;
+function screenNet(variant: GpShellVariant, scale = 1): P3[][] {
+  const tall = (variant === 'gpr2' ? 0.95 : 1) * scale;
   const crown = (y: number) => 0.3 + (y - 0.3) * tall;
   return net([
     {
@@ -1412,6 +1412,7 @@ export function gpRaceBodywork(
   variant: GpShellVariant,
   entrant: number,
   transmissive = detail === 'high',
+  options: { screen?: number } = {},
 ): GpRaceBodywork {
   const root = new T.Group();
   root.name = `GP race shell R6 ${variant} (${detail})`;
@@ -1467,16 +1468,20 @@ export function gpRaceBodywork(
   const tank = mesh(tankGeometry, paint, 'GP race shell / tank');
   const tail = mesh(tailGeometry, paint, 'GP race shell / tail');
   if (!far) {
-    mesh(
-      painted([boxWings(variant, detail)]),
-      gpWingPaint(materials, entrant),
-      'GP race shell / box wings',
-    );
-    mesh(
-      painted([lowerScoops(variant, detail)]),
-      materials.carbon,
-      'GP race shell / ground-effect scoops',
-    );
+    // The road-bike variant leaves out the prototypes' aero: box wings and
+    // ground-effect scoops.
+    if (variant !== 'sport') {
+      mesh(
+        painted([boxWings(variant, detail)]),
+        gpWingPaint(materials, entrant),
+        'GP race shell / box wings',
+      );
+      mesh(
+        painted([lowerScoops(variant, detail)]),
+        materials.carbon,
+        'GP race shell / ground-effect scoops',
+      );
+    }
     mesh(intakeMouth(variant, detail), materials.dark, 'GP race shell / ram-air mouth', false);
     mesh(
       shellPanelGeometry({ name: 'GP seat', net: seatNet(), rows, cols }),
@@ -1492,7 +1497,7 @@ export function gpRaceBodywork(
   const screen = mesh(
     shellPanelGeometry({
       name: 'GP screen',
-      net: screenNet(variant),
+      net: screenNet(variant, options.screen ?? 1),
       rows: high ? 4 : 2,
       // Finer around the arch at high LOD: its free rim is the onboard view's
       // horizon line and must read as a curve, not a polygon.

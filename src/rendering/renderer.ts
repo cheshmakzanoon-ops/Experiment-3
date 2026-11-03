@@ -1139,6 +1139,9 @@ export class RacingRenderer {
     this.fxaa.uniforms.resolution.value.set(1 / actual.x, 1 / actual.y);
   }
   setLivery(livery: Livery) {
+    // Catalogue bodies take the edit too (entrant 0, once it differs from the
+    // default identity); the Formula car below keeps its own flank skins.
+    this.vehicleBodies.setPlayerLivery(livery);
     const car = this.cars[0];
     if (!car) return;
     car.setLivery(livery);

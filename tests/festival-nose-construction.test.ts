@@ -45,9 +45,9 @@ function pocketRay(model: ClosedBodyModel, pocket: FestivalLampPocket, x: number
   return new T.Raycaster(start, end.clone().sub(start).normalize(), 0, start.distanceTo(end));
 }
 
-describe('RH3 and SC7 integrated front ends', () => {
+describe('RH3, SC7 and EH3 integrated front ends', () => {
   it('cuts actual lamp holes, retains nearby painted skin and exposes recessed optics', () => {
-    for (const id of ['rh3', 'sc7']) {
+    for (const id of ['rh3', 'sc7', 'eh3']) {
       const { model, body } = build(id);
       for (const detail of [0, 1]) {
         const root = body.lods[detail].group,
@@ -126,7 +126,7 @@ describe('RH3 and SC7 integrated front ends', () => {
   });
 
   it('closes curved cooling ducts at front-quarter heights without exposing the world behind the bumper', () => {
-    for (const id of ['rh3', 'sc7']) {
+    for (const id of ['rh3', 'sc7', 'eh3']) {
       const { model, body } = build(id);
       for (const detail of [0, 1]) {
         const root = body.lods[detail].group;
@@ -162,7 +162,7 @@ describe('RH3 and SC7 integrated front ends', () => {
   });
 
   it('curves the painted nose and its ducts while leaving wheel arches exactly at their previous positions', () => {
-    for (const id of ['rh3', 'sc7']) {
+    for (const id of ['rh3', 'sc7', 'eh3']) {
       const { model, body } = build(id),
         baseline = build(id, false).body;
       for (const detail of [0, 1, 2] as const) {
@@ -229,7 +229,9 @@ describe('RH3 and SC7 integrated front ends', () => {
                 const key = pointKey(side * x, y, z),
                   label = `${id}/LOD${detail} ${axleName}/${side}/${fraction} ${part}`;
                 expect(originalPoints.has(key), `${label} baseline anchor exists`).toBe(true);
-                expect(revisedPoints.has(key), `${label} stays at its physical position`).toBe(true);
+                expect(revisedPoints.has(key), `${label} stays at its physical position`).toBe(
+                  true,
+                );
               }
           }
         }
@@ -246,7 +248,7 @@ describe('RH3 and SC7 integrated front ends', () => {
   });
 
   it('keeps the nose mapping monotone, bounded and normal-consistent', () => {
-    for (const id of ['rh3', 'sc7']) {
+    for (const id of ['rh3', 'sc7', 'eh3']) {
       const { model, body } = build(id);
       for (const x of [-1.1, -0.7, 0, 0.7, 1.1]) {
         let previous = -Infinity;
