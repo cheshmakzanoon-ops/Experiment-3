@@ -1,5 +1,6 @@
 import * as T from 'three';
-import { markTexture, suppliedDecalArt } from './brand-atlas.ts';
+import { markTexture } from './brand-atlas.ts';
+import { suppliedDecalArt } from './supplied-decal-art.ts';
 import { chainShaderHook } from './shader-hooks.ts';
 
 /**

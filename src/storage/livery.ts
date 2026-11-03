@@ -15,7 +15,7 @@ export function emptyDecal(id: number): DecalSlot {
   return {
     id: bounded,
     side: bounded <= 5 ? 'left' : 'right',
-    text: 'APEX',
+    text: 'VOLTEX',
     color: '#f6f1e3',
     x: (((bounded - 1) % 3) - 1) * 0.65,
     y: (bounded - 1) % 5 < 3 ? -0.85 : 0.85,
@@ -50,7 +50,7 @@ export function validateDecals(value: unknown): DecalSlot[] {
               .toUpperCase()
               .replace(/[^A-Z0-9 .-]/g, '')
               .trim()
-              .slice(0, 14) || 'APEX'
+              .slice(0, 14) || 'VOLTEX'
           : base.text,
       color:
         typeof row.color === 'string' && /^#[a-f0-9]{6}$/i.test(row.color)
@@ -76,19 +76,20 @@ export interface Livery {
   decals?: DecalSlot[];
 }
 export const DEFAULT_LIVERY: Readonly<Livery> = Object.freeze({
-  primary: '#c97235',
-  accent: '#e3ddc9',
+  primary: '#5b2bd6',
+  accent: '#d8ff3c',
   number: 7,
-  sponsor: 'APEX',
+  sponsor: 'VOLTEX',
   pattern: 'sweep',
 });
-/** Whether `value` paints the car differently from the default identity. The
- * supplied player car keeps its authored navy until the player customises. */
+/** Whether `value` paints the car differently from the default identity. An
+ * owner-only supplied player car (MOTOBOUND_SUPPLIED_PLAYER=1) keeps its authored
+ * navy until the player customises. */
 export function liveryCustomised(value: Pick<Livery, 'primary' | 'accent'>) {
   return value.primary !== DEFAULT_LIVERY.primary || value.accent !== DEFAULT_LIVERY.accent;
 }
 export const LIVERY_PRESETS = {
-  copper: { ...DEFAULT_LIVERY },
+  voltage: { ...DEFAULT_LIVERY },
   nocturne: {
     primary: '#132a41',
     accent: '#69d3d0',
@@ -124,8 +125,8 @@ export function validateLivery(value: unknown): Livery {
             .toUpperCase()
             .replace(/[^A-Z0-9 .-]/g, '')
             .trim()
-            .slice(0, 14) || 'APEX'
-        : 'APEX',
+            .slice(0, 14) || 'VOLTEX'
+        : 'VOLTEX',
     pattern: p.pattern === 'split' || p.pattern === 'minimal' ? p.pattern : 'sweep',
   };
 }

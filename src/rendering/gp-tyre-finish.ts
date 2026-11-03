@@ -60,7 +60,7 @@ export const GP_TYRE_SIDEWALL = Object.freeze({
   glyphWidth: 0.49,
   /** Average lettering coverage over a band row, shown once the wheel spins. */
   meanInk: 0.09,
-  words: Object.freeze(['APEX CORSA', 'SLICK 18  RACING  MS'] as const),
+  words: Object.freeze(['MOTOBOUND', 'SLICK 18  RACING  MS'] as const),
 });
 
 /** Across-tread position (0 centre .. 1 tread edge) of the contact patch at a

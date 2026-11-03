@@ -194,7 +194,7 @@ def socket(name, p):
 
 def fitted(half, opened=False):
     seg = [40, 20, 12][level]
-    # Padded closed wrap follows the APX spare-tyre envelope, not the supplied RB19.
+    # Padded closed wrap follows the APX spare-tyre envelope, not any real car.
     outer = [(-half-.018,.231),(-half-.02,.273),(-half-.017,.309),(-half-.007,.333),
              (-half+.012,.349),(-half+.042,.355),(0,.357),
              (half-.042,.355),(half-.012,.349),(half+.007,.333),(half+.017,.309),(half+.02,.273),(half+.018,.231)]
@@ -536,7 +536,7 @@ manifest={'schema':1,'assetId':'A34','revision':REVISION,'blender':bpy.app.versi
           'sha256':hashlib.sha256(data).hexdigest(),
           'nodes':len(j['nodes']),'meshes':len(j['meshes']),'materials':len(j['materials']),
           'images':len(j.get('images',[])),'variants':variants,
-          'fitTarget':'Existing APX spare-wheel envelope; not a supplied-RB19 dimension claim',
+          'fitTarget':'Existing APX spare-wheel envelope; not a dimension claim about any real car',
           'finalArtApproved':False}
 p=ROOT/'src/rendering/tyre-blankets.manifest.json'
 p.parent.mkdir(parents=True,exist_ok=True)

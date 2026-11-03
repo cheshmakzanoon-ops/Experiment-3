@@ -62,7 +62,13 @@ for (const scenario of scenarios) {
         A61_MANIFESTS.map((m) => m.sha256),
       );
       expect(renderer.rivalCars).toHaveLength(12);
-      expect(renderer.rivalCars[0]).toMatchObject({ supplied: true, a61: false });
+      // G15: the player's own car is the supplied model only in an owner build; a product
+      // build dresses it with the same authored A61 levels as the opponents.
+      expect(renderer.rivalCars[0]).toMatchObject(
+        process.env.MOTOBOUND_SUPPLIED_PLAYER === '1'
+          ? { supplied: true, a61: false }
+          : { supplied: false, a61: true },
+      );
       expect(renderer.rivalCars.slice(1).every((car) => car.a61 && !car.supplied)).toBe(true);
     }
     await page.locator('#modal [data-action="academy"]').click();

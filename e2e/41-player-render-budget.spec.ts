@@ -2,10 +2,12 @@ import { test, expect } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
 import type { playerRenderBudget } from './fixtures/player-render-budget.ts';
+import { OWNER_BUILD, OWNER_ONLY_REASON } from './fixtures/owner-build.ts';
 
 test('supplied player: actual surface-pass pixels and bounded restorable imported texture budgets', async ({
   page,
 }, info) => {
+  test.skip(!OWNER_BUILD, OWNER_ONLY_REASON);
   const bundle = await build({
     configFile: false,
     logLevel: 'error',

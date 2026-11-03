@@ -16,7 +16,13 @@ export interface ReferenceEntry {
   gap: string;
   code: string[];
 }
-export const REFERENCES: readonly ReferenceEntry[] = [
+/** G15: the catalogue quotes the pages of a commercial game's coverage and reviews (titles,
+ * observations, URLs). It is internal review tooling, so it is compiled out of product builds:
+ * vite.config.ts injects `__REVIEW_TOOLS__` (false unless `MOTOBOUND_REVIEW_TOOLS=1`; see
+ * src/build-flags.d.ts). Where nothing injects it (Node scripts, Playwright, ad-hoc fixture
+ * bundles) the data stays available, which is what the review specs and tools need. */
+const REVIEW_TOOLS = typeof __REVIEW_TOOLS__ === 'undefined' || __REVIEW_TOOLS__ === true;
+const CATALOGUE: readonly ReferenceEntry[] = [
   {
     id: 1,
     file: '001_ps_screenshot_01.webp',
@@ -553,7 +559,7 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     status: 'partial',
     duplicateOf: null,
     implementation:
-      'Original APEX/team wordmark, driver monograms, selected race number and car livery form a coherent in-game identity; existing rivals retain their own liveries. Optional photo depth-of-field now supplies adjustable subject separation; it is an artistic depth-buffer approximation, not an optically calibrated lens or a shutter simulation.',
+      'Original MOTOBOUND/team wordmark, driver monograms, selected race number and car livery form a coherent in-game identity; existing rivals retain their own liveries. Optional photo depth-of-field now supplies adjustable subject separation; it is an artistic depth-buffer approximation, not an optically calibrated lens or a shutter simulation.',
     view: "Reference Review → 021 → the entry's INSPECT/OPEN button. Team HQ → Personnel; Photo / Livery → save identity; return to driving and inspect the tower/car.",
     gap: 'No licensed driver likeness, commercial title artwork, suit editor or portrait/cutscene replication.',
     code: [
@@ -842,7 +848,7 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     status: 'partial',
     duplicateOf: null,
     implementation:
-      'Original APEX/team wordmark, driver monograms, selected race number and car livery form a coherent in-game identity; existing rivals retain their own liveries. Added left/right near-car arrows from actual relative positions and heading, with stronger overlap treatment, a vertical separation gate and colour-accessible presentation. Retired cars and other road levels are suppressed. This pass adds ten independent saved text-decal slots: select left/right flank, edit text/colour, position, scale and rotation, and enable/disable each. They repaint real car UV canvases, survive texture-quality changes and are not screen overlays.',
+      'Original MOTOBOUND/team wordmark, driver monograms, selected race number and car livery form a coherent in-game identity; existing rivals retain their own liveries. Added left/right near-car arrows from actual relative positions and heading, with stronger overlap treatment, a vertical separation gate and colour-accessible presentation. Retired cars and other road levels are suppressed. This pass adds ten independent saved text-decal slots: select left/right flank, edit text/colour, position, scale and rotation, and enable/disable each. They repaint real car UV canvases, survive texture-quality changes and are not screen overlays.',
     view: 'Reference Review → 032 → INSPECT/OPEN. Open Photo / Livery → Independent decals; select a slot, enable it, choose its side and transform, then SAVE LIVERY. Inspect left and right flanks and race with the saved paint.',
     gap: 'Ten text slots cover the left/right flank UVs only. No uploaded bitmap decals, arbitrary nose/wing surface selection, direct on-car dragging or licensed sponsor library. GPU appearance remains unverified here.',
     code: [
@@ -2260,7 +2266,7 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     status: 'partial',
     duplicateOf: null,
     implementation:
-      'Original APEX/team wordmark, driver monograms, selected race number and car livery form a coherent in-game identity; existing rivals retain their own liveries. Added a native dark showroom: a level podium, floor, rim light, softbox geometry and fill lights isolate the actual editable car. Scene visibility and fog are restored after every render, including failures.',
+      'Original MOTOBOUND/team wordmark, driver monograms, selected race number and car livery form a coherent in-game identity; existing rivals retain their own liveries. Added a native dark showroom: a level podium, floor, rim light, softbox geometry and fill lights isolate the actual editable car. Scene visibility and fog are restored after every render, including failures.',
     view: "Reference Review → 091 → the entry's INSPECT/OPEN button. Team HQ → Personnel; Photo / Livery → save identity; return to driving and inspect the tower/car.",
     gap: 'No licensed driver likeness, commercial title artwork, suit editor or portrait/cutscene replication.',
     code: [
@@ -2462,7 +2468,7 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     status: 'partial',
     duplicateOf: 91,
     implementation:
-      'Original APEX/team wordmark, driver monograms, selected race number and car livery form a coherent in-game identity; existing rivals retain their own liveries. Added a native dark showroom: a level podium, floor, rim light, softbox geometry and fill lights isolate the actual editable car. Scene visibility and fog are restored after every render, including failures.',
+      'Original MOTOBOUND/team wordmark, driver monograms, selected race number and car livery form a coherent in-game identity; existing rivals retain their own liveries. Added a native dark showroom: a level podium, floor, rim light, softbox geometry and fill lights isolate the actual editable car. Scene visibility and fog are restored after every render, including failures.',
     view: "Reference Review → 099 → the entry's INSPECT/OPEN button. Team HQ → Personnel; Photo / Livery → save identity; return to driving and inspect the tower/car.",
     gap: 'No licensed driver likeness, commercial title artwork, suit editor or portrait/cutscene replication.',
     code: [
@@ -2491,7 +2497,7 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     status: 'partial',
     duplicateOf: null,
     implementation:
-      'Original APEX/team wordmark, driver monograms, selected race number and car livery form a coherent in-game identity; existing rivals retain their own liveries.',
+      'Original MOTOBOUND/team wordmark, driver monograms, selected race number and car livery form a coherent in-game identity; existing rivals retain their own liveries.',
     view: "Reference Review → 100 → the entry's INSPECT/OPEN button. Team HQ → Personnel; Photo / Livery → save identity; return to driving and inspect the tower/car.",
     gap: 'No licensed driver likeness, commercial title artwork, suit editor or portrait/cutscene replication.',
     code: [
@@ -2504,3 +2510,4 @@ export const REFERENCES: readonly ReferenceEntry[] = [
     ],
   },
 ];
+export const REFERENCES: readonly ReferenceEntry[] = REVIEW_TOOLS ? CATALOGUE : [];

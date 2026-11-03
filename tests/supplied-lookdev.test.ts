@@ -113,11 +113,11 @@ describe('supplied car look-dev (D06)', () => {
     expect(compile(decal).fragmentShader).toContain('diffuseColor.a == 0.0');
     const tyre = physical('Decal | tyre_pirelli', { map: sheet(1024, 171) });
     applySuppliedLookdev(tyre, root);
-    expect(tyre.map!.userData.fictionalMark).toBe('APEX CORSA');
+    expect(tyre.map!.userData.fictionalMark).toBe('MOTOBOUND');
     expect(tyre.clearcoat).toBe(0.045);
     expect(suppliedLookdevReport(root).swapped).toEqual([
       { material: 'Decal | oracle', mark: 'VOLTEX' },
-      { material: 'Decal | tyre_pirelli', mark: 'APEX CORSA' },
+      { material: 'Decal | tyre_pirelli', mark: 'MOTOBOUND' },
     ]);
     const kept = physical('Decal | player', { map: sheet(1024, 512) });
     const keptMap = kept.map;

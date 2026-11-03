@@ -2,6 +2,7 @@ import { finishRaceEntry } from './race-entry.ts';
 import { COCKPIT_FRAMING } from '../src/rendering/cockpit-framing.ts';
 import suppliedManifest from '../src/rendering/supplied-player.manifest.json' with { type: 'json' };
 import { readFile } from 'node:fs/promises';
+import { OWNER_BUILD } from './fixtures/owner-build.ts';
 import { test, expect, type Page } from '@playwright/test';
 import { F, H, carBase } from '../src/simulation/protocol.ts';
 async function ready(page: Page) {
@@ -85,30 +86,38 @@ test('browser session, cameras, pause safety, telemetry and replay', async ({ pa
   const visual = await page.evaluate(() => window.apexDiagnostics(true));
   const eye = visual.renderer!.cameraLocalPosition;
   const supplied = visual.renderer!.suppliedPlayer;
-  expect(supplied).toMatchObject({
-    loaded: true,
-    sha256: suppliedManifest.sha256,
-    joints: 58,
-    headVisible: false,
-  });
-  const rig = visual.renderer!.driverPose.suppliedRig;
-  expect(rig?.arms).toHaveLength(2);
-  for (const arm of rig!.arms) {
-    expect(arm.authoredSkin).toBe(true);
-    for (const joint of [arm.shoulder, arm.elbow, arm.wrist])
-      expect(joint?.length === 3 && joint.every(Number.isFinite)).toBe(true);
+  if (OWNER_BUILD) {
+    expect(supplied).toMatchObject({
+      loaded: true,
+      sha256: suppliedManifest.sha256,
+      joints: 58,
+      headVisible: false,
+    });
+    const rig = visual.renderer!.driverPose.suppliedRig;
+    expect(rig?.arms).toHaveLength(2);
+    for (const arm of rig!.arms) {
+      expect(arm.authoredSkin).toBe(true);
+      for (const joint of [arm.shoulder, arm.elbow, arm.wrist])
+        expect(joint?.length === 3 && joint.every(Number.isFinite)).toBe(true);
+    }
+    // Source socket receives the chassis datum once. Presentation adds the
+    // independently calibrated seat offset and its explicit inertial envelope.
+    const expectedEye = [...suppliedManifest.sockets.eye];
+    expectedEye[1] -= 0.25;
+    expectedEye.forEach((value, axis) => {
+      expect(supplied!.eye[axis]).toBeCloseTo(value, 6);
+      const calibrated = value + COCKPIT_FRAMING.eyeOffset[axis];
+      expect(Math.abs(eye[axis] - calibrated)).toBeLessThanOrEqual(
+        COCKPIT_FRAMING.motionLimit[axis] + 1e-6,
+      );
+    });
+  } else {
+    // G15 product build: the player drives the original APX-01 and its authored cockpit,
+    // not the owner-supplied model: no supplied rig, a finite chassis-space eye.
+    expect(supplied).toBeNull();
+    expect(visual.renderer!.driverPose.suppliedRig).toBeNull();
+    expect(eye.every(Number.isFinite)).toBe(true);
   }
-  // Source socket receives the chassis datum once. Presentation adds the
-  // independently calibrated seat offset and its explicit inertial envelope.
-  const expectedEye = [...suppliedManifest.sockets.eye];
-  expectedEye[1] -= 0.25;
-  expectedEye.forEach((value, axis) => {
-    expect(supplied!.eye[axis]).toBeCloseTo(value, 6);
-    const calibrated = value + COCKPIT_FRAMING.eyeOffset[axis];
-    expect(Math.abs(eye[axis] - calibrated)).toBeLessThanOrEqual(
-      COCKPIT_FRAMING.motionLimit[axis] + 1e-6,
-    );
-  });
   expect(visual.visual!.screenVisible).toBe(true);
   expect(Math.abs(visual.visual!.wheelProjection[0])).toBeLessThan(1);
   expect(Math.abs(visual.visual!.wheelProjection[1])).toBeLessThan(1);
@@ -194,7 +203,7 @@ test('recorded telemetry exports and replay leaves live physics paused', async (
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: 'EXPORT CSV' }).click();
   const csvDownload = await download;
-  expect(csvDownload.suggestedFilename()).toBe('apex-telemetry.csv');
+  expect(csvDownload.suggestedFilename()).toBe('motobound-telemetry.csv');
   const csv = (await readFile((await csvDownload.path())!, 'utf8')).trim().split('\n');
   const columns = csv[0].split(',');
   expect(columns).toHaveLength(228);

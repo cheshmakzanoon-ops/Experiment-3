@@ -64,7 +64,7 @@ export function bikeSurfaceMaps(kind: BikeSurface, size = 128) {
     }
   const texture = (bytes: Uint8Array, label: string) => {
     const t = new T.DataTexture(bytes, size, size, T.RGBAFormat);
-    t.name = `MotoGP ${kind} ${label}`;
+    t.name = `GP ${kind} ${label}`;
     t.userData.surfaceDetail = true;
     t.colorSpace = T.NoColorSpace;
     t.wrapS = t.wrapT = T.RepeatWrapping;

@@ -2,6 +2,9 @@ import { finishRaceEntry } from './race-entry.ts';
 import { readFile } from 'node:fs/promises';
 import { test, expect, type Page, type TestInfo } from '@playwright/test';
 import { H, carBase, F } from '../src/simulation/protocol.ts';
+import { REVIEW_BUILD, REVIEW_ONLY_REASON } from './fixtures/owner-build.ts';
+// G15: the reference catalogue and review panel are compiled out of product builds.
+test.skip(!REVIEW_BUILD, REVIEW_ONLY_REASON);
 const diag = (page: Page) => page.evaluate(() => window.apexDiagnostics());
 async function ready(page: Page) {
   await page.goto('/?dev');
@@ -57,7 +60,7 @@ test('reference tools: actual livery pixels persist through save, quality change
   const downloadEvent = page.waitForEvent('download');
   await page.getByRole('button', { name: 'DOWNLOAD PNG', exact: true }).click();
   const download = await downloadEvent;
-  expect(download.suggestedFilename()).toMatch(/^apex-photo-\d+\.png$/);
+  expect(download.suggestedFilename()).toMatch(/^motobound-photo-\d+\.png$/);
   const path = await download.path();
   expect(path).not.toBeNull();
   const png = await readFile(path!);
@@ -249,8 +252,9 @@ test('reference tools: every supplied number is searchable with duplicates and e
   expect(fits).toBe(true);
 });
 
-
-test('covered menu redraws once on resize and resumes after closing without freezing photo mode', async ({ page }) => {
+test('covered menu redraws once on resize and resumes after closing without freezing photo mode', async ({
+  page,
+}) => {
   await ready(page);
   await page.getByRole('button', { name: 'TEAM HQ', exact: true }).click();
   await expect.poll(async () => (await diag(page)).presentation?.menuCovered).toBe(true);
@@ -266,6 +270,8 @@ test('covered menu redraws once on resize and resumes after closing without free
   await expect(page.locator('#photoStudio')).toBeVisible();
   const photo = await diag(page);
   await input(page, '#photo-elevation', '40');
-  await expect.poll(async () => (await diag(page)).presentation!.frames).toBeGreaterThan(photo.presentation!.frames);
+  await expect
+    .poll(async () => (await diag(page)).presentation!.frames)
+    .toBeGreaterThan(photo.presentation!.frames);
   expect((await diag(page)).state).toBe('photo');
 });

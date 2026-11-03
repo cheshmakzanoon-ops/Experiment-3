@@ -78,7 +78,7 @@ export class BikeHud {
       this.hud.querySelector('[data-touch="brake"]')!.textContent = readout
         ? 'FRONT BRAKE'
         : 'BRAKE';
-      if (!readout) this.nodes.gpWordmark.textContent = 'APEX';
+      if (!readout) this.nodes.gpWordmark.textContent = 'MB';
       for (const side of ['Left', 'Right'])
         this.hud.querySelector(`#proximity${side} > span`)!.textContent =
           `${readout ? 'RIDER' : 'CAR'} ${side.toUpperCase()}`;

@@ -86,7 +86,7 @@ describe('sponsor plan', () => {
 
   it('uses only P19 brands and the house colourways', () => {
     expect([...TRACKSIDE_BRANDS].sort()).toEqual([...P19].sort());
-    for (const brand of BRANDS) expect([...P19, 'APEX CORSA', 'SLICK 18']).toContain(brand);
+    for (const brand of BRANDS) expect([...P19, 'MOTOBOUND', 'SLICK 18']).toContain(brand);
     const used = new Set(PANELS.filter((p) => p.brand).map((p) => p.brand));
     expect(used.size).toBe(P19.length);
     for (const p of PANELS) expect(COLOURWAYS).toContain(p.colourway);

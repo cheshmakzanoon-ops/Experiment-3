@@ -2,11 +2,13 @@ import { test, expect } from '@playwright/test';
 import { build } from 'vite';
 import { resolve } from 'node:path';
 import type { cockpitFramingSurvey, CockpitSurveyRow } from './fixtures/cockpit-framing.ts';
+import { OWNER_BUILD, OWNER_ONLY_REASON } from './fixtures/owner-build.ts';
 
 for (const group of ['framing', 'controls', 'driving', 'braking', 'weather'] as const)
   test(`P0 actual supplied cockpit: ${group}, full circuit and camera framing evidence`, async ({
     page,
   }, info) => {
+    test.skip(!OWNER_BUILD, OWNER_ONLY_REASON);
     const bundled = await build({
       configFile: false,
       logLevel: 'error',

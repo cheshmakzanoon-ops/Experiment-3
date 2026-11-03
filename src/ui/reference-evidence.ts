@@ -45,7 +45,7 @@ function validateCapture(id: number, value: RenderedReferenceEvidence) {
     !hash(value.imageHash) ||
     value.referenceHash !== entry(id).sha256 ||
     !text(value.imageFile, 180) ||
-    !/^apex-[a-zA-Z0-9_.-]+\.png$/.test(value.imageFile) ||
+    !/^(?:apex|motobound)-[a-zA-Z0-9_.-]+\.png$/.test(value.imageFile) ||
     !text(value.view, 6000) ||
     !text(value.capturedAt, 40) ||
     !Number.isFinite(Date.parse(value.capturedAt)) ||

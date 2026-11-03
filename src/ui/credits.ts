@@ -31,7 +31,7 @@ export function creditsHtml(lines: readonly CreditLine[] = creditLines()) {
     .join('');
   return `<span class="eyebrow">PADDOCK / CREDITS</span><h2>Credits &amp; licences.</h2><p>The circuits, cars, riders, interface and sound are original work of this project. The photographed and scanned material below is used under its authors' licences; thank you to everyone who shares their work freely.</p><div class="credits-list" id="creditsList" tabindex="0" role="region" aria-label="Third-party credits">${
     body || '<p>No third-party assets are shipped in this build.</p>'
-  }<p class="small-note">Full text: <a href="assets/third-party/CREDITS.txt" target="_blank" rel="noopener">CREDITS.txt</a>. Runtime libraries keep their own licences (three.js MIT; the Basis Universal transcoder Apache-2.0). Typefaces: Saira and Saira Stencil One by Omnibus-Type, SIL Open Font License 1.1 (licence text ships in src/ui/fonts).</p></div><div class="dialog-buttons"><button class="primary" data-action="modalClose">CLOSE</button></div>`;
+  }<p class="small-note">Full licence texts for everything below and for the runtime libraries (three.js MIT; the Basis Universal transcoder Apache-2.0; the Saira and Saira Stencil One typefaces by Omnibus-Type, SIL Open Font License 1.1): <a href="THIRD_PARTY_NOTICES.txt" target="_blank" rel="noopener">THIRD_PARTY_NOTICES.txt</a>. Art attributions only: <a href="assets/third-party/CREDITS.txt" target="_blank" rel="noopener">CREDITS.txt</a>.</p></div><div class="dialog-buttons"><button class="primary" data-action="modalClose">CLOSE</button></div>`;
 }
 
 /**

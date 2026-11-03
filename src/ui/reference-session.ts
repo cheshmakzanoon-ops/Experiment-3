@@ -87,7 +87,7 @@ export class ReferenceSessionReview {
     if (report?.status === 'observed') {
       const token = this.generation;
       this.captureState = 'Encoding observed canvas…';
-      const imageFile = `apex-reference-${String(report.reference).padStart(3, '0')}-event-${this.source.slice(0, 12)}.png`;
+      const imageFile = `motobound-reference-${String(report.reference).padStart(3, '0')}-event-${this.source.slice(0, 12)}.png`;
       const stats = renderer.stats();
       const meta = {
         source: this.source,
@@ -161,7 +161,7 @@ export class ReferenceSessionReview {
         ],
         { type: 'application/json' },
       ),
-      `apex-reference-${String(report.reference).padStart(3, '0')}-event-${this.source.slice(0, 12)}.json`,
+      `motobound-reference-${String(report.reference).padStart(3, '0')}-event-${this.source.slice(0, 12)}.json`,
     );
   }
   clear() {

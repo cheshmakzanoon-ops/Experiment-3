@@ -6,18 +6,22 @@ import {
   BRANDS,
   BRAND_ART,
   BRAND_FONT_CHARACTERS,
-  FALLBACK_DECAL_ART,
-  KEPT_DECALS,
-  SUPPLIED_DECAL_ART,
-  decalKey,
   drawMark,
   drawWordmark,
   fitHeight,
   markTexture,
-  suppliedDecalArt,
   wordmarkWidth,
   type MarkArt,
 } from '../src/rendering/studio/brand-atlas.ts';
+// The sponsor-sheet key table moved to an owner-only module (G15): it names the
+// real-brand sheets of the owner-supplied model and must stay out of product bundles.
+import {
+  FALLBACK_DECAL_ART,
+  KEPT_DECALS,
+  SUPPLIED_DECAL_ART,
+  decalKey,
+  suppliedDecalArt,
+} from '../src/rendering/studio/supplied-decal-art.ts';
 
 /** A context that records every call and property write, in order. */
 function recorder() {
@@ -65,7 +69,7 @@ describe('fictional brand atlas (P13/P19)', () => {
       'VANTA',
       'NORTHLINE',
       'OBSIDIAN',
-      'APEX CORSA',
+      'MOTOBOUND',
       'SLICK 18',
     ]);
     for (const brand of BRANDS) expect(BRAND_ART[brand].lines.join(' ')).toBe(brand);

@@ -9,8 +9,8 @@ export const CREW_KIT_COLOURS: readonly T.Color[] = [
   0x244553, 0x315963, 0x334950, 0x455961, 0x304c62,
 ].map((c) => new T.Color(c));
 
-/** D23: the player's crew wears the supplied car's navy; rivals their livery. */
-export const PLAYER_CREW_COLOUR = 0x1b2a5e;
+/** D23: the player's crew wears the APX-01 default livery's deep violet; rivals their livery. */
+export const PLAYER_CREW_COLOUR = 0x2b1a6e;
 const teamKits = new Map<number, T.Color>();
 /** A team's crew kit (shared Color, do not mutate): LIVERIES[car % 12]. */
 export function crewTeamColour(car: number) {

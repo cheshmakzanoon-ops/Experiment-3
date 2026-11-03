@@ -65,6 +65,8 @@ import { COMPOUNDS, LIVERIES } from '../simulation/config.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE } from '../simulation/protocol.ts';
 import { WHEEL_POSITIONS } from '../simulation/vehicle.ts';
 import { clamp, lerp } from '../core/math.ts';
+/** G15: true only in an owner build (MOTOBOUND_SUPPLIED_PLAYER=1); see src/build-flags.d.ts. */
+const OWNER_BUILD = typeof __SUPPLIED_PLAYER__ !== 'undefined' && __SUPPLIED_PLAYER__ === true;
 const COMPOUND_STYLES = Object.values(COMPOUNDS);
 export class FormulaCar {
   private readonly contactPose = wheelContactPose();
@@ -88,6 +90,8 @@ export class FormulaCar {
   readonly rings: T.MeshStandardMaterial[] = [];
   /** Painted cover speed blur 0..1 (D12), shared by this car's four covers. */
   readonly coverBlur = { value: 0 };
+  /** The painted wheel cover shared by this car's four wheels (follows the livery). */
+  private readonly coverPaint: ReturnType<typeof wheelCoverMaterial>;
   readonly links: { mesh: T.Object3D; anchor: T.Vector3; wheel: number; dy: number; dx: number }[] =
     [];
   private suspension: T.InstancedMesh;
@@ -119,7 +123,11 @@ export class FormulaCar {
     const secondary = playerSecondary(livery.primary);
     setLiveryPattern(this.paint, { secondary, accent: livery.accent });
     for (const material of this.reflectivePaint) repaintFlank(material, this.id, livery);
-    if (this.suppliedPlayer)
+    // The covers wear the same team colours as the body (one shared material).
+    this.coverPaint.material.color.set(livery.primary);
+    this.coverPaint.uniforms.coverSecondary.value.set(secondary);
+    this.coverPaint.uniforms.coverAccent.value.set(livery.accent);
+    if (OWNER_BUILD && this.suppliedPlayer)
       setSuppliedLivery(this.suppliedPlayer.root, liveryCustomised(livery) ? livery : null);
     this.drawIdentity(
       `${livery.sponsor} / ${String(livery.number).padStart(2, '0')}`,
@@ -143,7 +151,9 @@ export class FormulaCar {
   }
   /** Supplied-car look-dev applied at load (de-branded sheets, overrides). */
   get suppliedLookdev() {
-    return this.suppliedPlayer ? suppliedLookdevReport(this.suppliedPlayer.root) : null;
+    return OWNER_BUILD && this.suppliedPlayer
+      ? suppliedLookdevReport(this.suppliedPlayer.root)
+      : null;
   }
   constructor(
     readonly id: number,
@@ -152,9 +162,12 @@ export class FormulaCar {
     suppliedAsset?: SuppliedPlayerAsset,
     rivals?: RivalLevels,
   ) {
-    if (id > 0 && rivals) hero = rivals[0];
+    // A61 bodywork dresses every car that is not the owner-supplied player: the
+    // opponents, and (G15) the player's own APX-01 in a product build.
+    const authored = rivals && (id > 0 || !suppliedAsset) ? rivals : undefined;
+    if (authored) hero = authored[0];
     this.root.name = `Formula ${id + 1}`;
-    this.root.userData.a61 = id > 0 && rivals ? rivals.map((asset) => asset.diagnostics()) : null;
+    this.root.userData.a61 = authored ? authored.map((asset) => asset.diagnostics()) : null;
     this.root.userData.authoredBodywork = hero?.diagnostics() ?? null;
     this.root.add(this.staticBody, this.frontWing, this.rearWing);
     const s = this.staticBody;
@@ -176,12 +189,14 @@ export class FormulaCar {
     );
     // D12: anthracite rims and painted covers (one for one, draw-neutral).
     const rimAlloy = anthraciteRimMaterial();
-    const wheelCover = wheelCoverMaterial(
+    const cover = wheelCoverMaterial(
       LIVERIES[id % LIVERIES.length],
       scheme.secondary,
       scheme.accent,
       this.coverBlur,
-    ).material;
+    );
+    const wheelCover = cover.material;
+    this.coverPaint = cover;
     const ivory = new T.MeshPhysicalMaterial({
       color: scheme.accent,
       roughness: 0.3,
@@ -309,7 +324,11 @@ export class FormulaCar {
     this.reflectivePaint.push(logo);
     this.identityTexture = logo.map as T.CanvasTexture;
     this.identityTexture.userData.dynamic = true;
-    this.drawIdentity(`APEX / ${String(id + 7).padStart(2, '0')}`, scheme.secondary, scheme.accent);
+    this.drawIdentity(
+      `${scheme.title} / ${String(id + 7).padStart(2, '0')}`,
+      scheme.secondary,
+      scheme.accent,
+    );
     mesh(
       s,
       bodySurfacePatch(NOSE_SECTIONS, { z0: 0.7, z1: 0.815, u0: 0.365, u1: 0.635 }, 0, 0.32),
@@ -591,7 +610,7 @@ export class FormulaCar {
         carbon,
         dark,
         flankMaterials,
-        id > 0 ? rivals?.[level] : undefined,
+        authored?.[level],
       );
       for (let i = 0; i < 4; i++) {
         bindTireSurface(reduced.tires[i].geometry, 'y');

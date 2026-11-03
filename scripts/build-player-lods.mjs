@@ -17,6 +17,15 @@ const manifestPath = `${root}src/rendering/supplied-player-lods.manifest.json`;
 const outputPath = `${root}public/models/supplied-player-lods.bin.gz`;
 const sha = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const update = process.argv.includes('--update-manifest');
+// G15: product builds do not use the owner-supplied player model, so `prebuild` and
+// `predev` pass --owner-only and only do the work for MOTOBOUND_SUPPLIED_PLAYER=1.
+// `pretest` keeps generating it: the unit tests still cover the owner-only path.
+if (process.argv.includes('--owner-only') && process.env.MOTOBOUND_SUPPLIED_PLAYER !== '1') {
+  console.log(
+    'Player LODs skipped: product build (set MOTOBOUND_SUPPLIED_PLAYER=1 for an owner build).',
+  );
+  process.exit(0);
+}
 const packed = readFileSync(`${root}public/models/supplied-player.glb.gz`);
 if (sha(packed) !== source.compressedSHA256) throw new Error('Wrong player source');
 const existing = existsSync(manifestPath) ? JSON.parse(readFileSync(manifestPath, 'utf8')) : null;

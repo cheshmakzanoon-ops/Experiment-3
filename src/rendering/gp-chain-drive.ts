@@ -105,7 +105,7 @@ export class GPChainDrive {
     gear.position.x = X - 0.0035;
     gear.castShadow = gear.receiveShadow = true;
     this.sprocket = gear;
-    this.root.userData.referenceRevision = 'motogp-r3.1-chain';
+    this.root.userData.referenceRevision = 'gp-r3.1-chain';
     this.update(0);
   }
 

@@ -32,7 +32,7 @@ function buildGroup(
     group.add(mesh);
   }
   group.userData.authoredIn = 'Blender 5.2.2';
-  group.userData.referenceRevision = 'motogp-100-r5-composite';
+  group.userData.referenceRevision = 'gp-100-r5-composite';
   return group;
 }
 

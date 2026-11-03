@@ -3,10 +3,12 @@ import { build } from 'vite';
 import { resolve } from 'node:path';
 import type { captureSuppliedPlayer } from './fixtures/supplied-player.ts';
 import manifest from '../src/rendering/supplied-player.manifest.json' with { type: 'json' };
+import { OWNER_BUILD, OWNER_ONLY_REASON } from './fixtures/owner-build.ts';
 
-test('supplied RB19 and R06: actual binary fit, both locks, POV, T-cam and rewind', async ({
+test('owner-supplied player (owner build only): actual binary fit, both locks, POV, T-cam and rewind', async ({
   page,
 }, info) => {
+  test.skip(!OWNER_BUILD, OWNER_ONLY_REASON);
   test.setTimeout(300000);
   const bundled = await build({
     configFile: false,
