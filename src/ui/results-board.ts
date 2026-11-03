@@ -191,6 +191,10 @@ export function resultsBoardHtml(parts: {
   standings: boolean;
 }) {
   const facts = resultFacts(parts.rows);
-  const hero = facts ? `${positionHtml(facts)}${podiumHtml(parts.rows)}${factsHtml(facts)}` : '';
-  return `<section class="rs" data-place="${facts && facts.finished && facts.position <= 3 ? facts.position : 'out'}"><span class="eyebrow">CHEQUERED FLAG / SESSION CLASSIFICATION</span><h2>${esc(parts.heading)}</h2>${parts.lead}<div class="rs-board"><div class="rs-hero">${hero}</div><div class="rs-sheet">${classificationHtml(parts.rows)}${parts.offroad}${parts.note ? `<p class="championship-note">${esc(parts.note)}</p>` : ''}${parts.extra}${nextHtml(parts.next)}</div></div><div class="dialog-buttons inline"><button class="primary" data-action="replay">WATCH REPLAY</button><button data-action="restart">RACE AGAIN</button><button data-action="resultsShare">SHARE CARD</button><button data-action="telemetry">TELEMETRY</button>${parts.standings ? '<button data-action="championship">STANDINGS</button>' : ''}<button data-action="photo">PHOTO STUDIO</button><button data-action="menu">PADDOCK</button></div></section>`;
+  const next = nextHtml(parts.next);
+  // The next step sits under the figures when there are figures, else under the sheet.
+  const hero = facts
+    ? `${positionHtml(facts)}${podiumHtml(parts.rows)}${factsHtml(facts)}${next}`
+    : '';
+  return `<section class="rs" data-place="${facts && facts.finished && facts.position <= 3 ? facts.position : 'out'}"><span class="eyebrow">CHEQUERED FLAG / SESSION CLASSIFICATION</span><h2>${esc(parts.heading)}</h2>${parts.lead}<div class="rs-board"><div class="rs-hero">${hero}</div><div class="rs-sheet">${classificationHtml(parts.rows)}${parts.offroad}${parts.note ? `<p class="championship-note">${esc(parts.note)}</p>` : ''}${parts.extra}${facts ? '' : next}</div></div><div class="dialog-buttons inline"><button class="primary" data-action="replay">WATCH REPLAY</button><button data-action="restart">RACE AGAIN</button><button data-action="resultsShare">SHARE CARD</button><button data-action="telemetry">TELEMETRY</button>${parts.standings ? '<button data-action="championship">STANDINGS</button>' : ''}<button data-action="photo">PHOTO STUDIO</button><button data-action="menu">PADDOCK</button></div></section>`;
 }

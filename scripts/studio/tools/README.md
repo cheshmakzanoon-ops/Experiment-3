@@ -18,6 +18,9 @@ set `CHROMIUM_PATH` if Playwright cannot find one.
 | `body-audit.mts` | Headless geometry audit of every catalogue body (size vs collision box, tyre radius, hub error, arch clearance): `npx vite-node scripts/studio/tools/body-audit.mts [id ...]`. |
 | `uxdom.mjs` + `ux-fixture.ts` | Fast DOM-only screens of the real Interface (menu per discipline, pause, results, settings, controls, championship, `menuProgress`, `wildcardBoard`, `wildcardResult`) with no WebGL boot. |
 | `ux2shots.mjs` | Wave-2 real-game shots in one boot: menu per discipline, the LIGHT dial, the Wildcard board, and a race (loading, briefing, HUD, pause) from the board or the form. |
+| `ux-fixture.ts` wave-3 scenes | `career`, `careerPlayed`, `careerLadder` (the season board: new driver, a played career, scrolled to the ladder), `firstRun`, `resultsCareer` (podium, payment, next step), `shareCard` (the PNG a player saves), `settingsGuide`, `team`, `photo`, `replay`, `loadingScreen`. Run with `node scripts/studio/tools/uxdom.mjs OUT PREFIX scene,scene`. |
+| `firstrun.mjs` | G3 probe for the first-launch screen: the real game with `?firstrun=1`, counts the inputs from the screen to the first driving frame and saves the screen and the driving HUD. Software GL: times are an upper bound. |
+| `ux3shots.mjs` | Wave-3 real-game shots in one boot: paddock, season board (CAREER), the settings graphics guide with its frame rate and GPU suggestion, Team HQ; reports errors. |
 | `pw-dom.config.ts` | Playwright config for the DOM-only component specs (`e2e/60-launch-board`, `44-motocross-interface`): no server, no WebGL check. |
 | `quickstart.mjs` | Menu-to-driving probe counting inputs (G3). Software GL on a shared host is far slower than hardware: the time is an upper bound. |
 | `flashcheck.mjs` | End-to-end flashback check in a live session. |
