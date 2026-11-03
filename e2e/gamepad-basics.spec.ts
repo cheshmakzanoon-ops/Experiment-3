@@ -161,13 +161,7 @@ test.describe('gamepad basics', () => {
     });
   });
 
-  // KNOWN GAP, expected to fail until the front end gains controller navigation (G5).
-  // `test.fail` flips to a failure the day it starts passing, which is the cue to remove it.
   test('front-end menu: D-pad moves focus and A activates a control', async ({ page }) => {
-    test.fail(
-      true,
-      'GAP: main.ts polls pollActions("off") in the menu; no gamepad menu navigation exists',
-    );
     test.setTimeout(300000);
     await installPad(page, true);
     await menuReady(page);
