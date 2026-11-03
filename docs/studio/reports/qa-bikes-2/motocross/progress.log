@@ -1,0 +1,117 @@
+[    0.4s] browser.open {"viewport":[960,540],"quality":"low"}
+[    0.4s] step.begin {"name":"boot"}
+[    1.8s] boot.domcontentloaded {"ms":1352}
+[    3.6s] worker {"url":"blob:http://127.0.0.1:4221/4471ac49-ba42-4243-bafb-2012186661a5"}
+[    3.6s] worker {"url":"blob:http://127.0.0.1:4221/4471ac49-ba42-4243-bafb-2012186661a5"}
+[    3.6s] worker {"url":"blob:http://127.0.0.1:4221/4471ac49-ba42-4243-bafb-2012186661a5"}
+[    3.6s] worker {"url":"blob:http://127.0.0.1:4221/4471ac49-ba42-4243-bafb-2012186661a5"}
+[   37.5s] wait {"label":"menu visible","waited":36,"mode":null,"stage":"0% · Preparing vehicle showroom…","percent":"0%","rafFrames":62,"maxGapMs":1483}
+[   50.8s] boot.done {"timeToMenuS":50.4,"timeToFirstMenuFrameS":50.4,"paint":{"first-paint":652,"first-contentful-paint":1460},"domContentLoadedMs":1352}
+[   50.8s] step.end {"name":"boot","seconds":50.4}
+[   52.7s] screenshot {"file":"01-menu-boot.png","ms":1852}
+[   52.8s] memory {"label":"menu-after-boot","t":52.8,"jsHeapMB":33.3,"jsHeapTotalMB":34.5,"nodes":2487,"listeners":141,"documents":2,"rssMB":2109,"textures":83,"geometries":190}
+[   52.8s] step.begin {"name":"quality-low"}
+[   52.8s] input.click {"n":1,"label":"GARAGE & SETTINGS"}
+[   53.1s] input.select {"n":2,"label":"quality","value":"low"}
+[   53.1s] input.click {"n":3,"label":"APPLY & SAVE"}
+[   62.5s] quality.applied {"quality":"low","seconds":9.669,"busy":false}
+[   62.5s] step.end {"name":"quality-low","seconds":9.7}
+[   62.5s] step.begin {"name":"configure"}
+[   62.5s] input.click {"n":4,"label":"plate dirt"}
+[   74.9s] configured {"circuit":"valley-ridge-mx","vehicle":"mx450","mode":"race","laps":"3","weather":"clear","compound":"medium","assist":"sport","opponents":"7","startSlot":"pole"}
+[   74.9s] sessionRules {"text":"MOTOCROSS MOTO: no mandatory stop · DRS off · points scored."}
+[   74.9s] step.end {"name":"configure","seconds":12.4}
+[   78.1s] screenshot {"file":"02-configured.png","ms":3148}
+[   78.1s] input.click {"n":5,"label":"dirt shortcut OUTDOOR MX"}
+[   78.2s] step.begin {"name":"configure"}
+[   78.3s] FINDING {"severity":"major","where":"configure","message":"Menu control #laps has no option \"2\""}
+[   78.3s] input.select {"n":6,"label":"opponents","value":"3"}
+[   78.3s] configured {"circuit":"valley-ridge-mx","vehicle":"mx450","mode":"race","laps":"3","weather":"clear","compound":"medium","assist":"sport","opponents":"3","startSlot":"pole"}
+[   78.3s] FINDING {"severity":"major","where":"configure","message":"Menu control #laps reads \"3\" after setting \"2\" (a later control overrode it)"}
+[   78.3s] sessionRules {"text":"MOTOCROSS MOTO: no mandatory stop · DRS off · points scored."}
+[   78.3s] step.end {"name":"configure","seconds":0.1}
+[   78.6s] screenshot {"file":"03-configured.png","ms":263}
+[   78.6s] dirt.menu {"kind":"mx-shortcuts","title":"FIND YOUR FLOW.","start":"ENTER CIRCUIT","discipline":null}
+[   78.6s] step.begin {"name":"enter-mx-1"}
+[   78.6s] input.click {"n":7,"label":"ENTER"}
+[  120.1s] wait {"label":"briefing or driving","waited":41,"mode":"loading","stage":"31% · Player car and live instruments…","percent":"26%","rafFrames":243,"maxGapMs":32332}
+[  133.2s] worker {"url":"blob:http://127.0.0.1:4221/c0f2b70f-7cfc-449c-9569-09907fa79ba4"}
+[  162.8s] wait {"label":"briefing or driving","waited":84,"mode":"loading","stage":"Warming shadows and scene reflections…","percent":"90%","rafFrames":320,"maxGapMs":33149}
+[  181.4s] input.click {"n":8,"label":"briefing: GO STRAIGHT TO LIGHTS"}
+[  186.6s] session.started {"label":"mx-1","startedAt":78.586,"briefing":true,"timeToDrivingS":104.2,"timeToFirstFrameS":108}
+[  186.6s] step.end {"name":"enter-mx-1","seconds":108}
+[  196.8s] screenshot {"file":"04-mx-1-first-frame.png","ms":10269}
+[  196.8s] dirt.session {"options":{"mode":"race","circuit":"valley-ridge-mx","laps":3,"opponents":3,"vehicles":["mx450","mx450","mx450","mx450"],"weather":"clear","assist":"sport"}}
+[  196.8s] step.begin {"name":"drive-mx-1-opening"}
+[  197.0s] input.key {"label":"AI DRIVER (G)","code":"KeyG"}
+[  197.0s] ai-driver.on {"atSim":14.8,"reason":"startAuto (dirt journey)"}
+[  197.4s] driving {"sim":14.8,"kph":0,"lap":0,"rank":4,"s":909,"lat":-5.2,"keys":"","rafFps":0,"auto":true}
+[  212.6s] driving {"sim":30,"kph":41,"lap":0,"rank":4,"s":189,"lat":-5.1,"keys":"","rafFps":4.68,"auto":true}
+[  217.1s] drive.done {"label":"mx-1-opening","ended":"sim-seconds","simElapsed":20,"wallS":20.3,"rtf":0.99,"maxKph":84,"offTrackS":8.3,"stuckS":0,"keyEvents":0}
+[  217.1s] step.end {"name":"drive-mx-1-opening","seconds":20.3}
+[  217.1s] page.stall {"maxGapMs":33149,"longTasks":57,"longMs":129443}
+[  217.1s] step.begin {"name":"pause-resume"}
+[  217.1s] input.key {"label":"ESC (pause)","code":"Escape"}
+[  234.2s] screenshot {"file":"05-paused.png","ms":13681}
+[  234.2s] input.click {"n":10,"label":"RESUME SESSION"}
+[  254.4s] screenshot {"file":"06-resumed.png","ms":13254}
+[  254.4s] input.key {"label":"ESC (pause 2)","code":"Escape"}
+[  254.4s] input.key {"label":"ESC (resume 2)","code":"Escape"}
+[  254.4s] step.end {"name":"pause-resume","seconds":37.3}
+[  254.4s] step.begin {"name":"drive-mx-1-to-finish"}
+[  254.4s] driving {"sim":50.4,"kph":28,"lap":0,"rank":4,"s":406,"lat":1,"keys":"","rafFps":0,"auto":true}
+[  269.5s] driving {"sim":65.5,"kph":17,"lap":0,"rank":4,"s":564,"lat":-1.7,"keys":"","rafFps":0,"auto":true}
+[  284.5s] driving {"sim":80.5,"kph":10,"lap":0,"rank":4,"s":617,"lat":-2,"keys":"","rafFps":13.79,"auto":true}
+[  299.5s] driving {"sim":95.5,"kph":62,"lap":0,"rank":4,"s":790,"lat":-0.8,"keys":"","rafFps":4.91,"auto":true}
+[  314.5s] driving {"sim":110.5,"kph":42,"lap":1,"rank":4,"s":117,"lat":-2.3,"keys":"","rafFps":0,"auto":true}
+[  329.5s] driving {"sim":125.5,"kph":50,"lap":1,"rank":4,"s":294,"lat":-1.5,"keys":"","rafFps":0,"auto":true}
+[  344.5s] driving {"sim":140.5,"kph":41,"lap":1,"rank":4,"s":452,"lat":-2.6,"keys":"","rafFps":0,"auto":true}
+[  359.6s] driving {"sim":155.6,"kph":10,"lap":1,"rank":4,"s":593,"lat":-2.7,"keys":"","rafFps":0,"auto":true}
+[  374.6s] driving {"sim":170.6,"kph":41,"lap":1,"rank":4,"s":659,"lat":-3.5,"keys":"","rafFps":4.52,"auto":true}
+[  389.6s] driving {"sim":185.6,"kph":40,"lap":1,"rank":4,"s":853,"lat":2.6,"keys":"","rafFps":9.8,"auto":true}
+[  404.6s] driving {"sim":200.6,"kph":36,"lap":2,"rank":4,"s":165,"lat":0.1,"keys":"","rafFps":0,"auto":true}
+[  419.6s] driving {"sim":215.6,"kph":45,"lap":2,"rank":4,"s":353,"lat":-1.5,"keys":"","rafFps":0,"auto":true}
+[  434.7s] driving {"sim":230.6,"kph":38,"lap":2,"rank":4,"s":501,"lat":-2.1,"keys":"","rafFps":0,"auto":true}
+[  449.8s] driving {"sim":245.6,"kph":44,"lap":2,"rank":4,"s":694,"lat":0.4,"keys":"","rafFps":6.33,"auto":true}
+[  464.8s] driving {"sim":260.6,"kph":64,"lap":2,"rank":4,"s":897,"lat":4.3,"keys":"","rafFps":0,"auto":true}
+[  466.1s] drive.done {"label":"mx-1-to-finish","ended":"results","simElapsed":211.4,"wallS":211.7,"rtf":1,"maxKph":81,"offTrackS":53.4,"stuckS":20,"keyEvents":0}
+[  466.1s] step.end {"name":"drive-mx-1-to-finish","seconds":211.7}
+[  466.1s] page.stall {"maxGapMs":33149,"longTasks":81,"longMs":131233}
+[  466.1s] step.begin {"name":"results"}
+[  467.6s] results {"heading":"Across the line.","rows":4,"buttons":["WATCH REPLAY","TELEMETRY","PHOTO STUDIO","RACE AGAIN","PADDOCK"]}
+[  475.6s] screenshot {"file":"07-results.png","ms":8031}
+[  475.6s] FINDING {"severity":"major","where":"results","message":"No row shows the full 2 laps"}
+[  475.6s] step.end {"name":"results","seconds":9.6}
+[  475.6s] step.begin {"name":"exit-to-menu"}
+[  475.6s] input.click {"n":13,"label":"PADDOCK"}
+[  490.2s] step.end {"name":"exit-to-menu","seconds":14.6}
+[  490.2s] exit.done {"seconds":14.6}
+[  494.4s] screenshot {"file":"08-menu-after-exit.png","ms":4179}
+[  494.8s] memory {"label":"menu-after-session-1","t":494.8,"jsHeapMB":60.6,"jsHeapTotalMB":63.6,"nodes":2958,"listeners":169,"documents":2,"rssMB":2919,"textures":77,"geometries":309}
+[  494.8s] step.begin {"name":"configure"}
+[  494.9s] input.select {"n":14,"label":"laps","value":"1"}
+[  494.9s] configured {"circuit":"valley-ridge-mx","vehicle":"mx450","mode":"race","laps":"1","weather":"clear","compound":"medium","assist":"sport","opponents":"3","startSlot":"pole"}
+[  494.9s] sessionRules {"text":"MOTOCROSS MOTO: no mandatory stop · DRS off · points scored."}
+[  494.9s] step.end {"name":"configure","seconds":0.1}
+[  495.5s] screenshot {"file":"09-configured.png","ms":558}
+[  495.5s] step.begin {"name":"enter-mx-2"}
+[  495.5s] input.click {"n":15,"label":"ENTER"}
+[  495.6s] worker {"url":"blob:http://127.0.0.1:4221/0d7a97a7-dcf2-4551-ae98-4a0be574bd32"}
+[  510.8s] input.click {"n":16,"label":"briefing: GO STRAIGHT TO LIGHTS"}
+[  514.0s] session.started {"label":"mx-2","startedAt":495.482,"briefing":true,"timeToDrivingS":16.3,"timeToFirstFrameS":18.5}
+[  514.0s] step.end {"name":"enter-mx-2","seconds":18.5}
+[  522.2s] screenshot {"file":"10-mx-2-first-frame.png","ms":8217}
+[  522.2s] step.begin {"name":"drive-mx-2"}
+[  522.3s] input.key {"label":"AI DRIVER (G)","code":"KeyG"}
+[  522.4s] ai-driver.on {"atSim":11.1,"reason":"startAuto (dirt journey)"}
+[  522.4s] driving {"sim":11.1,"kph":0,"lap":0,"rank":4,"s":909,"lat":-5.2,"keys":"","rafFps":0,"auto":true}
+[  532.3s] drive.done {"label":"mx-2","ended":"sim-seconds","simElapsed":10,"wallS":10.1,"rtf":0.99,"maxKph":84,"offTrackS":4.1,"stuckS":0,"keyEvents":0}
+[  532.3s] step.end {"name":"drive-mx-2","seconds":10.1}
+[  532.3s] page.stall {"maxGapMs":33149,"longTasks":90,"longMs":136754}
+[  532.3s] input.key {"label":"ESC (pause to exit)","code":"Escape"}
+[  532.4s] step.begin {"name":"exit-to-menu"}
+[  532.4s] input.click {"n":18,"label":"RETURN TO PADDOCK"}
+[  552.1s] step.end {"name":"exit-to-menu","seconds":19.7}
+[  552.1s] exit.done {"seconds":19.7}
+[  556.3s] screenshot {"file":"11-menu-after-exit.png","ms":4226}
+[  556.7s] memory {"label":"menu-after-session-2","t":556.7,"jsHeapMB":60.9,"jsHeapTotalMB":63.4,"nodes":3002,"listeners":169,"documents":2,"rssMB":2917,"textures":77,"geometries":309}

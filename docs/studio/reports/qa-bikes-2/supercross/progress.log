@@ -1,0 +1,104 @@
+[    0.5s] browser.open {"viewport":[960,540],"quality":"low"}
+[    0.5s] step.begin {"name":"boot"}
+[    2.8s] boot.domcontentloaded {"ms":2294}
+[    5.5s] worker {"url":"blob:http://127.0.0.1:4221/ff457612-4360-438a-b896-3afeb7aa5ef4"}
+[    5.5s] worker {"url":"blob:http://127.0.0.1:4221/ff457612-4360-438a-b896-3afeb7aa5ef4"}
+[    5.6s] worker {"url":"blob:http://127.0.0.1:4221/ff457612-4360-438a-b896-3afeb7aa5ef4"}
+[    5.6s] worker {"url":"blob:http://127.0.0.1:4221/ff457612-4360-438a-b896-3afeb7aa5ef4"}
+[   73.7s] wait {"label":"menu visible","waited":71,"mode":null,"stage":"0% · Preparing vehicle showroom…","percent":"0%","rafFrames":85,"maxGapMs":2316}
+[   93.8s] boot.done {"timeToMenuS":93.3,"timeToFirstMenuFrameS":93.3,"paint":{"first-paint":768,"first-contentful-paint":2408},"domContentLoadedMs":2294}
+[   93.8s] step.end {"name":"boot","seconds":93.3}
+[   96.8s] screenshot {"file":"01-menu-boot.png","ms":3068}
+[   97.1s] memory {"label":"menu-after-boot","t":97.1,"jsHeapMB":33.4,"jsHeapTotalMB":34.5,"nodes":2487,"listeners":141,"documents":2,"rssMB":2050,"textures":83,"geometries":190}
+[   97.2s] step.begin {"name":"quality-low"}
+[   97.2s] input.click {"n":1,"label":"GARAGE & SETTINGS"}
+[   97.5s] input.select {"n":2,"label":"quality","value":"low"}
+[   97.5s] input.click {"n":3,"label":"APPLY & SAVE"}
+[  100.6s] quality.applied {"quality":"low","seconds":3.477,"busy":false}
+[  100.6s] step.end {"name":"quality-low","seconds":3.5}
+[  100.6s] step.begin {"name":"configure"}
+[  100.6s] input.click {"n":4,"label":"plate dirt"}
+[  115.8s] configured {"circuit":"valley-ridge-mx","vehicle":"mx450","mode":"race","laps":"3","weather":"clear","compound":"medium","assist":"sport","opponents":"7","startSlot":"pole"}
+[  115.8s] sessionRules {"text":"MOTOCROSS MOTO: no mandatory stop · DRS off · points scored."}
+[  115.8s] step.end {"name":"configure","seconds":15.2}
+[  150.6s] screenshot {"file":"02-configured.png","ms":34774}
+[  150.6s] input.click {"n":5,"label":"dirt shortcut STADIUM SX"}
+[  151.3s] step.begin {"name":"configure"}
+[  151.4s] input.select {"n":6,"label":"laps","value":"1"}
+[  151.4s] input.select {"n":7,"label":"opponents","value":"3"}
+[  151.5s] configured {"circuit":"arena-nord-sx","vehicle":"mx450","mode":"race","laps":"1","weather":"clear","compound":"medium","assist":"sport","opponents":"3","startSlot":"pole"}
+[  151.5s] sessionRules {"text":"MOTOCROSS MOTO: no mandatory stop · DRS off · points scored."}
+[  151.5s] step.end {"name":"configure","seconds":0.2}
+[  153.5s] screenshot {"file":"03-configured.png","ms":2011}
+[  153.5s] dirt.menu {"kind":"mx-shortcuts","title":"OWN THE RHYTHM.","start":"ENTER CIRCUIT","discipline":null}
+[  153.5s] step.begin {"name":"enter-sx-1"}
+[  153.5s] input.click {"n":8,"label":"ENTER"}
+[  251.5s] wait {"label":"briefing or driving","waited":98,"mode":"loading","stage":"29% · Player car and live instruments…","percent":"25%","rafFrames":326,"maxGapMs":65747}
+[  254.5s] worker {"url":"blob:http://127.0.0.1:4221/a81e769a-04ee-4ba4-91a4-5b4d869e9673"}
+[  281.7s] wait {"label":"briefing or driving","waited":128,"mode":"loading","stage":"Waiting for completed chase GPU work…","percent":"90%","rafFrames":428,"maxGapMs":84380}
+[  305.3s] input.click {"n":9,"label":"briefing: GO STRAIGHT TO LIGHTS"}
+[  313.2s] session.started {"label":"sx-1","startedAt":153.492,"briefing":true,"timeToDrivingS":152.9,"timeToFirstFrameS":159.7}
+[  313.2s] step.end {"name":"enter-sx-1","seconds":159.7}
+[  335.2s] screenshot {"file":"04-sx-1-first-frame.png","ms":21962}
+[  335.2s] dirt.session {"options":{"mode":"race","circuit":"arena-nord-sx","laps":1,"opponents":3,"vehicles":["mx450","mx450","mx450","mx450"],"weather":"clear","assist":"sport"}}
+[  335.2s] step.begin {"name":"drive-sx-1-opening"}
+[  335.2s] input.key {"label":"AI DRIVER (G)","code":"KeyG"}
+[  335.2s] ai-driver.on {"atSim":29.5,"reason":"startAuto (dirt journey)"}
+[  335.3s] driving {"sim":29.5,"kph":0,"lap":0,"rank":4,"s":606,"lat":-4.9,"keys":"","rafFps":0,"auto":true}
+[  350.3s] driving {"sim":44.6,"kph":16,"lap":0,"rank":4,"s":137,"lat":-3.5,"keys":"","rafFps":0,"auto":true}
+[  355.2s] drive.done {"label":"sx-1-opening","ended":"sim-seconds","simElapsed":19.9,"wallS":20,"rtf":0.99,"maxKph":73,"offTrackS":4.7,"stuckS":0,"keyEvents":0}
+[  355.2s] step.end {"name":"drive-sx-1-opening","seconds":20}
+[  355.2s] page.stall {"maxGapMs":84380,"longTasks":63,"longMs":217039}
+[  355.2s] FINDING {"severity":"major","where":"ai","message":"1 AI car(s) stationary but not retired: ids 2"}
+[  355.2s] step.begin {"name":"pause-resume"}
+[  355.2s] input.key {"label":"ESC (pause)","code":"Escape"}
+[  365.8s] screenshot {"file":"05-paused.png","ms":7212}
+[  365.8s] input.click {"n":11,"label":"RESUME SESSION"}
+[  388.2s] screenshot {"file":"06-resumed.png","ms":19763}
+[  388.2s] input.key {"label":"ESC (pause 2)","code":"Escape"}
+[  388.2s] input.key {"label":"ESC (resume 2)","code":"Escape"}
+[  388.3s] step.end {"name":"pause-resume","seconds":33}
+[  388.3s] step.begin {"name":"drive-sx-1-to-finish"}
+[  388.3s] driving {"sim":71.7,"kph":33,"lap":0,"rank":3,"s":319,"lat":-1.3,"keys":"","rafFps":0,"auto":true}
+[  403.3s] driving {"sim":86.7,"kph":50,"lap":0,"rank":3,"s":447,"lat":-4.3,"keys":"","rafFps":0,"auto":true}
+[  418.3s] driving {"sim":101.8,"kph":69,"lap":1,"rank":3,"s":18,"lat":3,"keys":"","rafFps":0,"auto":true}
+[  424.8s] drive.done {"label":"sx-1-to-finish","ended":"results","simElapsed":36.5,"wallS":36.6,"rtf":1,"maxKph":77,"offTrackS":14.5,"stuckS":0,"keyEvents":0}
+[  424.8s] step.end {"name":"drive-sx-1-to-finish","seconds":36.6}
+[  424.8s] page.stall {"maxGapMs":84380,"longTasks":77,"longMs":218187}
+[  424.8s] step.begin {"name":"results"}
+[  426.4s] results {"heading":"Across the line.","rows":4,"buttons":["WATCH REPLAY","TELEMETRY","PHOTO STUDIO","RACE AGAIN","PADDOCK"]}
+[  440.5s] screenshot {"file":"07-results.png","ms":14161}
+[  440.5s] step.end {"name":"results","seconds":15.7}
+[  440.5s] step.begin {"name":"exit-to-menu"}
+[  440.5s] input.click {"n":14,"label":"PADDOCK"}
+[  470.8s] step.end {"name":"exit-to-menu","seconds":30.3}
+[  470.8s] exit.done {"seconds":30.3}
+[  477.1s] screenshot {"file":"08-menu-after-exit.png","ms":6252}
+[  477.4s] memory {"label":"menu-after-session-1","t":477.4,"jsHeapMB":58,"jsHeapTotalMB":60.6,"nodes":2938,"listeners":169,"documents":2,"rssMB":2683,"textures":74,"geometries":243}
+[  477.4s] step.begin {"name":"configure"}
+[  477.5s] configured {"circuit":"arena-nord-sx","vehicle":"mx450","mode":"race","laps":"1","weather":"clear","compound":"medium","assist":"sport","opponents":"3","startSlot":"pole"}
+[  477.5s] sessionRules {"text":"MOTOCROSS MOTO: no mandatory stop · DRS off · points scored."}
+[  477.5s] step.end {"name":"configure","seconds":0.1}
+[  477.8s] screenshot {"file":"09-configured.png","ms":297}
+[  477.8s] step.begin {"name":"enter-sx-2"}
+[  477.8s] input.click {"n":15,"label":"ENTER"}
+[  477.9s] worker {"url":"blob:http://127.0.0.1:4221/36fbda24-9cb9-48c0-8128-89f6ba89ac08"}
+[  498.4s] input.click {"n":16,"label":"briefing: GO STRAIGHT TO LIGHTS"}
+[  506.8s] session.started {"label":"sx-2","startedAt":477.806,"briefing":true,"timeToDrivingS":21.7,"timeToFirstFrameS":29}
+[  506.8s] step.end {"name":"enter-sx-2","seconds":29}
+[  524.8s] screenshot {"file":"10-sx-2-first-frame.png","ms":17988}
+[  524.8s] step.begin {"name":"drive-sx-2"}
+[  524.8s] input.key {"label":"AI DRIVER (G)","code":"KeyG"}
+[  524.8s] ai-driver.on {"atSim":25.2,"reason":"startAuto (dirt journey)"}
+[  524.8s] driving {"sim":25.2,"kph":0,"lap":0,"rank":4,"s":606,"lat":-4.9,"keys":"","rafFps":0,"auto":true}
+[  534.6s] drive.done {"label":"sx-2","ended":"sim-seconds","simElapsed":10,"wallS":9.9,"rtf":1.01,"maxKph":60,"offTrackS":3.5,"stuckS":0,"keyEvents":0}
+[  534.6s] step.end {"name":"drive-sx-2","seconds":9.9}
+[  534.6s] page.stall {"maxGapMs":84380,"longTasks":93,"longMs":229019}
+[  534.6s] FINDING {"severity":"major","where":"ai","message":"1 AI car(s) stationary but not retired: ids 2"}
+[  534.6s] input.key {"label":"ESC (pause to exit)","code":"Escape"}
+[  534.6s] step.begin {"name":"exit-to-menu"}
+[  534.6s] input.click {"n":18,"label":"RETURN TO PADDOCK"}
+[  567.0s] step.end {"name":"exit-to-menu","seconds":32.4}
+[  567.0s] exit.done {"seconds":32.4}
+[  575.2s] screenshot {"file":"11-menu-after-exit.png","ms":8178}
+[  575.6s] memory {"label":"menu-after-session-2","t":575.6,"jsHeapMB":58.4,"jsHeapTotalMB":60.1,"nodes":2980,"listeners":169,"documents":2,"rssMB":2709,"textures":74,"geometries":243}

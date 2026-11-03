@@ -43,7 +43,7 @@ export class BikeAIDriver extends AIDriver {
   private readonly approachCurvatures = new Float64Array(GP_APPROACH_SAMPLES);
   private readonly approachCorners = new Float64Array(GP_APPROACH_SAMPLES);
   private readonly approachProfile = new Float64Array(GP_APPROACH_SAMPLES);
-  /** Planned speed one sample ahead and the full-lever deceleration, set by
+  /** Planned speed one sample ahead and the stoppie-limited deceleration, set by
    * the GP approach plan on the step it ran (NaN otherwise). */
   protected planNext = NaN;
   private planBrake = 0;
@@ -108,10 +108,12 @@ export class BikeAIDriver extends AIDriver {
     command.clutch = 0;
     command.steer = this.steerIntent(track, command.steer);
     if (this.isGp) {
-      // The shared pedal logic works in fractions of the stopping force, as a
-      // car's pedal does; a GP lever's travel past the stoppie point adds no
-      // force, only a locking, near-weightless rear wheel.
-      if (d.speed > 5) command.brake *= this.leverAtLimit();
+      // A GP lever's travel past the stoppie point adds no stopping force, only
+      // a locking, near-weightless rear wheel that fishtails under the smallest
+      // steering correction; even short of it a rear carrying a quarter of its
+      // static load cannot follow a lean change. The rider stays inside that.
+      if (d.speed > 5)
+        command.brake = Math.min(command.brake, GP_AI_HANDS.leverShare * this.leverAtLimit());
       this.gpPedals(dt);
     }
     c.aiControlled();
@@ -297,14 +299,13 @@ export class BikeAIDriver extends AIDriver {
       proportional = Math.min(proportional, GP_AI_HANDS.cooldownBrake);
     const v = this.bike.dynamics.speed;
     if (!(v > this.planNext)) return proportional;
+    // The deceleration the plan asks for, as a share of the stoppie-limited
+    // stop, is the same share of the lever travel that reaches that limit.
     const required = (v * v - this.planNext * this.planNext) / (2 * ENVELOPE_STEP);
-    return clamp(Math.max(proportional, required / this.planBrake), 0, 1);
+    return clamp(Math.max(proportional, (required / this.planBrake) * this.leverAtLimit()), 0, 1);
   }
-  /** Lever travel at which the front brake reaches the stoppie limit. Past it
-   * the lever adds no stopping force, only the rear's unloading: with the rear
-   * wheel near-weightless a small steering correction fishtails the bike. The
-   * plan's deceleration is a share of the limit, so the lever is a share of
-   * this travel. */
+  /** Lever travel at which the front brake reaches the stoppie limit (more
+   * travel adds no force, only the rear's unloading). */
   private leverAtLimit() {
     const d = this.bike.dynamics,
       p = d.p,
@@ -368,6 +369,8 @@ export const GP_AI_HANDS = Object.freeze({
   throttleOpen: 2.5,
   /** Lever ceiling once the flag has fallen: a cool-down, not a stop to a plan. */
   cooldownBrake: 0.2,
+  /** Share of the stoppie-point lever travel a rider will use (keeps rear load). */
+  leverShare: 0.75,
 });
 /** Bike path-tracking gains: preview (s), bandwidth (rad/s), damping ratio. */
 export const BIKE_AI = Object.freeze({
