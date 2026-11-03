@@ -334,7 +334,7 @@ export class Track {
       // (the glaze share reads the same rubber), a full white cover beside it.
       if (start.frozenMm && !this.sheltered[row])
         this.frozen[i] =
-          start.frozenMm - 1.25 * clamp(this.rubber[i] / FROST.polishRubber, 0, 1);
+          start.frozenMm - 1.15 * clamp(this.rubber[i] / FROST.polishRubber, 0, 1);
     }
     this.#offroad = circuit.offroad?.createSurface(this) ?? null;
   }

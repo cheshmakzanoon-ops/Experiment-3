@@ -482,9 +482,26 @@ export function glazeShare(rubber: number, frozenMm: number) {
 export function winterRecovery(compoundShare: number, familyShare = 0) {
   return 1 - (1 - compoundShare) * (1 - familyShare);
 }
-/** Friction of the covered surface relative to dry racing asphalt (the same
- * scale as `MATERIALS[..].grip`), 0..1, for a cell with `frozenMm` of cover.
- * 1 exactly when there is none. */
+/** Friction of a FULLY covered surface relative to dry racing asphalt (the
+ * same scale as `MATERIALS[..].grip`): loose snow toward polished ice by the
+ * glaze, cold-stiffened, plus the construction's winter recovery. Independent
+ * of how much of the cell the cover hides (`frozenCover` does that). */
+export function frozenSurfaceGrip(
+  frozenMm: number,
+  rubber: number,
+  waterMm: number,
+  tempC: number,
+  recovery = 0,
+) {
+  const snow = materialGrip(MATERIALS[MATERIAL.SNOW], waterMm, tempC),
+    ice = materialGrip(MATERIALS[MATERIAL.ICE], waterMm, tempC),
+    glaze = glazeShare(rubber, frozenMm),
+    base = lerp(snow, ice, glaze * FROST.glazeIce);
+  return base + (1 - base) * recovery;
+}
+/** Friction of a cell with `frozenMm` of cover relative to dry racing asphalt:
+ * the covered fraction at the covered grip, the rest bare road. Exactly 1 when
+ * there is no cover. */
 export function frozenGripFactor(
   frozenMm: number,
   rubber: number,
@@ -494,11 +511,7 @@ export function frozenGripFactor(
 ) {
   const cover = frozenCover(frozenMm);
   if (cover <= 0) return 1;
-  const snow = materialGrip(MATERIALS[MATERIAL.SNOW], waterMm, tempC),
-    ice = materialGrip(MATERIALS[MATERIAL.ICE], waterMm, tempC),
-    glaze = glazeShare(rubber, frozenMm),
-    base = lerp(snow, ice, glaze * FROST.glazeIce);
-  return lerp(1, base + (1 - base) * recovery, cover);
+  return lerp(1, frozenSurfaceGrip(frozenMm, rubber, waterMm, tempC, recovery), cover);
 }
 /** The surface id a wheel reports in the snapshot (W.SURFACE): the road's own
  * id, unless the cell is at least half covered, when the tread is rolling on

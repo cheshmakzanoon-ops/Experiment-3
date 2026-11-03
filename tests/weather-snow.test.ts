@@ -337,7 +337,7 @@ describe('the snow track', () => {
       }
     }
     expect(lineN).toBeGreaterThan(50);
-    expect(line / lineN).toBeLessThan(0.6);
+    expect(line / lineN).toBeLessThan(0.7);
     expect(beside / besideN).toBeGreaterThan(1.4);
     expect(track.temperature[0]).toBeLessThan(-3);
     // Every cell is covered; the whole lap is white.

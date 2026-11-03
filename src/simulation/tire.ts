@@ -30,7 +30,7 @@ import {
   type TyreConstruction,
 } from './tyre-force.ts';
 import { advanceWheelTemperatures, hotPressure, type ThermalInputs } from './tyre-thermal.ts';
-import { frozenCover, frozenGripFactor, winterRecovery } from './weather.ts';
+import { frozenCover, frozenSurfaceGrip, winterRecovery } from './weather.ts';
 import { advanceWheelRotation } from './wheel-rotation.ts';
 export interface Tire {
   compound: Compound;
@@ -332,7 +332,7 @@ export function peakGrip(t: Tire, load: number, s: SurfaceSample, speed: number)
   const frozen = s.frozen;
   if (frozen !== undefined && frozen > 0) {
     const cover = frozenCover(frozen),
-      covered = frozenGripFactor(
+      covered = frozenSurfaceGrip(
         frozen,
         s.rubber,
         s.water,
