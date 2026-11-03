@@ -18,6 +18,7 @@ import {
 } from '../input/calibration.ts';
 import { clamp } from '../core/math.ts';
 import { DEFAULT_RUMBLE, validateRumble, type RumbleSettings } from '../input/rumble.ts';
+import { DesktopMirror, idbKv } from './desktop-mirror.ts';
 import { DEFAULT_SETUP, validateSetup, type Setup } from '../simulation/config.ts';
 import {
   graphicsPreset,
@@ -181,6 +182,8 @@ export function validateSettings(v: unknown): Settings {
 }
 export class SaveStore {
   private db: Promise<IDBDatabase> | null = null;
+  /** Desktop shell only (window.motobound.desktop): mirrors writes to atomic JSON files. */
+  private mirror = DesktopMirror.detect();
   private open() {
     return (this.db ??= new Promise<IDBDatabase>((resolve, reject) => {
       if (!globalThis.indexedDB) {
@@ -189,7 +192,12 @@ export class SaveStore {
       }
       const request = indexedDB.open('apex-formula', 1);
       request.onupgradeneeded = () => request.result.createObjectStore('saved');
-      request.onsuccess = () => resolve(request.result);
+      request.onsuccess = () =>
+        resolve(
+          this.mirror
+            ? this.mirror.reconcile(idbKv(request.result)).then(() => request.result)
+            : request.result,
+        );
       request.onerror = () => {
         this.db = null;
         reject(request.error ?? new Error('Storage unavailable'));
@@ -215,11 +223,24 @@ export class SaveStore {
       const tx = db.transaction('saved', 'readwrite'),
         store = tx.objectStore('saved'),
         previous = store.get(key);
+      let revision = 0;
       previous.onsuccess = () => {
         if (previous.result !== undefined) store.put(previous.result, backupKey(key));
         store.put(value, key);
+        if (this.mirror) revision = this.mirror.stamp(store);
       };
-      tx.oncomplete = () => resolve();
+      tx.oncomplete = () => {
+        this.mirror?.written(
+          [
+            ...(previous.result !== undefined
+              ? ([[backupKey(key), previous.result]] as const)
+              : []),
+            [key, value],
+          ],
+          revision,
+        );
+        resolve();
+      };
       tx.onerror = () => reject(tx.error);
       tx.onabort = () => reject(tx.error ?? new Error('Save aborted'));
     });
@@ -243,9 +264,14 @@ export class SaveStore {
   async write(key: string, value: unknown) {
     const db = await this.open();
     return new Promise<void>((resolve, reject) => {
-      const tx = db.transaction('saved', 'readwrite');
-      tx.objectStore('saved').put(value, key);
-      tx.oncomplete = () => resolve();
+      const tx = db.transaction('saved', 'readwrite'),
+        store = tx.objectStore('saved');
+      store.put(value, key);
+      const revision = this.mirror ? this.mirror.stamp(store) : 0;
+      tx.oncomplete = () => {
+        this.mirror?.written([[key, value]], revision);
+        resolve();
+      };
       tx.onerror = () => reject(tx.error);
       tx.onabort = () => reject(tx.error ?? new Error('Save aborted'));
     });

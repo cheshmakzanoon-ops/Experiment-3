@@ -44,7 +44,16 @@
     "pretest": "npm run generate:player-lods",
     "test:e2e:shard": "node --experimental-strip-types scripts/run-browser-shard.ts",
     "check:bundle": "node scripts/bundle-budget.mjs",
-    "check:stable": "node --experimental-transform-types scripts/source-stability.ts -- npm run check"
+    "check:stable": "node --experimental-transform-types scripts/source-stability.ts -- npm run check",
+    "desktop:install": "npm --prefix desktop install",
+    "desktop:start": "npm --prefix desktop run start",
+    "desktop:pack": "npm --prefix desktop run pack:linux",
+    "desktop:dist:linux": "npm --prefix desktop run dist:linux",
+    "desktop:dist:win": "npm --prefix desktop run dist:win",
+    "desktop:dist:win:zip": "npm --prefix desktop run dist:win:zip",
+    "desktop:dist:mac": "npm --prefix desktop run dist:mac",
+    "desktop:smoke": "node desktop/scripts/smoke.cjs",
+    "export:achievements": "node --experimental-strip-types scripts/export-achievements.ts"
   },
   "dependencies": {
     "@fontsource-variable/saira": "5.3.0",

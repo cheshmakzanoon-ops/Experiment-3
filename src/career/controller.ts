@@ -10,6 +10,7 @@ import { F, H, carBase } from '../simulation/protocol.ts';
 import type { Track } from '../simulation/track.ts';
 import { FESTIVAL_SAVE_KEY, validateFestivalSave } from '../session/festival-save.ts';
 import { backupKey, recoverSave } from '../storage/data.ts';
+import { emitGameEvent } from '../steam/events.ts';
 import {
   CAREER_PAGES,
   abandonPrompt,
@@ -687,6 +688,13 @@ export class CareerController {
     const test = LICENCE_TESTS[outcome.test],
       session = this.sessionId,
       ai = this.aiUsed;
+    if (!ai)
+      emitGameEvent({
+        type: 'career.licence',
+        licence: outcome.test,
+        medal: outcome.medal,
+        valid: outcome.valid,
+      });
     this.host.pause();
     let payout: Payout = {
       lines: [],
