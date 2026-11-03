@@ -181,6 +181,7 @@ export function buildBuggy(
   const headParts = new Parts(),
     arms: DriverArmAnchor[] = [];
   addDriver(parts, mats, 0.28, floor + 0.08, zCockpit - 0.1, 0.92, zCockpit + 0.36, false, {
+    detail,
     ...(near ? { head: headParts, wheel: false, handDrop: near.layout.wheel.handDrop, arms } : {}),
   });
   if (near)

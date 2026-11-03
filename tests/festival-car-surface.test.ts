@@ -73,7 +73,7 @@ describe('Festival car surface construction', () => {
   });
 
   it('bounds curved-surface error and shares edge splits across adjacent material groups', () => {
-    for (const id of ['rh3', 'sc7']) {
+    for (const id of ['rh3', 'sc7', 'eh3']) {
       const model = modelFor(id),
         x0 = -0.78,
         x1 = 0.78,

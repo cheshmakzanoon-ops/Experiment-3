@@ -9,6 +9,7 @@ import {
   type PaintFinish,
 } from '../paint-finish.ts';
 import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
+import { installBodyLayers, type LayerFrame } from './body-livery.ts';
 
 /** Material kit for procedural vehicle bodies (WP30). Paint is the house
  * clear-coat finish (object-space pigment grain, metallic flake normals and
@@ -62,14 +63,23 @@ export function installPanelGaps(material: T.MeshPhysicalMaterial, gaps: readonl
     );
   });
 }
-/** Per-car clear-coat paint with metallic flake and panel gaps. */
-export function bodyPaint(color: number, finish: PaintFinish, gaps: readonly PanelGap[] = []) {
+/** Per-car clear-coat paint with metallic flake and panel gaps. With a
+ * `layers` frame the paint also carries the two-tone/stripe layer hook
+ * (body-livery.ts), installed before the gaps so shut lines still cut the
+ * second colour. */
+export function bodyPaint(
+  color: number,
+  finish: PaintFinish,
+  gaps: readonly PanelGap[] = [],
+  layers?: LayerFrame,
+) {
   const material = new T.MeshPhysicalMaterial({ color });
   applyPaintFinish(material, finish);
   material.userData.weatherExposure = 1;
   installPaintFinish(material);
   const f = PAINT_FINISHES[finish];
   installPaintFlakes(material, f.flake, f.peel);
+  if (layers) installBodyLayers(material, layers);
   installPanelGaps(material, gaps);
   return material;
 }
@@ -105,6 +115,22 @@ export const sharedMaterials = {
       () => new T.MeshStandardMaterial({ color: 0x141517, roughness: 0.78, metalness: 0 }),
     ),
   grille: () => shared('grille', grilleMaterial),
+  /** Always-on emissive light bar (electric signature lighting): a dark
+   * housing colour with a strong emission, so the line stays visible in full
+   * sun and blooms at dusk. One material per colour, shared by the catalogue. */
+  lightBar: (color: number) =>
+    shared(`light-bar-${color}`, () => {
+      const material = new T.MeshStandardMaterial({
+        color: 0x0a1317,
+        emissive: color,
+        emissiveIntensity: 2.6,
+        roughness: 0.32,
+        metalness: 0.1,
+      });
+      material.name = 'Signature light bar';
+      material.userData.vehicleLightBar = true;
+      return material;
+    }),
   chrome: () =>
     shared(
       'chrome',
@@ -151,6 +177,12 @@ export const sharedMaterials = {
     shared(
       'steel',
       () => new T.MeshStandardMaterial({ color: 0x5f6266, roughness: 0.42, metalness: 0.9 }),
+    ),
+  /** A driver's face in an open-face helmet. */
+  skin: () =>
+    shared(
+      'skin',
+      () => new T.MeshStandardMaterial({ color: 0xb9836a, roughness: 0.68, metalness: 0 }),
     ),
   visor: () =>
     shared(
@@ -344,6 +376,16 @@ export function tyreMaterial(pattern: TreadPattern) {
   });
   return { material, pose };
 }
+/** The numeral on a board canvas (128 px square). */
+export function paintNumber(ctx: CanvasRenderingContext2D, num: number) {
+  ctx.fillStyle = '#f4f4f1';
+  ctx.fillRect(0, 0, 128, 128);
+  ctx.fillStyle = '#111214';
+  ctx.font = 'bold 84px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(String(num), 64, 70);
+}
 /** Race number board: white plate, black numerals (no marks, no brands). */
 export function numberBoard(num: number) {
   const material = new T.MeshStandardMaterial({ color: 0xf2f2ef, roughness: 0.55 });
@@ -353,13 +395,7 @@ export function numberBoard(num: number) {
   canvas.height = 128;
   const ctx = canvas.getContext('2d');
   if (!ctx) return material;
-  ctx.fillStyle = '#f4f4f1';
-  ctx.fillRect(0, 0, 128, 128);
-  ctx.fillStyle = '#111214';
-  ctx.font = 'bold 84px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(String(num), 64, 70);
+  paintNumber(ctx, num);
   const texture = new T.CanvasTexture(canvas);
   texture.colorSpace = T.SRGBColorSpace;
   texture.anisotropy = 4;

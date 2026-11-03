@@ -152,7 +152,7 @@ describe('RH3 and SC7 pressed flanks, recessed door joints and folded sills', ()
     details: ReturnType<typeof skin>[];
   }[] = [];
   beforeAll(() => {
-    for (const id of ['rh3', 'sc7']) {
+    for (const id of ['rh3', 'sc7', 'eh3']) {
       const model = modelFor(id),
         original = modelFor(id, false),
         mats = carMaterials(0, model.s.paint, model.gaps());

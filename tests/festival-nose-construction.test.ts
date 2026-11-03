@@ -47,7 +47,7 @@ function pocketRay(model: ClosedBodyModel, pocket: FestivalLampPocket, x: number
 
 describe('RH3 and SC7 integrated front ends', () => {
   it('cuts actual lamp holes, retains nearby painted skin and exposes recessed optics', () => {
-    for (const id of ['rh3', 'sc7']) {
+    for (const id of ['rh3', 'sc7', 'eh3']) {
       const { model, body } = build(id);
       for (const detail of [0, 1]) {
         const root = body.lods[detail].group,
@@ -126,7 +126,7 @@ describe('RH3 and SC7 integrated front ends', () => {
   });
 
   it('closes curved cooling ducts at front-quarter heights without exposing the world behind the bumper', () => {
-    for (const id of ['rh3', 'sc7']) {
+    for (const id of ['rh3', 'sc7', 'eh3']) {
       const { model, body } = build(id);
       for (const detail of [0, 1]) {
         const root = body.lods[detail].group;
@@ -162,7 +162,7 @@ describe('RH3 and SC7 integrated front ends', () => {
   });
 
   it('curves the painted nose and its ducts while leaving wheel arches exactly at their previous positions', () => {
-    for (const id of ['rh3', 'sc7']) {
+    for (const id of ['rh3', 'sc7', 'eh3']) {
       const { model, body } = build(id),
         baseline = build(id, false).body;
       for (const detail of [0, 1, 2] as const) {
@@ -246,7 +246,7 @@ describe('RH3 and SC7 integrated front ends', () => {
   });
 
   it('keeps the nose mapping monotone, bounded and normal-consistent', () => {
-    for (const id of ['rh3', 'sc7']) {
+    for (const id of ['rh3', 'sc7', 'eh3']) {
       const { model, body } = build(id);
       for (const x of [-1.1, -0.7, 0, 0.7, 1.1]) {
         let previous = -Infinity;

@@ -13,8 +13,16 @@ import {
   festivalFasciaCap,
   festivalFasciaOpenings,
 } from '../src/rendering/vehicle-bodies/festival-detail.ts';
-import { festivalNoseZ } from '../src/rendering/vehicle-bodies/festival-nose.ts';
-import { festivalRearZ } from '../src/rendering/vehicle-bodies/festival-rear.ts';
+import {
+  festivalBonnetPockets,
+  festivalLampPockets,
+  festivalNoseZ,
+} from '../src/rendering/vehicle-bodies/festival-nose.ts';
+import {
+  festivalRearZ,
+  festivalSidePockets,
+  festivalTailPockets,
+} from '../src/rendering/vehicle-bodies/festival-rear.ts';
 
 function modelFor(id: string) {
   const def = VEHICLES[id];
@@ -169,8 +177,10 @@ describe('Festival vehicle exterior construction', () => {
     type Body = ReturnType<typeof buildVehicleBody>;
     type Resource = T.BufferGeometry | T.Material | T.Texture;
     const ownedResources = (body: Body) => {
-      const { paint, accent, helmet, head, tail, board } = body.materials;
-      const resources = new Set<Resource>([paint, accent, helmet, head, tail, board]);
+      // The suit is per car since the livery work (a livery edit recolours it in
+      // place), so it is released with the body like paint, accent and helmet.
+      const { paint, accent, helmet, suit, head, tail, board } = body.materials;
+      const resources = new Set<Resource>([paint, accent, helmet, suit, head, tail, board]);
       if (board.map) resources.add(board.map);
       const display = body.lods[0].cabin?.display;
       if (display) resources.add(display.material);
@@ -215,7 +225,7 @@ describe('Festival vehicle exterior construction', () => {
       first.materials.paint.envMap = externalReflection;
       const firstResources = ownedResources(first),
         otherResources = ownedResources(other);
-      const shared = new Set<Resource>([first.materials.suit, externalReflection]);
+      const shared = new Set<Resource>([externalReflection]);
       for (const body of [first, other])
         body.root.traverse((object) => {
           if (!(object instanceof T.Mesh)) return;
@@ -262,5 +272,136 @@ describe('Festival vehicle exterior construction', () => {
       vi.restoreAllMocks();
       externalReflection.dispose();
     }
+  });
+});
+
+/** The EH-3 hero pass: the pressed-flank kit (swept nose with bonded lamp pockets
+ * and bonnet outlets, shoulder sweep with a pocketed side duct, pressed flank)
+ * and the electric signature lighting (continuous nose blade, lit arches, tail bar). */
+describe('EH-3 electric hypercar: pressed-flank kit and signature lighting', () => {
+  const id = 'eh3';
+  const def = VEHICLES[id];
+  const sheet = bodySheetFor(def) as ClosedSheet;
+  const model = modelFor(id);
+  const frame = model.f;
+  const body = buildVehicleBody(0, def, sheet);
+  /** Car-frame vertices of every mesh of a LOD that uses a material `test` accepts. */
+  const vertices = (lod: number, test: (m: T.Material) => boolean, from = body) => {
+    const out: T.Vector3[] = [];
+    const root = from.lods[lod].group;
+    root.updateMatrixWorld(true);
+    root.traverse((o) => {
+      if (!(o instanceof T.Mesh)) return;
+      const materials = Array.isArray(o.material) ? o.material : [o.material];
+      if (!materials.some(test)) return;
+      const position = o.geometry.getAttribute('position');
+      for (let i = 0; i < position.count; i++)
+        out.push(new T.Vector3().fromBufferAttribute(position, i).applyMatrix4(o.matrixWorld));
+    });
+    return out;
+  };
+  const bar = (m: T.Material) => !!m.userData.vehicleLightBar;
+
+  it('switches the SC-7 kit on for the EH-3 and keeps the electric car free of exhausts', () => {
+    expect(festivalDetailFor(def, sheet)).toBe(true);
+    expect(sheet.frontSweep).toBeGreaterThan(0.2);
+    expect(sheet.rearSweep).toBeGreaterThan(0.15);
+    expect(sheet.sideSculpt).toBeGreaterThan(0.03);
+    expect(sheet.bonnetVents && sheet.sideIntake).toBe(true);
+    expect(sheet.extras).not.toContain('exhaust-rear');
+    expect(sheet.extras).not.toContain('exhaust-side');
+    expect(festivalLampPockets(model)).toHaveLength(2);
+    expect(festivalBonnetPockets(model)).toHaveLength(2);
+    expect(festivalTailPockets(model)).toHaveLength(2);
+    expect(festivalSidePockets(model)).toHaveLength(2);
+    for (const lod of [0, 1])
+      expect(body.lods[lod].group.userData.festivalBodyDetail).toBeDefined();
+  });
+
+  it('lays a continuous emissive blade across the nose, swept back with the skin', () => {
+    const points = vertices(0, bar).filter((v) => v.z > model.zFront - 0.6);
+    expect(points.length).toBeGreaterThan(30);
+    const xs = points.map((v) => v.x);
+    const half = Math.max(...xs);
+    expect(half).toBeGreaterThan(0.6);
+    expect(Math.min(...xs)).toBeCloseTo(-half, 2);
+    // Continuous: every 2 cm slice of the span holds blade vertices.
+    for (let x = -half + 0.02; x < half - 0.02; x += 0.02)
+      expect(
+        points.some((v) => Math.abs(v.x - x) < 0.02),
+        `blade slice ${x.toFixed(2)}`,
+      ).toBe(true);
+    // The warp carries it: the corners lie behind the centre by the nose sweep shape.
+    const centre = Math.max(...points.filter((v) => Math.abs(v.x) < 0.05).map((v) => v.z));
+    const corner = Math.max(...points.filter((v) => Math.abs(v.x) > half - 0.05).map((v) => v.z));
+    expect(centre - corner).toBeGreaterThan(sheet.frontSweep! * 0.25);
+    // And it stays on the fascia: below the bonnet crown, above the intake mouths.
+    const top = Math.max(...model.ring(model.zFront, 0).half.map((p) => p[1]));
+    for (const v of points) {
+      expect(v.y).toBeLessThan(top + 0.02);
+      expect(v.y).toBeGreaterThan(top - 0.14);
+    }
+  });
+
+  it('lights each wheel arch above the tyre, inside the body, on both sides', () => {
+    for (const lod of [0, 1]) {
+      const all = vertices(lod, bar);
+      for (const axle of [frame.frontAxle, frame.rearAxle]) {
+        const hub = axle === frame.frontAxle ? frame.hubFront : frame.hubRear;
+        for (const side of [-1, 1]) {
+          const strip = all.filter(
+            (v) => Math.abs(v.z - axle) < frame.radius + 0.05 && v.x * side > 0.2,
+          );
+          expect(strip.length, `LOD${lod} arch ${axle.toFixed(2)} side ${side}`).toBeGreaterThan(8);
+          for (const v of strip) {
+            const dz = v.z - axle;
+            const tyreTop = hub + Math.sqrt(Math.max(0, frame.radius ** 2 - dz * dz));
+            expect(v.y, 'lit line clears the tyre').toBeGreaterThan(tyreTop + 0.012);
+            expect(Math.abs(v.x), 'inside the body').toBeLessThan(model.halfWidth(v.z) + 0.01);
+          }
+        }
+      }
+    }
+  });
+
+  it('joins the two tapered lamps with a continuous brake-driven tail bar', () => {
+    const pockets = festivalTailPockets(model);
+    const bridge = Math.min(...pockets.map((p) => Math.abs(p.x) - p.width * 0.4));
+    const barRow = (b: typeof body) =>
+      vertices(0, (m) => m === b.materials.tail, b).filter(
+        (v) =>
+          v.z < model.zRear + 0.03 &&
+          Math.abs(v.y - pockets[0].y) < 0.02 &&
+          Math.abs(v.x) < bridge + 0.05,
+      );
+    // One bar spans the bridge between the lamps (a box has only its end vertices).
+    const tail = barRow(body);
+    expect(Math.min(...tail.map((v) => v.x))).toBeLessThan(-bridge + 0.03);
+    expect(Math.max(...tail.map((v) => v.x))).toBeGreaterThan(bridge - 0.03);
+    expect(bridge).toBeGreaterThan(0.2);
+    // A body without the signature keeps its painted bridge between the lamps.
+    const sc7 = buildVehicleBody(0, VEHICLES.sc7, bodySheetFor(VEHICLES.sc7)!);
+    expect(barRow(sc7).filter((v) => Math.abs(v.x) < 0.1)).toHaveLength(0);
+  });
+
+  it('is emissive and always on, one shared material, and only on the near and mid LOD', () => {
+    const material = sharedMaterials.lightBar(sheet.signature!);
+    expect(material.emissive.getHex()).toBe(sheet.signature);
+    expect(material.emissiveIntensity).toBeGreaterThan(1.5);
+    expect(sharedMaterials.lightBar(sheet.signature!)).toBe(material);
+    // The same material instance is used by a second car (shared, never disposed per car).
+    const second = buildVehicleBody(1, def, sheet);
+    let used: T.Material | undefined;
+    second.lods[0].group.traverse((o) => {
+      if (!(o instanceof T.Mesh)) return;
+      used ??= (Array.isArray(o.material) ? o.material : [o.material]).find(bar);
+    });
+    expect(used).toBe(material);
+    expect(vertices(0, bar).length).toBeGreaterThan(0);
+    expect(vertices(1, bar).length).toBeGreaterThan(0);
+    expect(vertices(2, bar)).toHaveLength(0);
+    // Bodies without the sheet key carry no light bar at all.
+    const sc7 = buildVehicleBody(0, VEHICLES.sc7, bodySheetFor(VEHICLES.sc7)!);
+    expect(vertices(0, bar, sc7)).toHaveLength(0);
   });
 });

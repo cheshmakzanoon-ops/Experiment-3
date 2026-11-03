@@ -86,6 +86,10 @@ export interface ClosedSheet {
   rearSweep?: number;
   /** Maximum pressed-in lower-flank depth, fading before the wheel openings. */
   sideSculpt?: number;
+  /** Electric signature lighting (emissive colour): a continuous front light
+   * bar across the nose, a thin lit line along each wheel-arch ceiling and a
+   * continuous tail bar joining the two tapered lamps. Festival kit bodies only. */
+  signature?: number;
   sideIntake: boolean;
   roofScoop: boolean;
   bonnetVents: boolean;
@@ -591,9 +595,17 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     mirrors: true,
     lamps: { front: 'slim', rear: 'strip' },
     grille: 0.2,
+    // The pressed-flank kit (same data keys as SC-7): swept nose with bonded
+    // lamp pockets and bonnet outlets, shoulder sweep with a pocketed side duct,
+    // pressed lower flank. The electric identity is the continuous cyan light
+    // bar, lit arches and a pearl-over-carbon colourway (colourways.ts).
+    frontSweep: 0.3,
+    rearSweep: 0.22,
+    sideSculpt: 0.04,
+    signature: 0x39d7ff,
     sideIntake: true,
     roofScoop: false,
-    bonnetVents: false,
+    bonnetVents: true,
     numbers: 'none',
     extras: [],
     stripe: 'none',

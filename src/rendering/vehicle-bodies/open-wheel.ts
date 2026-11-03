@@ -150,7 +150,7 @@ export function buildOpenWheel(
   // Driver (the near cabin seats its own, with legs and a turning wheel).
   const seatY = y(0.12),
     seatZ = zCockpit - 0.1;
-  if (!near) addDriver(parts, mats, 0, seatY, seatZ, 0.92, zCockpit + 0.36, historic);
+  if (!near) addDriver(parts, mats, 0, seatY, seatZ, 0.92, zCockpit + 0.36, historic, { detail });
   else {
     const rear = zCockpit - 0.32,
       front = zCockpit + 0.42,
@@ -573,11 +573,43 @@ export function buildKart(
   if (detail < 2) {
     // Nose fairing and front panel (number board); a compact sprint nose is
     // narrower, shorter and higher.
+    // Moulded shells are ellipsoids, not slabs: the nose cone and the pods.
+    const shell = (rx: number, ry: number, rz: number) =>
+      new T.SphereGeometry(1, detail === 0 ? 24 : 12, detail === 0 ? 14 : 8).scale(rx, ry, rz);
     parts.add(
-      compact ? roundedBox(0.72, 0.14, 0.22, 0.05, 3) : roundedBox(0.95, 0.12, 0.3, 0.05, 3),
+      compact ? shell(0.34, 0.085, 0.2) : shell(0.44, 0.095, 0.27),
       mats.paint,
-      compact ? placed(0, y(0.13), zF + 0.22, 0.2) : placed(0, y(0.12), zF + 0.28, 0.12),
+      compact ? placed(0, y(0.2), zF + 0.22, 0.22) : placed(0, y(0.2), zF + 0.28, 0.18),
     );
+    // The gearbox kart's front bumper: a chrome tube round the nose, on stays.
+    if (!compact) {
+      parts.add(
+        tubeGeometry(
+          [
+            [-0.58, y(0.1), zF + 0.08],
+            [-0.54, y(0.1), zF + 0.46],
+            [-0.24, y(0.1), zF + 0.62],
+            [0.24, y(0.1), zF + 0.62],
+            [0.54, y(0.1), zF + 0.46],
+            [0.58, y(0.1), zF + 0.08],
+          ],
+          0.014,
+          detail === 0 ? 30 : 14,
+          6,
+        ),
+        sharedMaterials.chrome(),
+      );
+      for (const side of [-1, 1])
+        parts.add(
+          rodGeometry(
+            new T.Vector3(side * 0.54, y(0.1), zF + 0.46),
+            new T.Vector3(side * 0.3, y(0.07), zF - 0.05),
+            0.01,
+            sides,
+          ),
+          steel,
+        );
+    }
     parts.add(
       roundedBox(0.4, 0.3, 0.02, 0.03, 2),
       mats.paint,
@@ -587,7 +619,7 @@ export function buildKart(
     // Side pods between the wheels.
     for (const side of [-1, 1])
       parts.add(
-        short ? roundedBox(0.22, 0.2, 0.46, 0.07, 3) : roundedBox(0.2, 0.16, 0.62, 0.06, 3),
+        short ? shell(0.12, 0.1, 0.26) : shell(0.105, 0.085, 0.34),
         mats.paint,
         placed(side * (tw - 0.06), y(short ? 0.15 : 0.14), (zF + zR) / 2 - (short ? 0.12 : 0.05)),
       );
@@ -644,6 +676,7 @@ export function buildKart(
   const headParts = new Parts(),
     arms: DriverArmAnchor[] = [];
   addDriver(parts, mats, 0, seatY, seatZ + 0.1, 0.92, zF - 0.08, false, {
+    detail,
     ...(near ? { head: headParts, wheel: false, handDrop: near.layout.wheel.handDrop, arms } : {}),
   });
   if (near)
