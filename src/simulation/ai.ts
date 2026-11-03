@@ -68,11 +68,14 @@ export function envelopeProfile(
   aero: number,
   env: CapabilityEnvelope = AI_ENVELOPE,
   count = corners.length,
+  /** Optional: receives the profile speed at every active sample. */
+  profile?: Float64Array,
 ) {
   // A bounded active prefix lets the GP rider extend its horizon in reusable
   // buffers. Callers must provide 1..min(curvatures.length, corners.length).
   const n = count;
   let v = Math.min(corners[n - 1], 400);
+  if (profile) profile[n - 1] = v;
   for (let i = n - 2; i >= 0; i--) {
     const lateralLimit =
       (env.lateralBase + env.lateralAero * aero * v * v) * grip * lateralMarginAt(v, env);
@@ -83,6 +86,7 @@ export function envelopeProfile(
       env.brakingMargin *
       Math.sqrt(Math.max(0, 1 - usage * usage));
     v = Math.min(corners[i], Math.sqrt(v * v + 2 * Math.max(0.5, braking) * ENVELOPE_STEP));
+    if (profile) profile[i] = v;
   }
   return v;
 }
@@ -444,7 +448,7 @@ export class AIDriver {
     c.aiOffset = pathOffset;
     const error = desired - c.speed;
     command.throttle = clamp(error * 0.25 + 0.13, 0, 1);
-    command.brake = clamp(-error * 0.18, 0, 1);
+    command.brake = this.brakeDemand(error);
     // Friction circle on exit: power comes in as the lateral load unwinds, so
     // a car at the cornering limit is not also asked for full traction.
     const lateralUsage = Math.min(
@@ -586,6 +590,10 @@ export class AIDriver {
   /** Lane-target reserve beyond the physical passing corridor (metres). */
   protected trafficTrackingMargin() {
     return 0;
+  }
+  /** Brake pedal demand for a speed error (target - speed, m/s). */
+  protected brakeDemand(error: number) {
+    return clamp(-error * 0.18, 0, 1);
   }
   /** Further speed limits a venue driver applies (m/s); none by default. */
   protected limitSpeed(desired: number, track: Track, race: RaceDirector) {

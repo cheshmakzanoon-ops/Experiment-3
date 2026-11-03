@@ -42,6 +42,11 @@ export class BikeAIDriver extends AIDriver {
   private pitDepartureLateral = 0;
   private readonly approachCurvatures = new Float64Array(GP_APPROACH_SAMPLES);
   private readonly approachCorners = new Float64Array(GP_APPROACH_SAMPLES);
+  private readonly approachProfile = new Float64Array(GP_APPROACH_SAMPLES);
+  /** Planned speed one sample ahead and the full-lever deceleration, set by
+   * the GP approach plan on the step it ran (NaN otherwise). */
+  protected planNext = NaN;
+  private planBrake = 0;
   protected override readonly reverseRecovery = false;
   constructor(
     readonly bike: BikeVehicle,
@@ -49,6 +54,9 @@ export class BikeAIDriver extends AIDriver {
     seed = 73021,
   ) {
     super(bike, skill, seed);
+  }
+  private get isGp() {
+    return this.bike.definition.id === 'gpr1' || this.bike.definition.id === 'gpr2';
   }
   override update(dt: number, track: Track, cars: Vehicle[], race: RaceDirector) {
     // A rider-down update can return before the shared planner runs.
@@ -99,7 +107,13 @@ export class BikeAIDriver extends AIDriver {
     command.reverse = false;
     command.clutch = 0;
     command.steer = this.steerIntent(track, command.steer);
-    if (c.definition.id === 'gpr1' || c.definition.id === 'gpr2') this.gpPedals(dt);
+    if (this.isGp) {
+      // The shared pedal logic works in fractions of the stopping force, as a
+      // car's pedal does; a GP lever's travel past the stoppie point adds no
+      // force, only a locking, near-weightless rear wheel.
+      if (d.speed > 5) command.brake *= this.leverAtLimit();
+      this.gpPedals(dt);
+    }
     c.aiControlled();
   }
   private lastThrottle = 0;
@@ -219,6 +233,7 @@ export class BikeAIDriver extends AIDriver {
     void race;
     const c = this.bike,
       d = c.dynamics;
+    this.planNext = NaN;
     if (
       (c.definition.id !== 'gpr1' && c.definition.id !== 'gpr2') ||
       c.inPit ||
@@ -259,10 +274,46 @@ export class BikeAIDriver extends AIDriver {
       this.approachCurvatures[i] = Math.abs(curvature);
       this.approachCorners[i] = envelopeCornerSpeed(curvature, grip, aero, env) * this.skill;
     }
-    return Math.min(
-      desired,
-      envelopeProfile(this.approachCurvatures, this.approachCorners, grip, aero, env, count),
+    const planned = envelopeProfile(
+      this.approachCurvatures,
+      this.approachCorners,
+      grip,
+      aero,
+      env,
+      count,
+      this.approachProfile,
     );
+    this.planNext = count > 1 ? this.approachProfile[1] : planned;
+    this.planBrake = Math.max(
+      0.5,
+      env.brakingBase * grip + env.brakingAero * aero * d.speed * d.speed,
+    );
+    return Math.min(desired, planned);
+  }
+  protected override brakeDemand(error: number) {
+    let proportional = super.brakeDemand(error);
+    // After the flag the slow-down is a cool-down, not a stop to a plan.
+    if (this.bike.finishTime > 0 && this.isGp)
+      proportional = Math.min(proportional, GP_AI_HANDS.cooldownBrake);
+    const v = this.bike.dynamics.speed;
+    if (!(v > this.planNext)) return proportional;
+    const required = (v * v - this.planNext * this.planNext) / (2 * ENVELOPE_STEP);
+    return clamp(Math.max(proportional, required / this.planBrake), 0, 1);
+  }
+  /** Lever travel at which the front brake reaches the stoppie limit. Past it
+   * the lever adds no stopping force, only the rear's unloading: with the rear
+   * wheel near-weightless a small steering correction fishtails the bike. The
+   * plan's deceleration is a share of the limit, so the lever is a share of
+   * this travel. */
+  private leverAtLimit() {
+    const d = this.bike.dynamics,
+      p = d.p,
+      v = d.speed,
+      rearDown = (p.downforce ?? 0) * v * v * (1 - (p.downforceFront ?? 0.6)),
+      staticRear = (d.mass * G * p.cgToFront) / p.wheelbase + rearDown,
+      liftForce = ((p.stoppieMargin ?? 0.92) * staticRear * p.wheelbase) / p.cgHeight;
+    // Combined brakes send 78% of the lever to the front caliper.
+    return clamp(liftForce / (p.frontBrake * 0.78), 0.05, 1);
   }
   /** Upright GP machines can use a motorcycle-sized passing lane. The
    * footprint expands before a corner and for a leaning nearby rider;
@@ -311,7 +362,13 @@ export function gpPassingLateralScale(c: BikeVehicle, track: Track, cars: readon
   return lerp(0.7, 1, turning * turning * (3 - 2 * turning));
 }
 /** GP AI input rates (per second): lever apply/release, throttle opening. */
-export const GP_AI_HANDS = Object.freeze({ brakeApply: 8, brakeRelease: 4, throttleOpen: 2.5 });
+export const GP_AI_HANDS = Object.freeze({
+  brakeApply: 8,
+  brakeRelease: 4,
+  throttleOpen: 2.5,
+  /** Lever ceiling once the flag has fallen: a cool-down, not a stop to a plan. */
+  cooldownBrake: 0.2,
+});
 /** Bike path-tracking gains: preview (s), bandwidth (rad/s), damping ratio. */
 export const BIKE_AI = Object.freeze({
   preview: 0.3,
