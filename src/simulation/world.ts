@@ -221,7 +221,7 @@ export class Simulation {
         !(
           c.input.throttle > 0.2 ||
           c.input.reverse ||
-          (this.track.cold && c.speed < 3 && !this.race.safetyCar.suspended)
+          (this.track.cold && c.speed < 6 && !this.race.safetyCar.suspended)
         )
       ) {
         this.strandClock[i] = 0;
