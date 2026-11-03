@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { join, relative } from 'node:path';
+import { lazyData } from './scripts/vite-lazy-data.ts';
 
 // Content identity, not the staging commit SHA: CI applies the patch before
 // building, so a HEAD label alone would identify the wrong source tree.
@@ -20,6 +21,7 @@ for (const path of [
   join(root, 'package-lock.json'),
   join(root, 'index.html'),
   join(root, 'vite.config.ts'),
+  join(root, 'scripts/vite-lazy-data.ts'),
 ].sort()) {
   hash.update(relative(root, path).replaceAll('\\', '/') + '\0');
   hash.update(readFileSync(path));
@@ -38,6 +40,26 @@ try {
 } catch {
   /* Source archives have a fingerprint, not an invented commit. */
 }
+/**
+ * Large JSON documents served as lazy datasets (their large keys load from
+ * separate chunks; contract in src/core/lazy-data.ts). The group names the
+ * first place that needs the data:
+ * - 'showroom': read while the menu showroom renderer is built (it still
+ *   builds the pit and grid crew and the venue landmark), so
+ *   RacingRenderer.create loads it before constructing one;
+ * - 'circuit': read only once a circuit or festival session starts.
+ */
+const LAZY_DATA = {
+  'src/rendering/crew-performance.geometry.json': 'showroom',
+  'src/rendering/human-kit.json': 'showroom',
+  'src/rendering/a33-spare-wheel-set.geometry.json': 'showroom',
+  'src/rendering/aurel-people.geometry.json': 'showroom',
+  'src/rendering/assets/gp-bodywork.mesh.json': 'showroom',
+  'src/rendering/start-finish.geometry.json': 'circuit',
+  'src/rendering/event-hall.geometry.json': 'showroom',
+  'src/rendering/secondary-grandstands.geometry.json': 'circuit',
+  'src/rendering/assets/mx-authored-kit.mesh.json': 'circuit',
+};
 export default defineConfig({
   base: './',
   define: {
@@ -45,6 +67,9 @@ export default defineConfig({
     __APEX_SOURCE_COMMIT__: JSON.stringify(commit),
   },
   plugins: [
+    // Authored geometry tables load on demand instead of inflating the entry
+    // chunk (see src/core/lazy-data.ts for the loading contract).
+    lazyData({ root, files: LAZY_DATA }),
     {
       name: 'source-identity',
       generateBundle() {
@@ -58,7 +83,9 @@ export default defineConfig({
   ],
   build: {
     target: 'es2022',
-    sourcemap: true,
+    // Maps roughly double the shipped JS and are not needed by players. Set
+    // APEX_SOURCEMAP=1 for a profiling or crash-symbolication build.
+    sourcemap: process.env.APEX_SOURCEMAP === '1',
     rollupOptions: { output: { manualChunks: { three: ['three'] } } },
   },
   worker: { format: 'es' },
