@@ -363,11 +363,12 @@ function addFascia(
   for (const mouth of festivalFasciaOpenings(model, rear)) {
     const contour = roundedOutline(mouth.width, mouth.height, mouth.radius, detail === 0 ? 4 : 2);
     const at = placed(mouth.x, mouth.y, z);
-    // Cooling cavities need a rough, dark liner. Exposed satin carbon on the
-    // lower rear tunnel caught the bright sky as a white strip in chase view.
-    // Keep the higher-sheen carbon at the front, where it is an exposed duct.
-    const liner = rear ? sharedMaterials.plastic() : sharedMaterials.carbonSatin();
-    parts.add(tunnel(contour, mouth.depth, 0.89, sign), liner, at);
+    // Cooling cavities need a rough, dark liner. Satin carbon on an up-facing
+    // duct floor mirrors the bright sky at a low camera as a solid white strip:
+    // first seen in the rear chase view, then in the front mouths and side
+    // scoops of every festival body in the menu showroom (EH-3 "white holes").
+    // Front and rear ducts therefore share the satin plastic liner.
+    parts.add(tunnel(contour, mouth.depth, 0.89, sign), sharedMaterials.plastic(), at);
     const lip = surround(contour, 0.01);
     if (rear) lip.rotateY(Math.PI);
     parts.add(lip, rear ? sharedMaterials.trim() : mats.paint, at);
@@ -822,9 +823,11 @@ function addVents(parts: Parts, model: ClosedBodyModel, mats: CarMaterials, deta
       const contour = roundedOutline(0.44, 0.2, 0.028, 4);
       // The raised scoop projects just outside the lower-body skin; its inner
       // dark back is continuous with the body, so no bright plate closes it.
+      // The throat is rough dark plastic: a satin-carbon floor reflected the
+      // sky as a white band along the bottom of the opening.
       parts.add(
         tunnel(contour, 0.045, 0.79, 1),
-        sharedMaterials.carbonSatin(),
+        sharedMaterials.plastic(),
         inLocal(at, 0, 0, 0.05),
       );
       parts.add(surround(contour, 0.014), mats.paint, inLocal(at, 0, 0, 0.05));
