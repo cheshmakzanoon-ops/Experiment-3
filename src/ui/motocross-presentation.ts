@@ -5,6 +5,7 @@ import { VEHICLES } from '../simulation/vehicles.ts';
 import type { Track } from '../simulation/track.ts';
 import { DEFAULT_BINDINGS, keyName, type Bindings } from '../input/bindings.ts';
 import { circuitBlurb } from './circuit-menu.ts';
+import { circuitArtSvg } from './track-art.ts';
 import styles from './motocross.css?inline';
 
 const escape = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
@@ -20,22 +21,16 @@ export function motocrossSessionTitle(options: SessionOptions) {
   return kind === 'supercross' ? 'SUPERCROSS MOTO' : 'MOTOCROSS MOTO';
 }
 
-/** A compact outline of the authored layout, drawn from its control polygon.
+/** The venue's layout as line art, from the same centreline the race uses
+ * (the closed spline of the authored control polygon, jump take-offs marked).
  * It is a menu guide, not a substitute for the sampled in-race track map. */
 export function motocrossLayout(id: CircuitId) {
   const def = circuitDefinition(id);
-  const points = def.design;
-  const xs = points.map((p) => p[0]),
-    zs = points.map((p) => p[1]);
-  const minX = Math.min(...xs),
-    minZ = Math.min(...zs);
-  const width = Math.max(...xs) - minX,
-    depth = Math.max(...zs) - minZ;
-  const scale = Math.min(192 / Math.max(width, 1), 104 / Math.max(depth, 1));
-  const point = ([x, z]: readonly [number, number]) =>
-    `${(110 + (x - minX - width / 2) * scale).toFixed(2)},${(66 - (z - minZ - depth / 2) * scale).toFixed(2)}`;
-  const d = `M${points.map(point).join(' L')} Z`;
-  return `<svg class="mx-layout" viewBox="0 0 220 132" role="img" aria-label="${escape(def.short)} layout outline"><path class="mx-layout-ground" d="${d}"/><path class="mx-layout-line" d="${d}"/></svg>`;
+  return circuitArtSvg(def, {
+    numbers: false,
+    label: `${def.short} layout outline`,
+    className: 'ta mx-layout',
+  });
 }
 
 export function motocrossVenueCard(id: CircuitId) {
@@ -119,7 +114,8 @@ export function installMotocrossMenu(
   panel.setAttribute('aria-label', 'Motocross ride setup');
   panel.hidden = true;
   panel.innerHTML = `<div class="mx-venue-preview"></div><fieldset class="mx-ride-presets"><legend>YOUR RIDE</legend>${MOTOCROSS_RIDE_PRESETS.map((p) => `<button type="button" data-mx-preset="${p.id}" aria-pressed="false"><b>${p.title}</b><span>${p.detail}</span></button>`).join('')}</fieldset><p class="mx-technique"></p>`;
-  rules.after(panel);
+  // The setup panel follows the venue sheet (which now holds the brief).
+  (menu.querySelector('.lb-sheet') ?? rules).after(panel);
   const body = menu.querySelector<HTMLElement>('.menu-body')!,
     form = menu.querySelector<HTMLFormElement>('#sessionForm')!,
     start = form.querySelector<HTMLButtonElement>('.enter.primary')!;
@@ -188,7 +184,7 @@ export function installMotocrossMenu(
       button.setAttribute('aria-pressed', String(button.dataset.mxVenue === circuit.value));
     if (kind) {
       const def = circuitDefinition(circuit.value as CircuitId);
-      title.innerHTML = kind === 'supercross' ? 'OWN THE<br>RHYTHM.' : 'FIND YOUR<br>FLOW.';
+      title.textContent = kind === 'supercross' ? 'OWN THE RHYTHM.' : 'FIND YOUR FLOW.';
       intro.textContent =
         kind === 'supercross'
           ? 'Link the rhythm lanes. Carry speed through the bowl. Make every landing count.'

@@ -148,6 +148,10 @@ import {
   motocrossSessionTitle,
 } from './motocross-presentation.ts';
 import { CreditsGamepad, creditsHtml } from './credits.ts';
+import { boardPlatesHtml, dialHtml, installLaunchBoard, type LaunchBoard } from './launch-board.ts';
+import { glyph } from './glyphs.ts';
+import { MenuGamepad } from './menu-gamepad.ts';
+import { SOLVANE } from '../simulation/open-world/region-data.ts';
 export const lapTime = (seconds: number) =>
   seconds > 0
     ? `${Math.floor(seconds / 60)}:${(seconds % 60).toFixed(3).padStart(6, '0')}`
@@ -208,6 +212,8 @@ export class Interface {
   private lastAnnounced = '';
   private deviceCalibration: DeviceCalibrationPanel | null = null;
   private creditsPad: CreditsGamepad | null = null;
+  /** Controller navigation for the paddock board and modal screens. */
+  private menuPad: MenuGamepad | null = null;
   private bindingCapture: AbortController | null = null;
   private driverName = DRIVERS[0];
   /** The player's driver name (timing tower, results and paddock masthead). */
@@ -251,24 +257,31 @@ export class Interface {
   <div id="loading" class="loading" role="status" aria-live="polite" aria-busy="true"><div class="brand">MOTOBOUND<span>MOTORSPORT</span></div><p id="loadingSession" class="loading-session" hidden></p><div class="loading-progress"><div class="loading-row"><b id="loadingStage">Loading</b><span id="loadingPercent">0%</span></div><div class="loader" id="loadingBar" role="progressbar" aria-label="Loading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div></div><p id="loadingText" class="loading-detail"${DEV ? '' : ' hidden'}>Preparing circuit and car systems…</p><p id="loadingTip" class="loading-tip"><b>TIP</b> ${LOADING_TIPS[0]}</p></div>
   <section id="menu" class="menu" hidden>
    <header class="masthead"><div class="brand">MOTOBOUND<span>MOTORSPORT</span></div><span class="edition">DRIVER <b id="menuDriver">${escapeHtml(this.playerName.toUpperCase())}</b></span></header>
-   <div class="menu-body" tabindex="0" role="region" aria-label="Race setup and tools"><div class="eyebrow"><i></i> <span id="circuitEyebrow">AUREL · GRAND CIRCUIT</span></div><h1>EVERY INPUT.<br>EVERY FORCE.</h1><p class="intro">Four contact patches. One racing line.<br>Find the limit between them.</p>
+   <div class="menu-body" tabindex="0" role="region" aria-label="Race setup and tools"><div class="lb-board">${boardPlatesHtml()}<h1>EVERY INPUT. EVERY FORCE.</h1><p class="intro">Four contact patches. One racing line.<br>Find the limit between them.</p><div id="boardSeries" class="lb-series" hidden></div>
    <form id="sessionForm" class="session-form">
-    <div class="form-row"><label>CIRCUIT<select id="circuit">${circuitOptionsHtml()}</select></label></div>
-    <p class="session-rules circuit-blurb" id="circuitBlurb">${escapeHtml(circuitBlurb(track.circuit.id))}</p>
-    <div class="form-row"><label>SESSION<select id="mode"><option value="race">Grand Prix</option><option value="practice">Free practice</option><option value="time-trial">Time trial · ghost</option><option value="qualifying">Race weekend · qualifying</option><option value="endurance">Endurance · mandatory stop</option><option value="festival">Festival · open world</option></select></label><label>DISTANCE<select id="laps"><option value="1">1 lap · Sprint</option><option value="3" selected>3 laps · Standard</option><option value="5">5 laps</option><option value="10">10 laps</option><option value="15">15 laps · Endurance</option><option value="25">25 laps · Endurance</option></select></label></div>
-    <div class="form-row"><label>WEATHER<select id="weather"><option value="clear">Clear / Dry</option><option value="changeable">Dry → Rain</option><option value="rain">Heavy rain</option></select></label><label>GRID<select id="opponents"><option value="0">Solo</option><option value="3">4 cars</option><option value="7" selected>8 cars</option><option value="11">12 cars</option></select></label></div>
-    <div class="form-row"><label>TYRES<select id="compound"><option value="soft">Soft</option><option value="medium" selected>Medium</option><option value="hard">Hard</option><option value="intermediate">Intermediate</option><option value="wet">Full wet</option></select></label><label>ASSISTS<select id="assist"><option value="sport">ABS + TC</option><option value="raw">Off</option></select></label></div>
-    <div class="form-row"><label>START<select id="startSlot"><option value="pole" selected>Pole position</option><option value="midfield">Mid-field</option><option value="back">Back of the grid</option></select></label><label>MACHINE<select id="vehicle">${machineSelectOptions()}</select></label></div>
+    <section class="lb-sheet" aria-label="Event">
+     ${dialHtml('circuit', 'CIRCUIT', null, `<select id="circuit">${circuitOptionsHtml()}</select>`, 'lb-dial-venue')}
+     <div id="regionTitle" class="lb-region-title" hidden><span class="lb-dial-name">REGION</span><b>${escapeHtml(SOLVANE.name.toUpperCase())}</b></div>
+     <div class="lb-sheet-row"><div class="lb-map" id="venueMap" aria-hidden="true"></div><div class="lb-sheet-body"><div class="eyebrow"><i></i> <span id="circuitEyebrow">ORIGINAL</span></div>
+     <div id="circuitStats" class="lb-stats"><span><b id="circuitLength">${(track.length / 1000).toFixed(3)}</b> KM</span><span><b id="circuitTurns">${track.circuit.corners.length}</b> TURNS</span><span><b id="circuitDrs">${track.circuit.drsZones.length}</b> DRS ${track.circuit.drsZones.length === 1 ? 'ZONE' : 'ZONES'}</span></div><div id="regionStats" class="lb-stats" hidden></div><p class="session-rules circuit-blurb" id="circuitBlurb">${escapeHtml(circuitBlurb(track.circuit.id))}</p></div></div></section>
+    ${dialHtml('vehicle', 'MACHINE', 'wheel', `<select id="vehicle">${machineSelectOptions()}</select>`, 'lb-dial-machine')}
+    ${dialHtml('mode', 'SESSION', 'flag', `<select id="mode"><option value="race">Grand Prix</option><option value="practice">Free practice</option><option value="time-trial">Time trial · ghost</option><option value="qualifying">Race weekend · qualifying</option><option value="endurance">Endurance · mandatory stop</option><option value="festival">Festival · open world</option></select>`)}
+    ${dialHtml('laps', 'DISTANCE', 'laps', `<select id="laps"><option value="1">1 lap · Sprint</option><option value="3" selected>3 laps · Standard</option><option value="5">5 laps</option><option value="10">10 laps</option><option value="15">15 laps · Endurance</option><option value="25">25 laps · Endurance</option></select>`)}
+    ${dialHtml('weather', 'WEATHER', 'sun', `<select id="weather"><option value="clear">Clear / Dry</option><option value="changeable">Dry → Rain</option><option value="rain">Heavy rain</option></select>`)}
+    ${dialHtml('compound', 'TYRES', 'tyre', `<select id="compound"><option value="soft">Soft</option><option value="medium" selected>Medium</option><option value="hard">Hard</option><option value="intermediate">Intermediate</option><option value="wet">Full wet</option></select>`)}
+    ${dialHtml('assist', 'ASSISTS', 'wheel', `<select id="assist"><option value="sport">ABS + TC</option><option value="raw">Off</option></select>`)}
+    ${dialHtml('opponents', 'GRID', 'grid', `<select id="opponents"><option value="0">Solo</option><option value="3">4 cars</option><option value="7" selected>8 cars</option><option value="11">12 cars</option></select>`)}
+    ${dialHtml('startSlot', 'START', 'start', `<select id="startSlot"><option value="pole" selected>Pole position</option><option value="midfield">Mid-field</option><option value="back">Back of the grid</option></select>`)}
     <p class="session-rules" id="sessionRules" aria-live="polite"></p>
-    <button class="primary enter" type="submit">ENTER CIRCUIT <span aria-hidden="true">↗</span></button>
+    <button class="primary enter" type="submit">ENTER CIRCUIT ${glyph('go', 'enter-glyph')}</button>
     <button class="enter" type="submit" name="prepareGrid" value="yes">PREPARE GRID <span>START PAUSED</span></button>
-   </form><div class="menu-actions" role="group" aria-label="Paddock"><button data-action="career">CAREER</button><button data-action="settings">GARAGE & SETTINGS</button><button data-action="events">EVENTS</button><button data-action="championship">CHAMPIONSHIP</button><button data-action="team">TEAM HQ</button><button data-action="academy">DRIVING ACADEMY</button><button data-action="photo">PHOTO / LIVERY</button><button data-action="controls">CONTROLS</button><button data-action="credits">CREDITS &amp; LICENCES</button></div>${
+   </form></div><div class="menu-actions" role="group" aria-label="Paddock"><button data-action="career">CAREER</button><button data-action="settings">GARAGE & SETTINGS</button><button data-action="events">EVENTS</button><button data-action="championship">CHAMPIONSHIP</button><button data-action="team">TEAM HQ</button><button data-action="academy">DRIVING ACADEMY</button><button data-action="photo">PHOTO / LIVERY</button><button data-action="controls">CONTROLS</button><button data-action="credits">CREDITS &amp; LICENCES</button></div>${
      DEV
        ? '<div class="dev-tools" role="group" aria-label="Developer tools"><span>DEV</span><button data-action="references">REFERENCE REVIEW</button><button data-action="sessionReview">SESSION 146 EVIDENCE</button></div>'
        : ''
    }</div>
    <div class="car-label"><span>APX–01</span><b>FORMULA / HYBRID</b><div>770 KG DRY · 8 SPEED · 4 MJ ERS</div></div>
-   <footer class="menu-footer"><span><b id="circuitLength">${(track.length / 1000).toFixed(3)}</b> KM</span><span><b id="circuitTurns">${track.circuit.corners.length}</b> TURNS</span><span><b id="circuitDrs">${track.circuit.drsZones.length}</b> DRS ${track.circuit.drsZones.length === 1 ? 'ZONE' : 'ZONES'}</span><span class="menu-hint"><kbd>WASD</kbd> / <kbd>ARROWS</kbd> DRIVE · <kbd>G</kbd> AI DRIVER · GAMEPAD READY</span><span id="buildIdentity"${DEV ? '' : ' hidden'}>DEV BUILD</span></footer>
+   <footer class="menu-footer"><span class="menu-keys" aria-hidden="true"><span data-device="keys"><kbd>TAB</kbd> MOVE · <kbd>←</kbd><kbd>→</kbd> CHANGE · <kbd>ENTER</kbd> GO</span><span data-device="pad"><kbd>A</kbd> SELECT · <kbd>B</kbd> BACK · <kbd>LB</kbd><kbd>RB</kbd> DISCIPLINE · <kbd>START</kbd> GO</span></span><span class="menu-hint"><kbd>WASD</kbd> / <kbd>ARROWS</kbd> DRIVE · <kbd>G</kbd> AI DRIVER · GAMEPAD READY</span><span id="buildIdentity"${DEV ? '' : ' hidden'}>DEV BUILD</span></footer>
   </section>
   <section id="hud" class="hud" hidden>
    <div class="hud-top"><div class="brand small">MOTOBOUND<span>LIVE</span></div><div class="position-badge" role="status" aria-label="Race position"><b id="positionBadge">P1</b><span id="positionField">/ 1</span></div><div class="session-status"><span id="lapLabel">LAP 1 / 3</span><b id="flag">GRID</b><span id="weatherLabel">24°C / DRY</span></div><button class="icon-button" data-action="pause" aria-label="Pause session">Ⅱ</button></div>
@@ -433,9 +446,11 @@ export class Interface {
     // selected road-bike presentation after that listener as well.
     for (const id of [...SESSION_RULES_FIELDS, 'assist'])
       this.get(id).addEventListener('change', describeRules);
+    let board: LaunchBoard | null = null;
     this.refreshMotocrossMenu = () => {
       refreshMotocross();
       describeRules();
+      board?.sync();
     };
     this.refreshMotocrossMenu();
     this.get('weather').addEventListener('change', () => {
@@ -456,6 +471,11 @@ export class Interface {
       if (mode === 'endurance' && Number(laps.value) < 15) laps.value = '15';
       else if (mode !== 'endurance' && Number(laps.value) > 10) laps.value = '10';
     });
+    // The discipline plates, venue sheet and option dials sit over the form
+    // above. Installed last so its change listeners run after every rule
+    // handler (mode, weather, rules preview, motocross presenter) has run.
+    board = installLaunchBoard(this.menu);
+    this.menuPad = new MenuGamepad(this.element, () => board!);
     this.get('replaySeek').addEventListener('input', (e) =>
       this.callbacks.seek(Number((e.target as HTMLInputElement).value)),
     );
@@ -946,7 +966,7 @@ export class Interface {
         }
       : BINDING_LABELS;
     this.modalContent(
-      `<span class="eyebrow">DRIVER BRIEFING</span><h2>Take control.</h2><div class="control-grid">${Object.entries(
+      `<span class="eyebrow">DRIVER BRIEFING</span><h2>Controls.</h2><div class="control-grid">${Object.entries(
         bindings,
       )
         .filter(([action]) =>
@@ -1013,7 +1033,7 @@ export class Interface {
     const vehicle = setupMachine(context?.machine, menuChoice, this.options),
       preset = context?.preset ?? null;
     this.modalContent(
-      `<header><div><span class="eyebrow">GARAGE / PREFERENCES</span><h2>Make it yours.</h2></div><button data-action="modalClose" aria-label="Close settings">✕</button></header><form id="settingsForm"><div class="settings-columns"><section><h3>Presentation</h3><label>RENDER QUALITY<select name="quality"><option value="low">Low · No shadows / crowd / particles</option><option value="medium">Medium · 2× MSAA / AO / bloom</option><option value="high">High · 4× MSAA / local reflections / specular AA</option><option value="ultra">Ultra · TAA / SSR / 3 shadow cascades (opt-in, fast GPUs)</option></select></label>${presentationControls(settings)}${[
+      `<header><div><span class="eyebrow">GARAGE / PREFERENCES</span><h2>Garage &amp; settings.</h2></div><button data-action="modalClose" aria-label="Close settings">✕</button></header><form id="settingsForm"><div class="settings-columns"><section><h3>Presentation</h3><label>RENDER QUALITY<select name="quality"><option value="low">Low · No shadows / crowd / particles</option><option value="medium">Medium · 2× MSAA / AO / bloom</option><option value="high">High · 4× MSAA / local reflections / specular AA</option><option value="ultra">Ultra · TAA / SSR / 3 shadow cascades (opt-in, fast GPUs)</option></select></label>${presentationControls(settings)}${[
         ['volume', 'Volume', 0, 1, 0.01],
         ['shake', 'Camera vibration', 0, 1, 0.01],
         ['uiScale', 'Interface scale', 0.8, 1.35, 0.05],

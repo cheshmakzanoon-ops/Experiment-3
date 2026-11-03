@@ -83,7 +83,7 @@ export const surfaceSample = (): SurfaceSample => ({
   cell: 0,
   pit: false,
 });
-const catmull = (a: number, b: number, c: number, d: number, t: number) =>
+export const catmull = (a: number, b: number, c: number, d: number, t: number) =>
   0.5 *
   (2 * b +
     (-a + c) * t +
