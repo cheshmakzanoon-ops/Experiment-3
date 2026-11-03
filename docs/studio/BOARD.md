@@ -45,7 +45,7 @@ Integration done by PM: weather glyphs on the board dial, weather options data-d
 
 | Dept | Scope | Status |
 | --- | --- | --- |
-| IP/Legal + hero car | original APX-01 hero, supplied real-brand asset out of default builds (dist 166 → 128 MB), IP guard, notices | REWORK after skeptic REJECT (e2e 42/a31 fixtures, CI enforcement, deny-list recall) |
+| IP/Legal + hero car | original APX-01 hero, supplied real-brand asset out of default builds (dist 166 → 128 MB), IP guard in build + CI, notices | MERGED 17550e8 after REJECT → rework → re-verify. Owner/counsel items open (history purge, check already-published Pages/release artifacts). Polish: hero car is cropped by the paddock rail in the menu framing |
 | QA Bikes 2 | GP bike AI crash rate, GP-vs-superbike pace, dirt journeys | DOING |
 | Environment 2 | snow/ice, dawn, visibility rules, wildcard pairings | DOING |
 | UX 3 | career front door, first-run, results, settings, remaining screens | DOING |
