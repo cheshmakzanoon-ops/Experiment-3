@@ -55,8 +55,8 @@ export const WEATHER_LOOK = Object.freeze({
       sun: 0.92,
       fill: 1.12,
       /** Linear chroma of the lit bank, normalised to luminance 1. */
-      chroma: Object.freeze([1.0, 0.76, 0.52] as const),
-      brightness: 1.05,
+      chroma: Object.freeze([1.0, 0.84, 0.68] as const),
+      brightness: 1.08,
       sunTint: Object.freeze([1.0, 0.8, 0.58] as const),
       skyTint: Object.freeze([1.0, 0.86, 0.7] as const),
     }),
@@ -237,7 +237,7 @@ export function adjustDaylight(
     const luma = 0.2126 * daylight.fogRed + 0.7152 * daylight.fogGreen + 0.0722 * daylight.fogBlue;
     const [r, g, b] = look.fog.golden.chroma;
     const norm = 1 / (0.2126 * r + 0.7152 * g + 0.0722 * b);
-    const k = dawn * 0.9,
+    const k = dawn * 0.8,
       target = luma * look.fog.golden.brightness * norm;
     daylight.fogRed = lerp(daylight.fogRed, target * r, k);
     daylight.fogGreen = lerp(daylight.fogGreen, target * g, k);
