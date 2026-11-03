@@ -49,12 +49,13 @@ export const WEATHER_LOOK = Object.freeze({
     fogBrightness: 0.8,
   }),
   storm: Object.freeze({
-    sun: 0.55,
-    exposure: 0.86,
-    veil: 0.62,
+    sun: 0.8,
+    exposure: 1.2,
+    veil: 0.55,
     veilReach: 3,
-    /** Dark steel: the underside of a convective deck (linear radiance). */
-    deck: Object.freeze([0.03, 0.034, 0.042] as const),
+    /** Dark steel: the underside of a convective deck (linear radiance). The
+     * first capture, at 0.03, left the car and the road unreadable. */
+    deck: Object.freeze([0.07, 0.078, 0.095] as const),
     /** Whole-scene gain of a lightning flash (fill, sky light, sun). */
     flashFill: 4,
     flashEnvironment: 1.4,

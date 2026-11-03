@@ -124,10 +124,55 @@ presets replay bit for bit twice in `tests/weather-states.test.ts`.
 * The dome gets a horizon veil in the haze colour (fog), amber (dust) or dark steel (storm deck) so it
   does not cut out against the near fog. Lightning adds a flash to sky, fill, environment and sun light.
 * Dust warms the sun/sky light, smothers the sun (x0.14), brightens scattered light; fog x0.45 sun,
-  x1.35 sky light; storm darkens (x0.55 sun, x0.86 exposure).
+  x1.35 sky light; storm: x0.8 sun, deck veil in dark steel, camera opened up x1.2 (a first x0.86 pass was unreadable, see screenshots).
 * Road: fine films read as damp (new), dust reads as sand on the asphalt, thin on the line (new).
 
-SCREENSHOTS_PLACEHOLDER
+## Screenshots and honest critique
+
+`docs/studio/reports/weather-screens/` (1024x576 JPEG, 28 to 70 KB each, SwiftShader, Medium quality, practice
+session on Aurel, autopilot, 3 rivals; captured with `scripts/studio/weather-capture.mjs` from the production
+build on port 4203). Before = `clear-day-chase.jpg`.
+
+| File | What it shows |
+| --- | --- |
+| `clear-day-chase.jpg` | Before: the dry baseline, same camera and place, t = 14 s |
+| `fog-day-chase.jpg`, `fog-day-cockpit.jpg` | Dawn fog at t = 14 / 23 s (visibility 110 m), 8 C, "FOG 110 M . DAMP TRACK" |
+| `fog-sunset-chase.jpg` | Same fog under the golden-hour lighting |
+| `storm-rising-day-*.jpg` | Storm at t = 19 / 26 s: rain 28 / 40 mm/h, before the storm look switches on |
+| `storm-peak-first-pass-too-dark.jpg` | First pass at the peak (61 mm/h): too dark, kept as the record of the fix |
+| `storm-peak-day-chase.jpg`, `storm-peak-day-cockpit.jpg` | Peak after the fix: wind 9 m/s, rain 61 to 65 mm/h, 1.3 to 1.4 mm water |
+| `dust-first-pass-day-chase.jpg` | First pass: cream haze, too bright and washed |
+| `dust-day-chase.jpg` | After the fix: ochre haze, sand road, tan-tinted trees and rival car |
+
+What works:
+
+* **Fog** is the strongest result. It is real aerial extinction, not a slab: the hills fade at their own
+  heights, the grandstand and the rival car at ~60 m tint progressively, the road dissolves at ~150 m, the dome
+  horizon matches the haze, the damp road is darker and the cockpit view shows it too (the halo, wheels and wheel
+  display stay crisp, as the near field should).
+* **Dust** reads as a haboob after the retune: warm amber light, sand-coloured road with the laid line cleaner,
+  trees as pale silhouettes, rival car tinted.
+* **Storm cockpit** is the best frame: the wet road mirrors the bruised sky, the deck has texture, the road is
+  dark and glossy.
+
+What does not, or is unproven:
+
+* The first storm pass at the peak was nearly black (car and road unreadable); I raised the camera exposure
+  x1.2, the key light x0.8 and brightened the deck veil. It is now moody but legible. Distant scenery in the
+  storm is still dark grey: that is largely the pre-existing 60 mm/h "storm" haze colour.
+* In the storm chase view the car looks like a pale ghost: the wheel spray plume is bright and dense in
+  1.3 mm of standing water (the spray system and its lighting are pre-existing; I did not capture the 24 mm/h
+  preset to prove it behaves the same, so treat that as unverified).
+* The HUD weather label at top centre has no backing plate; on bright skies (dust, and the plain dry day too)
+  the small grey text is hard to read. It is a UX Director item (restyle in progress), not changed here.
+* Fog + golden hour is a gloomy dusk, not a warm dawn: the fog deck is expressed as cloud cover 0.82, which
+  also removes nearly all of the golden-hour sun and its forward-scatter glow. A proper dawn needs the fog to
+  set haze without closing the sun (a separate fog-cover channel). Recorded as a follow-up.
+* No lightning frame was captured (a strike lasts ~0.1 to 0.5 s; headless runs at under 1 fps cannot be timed).
+  The flash is unit-tested only.
+* These are SwiftShader frames on a box at load average 10 to 25: they say nothing about frame rate on a GPU.
+  Sessions took 8 to 15 minutes to reach the first frame, which is why only the frames above exist.
+
 
 ## Time of day
 
@@ -137,7 +182,7 @@ selected through GARAGE & SETTINGS, Driving Academy "circuit lighting" buttons (
 Catalogue meaning of the circuit flags (`docs/CIRCUIT_CATALOGUE.md`): `night` venues (Ramla x2, Lantern Bay,
 Gantry Point x2, Neon City x2) open floodlit; `dayNight` venues (Hochwald, Loirette, Loirette Club) open in
 daylight and carry floodlights for the whole lap so the player can run into the night. The new weather works
-under all three modes (fog under `sunset` is the dawn look: a low warm sun through a milky bank). **Gap:**
+under all three modes (fog under `sunset` is the nearest thing to a dawn, but it renders as a gloomy dusk, see the screenshot critique). **Gap:**
 there is no time-of-day control in the session form; there is no separate dawn (it is the sunset sky).
 Recommended next task for the UX Director: a TIME select in the form (day, golden hour, night, live) wired to
 `renderer.lighting` at session start; the weather catalogue could carry a suggested lighting
@@ -158,12 +203,15 @@ its own (days), and a half version (a white tint over normal grip) would mislead
 
 Commands run on this branch (all in the worktree):
 
-* `npx tsc --noEmit`: pass (no output), run after the final source edits of the physics/render/UI work.
+* `npx tsc --noEmit`: pass (no output), re-run after the final source and test edits.
 * `npx eslint` on every changed/added `.ts`/`.mjs` file: pass.
-* `npx vitest run tests/weather-states.test.ts`: **39 tests pass** (new: catalogue, original presets unchanged,
+* `npx vitest run tests/weather-states.test.ts`: **40 tests pass** (new: catalogue, original presets unchanged,
   visibility maths, gusts, crosswind, dust film, fog film, storm lightning, DRS/AI hooks, atmosphere state,
   ambience, HUD words, road shader inputs, determinism).
-* Existing suites, all pass: `weather`, `aerial-perspective`, `drs`, `driver-brain`, `audio`,
+* Final combined run: 16 files / **186 tests pass** (weather-states, weather, aerial-perspective, wet-presentation,
+  drs, driver-brain, audio, phase27f-atmosphere-audio, surface-thermal, frontend-retail, core, material-library,
+  photoreal-wet, wet-broadcast-fidelity, weather-reconciliation, daylight-environment).
+* Earlier in the work, also all passing: `weather`, `aerial-perspective`, `drs`, `driver-brain`, `audio`,
   `phase27f-atmosphere-audio`, `daylight-environment`, `wet-presentation`, `weather-reconciliation`, `core`,
   `frontend-retail`, `surface-thermal`, `surface-material`, `meeting-flow`, `events`, `career`,
   `career-session`, `championship`, `catalogue-menu-events`, `endurance-mode`, `camera-dynamics`,
@@ -186,7 +234,8 @@ Commands run on this branch (all in the worktree):
 * Fog is aerial extinction only: no drifting mist wisps near the ground and no fog-lit headlamp/brake-light
   glow; a night fog would also want volumetric floodlight cones.
 * Safety-car/red-flag for near-zero visibility is not implemented (the director reacts only to obstructions).
-* The sunset+fog "dawn" look and the night variants were not captured (capture was slow, see below).
+* Night variants (fog/dust/storm under floodlights) were not captured; the code path (`adjustDaylight(..., night)`)
+  keeps the authored night exposure and only recolours the haze.
 * `public/models/supplied-player-lods.bin.gz` is a gitignored generated asset that a fresh worktree lacks;
   the app fails to boot ("Player LOD integrity check failed") until it is copied from the main checkout.
 

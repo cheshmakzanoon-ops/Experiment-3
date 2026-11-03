@@ -644,10 +644,14 @@ describe('atmosphere rendering state (pure functions of the presented snapshot)'
     const storm = weatherAtmosphere(frame({ RAIN: 70, CLOUD: 1, TIME: 12 }));
     expect(storm.storm).toBe(1);
     const dark = adjustDaylight(daylight(), storm);
-    expect(dark.exposure).toBeLessThan(daylight().exposure * 0.9);
+    // The deck cuts the key light, the camera opens up to keep the car readable,
+    // and the dome's veil is dark steel (not the bright fog colour passed in).
+    expect(dark.sun).toBeLessThan(daylight().sun * 0.9);
+    expect(dark.exposure).toBeGreaterThan(daylight().exposure);
     const veil = skyVeil(storm, 0.3, 0.3, 0.3);
-    expect(veil.w).toBeGreaterThan(0.5);
-    expect(veil.x).toBeLessThan(0.1);
+    expect(veil.w).toBeGreaterThan(0.4);
+    expect(veil.x).toBeLessThan(0.12);
+    expect(veil.x).toBeGreaterThan(0.03);
   });
   it('adds a lightning flash to the lights only while the flash lasts', () => {
     let slot = 0;
