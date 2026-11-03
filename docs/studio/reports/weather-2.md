@@ -211,6 +211,14 @@ Run in this worktree (`/home/user/Experiment-3/.claude/worktrees/wf_599b5e93-53e
 
 Not run: the e2e specs, the full vitest suite, `npm run check` (CPU rule), any GPU or festival frame.
 
+## Notes for the PM
+
+* `PROTOCOL_VERSION` (15), `HEADER` (24) and `SIMULATION_VERSION` are unchanged. Two formats did change inside the build: the in-session replay surface record is now 4 words per cell (the replay cache is
+  per-session and cleared on close, so nothing persisted is read at the old stride) and the worker `surface` message gained an optional `frozen` field that is absent in every warm session.
+* The wheel `W.SURFACE` slot can now read SNOW (9) or ICE (10) on a covered circuit road: anything that switches on it sees a loose-ground id there (audio and spray do on purpose; `marblePickup` skips it, as `surface > 2` already did).
+* `docs/studio/ART_DIRECTION.md` still says "the 19 events"; not mine to edit, it is now 21.
+* A header whose ambient temperature is below 2 C and whose RAIN slot is positive is a snowfall everywhere in the renderer and the audio. A future fixture or a synthetic recording that leaves AMBIENT at 0 will read as snow.
+
 ## Not built / unverified
 
 * **Festival (open world):** snow and fog-cover state are in the simulation and the snapshot, but no festival frame exists (SwiftShader cannot finish an open-world screenshot) and the festival renderer does not whiten scenery.

@@ -257,25 +257,28 @@ for (const group of groups) {
             if (play && /PAUSE/.test(play.textContent ?? '')) play.click();
           });
           await sleep(3000);
-          const aim = strike.time + 0.02;
-          const position = aim - 0.017;
-          for (let attempt = 0; attempt < 2; attempt++) {
+          // The replay clock's zero is the first recorded frame (a few ticks into
+          // the session), so the exact offset is not known to a frame: sweep a
+          // short train around the strike (the return stroke and its two
+          // re-strikes, weather.ts FLICKER) and keep every frame with the
+          // flash the schedule gives at the aimed time.
+          const train = [0.02, 0.06, 0.1, 0.14, 0.2, 0.26, 0.32];
+          for (const [i, offset] of train.entries()) {
+            const aim = strike.time + offset;
             await page.evaluate((value) => {
               const el = document.getElementById('replaySeek');
               el.value = String(value);
               el.dispatchEvent(new Event('input', { bubbles: true }));
-            }, position);
+            }, aim - 0.017);
             await sleep(20000);
+            const expected = weather.lightningFlash(aim, weather.lightningIntensity(strike.rain));
+            const file = `${String(index)}-${group.weather}-${group.lighting}-${group.circuit || 'aurel'}-flash-${i}-expect${expected.toFixed(2)}.jpg`;
+            const info = await encode(join(out, file));
+            log(
+              `${file} ${(info.bytes / 1024).toFixed(0)} KB q${info.quality}  aim t=${aim.toFixed(3)}`,
+            );
           }
-          log(
-            `parked at about t=${aim.toFixed(3)} s; expected flash ${weather
-              .lightningFlash(aim, weather.lightningIntensity(strike.rain))
-              .toFixed(2)}`,
-          );
-          await page.evaluate(() => {
-            const play = document.getElementById('replayPlay');
-            if (play && /PAUSE/.test(play.textContent ?? '')) play.click();
-          });
+          index++;
           suffix = '-flash';
         } else if (shot.seconds > 0) {
           await page.evaluate(() => {
