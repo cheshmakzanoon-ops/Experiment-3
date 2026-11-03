@@ -11,7 +11,9 @@ set `CHROMIUM_PATH` if Playwright cannot find one.
 | `shadercheck.mjs` | Loads the build and fails on shader compile / page errors. |
 | `menushot.mjs` | Front-end menu screenshots. |
 | `uxshots.mjs` | Real-game menu screenshots at 1280x720, 1920x1080, 1024x600 and 390x844, plus the GP, dirt, festival and settings scenes (JPEG). |
-| `uxdom.mjs` + `ux-fixture.ts` | Fast DOM-only screens of the real Interface (menu per discipline, pause, results, settings, controls, championship) with no WebGL boot. |
+| `uxdom.mjs` + `ux-fixture.ts` | Fast DOM-only screens of the real Interface (menu per discipline, pause, results, settings, controls, championship, `menuProgress`, `wildcardBoard`, `wildcardResult`) with no WebGL boot. |
+| `ux2shots.mjs` | Wave-2 real-game shots in one boot: menu per discipline, the LIGHT dial, the Wildcard board, and a race (loading, briefing, HUD, pause) from the board or the form. |
+| `pw-dom.config.ts` | Playwright config for the DOM-only component specs (`e2e/60-launch-board`, `44-motocross-interface`): no server, no WebGL check. |
 | `quickstart.mjs` | Menu-to-driving probe counting inputs (G3). Software GL on a shared host is far slower than hardware: the time is an upper bound. |
 | `flashcheck.mjs` | End-to-end flashback check in a live session. |
 | `fastcheck.sh <area>` | Per-area vitest subsets (render, world, car, character, ui, assets, sim). |

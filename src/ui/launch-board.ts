@@ -1,6 +1,9 @@
 import frontEndCss from './front-end.css?inline';
+import wildcardCss from './wildcard-board.css?inline';
+import hudCss from './hud-identity.css?inline';
+import loadingCss from './loading-board.css?inline';
 import stencilUrl from './fonts/saira-stencil-one-latin-400-normal.woff2?url';
-import { glyph, plateSvg, type GlyphName } from './glyphs.ts';
+import { LIGHT_GLYPH, WEATHER_GLYPH, glyph, plateSvg, type GlyphName } from './glyphs.ts';
 import {
   BOARD_DISCIPLINES,
   DISCIPLINE_SPECS,
@@ -16,7 +19,14 @@ import { circuitArt, circuitArtSvg, regionArtSvg } from './track-art.ts';
 import { CIRCUITS, type CircuitId } from '../simulation/circuits.ts';
 import { SOLVANE } from '../simulation/open-world/region-data.ts';
 import { circuitGroup } from './circuit-menu.ts';
+import {
+  CONTINUE_FIELDS,
+  describeContinue,
+  type ContinueEntry,
+  type ContinueField,
+} from './continue-entry.ts';
 import { uiCue } from './ui-cue.ts';
+import { wildcardProgress, type WildcardProgress } from './wildcard-board.ts';
 
 /** The launch board: the paddock menu's discipline plates, venue sheet and
  * option dials (art direction sections 1-2 and 8). It is a layer over the
@@ -32,7 +42,7 @@ export function installFrontEnd(doc: Document = document) {
   if (doc.getElementById(FRONT_END_STYLE_ID)) return false;
   const style = doc.createElement('style');
   style.id = FRONT_END_STYLE_ID;
-  style.textContent = `@font-face{font-family:'Saira Stencil One';font-style:normal;font-weight:400;font-display:swap;src:url(${stencilUrl}) format('woff2')}\n${frontEndCss}`;
+  style.textContent = `@font-face{font-family:'Saira Stencil One';font-style:normal;font-weight:400;font-display:swap;src:url(${stencilUrl}) format('woff2')}\n${frontEndCss}\n${wildcardCss}\n${loadingCss}\n${hudCss}`;
   doc.head.append(style);
   return true;
 }
@@ -85,30 +95,12 @@ export function registerSeries(entry: SeriesEntry) {
 }
 export const registeredSeries = () => seriesRegistry.slice();
 
-const FIELD_IDS = [
-  'mode',
-  'circuit',
-  'vehicle',
-  'laps',
-  'weather',
-  'opponents',
-  'compound',
-  'assist',
-  'startSlot',
-] as const;
+const FIELD_IDS = CONTINUE_FIELDS;
 const GROUP_LABEL: Readonly<Record<string, string>> = Object.freeze({
   original: 'ORIGINAL',
   'real-world': 'REAL-WORLD APPROXIMATION',
   unconventional: 'UNCONVENTIONAL',
   'off-road': 'OFF-ROAD',
-});
-const WEATHER_GLYPH: Readonly<Record<string, GlyphName>> = Object.freeze({
-  clear: 'sun',
-  changeable: 'mixed',
-  rain: 'rain',
-  fog: 'fog',
-  storm: 'storm',
-  dust: 'dust',
 });
 const REGION_BLURB =
   'Harbour to massif on open roads. Drive to an event marker or travel from the world map.';
@@ -119,6 +111,12 @@ export interface LaunchBoard {
   /** Switch discipline: restores that discipline's last entry, else its defaults. */
   setDiscipline(discipline: BoardDiscipline): void;
   renderSeries(): void;
+  /** Tally and next event for the WILDCARD SERIES door (null: nothing played yet). */
+  setWildcard(progress: WildcardProgress | null): void;
+  /** The remembered entry behind CONTINUE (null hides the button). */
+  setContinue(entry: ContinueEntry | null): void;
+  /** The form as it stands, in the shape CONTINUE remembers. */
+  entry(): ContinueEntry;
   dispose(): void;
 }
 
@@ -221,7 +219,7 @@ export function installLaunchBoard(menu: HTMLElement): LaunchBoard {
   });
   // A keyboard or native-list change flips the dial in the direction of travel.
   const lastIndex = new Map<string, number>();
-  for (const id of FIELD_IDS)
+  for (const id of [...FIELD_IDS, 'light'])
     on(sel(id), 'change', () => {
       const now = [...sel(id).options].findIndex((o) => o.value === sel(id).value),
         before = lastIndex.get(id);
@@ -290,11 +288,52 @@ export function installLaunchBoard(menu: HTMLElement): LaunchBoard {
   });
 
   // ---- Series strip ------------------------------------------------------
+  // The dirt shortcuts are motocross venues: they live under the DIRT plate only.
+  // The door (WILDCARD SERIES and CONTINUE) is under every plate.
   const dirtShortcuts = menu.querySelector<HTMLElement>('.mx-entry');
   if (dirtShortcuts) strip.append(dirtShortcuts);
   const extra = document.createElement('div');
   extra.className = 'lb-series-extra';
   strip.append(extra);
+  const door = document.createElement('div');
+  door.className = 'lb-door';
+  strip.append(door);
+  strip.hidden = false;
+  let wildcard: WildcardProgress | null = null;
+  let remembered: ContinueEntry | null = null;
+  function renderDoor() {
+    const p = wildcard ?? wildcardProgress(null);
+    const status = `${p.medalled} OF ${p.total} MEDALLED`;
+    const label = `WILDCARD SERIES, ${p.total} events, ${p.crossDiscipline} cross-discipline, ${p.medalled} medalled${p.next ? `, next ${p.next.title.toLowerCase()}` : ''}`;
+    let html = `<button type="button" class="lb-wild" data-action="career:wildcard" aria-label="${label}" title="${p.next ? `Next: ${p.next.title}` : 'Every event medalled'}"><span class="lb-wild-count" aria-hidden="true">${p.total}</span><span class="lb-wild-text"><b>WILDCARD SERIES</b><small>${status}</small></span>${glyph('go', 'lb-wild-go')}</button>`;
+    if (remembered) {
+      const what = describeContinue(remembered);
+      const action =
+        remembered.kind === 'wildcard'
+          ? ` data-action="career:wildcardGo:${remembered.id}"`
+          : ' data-continue';
+      html += `<button type="button" class="lb-continue"${action} aria-label="CONTINUE: ${what.title}, ${what.detail}" title="${what.title} · ${what.detail}"><b>CONTINUE</b><small>${what.title}</small></button>`;
+    }
+    if (door.innerHTML !== html) door.innerHTML = html;
+  }
+  /** Write a remembered form entry back through the selects (like setDiscipline's
+   * restore path). False when this build no longer offers one of its values. */
+  function applyEntry(fields: Record<string, string>) {
+    if (!FIELD_IDS.every((id) => [...sel(id).options].some((o) => o.value === fields[id])))
+      return false;
+    applying = true;
+    for (const id of FIELD_IDS) set(id, fields[id]);
+    repairMachine();
+    applying = false;
+    sync();
+    return true;
+  }
+  on(door, 'click', (event) => {
+    const button = (event.target as HTMLElement).closest('[data-continue]');
+    if (!button || remembered?.kind !== 'form' || enter.disabled) return;
+    if (!applyEntry(remembered.fields)) return;
+    form.requestSubmit(enter);
+  });
   function renderSeries() {
     const groups = new Map<string, SeriesEntry[]>();
     for (const entry of seriesRegistry)
@@ -326,7 +365,7 @@ export function installLaunchBoard(menu: HTMLElement): LaunchBoard {
         return nav;
       }),
     );
-    strip.hidden = !dirtShortcuts && seriesRegistry.length === 0;
+    renderDoor();
   }
 
   // ---- Repaint -----------------------------------------------------------
@@ -341,6 +380,7 @@ export function installLaunchBoard(menu: HTMLElement): LaunchBoard {
     current = d;
     if (!applying) memory.set(d, snapshot());
     menu.dataset.board = d;
+    if (dirtShortcuts) dirtShortcuts.hidden = d !== 'dirt';
     for (const plate of plates) {
       const checked = plate.dataset.discipline === d;
       plate.setAttribute('aria-checked', String(checked));
@@ -389,12 +429,14 @@ export function installLaunchBoard(menu: HTMLElement): LaunchBoard {
       if (node)
         text(node, list.length > 1 && at >= 0 ? `${String(at + 1).padStart(2, '0')} / ${list.length}` : '');
     }
-    // Weather glyph and tyre tint follow the value.
-    const weather = dials.get('weather')?.querySelector('.lb-dial-glyph');
-    const glyphName = WEATHER_GLYPH[sel('weather').value] ?? 'sun';
-    if (weather && weather.getAttribute('data-glyph') !== glyphName) {
-      weather.outerHTML = glyph(glyphName, 'lb-dial-glyph').replace('<svg ', `<svg data-glyph="${glyphName}" `);
-    }
+    // Weather and light glyphs follow the value.
+    const paint = (dial: string, name: GlyphName) => {
+      const node = dials.get(dial)?.querySelector('.lb-dial-glyph');
+      if (node && node.getAttribute('data-glyph') !== name)
+        node.outerHTML = glyph(name, 'lb-dial-glyph').replace('<svg ', `<svg data-glyph="${name}" `);
+    };
+    paint('weather', WEATHER_GLYPH[sel('weather').value] ?? 'sun');
+    if (dials.has('light')) paint('light', LIGHT_GLYPH[sel('light').value] ?? 'venue');
     const compound = dials.get('compound')?.querySelector<HTMLElement>('.lb-dial-face');
     if (compound) compound.dataset.value = sel('compound').value;
     // Dials that do not apply to this entry dim; they stay reachable.
@@ -405,8 +447,12 @@ export function installLaunchBoard(menu: HTMLElement): LaunchBoard {
       startSlot: festival || f.mode !== 'race',
       compound: festival,
     };
+    // The festival has no laps, grid, start slot or tyres: those dials leave the
+    // sheet (they are dimmed, not removed, for the circuit sessions that skip them).
+    const festivalOnly = new Set(['laps', 'opponents', 'startSlot', 'compound']);
     for (const [id, dial] of dials) {
       dial.toggleAttribute('data-na', !!na[id]);
+      dial.hidden = festival && (id === 'circuit' || festivalOnly.has(id));
       for (const hand of dial.querySelectorAll<HTMLButtonElement>('.lb-step'))
         hand.disabled = sel(id).disabled;
     }
@@ -422,13 +468,26 @@ export function installLaunchBoard(menu: HTMLElement): LaunchBoard {
     sync,
     setDiscipline,
     renderSeries,
+    setWildcard(progress) {
+      wildcard = progress;
+      renderDoor();
+    },
+    setContinue(entry) {
+      remembered = entry;
+      renderDoor();
+    },
+    entry: () => ({
+      version: 1,
+      kind: 'form',
+      fields: snapshot() as Record<ContinueField, string>,
+    }),
     dispose() {
       abort.abort();
       boards.delete(board);
     },
   };
   boards.add(board);
-  for (const id of FIELD_IDS) {
+  for (const id of [...FIELD_IDS, 'light']) {
     lastIndex.set(id, [...sel(id).options].findIndex((o) => o.value === sel(id).value));
     on(sel(id), 'change', sync);
   }

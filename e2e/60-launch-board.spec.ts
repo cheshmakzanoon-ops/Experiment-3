@@ -241,3 +241,151 @@ test('board fits 1280x720 without scrolling and keeps type at 11px or larger', a
   });
   expect(small).toEqual([]);
 });
+
+const logged = async (page: Page) =>
+  JSON.parse((await page.locator('#boardEvents').textContent()) ?? '[]') as Record<string, unknown>[];
+
+test('wildcard door opens the board: 19 events, arrow keys select, START is wired', async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await load(page);
+  const door = page.getByRole('button', { name: /^WILDCARD SERIES, 19 events, 12 cross-discipline/ });
+  await expect(door).toBeVisible();
+  await expect(door).toContainText('0 OF 19 MEDALLED');
+  await door.click();
+  const board = page.locator('.wc-board');
+  await expect(board).toBeVisible();
+  const rows = page.locator('.wc-row');
+  await expect(rows).toHaveCount(19);
+  // One radio group, one tab stop, the chosen event focused and showing its page.
+  const checked = () => page.locator('.wc-row[aria-checked="true"]');
+  await expect(checked()).toHaveCount(1);
+  await expect(checked()).toBeFocused();
+  await expect(page.locator('.wc-detail:not([hidden])')).toHaveCount(1);
+  const first = await checked().getAttribute('data-id');
+  // Arrow keys move and select; Home and End jump.
+  await page.keyboard.press('ArrowDown');
+  const second = await checked().getAttribute('data-id');
+  expect(second).not.toBe(first);
+  await expect(page.locator(`.wc-detail[data-id="${second}"]`)).toBeVisible();
+  await expect(page.locator(`.wc-detail[data-id="${first}"]`)).toBeHidden();
+  await page.keyboard.press('End');
+  await expect(rows.last()).toHaveAttribute('aria-checked', 'true');
+  await page.keyboard.press('Home');
+  await expect(rows.first()).toHaveAttribute('aria-checked', 'true');
+  // A pointer click on a row selects it too, and the page shows the real venue art.
+  await rows.nth(3).click();
+  const page3 = page.locator('.wc-detail:not([hidden])');
+  await expect(page3.locator('svg.wc-map-art .ta-line')).toHaveCount(1);
+  await expect(page3).toContainText('MACHINE');
+  await expect(page3).toContainText('PAYS UP TO');
+  // The medal ladder reads gold, silver, bronze.
+  await expect(page3.locator('.wc-ladder li')).toHaveText([/GOLD/, /SILVER/, /BRONZE/]);
+  // START EVENT names the event it starts (the career controller owns the launch).
+  const id = await rows.nth(3).getAttribute('data-id');
+  await page3.getByRole('button', { name: /^START EVENT/ }).click();
+  expect((await logged(page)).some((e) => e.action === `career:wildcardGo:${id}`)).toBe(true);
+  // Type stays at 11 px or more, and the dialog fits the 1280x720 screen.
+  const geometry = await page.evaluate(() => {
+    const small: string[] = [];
+    for (const el of document.querySelectorAll<HTMLElement>('.wc-board *')) {
+      if (el instanceof SVGElement || !el.getClientRects().length) continue;
+      const own = [...el.childNodes].some((n) => n.nodeType === Node.TEXT_NODE && (n.textContent ?? '').trim());
+      if (own && parseFloat(getComputedStyle(el).fontSize) < 11) small.push(el.className);
+    }
+    const box = document.querySelector('dialog')!.getBoundingClientRect();
+    return { small, top: box.top, bottom: box.bottom, width: box.width };
+  });
+  expect(geometry.small).toEqual([]);
+  expect(geometry.top).toBeGreaterThanOrEqual(0);
+  expect(geometry.bottom).toBeLessThanOrEqual(720);
+  // Close returns to the paddock.
+  await page.getByRole('button', { name: 'Close Wildcard Series' }).click();
+  await expect(board).toBeHidden();
+  expect(errors).toEqual([]);
+});
+
+test('the door shows medal progress; CONTINUE relaunches the last entry in one input', async ({
+  page,
+}) => {
+  await load(page);
+  // No remembered entry yet: no CONTINUE.
+  await expect(page.getByRole('button', { name: /^CONTINUE/ })).toHaveCount(0);
+  await page.evaluate(() => window.LaunchBoard.setProgress());
+  await expect(page.locator('.lb-wild')).toContainText('1 OF 19 MEDALLED');
+  await expect(page.locator('.lb-wild')).toHaveAttribute('title', 'Next: FORMULA ON THE WALL');
+  // A remembered form entry writes the same selects and launches: one input.
+  await page.evaluate(() => window.LaunchBoard.setContinue('form'));
+  const resume = page.getByRole('button', { name: /^CONTINUE: GP-R1 · VELLAMAR COAST, 5 LAPS/ });
+  await expect(resume).toBeVisible();
+  await resume.click();
+  const entry = (await started(page)).at(-1)!;
+  expect(entry).toMatchObject({ circuit: 'vellamar', mode: 'race', weather: 'rain' });
+  expect(entry.vehicles[0]).toBe('gpr1');
+  await expect(page.locator('#vehicle')).toHaveValue('gpr1');
+  await expect(page.locator('#laps')).toHaveValue('5');
+  await expect(page.locator('#startSlot')).toHaveValue('back');
+  await expect(page.getByRole('radio', { checked: true })).toHaveAccessibleName(/^GP BIKE/);
+  // A remembered Wildcard event routes to its start action instead of the form.
+  await page.evaluate(() => window.LaunchBoard.setContinue('wildcard'));
+  const wild = page.getByRole('button', { name: /^CONTINUE: KARTS AFTER DARK/ });
+  await expect(wild).toHaveAttribute('data-action', 'career:wildcardGo:karts-after-dark');
+  await wild.click();
+  expect((await logged(page)).some((e) => e.action === 'career:wildcardGo:karts-after-dark')).toBe(true);
+});
+
+test('LIGHT dial: venue default, midday, sunset, night or the live sky, announced to the shell', async ({
+  page,
+}) => {
+  await load(page);
+  const light = page.locator('#light');
+  await expect(light.locator('option')).toHaveText(['Venue', 'Midday', 'Sunset', 'Night', 'Live sky']);
+  await expect(light).toHaveValue('auto');
+  const glyphOf = () => page.locator('.lb-dial[data-dial="light"] .lb-dial-glyph').getAttribute('data-glyph');
+  expect(await glyphOf()).toBe('venue');
+  await light.selectOption('sunset');
+  expect(await glyphOf()).toBe('sunset');
+  await light.selectOption('night');
+  expect(await glyphOf()).toBe('night');
+  // The hands step it like every dial, and the shell hears each change.
+  await page.locator('.lb-dial[data-dial="light"] .lb-step[data-step="1"]').click();
+  await expect(light).toHaveValue('live');
+  expect((await logged(page)).filter((e) => 'light' in e).map((e) => e.light)).toEqual([
+    'sunset',
+    'night',
+    'live',
+  ]);
+  // The submit does not carry the light: it is the shell's own choice, not a session option.
+  await page.getByRole('button', { name: 'ENTER CIRCUIT', exact: true }).click();
+  expect((await started(page)).at(-1)).not.toHaveProperty('light');
+  // And every dial label still fits: the board scrolls none at 1280x720.
+  const body = await page.locator('.menu-body').evaluate((el) => ({ c: el.clientHeight, s: el.scrollHeight }));
+  expect(body.s).toBeLessThanOrEqual(body.c + 1);
+});
+
+test('the DIRT SERIES shortcuts belong to the DIRT plate only', async ({ page }) => {
+  await load(page);
+  const outdoor = page.getByRole('button', { name: 'OUTDOOR MX', exact: true });
+  const stadium = page.getByRole('button', { name: 'STADIUM SX', exact: true });
+  const heading = page.getByLabel('Motocross venues').getByText('DIRT SERIES', { exact: true });
+  // Circuit, GP bike and Festival have no use for motocross venues: no chips, no heading.
+  for (const plate of [/^CIRCUIT/, /^GP BIKE/, /^FESTIVAL/]) {
+    await page.getByRole('radio', { name: plate }).click();
+    await expect(outdoor).toBeHidden();
+    await expect(stadium).toBeHidden();
+    await expect(heading).toBeHidden();
+  }
+  // Dirt shows them, and the chip of the chosen venue is pressed.
+  await page.getByRole('radio', { name: /^DIRT/ }).click();
+  await expect(heading).toBeVisible();
+  await expect(outdoor).toBeVisible();
+  await expect(outdoor).toHaveAttribute('aria-pressed', 'true');
+  await stadium.click();
+  await expect(page.locator('#circuit')).toHaveValue('arena-nord-sx');
+  await expect(stadium).toHaveAttribute('aria-pressed', 'true');
+  // Leaving dirt for a circuit hides them again.
+  await page.getByRole('radio', { name: /^CIRCUIT/ }).click();
+  await expect(outdoor).toBeHidden();
+});

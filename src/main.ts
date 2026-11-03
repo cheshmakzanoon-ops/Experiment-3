@@ -117,10 +117,22 @@ import { referenceReview, bindReferenceReview } from './ui/reference-review.ts';
 import { REFERENCES } from './ui/reference-catalogue.ts';
 import { referenceRoute } from './ui/reference-routes.ts';
 import { drivingAcademy, academyConfirmation, programmeHud } from './ui/driving-academy.ts';
-import { LiveSky, liveSkyPreferred, setLiveSkyPreferred } from './rendering/live-sky.ts';
+import { LiveSky, liveSkyPreferred } from './rendering/live-sky.ts';
+import {
+  readLightChoice,
+  resolveLighting,
+  sessionLight,
+  writeLightChoice,
+  type LightChoice,
+  type LightPreset,
+} from './rendering/light-choice.ts';
+import { UiSounds } from './audio/ui-sounds.ts';
+import { CONTINUE_KEY, validateContinue, type ContinueEntry } from './ui/continue-entry.ts';
+import { wildcardProgress } from './ui/wildcard-board.ts';
 import { requestObserver, storedObserver } from './rendering/sky-ephemeris.ts';
 import { PracticeProgramme } from './simulation/practice-programme.ts';
 import { CareerController, type CareerSession } from './career/controller.ts';
+import { wildcardEntry } from './career/wildcard-series.ts';
 import type { GuideMode } from './rendering/driving-guide.ts';
 import type { FestivalSession } from './session/free-roam.ts';
 import { emitGameEvent } from './steam/events.ts';
@@ -160,6 +172,12 @@ export class GameApp {
   private renderer: RacingRenderer | null = null;
   /** LIVE lighting: the real sky over the player's location. */
   private liveSky = new LiveSky();
+  /** The LIGHT dial: the player's standing time-of-day choice (stored per profile). */
+  private lightChoice: LightChoice = readLightChoice();
+  /** Menu sounds: they play the front end's `motobound:cue` events. */
+  private readonly uiSounds = new UiSounds({
+    settings: () => ({ volume: this.settings.volume, muted: this.audio.muted }),
+  });
   private liveSkyChecked = -Infinity;
   private input: InputController;
   private audio = new RacingAudio();
@@ -285,6 +303,12 @@ export class GameApp {
         this.replayClock.setRate(value);
       },
       previewMachine: (id) => this.previewSelectedMachine(id, true),
+      light: (choice) => {
+        this.chooseLight(choice);
+        // LIVE follows the real sky over the player's location: ask once, when it is chosen.
+        if (choice === 'live') void requestObserver().catch(() => undefined);
+      },
+      remember: (entry) => this.rememberEntry(entry),
       previewAudio: (settings) => {
         void this.audio
           .previewDriving(settings)
@@ -324,10 +348,21 @@ export class GameApp {
       setResultsExtra: (html) => {
         this.ui.resultsExtra = html;
       },
+      setResultsLead: (html) => {
+        this.ui.resultsLead = html;
+      },
+      // The WILDCARD SERIES door on the paddock board shows the medal tally.
+      changed: (save) => this.ui.setWildcardProgress(wildcardProgress(save)),
       start: (options, career) => {
         // A career session is outside the legacy championship weekend.
         this.championshipRound = -1;
         this.ui.championshipNote = '';
+        if (career.event?.key.startsWith('wildcard.'))
+          this.rememberEntry({
+            version: 1,
+            kind: 'wildcard',
+            id: career.event.key.slice('wildcard.'.length),
+          });
         void this.start(options, false, false, career).catch((e) => this.fail(e));
       },
       meeting: (options, career, name) => this.meetings.open(name, options, career),
@@ -524,6 +559,36 @@ export class GameApp {
     this.ui.setTrack(this.track);
     return true;
   }
+  /** The player changed the LIGHT dial (or the driving academy's buttons): store
+   * it, and show it on the dial. It applies when the next session loads. */
+  private chooseLight(choice: LightChoice) {
+    this.lightChoice = choice;
+    writeLightChoice(choice);
+    this.ui.setLightChoice(choice);
+  }
+  /** Apply the time of day to the loaded presentation before a session reads it:
+   * the standing choice, or `advisory` (a Wildcard event run after dark) for this
+   * session only. AUTO is the venue's own light. Lighting is visual only. */
+  private applyLight(advisory: LightPreset | null = null, venueNight?: boolean) {
+    const renderer = this.renderer;
+    if (!renderer) return;
+    const choice = sessionLight(this.lightChoice, advisory);
+    if (choice === 'live') {
+      if (!this.liveSky.active) this.liveSky.start(storedObserver());
+      renderer.lighting = this.liveSky.update() ?? 'day';
+      return;
+    }
+    if (this.liveSky.active) this.liveSky.stop();
+    renderer.lighting = resolveLighting(
+      choice,
+      venueNight ?? !!this.track.circuit.catalogue?.night,
+    );
+  }
+  /** Remember the entry just launched from the board (CONTINUE, kept in the save store). */
+  private rememberEntry(entry: ContinueEntry) {
+    this.ui.setContinue(entry);
+    void this.store.write(CONTINUE_KEY, entry).catch(() => undefined);
+  }
   /** Circuits own their venue geometry, so a change rebuilds the presentation
    * once, while loading; the simulation worker builds its own matching Track. */
   private async switchCircuit(id: CircuitId) {
@@ -583,6 +648,12 @@ export class GameApp {
       vehicles: this.career.registry.vehicles,
     });
     if (this.disposed) return;
+    try {
+      this.ui.setContinue(validateContinue(await this.store.read(CONTINUE_KEY)));
+    } catch {
+      this.ui.setContinue(null); // No remembered entry is the same as no CONTINUE.
+    }
+    this.ui.setLightChoice(this.lightChoice);
     this.ui.playerName = driverProfile(this.team).name;
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) this.settings.shake = 0;
     this.input.settings = this.settings;
@@ -629,6 +700,8 @@ export class GameApp {
     if (this.festival || this.festivalStarting || !this.renderer || !this.canvas) return;
     this.festivalStarting = true;
     const renderer = this.renderer;
+    // The festival opens in the player's LIGHT choice (AUTO is daylight there).
+    this.applyLight(null, false);
     // Each festival session has its own identity: results carry run ids
     // under it, and the career pays each run once.
     const session = crypto.randomUUID();
@@ -639,6 +712,9 @@ export class GameApp {
     try {
       const { FestivalSession, FESTIVAL_SAVE_KEY } = await import('./session/free-roam.ts');
       this.ui.showMode('loading');
+      this.ui.loadingScene(options, {
+        night: resolveLighting(this.lightChoice, false, renderer.lighting) === 'night',
+      });
       this.festival = await FestivalSession.start(
         {
           canvas: this.canvas,
@@ -750,6 +826,16 @@ export class GameApp {
     this.ui.showMode('loading');
     this.ui.loading('Preparing grid, race timing and recording buffers…');
     this.ui.loadingSession(options);
+    this.ui.loadingScene(options, {
+      wildcard: career?.event?.key.startsWith('wildcard.')
+        ? wildcardEntry(career.event.key.slice('wildcard.'.length))
+        : undefined,
+      night:
+        resolveLighting(
+          sessionLight(this.lightChoice, career?.light ?? null),
+          !!circuitDefinition(options.circuit).catalogue?.night,
+        ) === 'night',
+    });
     this.input.setEnabled(false);
     // The inlined physics worker is its own chunk: only a session needs it, so
     // fetch it while audio and the circuit prepare (awaited before the worker starts).
@@ -766,6 +852,7 @@ export class GameApp {
     if (this.disposed) return;
     const circuit = circuitDefinition(options.circuit).id;
     if (!(await this.switchCircuit(circuit)) || this.disposed) return;
+    this.applyLight(career?.light ?? null);
     const { default: PhysicsWorker } = await physicsWorker;
     if (this.disposed) return;
     this.options = {
@@ -993,6 +1080,11 @@ export class GameApp {
       this.records.observe(next, !this.auto, this.options, this.sessionId);
       this.observeSession();
       if (next[H.PHASE] === 3) this.finish(next);
+      else {
+        // A Wildcard time attack is a time trial: no chequered flag, so the career ends it.
+        const attack = this.career.attackFinished(next);
+        if (attack) this.finish(attack);
+      }
     }
     if (this.state !== 'driving' && this.state !== 'paused') this.radioCaption.show(null);
     if (this.state !== 'driving') this.rumble.stop(this.input.activePad());
@@ -2101,7 +2193,7 @@ export class GameApp {
       if (this.renderer) {
         this.performanceCapture.interrupt('Circuit lighting changed');
         this.interruptReview('Circuit lighting changed');
-        setLiveSkyPreferred(true);
+        this.chooseLight('live');
         // The device position may need the player's permission; until it
         // answers, the stored fix or the time zone stands in.
         this.renderer.lighting = this.liveSky.start(storedObserver());
@@ -2121,7 +2213,9 @@ export class GameApp {
     }
     if (name === 'lighting:day' || name === 'lighting:sunset' || name === 'lighting:night') {
       if (this.renderer) {
-        setLiveSkyPreferred(false);
+        this.chooseLight(
+          name === 'lighting:sunset' ? 'sunset' : name === 'lighting:night' ? 'night' : 'day',
+        );
         this.liveSky.stop();
         this.performanceCapture.interrupt('Circuit lighting changed');
         this.interruptReview('Circuit lighting changed');

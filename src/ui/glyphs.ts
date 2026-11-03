@@ -15,6 +15,14 @@ const PATHS = {
     '<path d="M5 12h13l2-2V6l-3-2-4 1-3-2-4 2z"/><path d="M13 12l-3 5h4l-3 5"/><path d="M6 15l-1 3M18 15l-1 3"/>',
   /** Dust: a low sun over blown grit lines. */
   dust: '<path d="M7 12a5 5 0 0 1 10 0"/><path d="M12 3v2M4 6l2 2M20 6l-2 2"/><path d="M3 15h9M14 15h7M5 18h6M13 18h6M8 21h8"/>',
+  /** Light dial: a low sun on the horizon (sunset), a crescent (night), a clock
+   * (live: the sky follows your clock) and a map pin (the venue's own light). */
+  sunset:
+    '<path d="M6 16a6 6 0 0 1 12 0"/><path d="M12 5v3M4.5 8.5l2 2M19.5 8.5l-2 2M2 16h20M6 20h12"/>',
+  night: '<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/>',
+  live: '<circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 3"/>',
+  venue: '<path d="M12 21s-6-5.5-6-10a6 6 0 0 1 12 0c0 4.5-6 10-6 10z"/><circle cx="12" cy="11" r="2"/>',
+  close: '<path d="M5 5l14 14M19 5L5 19"/>',
   tyre: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>',
   flag: '<path d="M5 3v18"/><path d="M5 4h14v10H5z"/><path d="M5 9h14M10 4v10M15 4v10" stroke-width="1.5"/>',
   laps: '<path d="M4 9h13l-3-3M20 15H7l3 3"/>',
@@ -29,6 +37,23 @@ const PATHS = {
   go: '<path d="M4 5l7 7-7 7M12 5l7 7-7 7"/>',
 } as const;
 export type GlyphName = keyof typeof PATHS;
+/** Weather id to its glyph (weather-catalogue.ts ids; unknown ids fall back to the sun). */
+export const WEATHER_GLYPH: Readonly<Record<string, GlyphName>> = Object.freeze({
+  clear: 'sun',
+  changeable: 'mixed',
+  rain: 'rain',
+  fog: 'fog',
+  storm: 'storm',
+  dust: 'dust',
+});
+/** Light choice to its glyph (light-choice.ts ids). */
+export const LIGHT_GLYPH: Readonly<Record<string, GlyphName>> = Object.freeze({
+  auto: 'venue',
+  day: 'sun',
+  sunset: 'sunset',
+  night: 'night',
+  live: 'live',
+});
 
 export function glyph(name: GlyphName, className = 'glyph') {
   return `<svg class="${className}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true" focusable="false">${PATHS[name]}</svg>`;

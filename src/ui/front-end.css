@@ -367,7 +367,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--mb-s2) var(--mb-s4);
-  margin: 0 0 var(--mb-s2);
+  margin: 0 0 var(--mb-s1);
 }
 #menu .lb-series .mx-entry,
 #menu .lb-series .lb-series-group,
@@ -380,6 +380,9 @@
 }
 #menu .lb-series .lb-series-extra {
   display: contents;
+}
+#menu .lb-series .mx-entry[hidden] {
+  display: none;
 }
 #menu .lb-series :is(.mx-entry, .lb-series-group) > span {
   margin: 0;
@@ -412,7 +415,8 @@
 /* ---------- Form grid --------------------------------------------------------- */
 #menu .session-form {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  /* Twelve columns: whole, halves and the 4-4-4 and 4-3-5 rows of the dials. */
+  grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: var(--mb-s2);
   max-width: none;
 }
@@ -421,10 +425,23 @@
   grid-column: 1 / -1;
 }
 #menu .session-form > .lb-dial {
-  grid-column: span 3;
+  grid-column: span 6;
 }
-#menu .session-form > .lb-dial:is([data-dial='weather'], [data-dial='compound'], [data-dial='assist']) {
-  grid-column: span 2;
+#menu
+  .session-form
+  > .lb-dial:is(
+    [data-dial='weather'],
+    [data-dial='light'],
+    [data-dial='compound'],
+    [data-dial='assist'],
+    [data-dial='opponents'],
+    [data-dial='startSlot']
+  ) {
+  grid-column: span 4;
+}
+/* Festival: SESSION takes the row the laps dial leaves. */
+#menu[data-board='festival'] .session-form > .lb-dial[data-dial='mode'] {
+  grid-column: span 12;
 }
 #menu .session-rules {
   margin: 0;
@@ -612,7 +629,15 @@
   grid-template-columns: var(--hand) minmax(0, 1fr) var(--hand);
   min-width: 0;
 }
-#menu .lb-dial:is([data-dial='weather'], [data-dial='compound'], [data-dial='assist']) {
+#menu
+  .lb-dial:is(
+    [data-dial='weather'],
+    [data-dial='light'],
+    [data-dial='compound'],
+    [data-dial='assist'],
+    [data-dial='opponents'],
+    [data-dial='startSlot']
+  ) {
   --hand: calc(22px * var(--mb-u));
 }
 #menu .lb-dial > label {
@@ -783,7 +808,7 @@
   position: sticky;
   bottom: 0;
   z-index: 3;
-  grid-column: 1 / 5;
+  grid-column: 1 / 9;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -805,7 +830,7 @@
   padding-right: calc(var(--mb-s5) + var(--mb-s1));
 }
 #menu .session-form > .enter:not(.primary) {
-  grid-column: 5 / 7;
+  grid-column: 9 / 13;
   /* Tuck under the primary's diagonal so no scrolled content shows through. */
   margin-left: calc(-1 * (var(--mb-s2) + var(--mb-s4)));
   padding-left: calc(var(--mb-s4) + var(--mb-s5));
@@ -1158,11 +1183,20 @@
     grid-template-columns: calc(88px * var(--mb-u)) minmax(0, 1fr);
     gap: var(--mb-s2);
   }
-  #menu .session-form > .lb-dial:is([data-dial='weather'], [data-dial='compound'], [data-dial='assist']) {
-    grid-column: span 3;
+  #menu
+    .session-form
+    > .lb-dial:is(
+      [data-dial='weather'],
+      [data-dial='light'],
+      [data-dial='compound'],
+      [data-dial='assist'],
+      [data-dial='opponents'],
+      [data-dial='startSlot']
+    ) {
+    grid-column: span 6;
   }
   #menu .session-form > .enter {
-    grid-column: 1 / 5;
+    grid-column: 1 / 9;
   }
   /* Keep the full accessible name ("PREPARE GRID START PAUSED") while the
      second line gives way on a narrow phone. */

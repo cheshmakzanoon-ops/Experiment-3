@@ -5,6 +5,8 @@ import { Interface } from '../../src/ui/interface.ts';
 import { registerSeries } from '../../src/ui/launch-board.ts';
 import { Simulation } from '../../src/simulation/world.ts';
 import { DEFAULT_OPTIONS } from '../../src/simulation/config.ts';
+import { wildcardBoardHtml, wildcardProgress } from '../../src/ui/wildcard-board.ts';
+import { newCareer } from '../../src/career/save.ts';
 
 /** The production Interface with no renderer: the paddock board, its form and
  * its controller handler. Start requests are recorded as JSON in #boardEvents
@@ -24,6 +26,16 @@ export function mountLaunchBoard() {
       log.push({ action: name });
       events.textContent = JSON.stringify(log);
       if (name === 'modalClose') ui.closeModal();
+      // What the career controller does for the door (career/controller.ts openWildcard).
+      if (name === 'career:wildcard') ui.modalContent(wildcardBoardHtml(null));
+    },
+    light: (choice) => {
+      log.push({ light: choice });
+      events.textContent = JSON.stringify(log);
+    },
+    remember: (entry) => {
+      log.push({ remember: entry });
+      events.textContent = JSON.stringify(log);
     },
     start: (options, held) => {
       log.push({ start: options, held: !!held });
@@ -41,6 +53,36 @@ export function mountLaunchBoard() {
   });
   ui.ready();
   ui.showMode('menu');
+  fixtureUi = ui;
+}
+let fixtureUi: Interface;
+/** The door with a played career behind it: a gold on the first event. */
+export function setProgress() {
+  const save = newCareer();
+  save.results['wildcard.descent-in-the-cloud'] = { bestPosition: 1, bestLap: 0, starts: 1 };
+  fixtureUi.setWildcardProgress(wildcardProgress(save));
+}
+/** A remembered entry behind CONTINUE (the application reads it from the save store). */
+export function setContinue(kind: 'form' | 'wildcard') {
+  fixtureUi.setContinue(
+    kind === 'wildcard'
+      ? { version: 1, kind: 'wildcard', id: 'karts-after-dark' }
+      : {
+          version: 1,
+          kind: 'form',
+          fields: {
+            mode: 'race',
+            circuit: 'vellamar',
+            vehicle: 'gpr1',
+            laps: '5',
+            weather: 'rain',
+            opponents: '3',
+            compound: 'wet',
+            assist: 'raw',
+            startSlot: 'back',
+          },
+        },
+  );
 }
 
 /** Extension point check: what the Wildcard Series agent will call. */

@@ -45,15 +45,22 @@ const shot = async (scene) => {
   await page.screenshot({ path, type: 'jpeg', quality: 70 });
   console.log(`${path} ${(statSync(path).size / 1024).toFixed(0)} KB`);
 };
+// The scene code may await (a settled career payment), so it runs as an async function.
 const run = (code, ...args) =>
-  page.evaluate(([c, a]) => new Function('f', 'a', c)(window.UxFixture, a), [code, args]);
+  page.evaluate(
+    async ([c, a]) => {
+      const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+      return new AsyncFunction('f', 'a', c)(window.UxFixture, a);
+    },
+    [code, args],
+  );
 for (const scene of scenesArg.split(',')) {
   if (scene === 'menu') await run('f.menu()');
   else if (scene === 'gp') await run("f.menu(); f.plate('gp')");
   else if (scene === 'dirt') await run("f.menu(); f.plate('dirt')");
   else if (scene === 'festival') await run("f.menu(); f.plate('festival')");
   else if (scene === 'menu-scaled') await run('f.menu(1.35)');
-  else await run(`f.${scene}()`);
+  else await run(`await f.${scene}()`);
   await page.evaluate(() => document.fonts.ready);
   await shot(scene);
 }

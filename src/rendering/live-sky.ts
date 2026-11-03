@@ -1,5 +1,6 @@
 import * as T from 'three';
 import { SUN_OFFSET, setSkySun, type LightingMode } from './sky-light.ts';
+import { LIVE_SKY_KEY } from './light-choice.ts';
 import {
   LIVE_SKY,
   liveKeyDirection,
@@ -9,7 +10,7 @@ import {
   type Observer,
 } from './sky-ephemeris.ts';
 
-const PREFERENCE_KEY = 'apex.sky.live.v1';
+const PREFERENCE_KEY = LIVE_SKY_KEY;
 
 /**
  * LIVE circuit lighting: the sky over the player's real location at the real

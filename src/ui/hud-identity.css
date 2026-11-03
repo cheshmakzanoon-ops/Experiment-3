@@ -1,0 +1,160 @@
+/* Race HUD in the Paddock Board identity (docs/studio/ART_DIRECTION.md section 11).
+ *
+ * Injected last by installFrontEnd(), so it wins over style.css and the HUD sheets
+ * (f1-hud, compact, race-day, bike, festival) on equal specificity. It changes colour,
+ * type and shape only: no width, height, position, margin or grid track of any HUD
+ * element is set here, so the layout and footprint contracts
+ * (e2e/28-race-hud-layout, 49-hud-footprint, 52-vehicle-hud) are untouched.
+ *
+ *   flame orange and F1 pink  ->  amber (selection, the player's own row, live values)
+ *   cool grey panels          ->  asphalt boards with a chalk hairline
+ *   rounded and skewed shapes ->  square, one 10 px notch where a shape was cut
+ *   wide italic numerals      ->  Saira Stencil One numerals (gear, speed, position, lap)
+ *   the APEX wordmark         ->  MOTOBOUND, stencilled on a paper strip
+ *
+ * Timing colours (--t-purple, --t-green, --t-yellow, --t-red), compound colours
+ * (--tyre-*) and flag colours stay: they are broadcast timing semantics. */
+
+:root {
+  --hud-panel: rgba(26, 27, 30, 0.9);
+  --hud-panel-head: rgba(11, 12, 13, 0.94);
+  --hud-panel-2: rgba(36, 38, 42, 0.72);
+  --hud-stroke: rgba(241, 236, 223, 0.42);
+  --hud-hair: var(--mb-line);
+  --hud-radius: 0px;
+  --hud-text: var(--mb-chalk);
+  --hud-text-dim: var(--mb-chalk-dim);
+  --hud-player-row: var(--mb-amber);
+  --hud-player-text: var(--mb-ink);
+  --apex-flame: var(--mb-amber);
+  --apex-flame-hot: #ffc652;
+  --apex-text: var(--mb-chalk);
+  --apex-dim: var(--mb-chalk-dim);
+  --apex-cut: var(--mb-notch);
+  --accent: var(--mb-amber);
+  --fe-accent: var(--mb-amber);
+}
+/* The old paddock rule re-declared the F1 pink on .menu. */
+.menu {
+  --apex-flame: var(--mb-amber);
+  --apex-flame-hot: #ffc652;
+}
+
+/* ---------- Wordmark and tower header ------------------------------------------ */
+/* Header: a paper strip with ink type (the table-header strip of the results sheet). */
+#hud[data-f1] .timing .panel-heading {
+  background: var(--mb-paper);
+  border: 0;
+  border-radius: 0;
+  clip-path: polygon(0 0, calc(100% - var(--mb-notch)) 0, 100% var(--mb-notch), 100% 100%, 0 100%);
+}
+#hud[data-f1] .f1-tower-head {
+  border-bottom: 1px solid rgba(20, 17, 12, 0.22);
+}
+#hud[data-f1] .f1-wordmark {
+  font: 400 calc(2.5 * var(--u)) / 1 var(--mb-stencil);
+  font-stretch: 100%;
+  letter-spacing: 0.06em;
+  color: var(--mb-paper-ink);
+}
+#hud[data-f1] .f1-session {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+  font-weight: 800;
+  font-stretch: 100%;
+  letter-spacing: 0.12em;
+  color: #6b4a08;
+}
+#hud[data-f1] .f1-session[data-long='true'] {
+  font-stretch: 92%;
+  letter-spacing: 0.06em;
+}
+#hud[data-f1] .f1-tower-lap {
+  background: var(--mb-ink);
+}
+#hud[data-f1] .f1-tower-lap small {
+  color: var(--mb-chalk-dim);
+  font-stretch: 100%;
+  letter-spacing: 0.1em;
+}
+#hud[data-f1] .f1-tower-lap b {
+  font-family: var(--mb-stencil);
+  font-weight: 400;
+  font-stretch: 100%;
+  color: var(--mb-chalk);
+}
+/* Compact header (below the desktop layout): same mark. */
+#hud .brand.small {
+  font: 400 calc(18px * var(--ui-scale, 1)) / 1 var(--mb-stencil);
+  letter-spacing: 0.07em;
+}
+#hud .brand.small span {
+  border-left: 3px solid var(--mb-amber);
+  color: var(--mb-chalk-dim);
+  font: 650 11px / 1 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.22em;
+}
+
+/* ---------- Numerals: stencil, upright ----------------------------------------- */
+#hud .gear > b,
+#hud .speed > b,
+#hud .engine > b,
+#hud[data-f1] .f1-pos b,
+#hud .position-badge b {
+  font-family: var(--mb-stencil);
+  font-style: normal;
+  font-weight: 400;
+  font-stretch: 100%;
+  letter-spacing: 0.02em;
+}
+#hud .lap-panel b,
+#hud .lap-panel span {
+  font-style: normal;
+}
+
+/* ---------- Panels, rows and buttons ------------------------------------------- */
+#hud .timing,
+#hud .lap-panel,
+#hud .car-status,
+#hud .race-message,
+#hud .position-badge,
+#hud .icon-button,
+#hud .vehicle-toggle {
+  border-radius: var(--hud-radius);
+}
+/* Dock buttons: asphalt, chalk hairline, amber on hover. */
+#hud[data-f1] .hud-top :is(.vehicle-toggle, .icon-button),
+#hud .hud-actions button {
+  background: var(--hud-panel);
+  border: 1px solid var(--mb-line-strong);
+  border-radius: 0;
+  color: var(--mb-chalk);
+  font-stretch: 94%;
+  letter-spacing: 0.12em;
+}
+#hud[data-f1] .hud-top :is(.vehicle-toggle, .icon-button):is(:hover, [aria-expanded='true']),
+#hud .hud-actions button:hover {
+  background: var(--mb-amber);
+  border-color: var(--mb-amber);
+  color: var(--mb-ink);
+}
+#hud .hud-actions kbd,
+#hud kbd {
+  border-radius: 2px;
+  font-style: normal;
+}
+/* The player's own tower row is the marshal's highlighter, as on the results sheet:
+   f1-hud.css paints it from --hud-player-row and --hud-player-text (amber on ink above). */
+#hud button:focus-visible,
+#hud [tabindex]:focus-visible {
+  outline: 2px solid var(--mb-amber);
+  outline-offset: 2px;
+}
+html[data-high-contrast='true'] #hud {
+  --hud-stroke: rgba(241, 236, 223, 0.8);
+  --hud-text-dim: #e0dacb;
+}
