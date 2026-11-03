@@ -1,6 +1,7 @@
 import { mod } from '../core/math.ts';
 import type { MarshalControl } from './marshal.ts';
 import type { Vehicle } from './vehicle.ts';
+import type { RaceHazard } from './weather.ts';
 
 /** Original neutralisation rules (not a claim of any sporting regulation).
  * Speeds m/s, distances metres, times seconds. */
@@ -36,6 +37,15 @@ export const SC_PHASE = { NONE: 0, VSC: 1, DEPLOYED: 2, IN_THIS_LAP: 3 } as cons
  * been clear for `clearAfter` s the VSC ends, or the safety car is "in this
  * lap" and leaves at the pit entry. Overtaking while neutralised is judged
  * like overtaking under yellow (MarshalControl.neutralised).
+ *
+ * The weather can call the same states (weather.ts raceHazard, evaluated by
+ * the RaceDirector from what the drivers can see and the standing water):
+ * hazard 1 is a virtual safety car at the lower of its flat limit and the
+ * speed the drivers can stop from inside their view, 2 a deployed safety car
+ * at that pace, 3 a suspension: the safety car stops and the field queues
+ * behind it. A hazard holds its state against the obstruction timers and, as
+ * it lifts, hands back down the same ladder (suspended, safety car "in this
+ * lap", virtual, green). With hazard 0 (the default) none of this runs.
  */
 export class SafetyCarDirector {
   phase: number = SC_PHASE.NONE;
@@ -52,45 +62,68 @@ export class SafetyCarDirector {
   get neutralised() {
     return this.phase !== SC_PHASE.NONE;
   }
+  /** The field is stopped by the weather (a red flag): no one may drive on. */
+  get suspended() {
+    return this.hazard >= 3 && this.phase !== SC_PHASE.NONE;
+  }
   /** `leader`: id of the race leader; `active`: racing and not finishing. */
+  /** Weather hazard last applied and the pace it allows (m/s; Infinity: none). */
+  hazard: RaceHazard = 0;
+  private hazardPace = Infinity;
   update(
     dt: number,
     cars: readonly Vehicle[],
     leader: number,
     control: MarshalControl,
     active: boolean,
+    hazard: RaceHazard = 0,
+    hazardPace = Infinity,
   ) {
     if (!active) {
       this.phase = SC_PHASE.NONE;
       control.neutralised = 0;
+      this.hazard = 0;
       return;
     }
+    this.hazard = hazard;
+    this.hazardPace = hazardPace;
     const obstruction = control.hasObstruction;
     this.obstructed = obstruction ? this.obstructed + dt : 0;
     this.clear = obstruction ? 0 : this.clear + dt;
     const length = this.length;
+    const deploy = () => {
+      this.phase = SC_PHASE.DEPLOYED;
+      this.deployments++;
+      this.s = mod(cars[leader].s + SAFETY_CAR.joinAhead, length);
+      this.speed = Math.min(SAFETY_CAR.scSpeed, hazardPace);
+    };
     switch (this.phase) {
       case SC_PHASE.NONE:
-        if (this.obstructed >= SAFETY_CAR.vscAfter) this.phase = SC_PHASE.VSC;
+        if (hazard >= 2) deploy();
+        else if (this.obstructed >= SAFETY_CAR.vscAfter || hazard >= 1) this.phase = SC_PHASE.VSC;
         break;
       case SC_PHASE.VSC:
-        if (this.obstructed >= SAFETY_CAR.scAfter) {
-          this.phase = SC_PHASE.DEPLOYED;
-          this.deployments++;
-          this.s = mod(cars[leader].s + SAFETY_CAR.joinAhead, length);
-          this.speed = SAFETY_CAR.scSpeed;
-        } else if (this.clear >= SAFETY_CAR.clearAfter) this.phase = SC_PHASE.NONE;
+        if (this.obstructed >= SAFETY_CAR.scAfter || hazard >= 2) deploy();
+        else if (this.clear >= SAFETY_CAR.clearAfter && hazard === 0) this.phase = SC_PHASE.NONE;
         break;
       case SC_PHASE.DEPLOYED:
-        if (this.clear >= SAFETY_CAR.clearAfter) this.phase = SC_PHASE.IN_THIS_LAP;
+        if (this.clear >= SAFETY_CAR.clearAfter && hazard < 2) this.phase = SC_PHASE.IN_THIS_LAP;
+        break;
+      case SC_PHASE.IN_THIS_LAP:
+        // The weather closes in again before the car has left: stay out.
+        if (hazard >= 2) this.phase = SC_PHASE.DEPLOYED;
         break;
     }
     if (this.phase === SC_PHASE.DEPLOYED || this.phase === SC_PHASE.IN_THIS_LAP) {
       // The safety car keeps to the yellow-zone limits like everyone else.
-      const target = Math.min(
-        SAFETY_CAR.scSpeed,
-        control.speedLimitAt(this.s, SAFETY_CAR.braking * 0.8),
-      );
+      const target =
+        hazard >= 3
+          ? 0
+          : Math.min(
+              SAFETY_CAR.scSpeed,
+              hazardPace,
+              control.speedLimitAt(this.s, SAFETY_CAR.braking * 0.8),
+            );
       this.speed =
         this.speed < target
           ? Math.min(target, this.speed + SAFETY_CAR.accel * dt)
@@ -106,9 +139,10 @@ export class SafetyCarDirector {
     }
     control.neutralised = this.phase;
     if (this.phase === SC_PHASE.VSC) {
+      const cap = Math.min(SAFETY_CAR.vscSpeed, hazardPace);
       for (let i = 0; i < cars.length; i++) {
         if (cars[i].inPit || cars[i].finishTime || cars[i].retired) continue;
-        this.limit(control, i, 0, SAFETY_CAR.vscSpeed);
+        this.limit(control, i, 0, cap);
       }
     } else if (this.phase !== SC_PHASE.NONE) {
       // Queue in track order behind the safety car: each car targets the car

@@ -490,6 +490,59 @@ export function reportedSurface(surface: number, frozenMm: number | undefined, r
   if (!frozenMm || frozenMm <= 0 || surface > 5 || frozenCover(frozenMm) < 0.5) return surface;
   return glazeShare(rubber, frozenMm) > 0.5 ? MATERIAL.ICE : MATERIAL.SNOW;
 }
+/** Race control's reading of the conditions: how little the drivers can see
+ * and how much water the road carries. Original rules (not a claim of any
+ * sporting regulation), built on the same two numbers the drivers use:
+ *  - `safePaceMS(V)`: the speed from which a driver can stop inside the
+ *    visible distance V with a 1 s reaction and 8 m/s^2 of braking in poor
+ *    conditions, v = a (sqrt(t^2 + 2 V / a) - t). 100 m of view is 32.8 m/s,
+ *    the virtual-safety-car pace; 60 m is 24 m/s; 35 m is 17 m/s.
+ *  - Levels: 1 reduced pace (virtual safety car) below 100 m or 3.5 mm of
+ *    standing water on average; 2 safety car below 60 m or 5 mm; 3 suspended
+ *    (red flag: the field stops behind a stationary safety car) below 35 m or
+ *    7 mm. A level is left only when the reading is 25 % clear of its
+ *    threshold, so a fog bank or a squall that flickers around a line does not
+ *    flap the race between flags.
+ * The shipped presets sit outside the lines on purpose: Dawn fog opens at
+ * 110 m, the dust storm at 170 m, the thunderstorm holds 2.1 to 2.5 mm; a
+ * denser bank (authored weather, a keyframe table with a lower visibility)
+ * or a deluge crosses them. */
+export const VISIBILITY_RULES = Object.freeze({
+  reducedBelowM: 100,
+  safetyCarBelowM: 60,
+  suspendBelowM: 35,
+  waterReducedMm: 3.5,
+  waterSafetyCarMm: 5,
+  waterSuspendMm: 7,
+  release: 1.25,
+  braking: 8,
+  reaction: 1,
+});
+export type RaceHazard = 0 | 1 | 2 | 3;
+export function safePaceMS(visibilityM: number) {
+  if (!Number.isFinite(visibilityM) || visibilityM <= 0) return 0;
+  const { braking: a, reaction: t } = VISIBILITY_RULES;
+  return a * (Math.sqrt(t * t + (2 * visibilityM) / a) - t);
+}
+export function raceHazard(
+  visibilityM: number,
+  meanWaterMm: number,
+  previous: RaceHazard = 0,
+): RaceHazard {
+  if (!Number.isFinite(visibilityM) || !Number.isFinite(meanWaterMm)) return previous;
+  const r = VISIBILITY_RULES,
+    // 1 + number of lines crossed, with the release margin for the level held.
+    level = (held: boolean, level: number, vis: number, water: number): boolean => {
+      const margin = held ? r.release : 1,
+        v = [r.reducedBelowM, r.safetyCarBelowM, r.suspendBelowM][level - 1],
+        w = [r.waterReducedMm, r.waterSafetyCarMm, r.waterSuspendMm][level - 1];
+      return vis < v * margin || water > w / margin;
+    };
+  let hazard: RaceHazard = 0;
+  for (const l of [1, 2, 3] as const) if (level(previous >= l, l, visibilityM, meanWaterMm)) hazard = l;
+  return hazard;
+}
+
 /** Pace a driver holds on a covered road (1 on a clear one). Snow and ice give
  * a low, flat friction peak with a long, gentle slide beyond it: a car on the
  * edge does not snap, it creeps wide, and corrections come late. Drivers keep

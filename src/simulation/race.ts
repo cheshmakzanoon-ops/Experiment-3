@@ -14,7 +14,13 @@ import {
   type SessionOptions,
 } from './config.ts';
 import type { Vehicle } from './vehicle.ts';
-import { trackVisibilityM } from './weather.ts';
+import {
+  VISIBILITY_RULES,
+  raceHazard,
+  safePaceMS,
+  trackVisibilityM,
+  type RaceHazard,
+} from './weather.ts';
 import type { Track } from './track.ts';
 export const PHASE = { GRID: 0, LIGHTS: 1, RACING: 2, FINISHED: 3 } as const;
 export class LapTracker {
@@ -189,6 +195,10 @@ export class RaceDirector {
   private readonly seenStops: Int32Array;
   private drsAnnounced = false;
   private scAnnounced = 0;
+  private hazardAnnounced = 0;
+  /** Race control's reading of the weather (weather.ts raceHazard): 0 green,
+   * 1 reduced pace, 2 safety car, 3 suspended. */
+  hazard: RaceHazard = 0;
   flag: 'GREEN' | 'YELLOW' | 'CHEQUERED' = 'GREEN';
   message = 'SYSTEMS READY';
   private nextMessage = 0;
@@ -235,12 +245,19 @@ export class RaceDirector {
   /** Race-rules bookkeeping after timing: safety car, DRS, sectors, stints. */
   private rules(dt: number) {
     const racing = racingSession(this.options.mode);
+    const visibility = trackVisibilityM(this.track),
+      water = this.track.meanWater();
+    // What the drivers can see and the water on the road may neutralise the
+    // race (weather.ts VISIBILITY_RULES); clear and ordinary wet weather read 0.
+    this.hazard = raceHazard(visibility, water, this.hazard);
     this.safetyCar.update(
       dt,
       this.cars,
       this.order[0],
       this.control,
       racing && this.ruleset.safetyCar !== false && this.finishStartedAt < 0,
+      this.hazard,
+      this.hazard > 0 ? safePaceMS(visibility) : Infinity,
     );
     let leaderLaps = 0;
     for (const lap of this.laps) leaderLaps = Math.max(leaderLaps, lap.completed);
@@ -248,8 +265,8 @@ export class RaceDirector {
       // DRS exists only where the ruleset permits it.
       racing: racing && this.ruleset.drs,
       leaderLaps,
-      water: this.track.meanWater(),
-      visibility: trackVisibilityM(this.track),
+      water,
+      visibility,
       neutralised: this.safetyCar.neutralised,
       yellow: (car) => yellowFlag(this.control.flags[car]),
     });
@@ -292,17 +309,33 @@ export class RaceDirector {
       this.message = 'DRS ENABLED';
       this.nextMessage = this.time + 5;
     }
-    if (this.safetyCar.phase !== this.scAnnounced) {
+    if (this.safetyCar.phase !== this.scAnnounced || this.hazard !== this.hazardAnnounced) {
       const was = this.scAnnounced;
       this.scAnnounced = this.safetyCar.phase;
-      this.message = [
-        was === SC_PHASE.VSC ? 'VSC ENDING · GREEN FLAG' : 'GREEN FLAG · RACING RESUMES',
-        'VIRTUAL SAFETY CAR · 115 KM/H',
-        'SAFETY CAR DEPLOYED · NO OVERTAKING',
-        'SAFETY CAR IN THIS LAP',
-      ][this.safetyCar.phase];
+      this.hazardAnnounced = this.hazard;
+      this.message =
+        this.hazard > 0 && this.safetyCar.phase !== SC_PHASE.NONE
+          ? this.hazardLabel(visibility, water, true)
+          : [
+              was === SC_PHASE.VSC ? 'VSC ENDING · GREEN FLAG' : 'GREEN FLAG · RACING RESUMES',
+              'VIRTUAL SAFETY CAR · 115 KM/H',
+              'SAFETY CAR DEPLOYED · NO OVERTAKING',
+              'SAFETY CAR IN THIS LAP',
+            ][this.safetyCar.phase];
       this.nextMessage = this.time + 5;
     }
+  }
+  /** The race message while the weather is holding the field (hazard > 0). */
+  private hazardLabel(visibility: number, water: number, announce: boolean) {
+    const why =
+      visibility < VISIBILITY_RULES.reducedBelowM * VISIBILITY_RULES.release
+        ? `LOW VISIBILITY ${Math.max(10, Math.round(visibility / 10) * 10)} M`
+        : `STANDING WATER ${water.toFixed(1)} MM`;
+    if (this.hazard >= 3)
+      return announce ? `RACE SUSPENDED · ${why} · HOLD YOUR POSITION` : `RACE SUSPENDED · ${why}`;
+    if (this.safetyCar.phase === SC_PHASE.VSC)
+      return `VIRTUAL SAFETY CAR · ${why} · ${Math.round(Math.min(32, safePaceMS(visibility)) * 3.6)} KM/H`;
+    return announce ? `SAFETY CAR DEPLOYED · ${why} · NO OVERTAKING` : `SAFETY CAR · ${why}`;
   }
   penalize(car: number, seconds: number, code: string) {
     this.laps[car].penalty += seconds;
@@ -458,7 +491,11 @@ export class RaceDirector {
     else if (this.finishStartedAt >= 0) this.message = 'CHEQUERED FLAG · FIELD FINISHING';
     else if (this.time > this.nextMessage)
       this.message = this.safetyCar.neutralised
-        ? ['', 'VIRTUAL SAFETY CAR', 'SAFETY CAR', 'SAFETY CAR IN THIS LAP'][this.safetyCar.phase]
+        ? this.hazard > 0
+          ? this.hazardLabel(trackVisibilityM(this.track), this.track.meanWater(), false)
+          : ['', 'VIRTUAL SAFETY CAR', 'SAFETY CAR', 'SAFETY CAR IN THIS LAP'][
+              this.safetyCar.phase
+            ]
         : this.control.hasIncident
         ? 'YELLOW · INCIDENT AHEAD'
         : this.cars[0].inPit

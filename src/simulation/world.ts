@@ -218,7 +218,11 @@ export class Simulation {
         // lifted (the driver's wheelspin cut): stationary and without progress
         // is stranded whatever the pedal says. Warm weather keeps the original
         // pedal-only rule.
-        !(c.input.throttle > 0.2 || c.input.reverse || (this.track.cold && c.speed < 3))
+        !(
+          c.input.throttle > 0.2 ||
+          c.input.reverse ||
+          (this.track.cold && c.speed < 3 && !this.race.safetyCar.suspended)
+        )
       ) {
         this.strandClock[i] = 0;
         this.strandS[i] = c.s;
