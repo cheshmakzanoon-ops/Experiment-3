@@ -1,0 +1,82 @@
+# electron-builder configuration for the MOTOBOUND desktop shell.
+# Run through the scripts in package.json (dist:linux / dist:win / dist:mac / pack:linux);
+# each first stages ../dist into ./web (scripts/stage-web.cjs).
+#
+# appId is a PLACEHOLDER reverse-DNS name; replace it before the first signed/store build.
+# No Steam app id appears anywhere in this repository (see STEAM.md).
+appId: io.motobound.game
+productName: MOTOBOUND
+copyright: Copyright (c) MOTOBOUND studio
+
+directories:
+  output: release
+  buildResources: build
+
+# The shell itself is tiny and goes in the asar; the 100+ MB game stays outside
+# it (extraResources) as plain files, so the privileged protocol can stream
+# models and textures with range requests and nothing is unpacked at launch.
+asar: true
+files:
+  - main.cjs
+  - preload.cjs
+  - package.json
+  - src/**/*.cjs
+extraResources:
+  - from: web
+    to: web
+    filter:
+      - "**/*"
+      - "!**/*.map"
+# Steamworks ships native code that cannot load from inside an asar.
+asarUnpack:
+  - node_modules/steamworks.js/**
+
+# Harden the packaged Electron binary: no ELECTRON_RUN_AS_NODE, no NODE_OPTIONS,
+# no --inspect, and the app may only be loaded from the asar. (Embedded asar
+# integrity validation is applied by Electron on Windows/macOS only.)
+electronFuses:
+  runAsNode: false
+  enableNodeOptionsEnvironmentVariable: false
+  enableNodeCliInspectArguments: false
+  enableEmbeddedAsarIntegrityValidation: true
+  onlyLoadAppFromAsar: true
+  grantFileProtocolExtraPrivileges: false
+
+# Steam depots take the UNPACKED directory (win-unpacked / linux-unpacked / the
+# .app); installers and archives below are for non-Steam channels and for QA.
+linux:
+  target: [AppImage, zip]
+  category: Game
+  executableName: motobound
+  icon: build/icon.png
+  files:
+    - "!node_modules/steamworks.js/dist/win64/**"
+    - "!node_modules/steamworks.js/dist/osx/**"
+  desktop:
+    entry:
+      Name: MOTOBOUND
+      Comment: Race cars, GP bikes, motocross and an open-world festival
+      Keywords: racing;motorcycle;motocross;game;
+win:
+  target: [nsis, zip]
+  icon: build/icon.png
+  files:
+    - "!node_modules/steamworks.js/dist/linux64/**"
+    - "!node_modules/steamworks.js/dist/osx/**"
+    - "!node_modules/steamworks.js/dist/win64/*.lib"
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  deleteAppDataOnUninstall: false
+mac:
+  target: zip
+  category: public.app-category.racing-games
+  icon: build/icon.png
+  files:
+    - "!node_modules/steamworks.js/dist/linux64/**"
+    - "!node_modules/steamworks.js/dist/win64/**"
+
+artifactName: ${productName}-${version}-${os}-${arch}.${ext}
+publish: null

@@ -124,6 +124,9 @@ import { PracticeProgramme } from './simulation/practice-programme.ts';
 import { CareerController, type CareerSession } from './career/controller.ts';
 import type { GuideMode } from './rendering/driving-guide.ts';
 import type { FestivalSession } from './session/free-roam.ts';
+import { emitGameEvent } from './steam/events.ts';
+import { emitLapRecord, emitRaceFinished, emitSessionStarted } from './steam/hooks.ts';
+import { startAchievements } from './steam/runtime.ts';
 type State = 'menu' | 'loading' | 'driving' | 'paused' | 'results' | 'replay' | 'photo' | 'pregame';
 export class GameApp {
   private readonly gridClock = new GridPresentationClock();
@@ -260,6 +263,7 @@ export class GameApp {
   private readyResolve: (() => void) | null = null;
   private initTimeout = 0;
   constructor() {
+    startAchievements({ store: this.store, toast: (message) => this.ui.toast(message) });
     window.addEventListener('keydown', this.reviewKeyboard);
     const element = document.getElementById('app')!;
     this.ui = new Interface(element, this.track, {
@@ -679,6 +683,7 @@ export class GameApp {
         },
       );
       this.input.setEnabled(this.festival.drivingInputEnabled);
+      emitSessionStarted(options, 'festival');
     } catch (error) {
       this.festival = null;
       this.exitFestival();
@@ -922,6 +927,7 @@ export class GameApp {
     await this.prepareTimeTrial(generation);
     if (this.errorStopped || this.disposed || generation !== this.generation) return;
     this.state = 'driving';
+    emitSessionStarted(options);
     const referenceCamera = this.referenceSession.beginSession(this.sessionId);
     if (referenceCamera) this.renderer.changeCamera(referenceCamera);
     this.ui.get('loading').hidden = true;
@@ -1278,6 +1284,7 @@ export class GameApp {
         .capturePhoto()
         .then(async (blob) => {
           downloadBlob(blob, filename);
+          if (referenceId === null) emitGameEvent({ type: 'photo.taken', context: this.photoReturn });
           if (referenceId !== null) {
             this.referenceEvidence.capture(
               referenceId,
@@ -1479,6 +1486,13 @@ export class GameApp {
     const mine = table.findIndex((s) => s.id === 0);
     this.ui.championshipNote = `CHAMPIONSHIP · ROUND ${next.results.length} OF ${next.rounds.length} · +${table[mine].points - before} PTS · P${mine + 1} IN STANDINGS${complete(next) ? ' · SEASON COMPLETE' : ''}`;
     this.championshipRound = -1;
+    if (complete(next))
+      emitGameEvent({
+        type: 'championship.completed',
+        position: mine + 1,
+        rounds: next.rounds.length,
+        entrants: table.length,
+      });
     void this.saveChampionship(next).catch((error) =>
       this.ui.toast(`Championship not saved: ${String(error)}`),
     );
@@ -1707,6 +1721,7 @@ export class GameApp {
     this.audio.stop();
     this.ui.showMode('results');
     this.recordChampionshipRace(frame);
+    emitRaceFinished(this.options, frame, this.usedDemonstration);
     const meeting = this.meetings.record(frame, {
       mode: this.options.mode,
       grid: this.options.grid,
@@ -1759,7 +1774,11 @@ export class GameApp {
       void this.store
         .read(key)
         .then((old) => {
-          if (typeof old !== 'number' || best < old) return this.store.write(key, best);
+          if (typeof old !== 'number' || best < old) {
+            if (!this.usedDemonstration)
+              emitLapRecord(this.options, best, typeof old !== 'number');
+            return this.store.write(key, best);
+          }
         })
         .catch((e) => this.ui.toast(`Best lap could not be saved: ${String(e)}`));
     }

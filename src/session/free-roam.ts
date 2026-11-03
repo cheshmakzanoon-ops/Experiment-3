@@ -26,6 +26,8 @@ import type { AudioView } from '../audio/spatial.ts';
 import { FestivalHud } from '../ui/festival-hud.ts';
 import { minimapHeading } from '../ui/festival-map.ts';
 import { FestivalControls, festivalMenuState } from './festival-controls.ts';
+import { emitGameEvent } from '../steam/events.ts';
+import { FestivalStatusObserver } from '../steam/hooks.ts';
 import {
   FESTIVAL_SAVE_KEY,
   festivalMachineChoice,
@@ -105,6 +107,8 @@ export class FestivalSession {
   private readonly liveFrames = new LiveFrameClock();
   private lastTime = 0;
   private status: FestivalStatus | null = null;
+  /** Achievements: turns status samples into jump / chain / discovery events. */
+  private readonly achievements = new FestivalStatusObserver(emitGameEvent);
   private traffic: TrafficCars | null = null;
   private riders: FestivalRiders | null = null;
   private controls: FestivalControls | null = null;
@@ -328,6 +332,7 @@ export class FestivalSession {
       }
       case 'status':
         this.status = msg.status;
+        this.achievements.observe(msg.status);
         if (this.renderer) {
           for (const id of msg.status.discovered) {
             if (!this.renderer.discovered.has(id)) {
