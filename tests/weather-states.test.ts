@@ -729,7 +729,12 @@ describe('weather ambience and HUD words', () => {
     expect(airReadout(particulateExtinctionPerKm(170), 1, 12.4)).toBe(
       'DUST 170 M · WIND 12 M/S · ',
     );
-    expect(airReadout(particulateExtinctionPerKm(1500), 0, 0)).toBe('FOG 1.5 KM · ');
+    // Fog is under 1 km; a mist is not called fog, and a rain curtain is rain.
+    expect(airReadout(particulateExtinctionPerKm(900), 0, 0)).toBe('FOG 900 M · ');
+    expect(airReadout(particulateExtinctionPerKm(1500), 0, 0)).toBe('');
+    expect(airReadout(particulateExtinctionPerKm(900), 0, 11, 60)).toBe('WIND 11 M/S · ');
+    expect(airReadout(particulateExtinctionPerKm(3100), 1, 0, 0)).toBe('DUST 3.1 KM · ');
+    expect(airReadout(particulateExtinctionPerKm(300), 1, 0, 60)).toBe('DUST 300 M · ');
     expect(airReadout(particulateExtinctionPerKm(8000), 0, 0)).toBe('');
     expect(weatherReadout(9, 0, 0.03, particulateExtinctionPerKm(120), 0, 0.8)).toBe(
       '9°C / FOG 120 M · DAMP TRACK',

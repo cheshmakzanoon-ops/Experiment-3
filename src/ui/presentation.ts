@@ -115,17 +115,23 @@ export function bindPresentation(form: HTMLFormElement, settings: Settings) {
 /** What the air is doing, for the HUD: the fog or dust bank's visibility and a
  * strong wind. Empty in clear air and ordinary breezes, so the dry and rain
  * readouts are unchanged. Visibility is the particulate's own (H.EXTINCTION;
- * rain is already reported as rain). */
-export function airReadout(extinctionPerKm: number, dust: number, windMS: number) {
+ * rain is already reported as rain, so a storm's rain curtain is not called
+ * fog: with 10 mm/h or more falling only dust is named). Fog is named from
+ * the meteorological threshold, under 1 km. */
+export function airReadout(extinctionPerKm: number, dust: number, windMS: number, rainMmHr = 0) {
   const parts: string[] = [];
   if (Number.isFinite(extinctionPerKm) && extinctionPerKm > 0) {
     // Koschmieder: V = 3.912 / sigma, with the clear-air baseline restored.
-    const visibilityM = (KOSCHMIEDER / (extinctionPerKm + KOSCHMIEDER / (CLEAR_VISIBILITY_M / 1000))) * 1000;
-    if (visibilityM < 5000) {
-      const label = Number.isFinite(dust) && dust >= 0.5 ? 'DUST' : 'FOG';
-      parts.push(
-        `${label} ${visibilityM >= 1000 ? `${(visibilityM / 1000).toFixed(1)} KM` : `${Math.max(10, Math.round(visibilityM / 10) * 10)} M`}`,
-      );
+    const visibilityM =
+      (KOSCHMIEDER / (extinctionPerKm + KOSCHMIEDER / (CLEAR_VISIBILITY_M / 1000))) * 1000;
+    const dusty = Number.isFinite(dust) && dust >= 0.5,
+      raining = Number.isFinite(rainMmHr) && rainMmHr >= 10;
+    if (dusty ? visibilityM < 5000 : visibilityM < 1000 && !raining) {
+      const view =
+        visibilityM >= 1000
+          ? `${(visibilityM / 1000).toFixed(1)} KM`
+          : `${Math.max(10, Math.round(visibilityM / 10) * 10)} M`;
+      parts.push(`${dusty ? 'DUST' : 'FOG'} ${view}`);
     }
   }
   if (Number.isFinite(windMS) && windMS >= 8) parts.push(`WIND ${Math.round(windMS)} M/S`);
@@ -155,5 +161,5 @@ export function weatherReadout(
         : rainMmHr > 0.01
           ? 'TRACK WETTING'
           : 'DRY TRACK';
-  return `${Math.round(ambientC)}°C / ${airReadout(extinctionPerKm, dust, windMS)}${rain}${surface}`;
+  return `${Math.round(ambientC)}°C / ${airReadout(extinctionPerKm, dust, windMS, rainMmHr)}${rain}${surface}`;
 }
