@@ -165,12 +165,12 @@ function bestFlash(weatherId, seed, fromWeatherSec, toWeatherSec) {
   const greenAt = 5.6 + new core.Random(seed).next() * 0.9;
   const timeline = new weather.WeatherTimeline(weather.weatherKeyframes(weatherId));
   const s = { cloud: 0, rain: 0, ambient: 0, windX: 0, windZ: 0 };
-  let best = { time: 0, flash: 0 };
+  let best = { time: 0, flash: 0, rain: 0 };
   for (let w = fromWeatherSec; w < toWeatherSec; w += 0.005) {
     timeline.sample(w, s);
     const time = w + greenAt;
     const f = weather.lightningFlash(time, weather.lightningIntensity(s.rain));
-    if (f > best.flash) best = { time, flash: f };
+    if (f > best.flash) best = { time, flash: f, rain: s.rain };
   }
   return best;
 }
@@ -248,32 +248,30 @@ for (const group of groups) {
             s.textContent = '#replayBar{visibility:hidden!important}';
             document.head.append(s);
           });
-          // The replay clock counts seconds from the first recorded frame; read
-          // where that is, seek, and correct by the time the held frame shows.
-          await sleep(5000);
-          const first = (await probe())?.time ?? 0;
-          let position = strike.time - first;
-          for (let attempt = 0; attempt < 5; attempt++) {
-            await page.evaluate(
-              (value) => {
-                const el = document.getElementById('replaySeek');
-                el.value = String(value);
-                el.dispatchEvent(new Event('input', { bubbles: true }));
-              },
-              Math.max(0, position),
-            );
-            await sleep(8000);
-            const d = await probe();
-            const f = weather.lightningFlash(
-              d?.time ?? 0,
-              weather.lightningIntensity(d?.rain ?? 0),
-            );
-            log(
-              `replay at t=${d?.time?.toFixed(3)} (aim ${strike.time.toFixed(3)}) flash ${f.toFixed(2)}`,
-            );
-            if (f >= strike.flash * 0.6) break;
-            if (d?.time != null) position += strike.time - d.time;
+          // Hold the replay clock first (it runs in real time while playing), then
+          // park it on the strike. The clock counts seconds from the first recorded
+          // frame, whose session time is a couple of ticks (about 0.017 s) in; the
+          // presented time is interpolated, so the aim is exact to a few ms.
+          await page.evaluate(() => {
+            const play = document.getElementById('replayPlay');
+            if (play && /PAUSE/.test(play.textContent ?? '')) play.click();
+          });
+          await sleep(3000);
+          const aim = strike.time + 0.02;
+          const position = aim - 0.017;
+          for (let attempt = 0; attempt < 2; attempt++) {
+            await page.evaluate((value) => {
+              const el = document.getElementById('replaySeek');
+              el.value = String(value);
+              el.dispatchEvent(new Event('input', { bubbles: true }));
+            }, position);
+            await sleep(20000);
           }
+          log(
+            `parked at about t=${aim.toFixed(3)} s; expected flash ${weather
+              .lightningFlash(aim, weather.lightningIntensity(strike.rain))
+              .toFixed(2)}`,
+          );
           await page.evaluate(() => {
             const play = document.getElementById('replayPlay');
             if (play && /PAUSE/.test(play.textContent ?? '')) play.click();
