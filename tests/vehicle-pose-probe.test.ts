@@ -181,6 +181,7 @@ describe('rendered pose follows a real driven session', () => {
       rearSpinRatio: round(spinRatio(rows.spin, rows.spinRec), 3),
       bodyRollRange_rad: round(range(rows.roll)),
       bodyRollVsLatGR: round(corr(rows.roll, rows.latG), 3),
+      latGMax: round(Math.max(...rows.latG.map(Math.abs)), 2),
       rearLampBraking: round(mean(rows.tail.filter((_, i) => rows.brake[i] > 0.05)) || 0, 2),
       rearLampCoasting: round(mean(rows.tail.filter((_, i) => rows.brake[i] <= 0.05)) || 0, 2),
     };
@@ -263,6 +264,7 @@ describe('rendered pose follows a real driven session', () => {
       rearSpinRatio: round(spinRatio(rows.spinRL, rows.spinRecorded), 3),
       bodyRollRange_rad: round(range(rows.roll)),
       bodyRollVsLatGR: round(corr(rows.roll, rows.latG), 3),
+      latGMax: round(Math.max(...rows.latG.map(Math.abs)), 2),
       tailGlowBraking: round(mean(rows.tailGlow.filter((_, i) => rows.brake[i] > 0.05)) || 0, 2),
       tailGlowCoasting: round(mean(rows.tailGlow.filter((_, i) => rows.brake[i] <= 0.05)) || 0, 2),
     };
@@ -300,6 +302,26 @@ describe('rendered pose follows a real driven session', () => {
       sweep.left.push(built.wheels[0][0].pivot.rotation.y);
       sweep.right.push(built.wheels[0][1].pivot.rotation.y);
     }
+    // Driver gloves (DriverArms): in the sweep they follow the wheel to the travel
+    // limit and stay on the rim circle; the forearm keeps its length.
+    const rig = bodies.cabinOf(0)!.arms!;
+    const reach: number[] = [];
+    const rim: number[] = [];
+    const column = bodies.cabinOf(0)!.steering.parent as T.Group;
+    const inverse = column.matrix.clone().invert();
+    for (let k = 0; k <= 16; k++) {
+      const turn = (((k / 16) * 2 - 1) * lock * bodies.cabinOf(0)!.layout.wheel.ratio) / 1;
+      rig.update(turn);
+      rig.gloves().forEach((g) => {
+        const local = g.clone().applyMatrix4(inverse);
+        rim.push(Math.abs(Math.hypot(local.x, local.y) - bodies.cabinOf(0)!.layout.wheel.radius));
+      });
+      reach.push(...rig.spans().map((span) => Math.abs(span.upperNow - span.upper)));
+    }
+    table['eh3'].gloveOffRimMax_m = round(Math.max(...rim), 4);
+    table['eh3'].upperArmLengthErrMax_m = round(Math.max(...reach), 5);
+    expect(Math.max(...rim)).toBeLessThan(0.01);
+    expect(Math.max(...reach)).toBeLessThan(0.002);
     table['eh3'].fullLockWheelRot_rad = round(range(sweep.wheel), 3);
     table['eh3'].fullLockWheelRot_turns = round(range(sweep.wheel) / (2 * Math.PI), 2);
     table['eh3'].fullLockWheelLinearR = round(corr(sweep.cmd, sweep.wheel), 4);

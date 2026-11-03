@@ -68,7 +68,9 @@ const stamp = () => `${((Date.now() - t0) / 1000).toFixed(0)}s`;
 await page.goto(url);
 const bootTicker = setInterval(async () => {
   const text = await page
-    .evaluate(() => document.querySelector('#loading, .loading, [data-loading]')?.textContent?.trim())
+    .evaluate(() =>
+      document.querySelector('#loading, .loading, [data-loading]')?.textContent?.trim(),
+    )
     .catch(() => null);
   console.log(`${stamp()} booting... ${text ?? ''}`);
 }, 60000);
@@ -86,8 +88,12 @@ await Promise.race([
       polling: 2000,
     })
     .then(async () => {
-      const detail = await page.evaluate(() => document.body.innerText.replace(/\s+/g, ' ').slice(0, 300));
-      throw new Error(`game error screen: ${detail}; console: ${manifest.errors.slice(-2).join(' | ')}`);
+      const detail = await page.evaluate(() =>
+        document.body.innerText.replace(/\s+/g, ' ').slice(0, 300),
+      );
+      throw new Error(
+        `game error screen: ${detail}; console: ${manifest.errors.slice(-2).join(' | ')}`,
+      );
     }),
 ]);
 clearInterval(bootTicker);
@@ -123,14 +129,18 @@ console.log(`${stamp()} ${real.length} machines in menu, ${queue.length} to capt
 
 const HIDE = 'vehicle-shots-hide';
 const hideChrome = () =>
-  page.addStyleTag({
-    content: `body > #app { visibility: hidden !important; } body > :not(canvas):not(#app) { visibility: hidden !important; }`,
-  }).then((h) => h.evaluate((el) => (el.id = 'vehicle-shots-hide')));
+  page
+    .addStyleTag({
+      content: `body > #app { visibility: hidden !important; } body > :not(canvas):not(#app) { visibility: hidden !important; }`,
+    })
+    .then((h) => h.evaluate((el) => (el.id = 'vehicle-shots-hide')));
 const showChrome = () => page.evaluate((id) => document.getElementById(id)?.remove(), HIDE);
 const previewMachine = () =>
   page.evaluate(() => {
     const d = window.apexDiagnostics?.();
-    return d?.menuPreview ? { machine: d.menuPreview.machine, current: d.menuPreview.current } : null;
+    return d?.menuPreview
+      ? { machine: d.menuPreview.machine, current: d.menuPreview.current }
+      : null;
   });
 
 async function selectMachine(id) {
