@@ -48,7 +48,13 @@ import {
   tintLights,
   weatherAtmosphere,
 } from './weather-atmosphere.ts';
-import { BIKE_SHOWROOM, MENU_CAR_DATUM, MENU_CLOUD_COVER, SHOWROOM } from './menu-preview.ts';
+import {
+  BIKE_SHOWROOM,
+  MENU_CAR_DATUM,
+  MENU_CLOUD_COVER,
+  SHOWROOM,
+  showroomFor,
+} from './menu-preview.ts';
 import { focusOnSubject, subjectLens, type SubjectLens } from './studio/subject-focus.ts';
 import { reflectInWetRoad } from './wet-reflection.ts';
 import { ghostPose, type GhostPose } from '../core/ghost-lap.ts';
@@ -651,7 +657,7 @@ export class RacingRenderer {
         completed: 0,
         total: 1,
         fraction: 0,
-        label: 'Loading your RB19 car and R06 driver/cockpit',
+        label: 'Loading your car, driver and cockpit',
       });
       renderer.suppliedPlayerAsset = await loadSuppliedPlayer(cancelled);
       if (showroomOnly) {
@@ -1423,7 +1429,11 @@ export class RacingRenderer {
       // Dirt bikes retain their taller rider framing; road bikes use the
       // R2 motorcycle composition and cars retain the original showroom.
       const dirtBikeMenu = bikeFollow && !!followedDefinition.bike?.offroad,
-        showroom = dirtBikeMenu ? MOTOCROSS_SHOWROOM : bikeFollow ? BIKE_SHOWROOM : SHOWROOM,
+        showroom = dirtBikeMenu
+          ? MOTOCROSS_SHOWROOM
+          : bikeFollow
+            ? BIKE_SHOWROOM
+            : showroomFor(followedDefinition.halfExtents[2] * 2),
         angle = showroom.angle + Math.sin(this.orbitTime * showroom.rate) * showroom.sway;
       this.desired
         .set(Math.sin(angle) * showroom.radius, 0, Math.cos(angle) * showroom.radius)

@@ -2,7 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { Track } from '../src/simulation/track.ts';
 import { F, carBase } from '../src/simulation/protocol.ts';
-import { MENU_CAR_DATUM, SHOWROOM, menuPreview } from '../src/rendering/menu-preview.ts';
+import {
+  MENU_CAR_DATUM,
+  SHOWROOM,
+  menuPreview,
+  showroomFit,
+  showroomFor,
+} from '../src/rendering/menu-preview.ts';
+import { VEHICLES } from '../src/simulation/vehicles.ts';
 import {
   SPEED_TUNNEL,
   SPEED_TUNNEL_STYLE_ID,
@@ -21,6 +28,23 @@ describe('front-end showroom and speed tunnel', () => {
     const o = carBase(0);
     const road = track.at(frame[o + F.S], { s: 0 } as never).y;
     expect(frame[o + F.Y] - road).toBeCloseTo(MENU_CAR_DATUM, 6);
+  });
+
+  it('keeps the original showroom for ordinary cars and scales only the extremes', () => {
+    // Every mid-size road, GT, touring and formula car keeps the authored lens.
+    for (const id of ['apx01', 'tc1', 'eh3', 'sc7', 'hy9', 'gt8f'])
+      expect(showroomFor(VEHICLES[id].halfExtents[2] * 2), id).toBe(SHOWROOM);
+    // A 2.1 m kart is framed closer (and lower); a 6.8 m pickup further back.
+    const kart = showroomFor(VEHICLES.sk125.halfExtents[2] * 2),
+      truck = showroomFor(VEHICLES.rp6.halfExtents[2] * 2);
+    expect(kart.radius).toBeLessThan(SHOWROOM.radius * 0.7);
+    expect(kart.height).toBeLessThan(SHOWROOM.height);
+    expect(truck.radius).toBeGreaterThan(SHOWROOM.radius);
+    expect(truck.fov).toBe(SHOWROOM.fov);
+    // Bounded: a degenerate length cannot park the camera inside or far from the car.
+    expect(showroomFit(0.1)).toBe(0.55);
+    expect(showroomFit(40)).toBe(1.3);
+    expect(showroomFit(Number.NaN)).toBe(1);
   });
 
   it('paints a deterministic streak tunnel converging on (0.62, 0.45)', () => {

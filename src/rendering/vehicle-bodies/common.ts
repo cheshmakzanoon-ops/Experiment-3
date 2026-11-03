@@ -65,6 +65,21 @@ export interface DriverOptions {
   legs?: { floor: number; pedals: number };
   /** Hands below the helmet centre (x scale); default 0.38. */
   handDrop?: number;
+  /** When given, the arms and gloves are NOT merged into `parts`: each arm's
+   * rest geometry is pushed here for DriverArms, which poses it every frame so
+   * the hands follow the turning steering wheel. */
+  arms?: DriverArmAnchor[];
+}
+/** One arm's rest pose in the car frame (see DriverArms). */
+export interface DriverArmAnchor {
+  side: -1 | 1;
+  shoulder: T.Vector3;
+  /** The rest elbow of the former static arm: gives bone lengths and pole. */
+  elbow: T.Vector3;
+  /** Glove centre on the wheel rim at rest. */
+  hand: T.Vector3;
+  /** Arm and glove radius. */
+  radius: number;
 }
 /** A seated driver: helmet with visor, HANS collar, shoulders, torso and
  * arms reaching for a wheel `reach` m ahead. `scale` 1 is an adult. */
@@ -126,9 +141,19 @@ export function addDriver(
   // Arms to the wheel, hands on it.
   const shoulderY = headY - 0.27 * s,
     hand = new T.Vector3(0, headY - (options.handDrop ?? 0.38) * s, wheelZ);
-  for (const side of [-1, 1]) {
+  for (const side of [-1, 1] as const) {
     const sx = x + side * 0.19 * s,
       hx = x + side * 0.17 * s;
+    if (options.arms) {
+      options.arms.push({
+        side,
+        shoulder: new T.Vector3(sx, shoulderY, z - 0.02),
+        elbow: new T.Vector3(sx + side * 0.03 * s, shoulderY - 0.2 * s, (z + wheelZ) / 2),
+        hand: new T.Vector3(hx, hand.y, wheelZ),
+        radius: 0.045 * s,
+      });
+      continue;
+    }
     parts.add(
       tubeGeometry(
         [

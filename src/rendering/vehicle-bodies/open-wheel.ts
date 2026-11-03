@@ -1,7 +1,7 @@
 import * as T from 'three';
 import { clamp } from '../../core/math.ts';
 import type { KartSheet, OpenWheelSheet } from './body-sheet.ts';
-import { addDriver, type BuiltLod, type CarMaterials } from './common.ts';
+import { addDriver, type BuiltLod, type CarMaterials, type DriverArmAnchor } from './common.ts';
 import type { BodyFrame } from './frame.ts';
 import {
   aerofoil,
@@ -641,17 +641,20 @@ export function buildKart(
     seatY = y(0.06);
   parts.add(roundedBox(0.4, 0.42, 0.36, 0.08, 2), plastic, placed(0, seatY + 0.2, seatZ, -0.25));
   const near = detail === 0 && cabin ? cabin : null;
-  const headParts = new Parts();
+  const headParts = new Parts(),
+    arms: DriverArmAnchor[] = [];
   addDriver(parts, mats, 0, seatY, seatZ + 0.1, 0.92, zF - 0.08, false, {
-    ...(near ? { head: headParts, wheel: false, handDrop: near.layout.wheel.handDrop } : {}),
+    ...(near ? { head: headParts, wheel: false, handDrop: near.layout.wheel.handDrop, arms } : {}),
   });
   if (near)
     lod.cabin = buildFrameCabin({
       layout: near.layout,
       def: near.def,
+      mats,
       shell: parts,
       lod,
       headParts,
+      arms,
     });
   parts.add(
     rodGeometry(

@@ -434,6 +434,8 @@ export class VehicleBodies {
     if (level !== 0) return;
     cabin.steering.rotation.z =
       -lerp(a[o + F.STEER], b[o + F.STEER], alpha) * cabin.layout.wheel.ratio;
+    // The gloves stay on the rim (and the elbows follow) as the wheel turns.
+    cabin.arms?.update(cabin.steering.rotation.z);
     // Only the followed car redraws its instruments (a canvas upload each tick).
     if (followed) cabin.display?.update(snapshotSource(a, b, alpha), o);
   }
