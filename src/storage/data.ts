@@ -202,7 +202,8 @@ export class SaveStore {
         this.db = null;
         reject(request.error ?? new Error('Storage unavailable'));
       };
-      request.onblocked = () => reject(new Error('Close older APEX tabs to update local storage.'));
+      request.onblocked = () =>
+        reject(new Error('Close older MOTOBOUND tabs to update local storage.'));
     }));
   }
   async read(key: string): Promise<unknown> {

@@ -5,7 +5,7 @@ Earlier rendering work began from `52e4b2215bdbb12449ff8279c3889d95ee2cf21c`.
 
 ## Delivered changes
 
-The RB19/R06 source, high-detail representation, rig, textures and simulation
+The supplied car/cockpit source, high-detail representation, rig, textures and simulation
 remain intact. Existing source-derived lower tiers, imported texture budgets,
 single-pass decal sheets, camera/LOD corrections, vectorized fog and gated
 publication are retained. The current addition reorders only opaque triangle

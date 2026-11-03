@@ -2,7 +2,7 @@
 
 ## Preserved source
 
-The game remains Three.js with the existing simulation and supplied RB19/R06
+The game remains Three.js with the existing simulation and supplied supplied car/cockpit
 assembly. Suspension datum, camera sockets, source livery/materials and
 snapshot-driven steering, pause and replay animation are retained. No legacy
 fallback, physical-device FPS, final art, commercial rights or Steam acceptance

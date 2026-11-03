@@ -53,20 +53,6 @@ it('publishes exact validated bytes, recovers reruns, and rejects altered or sta
         }),
       );
     }
-    for (const [name, asset] of [
-      ['supplied-player', 'supplied-player.glb.gz'],
-      ['supplied-player-lods', 'supplied-player-lods.bin.gz'],
-    ]) {
-      const data = Buffer.from(`asset ${name}`);
-      writeFileSync(join(models, asset), data);
-      writeFileSync(
-        join(manifests, `${name}.manifest.json`),
-        JSON.stringify({
-          compressedBytes: data.length,
-          compressedSHA256: createHash('sha256').update(data).digest('hex'),
-        }),
-      );
-    }
     writeFileSync(
       join(bin, 'git'),
       '#!/usr/bin/env bash\nset -euo pipefail\ntest "$1" = ls-remote\nprintf "%s\\trefs/heads/main\\n" "$TEST_CURRENT"\n',
@@ -154,8 +140,11 @@ else: raise ValueError(cmd)
     }
     writeFileSync(join(release, 'BUILD_IDENTITY.json'), JSON.stringify(identity));
     expect(readFileSync(join(root, 'gh-calls'), 'utf8')).toBe(callsBeforeNegativeCases);
-    writeFileSync(join(models, 'supplied-player.glb.gz'), 'tampered');
+    // G15: the owner-supplied real-brand model must never be in a published release. The
+    // validated artifact is a product build, so its presence (any path) is refused.
+    writeFileSync(join(models, 'supplied-player.glb.gz'), 'owner-only asset');
     expect(run().status).not.toBe(0);
+    rmSync(join(models, 'supplied-player.glb.gz'));
     // A mismatched source identity also fails before interacting with release APIs.
     writeFileSync(join(release, 'SOURCE_COMMIT.txt'), 'b'.repeat(40));
     expect(run().status).not.toBe(0);
@@ -164,7 +153,6 @@ else: raise ValueError(cmd)
     expect(readFileSync(script, 'utf8')).not.toMatch(/git (push|switch|checkout|fetch)/);
     // Restore the validated input; a newer main leaves the release untouched.
     writeFileSync(join(release, 'SOURCE_COMMIT.txt'), sha + '\n');
-    writeFileSync(join(models, 'supplied-player.glb.gz'), 'asset supplied-player');
     env.TEST_CURRENT = 'b'.repeat(40);
     expect(run().status).toBe(0);
     expect(readFileSync(join(root, 'gh-calls'), 'utf8')).toBe(calls);

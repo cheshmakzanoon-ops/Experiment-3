@@ -1,6 +1,19 @@
-# Supplied RB19 car + R06 cockpit/driver integration
+# Owner-supplied car + cockpit/driver integration (OWNER-ONLY)
 
-The primary player (car zero) now uses the fitted assembly derived from the two
+> **OWNER-ONLY — NOT PART OF ANY PRODUCT BUILD (release gate G15).**
+> The model integrated here is an owner-supplied reconstruction of a real Formula 1 car and
+> cockpit that carries real team and sponsor decal sheets. It cannot ship in a commercial
+> game. Since G15 the default build neither bundles its loader nor copies its binaries
+> (`public/models/supplied-player.glb.gz`, `supplied-player-lods.bin.gz`): the player's
+> APX-01 is the original authored car (`apx01-shell` + A61 levels, procedural cockpit).
+> Build the owner-only variant with `MOTOBOUND_SUPPLIED_PLAYER=1 npm run build` (and the same
+> variable for `npm run dev`); never publish, package or share that build. Audit and the
+> owner/counsel decisions: [docs/studio/reports/ip-audit.md](studio/reports/ip-audit.md).
+> The sections below describe the owner build only. Node names inside the binary keep the
+> source file's own naming because the binary is hash-pinned; the real-brand wording in this
+> document has been generalised.
+
+In an owner build the primary player (car zero) uses the fitted assembly derived from the two
 user-supplied Blender packages. AI opponents retain the original APX01 assets.
 The production renderer loads the actual, embedded-texture GLB; there is no
 silent procedural-car fallback when this required asset is absent or corrupt.
@@ -17,24 +30,24 @@ physics-contact hubs aligned rather than leaving the body floating above tires.
 Their spin and pit-service offsets come from the same
 presentation snapshots as the rest of the game. Wing visibility follows damage.
 
-The source R06 IK has been sampled into an authored steering clip, bounded to
+The source supplied cockpit IK has been sampled into an authored steering clip, bounded to
 35 degrees in each direction. Both hands and the steering wheel use the same
 sample, selected from the interpolated input rather than accumulated wall-clock
 time. Pausing and seeking a replay therefore reconstruct the same pose.
 
-The source eye socket positions the cockpit camera; a fitted RB19 camera-pod
+The source eye socket positions the cockpit camera; a fitted supplied car camera-pod
 socket positions T-cam. The camera follows chassis orientation and existing
 inertial motion. Cockpit mode hides the head, skull and helmet, not the hands,
 wheel or halo. Other cameras show the complete seated driver. The actual wheel
 screen receives the existing live instrument canvas. The existing rear-view
 render targets bind to the imported mirror surfaces. Photo-detail focus uses the
 new head, display and wheel anchors. Imported paint participates in local
-reflection capture, while the provided RB19 livery is preserved.
+reflection capture, while the provided supplied car livery is preserved.
 
-The RB19 carbon and tire grayscale height images are explicitly interpreted as
+The supplied car carbon and tire grayscale height images are explicitly interpreted as
 bump maps (0.15 mm carbon, 0.4 mm rubber amplitudes), not tangent-space RGB normal
 maps. The ten affected material bindings retain the original image and UV
-transforms. The R06 cockpit's genuine normal maps remain normal maps. This
+transforms. The supplied cockpit cockpit's genuine normal maps remain normal maps. This
 runtime adaptation is required because the Blender exporter wrote source
 Bump-node images into glTF normalTexture slots; the binary remains hash-pinned.
 
@@ -44,8 +57,8 @@ parallel demo was introduced.
 
 ## Asset provenance and budget
 
-- Car source: `RB19_Latest_Downloadable.blend` from the uploaded RB19 package.
-- Driver/cockpit source: `F1_Driver_Cockpit_REFINED_R06.blend` from the R06 handoff.
+- Car source: `<owner car package>.blend` from the owner-supplied car package.
+- Driver/cockpit source: `<owner cockpit package>.blend` from the owner-supplied cockpit handoff.
 - Runtime: `public/models/supplied-player.glb.gz` (36,134,058 bytes).
 - Integrity and fit: `src/rendering/supplied-player.manifest.json`.
 - Build audit: `docs/SUPPLIED_PLAYER_BUILD.json`.
@@ -72,8 +85,8 @@ separately rather than adding another large binary to Git history.
 
 ```sh
 blender -b --python scripts/build-supplied-player.py -- \
-  --car /path/to/RB19_Latest_Downloadable.blend \
-  --cockpit /path/to/F1_Driver_Cockpit_REFINED_R06.blend \
+  --car /path/to/owner-car-package.blend \
+  --cockpit /path/to/owner-cockpit-package.blend \
   --output /path/to/output --preview
 ```
 
@@ -92,7 +105,7 @@ The normal application test in `e2e/24-coupled-driver.spec.ts` now checks the
 active supplied rig rather than treating the hidden legacy driver as evidence.
 The legacy body/driver validators remain intact for AI and their own fixtures.
 
-These sources are artistic reconstructions, not measured RB19 engineering CAD.
+These sources are artistic reconstructions, not measured supplied car engineering CAD.
 This integration does not certify 1:1 accuracy, final art, commercial rights to
 team/sponsor marks, Steam readiness, or a physical-hardware FPS target. The
 player now selects source-preserving runtime detail tiers with the existing

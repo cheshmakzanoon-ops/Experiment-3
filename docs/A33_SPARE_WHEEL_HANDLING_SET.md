@@ -14,7 +14,7 @@ The dimensional contract follows the repository's APX wheel manufacture: 0.335 m
 visual radius and nominal tyre half-widths of 0.155/0.190 m (front/rear). The rim
 flange, cover and captive nut extend beyond the nominal tyre half-width. These
 are game-asset dimensions, not a claim of exact contemporary championship rules
-or a 1:1 duplicate of the supplied RB19's materials and markings.
+or a 1:1 duplicate of the supplied car's materials and markings.
 
 At the transfer endpoint the spare is now axle-centred, rather than another
 0.21 m beyond the axle withdrawal. Two hand targets follow the measured sidewall
