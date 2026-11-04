@@ -82,7 +82,7 @@ rule                    2 u hairline 20 u under the baseline, ending in three 31
 
 | Asset | Rule |
 | --- | --- |
-| Header 920x430 (460x215 at 1x) | board 45% wide at the bottom; logo and strip inside it with 22 px (1x) from the left and top-bottom centring; nothing but the photograph right of the lane line |
+| Header 920x430 (460x215 at 1x) | board 45% wide at the bottom; logo and strip 22 px (1x) from the left and centred vertically on the board; nothing but the photograph right of the lane line |
 | Small 462x174 (231x87) | wordmark only, 112 px wide, 14 px left margin; board 140 px; one subject crop on the right |
 | Main 1232x706 (616x353) | board over the hero only, four 22 px-label bands (11 px at 1x) along the bottom 90 px |
 | Vertical 748x896 (374x448) | board on top 118 px, hero in the middle, three bands in the bottom 86 px |

@@ -163,14 +163,14 @@ const ASSETS = [
     format: 'png',
     where: 'Store page header capsule; library "recent games" header',
     safe: 'logo inside 6% margins; board never wider than 48%; tagline paper strip fully inside the board',
-    alt: 'MOTOBOUND key art: a motocross bike on the wall of a banked oval, with the logo and the line RACE THE WRONG MACHINE on a dark board.',
+    alt: 'MOTOBOUND key art: a motocross rider on the tarmac of a banked speed bowl with a rival ahead, beside the logo and the line RACE THE WRONG MACHINE on a dark board.',
     build: () => {
       const W = 460,
         H = 215,
         bw = 206;
       const lw = 164;
       return (
-        photo('pairing', { x: 0, y: 0, w: W, h: H }, { fx: 0.5, fy: 0.55, zoom: 1.15 }) +
+        photo('pairing', { x: 0, y: 0, w: W, h: H }, { fx: 0.331, fy: 0.52, zoom: 1.6 }) +
         board(H, bw) +
         brand('motobound-lockup-stacked.svg', 22, 58, lw) +
         tag(TAGLINE, 22, 58 + hOf('motobound-lockup-stacked.svg', lw) + 14, 9.5)
@@ -196,14 +196,14 @@ const ASSETS = [
     format: 'png',
     where: 'Search results, "more like this", bundles',
     safe: 'wordmark only (no tagline), at least 12 px margins at 1x; nothing finer than 8 px',
-    alt: 'MOTOBOUND small capsule: the wordmark beside a motocross bike on a banked wall.',
+    alt: 'MOTOBOUND small capsule: the wordmark on a dark board beside a motocross rider seen from behind.',
     build: () => {
       const W = 231,
         H = 87,
         bw = 152;
       const lw = 124;
       return (
-        photo('pairing', { x: 0, y: 0, w: W, h: H }, { fx: 0.55, fy: 0.62, zoom: 1.9 }) +
+        photo('pairing', { x: 0, y: 0, w: W, h: H }, { fx: 0.359, fy: 0.546, zoom: 2.74 }) +
         board(H, bw, 2) +
         brand('motobound-wordmark.svg', 14, (H - hOf('motobound-wordmark.svg', lw)) / 2, lw)
       );
@@ -228,7 +228,7 @@ const ASSETS = [
     format: 'png',
     where: 'Store front featured slot; Next Fest and sale placements',
     safe: 'logo inside the board, bands 84 px at 1x, labels 11 px at 1x',
-    alt: 'MOTOBOUND main capsule: the logo and tagline over a motocross bike on a banked oval, and four bands for circuit, GP bike, dirt and festival.',
+    alt: 'MOTOBOUND main capsule: the logo and tagline beside a motocross rider on a banked speed bowl, with four bands below for circuit, GP bike, dirt and festival.',
     build: () => {
       const W = 616,
         H = 353,
@@ -237,7 +237,7 @@ const ASSETS = [
       const lw = 214;
       const bandBox = { x: 0, y: H - bandH, w: W, h: bandH };
       return (
-        photo('pairing', { x: 0, y: 0, w: W, h: H - bandH }, { fx: 0.5, fy: 0.55, zoom: 1.0 }) +
+        photo('pairing', { x: 0, y: 0, w: W, h: H - bandH }, { fx: 0.331, fy: 0.53, zoom: 1.6 }) +
         board(H - bandH, bw) +
         brand('motobound-lockup-stacked.svg', 30, 62, lw) +
         tag(TAGLINE, 30, 62 + hOf('motobound-lockup-stacked.svg', lw) + 18, 12) +
@@ -245,7 +245,7 @@ const ASSETS = [
           [
             { role: 'night', label: 'CIRCUIT', n: 1, fx: 0.42, fy: 0.62, zoom: 1.7 },
             { role: 'gp', label: 'GP BIKE', n: 2, fx: 0.5, fy: 0.56, zoom: 1.28 },
-            { role: 'dirt', label: 'DIRT', n: 3, fx: 0.5, fy: 0.5, zoom: 2.4 },
+            { role: 'dirt', label: 'DIRT', n: 3, fx: 0.5, fy: 0.52, zoom: 1.4 },
             { role: 'coast', label: 'FESTIVAL', n: 4, fx: 0.5, fy: 0.66, zoom: 1.9 },
           ],
           bandBox,
@@ -273,7 +273,7 @@ const ASSETS = [
     format: 'png',
     where: 'Store front and sale pages (portrait)',
     safe: 'logo board on top, hero in the middle, three discipline bands at the base; 14 px margins at 1x',
-    alt: 'MOTOBOUND vertical capsule: the logo on a dark board above a rider in the air and bands for GP bike, circuit and festival.',
+    alt: 'MOTOBOUND vertical capsule: the logo and tagline on a dark board above a motocross rider in the air in a forest, with bands below for GP bike, circuit and festival.',
     build: () => {
       const W = 374,
         H = 448,
@@ -281,7 +281,7 @@ const ASSETS = [
         bandH = 86;
       return (
         `<div class="boxfill" style="left:0;top:0;width:${W}px;height:${H}px;background:${C.a0}"></div>` +
-        photo('dirt', { x: 0, y: top, w: W, h: H - top - bandH }, { fx: 0.5, fy: 0.55, zoom: 1.5 }) +
+        photo('dirt', { x: 0, y: top, w: W, h: H - top - bandH }, { fx: 0.5, fy: 0.52, zoom: 1.5 }) +
         `<div class="boxfill" style="left:0;top:0;width:${W}px;height:${top}px;background:${C.a0}"></div>` +
         `<div class="laneh" style="top:${top - 1}px;width:${W}px"></div>` +
         brand('motobound-lockup-horizontal.svg', 22, 26, W - 44) +
@@ -306,7 +306,7 @@ const ASSETS = [
     format: 'png',
     where: 'Steam library grid (portrait)',
     safe: 'lower third is a quiet board carrying only the logo and tagline; no detail below y=600',
-    alt: 'MOTOBOUND library capsule: a GT car under floodlights above the logo and tagline on a dark board.',
+    alt: 'MOTOBOUND library capsule: the original APX-01 formula car in a dark showroom above the logo and tagline on a dark board.',
     build: () => {
       const W = 600,
         H = 900,
@@ -328,7 +328,7 @@ const ASSETS = [
     format: 'png',
     where: 'Steam library "recent games" header (re-uses the header composition)',
     safe: 'same as header',
-    alt: 'MOTOBOUND library header, the same art as the store header capsule.',
+    alt: 'MOTOBOUND library header: the same art as the store header capsule.',
     build: () => ASSETS.find((a) => a.id === 'header').build(),
   },
   {
@@ -339,7 +339,7 @@ const ASSETS = [
     format: 'jpeg',
     where: 'Top of the library game page. NO text or logo (the logo is layered separately)',
     safe: 'no text; the left third is held dark for the logo; the subject sits centre-right',
-    alt: 'Wide view of a white electric hypercar on the Solvane coast road at golden hour.',
+    alt: 'A white electric hypercar seen side-on on the Solvane coast road in low evening light, the sea on the horizon; the left of the picture is held dark for the logo.',
     build: () => {
       const W = 3840,
         H = 1240;
@@ -358,7 +358,7 @@ const ASSETS = [
     format: 'jpeg',
     where: 'Behind the store page',
     safe: 'blurred, dark (mean luminance about 15%), no focal point under the page text',
-    alt: 'A dark, blurred view of the Solvane coast road behind the store page.',
+    alt: 'A dark, blurred view of the Solvane coast road and a white hypercar, used behind the store page.',
     luma: 0.15,
     build: () =>
       photo('coast', { x: 0, y: 0, w: 1438, h: 810 }, { fx: 0.62, fy: 0.5, zoom: 1.0, css: 'filter:blur(16px) saturate(.75) brightness(.42);transform:scale(1.06)' }),
@@ -434,14 +434,14 @@ const ASSETS = [
     format: 'png',
     where: 'News and event posts (small event art)',
     safe: 'header layout at 800 wide',
-    alt: 'MOTOBOUND event banner: the logo beside a motocross bike on a banked oval.',
+    alt: 'MOTOBOUND event banner: the logo and tagline beside a motocross rider on a banked speed bowl.',
     build: () => {
       const W = 800,
         H = 450,
         bw = 352;
       const lw = 282;
       return (
-        photo('pairing', { x: 0, y: 0, w: W, h: H }, { fx: 0.5, fy: 0.55, zoom: 1.15 }) +
+        photo('pairing', { x: 0, y: 0, w: W, h: H }, { fx: 0.331, fy: 0.5, zoom: 1.6 }) +
         board(H, bw, 4) +
         brand('motobound-lockup-stacked.svg', 38, 140, lw) +
         tag(TAGLINE, 38, 140 + hOf('motobound-lockup-stacked.svg', lw) + 22, 15)

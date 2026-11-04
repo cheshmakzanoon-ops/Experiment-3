@@ -86,7 +86,7 @@ export const FRAMES = [
     use: 'vertical capsule hero, main capsule band, teaser shot 7',
     entry: { plate: 'dirt', mode: 'practice', circuit: 'valley-ridge-mx', vehicle: 'mx450', weather: 'clear', light: 'day', opponents: '0' },
     view: 'chase',
-    pick: { scan: 'air', attempts: 12 },
+    pick: { scan: 'air', attempts: 12, maxAir: 1.8 }, // the first run never caught the 0.05-0.7 s window: a poll on software GL is slow, so any early-to-mid flight will do
     photo: { backdrop: 'circuit', view: 'orbit', azimuth: 90, elevation: 8, distance: 7.5, focalLength: 50, filter: 'cinematic', vignette: 0.3 },
     alt: 'A motocross rider and bike in the air off the lip of a jump, seen from the side.',
   },
