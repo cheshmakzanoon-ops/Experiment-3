@@ -9,6 +9,7 @@ import {
   type PaintFinish,
 } from '../paint-finish.ts';
 import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
+import { installGrazingCap } from '../studio/grazing-cap.ts';
 import { installBodyLayers, type LayerFrame } from './body-livery.ts';
 
 /** Material kit for procedural vehicle bodies (WP30). Paint is the house
@@ -79,6 +80,7 @@ export function bodyPaint(
   installPaintFinish(material);
   const f = PAINT_FINISHES[finish];
   installPaintFlakes(material, f.flake, f.peel);
+  installGrazingCap(material);
   if (layers) installBodyLayers(material, layers);
   installPanelGaps(material, gaps);
   return material;

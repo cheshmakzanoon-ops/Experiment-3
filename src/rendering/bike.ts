@@ -12,6 +12,7 @@ import { gpRadialBrakeCaliper } from './gp-radial-caliper.ts';
 import { GPFrontHydraulics } from './gp-front-hydraulics.ts';
 import { gpBrakeRotor, GP_FRONT_DISC } from './gp-brake-rotor.ts';
 import { gpDiscGlow } from './gp-disc-glow.ts';
+import { GpSliderSparks, SLIDER_SPARKS } from './gp-slider-sparks.ts';
 import { gpForkCrowns, GP_FORK_TUBE_TOP } from './gp-fork-crown.ts';
 import { gpMainFrame } from './gp-main-frame.ts';
 import { gpForgedWheel, gpTyreCompoundMarkings, gpWheelMachinedLip } from './gp-forged-wheel.ts';
@@ -715,6 +716,9 @@ export class BikeModel {
   private readonly gpChain?: GPChainDrive;
   private readonly gpRearSuspension?: GPRearSuspension;
   private readonly gpRearsets?: GPRearsets;
+  /** GP prototypes, near detail: the knee sliders' sparks at full lean (gp-slider-sparks.ts). */
+  private readonly sliderSparks?: GpSliderSparks;
+  private readonly sparkOrigins: [T.Vector3, T.Vector3] = [new T.Vector3(), new T.Vector3()];
   private readonly gpFrontBrakeLever?: T.Group;
   private readonly gpFrontHydraulics?: GPFrontHydraulics;
   private readonly gpBrakeTargets: [T.Vector3, T.Vector3] = [new T.Vector3(), new T.Vector3()];
@@ -1381,17 +1385,19 @@ export class BikeModel {
     // round number plate; no belly pan, so the engine and chambers show.
     if (classic) {
       // A bullet half-fairing at headlamp height, ahead of the fork legs (which
-      // stay in view below and behind it), with a round lens in a bright rim.
+      // stay in view below and behind it). D5: it tapers to a glass nose instead of ending
+      // in a flat disc (the old shell read as a tin can): the lamp is the bullet's own tip, a
+      // glass dome in a bright rim, and a short bracket ties the shell to the steering head.
       add(
         this.sprung,
         superLoft(
           [
-            section(0.56, 0.15, 0.1, 0.085, 0.075),
-            section(0.64, 0.16, 0.15, 0.11, 0.095),
-            section(0.75, 0.16, 0.165, 0.12, 0.105),
-            section(0.85, 0.15, 0.145, 0.105, 0.095),
-            section(0.915, 0.145, 0.105, 0.08, 0.075),
-            section(0.935, 0.142, 0.02, 0.02, 0.02),
+            section(0.52, 0.17, 0.09, 0.09, 0.08),
+            section(0.6, 0.18, 0.15, 0.125, 0.105),
+            section(0.7, 0.18, 0.17, 0.14, 0.115),
+            section(0.8, 0.165, 0.15, 0.125, 0.105),
+            section(0.88, 0.15, 0.115, 0.095, 0.085),
+            section(0.925, 0.142, 0.075, 0.062, 0.058),
           ],
           sides,
           2.0,
@@ -1399,8 +1405,25 @@ export class BikeModel {
         m.paint,
       );
       if (detail !== 'far') {
-        add(this.sprung, new T.CircleGeometry(0.088, 24), m.screenLight, 0, 0.142, 0.931, false);
-        add(this.sprung, new T.TorusGeometry(0.09, 0.008, 8, 28), m.aluminium, 0, 0.142, 0.929);
+        add(
+          this.sprung,
+          new T.SphereGeometry(
+            0.058,
+            sides,
+            Math.max(6, sides / 2),
+            0,
+            Math.PI * 2,
+            0,
+            Math.PI / 2,
+          ),
+          m.screenLight,
+          0,
+          0.142,
+          0.918,
+          false,
+        ).rotation.x = Math.PI / 2;
+        add(this.sprung, new T.TorusGeometry(0.064, 0.009, 8, 28), m.aluminium, 0, 0.142, 0.92);
+        add(this.sprung, new RoundedBoxGeometry(0.1, 0.04, 0.2, 2, 0.012), m.dark, 0, 0.055, 0.66);
         const plate = add(
           this.sprung,
           new T.CircleGeometry(0.07, 24),
@@ -1859,6 +1882,10 @@ export class BikeModel {
     this.rider.ground.crown = b.crownRadius;
     if (this.gpFrontBrakeLever) this.rider.brakeFingerTargets = this.gpBrakeTargets;
     this.sprung.add(this.rider.root);
+    if (gpPrototype && detail === 'high') {
+      this.sliderSparks = new GpSliderSparks();
+      this.rider.root.add(this.sliderSparks.points);
+    }
     for (const group of [
       this.sprung,
       this.steer,
@@ -1957,11 +1984,30 @@ export class BikeModel {
         leanRate: v.leanRate,
         gpBody: v.gpBody,
       });
+      this.poseSparks(v);
+    } else if (this.sliderSparks) this.sliderSparks.points.visible = false;
+  }
+  /** Knee-slider sparks: from the rider's road-contact clamp and the chassis lean; the
+   * sliders' positions are read in the rider's frame, which is the sprung frame. */
+  private poseSparks(v: BikePoseValues) {
+    const sparks = this.sliderSparks;
+    if (!sparks) return;
+    const lean = Math.abs(v.chassisLean);
+    if (lean < SLIDER_SPARKS.leanFrom || !(this.rider.kneeDown[0] || this.rider.kneeDown[1])) {
+      sparks.points.visible = false;
+      return;
     }
+    this.sprung.updateMatrixWorld(true);
+    for (let i = 0; i < 2; i++) {
+      this.rider.kneeSliderWorld(i, this.sparkOrigins[i]);
+      this.rider.root.worldToLocal(this.sparkOrigins[i]);
+    }
+    sparks.update(v.time ?? 0, v.chassisLean, this.sparkOrigins, this.rider.kneeDown);
   }
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
+    this.sliderSparks?.dispose();
     this.cockpit?.dispose();
     this.rider.root.removeFromParent();
     this.rider.dispose();
@@ -1975,6 +2021,8 @@ export class BikeModel {
 export interface BikePoseValues extends GpTyreAppearance {
   /** Snapshot values for the near cockpit; metres/second and protocol gear index. */
   speed?: number;
+  /** Presented simulation time (s): the knee-slider sparks are a function of it. */
+  time?: number;
   rpm?: number;
   gear?: number;
   fork: number;
@@ -2264,6 +2312,7 @@ export class BikeShells {
       front = o + WHEEL_BASE,
       rear = front + 2 * WHEEL_STRIDE;
     v.speed = sampleValue(a, b, o + F.SPEED, t);
+    v.time = sampleValue(a, b, H.TIME, t);
     v.rpm = sampleValue(a, b, o + F.RPM, t);
     v.gear = source[o + F.GEAR];
     v.fork = sampleBikeField(a, b, o, B.FORK, t);

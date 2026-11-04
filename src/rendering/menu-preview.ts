@@ -193,6 +193,32 @@ export const MENU_CAR_DATUM = VEHICLE.restLength + VEHICLE.wheelRadius - 0.05;
  * an unquantized 0.12 still forces a new atlas blend on the first draw. */
 export const MENU_CLOUD_COVER = Math.fround(0.12);
 
+/** An optional photo pose for a motorcycle's static presentation (vehicle art 3, the GP-R1
+ * hero frame): lean, rider hang-off, front braking, speed and rotor temperature. Everything
+ * else stays the plain showroom pose. Null for a car. */
+export interface MenuPose {
+  /** Chassis lean (rad, + left). */
+  lean?: number;
+  /** Rider hang-off from the centreline (m, + left). */
+  riderOffset?: number;
+  brake?: number;
+  /** Speed (m/s) and carbon-rotor temperature (C): the disc glows from about 620 C. */
+  speed?: number;
+  discTemp?: number;
+  /** Presented time (s): the knee-slider sparks are a function of it. */
+  time?: number;
+}
+/** The corner hero frame of a GP prototype: 57 degrees of lean, the rider hung off by 25 cm,
+ * a hand on the front brake, rotors glowing. Knee slider on the asphalt, sparks flying. */
+export const GP_CORNER_PRESET: Readonly<MenuPose> = Object.freeze({
+  lean: 1.0,
+  riderOffset: 0.25,
+  brake: 0.6,
+  speed: 38,
+  discTemp: 900,
+  time: 3.3,
+});
+
 /** Static menu presentation, not a simulated or award-eligible driving session.
  * Keep the track coordinate, world pose and wheel dimensions consistent: the
  * studio/HQ floor samples F.S, not the position of an unrelated grid-start cell.
@@ -202,6 +228,7 @@ export function menuPreview(
   track: Track,
   distance = track.length - 32,
   machine = 'apx01',
+  pose?: MenuPose,
 ): Float32Array {
   if (!Number.isFinite(distance)) throw new Error('Invalid menu preview position');
   const frame = new Float32Array(HEADER + CAR_STRIDE),
@@ -239,6 +266,32 @@ export function menuPreview(
     frame[o + BIKE_BASE + B.SHOCK] = rearLoad / bike.shockRate;
     frame[o + BIKE_BASE + B.FRONT_LOAD] = frontLoad;
     frame[o + BIKE_BASE + B.REAR_LOAD] = rearLoad;
+    if (pose) {
+      const lean = Number.isFinite(pose.lean) ? Math.max(-1.3, Math.min(1.3, pose.lean!)) : 0;
+      frame[o + BIKE_BASE + B.LEAN] = lean;
+      if (Number.isFinite(pose.riderOffset))
+        frame[o + BIKE_BASE + B.RIDER_OFFSET] = pose.riderOffset!;
+      if (Number.isFinite(pose.brake)) frame[o + F.BRAKE] = Math.max(0, Math.min(1, pose.brake!));
+      if (Number.isFinite(pose.speed)) frame[o + F.SPEED] = pose.speed!;
+      if (Number.isFinite(pose.time)) frame[H.TIME] = pose.time!;
+      if (Number.isFinite(pose.discTemp))
+        for (let i = 0; i < 4; i++)
+          frame[o + WHEEL_BASE + i * WHEEL_STRIDE + W.DISC_TEMP] = pose.discTemp!;
+      // The chassis pivots about its contact patch: roll the quaternion about the machine's own
+      // forward axis (yaw first, then -lean about z) and swing the centre of gravity inboard.
+      const sy = Math.sin(yaw / 2),
+        cy = Math.cos(yaw / 2),
+        sz = Math.sin(-lean / 2),
+        cz = Math.cos(-lean / 2);
+      frame[o + F.QX] = sy * sz;
+      frame[o + F.QY] = sy * cz;
+      frame[o + F.QZ] = cy * sz;
+      frame[o + F.QW] = cy * cz;
+      const cg = bike.cgHeight;
+      frame[o + F.Y] = p.y + cg * Math.cos(lean);
+      frame[o + F.X] = p.x + cg * Math.sin(lean) * Math.cos(yaw);
+      frame[o + F.Z] = p.z - cg * Math.sin(lean) * Math.sin(yaw);
+    }
   }
   frame[o + F.FRONT_HEALTH] = frame[o + F.REAR_HEALTH] = frame[o + F.FLOOR_HEALTH] = 1;
   frame[o + F.COMPOUND] = 1;

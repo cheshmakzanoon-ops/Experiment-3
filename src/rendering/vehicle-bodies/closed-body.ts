@@ -56,6 +56,10 @@ export class ClosedBodyModel {
   private readonly belt: Track;
   private readonly taper: Track;
   private readonly arches: { z: number; hub: number; r: number; tub: number; flare: number }[];
+  /** The wheel arches (car frame): axle station, hub height, arch radius, flare. */
+  archList() {
+    return this.arches.map(({ z, hub, r, flare }) => ({ z, hub, r, flare }));
+  }
   constructor(
     readonly f: BodyFrame,
     readonly s: ClosedSheet,
@@ -82,10 +86,22 @@ export class ClosedBodyModel {
         [z(ws) - 0.02, y(open ? cockpit : s.cowl)],
         [Math.max(z(ws) + 0.05, (z(ws) + f.frontAxle) / 2), y((s.cowl + s.bonnet) / 2)],
         [f.frontAxle, y(s.bonnet)],
-        [zF - 0.32, y(s.nose + (s.bonnet - s.nose) * 0.62)],
-        [zF - 0.08, y(s.nose + 0.02)],
-        [zF - 0.02, y(s.nose - 0.02)],
-        [zF, y(s.nose - 0.06)],
+        // A truck keeps its bonnet level almost to the face and then drops square: a blunt,
+        // upright front (D11) instead of the sports-car droop, so the grille, the lamps and the
+        // bumper have a face to sit on.
+        ...(s.style === 'truck'
+          ? ([
+              [zF - 0.3, y(s.bonnet - (s.bonnet - s.nose) * 0.1)],
+              [zF - 0.1, y(s.bonnet - (s.bonnet - s.nose) * 0.28)],
+              [zF - 0.025, y(s.bonnet - (s.bonnet - s.nose) * 0.4)],
+              [zF, y(s.bonnet - (s.bonnet - s.nose) * 0.52)],
+            ] as [number, number][])
+          : ([
+              [zF - 0.32, y(s.nose + (s.bonnet - s.nose) * 0.62)],
+              [zF - 0.08, y(s.nose + 0.02)],
+              [zF - 0.02, y(s.nose - 0.02)],
+              [zF, y(s.nose - 0.06)],
+            ] as [number, number][])),
       ].filter((k, i, all) => i === 0 || k[0] > all[i - 1][0] + 1e-3) as [number, number][],
     );
     this.floor = new Track([
@@ -645,40 +661,63 @@ export function buildClosedBody(
   };
   const seg = detail === 0 ? 3 : 1;
   if (!detailedFestival) {
-    const zHead = model.zFront - (s.style === 'truck' ? 0.1 : s.lamps.front === 'pod' ? 0.3 : 0.22);
-    for (const side of [-1, 1]) {
-      const ax = hw(zHead) * (s.lamps.front === 'bar' ? 0.45 : 0.66),
-        at = surface(zHead, ax),
-        x = side * ax,
-        roll = side * at.roll;
-      const lamp = (w: number, d: number, dx = 0, round = false) => {
-        parts.add(
-          roundedBox(w + 0.03, 0.03, d + 0.03, 0.012, seg),
-          trim,
-          placed(x + side * dx, at.y - 0.01, zHead, at.pitch, 0, roll),
-        );
-        const lens = round
-          ? new T.CylinderGeometry(w / 2, w / 2, 0.026, detail === 0 ? 24 : 10)
-          : roundedBox(w, 0.026, d, 0.01, seg);
-        parts.add(lens, mats.head, placed(x + side * dx, at.y - 0.002, zHead, at.pitch, 0, roll));
-      };
-      if (s.lamps.front === 'round') lamp(0.15, 0.15, 0, true);
-      else if (s.lamps.front === 'twin') {
-        lamp(0.12, 0.12, 0.08, true);
-        lamp(0.12, 0.12, -0.08, true);
-      } else if (s.lamps.front === 'pod') {
-        parts.add(
-          roundedBox(0.16, 0.08, 0.22, 0.035, seg),
-          mats.paint,
-          placed(x, at.y + 0.02, zHead, at.pitch),
-        );
-        parts.add(
-          roundedBox(0.12, 0.05, 0.02, 0.012, seg),
-          mats.head,
-          placed(x, at.y + 0.025, zHead + 0.11),
-        );
-      } else if (s.lamps.front === 'bar') lamp(hw(zHead) * 0.5, 0.06);
-      else lamp(0.3, 0.07);
+    if (s.style === 'truck') {
+      // D11: a truck's headlamps sit IN its upright face, two round units in a trim ring at the
+      // upper corners with a smaller driving lamp under each, not on the bonnet's top edge.
+      const faceTop = model.topY(model.zFront - 0.001),
+        xFace = hw(model.zFront - 0.06) * 0.66,
+        z = model.zFront + 0.004;
+      for (const side of [-1, 1]) {
+        for (const [r, dy, rim] of [
+          [0.085, -0.15, 0.108],
+          [0.045, -0.33, 0.062],
+        ] as const) {
+          const ring = new T.CylinderGeometry(rim, rim, 0.03, detail === 0 ? 24 : 10).rotateX(
+            Math.PI / 2,
+          );
+          parts.add(ring, trim, placed(side * xFace, faceTop + dy, z));
+          const lens = new T.CylinderGeometry(r, r, 0.03, detail === 0 ? 24 : 10).rotateX(
+            Math.PI / 2,
+          );
+          parts.add(lens, mats.head, placed(side * xFace, faceTop + dy, z + 0.012));
+        }
+      }
+    } else {
+      const zHead = model.zFront - (s.lamps.front === 'pod' ? 0.3 : 0.22);
+      for (const side of [-1, 1]) {
+        const ax = hw(zHead) * (s.lamps.front === 'bar' ? 0.45 : 0.66),
+          at = surface(zHead, ax),
+          x = side * ax,
+          roll = side * at.roll;
+        const lamp = (w: number, d: number, dx = 0, round = false) => {
+          parts.add(
+            roundedBox(w + 0.03, 0.03, d + 0.03, 0.012, seg),
+            trim,
+            placed(x + side * dx, at.y - 0.01, zHead, at.pitch, 0, roll),
+          );
+          const lens = round
+            ? new T.CylinderGeometry(w / 2, w / 2, 0.026, detail === 0 ? 24 : 10)
+            : roundedBox(w, 0.026, d, 0.01, seg);
+          parts.add(lens, mats.head, placed(x + side * dx, at.y - 0.002, zHead, at.pitch, 0, roll));
+        };
+        if (s.lamps.front === 'round') lamp(0.15, 0.15, 0, true);
+        else if (s.lamps.front === 'twin') {
+          lamp(0.12, 0.12, 0.08, true);
+          lamp(0.12, 0.12, -0.08, true);
+        } else if (s.lamps.front === 'pod') {
+          parts.add(
+            roundedBox(0.16, 0.08, 0.22, 0.035, seg),
+            mats.paint,
+            placed(x, at.y + 0.02, zHead, at.pitch),
+          );
+          parts.add(
+            roundedBox(0.12, 0.05, 0.02, 0.012, seg),
+            mats.head,
+            placed(x, at.y + 0.025, zHead + 0.11),
+          );
+        } else if (s.lamps.front === 'bar') lamp(hw(zHead) * 0.5, 0.06);
+        else lamp(0.3, 0.07);
+      }
     }
     // Tail lamps on the rear face.
     {
@@ -924,6 +963,47 @@ export function buildClosedBody(
         sharedMaterials.harness(),
         placed(side * half * 0.5, f.y(s.floor + 0.14), model.zFront + 0.1, Math.PI / 2),
       );
+  }
+  if (s.style === 'truck' && detail < 2) {
+    // D11: a truck's fender flares end in a moulded lip round each arch (a half ring of black
+    // rubber standing off the paint), and a pickup without a bullbar gets a plated bumper with
+    // two fog lamps and tow hooks, so the lower front is hardware, not one dark slab.
+    const rubber = sharedMaterials.plastic();
+    for (const a of model.archList())
+      for (const side of [-1, 1])
+        parts.add(
+          new T.TorusGeometry(a.r + 0.012, 0.014, 6, detail === 0 ? 28 : 12, Math.PI).rotateY(
+            Math.PI / 2,
+          ),
+          rubber,
+          placed(side * (hw(a.z) + 0.004), a.hub, a.z),
+        );
+    if (!s.extras.includes('bullbar')) {
+      const half = hw(model.zFront) * 0.92,
+        yb = f.y(s.floor + 0.17);
+      parts.add(
+        roundedBox(half * 2, 0.11, 0.1, 0.04, 2),
+        sharedMaterials.steel(),
+        placed(0, yb, model.zFront + 0.04),
+      );
+      for (const side of [-1, 1]) {
+        parts.add(
+          new T.CylinderGeometry(0.05, 0.05, 0.03, detail === 0 ? 20 : 10).rotateX(Math.PI / 2),
+          trim,
+          placed(side * half * 0.62, yb + 0.005, model.zFront + 0.095),
+        );
+        parts.add(
+          new T.CylinderGeometry(0.038, 0.038, 0.02, detail === 0 ? 20 : 10).rotateX(Math.PI / 2),
+          mats.head,
+          placed(side * half * 0.62, yb + 0.005, model.zFront + 0.108),
+        );
+        parts.add(
+          new T.TorusGeometry(0.03, 0.008, 6, 14),
+          sharedMaterials.harness(),
+          placed(side * half * 0.25, yb - 0.075, model.zFront + 0.07, Math.PI / 2),
+        );
+      }
+    }
   }
   if (s.extras.includes('snorkel') && detail < 2) {
     const zs = zWs - 0.04;

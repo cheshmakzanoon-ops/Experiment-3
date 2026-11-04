@@ -7,6 +7,7 @@ import wetRoad from '../shaders/wetRoad.frag?raw';
 export { treadMaterial } from './tire-finish.ts';
 import carbonRoughness from '../shaders/carbon.frag?raw';
 import carbonNormal from '../shaders/carbon-normal.frag?raw';
+import { installGrazingCap } from './studio/grazing-cap.ts';
 
 // Approximate visible-light water IOR used only by the presentation lobe.
 // The physical track-water field and tire equations are untouched.
@@ -105,6 +106,8 @@ export function carbonMaterial(finish: keyof typeof CARBON_FINISHES = 'lacquered
       ? 'apex-metre-carbon-v5-tow-sheen-coat'
       : 'apex-metre-carbon-v5-tow-sheen-satin';
   material.userData.carbonFinish = finish;
+  // D8: an up-facing carbon skin (splitter, floor, wing flap) must not mirror the sky at a glance.
+  installGrazingCap(material);
   return material;
 }
 
