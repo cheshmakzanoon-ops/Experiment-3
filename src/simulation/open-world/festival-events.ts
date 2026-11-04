@@ -1,8 +1,8 @@
 import { scoreEvents, type ScoreEvent } from '../../core/scoring.ts';
 import { RouteGraph, RouteProgress, validateRoute } from '../route-graph.ts';
 import type { Vehicle } from '../vehicle.ts';
-import type { FestivalResult } from './festival-result.ts';
-import type { FestivalEventSpec } from './region-data.ts';
+import { isRace, type FestivalResult } from './festival-result.ts';
+import type { FestivalEventSpec, XZ } from './region-data.ts';
 import { pathPoint, planRoute, RoutePath } from './route-path.ts';
 import type { OpenWorld } from './world.ts';
 
@@ -25,6 +25,48 @@ export interface FestivalEvent {
   marker: { x: number; y: number; z: number; heading: number };
   /** Total race distance (m). */
   distance: number;
+  /** Skill challenges: a place on the road ahead of the entry gate, facing
+   * it, to start a run from (TRY AGAIN): the challenge begins when the car
+   * drives through the gate, as in free roam. Null for races, and where no
+   * road runs up to the gate. */
+  runUp: { x: number; y: number; z: number; heading: number; length: number } | null;
+}
+/** Road behind a skill challenge's entry for a run at speed. */
+export const RUN_UP_METRES = 260;
+/** A path that starts `back` metres of road behind the event's entry (the
+ * closest it can find: a shorter run-up where the road is short) and follows
+ * the event's own waypoints. `entry` is the route distance of the gate on it.
+ * Null where no road runs up to the entry. */
+export function approachRoute(
+  world: OpenWorld,
+  spec: FestivalEventSpec,
+  path: RoutePath,
+  back = RUN_UP_METRES,
+): { path: RoutePath; entry: number } | null {
+  const p0 = path.at(0, pathPoint());
+  for (const b of [back, back * 0.7, back * 0.45, 70]) {
+    const q: XZ = [p0.x - p0.tx * b, p0.z - p0.tz * b];
+    try {
+      const approach = new RoutePath(world.network, planRoute(world.network, [q, ...spec.waypoints], false), false),
+        located = { lateral: 0, distance: 0 },
+        entry = approach.locate(p0.x, p0.z, b, Math.max(80, b * 1.5), located),
+        at = approach.at(entry, pathPoint());
+      // The planner snaps the run-up point to the nearest road, which may
+      // be another one: accept only a route that really arrives at the gate
+      // heading the same way, without a detour.
+      if (
+        located.distance < 3 &&
+        entry > b * 0.5 &&
+        entry < b * 1.7 &&
+        approach.length < entry + path.length * 1.2 + 40 &&
+        at.tx * p0.tx + at.tz * p0.tz > 0.95
+      )
+        return { path: approach, entry };
+    } catch {
+      /* no road there: try a shorter run-up */
+    }
+  }
+  return null;
 }
 /** Resolve every authored event: plan its route through the network,
  * validate the RouteGraph spec, place the marker. Throws on invalid data. */
@@ -41,6 +83,8 @@ export function resolveEvents(world: OpenWorld): FestivalEvent[] {
     if (errors.length) throw new Error(`Festival event ${spec.id}: ${errors.join('; ')}`);
     const p = path.at(0, pathPoint());
     const laps = closed ? Math.max(1, spec.laps ?? 1) : 1;
+    const approach = closed || isRace(spec.kind) ? null : approachRoute(world, spec, path);
+    const from = approach?.path.at(0, pathPoint());
     return {
       index,
       spec,
@@ -49,6 +93,9 @@ export function resolveEvents(world: OpenWorld): FestivalEvent[] {
       laps,
       marker: { x: p.x, y: p.y, z: p.z, heading: Math.atan2(p.tx, p.tz) },
       distance: closed ? path.length * laps : path.finishDistance,
+      runUp: from
+        ? { x: from.x, y: from.y, z: from.z, heading: Math.atan2(from.tx, from.tz), length: approach!.entry }
+        : null,
     };
   });
 }

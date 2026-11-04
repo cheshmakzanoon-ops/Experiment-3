@@ -51,7 +51,11 @@ const bridgeSamples = [
     x: -887.8813977633121,
     z: 876.0116774193868,
     below: 87.72358071225304,
-    deck: 95.139348088,
+    // 95.139348088 until the festival QA pass rounded the sag the Ridge
+    // Highway made into this deck (a V of 11 % that rolled a 200 km/h car:
+    // scripts/studio/tools/festival-qa.ts, the Grand Loop). The deck here is now 0.45 m
+    // higher, still less than the 8 m (two layer gaps) above the valley road.
+    deck: 95.58817435459727,
   },
   {
     name: 'h2 over bare ground',
@@ -147,7 +151,8 @@ describe('festival carved-ground presentation queries', () => {
 
   it('preserves the road API layer overlap while photo mode retains the subject layer', () => {
     const { x, z, below, deck } = bridgeSamples[0];
-    const overlappingHint = below + 3.5;
+    // A height inside both layers' tolerance: midway between the two roads.
+    const overlappingHint = (below + deck) / 2;
     expect(overlappingHint - below).toBeLessThan(4);
     expect(deck - overlappingHint).toBeLessThan(4);
     // Both layers are eligible; nearest XZ still chooses the upper road.

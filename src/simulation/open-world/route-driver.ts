@@ -35,6 +35,15 @@ const BIKE_DOWN_RESET = 20;
  * motorcycle on public roads: junction corners are sharp and short. */
 const BIKE_WINDOW = Object.freeze([-6, -3, 3, 6]);
 const BIKE_CORNER_RESERVE = 0.88;
+/** Speed (m/s) above which the driver plans over twice the circuit AI's
+ * 252 m look-ahead (see RouteDriver.update). */
+export const LONG_LOOKAHEAD_SPEED = 55;
+/** Straight-line pace in the wet (see RouteDriver.update): the fraction of the
+ * dry pace is WET_PACE_BASE + WET_PACE_PER_GRIP × grip (grip 0..1 of the dry
+ * reference), at least WET_PACE_FLOOR and at most 1 (from grip 0.44 up the pace is untouched). */
+const WET_PACE_BASE = 0.3;
+const WET_PACE_PER_GRIP = 1.6;
+const WET_PACE_FLOOR = 0.4;
 /** Heading error (rad) beyond which a motorcycle turns round at walking pace. */
 const BIKE_TURN_ROUND = 1.0;
 
@@ -73,6 +82,11 @@ export class RouteDriver {
   trouble = 0;
   /** Set when the driver asks the session to put it back on the route. */
   wantsReset = false;
+  /** Route distance beyond which the driver plans no braking at all: a
+   * measured gate (speed trap, zone finish) ends the activity there, so the
+   * junction a few metres past it is the next road's business. Infinity
+   * (default) plans for the whole route as a race does. */
+  horizon = Infinity;
   private tactical = 0;
   /** Take a lane beside a slower car ahead (racing); off, it only follows
    * (the free-roam cruise among ambient traffic). */
@@ -82,6 +96,9 @@ export class RouteDriver {
    * this scales it so a car that runs wide at speed still holds the line. */
   private understeer = 1;
   private stuck = 0;
+  /** Watchdog: route distance a while ago and the seconds since. */
+  private progressMark = 0;
+  private progressClock = 0;
   private recovery = 0;
   private trafficSpeed = Infinity;
   private trafficClock = 0;
@@ -103,8 +120,8 @@ export class RouteDriver {
   private turningRound = false;
   private readonly target = pathPoint();
   private readonly sample = pathPoint();
-  private readonly curvatures = new Float64Array(ENVELOPE_SAMPLES);
-  private readonly corners = new Float64Array(ENVELOPE_SAMPLES);
+  private readonly curvatures = new Float64Array(ENVELOPE_SAMPLES * 2);
+  private readonly corners = new Float64Array(ENVELOPE_SAMPLES * 2);
   private readonly delta = new Vec3();
   private readonly local = new Vec3();
   private readonly located = { lateral: 0, distance: 0 };
@@ -127,6 +144,8 @@ export class RouteDriver {
     this.stuck = 0;
     this.recovery = 0;
     this.trouble = 0;
+    this.progressMark = this.d;
+    this.progressClock = 0;
     this.wantsReset = false;
     this.clearTraffic();
   }
@@ -263,10 +282,21 @@ export class RouteDriver {
       (env.downforceReference * (0.45 + 0.55 * Math.min(c.frontHealth, c.floorHealth))) /
       (c.spec.dryMass + c.fuel);
     const laneGrip = grip * clamp(1 - Math.abs(this.tactical) * 0.03, 0.85, 1);
-    for (let i = 0; i < ENVELOPE_SAMPLES; i++) {
+    // The circuit AI looks 21 samples (252 m) ahead, enough to stop from
+    // 70 m/s. A hypercar flat out on a highway needs more (88 m/s at 1.4 g is
+    // 270 m): twice the look-ahead above LONG_LOOKAHEAD_SPEED, or it brakes at
+    // the limit of its horizon and runs wide at the T-junction at the end of
+    // the Coast Highway (festival QA, Grand Loop).
+    const samples = c.speed > LONG_LOOKAHEAD_SPEED ? ENVELOPE_SAMPLES * 2 : ENVELOPE_SAMPLES;
+    for (let i = 0; i < samples; i++) {
       const at = this.d + i * ENVELOPE_STEP;
       const curvatureAt = (x: number) =>
         this.laneOffset ? path.at(x, this.sample).curvature : path.lineCurvatureAt(x);
+      if (at > this.horizon) {
+        this.curvatures[i] = 0;
+        this.corners[i] = env.topSpeed * this.skill;
+        continue;
+      }
       let k = curvatureAt(at);
       // A motorcycle cannot brake hard while leaned: the sharpest point of
       // each sample's window counts (a junction corner shorter than the
@@ -288,17 +318,28 @@ export class RouteDriver {
         loose ? LOOSE_ROAD_SPEED * this.skill : Infinity,
       );
     }
-    let desired = Math.min(env.topSpeed * this.skill, this.speedCap);
+    // The corner envelope reads the grip the tyres have now, but on a near
+    // straight road it only limits corners: a hypercar in heavy rain held
+    // 290 km/h on the plateau road (grip 0.2 of dry at that speed), could not
+    // steer back from the crown and left the road (festival QA, rain and
+    // storm). Where the tyres have lost much of their grip, flat-out is not
+    // the pace either: the straight-line pace follows the grip, from 78 % of
+    // the dry pace at the rain preset's 0.3 down to 40 %.
+    const wetPace = clamp(WET_PACE_BASE + WET_PACE_PER_GRIP * grip, WET_PACE_FLOOR, 1);
+    let desired = Math.min(env.topSpeed * this.skill * wetPace, this.speedCap);
     // Turning round at walking pace; aligning again before speeding up.
     if (turning) desired = Math.min(desired, 4);
     else if (bike) desired = Math.min(desired, Math.max(6, 30 - 60 * away));
     desired = Math.min(
       desired,
-      envelopeProfile(this.curvatures, this.corners, laneGrip, aero, env),
+      envelopeProfile(this.curvatures, this.corners, laneGrip, aero, env, samples),
     );
     desired = Math.min(desired, this.trafficSpeed);
     // The end of a point-to-point route: brake to a stop before its end.
-    const remaining = path.closed ? Infinity : path.length - 6 - this.d;
+    const remaining =
+      path.closed || (this.horizon < Infinity && this.d < this.horizon)
+        ? Infinity
+        : path.length - 6 - this.d;
     if (remaining < 1) desired = 0;
     else if (remaining < 260) desired = Math.min(desired, Math.sqrt(2 * 5 * remaining));
     // A finished car eases off.
@@ -357,12 +398,31 @@ export class RouteDriver {
       command.steer = -command.steer;
       this.decision = 'RECOVERY';
       if (this.recovery <= 0) this.stuck = 0;
+    } else if (!bike && c.gear < 0 && c.speed > 1) {
+      // Backing out leaves the gearbox in reverse until the car is nearly
+      // stopped (vehicle.ts): throttle then keeps it going backwards, away
+      // from the route, as fast as it will go. Stop first, then drive on
+      // (festival QA, Harbour Opening Run in rain: 25 s lost reversing).
+      command.throttle = 0;
+      command.brake = 1;
+      this.decision = 'RECOVERY';
     }
     // Ask for a reset when recovery keeps failing, when far off the route
     // or upside down.
     const upset = !bike && c.up.y < 0.3;
     if (!finished && (this.stuck > 9 || this.located.distance > 40 || upset)) this.trouble += dt;
     else this.trouble = Math.max(0, this.trouble - dt);
+    // Every recovery attempt clears `stuck`, so `stuck > 9` is never reached: a
+    // car wedged beside the road (wheels on a verge, 10 m from the route, still
+    // inside RouteProgress's tolerance) spun and reversed for ever (festival
+    // QA, Port Ilse Street Loop in a storm: 500 s). No progress along the
+    // route for 12 s while it wants to go is trouble whatever recovery tried.
+    this.progressClock += dt;
+    if (this.progressClock >= 12) {
+      if (!finished && desired > 5 && Math.abs(this.d - this.progressMark) < 3) this.trouble += 5;
+      this.progressMark = this.d;
+      this.progressClock = 0;
+    }
     if (this.trouble > 4) this.wantsReset = true;
     if (bike) bike.aiControlled();
   }

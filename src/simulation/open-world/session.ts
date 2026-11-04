@@ -115,7 +115,9 @@ export type FestivalCommand =
   | { type: 'continue' }
   | { type: 'autopilot'; value: boolean }
   | { type: 'vehicle'; id: string }
-  | { type: 'travel'; event: string }
+  /** `runUp`: a skill challenge is approached from the road ahead of its gate
+   * (TRY AGAIN), instead of standing on the gate. */
+  | { type: 'travel'; event: string; runUp?: boolean }
   | { type: 'traffic'; value: boolean };
 export interface FestivalCard {
   id: string;
@@ -549,7 +551,12 @@ export class OpenWorldSimulation {
         const fresh = this.makeCar(0, this.player.definition.id);
         this.cars[0] = fresh;
         this.autopilotDriver = null;
-        this.placeOnPath(fresh, event.path, 0, 0);
+        // A skill challenge starts when the car drives through its gate: with
+        // `runUp` the driver arrives on the road behind it, as in free roam,
+        // so a second attempt can match the first.
+        const runUp = cmd.runUp && !isRace(event.spec.kind) ? event.runUp : null;
+        if (runUp) this.placeAt(fresh, runUp.x, runUp.z, runUp.heading, runUp.y + 0.5);
+        else this.placeOnPath(fresh, event.path, 0, 0);
         this.prefetchAround(fresh, 0);
         // Exploration records where the driver has been; it does not gate
         // the open world's roads or practice events. A deliberate return
@@ -558,7 +565,7 @@ export class OpenWorldSimulation {
         this.declined = null;
         this.cardEvent = null;
         this.parked = true;
-        this.say(`Travelled to ${event.spec.name}`);
+        this.say(runUp ? `${event.spec.name}: drive through the gate` : `Travelled to ${event.spec.name}`);
         break;
       }
       case 'traffic':
@@ -934,6 +941,8 @@ export class OpenWorldSimulation {
         this.autopilotDriver ??= new RouteDriver(this.player, run.event.path, 0.9);
         this.autopilotDriver.update(dt, traffic, false, run.participants[0].finishTime !== null);
         run.assisted = true;
+        // Wedged beside the road or upside down: reset, as the free-roam cruise does.
+        if (this.autopilotDriver.wantsReset) this.resetToRoad(0, 'Autopilot reset');
       }
     } else if (this.autopilot) this.cruise(dt);
     else if (this.parked) {
