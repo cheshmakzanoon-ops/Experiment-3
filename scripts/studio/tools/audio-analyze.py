@@ -703,10 +703,11 @@ def judge(files, agg, dist, dups, meta):
         add('medium', 'A6', 'Discontinuities away from any scheduled event',
             f'{len(clicky)} renders have sample-level clicks that no gear/impact event explains.',
             {'worst': [(r['id'], r['clicks']['unexplained'], round(r['clicks']['worst_ratio'], 1)) for r in sorted(clicky, key=lambda r: -r['clicks']['worst_ratio'])[:8]]})
-    steps = [r for r in files if r.get('steps') and r['steps']['max_step_db'] > 6.0 and r['group'] in ('engine', 'mix')]
+    steps = [r for r in files if r.get('steps') and r['steps']['max_step_db'] > 6.0 and r['group'] in ('engine', 'mix')
+             and r['tags'].get('kind') not in ('limiter', 'pit')]  # the limiter bounce is intended modulation
     if steps:
         add('medium', 'A7', 'Abrupt level steps',
-            f'{len(steps)} renders step more than 6 dB between 2 ms frames away from events.',
+            f'{len(steps)} renders step more than 6 dB between adjacent 25 ms windows away from events.',
             {'worst': [(r['id'], round(r['steps']['max_step_db'], 1), round(r['steps']['at_s'], 2)) for r in sorted(steps, key=lambda r: -r['steps']['max_step_db'])[:8]]})
     # 7 gear-change dips
     dips = [(r['id'], e['dip_db']) for r in files if r.get('events') for e in r['events'] if r['tags'].get('kind') in ('shift', 'pull') and e['dip_db'] < -9.0]

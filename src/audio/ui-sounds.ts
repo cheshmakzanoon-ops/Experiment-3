@@ -46,7 +46,7 @@ export interface Voice {
 export const UI_SOUNDS: Readonly<Record<UiSoundId, readonly Voice[]>> = Object.freeze({
   // Relay click: a hard transient and a short high blip.
   tick: [
-    { kind: 'noise', hz: 3200, filter: 'highpass', at: 0, attack: 0.001, decay: 0.012, gain: 0.5 },
+    { kind: 'noise', hz: 3200, filter: 'highpass', at: 0, attack: 0.001, decay: 0.012, gain: 0.24 },
     {
       kind: 'tone',
       wave: 'square',
@@ -54,8 +54,8 @@ export const UI_SOUNDS: Readonly<Record<UiSoundId, readonly Voice[]>> = Object.f
       to: 1500,
       at: 0,
       attack: 0.001,
-      decay: 0.02,
-      gain: 0.12,
+      decay: 0.055,
+      gain: 0.24,
     },
   ],
   // Stencil stamp: a low thud that drops, with a little paper in front of it.
@@ -161,7 +161,7 @@ export const UI_MASTER = 0.35;
  * (audio-render.mjs --group ui) after changing a recipe. */
 export const UI_MAKEUP_DB = 14;
 export const UI_TRIM_DB: Readonly<Record<UiSoundId, number>> = Object.freeze({
-  tick: 8,
+  tick: 7.5,
   select: 0,
   confirm: 6,
   open: 21,
