@@ -203,6 +203,34 @@ Steam binding in use (steamworks.js 0.4.0, the latest release) has no leaderboar
 reaches Steam (`desktop/STEAM.md` "Leaderboards" lists the options). Rich presence is wired with ten
 statuses; it is unverified against a real client.
 
+## Capsule, library and icon art
+
+Built from real game frames and the original vector brand by `scripts/studio/tools/capsule-art.mjs` (identity and
+rules: [`BRAND.md`](BRAND.md); the slot-by-slot Steamworks list: [`ART_UPLOAD_CHECKLIST.md`](ART_UPLOAD_CHECKLIST.md);
+size, SHA-256 and source frames of each file: `art/manifest.json`; everything at a glance: `art/contact-sheet.png`).
+The tagline on the capsules is `RACE THE WRONG MACHINE`. **All game frames are software-GL captures; retake them on a
+GPU before upload (G8).** Alt text below is for the page's accessibility/alt fields and for the press kit.
+
+| File | Steam slot | Alt text |
+| --- | --- | --- |
+| `art/capsule/header-920x430.png` (920x430) | Store page header capsule; library "recent games" header | MOTOBOUND key art: a motocross rider on the tarmac of a banked speed bowl with a rival ahead, beside the logo and the line RACE THE WRONG MACHINE on a dark board. |
+| `art/capsule/capsule-small-462x174.png` (462x174) | Search results, "more like this", bundles | MOTOBOUND small capsule: the wordmark on a dark board beside a motocross rider seen from behind. |
+| `art/capsule/capsule-main-1232x706.png` (1232x706) | Store front featured slot; Next Fest and sale placements | MOTOBOUND main capsule: the logo and tagline beside a motocross rider on a banked speed bowl, with four bands below for circuit, GP bike, dirt and festival. |
+| `art/capsule/capsule-vertical-748x896.png` (748x896) | Store front and sale pages (portrait) | MOTOBOUND vertical capsule: the logo and tagline on a dark board above a motocross rider in the air in a forest, with bands below for GP bike, circuit and festival. |
+| `art/library/library-capsule-600x900.png` (600x900) | Steam library grid (portrait) | MOTOBOUND library capsule: the original APX-01 formula car in a dark showroom above the logo and tagline on a dark board. |
+| `art/library/library-header-920x430.png` (920x430) | Steam library "recent games" header (re-uses the header composition) | MOTOBOUND library header: the same art as the store header capsule. |
+| `art/library/library-hero-3840x1240.jpg` (3840x1240) | Top of the library game page. NO text or logo (the logo is layered separately) | A white electric hypercar seen side-on on the Solvane coast road in low evening light, the sea on the horizon; the left of the picture is held dark for the logo. |
+| `art/page/page-background-1438x810.jpg` (1438x810) | Behind the store page | A dark, blurred view of the Solvane coast road and a white hypercar, used behind the store page. |
+| `art/library/library-logo-1280x720.png` (1280x720) | Layered over the library hero | The MOTOBOUND logo: amber roundel, chalk wordmark, three lane chevrons. |
+| `art/library/library-logo-mono-white-1280x720.png` (1280x720) | One-colour fallback for the library logo | The MOTOBOUND logo in one colour. |
+| `art/icons/community-icon-184x184.jpg` (184x184) | Steam community hub icon (JPG, no wordmark) | The MOTOBOUND roundel on dark asphalt. |
+| `art/icons/client-icon-256x256.png` (256x256) | Steam client icon source and the desktop shell icon (replaces the placeholder in desktop/build/icon.png) | The MOTOBOUND roundel on dark asphalt. |
+| `art/icons/icon-1024x1024.png` (1024x1024) | Master icon for ICO/ICNS conversion | The MOTOBOUND roundel on dark asphalt. |
+| `art/event/event-banner-800x450.png` (800x450) | News and event posts (small event art) | MOTOBOUND event banner: the logo and tagline beside a motocross rider on a banked speed bowl. |
+
+The animatic in `trailer/` is **not** the trailer: it is a silent film of stills (see `TRAILER_CAPTURE.md`). The store
+page still needs a real-GPU gameplay trailer.
+
 ## Screenshots (store shot list)
 
 Ten 1920x1080 JPEGs (quality 88) in [`screenshots/`](screenshots/), captured from the real game
@@ -240,6 +268,20 @@ suggested page order: the board and the Wildcard hook first, then the discipline
   then the car still rolling off the line on the Col d'Argent straight).
 - Not captured: a Wildcard run in progress, a replay camera, drift or jump zones in the festival, and
   the demo's FULL GAME plates (those are in `docs/studio/reports/release-2-screens/`).
+
+**Further 1920x1080+ frames** (marketing pass, `art/frames/`, framed with the game's photo studio, no HUD, same
+software-GL limits; the table with the camera values and notes is `art/frames/manifest.json`): `mx-jump-side.jpg` is a
+real in-air frame and replaces `motocross-jump.jpg` as the dirt shot (that file is still not a jump); `gp-lean-side.jpg`
+(a GP bike at 0.61 rad lean, side-on, no environment); `night-gt-neon.jpg` (a GT car in the neon-city tunnel at night);
+`wildcard-knobblies-banking.jpg` (the Wildcard hook: a motocross bike on the banked speed bowl, chase camera);
+`apx01-showroom.jpg` and `apx01-portrait.jpg` (the hero car without the paddock board); `coast-eh3-wide.jpg`
+(3840x1240, the EH-3 on the coast road; a parked traffic car intrudes bottom-left, taken before the tool learnt to
+turn ambient traffic off). **Lead the page with a HUD shot:** `trailer/keyframes/t02-grid-pack.jpg` (1920x1080 JPEG, kept after one retake: the first
+take had the pause menu over it) is the best candidate for screenshot 1: the formula car at 286 km/h through a fast
+corner of the Aurel circuit with the full race HUD. It was driven by the in-game AI driver on software GL (say so if
+asked; retake with a human driver on a GPU for launch). Alt text: *A formula car at 286 km/h on the Aurel circuit seen
+from behind, with the position tower, speed, gear, battery and lap timer of the race HUD, a track map, grandstands
+and mountains under a blue sky.*
 
 ## Not for the page until true
 

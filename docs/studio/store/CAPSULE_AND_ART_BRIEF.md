@@ -5,6 +5,21 @@ release engineer knows them; **re-check that page before upload** (it has change
 store images need a legible title at the smallest size they are shown at, no review quotes or
 awards on the main capsule, and no content that is not in the game.
 
+## Status (marketing pass)
+
+The art in this brief now exists as files: [`art/`](art/) (built by `scripts/studio/tools/capsule-art.mjs` from real game
+frames and the original vector brand), with the identity in [`BRAND.md`](BRAND.md) and the slot-by-slot upload list in
+[`ART_UPLOAD_CHECKLIST.md`](ART_UPLOAD_CHECKLIST.md). Two corrections to this brief:
+
+* **The size table is the 2x set.** Header 920x430, small 462x174, main 1232x706 and vertical 748x896 are exactly twice
+  the 1x sizes Steam also names (460x215, 231x87, 616x353, 374x448). The tool writes both, so legibility can be checked at
+  the size a 1x screen shows.
+* **The visual-language table below is superseded.** It predates the Paddock Board sign-off (gate G5): the identity is now
+  chalk `#f1ecdf` and amber `#ffb21a` on asphalt `#121315` with paper `#e8dfc8` strips, set in Saira / Saira Stencil One
+  (`ART_DIRECTION.md` section 3). Vermilion `#ed6947` is not used.
+* The Wildcard series shipped, so the header's "mismatched pairing" is a real Wildcard event frame (motocross bike on the
+  banked speed bowl), not a mock-up. All game frames are still software-GL captures: retake on a GPU before launch (G8).
+
 ## Required and recommended assets
 
 | Asset | Size (px) | Format | Where it appears | Notes |
