@@ -446,4 +446,50 @@ export const VENUE_THEMES: Readonly<Record<VenueTheme, VenueThemeStyle>> = Objec
     stands: 4,
     lightTowers: false,
   },
+  // Wildcard series, wave 2: unexpected places, dressed from the same kit.
+  // An airport: concrete apron and taxiways, no trees beside the movement area,
+  // floodlight masts (the apron's own) along the lap.
+  airport: {
+    ground: 'concrete',
+    groundTint: 0x8d8c86,
+    landform: 'flat',
+    relief: 0,
+    planting: null,
+    forestBelts: false,
+    scrub: 0,
+    rockTint: 0x8a8880,
+    sponsor: 'MARRAM FIELD',
+    stands: 4,
+    lightTowers: true,
+  },
+  // A hydro dam: a concrete crest between two stretches of water, conifers on
+  // the abutments, floodlights on the crest.
+  dam: {
+    ground: 'concrete',
+    groundTint: 0x93928c,
+    landform: 'mountains',
+    relief: 260,
+    planting: CONIFER,
+    forestBelts: false,
+    scrub: 120,
+    rockTint: 0x8c8a84,
+    sponsor: 'KALDER DAM',
+    stands: 4,
+    lightTowers: true,
+  },
+  // A night market: paved lanes between low frontage, small street lamps.
+  market: {
+    ground: 'pavement',
+    groundTint: 0x7d7468,
+    landform: 'flat',
+    relief: 0,
+    planting: null,
+    forestBelts: false,
+    scrub: 0,
+    rockTint: 0x7d7468,
+    sponsor: 'SAFFRON LANE',
+    stands: 4,
+    lightTowers: true,
+    streetLamps: true,
+  },
 });

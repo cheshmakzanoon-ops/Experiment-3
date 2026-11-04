@@ -1,6 +1,9 @@
+import type { WeatherId } from '../weather-catalogue.ts';
+
 /** Circuit catalogue vocabulary (masterplan §14–§15, WP29–WP30). This module
- * has no runtime imports so the circuit registry, the track and the renderer
- * can all read it without an import cycle. */
+ * has no runtime imports (the one import is type-only) so the circuit
+ * registry, the track and the renderer can all read it without an import
+ * cycle. */
 
 /** Every catalogue layout id, in menu order. Aurel and Vellamar stay first in
  * the registry; these follow them. */
@@ -48,6 +51,11 @@ export const CATALOGUE_CIRCUIT_IDS = Object.freeze([
   'salt-flat',
   // Wildcard series venues (wildcard-venues.ts).
   'level-nine',
+  // Wildcard series, wave 2: unexpected places (wildcard-venues.ts).
+  'haut-givre',
+  'marram-field',
+  'kalder-dam',
+  'saffron-lane',
 ] as const);
 export type CatalogueCircuitId = (typeof CATALOGUE_CIRCUIT_IDS)[number];
 /** Terrain venues (src/simulation/offroad/venues.ts), after the catalogue. */
@@ -102,7 +110,11 @@ export type VenueTheme =
   | 'night-desert'
   | 'caspian-city'
   | 'bay-city'
-  | 'salt-flat';
+  | 'salt-flat'
+  // Wildcard series, wave 2.
+  | 'airport'
+  | 'dam'
+  | 'market';
 
 /** A lap-distance span on one side (+1 right of travel, -1 left). `from` may
  * exceed `to` when the span wraps through the start line. */
@@ -145,6 +157,14 @@ export interface CatalogueDressing {
    * only, legs stand beyond both barriers. */
   readonly gantries: readonly LapSpan[];
 }
+/** The time of day a venue is best raced at (the renderer's own presets). */
+export type VenueLighting = 'day' | 'sunset' | 'night';
+/** A venue's own recommendation: the light and weather it was dressed for.
+ * Advisory data for menus and events; nothing in the simulation reads it. */
+export interface VenueSuggestion {
+  readonly lighting: VenueLighting;
+  readonly weather: WeatherId;
+}
 export interface CatalogueMeta {
   readonly group: CatalogueGroup;
   /** Venue family (shared by a venue's layouts). */
@@ -167,6 +187,8 @@ export interface CatalogueMeta {
   readonly bikeSafe: boolean;
   /** Fictional trackside signage text; the theme's default when absent. */
   readonly signage?: string;
+  /** The light and weather the venue is dressed for (wave-2 Wildcard venues). */
+  readonly suggested?: VenueSuggestion;
   /** Real-world reference length (m) the layout was scaled to, when it is an
    * approximation of public geometry. */
   readonly referenceLength?: number;
