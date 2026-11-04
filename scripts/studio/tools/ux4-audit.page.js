@@ -91,6 +91,9 @@
       if (!own || !el.getClientRects().length) continue;
       const cs = getComputedStyle(el);
       if (cs.visibility === 'hidden' || cs.display === 'none') continue;
+      // A font size of 0 draws no text: the race HUD's icon badge (the ERS mode ring) and the label a ::after
+      // replaces (BATT) use it. Text a pseudo-element draws is measured by hud-legibility.page.js.
+      if (parseFloat(cs.fontSize) === 0) continue;
       const rect = el.getBoundingClientRect();
       if (rect.width < 1 || rect.height < 1 || el.closest('dialog:not([open])')) continue;
       const fg = rgba(cs.color);

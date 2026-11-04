@@ -10,7 +10,9 @@
 
 @media (max-width: 1279px), (max-height: 679px) {
   .hud {
-    --scale: var(--ui-scale);
+    /* The interface size times the HUD scale a player chose (style.css .hud, capped at 1.35): at automatic and 100%
+       this is the interface size alone, the size every compact contract was measured at. */
+    --scale: var(--hud-kc);
     --race-header: calc(32px * var(--scale) + 12px);
     --race-controls: 54px;
   }
