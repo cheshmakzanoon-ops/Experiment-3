@@ -30,6 +30,7 @@ import { TrackMap } from './f1-minimap.ts';
 import { installSpeedTunnel } from '../rendering/studio/speed-tunnel.ts';
 import { SectorBoard } from './sector-timing.ts';
 import { audioAccessibility, readDrivingAudio } from './audio-accessibility.ts';
+import { audioMixer, readAudioMixer } from './audio-mixer.ts';
 import type { DrivingAudioSettings } from '../audio/driving-cues.ts';
 import { nearbyTraffic } from './proximity.ts';
 import { GapTimer, formatInterval } from './gap-timer.ts';
@@ -1264,7 +1265,7 @@ export class Interface {
         )
         .join(
           '',
-        )}${audioAccessibility(settings.drivingAudio)}<h3>Input mapping</h3><p class="small-note">Axis and button numbers are zero-based. Keyboard always remains available.</p><div class="mapping-grid">${[
+        )}${audioMixer({ levels: settings.audioLevels, musicEnabled: settings.musicEnabled })}${audioAccessibility(settings.drivingAudio)}<h3>Input mapping</h3><p class="small-note">Axis and button numbers are zero-based. Keyboard always remains available.</p><div class="mapping-grid">${[
         ['steerAxis', 'Steer axis'],
         ['throttleAxis', 'Throttle axis'],
         ['brakeAxis', 'Brake axis'],
@@ -1324,7 +1325,11 @@ export class Interface {
     form.addEventListener('input', (e) => {
       const input = e.target as HTMLInputElement;
       const output = input.parentElement?.querySelector('output');
-      if (output) output.value = input.name === 'uiScale' ? `${Math.round(Number(input.value) * 100)}%` : input.value;
+      if (output)
+        output.value =
+          input.name === 'uiScale' || input.name.startsWith('level_')
+            ? `${Math.round(Number(input.value) * 100)}%`
+            : input.value;
       if (input.name === 'uiScale') root.style.setProperty('--ui-scale', input.value);
       // The one value a machine reads as its own baseline saves as its neighbour.
       if (input.dataset.setup !== undefined) {
@@ -1390,6 +1395,12 @@ export class Interface {
       next.quality = value('quality') as Settings['quality'];
       next.graphics = graphics();
       next.drivingAudio = readDrivingAudio(form);
+      const mix = readAudioMixer(form, {
+        levels: settings.audioLevels,
+        musicEnabled: settings.musicEnabled,
+      });
+      next.audioLevels = mix.levels;
+      next.musicEnabled = mix.musicEnabled;
       next.colorblind = (form.elements.namedItem('colorblind') as HTMLInputElement).checked;
       next.highContrast = (form.elements.namedItem('highContrast') as HTMLInputElement).checked;
       for (const key of ['captions', 'engineerRadio', 'reducedMotion'] as const)

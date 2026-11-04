@@ -910,7 +910,7 @@ function startScenario(): Scenario {
     label: 'Start sequence: five lamps, lights out, launch (cockpit)',
     seconds: 9,
     view: 'cockpit',
-    events: [1, 2, 3, 4, 5, green, ...launch.events.map((e) => e + green)],
+    events: [1, 2, 3, 4, 5, green, green + 0.1, ...launch.events.map((e) => e + green)],
     f0: null,
     tags: { scene: 'start-lights' },
     frameAt: (t) => {

@@ -501,7 +501,7 @@ export function engineSignature(id: string, loadTorque: number): EngineSignature
   const a = hash01(id),
     b = hash01(`${id}#`);
   return {
-    tiltDb: Math.max(-6, Math.min(6, -2 * size + (a - 0.5) * 7)),
+    tiltDb: Math.max(-6, Math.min(6, 2 * size + (a - 0.5) * 7)),
     brightness: Math.max(0.7, Math.min(1.4, 2 ** (-0.3 * size + (b - 0.5) * 0.8))),
   };
 }

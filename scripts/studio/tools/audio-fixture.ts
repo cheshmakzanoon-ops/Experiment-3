@@ -191,7 +191,72 @@ async function renderDrivingCues(): Promise<Rendered> {
   };
 }
 
+/** Live-context smoke test (autoplay policy, unlock, review tap): driven in steps by
+ * audio-render.mjs --live, which supplies the real user gesture between them. */
+let live: RacingAudio | null = null;
+async function liveStart() {
+  live = new RacingAudio();
+  const t0 = performance.now();
+  await live.start();
+  return {
+    ms: Math.round(performance.now() - t0),
+    state: live.diagnostics().state,
+    locked: live.locked,
+    activation: navigator.userActivation?.hasBeenActive ?? null,
+  };
+}
+const liveState = () => ({
+  state: live?.diagnostics().state ?? null,
+  locked: live?.locked ?? null,
+});
+async function liveTap() {
+  if (!live) throw new Error('liveStart first');
+  const scene = catalogue().find((s) => s.id === 'engine__apx01__mid__cockpit')!;
+  const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+  for (let i = 0; i < 6; i++) {
+    live.update(scene.frameAt(0), true, true, scene.viewAt(0), false);
+    await wait(60);
+  }
+  const stream = live.captureOutput().stream;
+  const listener = new AudioContext();
+  await listener.resume();
+  const analyser = listener.createAnalyser();
+  analyser.fftSize = 2048;
+  listener.createMediaStreamSource(stream).connect(analyser);
+  let peak = 0;
+  const data = new Float32Array(analyser.fftSize);
+  for (let i = 0; i < 10; i++) {
+    live.update(scene.frameAt(0), true, true, scene.viewAt(0), false);
+    await wait(60);
+    analyser.getFloatTimeDomainData(data);
+    for (const v of data) peak = Math.max(peak, Math.abs(v));
+  }
+  await listener.close();
+  await live.dispose();
+  live = null;
+  return { peak, peakDbfs: 20 * Math.log10(Math.max(peak, 1e-9)) };
+}
+
+/** What the browser does with resume() before any gesture: the premise of unlock.ts. */
+async function probeResume() {
+  const context = new AudioContext();
+  const initial = context.state;
+  const outcome = await Promise.race([
+    context.resume().then(() => 'resolved'),
+    new Promise<string>((resolve) =>
+      setTimeout(() => resolve('still pending after 1500 ms'), 1500),
+    ),
+  ]);
+  const state = context.state;
+  await context.close();
+  return { initial, outcome, state };
+}
+
 export const MotoAudioRig = {
+  probeResume,
+  liveStart,
+  liveState,
+  liveTap,
   sampleRate: SAMPLE_RATE,
   list: () => catalogue().map(meta),
   uiCues: () => Object.keys(UI_SOUNDS) as UiSoundId[],

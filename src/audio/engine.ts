@@ -25,6 +25,7 @@ import {
 } from './mixer.ts';
 import { AudioUnlock, settle } from './unlock.ts';
 import { StartLightsAudio } from './start-lights.ts';
+import { MusicBus, type MusicCueId } from './music.ts';
 
 /** A real-time context, as opposed to the OfflineAudioContext of the rig. */
 const isLive = (context: BaseAudioContext): context is AudioContext =>
@@ -109,6 +110,7 @@ export class RacingAudio {
   private contactAudio: ContactAudio | null = null;
   private powerUnit: PowerUnitAudio | null = null;
   private startLights: StartLightsAudio | null = null;
+  private music: MusicBus | null = null;
   private unlock: AudioUnlock | null = null;
   private last = -Infinity;
   private wasPlaying = false;
@@ -120,6 +122,19 @@ export class RacingAudio {
   levels: AudioLevels = { ...DEFAULT_LEVELS };
   setLevels(value: unknown) {
     this.levels = validateLevels(value);
+  }
+  /** Background music (music.ts): off by default and silent while no asset ships. */
+  set musicEnabled(on: boolean) {
+    if (this.music) this.music.enabled = on;
+    this.wantMusic = on;
+  }
+  private wantMusic = false;
+  /** Start a music cue; false while music is off or the cue has no asset. */
+  playMusic(id: MusicCueId) {
+    return this.music?.play(id) ?? Promise.resolve(false);
+  }
+  stopMusic() {
+    this.music?.stop();
   }
   /** True while the browser's autoplay policy keeps the context suspended: no
    * sound until a key press, click or tap (a gamepad button does not count). */
@@ -193,6 +208,8 @@ export class RacingAudio {
     // Player power-unit character shares the contact bus stereo position.
     this.powerUnit = new PowerUnitAudio(ctx, this.unitPan);
     this.startLights = new StartLightsAudio(ctx, this.effectsBus);
+    this.music = new MusicBus(ctx, this.master);
+    this.music.enabled = this.wantMusic;
     if (isLive(ctx)) {
       this.unlock = new AudioUnlock(ctx);
       await this.resume(ctx);
@@ -247,6 +264,7 @@ export class RacingAudio {
     this.contactAudio!.update(frame, cockpit, time);
     this.powerUnit!.update(frame, 0, time, this.contactAttenuation, cockpit);
     this.startLights!.update(frame, time);
+    this.music!.update(this.levels, this.engines!.presence, time);
     // The player's sliders, and the ambience ducked under the engines.
     this.engineBus!.gain.setTargetAtTime(busGain('engine', this.levels), time, 0.05);
     this.effectsBus!.gain.setTargetAtTime(busGain('effects', this.levels), time, 0.05);
@@ -323,6 +341,8 @@ export class RacingAudio {
     this.powerUnit = null;
     this.startLights?.dispose();
     this.startLights = null;
+    this.music?.dispose();
+    this.music = null;
     this.engines?.dispose();
     this.engines = null;
     for (const source of this.sources) source.stop();

@@ -12,6 +12,7 @@
 import { build } from 'vite';
 import { chromium } from '@playwright/test';
 import { spawnSync } from 'node:child_process';
+import { createServer } from 'node:http';
 import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -55,6 +56,43 @@ const decode = (b64) => {
   const buf = Buffer.from(b64, 'base64');
   return new Float32Array(buf.buffer, buf.byteOffset, buf.byteLength / 4);
 };
+
+/** Autoplay policy on the production RacingAudio in a LIVE AudioContext, default browser
+ * policy (no --autoplay-policy flag): start() must return without a gesture and report locked;
+ * a real click must unlock it; the review tap must then carry signal. */
+async function liveSmoke(code) {
+  const live = await chromium.launch({
+    headless: true,
+    executablePath: process.env.CHROMIUM_PATH ?? '/opt/pw-browsers/chromium',
+    args: ['--no-sandbox', '--headless=new', '--autoplay-policy=document-user-activation-required'],
+  });
+  const page = await live.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(`page: ${e.message}`));
+  // page.evaluate() and setContent() run with a user gesture, which would unlock the context
+  // by itself: serve a real page over HTTP and let its own script start the audio, as the
+  // game's session start does for a player who reached it with a gamepad.
+  const html = `<!doctype html><script>${code.replace(/<\/script/gi, '<\\/script')}\nwindow.MotoAudioRig = MotoAudioRigBundle.MotoAudioRig;\nwindow.__before = null;\nwindow.MotoAudioRig.probeResume().then((r) => (window.__probe = r)); window.MotoAudioRig.liveStart().then((r) => (window.__before = r));</script>`;
+  const server = createServer((_req, res) => {
+    res.setHeader('content-type', 'text/html');
+    res.end(html);
+  });
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  await page.goto(`http://127.0.0.1:${server.address().port}/`);
+  const result = { errors };
+  await page.waitForFunction(() => window.__before && window.__probe, null, { timeout: 30000 });
+  result.probe = await page.evaluate(() => window.__probe);
+  result.beforeGesture = await page.evaluate(() => window.__before);
+  result.afterWaitNoGesture = await page.evaluate(() => window.MotoAudioRig.liveState());
+  await page.mouse.click(20, 20); // a trusted pointer event
+  await page.waitForTimeout(300);
+  result.afterClick = await page.evaluate(() => window.MotoAudioRig.liveState());
+  result.tap = await page.evaluate(() => window.MotoAudioRig.liveTap());
+  await live.close();
+  server.close();
+  console.log('live context:', JSON.stringify(result));
+  return result;
+}
 
 console.log('bundling the audio fixture...');
 const result = await build({
@@ -158,18 +196,8 @@ const meta = {
   errors,
   seconds: (Date.now() - t0) / 1000,
 };
-if (flag('live')) {
-  meta.live = await page.evaluate(async () => {
-    const result = { before: null, afterGesture: null, tap: null };
-    const ctx = new AudioContext({ latencyHint: 'interactive' });
-    result.before = ctx.state;
-    await Promise.race([ctx.resume(), new Promise((r) => setTimeout(r, 500))]);
-    result.afterGesture = ctx.state;
-    await ctx.close();
-    return result;
-  });
-}
 await browser.close();
+if (flag('live')) meta.live = await liveSmoke(chunk.code);
 writeFileSync(join(out, 'meta.json'), JSON.stringify(meta, null, 1));
 console.log(
   `rendered ${written.length} files in ${meta.seconds.toFixed(0)} s; page errors: ${errors.length}`,

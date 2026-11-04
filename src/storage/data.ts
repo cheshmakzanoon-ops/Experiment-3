@@ -17,6 +17,7 @@ import {
   type DeviceSelection,
 } from '../input/calibration.ts';
 import { clamp } from '../core/math.ts';
+import { DEFAULT_LEVELS, validateLevels, type AudioLevels } from '../audio/mixer.ts';
 import { DEFAULT_RUMBLE, validateRumble, type RumbleSettings } from '../input/rumble.ts';
 import { DesktopMirror, idbKv } from './desktop-mirror.ts';
 import { DEFAULT_SETUP, validateSetup, type Setup } from '../simulation/config.ts';
@@ -64,6 +65,10 @@ export interface Settings {
   /** Render preset. 'ultra' is opt-in only: no migration or default selects it. */
   quality: QualityPreset;
   volume: number;
+  /** Per-class bus sliders (engine, effects, ambience, menu sounds, music) beside the master `volume`. */
+  audioLevels: AudioLevels;
+  /** Background music: off by default, and inert until music assets ship (audio/music.ts). */
+  musicEnabled: boolean;
   drivingAudio: DrivingAudioSettings;
   /** Gamepad rumble channel strengths (D088). */
   rumble: RumbleSettings;
@@ -84,6 +89,8 @@ export const DEFAULT_SETTINGS: Settings = {
   quickStart: false,
   quality: 'medium',
   volume: 0.45,
+  audioLevels: { ...DEFAULT_LEVELS },
+  musicEnabled: false,
   drivingAudio: { ...DEFAULT_DRIVING_AUDIO },
   rumble: { ...DEFAULT_RUMBLE },
   shake: 0.35,
@@ -136,6 +143,8 @@ export function validateSettings(v: unknown): Settings {
     quickStart: p.quickStart === true,
     quality,
     volume: finite(p.volume, 0.45, 0, 1),
+    audioLevels: validateLevels(p.audioLevels),
+    musicEnabled: p.musicEnabled === true,
     drivingAudio: validateDrivingAudio(p.drivingAudio),
     rumble: validateRumble(p.rumble),
     shake: finite(p.shake, 0.35, 0, 1),

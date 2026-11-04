@@ -16,10 +16,10 @@ export interface LimiterFlutter {
 /** Revs within this of the limiter count as "on the limiter". */
 export const LIMITER_BAND_RPM = 60;
 export const REV_LIMITER_RATE_HZ = 12;
-export const PIT_LIMITER_RATE_HZ = 5;
+export const PIT_LIMITER_RATE_HZ = 6;
 /** Deepest bounce (fraction of the voice gain the cut removes). */
-export const REV_LIMITER_DEPTH = 0.5;
-export const PIT_LIMITER_DEPTH = 0.28;
+export const REV_LIMITER_DEPTH = 0.6;
+export const PIT_LIMITER_DEPTH = 0.45;
 
 /** The pit-lane limiter is on in the entry and exit phases (the HUD's rule, ui/interface.ts). */
 export function pitLimiterOn(frame: Float32Array, car: number): boolean {

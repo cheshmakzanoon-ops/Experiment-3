@@ -460,6 +460,28 @@ def spectrogram_png(path, sr, x, title, width=620, height=300, fmin=40, fmax=160
     return True
 
 
+def heatmap_png(path, dist, cell=22):
+    from PIL import Image, ImageDraw
+
+    labels, m = dist['vehicles'], np.array(dist['matrix'])
+    n = len(labels)
+    left, top = 58, 58
+    canvas = Image.new('RGB', (left + n * cell + 8, top + n * cell + 20), (14, 14, 18))
+    d = ImageDraw.Draw(canvas)
+    hi = float(np.percentile(m[m > 0], 90)) if (m > 0).any() else 1.0
+    lut = _lut()
+    for i in range(n):
+        for j in range(n):
+            t = 1.0 - min(1.0, m[i, j] / hi)  # near = bright (a near-duplicate pair glows)
+            c = tuple(int(v) for v in lut[int(t * 255)])
+            d.rectangle([left + j * cell, top + i * cell, left + (j + 1) * cell - 2, top + (i + 1) * cell - 2], fill=c)
+        d.text((4, top + i * cell + 5), labels[i], fill=(220, 220, 220))
+        d.text((left + i * cell + 1, top - 12 - (i % 2) * 10), labels[i][:5], fill=(220, 220, 220))
+    d.text((4, 4), 'Engine voice distance (bright = close = near-duplicate)', fill=(235, 235, 235))
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    canvas.quantize(colors=96, method=Image.Quantize.MEDIANCUT).save(path, optimize=True)
+
+
 # Representative spectrograms written to docs/studio/reports/audio-screens/.
 SHOTS = [
     'engine__apx01__pull__cockpit',
@@ -705,7 +727,9 @@ def judge(files, agg, dist, dups, meta):
             {'pairs': dups[:12]})
     # 9b limiter / pit limiter bounce
     for kind, code, what in (('limiter', 'A16', 'rev limiter'), ('pit', 'A17', 'pit limiter')):
-        rows = [r for r in files if r['tags'].get('kind') == kind and r.get('bounce') and r['rms_dbfs'] > -70]
+        # electric and fuel-cell drive have no rev limiter to bounce
+        rows = [r for r in files if r['tags'].get('kind') == kind and r.get('bounce') and r['rms_dbfs'] > -70
+                and not (kind == 'limiter' and r.get('family') in ('electric', 'fuel-cell'))]
         flat = [r for r in rows if r['bounce']['swing_db'] < 3.0]
         if rows and flat:
             add('medium', code, f'No audible {what} cue',
@@ -756,7 +780,10 @@ def main():
         files.append(rec)
         if m['id'] in SHOTS:
             audio_for_shots[m['id']] = (data, m)
-    reps = args.reps.split(',') if args.reps else sorted({r['vehicle'] for r in files if r['group'] == 'engine' and r['vehicle']})
+    # the distinctness matrix covers the machines that have the full engine suite (the representatives)
+    reps = args.reps.split(',') if args.reps else sorted(
+        {r['vehicle'] for r in files if r['group'] == 'engine' and r['tags'].get('kind') == 'pull' and r['id'].endswith('__cockpit')}
+    )
     agg = build_aggregates(files)
     dist = distinctness(files, reps)
     dups = near_duplicates(files)
@@ -771,6 +798,8 @@ def main():
         'findings': findings,
     }
     json.dump(result, open(args.out, 'w'), indent=1, default=float)
+    if args.shots and not args.no_shots and dist:
+        heatmap_png(os.path.join(args.shots, 'distinctness-matrix.png'), dist)
     if args.shots and not args.no_shots:
         for sid, ((sr, x), m) in audio_for_shots.items():
             spectrogram_png(os.path.join(args.shots, f'{sid}.png'), sr, x, f'{m["label"]}  [{sid}]', events=m.get('events') or [])

@@ -71,7 +71,10 @@ export function smoothToward(current: number, target: number, dt: number, tau: n
 
 /** Linear gain applied to the ambience under the engine: 1 when the engine is
  * absent, `1 - (1 - 10^(-depthDb/20))` at full presence, with a smooth knee. */
-export function duckGain(enginePresence: number, depthDb = GAIN_STAGING.ambienceDuckDb): number {
+export function duckGain(
+  enginePresence: number,
+  depthDb: number = GAIN_STAGING.ambienceDuckDb,
+): number {
   const x = clamp((enginePresence - 0.15) / 0.6, 0, 1),
     smooth = x * x * (3 - 2 * x);
   return 1 - smooth * (1 - dbToGain(-Math.abs(depthDb)));
