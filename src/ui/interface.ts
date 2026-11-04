@@ -36,6 +36,8 @@ import { installSpeedTunnel } from '../rendering/studio/speed-tunnel.ts';
 import { SectorBoard } from './sector-timing.ts';
 import { audioAccessibility, readDrivingAudio } from './audio-accessibility.ts';
 import { audioMixer, readAudioMixer } from './audio-mixer.ts';
+import { applyHudScale, validateHudScale } from '../core/hud-scale.ts';
+import { hudScaleSection, readHudScale } from './hud-scale-control.ts';
 import type { DrivingAudioSettings } from '../audio/driving-cues.ts';
 import { nearbyTraffic } from './proximity.ts';
 import { GapTimer, formatInterval } from './gap-timer.ts';
@@ -1396,7 +1398,7 @@ export class Interface {
         )
         .join(
           '',
-        )}${audioMixer({ levels: settings.audioLevels, musicEnabled: settings.musicEnabled })}${audioAccessibility(settings.drivingAudio)}<h3>${th('Input mapping')}</h3><p class="small-note">${th('Axis and button numbers are zero-based. Keyboard always remains available.')}</p><div class="mapping-grid">${[
+        )}${hudScaleSection(settings.hudScale)}${audioMixer({ levels: settings.audioLevels, musicEnabled: settings.musicEnabled })}${audioAccessibility(settings.drivingAudio)}<h3>${th('Input mapping')}</h3><p class="small-note">${th('Axis and button numbers are zero-based. Keyboard always remains available.')}</p><div class="mapping-grid">${[
         ['steerAxis', N_('Steer axis')],
         ['throttleAxis', N_('Throttle axis')],
         ['brakeAxis', N_('Brake axis')],
@@ -1449,7 +1451,10 @@ export class Interface {
     const stopGuide = bindQualityGuide(form);
     this.settingsBinding = () => {
       stopGuide();
-      if (!applied) root.style.setProperty('--ui-scale', savedScale || String(settings.uiScale));
+      if (!applied) {
+        root.style.setProperty('--ui-scale', savedScale || String(settings.uiScale));
+        applyHudScale(root, settings.hudScale);
+      }
     };
     form.querySelector<HTMLButtonElement>('#previewDrivingAudio')!.onclick = () =>
       this.callbacks.previewAudio?.(readDrivingAudio(form));
@@ -1462,6 +1467,7 @@ export class Interface {
             ? `${Math.round(Number(input.value) * 100)}%`
             : input.value;
       if (input.name === 'uiScale') root.style.setProperty('--ui-scale', input.value);
+      if (input.name === 'hudScale') applyHudScale(root, validateHudScale(input.value));
       // The one value a machine reads as its own baseline saves as its neighbour.
       if (input.dataset.setup !== undefined) {
         const note = form.querySelector<HTMLElement>(`#note-${input.name}`);
@@ -1541,6 +1547,7 @@ export class Interface {
         next.rumble[key] = Number(value(`rumble_${key}`));
       next.quickStart = (form.elements.namedItem('quickStart') as HTMLInputElement).checked;
       for (const key of ['volume', 'shake', 'uiScale'] as const) next[key] = Number(value(key));
+      next.hudScale = readHudScale(form, settings.hudScale);
       next.setup = applySetupScreen(vehicle, settings.setup, (key) => Number(value(key)), preset);
       for (const key of [
         'steerAxis',

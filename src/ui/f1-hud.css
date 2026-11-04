@@ -1,7 +1,9 @@
 /* F1-style race HUD (Art Bible B §1). Injected by installF1Hud after the
    race-day stylesheet and scoped to #hud[data-f1], so it wins on desktop
    without !important while the compact drawer keeps its own layout.
-   One HUD unit (--u) is 1 vh of a 16:9 safe frame, times the UI scale. */
+   One HUD unit (--u) is 1 vh of a 16:9 safe frame, never under 8 px, times the HUD scale (docs/studio/reports/hud-legibility.md).
+   Type floors, in units: a label is 1.4 u (11.2 px at the 8 px floor), a readout the player reads at a glance
+   (speed, gear, position, lap time) at least 2.25 u (18 px). Nothing here is drawn under a transform. */
 
 /* ---------- Every size: presentation-only nodes start hidden ---------- */
 #hud[data-f1]
@@ -35,7 +37,11 @@
 
 @media (min-width: 1280px) and (min-height: 680px) {
   #hud[data-f1] {
-    --u: calc(var(--ui-scale, 1) * min(1vh, 0.5625vw));
+    /* --hud-k is the interface size times the HUD SCALE setting (style.css .hud). The floor is what makes a
+       1280x800 handheld read: 1 vh is 8 px there but 0.5625 vw is 7.2, and a 1.4 u label needs 8. The caps are
+       the window: 1.55 vh keeps the timing tower above the map and the cluster under the sight line, 0.84 vw
+       keeps the tower, the race-control banner and the lap panel side by side; a larger step stops there. */
+    --u: min(calc(var(--hud-k, var(--ui-scale, 1)) * max(8px, min(1vh, 0.5625vw))), 1.55vh, 0.84vw);
     --f1-side: 2.7vw;
     --f1-top: 4.4vh;
     --f1-floor: max(5vh, 52px);
@@ -67,7 +73,7 @@
     border-radius: 6px;
     background: rgba(10, 12, 18, 0.55);
     color: var(--hud-text);
-    font-size: calc(1.15 * var(--u));
+    font-size: calc(1.4 * var(--u));
     font-weight: 600;
     font-stretch: 112%;
     letter-spacing: 0.06em;
@@ -246,11 +252,11 @@
   }
   #hud[data-f1] .tower-row > em {
     justify-self: center;
-    width: calc(1.9 * var(--u));
-    height: calc(1.9 * var(--u));
+    width: calc(2.6 * var(--u));
+    height: calc(2.6 * var(--u));
     margin: 0;
     border-width: 1.5px;
-    font-size: calc(1.05 * var(--u));
+    font-size: calc(1.4 * var(--u));
   }
   #hud[data-f1] .tower-row > small {
     min-width: 0;
@@ -269,7 +275,7 @@
     border-radius: 3px;
     background: #ff9500;
     color: #1d1200;
-    font-size: calc(1.2 * var(--u));
+    font-size: calc(1.4 * var(--u));
     font-weight: 700;
   }
   #hud[data-f1] .tower-row > u {
@@ -365,7 +371,7 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 1px;
-    height: calc(2.1 * var(--u));
+    height: calc(2.5 * var(--u));
     padding: 1.5px 1.5px 0;
   }
   #hud[data-f1] .f1-sectors > i {
@@ -385,7 +391,7 @@
     position: relative;
     margin: 0;
     font-family: var(--font-display);
-    font-size: calc(1.1 * var(--u));
+    font-size: calc(1.4 * var(--u));
     font-weight: 500;
     font-stretch: 112%;
     color: var(--hud-text-dim);
@@ -625,7 +631,7 @@
     border-radius: 6px;
     background: var(--hud-panel);
     box-shadow: inset 0 0 0 1px var(--hud-hair);
-    font-size: calc(1.3 * var(--u));
+    font-size: calc(1.4 * var(--u));
     font-weight: 500;
     font-stretch: 108%;
     letter-spacing: 0.03em;
@@ -707,7 +713,7 @@
   #hud[data-f1] .speed > span,
   #hud[data-f1] .engine > span {
     margin: 0 0 calc(0.1 * var(--u));
-    font-size: calc(1.2 * var(--u));
+    font-size: calc(1.4 * var(--u));
     font-weight: 400;
     font-stretch: 112%;
     letter-spacing: 0.04em;
@@ -722,9 +728,9 @@
   #hud[data-f1] .engine > span {
     position: absolute;
     left: 83.4%;
-    top: 57%;
+    top: 56%;
     transform: translateX(-50%);
-    font-size: calc(1.1 * var(--u));
+    font-size: calc(1.4 * var(--u));
     line-height: 1;
   }
   #hud[data-f1] .engine > b {
@@ -794,7 +800,7 @@
     gap: 0;
     flex: none;
     margin: 0;
-    font-size: calc(1.35 * var(--u));
+    font-size: calc(1.4 * var(--u));
     line-height: 1.1;
   }
   #hud[data-f1] .resources .f1-res-label {
@@ -802,7 +808,7 @@
   }
   #hud[data-f1] .resources .f1-res-label::after {
     content: 'BATT';
-    font-size: calc(1.35 * var(--u));
+    font-size: calc(1.4 * var(--u));
     font-weight: 500;
     font-stretch: 112%;
     letter-spacing: 0.04em;
@@ -819,16 +825,18 @@
   #hud[data-f1] .resources .meter {
     display: none;
   }
+  /* FUEL and its mass stack: on one line a 1.4 u "FUEL 24.0 KG" is wider than the pod's ring. */
   #hud[data-f1] .resources label:last-child {
-    flex-direction: row;
-    gap: calc(0.35 * var(--u));
-    margin-top: calc(0.3 * var(--u));
-    font-size: calc(0.95 * var(--u));
+    flex-direction: column;
+    gap: 0;
+    margin-top: calc(0.2 * var(--u));
+    font-size: calc(1.4 * var(--u));
+    line-height: 1.05;
     color: var(--hud-text-dim);
   }
   #hud[data-f1] #fuel {
     font-family: var(--font-display);
-    font-size: calc(0.95 * var(--u));
+    font-size: calc(1.4 * var(--u));
     font-weight: 600;
     color: var(--hud-text-dim);
   }
@@ -838,7 +846,7 @@
     left: 50%;
     top: 78.5%;
     transform: translateX(-50%);
-    font-size: calc(1.25 * var(--u));
+    font-size: calc(1.4 * var(--u));
     font-weight: 600;
     font-stretch: 112%;
     letter-spacing: 0.04em;
@@ -913,12 +921,12 @@
   #hud[data-f1] .f1-compound {
     display: grid;
     place-items: center;
-    width: calc(2.1 * var(--u));
-    height: calc(2.1 * var(--u));
+    width: calc(2.6 * var(--u));
+    height: calc(2.6 * var(--u));
     border: 1.5px solid var(--tyre-medium);
     border-radius: 50%;
     font-style: normal;
-    font-size: calc(1.05 * var(--u));
+    font-size: calc(1.4 * var(--u));
     font-weight: 700;
     line-height: 1;
     color: #fff;
@@ -1094,7 +1102,7 @@
     white-space: nowrap;
   }
   #hud[data-f1] .f1-banner small {
-    font-size: calc(1.3 * var(--u));
+    font-size: calc(1.4 * var(--u));
     font-weight: 500;
     font-stretch: 108%;
     letter-spacing: 0.04em;
@@ -1167,7 +1175,7 @@
     margin: 0;
     padding: calc(0.3 * var(--u)) 0 calc(0.5 * var(--u));
     text-align: center;
-    font-size: calc(1.2 * var(--u));
+    font-size: calc(1.4 * var(--u));
     font-weight: 500;
     letter-spacing: 0.04em;
     color: var(--hud-text-dim);
@@ -1310,7 +1318,7 @@
   /* ---------- Vehicle MFD (grows up from the dock) ---------- */
   #hud[data-f1] .car-status {
     inset: auto var(--f1-side) calc(var(--f1-dock) + 4.6 * var(--u)) auto;
-    width: calc(34 * var(--u));
+    width: calc(38 * var(--u));
     max-height: min(calc(50 * var(--u)), calc(100vh - var(--f1-dock) - 4.6 * var(--u) - 90px));
     transform: none;
   }
@@ -1325,9 +1333,9 @@
     border: 0;
     border-radius: 4px;
     background: rgba(10, 12, 18, 0.55);
-    font-size: calc(1.05 * var(--u));
+    font-size: calc(1.4 * var(--u));
     font-weight: 600;
-    letter-spacing: 0.02em;
+    letter-spacing: 0;
     color: var(--hud-text);
   }
   #hud[data-f1] .vehicle-tabs button[aria-selected='true'] {
@@ -1345,12 +1353,31 @@
     border-bottom: 1px solid var(--hud-hair);
   }
   #hud[data-f1] .vehicle-readings dt {
-    font-size: calc(1.3 * var(--u));
+    font-size: calc(1.4 * var(--u));
     font-weight: 500;
   }
   #hud[data-f1] .vehicle-readings dd {
     font-size: calc(1.55 * var(--u));
     font-weight: 700;
+  }
+  /* The panel's own heading and the tyre tiles (style.css sets 7 to 9 px for the compact drawer). */
+  #hud[data-f1] .car-status .panel-heading {
+    font-size: calc(1.4 * var(--u));
+  }
+  #hud[data-f1] .car-status .panel-heading > span {
+    font-size: calc(1.4 * var(--u));
+  }
+  #hud[data-f1] .car-status .tires label,
+  #hud[data-f1] .car-status .tires span,
+  #hud[data-f1] .car-status .tires small,
+  #hud[data-f1] .car-status .health {
+    font-size: calc(1.4 * var(--u));
+  }
+  #hud[data-f1] .car-status .tires b {
+    font-size: calc(2.2 * var(--u));
+  }
+  #hud[data-f1] .car-status .health b {
+    font-size: calc(1.4 * var(--u));
   }
 
   /* ---------- Accessibility ---------- */

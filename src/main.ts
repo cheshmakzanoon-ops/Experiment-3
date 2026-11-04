@@ -63,6 +63,7 @@ import { RacingRenderer } from './rendering/renderer.ts';
 import { Interface, shortTime } from './ui/interface.ts';
 import { ghostPose } from './core/ghost-lap.ts';
 import { dialogCloseOutcome } from './core/dialog-close.ts';
+import { applyHudScale } from './core/hud-scale.ts';
 import { selectedPitCompound } from './ui/race-day-hud.ts';
 import { ReplayDirector, ReplayHud } from './ui/replay-hud.ts';
 import { FlashbackPanel, flashbackAllowed } from './ui/flashback.ts';
@@ -756,6 +757,7 @@ export class GameApp {
     if (!(await this.buildRenderer(canvas, true))) return;
     this.applyAudio(this.settings);
     document.documentElement.style.setProperty('--ui-scale', String(this.settings.uiScale));
+    applyHudScale(document.documentElement, this.settings.hudScale);
     document.documentElement.dataset.colorblind = String(this.settings.colorblind);
     document.documentElement.dataset.highContrast = String(this.settings.highContrast);
     this.applyCommunication(this.settings);
@@ -3196,6 +3198,7 @@ export class GameApp {
           this.applyAudio(settings);
           this.audio.configureDriving(this.track, settings.drivingAudio);
           document.documentElement.style.setProperty('--ui-scale', String(settings.uiScale));
+          applyHudScale(document.documentElement, settings.hudScale);
           document.documentElement.dataset.colorblind = String(settings.colorblind);
           document.documentElement.dataset.highContrast = String(settings.highContrast);
           this.applyCommunication(settings);

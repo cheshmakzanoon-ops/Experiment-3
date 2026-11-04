@@ -363,7 +363,20 @@ h1 {
 .hud {
   height: 100%;
   font-variant-numeric: tabular-nums;
-  --scale: var(--ui-scale);
+  /* HUD SCALE (core/hud-scale.ts). --hud-scale is written on the root by the setting when a step is
+     chosen; `auto` leaves it unset and the window decides: 100%, or 115% under 900 px tall. --hud-k is
+     the interface size times that, and is the one multiplier every HUD sheet reads: the desktop layout
+     through --u (f1-hud.css), the compact layout through --scale (kept inside the 1.35 the layout
+     contracts are tested to), the GP bike panel and the older sheets through --hud-k directly. */
+  --hud-auto: 1;
+  --hud-k: calc(var(--ui-scale, 1) * var(--hud-scale, var(--hud-auto)));
+  --hud-kc: min(var(--hud-k), 1.35);
+  --scale: var(--hud-kc);
+}
+@media (max-height: 899px) {
+  .hud {
+    --hud-auto: 1.15;
+  }
 }
 .hud-top {
   position: absolute;
@@ -1129,7 +1142,7 @@ dialog:has(#settingsForm) {
     bottom: 23%;
   }
   .hud {
-    --scale: calc(var(--ui-scale) * 1.12);
+    --scale: calc(var(--hud-kc) * 1.12);
   }
 }
 @media (max-height: 750px) {
@@ -1167,7 +1180,7 @@ dialog:has(#settingsForm) {
     bottom: 18%;
   }
   .hud {
-    --scale: calc(var(--ui-scale) * 0.88);
+    --scale: calc(var(--hud-kc) * 0.88);
   }
   .timing {
     top: 79px;
@@ -1215,7 +1228,7 @@ dialog:has(#settingsForm) {
     right: 3%;
   }
   .hud {
-    --scale: calc(var(--ui-scale) * 0.78);
+    --scale: calc(var(--hud-kc) * 0.78);
   }
   .timing {
     left: 15px;
@@ -2292,6 +2305,17 @@ html[data-colorblind='true'] #flag[data-flag='4']::before {
   margin: 18px 0;
 }
 .audio-accessibility legend {
+  font-size: 11px;
+  padding: 0 6px;
+  letter-spacing: 0.07em;
+}
+.hud-scale {
+  border: 1px solid #405c66;
+  padding: 14px;
+  border-radius: 6px;
+  margin: 18px 0;
+}
+.hud-scale legend {
   font-size: 11px;
   padding: 0 6px;
   letter-spacing: 0.07em;

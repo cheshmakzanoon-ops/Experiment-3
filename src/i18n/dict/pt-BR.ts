@@ -215,6 +215,11 @@ const dictionary: Dictionary = {
   "SOUND MIX": "MIXAGEM DE SOM",
   "Play background music": "Tocar música de fundo",
   "Volume above is the master; these set the balance between the sounds. The driving-cue tones below are never turned down by these sliders.": "O volume acima é o geral; estes controles ajustam o equilíbrio entre os sons. Os sinais de condução abaixo nunca são abaixados por estes controles.",
+  // src/ui/hud-scale-control.ts
+  "HUD": "HUD",
+  "HUD SCALE": "ESCALA DO HUD",
+  "Automatic · 115% on screens under {px} px tall": "Automática · 115% em telas com menos de {px} px de altura",
+  "Sizes the race HUD: speed, gear, timing, tyres and maps. Larger reads better on a handheld or from the sofa. On a small window the largest sizes stop where the panels would meet.": "Define o tamanho do HUD da corrida: velocidade, marcha, tempos, pneus e mapas. Maior é mais legível em um portátil ou do sofá. Em uma janela pequena, os maiores tamanhos param onde os painéis se tocariam.",
   // src/ui/career-hub.ts
   "Disciplines": "Disciplinas",
   "Events": "Eventos",

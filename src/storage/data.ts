@@ -21,6 +21,7 @@ import { DEFAULT_LEVELS, validateLevels, type AudioLevels } from '../audio/mixer
 import { DEFAULT_RUMBLE, validateRumble, type RumbleSettings } from '../input/rumble.ts';
 import { DesktopMirror, idbKv } from './desktop-mirror.ts';
 import { validateLanguage, type LanguageSetting } from '../i18n/locales.ts';
+import { DEFAULT_HUD_SCALE, validateHudScale, type HudScaleSetting } from '../core/hud-scale.ts';
 import { DEFAULT_SETUP, validateSetup, type Setup } from '../simulation/config.ts';
 import {
   graphicsPreset,
@@ -75,6 +76,9 @@ export interface Settings {
   rumble: RumbleSettings;
   shake: number;
   uiScale: number;
+  /** HUD SCALE: the race HUD's own size, `auto` (115% under 900 px tall) or 100 / 115 / 130 / 150%. Saves from before
+   * it existed, or holding anything else, read as `auto` (core/hud-scale.ts). */
+  hudScale: HudScaleSetting;
   /** Interface language: `auto` follows the browser or system (src/i18n). Settings saved
    * before languages existed, or holding an unknown code, read as `auto`. */
   language: LanguageSetting;
@@ -99,6 +103,7 @@ export const DEFAULT_SETTINGS: Settings = {
   rumble: { ...DEFAULT_RUMBLE },
   shake: 0.35,
   uiScale: 1,
+  hudScale: DEFAULT_HUD_SCALE,
   language: 'auto',
   mapping: {
     buttonActions: defaultButtonActions(true),
@@ -154,6 +159,7 @@ export function validateSettings(v: unknown): Settings {
     rumble: validateRumble(p.rumble),
     shake: finite(p.shake, 0.35, 0, 1),
     uiScale: finite(p.uiScale, 1, 0.8, 1.35),
+    hudScale: validateHudScale(p.hudScale),
     language: validateLanguage(p.language),
     setup: validateSetup(p.setup ?? DEFAULT_SETUP),
     bindings,

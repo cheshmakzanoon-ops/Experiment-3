@@ -215,6 +215,11 @@ const dictionary: Dictionary = {
   "SOUND MIX": "SES KARIŞIMI",
   "Play background music": "Arka plan müziğini çal",
   "Volume above is the master; these set the balance between the sounds. The driving-cue tones below are never turned down by these sliders.": "Yukarıdaki ses ana düzeydir; bu kaydırıcılar sesler arasındaki dengeyi ayarlar. Aşağıdaki sürüş ipucu sesleri bu kaydırıcılarla asla kısılmaz.",
+  // src/ui/hud-scale-control.ts
+  "HUD": "HUD",
+  "HUD SCALE": "HUD BOYUTU",
+  "Automatic · 115% on screens under {px} px tall": "Otomatik · {px} px'ten kısa ekranlarda %115",
+  "Sizes the race HUD: speed, gear, timing, tyres and maps. Larger reads better on a handheld or from the sofa. On a small window the largest sizes stop where the panels would meet.": "Yarış HUD'unun boyutunu ayarlar: hız, vites, süreler, lastikler ve haritalar. Büyük boyut, el konsolunda veya koltuktan daha rahat okunur. Küçük bir pencerede en büyük boyutlar, panellerin birbirine değeceği yerde durur.",
   // src/ui/career-hub.ts
   "Disciplines": "Disiplinler",
   "Events": "Etkinlikler",

@@ -8,7 +8,8 @@ import '../../../src/ui/style.css';
 import { DEFAULT_OPTIONS, validateOptions } from '../../../src/simulation/config.ts';
 import { DEFAULT_BINDINGS } from '../../../src/input/bindings.ts';
 import { DEFAULT_SETTINGS } from '../../../src/storage/data.ts';
-import { F, H, carBase } from '../../../src/simulation/protocol.ts';
+import { F, H, W, WHEEL_BASE, carBase } from '../../../src/simulation/protocol.ts';
+import { FLAG } from '../../../src/simulation/marshal.ts';
 import { Simulation } from '../../../src/simulation/world.ts';
 import { Interface } from '../../../src/ui/interface.ts';
 import type { RacingRenderer } from '../../../src/rendering/renderer.ts';
@@ -598,6 +599,69 @@ export function hud(kind: 'circuit' | 'gp' | 'mx' = 'circuit') {
 }
 export const hudGp = () => hud('gp');
 export const hudMx = () => hud('mx');
+/** HUD states the plain `hud` frame does not show (race control, the pit lane, the start lights, a vehicle
+ * warning, the VEHICLE panel, the GP corner guide): the same HUD with the frame, or the nodes, in that
+ * state, so the legibility audit (hud-measure.mjs, e2e/65) measures every text the HUD can draw. DOM
+ * fixtures over synthetic frames, not a race. `state:kind`, kind circuit | gp | mx. */
+export function hudState(state: string, kind: 'circuit' | 'gp' | 'mx' = 'circuit') {
+  const options = entryOptions(kind);
+  const simulation = mount(options);
+  ui.options = simulation.options;
+  ui.showMode('driving');
+  const frame = simulation.makeFrame();
+  const o = carBase(0);
+  frame[H.TICK] = 600;
+  frame[H.TIME] = 74.2;
+  frame[o + F.SPEED] = 71;
+  frame[o + F.GEAR] = 5;
+  frame[o + F.RPM] = 10800;
+  frame[o + F.LAPS] = 1;
+  frame[o + F.LAP_TIME] = 21.4;
+  frame[o + F.BEST_LAP] = 58.9;
+  if (state === 'banner') {
+    frame[H.FLAG] = FLAG.DOUBLE_YELLOW;
+    frame[o + F.CAUTION_SPEED] = 22;
+  }
+  if (state === 'pit') {
+    frame[o + F.IN_PIT] = 1;
+    frame[o + F.PIT_PHASE] = 3;
+    frame[o + F.PIT_CLOCK] = 2.4;
+  }
+  if (state === 'start') {
+    frame[H.PHASE] = 1;
+    frame[H.LIGHTS] = 4;
+  }
+  if (state === 'alert') {
+    frame[carBase(0) + WHEEL_BASE + W.PUNCTURED] = 1;
+    ui.get('programmeHud').hidden = false;
+    ui.get('programmeHud').textContent = 'CONSISTENCY PROGRAMME · ATTEMPT 3 / 5 · VALID';
+    ui.get('guideReadout').hidden = false;
+    ui.get('guideReadout').textContent = 'NEXT CORNER · BRAKE 150 M · TURN 7';
+  }
+  ui.update(frame, renderer, false, 1);
+  ui.update(frame, renderer, false, 1);
+  if (state === 'vehicle') document.querySelector<HTMLElement>('.vehicle-toggle')!.click();
+  if (state === 'gpcraft') {
+    // The corner guide, the practice timer and the tow readout appear only on an approach to a corner.
+    const show = (id: string, text: string) => {
+      const node = ui.get(id);
+      node.hidden = false;
+      node.textContent = text;
+    };
+    for (const id of ['gpCraft', 'gpCornerProgress', 'gpPractice', 'gpTow', 'gpPracticeSplit', 'gpPracticeStreak'])
+      ui.get(id).hidden = false;
+    show('gpCorner', 'T4 · LEFT HAIRPIN');
+    show('gpCornerDistance', '120 M');
+    show('gpAction', 'BRAKE NOW');
+    show('gpAdvice', 'Trail the brake to the apex');
+    show('gpTow', 'TOW 32%');
+    show('gpPracticeLabel', 'T4 · PRACTICE');
+    show('gpPracticeTime', '1.84 s');
+    show('gpPracticeDetail', '-0.06 s vs best · target 1.90 s');
+    show('gpPracticeSplit', 'ENTRY 0.82 · EXIT 1.02');
+    show('gpPracticeStreak', 'CLEAN STREAK 3 · BEST 5');
+  }
+}
 /** The festival HUD: free roam, the pause menu, an event card, the map (English-only legacy panels). */
 export function festival(view: 'free' | 'menu' | 'card' | 'map' = 'free') {
   const root = document.createElement('main');
