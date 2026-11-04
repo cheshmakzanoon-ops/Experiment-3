@@ -7,9 +7,10 @@
 //                                 and keeps the backend identity check (globalSetup)
 //   (no APEX_PORT)                fixture mode: no preview server, no global setup (specs that
 //                                 build their own bundle and call page.setContent)
-// The test and expect deadlines of playwright.config.ts are kept unless APEX_TIMEOUT_MS is set,
-// which only lengthens the per-test deadline (a measurement aid for software GL, never a
-// change to what a spec asserts). Reporter output is chosen on the command line.
+// The test and expect deadlines of playwright.config.ts are kept unless APEX_TIMEOUT_MS /
+// APEX_EXPECT_TIMEOUT_MS are set, which only lengthen them (a measurement aid for software GL,
+// used to time a wait that overran, never a change to what a spec asserts). Reporter output is
+// chosen on the command line.
 import base from '../../../playwright.config.ts';
 
 const wt = process.env.APEX_WT;
@@ -17,11 +18,17 @@ if (!wt) throw new Error('Set APEX_WT=<worktree abs path>');
 const port = process.env.APEX_PORT ? Number(process.env.APEX_PORT) : undefined;
 if (process.env.APEX_PORT && !Number.isInteger(port)) throw new Error('APEX_PORT must be an integer');
 const url = port ? `http://127.0.0.1:${port}` : undefined;
-const timeout = process.env.APEX_TIMEOUT_MS ? Number(process.env.APEX_TIMEOUT_MS) : base.timeout;
+// Deadlines are only ever lengthened (a measurement aid for software GL); a spec's own
+// test.setTimeout(...) still wins over the per-test value.
+const baseTimeout = base.timeout ?? 300000;
+const baseExpect = base.expect?.timeout ?? 60000;
+const timeout = Math.max(baseTimeout, Number(process.env.APEX_TIMEOUT_MS ?? 0));
+const expectTimeout = Math.max(baseExpect, Number(process.env.APEX_EXPECT_TIMEOUT_MS ?? 0));
 export default {
   ...base,
   testDir: `${wt}/e2e`,
   timeout,
+  expect: { ...base.expect, timeout: expectTimeout },
   globalSetup: port ? `${wt}/scripts/browser-backend-setup.ts` : undefined,
   outputDir: process.env.APEX_OUT ?? `${wt}/../pw-results-sweep`,
   reporter: [['list']],

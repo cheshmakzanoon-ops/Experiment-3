@@ -2,7 +2,7 @@
 // Resumable, one-at-a-time Playwright sweep (docs/studio/reports/e2e-sweep.md).
 //
 //   node scripts/studio/tools/e2e-sweep.mjs --queue <queue.json> --log <progress.jsonl> --logs <dir> \
-//        [--port 4251] [--only <substring>] [--force] [--stop-after-ms <wall budget>]
+//        [--port 4251] [--only <substring>] [--force] [--stop-after-ms <wall budget>] [--stop-at <epoch ms>]
 //
 // The queue is a JSON array of { spec, mode: "dom"|"real", timeoutMs, hardMs?, env?, grep?, tag? }.
 // "dom" runs without a preview server (specs that build their own bundle and call setContent);
@@ -17,6 +17,7 @@ import { spawn } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
 import { loadavg } from 'node:os';
+import { stripVTControlCharacters } from 'node:util';
 
 const args = process.argv.slice(2);
 const opt = (name, fallback) => {
@@ -30,6 +31,7 @@ const logsDir = resolve(opt('logs'));
 const port = Number(opt('port', '4251'));
 const only = opt('only');
 const stopAfterMs = Number(opt('stop-after-ms', '0'));
+const stopAt = Number(opt('stop-at', '0'));
 const wt = process.cwd();
 const config = join(wt, 'scripts/studio/tools/pw-sweep.config.ts');
 const cli = join(wt, 'node_modules/@playwright/test/cli.js');
@@ -105,7 +107,7 @@ function runOne(entry) {
                 title: spec.title.slice(0, 160),
                 status: t.status,
                 ms: last?.duration ?? null,
-                error: last?.error?.message?.replace(/\u001b\[[0-9;]*m/g, '').slice(0, 900) ?? null,
+                error: stripVTControlCharacters(last?.error?.message ?? '').slice(0, 900) || null,
               });
             }
           for (const child of suite.suites ?? []) walk(child);
@@ -142,7 +144,7 @@ for (const entry of queue) {
   const tag = entry.tag ?? basename(entry.spec, '.spec.ts');
   if (only && !tag.includes(only) && !entry.spec.includes(only)) continue;
   if (!flag('force') && done.has(tag)) continue;
-  if (stopAfterMs && Date.now() - started > stopAfterMs) {
+  if ((stopAfterMs && Date.now() - started > stopAfterMs) || (stopAt && Date.now() > stopAt)) {
     console.log(`[${stamp()}] wall budget reached, not launching ${tag} or later entries`);
     break;
   }
