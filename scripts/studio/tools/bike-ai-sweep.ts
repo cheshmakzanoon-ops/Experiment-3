@@ -3,11 +3,18 @@
 // 120 Hz, so any fall is the AI's own. A browser is not needed: a 4-bike, 3-lap race takes
 // 5 to 12 s. Prints one JSON line per race (falls per bike, race time, best lap) and, with
 // --trace, one line per fall (lap time, station, speed, lean, tyre use, grip, pedals, and the
-// line of bike.ts / bike-vehicle.ts that raised it).
+// line of bike.ts / bike-vehicle.ts that raised it). Mixed fields (a comma list of vehicles) also
+// report the traffic planner's completed passes / aborts (with the abort reasons) per rider,
+// the best lap of each vehicle type and the net on-track position swaps between types
+// (`swaps["gpr1>sbk1000"]`: times a gpr1 took a place from an sbk1000, racing phase only).
+// Falls are rare, so two leading indicators are counted per race as well: `slides` (episodes of
+// a GP rear stepping out, lateral speed above 3 m/s at more than 20 m/s) and `offTrack` (episodes
+// of a bike's centre more than half a metre past the edge of the road), and `limits` counts how
+// often each traffic-planner rule set a rider's speed limit (`follow`, `settle`, `clear` ...).
 //
 //   node --no-warnings --experimental-transform-types scripts/studio/tools/bike-ai-sweep.ts \
 //        <circuit,circuit,...> <vehicle[,vehicle...]> [cars=4] [laps=3] [firstSeed=1000] \
-//        [seeds=10] [--trace] [--ruleset=<id>]
+//        [seeds=10] [--trace] [--ruleset=<id>] [--seeds=<seed,seed,...>]
 //
 // Seeds are firstSeed + 37 * k. Comparing two source trees (before/after a fix): run the same
 // command from each checkout.
@@ -16,6 +23,7 @@ import type { BikeVehicle } from '../../../src/simulation/bike-vehicle.ts';
 import { circuitDefinition } from '../../../src/simulation/circuits.ts';
 import { DEFAULT_OPTIONS } from '../../../src/simulation/config.ts';
 import { PHASE } from '../../../src/simulation/race.ts';
+import type { TrafficPlanner } from '../../../src/simulation/traffic.ts';
 import { Simulation } from '../../../src/simulation/world.ts';
 
 const args = process.argv.slice(2);
@@ -29,6 +37,12 @@ if (!circuitsCsv || !vehicle) {
   process.exit(2);
 }
 const ruleset = flags.find((f) => f.startsWith('--ruleset='))?.slice(10);
+// --seeds=5074,5185 replaces firstSeed + 37 k with an explicit list (to re-run the races that fell).
+const seedList = flags
+  .find((f) => f.startsWith('--seeds='))
+  ?.slice(8)
+  .split(',')
+  .map(Number);
 const trace = flags.includes('--trace');
 const field = vehicle.includes(',') ? vehicle.split(',') : Array(Number(cars)).fill(vehicle);
 
@@ -60,12 +74,13 @@ Bike.prototype.fall = function (this: Bike, kind: 'lowside' | 'highside') {
 };
 
 const DT = 1 / 120;
+const plannerOf = (i: number) => (sim!.ai[i] as unknown as { planner: TrafficPlanner }).planner;
 let total = 0,
   clean = 0,
   races = 0;
 for (const circuit of circuitsCsv.split(',')) {
-  for (let k = 0; k < Number(seedCount); k++) {
-    const seed = Number(firstSeed) + k * 37;
+  for (let k = 0; k < (seedList?.length ?? Number(seedCount)); k++) {
+    const seed = seedList ? seedList[k] : Number(firstSeed) + k * 37;
     sim = new Simulation(
       {
         ...DEFAULT_OPTIONS,
@@ -81,11 +96,55 @@ for (const circuit of circuitsCsv.split(',')) {
     );
     sim.autoPlayer = true;
     falls = [];
+    const reasons: Record<string, number>[] = field.map(() => ({}));
+    const seenAborts = field.map(() => 0);
+    const swaps: Record<string, number> = {};
+    let rank = sim.cars.map(() => 0);
+    let slides = 0,
+      offTrack = 0;
+    const sliding = field.map(() => false),
+      off = field.map(() => false);
+    const limits: Record<string, number> = {};
     const started = performance.now();
-    for (let tick = 0; tick < 120 * 900 && sim.race.phase !== PHASE.FINISHED; tick++) sim.step(DT);
+    for (let tick = 0; tick < 120 * 900 && sim.race.phase !== PHASE.FINISHED; tick++) {
+      sim.step(DT);
+      if (sim.race.phase !== PHASE.RACING) continue;
+      const now = sim.race.order.map((id, place) => [id, place] as const);
+      const place: number[] = [];
+      for (const [id, p] of now) place[id] = p;
+      for (let i = 0; i < field.length; i++) {
+        const car = sim.cars[i] as BikeVehicle;
+        const lateralSpeed = Math.abs(car.dynamics.motoGP?.lateralSpeed ?? 0);
+        if (!sliding[i] && lateralSpeed > 3 && car.speed > 20) {
+          sliding[i] = true;
+          slides++;
+        } else if (sliding[i] && lateralSpeed < 1) sliding[i] = false;
+        const wide = Math.abs(car.lateral) > car.trackPosition.width + 0.5;
+        if (!off[i] && wide) {
+          off[i] = true;
+          offTrack++;
+        } else if (off[i] && !wide) off[i] = false;
+        const planner = plannerOf(i);
+        if (planner.limitedBy) limits[planner.limitedBy] = (limits[planner.limitedBy] ?? 0) + 1;
+        if (planner.aborts > seenAborts[i]) {
+          const reason = planner.lastAbort || '?';
+          reasons[i][reason] = (reasons[i][reason] ?? 0) + planner.aborts - seenAborts[i];
+          seenAborts[i] = planner.aborts;
+        }
+        for (let j = 0; j < field.length; j++)
+          if (field[i] !== field[j] && rank[i] > rank[j] && place[i] < place[j])
+            swaps[`${field[i]}>${field[j]}`] = (swaps[`${field[i]}>${field[j]}`] ?? 0) + 1;
+      }
+      rank = place;
+    }
     const perBike = (sim.cars as BikeVehicle[]).map((c) => c.dynamics.crashes);
     const bests = sim.race.laps.map((l) => l.best).filter((b) => b > 0);
     const count = perBike.reduce((a, b) => a + b, 0);
+    const bestByVehicle: Record<string, number> = {};
+    sim.race.laps.forEach((l, i) => {
+      if (l.best > 0)
+        bestByVehicle[field[i]] = +Math.min(bestByVehicle[field[i]] ?? Infinity, l.best).toFixed(2);
+    });
     races++;
     total += count;
     if (count === 0) clean++;
@@ -98,6 +157,14 @@ for (const circuit of circuitsCsv.split(',')) {
         bestLapSeconds: bests.length ? +Math.min(...bests).toFixed(2) : null,
         falls: count,
         perBike,
+        passes: field.map((_, i) => plannerOf(i).passes),
+        abortReasons: reasons,
+        swaps,
+        incidents: sim.race.control.events.filter((e) => e.kind === 'incident').length,
+        slides,
+        offTrack,
+        limits,
+        bestByVehicle,
         wallSeconds: +((performance.now() - started) / 1000).toFixed(1),
       }),
     );

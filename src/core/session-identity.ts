@@ -43,7 +43,16 @@ import {
  * visibility/standing-water race-control ladder, and the fog preset's cloud and
  * fog-cover channels (fog sessions no longer replay bit-identically with v20;
  * clear, changeable, rain, storm and dust are unchanged);
- * v22 is reserved for the GP-bike mixed-field passing work on another branch;
+ * v22: GP riders get past slower classes (pace-aware passing: closing on a slower
+ * class by the relative-motion rule, a lane either side of the car in the way on a
+ * straight, released from the follow cap) and launch with lever release and throttle
+ * opening at 8/s instead of 4/s and 2.5/s below 12 m/s, so every seeded session with
+ * a GP AI rider moves differently (single-class GP fields differ only in the launch;
+ * rider physics unchanged). Unreleased, so the passing was made safe inside v22
+ * (qa-bikes-3): a pass starts only when closing on the car on a straight of 600 m or
+ * more, the relative-motion rule holds only with 400 m of straight left, the car ahead
+ * is predicted on the road and where the lines will have moved, and a GP held back by
+ * a slower class squeezes the lever (rate and share) unless it is about to run into it;
  * v23: machine calibration pass (docs/studio/reports/handling-calibration.md): the
  * HF-86 gearbox no longer hunts at 124 km/h (downshift point 8000 -> 7200 rpm, so its
  * seeded sessions move), the MX-450's fifth gear is longer (top speed

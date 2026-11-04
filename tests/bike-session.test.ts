@@ -365,5 +365,7 @@ describe('WP35 seeded AI bike race', () => {
     const gp = Math.min(best(0), best(2), best(4)),
       sbk = Math.min(best(1), best(3), best(5));
     expect(gp).toBeLessThan(sbk);
+    // ...by a margin that is more than the noise of one seeded lap (0.03 s before qa-bikes-3).
+    expect(sbk - gp).toBeGreaterThan(0.15);
   }, 120000);
 });
