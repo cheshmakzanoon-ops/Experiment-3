@@ -68,7 +68,15 @@ jobs:
         run: node --experimental-transform-types scripts/source-stability.ts -- npm test
   scenarios:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    # Run 41879845721 (0b8ec67): the steps before `npm run test:vehicles` took
+    # 12 min 40 s of the 15 min cap (physics 6:14, race classification 2:45,
+    # vellamar 2:49, pit integration 0:48), and the vehicle calibration of all
+    # 57 machines needs about 2 min 15 s more (3 min 50 s on a loaded 4-CPU
+    # workstation). The runner cancelled the step at the cap (17:58:33Z, 15 min
+    # 15 s after the job started) and the job ended `cancelled`: a timeout, not
+    # a failure, and nothing cancelled it from outside (no concurrency group,
+    # no matrix fail-fast, no `needs` on this job).
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

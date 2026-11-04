@@ -53,6 +53,19 @@ describe('independent CI diagnostics with strict release gates', () => {
     expect(offroad).not.toMatch(/continue-on-error|OFFROAD_RACE=/);
   });
 
+  it('gives the scenario job room for the vehicle calibration that runs last', () => {
+    // Run 41879845721: the job hit its 15-minute cap during `npm run test:vehicles` and ended
+    // cancelled. Its steps before that already take about 12.7 minutes on a GitHub runner.
+    const scenarios = job('scenarios');
+    const cap = Number(/^ {4}timeout-minutes: (\d+)$/m.exec(scenarios)?.[1]);
+    expect(scenarios).toContain('run: npm run test:vehicles');
+    expect(cap).toBeGreaterThanOrEqual(25);
+    // Nothing outside the job may cancel it: no concurrency group, no fail-fast matrix.
+    expect(withoutComments(scenarios)).not.toMatch(
+      /concurrency:|cancel-in-progress|fail-fast|continue-on-error/,
+    );
+  });
+
   it('cannot publish unless the unit suite and every other required job succeed', () => {
     const publish = job('publish');
     expect(publish).toContain(
