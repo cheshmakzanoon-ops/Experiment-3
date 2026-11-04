@@ -32,6 +32,9 @@ afterEach(() => vi.restoreAllMocks());
 function frame(time = 1, rain = 24, water = 0.7) {
   const f = new Float32Array(HEADER);
   f[H.TIME] = time;
+  // A mild day: precipitation below 2 C is snow, not liquid (weather.ts
+  // snowShare; protocol.ts H.AMBIENT), and the road shader wants liquid rain.
+  f[H.AMBIENT] = 18;
   f[H.RAIN] = rain;
   f[H.WATER] = water;
   f[H.WIND_X] = 3;

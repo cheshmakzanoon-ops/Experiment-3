@@ -27,6 +27,8 @@ export async function raceSurfaceGPU(heroBytes: number[]) {
   });
   const b = new Float32Array(HEADER + CAR_STRIDE), o = carBase(0);
   b[H.CARS] = 1; b[o + F.QW] = 1; b[o + F.GEAR] = 1;
+  // A mild day: rain below 2 C is snow (weather.ts snowShare; protocol.ts H.AMBIENT).
+  b[H.AMBIENT] = 18;
   b[o + F.FRONT_HEALTH] = b[o + F.REAR_HEALTH] = 1;
   for (let i = 0; i < 4; i++) {
     const p = o + WHEEL_BASE + i * WHEEL_STRIDE;

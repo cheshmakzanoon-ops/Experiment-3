@@ -160,6 +160,17 @@ export const K = {
   SPARK_WORK: 15,
   TOTAL_WORK: 16,
 } as const;
+/** Snapshot header. Weather contract: RAIN and AMBIENT are read together.
+ * RAIN is the ONE precipitation channel (mm/h water equivalent) and AMBIENT
+ * (air temperature, C) decides what it falls as: rain at and above 2 C, snow at
+ * and below 0 C, a sleet blend between (weather.ts `snowShare`, `liquidRain`,
+ * `frameLiquidRain`). A zeroed header is therefore NOT "unset": AMBIENT 0 is a
+ * real freezing day and any RAIN in it is snowfall. Every producer that writes
+ * RAIN must also write a real AMBIENT (`Simulation.writeFrame` and
+ * `OpenWorldSimulation.writeFrame` copy the track's, `menuPreview` writes 24;
+ * ghost and safety-car frames carry no RAIN). A hand-built frame (test
+ * fixture, tool) that sets RAIN > 0 must set AMBIENT >= 2 for rain, or it
+ * silently becomes a snow scene. */
 export const H = {
   TIME: 0,
   PHASE: 1,
@@ -167,6 +178,7 @@ export const H = {
   LIGHTS: 3,
   RAIN: 4,
   CLOUD: 5,
+  /** Air temperature in C; also the precipitation phase (see above). */
   AMBIENT: 6,
   FLAG: 7,
   STEP_MS: 8,

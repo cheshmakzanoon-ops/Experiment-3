@@ -98,6 +98,8 @@ export function captureBikeSequence(
   const weather = new WeatherPresentation();
   weather.install(bike.root);
   const weatherFrame = new Float32Array(128);
+  // A mild day: rain below 2 C is snow (weather.ts snowShare; protocol.ts H.AMBIENT).
+  weatherFrame[H.AMBIENT] = 18;
   scene.add(bike.root);
   if (view === 'bodywork') bike.rider.root.visible = false;
   const floor = new T.Mesh(
