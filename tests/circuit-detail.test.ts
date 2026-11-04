@@ -17,6 +17,7 @@ import { GRANDSTANDS, inStandFootprint, standFrame } from '../src/rendering/gran
 import { vegetationPlan } from '../src/rendering/landscape.ts';
 import { installCircuitFinish, wireCoverage } from '../src/rendering/circuit-finish.ts';
 import { installStableSurfaceBump, installWetRoad } from '../src/rendering/materials.ts';
+import { roadDustUniform } from '../src/rendering/weather-presentation.ts';
 
 it('analytically filters thin wires rather than aliasing large diamond cells', () => {
   expect(wireCoverage(0, 0.01)).toBeCloseTo(1, 8);
@@ -123,12 +124,15 @@ it('composes decorative finish, grazing bump safety and real water with snapshot
   expect(shader.fragmentShader).toContain('uniform sampler2D trackState');
   expect(shader.fragmentShader).toContain('vec4 roadState = texture2D(trackState, vTrackUV)');
   expect(shader.fragmentShader.match(/varying vec3 vFinishWorld;/g)).toHaveLength(1);
+  // `roadDust` is the settled-dust film channel (328935c, weather report: shared `roadDustUniform`).
   expect(Object.keys(shader.uniforms)).toEqual([
     'roadWeather',
+    'roadDust',
     'trackState',
     'surfaceDeposits',
     'roadLampRadius',
   ]);
+  expect(shader.uniforms.roadDust).toBe(roadDustUniform);
   expect(shader.uniforms.roadLampRadius.value).toBe(0);
   expect(shader.uniforms.roadWeather.value.toArray()).toEqual([0, 0, 0, 0]);
   expect(shader.uniforms.trackState.value).toBe(state);

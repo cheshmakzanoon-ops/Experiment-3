@@ -5,6 +5,7 @@ import { carLod } from '../src/rendering/lod.ts';
 import { CrowdCluster } from '../src/rendering/crowd.ts';
 import { pitCrewDetail } from '../src/rendering/pit-presentation.ts';
 import { RacingRenderer } from '../src/rendering/renderer.ts';
+import { graphicsPreset } from '../src/rendering/options.ts';
 import { PresentedFrame } from '../src/rendering/frame-state.ts';
 import { CameraClock } from '../src/rendering/camera-dynamics.ts';
 import { F, H, HEADER, CAR_STRIDE, carBase } from '../src/simulation/protocol.ts';
@@ -175,6 +176,9 @@ describe('current-view detail and deterministic presentation', () => {
           cars,
           follow,
           quality: 'high',
+          // Every cockpit camera reads the player's Graphics "Cockpit field of view" (8fcc2ae), so the
+          // hand-built renderer needs the real option set, not just the cars.
+          graphics: graphicsPreset('high'),
           mode: 'cockpit',
           photo: null,
           night: false,
@@ -259,7 +263,16 @@ describe('current-view detail and deterministic presentation', () => {
         }
         expect(cars[follow].setLod.mock.calls[0].slice(1)).toEqual(['high', true, false]);
         const distance = cars[opponent].setLod.mock.calls[0][0];
-        expect(distance).toBeCloseTo(Math.hypot(expectedX - 60, 0.4, 0.2), 12);
+        // The cockpit camera takes the Graphics "Cockpit field of view" (54 deg by default). That lens
+        // is narrower than the 58 deg reference, so the detail rule (view-detail.ts) shortens the
+        // metric distance by tan(27)/tan(29): the LOD distance is still measured from the solved
+        // current eye, now through the lens the player actually looks through.
+        const lens = fixture.graphics.cockpitFov;
+        expect(camera.fov).toBe(lens);
+        expect(distance).toBeCloseTo(
+          detailDistance(Math.hypot(expectedX - 60, 0.4, 0.2), lens, camera.aspect),
+          12,
+        );
         expect(cars[opponent].update).toHaveBeenCalledWith(
           a,
           b,
