@@ -40,6 +40,8 @@ import {
   setLiveryPattern,
 } from './car-livery.ts';
 import { drawWordmark, fitHeight } from './studio/brand-atlas.ts';
+import { installGrazingCap } from './studio/grazing-cap.ts';
+import { HeroLivery } from './apx01-livery.ts';
 import { liveryCustomised, validateLivery, type Livery } from '../storage/livery.ts';
 import { setSuppliedLivery, suppliedLookdevReport } from './studio/supplied-lookdev.ts';
 import { TireCarcass } from './tire-carcass.ts';
@@ -113,6 +115,8 @@ export class FormulaCar {
   readonly accent: T.MeshPhysicalMaterial;
   readonly identityTexture: T.CanvasTexture;
   readonly reflectivePaint: T.MeshPhysicalMaterial[] = [];
+  /** The player's own aero livery and decals (APX-01 authored car only). */
+  private readonly heroLivery: HeroLivery | null = null;
   private v = new T.Vector3();
   private linkChord = new T.Vector3();
   private linkThickness = new T.Vector3();
@@ -123,6 +127,12 @@ export class FormulaCar {
     this.accent.color.set(livery.accent);
     const secondary = playerSecondary(livery.primary);
     setLiveryPattern(this.paint, { secondary, accent: livery.accent });
+    this.heroLivery?.repaint({
+      secondary,
+      accent: livery.accent,
+      title: livery.sponsor,
+      partners: liveryScheme(this.id).partners,
+    });
     for (const material of this.reflectivePaint) repaintFlank(material, this.id, livery);
     // The covers wear the same team colours as the body (one shared material).
     this.coverPaint.material.color.set(livery.primary);
@@ -180,6 +190,17 @@ export class FormulaCar {
       id,
     );
     this.reflectivePaint.push(this.paint);
+    // The player's own APX-01 (the authored car) wears the hero aero livery: indigo endplates
+    // with a volt rail and the fictional sponsors as decals (apx01-livery.ts).
+    if (authored && id === 0) {
+      this.heroLivery = new HeroLivery({
+        secondary: scheme.secondary,
+        accent: scheme.accent,
+        title: scheme.title,
+        partners: scheme.partners,
+      });
+      this.heroLivery.install(this.paint);
+    }
     const carbon = carbonMaterial();
     // Raw satin carbon for the floor (one extra submission per near car).
     const floorCarbon = carbonMaterial('satin');
@@ -206,6 +227,7 @@ export class FormulaCar {
       clearcoatRoughness: 0.04,
     });
     installPaintFinish(ivory);
+    installGrazingCap(ivory);
     this.accent = ivory;
     // Venturi floor, sculpted monocoque, narrow nose and smoothly undercut sidepods.
     mesh(s, hero?.copy('floor') ?? floorGeometry(), floorCarbon);
@@ -294,7 +316,10 @@ export class FormulaCar {
     }
     rod(s, metal, new T.Vector3(0.055, 0.13, 0.93), new T.Vector3(0.055, 0.52, 0.93), 0.004);
     if (hero) {
-      const materials = { paint: this.paint, carbon, metal, dark };
+      // The authored wings' flap and main-plane elements are the assembly's 'alloy' role. Turned
+      // aluminium mirrored the whole sky at a glancing angle (white stripes across the front wing
+      // in every showroom shot, vehicle art D8); they are carbon on a real aero surface.
+      const materials = { paint: this.paint, carbon, metal: carbon, dark };
       mountAuthoredWing(this.frontWing, hero, 'front', materials);
       mountAuthoredWing(this.rearWing, hero, 'rear', materials);
       mesh(s, hero.copy('beam'), carbon);

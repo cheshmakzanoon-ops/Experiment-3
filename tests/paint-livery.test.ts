@@ -162,7 +162,13 @@ describe('D06 team liveries', () => {
     const paint = installTeamPaint(new T.MeshPhysicalMaterial({ color: LIVERIES[2] }), 2);
     expect(paint.userData.paintFinish).toBe('metallic');
     expect(paint.metalness).toBe(PAINT_FINISHES.metallic.metalness);
-    expect(studioHookKeys(paint)).toEqual(['paint-flake-100-20-v1', 'livery-pattern-v1']);
+    // TEST-UPDATE (vehicle art 3, D8): the grazing-Fresnel cap is chained last on team paint,
+    // flank skins and carbon (tests/grazing-cap.test.ts); it changes no lobe constant.
+    expect(studioHookKeys(paint)).toEqual([
+      'paint-flake-100-20-v1',
+      'livery-pattern-v1',
+      'grazing-cap-v1',
+    ]);
     const s = compile(paint);
     expect(Object.keys(s.uniforms).sort()).toEqual(['liveryAccent', 'liverySecondary']);
     expect(s.fragmentShader.match(/uniform vec3 liverySecondary/g)).toHaveLength(1);
@@ -186,7 +192,7 @@ describe('D06 team liveries', () => {
     const flank = flankLivery(paint, 1, 5);
     expect(flank.userData.liverySide).toBe(1);
     expect(flank.userData.paintFinish).toBe('metallic');
-    expect(studioHookKeys(flank)).toEqual(['paint-flake-100-20-v1']);
+    expect(studioHookKeys(flank)).toEqual(['paint-flake-100-20-v1', 'grazing-cap-v1']);
     expect(flank.clearcoatRoughness).toBe(0.04);
     // Base coat first: the whole canvas in the team primary (the under-floor
     // corner keeps it, which the e2e livery checks read back).
@@ -237,7 +243,8 @@ describe('D06 team liveries', () => {
     expect(coat.color.getHexString()).toBe('0e1012');
     expect([coat.roughness, coat.clearcoat, coat.clearcoatRoughness]).toEqual([0.36, 0.85, 0.07]);
     // TEST-UPDATE (env realism): tows carry an anisotropic sheen, warp/weft per twill cell.
-    expect(coat.customProgramCacheKey()).toBe('apex-metre-carbon-v5-tow-sheen-coat');
+    // TEST-UPDATE (vehicle art 3, D8): the carbon program key now ends with the grazing cap's key.
+    expect(coat.customProgramCacheKey()).toBe('apex-metre-carbon-v5-tow-sheen-coat|grazing-cap-v1');
     expect(coat.anisotropy).toBeGreaterThan(0);
     const s = compile(coat);
     expect(s.fragmentShader).toContain('#define CARBON_WEAVE 0.180');
@@ -247,7 +254,9 @@ describe('D06 team liveries', () => {
     );
     const satin = carbonMaterial('satin');
     expect([satin.roughness, satin.clearcoat]).toEqual([CARBON_FINISHES.satin.roughness, 0]);
-    expect(satin.customProgramCacheKey()).toBe('apex-metre-carbon-v5-tow-sheen-satin');
+    expect(satin.customProgramCacheKey()).toBe(
+      'apex-metre-carbon-v5-tow-sheen-satin|grazing-cap-v1',
+    );
     expect(compile(satin).fragmentShader).toContain('#define CARBON_WEAVE 0.080');
   });
 });

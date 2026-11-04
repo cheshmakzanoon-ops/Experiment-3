@@ -447,6 +447,11 @@ export class Rider {
   private readonly gpChestInverse = new T.Quaternion();
   private readonly gpPlantFrame = new T.Quaternion();
   private readonly gpLeanFrame = new T.Quaternion();
+  /** The two replaceable knee sliders (index 0 left, 1 right) and whether the last GP pose
+   * folded that knee back onto the road (1) or left it clear (0): the contact the spark
+   * burst is drawn from (gp-slider-sparks.ts). */
+  readonly kneeSliders: T.Object3D[] = [];
+  readonly kneeDown: [number, number] = [0, 0];
   private readonly gpPlantEuler = new T.Euler();
   private readonly motocrossSpine?: MotocrossRiderSpine;
   private readonly gpBrakeFingers?: GpBrakeFingers;
@@ -1135,6 +1140,7 @@ export class Rider {
         puck.name = 'Shaped replaceable polymer knee slider';
         puck.rotation.y = (side * Math.PI) / 2;
         puck.position.set(side * 0.062, 0.035, 0.007);
+        this.kneeSliders[i] = puck;
       }
       const hand = new T.Group();
       if (mx) hand.name = `Motocross ${i === 0 ? 'left' : 'right'} hand`;
@@ -1542,8 +1548,18 @@ export class Rider {
         this.q.slerp(this.gpPlantFrame, blend);
       }
       twoBone(this.thighs[i], this.shins[i], hip, target, pole, joint);
-      if (gpClearJoint(hip, target, joint, pole, lean, height, crown, GP_KNEE_CLEARANCE))
-        twoBone(this.thighs[i], this.shins[i], hip, target, pole, joint);
+      const kneeOnRoad = gpClearJoint(
+        hip,
+        target,
+        joint,
+        pole,
+        lean,
+        height,
+        crown,
+        GP_KNEE_CLEARANCE,
+      );
+      this.kneeDown[i] = kneeOnRoad ? 1 : 0;
+      if (kneeOnRoad) twoBone(this.thighs[i], this.shins[i], hip, target, pole, joint);
       gpAttachAtJoint(
         this.feet[i],
         this.shins[i].group.quaternion,

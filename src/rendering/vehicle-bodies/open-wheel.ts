@@ -539,6 +539,26 @@ export function buildOpenWheel(
     }
   return links;
 }
+/** A moulded plastic panel from a plan-view outline (x across, z along, metres) with rounded
+ * edges: height `h` (up from y = 0), bevel `r`. The kart's nose cone and side pods are panels
+ * like this, not slabs or ellipsoids (D10). */
+function mouldedPanel(outline: readonly Pt[], h: number, r: number, detail: Detail) {
+  const shape = new T.Shape();
+  outline.forEach(([x, z], i) => (i ? shape.lineTo(x, z) : shape.moveTo(x, z)));
+  shape.closePath();
+  const geometry = new T.ExtrudeGeometry(shape, {
+    depth: Math.max(0.001, h - 2 * r),
+    bevelEnabled: true,
+    bevelSize: r,
+    bevelThickness: r,
+    bevelSegments: detail === 0 ? 3 : 1,
+    curveSegments: detail === 0 ? 6 : 2,
+  });
+  // The shape's y becomes +z and the extrusion runs up from y = 0.
+  geometry.rotateX(Math.PI / 2);
+  geometry.translate(0, h - r, 0);
+  return geometry;
+}
 export function buildKart(
   f: BodyFrame,
   s: KartSheet,
@@ -573,14 +593,61 @@ export function buildKart(
   if (detail < 2) {
     // Nose fairing and front panel (number board); a compact sprint nose is
     // narrower, shorter and higher.
-    // Moulded shells are ellipsoids, not slabs: the nose cone and the pods.
-    const shell = (rx: number, ry: number, rz: number) =>
-      new T.SphereGeometry(1, detail === 0 ? 24 : 12, detail === 0 ? 14 : 8).scale(rx, ry, rz);
-    parts.add(
-      compact ? shell(0.25, 0.08, 0.27) : shell(0.3, 0.085, 0.4),
-      mats.paint,
-      compact ? placed(0, y(0.18), zF + 0.2, 0.16) : placed(0, y(0.17), zF + 0.3, 0.12),
-    );
+    // Moulded panels, not slabs or ellipsoids: the nose cone, the number panel and the pods.
+    // The gearbox kart wears a long, wide nose with an accent ridge behind its chrome
+    // bumper; the direct-drive kart a short pointed cadet-style cone with a centre ridge.
+    if (compact) {
+      parts.add(
+        mouldedPanel(
+          [
+            [-0.3, 0],
+            [-0.27, 0.14],
+            [-0.15, 0.32],
+            [-0.05, 0.42],
+            [0.05, 0.42],
+            [0.15, 0.32],
+            [0.27, 0.14],
+            [0.3, 0],
+          ],
+          0.1,
+          0.03,
+          detail,
+        ),
+        mats.paint,
+        placed(0, y(0.1), zF - 0.02, 0.2),
+      );
+      parts.add(
+        roundedBox(0.07, 0.03, 0.34, 0.012, 1),
+        mats.accent,
+        placed(0, y(0.168), zF + 0.2, 0.2),
+      );
+    } else {
+      parts.add(
+        mouldedPanel(
+          [
+            [-0.36, 0],
+            [-0.34, 0.22],
+            [-0.26, 0.5],
+            [-0.12, 0.66],
+            [0.12, 0.66],
+            [0.26, 0.5],
+            [0.34, 0.22],
+            [0.36, 0],
+          ],
+          0.085,
+          0.026,
+          detail,
+        ),
+        mats.paint,
+        placed(0, y(0.08), zF - 0.1, 0.12),
+      );
+      // An accent ridge down the nose, lying on the panel's pitched surface.
+      parts.add(
+        roundedBox(0.09, 0.022, 0.5, 0.008, 1),
+        mats.accent,
+        placed(0, y(0.141), zF + 0.2, 0.12),
+      );
+    }
     // The gearbox kart's front bumper: a chrome tube round the nose, on stays.
     if (!compact) {
       parts.add(
@@ -610,19 +677,70 @@ export function buildKart(
           steel,
         );
     }
+    // Number panel on its frame, standing on the nose.
     parts.add(
       roundedBox(0.4, 0.3, 0.02, 0.03, 2),
       mats.paint,
       placed(0, y(0.32), zF + 0.04, -0.45),
     );
     parts.add(new T.PlaneGeometry(0.3, 0.24), mats.board, placed(0, y(0.325), zF + 0.055, -0.45));
-    // Side pods between the wheels.
-    for (const side of [-1, 1])
+    // Front axle and track rod: the stub axles reach the wheels across the floor.
+    rail(
+      [-f.trackFront / 2 + 0.05, y(0.085), zF - 0.02],
+      [f.trackFront / 2 - 0.05, y(0.085), zF - 0.02],
+      0.016,
+    );
+    rail(
+      [-f.trackFront / 2 + 0.05, y(0.13), zF - 0.14],
+      [f.trackFront / 2 - 0.05, y(0.13), zF - 0.14],
+      0.009,
+    );
+    // Side pods between the wheels: a long scooped pod, or a short rounded one.
+    for (const side of [-1, 1]) {
+      const px = side * (tw - (short ? 0.07 : 0.06)),
+        pz = (zF + zR) / 2 - (short ? 0.38 : 0.42);
       parts.add(
-        short ? shell(0.12, 0.1, 0.26) : shell(0.105, 0.085, 0.34),
+        mouldedPanel(
+          short
+            ? [
+                [-0.08, 0],
+                [-0.115, 0.1],
+                [-0.115, 0.46],
+                [-0.07, 0.62],
+                [0.07, 0.62],
+                [0.115, 0.46],
+                [0.115, 0.1],
+                [0.08, 0],
+              ]
+            : [
+                [-0.06, 0],
+                [-0.105, 0.1],
+                [-0.115, 0.62],
+                [-0.07, 0.82],
+                [0.07, 0.82],
+                [0.115, 0.62],
+                [0.105, 0.1],
+                [0.06, 0],
+              ],
+          short ? 0.12 : 0.11,
+          0.035,
+          detail,
+        ),
         mats.paint,
-        placed(side * (tw - 0.06), y(short ? 0.15 : 0.14), (zF + zR) / 2 - (short ? 0.12 : 0.05)),
+        placed(px, y(short ? 0.1 : 0.09), pz),
       );
+      // The inlet: a dark mouth with the accent as its trim.
+      parts.add(
+        roundedBox(short ? 0.15 : 0.13, short ? 0.06 : 0.055, 0.02, 0.012, 1),
+        mats.accent,
+        placed(px, y(short ? 0.15 : 0.14), pz + (short ? 0.62 : 0.82) - 0.004),
+      );
+      parts.add(
+        roundedBox(short ? 0.12 : 0.1, short ? 0.04 : 0.036, 0.02, 0.008, 1),
+        sharedMaterials.grille(),
+        placed(px, y(short ? 0.15 : 0.14), pz + (short ? 0.62 : 0.82) + 0.003),
+      );
+    }
     // Rear bumper: a tube bar, or a full-width enclosed plastic bumper.
     if (enclosed)
       parts.add(roundedBox(1.42, 0.2, 0.22, 0.08, 3), plastic, placed(0, y(0.18), zR - 0.34));

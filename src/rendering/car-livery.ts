@@ -18,6 +18,7 @@ import {
   type MarkArt,
 } from './studio/brand-atlas.ts';
 import { chainShaderHook, injectBefore } from './studio/shader-hooks.ts';
+import { installGrazingCap } from './studio/grazing-cap.ts';
 
 /**
  * Team liveries (D06 vehicle-paint). Each team colour from `LIVERIES` gets a
@@ -453,6 +454,7 @@ export function flankLivery(paint: T.MeshPhysicalMaterial, side: number, id: num
   installPaintFinish(material);
   const finish = (paint.userData.paintFinish as PaintFinish | undefined) ?? liveryScheme(id).finish;
   installPaintFlakes(material, PAINT_FINISHES[finish].flake, PAINT_FINISHES[finish].peel);
+  installGrazingCap(material);
   material.color.set(0xffffff);
   // A CPU-backed skin. apexDiagnostics() reads a skin pixel back
   // (renderer.playerPaint) to prove a repaint reached the canvas; on an
@@ -488,6 +490,7 @@ export function installTeamPaint(paint: T.MeshPhysicalMaterial, id: number) {
     PAINT_FINISHES[scheme.finish].peel,
   );
   installLiveryPattern(paint, scheme);
+  installGrazingCap(paint);
   return paint;
 }
 
