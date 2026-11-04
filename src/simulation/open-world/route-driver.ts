@@ -40,7 +40,7 @@ const BIKE_CORNER_RESERVE = 0.88;
 export const LONG_LOOKAHEAD_SPEED = 55;
 /** Straight-line pace in the wet (see RouteDriver.update): the fraction of the
  * dry pace is WET_PACE_BASE + WET_PACE_PER_GRIP × grip (grip 0..1 of the dry
- * reference), at least WET_PACE_FLOOR and at most 1 (grip above 0.44 is dry). */
+ * reference), at least WET_PACE_FLOOR and at most 1 (from grip 0.44 up the pace is untouched). */
 const WET_PACE_BASE = 0.3;
 const WET_PACE_PER_GRIP = 1.6;
 const WET_PACE_FLOOR = 0.4;
@@ -96,6 +96,9 @@ export class RouteDriver {
    * this scales it so a car that runs wide at speed still holds the line. */
   private understeer = 1;
   private stuck = 0;
+  /** Watchdog: route distance a while ago and the seconds since. */
+  private progressMark = 0;
+  private progressClock = 0;
   private recovery = 0;
   private trafficSpeed = Infinity;
   private trafficClock = 0;
@@ -141,6 +144,8 @@ export class RouteDriver {
     this.stuck = 0;
     this.recovery = 0;
     this.trouble = 0;
+    this.progressMark = this.d;
+    this.progressClock = 0;
     this.wantsReset = false;
     this.clearTraffic();
   }
@@ -407,6 +412,17 @@ export class RouteDriver {
     const upset = !bike && c.up.y < 0.3;
     if (!finished && (this.stuck > 9 || this.located.distance > 40 || upset)) this.trouble += dt;
     else this.trouble = Math.max(0, this.trouble - dt);
+    // Every recovery attempt clears `stuck`, so `stuck > 9` is never reached: a
+    // car wedged beside the road (wheels on a verge, 10 m from the route, still
+    // inside RouteProgress's tolerance) spun and reversed for ever (festival
+    // QA, Port Ilse Street Loop in a storm: 500 s). No progress along the
+    // route for 12 s while it wants to go is trouble whatever recovery tried.
+    this.progressClock += dt;
+    if (this.progressClock >= 12) {
+      if (!finished && desired > 5 && Math.abs(this.d - this.progressMark) < 3) this.trouble += 5;
+      this.progressMark = this.d;
+      this.progressClock = 0;
+    }
     if (this.trouble > 4) this.wantsReset = true;
     if (bike) bike.aiControlled();
   }

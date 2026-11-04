@@ -941,6 +941,8 @@ export class OpenWorldSimulation {
         this.autopilotDriver ??= new RouteDriver(this.player, run.event.path, 0.9);
         this.autopilotDriver.update(dt, traffic, false, run.participants[0].finishTime !== null);
         run.assisted = true;
+        // Wedged beside the road or upside down: reset, as the free-roam cruise does.
+        if (this.autopilotDriver.wantsReset) this.resetToRoad(0, 'Autopilot reset');
       }
     } else if (this.autopilot) this.cruise(dt);
     else if (this.parked) {

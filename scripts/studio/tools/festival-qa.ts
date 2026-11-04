@@ -120,6 +120,10 @@ export interface ActivityReport {
   falls: number;
   trafficCollisions: number;
   incidents: string[];
+  /** Free-roam driving skill chain (FestivalSkillChain) at the end of the run. */
+  skillChain?: { sessionTotal: number; bestChain: number };
+  /** Other activities that started on the way (their gate was on the road) and how they ended. */
+  incidental?: string[];
   field: string;
   checks: Check[];
   reward: { paid: boolean; total: number; reputation: number; lines: number; reason: string | null } | null;
@@ -485,6 +489,8 @@ export function runActivity(o: RunOptions, shared: Shared = {}): ActivityReport 
     };
     const modeNow = (): FestivalMode => sim.mode;
     const held: { result: FestivalResult | null } = { result: null };
+    // Driving to a marker passes other activities' gates, which start by themselves (as for a player).
+    const incidental: FestivalResult[] = [];
     const advance = (hold = false, finished = false, progress = false) => {
       pilot.step(DT, hold, finished);
       sim.step(DT);
@@ -494,8 +500,13 @@ export function runActivity(o: RunOptions, shared: Shared = {}): ActivityReport 
         console.log(`  trace t=${(sim.time - start).toFixed(1)} m=${pilot.d.toFixed(0)} lat=${pilot.lateral.toFixed(1)} v=${c.speed.toFixed(1)} up=${c.up.y.toFixed(2)} gear=${c.gear} thr=${c.input.throttle.toFixed(2)} brk=${c.input.brake.toFixed(2)} str=${c.input.steer.toFixed(2)} ${pilot.decision} trouble=${pilot.trouble.toFixed(1)} imp=${c.impact.toFixed(2)} load=${c.tires.map((t) => Math.round(t.load / 100)).join('/')} roll=${(Math.atan2(2 * (c.body.orientation.x * c.body.orientation.y + c.body.orientation.w * c.body.orientation.z), c.up.y) * 57.3).toFixed(0)} wz=${c.body.omega.z.toFixed(2)} vy=${c.body.velocity.y.toFixed(1)} (${c.body.position.x.toFixed(0)},${c.body.position.z.toFixed(0)},${c.body.position.y.toFixed(1)})`);
       }
       const r = sim.takeResult();
-      if (r) held.result = r;
+      if (r) {
+        if (r.eventId === o.event) held.result = r;
+        else incidental.push(r);
+      }
     };
+    const targetRunning = () => sim.mode === 'running' && sim.status().event?.id === o.event;
+    const targetCard = () => sim.mode === 'card' && sim.status().card?.id === o.event;
 
     // 1. Arrive: fast travel as the HUD does, or drive there.
     const runUp = race ? null : approachPath(event);
@@ -519,6 +530,15 @@ export function runActivity(o: RunOptions, shared: Shared = {}): ActivityReport 
           false,
         );
       }
+      // A person turns a car round and sets off; the route driver cannot make a U-turn on a
+      // road. Point the car along the start of its route when it faces the other way (after a
+      // finish at a dead end, or off the planned lane).
+      const start0 = path.at(0, pathPoint()),
+        facing = sim.player.forward.x * start0.tx + sim.player.forward.z * start0.tz;
+      if (facing < 0.5 || Math.hypot(start0.x - here.x, start0.z - here.z) > 12) {
+        sim.placeAt(sim.player, start0.x, start0.z, Math.atan2(start0.tx, start0.tz), start0.y + 0.5);
+        monitor.rebind();
+      }
       pilot = new Pilot(sim, path, o.skill, o.traffic ? -1.9 : 0);
       if (!race) pilot.horizon = path.length - (event.path.length - event.distance);
       pilot.slide = !!o.slide && event.spec.kind === 'drift-zone';
@@ -527,8 +547,8 @@ export function runActivity(o: RunOptions, shared: Shared = {}): ActivityReport 
     const arrivalLimit = o.approach === 'drive' ? 120 + pilot.path.length / 8 : 30;
     if (race) {
       // A race card opens at the marker once the car has stopped there.
-      while (sim.mode !== 'card' && sim.time - arrive < arrivalLimit) advance();
-      if (sim.mode !== 'card') {
+      while (!targetCard() && sim.time - arrive < arrivalLimit) advance();
+      if (!targetCard()) {
         notes.push(`no race card after ${(sim.time - arrive).toFixed(0)} s (mode ${sim.mode})`);
         report.outcome = 'no-start';
       } else {
@@ -555,8 +575,8 @@ export function runActivity(o: RunOptions, shared: Shared = {}): ActivityReport 
         if (rolled > 0.5) notes.push(`player rolled ${rolled.toFixed(2)} m in the last second of the countdown`);
       }
     } else {
-      while (sim.mode !== 'running' && sim.mode !== 'finished' && sim.time - arrive < arrivalLimit && !held.result) advance();
-      if (sim.mode !== 'running' && !held.result) {
+      while (!targetRunning() && sim.time - arrive < arrivalLimit && !held.result) advance();
+      if (!targetRunning() && !held.result) {
         notes.push(`the gate did not start the challenge after ${(sim.time - arrive).toFixed(0)} s (mode ${sim.mode})`);
         report.outcome = 'no-start';
       } else {
@@ -586,6 +606,19 @@ export function runActivity(o: RunOptions, shared: Shared = {}): ActivityReport 
     report.topKmh = round(monitor.topSpeed * 3.6);
     report.trafficCollisions = monitor.trafficCollisions;
     report.incidents = monitor.incidents;
+    const chain = sim.skills.status();
+    report.skillChain = { sessionTotal: chain.sessionTotal, bestChain: chain.bestChain };
+
+    if (incidental.length) {
+      report.incidental = incidental.map((r) => `${r.eventId}:${r.completed ? `${r.stars}*` : 'failed'}`);
+      const registry = liveRegistry();
+      shared.career = incidental.reduce(
+        (career, r) => settleFestival(career, registry, r, { loaner: null, career: true }).save,
+        shared.career ?? richCareer(o.vehicle),
+      );
+      shared.save ??= blankSave(o.vehicle);
+      for (const r of incidental) recordFestivalBest(shared.save, r);
+    }
 
     // 3. Result, reward, save, reload.
     const result = held.result;
@@ -703,9 +736,9 @@ export interface TourReport {
 /** One session, one career: drive between markers with traffic on, run each
  * activity, settle it in a natural-reputation career, save and reload the
  * session every `reloadEvery` events. */
-export function runTour(o: { vehicle: string; weather: WeatherPreset; seed: number; skill?: number; reloadEvery?: number; only?: string[]; onStep?: (r: ActivityReport) => void }): TourReport {
+export function runTour(o: { vehicle: string; weather: WeatherPreset; seed: number; skill?: number; traffic?: boolean; reloadEvery?: number; only?: string[]; onStep?: (r: ActivityReport) => void }): TourReport {
   const wall = performance.now();
-  const base: RunOptions = defaultRun('', { vehicle: o.vehicle, weather: o.weather, seed: o.seed, approach: 'drive', traffic: true, skill: o.skill ?? 0.92 });
+  const base: RunOptions = defaultRun('', { vehicle: o.vehicle, weather: o.weather, seed: o.seed, approach: 'drive', traffic: o.traffic === true, skill: o.skill ?? 0.92 });
   let sim = newSim(base);
   const shared: Shared = { sim, career: richCareer(o.vehicle), save: blankSave(o.vehicle), results: [] };
   // A natural career: start with no reputation and only what the runs earn.
@@ -737,7 +770,7 @@ export function runTour(o: { vehicle: string; weather: WeatherPreset; seed: numb
     reputation: shared.career!.reputation.festival,
     locked,
     saveReloads: reloads,
-    repro: `${SCRIPT} --tour --vehicles ${o.vehicle} --weathers ${o.weather} --seed ${o.seed}`,
+    repro: `${SCRIPT} --tour --vehicles ${o.vehicle} --weathers ${o.weather} --seed ${o.seed}${o.traffic ? ' --traffic' : ''}`,
     wallMs: Math.round(performance.now() - wall),
   };
 }
@@ -863,7 +896,7 @@ function main() {
     const only = argv('events') ? argv('events').split(',') : undefined;
     for (const vehicle of vehicles)
       for (const weather of weathers) {
-        const tour = runTour({ vehicle, weather, seed, skill, reloadEvery: Number(argv('reload-every', '6')), only, onStep: (r) => console.log(line(r)) });
+        const tour = runTour({ vehicle, weather, seed, skill, traffic: flag('traffic'), reloadEvery: Number(argv('reload-every', '6')), only, onStep: (r) => console.log(line(r)) });
         console.log(`tour ${vehicle}/${weather}: ${tour.steps.filter((s) => s.verdict !== 'fail').length}/${tour.steps.length} ok, credits ${tour.credits}, reputation ${tour.reputation}, ${tour.saveReloads} reloads, wall ${(tour.wallMs / 1000).toFixed(0)} s; locked at start: ${tour.locked.join('; ') || 'none'}`);
         if (out) appendFileSync(out, JSON.stringify({ tour }) + '\n');
         if (tour.steps.some((s) => s.verdict === 'fail')) process.exitCode = 1;

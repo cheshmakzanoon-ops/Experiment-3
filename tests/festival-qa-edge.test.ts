@@ -16,7 +16,7 @@ import {
  * way, flipping, quitting, starting one event over another, weather that
  * changes, saving mid-world and playing two sessions in one page. They run
  * the production session headless with the QA pilot (festival-qa.ts) as the
- * player; see docs/studio/reports/qa-festival.md. */
+ * player (scripts/studio/tools/festival-qa.ts). */
 const VEHICLE = 'rs5';
 const make = (extra: { discovered?: readonly string[]; session?: string } = {}, weather = 'clear' as const) =>
   newSim(defaultRun('', { vehicle: VEHICLE, weather }), { session: 'qa-edge', ...extra });

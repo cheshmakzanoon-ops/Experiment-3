@@ -53,7 +53,7 @@ const bridgeSamples = [
     below: 87.72358071225304,
     // 95.139348088 until the festival QA pass rounded the sag the Ridge
     // Highway made into this deck (a V of 11 % that rolled a 200 km/h car:
-    // docs/studio/reports/qa-festival.md D1). The deck here is now 0.45 m
+    // scripts/studio/tools/festival-qa.ts, the Grand Loop). The deck here is now 0.45 m
     // higher, still less than the 8 m (two layer gaps) above the valley road.
     deck: 95.58817435459727,
   },

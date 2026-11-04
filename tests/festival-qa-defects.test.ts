@@ -3,7 +3,7 @@ import { pathPoint } from '../src/simulation/open-world/route-path.ts';
 import type { OpenWorldSimulation } from '../src/simulation/open-world/session.ts';
 import { approachPath, DT, defaultRun, newSim, Pilot, runActivity } from '../scripts/studio/tools/festival-qa.ts';
 
-/** Defects the festival QA harness found (docs/studio/reports/qa-festival.md):
+/** Defects the festival QA harness found (scripts/studio/tools/festival-qa.ts):
  * each test drives or measures the exact place that failed. */
 const eh3 = (sim: OpenWorldSimulation) => sim.events.find((e) => e.spec.id === 'grand-loop')!;
 /** Put the player on the Grand Loop at route distance d, already doing `speed` m/s. */
@@ -92,6 +92,26 @@ describe('festival route driver in the wet and after backing out', () => {
     },
     60_000,
   );
+  it('asks for a reset when wedged beside the road, instead of reversing and spinning for ever', () => {
+    const sim = newSim(defaultRun('', { vehicle: 'eh3' }));
+    const event = sim.events.find((e) => e.spec.id === 'valley-sprint')!,
+      p = pathPoint();
+    event.path.at(100, p);
+    // 10 m to the side: outside the road but inside RouteProgress's tolerance.
+    sim.placeAt(sim.player, p.x + p.nx * 10, p.z + p.nz * 10, Math.atan2(p.tx, p.tz), p.y + 0.5);
+    const pilot = new Pilot(sim, event.path, 0.92);
+    let first = Infinity;
+    for (let i = 0; i < 120 * 45 && first === Infinity; i++) {
+      // Held fast, as a car caught on a verge or a wall is.
+      sim.player.body.velocity.set(0, 0, 0);
+      sim.player.body.omega.set(0, 0, 0);
+      pilot.step(DT);
+      sim.step(DT);
+      if (pilot.resets) first = i / 120;
+    }
+    // Recovery (3 s stuck, 2.2 s reversing) cannot free it; the watchdog gives up at 12 s.
+    expect(first).toBeLessThan(40);
+  }, 60_000);
   it('stops the car before driving on after a reversing recovery, not reversing away from the route', () => {
     const sim = newSim(defaultRun('', { vehicle: 'eh3' }));
     const event = sim.events.find((e) => e.spec.id === 'valley-sprint')!,
