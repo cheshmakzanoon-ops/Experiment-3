@@ -1,3 +1,6 @@
+import { wildcardTitle } from '../i18n/data.ts';
+import { fixed, t, ta, th } from '../i18n/index.ts';
+import { N_ } from '../i18n/mark.ts';
 import frontEndCss from './front-end.css?inline';
 import wildcardCss from './wildcard-board.css?inline';
 import hudCss from './hud-identity.css?inline';
@@ -19,6 +22,7 @@ import {
   disciplineFacts,
   disciplineOf,
   entryDefaults,
+  factsCount,
   machinesFor,
   venuesFor,
   type BoardDiscipline,
@@ -35,7 +39,7 @@ import {
 } from './continue-entry.ts';
 import { uiCue } from './ui-cue.ts';
 import { machineBlurb } from './machine-character.ts';
-import { circuitOpen, demoPolicy, machineOpen } from '../release/demo.ts';
+import { FULL_GAME, circuitOpen, demoPolicy, machineOpen } from '../release/demo.ts';
 import { wildcardProgress, type WildcardProgress } from './wildcard-board.ts';
 
 /** The launch board: the paddock menu's discipline plates, venue sheet and
@@ -71,11 +75,11 @@ export function installHudIdentity(hud: HTMLElement) {
 
 /** Radio group of the four disciplines (rendered by the template; behaviour below). */
 export function boardPlatesHtml() {
-  return `<div id="boardPlates" class="lb-plates" role="radiogroup" aria-label="Discipline">${BOARD_DISCIPLINES.map(
+  return `<div id="boardPlates" class="lb-plates" role="radiogroup" aria-label="${ta('Discipline')}">${BOARD_DISCIPLINES.map(
     (id) => {
       const spec = DISCIPLINE_SPECS[id],
         facts = disciplineFacts(id);
-      return `<button type="button" class="lb-plate" role="radio" data-discipline="${id}" aria-checked="false" tabindex="-1" aria-label="${spec.label}, ${facts.count} ${facts.noun.toLowerCase()}"><span class="lb-plate-art">${plateSvg(spec.shape, spec.numeral, id === 'festival' ? 'SOLVANE' : '')}</span><b>${spec.label}</b><small>${facts.count} ${facts.noun}</small></button>`;
+      return `<button type="button" class="lb-plate" role="radio" data-discipline="${id}" aria-checked="false" tabindex="-1" aria-label="${ta('{label}, {count}', { label: t(spec.label), count: factsCount(facts, true) })}"><span class="lb-plate-art">${plateSvg(spec.shape, spec.numeral, id === 'festival' ? 'SOLVANE' : '')}</span><b>${th(spec.label)}</b><small>${factsCount(facts)}</small></button>`;
     },
   ).join('')}</div>`;
 }
@@ -90,7 +94,7 @@ export function dialHtml(
   select: string,
   className = '',
 ) {
-  return `<div class="lb-dial${className ? ` ${className}` : ''}" data-dial="${id}"><label><span class="lb-dial-face"><span class="lb-dial-label">${icon ? glyph(icon, 'lb-dial-glyph') : ''}<span class="lb-dial-name">${label}</span><span class="lb-dial-count" aria-hidden="true"></span></span>${select}${glyph('caret', 'lb-dial-caret')}</span></label><button type="button" class="lb-step" data-step="-1" tabindex="-1" aria-hidden="true">${glyph('chevLeft')}</button><button type="button" class="lb-step" data-step="1" tabindex="-1" aria-hidden="true">${glyph('chevRight')}</button></div>`;
+  return `<div class="lb-dial${className ? ` ${className}` : ''}" data-dial="${id}"><label><span class="lb-dial-face"><span class="lb-dial-label">${icon ? glyph(icon, 'lb-dial-glyph') : ''}<span class="lb-dial-name">${th(label)}</span><span class="lb-dial-count" aria-hidden="true"></span></span>${select}${glyph('caret', 'lb-dial-caret')}</span></label><button type="button" class="lb-step" data-step="-1" tabindex="-1" aria-hidden="true">${glyph('chevLeft')}</button><button type="button" class="lb-step" data-step="1" tabindex="-1" aria-hidden="true">${glyph('chevRight')}</button></div>`;
 }
 
 /** A curated one-click setup that appears in the SERIES strip (art direction
@@ -119,13 +123,19 @@ export const registeredSeries = () => seriesRegistry.slice();
 
 const FIELD_IDS = CONTINUE_FIELDS;
 const GROUP_LABEL: Readonly<Record<string, string>> = Object.freeze({
-  original: 'ORIGINAL',
-  'real-world': 'REAL-WORLD APPROXIMATION',
-  unconventional: 'UNCONVENTIONAL',
-  'off-road': 'OFF-ROAD',
+  original: N_('ORIGINAL'),
+  'real-world': N_('REAL-WORLD APPROXIMATION'),
+  unconventional: N_('UNCONVENTIONAL'),
+  'off-road': N_('OFF-ROAD'),
 });
-const REGION_BLURB =
-  'Harbour to massif on open roads. Drive to an event marker or travel from the world map.';
+const REGION_BLURB = N_(
+  'Harbour to massif on open roads. Drive to an event marker or travel from the world map.',
+);
+/** The refusal lines the session rules print; the board dims its action while one shows. */
+const REFUSALS = [N_('Cannot start'), N_('Unavailable')];
+export const isRefusal = (text: string | null) =>
+  !!text && REFUSALS.some((prefix) => text.startsWith(prefix) || text.startsWith(t(prefix)));
+const escapeAttr = (text: string) => text.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
 
 export interface LaunchBoard {
   /** Re-read the form and repaint the board (idempotent, cheap). */
@@ -260,7 +270,7 @@ export function installLaunchBoard(menu: HTMLElement): LaunchBoard {
     form.requestSubmit(enter);
   });
   on(form, 'submit', () => {
-    const refused = /^(Cannot start|Unavailable)/.test(rules.textContent ?? '');
+    const refused = isRefusal(rules.textContent);
     rules.dataset.state = refused ? 'error' : '';
     uiCue(refused ? 'deny' : 'confirm');
   });
@@ -327,16 +337,16 @@ export function installLaunchBoard(menu: HTMLElement): LaunchBoard {
   let remembered: ContinueEntry | null = null;
   function renderDoor() {
     const p = wildcard ?? wildcardProgress(null);
-    const status = `${p.medalled} OF ${p.total} MEDALLED`;
-    const label = `WILDCARD SERIES, ${p.total} events, ${p.crossDiscipline} cross-discipline, ${p.medalled} medalled${p.next ? `, next ${p.next.title.toLowerCase()}` : ''}`;
-    let html = `<button type="button" class="lb-wild" data-action="career:wildcard" aria-label="${label}" title="${p.next ? `Next: ${p.next.title}` : 'Every event medalled'}"><span class="lb-wild-count" aria-hidden="true">${p.total}</span><span class="lb-wild-text"><b>WILDCARD SERIES</b><small>${status}</small></span>${glyph('go', 'lb-wild-go')}</button>`;
+    const status = t('{medalled} OF {total} MEDALLED', { medalled: p.medalled, total: p.total });
+    const label = `${t('WILDCARD SERIES, {total} events, {cross} cross-discipline, {medalled} medalled', { total: p.total, cross: p.crossDiscipline, medalled: p.medalled })}${p.next ? `, ${t('next {title}', { title: wildcardTitle(p.next).toLowerCase() })}` : ''}`;
+    let html = `<button type="button" class="lb-wild" data-action="career:wildcard" aria-label="${escapeAttr(label)}" title="${escapeAttr(p.next ? t('Next: {title}', { title: wildcardTitle(p.next) }) : t('Every event medalled'))}"><span class="lb-wild-count" aria-hidden="true">${p.total}</span><span class="lb-wild-text"><b>${th('WILDCARD SERIES')}</b><small>${status}</small></span>${glyph('go', 'lb-wild-go')}</button>`;
     if (remembered) {
       const what = describeContinue(remembered);
       const action =
         remembered.kind === 'wildcard'
           ? ` data-action="career:wildcardGo:${remembered.id}"`
           : ' data-continue';
-      html += `<button type="button" class="lb-continue"${action} aria-label="CONTINUE: ${what.title}, ${what.detail}" title="${what.title} · ${what.detail}"><b>CONTINUE</b><small>${what.title}</small></button>`;
+      html += `<button type="button" class="lb-continue"${action} aria-label="${escapeAttr(`${t('CONTINUE')}: ${what.title}, ${what.detail}`)}" title="${escapeAttr(`${what.title} · ${what.detail}`)}"><b>${th('CONTINUE')}</b><small>${what.title}</small></button>`;
     }
     if (door.innerHTML !== html) door.innerHTML = html;
   }
@@ -413,8 +423,8 @@ export function installLaunchBoard(menu: HTMLElement): LaunchBoard {
     // The headline is the discipline's pit-board message. The motocross
     // presenter owns it at its own venues (MX and SX have their own lines).
     if (menu.dataset.discipline !== 'motocross' && menu.dataset.discipline !== 'supercross') {
-      text(motto, spec.motto);
-      text(intro, spec.skill);
+      text(motto, t(spec.motto));
+      text(intro, t(spec.skill));
     }
     const festival = d === 'festival';
     if (machineLine) text(machineLine, machineBlurb(f.vehicle));
@@ -424,7 +434,7 @@ export function installLaunchBoard(menu: HTMLElement): LaunchBoard {
     regionTitle.hidden = !festival;
     circuitStats.hidden = festival;
     regionStats.hidden = !festival;
-    text(circuitDial.querySelector('.lb-dial-name')!, spec.venueNoun);
+    text(circuitDial.querySelector('.lb-dial-name')!, t(spec.venueNoun));
     const key = festival ? 'region' : f.circuit;
     if (key !== mapKey) {
       mapKey = key;
@@ -434,16 +444,16 @@ export function installLaunchBoard(menu: HTMLElement): LaunchBoard {
       map.dataset.kind = festival ? 'region' : (CIRCUITS[f.circuit as CircuitId]?.offroad ? 'dirt' : 'circuit');
     }
     if (festival) {
-      text(kicker, 'OPEN WORLD');
-      text(blurb, REGION_BLURB);
-      regionStats.innerHTML = `<span><b>${SOLVANE.events.length}</b> EVENTS</span><span><b>${SOLVANE.roads.length}</b> ROADS</span><span><b>${SOLVANE.towns.length}</b> TOWNS</span>`;
+      text(kicker, t('OPEN WORLD'));
+      text(blurb, t(REGION_BLURB));
+      regionStats.innerHTML = `<span><b>${SOLVANE.events.length}</b> ${th('EVENTS')}</span><span><b>${SOLVANE.roads.length}</b> ${th('ROADS')}</span><span><b>${SOLVANE.towns.length}</b> ${th('TOWNS')}</span>`;
     } else {
       const def = CIRCUITS[f.circuit as CircuitId];
       if (def) {
-        text(kicker, GROUP_LABEL[circuitGroup(def.id)] ?? '');
+        text(kicker, t(GROUP_LABEL[circuitGroup(def.id)] ?? ''));
         // The lap length of the circuit on the sheet, not of whichever track is
         // loaded: the sampled centreline is the same curve `Track` measures.
-        text(lengthStat, (circuitArt(def).length / 1000).toFixed(3));
+        text(lengthStat, fixed(circuitArt(def).length / 1000, 3));
       }
     }
     // Counters: "07 / 42" beside each stepped dial.
@@ -481,9 +491,9 @@ export function installLaunchBoard(menu: HTMLElement): LaunchBoard {
       for (const hand of dial.querySelectorAll<HTMLButtonElement>('.lb-step'))
         hand.disabled = sel(id).disabled;
     }
-    rules.dataset.state = /^(Cannot start|Unavailable)/.test(rules.textContent ?? '') ? 'error' : '';
+    rules.dataset.state = isRefusal(rules.textContent) ? 'error' : '';
     // The primary action names what it does.
-    const label = festival ? 'ENTER FESTIVAL ' : 'ENTER CIRCUIT ';
+    const label = `${festival ? t('ENTER FESTIVAL') : t('ENTER CIRCUIT')} `;
     if (enterLabel.textContent !== label) enterLabel.textContent = label;
     for (const chip of strip.querySelectorAll<HTMLButtonElement>('[data-mx-venue]'))
       chip.setAttribute('aria-pressed', String(chip.dataset.mxVenue === f.circuit));
@@ -495,7 +505,8 @@ export function installLaunchBoard(menu: HTMLElement): LaunchBoard {
       for (const chip of strip.querySelectorAll<HTMLButtonElement>('[data-mx-venue]')) {
         const open = circuitOpen(chip.dataset.mxVenue ?? '');
         chip.disabled = !open;
-        if (!open && !chip.title.includes('FULL GAME')) chip.title = `${chip.title ? `${chip.title} · ` : ''}FULL GAME`;
+        if (!open && !chip.title.includes(t(FULL_GAME)))
+          chip.title = `${chip.title ? `${chip.title} · ` : ''}${t(FULL_GAME)}`;
       }
     }
   }

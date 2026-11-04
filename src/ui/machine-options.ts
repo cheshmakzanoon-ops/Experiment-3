@@ -1,3 +1,5 @@
+import { t } from '../i18n/index.ts';
+import { N_ } from '../i18n/mark.ts';
 import { circuitDefinition, type CircuitId } from '../simulation/circuits.ts';
 import { DEFAULT_OPTIONS, validateOptions, type SessionOptions } from '../simulation/config.ts';
 import { gridDrs } from '../simulation/drs.ts';
@@ -19,8 +21,8 @@ import { demoSessionLock } from '../release/demo-gates.ts';
  * the class's default ruleset; mixing classes is an explicit choice of a
  * ruleset that allows it (open exhibition, multi-class endurance). */
 export const MIXED_MACHINES = Object.freeze({
-  mixed: 'Mixed exhibition · Formula + Touring',
-  multiclass: 'Multi-class endurance · Hypercar + Prototype + GT',
+  mixed: N_('Mixed exhibition · Formula + Touring'),
+  multiclass: N_('Multi-class endurance · Hypercar + Prototype + GT'),
 });
 /** Multi-class field order, repeated over the grid (class leaders first). */
 export const MULTICLASS_FIELD = Object.freeze(['hy9', 'pr2', 'gt8f', 'gt10m', 'gs4']);
@@ -51,12 +53,12 @@ export function machineChoices(): MachineGroup[] {
       options: g.vehicles.map((v) => ({ value: v.id, label: label(v.name, v.drivetrain) })),
     }));
   groups.push({
-    label: 'Motorcycles',
+    label: N_('Motorcycles'),
     options: Object.entries(BIKE_MACHINES).map(([value, text]) => ({ value, label: text })),
   });
   // Off-road motorcycles (WP37): each races its own class's moto rules.
   groups.push({
-    label: 'Off-road motorcycles',
+    label: N_('Off-road motorcycles'),
     options: Object.values(VEHICLES)
       .filter((v) => isDirtBike(v))
       .map((v) => ({
@@ -65,7 +67,7 @@ export function machineChoices(): MachineGroup[] {
       })),
   });
   groups.push({
-    label: 'Mixed classes',
+    label: N_('Mixed classes'),
     options: Object.entries(MIXED_MACHINES).map(([value, text]) => ({ value, label: text })),
   });
   return groups;
@@ -74,12 +76,12 @@ export function machineSelectOptions(selected: string = DEFAULT_VEHICLE_ID) {
   return machineChoices()
     .map(
       (g) =>
-        `<optgroup label="${escapeHtml(g.label)}">${g.options
+        `<optgroup label="${escapeHtml(t(g.label))}">${g.options
           .map((o) =>
             // Steam demo: a machine outside the slice stays listed as a FULL GAME entry.
             machineOpen(o.value)
-              ? `<option value="${escapeHtml(o.value)}"${o.value === selected ? ' selected' : ''}>${escapeHtml(o.label)}</option>`
-              : `<option value="${escapeHtml(o.value)}" disabled>${escapeHtml(lockedLabel(o.label))}</option>`,
+              ? `<option value="${escapeHtml(o.value)}"${o.value === selected ? ' selected' : ''}>${escapeHtml(t(o.label))}</option>`
+              : `<option value="${escapeHtml(o.value)}" disabled>${escapeHtml(lockedLabel(t(o.label), t))}</option>`,
           )
           .join('')}</optgroup>`,
     )

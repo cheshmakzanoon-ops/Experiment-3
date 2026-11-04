@@ -30,8 +30,10 @@ import { setLocale } from '../src/i18n/index.ts';
  * localised; `I18N_CAPTURE=1` rewrites it (only ever to record a deliberate English change). */
 const FILE = new URL('./fixtures/i18n-english-identity.json', import.meta.url);
 
-/** HTML builders compare after entity normalisation: `&` and `&amp;` are the same text. */
-const norm = (html: string) => html.replaceAll('&amp;', '&');
+/** HTML builders compare after entity normalisation (`&` and `&amp;` are the same text) and
+ * without the language controls the feature adds (`data-i18n-ui`). */
+const norm = (html: string) =>
+  html.replace(/<label[^>]*data-i18n-ui[\s\S]*?<\/label>/g, '').replaceAll('&amp;', '&');
 
 function gather() {
   const tips = new Set<string>();

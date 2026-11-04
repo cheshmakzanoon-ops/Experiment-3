@@ -1,3 +1,4 @@
+import { N_ } from '../i18n/mark.ts';
 import { mod } from '../core/math.ts';
 import type { Vehicle } from './vehicle.ts';
 import { STANDARD_PIT, type PitLaneDefinition } from './circuits.ts';
@@ -47,7 +48,13 @@ export function yellowFlag(flag: number): boolean {
 }
 export function flagLabel(flag: number): string {
   return (
-    ['GREEN FLAG', 'LOCAL YELLOW', 'CHEQUERED', 'DOUBLE YELLOW', 'BLUE FLAG'][flag] ?? 'GREEN FLAG'
+    [
+      N_('GREEN FLAG'),
+      N_('LOCAL YELLOW'),
+      N_('CHEQUERED'),
+      N_('DOUBLE YELLOW'),
+      N_('BLUE FLAG'),
+    ][flag] ?? N_('GREEN FLAG')
   );
 }
 

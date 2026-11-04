@@ -1,3 +1,6 @@
+import { fixed, t, ta, th, upper } from '../i18n/index.ts';
+import { N_ } from '../i18n/mark.ts';
+import { wildcardTitle } from '../i18n/data.ts';
 import { installRaceDayHud, updateRaceDayHud } from './race-day-hud.ts';
 import { BikeHud } from './bike-hud.ts';
 import { vehicleAt, vehicleDefinition } from '../simulation/vehicles.ts';
@@ -73,6 +76,7 @@ import { demoSessionLock } from '../release/demo-gates.ts';
 import { demoBoardPlateHtml } from './demo-plate.ts';
 import {
   WEATHER_CATALOGUE,
+  isWeatherId,
   weatherOptionsHtml,
   type WeatherId,
 } from '../simulation/weather-catalogue.ts';
@@ -108,23 +112,52 @@ const HTML_ESCAPES: Record<string, string> = {
   "'": '&#39;',
 };
 const escapeHtml = (text: string) => text.replace(/[&<>"']/g, (c) => HTML_ESCAPES[c]);
+const DRS_ZONES = N_('{n, plural, one {DRS ZONE} other {DRS ZONES}}');
+const CARS = N_('{n, plural, one {# car} other {# cars}}');
+const RIDERS = N_('{n, plural, one {# rider} other {# riders}}');
+const LAPS = N_('{n, plural, one {# lap} other {# laps}}');
 /** Menu labels for each original circuit (lengths are asserted in tests). */
 /** Short track-conditions chip: air temperature and surface state. */
 export function conditions(ambientC: number, rainMmHr: number, meanWaterMm: number) {
   if (![ambientC, rainMmHr, meanWaterMm].every(Number.isFinite)) return '—';
   const surface =
-    rainMmHr > 0.01 ? 'RAIN' : meanWaterMm >= 0.04 ? 'WET' : meanWaterMm > 0.001 ? 'DAMP' : 'DRY';
-  return `${surface}<small>${Math.round(ambientC)}°C</small>`;
+    rainMmHr > 0.01
+      ? N_('RAIN')
+      : meanWaterMm >= 0.04
+        ? N_('WET')
+        : meanWaterMm > 0.001
+          ? N_('DAMP')
+          : N_('DRY');
+  return `${th(surface)}<small>${Math.round(ambientC)}°C</small>`;
 }
 /** Player-facing session names (pause menu and loading screen). */
 export const SESSION_TITLES: Readonly<Record<SessionOptions['mode'], string>> = Object.freeze({
-  race: 'Grand Prix',
-  practice: 'Free Practice',
-  'time-trial': 'Time Trial',
-  qualifying: 'Qualifying',
-  endurance: 'Endurance',
+  race: N_('Grand Prix'),
+  practice: N_('Free Practice'),
+  'time-trial': N_('Time Trial'),
+  qualifying: N_('Qualifying'),
+  endurance: N_('Endurance'),
 });
 export { CIRCUIT_MENU_LABELS };
+/** Tyre compound in the player's language (`SOFT`, `FULL WET`), for the HUD and pause menu. */
+const COMPOUND_NAMES: Readonly<Record<string, string>> = {
+  soft: N_('SOFT'),
+  medium: N_('MEDIUM'),
+  hard: N_('HARD'),
+  intermediate: N_('INTERMEDIATE'),
+  wet: N_('WET'),
+};
+const compoundName = (compound: string) => t(COMPOUND_NAMES[compound] ?? compound.toUpperCase());
+/** Camera name in the player's language. */
+const CAMERA_NAMES: Readonly<Record<string, string>> = {
+  chase: N_('CHASE'),
+  cockpit: N_('COCKPIT'),
+  pod: N_('POD'),
+  trackside: N_('TRACKSIDE'),
+};
+const cameraName = (mode: string) => t(CAMERA_NAMES[mode] ?? mode.toUpperCase());
+const weatherTag = (id: string) =>
+  id === 'clear' ? t('CLEAR') : t(isWeatherId(id) ? WEATHER_CATALOGUE[id].tag : id.toUpperCase());
 /** Player-facing circuit name, e.g. "Aurel Grand Circuit". */
 export const circuitTitle = (id: CircuitId) =>
   (CIRCUIT_MENU_LABELS[id] ?? CIRCUIT_MENU_LABELS.aurel).split(' · ')[0];
@@ -185,7 +218,7 @@ import { uiCue } from './ui-cue.ts';
 import { SOLVANE } from '../simulation/open-world/region-data.ts';
 export const lapTime = (seconds: number) =>
   seconds > 0
-    ? `${Math.floor(seconds / 60)}:${(seconds % 60).toFixed(3).padStart(6, '0')}`
+    ? `${Math.floor(seconds / 60)}:${fixed(seconds % 60, 3).padStart(6, '0')}`
     : '—:——.———';
 /** Timed-session tower cell: the session best in full, other times as a gap. */
 export const timedGap = (best: number, sessionBest: number, holder: boolean) =>
@@ -193,7 +226,7 @@ export const timedGap = (best: number, sessionBest: number, holder: boolean) =>
     ? '--:--.---'
     : holder || !(sessionBest > 0)
       ? lapTime(best)
-      : `+${Math.max(0, best - sessionBest).toFixed(3)}`;
+      : `+${fixed(Math.max(0, best - sessionBest), 3)}`;
 export const shortTime = (seconds: number) =>
   `${Math.floor(seconds / 60)}:${Math.floor(seconds % 60)
     .toString()
@@ -291,6 +324,8 @@ export class Interface {
   /** Latest presented frame, for the pause menu's session summary. */
   private lastFrame: Float32Array | null = null;
   private loadingProgress = 0;
+  /** The lap in the pause menu's short form, kept beside the HUD's lap label. */
+  private lapSummary = '';
   private loadingTipIndex = 0;
   constructor(
     readonly element: HTMLElement,
@@ -299,62 +334,62 @@ export class Interface {
   ) {
     const DEV = this.developer;
     element.innerHTML = `
-  <div id="loading" class="loading" role="status" aria-live="polite" aria-busy="true"><div class="brand">MOTOBOUND<span>MOTORSPORT</span></div><div id="loadingMap" class="loading-map" aria-hidden="true"></div><p id="loadingSession" class="loading-session" hidden></p><div class="loading-progress"><div class="loading-row"><b id="loadingStage">Loading</b><span id="loadingPercent">0%</span></div><div class="loader" id="loadingBar" role="progressbar" aria-label="Loading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div></div><p id="loadingText" class="loading-detail"${DEV ? '' : ' hidden'}>Preparing circuit and car systems…</p><p id="loadingTip" class="loading-tip"><b>TIP</b> ${LOADING_TIPS[0]}</p></div>
+  <div id="loading" class="loading" role="status" aria-live="polite" aria-busy="true"><div class="brand">MOTOBOUND<span>MOTORSPORT</span></div><div id="loadingMap" class="loading-map" aria-hidden="true"></div><p id="loadingSession" class="loading-session" hidden></p><div class="loading-progress"><div class="loading-row"><b id="loadingStage">${th('Loading')}</b><span id="loadingPercent">0%</span></div><div class="loader" id="loadingBar" role="progressbar" aria-label="${ta('Loading progress')}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div></div><p id="loadingText" class="loading-detail"${DEV ? '' : ' hidden'}>Preparing circuit and car systems…</p><p id="loadingTip" class="loading-tip"><b>${th('TIP')}</b> ${th(LOADING_TIPS[0])}</p></div>
   <section id="menu" class="menu" hidden>
-   <header class="masthead"><div class="brand">MOTOBOUND<span>MOTORSPORT</span></div><span class="edition">DRIVER <b id="menuDriver">${escapeHtml(this.playerName.toUpperCase())}</b></span></header>
-   <div class="menu-body" tabindex="0" role="region" aria-label="Race setup and tools"><div class="lb-board">${boardPlatesHtml()}<h1>EVERY INPUT. EVERY FORCE.</h1><p class="intro">Braking points, tyre management and racecraft.</p><div id="boardSeries" class="lb-series" hidden></div>${demoBoardPlateHtml()}
+   <header class="masthead"><div class="brand">MOTOBOUND<span>MOTORSPORT</span></div><span class="edition">${th('DRIVER')} <b id="menuDriver">${escapeHtml(this.playerName.toUpperCase())}</b></span></header>
+   <div class="menu-body" tabindex="0" role="region" aria-label="${ta('Race setup and tools')}"><div class="lb-board">${boardPlatesHtml()}<h1>${th('EVERY INPUT. EVERY FORCE.')}</h1><p class="intro">${th('Braking points, tyre management and racecraft.')}</p><div id="boardSeries" class="lb-series" hidden></div>${demoBoardPlateHtml()}
    <form id="sessionForm" class="session-form">
-    <section class="lb-sheet" aria-label="Event">
-     ${dialHtml('circuit', 'CIRCUIT', null, `<select id="circuit">${circuitOptionsHtml()}</select>`, 'lb-dial-venue')}
-     <div id="regionTitle" class="lb-region-title" hidden><span class="lb-dial-name">REGION</span><b>${escapeHtml(SOLVANE.name.toUpperCase())}</b></div>
-     <div class="lb-sheet-row"><div class="lb-map" id="venueMap" aria-hidden="true"></div><div class="lb-sheet-body"><div class="eyebrow"><i></i> <span id="circuitEyebrow">ORIGINAL</span></div>
-     <div id="circuitStats" class="lb-stats"><span><b id="circuitLength">${(track.length / 1000).toFixed(3)}</b> KM</span><span><b id="circuitTurns">${track.circuit.corners.length}</b> TURNS</span><span><b id="circuitDrs">${track.circuit.drsZones.length}</b> DRS ${track.circuit.drsZones.length === 1 ? 'ZONE' : 'ZONES'}</span></div><div id="regionStats" class="lb-stats" hidden></div><p class="session-rules circuit-blurb" id="circuitBlurb">${escapeHtml(circuitBlurb(track.circuit.id))}</p></div></div></section>
-    ${dialHtml('vehicle', 'MACHINE', 'wheel', `<select id="vehicle">${machineSelectOptions()}</select>`, 'lb-dial-machine')}
+    <section class="lb-sheet" aria-label="${ta('Event')}">
+     ${dialHtml('circuit', N_('CIRCUIT'), null, `<select id="circuit">${circuitOptionsHtml()}</select>`, 'lb-dial-venue')}
+     <div id="regionTitle" class="lb-region-title" hidden><span class="lb-dial-name">${th('REGION')}</span><b>${escapeHtml(SOLVANE.name.toUpperCase())}</b></div>
+     <div class="lb-sheet-row"><div class="lb-map" id="venueMap" aria-hidden="true"></div><div class="lb-sheet-body"><div class="eyebrow"><i></i> <span id="circuitEyebrow">${th('ORIGINAL')}</span></div>
+     <div id="circuitStats" class="lb-stats"><span><b id="circuitLength">${fixed(track.length / 1000, 3)}</b> ${th('KM')}</span><span><b id="circuitTurns">${track.circuit.corners.length}</b> ${th('TURNS')}</span><span><b id="circuitDrs">${track.circuit.drsZones.length}</b> ${th(DRS_ZONES, { n: track.circuit.drsZones.length })}</span></div><div id="regionStats" class="lb-stats" hidden></div><p class="session-rules circuit-blurb" id="circuitBlurb">${escapeHtml(circuitBlurb(track.circuit.id))}</p></div></div></section>
+    ${dialHtml('vehicle', N_('MACHINE'), 'wheel', `<select id="vehicle">${machineSelectOptions()}</select>`, 'lb-dial-machine')}
     <p class="session-rules machine-blurb" id="machineBlurb"></p>
-    ${dialHtml('mode', 'SESSION', 'flag', `<select id="mode"><option value="race">Grand Prix</option><option value="practice">Free practice</option><option value="time-trial">Time trial · ghost</option><option value="qualifying">Race weekend · qualifying</option><option value="endurance">Endurance · mandatory stop</option><option value="festival">Festival · open world</option></select>`)}
-    ${dialHtml('laps', 'DISTANCE', 'laps', `<select id="laps"><option value="1">1 lap · Sprint</option><option value="3" selected>3 laps · Standard</option><option value="5">5 laps</option><option value="10">10 laps</option><option value="15">15 laps · Endurance</option><option value="25">25 laps · Endurance</option></select>`)}
-    ${dialHtml('weather', 'WEATHER', 'sun', `<select id="weather">${weatherOptionsHtml()}</select>`)}
-    ${dialHtml('light', 'LIGHT', 'venue', `<select id="light" title="Applies when the session loads. The showroom stays studio-lit.">${lightOptionsHtml()}</select>`)}
-    ${dialHtml('compound', 'TYRES', 'tyre', `<select id="compound"><option value="soft">Soft</option><option value="medium" selected>Medium</option><option value="hard">Hard</option><option value="intermediate">Intermediate</option><option value="wet">Full wet</option></select>`)}
-    ${dialHtml('assist', 'ASSISTS', 'wheel', `<select id="assist"><option value="sport">ABS + TC</option><option value="raw">Off</option></select>`)}
-    ${dialHtml('opponents', 'GRID', 'grid', `<select id="opponents"><option value="0">Solo</option><option value="3">4 cars</option><option value="7" selected>8 cars</option><option value="11">12 cars</option></select>`)}
-    ${dialHtml('startSlot', 'START', 'start', `<select id="startSlot"><option value="pole" selected>Pole</option><option value="midfield">Midfield</option><option value="back">Back row</option></select>`)}
+    ${dialHtml('mode', N_('SESSION'), 'flag', `<select id="mode"><option value="race">${th('Grand Prix')}</option><option value="practice">${th('Free practice')}</option><option value="time-trial">${th('Time trial · ghost')}</option><option value="qualifying">${th('Race weekend · qualifying')}</option><option value="endurance">${th('Endurance · mandatory stop')}</option><option value="festival">${th('Festival · open world')}</option></select>`)}
+    ${dialHtml('laps', N_('DISTANCE'), 'laps', `<select id="laps"><option value="1">${th('1 lap · Sprint')}</option><option value="3" selected>${th('3 laps · Standard')}</option><option value="5">${th('5 laps')}</option><option value="10">${th('10 laps')}</option><option value="15">${th('15 laps · Endurance')}</option><option value="25">${th('25 laps · Endurance')}</option></select>`)}
+    ${dialHtml('weather', N_('WEATHER'), 'sun', `<select id="weather">${weatherOptionsHtml(th)}</select>`)}
+    ${dialHtml('light', N_('LIGHT'), 'venue', `<select id="light" title="${ta('Applies when the session loads. The showroom stays studio-lit.')}">${lightOptionsHtml(th)}</select>`)}
+    ${dialHtml('compound', N_('TYRES'), 'tyre', `<select id="compound"><option value="soft">${th('Soft')}</option><option value="medium" selected>${th('Medium')}</option><option value="hard">${th('Hard')}</option><option value="intermediate">${th('Intermediate')}</option><option value="wet">${th('Full wet')}</option></select>`)}
+    ${dialHtml('assist', N_('ASSISTS'), 'wheel', `<select id="assist"><option value="sport">${th('ABS + TC')}</option><option value="raw">Off</option></select>`)}
+    ${dialHtml('opponents', N_('GRID'), 'grid', `<select id="opponents"><option value="0">${th('Solo')}</option><option value="3">${th(CARS, { n: 4 })}</option><option value="7" selected>${th(CARS, { n: 8 })}</option><option value="11">${th(CARS, { n: 12 })}</option></select>`)}
+    ${dialHtml('startSlot', N_('START'), 'start', `<select id="startSlot"><option value="pole" selected>${th('Pole')}</option><option value="midfield">${th('Midfield')}</option><option value="back">${th('Back row')}</option></select>`)}
     <p class="session-rules" id="sessionRules" aria-live="polite"></p>
-    <button class="primary enter" type="submit">ENTER CIRCUIT ${glyph('go', 'enter-glyph')}</button>
-    <button class="enter" type="submit" name="prepareGrid" value="yes">PREPARE GRID <span>START PAUSED</span></button>
-   </form></div><div class="menu-actions" role="group" aria-label="Paddock"><button data-action="career">CAREER</button><button data-action="settings">GARAGE & SETTINGS</button><button data-action="events">EVENTS</button><button data-action="championship">CHAMPIONSHIP</button><button data-action="records">RECORDS</button><button data-action="team">TEAM HQ</button><button data-action="academy">DRIVING ACADEMY</button><button data-action="photo">PHOTO / LIVERY</button><button data-action="controls">CONTROLS</button><button data-action="credits">CREDITS &amp; LICENCES</button></div>${
+    <button class="primary enter" type="submit">${th('ENTER CIRCUIT')} ${glyph('go', 'enter-glyph')}</button>
+    <button class="enter" type="submit" name="prepareGrid" value="yes">${th('PREPARE GRID')} <span>${th('START PAUSED')}</span></button>
+   </form></div><div class="menu-actions" role="group" aria-label="${ta('Paddock')}"><button data-action="career">${th('CAREER')}</button><button data-action="settings">${th('GARAGE & SETTINGS')}</button><button data-action="events">${th('EVENTS')}</button><button data-action="championship">${th('CHAMPIONSHIP')}</button><button data-action="records">${th('RECORDS')}</button><button data-action="team">${th('TEAM HQ')}</button><button data-action="academy">${th('DRIVING ACADEMY')}</button><button data-action="photo">${th('PHOTO / LIVERY')}</button><button data-action="controls">${th('CONTROLS')}</button><button data-action="credits">${th('CREDITS & LICENCES')}</button></div>${
      DEV
        ? '<div class="dev-tools" role="group" aria-label="Developer tools"><span>DEV</span><button data-action="references">REFERENCE REVIEW</button><button data-action="sessionReview">SESSION 146 EVIDENCE</button></div>'
        : ''
    }</div>
    <div class="car-label"><span>APX–01</span><b>FORMULA / HYBRID</b><div>770 KG DRY · 8 SPEED · 4 MJ ERS</div></div>
-   <footer class="menu-footer"><span class="menu-keys" aria-hidden="true"><span data-device="keys"><kbd>TAB</kbd> MOVE · <kbd>←</kbd><kbd>→</kbd> CHANGE · <kbd>ENTER</kbd> GO</span><span data-device="pad"><kbd>A</kbd> SELECT · <kbd>B</kbd> BACK · <kbd>LB</kbd><kbd>RB</kbd> DISCIPLINE · <kbd>START</kbd> GO</span></span><span class="menu-hint"><kbd>WASD</kbd> / <kbd>ARROWS</kbd> DRIVE · <kbd>G</kbd> AI DRIVER · GAMEPAD READY</span><span id="buildIdentity"${DEV ? '' : ' hidden'}>DEV BUILD</span></footer>
+   <footer class="menu-footer"><span class="menu-keys" aria-hidden="true"><span data-device="keys"><kbd>TAB</kbd> ${th('MOVE')} · <kbd>←</kbd><kbd>→</kbd> ${th('CHANGE')} · <kbd>ENTER</kbd> ${th('GO')}</span><span data-device="pad"><kbd>A</kbd> ${th('SELECT')} · <kbd>B</kbd> ${th('BACK')} · <kbd>LB</kbd><kbd>RB</kbd> ${th('DISCIPLINE')} · <kbd>START</kbd> ${th('GO')}</span></span><span class="menu-hint"><kbd>WASD</kbd> / <kbd>ARROWS</kbd> ${th('DRIVE')} · <kbd>G</kbd> ${th('AI DRIVER')} · ${th('GAMEPAD READY')}</span><span id="buildIdentity"${DEV ? '' : ' hidden'}>DEV BUILD</span></footer>
   </section>
   <section id="hud" class="hud" hidden>
-   <div class="hud-top"><div class="brand small">MOTOBOUND<span>LIVE</span></div><div class="position-badge" role="status" aria-label="Race position"><b id="positionBadge">P1</b><span id="positionField">/ 1</span></div><div class="session-status"><span id="lapLabel">LAP 1 / 3</span><b id="flag">GRID</b><span id="weatherLabel">24°C / DRY</span></div><button class="icon-button" data-action="pause" aria-label="Pause session">Ⅱ</button></div>
-   <aside class="timing" tabindex="0" aria-label="Live race classification"><div class="panel-heading">CLASSIFICATION <span id="towerColumn">INTERVAL</span></div><div id="tower"></div></aside>
-   <div class="lap-panel"><label class="lap-delta"><i id="lapDeltaLabel">DELTA TO BEST</i><span id="lapDelta">—</span></label><label class="lap-current">CURRENT LAP<b id="lapTime">—:——.———</b></label><label>PERSONAL BEST<span id="bestLap">—:——.———</span></label><label>LAST LAP<span id="lastLap">—:——.———</span></label></div>
-   <div id="startSequence" class="start-sequence" hidden><div id="lights">${'<i></i>'.repeat(5)}</div><span id="startText">BUILD REVS. HOLD THE BRAKE.</span></div>
-   <div class="proximity proximity-left" id="proximityLeft" hidden><b>◀</b><span>CAR LEFT</span></div><div class="proximity proximity-right" id="proximityRight" hidden><b>▶</b><span>CAR RIGHT</span></div>
+   <div class="hud-top"><div class="brand small">MOTOBOUND<span>LIVE</span></div><div class="position-badge" role="status" aria-label="${ta('Race position')}"><b id="positionBadge">P1</b><span id="positionField">/ 1</span></div><div class="session-status"><span id="lapLabel">LAP 1 / 3</span><b id="flag">GRID</b><span id="weatherLabel">24°C / ${th('DRY')}</span></div><button class="icon-button" data-action="pause" aria-label="${ta('Pause session')}">Ⅱ</button></div>
+   <aside class="timing" tabindex="0" aria-label="${ta('Live race classification')}"><div class="panel-heading">${th('CLASSIFICATION')} <span id="towerColumn">${th('INTERVAL')}</span></div><div id="tower"></div></aside>
+   <div class="lap-panel"><label class="lap-delta"><i id="lapDeltaLabel">${th('DELTA TO BEST')}</i><span id="lapDelta">—</span></label><label class="lap-current">${th('CURRENT LAP')}<b id="lapTime">—:——.———</b></label><label>${th('PERSONAL BEST')}<span id="bestLap">—:——.———</span></label><label>${th('LAST LAP')}<span id="lastLap">—:——.———</span></label></div>
+   <div id="startSequence" class="start-sequence" hidden><div id="lights">${'<i></i>'.repeat(5)}</div><span id="startText">${th('BUILD REVS. HOLD THE BRAKE.')}</span></div>
+   <div class="proximity proximity-left" id="proximityLeft" hidden><b>◀</b><span>${th('CAR LEFT')}</span></div><div class="proximity proximity-right" id="proximityRight" hidden><b>▶</b><span>${th('CAR RIGHT')}</span></div>
    <div class="race-message" id="raceMessage" role="status" aria-live="polite"></div>
    <div class="minimap"><canvas id="minimap" width="250" height="240"></canvas><span id="minimapCaption">${track.circuit.name}</span></div>
-   <div class="instruments"><div class="programme-hud" id="programmeHud" hidden></div><div class="guide-readout" id="guideReadout" hidden></div><div class="rev-lights" id="rpmLights">${'<i></i>'.repeat(15)}</div><div class="dash-main"><div class="gear"><b id="gear">1</b><span>GEAR</span></div><div class="speed"><b id="speed">0</b><span>KPH</span></div><div class="engine"><b id="rpm">4200</b><span>RPM</span><strong id="ersMode">BALANCED</strong></div></div>
-   <div class="pedals"><label>BRK<span class="meter"><i id="brakeBar"></i></span></label><label>THR<span class="meter"><i id="throttleBar"></i></span></label></div>
-   <div class="resources"><label>ERS <b id="battery">80%</b><span class="meter"><i id="batteryBar"></i></span></label><label>FUEL <b id="fuel">24.0 KG</b></label></div></div>
-   <aside class="car-status"><div class="panel-heading">VEHICLE STATE <span id="tireCompound">MEDIUM</span></div><div id="tires" class="tires">${WHEEL_NAMES.map((name) => `<div><label>${name}</label><b>87°</b><span>100%</span><small>320° BRAKE</small></div>`).join('')}</div><div class="health"><span>AERO <b id="health">100%</b></span><span>LAT <b id="lateralG">0.0 G</b></span><span>PEN <b id="penalty">0 S</b></span></div></aside>
-   <nav class="hud-actions"><button data-action="camera"><kbd>C</kbd> <span id="cameraLabel">CHASE</span></button><button data-action="pit"><kbd>P</kbd> PIT</button><button data-action="ers"><kbd>E</kbd> ERS</button><button data-action="telemetry"><kbd>T</kbd> DATA</button><button data-action="replay"><kbd>R</kbd> REPLAY</button><button data-action="autopilot"><kbd>G</kbd> <span id="autoLabel">AI OFF</span></button></nav>
-   <div class="touch-controls"><button data-touch="left" aria-label="Steer left">◀</button><button data-touch="right" aria-label="Steer right">▶</button><button class="mx-body-touch" data-touch="riderForward" aria-label="Move rider weight forward"><span>LEAN</span><b>FWD</b></button><button class="mx-body-touch" data-touch="riderBack" aria-label="Move rider weight back"><span>LEAN</span><b>BACK</b></button><button data-touch="brake">BRAKE</button><button data-touch="throttle">THROTTLE</button></div>
+   <div class="instruments"><div class="programme-hud" id="programmeHud" hidden></div><div class="guide-readout" id="guideReadout" hidden></div><div class="rev-lights" id="rpmLights">${'<i></i>'.repeat(15)}</div><div class="dash-main"><div class="gear"><b id="gear">1</b><span>${th('GEAR')}</span></div><div class="speed"><b id="speed">0</b><span>${th('KPH')}</span></div><div class="engine"><b id="rpm">4200</b><span>${th('RPM')}</span><strong id="ersMode">${th('BALANCED')}</strong></div></div>
+   <div class="pedals"><label>${th('BRK')}<span class="meter"><i id="brakeBar"></i></span></label><label>${th('THR')}<span class="meter"><i id="throttleBar"></i></span></label></div>
+   <div class="resources"><label>${th('ERS')} <b id="battery">80%</b><span class="meter"><i id="batteryBar"></i></span></label><label>${th('FUEL')} <b id="fuel">${fixed(24, 1)} ${th('KG')}</b></label></div></div>
+   <aside class="car-status"><div class="panel-heading">${th('VEHICLE STATE')} <span id="tireCompound">${th('MEDIUM')}</span></div><div id="tires" class="tires">${WHEEL_NAMES.map((name) => `<div><label>${name}</label><b>87°</b><span>100%</span><small>320° ${th('BRAKE')}</small></div>`).join('')}</div><div class="health"><span>${th('AERO')} <b id="health">100%</b></span><span>${th('LAT')} <b id="lateralG">${fixed(0, 1)} G</b></span><span>${th('PEN')} <b id="penalty">0 ${th('S')}</b></span></div></aside>
+   <nav class="hud-actions"><button data-action="camera"><kbd>C</kbd> <span id="cameraLabel">${th('CHASE')}</span></button><button data-action="pit"><kbd>P</kbd> ${th('PIT')}</button><button data-action="ers"><kbd>E</kbd> ${th('ERS')}</button><button data-action="telemetry"><kbd>T</kbd> ${th('DATA')}</button><button data-action="replay"><kbd>R</kbd> ${th('REPLAY')}</button><button data-action="autopilot"><kbd>G</kbd> <span id="autoLabel">${th('AI OFF')}</span></button></nav>
+   <div class="touch-controls"><button data-touch="left" aria-label="${ta('Steer left')}">◀</button><button data-touch="right" aria-label="${ta('Steer right')}">▶</button><button class="mx-body-touch" data-touch="riderForward" aria-label="${ta('Move rider weight forward')}"><span>${th('LEAN')}</span><b>${th('FWD')}</b></button><button class="mx-body-touch" data-touch="riderBack" aria-label="${ta('Move rider weight back')}"><span>${th('LEAN')}</span><b>${th('BACK')}</b></button><button data-touch="brake">${th('BRAKE')}</button><button data-touch="throttle">${th('THROTTLE')}</button></div>
   </section>
-  <div id="replayBar" class="replay-bar" hidden><span class="replay-tag">REPLAY</span><button data-action="replayPlay" id="replayPlay">PAUSE</button><span id="replayTime">0:00</span><input id="replaySeek" type="range" min="0" max="1" step=".01" value="0" aria-label="Replay position"><select id="replaySpeed" aria-label="Replay playback speed"><option value=".25">¼×</option><option value=".5">½×</option><option value="1" selected>1×</option><option value="2">2×</option></select><button data-action="camera">CAMERA</button><button data-action="photo">PHOTO STUDIO</button><button data-action="replayExit">RETURN</button></div>
+  <div id="replayBar" class="replay-bar" hidden><span class="replay-tag">${th('REPLAY')}</span><button data-action="replayPlay" id="replayPlay">${th('PAUSE')}</button><span id="replayTime">0:00</span><input id="replaySeek" type="range" min="0" max="1" step=".01" value="0" aria-label="${ta('Replay position')}"><select id="replaySpeed" aria-label="${ta('Replay playback speed')}"><option value=".25">¼×</option><option value=".5">½×</option><option value="1" selected>1×</option><option value="2">2×</option></select><button data-action="camera">${th('CAMERA')}</button><button data-action="photo">${th('PHOTO STUDIO')}</button><button data-action="replayExit">${th('RETURN')}</button></div>
   <div id="debug" class="debug" hidden></div><div id="toast" class="toast" role="status" hidden></div>
   <dialog id="modal"><div id="modalContent"></div></dialog>
-  <dialog id="telemetryModal" class="telemetry-modal"><header><div><span class="eyebrow">ENGINEERING / DATA</span><h2>Telemetry</h2></div><button data-action="telemetryClose" aria-label="Close telemetry">✕</button></header><label class="telemetry-selector">CHANNEL GROUP<select id="telemetryView" aria-label="Telemetry channels">${Object.entries(
+  <dialog id="telemetryModal" class="telemetry-modal"><header><div><span class="eyebrow">${th('ENGINEERING / DATA')}</span><h2>${th('Telemetry')}</h2></div><button data-action="telemetryClose" aria-label="${ta('Close telemetry')}">✕</button></header><label class="telemetry-selector">${th('CHANNEL GROUP')}<select id="telemetryView" aria-label="${ta('Telemetry channels')}">${Object.entries(
     TELEMETRY_VIEWS,
   )
     .map(([key, view]) => `<option value="${key}">${view.title}</option>`)
     .join(
       '',
-    )}</select></label><canvas id="graph" width="1100" height="590" role="img"></canvas><div class="telemetry-actions"><button data-action="compare">COMPARE LAPS</button><button data-action="csv">EXPORT CSV</button><span>SI UNITS · RECORDED THIS SESSION</span></div></dialog>
+    )}</select></label><canvas id="graph" width="1100" height="590" role="img"></canvas><div class="telemetry-actions"><button data-action="compare">${th('COMPARE LAPS')}</button><button data-action="csv">${th('EXPORT CSV')}</button><span>${th('SI UNITS · RECORDED THIS SESSION')}</span></div></dialog>
   `;
     this.menu = this.get('menu');
     this.hud = this.get('hud');
@@ -408,7 +443,7 @@ export class Interface {
       const { options, problems } = this.formOptions();
       this.options = options;
       if (problems.length) {
-        this.get('sessionRules').textContent = `Cannot start: ${problems.join('; ')}.`;
+        this.get('sessionRules').textContent = t('Cannot start: {problems}.', { problems: problems.join('; ') });
         return;
       }
       // Preparation is presentation/session control, not a physics option or save.
@@ -437,23 +472,31 @@ export class Interface {
         machineCard.querySelector('span')!.textContent = definition.name.split(' ')[0];
         machineCard.querySelector('b')!.textContent =
           definition.classId === 'gp-bike'
-            ? 'GRAND PRIX / TWO WHEELS'
+            ? t('GRAND PRIX / TWO WHEELS')
             : definition.classId.toUpperCase().replaceAll('-', ' ');
         machineCard.querySelector('div')!.textContent = bike
-          ? `${Math.round(definition.spec.dryMass - definition.bike!.riderMass)} KG BIKE · ${definition.spec.gearRatios.length - 2} SPEED · ${definition.bike!.gearbox.toUpperCase()}`
-          : `${definition.spec.dryMass} KG DRY · ${definition.spec.gearRatios.length - 2} SPEED`;
+          ? t('{mass} KG BIKE · {gears} SPEED · {box}', {
+              mass: Math.round(definition.spec.dryMass - definition.bike!.riderMass),
+              gears: definition.spec.gearRatios.length - 2,
+              box: definition.bike!.gearbox.toUpperCase(),
+            })
+          : t('{mass} KG DRY · {gears} SPEED', {
+              mass: definition.spec.dryMass,
+              gears: definition.spec.gearRatios.length - 2,
+            });
       }
       for (const option of (this.get('opponents') as HTMLSelectElement).options)
         if (option.value !== '0')
-          option.textContent = `${Number(option.value) + 1} ${bike || motocross ? 'riders' : 'cars'}`;
+          option.textContent = t(bike || motocross ? RIDERS : CARS, { n: Number(option.value) + 1 });
       const selection = `${select('circuit')}:${machine}`;
       if (previewSelection !== selection) {
         previewSelection = selection;
         this.callbacks.previewMachine?.(machine);
       }
       if (select('mode') === 'festival') {
-        this.get('sessionRules').textContent =
-          'Weather, light and assists apply. A road machine chosen in MACHINE is used; otherwise pick one in the festival menu.';
+        this.get('sessionRules').textContent = t(
+          'Weather, light and assists apply. A road machine chosen in MACHINE is used; otherwise pick one in the festival menu.',
+        );
         return;
       }
       // The circuit matters: the motorcycle rulesets need a bike-safe one.
@@ -577,7 +620,7 @@ export class Interface {
     }
     const { options, problems } = this.formOptions();
     if (problems.length) {
-      this.get('sessionRules').textContent = `Cannot start: ${problems.join('; ')}.`;
+      this.get('sessionRules').textContent = t('Cannot start: {problems}.', { problems: problems.join('; ') });
       return null;
     }
     this.options = options;
@@ -623,7 +666,7 @@ export class Interface {
       this.loadingProgress = 0;
       this.loadingTipIndex = (this.loadingTipIndex + 1) % LOADING_TIPS.length;
       this.get('loadingTip').innerHTML =
-        `<b>TIP</b> ${escapeHtml(LOADING_TIPS[this.loadingTipIndex])}`;
+        `<b>${th('TIP')}</b> ${th(LOADING_TIPS[this.loadingTipIndex])}`;
     }
     const stage = loadingStage(text, this.loadingProgress);
     this.loadingProgress = Math.max(this.loadingProgress, stage.fraction);
@@ -648,14 +691,14 @@ export class Interface {
     if (!options) return;
     const timed = options.mode === 'time-trial' || options.mode === 'practice';
     const riders = !!motocrossKind(options.circuit) || gpGridForVehicles(options.vehicles);
-    const weather = WEATHER_CATALOGUE[options.weather].loading;
+    const weather = t(WEATHER_CATALOGUE[options.weather].loading);
     line.textContent = [
-      motocrossSessionTitle(options) ?? SESSION_TITLES[options.mode],
+      motocrossSessionTitle(options) ?? t(SESSION_TITLES[options.mode]),
       circuitTitle(circuitDefinition(options.circuit).id),
       options.mode === 'qualifying' || timed
         ? ''
-        : `${options.laps} ${options.laps === 1 ? 'lap' : 'laps'}`,
-      options.mode === 'time-trial' ? '' : `${options.opponents + 1} ${riders ? 'riders' : 'cars'}`,
+        : t(LAPS, { n: options.laps }),
+      options.mode === 'time-trial' ? '' : t(riders ? RIDERS : CARS, { n: options.opponents + 1 }),
       weather,
     ]
       .filter(Boolean)
@@ -699,11 +742,11 @@ export class Interface {
     });
     if (tips.length) {
       const tip = tips[this.loadingTipIndex % tips.length];
-      this.get('loadingTip').innerHTML = `<b>TIP</b> ${escapeHtml(tip)}`;
+      this.get('loadingTip').innerHTML = `<b>${th('TIP')}</b> ${escapeHtml(tip)}`;
     }
     if (context.wildcard) {
       const line = this.get('loadingSession');
-      line.textContent = `WILDCARD SERIES  ·  ${context.wildcard.title}  ·  ${line.textContent ?? ''}`;
+      line.textContent = `${t('WILDCARD SERIES')}  ·  ${wildcardTitle(context.wildcard)}  ·  ${line.textContent ?? ''}`;
     }
   }
   ready() {
@@ -797,10 +840,17 @@ export class Interface {
     this.bikeHud.update(frame, this.track);
     for (const side of ['Left', 'Right'] as const) {
       const node = this.get(`proximity${side}`);
-      const subject = definition.bike ? 'Rider' : 'Car';
-      const label = `${subject} ${side.toLowerCase()}`;
+      const label = t(
+        side === 'Left'
+          ? definition.bike
+            ? N_('Rider left')
+            : N_('Car left')
+          : definition.bike
+            ? N_('Rider right')
+            : N_('Car right'),
+      );
       if (node.getAttribute('aria-label') !== label) node.setAttribute('aria-label', label);
-      writeText(node.querySelector('span')!, label.toUpperCase());
+      writeText(node.querySelector('span')!, upper(label));
     }
     // Flight/contact transitions must be seen on every presented frame, even
     // while the lower-frequency timing panels skip their DOM refresh.
@@ -838,27 +888,45 @@ export class Interface {
     const gear = frame[o + F.GEAR];
     this.setText('gear', gear === 0 ? 'N' : gear < 0 ? 'R' : String(Math.round(gear)));
     this.setText('rpm', String(Math.round(frame[o + F.RPM])));
-    this.setText(
-      'lapLabel',
-      racingSession(this.options.mode)
-        ? `${this.options.mode === 'endurance' ? 'ENDURANCE / ' : ''}LAP ${Math.min(this.options.laps, Math.round(frame[o + F.LAPS]) + 1)} / ${this.options.laps}`
-        : this.options.mode === 'qualifying'
-          ? `QUALIFYING / ${
-              frame[o + F.FINISH] > 0
-                ? 'COMPLETE'
-                : frame[o + F.LAP_TIME] > 0
-                  ? `LAP ${Math.min(QUALIFYING_TIMED_LAPS, Math.round(frame[o + F.LAPS]) + 1)} / ${QUALIFYING_TIMED_LAPS}`
-                  : 'OUT LAP'
-            }`
-          : `${this.options.mode === 'time-trial' ? 'TIME TRIAL' : 'PRACTICE'} / LAP ${Math.round(frame[o + F.LAPS]) + 1}`,
-    );
-    const flag = frame[H.PHASE] < 2 ? 'GRID' : flagLabel(frame[H.FLAG]);
+    // The label and the pause menu's short form of it (`3/5`, `OUT LAP`) are built together,
+    // so the pause menu never has to read the words back out of the label.
+    const lapNo = Math.round(frame[o + F.LAPS]) + 1;
+    const lapOf = (lap: number, total: number) => ({
+      label: t('LAP {lap} / {total}', { lap, total }),
+      short: `${lap}<small>/${total}</small>`,
+    });
+    let lapText: { label: string; short: string };
+    if (racingSession(this.options.mode)) {
+      const of = lapOf(Math.min(this.options.laps, lapNo), this.options.laps);
+      lapText = {
+        label: `${this.options.mode === 'endurance' ? `${t('ENDURANCE')} / ` : ''}${of.label}`,
+        short: of.short,
+      };
+    } else if (this.options.mode === 'qualifying') {
+      const part =
+        frame[o + F.FINISH] > 0
+          ? { label: t('COMPLETE'), short: escapeHtml(t('COMPLETE')) }
+          : frame[o + F.LAP_TIME] > 0
+            ? lapOf(Math.min(QUALIFYING_TIMED_LAPS, lapNo), QUALIFYING_TIMED_LAPS)
+            : { label: t('OUT LAP'), short: escapeHtml(t('OUT LAP')) };
+      lapText = { label: `${t('QUALIFYING')} / ${part.label}`, short: part.short };
+    } else
+      lapText = {
+        label: `${this.options.mode === 'time-trial' ? t('TIME TRIAL') : t('PRACTICE')} / ${t('LAP {lap}', { lap: lapNo })}`,
+        short: String(lapNo),
+      };
+    this.lapSummary = lapText.short;
+    this.setText('lapLabel', lapText.label);
+    const flag = frame[H.PHASE] < 2 ? t('GRID') : t(flagLabel(frame[H.FLAG]));
     // Time Trial compares against the saved personal-best ghost when one exists.
     const trial = this.options.mode === 'time-trial' ? this.timeTrial : null;
     const deltaValid = trial ? trial.delta !== null : frame[o + F.DELTA_VALID] > 0;
     const delta = trial ? (trial.delta ?? 0) : frame[o + F.LAP_DELTA];
-    this.setText('lapDeltaLabel', trial?.best ? 'DELTA TO PB' : 'DELTA TO BEST');
-    this.setText('lapDelta', deltaValid ? `${delta >= 0 ? '+' : ''}${delta.toFixed(3)} S` : '—');
+    this.setText('lapDeltaLabel', trial?.best ? t('DELTA TO PB') : t('DELTA TO BEST'));
+    this.setText(
+      'lapDelta',
+      deltaValid ? `${delta >= 0 ? '+' : ''}${fixed(delta, 3)} ${t('S')}` : '—',
+    );
     this.get('lapDelta').dataset.ahead = deltaValid ? String(delta < 0) : 'none';
     this.setText('flag', flag);
     this.get('flag').dataset.flag = String(frame[H.FLAG]);
@@ -882,20 +950,20 @@ export class Interface {
     if (trial?.best && !(frame[o + F.BEST_LAP] > 0 && frame[o + F.BEST_LAP] < trial.best))
       this.setText('bestLap', lapTime(trial.best));
     this.setText('battery', `${Math.round(frame[o + F.BATTERY] / 4e4)}%`);
-    this.setText('fuel', `${frame[o + F.FUEL].toFixed(1)} KG`);
+    this.setText('fuel', `${fixed(frame[o + F.FUEL], 1)} ${t('KG')}`);
     updateRaceDayHud(this.hud, frame);
     writeWidth(this.get('brakeBar'), `${(frame[o + F.BRAKE] * 100).toFixed(1)}%`);
     writeWidth(this.get('throttleBar'), `${(frame[o + F.THROTTLE] * 100).toFixed(1)}%`);
     writeWidth(this.get('batteryBar'), `${(frame[o + F.BATTERY] / 4e4).toFixed(1)}%`);
-    const ersMode = ['HARVEST', 'BALANCED', 'ATTACK'][ers] ?? 'BALANCED';
-    this.setText('ersMode', ersMode);
+    const ersMode = [N_('HARVEST'), N_('BALANCED'), N_('ATTACK')][ers] ?? N_('BALANCED');
+    this.setText('ersMode', t(ersMode));
     this.get('ersMode').dataset.mode = ersMode;
-    this.setText('tireCompound', compound.toUpperCase());
-    this.setText('autoLabel', auto ? 'AI ON' : 'AI OFF');
-    this.setText('cameraLabel', renderer.mode.toUpperCase());
+    this.setText('tireCompound', compoundName(compound));
+    this.setText('autoLabel', auto ? t('AI ON') : t('AI OFF'));
+    this.setText('cameraLabel', cameraName(renderer.mode));
     this.setText('health', `${Math.round(frame[o + F.FRONT_HEALTH] * 100)}%`);
-    this.setText('lateralG', `${Math.abs(frame[o + F.G_LAT]).toFixed(1)} G`);
-    this.setText('penalty', `${Math.round(frame[o + F.PENALTY])} S`);
+    this.setText('lateralG', `${fixed(Math.abs(frame[o + F.G_LAT]), 1)} G`);
+    this.setText('penalty', `${Math.round(frame[o + F.PENALTY])} ${t('S')}`);
     // Rev lights: 15 LEDs up to the shift point; every LED flashes blue at
     // the limiter (8 Hz) and with the pit limiter on (2 Hz), on sim time.
     const rpm = frame[o + F.RPM],
@@ -913,11 +981,11 @@ export class Interface {
         temp = frame[p + W.CARCASS_TEMP];
       writeText(e.querySelector('b')!, `${Math.round(temp)}°`);
       writeText(e.querySelector('span')!, `${Math.round(100 * (1 - frame[p + W.WEAR]))}%`);
-      writeText(e.querySelector('small')!, `${Math.round(frame[p + W.DISC_TEMP])}° BRAKE`);
+      writeText(e.querySelector('small')!, `${Math.round(frame[p + W.DISC_TEMP])}° ${t('BRAKE')}`);
       const band = tyreBand(temp);
       writeText(
         e.querySelector('label')!,
-        definition.bike ? (i < 2 ? 'FRONT' : 'REAR') : WHEEL_NAMES[i],
+        definition.bike ? (i < 2 ? t('FRONT') : t('REAR')) : WHEEL_NAMES[i],
       );
       if ((e as HTMLElement).style.getPropertyValue('--tire') !== band)
         (e as HTMLElement).style.setProperty('--tire', band);
@@ -954,7 +1022,7 @@ export class Interface {
     const refresh = frame[H.TIME] < this.towerRefresh || frame[H.TIME] - this.towerRefresh >= 0.5;
     if (refresh) {
       this.towerRefresh = frame[H.TIME];
-      this.setText('towerColumn', racing ? 'INTERVAL' : 'BEST LAP');
+      this.setText('towerColumn', racing ? t('INTERVAL') : t('BEST LAP'));
     }
     // Five rows around the player while driving; focus expands the full list.
     const [first, end] = towerWindow(playerRank, cars);
@@ -984,7 +1052,7 @@ export class Interface {
       if (tyre.dataset.c !== compound) {
         tyre.dataset.c = compound;
         tyre.textContent = compound[0].toUpperCase();
-        tyre.title = compound;
+        tyre.title = compoundName(compound).toLowerCase();
         tyre.style.setProperty('--tyre', `var(--tyre-${compound})`);
       }
       if (!refresh) return;
@@ -1000,15 +1068,15 @@ export class Interface {
       }
       gap.textContent =
         frame[p + F.RETIRED] > 0
-          ? 'DNF'
+          ? t('DNF')
           : frame[p + F.FINISH] > 0
-            ? 'FIN'
+            ? t('FIN')
             : frame[p + F.IN_PIT]
-              ? 'PIT'
+              ? t('PIT')
               : !racing
                 ? timedGap(best, poleBest, id === fastest)
                 : rank === 0
-                  ? 'LEADER'
+                  ? t('LEADER')
                   : formatInterval(
                       this.gaps!.interval(ahead, id),
                       this.gaps!.lapsBetween(ahead, id),
@@ -1046,11 +1114,11 @@ export class Interface {
     const name = track.circuit.name;
     this.get('minimapCaption').textContent = name;
     this.get('circuitEyebrow').textContent = name.replace(' / ', ' · ');
-    this.get('circuitLength').textContent = (track.length / 1000).toFixed(3);
+    this.get('circuitLength').textContent = fixed(track.length / 1000, 3);
     this.get('circuitTurns').textContent = String(track.circuit.corners.length);
     const zones = track.circuit.drsZones.length;
     this.get('circuitDrs').textContent = String(zones);
-    this.get('circuitDrs').nextSibling!.textContent = ` DRS ${zones === 1 ? 'ZONE' : 'ZONES'}`;
+    this.get('circuitDrs').nextSibling!.textContent = ` ${t(DRS_ZONES, { n: zones })}`;
     (this.get('circuit') as HTMLSelectElement).value = track.circuit.id;
     this.get('circuitBlurb').textContent = circuitBlurb(track.circuit.id);
     this.refreshMotocrossMenu();
@@ -1066,7 +1134,7 @@ export class Interface {
       ? '<div class="dev-tools" role="group" aria-label="Developer tools"><span>DEV</span><button data-action="performance">PERFORMANCE CAPTURE</button><button data-action="visualReview">FULL-LAP VISUAL REVIEW</button><button data-action="sessionReview">SESSION 146 EVIDENCE</button></div>'
       : '';
     this.modalContent(
-      `<div class="pause-menu"><header class="pause-head"><span class="eyebrow">PAUSED</span><h2>${motocrossSessionTitle(this.options) ?? SESSION_TITLES[this.options.mode] ?? 'Session'}</h2><span class="pause-circuit">${escapeHtml(circuitTitle(this.track.circuit.id))}</span></header>${this.pauseSummary()}<div class="dialog-buttons pause-actions"><button class="primary" data-action="resume">RESUME SESSION</button>${this.gridPresentationAvailable ? '<button data-action="gridPresentation">PRE-RACE PRESENTATION</button>' : ''}<button data-action="restart">RESTART SESSION</button><button data-action="settings">GARAGE & SETTINGS</button><button data-action="menu">RETURN TO PADDOCK</button></div><div class="pause-more" role="group" aria-label="More options"><button data-action="camera">CHANGE CAMERA</button><button data-action="replay">WATCH REPLAY</button><button data-action="photo">PHOTO STUDIO</button><button data-action="autopilot">AI DRIVER</button><button data-action="academy">ACADEMY</button></div>${developer}</div>`,
+      `<div class="pause-menu"><header class="pause-head"><span class="eyebrow">${th('PAUSED')}</span><h2>${motocrossSessionTitle(this.options) ?? th(SESSION_TITLES[this.options.mode] ?? N_('Session'))}</h2><span class="pause-circuit">${escapeHtml(circuitTitle(this.track.circuit.id))}</span></header>${this.pauseSummary()}<div class="dialog-buttons pause-actions"><button class="primary" data-action="resume">${th('RESUME SESSION')}</button>${this.gridPresentationAvailable ? `<button data-action="gridPresentation">${th('PRE-RACE PRESENTATION')}</button>` : ''}<button data-action="restart">${th('RESTART SESSION')}</button><button data-action="settings">${th('GARAGE & SETTINGS')}</button><button data-action="menu">${th('RETURN TO PADDOCK')}</button></div><div class="pause-more" role="group" aria-label="${ta('More options')}"><button data-action="camera">${th('CHANGE CAMERA')}</button><button data-action="replay">${th('WATCH REPLAY')}</button><button data-action="photo">${th('PHOTO STUDIO')}</button><button data-action="autopilot">${th('AI DRIVER')}</button><button data-action="academy">${th('ACADEMY')}</button></div>${developer}</div>`,
     );
   }
   /** Compact session context for the pause menu: position, lap, gap, tyres, conditions. */
@@ -1079,27 +1147,24 @@ export class Interface {
     for (let id = 1; id < cars; id++)
       if (frame[carBase(id) + F.RANK] < frame[o + F.RANK]) position++;
     const racing = racingSession(this.options.mode);
-    const lap = escapeHtml(this.get('lapLabel').textContent ?? '')
-      .replace(/^(ENDURANCE|QUALIFYING|TIME TRIAL|PRACTICE) \/ /, '')
-      .replace(/^LAP (\d+) \/ (\d+)$/, '$1<small>/$2</small>')
-      .replace(/^LAP /, '');
+    const lap = this.lapSummary;
     const gap = this.element.querySelector('.tower-row.player small')?.textContent?.trim() || '—';
     const compound = Object.keys(COMPOUNDS)[Math.round(frame[o + F.COMPOUND])] ?? 'medium';
     let life = 0;
     for (let i = 0; i < 4; i++) life += 1 - frame[o + WHEEL_BASE + i * WHEEL_STRIDE + W.WEAR];
     const cells: [string, string][] = [
-      ['POSITION', cars > 1 ? `P${position}<small>/${cars}</small>` : 'SOLO'],
-      ['LAP', lap || '—'],
+      [N_('POSITION'), cars > 1 ? `P${position}<small>/${cars}</small>` : th('SOLO')],
+      [N_('LAP'), lap || '—'],
       racing
-        ? ['INTERVAL', escapeHtml(position === 1 ? 'LEADER' : gap)]
-        : ['BEST LAP', lapTime(frame[o + F.BEST_LAP])],
+        ? [N_('INTERVAL'), position === 1 ? th('LEADER') : escapeHtml(gap)]
+        : [N_('BEST LAP'), lapTime(frame[o + F.BEST_LAP])],
       [
-        'TYRES',
-        `<i class="tyre-dot" style="--tyre: var(--tyre-${compound})" title="${compound}">${compound[0].toUpperCase()}</i>${Math.round((100 * life) / 4)}<small>%</small>`,
+        N_('TYRES'),
+        `<i class="tyre-dot" style="--tyre: var(--tyre-${compound})" title="${escapeHtml(compoundName(compound).toLowerCase())}">${compound[0].toUpperCase()}</i>${Math.round((100 * life) / 4)}<small>%</small>`,
       ],
-      ['TRACK', conditions(frame[H.AMBIENT], frame[H.RAIN], frame[H.WATER])],
+      [N_('TRACK'), conditions(frame[H.AMBIENT], frame[H.RAIN], frame[H.WATER])],
     ];
-    return `<dl class="pause-summary">${cells.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>`;
+    return `<dl class="pause-summary">${cells.map(([k, v]) => `<div><dt>${th(k)}</dt><dd>${v}</dd></div>`).join('')}</dl>`;
   }
   performance(status: string, machine: string, workload: string, exportable: boolean) {
     this.modalContent(
@@ -1147,14 +1212,14 @@ export class Interface {
     const labels = motocross
       ? {
           ...BINDING_LABELS,
-          brake: 'Front brake / lower the nose in flight',
-          clutch: 'Rear brake / lower the nose in flight',
-          left: 'Steer / bank left in flight',
-          right: 'Steer / bank right in flight',
+          brake: N_('Front brake / lower the nose in flight'),
+          clutch: N_('Rear brake / lower the nose in flight'),
+          left: N_('Steer / bank left in flight'),
+          right: N_('Steer / bank right in flight'),
         }
       : BINDING_LABELS;
     this.modalContent(
-      `<span class="eyebrow">DRIVER BRIEFING</span><h2>Controls.</h2><div class="control-grid">${Object.entries(
+      `<span class="eyebrow">${th('DRIVER BRIEFING')}</span><h2>${th('Controls.')}</h2><div class="control-grid">${Object.entries(
         bindings,
       )
         .filter(([action]) =>
@@ -1164,11 +1229,11 @@ export class Interface {
         )
         .map(
           ([action, code]) =>
-            `<b>${keyName(code)}</b><span>${labels[action as BindingAction]}</span>`,
+            `<b>${keyName(code)}</b><span>${th(labels[action as BindingAction])}</span>`,
         )
         .join(
           '',
-        )}<b>ESC</b><span>Pause / release mouse look</span><b>DOUBLE CLICK</b><span>Cockpit mouse look</span></div><p>${motocross ? 'Shift rider weight separately from the pedals; release to return to the normal riding posture. In flight, throttle lifts the nose and either brake lowers it. Steer to bank and whip; release before touchdown to square the wheels. Riding assists help align a landing. Standard gamepad: left stick steers and whips, right stick up/down shifts rider weight, triggers operate throttle and brake, shoulder buttons shift and Start pauses. Touch: use the two LEAN buttons beside the steering controls.' : 'Gamepad: left stick steers, triggers for throttle and brake, shoulder buttons shift, Y changes camera, X cycles energy mode and Start pauses.'} Remap any keyboard control in Garage &amp; Settings.</p><button class="primary" data-action="modalClose">UNDERSTOOD</button>`,
+        )}<b>ESC</b><span>${th('Pause / release mouse look')}</span><b>${th('DOUBLE CLICK')}</b><span>${th('Cockpit mouse look')}</span></div><p>${motocross ? th('Shift rider weight separately from the pedals; release to return to the normal riding posture. In flight, throttle lifts the nose and either brake lowers it. Steer to bank and whip; release before touchdown to square the wheels. Riding assists help align a landing. Standard gamepad: left stick steers and whips, right stick up/down shifts rider weight, triggers operate throttle and brake, shoulder buttons shift and Start pauses. Touch: use the two LEAN buttons beside the steering controls.') : th('Gamepad: left stick steers, triggers for throttle and brake, shoulder buttons shift, Y changes camera, X cycles energy mode and Start pauses.')} ${th('Remap any keyboard control in Garage & Settings.')}</p><button class="primary" data-action="modalClose">${th('UNDERSTOOD')}</button>`,
     );
   }
   /** Paddock "Credits & licences": every third-party attribution (manifest). */
@@ -1460,7 +1525,7 @@ export class Interface {
     this.modalContent(
       resultsBoardHtml({
         rows: resultRows(frame, name),
-        heading: frame[carBase(0) + F.FINISH] > 0 ? 'Across the line.' : 'Session ended.',
+        heading: frame[carBase(0) + F.FINISH] > 0 ? t('Across the line.') : t('Session ended.'),
         lead: this.resultsLead,
         extra: this.resultsExtra,
         offroad: this.offroadHud.results(frame, this.track, this.options, name),
@@ -1477,20 +1542,20 @@ export class Interface {
     const rows = grid
       .map((id, index) => {
         const best = frame[carBase(id) + F.BEST_LAP];
-        const gap = best > 0 && pole > 0 && index > 0 ? `+${(best - pole).toFixed(3)}` : '';
-        return `<tr${id === 0 ? ' class="you"' : ''}><td>${index + 1}</td><td>${id === 0 ? escapeHtml(this.playerName) : DRIVERS[id]}</td><td>${best > 0 ? lapTime(best) : 'NO TIME'}</td><td>${gap}</td></tr>`;
+        const gap = best > 0 && pole > 0 && index > 0 ? `+${fixed(best - pole, 3)}` : '';
+        return `<tr${id === 0 ? ' class="you"' : ''}><td>${index + 1}</td><td>${id === 0 ? escapeHtml(this.playerName) : DRIVERS[id]}</td><td>${best > 0 ? lapTime(best) : th('NO TIME')}</td><td>${gap}</td></tr>`;
       })
       .join('');
     const position = grid.indexOf(0) + 1;
     this.modalContent(
-      `<span class="eyebrow">QUALIFYING / CLASSIFICATION</span><h2>${position === 1 ? 'Pole position.' : `P${position} on the grid.`}</h2><p>Fastest valid lap sets the starting order. Invalid or penalised laps do not count.</p><table class="results"><thead><tr><th>POS</th><th>DRIVER</th><th>BEST LAP</th><th>GAP</th></tr></thead><tbody>${rows}</tbody></table>${this.championshipNote ? `<p class="championship-note">${escapeHtml(this.championshipNote)}</p>` : ''}<div class="dialog-buttons inline"><button class="primary" data-action="weekendRace">START RACE FROM THIS GRID</button><button data-action="replay">WATCH REPLAY</button><button data-action="telemetry">TELEMETRY</button><button data-action="menu">PADDOCK</button></div>`,
+      `<span class="eyebrow">${th('QUALIFYING / CLASSIFICATION')}</span><h2>${position === 1 ? th('Pole position.') : th('P{position} on the grid.', { position })}</h2><p>${th('Fastest valid lap sets the starting order. Invalid or penalised laps do not count.')}</p><table class="results"><thead><tr><th>${th('POS')}</th><th>${th('DRIVER')}</th><th>${th('BEST LAP')}</th><th>${th('GAP')}</th></tr></thead><tbody>${rows}</tbody></table>${this.championshipNote ? `<p class="championship-note">${escapeHtml(this.championshipNote)}</p>` : ''}<div class="dialog-buttons inline"><button class="primary" data-action="weekendRace">${th('START RACE FROM THIS GRID')}</button><button data-action="replay">${th('WATCH REPLAY')}</button><button data-action="telemetry">${th('TELEMETRY')}</button><button data-action="menu">${th('PADDOCK')}</button></div>`,
     );
   }
   /** Championship standings and calendar. */
   championship(c: Championship | null) {
     if (!c) {
       this.modalContent(
-        `<span class="eyebrow">CHAMPIONSHIP</span><h2>A season of race weekends.</h2><p>${DEFAULT_CALENDAR.length} rounds across the original circuits. Each weekend is qualifying, which sets the grid, and then the race. Points go to the top ten finishers (25-18-15-12-10-8-6-4-2-1). Progress is saved on this device.</p><div class="dialog-buttons inline"><button class="primary" data-action="championship:new">START NEW CHAMPIONSHIP</button><button data-action="modalClose">CLOSE</button></div>`,
+        `<span class="eyebrow">${th('CHAMPIONSHIP')}</span><h2>${th('A season of race weekends.')}</h2><p>${th('{rounds} rounds across the original circuits. Each weekend is qualifying, which sets the grid, and then the race. Points go to the top ten finishers (25-18-15-12-10-8-6-4-2-1). Progress is saved on this device.', { rounds: DEFAULT_CALENDAR.length })}</p><div class="dialog-buttons inline"><button class="primary" data-action="championship:new">${th('START NEW CHAMPIONSHIP')}</button><button data-action="modalClose">${th('CLOSE')}</button></div>`,
       );
       return;
     }
@@ -1498,29 +1563,29 @@ export class Interface {
     const rows = table
       .map(
         (s, index) =>
-          `<tr${s.id === 0 ? ' class="you"' : ''}><td>${index + 1}</td><td>${s.id === 0 ? escapeHtml(this.playerName) : DRIVERS[s.id]}</td><td>${s.points}</td><td>${s.wins}</td><td>${s.finishes.map((p) => (p ? `P${p}` : 'DNF')).join(' · ') || '—'}</td></tr>`,
+          `<tr${s.id === 0 ? ' class="you"' : ''}><td>${index + 1}</td><td>${s.id === 0 ? escapeHtml(this.playerName) : DRIVERS[s.id]}</td><td>${s.points}</td><td>${s.wins}</td><td>${s.finishes.map((p) => (p ? `P${p}` : t('DNF'))).join(' · ') || '—'}</td></tr>`,
       )
       .join('');
     const calendar = c.rounds
       .map((r, i) => {
         const done = c.results[i];
         const status = done
-          ? `P${done.order.indexOf(0) + 1}${done.retired.includes(0) ? ' (DNF)' : ''}${done.demonstration ? ' · AI DEMO' : ''}`
+          ? `P${done.order.indexOf(0) + 1}${done.retired.includes(0) ? ` (${t('DNF')})` : ''}${done.demonstration ? ` · ${t('AI DEMO')}` : ''}`
           : i === c.results.length
-            ? 'NEXT'
+            ? t('NEXT')
             : '';
-        return `<li${i === c.results.length ? ' class="next"' : ''}><b>R${i + 1}</b> ${circuitDefinition(r.circuit).name} · ${r.weather.toUpperCase()} · ${r.laps} LAPS <span>${status}</span></li>`;
+        return `<li${i === c.results.length ? ' class="next"' : ''}><b>R${i + 1}</b> ${circuitDefinition(r.circuit).name} · ${weatherTag(r.weather)} · ${t('{n} LAPS', { n: r.laps })} <span>${status}</span></li>`;
       })
       .join('');
     const round = nextRound(c);
     this.modalContent(
-      `<span class="eyebrow">CHAMPIONSHIP / ROUND ${Math.min(c.results.length + 1, c.rounds.length)} OF ${c.rounds.length}</span><h2>${complete(c) ? `Champion: ${table[0].id === 0 ? escapeHtml(this.playerName) : DRIVERS[table[0].id]}.` : 'Standings.'}</h2><ol class="championship-calendar">${calendar}</ol><table class="results"><thead><tr><th>POS</th><th>DRIVER</th><th>PTS</th><th>WINS</th><th>RESULTS</th></tr></thead><tbody>${rows}</tbody></table><div class="dialog-buttons inline">${round ? `<button class="primary" data-action="championship:start">START ROUND ${c.results.length + 1} · QUALIFYING</button>` : ''}<button data-action="championship:new">NEW CHAMPIONSHIP</button><button data-action="modalClose">CLOSE</button></div>`,
+      `<span class="eyebrow">${th('CHAMPIONSHIP / ROUND {round} OF {rounds}', { round: Math.min(c.results.length + 1, c.rounds.length), rounds: c.rounds.length })}</span><h2>${complete(c) ? th('Champion: {name}.', { name: table[0].id === 0 ? escapeHtml(this.playerName) : DRIVERS[table[0].id] }) : th('Standings.')}</h2><ol class="championship-calendar">${calendar}</ol><table class="results"><thead><tr><th>${th('POS')}</th><th>${th('DRIVER')}</th><th>${th('PTS')}</th><th>${th('WINS')}</th><th>${th('RESULTS')}</th></tr></thead><tbody>${rows}</tbody></table><div class="dialog-buttons inline">${round ? `<button class="primary" data-action="championship:start">${th('START ROUND {round} · QUALIFYING', { round: c.results.length + 1 })}</button>` : ''}<button data-action="championship:new">${th('NEW CHAMPIONSHIP')}</button><button data-action="modalClose">${th('CLOSE')}</button></div>`,
     );
   }
   error(error: string) {
     this.get('loading').hidden = true;
     this.modalContent(
-      '<span class="eyebrow">SOMETHING WENT WRONG</span><h2>Session stopped.</h2><p>The session could not continue. Reload to return to the paddock. If this keeps happening, lower the render quality in Garage &amp; Settings.</p><p id="errorMessage" class="error-detail"></p><button class="primary" data-action="reload">RELOAD GAME</button>',
+      `<span class="eyebrow">${th('SOMETHING WENT WRONG')}</span><h2>${th('Session stopped.')}</h2><p>${th('The session could not continue. Reload to return to the paddock. If this keeps happening, lower the render quality in Garage & Settings.')}</p><p id="errorMessage" class="error-detail"></p><button class="primary" data-action="reload">${th('RELOAD GAME')}</button>`,
     );
     document.getElementById('errorMessage')!.textContent = error;
   }

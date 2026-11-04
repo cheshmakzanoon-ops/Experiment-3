@@ -146,7 +146,7 @@ export function snapshot(scene: Scene): string {
  * paddock body, and every visible control whose text is clipped or leaves its box. */
 export function layout(scene: Scene) {
   const root = document.documentElement;
-  const dialog = document.querySelector<HTMLElement>('#modal');
+  const dialog = document.querySelector<HTMLDialogElement>('#modal');
   const body = document.querySelector<HTMLElement>('.menu-body');
   const scope = (
     part[scene] === '#modalContent' ? dialog! : document.querySelector(part[scene])!

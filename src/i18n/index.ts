@@ -75,6 +75,7 @@ export const txh = (key: string, source: string, params?: Params): string =>
   lookup(key, source, params, escText);
 export const txa = (key: string, source: string, params?: Params): string =>
   lookup(key, source, params, escAttr);
+export { N_ } from './mark.ts';
 /** True when the active dictionary (or English) has this key. */
 export const hasTranslation = (key: string) => active === 'en' || key in dictionary;
 
@@ -178,5 +179,8 @@ export function formatLapTime(seconds: number, digits = 3): string {
   const minutes = Math.floor(seconds / 60);
   return `${minutes}:${fixed(seconds % 60, digits).padStart(digits + 3, '0')}`;
 }
+
+/** Upper-case text for the language (Turkish `i` becomes `İ`). Identical to toUpperCase under English. */
+export const upper = (text: string): string => text.toLocaleUpperCase(active);
 
 export const SUPPORTED_LOCALES = LOCALES;

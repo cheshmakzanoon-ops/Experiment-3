@@ -1,3 +1,4 @@
+import { N_ } from '../i18n/mark.ts';
 import type { VehicleClass, VehicleDefinition } from './vehicles.ts';
 
 /** Racing classes and the catalogue family each belongs to (masterplan §10.1,
@@ -30,119 +31,119 @@ export interface VehicleClassInfo {
 }
 export const VEHICLE_CLASSES: Readonly<Partial<Record<VehicleClass, VehicleClassInfo>>> =
   Object.freeze({
-    formula: { name: 'Formula', family: 'formula', order: 0, raceRuleset: 'formula-grand-prix' },
+    formula: { name: N_('Formula'), family: 'formula', order: 0, raceRuleset: 'formula-grand-prix' },
     'formula-junior': {
-      name: 'Junior formula',
+      name: N_('Junior formula'),
       family: 'formula',
       order: 1,
       raceRuleset: 'junior-formula-sprint',
     },
     historic: {
-      name: 'Historic formula',
+      name: N_('Historic formula'),
       family: 'historic',
       order: 2,
       raceRuleset: 'historic-formula',
     },
-    hypercar: { name: 'Hypercar', family: 'prototype', order: 3, raceRuleset: 'prototype-sprint' },
+    hypercar: { name: N_('Hypercar'), family: 'prototype', order: 3, raceRuleset: 'prototype-sprint' },
     prototype: {
-      name: 'Prototype',
+      name: N_('Prototype'),
       family: 'prototype',
       order: 4,
       raceRuleset: 'prototype-sprint',
     },
-    gt: { name: 'GT', family: 'gt', order: 5, raceRuleset: 'gt-sprint' },
-    'gt-sport': { name: 'GT Sport', family: 'gt', order: 6, raceRuleset: 'gt-sprint' },
-    touring: { name: 'Touring', family: 'touring', order: 7, raceRuleset: 'touring-sprint' },
-    club: { name: 'Club', family: 'club', order: 8, raceRuleset: 'club-sprint' },
-    rally: { name: 'Rally', family: 'rally', order: 9, raceRuleset: 'rallycross-heat' },
+    gt: { name: N_('GT'), family: 'gt', order: 5, raceRuleset: 'gt-sprint' },
+    'gt-sport': { name: N_('GT Sport'), family: 'gt', order: 6, raceRuleset: 'gt-sprint' },
+    touring: { name: N_('Touring'), family: 'touring', order: 7, raceRuleset: 'touring-sprint' },
+    club: { name: N_('Club'), family: 'club', order: 8, raceRuleset: 'club-sprint' },
+    rally: { name: N_('Rally'), family: 'rally', order: 9, raceRuleset: 'rallycross-heat' },
     rallycross: {
-      name: 'Rallycross',
+      name: N_('Rallycross'),
       family: 'rallycross',
       order: 10,
       raceRuleset: 'rallycross-heat',
     },
-    offroad: { name: 'Off-road', family: 'offroad', order: 11, raceRuleset: 'rallycross-heat' },
-    kart: { name: 'Kart', family: 'kart', order: 12, raceRuleset: 'kart-sprint' },
-    road: { name: 'Road (open-world)', family: 'road', order: 13 },
+    offroad: { name: N_('Off-road'), family: 'offroad', order: 11, raceRuleset: 'rallycross-heat' },
+    kart: { name: N_('Kart'), family: 'kart', order: 12, raceRuleset: 'kart-sprint' },
+    road: { name: N_('Road (open-world)'), family: 'road', order: 13 },
     'gp-bike': {
-      name: 'GP motorcycle',
+      name: N_('GP motorcycle'),
       family: 'motorcycle',
       order: 14,
       raceRuleset: 'gp-motorcycle',
     },
-    superbike: { name: 'Superbike', family: 'motorcycle', order: 15, raceRuleset: 'gp-motorcycle' },
+    superbike: { name: N_('Superbike'), family: 'motorcycle', order: 15, raceRuleset: 'gp-motorcycle' },
     // Catalogue growth: fractional orders slot each new class beside its
     // family without renumbering the classes above.
     'formula-feeder': {
-      name: 'Feeder formula',
+      name: N_('Feeder formula'),
       family: 'formula',
       order: 1.3,
       raceRuleset: 'feeder-formula-sprint',
     },
     'formula-entry': {
-      name: 'Entry formula',
+      name: N_('Entry formula'),
       family: 'formula',
       order: 1.6,
       raceRuleset: 'feeder-formula-sprint',
     },
     'historic-aero': {
-      name: 'Historic formula · 1970s',
+      name: N_('Historic formula · 1970s'),
       family: 'historic',
       order: 2.3,
       raceRuleset: 'heritage-sprint',
     },
     'historic-turbo': {
-      name: 'Historic formula · 1980s turbo',
+      name: N_('Historic formula · 1980s turbo'),
       family: 'historic',
       order: 2.6,
       raceRuleset: 'heritage-sprint',
     },
     'historic-prototype': {
-      name: 'Historic sports prototype',
+      name: N_('Historic sports prototype'),
       family: 'historic',
       order: 4.5,
       raceRuleset: 'heritage-sprint',
     },
-    vintage: { name: 'Vintage club', family: 'club', order: 8.5, raceRuleset: 'heritage-sprint' },
+    vintage: { name: N_('Vintage club'), family: 'club', order: 8.5, raceRuleset: 'heritage-sprint' },
     'historic-rally': {
-      name: 'Historic rally',
+      name: N_('Historic rally'),
       family: 'rally',
       order: 9.5,
       raceRuleset: 'historic-rally-heat',
     },
     experimental: {
-      name: 'Experimental',
+      name: N_('Experimental'),
       family: 'experimental',
       order: 12.5,
       raceRuleset: 'unlimited-showcase',
     },
     supersport: {
-      name: 'Supersport',
+      name: N_('Supersport'),
       family: 'motorcycle',
       order: 15.3,
       raceRuleset: 'motorcycle-class-sprint',
     },
     'classic-bike': {
-      name: 'Classic motorcycle',
+      name: N_('Classic motorcycle'),
       family: 'motorcycle',
       order: 15.6,
       raceRuleset: 'motorcycle-class-sprint',
     },
-    'road-bike': { name: 'Road motorcycle (open-world)', family: 'motorcycle', order: 15.8 },
+    'road-bike': { name: N_('Road motorcycle (open-world)'), family: 'motorcycle', order: 15.8 },
     motocross: {
-      name: 'Motocross',
+      name: N_('Motocross'),
       family: 'motorcycle',
       order: 16,
       raceRuleset: 'motocross-moto',
     },
     supermoto: {
-      name: 'Supermoto',
+      name: N_('Supermoto'),
       family: 'motorcycle',
       order: 17,
       raceRuleset: 'supermoto-moto',
     },
   });
-const OTHER: VehicleClassInfo = Object.freeze({ name: 'Other', family: 'other', order: 99 });
+const OTHER: VehicleClassInfo = Object.freeze({ name: N_('Other'), family: 'other', order: 99 });
 export function classInfo(classId: string): VehicleClassInfo {
   return (VEHICLE_CLASSES as Record<string, VehicleClassInfo | undefined>)[classId] ?? OTHER;
 }

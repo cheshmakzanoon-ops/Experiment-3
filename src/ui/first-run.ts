@@ -1,8 +1,13 @@
+import type { LanguageSetting } from '../i18n/locales.ts';
+import { languageControl } from './language-control.ts';
+import { t, th } from '../i18n/index.ts';
+import { N_ } from '../i18n/mark.ts';
 import { DEFAULT_BINDINGS, keyName, type Bindings } from '../input/bindings.ts';
 import {
   BOARD_DISCIPLINES,
   DISCIPLINE_SPECS,
   disciplineFacts,
+  factsCount,
   type BoardDiscipline,
 } from './disciplines.ts';
 import { glyph, plateSvg } from './glyphs.ts';
@@ -72,42 +77,55 @@ const ARROWS: Readonly<Record<string, string>> = {
 const keyLabel = (code: string) => ARROWS[code] ?? keyName(code);
 const DEVICE_LINE: Record<FirstRunDevice, (b: Bindings) => string> = {
   keys: (b) =>
-    `${keyLabel(b.throttle)} throttle · ${keyLabel(b.brake)} brake · ${keyLabel(b.left)} / ${keyLabel(b.right)} steer`,
-  pad: () => 'Right trigger throttle · left trigger brake · left stick steer',
+    t('{throttle} throttle · {brake} brake · {left} / {right} steer', {
+      throttle: keyLabel(b.throttle),
+      brake: keyLabel(b.brake),
+      left: keyLabel(b.left),
+      right: keyLabel(b.right),
+    }),
+  pad: () => t('Right trigger throttle · left trigger brake · left stick steer'),
 };
 /** The short control reminder shown as a toast when the first lap starts. */
 export function firstLapHint(device: FirstRunDevice, bindings: Bindings = DEFAULT_BINDINGS) {
-  return `${DEVICE_LINE[device](bindings)} · ${device === 'pad' ? 'START' : 'ESC'} pause. The line on the road marks the braking zones.`;
+  return t('{controls} · {pause} pause. The line on the road marks the braking zones.', {
+    controls: DEVICE_LINE[device](bindings),
+    pause: device === 'pad' ? 'START' : 'ESC',
+  });
 }
 
 const DEVICES: readonly { id: FirstRunDevice; label: string }[] = [
-  { id: 'keys', label: 'KEYBOARD' },
-  { id: 'pad', label: 'CONTROLLER' },
+  { id: 'keys', label: N_('KEYBOARD') },
+  { id: 'pad', label: N_('CONTROLLER') },
 ];
 const esc = (value: string) => value.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
 /** The first-launch screen. `device` and `discipline` are the preselected radios. */
 export function firstRunHtml(
-  options: { device: FirstRunDevice; discipline?: BoardDiscipline; bindings?: Bindings } = {
+  options: {
+    device: FirstRunDevice;
+    discipline?: BoardDiscipline;
+    bindings?: Bindings;
+    language?: LanguageSetting;
+  } = {
     device: 'keys',
   },
 ) {
   const bindings = options.bindings ?? DEFAULT_BINDINGS;
   const discipline = options.discipline ?? 'circuit';
-  return `<section class="fr" data-device="${options.device}"><header><div><span class="eyebrow">FIRST LAUNCH</span><h2>Pick your first lap.</h2></div><button type="button" data-action="firstrun:skip">SKIP TO THE PADDOCK</button></header><p class="fr-lead">A short solo session, dry, on medium tyres, with the braking zones and the racing line painted on the road. It runs the Driving Academy: five timed laps that score how repeatable you are. Everything else is in the paddock.</p><div class="fr-groups"><div class="fr-group"><h3 class="fr-label" id="frDeviceLabel"><b>1</b> INPUT</h3><div class="fr-devices" role="radiogroup" aria-labelledby="frDeviceLabel">${DEVICES.map(
+  return `<section class="fr" data-device="${options.device}"><header><div><span class="eyebrow">${th('FIRST LAUNCH')}</span><h2>${th('Pick your first lap.')}</h2></div>${languageControl(options.language)}<button type="button" data-action="firstrun:skip">${th('SKIP TO THE PADDOCK')}</button></header><p class="fr-lead">${th('A short solo session, dry, on medium tyres, with the braking zones and the racing line painted on the road. It runs the Driving Academy: five timed laps that score how repeatable you are. Everything else is in the paddock.')}</p><div class="fr-groups"><div class="fr-group"><h3 class="fr-label" id="frDeviceLabel"><b>1</b> ${th('INPUT')}</h3><div class="fr-devices" role="radiogroup" aria-labelledby="frDeviceLabel">${DEVICES.map(
     (d) =>
-      `<button type="button" role="radio" class="fr-device" data-device="${d.id}" aria-checked="${d.id === options.device}" tabindex="${d.id === options.device ? 0 : -1}"><b>${d.label}</b><small>${esc(DEVICE_LINE[d.id](bindings))}</small></button>`,
+      `<button type="button" role="radio" class="fr-device" data-device="${d.id}" aria-checked="${d.id === options.device}" tabindex="${d.id === options.device ? 0 : -1}"><b>${th(d.label)}</b><small>${esc(DEVICE_LINE[d.id](bindings))}</small></button>`,
   ).join(
     '',
-  )}</div></div><div class="fr-group"><h3 class="fr-label" id="frDisciplineLabel"><b>2</b> DISCIPLINE</h3><div class="fr-plates" role="radiogroup" aria-labelledby="frDisciplineLabel">${BOARD_DISCIPLINES.map(
+  )}</div></div><div class="fr-group"><h3 class="fr-label" id="frDisciplineLabel"><b>2</b> ${th('DISCIPLINE')}</h3><div class="fr-plates" role="radiogroup" aria-labelledby="frDisciplineLabel">${BOARD_DISCIPLINES.map(
     (id) => {
       const spec = DISCIPLINE_SPECS[id],
         facts = disciplineFacts(id);
-      return `<button type="button" role="radio" class="fr-plate" data-discipline="${id}" aria-checked="${id === discipline}" tabindex="${id === discipline ? 0 : -1}"><span class="fr-plate-art">${plateSvg(spec.shape, spec.numeral, id === 'festival' ? 'SOLVANE' : '')}</span><b>${spec.label}</b><small>${esc(spec.skill)}</small><em>${facts.count} ${facts.noun} · ${facts.machines} MACHINES</em></button>`;
+      return `<button type="button" role="radio" class="fr-plate" data-discipline="${id}" aria-checked="${id === discipline}" tabindex="${id === discipline ? 0 : -1}"><span class="fr-plate-art">${plateSvg(spec.shape, spec.numeral, id === 'festival' ? 'SOLVANE' : '')}</span><b>${th(spec.label)}</b><small>${esc(t(spec.skill))}</small><em>${factsCount(facts)} · ${th('{n} MACHINES', { n: facts.machines })}</em></button>`;
     },
   ).join(
     '',
-  )}</div></div></div><div class="fr-go"><button type="button" class="primary" data-action="firstrun:go">DRIVE THE FIRST LAP ${glyph('go', 'enter-glyph')}</button><p class="fr-keys" aria-hidden="true"><span data-for="keys"><kbd>←</kbd><kbd>→</kbd> CHANGE · <kbd>ENTER</kbd> DRIVE · <kbd>ESC</kbd> SKIP</span><span data-for="pad"><kbd>A</kbd> SELECT · <kbd>START</kbd> DRIVE · <kbd>B</kbd> SKIP</span></p></div></section>`;
+  )}</div></div></div><div class="fr-go"><button type="button" class="primary" data-action="firstrun:go">${th('DRIVE THE FIRST LAP')} ${glyph('go', 'enter-glyph')}</button><p class="fr-keys" aria-hidden="true"><span data-for="keys"><kbd>←</kbd><kbd>→</kbd> ${th('CHANGE')} · <kbd>ENTER</kbd> ${th('DRIVE')} · <kbd>ESC</kbd> ${th('SKIP')}</span><span data-for="pad"><kbd>A</kbd> ${th('SELECT')} · <kbd>START</kbd> ${th('DRIVE')} · <kbd>B</kbd> ${th('SKIP')}</span></p></div></section>`;
 }
 
 /** What the player has picked on the open screen. */
