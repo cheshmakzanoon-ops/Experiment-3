@@ -162,7 +162,7 @@ export function nextFromPlan(plan: SeasonPlan): ResultsNext {
     why: n.why,
     label: n.label,
     action: n.action,
-    discipline: DISCIPLINES[n.discipline].short,
+    discipline: t(DISCIPLINES[n.discipline].short),
   };
 }
 export function nextHtml(next: ResultsNext | null) {

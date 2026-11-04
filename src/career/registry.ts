@@ -283,8 +283,8 @@ export interface DisciplineDefinition {
 export const DISCIPLINES: Readonly<Record<DisciplineId, DisciplineDefinition>> = Object.freeze({
   'circuit-cars': {
     id: 'circuit-cars',
-    name: 'Circuit cars',
-    short: 'CIRCUIT',
+    name: N_('Circuit cars'),
+    short: N_('CIRCUIT'),
     family: 'car',
     venue: 'circuit',
     skill: N_('Braking points, tyre management and racecraft.'),
@@ -293,8 +293,8 @@ export const DISCIPLINES: Readonly<Record<DisciplineId, DisciplineDefinition>> =
   },
   'road-bikes': {
     id: 'road-bikes',
-    name: 'Road motorcycles',
-    short: 'BIKES',
+    name: N_('Road motorcycles'),
+    short: N_('BIKES'),
     family: 'bike',
     venue: 'circuit',
     skill: N_('Lean angle, trail braking and the front/rear brake split.'),
@@ -303,8 +303,8 @@ export const DISCIPLINES: Readonly<Record<DisciplineId, DisciplineDefinition>> =
   },
   'off-road': {
     id: 'off-road',
-    name: 'Off-road',
-    short: 'OFF-ROAD',
+    name: N_('Off-road'),
+    short: N_('OFF-ROAD'),
     family: 'off-road',
     venue: 'dirt',
     skill: N_('Throttle on loose ground, jump take-off and landing, ruts and berms.'),
@@ -313,8 +313,8 @@ export const DISCIPLINES: Readonly<Record<DisciplineId, DisciplineDefinition>> =
   },
   festival: {
     id: 'festival',
-    name: 'Festival',
-    short: 'FESTIVAL',
+    name: N_('Festival'),
+    short: N_('FESTIVAL'),
     family: 'road',
     venue: 'festival',
     skill: N_('Exploration, point-to-point, speed traps and drift zones.'),

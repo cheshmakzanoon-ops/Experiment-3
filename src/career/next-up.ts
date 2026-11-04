@@ -1,3 +1,5 @@
+import { t } from '../i18n/index.ts';
+import { N_ } from '../i18n/mark.ts';
 import {
   disciplineEvents,
   disciplineTiers,
@@ -194,6 +196,8 @@ function bestEvent(events: readonly CareerEvent[], save: CareerSave, tier: TierD
   return worst ? { event: worst, round: false } : null;
 }
 
+const MEDAL_WORDS = { gold: N_('Gold'), silver: N_('Silver'), bronze: N_('Bronze') } as const;
+const medalWord = (medal: keyof typeof MEDAL_WORDS) => t(MEDAL_WORDS[medal]);
 /** The first steps of the lowest rung with machines, and the single next action. */
 export function seasonPlan(registry: CareerRegistry, save: CareerSave): SeasonPlan {
   const discipline = focusDiscipline(registry, save);
@@ -206,9 +210,9 @@ export function seasonPlan(registry: CareerRegistry, save: CareerSave): SeasonPl
   const meetingNext = (why: string): NextUp => ({
     kind: 'meeting',
     discipline,
-    title: meeting?.name ?? 'Club meeting',
+    title: meeting?.name ?? t('Club meeting'),
     why,
-    label: firstTime ? 'ENTER THE CLUB MEETING' : 'CONTINUE',
+    label: firstTime ? t('ENTER THE CLUB MEETING') : t('CONTINUE'),
     action: `career:start:${discipline}.recovery`,
     venue: meeting?.definition?.circuit ?? null,
   });
@@ -220,9 +224,9 @@ export function seasonPlan(registry: CareerRegistry, save: CareerSave): SeasonPl
       next: {
         kind: 'discipline',
         discipline,
-        title: DISCIPLINES[discipline].name,
-        why: DISCIPLINES[discipline].skill,
-        label: 'OPEN EVENTS',
+        title: t(DISCIPLINES[discipline].name),
+        why: t(DISCIPLINES[discipline].skill),
+        label: t('OPEN EVENTS'),
         action: `career:discipline:${discipline}`,
         venue: null,
       },
@@ -241,25 +245,42 @@ export function seasonPlan(registry: CareerRegistry, save: CareerSave): SeasonPl
     steps.push({
       id: 'licence',
       done: !lic,
-      title: `${test.name} licence`,
-      detail: `${test.skill}, scored from your own telemetry. ${need.medal[0].toUpperCase()}${need.medal.slice(1)} or better opens ${first.name} events. Solo, on a loaned machine.`,
+      title: t('{name} licence', { name: test.name }),
+      detail: t(
+        '{skill}, scored from your own telemetry. {medal} or better opens {tier} events. Solo, on a loaned machine.',
+        { skill: test.skill, medal: medalWord(need.medal), tier: first.name },
+      ),
     });
   }
   steps.push({
     id: 'machine',
     done: !!entry,
-    title: entry ? 'Machine in your garage' : `Buy a machine for ${first.name}`,
+    title: entry ? t('Machine in your garage') : t('Buy a machine for {tier}', { tier: first.name }),
     detail: cheap
       ? save.credits >= vehiclePrice(registry, cheap)
-        ? `The ${cheap.name} costs ${credits(vehiclePrice(registry, cheap))}. You have ${credits(save.credits)}.`
-        : `The ${cheap.name} costs ${credits(vehiclePrice(registry, cheap))}; you are ${credits(vehiclePrice(registry, cheap) - save.credits)} short. The club meeting pays a quarter of the full rate.`
-      : 'Nothing in this rung can race in this build yet.',
+        ? t('The {name} costs {price}. You have {have}.', {
+            name: cheap.name,
+            price: credits(vehiclePrice(registry, cheap)),
+            have: credits(save.credits),
+          })
+        : t(
+            'The {name} costs {price}; you are {short} short. The club meeting pays a quarter of the full rate.',
+            {
+              name: cheap.name,
+              price: credits(vehiclePrice(registry, cheap)),
+              short: credits(vehiclePrice(registry, cheap) - save.credits),
+            },
+          )
+      : t('Nothing in this rung can race in this build yet.'),
   });
   steps.push({
     id: 'race',
     done: raced,
-    title: 'Race an invitational',
-    detail: `${first.laps} laps against seven cars of your class. Reputation comes from finishing and from the objectives on each card.`,
+    title: t('Race an invitational'),
+    detail: t(
+      '{laps} laps against seven cars of your class. Reputation comes from finishing and from the objectives on each card.',
+      { laps: first.laps },
+    ),
   });
 
   // The single next action.
@@ -280,27 +301,45 @@ export function seasonPlan(registry: CareerRegistry, save: CareerSave): SeasonPl
         discipline,
         title: e.name,
         why: pick.round
-          ? `Round ${(save.championships[e.key]?.season.results.length ?? 0) + 1} of ${save.championships[e.key]?.season.rounds.length ?? 0}. Your season is in progress.`
+          ? t('Round {round} of {rounds}. Your season is in progress.', {
+              round: (save.championships[e.key]?.season.results.length ?? 0) + 1,
+              rounds: save.championships[e.key]?.season.rounds.length ?? 0,
+            })
           : e.kind === 'championship'
-            ? `A season of ${e.calendar.length} rounds in the ${tier.name} rung.`
+            ? t('A season of {rounds} rounds in the {tier} rung.', {
+                rounds: e.calendar.length,
+                tier: tier.name,
+              })
             : save.results[e.key]
-              ? `You finished P${save.results[e.key].bestPosition} here. Beat it for reputation.`
-              : `${e.definition?.laps ?? tier.laps} laps, ${(e.definition?.opponents ?? 7) + 1} cars. Pays ×${e.stakes}.`,
-        label: firstTime ? 'START THE EVENT' : 'CONTINUE',
+              ? t('You finished P{position} here. Beat it for reputation.', {
+                  position: save.results[e.key].bestPosition,
+                })
+              : t('{laps} laps, {cars} cars. Pays ×{stakes}.', {
+                  laps: e.definition?.laps ?? tier.laps,
+                  cars: (e.definition?.opponents ?? 7) + 1,
+                  stakes: e.stakes,
+                }),
+        label: firstTime ? t('START THE EVENT') : t('CONTINUE'),
         action: `career:start:${e.key}`,
         venue: e.definition?.circuit ?? null,
       };
     } else
       next = meetingNext(
-        'Nothing in the open rung is free to start; the club meeting always runs.',
+        t('Nothing in the open rung is free to start; the club meeting always runs.'),
       );
   } else if (lic) {
     next = {
       kind: 'licence',
       discipline,
-      title: `${lic.test.name} licence`,
-      why: `${lic.test.brief} ${lic.need.medal[0].toUpperCase()}${lic.need.medal.slice(1)} or better opens ${first.name} events.`,
-      label: firstTime ? `START THE ${lic.test.name.toUpperCase()} TEST` : 'START THE TEST',
+      title: t('{name} licence', { name: lic.test.name }),
+      why: t('{brief} {medal} or better opens {tier} events.', {
+        brief: lic.test.brief,
+        medal: medalWord(lic.need.medal),
+        tier: first.name,
+      }),
+      label: firstTime
+        ? t('START THE {name} TEST', { name: lic.test.name.toUpperCase() })
+        : t('START THE TEST'),
       action: lic.action,
       venue: lic.venue,
     };
@@ -308,17 +347,24 @@ export function seasonPlan(registry: CareerRegistry, save: CareerSave): SeasonPl
     next = {
       kind: 'machine',
       discipline,
-      title: `Buy a machine for ${first.name}`,
+      title: t('Buy a machine for {tier}', { tier: first.name }),
       why: cheap
-        ? `Events race in a machine you own. The ${cheap.name} is ${credits(vehiclePrice(registry, cheap))}; you have ${credits(save.credits)}.`
-        : 'Events race in a machine you own.',
-      label: 'OPEN THE DEALERSHIP',
+        ? t('Events race in a machine you own. The {name} is {price}; you have {have}.', {
+            name: cheap.name,
+            price: credits(vehiclePrice(registry, cheap)),
+            have: credits(save.credits),
+          })
+        : t('Events race in a machine you own.'),
+      label: t('OPEN THE DEALERSHIP'),
       action: 'career:page:dealership',
       venue: null,
     };
   } else {
     next = meetingNext(
-      `${first.name} asks for ${first.reputation} reputation; you have ${save.reputation[discipline] ?? 0}. The club meeting pays a quarter of the full rate.`,
+      t(
+        '{tier} asks for {need} reputation; you have {have}. The club meeting pays a quarter of the full rate.',
+        { tier: first.name, need: first.reputation, have: save.reputation[discipline] ?? 0 },
+      ),
     );
   }
   return { discipline, firstTime, steps, next };

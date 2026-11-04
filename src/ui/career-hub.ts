@@ -1,3 +1,5 @@
+import { formatNumber, t, ta, th, upper } from '../i18n/index.ts';
+import { N_ } from '../i18n/mark.ts';
 import { standings, type RoundResult } from '../core/championship.ts';
 import { WEATHER_CATALOGUE, isWeatherId } from '../simulation/weather-catalogue.ts';
 import { RULESETS } from '../simulation/events.ts';
@@ -53,11 +55,11 @@ import { FULL_GAME, demoPolicy } from '../release/demo.ts';
  * so keyboard and controller focus reach everything; no animation. */
 export type CareerPage = 'hub' | 'events' | 'licences' | 'garage' | 'dealership';
 export const CAREER_PAGES: readonly [CareerPage, string][] = [
-  ['hub', 'Disciplines'],
-  ['events', 'Events'],
-  ['licences', 'Licences'],
-  ['garage', 'Garage'],
-  ['dealership', 'Dealership'],
+  ['hub', N_('Disciplines')],
+  ['events', N_('Events')],
+  ['licences', N_('Licences')],
+  ['garage', N_('Garage')],
+  ['dealership', N_('Dealership')],
 ];
 export interface CareerView {
   page: CareerPage;
@@ -72,7 +74,7 @@ export interface CareerView {
  * storage, or counted for this session only because saving is off. */
 export type PaymentState = 'saving' | 'saved' | 'failed' | 'unsaved';
 export const credits = (value: number) =>
-  `${value < 0 ? '−' : ''}¤${Math.abs(Math.round(value)).toLocaleString('en')}`;
+  `${value < 0 ? '−' : ''}¤${formatNumber(Math.abs(Math.round(value)))}`;
 const button = (label: string, action: string, primary = false) =>
   `<button${primary ? ' class="primary"' : ''} data-action="${escapeHtml(action)}">${escapeHtml(label)}</button>`;
 const reasonsList = (reasons: readonly string[]) =>
@@ -81,12 +83,12 @@ const reasonsList = (reasons: readonly string[]) =>
     : '';
 // In the Steam demo the registry is cut to the slice, so what is "missing from this build" is the
 // full game's content: say so (the full game has no 'coming' content to mislabel).
-const comingTag = () => (demoPolicy() ? FULL_GAME : 'COMING');
-const comingLead = () => (demoPolicy() ? 'In the full game:' : 'Coming — missing from this build:');
+const comingTag = () => t(demoPolicy() ? FULL_GAME : 'COMING');
+const comingLead = () => (demoPolicy() ? t('In the full game:') : t('Coming — missing from this build:'));
 const stateTag = (state: 'open' | 'locked' | 'coming') =>
-  `<span class="career-state" data-state="${state}">${state === 'open' ? 'OPEN' : state === 'locked' ? 'LOCKED' : comingTag()}</span>`;
+  `<span class="career-state" data-state="${state}">${state === 'open' ? th('OPEN') : state === 'locked' ? th('LOCKED') : comingTag()}</span>`;
 const vehicleName = (registry: Pick<CareerRegistry, 'vehicles'>, id: string | null) =>
-  id ? (registry.vehicles.find((v) => v.id === id)?.name ?? `${id} (not in this build)`) : '—';
+  id ? (registry.vehicles.find((v) => v.id === id)?.name ?? t('{id} (not in this build)', { id })) : '—';
 const venueName = (registry: Pick<CareerRegistry, 'venues'>, id: string | null) =>
   id ? (registry.venues.find((v) => v.id === id)?.name ?? id) : '—';
 /** Career discipline to the plate the paddock board draws for it (art direction section 2). */
@@ -97,17 +99,18 @@ const BOARD_OF: Readonly<Record<DisciplineId, BoardDiscipline>> = Object.freeze(
   festival: 'festival',
 });
 const MEDAL_LETTER = { gold: 'G', silver: 'S', bronze: 'B' } as const;
+const MEDAL_WORD = { gold: N_('gold'), silver: N_('silver'), bronze: N_('bronze') } as const;
 const medalDisc = (medal: Medal | null, label: string) =>
-  `<span class="wc-medal" data-medal="${medal ?? 'none'}" role="img" aria-label="${escapeHtml(label)}: ${medal ?? 'no medal'}"><b>${medal ? MEDAL_LETTER[medal] : ''}</b></span>`;
+  `<span class="wc-medal" data-medal="${medal ?? 'none'}" role="img" aria-label="${escapeHtml(label)}: ${medal ? t(MEDAL_WORD[medal]) : t('no medal')}"><b>${medal ? MEDAL_LETTER[medal] : ''}</b></span>`;
 const signed = (value: number) =>
-  `${value < 0 ? '−' : '+'}¤${Math.abs(Math.round(value)).toLocaleString('en')}`;
+  `${value < 0 ? '−' : '+'}¤${formatNumber(Math.abs(Math.round(value)))}`;
 /** The step the driver is on, and the ones behind and ahead of it. */
 function pathHtml(steps: readonly FirstStep[]) {
   const now = steps.findIndex((s) => !s.done);
-  return `<section class="cb-path" aria-label="First steps"><h3 class="cb-label">THREE STEPS TO YOUR FIRST RACE</h3><ol>${steps
+  return `<section class="cb-path" aria-label="${ta('First steps')}"><h3 class="cb-label">${th('THREE STEPS TO YOUR FIRST RACE')}</h3><ol>${steps
     .map((s, i) => {
       const state = s.done ? 'done' : i === now ? 'now' : 'later';
-      return `<li data-state="${state}"><b aria-hidden="true">${i + 1}</b><div><strong>${escapeHtml(s.title)}</strong><span>${escapeHtml(s.detail)}</span></div><em>${state === 'done' ? `${glyph('check', 'cb-check')}DONE` : state === 'now' ? 'NOW' : 'LATER'}</em></li>`;
+      return `<li data-state="${state}"><b aria-hidden="true">${i + 1}</b><div><strong>${escapeHtml(s.title)}</strong><span>${escapeHtml(s.detail)}</span></div><em>${state === 'done' ? `${glyph('check', 'cb-check')}${th('DONE')}` : state === 'now' ? th('NOW') : th('LATER')}</em></li>`;
     })
     .join('')}</ol></section>`;
 }
@@ -129,19 +132,19 @@ function garageHtml(save: CareerSave, registry: CareerRegistry) {
   const loaner = loanerVehicle(registry, 'circuit-cars');
   const body = rows.length
     ? `<ul class="cb-machines">${rows.join('')}</ul>`
-    : `<p class="cb-empty">No machine yet.${loaner ? ` Licences and the club meeting lend you the ${escapeHtml(loaner.name)}.` : ''} Events race in a machine you own.</p>`;
-  return `<section class="cb-garage" aria-label="Garage"><h3 class="cb-label">GARAGE · ${save.owned.length} MACHINE${save.owned.length === 1 ? '' : 'S'}</h3>${body}<div class="cb-actions">${button('DEALERSHIP', 'career:page:dealership')}${button('GARAGE', 'career:page:garage')}</div></section>`;
+    : `<p class="cb-empty">${th('No machine yet.')}${loaner ? ` ${th('Licences and the club meeting lend you the {name}.', { name: escapeHtml(loaner.name) })}` : ''} ${th('Events race in a machine you own.')}</p>`;
+  return `<section class="cb-garage" aria-label="${ta('Garage')}"><h3 class="cb-label">${th('GARAGE · {n, plural, one {# MACHINE} other {# MACHINES}}', { n: save.owned.length })}</h3>${body}<div class="cb-actions">${button(t('DEALERSHIP'), 'career:page:dealership')}${button(t('GARAGE'), 'career:page:garage')}</div></section>`;
 }
 function walletHtml(save: CareerSave) {
   const held = LICENCE_IDS.map((id) => [id, save.licences[id]?.medal ?? null] as const);
   const medals = held.filter(([, m]) => m).length;
-  return `<aside class="cb-wallet" aria-label="Wallet"><h3 class="cb-label">WALLET</h3><strong class="cb-credits">${credits(save.credits)}</strong><ul class="cb-ledger" aria-label="Latest payments">${save.ledger
+  return `<aside class="cb-wallet" aria-label="${ta('Wallet')}"><h3 class="cb-label">${th('WALLET')}</h3><strong class="cb-credits">${credits(save.credits)}</strong><ul class="cb-ledger" aria-label="${ta('Latest payments')}">${save.ledger
     .slice(-2)
     .reverse()
     .map((l) => `<li><b>${signed(l.amount)}</b> ${escapeHtml(l.label)}</li>`)
     .join(
       '',
-    )}</ul><div class="cb-medals" role="group" aria-label="Licence medals, ${medals} of ${LICENCE_IDS.length}">${held
+    )}</ul><div class="cb-medals" role="group" aria-label="${ta('Licence medals, {medals} of {total}', { medals, total: LICENCE_IDS.length })}">${held
     .map(
       ([id, m]) =>
         `<span>${medalDisc(m, LICENCE_TESTS[id].name)}<small>${escapeHtml(id.toUpperCase())}</small></span>`,
@@ -149,22 +152,22 @@ function walletHtml(save: CareerSave) {
     .join('')}</div></aside>`;
 }
 const RUNG_WORDS = {
-  cleared: 'CLEARED',
-  next: 'NEXT',
-  locked: 'LOCKED',
-  coming: 'NO MACHINE',
+  cleared: N_('CLEARED'),
+  next: N_('NEXT'),
+  locked: N_('LOCKED'),
+  coming: N_('NO MACHINE'),
 } as const;
 function rungNeed(rung: Rung) {
   const parts = [
     ...rung.licences.map(
       (l) =>
-        `${escapeHtml(l.name.toUpperCase())} ${l.need} ${l.ok ? 'held' : l.held ? `(you hold ${l.held})` : 'missing'}`,
+        `${escapeHtml(upper(l.name))} ${l.need} ${l.ok ? t('held') : l.held ? t('(you hold {held})', { held: l.held }) : t('missing')}`,
     ),
     rung.reputation.need
-      ? `${rung.reputation.need} reputation ${rung.reputation.ok ? 'held' : `(you have ${rung.reputation.have})`}`
+      ? `${t('{need} reputation', { need: rung.reputation.need })} ${rung.reputation.ok ? t('held') : t('(you have {have})', { have: rung.reputation.have })}`
       : '',
   ].filter(Boolean);
-  return `<p class="cb-need"><b>NEXT · ${escapeHtml(rung.tier.name.toUpperCase())}</b> ${parts.join(' · ')}</p>`;
+  return `<p class="cb-need"><b>${th('NEXT')} · ${escapeHtml(upper(rung.tier.name))}</b> ${parts.join(' · ')}</p>`;
 }
 function laneHtml(save: CareerSave, registry: CareerRegistry, id: DisciplineId) {
   const status = disciplineStatus(registry, id),
@@ -177,7 +180,7 @@ function laneHtml(save: CareerSave, registry: CareerRegistry, id: DisciplineId) 
     .filter((r) => r.tier.reputation > 0)
     .map((r) => `<i class="cb-tick" style="left:${r.tier.reputation}%" aria-hidden="true"></i>`)
     .join('');
-  return `<article class="cb-lane" data-discipline="${id}" data-board="${BOARD_OF[id]}"><div class="cb-id"><span class="cb-plate">${plateSvg(spec.shape, spec.numeral)}</span><div><h4>${escapeHtml(def.name)} ${stateTag(status.state)}</h4><p>${escapeHtml(def.skill)}</p></div></div><div class="cb-rep" role="meter" aria-label="${escapeHtml(def.name)} reputation" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${rep}"><span class="cb-track"><i class="cb-fill" style="width:${rep}%"></i>${ticks}</span><b>${rep}<small> / 100</small></b></div>${rungs.length ? `<ol class="cb-rungs" aria-label="${escapeHtml(def.name)} ladder, ${rungs.length} rung${rungs.length === 1 ? '' : 's'}">${rungs.map((r, i) => `<li data-state="${r.state}" title="${escapeHtml(r.tier.name)}"><b>${i + 1}</b><span>${escapeHtml(r.label)}</span><small>${RUNG_WORDS[r.state]}</small></li>`).join('')}</ol>` : ''}<div class="cb-lane-go">${button(status.state === 'open' ? 'OPEN EVENTS' : 'VIEW STATUS', `career:discipline:${id}`)}</div>${next ? rungNeed(next) : status.state === 'open' && rungs.length && rungs.every((r) => r.state !== 'locked') ? '<p class="cb-need"><b>TOP RUNG CLEARED</b> Every licence and reputation limit on this ladder is met.</p>' : ''}${reasonsList(status.reasons)}${status.caveat && status.state === 'open' ? `<p class="career-caveat">${escapeHtml(status.caveat)}</p>` : ''}</article>`;
+  return `<article class="cb-lane" data-discipline="${id}" data-board="${BOARD_OF[id]}"><div class="cb-id"><span class="cb-plate">${plateSvg(spec.shape, spec.numeral)}</span><div><h4>${escapeHtml(t(def.name))} ${stateTag(status.state)}</h4><p>${escapeHtml(t(def.skill))}</p></div></div><div class="cb-rep" role="meter" aria-label="${escapeHtml(t('{name} reputation', { name: t(def.name) }))}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${rep}"><span class="cb-track"><i class="cb-fill" style="width:${rep}%"></i>${ticks}</span><b>${rep}<small> / 100</small></b></div>${rungs.length ? `<ol class="cb-rungs" aria-label="${escapeHtml(t('{name} ladder, {n, plural, one {# rung} other {# rungs}}', { name: t(def.name), n: rungs.length }))}">${rungs.map((r, i) => `<li data-state="${r.state}" title="${escapeHtml(r.tier.name)}"><b>${i + 1}</b><span>${escapeHtml(r.label)}</span><small>${th(RUNG_WORDS[r.state])}</small></li>`).join('')}</ol>` : ''}<div class="cb-lane-go">${button(status.state === 'open' ? t('OPEN EVENTS') : t('VIEW STATUS'), `career:discipline:${id}`)}</div>${next ? rungNeed(next) : status.state === 'open' && rungs.length && rungs.every((r) => r.state !== 'locked') ? `<p class="cb-need"><b>${th('TOP RUNG CLEARED')}</b> ${th('Every licence and reputation limit on this ladder is met.')}</p>` : ''}${reasonsList(status.reasons)}${status.caveat && status.state === 'open' ? `<p class="career-caveat">${escapeHtml(status.caveat)}</p>` : ''}</article>`;
 }
 /** The real line art of the venue the next thing runs at, with its name (art direction
  * section 7: generated from the centreline, never hand-drawn). */
@@ -191,12 +194,12 @@ function hubPage(save: CareerSave, registry: CareerRegistry) {
   const plan = seasonPlan(registry, save),
     path = plan.steps.some((s) => !s.done);
   const next = plan.next;
-  return `<div class="cb" data-first-time="${plan.firstTime}" data-path="${path}"><div class="cb-col"><section class="cb-next" aria-labelledby="cbNextTitle" data-kind="${next.kind}" data-board="${BOARD_OF[next.discipline]}"><h3 class="cb-label">${plan.firstTime ? 'START HERE' : 'NEXT UP'} · ${escapeHtml(DISCIPLINES[next.discipline].short)}</h3><h4 id="cbNextTitle">${escapeHtml(next.title)}</h4><p>${escapeHtml(next.why)}</p><div class="cb-actions">${button(next.label, next.action, true)}</div>${nextMap(registry, next.venue)}</section>${path ? pathHtml(plan.steps) : ''}</div><div class="cb-col">${walletHtml(save)}${garageHtml(save, registry)}</div><section class="cb-ladder" aria-label="Licence ladder"><div class="cb-ladder-head"><h3 class="cb-label">LICENCE LADDER</h3><p>Licences first, then invitational events, then a championship. Reputation is earned per discipline and cannot be bought. A discipline without machines or venues in this build says exactly what is missing.</p></div>${DISCIPLINE_IDS.map((id) => laneHtml(save, registry, id)).join('')}</section></div>`;
+  return `<div class="cb" data-first-time="${plan.firstTime}" data-path="${path}"><div class="cb-col"><section class="cb-next" aria-labelledby="cbNextTitle" data-kind="${next.kind}" data-board="${BOARD_OF[next.discipline]}"><h3 class="cb-label">${plan.firstTime ? th('START HERE') : th('NEXT UP')} · ${escapeHtml(t(DISCIPLINES[next.discipline].short))}</h3><h4 id="cbNextTitle">${escapeHtml(next.title)}</h4><p>${escapeHtml(next.why)}</p><div class="cb-actions">${button(next.label, next.action, true)}</div>${nextMap(registry, next.venue)}</section>${path ? pathHtml(plan.steps) : ''}</div><div class="cb-col">${walletHtml(save)}${garageHtml(save, registry)}</div><section class="cb-ladder" aria-label="${ta('Licence ladder')}"><div class="cb-ladder-head"><h3 class="cb-label">${th('LICENCE LADDER')}</h3><p>${th('Licences first, then invitational events, then a championship. Reputation is earned per discipline and cannot be bought. A discipline without machines or venues in this build says exactly what is missing.')}</p></div>${DISCIPLINE_IDS.map((id) => laneHtml(save, registry, id)).join('')}</section></div>`;
 }
 function disciplineTabs(view: CareerView) {
-  return `<div class="career-disciplines-nav" role="group" aria-label="Discipline">${DISCIPLINE_IDS.map(
+  return `<div class="career-disciplines-nav" role="group" aria-label="${ta('Discipline')}">${DISCIPLINE_IDS.map(
     (id) =>
-      `<button data-action="career:discipline:${id}:${view.page}" aria-pressed="${view.discipline === id}">${DISCIPLINES[id].short}</button>`,
+      `<button data-action="career:discipline:${id}:${view.page}" aria-pressed="${view.discipline === id}">${th(DISCIPLINES[id].short)}</button>`,
   ).join('')}</div>`;
 }
 /** A championship's rounds with venue, weather and laps, and the player's
@@ -416,13 +419,13 @@ export function careerHub(save: CareerSave, registry: CareerRegistry, view: Care
             : hubPage(save, registry);
   const medals = Object.values(save.licences).filter((l) => l?.medal).length;
   const unsaved = view.unsaved
-    ? `<div class="career-unsaved" role="note"><p><b>NOT SAVING.</b> ${escapeHtml(view.unsaved.reason)}. Progress here lasts for this session only and the stored career is left untouched.</p>${view.unsaved.replaceable ? button('SAVE IN THIS BUILD INSTEAD', 'career:replace') : ''}</div>`
+    ? `<div class="career-unsaved" role="note"><p><b>${th('NOT SAVING.')}</b> ${escapeHtml(view.unsaved.reason)}. ${th('Progress here lasts for this session only and the stored career is left untouched.')}</p>${view.unsaved.replaceable ? button(t('SAVE IN THIS BUILD INSTEAD'), 'career:replace') : ''}</div>`
     : '';
   const wallet =
     view.page === 'hub'
       ? ''
-      : `<div class="team-stats"><div><small>CREDITS</small><strong>${credits(save.credits)}</strong></div><div><small>${DISCIPLINES[view.discipline].short} REPUTATION</small><strong>${save.reputation[view.discipline]}<em> / 100</em></strong></div><div><small>LICENCE MEDALS</small><strong>${medals}<em> / ${LICENCE_IDS.length}</em></strong></div></div>`;
-  return `<div class="career-hub" data-career-page="${view.page}"><header><div><span class="eyebrow">${view.page === 'hub' ? 'CAREER / SEASON BOARD' : 'CAREER / DRIVER'}</span><h2>${view.page === 'hub' ? 'Season board' : 'Career'}</h2></div>${button('CLOSE', 'modalClose')}</header>${unsaved}<nav aria-label="Career sections">${CAREER_PAGES.map(([id, label]) => `<button data-action="career:page:${id}" aria-pressed="${view.page === id}">${label}</button>`).join('')}</nav>${wallet}<div class="team-content">${content}</div><p class="team-save" role="status" id="careerSaveStatus">${escapeHtml(view.status ?? `${view.unsaved ? 'NOT SAVING' : 'LOCAL SAVE'} · ${credits(save.credits)} · ${save.owned.length} MACHINE${save.owned.length === 1 ? '' : 'S'}`)}</p></div>`;
+      : `<div class="team-stats"><div><small>${th('CREDITS')}</small><strong>${credits(save.credits)}</strong></div><div><small>${th('{discipline} REPUTATION', { discipline: th(DISCIPLINES[view.discipline].short) })}</small><strong>${save.reputation[view.discipline]}<em> / 100</em></strong></div><div><small>${th('LICENCE MEDALS')}</small><strong>${medals}<em> / ${LICENCE_IDS.length}</em></strong></div></div>`;
+  return `<div class="career-hub" data-career-page="${view.page}"><header><div><span class="eyebrow">${view.page === 'hub' ? th('CAREER / SEASON BOARD') : th('CAREER / DRIVER')}</span><h2>${view.page === 'hub' ? th('Season board') : th('Career')}</h2></div>${button(t('CLOSE'), 'modalClose')}</header>${unsaved}<nav aria-label="${ta('Career sections')}">${CAREER_PAGES.map(([id, label]) => `<button data-action="career:page:${id}" aria-pressed="${view.page === id}">${th(label)}</button>`).join('')}</nav>${wallet}<div class="team-content">${content}</div><p class="team-save" role="status" id="careerSaveStatus">${escapeHtml(view.status ?? `${view.unsaved ? t('NOT SAVING') : t('LOCAL SAVE')} · ${credits(save.credits)} · ${t('{n, plural, one {# MACHINE} other {# MACHINES}}', { n: save.owned.length })}`)}</p></div>`;
 }
 /** The itemised payment under a classification (or why nothing was paid). */
 export function payoutPanel(
@@ -432,19 +435,19 @@ export function payoutPanel(
   actions = true,
 ) {
   const careerButton = actions
-    ? `<div class="dialog-buttons inline">${button('CAREER', 'career')}</div>`
+    ? `<div class="dialog-buttons inline">${button(t('CAREER'), 'career')}</div>`
     : '';
   const status =
     state === 'saving'
-      ? 'Saving to your career…'
+      ? t('Saving to your career…')
       : state === 'saved'
-        ? 'Paid to your career wallet.'
+        ? t('Paid to your career wallet.')
         : state === 'unsaved'
-          ? 'Counted for this session only: this build is not saving the career (see CAREER).'
-          : 'Not saved: storage refused the write. Nothing was paid.';
+          ? t('Counted for this session only: this build is not saving the career (see CAREER).')
+          : t('Not saved: storage refused the write. Nothing was paid.');
   if (!payout.paid && !payout.lines.length)
-    return `<section class="career-payout" aria-label="Career payment"><span class="eyebrow">CAREER PAYMENT</span><p>${escapeHtml(payout.reason ?? 'No payment.')}</p>${careerButton}</section>`;
-  return `<section class="career-payout" aria-label="Career payment"><span class="eyebrow">CAREER PAYMENT</span><table class="results"><tbody>${payout.lines.map((l) => `<tr><td>${escapeHtml(l.label)}</td><td>${credits(l.amount)}</td></tr>`).join('')}<tr class="you"><td>TOTAL · reputation +${payout.reputation}</td><td>${credits(payout.total)}</td></tr></tbody></table>${payout.awarded ? `<p>Prize machine: ${escapeHtml(vehicleName(registry, payout.awarded))} is now in your garage.</p>` : ''}<p class="small-note" role="status">${status}</p>${careerButton}</section>`;
+    return `<section class="career-payout" aria-label="${ta('Career payment')}"><span class="eyebrow">${th('CAREER PAYMENT')}</span><p>${escapeHtml(payout.reason ?? t('No payment.'))}</p>${careerButton}</section>`;
+  return `<section class="career-payout" aria-label="${ta('Career payment')}"><span class="eyebrow">${th('CAREER PAYMENT')}</span><table class="results"><tbody>${payout.lines.map((l) => `<tr><td>${escapeHtml(l.label)}</td><td>${credits(l.amount)}</td></tr>`).join('')}<tr class="you"><td>${th('TOTAL · reputation +{reputation}', { reputation: payout.reputation })}</td><td>${credits(payout.total)}</td></tr></tbody></table>${payout.awarded ? `<p>${th('Prize machine: {name} is now in your garage.', { name: escapeHtml(vehicleName(registry, payout.awarded)) })}</p>` : ''}<p class="small-note" role="status">${status}</p>${careerButton}</section>`;
 }
 export function licenceBriefing(
   test: LicenceTest,
