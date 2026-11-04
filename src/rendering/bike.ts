@@ -1999,9 +1999,7 @@ export class BikeModel {
     }
     this.sprung.updateMatrixWorld(true);
     for (let i = 0; i < 2; i++) {
-      const slider = this.rider.kneeSliders[i];
-      if (!slider) continue;
-      slider.getWorldPosition(this.sparkOrigins[i]);
+      this.rider.kneeSliderWorld(i, this.sparkOrigins[i]);
       this.rider.root.worldToLocal(this.sparkOrigins[i]);
     }
     sparks.update(v.time ?? 0, v.chassisLean, this.sparkOrigins, this.rider.kneeDown);

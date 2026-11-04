@@ -3,6 +3,7 @@
 //   node scripts/studio/tools/car-lab/shots.mjs --url http://127.0.0.1:4298 --out <dir> \
 //        --id apx01 --views front34,rear34,cockpit [--prefix after] [--pose '{"steer":0.4,"brake":1}']
 //        [--w 1280 --h 720] [--max-kb 200] [--env 0.9] [--exposure 1]
+//        [--preset corner]   the GP corner hero frame (menu-preview.ts GP_CORNER_PRESET) for a motorcycle
 //        [--eval 'lab.formula().paint.iridescence = 0.3']   JS run in the page after the machine is built
 //
 // One page per machine id (the lab builds the machine from ?id=). Several ids: --id apx01,gpr1.
@@ -24,6 +25,7 @@ const width = Number(arg('w', 1280)),
   height = Number(arg('h', 720));
 const maxKb = Number(arg('max-kb', 200));
 const evalCode = arg('eval', '');
+const preset = arg('preset', '');
 const env = arg('env', '0.6'),
   exposure = arg('exposure', '1');
 mkdirSync(out, { recursive: true });
@@ -52,7 +54,7 @@ for (const id of ids) {
   );
   const t0 = Date.now();
   await page.goto(
-    `${url}/scripts/studio/tools/car-lab/index.html?id=${id}&w=${width}&h=${height}&env=${env}&exposure=${exposure}`,
+    `${url}/scripts/studio/tools/car-lab/index.html?id=${id}&w=${width}&h=${height}&env=${env}&exposure=${exposure}${preset ? `&preset=${preset}` : ''}`,
   );
   await page.waitForFunction(() => document.title.startsWith('lab:'), null, { timeout: 240000 });
   const title = await page.title();

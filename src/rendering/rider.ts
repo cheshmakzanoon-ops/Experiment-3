@@ -450,7 +450,16 @@ export class Rider {
   /** The two replaceable knee sliders (index 0 left, 1 right) and whether the last GP pose
    * folded that knee back onto the road (1) or left it clear (0): the contact the spark
    * burst is drawn from (gp-slider-sparks.ts). */
-  readonly kneeSliders: T.Object3D[] = [];
+  private readonly kneeSliderLocal = [new T.Vector3(), new T.Vector3()];
+  /** The replaceable knee slider's centre (index 0 left, 1 right) in world space. The slider
+   * mesh itself may be merged into a batched static mesh, so the position is the shin bone's
+   * own transform of the slider's fixed offset, never an object looked up by name. */
+  kneeSliderWorld(i: number, out: T.Vector3) {
+    const shin = this.shins[i]?.group;
+    if (!shin) return out.set(0, 0, 0);
+    shin.updateWorldMatrix(true, false);
+    return shin.localToWorld(out.copy(this.kneeSliderLocal[i]));
+  }
   readonly kneeDown: [number, number] = [0, 0];
   private readonly gpPlantEuler = new T.Euler();
   private readonly motocrossSpine?: MotocrossRiderSpine;
@@ -1140,7 +1149,7 @@ export class Rider {
         puck.name = 'Shaped replaceable polymer knee slider';
         puck.rotation.y = (side * Math.PI) / 2;
         puck.position.set(side * 0.062, 0.035, 0.007);
-        this.kneeSliders[i] = puck;
+        this.kneeSliderLocal[i].set(side * 0.062, 0.035, 0.007);
       }
       const hand = new T.Group();
       if (mx) hand.name = `Motocross ${i === 0 ? 'left' : 'right'} hand`;

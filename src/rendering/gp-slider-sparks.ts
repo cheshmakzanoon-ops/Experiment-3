@@ -19,7 +19,7 @@ import * as T from 'three';
  */
 export const SLIDER_SPARKS = Object.freeze({
   /** Sparks per slider. */
-  count: 28,
+  count: 36,
   /** |lean| (rad) below which a clamped knee throws nothing, and where the burst is full. */
   leanFrom: 0.72,
   leanTo: 1.0,
@@ -32,7 +32,7 @@ export const SLIDER_SPARKS = Object.freeze({
   spread: 1.6,
   /** World gravity (m/s^2) and the point size (m). */
   gravity: 9.81,
-  size: 0.05,
+  size: 0.07,
 });
 
 const smooth = (edge0: number, edge1: number, x: number) => {
