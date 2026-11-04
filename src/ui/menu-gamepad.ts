@@ -140,6 +140,10 @@ export class MenuGamepad {
     }
     if (edge(PAD.a)) this.activate(scope);
     if (edge(PAD.b)) this.back(scope);
+    // The first-launch screen: START drives the first lap (B skips, see back()).
+    if (scope.matches('dialog') && edge(PAD.start)) {
+      scope.querySelector<HTMLButtonElement>('[data-action="firstrun:go"]')?.click();
+    }
     if (scope.matches('.menu-body')) {
       if (edge(PAD.lb)) this.discipline(-1);
       if (edge(PAD.rb)) this.discipline(1);
@@ -233,7 +237,9 @@ export class MenuGamepad {
   }
   private back(scope: HTMLElement) {
     const close = scope.matches('dialog')
-      ? scope.querySelector<HTMLElement>('[data-action="modalClose"], [data-action="telemetryClose"]')
+      ? scope.querySelector<HTMLElement>(
+          '[data-action="modalClose"], [data-action="telemetryClose"], [data-action="firstrun:skip"]',
+        )
       : null;
     if (close) {
       uiCue('back');

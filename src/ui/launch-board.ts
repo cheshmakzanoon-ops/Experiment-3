@@ -1,7 +1,13 @@
 import frontEndCss from './front-end.css?inline';
 import wildcardCss from './wildcard-board.css?inline';
 import hudCss from './hud-identity.css?inline';
+import hudColourblindCss from './hud-colourblind.css?inline';
 import loadingCss from './loading-board.css?inline';
+import careerBoardCss from './career-board.css?inline';
+import firstRunCss from './first-run.css?inline';
+import resultsCss from './results-board.css?inline';
+import settingsGuideCss from './settings-guide.css?inline';
+import screensCss from './screens-board.css?inline';
 import stencilUrl from './fonts/saira-stencil-one-latin-400-normal.woff2?url';
 import { LIGHT_GLYPH, WEATHER_GLYPH, glyph, plateSvg, type GlyphName } from './glyphs.ts';
 import {
@@ -42,7 +48,7 @@ export function installFrontEnd(doc: Document = document) {
   if (doc.getElementById(FRONT_END_STYLE_ID)) return false;
   const style = doc.createElement('style');
   style.id = FRONT_END_STYLE_ID;
-  style.textContent = `@font-face{font-family:'Saira Stencil One';font-style:normal;font-weight:400;font-display:swap;src:url(${stencilUrl}) format('woff2')}\n${frontEndCss}\n${wildcardCss}\n${loadingCss}`;
+  style.textContent = `@font-face{font-family:'Saira Stencil One';font-style:normal;font-weight:400;font-display:swap;src:url(${stencilUrl}) format('woff2')}\n${frontEndCss}\n${wildcardCss}\n${loadingCss}\n${careerBoardCss}\n${firstRunCss}\n${resultsCss}\n${settingsGuideCss}\n${screensCss}`;
   doc.head.append(style);
   return true;
 }
@@ -54,7 +60,7 @@ export function installHudIdentity(hud: HTMLElement) {
   if (hud.querySelector(`#${HUD_IDENTITY_STYLE_ID}`)) return false;
   const style = hud.ownerDocument.createElement('style');
   style.id = HUD_IDENTITY_STYLE_ID;
-  style.textContent = hudCss;
+  style.textContent = `${hudCss}\n${hudColourblindCss}`;
   hud.append(style);
   return true;
 }

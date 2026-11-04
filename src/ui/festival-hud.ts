@@ -841,7 +841,7 @@ export class FestivalHud {
       ['sunset', 'Golden hour'],
       ['night', 'Night'],
     ];
-    node.innerHTML = `<header class="fest-menu-heading"><div><span class="fest-eyebrow">MOTOBOUND / FESTIVAL</span><h2>The open road.</h2><p>Solvane Coast · ${state.discovered.length} of ${this.events.length} events discovered</p></div><span class="fest-menu-mark">S<span>COAST</span></span></header>
+    node.innerHTML = `<header class="fest-menu-heading"><div><span class="fest-eyebrow">MOTOBOUND / FESTIVAL</span><h2>Festival menu.</h2><p>Solvane Coast · ${state.discovered.length} of ${this.events.length} events discovered</p></div><span class="fest-menu-mark">S<span>COAST</span></span></header>
       <div class="fest-menu-actions"><button class="fest-primary" data-fest="resume">RESUME</button><button class="fest-secondary" data-fest="reset">RESET TO ROAD</button>${state.inEvent ? '<button class="fest-secondary" data-fest="cancel">ABANDON EVENT</button>' : ''}<button class="fest-secondary" data-fest="exit">EXIT FESTIVAL</button>${this.callbacks.map ? '<button class="fest-secondary" data-fest="map">WORLD MAP</button>' : ''}${this.callbacks.photo ? '<button class="fest-secondary" data-fest="photo">PHOTO MODE</button>' : ''}</div>
       <div class="fest-menu-columns"><div>
       ${this.lastActivity && this.callbacks.retry && !state.inEvent ? `<section class="fest-last-activity"><h3>Last activity <span>${this.lastActivity.assisted ? 'ASSISTED' : 'COMPLETED'}</span></h3><b>${escapeHtml(this.lastActivity.eventName)}</b><p>${stars(this.lastActivity.stars)} · ${Math.round(this.lastActivity.trapKmh ?? this.lastActivity.averageKmh ?? this.lastActivity.driftScore ?? 0).toLocaleString('en')} ${this.lastActivity.eventKind === 'drift-zone' ? 'PTS' : this.lastActivity.eventKind === 'speed-zone' ? 'KM/H AVG' : 'KM/H'}</p><button class="fest-secondary" data-fest="retry" data-value="${escapeHtml(this.lastActivity.eventId)}">TRY AGAIN</button></section>` : ''}
@@ -856,7 +856,7 @@ export class FestivalHud {
         )
         .join(
           '',
-        )}</div></section><section class="fest-driving-note"><h3>Make the drive count</h3><p>Link clean speed, drifts, traffic passes and clean landings into a skill chain. Land upright and hold your line to secure airtime points, then return to the road and let the chain bank. Autopilot runs are marked assisted.</p><p><kbd>R</kbd> Reset to road &nbsp; <kbd>G</kbd> Autopilot</p></section></div></div>`;
+        )}</div></section><section class="fest-driving-note"><h3>Skill chain</h3><p>Link clean speed, drifts, traffic passes and clean landings into a skill chain. Land upright and hold your line to secure airtime points, then return to the road and let the chain bank. Autopilot runs are marked assisted.</p><p><kbd>R</kbd> Reset to road &nbsp; <kbd>G</kbd> Autopilot</p></section></div></div>`;
     node.querySelector<HTMLElement>('[data-fest="resume"]')?.focus();
   }
   /** Is a dialog that owns Enter visible? */

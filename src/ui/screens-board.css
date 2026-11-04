@@ -1,0 +1,362 @@
+/* The remaining screens on the Paddock Board tokens (docs/studio/ART_DIRECTION.md):
+ * Team HQ and the career pages' shared parts, the photo studio and livery editor,
+ * the festival menu and map, and the replay bar and lower third. Injected last by
+ * installFrontEnd(), after the older sheets, so these win on equal specificity.
+ * Tokens only (--mb-*): asphalt boards, ink on paper labels, amber for the thing you
+ * press, 11 px as the smallest text, no decorative gradient, no blur shadow. The
+ * older sheets (style.css, festival-hud.css, replay-hud.css) are not rewritten;
+ * this layer changes colour, type and shape, not layout. No motion is authored here. */
+
+:root {
+  /* Boards over the 3D scene: asphalt at 96% (drawers) and 92% (strips, panels). */
+  --mb-board-opaque: rgba(26, 27, 30, 0.96);
+  --mb-board-scrim: rgba(18, 19, 21, 0.92);
+  /* The hover step of an amber action. */
+  --mb-amber-hot: #ffc652;
+}
+
+/* ---------- Team HQ and the shared career/team parts -------------------------- */
+#app .team-hub nav button,
+#app .career-hub nav button {
+  border-radius: 0;
+  font: 700 calc(12px * var(--mb-u)) / 1 var(--mb-sans);
+  font-stretch: 94%;
+  letter-spacing: 0.14em;
+}
+#app .team-content h3 {
+  margin: var(--mb-s3) 0;
+  color: var(--mb-chalk);
+  font: 400 clamp(24px, 3vw, 36px) / 1.1 var(--mb-stencil);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+#app .team-content h4 {
+  color: var(--mb-chalk);
+  font: 750 var(--mb-f-value) / 1.3 var(--mb-sans);
+  font-stretch: 96%;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+#app .team-content p,
+#app .team-heading p {
+  color: var(--mb-chalk-dim);
+  font: 500 var(--mb-f-lead) / 1.55 var(--mb-sans);
+}
+#app .team-hero {
+  align-items: start;
+}
+/* The team's pass: the livery's own paint and number on a board, upright, with a hard ink edge. */
+#app .team-identity {
+  transform: none;
+  min-height: calc(190px * var(--mb-u));
+  border-left-width: calc(10px * var(--mb-u));
+  box-shadow: 3px 3px 0 var(--mb-ink);
+  clip-path: polygon(0 0, calc(100% - var(--mb-notch)) 0, 100% var(--mb-notch), 100% 100%, 0 100%);
+}
+#app .team-identity strong {
+  font: 400 clamp(64px, 9vw, 104px) / 1 var(--mb-stencil);
+  font-style: normal;
+  letter-spacing: 0;
+}
+#app .team-identity span {
+  font: 400 calc(20px * var(--mb-u)) / 1.1 var(--mb-stencil);
+  letter-spacing: 0.06em;
+}
+#app .team-identity small {
+  font: 650 var(--mb-f-label) / 1.2 var(--mb-sans);
+  letter-spacing: 0.14em;
+}
+#app .team-stats {
+  border-block-color: var(--mb-line);
+}
+#app .team-stats small {
+  color: var(--mb-chalk-faint);
+  font: 650 var(--mb-f-label) / 1.2 var(--mb-sans);
+  letter-spacing: 0.12em;
+}
+#app .team-stats em {
+  color: var(--mb-chalk-faint);
+  font: 650 var(--mb-f-label) var(--mb-sans);
+}
+#app .team-rival b {
+  color: var(--mb-amber);
+  font-family: var(--mb-stencil);
+  font-weight: 400;
+}
+#app .team-rival small {
+  color: var(--mb-chalk-faint);
+}
+#app .team-content meter {
+  accent-color: var(--mb-amber);
+}
+#app .team-actions button,
+#app .team-media button {
+  min-height: var(--mb-field);
+  padding: 0 var(--mb-s4);
+  background: var(--mb-asphalt-2);
+  color: var(--mb-chalk);
+  border: 0;
+  border-left: 3px solid var(--mb-line-strong);
+  border-radius: 0;
+  font: 700 calc(12px * var(--mb-u)) / 1 var(--mb-sans);
+  font-stretch: 94%;
+  letter-spacing: 0.14em;
+}
+#app .team-actions button:hover,
+#app .team-media button:hover {
+  background: var(--mb-asphalt-3);
+  border-left-color: var(--mb-amber);
+}
+#app .team-save {
+  border-top-color: var(--mb-line);
+  color: var(--mb-chalk-faint);
+  font: 600 var(--mb-f-label) / 1.4 var(--mb-sans);
+  letter-spacing: 0.1em;
+}
+#app .team-cards article,
+#app .team-calendar article,
+#app .career-event,
+#app .career-licence,
+#app .career-vehicle {
+  background: var(--mb-asphalt-0);
+  border: 0;
+  border-radius: 0;
+  box-shadow: inset 0 0 0 1px var(--mb-line);
+}
+#app .career-event[data-status='open'] {
+  box-shadow:
+    inset 3px 0 0 var(--mb-amber),
+    inset 0 0 0 1px var(--mb-line);
+}
+#app .career-facts dt,
+#app .team-calendar small {
+  color: var(--mb-chalk-faint);
+  font: 650 var(--mb-f-label) / 1.3 var(--mb-sans);
+  letter-spacing: 0.1em;
+}
+#app .career-facts dd {
+  color: var(--mb-chalk);
+  font: 600 var(--mb-f-value) / 1.3 var(--mb-sans);
+}
+#app .career-state {
+  font: 700 var(--mb-f-label) / 1 var(--mb-sans);
+  letter-spacing: 0.12em;
+}
+#app .career-needs,
+#app .career-reasons {
+  color: var(--mb-chalk-dim);
+  font: 500 var(--mb-f-label) / 1.45 var(--mb-sans);
+}
+
+/* ---------- Photo studio and livery editor ------------------------------------ */
+.photo-studio {
+  color: var(--mb-chalk);
+  font-family: var(--mb-sans);
+}
+.photo-title {
+  text-shadow: 0 1px 2px var(--mb-ink);
+}
+.photo-title h2 {
+  margin: var(--mb-s2) 0;
+  font: 400 calc(30px * var(--mb-u)) / 1.1 var(--mb-stencil);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.photo-title p {
+  font: 650 var(--mb-f-label) / 1.4 var(--mb-sans);
+  letter-spacing: 0.14em;
+}
+.photo-studio .eyebrow {
+  display: inline-block;
+  padding: var(--mb-s1) var(--mb-s2);
+  background: var(--mb-paper);
+  color: var(--mb-paper-ink);
+  font: 650 var(--mb-f-label) / 1 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.14em;
+  text-shadow: none;
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 0 100%);
+}
+.photo-drawer {
+  background: var(--mb-board-opaque);
+  border: 0;
+  box-shadow:
+    inset 0 0 0 1px var(--mb-line-strong),
+    4px 4px 0 var(--mb-ink);
+  clip-path: polygon(0 0, calc(100% - var(--mb-notch)) 0, 100% var(--mb-notch), 100% 100%, 0 100%);
+}
+.photo-drawer h3 {
+  margin: 0 0 var(--mb-s3);
+  color: var(--mb-chalk);
+  font: 400 calc(18px * var(--mb-u)) / 1.2 var(--mb-stencil);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.photo-drawer label {
+  color: var(--mb-chalk-dim);
+  font: 650 var(--mb-f-label) / 1.3 var(--mb-sans);
+  letter-spacing: 0.1em;
+}
+.photo-drawer label select,
+.photo-drawer label input:not([type='color']) {
+  background: var(--mb-asphalt-2);
+  border: 0;
+  border-bottom: 2px solid var(--mb-line-strong);
+  border-radius: 0;
+  color: var(--mb-chalk);
+  font-family: var(--mb-sans);
+}
+.photo-drawer input[type='range'],
+.photo-drawer input[type='checkbox'] {
+  accent-color: var(--mb-amber);
+}
+.photo-drawer output {
+  color: var(--mb-amber);
+  font-family: var(--mb-sans);
+  font-weight: 700;
+}
+.photo-drawer input[type='color'] {
+  border: 1px solid var(--mb-line-strong);
+  border-radius: 0;
+}
+.photo-drawer form {
+  border-top-color: var(--mb-line);
+}
+.photo-buttons button,
+.photo-top-actions button {
+  min-height: var(--mb-field);
+  background: var(--mb-asphalt-2);
+  color: var(--mb-chalk);
+  border: 0;
+  border-left: 3px solid var(--mb-line-strong);
+  border-radius: 0;
+  font: 700 var(--mb-f-label) / 1 var(--mb-sans);
+  font-stretch: 94%;
+  letter-spacing: 0.12em;
+}
+.photo-buttons button:hover,
+.photo-top-actions button:hover {
+  background: var(--mb-asphalt-3);
+  border-left-color: var(--mb-amber);
+}
+.photo-buttons button.primary {
+  background: var(--mb-amber);
+  border-left-color: var(--mb-ink);
+  color: var(--mb-ink);
+}
+.photo-help,
+#photoStatus {
+  color: var(--mb-chalk-dim);
+  font: 500 var(--mb-f-label) / 1.5 var(--mb-sans);
+}
+#photoStatus {
+  color: var(--mb-go);
+}
+.photo-studio :is(button, select, input):focus-visible {
+  outline: 2px solid var(--mb-amber);
+  outline-offset: 2px;
+}
+
+/* ---------- Festival menu, map and HUD panels --------------------------------- */
+#app .fest-hud {
+  --fest-accent: var(--mb-amber);
+  --fest-panel: var(--mb-board-scrim);
+  --fest-line: var(--mb-line);
+  color: var(--mb-chalk);
+  font-family: var(--mb-sans);
+}
+#app .fest-hud button:focus-visible {
+  outline-color: var(--mb-amber);
+}
+#app .fest-hud .fest-eyebrow {
+  display: inline-block;
+  padding: var(--mb-s1) var(--mb-s2);
+  background: var(--mb-paper);
+  color: var(--mb-paper-ink);
+  font: 650 var(--mb-f-label) / 1 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.14em;
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 0 100%);
+}
+#app .fest-hud h2,
+#app .fest-hud h3 {
+  font-family: var(--mb-sans);
+  font-style: normal;
+  letter-spacing: 0.05em;
+}
+#app .fest-hud :is(.fest-primary, .fest-secondary) {
+  border-radius: 0;
+}
+#app .fest-hud .fest-primary {
+  background: var(--mb-amber);
+  color: var(--mb-ink);
+}
+
+/* ---------- Replay bar and lower third ---------------------------------------- */
+.replay-bar {
+  background: var(--mb-asphalt-1);
+  border-radius: 0;
+  box-shadow:
+    inset 0 0 0 1px var(--mb-line-strong),
+    3px 3px 0 var(--mb-ink);
+  font-family: var(--mb-sans);
+}
+.replay-bar .replay-tag {
+  background: var(--mb-flag);
+  color: var(--mb-chalk);
+  border-radius: 0;
+  font: 700 var(--mb-f-label) / 1 var(--mb-sans);
+  letter-spacing: 0.14em;
+}
+.replay-bar button {
+  border-radius: 0;
+  font: 700 var(--mb-f-label) / 1 var(--mb-sans);
+  letter-spacing: 0.12em;
+}
+.replay-bar input[type='range'] {
+  accent-color: var(--mb-amber);
+}
+.replay-bar :is(button, select, input):focus-visible {
+  outline: 2px solid var(--mb-amber);
+  outline-offset: 2px;
+}
+/* The followed driver, as the paddock board's results sheet names a row: paper number, asphalt name. */
+#app .replay-lower-third b {
+  background: var(--mb-paper);
+  color: var(--mb-paper-ink);
+  font-family: var(--mb-stencil);
+  font-weight: 400;
+}
+#app .replay-lower-third span {
+  background: var(--mb-board-scrim);
+  font-family: var(--mb-sans);
+}
+
+/* ---------- Loading board ----------------------------------------------------- */
+.loading .loading-tip b,
+.loading .loading-session {
+  font-family: var(--mb-sans);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photo-studio *,
+  .fest-hud *,
+  .replay-bar,
+  .replay-bar *,
+  .replay-lower-third,
+  #app .team-hub *,
+  #app .career-hub * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+:root[data-reduced-motion='true'] .photo-studio *,
+:root[data-reduced-motion='true'] .fest-hud *,
+:root[data-reduced-motion='true'] .replay-bar,
+:root[data-reduced-motion='true'] .replay-bar *,
+:root[data-reduced-motion='true'] .replay-lower-third,
+:root[data-reduced-motion='true'] #app .team-hub *,
+:root[data-reduced-motion='true'] #app .career-hub * {
+  animation: none !important;
+  transition: none !important;
+}

@@ -13,7 +13,9 @@ import { MenuFramePacing } from './rendering/menu-frame-pacing.ts';
 import { MenuPreviewReceipt } from './rendering/menu-preview-receipt.ts';
 import { LiveFrameClock } from './rendering/live-frame-clock.ts';
 import { motocrossMenuPreview } from './rendering/offroad/menu-bike.ts';
-import { VEHICLES, vehicleAt } from './simulation/vehicles.ts';
+import { VEHICLES, vehicleAt, vehicleDefinition } from './simulation/vehicles.ts';
+import { WEATHER_CATALOGUE } from './simulation/weather-catalogue.ts';
+import type { CareerSave } from './career/save.ts';
 import { shouldDrawReplay } from './rendering/replay-presentation.ts';
 import { TabEvidence } from './ui/tab-evidence.ts';
 import { ReferenceSessionReview, referenceSessionPanel } from './ui/reference-session.ts';
@@ -129,7 +131,19 @@ import {
 } from './rendering/light-choice.ts';
 import { UiSounds } from './audio/ui-sounds.ts';
 import { CONTINUE_KEY, validateContinue, type ContinueEntry } from './ui/continue-entry.ts';
+import {
+  FIRST_RUN_KEY,
+  firstLapHint,
+  shouldShowFirstRun,
+  validateFirstRun,
+  type FirstRunRecord,
+} from './ui/first-run.ts';
 import { wildcardProgress } from './ui/wildcard-board.ts';
+import { seasonPlan } from './career/next-up.ts';
+import { systemReducedMotion } from './ui/presentation.ts';
+import { clock, nextFromPlan, nextHtml, resultFacts, resultRows } from './ui/results-board.ts';
+import { renderShareCard, shareCardFilename } from './ui/results-card.ts';
+import { circuitArt } from './ui/track-art.ts';
 import { requestObserver, storedObserver } from './rendering/sky-ephemeris.ts';
 import { PracticeProgramme } from './simulation/practice-programme.ts';
 import { CareerController, type CareerSession } from './career/controller.ts';
@@ -354,7 +368,10 @@ export class GameApp {
         this.ui.resultsLead = html;
       },
       // The WILDCARD SERIES door on the paddock board shows the medal tally.
-      changed: (save) => this.ui.setWildcardProgress(wildcardProgress(save)),
+      changed: (save) => {
+        this.ui.setWildcardProgress(wildcardProgress(save));
+        this.refreshResultsNext(save);
+      },
       start: (options, career) => {
         // A career session is outside the legacy championship weekend.
         this.championshipRound = -1;
@@ -605,9 +622,11 @@ export class GameApp {
   }
   /** Reduced motion removes camera vibration and motion blur (§21.5). */
   private applyMotion(renderer: RacingRenderer, settings: Settings) {
-    renderer.shake = settings.reducedMotion ? 0 : settings.shake;
-    renderer.reducedMotion = settings.reducedMotion;
-    document.documentElement.dataset.reducedMotion = String(settings.reducedMotion);
+    // The system's own request counts as much as the in-game switch.
+    const reduced = settings.reducedMotion || systemReducedMotion();
+    renderer.shake = reduced ? 0 : settings.shake;
+    renderer.reducedMotion = reduced;
+    document.documentElement.dataset.reducedMotion = String(reduced);
   }
   private applyCommunication(settings: Settings) {
     this.radio.options.engineer = settings.engineerRadio;
@@ -655,6 +674,11 @@ export class GameApp {
     } catch {
       this.ui.setContinue(null); // No remembered entry is the same as no CONTINUE.
     }
+    try {
+      this.firstRunRecord = validateFirstRun(await this.store.read(FIRST_RUN_KEY));
+    } catch {
+      this.firstRunRecord = null; // Unreadable storage: the screen shows, and cannot be remembered.
+    }
     this.ui.setLightChoice(this.lightChoice);
     this.ui.playerName = driverProfile(this.team).name;
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) this.settings.shake = 0;
@@ -681,6 +705,123 @@ export class GameApp {
     // complete normal input actionability checks while that work is pending.
     this.revealMenu = true;
     this.timer = requestAnimationFrame(this.frame);
+  }
+  /** The first-launch record (src/ui/first-run.ts), null until the screen has been shown. */
+  private firstRunRecord: FirstRunRecord | null = null;
+  private firstRunOpen = false;
+  /** FIRST LAUNCH: shown once, over the first menu. Written to the save store as it opens, so
+   * any way out of it counts as seen. */
+  private openFirstRun() {
+    if (
+      this.firstRunOpen ||
+      !shouldShowFirstRun({
+        record: this.firstRunRecord,
+        automated: navigator.webdriver === true,
+        search: location.search,
+      })
+    )
+      return;
+    this.firstRunOpen = true;
+    const device = this.input.activePad() ? 'pad' : 'keys';
+    this.ui.firstRun(device, this.settings.bindings);
+    this.writeFirstRun({ version: 1, at: Date.now(), device, discipline: null, drove: false });
+  }
+  private writeFirstRun(record: FirstRunRecord) {
+    this.firstRunRecord = record;
+    void this.store.write(FIRST_RUN_KEY, record).catch(() => undefined);
+  }
+  /** SKIP, or DRIVE THE FIRST LAP: the choices are remembered, the lap is the Driving
+   * Academy's programme with the full on-track guide. */
+  private firstRunAction(name: string) {
+    const root = this.ui.get('modalContent');
+    if (!root.querySelector('.fr')) return;
+    const { device, discipline } = this.ui.firstRunChoice();
+    const at = this.firstRunRecord?.at ?? Date.now();
+    if (name === 'firstrun:skip') {
+      this.writeFirstRun({ version: 1, at, device, discipline: null, drove: false });
+      this.ui.closeModal();
+      return;
+    }
+    if (name !== 'firstrun:go') return;
+    this.ui.closeModal();
+    const options = this.ui.firstLapOptions(discipline);
+    this.writeFirstRun({ version: 1, at, device, discipline, drove: !!options });
+    if (!options) {
+      this.ui.toast('The first lap could not be set up from this entry. Pick a session in the paddock.');
+      return;
+    }
+    this.rememberEntry(this.ui.boardEntry()!);
+    this.ui.toast(firstLapHint(device, this.settings.bindings));
+    if ((options.mode as string) === 'festival') {
+      void this.startFestival(options).catch((e) => this.fail(e));
+      return;
+    }
+    this.championshipRound = -1;
+    this.ui.championshipNote = '';
+    if (this.renderer) this.renderer.guide.mode = 'full';
+    void this.start(options, true).catch((e) => this.fail(e));
+  }
+  /** The next thing to do after a session, from the career's own plan (career/next-up.ts). */
+  private resultsNext(save = this.career.save) {
+    try {
+      return nextFromPlan(seasonPlan(this.career.registry, save));
+    } catch {
+      return null; // The card is a suggestion: a plan that cannot be made hides it.
+    }
+  }
+  /** The payment settles after the screen opens: the suggestion follows the saved career. */
+  private refreshResultsNext(save: CareerSave) {
+    if (this.state !== 'results') return;
+    const node = document.querySelector('#modalContent .rs-next');
+    if (!node) return;
+    this.ui.resultsNext = this.resultsNext(save);
+    node.outerHTML = nextHtml(this.ui.resultsNext);
+  }
+  /** SHARE CARD: the finished session as a 1200 x 630 PNG, drawn locally and saved by the browser. */
+  private async shareResult() {
+    const frame = this.current;
+    if (this.state !== 'results' || !frame) return;
+    const rows = resultRows(frame, (id) => (id === 0 ? this.ui.playerName : (DRIVERS[id] ?? `CAR ${id + 1}`)));
+    const facts = resultFacts(rows);
+    if (!facts) return;
+    const o = this.options;
+    const modes: Record<string, string> = {
+      race: 'Grand Prix',
+      practice: 'Free practice',
+      'time-trial': 'Time trial',
+      endurance: 'Endurance',
+    };
+    const circuit = circuitDefinition(o.circuit);
+    const gaps: string[] = [];
+    if (facts.toWinner !== null)
+      gaps.push(facts.winner ? `+${facts.toWinner.toFixed(3)} s clear of 2nd` : `+${facts.toWinner.toFixed(3)} s to the winner`);
+    if (facts.fastest?.you) gaps.push('Fastest lap');
+    try {
+      const blob = await renderShareCard({
+        session: `${modes[o.mode] ?? 'Session'}${o.mode === 'race' || o.mode === 'endurance' ? ` · ${o.laps} ${o.laps === 1 ? 'lap' : 'laps'}` : ''}`,
+        venue: circuit.name,
+        machine: vehicleDefinition(o.vehicles?.[0] ?? 'apx01').name,
+        weather: WEATHER_CATALOGUE[o.weather]?.tag ?? String(o.weather),
+        player: this.ui.playerName,
+        position: facts.position,
+        field: facts.field,
+        finished: facts.finished,
+        raceTime: facts.finished ? clock(facts.raceTime) : '—',
+        bestLap: clock(facts.bestLap),
+        gaps,
+        podium: rows.slice(0, 3).map((r) => ({
+          place: r.position,
+          name: r.name,
+          time: r.finish > 0 ? clock(r.finish) : r.retired ? 'DNF' : 'RUNNING',
+        })),
+        path: circuitArt(circuit.id).d,
+        date: new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }),
+      });
+      downloadBlob(blob, shareCardFilename(circuit.id, facts.position, facts.finished));
+      this.ui.toast('Result card saved as a PNG. Nothing was uploaded.');
+    } catch (error) {
+      this.ui.toast(`Result card not saved: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
   private revealMenu = false;
   private workerPause = new PauseHandshake();
@@ -1227,6 +1368,7 @@ export class GameApp {
           this.revealMenu = false;
           this.ui.ready();
           this.ui.showMode('menu');
+          this.openFirstRun();
         }
         if (readiness !== 'ready') {
           if (readiness === 'busy') this.previousTime = previousTime;
@@ -1865,6 +2007,7 @@ export class GameApp {
       this.options.grid,
       meeting.outcome ?? undefined,
     );
+    this.ui.resultsNext = this.resultsNext();
     this.ui.results(frame);
     // A meeting session continues on the meeting screen (gate pick, next
     // moto, combined classification) instead of the plain results card.
@@ -2087,6 +2230,10 @@ export class GameApp {
   /** The machine whose setup the garage shows: the session's own machine
    * while one runs, else (undefined) the menu's MACHINE choice. */
   private action(name: string) {
+    if (name.startsWith('firstrun:')) {
+      this.firstRunAction(name);
+      return;
+    }
     if (this.festival?.action(name)) return;
     // Do not replace a renderer or resume simulation while it owns a graphics
     // transition. Closing the editor, muting, losing focus and reload remain
@@ -2274,6 +2421,9 @@ export class GameApp {
     )
       return;
     switch (name) {
+      case 'resultsShare':
+        void this.shareResult();
+        break;
       case 'academy':
         this.openAcademy();
         break;

@@ -37,6 +37,8 @@ const PATHS = {
   caret: '<path d="M6 9l6 6 6-6"/>',
   /** Chevron stack painted on the pit exit: the go mark. */
   go: '<path d="M4 5l7 7-7 7M12 5l7 7-7 7"/>',
+  /** A tick: a step done, a limit met. */
+  check: '<path d="M4 12l5 5L20 6"/>',
 } as const;
 export type GlyphName = keyof typeof PATHS;
 /** Weather id to its glyph (weather-catalogue.ts ids; unknown ids fall back to the sun). */

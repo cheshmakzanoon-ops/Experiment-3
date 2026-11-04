@@ -21,6 +21,9 @@ import {
   wildcardSession,
 } from '../../../src/career/wildcard-series.ts';
 import { wildcardBoardHtml, wildcardProgress } from '../../../src/ui/wildcard-board.ts';
+import { nextFromPlan } from '../../../src/ui/results-board.ts';
+import { seasonPlan } from '../../../src/career/next-up.ts';
+import { payoutPanel } from '../../../src/ui/career-hub.ts';
 
 let ui: Interface;
 const renderer = {
@@ -95,9 +98,58 @@ export function results() {
   ui.showMode('results');
   ui.results(finishedFrame(simulation));
 }
+/** The race results as a driver with a career sees them: the podium, a payment and the next event. */
+export function resultsCareer(position = 2) {
+  const simulation = mount();
+  ui.options = simulation.options;
+  ui.showMode('results');
+  const frame = finishedFrame(simulation);
+  const cars = Math.round(frame[H.CARS]);
+  let next = 1;
+  for (let id = 0; id < cars; id++) {
+    if (id === 0) frame[carBase(0) + F.RANK] = position;
+    else {
+      if (next === position) next++;
+      frame[carBase(id) + F.RANK] = next++;
+    }
+  }
+  for (let id = 0; id < cars; id++)
+    frame[carBase(id) + F.FINISH] = 181.2 + (frame[carBase(id) + F.RANK] - 1) * 2.31;
+  const registry = liveRegistry();
+  const save = buyVehicle(newCareer(), registry, 'tc1');
+  ui.resultsNext = nextFromPlan(
+    seasonPlan(registry, {
+      ...save,
+      licences: { braking: { medal: 'silver', best: 2, attempts: 1 } },
+    }),
+  );
+  ui.resultsExtra = payoutPanel(
+    {
+      lines: [
+        { label: 'Classified finish × 0.5', amount: 4500 },
+        { label: 'Podium objective', amount: 1250 },
+      ],
+      total: 5750,
+      reputation: 3,
+      paid: true,
+      reason: null,
+      awarded: null,
+    },
+    'saved',
+    registry,
+    false,
+  );
+  ui.results(frame);
+}
 export function settings() {
   mount();
   ui.settings(structuredClone(DEFAULT_SETTINGS));
+}
+/** The settings screen scrolled to the graphics guide and the accessibility group. */
+export function settingsGuide() {
+  mount();
+  ui.settings(structuredClone(DEFAULT_SETTINGS));
+  document.querySelector('.gq')!.scrollIntoView({ block: 'start' });
 }
 export function controls() {
   mount();
@@ -201,4 +253,150 @@ export async function wildcardResult(id = 'karts-after-dark', position = 2) {
   await new Promise((resolve) => setTimeout(resolve, 80));
   // The payment settles after the write: show the saved state.
   ui.results(frame);
+}
+
+// ---- Wave 3: the season board, Team HQ, loading ----------------------------------------
+import { teamHub } from '../../../src/ui/team-hub.ts';
+import { PhotoStudio } from '../../../src/ui/photo-studio.ts';
+import { ReplayHud } from '../../../src/ui/replay-hud.ts';
+import { DEFAULT_LIVERY } from '../../../src/storage/livery.ts';
+import { renderShareCard } from '../../../src/ui/results-card.ts';
+import { circuitArt } from '../../../src/ui/track-art.ts';
+import { newTeam } from '../../../src/storage/team-career.ts';
+import { buyVehicle } from '../../../src/career/economy.ts';
+import { liveRegistry } from '../../../src/career/registry.ts';
+
+/** A real CareerController over an in-memory store, with the player's save given. */
+function careerOn(save: CareerSave | null, simulation: Simulation) {
+  const stored = new Map<string, unknown>();
+  const career: CareerController = new CareerController({
+    store: {
+      read: async (key) => stored.get(key),
+      write: async (key, value) => void stored.set(key, value),
+      writeWithBackup: async (key, value) => void stored.set(key, value),
+    },
+    modal: (html) => ui.modalContent(html),
+    modalRoot: () => document.getElementById('modalContent')!,
+    toast: () => {},
+    setResultsExtra: () => {},
+    start: () => {},
+    pause: () => {},
+    state: () => 'menu',
+    track: () => simulation.track,
+    setup: () => simulation.options.setup,
+    assist: () => 'sport',
+  });
+  if (save) career.save = save;
+  return career;
+}
+/** The career opened on a page for a brand-new driver (nothing earned yet). */
+export function career(page: 'hub' | 'events' | 'licences' | 'garage' | 'dealership' = 'hub') {
+  const simulation = mount();
+  ui.showMode('menu');
+  careerOn(null, simulation).open(page);
+}
+/** A driver a few weeks in: a machine, two licence medals, reputation and results. */
+export function careerPlayed(
+  page: 'hub' | 'events' | 'licences' | 'garage' | 'dealership' = 'hub',
+) {
+  const simulation = mount();
+  ui.showMode('menu');
+  const registry = liveRegistry();
+  let save = buyVehicle(newCareer(), registry, 'tc1');
+  save = {
+    ...save,
+    credits: 61250,
+    reputation: {
+      ...save.reputation,
+      'circuit-cars': 14,
+      'road-bikes': 4,
+      'off-road': 0,
+      festival: 2,
+    },
+    licences: {
+      braking: { medal: 'silver', best: 1.9, attempts: 3 },
+      cornering: { medal: 'bronze', best: 1.2, attempts: 2 },
+    },
+    results: { 'circuit-cars.recovery': { bestPosition: 2, bestLap: 0, starts: 1 } },
+  };
+  careerOn(save, simulation).open(page);
+}
+/** The played season board scrolled to its licence ladder (the part below the fold). */
+export function careerLadder() {
+  careerPlayed('hub');
+  document.querySelector('.cb-ladder')!.scrollIntoView({ block: 'start' });
+  (document.getElementById('modal') as HTMLElement).scrollTop += 0;
+}
+export function team() {
+  mount();
+  ui.showMode('menu');
+  ui.modalContent(teamHub(newTeam(), 'overview'));
+}
+/** The loading board for a Vellamar race (bar at 62 percent). */
+export function loadingScreen() {
+  const simulation = mount();
+  ui.showMode('loading');
+  ui.options = simulation.options;
+  ui.loadingSession(simulation.options);
+  ui.loadingScene(simulation.options);
+  ui.loading('62% · Building the circuit…');
+}
+/** The first-launch screen over the paddock board. */
+export function firstRun(device: 'keys' | 'pad' = 'keys') {
+  mount();
+  ui.showMode('menu');
+  ui.firstRun(device, DEFAULT_BINDINGS);
+}
+/** The photo studio and livery editor over a stand-in scene (no renderer). */
+export function photo() {
+  mount();
+  ui.showMode('photo');
+  const studio = new PhotoStudio(document.getElementById('app')!, {
+    change() {},
+    preview() {},
+    save: async () => {},
+    capture() {},
+    close() {},
+  });
+  studio.element.hidden = false;
+  studio.open({ ...DEFAULT_LIVERY }, 8);
+}
+/** The replay bar and the lower third naming the followed driver. */
+export function replay() {
+  mount();
+  ui.showMode('replay');
+  const hud = new ReplayHud(document.getElementById('app')!);
+  hud.lowerThirdElement.querySelector('b')!.textContent = 'P3';
+  hud.lowerThirdElement.querySelector('em')!.textContent = 'SATO';
+  hud.lowerThirdElement.querySelector('small')!.textContent = 'LAP 2';
+  hud.lowerThirdElement.dataset.on = 'true';
+}
+/** The result share card as the PNG a player saves, shown at its own size. */
+export async function shareCard() {
+  mount();
+  const blob = await renderShareCard({
+    session: 'Grand Prix · 3 laps',
+    venue: 'Aurel Grand Circuit',
+    machine: 'APX-01 Formula',
+    weather: 'DRY',
+    player: 'Alex River',
+    position: 2,
+    field: 8,
+    finished: true,
+    raceTime: '3:01.200',
+    bestLap: '0:58.400',
+    gaps: ['+2.310 s to the winner'],
+    podium: [
+      { place: 1, name: 'A. MOREAU', time: '2:58.890' },
+      { place: 2, name: 'ALEX RIVER', time: '3:01.200' },
+      { place: 3, name: 'K. SATO', time: '3:05.820' },
+    ],
+    path: circuitArt('aurel').d,
+    date: '3 Nov 2026',
+  });
+  const img = new Image();
+  img.src = URL.createObjectURL(blob);
+  img.style.cssText = 'position:fixed;left:40px;top:45px;width:1200px;height:630px';
+  document.body.replaceChildren(img);
+  await img.decode();
 }

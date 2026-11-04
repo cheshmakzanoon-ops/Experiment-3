@@ -223,3 +223,110 @@ describe('front-end stylesheet follows the anti-slop rules', () => {
       }
   });
 });
+
+describe('the screens added in wave 3 follow the anti-slop rules too', () => {
+  const sheets = [
+    'career-board.css',
+    'first-run.css',
+    'results-board.css',
+    'settings-guide.css',
+    'screens-board.css',
+  ];
+  const read = (name: string) => readFileSync(`src/ui/${name}`, 'utf8');
+  /** Rule bodies with their selectors, comments flattened (at-rule wrappers fall away). */
+  const rules = (css: string) =>
+    [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{}]*)\}/g)].map((m) => ({
+      selector: m[1].trim(),
+      body: m[2],
+    }));
+  it('has no gradient, glass, glow, emoji or lorem in any new sheet', () => {
+    for (const name of sheets) {
+      const css = read(name);
+      expect(css, name).not.toMatch(/gradient\(/);
+      expect(css, name).not.toMatch(/backdrop-filter\s*:\s*blur/);
+      expect(css, name).not.toMatch(/\p{Extended_Pictographic}/u);
+      expect(css.toLowerCase(), name).not.toContain('lorem');
+      // A glow is a blurred shadow: only hard offsets (a blur radius of 0) are allowed.
+      for (const { body } of rules(css))
+        for (const shadow of body.match(/box-shadow\s*:[^;]+/g) ?? [])
+          expect(shadow, `${name}: ${shadow}`).not.toMatch(/\d+px\s+\d+px\s+[1-9]\d*px/);
+    }
+  });
+  it('uses tokens, not colour literals, outside :root', () => {
+    for (const name of sheets)
+      for (const { selector, body } of rules(read(name))) {
+        if (selector === ':root') continue;
+        const literal = body.replace(/url\([^)]*\)/g, '').match(/#[0-9a-f]{3,8}\b|rgba?\(/i);
+        expect(literal, `${name}: ${selector}`).toBeNull();
+      }
+  });
+  it('sets no text below 11 px', () => {
+    for (const name of sheets)
+      for (const { selector, body } of rules(read(name))) {
+        // SVG text inside a plate is in the plate's own viewBox units, not screen pixels.
+        if (/plate-(caption|numeral)/.test(selector)) continue;
+        for (const m of body.matchAll(/font(?:-size)?\s*:[^;]*?(\d+(?:\.\d+)?)px/g))
+          expect(Number(m[1]), `${name}: ${selector}`).toBeGreaterThanOrEqual(11);
+      }
+  });
+  it('declares no motion of its own and honours reduced motion', () => {
+    for (const name of sheets) {
+      const css = read(name);
+      expect(css, name).not.toMatch(/@keyframes/);
+      for (const { body } of rules(css))
+        for (const m of body.matchAll(/\b(animation|transition)\s*:\s*([^;]+)/g))
+          expect(m[2], `${name}: ${m[0]}`).toMatch(/^none\b/);
+      expect(css, name).toContain('prefers-reduced-motion: reduce');
+      expect(css, name).toContain("data-reduced-motion='true'");
+    }
+  });
+  it('gives the colour-blind HUD four distinct timing colours, only under the setting', () => {
+    const css = readFileSync('src/ui/hud-colourblind.css', 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+    const blocks = rules(css);
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].selector).toBe("html[data-colorblind='true'] #hud");
+    const colours = Object.fromEntries(
+      [...blocks[0].body.matchAll(/--t-(purple|green|yellow|red):\s*(#[0-9a-f]{6})/g)].map((m) => [
+        m[1],
+        m[2],
+      ]),
+    );
+    expect(Object.keys(colours).sort()).toEqual(['green', 'purple', 'red', 'yellow']);
+    expect(new Set(Object.values(colours)).size).toBe(4);
+    // The identity layer itself still leaves the timing colours alone (tests/hud-identity.test.ts).
+    expect(readFileSync('src/ui/hud-identity.css', 'utf8')).not.toMatch(/--t-(purple|green|yellow|red)\s*:/);
+  });
+  it('keeps the old wordmark and the retired slogans out of the screens', () => {
+    const files = [
+      'team-hub.ts',
+      'driving-academy.ts',
+      'photo-studio.ts',
+      'festival-hud.ts',
+      'career-hub.ts',
+      'first-run.ts',
+      'results-board.ts',
+      'results-card.ts',
+      'settings-guide.ts',
+      'loading-copy.ts',
+      'launch-board.ts',
+    ];
+    for (const file of files) {
+      const source = readFileSync(`src/ui/${file}`, 'utf8');
+      expect(source, file).not.toMatch(/\bAPEX\b/);
+      for (const slogan of [
+        'Build something',
+        'worth racing',
+        'Hold the moment',
+        'The open road',
+        'Find your repeatable lap',
+        'Make the next lap count',
+        'Make the drive count',
+        'Keep the workshop running',
+        'The people behind the pace',
+      ])
+        expect(source, `${file}: ${slogan}`).not.toContain(slogan);
+    }
+    // The default livery and its decals carry the game's own fictional sponsor, never the legacy name.
+    expect(readFileSync('src/storage/livery.ts', 'utf8')).not.toMatch(/'APEX'/);
+  });
+});

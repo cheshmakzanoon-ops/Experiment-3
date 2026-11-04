@@ -1,10 +1,12 @@
 # MOTOBOUND front-end art direction: "Paddock Board"
 
-Owner: UX/UI Director. Status: v2, implemented for the paddock menu, the Wildcard Series
-board, pause menu, results, settings, the loading screen and (tokens, type, wordmark; layout
-untouched) the race HUD. Not yet migrated: Team HQ, photo studio, festival HUD detail
-(see section 11). Companion docs: `ART_BIBLE_B.md` (HUD sizes, now
-superseded for menus), `reports/ux.md` (audit and verification).
+Owner: UX/UI Director. Status: v3, implemented for the paddock menu, the Wildcard Series
+board, the career season board (section 14), the first-launch screen (15), the results board
+and share card (16), the settings graphics guide and accessibility (17), pause menu, the loading
+screen and (tokens, type, wordmark; layout untouched) the race HUD. Team HQ, the photo studio,
+the festival panels and the replay bar take the tokens through `screens-board.css` (section 18);
+their older sheets are not rewritten. Companion docs: `ART_BIBLE_B.md` (HUD sizes, now
+superseded for menus), `reports/ux.md`, `ux2.md`, `ux3.md` (audit and verification).
 
 ## 1. Concept
 
@@ -275,3 +277,65 @@ synthesised in WebAudio, mechanical and short (a relay click for `tick`, a stenc
 `back`, a two-tone buzz for `deny`). It plays only after the person has interacted with the page (the
 browser's autoplay rule; no context is created before), obeys the master volume and the mute key, thins a
 key-repeat train, and leaves a suspended context alone. It does not touch the race audio graph.
+
+## 14. Career as the front door: the season board
+
+`src/ui/career-hub.ts` (hub page), `career-board.css`, and `src/career/next-up.ts`, which derives
+everything from the unlock functions the career itself uses (`licenceMissing`, `tierEntry`,
+`disciplineEvents`), so the board cannot name a step the career would refuse.
+
+| Part | What it is | Source |
+| --- | --- | --- |
+| NEXT UP ticket | the one action that matters; CONTINUE for a returning driver, the first licence test for a new one; the venue's real line art in the discipline's plate colour | `seasonPlan().next`, `circuitArtSvg` |
+| Three steps | licence, machine, first race, while nothing is earned; the step the driver is on says NOW | `seasonPlan().steps` |
+| Wallet | credits in stencil, the last two ledger lines, five licence medal discs with their names | `CareerSave` |
+| Garage | the active machine per discipline, or the loaner a new driver gets | `save.owned`, `loanerVehicle` |
+| Licence ladder | one lane per discipline: plate, reputation meter with a tick where each rung asks for it, rungs CLEARED / NEXT / LOCKED / NO MACHINE, and what the next rung asks | `ladderOf()` |
+
+Rules: one primary button on the page (the ticket); lanes keep `data-discipline`, OPEN / COMING and
+the reasons list (`e2e/59`); no authored motion; the rung state is a word, never colour alone.
+
+## 15. First launch
+
+`src/ui/first-run.ts`, `first-run.css`, opened by `main.ts` over the first menu. Two radio groups
+(input; the four plates) preselected (a connected pad, the circuit plate) and DRIVE THE FIRST LAP:
+one input for the default, three at most. The lap is the Driving Academy programme (solo, dry, medium
+tyres, full on-track guide, five timed laps); the festival plate drops into the open world instead.
+SKIP TO THE PADDOCK, Escape and a pad's B leave; START drives. `firstrun:v1` in the save store is
+written as the screen opens, so every way out counts as seen. A scripted browser
+(`navigator.webdriver`) skips it unless the URL has `?firstrun=1` (`?firstrun=0` never shows it).
+
+## 16. Results board and share card
+
+`src/ui/results-board.ts`, `results-board.css`, `results-card.ts`. Left: the position as a stencil
+numeral (with a medal disc for the top three), the podium of three steps (the player's step is the
+marshal's highlighter), the gaps that matter (race time, gap to the winner or margin over second, best
+lap, gap to the fastest lap) read from the snapshot, and nothing when the snapshot cannot support a gap.
+Right: the classification, the career payment as a pay slip, and NEXT UP from the career plan, which
+follows the payment as it settles. SHARE CARD draws a 1200 x 630 PNG on a canvas (paper strip with
+the wordmark, the position, the figures, the venue's centreline, the podium) and saves it through the
+browser's download; no network.
+
+## 17. Settings: the graphics guide and accessibility
+
+`src/ui/settings-guide.ts`, `settings-guide.css`, `fps-meter.ts`. The guide lists what each render
+preset changes (every value read from `graphicsPreset`, the chosen one marked), a suggestion from the
+WebGL renderer name (`recommendPreset`, stated as a guess from a name; USE sets the select), and a live
+frame rate (average and 1% low) that says what it measures: while the screen is open the game is not
+drawing, so it is the rate the window delivers frames. Text size is the interface scale, previewed as
+it is dragged and restored on cancel. COLOUR-BLIND-SAFE HUD adds patterned flags and the Okabe-Ito
+rose, sky blue, yellow and orange for the timing colours (`hud-colourblind.css`, its own layer: the
+identity layer must not redefine timing colours). The system's reduced-motion request counts as much
+as the in-game switch. Every control is a native element in the dialog, so keyboard and the menu
+gamepad reach it.
+
+## 18. The remaining screens on the tokens
+
+`src/ui/screens-board.css`, injected last: Team HQ and the career pages' shared parts (stencil
+headings, the team pass as an upright board with a hard ink edge, token buttons and cards), the photo
+studio and livery editor (asphalt drawer with a notched corner, amber ranges, paper label), the festival
+HUD variables, eyebrow and flat panels (festival text below 11 px raised to 11 px, decorative panel
+gradients flattened; the drift scale is data and stays), and the replay bar and lower third (paper
+number, asphalt name). The anti-slop test (`tests/front-end-board.test.ts`) reads every new sheet:
+no gradient, no glow, no colour literal outside `:root`, no text under 11 px, no motion of its own,
+reduced motion present; and it fails if the old APEX wordmark or a retired slogan returns to a screen.
