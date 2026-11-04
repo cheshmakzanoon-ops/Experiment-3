@@ -20,21 +20,10 @@ test('A21 normal startup retains four frontage chunks and A22/A24 through practi
   await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
   const read = () => page.evaluate(() => window.apexDiagnostics());
   const loaded = await read();
-  expect(loaded.renderer?.environmentAssets.frontage).toMatchObject({
-    assetId: 'A21',
-    loaded: true,
-    placed: true,
-    sha256: manifest.sha256,
-    bayCount: 12,
-    sockets: 43,
-    finalArtApproved: false,
-  });
-  expect(loaded.renderer?.environmentAssets.frontage?.chunks).toHaveLength(4);
-  expect(loaded.renderer?.environmentAssets.garage).toMatchObject({ loaded: true, bay: 5 });
-  expect(loaded.renderer?.environmentAssets.pitWall).toMatchObject({
-    loaded: true,
-    assetId: 'A24',
-  });
+  // G7 / ebc2e06: the menu's showroom builds no venue assets; the ordinary session start does (asserted below).
+  expect(loaded.renderer?.environmentAssets.frontage).toBeFalsy();
+  expect(loaded.renderer?.environmentAssets.garage).toBeFalsy();
+  expect(loaded.renderer?.environmentAssets.pitWall).toBeFalsy();
   await page.selectOption('#mode', 'practice');
   await page.selectOption('#opponents', '0');
   await page.getByRole('button', { name: 'ENTER CIRCUIT', exact: true }).click();
@@ -46,8 +35,19 @@ test('A21 normal startup retains four frontage chunks and A22/A24 through practi
     .toMatchObject({ pending: false, paused: true });
   const paused = await read();
   expect(paused.renderer?.environmentAssets.frontage).toMatchObject({
+    assetId: 'A21',
     loaded: true,
+    placed: true,
     sha256: manifest.sha256,
+    bayCount: 12,
+    sockets: 43,
+    finalArtApproved: false,
+  });
+  expect(paused.renderer?.environmentAssets.frontage?.chunks).toHaveLength(4);
+  expect(paused.renderer?.environmentAssets.garage).toMatchObject({ loaded: true, bay: 5 });
+  expect(paused.renderer?.environmentAssets.pitWall).toMatchObject({
+    loaded: true,
+    assetId: 'A24',
   });
   await info.attach('a21-startup.json', {
     body: JSON.stringify({ loaded, paused }, null, 2),

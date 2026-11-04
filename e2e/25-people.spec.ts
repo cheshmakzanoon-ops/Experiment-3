@@ -21,8 +21,10 @@ test('27H.3 normal startup binds the retained authored people and populated crow
     finalArtApproved: false,
   });
   expect(loaded.renderer?.crowdPersonnel.sha256).toBe(manifest.runtimeSha256);
-  expect(loaded.renderer?.crowdPersonnel.clusters).toBeGreaterThan(1);
-  expect(loaded.renderer?.crowdPersonnel.population).toBeGreaterThan(1000);
+  // The menu's showroom builds the pit and grid crew only (RacingRenderer.create loads the
+  // 'showroom' lazy datasets, gate G7 / ebc2e06); the crowd belongs to the circuit that a session
+  // start builds, so it is asserted below, once the ordinary session is paused.
+  expect(loaded.renderer?.crowdPersonnel.clusters).toBe(0);
   await page.selectOption('#mode', 'practice');
   await page.selectOption('#opponents', '0');
   await page.getByRole('button', { name: 'ENTER CIRCUIT', exact: true }).click();
@@ -35,9 +37,9 @@ test('27H.3 normal startup binds the retained authored people and populated crow
     .poll(async () => (await read()).workerPause)
     .toMatchObject({ pending: false, paused: true });
   const paused = await read();
-  expect(paused.renderer?.crowdPersonnel.population).toBe(
-    loaded.renderer?.crowdPersonnel.population,
-  );
+  expect(paused.renderer?.crowdPersonnel.sha256).toBe(manifest.runtimeSha256);
+  expect(paused.renderer?.crowdPersonnel.clusters).toBeGreaterThan(1);
+  expect(paused.renderer?.crowdPersonnel.population).toBeGreaterThan(1000);
   expect(paused.renderer?.crowdPersonnel.selectedByLevel.some((n) => n > 0)).toBe(true);
   const session = await page.context().newCDPSession(page);
   try {

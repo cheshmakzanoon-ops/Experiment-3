@@ -20,13 +20,8 @@ test('A26 production startup and practice entry retain the overhead rig with A22
   await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
   const read = () => page.evaluate(() => window.apexDiagnostics());
   const before = await read();
-  expect(before.renderer?.environmentAssets.garage?.overheadServices).toMatchObject({
-    assetId: 'A26',
-    sha256: manifest.sha256,
-    loaded: true,
-    attached: true,
-    finalArtApproved: false,
-  });
+  // G7 / ebc2e06: the menu's showroom builds no venue assets; the ordinary session start does (asserted below).
+  expect(before.renderer?.environmentAssets.garage).toBeFalsy();
   await page.selectOption('#mode', 'practice');
   await page.selectOption('#opponents', '0');
   await page.getByRole('button', { name: 'ENTER CIRCUIT', exact: true }).click();
@@ -37,7 +32,13 @@ test('A26 production startup and practice entry retain the overhead rig with A22
     .poll(async () => (await read()).workerPause)
     .toMatchObject({ pending: false, paused: true });
   const after = await read();
-  expect(after.renderer?.environmentAssets.garage?.overheadServices?.loaded).toBe(true);
+  expect(after.renderer?.environmentAssets.garage?.overheadServices).toMatchObject({
+    assetId: 'A26',
+    sha256: manifest.sha256,
+    loaded: true,
+    attached: true,
+    finalArtApproved: false,
+  });
   await info.attach('a26-startup.json', {
     body: JSON.stringify({ before, after }, null, 2),
     contentType: 'application/json',

@@ -105,9 +105,12 @@ test('Aurel venue ships through ordinary menu, held grid, camera changes and sta
   const diag = () => page.evaluate(() => window.apexDiagnostics());
   await page.goto('/');
   await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
+  // Gate G7 (ebc2e06, e2e/lazy-chunks.spec.ts): the start/finish tables are a lazy chunk that a
+  // session start loads, so the menu's showroom has not built the venue. It ships through the
+  // ordinary session below, where the same counts are required.
   expect((await diag()).renderer!.environmentAssets.startFinish).toMatchObject({
-    stands: 2,
-    boards: 1,
+    stands: 0,
+    boards: 0,
   });
   await page.selectOption('#mode', 'race');
   await page.selectOption('#opponents', '11');

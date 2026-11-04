@@ -22,13 +22,10 @@ test('A32 loads the retained GLB before ordinary practice entry', async ({ page 
   await page.goto('/');
   await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
   const loaded = await page.evaluate(() => window.apexDiagnostics());
-  expect(loaded.renderer?.pitPersonnel.pitJacks).toMatchObject({
-    assetId: 'A32',
-    instances: 0,
-    sha256: manifest.sha256,
-  });
-  expect(loaded.renderer?.pitPersonnel.wheelGuns?.assetId).toBe('A31');
-  expect(loads).toEqual([200]);
+  // G7 / ebc2e06: the menu's showroom builds no venue assets; the ordinary session start does: no jack or wheel-gun asset and no request at the menu, one 200 once practice has started.
+  expect(loaded.renderer?.pitPersonnel.pitJacks ?? null).toBeNull();
+  expect(loaded.renderer?.pitPersonnel.wheelGuns ?? null).toBeNull();
+  expect(loads).toEqual([]);
   await page.selectOption('#mode', 'practice');
   await page.selectOption('#opponents', '0');
   await page.getByRole('button', { name: 'ENTER CIRCUIT', exact: true }).click();
@@ -40,8 +37,16 @@ test('A32 loads the retained GLB before ordinary practice entry', async ({ page 
   await expect
     .poll(() => page.evaluate(() => window.apexDiagnostics().workerPause))
     .toMatchObject({ pending: false, paused: true });
+  const paused = await page.evaluate(() => window.apexDiagnostics());
+  expect(paused.renderer?.pitPersonnel.pitJacks).toMatchObject({
+    assetId: 'A32',
+    instances: 0,
+    sha256: manifest.sha256,
+  });
+  expect(paused.renderer?.pitPersonnel.wheelGuns?.assetId).toBe('A31');
+  expect(loads).toEqual([200]);
   await info.attach('a32-normal-startup.json', {
-    body: JSON.stringify(loaded, null, 2),
+    body: JSON.stringify({ loaded, paused }, null, 2),
     contentType: 'application/json',
   });
   await info.attach('a32-practice.png', {
