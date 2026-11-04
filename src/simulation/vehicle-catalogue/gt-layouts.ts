@@ -114,7 +114,10 @@ export const GT_FRONT_I6 = defineVehicle({
   aero: { clA: 2.3, cdA: 0.92, balance: 0.44 },
   tireFamily: 'slick',
   tireGrip: 0.86,
-  rearGrip: 1.07,
+  // The brief asks for a stable, nose-heavy car, but at 1.07 it measured a lower understeer
+  // gradient (1.95 deg/g) than the front-mid V8 (2.38) and spun on full throttle just like it.
+  // More rear grip makes it the understeering, stable one (2.5 deg/g, 40 deg of throttle spin).
+  rearGrip: 1.14,
   drivetrain: 'rwd',
   driveline: { rear: lsd(60, 0.45, 0.3) },
   setupKeys: KEYS.closed,

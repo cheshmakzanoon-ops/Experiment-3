@@ -60,13 +60,13 @@ export const FAN_CAR_XF2 = defineVehicle({
   setupDefaults: { frontSpring: 160000, rearSpring: 170000, frontARB: 30000, rearARB: 24000 },
   elementMass: [3, 4],
   ai: {
-    lateralBase: 20.73,
-    lateralAero: 0.00329,
-    brakingBase: 28.56,
-    brakingAero: 0.0019,
+    lateralBase: 20.64,
+    lateralAero: 0.00324,
+    brakingBase: 27.82,
+    brakingAero: 0.00198,
     // The fan's share of the bases (fan-on fit less fan-off fit): lost with
     // the floor, so a damaged XF-2's AI plans on its mechanical grip.
-    fanBase: { lateral: 7.63, braking: 12.8 },
+    fanBase: { lateral: 7.58, braking: 12.18 },
     lateralMargin: 0.72,
     slowLateralMargin: 0.64,
     brakingMargin: 0.74,
@@ -282,17 +282,19 @@ export const TRACK_HYPERCAR_XT1 = defineVehicle({
   brakeTorque: 15000,
   aero: { clA: 4.0, cdA: 1.15, balance: 0.43 },
   tireFamily: 'slick',
-  tireGrip: 0.9,
+  // 0.90 measured 1.47 g at 80 km/h against the brief's 1.6 g (and the lowest margin to its
+  // 1.45 g band floor); 0.94 puts it at the brief's number.
+  tireGrip: 0.94,
   rearGrip: 1.14,
   drivetrain: 'rwd',
   driveline: { rear: lsd(100, 0.45, 0.3) },
   setupKeys: KEYS.winged,
   elementMass: [5, 6],
   ai: {
-    lateralBase: 12.69,
-    lateralAero: 0.00324,
-    brakingBase: 15.76,
-    brakingAero: 0.0036,
+    lateralBase: 13.14,
+    lateralAero: 0.00332,
+    brakingBase: 16.33,
+    brakingAero: 0.00367,
     lateralMargin: 0.7,
     slowLateralMargin: 0.62,
     brakingMargin: 0.72,

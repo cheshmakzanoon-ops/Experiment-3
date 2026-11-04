@@ -34,6 +34,7 @@ import {
   type ContinueField,
 } from './continue-entry.ts';
 import { uiCue } from './ui-cue.ts';
+import { machineBlurb } from './machine-character.ts';
 import { circuitOpen, demoPolicy, machineOpen } from '../release/demo.ts';
 import { wildcardProgress, type WildcardProgress } from './wildcard-board.ts';
 
@@ -160,6 +161,8 @@ export function installLaunchBoard(menu: HTMLElement): LaunchBoard {
   const enter = form.querySelector<HTMLButtonElement>('.enter.primary')!;
   const enterLabel = [...enter.childNodes].find((n) => n.nodeType === Node.TEXT_NODE)!;
   const rules = menu.querySelector<HTMLElement>('#sessionRules')!;
+  /** The machine's mass, power, drive and one-line character (machine-character.ts). */
+  const machineLine = menu.querySelector<HTMLElement>('#machineBlurb');
   const dials = new Map<string, HTMLElement>(
     [...menu.querySelectorAll<HTMLElement>('.lb-dial')].map((d) => [d.dataset.dial!, d]),
   );
@@ -414,6 +417,7 @@ export function installLaunchBoard(menu: HTMLElement): LaunchBoard {
       text(intro, spec.skill);
     }
     const festival = d === 'festival';
+    if (machineLine) text(machineLine, machineBlurb(f.vehicle));
     // Stage 1: the venue sheet.
     const circuitDial = dials.get('circuit')!;
     circuitDial.hidden = festival;

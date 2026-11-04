@@ -310,26 +310,20 @@ Metrics within 3 % of a band edge at either timestep (from `docs/vehicle-calibra
 
 | Machine | Metric | Edge | Measured | Band edge | Margin |
 |---|---|---|---:|---:|---:|
-| APX-01 FORMULA † | top speed | floor | 320.5 km/h | 320 km/h | 0.17 % |
-| RM-8 MUSCLE COUPE | 100–0 | floor | 32.52 m | 32 m | 1.64 % |
-| RM-8 MUSCLE COUPE | top speed | ceiling | 295.0 km/h | 300 km/h | 1.67 % |
-| RR-4 RALLY-BRED ROAD CAR | top speed | ceiling | 265.5 km/h | 270 km/h | 1.67 % |
-| RP-6 DESERT PICKUP | top speed | ceiling | 186.8 km/h | 190 km/h | 1.68 % |
-| RR-4 RALLY-BRED ROAD CAR | 100–0 | floor | 32.59 m | 32 m | 1.85 % |
-| XT-1 TRACK HYPERCAR | g at 80 km/h | floor | 1.477 g | 1.45 g | 1.85 % |
-| GS-6M MID-ENGINE GT SPORT | 100–0 | floor | 28.58 m | 28 m | 2.09 % |
-| RS-5 SPORTS SEDAN | 100–0 | floor | 31.68 m | 31 m | 2.21 % |
-| GT-6R REAR-ENGINE GT | 100–0 | floor | 24.58 m | 24 m | 2.41 % |
-| GT-6R REAR-ENGINE GT | g at 80 km/h | floor | 1.332 g | 1.3 g | 2.43 % |
-| HY-11 HYPERCAR | top speed | floor | 318.1 km/h | 310 km/h | 2.60 % |
-| RS-5 SPORTS SEDAN | top speed | ceiling | 301.8 km/h | 310 km/h | 2.65 % |
-| SP-71 LONG-TAIL PROTOTYPE | 100–0 | floor | 28.75 m | 28 m | 2.67 % |
-| RD-2 ROADSTER | g at 80 km/h | ceiling | 1.167 g | 1.2 g | 2.78 % |
+| APX-01 FORMULA † | top speed | floor | 320.7 km/h | 320 km/h | 0.22 % |
+| RP-6 DESERT PICKUP | top speed | ceiling | 187.0 km/h | 190 km/h | 1.57 % |
+| JF-2 JUNIOR FORMULA † | 0–100 | floor | 2.64 s | 2.6 s | 1.60 % |
+| RR-4 RALLY-BRED ROAD CAR | top speed | ceiling | 265.6 km/h | 270 km/h | 1.62 % |
+| RM-8 MUSCLE COUPE | top speed | ceiling | 295.1 km/h | 300 km/h | 1.64 % |
+| TC-2 TOURING † | 0–100 | floor | 4.07 s | 4 s | 1.67 % |
+| GT-6R REAR-ENGINE GT | g at 80 km/h | floor | 1.325 g | 1.3 g | 1.89 % |
+| GT-10M MID-ENGINE GT † | g at 80 km/h | floor | 1.331 g | 1.3 g | 2.35 % |
+| RS-5 SPORTS SEDAN | top speed | ceiling | 302.1 km/h | 310 km/h | 2.55 % |
+| HY-11 HYPERCAR | top speed | floor | 318.2 km/h | 310 km/h | 2.66 % |
+| SP-71 LONG-TAIL PROTOTYPE | g at 80 km/h | floor | 1.078 g | 1.05 g | 2.70 % |
 | TC-1 TOURING † | 0–100 | floor | 4.93 s | 4.8 s | 2.78 % |
-| GT-10M MID-ENGINE GT † | g at 80 km/h | floor | 1.337 g | 1.3 g | 2.81 % |
-| GS-4 GT SPORT † | 100–0 | floor | 28.81 m | 28 m | 2.89 % |
-| TC-2 TOURING † | 0–100 | floor | 4.12 s | 4 s | 2.92 % |
-| RD-2 ROADSTER | top speed | ceiling | 232.8 km/h | 240 km/h | 2.99 % |
+| RD-2 ROADSTER | top speed | ceiling | 233.1 km/h | 240 km/h | 2.89 % |
+| SK-125 SHIFTER KART † | 0–100 | ceiling | 4.08 s | 4.2 s | 2.98 % |
 <!-- near-edge:end -->
 
 ### 1.4 Destination catalogue (§10.1, 48 models)
