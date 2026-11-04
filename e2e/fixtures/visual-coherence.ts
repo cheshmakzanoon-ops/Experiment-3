@@ -34,6 +34,8 @@ export function visualCoherenceGPU() {
   weather.install(scene);
   const frame = new Float32Array(HEADER);
   frame[H.TIME] = 10;
+  // A mild day: rain below 2 C is snow (weather.ts snowShare; protocol.ts H.AMBIENT).
+  frame[H.AMBIENT] = 18;
   const captures: {
     name: string;
     image: string;

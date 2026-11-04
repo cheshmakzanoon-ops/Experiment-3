@@ -177,6 +177,9 @@ describe('lens effects', () => {
     camera.updateMatrixWorld();
     const frame = new Float32Array(32);
     frame[H.TIME] = 40;
+    // A mild day: a header left at 0 C turns this rain into snow (weather.ts
+    // snowShare), which wets no lens (protocol.ts H.AMBIENT).
+    frame[H.AMBIENT] = 18;
     frame[H.RAIN] = 12;
     const sun = new T.Vector3(0, 0, -1);
     lens.update(false, camera, 'chase', frame, 70, sun, false);
@@ -203,6 +206,7 @@ describe('lens effects', () => {
     const bloom = new LensBloomPass(6, uniforms);
     const frame = new Float32Array(32);
     frame[H.TIME] = 5;
+    frame[H.AMBIENT] = 18;
     frame[H.RAIN] = 30;
     frame[H.WATER] = 1;
     const camera = new T.PerspectiveCamera();

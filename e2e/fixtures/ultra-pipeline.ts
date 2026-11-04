@@ -201,6 +201,8 @@ export function capture(options: UltraCaptureOptions): UltraCaptureResult {
   ultra.configure(options.preset, g);
 
   const presented = new Float32Array(HEADER);
+  // A mild day: rain below 2 C is snow (weather.ts snowShare; protocol.ts H.AMBIENT).
+  presented[H.AMBIENT] = 18;
   presented[H.RAIN] = options.rain;
   presented[H.WATER] = 0.9;
   presented[H.CLOUD] = 0.3;

@@ -10,6 +10,10 @@ function snapshot(time: number) {
   const frame = new Float32Array(HEADER + CAR_STRIDE);
   frame[H.CARS] = 1;
   frame[H.TIME] = time;
+  // Snapshot header contract (protocol.ts H.AMBIENT): precipitation below 2 C
+  // falls as snow (weather.ts snowShare) and a zeroed header is 0 C, not
+  // "unset". These fixtures are rain, so they carry a mild-day header.
+  frame[H.AMBIENT] = 18;
   frame[H.RAIN] = 2;
   frame[o + F.QW] = 1;
   frame[o + F.SPEED] = 30;
