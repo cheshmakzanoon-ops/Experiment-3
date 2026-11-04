@@ -171,7 +171,7 @@ to reach its first frame on this box (load average 4 to 8, other agents capturin
 | `dust-day-desert-canyon.jpg` | Red canyon circuit, dust storm, day | Amber haze, sand-coloured road, tan-tinted trackside, 200 km/h, `DUST` bank (a retake of wave 1's dust at a venue that suits it) |
 | `storm-rising-riviera-replay-start.jpg` | Riviera harbour streets, storm, day | Replay start (rain 18 mm/h, wind 11 m/s): not yet at the storm's peak; kept as an honest record of a mis-aimed replay seek, not as a flash |
 | `storm-peak-riviera-tunnel-replay-on-strike.jpg` | same, the replay parked 20 ms after the strongest strike of the session (t = 76.13 s, expected flash 0.68) | HUD `RAIN 70.4 MM/H`, 9 m/s wind. **The car was inside the harbour tunnel at that second: no sky, lamps on, so the strike is not visible. It proves the park, not the flash.** |
-STORM_AUREL_ROW
+| *(no capture)* | Aurel storm peak with a visible lightning flash | **Not captured.** The retakes (flash expected 0.68, measured 0 in the frames kept out of the repo) never produced a frame with a flash on screen, and the last retake run was lost to a container restart. The lightning flash is proven by unit tests (pure function of session time), not by a frame. |
 
 What works:
 
@@ -247,3 +247,6 @@ New: `src/rendering/{mist,fog-light-shafts}.ts`, `scripts/weather-hash.ts`, `scr
 4. Human tuning pass of snow: wheel-track grip, the AI pace floor, whether the formula car on snow should be offered at all, flake density against a real GPU.
 5. Replace the cone shafts with a depth-aware volumetric pass if the frame budget allows; tyre marks fading under cover.
 6. Bikes in snow (a GP and a supermoto race) and the physics-version note for any future change to the AI throttle shaping.
+
+
+> PM note: the physics version was bumped to 21 at merge because the reviewer showed the fog preset is no longer bit-identical to v20 (cloud and fog-cover channels; frame and road-grid hashes differ at 50/100/150 s). Clear, changeable, rain, storm and dust hashes are identical.

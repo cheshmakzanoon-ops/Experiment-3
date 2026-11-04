@@ -39,8 +39,12 @@ import {
  * instead of a proportional law that trailed the plan by 8 to 25 km/h), keeps the
  * lever inside the stoppie point and brakes gently after the flag, so every
  * seeded session with a GP AI rider moves differently (rider physics unchanged);
+ * v21: snow and ice state (frozen cover, glaze grip, winter-tyre share), the
+ * visibility/standing-water race-control ladder, and the fog preset's cloud and
+ * fog-cover channels (fog sessions no longer replay bit-identically with v20;
+ * clear, changeable, rain, storm and dust are unchanged);
  * prior records remain in their original physics category. */
-export const SIMULATION_VERSION = 20;
+export const SIMULATION_VERSION = 21;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 
