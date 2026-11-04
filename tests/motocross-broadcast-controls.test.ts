@@ -13,7 +13,13 @@ import { trackInfrastructurePlan } from '../src/rendering/track-infrastructure.t
 // Venues built after that capture (a647eb3, the Wildcard series) have no historical
 // rigs to preserve; they are listed so a new venue still has to be classified here,
 // and only get the generic structural check below.
-const VENUES_ADDED_AFTER_CAPTURE = ['level-nine'] as const;
+const VENUES_ADDED_AFTER_CAPTURE = [
+  'level-nine',
+  'haut-givre',
+  'marram-field',
+  'kalder-dam',
+  'saffron-lane',
+] as const;
 const ORIGINAL_NON_MX_SIGNATURES = {
   aurel: '2e7146774fbdbfe3b968ca71248204bae1329f08dd33d2b9f056296dc0e1d5c3',
   vellamar: 'ef47691fc49c677f4b6e5b7dbdba21b634896668d088ee30cb7091279516e1b4',

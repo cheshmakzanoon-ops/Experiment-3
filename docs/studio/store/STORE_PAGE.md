@@ -7,7 +7,7 @@ measurements are labelled *assumption*.
 
 ## Short description (Steam allows 300 characters)
 
-> Race circuit cars, GP bikes, motocross and supercross on 46 circuit layouts, then leave the
+> Race circuit cars, GP bikes, motocross and supercross on 47 circuit layouts, then leave the
 > track for an open-world coast festival. Changing weather, replays, a livery editor, licence
 > tests and a career. Offline, single-player, built to be driven with a pad or a wheel.
 
@@ -33,7 +33,7 @@ trail-braking and brake fade; and motocross and supercross bikes with long-trave
 deformable soil and real jumps. 57 machines in total, each with its own handling, setup and
 sound.
 
-**46 circuit layouts**
+**47 circuit layouts**
 
 Street circuits, an airfield, mountain and desert roads, docklands, a night terminal, a salt
 flat, forest rings, a speed bowl, a hillside motocross course, a floodlit supercross arena, a
@@ -71,7 +71,7 @@ Steam achievements (54) and Steam Cloud saves are supported **[after the Steam c
 ## Six feature bullets (for the "Key features" block)
 
 1. **Four disciplines on one engine**: circuit cars, GP motorcycles, motocross and supercross.
-2. **57 machines and 46 circuit layouts**, from karts and hypercars to dirt bikes and a trophy truck.
+2. **57 machines and 47 circuit layouts**, from karts and hypercars to dirt bikes and a trophy truck.
 3. **Dry, damp and soaked**: weather that changes grip, braking and the racing line.
 4. **An open-world festival** with races, speed traps, drift zones, jumps and a photo mode.
 5. **Career, licences and a team** to build over many hours, plus a livery editor.
@@ -182,7 +182,7 @@ contains; counts come from the catalogues, not from memory.
 > machine on the right track: a formula car down a fogged mountain pass, a trophy truck on the iced
 > col, GP bikes in the docklands. Then take an electric hypercar or a roadster onto the Solvane
 > coast for 15 minutes. Weather, time of day, replays and the photo studio are all open. The full
-> game has 44 more circuits, 51 more machines and 16 more Wildcard events.
+> game has 48 more circuits, 53 more machines and 24 more Wildcard events (counts at merge time, 51 circuits / 57 machines / 29 events in total; the in-game demo plate computes them live and is authoritative).
 
 - **Contains:** 3 venues (Aurel and Vellamar circuits, Valley Ridge motocross), 4 machines
   (APX-01 and FX-26 formula cars, GP-R1, MX-450), 5 Wildcard events, the first licence (braking),
@@ -215,7 +215,7 @@ suggested page order: the board and the Wildcard hook first, then the discipline
 | --- | --- | --- |
 | `menu-board.jpg` (217 KB) | The paddock board | The MOTOBOUND paddock board: four discipline plates, the venue sheet with its line-art map and the option dials, with the formula car under studio light. |
 | `wildcard-board.jpg` (232 KB) | The Wildcard Series board | The Wildcard Series board: a list of mismatched machine and venue events beside the programme page of one event with its map, weather and medal ladder. |
-| `gp-corner.jpg` (286 KB) | GP bike through a fast corner | A GP motorcycle rider hangs off the bike through a fast corner, seen from behind with motion blur, forested mountains and a grandstand behind. |
+| `gp-corner.jpg` (286 KB) | GP bike through a fast corner | A GP motorcycle rider hangs off the bike through a fast corner, seen from behind with motion blur, forested mountains behind. |
 | `motocross-jump.jpg` (329 KB) | Motocross on the loam start straight | A motocross rider in a number 2 jersey accelerating up the loam start straight of a hillside course toward a grandstand, tyre ruts in the dirt and clouds above. |
 | `festival-dawn.jpg` (362 KB) | The festival town in low sun | A white electric hypercar drives down a main street of the festival town, lined with brick and plaster buildings and shopfronts, a pink event beacon ahead under a low warm sun and a blue sky. |
 | `snow-pass.jpg` (211 KB) | Trophy truck on the snow pass | A green trophy truck with an exposed roll cage and spare wheel driving away along a snow-dusted mountain road, snowy pines on both sides under a hazy blue sky. |

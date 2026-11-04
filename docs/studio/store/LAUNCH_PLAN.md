@@ -16,7 +16,7 @@ and a Wildcard series of deliberately mismatched vehicle/venue events (gate G6; 
 goes on the page once the series ships).
 
 Competitive frame (honest): AAA sims and arcade racers are well served; the gap this game can
-claim is **breadth on one engine** (46 circuit layouts and 57 machines across four disciplines)
+claim is **breadth on one engine** (47 circuit layouts and 57 machines across four disciplines)
 and **offbeat pairings**, at an indie price. It must not claim sim-grade authority it cannot
 back with reviews.
 
