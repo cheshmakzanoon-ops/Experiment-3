@@ -1,3 +1,6 @@
+import { wildcardPitch, wildcardTitle } from '../i18n/data.ts';
+import { fixed, t, ta, th, upper } from '../i18n/index.ts';
+import { N_ } from '../i18n/mark.ts';
 import {
   wildcardCareerEvent,
   wildcardDiscipline,
@@ -21,7 +24,7 @@ import { LIGHT_GLYPH, WEATHER_GLYPH, glyph, plateSvg } from './glyphs.ts';
 import { circuitArt, circuitArtSvg } from './track-art.ts';
 import { escapeHtml } from './team-hub.ts';
 import { uiCue } from './ui-cue.ts';
-import { demoPolicy, wildcardOpen } from '../release/demo.ts';
+import { FULL_GAME, demoPolicy, wildcardOpen } from '../release/demo.ts';
 import { fullGameTag, lockedPanelHtml } from './demo-plate.ts';
 
 /** The WILDCARD SERIES board: every event of the series on one screen, a
@@ -38,10 +41,12 @@ const MEDAL_LETTER: Readonly<Record<Medal, string>> = Object.freeze({
   bronze: 'B',
 });
 const MEDAL_NAME: Readonly<Record<Medal, string>> = Object.freeze({
-  gold: 'GOLD',
-  silver: 'SILVER',
-  bronze: 'BRONZE',
+  gold: N_('GOLD'),
+  silver: N_('SILVER'),
+  bronze: N_('BRONZE'),
 });
+const medalName = (medal: Medal) => t(MEDAL_NAME[medal]);
+const LIGHTING_WORD = { day: N_('day'), sunset: N_('sunset'), night: N_('night') } as const;
 /** The registry's discipline of a machine, as the board's plate vocabulary. */
 const BOARD_OF: Readonly<Record<DisciplineId, BoardDiscipline>> = Object.freeze({
   'circuit-cars': 'circuit',
@@ -64,7 +69,7 @@ const machineNames = (entry: WildcardEntry) =>
     .join(' / ');
 const cars = (entry: WildcardEntry) => entry.event.opponents + 1;
 const lapStamp = (seconds: number) =>
-  `${Math.floor(seconds / 60)}:${(seconds % 60).toFixed(2).padStart(5, '0')}`;
+  `${Math.floor(seconds / 60)}:${fixed(seconds % 60, 2).padStart(5, '0')}`;
 /** What a medal asks for: "P3" on a position ladder, "0:42.61" on a time attack. */
 const requirement = (entry: WildcardEntry, medal: Medal) =>
   entry.ladder.metric === 'position' ? `P${entry.ladder[medal]}` : lapStamp(entry.ladder[medal]);
@@ -125,22 +130,22 @@ const medalDisc = (medal: Medal | null, large = false) =>
   `<span class="wc-medal${large ? ' wc-medal-lg' : ''}" data-medal="${medal ?? 'none'}" aria-hidden="true">${medal ? `<b>${MEDAL_LETTER[medal]}</b>` : ''}</span>`;
 const weatherTag = (entry: WildcardEntry) => WEATHER_CATALOGUE[entry.event.weather];
 const lightLabel = (entry: WildcardEntry) =>
-  entry.lighting ? LIGHT_CATALOGUE[entry.lighting].option.toUpperCase() : 'YOUR SETTING';
+  entry.lighting ? upper(t(LIGHT_CATALOGUE[entry.lighting].option)) : t('YOUR SETTING');
 const lightGlyph = (entry: WildcardEntry) => LIGHT_GLYPH[entry.lighting ?? 'auto'];
 const tint = (entry: WildcardEntry) =>
   `--tint:var(--mb-plate-${{ circuit: 'circuit', gp: 'gp', dirt: 'dirt', festival: 'fest' }[BOARD_OF[wildcardDiscipline(entry)]]})`;
 const rulesOf = (entry: WildcardEntry) =>
   [
-    entry.rules.includes('time-attack') ? 'TIME ATTACK · SOLO' : '',
-    entry.rules.includes('no-assists') ? 'NO ABS · NO TRACTION CONTROL' : '',
+    entry.rules.includes('time-attack') ? t('TIME ATTACK · SOLO') : '',
+    entry.rules.includes('no-assists') ? t('NO ABS · NO TRACTION CONTROL') : '',
   ].filter(Boolean);
 
 function rowHtml(entry: WildcardEntry, index: number, save: CareerSave | null, selected: boolean) {
   const medal = bestMedal(entry, save);
   const weather = weatherTag(entry);
   const locked = !wildcardOpen(entry.id);
-  const label = `${pad2(index + 1)} ${entry.title}, ${machineCodes(entry)} at ${venueName(entry)}, ${weather.tag.toLowerCase()}${entry.lighting ? `, ${entry.lighting}` : ''}, ${locked ? 'full game only' : medal ? `best ${medal}` : 'no medal yet'}`;
-  return `<li><button type="button" class="wc-row" role="radio" aria-checked="${selected}" tabindex="${selected ? 0 : -1}" data-id="${entry.id}" data-kind="${entry.kind}"${locked ? ' data-locked="true"' : ''} style="${tint(entry)}" aria-label="${escapeHtml(label)}"><span class="wc-no">${pad2(index + 1)}</span><span class="wc-mini">${circuitArtSvg(entry.event.circuit, { numbers: false, className: 'ta wc-mini-art' })}</span><span class="wc-row-text"><b>${escapeHtml(entry.title)}</b><span>${escapeHtml(machineCodes(entry))} <i>on</i> ${escapeHtml(venueName(entry))}</span></span><span class="wc-row-flags">${glyph(WEATHER_GLYPH[entry.event.weather] ?? 'sun', 'wc-flag')}${entry.lighting ? glyph(lightGlyph(entry), 'wc-flag') : ''}${locked ? fullGameTag() : medalDisc(medal)}</span></button></li>`;
+  const label = `${pad2(index + 1)} ${wildcardTitle(entry)}, ${t('{machines} at {venue}', { machines: machineCodes(entry), venue: venueName(entry) })}, ${t(weather.tag).toLowerCase()}${entry.lighting ? `, ${t(LIGHTING_WORD[entry.lighting])}` : ''}, ${locked ? t('full game only') : medal ? t('best {medal}', { medal: medalName(medal).toLowerCase() }) : t('no medal yet')}`;
+  return `<li><button type="button" class="wc-row" role="radio" aria-checked="${selected}" tabindex="${selected ? 0 : -1}" data-id="${entry.id}" data-kind="${entry.kind}"${locked ? ' data-locked="true"' : ''} style="${tint(entry)}" aria-label="${escapeHtml(label)}"><span class="wc-no">${pad2(index + 1)}</span><span class="wc-mini">${circuitArtSvg(entry.event.circuit, { numbers: false, className: 'ta wc-mini-art' })}</span><span class="wc-row-text"><b>${escapeHtml(wildcardTitle(entry))}</b><span>${escapeHtml(machineCodes(entry))} <i>${th('on')}</i> ${escapeHtml(venueName(entry))}</span></span><span class="wc-row-flags">${glyph(WEATHER_GLYPH[entry.event.weather] ?? 'sun', 'wc-flag')}${entry.lighting ? glyph(lightGlyph(entry), 'wc-flag') : ''}${locked ? fullGameTag() : medalDisc(medal)}</span></button></li>`;
 }
 
 function detailHtml(entry: WildcardEntry, save: CareerSave | null, selected: boolean) {
@@ -153,35 +158,41 @@ function detailHtml(entry: WildcardEntry, save: CareerSave | null, selected: boo
   const spec = DISCIPLINE_SPECS[board];
   const timed = entry.rules.includes('time-attack');
   const field = timed
-    ? `SOLO · ${entry.event.laps} TIMED LAPS`
-    : `${cars(entry)} ${machineIds(entry).every((id) => VEHICLES[id].dynamicsKind === 'four-wheel') ? 'CARS' : 'RIDERS'} · ${entry.event.laps} ${entry.event.laps === 1 ? 'LAP' : 'LAPS'}`;
+    ? t('SOLO · {n} TIMED LAPS', { n: entry.event.laps })
+    : `${t(machineIds(entry).every((id) => VEHICLES[id].dynamicsKind === 'four-wheel') ? '{n, plural, one {# CAR} other {# CARS}}' : '{n, plural, one {# RIDER} other {# RIDERS}}', { n: cars(entry) })} · ${t('{n, plural, one {# LAP} other {# LAPS}}', { n: entry.event.laps })}`;
   const ladder = MEDALS.slice()
     .reverse()
     .map(
       (m) =>
-        `<li data-medal="${m}"${medal === m ? ' data-best="true"' : ''}>${medalDisc(m)}<span><b>${MEDAL_NAME[m]}</b><small>${entry.ladder.metric === 'position' ? 'FINISH' : 'LAP'} ${requirement(entry, m)}${entry.ladder.metric === 'position' ? ' OR BETTER' : ' OR FASTER'}</small></span>${medal && MEDAL_RANK[medal] >= MEDAL_RANK[m] ? '<em>EARNED</em>' : ''}</li>`,
+        `<li data-medal="${m}"${medal === m ? ' data-best="true"' : ''}>${medalDisc(m)}<span><b>${th(MEDAL_NAME[m])}</b><small>${th(entry.ladder.metric === 'position' ? 'FINISH {need} OR BETTER' : 'LAP {need} OR FASTER', { need: requirement(entry, m) })}</small></span>${medal && MEDAL_RANK[medal] >= MEDAL_RANK[m] ? `<em>${th('EARNED')}</em>` : ''}</li>`,
     )
     .join('');
   const locked = !wildcardOpen(entry.id);
   const best =
     locked
-      ? 'FULL GAME'
+      ? t(FULL_GAME)
       : !record || record.starts < 1
-      ? 'NOT RUN YET'
+      ? t('NOT RUN YET')
       : entry.ladder.metric === 'best-lap'
-        ? `BEST ${record.bestLap > 0 ? lapStamp(record.bestLap) : '—'} · ${record.starts} ${record.starts === 1 ? 'START' : 'STARTS'}`
-        : `BEST P${record.bestPosition} · ${record.starts} ${record.starts === 1 ? 'START' : 'STARTS'}`;
+        ? t('BEST {best} · {starts, plural, one {# START} other {# STARTS}}', {
+            best: record.bestLap > 0 ? lapStamp(record.bestLap) : '—',
+            starts: record.starts,
+          })
+        : t('BEST P{best} · {starts, plural, one {# START} other {# STARTS}}', {
+            best: record.bestPosition,
+            starts: record.starts,
+          });
   const rules = rulesOf(entry)
     .map((r) => `<span class="wc-rule">${r}</span>`)
     .join('');
-  return `<section class="wc-detail" data-id="${entry.id}" data-kind="${entry.kind}" style="${tint(entry)}" aria-label="${escapeHtml(entry.title)}"${selected ? '' : ' hidden'}>
-<div class="wc-detail-top"><div class="wc-map">${circuitArtSvg(entry.event.circuit, { numbers: true, className: 'ta wc-map-art' })}</div><div class="wc-detail-head"><span class="wc-kind">${entry.kind === 'cross-discipline' ? 'CROSS-DISCIPLINE' : 'CLASS MISMATCH'}</span><h3>${escapeHtml(entry.title)}</h3><dl class="wc-facts"><div><dt>MACHINE</dt><dd><span class="wc-plate" aria-hidden="true">${plateSvg(spec.shape, spec.numeral)}</span>${escapeHtml(machineNames(entry))}</dd></div><div><dt>VENUE</dt><dd>${escapeHtml(venueName(entry))} <small>${(art.length / 1000).toFixed(1)} KM · ${venue.corners.length} TURNS</small></dd></div><div><dt>FIELD</dt><dd>${field}</dd></div><div><dt>SKY</dt><dd>${glyph(WEATHER_GLYPH[entry.event.weather] ?? 'sun', 'wc-flag')}${weather.tag}<span class="wc-sep"></span>${glyph(lightGlyph(entry), 'wc-flag')}${lightLabel(entry)}</dd></div></dl>${rules ? `<div class="wc-rules">${rules}</div>` : ''}</div></div>
-<p class="wc-pitch">${escapeHtml(entry.pitch)}</p>
-<div class="wc-ladder"><ol aria-label="Medal ladder">${ladder}</ol><p class="wc-best" data-medal="${medal ?? 'none'}">${best}</p></div>
-<div class="wc-foot"><p class="wc-pay"><small>PAYS UP TO</small><b>${credits(maximumPay(entry))}</b><small>${entry.stakes === 1 ? 'MACHINES ARE LOANED' : `STAKES × ${entry.stakes} · MACHINES ARE LOANED`}</small></p>${
+  return `<section class="wc-detail" data-id="${entry.id}" data-kind="${entry.kind}" style="${tint(entry)}" aria-label="${escapeHtml(wildcardTitle(entry))}"${selected ? '' : ' hidden'}>
+<div class="wc-detail-top"><div class="wc-map">${circuitArtSvg(entry.event.circuit, { numbers: true, className: 'ta wc-map-art' })}</div><div class="wc-detail-head"><span class="wc-kind">${entry.kind === 'cross-discipline' ? th('CROSS-DISCIPLINE') : th('CLASS MISMATCH')}</span><h3>${escapeHtml(wildcardTitle(entry))}</h3><dl class="wc-facts"><div><dt>${th('MACHINE')}</dt><dd><span class="wc-plate" aria-hidden="true">${plateSvg(spec.shape, spec.numeral)}</span>${escapeHtml(machineNames(entry))}</dd></div><div><dt>${th('VENUE')}</dt><dd>${escapeHtml(venueName(entry))} <small>${fixed(art.length / 1000, 1)} ${th('KM')} · ${venue.corners.length} ${th('TURNS')}</small></dd></div><div><dt>${th('FIELD')}</dt><dd>${field}</dd></div><div><dt>${th('SKY')}</dt><dd>${glyph(WEATHER_GLYPH[entry.event.weather] ?? 'sun', 'wc-flag')}${th(weather.tag)}<span class="wc-sep"></span>${glyph(lightGlyph(entry), 'wc-flag')}${lightLabel(entry)}</dd></div></dl>${rules ? `<div class="wc-rules">${rules}</div>` : ''}</div></div>
+<p class="wc-pitch">${escapeHtml(wildcardPitch(entry))}</p>
+<div class="wc-ladder"><ol aria-label="${ta('Medal ladder')}">${ladder}</ol><p class="wc-best" data-medal="${medal ?? 'none'}">${best}</p></div>
+<div class="wc-foot"><p class="wc-pay"><small>${th('PAYS UP TO')}</small><b>${credits(maximumPay(entry))}</b><small>${entry.stakes === 1 ? th('MACHINES ARE LOANED') : th('STAKES × {stakes} · MACHINES ARE LOANED', { stakes: entry.stakes })}</small></p>${
     locked
-      ? lockedPanelHtml('This event is in the full game: the machine, the venue and the sky are all waiting there.', 'wildcard')
-      : `<button type="button" class="primary wc-go" data-action="career:wildcardGo:${entry.id}">START EVENT ${glyph('go', 'enter-glyph')}</button>`
+      ? lockedPanelHtml(t('This event is in the full game: the machine, the venue and the sky are all waiting there.'), 'wildcard')
+      : `<button type="button" class="primary wc-go" data-action="career:wildcardGo:${entry.id}">${th('START EVENT')} ${glyph('go', 'enter-glyph')}</button>`
   }</div>
 </section>`;
 }
@@ -200,12 +211,12 @@ export function wildcardBoardHtml(save: CareerSave | null, selected?: string): s
     .reverse()
     .map(
       (m) =>
-        `<li data-medal="${m}">${medalDisc(m)}<b>${progress.medals[m]}</b><span class="wc-tally-name">${MEDAL_NAME[m]}</span></li>`,
+        `<li data-medal="${m}">${medalDisc(m)}<b>${progress.medals[m]}</b><span class="wc-tally-name">${th(MEDAL_NAME[m])}</span></li>`,
     )
     .join('');
   return `<div class="wc-board" data-selected="${chosen.id}">
-<header class="wc-head"><div><span class="eyebrow">WILDCARD SERIES${demoPolicy() ? ` · ${progress.total} OF ${all.length} IN THE DEMO` : ''}</span><h2>Machines on roads they were never built for.</h2></div><ul class="wc-tally" aria-label="Medals earned">${tally}<li class="wc-tally-total"><b>${progress.medalled}</b><span class="wc-tally-name">OF ${progress.total} MEDALLED</span></li></ul><button type="button" data-action="modalClose" class="wc-close" aria-label="Close Wildcard Series">${glyph('close')}</button></header>
-<div class="wc-body"><ul class="wc-list" role="radiogroup" aria-label="Wildcard event">${series.map((e, i) => rowHtml(e, i, save, e.id === chosen.id)).join('')}</ul><div class="wc-pages">${series.map((e) => detailHtml(e, save, e.id === chosen.id)).join('')}</div></div>
+<header class="wc-head"><div><span class="eyebrow">${th('WILDCARD SERIES')}${demoPolicy() ? ` · ${th('{total} OF {all} IN THE DEMO', { total: progress.total, all: all.length })}` : ''}</span><h2>${th('Machines on roads they were never built for.')}</h2></div><ul class="wc-tally" aria-label="${ta('Medals earned')}">${tally}<li class="wc-tally-total"><b>${progress.medalled}</b><span class="wc-tally-name">${th('OF {total} MEDALLED', { total: progress.total })}</span></li></ul><button type="button" data-action="modalClose" class="wc-close" aria-label="${ta('Close Wildcard Series')}">${glyph('close')}</button></header>
+<div class="wc-body"><ul class="wc-list" role="radiogroup" aria-label="${ta('Wildcard event')}">${series.map((e, i) => rowHtml(e, i, save, e.id === chosen.id)).join('')}</ul><div class="wc-pages">${series.map((e) => detailHtml(e, save, e.id === chosen.id)).join('')}</div></div>
 </div>`;
 }
 
@@ -303,35 +314,49 @@ export function wildcardResultHtml(view: WildcardResultView, medal: Medal | null
     detail: string,
     mark = '';
   if (view.demonstration) {
-    headline = 'NO MEDAL';
-    detail = 'The AI driver drove part of this session. Medals and pay need your own driving.';
+    headline = t('NO MEDAL');
+    detail = t('The AI driver drove part of this session. Medals and pay need your own driving.');
   } else if (!view.classified) {
-    headline = 'NO MEDAL';
-    detail = 'Not classified: a medal needs a finish.';
+    headline = t('NO MEDAL');
+    detail = t('Not classified: a medal needs a finish.');
   } else if (awarded) {
-    headline = `${MEDAL_NAME[awarded]} MEDAL`;
+    headline = t('{medal} MEDAL', { medal: medalName(awarded) });
     const result =
       entry.ladder.metric === 'position'
-        ? `P${view.position} of ${view.cars}`
-        : `Best lap ${lapStamp(view.bestLap)}`;
-    detail = `${result}. ${MEDAL_NAME[awarded][0]}${MEDAL_NAME[awarded].slice(1).toLowerCase()} asks ${requirement(entry, awarded)}${entry.ladder.metric === 'position' ? ' or better' : ' or faster'}.`;
-    if (!view.previous || MEDAL_RANK[awarded] > MEDAL_RANK[view.previous]) mark = 'NEW BEST';
-    else if (view.previous === awarded) mark = 'MATCHED YOUR BEST';
+        ? t('P{position} of {cars}', { position: view.position, cars: view.cars })
+        : t('Best lap {time}', { time: lapStamp(view.bestLap) });
+    detail = t(
+      entry.ladder.metric === 'position'
+        ? '{result}. {medal} asks {need} or better.'
+        : '{result}. {medal} asks {need} or faster.',
+      {
+        result,
+        medal: medalName(awarded)[0] + medalName(awarded).slice(1).toLowerCase(),
+        need: requirement(entry, awarded),
+      },
+    );
+    if (!view.previous || MEDAL_RANK[awarded] > MEDAL_RANK[view.previous]) mark = t('NEW BEST');
+    else if (view.previous === awarded) mark = t('MATCHED YOUR BEST');
   } else {
-    headline = 'NO MEDAL';
+    headline = t('NO MEDAL');
     const result =
       entry.ladder.metric === 'position'
-        ? `P${view.position} of ${view.cars}`
+        ? t('P{position} of {cars}', { position: view.position, cars: view.cars })
         : view.bestLap > 0
-          ? `Best lap ${lapStamp(view.bestLap)}`
-          : 'No valid lap';
-    detail = `${result}. Bronze asks ${requirement(entry, 'bronze')}${entry.ladder.metric === 'position' ? ' or better' : ' or faster'}.`;
+          ? t('Best lap {time}', { time: lapStamp(view.bestLap) })
+          : t('No valid lap');
+    detail = t(
+      entry.ladder.metric === 'position'
+        ? '{result}. Bronze asks {need} or better.'
+        : '{result}. Bronze asks {need} or faster.',
+      { result, need: requirement(entry, 'bronze') },
+    );
   }
   const pay =
     view.state === 'failed'
-      ? ['NOT SAVED', '—']
+      ? [t('NOT SAVED'), '—']
       : view.payout.paid
-        ? [view.state === 'saving' ? 'PAYING' : 'PAID', credits(view.payout.total)]
-        : ['NOT PAID', '—'];
-  return `<section class="wc-result" data-medal="${awarded ?? 'none'}" aria-label="Wildcard result">${medalDisc(awarded, true)}<div class="wc-result-text"><span class="wc-kind">WILDCARD SERIES · ${escapeHtml(entry.title)}</span><b class="wc-result-head">${headline}${mark ? ` <em>${mark}</em>` : ''}</b><p>${escapeHtml(detail)}</p></div><div class="wc-result-side"><p class="wc-result-pay"><small>${pay[0]}</small><b>${pay[1]}</b></p><button type="button" data-action="career:wildcard:${entry.id}">WILDCARD BOARD</button></div></section>`;
+        ? [view.state === 'saving' ? t('PAYING') : t('PAID'), credits(view.payout.total)]
+        : [t('NOT PAID'), '—'];
+  return `<section class="wc-result" data-medal="${awarded ?? 'none'}" aria-label="${ta('Wildcard result')}">${medalDisc(awarded, true)}<div class="wc-result-text"><span class="wc-kind">${th('WILDCARD SERIES')} · ${escapeHtml(wildcardTitle(entry))}</span><b class="wc-result-head">${headline}${mark ? ` <em>${mark}</em>` : ''}</b><p>${escapeHtml(detail)}</p></div><div class="wc-result-side"><p class="wc-result-pay"><small>${pay[0]}</small><b>${pay[1]}</b></p><button type="button" data-action="career:wildcard:${entry.id}">${th('WILDCARD BOARD')}</button></div></section>`;
 }

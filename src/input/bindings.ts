@@ -1,3 +1,4 @@
+import { N_ } from '../i18n/mark.ts';
 export const DEFAULT_BINDINGS = {
   throttle: 'KeyW',
   brake: 'KeyS',
@@ -24,27 +25,27 @@ export const DEFAULT_BINDINGS = {
 export type BindingAction = keyof typeof DEFAULT_BINDINGS;
 export type Bindings = Record<BindingAction, string>;
 export const BINDING_LABELS: Record<BindingAction, string> = {
-  throttle: 'Throttle',
-  brake: 'Brake',
-  left: 'Steer left',
-  right: 'Steer right',
-  reverse: 'Reverse (hold at low speed)',
-  clutch: 'Clutch pedal (manual clutch mode)',
-  riderForward: 'Move rider weight forward (motocross)',
-  riderBack: 'Move rider weight back (motocross)',
-  shiftDown: 'Downshift',
-  shiftUp: 'Upshift',
-  camera: 'Cycle camera',
-  pit: 'Request / cancel pit',
-  ers: 'Hybrid mode',
-  replay: 'Replay',
-  telemetry: 'Telemetry',
-  debug: 'Engineering overlay',
-  mute: 'Mute',
-  autopilot: 'AI demonstration',
-  drs: 'DRS (open in a zone)',
-  overtake: 'ERS overtake (4 s)',
-  flashback: 'Flashback (last 30 s)',
+  throttle: N_('Throttle'),
+  brake: N_('Brake'),
+  left: N_('Steer left'),
+  right: N_('Steer right'),
+  reverse: N_('Reverse (hold at low speed)'),
+  clutch: N_('Clutch pedal (manual clutch mode)'),
+  riderForward: N_('Move rider weight forward (motocross)'),
+  riderBack: N_('Move rider weight back (motocross)'),
+  shiftDown: N_('Downshift'),
+  shiftUp: N_('Upshift'),
+  camera: N_('Cycle camera'),
+  pit: N_('Request / cancel pit'),
+  ers: N_('Hybrid mode'),
+  replay: N_('Replay'),
+  telemetry: N_('Telemetry'),
+  debug: N_('Engineering overlay'),
+  mute: N_('Mute'),
+  autopilot: N_('AI demonstration'),
+  drs: N_('DRS (open in a zone)'),
+  overtake: N_('ERS overtake (4 s)'),
+  flashback: N_('Flashback (last 30 s)'),
 };
 /** Actions added after bindings were first saved: a saved set without them
  * takes the first key it leaves free, like the clutch did. */

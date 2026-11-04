@@ -8,6 +8,8 @@
  * the preset fell back to day) or a restart. `auto` is the old behaviour:
  * floodlit at night venues, daylight everywhere else. Lighting is visual only;
  * it never changes grip, weather or the simulation. */
+import { N_ } from '../i18n/mark.ts';
+
 export const LIGHT_CHOICES = ['auto', 'day', 'sunset', 'night', 'live'] as const;
 export type LightChoice = (typeof LIGHT_CHOICES)[number];
 /** The renderer's own presets (same vocabulary as `LightingMode`). */
@@ -23,25 +25,25 @@ export interface LightDescriptor {
 export const LIGHT_CATALOGUE: Readonly<Record<LightChoice, LightDescriptor>> = Object.freeze({
   auto: {
     id: 'auto',
-    option: 'Venue',
-    brief: "The venue's own light: floodlit at the night venues, daylight everywhere else.",
+    option: N_('Venue'),
+    brief: N_("The venue's own light: floodlit at the night venues, daylight everywhere else."),
   },
-  day: { id: 'day', option: 'Midday', brief: 'High sun, hard shadows.' },
-  sunset: { id: 'sunset', option: 'Sunset', brief: 'A low sun and long shadows.' },
-  night: { id: 'night', option: 'Night', brief: 'Moon and floodlights.' },
+  day: { id: 'day', option: N_('Midday'), brief: N_('High sun, hard shadows.') },
+  sunset: { id: 'sunset', option: N_('Sunset'), brief: N_('A low sun and long shadows.') },
+  night: { id: 'night', option: N_('Night'), brief: N_('Moon and floodlights.') },
   live: {
     id: 'live',
-    option: 'Live sky',
-    brief: 'The real sun, moon and stars over your location, on your clock.',
+    option: N_('Live sky'),
+    brief: N_('The real sun, moon and stars over your location, on your clock.'),
   },
 });
 export function isLightChoice(value: unknown): value is LightChoice {
   return typeof value === 'string' && (LIGHT_CHOICES as readonly string[]).includes(value);
 }
 /** `<option>` markup for the LIGHT select, in catalogue order. */
-export function lightOptionsHtml() {
+export function lightOptionsHtml(tr: (text: string) => string = (text) => text) {
   return LIGHT_CHOICES.map(
-    (id) => `<option value="${id}">${LIGHT_CATALOGUE[id].option}</option>`,
+    (id) => `<option value="${id}">${tr(LIGHT_CATALOGUE[id].option)}</option>`,
   ).join('');
 }
 

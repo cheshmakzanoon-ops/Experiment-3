@@ -1,3 +1,5 @@
+import { t } from '../i18n/index.ts';
+import { achievementName } from '../i18n/data.ts';
 import { desktopBridge, type MotoboundDesktop, type SteamPresence } from '../desktop/bridge.ts';
 import {
   ACHIEVEMENTS,
@@ -194,7 +196,7 @@ export class AchievementRuntime {
     if (result.unlocked.length === 0) return;
     for (const id of result.unlocked) {
       const def = achievementById(id);
-      if (def) this.host.toast?.(`Achievement unlocked: ${def.name}`);
+      if (def) this.host.toast?.(t('Achievement unlocked: {name}', { name: achievementName(def) }));
     }
     if (this.steamAvailable) void this.bridge?.steam.unlock(result.unlocked).catch(() => undefined);
   }

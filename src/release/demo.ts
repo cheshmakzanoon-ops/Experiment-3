@@ -15,6 +15,7 @@
  * Pure data and predicates: no DOM, no imports from the game, so any module may import it
  * without creating a cycle.
  */
+import { N_ } from '../i18n/mark.ts';
 
 /** Module-level const so the bundler folds the literal (see build-flags.d.ts). */
 export const DEMO_BUILD = typeof __DEMO_BUILD__ !== 'undefined' && __DEMO_BUILD__ === true;
@@ -66,7 +67,7 @@ export const DEMO_SLICE: DemoSlice = Object.freeze({
 });
 
 /** What every locked plate says. */
-export const FULL_GAME = 'FULL GAME';
+export const FULL_GAME = N_('FULL GAME');
 
 /** Where a machine is being chosen: festival machines are road cars lent by the coast. */
 export type DemoContext = 'circuit' | 'gp' | 'dirt' | 'festival';
@@ -122,7 +123,8 @@ export const wildcardOpen = (id: string) => !active || active.wildcardOpen(id);
 export const licenceOpen = (id: string) => !active || active.licenceOpen(id);
 
 /** Menu label for a locked entry: "Riviera Harbour Streets · FULL GAME". */
-export const lockedLabel = (label: string) => `${label} · ${FULL_GAME}`;
+export const lockedLabel = (label: string, tr: (text: string) => string = (text) => text) =>
+  `${label} · ${tr(FULL_GAME)}`;
 
 /**
  * The festival visit clock. Counts only the seconds the player is actually driving (menus and

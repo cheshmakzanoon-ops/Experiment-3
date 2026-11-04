@@ -1,3 +1,5 @@
+import { fixed, t } from '../i18n/index.ts';
+import { N_ } from '../i18n/mark.ts';
 import type { WildcardEntry } from '../career/wildcard-series.ts';
 import { keyName, type Bindings } from '../input/bindings.ts';
 import { DRS } from '../simulation/drs.ts';
@@ -35,13 +37,20 @@ export interface TipContext {
 
 const key = (code: string) => keyName(code);
 const WEATHER_TIP: Readonly<Partial<Record<WeatherId, string>>> = Object.freeze({
-  rain: 'Heavy rain leaves standing water: use full wets and stay off the painted kerbs.',
-  changeable: WEATHER_CATALOGUE.changeable.brief + ' Be ready to change tyres.',
-  fog: 'Fog: visibility starts near 110 m and thins over about a quarter of an hour. The cold, damp surface costs a slick about a seventh of its grip.',
-  storm:
+  rain: N_('Heavy rain leaves standing water: use full wets and stay off the painted kerbs.'),
+  changeable: N_('{brief} Be ready to change tyres.'),
+  fog: N_(
+    'Fog: visibility starts near 110 m and thins over about a quarter of an hour. The cold, damp surface costs a slick about a seventh of its grip.',
+  ),
+  storm: N_(
     'Storm: standing water about twice as deep as heavy rain, and gusts to 20 m/s push cars and bikes sideways. Give the wind room.',
-  dust: 'Dust storm: visibility drops to about 170 m and a loose film settles on the tarmac, thinner on the racing line.',
-  snow: 'Snow: the road starts covered. Deep snow grips about a quarter of dry; the worn, polished wheel tracks along the racing line about two-fifths. Stay in the tracks, brake early, and use full wets or a winter tread.',
+  ),
+  dust: N_(
+    'Dust storm: visibility drops to about 170 m and a loose film settles on the tarmac, thinner on the racing line.',
+  ),
+  snow: N_(
+    'Snow: the road starts covered. Deep snow grips about a quarter of dry; the worn, polished wheel tracks along the racing line about two-fifths. Stay in the tracks, brake early, and use full wets or a winter tread.',
+  ),
 });
 
 /** Every tip that is true of this session, most specific first. */
@@ -51,78 +60,103 @@ export function loadingTipsFor(ctx: TipContext): string[] {
   if (ctx.wildcard) {
     const { ladder, event } = ctx.wildcard;
     const asks = (value: number) =>
-      ladder.metric === 'position' ? `P${value}` : `${value.toFixed(2)} s`;
+      ladder.metric === 'position' ? `P${value}` : `${fixed(value, 2)} ${t('s')}`;
     tips.push(
-      `Gold asks ${asks(ladder.gold)}, silver ${asks(ladder.silver)}, bronze ${asks(ladder.bronze)}${ladder.metric === 'position' ? ' or better' : ' or faster'}. The machine is loaned: nothing to buy.`,
+      t(
+        ladder.metric === 'position'
+          ? 'Gold asks {gold}, silver {silver}, bronze {bronze} or better. The machine is loaned: nothing to buy.'
+          : 'Gold asks {gold}, silver {silver}, bronze {bronze} or faster. The machine is loaned: nothing to buy.',
+        { gold: asks(ladder.gold), silver: asks(ladder.silver), bronze: asks(ladder.bronze) },
+      ),
     );
     if (ctx.wildcard.rules.includes('no-assists'))
       tips.push(
-        'This event runs with no ABS and no traction control: the throttle and brake are yours alone.',
+        t(
+          'This event runs with no ABS and no traction control: the throttle and brake are yours alone.',
+        ),
       );
     if (event.laps === 1)
-      tips.push('One lap decides it. A clean first corner is worth more than a brave last one.');
+      tips.push(t('One lap decides it. A clean first corner is worth more than a brave last one.'));
   }
-  const weather = WEATHER_TIP[ctx.weather];
-  if (weather) tips.push(weather);
+  const weatherKey = WEATHER_TIP[ctx.weather];
+  if (weatherKey)
+    tips.push(
+      ctx.weather === 'changeable'
+        ? t(weatherKey, { brief: t(WEATHER_CATALOGUE.changeable.brief) })
+        : t(weatherKey),
+    );
   if (ctx.night)
     tips.push(
-      'Night sessions run under floodlights. Lighting is visual only and never changes grip or weather.',
+      t('Night sessions run under floodlights. Lighting is visual only and never changes grip or weather.'),
     );
   switch (ctx.discipline) {
     case 'circuit':
       tips.push(
-        'Brake in a straight line, then release smoothly as you turn in.',
-        'Cold tyres have less grip. Build temperature on your first lap.',
-        'A smooth exit is worth more than a late apex.',
-        `Press ${key(keys.camera)} to change camera. The cockpit view gives the best sense of speed.`,
+        t('Brake in a straight line, then release smoothly as you turn in.'),
+        t('Cold tyres have less grip. Build temperature on your first lap.'),
+        t('A smooth exit is worth more than a late apex.'),
+        t('Press {key} to change camera. The cockpit view gives the best sense of speed.', {
+          key: key(keys.camera),
+        }),
       );
       if (ctx.race)
         tips.push(
-          `Press ${key(keys.pit)} to request a pit stop and choose your next set of tyres.`,
+          t('Press {key} to request a pit stop and choose your next set of tyres.', {
+            key: key(keys.pit),
+          }),
         );
       if (ctx.drs)
         tips.push(
-          `DRS opens inside a marked zone when you are within ${DRS.gap.toFixed(1)} s of the car ahead, in the dry, from lap ${DRS.fromLap}. Press ${key(keys.drs)}; braking closes it.`,
+          t(
+            'DRS opens inside a marked zone when you are within {gap} s of the car ahead, in the dry, from lap {lap}. Press {key}; braking closes it.',
+            { gap: fixed(DRS.gap, 1), lap: DRS.fromLap, key: key(keys.drs) },
+          ),
         );
       if (ctx.hybrid)
         tips.push(
-          `Harvest energy on the straights you do not need, deploy where you do. ${key(keys.ers)} changes the hybrid mode.`,
+          t(
+            'Harvest energy on the straights you do not need, deploy where you do. {key} changes the hybrid mode.',
+            { key: key(keys.ers) },
+          ),
         );
       break;
     case 'gp':
       tips.push(
-        'Set your speed before turn-in, then ease the brake as lean builds.',
-        'Use the front brake for a strong stop; the rear pedal is a light touch.',
-        'Unwind lean, then add power gently.',
-        'Cold tyres have less grip. Build temperature on your first lap.',
+        t('Set your speed before turn-in, then ease the brake as lean builds.'),
+        t('Use the front brake for a strong stop; the rear pedal is a light touch.'),
+        t('Unwind lean, then add power gently.'),
+        t('Cold tyres have less grip. Build temperature on your first lap.'),
       );
       break;
     case 'motocross':
     case 'supercross':
       tips.push(
-        'Brake before the face of a jump, not on it.',
-        `${key(keys.riderForward)} / ${key(keys.riderBack)} shift rider weight forward and back; release to settle.`,
-        'In the air, tap a brake to lower the nose, then release for touchdown.',
+        t('Brake before the face of a jump, not on it.'),
+        t('{forward} / {back} shift rider weight forward and back; release to settle.', {
+          forward: key(keys.riderForward),
+          back: key(keys.riderBack),
+        }),
+        t('In the air, tap a brake to lower the nose, then release for touchdown.'),
       );
       if (ctx.solo)
         tips.push(
-          'In solo practice, land smoothly on each surveyed downslope to clear its target.',
+          t('In solo practice, land smoothly on each surveyed downslope to clear its target.'),
         );
       break;
     case 'rallycross':
-      tips.push('Cold tyres have less grip. Build temperature on your first lap.');
+      tips.push(t('Cold tyres have less grip. Build temperature on your first lap.'));
       if (ctx.race)
         tips.push(
-          'A rallycross heat needs its joker laps: every one you are short costs a time penalty.',
+          t('A rallycross heat needs its joker laps: every one you are short costs a time penalty.'),
         );
       break;
     case 'stage':
-      tips.push('Cold tyres have less grip. Build temperature on your first lap.');
+      tips.push(t('Cold tyres have less grip. Build temperature on your first lap.'));
       break;
     case 'festival':
       tips.push(
-        'Drive to an event marker, or travel to any discovered route from the world map.',
-        `Press ${key(keys.camera)} to change camera.`,
+        t('Drive to an event marker, or travel to any discovered route from the world map.'),
+        t('Press {key} to change camera.', { key: key(keys.camera) }),
       );
       break;
   }

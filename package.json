@@ -48,6 +48,7 @@
     "test:e2e:shard": "node --experimental-strip-types scripts/run-browser-shard.ts",
     "check:bundle": "node scripts/bundle-budget.mjs && node scripts/ip-guard.mjs",
     "check:ip": "node scripts/ip-guard.mjs --dist dist",
+    "check:i18n": "node --experimental-transform-types scripts/i18n-check.ts",
     "check:ip:demo": "node scripts/ip-guard.mjs --dist dist-demo",
     "notices": "node scripts/third-party-notices.mjs",
     "check:stable": "node --experimental-transform-types scripts/source-stability.ts -- npm run check",

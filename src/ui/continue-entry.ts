@@ -1,3 +1,6 @@
+import { wildcardTitle } from '../i18n/data.ts';
+import { t } from '../i18n/index.ts';
+import { N_ } from '../i18n/mark.ts';
 import { wildcardEntry } from '../career/wildcard-series.ts';
 import { CIRCUITS, type CircuitId } from '../simulation/circuits.ts';
 import { CIRCUIT_MENU_LABELS } from './circuit-menu.ts';
@@ -57,12 +60,12 @@ export function validateContinue(raw: unknown): ContinueEntry | null {
 }
 
 const MODE_LABEL: Readonly<Record<string, string>> = Object.freeze({
-  race: 'RACE',
-  practice: 'PRACTICE',
-  'time-trial': 'TIME TRIAL',
-  qualifying: 'WEEKEND',
-  endurance: 'ENDURANCE',
-  festival: 'FESTIVAL',
+  race: N_('RACE'),
+  practice: N_('PRACTICE'),
+  'time-trial': N_('TIME TRIAL'),
+  qualifying: N_('WEEKEND'),
+  endurance: N_('ENDURANCE'),
+  festival: N_('FESTIVAL'),
 });
 let machineLabels: Map<string, string> | null = null;
 /** The machine's menu label ("APX-01 Formula · RWD") from its select value. */
@@ -76,11 +79,14 @@ function machineLabel(value: string) {
 export function describeContinue(entry: ContinueEntry): { title: string; detail: string } {
   if (entry.kind === 'wildcard') {
     const event = wildcardEntry(entry.id);
-    return { title: event?.title ?? 'WILDCARD EVENT', detail: 'WILDCARD SERIES' };
+    return {
+      title: event ? wildcardTitle(event) : t('WILDCARD EVENT'),
+      detail: t('WILDCARD SERIES'),
+    };
   }
   const f = entry.fields;
   const machine = machineLabel(f.vehicle).split(' · ')[0].split(' ')[0].toUpperCase();
-  if (f.mode === 'festival') return { title: `${machine} · SOLVANE`, detail: 'FESTIVAL' };
+  if (f.mode === 'festival') return { title: `${machine} · SOLVANE`, detail: t('FESTIVAL') };
   // "Vellamar Coast Circuit" reads as "VELLAMAR COAST" in the narrow button.
   const venue = CIRCUIT_MENU_LABELS[f.circuit as CircuitId]
     .split(' · ')[0]
@@ -88,7 +94,7 @@ export function describeContinue(entry: ContinueEntry): { title: string; detail:
     .toUpperCase();
   const format =
     f.mode === 'race' || f.mode === 'endurance'
-      ? `${f.laps} ${Number(f.laps) === 1 ? 'LAP' : 'LAPS'}`
-      : MODE_LABEL[f.mode];
+      ? t('{n, plural, one {# LAP} other {# LAPS}}', { n: Number(f.laps) })
+      : t(MODE_LABEL[f.mode]);
   return { title: `${machine} · ${venue}`, detail: format };
 }

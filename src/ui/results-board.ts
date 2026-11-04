@@ -1,3 +1,5 @@
+import { fixed, t, ta, th } from '../i18n/index.ts';
+import { N_ } from '../i18n/mark.ts';
 import { F, H, carBase } from '../simulation/protocol.ts';
 import { DISCIPLINES } from '../career/registry.ts';
 import type { SeasonPlan } from '../career/next-up.ts';
@@ -22,9 +24,9 @@ export interface ResultRow {
 }
 export const clock = (seconds: number) =>
   seconds > 0
-    ? `${Math.floor(seconds / 60)}:${(seconds % 60).toFixed(3).padStart(6, '0')}`
+    ? `${Math.floor(seconds / 60)}:${fixed(seconds % 60, 3).padStart(6, '0')}`
     : '—:——.———';
-const gap = (seconds: number) => `+${seconds.toFixed(3)} s`;
+const gap = (seconds: number) => `+${fixed(seconds, 3)} ${t('s')}`;
 const esc = (value: string) =>
   value.replace(
     /[&<>"']/g,
@@ -101,11 +103,11 @@ const PLACE_MEDAL = ['gold', 'silver', 'bronze'] as const;
  * reading order, so a screen reader hears them in order). The player's step is the amber one. */
 export function podiumHtml(rows: readonly ResultRow[]) {
   if (rows.length < 3) return '';
-  return `<ol class="rs-podium" aria-label="Podium">${rows
+  return `<ol class="rs-podium" aria-label="${ta('Podium')}">${rows
     .slice(0, 3)
     .map(
       (r, i) =>
-        `<li class="rs-step" data-place="${i + 1}"${r.you ? ' data-you="true"' : ''}><span class="wc-medal" data-medal="${PLACE_MEDAL[i]}" aria-hidden="true"><b>${i + 1}</b></span><strong>${esc(r.name)}</strong><small>${r.finish > 0 ? clock(r.finish) : r.retired ? 'DNF' : 'RUNNING'}</small>${r.you ? '<em>YOU</em>' : ''}</li>`,
+        `<li class="rs-step" data-place="${i + 1}"${r.you ? ' data-you="true"' : ''}><span class="wc-medal" data-medal="${PLACE_MEDAL[i]}" aria-hidden="true"><b>${i + 1}</b></span><strong>${esc(r.name)}</strong><small>${r.finish > 0 ? clock(r.finish) : r.retired ? th('DNF') : th('RUNNING')}</small>${r.you ? `<em>${th('YOU')}</em>` : ''}</li>`,
     )
     .join('')}</ol>`;
 }
@@ -113,24 +115,24 @@ export function podiumHtml(rows: readonly ResultRow[]) {
 /** The player's result: the position, and the gaps. */
 export function factsHtml(f: ResultFacts) {
   const rows: [string, string, string?][] = [];
-  if (f.finished) rows.push(['RACE TIME', clock(f.raceTime)]);
+  if (f.finished) rows.push([N_('RACE TIME'), clock(f.raceTime)]);
   if (f.toWinner !== null)
     rows.push([
-      f.winner ? 'MARGIN OVER 2ND' : 'GAP TO WINNER',
+      f.winner ? N_('MARGIN OVER 2ND') : N_('GAP TO WINNER'),
       gap(f.toWinner),
       f.winner ? 'good' : '',
     ]);
-  rows.push(['BEST LAP', clock(f.bestLap)]);
+  rows.push([N_('BEST LAP'), clock(f.bestLap)]);
   if (f.fastest && f.toFastest !== null)
     rows.push([
-      'VS FASTEST LAP',
-      f.fastest.you ? 'FASTEST LAP' : gap(f.toFastest),
+      N_('VS FASTEST LAP'),
+      f.fastest.you ? t('FASTEST LAP') : gap(f.toFastest),
       f.fastest.you ? 'good' : '',
     ]);
   return `<dl class="rs-facts">${rows
     .map(
       ([k, v, tone]) =>
-        `<div${tone ? ` data-tone="${tone}"` : ''}><dt>${k}</dt><dd>${v}</dd></div>`,
+        `<div${tone ? ` data-tone="${tone}"` : ''}><dt>${th(k)}</dt><dd>${v}</dd></div>`,
     )
     .join('')}</dl>`;
 }
@@ -141,7 +143,7 @@ export function positionHtml(f: ResultFacts) {
     f.finished && f.position <= 3
       ? `<span class="wc-medal wc-medal-lg" data-medal="${PLACE_MEDAL[f.position - 1]}" aria-hidden="true"><b>${f.position}</b></span>`
       : '';
-  return `<div class="rs-position" data-place="${f.position <= 3 ? f.position : 'out'}"><b>${f.finished ? ordinal(f.position) : 'END'}</b><span>${f.finished ? `OF ${f.field}` : 'SESSION ENDED'}</span>${medal}</div>`;
+  return `<div class="rs-position" data-place="${f.position <= 3 ? f.position : 'out'}"><b>${f.finished ? ordinal(f.position) : th('END')}</b><span>${f.finished ? th('OF {field}', { field: f.field }) : th('SESSION ENDED')}</span>${medal}</div>`;
 }
 
 /** The next thing to do, from the career's own plan (career/next-up.ts). */
@@ -160,20 +162,20 @@ export function nextFromPlan(plan: SeasonPlan): ResultsNext {
     why: n.why,
     label: n.label,
     action: n.action,
-    discipline: DISCIPLINES[n.discipline].short,
+    discipline: t(DISCIPLINES[n.discipline].short),
   };
 }
 export function nextHtml(next: ResultsNext | null) {
   if (!next) return '<section class="rs-next" hidden></section>';
-  return `<section class="rs-next" aria-label="Next up"><h3 class="rs-label">NEXT UP · ${esc(next.discipline)}</h3><h4>${esc(next.title)}</h4><p>${esc(next.why)}</p><button type="button" data-action="${esc(next.action)}">${esc(next.label)}</button></section>`;
+  return `<section class="rs-next" aria-label="${ta('Next up')}"><h3 class="rs-label">${th('NEXT UP')} · ${esc(next.discipline)}</h3><h4>${esc(next.title)}</h4><p>${esc(next.why)}</p><button type="button" data-action="${esc(next.action)}">${esc(next.label)}</button></section>`;
 }
 
 /** The classification: the same six columns as before, the player's row highlighted. */
 export function classificationHtml(rows: readonly ResultRow[]) {
-  return `<table class="results rs-table"><thead><tr><th>POS</th><th>DRIVER</th><th>LAPS</th><th>TIME + PEN.</th><th>BEST LAP</th><th>PEN.</th></tr></thead><tbody>${rows
+  return `<table class="results rs-table"><thead><tr><th>${th('POS')}</th><th>${th('DRIVER')}</th><th>${th('LAPS')}</th><th>${th('TIME + PEN.')}</th><th>${th('BEST LAP')}</th><th>${th('PEN.')}</th></tr></thead><tbody>${rows
     .map(
       (r) =>
-        `<tr${r.you ? ' class="you"' : ''}><td>${r.position}</td><td>${esc(r.name)}</td><td>${r.laps}</td><td>${r.finish > 0 ? clock(r.finish) : r.retired ? 'DNF' : 'RUNNING'}</td><td>${clock(r.best)}</td><td>${r.penalty.toFixed(0)}s</td></tr>`,
+        `<tr${r.you ? ' class="you"' : ''}><td>${r.position}</td><td>${esc(r.name)}</td><td>${r.laps}</td><td>${r.finish > 0 ? clock(r.finish) : r.retired ? th('DNF') : th('RUNNING')}</td><td>${clock(r.best)}</td><td>${r.penalty.toFixed(0)}s</td></tr>`,
     )
     .join('')}</tbody></table>`;
 }
@@ -196,5 +198,5 @@ export function resultsBoardHtml(parts: {
   const hero = facts
     ? `${positionHtml(facts)}${podiumHtml(parts.rows)}${factsHtml(facts)}${next}`
     : '';
-  return `<section class="rs" data-place="${facts && facts.finished && facts.position <= 3 ? facts.position : 'out'}"><span class="eyebrow">CHEQUERED FLAG / SESSION CLASSIFICATION</span><h2>${esc(parts.heading)}</h2>${parts.lead}<div class="rs-board"><div class="rs-hero">${hero}</div><div class="rs-sheet">${classificationHtml(parts.rows)}${parts.offroad}${parts.note ? `<p class="championship-note">${esc(parts.note)}</p>` : ''}${parts.extra}${facts ? '' : next}</div></div><div class="dialog-buttons inline"><button class="primary" data-action="replay">WATCH REPLAY</button><button data-action="restart">RACE AGAIN</button><button data-action="resultsShare">SHARE CARD</button><button data-action="telemetry">TELEMETRY</button>${parts.standings ? '<button data-action="championship">STANDINGS</button>' : ''}<button data-action="photo">PHOTO STUDIO</button><button data-action="menu">PADDOCK</button></div></section>`;
+  return `<section class="rs" data-place="${facts && facts.finished && facts.position <= 3 ? facts.position : 'out'}"><span class="eyebrow">${th('CHEQUERED FLAG / SESSION CLASSIFICATION')}</span><h2>${esc(parts.heading)}</h2>${parts.lead}<div class="rs-board"><div class="rs-hero">${hero}</div><div class="rs-sheet">${classificationHtml(parts.rows)}${parts.offroad}${parts.note ? `<p class="championship-note">${esc(parts.note)}</p>` : ''}${parts.extra}${facts ? '' : next}</div></div><div class="dialog-buttons inline"><button class="primary" data-action="replay">${th('WATCH REPLAY')}</button><button data-action="restart">${th('RACE AGAIN')}</button><button data-action="resultsShare">${th('SHARE CARD')}</button><button data-action="telemetry">${th('TELEMETRY')}</button>${parts.standings ? `<button data-action="championship">${th('STANDINGS')}</button>` : ''}<button data-action="photo">${th('PHOTO STUDIO')}</button><button data-action="menu">${th('PADDOCK')}</button></div></section>`;
 }

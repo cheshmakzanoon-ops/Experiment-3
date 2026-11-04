@@ -1,3 +1,4 @@
+import { machineCharacterLine } from '../i18n/data.ts';
 import { classInfo } from '../simulation/vehicle-classes.ts';
 import { VEHICLES, type VehicleDefinition } from '../simulation/vehicles.ts';
 import { peakPowerKw } from './machine-power.ts';
@@ -112,5 +113,5 @@ export function machineSpecLine(def: VehicleDefinition): string {
  * the mixed-grid choices, which name no single machine. */
 export function machineBlurb(id: string): string {
   if (!Object.hasOwn(VEHICLES, id) || !Object.hasOwn(MACHINE_CHARACTER, id)) return '';
-  return `${machineSpecLine(VEHICLES[id])} — ${MACHINE_CHARACTER[id]}`;
+  return `${machineSpecLine(VEHICLES[id])} — ${machineCharacterLine(id, MACHINE_CHARACTER[id])}`;
 }

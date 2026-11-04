@@ -1,3 +1,5 @@
+import { th } from '../i18n/index.ts';
+import { N_ } from '../i18n/mark.ts';
 import { BUS_NAMES, validateLevels, type AudioLevels, type BusName } from '../audio/mixer.ts';
 import { MUSIC_AVAILABLE } from '../audio/music.ts';
 
@@ -5,11 +7,11 @@ import { MUSIC_AVAILABLE } from '../audio/music.ts';
  * master Volume above it. The music controls appear only once music assets
  * ship (audio/music.ts `MUSIC_AVAILABLE`): a slider that does nothing is a lie. */
 const LABELS: Readonly<Record<BusName, string>> = {
-  engine: 'Engine',
-  effects: 'Tyres, surfaces and impacts',
-  ambience: 'Wind and weather',
-  ui: 'Menu sounds',
-  music: 'Music',
+  engine: N_('Engine'),
+  effects: N_('Tyres, surfaces and impacts'),
+  ambience: N_('Wind and weather'),
+  ui: N_('Menu sounds'),
+  music: N_('Music'),
 };
 const percent = (value: number) => `${Math.round(value * 100)}%`;
 
@@ -21,16 +23,16 @@ export interface AudioMixerView {
 export function audioMixer(view: AudioMixerView, musicAvailable = MUSIC_AVAILABLE) {
   const levels = validateLevels(view.levels);
   const buses = BUS_NAMES.filter((bus) => bus !== 'music' || musicAvailable);
-  return `<fieldset class="audio-mixer"><legend>SOUND MIX</legend>${buses
+  return `<fieldset class="audio-mixer"><legend>${th('SOUND MIX')}</legend>${buses
     .map(
       (bus) =>
-        `<label class="range-row">${LABELS[bus]}<output>${percent(levels[bus])}</output><input type="range" name="level_${bus}" min="0" max="1" step="0.01" value="${levels[bus]}"></label>`,
+        `<label class="range-row">${th(LABELS[bus])}<output>${percent(levels[bus])}</output><input type="range" name="level_${bus}" min="0" max="1" step="0.01" value="${levels[bus]}"></label>`,
     )
     .join('')}${
     musicAvailable
-      ? `<label class="check"><input type="checkbox" name="musicEnabled" ${view.musicEnabled ? 'checked' : ''}>Play background music</label>`
+      ? `<label class="check"><input type="checkbox" name="musicEnabled" ${view.musicEnabled ? 'checked' : ''}>${th('Play background music')}</label>`
       : ''
-  }<p class="small-note">Volume above is the master; these set the balance between the sounds. The driving-cue tones below are never turned down by these sliders.</p></fieldset>`;
+  }<p class="small-note">${th('Volume above is the master; these set the balance between the sounds. The driving-cue tones below are never turned down by these sliders.')}</p></fieldset>`;
 }
 
 /** Read the section back; a control that was not shown keeps its previous value. */

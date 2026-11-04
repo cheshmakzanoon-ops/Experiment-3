@@ -20,6 +20,7 @@ import { clamp } from '../core/math.ts';
 import { DEFAULT_LEVELS, validateLevels, type AudioLevels } from '../audio/mixer.ts';
 import { DEFAULT_RUMBLE, validateRumble, type RumbleSettings } from '../input/rumble.ts';
 import { DesktopMirror, idbKv } from './desktop-mirror.ts';
+import { validateLanguage, type LanguageSetting } from '../i18n/locales.ts';
 import { DEFAULT_SETUP, validateSetup, type Setup } from '../simulation/config.ts';
 import {
   graphicsPreset,
@@ -74,6 +75,9 @@ export interface Settings {
   rumble: RumbleSettings;
   shake: number;
   uiScale: number;
+  /** Interface language: `auto` follows the browser or system (src/i18n). Settings saved
+   * before languages existed, or holding an unknown code, read as `auto`. */
+  language: LanguageSetting;
   mapping: InputMapping;
   setup: Setup;
   bindings: Bindings;
@@ -95,6 +99,7 @@ export const DEFAULT_SETTINGS: Settings = {
   rumble: { ...DEFAULT_RUMBLE },
   shake: 0.35,
   uiScale: 1,
+  language: 'auto',
   mapping: {
     buttonActions: defaultButtonActions(true),
     device: null,
@@ -149,6 +154,7 @@ export function validateSettings(v: unknown): Settings {
     rumble: validateRumble(p.rumble),
     shake: finite(p.shake, 0.35, 0, 1),
     uiScale: finite(p.uiScale, 1, 0.8, 1.35),
+    language: validateLanguage(p.language),
     setup: validateSetup(p.setup ?? DEFAULT_SETUP),
     bindings,
     mapping: {

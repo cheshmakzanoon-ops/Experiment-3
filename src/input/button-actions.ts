@@ -1,19 +1,20 @@
+import { N_ } from '../i18n/mark.ts';
 import type { InputMapping } from '../storage/data.ts';
 
 export const BUTTON_ACTION_LABELS = {
-  pause: 'Pause / resume',
-  camera: 'Cycle camera',
-  ers: 'Hybrid mode',
-  pit: 'Request / cancel pit',
-  telemetry: 'Telemetry',
-  replay: 'Replay / exit',
-  autopilot: 'AI demonstration',
-  mute: 'Mute',
-  debug: 'Engineering overlay',
-  reverse: 'Reverse (hold at low speed)',
-  drs: 'DRS (open in a zone)',
-  overtake: 'ERS overtake (4 s)',
-  flashback: 'Flashback (last 30 s)',
+  pause: N_('Pause / resume'),
+  camera: N_('Cycle camera'),
+  ers: N_('Hybrid mode'),
+  pit: N_('Request / cancel pit'),
+  telemetry: N_('Telemetry'),
+  replay: N_('Replay / exit'),
+  autopilot: N_('AI demonstration'),
+  mute: N_('Mute'),
+  debug: N_('Engineering overlay'),
+  reverse: N_('Reverse (hold at low speed)'),
+  drs: N_('DRS (open in a zone)'),
+  overtake: N_('ERS overtake (4 s)'),
+  flashback: N_('Flashback (last 30 s)'),
 } as const;
 export type ButtonAction = keyof typeof BUTTON_ACTION_LABELS;
 export type ButtonActions = Record<ButtonAction, number>;

@@ -1,3 +1,5 @@
+import { t } from '../i18n/index.ts';
+import { N_ } from '../i18n/mark.ts';
 import { CIRCUITS, CIRCUIT_IDS, type CircuitId } from '../simulation/circuits.ts';
 import type { CatalogueGroup } from '../simulation/circuit-catalogue/venue-data.ts';
 import { circuitOpen, lockedLabel } from '../release/demo.ts';
@@ -15,10 +17,10 @@ const ORIGINAL_BLURBS: Readonly<Record<string, string>> = Object.freeze({
     'Original coastal-mountain circuit: a 45 m ridge, the Belvedere hairpin and the banked Lantern.',
 });
 export const CIRCUIT_GROUPS: readonly { group: CatalogueGroup; label: string }[] = Object.freeze([
-  { group: 'original', label: 'Original' },
-  { group: 'real-world', label: 'Real-world approximations' },
-  { group: 'unconventional', label: 'Unconventional' },
-  { group: 'off-road', label: 'Off-road' },
+  { group: 'original', label: N_('Original') },
+  { group: 'real-world', label: N_('Real-world approximations') },
+  { group: 'unconventional', label: N_('Unconventional') },
+  { group: 'off-road', label: N_('Off-road') },
 ]);
 export function circuitGroup(id: CircuitId): CatalogueGroup {
   return CIRCUITS[id].catalogue?.group ?? 'original';
@@ -45,12 +47,12 @@ export function circuitOptionsHtml() {
   return CIRCUIT_GROUPS.map(({ group, label }) => {
     const ids = CIRCUIT_IDS.filter((id) => circuitGroup(id) === group);
     return ids.length
-      ? `<optgroup label="${escape(label)}">${ids
+      ? `<optgroup label="${escape(t(label))}">${ids
           .map((id) =>
             // Steam demo: a venue outside the slice stays listed as a FULL GAME entry.
             circuitOpen(id)
               ? `<option value="${id}">${escape(CIRCUIT_MENU_LABELS[id])}</option>`
-              : `<option value="${id}" disabled>${escape(lockedLabel(CIRCUIT_MENU_LABELS[id]))}</option>`,
+              : `<option value="${id}" disabled>${escape(lockedLabel(CIRCUIT_MENU_LABELS[id], t))}</option>`,
           )
           .join('')}</optgroup>`
       : '';

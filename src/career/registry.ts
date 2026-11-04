@@ -1,3 +1,4 @@
+import { N_ } from '../i18n/mark.ts';
 import { CIRCUITS, CIRCUIT_IDS } from '../simulation/circuits.ts';
 import { EVENTS, RULESETS, type EventDefinition } from '../simulation/events.ts';
 import { festivalClasses } from '../simulation/open-world/festival-machines.ts';
@@ -282,41 +283,41 @@ export interface DisciplineDefinition {
 export const DISCIPLINES: Readonly<Record<DisciplineId, DisciplineDefinition>> = Object.freeze({
   'circuit-cars': {
     id: 'circuit-cars',
-    name: 'Circuit cars',
-    short: 'CIRCUIT',
+    name: N_('Circuit cars'),
+    short: N_('CIRCUIT'),
     family: 'car',
     venue: 'circuit',
-    skill: 'Braking points, tyre management and racecraft.',
+    skill: N_('Braking points, tyre management and racecraft.'),
     machineNoun: 'four-wheel circuit machine',
     venueNoun: 'paved circuit',
   },
   'road-bikes': {
     id: 'road-bikes',
-    name: 'Road motorcycles',
-    short: 'BIKES',
+    name: N_('Road motorcycles'),
+    short: N_('BIKES'),
     family: 'bike',
     venue: 'circuit',
-    skill: 'Lean angle, trail braking and the front/rear brake split.',
+    skill: N_('Lean angle, trail braking and the front/rear brake split.'),
     machineNoun: 'two-wheel road machine',
     venueNoun: 'bike-safe circuit',
   },
   'off-road': {
     id: 'off-road',
-    name: 'Off-road',
-    short: 'OFF-ROAD',
+    name: N_('Off-road'),
+    short: N_('OFF-ROAD'),
     family: 'off-road',
     venue: 'dirt',
-    skill: 'Throttle on loose ground, jump take-off and landing, ruts and berms.',
+    skill: N_('Throttle on loose ground, jump take-off and landing, ruts and berms.'),
     machineNoun: 'off-road machine (rally, rallycross, motocross or truck)',
     venueNoun: 'dirt or mixed-surface venue',
   },
   festival: {
     id: 'festival',
-    name: 'Festival',
-    short: 'FESTIVAL',
+    name: N_('Festival'),
+    short: N_('FESTIVAL'),
     family: 'road',
     venue: 'festival',
-    skill: 'Exploration, point-to-point, speed traps and drift zones.',
+    skill: N_('Exploration, point-to-point, speed traps and drift zones.'),
     machineNoun: 'road machine',
     venueNoun: 'open festival region',
   },

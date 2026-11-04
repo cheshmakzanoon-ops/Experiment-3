@@ -1,3 +1,4 @@
+import { N_ } from '../i18n/mark.ts';
 import { clamp } from '../core/math.ts';
 import type { VehicleDefinition } from './vehicles.ts';
 
@@ -33,12 +34,12 @@ export const CAR_PIT_SERVICE: PitServicePlan = Object.freeze({
   liftHeight: 0.19,
   labels: Object.freeze([
     '',
-    'PIT ENTRY · APPROACHING BOX',
-    'STOPPED · CAR JACKED',
-    'TYRE CHANGE',
-    'NEW TYRES FITTED',
-    'FRONT WING REPAIR',
-    'RELEASED · PIT EXIT',
+    N_('PIT ENTRY · APPROACHING BOX'),
+    N_('STOPPED · CAR JACKED'),
+    N_('TYRE CHANGE'),
+    N_('NEW TYRES FITTED'),
+    N_('FRONT WING REPAIR'),
+    N_('RELEASED · PIT EXIT'),
   ]),
 });
 
@@ -58,12 +59,12 @@ export const BIKE_PIT_SERVICE: PitServicePlan = Object.freeze({
   liftHeight: 0.08,
   labels: Object.freeze([
     '',
-    'PIT ENTRY · APPROACHING BOX',
-    'STOPPED · ON STANDS',
-    'WHEELS OUT',
-    'NEW WHEELS IN',
-    'STANDS DOWN',
-    'RELEASED · PIT EXIT',
+    N_('PIT ENTRY · APPROACHING BOX'),
+    N_('STOPPED · ON STANDS'),
+    N_('WHEELS OUT'),
+    N_('NEW WHEELS IN'),
+    N_('STANDS DOWN'),
+    N_('RELEASED · PIT EXIT'),
   ]),
 });
 

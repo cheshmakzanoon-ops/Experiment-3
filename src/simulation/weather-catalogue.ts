@@ -6,6 +6,8 @@
  *
  * Original scenario names and wording; no real-world forecast or series
  * branding. */
+import { N_ } from '../i18n/mark.ts';
+
 export const WEATHER_IDS = ['clear', 'changeable', 'rain', 'fog', 'storm', 'dust', 'snow'] as const;
 export type WeatherId = (typeof WEATHER_IDS)[number];
 
@@ -30,69 +32,69 @@ export interface WeatherDescriptor {
 export const WEATHER_CATALOGUE: Readonly<Record<WeatherId, WeatherDescriptor>> = Object.freeze({
   clear: {
     id: 'clear',
-    option: 'Clear / Dry',
-    loading: 'Dry',
-    card: 'Dry',
-    tag: 'DRY',
-    brief: 'Dry, mild and clear.',
+    option: N_('Clear / Dry'),
+    loading: N_('Dry'),
+    card: N_('Dry'),
+    tag: N_('DRY'),
+    brief: N_('Dry, mild and clear.'),
     suggestedTyre: null,
   },
   changeable: {
     id: 'changeable',
-    option: 'Dry → Rain',
-    loading: 'Changeable',
-    card: 'Dry, rain expected',
-    tag: 'CHANGEABLE',
-    brief: 'Dry at the start; a storm arrives and later clears.',
+    option: N_('Dry → Rain'),
+    loading: N_('Changeable'),
+    card: N_('Dry, rain expected'),
+    tag: N_('CHANGEABLE'),
+    brief: N_('Dry at the start; a storm arrives and later clears.'),
     suggestedTyre: null,
   },
   rain: {
     id: 'rain',
-    option: 'Heavy rain',
-    loading: 'Wet',
-    card: 'Wet',
-    tag: 'RAIN',
-    brief: 'Steady heavy rain from the start; standing water.',
+    option: N_('Heavy rain'),
+    loading: N_('Wet'),
+    card: N_('Wet'),
+    tag: N_('RAIN'),
+    brief: N_('Steady heavy rain from the start; standing water.'),
     suggestedTyre: 'wet',
   },
   fog: {
     id: 'fog',
-    option: 'Dawn fog',
-    loading: 'Fog',
-    card: 'Cold fog, damp track, lifting',
-    tag: 'FOG',
+    option: N_('Dawn fog'),
+    loading: N_('Fog'),
+    card: N_('Cold fog, damp track, lifting'),
+    tag: N_('FOG'),
     brief:
-      'Cold dawn fog. Visibility starts near 110 m and thins over a quarter of an hour; the damp, cold surface costs a slick about a seventh of its grip and the tyres are slow to warm.',
+      N_('Cold dawn fog. Visibility starts near 110 m and thins over a quarter of an hour; the damp, cold surface costs a slick about a seventh of its grip and the tyres are slow to warm.'),
     suggestedTyre: 'medium',
   },
   storm: {
     id: 'storm',
-    option: 'Thunderstorm',
-    loading: 'Storm',
-    card: 'Thunderstorm, gusting crosswind',
-    tag: 'STORM',
+    option: N_('Thunderstorm'),
+    loading: N_('Storm'),
+    card: N_('Thunderstorm, gusting crosswind'),
+    tag: N_('STORM'),
     brief:
-      'A 60 to 76 mm/h cell: standing water about twice as deep as heavy rain, gusts to 20 m/s that push cars and bikes sideways, a dark sky and lightning.',
+      N_('A 60 to 76 mm/h cell: standing water about twice as deep as heavy rain, gusts to 20 m/s that push cars and bikes sideways, a dark sky and lightning.'),
     suggestedTyre: 'wet',
   },
   dust: {
     id: 'dust',
-    option: 'Dust storm',
-    loading: 'Dust',
-    card: 'Hot dust storm, loose surface',
-    tag: 'DUST',
+    option: N_('Dust storm'),
+    loading: N_('Dust'),
+    card: N_('Hot dust storm, loose surface'),
+    tag: N_('DUST'),
     brief:
-      'Hot desert dust storm: visibility drops to about 170 m, a strong gusting wind loads the bodywork, and a loose dust film settles on the tarmac, thinner on the racing line.',
+      N_('Hot desert dust storm: visibility drops to about 170 m, a strong gusting wind loads the bodywork, and a loose dust film settles on the tarmac, thinner on the racing line.'),
     suggestedTyre: 'medium',
   },
   snow: {
     id: 'snow',
-    option: 'Snow and ice',
-    loading: 'Snow',
-    card: 'Snowfall, packed snow and ice, sub-zero',
-    tag: 'SNOW',
+    option: N_('Snow and ice'),
+    loading: N_('Snow'),
+    card: N_('Snowfall, packed snow and ice, sub-zero'),
+    tag: N_('SNOW'),
     brief:
-      'Sub-zero snowfall on a snow-covered road: deep snow gives about a quarter of dry grip and the worn, polished wheel tracks along the racing line about two-fifths, so stay in the tracks. Visibility closes to 400 m in the squall. Winter tread helps.',
+      N_('Sub-zero snowfall on a snow-covered road: deep snow gives about a quarter of dry grip and the worn, polished wheel tracks along the racing line about two-fifths, so stay in the tracks. Visibility closes to 400 m in the squall. Winter tread helps.'),
     suggestedTyre: 'wet',
   },
 });
@@ -102,8 +104,8 @@ export function isWeatherId(value: unknown): value is WeatherId {
 }
 
 /** `<option>` markup for the session form's weather select, in catalogue order. */
-export function weatherOptionsHtml() {
+export function weatherOptionsHtml(tr: (text: string) => string = (text) => text) {
   return WEATHER_IDS.map(
-    (id) => `<option value="${id}">${WEATHER_CATALOGUE[id].option}</option>`,
+    (id) => `<option value="${id}">${tr(WEATHER_CATALOGUE[id].option)}</option>`,
   ).join('');
 }

@@ -1,3 +1,5 @@
+import { t } from '../i18n/index.ts';
+import { N_ } from '../i18n/mark.ts';
 import { CIRCUITS, CIRCUIT_IDS, type CircuitId } from '../simulation/circuits.ts';
 import { VEHICLES } from '../simulation/vehicles.ts';
 import { offroadCourse, venueAdmits } from '../simulation/offroad/venues.ts';
@@ -35,38 +37,38 @@ export interface DisciplineSpec {
 export const DISCIPLINE_SPECS: Readonly<Record<BoardDiscipline, DisciplineSpec>> = Object.freeze({
   circuit: {
     id: 'circuit',
-    label: 'CIRCUIT',
+    label: N_('CIRCUIT'),
     numeral: '1',
     shape: 'roundel',
-    motto: 'EVERY INPUT. EVERY FORCE.',
-    venueNoun: 'CIRCUIT',
+    motto: N_('EVERY INPUT. EVERY FORCE.'),
+    venueNoun: N_('CIRCUIT'),
     skill: DISCIPLINES['circuit-cars'].skill,
   },
   gp: {
     id: 'gp',
-    label: 'GP BIKE',
+    label: N_('GP BIKE'),
     numeral: '2',
     shape: 'fairing',
-    motto: 'LEAN IN. LET GO LATE.',
-    venueNoun: 'CIRCUIT',
+    motto: N_('LEAN IN. LET GO LATE.'),
+    venueNoun: N_('CIRCUIT'),
     skill: DISCIPLINES['road-bikes'].skill,
   },
   dirt: {
     id: 'dirt',
-    label: 'DIRT',
+    label: N_('DIRT'),
     numeral: '3',
     shape: 'arch',
-    motto: 'FIND YOUR FLOW.',
-    venueNoun: 'VENUE',
+    motto: N_('FIND YOUR FLOW.'),
+    venueNoun: N_('VENUE'),
     skill: DISCIPLINES['off-road'].skill,
   },
   festival: {
     id: 'festival',
-    label: 'FESTIVAL',
+    label: N_('FESTIVAL'),
     numeral: '4',
     shape: 'licence',
-    motto: 'ONE COAST. NO FENCES.',
-    venueNoun: 'REGION',
+    motto: N_('ONE COAST. NO FENCES.'),
+    venueNoun: N_('REGION'),
     skill: DISCIPLINES.festival.skill,
   },
 });
@@ -140,13 +142,31 @@ function allMachinesFor(discipline: BoardDiscipline, circuit: string): string[] 
 /** Plate captions drawn from the registries: what is on offer under each plate. */
 export function disciplineFacts(discipline: BoardDiscipline) {
   if (discipline === 'festival')
-    return { count: SOLVANE.events.length, noun: 'EVENTS', machines: festivalVehicles().length };
+    return {
+      count: SOLVANE.events.length,
+      noun: 'EVENTS',
+      kind: 'event' as const,
+      machines: festivalVehicles().length,
+    };
   const venues = venuesFor(discipline).length;
   return {
     count: venues,
     noun: venues === 1 ? 'VENUE' : 'VENUES',
+    kind: 'venue' as const,
     machines: machinesFor(discipline, venuesFor(discipline)[0] ?? '').length,
   };
+}
+const COUNT_UPPER = {
+  venue: N_('{n, plural, one {# VENUE} other {# VENUES}}'),
+  event: N_('{n, plural, one {# EVENT} other {# EVENTS}}'),
+};
+const COUNT_LOWER = {
+  venue: N_('{n, plural, one {# venue} other {# venues}}'),
+  event: N_('{n, plural, one {# event} other {# events}}'),
+};
+/** "7 VENUES" under a plate, in the player's language; `lower` for the spoken label. */
+export function factsCount(facts: ReturnType<typeof disciplineFacts>, lower = false) {
+  return t((lower ? COUNT_LOWER : COUNT_UPPER)[facts.kind], { n: facts.count });
 }
 
 /** Select values written when a discipline is entered for the first time.

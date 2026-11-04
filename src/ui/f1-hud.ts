@@ -1,3 +1,4 @@
+import { t, th } from '../i18n/index.ts';
 import styles from './f1-hud.css?inline';
 import {
   COMPOUNDS,
@@ -90,36 +91,36 @@ export function sessionHeading(
     done = Math.round(frame[o + F.LAPS]);
   if (mode === 'race' || mode === 'endurance')
     return {
-      session: mode === 'endurance' ? 'ENDURANCE' : 'RACE',
-      label: 'LAP',
+      session: mode === 'endurance' ? t('ENDURANCE') : t('RACE'),
+      label: t('LAP'),
       current: String(Math.min(laps, done + 1)),
       total: `/ ${laps}`,
     };
   if (mode === 'qualifying') {
     if (frame[o + F.FINISH] > 0)
       return {
-        session: 'QUALIFYING',
-        label: 'SESSION',
-        current: 'COMPLETE',
+        session: t('QUALIFYING'),
+        label: t('SESSION'),
+        current: t('COMPLETE'),
         total: '',
       };
     if (!(frame[o + F.LAP_TIME] > 0))
       return {
-        session: 'QUALIFYING',
+        session: t('QUALIFYING'),
         label: '',
-        current: 'OUT LAP',
+        current: t('OUT LAP'),
         total: '',
       };
     return {
-      session: 'QUALIFYING',
-      label: 'LAP',
+      session: t('QUALIFYING'),
+      label: t('LAP'),
       current: String(Math.min(QUALIFYING_TIMED_LAPS, done + 1)),
       total: `/ ${QUALIFYING_TIMED_LAPS}`,
     };
   }
   return {
-    session: mode === 'time-trial' ? 'TIME TRIAL' : 'PRACTICE',
-    label: 'LAP',
+    session: mode === 'time-trial' ? t('TIME TRIAL') : t('PRACTICE'),
+    label: t('LAP'),
     current: String(done + 1),
     total: '',
   };
@@ -165,18 +166,23 @@ export function raceBanner(frame: Float32Array, auto: boolean): RaceBanner {
   const o = carBase(0),
     flag = frame[H.FLAG];
   if (frame[o + F.FINISH] > 0)
-    return banner('finish', 'chequered', 'CHEQUERED FLAG', 'COOL-DOWN LAP · WAITING FOR THE FIELD');
+    return banner(
+      'finish',
+      'chequered',
+      t('CHEQUERED FLAG'),
+      t('COOL-DOWN LAP · WAITING FOR THE FIELD'),
+    );
   const neutralised = Math.round(frame[H.SC_PHASE]);
   if (neutralised > 0)
     return banner(
       'flag',
       'yellow',
-      neutralised === 1 ? 'VIRTUAL SAFETY CAR' : 'SAFETY CAR',
+      neutralised === 1 ? t('VIRTUAL SAFETY CAR') : t('SAFETY CAR'),
       neutralised === 1
-        ? 'KEEP TO THE DELTA · NO OVERTAKING'
+        ? t('KEEP TO THE DELTA · NO OVERTAKING')
         : neutralised === 3
-          ? 'IN THIS LAP · HOLD POSITION'
-          : 'DEPLOYED · NO OVERTAKING',
+          ? t('IN THIS LAP · HOLD POSITION')
+          : t('DEPLOYED · NO OVERTAKING'),
       true,
     );
   if (yellowFlag(flag)) {
@@ -185,8 +191,8 @@ export function raceBanner(frame: Float32Array, auto: boolean): RaceBanner {
     return banner(
       'flag',
       double ? 'double' : 'yellow',
-      double ? 'DOUBLE YELLOW' : 'YELLOW FLAG',
-      `${speed > 0 ? `SLOW · ${speed} KM/H · ` : ''}NO OVERTAKING`,
+      double ? t('DOUBLE YELLOW') : t('YELLOW FLAG'),
+      speed > 0 ? t('SLOW · {speed} KM/H · NO OVERTAKING', { speed }) : t('NO OVERTAKING'),
       true,
     );
   }
@@ -196,18 +202,19 @@ export function raceBanner(frame: Float32Array, auto: boolean): RaceBanner {
     return banner(
       'flag',
       'blue',
-      'BLUE FLAG',
-      who ? `LET ${who} THROUGH` : 'LET THE LEADER PASS',
+      t('BLUE FLAG'),
+      who ? t('LET {who} THROUGH', { who }) : t('LET THE LEADER PASS'),
       true,
     );
   }
-  if (auto) return banner('info', 'info', 'AI DEMONSTRATION', 'PRESS G TO TAKE CONTROL');
+  if (auto) return banner('info', 'info', t('AI DEMONSTRATION'), t('PRESS G TO TAKE CONTROL'));
   const pit = Math.round(frame[o + F.PIT_PHASE]);
-  if (pit > 0) return banner('pit', 'pit', 'PIT LANE', pitPhaseLabel(pit, servicePlanAt(frame, o)));
+  if (pit > 0)
+    return banner('pit', 'pit', t('PIT LANE'), t(pitPhaseLabel(pit, servicePlanAt(frame, o))));
   if (frame[o + F.FRONT_HEALTH] < 0.6)
-    return banner('warn', 'warn', 'FRONT WING DAMAGE', 'REQUEST PIT SERVICE');
+    return banner('warn', 'warn', t('FRONT WING DAMAGE'), t('REQUEST PIT SERVICE'));
   if (frame[H.DRS_ENABLED] > 0 && frame[H.LAP_LEADER] === 3)
-    return banner('info', 'info', 'DRS ENABLED', 'WITHIN 1.0 S AT DETECTION');
+    return banner('info', 'info', t('DRS ENABLED'), t('WITHIN 1.0 S AT DETECTION'));
   return banner('none', '', '', '');
 }
 /** Seconds a banner stays fully visible (Art Bible B §0.3 motion). */
@@ -504,11 +511,11 @@ export class F1Hud {
     const head = document.createElement('span');
     head.className = 'f1-tower-head';
     head.setAttribute('aria-hidden', 'true');
-    head.innerHTML = '<b class="f1-wordmark">MOTOBOUND</b><em class="f1-session">RACE</em>';
+    head.innerHTML = `<b class="f1-wordmark">MOTOBOUND</b><em class="f1-session">${th('RACE')}</em>`;
     const lap = document.createElement('span');
     lap.className = 'f1-tower-lap';
     lap.setAttribute('aria-hidden', 'true');
-    lap.innerHTML = '<small>LAP</small><b>1</b><small>/ 1</small>';
+    lap.innerHTML = `<small>${th('LAP')}</small><b>1</b><small>/ 1</small>`;
     heading.append(head, lap);
     this.towerSession = head.querySelector('em')!;
     this.towerLap = Array.from(lap.children) as HTMLElement[];
@@ -551,7 +558,7 @@ export class F1Hud {
     this.pit.setAttribute('aria-hidden', 'true');
     this.pit.hidden = true;
     this.pit.innerHTML =
-      '<header>PIT LANE</header><div><span><small>PIT</small><b>0.0</b></span><span><small>STOP<br>TIME</small><b class="stop">—</b></span></div><p></p>';
+      `<header>${th('PIT LANE')}</header><div><span><small>${th('PIT')}</small><b>0.0</b></span><span><small>${th('STOP')}<br>${th('TIME')}</small><b class="stop">—</b></span></div><p></p>`;
     [this.pitLane, this.pitStop] = Array.from(this.pit.querySelectorAll('b')) as HTMLElement[];
     this.pitPhase = this.pit.querySelector('p')!;
     this.tagLayer = document.createElement('div');
