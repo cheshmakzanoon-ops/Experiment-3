@@ -68,6 +68,8 @@ import {
   type StartSlot,
 } from '../simulation/config.ts';
 import { rulesetFor, sessionIncompatibilities } from '../simulation/events.ts';
+import { demoSessionLock } from '../release/demo-gates.ts';
+import { demoBoardPlateHtml } from './demo-plate.ts';
 import {
   WEATHER_CATALOGUE,
   weatherOptionsHtml,
@@ -299,7 +301,7 @@ export class Interface {
   <div id="loading" class="loading" role="status" aria-live="polite" aria-busy="true"><div class="brand">MOTOBOUND<span>MOTORSPORT</span></div><div id="loadingMap" class="loading-map" aria-hidden="true"></div><p id="loadingSession" class="loading-session" hidden></p><div class="loading-progress"><div class="loading-row"><b id="loadingStage">Loading</b><span id="loadingPercent">0%</span></div><div class="loader" id="loadingBar" role="progressbar" aria-label="Loading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div></div><p id="loadingText" class="loading-detail"${DEV ? '' : ' hidden'}>Preparing circuit and car systems…</p><p id="loadingTip" class="loading-tip"><b>TIP</b> ${LOADING_TIPS[0]}</p></div>
   <section id="menu" class="menu" hidden>
    <header class="masthead"><div class="brand">MOTOBOUND<span>MOTORSPORT</span></div><span class="edition">DRIVER <b id="menuDriver">${escapeHtml(this.playerName.toUpperCase())}</b></span></header>
-   <div class="menu-body" tabindex="0" role="region" aria-label="Race setup and tools"><div class="lb-board">${boardPlatesHtml()}<h1>EVERY INPUT. EVERY FORCE.</h1><p class="intro">Braking points, tyre management and racecraft.</p><div id="boardSeries" class="lb-series" hidden></div>
+   <div class="menu-body" tabindex="0" role="region" aria-label="Race setup and tools"><div class="lb-board">${boardPlatesHtml()}<h1>EVERY INPUT. EVERY FORCE.</h1><p class="intro">Braking points, tyre management and racecraft.</p><div id="boardSeries" class="lb-series" hidden></div>${demoBoardPlateHtml()}
    <form id="sessionForm" class="session-form">
     <section class="lb-sheet" aria-label="Event">
      ${dialHtml('circuit', 'CIRCUIT', null, `<select id="circuit">${circuitOptionsHtml()}</select>`, 'lb-dial-venue')}
@@ -533,6 +535,14 @@ export class Interface {
     // (the festival picks its own road machine and has no circuit rules).
     const problems =
       select('mode') === 'festival' ? [] : sessionIncompatibilities(validateOptions(options));
+    // Steam demo: content outside the slice reads as FULL GAME here and is refused again at
+    // the session start (main.ts), whichever door it came through.
+    const locked = demoSessionLock({
+      circuit: options.circuit,
+      mode: options.mode,
+      vehicles: options.vehicles,
+    });
+    if (locked) problems.unshift(locked);
     return { options, problems };
   }
   /** FIRST LAUNCH: open the screen (see first-run.ts). The radios come preselected. */

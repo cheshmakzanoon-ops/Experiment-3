@@ -10,6 +10,7 @@ import { SOLVANE } from '../simulation/open-world/region-data.ts';
 import { DISCIPLINES } from '../career/registry.ts';
 import { BIKE_MACHINES } from './bike-machines.ts';
 import { machineChoices } from './machine-options.ts';
+import { circuitOpen, demoPolicy, machineOpen } from '../release/demo.ts';
 
 /** The four ways to race, as the menu presents them (art direction section 2).
  * A discipline is a *view* over the session form: the form's selects stay the
@@ -90,6 +91,10 @@ export function disciplineOf(fields: EntryFields): BoardDiscipline {
 
 /** Circuits listed under a discipline, in menu order. */
 export function venuesFor(discipline: BoardDiscipline): CircuitId[] {
+  // The Steam demo offers a slice (src/release/demo.ts); the full game offers every venue.
+  return allVenuesFor(discipline).filter(circuitOpen);
+}
+function allVenuesFor(discipline: BoardDiscipline): CircuitId[] {
   switch (discipline) {
     case 'circuit':
       return CIRCUIT_IDS.filter((id) => !CIRCUITS[id].offroad);
@@ -103,6 +108,9 @@ export function venuesFor(discipline: BoardDiscipline): CircuitId[] {
 }
 /** Machine ids (MACHINE select values) a discipline offers at a venue, in menu order. */
 export function machinesFor(discipline: BoardDiscipline, circuit: string): string[] {
+  return allMachinesFor(discipline, circuit).filter((id) => machineOpen(id, discipline));
+}
+function allMachinesFor(discipline: BoardDiscipline, circuit: string): string[] {
   const all = machineChoices().flatMap((group) => group.options.map((o) => ({ ...o, group })));
   switch (discipline) {
     case 'gp':
@@ -160,7 +168,9 @@ export function entryDefaults(
     case 'gp': {
       const venues = venuesFor('gp');
       if (!venues.includes(current.circuit as CircuitId)) out.circuit = venues[0];
-      if (!Object.hasOwn(BIKE_MACHINES, current.vehicle)) out.vehicle = Object.keys(BIKE_MACHINES)[0];
+      // (The Steam demo offers a slice of the bikes: a remembered locked one is replaced.)
+      const bikes = machinesFor('gp', '');
+      if (!bikes.includes(current.vehicle)) out.vehicle = bikes[0];
       if (current.mode === 'festival') out.mode = raceMode;
       break;
     }
@@ -177,8 +187,9 @@ export function entryDefaults(
       const def = Object.hasOwn(VEHICLES, current.vehicle) ? VEHICLES[current.vehicle] : null;
       // The festival admits every road-legal car, but a single-seater is a poor
       // first drive on public roads: start from the festival's own default.
-      if (!def || !festivalAdmits(def) || def.classId === 'formula')
-        out.vehicle = festivalDefaultVehicle();
+      // The Steam demo lends only its own coast cars (src/release/demo.ts).
+      if (!def || !festivalAdmits(def) || def.classId === 'formula' || !machineOpen(def.id, 'festival'))
+        out.vehicle = (demoPolicy() ? machinesFor('festival', '')[0] : undefined) ?? festivalDefaultVehicle();
       break;
     }
   }

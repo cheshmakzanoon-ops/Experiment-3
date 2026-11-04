@@ -44,6 +44,10 @@ contextBridge.exposeInMainWorld('motobound', {
       /** { status: 'menu'|'racing'|..., venue?, vehicle?, weather?, discipline? } */
       presence: (state) => call('steam:presence', state),
     },
+    shell: {
+      /** Demo wishlist: ask the shell to open the store page. `source` is a campaign label only. */
+      openStore: (source) => call('shell:openStore', source),
+    },
     quit: () => call('quit'),
   },
 });

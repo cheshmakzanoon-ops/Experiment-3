@@ -4,6 +4,8 @@ import { festivalClasses } from '../simulation/open-world/festival-machines.ts';
 import { SOLVANE, type FestivalEventKind, type RegionDefinition } from '../simulation/open-world/region-data.ts';
 import * as protocol from '../simulation/protocol.ts';
 import { VEHICLES, VEHICLE_IDS, type VehicleDefinition } from '../simulation/vehicles.ts';
+import { LICENCE_IDS, type LicenceId } from './licences.ts';
+import { demoPolicy, type DemoPolicy } from '../release/demo.ts';
 
 /** What the career reads from the content registries (GAME_DESIGN §2–§4).
  * Everything the career shows is derived from these lists, so a vehicle,
@@ -125,6 +127,8 @@ export interface CareerRegistry {
   channels: readonly string[];
   /** Festival regions (each is also a `venueKind: 'festival'` venue). */
   festival?: readonly CareerFestivalRegion[];
+  /** Licence tests this build leaves out (the Steam demo's FULL GAME licences). */
+  lockedLicences?: readonly LicenceId[];
 }
 /** The career's view of a festival region, from its authored data: every
  * event (so an event added to the region data appears in the career) and the
@@ -181,9 +185,23 @@ export function snapshotChannels(module: Record<string, unknown> = protocol): st
     channels.add('AIRBORNE');
   return [...channels];
 }
+/** The Steam demo's career: only the slice's machines, venues and authored events, and its
+ * licences (src/release/demo.ts). Everything the career shows derives from the registry, so
+ * cutting it here cuts every page, event and purchase the same way. */
+export function sliceRegistry(registry: CareerRegistry, policy: DemoPolicy): CareerRegistry {
+  const machines = (ids: string | readonly string[]) =>
+    [ids].flat().every((id) => policy.machineOpen(id));
+  return {
+    ...registry,
+    vehicles: registry.vehicles.filter((v) => policy.machineOpen(v.id)),
+    venues: registry.venues.filter((v) => v.venueKind === 'festival' || policy.circuitOpen(v.id)),
+    events: registry.events.filter((e) => policy.circuitOpen(e.circuit) && machines(e.vehicles)),
+    lockedLicences: LICENCE_IDS.filter((id) => !policy.licenceOpen(id)),
+  };
+}
 export function liveRegistry(): CareerRegistry {
   const festival = [festivalRegion()];
-  return {
+  const registry: CareerRegistry = {
     vehicles: VEHICLE_IDS.map((id) => VEHICLES[id] as VehicleDefinition),
     venues: [...CIRCUIT_IDS.map((id) => CIRCUITS[id] as CareerVenue), ...festival.map(festivalVenue)],
     rulesets: Object.values(RULESETS),
@@ -191,6 +209,8 @@ export function liveRegistry(): CareerRegistry {
     channels: snapshotChannels(),
     festival,
   };
+  const demo = demoPolicy();
+  return demo ? sliceRegistry(registry, demo) : registry;
 }
 
 export const DISCIPLINE_IDS = ['circuit-cars', 'road-bikes', 'off-road', 'festival'] as const;

@@ -153,6 +153,10 @@ import type { FestivalSession } from './session/free-roam.ts';
 import { emitGameEvent } from './steam/events.ts';
 import { emitLapRecord, emitRaceFinished, emitSessionStarted } from './steam/hooks.ts';
 import { startAchievements } from './steam/runtime.ts';
+import { clockText, demoPolicy, festivalClock, type FestivalClock } from './release/demo.ts';
+import { demoSessionLock } from './release/demo-gates.ts';
+import { openWishlist } from './release/wishlist.ts';
+import { demoClockHtml, demoEndHtml } from './ui/demo-plate.ts';
 type State = 'menu' | 'loading' | 'driving' | 'paused' | 'results' | 'replay' | 'photo' | 'pregame';
 export class GameApp {
   private readonly gridClock = new GridPresentationClock();
@@ -171,6 +175,11 @@ export class GameApp {
   /** Festival free roam: while set it owns input, frames and the canvas. */
   private festival: FestivalSession | null = null;
   private festivalStarting = false;
+  /** Steam demo: the coast visit clock and its HUD chip (null in the full game). */
+  private demoClock: FestivalClock | null = null;
+  private demoClockAt = 0;
+  private demoClockShown = -1;
+  private demoChip: HTMLElement | null = null;
   private programme = new PracticeProgramme();
   /** Driver career (src/career): licences, events, garage and payments. */
   private career: CareerController;
@@ -841,6 +850,11 @@ export class GameApp {
     career: { travel: string | null; loaner: boolean } | null = null,
   ) {
     if (this.festival || this.festivalStarting || !this.renderer || !this.canvas) return;
+    const locked = demoSessionLock({ circuit: options.circuit, mode: 'festival', vehicles: options.vehicles });
+    if (locked) {
+      this.ui.toast(`${locked}. Wishlist the full game on Steam.`);
+      return;
+    }
     this.festivalStarting = true;
     const renderer = this.renderer;
     // The festival opens in the player's LIGHT choice (AUTO is daylight there).
@@ -905,6 +919,7 @@ export class GameApp {
         },
       );
       this.input.setEnabled(this.festival.drivingInputEnabled);
+      this.beginDemoClock();
       emitSessionStarted(options, 'festival');
     } catch (error) {
       this.festival = null;
@@ -914,7 +929,53 @@ export class GameApp {
       this.festivalStarting = false;
     }
   }
+  /** Steam demo: the coast visit is timed (src/release/demo.ts). Nothing happens in the full game. */
+  private beginDemoClock() {
+    const policy = demoPolicy();
+    if (!policy) return;
+    this.demoClock = festivalClock(policy.festivalSeconds);
+    this.demoClockAt = 0;
+    this.demoClockShown = -1;
+    const host = document.createElement('div');
+    host.innerHTML = demoClockHtml(policy.festivalSeconds);
+    this.demoChip = host.firstElementChild as HTMLElement;
+    document.getElementById('app')?.append(this.demoChip);
+    this.ui.toast(`Demo: ${Math.round(policy.festivalSeconds / 60)} minutes on the coast.`);
+  }
+  private endDemoClock() {
+    this.demoClock = null;
+    this.demoChip?.remove();
+    this.demoChip = null;
+  }
+  /** Called each festival frame; counts only seconds spent driving, then ends the visit. */
+  private tickDemoClock(time: number) {
+    const clock = this.demoClock;
+    if (!clock || !this.festival) return;
+    const dt = this.demoClockAt ? (time - this.demoClockAt) / 1000 : 0;
+    this.demoClockAt = time;
+    if (clock.tick(dt, this.festival.drivingInputEnabled)) {
+      const minutes = Math.round(clock.limit / 60);
+      this.exitFestival();
+      this.ui.modalContent(demoEndHtml(minutes));
+      return;
+    }
+    const left = Math.ceil(clock.remaining);
+    if (left !== this.demoClockShown && this.demoChip) {
+      this.demoClockShown = left;
+      const b = this.demoChip.querySelector('b');
+      if (b) b.textContent = clockText(left);
+      this.demoChip.dataset.low = String(left <= 60);
+    }
+  }
+  /** `demo:…` actions: the FULL GAME plates' wishlist button. */
+  private async demoAction(name: string) {
+    const [, command, where] = name.split(':');
+    if (command !== 'wishlist') return;
+    const outcome = await openWishlist(where ?? 'demo');
+    if (!outcome.ok) this.ui.toast(outcome.message);
+  }
   private exitFestival() {
+    this.endDemoClock();
     this.festival?.dispose();
     this.festival = null;
     this.career.endFestival();
@@ -935,6 +996,13 @@ export class GameApp {
     holdOnGrid = false,
     career: CareerSession | null = null,
   ) {
+    // Steam demo: whichever door the session came through (paddock form, CONTINUE, career,
+    // Wildcard board, meeting), content outside the slice stops here.
+    const locked = demoSessionLock(options, career?.event?.key ?? null);
+    if (locked) {
+      this.ui.toast(`${locked}. Wishlist the full game on Steam.`);
+      return;
+    }
     if (this.savingSettings) {
       this.ui.toast(
         'Preferences are still being applied. Start the session after saving completes.',
@@ -1281,6 +1349,7 @@ export class GameApp {
     this.menuPresentationActive = menuActive;
     if (this.festival) {
       this.festival.frame(time);
+      this.tickDemoClock(time);
       return;
     }
     this.observeSession();
@@ -2232,6 +2301,10 @@ export class GameApp {
   private action(name: string) {
     if (name.startsWith('firstrun:')) {
       this.firstRunAction(name);
+      return;
+    }
+    if (name.startsWith('demo:')) {
+      void this.demoAction(name);
       return;
     }
     if (this.festival?.action(name)) return;

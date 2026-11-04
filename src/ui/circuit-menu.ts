@@ -1,5 +1,6 @@
 import { CIRCUITS, CIRCUIT_IDS, type CircuitId } from '../simulation/circuits.ts';
 import type { CatalogueGroup } from '../simulation/circuit-catalogue/venue-data.ts';
+import { circuitOpen, lockedLabel } from '../release/demo.ts';
 
 /** Circuit selection copy (WP29-WP30): grouped Original / Real-world /
  * Unconventional, each layout with its lap length, corner count and a short
@@ -44,7 +45,14 @@ export function circuitOptionsHtml() {
   return CIRCUIT_GROUPS.map(({ group, label }) => {
     const ids = CIRCUIT_IDS.filter((id) => circuitGroup(id) === group);
     return ids.length
-      ? `<optgroup label="${escape(label)}">${ids.map((id) => `<option value="${id}">${escape(CIRCUIT_MENU_LABELS[id])}</option>`).join('')}</optgroup>`
+      ? `<optgroup label="${escape(label)}">${ids
+          .map((id) =>
+            // Steam demo: a venue outside the slice stays listed as a FULL GAME entry.
+            circuitOpen(id)
+              ? `<option value="${id}">${escape(CIRCUIT_MENU_LABELS[id])}</option>`
+              : `<option value="${id}" disabled>${escape(lockedLabel(CIRCUIT_MENU_LABELS[id]))}</option>`,
+          )
+          .join('')}</optgroup>`
       : '';
   }).join('');
 }

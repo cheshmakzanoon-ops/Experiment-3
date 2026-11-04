@@ -2,6 +2,7 @@ import type { Championship, RoundSpec } from '../core/championship.ts';
 import type { WeatherPreset } from '../simulation/config.ts';
 import type { EventDefinition } from '../simulation/events.ts';
 import { LICENCE_TESTS, medalAtLeast, type LicenceId, type Medal } from './licences.ts';
+import { FULL_GAME, demoPolicy, licenceOpen } from '../release/demo.ts';
 import {
   DISCIPLINES,
   DISCIPLINE_IDS,
@@ -293,7 +294,10 @@ export interface ProgressView {
 export function licenceMissing(view: ProgressView, t: TierDefinition) {
   return t.licences
     .filter((need) => !medalAtLeast(view.licences[need.id]?.medal, need.medal))
-    .map((need) => `${LICENCE_TESTS[need.id].name} licence (${need.medal})`);
+    .map(
+      (need) =>
+        `${LICENCE_TESTS[need.id].name} licence (${need.medal})${licenceOpen(need.id) ? '' : ` · ${FULL_GAME}`}`,
+    );
 }
 /** The owned vehicle the player races in a tier: the discipline's active
  * vehicle when it belongs to the tier, else the first owned one that does. */
@@ -523,7 +527,12 @@ export function disciplineEvents(
       (v) => t.classes.some((c) => venueTakes(v, c)) && machines.every((m) => venueAdmits(v, m)),
     );
     const coming = [...status.reasons];
-    if (!machines.length) coming.push(`No ${t.classes.join(' / ')} machine is registered yet.`);
+    if (!machines.length)
+      coming.push(
+        demoPolicy()
+          ? `${t.name} · ${FULL_GAME}`
+          : `No ${t.classes.join(' / ')} machine is registered yet.`,
+      );
     else if (!machines.some((m) => rulesetsFor(registry, m.classId, 'race').length))
       coming.push(
         `No race ruleset admits ${[...new Set(machines.map((m) => m.classId))].join(' / ')} yet.`,
@@ -721,6 +730,8 @@ export interface LicenceAvailability {
   vehicle: string | null;
   loaner: boolean;
   definition: EventDefinition | null;
+  /** The Steam demo leaves this licence to the full game (`status` is then 'coming'). */
+  locked?: boolean;
 }
 /** Whether a licence test can run now, and with what. Coming states name
  * the missing content or snapshot channel. */
@@ -729,6 +740,17 @@ export function licenceAvailability(
   view: ProgressView,
   id: LicenceId,
 ): LicenceAvailability {
+  if (registry.lockedLicences?.includes(id))
+    return {
+      test: id,
+      status: 'coming',
+      reasons: [FULL_GAME],
+      venue: null,
+      vehicle: null,
+      loaner: false,
+      definition: null,
+      locked: true,
+    };
   const test = LICENCE_TESTS[id],
     status = disciplineStatus(registry, test.discipline),
     reasons = [...status.reasons];

@@ -19,6 +19,7 @@ const {
   protocol,
   screen,
   session,
+  shell,
 } = require('electron');
 
 const { parseArgs, planSwitches } = require('./src/flags.cjs');
@@ -40,6 +41,7 @@ const {
   WindowStateStore,
 } = require('./src/window-state.cjs');
 const { loadSteam } = require('./src/steam.cjs');
+const { openStore } = require('./src/store-link.cjs');
 const { createLogger } = require('./src/logger.cjs');
 
 const options = parseArgs(process.argv, process.env);
@@ -115,6 +117,15 @@ function webRoot() {
   if (app.isPackaged) return path.join(process.resourcesPath, 'web');
   const staged = path.join(__dirname, 'web');
   return fs.existsSync(staged) ? staged : path.join(__dirname, '..', 'dist');
+}
+
+/** `STORE_LINK.json` staged next to the game by desktop/scripts/stage-web.cjs (null when absent). */
+function readStoreLink() {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(webRoot(), 'STORE_LINK.json'), 'utf8'));
+  } catch {
+    return null;
+  }
 }
 
 function parseRange(header, size) {
@@ -458,6 +469,17 @@ function registerIpc() {
     });
     return true;
   });
+  // The Steam demo's WISHLIST button. The page sends a campaign label only; the shell builds the
+  // address from the configured store app id and opens it if it passes the allow-list.
+  handle('shell:openStore', (source) =>
+    openStore({
+      env: process.env,
+      config: readStoreLink(),
+      source,
+      openExternal: (url) => shell.openExternal(url),
+      log,
+    }),
+  );
   handle('quit', () => {
     app.quit();
     return true;

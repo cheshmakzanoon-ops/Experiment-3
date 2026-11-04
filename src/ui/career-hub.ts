@@ -45,6 +45,8 @@ import { CIRCUITS, type CircuitId } from '../simulation/circuits.ts';
 import { DISCIPLINE_SPECS, type BoardDiscipline } from './disciplines.ts';
 import { ladderOf, seasonPlan, type FirstStep, type Rung } from '../career/next-up.ts';
 import { meetingEvent } from './offroad-meeting.ts';
+import { lockedPanelHtml } from './demo-plate.ts';
+import { FULL_GAME, demoPolicy } from '../release/demo.ts';
 
 /** Career screens (GAME_DESIGN §3–§5): discipline hub, licences, events,
  * garage and dealership. Plain buttons with data-action, in reading order,
@@ -77,8 +79,12 @@ const reasonsList = (reasons: readonly string[]) =>
   reasons.length
     ? `<ul class="career-reasons">${reasons.map((r) => `<li>${escapeHtml(r)}</li>`).join('')}</ul>`
     : '';
+// In the Steam demo the registry is cut to the slice, so what is "missing from this build" is the
+// full game's content: say so (the full game has no 'coming' content to mislabel).
+const comingTag = () => (demoPolicy() ? FULL_GAME : 'COMING');
+const comingLead = () => (demoPolicy() ? 'In the full game:' : 'Coming — missing from this build:');
 const stateTag = (state: 'open' | 'locked' | 'coming') =>
-  `<span class="career-state" data-state="${state}">${state === 'open' ? 'OPEN' : state === 'locked' ? 'LOCKED' : 'COMING'}</span>`;
+  `<span class="career-state" data-state="${state}">${state === 'open' ? 'OPEN' : state === 'locked' ? 'LOCKED' : comingTag()}</span>`;
 const vehicleName = (registry: Pick<CareerRegistry, 'vehicles'>, id: string | null) =>
   id ? (registry.vehicles.find((v) => v.id === id)?.name ?? `${id} (not in this build)`) : '—';
 const venueName = (registry: Pick<CareerRegistry, 'venues'>, id: string | null) =>
@@ -262,7 +268,7 @@ function eventCard(event: CareerEvent, save: CareerSave, registry: CareerRegistr
     event.kind === 'championship' && running && season.season.results.length
       ? button('ABANDON SEASON', `career:abandon:${event.key}`)
       : '';
-  return `<article class="career-event" data-kind="${event.kind}" data-status="${event.status}"><header><span class="eyebrow">${event.kind === 'recovery' ? 'RECOVERY SERIES · ALWAYS OPEN' : event.kind.toUpperCase()}</span>${stateTag(event.status)}</header><h4>${escapeHtml(event.name)}</h4><p>${escapeHtml(event.description)}</p>${detail}${objectives}${championship}${event.status !== 'open' ? `<p class="career-needs">${event.status === 'coming' ? 'Coming — missing from this build:' : 'Requires:'}</p>${reasonsList(event.reasons)}` : ''}${action}${meeting}${abandon}</article>`;
+  return `<article class="career-event" data-kind="${event.kind}" data-status="${event.status}"><header><span class="eyebrow">${event.kind === 'recovery' ? 'RECOVERY SERIES · ALWAYS OPEN' : event.kind.toUpperCase()}</span>${stateTag(event.status)}</header><h4>${escapeHtml(event.name)}</h4><p>${escapeHtml(event.description)}</p>${detail}${objectives}${championship}${event.status !== 'open' ? `<p class="career-needs">${event.status === 'coming' ? comingLead() : 'Requires:'}</p>${reasonsList(event.reasons)}` : ''}${action}${meeting}${abandon}</article>`;
 }
 /** Star glyphs with a text alternative (as the festival results card). */
 const starLine = (n: number) =>
@@ -299,7 +305,7 @@ function festivalCard(e: FestivalCareerEvent, registry: CareerRegistry) {
     : '';
   const facts = `<dl class="career-facts"><dt>Format</dt><dd>${escapeHtml(EVENT_KIND_LABEL[ev.kind])}${race ? ` · ${ev.rivals} rival${ev.rivals === 1 ? '' : 's'}` : ''}${ev.laps > 1 ? ` · ${ev.laps} laps` : ''}</dd>${targets}<dt>Needs</dt><dd>${FESTIVAL_RULES[ev.kind].reputation} festival reputation · discovered</dd><dt>Machine</dt><dd>${escapeHtml(vehicleName(registry, e.vehicle))}${e.loaner ? ' · loaned' : ''}</dd><dt>Pay rate</dt><dd>× ${e.stakes}</dd>${best}</dl>`;
   const action = e.status === 'open' ? button('DRIVE TO EVENT', `career:start:${e.key}`, true) : '';
-  return `<article class="career-event" data-kind="festival" data-festival-event="${escapeHtml(ev.id)}" data-status="${e.status}" data-discovered="${e.discovered}"><header><span class="eyebrow">${escapeHtml(EVENT_KIND_LABEL[ev.kind].toUpperCase())} · ${e.discovered ? 'DISCOVERED' : 'UNDISCOVERED'}</span>${stateTag(e.status)}</header><h4>${escapeHtml(ev.name)}</h4><p>${escapeHtml(ev.blurb)}</p>${facts}${e.status !== 'open' ? `<p class="career-needs">${e.status === 'coming' ? 'Coming — missing from this build:' : 'Requires:'}</p>${reasonsList(e.reasons)}` : ''}${action}</article>`;
+  return `<article class="career-event" data-kind="festival" data-festival-event="${escapeHtml(ev.id)}" data-status="${e.status}" data-discovered="${e.discovered}"><header><span class="eyebrow">${escapeHtml(EVENT_KIND_LABEL[ev.kind].toUpperCase())} · ${e.discovered ? 'DISCOVERED' : 'UNDISCOVERED'}</span>${stateTag(e.status)}</header><h4>${escapeHtml(ev.name)}</h4><p>${escapeHtml(ev.blurb)}</p>${facts}${e.status !== 'open' ? `<p class="career-needs">${e.status === 'coming' ? comingLead() : 'Requires:'}</p>${reasonsList(e.reasons)}` : ''}${action}</article>`;
 }
 /** The festival tab: the open-world region, discoveries, every event with
  * its unlock state and your best, and free roam (GAME_DESIGN §3). */
@@ -346,7 +352,7 @@ function licencesPage(save: CareerSave, registry: CareerRegistry) {
       const test = LICENCE_TESTS[id],
         a = licenceAvailability(registry, save, id),
         record = save.licences[id];
-      return `<article class="career-licence" data-licence="${id}" data-status="${a.status}"><header><span class="eyebrow">${DISCIPLINES[test.discipline].short} · ${escapeHtml(test.skill.toUpperCase())}</span>${stateTag(a.status)}</header><h4>${escapeHtml(test.name)}</h4><p>${escapeHtml(test.brief)}</p><p class="career-thresholds" aria-label="Medal limits">${thresholds(test)}</p><dl class="career-facts"><dt>Measured</dt><dd>${escapeHtml(test.metric.label)}</dd><dt>Your medal</dt><dd>${record?.medal ? record.medal.toUpperCase() : 'None yet'}</dd><dt>Your best</dt><dd>${formatMetric(test, record?.best ?? null)}</dd><dt>Attempts</dt><dd>${record?.attempts ?? 0}</dd>${a.status === 'open' ? `<dt>Machine</dt><dd>${escapeHtml(vehicleName(registry, a.vehicle))}${a.loaner ? ' · loaned' : ''}</dd><dt>Venue</dt><dd>${escapeHtml(venueName(registry, a.venue))}</dd>` : ''}</dl>${a.status === 'open' ? button('START TEST', `career:licence:${id}`, true) : `<p class="career-needs">Coming — missing from this build:</p>${reasonsList(a.reasons)}`}</article>`;
+      return `<article class="career-licence" data-licence="${id}" data-status="${a.status}"${a.locked ? ' data-locked="true"' : ''}><header><span class="eyebrow">${DISCIPLINES[test.discipline].short} · ${escapeHtml(test.skill.toUpperCase())}</span>${stateTag(a.status)}</header><h4>${escapeHtml(test.name)}</h4><p>${escapeHtml(test.brief)}</p><p class="career-thresholds" aria-label="Medal limits">${thresholds(test)}</p><dl class="career-facts"><dt>Measured</dt><dd>${escapeHtml(test.metric.label)}</dd><dt>Your medal</dt><dd>${record?.medal ? record.medal.toUpperCase() : 'None yet'}</dd><dt>Your best</dt><dd>${formatMetric(test, record?.best ?? null)}</dd><dt>Attempts</dt><dd>${record?.attempts ?? 0}</dd>${a.status === 'open' ? `<dt>Machine</dt><dd>${escapeHtml(vehicleName(registry, a.vehicle))}${a.loaner ? ' · loaned' : ''}</dd><dt>Venue</dt><dd>${escapeHtml(venueName(registry, a.venue))}</dd>` : ''}</dl>${a.status === 'open' ? button('START TEST', `career:licence:${id}`, true) : a.locked ? lockedPanelHtml('This licence test is in the full game, with the rest of the ladder behind it.', 'career-licence') : `<p class="career-needs">${comingLead()}</p>${reasonsList(a.reasons)}`}</article>`;
     },
   ).join('')}</div>`;
 }

@@ -56,6 +56,15 @@ export interface MotoboundDesktop {
     unlock(ids: string[]): Promise<string[]>;
     presence(state: SteamPresence): Promise<boolean>;
   };
+  /** Optional: absent in a shell older than the demo edition. */
+  shell?: {
+    /**
+     * Open the game's Steam store page in the player's browser (the Steam demo's wishlist
+     * button). The page sends only a campaign label: the shell builds the URL from its own
+     * configured app id and allow-list, so the page can never choose where this goes.
+     */
+    openStore(source: string): Promise<{ opened: boolean; reason: string | null }>;
+  };
   quit(): Promise<boolean>;
 }
 

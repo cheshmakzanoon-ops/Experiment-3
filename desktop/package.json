@@ -16,10 +16,15 @@
     "stage": "node scripts/stage-web.cjs",
     "pack:linux": "node scripts/stage-web.cjs && electron-builder --linux dir --publish never",
     "dist:linux": "node scripts/stage-web.cjs && electron-builder --linux AppImage zip --publish never",
-    "dist:win": "node scripts/stage-web.cjs && electron-builder --win nsis zip --publish never",
+    "dist:win": "node scripts/stage-web.cjs && electron-builder --win nsis portable zip --publish never",
     "dist:win:zip": "node scripts/stage-web.cjs && electron-builder --win zip --publish never",
     "dist:mac": "node scripts/stage-web.cjs && electron-builder --mac zip --publish never",
-    "test:smoke": "node scripts/smoke.cjs"
+    "pack:demo:linux": "node scripts/stage-web.cjs --demo && electron-builder --config electron-builder.demo.yml --linux dir --publish never",
+    "dist:demo:linux": "node scripts/stage-web.cjs --demo && electron-builder --config electron-builder.demo.yml --linux AppImage zip --publish never",
+    "dist:demo:win": "node scripts/stage-web.cjs --demo && electron-builder --config electron-builder.demo.yml --win nsis portable zip --publish never",
+    "dist:demo:mac": "node scripts/stage-web.cjs --demo && electron-builder --config electron-builder.demo.yml --mac zip --publish never",
+    "test:smoke": "node scripts/smoke.cjs",
+    "test:smoke:demo": "node scripts/smoke.cjs --app release-demo/linux-unpacked/motobound-demo"
   },
   "devDependencies": {
     "electron": "44.9.3",

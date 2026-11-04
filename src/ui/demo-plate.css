@@ -1,0 +1,166 @@
+/* Steam demo edition: FULL GAME plates (src/ui/demo-plate.ts). Injected with front-end.css by
+ * installFrontEnd(); tokens only (--mb-*). The plate is a paper label stencilled on asphalt, so
+ * "locked" reads as a thing printed on the board and never as a disabled control; amber is
+ * kept for the one button that acts (wishlist). Nothing here renders in the full game. */
+
+/* ---------- The tag that replaces a medal or status on a locked row ----------------- */
+.dm-tag,
+.dm-lock-tag {
+  display: inline-block;
+  flex: none;
+  padding: calc(2px * var(--mb-u)) var(--mb-s2);
+  border: 1px solid var(--mb-paper);
+  color: var(--mb-paper);
+  font: 400 calc(10px * var(--mb-u)) / 1.2 var(--mb-stencil);
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+}
+.dm-lock-tag {
+  background: var(--mb-paper);
+  color: var(--mb-paper-ink);
+}
+
+/* ---------- Paddock board plate ------------------------------------------------------ */
+#menu .dm-board {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--mb-s2) var(--mb-s4);
+  margin: var(--mb-s3) 0 0;
+  padding: var(--mb-s2) var(--mb-s3);
+  border: 1px dashed var(--mb-line-strong);
+  background: rgba(232, 223, 200, 0.05);
+  clip-path: polygon(0 0, calc(100% - var(--mb-notch)) 0, 100% var(--mb-notch), 100% 100%, 0 100%);
+}
+.dm-head {
+  display: grid;
+  gap: 2px;
+}
+.dm-kicker {
+  color: var(--mb-paper);
+  font: 400 calc(10px * var(--mb-u)) / 1 var(--mb-stencil);
+  letter-spacing: 0.2em;
+}
+.dm-head b {
+  font: 400 var(--mb-f-board) / 1.1 var(--mb-stencil);
+  letter-spacing: 0.06em;
+  color: var(--mb-chalk);
+}
+.dm-counts {
+  display: flex;
+  grid-column: 1 / -1;
+  flex-wrap: wrap;
+  gap: var(--mb-s1) var(--mb-s3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--mb-chalk-dim);
+  font: 500 var(--mb-f-label) / 1.3 var(--mb-sans);
+  letter-spacing: 0.08em;
+}
+.dm-counts b {
+  color: var(--mb-paper);
+  font: 400 var(--mb-f-value) / 1 var(--mb-stencil);
+}
+.dm-store-note {
+  color: var(--mb-chalk-faint);
+  font: 500 var(--mb-f-label) / 1 var(--mb-sans);
+  letter-spacing: 0.14em;
+}
+
+/* ---------- The wishlist button: the one amber thing on a plate -------------------- */
+.dm-wishlist {
+  min-height: var(--mb-field);
+  padding: 0 var(--mb-s4);
+  border: 2px solid var(--mb-amber);
+  background: var(--mb-amber);
+  color: var(--mb-ink);
+  font: 400 var(--mb-f-lead) / 1 var(--mb-stencil);
+  letter-spacing: 0.1em;
+  cursor: pointer;
+}
+.dm-wishlist:hover {
+  background: transparent;
+  color: var(--mb-amber);
+}
+.dm-wishlist:focus-visible {
+  outline: 3px solid var(--mb-chalk);
+  outline-offset: 2px;
+}
+
+/* ---------- Locked panel (Wildcard detail, licence card) --------------------------- */
+.dm-locked {
+  display: grid;
+  justify-items: start;
+  gap: var(--mb-s3);
+  padding: var(--mb-s3) var(--mb-s4);
+  border: 1px dashed var(--mb-line-strong);
+  background: rgba(232, 223, 200, 0.05);
+}
+.dm-locked p {
+  margin: 0;
+  color: var(--mb-chalk-dim);
+  font: 500 var(--mb-f-lead) / 1.4 var(--mb-sans);
+}
+
+/* Locked rows keep their place on the board and read as printed, not broken. */
+.wc-row[data-locked='true'] {
+  opacity: 0.78;
+}
+.wc-row[data-locked='true'] .wc-row-flags {
+  gap: var(--mb-s2);
+}
+.career-licence[data-locked='true'] {
+  opacity: 0.85;
+}
+
+/* ---------- End of the coast visit ----------------------------------------------------- */
+.dm-end {
+  display: grid;
+  gap: var(--mb-s3);
+  max-width: calc(560px * var(--mb-u));
+  padding: var(--mb-s5);
+  color: var(--mb-chalk);
+}
+.dm-end h2 {
+  margin: 0;
+  font: 400 var(--mb-f-title) / 1.1 var(--mb-stencil);
+}
+.dm-end p {
+  margin: 0;
+  color: var(--mb-chalk-dim);
+  font: 500 var(--mb-f-lead) / 1.5 var(--mb-sans);
+}
+.dm-end-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mb-s3);
+}
+
+/* ---------- Festival visit clock --------------------------------------------------------- */
+.dm-clock {
+  position: fixed;
+  top: var(--mb-s3);
+  left: 50%;
+  z-index: 40;
+  display: grid;
+  justify-items: center;
+  transform: translateX(-50%);
+  padding: var(--mb-s1) var(--mb-s3);
+  border: 1px solid var(--mb-line-strong);
+  background: rgba(11, 12, 13, 0.72);
+  pointer-events: none;
+}
+.dm-clock small {
+  color: var(--mb-paper);
+  font: 400 calc(9px * var(--mb-u)) / 1 var(--mb-stencil);
+  letter-spacing: 0.2em;
+}
+.dm-clock b {
+  color: var(--mb-chalk);
+  font: 400 var(--mb-f-board) / 1 var(--mb-stencil);
+  font-variant-numeric: tabular-nums;
+}
+.dm-clock[data-low='true'] b {
+  color: var(--mb-flag-text);
+}
