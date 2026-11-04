@@ -12,6 +12,7 @@ import type { RaceDirector } from './race.ts';
 import { pitPreparationDistance } from './pit-safety.ts';
 import { racingLineFor } from './racing-line.ts';
 import { trackPoint, type Track } from './track.ts';
+import type { PassPace } from './traffic.ts';
 import type { Vehicle } from './vehicle.ts';
 
 /** Bounded GP preview work: at most 1,524 m at the shared 12 m spacing. */
@@ -46,6 +47,12 @@ export class BikeAIDriver extends AIDriver {
   /** Planned speed one sample ahead and the stoppie-limited deceleration, set by
    * the GP approach plan on the step it ran (NaN otherwise). */
   protected planNext = NaN;
+  /** The GP approach plan's speed limit on the step it ran (Infinity otherwise). */
+  private planLimit = Infinity;
+  /** Distance (m) along the approach plan to where it first asks the rider to brake
+   * (Infinity: not within the plan's horizon, or no plan on this step). */
+  private planRunway = Infinity;
+  private readonly pace: PassPace = { topSpeed: 0, freeSpeed: 0, runway: 0, laneRate: 0 };
   private planBrake = 0;
   protected override readonly reverseRecovery = false;
   constructor(
@@ -130,12 +137,18 @@ export class BikeAIDriver extends AIDriver {
       command = c.input,
       gp = c.dynamics.motoGP,
       slip = gp ? Math.abs(Math.atan2(gp.lateralSpeed, Math.max(5, c.dynamics.speed))) : 0;
+    // Off the line the rider is committed: the front is up and the traction control
+    // is the limit, not the hands (a 4 s start was 10 m behind a superbike's).
+    const launch = c.dynamics.speed < GP_AI_HANDS.launchSpeed;
     const brake = clamp(
       command.brake,
-      this.lastBrake - GP_AI_HANDS.brakeRelease * dt,
+      this.lastBrake - (launch ? GP_AI_HANDS.launchRate : GP_AI_HANDS.brakeRelease) * dt,
       this.lastBrake + GP_AI_HANDS.brakeApply * dt,
     );
-    let throttle = Math.min(command.throttle, this.lastThrottle + GP_AI_HANDS.throttleOpen * dt);
+    let throttle = Math.min(
+      command.throttle,
+      this.lastThrottle + (launch ? GP_AI_HANDS.launchRate : GP_AI_HANDS.throttleOpen) * dt,
+    );
     throttle = Math.min(throttle, 1 - clamp((slip - 0.035) / 0.05, 0, 0.85));
     // Still on the lever: the throttle stays shut until it is released.
     if (brake > 0.05) throttle = Math.min(throttle, 0.05);
@@ -236,6 +249,8 @@ export class BikeAIDriver extends AIDriver {
     const c = this.bike,
       d = c.dynamics;
     this.planNext = NaN;
+    this.planLimit = Infinity;
+    this.planRunway = Infinity;
     if (
       (c.definition.id !== 'gpr1' && c.definition.id !== 'gpr2') ||
       c.inPit ||
@@ -286,6 +301,12 @@ export class BikeAIDriver extends AIDriver {
       this.approachProfile,
     );
     this.planNext = count > 1 ? this.approachProfile[1] : planned;
+    this.planLimit = planned;
+    for (let i = 1; i < count; i++)
+      if (this.approachProfile[i] < d.speed - 1) {
+        this.planRunway = i * ENVELOPE_STEP;
+        break;
+      }
     this.planBrake = Math.max(
       0.5,
       env.brakingBase * grip + env.brakingAero * aero * d.speed * d.speed,
@@ -322,6 +343,31 @@ export class BikeAIDriver extends AIDriver {
    * the shared planner. Off-road riders retain their own override. */
   protected override trafficScale() {
     return this.passingScale;
+  }
+  /** A GP rider moves across quickly only to get past a slower rider on a straight. */
+  protected override laneRate() {
+    return this.isGp && this.planner.blocker >= 0 ? GP_AI_HANDS.laneRate : super.laneRate();
+  }
+  /** A GP rider is quicker than the other classes only where it can accelerate: its
+   * free speed, held down by its own braking plan, and how far the racing line
+   * stays straight ahead (traffic.ts PASS_PACE). */
+  protected override passPace(track: Track) {
+    // No passing on the cool-down lap after the flag.
+    if (!this.isGp || this.bike.finishTime > 0) return null;
+    const line = racingLineFor(track),
+      pace = this.pace;
+    let runway = 0;
+    while (
+      runway < GP_AI_HANDS.runwayMax &&
+      Math.abs(line.curvatureAt(this.bike.s + runway)) < GP_AI_HANDS.straightCurvature
+    )
+      runway += GP_AI_HANDS.runwayStep;
+    pace.topSpeed = this.bike.definition.ai.topSpeed;
+    pace.freeSpeed = Math.min(this.freeSpeed, this.planLimit);
+    // The straight, and the plan's own braking point if that comes first.
+    pace.runway = Math.min(runway, this.planRunway);
+    pace.laneRate = GP_AI_HANDS.laneRate;
+    return pace;
   }
   protected override trafficTrackingMargin() {
     // A narrow upright GP lane left only ~0.35 m beyond the follow corridor.
@@ -367,10 +413,21 @@ export const GP_AI_HANDS = Object.freeze({
   brakeApply: 8,
   brakeRelease: 4,
   throttleOpen: 2.5,
+  /** Lever release and throttle opening rates (per second) below `launchSpeed` (m/s). */
+  launchRate: 8,
+  launchSpeed: 12,
   /** Lever ceiling once the flag has fallen: a cool-down, not a stop to a plan. */
   cooldownBrake: 0.2,
   /** Share of the stoppie-point lever travel a rider will use (keeps rear load). */
   leverShare: 0.75,
+  /** Lateral speed (m/s) of a GP rider's lane change (a car's is 1.6). */
+  laneRate: 2,
+  /** The racing line is a straight while its curvature (1/m) is below this: a GP
+   * corner speed at that radius is already under 0.8 of its top speed. */
+  straightCurvature: 0.0028,
+  /** Straight-measuring step and ceiling (m). */
+  runwayStep: 24,
+  runwayMax: 720,
 });
 /** Bike path-tracking gains: preview (s), bandwidth (rad/s), damping ratio. */
 export const BIKE_AI = Object.freeze({

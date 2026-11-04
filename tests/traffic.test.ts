@@ -129,3 +129,70 @@ it('records a completed pass once clear ahead of the target', () => {
   );
   expect(planner.passes).toBe(1);
 });
+// Pace-aware passing (traffic.ts PASS_PACE): a rider that is genuinely quicker than the car in
+// its way is not held at the follow reserve for ever. Seeded mixed GP/superbike races had 0
+// completed passes in 12 seeds before it.
+const pacedPass = () => {
+  const track = new Track(),
+    car = new Vehicle(0),
+    other = new Vehicle(1),
+    traits = personality(4417, 0);
+  car.place(track, 1000, 0);
+  other.place(track, 1034, 0);
+  car.speed = 60;
+  other.speed = 65;
+  const plan = (
+    planner: TrafficPlanner,
+    now: number,
+    runway: number,
+    topSpeed = 120,
+    freeSpeed = 90,
+  ) =>
+    planner.evaluate(car, [car, other], track, now, 8, traits, false, 0, false, undefined, 1, 0, {
+      topSpeed,
+      freeSpeed,
+      runway,
+      laneRate: 2,
+    });
+  return { track, car, other, traits, plan };
+};
+it('a rider that opts in to pace-aware passing pulls out around a slower car and may close on it', () => {
+  const { track, car, other, traits, plan } = pacedPass();
+  // Without the opt-in: held to the leader's speed, on the line.
+  const held = new TrafficPlanner().evaluate(car, [car, other], track, 10, 8, traits, false);
+  expect(held.speedLimit).toBeLessThanOrEqual(other.speed + 1);
+  const planner = new TrafficPlanner(),
+    pass = plan(planner, 10, 600);
+  expect(planner.blocker).toBe(other.id);
+  // The lane clears the car by the corridor the swept test demands, and the rider is
+  // released from the leader's speed as fast as the remaining lateral move allows.
+  expect(Math.abs(pass.offset - other.lateral)).toBeGreaterThanOrEqual(2.75);
+  expect(pass.speedLimit).toBeGreaterThan(other.speed + 5);
+});
+it('a pace-aware pass is only started on a straight long enough to finish it, and ends with it', () => {
+  const { other, plan } = pacedPass();
+  const short = new TrafficPlanner();
+  plan(short, 10, 120);
+  expect(short.blocker).toBe(-1);
+  const planner = new TrafficPlanner();
+  plan(planner, 10, 600);
+  expect(planner.blocker).toBe(other.id);
+  plan(planner, 10.1, 250);
+  expect(planner.blocker).toBe(other.id);
+  plan(planner, 10.2, 150);
+  expect(planner.blocker).toBe(-1);
+});
+it('does not treat a car it is no quicker than as one to get past', () => {
+  const { other, plan } = pacedPass();
+  // Slower now than its free speed, but the same class (top speed): the ordinary planner.
+  const sameClass = new TrafficPlanner();
+  const held = plan(sameClass, 10, 600, other.definition.ai.topSpeed + 5);
+  expect(sameClass.blocker).toBe(-1);
+  expect(held.speedLimit).toBeLessThanOrEqual(other.speed + 1);
+  // A quicker class, but the car ahead is already at its pace: no pass to make, though
+  // the quicker class still closes on it by the relative-motion rule.
+  other.speed = 88;
+  const planner = new TrafficPlanner();
+  plan(planner, 10, 600);
+  expect(planner.blocker).toBe(-1);
+});

@@ -1,6 +1,12 @@
 import { DriverBrain } from './driver-brain.ts';
 import { FLAG, yellowFlag } from './marshal.ts';
-import { STALLED, TrafficPlanner, personality, type DriverPersonality } from './traffic.ts';
+import {
+  STALLED,
+  TrafficPlanner,
+  personality,
+  type DriverPersonality,
+  type PassPace,
+} from './traffic.ts';
 import {
   pitMergeConflict,
   pitYieldSpeed,
@@ -157,6 +163,8 @@ export class AIDriver {
   private lastUpdate = -Infinity;
   private desiredOffset = 0;
   private trafficSpeed = 100;
+  /** The target speed before traffic (or a venue limit) lowers it, last update. */
+  protected freeSpeed = 0;
   /** True only when this update sampled the surrounding traffic. */
   protected trafficRefreshed = false;
   private stuckTime = 0;
@@ -170,7 +178,7 @@ export class AIDriver {
   private readonly corners = new Float64Array(ENVELOPE_SAMPLES);
   /** Scratch envelope of a fan-floor car with floor damage (floorEnvelope). */
   private readonly floorEnv: CapabilityEnvelope;
-  private planner = new TrafficPlanner();
+  protected readonly planner = new TrafficPlanner();
   readonly personality: DriverPersonality;
   readonly brain: DriverBrain;
   decision = 'RACING LINE';
@@ -246,6 +254,7 @@ export class AIDriver {
         lineAt,
         this.trafficScale(),
         this.trafficTrackingMargin(),
+        this.passPace(track),
       );
       this.desiredOffset = this.laneOverride(track, c.s, plan.offset);
       this.trafficSpeed = plan.speedLimit;
@@ -293,7 +302,7 @@ export class AIDriver {
       this.tactical =
         this.planner.bypass >= 0 && c.speed < STALLED.creep * 2
           ? this.desiredOffset - lineHere
-          : approach(this.tactical, this.desiredOffset - lineHere, dt * 1.6);
+          : approach(this.tactical, this.desiredOffset - lineHere, dt * this.laneRate());
       this.offset = lineHere + this.tactical + this.launch;
     }
     const preview = c.definition.ai.lookahead;
@@ -372,6 +381,7 @@ export class AIDriver {
       desired,
       envelopeProfile(this.curvatures, this.corners, laneGrip, aero, env),
     );
+    this.freeSpeed = desired * this.brain.pace;
     if (!c.inPit) desired = Math.min(desired * this.brain.pace, this.trafficSpeed);
     if (c.finishTime) desired = Math.min(desired, 38);
     if (preparingPit)
@@ -609,6 +619,16 @@ export class AIDriver {
   /** Lane-target reserve beyond the physical passing corridor (metres). */
   protected trafficTrackingMargin() {
     return 0;
+  }
+  /** Lateral speed (m/s) of a lane change. */
+  protected laneRate() {
+    return 1.6;
+  }
+  /** What this rider tells the planner about its own pace for pace-aware passing
+   * (traffic.ts PASS_PACE); null (off) for everything but the riders that opt in. */
+  protected passPace(track: Track): PassPace | null {
+    void track;
+    return null;
   }
   /** Brake pedal demand for a speed error (target - speed, m/s). */
   protected brakeDemand(error: number) {
