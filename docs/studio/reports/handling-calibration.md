@@ -132,7 +132,7 @@ Previously close, now clear once power/weight and the fast-circle grip are part 
 | `scripts/offroad-calibration.ts` | 0 band failures (0-60 m: 4.53 / 4.50 / 4.43 s) |
 | `scripts/wildcard-races.ts knobblies-on-the-banking,the-long-way-round` (the two events whose machine changed: MX-450) | both PASS |
 | `scripts/offroad-races.ts` (`OFFROAD_RACE="motocross moto"` and `"supercross main"`; evidence file restored afterwards) | both complete and classify everyone; the first attempt (longer fourth gear) failed and was rejected |
-| circuit events that field HF-86, GT-6S, XT-1 or XF-2 (6 events, run headless by a scratch script, not committed) | EVENTS_RESULT |
+| circuit events that field HF-86, GT-6S, XT-1 or XF-2 (6 events, run headless by a scratch script, not committed) | all 6 PASS: `arroyo-oro-gt-sprint`, `fiume-verde-historic-masters`, `bright-basin-unlimited`, `aurel-historic-masters`, `aurel-gt-four-layouts`, `aurel-unlimited-showcase`; every entrant classified, longest stand-still 5.5 s (`fiume-verde-historic-masters`, which fields the HF-86) |
 | vitest: `vehicle-catalogue`, `vehicle-catalogue-growth`, `vehicle-definitions`, `calibration`, `gear-hysteresis`, `machine-character`, `session-identity`, `steam-leaderboards`, `wildcard-series`, `wildcard-venues-2`, `circuit-catalogue-wave2-review`, `machine-options`, `front-end-board`, and eight motocross / offroad files | all pass |
 | `npx tsc --noEmit`, `eslint` on every changed file, `prettier --check` | clean |
 | DOM-only render of the real Interface (`scripts/studio/tools/uxdom.mjs`: menu, GP, dirt, festival) | the line renders under the MACHINE dial in all four and there are no page errors; **no WebGL boot and no real-GPU or full-flow run** |
