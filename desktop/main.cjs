@@ -455,6 +455,16 @@ function registerIpc() {
   }));
   handle('steam:unlocked', (ids) => idList(ids).filter((id) => steam.isActivated(id)));
   handle('steam:unlock', (ids) => idList(ids).filter((id) => steam.activate(id)));
+  handle('steam:lb:status', () => ({
+    available: steam.available && steam.leaderboards.available,
+    reason: steam.available ? steam.leaderboards.reason : steam.reason,
+  }));
+  handle('steam:lb:submit', async (name, score, details) => {
+    if (!steam.available) return { ok: false, unavailable: true, reason: steam.reason };
+    if (!steam.leaderboards.available)
+      return { ok: false, unavailable: true, reason: steam.leaderboards.reason };
+    return steam.leaderboards.submit(name, score, details);
+  });
   handle('steam:presence', (state) => {
     const s = state && typeof state === 'object' ? state : {};
     const text = (v) => (typeof v === 'string' ? v.slice(0, 80) : null);
@@ -466,6 +476,7 @@ function registerIpc() {
       vehicle: text(s.vehicle),
       weather: text(s.weather),
       discipline: text(s.discipline),
+      event: text(s.event),
     });
     return true;
   });

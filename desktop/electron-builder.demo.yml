@@ -16,6 +16,15 @@ directories:
   output: release-demo
   buildResources: build
 
+# `productName` above names the installer and the executable; Electron names the userData folder
+# (saves, logs, Steam Cloud root) from the *package.json inside the app*, which electron-builder
+# does not rewrite. Without this the demo would share `MOTOBOUND/` with the game (found by reading
+# the packaged app.asar). `name` also separates the single-instance lock and the .desktop file.
+extraMetadata:
+  name: motobound-demo
+  productName: MOTOBOUND Demo
+  desktopName: motobound-demo.desktop
+
 linux:
   executableName: motobound-demo
   desktop:

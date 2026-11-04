@@ -9,6 +9,7 @@ import resultsCss from './results-board.css?inline';
 import settingsGuideCss from './settings-guide.css?inline';
 import screensCss from './screens-board.css?inline';
 import demoCss from './demo-plate.css?inline';
+import recordsCss from './records-board.css?inline';
 import stencilUrl from './fonts/saira-stencil-one-latin-400-normal.woff2?url';
 import { LIGHT_GLYPH, WEATHER_GLYPH, glyph, plateSvg, type GlyphName } from './glyphs.ts';
 import {
@@ -50,7 +51,7 @@ export function installFrontEnd(doc: Document = document) {
   if (doc.getElementById(FRONT_END_STYLE_ID)) return false;
   const style = doc.createElement('style');
   style.id = FRONT_END_STYLE_ID;
-  style.textContent = `@font-face{font-family:'Saira Stencil One';font-style:normal;font-weight:400;font-display:swap;src:url(${stencilUrl}) format('woff2')}\n${frontEndCss}\n${wildcardCss}\n${loadingCss}\n${careerBoardCss}\n${firstRunCss}\n${resultsCss}\n${settingsGuideCss}\n${screensCss}\n${demoCss}`;
+  style.textContent = `@font-face{font-family:'Saira Stencil One';font-style:normal;font-weight:400;font-display:swap;src:url(${stencilUrl}) format('woff2')}\n${frontEndCss}\n${wildcardCss}\n${loadingCss}\n${careerBoardCss}\n${firstRunCss}\n${resultsCss}\n${settingsGuideCss}\n${screensCss}\n${demoCss}\n${recordsCss}`;
   doc.head.append(style);
   return true;
 }

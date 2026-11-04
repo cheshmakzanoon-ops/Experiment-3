@@ -320,7 +320,7 @@ export class Interface {
     <p class="session-rules" id="sessionRules" aria-live="polite"></p>
     <button class="primary enter" type="submit">ENTER CIRCUIT ${glyph('go', 'enter-glyph')}</button>
     <button class="enter" type="submit" name="prepareGrid" value="yes">PREPARE GRID <span>START PAUSED</span></button>
-   </form></div><div class="menu-actions" role="group" aria-label="Paddock"><button data-action="career">CAREER</button><button data-action="settings">GARAGE & SETTINGS</button><button data-action="events">EVENTS</button><button data-action="championship">CHAMPIONSHIP</button><button data-action="team">TEAM HQ</button><button data-action="academy">DRIVING ACADEMY</button><button data-action="photo">PHOTO / LIVERY</button><button data-action="controls">CONTROLS</button><button data-action="credits">CREDITS &amp; LICENCES</button></div>${
+   </form></div><div class="menu-actions" role="group" aria-label="Paddock"><button data-action="career">CAREER</button><button data-action="settings">GARAGE & SETTINGS</button><button data-action="events">EVENTS</button><button data-action="championship">CHAMPIONSHIP</button><button data-action="records">RECORDS</button><button data-action="team">TEAM HQ</button><button data-action="academy">DRIVING ACADEMY</button><button data-action="photo">PHOTO / LIVERY</button><button data-action="controls">CONTROLS</button><button data-action="credits">CREDITS &amp; LICENCES</button></div>${
      DEV
        ? '<div class="dev-tools" role="group" aria-label="Developer tools"><span>DEV</span><button data-action="references">REFERENCE REVIEW</button><button data-action="sessionReview">SESSION 146 EVIDENCE</button></div>'
        : ''

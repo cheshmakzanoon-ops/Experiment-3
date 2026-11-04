@@ -153,6 +153,8 @@ import type { FestivalSession } from './session/free-roam.ts';
 import { emitGameEvent } from './steam/events.ts';
 import { emitLapRecord, emitRaceFinished, emitSessionStarted } from './steam/hooks.ts';
 import { startAchievements } from './steam/runtime.ts';
+import { startLeaderboards, type LeaderboardRuntime } from './steam/leaderboard-runtime.ts';
+import { loadRecords, recordsHtml, type RecordsTab, type RecordsView } from './ui/records-board.ts';
 import { clockText, demoPolicy, festivalClock, type FestivalClock } from './release/demo.ts';
 import { demoSessionLock } from './release/demo-gates.ts';
 import { openWishlist } from './release/wishlist.ts';
@@ -175,6 +177,9 @@ export class GameApp {
   /** Festival free roam: while set it owns input, frames and the canvas. */
   private festival: FestivalSession | null = null;
   private festivalStarting = false;
+  private leaderboards: LeaderboardRuntime | null = null;
+  /** RECORDS screen: what was read when it opened, so its tabs do not read the save again. */
+  private recordsView: RecordsView | null = null;
   /** Steam demo: the coast visit clock and its HUD chip (null in the full game). */
   private demoClock: FestivalClock | null = null;
   private demoClockAt = 0;
@@ -306,6 +311,11 @@ export class GameApp {
   private initTimeout = 0;
   constructor() {
     startAchievements({ store: this.store, toast: (message) => this.ui.toast(message) });
+    // Steam leaderboards: inert in a browser and in a shell without leaderboard support.
+    this.leaderboards = startLeaderboards({
+      store: this.store,
+      toast: (message) => this.ui.toast(message),
+    });
     window.addEventListener('keydown', this.reviewKeyboard);
     const element = document.getElementById('app')!;
     this.ui = new Interface(element, this.track, {
@@ -967,6 +977,30 @@ export class GameApp {
       this.demoChip.dataset.low = String(left <= 60);
     }
   }
+  /** RECORDS (paddock): local leaderboards, ghosts and Wildcard best laps; `records:tab:<tab>` switches the list. */
+  private async recordsAction(name: string) {
+    const [, command, tab] = name.split(':');
+    if (command === 'tab' && this.recordsView) {
+      this.ui.modalContent(
+        recordsHtml(this.recordsView, tab === 'wildcard' ? 'wildcard' : 'time-trial'),
+      );
+      return;
+    }
+    if (this.state !== 'menu') return;
+    try {
+      this.recordsView = await loadRecords({
+        store: this.store,
+        career: this.career.save,
+        boards: this.leaderboards?.snapshot ?? null,
+        steam: this.leaderboards?.status() ?? null,
+      });
+    } catch (error) {
+      this.ui.toast(`Records unavailable: ${String(error)}`);
+      return;
+    }
+    const tabId: RecordsTab = 'time-trial';
+    this.ui.modalContent(recordsHtml(this.recordsView, tabId));
+  }
   /** `demo:…` actions: the FULL GAME plates' wishlist button. */
   private async demoAction(name: string) {
     const [, command, where] = name.split(':');
@@ -1254,7 +1288,13 @@ export class GameApp {
     await this.prepareTimeTrial(generation);
     if (this.errorStopped || this.disposed || generation !== this.generation) return;
     this.state = 'driving';
-    emitSessionStarted(options);
+    emitSessionStarted(
+      options,
+      'circuit',
+      career?.event?.key.startsWith('wildcard.')
+        ? career.event.key.slice('wildcard.'.length)
+        : undefined,
+    );
     const referenceCamera = this.referenceSession.beginSession(this.sessionId);
     if (referenceCamera) this.renderer.changeCamera(referenceCamera);
     this.ui.get('loading').hidden = true;
@@ -2305,6 +2345,10 @@ export class GameApp {
     }
     if (name.startsWith('demo:')) {
       void this.demoAction(name);
+      return;
+    }
+    if (name === 'records' || name.startsWith('records:')) {
+      void this.recordsAction(name);
       return;
     }
     if (this.festival?.action(name)) return;

@@ -1,0 +1,171 @@
+name: Desktop packages
+# Windows (NSIS installer + portable exe + zip), Linux (AppImage + zip) and macOS (zip) desktop
+# packages of the game and of the Steam demo, each built on its NATIVE runner, with the desktop
+# smoke test where it can run, and uploaded as workflow artifacts for QA and for the Steam depot
+# upload. NOTHING here publishes: no release, no Pages deploy, no store upload, and no QA build.
+#
+# Release gate G15 (docs/studio/reports/ip-audit.md section 4.6): only PRODUCT builds are
+# packaged. `npm run build` / `npm run build:demo` run the IP guard inside the build, the guard
+# runs again on each directory before it is uploaded, and `desktop/scripts/stage-web.cjs` runs it a
+# third time and refuses a build of the wrong edition. The owner or review QA build never
+# appears in this file (tests/ci-workflow.test.ts pins that).
+#
+# This workflow could not be run in the authoring sandbox (no GitHub runners): the Linux package
+# and smoke steps were run by hand on Linux, the Windows and macOS legs are unrun (docs/studio/
+# reports/release-2.md). Windows and macOS smoke steps are therefore informational until they have
+# passed once on a real runner.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - desktop/**
+      - scripts/build-demo.mjs
+      - scripts/ip-guard.mjs
+      - src/release/**
+      - vite.config.ts
+      - .github/workflows/desktop-packages.yml
+  pull_request:
+    paths:
+      - desktop/**
+      - scripts/build-demo.mjs
+      - src/release/**
+      - .github/workflows/desktop-packages.yml
+permissions:
+  contents: read
+concurrency:
+  group: desktop-packages-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  # The full game's Steam app id (a repository VARIABLE, never a secret and never in the tree): the
+  # demo's WISHLIST button opens https://store.steampowered.com/app/<id>/. Unset: the button says
+  # the page is not live yet (desktop/README.md).
+  MOTOBOUND_STORE_APPID: ${{ vars.MOTOBOUND_STORE_APPID }}
+jobs:
+  web:
+    # Builds each web edition once, on Linux, and certifies it. The platform jobs package exactly
+    # these directories instead of rebuilding.
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - name: Build the game (typecheck, vite build, IP guard)
+        run: npm run build
+      - name: Build the Steam demo (typecheck, vite build, IP guard)
+        run: npm run build:demo
+      - name: Certify each build and its edition
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/ip-guard.mjs --dist dist
+          node -e "const i=JSON.parse(require('fs').readFileSync('dist/BUILD_IDENTITY.json','utf8')); if(i.variant!=='product'||i.edition!=='full') throw new Error('dist is not the full product build: '+JSON.stringify(i))"
+          node scripts/ip-guard.mjs --dist dist-demo
+          node -e "const i=JSON.parse(require('fs').readFileSync('dist-demo/BUILD_IDENTITY.json','utf8')); if(i.variant!=='product'||i.edition!=='demo') throw new Error('dist-demo is not the demo product build: '+JSON.stringify(i))"
+      - name: Web build of the game
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-web-full
+          path: dist/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Web build of the Steam demo
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-web-demo
+          path: dist-demo/
+          retention-days: 7
+          if-no-files-found: error
+  package:
+    needs: web
+    name: ${{ matrix.edition }} / ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { edition: full, platform: linux, os: ubuntu-latest, script: 'dist:linux', unpacked: 'desktop/release/linux-unpacked/motobound', web: dist }
+          - { edition: demo, platform: linux, os: ubuntu-latest, script: 'dist:demo:linux', unpacked: 'desktop/release-demo/linux-unpacked/motobound-demo', web: dist-demo }
+          - { edition: full, platform: windows, os: windows-latest, script: 'dist:win', unpacked: 'desktop/release/win-unpacked/MOTOBOUND.exe', web: dist }
+          - { edition: demo, platform: windows, os: windows-latest, script: 'dist:demo:win', unpacked: 'desktop/release-demo/win-unpacked/MOTOBOUND Demo.exe', web: dist-demo }
+          - { edition: full, platform: macos, os: macos-latest, script: 'dist:mac', unpacked: '', web: dist }
+          - { edition: demo, platform: macos, os: macos-latest, script: 'dist:demo:mac', unpacked: '', web: dist-demo }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+      - name: Download the certified web build
+        uses: actions/download-artifact@v4
+        with:
+          name: desktop-web-${{ matrix.edition }}
+          path: ${{ matrix.web }}/
+      - name: Require the downloaded build and its edition
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s "${{ matrix.web }}/index.html"
+          test -d "${{ matrix.web }}/assets"
+          node -e "const i=JSON.parse(require('fs').readFileSync('${{ matrix.web }}/BUILD_IDENTITY.json','utf8')); if(i.variant!=='product'||i.edition!=='${{ matrix.edition }}') throw new Error('wrong build for this leg: '+JSON.stringify(i))"
+      - name: Install the desktop shell (Electron, electron-builder, Steamworks bindings)
+        run: npm --prefix desktop ci --no-audit --no-fund
+      - name: Package (stage-web re-runs the IP guard and the edition check)
+        run: npm --prefix desktop run ${{ matrix.script }}
+      - name: Linux smoke prerequisites
+        if: matrix.platform == 'linux'
+        run: sudo apt-get update && sudo apt-get install -y xvfb libgtk-3-0t64 libnss3 libasound2t64 libgbm1 libxss1 libxtst6 libatk-bridge2.0-0t64 libcups2t64
+      - name: Desktop smoke, Linux (menu, save mirror write and restore; software GL under xvfb)
+        if: matrix.platform == 'linux'
+        run: node desktop/scripts/smoke.cjs --app "${{ matrix.unpacked }}" --out "$RUNNER_TEMP/smoke"
+      - name: Desktop smoke, Windows (informational until it has passed once on a real runner)
+        if: matrix.platform == 'windows'
+        continue-on-error: true
+        run: node desktop/scripts/smoke.cjs --app "${{ matrix.unpacked }}" --no-xvfb --out "$env:RUNNER_TEMP\smoke"
+      - name: Package listing
+        if: always()
+        shell: bash
+        run: |
+          ls -la desktop/release desktop/release-demo 2>/dev/null || true
+      - name: Guard what is uploaded (installers and archives only, no QA build, no web folder)
+        shell: bash
+        run: |
+          set -euo pipefail
+          for dir in desktop/release desktop/release-demo; do
+            [ -d "$dir" ] || continue
+            if find "$dir" -maxdepth 1 -iname '*supplied-player*' -print -quit | grep -q .; then
+              echo "owner-only asset in a package folder" >&2
+              exit 1
+            fi
+          done
+          if [ -f desktop/web/NOT_FOR_RELEASE.txt ]; then
+            echo "a QA build was staged for packaging" >&2
+            exit 1
+          fi
+      - name: Installers and archives (the Steam depot takes the unpacked folder from the zip)
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-${{ matrix.edition }}-${{ matrix.platform }}
+          path: |
+            desktop/release/*.exe
+            desktop/release/*.AppImage
+            desktop/release/*.zip
+            desktop/release-demo/*.exe
+            desktop/release-demo/*.AppImage
+            desktop/release-demo/*.zip
+          retention-days: 14
+          if-no-files-found: error
+      - name: Smoke reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-${{ matrix.edition }}-${{ matrix.platform }}
+          path: ${{ runner.temp }}/smoke/
+          retention-days: 14
+          if-no-files-found: ignore

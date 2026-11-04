@@ -262,6 +262,16 @@ export class SaveStore {
       validate,
     );
   }
+  /** Every key starting with `prefix` (the records screen lists `leaderboard:` boards). */
+  async keys(prefix = ''): Promise<string[]> {
+    const db = await this.open();
+    return new Promise((resolve, reject) => {
+      const r = db.transaction('saved', 'readonly').objectStore('saved').getAllKeys();
+      r.onsuccess = () =>
+        resolve(r.result.filter((k): k is string => typeof k === 'string' && k.startsWith(prefix)));
+      r.onerror = () => reject(r.error);
+    });
+  }
   async write(key: string, value: unknown) {
     const db = await this.open();
     return new Promise<void>((resolve, reject) => {

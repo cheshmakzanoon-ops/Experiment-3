@@ -156,6 +156,9 @@ describe('demo packaging', () => {
     expect(demo).toMatch(/^extends: \.\/electron-builder\.yml$/m);
     expect(demo).toMatch(/^appId: io\.motobound\.game\.demo$/m);
     expect(demo).toMatch(/^productName: MOTOBOUND Demo$/m);
+    // userData (saves, logs, Steam Cloud) follows the package.json inside the app, not the builder's
+    // productName: extraMetadata is what separates the demo's folder from the game's.
+    expect(demo).toMatch(/extraMetadata:\n {2}name: motobound-demo\n {2}productName: MOTOBOUND Demo\n/);
     expect(demo).toMatch(/executableName: motobound-demo/);
     expect(demo).toMatch(/output: release-demo/);
     expect(demo).toMatch(/target: \[nsis, portable, zip\]/);

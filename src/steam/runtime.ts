@@ -10,6 +10,7 @@ import {
 } from './achievements.ts';
 import { gameEvents, type GameEvent } from './events.ts';
 import { festivalActivityEvent } from './hooks.ts';
+import { describePresence } from './presence.ts';
 
 /**
  * Achievement runtime: listens on the game-event bus, folds events through the
@@ -34,14 +35,25 @@ export interface AchievementHost {
 /** Presence for the lifecycle events; the UI-mode observer covers the rest. */
 export function presenceFor(event: GameEvent): SteamPresence | null {
   switch (event.type) {
-    case 'session.started':
+    case 'session.started': {
+      // A Wildcard event and a time trial have their own lines ("Chasing a lap at ...").
+      const status =
+        event.kind === 'festival'
+          ? 'Festival'
+          : event.wildcardEvent
+            ? 'Wildcard'
+            : event.mode === 'time-trial'
+              ? 'TimeTrial'
+              : 'Racing';
       return {
-        status: event.kind === 'festival' ? 'Festival' : 'Racing',
+        status,
         venue: event.circuitId,
         vehicle: event.vehicleId,
         weather: event.weather,
         discipline: event.discipline,
+        ...(event.wildcardEvent ? { event: event.wildcardEvent } : {}),
       };
+    }
     case 'menu.entered':
       return { status: 'Menu' };
     case 'photo.taken':
@@ -197,7 +209,8 @@ export class AchievementRuntime {
 
   private sendPresence(presence: SteamPresence) {
     if (!this.steamAvailable) return;
-    void this.bridge?.steam.presence(presence).catch(() => undefined);
+    // The ids the game knows become the names a friends list shows (presence.ts).
+    void this.bridge?.steam.presence(describePresence(presence)).catch(() => undefined);
   }
 
   /** The UI publishes its mode on #app[data-mode]; map it to a presence status. */
@@ -205,11 +218,20 @@ export class AchievementRuntime {
     const app = document.getElementById('app');
     if (!app || typeof MutationObserver === 'undefined') return;
     const observer = new MutationObserver(() => {
-      const status = statusForMode(app.dataset.mode);
+      let status = statusForMode(app.dataset.mode);
+      // A Wildcard run or a time trial keeps its own line while it is being driven.
+      const own = this.lastSession?.status;
+      if (status === 'Racing' && (own === 'Wildcard' || own === 'TimeTrial')) status = own;
       if (status === this.presenceStatus) return;
       this.presenceStatus = status;
       // Keep venue/vehicle while a session is on screen; drop them in the menu.
-      const inSession = status === 'Racing' || status === 'Paused' || status === 'Results';
+      const inSession =
+        status === 'Racing' ||
+        status === 'TimeTrial' ||
+        status === 'Wildcard' ||
+        status === 'Paused' ||
+        status === 'Results' ||
+        status === 'Replay';
       this.sendPresence(
         inSession && this.lastSession ? { ...this.lastSession, status } : { status },
       );

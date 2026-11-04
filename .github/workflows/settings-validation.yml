@@ -52,3 +52,45 @@ jobs:
             browser-backend.json
             browser-progress.json
           retention-days: 7
+  qa:
+    # Release gate G15 (docs/studio/reports/ip-audit.md section 4.6). e2e/07 and e2e/08 are
+    # review-tooling specs: on the product build above they skip with a stated reason, so this
+    # workflow stopped testing what its name says. They run HERE, on a separate QA build made by
+    # `npm run build:qa` (MOTOBOUND_SUPPLIED_PLAYER=1, MOTOBOUND_REVIEW_TOOLS=1). That build stays
+    # inside this job: it is never uploaded, never goes through `npm run build`, `check:ip` or the
+    # IP guard (which refuses it), and nothing downstream consumes it. The assertions are the same
+    # spec files and the same cases as the job above.
+    needs: settings
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DEBUG: pw:browser
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+      MOTOBOUND_SUPPLIED_PLAYER: '1'
+      MOTOBOUND_REVIEW_TOOLS: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - name: QA build (owner model and review tooling, not for release)
+        run: npm run build:qa
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
+      - name: Review-tool specs of the settings and menu regression, on the QA build
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- e2e/08-reference-implementation.spec.ts e2e/07-reference-tools.spec.ts:243
+      - name: Retain results including failures (test results only, never the build)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: settings-interaction-qa-evidence
+          path: |
+            test-results/
+            playwright-report/
+            browser-backend.json
+            browser-progress.json
+          retention-days: 7

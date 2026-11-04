@@ -3,6 +3,7 @@ import type { SessionOptions } from '../simulation/config.ts';
 import { circuitDefinition } from '../simulation/circuits.ts';
 import { DEFAULT_VEHICLE_ID, vehicleDefinition } from '../simulation/vehicles.ts';
 import { VEHICLE_CLASSES } from '../simulation/vehicle-classes.ts';
+import { SIMULATION_VERSION, recordCategory } from '../core/session-identity.ts';
 import { emitGameEvent } from './events.ts';
 import type {
   Discipline,
@@ -11,6 +12,8 @@ import type {
   LapRecordEvent,
   RaceFinishedEvent,
   SessionStartedEvent,
+  TimeTrialLapEvent,
+  WildcardResultEvent,
 } from './events.ts';
 
 /**
@@ -110,8 +113,11 @@ export function lapRecordEvent(
 }
 
 export function sessionStartedEvent(
-  options: Pick<SessionOptions, 'circuit' | 'vehicles' | 'ruleset' | 'weather'>,
+  options: Pick<SessionOptions, 'circuit' | 'vehicles' | 'ruleset' | 'weather'> & {
+    mode?: SessionOptions['mode'];
+  },
   kind: SessionStartedEvent['kind'] = 'circuit',
+  wildcardEvent?: string,
 ): SessionStartedEvent {
   const context = raceContext(options);
   return {
@@ -120,6 +126,26 @@ export function sessionStartedEvent(
     discipline: kind === 'festival' ? 'festival' : context.discipline,
     circuitId: circuitDefinition(options.circuit).id,
     vehicleId: context.vehicleId,
+    weather: String(options.weather),
+    ...(kind === 'circuit' && options.mode ? { mode: options.mode } : {}),
+    ...(wildcardEvent ? { wildcardEvent } : {}),
+  };
+}
+
+/** A valid player-driven time-trial lap, in the record category it was driven in. */
+export function timeTrialLapEvent(
+  options: Pick<SessionOptions, 'circuit' | 'vehicles' | 'assist' | 'compound' | 'weather'>,
+  seconds: number,
+): TimeTrialLapEvent {
+  const category = recordCategory(options);
+  return {
+    type: 'timetrial.lap',
+    circuitId: category.circuit,
+    vehicleId: category.vehicle,
+    physics: category.physics,
+    seconds,
+    assist: String(options.assist),
+    compound: String(options.compound),
     weather: String(options.weather),
   };
 }
@@ -246,4 +272,11 @@ export const emitLapRecord = (
 export const emitSessionStarted = (
   options: Parameters<typeof sessionStartedEvent>[0],
   kind: SessionStartedEvent['kind'] = 'circuit',
-) => emitSafely(() => sessionStartedEvent(options, kind));
+  wildcardEvent?: string,
+) => emitSafely(() => sessionStartedEvent(options, kind, wildcardEvent));
+export const emitTimeTrialLap = (
+  options: Parameters<typeof timeTrialLapEvent>[0],
+  seconds: number,
+) => emitSafely(() => timeTrialLapEvent(options, seconds));
+export const emitWildcardResult = (event: Omit<WildcardResultEvent, 'type' | 'physics'>) =>
+  emitSafely(() => ({ ...event, type: 'wildcard.result', physics: SIMULATION_VERSION }));

@@ -63,7 +63,8 @@
     "desktop:dist:demo:win": "npm --prefix desktop run dist:demo:win",
     "desktop:dist:demo:mac": "npm --prefix desktop run dist:demo:mac",
     "desktop:smoke": "node desktop/scripts/smoke.cjs",
-    "export:achievements": "node --experimental-strip-types scripts/export-achievements.ts"
+    "export:achievements": "node --experimental-strip-types scripts/export-achievements.ts",
+    "export:presence": "node --no-warnings --experimental-transform-types scripts/export-presence.ts"
   },
   "dependencies": {
     "@fontsource-variable/saira": "5.3.0",
