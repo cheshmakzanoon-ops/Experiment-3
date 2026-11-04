@@ -21,6 +21,8 @@ import { LIGHT_GLYPH, WEATHER_GLYPH, glyph, plateSvg } from './glyphs.ts';
 import { circuitArt, circuitArtSvg } from './track-art.ts';
 import { escapeHtml } from './team-hub.ts';
 import { uiCue } from './ui-cue.ts';
+import { demoPolicy, wildcardOpen } from '../release/demo.ts';
+import { fullGameTag, lockedPanelHtml } from './demo-plate.ts';
 
 /** The WILDCARD SERIES board: every event of the series on one screen, a
  * programme page per event (the venue's real line art, the machine, the
@@ -98,7 +100,8 @@ export interface WildcardProgress {
 }
 /** Tally for the door on the paddock board and the board's header. */
 export function wildcardProgress(save: Pick<CareerSave, 'results'> | null): WildcardProgress {
-  const series = wildcardSeries();
+  // The Steam demo offers a slice of the series; the rest is FULL GAME and is not tallied.
+  const series = wildcardSeries().filter((e) => wildcardOpen(e.id));
   const medals: Record<Medal, number> = { gold: 0, silver: 0, bronze: 0 };
   let next: WildcardEntry | null = null,
     medalled = 0;
@@ -135,8 +138,9 @@ const rulesOf = (entry: WildcardEntry) =>
 function rowHtml(entry: WildcardEntry, index: number, save: CareerSave | null, selected: boolean) {
   const medal = bestMedal(entry, save);
   const weather = weatherTag(entry);
-  const label = `${pad2(index + 1)} ${entry.title}, ${machineCodes(entry)} at ${venueName(entry)}, ${weather.tag.toLowerCase()}${entry.lighting ? `, ${entry.lighting}` : ''}, ${medal ? `best ${medal}` : 'no medal yet'}`;
-  return `<li><button type="button" class="wc-row" role="radio" aria-checked="${selected}" tabindex="${selected ? 0 : -1}" data-id="${entry.id}" data-kind="${entry.kind}" style="${tint(entry)}" aria-label="${escapeHtml(label)}"><span class="wc-no">${pad2(index + 1)}</span><span class="wc-mini">${circuitArtSvg(entry.event.circuit, { numbers: false, className: 'ta wc-mini-art' })}</span><span class="wc-row-text"><b>${escapeHtml(entry.title)}</b><span>${escapeHtml(machineCodes(entry))} <i>on</i> ${escapeHtml(venueName(entry))}</span></span><span class="wc-row-flags">${glyph(WEATHER_GLYPH[entry.event.weather] ?? 'sun', 'wc-flag')}${entry.lighting ? glyph(lightGlyph(entry), 'wc-flag') : ''}${medalDisc(medal)}</span></button></li>`;
+  const locked = !wildcardOpen(entry.id);
+  const label = `${pad2(index + 1)} ${entry.title}, ${machineCodes(entry)} at ${venueName(entry)}, ${weather.tag.toLowerCase()}${entry.lighting ? `, ${entry.lighting}` : ''}, ${locked ? 'full game only' : medal ? `best ${medal}` : 'no medal yet'}`;
+  return `<li><button type="button" class="wc-row" role="radio" aria-checked="${selected}" tabindex="${selected ? 0 : -1}" data-id="${entry.id}" data-kind="${entry.kind}"${locked ? ' data-locked="true"' : ''} style="${tint(entry)}" aria-label="${escapeHtml(label)}"><span class="wc-no">${pad2(index + 1)}</span><span class="wc-mini">${circuitArtSvg(entry.event.circuit, { numbers: false, className: 'ta wc-mini-art' })}</span><span class="wc-row-text"><b>${escapeHtml(entry.title)}</b><span>${escapeHtml(machineCodes(entry))} <i>on</i> ${escapeHtml(venueName(entry))}</span></span><span class="wc-row-flags">${glyph(WEATHER_GLYPH[entry.event.weather] ?? 'sun', 'wc-flag')}${entry.lighting ? glyph(lightGlyph(entry), 'wc-flag') : ''}${locked ? fullGameTag() : medalDisc(medal)}</span></button></li>`;
 }
 
 function detailHtml(entry: WildcardEntry, save: CareerSave | null, selected: boolean) {
@@ -158,8 +162,11 @@ function detailHtml(entry: WildcardEntry, save: CareerSave | null, selected: boo
         `<li data-medal="${m}"${medal === m ? ' data-best="true"' : ''}>${medalDisc(m)}<span><b>${MEDAL_NAME[m]}</b><small>${entry.ladder.metric === 'position' ? 'FINISH' : 'LAP'} ${requirement(entry, m)}${entry.ladder.metric === 'position' ? ' OR BETTER' : ' OR FASTER'}</small></span>${medal && MEDAL_RANK[medal] >= MEDAL_RANK[m] ? '<em>EARNED</em>' : ''}</li>`,
     )
     .join('');
+  const locked = !wildcardOpen(entry.id);
   const best =
-    !record || record.starts < 1
+    locked
+      ? 'FULL GAME'
+      : !record || record.starts < 1
       ? 'NOT RUN YET'
       : entry.ladder.metric === 'best-lap'
         ? `BEST ${record.bestLap > 0 ? lapStamp(record.bestLap) : '—'} · ${record.starts} ${record.starts === 1 ? 'START' : 'STARTS'}`
@@ -171,14 +178,22 @@ function detailHtml(entry: WildcardEntry, save: CareerSave | null, selected: boo
 <div class="wc-detail-top"><div class="wc-map">${circuitArtSvg(entry.event.circuit, { numbers: true, className: 'ta wc-map-art' })}</div><div class="wc-detail-head"><span class="wc-kind">${entry.kind === 'cross-discipline' ? 'CROSS-DISCIPLINE' : 'CLASS MISMATCH'}</span><h3>${escapeHtml(entry.title)}</h3><dl class="wc-facts"><div><dt>MACHINE</dt><dd><span class="wc-plate" aria-hidden="true">${plateSvg(spec.shape, spec.numeral)}</span>${escapeHtml(machineNames(entry))}</dd></div><div><dt>VENUE</dt><dd>${escapeHtml(venueName(entry))} <small>${(art.length / 1000).toFixed(1)} KM · ${venue.corners.length} TURNS</small></dd></div><div><dt>FIELD</dt><dd>${field}</dd></div><div><dt>SKY</dt><dd>${glyph(WEATHER_GLYPH[entry.event.weather] ?? 'sun', 'wc-flag')}${weather.tag}<span class="wc-sep"></span>${glyph(lightGlyph(entry), 'wc-flag')}${lightLabel(entry)}</dd></div></dl>${rules ? `<div class="wc-rules">${rules}</div>` : ''}</div></div>
 <p class="wc-pitch">${escapeHtml(entry.pitch)}</p>
 <div class="wc-ladder"><ol aria-label="Medal ladder">${ladder}</ol><p class="wc-best" data-medal="${medal ?? 'none'}">${best}</p></div>
-<div class="wc-foot"><p class="wc-pay"><small>PAYS UP TO</small><b>${credits(maximumPay(entry))}</b><small>${entry.stakes === 1 ? 'MACHINES ARE LOANED' : `STAKES × ${entry.stakes} · MACHINES ARE LOANED`}</small></p><button type="button" class="primary wc-go" data-action="career:wildcardGo:${entry.id}">START EVENT ${glyph('go', 'enter-glyph')}</button></div>
+<div class="wc-foot"><p class="wc-pay"><small>PAYS UP TO</small><b>${credits(maximumPay(entry))}</b><small>${entry.stakes === 1 ? 'MACHINES ARE LOANED' : `STAKES × ${entry.stakes} · MACHINES ARE LOANED`}</small></p>${
+    locked
+      ? lockedPanelHtml('This event is in the full game: the machine, the venue and the sky are all waiting there.', 'wildcard')
+      : `<button type="button" class="primary wc-go" data-action="career:wildcardGo:${entry.id}">START EVENT ${glyph('go', 'enter-glyph')}</button>`
+  }</div>
 </section>`;
 }
 
 /** The board. `selected`: the event id shown on the programme page (default:
  * the first event without a medal, else the first). */
 export function wildcardBoardHtml(save: CareerSave | null, selected?: string): string {
-  const series = wildcardSeries();
+  // The Steam demo lists its events first and the rest below as FULL GAME plates.
+  const all = wildcardSeries();
+  const series = demoPolicy()
+    ? [...all.filter((e) => wildcardOpen(e.id)), ...all.filter((e) => !wildcardOpen(e.id))]
+    : all;
   const progress = wildcardProgress(save);
   const chosen = series.find((e) => e.id === selected) ?? progress.next ?? series[0];
   const tally = MEDALS.slice()
@@ -189,7 +204,7 @@ export function wildcardBoardHtml(save: CareerSave | null, selected?: string): s
     )
     .join('');
   return `<div class="wc-board" data-selected="${chosen.id}">
-<header class="wc-head"><div><span class="eyebrow">WILDCARD SERIES</span><h2>Machines on roads they were never built for.</h2></div><ul class="wc-tally" aria-label="Medals earned">${tally}<li class="wc-tally-total"><b>${progress.medalled}</b><span class="wc-tally-name">OF ${progress.total} MEDALLED</span></li></ul><button type="button" data-action="modalClose" class="wc-close" aria-label="Close Wildcard Series">${glyph('close')}</button></header>
+<header class="wc-head"><div><span class="eyebrow">WILDCARD SERIES${demoPolicy() ? ` · ${progress.total} OF ${all.length} IN THE DEMO` : ''}</span><h2>Machines on roads they were never built for.</h2></div><ul class="wc-tally" aria-label="Medals earned">${tally}<li class="wc-tally-total"><b>${progress.medalled}</b><span class="wc-tally-name">OF ${progress.total} MEDALLED</span></li></ul><button type="button" data-action="modalClose" class="wc-close" aria-label="Close Wildcard Series">${glyph('close')}</button></header>
 <div class="wc-body"><ul class="wc-list" role="radiogroup" aria-label="Wildcard event">${series.map((e, i) => rowHtml(e, i, save, e.id === chosen.id)).join('')}</ul><div class="wc-pages">${series.map((e) => detailHtml(e, save, e.id === chosen.id)).join('')}</div></div>
 </div>`;
 }

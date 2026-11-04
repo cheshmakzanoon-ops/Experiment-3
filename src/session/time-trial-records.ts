@@ -12,6 +12,7 @@ import type { SessionOptions } from '../simulation/config.ts';
 import { F, carBase } from '../simulation/protocol.ts';
 import type { Track } from '../simulation/track.ts';
 import { insertLeaderboard, leaderboardKey } from '../storage/leaderboard.ts';
+import { emitTimeTrialLap } from '../steam/hooks.ts';
 import { lapTime } from '../ui/interface.ts';
 
 /** What the records lifecycle needs from the application (WP13). */
@@ -107,6 +108,8 @@ export class TimeTrialRecords {
     session: string,
   ) {
     const category = recordCategory(options);
+    // Steam leaderboards (src/steam/leaderboard-runtime.ts) listen for every valid lap.
+    emitTimeTrialLap(options, time);
     const key = leaderboardKey(circuit, category.vehicle, category.physics);
     const entry = {
       lapTime: time,

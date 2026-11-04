@@ -28,6 +28,12 @@ jobs:
       # downloads. It refuses an owner or review build and has no switch that turns that off.
       - name: IP guard on the built output
         run: node scripts/ip-guard.mjs --dist dist
+      # The Steam demo edition (src/release/demo.ts) is a product-class build in its OWN directory:
+      # the same guard certifies it (inside `vite build` and again here), and it is neither uploaded
+      # as `apex-formula-web` nor ever published (scripts/publish-validated-release.sh refuses any
+      # edition but "full"). Its desktop packages come from desktop-packages.yml.
+      - name: Steam demo build and IP guard
+        run: npm run build:demo && node scripts/ip-guard.mjs --dist dist-demo
       - name: Static application build
         uses: actions/upload-artifact@v4
         with:

@@ -118,3 +118,53 @@ jobs:
             dist/BUILD_IDENTITY.json
           retention-days: 7
           if-no-files-found: error
+  replay-qa:
+    # Release gate G15 (docs/studio/reports/ip-audit.md section 4.6). The `replay` group above runs
+    # e2e/07-reference-tools.spec.ts, a review-tooling spec that skips with a stated reason on the
+    # product build the `build` job makes. The same case, with the same repetitions, one worker and
+    # no retries, runs HERE on a separate QA build (`npm run build:qa`:
+    # MOTOBOUND_SUPPLIED_PLAYER=1, MOTOBOUND_REVIEW_TOOLS=1). That build is made and used inside
+    # this job only: not uploaded, not passed through `npm run build`, `check:ip` or the IP guard.
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+      MOTOBOUND_SUPPLIED_PLAYER: '1'
+      MOTOBOUND_REVIEW_TOOLS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: QA build (owner model and review tooling, not for release)
+        run: npm run build:qa
+      - run: npx playwright install --with-deps chromium
+      - name: Install software graphics and virtual display
+        run: sudo apt-get install -y xvfb libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils
+      - name: Race and replay photo transitions on the QA build, without retries
+        run: >-
+          xvfb-run -a -s '-screen 0 1920x1080x24'
+          npm run test:e2e -- e2e/07-reference-tools.spec.ts
+          --grep 'race and replay photo transitions' --repeat-each=3
+          --workers=1 --retries=0 --output=test-results/a34-replay-qa
+      - name: Require validation to leave tracked source and assets unchanged
+        run: git diff --exit-code
+      - name: Preserve screenshots and progress (test results only, never the build)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a34-integration-replay-qa
+          path: |
+            test-results/
+            playwright-report/
+            browser-progress.json
+            browser-backend.json
+          retention-days: 7
+          if-no-files-found: error

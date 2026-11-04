@@ -185,7 +185,10 @@ describe('the certifying build path', () => {
     expect(config).toContain(
       "const variant = suppliedPlayer ? 'owner' : reviewTools ? 'review' : 'product';",
     );
-    expect(config).toContain('fingerprint, variant }');
+    // The identity also carries the edition (full or the Steam demo); the demo stays a
+    // product-class build, so `variant` is still what the guard and the release script check.
+    expect(config).toContain('fingerprint, variant, edition }');
+    expect(config).toContain("const edition = demoBuild ? 'demo' : 'full';");
     expect(config).toContain('NOT_FOR_RELEASE.txt');
   });
 });

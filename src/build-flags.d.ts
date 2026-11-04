@@ -23,3 +23,12 @@ declare const __SUPPLIED_PLAYER__: boolean | undefined;
  * (Node scripts, Playwright, ad-hoc fixture bundles) the data stays available.
  */
 declare const __REVIEW_TOOLS__: boolean | undefined;
+
+/**
+ * `__DEMO_BUILD__` marks the Steam demo / Next Fest edition (`npm run build:demo`,
+ * MOTOBOUND_DEMO=1). It is a PRODUCT-class build (the IP guard certifies it like the full
+ * game); the flag only selects the content slice in `src/release/demo.ts`. Read it through
+ * that module, never directly. Where nothing injects it (Node scripts, unit tests) it is
+ * undefined and the game is the full game.
+ */
+declare const __DEMO_BUILD__: boolean | undefined;

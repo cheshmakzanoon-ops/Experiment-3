@@ -122,9 +122,39 @@ export interface SessionStartedEvent {
   circuitId: string;
   vehicleId: string;
   weather: string;
+  /** Session mode (race, practice, time-trial, ...), absent for the festival. */
+  mode?: string;
+  /** The Wildcard Series event being driven, when the session is one. */
+  wildcardEvent?: string;
 }
 export interface MenuEnteredEvent {
   type: 'menu.entered';
+}
+
+/** A valid, player-driven time-trial lap finished (every one, not only personal bests). */
+export interface TimeTrialLapEvent {
+  type: 'timetrial.lap';
+  circuitId: string;
+  vehicleId: string;
+  /** Physics version the lap was driven under (a record category, session-identity.ts). */
+  physics: number;
+  seconds: number;
+  assist: string;
+  compound: string;
+  weather: string;
+}
+
+/** A Wildcard event was driven and settled by the career (never an AI-driven or unclassified run). */
+export interface WildcardResultEvent {
+  type: 'wildcard.result';
+  eventId: string;
+  physics: number;
+  /** Best valid lap of the session (s), 0 when none. */
+  bestLap: number;
+  position: number;
+  medal: 'bronze' | 'silver' | 'gold' | null;
+  assist: string;
+  weather: string;
 }
 
 export type GameEvent =
@@ -139,7 +169,9 @@ export type GameEvent =
   | FestivalCleanPassEvent
   | PhotoTakenEvent
   | SessionStartedEvent
-  | MenuEnteredEvent;
+  | MenuEnteredEvent
+  | TimeTrialLapEvent
+  | WildcardResultEvent;
 
 export type GameEventType = GameEvent['type'];
 export type GameEventOf<T extends GameEventType> = Extract<GameEvent, { type: T }>;

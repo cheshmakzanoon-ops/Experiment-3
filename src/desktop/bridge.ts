@@ -28,7 +28,13 @@ export interface SteamPresence {
   vehicle?: string;
   weather?: string;
   discipline?: string;
+  /** The Wildcard Series event being driven (a title, or its id before `describePresence`). */
+  event?: string;
 }
+
+export type SteamLeaderboardReply =
+  | { ok: true; changed?: boolean; rank?: number }
+  | { ok: false; unavailable?: boolean; reason?: string };
 
 export interface MotoboundDesktop {
   version: number;
@@ -55,6 +61,24 @@ export interface MotoboundDesktop {
     unlocked(ids: string[]): Promise<string[]>;
     unlock(ids: string[]): Promise<string[]>;
     presence(state: SteamPresence): Promise<boolean>;
+    /**
+     * Optional: present when the shell was built with leaderboard support. `available` is false
+     * (with the reason) when Steam is not running or the Steam binding has no leaderboard API;
+     * `submit` never rejects. The page treats every failure as "keep the score, try later".
+     */
+    leaderboards?: {
+      status(): Promise<{ available: boolean; reason: string | null }>;
+      submit(name: string, score: number, details: number[]): Promise<SteamLeaderboardReply>;
+    };
+  };
+  /** Optional: absent in a shell older than the demo edition. */
+  shell?: {
+    /**
+     * Open the game's Steam store page in the player's browser (the Steam demo's wishlist
+     * button). The page sends only a campaign label: the shell builds the URL from its own
+     * configured app id and allow-list, so the page can never choose where this goes.
+     */
+    openStore(source: string): Promise<{ opened: boolean; reason: string | null }>;
   };
   quit(): Promise<boolean>;
 }

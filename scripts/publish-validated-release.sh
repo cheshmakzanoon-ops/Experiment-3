@@ -24,6 +24,11 @@ if (identity.version !== 1 || identity.commit !== process.env.VALIDATED_SHA ||
     !/^[0-9a-f]{64}$/.test(identity.fingerprint) || identity.variant !== 'product') {
   throw new Error('Validated build identity differs from the gated source commit');
 }
+// The Steam demo (npm run build:demo) is a product-class build with a content slice: it ships
+// as its own Steam app, never as the game on Pages or as the release artifact.
+if ((identity.edition ?? 'full') !== 'full') {
+  throw new Error(`Refusing to publish a "${identity.edition}" edition as the game`);
+}
 for (const [family, filename] of [
   ['track-signal-hardware', 'aurel-track-signal-hardware.glb'],
   ['track-boards', 'aurel-track-boards.glb'],

@@ -8,6 +8,8 @@ import firstRunCss from './first-run.css?inline';
 import resultsCss from './results-board.css?inline';
 import settingsGuideCss from './settings-guide.css?inline';
 import screensCss from './screens-board.css?inline';
+import demoCss from './demo-plate.css?inline';
+import recordsCss from './records-board.css?inline';
 import stencilUrl from './fonts/saira-stencil-one-latin-400-normal.woff2?url';
 import { LIGHT_GLYPH, WEATHER_GLYPH, glyph, plateSvg, type GlyphName } from './glyphs.ts';
 import {
@@ -32,6 +34,7 @@ import {
   type ContinueField,
 } from './continue-entry.ts';
 import { uiCue } from './ui-cue.ts';
+import { circuitOpen, demoPolicy, machineOpen } from '../release/demo.ts';
 import { wildcardProgress, type WildcardProgress } from './wildcard-board.ts';
 
 /** The launch board: the paddock menu's discipline plates, venue sheet and
@@ -48,7 +51,7 @@ export function installFrontEnd(doc: Document = document) {
   if (doc.getElementById(FRONT_END_STYLE_ID)) return false;
   const style = doc.createElement('style');
   style.id = FRONT_END_STYLE_ID;
-  style.textContent = `@font-face{font-family:'Saira Stencil One';font-style:normal;font-weight:400;font-display:swap;src:url(${stencilUrl}) format('woff2')}\n${frontEndCss}\n${wildcardCss}\n${loadingCss}\n${careerBoardCss}\n${firstRunCss}\n${resultsCss}\n${settingsGuideCss}\n${screensCss}`;
+  style.textContent = `@font-face{font-family:'Saira Stencil One';font-style:normal;font-weight:400;font-display:swap;src:url(${stencilUrl}) format('woff2')}\n${frontEndCss}\n${wildcardCss}\n${loadingCss}\n${careerBoardCss}\n${firstRunCss}\n${resultsCss}\n${settingsGuideCss}\n${screensCss}\n${demoCss}\n${recordsCss}`;
   doc.head.append(style);
   return true;
 }
@@ -480,6 +483,17 @@ export function installLaunchBoard(menu: HTMLElement): LaunchBoard {
     if (enterLabel.textContent !== label) enterLabel.textContent = label;
     for (const chip of strip.querySelectorAll<HTMLButtonElement>('[data-mx-venue]'))
       chip.setAttribute('aria-pressed', String(chip.dataset.mxVenue === f.circuit));
+    // Steam demo: what the slice leaves out stays listed but cannot be picked (the options
+    // carry FULL GAME in their text; the festival lends different machines than the circuits).
+    if (demoPolicy()) {
+      for (const option of sel('circuit').options) option.disabled = !circuitOpen(option.value);
+      for (const option of sel('vehicle').options) option.disabled = !machineOpen(option.value, d);
+      for (const chip of strip.querySelectorAll<HTMLButtonElement>('[data-mx-venue]')) {
+        const open = circuitOpen(chip.dataset.mxVenue ?? '');
+        chip.disabled = !open;
+        if (!open && !chip.title.includes('FULL GAME')) chip.title = `${chip.title ? `${chip.title} · ` : ''}FULL GAME`;
+      }
+    }
   }
 
   const board: LaunchBoard = {

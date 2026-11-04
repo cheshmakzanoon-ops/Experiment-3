@@ -1,0 +1,42 @@
+# electron-builder configuration for the Steam DEMO (Next Fest) app: the same shell and the same
+# hardening as electron-builder.yml, packaged from the demo web build (npm run build:demo ->
+# ../dist-demo, staged by `scripts/stage-web.cjs --demo`).
+#
+# A Steam demo is its own app, so it gets its own identity everywhere a player or Steam could mix it
+# up with the game: appId, productName (which is also the userData folder, so demo saves and Steam
+# Cloud files never collide with the full game's), the Linux executable and the output folder.
+# Run through the scripts in package.json (pack:demo:linux / dist:demo:linux / dist:demo:win /
+# dist:demo:mac); each stages the demo build first and refuses a build of another edition.
+extends: ./electron-builder.yml
+
+appId: io.motobound.game.demo
+productName: MOTOBOUND Demo
+
+directories:
+  output: release-demo
+  buildResources: build
+
+# `productName` above names the installer and the executable; Electron names the userData folder
+# (saves, logs, Steam Cloud root) from the *package.json inside the app*, which electron-builder
+# does not rewrite. Without this the demo would share `MOTOBOUND/` with the game (found by reading
+# the packaged app.asar). `name` also separates the single-instance lock and the .desktop file.
+extraMetadata:
+  name: motobound-demo
+  productName: MOTOBOUND Demo
+  desktopName: motobound-demo.desktop
+
+linux:
+  executableName: motobound-demo
+  desktop:
+    entry:
+      Name: MOTOBOUND Demo
+      Comment: Free demo of MOTOBOUND, a racing game of cars, GP bikes, motocross and an open coast
+      Keywords: racing;motorcycle;motocross;game;demo;
+win:
+  target: [nsis, portable, zip]
+nsis:
+  artifactName: MOTOBOUND-Demo-Setup-${version}-${arch}.${ext}
+portable:
+  artifactName: MOTOBOUND-Demo-Portable-${version}-${arch}.${ext}
+
+artifactName: MOTOBOUND-Demo-${version}-${os}-${arch}.${ext}

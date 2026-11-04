@@ -11,6 +11,7 @@ import type { Track } from '../simulation/track.ts';
 import { FESTIVAL_SAVE_KEY, validateFestivalSave } from '../session/festival-save.ts';
 import { backupKey, recoverSave } from '../storage/data.ts';
 import { emitGameEvent } from '../steam/events.ts';
+import { emitWildcardResult } from '../steam/hooks.ts';
 import {
   CAREER_PAGES,
   abandonPrompt,
@@ -858,6 +859,20 @@ export class CareerController {
       ? wildcardEntry(event.key.slice('wildcard.'.length))
       : undefined;
     const previous = wildcard ? bestMedal(wildcard, this.save) : null;
+    // Steam leaderboards (src/steam/leaderboard-runtime.ts): a driven, classified Wildcard run.
+    if (wildcard && !outcome.demonstration && outcome.classified && outcome.bestLap > 0)
+      emitWildcardResult({
+        eventId: wildcard.id,
+        bestLap: outcome.bestLap,
+        position: outcome.position,
+        medal: wildcardMedal(wildcard, {
+          position: outcome.position,
+          classified: outcome.classified,
+          bestLap: outcome.bestLap,
+        }),
+        assist: wildcard.rules.includes('no-assists') ? 'raw' : this.host.assist(),
+        weather: String(wildcard.event.weather),
+      });
     const lead = (state: PaymentState) => {
       if (!wildcard) return '';
       const view: WildcardResultView = {

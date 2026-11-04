@@ -24,6 +24,11 @@ import { wildcardBoardHtml, wildcardProgress } from '../../../src/ui/wildcard-bo
 import { nextFromPlan } from '../../../src/ui/results-board.ts';
 import { seasonPlan } from '../../../src/career/next-up.ts';
 import { payoutPanel } from '../../../src/ui/career-hub.ts';
+import { loadRecords, recordsHtml, type RecordsTab } from '../../../src/ui/records-board.ts';
+import { createDemoPolicy, useDemoPolicy } from '../../../src/release/demo.ts';
+import { insertLeaderboard, leaderboardKey } from '../../../src/storage/leaderboard.ts';
+import { SIMULATION_VERSION } from '../../../src/core/session-identity.ts';
+import { ghostKey } from '../../../src/core/ghost-lap.ts';
 
 let ui: Interface;
 const renderer = {
@@ -399,4 +404,55 @@ export async function shareCard() {
   img.style.cssText = 'position:fixed;left:40px;top:45px;width:1200px;height:630px';
   document.body.replaceChildren(img);
   await img.decode();
+}
+
+/** RECORDS with a few synthetic laps (a screen check, not a recording of play). */
+export async function records(tab: RecordsTab = 'time-trial', steam = true) {
+  mount();
+  ui.showMode('menu');
+  const lap = (lapTime: number, session: string, weather = 'clear', assist = 'sport') => ({
+    lapTime,
+    driver: 'ALEX RIVER',
+    assist,
+    compound: 'medium',
+    weather,
+    session,
+  });
+  const board = (...laps: ReturnType<typeof lap>[]) =>
+    laps.reduce<unknown>((value, entry) => insertLeaderboard(value, entry).board, []);
+  const data = new Map<string, unknown>([
+    [
+      leaderboardKey('aurel', 'apx01', SIMULATION_VERSION),
+      board(lap(81.234, 'a'), lap(82.9, 'b', 'rain'), lap(83.5, 'c'), lap(84.01, 'd', 'clear', 'raw')),
+    ],
+    [leaderboardKey('vellamar', 'gpr1', SIMULATION_VERSION), board(lap(95.25, 'e'), lap(96.8, 'f'))],
+    [leaderboardKey('alpine-pass', 'apx01', SIMULATION_VERSION), board(lap(301.5, 'g', 'fog'))],
+    [leaderboardKey('aurel'), board(lap(70, 'h'))],
+    [ghostKey('aurel', 'apx01'), {}],
+    [ghostKey('vellamar', 'gpr1'), {}],
+  ]);
+  const career = playedCareer();
+  const view = await loadRecords({
+    store: {
+      read: async (key) => data.get(key),
+      keys: async (prefix) => [...data.keys()].filter((k) => k.startsWith(prefix)),
+    },
+    career,
+    boards: null,
+    steam: steam
+      ? { supported: true, online: false, reason: 'Steam client not running', pending: 3, sent: 0 }
+      : null,
+  });
+  ui.modalContent(recordsHtml(view, tab));
+}
+export const recordsWildcard = () => records('wildcard', false);
+
+/** The Steam demo's paddock (the FULL GAME plate, locked lists) from the real Interface. */
+export function demoMenu() {
+  useDemoPolicy(createDemoPolicy());
+  menu();
+}
+export function demoWildcard() {
+  useDemoPolicy(createDemoPolicy());
+  wildcardBoard('descent-in-the-cloud');
 }

@@ -19,6 +19,7 @@ const {
   protocol,
   screen,
   session,
+  shell,
 } = require('electron');
 
 const { parseArgs, planSwitches } = require('./src/flags.cjs');
@@ -40,6 +41,7 @@ const {
   WindowStateStore,
 } = require('./src/window-state.cjs');
 const { loadSteam } = require('./src/steam.cjs');
+const { openStore } = require('./src/store-link.cjs');
 const { createLogger } = require('./src/logger.cjs');
 
 const options = parseArgs(process.argv, process.env);
@@ -115,6 +117,15 @@ function webRoot() {
   if (app.isPackaged) return path.join(process.resourcesPath, 'web');
   const staged = path.join(__dirname, 'web');
   return fs.existsSync(staged) ? staged : path.join(__dirname, '..', 'dist');
+}
+
+/** `STORE_LINK.json` staged next to the game by desktop/scripts/stage-web.cjs (null when absent). */
+function readStoreLink() {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(webRoot(), 'STORE_LINK.json'), 'utf8'));
+  } catch {
+    return null;
+  }
 }
 
 function parseRange(header, size) {
@@ -444,6 +455,16 @@ function registerIpc() {
   }));
   handle('steam:unlocked', (ids) => idList(ids).filter((id) => steam.isActivated(id)));
   handle('steam:unlock', (ids) => idList(ids).filter((id) => steam.activate(id)));
+  handle('steam:lb:status', () => ({
+    available: steam.available && steam.leaderboards.available,
+    reason: steam.available ? steam.leaderboards.reason : steam.reason,
+  }));
+  handle('steam:lb:submit', async (name, score, details) => {
+    if (!steam.available) return { ok: false, unavailable: true, reason: steam.reason };
+    if (!steam.leaderboards.available)
+      return { ok: false, unavailable: true, reason: steam.leaderboards.reason };
+    return steam.leaderboards.submit(name, score, details);
+  });
   handle('steam:presence', (state) => {
     const s = state && typeof state === 'object' ? state : {};
     const text = (v) => (typeof v === 'string' ? v.slice(0, 80) : null);
@@ -455,9 +476,21 @@ function registerIpc() {
       vehicle: text(s.vehicle),
       weather: text(s.weather),
       discipline: text(s.discipline),
+      event: text(s.event),
     });
     return true;
   });
+  // The Steam demo's WISHLIST button. The page sends a campaign label only; the shell builds the
+  // address from the configured store app id and opens it if it passes the allow-list.
+  handle('shell:openStore', (source) =>
+    openStore({
+      env: process.env,
+      config: readStoreLink(),
+      source,
+      openExternal: (url) => shell.openExternal(url),
+      log,
+    }),
+  );
   handle('quit', () => {
     app.quit();
     return true;

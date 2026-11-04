@@ -11,6 +11,8 @@ import { classInfo, vehiclesByClass } from '../simulation/vehicle-classes.ts';
 import { DEFAULT_VEHICLE_ID, VEHICLES, type VehicleClass } from '../simulation/vehicles.ts';
 import { BIKE_MACHINES, bikeMachineOptions } from './bike-machines.ts';
 import { isDirtBike } from '../simulation/offroad/dirt-bikes.ts';
+import { lockedLabel, machineOpen } from '../release/demo.ts';
+import { demoSessionLock } from '../release/demo-gates.ts';
 
 /** MACHINE choice (WP22, WP30): data-driven from the vehicle registry,
  * grouped by class. A single machine fills the grid with its own class under
@@ -73,9 +75,11 @@ export function machineSelectOptions(selected: string = DEFAULT_VEHICLE_ID) {
     .map(
       (g) =>
         `<optgroup label="${escapeHtml(g.label)}">${g.options
-          .map(
-            (o) =>
-              `<option value="${escapeHtml(o.value)}"${o.value === selected ? ' selected' : ''}>${escapeHtml(o.label)}</option>`,
+          .map((o) =>
+            // Steam demo: a machine outside the slice stays listed as a FULL GAME entry.
+            machineOpen(o.value)
+              ? `<option value="${escapeHtml(o.value)}"${o.value === selected ? ' selected' : ''}>${escapeHtml(o.label)}</option>`
+              : `<option value="${escapeHtml(o.value)}" disabled>${escapeHtml(lockedLabel(o.label))}</option>`,
           )
           .join('')}</optgroup>`,
     )
@@ -187,7 +191,8 @@ export function sessionRulesSummary(fields: SessionRulesFields) {
   });
   const resolved = { ...options, ...machineOptions(options, fields.vehicle) };
   const rules = rulesetFor(resolved),
-    problems = sessionIncompatibilities(validateOptions(resolved)),
+    locked = demoSessionLock({ circuit: fields.circuit, mode: fields.mode, vehicles: resolved.vehicles }),
+    problems = [...(locked ? [locked] : []), ...sessionIncompatibilities(validateOptions(resolved))],
     grid = (resolved.vehicles ?? [DEFAULT_VEHICLE_ID]).map((id) => VEHICLES[id]),
     drs = gridDrs(rules.drs, grid);
   return problems.length

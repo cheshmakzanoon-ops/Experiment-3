@@ -14,10 +14,12 @@ desktop/
   src/codec.cjs       JSON codec for typed arrays / Date / Map / Set / NaN
   src/window-state.cjs placement + display mode persistence, off-screen protection
   src/flags.cjs       launch options and Chromium switch policy (pure, tested)
-  src/steam.cjs       optional steamworks.js; never throws, no-op without Steam
+  src/steam.cjs       optional steamworks.js; never throws, no-op without Steam (+ leaderboard adapter)
+  src/store-link.cjs  the demo's WISHLIST button: store address from the app id, strict allow-list
   src/smoke.cjs       release smoke test (only active when MOTOBOUND_SMOKE_OUT is set)
-  scripts/            stage-web.cjs (copy ../dist), smoke.cjs (harness)
-  electron-builder.yml
+  scripts/            stage-web.cjs (copy ../dist or ../dist-demo), smoke.cjs (harness)
+  electron-builder.yml        the game
+  electron-builder.demo.yml   the Steam demo (extends the above: own appId, name, executable, output)
   STEAM.md            Steamworks setup, Steam Cloud, rich presence tokens
 ```
 
@@ -36,6 +38,30 @@ npm run desktop:dist:win:zip  # zip only: builds from Linux too
 npm run desktop:dist:mac      # zip (unsigned unless you configure signing)
 npm run desktop:smoke         # virtual-display smoke test (needs xvfb-run); see below
 ```
+
+### The Steam demo (Next Fest)
+
+The demo is a separate Steam app, so it is a separate build and a separate package. It is cut from
+the same source: `npm run build:demo` writes `dist-demo/` (a product build with the demo content
+slice, `src/release/demo.ts`; the IP guard certifies it exactly like the game) and the desktop
+scripts package it under its own identity (`MOTOBOUND Demo`, appId `io.motobound.game.demo`,
+executable `motobound-demo`, output `release-demo/`, so its saves and Steam Cloud files never
+collide with the game's).
+
+```bash
+npm run build:demo                 # tsc + vite build -> dist-demo (edition "demo") + IP guard
+MOTOBOUND_STORE_APPID=<full game app id> npm run desktop:pack:demo     # Linux unpacked -> desktop/release-demo/linux-unpacked
+npm run desktop:dist:demo:linux    # AppImage + zip
+npm run desktop:dist:demo:win      # NSIS installer + portable exe + zip (NSIS needs Windows or wine)
+npm run desktop:dist:demo:mac      # zip
+npm --prefix desktop run test:smoke:demo   # smoke test of release-demo/linux-unpacked/motobound-demo
+```
+
+`stage-web.cjs --demo` refuses a build whose `BUILD_IDENTITY.json` edition is not `demo` (and the
+plain `stage` refuses a demo build), so the wrong build cannot be packaged under the wrong config.
+`MOTOBOUND_STORE_APPID` is the **full game's** Steam app id; it is written into the package
+(`web/STORE_LINK.json`) and read by the WISHLIST button through `src/store-link.cjs`. Without it
+the button is a no-op that says the page is not live yet (the repository never contains an app id).
 
 Electron 44's package no longer downloads its binary at install time: the first `desktop:start`
 (or `npx install-electron` inside `desktop/`) fetches it, and `electron-builder` fetches its own
@@ -120,7 +146,8 @@ so at start-up `src/storage/desktop-mirror.ts` can tell which side is newer: a n
 (live-sky toggle, ephemeris cache) are not.
 
 Save locations: Windows `%APPDATA%\MOTOBOUND\saves`, Linux `~/.config/MOTOBOUND/saves`, macOS
-`~/Library/Application Support/MOTOBOUND/saves`. Logs: `…/MOTOBOUND/logs/main.log`.
+`~/Library/Application Support/MOTOBOUND/saves`. Logs: `…/MOTOBOUND/logs/main.log`. The demo
+uses `MOTOBOUND Demo` in place of `MOTOBOUND` in every path above.
 
 ## Release smoke test
 
@@ -139,6 +166,7 @@ it does **not** prove GPU performance, gamepad hardware, Windows/macOS behaviour
 | `MOTOBOUND_STEAM=0` | never load or initialise Steamworks |
 | `MOTOBOUND_STEAM_APPID` | dev only: Steam app id to init with (placeholder `480`; see STEAM.md) |
 | `MOTOBOUND_STEAM_OVERLAY=0` | skip the in-process-GPU overlay workaround |
+| `MOTOBOUND_STORE_APPID` | the full game's Steam app id for the demo's WISHLIST button (packaging time, or run time to override) |
 | `MOTOBOUND_NO_SANDBOX=1` / `MOTOBOUND_SANDBOX=1` | force Linux `--no-sandbox` on / off |
 | `MOTOBOUND_SOFTWARE_GL=1`, `MOTOBOUND_ANGLE=…` | GPU backend selection |
 | `MOTOBOUND_USER_DATA` or `--user-data=DIR` | relocate saves, logs and window state |

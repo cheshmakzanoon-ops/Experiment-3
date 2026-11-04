@@ -159,7 +159,7 @@ test('motocross entry, live race alerts and landing HUD remain usable at small s
     const focused = await preset.boundingBox();
     expect(focused!.y).toBeGreaterThanOrEqual(body!.y - 1);
     expect(focused!.y + focused!.height).toBeLessThanOrEqual(body!.y + body!.height + 1);
-    expect(await page.locator('#menu .menu-actions button').count()).toBe(9);
+    expect(await page.locator('#menu .menu-actions button').count()).toBe(10);
     await page.locator('#circuit').selectOption('aurel');
     await expect(page.locator('#circuitLength')).toHaveText(originalLength!);
     await expect(page.locator('.mx-setup')).toBeHidden();

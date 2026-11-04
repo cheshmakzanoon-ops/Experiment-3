@@ -74,6 +74,16 @@ const OWNER_ONLY_MODULES =
 const suppliedPlayer = process.env.MOTOBOUND_SUPPLIED_PLAYER === '1';
 const reviewTools = process.env.MOTOBOUND_REVIEW_TOOLS === '1';
 /**
+ * The Steam demo / Next Fest edition (`npm run build:demo`, scripts/build-demo.mjs). Unlike the
+ * two QA variants above this is a PRODUCT-class build: it is certified by the IP guard exactly
+ * like the full game (and the guard runs inside this build), and BUILD_IDENTITY.json keeps
+ * `variant: "product"`. What changes is the content slice (src/release/demo.ts) and
+ * `edition: "demo"`, which `scripts/publish-validated-release.sh` refuses to publish as the
+ * game and `desktop/scripts/stage-web.cjs` packages only into the demo app.
+ */
+const demoBuild = process.env.MOTOBOUND_DEMO === '1';
+const edition = demoBuild ? 'demo' : 'full';
+/**
  * What this build is. Only `product` can be certified by `scripts/ip-guard.mjs` and published
  * (`scripts/publish-validated-release.sh`). `owner` carries the real-brand player model and
  * `review` the commercial-game reference catalogue: both are QA-only builds made by
@@ -97,6 +107,7 @@ export default defineConfig({
     __APEX_SOURCE_COMMIT__: JSON.stringify(commit),
     __SUPPLIED_PLAYER__: JSON.stringify(suppliedPlayer),
     __REVIEW_TOOLS__: JSON.stringify(reviewTools),
+    __DEMO_BUILD__: JSON.stringify(demoBuild),
   },
   plugins: [
     {
@@ -167,8 +178,16 @@ export default defineConfig({
         this.emitFile({
           type: 'asset',
           fileName: 'BUILD_IDENTITY.json',
-          source: JSON.stringify({ version: 1, commit, fingerprint, variant }, null, 2) + '\n',
+          source:
+            JSON.stringify({ version: 1, commit, fingerprint, variant, edition }, null, 2) + '\n',
         });
+      },
+    },
+    {
+      // The demo is its own Steam app: say so in the window and tab title.
+      name: 'demo-title',
+      transformIndexHtml(html) {
+        return demoBuild ? html.replace(/<title>([^<]*)<\/title>/, '<title>$1 · DEMO</title>') : html;
       },
     },
   ],
