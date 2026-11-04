@@ -1,5 +1,5 @@
 import { fixed, t, ta, th, upper } from '../i18n/index.ts';
-import { validateLanguage } from '../i18n/locales.ts';
+import { validateLanguage, type LanguageSetting } from '../i18n/locales.ts';
 import { settingsLanguageRow } from './language-control.ts';
 import { N_ } from '../i18n/mark.ts';
 import { wildcardTitle } from '../i18n/data.ts';
@@ -411,6 +411,13 @@ export class Interface {
       const button = (e.target as HTMLElement).closest<HTMLElement>('[data-action]');
       if (button) this.callbacks.action(button.dataset.action!);
     });
+    // The LANGUAGE dial on the first-launch screen announces its choice; the Settings
+    // dial is read when the form is applied.
+    element.addEventListener('change', (e) => {
+      const target = e.target as HTMLElement;
+      if (target.matches?.('select[data-language-choice]'))
+        this.callbacks.action(`language:${(target as HTMLSelectElement).value}`);
+    });
     // Preserve the browser's scrolling/focus behavior without delivering scroll
     // navigation keys to the window-level driving shortcuts. Keyup still releases
     // previously held driving input; controls retain their native key handling.
@@ -593,8 +600,12 @@ export class Interface {
     return { options, problems };
   }
   /** FIRST LAUNCH: open the screen (see first-run.ts). The radios come preselected. */
-  firstRun(device: FirstRunDevice, bindings: Bindings = this.bindings) {
-    this.modalContent(firstRunHtml({ device, bindings }));
+  firstRun(
+    device: FirstRunDevice,
+    bindings: Bindings = this.bindings,
+    language: LanguageSetting = 'auto',
+  ) {
+    this.modalContent(firstRunHtml({ device, bindings, language }));
   }
   /** What the open first-launch screen has chosen. */
   firstRunChoice() {

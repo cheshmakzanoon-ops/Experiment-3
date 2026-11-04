@@ -1,3 +1,5 @@
+import { currentLocale, resolveLocale, t } from './i18n/index.ts';
+import { startupLocale } from './i18n/startup.ts';
 import {
   graphicsSettingsChanged,
   runSettingsChange,
@@ -174,6 +176,8 @@ function presentedCar(frame: Float32Array) {
   };
 }
 type State = 'menu' | 'loading' | 'driving' | 'paused' | 'results' | 'replay' | 'photo' | 'pregame';
+/** The one save store: the language is read from it before the application exists. */
+const saveStore = new SaveStore();
 export class GameApp {
   private readonly gridClock = new GridPresentationClock();
   private gridPanel: GridPresentationPanel | null = null;
@@ -228,7 +232,7 @@ export class GameApp {
   private liveSkyChecked = -Infinity;
   private input: InputController;
   private audio = new RacingAudio();
-  private store = new SaveStore();
+  private store = saveStore;
   /** Time Trial: records the player's laps and plays the saved PB as a ghost. */
   private readonly records = new TimeTrialRecords({
     store: this.store,
@@ -431,7 +435,7 @@ export class GameApp {
       // to a discovered event when one was chosen.
       festival: (start) => {
         if (this.state !== 'menu' && this.state !== 'results') {
-          this.ui.toast('Return to the paddock to enter the festival.');
+          this.ui.toast(t('Return to the paddock to enter the festival.'));
           return;
         }
         this.ui.closeModal();
@@ -681,7 +685,11 @@ export class GameApp {
       const saved = await this.store.read('settings');
       if (saved) this.settings = validateSettings(saved);
     } catch (e) {
-      this.ui.toast(`Local preferences unavailable: ${e instanceof Error ? e.message : String(e)}`);
+      this.ui.toast(
+        t('Local preferences unavailable: {error}', {
+          error: e instanceof Error ? e.message : String(e),
+        }),
+      );
     }
     try {
       const saved = await this.store.readRecovered('team:v1', (v) =>
@@ -690,7 +698,11 @@ export class GameApp {
       if (saved.value) this.team = saved.value;
       teamLoaded = !!saved.value;
       if (saved.recovered)
-        this.ui.toast(`Team save was unreadable (${saved.reason}); restored the previous copy.`);
+        this.ui.toast(
+          t('Team save was unreadable ({reason}); restored the previous copy.', {
+            reason: saved.reason ?? '',
+          }),
+        );
     } catch (e) {
       this.ui.toast(
         `Team save unavailable: ${e instanceof Error ? e.message : String(e)}. Starting a temporary team.`,
@@ -700,9 +712,13 @@ export class GameApp {
       const saved = await this.store.readRecovered(CHAMPIONSHIP_KEY, validateChampionship);
       this.championship = saved.value;
       if (saved.recovered)
-        this.ui.toast(`Championship save was unreadable; restored the previous copy.`);
+        this.ui.toast(t('Championship save was unreadable; restored the previous copy.'));
     } catch (e) {
-      this.ui.toast(`Championship save unavailable: ${e instanceof Error ? e.message : String(e)}`);
+      this.ui.toast(
+        t('Championship save unavailable: {error}', {
+          error: e instanceof Error ? e.message : String(e),
+        }),
+      );
     }
     // The career seeds itself from these saves the first time; it never rewrites them.
     await this.career.load({
@@ -766,8 +782,23 @@ export class GameApp {
       return;
     this.firstRunOpen = true;
     const device = this.input.activePad() ? 'pad' : 'keys';
-    this.ui.firstRun(device, this.settings.bindings);
+    this.ui.firstRun(device, this.settings.bindings, this.settings.language);
     this.writeFirstRun({ version: 1, at: Date.now(), device, discipline: null, drove: false });
+  }
+  /** The LANGUAGE dial on the first-launch screen: store the choice, let the screen show
+   * again (the record written as it opened is dropped) and restart into the new language. */
+  private async changeLanguage(code: string) {
+    const settings = validateSettings({ ...this.settings, language: code });
+    if (settings.language === this.settings.language) return;
+    try {
+      await this.store.write('settings', settings);
+      if (this.firstRunOpen) await this.store.write(FIRST_RUN_KEY, null);
+    } catch {
+      this.ui.toast(t('Applied for this session, but saving failed: {error}', { error: '' }));
+      return;
+    }
+    this.settings = settings;
+    location.reload();
   }
   private writeFirstRun(record: FirstRunRecord) {
     this.firstRunRecord = record;
@@ -790,7 +821,9 @@ export class GameApp {
     const options = this.ui.firstLapOptions(discipline);
     this.writeFirstRun({ version: 1, at, device, discipline, drove: !!options });
     if (!options) {
-      this.ui.toast('The first lap could not be set up from this entry. Pick a session in the paddock.');
+      this.ui.toast(
+        t('The first lap could not be set up from this entry. Pick a session in the paddock.'),
+      );
       return;
     }
     this.rememberEntry(this.ui.boardEntry()!);
@@ -861,7 +894,7 @@ export class GameApp {
         date: new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }),
       });
       downloadBlob(blob, shareCardFilename(circuit.id, facts.position, facts.finished));
-      this.ui.toast('Result card saved as a PNG. Nothing was uploaded.');
+      this.ui.toast(t('Result card saved as a PNG. Nothing was uploaded.'));
     } catch (error) {
       this.ui.toast(`Result card not saved: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -886,7 +919,7 @@ export class GameApp {
     if (this.festival || this.festivalStarting || !this.renderer || !this.canvas) return;
     const locked = demoSessionLock({ circuit: options.circuit, mode: 'festival', vehicles: options.vehicles });
     if (locked) {
-      this.ui.toast(`${locked}. Wishlist the full game on Steam.`);
+      this.ui.toast(t('{locked}. Wishlist the full game on Steam.', { locked }));
       return;
     }
     this.festivalStarting = true;
@@ -974,7 +1007,11 @@ export class GameApp {
     host.innerHTML = demoClockHtml(policy.festivalSeconds);
     this.demoChip = host.firstElementChild as HTMLElement;
     document.getElementById('app')?.append(this.demoChip);
-    this.ui.toast(`Demo: ${Math.round(policy.festivalSeconds / 60)} minutes on the coast.`);
+    this.ui.toast(
+      t('Demo: {minutes} minutes on the coast.', {
+        minutes: Math.round(policy.festivalSeconds / 60),
+      }),
+    );
   }
   private endDemoClock() {
     this.demoClock = null;
@@ -1058,7 +1095,7 @@ export class GameApp {
     // Wildcard board, meeting), content outside the slice stops here.
     const locked = demoSessionLock(options, career?.event?.key ?? null);
     if (locked) {
-      this.ui.toast(`${locked}. Wishlist the full game on Steam.`);
+      this.ui.toast(t('{locked}. Wishlist the full game on Steam.', { locked }));
       return;
     }
     if (this.savingSettings) {
@@ -1119,7 +1156,8 @@ export class GameApp {
       await this.audio.start();
       // The browser's autoplay policy holds the sound until a key press, click or tap; a
       // gamepad button does not count. Say so once instead of racing in silence.
-      if (this.audio.locked) this.ui.toast('Sound starts after your next key press or click.');
+      if (this.audio.locked)
+        this.ui.toast(t('Sound starts after your next key press or click.'));
     } catch (e) {
       this.ui.toast(
         `Audio unavailable: ${e instanceof Error ? e.message : String(e)}. Racing remains available.`,
@@ -1843,7 +1881,7 @@ export class GameApp {
     const c = this.championship,
       round = c ? nextRound(c) : null;
     if (!c || !round) {
-      this.ui.toast('No championship round remains. Start a new championship.');
+      this.ui.toast(t('No championship round remains. Start a new championship.'));
       return;
     }
     this.championshipRound = c.results.length;
@@ -2192,7 +2230,7 @@ export class GameApp {
   }
   private enterReplay() {
     if (!this.replay || this.replay.duration < 1) {
-      this.ui.toast('Drive for at least one second before opening replay.');
+      this.ui.toast(t('Drive for at least one second before opening replay.'));
       return;
     }
     if (this.state === 'replay') {
@@ -2249,7 +2287,7 @@ export class GameApp {
       tick = Math.round(frame[H.TICK]),
       time = frame[H.TIME];
     if (!this.replay.canTruncate(time)) {
-      this.ui.toast('That moment is no longer held in memory. Choose a later point.');
+      this.ui.toast(t('That moment is no longer held in memory. Choose a later point.'));
       return;
     }
     this.flashbackPending = true;
@@ -2266,7 +2304,7 @@ export class GameApp {
     this.flashbackMode = false;
     this.flashbackPanel.show(false);
     this.exitReplay();
-    this.ui.toast(`FLASHBACK · ${FLASHBACK.perRace - this.flashbacks} LEFT`);
+    this.ui.toast(t('FLASHBACK · {n} LEFT', { n: FLASHBACK.perRace - this.flashbacks }));
     if (this.state === 'paused') this.resume();
   }
   private exitReplay() {
@@ -2370,6 +2408,10 @@ export class GameApp {
       this.firstRunAction(name);
       return;
     }
+    if (name.startsWith('language:')) {
+      void this.changeLanguage(name.slice('language:'.length));
+      return;
+    }
     if (name.startsWith('demo:')) {
       void this.demoAction(name);
       return;
@@ -2386,7 +2428,7 @@ export class GameApp {
       this.savingSettings &&
       !['modalClose', 'mute', 'blur', 'deviceLost', 'reload'].includes(name)
     ) {
-      this.ui.toast('Applying preferences…');
+      this.ui.toast(t('Applying preferences…'));
       return;
     }
     if (this.state === 'pregame') {
@@ -2750,7 +2792,7 @@ export class GameApp {
         this.performanceCapture.interrupt('Audio workload changed');
         this.interruptReview('Audio workload changed');
         this.audio.muted = !this.audio.muted;
-        this.ui.toast(this.audio.muted ? 'Audio muted.' : 'Audio enabled.');
+        this.ui.toast(this.audio.muted ? t('Audio muted.') : t('Audio enabled.'));
         break;
       case 'debug':
         this.performanceCapture.interrupt('Debug workload changed');
@@ -2796,7 +2838,7 @@ export class GameApp {
       case 'telemetry':
         if (this.ui.telemetryModal.open) break;
         if (!this.telemetry) {
-          this.ui.toast('Start a session to record telemetry.');
+          this.ui.toast(t('Start a session to record telemetry.'));
           return;
         }
         this.suspendPlayback();
@@ -3119,7 +3161,7 @@ export class GameApp {
     form?.setAttribute('aria-busy', 'true');
     if (submit) {
       submit.disabled = true;
-      submit.textContent = 'SAVING…';
+      submit.textContent = t('SAVING…');
     }
     this.performanceCapture.interrupt('Settings changed');
     this.interruptReview('Settings changed');
@@ -3159,9 +3201,15 @@ export class GameApp {
         this.action('modalClose');
       this.ui.toast(
         outcome.saved
-          ? 'Preferences saved. Vehicle setup applies to the next session.'
-          : `Applied for this session, but saving failed: ${outcome.error}`,
+          ? t('Preferences saved. Vehicle setup applies to the next session.')
+          : t('Applied for this session, but saving failed: {error}', { error: outcome.error }),
       );
+      // A new language rebuilds every screen: it takes effect with a restart, at once when
+      // nothing would be lost (the paddock), otherwise at the next start.
+      if (outcome.saved && resolveLocale(settings.language, navigator.languages) !== currentLocale()) {
+        if (this.state === 'menu') window.setTimeout(() => location.reload(), 700);
+        else this.ui.toast(t('The language changes the next time the game starts.'));
+      }
     } catch (error) {
       // A partially applied graphics failure cannot safely be labeled "saved".
       // Use the existing recoverable fatal panel instead of resuming bad GPU state.
@@ -3174,7 +3222,7 @@ export class GameApp {
       form?.removeAttribute('aria-busy');
       if (submit) {
         submit.disabled = false;
-        submit.textContent = 'APPLY & SAVE';
+        submit.textContent = t('APPLY & SAVE');
       }
       if (this.settingsResizePending) {
         this.settingsResizePending = false;
@@ -3195,7 +3243,7 @@ export class GameApp {
       if (value.version !== 1) throw new Error('Unsupported setup version.');
       this.settings.setup = validateSetup(value.setup);
       this.ui.settings(this.settings, this.setupContext());
-      this.ui.toast('Setup imported. Apply & Save to retain it.');
+      this.ui.toast(t('Setup imported. Apply & Save to retain it.'));
     } catch (e) {
       this.ui.toast(`Import rejected: ${e instanceof Error ? e.message : String(e)}`);
     }
@@ -3349,6 +3397,10 @@ export class GameApp {
     void this.audio.dispose().catch((e) => console.warn('Audio cleanup:', e));
   }
 }
+// The language is chosen before the interface exists: the saved setting (or the browser's
+// ranking for `auto`) is read first and its dictionary loaded, so every screen is built in
+// that language from the first paint. Unreadable storage means `auto`.
+await startupLocale(saveStore);
 const app = new GameApp();
 // Read-only diagnostics are useful to automated browser tests and hardware profiling.
 Object.defineProperty(window, 'apexDiagnostics', {
