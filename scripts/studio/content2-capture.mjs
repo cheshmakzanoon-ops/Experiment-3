@@ -74,9 +74,15 @@ const browser = await chromium.launch({
 const [width, height] = v.size.split('x').map(Number);
 const page = await browser.newPage({ viewport: { width, height } });
 page.setDefaultTimeout(1800000);
-page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
+page.on('pageerror', (e) => {
+  errors.push(`pageerror: ${e.message}`);
+  log(`PAGE ERROR ${e.message.slice(0, 200)}`);
+});
 page.on('console', (m) => {
-  if (m.type() === 'error') errors.push(`console: ${m.text()}`);
+  if (m.type() === 'error') {
+    errors.push(`console: ${m.text()}`);
+    log(`CONSOLE ERROR ${m.text().slice(0, 200)}`);
+  }
 });
 
 const probe = () =>
@@ -98,10 +104,15 @@ const probe = () =>
     .catch(() => null);
 async function waitFor(label, predicate, timeout = 1800000, interval = 400) {
   const end = Date.now() + timeout;
-  let last = null;
+  let last = null,
+    beat = Date.now();
   while (Date.now() < end) {
     last = await probe();
     if (last && predicate(last)) return last;
+    if (Date.now() - beat > 120000) {
+      beat = Date.now();
+      log(`waiting for ${label}: ${JSON.stringify(last)}`);
+    }
     await sleep(interval);
   }
   throw new Error(`timed out: ${label} (last ${JSON.stringify(last)})`);

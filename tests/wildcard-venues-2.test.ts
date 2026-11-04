@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { WILDCARD_SERIES } from '../src/career/wildcard-series.ts';
 import { THEME_PALETTE } from '../src/rendering/assets/sky-catalogue.ts';
+import { tyreEquipmentPlacements } from '../src/rendering/tyre-trolleys-racks.ts';
 import { terrainFor } from '../src/rendering/terrain.ts';
 import { VENUE_THEMES } from '../src/rendering/venue-kit/theme.ts';
 import { venuePlan } from '../src/rendering/venue-plan.ts';
@@ -286,5 +287,18 @@ describe('Wildcard wave 2 venues', () => {
       expect(evidence.events[e.id]?.passed, e.id).toBe(true);
       expect(evidence.events[e.id].failures).toEqual([]);
     }
+  });
+
+  it('loads in the renderer: the garage tyre equipment clears the pit lane on every catalogue circuit', () => {
+    // RacingRenderer.create throws (and the loading screen never ends) when this
+    // does: the airbase venues' 26 m pit lanes did, until the equipment followed
+    // the bays out. Node-only: the placements are pure track geometry.
+    for (const id of CATALOGUE_CIRCUIT_IDS) {
+      const placements = tyreEquipmentPlacements(track(id));
+      expect(placements, id).toHaveLength(3);
+      for (const p of placements) expect(p.pitClearance, id).toBeGreaterThan(1);
+    }
+    expect(CIRCUITS['salt-flat'].pit!.offset).toBe(26);
+    expect(CIRCUITS['marram-field'].pit!.offset).toBe(26);
   });
 });

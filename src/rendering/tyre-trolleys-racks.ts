@@ -373,7 +373,15 @@ export const A35_GARAGE_PLACEMENTS = [
 export function tyreEquipmentPlacements(track: Track) {
   const p = track.at(106, trackPoint()),
     yaw = Math.atan2(p.tx, p.tz);
-  const anchor = new T.Vector3(p.x + p.nx * 35, p.y + p.bank * clamp(35, -12, 12), p.z + p.nz * 35);
+  // The garage run stands 13 m beyond the pit lane: 35 m for the standard 22 m
+  // lane. A right-hand paddock with a wider lane (the 26 m lanes of the airbase
+  // venues) moves it out with the bays; every other circuit keeps 35 m.
+  const lateral = track.pit.side > 0 ? Math.max(35, track.pit.offset + 13) : 35;
+  const anchor = new T.Vector3(
+    p.x + p.nx * lateral,
+    p.y + p.bank * clamp(lateral, -12, 12),
+    p.z + p.nz * lateral,
+  );
   const basis = new T.Matrix4().makeRotationY(yaw);
   return A35_GARAGE_PLACEMENTS.map((entry) => {
     const local = new T.Matrix4().compose(
