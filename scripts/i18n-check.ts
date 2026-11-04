@@ -11,6 +11,8 @@
  *   script      only letters the bundled Saira subsets draw (latin, latin-ext, vietnamese);
  *               a stray Cyrillic look-alike or CJK character is an error
  *   case        a source in capitals stays in capitals (the board is stencilled)
+ *   ip          nothing the release IP guard (scripts/ip-denylist.mjs) would refuse in the shipped
+ *               chunk, and no "Moto GP" (the series name; say "GP bike" in the language)
  *
  *   node --experimental-transform-types scripts/i18n-check.ts            # all languages
  *   node --experimental-transform-types scripts/i18n-check.ts pl tr      # some
@@ -24,6 +26,11 @@ import { catalogue, type Entry } from './i18n-catalogue.ts';
 import { TRANSLATED_LOCALES, type Locale } from '../src/i18n/locales.ts';
 import { dictionaryLoaders, type Dictionary } from '../src/i18n/index.ts';
 import { compile, pluralBranches, placeholders, requiredCategories } from '../src/i18n/message.ts';
+// The release IP guard (scripts/ip-guard.mjs) scans every shipped chunk, dictionaries included:
+// a word that is ordinary in a language but a team, sponsor or game name in the denylist (the
+// German "sauber", the Italian "forza", the Portuguese "fim") fails the build. Check it here, at
+// the translator's desk, with the same matcher.
+import { SOFT, findBrands } from './ip-denylist.mjs';
 
 export interface Problem {
   locale: Locale;
@@ -127,6 +134,9 @@ export function checkDictionary(
       } else if (code > 0x24f && !covered(code) && !SYMBOLS.test(char) && !/\p{M}/u.test(char))
         add(key, 'script', `${char} (U+${code.toString(16).toUpperCase()}) is not drawn by the shipped fonts`);
     }
+    for (const hit of findBrands(value)) add(key, 'ip', `"${hit.word}" (${hit.label}) in ...${hit.around}...`);
+    if (new RegExp(SOFT.source, 'i').test(value.replace(/[^\p{L}\p{N} ]/gu, ' ').toLowerCase()))
+      add(key, 'ip', 'contains "moto gp"');
     const sourceLetters = source.replace(/\{[^}]*\}/g, '').replace(/[^\p{L}]/gu, '');
     if (
       sourceLetters.length >= 3 &&

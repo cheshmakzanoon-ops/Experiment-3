@@ -247,4 +247,6 @@ suggested page order: the board and the Wildcard hook first, then the discipline
 - "Steam Deck Verified".
 - Any Wildcard, weather-count, or "live" claims listed above as **[after G#]**.
 - Review scores, sales or wishlist numbers: none exist.
-- Languages other than English.
+- Languages other than English: model-written drafts for de, fr, es, pt-BR, it, pl and tr are in
+  [`localized/`](localized/); list a language in Steamworks only after a native review of the page
+  **and** of the in-game dictionary (`docs/studio/reports/localization.md`).

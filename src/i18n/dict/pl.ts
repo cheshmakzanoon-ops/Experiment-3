@@ -1018,7 +1018,7 @@ const dictionary: Dictionary = {
   "wildcard.forest-stage-on-slicks.pitch": "Pełne okrążenie odcinka rajdowego po żwirze w deszczu na oponach supermoto: grzbiety nad granią, agrafka i bród.",
   "wildcard.the-long-way-round.title": "DŁUGA DROGA DOOKOŁA",
   "wildcard.the-long-way-round.pitch": "Jedno okrążenie 20,8-kilometrowej leśnej pętli na motocyklu motocrossowym: dwanaście minut, 33 zakręty, ślepe grzbiety i przechylona agrafka.",
-  "wildcard.grand-tourers-on-gravel.title": "GRAN TURISMO NA ŻWIRZE",
+  "wildcard.grand-tourers-on-gravel.title": "GRAND TOURERY NA ŻWIRZE",
   "wildcard.grand-tourers-on-gravel.pitch": "Samochody GT z silnikiem z przodu na mokrym torze rallycross: asfalt, błoto, grzbiet i agrafka, do których nigdy nie były dostrojone.",
   "wildcard.rallycross-on-the-grid.title": "RALLYCROSS NA STARCIE GRAND PRIX",
   "wildcard.rallycross-on-the-grid.pitch": "Samochody rallycross na pełnym torze grand prix: stworzone do poślizgu, stają teraz przed dwiema długimi asfaltowymi prostymi.",

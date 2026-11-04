@@ -21,7 +21,6 @@ import {
   tx,
   upper,
   validateLanguage,
-  type Dictionary,
 } from '../src/i18n/index.ts';
 import { compile, format, placeholders, pluralBranches, requiredCategories } from '../src/i18n/message.ts';
 import { startupLocale } from '../src/i18n/startup.ts';
