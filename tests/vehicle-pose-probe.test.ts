@@ -6,6 +6,8 @@ import { BikeShells } from '../src/rendering/bike.ts';
 import { FormulaCar } from '../src/rendering/car.ts';
 import { DriverAsset } from '../src/rendering/driver-asset.ts';
 import { HeroShells } from '../src/rendering/hero-shells.ts';
+import { A61_MANIFESTS, type RivalLevels } from '../src/rendering/a61-rival.ts';
+import { SLIDER_SPARKS } from '../src/rendering/gp-slider-sparks.ts';
 import { sampleChassisPose } from '../src/rendering/snapshot-interpolation.ts';
 import { VehicleBodies } from '../src/rendering/vehicle-bodies/index.ts';
 import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
@@ -196,6 +198,125 @@ describe('rendered pose follows a real driven session', () => {
     driver.dispose();
   }, 180000);
 
+  it('APX-01 as the game draws it (A61 levels, hero livery): wheel, hubs, spin, discs, arms, lamp, no indicators', async () => {
+    const levels = (await Promise.all(
+      (['near', 'mid', 'far'] as const).map((name, i) =>
+        HeroShells.decode(
+          new Uint8Array(readFileSync(`src/rendering/a61-rival-${name}.glb.gz`)),
+          undefined,
+          A61_MANIFESTS[i],
+        ),
+      ),
+    )) as unknown as RivalLevels;
+    const legacy = await HeroShells.decode(
+      new Uint8Array(readFileSync('src/rendering/apx01-shell.glb.gz')),
+    );
+    const driver = await DriverAsset.decode(
+      new Uint8Array(readFileSync('src/rendering/apx01-driver.glb.gz')),
+    );
+    const car = new FormulaCar(0, legacy, driver, undefined, levels);
+    car.setLod(5, 'high', true);
+    const frames = drive('apx01', 'aurel', 24);
+    const rows: Record<string, number[]> = {
+      steerCmd: [],
+      wheelRot: [],
+      yaw: [],
+      yawRec: [],
+      hubY: [],
+      length: [],
+      spin: [],
+      spinRec: [],
+      disc: [],
+      discRec: [],
+      upper: [],
+      lower: [],
+      reachable: [],
+      tail: [],
+      brake: [],
+      speed: [],
+    };
+    for (const f of frames) {
+      car.update(f, f, o, 1, 1 / HZ, f[0], false);
+      rows.steerCmd.push(f[o + F.STEER]);
+      rows.wheelRot.push(car.steering.rotation.z);
+      rows.yaw.push(car.wheelPivots[0].rotation.y);
+      rows.yawRec.push(f[o + WHEEL_BASE + W.STEER]);
+      rows.hubY.push(car.wheelPivots[2].position.y);
+      rows.length.push(f[o + WHEEL_BASE + 2 * WHEEL_STRIDE + W.LENGTH]);
+      rows.spin.push(car.wheelSpins[2].rotation.x);
+      rows.spinRec.push(f[o + WHEEL_BASE + 2 * WHEEL_STRIDE + W.ROTATION]);
+      rows.disc.push(car.discs[0].emissiveIntensity);
+      rows.discRec.push(f[o + WHEEL_BASE + W.DISC_TEMP]);
+      const arms = car.driver.diagnostics();
+      rows.upper.push(Math.max(...arms.map((a) => a.upperLength)));
+      rows.lower.push(Math.max(...arms.map((a) => a.lowerLength)));
+      rows.reachable.push(arms.every((a) => a.reachable) ? 1 : 0);
+      rows.tail.push(car.rainLight.emissiveIntensity);
+      rows.brake.push(f[o + F.BRAKE]);
+      rows.speed.push(f[o + F.SPEED]);
+    }
+    // Disc glow is the recorded rotor temperature, linear above 500 C (car.ts), zero below it.
+    const m = {
+      frames: frames.length,
+      speedMax: round(Math.max(...rows.speed), 1),
+      steeringWheelVsSteerR: round(corr(rows.steerCmd, rows.wheelRot), 3),
+      frontPivotYawVsRecordedMaxErr: round(
+        Math.max(...rows.yaw.map((v, i) => Math.abs(v - rows.yawRec[i]))),
+        6,
+      ),
+      hubTravelRange_m: round(range(rows.hubY), 4),
+      hubVsRecordedLengthR: round(corr(rows.hubY, rows.length), 3),
+      rearSpinRatio: round(spinRatio(rows.spin, rows.spinRec), 3),
+      discGlowFrames: rows.disc.filter((g) => g > 0).length,
+      discTempMax_C: round(Math.max(...rows.discRec), 0),
+      driverUpperArmRange_m: round(range(rows.upper), 5),
+      driverForearmRange_m: round(range(rows.lower), 5),
+      driverArmsReachableShare: round(mean(rows.reachable), 3),
+      rearLampBraking: round(mean(rows.tail.filter((_, i) => rows.brake[i] > 0.05)) || 0, 2),
+      rearLampCoasting: round(mean(rows.tail.filter((_, i) => rows.brake[i] <= 0.05)) || 0, 2),
+    };
+    table['apx01-production'] = m;
+    expect(m.speedMax).toBeGreaterThan(15);
+    expect(Math.abs(m.steeringWheelVsSteerR)).toBeGreaterThan(0.99);
+    expect(m.frontPivotYawVsRecordedMaxErr).toBeLessThan(1e-5);
+    expect(m.hubTravelRange_m).toBeGreaterThan(0.002);
+    expect(m.rearSpinRatio).toBeGreaterThan(0.95);
+    expect(m.rearSpinRatio).toBeLessThan(1.05);
+    // The rotors glow with their recorded temperature, linear from 500 C and clamped at 2 (car.ts).
+    // A normal Aurel lap only reaches ~320 C, so the glow is probed with a temperature sweep on a
+    // rolling frame (every wheel), and the lap itself must stay dark below the threshold.
+    expect(m.discGlowFrames).toBe(rows.discRec.filter((t) => t > 500).length);
+    const base = frames[frames.length >> 1].slice();
+    const sweep: { temp: number; glow: number[] }[] = [];
+    for (const temp of [200, 500, 600, 800, 950, 1300, 1600]) {
+      const f = base.slice();
+      for (let i = 0; i < 4; i++) f[o + WHEEL_BASE + i * WHEEL_STRIDE + W.DISC_TEMP] = temp;
+      car.update(f, f, o, 1, 1 / HZ, f[0], false);
+      sweep.push({ temp, glow: car.discs.map((d) => d.emissiveIntensity) });
+    }
+    for (const { temp, glow } of sweep)
+      for (const g of glow) expect(g).toBeCloseTo(Math.min(2, Math.max(0, (temp - 500) / 450)), 6);
+    expect(sweep[0].glow[0]).toBe(0);
+    expect(sweep[3].glow[0]).toBeGreaterThan(sweep[2].glow[0]);
+    expect(sweep[sweep.length - 1].glow[3]).toBe(2);
+    table['apx01-production'].discGlowSweep = sweep
+      .map((r) => `${r.temp}C:${round(r.glow[0], 3)}`)
+      .join(' ');
+    // The driver's arms keep their bone lengths (rigid limbs) and reach the wheel in every frame.
+    expect(m.driverUpperArmRange_m).toBeLessThan(0.002);
+    expect(m.driverForearmRange_m).toBeLessThan(0.002);
+    expect(m.driverArmsReachableShare).toBe(1);
+    expect(m.rearLampBraking).toBeGreaterThan(m.rearLampCoasting);
+    // Turn indicators and hazards: none exist on the player car (ambient traffic only).
+    const names: string[] = [];
+    car.root.traverse((object) => names.push(object.name));
+    expect(names.filter((n) => /indicator|hazard|turn signal|blinker/i.test(n))).toEqual([]);
+    table['apx01-production'].turnIndicators = 'none (absent by design)';
+    levels.forEach((a) => a.dispose());
+    legacy.dispose();
+    driver.dispose();
+  }, 180000);
+
   it('catalogue car (EH-3): steering wheel, steered wheels, spin, suspension, chassis, brake lamp', () => {
     const frames = drive('eh3', 'aurel', 24);
     const bodies = new VehicleBodies();
@@ -331,6 +452,96 @@ describe('rendered pose follows a real driven session', () => {
     bodies.clear();
   }, 120000);
 
+  it.each([['sk125'], ['dk100'], ['dx8'], ['rp6']] as const)(
+    'catalogue %s (kart / truck, vehicle art 3): steering wheel, steered wheels, spin, suspension, brake lamp',
+    (id) => {
+      const frames = drive(id, 'aurel', 20);
+      const bodies = new VehicleBodies();
+      const host = { root: new T.Object3D() };
+      const view = { follow: 0, cockpit: false, camera: null };
+      const rows: Record<string, number[]> = {
+        steerCmd: [],
+        wheelRot: [],
+        yaw: [],
+        yawRec: [],
+        hubY: [],
+        length: [],
+        spin: [],
+        spinRec: [],
+        tail: [],
+        brake: [],
+        speed: [],
+      };
+      for (const f of frames) {
+        sampleChassisPose(f, f, o, 1, host.root.position, host.root.quaternion);
+        bodies.update(f, f, 1, [host], false, view);
+        const built = (
+          bodies as unknown as {
+            bodies: Map<
+              number,
+              {
+                wheels: { pivot: T.Group; spin: T.Group }[][];
+                materials: { tail: T.MeshStandardMaterial };
+              }
+            >;
+          }
+        ).bodies.get(0)!;
+        const cabin = bodies.cabinOf(0)!;
+        rows.steerCmd.push(f[o + F.STEER]);
+        rows.wheelRot.push(cabin.steering.rotation.z);
+        rows.yaw.push(built.wheels[0][0].pivot.rotation.y);
+        rows.yawRec.push(f[o + WHEEL_BASE + W.STEER]);
+        rows.hubY.push(built.wheels[0][2].pivot.position.y);
+        rows.length.push(f[o + WHEEL_BASE + 2 * WHEEL_STRIDE + W.LENGTH]);
+        rows.spin.push(built.wheels[0][2].spin.rotation.x);
+        rows.spinRec.push(f[o + WHEEL_BASE + 2 * WHEEL_STRIDE + W.ROTATION]);
+        rows.tail.push(built.materials.tail.emissiveIntensity);
+        rows.brake.push(f[o + F.BRAKE]);
+        rows.speed.push(f[o + F.SPEED]);
+      }
+      const m = {
+        frames: frames.length,
+        speedMax: round(Math.max(...rows.speed), 1),
+        steeringWheelVsSteerR: round(corr(rows.steerCmd, rows.wheelRot), 3),
+        frontPivotYawVsRecordedMaxErr: round(
+          Math.max(...rows.yaw.map((v, i) => Math.abs(v - rows.yawRec[i]))),
+          6,
+        ),
+        hubTravelRange_m: round(range(rows.hubY), 4),
+        hubVsRecordedLengthR: round(corr(rows.hubY, rows.length), 3),
+        rearSpinRatio: round(spinRatio(rows.spin, rows.spinRec), 3),
+        tailGlowBraking: round(mean(rows.tail.filter((_, i) => rows.brake[i] > 0.05)) || 0, 2),
+        tailGlowCoasting: round(mean(rows.tail.filter((_, i) => rows.brake[i] <= 0.05)) || 0, 2),
+      };
+      table[id] = m;
+      expect(m.speedMax).toBeGreaterThan(10);
+      expect(Math.abs(m.steeringWheelVsSteerR)).toBeGreaterThan(0.99);
+      expect(m.frontPivotYawVsRecordedMaxErr).toBeLessThan(1e-5);
+      expect(m.rearSpinRatio).toBeGreaterThan(0.95);
+      expect(m.rearSpinRatio).toBeLessThan(1.05);
+      // A kart may never brake in a free run: probe the lamp with a controlled coasting / braking pair.
+      const pair = frames[frames.length >> 1];
+      const lamp = (brake: number) => {
+        const f = pair.slice();
+        f[o + F.BRAKE] = brake;
+        sampleChassisPose(f, f, o, 1, host.root.position, host.root.quaternion);
+        bodies.update(f, f, 1, [host], false, view);
+        return (
+          bodies as unknown as {
+            bodies: Map<number, { materials: { tail: T.MeshStandardMaterial } }>;
+          }
+        ).bodies.get(0)!.materials.tail.emissiveIntensity;
+      };
+      const coasting = lamp(0),
+        braking = lamp(1);
+      table[id].lampCoasting = round(coasting, 2);
+      table[id].lampBraking = round(braking, 2);
+      expect(braking).toBeGreaterThan(coasting);
+      bodies.clear();
+    },
+    120000,
+  );
+
   it.each([
     ['gpr1', 'poggio-alto', 'gp-motorcycle'],
     ['mx450', 'valley-ridge-mx', undefined],
@@ -356,6 +567,9 @@ describe('rendered pose follows a real driven session', () => {
         spinR: [],
         spinRRec: [],
         handGap: [],
+        sparksOn: [],
+        kneeDown: [],
+        sparkRoll: [],
         speed: [],
       };
       const scratch = new T.Vector3(),
@@ -373,7 +587,14 @@ describe('rendered pose follows a real driven session', () => {
           forkLower: T.Group;
           frontSpin: T.Group;
           rearSpin: T.Group;
-          rider: { grips: T.Vector3[]; root: T.Group; hands: T.Group[]; torso: T.Group };
+          rider: {
+            grips: T.Vector3[];
+            root: T.Group;
+            hands: T.Group[];
+            torso: T.Group;
+            kneeDown: [number, number];
+          };
+          sliderSparks?: { points: T.Points };
         };
         model.root.updateMatrixWorld(true);
         rows.steerCmd.push(f[o + BIKE_BASE + B.STEER]);
@@ -399,6 +620,11 @@ describe('rendered pose follows a real driven session', () => {
           worst = Math.max(worst, scratch.distanceTo(grip));
         });
         rows.handGap.push(worst);
+        // GP knee-slider sparks (vehicle art 3): drawn only while a knee is folded onto the road.
+        const burst = model.sliderSparks?.points.visible ? 1 : 0;
+        rows.sparksOn.push(burst);
+        rows.kneeDown.push(model.rider.kneeDown[0] || model.rider.kneeDown[1] ? 1 : 0);
+        if (burst) rows.sparkRoll.push(Math.abs(roll(model.root.quaternion)));
       }
       const m = {
         frames: frames.length,
@@ -417,6 +643,9 @@ describe('rendered pose follows a real driven session', () => {
         rearSpinRatio: round(spinRatio(rows.spinR, rows.spinRRec), 3),
         handToGripMax_m: round(Math.max(...rows.handGap), 3),
         handToGripMean_m: round(mean(rows.handGap), 3),
+        kneeDownFrames: rows.kneeDown.filter(Boolean).length,
+        sliderSparkFrames: rows.sparksOn.filter(Boolean).length,
+        sliderSparkMinAbsRoll_rad: rows.sparkRoll.length ? round(Math.min(...rows.sparkRoll)) : 0,
       };
       table[id] = m;
       expect(m.speedMax).toBeGreaterThan(15);
@@ -427,6 +656,14 @@ describe('rendered pose follows a real driven session', () => {
       expect(m.rearSpinRatio).toBeGreaterThan(0.95);
       expect(m.rearSpinRatio).toBeLessThan(1.05);
       expect(m.forkTravelRange_m).toBeGreaterThan(0.002);
+      // The slider sparks are a consequence of the road clamp and a real lean, never of either alone.
+      for (let k = 0; k < rows.sparksOn.length; k++)
+        if (rows.sparksOn[k]) expect(rows.kneeDown[k]).toBe(1);
+      if (id === 'gpr1') {
+        expect(m.sliderSparkFrames).toBeLessThanOrEqual(m.kneeDownFrames);
+        if (m.sliderSparkFrames > 0)
+          expect(m.sliderSparkMinAbsRoll_rad).toBeGreaterThan(SLIDER_SPARKS.leanFrom * 0.8);
+      } else expect(m.sliderSparkFrames).toBe(0);
       shells.disposeAll();
       void R;
       void RACE_BASE;

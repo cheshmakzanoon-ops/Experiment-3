@@ -15,7 +15,7 @@ import { loadHeroShells } from '../../../../src/rendering/hero-shells.ts';
 import { loadDriverAsset } from '../../../../src/rendering/driver-asset.ts';
 import { VehicleBodies } from '../../../../src/rendering/vehicle-bodies/index.ts';
 import { BikeShells } from '../../../../src/rendering/bike.ts';
-import { menuPreview } from '../../../../src/rendering/menu-preview.ts';
+import { GP_CORNER_PRESET, menuPreview } from '../../../../src/rendering/menu-preview.ts';
 import { sampleChassisPose } from '../../../../src/rendering/snapshot-interpolation.ts';
 import { Track } from '../../../../src/simulation/track.ts';
 import { circuitDefinition } from '../../../../src/simulation/circuits.ts';
@@ -116,7 +116,12 @@ scene.add(floor);
 const camera = new T.PerspectiveCamera(32, width / height, 0.05, 200);
 
 const track = new Track('clear', false, undefined, circuitDefinition('aurel'));
-const frame = menuPreview(track, undefined, machine);
+const frame = menuPreview(
+  track,
+  undefined,
+  machine,
+  params.get('preset') === 'corner' ? GP_CORNER_PRESET : undefined,
+);
 const o = carBase(0);
 const definition = vehicleDefinition(machine);
 
