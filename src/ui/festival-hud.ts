@@ -1,4 +1,5 @@
 import './festival-hud.css';
+import './festival-board.css';
 import type { DriftCue } from '../simulation/open-world/drift-feedback.ts';
 import type { FestivalActivityProgress } from '../simulation/open-world/activity-progress.ts';
 import type { CircuitPaceReason } from '../simulation/open-world/circuit-pace.ts';

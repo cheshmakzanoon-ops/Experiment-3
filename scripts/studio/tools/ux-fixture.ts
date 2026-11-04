@@ -456,3 +456,228 @@ export function demoWildcard() {
   useDemoPolicy(createDemoPolicy());
   wildcardBoard('descent-in-the-cloud');
 }
+/** The demo's Wildcard board with a locked (FULL GAME) event chosen: the tag sits on the paper row. */
+export function demoWildcardLocked() {
+  useDemoPolicy(createDemoPolicy());
+  wildcardBoard('karts-after-dark');
+}
+/** RECORDS in the demo: locked events are listed dimmed. */
+export function demoRecords() {
+  useDemoPolicy(createDemoPolicy());
+  return records('wildcard', false);
+}
+
+// ---- Wave 4 (design critic): every other screen --------------------------------------
+import '../../../src/ui/grid-presentation.css';
+import { GridPresentationPanel } from '../../../src/ui/grid-presentation.ts';
+import { raceBriefing } from '../../../src/ui/race-briefing.ts';
+import { drivingAcademy } from '../../../src/ui/driving-academy.ts';
+import { eventHub } from '../../../src/ui/event-cards.ts';
+import { EVENTS } from '../../../src/simulation/events.ts';
+import { machineOptions } from '../../../src/ui/machine-options.ts';
+import { openWorld } from '../../../src/simulation/open-world/world.ts';
+import { resolveEvents } from '../../../src/simulation/open-world/festival-events.ts';
+import { festivalVehicles } from '../../../src/simulation/open-world/session.ts';
+import { FestivalHud } from '../../../src/ui/festival-hud.ts';
+import { FestivalSkillChain } from '../../../src/simulation/open-world/skill-chain.ts';
+import type { HubPage } from '../../../src/ui/team-hub.ts';
+import type { SessionOptions } from '../../../src/simulation/config.ts';
+
+/** Session options for one discipline's entry (the machine's own ruleset applied). */
+function entryOptions(kind: 'circuit' | 'gp' | 'mx' | 'sx'): SessionOptions {
+  const pick: Record<string, [string, string]> = {
+    circuit: ['aurel', 'apx01'],
+    gp: ['kansai-east', 'gpr1'],
+    mx: ['valley-ridge-mx', 'mx450'],
+    sx: ['arena-nord-sx', 'mx450'],
+  };
+  const [circuit, machine] = pick[kind];
+  const options = { ...DEFAULT_OPTIONS, circuit: circuit as SessionOptions['circuit'] };
+  return validateOptions({ ...options, ...machineOptions(options, machine) });
+}
+/** The race briefing over the grid (circuit and dirt variants). */
+export function briefing(kind: 'circuit' | 'gp' | 'mx' = 'circuit') {
+  const options = entryOptions(kind);
+  const simulation = mount(options);
+  ui.options = simulation.options;
+  ui.showMode('pregame');
+  ui.modalContent(raceBriefing(simulation.options, simulation.makeFrame()));
+}
+export const briefingGp = () => briefing('gp');
+export const briefingMx = () => briefing('mx');
+/** The pre-race grid presentation (the broadcast frame with its lower third and controls). */
+export function gridPresentation() {
+  const simulation = mount(entryOptions('circuit'));
+  ui.options = simulation.options;
+  ui.showMode('pregame');
+  const panel = new GridPresentationPanel(document.getElementById('app')!, {
+    toggle() {},
+    seek() {},
+    start() {},
+    back() {},
+  });
+  panel.show('AUREL GRAND CIRCUIT', 'Eight cars. Three laps.', false);
+  panel.caption('Pole position', 'APX-01 FORMULA · A. MOREAU');
+}
+/** The Driving Academy with two graded laps. */
+export function academy() {
+  mount();
+  ui.showMode('menu');
+  ui.modalContent(
+    drivingAcademy(
+      {
+        active: true,
+        finished: false,
+        target: 61.842,
+        clean: 2,
+        message: 'Attempt 3 is next. Match the locked target.',
+        attempts: [
+          { seconds: 61.842, grade: 'gold', reason: 'First clean lap sets the target.' },
+          { seconds: 63.4, grade: 'bronze', reason: 'Within 5% of the target.' },
+        ],
+      } as never,
+      'full',
+      false,
+      'day',
+      null,
+    ),
+  );
+}
+export function events() {
+  mount();
+  ui.showMode('menu');
+  ui.modalContent(eventHub(EVENTS));
+}
+export function credits() {
+  mount();
+  ui.showMode('menu');
+  ui.credits();
+}
+export function teamPage(page: HubPage = 'engineering') {
+  mount();
+  ui.showMode('menu');
+  ui.modalContent(teamHub(newTeam(), page));
+}
+export const teamEngineering = () => teamPage('engineering');
+export const teamPersonnel = () => teamPage('personnel');
+export const teamFinance = () => teamPage('finance');
+/** The loading board of one discipline's session (bar at 62 percent). */
+export function loadingFor(kind: 'circuit' | 'gp' | 'mx' | 'sx' | 'festival') {
+  const options = entryOptions(kind === 'festival' ? 'circuit' : kind);
+  if (kind === 'festival') (options as { mode: string }).mode = 'festival';
+  const simulation = mount(entryOptions(kind === 'festival' ? 'circuit' : kind));
+  ui.showMode('loading');
+  ui.options = simulation.options;
+  // main.ts starts the festival without a session line (loadingSession is a race's); mirror that.
+  if (kind !== 'festival') ui.loadingSession(options);
+  ui.loadingScene(options);
+  ui.loading('62% · Building the circuit…');
+}
+export const loadingGp = () => loadingFor('gp');
+export const loadingMx = () => loadingFor('mx');
+export const loadingSx = () => loadingFor('sx');
+export const loadingFestival = () => loadingFor('festival');
+/** A running race frame: the HUD of one machine family at speed, lap 2. */
+export function hud(kind: 'circuit' | 'gp' | 'mx' = 'circuit') {
+  const options = entryOptions(kind);
+  const simulation = mount(options);
+  ui.options = simulation.options;
+  ui.showMode('driving');
+  const frame = simulation.makeFrame();
+  const o = carBase(0);
+  frame[H.TICK] = 600;
+  frame[H.TIME] = 74.2;
+  frame[o + F.SPEED] = kind === 'circuit' ? 71 : kind === 'gp' ? 64 : 21;
+  frame[o + F.GEAR] = kind === 'circuit' ? 6 : kind === 'gp' ? 4 : 3;
+  frame[o + F.RPM] = kind === 'circuit' ? 11200 : 9400;
+  frame[o + F.LAPS] = 1;
+  frame[o + F.LAP_TIME] = 21.4;
+  frame[o + F.BEST_LAP] = 58.9;
+  ui.update(frame, renderer, false, 1);
+  ui.update(frame, renderer, false, 1);
+}
+export const hudGp = () => hud('gp');
+export const hudMx = () => hud('mx');
+/** The festival HUD: free roam, the pause menu, an event card, the map (English-only legacy panels). */
+export function festival(view: 'free' | 'menu' | 'card' | 'map' = 'free') {
+  const root = document.createElement('main');
+  root.id = 'app';
+  root.style.cssText = 'position:fixed;inset:0';
+  document.body.replaceChildren(root);
+  const world = openWorld(),
+    list = resolveEvents(world),
+    vehicles = festivalVehicles();
+  const noop = () => {};
+  const hudView = new FestivalHud(root, world, list, vehicles, {
+    start: noop,
+    continue: noop,
+    retry: noop,
+    cancel: noop,
+    reset: noop,
+    resume: noop,
+    exit: noop,
+    lighting: noop,
+    vehicle: noop,
+    travel: noop,
+    autopilot: noop,
+    traffic: noop,
+    map: noop,
+    photo: noop,
+  });
+  const race = list.find((e) => e.spec.kind === 'sprint') ?? list[0];
+  const status = {
+    mode: view === 'card' ? 'card' : 'free',
+    time: 0,
+    vehicleId: vehicles[0].id,
+    speedKmh: 96,
+    discovered: list.slice(0, 4).map((e) => e.spec.id),
+    autopilot: false,
+    card:
+      view === 'card'
+        ? {
+            id: race.spec.id,
+            name: race.spec.name,
+            kind: race.spec.kind,
+            blurb: race.spec.blurb,
+            distanceKm: race.distance / 1000,
+            laps: race.spec.laps ?? 1,
+            rivals: race.spec.rivals ?? 0,
+          }
+        : null,
+    event: null,
+    result: null,
+    road: { name: 'Harbour Front', roadClass: 'town', limitKmh: 90, onRoad: true, surface: 'asphalt' },
+    message: null,
+    streaming: {},
+    traffic: { enabled: true, cars: 0 },
+    skills: new FestivalSkillChain().status(),
+  };
+  hudView.update(status as never, 560, -2602, 0, 0, 0);
+  if (view === 'menu')
+    hudView.showMenu(true, {
+      lighting: 'day',
+      vehicle: vehicles[0].id,
+      discovered: status.discovered,
+      autopilot: false,
+      inEvent: false,
+      traffic: true,
+    });
+  if (view === 'map') hudView.showMap(true, new Set(status.discovered), { x: 560, z: -2602 });
+}
+/** The telemetry dialog (ENGINEERING / DATA) as it opens, over the paused HUD. */
+export function telemetry() {
+  const simulation = mount();
+  ui.options = simulation.options;
+  ui.showMode('paused');
+  ui.update(simulation.makeFrame(), renderer, false, 1);
+  ui.telemetryModal.showModal();
+}
+/** The application error screen (reload and lower the render quality). */
+export function errorScreen() {
+  mount();
+  ui.showMode('menu');
+  ui.error('Fixture error: the renderer could not be created.');
+}
+export const festivalMenu = () => festival('menu');
+export const festivalCard = () => festival('card');
+export const festivalMap = () => festival('map');

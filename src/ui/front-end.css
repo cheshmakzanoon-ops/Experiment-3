@@ -43,6 +43,8 @@
   --mb-sans: 'Saira Variable', 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
   --mb-stencil: 'Saira Stencil One', 'Saira Variable', 'Arial Narrow', Arial, sans-serif;
   --mb-f-label: calc(11px * var(--mb-u));
+  /* Sentences of help text (notes, hints, credits lines): one step above the caps labels. */
+  --mb-f-note: calc(12px * var(--mb-u));
   --mb-f-value: calc(14px * var(--mb-u));
   --mb-f-lead: calc(13px * var(--mb-u));
   --mb-f-title: calc(22px * var(--mb-u));
@@ -914,6 +916,10 @@
 }
 #menu .menu-actions button::before {
   content: counter(paddock, decimal-leading-zero);
+  /* The index is a flex item: without this a two-line label squeezed "02" onto two lines
+     (GARAGE & SETTINGS at 1280 wide) because `overflow-wrap: anywhere` lets it break. */
+  flex: none;
+  overflow-wrap: normal;
   font: 400 calc(12px * var(--mb-u)) / 1 var(--mb-stencil);
   color: var(--mb-amber-deep);
   letter-spacing: 0.04em;
@@ -940,9 +946,35 @@
 }
 
 /* ---------- Machine nameplate (right) ----------------------------------------- */
-#menu .car-label {
+/* The nameplate and the machine's character line are one card at the foot of the showroom: the
+   line used to sit under the MACHINE dial and was dropped below 790 px tall to keep the board in
+   one screen. Out here it costs the board nothing and is drawn at every height from 680 px up. */
+#menu .car-card {
+  position: absolute;
   right: var(--mb-s6);
   bottom: calc(var(--menu-footer-height) + var(--mb-s6));
+  display: grid;
+  justify-items: end;
+  gap: var(--mb-s3);
+  width: min(calc(340px * var(--mb-u)), 30vw);
+}
+#menu .car-card .machine-blurb {
+  margin: 0;
+  padding: var(--mb-s2) var(--mb-s3);
+  background: var(--mb-board-scrim);
+  box-shadow: inset 0 0 0 1px var(--mb-line);
+  clip-path: polygon(0 var(--mb-s2), var(--mb-s2) 0, 100% 0, 100% 100%, 0 100%);
+  color: var(--mb-chalk-dim);
+  font: 500 calc(12px * var(--mb-u)) / 1.45 var(--mb-sans);
+  text-align: left;
+  text-wrap: pretty;
+  hyphens: auto;
+}
+#menu .car-card .machine-blurb:empty {
+  display: none;
+}
+#menu .car-card .car-label {
+  position: static;
   display: grid;
   justify-items: end;
   gap: var(--mb-s2);
@@ -1105,18 +1137,20 @@
   #menu .menu-body h1 {
     margin-bottom: var(--mb-s2);
   }
+}
+/* The venue blurb is cut to one line where the board has no height to spare (1280x720 and the
+   in-between laptop heights). The machine line left the board, which gives a 1280x800 handheld its two
+   lines back (the 800 px board was the one that overflowed with both). */
+@media (max-height: 779px) {
   #menu .circuit-blurb {
     -webkit-line-clamp: 1;
   }
 }
-@media (max-height: 789px) {
-  /* The board is built to fit 1280x720 with no scrolling (e2e/60-launch-board). The machine's
-     character line under the MACHINE dial is two rows (about 43px with its gap) and the panel has
-     4px to spare at 720, so below 790px the line leaves the layout (measured: the board overflows by up to 26px between
-     761px and 789px with the line drawn, and fits from 790px). The #vehicle select keeps it
-     as its accessible description (aria-describedby reads hidden text), so nothing is lost for a
-     screen reader; at 790px and taller it is drawn in full. */
-  #menu .machine-blurb {
+@media (max-height: 679px) {
+  /* The machine's character line sits under the nameplate. Below 680 px the nameplate alone fits
+     under the showroom car; the line then stays as the MACHINE select's accessible description
+     (aria-describedby reads hidden text), so nothing is lost for a screen reader. */
+  #menu .car-card .machine-blurb {
     display: none;
   }
 }
@@ -1185,7 +1219,7 @@
   #menu .mx-start-dock {
     width: 100%;
   }
-  #menu .car-label {
+  #menu .car-card {
     display: none;
   }
 }

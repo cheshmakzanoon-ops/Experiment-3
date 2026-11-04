@@ -1,12 +1,15 @@
 # MOTOBOUND front-end art direction: "Paddock Board"
 
-Owner: UX/UI Director. Status: v3, implemented for the paddock menu, the Wildcard Series
+Owner: UX/UI Director. Status: v4, implemented for the paddock menu, the Wildcard Series
 board, the career season board (section 14), the first-launch screen (15), the results board
 and share card (16), the settings graphics guide and accessibility (17), pause menu, the loading
-screen and (tokens, type, wordmark; layout untouched) the race HUD. Team HQ, the photo studio,
-the festival panels and the replay bar take the tokens through `screens-board.css` (section 18);
-their older sheets are not rewritten. Companion docs: `ART_BIBLE_B.md` (HUD sizes, now
-superseded for menus), `reports/ux.md`, `ux2.md`, `ux3.md` (audit and verification).
+screen (now with the discipline's own plate, section 19) and (tokens, type, wordmark; layout
+untouched) the race HUD. Team HQ, the photo studio and the replay bar take the tokens through
+`screens-board.css` (section 18); their older sheets are not rewritten. The design-critic pass
+(section 19) brought the last legacy surfaces onto the board: the race briefing and the grid
+presentation, the festival's menu, card, results, map and HUD panels, the Driving Academy, the events list,
+fieldsets and links, and put a type floor under the older sheets. Companion docs: `ART_BIBLE_B.md`
+(HUD sizes, now superseded for menus), `reports/ux.md`, `ux2.md`, `ux3.md`, `ux4.md` (audit and verification).
 
 ## 1. Concept
 
@@ -84,6 +87,7 @@ titles. Tabular figures everywhere data changes.
 | --- | --- | --- |
 | `--mb-t-label` | Saira 11 px, 650, caps, +0.14em, width 92% | field labels, kickers |
 | `--mb-t-value` | Saira 14 px, 600, width 100% | dial values, body |
+| `--mb-f-note` | Saira 12 px, 500 | sentences of help text (notes, hints, credits lines); one step above the caps labels |
 | `--mb-t-lead` | Saira 15 px, 500 | blurbs |
 | `--mb-t-title` | Saira 22 px, 750, caps, width 96% | sheet title, dialog `h2` |
 | `--mb-t-board` | Stencil 18 px, +0.04em | board message (menu `h1`), table index |
@@ -339,3 +343,49 @@ gradients flattened; the drift scale is data and stays), and the replay bar and 
 number, asphalt name). The anti-slop test (`tests/front-end-board.test.ts`) reads every new sheet:
 no gradient, no glow, no colour literal outside `:root`, no text under 11 px, no motion of its own,
 reduced motion present; and it fails if the old APEX wordmark or a retired slogan returns to a screen.
+
+## 19. The design-critic pass (wave 4)
+
+A hostile review of every screen at 1280x720, 1280x800 (Steam Deck), 1920x1080 and 1024x600
+(`reports/ux4.md`). What it changed, and the rules it added.
+
+* **The showroom machine is centred in the free strip.** The paddock leaves a strip between the board's
+  right edge and the rail's left edge (`showroomWindowOf`, measured from the real layout and re-measured
+  by a `ResizeObserver`). The menu camera aims so the machine's drawn extent (measured from its visible
+  meshes, `rendering/showroom-bounds.ts`; the collision box until the model has loaded) is centred in
+  that strip, and backs off, never closer than the authored radius, just far enough that the machine at
+  the widest point of its slow orbit fills at most 94 % of it (`menu-preview.ts`: `showroomRadius`,
+  `showroomShift`). `apexDiagnostics().menuShowroom` reports where it put the machine.
+* **The machine nameplate and its character line are one card** (`.car-card`, bottom right): the stencil
+  name, the class tag, the facts line and, below them, the one-line character on an asphalt board. It left
+  the entry board (where it was dropped below 790 px tall to keep the board on one screen) and is now drawn
+  from 680 px tall up; below that the select keeps it as its accessible description.
+* **Loading carries the discipline.** The plate the player chose (shape, numeral, colour), its pit-board
+  message, the machine, and the venue's length and corners (the festival's events, roads and towns) fill
+  the left column; the plate colour also tints the session line's rule and the map. Four disciplines, four
+  plates, four colours, four names: never colour alone (`e2e/64`).
+* **Legacy surfaces on the board.** The race briefing's four figures are stencil amber cells (they were
+  9 px labels on a 6 px-radius navy panel). The grid presentation is a broadcast frame of asphalt boards
+  with a hard ink edge, a paper tag, a flag-red LIVE (red is for live states: ink text, 4.7:1), an amber
+  lower-third bar and an always-visible controls board (its controls sat at 55 % opacity until hovered, which
+  no controller can do). The festival's menu, event card, results, map and HUD panels take the same
+  boards, paper pressed states, stencil numerals and amber accent (`festival-board.css`, over the old
+  teal and navy). The Driving Academy, the events list (the tag no longer wraps the title), fieldsets and legends and
+  links in screens are on tokens; keycaps read `L SHIFT`, not `ShiftLeft`.
+* **A type floor under the older sheets** (`type-floor.css`, injected last): the 7 to 10 px declarations
+  in `style.css`, `motocross.css` and `festival-hud.css` for screens a player reads are lifted to
+  `--mb-f-label` (11 px) or `--mb-f-note` (12 px, sentences). The race HUD's scaled panels are the one
+  exception, still open (`reports/ux4.md`).
+* **Contrast.** Medal letters on the Wildcard tally (chalk on gold, 1.5:1) are ink; the active RECORDS tab's
+  count is ink on amber (was 1.5:1); the replay tag is ink on flag red; a player holding the fastest lap keeps
+  the timing purple with chalk text (4.5:1, ink was 3.7:1); locked demo rows dim to 90 % (the caption
+  was 4.0:1 at 78 %); default-blue links are amber.
+* **Focus.** Every interactive element in every screen shows a ring, under the keyboard and under the pad
+  (`#app[data-pad]`), measured by focusing each in turn (`e2e/64`: 0 of 500+ without one).
+
+Rules added to section 12: **13.** a screen whose text is under 11 px as the player sees it (declared size
+times any panel scale), outside the race HUD, fails `e2e/64-design-critic`; **14.** text under WCAG AA
+against its own background fails it too; **15.** an interactive element with no focus ring fails it;
+**16.** the documented token pairs are asserted by `tests/front-end-board.test.ts` (chalk tiers on the
+asphalt steps, ink on every fill, the signal and plate colours on asphalt-1, the medal discs, the
+high-contrast override).

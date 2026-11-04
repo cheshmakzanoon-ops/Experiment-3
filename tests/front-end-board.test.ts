@@ -47,7 +47,9 @@ describe('track line art (derived from the real centreline)', () => {
     expect((svg.match(/class="ta-drs"/g) ?? []).length).toBe(CIRCUITS.aurel.drsZones.length);
     expect((svg.match(/class="ta-num"/g) ?? []).length).toBe(CIRCUITS.aurel.corners.length);
     expect(svg).toContain('aria-hidden="true"');
-    expect(circuitArtSvg('aurel', { label: 'Aurel "map"' })).toContain('aria-label="Aurel &#34;map&#34;"');
+    expect(circuitArtSvg('aurel', { label: 'Aurel "map"' })).toContain(
+      'aria-label="Aurel &#34;map&#34;"',
+    );
   });
   it('marks jump take-offs on a terrain venue', () => {
     expect(circuitArtSvg('valley-ridge-mx')).toContain('class="ta-jump"');
@@ -75,7 +77,9 @@ describe('disciplines are views over the session form', () => {
     expect(disciplineOf({ mode: 'race', circuit: 'aurel', vehicle: 'apx01' })).toBe('circuit');
     expect(disciplineOf({ mode: 'race', circuit: 'aurel', vehicle: 'gpr1' })).toBe('gp');
     expect(disciplineOf({ mode: 'race', circuit: 'aurel', vehicle: 'bikes' })).toBe('gp');
-    expect(disciplineOf({ mode: 'race', circuit: 'valley-ridge-mx', vehicle: 'mx450' })).toBe('dirt');
+    expect(disciplineOf({ mode: 'race', circuit: 'valley-ridge-mx', vehicle: 'mx450' })).toBe(
+      'dirt',
+    );
     expect(disciplineOf({ mode: 'race', circuit: 'kestrel-rx', vehicle: 'rcx6' })).toBe('dirt');
     expect(disciplineOf({ mode: 'festival', circuit: 'aurel', vehicle: 'sc7' })).toBe('festival');
     // A road car on a circuit is a (welcome) mismatch, not the festival.
@@ -158,16 +162,17 @@ describe('board markup', () => {
 });
 
 describe('controller navigation and sound hooks', () => {
-  const rect = (x: number, y: number, w = 100, h = 40) => ({
-    x,
-    y,
-    width: w,
-    height: h,
-    left: x,
-    right: x + w,
-    top: y,
-    bottom: y + h,
-  }) as DOMRect;
+  const rect = (x: number, y: number, w = 100, h = 40) =>
+    ({
+      x,
+      y,
+      width: w,
+      height: h,
+      left: x,
+      right: x + w,
+      top: y,
+      bottom: y + h,
+    }) as DOMRect;
   it('walks a dial grid row by row', () => {
     // Two rows of three dials.
     const grid = [
@@ -181,7 +186,9 @@ describe('controller navigation and sound hooks', () => {
     expect(nearestInDirection(grid[1], [grid[0], grid[2], grid[3], grid[4], grid[5]], 'down')).toBe(
       3,
     );
-    expect(nearestInDirection(grid[4], [grid[0], grid[1], grid[2], grid[3], grid[5]], 'up')).toBe(1);
+    expect(nearestInDirection(grid[4], [grid[0], grid[1], grid[2], grid[3], grid[5]], 'up')).toBe(
+      1,
+    );
     expect(nearestInDirection(grid[0], [grid[1], grid[2], grid[3]], 'right')).toBe(0);
     expect(nearestInDirection(grid[0], [grid[3]], 'right')).toBe(-1);
   });
@@ -294,7 +301,9 @@ describe('the screens added in wave 3 follow the anti-slop rules too', () => {
     expect(Object.keys(colours).sort()).toEqual(['green', 'purple', 'red', 'yellow']);
     expect(new Set(Object.values(colours)).size).toBe(4);
     // The identity layer itself still leaves the timing colours alone (tests/hud-identity.test.ts).
-    expect(readFileSync('src/ui/hud-identity.css', 'utf8')).not.toMatch(/--t-(purple|green|yellow|red)\s*:/);
+    expect(readFileSync('src/ui/hud-identity.css', 'utf8')).not.toMatch(
+      /--t-(purple|green|yellow|red)\s*:/,
+    );
   });
   it('keeps the old wordmark and the retired slogans out of the screens', () => {
     const files = [
@@ -328,5 +337,194 @@ describe('the screens added in wave 3 follow the anti-slop rules too', () => {
     }
     // The default livery and its decals carry the game's own fictional sponsor, never the legacy name.
     expect(readFileSync('src/storage/livery.ts', 'utf8')).not.toMatch(/'APEX'/);
+  });
+});
+
+describe('the design-critic pass (wave 4): the legacy screens joined the board', () => {
+  const read = (name: string) => readFileSync(`src/ui/${name}`, 'utf8');
+  const rules = (css: string) =>
+    [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{}]*)\}/g)].map((m) => ({
+      selector: m[1].trim(),
+      body: m[2],
+    }));
+  /** Sheets written or rewritten in wave 4: the pre-race screens, the festival panels, the type floor
+   * and the loading board. They obey the board's rules, with one declared exception (the lower third
+   * slides in; it carries its own reduced-motion guard). */
+  const sheets = [
+    'grid-presentation.css',
+    'festival-board.css',
+    'type-floor.css',
+    'loading-board.css',
+  ];
+  it('has no gradient, glass, glow, emoji or colour literal outside :root', () => {
+    for (const name of sheets) {
+      const css = read(name);
+      expect(css, name).not.toMatch(/gradient\(/);
+      expect(css, name).not.toMatch(/backdrop-filter\s*:\s*blur/);
+      expect(css, name).not.toMatch(/\p{Extended_Pictographic}/u);
+      for (const { selector, body } of rules(css)) {
+        for (const shadow of body.match(/box-shadow\s*:[^;]+/g) ?? [])
+          expect(shadow, `${name}: ${shadow}`).not.toMatch(/\d+px\s+\d+px\s+[1-9]\d*px/);
+        if (selector === ':root') continue;
+        expect(
+          body.replace(/url\([^)]*\)/g, '').match(/#[0-9a-f]{3,8}\b|rgba?\(/i),
+          `${name}: ${selector}`,
+        ).toBeNull();
+      }
+    }
+  });
+  it('sets no text below 11 px', () => {
+    for (const name of sheets)
+      for (const { selector, body } of rules(read(name))) {
+        if (/plate-(caption|numeral)/.test(selector)) continue; // SVG units, not screen px
+        for (const m of body.matchAll(/font(?:-size)?\s*:[^;]*?(\d+(?:\.\d+)?)px/g))
+          expect(Number(m[1]), `${name}: ${selector}`).toBeGreaterThanOrEqual(11);
+      }
+  });
+  it('moves only where it must, and says how to stop it', () => {
+    for (const name of sheets) {
+      const css = read(name);
+      expect(css, name).not.toMatch(/@keyframes/);
+      for (const { body } of rules(css))
+        for (const m of body.matchAll(/\b(animation|transition)\s*:\s*([^;]+)/g))
+          if (name !== 'grid-presentation.css' && name !== 'loading-board.css')
+            expect(m[2], `${name}: ${m[0]}`).toMatch(/^none\b/);
+      if (/transition\s*:\s*(?!none)/.test(css)) {
+        expect(css, name).toContain('prefers-reduced-motion: reduce');
+        expect(css, name).toContain("data-reduced-motion='true'");
+      }
+    }
+  });
+  it('keeps the F1-era red LIVE bug, the navy panels and the 9 px briefing labels out of the pre-race screens', () => {
+    const css = read('grid-presentation.css') + readFileSync('src/ui/grid-presentation.ts', 'utf8');
+    for (const legacy of [
+      '#d6232b',
+      'rgba(8,12,18',
+      'rgba(6, 12, 16',
+      'rgba(9, 12, 16',
+      '#dfb985',
+      '#c4c9ca',
+      'font-size:9px',
+    ])
+      expect(css, legacy).not.toContain(legacy);
+  });
+  it('lifts the older sheets to the type floor from one place', () => {
+    const css = read('type-floor.css');
+    // Every selector the old sheets set under 11 px for a screen the player reads is in the floor
+    // sheet: a few of them, as a tripwire for the list being deleted rather than a full cross-check.
+    for (const selector of [
+      '.small-note',
+      '.range-row',
+      '.mapping-grid label',
+      '.credits-group li a',
+      '.fest-pace small',
+      '.academy-attempts li > span',
+    ])
+      expect(css, selector).toContain(selector);
+    expect(css).toContain('var(--mb-f-label)');
+    expect(css).toContain('var(--mb-f-note)');
+    // It is injected last, after every other sheet.
+    const source = read('launch-board.ts');
+    expect(source.indexOf('${typeFloorCss}')).toBeGreaterThan(source.indexOf('${recordsCss}'));
+  });
+  it('puts the machine character line in the nameplate card, not in the board', () => {
+    const source = readFileSync('src/ui/interface.ts', 'utf8');
+    expect(source).toMatch(
+      /<div class="car-card"><div class="car-label">[\s\S]*?<p class="machine-blurb" id="machineBlurb"><\/p><\/div>/,
+    );
+    expect(source).not.toMatch(/class="session-rules machine-blurb"/);
+    const css = read('front-end.css');
+    expect(css).toMatch(/#menu \.car-card \.machine-blurb/);
+    // Hidden only below 680 px tall (the select keeps it as its accessible description).
+    expect(css).toMatch(
+      /@media \(max-height: 679px\)\s*\{[\s\S]*?#menu \.car-card \.machine-blurb/,
+    );
+    expect(css).not.toMatch(/max-height: 789px/);
+  });
+});
+
+describe('token pairs meet WCAG AA (4.5:1 text, 3:1 large) where the screens use them', () => {
+  const css = readFileSync('src/ui/front-end.css', 'utf8');
+  const token = (name: string, sheet = css) => {
+    const m = new RegExp(`${name}:\\s*(#[0-9a-f]{6})`, 'i').exec(sheet);
+    if (!m) throw new Error(`token ${name} not found`);
+    return m[1];
+  };
+  const luminance = (hex: string) => {
+    const [r, g, b] = [1, 3, 5].map((i) => {
+      const v = parseInt(hex.slice(i, i + 2), 16) / 255;
+      return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+    });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+  const ratio = (a: string, b: string) => {
+    const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+    return (hi + 0.05) / (lo + 0.05);
+  };
+  const t = (name: string) => token(name);
+  const read = (name: string) => readFileSync(`src/ui/${name}`, 'utf8');
+  it('text on asphalt: chalk, dim and faint on every surface step', () => {
+    for (const ink of ['--mb-chalk', '--mb-chalk-dim', '--mb-chalk-faint'])
+      for (const surface of ['--mb-asphalt-0', '--mb-asphalt-1', '--mb-asphalt-2'])
+        expect(ratio(t(ink), t(surface)), `${ink} on ${surface}`).toBeGreaterThanOrEqual(4.5);
+    // The faintest tier is only used on the three lowest steps; asphalt-3 carries chalk and dim.
+    expect(ratio(t('--mb-chalk'), t('--mb-asphalt-3'))).toBeGreaterThanOrEqual(4.5);
+    expect(ratio(t('--mb-chalk-dim'), t('--mb-asphalt-3'))).toBeGreaterThanOrEqual(4.5);
+  });
+  it('ink on every fill it sits on: paper, amber, flag, go, wet and the plates', () => {
+    for (const fill of [
+      '--mb-paper',
+      '--mb-amber',
+      '--mb-flag',
+      '--mb-go',
+      '--mb-wet',
+      '--mb-plate-circuit',
+      '--mb-plate-gp',
+      '--mb-plate-dirt',
+      '--mb-plate-fest',
+    ])
+      expect(ratio(t('--mb-ink'), t(fill)), `ink on ${fill}`).toBeGreaterThanOrEqual(4.5);
+    expect(ratio(t('--mb-paper-ink'), t('--mb-paper'))).toBeGreaterThanOrEqual(7);
+  });
+  it('signal and plate colours read as text on the asphalt they are printed on', () => {
+    for (const ink of [
+      '--mb-amber',
+      '--mb-amber-deep',
+      '--mb-flag-text',
+      '--mb-go',
+      '--mb-wet',
+      '--mb-plate-circuit',
+      '--mb-plate-gp',
+      '--mb-plate-dirt',
+      '--mb-plate-fest',
+    ])
+      expect(ratio(t(ink), t('--mb-asphalt-1')), `${ink} on asphalt-1`).toBeGreaterThanOrEqual(4.5);
+  });
+  it('the medal discs carry ink letters above 4.5:1, and the fastest-lap row carries chalk', () => {
+    const wildcard = readFileSync('src/ui/wildcard-board.css', 'utf8');
+    for (const medal of ['--mb-medal-gold', '--mb-medal-silver', '--mb-medal-bronze'])
+      expect(ratio(t('--mb-ink'), token(medal, wildcard)), medal).toBeGreaterThanOrEqual(4.5);
+    // The timing purple is a broadcast semantic kept as it is (style.css); the player's row on it
+    // takes chalk (hud-identity.css), which clears 4.5:1 where ink did not (3.7:1).
+    const purple = /--t-purple:\s*(#[0-9a-f]{6})/i.exec(
+      readFileSync('src/ui/style.css', 'utf8'),
+    )![1];
+    expect(ratio(t('--mb-chalk'), purple)).toBeGreaterThanOrEqual(4.5);
+    expect(ratio(t('--mb-ink'), purple)).toBeLessThan(4.5);
+    expect(read('hud-identity.css')).toMatch(
+      /\.tower-row\.player\[data-fastest\][^{]*\{\s*color:\s*var\(--mb-chalk\)/,
+    );
+  });
+  it('the high-contrast override only lifts the dim tiers, to at least 6:1 on every surface', () => {
+    const block = /:root\[data-high-contrast='true'\]\s*\{([^}]*)\}/.exec(css)![1];
+    const hc = (name: string) => new RegExp(`${name}:\\s*(#[0-9a-f]{6})`, 'i').exec(block)![1];
+    for (const surface of ['--mb-asphalt-1', '--mb-asphalt-2', '--mb-asphalt-3'])
+      for (const ink of ['--mb-chalk-dim', '--mb-chalk-faint']) {
+        const lifted = ratio(hc(ink), t(surface));
+        expect(lifted, `${ink} on ${surface}`).toBeGreaterThanOrEqual(6);
+        expect(lifted, `${ink} on ${surface} is above the default`).toBeGreaterThan(
+          ratio(t(ink), t(surface)),
+        );
+      }
   });
 });

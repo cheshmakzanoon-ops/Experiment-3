@@ -257,29 +257,55 @@ test('board fits 1280x720 without scrolling and keeps type at 11px or larger', a
   expect(small).toEqual([]);
 });
 
-test('machine character line is drawn when it fits, folds out at 720 and still describes the select', async ({
+test('machine character line sits in the nameplate card, is drawn from 680 up and never meets the rail', async ({
   page,
 }) => {
-  // The line under the MACHINE dial is two rows tall. The board has 4px to spare at 1280x720, so
-  // below 790px tall it leaves the layout; the board must still fit at both heights.
+  // The line used to sit under the MACHINE dial and was dropped below 790px tall to keep the board
+  // in one screen (the e2e sweep's 720p fix). It now lives in the nameplate card at the foot of the
+  // showroom (`.car-card`), so it costs the board nothing: it is drawn at 720p, the board fits at
+  // every height, and the card must not touch the paddock rail or the footer.
   await load(page);
   const blurb = page.locator('#machineBlurb');
   const fits = () =>
     page.locator('.menu-body').evaluate((el) => el.scrollHeight <= el.clientHeight + 1);
-  await page.setViewportSize({ width: 1280, height: 800 });
-  await expect(blurb).toBeVisible();
-  await expect(blurb).toContainText('The reference formula car');
-  expect(await fits()).toBe(true);
-  // Common laptop heights between 720 and 800: the board overflowed by up to 26px at 761-789
-  // with the line drawn (found by the sweep reviewer), so these must fit too.
-  for (const height of [789, 768, 761, 720]) {
-    await page.setViewportSize({ width: 1280, height });
-    await expect(blurb).toBeHidden();
-    expect(await fits(), `board fits at 1280x${height}`).toBe(true);
+  for (const [width, height] of [
+    [1280, 800],
+    [1280, 789],
+    [1280, 768],
+    [1280, 720],
+    [1920, 1080],
+  ]) {
+    await page.setViewportSize({ width, height });
+    await expect(blurb, `${width}x${height}`).toBeVisible();
+    await expect(blurb).toContainText('The reference formula car');
+    expect(await fits(), `board fits at ${width}x${height}`).toBe(true);
+    // The card is the nameplate's, not the board's, and clear of the rail and the footer.
+    const boxes = await page.evaluate(() => {
+      const box = (selector: string) => {
+        const r = document.querySelector(selector)!.getBoundingClientRect();
+        return { left: r.left, right: r.right, top: r.top, bottom: r.bottom };
+      };
+      return {
+        card: box('.car-card'),
+        rail: box('.menu-actions'),
+        footer: box('.menu-footer'),
+        board: box('.lb-board'),
+        blurbInBoard: !!document.querySelector('.lb-board #machineBlurb'),
+        blurbInCard: !!document.querySelector('.car-card #machineBlurb'),
+      };
+    });
+    expect(boxes.blurbInCard, `${width}x${height} blurb in the card`).toBe(true);
+    expect(boxes.blurbInBoard).toBe(false);
+    expect(boxes.card.top, `${width}x${height} card below the rail`).toBeGreaterThanOrEqual(
+      boxes.rail.bottom,
+    );
+    expect(boxes.card.bottom).toBeLessThanOrEqual(boxes.footer.top);
+    expect(boxes.card.left).toBeGreaterThanOrEqual(boxes.board.right);
   }
-  await page.setViewportSize({ width: 1280, height: 790 });
-  await expect(blurb).toBeVisible();
-  expect(await fits(), 'board fits at 1280x790').toBe(true);
+  // Below 680px tall the card keeps the nameplate and drops the line.
+  await page.setViewportSize({ width: 1024, height: 600 });
+  await expect(blurb).toBeHidden();
+  await expect(page.locator('.car-label')).toBeVisible();
   // Hidden text still describes the control (aria-describedby reads it), so nothing is lost.
   await expect(page.locator('#vehicle')).toHaveAccessibleDescription(/The reference formula car/);
 });

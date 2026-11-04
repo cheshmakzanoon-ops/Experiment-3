@@ -297,6 +297,8 @@ export class GameApp {
   private renderedAt = 0;
   private renderedState: State | null = null;
   private showroomMachine = 'apx01';
+  /** The strip between the board and the paddock rail (fractions of the width), from the layout. */
+  private showroomWindow: { left: number; right: number } | null = null;
   private menuPreviewPending = false;
   private menuCovered = false;
   private readonly menuFrames = new MenuFramePacing();
@@ -360,6 +362,11 @@ export class GameApp {
         this.replayClock.setRate(value);
       },
       previewMachine: (id) => this.previewSelectedMachine(id, true),
+      showroomWindow: (free) => {
+        this.showroomWindow = free;
+        if (this.renderer) this.renderer.showroomWindow = free;
+        this.viewportRedrawPending = true;
+      },
       light: (choice) => {
         this.chooseLight(choice);
         // LIVE follows the real sky over the player's location: ask once, when it is chosen.
@@ -610,6 +617,7 @@ export class GameApp {
     );
     if (!this.renderer || this.disposed || this.errorStopped) return false;
     this.renderer.setQuality(this.settings.quality, this.settings.graphics);
+    this.renderer.showroomWindow = this.showroomWindow;
     this.applyMotion(this.renderer, this.settings);
     this.renderer.colorblind = this.settings.colorblind;
     this.renderer.setLivery(this.team.livery);
@@ -3291,6 +3299,8 @@ export class GameApp {
         pending: this.flashbackPending,
       },
       practiceProgramme: this.programme.progress(),
+      menuShowroom: this.state === 'menu' ? (this.renderer?.showroomPlacement ?? null) : null,
+      showroomWindow: this.showroomWindow,
       inspectedReference: this.inspectedReference,
       audio: this.audio.diagnostics(),
       engineering: this.renderer?.engineering ?? null,

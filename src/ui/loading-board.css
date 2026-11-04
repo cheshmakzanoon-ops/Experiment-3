@@ -51,13 +51,100 @@
   aspect-ratio: 1;
   width: min(100%, calc(440px * var(--mb-u)));
 }
+/* Discipline identity: the plate the player chose on the paddock board (shape, numeral, colour), its
+   pit-board message, the machine and the venue's length and corners. The plate colour also tints the
+   session line's rule, so a circuit, a GP bike, a dirt and a festival load read apart at a glance. */
+#app .loading {
+  --plate: var(--mb-plate-circuit);
+}
+#app .loading[data-discipline='gp'] {
+  --plate: var(--mb-plate-gp);
+}
+#app .loading[data-discipline='dirt'] {
+  --plate: var(--mb-plate-dirt);
+}
+#app .loading[data-discipline='festival'] {
+  --plate: var(--mb-plate-fest);
+}
+#app .loading .loading-plate {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: start;
+  display: flex;
+  align-items: center;
+  gap: var(--mb-s5);
+  margin-top: var(--mb-s6);
+}
+#app .loading .loading-plate:empty {
+  display: none;
+}
+#app .loading .lp-art svg {
+  display: block;
+  width: calc(96px * var(--mb-u));
+  height: calc(84px * var(--mb-u));
+  overflow: visible;
+}
+#app .loading .plate-body {
+  fill: var(--plate);
+}
+#app .loading .plate-rim {
+  fill: none;
+  stroke: var(--mb-ink);
+  stroke-width: 1.3;
+  opacity: 0.5;
+}
+#app .loading .plate-numeral {
+  font: 400 26px var(--mb-stencil);
+  fill: var(--mb-paper-ink);
+}
+#app .loading .plate-caption {
+  font: 400 6px var(--mb-stencil);
+  letter-spacing: 0.1em;
+  fill: var(--mb-paper-ink);
+}
+#app .loading .lp-text {
+  display: grid;
+  gap: var(--mb-s2);
+  min-width: 0;
+}
+#app .loading .lp-text b {
+  color: var(--plate);
+  font: 400 calc(26px * var(--mb-u)) / 1 var(--mb-stencil);
+  letter-spacing: 0.06em;
+}
+#app .loading .lp-motto {
+  color: var(--mb-chalk);
+  font: 650 var(--mb-f-label) / 1.3 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.14em;
+}
+#app .loading .lp-machine {
+  color: var(--mb-chalk-dim);
+  font: 650 var(--mb-f-label) / 1.3 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.14em;
+}
+#app .loading .lp-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mb-s1) var(--mb-s4);
+  color: var(--mb-chalk-faint);
+  font: 650 var(--mb-f-label) / 1.3 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.14em;
+}
+#app .loading .lp-stats b {
+  color: var(--mb-amber);
+  font: 400 calc(18px * var(--mb-u)) / 1 var(--mb-stencil);
+  letter-spacing: 0.04em;
+}
 #app .loading .loading-session {
   grid-column: 1;
   grid-row: 2;
   align-self: end;
   margin: 0 0 var(--mb-s5);
   padding: var(--mb-s1) 0 var(--mb-s1) var(--mb-s3);
-  border-left: 3px solid var(--mb-amber);
+  border-left: 3px solid var(--plate);
   color: var(--mb-chalk);
   font: 650 calc(15px * var(--mb-u)) / 1.5 var(--mb-sans);
   font-stretch: 94%;
@@ -132,6 +219,14 @@
   right: var(--mb-s4);
   bottom: var(--mb-s2);
   left: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  #app .loading .loader i {
+    transition: none;
+  }
+}
+:root[data-reduced-motion='true'] #app .loading .loader i {
+  transition: none;
 }
 @media (max-width: 900px) {
   #app .loading {

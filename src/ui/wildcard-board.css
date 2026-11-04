@@ -196,7 +196,9 @@
   align-items: center;
   gap: var(--mb-s2);
 }
-.wc-tally b {
+/* Direct children only: the medal disc's own letter (ink on the medal) is a <b> too, and read
+   chalk on gold at 1.5:1 when this rule took every descendant. */
+.wc-tally li > b {
   font: 400 calc(20px * var(--mb-u)) / 1 var(--mb-stencil);
   color: var(--mb-chalk);
   font-variant-numeric: tabular-nums;

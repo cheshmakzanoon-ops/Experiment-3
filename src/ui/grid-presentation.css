@@ -1,3 +1,73 @@
+/* Pre-race screens in the Paddock Board identity (docs/studio/ART_DIRECTION.md): the race briefing
+ * modal and the grid presentation (the broadcast frame, its lower third and its controls).
+ *
+ * Both used to be the first screens of the old F1-derived skin: a red LIVE bug, translucent navy
+ * panels over a vertical gradient, a blurred drop shadow, 9 px labels and a 6 px radius. They are now
+ * asphalt boards with a notched corner and a hard ink edge, paper tags, a stencil numeral for the
+ * figures and amber for the one action. Red stays only on LIVE (a live state). Flat: no gradient, no
+ * blur, no glow. Tokens come from front-end.css (injected when the interface is built, so they exist
+ * before any race starts). */
+
+/* ---------- Race briefing (modal content) ---------------------------------------------- */
+#raceBriefing h2,
+.mx-briefing h2 {
+  font-size: calc(28px * var(--mb-u));
+}
+.race-briefing-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin: var(--mb-s4) 0 var(--mb-s3);
+  padding: 1px;
+  border-radius: 0;
+  overflow: hidden;
+  background: var(--mb-line-strong);
+}
+.race-briefing-grid div {
+  min-width: 0;
+  padding: var(--mb-s3) var(--mb-s3) calc(var(--mb-s3) - 2px);
+  background: var(--mb-asphalt-0);
+}
+.race-briefing-grid dt {
+  margin: 0;
+  color: var(--mb-chalk-faint);
+  font: 650 var(--mb-f-label) / 1.2 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.race-briefing-grid dd {
+  margin: var(--mb-s1) 0 0;
+  color: var(--mb-amber);
+  font: 400 calc(26px * var(--mb-u)) / 1.1 var(--mb-stencil);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
+}
+.race-briefing-grid small {
+  color: var(--mb-chalk-dim);
+  font: 650 var(--mb-f-label) / 1 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.1em;
+}
+.briefing-weather {
+  margin: 0 0 var(--mb-s3);
+  padding: var(--mb-s2) 0 var(--mb-s2) var(--mb-s3);
+  border: 0;
+  border-left: 3px solid var(--mb-wet);
+  color: var(--mb-chalk);
+  font: 650 var(--mb-f-label) / 1.4 var(--mb-sans);
+  font-stretch: 94%;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+@media (max-width: 560px) {
+  .race-briefing-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ---------- Grid presentation (the broadcast frame) ----------------------------------- */
 .grid-presentation {
   position: absolute;
   inset: 0;
@@ -6,83 +76,178 @@
   flex-direction: column;
   justify-content: space-between;
   pointer-events: none;
-  color: #f5f2eb;
-  background: linear-gradient(
-    180deg,
-    rgba(6, 12, 16, 0.72),
-    transparent 25%,
-    transparent 52%,
-    rgba(6, 12, 16, 0.92)
-  );
+  color: var(--mb-chalk);
+  font-family: var(--mb-sans);
   padding: clamp(16px, 3vw, 44px);
 }
 .grid-presentation[hidden] {
   display: none;
 }
+.grid-presentation [hidden] {
+  display: none !important;
+}
 .grid-presentation header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 24px;
+  gap: var(--mb-s5);
+}
+/* The two header boards: what is on screen, and what the crew is doing. */
+.grid-event,
+.grid-stage {
+  padding: var(--mb-s2) var(--mb-s4) var(--mb-s3);
+  background: var(--mb-board-scrim);
+  box-shadow:
+    inset 0 0 0 1px var(--mb-line-strong),
+    3px 3px 0 var(--mb-ink);
 }
 .grid-event {
-  max-width: 600px;
+  display: flex;
+  align-items: center;
+  gap: var(--mb-s3);
+  max-width: min(600px, 62vw);
 }
 .grid-stage {
-  max-width: 280px;
-  text-align: right;
+  max-width: min(320px, 34vw);
+  text-align: left;
+}
+.grid-presentation .eyebrow {
+  display: inline-block;
+  padding: var(--mb-s1) var(--mb-s2);
+  border-radius: 0;
+  background: var(--mb-paper);
+  color: var(--mb-paper-ink);
+  font: 650 var(--mb-f-label) / 1 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+/* LIVE is the one live state on this screen: flag red with ink text (4.7:1). */
+.grid-presentation .grid-event .eyebrow {
+  background: var(--mb-flag);
+  color: var(--mb-ink);
+  font-weight: 800;
 }
 .grid-presentation h1 {
-  font-size: clamp(24px, 2.8vw, 44px);
-  line-height: 1.08;
-  margin: 8px 0;
+  margin: 0;
+  color: var(--mb-chalk);
+  font: 400 calc(20px * var(--mb-u)) / 1.1 var(--mb-stencil);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 .grid-presentation h2 {
-  font-size: clamp(20px, 2vw, 28px);
-  margin: 4px 0;
+  margin: var(--mb-s2) 0 0;
+  color: var(--mb-chalk);
+  font: 750 calc(18px * var(--mb-u)) / 1.15 var(--mb-sans);
+  font-stretch: 96%;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 .grid-presentation p {
-  margin: 6px 0;
+  margin: var(--mb-s1) 0 0;
   max-width: 620px;
+  color: var(--mb-chalk-dim);
+  font: 500 var(--mb-f-note) / 1.4 var(--mb-sans);
 }
+/* The broadcast frame shows the picture, not the prose. */
+.grid-presentation.broadcast .grid-event p,
+.grid-presentation.broadcast .grid-stage p {
+  display: none;
+}
+
+/* ---------- Lower third (the director's shot caption) ----------------------------------- */
+.grid-lower-third {
+  position: absolute;
+  left: clamp(16px, 4vw, 64px);
+  bottom: clamp(118px, 15vh, 160px);
+  display: flex;
+  align-items: stretch;
+  max-width: min(620px, calc(100% - 32px));
+  box-shadow: 3px 3px 0 var(--mb-ink);
+  transform: translateX(0);
+  opacity: 1;
+  transition:
+    transform var(--mb-d-board) var(--mb-ease-out),
+    opacity var(--mb-d-board) var(--mb-ease-out);
+}
+.grid-lower-third[data-cut] {
+  transform: translateX(-24px);
+  opacity: 0;
+  transition: none;
+}
+.grid-lower-third i {
+  width: calc(6px * var(--mb-u));
+  background: var(--mb-amber);
+}
+.grid-lower-third div {
+  padding: var(--mb-s2) var(--mb-s4) var(--mb-s2) var(--mb-s3);
+  background: var(--mb-asphalt-1);
+  box-shadow: inset 0 0 0 1px var(--mb-line-strong);
+}
+.grid-lower-third b {
+  display: block;
+  color: var(--mb-chalk);
+  font: 400 calc(20px * var(--mb-u)) / 1.1 var(--mb-stencil);
+  letter-spacing: 0.04em;
+}
+.grid-lower-third span {
+  display: block;
+  margin-top: var(--mb-s1);
+  color: var(--mb-chalk-dim);
+  font: 650 var(--mb-f-label) / 1.2 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* ---------- Controls ------------------------------------------------------------------------ */
 .grid-presentation-footer {
-  max-width: 760px;
+  align-self: flex-end;
+  max-width: min(520px, 100%);
+  padding: var(--mb-s3) var(--mb-s4);
+  background: var(--mb-board-scrim);
+  box-shadow:
+    inset 0 0 0 1px var(--mb-line-strong),
+    3px 3px 0 var(--mb-ink);
   pointer-events: auto;
+  text-align: right;
 }
 .grid-timeline {
   display: block;
-  margin: 14px 0;
-  font-size: 11px;
-  letter-spacing: 0.12em;
+  margin: 0 0 var(--mb-s2);
+  color: var(--mb-chalk-faint);
+  font: 650 var(--mb-f-label) / 1 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.14em;
+  text-align: left;
 }
 .grid-timeline input {
   display: block;
   width: 100%;
-  margin-top: 8px;
-  accent-color: #dfb985;
+  margin-top: var(--mb-s2);
+  accent-color: var(--mb-amber);
 }
 .grid-presentation-actions {
   display: flex;
-  gap: 8px;
+  justify-content: flex-end;
+  gap: var(--mb-s2);
   flex-wrap: wrap;
 }
 .grid-presentation-actions button {
-  min-height: 44px;
-  padding: 10px 16px;
-}
-.grid-presentation small {
-  display: block;
-  margin-top: 10px;
-  color: #c4c9ca;
+  min-height: calc(36px * var(--mb-u));
+  padding: var(--mb-s2) var(--mb-s3);
+  border-radius: 0;
+  font-size: var(--mb-f-label);
+  letter-spacing: 0.12em;
 }
 @media (max-width: 700px) {
   .grid-presentation header {
     flex-direction: column;
-    gap: 8px;
+    gap: var(--mb-s2);
   }
+  .grid-event,
   .grid-stage {
     max-width: none;
-    text-align: left;
   }
   .grid-stage p {
     display: none;
@@ -90,73 +255,20 @@
 }
 @media (max-height: 700px) {
   .grid-presentation {
-    padding: 12px 18px;
-  }
-  .grid-presentation h1 {
-    font-size: 24px;
+    padding: var(--mb-s3) var(--mb-s4);
   }
   .grid-presentation header p,
   .grid-presentation small {
     display: none;
   }
-  .grid-presentation-footer {
-    max-width: 690px;
-  }
-  .grid-timeline {
-    margin: 7px 0;
-  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .grid-presentation * {
+  .grid-presentation *,
+  .grid-lower-third {
     transition: none !important;
   }
 }
-
-.grid-presentation [hidden] { display: none !important; }
-.race-briefing-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1px;
-  margin: 22px 0 16px;
-  border-radius: 6px;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.08);
+:root[data-reduced-motion='true'] .grid-presentation *,
+:root[data-reduced-motion='true'] .grid-lower-third {
+  transition: none !important;
 }
-.race-briefing-grid div {
-  padding: 12px 14px;
-  background: rgba(9, 12, 16, 0.92);
-}
-.race-briefing-grid dt {
-  font-family: var(--font-display);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  color: rgba(255, 255, 255, 0.5);
-}
-.race-briefing-grid dd {
-  margin: 5px 0 0;
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 800;
-  font-stretch: 112%;
-  font-variant-numeric: tabular-nums;
-  color: #fff;
-}
-.race-briefing-grid small {
-  font-size: 11px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.55);
-}
-.briefing-weather {
-  padding: 10px 0;
-  border-block: 1px solid rgba(255, 255, 255, 0.1);
-  font-family: var(--font-display);
-  font-weight: 700;
-  letter-spacing: 0.12em;
-}
-@media (max-width: 560px) {
-  .race-briefing-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-#raceBriefing h2 { font-size: clamp(24px, 4vw, 44px); }

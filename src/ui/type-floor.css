@@ -1,0 +1,125 @@
+/* Type floor for the older sheets (docs/studio/ART_DIRECTION.md section 12, rule 11).
+ *
+ * style.css, motocross.css and festival-hud.css were written for a bigger screen and declare 7 to 10 px
+ * text in settings, credits, the garage, the photo studio, the academy and the festival panels. On a
+ * 1280x800 Steam Deck that is under 1.5 mm. They are not rewritten (a test reads two of their strings);
+ * this sheet, injected after them by installFrontEnd(), lifts every declaration the scan found
+ * (scripts/studio/tools/ux4-smallfonts.py lists them) to the label size, and sentences of help text to
+ * the note size. It only ever raises: each selector here is one the old sheets set under 11 px. The
+ * browser audit (e2e/64-design-critic.spec.ts) fails if any screen shows text under 11 px again. */
+
+/* Labels, legends, table heads and buttons: caps text at 11 px. */
+#app
+  :is(
+    .range-row,
+    .mapping-grid label,
+    .binding-grid label,
+    .check,
+    .setup-files button,
+    .file-label,
+    .results th,
+    .telemetry-actions span,
+    .telemetry-actions button,
+    .control-grid,
+    .control-grid b,
+    .team-stats small,
+    .team-actions button,
+    .team-cards article button,
+    .team-driver-grid small,
+    .team-ledger th,
+    .photo-drawer label,
+    .photo-buttons button,
+    #decalMap small,
+    .reference-list summary small,
+    .reference-list code,
+    .reference-live b,
+    .reference-live small,
+    .reference-live button,
+    .academy-attempts li > span,
+    .academy-attempts li > strong,
+    .event-requirements small,
+    .media-brand b,
+    .media-controls label,
+    .pause-summary dt,
+    .pause-more button,
+    .career-state,
+    .career-presets legend,
+    .career-measure b,
+    .meeting-gates legend,
+    .loading-tip b,
+    .loading .loading-detail,
+    .menu .session-form label,
+    .mx-entry > span,
+    .mx-entry button,
+    .mx-kicker,
+    .mx-ride-presets legend,
+    .mx-ride-heading,
+    .eyebrow,
+    .dm-tag,
+    .dm-kicker,
+    .rc-ghost,
+    .fr-language span,
+    dialog label:not([class]),
+    .tyre-dot
+  ) {
+  font-size: var(--mb-f-label);
+}
+/* The replay lower third sizes its caption in viewport heights (10.8 px at 720): a floor under it. */
+#app .replay-lower-third small {
+  font-size: max(var(--mb-f-label), 1.5vh);
+}
+
+/* Help sentences: 12 px. (`.small-note` is `!important` in style.css, so it needs the same weight.) */
+#app
+  :is(
+    .setup-row .setup-hint,
+    .setup-row .setup-note,
+    .small-note,
+    .photo-title p,
+    .photo-help,
+    #photoStatus,
+    .mx-venue-card p,
+    .mx-ride-note,
+    .credits-group li small,
+    .credits-group li a
+  ) {
+  font-size: var(--mb-f-note) !important;
+}
+
+/* Links inside a screen: amber on asphalt (the browser's default blue was 1.8:1), underlined. */
+#app dialog a:not([class]) {
+  color: var(--mb-amber);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+#app dialog a:not([class]):visited {
+  color: var(--mb-amber-deep);
+}
+
+/* The festival panels: the old sheet sets 7 and 8 px labels and units. */
+#app
+  .fest-hud
+  :is(
+    .fest-map-caption,
+    .fest-map-caption i,
+    .fest-rivals small,
+    .fest-menu h3 > span,
+    .fest-garage small,
+    .fest-map-key,
+    .fest-map-events small,
+    .fest-road .fest-eyebrow,
+    .fest-explore .fest-eyebrow,
+    .fest-explore small,
+    .fest-machine-label,
+    .fest-speed small,
+    .fest-drive-state,
+    .fest-challenge b,
+    .fest-challenge span,
+    .fest-challenge small,
+    .fest-photo button,
+    .fest-pace small,
+    .fest-drift > div:first-child,
+    kbd
+  ) {
+  font-size: var(--mb-f-label);
+}

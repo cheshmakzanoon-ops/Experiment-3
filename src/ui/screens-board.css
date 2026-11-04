@@ -257,6 +257,99 @@
   outline-offset: 2px;
 }
 
+/* ---------- Fieldsets, the Driving Academy and the events list ---------------------- */
+/* Fieldsets in a screen (sound mix, audio cues, academy guidance and lighting, ride presets) drew
+   the browser's grooved border and a plain legend; they are now one hairline board with a caps legend. */
+#app dialog fieldset {
+  min-width: 0;
+  border: 1px solid var(--mb-line-strong);
+  border-radius: 0;
+  background: transparent;
+}
+#app dialog legend {
+  padding: 0 var(--mb-s2);
+  color: var(--mb-chalk-faint);
+  font: 650 var(--mb-f-label) / 1 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+/* Academy: the chosen guidance or lighting is the paper sticker, not a green chip. */
+#app .academy-controls button {
+  border-radius: 0;
+}
+#app .academy-controls button[aria-pressed='true'] {
+  border-color: var(--mb-paper);
+  background: var(--mb-paper);
+  color: var(--mb-paper-ink);
+}
+#app .academy-controls p,
+#app .academy-attempts li > small {
+  color: var(--mb-chalk-dim);
+}
+#app .academy-attempts li {
+  background: var(--mb-asphalt-0);
+  border-top: 2px solid var(--mb-line-strong);
+  border-radius: 0;
+}
+#app .academy-attempts [data-grade='gold'] {
+  border-color: var(--mb-medal-gold);
+}
+#app .academy-attempts :is([data-grade='banker'], [data-grade='silver']) {
+  border-color: var(--mb-medal-silver);
+}
+#app .academy-attempts :is([data-grade='invalid'], [data-grade='assisted']) {
+  border-color: var(--mb-flag);
+}
+#app .academy-score > strong {
+  font-family: var(--mb-stencil);
+  font-weight: 400;
+  font-style: normal;
+}
+/* Events: the rule-set tag sits above the title (it used to float beside it and wrap the title),
+   labels are caps and the values are chalk. */
+#app .event-card {
+  display: grid;
+  align-content: start;
+  gap: var(--mb-s2);
+  padding: var(--mb-s3) var(--mb-s4) var(--mb-s4);
+  border: 0;
+  border-radius: 0;
+  background: var(--mb-asphalt-0);
+  box-shadow: inset 0 0 0 1px var(--mb-line);
+}
+#app .event-card > header {
+  display: grid;
+  gap: var(--mb-s2);
+  justify-items: start;
+}
+#app .event-card h3 {
+  margin: 0;
+  font: 750 calc(17px * var(--mb-u)) / 1.15 var(--mb-sans);
+  font-stretch: 96%;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+#app .event-card dl {
+  margin: var(--mb-s1) 0 var(--mb-s2);
+  font-size: var(--mb-f-value);
+}
+/* The same fact list on the career's cards (events, licences, free roam): caps labels on one baseline. */
+#app :is(.event-card, .career-facts) dt {
+  opacity: 1;
+  align-self: baseline;
+  color: var(--mb-chalk-faint);
+  font: 650 var(--mb-f-label) / 1.4 var(--mb-sans);
+  font-stretch: 92%;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+#app :is(.event-card, .career-facts) dd {
+  align-self: baseline;
+  margin: 0;
+  color: var(--mb-chalk);
+}
+
 /* ---------- Festival menu, map and HUD panels --------------------------------- */
 #app .fest-hud {
   --fest-accent: var(--mb-amber);
@@ -303,7 +396,8 @@
 }
 .replay-bar .replay-tag {
   background: var(--mb-flag);
-  color: var(--mb-chalk);
+  /* Ink on the flag red is 4.7:1; chalk on it was 3.5:1. */
+  color: var(--mb-ink);
   border-radius: 0;
   font: 700 var(--mb-f-label) / 1 var(--mb-sans);
   letter-spacing: 0.14em;
