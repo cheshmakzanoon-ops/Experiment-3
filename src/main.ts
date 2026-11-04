@@ -55,7 +55,7 @@ import {
 } from './simulation/config.ts';
 import { meetingFromEvent } from './ui/offroad-meeting.ts';
 import { MeetingFlow } from './ui/meeting-flow.ts';
-import { F, H, R, RACE_BASE, carBase } from './simulation/protocol.ts';
+import { B, BIKE_BASE, F, H, O, OFFROAD_BASE, R, RACE_BASE, carBase } from './simulation/protocol.ts';
 import { safetyCarPose } from './rendering/studio/safety-car.ts';
 import { RacingRenderer } from './rendering/renderer.ts';
 import { Interface, shortTime } from './ui/interface.ts';
@@ -159,6 +159,19 @@ import { clockText, demoPolicy, festivalClock, type FestivalClock } from './rele
 import { demoSessionLock } from './release/demo-gates.ts';
 import { openWishlist } from './release/wishlist.ts';
 import { demoClockHtml, demoEndHtml } from './ui/demo-plate.ts';
+/** Position, speed, lean and flight of car 0 in a snapshot (diagnostics only). */
+function presentedCar(frame: Float32Array) {
+  const o = carBase(0);
+  return {
+    x: frame[o + F.X] ?? 0,
+    y: frame[o + F.Y] ?? 0,
+    z: frame[o + F.Z] ?? 0,
+    speed: frame[o + F.SPEED] ?? 0,
+    lean: frame[o + BIKE_BASE + B.LEAN] ?? 0,
+    airborne: frame[o + OFFROAD_BASE + O.AIRBORNE] ?? 0,
+    airTime: frame[o + OFFROAD_BASE + O.AIR_TIME] ?? 0,
+  };
+}
 type State = 'menu' | 'loading' | 'driving' | 'paused' | 'results' | 'replay' | 'photo' | 'pregame';
 export class GameApp {
   private readonly gridClock = new GridPresentationClock();
@@ -3222,6 +3235,9 @@ export class GameApp {
       presentation: this.renderer
         ? {
             time: this.renderer.presented.value[H.TIME] ?? 0,
+            // The player's car in the frame being DRAWN (a replay draws a recorded frame, not
+            // `frame` below): the store screenshot director picks a lean or a jump from it.
+            car: presentedCar(this.renderer.presented.value),
             frames: this.presentationFrames,
             menuCovered: this.menuCovered,
             engineeringVisible: this.renderer.engineeringView.group.visible,

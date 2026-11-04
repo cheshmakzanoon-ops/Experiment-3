@@ -2,13 +2,15 @@
  * Injected with front-end.css by installFrontEnd(); tokens only (--mb-*). Times are set in the
  * stencil face so a list of laps reads like a pit-board; amber marks the best, chalk the rest. */
 
+/* The dialog is 700px wide by default (style.css); the records list wants room for the lap table. */
+#app dialog:has(.rc) {
+  width: min(calc(880px * var(--mb-u)), calc(100vw - 2 * var(--mb-s3)));
+}
 #app dialog .rc {
   display: grid;
   gap: var(--mb-s3);
-  padding: var(--mb-s5);
   color: var(--mb-chalk);
-  min-width: min(calc(760px * var(--mb-u)), 92vw);
-  max-height: 86vh;
+  max-height: min(calc(100vh - 8 * var(--mb-s4)), calc(640px * var(--mb-u)));
   grid-template-rows: auto auto auto minmax(0, 1fr);
 }
 .rc-head {

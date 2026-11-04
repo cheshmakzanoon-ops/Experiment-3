@@ -171,6 +171,38 @@ is in `LAUNCH_PLAN.md` and is unproven.
 "launch" later and the Early Access stigma some players hold. This is a producer decision, not
 an engineering one.
 
+## Demo page (Steam Next Fest)
+
+The demo is a separate Steam app built from the same source (`npm run build:demo`, content slice in
+`src/release/demo.ts`, packaging in `desktop/README.md`). Everything below is what the demo build
+contains; counts come from the catalogues, not from memory.
+
+> **MOTOBOUND Demo.** Race a formula car on two circuits, take a GP bike round the coast circuit,
+> ride a motocross bike over a hillside course, and try five Wildcard events that put the wrong
+> machine on the right track: a formula car down a fogged mountain pass, a trophy truck on the iced
+> col, GP bikes in the docklands. Then take an electric hypercar or a roadster onto the Solvane
+> coast for 15 minutes. Weather, time of day, replays and the photo studio are all open. The full
+> game has 44 more circuits, 51 more machines and 16 more Wildcard events.
+
+- **Contains:** 3 venues (Aurel and Vellamar circuits, Valley Ridge motocross), 4 machines
+  (APX-01 and FX-26 formula cars, GP-R1, MX-450), 5 Wildcard events, the first licence (braking),
+  a 15-minute visit to the coast in 2 road cars. Locked content is listed on the board as FULL GAME.
+- **Does not contain:** anything the page above does not name. Demo progress is not carried into the
+  game.
+- **Wishlist button:** opens the full game's store page through the desktop shell
+  (`MOTOBOUND_STORE_APPID`, `desktop/STEAM.md`); the web build has no button and no network.
+- **Open before Next Fest:** the demo's own Steam app id and depots; a real-client check of the
+  wishlist button, Steam Cloud root `MOTOBOUND Demo/saves` and whether a demo may use achievements;
+  Windows and macOS packages (built by `.github/workflows/desktop-packages.yml`, never run).
+
+## Leaderboards: what may be claimed
+
+Say **"local leaderboards, ghost laps and a records screen"**. Do **not** say "Steam leaderboards" or
+"global leaderboards" yet: the upload path exists and is unit-tested with a fake client, but the
+Steam binding in use (steamworks.js 0.4.0, the latest release) has no leaderboard calls, so nothing
+reaches Steam (`desktop/STEAM.md` "Leaderboards" lists the options). Rich presence is wired with ten
+statuses; it is unverified against a real client.
+
 ## Not for the page until true
 
 - "Full controller support" (gap: menu navigation).

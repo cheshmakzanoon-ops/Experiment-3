@@ -299,6 +299,24 @@ async function run({ getWindow, out, mirrors, savesDir, steam, log, quit }) {
     })()`);
     step('display-roundtrip', report.display);
 
+    // The demo/leaderboard bridge calls reach the shell and answer without Steam. The store call
+    // itself is not made here: with an app id staged it would open a browser (src/store-link.cjs).
+    report.releaseBridge = await js(`(async () => {
+      const d = window.motobound.desktop;
+      const lb = d.steam.leaderboards ? await d.steam.leaderboards.status() : null;
+      const bad = d.steam.leaderboards
+        ? await d.steam.leaderboards.submit('../not-a-board', 90000, [])
+        : null;
+      return { openStore: typeof (d.shell && d.shell.openStore), leaderboards: lb, refusedBadName: bad };
+    })()`);
+    step('release-bridge', report.releaseBridge);
+    report.pass.storeBridgeExposed = report.releaseBridge.openStore === 'function';
+    report.pass.leaderboardBridgeAnswers =
+      report.releaseBridge.leaderboards !== null &&
+      typeof report.releaseBridge.leaderboards.available === 'boolean' &&
+      report.releaseBridge.refusedBadName !== null &&
+      report.releaseBridge.refusedBadName.ok === false;
+
     const failed = Object.entries(report.pass ?? {}).filter(([, v]) => v !== true);
     report.ok =
       failed.length === 0 && report.consoleErrors.length === 0 && report.crashes.length === 0;
