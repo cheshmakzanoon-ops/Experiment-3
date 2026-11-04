@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { pathPoint } from '../src/simulation/open-world/route-path.ts';
 import type { OpenWorldSimulation } from '../src/simulation/open-world/session.ts';
-import { approachPath, DT, defaultRun, newSim, Pilot } from '../scripts/studio/tools/festival-qa.ts';
+import { approachPath, DT, defaultRun, newSim, Pilot, runActivity } from '../scripts/studio/tools/festival-qa.ts';
 
 /** Defects the festival QA harness found (docs/studio/reports/qa-festival.md):
  * each test drives or measures the exact place that failed. */
@@ -77,6 +77,45 @@ describe('festival route driver at open-road speed', () => {
     expect(pilot.d).toBeGreaterThan(12300);
     expect(widest).toBeLessThan(7.6);
     expect(pilot.resets).toBe(0);
+  }, 60_000);
+});
+
+describe('festival route driver in the wet and after backing out', () => {
+  it.each(['rain', 'storm', 'snow'] as const)(
+    'keeps a hypercar on the road over the plateau speed zone in %s',
+    (weather) => {
+      const r = runActivity(defaultRun('plateau-zone', { vehicle: 'eh3', weather }));
+      expect(r.outcome, r.incidents.join(' | ')).toBe('completed');
+      expect(r.checks.filter((c) => !c.ok)).toEqual([]);
+      expect(r.pilotResets + r.autoResets).toBe(0);
+      expect(r.offRouteSeconds).toBeLessThan(2);
+    },
+    60_000,
+  );
+  it('stops the car before driving on after a reversing recovery, not reversing away from the route', () => {
+    const sim = newSim(defaultRun('', { vehicle: 'eh3' }));
+    const event = sim.events.find((e) => e.spec.id === 'valley-sprint')!,
+      p = pathPoint();
+    event.path.at(60, p);
+    sim.placeAt(sim.player, p.x, p.z, Math.atan2(p.tx, p.tz), p.y + 0.5);
+    const pilot = new Pilot(sim, event.path, 0.92);
+    // Backing out at 5 m/s: the gearbox stays in reverse until the car is nearly stopped.
+    sim.player.gear = -1;
+    sim.player.body.velocity.set(-p.tx * 5, 0, -p.tz * 5);
+    sim.setInput({ ...sim.player.input, throttle: 0.35, reverse: true });
+    sim.step(DT);
+    expect(sim.player.gear).toBe(-1);
+    pilot.step(DT);
+    expect(sim.player.input.reverse).toBe(false);
+    expect(sim.player.input.throttle).toBe(0);
+    expect(sim.player.input.brake).toBe(1);
+    // It comes to rest, the gearbox goes forward, and the pilot drives on along the route.
+    for (let i = 0; i < 120 * 12; i++) {
+      pilot.step(DT);
+      sim.step(DT);
+    }
+    expect(sim.player.gear).toBeGreaterThan(0);
+    expect(pilot.d).toBeGreaterThan(75);
   }, 60_000);
 });
 

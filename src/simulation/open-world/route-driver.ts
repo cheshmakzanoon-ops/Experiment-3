@@ -38,6 +38,12 @@ const BIKE_CORNER_RESERVE = 0.88;
 /** Speed (m/s) above which the driver plans over twice the circuit AI's
  * 252 m look-ahead (see RouteDriver.update). */
 export const LONG_LOOKAHEAD_SPEED = 55;
+/** Straight-line pace in the wet (see RouteDriver.update): the fraction of the
+ * dry pace is WET_PACE_BASE + WET_PACE_PER_GRIP × grip (grip 0..1 of the dry
+ * reference), at least WET_PACE_FLOOR and at most 1 (grip above 0.44 is dry). */
+const WET_PACE_BASE = 0.3;
+const WET_PACE_PER_GRIP = 1.6;
+const WET_PACE_FLOOR = 0.4;
 /** Heading error (rad) beyond which a motorcycle turns round at walking pace. */
 const BIKE_TURN_ROUND = 1.0;
 
@@ -307,7 +313,15 @@ export class RouteDriver {
         loose ? LOOSE_ROAD_SPEED * this.skill : Infinity,
       );
     }
-    let desired = Math.min(env.topSpeed * this.skill, this.speedCap);
+    // The corner envelope reads the grip the tyres have now, but on a near
+    // straight road it only limits corners: a hypercar in heavy rain held
+    // 290 km/h on the plateau road (grip 0.2 of dry at that speed), could not
+    // steer back from the crown and left the road (festival QA, rain and
+    // storm). Where the tyres have lost much of their grip, flat-out is not
+    // the pace either: the straight-line pace follows the grip, from 78 % of
+    // the dry pace at the rain preset's 0.3 down to 40 %.
+    const wetPace = clamp(WET_PACE_BASE + WET_PACE_PER_GRIP * grip, WET_PACE_FLOOR, 1);
+    let desired = Math.min(env.topSpeed * this.skill * wetPace, this.speedCap);
     // Turning round at walking pace; aligning again before speeding up.
     if (turning) desired = Math.min(desired, 4);
     else if (bike) desired = Math.min(desired, Math.max(6, 30 - 60 * away));
@@ -379,6 +393,14 @@ export class RouteDriver {
       command.steer = -command.steer;
       this.decision = 'RECOVERY';
       if (this.recovery <= 0) this.stuck = 0;
+    } else if (!bike && c.gear < 0 && c.speed > 1) {
+      // Backing out leaves the gearbox in reverse until the car is nearly
+      // stopped (vehicle.ts): throttle then keeps it going backwards, away
+      // from the route, as fast as it will go. Stop first, then drive on
+      // (festival QA, Harbour Opening Run in rain: 25 s lost reversing).
+      command.throttle = 0;
+      command.brake = 1;
+      this.decision = 'RECOVERY';
     }
     // Ask for a reset when recovery keeps failing, when far off the route
     // or upside down.

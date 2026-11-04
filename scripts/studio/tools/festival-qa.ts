@@ -791,11 +791,29 @@ export function runLeaks(n: number, events = ['coast-trap', 'harbour-welcome']):
 export function summarize(reports: ActivityReport[]) {
   const events = [...new Set(reports.map((r) => r.event))];
   const conditions = [...new Set(reports.map((r) => `${r.vehicle}/${r.weather}`))];
+  const result = (r: ActivityReport) =>
+    r.outcome !== 'completed'
+      ? r.outcome
+      : r.kind === 'speed-trap'
+        ? `${Math.round(r.score ?? 0)} km/h ${r.stars}*`
+        : r.kind === 'speed-zone'
+          ? `${Math.round(r.score ?? 0)} km/h avg ${r.stars}*`
+          : r.kind === 'drift-zone'
+            ? `${Math.round(r.score ?? 0)} pts ${r.stars}*`
+            : `P${r.position}/${r.entrants} ${r.time}s ${r.stars}*`;
   const cell = (r: ActivityReport | undefined) =>
-    !r ? '' : r.verdict === 'pass' ? 'pass' : r.verdict === 'warn' ? 'warn' : 'FAIL';
+    !r ? '' : `${r.verdict === 'pass' ? 'pass' : r.verdict === 'warn' ? 'warn' : 'FAIL'} ${result(r)}`;
   const lines = [`| event | ${conditions.join(' | ')} |`, `|---|${conditions.map(() => '---').join('|')}|`];
   for (const e of events)
     lines.push(`| ${e} | ${conditions.map((c) => cell(reports.find((r) => r.event === e && `${r.vehicle}/${r.weather}` === c))).join(' | ')} |`);
+  const flagged = reports.filter((r) => r.verdict !== 'pass');
+  if (flagged.length) {
+    lines.push('', 'Flagged runs:');
+    for (const r of flagged)
+      lines.push(`- ${r.verdict.toUpperCase()} ${r.event} ${r.vehicle}/${r.weather}: ${[...r.notes, ...r.checks.filter((c) => !c.ok).map((c) => `${c.name} (${c.detail})`), ...(r.error ? [r.error] : [])].join('; ') || r.outcome}${r.incidents.length ? ` [${r.incidents.slice(0, 3).join(' | ')}]` : ''}`);
+  }
+  const wall = reports.reduce((a, r) => a + r.wallMs, 0);
+  lines.push('', `${reports.length} runs, ${reports.filter((r) => r.verdict === 'pass').length} pass, ${reports.filter((r) => r.verdict === 'warn').length} warn, ${reports.filter((r) => r.verdict === 'fail').length} FAIL, ${Math.round(wall / 1000)} s of wall time.`);
   return lines.join('\n');
 }
 export function readRuns(...files: string[]): ActivityReport[] {
