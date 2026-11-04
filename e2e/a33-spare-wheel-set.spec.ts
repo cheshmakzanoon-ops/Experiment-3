@@ -24,10 +24,8 @@ test('A33 ships in normal startup and survives entry, pause and garage registrat
     capacity: 96,
     instances: 0,
   });
-  expect(loaded.renderer?.environmentAssets.garage?.spareWheels).toMatchObject({
-    assetId: 'A33',
-    instances: 4,
-  });
+  // G7 / ebc2e06: the menu's showroom builds no venue assets; the ordinary session start does: the garage's spare-wheel racks are asserted below.
+  expect(loaded.renderer?.environmentAssets.garage).toBeFalsy();
   await page.selectOption('#mode', 'practice');
   await page.selectOption('#opponents', '0');
   await page.getByRole('button', { name: 'ENTER CIRCUIT', exact: true }).click();
@@ -41,6 +39,10 @@ test('A33 ships in normal startup and survives entry, pause and garage registrat
     .toMatchObject({ pending: false, paused: true });
   const paused = await page.evaluate(() => window.apexDiagnostics());
   expect(paused.renderer?.pitPersonnel.spareWheels.assetId).toBe('A33');
+  expect(paused.renderer?.environmentAssets.garage?.spareWheels).toMatchObject({
+    assetId: 'A33',
+    instances: 4,
+  });
   await info.attach('a33-startup.json', {
     body: JSON.stringify({ loaded, paused }, null, 2),
     contentType: 'application/json',

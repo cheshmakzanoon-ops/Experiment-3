@@ -13,10 +13,22 @@ test('27H.4 normal startup constructs the upgraded districts and retained event 
   await page.goto('/');
   await expect(page.locator('#menu')).toBeVisible({ timeout: MENU_STARTUP_TIMEOUT_MS });
   const read = () => page.evaluate(() => window.apexDiagnostics());
+  // The menu's showroom builds no venue: RacingRenderer.create loads only the 'showroom' lazy
+  // datasets there (gate G7, ebc2e06; e2e/lazy-chunks.spec.ts), so the districts, frontage, garage
+  // and start/finish are constructed by the ordinary session start asserted below.
   const loaded = await read();
-  const environment = loaded.renderer?.environmentAssets;
+  expect(loaded.renderer?.environmentAssets?.frontage).toBeFalsy();
+  // A18's lifetime repaint count before any session exists (the board is not built yet).
+  const menuBoardUpdates = loaded.renderer?.environmentAssets?.startFinish?.boardUpdates ?? 0;
+  await page.selectOption('#mode', 'practice');
+  await page.selectOption('#opponents', '0');
+  await page.getByRole('button', { name: 'ENTER CIRCUIT', exact: true }).click();
+  await finishRaceEntry(page);
+  await expect.poll(async () => (await read()).state, { timeout: 90000 }).toBe('driving');
+  const entered = await read();
+  const environment = entered.renderer?.environmentAssets;
   if (!environment?.frontage)
-    throw new Error('A21 frontage diagnostics are unavailable at startup');
+    throw new Error('A21 frontage diagnostics are unavailable after practice entry');
   expect(environment.source).toBe('constructed-runtime-groups');
   expect(environment.startFinish).toMatchObject({ stands: 2, boards: 1, finalArtApproved: false });
   expect(Number.isSafeInteger(environment.startFinish.boardUpdates)).toBe(true);
@@ -31,13 +43,8 @@ test('27H.4 normal startup constructs the upgraded districts and retained event 
     expect(district.position.every(Number.isFinite)).toBe(true);
     expect(district.finalArtApproved).toBe(false);
   }
-  expect(loaded.renderer?.venueLighting.landmark).toBeDefined();
-  expect(loaded.renderer?.broadcastSolidOccluders).toBeLessThanOrEqual(256);
-  await page.selectOption('#mode', 'practice');
-  await page.selectOption('#opponents', '0');
-  await page.getByRole('button', { name: 'ENTER CIRCUIT', exact: true }).click();
-  await finishRaceEntry(page);
-  await expect.poll(async () => (await read()).state, { timeout: 90000 }).toBe('driving');
+  expect(entered.renderer?.venueLighting.landmark).toBeDefined();
+  expect(entered.renderer?.broadcastSolidOccluders).toBeLessThanOrEqual(256);
   await page.keyboard.press('Escape');
   await expect
     .poll(async () => (await read()).workerPause)
@@ -123,7 +130,7 @@ test('27H.4 normal startup constructs the upgraded districts and retained event 
   });
   expect(heldBoard.before).toMatchObject({ state: 'paused', paused: true, pending: false });
   expect(heldBoard.before.frame).not.toBeNull();
-  expect(heldBoard.before.updates).toBeGreaterThan(environment.startFinish.boardUpdates);
+  expect(heldBoard.before.updates).toBeGreaterThan(menuBoardUpdates);
   expect(heldBoard.after).toEqual(heldBoard.before);
   for (const chunk of pausedEnvironment.frontage.chunks) {
     expect(Number.isInteger(chunk.lod)).toBe(true);

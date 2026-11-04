@@ -19,12 +19,8 @@ test('A34 normal startup, practice and pause retain the real blanket kit', async
   await page.goto('/');
   await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
   const read = () => page.evaluate(() => window.apexDiagnostics());
-  expect((await read()).renderer?.environmentAssets.tyreBlankets).toMatchObject({
-    loaded: true,
-    assetId: 'A34',
-    sha256: manifest.sha256,
-    heatingSimulation: false,
-  });
+  // G7 / ebc2e06: the menu's showroom builds no venue assets; the ordinary session start does (asserted below).
+  expect((await read()).renderer?.environmentAssets.tyreBlankets).toBeFalsy();
   await page.selectOption('#mode', 'practice');
   await page.selectOption('#opponents', '0');
   await page.getByRole('button', { name: 'ENTER CIRCUIT', exact: true }).click();
@@ -35,7 +31,12 @@ test('A34 normal startup, practice and pause retain the real blanket kit', async
     .poll(async () => (await read()).workerPause)
     .toMatchObject({ pending: false, paused: true });
   const result = await read();
-  expect(result.renderer?.environmentAssets.tyreBlankets?.loaded).toBe(true);
+  expect(result.renderer?.environmentAssets.tyreBlankets).toMatchObject({
+    loaded: true,
+    assetId: 'A34',
+    sha256: manifest.sha256,
+    heatingSimulation: false,
+  });
   expect(result.renderer?.environmentAssets.garage?.loaded).toBe(true);
   await info.attach('a34-normal-startup.json', {
     body: JSON.stringify(result, null, 2),

@@ -20,16 +20,8 @@ test('A35 normal menu/practice startup retains the authored logistics kit', asyn
   await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
   const read = () => page.evaluate(() => window.apexDiagnostics());
   const loaded = await read();
-  expect(loaded.renderer?.environmentAssets.tyreEquipment).toMatchObject({
-    assetId: 'A35',
-    loaded: true,
-    sha256: manifest.sha256,
-    visualOnly: true,
-    finalArtApproved: false,
-  });
-  expect(loaded.renderer?.environmentAssets.tyreEquipment?.instances.map((i) => i.wheels)).toEqual([
-    4, 0, 8,
-  ]);
+  // G7 / ebc2e06: the menu's showroom builds no venue assets; the ordinary session start does (asserted below).
+  expect(loaded.renderer?.environmentAssets.tyreEquipment).toBeFalsy();
   await page.selectOption('#mode', 'practice');
   await page.selectOption('#opponents', '0');
   await page.getByRole('button', { name: 'ENTER CIRCUIT', exact: true }).click();
@@ -44,7 +36,12 @@ test('A35 normal menu/practice startup retains the authored logistics kit', asyn
     assetId: 'A35',
     loaded: true,
     sha256: manifest.sha256,
+    visualOnly: true,
+    finalArtApproved: false,
   });
+  expect(paused.renderer?.environmentAssets.tyreEquipment?.instances.map((i) => i.wheels)).toEqual([
+    4, 0, 8,
+  ]);
   await info.attach('a35-startup.json', {
     body: JSON.stringify({ loaded, paused }, null, 2),
     contentType: 'application/json',

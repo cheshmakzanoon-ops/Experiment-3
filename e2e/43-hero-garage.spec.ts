@@ -21,15 +21,8 @@ test('A22 normal startup loads one authored garage and retains it through practi
   await expect(page.locator('#menu')).toBeVisible({ timeout: MENU_STARTUP_TIMEOUT_MS });
   const read = () => page.evaluate(() => window.apexDiagnostics());
   const loaded = await read();
-  expect(loaded.renderer?.environmentAssets.garage).toMatchObject({
-    loaded: true,
-    assetId: 'A22',
-    revision: manifest.revision,
-    sha256: manifest.sha256,
-    bay: 5,
-    finalArtApproved: false,
-  });
-  expect(loaded.renderer?.environmentAssets.garage?.sockets).toHaveLength(9);
+  // G7 / ebc2e06: the menu's showroom builds no venue assets; the ordinary session start does (asserted below).
+  expect(loaded.renderer?.environmentAssets.garage).toBeFalsy();
   await page.selectOption('#mode', 'practice');
   await page.selectOption('#opponents', '0');
   await page.getByRole('button', { name: 'ENTER CIRCUIT', exact: true }).click();
@@ -43,9 +36,12 @@ test('A22 normal startup loads one authored garage and retains it through practi
   expect(paused.renderer?.environmentAssets.garage).toMatchObject({
     loaded: true,
     assetId: 'A22',
+    revision: manifest.revision,
     sha256: manifest.sha256,
     bay: 5,
+    finalArtApproved: false,
   });
+  expect(paused.renderer?.environmentAssets.garage?.sockets).toHaveLength(9);
   await info.attach('a22-startup.json', {
     body: JSON.stringify({ loaded, paused }, null, 2),
     contentType: 'application/json',

@@ -19,14 +19,8 @@ test('A36 normal startup retains four authored workshop props through practice a
   await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
   const read = () => page.evaluate(() => window.apexDiagnostics());
   const loaded = await read();
-  expect(loaded.renderer?.environmentAssets.garage?.workshop).toMatchObject({
-    assetId: 'A36',
-    loaded: true,
-    attached: true,
-    instances: 4,
-    sha256: manifest.sha256,
-    finalArtApproved: false,
-  });
+  // G7 / ebc2e06: the menu's showroom builds no venue assets; the ordinary session start does (asserted below).
+  expect(loaded.renderer?.environmentAssets.garage).toBeFalsy();
   await page.selectOption('#mode', 'practice');
   await page.selectOption('#opponents', '0');
   await page.getByRole('button', { name: /^ENTER CIRCUIT/ }).click();
@@ -40,8 +34,10 @@ test('A36 normal startup retains four authored workshop props through practice a
   expect(paused.renderer?.environmentAssets.garage?.workshop).toMatchObject({
     assetId: 'A36',
     loaded: true,
+    attached: true,
     instances: 4,
     sha256: manifest.sha256,
+    finalArtApproved: false,
   });
   await info.attach('a36-startup.json', {
     body: JSON.stringify({ loaded, paused }, null, 2),

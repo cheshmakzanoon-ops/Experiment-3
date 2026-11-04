@@ -19,12 +19,8 @@ test('A24 normal startup loads the authored station and retains it through pract
   await page.goto('/');
   await expect(page.locator('#menu')).toBeVisible({ timeout: 90000 });
   const read = () => page.evaluate(() => window.apexDiagnostics());
-  expect((await read()).renderer?.environmentAssets.pitWall).toMatchObject({
-    loaded: true,
-    assetId: 'A24',
-    sha256: manifest.sha256,
-    screenCar: 0,
-  });
+  // G7 / ebc2e06: the menu's showroom builds no venue assets; the ordinary session start does (asserted below).
+  expect((await read()).renderer?.environmentAssets.pitWall).toBeFalsy();
   await page.selectOption('#mode', 'practice');
   await page.selectOption('#opponents', '0');
   await page.getByRole('button', { name: 'ENTER CIRCUIT', exact: true }).click();
@@ -35,7 +31,12 @@ test('A24 normal startup loads the authored station and retains it through pract
     .poll(async () => (await read()).workerPause)
     .toMatchObject({ pending: false, paused: true });
   const result = await read();
-  expect(result.renderer?.environmentAssets.pitWall?.loaded).toBe(true);
+  expect(result.renderer?.environmentAssets.pitWall).toMatchObject({
+    loaded: true,
+    assetId: 'A24',
+    sha256: manifest.sha256,
+    screenCar: 0,
+  });
   await info.attach('a24-normal-startup.json', {
     body: JSON.stringify(result, null, 2),
     contentType: 'application/json',
