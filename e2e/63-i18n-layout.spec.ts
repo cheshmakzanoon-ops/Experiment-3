@@ -122,7 +122,19 @@ test('English markup is unchanged by localisation', async ({ page }) => {
     const html = await page.evaluate((s) => window.I18nScreens.snapshot(s), scene);
     const file = `${BASELINE}/${scene}.html`;
     if (process.env.I18N_CAPTURE === '1') await writeFile(file, html + '\n');
-    else expect(html + '\n', `${scene} markup under English`).toBe(await readFile(file, 'utf8'));
+    else {
+      // Report the first difference with context, not two whole screens.
+      const expected = await readFile(file, 'utf8');
+      const actual = html + '\n';
+      let at = 0;
+      while (at < actual.length && actual[at] === expected[at]) at++;
+      expect(
+        actual === expected
+          ? 'identical'
+          : `differs at ${at}: expected …${expected.slice(Math.max(0, at - 60), at + 100)}… got …${actual.slice(Math.max(0, at - 60), at + 100)}…`,
+        `${scene} markup under English`,
+      ).toBe('identical');
+    }
   }
   expect(errors).toEqual([]);
 });

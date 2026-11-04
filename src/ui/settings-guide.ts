@@ -1,3 +1,5 @@
+import { N_ } from '../i18n/mark.ts';
+import { t, ta, th } from '../i18n/index.ts';
 import { graphicsPreset, type GraphicsOptions, type QualityPreset } from '../rendering/options.ts';
 import { FpsMeter, type FpsStats } from './fps-meter.ts';
 
@@ -8,10 +10,10 @@ import { FpsMeter, type FpsStats } from './fps-meter.ts';
  * here touches the network: the name comes from the browser's WebGL debug-renderer extension. */
 export const QUALITY_ORDER: readonly QualityPreset[] = ['low', 'medium', 'high', 'ultra'];
 const LABEL: Readonly<Record<QualityPreset, string>> = {
-  low: 'LOW',
-  medium: 'MEDIUM',
-  high: 'HIGH',
-  ultra: 'ULTRA',
+  low: N_('LOW'),
+  medium: N_('MEDIUM'),
+  high: N_('HIGH'),
+  ultra: N_('ULTRA'),
 };
 
 /** The GPU's name as the browser reports it (the unmasked renderer, else the generic one). */
@@ -180,10 +182,10 @@ export function qualityGuideHtml(current: QualityPreset, gpu: string | null) {
   const rec = recommendPreset(gpu);
   const list = QUALITY_ORDER.map(
     (q) =>
-      `<li data-preset="${q}"${q === current ? ' aria-current="true"' : ''}><b>${LABEL[q]}</b><span>${esc(presetLine(q))}</span></li>`,
+      `<li data-preset="${q}"${q === current ? ' aria-current="true"' : ''}><b>${th(LABEL[q])}</b><span>${esc(presetLine(q))}</span></li>`,
   ).join('');
   const reason = rec.reason.charAt(0).toUpperCase() + rec.reason.slice(1);
-  return `<section class="gq" aria-label="Graphics guide"><h4 class="gq-label">WHAT EACH PRESET CHANGES</h4><ol class="gq-list">${list}</ol><div class="gq-rec" data-basis="${rec.basis}"><b>FOR THIS GPU · ${LABEL[rec.preset]}</b><span class="gq-gpu">${gpu ? esc(gpu) : 'GPU name not reported'}</span><p>${esc(reason)} It is a guess from the name: the frame rate below is the measurement.</p><button type="button" class="gq-use" data-use="${rec.preset}">USE ${LABEL[rec.preset]}</button></div><div class="gq-fps"><b>FRAME RATE · THIS WINDOW</b><output class="gq-fps-now" aria-live="off">—</output><small class="gq-fps-low"></small><p>The game is not drawing while this screen is open, so this is the rate the window delivers frames: it drops when the GPU or the machine is busy. For the race itself, press F3 in a session.</p></div></section>`;
+  return `<section class="gq" aria-label="${ta('Graphics guide')}"><h4 class="gq-label">${th('WHAT EACH PRESET CHANGES')}</h4><ol class="gq-list">${list}</ol><div class="gq-rec" data-basis="${rec.basis}"><b>${th('FOR THIS GPU · {preset}', { preset: t(LABEL[rec.preset]) })}</b><span class="gq-gpu">${gpu ? esc(gpu) : th('GPU name not reported')}</span><p>${esc(reason)} ${th('It is a guess from the name: the frame rate below is the measurement.')}</p><button type="button" class="gq-use" data-use="${rec.preset}">${th('USE {preset}', { preset: t(LABEL[rec.preset]) })}</button></div><div class="gq-fps"><b>${th('FRAME RATE · THIS WINDOW')}</b><output class="gq-fps-now" aria-live="off">—</output><small class="gq-fps-low"></small><p>${th('The game is not drawing while this screen is open, so this is the rate the window delivers frames: it drops when the GPU or the machine is busy. For the race itself, press F3 in a session.')}</p></div></section>`;
 }
 
 /** Wire the guide inside `form`: the table follows the quality select, USE sets it, and the
@@ -210,9 +212,9 @@ export function bindQualityGuide(form: HTMLFormElement): () => void {
   const low = guide.querySelector<HTMLElement>('.gq-fps-low')!;
   const show = (stats: FpsStats | null) => {
     if (!stats) return;
-    now.value = `${Math.round(stats.fps)} FPS`;
+    now.value = t('{fps} FPS', { fps: Math.round(stats.fps) });
     now.dataset.band = stats.fps >= 55 ? 'good' : stats.fps >= 30 ? 'fair' : 'low';
-    low.textContent = `1% LOW ${Math.round(stats.low)} FPS`;
+    low.textContent = t('1% LOW {fps} FPS', { fps: Math.round(stats.low) });
   };
   const meter = new FpsMeter(show);
   meter.start();

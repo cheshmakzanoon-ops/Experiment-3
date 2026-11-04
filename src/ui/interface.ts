@@ -1,4 +1,6 @@
 import { fixed, t, ta, th, upper } from '../i18n/index.ts';
+import { validateLanguage } from '../i18n/locales.ts';
+import { settingsLanguageRow } from './language-control.ts';
 import { N_ } from '../i18n/mark.ts';
 import { wildcardTitle } from '../i18n/data.ts';
 import { installRaceDayHud, updateRaceDayHud } from './race-day-hud.ts';
@@ -1320,53 +1322,53 @@ export class Interface {
     const vehicle = setupMachine(context?.machine, menuChoice, this.options),
       preset = context?.preset ?? null;
     this.modalContent(
-      `<header><div><span class="eyebrow">GARAGE / PREFERENCES</span><h2>Garage &amp; settings.</h2></div><button data-action="modalClose" aria-label="Close settings">✕</button></header><form id="settingsForm"><div class="settings-columns"><section><h3>Presentation</h3><label>RENDER QUALITY<select name="quality"><option value="low">Low · No shadows / crowd / particles</option><option value="medium">Medium · 2× MSAA / AO / bloom</option><option value="high">High · 4× MSAA / local reflections / specular AA</option><option value="ultra">Ultra · TAA / SSR / 3 shadow cascades (opt-in, fast GPUs)</option></select></label>${qualityGuideHtml(settings.quality, this.gpu ?? (this.gpu = readGpuName()))}${presentationControls(settings)}${[
-        ['volume', 'Volume', 0, 1, 0.01],
-        ['shake', 'Camera vibration', 0, 1, 0.01],
-        ['uiScale', 'Text and interface size', 0.8, 1.35, 0.05],
+      `<header><div><span class="eyebrow">${th('GARAGE / PREFERENCES')}</span><h2>${th('Garage & settings.')}</h2></div><button data-action="modalClose" aria-label="${ta('Close settings')}">✕</button></header><form id="settingsForm"><div class="settings-columns"><section><h3>${th('Presentation')}</h3>${settingsLanguageRow(settings.language)}<label>${th('RENDER QUALITY')}<select name="quality"><option value="low">${th('Low · No shadows / crowd / particles')}</option><option value="medium">${th('Medium · 2× MSAA / AO / bloom')}</option><option value="high">${th('High · 4× MSAA / local reflections / specular AA')}</option><option value="ultra">${th('Ultra · TAA / SSR / 3 shadow cascades (opt-in, fast GPUs)')}</option></select></label>${qualityGuideHtml(settings.quality, this.gpu ?? (this.gpu = readGpuName()))}${presentationControls(settings)}${[
+        ['volume', N_('Volume'), 0, 1, 0.01],
+        ['shake', N_('Camera vibration'), 0, 1, 0.01],
+        ['uiScale', N_('Text and interface size'), 0.8, 1.35, 0.05],
       ]
         .map(
           ([key, title, min, max, step]) =>
-            `<label class="range-row">${title}<output>${key === 'uiScale' ? `${Math.round(settings.uiScale * 100)}%` : settings[key as 'volume' | 'shake']}</output><input name="${key}" type="range" min="${min}" max="${max}" step="${step}" value="${settings[key as 'volume' | 'shake' | 'uiScale']}"></label>`,
+            `<label class="range-row">${th(String(title))}<output>${key === 'uiScale' ? `${Math.round(settings.uiScale * 100)}%` : settings[key as 'volume' | 'shake']}</output><input name="${key}" type="range" min="${min}" max="${max}" step="${step}" value="${settings[key as 'volume' | 'shake' | 'uiScale']}"></label>`,
         )
         .join(
           '',
-        )}${audioMixer({ levels: settings.audioLevels, musicEnabled: settings.musicEnabled })}${audioAccessibility(settings.drivingAudio)}<h3>Input mapping</h3><p class="small-note">Axis and button numbers are zero-based. Keyboard always remains available.</p><div class="mapping-grid">${[
-        ['steerAxis', 'Steer axis'],
-        ['throttleAxis', 'Throttle axis'],
-        ['brakeAxis', 'Brake axis'],
-        ['throttleButton', 'Throttle button'],
-        ['brakeButton', 'Brake button'],
-        ['clutchAxis', 'Clutch axis (-1: button / key)'],
-        ['clutchButton', 'Clutch button (-1: key only)'],
-        ['shiftUpButton', 'Upshift button (-1: disabled)'],
-        ['shiftDownButton', 'Downshift button (-1: disabled)'],
+        )}${audioMixer({ levels: settings.audioLevels, musicEnabled: settings.musicEnabled })}${audioAccessibility(settings.drivingAudio)}<h3>${th('Input mapping')}</h3><p class="small-note">${th('Axis and button numbers are zero-based. Keyboard always remains available.')}</p><div class="mapping-grid">${[
+        ['steerAxis', N_('Steer axis')],
+        ['throttleAxis', N_('Throttle axis')],
+        ['brakeAxis', N_('Brake axis')],
+        ['throttleButton', N_('Throttle button')],
+        ['brakeButton', N_('Brake button')],
+        ['clutchAxis', N_('Clutch axis (-1: button / key)')],
+        ['clutchButton', N_('Clutch button (-1: key only)')],
+        ['shiftUpButton', N_('Upshift button (-1: disabled)')],
+        ['shiftDownButton', N_('Downshift button (-1: disabled)')],
       ]
         .map(
           ([key, title]) =>
-            `<label>${title}<input name="${key}" type="number" min="${key.startsWith('clutch') || key.includes('Button') ? -1 : 0}" max="${key.includes('Button') ? 127 : 31}" value="${settings.mapping[key as keyof typeof settings.mapping]}"></label>`,
+            `<label>${th(title)}<input name="${key}" type="number" min="${key.startsWith('clutch') || key.includes('Button') ? -1 : 0}" max="${key.includes('Button') ? 127 : 31}" value="${settings.mapping[key as keyof typeof settings.mapping]}"></label>`,
         )
         .join('')}</div>${[
-        ['axisPedals', 'Use axes for pedals'],
-        ['invertSteer', 'Invert steering axis'],
-        ['invertPedals', 'Invert pedal axes'],
+        ['axisPedals', N_('Use axes for pedals')],
+        ['invertSteer', N_('Invert steering axis')],
+        ['invertPedals', N_('Invert pedal axes')],
       ]
         .map(
           ([key, title]) =>
-            `<label class="check"><input type="checkbox" name="${key}" ${settings.mapping[key as keyof typeof settings.mapping] ? 'checked' : ''}>${title}</label>`,
+            `<label class="check"><input type="checkbox" name="${key}" ${settings.mapping[key as keyof typeof settings.mapping] ? 'checked' : ''}>${th(title)}</label>`,
         )
         .join(
           '',
-        )}<label class="range-row">Deadzone<output>${settings.mapping.deadzone}</output><input name="deadzone" type="range" min="0" max=".35" step=".01" value="${settings.mapping.deadzone}"></label><label class="range-row">Steering response exponent<output>${settings.mapping.exponent}</output><input name="exponent" type="range" min=".5" max="3" step=".1" value="${settings.mapping.exponent}"></label><div id="deviceCalibration"></div><h3>Controller action buttons</h3><p class="small-note">Use -1 to disable an action. Buttons cannot share an active pedal, paddle or another action. Pause/resume works from the pause menu; keyboard remains available.</p><div class="mapping-grid">${BUTTON_ACTIONS.map((action) => `<label>${BUTTON_ACTION_LABELS[action]} button<input name="action_${action}" required type="number" min="-1" max="127" step="1" value="${settings.mapping.buttonActions[action]}"></label>`).join('')}</div><h3>Keyboard bindings</h3><div class="binding-grid">${Object.entries(
+        )}<label class="range-row">${th('Deadzone')}<output>${settings.mapping.deadzone}</output><input name="deadzone" type="range" min="0" max=".35" step=".01" value="${settings.mapping.deadzone}"></label><label class="range-row">${th('Steering response exponent')}<output>${settings.mapping.exponent}</output><input name="exponent" type="range" min=".5" max="3" step=".1" value="${settings.mapping.exponent}"></label><div id="deviceCalibration"></div><h3>${th('Controller action buttons')}</h3><p class="small-note">${th('Use -1 to disable an action. Buttons cannot share an active pedal, paddle or another action. Pause/resume works from the pause menu; keyboard remains available.')}</p><div class="mapping-grid">${BUTTON_ACTIONS.map((action) => `<label>${th('{action} button', { action: t(BUTTON_ACTION_LABELS[action]) })}<input name="action_${action}" required type="number" min="-1" max="127" step="1" value="${settings.mapping.buttonActions[action]}"></label>`).join('')}</div><h3>${th('Keyboard bindings')}</h3><div class="binding-grid">${Object.entries(
         settings.bindings,
       )
         .map(
           ([action, key]) =>
-            `<label>${BINDING_LABELS[action as BindingAction]}<button type="button" data-bind="${action}" data-key="${key}">${keyName(key)}</button></label>`,
+            `<label>${th(BINDING_LABELS[action as BindingAction])}<button type="button" data-bind="${action}" data-key="${key}">${keyName(key)}</button></label>`,
         )
         .join(
           '',
-        )}</div></section><section><h3>Vehicle setup</h3>${setupSectionHtml(vehicle, settings.setup, preset)}<div class="setup-files"><button type="button" id="exportSetup">EXPORT SETUP</button><label class="file-label">IMPORT SETUP<input id="importSetup" type="file" accept=".json,application/json" hidden></label></div></section></div><footer><button type="button" data-action="modalClose">CANCEL</button><button class="primary" type="submit">APPLY & SAVE</button></footer></form>`,
+        )}</div></section><section><h3>${th('Vehicle setup')}</h3>${setupSectionHtml(vehicle, settings.setup, preset)}<div class="setup-files"><button type="button" id="exportSetup">${th('EXPORT SETUP')}</button><label class="file-label">${th('IMPORT SETUP')}<input id="importSetup" type="file" accept=".json,application/json" hidden></label></div></section></div><footer><button type="button" data-action="modalClose">${th('CANCEL')}</button><button class="primary" type="submit">${th('APPLY & SAVE')}</button></footer></form>`,
     );
     const form = document.getElementById('settingsForm') as HTMLFormElement;
     this.deviceCalibration = new DeviceCalibrationPanel(
@@ -1414,7 +1416,7 @@ export class Interface {
         this.bindingCapture?.abort();
         this.bindingCapture = new AbortController();
         const capture = this.bindingCapture;
-        button.textContent = 'PRESS A KEY · ESC CANCELS';
+        button.textContent = t('PRESS A KEY · ESC CANCELS');
         capture.signal.addEventListener(
           'abort',
           () => {
@@ -1459,6 +1461,7 @@ export class Interface {
       const value = (key: string) => (form.elements.namedItem(key) as HTMLInputElement).value;
       const next = structuredClone(settings);
       next.quality = value('quality') as Settings['quality'];
+      next.language = validateLanguage(value('language'));
       next.graphics = graphics();
       next.drivingAudio = readDrivingAudio(form);
       const mix = readAudioMixer(form, {
@@ -1504,7 +1507,7 @@ export class Interface {
           next.mapping.buttonActions[action] = Number(value(`action_${action}`));
         this.callbacks.apply(validateSettings(next));
       } catch (error) {
-        this.toast(`Settings not applied: ${String(error)}`);
+        this.toast(t('Settings not applied: {error}', { error: String(error) }));
       }
     };
   }
