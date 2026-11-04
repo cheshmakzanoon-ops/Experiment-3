@@ -9,9 +9,9 @@ run is said so. Sandbox facts that shape everything here: 4 shared CPUs at load 
 
 | # | Deliverable | Status |
 | --- | --- | --- |
-| 1 | Brand identity: wordmark, roundel, lockups, one-colour versions, clear space and minimum sizes | **Done.** Hand-drawn SVG in `docs/studio/store/brand/` (12 files), rules in `docs/studio/store/BRAND.md`. Trademark clearance of the name is **not** done (owner/counsel, gate G15) |
-| 2 | Key art and capsules at exact Steam sizes, from real frames plus the SVGs | **Done**: 17 files (2x and 1x capsules, library capsule/header/hero/logo, page background, icons incl. ICO, event banner), `art/manifest.json`, `art/contact-sheet.png`. Tools: `art-frames.mjs` (frames), `capsule-art.mjs` (composer), `lib/game-director.mjs` (shared driver). Frames are software-GL: **retake on a GPU before upload** |
-| 3 | Trailer pipeline | **Keyframes, recipe, animatic: done. Real trailer: not possible here and not made.** `trailer-capture.mjs`, `docs/studio/store/TRAILER_CAPTURE.md`. The animatic (`trailer/capsule-teaser-animatic.mp4`) is a silent film of stills, labelled as such; it is not a Steam trailer |
+| 1 | Brand identity: wordmark, roundel, lockups, one-colour versions, clear space and minimum sizes | **Done.** Hand-drawn SVG in `docs/studio/store/brand/` (10 files), rules in `docs/studio/store/BRAND.md`. Trademark clearance of the name is **not** done (owner/counsel, gate G15) |
+| 2 | Key art and capsules at exact Steam sizes, from real frames plus the SVGs | **Done**: 18 files (2x and 1x capsules, library capsule/header/hero/logo, page background, icons incl. ICO, event banner), `art/manifest.json`, `art/contact-sheet.png`. Tools: `art-frames.mjs` (frames), `capsule-art.mjs` (composer), `lib/game-director.mjs` (shared driver). Frames are software-GL: **retake on a GPU before upload** |
+| 3 | Trailer pipeline | **Keyframes, recipe, animatic: done. Real trailer: not possible here and not made.** `trailer-capture.mjs`, `docs/studio/store/TRAILER_CAPTURE.md`. The animatic (`trailer/capsule-teaser-animatic.mp4`, 19.4 s) is a silent film of stills, labelled as such; it is not a Steam trailer |
 | 4 | Store page assets update | **Done**: `STORE_PAGE.md` (art table with alt text, further frames), `ART_UPLOAD_CHECKLIST.md` (slot by slot), `CAPSULE_AND_ART_BRIEF.md` status block, `art/README.md` |
 
 Gate G11 ("store page assets: capsule, trailer script, screenshots, description"): the **capsule art half is now closed in
@@ -30,7 +30,7 @@ real-GPU trailer, and a human look in the Steamworks preview. The status stays *
   contain no text. The tagline and labels on the capsules are live Saira / Saira Stencil One (OFL, already bundled).
 * Rendered and looked at on asphalt and on paper at several sizes. Findings that changed the geometry: the M's stencil gaps
   turned it into "H/M" noise (removed, the M is clean); letter gap 12 to 14 for legibility at 112 px; chevrons enlarged
-  because they vanished; the roundel's M enlarged from 78% to 90% and the ring given stencil gaps so it is not a generic
+  because they vanished; the roundel's M enlarged from 80% to 90% and the ring given stencil gaps so it is not a generic
   "M in a circle". The one-colour versions use real knockouts (masks), so the ground shows through.
 * Not done: a favicon-size (16 px) simplification (the ICO contains 16 px renders of the full roundel; at 16 px it is a disc with
   a blob), print files (CMYK/PDF), a motion logo beyond the animatic stamp.
@@ -52,6 +52,8 @@ entry, camera values, build and notes.
 | `mx-jump-side.jpg` | 1920x1080 | motocross, held in the air, photo studio side-on | A real in-air frame (the store shot `motocross-jump.jpg` is not). Dark forest, grass below, the ramp is out of frame |
 | `gp-lean-side.jpg` | 1920x1080 | GP bike held at 0.61 rad lean, photo studio side-on | Crisp livery and rider, but the camera sits in the bike's leaning frame so the ground fills the frame: a lean close-up, no environment |
 | `night-gt-neon.jpg` | 1920x1080 | GT-10M in the neon-city tunnel at night | Moody and dark; a headlight glare; reads as "night", not neon |
+
+**Trailer keyframes** (`trailer/keyframes/`, `trailer-capture.mjs`): `t02-grid-pack.jpg` kept: the formula car at 286 km/h, P2 of 8 on Aurel, the full race HUD, blue sky, grandstands and mountains. It is the best **HUD** frame in the repository and the lead-screenshot candidate (the first take had the pause menu over it: the director now hides the pause menu and the AI-demonstration banner for HUD frames; driven by the AI driver, software GL). `t04-rain-harbour` **rejected**: the wet road and the car rendered as flat black and blown-out white at the high preset (kept in `keyframes/rejected/` as evidence; a software-GL or wet-shader artifact, not diagnosed, worth a look from the Weather agent on a GPU). `t08` and `t10` were not captured (time).
 
 Frames **rejected and retaken**: the first Wildcard frame (photo studio on the banked bowl framed the grass: the orbit camera
 sits under the 31 degree banking, so session photos on banked venues are not supported by this tool); the first coast attempt
@@ -95,17 +97,33 @@ has a large black band from the showroom's void. A GPU retake with art-directed 
   caption overlays, drop in an original or CC0 music bed, run the script (trim to storyboard timings, scale to 1920x1080 60 fps, caption
   overlay 0.5-3.7 s, hard cuts, music fades, H.264 High yuv420p, faststart). **Tested on synthetic clips made from stills** (shots 1, 3, 7, 9, 11:
   27 s H.264 1920x1080 60 fps with AAC for `main`, 15 s for `cutdown`, missing clips skipped). That proves the script, not a trailer.
-* Not captured: shot 6 (superbikes, rain arrives), 12 (drift zone), 13 (airfield jump). 12 and 13 need a driver in the festival (the AI driver does
+* Not captured: shots 6 (superbikes, rain arrives), 8 (floodlit supercross), 10 (trophy truck), 12 (drift zone), 13 (airfield jump); shot 4's capture was rejected, so a stand-in still is used. 12 and 13 need a driver in the festival (the AI driver does
   not drift or jump on purpose). Shot 9 is no longer PENDING: the Wildcard series shipped.
 
 ## 4. Verification (commands run in this sandbox)
 
-@@VERIFY@@
+All run from the worktree (or, where stated, a throwaway clean checkout of the final commit in `/home/user/`, removed afterwards).
+
+| Command | Result |
+| --- | --- |
+| `npx eslint scripts/studio/tools/capsule-art.mjs scripts/studio/tools/art-frames.mjs scripts/studio/tools/trailer-capture.mjs scripts/studio/tools/lib/game-director.mjs` | pass (0 problems; two earlier errors, an unused import and a useless escape, were fixed) |
+| `tsc` | not run: no `.ts` file was added or changed (the tools are `.mjs`) |
+| `node scripts/studio/tools/capsule-art.mjs` (full build) | 18 images written, each rendered size equal to the asked size (the tool throws otherwise), logo and strip margins measured and above the minimum on every layout, page background mean luma 0.150, library logo corner alpha 0 and PNG colour type 6 |
+| `node scripts/studio/tools/capsule-art.mjs --verify` | exit 0: 18 files re-read from disk (size, format, alpha); **16 files checked against the Steam size list written out separately in the tool** (header 920x430 and 460x215, small 462x174 and 231x87, main 1232x706 and 616x353, vertical 748x896 and 374x448, page background 1438x810, library capsule 600x900, library header 920x430, library hero 3840x1240, library logo 1280x720, community icon 184x184, client icon 256x256, event 800x450); **screenshot rule 16:9 and at least 1920x1080: 15 of 15 files pass** (the 10 store screenshots and the 5 16:9 key-art frames); IP text check clean |
+| **Clean checkout** of `7662f00`: delete `art/{capsule,library,page,icons,event}`, `manifest.json`, `contact-sheet.png`, then `node scripts/studio/tools/capsule-art.mjs` and `--verify` | the tool runs end to end from the committed frames and SVGs with no network; all 18 files come back with **SHA-256 identical to the committed manifest (18 of 18)**; verify exit 0. `art-frames.mjs --list` and `trailer-capture.mjs --list` also run |
+| IP check: `scripts/ip-denylist.mjs` `findBrands` over the tagline, every alt text, the 10 brand SVGs, the tools and all new docs and manifests (27 files) | 0 hits. No third-party imagery: the only pictures are game renders and hand-drawn vector. In-game signage in the frames (fictional names such as VOLTEX, HALCYON, NORDFIN) is the game's own and passes the build's IP guard |
+| `vite build` of the FULL game for the frame capture (`--outDir` in the scratchpad) | built in 14 s, IP guard clean inside the build; served with `vite preview` on 4291 |
+| `trailer-capture.mjs --teaser` | 582 frames, `ffprobe`: h264 High, yuv420p, 1920x1080, 30 fps, 19.4 s, 5.5 MB |
+| `assemble-from-clips.sh main` and `cutdown` on synthetic clips | pass (see section 3) |
+| Frame captures | 7 art frames and 1 trailer keyframe kept; the wildcard, coast, motocross and t02 frames each needed a retake and the t04 keyframe was rejected (section 2); 0 page or console errors in any run (`console-errors.txt` empty). Browser capture times: 4.5 to 15 minutes per 1080p frame, 30 minutes for the 3840x1240 one, at load 6 to 15 |
+
+Not run: the full vitest suite and `npm run check` (forbidden on the shared host; no source under `src/` or `tests/` was touched), any
+Steamworks upload, any GPU capture, any Windows or macOS machine.
 
 ## 5. What is still broken, unverified or open
 
 * Every frame is software-GL. No bloom, reflection or frame-rate motion blur of a GPU build. **Retake with `art-frames.mjs` on a GPU, then rebuild.**
-* No real trailer. The animatic is not uploadable as one. No music. Shots 6, 12, 13 have no keyframe.
+* No real trailer. The animatic is not uploadable as one. No music. Shots 6, 8, 10, 12, 13 have no keyframe of their own; shot 4's is a stand-in. A wet-road frame renders broken on software GL (see section 2).
 * The coast frame has a traffic car intruding (masked, not removed); retake with the new `traffic: false`.
 * The photo-studio camera in a held session on a banked venue frames the grass (not investigated further: a game-side defect or a limit of
   the orbit camera, worth a look by the Vehicle/Rendering agent).
