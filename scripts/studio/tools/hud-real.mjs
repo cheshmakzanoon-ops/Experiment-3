@@ -5,7 +5,7 @@
 //        [--viewport 1280x800] [--hud-scale auto|1|1.15|1.3|1.5] [--wait 6000]
 //
 // The first-launch screen (`?firstrun=1`) starts a session with one input, so this is the shortest way to a
-// driving HUD on a slow software renderer. The frame is JPEG q70; `--hud-scale` sets the setting through the same
+// driving HUD on a slow software renderer (the game loop is stopped before the frame: see below). The frame is JPEG q70; `--hud-scale` sets the setting through the same
 // custom property the settings screen writes (`--hud-scale` on the root), after the game has booted. Prints the
 // measured size of the HUD's text in the real page (the same measurement as hud-measure.mjs, from
 // hud-legibility.page.js) and any page or console error. Software GL boots in 1-5 minutes on a loaded host.
@@ -51,10 +51,17 @@ await page.getByRole('button', { name: /DRIVE THE FIRST LAP/ }).click();
 await page.waitForFunction(
   () => ['driving', 'festival'].includes(document.querySelector('#app')?.dataset.mode ?? ''),
   null,
-  { timeout: 900000 },
+  // Poll on a timer: the default polls once per animation frame, and a software-rendered frame takes tens of seconds.
+  { timeout: 900000, polling: 2000 },
 );
 console.log(`${((Date.now() - t0) / 1000).toFixed(0)} s driving`);
 await page.waitForTimeout(wait);
+// A software renderer needs tens of seconds per frame and a screenshot waits for a frame the busy main thread cannot
+// produce (it timed out at 120 s): stop the game loop first. The HUD is DOM and keeps the state of its last frame.
+await page.evaluate(() => {
+  window.requestAnimationFrame = () => 0;
+});
+await page.waitForTimeout(20000);
 const path = `${out}/${prefix}-real-${w}x${h}.jpg`;
 await page.screenshot({ path, type: 'jpeg', quality: 70, timeout: 300000 });
 console.log(`${path} ${(statSync(path).size / 1024).toFixed(0)} KB`);
