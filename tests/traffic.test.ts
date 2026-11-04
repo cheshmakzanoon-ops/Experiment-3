@@ -152,6 +152,8 @@ const pacedPass = () => {
     traits = personality(4417, 0);
   car.place(track, 1000, 0);
   other.place(track, 1034, 0);
+  // The car ahead is moving (a car whose body stands still is a stalled one to the planner).
+  other.body.velocity.set(other.trackPosition.tx * 60, 0, other.trackPosition.tz * 60);
   // Closing on the car at 6 m/s: a pass is started on closing speed on a long straight, not
   // from a corner exit with the rider still slower than the car (qa-bikes-3).
   car.speed = 66;
