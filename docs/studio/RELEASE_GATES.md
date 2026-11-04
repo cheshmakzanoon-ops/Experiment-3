@@ -16,17 +16,17 @@ Status key: **V** verified in repo with evidence · **P** partly · **X** needs 
 
 | # | Gate | Threshold | Status |
 | --- | --- | --- | --- |
-| G1 | Clean install builds, typechecks, lints | build + lint exit 0 | V (baseline) |
-| G2 | Unit/simulation suite | 0 failing | see BOARD |
-| G3 | First-launch to first driving ≤ 90 s, ≤ 3 inputs | measured by script | N |
-| G4 | Each discipline playable menu → race → results → exit without console errors | formula, GP bike, MX, SX, festival | N |
-| G5 | Distinctive front end: identity, controller-first nav, no placeholder copy | art-direction review | N |
-| G6 | "Only here" hook: mismatched vehicle/venue Wildcard series, weather variety | ≥ 12 wildcard events, ≥ 6 weather states | N |
-| G7 | Cold load budget | main JS ≤ 4 MB gzip initial; menu interactive quickly | N (14.6 MB / 4.5 MB gz today) |
+| G1 | Clean install builds, typechecks, lints | build + lint exit 0 | V — build, lint, tsc, IP guard clean on main (3ac9c2d) |
+| G2 | Unit/simulation suite | 0 failing | P — full unit run at c818caa: 5720/5751 pass; 30 fixed since; last known red (mixed GP race) fixed in bikes 3; **a fresh full run is still owed** |
+| G3 | First-launch to first driving ≤ 90 s, ≤ 3 inputs | measured by script | P — first-launch → driving in 1–2 inputs (firstrun.mjs); wall time on real hardware unmeasured (software GL 170–330 s) |
+| G4 | Each discipline playable menu → race → results → exit without console errors | formula, GP bike, MX, SX, festival | P — journeys on software GL: formula practice/race, time trial, GP bike, wildcard, festival load/drive; dirt via journey tool; festival activities headless (18 events). No human-driven bike/dirt/festival-event run |
+| G5 | Distinctive front end: identity, controller-first nav, no placeholder copy | art-direction review | P — Paddock Board, Wildcard board, season board, first-launch, results board, gamepad nav; no external art review |
+| G6 | "Only here" hook: mismatched vehicle/venue Wildcard series, weather variety | ≥ 12 wildcard events, ≥ 6 weather states | V — 29 Wildcard events (29/29 headless PASS), 51 circuits, 7 weather states incl. snow |
+| G7 | Cold load budget | main JS ≤ 4 MB gzip initial; menu interactive quickly | V — initial JS 3.50 MB gzip (budget 4) |
 | G8 | 60 fps on min-spec GPU, Steam Deck 40+ fps | hardware measurement | X |
-| G9 | Desktop wrapper, offline, persistent saves, fullscreen, gamepad hot-plug | packaged build launches | N |
-| G10 | Steamworks: achievements, cloud save, rich presence | wired + toggled by env | N |
-| G11 | Store page assets: capsule, trailer script, screenshots, description | drafted in repo | N |
+| G9 | Desktop wrapper, offline, persistent saves, fullscreen, gamepad hot-plug | packaged build launches | P — Linux package smoke under Xvfb; Windows/macOS legs written in CI but never run |
+| G10 | Steamworks: achievements, cloud save, rich presence | wired + toggled by env | P — 54 achievements + local leaderboards/records; Steam upload path only ever exercised against a fake client |
+| G11 | Store page assets: capsule, trailer script, screenshots, description | drafted in repo | P — store kit, 8 screenshots, trailer storyboard, 8-language store drafts (unreviewed) |
 | G12 | ≥ 10 external playtesters, ≥ 70% would recommend | human data | X |
 | G13 | ≥ 10k wishlists before launch | Steam dashboard | X |
 | G15 | No third-party IP in shipped assets: no real team/sponsor marks, car silhouettes or node names; every asset has a provenance row | asset audit + IP guard in build and CI | **P (code closed, law open)** — real-brand supplied car is owner-only and out of every product build (dist 166→128 MB), guard runs inside `vite build` and CI; owner/counsel items remain: purge the asset from git history, check whether the public Pages site and release artifacts already published it, trademark clearance of names (see reports/ip-audit.md §6) |
