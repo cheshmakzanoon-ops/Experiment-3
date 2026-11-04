@@ -1,0 +1,104 @@
+[    1.7s] browser.open {"viewport":[960,540],"quality":"low"}
+[    1.7s] step.begin {"name":"boot"}
+[    3.9s] boot.domcontentloaded {"ms":2206}
+[    6.6s] worker {"url":"blob:http://127.0.0.1:4221/fae85195-faa1-464d-b3e3-01c39300c5c9"}
+[    6.6s] worker {"url":"blob:http://127.0.0.1:4221/fae85195-faa1-464d-b3e3-01c39300c5c9"}
+[    6.6s] worker {"url":"blob:http://127.0.0.1:4221/fae85195-faa1-464d-b3e3-01c39300c5c9"}
+[    6.6s] worker {"url":"blob:http://127.0.0.1:4221/fae85195-faa1-464d-b3e3-01c39300c5c9"}
+[   89.8s] wait {"label":"menu visible","waited":86,"mode":null,"stage":"0% · Preparing vehicle showroom…","percent":"0%","rafFrames":114,"maxGapMs":2183}
+[  111.9s] boot.done {"timeToMenuS":110.2,"timeToFirstMenuFrameS":110.2,"paint":{"first-paint":588,"first-contentful-paint":2424},"domContentLoadedMs":2206}
+[  111.9s] step.end {"name":"boot","seconds":110.2}
+[  115.1s] screenshot {"file":"01-menu-boot.png","ms":3212}
+[  115.4s] memory {"label":"menu-after-boot","t":115.4,"jsHeapMB":33.3,"jsHeapTotalMB":34.5,"nodes":2487,"listeners":141,"documents":2,"rssMB":2065,"textures":83,"geometries":190}
+[  115.4s] step.begin {"name":"quality-low"}
+[  115.4s] input.click {"n":1,"label":"GARAGE & SETTINGS"}
+[  115.7s] input.select {"n":2,"label":"quality","value":"low"}
+[  115.7s] input.click {"n":3,"label":"APPLY & SAVE"}
+[  128.1s] quality.applied {"quality":"low","seconds":12.638,"busy":false}
+[  128.1s] step.end {"name":"quality-low","seconds":12.6}
+[  128.1s] step.begin {"name":"configure"}
+[  128.1s] input.click {"n":4,"label":"plate dirt"}
+[  163.9s] configured {"circuit":"valley-ridge-mx","vehicle":"mx450","mode":"race","laps":"3","weather":"clear","compound":"medium","assist":"sport","opponents":"7","startSlot":"pole"}
+[  163.9s] sessionRules {"text":"MOTOCROSS MOTO: no mandatory stop · DRS off · points scored."}
+[  163.9s] step.end {"name":"configure","seconds":35.9}
+[  168.9s] screenshot {"file":"02-configured.png","ms":4965}
+[  168.9s] step.begin {"name":"configure"}
+[  168.9s] input.select {"n":5,"label":"circuit","value":"kestrel-rx"}
+[  169.2s] input.select {"n":6,"label":"vehicle","value":"rcx6"}
+[  169.4s] input.select {"n":7,"label":"laps","value":"1"}
+[  169.5s] input.select {"n":8,"label":"opponents","value":"3"}
+[  169.5s] configured {"circuit":"kestrel-rx","vehicle":"rcx6","mode":"race","laps":"1","weather":"clear","compound":"medium","assist":"sport","opponents":"3","startSlot":"pole"}
+[  169.5s] sessionRules {"text":"RALLYCROSS HEAT · JOKER: no mandatory stop · DRS off · points scored."}
+[  169.5s] step.end {"name":"configure","seconds":0.6}
+[  176.5s] screenshot {"file":"03-configured.png","ms":6966}
+[  176.5s] dirt.menu {"kind":"mx-shortcuts","title":"FIND YOUR FLOW.","start":"ENTER CIRCUIT","discipline":null}
+[  176.5s] step.begin {"name":"enter-rx-1"}
+[  176.5s] input.click {"n":9,"label":"ENTER"}
+[  292.5s] wait {"label":"briefing or driving","waited":115,"mode":"loading","stage":"22% · Player car and live instruments…","percent":"19%","rafFrames":361,"maxGapMs":79730}
+[  304.6s] worker {"url":"blob:http://127.0.0.1:4221/fb5b8c3d-721c-456b-98bf-b920593a7142"}
+[  339.2s] wait {"label":"briefing or driving","waited":162,"mode":"loading","stage":"Warming shadows and scene reflections…","percent":"90%","rafFrames":445,"maxGapMs":102629}
+[  368.5s] input.click {"n":10,"label":"briefing: GO STRAIGHT TO LIGHTS"}
+[  379.4s] session.started {"label":"rx-1","startedAt":176.474,"briefing":true,"timeToDrivingS":193.3,"timeToFirstFrameS":202.9}
+[  379.4s] step.end {"name":"enter-rx-1","seconds":202.9}
+[  405.1s] screenshot {"file":"04-rx-1-first-frame.png","ms":25715}
+[  405.1s] dirt.session {"options":{"mode":"race","circuit":"kestrel-rx","laps":1,"opponents":3,"vehicles":["rcx6","rcx6","rcx6","rcx6"],"weather":"clear","assist":"sport"}}
+[  405.1s] step.begin {"name":"drive-rx-1-opening"}
+[  405.5s] driving {"sim":32.3,"kph":0,"lap":0,"rank":3,"s":940,"lat":-2.4,"keys":"LT","rafFps":0,"auto":false}
+[  420.5s] driving {"sim":47.2,"kph":68,"lap":0,"rank":3,"s":213,"lat":-0.9,"keys":"TR","rafFps":0,"auto":false}
+[  425.8s] drive.done {"label":"rx-1-opening","ended":"sim-seconds","simElapsed":20,"wallS":20.7,"rtf":0.97,"maxKph":113,"offTrackS":5.3,"stuckS":0.4,"keyEvents":230}
+[  425.8s] step.end {"name":"drive-rx-1-opening","seconds":20.7}
+[  425.8s] page.stall {"maxGapMs":102629,"longTasks":66,"longMs":270438}
+[  425.8s] step.begin {"name":"pause-resume"}
+[  425.9s] input.key {"label":"ESC (pause)","code":"Escape"}
+[  445.1s] screenshot {"file":"05-paused.png","ms":15322}
+[  445.1s] input.click {"n":12,"label":"RESUME SESSION"}
+[  466.4s] screenshot {"file":"06-resumed.png","ms":13582}
+[  466.4s] input.key {"label":"ESC (pause 2)","code":"Escape"}
+[  466.5s] input.key {"label":"ESC (resume 2)","code":"Escape"}
+[  466.5s] step.end {"name":"pause-resume","seconds":40.7}
+[  466.5s] step.begin {"name":"drive-rx-1-to-finish"}
+[  466.6s] driving {"sim":66.9,"kph":16,"lap":0,"rank":4,"s":197,"lat":-2.4,"keys":"T","rafFps":0,"auto":false}
+[  480.6s] FINDING {"severity":"major","where":"keyboard-driver","message":"Keyboard driver off the track edge for >10 s at t=81 s; switching on the in-game AI DRIVER (G)"}
+[  480.6s] input.key {"label":"AI DRIVER (G)","code":"KeyG"}
+[  481.6s] driving {"sim":81.2,"kph":0,"lap":0,"rank":4,"s":190,"lat":8.8,"keys":"","rafFps":0,"auto":true}
+[  496.6s] driving {"sim":93.4,"kph":73,"lap":0,"rank":4,"s":220,"lat":4.1,"keys":"","rafFps":0,"auto":true}
+[  511.7s] driving {"sim":107.4,"kph":29,"lap":0,"rank":4,"s":303,"lat":-13.8,"keys":"","rafFps":0,"auto":true}
+[  526.7s] driving {"sim":122.2,"kph":39,"lap":0,"rank":4,"s":494,"lat":-2.6,"keys":"","rafFps":0,"auto":true}
+[  541.8s] driving {"sim":137.3,"kph":99,"lap":0,"rank":4,"s":788,"lat":4.2,"keys":"","rafFps":0,"auto":true}
+[  549.9s] drive.done {"label":"rx-1-to-finish","ended":"results","simElapsed":78.3,"wallS":83.3,"rtf":0.94,"maxKph":119,"offTrackS":43.1,"stuckS":13.5,"keyEvents":108}
+[  549.9s] step.end {"name":"drive-rx-1-to-finish","seconds":83.3}
+[  549.9s] page.stall {"maxGapMs":102629,"longTasks":85,"longMs":271771}
+[  549.9s] step.begin {"name":"results"}
+[  551.4s] results {"heading":"Across the line.","rows":4,"buttons":["WATCH REPLAY","TELEMETRY","PHOTO STUDIO","RACE AGAIN","PADDOCK"]}
+[  562.9s] screenshot {"file":"07-results.png","ms":11547}
+[  562.9s] step.end {"name":"results","seconds":13.1}
+[  562.9s] step.begin {"name":"exit-to-menu"}
+[  562.9s] input.click {"n":15,"label":"PADDOCK"}
+[  580.3s] step.end {"name":"exit-to-menu","seconds":17.4}
+[  580.3s] exit.done {"seconds":17.4}
+[  584.5s] screenshot {"file":"08-menu-after-exit.png","ms":4256}
+[  584.8s] memory {"label":"menu-after-session-1","t":584.8,"jsHeapMB":70.6,"jsHeapTotalMB":72.5,"nodes":2843,"listeners":169,"documents":2,"rssMB":2766,"textures":49,"geometries":1568}
+[  584.8s] step.begin {"name":"configure"}
+[  584.9s] configured {"circuit":"kestrel-rx","vehicle":"rcx6","mode":"race","laps":"1","weather":"clear","compound":"medium","assist":"sport","opponents":"3","startSlot":"pole"}
+[  584.9s] sessionRules {"text":"RALLYCROSS HEAT · JOKER: no mandatory stop · DRS off · points scored."}
+[  584.9s] step.end {"name":"configure","seconds":0.1}
+[  585.2s] screenshot {"file":"09-configured.png","ms":306}
+[  585.2s] step.begin {"name":"enter-rx-2"}
+[  585.2s] input.click {"n":16,"label":"ENTER"}
+[  585.4s] worker {"url":"blob:http://127.0.0.1:4221/11d25b96-be83-416a-9b0c-58681fe67e03"}
+[  595.3s] input.click {"n":17,"label":"briefing: GO STRAIGHT TO LIGHTS"}
+[  602.8s] session.started {"label":"rx-2","startedAt":585.189,"briefing":true,"timeToDrivingS":14,"timeToFirstFrameS":17.6}
+[  602.8s] step.end {"name":"enter-rx-2","seconds":17.6}
+[  619.1s] screenshot {"file":"10-rx-2-first-frame.png","ms":16300}
+[  619.1s] step.begin {"name":"drive-rx-2"}
+[  619.2s] driving {"sim":19.9,"kph":0,"lap":0,"rank":3,"s":940,"lat":-2.4,"keys":"LT","rafFps":0,"auto":false}
+[  629.3s] drive.done {"label":"rx-2","ended":"sim-seconds","simElapsed":10,"wallS":10.2,"rtf":0.98,"maxKph":114,"offTrackS":4.4,"stuckS":0,"keyEvents":102}
+[  629.3s] step.end {"name":"drive-rx-2","seconds":10.2}
+[  629.3s] page.stall {"maxGapMs":102629,"longTasks":97,"longMs":276327}
+[  629.3s] input.key {"label":"ESC (pause to exit)","code":"Escape"}
+[  629.3s] step.begin {"name":"exit-to-menu"}
+[  629.3s] input.click {"n":19,"label":"RETURN TO PADDOCK"}
+[  643.0s] step.end {"name":"exit-to-menu","seconds":13.7}
+[  643.0s] exit.done {"seconds":13.7}
+[  647.6s] screenshot {"file":"11-menu-after-exit.png","ms":4593}
+[  649.2s] memory {"label":"menu-after-session-2","t":649.2,"jsHeapMB":70.7,"jsHeapTotalMB":72.8,"nodes":2819,"listeners":169,"documents":2,"rssMB":2737,"textures":49,"geometries":1568}

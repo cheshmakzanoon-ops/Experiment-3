@@ -35,8 +35,12 @@ import {
  * v19: re-landed motocross contact impulse and GP racecraft/standstill-launch
  * fixes, tilted chassis placement on banked grids, and the fog/storm/dust
  * weather channels (existing presets replay bit-identically);
+ * v20: GP rider AI follows its own braking plan (planned-deceleration feed-forward
+ * instead of a proportional law that trailed the plan by 8 to 25 km/h), keeps the
+ * lever inside the stoppie point and brakes gently after the flag, so every
+ * seeded session with a GP AI rider moves differently (rider physics unchanged);
  * prior records remain in their original physics category. */
-export const SIMULATION_VERSION = 19;
+export const SIMULATION_VERSION = 20;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 

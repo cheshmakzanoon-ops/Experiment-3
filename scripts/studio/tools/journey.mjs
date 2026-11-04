@@ -9,7 +9,9 @@
 //        --journey formula-practice --out <dir> [--url http://127.0.0.1:4214] \
 //        [--quality low|medium|high] [--sim-seconds 30] [--viewport 960x540]
 //
-// Journeys: formula-practice, formula-race, time-trial, gp-race, wildcard, festival.
+// Journeys: formula-practice, formula-race, time-trial, gp-race, wildcard, festival,
+// motocross, supercross, rallycross (the dirt journeys ride on the in-game AI DRIVER:
+// see the note in JOURNEY_FNS.motocross).
 // `--list` prints them. Each journey is one browser page reused for two back-to-back
 // sessions (memory growth is reported across them). Software GL on a shared host is
 // slow: every wait is generous and logs its progress, nothing is retried silently.
@@ -46,6 +48,9 @@ export const JOURNEYS = {
   'formula-race': 'Formula race, 3 laps, 4 cars, Arroyo Oro (2 sessions)',
   'time-trial': 'Time trial with a stored personal-best ghost, Aurel (2 sessions)',
   'gp-race': 'GP bike race, 3 laps, 4 bikes, Kansai East (2 sessions)',
+  motocross: 'OUTDOOR MX moto, Valley Ridge, 3 laps, 4 riders, AI DRIVER on (2 sessions)',
+  supercross: 'STADIUM SX moto, Arena Nord, 1 lap, 4 riders, AI DRIVER on (2 sessions)',
+  rallycross: 'Rallycross heat, Kestrel RX, RCX-6, 1 lap, 4 cars, keyboard then AI DRIVER (2 sessions)',
   wildcard: 'Wildcard series pairing started from the menu form (2 sessions)',
   festival: 'Festival open world: load, drive, menu, exit, load again',
 };
@@ -727,7 +732,7 @@ class Run {
    * the session ends. `fallback`: after sustained off-track/stuck time switch the
    * game's own AI DRIVER on (recorded as a finding, never hidden).
    */
-  async drive({ simSeconds, label, wallTimeoutS = 1800, fallback = true, bike = false, stopAtResults = false }) {
+  async drive({ simSeconds, label, wallTimeoutS = 1800, fallback = true, bike = false, stopAtResults = false, startAuto = false }) {
     const stats = { label, rows: [], offTrackS: 0, stuckS: 0, maxKph: 0, keyEvents: 0, fallbackAt: null, ended: null };
     const held = new Set();
     const codes = { left: 'KeyA', right: 'KeyD', throttle: 'KeyW', brake: 'KeyS' };
@@ -797,6 +802,16 @@ class Run {
         }
         const options = first.options ?? { circuit: 'aurel', vehicles: null };
         const vehicle = options.vehicles?.[0] ?? this.configured?.vehicle ?? 'apx01';
+        // startAuto: the keyboard driver cannot hold a dirt bike, so the in-game AI DRIVER
+        // (G) rides from the gate. That proves menu -> start -> ride -> pause -> results ->
+        // exit and the AI's own riding; it does NOT prove a human can steer the bike.
+        if (startAuto && racing && !auto) {
+          await setKeys({});
+          await this.key('AI DRIVER (G)', 'KeyG', false);
+          auto = true;
+          stats.autoFromStart = Number(current.sim.time.toFixed(1));
+          say('ai-driver.on', { atSim: stats.autoFromStart, reason: 'startAuto (dirt journey)' });
+        }
         const { track, driver } = this.driverFor(options.circuit, vehicle);
         const nowWall = Date.now();
         const dt = Math.min(0.25, (nowWall - lastWall) / 1000);
@@ -908,8 +923,13 @@ class Run {
     // AI behaviour: every rival moved, none stationary, none overlapping the player.
     if (last.field?.length) {
       // A car that has taken the flag may park; only a car still racing must not sit still.
-      const still = last.field.filter((c) => c.speed < 1 && !c.retired && !(c.finish > 0) && last.sim.phase === 2 && last.sim.time > 25);
+      // A bike rider who is down, separated or remounting (bikeState > 0) is in the game's own
+      // recovery (BIKE_RECOVERY), not stuck: it is reported as a fall, not as a stationary car.
+      const idle = last.field.filter((c) => c.speed < 1 && !c.retired && !(c.finish > 0) && last.sim.phase === 2 && last.sim.time > 25);
+      const still = idle.filter((c) => !(c.bikeState > 0));
+      const down = idle.filter((c) => c.bikeState > 0);
       if (still.length) finding('major', 'ai', `${still.length} AI car(s) stationary but not retired: ids ${still.map((c) => c.id).join(',')}`, { still });
+      if (down.length) say('ai.rider-down', { ids: down.map((c) => c.id), crashes: down.map((c) => c.crashes), s: down.map((c) => Math.round(c.s)) });
       const near = last.field.filter((c) => Math.hypot(c.x - last.player.x, c.z - last.player.z) < 0.8);
       if (near.length) finding('major', 'ai', `AI car(s) overlap the player's position (<0.8 m): ids ${near.map((c) => c.id).join(',')}`, { near });
       const ranks = [last.player.rank, ...last.field.map((c) => c.rank)].sort((a, b) => a - b);
@@ -1220,6 +1240,22 @@ const JOURNEY_FNS = {
     await run.memorySample('menu-after-session-2');
     return { drives: [d1, d2, d3], pause: pr, results: res };
   },
+  // ---- dirt journeys (QA Bikes & Dirt). A dirt bike is not held by the keyboard driver
+  // (it is tuned for four-wheel cars), so motocross and supercross ride on the in-game AI
+  // DRIVER from the gate. WHAT THIS PROVES: the menu route (DIRT plate -> venue shortcut ->
+  // briefing -> gate), a session that starts and runs, pause/resume, the results screen,
+  // the exit and a second session. WHAT IT DOES NOT PROVE: that a human can ride the bike
+  // (input mapping, assists, feel). Rallycross is a car: the keyboard driver goes first.
+  async motocross(run) {
+    return dirtJourney(run, { name: 'mx', shortcut: 'OUTDOOR MX', venue: 'valley-ridge-mx', laps: 3, opponents: 3, startAuto: true, bike: true });
+  },
+  async supercross(run) {
+    return dirtJourney(run, { name: 'sx', shortcut: 'STADIUM SX', venue: 'arena-nord-sx', laps: 1, opponents: 3, startAuto: true, bike: true });
+  },
+  async rallycross(run) {
+    run.driverOptions = { gLat: 7, brake: 8, steerGain: 1.4 };
+    return dirtJourney(run, { name: 'rx', shortcut: null, venue: 'kestrel-rx', vehicle: 'rcx6', laps: 1, opponents: 3, startAuto: false, bike: false });
+  },
   async wildcard(run) {
     const { wildcardEntry, wildcardSession } = await load('src/career/wildcard-series.ts');
     const entry = wildcardEntry(cfg.wildcardId);
@@ -1284,6 +1320,43 @@ const JOURNEY_FNS = {
     return out;
   },
 };
+
+
+// --------------------------------------------------------------------- dirt
+async function dirtJourney(run, j) {
+  await run.boot();
+  if (cfg.quality) await run.setQuality(cfg.quality);
+  await run.configure({ discipline: 'dirt' });
+  if (j.shortcut) await run.click(`dirt shortcut ${j.shortcut}`, run.page.getByRole('button', { name: j.shortcut, exact: true }));
+  const spec = { circuit: j.venue, mode: 'race', laps: j.laps, opponents: j.opponents };
+  if (j.vehicle) spec.vehicle = j.vehicle;
+  await run.configure(spec);
+  const rules = await run.page.evaluate(() => ({
+    kind: document.querySelector('.mx-entry') ? 'mx-shortcuts' : 'none',
+    title: document.querySelector('#menu h1')?.textContent?.trim() ?? null,
+    start: document.querySelector('#sessionForm .enter.primary, .mx-start-dock .enter.primary')?.textContent?.trim() ?? null,
+    discipline: document.querySelector('.lb-plate[aria-pressed="true"], .lb-plate.on')?.dataset.discipline ?? null,
+  }));
+  say('dirt.menu', rules);
+  await run.enter(`${j.name}-1`);
+  const s0 = await run.state();
+  if (s0.options?.circuit !== j.venue) finding('major', 'dirt-start', `The session started on ${s0.options?.circuit}, not ${j.venue}`, { options: s0.options });
+  say('dirt.session', { options: s0.options });
+  const d1 = await run.drive({ simSeconds: cfg.simSeconds, label: `${j.name}-1-opening`, bike: j.bike, startAuto: j.startAuto });
+  const pr = await run.pauseResume();
+  const d2 = await run.drive({ simSeconds: 1e9, label: `${j.name}-1-to-finish`, stopAtResults: true, wallTimeoutS: 1500, bike: j.bike, startAuto: j.startAuto });
+  const res = await run.finishAndCheckResults({ cars: j.opponents + 1, laps: j.laps });
+  await run.exitToMenu('results');
+  await run.memorySample('menu-after-session-1');
+  await run.configure({ circuit: j.venue, mode: 'race', laps: 1, opponents: j.opponents });
+  await run.enter(`${j.name}-2`);
+  const d3 = await run.drive({ simSeconds: cfg.secondSimSeconds, label: `${j.name}-2`, bike: j.bike, startAuto: j.startAuto });
+  await run.key('ESC (pause to exit)', 'Escape');
+  await run.until('paused', (c) => c.mode === 'paused', 120, 200);
+  await run.exitToMenu('pause');
+  await run.memorySample('menu-after-session-2');
+  return { drives: [d1, d2, d3], pause: pr, results: res };
+}
 
 // ------------------------------------------------------------------ festival
 async function festivalLoad(run, attempt) {

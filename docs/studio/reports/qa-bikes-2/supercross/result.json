@@ -1,0 +1,2672 @@
+{
+ "journey": "supercross",
+ "cfg": {
+  "url": "http://127.0.0.1:4221",
+  "journey": "supercross",
+  "out": "/tmp/claude-0/-home-user-Experiment-3/d7f7b547-44bc-5977-9962-da1e5626b4ba/scratchpad/j-sx",
+  "quality": "low",
+  "simSeconds": 20,
+  "viewport": [
+   960,
+   540
+  ],
+  "bootTimeoutS": 900,
+  "startTimeoutS": 900,
+  "festivalMaxS": 1500,
+  "profile": false,
+  "shots": true,
+  "wildcardId": "formula-on-the-wall",
+  "secondSimSeconds": 10,
+  "festivalSingle": false
+ },
+ "timeline": [
+  {
+   "t": 0.5,
+   "kind": "browser.open",
+   "viewport": [
+    960,
+    540
+   ],
+   "quality": "low"
+  },
+  {
+   "t": 0.5,
+   "kind": "step.begin",
+   "name": "boot"
+  },
+  {
+   "t": 2.8,
+   "kind": "boot.domcontentloaded",
+   "ms": 2294
+  },
+  {
+   "t": 5.5,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4221/ff457612-4360-438a-b896-3afeb7aa5ef4"
+  },
+  {
+   "t": 5.5,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4221/ff457612-4360-438a-b896-3afeb7aa5ef4"
+  },
+  {
+   "t": 5.6,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4221/ff457612-4360-438a-b896-3afeb7aa5ef4"
+  },
+  {
+   "t": 5.6,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4221/ff457612-4360-438a-b896-3afeb7aa5ef4"
+  },
+  {
+   "t": 73.7,
+   "kind": "wait",
+   "label": "menu visible",
+   "waited": 71,
+   "mode": null,
+   "stage": "0% · Preparing vehicle showroom…",
+   "percent": "0%",
+   "rafFrames": 85,
+   "maxGapMs": 2316
+  },
+  {
+   "t": 93.8,
+   "kind": "boot.done",
+   "timeToMenuS": 93.3,
+   "timeToFirstMenuFrameS": 93.3,
+   "paint": {
+    "first-paint": 768,
+    "first-contentful-paint": 2408
+   },
+   "domContentLoadedMs": 2294
+  },
+  {
+   "t": 93.8,
+   "kind": "step.end",
+   "name": "boot",
+   "seconds": 93.3
+  },
+  {
+   "t": 96.8,
+   "kind": "screenshot",
+   "file": "01-menu-boot.png",
+   "ms": 3068
+  },
+  {
+   "t": 97.1,
+   "kind": "memory",
+   "label": "menu-after-boot",
+   "jsHeapMB": 33.4,
+   "jsHeapTotalMB": 34.5,
+   "nodes": 2487,
+   "listeners": 141,
+   "documents": 2,
+   "rssMB": 2050,
+   "textures": 83,
+   "geometries": 190
+  },
+  {
+   "t": 97.2,
+   "kind": "step.begin",
+   "name": "quality-low"
+  },
+  {
+   "t": 97.2,
+   "kind": "input.click",
+   "n": 1,
+   "label": "GARAGE & SETTINGS"
+  },
+  {
+   "t": 97.5,
+   "kind": "input.select",
+   "n": 2,
+   "label": "quality",
+   "value": "low"
+  },
+  {
+   "t": 97.5,
+   "kind": "input.click",
+   "n": 3,
+   "label": "APPLY & SAVE"
+  },
+  {
+   "t": 100.6,
+   "kind": "quality.applied",
+   "quality": "low",
+   "seconds": 3.477,
+   "busy": false
+  },
+  {
+   "t": 100.6,
+   "kind": "step.end",
+   "name": "quality-low",
+   "seconds": 3.5
+  },
+  {
+   "t": 100.6,
+   "kind": "step.begin",
+   "name": "configure"
+  },
+  {
+   "t": 100.6,
+   "kind": "input.click",
+   "n": 4,
+   "label": "plate dirt"
+  },
+  {
+   "t": 115.8,
+   "kind": "configured",
+   "circuit": "valley-ridge-mx",
+   "vehicle": "mx450",
+   "mode": "race",
+   "laps": "3",
+   "weather": "clear",
+   "compound": "medium",
+   "assist": "sport",
+   "opponents": "7",
+   "startSlot": "pole"
+  },
+  {
+   "t": 115.8,
+   "kind": "sessionRules",
+   "text": "MOTOCROSS MOTO: no mandatory stop · DRS off · points scored."
+  },
+  {
+   "t": 115.8,
+   "kind": "step.end",
+   "name": "configure",
+   "seconds": 15.2
+  },
+  {
+   "t": 150.6,
+   "kind": "screenshot",
+   "file": "02-configured.png",
+   "ms": 34774
+  },
+  {
+   "t": 150.6,
+   "kind": "input.click",
+   "n": 5,
+   "label": "dirt shortcut STADIUM SX"
+  },
+  {
+   "t": 151.3,
+   "kind": "step.begin",
+   "name": "configure"
+  },
+  {
+   "t": 151.4,
+   "kind": "input.select",
+   "n": 6,
+   "label": "laps",
+   "value": "1"
+  },
+  {
+   "t": 151.4,
+   "kind": "input.select",
+   "n": 7,
+   "label": "opponents",
+   "value": "3"
+  },
+  {
+   "t": 151.5,
+   "kind": "configured",
+   "circuit": "arena-nord-sx",
+   "vehicle": "mx450",
+   "mode": "race",
+   "laps": "1",
+   "weather": "clear",
+   "compound": "medium",
+   "assist": "sport",
+   "opponents": "3",
+   "startSlot": "pole"
+  },
+  {
+   "t": 151.5,
+   "kind": "sessionRules",
+   "text": "MOTOCROSS MOTO: no mandatory stop · DRS off · points scored."
+  },
+  {
+   "t": 151.5,
+   "kind": "step.end",
+   "name": "configure",
+   "seconds": 0.2
+  },
+  {
+   "t": 153.5,
+   "kind": "screenshot",
+   "file": "03-configured.png",
+   "ms": 2011
+  },
+  {
+   "t": 153.5,
+   "kind": "mx-shortcuts",
+   "title": "OWN THE RHYTHM.",
+   "start": "ENTER CIRCUIT",
+   "discipline": null
+  },
+  {
+   "t": 153.5,
+   "kind": "step.begin",
+   "name": "enter-sx-1"
+  },
+  {
+   "t": 153.5,
+   "kind": "input.click",
+   "n": 8,
+   "label": "ENTER"
+  },
+  {
+   "t": 251.5,
+   "kind": "wait",
+   "label": "briefing or driving",
+   "waited": 98,
+   "mode": "loading",
+   "stage": "29% · Player car and live instruments…",
+   "percent": "25%",
+   "rafFrames": 326,
+   "maxGapMs": 65747
+  },
+  {
+   "t": 254.5,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4221/a81e769a-04ee-4ba4-91a4-5b4d869e9673"
+  },
+  {
+   "t": 281.7,
+   "kind": "wait",
+   "label": "briefing or driving",
+   "waited": 128,
+   "mode": "loading",
+   "stage": "Waiting for completed chase GPU work…",
+   "percent": "90%",
+   "rafFrames": 428,
+   "maxGapMs": 84380
+  },
+  {
+   "t": 305.3,
+   "kind": "input.click",
+   "n": 9,
+   "label": "briefing: GO STRAIGHT TO LIGHTS"
+  },
+  {
+   "t": 313.2,
+   "kind": "session.started",
+   "label": "sx-1",
+   "startedAt": 153.492,
+   "briefing": true,
+   "timeToDrivingS": 152.9,
+   "timeToFirstFrameS": 159.7
+  },
+  {
+   "t": 313.2,
+   "kind": "step.end",
+   "name": "enter-sx-1",
+   "seconds": 159.7
+  },
+  {
+   "t": 335.2,
+   "kind": "screenshot",
+   "file": "04-sx-1-first-frame.png",
+   "ms": 21962
+  },
+  {
+   "t": 335.2,
+   "kind": "dirt.session",
+   "options": {
+    "mode": "race",
+    "circuit": "arena-nord-sx",
+    "laps": 1,
+    "opponents": 3,
+    "vehicles": [
+     "mx450",
+     "mx450",
+     "mx450",
+     "mx450"
+    ],
+    "weather": "clear",
+    "assist": "sport"
+   }
+  },
+  {
+   "t": 335.2,
+   "kind": "step.begin",
+   "name": "drive-sx-1-opening"
+  },
+  {
+   "t": 335.2,
+   "kind": "input.key",
+   "label": "AI DRIVER (G)",
+   "code": "KeyG"
+  },
+  {
+   "t": 335.2,
+   "kind": "ai-driver.on",
+   "atSim": 29.5,
+   "reason": "startAuto (dirt journey)"
+  },
+  {
+   "t": 335.3,
+   "kind": "driving",
+   "sim": 29.5,
+   "kph": 0,
+   "lap": 0,
+   "rank": 4,
+   "s": 606,
+   "lat": -4.9,
+   "keys": "",
+   "rafFps": 0,
+   "auto": true
+  },
+  {
+   "t": 350.3,
+   "kind": "driving",
+   "sim": 44.6,
+   "kph": 16,
+   "lap": 0,
+   "rank": 4,
+   "s": 137,
+   "lat": -3.5,
+   "keys": "",
+   "rafFps": 0,
+   "auto": true
+  },
+  {
+   "t": 355.2,
+   "kind": "drive.done",
+   "label": "sx-1-opening",
+   "ended": "sim-seconds",
+   "simElapsed": 19.9,
+   "wallS": 20,
+   "rtf": 0.99,
+   "maxKph": 73,
+   "offTrackS": 4.7,
+   "stuckS": 0,
+   "keyEvents": 0
+  },
+  {
+   "t": 355.2,
+   "kind": "step.end",
+   "name": "drive-sx-1-opening",
+   "seconds": 20
+  },
+  {
+   "t": 355.2,
+   "kind": "page.stall",
+   "maxGapMs": 84380,
+   "longTasks": 63,
+   "longMs": 217039
+  },
+  {
+   "t": 355.2,
+   "kind": "FINDING",
+   "severity": "major",
+   "where": "ai",
+   "message": "1 AI car(s) stationary but not retired: ids 2"
+  },
+  {
+   "t": 355.2,
+   "kind": "step.begin",
+   "name": "pause-resume"
+  },
+  {
+   "t": 355.2,
+   "kind": "input.key",
+   "label": "ESC (pause)",
+   "code": "Escape"
+  },
+  {
+   "t": 365.8,
+   "kind": "screenshot",
+   "file": "05-paused.png",
+   "ms": 7212
+  },
+  {
+   "t": 365.8,
+   "kind": "input.click",
+   "n": 11,
+   "label": "RESUME SESSION"
+  },
+  {
+   "t": 388.2,
+   "kind": "screenshot",
+   "file": "06-resumed.png",
+   "ms": 19763
+  },
+  {
+   "t": 388.2,
+   "kind": "input.key",
+   "label": "ESC (pause 2)",
+   "code": "Escape"
+  },
+  {
+   "t": 388.2,
+   "kind": "input.key",
+   "label": "ESC (resume 2)",
+   "code": "Escape"
+  },
+  {
+   "t": 388.3,
+   "kind": "step.end",
+   "name": "pause-resume",
+   "seconds": 33
+  },
+  {
+   "t": 388.3,
+   "kind": "step.begin",
+   "name": "drive-sx-1-to-finish"
+  },
+  {
+   "t": 388.3,
+   "kind": "driving",
+   "sim": 71.7,
+   "kph": 33,
+   "lap": 0,
+   "rank": 3,
+   "s": 319,
+   "lat": -1.3,
+   "keys": "",
+   "rafFps": 0,
+   "auto": true
+  },
+  {
+   "t": 403.3,
+   "kind": "driving",
+   "sim": 86.7,
+   "kph": 50,
+   "lap": 0,
+   "rank": 3,
+   "s": 447,
+   "lat": -4.3,
+   "keys": "",
+   "rafFps": 0,
+   "auto": true
+  },
+  {
+   "t": 418.3,
+   "kind": "driving",
+   "sim": 101.8,
+   "kph": 69,
+   "lap": 1,
+   "rank": 3,
+   "s": 18,
+   "lat": 3,
+   "keys": "",
+   "rafFps": 0,
+   "auto": true
+  },
+  {
+   "t": 424.8,
+   "kind": "drive.done",
+   "label": "sx-1-to-finish",
+   "ended": "results",
+   "simElapsed": 36.5,
+   "wallS": 36.6,
+   "rtf": 1,
+   "maxKph": 77,
+   "offTrackS": 14.5,
+   "stuckS": 0,
+   "keyEvents": 0
+  },
+  {
+   "t": 424.8,
+   "kind": "step.end",
+   "name": "drive-sx-1-to-finish",
+   "seconds": 36.6
+  },
+  {
+   "t": 424.8,
+   "kind": "page.stall",
+   "maxGapMs": 84380,
+   "longTasks": 77,
+   "longMs": 218187
+  },
+  {
+   "t": 424.8,
+   "kind": "step.begin",
+   "name": "results"
+  },
+  {
+   "t": 426.4,
+   "kind": "results",
+   "heading": "Across the line.",
+   "rows": 4,
+   "buttons": [
+    "WATCH REPLAY",
+    "TELEMETRY",
+    "PHOTO STUDIO",
+    "RACE AGAIN",
+    "PADDOCK"
+   ]
+  },
+  {
+   "t": 440.5,
+   "kind": "screenshot",
+   "file": "07-results.png",
+   "ms": 14161
+  },
+  {
+   "t": 440.5,
+   "kind": "step.end",
+   "name": "results",
+   "seconds": 15.7
+  },
+  {
+   "t": 440.5,
+   "kind": "step.begin",
+   "name": "exit-to-menu"
+  },
+  {
+   "t": 440.5,
+   "kind": "input.click",
+   "n": 14,
+   "label": "PADDOCK"
+  },
+  {
+   "t": 470.8,
+   "kind": "step.end",
+   "name": "exit-to-menu",
+   "seconds": 30.3
+  },
+  {
+   "t": 470.8,
+   "kind": "exit.done",
+   "seconds": 30.3
+  },
+  {
+   "t": 477.1,
+   "kind": "screenshot",
+   "file": "08-menu-after-exit.png",
+   "ms": 6252
+  },
+  {
+   "t": 477.4,
+   "kind": "memory",
+   "label": "menu-after-session-1",
+   "jsHeapMB": 58,
+   "jsHeapTotalMB": 60.6,
+   "nodes": 2938,
+   "listeners": 169,
+   "documents": 2,
+   "rssMB": 2683,
+   "textures": 74,
+   "geometries": 243
+  },
+  {
+   "t": 477.4,
+   "kind": "step.begin",
+   "name": "configure"
+  },
+  {
+   "t": 477.5,
+   "kind": "configured",
+   "circuit": "arena-nord-sx",
+   "vehicle": "mx450",
+   "mode": "race",
+   "laps": "1",
+   "weather": "clear",
+   "compound": "medium",
+   "assist": "sport",
+   "opponents": "3",
+   "startSlot": "pole"
+  },
+  {
+   "t": 477.5,
+   "kind": "sessionRules",
+   "text": "MOTOCROSS MOTO: no mandatory stop · DRS off · points scored."
+  },
+  {
+   "t": 477.5,
+   "kind": "step.end",
+   "name": "configure",
+   "seconds": 0.1
+  },
+  {
+   "t": 477.8,
+   "kind": "screenshot",
+   "file": "09-configured.png",
+   "ms": 297
+  },
+  {
+   "t": 477.8,
+   "kind": "step.begin",
+   "name": "enter-sx-2"
+  },
+  {
+   "t": 477.8,
+   "kind": "input.click",
+   "n": 15,
+   "label": "ENTER"
+  },
+  {
+   "t": 477.9,
+   "kind": "worker",
+   "url": "blob:http://127.0.0.1:4221/36fbda24-9cb9-48c0-8128-89f6ba89ac08"
+  },
+  {
+   "t": 498.4,
+   "kind": "input.click",
+   "n": 16,
+   "label": "briefing: GO STRAIGHT TO LIGHTS"
+  },
+  {
+   "t": 506.8,
+   "kind": "session.started",
+   "label": "sx-2",
+   "startedAt": 477.806,
+   "briefing": true,
+   "timeToDrivingS": 21.7,
+   "timeToFirstFrameS": 29
+  },
+  {
+   "t": 506.8,
+   "kind": "step.end",
+   "name": "enter-sx-2",
+   "seconds": 29
+  },
+  {
+   "t": 524.8,
+   "kind": "screenshot",
+   "file": "10-sx-2-first-frame.png",
+   "ms": 17988
+  },
+  {
+   "t": 524.8,
+   "kind": "step.begin",
+   "name": "drive-sx-2"
+  },
+  {
+   "t": 524.8,
+   "kind": "input.key",
+   "label": "AI DRIVER (G)",
+   "code": "KeyG"
+  },
+  {
+   "t": 524.8,
+   "kind": "ai-driver.on",
+   "atSim": 25.2,
+   "reason": "startAuto (dirt journey)"
+  },
+  {
+   "t": 524.8,
+   "kind": "driving",
+   "sim": 25.2,
+   "kph": 0,
+   "lap": 0,
+   "rank": 4,
+   "s": 606,
+   "lat": -4.9,
+   "keys": "",
+   "rafFps": 0,
+   "auto": true
+  },
+  {
+   "t": 534.6,
+   "kind": "drive.done",
+   "label": "sx-2",
+   "ended": "sim-seconds",
+   "simElapsed": 10,
+   "wallS": 9.9,
+   "rtf": 1.01,
+   "maxKph": 60,
+   "offTrackS": 3.5,
+   "stuckS": 0,
+   "keyEvents": 0
+  },
+  {
+   "t": 534.6,
+   "kind": "step.end",
+   "name": "drive-sx-2",
+   "seconds": 9.9
+  },
+  {
+   "t": 534.6,
+   "kind": "page.stall",
+   "maxGapMs": 84380,
+   "longTasks": 93,
+   "longMs": 229019
+  },
+  {
+   "t": 534.6,
+   "kind": "FINDING",
+   "severity": "major",
+   "where": "ai",
+   "message": "1 AI car(s) stationary but not retired: ids 2"
+  },
+  {
+   "t": 534.6,
+   "kind": "input.key",
+   "label": "ESC (pause to exit)",
+   "code": "Escape"
+  },
+  {
+   "t": 534.6,
+   "kind": "step.begin",
+   "name": "exit-to-menu"
+  },
+  {
+   "t": 534.6,
+   "kind": "input.click",
+   "n": 18,
+   "label": "RETURN TO PADDOCK"
+  },
+  {
+   "t": 567,
+   "kind": "step.end",
+   "name": "exit-to-menu",
+   "seconds": 32.4
+  },
+  {
+   "t": 567,
+   "kind": "exit.done",
+   "seconds": 32.4
+  },
+  {
+   "t": 575.2,
+   "kind": "screenshot",
+   "file": "11-menu-after-exit.png",
+   "ms": 8178
+  },
+  {
+   "t": 575.6,
+   "kind": "memory",
+   "label": "menu-after-session-2",
+   "jsHeapMB": 58.4,
+   "jsHeapTotalMB": 60.1,
+   "nodes": 2980,
+   "listeners": 169,
+   "documents": 2,
+   "rssMB": 2709,
+   "textures": 74,
+   "geometries": 243
+  }
+ ],
+ "findings": [
+  {
+   "severity": "major",
+   "where": "ai",
+   "message": "1 AI car(s) stationary but not retired: ids 2",
+   "evidence": {
+    "still": [
+     {
+      "id": 2,
+      "x": 54.814762115478516,
+      "z": -4.346064567565918,
+      "q": [
+       -0.4071769416332245,
+       -0.5674763321876526,
+       -0.3816743493080139,
+       0.6053942441940308
+      ],
+      "speed": 0.0000014145656450637034,
+      "s": 145.0375518798828,
+      "lat": 2.653935432434082,
+      "laps": 0,
+      "lapTime": 41.74394226074219,
+      "best": 0,
+      "last": 0,
+      "rank": 4,
+      "finish": 0,
+      "retired": 0,
+      "penalty": 0,
+      "lapValid": 0,
+      "inPit": 0,
+      "gear": 1,
+      "rpm": 3226.730224609375,
+      "throttle": 0.2743711769580841,
+      "brake": 0,
+      "steer": -0.06168820708990097,
+      "vehicleIndex": 54,
+      "bikeState": 0,
+      "crashes": 1,
+      "aiError": 0,
+      "delta": 0
+     }
+    ]
+   },
+   "t": 355.2
+  },
+  {
+   "severity": "major",
+   "where": "ai",
+   "message": "1 AI car(s) stationary but not retired: ids 2",
+   "evidence": {
+    "still": [
+     {
+      "id": 2,
+      "x": 76.56843566894531,
+      "z": -1.0547571182250977,
+      "q": [
+       -0.3452696204185486,
+       -0.49381521344184875,
+       0.5669534206390381,
+       0.5616931915283203
+      ],
+      "speed": 0,
+      "s": 123.16319274902344,
+      "lat": 6.0594611167907715,
+      "laps": 0,
+      "lapTime": 27.535606384277344,
+      "best": 0,
+      "last": 0,
+      "rank": 3,
+      "finish": 0,
+      "retired": 0,
+      "penalty": 0,
+      "lapValid": 0,
+      "inPit": 0,
+      "gear": 1,
+      "rpm": 1800,
+      "throttle": 0,
+      "brake": 0,
+      "steer": -0.47190970182418823,
+      "vehicleIndex": 54,
+      "bikeState": 3,
+      "crashes": 1,
+      "aiError": 0,
+      "delta": 0
+     }
+    ]
+   },
+   "t": 534.6
+  }
+ ],
+ "console": [
+  {
+   "t": 100.2,
+   "type": "warning",
+   "text": "THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported.",
+   "at": "three-CuIIN4MI.js"
+  }
+ ],
+ "requestFailures": [],
+ "summary": {
+  "boot": {
+   "timeToMenuS": 93.3,
+   "timeToFirstMenuFrameS": 93.3,
+   "paint": {
+    "first-paint": 768,
+    "first-contentful-paint": 2408
+   },
+   "domContentLoadedMs": 2294
+  },
+  "sessions": [
+   {
+    "label": "sx-1",
+    "startedAt": 153.492,
+    "briefing": true,
+    "timeToDrivingS": 152.9,
+    "timeToFirstFrameS": 159.7,
+    "timeToMenuAfterExitS": 30.3
+   },
+   {
+    "label": "sx-2",
+    "startedAt": 477.806,
+    "briefing": true,
+    "timeToDrivingS": 21.7,
+    "timeToFirstFrameS": 29,
+    "timeToMenuAfterExitS": 32.4
+   }
+  ],
+  "inputs": {
+   "menuInputs": 18,
+   "driveKeyEvents": 0,
+   "log": [
+    "97.2s click GARAGE & SETTINGS",
+    "97.5s select quality=low",
+    "97.5s click APPLY & SAVE",
+    "100.6s click plate dirt",
+    "150.6s click dirt shortcut STADIUM SX",
+    "151.4s select laps=1",
+    "151.4s select opponents=3",
+    "153.5s click ENTER",
+    "305.3s click briefing: GO STRAIGHT TO LIGHTS",
+    "335.2s key AI DRIVER (G)",
+    "355.2s key ESC (pause)",
+    "365.8s click RESUME SESSION",
+    "388.2s key ESC (pause 2)",
+    "388.2s key ESC (resume 2)",
+    "440.5s click PADDOCK",
+    "477.8s click ENTER",
+    "498.4s click briefing: GO STRAIGHT TO LIGHTS",
+    "524.8s key AI DRIVER (G)",
+    "534.6s key ESC (pause to exit)",
+    "534.6s click RETURN TO PADDOCK"
+   ]
+  },
+  "memory": {
+   "samples": [
+    {
+     "label": "menu-after-boot",
+     "t": 97.1,
+     "jsHeapMB": 33.4,
+     "jsHeapTotalMB": 34.5,
+     "nodes": 2487,
+     "listeners": 141,
+     "documents": 2,
+     "rssMB": 2050,
+     "textures": 83,
+     "geometries": 190
+    },
+    {
+     "label": "menu-after-session-1",
+     "t": 477.4,
+     "jsHeapMB": 58,
+     "jsHeapTotalMB": 60.6,
+     "nodes": 2938,
+     "listeners": 169,
+     "documents": 2,
+     "rssMB": 2683,
+     "textures": 74,
+     "geometries": 243
+    },
+    {
+     "label": "menu-after-session-2",
+     "t": 575.6,
+     "jsHeapMB": 58.4,
+     "jsHeapTotalMB": 60.1,
+     "nodes": 2980,
+     "listeners": 169,
+     "documents": 2,
+     "rssMB": 2709,
+     "textures": 74,
+     "geometries": 243
+    }
+   ],
+   "jsHeapGrowthSession1MB": 24.6,
+   "jsHeapGrowthSession2MB": 0.4,
+   "rssGrowthSession2MB": 26,
+   "textureGrowthSession2": 0,
+   "geometryGrowthSession2": 0
+  },
+  "outcome": "ok",
+  "drives": [
+   {
+    "label": "sx-1-opening",
+    "rows": [
+     {
+      "wall": 0.1,
+      "sim": 29.45,
+      "tick": 3534,
+      "phase": 2,
+      "kph": 0,
+      "hudSpeed": "0",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 606,
+      "lat": -4.9,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 6086.96,
+      "tapAgeMs": 13,
+      "keys": "",
+      "dropped": 0.17730000615119934
+     },
+     {
+      "wall": 1.2,
+      "sim": 30.59,
+      "tick": 3671,
+      "phase": 2,
+      "kph": 25,
+      "hudSpeed": "0",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 610,
+      "lat": -5,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 1.92,
+      "tapAgeMs": 1,
+      "keys": "",
+      "dropped": 0.17730000615119934
+     },
+     {
+      "wall": 2.2,
+      "sim": 31.59,
+      "tick": 3791,
+      "phase": 2,
+      "kph": 43,
+      "hudSpeed": "0",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 4,
+      "lat": -4,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 7,
+      "keys": "",
+      "dropped": 0.17730000615119934
+     },
+     {
+      "wall": 3.2,
+      "sim": 32.59,
+      "tick": 3911,
+      "phase": 2,
+      "kph": 57,
+      "hudSpeed": "0",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 18,
+      "lat": -3.2,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 9,
+      "keys": "",
+      "dropped": 0.17730000615119934
+     },
+     {
+      "wall": 4.2,
+      "sim": 33.63,
+      "tick": 4036,
+      "phase": 2,
+      "kph": 69,
+      "hudSpeed": "0",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 36,
+      "lat": -1.8,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 1,
+      "keys": "",
+      "dropped": 0.17730000615119934
+     },
+     {
+      "wall": 5.2,
+      "sim": 34.64,
+      "tick": 4157,
+      "phase": 2,
+      "kph": 61,
+      "hudSpeed": "0",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 55,
+      "lat": -0.4,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 4,
+      "keys": "",
+      "dropped": 0.17730000615119934
+     },
+     {
+      "wall": 6.3,
+      "sim": 35.67,
+      "tick": 4281,
+      "phase": 2,
+      "kph": 45,
+      "hudSpeed": "0",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 70,
+      "lat": 0.4,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 4,
+      "keys": "",
+      "dropped": 0.17730000615119934
+     },
+     {
+      "wall": 7.3,
+      "sim": 36.69,
+      "tick": 4403,
+      "phase": 2,
+      "kph": 44,
+      "hudSpeed": "44",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 82,
+      "lat": 0.1,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 3.96,
+      "tapAgeMs": 4,
+      "keys": "",
+      "dropped": 0.17730000615119934
+     },
+     {
+      "wall": 8.3,
+      "sim": 37.69,
+      "tick": 4523,
+      "phase": 2,
+      "kph": 37,
+      "hudSpeed": "44",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 94,
+      "lat": -1.7,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 25,
+      "keys": "",
+      "dropped": 0.17730000615119934
+     },
+     {
+      "wall": 9.3,
+      "sim": 38.71,
+      "tick": 4645,
+      "phase": 2,
+      "kph": 28,
+      "hudSpeed": "44",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 105,
+      "lat": -2.7,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 13,
+      "keys": "",
+      "dropped": 0.17730000615119934
+     },
+     {
+      "wall": 10.3,
+      "sim": 39.74,
+      "tick": 4769,
+      "phase": 2,
+      "kph": 19,
+      "hudSpeed": "44",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 112,
+      "lat": 0,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 23,
+      "keys": "",
+      "dropped": 0.17730000615119934
+     },
+     {
+      "wall": 11.4,
+      "sim": 40.78,
+      "tick": 4894,
+      "phase": 2,
+      "kph": 20,
+      "hudSpeed": "44",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 117,
+      "lat": 1.4,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 8,
+      "keys": "",
+      "dropped": 0.17730000615119934
+     },
+     {
+      "wall": 12.4,
+      "sim": 41.82,
+      "tick": 5018,
+      "phase": 2,
+      "kph": 26,
+      "hudSpeed": "44",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 123,
+      "lat": 1,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 8,
+      "keys": "",
+      "dropped": 0.17730000615119934
+     },
+     {
+      "wall": 13.4,
+      "sim": 42.83,
+      "tick": 5140,
+      "phase": 2,
+      "kph": 16,
+      "hudSpeed": "44",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 128,
+      "lat": -2.5,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 3,
+      "keys": "",
+      "dropped": 0.17730000615119934
+     },
+     {
+      "wall": 14.4,
+      "sim": 43.87,
+      "tick": 5264,
+      "phase": 2,
+      "kph": 23,
+      "hudSpeed": "22",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 133,
+      "lat": -4.6,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 3.85,
+      "tapAgeMs": 4,
+      "keys": "",
+      "dropped": 0.17730000615119934
+     },
+     {
+      "wall": 15.5,
+      "sim": 44.89,
+      "tick": 5387,
+      "phase": 2,
+      "kph": 14,
+      "hudSpeed": "22",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 138,
+      "lat": -2.7,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 5,
+      "keys": "",
+      "dropped": 0.17730000615119934
+     },
+     {
+      "wall": 16.5,
+      "sim": 45.87,
+      "tick": 5504,
+      "phase": 2,
+      "kph": 17,
+      "hudSpeed": "22",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 141,
+      "lat": -0.7,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 10,
+      "keys": "",
+      "dropped": 0.17730000615119934
+     },
+     {
+      "wall": 17.5,
+      "sim": 46.9,
+      "tick": 5628,
+      "phase": 2,
+      "kph": 15,
+      "hudSpeed": "22",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 145,
+      "lat": 0.8,
+      "rank": 3,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 4,
+      "keys": "",
+      "dropped": 0.17730000615119934
+     },
+     {
+      "wall": 18.5,
+      "sim": 47.92,
+      "tick": 5750,
+      "phase": 2,
+      "kph": 15,
+      "hudSpeed": "22",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 149,
+      "lat": 0.3,
+      "rank": 3,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 20,
+      "keys": "",
+      "dropped": 0.17730000615119934
+     },
+     {
+      "wall": 19.5,
+      "sim": 48.97,
+      "tick": 5876,
+      "phase": 2,
+      "kph": 17,
+      "hudSpeed": "22",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 154,
+      "lat": -0.7,
+      "rank": 3,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 14,
+      "keys": "",
+      "dropped": 0.17730000615119934
+     }
+    ],
+    "offTrackS": 4.7,
+    "stuckS": 0,
+    "maxKph": 73,
+    "keyEvents": 0,
+    "fallbackAt": null,
+    "ended": "sim-seconds",
+    "autoFromStart": 29.5,
+    "simElapsed": 19.9,
+    "wallS": 20,
+    "realTimeFactor": 0.99
+   },
+   {
+    "label": "sx-1-to-finish",
+    "rows": [
+     {
+      "wall": 0,
+      "sim": 71.7,
+      "tick": 8604,
+      "phase": 2,
+      "kph": 33,
+      "hudSpeed": "33",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 319,
+      "lat": -1.3,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 118000,
+      "tapAgeMs": 37,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 1,
+      "sim": 72.72,
+      "tick": 8726,
+      "phase": 2,
+      "kph": 27,
+      "hudSpeed": "33",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 327,
+      "lat": 2.1,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 19,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 2.1,
+      "sim": 73.77,
+      "tick": 8852,
+      "phase": 2,
+      "kph": 30,
+      "hudSpeed": "33",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 335,
+      "lat": 2.6,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 9,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 3.1,
+      "sim": 74.8,
+      "tick": 8976,
+      "phase": 2,
+      "kph": 33,
+      "hudSpeed": "33",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 345,
+      "lat": -0.6,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 17,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 4.1,
+      "sim": 75.82,
+      "tick": 9098,
+      "phase": 2,
+      "kph": 27,
+      "hudSpeed": "33",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 354,
+      "lat": -0.4,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 19,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 5.2,
+      "sim": 76.87,
+      "tick": 9224,
+      "phase": 2,
+      "kph": 19,
+      "hudSpeed": "33",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 360,
+      "lat": 0.7,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 9,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 6.3,
+      "sim": 77.89,
+      "tick": 9347,
+      "phase": 2,
+      "kph": 20,
+      "hudSpeed": "20",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 365,
+      "lat": 0.5,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0.91,
+      "tapAgeMs": 88,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 7.3,
+      "sim": 78.99,
+      "tick": 9479,
+      "phase": 2,
+      "kph": 17,
+      "hudSpeed": "20",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 369,
+      "lat": 3.2,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0.99,
+      "tapAgeMs": 1,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 8.3,
+      "sim": 80.01,
+      "tick": 9601,
+      "phase": 2,
+      "kph": 34,
+      "hudSpeed": "20",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 374,
+      "lat": 4.9,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 1,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 9.3,
+      "sim": 81.02,
+      "tick": 9722,
+      "phase": 2,
+      "kph": 37,
+      "hudSpeed": "20",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 385,
+      "lat": 5.5,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 14,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 10.4,
+      "sim": 82.04,
+      "tick": 9845,
+      "phase": 2,
+      "kph": 35,
+      "hudSpeed": "20",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 395,
+      "lat": 5.6,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 15,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 11.4,
+      "sim": 83.13,
+      "tick": 9975,
+      "phase": 2,
+      "kph": 46,
+      "hudSpeed": "20",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 407,
+      "lat": 4.3,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 6,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 12.5,
+      "sim": 84.16,
+      "tick": 10099,
+      "phase": 2,
+      "kph": 42,
+      "hudSpeed": "20",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 418,
+      "lat": -1.2,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 7,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 13.5,
+      "sim": 85.18,
+      "tick": 10221,
+      "phase": 2,
+      "kph": 39,
+      "hudSpeed": "20",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 429,
+      "lat": -4.7,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 6,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 14.5,
+      "sim": 86.22,
+      "tick": 10346,
+      "phase": 2,
+      "kph": 44,
+      "hudSpeed": "39",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 440,
+      "lat": -4.7,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 2.9,
+      "tapAgeMs": 2,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 15.5,
+      "sim": 87.23,
+      "tick": 10468,
+      "phase": 2,
+      "kph": 47,
+      "hudSpeed": "39",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 453,
+      "lat": -4.1,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 7,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 16.7,
+      "sim": 88.31,
+      "tick": 10597,
+      "phase": 2,
+      "kph": 45,
+      "hudSpeed": "39",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 467,
+      "lat": -3.9,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 9,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 17.7,
+      "sim": 89.38,
+      "tick": 10726,
+      "phase": 2,
+      "kph": 56,
+      "hudSpeed": "39",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 482,
+      "lat": -3.7,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 3,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 18.7,
+      "sim": 90.38,
+      "tick": 10846,
+      "phase": 2,
+      "kph": 50,
+      "hudSpeed": "39",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 497,
+      "lat": -0.3,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 5,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 19.7,
+      "sim": 91.43,
+      "tick": 10972,
+      "phase": 2,
+      "kph": 40,
+      "hudSpeed": "39",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 509,
+      "lat": 0.6,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 1,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 20.7,
+      "sim": 92.43,
+      "tick": 11092,
+      "phase": 2,
+      "kph": 32,
+      "hudSpeed": "35",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 519,
+      "lat": 0.3,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 2.96,
+      "tapAgeMs": 11,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 21.9,
+      "sim": 93.54,
+      "tick": 11225,
+      "phase": 2,
+      "kph": 34,
+      "hudSpeed": "35",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 529,
+      "lat": 1.2,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 1,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 22.9,
+      "sim": 94.57,
+      "tick": 11349,
+      "phase": 2,
+      "kph": 41,
+      "hudSpeed": "35",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 540,
+      "lat": 1.5,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 1,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 23.9,
+      "sim": 95.61,
+      "tick": 11473,
+      "phase": 2,
+      "kph": 37,
+      "hudSpeed": "35",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 551,
+      "lat": -0.4,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 7,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 24.9,
+      "sim": 96.61,
+      "tick": 11593,
+      "phase": 2,
+      "kph": 31,
+      "hudSpeed": "35",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 560,
+      "lat": 0.3,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 19,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 25.9,
+      "sim": 97.64,
+      "tick": 11717,
+      "phase": 2,
+      "kph": 42,
+      "hudSpeed": "35",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 570,
+      "lat": 1.1,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 13,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 27,
+      "sim": 98.68,
+      "tick": 11841,
+      "phase": 2,
+      "kph": 50,
+      "hudSpeed": "35",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 584,
+      "lat": 4.1,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 2,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 28,
+      "sim": 99.71,
+      "tick": 11965,
+      "phase": 2,
+      "kph": 57,
+      "hudSpeed": "35",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 598,
+      "lat": 2.4,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 2,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 29,
+      "sim": 100.69,
+      "tick": 12083,
+      "phase": 2,
+      "kph": 64,
+      "hudSpeed": "56",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 614,
+      "lat": 4.2,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 3.96,
+      "tapAgeMs": 17,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 30,
+      "sim": 101.72,
+      "tick": 12206,
+      "phase": 2,
+      "kph": 69,
+      "hudSpeed": "56",
+      "lap": 1,
+      "hudLap": "LAP 1 / 1",
+      "s": 17,
+      "lat": 3,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 2,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 31,
+      "sim": 102.13,
+      "tick": 12255,
+      "phase": 2,
+      "kph": 69,
+      "hudSpeed": "56",
+      "lap": 1,
+      "hudLap": "LAP 1 / 1",
+      "s": 25,
+      "lat": 2.8,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 17,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 32.1,
+      "sim": 103.78,
+      "tick": 12453,
+      "phase": 2,
+      "kph": 68,
+      "hudSpeed": "56",
+      "lap": 1,
+      "hudLap": "LAP 1 / 1",
+      "s": 58,
+      "lat": 3.2,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 7,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 33.2,
+      "sim": 104.84,
+      "tick": 12581,
+      "phase": 2,
+      "kph": 55,
+      "hudSpeed": "56",
+      "lap": 1,
+      "hudLap": "LAP 1 / 1",
+      "s": 77,
+      "lat": 2.1,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 1,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 34.2,
+      "sim": 105.9,
+      "tick": 12708,
+      "phase": 2,
+      "kph": 42,
+      "hudSpeed": "56",
+      "lap": 1,
+      "hudLap": "LAP 1 / 1",
+      "s": 91,
+      "lat": -0.3,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 5,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 35.2,
+      "sim": 106.92,
+      "tick": 12830,
+      "phase": 2,
+      "kph": 31,
+      "hudSpeed": "56",
+      "lap": 1,
+      "hudLap": "LAP 1 / 1",
+      "s": 101,
+      "lat": -2.4,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 0,
+      "tapAgeMs": 24,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     },
+     {
+      "wall": 36.3,
+      "sim": 107.99,
+      "tick": 12959,
+      "phase": 2,
+      "kph": 22,
+      "hudSpeed": "27",
+      "lap": 1,
+      "hudLap": "LAP 1 / 1",
+      "s": 111,
+      "lat": -0.4,
+      "rank": 3,
+      "hudPos": "P3",
+      "rafFps": 3.75,
+      "tapAgeMs": 0,
+      "keys": "",
+      "dropped": 0.25609999895095825
+     }
+    ],
+    "offTrackS": 14.5,
+    "stuckS": 0,
+    "maxKph": 77,
+    "keyEvents": 0,
+    "fallbackAt": null,
+    "ended": "results",
+    "simElapsed": 36.5,
+    "wallS": 36.6,
+    "realTimeFactor": 1
+   },
+   {
+    "label": "sx-2",
+    "rows": [
+     {
+      "wall": 0,
+      "sim": 25.18,
+      "tick": 3022,
+      "phase": 2,
+      "kph": 0,
+      "hudSpeed": "0",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 606,
+      "lat": -4.9,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 125636.36,
+      "tapAgeMs": 8,
+      "keys": "",
+      "dropped": 0.6499999761581421
+     },
+     {
+      "wall": 1,
+      "sim": 26.36,
+      "tick": 3163,
+      "phase": 2,
+      "kph": 22,
+      "hudSpeed": "0",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 609,
+      "lat": -5,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 16,
+      "keys": "",
+      "dropped": 0.6499999761581421
+     },
+     {
+      "wall": 2.1,
+      "sim": 27.41,
+      "tick": 3289,
+      "phase": 2,
+      "kph": 41,
+      "hudSpeed": "0",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 3,
+      "lat": -4.2,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 15,
+      "keys": "",
+      "dropped": 0.6499999761581421
+     },
+     {
+      "wall": 3.1,
+      "sim": 28.44,
+      "tick": 3413,
+      "phase": 2,
+      "kph": 44,
+      "hudSpeed": "0",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 16,
+      "lat": -3.3,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 13,
+      "keys": "",
+      "dropped": 0.6499999761581421
+     },
+     {
+      "wall": 4.1,
+      "sim": 29.48,
+      "tick": 3537,
+      "phase": 2,
+      "kph": 44,
+      "hudSpeed": "0",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 28,
+      "lat": -2,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 13,
+      "keys": "",
+      "dropped": 0.6499999761581421
+     },
+     {
+      "wall": 5.1,
+      "sim": 30.51,
+      "tick": 3661,
+      "phase": 2,
+      "kph": 44,
+      "hudSpeed": "0",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 41,
+      "lat": -1.1,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 3,
+      "keys": "",
+      "dropped": 0.6499999761581421
+     },
+     {
+      "wall": 6.2,
+      "sim": 31.51,
+      "tick": 3781,
+      "phase": 2,
+      "kph": 47,
+      "hudSpeed": "0",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 53,
+      "lat": 0.1,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 17,
+      "keys": "",
+      "dropped": 0.6499999761581421
+     },
+     {
+      "wall": 7.2,
+      "sim": 32.56,
+      "tick": 3907,
+      "phase": 2,
+      "kph": 59,
+      "hudSpeed": "55",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 69,
+      "lat": 0.8,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 2.87,
+      "tapAgeMs": 9,
+      "keys": "",
+      "dropped": 0.6499999761581421
+     },
+     {
+      "wall": 8.3,
+      "sim": 33.61,
+      "tick": 4033,
+      "phase": 2,
+      "kph": 47,
+      "hudSpeed": "55",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 84,
+      "lat": -0.2,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 5,
+      "keys": "",
+      "dropped": 0.6499999761581421
+     },
+     {
+      "wall": 9.3,
+      "sim": 34.61,
+      "tick": 4153,
+      "phase": 2,
+      "kph": 35,
+      "hudSpeed": "55",
+      "lap": 0,
+      "hudLap": "LAP 1 / 1",
+      "s": 95,
+      "lat": -3.2,
+      "rank": 4,
+      "hudPos": "P4",
+      "rafFps": 0,
+      "tapAgeMs": 11,
+      "keys": "",
+      "dropped": 0.6499999761581421
+     }
+    ],
+    "offTrackS": 3.5,
+    "stuckS": 0,
+    "maxKph": 60,
+    "keyEvents": 0,
+    "fallbackAt": null,
+    "ended": "sim-seconds",
+    "autoFromStart": 25.2,
+    "simElapsed": 10,
+    "wallS": 9.9,
+    "realTimeFactor": 1.01
+   }
+  ],
+  "pause": {
+   "pauseLatencyMs": 13,
+   "workerAcknowledgedPause": {
+    "pending": false,
+    "paused": true,
+    "tick": 5936,
+    "sequence": 3
+   },
+   "paused": {
+    "simBefore": 49.45000076293945,
+    "simAtPause": 49.46666717529297,
+    "simAfter3s": 49.46666717529297,
+    "tickAtPause": 5936,
+    "tickAfter3s": 5936,
+    "workerPause": {
+     "pending": false,
+     "paused": true,
+     "tick": 5936,
+     "sequence": 3
+    },
+    "modalHeading": "SUPERCROSS MOTO",
+    "speedAtPause": 14.7,
+    "speedAfter3s": 14.7,
+    "posAtPause": [
+     43.99443817138672,
+     -8.007280349731445
+    ],
+    "posAfter3s": [
+     43.99443817138672,
+     -8.007280349731445
+    ]
+   },
+   "pauseButtons": [
+    "RESUME SESSION",
+    "RESTART SESSION",
+    "GARAGE & SETTINGS",
+    "RETURN TO PADDOCK",
+    "CHANGE CAMERA",
+    "WATCH REPLAY",
+    "PHOTO STUDIO",
+    "AI DRIVER",
+    "ACADEMY"
+   ],
+   "resumeLatencyMs": 137,
+   "resumed": {
+    "simAdvanced": 2.37,
+    "wall": 2.5,
+    "jumpAtResume": 0
+   },
+   "escResume": "resumed"
+  },
+  "results": {
+   "screen": {
+    "open": true,
+    "heading": "Across the line.",
+    "eyebrow": "CHEQUERED FLAG / SESSION CLASSIFICATION",
+    "head": [
+     "POS",
+     "DRIVER",
+     "LAPS",
+     "TIME + PEN.",
+     "BEST LAP",
+     "PEN."
+    ],
+    "rows": [
+     [
+      "1",
+      "A. MOREAU",
+      "1",
+      "1:16.982",
+      "—:——.———",
+      "5s"
+     ],
+     [
+      "2",
+      "M. VEGA",
+      "1",
+      "1:19.778",
+      "—:——.———",
+      "0s"
+     ],
+     [
+      "3",
+      "Alex River",
+      "1",
+      "1:34.858",
+      "—:——.———",
+      "0s"
+     ],
+     [
+      "4",
+      "K. SATO",
+      "1",
+      "1:42.328",
+      "—:——.———",
+      "0s"
+     ]
+    ],
+    "buttons": [
+     "WATCH REPLAY",
+     "TELEMETRY",
+     "PHOTO STUDIO",
+     "RACE AGAIN",
+     "PADDOCK"
+    ],
+    "text": "CHEQUERED FLAG / SESSION CLASSIFICATIONAcross the line.Classified by laps completed, then race time including penalties.POSDRIVERLAPSTIME + PEN.BEST LAPPEN.1A. MOREAU11:16.982—:——.———5s2M. VEGA11:19.778—:——.———0s3Alex River11:34.858—:——.———0s4K. SATO11:42.328—:——.———0sHoleshot: A. MOREAU.WATCH REPLAYTELEMETRYPHOTO STUDIORACE AGAINPADDOCK"
+   },
+   "final": {
+    "sim": {
+     "time": 108.24166870117188,
+     "phase": 3,
+     "raceTime": 102.334228515625,
+     "lights": 0,
+     "flag": 2,
+     "tick": 12990,
+     "stepMs": 0.9524176716804504,
+     "dropped": 0.25609999895095825,
+     "cars": 4,
+     "length": 615.4918823242188,
+     "leaderLap": 2,
+     "rain": 0,
+     "length_ok": true,
+     "nonFinite": 0
+    },
+    "player": {
+     "id": 0,
+     "x": 84.8755874633789,
+     "z": -12.666631698608398,
+     "q": [
+      -0.014045225456357002,
+      -0.01879195310175419,
+      -0.2435789555311203,
+      -0.9695972800254822
+     ],
+     "speed": 5.710813999176025,
+     "s": 112.24434661865234,
+     "lat": 0.06215871125459671,
+     "laps": 1,
+     "lapTime": 0.000908789923414588,
+     "best": 0,
+     "last": 69.56343078613281,
+     "rank": 3,
+     "finish": 94.85831451416016,
+     "retired": 0,
+     "penalty": 0,
+     "lapValid": 1,
+     "inPit": 0,
+     "gear": 1,
+     "rpm": 4938.09765625,
+     "throttle": 0,
+     "brake": 0.3781181275844574,
+     "steer": -0.3643471300601959,
+     "vehicleIndex": 54,
+     "bikeState": 0,
+     "crashes": 0,
+     "aiError": 0,
+     "delta": 0
+    },
+    "field": [
+     {
+      "id": 1,
+      "x": -38.502994537353516,
+      "z": 3.0870893001556396,
+      "q": [
+       0.06295125186443329,
+       -0.19498634338378906,
+       0.27633246779441833,
+       -0.9389663338661194
+      ],
+      "speed": 5.433259963989258,
+      "s": 245.8843231201172,
+      "lat": -0.25146278738975525,
+      "laps": 1,
+      "lapTime": 0.002108127111569047,
+      "best": 0,
+      "last": 70.26554870605469,
+      "rank": 1,
+      "finish": 76.98211669921875,
+      "retired": 0,
+      "penalty": 5,
+      "lapValid": 1,
+      "inPit": 0,
+      "gear": 1,
+      "rpm": 4689.5859375,
+      "throttle": 0.08653055876493454,
+      "brake": 0.03129799664020538,
+      "steer": 0.3405807912349701,
+      "vehicleIndex": 54,
+      "bikeState": 0,
+      "crashes": 0,
+      "aiError": 0,
+      "delta": 0
+     },
+     {
+      "id": 2,
+      "x": -21.76268196105957,
+      "z": -23.919492721557617,
+      "q": [
+       0.07570245862007141,
+       -0.749471127986908,
+       0.04099098592996597,
+       -0.6564159393310547
+      ],
+      "speed": 17.014436721801758,
+      "s": 0.23731815814971924,
+      "lat": 2.9194929599761963,
+      "laps": 1,
+      "lapTime": 0.0057548638433218,
+      "best": 0,
+      "last": 100.59651947021484,
+      "rank": 4,
+      "finish": 102.3284683227539,
+      "retired": 0,
+      "penalty": 0,
+      "lapValid": 1,
+      "inPit": 0,
+      "gear": 2,
+      "rpm": 10785.4462890625,
+      "throttle": 0.864616334438324,
+      "brake": 0,
+      "steer": 0.02055692858994007,
+      "vehicleIndex": 54,
+      "bikeState": 0,
+      "crashes": 1,
+      "aiError": 0,
+      "delta": 0
+     },
+     {
+      "id": 3,
+      "x": 16.18312644958496,
+      "z": -8.34195327758789,
+      "q": [
+       0.29614293575286865,
+       0.6242727041244507,
+       0.2598510980606079,
+       -0.6745815873146057
+      ],
+      "speed": 4.343624114990234,
+      "s": 183.669189453125,
+      "lat": -1.341952919960022,
+      "laps": 1,
+      "lapTime": 0.005771880969405174,
+      "best": 0,
+      "last": 78.06185150146484,
+      "rank": 2,
+      "finish": 79.77845001220703,
+      "retired": 0,
+      "penalty": 0,
+      "lapValid": 1,
+      "inPit": 0,
+      "gear": 1,
+      "rpm": 7000,
+      "throttle": 1,
+      "brake": 0,
+      "steer": -0.03742637112736702,
+      "vehicleIndex": 54,
+      "bikeState": 0,
+      "crashes": 0,
+      "aiError": 0,
+      "delta": 0
+     }
+    ]
+   },
+   "winnerBest": "—:——.———"
+  }
+ },
+ "pageCounters": {
+  "frames": 1979,
+  "maxGap": 84380,
+  "longTasks": 95,
+  "longMs": 236710,
+  "stalls": [
+   [
+    4685,
+    2316
+   ],
+   [
+    73166,
+    65747
+   ],
+   [
+    93165,
+    19983
+   ],
+   [
+    115014,
+    14816
+   ],
+   [
+    136914,
+    21849
+   ],
+   [
+    146746,
+    9516
+   ],
+   [
+    150013,
+    3217
+   ],
+   [
+    156796,
+    2867
+   ],
+   [
+    166179,
+    2850
+   ],
+   [
+    250559,
+    84380
+   ],
+   [
+    258775,
+    2167
+   ],
+   [
+    278325,
+    18133
+   ],
+   [
+    297507,
+    19166
+   ],
+   [
+    300157,
+    2450
+   ],
+   [
+    312456,
+    7383
+   ],
+   [
+    320473,
+    7816
+   ],
+   [
+    328706,
+    8033
+   ],
+   [
+    334522,
+    5733
+   ],
+   [
+    341405,
+    6466
+   ],
+   [
+    348722,
+    6850
+   ],
+   [
+    358338,
+    9500
+   ],
+   [
+    365054,
+    6633
+   ],
+   [
+    372304,
+    6900
+   ],
+   [
+    379021,
+    6633
+   ],
+   [
+    387487,
+    8283
+   ],
+   [
+    393937,
+    6300
+   ],
+   [
+    401286,
+    7266
+   ],
+   [
+    408186,
+    6800
+   ],
+   [
+    416069,
+    7833
+   ],
+   [
+    423519,
+    7383
+   ],
+   [
+    431952,
+    8383
+   ],
+   [
+    439785,
+    7716
+   ],
+   [
+    447651,
+    7333
+   ],
+   [
+    459084,
+    11050
+   ],
+   [
+    476333,
+    6233
+   ],
+   [
+    490066,
+    8516
+   ],
+   [
+    497782,
+    7500
+   ],
+   [
+    505665,
+    7466
+   ],
+   [
+    514598,
+    8433
+   ],
+   [
+    523698,
+    9033
+   ],
+   [
+    530914,
+    6916
+   ],
+   [
+    539297,
+    8250
+   ],
+   [
+    546664,
+    7316
+   ],
+   [
+    556747,
+    9583
+   ],
+   [
+    574496,
+    8033
+   ]
+  ]
+ }
+}
