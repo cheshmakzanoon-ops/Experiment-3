@@ -1,5 +1,7 @@
 import { clamp, lerp, smooth } from '../core/math.ts';
 import type { WeatherPreset } from './config.ts';
+import { MATERIAL, MATERIALS, materialGrip } from './surface-material.ts';
+import { H } from './protocol.ts';
 
 /** SI units except rain (mm/hour) and explicit Celsius. Direction is where the
  * air travels: zero is +Z, pi/2 is +X; this is not meteorological 'wind from'.
@@ -16,7 +18,13 @@ import type { WeatherPreset } from './config.ts';
  *  - gustMS: peak extra wind speed (m/s) of the gust envelope on top of the
  *    mean wind. The envelope is a pure function of session time.
  *  - moistureMmHr: water deposited on the surface without rainfall (fog drip
- *    and dew), mm/hour water equivalent. */
+ *    and dew), mm/hour water equivalent.
+ *  - fogCover01: how much of the sun a ground fog shades from the PAVEMENT,
+ *    on top of `cloudCover01` (the sky). A radiation fog forms under a clear
+ *    sky: the surface sees no sun while the air above the bank is bright. The
+ *    surface heat balance and humidity read the combined cover
+ *    (`groundCloud`); the snapshot's cloud slot and so the sky, the sun and
+ *    the grade carry the sky alone. Omitted means 0: the sky is all there is. */
 export interface WeatherKeyframe {
   timeSec: number;
   cloudCover01: number;
@@ -28,6 +36,7 @@ export interface WeatherKeyframe {
   dust01?: number;
   gustMS?: number;
   moistureMmHr?: number;
+  fogCover01?: number;
 }
 export interface WeatherState {
   cloud: number;
@@ -40,9 +49,13 @@ export interface WeatherState {
   dust?: number;
   gust?: number;
   moisture?: number;
+  fogCover?: number;
 }
 const LIMITS: Record<
-  Exclude<keyof WeatherKeyframe, 'visibilityM' | 'dust01' | 'gustMS' | 'moistureMmHr'>,
+  Exclude<
+    keyof WeatherKeyframe,
+    'visibilityM' | 'dust01' | 'gustMS' | 'moistureMmHr' | 'fogCover01'
+  >,
   readonly [number, number]
 > = {
   timeSec: [0, 86400],
@@ -60,14 +73,20 @@ export const CLEAR_VISIBILITY_M = 30000;
  * meteorological visibility, V = 3.912 / sigma. */
 export const KOSCHMIEDER = 3.912;
 const OPTIONAL: Record<
-  'visibilityM' | 'dust01' | 'gustMS' | 'moistureMmHr',
+  'visibilityM' | 'dust01' | 'gustMS' | 'moistureMmHr' | 'fogCover01',
   readonly [number, number, number]
 > = {
   visibilityM: [20, 50000, CLEAR_VISIBILITY_M],
   dust01: [0, 1, 0],
   gustMS: [0, 30, 0],
   moistureMmHr: [0, 5, 0],
+  fogCover01: [0, 1, 0],
 };
+/** Cloud cover the PAVEMENT sees: the sky's, plus the shade of a ground fog.
+ * Exactly the sky's cover when there is no fog cover. */
+export function groundCloud(cloud: number, fogCover: number) {
+  return fogCover > 0 ? 1 - (1 - cloud) * (1 - fogCover) : cloud;
+}
 /** The wind never exceeds the validated 40 m/s even with a gust on top. */
 const MAX_WIND = LIMITS.windSpeedMS[1];
 
@@ -354,6 +373,7 @@ export class WeatherTimeline {
         : Math.exp(lerp(Math.log(a.visibilityM!), Math.log(b.visibilityM!), t));
     out.dust = lerp(a.dust01!, b.dust01!, t);
     out.moisture = lerp(a.moistureMmHr!, b.moistureMmHr!, t);
+    out.fogCover = lerp(a.fogCover01!, b.fogCover01!, t);
     const gustPeak = lerp(a.gustMS!, b.gustMS!, t);
     out.gust = gustPeak > 0 ? gustPeak * gustEnvelope(timeSec) : 0;
     // Interpolate direction on the short arc: 350° -> 10° crosses north, not south.
@@ -376,6 +396,217 @@ export class WeatherTimeline {
   }
 }
 
+/** Precipitation phase. The timeline carries ONE precipitation channel
+ * (`rainRateMmHr`, water equivalent) and the air temperature decides what it
+ * falls as: rain at or above `rainAboveC`, snow at or below `snowBelowC`, a
+ * smooth sleet blend between. Everything that reads the channel for liquid
+ * water (spray, wet look, lens drops, rain hiss) takes `liquidRain`, so no
+ * header slot or protocol change is needed and every preset that stays above
+ * 2 C (all the original ones) is untouched: `snowShare` is exactly 0 there. */
+export const PRECIPITATION = Object.freeze({ snowBelowC: 0, rainAboveC: 2 });
+export function snowShare(ambientC: number) {
+  return Number.isFinite(ambientC)
+    ? 1 - smooth(PRECIPITATION.snowBelowC, PRECIPITATION.rainAboveC, ambientC)
+    : 0;
+}
+/** The part of a precipitation rate that arrives as liquid water (mm/h). */
+export function liquidRain(precipMmHr: number, ambientC: number) {
+  const snow = snowShare(ambientC);
+  return snow === 0 ? precipMmHr : precipMmHr * (1 - snow);
+}
+/** Liquid precipitation (mm/h) of a presented snapshot: what wets surfaces,
+ * throws spray and speckles a lens. Snow is `snowfallMmHr` of the same slots. */
+export function frameLiquidRain(frame: ArrayLike<number>) {
+  return liquidRain(frame[H.RAIN], frame[H.AMBIENT]);
+}
+/** The part that arrives as snow (mm/h water equivalent). */
+export function snowfallMmHr(precipMmHr: number, ambientC: number) {
+  const snow = snowShare(ambientC);
+  return snow === 0 ? 0 : precipMmHr * snow;
+}
+
+/** Frozen cover on the road: snow that has fallen, or a water film that has
+ * frozen, held per surface cell as millimetres of water equivalent. Reduced
+ * model with the physics that matters at a race pace:
+ *  - Snowfall adds to the cover at the water-equivalent rate (plus the cell's
+ *    catchment variation). A short session barely changes it (3.4 mm/h is
+ *    0.06 mm a minute): the cover is mostly the state the day starts in.
+ *  - Phase change is an enthalpy balance on the thin surface node
+ *    (`settlePhase`): a surface above 0 C with cover melts it, spending
+ *    `surfaceCapacity x T` joules at 334 kJ/kg and pinning the surface at 0 C
+ *    while any cover remains; a surface below 0 C with liquid water freezes
+ *    it and the latent heat warms the node toward 0 C. So a thaw is slow and
+ *    a hard frost glazes only as much water as the cold road can freeze.
+ *  - Grip (`frozenGripFactor`) blends loose snow (surface-material.ts SNOW,
+ *    mu 0.30 of dry asphalt) with polished ice (ICE, 0.12) by how much the
+ *    cell is glazed, and both stiffen as it gets colder
+ *    (`materialGrip` meltSensitive: -21 % at -4 C, -45 % at 0.5 C). A winter
+ *    construction recovers a share of what the cover takes away.
+ * `rubber` (laid by the earlier sessions along the racing line) stands for
+ * traffic polish: where cars have driven the cover is worn thin and the rest
+ * compacted and glazed (dark, polished wheel tracks, partly bare), beside the
+ * line it is deep, loose snow. Fresh cover thicker than a few millimetres of
+ * water equivalent hides the glaze again. */
+export const FROST = Object.freeze({
+  /** Water equivalent (mm) at which the cell counts as fully covered. */
+  fullCoverMm: 0.8,
+  /** Cap of accumulation (mm w.e.): ploughing and drift keep a road below it. */
+  maxCoverMm: 6,
+  /** Latent heat of fusion: J per kg, which is J per m^2 per mm of water. */
+  latentHeat: 3.34e5,
+  /** Rubber coverage that counts as a fully polished racing line. */
+  polishRubber: 0.45,
+  /** Fresh cover (mm w.e.) that starts, and completely, hiding the glaze. */
+  hideFrom: 0.8,
+  hideTo: 4,
+  /** Rolling resistance a fully covered road adds (coefficient). */
+  rolling: 0.012,
+  /** Share of the way from loose snow to bare ice that a fully polished
+   * (traffic-compacted) cover reaches. Packed snow is not glare ice: half way
+   * keeps a polished line near 0.17 of dry grip against 0.25 for fresh snow
+   * at -4.5 C, which is what compacted snow measures (mu 0.15 to 0.25). */
+  glazeIce: 0.5,
+});
+/** Coverage 0..1 of a cell: a trace is a patchy frost, 0.8 mm w.e. a white road. */
+export function frozenCover(frozenMm: number) {
+  return frozenMm > 0 ? smooth(0, FROST.fullCoverMm, frozenMm) : 0;
+}
+/** Glaze 0..1: how polished the cover is (the racing line) rather than fresh. */
+export function glazeShare(rubber: number, frozenMm: number) {
+  return (
+    clamp(rubber / FROST.polishRubber, 0, 1) * (1 - 0.6 * smooth(FROST.hideFrom, FROST.hideTo, frozenMm))
+  );
+}
+/** Share of the loss to snow and ice a tyre construction wins back (sipes,
+ * snow-trapping blocks, studs): independent recoveries of compound and family. */
+export function winterRecovery(compoundShare: number, familyShare = 0) {
+  return 1 - (1 - compoundShare) * (1 - familyShare);
+}
+/** Friction of a FULLY covered surface relative to dry racing asphalt (the
+ * same scale as `MATERIALS[..].grip`): loose snow toward polished ice by the
+ * glaze, cold-stiffened, plus the construction's winter recovery. Independent
+ * of how much of the cell the cover hides (`frozenCover` does that). */
+export function frozenSurfaceGrip(
+  frozenMm: number,
+  rubber: number,
+  waterMm: number,
+  tempC: number,
+  recovery = 0,
+) {
+  const snow = materialGrip(MATERIALS[MATERIAL.SNOW], waterMm, tempC),
+    ice = materialGrip(MATERIALS[MATERIAL.ICE], waterMm, tempC),
+    glaze = glazeShare(rubber, frozenMm),
+    base = lerp(snow, ice, glaze * FROST.glazeIce);
+  return base + (1 - base) * recovery;
+}
+/** Friction of a cell with `frozenMm` of cover relative to dry racing asphalt:
+ * the covered fraction at the covered grip, the rest bare road. Exactly 1 when
+ * there is no cover. */
+export function frozenGripFactor(
+  frozenMm: number,
+  rubber: number,
+  waterMm: number,
+  tempC: number,
+  recovery = 0,
+) {
+  const cover = frozenCover(frozenMm);
+  if (cover <= 0) return 1;
+  return lerp(1, frozenSurfaceGrip(frozenMm, rubber, waterMm, tempC, recovery), cover);
+}
+/** The surface id a wheel reports in the snapshot (W.SURFACE): the road's own
+ * id, unless the cell is at least half covered, when the tread is rolling on
+ * snow, or on ice where the cover is glazed. Audio and spray then hear and
+ * throw what is really under the tyre; the physics keeps its own contact. */
+export function reportedSurface(surface: number, frozenMm: number | undefined, rubber: number) {
+  if (!frozenMm || frozenMm <= 0 || surface > 5 || frozenCover(frozenMm) < 0.5) return surface;
+  return glazeShare(rubber, frozenMm) > 0.5 ? MATERIAL.ICE : MATERIAL.SNOW;
+}
+/** Race control's reading of the conditions: how little the drivers can see
+ * and how much water the road carries. Original rules (not a claim of any
+ * sporting regulation), built on the same two numbers the drivers use:
+ *  - `safePaceMS(V)`: the speed from which a driver can stop inside the
+ *    visible distance V with a 1 s reaction and 8 m/s^2 of braking in poor
+ *    conditions, v = a (sqrt(t^2 + 2 V / a) - t). 100 m of view is 32.8 m/s,
+ *    the virtual-safety-car pace; 60 m is 24 m/s; 35 m is 17 m/s.
+ *  - Levels: 1 reduced pace (virtual safety car) below 100 m or 3.5 mm of
+ *    standing water on average; 2 safety car below 60 m or 5 mm; 3 suspended
+ *    (red flag: the field stops behind a stationary safety car) below 35 m or
+ *    7 mm. A level is left only when the reading is 25 % clear of its
+ *    threshold, so a fog bank or a squall that flickers around a line does not
+ *    flap the race between flags.
+ * The shipped presets sit outside the lines on purpose: Dawn fog opens at
+ * 110 m, the dust storm at 170 m, the thunderstorm holds 2.1 to 2.5 mm; a
+ * denser bank (authored weather, a keyframe table with a lower visibility)
+ * or a deluge crosses them. */
+export const VISIBILITY_RULES = Object.freeze({
+  reducedBelowM: 100,
+  safetyCarBelowM: 60,
+  suspendBelowM: 35,
+  waterReducedMm: 3.5,
+  waterSafetyCarMm: 5,
+  waterSuspendMm: 7,
+  release: 1.25,
+  braking: 8,
+  reaction: 1,
+});
+export type RaceHazard = 0 | 1 | 2 | 3;
+export function safePaceMS(visibilityM: number) {
+  if (!Number.isFinite(visibilityM) || visibilityM <= 0) return 0;
+  const { braking: a, reaction: t } = VISIBILITY_RULES;
+  return a * (Math.sqrt(t * t + (2 * visibilityM) / a) - t);
+}
+export function raceHazard(
+  visibilityM: number,
+  meanWaterMm: number,
+  previous: RaceHazard = 0,
+): RaceHazard {
+  if (!Number.isFinite(visibilityM) || !Number.isFinite(meanWaterMm)) return previous;
+  const r = VISIBILITY_RULES,
+    // 1 + number of lines crossed, with the release margin for the level held.
+    level = (held: boolean, level: number, vis: number, water: number): boolean => {
+      const margin = held ? r.release : 1,
+        v = [r.reducedBelowM, r.safetyCarBelowM, r.suspendBelowM][level - 1],
+        w = [r.waterReducedMm, r.waterSafetyCarMm, r.waterSuspendMm][level - 1];
+      return vis < v * margin || water > w / margin;
+    };
+  let hazard: RaceHazard = 0;
+  for (const l of [1, 2, 3] as const) if (level(previous >= l, l, visibilityM, meanWaterMm)) hazard = l;
+  return hazard;
+}
+
+/** Pace a driver holds on a covered road (1 on a clear one). Snow and ice give
+ * a low, flat friction peak with a long, gentle slide beyond it: a car on the
+ * edge does not snap, it creeps wide, and corrections come late. Drivers keep
+ * a margin below what the grip alone would allow: the floor is the share of
+ * the envelope speed kept on a fully covered road. Pace only, like
+ * `visibilityPace`; the tyre model's grip is untouched. */
+export const FROST_PACE = Object.freeze({ floor: 0.7 });
+export function frozenPace(frozenMm: number | undefined) {
+  return frozenMm && frozenMm > 0 ? 1 - (1 - FROST_PACE.floor) * frozenCover(frozenMm) : 1;
+}
+/** Enthalpy-limited phase change of one surface cell over a step: melts cover
+ * above 0 C, freezes liquid water below 0 C, conserving
+ * `capacity x dT = L x dm` (capacity J/m^2/K, masses mm w.e.). */
+export interface PhaseCell {
+  surface: number;
+  water: number;
+  frozen: number;
+}
+export function settlePhase(cell: PhaseCell, capacity: number) {
+  if (cell.surface > 0 && cell.frozen > 0) {
+    const melt = Math.min(cell.frozen, (capacity * cell.surface) / FROST.latentHeat);
+    cell.frozen -= melt;
+    cell.water += melt;
+    cell.surface -= (melt * FROST.latentHeat) / capacity;
+  } else if (cell.surface < 0 && cell.water > 0) {
+    const freeze = Math.min(cell.water, (capacity * -cell.surface) / FROST.latentHeat);
+    cell.water -= freeze;
+    cell.frozen = Math.min(FROST.maxCoverMm, cell.frozen + freeze);
+    cell.surface += (freeze * FROST.latentHeat) / capacity;
+  }
+  return cell;
+}
+
 const calmSpeed = Math.hypot(1.5, 0.6),
   calmDirection = Math.atan2(1.5, 0.6);
 /** Original scenario calibration, not a real-world meteorological forecast.
@@ -390,7 +621,12 @@ const calmSpeed = Math.hypot(1.5, 0.6),
  *  - storm: 52-64 mm/h cell, a 6.5-10.5 m/s wind with 4-11 m/s gusts
  *    (gust speeds to ~21 m/s, Beaufort 8-9) and a 900-4000 m rain curtain.
  *  - dust: a hot desert haboob. 39 C, 9.5-12 m/s wind gusting to 21 m/s, 170 m
- *    minimum visibility, dust-laden air that settles a loose film. */
+ *    minimum visibility, dust-laden air that settles a loose film.
+ *  - snow: a cold snowfall. -3.5 to -4 C, 2.4 to 3.4 mm/h water equivalent
+ *    (heavy snow, about 3 cm/h of flakes, which the precipitation channel
+ *    carries as snow because the air is below freezing), 420 to 950 m of
+ *    visibility in the squall, easing to open air by 25 min; a light, steady
+ *    breeze. The road starts snow-covered (`weatherSurfaceStart`). */
 export function weatherKeyframes(preset: WeatherPreset): readonly WeatherKeyframe[] {
   const frame = (
     timeSec: number,
@@ -400,7 +636,7 @@ export function weatherKeyframes(preset: WeatherPreset): readonly WeatherKeyfram
     windSpeedMS = calmSpeed,
     windDirection = calmDirection,
     extra: Partial<
-      Pick<WeatherKeyframe, 'visibilityM' | 'dust01' | 'gustMS' | 'moistureMmHr'>
+      Pick<WeatherKeyframe, 'visibilityM' | 'dust01' | 'gustMS' | 'moistureMmHr' | 'fogCover01'>
     > = {},
   ): WeatherKeyframe => ({
     timeSec,
@@ -417,13 +653,20 @@ export function weatherKeyframes(preset: WeatherPreset): readonly WeatherKeyfram
     case 'rain':
       return [frame(0, 0.95, 24, 19)];
     case 'fog':
+      // Radiation fog: a clear sky over a shallow bank. `cloudCover01` is the
+      // sky (0.12, a few high wisps) and `fogCover01` the shade the bank puts on
+      // the pavement; groundCloud(0.12, f) is the cover the preset has always
+      // had (0.82, 0.82, 0.70, 0.50, 0.30, 0.20), so the road's heat and
+      // humidity balance is as before while the sun is no longer shut out of the
+      // sky and the grade. The sun the bank itself smothers is the renderer's
+      // (weather-atmosphere.ts), from the extinction.
       return [
-        frame(0, 0.82, 0, 8, 0.8, 0.6, { visibilityM: 110, moistureMmHr: 0.3 }),
-        frame(180, 0.82, 0, 8.5, 0.8, 0.6, { visibilityM: 130, moistureMmHr: 0.3 }),
-        frame(420, 0.7, 0, 10.5, 1.1, 0.5, { visibilityM: 280, moistureMmHr: 0.22 }),
-        frame(720, 0.5, 0, 13.5, 1.4, 0.4, { visibilityM: 900, moistureMmHr: 0.1 }),
-        frame(1020, 0.3, 0, 16, 2, 0.3, { visibilityM: 4200, moistureMmHr: 0.02 }),
-        frame(1500, 0.2, 0, 18.5, 2.4, 0.3, { visibilityM: 18000 }),
+        frame(0, 0.12, 0, 8, 0.8, 0.6, { visibilityM: 110, moistureMmHr: 0.3, fogCover01: 0.7955 }),
+        frame(180, 0.12, 0, 8.5, 0.8, 0.6, { visibilityM: 130, moistureMmHr: 0.3, fogCover01: 0.7955 }),
+        frame(420, 0.12, 0, 10.5, 1.1, 0.5, { visibilityM: 280, moistureMmHr: 0.22, fogCover01: 0.6591 }),
+        frame(720, 0.12, 0, 13.5, 1.4, 0.4, { visibilityM: 900, moistureMmHr: 0.1, fogCover01: 0.4318 }),
+        frame(1020, 0.12, 0, 16, 2, 0.3, { visibilityM: 4200, moistureMmHr: 0.02, fogCover01: 0.2045 }),
+        frame(1500, 0.12, 0, 18.5, 2.4, 0.3, { visibilityM: 18000, fogCover01: 0.0909 }),
       ];
     case 'storm':
       return [
@@ -443,6 +686,15 @@ export function weatherKeyframes(preset: WeatherPreset): readonly WeatherKeyfram
         frame(420, 0.55, 0, 38, 11.5, 2.5, { visibilityM: 190, dust01: 1, gustMS: 8 }),
         frame(720, 0.35, 0, 37, 9, 2.4, { visibilityM: 520, dust01: 1, gustMS: 5 }),
         frame(1100, 0.2, 0, 36, 6.5, 2.3, { visibilityM: 2500, dust01: 1, gustMS: 3 }),
+      ];
+    case 'snow':
+      return [
+        frame(0, 0.96, 2.4, -3.5, 3.2, 0.7, { visibilityM: 800, gustMS: 2 }),
+        frame(120, 0.98, 3.4, -4, 3.8, 0.75, { visibilityM: 420, gustMS: 3 }),
+        frame(360, 0.97, 2, -4, 3, 0.7, { visibilityM: 950, gustMS: 2 }),
+        frame(720, 0.9, 0.8, -3.5, 2.2, 0.6, { visibilityM: 2600, gustMS: 1 }),
+        frame(1100, 0.7, 0.1, -3, 1.6, 0.5, { visibilityM: 9000 }),
+        frame(1500, 0.5, 0, -2.5, 1.2, 0.4, { visibilityM: 16000 }),
       ];
     case 'changeable':
       return [
@@ -465,7 +717,13 @@ export function weatherKeyframes(preset: WeatherPreset): readonly WeatherKeyfram
  * from the physics of their own morning: cold damp fog, a lukewarm storm
  * road, sun-baked desert tarmac. `waterMm` is the base film; the wet presets
  * add the same gentle spatial variation the rain preset always had. */
-export function weatherSurfaceStart(preset: WeatherPreset) {
+export function weatherSurfaceStart(preset: WeatherPreset): {
+  tempC: number;
+  waterMm: number;
+  waterVariationMm: number;
+  /** Snow cover at the start (mm water equivalent, off the racing line). */
+  frozenMm?: number;
+} {
   switch (preset) {
     case 'rain':
       return { tempC: 22, waterMm: 0.7, waterVariationMm: 0.35 };
@@ -475,6 +733,11 @@ export function weatherSurfaceStart(preset: WeatherPreset) {
       return { tempC: 18, waterMm: 0.8, waterVariationMm: 0.4 };
     case 'dust':
       return { tempC: 49, waterMm: 0, waterVariationMm: 0 };
+    case 'snow':
+      // A cold-soaked road under 1.6 cm of settled snow (1 mm of water
+      // equivalent is about 1 cm of fresh snow): the surface sits slightly
+      // below the air, as a night radiating to a clear sky leaves it.
+      return { tempC: -4.5, waterMm: 0, waterVariationMm: 0, frozenMm: 1.7 };
     case 'clear':
     case 'changeable':
       return { tempC: 34, waterMm: 0, waterVariationMm: 0 };

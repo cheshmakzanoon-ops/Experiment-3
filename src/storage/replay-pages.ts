@@ -1,6 +1,12 @@
 import { CAR_STRIDE, HEADER, F, H, carBase, PROTOCOL_VERSION } from '../simulation/protocol.ts';
 import { allFinite, clamp } from '../core/math.ts';
 
+/** Words per road cell in a recorded surface keyframe: water (mm x 1000),
+ * rubber, marbles and snow / ice cover (frozen / FROZEN_FULL_SCALE_MM), all
+ * 16-bit. Cover is zero in every warm preset. */
+export const SURFACE_WORDS = 4;
+/** Cover (mm water equivalent) that maps to the 16-bit full scale. */
+export const FROZEN_FULL_SCALE_MM = 8;
 export interface SurfaceRecord {
   time: number;
   data: Uint16Array;
@@ -132,6 +138,7 @@ export class SessionReplay {
   private decodedWater = new Float32Array(0);
   private decodedRubber = new Float32Array(0);
   private decodedMarbles = new Float32Array(0);
+  private decodedFrozen = new Float32Array(0);
   private decodedSurface: SurfaceRecord | null = null;
   constructor(
     readonly cars: number,
@@ -195,18 +202,28 @@ export class SessionReplay {
     this.current.count++;
     this.totalCount++;
   }
-  recordSurface(water: Float32Array, rubber: Float32Array, time: number, marbles?: Float32Array) {
+  recordSurface(
+    water: Float32Array,
+    rubber: Float32Array,
+    time: number,
+    marbles?: Float32Array,
+    frozen?: Float32Array,
+  ) {
     if (this.closed || this.failure) return;
     if (
       !(water instanceof Float32Array) ||
       !(rubber instanceof Float32Array) ||
       water.length === 0 ||
-      (this.surface !== null && water.length * 3 !== this.surface.data.length) ||
+      (this.surface !== null && water.length * SURFACE_WORDS !== this.surface.data.length) ||
       water.length !== rubber.length ||
       (marbles !== undefined &&
         (!(marbles instanceof Float32Array) ||
           marbles.length !== water.length ||
           !allFinite(marbles))) ||
+      (frozen !== undefined &&
+        (!(frozen instanceof Float32Array) ||
+          frozen.length !== water.length ||
+          !allFinite(frozen))) ||
       !Number.isFinite(time) ||
       time < 0 ||
       !allFinite(water) ||
@@ -216,11 +233,14 @@ export class SessionReplay {
       return;
     }
     if (this.surface && time <= this.surface.time) return;
-    const data = new Uint16Array(water.length * 3);
+    const data = new Uint16Array(water.length * SURFACE_WORDS);
     for (let i = 0; i < water.length; i++) {
-      data[i * 3] = Math.round(clamp(water[i], 0, 65.535) * 1000);
-      data[i * 3 + 1] = Math.round(clamp(rubber[i], 0, 1) * 65535);
-      data[i * 3 + 2] = Math.round(clamp(marbles?.[i] ?? 0, 0, 1) * 65535);
+      data[i * SURFACE_WORDS] = Math.round(clamp(water[i], 0, 65.535) * 1000);
+      data[i * SURFACE_WORDS + 1] = Math.round(clamp(rubber[i], 0, 1) * 65535);
+      data[i * SURFACE_WORDS + 2] = Math.round(clamp(marbles?.[i] ?? 0, 0, 1) * 65535);
+      data[i * SURFACE_WORDS + 3] = Math.round(
+        clamp((frozen?.[i] ?? 0) / FROZEN_FULL_SCALE_MM, 0, 1) * 65535,
+      );
     }
     this.surface = { time, data };
     this.surfaceHashes.set(this.surface, hashWords(data));
@@ -323,7 +343,7 @@ export class SessionReplay {
                 record.time < 0 ||
                 !(record.data instanceof Uint16Array) ||
                 !record.data.length ||
-                record.data.length % 3 !== 0 ||
+                record.data.length % SURFACE_WORDS !== 0 ||
                 (this.surface !== null && record.data.length !== this.surface.data.length) ||
                 (index > 0 &&
                   (record.time <= page.surfaces[index - 1].time ||
@@ -472,21 +492,24 @@ export class SessionReplay {
         this.decodedWater = new Float32Array(0);
         this.decodedRubber = new Float32Array(0);
         this.decodedMarbles = new Float32Array(0);
+        this.decodedFrozen = new Float32Array(0);
       }
       return;
     }
     if (surface === this.decodedSurface) return;
     this.decodedSurface = surface;
-    const size = surface.data.length / 3;
+    const size = surface.data.length / SURFACE_WORDS;
     if (size !== this.decodedWater.length) {
       this.decodedWater = new Float32Array(size);
       this.decodedRubber = new Float32Array(size);
       this.decodedMarbles = new Float32Array(size);
+      this.decodedFrozen = new Float32Array(size);
     }
     for (let i = 0; i < size; i++) {
-      this.decodedWater[i] = surface.data[i * 3] / 1000;
-      this.decodedRubber[i] = surface.data[i * 3 + 1] / 65535;
-      this.decodedMarbles[i] = surface.data[i * 3 + 2] / 65535;
+      this.decodedWater[i] = surface.data[i * SURFACE_WORDS] / 1000;
+      this.decodedRubber[i] = surface.data[i * SURFACE_WORDS + 1] / 65535;
+      this.decodedMarbles[i] = surface.data[i * SURFACE_WORDS + 2] / 65535;
+      this.decodedFrozen[i] = (surface.data[i * SURFACE_WORDS + 3] / 65535) * FROZEN_FULL_SCALE_MM;
     }
   }
   get surfaceState() {
@@ -494,6 +517,7 @@ export class SessionReplay {
       water: this.decodedWater,
       rubber: this.decodedRubber,
       marbles: this.decodedMarbles,
+      frozen: this.decodedFrozen,
       time: this.decodedSurface?.time ?? -1,
     };
   }

@@ -3,7 +3,7 @@ import { writeWheelRotation } from './wheel-rotation.ts';
 import { writeWheelContact } from './wheel-contact-state.ts';
 import { K, SKID_BASE } from './protocol.ts';
 import { clamp } from '../core/math.ts';
-import { particulateExtinctionPerKm } from './weather.ts';
+import { FROST, particulateExtinctionPerKm, reportedSurface } from './weather.ts';
 import type { AIDriver } from './ai.ts';
 import { BikeVehicle, writeBikeBlock } from './bike-vehicle.ts';
 import { gpGridForVehicles, gpGridSlot } from './gp-grid.ts';
@@ -168,7 +168,7 @@ export class Simulation {
       return;
     }
     c.nextCompound =
-      this.track.meanWater() > 0.85
+      this.track.meanWater() > 0.85 || (this.track.cold && this.track.meanFrozen() > FROST.fullCoverMm * 0.5)
         ? 'wet'
         : this.track.meanWater() > 0.3
           ? 'intermediate'
@@ -214,7 +214,15 @@ export class Simulation {
         c.retired ||
         c.inPit ||
         this.race.phase !== PHASE.RACING ||
-        !(c.input.throttle > 0.2 || c.input.reverse)
+        // On a frozen road a car can sit spinning its wheels with the throttle
+        // lifted (the driver's wheelspin cut): stationary and without progress
+        // is stranded whatever the pedal says. Warm weather keeps the original
+        // pedal-only rule.
+        !(
+          c.input.throttle > 0.2 ||
+          c.input.reverse ||
+          (this.track.cold && c.speed < 6 && !this.race.safetyCar.suspended)
+        )
       ) {
         this.strandClock[i] = 0;
         this.strandS[i] = c.s;
@@ -432,7 +440,7 @@ export class Simulation {
         out[p + W.COMPRESSION] = w.compression;
         out[p + W.DISC_TEMP] = w.discTemp;
         out[p + W.WATER] = w.water;
-        out[p + W.SURFACE] = w.surface;
+        out[p + W.SURFACE] = reportedSurface(w.surface, c.contacts[i]?.frozen, c.contacts[i]?.rubber ?? 0);
         out[p + W.ROTATION] = w.rotation;
         out[p + W.FLAT] = w.flatSpot;
         out[p + W.PRESSURE] = w.pressure;

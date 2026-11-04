@@ -243,6 +243,7 @@ export class Vehicle {
         i < 2 ? definition.tireGrip : (definition.tireGripRear ?? definition.tireGrip),
         this.looseGrip,
         dynamics.tyre,
+        this.winterGrip,
       ),
     );
     this.compoundsUsed.add(compound);
@@ -295,11 +296,16 @@ export class Vehicle {
           : (this.definition.tireGripRear ?? this.definition.tireGrip),
         this.looseGrip,
         this.physics.tyre,
+        this.winterGrip,
       );
   }
   private get looseGrip() {
     const family = this.definition.tireFamily;
     return family ? TIRE_FAMILIES[family].looseGrip : 0;
+  }
+  private get winterGrip() {
+    const family = this.definition.tireFamily;
+    return family ? TIRE_FAMILIES[family].winterGrip : 0;
   }
   /** A gripping tyre ties its wheel to the vehicle: refer that share of the
    * vehicle's inertia to the clutch while the driven tyres grip, the wheel's

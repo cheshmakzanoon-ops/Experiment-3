@@ -110,15 +110,15 @@ describe('the Wildcard board', () => {
     expect(medal('hypercar-roof-deck-attack')).toBe('gold');
     expect(bestMedal(wildcardEntry('descent-in-the-cloud')!, null)).toBeNull();
     const progress = wildcardProgress(save);
-    expect(progress.total).toBe(19);
-    expect(progress.crossDiscipline).toBe(12);
+    expect(progress.total).toBe(21);
+    expect(progress.crossDiscipline).toBe(14);
     expect(progress.medals).toEqual({ gold: 2, silver: 1, bronze: 1 });
     expect(progress.medalled).toBe(4);
     // The next event is the first (in menu order) without a medal.
     expect(progress.next?.id).toBe('karts-after-dark');
     expect(wildcardProgress(null)).toMatchObject({ medalled: 0, next: { id: series[0].id } });
     expect(html).toContain('<b>2</b><span class="wc-tally-name">GOLD</span>');
-    expect(html).toContain('<b>4</b><span class="wc-tally-name">OF 19 MEDALLED</span>');
+    expect(html).toContain('<b>4</b><span class="wc-tally-name">OF 21 MEDALLED</span>');
   });
   it('states the most an event can pay by the career own payment rules', () => {
     for (const e of series) {

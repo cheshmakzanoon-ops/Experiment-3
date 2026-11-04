@@ -11,6 +11,7 @@ import { EngineVoices } from './engine-voices.ts';
 import { PowerUnitAudio } from './power-unit.ts';
 import type { AudioView } from './spatial.ts';
 import { H } from '../simulation/protocol.ts';
+import { frameLiquidRain } from '../simulation/weather.ts';
 import { clamp, Random } from '../core/math.ts';
 import { newWeatherAmbience, weatherAmbience } from './weather-ambience.ts';
 
@@ -194,7 +195,7 @@ export class RacingAudio {
     this.thunder!.gain.setTargetAtTime(air.thunder, time, 0.03);
     this.muffle!.frequency.setTargetAtTime(air.masterLowpassHz, time, 0.4);
     this.rain!.gain.setTargetAtTime(
-      clamp(frame[H.RAIN] * 0.0025, 0, 0.12) * (1 - this.contactAttenuation) * 0.85,
+      clamp(frameLiquidRain(frame) * 0.0025, 0, 0.12) * (1 - this.contactAttenuation) * 0.85,
       time,
       0.04,
     );

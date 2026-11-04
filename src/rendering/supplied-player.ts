@@ -10,6 +10,7 @@ import { loadPlayerLods, SuppliedPlayerLods, type PlayerLodData } from './suppli
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clamp, lerp } from '../core/math.ts';
 import { F, H, R, RACE_BASE, W, WHEEL_BASE, WHEEL_STRIDE } from '../simulation/protocol.ts';
+import { frameLiquidRain } from '../simulation/weather.ts';
 import { COMPOUNDS } from '../simulation/config.ts';
 import { wheelPhase, wheelValue } from './wheel-pose.ts';
 import { contactHubLength, sampleWheelContact, wheelContactPose } from './wheel-contact.ts';
@@ -513,7 +514,7 @@ export class SuppliedPlayer {
     const style = Object.values(COMPOUNDS)[Math.round(source[o + F.COMPOUND])] ?? COMPOUNDS.medium;
     this.compound.forEach((m) => m.color.setHex(style.color));
     this.rubber.forEach(({ material, roughness }) => {
-      material.roughness = roughness * (1 - 0.3 * clamp(b[H.RAIN] / 14, 0, 1));
+      material.roughness = roughness * (1 - 0.3 * clamp(frameLiquidRain(b) / 14, 0, 1));
     });
     this.rain.forEach((m) => {
       m.emissiveIntensity = rearLampIntensity(

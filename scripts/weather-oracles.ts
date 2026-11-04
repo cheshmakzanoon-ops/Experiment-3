@@ -19,6 +19,9 @@ const conditions = () => [
 ];
 function snapshot() {
   const frame = new Float32Array(HEADER + CAR_STRIDE); frame[H.CARS] = 1;
+  // A mild day: precipitation below 2 C is snow (weather.ts snowShare), so a
+  // header left at 0 C would turn the rain fixtures into snowfall.
+  frame[H.AMBIENT] = 18;
   frame[carBase(0) + F.QW] = 1; frame[carBase(0) + F.SPEED] = 30;
   return frame;
 }

@@ -45,6 +45,9 @@ export class RainStreaks {
         ...T.UniformsUtils.clone(T.UniformsLib.fog),
         viewportSize: { value: new T.Vector2(1, 1) },
         nearPlane: { value: 0.1 },
+        /** 0 rain streaks .. 1 snow flakes: broader, brighter, rounder marks
+         * for slow particles (the pool and the instancing are shared). */
+        flake: { value: 0 },
       },
       vertexShader: `
         attribute vec3 center;
@@ -52,6 +55,7 @@ export class RainStreaks {
         attribute float opacity;
         uniform vec2 viewportSize;
         uniform float nearPlane;
+        uniform float flake;
         varying vec2 vUv;
         varying float vOpacity;
         varying vec3 vRainLight;
@@ -71,7 +75,7 @@ export class RainStreaks {
             gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
             return;
           }
-          vRainLight = vec3(.66,.76,.85)*precipitationEnergy(mvPosition.xyz);
+          vRainLight = mix(vec3(.66,.76,.85), vec3(1.15,1.2,1.3), flake)*precipitationEnergy(mvPosition.xyz);
           vec4 clip = projectionMatrix * mvPosition;
           vec4 motion = projectionMatrix * modelViewMatrix * vec4(velocity, 0.0);
           // Derivative of perspective division: includes a velocity along view Z.
@@ -80,14 +84,15 @@ export class RainStreaks {
           float extent = length(screenMotion);
           vec2 along = extent > 0.001 ? screenMotion / extent : vec2(0.0, -1.0);
           vec2 across = vec2(along.y, -along.x);
-          float halfLength = clamp(extent * 0.5, 1.0, 24.0);
-          float halfWidth = clamp(0.006 * projectionMatrix[1][1]
-            * viewportSize.y / max(0.1, -mvPosition.z), 0.55, 1.6);
+          float halfLength = mix(clamp(extent * 0.5, 1.0, 24.0), clamp(extent * 0.5, 1.8, 6.0), flake);
+          float halfWidth = clamp(mix(0.006, 0.016, flake) * projectionMatrix[1][1]
+            * viewportSize.y / max(0.1, -mvPosition.z), mix(0.55, 1.1, flake), mix(1.6, 3.2, flake));
           vec2 offset = across * position.x * halfWidth + along * position.y * halfLength;
           clip.xy += offset * 2.0 / viewportSize * clip.w;
           gl_Position = clip;
         }`,
       fragmentShader: `
+        uniform float flake;
         varying vec2 vUv;
         varying float vOpacity;
         varying vec3 vRainLight;
@@ -95,7 +100,9 @@ export class RainStreaks {
         void main() {
           float edge = 1.0 - smoothstep(0.12, 1.0, abs(vUv.x));
           float taper = 1.0 - smoothstep(0.35, 1.0, abs(vUv.y));
-          float alpha = vOpacity * edge * taper;
+          // A flake is a soft round dot, not a streak.
+          float round = 1.0 - smoothstep(0.25, 1.0, length(vUv));
+          float alpha = vOpacity * mix(edge * taper, round, flake) * mix(1.0, 2.1, flake);
           if (alpha < 0.004) discard;
           gl_FragColor = vec4(vRainLight, alpha);
           #include <tonemapping_fragment>

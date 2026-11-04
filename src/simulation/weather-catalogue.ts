@@ -6,7 +6,7 @@
  *
  * Original scenario names and wording; no real-world forecast or series
  * branding. */
-export const WEATHER_IDS = ['clear', 'changeable', 'rain', 'fog', 'storm', 'dust'] as const;
+export const WEATHER_IDS = ['clear', 'changeable', 'rain', 'fog', 'storm', 'dust', 'snow'] as const;
 export type WeatherId = (typeof WEATHER_IDS)[number];
 
 export type WeatherTyre = 'soft' | 'medium' | 'hard' | 'intermediate' | 'wet';
@@ -84,6 +84,16 @@ export const WEATHER_CATALOGUE: Readonly<Record<WeatherId, WeatherDescriptor>> =
     brief:
       'Hot desert dust storm: visibility drops to about 170 m, a strong gusting wind loads the bodywork, and a loose dust film settles on the tarmac, thinner on the racing line.',
     suggestedTyre: 'medium',
+  },
+  snow: {
+    id: 'snow',
+    option: 'Snow and ice',
+    loading: 'Snow',
+    card: 'Snowfall, packed snow and ice, sub-zero',
+    tag: 'SNOW',
+    brief:
+      'Sub-zero snowfall on a snow-covered road: deep snow gives about a quarter of dry grip and the worn, polished wheel tracks along the racing line about two-fifths, so stay in the tracks. Visibility closes to 400 m in the squall. Winter tread helps.',
+    suggestedTyre: 'wet',
   },
 });
 

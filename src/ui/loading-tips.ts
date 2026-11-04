@@ -41,6 +41,7 @@ const WEATHER_TIP: Readonly<Partial<Record<WeatherId, string>>> = Object.freeze(
   storm:
     'Storm: standing water about twice as deep as heavy rain, and gusts to 20 m/s push cars and bikes sideways. Give the wind room.',
   dust: 'Dust storm: visibility drops to about 170 m and a loose film settles on the tarmac, thinner on the racing line.',
+  snow: 'Snow: the road starts covered. Deep snow grips about a quarter of dry; the worn, polished wheel tracks along the racing line about two-fifths. Stay in the tracks, brake early, and use full wets or a winter tread.',
 });
 
 /** Every tip that is true of this session, most specific first. */

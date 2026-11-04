@@ -839,6 +839,7 @@ export class BikeVehicle extends Vehicle {
     to.water = from.water;
     to.rubber = from.rubber;
     to.marbles = from.marbles;
+    to.frozen = from.frozen;
     to.temp = from.temp;
     to.grip = from.grip;
     to.resistance = from.resistance;

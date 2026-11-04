@@ -9,6 +9,7 @@ import {
   carBase,
 } from '../simulation/protocol.ts';
 import { MATERIAL } from '../simulation/surface-material.ts';
+import { frameLiquidRain } from '../simulation/weather.ts';
 import { SURFACE } from '../simulation/track.ts';
 import { clamp, Random, TAU } from '../core/math.ts';
 import { landingDuration, landingThump } from './airborne-audio.ts';
@@ -92,7 +93,7 @@ export function contactMix(frame: Float32Array, out: ContactMix): ContactMix {
     out[key] = clamp(out[key], 0, 0.3);
   out.flat = clamp(flatWeight * 0.055, 0, 0.19);
   out.flatHz = clamp(flatRate / Math.max(flatWeight, 1e-6), 1, 80);
-  out.rain = clamp(frame[H.RAIN] * 0.0025, 0, 0.12);
+  out.rain = clamp(frameLiquidRain(frame) * 0.0025, 0, 0.12);
   out.bottom = clamp(Math.max(0, frame[o + F.BOTTOM_ENERGY]) / 150000, 0, 0.23);
   const electrical = Math.abs(frame[o + F.MOTOR_POWER]) + Math.abs(frame[o + F.REGEN_POWER]) * 0.65;
   out.hybrid = clamp(electrical / 120000, 0, 1) * 0.034;

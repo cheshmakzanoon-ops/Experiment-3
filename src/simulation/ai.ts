@@ -8,7 +8,7 @@ import {
   pitApproachTrafficSpeed,
 } from './pit-safety.ts';
 import { peakGrip, slipScale } from './tire.ts';
-import { approach, clamp, G, mod, Vec3 } from '../core/math.ts';
+import { approach, clamp, G, mod, smooth, Vec3 } from '../core/math.ts';
 import { racingSession } from './config.ts';
 import { FORMULA_APX01, type CapabilityEnvelope } from './vehicles.ts';
 import { PHASE, type RaceDirector } from './race.ts';
@@ -460,6 +460,9 @@ export class AIDriver {
       command.throttle,
       0.2 + 0.8 * Math.sqrt(Math.max(0, 1 - lateralUsage * lateralUsage)),
     );
+    // Snow or ice under the front tyre and a low grip ratio: 1 anywhere else.
+    const lowGrip =
+      (c.contacts[0].frozen ?? 0) > 0 && grip < 0.35 ? smooth(0.08, 0.35, grip) : 1;
     // A driver feathers the pedal against wheelspin (rear slip ratio above the
     // traction peak) rather than holding it flat through a slide.
     // Thresholds are relative to the tyre's present force peak (0.08 and 0.12
@@ -469,12 +472,28 @@ export class AIDriver {
       spinLimit = 0.08 * Math.min(slipScale(c.tires[2]), slipScale(c.tires[3]));
     if (wheelspin > spinLimit)
       command.throttle *= clamp(1 - ((wheelspin - spinLimit) * 5) / slipScale(c.tires[2]), 0.05, 1);
+    // On ice (a covered cell, grip ratio under ~0.35) a driven wheel turning at
+    // twice the road speed or more is spinning, not gripping: even a trickle of
+    // throttle (the floor above, an engine at idle) keeps it there and the car
+    // creeps for minutes. Lift fully until the tyre bites. Wet and dry surfaces,
+    // where a standing start legitimately spins past 100 %, keep the original
+    // logic.
+    if (wheelspin > 1 && lowGrip < 1) command.throttle = 0;
     // The driven axle's combined friction use (tyre-model output): drive slip
     // costs lateral grip, so power is fed in only while the driven tyres keep
     // a margin on their friction ellipse (power oversteer / understeer).
     const driven = c.definition.drivetrain === 'fwd' ? 0 : 2,
       drivenUse = Math.max(c.tires[driven].usage, c.tires[driven + 1].usage);
-    if (drivenUse > 0.9) command.throttle *= clamp(1 - (drivenUse - 0.9) * 5, 0.25, 1);
+    // On ice and snow (a covered cell and a grip ratio below ~0.35) even a
+    // quarter throttle is far more thrust than the driven tyres can hold, so
+    // the floor falls with grip; anywhere else (every wet and dry surface,
+    // slick on standing water included) it is the original 0.25.
+    // It also starts easing earlier (at 70 % use, not 90 %): a driven axle held
+    // at its limit has no grip left to hold the car against the bend.
+    const tractionFloor = 0.25 * lowGrip,
+      useLimit = 0.9 - 0.2 * (1 - lowGrip);
+    if (drivenUse > useLimit)
+      command.throttle *= clamp(1 - (drivenUse - useLimit) * 5, tractionFloor, 1);
     // Braking shares the same friction circle: at the cornering limit the
     // pedal is squeezed, not stamped, and eased off a locking wheel. Losing
     // the rear under braking is worse than missing a traffic target.

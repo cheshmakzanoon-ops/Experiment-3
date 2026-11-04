@@ -13,6 +13,8 @@ const PATHS = {
   /** Storm: rain cloud with a lightning bolt. */
   storm:
     '<path d="M5 12h13l2-2V6l-3-2-4 1-3-2-4 2z"/><path d="M13 12l-3 5h4l-3 5"/><path d="M6 15l-1 3M18 15l-1 3"/>',
+  /** Snow: a cloud over a six-armed flake and two falling flecks. */
+  snow: '<path d="M5 11h13l2-2V6l-3-2-4 1-3-2-4 2z"/><path d="M12 13v8M8.5 15l7 4M15.5 15l-7 4"/><path d="M4 16v2M20 16v2"/>',
   /** Dust: a low sun over blown grit lines. */
   dust: '<path d="M7 12a5 5 0 0 1 10 0"/><path d="M12 3v2M4 6l2 2M20 6l-2 2"/><path d="M3 15h9M14 15h7M5 18h6M13 18h6M8 21h8"/>',
   /** Light dial: a low sun on the horizon (sunset), a crescent (night), a clock
@@ -45,6 +47,7 @@ export const WEATHER_GLYPH: Readonly<Record<string, GlyphName>> = Object.freeze(
   fog: 'fog',
   storm: 'storm',
   dust: 'dust',
+  snow: 'snow',
 });
 /** Light choice to its glyph (light-choice.ts ids). */
 export const LIGHT_GLYPH: Readonly<Record<string, GlyphName>> = Object.freeze({

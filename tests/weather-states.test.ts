@@ -573,6 +573,9 @@ describe('race control and drivers respond to the view', () => {
 describe('atmosphere rendering state (pure functions of the presented snapshot)', () => {
   const frame = (over: Partial<Record<keyof typeof H, number>> = {}) => {
     const f = new Float32Array(HEADER + CAR_STRIDE);
+    // A mild day: precipitation below 2 C is snow (weather.ts snowShare), so a
+    // header left at 0 C would turn every RAIN fixture below into a snowfall.
+    f[H.AMBIENT] = 20;
     for (const [k, v] of Object.entries(over)) f[H[k as keyof typeof H]] = v as number;
     return f;
   };
@@ -688,6 +691,9 @@ describe('atmosphere rendering state (pure functions of the presented snapshot)'
 describe('weather ambience and HUD words', () => {
   const frame = (over: Partial<Record<keyof typeof H, number>> = {}) => {
     const f = new Float32Array(HEADER + CAR_STRIDE);
+    // A mild day: precipitation below 2 C is snow (weather.ts snowShare), so a
+    // header left at 0 C would turn every RAIN fixture below into a snowfall.
+    f[H.AMBIENT] = 20;
     for (const [k, v] of Object.entries(over)) f[H[k as keyof typeof H]] = v as number;
     return f;
   };

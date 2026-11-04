@@ -6,7 +6,7 @@ import {
   type QualityPreset,
 } from '../rendering/options.ts';
 import type { Settings } from '../storage/data.ts';
-import { CLEAR_VISIBILITY_M, KOSCHMIEDER } from '../simulation/weather.ts';
+import { CLEAR_VISIBILITY_M, KOSCHMIEDER, snowShare } from '../simulation/weather.ts';
 
 const choices: [keyof GraphicsOptions, string, (string | number)[], string[]][] = [
   [
@@ -118,7 +118,13 @@ export function bindPresentation(form: HTMLFormElement, settings: Settings) {
  * rain is already reported as rain, so a storm's rain curtain is not called
  * fog: with 10 mm/h or more falling only dust is named). Fog is named from
  * the meteorological threshold, under 1 km. */
-export function airReadout(extinctionPerKm: number, dust: number, windMS: number, rainMmHr = 0) {
+export function airReadout(
+  extinctionPerKm: number,
+  dust: number,
+  windMS: number,
+  rainMmHr = 0,
+  snowing = false,
+) {
   const parts: string[] = [];
   if (Number.isFinite(extinctionPerKm) && extinctionPerKm > 0) {
     // Koschmieder: V = 3.912 / sigma, with the clear-air baseline restored.
@@ -131,7 +137,7 @@ export function airReadout(extinctionPerKm: number, dust: number, windMS: number
         visibilityM >= 1000
           ? `${(visibilityM / 1000).toFixed(1)} KM`
           : `${Math.max(10, Math.round(visibilityM / 10) * 10)} M`;
-      parts.push(`${dusty ? 'DUST' : 'FOG'} ${view}`);
+      parts.push(`${dusty ? 'DUST' : snowing ? 'VIS' : 'FOG'} ${view}`);
     }
   }
   if (Number.isFinite(windMS) && windMS >= 8) parts.push(`WIND ${Math.round(windMS)} M/S`);
@@ -152,14 +158,19 @@ export function weatherReadout(
 ) {
   if (![ambientC, rainMmHr, meanWaterMm].every(Number.isFinite) || rainMmHr < 0 || meanWaterMm < 0)
     return 'WEATHER DATA UNAVAILABLE';
-  const rain = rainMmHr > 0.01 ? `RAIN ${rainMmHr.toFixed(1)} MM/H · ` : '';
+  // Below freezing the precipitation channel is snow (weather.ts snowShare).
+  const snowing = snowShare(ambientC) >= 0.5;
+  const rain =
+    rainMmHr > 0.01 ? `${snowing ? 'SNOW' : 'RAIN'} ${rainMmHr.toFixed(1)} MM/H · ` : '';
   const surface =
     meanWaterMm >= 0.04
       ? `TRACK AVG ${meanWaterMm.toFixed(2)} MM WATER`
-      : meanWaterMm > 0.001
-        ? 'DAMP TRACK'
-        : rainMmHr > 0.01
-          ? 'TRACK WETTING'
-          : 'DRY TRACK';
-  return `${Math.round(ambientC)}°C / ${airReadout(extinctionPerKm, dust, windMS, rainMmHr)}${rain}${surface}`;
+      : snowing
+        ? 'SNOW AND ICE ON TRACK'
+        : meanWaterMm > 0.001
+          ? 'DAMP TRACK'
+          : rainMmHr > 0.01
+            ? 'TRACK WETTING'
+            : 'DRY TRACK';
+  return `${Math.round(ambientC)}°C / ${airReadout(extinctionPerKm, dust, windMS, rainMmHr, snowing)}${rain}${surface}`;
 }

@@ -18,6 +18,7 @@ import { surfaceDampness } from '../weather-presentation.ts';
 import { iblUniforms } from '../studio/ibl-energy.ts';
 import type { WetRoadReflection } from '../wet-reflection.ts';
 import { H } from '../../simulation/protocol.ts';
+import { frameLiquidRain } from '../../simulation/weather.ts';
 import { AO_TEMPORAL, TemporalObscurance } from './ao-temporal.ts';
 import { MidCascade } from './cascades.ts';
 import {
@@ -186,7 +187,7 @@ export class UltraPipeline {
     // Shared library textures bake on every preset (a no-op when none pend).
     prepareMaterials(this.host.renderer);
     const p = frame.presented;
-    const rain = p[H.RAIN],
+    const rain = frameLiquidRain(p),
       water = p[H.WATER];
     const wet = Number.isFinite(rain) && Number.isFinite(water) ? surfaceDampness(rain, water) : 0;
     const rain01 = Number.isFinite(rain) ? Math.min(1, Math.max(0, rain / 18)) : 0;

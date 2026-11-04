@@ -158,7 +158,9 @@ export function installWetRoad(
       // ${ROAD_FILM.sheetMm[1]} mm the racing surface carries a continuous sheet of water.
       float roadSheet = max(puddle, smoothstep(${ROAD_FILM.sheetMm[0].toFixed(2)}, ${ROAD_FILM.sheetMm[1].toFixed(2)}, waterMm));
       roughnessFactor=mix(roughnessFactor,mix(0.22,0.08,roadSheet),wet);
-      roughnessFactor=mix(roughnessFactor,0.95,roadDustFilm*0.7);`,
+      roughnessFactor=mix(roughnessFactor,0.95,roadDustFilm*0.7);
+      // Fresh snow is matte; the polished line is a glassy glaze.
+      roughnessFactor=mix(roughnessFactor,mix(0.93,0.1,snowGlaze),snowCover);`,
     );
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <normal_fragment_maps>',
@@ -209,6 +211,9 @@ export function installWetRoad(
         // Rain-disturbed water broadens the highlight a little; the ripple
         // normals carry most of the disturbance.
         material.clearcoatRoughness += min(1.,roadWeather.x/18.)*roadSheet*${ROAD_FILM.rainRoughness.toFixed(3)};
+        // Glazed ice carries a clear, glassy coat; fresh snow does not.
+        material.clearcoat = max(material.clearcoat, snowCover * snowGlaze * 0.85);
+        material.clearcoatRoughness = mix(material.clearcoatRoughness, 0.12, snowCover * snowGlaze);
         // Do not erase Three's geometric specular filtering when replacing its
         // coat roughness. Add bounded normal-footprint variance for unresolved
         // aggregate/ripples; no frame history, exposure trick or extra sampling.
@@ -253,7 +258,7 @@ export function installWetRoad(
       );
   };
   material.customProgramCacheKey = () =>
-    `${previousKey}|apex-physical-asphalt-v6-water-sheet|water-fresnel-footprint-v1|venue-lamp-footprint-v1|road-macro-v1|road-damp-dust-v1${reflection ? '|wet-planar-v1' : ''}`;
+    `${previousKey}|apex-physical-asphalt-v6-water-sheet|water-fresnel-footprint-v1|venue-lamp-footprint-v1|road-macro-v1|road-damp-dust-v1|road-snow-ice-v1${reflection ? '|wet-planar-v1' : ''}`;
 }
 
 /** At grazing angles, collapsed screen derivatives can make the stock bump

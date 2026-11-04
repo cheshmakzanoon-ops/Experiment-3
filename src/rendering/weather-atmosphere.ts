@@ -1,7 +1,13 @@
 import * as T from 'three';
 import { clamp, lerp, smooth } from '../core/math.ts';
 import { H } from '../simulation/protocol.ts';
-import { effectiveVisibilityM, lightningFlash, lightningIntensity } from '../simulation/weather.ts';
+import {
+  effectiveVisibilityM,
+  lightningFlash,
+  lightningIntensity,
+  liquidRain,
+  snowfallMmHr,
+} from '../simulation/weather.ts';
 import {
   aerialUniforms,
   setAerialExtinction,
@@ -35,7 +41,26 @@ export const WEATHER_LOOK = Object.freeze({
   /** Scale height (m) of the obscuring layer: fog bank, dust column. */
   fogScaleHeight: 240,
   dustScaleHeight: 650,
-  fog: Object.freeze({ sun: 0.45, fill: 1.35, exposure: 1.06, veil: 0.92, veilReach: 0.55 }),
+  fog: Object.freeze({
+    sun: 0.45,
+    fill: 1.35,
+    exposure: 1.06,
+    veil: 0.92,
+    veilReach: 0.55,
+    /** Golden hour (the circuit's sunset lighting) over a ground fog is a dawn:
+     * a low sun behind a shallow bank is lit through its length, so the bank
+     * glows with the sun's colour rather than closing it out. The bank still
+     * smothers the disc, much less, and the haze takes the warm chroma. */
+    golden: Object.freeze({
+      sun: 0.92,
+      fill: 1.12,
+      /** Linear chroma of the lit bank, normalised to luminance 1. */
+      chroma: Object.freeze([1.0, 0.84, 0.68] as const),
+      brightness: 1.08,
+      sunTint: Object.freeze([1.0, 0.8, 0.58] as const),
+      skyTint: Object.freeze([1.0, 0.86, 0.7] as const),
+    }),
+  }),
   dust: Object.freeze({
     sun: 0.14,
     fill: 1.7,
@@ -47,6 +72,20 @@ export const WEATHER_LOOK = Object.freeze({
     sunTint: Object.freeze([1.0, 0.55, 0.24] as const),
     skyTint: Object.freeze([0.92, 0.56, 0.3] as const),
     fogBrightness: 0.8,
+  }),
+  /** Falling snow and a settled white ground: a soft, cool, shadowless light
+   * (the sun is mostly lost in the deck, the sky and the white ground fill),
+   * and a bluish haze. `cover` is the settled scenery cover (0..1). */
+  snow: Object.freeze({
+    sun: 0.75,
+    fill: 1.18,
+    exposure: 1.04,
+    /** Extra fill a white ground bounces back up at full cover. */
+    bounce: 1.12,
+    /** Exposure given back at full cover so a white road does not clip. */
+    coverExposure: 0.93,
+    chroma: Object.freeze([0.88, 0.97, 1.12] as const),
+    fogBrightness: 0.96,
   }),
   storm: Object.freeze({
     sun: 0.8,
@@ -73,6 +112,10 @@ export interface WeatherAtmosphere {
   fog: number;
   dustAmount: number;
   storm: number;
+  /** Falling snow 0..1 (water-equivalent rate against its onset and full). */
+  snow: number;
+  /** Settled snow on the scenery 0..1 (from the road-surface keyframe). */
+  cover: number;
   flash: number;
   /** FogExp2 density that puts the unlit fallback at ~98 % at the visibility. */
   exp2Density: number;
@@ -91,6 +134,8 @@ export const newWeatherAtmosphere = (): WeatherAtmosphere => ({
   fog: 0,
   dustAmount: 0,
   storm: 0,
+  snow: 0,
+  cover: 0,
   flash: 0,
   exp2Density: 0,
   sunScale: 1,
@@ -104,11 +149,22 @@ const finite = (v: number) => (Number.isFinite(v) ? v : 0);
 
 /** Read the obscuring air from a presented snapshot. Missing or non-finite
  * channels (older recordings) read as clear air. */
-export function weatherAtmosphere(frame: Float32Array, out = newWeatherAtmosphere()) {
+export function weatherAtmosphere(
+  frame: Float32Array,
+  out = newWeatherAtmosphere(),
+  /** Settled scenery cover 0..1 (weather-presentation.ts sceneryCover). */
+  cover = 0,
+) {
   const look = WEATHER_LOOK;
   out.extinctionPerKm = Math.max(0, finite(frame[H.EXTINCTION]));
   out.dust = clamp(finite(frame[H.DUST]), 0, 1);
-  out.rain = Math.max(0, finite(frame[H.RAIN]));
+  // Below freezing the precipitation channel is snow, not rain: rain extinction,
+  // wet surfaces and lightning follow the liquid part only.
+  const precipitation = Math.max(0, finite(frame[H.RAIN])),
+    ambient = Number.isFinite(frame[H.AMBIENT]) ? frame[H.AMBIENT] : 20;
+  out.rain = Math.max(0, liquidRain(precipitation, ambient));
+  out.snow = smooth(0.05, 1.2, snowfallMmHr(precipitation, ambient));
+  out.cover = clamp(finite(cover), 0, 1);
   out.time = finite(frame[H.TIME]);
   out.visibilityM = effectiveVisibilityM(out.extinctionPerKm, out.rain);
   const body = smooth(look.onsetPerKm, look.fullPerKm, out.extinctionPerKm);
@@ -120,12 +176,19 @@ export function weatherAtmosphere(frame: Float32Array, out = newWeatherAtmospher
   out.sunScale =
     lerp(1, look.fog.sun, out.fog) *
     lerp(1, look.dust.sun, out.dustAmount) *
-    lerp(1, look.storm.sun, out.storm);
-  out.fillScale = lerp(1, look.fog.fill, out.fog) * lerp(1, look.dust.fill, out.dustAmount);
+    lerp(1, look.storm.sun, out.storm) *
+    lerp(1, look.snow.sun, out.snow);
+  out.fillScale =
+    lerp(1, look.fog.fill, out.fog) *
+    lerp(1, look.dust.fill, out.dustAmount) *
+    lerp(1, look.snow.fill, out.snow) *
+    lerp(1, look.snow.bounce, out.cover);
   out.exposureScale =
     lerp(1, look.fog.exposure, out.fog) *
     lerp(1, look.dust.exposure, out.dustAmount) *
-    lerp(1, look.storm.exposure, out.storm);
+    lerp(1, look.storm.exposure, out.storm) *
+    lerp(1, look.snow.exposure, out.snow) *
+    lerp(1, look.snow.coverExposure, out.cover);
   return out;
 }
 
@@ -141,13 +204,20 @@ export interface DaylightRecord {
   fogGreen: number;
   fogBlue: number;
 }
-export function adjustDaylight(daylight: DaylightRecord, a: WeatherAtmosphere, night = false) {
+export function adjustDaylight(
+  daylight: DaylightRecord,
+  a: WeatherAtmosphere,
+  night = false,
+  /** Golden-hour lighting (sunset): fog becomes a warm dawn bank. */
+  golden = false,
+) {
   const look = WEATHER_LOOK;
-  if (a.extinctionPerKm <= 0 && a.storm <= 0) return daylight;
+  if (a.extinctionPerKm <= 0 && a.storm <= 0 && a.snow <= 0 && a.cover <= 0) return daylight;
+  const dawn = golden && !night ? a.fog : 0;
   // Floodlit nights keep their authored exposure; the obscuring air still
   // extinguishes (aerial uniforms) and recolours the haze.
-  daylight.sun *= night ? 1 : a.sunScale;
-  daylight.fill *= night ? 1 : a.fillScale;
+  daylight.sun *= night ? 1 : a.sunScale * lerp(1, look.fog.golden.sun / look.fog.sun, dawn);
+  daylight.fill *= night ? 1 : a.fillScale * lerp(1, look.fog.golden.fill / look.fog.fill, dawn);
   daylight.exposure *= night ? 1 : a.exposureScale;
   daylight.fogDensity = Math.max(daylight.fogDensity, a.exp2Density);
   if (a.dustAmount > 0) {
@@ -157,6 +227,30 @@ export function adjustDaylight(daylight: DaylightRecord, a: WeatherAtmosphere, n
     const norm = 1 / (0.2126 * r + 0.7152 * g + 0.0722 * b);
     const k = a.dustAmount * 0.92,
       target = luma * look.dust.fogBrightness * norm;
+    daylight.fogRed = lerp(daylight.fogRed, target * r, k);
+    daylight.fogGreen = lerp(daylight.fogGreen, target * g, k);
+    daylight.fogBlue = lerp(daylight.fogBlue, target * b, k);
+  }
+  if (dawn > 0) {
+    // The bank takes the colour of the low sun: its own haze brightness in the
+    // warm chroma, so a golden-hour fog glows instead of greying.
+    const luma = 0.2126 * daylight.fogRed + 0.7152 * daylight.fogGreen + 0.0722 * daylight.fogBlue;
+    const [r, g, b] = look.fog.golden.chroma;
+    const norm = 1 / (0.2126 * r + 0.7152 * g + 0.0722 * b);
+    const k = dawn * 0.8,
+      target = luma * look.fog.golden.brightness * norm;
+    daylight.fogRed = lerp(daylight.fogRed, target * r, k);
+    daylight.fogGreen = lerp(daylight.fogGreen, target * g, k);
+    daylight.fogBlue = lerp(daylight.fogBlue, target * b, k);
+  }
+  if (a.snow > 0 || a.cover > 0) {
+    // Cold, bluish haze over snow: the lighting's own haze brightness in a
+    // cool hue (the air over a white ground reads blue-white, not brown).
+    const luma = 0.2126 * daylight.fogRed + 0.7152 * daylight.fogGreen + 0.0722 * daylight.fogBlue;
+    const [r, g, b] = look.snow.chroma;
+    const norm = 1 / (0.2126 * r + 0.7152 * g + 0.0722 * b);
+    const k = Math.max(a.snow, a.cover * 0.6) * 0.8,
+      target = luma * look.snow.fogBrightness * norm;
     daylight.fogRed = lerp(daylight.fogRed, target * r, k);
     daylight.fogGreen = lerp(daylight.fogGreen, target * g, k);
     daylight.fogBlue = lerp(daylight.fogBlue, target * b, k);
@@ -174,7 +268,21 @@ export function tintLights(
   sun: { color: T.Color },
   hemisphere: { color: T.Color },
   a: WeatherAtmosphere,
+  /** Golden-hour lighting: a fog bank warms the key and the sky light. */
+  golden = false,
 ) {
+  if (golden && a.fog > 0) {
+    const [sr, sg, sb] = WEATHER_LOOK.fog.golden.sunTint,
+      [kr, kg, kb] = WEATHER_LOOK.fog.golden.skyTint,
+      s = a.fog * 0.8,
+      k = a.fog * 0.7;
+    sun.color.r = lerp(sun.color.r, sun.color.r * sr, s);
+    sun.color.g = lerp(sun.color.g, sun.color.g * sg, s);
+    sun.color.b = lerp(sun.color.b, sun.color.b * sb, s);
+    hemisphere.color.r = lerp(hemisphere.color.r, hemisphere.color.r * kr, k);
+    hemisphere.color.g = lerp(hemisphere.color.g, hemisphere.color.g * kg, k);
+    hemisphere.color.b = lerp(hemisphere.color.b, hemisphere.color.b * kb, k);
+  }
   if (a.dustAmount <= 0) return;
   const [sr, sg, sb] = WEATHER_LOOK.dust.sunTint,
     [kr, kg, kb] = WEATHER_LOOK.dust.skyTint,

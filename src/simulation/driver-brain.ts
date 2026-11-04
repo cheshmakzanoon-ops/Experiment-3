@@ -10,7 +10,7 @@ import type { RaceDirector } from './race.ts';
 import type { Track } from './track.ts';
 import { trackPoint } from './track.ts';
 import type { DriverPersonality } from './traffic.ts';
-import { trackVisibilityM, visibilityPace } from './weather.ts';
+import { FROST, frozenPace, trackVisibilityM, visibilityPace } from './weather.ts';
 import type { Vehicle } from './vehicle.ts';
 
 /** Seeded correlated control mistakes. The stochastic hazard changes requests,
@@ -183,10 +183,17 @@ export class DriverBrain {
     // Fog, dust and heavy rain shorten the view: drivers lift in proportion
     // to what they can see (1 in clear air, so the dry race is unchanged).
     const sight = visibilityPace(trackVisibilityM(track));
+    // Snow and ice under the front tyre: keep a margin (weather.ts frozenPace).
+    const covered = frozenPace(car.contacts[0].frozen);
     this.pace =
-      (1 - this.tireCare * 0.035 - wet * (1 - traits.wetSkill) * 0.07) *
-      (1 - 0.22 * mismatch) *
-      sight;
+      covered === 1
+        ? (1 - this.tireCare * 0.035 - wet * (1 - traits.wetSkill) * 0.07) *
+          (1 - 0.22 * mismatch) *
+          sight
+        : (1 - this.tireCare * 0.035 - wet * (1 - traits.wetSkill) * 0.07) *
+          (1 - 0.22 * mismatch) *
+          sight *
+          covered;
     const caution = yellowFlag(race.control.flags[car.id]);
     const safe = !car.inPit && !car.pitRequested && !car.finishTime && !car.retired && !caution;
     const reserve = 4e6 * (0.13 + 0.12 * traits.tireManagement);
@@ -215,8 +222,12 @@ export class DriverBrain {
       car.s < track.length - track.pit.exitBefore
     ) {
       const compound = car.tires[0].compound;
-      const wrongWet = water > 0.18 && compound !== 'intermediate' && compound !== 'wet';
-      const wrongDry = water < 0.05 && (compound === 'intermediate' || compound === 'wet');
+      // A snow-covered road wants the siped wet tread though no liquid water
+      // lies on it (weather.ts WINTER_COMPOUND); only a track that can freeze asks.
+      const covered = track.cold && track.meanFrozen() > FROST.fullCoverMm * 0.5;
+      const wrongWet =
+        (water > 0.18 || covered) && compound !== 'intermediate' && compound !== 'wet';
+      const wrongDry = !covered && water < 0.05 && (compound === 'intermediate' || compound === 'wet');
       // Endurance: one planned stop onto a different dry compound, in a window
       // set by the driver's tyre management (kinder drivers stop later).
       const lap = race.laps[car.id];
@@ -234,7 +245,7 @@ export class DriverBrain {
       ) {
         car.pitRequested = true;
         car.nextCompound =
-          water > 0.9
+          water > 0.9 || covered
             ? 'wet'
             : water > 0.16
               ? 'intermediate'

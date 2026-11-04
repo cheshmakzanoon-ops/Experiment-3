@@ -2,7 +2,8 @@ import { K, SKID_BASE } from '../simulation/protocol.ts';
 import * as T from 'three';
 import { Random, clamp } from '../core/math.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../simulation/protocol.ts';
-import { renderWind } from '../simulation/weather.ts';
+import { liquidRain, renderWind, snowShare } from '../simulation/weather.ts';
+import { MIST, mistAmount } from './mist.ts';
 import { RainStreaks } from './rain-streaks.ts';
 import { SprayClouds, SPRAY_PROFILE } from './spray-clouds.ts';
 import { markAll, markItems } from './attribute-ranges.ts';
@@ -103,6 +104,8 @@ export class Effects {
   );
   private viewport = new T.Vector4();
   private rainEmission = 0;
+  private snowEmission = 0;
+  private mistEmission = 0;
   /** Roofed ground (tunnels) where no rain is born; null everywhere open. */
   sheltered: ((x: number, z: number) => boolean) | null = null;
   /** Optional venue adapter for catalogue wheel positions. It writes the
@@ -248,7 +251,7 @@ export class Effects {
     floor = y,
     tint?: readonly [number, number, number],
     profile: number = SPRAY_PROFILE.DEFAULT,
-  ) {
+  ): number {
     const isRain = kind === PARTICLE_KIND.RAIN;
     const i = isRain ? EFFECT_CAPACITY.contact + this.rainCursor : this.cursor,
       p = i * 3,
@@ -299,6 +302,7 @@ export class Effects {
     this.colors[p] = color[0];
     this.colors[p + 1] = color[1];
     this.colors[p + 2] = color[2];
+    return i;
   }
   private marblePickup(frame: Float32Array, emit: boolean, density: number) {
     const time = frame[H.TIME];
@@ -504,11 +508,19 @@ export class Effects {
           }
         }
       }
-    if (emit && frame[H.RAIN] > 0) {
+    // Below freezing the precipitation channel falls as snow (weather.ts
+    // snowShare): slow, wind-drifted flakes in the same bounded pool. Above 2 C
+    // the share is exactly 0 and this is the original rain path.
+    const precipitation = frame[H.RAIN],
+      snowing = snowShare(frame[H.AMBIENT]),
+      liquid = liquidRain(precipitation, frame[H.AMBIENT]),
+      snowfall = precipitation - liquid;
+    this.rain.material.uniforms.flake.value = snowing;
+    if (emit && liquid > 0) {
       const o = carBase(0);
       // Keep fractional births: floor(rate*dt) every frame erased light rain at
       // high FPS. This accumulator measures elapsed time, not render frequency.
-      this.rainEmission += clamp(frame[H.RAIN], 0, 100) * dt * 40 * density;
+      this.rainEmission += clamp(liquid, 0, 100) * dt * 40 * density;
       const births = Math.min(this.count, Math.floor(this.rainEmission + 1e-9));
       this.rainEmission = Math.max(0, this.rainEmission - births);
       for (let i = 0; i < births; i++) {
@@ -521,6 +533,61 @@ export class Effects {
         this.spawn(x, y, z, this.windX, -15, this.windZ, PARTICLE_KIND.RAIN);
       }
     } else if (emit) this.rainEmission = 0;
+    if (emit && snowfall > 0) {
+      const o = carBase(0);
+      // 3.4 mm/h of water equivalent (heavy snow) is ~190 flakes a second, each
+      // lasting 4-6 s as it falls the 9 m of the volume at 0.9-1.9 m/s.
+      this.snowEmission += clamp(snowfall, 0, 8) * dt * 55 * density;
+      const births = Math.min(this.count, Math.floor(this.snowEmission + 1e-9));
+      this.snowEmission = Math.max(0, this.snowEmission - births);
+      for (let i = 0; i < births; i++) {
+        const x = frame[o] + (r.next() - 0.5) * 36,
+          y = frame[o + 1] + 0.3 + r.next() * 9,
+          z = frame[o + 2] + (r.next() - 0.5) * 36;
+        if (this.sheltered?.(x, z)) continue;
+        // Flakes follow the wind loosely and flutter: a per-flake sideways drift.
+        const k = this.spawn(
+          x,
+          y,
+          z,
+          this.windX * 0.7 + (r.next() - 0.5) * 1.1,
+          -(0.9 + r.next() * 1),
+          this.windZ * 0.7 + (r.next() - 0.5) * 1.1,
+          PARTICLE_KIND.RAIN,
+        );
+        this.life[k] = this.maxLife[k] = 4 + r.next() * 2;
+      }
+    } else if (emit) this.snowEmission = 0;
+    // Ground mist: a few large, faint, slow wisps drifting at knee height in a
+    // fog bank, in the soft-cloud pool. None in clear air, rain, dust or snow.
+    const mist = mistAmount(frame[H.EXTINCTION], frame[H.DUST], snowing);
+    if (emit && mist > 0) {
+      const o = carBase(0);
+      this.mistEmission += MIST.rate * mist * dt * density;
+      const births = Math.min(MIST.maxBirths, Math.floor(this.mistEmission + 1e-9));
+      this.mistEmission = Math.max(0, this.mistEmission - births);
+      for (let i = 0; i < births; i++) {
+        const x = frame[o] + (r.next() - 0.5) * MIST.spread,
+          z = frame[o + 2] + (r.next() - 0.5) * MIST.spread,
+          ground = frame[o + 1] - 0.35,
+          y = ground + 0.15 + r.next() * 0.9;
+        if (this.sheltered?.(x, z)) continue;
+        const k = this.spawn(
+          x,
+          y,
+          z,
+          this.windX * 0.85 + (r.next() - 0.5) * 0.5,
+          0.02,
+          this.windZ * 0.85 + (r.next() - 0.5) * 0.5,
+          PARTICLE_KIND.SMOKE,
+          MIST.owner,
+          ground,
+        );
+        this.life[k] = this.maxLife[k] = MIST.life[0] + r.next() * (MIST.life[1] - MIST.life[0]);
+        this.sizes[k] = MIST.size[0] + r.next() * (MIST.size[1] - MIST.size[0]);
+        this.gravity[k] = 0;
+      }
+    } else if (emit) this.mistEmission = 0;
     const entrainment = -Math.expm1(-dt * 0.65);
     // Only live particles change (a dead one already holds zero opacity, set
     // in the step it expired or by clear()). Track the changed span of each
@@ -575,9 +642,12 @@ export class Effects {
               : this.kind[i] === PARTICLE_KIND.RAIN
                 ? 0.34
                 : this.kind[i] === PARTICLE_KIND.SMOKE
-                  ? 0.42
+                  ? this.owners[i] === MIST.owner
+                    ? MIST.alpha
+                    : 0.42
                   : 0.31);
-        if (this.kind[i] === PARTICLE_KIND.SMOKE) this.sizes[i] += dt * 0.95;
+        if (this.kind[i] === PARTICLE_KIND.SMOKE)
+          this.sizes[i] += dt * (this.owners[i] === MIST.owner ? MIST.growth : 0.95);
         else if (this.kind[i] === PARTICLE_KIND.DUST) this.sizes[i] += dt * 0.6;
       }
     }

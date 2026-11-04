@@ -263,22 +263,22 @@ const logged = async (page: Page) =>
     unknown
   >[];
 
-test('wildcard door opens the board: 19 events, arrow keys select, START is wired', async ({
+test('wildcard door opens the board: 21 events, arrow keys select, START is wired', async ({
   page,
 }) => {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await load(page);
   const door = page.getByRole('button', {
-    name: /^WILDCARD SERIES, 19 events, 12 cross-discipline/,
+    name: /^WILDCARD SERIES, 21 events, 14 cross-discipline/,
   });
   await expect(door).toBeVisible();
-  await expect(door).toContainText('0 OF 19 MEDALLED');
+  await expect(door).toContainText('0 OF 21 MEDALLED');
   await door.click();
   const board = page.locator('.wc-board');
   await expect(board).toBeVisible();
   const rows = page.locator('.wc-row');
-  await expect(rows).toHaveCount(19);
+  await expect(rows).toHaveCount(21);
   // One radio group, one tab stop, the chosen event focused and showing its page.
   const checked = () => page.locator('.wc-row[aria-checked="true"]');
   await expect(checked()).toHaveCount(1);
@@ -336,7 +336,7 @@ test('the door shows medal progress; CONTINUE relaunches the last entry in one i
   // No remembered entry yet: no CONTINUE.
   await expect(page.getByRole('button', { name: /^CONTINUE/ })).toHaveCount(0);
   await page.evaluate(() => window.LaunchBoard.setProgress());
-  await expect(page.locator('.lb-wild')).toContainText('1 OF 19 MEDALLED');
+  await expect(page.locator('.lb-wild')).toContainText('1 OF 21 MEDALLED');
   await expect(page.locator('.lb-wild')).toHaveAttribute('title', 'Next: FORMULA ON THE WALL');
   // A remembered form entry writes the same selects and launches: one input.
   await page.evaluate(() => window.LaunchBoard.setContinue('form'));

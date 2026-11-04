@@ -63,6 +63,7 @@ import { ReducedCar, carLod } from './lod.ts';
 import { box, canvasTexture, cockpitShell, mergeStatic, mesh, rod } from './geometry.ts';
 import { COMPOUNDS, LIVERIES } from '../simulation/config.ts';
 import { F, H, W, WHEEL_BASE, WHEEL_STRIDE } from '../simulation/protocol.ts';
+import { frameLiquidRain } from '../simulation/weather.ts';
 import { WHEEL_POSITIONS } from '../simulation/vehicle.ts';
 import { clamp, lerp } from '../core/math.ts';
 /** G15: true only in an owner build (MOTOBOUND_SUPPLIED_PLAYER=1); see src/build-flags.d.ts. */
@@ -700,7 +701,7 @@ export class FormulaCar {
       if (b[w + W.LOAD] > 20) contactWater += Math.max(0, b[w + W.WATER]) / 4;
     }
     const wetPaint = Math.max(
-      clamp(b[H.RAIN] / 14, 0, 1),
+      clamp(frameLiquidRain(b) / 14, 0, 1),
       clamp((contactWater * Math.abs(b[o + F.SPEED])) / 25, 0, 1),
     );
     for (const material of this.reflectivePaint)
@@ -740,7 +741,7 @@ export class FormulaCar {
         wheelValue(a, b, o, p, W.GRAINING, t),
       );
       this.treads[i].surface.value.x = tireWetAppearance(
-        b[H.RAIN],
+        frameLiquidRain(b),
         wheelValue(a, b, o, p, W.WATER, t),
         wheelValue(a, b, o, p, W.LOAD, t),
         b[o + F.SPEED],
