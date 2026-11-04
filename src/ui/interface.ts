@@ -47,7 +47,7 @@ import { DeviceCalibrationPanel } from './device-calibration.ts';
 import { developerMode } from './dev-mode.ts';
 import { LOADING_TIPS, loadingStage } from './loading-copy.ts';
 import { loadingTipsFor, type TipDiscipline } from './loading-tips.ts';
-import { circuitArtSvg, regionArtSvg } from './track-art.ts';
+import { circuitArt, circuitArtSvg, regionArtSvg } from './track-art.ts';
 import type { WildcardEntry } from '../career/wildcard-series.ts';
 import { gridDrs } from '../simulation/drs.ts';
 import {
@@ -207,12 +207,13 @@ import {
   dialHtml,
   installHudIdentity,
   installLaunchBoard,
+  showroomWindowOf,
   type LaunchBoard,
 } from './launch-board.ts';
 import type { ContinueEntry } from './continue-entry.ts';
 import { bindWildcardBoard, type WildcardProgress } from './wildcard-board.ts';
 import { lightOptionsHtml, type LightChoice } from '../rendering/light-choice.ts';
-import { glyph } from './glyphs.ts';
+import { glyph, plateSvg } from './glyphs.ts';
 import { bindQualityGuide, qualityGuideHtml, readGpuName } from './settings-guide.ts';
 import { resultRows, resultsBoardHtml, type ResultsNext } from './results-board.ts';
 import {
@@ -221,7 +222,7 @@ import {
   firstRunHtml,
   type FirstRunDevice,
 } from './first-run.ts';
-import type { BoardDiscipline } from './disciplines.ts';
+import { DISCIPLINE_SPECS, disciplineOf, type BoardDiscipline } from './disciplines.ts';
 import { MenuGamepad } from './menu-gamepad.ts';
 import { uiCue } from './ui-cue.ts';
 import { SOLVANE } from '../simulation/open-world/region-data.ts';
@@ -259,6 +260,8 @@ interface Callbacks {
   light?: (choice: LightChoice) => void;
   /** A session was launched from the board's form: what CONTINUE should remember. */
   remember?: (entry: ContinueEntry) => void;
+  /** The strip between the board and the paddock rail changed (fractions of the viewport width). */
+  showroomWindow?: (free: { left: number; right: number }) => void;
 }
 /** DOM writes only when the value changed: unchanged writes still dirty layout. */
 function writeText(e: Element, value: string) {
@@ -354,7 +357,6 @@ export class Interface {
      <div class="lb-sheet-row"><div class="lb-map" id="venueMap" aria-hidden="true"></div><div class="lb-sheet-body"><div class="eyebrow"><i></i> <span id="circuitEyebrow">${th('ORIGINAL')}</span></div>
      <div id="circuitStats" class="lb-stats"><span><b id="circuitLength">${fixed(track.length / 1000, 3)}</b> ${th('KM')}</span><span><b id="circuitTurns">${track.circuit.corners.length}</b> ${th('TURNS')}</span><span><b id="circuitDrs">${track.circuit.drsZones.length}</b> ${th(DRS_ZONES, { n: track.circuit.drsZones.length })}</span></div><div id="regionStats" class="lb-stats" hidden></div><p class="session-rules circuit-blurb" id="circuitBlurb">${escapeHtml(circuitBlurb(track.circuit.id))}</p></div></div></section>
     ${dialHtml('vehicle', N_('MACHINE'), 'wheel', `<select id="vehicle" aria-describedby="machineBlurb">${machineSelectOptions()}</select>`, 'lb-dial-machine')}
-    <p class="session-rules machine-blurb" id="machineBlurb"></p>
     ${dialHtml('mode', N_('SESSION'), 'flag', `<select id="mode"><option value="race">${th('Grand Prix')}</option><option value="practice">${th('Free practice')}</option><option value="time-trial">${th('Time trial · ghost')}</option><option value="qualifying">${th('Race weekend · qualifying')}</option><option value="endurance">${th('Endurance · mandatory stop')}</option><option value="festival">${th('Festival · open world')}</option></select>`)}
     ${dialHtml('laps', N_('DISTANCE'), 'laps', `<select id="laps"><option value="1">${th('1 lap · Sprint')}</option><option value="3" selected>${th('3 laps · Standard')}</option><option value="5">${th('5 laps')}</option><option value="10">${th('10 laps')}</option><option value="15">${th('15 laps · Endurance')}</option><option value="25">${th('25 laps · Endurance')}</option></select>`)}
     ${dialHtml('weather', N_('WEATHER'), 'sun', `<select id="weather">${weatherOptionsHtml(th)}</select>`)}
@@ -371,7 +373,7 @@ export class Interface {
        ? '<div class="dev-tools" role="group" aria-label="Developer tools"><span>DEV</span><button data-action="references">REFERENCE REVIEW</button><button data-action="sessionReview">SESSION 146 EVIDENCE</button></div>'
        : ''
    }</div>
-   <div class="car-label"><span>APX–01</span><b>FORMULA / HYBRID</b><div>770 KG DRY · 8 SPEED · 4 MJ ERS</div></div>
+   <div class="car-card"><div class="car-label"><span>APX–01</span><b>FORMULA / HYBRID</b><div>770 KG DRY · 8 SPEED · 4 MJ ERS</div></div><p class="machine-blurb" id="machineBlurb"></p></div>
    <footer class="menu-footer"><span class="menu-keys" aria-hidden="true"><span data-device="keys"><kbd>TAB</kbd> ${th('MOVE')} · <kbd>←</kbd><kbd>→</kbd> ${th('CHANGE')} · <kbd>ENTER</kbd> ${th('GO')}</span><span data-device="pad"><kbd>A</kbd> ${th('SELECT')} · <kbd>B</kbd> ${th('BACK')} · <kbd>LB</kbd><kbd>RB</kbd> ${th('DISCIPLINE')} · <kbd>START</kbd> ${th('GO')}</span></span><span class="menu-hint"><kbd>WASD</kbd> / <kbd>ARROWS</kbd> ${th('DRIVE')} · <kbd>G</kbd> ${th('AI DRIVER')} · ${th('GAMEPAD READY')}</span><span id="buildIdentity"${DEV ? '' : ' hidden'}>DEV BUILD</span></footer>
   </section>
   <section id="hud" class="hud" hidden>
@@ -564,6 +566,16 @@ export class Interface {
     // handler (mode, weather, rules preview, motocross presenter) has run.
     board = installLaunchBoard(this.menu);
     this.board = board;
+    // The showroom machine is centred and fitted in the strip the board and the rail leave free.
+    if (typeof ResizeObserver !== 'undefined') {
+      const report = () => {
+        const free = showroomWindowOf(this.menu);
+        if (free) this.callbacks.showroomWindow?.(free);
+      };
+      const watch = new ResizeObserver(report);
+      for (const node of [this.menu, ...this.menu.querySelectorAll('.lb-board, .menu-actions')])
+        watch.observe(node);
+    }
     // Last: every HUD sheet has been appended inside #hud by now (race-day, compact, F1, bike).
     installHudIdentity(this.hud);
     this.get('light').addEventListener('change', () => {
@@ -729,6 +741,33 @@ export class Interface {
       .filter(Boolean)
       .join('  ·  ');
   }
+  /** Who is loading: the discipline's own plate (shape, numeral and colour, as on the paddock board),
+   * its pit-board message, the machine, and the venue's length and corners. This is what tells a
+   * circuit load from a dirt or a festival one at a glance; the same plate the player chose. */
+  private loadingIdentity(options: SessionOptions, machine: string, festival: boolean) {
+    const loading = this.get('loading');
+    const discipline: BoardDiscipline = disciplineOf({
+      mode: options.mode ?? 'race',
+      circuit: options.circuit ?? '',
+      vehicle: options.vehicles?.[0] ?? 'apx01',
+    });
+    const spec = DISCIPLINE_SPECS[discipline];
+    loading.dataset.discipline = discipline;
+    let plate = loading.querySelector<HTMLElement>('.loading-plate');
+    if (!plate) {
+      plate = document.createElement('div');
+      plate.className = 'loading-plate';
+      plate.setAttribute('aria-hidden', 'true');
+      this.get('loadingMap').before(plate);
+    }
+    const stats = festival
+      ? `<span><b>${SOLVANE.events.length}</b> ${th('EVENTS')}</span><span><b>${SOLVANE.roads.length}</b> ${th('ROADS')}</span><span><b>${SOLVANE.towns.length}</b> ${th('TOWNS')}</span>`
+      : (() => {
+          const def = circuitDefinition(options.circuit);
+          return `<span><b>${fixed(circuitArt(def).length / 1000, 3)}</b> ${th('KM')}</span><span><b>${def.corners.length}</b> ${th('TURNS')}</span>`;
+        })();
+    plate.innerHTML = `<span class="lp-art">${plateSvg(spec.shape, spec.numeral, festival ? 'SOLVANE' : '')}</span><span class="lp-text"><b>${th(spec.label)}</b><span class="lp-motto">${th(spec.motto)}</span><span class="lp-machine">${escapeHtml(machine.toUpperCase())}</span><span class="lp-stats">${stats}</span></span>`;
+  }
   /** The loading board for a session: the venue's real line art (the same curve the
    * race uses, or the festival region) and a tip chosen for this discipline,
    * weather and light, in the player's own keys (loading-tips.ts). */
@@ -753,6 +792,7 @@ export class Interface {
           : 'circuit';
     map.dataset.kind = festival ? 'festival' : bike ? 'gp' : offroad ? 'dirt' : 'circuit';
     const first = vehicleDefinition(options.vehicles?.[0] ?? 'apx01');
+    this.loadingIdentity(options, first.name, festival);
     const race = options.mode === 'race' || options.mode === 'endurance';
     const tips = loadingTipsFor({
       discipline,

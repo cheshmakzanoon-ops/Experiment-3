@@ -55,6 +55,10 @@
   border-color: var(--mb-amber);
   color: var(--mb-ink);
 }
+/* The count keeps the tab's ink on amber (faint chalk on amber read 1.5:1). */
+.rc-tabs button[aria-pressed='true'] small {
+  color: var(--mb-ink);
+}
 .rc-body {
   overflow: auto;
   min-height: 0;

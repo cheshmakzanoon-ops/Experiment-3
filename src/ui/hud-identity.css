@@ -149,8 +149,24 @@
   border-radius: 2px;
   font-style: normal;
 }
+/* The controls a player has to read mid-race (the dock under the instruments and the VEHICLE
+   toggle) were 8 and 9 px; they are not under a scaled panel, so this is the size on screen.
+   The labels inside the scaled panels (tyre letter, sector tags, the GP panel's captions) are
+   still 7 to 9 px and need their own pass (docs/studio/reports/ux4.md, open items). */
+#hud .hud-actions button,
+#hud .hud-actions kbd,
+#hud .vehicle-toggle,
+#hud .icon-button {
+  font-size: var(--mb-f-label);
+}
 /* The player's own tower row is the marshal's highlighter, as on the results sheet:
    f1-hud.css paints it from --hud-player-row and --hud-player-text (amber on ink above). */
+/* A player who also holds the fastest lap keeps the timing purple, and light text on it (the
+   player rule's ink on purple read 3.7:1; chalk is 4.5:1). */
+#hud .tower-row.player[data-fastest] > :is(b, span, small, em),
+#hud[data-f1] .tower-row.player[data-fastest] > :is(b, span, small, em) {
+  color: var(--mb-chalk);
+}
 #hud button:focus-visible,
 #hud [tabindex]:focus-visible {
   outline: 2px solid var(--mb-amber);

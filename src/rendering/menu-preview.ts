@@ -68,6 +68,123 @@ export const BIKE_SHOWROOM = Object.freeze({
   aim: 0.72,
 });
 
+/** The strip of the canvas (fractions of its width, 0 = left edge) the paddock menu leaves free for
+ * the machine: between the right edge of the board and the left edge of the paddock rail. The
+ * interface measures it from the real layout (`Interface.showroomWindow`); null means "no
+ * measurement" and the camera keeps the authored `shift`. */
+export interface ShowroomWindow {
+  readonly left: number;
+  readonly right: number;
+}
+/** The machine's extent in its own frame (m): x across, z along (the nose is +z). Either the collision
+ * box the showroom lens was authored against (a 5 m formula car spans 5.0 m across the frame at the
+ * 41 degree orbit) or the drawn meshes' box (`measureShowroomBox`). */
+export interface ShowroomBox {
+  readonly minX: number;
+  readonly maxX: number;
+  readonly minZ: number;
+  readonly maxZ: number;
+}
+/** What the menu camera needs to know about the lens to place a machine. */
+export interface ShowroomLens {
+  readonly radius: number;
+  readonly fov: number;
+  readonly angle: number;
+  readonly sway: number;
+}
+/** The car keeps this share of the free strip, so the nose and tail stay clear of both panels. */
+export const SHOWROOM_FILL = 0.94;
+/** The camera may back off to at most this multiple of the authored radius to fit a machine. */
+export const SHOWROOM_MAX_BACKOFF = 2.2;
+
+/** Where the machine's box lands across the frame (normalised device x, -1 left, +1 right) for a
+ * camera at `angle` (rad, car frame; 0 looks at the nose) and `radius` metres, aimed `shift`
+ * metres to the left of the car (the same construction as the renderer's menu rig). The camera
+ * is treated as level: its few degrees of pitch do not move the left and right extremes. */
+export function showroomSpan(
+  box: ShowroomBox,
+  angle: number,
+  radius: number,
+  shift: number,
+  fov: number,
+  aspect: number,
+) {
+  const ax = radius * Math.sin(angle),
+    az = radius * Math.cos(angle);
+  // The camera's right-hand direction at the authored aim; the gaze moves against it by `shift`.
+  const rightX = Math.cos(angle),
+    rightZ = -Math.sin(angle);
+  let dx = -shift * rightX - ax,
+    dz = -shift * rightZ - az;
+  const length = Math.hypot(dx, dz);
+  dx /= length;
+  dz /= length;
+  const tan = Math.tan((fov * Math.PI) / 360) * aspect;
+  let left = Infinity,
+    right = -Infinity;
+  for (const cx of [box.minX, box.maxX])
+    for (const cz of [box.minZ, box.maxZ]) {
+      const px = cx - ax,
+        pz = cz - az;
+      const x = (-dz * px + dx * pz) / ((dx * px + dz * pz) * tan);
+      left = Math.min(left, x);
+      right = Math.max(right, x);
+    }
+  return { left, right };
+}
+const orbitAngles = (lens: ShowroomLens) =>
+  [-1, -0.5, 0, 0.5, 1].map((k) => lens.angle + k * lens.sway);
+
+/** The menu camera's radius for a machine: the authored one, backed off just far enough that the
+ * machine at its widest point of the slow orbit fits inside the free strip. */
+export function showroomRadius(
+  lens: ShowroomLens,
+  box: ShowroomBox,
+  aspect: number,
+  free: ShowroomWindow | null,
+) {
+  if (!free || !(free.right - free.left > 0.1) || !(aspect > 0)) return lens.radius;
+  const wanted = 2 * (free.right - free.left) * SHOWROOM_FILL;
+  const widest = (radius: number) =>
+    Math.max(
+      ...orbitAngles(lens).map((angle) => {
+        const span = showroomSpan(box, angle, radius, 0, lens.fov, aspect);
+        return span.right - span.left;
+      }),
+    );
+  if (widest(lens.radius) <= wanted) return lens.radius;
+  let near = lens.radius,
+    far = lens.radius * SHOWROOM_MAX_BACKOFF;
+  if (widest(far) > wanted) return far;
+  for (let step = 0; step < 24; step++) {
+    const mid = (near + far) / 2;
+    if (widest(mid) > wanted) near = mid;
+    else far = mid;
+  }
+  return far;
+}
+
+/** How far left of the car the camera aims (m) so the machine sits in the middle of the free strip
+ * at this moment of the orbit. */
+export function showroomShift(
+  lens: ShowroomLens,
+  box: ShowroomBox,
+  aspect: number,
+  free: ShowroomWindow,
+  radius: number,
+  angle: number,
+) {
+  const target = free.left + free.right - 1;
+  const metresPerUnit = radius * Math.tan((lens.fov * Math.PI) / 360) * aspect;
+  let shift = 0;
+  // Two Newton steps: the car's centre moves one NDC unit per `metresPerUnit` metres of aim.
+  for (let step = 0; step < 3; step++) {
+    const span = showroomSpan(box, angle, radius, shift, lens.fov, aspect);
+    shift += (target - (span.left + span.right) / 2) * metresPerUnit;
+  }
+  return Math.max(-0.6 * radius, Math.min(0.6 * radius, shift));
+}
+
 /** The preview car's origin above the road (FormulaCar hub anchor datum). */
 export const MENU_CAR_DATUM = VEHICLE.restLength + VEHICLE.wheelRadius - 0.05;
 

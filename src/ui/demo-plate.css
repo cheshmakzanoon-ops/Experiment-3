@@ -105,7 +105,9 @@
 
 /* Locked rows keep their place on the board and read as printed, not broken. */
 .wc-row[data-locked='true'] {
-  opacity: 0.78;
+  /* 0.78 dropped the faint caption to 4.0:1 on the row; 0.9 keeps it above 4.5:1 and the FULL GAME
+     tag, not the dimming, is what says the row is locked. */
+  opacity: 0.9;
 }
 .wc-row[data-locked='true'] .wc-row-flags {
   gap: var(--mb-s2);

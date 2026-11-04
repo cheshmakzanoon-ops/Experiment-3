@@ -13,6 +13,7 @@ import settingsGuideCss from './settings-guide.css?inline';
 import screensCss from './screens-board.css?inline';
 import demoCss from './demo-plate.css?inline';
 import recordsCss from './records-board.css?inline';
+import typeFloorCss from './type-floor.css?inline';
 import stencilUrl from './fonts/saira-stencil-one-latin-400-normal.woff2?url';
 import { LIGHT_GLYPH, WEATHER_GLYPH, glyph, plateSvg, type GlyphName } from './glyphs.ts';
 import {
@@ -56,7 +57,7 @@ export function installFrontEnd(doc: Document = document) {
   if (doc.getElementById(FRONT_END_STYLE_ID)) return false;
   const style = doc.createElement('style');
   style.id = FRONT_END_STYLE_ID;
-  style.textContent = `@font-face{font-family:'Saira Stencil One';font-style:normal;font-weight:400;font-display:swap;src:url(${stencilUrl}) format('woff2')}\n${frontEndCss}\n${wildcardCss}\n${loadingCss}\n${careerBoardCss}\n${firstRunCss}\n${resultsCss}\n${settingsGuideCss}\n${screensCss}\n${demoCss}\n${recordsCss}`;
+  style.textContent = `@font-face{font-family:'Saira Stencil One';font-style:normal;font-weight:400;font-display:swap;src:url(${stencilUrl}) format('woff2')}\n${frontEndCss}\n${wildcardCss}\n${loadingCss}\n${careerBoardCss}\n${firstRunCss}\n${resultsCss}\n${settingsGuideCss}\n${screensCss}\n${demoCss}\n${recordsCss}\n${typeFloorCss}`;
   doc.head.append(style);
   return true;
 }
@@ -71,6 +72,27 @@ export function installHudIdentity(hud: HTMLElement) {
   style.textContent = `${hudCss}\n${hudColourblindCss}`;
   hud.append(style);
   return true;
+}
+
+/** The strip of the viewport the paddock leaves free for the showroom machine, as fractions of its
+ * width: from the right edge of the entry board to the left edge of the paddock rail (or, where the
+ * rail drops under the board on a narrow window, to the menu's right margin). Null while the menu is
+ * not laid out. The renderer centres and fits the machine in it (rendering/menu-preview.ts). */
+export function showroomWindowOf(menu: HTMLElement): { left: number; right: number } | null {
+  const view = menu.ownerDocument.defaultView?.innerWidth ?? 0;
+  const board = menu.querySelector<HTMLElement>('.lb-board');
+  const body = menu.querySelector<HTMLElement>('.menu-body');
+  const rail = menu.querySelector<HTMLElement>('.menu-actions');
+  if (!view || !board || !body || menu.hidden) return null;
+  const boardBox = board.getBoundingClientRect(),
+    bodyBox = body.getBoundingClientRect();
+  if (!boardBox.width) return null;
+  const railBox = rail?.getBoundingClientRect();
+  // Beside the board the rail starts to its right; stacked below it, it starts at the board's own left.
+  const right =
+    railBox && railBox.width && railBox.left > boardBox.right ? railBox.left : bodyBox.right;
+  const left = boardBox.right;
+  return right > left ? { left: left / view, right: right / view } : null;
 }
 
 /** Radio group of the four disciplines (rendered by the template; behaviour below). */

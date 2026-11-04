@@ -104,12 +104,39 @@ export function validateBindings(value: unknown): Bindings {
   }
   return result;
 }
+/** Keycap words for the keys that are not a letter or a digit (a keycap reads "L SHIFT", not the
+ * DOM's `ShiftLeft`). Anything unlisted falls back to the code without its Key / Digit prefix. */
+const KEYCAP: Readonly<Record<string, string>> = Object.freeze({
+  ShiftLeft: 'L SHIFT',
+  ShiftRight: 'R SHIFT',
+  ControlLeft: 'L CTRL',
+  ControlRight: 'R CTRL',
+  AltLeft: 'L ALT',
+  AltRight: 'R ALT',
+  Space: 'SPACE',
+  Enter: 'ENTER',
+  Escape: 'ESC',
+  Backspace: 'BKSP',
+  CapsLock: 'CAPS',
+  ArrowUp: 'UP',
+  ArrowDown: 'DOWN',
+  ArrowLeft: 'LEFT',
+  ArrowRight: 'RIGHT',
+  BracketLeft: '[',
+  BracketRight: ']',
+  Semicolon: ';',
+  Quote: "'",
+  Comma: ',',
+  Period: '.',
+  Slash: '/',
+  Backslash: '\\',
+  Minus: '-',
+  Equal: '=',
+  Backquote: '`',
+});
 export function keyName(code: string) {
-  return code
-    .replace(/^Key/, '')
-    .replace(/^Digit/, '')
-    .replace('BracketLeft', '[')
-    .replace('BracketRight', ']');
+  if (Object.hasOwn(KEYCAP, code)) return KEYCAP[code];
+  return code.replace(/^Key/, '').replace(/^Digit/, '').replace(/^Numpad/, 'NUM ');
 }
 export function boundAction(bindings: Bindings, code: string): BindingAction | null {
   for (const action of Object.keys(DEFAULT_BINDINGS) as BindingAction[])

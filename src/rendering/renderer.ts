@@ -54,7 +54,13 @@ import {
   MENU_CLOUD_COVER,
   SHOWROOM,
   showroomFor,
+  showroomRadius,
+  showroomShift,
+  showroomSpan,
+  type ShowroomBox,
+  type ShowroomWindow,
 } from './menu-preview.ts';
+import { measureShowroomBox } from './showroom-bounds.ts';
 import { focusOnSubject, subjectLens, type SubjectLens } from './studio/subject-focus.ts';
 import { reflectInWetRoad } from './wet-reflection.ts';
 import { ghostPose, type GhostPose } from '../core/ghost-lap.ts';
@@ -368,6 +374,21 @@ export class RacingRenderer {
   private gaze = new T.Vector3();
   private direction = new T.Vector3();
   private orbitTime = 0;
+  /** The part of the canvas the paddock menu leaves free for the showroom machine (the interface
+   * measures it from the real layout). Null keeps the authored composition. */
+  showroomWindow: ShowroomWindow | null = null;
+  /** Where the showroom camera put the machine on the last menu frame (diagnostics). */
+  showroomPlacement: {
+    radius: number;
+    shift: number;
+    left: number;
+    right: number;
+  } | null = null;
+  private showroomFit = { key: '', radius: 0 };
+  private showroomMeasure: { key: string; box: ShowroomBox } = {
+    key: '',
+    box: { minX: -1, maxX: 1, minZ: -2.5, maxZ: 2.5 },
+  };
   private initialized = false;
   private trackside: TracksideDirector;
   mode: CameraMode = 'chase';
@@ -1450,8 +1471,40 @@ export class RacingRenderer {
             ? BIKE_SHOWROOM
             : showroomFor(followedDefinition.halfExtents[2] * 2),
         angle = showroom.angle + Math.sin(this.orbitTime * showroom.rate) * showroom.sway;
+      // The machine sits in the middle of the strip the menu leaves free, and the camera backs
+      // off just far enough that its whole length fits there (never closer than authored).
+      // The drawn meshes' own extent, measured now and again every two seconds of orbit (the machine's
+      // model can finish loading after its first frame); the collision box until then.
+      const measureKey = `${car.root.uuid}|${Math.floor(this.orbitTime / 2)}`;
+      if (this.showroomMeasure.key !== measureKey)
+        this.showroomMeasure = {
+          key: measureKey,
+          box: measureShowroomBox(car.root, {
+            halfWidth: followedDefinition.halfExtents[0],
+            halfLength: followedDefinition.halfExtents[2],
+          }),
+        };
+      const box = this.showroomMeasure.box;
+      // (The fit only changes with the lens, the machine, the aspect or the strip: cache it.)
+      const fitKey = `${showroom.radius}|${showroom.fov}|${box.minX}|${box.maxX}|${box.minZ}|${box.maxZ}|${this.camera.aspect}|${this.showroomWindow?.left}|${this.showroomWindow?.right}`;
+      if (this.showroomFit.key !== fitKey)
+        this.showroomFit = {
+          key: fitKey,
+          radius: showroomRadius(showroom, box, this.camera.aspect, this.showroomWindow),
+        };
+      const radius = this.showroomFit.radius,
+        shift = this.showroomWindow
+          ? showroomShift(showroom, box, this.camera.aspect, this.showroomWindow, radius, angle)
+          : showroom.shift;
+      const span = showroomSpan(box, angle, radius, shift, showroom.fov, this.camera.aspect);
+      this.showroomPlacement = {
+        radius,
+        shift,
+        left: (span.left + 1) / 2,
+        right: (span.right + 1) / 2,
+      };
       this.desired
-        .set(Math.sin(angle) * showroom.radius, 0, Math.cos(angle) * showroom.radius)
+        .set(Math.sin(angle) * radius, 0, Math.cos(angle) * radius)
         .applyQuaternion(car.root.quaternion)
         .add(this.target);
       const road =
@@ -1461,8 +1514,8 @@ export class RacingRenderer {
       this.gaze.y = road + showroom.aim;
       // Across-view direction (to the camera's right) from the view azimuth.
       this.temporary.subVectors(this.gaze, this.desired).setY(0).normalize();
-      this.gaze.x += this.temporary.z * showroom.shift;
-      this.gaze.z -= this.temporary.x * showroom.shift;
+      this.gaze.x += this.temporary.z * shift;
+      this.gaze.z -= this.temporary.x * shift;
       this.camera.fov = showroom.fov;
     } else if (cameraMode === 'trackside') {
       // A GP motorcycle is framed as itself on a long lens, not as a car sphere.
