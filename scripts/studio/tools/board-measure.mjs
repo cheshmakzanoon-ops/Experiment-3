@@ -1,13 +1,15 @@
 // Measure the Paddock Board's left panel at a viewport: which children take the height.
-//   CHROMIUM_PATH=/opt/pw-browsers/chromium node scripts/studio/tools/board-measure.mjs [width height]
+//   CHROMIUM_PATH=/opt/pw-browsers/chromium node scripts/studio/tools/board-measure.mjs [width height [shot.png]]
 // Builds e2e/fixtures/launch-board.ts like e2e/60-launch-board.spec.ts and prints the panel's
 // clientHeight / scrollHeight plus every direct child of the form with its rendered height.
+// With a third argument it also writes a screenshot of the board.
 import { chromium } from '@playwright/test';
 import { build } from 'vite';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 const [w, h] = [Number(process.argv[2] ?? 1280), Number(process.argv[3] ?? 720)];
+const shot = process.argv[4];
 const built = await build({
   configFile: false,
   define: { __SUPPLIED_PLAYER__: 'false' },
@@ -35,24 +37,18 @@ await page.evaluate(() => document.fonts.ready);
 const report = await page.evaluate(() => {
   const body = document.querySelector('.menu-body');
   const form = document.querySelector('#sessionForm');
-  const rows = [...(form?.children ?? [])].map((el) => ({
-    el: `${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''}${el.className ? '.' + String(el.className).split(' ').join('.') : ''}`,
-    h: Math.round(el.getBoundingClientRect().height * 10) / 10,
-    display: getComputedStyle(el).display,
-  }));
-  const board = body?.querySelector('.lb-board');
-  const above = [...(board?.children ?? [])].map((el) => ({
-    el: `${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''}${el.className ? '.' + String(el.className).split(' ').join('.') : ''}`,
-    h: Math.round(el.getBoundingClientRect().height * 10) / 10,
-  }));
+  const name = (el) =>
+    `${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''}${el.className ? '.' + String(el.className).split(' ').join('.') : ''}`;
+  const height = (el) => Math.round(el.getBoundingClientRect().height * 10) / 10;
   return {
     client: body?.clientHeight,
     scroll: body?.scrollHeight,
     gap: getComputedStyle(form).rowGap,
-    above,
-    rows,
+    above: [...(body?.querySelector('.lb-board')?.children ?? [])].map((el) => ({ el: name(el), h: height(el) })),
+    rows: [...(form?.children ?? [])].map((el) => ({ el: name(el), h: height(el) })),
     blurb: document.querySelector('#machineBlurb')?.textContent,
   };
 });
 console.log(JSON.stringify(report, null, 1));
+if (shot) await page.screenshot({ path: shot });
 await browser.close();

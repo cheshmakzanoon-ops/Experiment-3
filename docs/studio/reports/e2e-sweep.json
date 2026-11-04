@@ -1,0 +1,2706 @@
+{
+ "generatedBy": "scripts/studio/tools/e2e-sweep.mjs + pw-sweep.config.ts (see docs: the sweep tool README block in e2e-sweep.mjs)",
+ "build": "main 8d831de product build (npm run build), vite preview, SwiftShader",
+ "window": {
+  "start": "2026-11-04T07:28Z",
+  "lastLaunch": "2026-11-04T13:55Z"
+ },
+ "totals": {
+  "specs": 133,
+  "cases": 332,
+  "specsRun": 75,
+  "casesRunPass": 117,
+  "casesRunFail": 26,
+  "casesRunSkip": 12
+ },
+ "specs": [
+  {
+   "id": "00-marbles",
+   "file": "e2e/00-marbles.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 21,
+   "load1AtStart": 4.46,
+   "failedCases": []
+  },
+  {
+   "id": "00-wet-presentation",
+   "file": "e2e/00-wet-presentation.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 2,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 2,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 554,
+   "load1AtStart": 7.02,
+   "failedCases": []
+  },
+  {
+   "id": "01-worker-portability",
+   "file": "e2e/01-worker-portability.spec.ts",
+   "class": "A",
+   "mode": "dom",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 9,
+   "load1AtStart": 5.28,
+   "failedCases": []
+  },
+  {
+   "id": "02-wheel-fidelity",
+   "file": "e2e/02-wheel-fidelity.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 29,
+   "load1AtStart": 14.43,
+   "failedCases": []
+  },
+  {
+   "id": "03-skid-contact",
+   "file": "e2e/03-skid-contact.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 21,
+   "load1AtStart": 14.78,
+   "failedCases": []
+  },
+  {
+   "id": "04-reference-visual",
+   "file": "e2e/04-reference-visual.spec.ts",
+   "class": "D",
+   "mode": "fixture-gl",
+   "cases": 2,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "05-cockpit-detail",
+   "file": "e2e/05-cockpit-detail.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "failed",
+   "result": {
+    "pass": 0,
+    "fail": 1,
+    "skip": 0
+   },
+   "durationS": 349,
+   "load1AtStart": 14.67,
+   "failedCases": [
+    {
+     "title": "detailed cockpit retains physical steering, recorded selectors, pause and rewind",
+     "ms": 311167,
+     "error": "Test timeout of 300000ms exceeded."
+    }
+   ],
+   "triage": [
+    {
+     "cases": [
+      "detailed cockpit retains physical steering, recorded selectors, pause ..."
+     ],
+     "label": "ENVIRONMENT (probable)",
+     "cause": "300 s test deadline fired inside one page.evaluate (production circuit renderer, cockpit sweep); no assertion failed",
+     "evidence": "host load average 14.7 at spec start; sibling fixture specs 02, 03, 10, 12, 13, 31 pass in 9 to 30 s",
+     "action": "none; scaled re-run not made (budget)"
+    }
+   ]
+  },
+  {
+   "id": "06-circuit-survey",
+   "file": "e2e/06-circuit-survey.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 2,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "07-reference-tools",
+   "file": "e2e/07-reference-tools.spec.ts",
+   "class": "C",
+   "mode": "real",
+   "cases": 5,
+   "gate": "REVIEW (1 of 6 cases)",
+   "run": true,
+   "status": "failed",
+   "result": {
+    "pass": 2,
+    "fail": 2,
+    "skip": 1
+   },
+   "durationS": 873,
+   "load1AtStart": 6.24,
+   "failedCases": [
+    {
+     "title": "reference tools: actual livery pixels persist through save, quality changes and reload",
+     "ms": 313647,
+     "error": "Test timeout of 300000ms exceeded."
+    },
+    {
+     "title": "covered menu redraws once on resize and resumes after closing without freezing photo mode",
+     "ms": 132930,
+     "error": "Error: expect(locator).toBeVisible() failed\n\nLocator:  locator('#photoStudio')\nExpected: visible\nReceived: hidden\nTimeout:  60000ms\n\nCall log:\n  - Expect \"toBeVisible\" with timeout 60000ms\n  - waiting for locator('#photoStudio')\n    30 × locator resolved to <section hidden=\"\" id=\"photoStudio\" class=\"photo-studio\"></section>\n       - unexpected value \"hidden\"\n"
+    }
+   ],
+   "triage": [
+    {
+     "cases": [
+      "actual livery pixels persist ...",
+      "covered menu redraws once on resize ..."
+     ],
+     "label": "ENVIRONMENT (probable)",
+     "cause": "case 1 sat in a Playwright fill() on #liverySponsor until the 300 s test deadline after the photo studio opened; case 5 is the same 60 s #photoStudio wait as 23-apx01-views. Cases 2 and 3 of the same file pass",
+     "evidence": "no studio-code change since ebf691d affects the field",
+     "action": "none; re-run not made (budget)"
+    }
+   ]
+  },
+  {
+   "id": "08-reference-implementation",
+   "file": "e2e/08-reference-implementation.spec.ts",
+   "class": "C",
+   "mode": "real",
+   "cases": 3,
+   "gate": "REVIEW (whole file)",
+   "run": true,
+   "status": "skipped",
+   "result": {
+    "pass": 0,
+    "fail": 0,
+    "skip": 3
+   },
+   "durationS": 4,
+   "load1AtStart": 6.63,
+   "failedCases": []
+  },
+  {
+   "id": "09-reference-depth",
+   "file": "e2e/09-reference-depth.spec.ts",
+   "class": "C",
+   "mode": "real",
+   "cases": 2,
+   "gate": "REVIEW (1 of 3 cases)",
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 1
+   },
+   "durationS": 1136,
+   "load1AtStart": 6.34,
+   "failedCases": []
+  },
+  {
+   "id": "10-aero-surface",
+   "file": "e2e/10-aero-surface.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 30,
+   "load1AtStart": 9.01,
+   "failedCases": []
+  },
+  {
+   "id": "11-phase27c",
+   "file": "e2e/11-phase27c.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 5,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "12-presentation-continuity",
+   "file": "e2e/12-presentation-continuity.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 2,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 2,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 19,
+   "load1AtStart": 10.47,
+   "failedCases": []
+  },
+  {
+   "id": "13-wet-lighting-closure",
+   "file": "e2e/13-wet-lighting-closure.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 9,
+   "load1AtStart": 9.62,
+   "failedCases": []
+  },
+  {
+   "id": "14-phase27e",
+   "file": "e2e/14-phase27e.spec.ts",
+   "class": "C",
+   "mode": "fixture-gl",
+   "cases": 5,
+   "gate": "REVIEW (1 of 5 cases)",
+   "run": true,
+   "status": "killed",
+   "result": {
+    "pass": 2,
+    "fail": 1,
+    "skip": 1
+   },
+   "durationS": 1230,
+   "load1AtStart": 6.3,
+   "failedCases": [
+    {
+     "title": "full production renderer feeds real review metrics in wet day frames",
+     "ms": 1098000,
+     "error": "failed after 18.3 min (error text lost: the run was stopped by the sweep operator to protect the budget while the host load average was 13.6; the night variant did not run)"
+    }
+   ],
+   "triage": [
+    {
+     "cases": [
+      "full production renderer feeds real review metrics in wet day frames"
+     ],
+     "label": "UNKNOWN (probably ENVIRONMENT)",
+     "cause": "failed after 18.3 min of one case (the 20-minute default deadline is the sweep's); the error text was lost because the run was stopped by the operator at load average 13.6 to protect the budget; the night variant did not run",
+     "evidence": "cases 1 and 3 pass (20 s, 16 s), case 2 is review-gated",
+     "action": "not re-run"
+    }
+   ]
+  },
+  {
+   "id": "15-review-journey",
+   "file": "e2e/15-review-journey.spec.ts",
+   "class": "C",
+   "mode": "real",
+   "cases": 2,
+   "gate": "REVIEW (1 of 3 cases)",
+   "run": true,
+   "status": "failed",
+   "result": {
+    "pass": 0,
+    "fail": 1,
+    "skip": 1
+   },
+   "durationS": 135,
+   "load1AtStart": 10.47,
+   "failedCases": [
+    {
+     "title": "live review exports every observed frame and interrupts on a real viewport change",
+     "ms": 107254,
+     "error": "Error: expect(locator).toBeVisible() failed\n\nLocator:  locator('#menu')\nExpected: visible\nReceived: hidden\nTimeout:  90000ms\n\nCall log:\n  - Expect \"toBeVisible\" with timeout 90000ms\n  - waiting for locator('#menu')\n    5 × locator resolved to <section id=\"menu\" hidden=\"\" class=\"menu\" data-bike=\"false\" data-board=\"circuit\" data-discipline=\"circuit\">…</section>\n      - unexpected value \"hidden\"\n"
+    }
+   ],
+   "triage": [
+    {
+     "cases": [
+      "live review exports every observed frame and interrupts on a real viewport change"
+     ],
+     "label": "ENVIRONMENT",
+     "cause": "#menu hidden for 90 s after page.goto('/?dev') at load average 10",
+     "evidence": "first assertion of the case",
+     "action": "none"
+    }
+   ]
+  },
+  {
+   "id": "16-phase27f",
+   "file": "e2e/16-phase27f.spec.ts",
+   "class": "D",
+   "mode": "fixture-gl",
+   "cases": 3,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "17-session-review",
+   "file": "e2e/17-session-review.spec.ts",
+   "class": "D",
+   "mode": "real",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 235,
+   "load1AtStart": 5.09,
+   "failedCases": []
+  },
+  {
+   "id": "18-phase27g",
+   "file": "e2e/18-phase27g.spec.ts",
+   "class": "D",
+   "mode": "fixture-gl",
+   "cases": 5,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "19-phase27g-completion",
+   "file": "e2e/19-phase27g-completion.spec.ts",
+   "class": "D",
+   "mode": "fixture-gl",
+   "cases": 4,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "20-phase27h",
+   "file": "e2e/20-phase27h.spec.ts",
+   "class": "B",
+   "mode": "mixed",
+   "cases": 3,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "22-apx01-assembly",
+   "file": "e2e/22-apx01-assembly.spec.ts",
+   "class": "A",
+   "mode": "dom",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "failed",
+   "result": {
+    "pass": 0,
+    "fail": 1,
+    "skip": 0
+   },
+   "durationS": 9,
+   "load1AtStart": 5.86,
+   "failedCases": [
+    {
+     "title": "27H.1 CPU component: complete car preserves physical motion, live materials, pit/damage ownership and replay",
+     "ms": 6647,
+     "error": "Error: page.evaluate: Error: Upright joint detached: 0.060000004698496916 != 0\n    at Je (<anonymous>:430:201515)\n    at fr (<anonymous>:430:201553)\n    at Module.Iv [as exercise] (<anonymous>:430:203955)\n    at async <anonymous>:317:30"
+    }
+   ],
+   "triage": [
+    {
+     "cases": [
+      "27H.1 CPU component: complete car preserves physical motion ..."
+     ],
+     "label": "PRE-EXISTING",
+     "cause": "'Upright joint detached: 0.060000004698496916 != 0' in the fixture's own joint check",
+     "evidence": "identical message and value on ebf691d",
+     "action": "NOT FIXED (needs the car's hub-length convention, not a one-line change); listed"
+    }
+   ]
+  },
+  {
+   "id": "23-apx01-views",
+   "file": "e2e/23-apx01-views.spec.ts",
+   "class": "B",
+   "mode": "real",
+   "cases": 5,
+   "gate": null,
+   "run": true,
+   "status": "failed",
+   "result": {
+    "pass": 3,
+    "fail": 2,
+    "skip": 0
+   },
+   "durationS": 1036,
+   "load1AtStart": 6.22,
+   "failedCases": [
+    {
+     "title": "27H.1 normal application: deterministic opposite-side whole-car inspection",
+     "ms": 119776,
+     "error": "Error: expect(locator).toBeVisible() failed\n\nLocator:  locator('#photoStudio')\nExpected: visible\nReceived: hidden\nTimeout:  60000ms\n\nCall log:\n  - Expect \"toBeVisible\" with timeout 60000ms\n  - waiting for locator('#photoStudio')\n    28 × locator resolved to <section hidden=\"\" id=\"photoStudio\" class=\"photo-studio\"></section>\n       - unexpected value \"hidden\"\n"
+    },
+    {
+     "title": "27H.1 normal application: deterministic rear whole-car inspection",
+     "ms": 137720,
+     "error": "Error: expect(locator).toBeVisible() failed\n\nLocator:  locator('#photoStudio')\nExpected: visible\nReceived: hidden\nTimeout:  60000ms\n\nCall log:\n  - Expect \"toBeVisible\" with timeout 60000ms\n  - waiting for locator('#photoStudio')\n    18 × locator resolved to <section hidden=\"\" id=\"photoStudio\" class=\"photo-studio\"></section>\n       - unexpected value \"hidden\"\n"
+    }
+   ],
+   "triage": [
+    {
+     "cases": [
+      "opposite-side",
+      "rear"
+     ],
+     "label": "ENVIRONMENT",
+     "cause": "click PHOTO / LIVERY then #photoStudio not visible in 60 s: the photo studio loads the circuit; page snapshot 'Loading circuit 78%'. Three of the five view cases passed in the same run (3.8 to 4.6 min)",
+     "evidence": "intermittent by load, same code path passes",
+     "action": "none"
+    }
+   ]
+  },
+  {
+   "id": "24-coupled-driver",
+   "file": "e2e/24-coupled-driver.spec.ts",
+   "class": "C",
+   "mode": "real",
+   "cases": 3,
+   "gate": "OWNER (whole file, from the first line of case 1)",
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 2,
+    "fail": 0,
+    "skip": 1
+   },
+   "durationS": 145,
+   "load1AtStart": 10.21,
+   "failedCases": []
+  },
+  {
+   "id": "25-people",
+   "file": "e2e/25-people.spec.ts",
+   "class": "B",
+   "mode": "real",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "failed",
+   "result": {
+    "pass": 0,
+    "fail": 1,
+    "skip": 0
+   },
+   "durationS": 52,
+   "load1AtStart": 7.39,
+   "failedCases": [
+    {
+     "title": "27H.3 normal startup binds the retained authored people and populated crowd without primitive fallback",
+     "ms": 47359,
+     "error": "Error: expect(received).toBeGreaterThan(expected)\n\nExpected: > 1\nReceived:   0"
+    }
+   ],
+   "triage": [
+    {
+     "cases": [
+      "27H.3 normal startup binds the retained authored people and populated crowd ..."
+     ],
+     "label": "STALE",
+     "cause": "asserted crowd clusters > 1 / population > 1000 at the menu; the crowd belongs to the circuit a session start builds (RacingRenderer.create loads only the 'showroom' lazy datasets at the menu, ebc2e06)",
+     "evidence": "menu: clusters 0; ported spec passes end to end with lengthened deadlines (560 s)",
+     "action": "FIXED (port)"
+    }
+   ]
+  },
+  {
+   "id": "26-aurel-environment",
+   "file": "e2e/26-aurel-environment.spec.ts",
+   "class": "B",
+   "mode": "real",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "failed",
+   "result": {
+    "pass": 0,
+    "fail": 1,
+    "skip": 0
+   },
+   "durationS": 58,
+   "load1AtStart": 5.81,
+   "failedCases": [
+    {
+     "title": "27H.4 normal startup constructs the upgraded districts and retained event hall",
+     "ms": 52994,
+     "error": "Error: A21 frontage diagnostics are unavailable at startup"
+    }
+   ],
+   "triage": [
+    {
+     "cases": [
+      "27H.4 normal startup constructs the upgraded districts and retained event hall"
+     ],
+     "label": "STALE",
+     "cause": "required environmentAssets.frontage and the districts at the menu; the menu builds no venue",
+     "evidence": "menu diagnostics probe; the ported spec passes end to end with lengthened deadlines (992 s at load 15; the first ported run had failed only on the repaint-count baseline, now the menu count)",
+     "action": "FIXED (port), verified end to end"
+    }
+   ]
+  },
+  {
+   "id": "27-visual-coherence",
+   "file": "e2e/27-visual-coherence.spec.ts",
+   "class": "B",
+   "mode": "mixed",
+   "cases": 5,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "28-race-hud-layout",
+   "file": "e2e/28-race-hud-layout.spec.ts",
+   "class": "A",
+   "mode": "dom",
+   "cases": 7,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 7,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 112,
+   "load1AtStart": 3.84,
+   "failedCases": []
+  },
+  {
+   "id": "28-race-pit-presentation",
+   "file": "e2e/28-race-pit-presentation.spec.ts",
+   "class": "B",
+   "mode": "mixed",
+   "cases": 4,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "29-populated-race-review",
+   "file": "e2e/29-populated-race-review.spec.ts",
+   "class": "B",
+   "mode": "real",
+   "cases": 5,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "30-menu-access",
+   "file": "e2e/30-menu-access.spec.ts",
+   "class": "B",
+   "mode": "mixed",
+   "cases": 2,
+   "gate": null,
+   "run": true,
+   "status": "failed",
+   "result": {
+    "pass": 1,
+    "fail": 1,
+    "skip": 0
+   },
+   "durationS": 215,
+   "load1AtStart": 4.46,
+   "failedCases": [
+    {
+     "title": "27H.6 menu access: 640x400 settings persist and the normal paused grid starts",
+     "ms": 153575,
+     "error": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"paused\"\nReceived: \"loading\"\n\nCall Log:\n- Timeout 60000ms exceeded while waiting on the predicate"
+    }
+   ],
+   "triage": [
+    {
+     "cases": [
+      "640x400 settings persist and the normal paused grid starts"
+     ],
+     "label": "ENVIRONMENT",
+     "cause": "expect.poll(state == 'paused') has the 60 s expect deadline; the page was at the loading screen 'Readying the pit crew' 90% and progressing",
+     "evidence": "session start measured 592 s (probe, load 12) and 290 s for menu plus a full start when quiet (lazy-chunks)",
+     "action": "none (spec unchanged)"
+    }
+   ]
+  },
+  {
+   "id": "30-race-finish",
+   "file": "e2e/30-race-finish.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 3,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 3,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 28,
+   "load1AtStart": 4.93,
+   "failedCases": []
+  },
+  {
+   "id": "31-race-surface-finish",
+   "file": "e2e/31-race-surface-finish.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 20,
+   "load1AtStart": 8.86,
+   "failedCases": []
+  },
+  {
+   "id": "32-race-clarity",
+   "file": "e2e/32-race-clarity.spec.ts",
+   "class": "B",
+   "mode": "mixed",
+   "cases": 2,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "33-character-quality",
+   "file": "e2e/33-character-quality.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 2,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "34-race-view-continuity",
+   "file": "e2e/34-race-view-continuity.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 2,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 2,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 218,
+   "load1AtStart": 7.71,
+   "failedCases": []
+  },
+  {
+   "id": "35-aurel-race-quality",
+   "file": "e2e/35-aurel-race-quality.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 2,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "36-compact-race-journey",
+   "file": "e2e/36-compact-race-journey.spec.ts",
+   "class": "B",
+   "mode": "real",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 282,
+   "load1AtStart": 4.85,
+   "failedCases": []
+  },
+  {
+   "id": "37-race-surface-atmosphere",
+   "file": "e2e/37-race-surface-atmosphere.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 6,
+   "gate": null,
+   "run": true,
+   "status": "killed",
+   "result": {
+    "pass": 3,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 1470,
+   "load1AtStart": 8,
+   "failedCases": []
+  },
+  {
+   "id": "38-fog-quadrature",
+   "file": "e2e/38-fog-quadrature.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 21,
+   "load1AtStart": 3.38,
+   "failedCases": []
+  },
+  {
+   "id": "39-supplied-player",
+   "file": "e2e/39-supplied-player.spec.ts",
+   "class": "C",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": "OWNER (whole file)",
+   "run": true,
+   "status": "skipped",
+   "result": {
+    "pass": 0,
+    "fail": 0,
+    "skip": 1
+   },
+   "durationS": 9,
+   "load1AtStart": 11.05,
+   "failedCases": []
+  },
+  {
+   "id": "41-motogp-reference",
+   "file": "e2e/41-motogp-reference.spec.ts",
+   "class": "D",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "41-player-render-budget",
+   "file": "e2e/41-player-render-budget.spec.ts",
+   "class": "C",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": "OWNER (1 of 2 cases)",
+   "run": true,
+   "status": "skipped",
+   "result": {
+    "pass": 0,
+    "fail": 0,
+    "skip": 1
+   },
+   "durationS": 9,
+   "load1AtStart": 11.12,
+   "failedCases": []
+  },
+  {
+   "id": "42-full-scene-index-budget",
+   "file": "e2e/42-full-scene-index-budget.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 291,
+   "load1AtStart": 8.11,
+   "failedCases": []
+  },
+  {
+   "id": "42-motocross-bike",
+   "file": "e2e/42-motocross-bike.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 15,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "42-motogp-environment",
+   "file": "e2e/42-motogp-environment.spec.ts",
+   "class": "D",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "43-hero-garage",
+   "file": "e2e/43-hero-garage.spec.ts",
+   "class": "B",
+   "mode": "mixed",
+   "cases": 4,
+   "gate": null,
+   "run": false,
+   "triage": [
+    {
+     "cases": [
+      "the normal-startup case of each (not run on main: derived from the menu probe; the case aborts at its first assertion)"
+     ],
+     "label": "STALE",
+     "cause": "same as 25 and 26: assert venue assets (garage, workshop, spare wheels, blankets, tyre equipment, pit wall, frontage, pit jacks, wheel guns) at the menu",
+     "evidence": "menu probe (all null, no venue .glb fetched at the menu) and session probe (all present, 21 .glb fetched once with 200)",
+     "action": "FIXED (port); 27 of 27 ported assertions verified offline against the recorded paused-session diagnostics; not run end to end"
+    }
+   ]
+  },
+  {
+   "id": "43-motocross-world",
+   "file": "e2e/43-motocross-world.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 3,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "44-motocross-interface",
+   "file": "e2e/44-motocross-interface.spec.ts",
+   "class": "A",
+   "mode": "dom",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 44,
+   "load1AtStart": 3.83,
+   "failedCases": []
+  },
+  {
+   "id": "44-pit-wall-station",
+   "file": "e2e/44-pit-wall-station.spec.ts",
+   "class": "B",
+   "mode": "mixed",
+   "cases": 4,
+   "gate": null,
+   "run": false,
+   "triage": [
+    {
+     "cases": [
+      "the normal-startup case of each (not run on main: derived from the menu probe; the case aborts at its first assertion)"
+     ],
+     "label": "STALE",
+     "cause": "same as 25 and 26: assert venue assets (garage, workshop, spare wheels, blankets, tyre equipment, pit wall, frontage, pit jacks, wheel guns) at the menu",
+     "evidence": "menu probe (all null, no venue .glb fetched at the menu) and session probe (all present, 21 .glb fetched once with 200)",
+     "action": "FIXED (port); 27 of 27 ported assertions verified offline against the recorded paused-session diagnostics; not run end to end"
+    }
+   ]
+  },
+  {
+   "id": "45-a21-pit-building-frontage",
+   "file": "e2e/45-a21-pit-building-frontage.spec.ts",
+   "class": "B",
+   "mode": "mixed",
+   "cases": 5,
+   "gate": null,
+   "run": false,
+   "triage": [
+    {
+     "cases": [
+      "the normal-startup case of each (not run on main: derived from the menu probe; the case aborts at its first assertion)"
+     ],
+     "label": "STALE",
+     "cause": "same as 25 and 26: assert venue assets (garage, workshop, spare wheels, blankets, tyre equipment, pit wall, frontage, pit jacks, wheel guns) at the menu",
+     "evidence": "menu probe (all null, no venue .glb fetched at the menu) and session probe (all present, 21 .glb fetched once with 200)",
+     "action": "FIXED (port); 27 of 27 ported assertions verified offline against the recorded paused-session diagnostics; not run end to end"
+    }
+   ]
+  },
+  {
+   "id": "45-motocross-gameplay",
+   "file": "e2e/45-motocross-gameplay.spec.ts",
+   "class": "B",
+   "mode": "real",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "failed",
+   "result": {
+    "pass": 0,
+    "fail": 1,
+    "skip": 0
+   },
+   "durationS": 624,
+   "load1AtStart": 10.4,
+   "failedCases": [
+    {
+     "title": "real motocross player entry, eight-rider gate, riding, cameras, pause and venue switch",
+     "ms": 584387,
+     "error": "TimeoutError: page.screenshot: Timeout 60000ms exceeded.\nCall log:\n  - taking page screenshot\n  - waiting for fonts to load...\n  - fonts loaded\n"
+    }
+   ],
+   "triage": [
+    {
+     "cases": [
+      "real motocross player entry, eight-rider gate, riding, cameras, pause and venue switch"
+     ],
+     "label": "ENVIRONMENT",
+     "cause": "page.screenshot timed out at 60 s (stalled software readback, host load average 10) after the journey had passed the menu, the held eight-rider gate and 'real course progress, flight and touchdown'",
+     "evidence": "MX journey log lines; passes earlier steps",
+     "action": "none"
+    }
+   ]
+  },
+  {
+   "id": "46-motocross-normal-residency",
+   "file": "e2e/46-motocross-normal-residency.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 2,
+   "gate": "conditional skip inside the case",
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 2,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 19,
+   "load1AtStart": 11.59,
+   "failedCases": []
+  },
+  {
+   "id": "46-vellamar-circuit",
+   "file": "e2e/46-vellamar-circuit.spec.ts",
+   "class": "B",
+   "mode": "real",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 343,
+   "load1AtStart": 6.38,
+   "failedCases": []
+  },
+  {
+   "id": "47-motocross-trackside-models",
+   "file": "e2e/47-motocross-trackside-models.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "47-time-trial-ghost",
+   "file": "e2e/47-time-trial-ghost.spec.ts",
+   "class": "B",
+   "mode": "real",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 198,
+   "load1AtStart": 5.06,
+   "failedCases": []
+  },
+  {
+   "id": "48-championship-weekend",
+   "file": "e2e/48-championship-weekend.spec.ts",
+   "class": "B",
+   "mode": "real",
+   "cases": 2,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 2,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 547,
+   "load1AtStart": 6.87,
+   "failedCases": []
+  },
+  {
+   "id": "48-motocross-practice",
+   "file": "e2e/48-motocross-practice.spec.ts",
+   "class": "A",
+   "mode": "dom",
+   "cases": 2,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 2,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 60,
+   "load1AtStart": 5.25,
+   "failedCases": []
+  },
+  {
+   "id": "49-festival-menu-access",
+   "file": "e2e/49-festival-menu-access.spec.ts",
+   "class": "A",
+   "mode": "dom",
+   "cases": 12,
+   "gate": null,
+   "run": true,
+   "status": "failed",
+   "result": {
+    "pass": 10,
+    "fail": 2,
+    "skip": 0
+   },
+   "durationS": 213,
+   "load1AtStart": 5.11,
+   "failedCases": [
+    {
+     "title": "festival results: keyboard and controller can retry without also continuing",
+     "ms": 68984,
+     "error": "Error: expect(locator).toBeVisible() failed\n\nLocator:  locator('#festMenu')\nExpected: visible\nReceived: hidden\nTimeout:  60000ms\n\nCall log:\n  - Expect \"toBeVisible\" with timeout 60000ms\n  - waiting for locator('#festMenu')\n    63 × locator resolved to <div hidden=\"\" id=\"festMenu\" role=\"dialog\" class=\"fest-menu\" aria-label=\"Festival menu\">…</div>\n       - unexpected value \"hidden\"\n"
+    },
+    {
+     "title": "festival map: filters, event selection and keyboard focus survive redraws",
+     "ms": 63921,
+     "error": "Error: expect(locator).toContainText(expected) failed\n\nLocator: locator('#festMapDetail')\nExpected string: \"Drive near the marker\"\nReceived string: \"NEW ROUTESolvane Grand LoopThe full highway ring: coast, ridge and back, flat out.TRAVEL TO EVENT\"\nTimeout: 60000ms\n\nCall log:\n  - Expect \"toContainText\" with timeout 60000ms\n  - waiting for locator('#festMapDetail')\n    63 × locator resolved to <div id=\"festMapDetail\" class=\"fest-map-detail\">…</div>\n       - unexpected value \"NEW ROUTESolvane Grand LoopThe full highway ring: coast, ridge and back, flat out.TRAVEL TO EVENT\"\n"
+    }
+   ],
+   "triage": [
+    {
+     "cases": [
+      "festival map: filters, event selection and keyboard focus survive redraws"
+     ],
+     "label": "PRE-EXISTING + STALE",
+     "cause": "asserted the copy 'Drive near the marker' and no travel button for an undiscovered event; src never had that copy (festival-hud.ts map detail identical on ebf691d) and session.ts 'travel' says exploration does not gate roads",
+     "evidence": "fails identically on ebf691d (1.1 min, same assertion)",
+     "action": "FIXED (port): NEW ROUTE label, travel action present, nothing travels on preview; DISCOVERED EVENT label on the other branch"
+    },
+    {
+     "cases": [
+      "festival results: keyboard and controller can retry without also continuing"
+     ],
+     "label": "PRE-EXISTING (spec race)",
+     "cause": "fixed 100 ms wait between replacing the mocked pad and pressing Start races the HUD's first animation frame; a pad first seen already held is not an edge",
+     "evidence": "3 of 8 fail on ebf691d, 3 of 8 on main; passed on 84c94ff, c818caa, 45b306b (single runs)",
+     "action": "FIXED: wait two animation frames; 10 of 10 pass"
+    }
+   ]
+  },
+  {
+   "id": "49-hud-footprint",
+   "file": "e2e/49-hud-footprint.spec.ts",
+   "class": "A",
+   "mode": "dom",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 10,
+   "load1AtStart": 4.37,
+   "failedCases": []
+  },
+  {
+   "id": "49-motocross-worked-soil",
+   "file": "e2e/49-motocross-worked-soil.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "50-grid-presentation",
+   "file": "e2e/50-grid-presentation.spec.ts",
+   "class": "B",
+   "mode": "real",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "failed",
+   "result": {
+    "pass": 0,
+    "fail": 1,
+    "skip": 0
+   },
+   "durationS": 120,
+   "load1AtStart": 4.91,
+   "failedCases": [
+    {
+     "title": "pre-race performance holds physics, seeks actual crew poses and hands control to the start",
+     "ms": 113343,
+     "error": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"paused\"\nReceived: \"loading\"\n\nCall Log:\n- Timeout 60000ms exceeded while waiting on the predicate"
+    }
+   ],
+   "triage": [
+    {
+     "cases": [
+      "pre-race performance holds physics ..."
+     ],
+     "label": "ENVIRONMENT",
+     "cause": "expect.poll(state == 'paused') 60 s deadline, page still 'loading'",
+     "evidence": "same measurement as 30-menu-access",
+     "action": "none"
+    }
+   ]
+  },
+  {
+   "id": "50-motocross-terrain-continuity",
+   "file": "e2e/50-motocross-terrain-continuity.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "51-motocross-roost-lighting",
+   "file": "e2e/51-motocross-roost-lighting.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 2,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "51-race-day",
+   "file": "e2e/51-race-day.spec.ts",
+   "class": "B",
+   "mode": "real",
+   "cases": 2,
+   "gate": null,
+   "run": true,
+   "status": "failed",
+   "result": {
+    "pass": 0,
+    "fail": 2,
+    "skip": 0
+   },
+   "durationS": 760,
+   "load1AtStart": 5.74,
+   "failedCases": [
+    {
+     "title": "Race-Day V2: normal entry, immutable briefing, automatic clearance, race finish and replay",
+     "ms": 514747,
+     "error": "Error: expect(received).toBeGreaterThan(expected)\n\nExpected: > 12\nReceived:   4.300000000000001\n\nCall Log:\n- Timeout 300000ms exceeded while waiting on the predicate"
+    },
+    {
+     "title": "Race-Day V2: Quick Start is saved, skips future briefings, and never replaces paused inspection",
+     "ms": 213065,
+     "error": "Error: expect(locator).toBeVisible() failed\n\nLocator:  locator('#raceBriefing')\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  120000ms\n\nCall log:\n  - Expect \"toBeVisible\" with timeout 120000ms\n  - waiting for locator('#raceBriefing')\n"
+    }
+   ],
+   "triage": [
+    {
+     "cases": [
+      "normal entry, immutable briefing ...",
+      "Quick Start is saved ..."
+     ],
+     "label": "ENVIRONMENT",
+     "cause": "case 1: grid presentation clock reached 4.3 s of the required 12 s in 300 s (0.014 sim-s per s: software GL frame rate); case 2: #raceBriefing not visible 120 s after ENTER, page at 'Warming up tyres' 94%",
+     "evidence": "page snapshots at both failures are progressing loading/presentation screens",
+     "action": "none"
+    }
+   ]
+  },
+  {
+   "id": "52-motocross-shoulder-plants",
+   "file": "e2e/52-motocross-shoulder-plants.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "52-vehicle-hud",
+   "file": "e2e/52-vehicle-hud.spec.ts",
+   "class": "A",
+   "mode": "dom",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 21,
+   "load1AtStart": 4.44,
+   "failedCases": []
+  },
+  {
+   "id": "53-a61-rival",
+   "file": "e2e/53-a61-rival.spec.ts",
+   "class": "B",
+   "mode": "real",
+   "cases": 2,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "53-motocross-course-landmarks",
+   "file": "e2e/53-motocross-course-landmarks.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 2,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "54-authored-crew",
+   "file": "e2e/54-authored-crew.spec.ts",
+   "class": "B",
+   "mode": "real",
+   "cases": 2,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "54-motocross-berm-practice",
+   "file": "e2e/54-motocross-berm-practice.spec.ts",
+   "class": "A",
+   "mode": "dom",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 17,
+   "load1AtStart": 6.03,
+   "failedCases": []
+  },
+  {
+   "id": "55-motocross-flow-practice",
+   "file": "e2e/55-motocross-flow-practice.spec.ts",
+   "class": "A",
+   "mode": "dom",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 18,
+   "load1AtStart": 5.42,
+   "failedCases": []
+  },
+  {
+   "id": "55-start-finish",
+   "file": "e2e/55-start-finish.spec.ts",
+   "class": "B",
+   "mode": "mixed",
+   "cases": 5,
+   "gate": null,
+   "run": true,
+   "status": "failed",
+   "result": {
+    "pass": 1,
+    "fail": 4,
+    "skip": 0
+   },
+   "durationS": 1459,
+   "load1AtStart": 3.89,
+   "failedCases": [
+    {
+     "title": "Aurel start-finish: production day architecture, audience, screen and rewind",
+     "ms": 433552,
+     "error": "Test timeout of 420000ms exceeded."
+    },
+    {
+     "title": "Aurel start-finish: production sunset architecture, audience, screen and rewind",
+     "ms": 432756,
+     "error": "Test timeout of 420000ms exceeded."
+    },
+    {
+     "title": "Aurel start-finish: production night architecture, audience, screen and rewind",
+     "ms": 432698,
+     "error": "Test timeout of 420000ms exceeded."
+    },
+    {
+     "title": "Aurel venue ships through ordinary menu, held grid, camera changes and start",
+     "ms": 63317,
+     "error": "Error: expect(received).toMatchObject(expected)\n\n- Expected  - 2\n+ Received  + 2\n\n  Object {\n-   \"boards\": 1,\n-   \"stands\": 2,\n+   \"boards\": 0,\n+   \"stands\": 0,\n  }"
+    }
+   ],
+   "triage": [
+    {
+     "cases": [
+      "Aurel start-finish: production day / sunset / night architecture ..."
+     ],
+     "label": "ENVIRONMENT (probable)",
+     "cause": "each survey is one page.evaluate of the production renderer at 1280x720; 420 s test deadline hit three times",
+     "evidence": "no assertion failed, no page error; 'A45 explicit signal controls' (same renderer, smaller) passes in 20 s; scaled re-run not made (budget)",
+     "action": "none"
+    },
+    {
+     "cases": [
+      "Aurel venue ships through ordinary menu, held grid, camera changes and start"
+     ],
+     "label": "STALE",
+     "cause": "asserted stands 2 / boards 1 at the menu; since ebc2e06 (G7) the start/finish tables are a lazy chunk the session start loads (e2e/lazy-chunks.spec.ts asserts the opposite and passes)",
+     "evidence": "menu diagnostics: stands 0, boards 0; fix run passes end to end (1143 s at load 12)",
+     "action": "FIXED (port): menu 0/0, session 2/1 as before"
+    }
+   ]
+  },
+  {
+   "id": "56-track-infrastructure",
+   "file": "e2e/56-track-infrastructure.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 3,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "57-trackside-operations",
+   "file": "e2e/57-trackside-operations.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 3,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "58-ultra-pipeline",
+   "file": "e2e/58-ultra-pipeline.spec.ts",
+   "class": "B",
+   "mode": "mixed",
+   "cases": 2,
+   "gate": "APEX_ULTRA_LIVE=1 opt-in (1 of 3 cases)",
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 1
+   },
+   "durationS": 72,
+   "load1AtStart": 11.29,
+   "failedCases": []
+  },
+  {
+   "id": "59-career-hub",
+   "file": "e2e/59-career-hub.spec.ts",
+   "class": "A",
+   "mode": "dom",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 13,
+   "load1AtStart": 4.09,
+   "failedCases": []
+  },
+  {
+   "id": "60-launch-board",
+   "file": "e2e/60-launch-board.spec.ts",
+   "class": "A",
+   "mode": "dom",
+   "cases": 14,
+   "gate": null,
+   "run": true,
+   "status": "failed",
+   "result": {
+    "pass": 11,
+    "fail": 2,
+    "skip": 0
+   },
+   "durationS": 96,
+   "load1AtStart": 1.36,
+   "failedCases": [
+    {
+     "title": "board fits 1280x720 without scrolling and keeps type at 11px or larger",
+     "ms": 4470,
+     "error": "Error: expect(received).toBeLessThanOrEqual(expected)\n\nExpected: <= 609\nReceived:    648"
+    },
+    {
+     "title": "LIGHT dial: venue default, midday, sunset, night or the live sky, announced to the shell",
+     "ms": 5395,
+     "error": "Error: expect(received).toBeLessThanOrEqual(expected)\n\nExpected: <= 609\nReceived:    648"
+    }
+   ],
+   "triage": [
+    {
+     "cases": [
+      "board fits 1280x720 without scrolling",
+      "LIGHT dial ... announced to the shell"
+     ],
+     "label": "REGRESSION",
+     "cause": "8d831de (b4d3f6b machine character lines) added a 2-row line under the MACHINE dial: +43 px in a left panel with 4 px to spare at 1280x720 (scrollHeight 648 > clientHeight 609); the ENTER row covered the session rules",
+     "evidence": "passes at 02fbf8e, fails at 8d831de; scripts/studio/tools/board-measure.mjs: rows 35 px + 8 px gap",
+     "action": "FIXED: front-end.css hides the line below 760 px tall, #vehicle gets aria-describedby=machineBlurb; new case pins both heights. 14 of 14 pass"
+    }
+   ]
+  },
+  {
+   "id": "61-first-run",
+   "file": "e2e/61-first-run.spec.ts",
+   "class": "A",
+   "mode": "dom",
+   "cases": 2,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 2,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 16,
+   "load1AtStart": 4.7,
+   "failedCases": []
+  },
+  {
+   "id": "61-original-hero-car",
+   "file": "e2e/61-original-hero-car.spec.ts",
+   "class": "B",
+   "mode": "real",
+   "cases": 1,
+   "gate": "product-only (skips in an OWNER build)",
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 43,
+   "load1AtStart": 4.5,
+   "failedCases": []
+  },
+  {
+   "id": "62-results-settings",
+   "file": "e2e/62-results-settings.spec.ts",
+   "class": "A",
+   "mode": "dom",
+   "cases": 3,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 3,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 20,
+   "load1AtStart": 4.26,
+   "failedCases": []
+  },
+  {
+   "id": "a26-overhead-garage-service-rig",
+   "file": "e2e/a26-overhead-garage-service-rig.spec.ts",
+   "class": "B",
+   "mode": "mixed",
+   "cases": 5,
+   "gate": null,
+   "run": false,
+   "triage": [
+    {
+     "cases": [
+      "the normal-startup case of each (not run on main: derived from the menu probe; the case aborts at its first assertion)"
+     ],
+     "label": "STALE",
+     "cause": "same as 25 and 26: assert venue assets (garage, workshop, spare wheels, blankets, tyre equipment, pit wall, frontage, pit jacks, wheel guns) at the menu",
+     "evidence": "menu probe (all null, no venue .glb fetched at the menu) and session probe (all present, 21 .glb fetched once with 200)",
+     "action": "FIXED (port); 27 of 27 ported assertions verified offline against the recorded paused-session diagnostics; not run end to end"
+    }
+   ]
+  },
+  {
+   "id": "a31-wheel-gun",
+   "file": "e2e/a31-wheel-gun.spec.ts",
+   "class": "B",
+   "mode": "mixed",
+   "cases": 4,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "a32-pit-jacks-offline",
+   "file": "e2e/a32-pit-jacks-offline.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 3,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "a32-pit-jacks",
+   "file": "e2e/a32-pit-jacks.spec.ts",
+   "class": "B",
+   "mode": "mixed",
+   "cases": 4,
+   "gate": null,
+   "run": false,
+   "triage": [
+    {
+     "cases": [
+      "the normal-startup case of each (not run on main: derived from the menu probe; the case aborts at its first assertion)"
+     ],
+     "label": "STALE",
+     "cause": "same as 25 and 26: assert venue assets (garage, workshop, spare wheels, blankets, tyre equipment, pit wall, frontage, pit jacks, wheel guns) at the menu",
+     "evidence": "menu probe (all null, no venue .glb fetched at the menu) and session probe (all present, 21 .glb fetched once with 200)",
+     "action": "FIXED (port); 27 of 27 ported assertions verified offline against the recorded paused-session diagnostics; not run end to end"
+    }
+   ]
+  },
+  {
+   "id": "a33-spare-wheel-set",
+   "file": "e2e/a33-spare-wheel-set.spec.ts",
+   "class": "B",
+   "mode": "mixed",
+   "cases": 4,
+   "gate": null,
+   "run": false,
+   "triage": [
+    {
+     "cases": [
+      "the normal-startup case of each (not run on main: derived from the menu probe; the case aborts at its first assertion)"
+     ],
+     "label": "STALE",
+     "cause": "same as 25 and 26: assert venue assets (garage, workshop, spare wheels, blankets, tyre equipment, pit wall, frontage, pit jacks, wheel guns) at the menu",
+     "evidence": "menu probe (all null, no venue .glb fetched at the menu) and session probe (all present, 21 .glb fetched once with 200)",
+     "action": "FIXED (port); 27 of 27 ported assertions verified offline against the recorded paused-session diagnostics; not run end to end"
+    }
+   ]
+  },
+  {
+   "id": "a34-tyre-blankets",
+   "file": "e2e/a34-tyre-blankets.spec.ts",
+   "class": "B",
+   "mode": "mixed",
+   "cases": 4,
+   "gate": null,
+   "run": false,
+   "triage": [
+    {
+     "cases": [
+      "the normal-startup case of each (not run on main: derived from the menu probe; the case aborts at its first assertion)"
+     ],
+     "label": "STALE",
+     "cause": "same as 25 and 26: assert venue assets (garage, workshop, spare wheels, blankets, tyre equipment, pit wall, frontage, pit jacks, wheel guns) at the menu",
+     "evidence": "menu probe (all null, no venue .glb fetched at the menu) and session probe (all present, 21 .glb fetched once with 200)",
+     "action": "FIXED (port); 27 of 27 ported assertions verified offline against the recorded paused-session diagnostics; not run end to end"
+    }
+   ]
+  },
+  {
+   "id": "a35-tyre-trolleys-racks",
+   "file": "e2e/a35-tyre-trolleys-racks.spec.ts",
+   "class": "B",
+   "mode": "mixed",
+   "cases": 4,
+   "gate": null,
+   "run": false,
+   "triage": [
+    {
+     "cases": [
+      "the normal-startup case of each (not run on main: derived from the menu probe; the case aborts at its first assertion)"
+     ],
+     "label": "STALE",
+     "cause": "same as 25 and 26: assert venue assets (garage, workshop, spare wheels, blankets, tyre equipment, pit wall, frontage, pit jacks, wheel guns) at the menu",
+     "evidence": "menu probe (all null, no venue .glb fetched at the menu) and session probe (all present, 21 .glb fetched once with 200)",
+     "action": "FIXED (port); 27 of 27 ported assertions verified offline against the recorded paused-session diagnostics; not run end to end"
+    }
+   ]
+  },
+  {
+   "id": "a36-workshop-equipment",
+   "file": "e2e/a36-workshop-equipment.spec.ts",
+   "class": "B",
+   "mode": "mixed",
+   "cases": 3,
+   "gate": null,
+   "run": false,
+   "triage": [
+    {
+     "cases": [
+      "the normal-startup case of each (not run on main: derived from the menu probe; the case aborts at its first assertion)"
+     ],
+     "label": "STALE",
+     "cause": "same as 25 and 26: assert venue assets (garage, workshop, spare wheels, blankets, tyre equipment, pit wall, frontage, pit jacks, wheel guns) at the menu",
+     "evidence": "menu probe (all null, no venue .glb fetched at the menu) and session probe (all present, 21 .glb fetched once with 200)",
+     "action": "FIXED (port); 27 of 27 ported assertions verified offline against the recorded paused-session diagnostics; not run end to end"
+    }
+   ]
+  },
+  {
+   "id": "application",
+   "file": "e2e/application.spec.ts",
+   "class": "B",
+   "mode": "real",
+   "cases": 8,
+   "gate": null,
+   "run": true,
+   "status": "failed",
+   "result": {
+    "pass": 6,
+    "fail": 2,
+    "skip": 0
+   },
+   "durationS": 1659,
+   "load1AtStart": 3.92,
+   "failedCases": [
+    {
+     "title": "race start and chequered flag produce an actual result",
+     "ms": 217870,
+     "error": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"results\"\nReceived: \"driving\"\n\nCall Log:\n- Test timeout of 210000ms exceeded"
+    },
+    {
+     "title": "high quality compiles shaders and renders a live local reflection",
+     "ms": 243789,
+     "error": "Error: expect(received).toMatch(expected)\n\nExpected pattern: /^(driving|briefing)$/\nReceived string:  \"loading\"\n\nCall Log:\n- Timeout 180000ms exceeded while waiting on the predicate"
+    }
+   ],
+   "triage": [
+    {
+     "cases": [
+      "race start and chequered flag produce an actual result",
+      "high quality compiles shaders and renders a live local reflection"
+     ],
+     "label": "ENVIRONMENT",
+     "cause": "case 5: 210 s test deadline for menu + start + a 1-lap race; case 6: 180 s start poll at HIGH quality; both overran with the state still 'loading'/'driving'",
+     "evidence": "the other six cases of the file pass (4.8 to 7.4 min for the heavy ones); scaled re-run not made (budget)",
+     "action": "none"
+    }
+   ]
+  },
+  {
+   "id": "audio",
+   "file": "e2e/audio.spec.ts",
+   "class": "A",
+   "mode": "dom",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 5,
+   "load1AtStart": 5.87,
+   "failedCases": []
+  },
+  {
+   "id": "aurel-quarry",
+   "file": "e2e/aurel-quarry.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 3,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "aurel-vegetation",
+   "file": "e2e/aurel-vegetation.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 3,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "cabin-render-cost",
+   "file": "e2e/cabin-render-cost.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": "CABIN_COST=1 opt-in (whole file)",
+   "run": true,
+   "status": "skipped",
+   "result": {
+    "pass": 0,
+    "fail": 0,
+    "skip": 1
+   },
+   "durationS": 5,
+   "load1AtStart": 10.64,
+   "failedCases": []
+  },
+  {
+   "id": "calibration",
+   "file": "e2e/calibration.spec.ts",
+   "class": "B",
+   "mode": "real",
+   "cases": 2,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 2,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 257,
+   "load1AtStart": 4.72,
+   "failedCases": []
+  },
+  {
+   "id": "camera-continuity",
+   "file": "e2e/camera-continuity.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "failed",
+   "result": {
+    "pass": 0,
+    "fail": 1,
+    "skip": 0
+   },
+   "durationS": 133,
+   "load1AtStart": 3.87,
+   "failedCases": [
+    {
+     "title": "cockpit remains framed after slow turns and camera diagnostics commit with the listener",
+     "ms": 125809,
+     "error": "Test timeout of 120000ms exceeded."
+    }
+   ],
+   "triage": [
+    {
+     "cases": [
+      "cockpit remains framed after slow turns ..."
+     ],
+     "label": "ENVIRONMENT (probable)",
+     "cause": "120 s test deadline for a production circuit renderer plus a 68 s simulated lap, one frame per 2 s, at load 4 to 8",
+     "evidence": "no assertion failed; the deadline fired inside one page.evaluate; scaled re-run not made (budget)",
+     "action": "none"
+    }
+   ]
+  },
+  {
+   "id": "construction",
+   "file": "e2e/construction.spec.ts",
+   "class": "A",
+   "mode": "dom",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 30,
+   "load1AtStart": 4.77,
+   "failedCases": []
+  },
+  {
+   "id": "event-hall",
+   "file": "e2e/event-hall.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 3,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "gamepad-basics",
+   "file": "e2e/gamepad-basics.spec.ts",
+   "class": "B",
+   "mode": "real",
+   "cases": 3,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 3,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 396,
+   "load1AtStart": 5,
+   "failedCases": []
+  },
+  {
+   "id": "gp-brake-lever",
+   "file": "e2e/gp-brake-lever.spec.ts",
+   "class": "D",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "gp-contact-effects",
+   "file": "e2e/gp-contact-effects.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "gp-course-boards",
+   "file": "e2e/gp-course-boards.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "gp-edge-design",
+   "file": "e2e/gp-edge-design.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "gp-fork-crown",
+   "file": "e2e/gp-fork-crown.spec.ts",
+   "class": "D",
+   "mode": "fixture-gl",
+   "cases": 2,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "gp-front-brake",
+   "file": "e2e/gp-front-brake.spec.ts",
+   "class": "D",
+   "mode": "fixture-gl",
+   "cases": 2,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "gp-grandstand-architecture",
+   "file": "e2e/gp-grandstand-architecture.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "gp-grounding",
+   "file": "e2e/gp-grounding.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "gp-paddock-architecture",
+   "file": "e2e/gp-paddock-architecture.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "gp-r5-tyre-review",
+   "file": "e2e/gp-r5-tyre-review.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "gp-rear-chassis",
+   "file": "e2e/gp-rear-chassis.spec.ts",
+   "class": "D",
+   "mode": "fixture-gl",
+   "cases": 2,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "gp-rider-contact",
+   "file": "e2e/gp-rider-contact.spec.ts",
+   "class": "D",
+   "mode": "fixture-gl",
+   "cases": 7,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "gp-rider-motion",
+   "file": "e2e/gp-rider-motion.spec.ts",
+   "class": "D",
+   "mode": "fixture-gl",
+   "cases": 4,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "gp-start-grid",
+   "file": "e2e/gp-start-grid.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "gpu-context-reuse",
+   "file": "e2e/gpu-context-reuse.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 7,
+   "load1AtStart": 3.93,
+   "failedCases": []
+  },
+  {
+   "id": "gpu-frame-gate",
+   "file": "e2e/gpu-frame-gate.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 2,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 2,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 6,
+   "load1AtStart": 3.77,
+   "failedCases": []
+  },
+  {
+   "id": "instruments",
+   "file": "e2e/instruments.spec.ts",
+   "class": "A",
+   "mode": "dom",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 8,
+   "load1AtStart": 5.25,
+   "failedCases": []
+  },
+  {
+   "id": "lazy-chunks",
+   "file": "e2e/lazy-chunks.spec.ts",
+   "class": "B",
+   "mode": "real",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 291,
+   "load1AtStart": 5.29,
+   "failedCases": []
+  },
+  {
+   "id": "motion",
+   "file": "e2e/motion.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 8,
+   "load1AtStart": 4.28,
+   "failedCases": []
+  },
+  {
+   "id": "motogp-riding-flow",
+   "file": "e2e/motogp-riding-flow.spec.ts",
+   "class": "D",
+   "mode": "real",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 265,
+   "load1AtStart": 5.23,
+   "failedCases": []
+  },
+  {
+   "id": "motogp-wet-riding",
+   "file": "e2e/motogp-wet-riding.spec.ts",
+   "class": "D",
+   "mode": "real",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 245,
+   "load1AtStart": 5.21,
+   "failedCases": []
+  },
+  {
+   "id": "motorcycle-presentation",
+   "file": "e2e/motorcycle-presentation.spec.ts",
+   "class": "A",
+   "mode": "dom",
+   "cases": 2,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 2,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 52,
+   "load1AtStart": 4.86,
+   "failedCases": []
+  },
+  {
+   "id": "p0-cockpit-framing",
+   "file": "e2e/p0-cockpit-framing.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 5,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "performance",
+   "file": "e2e/performance.spec.ts",
+   "class": "B",
+   "mode": "real",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 246,
+   "load1AtStart": 4.85,
+   "failedCases": []
+  },
+  {
+   "id": "pit-presentation",
+   "file": "e2e/pit-presentation.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 21,
+   "load1AtStart": 4.29,
+   "failedCases": []
+  },
+  {
+   "id": "presentation",
+   "file": "e2e/presentation.spec.ts",
+   "class": "B",
+   "mode": "real",
+   "cases": 2,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 2,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 361,
+   "load1AtStart": 5.58,
+   "failedCases": []
+  },
+  {
+   "id": "replay-state",
+   "file": "e2e/replay-state.spec.ts",
+   "class": "B",
+   "mode": "real",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 282,
+   "load1AtStart": 4.56,
+   "failedCases": []
+  },
+  {
+   "id": "scenery-shadow-budget",
+   "file": "e2e/scenery-shadow-budget.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 3,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "secondary-grandstands",
+   "file": "e2e/secondary-grandstands.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 3,
+   "gate": null,
+   "run": false
+  },
+  {
+   "id": "settings-transition",
+   "file": "e2e/settings-transition.spec.ts",
+   "class": "B",
+   "mode": "real",
+   "cases": 2,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 2,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 180,
+   "load1AtStart": 4.26,
+   "failedCases": []
+  },
+  {
+   "id": "spatial-audio",
+   "file": "e2e/spatial-audio.spec.ts",
+   "class": "A",
+   "mode": "dom",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 4,
+   "load1AtStart": 5.56,
+   "failedCases": []
+  },
+  {
+   "id": "tire-contact",
+   "file": "e2e/tire-contact.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 9,
+   "load1AtStart": 3.64,
+   "failedCases": []
+  },
+  {
+   "id": "weather",
+   "file": "e2e/weather.spec.ts",
+   "class": "B",
+   "mode": "fixture-gl",
+   "cases": 1,
+   "gate": null,
+   "run": true,
+   "status": "passed",
+   "result": {
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+   },
+   "durationS": 12,
+   "load1AtStart": 4.6,
+   "failedCases": []
+  }
+ ],
+ "additionalRuns": [
+  {
+   "tag": "25-people@fix",
+   "status": "failed",
+   "durationS": 309,
+   "load1AtStart": 10.26,
+   "tests": [
+    {
+     "title": "27H.3 normal startup binds the retained authored people and populated crowd without primitive fallback",
+     "status": "unexpected",
+     "ms": 267479
+    }
+   ]
+  },
+  {
+   "tag": "25-people@fix-scaled",
+   "status": "passed",
+   "durationS": 560,
+   "load1AtStart": 8.78,
+   "tests": [
+    {
+     "title": "27H.3 normal startup binds the retained authored people and populated crowd without primitive fallback",
+     "status": "expected",
+     "ms": 522586
+    }
+   ]
+  },
+  {
+   "tag": "26-aurel-environment@fix-scaled",
+   "status": "failed",
+   "durationS": 746,
+   "load1AtStart": 7.41,
+   "tests": [
+    {
+     "title": "27H.4 normal startup constructs the upgraded districts and retained event hall",
+     "status": "unexpected",
+     "ms": 707269
+    }
+   ]
+  },
+  {
+   "tag": "55-start-finish@fix-scaled",
+   "status": "passed",
+   "durationS": 1143,
+   "load1AtStart": 12.16,
+   "tests": [
+    {
+     "title": "Aurel venue ships through ordinary menu, held grid, camera changes and start",
+     "status": "expected",
+     "ms": 1104969
+    }
+   ]
+  },
+  {
+   "tag": "probe-menu@diag",
+   "status": "passed",
+   "durationS": 79,
+   "load1AtStart": 8.84,
+   "tests": [
+    {
+     "title": "probe: menu renderer diagnostics",
+     "status": "expected",
+     "ms": 71279
+    }
+   ]
+  },
+  {
+   "tag": "probe-session@diag",
+   "status": "passed",
+   "durationS": 592,
+   "load1AtStart": 12.22,
+   "tests": [
+    {
+     "title": "probe: paused practice session diagnostics",
+     "status": "expected",
+     "ms": 553786
+    }
+   ]
+  },
+  {
+   "tag": "26-aurel-environment@fix2-scaled",
+   "status": "passed",
+   "durationS": 992,
+   "load1AtStart": 9.62,
+   "tests": [
+    {
+     "title": "27H.4 normal startup constructs the upgraded districts and retained event hall",
+     "status": "expected",
+     "ms": 957178
+    }
+   ]
+  }
+ ],
+ "notRun": [
+  "04-reference-visual",
+  "06-circuit-survey",
+  "11-phase27c",
+  "16-phase27f",
+  "18-phase27g",
+  "19-phase27g-completion",
+  "20-phase27h",
+  "27-visual-coherence",
+  "28-race-pit-presentation",
+  "29-populated-race-review",
+  "32-race-clarity",
+  "33-character-quality",
+  "35-aurel-race-quality",
+  "41-motogp-reference",
+  "42-motocross-bike",
+  "42-motogp-environment",
+  "43-hero-garage",
+  "43-motocross-world",
+  "44-pit-wall-station",
+  "45-a21-pit-building-frontage",
+  "47-motocross-trackside-models",
+  "49-motocross-worked-soil",
+  "50-motocross-terrain-continuity",
+  "51-motocross-roost-lighting",
+  "52-motocross-shoulder-plants",
+  "53-a61-rival",
+  "53-motocross-course-landmarks",
+  "54-authored-crew",
+  "56-track-infrastructure",
+  "57-trackside-operations",
+  "a26-overhead-garage-service-rig",
+  "a31-wheel-gun",
+  "a32-pit-jacks-offline",
+  "a32-pit-jacks",
+  "a33-spare-wheel-set",
+  "a34-tyre-blankets",
+  "a35-tyre-trolleys-racks",
+  "a36-workshop-equipment",
+  "aurel-quarry",
+  "aurel-vegetation",
+  "event-hall",
+  "gp-brake-lever",
+  "gp-contact-effects",
+  "gp-course-boards",
+  "gp-edge-design",
+  "gp-fork-crown",
+  "gp-front-brake",
+  "gp-grandstand-architecture",
+  "gp-grounding",
+  "gp-paddock-architecture",
+  "gp-r5-tyre-review",
+  "gp-rear-chassis",
+  "gp-rider-contact",
+  "gp-rider-motion",
+  "gp-start-grid",
+  "p0-cockpit-framing",
+  "scenery-shadow-budget",
+  "secondary-grandstands"
+ ],
+ "triage": [
+  {
+   "spec": "60-launch-board",
+   "cases": [
+    "board fits 1280x720 without scrolling",
+    "LIGHT dial ... announced to the shell"
+   ],
+   "label": "REGRESSION",
+   "cause": "8d831de (b4d3f6b machine character lines) added a 2-row line under the MACHINE dial: +43 px in a left panel with 4 px to spare at 1280x720 (scrollHeight 648 > clientHeight 609); the ENTER row covered the session rules",
+   "evidence": "passes at 02fbf8e, fails at 8d831de; scripts/studio/tools/board-measure.mjs: rows 35 px + 8 px gap",
+   "action": "FIXED: front-end.css hides the line below 760 px tall, #vehicle gets aria-describedby=machineBlurb; new case pins both heights. 14 of 14 pass"
+  },
+  {
+   "spec": "49-festival-menu-access",
+   "cases": [
+    "festival map: filters, event selection and keyboard focus survive redraws"
+   ],
+   "label": "PRE-EXISTING + STALE",
+   "cause": "asserted the copy 'Drive near the marker' and no travel button for an undiscovered event; src never had that copy (festival-hud.ts map detail identical on ebf691d) and session.ts 'travel' says exploration does not gate roads",
+   "evidence": "fails identically on ebf691d (1.1 min, same assertion)",
+   "action": "FIXED (port): NEW ROUTE label, travel action present, nothing travels on preview; DISCOVERED EVENT label on the other branch"
+  },
+  {
+   "spec": "49-festival-menu-access",
+   "cases": [
+    "festival results: keyboard and controller can retry without also continuing"
+   ],
+   "label": "PRE-EXISTING (spec race)",
+   "cause": "fixed 100 ms wait between replacing the mocked pad and pressing Start races the HUD's first animation frame; a pad first seen already held is not an edge",
+   "evidence": "3 of 8 fail on ebf691d, 3 of 8 on main; passed on 84c94ff, c818caa, 45b306b (single runs)",
+   "action": "FIXED: wait two animation frames; 10 of 10 pass"
+  },
+  {
+   "spec": "22-apx01-assembly",
+   "cases": [
+    "27H.1 CPU component: complete car preserves physical motion ..."
+   ],
+   "label": "PRE-EXISTING",
+   "cause": "'Upright joint detached: 0.060000004698496916 != 0' in the fixture's own joint check",
+   "evidence": "identical message and value on ebf691d",
+   "action": "NOT FIXED (needs the car's hub-length convention, not a one-line change); listed"
+  },
+  {
+   "spec": "30-menu-access",
+   "cases": [
+    "640x400 settings persist and the normal paused grid starts"
+   ],
+   "label": "ENVIRONMENT",
+   "cause": "expect.poll(state == 'paused') has the 60 s expect deadline; the page was at the loading screen 'Readying the pit crew' 90% and progressing",
+   "evidence": "session start measured 592 s (probe, load 12) and 290 s for menu plus a full start when quiet (lazy-chunks)",
+   "action": "none (spec unchanged)"
+  },
+  {
+   "spec": "application",
+   "cases": [
+    "race start and chequered flag produce an actual result",
+    "high quality compiles shaders and renders a live local reflection"
+   ],
+   "label": "ENVIRONMENT",
+   "cause": "case 5: 210 s test deadline for menu + start + a 1-lap race; case 6: 180 s start poll at HIGH quality; both overran with the state still 'loading'/'driving'",
+   "evidence": "the other six cases of the file pass (4.8 to 7.4 min for the heavy ones); scaled re-run not made (budget)",
+   "action": "none"
+  },
+  {
+   "spec": "camera-continuity",
+   "cases": [
+    "cockpit remains framed after slow turns ..."
+   ],
+   "label": "ENVIRONMENT (probable)",
+   "cause": "120 s test deadline for a production circuit renderer plus a 68 s simulated lap, one frame per 2 s, at load 4 to 8",
+   "evidence": "no assertion failed; the deadline fired inside one page.evaluate; scaled re-run not made (budget)",
+   "action": "none"
+  },
+  {
+   "spec": "55-start-finish",
+   "cases": [
+    "Aurel start-finish: production day / sunset / night architecture ..."
+   ],
+   "label": "ENVIRONMENT (probable)",
+   "cause": "each survey is one page.evaluate of the production renderer at 1280x720; 420 s test deadline hit three times",
+   "evidence": "no assertion failed, no page error; 'A45 explicit signal controls' (same renderer, smaller) passes in 20 s; scaled re-run not made (budget)",
+   "action": "none"
+  },
+  {
+   "spec": "55-start-finish",
+   "cases": [
+    "Aurel venue ships through ordinary menu, held grid, camera changes and start"
+   ],
+   "label": "STALE",
+   "cause": "asserted stands 2 / boards 1 at the menu; since ebc2e06 (G7) the start/finish tables are a lazy chunk the session start loads (e2e/lazy-chunks.spec.ts asserts the opposite and passes)",
+   "evidence": "menu diagnostics: stands 0, boards 0; fix run passes end to end (1143 s at load 12)",
+   "action": "FIXED (port): menu 0/0, session 2/1 as before"
+  },
+  {
+   "spec": "51-race-day",
+   "cases": [
+    "normal entry, immutable briefing ...",
+    "Quick Start is saved ..."
+   ],
+   "label": "ENVIRONMENT",
+   "cause": "case 1: grid presentation clock reached 4.3 s of the required 12 s in 300 s (0.014 sim-s per s: software GL frame rate); case 2: #raceBriefing not visible 120 s after ENTER, page at 'Warming up tyres' 94%",
+   "evidence": "page snapshots at both failures are progressing loading/presentation screens",
+   "action": "none"
+  },
+  {
+   "spec": "45-motocross-gameplay",
+   "cases": [
+    "real motocross player entry, eight-rider gate, riding, cameras, pause and venue switch"
+   ],
+   "label": "ENVIRONMENT",
+   "cause": "page.screenshot timed out at 60 s (stalled software readback, host load average 10) after the journey had passed the menu, the held eight-rider gate and 'real course progress, flight and touchdown'",
+   "evidence": "MX journey log lines; passes earlier steps",
+   "action": "none"
+  },
+  {
+   "spec": "50-grid-presentation",
+   "cases": [
+    "pre-race performance holds physics ..."
+   ],
+   "label": "ENVIRONMENT",
+   "cause": "expect.poll(state == 'paused') 60 s deadline, page still 'loading'",
+   "evidence": "same measurement as 30-menu-access",
+   "action": "none"
+  },
+  {
+   "spec": "23-apx01-views",
+   "cases": [
+    "opposite-side",
+    "rear"
+   ],
+   "label": "ENVIRONMENT",
+   "cause": "click PHOTO / LIVERY then #photoStudio not visible in 60 s: the photo studio loads the circuit; page snapshot 'Loading circuit 78%'. Three of the five view cases passed in the same run (3.8 to 4.6 min)",
+   "evidence": "intermittent by load, same code path passes",
+   "action": "none"
+  },
+  {
+   "spec": "25-people",
+   "cases": [
+    "27H.3 normal startup binds the retained authored people and populated crowd ..."
+   ],
+   "label": "STALE",
+   "cause": "asserted crowd clusters > 1 / population > 1000 at the menu; the crowd belongs to the circuit a session start builds (RacingRenderer.create loads only the 'showroom' lazy datasets at the menu, ebc2e06)",
+   "evidence": "menu: clusters 0; ported spec passes end to end with lengthened deadlines (560 s)",
+   "action": "FIXED (port)"
+  },
+  {
+   "spec": "26-aurel-environment",
+   "cases": [
+    "27H.4 normal startup constructs the upgraded districts and retained event hall"
+   ],
+   "label": "STALE",
+   "cause": "required environmentAssets.frontage and the districts at the menu; the menu builds no venue",
+   "evidence": "menu diagnostics probe; the ported spec passes end to end with lengthened deadlines (992 s at load 15; the first ported run had failed only on the repaint-count baseline, now the menu count)",
+   "action": "FIXED (port), verified end to end"
+  },
+  {
+   "spec": "a26-overhead-garage-service-rig, a32-pit-jacks, a33-spare-wheel-set, a34-tyre-blankets, a35-tyre-trolleys-racks, a36-workshop-equipment, 43-hero-garage, 44-pit-wall-station, 45-a21-pit-building-frontage",
+   "cases": [
+    "the normal-startup case of each (not run on main: derived from the menu probe; the case aborts at its first assertion)"
+   ],
+   "label": "STALE",
+   "cause": "same as 25 and 26: assert venue assets (garage, workshop, spare wheels, blankets, tyre equipment, pit wall, frontage, pit jacks, wheel guns) at the menu",
+   "evidence": "menu probe (all null, no venue .glb fetched at the menu) and session probe (all present, 21 .glb fetched once with 200)",
+   "action": "FIXED (port); 27 of 27 ported assertions verified offline against the recorded paused-session diagnostics; not run end to end"
+  },
+  {
+   "spec": "07-reference-tools",
+   "cases": [
+    "actual livery pixels persist ...",
+    "covered menu redraws once on resize ..."
+   ],
+   "label": "ENVIRONMENT (probable)",
+   "cause": "case 1 sat in a Playwright fill() on #liverySponsor until the 300 s test deadline after the photo studio opened; case 5 is the same 60 s #photoStudio wait as 23-apx01-views. Cases 2 and 3 of the same file pass",
+   "evidence": "no studio-code change since ebf691d affects the field",
+   "action": "none; re-run not made (budget)"
+  },
+  {
+   "spec": "15-review-journey",
+   "cases": [
+    "live review exports every observed frame and interrupts on a real viewport change"
+   ],
+   "label": "ENVIRONMENT",
+   "cause": "#menu hidden for 90 s after page.goto('/?dev') at load average 10",
+   "evidence": "first assertion of the case",
+   "action": "none"
+  },
+  {
+   "spec": "14-phase27e",
+   "cases": [
+    "full production renderer feeds real review metrics in wet day frames"
+   ],
+   "label": "UNKNOWN (probably ENVIRONMENT)",
+   "cause": "failed after 18.3 min of one case (the 20-minute default deadline is the sweep's); the error text was lost because the run was stopped by the operator at load average 13.6 to protect the budget; the night variant did not run",
+   "evidence": "cases 1 and 3 pass (20 s, 16 s), case 2 is review-gated",
+   "action": "not re-run"
+  },
+  {
+   "spec": "05-cockpit-detail",
+   "cases": [
+    "detailed cockpit retains physical steering, recorded selectors, pause ..."
+   ],
+   "label": "ENVIRONMENT (probable)",
+   "cause": "300 s test deadline fired inside one page.evaluate (production circuit renderer, cockpit sweep); no assertion failed",
+   "evidence": "host load average 14.7 at spec start; sibling fixture specs 02, 03, 10, 12, 13, 31 pass in 9 to 30 s",
+   "action": "none; scaled re-run not made (budget)"
+  }
+ ]
+}

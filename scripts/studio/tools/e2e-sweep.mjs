@@ -4,7 +4,7 @@
 //   node scripts/studio/tools/e2e-sweep.mjs --queue <queue.json> --log <progress.jsonl> --logs <dir> \
 //        [--port 4251] [--only <substring>] [--force] [--stop-after-ms <wall budget>] [--stop-at <epoch ms>]
 //
-// The queue is a JSON array of { spec, mode: "dom"|"real", timeoutMs, hardMs?, env?, grep?, tag? }.
+// The queue is a JSON array of { spec, mode: "dom"|"real", timeoutMs, hardMs?, env?, grep?, grepInvert?, tag? }.
 // "dom" runs without a preview server (specs that build their own bundle and call setContent);
 // "real" starts `vite preview` of <worktree>/dist on --port. Each entry runs in its own
 // Playwright process with workers=1, so at most one browser exists at a time. A finished entry
@@ -67,6 +67,7 @@ function runOne(entry) {
     if (entry.mode !== 'real') delete env.APEX_PORT;
     const pwArgs = [cli, 'test', '-c', config, entry.spec, '--reporter=list,json', '--workers=1'];
     if (entry.grep) pwArgs.push('--grep', entry.grep);
+    if (entry.grepInvert) pwArgs.push('--grep-invert', entry.grepInvert);
     const t0 = Date.now();
     const load0 = loadavg()[0].toFixed(2);
     const child = spawn(process.execPath, pwArgs, { cwd: wt, env, detached: true });
