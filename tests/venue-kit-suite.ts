@@ -100,7 +100,15 @@ export function venueKitSuite(
         if (meta.dressing.gantries.length)
           expect(names.some((n) => n === 'Portal cranes')).toBe(true);
         if (meta.night || meta.dayNight)
-          expect(names.some((n) => n === 'Venue kit floodlight towers')).toBe(true);
+          expect(
+            names.some(
+              (n) =>
+                n ===
+                (kit.context.style.streetLamps
+                  ? 'Venue kit street lamps'
+                  : 'Venue kit floodlight towers'),
+            ),
+          ).toBe(true);
         // Distance LOD: far detail hides, near detail shows.
         const camera = new T.PerspectiveCamera();
         const start = track.at(0, trackPoint());
@@ -109,7 +117,17 @@ export function venueKitSuite(
         kit.update(camera, true);
         const visible = kit.context.cells.filter((c) => c.object.visible).length;
         expect(visible).toBeGreaterThan(0);
-        expect(visible).toBeLessThan(kit.context.cells.length);
+        // A venue longer than the detail range hides its far cells from the
+        // start; a compact one (a 2 km market) is legitimately all in range.
+        if (track.length > 2500) expect(visible).toBeLessThan(kit.context.cells.length);
+        // From 6 km away nothing small is drawn, on any venue.
+        camera.position.set(start.x + 6000, start.y + 2, start.z);
+        camera.updateMatrixWorld();
+        kit.update(camera, true);
+        expect(kit.context.cells.filter((c) => c.object.visible)).toHaveLength(0);
+        camera.position.set(start.x, start.y + 2, start.z);
+        camera.updateMatrixWorld();
+        kit.update(camera, true);
         // Night: emissive facades and lamps light up; day turns them off.
         expect(kit.context.materials.lamp.emissiveIntensity).toBeGreaterThan(1);
         kit.update(camera, false);

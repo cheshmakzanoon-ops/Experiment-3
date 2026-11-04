@@ -115,6 +115,54 @@ have a passing seeded race. Seeded Formula race (6 cars, 2 laps): best lap
 36.44 s (140.6 km/h), contact 0.011, nothing stuck; its report was merged into
 `circuit-catalogue-races.json` with `catalogue-races.ts level-nine --merge`.
 
+### Wildcard series venues, wave 2
+
+Four more original layouts in `circuit-catalogue/wildcard-venues.ts`, appended to
+`CATALOGUE_CIRCUIT_IDS` after Level Nine (earlier geometry, sampling and seeded
+results are untouched). Each is dressed only from venue-kit data: `tunnel`,
+`rock`, `drop`, `facades`, `stands` spans, the sea level and a theme. Three of
+them add one `VenueTheme` row each (`airport`, `dam`, `market`: a theme is data
+in `venue-kit/theme.ts` and a sky palette in `assets/sky-catalogue.ts`, no
+renderer code). Each also declares a `suggested` light and weather
+(`catalogue.suggested`, advisory like the Wildcard `lighting` field: nothing in
+the simulation reads it) for menus and events to default to.
+
+| Layout | Group | Lap (m) | Corners | DRS | Pit | Elevation (m) | Max grade | Suggested | Special |
+|---|---|---:|---:|---:|---|---:|---:|---|---|
+| Haut-Givre Ski Resort — Resort Road (`haut-givre`) | unconventional | 3650 | 13 | 2 | right | 60 | 10.0% | snow, midday | alpine theme; village frontage, six hairpins (R 18 m), two roofed snow galleries, rock cuttings on the mountain side, 700 m ridge run |
+| Marram Field Airport — Apron and Runway (`marram-field`) | unconventional | 3686 | 9 | 2 | right | 0 | 0.0% | dawn fog (sunset light) | `airport` theme; 28 m wide runway, 13 m taxiways with two chicanes, hangar frontage, apron slalom, floodlight masts |
+| Kalder Dam — Crest Road (`kalder-dam`) | unconventional | 3329 | 10 | 2 | right | 3 | 1.6% | thunderstorm, midday | `dam` theme; 1 km crest with the water 20 m down on both hands, concrete parapets 1.4 m off the asphalt, spillway gallery, lake-shore slalom |
+| Saffron Lane Night Market — Market Loop (`saffron-lane`) | unconventional | 2016 | 8 | 0 | right | 0 | 0.0% | clear, night | `market` theme (street lamps); 8.8 m lanes, concrete walls 1.2 m away, three hairpins, two covered halls, spice-row slalom |
+
+How each one gets its character from the kit, and what was checked:
+
+- **Haut-Givre.** The galleries are `tunnel` spans: the walls, slab roof and
+  strip lights of Level Nine, and `Track` shelters the road under them, so in
+  the snow preset the gallery is bare road between two snow-covered stretches
+  (`tests/wildcard-venues-2.test.ts` checks the frozen-cover cells are zero
+  under the roof and positive beside it, before and after 60 s of snowfall).
+  The climb is 60 m in 1.4 km of uphill road; the first authoring ended 427 m
+  from the line because the descent column was drawn too far south, which the
+  closure report (`traceSpec`) showed at once, so the descent was re-cut to two
+  hairpins and a 4% larch sweep.
+- **Marram Field.** The only new data is a theme: concrete ground, no
+  planting beside the movement area, floodlight masts from `lightTowers`.
+  Runway half-width 14 m against 6.5 m taxiways uses the per-segment `w`.
+- **Kalder Dam.** `seaLevel` -20 m with `drop` spans on both hands of the crest
+  gives a concrete quay wall (non-cliff theme) 17-20 m high and a water basin
+  either side; the lake-shore road has the water only on the lake hand. The
+  line, paddock and stands are on the land of the powerhouse yard on purpose:
+  the first draft put the start on the crest, where the default stands would
+  have floated over the water. A unit test checks the ground under every stand
+  and the paddock is above the water.
+- **Saffron Lane.** The market hall roofs are `tunnel` spans (so rain and dust
+  stay out), the stalls are `facades` blocks in the street theme.
+
+Seeded Formula race (`catalogue-races.ts <ids> --merge`: 6 cars, 2 laps,
+clear): see the recorded table below. Not `bikeSafe` (walls, roofs, frontage or
+a 1.2 m barrier): motorcycles run them only in the Wildcard series, where each
+pairing has its own passing race in `docs/wildcard-races.json`.
+
 ### Motorcycle safety (`bikeSafe`)
 
 `CircuitDefinition.bikeSafe` (and `catalogue.bikeSafe`) marks a circuit

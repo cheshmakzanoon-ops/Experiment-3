@@ -3,9 +3,14 @@ import { venueKitSuite } from './venue-kit-suite.ts';
 
 // Every layout appended after wave 1; dressing families new in wave 2: the
 // container terminal (crane gantries, night), island cliffs and a day-night
-// endurance venue.
+// endurance venue; and the Wildcard wave-2 venues (a ski road with snow
+// galleries, an airport, a dam crest over water, a lamp-lit night market).
 venueKitSuite('Catalogue wave 2 venue kit', CATALOGUE_CIRCUIT_IDS.slice(20), [
   'gantry-point',
   'cape-wrenna',
   'loirette-club',
+  'haut-givre',
+  'marram-field',
+  'kalder-dam',
+  'saffron-lane',
 ]);

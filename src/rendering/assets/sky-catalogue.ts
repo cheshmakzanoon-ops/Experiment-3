@@ -152,6 +152,9 @@ export const THEME_PALETTE: Readonly<Record<VenueTheme, SkyPalette>> = Object.fr
   'caspian-city': 'city',
   'bay-city': 'city',
   'salt-flat': 'flat',
+  airport: 'flat',
+  dam: 'alpine',
+  market: 'city',
 });
 /** The original circuits (no catalogue theme). */
 const CIRCUIT_PALETTE: Readonly<Record<string, SkyPalette>> = Object.freeze({

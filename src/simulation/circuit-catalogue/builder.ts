@@ -13,6 +13,7 @@ import {
   type RunoffCode,
   type RunoffKind,
   type VenueSpan,
+  type VenueSuggestion,
   type VenueTheme,
 } from './venue-data.ts';
 
@@ -71,6 +72,8 @@ export interface CircuitSpec {
   bikeClasses?: readonly string[];
   /** Fictional trackside signage (the theme's default otherwise). */
   signage?: string;
+  /** The light and weather the venue is dressed for (advisory). */
+  suggested?: VenueSuggestion;
   seaLevel?: number | null;
   /** Initial heading (degrees, mathematical: 0 = +x east, 90 = +z north). */
   heading?: number;
@@ -810,6 +813,7 @@ export function defineCircuit(spec: CircuitSpec): CatalogueCircuit {
     dayNight: !!spec.dayNight,
     bikeSafe: !!spec.bikeSafe,
     ...(spec.signage ? { signage: spec.signage } : {}),
+    ...(spec.suggested ? { suggested: Object.freeze({ ...spec.suggested }) } : {}),
     ...(spec.referenceLength ? { referenceLength: spec.referenceLength } : {}),
     ...(spec.variantOf ? { variantOf: spec.variantOf } : {}),
     seaLevel: spec.seaLevel ?? null,
