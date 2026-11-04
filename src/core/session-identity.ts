@@ -43,8 +43,14 @@ import {
  * visibility/standing-water race-control ladder, and the fog preset's cloud and
  * fog-cover channels (fog sessions no longer replay bit-identically with v20;
  * clear, changeable, rain, storm and dust are unchanged);
+ * v22 is reserved for the GP-bike mixed-field passing work on another branch;
+ * v23: machine calibration pass (docs/studio/reports/handling-calibration.md): the
+ * HF-86 gearbox no longer hunts at 124 km/h (downshift point 8000 -> 7200 rpm, so its
+ * seeded sessions move), the MX-450's fifth gear is longer (top speed
+ * 125 -> 140 km/h; first to fourth unchanged) and the GT-6S has more rear grip; every
+ * other machine replays exactly as under v21;
  * prior records remain in their original physics category. */
-export const SIMULATION_VERSION = 21;
+export const SIMULATION_VERSION = 23;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 

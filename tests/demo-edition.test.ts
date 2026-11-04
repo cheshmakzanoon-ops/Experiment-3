@@ -272,7 +272,9 @@ describe('the Paddock Board shows the rest as FULL GAME plates', () => {
   it('renders the board plate with the counts, and a wishlist button only where a shell can open it', () => {
     const plate = demoBoardPlateHtml();
     expect(plate).toContain('id="demoPlate"');
-    expect(plate).toMatch(/<b>44<\/b> MORE CIRCUITS/);
+    // Derived, so every new venue does not need a test edit: every circuit outside the demo slice.
+    const locked = CIRCUIT_IDS.filter((id) => !DEMO_SLICE.circuits.includes(id)).length;
+    expect(plate).toMatch(new RegExp(`<b>${locked}</b> MORE CIRCUITS`));
     expect(plate).toContain('MORE WILDCARD EVENTS');
     // No bridge in a unit test: a label, not a button that cannot work.
     expect(plate).not.toContain('data-action="demo:wishlist');

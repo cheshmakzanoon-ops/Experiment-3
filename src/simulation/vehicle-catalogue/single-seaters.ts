@@ -313,7 +313,11 @@ export const HISTORIC_HF86 = defineVehicle({
   gearRatios: [-2.9, 0, 2.85, 2.1, 1.7, 1.45, 1.28, 1.17],
   idleRPM: 3500,
   shiftRPM: 11600,
-  downshiftRPM: 8000,
+  // The 1->2 step is 1.357, so a shift at 11 600 rpm lands at 8 550 rpm, and the launch wheelspin
+  // that triggers it collapses once the torque is cut: road-coupled RPM in 2nd falls to about
+  // 7 900. A downshift point of 8 000 sent the box back to 1st at once and it hunted at 124 km/h
+  // for ever; 7 200 keeps the same 1.19 margin the other single-seaters have.
+  downshiftRPM: 7200,
   limiterRPM: 12000,
   torqueCurve: [
     [4000, 180],

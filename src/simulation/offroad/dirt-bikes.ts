@@ -146,7 +146,11 @@ export const MX_450: VehicleDefinition = Object.freeze({
     travel: MX450.forkTravel,
     maxSteer: MX450.maxSteer,
     finalDrive: 4.0,
-    gearRatios: Object.freeze([0, 0, 7.8, 5.73, 4.53, 3.72, 3.12]),
+    // Fifth is long enough to reach a 450's real top end (about 140 km/h on a long straight): the
+    // old 3.12 capped it at 125 km/h against the rev limiter, below the 250 two-stroke. First to
+    // fourth, where every moto and jump is ridden, are unchanged (a longer fourth changed which
+    // riders fell in the seeded Valley Ridge moto, which never reaches fifth).
+    gearRatios: Object.freeze([0, 0, 7.8, 5.73, 4.53, 3.72, 2.78]),
     idleRPM: 1800,
     shiftRPM: 11300,
     downshiftRPM: 6200,
