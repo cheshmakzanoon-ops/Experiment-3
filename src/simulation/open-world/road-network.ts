@@ -33,6 +33,13 @@ export const ROAD_LAYER_GAP = 4;
 const PLATEAU_MAX = 40;
 /** Vertical clearance of a grade-separated crossing (m). */
 const OVERPASS_CLEARANCE = 7.2;
+/** Vertical sag fillet at an over-road's deck (see RoadNetwork.profile): the
+ * comfortable vertical acceleration (m/s²) at 1.25 × the class design speed. */
+const SAG_ACCELERATION = 4;
+const SAG_SPEED_FACTOR = 1.25;
+/** Reach of the fillet either side of the deck (m) and the relaxation sweeps. */
+const SAG_REACH = 220;
+const SAG_SWEEPS = 800;
 
 export interface RoadNode {
   index: number;
@@ -100,6 +107,8 @@ interface CrossingPin {
   road: number;
   arc: number;
   height: number;
+  /** The over-road (the deck); the under-road runs in its own cut. */
+  over: boolean;
 }
 
 /** Centripetal Catmull-Rom through control points, resampled by arc length. */
@@ -555,8 +564,8 @@ export class RoadNetwork {
           [bx, bz] = this.pointAt(over, c.arcA + 250),
           rims = Math.min(this.discHeight(ax, az, 40), this.discHeight(bx, bz, 40)) - 22,
           under = this.discHeight(c.x, c.z, 60) - 1.5;
-        pins.push({ road: b, arc: c.arcB, height: under });
-        pins.push({ road: a, arc: c.arcA, height: Math.max(rims, under + OVERPASS_CLEARANCE) });
+        pins.push({ road: b, arc: c.arcB, height: under, over: false });
+        pins.push({ road: a, arc: c.arcA, height: Math.max(rims, under + OVERPASS_CLEARANCE), over: true });
       }
     }
     return pins;
@@ -767,6 +776,36 @@ export class RoadNetwork {
     // Round the grade breaks (vertical curves).
     for (let pass = 0; pass < 4; pass++)
       for (let i = 1; i < n - 1; i++) if (!pinned[i]) y[i] = (y[i - 1] + 2 * y[i] + y[i + 1]) / 4;
+    // A grade-separated crossing pins the deck at its own height, and the
+    // grade-clamped approach may run higher on both sides: the profile then
+    // dives to the deck and climbs out again in a V of 11 % grade change
+    // within a dozen metres. A car at 200 km/h pitches up at over 2 rad/s off
+    // that kink, leaves the road and rolls over (festival QA, Grand Loop on
+    // Ridge Highway at (-885, 878)). Around an over-road's deck, raise the
+    // road, and only raise it, until no sag is sharper than a comfortable
+    // vertical curve for the class (the lowest profile above the clamped one
+    // with that curvature limit). The under-road clearance never shrinks.
+    const sagCurvature = SAG_ACCELERATION / (spec.designSpeed * SAG_SPEED_FACTOR) ** 2;
+    for (const c of crossing) {
+      if (!c.over) continue;
+      const at = index(c.arc),
+        reach = Math.ceil(SAG_REACH / Math.max(1, line.arc[n - 1] / (n - 1))),
+        lo = Math.max(1, at - reach),
+        hi = Math.min(n - 2, at + reach);
+      for (let sweep = 0; sweep < SAG_SWEEPS; sweep++) {
+        let raised = false;
+        for (let i = lo; i <= hi; i++) {
+          const h0 = line.arc[i] - line.arc[i - 1],
+            h1 = line.arc[i + 1] - line.arc[i],
+            lowest = (y[i - 1] * h1 + y[i + 1] * h0) / (h0 + h1) - 0.5 * sagCurvature * h0 * h1;
+          if (y[i] < lowest - 1e-6) {
+            y[i] = lowest;
+            raised = true;
+          }
+        }
+        if (!raised) break;
+      }
+    }
     return { y, ground };
   }
   /** Fill the flat per-sample arrays, split roads into edges at nodes. */

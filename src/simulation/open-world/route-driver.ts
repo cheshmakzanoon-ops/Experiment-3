@@ -35,6 +35,9 @@ const BIKE_DOWN_RESET = 20;
  * motorcycle on public roads: junction corners are sharp and short. */
 const BIKE_WINDOW = Object.freeze([-6, -3, 3, 6]);
 const BIKE_CORNER_RESERVE = 0.88;
+/** Speed (m/s) above which the driver plans over twice the circuit AI's
+ * 252 m look-ahead (see RouteDriver.update). */
+export const LONG_LOOKAHEAD_SPEED = 55;
 /** Heading error (rad) beyond which a motorcycle turns round at walking pace. */
 const BIKE_TURN_ROUND = 1.0;
 
@@ -73,6 +76,11 @@ export class RouteDriver {
   trouble = 0;
   /** Set when the driver asks the session to put it back on the route. */
   wantsReset = false;
+  /** Route distance beyond which the driver plans no braking at all: a
+   * measured gate (speed trap, zone finish) ends the activity there, so the
+   * junction a few metres past it is the next road's business. Infinity
+   * (default) plans for the whole route as a race does. */
+  horizon = Infinity;
   private tactical = 0;
   /** Take a lane beside a slower car ahead (racing); off, it only follows
    * (the free-roam cruise among ambient traffic). */
@@ -103,8 +111,8 @@ export class RouteDriver {
   private turningRound = false;
   private readonly target = pathPoint();
   private readonly sample = pathPoint();
-  private readonly curvatures = new Float64Array(ENVELOPE_SAMPLES);
-  private readonly corners = new Float64Array(ENVELOPE_SAMPLES);
+  private readonly curvatures = new Float64Array(ENVELOPE_SAMPLES * 2);
+  private readonly corners = new Float64Array(ENVELOPE_SAMPLES * 2);
   private readonly delta = new Vec3();
   private readonly local = new Vec3();
   private readonly located = { lateral: 0, distance: 0 };
@@ -263,10 +271,21 @@ export class RouteDriver {
       (env.downforceReference * (0.45 + 0.55 * Math.min(c.frontHealth, c.floorHealth))) /
       (c.spec.dryMass + c.fuel);
     const laneGrip = grip * clamp(1 - Math.abs(this.tactical) * 0.03, 0.85, 1);
-    for (let i = 0; i < ENVELOPE_SAMPLES; i++) {
+    // The circuit AI looks 21 samples (252 m) ahead, enough to stop from
+    // 70 m/s. A hypercar flat out on a highway needs more (88 m/s at 1.4 g is
+    // 270 m): twice the look-ahead above LONG_LOOKAHEAD_SPEED, or it brakes at
+    // the limit of its horizon and runs wide at the T-junction at the end of
+    // the Coast Highway (festival QA, Grand Loop).
+    const samples = c.speed > LONG_LOOKAHEAD_SPEED ? ENVELOPE_SAMPLES * 2 : ENVELOPE_SAMPLES;
+    for (let i = 0; i < samples; i++) {
       const at = this.d + i * ENVELOPE_STEP;
       const curvatureAt = (x: number) =>
         this.laneOffset ? path.at(x, this.sample).curvature : path.lineCurvatureAt(x);
+      if (at > this.horizon) {
+        this.curvatures[i] = 0;
+        this.corners[i] = env.topSpeed * this.skill;
+        continue;
+      }
       let k = curvatureAt(at);
       // A motorcycle cannot brake hard while leaned: the sharpest point of
       // each sample's window counts (a junction corner shorter than the
@@ -294,11 +313,14 @@ export class RouteDriver {
     else if (bike) desired = Math.min(desired, Math.max(6, 30 - 60 * away));
     desired = Math.min(
       desired,
-      envelopeProfile(this.curvatures, this.corners, laneGrip, aero, env),
+      envelopeProfile(this.curvatures, this.corners, laneGrip, aero, env, samples),
     );
     desired = Math.min(desired, this.trafficSpeed);
     // The end of a point-to-point route: brake to a stop before its end.
-    const remaining = path.closed ? Infinity : path.length - 6 - this.d;
+    const remaining =
+      path.closed || (this.horizon < Infinity && this.d < this.horizon)
+        ? Infinity
+        : path.length - 6 - this.d;
     if (remaining < 1) desired = 0;
     else if (remaining < 260) desired = Math.min(desired, Math.sqrt(2 * 5 * remaining));
     // A finished car eases off.

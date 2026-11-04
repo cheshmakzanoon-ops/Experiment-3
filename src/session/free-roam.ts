@@ -3,6 +3,7 @@ import { loadLazyData } from '../core/lazy-data.ts';
 import { scannedGround } from '../rendering/ground/scan-store.ts';
 import type { Assist, Controls, WeatherPreset } from '../simulation/config.ts';
 import {
+  isRace,
   resolveEvents,
   type FestivalEvent,
   type FestivalResult,
@@ -33,6 +34,7 @@ import { FestivalStatusObserver } from '../steam/hooks.ts';
 import {
   FESTIVAL_SAVE_KEY,
   festivalMachineChoice,
+  recordFestivalBest,
   validateFestivalSave,
   type FestivalSave,
 } from './festival-save.ts';
@@ -382,28 +384,7 @@ export class FestivalSession {
   private recordResult(result: FestivalResult) {
     this.hud?.recordActivity(result);
     this.host.onResult?.(result);
-    if (!result.completed || result.assisted) return;
-    const best = this.save.best[result.eventId],
-      value = result.trapKmh ?? result.averageKmh ?? result.driftScore ?? null;
-    const better =
-      !best ||
-      result.stars > best.stars ||
-      (result.time !== null && (best.time === null || result.time < best.time)) ||
-      (value !== null && (best.value === null || value > best.value));
-    if (better) {
-      this.save.best[result.eventId] = {
-        stars: Math.max(result.stars, best?.stars ?? 0),
-        time:
-          result.time !== null && (best?.time == null || result.time < best.time)
-            ? result.time
-            : (best?.time ?? null),
-        value:
-          value !== null && (best?.value == null || value > best.value)
-            ? value
-            : (best?.value ?? null),
-      };
-      void this.persist();
-    }
+    if (recordFestivalBest(this.save, result)) void this.persist();
   }
   private async persist() {
     try {
@@ -449,8 +430,11 @@ export class FestivalSession {
     );
     let complete = false;
     try {
-      await this.commandAndWait({ type: 'travel', event: id });
-      const { x, z } = event.marker,
+      // A skill challenge begins at its gate: a retry arrives on the road
+      // behind it (when there is one) and drives in, as the first run did.
+      const skill = retry && !isRace(event.spec.kind) && !!event.runUp;
+      await this.commandAndWait({ type: 'travel', event: id, runUp: skill });
+      const { x, z } = skill ? event.runUp! : event.marker,
         deadline = performance.now() + 12000;
       while (!renderer.ready(x, z) && performance.now() < deadline && !this.disposed) {
         renderer.prestream(x, z);
@@ -459,7 +443,7 @@ export class FestivalSession {
       if (this.disposed) return;
       if (!renderer.ready(x, z))
         throw new Error('The destination is still loading. Try again from the pause menu.');
-      if (retry) await this.commandAndWait({ type: 'start', event: id });
+      if (retry && !skill) await this.commandAndWait({ type: 'start', event: id });
       complete = true;
     } catch (error) {
       if (!this.disposed)
