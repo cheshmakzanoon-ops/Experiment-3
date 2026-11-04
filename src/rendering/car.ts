@@ -327,7 +327,7 @@ export class FormulaCar {
       const materials = { paint: this.paint, carbon: wingCarbon, metal: wingCarbon, dark };
       mountAuthoredWing(this.frontWing, hero, 'front', materials);
       mountAuthoredWing(this.rearWing, hero, 'rear', materials);
-      mesh(s, hero.copy('beam'), carbon);
+      mesh(s, hero.copy('beam'), floorCarbon);
     } else {
       buildWing(this.frontWing, 'front', 'high', this.paint, carbon);
       buildWing(this.rearWing, 'rear', 'high', this.paint, carbon);
