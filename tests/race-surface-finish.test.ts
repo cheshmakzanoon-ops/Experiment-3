@@ -106,7 +106,10 @@ describe('race surface continuity', () => {
       const p = o + WHEEL_BASE + i * WHEEL_STRIDE;
       clean[p + W.LENGTH] = .3; clean[p + W.RADIUS] = .335; clean[p + W.PRESSURE] = 155;
     }
-    const worn = clean.slice(); worn[H.RAIN] = 14; worn[o + F.COMPOUND] = 4;
+    // Precipitation is rain or snow by air temperature (weather.ts PRECIPITATION: liquid at 2 C and
+    // above, snow at 0 C and below). A zero-filled header reads 0 C, so this wet-tyre scenario needs a
+    // rain-temperature ambient or the 14 mm/h is a snowfall that does not wet the tread.
+    const worn = clean.slice(); worn[H.RAIN] = 14; worn[H.AMBIENT] = 18; worn[o + F.COMPOUND] = 4;
     const geometries = new Set<T.BufferGeometry>();
     car.root.traverse((object) => { if (object instanceof T.Mesh) geometries.add(object.geometry); });
     const binds = [...geometries].filter((g) => g.hasAttribute('tireBind')).map((g) => g.getAttribute('tireBind'));

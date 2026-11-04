@@ -217,6 +217,7 @@ describe('racing surface layer', () => {
     const shader = compile(material);
     expect(Object.keys(shader.uniforms)).toEqual([
       'roadWeather',
+      'roadDust',
       'trackState',
       'surfaceDeposits',
       'roadLampRadius',
