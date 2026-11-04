@@ -359,7 +359,11 @@ export function auditResult(
     return checks;
   }
   const distance = event.distance;
-  check('completed run covers the route', result.legalDistance >= distance * 0.9 && result.legalDistance <= distance * 1.02 + 60, `legal ${result.legalDistance.toFixed(0)} m of ${distance.toFixed(0)} m`);
+  // A race counts every forward metre RouteProgress accepts, so a car that is put back (reset,
+  // recovery) and drives the same stretch again is credited twice: up to a quarter over is not a fault.
+  // Skill challenges measure the net station and must not exceed the route.
+  const over = isRace(result.eventKind) ? distance * 1.25 + 100 : distance * 1.02 + 60;
+  check('completed run covers the route', result.legalDistance >= distance * 0.9 && result.legalDistance <= over, `legal ${result.legalDistance.toFixed(0)} m of ${distance.toFixed(0)} m`);
   if (result.eventKind !== 'speed-trap') {
     check('time is positive and physically possible', result.time !== null && result.time > 0 && result.time >= (distance * 0.5) / (top / 3.6) , `time ${result.time} for ${distance.toFixed(0)} m at top ${top.toFixed(0)} km/h`);
   }
@@ -510,6 +514,7 @@ export function runActivity(o: RunOptions, shared: Shared = {}): ActivityReport 
 
     // 1. Arrive: fast travel as the HUD does, or drive there.
     const runUp = race ? null : approachPath(event);
+    let phaseB: { path: RoutePath; horizon: number } | null = null;
     if (o.approach !== 'drive') {
       // As the HUD's travel / TRY AGAIN: a skill challenge arrives on its run-up.
       sim.command({ type: 'travel', event: o.event, runUp: true });
@@ -522,13 +527,12 @@ export function runActivity(o: RunOptions, shared: Shared = {}): ActivityReport 
       let path: RoutePath;
       if (race || !runUp) path = routeTo(here, event.marker.x, event.marker.z);
       else {
-        const world = openWorld(),
-          p = runUp.path.at(0, pathPoint());
-        path = new RoutePath(
-          world.network,
-          planRoute(world.network, [[here.x, here.z], [p.x, p.z], ...event.spec.waypoints], false),
-          false,
-        );
+        // Phase A: drive to the start of the run-up. Phase B (below): turn round there, as a
+        // person does on a road, and run in at speed. One planned route cannot: the planner
+        // allows no U-turn, so arriving from the wrong side it loops for kilometres.
+        const p = runUp.path.at(0, pathPoint());
+        path = routeTo(here, p.x, p.z);
+        phaseB = { path: runUp.path, horizon: runUp.entry + event.distance };
       }
       // A person turns a car round and sets off; the route driver cannot make a U-turn on a
       // road. Point the car along the start of its route when it faces the other way (after a
@@ -540,7 +544,7 @@ export function runActivity(o: RunOptions, shared: Shared = {}): ActivityReport 
         monitor.rebind();
       }
       pilot = new Pilot(sim, path, o.skill, o.traffic ? -1.9 : 0);
-      if (!race) pilot.horizon = path.length - (event.path.length - event.distance);
+      if (!race && !phaseB) pilot.horizon = path.length - (event.path.length - event.distance);
       pilot.slide = !!o.slide && event.spec.kind === 'drift-zone';
     }
     const arrive = sim.time;
@@ -575,7 +579,17 @@ export function runActivity(o: RunOptions, shared: Shared = {}): ActivityReport 
         if (rolled > 0.5) notes.push(`player rolled ${rolled.toFixed(2)} m in the last second of the countdown`);
       }
     } else {
-      while (!targetRunning() && sim.time - arrive < arrivalLimit && !held.result) advance();
+      while (!targetRunning() && sim.time - arrive < arrivalLimit && !held.result) {
+        advance();
+        if (phaseB && pilot.path.length - pilot.d < 14 && sim.player.speed < 3) {
+          const p = phaseB.path.at(0, pathPoint());
+          sim.placeAt(sim.player, p.x, p.z, Math.atan2(p.tx, p.tz), p.y + 0.5);
+          monitor.rebind();
+          pilot.retarget(phaseB.path);
+          pilot.horizon = phaseB.horizon;
+          phaseB = null;
+        }
+      }
       if (!targetRunning() && !held.result) {
         notes.push(`the gate did not start the challenge after ${(sim.time - arrive).toFixed(0)} s (mode ${sim.mode})`);
         report.outcome = 'no-start';
