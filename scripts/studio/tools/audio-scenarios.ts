@@ -60,6 +60,8 @@ export interface ScenarioMeta {
   view: ViewSpec['mode'];
   /** Times (s) of discrete events: gear changes, impacts, landings, cues. */
   events: number[];
+  /** Spans (s) where transients are intended (overrun crackle): not defects. */
+  transients?: [number, number][];
   /** Expected engine fundamental (Hz) every 50 ms, or null. */
   f0: number[] | null;
   /** Free-form tags the analysis keys on (stem name, surface, slip level...). */
@@ -106,7 +108,7 @@ export interface PowerState {
 }
 
 /** The kinds of engine scenario the rig renders for every machine. */
-export type EngineKind = 'idle' | 'mid' | 'redline' | 'lift' | 'shift' | 'pull';
+export type EngineKind = 'idle' | 'mid' | 'redline' | 'lift' | 'shift' | 'pull' | 'limiter' | 'pit';
 export const ENGINE_KINDS: readonly EngineKind[] = [
   'idle',
   'mid',
@@ -114,6 +116,8 @@ export const ENGINE_KINDS: readonly EngineKind[] = [
   'lift',
   'shift',
   'pull',
+  'limiter',
+  'pit',
 ];
 
 function friction(id: string, rpm: number) {
@@ -174,6 +178,19 @@ export function enginePlan(id: string, kind: EngineKind): Plan {
     return { seconds: 3, events: [], at: () => steady(limiter * 0.62, 0.6, cruiseGear) };
   if (kind === 'redline')
     return { seconds: 3, events: [], at: () => steady(limiter * 0.97, 1, cruiseGear) };
+  // On the rev limiter: revs pinned at the limit with the throttle flat.
+  if (kind === 'limiter')
+    return { seconds: 3, events: [], at: () => steady(limiter - 10, 1, cruiseGear) };
+  // Pit lane at the limiter speed (80 km/h) in second gear, part throttle.
+  if (kind === 'pit')
+    return {
+      seconds: 3,
+      events: [],
+      at: () => {
+        const rpm = Math.min(limiter * 0.5, Math.max(s.idleRPM * 1.6, limiter * 0.32));
+        return { ...steady(rpm, 0.45, Math.min(2, lone)), speed: 22.2 };
+      },
+    };
   if (kind === 'lift') {
     // 1 s flat out, lift, revs fall away through 1.6 s, back on the throttle.
     const high = limiter * 0.92,
@@ -282,6 +299,7 @@ export interface CarSetup {
   vz?: number;
   impact?: number;
   inPit?: boolean;
+  pitPhase?: number;
 }
 
 export function setCar(frame: Float32Array, id: number, c: CarSetup): void {
@@ -300,6 +318,7 @@ export function setCar(frame: Float32Array, id: number, c: CarSetup): void {
   frame[o + F.ENGINE_TORQUE] = c.state.torque;
   frame[o + F.IMPACT] = c.impact ?? 0;
   frame[o + F.IN_PIT] = c.inPit ? 1 : 0;
+  frame[o + F.PIT_PHASE] = c.pitPhase ?? 0;
   frame[o + RACE_BASE + R.VEHICLE] = vehicleIndex(c.vehicle);
   const load = c.surface === null ? 0 : wheelLoadN(c.vehicle);
   for (let i = 0; i < 4; i++) {
@@ -390,12 +409,19 @@ function engineScenario(
     seconds: plan.seconds,
     view,
     events: plan.events,
+    transients: kind === 'lift' ? [[1, 3.3]] : [],
     f0,
     tags: { kind, class: d.classId },
     frameAt: (t) => {
       const f = blankFrame();
       // Engine stem: no wheel load, no wind, no weather - only the voice and power unit.
-      setCar(f, 0, { vehicle, state: plan.at(t), surface: null });
+      setCar(f, 0, {
+        vehicle,
+        state: plan.at(t),
+        surface: null,
+        inPit: kind === 'pit',
+        pitPhase: kind === 'pit' ? 1 : 0,
+      });
       return f;
     },
     viewAt: () =>
@@ -471,10 +497,10 @@ export function effectScenarios(): Scenario[] {
   };
   // Tyre squeal: the sum of the four wheels' slip power (W) at 60 m/s.
   for (const [name, power] of [
-    ['light', 25000],
-    ['moderate', 60000],
-    ['heavy', 120000],
-    ['locked', 260000],
+    ['light', 4000],
+    ['moderate', 10000],
+    ['heavy', 20000],
+    ['locked', 65000],
   ] as const)
     scene(
       `tyre__squeal__${name}`,
@@ -634,7 +660,7 @@ export function effectScenarios(): Scenario[] {
           f[carBase(0) + WHEEL_BASE + i * WHEEL_STRIDE + W.LOAD] = flying ? 0 : wheelLoadN('mx450');
         f[H.TIME] = t;
       },
-      { vehicle: 'mx450', speed: 25, events: [1.4], buses: { engine: 1 } },
+      { vehicle: 'mx450', speed: 25, events: [1.4] },
     );
   return out;
 }
@@ -667,6 +693,7 @@ export function mixScenarios(): Scenario[] {
       seconds: options.seconds ?? plan.seconds,
       view,
       events: plan.events,
+      transients: kind === 'lift' ? [[1, 3.3]] : [],
       f0: null,
       tags: { scene: id, ...(options.tags ?? {}) },
       frameAt: (t) => {
@@ -780,6 +807,7 @@ export function mixScenarios(): Scenario[] {
   // Twelve cars on the grid at full revs: the worst case for summing and clipping.
   out.push(gridScenario());
   out.push(passbyScenario());
+  out.push(startScenario());
   return out;
 }
 
@@ -864,5 +892,40 @@ function passbyScenario(): Scenario {
       return f;
     },
     viewAt: () => tracksideView(),
+  };
+}
+
+/** The start: five lamps one second apart, lights out, a launch. The engine idles
+ * through the lamps and pulls away on green. */
+function startScenario(): Scenario {
+  const v = 'apx01',
+    green = 6.4,
+    launch = enginePlan(v, 'pull'),
+    idle = enginePlan(v, 'idle');
+  return {
+    id: 'mix__start-lights',
+    group: 'mix',
+    vehicle: v,
+    family: soundFamilyFor(vehicleDefinition(v)),
+    label: 'Start sequence: five lamps, lights out, launch (cockpit)',
+    seconds: 9,
+    view: 'cockpit',
+    events: [1, 2, 3, 4, 5, green, ...launch.events.map((e) => e + green)],
+    f0: null,
+    tags: { scene: 'start-lights' },
+    frameAt: (t) => {
+      const f = blankFrame();
+      const racing = t >= green;
+      setCar(f, 0, {
+        vehicle: v,
+        state: racing ? launch.at(Math.min(t - green, launch.seconds)) : idle.at(0),
+        surface: MATERIAL.ASPHALT,
+      });
+      f[H.TIME] = t;
+      f[H.PHASE] = racing ? 2 : 1;
+      f[H.LIGHTS] = racing ? 0 : t < 1 ? 0 : Math.min(5, Math.floor(t));
+      return f;
+    },
+    viewAt: () => cockpitView(0),
   };
 }

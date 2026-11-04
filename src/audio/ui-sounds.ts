@@ -1,4 +1,5 @@
 import { UI_CUE_EVENT, type UiCue } from '../ui/ui-cue.ts';
+import { GAIN_STAGING, dbToGain, sliderGain, softLimitCurve } from './mixer.ts';
 
 /** Menu sounds: the audio half of the front end's `motobound:cue` hook
  * (src/ui/ui-cue.ts). Six mechanical sounds, synthesised in WebAudio from the
@@ -153,6 +154,20 @@ export const UI_SOUNDS: Readonly<Record<UiSoundId, readonly Voice[]>> = Object.f
 export const UI_SOUND_MAX_SECONDS = 0.5;
 /** Output ceiling relative to the player's master volume. */
 export const UI_MASTER = 0.35;
+/** Make-up gain after the master (dB) and the per-sound trims (dB) that bring
+ * every cue to the same loudness: the six recipes measured 23 dB apart at the
+ * first rig run (-51.5 to -28.2 dBFS RMS at the default volume) and 20 to 36 dB
+ * under the engine. The trims are measured, not guessed: re-run the rig
+ * (audio-render.mjs --group ui) after changing a recipe. */
+export const UI_MAKEUP_DB = 14;
+export const UI_TRIM_DB: Readonly<Record<UiSoundId, number>> = Object.freeze({
+  tick: 8,
+  select: 0,
+  confirm: 6,
+  open: 21,
+  close: 10,
+  deny: 5,
+});
 /** Fastest repeat of one sound (s): key repeat on a dial is a tick train, not a wall. */
 const MIN_GAP = 0.045;
 
@@ -161,6 +176,8 @@ export interface UiSoundSettings {
   /** The player's master volume, 0 to 1. */
   volume: number;
   muted: boolean;
+  /** The menu-sound slider (mixer.ts `ui` level), 0 to 1; absent: 1. */
+  level?: number;
 }
 /** The slice of AudioContext this uses (so a test can stand in for it). */
 type Context = Pick<
@@ -176,7 +193,8 @@ type Context = Pick<
   | 'createBiquadFilter'
   | 'createBuffer'
   | 'close'
->;
+> &
+  Partial<Pick<AudioContext, 'createWaveShaper'>>;
 export interface UiSoundsOptions {
   settings: () => UiSoundSettings;
   /** Where the cues arrive (the window). */
@@ -228,7 +246,7 @@ export class UiSounds {
   cue(cue: unknown) {
     const id = typeof cue === 'string' ? CUE_SOUND[cue as UiCue] : undefined;
     if (!id) return false;
-    const { volume, muted } = this.options.settings();
+    const { volume, muted, level } = this.options.settings();
     if (muted || !(volume > 0) || !this.allowed()) return false;
     const ctx = this.ensure();
     if (!ctx || !this.master) return false;
@@ -240,8 +258,15 @@ export class UiSounds {
     const now = ctx.currentTime;
     if (now - (this.last.get(id) ?? -Infinity) < MIN_GAP) return false;
     this.last.set(id, now);
-    this.master.gain.setValueAtTime(UI_MASTER * Math.min(1, volume), now);
-    for (const voice of UI_SOUNDS[id]) this.voice(ctx, voice, now);
+    this.master.gain.setValueAtTime(
+      UI_MASTER * Math.min(1, volume) * (level === undefined ? 1 : sliderGain(level)),
+      now,
+    );
+    // One trim node per cue keeps the six sounds at the same loudness.
+    const trim = ctx.createGain();
+    trim.gain.value = dbToGain(UI_TRIM_DB[id]);
+    trim.connect(this.master);
+    for (const voice of UI_SOUNDS[id]) this.voice(ctx, voice, now, trim);
     this.played++;
     return true;
   }
@@ -253,7 +278,17 @@ export class UiSounds {
         (new AudioContext({ latencyHint: 'interactive' }) as unknown as Context);
       this.context = ctx;
       this.master = ctx.createGain();
-      this.master.connect(ctx.destination);
+      // Make-up, then a soft ceiling: the menu context has no master bus of its own.
+      const makeup = ctx.createGain();
+      makeup.gain.value = dbToGain(UI_MAKEUP_DB);
+      this.master.connect(makeup);
+      const shaper = ctx.createWaveShaper?.();
+      if (shaper) {
+        shaper.curve = softLimitCurve(dbToGain(GAIN_STAGING.ceilingDbfs));
+        shaper.oversample = '4x';
+        makeup.connect(shaper);
+        shaper.connect(ctx.destination);
+      } else makeup.connect(ctx.destination);
       return ctx;
     } catch {
       return null;
@@ -272,7 +307,7 @@ export class UiSounds {
     }
     return (this.noise = buffer);
   }
-  private voice(ctx: Context, v: Voice, now: number) {
+  private voice(ctx: Context, v: Voice, now: number, out: AudioNode) {
     const start = now + v.at,
       end = start + v.attack + v.decay;
     const gain = ctx.createGain();
@@ -302,7 +337,7 @@ export class UiSounds {
       head = filter;
     }
     head.connect(gain);
-    gain.connect(this.master!);
+    gain.connect(out);
     source.start(start);
     source.stop(end + 0.02);
   }

@@ -39,6 +39,7 @@ const meta = (s: Scenario): ScenarioMeta => ({
   seconds: s.seconds,
   view: s.view,
   events: s.events,
+  transients: s.transients ?? [],
   f0: s.f0,
   tags: s.tags,
 });
@@ -118,6 +119,7 @@ async function renderUi(cue: UiCue, volume: number): Promise<Rendered> {
     createBufferSource: () => context.createBufferSource(),
     createBiquadFilter: () => context.createBiquadFilter(),
     createBuffer: (c: number, l: number, r: number) => context.createBuffer(c, l, r),
+    createWaveShaper: () => context.createWaveShaper(),
   };
   const sounds = new UiSounds({
     settings: () => ({ volume, muted: false }),

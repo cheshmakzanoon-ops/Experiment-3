@@ -222,7 +222,7 @@ def rms_track(mono, sr, win_ms, hop_ms):
     return np.sqrt((c[starts + w] - c[starts]) / w), h, w
 
 
-def find_clicks(mono, sr, events, skip=SKIP_S):
+def find_clicks(mono, sr, events, skip=SKIP_S, spans=()):
     """Isolated sample-level discontinuities: a 30 ms window whose peak second difference is 4x the
     median of its neighbours' peaks (periodic waveform edges repeat every cycle and do not count)."""
     d2 = np.abs(mono[2:] - 2 * mono[1:-1] + mono[:-2])
@@ -245,7 +245,7 @@ def find_clicks(mono, sr, events, skip=SKIP_S):
         if ratio > 4.0 and peaks[i] > 0.0015:
             times.append(float(t))
             worst = max(worst, ratio)
-    near = lambda t: any(abs(t - e) < 0.12 for e in events)  # noqa: E731
+    near = lambda t: any(abs(t - e) < 0.12 for e in events) or any(a <= t <= b for a, b in spans)  # noqa: E731
     unexplained = [t for t in times if not near(t)]
     return {
         'count': len(times),
@@ -290,6 +290,21 @@ def shift_dip(mono, sr, events):
             continue
         out.append({'t': e, 'dip_db': pdb((near.min() / ref) ** 2), 'peak_db': pdb((near.max() / ref) ** 2)})
     return out
+
+
+def bounce_metric(mono, sr):
+    """Peak-to-peak swing (dB, 5th-95th percentile) of the 25 ms envelope and its dominant rate (Hz)."""
+    env, h, _ = rms_track(mono, sr, 25.0, 5.0)
+    env = env[int(SKIP_S * sr / h):]
+    if env.shape[0] < 40:
+        return {'swing_db': 0.0, 'rate_hz': 0.0}
+    lev = 20 * np.log10(env + 1e-9)
+    swing = float(np.percentile(lev, 95) - np.percentile(lev, 5))
+    spec = np.abs(np.fft.rfft(lev - lev.mean()))
+    freqs = np.fft.rfftfreq(lev.shape[0], h / sr)
+    band = (freqs >= 2.0) & (freqs <= 40.0)
+    rate = float(freqs[band][int(np.argmax(spec[band]))]) if band.any() else 0.0
+    return {'swing_db': swing, 'rate_hz': rate}
 
 
 def loop_seams(mono, sr, period=2.0):
@@ -354,9 +369,9 @@ def analyse(path, meta):
     out['spectrum'] = feats
     events = meta.get('events') or []
     if meta['group'] != 'ui':
-        out['clicks'] = find_clicks(x.mean(axis=1), sr, events)
+        out['clicks'] = find_clicks(x.mean(axis=1), sr, events, spans=meta.get('transients') or [])
         out['steps'] = envelope_steps(x.mean(axis=1), sr, events)
-    if events and meta['group'] in ('engine',):
+    if events and (meta['group'] in ('engine',) or meta.get('tags', {}).get('scene') == 'start-lights'):
         out['events'] = shift_dip(x.mean(axis=1), sr, events)
     f0 = meta.get('f0')
     if f0:
@@ -371,7 +386,9 @@ def analyse(path, meta):
         crank = float(np.median(f0)) / 2.0
         out['f0_median_hz'] = float(np.median(f0))
         out['harmonics_db'] = harmonic_profile(f, p, crank)
-    if meta['group'] in ('wind', 'weather', 'surface', 'tyre', 'stem'):
+    if meta.get('tags', {}).get('kind') in ('limiter', 'pit', 'mid'):
+        out['bounce'] = bounce_metric(x.mean(axis=1), sr)
+    if meta['group'] in ('wind', 'weather', 'surface', 'tyre'):
         out['loop_seam_ratio'] = loop_seams(x.mean(axis=1), sr)
     return out, (sr, x)
 
@@ -618,19 +635,39 @@ def judge(files, agg, dist, dups, meta):
                 f'{len(a["outliers_3db"])} machines are more than 3 dB from the {a["median_lufs"]:.1f} LUFS median '
                 f'(range {a["min_lufs"]:.1f} to {a["max_lufs"]:.1f}).',
                 {'outliers': a['outliers_3db'][:10]})
-    # 4 ambience vs engine
-    ref = by_id.get('engine__apx01__pull__cockpit')
-    if ref:
-        rows = []
-        for sid in ('wind__30', 'wind__60', 'wind__90', 'weather__rain-light', 'weather__rain-heavy', 'weather__storm', 'weather__gale', 'weather__snow', 'weather__dust', 'weather__fog'):
-            r = by_id.get(sid)
-            if r:
-                rows.append((sid, r['lufs'] - ref['lufs']))
-        loud = [(s, d) for s, d in rows if d > -12.0]
+    # 4 ambience and effects against the engine: the stems of each mix scene when they were
+    # rendered (pre-limiter, one bus at a time), else the stand-alone scenes against the formula pull.
+    scenes = sorted({r['id'].split('__stem-')[0] for r in files if '__stem-' in r['id']})
+    rows = []
+    for sc in scenes:
+        e, fx, am = (by_id.get(f'{sc}__stem-{k}') for k in ('engine', 'effects', 'ambience'))
+        if e and fx and am and 'grid' not in sc and 'passby' not in sc:
+            rows.append((sc.replace('mix__', ''), am['lufs'] - e['lufs'], fx['lufs'] - e['lufs']))
+    if rows:
+        loud = [(s, d) for s, d, _ in rows if d > -12.0]
         if loud:
             add('high', 'A4', 'Ambience is not 12 dB below the engine',
-                'Ambience beds against the formula pull (engine only): ' + ', '.join(f'{s} {d:+.1f} dB' for s, d in loud) + '.',
+                'Ambience stem minus engine stem (mix scenes): ' + ', '.join(f'{s} {d:+.1f} dB' for s, d in loud) + '.',
                 {'rows': rows})
+        # continuous effects (rolling, spray, rain) 6 dB under the engine; a squeal is a warning, 3 dB
+        loudfx = [(s, d) for s, _, d in rows if 'start-lights' not in s and d > (-3.0 if 'squeal' in s else -6.0)]
+        if loudfx:
+            add('medium', 'A15', 'Tyre / surface / spray effects within 6 dB of the engine',
+                'Effects stem minus engine stem: ' + ', '.join(f'{s} {d:+.1f} dB' for s, d in loudfx) + '.',
+                {'rows': rows})
+    else:
+        ref = by_id.get('engine__apx01__pull__cockpit')
+        if ref:
+            rows = []
+            for sid in ('wind__30', 'wind__60', 'wind__90', 'weather__rain-light', 'weather__rain-heavy', 'weather__storm', 'weather__gale', 'weather__snow', 'weather__dust', 'weather__fog'):
+                r = by_id.get(sid)
+                if r:
+                    rows.append((sid, r['lufs'] - ref['lufs']))
+            loud = [(s, d) for s, d in rows if d > -12.0]
+            if loud:
+                add('high', 'A4', 'Ambience is not 12 dB below the engine',
+                    'Ambience beds against the formula pull (engine only): ' + ', '.join(f'{s} {d:+.1f} dB' for s, d in loud) + '.',
+                    {'rows': rows})
     # 5 UI levels
     ui = [r for r in files if r['group'] == 'ui' and r['id'] != 'ui__driving-cues']
     bad = [r for r in ui if not (-18.0 <= r['active_rms_dbfs'] <= -12.0)]
@@ -656,7 +693,7 @@ def judge(files, agg, dist, dups, meta):
             f'{len(dips)} gear changes: ' + ', '.join(f'{i} {d:.1f}' for i, d in dips[:6]),
             {'dips': dips[:20]})
     # 8 pitch tracking
-    bad_track = [r for r in files if r.get('tracking') and r['tracking']['median_abs_cents'] > 60]
+    bad_track = [r for r in files if r.get('tracking') and r['tags'].get('kind') != 'idle' and r['tags'].get('stem') is None and r['tracking']['median_abs_cents'] > 60]
     if bad_track:
         add('medium', 'A9', 'Engine pitch does not follow the RPM',
             f'{len(bad_track)} renders have median pitch error above 60 cents.',
@@ -666,6 +703,22 @@ def judge(files, agg, dist, dups, meta):
         add('low', 'A10', 'Machines with near-identical engine voices',
             f'{len(dups)} pairs closer than 0.08 octave in pitch, 0.12 octave in centroid and 2.5 dB in harmonic profile at mid throttle.',
             {'pairs': dups[:12]})
+    # 9b limiter / pit limiter bounce
+    for kind, code, what in (('limiter', 'A16', 'rev limiter'), ('pit', 'A17', 'pit limiter')):
+        rows = [r for r in files if r['tags'].get('kind') == kind and r.get('bounce') and r['rms_dbfs'] > -70]
+        flat = [r for r in rows if r['bounce']['swing_db'] < 3.0]
+        if rows and flat:
+            add('medium', code, f'No audible {what} cue',
+                f'{len(flat)} of {len(rows)} machines hold a steady note on the {what} (envelope swing under 3 dB): '
+                + ', '.join(r['vehicle'] for r in flat[:8]) + '.', {})
+    # 9c start sequence audible: each lamp tick must rise at least 4 dB over the engine bed
+    start = by_id.get('mix__start-lights')
+    if start and start.get('events'):
+        lamps = start['events'][:5]
+        weak = [round(e['peak_db'], 1) for e in lamps if e['peak_db'] < 4.0]
+        if weak:
+            add('medium', 'A18', 'The start lamps are inaudible',
+                f'{len(weak)} of 5 lamp events rise less than 4 dB over the idling engine ({weak}).', {})
     # 10 mono / DC / silence
     mono_bad = [r for r in files if r['stereo']['mono_fold_db'] < -3.0 and r['rms_dbfs'] > -60]
     if mono_bad:

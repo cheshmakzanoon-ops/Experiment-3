@@ -133,7 +133,8 @@ export class PowerUnitAudio {
     this.whineGain.gain.value = 0;
     this.whine.connect(this.whineGain).connect(this.output);
     this.motor = context.createOscillator();
-    this.motor.type = 'sawtooth';
+    // Triangle, not sawtooth: the saw's harmonics ran up to 16 kHz and read as a shriek.
+    this.motor.type = 'triangle';
     this.motorGain = context.createGain();
     this.motorGain.gain.value = 0;
     this.motor.connect(this.motorGain).connect(this.output);
