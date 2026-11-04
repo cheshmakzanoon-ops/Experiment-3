@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { Euler, Quaternion } from 'three';
+import { Euler, Quaternion, Vector3 } from 'three';
 import { DynamicsTrack } from '../scripts/dynamics-fixtures.ts';
 import { G, Vec3 } from '../src/core/math.ts';
 import { DEFAULT_SETUP } from '../src/simulation/config.ts';
 import { Vehicle } from '../src/simulation/vehicle.ts';
+import { CROSSWIND, crosswindForce, windLoadFactor } from '../src/simulation/weather.ts';
 
 const DT = 1 / 240;
 type Vector = readonly [number, number, number];
@@ -45,14 +46,64 @@ describe('production aerodynamics in the air-relative frame', () => {
     [0, 0, 0],
     [0.08, 0.4, -0.1],
     [-0.06, -0.5, 0.12],
-  ])('preserves forces and moments under a common crosswind velocity shift: %j', (...attitude) => {
-    const calm = windTunnel([-18, 1.4, 55], [0, 0], attitude, [0.2, 0.1, -0.13]);
-    const windy = windTunnel([0, 1.4, 55], [18, 0], attitude, [0.2, 0.1, -0.13]);
-    for (const field of ['front', 'rear', 'floor', 'drag'] as const)
-      expect(windy.aero[field]).toBeCloseTo(calm.aero[field], 8);
-    sameVector(windy.body.force, calm.body.force);
-    sameVector(windy.body.torque, calm.body.torque);
-  });
+  ])(
+    'preserves forces and moments under a common crosswind velocity shift below the crosswind knee: %j',
+    (...attitude) => {
+      // 4 m/s is a mild breeze: windLoadFactor is exactly 0 there, so the whole
+      // body force and torque depend only on the air-relative state (bit for bit,
+      // as weather.ts CROSSWIND promises for the original presets).
+      expect(windLoadFactor(4)).toBe(0);
+      const calm = windTunnel([-4, 1.4, 55], [0, 0], attitude, [0.2, 0.1, -0.13]);
+      const windy = windTunnel([0, 1.4, 55], [4, 0], attitude, [0.2, 0.1, -0.13]);
+      for (const field of ['front', 'rear', 'floor', 'drag'] as const)
+        expect(windy.aero[field]).toBeCloseTo(calm.aero[field], 8);
+      sameVector(windy.body.force, calm.body.force);
+      sameVector(windy.body.torque, calm.body.torque);
+    },
+  );
+
+  it.each<Vector>([
+    [0, 0, 0],
+    [0.08, 0.4, -0.1],
+    [-0.06, -0.5, 0.12],
+  ])(
+    'a strong wind adds exactly the documented crosswind body load to the air-relative aerodynamics: %j',
+    (...attitude) => {
+      // 18 m/s is above the knee (weather.ts CROSSWIND: full load from 7 m/s).
+      // The aerodynamic loads and the air-relative drag/plunge terms still depend
+      // only on the relative airflow, so the calm and windy tunnels differ by the
+      // one deliberate term: a side force 1/2 rho |V| (sideSlope 4 hy hz) w_lat
+      // along body +X, acting centrePressure x wheelbase ahead of the centre of
+      // mass. (The crosswind load is a weather effect keyed to the ground wind, not
+      // part of the air-relative aerodynamic model, so it is not frame-invariant.)
+      const wind: readonly [number, number] = [18, 0],
+        rate: Vector = [0.2, 0.1, -0.13];
+      const calm = windTunnel([-18, 1.4, 55], [0, 0], attitude, rate);
+      const windy = windTunnel([0, 1.4, 55], wind, attitude, rate);
+      expect(windLoadFactor(Math.hypot(...wind))).toBe(1);
+      for (const field of ['front', 'rear', 'floor', 'drag', 'wake'] as const)
+        expect(windy.aero[field]).toBeCloseTo(calm.aero[field], 8);
+      const [, halfY, halfZ] = windy.definition.halfExtents;
+      // The attitude the force was evaluated at: the step has since integrated it.
+      const toBody = new Quaternion().setFromEuler(new Euler(...attitude, 'YXZ')).invert();
+      const inBody = (v: Vec3) => {
+        const r = new Vector3(v.x, v.y, v.z).applyQuaternion(toBody);
+        return new Vec3(r.x, r.y, r.z);
+      };
+      const localWind = inBody(new Vec3(wind[0], 0, wind[1]));
+      const side = crosswindForce(Math.hypot(18, 1.4, 55), localWind.x, halfY, halfZ, 1);
+      expect(side).toBeGreaterThan(500);
+      // Compare in the body frame, where the extra load is (side, 0, 0) at
+      // (0, 0, centrePressure x wheelbase), i.e. a yaw torque of lever x side.
+      const localForce = inBody(new Vec3().copy(windy.body.force).sub(calm.body.force)),
+        localTorque = inBody(new Vec3().copy(windy.body.torque).sub(calm.body.torque));
+      sameVector(localForce, new Vec3(side, 0, 0));
+      sameVector(
+        localTorque,
+        new Vec3(0, CROSSWIND.centrePressure * windy.spec.wheelbase * side, 0),
+      );
+    },
+  );
 
   it('uses relative wind for wing-station plunge on a pitched and rotating chassis', () => {
     const attitude: Vector = [0.12, 0, 0],

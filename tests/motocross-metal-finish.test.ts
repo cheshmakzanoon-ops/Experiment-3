@@ -3,7 +3,11 @@ import { describe, expect, it, vi } from 'vitest';
 import { installMotocrossMetalFinish } from '../src/rendering/offroad/motocross-metal-finish.ts';
 import { installMud, mudUniforms } from '../src/rendering/offroad/mud.ts';
 import { type StudioShader } from '../src/rendering/studio/shader-hooks.ts';
-import { tagWeatherSurface, WeatherPresentation } from '../src/rendering/weather-presentation.ts';
+import {
+  sceneryCoverUniform,
+  tagWeatherSurface,
+  WeatherPresentation,
+} from '../src/rendering/weather-presentation.ts';
 
 function compile(material: T.MeshStandardMaterial) {
   const source = T.ShaderLib.standard;
@@ -36,6 +40,8 @@ describe('motocross cast metal finish', () => {
       expect(shader.uniforms.offroadMud).toBe(mud.offroadMud);
       expect(shader.uniforms.offroadMudWet).toBe(mud.offroadMudWet);
       expect(shader.uniforms.aurelSurfaceWeather).toBe(weather.surface);
+      // The snow coat (weather-presentation.ts, snow wave) rides the same hook.
+      expect(shader.uniforms.aurelSnowCover).toBe(sceneryCoverUniform);
       const before = (first: string, second: string) => {
         expect(fragment.indexOf(first)).toBeGreaterThanOrEqual(0);
         expect(fragment.indexOf(second)).toBeGreaterThan(fragment.indexOf(first));
@@ -46,10 +52,13 @@ describe('motocross cast metal finish', () => {
       before('metalnessFactor *= 1. - mxCastOxide', 'metalnessFactor *= 1.0 - offroadMudMask');
       before('dFdx(mxCastHeight)', 'dFdx( offroadMudHeight )');
       before('roughnessFactor = mix( roughnessFactor', 'float surfaceWet =');
-      before('float surfaceWet =', '#include <lights_physical_fragment>');
+      before('float surfaceWet =', 'float surfaceSnow =');
+      before('float surfaceSnow =', '#include <lights_physical_fragment>');
       expect(material.customProgramCacheKey()).toContain('motocross-cast-metal-v1');
       expect(material.customProgramCacheKey()).toContain('offroad-mud-v2');
-      expect(material.customProgramCacheKey()).toContain('aurel-snapshot-dampness-v3');
+      // v4 added the snow coat to the weather layer's source (3ac43c5); the key
+      // must change with the program, or a cached v3 program would lack the uniform.
+      expect(material.customProgramCacheKey()).toContain('aurel-snapshot-dampness-v4');
       material.dispose();
       weather.dispose();
     },
