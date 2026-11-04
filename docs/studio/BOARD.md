@@ -41,7 +41,19 @@ Integration done by PM: weather glyphs on the board dial, weather options data-d
 | QA full-flow | 6 journeys (formula practice/race, time trial, GP bike, wildcard, festival) complete with 0 console errors on software GL; Escape-pause bug fixed; festival loading bar stages; P19 test fixed. Festival "hang" was slow software GL, not a deadlock |
 | Vehicle Art 2 | EH-3 hero pass, 47 colourways, shared driver rework, sport bike shells |
 
-## Wave 3 in flight
+## Wave 3b + test health — merged to main (ebaf773)
+
+| Dept | Result |
+| --- | --- |
+| QA Bikes 2 | GP AI follows its braking plan: sweep falls 277 → 6; physics v20 |
+| Weather 2 | snow/ice, dawn fog-cover channel, mist/floodlight shafts, visibility race-control ladder, 2 wildcard events; physics v21 (fog preset changed) |
+| UX 3 | career season board, first-launch screen, results board + share card, settings guide + accessibility, restyled screens |
+| Test health | first full unit run on merged main: **5720 pass / 31 fail of 5751 tests (596 files)**; 30 fixed (weather-2 header fixtures, rendering fixtures, stale contracts); 1 left: mixed GP/superbike race |
+
+## In flight now
+- Content 2 (4 venues + 8 wildcard events), Release 2 (demo build, Steam leaderboards, packaging CI, store screenshots), Bikes 3 (mixed-field passing without falls; branch studio/physics-test-health has the unmerged pass logic).
+
+## Wave 3 (historical)
 
 | Dept | Scope | Status |
 | --- | --- | --- |
