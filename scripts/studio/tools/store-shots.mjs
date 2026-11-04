@@ -61,17 +61,17 @@ export const SHOTS = [
     title: 'Formula car in fog at golden hour',
     kind: 'session',
     plate: 'circuit',
-    circuit: 'alpine-pass',
+    circuit: 'vellamar',
     vehicle: 'apx01',
     weather: 'fog',
     light: 'sunset',
     view: 'chase',
-    pick: { seconds: 30 },
-    alt: 'A formula car on a mountain road in fog under a low golden sun, seen from behind.',
+    pick: { seconds: 30, minSpeed: 35 },
+    alt: 'A formula car at speed on the Vellamar circuit in dense golden fog, kerbs streaking past on the left and a grandstand fading into the haze.',
   },
   {
     id: 'gp-corner',
-    title: 'GP bike leaning through a corner',
+    title: 'GP bike through a fast corner',
     kind: 'session',
     plate: 'gp',
     circuit: 'vellamar',
@@ -80,11 +80,11 @@ export const SHOTS = [
     light: 'day',
     view: 'chase',
     pick: { scan: 'lean', attempts: 10 },
-    alt: 'A GP motorcycle leaned over through a corner on the Vellamar coast circuit.',
+    alt: 'A GP motorcycle rider hangs off the bike through a fast corner, seen from behind with motion blur, forested mountains and a grandstand behind.',
   },
   {
     id: 'motocross-jump',
-    title: 'Motocross jump',
+    title: 'Motocross on the loam start straight',
     kind: 'session',
     plate: 'dirt',
     circuit: 'valley-ridge-mx',
@@ -93,7 +93,7 @@ export const SHOTS = [
     light: 'day',
     view: 'chase',
     pick: { scan: 'air', attempts: 10 },
-    alt: 'A motocross rider in the air over a jump on a hillside loam course.',
+    alt: 'A motocross rider in a number 2 jersey accelerating up the loam start straight of a hillside course toward a grandstand, tyre ruts in the dirt and clouds above.',
   },
   {
     id: 'snow-pass',
@@ -106,11 +106,11 @@ export const SHOTS = [
     light: 'day',
     view: 'chase',
     pick: { seconds: 32 },
-    alt: 'A trophy truck driving up a snow-covered mountain pass in falling snow.',
+    alt: 'A green trophy truck with an exposed roll cage and spare wheel driving away along a snow-dusted mountain road, snowy pines on both sides under a hazy blue sky.',
   },
   {
     id: 'night-street-rain',
-    title: 'Night street circuit in the rain',
+    title: 'Wet street circuit under the lamps',
     kind: 'session',
     plate: 'circuit',
     circuit: 'neon-city',
@@ -119,7 +119,7 @@ export const SHOTS = [
     light: 'night',
     view: 'chase',
     pick: { seconds: 28 },
-    alt: 'A touring car on a floodlit city street circuit at night in the rain, wet asphalt reflecting the lights.',
+    alt: 'A blue touring car with a rear wing drives down a wet city street circuit between lit office blocks and street lamps, its headlights glinting on the rain-slick asphalt.',
   },
   {
     id: 'results-board',
@@ -127,22 +127,22 @@ export const SHOTS = [
     kind: 'results',
     circuit: 'aurel',
     vehicle: 'apx01',
-    alt: 'The results board after a race: the classification table with lap times, the podium and the next step.',
+    alt: 'The results board after a four-car race: second place highlighted with race time and gap, the classification table with lap times, the podium, a next-step card for the braking licence and buttons for replay, race again, share card and telemetry.',
   },
   {
     id: 'photo-studio',
     title: 'Photo mode and livery studio',
     kind: 'photo',
-    alt: 'The photo and livery studio with the formula car and the camera, lens and colour controls.',
+    alt: 'The photo and livery studio on the Aurel grid: the formula car with two crew beside it, and the camera, filter, lens and exposure controls down the right.',
   },  {
     id: 'festival-dawn',
-    title: 'The coast festival at dawn',
+    title: 'The festival town in low sun',
     kind: 'festival',
     vehicle: 'eh3',
     weather: 'clear',
     light: 'sunset',
     seconds: 20,
-    alt: 'A road car on the Solvane coast road under a low sun, the harbour region ahead.',
+    alt: 'A white electric hypercar drives down a main street of the festival town, lined with brick and plaster buildings and shopfronts, a pink event beacon ahead under a low warm sun and a blue sky.',
   },
 ];
 
@@ -518,14 +518,15 @@ async function parkOnMoment(shot) {
     if (!car) return false;
     if (pick.scan === 'lean') return Math.abs(car.lean) > 0.5 && car.speed > 15;
     if (pick.scan === 'air') return car.airborne > 0.5 && car.airTime > 0.05 && car.airTime < 0.7;
-    return (d.presented?.time ?? 0) >= wanted;
+    // A timed shot wants the car moving (not parked in the pits or stopped at a stand-still).
+    return (d.presented?.time ?? 0) >= wanted && car.speed > (pick.minSpeed ?? 20);
   };
   const stillGood = (d) => {
     const car = carNow(d);
     if (!car) return false;
     if (pick.scan === 'lean') return Math.abs(car.lean) > 0.35 && car.speed > 12;
     if (pick.scan === 'air') return car.airborne > 0.5;
-    return true;
+    return car.speed > 10;
   };
   /** Poll the presented car until `hit`, logging what has been seen so a stuck search can be read. */
   const search = async () => {

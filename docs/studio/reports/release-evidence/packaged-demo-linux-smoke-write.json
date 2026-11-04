@@ -15,21 +15,21 @@
   "steps": [
     {
       "name": "menu-visible",
-      "ms": 37291
+      "ms": 33154
     },
     {
       "name": "environment",
-      "ms": 40316,
+      "ms": 36184,
       "webgl2": true,
       "bridge": true
     },
     {
       "name": "settings-applied",
-      "ms": 40960
+      "ms": 36834
     },
     {
       "name": "mirror-received-settings",
-      "ms": 41462,
+      "ms": 37335,
       "keys": [
         "firstrun:v1",
         "settings"
@@ -37,7 +37,7 @@
     },
     {
       "name": "mirror-file",
-      "ms": 41463,
+      "ms": 37337,
       "keys": [
         "firstrun:v1",
         "settings"
@@ -46,7 +46,7 @@
     },
     {
       "name": "typed-array-probe",
-      "ms": 44258,
+      "ms": 37341,
       "kind": "[object Float32Array]",
       "values": [
         1.5,
@@ -58,7 +58,7 @@
     },
     {
       "name": "display-roundtrip",
-      "ms": 47287,
+      "ms": 44607,
       "before": {
         "mode": "windowed",
         "fullscreen": false,
@@ -75,8 +75,8 @@
         "mode": "fullscreen",
         "fullscreen": true,
         "inner": [
-          1280,
-          720
+          1279,
+          719
         ],
         "screen": [
           1280,
@@ -87,13 +87,27 @@
         "mode": "windowed",
         "fullscreen": false,
         "inner": [
-          1280,
-          720
+          1279,
+          719
         ],
         "screen": [
           1280,
           720
         ]
+      }
+    },
+    {
+      "name": "release-bridge",
+      "ms": 44610,
+      "openStore": "function",
+      "leaderboards": {
+        "available": false,
+        "reason": "Steam client not running or app not owned (Failed to load module '/root/.steam/sdk64/steamclient.so')"
+      },
+      "refusedBadName": {
+        "ok": false,
+        "unavailable": true,
+        "reason": "Steam client not running or app not owned (Failed to load module '/root/.steam/sdk64/steamclient.so')"
       }
     }
   ],
@@ -104,41 +118,41 @@
   "loadFailures": [],
   "crashes": [],
   "memoryAtMenu": {
-    "totalWorkingSetMiB": 1167,
+    "totalWorkingSetMiB": 1213,
     "totalPrivateMiB": 0,
     "processes": [
       {
         "type": "Browser",
-        "pid": 17396,
-        "workingSetMiB": 164,
+        "pid": 656,
+        "workingSetMiB": 169,
         "privateMiB": 0,
         "cpuPercent": 0
       },
       {
         "type": "GPU",
-        "pid": 17425,
-        "workingSetMiB": 515,
+        "pid": 686,
+        "workingSetMiB": 519,
         "privateMiB": 0,
         "cpuPercent": 0
       },
       {
         "type": "Utility",
-        "pid": 17426,
-        "workingSetMiB": 76,
+        "pid": 688,
+        "workingSetMiB": 77,
         "privateMiB": 0,
         "cpuPercent": 0
       },
       {
         "type": "Tab",
-        "pid": 17431,
-        "workingSetMiB": 343,
+        "pid": 695,
+        "workingSetMiB": 378,
         "privateMiB": 0,
         "cpuPercent": 0
       },
       {
         "type": "Utility",
-        "pid": 17911,
-        "workingSetMiB": 69,
+        "pid": 759,
+        "workingSetMiB": 70,
         "privateMiB": 0,
         "cpuPercent": 0
       }
@@ -187,7 +201,7 @@
     "webnn": "disabled_off"
   },
   "mirror": {
-    "file": "/tmp/claude-0/-home-user-Experiment-3/d7f7b547-44bc-5977-9962-da1e5626b4ba/scratchpad/smoke-demo/userData/saves/saves.json",
+    "file": "/tmp/claude-0/-home-user-Experiment-3/d7f7b547-44bc-5977-9962-da1e5626b4ba/scratchpad/smoke-demo2/userData/saves/saves.json",
     "bytes": 2643,
     "revision": 2,
     "keys": [
@@ -205,7 +219,9 @@
     "mirrorHasSettings": true,
     "indexedDbHasSettings": true,
     "typedArrayThroughIpc": true,
-    "ghostFileWritten": true
+    "ghostFileWritten": true,
+    "storeBridgeExposed": true,
+    "leaderboardBridgeAnswers": true
   },
   "ghostProbe": {
     "kind": "[object Float32Array]",
@@ -234,8 +250,8 @@
       "mode": "fullscreen",
       "fullscreen": true,
       "inner": [
-        1280,
-        720
+        1279,
+        719
       ],
       "screen": [
         1280,
@@ -246,8 +262,8 @@
       "mode": "windowed",
       "fullscreen": false,
       "inner": [
-        1280,
-        720
+        1279,
+        719
       ],
       "screen": [
         1280,
@@ -255,5 +271,17 @@
       ]
     }
   },
-  "totalMs": 47287
+  "releaseBridge": {
+    "openStore": "function",
+    "leaderboards": {
+      "available": false,
+      "reason": "Steam client not running or app not owned (Failed to load module '/root/.steam/sdk64/steamclient.so')"
+    },
+    "refusedBadName": {
+      "ok": false,
+      "unavailable": true,
+      "reason": "Steam client not running or app not owned (Failed to load module '/root/.steam/sdk64/steamclient.so')"
+    }
+  },
+  "totalMs": 44610
 }

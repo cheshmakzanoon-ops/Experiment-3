@@ -15,17 +15,17 @@
   "steps": [
     {
       "name": "menu-visible",
-      "ms": 35427
+      "ms": 32808
     },
     {
       "name": "environment",
-      "ms": 38456,
+      "ms": 35825,
       "webgl2": true,
       "bridge": true
     },
     {
       "name": "restore-check",
-      "ms": 38459,
+      "ms": 35827,
       "indexedDb": {
         "quickStart": true,
         "version": 6
@@ -33,7 +33,7 @@
     },
     {
       "name": "typed-array-restored",
-      "ms": 38464,
+      "ms": 35828,
       "kind": "[object Float32Array]",
       "values": [
         1.5,
@@ -43,7 +43,7 @@
     },
     {
       "name": "display-roundtrip",
-      "ms": 44982,
+      "ms": 40685,
       "before": {
         "mode": "windowed",
         "fullscreen": false,
@@ -80,6 +80,20 @@
           720
         ]
       }
+    },
+    {
+      "name": "release-bridge",
+      "ms": 40687,
+      "openStore": "function",
+      "leaderboards": {
+        "available": false,
+        "reason": "Steam client not running or app not owned (Failed to load module '/root/.steam/sdk64/steamclient.so')"
+      },
+      "refusedBadName": {
+        "ok": false,
+        "unavailable": true,
+        "reason": "Steam client not running or app not owned (Failed to load module '/root/.steam/sdk64/steamclient.so')"
+      }
     }
   ],
   "consoleErrors": [],
@@ -87,34 +101,34 @@
   "loadFailures": [],
   "crashes": [],
   "memoryAtMenu": {
-    "totalWorkingSetMiB": 1066,
+    "totalWorkingSetMiB": 1082,
     "totalPrivateMiB": 0,
     "processes": [
       {
         "type": "Browser",
-        "pid": 18027,
-        "workingSetMiB": 164,
+        "pid": 789,
+        "workingSetMiB": 167,
         "privateMiB": 0,
         "cpuPercent": 0
       },
       {
         "type": "GPU",
-        "pid": 18056,
-        "workingSetMiB": 479,
+        "pid": 819,
+        "workingSetMiB": 475,
         "privateMiB": 0,
         "cpuPercent": 0
       },
       {
         "type": "Utility",
-        "pid": 18058,
+        "pid": 821,
         "workingSetMiB": 76,
         "privateMiB": 0,
         "cpuPercent": 0
       },
       {
         "type": "Tab",
-        "pid": 18069,
-        "workingSetMiB": 347,
+        "pid": 832,
+        "workingSetMiB": 364,
         "privateMiB": 0,
         "cpuPercent": 0
       }
@@ -182,7 +196,9 @@
   },
   "pass": {
     "restoredIntoIndexedDb": true,
-    "typedArrayRestored": true
+    "typedArrayRestored": true,
+    "storeBridgeExposed": true,
+    "leaderboardBridgeAnswers": true
   },
   "display": {
     "before": {
@@ -222,5 +238,17 @@
       ]
     }
   },
-  "totalMs": 44983
+  "releaseBridge": {
+    "openStore": "function",
+    "leaderboards": {
+      "available": false,
+      "reason": "Steam client not running or app not owned (Failed to load module '/root/.steam/sdk64/steamclient.so')"
+    },
+    "refusedBadName": {
+      "ok": false,
+      "unavailable": true,
+      "reason": "Steam client not running or app not owned (Failed to load module '/root/.steam/sdk64/steamclient.so')"
+    }
+  },
+  "totalMs": 40687
 }

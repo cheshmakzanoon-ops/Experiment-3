@@ -13,7 +13,7 @@ runners, no GPU.
 | 1 | Demo build (`MOTOBOUND_DEMO=1`, `npm run build:demo`) with a data-driven content slice, FULL GAME plates, a wishlist button through the desktop bridge, tests, desktop packaging | **Done and verified** on Linux. Windows/macOS demo packages not built. Wishlist never run against a real store page (no app id exists). |
 | 2 | Steam leaderboards and rich presence polish | **Pipeline, local screen and presence done and unit-tested; Steam upload is blocked by the binding.** steamworks.js 0.4.0 (the latest release) has no leaderboard API (read from its `client.d.ts`), so nothing can reach Steam today. See "Leaderboards: the gap". Rich presence not run against Steam. |
 | 3 | CI packaging matrix and the `build:qa` job splits | **Written and validated statically only** (real YAML parse of all 61 workflows, 73 workflow tests). Never run on GitHub. Linux package + smoke were run by hand. |
-| 4 | Store screenshot director | **Tool done; shots below.** See "Store screenshots" for exactly what was captured and kept. |
+| 4 | Store screenshot director | **Done: tool plus 10 shots captured and kept** (one is not a jump, one fog frame is weak; see "Store screenshots"). All on software GL, none on a GPU. |
 
 ## 1. Demo build
 
@@ -67,9 +67,12 @@ shared `MOTOBOUND/` (saves, logs, Steam Cloud root) with the game. Fixed with `e
 | --- | --- |
 | `npm run build:demo` | pass: tsc, vite, IP guard clean (twice), `BUILD_IDENTITY.json` `variant: product, edition: demo`, title "... · DEMO", 129 MB |
 | `npm run build` (default) | pass: IP guard clean, `edition: full`; the full game's output is otherwise unchanged |
-| real browser on `dist-demo` (`scripts/studio/tools/demo-check.mjs`, Chromium + SwiftShader) | board plate "44 more circuits, 51 more machines, 16 more wildcard events, 4 more licences"; 3 venues and 4 machines selectable, 44 + 54 listed as FULL GAME; festival plate offers EH-3 and RD-2 only; a locked circuit is refused ("Cannot start: RIVIERA / HARBOUR STREETS is in the FULL GAME") and the game stays in the menu; Wildcard board "5 OF 21 IN THE DEMO", 5 start buttons, 16 locked plates, locked page has no start button; licences: braking open, 4 FULL GAME; **0 console or page errors**. Evidence: `docs/studio/reports/release-2-screens/demo-*.jpg` (the first board shot predates the compact plate; `dom-demoMenu-*` is the current layout) |
+| real browser on `dist-demo` (`scripts/studio/tools/demo-check.mjs`, Chromium + SwiftShader) | board plate "44 more circuits, 51 more machines, 16 more wildcard events, 4 more licences"; 3 venues and 4 machines selectable, 44 + 54 listed as FULL GAME; festival plate offers EH-3 and RD-2 only; a locked circuit is refused ("Cannot start: RIVIERA / HARBOUR STREETS is in the FULL GAME") and the game stays in the menu; Wildcard board "5 OF 21 IN THE DEMO", 5 start buttons, 16 locked plates, locked page has no start button; licences: braking open, 4 FULL GAME; **0 console or page errors**. Evidence: `docs/studio/reports/release-2-screens/demo-*.jpg` (retaken on the final build) |
 | `npm --prefix desktop ci`, `npm run desktop:pack:demo` (Linux) | pass; `release-demo/linux-unpacked/motobound-demo` 414 MB; asar `package.json` productName "MOTOBOUND Demo" |
-| `node desktop/scripts/smoke.cjs --app .../motobound-demo` (xvfb, software GL) | write phase ok (48.5 s), restore phase ok (47.7 s), zero console errors, mirror and typed-array restore pass. Run on the first package (before the extraMetadata fix and before the `release-bridge` smoke step was added); see "Not verified". Reports: `release-evidence/packaged-demo-linux-smoke-*.json` |
+| `npm --prefix desktop run dist:demo:linux` | pass: `MOTOBOUND-Demo-0.1.0-linux-x86_64.AppImage` 204 MB, `MOTOBOUND-Demo-0.1.0-linux-x64.zip` 197 MB, and `linux-unpacked` is kept (the CI smoke path exists) |
+| `node desktop/scripts/smoke.cjs --app desktop/release-demo/linux-unpacked/motobound-demo` (xvfb, software GL), on the final package | write phase ok (46.3 s), restore phase ok (42.1 s), **zero console errors**, mirror and typed-array restore pass, and the new `release-bridge` step passes in both phases (`shell.openStore` exposed; leaderboard status answers "unavailable: Steam client not running"; a bad board name is refused). `openStore` itself is not called by the smoke (with an app id staged it would open a browser). Reports: `release-evidence/packaged-demo-linux-smoke-*.json` |
+| `npm run lint`, `npx tsc --noEmit` | pass (no findings, exit 0) after the last code change |
+| real browser on the final `dist-demo` (`demo-check.mjs`) | rerun on the final build: same results, 0 errors (RECORDS is in the demo paddock) |
 | `tests/demo-edition.test.ts` (29), `tests/demo-desktop.test.ts` (10) | pass: slice exists in the catalogues and matches the plan, full game ungated, session gate (default field, GP bike, mixed grids, festival loans, Wildcard loans matched on content), lists/options/plates, career registry and licences, clock, wishlist outcomes, build wiring |
 
 ## 2. Steam leaderboards and rich presence
@@ -150,20 +153,52 @@ timeouts are all unproven. Windows and macOS packages are unsigned and unnotaris
 
 ## 4. Store screenshots
 
-SHOTS_PLACEHOLDER
+`scripts/studio/tools/store-shots.mjs` boots the real game (the FULL build, render preset High) in
+headless Chromium on SwiftShader and writes 1920x1080 JPEGs (q88) to `docs/studio/store/screenshots/`
+with `manifest.json` (alt text, status, a note per shot), `progress.log` and a `--markdown` shot list
+(pasted into `docs/studio/store/STORE_PAGE.md`). It is resumable (`--only`, `--force`, `--list`,
+`--reject id --reason`, `--manifest-only`, `--budget-minutes`), runs one browser, and a failed shot
+does not stop the run. Every kept image was opened and looked at.
+
+**Result: 10 shots captured and kept, 0 failed in the final runs, 2.7 MB.** (Wall time: 01:18 to 04:43 UTC
+including debugging, machine load 5-13; the last full run took 1.6 hours, one shot 8-17 minutes and one
+1080p screenshot 2-9 minutes.)
+
+| Shot | Verdict |
+| --- | --- |
+| `menu-board`, `wildcard-board`, `photo-studio`, `results-board` | good, the UI reads at 1080p. `results-board` comes from a race the in-game AI driver drove, a layout shot; `menu-board` was retaken after RECORDS was added |
+| `gp-corner` | good: rider hung off the bike, motion blur, mountains behind |
+| `snow-pass` | good: snow on the road and the pines, a DX-8 truck |
+| `festival-dawn` | good: EH-3 in the festival town, low sun, event beacon. **The open world did render and screenshot on SwiftShader**; the earlier studio note (vehicle-drive.mjs) said it could not |
+| `night-street-rain` | acceptable: wet street, lamps and lit windows, but it reads as dusk |
+| `formula-fog-golden` | weak: dense, flat beige fog; kept as the fog shot, replace on a GPU |
+| `motocross-jump` | **not a jump**: the rider is on the start straight at the crest of a roller; titled and captioned accordingly |
+
+**What went wrong on the way (kept in the tool's comments and the page notes).** The first plan
+(pick the moment by scanning the recorded replay, then seek to it) failed twice: three identical frames
+of the start grid, because at the High preset the replayed frame redrew a car stuck on the grid while
+the time advanced; the cause was found by exposing the *presented* car in `apexDiagnostics()` (a small
+additive diagnostics field in `main.ts`, since `frame` is the live snapshot, not the replayed one). The
+tool now polls the presented car at a small viewport, presses the game's own pause on the lean or the
+take-off, then grows the viewport to 1080p and waits for the redraw. A first fog frame (Col d'Argent
+start straight, car still rolling off the line) was rejected and retaken at Vellamar at speed. The
+motocross start button leaves the form when the motocross layout docks it; the selector was widened.
+
+**Not captured:** a Wildcard run in progress, a replay camera, festival drift and jump zones. No hero
+shot was taken on a GPU, so none shows real bloom or reflection quality (gate G8).
 
 ## Not verified (summary)
 
 - Any Steam interaction: achievements, Cloud, overlay, presence, leaderboards, the wishlist button
   against a real store page. No app id exists.
 - Windows and macOS packages, the NSIS installer, the portable exe, signing, every GitHub Actions run.
-- The packaged demo after the `extraMetadata` fix and the `release-bridge` smoke step (re-run listed in
-  SMOKE_PLACEHOLDER).
-- A demo or RECORDS session on a GPU, the demo's real festival clock in a running festival (the open
-  world cannot be screenshotted on SwiftShader; the clock is unit-tested only), controller navigation of
-  the new plates and the RECORDS screen (native buttons and `<details>`, so the menu pad should reach
-  them; not tried), the e2e specs I touched.
+- The demo's real festival clock in a running festival (unit-tested only; the clock chip and end screen
+  were not screenshotted), controller navigation of the new plates and the RECORDS screen (native
+  buttons and `<details>`, so the menu pad should reach them; not tried), the three e2e specs whose
+  pinned paddock count changed from 9 to 10 (not run), RECORDS with real laps in the WebGL game (the
+  DOM-only render used synthetic laps; the real game showed the RECORDS entry in the paddock only).
 - Whether a Steam demo app may use achievements (documented as unverified in `STEAM.md`).
+- The `store-shots.mjs` retake path on a GPU host (not available).
 
 ## Mistake to report
 
