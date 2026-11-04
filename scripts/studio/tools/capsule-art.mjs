@@ -7,6 +7,7 @@
  *   node scripts/studio/tools/capsule-art.mjs                 build everything
  *   node scripts/studio/tools/capsule-art.mjs --only header,small     some assets (ids from --list)
  *   node scripts/studio/tools/capsule-art.mjs --list          the asset table
+ *   node scripts/studio/tools/capsule-art.mjs --markdown      the file / Steam slot / alt text table for STORE_PAGE.md
  *   node scripts/studio/tools/capsule-art.mjs --verify        re-read the files on disk: sizes, formats, IP text check
  *
  * Needs only what the repo already has: Playwright's Chromium (CPU rasteriser, no WebGL; set CHROMIUM_PATH
@@ -199,8 +200,8 @@ const ASSETS = [
     build: () => {
       const W = 231,
         H = 87,
-        bw = 140;
-      const lw = 112;
+        bw = 152;
+      const lw = 124;
       return (
         photo('pairing', { x: 0, y: 0, w: W, h: H }, { fx: 0.55, fy: 0.62, zoom: 1.9 }) +
         board(H, bw, 2) +
@@ -242,10 +243,10 @@ const ASSETS = [
         tag(TAGLINE, 30, 62 + hOf('motobound-lockup-stacked.svg', lw) + 18, 12) +
         band(
           [
-            { role: 'apx', label: 'CIRCUIT', n: 1, fx: 0.42, fy: 0.62, zoom: 2.2 },
-            { role: 'gp', label: 'GP BIKE', n: 2, fx: 0.5, fy: 0.55, zoom: 2.4 },
+            { role: 'night', label: 'CIRCUIT', n: 1, fx: 0.42, fy: 0.62, zoom: 1.7 },
+            { role: 'gp', label: 'GP BIKE', n: 2, fx: 0.5, fy: 0.56, zoom: 1.28 },
             { role: 'dirt', label: 'DIRT', n: 3, fx: 0.5, fy: 0.5, zoom: 2.4 },
-            { role: 'coast', label: 'FESTIVAL', n: 4, fx: 0.5, fy: 0.6, zoom: 2.0 },
+            { role: 'coast', label: 'FESTIVAL', n: 4, fx: 0.5, fy: 0.66, zoom: 1.9 },
           ],
           bandBox,
           { labelH: 22, font: 11 },
@@ -287,9 +288,9 @@ const ASSETS = [
         tag(TAGLINE, 22, 26 + hOf('motobound-lockup-horizontal.svg', W - 44) + 14, 11.5) +
         band(
           [
-            { role: 'gp', label: 'GP BIKE', n: 2, fx: 0.5, fy: 0.55, zoom: 2.3 },
-            { role: 'apx', label: 'CIRCUIT', n: 1, fx: 0.42, fy: 0.62, zoom: 2.3 },
-            { role: 'coast', label: 'FESTIVAL', n: 4, fx: 0.5, fy: 0.6, zoom: 2.3 },
+            { role: 'gp', label: 'GP BIKE', n: 2, fx: 0.5, fy: 0.56, zoom: 1.45 },
+            { role: 'night', label: 'CIRCUIT', n: 1, fx: 0.42, fy: 0.62, zoom: 1.9 },
+            { role: 'coast', label: 'FESTIVAL', n: 4, fx: 0.5, fy: 0.66, zoom: 2.4 },
           ],
           { x: 0, y: H - bandH, w: W, h: bandH },
           { labelH: 22, font: 11 },
@@ -311,7 +312,7 @@ const ASSETS = [
         H = 900,
         top = 612;
       return (
-        photo('apxp', { x: 0, y: 0, w: W, h: top }, { fx: 0.5, fy: 0.5, zoom: 1.0 }) +
+        photo('apxp', { x: 0, y: 0, w: W, h: top }, { fx: 0.415, fy: 0.54, zoom: 1.3 }) +
         `<div class="boxfill" style="left:0;top:${top}px;width:${W}px;height:${H - top}px;background:${C.a0}"></div>` +
         `<div class="laneh" style="top:${top - 2}px;width:${W}px;height:4px"></div>` +
         brand('motobound-lockup-stacked.svg', (W - 380) / 2, top + 44, 380) +
@@ -345,7 +346,7 @@ const ASSETS = [
       return (
         photo('coast', { x: 0, y: 0, w: W, h: H }, { fx: 0.5, fy: 0.5, zoom: 1.0 }) +
         // Keep the left third quiet for the logo overlay: a plain mask over the photo, not a decorative gradient.
-        `<div class="quiet" style="width:${W * 0.4}px;height:${H}px"></div>`
+        `<div class="quiet" style="width:${W * 0.5}px;height:${H}px"></div>`
       );
     },
   },
@@ -466,7 +467,7 @@ html.clear,html.clear body{background:transparent}
 .tag{position:absolute;background:${C.paper};color:${C.paperInk};font:700 12px/1 'Saira',sans-serif;font-stretch:92%;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap}
 .strip{position:absolute;background:${C.a0};color:${C.chalk};font:700 11px/1 'Saira',sans-serif;font-stretch:92%;letter-spacing:.14em;text-transform:uppercase;display:flex;align-items:center;gap:.7em;padding-left:.8em;border-top:2px solid ${C.amber}}
 .strip .num{display:inline-flex;align-items:center;justify-content:center;min-width:1.5em;height:1.5em;background:${C.paper};color:${C.paperInk};font:400 1.05em/1 'Saira Stencil One',sans-serif;letter-spacing:0}
-.quiet{position:absolute;left:0;top:0;background:${C.a0};-webkit-mask-image:linear-gradient(90deg,#000 0%,rgba(0,0,0,.84) 55%,transparent 100%);mask-image:linear-gradient(90deg,#000 0%,rgba(0,0,0,.84) 55%,transparent 100%);opacity:.9}
+.quiet{position:absolute;left:0;top:0;background:${C.a0};-webkit-mask-image:linear-gradient(90deg,#000 0%,rgba(0,0,0,.92) 60%,transparent 100%);mask-image:linear-gradient(90deg,#000 0%,rgba(0,0,0,.92) 60%,transparent 100%)}
 `;
 
 function pageHtml(asset, body) {
@@ -480,6 +481,7 @@ const { values: v } = parseArgs({
     only: { type: 'string' },
     list: { type: 'boolean', default: false },
     verify: { type: 'boolean', default: false },
+    markdown: { type: 'boolean', default: false },
     'no-sheet': { type: 'boolean', default: false },
   },
 });
@@ -505,6 +507,12 @@ function allText() {
   for (const f of ['motobound-wordmark.svg', 'motobound-roundel.svg', 'motobound-lockup-horizontal.svg', 'motobound-lockup-stacked.svg'])
     out.push([f, readFileSync(join(BRAND, f), 'utf8')]);
   return out;
+}
+
+if (v.markdown) {
+  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+  for (const a of manifest.assets.filter((x) => !x.id.endsWith('-1x'))) console.log(`| \`art/${a.file}\` (${a.width}x${a.height}) | ${a.steamSlot} | ${a.alt} |`);
+  process.exit(0);
 }
 
 if (v.verify) {

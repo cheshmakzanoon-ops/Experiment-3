@@ -194,11 +194,16 @@ export class Director {
     const d = await this.probe();
     if (d?.state === 'menu' && !d.festival?.active) return;
     if (d?.festival?.active) {
-      await page.keyboard.press('Escape');
-      await sleep(1500);
+      // Photo mode, the map or an event card may be open: Escape closes one layer at a time until the menu's EXIT shows.
       const exit = page.locator('[data-fest="exit"]');
-      if (await exit.count()) await exit.first().click();
+      for (let i = 0; i < 5; i++) {
+        if (await exit.first().isVisible().catch(() => false)) break;
+        await page.keyboard.press('Escape');
+        await sleep(2000);
+      }
+      await exit.first().click({ timeout: 60000 });
       await this.waitFor('menu', (x) => x.state === 'menu' && !x.festival?.active, 300000, 500);
+      await sleep(3000);
       return;
     }
     if (d?.state === 'photo') {
@@ -508,12 +513,16 @@ export class Director {
     if (shot.event) {
       await page.keyboard.press('Escape');
       await sleep(2000);
+      // Ambient traffic off: the first coast capture had a parked car cutting into the frame (the setting is in this menu).
+      if (shot.traffic === false) await this.click('[data-fest="traffic"][data-value="off"]').catch(() => {});
+      await sleep(500);
       await this.click('[data-fest="map"]');
       await sleep(2500);
       await this.click(`[data-fest="mapSelect"][data-value="${shot.event}"]`);
       await sleep(1500);
       await this.debugShot(debugDir, `${shot.id}-map`);
-      await this.click('[data-fest="travel"]');
+      // The pause menu also lists a travel button per event: name the event, do not take the first one.
+      await this.click(`[data-fest="travel"][data-value="${shot.event}"]`);
       this.log(`${shot.id}: travelling to ${shot.event}`);
       await sleep(20000);
       // The travel may leave the map or the pause menu open: close whichever is still up.

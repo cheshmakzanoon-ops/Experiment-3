@@ -53,6 +53,7 @@ export const FRAMES = [
     entry: { vehicle: 'eh3', weather: 'clear', light: 'sunset' },
     event: 'coast-trap',
     orbit: 3,
+    traffic: false, // the kept frame was taken with traffic on (a tan car intrudes bottom-left; the capsule tool masks it)
     alt: 'A white electric hypercar on the coast highway of the Solvane region in low golden light.',
   },
   {
@@ -62,9 +63,10 @@ export const FRAMES = [
     use: 'header capsule (the pairing), main capsule, teaser shot 9',
     event: 'knobblies-on-the-banking',
     view: 'chase',
-    pick: { seconds: 14, minSpeed: 25 },
-    photo: { backdrop: 'circuit', view: 'orbit', azimuth: 55, elevation: 9, distance: 6.5, focalLength: 45, filter: 'cinematic', vignette: 0.3 },
-    alt: 'A motocross bike on the banked wall of a speed bowl, with the rest of the field behind it.',
+    // The photo studio's orbit camera was tried here and framed the grass (the camera sits under the 31 degree
+    // banking), so this frame is the plain chase camera held on the moment.
+    pick: { seconds: 24, minSpeed: 25 },
+    alt: 'A motocross bike on the banked wall of a speed bowl, with the rest of the field ahead of it.',
   },
   {
     id: 'gp-lean-side',
@@ -100,6 +102,10 @@ export const FRAMES = [
     alt: 'A mid-engine GT car on a floodlit city street circuit at night, low three-quarter view.',
   },
 ];
+
+// Capture order = value to the capsules, so a run cut short still leaves the most useful frames.
+const ORDER = ['apx01-showroom', 'wildcard-knobblies-banking', 'coast-eh3-wide', 'mx-jump-side', 'apx01-portrait', 'gp-lean-side', 'night-gt-neon'];
+FRAMES.sort((a, b) => ORDER.indexOf(a.id) - ORDER.indexOf(b.id));
 
 const { values: v } = parseArgs({
   options: {

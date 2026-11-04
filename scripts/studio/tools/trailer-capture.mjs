@@ -214,7 +214,7 @@ if (v.teaser) {
   const fps = Number(v.fps);
   /** The animatic's beats: a keyframe, a hold, a slow push (zoom z0 -> z1 around (fx, fy), drifting dx, dy), a caption. */
   const BEATS = [
-    { n: 1, hold: 2.0, fx: 0.46, fy: 0.55, z0: 1.0, z1: 1.14 },
+    { n: 1, hold: 2.0, fx: 0.4, fy: 0.68, z0: 1.3, z1: 1.45 },
     { n: 2, hold: 2.0, fx: 0.5, fy: 0.62, z0: 1.0, z1: 1.12 },
     { n: 3, hold: 2.2, fx: 0.5, fy: 0.62, z0: 1.12, z1: 1.0 },
     { n: 4, hold: 1.8, fx: 0.5, fy: 0.62, z0: 1.0, z1: 1.14 },
@@ -313,7 +313,7 @@ window.renderAt=function(t){
   await browser.close();
   if (h264) {
     const outFile = join(OUT, 'capsule-teaser-animatic.mp4');
-    execFileSync(ffmpeg, ['-y', '-loglevel', 'error', '-framerate', String(fps), '-i', join(work, 'f%05d.jpg'), '-c:v', 'libx264', '-crf', '20', '-preset', 'slow', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', outFile]);
+    execFileSync(ffmpeg, ['-y', '-loglevel', 'error', '-framerate', String(fps), '-i', join(work, 'f%05d.jpg'), '-c:v', 'libx264', '-crf', '23', '-preset', 'slow', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', outFile]);
     console.log(`wrote ${relative(ROOT, outFile)} (${(statSync(outFile).size / 1024 / 1024).toFixed(2)} MB)`);
     writeFileSync(
       join(OUT, 'teaser-timings.json'),
