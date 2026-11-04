@@ -97,20 +97,24 @@ export function sparkAt(
 /** A small round, soft-edged sprite (a bright core in a short falloff). Null where there is
  * no 2D canvas (a headless unit test): the points then draw as plain squares. */
 function sparkSprite() {
-  if (typeof document === 'undefined') return null;
-  const canvas = document.createElement('canvas');
-  canvas.width = canvas.height = 32;
-  const context = canvas.getContext('2d');
-  if (!context) return null;
-  const gradient = context.createRadialGradient(16, 16, 0, 16, 16, 16);
-  gradient.addColorStop(0, 'rgba(255,255,255,1)');
-  gradient.addColorStop(0.35, 'rgba(255,255,255,0.7)');
-  gradient.addColorStop(1, 'rgba(255,255,255,0)');
-  context.fillStyle = gradient;
-  context.fillRect(0, 0, 32, 32);
-  const texture = new T.CanvasTexture(canvas);
-  texture.colorSpace = T.SRGBColorSpace;
-  return texture;
+  try {
+    if (typeof document === 'undefined') return null;
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 32;
+    const context = canvas.getContext('2d');
+    const gradient = context?.createRadialGradient(16, 16, 0, 16, 16, 16);
+    if (!context || !gradient) return null;
+    gradient.addColorStop(0, 'rgba(255,255,255,1)');
+    gradient.addColorStop(0.35, 'rgba(255,255,255,0.7)');
+    gradient.addColorStop(1, 'rgba(255,255,255,0)');
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, 32, 32);
+    const texture = new T.CanvasTexture(canvas);
+    texture.colorSpace = T.SRGBColorSpace;
+    return texture;
+  } catch {
+    return null;
+  }
 }
 
 /** The two sliders' sparks as one additive point cloud in the rider's frame. */

@@ -317,9 +317,14 @@ export class FormulaCar {
     rod(s, metal, new T.Vector3(0.055, 0.13, 0.93), new T.Vector3(0.055, 0.52, 0.93), 0.004);
     if (hero) {
       // The authored wings' flap and main-plane elements are the assembly's 'alloy' role. Turned
-      // aluminium mirrored the whole sky at a glancing angle (white stripes across the front wing
-      // in every showroom shot, vehicle art D8); they are carbon on a real aero surface.
-      const materials = { paint: this.paint, carbon, metal: carbon, dark };
+      // aluminium mirrored the whole sky, and lacquered carbon the sun disc, at the tilt of a
+      // flap: white stripes across the front wing in every showroom shot (vehicle art D8). Race
+      // aero is raw satin carbon: a wide, low lobe with a third of the lacquer's specular, so both
+      // roles use it. It is one more material submission per wing group, drawn in the same pass.
+      const wingCarbon = carbonMaterial('satin');
+      wingCarbon.specularIntensity = 0.3;
+      wingCarbon.roughness = 0.62;
+      const materials = { paint: this.paint, carbon: wingCarbon, metal: wingCarbon, dark };
       mountAuthoredWing(this.frontWing, hero, 'front', materials);
       mountAuthoredWing(this.rearWing, hero, 'rear', materials);
       mesh(s, hero.copy('beam'), carbon);

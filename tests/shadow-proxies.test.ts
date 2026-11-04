@@ -373,7 +373,10 @@ it('casts the same shadow triangles from a rival car with about half the draws',
   // Measured: 92 -> 55 shadow draws at LOD0 (the satin floor carbon is its own
   // material since D06; the halo, painted since D18, leaves the carbon caster
   // group and costs one more merged caster), 23 -> 13 at LOD1 and LOD2.
-  expect(levels[0].draws).toBe(92);
+  // TEST-UPDATE (vehicle art 3, D8): 92 -> 90. The two wings' 'alloy' roles (the turned-aluminium
+  // flaps that mirrored the whole sky) are now carbon, so each wing merges its alloy elements into
+  // its carbon mesh: one draw fewer per wing (the shadow triangles are unchanged, asserted above).
+  expect(levels[0].draws).toBe(90);
   expect(after[0].draws).toBeLessThanOrEqual(55);
   // Damage still removes a wing's shadow: its caster lives in the wing group.
   car.frontWing.visible = false;

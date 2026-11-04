@@ -3,6 +3,7 @@ import * as T from 'three';
 import {
   GRAZING_CAP,
   GRAZING_CAP_KEY,
+  grazingCapCeiling,
   grazingCapFactor,
   installGrazingCap,
 } from '../src/rendering/studio/grazing-cap.ts';
@@ -53,6 +54,25 @@ describe('grazing-Fresnel cap (D8)', () => {
       expect(() => grazingCapFactor(bad, 0)).toThrow('Invalid grazing cap');
     expect(() => grazingCapFactor(1, 0, 1.5)).toThrow('Invalid grazing cap');
   });
+  it('bounds what is left: a ceiling that bites only near full weight and never raises anything', () => {
+    // Head on or a flank: the ceiling is far above any sky radiance (no effect).
+    expect(grazingCapCeiling(0, 0)).toBeGreaterThan(50);
+    expect(grazingCapCeiling(1, 1)).toBeGreaterThan(50);
+    // Fully glancing and up-facing: the configured limit.
+    expect(grazingCapCeiling(1, 0)).toBeCloseTo(GRAZING_CAP.limit, 12);
+    // It only tightens as the weight grows.
+    let previous = Infinity;
+    for (const nv of [1, 0.7, 0.4, 0.2, 0.1, 0]) {
+      const value = grazingCapCeiling(1, nv);
+      expect(value).toBeLessThanOrEqual(previous);
+      previous = value;
+    }
+    // A sun-disc streak (tens of sky units) at 5 degrees is cut to a few; a sky tone survives.
+    const ceiling = grazingCapCeiling(1, Math.sin((5 * Math.PI) / 180));
+    expect(ceiling).toBeLessThan(2.5);
+    expect(ceiling).toBeGreaterThan(1);
+    expect(() => grazingCapCeiling(NaN, 0)).toThrow('Invalid grazing cap');
+  });
   it('chains once on Physical/Standard materials and lands between the IBL fetch and its gain', () => {
     const physical = new T.MeshPhysicalMaterial({ clearcoat: 1 }),
       lambert = new T.MeshLambertMaterial();
@@ -74,14 +94,28 @@ describe('grazing-Fresnel cap (D8)', () => {
     const fragment = compile(physical).fragmentShader;
     expect(previous).toBe(1);
     const maps = fragment.indexOf('#include <lights_fragment_maps>');
-    const cap = fragment.indexOf('apexGrazingCap = 1.0 - 0.800');
+    const cap = fragment.indexOf('apexGrazingCap = 1.0 - 0.850');
     const gain = fragment.indexOf(SPECULAR_IBL_GLSL);
     expect(maps).toBeGreaterThan(0);
     expect(cap).toBeGreaterThan(maps);
     expect(gain).toBeGreaterThan(cap);
     expect(gain).toBeLessThan(fragment.indexOf('#include <lights_fragment_end>'));
-    expect(fragment).toContain('radiance *= apexGrazingCap;');
-    expect(fragment).toContain('clearcoatRadiance *= apexGrazingCap;');
+    expect(fragment).toContain('radiance = min( radiance * apexGrazingCap, apexCeiling );');
+    // The sun's glancing glint is the other half of D8: the direct specular takes the same factor,
+    // after every light is summed and before the totals are formed.
+    const end = fragment.indexOf('#include <lights_fragment_end>');
+    const direct = fragment.indexOf(
+      'reflectedLight.directSpecular = min( reflectedLight.directSpecular * apexGrazingCap, apexDirectCeiling );',
+    );
+    expect(direct).toBeGreaterThan(end);
+    expect(direct).toBeLessThan(fragment.indexOf('vec3 totalSpecular'));
+    // The clear coat has its own direct accumulator (the sun's sharp glint on a lacquered flap).
+    expect(fragment).toContain(
+      'clearcoatSpecularDirect = min( clearcoatSpecularDirect * apexGrazingCap, apexDirectCeiling );',
+    );
+    expect(fragment).toContain(
+      'clearcoatRadiance = min( clearcoatRadiance * apexGrazingCap, apexCeiling );',
+    );
     // The standard shader has no clear coat: the clear-coat line is guarded.
     expect(compile(new T.MeshStandardMaterial(), 'standard').fragmentShader).not.toContain(
       'apexGrazingCap',
