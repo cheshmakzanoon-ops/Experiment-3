@@ -55,7 +55,14 @@ Integration done by PM: weather glyphs on the board dial, weather options data-d
 - e2e sweep: 75/133 specs run (53 pass), Paddock Board 720p overflow regression fixed (reviewer widened the fix to 789 px), 12 specs ported to the lazy showroom.
 - 8 UI languages (7 model-written drafts needing native review), 29 Wildcard events 29/29 headless pass, festival 18/18 activities complete headlessly, GP riders pass slower bikes (GP faster in ~94% of mixed races; out-of-sample falls level with main).
 
-## In flight now (wave 7)
+## Wave 7 merged (a04c045) + first real CI evidence
+- UX 4 design-critic pass (showroom centred between board and rail, nameplate card, legacy screens on tokens, type floor, contrast/focus audits), Vehicle art 3 (APX-01 livery/wing material, CR-750, GP-R1 knee sparks, karts, trucks, grazing-cap hook), Marketing art (logo system, 16/16 Steam capsule sizes, key-art + trailer tooling, 19 s teaser animatic). Key-art frames are software-GL stand-ins and need a GPU retake before upload.
+- **GitHub Actions on main (clean ubuntu runners), commit 0b8ec67:** unit-tests PASS (full suite), validate (lint, content, typecheck, build, IP guard, demo build) PASS, scenarios mostly PASS; **offroad-scenarios FAILED** (arena-nord-supercross parks car 0 for 21.1 s vs 20 s limit); all browser shards + wet-presentation + owner-qa FAILED at `playwright install` because `ubuntu-latest` became Ubuntu 26.04 (unsupported by Playwright 1.55.1). Fixed the runner pin in eccc6d0 (45 workflows → ubuntu-24.04); first browser-shard results on real runners pending.
+
+## In flight now (wave 8)
+- CI keeper (offroad gate root cause, cancelled test:vehicles step, workflow audit) and HUD legibility (7–9 px race-HUD labels, HUD SCALE setting).
+
+## Previous in-flight (wave 7)
 - Marketing art (logo, Steam capsules, key art), UX 4 design-critic pass + hero framing fix, Vehicle art 3 (hero car, bikes, karts, trucks).
 
 ## Previous in-flight list
