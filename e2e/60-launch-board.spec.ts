@@ -257,6 +257,26 @@ test('board fits 1280x720 without scrolling and keeps type at 11px or larger', a
   expect(small).toEqual([]);
 });
 
+test('machine character line is drawn when it fits, folds out at 720 and still describes the select', async ({
+  page,
+}) => {
+  // The line under the MACHINE dial is two rows tall. The board has 4px to spare at 1280x720, so
+  // below 760px tall it leaves the layout; the board must still fit at both heights.
+  await load(page);
+  const blurb = page.locator('#machineBlurb');
+  const fits = () =>
+    page.locator('.menu-body').evaluate((el) => el.scrollHeight <= el.clientHeight + 1);
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await expect(blurb).toBeVisible();
+  await expect(blurb).toContainText('The reference formula car');
+  expect(await fits()).toBe(true);
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await expect(blurb).toBeHidden();
+  expect(await fits()).toBe(true);
+  // Hidden text still describes the control (aria-describedby reads it), so nothing is lost.
+  await expect(page.locator('#vehicle')).toHaveAccessibleDescription(/The reference formula car/);
+});
+
 const logged = async (page: Page) =>
   JSON.parse((await page.locator('#boardEvents').textContent()) ?? '[]') as Record<
     string,

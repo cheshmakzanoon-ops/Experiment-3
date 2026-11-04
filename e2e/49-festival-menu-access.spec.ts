@@ -233,7 +233,12 @@ test('festival results: keyboard and controller can retry without also continuin
       ],
     });
   });
-  await page.waitForTimeout(100);
+  // The press must be a fresh edge: the HUD has to see this pad released on an animation frame
+  // first (a pad first seen already held is "held through connect", not a press). A fixed 100 ms
+  // wait raced that frame on a loaded machine (3 failures in 8 runs on the base commit too).
+  await page.evaluate(
+    () => new Promise<void>((done) => requestAnimationFrame(() => requestAnimationFrame(() => done()))),
+  );
   await page.evaluate(() => {
     Object.assign(navigator.getGamepads()[0]!.buttons[9], { pressed: true, value: 1 });
   });
@@ -424,12 +429,20 @@ test('festival map: filters, event selection and keyboard focus survive redraws'
   await expect(preview).toHaveAttribute('aria-pressed', 'true');
   await expect(preview).toBeFocused();
   await expect(page.locator('#festMapDetail h3')).toHaveText(undiscovered.name);
-  await expect(page.locator('#festMapDetail')).toContainText('Drive near the marker');
-  await expect(page.locator('#festMapDetail [data-fest="travel"]')).toHaveCount(0);
-  // A discovered event has a real travel action; a preview never grants it.
+  // Exploration only records where the driver has been; it does not gate the roads (session.ts,
+  // 'travel'), so an undiscovered event is a NEW ROUTE with a travel action. Selecting it is a
+  // preview: nothing travels until that action is used.
+  await expect(page.locator('#festMapDetail .fest-eyebrow')).toHaveText('NEW ROUTE');
+  await expect(page.locator('#festMapDetail [data-fest="travel"]')).toHaveAttribute(
+    'data-value',
+    undiscovered.id,
+  );
+  await expect(page.locator('#festivalEvents')).not.toContainText('travel:');
+  // A discovered event is labelled as such and has the same real travel action.
   await map.getByRole('button', { name: 'All', exact: true }).click();
   const discovered = events.find((event) => event.discovered)!;
   await map.locator(`[data-fest="mapSelect"][data-value="${discovered.id}"]`).click();
+  await expect(page.locator('#festMapDetail .fest-eyebrow')).toHaveText('DISCOVERED EVENT');
   await expect(page.locator('#festMapDetail [data-fest="travel"]')).toHaveAttribute(
     'data-value',
     discovered.id,

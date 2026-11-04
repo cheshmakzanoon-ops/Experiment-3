@@ -1105,6 +1105,16 @@
     -webkit-line-clamp: 1;
   }
 }
+@media (max-height: 760px) {
+  /* The board is built to fit 1280x720 with no scrolling (e2e/60-launch-board). The machine's
+     character line under the MACHINE dial is two rows (about 43px with its gap) and the panel has
+     4px to spare at 720, so below 760px the line leaves the layout. The #vehicle select keeps it
+     as its accessible description (aria-describedby reads hidden text), so nothing is lost for a
+     screen reader; at 761px and taller it is drawn in full. */
+  #menu .machine-blurb {
+    display: none;
+  }
+}
 @media (max-width: 1440px) {
   /* Keep the rail clear of the showroom car's rear wheel on 1280 screens. */
   #menu {
