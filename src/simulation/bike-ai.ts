@@ -119,11 +119,43 @@ export class BikeAIDriver extends AIDriver {
       // a locking, near-weightless rear wheel that fishtails under the smallest
       // steering correction; even short of it a rear carrying a quarter of its
       // static load cannot follow a lean change. The rider stays inside that.
+      // Matching a slower class is done with less of it than a corner takes.
+      this.heldBack = this.heldByTraffic();
       if (d.speed > 5)
-        command.brake = Math.min(command.brake, GP_AI_HANDS.leverShare * this.leverAtLimit());
+        command.brake = Math.min(
+          command.brake,
+          GP_AI_HANDS.leverShare * this.leverAtLimit() * (this.heldBack ? this.trafficShare() : 1),
+        );
       this.gpPedals(dt);
     }
     c.aiControlled();
+  }
+  private heldBack = false;
+  /** Held back by a slower class's traffic and by nothing else: the traffic cap is under
+   * both the rider's own free speed and what its approach plan lets it carry, and the
+   * plan itself does not ask for braking. */
+  private heldByTraffic() {
+    return (
+      this.planner.slower &&
+      this.trafficSpeed < Math.min(this.freeSpeed, this.planLimit) - GP_AI_HANDS.squeezeBand &&
+      !(this.bike.dynamics.speed > this.planNext)
+    );
+  }
+  /** How close the car ahead is to being run into, 0 (nothing needed) to 1 (the whole
+   * lever): the deceleration needed to stay clear of it, from `urgentFrom` to `urgentFull`. */
+  private urgency() {
+    return clamp(
+      (this.planner.needDecel - GP_AI_HANDS.urgentFrom) /
+        (GP_AI_HANDS.urgentFull - GP_AI_HANDS.urgentFrom),
+      0,
+      1,
+    );
+  }
+  /** The share of its lever a GP rider uses to match a slower class ahead: a gentle
+   * squeeze for a car that is only a little slower, the whole lever for one it is about
+   * to run into. */
+  private trafficShare() {
+    return lerp(GP_AI_HANDS.trafficShare, 1, this.urgency());
   }
   private lastThrottle = 0;
   private lastBrake = 0;
@@ -140,10 +172,24 @@ export class BikeAIDriver extends AIDriver {
     // Off the line the rider is committed: the front is up and the traction control
     // is the limit, not the hands (a 4 s start was 10 m behind a superbike's).
     const launch = c.dynamics.speed < GP_AI_HANDS.launchSpeed;
+    // Held back by a slower class, the lever is squeezed on, not snapped: the same
+    // lever at 260 km/h that is a plan's gentle ramp is a step when a traffic cap
+    // drops under the rider, and a snapped lever there unloaded the rear into a
+    // fishtail and a lowside (mixed GP/superbike races).
+    const squeeze = this.heldBack;
+    const fast = clamp(
+        (c.dynamics.speed - GP_AI_HANDS.squeezeFrom) /
+          (GP_AI_HANDS.squeezeFull - GP_AI_HANDS.squeezeFrom),
+        0,
+        1,
+      ),
+      apply = squeeze
+        ? lerp(GP_AI_HANDS.brakeApply, GP_AI_HANDS.brakeSqueeze, fast * fast * (3 - 2 * fast))
+        : GP_AI_HANDS.brakeApply;
     const brake = clamp(
       command.brake,
       this.lastBrake - (launch ? GP_AI_HANDS.launchRate : GP_AI_HANDS.brakeRelease) * dt,
-      this.lastBrake + GP_AI_HANDS.brakeApply * dt,
+      this.lastBrake + apply * dt,
     );
     let throttle = Math.min(
       command.throttle,
@@ -316,8 +362,10 @@ export class BikeAIDriver extends AIDriver {
   protected override brakeDemand(error: number) {
     let proportional = super.brakeDemand(error);
     // After the flag the slow-down is a cool-down, not a stop to a plan.
+    // (A rider that is about to run into one still on its way down to that pace, a
+    // superbike at the flag, has all of the lever.)
     if (this.bike.finishTime > 0 && this.isGp)
-      proportional = Math.min(proportional, GP_AI_HANDS.cooldownBrake);
+      proportional = Math.min(proportional, lerp(GP_AI_HANDS.cooldownBrake, 1, this.urgency()));
     const v = this.bike.dynamics.speed;
     if (!(v > this.planNext)) return proportional;
     // The deceleration the plan asks for, as a share of the stoppie-limited
@@ -411,6 +459,20 @@ export function gpPassingLateralScale(c: BikeVehicle, track: Track, cars: readon
 /** GP AI input rates (per second): lever apply/release, throttle opening. */
 export const GP_AI_HANDS = Object.freeze({
   brakeApply: 8,
+  /** Held back by a slower class (and by nothing else: its cap is `squeezeBand` m/s
+   * under the rider's free speed): the lever goes on at `brakeSqueeze` per second
+   * instead of `brakeApply` between `squeezeFrom` and `squeezeFull` m/s (a snapped
+   * lever at 250 km/h unloaded the rear into a fishtail; at hairpin speeds the
+   * braking is needed on time), and no more than `trafficShare` of the lever is used
+   * until the deceleration needed to stay clear of the car ahead rises from
+   * `urgentFrom` to `urgentFull` m/s2, when the whole lever is. */
+  brakeSqueeze: 2,
+  squeezeBand: 0.5,
+  squeezeFrom: 45,
+  squeezeFull: 65,
+  trafficShare: 0.6,
+  urgentFrom: 3,
+  urgentFull: 6,
   brakeRelease: 4,
   throttleOpen: 2.5,
   /** Lever release and throttle opening rates (per second) below `launchSpeed` (m/s). */

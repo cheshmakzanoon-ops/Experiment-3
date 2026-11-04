@@ -1,4 +1,4 @@
-import { approach, clamp, mod, Random, Vec3 } from '../core/math.ts';
+import { approach, clamp, G, lerp, mod, Random, Vec3 } from '../core/math.ts';
 import type { Track } from './track.ts';
 import type { Vehicle } from './vehicle.ts';
 
@@ -77,10 +77,19 @@ export interface PassPace {
  *    instead of the follow reserve, which treats the car as an obstacle to stop
  *    short of and so lets the gap close only a few m/s at a time (and brakes hard
  *    when it was closing faster: leaning at 250 km/h, that braking threw riders
- *    down). The rule also holds for `settle` s after a pass, for any car ahead;
- *  - gets a "blocker" when its runway is long enough to gain `gap + finish` metres
- *    on the car (it closes at `gain` of the speed difference on average over an
- *    acceleration zone). Until fewer than `brakeBy` metres of runway are left it
+ *    down). The rule holds on a straight (`settleRunway` m of it left) and for
+ *    `settle` s after a pass; into a corner the follow reserve is back, because
+ *    a GP that tails a superbike through a braking zone has no more brake than it
+ *    has, and went wide at hairpins with the car it was following (qa-bikes-3);
+ *  - is held at that distance from the lane the car will be in when it gets there,
+ *    not where it is now (`meets`: the lines cross in a chicane), with the car kept
+ *    to the lane limit, not off the road where the line leaves it;
+ *  - gets a "blocker" when it is closing on the car (`closeMin` m/s), its runway is
+ *    at least `startRunway` m and long enough to gain `gap + finish` metres on it (it
+ *    closes at `gain` of the speed difference on average over an acceleration
+ *    zone). Of 484 attempts started on corner exits by the runway alone, 4 were
+ *    completed and 302 ended at the end of the straight, 20 % of those at 250 km/h
+ *    in a rear slide. Until fewer than `brakeBy` metres of runway are left it
  *      - considers the lanes either side of the blocker itself (the fixed lane steps
  *        from its own position can land on the car) and takes the cheapest safe one
  *        that clears it, `edge` m short of the edge limit, rather than the cheapest
@@ -95,7 +104,8 @@ export interface PassPace {
  *        `timeout` s, and a gap only counts as opened beyond `look + gapMargin`.
  *    A pass that runs out of runway (`STRAIGHT ENDED`) leaves the rider close behind
  *    the car, so it keeps to the line through the corner: no new attempt for
- *    `corner` s, and a lane off the line costs `cornerCost`.
+ *    `corner` s, a lane off the line costs `cornerCost`, and the distance it keeps
+ *    opens from `closeGap` to the full `settleReserve` over `ease` s, not at once.
  * The swept lane test and every abort that is about safety are unchanged. */
 export const PASS_PACE = Object.freeze({
   margin: 3,
@@ -118,6 +128,18 @@ export const PASS_PACE = Object.freeze({
   retry: 0.8,
   corner: 8,
   cornerCost: 20,
+  /** How far ahead (m) a slower class counts for the rider's braking (`slower`). */
+  slowerReach: 250,
+  /** `meets`: the longitudinal overlap (m) that counts, and the least gap (m) at which
+   * it is asked: alongside, the swept lane test has the say. */
+  meetReach: 8,
+  meetGap: 12,
+  /** Closing speed (m/s) and straight (m) a new attempt needs; straight (m) below which
+   * the follow reserve is back; seconds over which the distance opens after a pass. */
+  closeMin: 1.5,
+  startRunway: 600,
+  settleRunway: 400,
+  ease: 3,
 });
 export interface TrafficPlan {
   offset: number;
@@ -162,12 +184,20 @@ export class TrafficPlanner {
    * side of it the pass is made on (-1, +1, or 0 until chosen). */
   private paced = false;
   private classTop = 0;
+  private runway = 0;
+  /** The deceleration (m/s2) the rider needs to stay clear of the worst car ahead of it:
+   * the one that sheds its closing speed 6 m behind that car, plus the car's own braking. */
+  needDecel = 0;
   private scale = 1;
   blocker = -1;
+  /** A car of a class PASS_PACE.classMargin slower is within `slowerReach` m ahead. */
+  slower = false;
   private passSide = 0;
   /** Until when the rider's closing speed on cars ahead is shed by the relative-motion
    * rule instead of the follow reserve (a pass is on, or ended a moment ago). */
   private settleUntil = 0;
+  /** When the last pace-aware pass ended (the follow distance opens up from there). */
+  private easeFrom = -Infinity;
   /** The pass in hand is a pace-aware one (its target was the blocker). */
   private passPaced = false;
   /** Since when the pass lane has been clear of the target, and the gap then. */
@@ -177,6 +207,8 @@ export class TrafficPlanner {
   private retryAfter = 0;
   /** What a lane off the line costs while `retryAfter` runs. */
   private retryCost = 4;
+  /** Which rule set the speed limit of the last evaluation ('' if none did). */
+  limitedBy = '';
   passes = 0;
   aborts = 0;
   lastAbort = '';
@@ -204,6 +236,8 @@ export class TrafficPlanner {
   ) {
     this.paced = pace !== null;
     this.classTop = pace?.topSpeed ?? 0;
+    this.runway = pace?.runway ?? 0;
+    this.needDecel = 0;
     this.scale = lateralScale;
     const lineOffset = line(car.s);
     // Lateral shift of a line-relative path between here and distance `s`.
@@ -313,13 +347,29 @@ export class TrafficPlanner {
           worth =
             other.id === this.blocker
               ? pace.runway >= PASS_PACE.brakeBy
-              : gains >= gap + PASS_PACE.finish;
+              : gains >= gap + PASS_PACE.finish &&
+                pace.runway >= PASS_PACE.startRunway &&
+                car.speed - other.speed >= PASS_PACE.closeMin;
         if (gap < near && inWay && worth) {
           near = gap;
           blocker = other;
         }
       }
     }
+    this.slower = false;
+    if (pace)
+      for (const other of cars) {
+        if (other === car || other.inPit || other.retired || other.finishTime) continue;
+        const gap = mod(other.s - car.s + track.length / 2, track.length) - track.length / 2;
+        if (
+          gap > 0 &&
+          gap < PASS_PACE.slowerReach &&
+          other.definition.ai.topSpeed <= pace.topSpeed - PASS_PACE.classMargin
+        ) {
+          this.slower = true;
+          break;
+        }
+      }
     if ((blocker ? blocker.id : -1) !== this.blocker) {
       this.passSide = 0;
     }
@@ -418,10 +468,14 @@ export class TrafficPlanner {
             ? other.pitPhase === 6
               ? pitLaneAt(other.s + other.speed * t)
               : track.pit.side * Math.max(6, track.pit.side * pitLaneAt(other.s + other.speed * t))
-            : other.lateral +
-              line(other.s + other.speed * t) -
-              theirLine +
-              lateralVelocity * Math.min(t, 1.2);
+            : this.onTrack(
+                other,
+                other.lateral +
+                  line(other.s + other.speed * t) -
+                  theirLine +
+                  lateralVelocity * Math.min(t, 1.2),
+                limit,
+              );
           const dy = Math.abs(theirs - ours);
           if (Math.abs(dx) < 6.5 + Math.min(4, t * 0.5) && dy < 2.75 * lateralScale) {
             safe = false;
@@ -476,6 +530,14 @@ export class TrafficPlanner {
     // Emergency avoidance must not weave across a second car to dodge the first.
     result.offset = found ? bestOffset : closest;
     result.speedLimit = 110;
+    this.limitedBy = '';
+    // Lowers the speed limit and records which rule it was (diagnostics).
+    const cap = (limit: number, rule: string) => {
+      if (limit < result.speedLimit) {
+        result.speedLimit = limit;
+        this.limitedBy = rule;
+      }
+    };
     result.decision = !found
       ? 'ABORT / FOLLOW'
       : Math.abs(bestOffset - lineOffset) > 1
@@ -499,7 +561,7 @@ export class TrafficPlanner {
       const gap = mod(other.s - car.s + track.length / 2, track.length) - track.length / 2;
       if (gap <= 0 || gap > 180) continue;
       if (yellow && !other.retired && other.speed > 5 && gap < 55)
-        result.speedLimit = Math.min(result.speedLimit, Math.max(5, other.speed - 1));
+        cap(Math.max(5, other.speed - 1), 'yellow');
       // Our path reaches the other car's distance shifted with the line.
       const shift = shiftAt(other.s);
       if (this.stalled[other.id] === 2) {
@@ -511,7 +573,8 @@ export class TrafficPlanner {
         if (!overlap && clear) continue;
         const room = gap - front - this.along[other.id] - STALLED.contactGap;
         const reserve = 7 + car.speed * (0.45 + 0.12 * (1 - traits.consistency));
-        const creep = clear && this.arcClears(car, other, gap, ourSin, ourCos, result.offset + shift);
+        const creep =
+          clear && this.arcClears(car, other, gap, ourSin, ourCos, result.offset + shift);
         const limited =
           room <= 0
             ? 0
@@ -525,15 +588,44 @@ export class TrafficPlanner {
                       gap - Math.max(reserve, front + this.along[other.id] + STALLED.holdGap),
                     ),
                 );
-        result.speedLimit = Math.min(result.speedLimit, limited);
+        cap(limited, 'stalled');
         if (creep) this.bypass = other.id;
         else this.waiting = other.id;
         continue;
       }
       const corridor =
         Math.abs(other.lateral - (car.lateral + shift)) < 3 * lateralScale ||
-        Math.abs(other.lateral - (result.offset + shift)) < 3 * lateralScale;
+        Math.abs(other.lateral - (result.offset + shift)) < 3 * lateralScale ||
+        // A rider quicker than the car ahead reaches it where the lines will have
+        // moved, not where they are now (PASS_PACE).
+        (this.paced &&
+          gap >= PASS_PACE.meetGap &&
+          !this.stalled[other.id] &&
+          other.definition.ai.topSpeed <= this.classTop - PASS_PACE.classMargin &&
+          this.meets(
+            car,
+            other,
+            gap,
+            result.offset,
+            closest,
+            laneRate,
+            limit,
+            lateralScale,
+            line,
+            shiftAt,
+          ));
       if (!corridor) continue;
+      {
+        // What it takes to stay clear of the car ahead: shed the speed it is closing at
+        // by 6 m behind it, and keep up with it while it brakes (a leader slowing for a
+        // corner or the flag is a moving target).
+        const closing = Math.max(0, car.speed - other.speed),
+          braking = Math.min(10, Math.max(0, -other.gLong * G)) * clamp(1 - (gap - 6) / 60, 0, 1);
+        this.needDecel = Math.max(
+          this.needDecel,
+          closing ** 2 / (2 * Math.max(1, gap - 6)) + braking,
+        );
+      }
       if (other.id === this.blocker) {
         // Passing the car in the way in a lane that clears it: close on it only as
         // fast as the remaining lateral move allows (PASS_PACE).
@@ -542,28 +634,27 @@ export class TrafficPlanner {
           toGo = Math.max(0, reach - Math.abs(other.lateral - (car.lateral + shift))),
           seconds = toGo / laneRate + PASS_PACE.lanePad;
         if (clear && gap > PASS_PACE.closeGap + 2) {
-          result.speedLimit = Math.min(
-            result.speedLimit,
-            other.speed + (gap - PASS_PACE.closeGap) / seconds,
-          );
+          cap(other.speed + (gap - PASS_PACE.closeGap) / seconds, 'clear');
           continue;
         }
       }
       if (
         this.paced &&
         !this.stalled[other.id] &&
-        (now < this.settleUntil || other.definition.ai.topSpeed <= this.classTop - PASS_PACE.classMargin)
+        (now < this.settleUntil ||
+          (other.definition.ai.topSpeed <= this.classTop - PASS_PACE.classMargin &&
+            this.runway >= PASS_PACE.settleRunway))
       ) {
         // The follow reserve below treats the car as an obstacle to stop short of. A
         // quicker class closes on a moving car and sheds the difference in speed over
         // the gap instead (as does a rider that has just been closing on one, so it
         // is not braked hard at once: at 250 km/h, leaning, that braking threw it
         // down), which also keeps it from crawling up to the car at the reserve.
-        const keep = PASS_PACE.settleReserve + 0.25 * car.speed;
-        result.speedLimit = Math.min(
-          result.speedLimit,
-          other.speed + Math.sqrt(2 * PASS_PACE.settleDecel * Math.max(0, gap - keep)),
-        );
+        // Just out of a pass the rider is alongside or a few metres back: the distance it
+        // keeps opens up over `ease` s, not at once (at 250 km/h that step was a hard stop).
+        const settled = clamp((now - this.easeFrom) / PASS_PACE.ease, 0, 1),
+          keep = lerp(PASS_PACE.closeGap, PASS_PACE.settleReserve + 0.25 * car.speed, settled);
+        cap(other.speed + Math.sqrt(2 * PASS_PACE.settleDecel * Math.max(0, gap - keep)), 'settle');
         if (gap >= 7) continue;
       }
       let reserve = 7 + car.speed * (0.45 + 0.12 * (1 - traits.consistency));
@@ -573,13 +664,66 @@ export class TrafficPlanner {
       const safeSpeed = Math.sqrt(
         Math.max(0, other.speed * other.speed + 2 * Math.max(1, braking * 0.72) * (gap - reserve)),
       );
-      result.speedLimit = Math.min(result.speedLimit, safeSpeed);
-      if (gap < 7) result.speedLimit = Math.min(result.speedLimit, Math.max(0, other.speed - 4));
+      cap(safeSpeed, 'follow');
+      if (gap < 7) cap(Math.max(0, other.speed - 4), 'close');
     }
     if (this.waiting >= 0) result.decision = 'WAIT / STALLED CAR';
-    else if (this.bypass >= 0 && result.decision !== 'PASS / COMPLETE' && !result.decision.includes('ABORT'))
+    else if (
+      this.bypass >= 0 &&
+      result.decision !== 'PASS / COMPLETE' &&
+      !result.decision.includes('ABORT')
+    )
       result.decision = 'PASS / STALLED CAR';
     return result;
+  }
+  /** Where a slower-class car is predicted to be, kept to the lanes it may use: one
+   * that sits on the lane limit while the line moves away does not follow the line
+   * off the road (PASS_PACE; every other car is predicted as before). */
+  private onTrack(other: Vehicle, lateral: number, limit: number) {
+    return this.paced && other.definition.ai.topSpeed <= this.classTop - PASS_PACE.classMargin
+      ? clamp(lateral, -limit, limit)
+      : lateral;
+  }
+  /** Whether, on the lane `lane` (reached from `from` at `rate`), the swept path
+   * of this car meets the footprint of `other` (`gap` ahead) within the 4 s
+   * horizon, at the moment it gets there rather than where the car is now. */
+  private meets(
+    car: Vehicle,
+    other: Vehicle,
+    gap: number,
+    lane: number,
+    from: number,
+    rate: number,
+    limit: number,
+    lateralScale: number,
+    line: (s: number) => number,
+    shiftAt: (s: number) => number,
+  ) {
+    const closing = other.speed - car.speed,
+      theirLine = line(other.s),
+      drift = ((line(other.s + 1) - line(other.s - 1)) / 2) * other.speed,
+      lateralVelocity = clamp(
+        other.body.velocity.x * other.trackPosition.nx +
+          other.body.velocity.z * other.trackPosition.nz -
+          drift,
+        -2,
+        2,
+      );
+    for (let t = 0.2; t <= 4; t += 0.4) {
+      const dx = gap + closing * t;
+      if (Math.abs(dx) > PASS_PACE.meetReach) continue;
+      const ours = approach(from, lane, rate * t) + shiftAt(car.s + car.speed * t),
+        theirs = clamp(
+          other.lateral +
+            line(other.s + other.speed * t) -
+            theirLine +
+            lateralVelocity * Math.min(t, 1.2),
+          -limit,
+          limit,
+        );
+      if (Math.abs(theirs - ours) < 3 * lateralScale) return true;
+    }
+    return false;
   }
   /** Sine of a car's heading from the track direction (positive: towards
    * positive lateral offsets); its cosine is left in `cosine`. */
@@ -706,6 +850,7 @@ export class TrafficPlanner {
       result.decision = 'PASS / COMMITTED';
       return;
     }
+    if (this.passPaced) this.easeFrom = now;
     this.aborts++;
     this.lastAbort = reason;
     this.passTarget = -1;

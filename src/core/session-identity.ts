@@ -48,7 +48,11 @@ import {
  * straight, released from the follow cap) and launch with lever release and throttle
  * opening at 8/s instead of 4/s and 2.5/s below 12 m/s, so every seeded session with
  * a GP AI rider moves differently (single-class GP fields differ only in the launch;
- * rider physics unchanged);
+ * rider physics unchanged). Unreleased, so the passing was made safe inside v22
+ * (qa-bikes-3): a pass starts only when closing on the car on a straight of 600 m or
+ * more, the relative-motion rule holds only with 400 m of straight left, the car ahead
+ * is predicted on the road and where the lines will have moved, and a GP held back by
+ * a slower class squeezes the lever (rate and share) unless it is about to run into it;
  * prior records remain in their original physics category. */
 export const SIMULATION_VERSION = 22;
 /** Fixed physics tick used by the worker and headless simulation. */

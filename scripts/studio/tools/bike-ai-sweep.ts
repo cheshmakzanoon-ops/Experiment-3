@@ -7,6 +7,10 @@
 // report the traffic planner's completed passes / aborts (with the abort reasons) per rider,
 // the best lap of each vehicle type and the net on-track position swaps between types
 // (`swaps["gpr1>sbk1000"]`: times a gpr1 took a place from an sbk1000, racing phase only).
+// Falls are rare, so two leading indicators are counted per race as well: `slides` (episodes of
+// a GP rear stepping out, lateral speed above 3 m/s at more than 20 m/s) and `offTrack` (episodes
+// of a bike's centre more than half a metre past the edge of the road), and `limits` counts how
+// often each traffic-planner rule set a rider's speed limit (`follow`, `settle`, `clear` ...).
 //
 //   node --no-warnings --experimental-transform-types scripts/studio/tools/bike-ai-sweep.ts \
 //        <circuit,circuit,...> <vehicle[,vehicle...]> [cars=4] [laps=3] [firstSeed=1000] \
@@ -96,6 +100,11 @@ for (const circuit of circuitsCsv.split(',')) {
     const seenAborts = field.map(() => 0);
     const swaps: Record<string, number> = {};
     let rank = sim.cars.map(() => 0);
+    let slides = 0,
+      offTrack = 0;
+    const sliding = field.map(() => false),
+      off = field.map(() => false);
+    const limits: Record<string, number> = {};
     const started = performance.now();
     for (let tick = 0; tick < 120 * 900 && sim.race.phase !== PHASE.FINISHED; tick++) {
       sim.step(DT);
@@ -104,7 +113,19 @@ for (const circuit of circuitsCsv.split(',')) {
       const place: number[] = [];
       for (const [id, p] of now) place[id] = p;
       for (let i = 0; i < field.length; i++) {
+        const car = sim.cars[i] as BikeVehicle;
+        const lateralSpeed = Math.abs(car.dynamics.motoGP?.lateralSpeed ?? 0);
+        if (!sliding[i] && lateralSpeed > 3 && car.speed > 20) {
+          sliding[i] = true;
+          slides++;
+        } else if (sliding[i] && lateralSpeed < 1) sliding[i] = false;
+        const wide = Math.abs(car.lateral) > car.trackPosition.width + 0.5;
+        if (!off[i] && wide) {
+          off[i] = true;
+          offTrack++;
+        } else if (off[i] && !wide) off[i] = false;
         const planner = plannerOf(i);
+        if (planner.limitedBy) limits[planner.limitedBy] = (limits[planner.limitedBy] ?? 0) + 1;
         if (planner.aborts > seenAborts[i]) {
           const reason = planner.lastAbort || '?';
           reasons[i][reason] = (reasons[i][reason] ?? 0) + planner.aborts - seenAborts[i];
@@ -140,6 +161,9 @@ for (const circuit of circuitsCsv.split(',')) {
         abortReasons: reasons,
         swaps,
         incidents: sim.race.control.events.filter((e) => e.kind === 'incident').length,
+        slides,
+        offTrack,
+        limits,
         bestByVehicle,
         wallSeconds: +((performance.now() - started) / 1000).toFixed(1),
       }),

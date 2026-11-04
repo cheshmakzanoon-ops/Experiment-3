@@ -47,11 +47,24 @@ it('plans ahead toward a legal pit approach instead of an instantaneous lateral 
   expect(plan.offset).toBeLessThanOrEqual(car.trackPosition.width - 2.4);
 });
 it('an occupied service-approach corridor never becomes an overtake away from entry', () => {
-  const track = new Track(), car = new Vehicle(0), other = new Vehicle(1);
-  car.place(track, 2500, 1.4); other.place(track, 2500, 5.6);
+  const track = new Track(),
+    car = new Vehicle(0),
+    other = new Vehicle(1);
+  car.place(track, 2500, 1.4);
+  other.place(track, 2500, 5.6);
   car.speed = other.speed = 25;
   const planner = new TrafficPlanner();
-  const plan = planner.evaluate(car, [car, other], track, 10, 4, personality(4417, 0), false, 6, true);
+  const plan = planner.evaluate(
+    car,
+    [car, other],
+    track,
+    10,
+    4,
+    personality(4417, 0),
+    false,
+    6,
+    true,
+  );
   expect(Math.abs(plan.offset - 6)).toBeLessThanOrEqual(Math.abs(car.lateral - 6) + 0.1);
 });
 it('predicts a rival alongside along the racing line, so a parallel lane stays clear', () => {
@@ -139,8 +152,10 @@ const pacedPass = () => {
     traits = personality(4417, 0);
   car.place(track, 1000, 0);
   other.place(track, 1034, 0);
-  car.speed = 60;
-  other.speed = 65;
+  // Closing on the car at 6 m/s: a pass is started on closing speed on a long straight, not
+  // from a corner exit with the rider still slower than the car (qa-bikes-3).
+  car.speed = 66;
+  other.speed = 60;
   const plan = (
     planner: TrafficPlanner,
     now: number,
@@ -195,4 +210,75 @@ it('does not treat a car it is no quicker than as one to get past', () => {
   const planner = new TrafficPlanner();
   plan(planner, 10, 600);
   expect(planner.blocker).toBe(-1);
+});
+it('a pace-aware pass needs a car it is closing on and a long straight to start', () => {
+  const { car, other, plan } = pacedPass();
+  // 599 m of straight is not enough, 600 is.
+  const short = new TrafficPlanner();
+  plan(short, 10, 599);
+  expect(short.blocker).toBe(-1);
+  // Not closing (a rider coming out of a corner behind the car): no pass is set up, the
+  // 484 attempts that were had 4 completed.
+  car.speed = other.speed + 1;
+  const level = new TrafficPlanner();
+  plan(level, 10, 900);
+  expect(level.blocker).toBe(-1);
+  car.speed = other.speed + 6;
+  const planner = new TrafficPlanner();
+  plan(planner, 10, 600);
+  expect(planner.blocker).toBe(other.id);
+});
+it('a quicker class closes on a car by the relative-motion rule on a straight, not into a corner', () => {
+  const { car, other, plan } = pacedPass();
+  car.speed = other.speed + 1;
+  // Straight ahead: the rider may approach at the speed it can shed over the gap.
+  const straight = plan(new TrafficPlanner(), 10, 500).speedLimit;
+  expect(straight).toBeGreaterThan(other.speed + 3);
+  // Braking point close: the follow reserve is back, and with it the distance a GP that
+  // brakes as hard as the car in front of it needs (hairpin falls, qa-bikes-3).
+  const corner = plan(new TrafficPlanner(), 10, 200).speedLimit;
+  expect(corner).toBeLessThan(other.speed + 1);
+  expect(corner).toBeLessThan(straight);
+});
+it('the distance a rider keeps opens over a few seconds after a pass ends, not at once', () => {
+  const { other, plan } = pacedPass();
+  const planner = new TrafficPlanner();
+  plan(planner, 10, 600);
+  expect(planner.blocker).toBe(other.id);
+  plan(planner, 10.1, 150);
+  expect(planner.lastAbort).toBe('STRAIGHT ENDED');
+  const early = plan(planner, 10.2, 150).speedLimit,
+    late = plan(planner, 14, 150).speedLimit;
+  // Alongside a car a few metres ahead and 6 m/s quicker: the cap closes in as the
+  // distance opens, so the lever is not asked for the whole difference in one step.
+  expect(early).toBeGreaterThan(late);
+});
+it('a slower class is predicted on the road where the line leaves it, and the swept test sees it', () => {
+  const { track, car, other, traits } = pacedPass();
+  // The line sweeps from the left edge to the right over 100 m. The car ahead sits on the
+  // lane limit (as its own planner holds it) and does not follow the line off the road.
+  const line = (s: number) => Math.max(-4.4, Math.min(4.4, 4.4 - (s - 1000) * 0.088));
+  car.place(track, 1000, 4);
+  other.place(track, 1030, -4.3);
+  car.speed = 70;
+  other.speed = 60;
+  const plan = new TrafficPlanner().evaluate(
+    car,
+    [car, other],
+    track,
+    10,
+    8,
+    traits,
+    false,
+    line(1000),
+    false,
+    line,
+    1,
+    0,
+    { topSpeed: 120, freeSpeed: 90, runway: 300, laneRate: 2 },
+  );
+  // Following the line, the rider reaches the car's distance on the lane limit it holds
+  // (the line leaves the road there), so the line lane is not its pick. Predicted off the
+  // road with the line, the car was out of the way and the line lane was safe.
+  expect(plan.decision).not.toBe('RACING LINE');
 });

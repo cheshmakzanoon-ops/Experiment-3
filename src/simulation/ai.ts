@@ -162,7 +162,7 @@ export class AIDriver {
    * (a player handing over, a remounted rider). */
   private lastUpdate = -Infinity;
   private desiredOffset = 0;
-  private trafficSpeed = 100;
+  protected trafficSpeed = 100;
   /** The target speed before traffic (or a venue limit) lowers it, last update. */
   protected freeSpeed = 0;
   /** True only when this update sampled the surrounding traffic. */
