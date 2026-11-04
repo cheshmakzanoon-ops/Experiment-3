@@ -15,14 +15,19 @@ import { frameLiquidRain } from '../simulation/weather.ts';
 import { clamp, Random } from '../core/math.ts';
 import { newWeatherAmbience, weatherAmbience } from './weather-ambience.ts';
 
+/** A real-time context, as opposed to the OfflineAudioContext of the rig. */
+const isLive = (context: BaseAudioContext): context is AudioContext =>
+  !('startRendering' in context);
+
 /** The live context owns the master bus, ambient wind/rain, spatial engine graph
  * and player contact graph. Rendering supplies the actual listener pose; no
  * audio output is allowed to modify physics or recorded state. */
 export class RacingAudio {
-  private context: AudioContext | null = null;
+  private context: BaseAudioContext | null = null;
   private reviewTap: ReviewAudioTap | null = null;
   captureOutput() {
     if (!this.context || !this.compressor) throw new Error('Game audio is not initialized');
+    if (!isLive(this.context)) throw new Error('Only a live audio context can be captured');
     this.reviewTap?.release();
     this.reviewTap = new ReviewAudioTap(this.context, this.compressor);
     return this.reviewTap;
@@ -79,12 +84,15 @@ export class RacingAudio {
   private contactAttenuation = 0;
   volume = 0.45;
   muted = false;
-  async start() {
+  /** `context` lets a measurement rig run the production graph in an
+   * OfflineAudioContext (scripts/studio/tools/audio-render.mjs); the game
+   * always creates its own live context. */
+  async start(context?: BaseAudioContext) {
     if (this.context) {
-      await this.context.resume();
+      if (isLive(this.context)) await this.context.resume();
       return;
     }
-    const ctx = new AudioContext({ latencyHint: 'interactive' });
+    const ctx = context ?? new AudioContext({ latencyHint: 'interactive' });
     this.context = ctx;
     this.master = ctx.createGain();
     this.master.gain.value = 0;
@@ -140,7 +148,7 @@ export class RacingAudio {
     this.contactAudio = new ContactAudio(ctx, this.contactPan);
     // Player power-unit character shares the contact bus stereo position.
     this.powerUnit = new PowerUnitAudio(ctx, this.contactPan);
-    await ctx.resume();
+    if (isLive(ctx)) await ctx.resume();
   }
   update(
     frame: Float32Array,
@@ -243,7 +251,7 @@ export class RacingAudio {
     for (const source of this.sources) source.stop();
     for (const node of this.nodes) node.disconnect();
     this.sources.length = this.nodes.length = 0;
-    if (this.context) await this.context.close();
+    if (this.context && isLive(this.context)) await this.context.close();
     this.context = null;
     this.master = null;
     this.compressor = null;
