@@ -43,8 +43,14 @@ import {
  * visibility/standing-water race-control ladder, and the fog preset's cloud and
  * fog-cover channels (fog sessions no longer replay bit-identically with v20;
  * clear, changeable, rain, storm and dust are unchanged);
+ * v22: GP riders get past slower classes (pace-aware passing: closing on a slower
+ * class by the relative-motion rule, a lane either side of the car in the way on a
+ * straight, released from the follow cap) and launch with lever release and throttle
+ * opening at 8/s instead of 4/s and 2.5/s below 12 m/s, so every seeded session with
+ * a GP AI rider moves differently (single-class GP fields differ only in the launch;
+ * rider physics unchanged);
  * prior records remain in their original physics category. */
-export const SIMULATION_VERSION = 21;
+export const SIMULATION_VERSION = 22;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 
