@@ -50,7 +50,15 @@ Integration done by PM: weather glyphs on the board dial, weather options data-d
 | UX 3 | career season board, first-launch screen, results board + share card, settings guide + accessibility, restyled screens |
 | Test health | first full unit run on merged main: **5720 pass / 31 fail of 5751 tests (596 files)**; 30 fixed (weather-2 header fixtures, rendering fixtures, stale contracts); 1 left: mixed GP/superbike race |
 
-## In flight now
+## Merged since: bikes 3, calibration, audio, localization, festival QA, e2e sweep (main 2ed0ae9)
+- Full unit suite: **616 files / 6,086 tests, 0 failing**.
+- e2e sweep: 75/133 specs run (53 pass), Paddock Board 720p overflow regression fixed (reviewer widened the fix to 789 px), 12 specs ported to the lazy showroom.
+- 8 UI languages (7 model-written drafts needing native review), 29 Wildcard events 29/29 headless pass, festival 18/18 activities complete headlessly, GP riders pass slower bikes (GP faster in ~94% of mixed races; out-of-sample falls level with main).
+
+## In flight now (wave 7)
+- Marketing art (logo, Steam capsules, key art), UX 4 design-critic pass + hero framing fix, Vehicle art 3 (hero car, bikes, karts, trucks).
+
+## Previous in-flight list
 - Content 2 (4 venues + 8 wildcard events), Release 2 (demo build, Steam leaderboards, packaging CI, store screenshots), Bikes 3 (mixed-field passing without falls; branch studio/physics-test-health has the unmerged pass logic).
 
 ## Wave 3 (historical)

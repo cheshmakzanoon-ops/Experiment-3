@@ -17,9 +17,9 @@ Status key: **V** verified in repo with evidence · **P** partly · **X** needs 
 | # | Gate | Threshold | Status |
 | --- | --- | --- | --- |
 | G1 | Clean install builds, typechecks, lints | build + lint exit 0 | V — build, lint, tsc, IP guard clean on main (3ac9c2d) |
-| G2 | Unit/simulation suite | 0 failing | P — full unit run at c818caa: 5720/5751 pass; 30 fixed since; last known red (mixed GP race) fixed in bikes 3; **a fresh full run is still owed** |
+| G2 | Unit/simulation suite | 0 failing | V — full vitest run on main 2ed0ae9: **616 files, 6,086 tests, 0 failing** (67 min on a loaded 4-CPU host) |
 | G3 | First-launch to first driving ≤ 90 s, ≤ 3 inputs | measured by script | P — first-launch → driving in 1–2 inputs (firstrun.mjs); wall time on real hardware unmeasured (software GL 170–330 s) |
-| G4 | Each discipline playable menu → race → results → exit without console errors | formula, GP bike, MX, SX, festival | P — journeys on software GL: formula practice/race, time trial, GP bike, wildcard, festival load/drive; dirt via journey tool; festival activities headless (18 events). No human-driven bike/dirt/festival-event run |
+| G4 | Each discipline playable menu → race → results → exit without console errors | formula, GP bike, MX, SX, festival | P — e2e sweep on main 8d831de: 75/133 browser specs run, 53 pass, 1 real regression found+fixed, 12 stale specs ported, 16 cases software-GL timeouts, 58 heavy visual specs not run; journeys: formula, race, time trial, GP bike, wildcard, festival load/drive; festival activities headless (18 events) |
 | G5 | Distinctive front end: identity, controller-first nav, no placeholder copy | art-direction review | P — Paddock Board, Wildcard board, season board, first-launch, results board, gamepad nav; no external art review |
 | G6 | "Only here" hook: mismatched vehicle/venue Wildcard series, weather variety | ≥ 12 wildcard events, ≥ 6 weather states | V — 29 Wildcard events (29/29 headless PASS), 51 circuits, 7 weather states incl. snow |
 | G7 | Cold load budget | main JS ≤ 4 MB gzip initial; menu interactive quickly | V — initial JS 3.50 MB gzip (budget 4) |
