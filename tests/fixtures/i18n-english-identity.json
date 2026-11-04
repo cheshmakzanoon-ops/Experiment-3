@@ -1,0 +1,827 @@
+{
+ "machineCharacter": {
+  "apx01": "The reference formula car: huge downforce and brutal brakes, near neutral on the nose, and it spins if you floor it mid-corner.",
+  "fx26": "Electrified top-tier formula: more power and a quarter less downforce than the APX-01, so it launches harder and lifts earlier in fast sweeps.",
+  "jf2": "Feeder-series single-seater: two-thirds of the top cars' aero grip, firm brakes, and a rear that steps out when you floor it.",
+  "fr3": "Third-rung spec formula: honest balance, little speed lost weaving, and tow-heavy pack racing on modest power.",
+  "fe4": "First rung of the ladder: light, nearly neutral and planted under power, with a sharp turn-in on a lift and little power to cover mistakes.",
+  "hf67": "Sixties cigar-tube: light and quick in a straight line but short of grip on narrow tyres, so it pushes, then spins when you add power.",
+  "hf76": "Seventies winged formula: wide slicks and a big wing give real fast-corner grip and drag; a lift swings the tail round quickly.",
+  "hf86": "Turbo-era brute: huge power for its weight, and the boost arrives late, so it comes in a rush out of slow corners.",
+  "vc62": "Vintage club roadster: slow and soft with a long brake lead, forgiving until the tail swings out under power.",
+  "hy9": "Hybrid endurance prototype: low drag, a front motor that only joins in at speed, strong stable braking, and a rear that steps out on full throttle.",
+  "hy11": "Hybrid prototype with more downforce and less top speed than the HY-9, its torque helped by a small crankshaft motor.",
+  "pr2": "Closed spec prototype: near neutral and strong in fast corners, short of straight-line speed against the hypercars.",
+  "pr3": "Open-cockpit prototype: turbo torque and low-speed downforce, draggy on the straights and laggy at corner exit.",
+  "sp71": "Long-tail seventies prototype: very high top speed on little grip, so it pushes in corners and takes a long stop, but stays planted on power.",
+  "gt8f": "Front-mid V8 GT: stable under braking with torque out of slow corners; it pushes on turn-in and spins up on full throttle.",
+  "gt10m": "Mid-engine V10 GT: the most power of the four GTs, neutral-ish balance, and it spins less than the V8 under full throttle.",
+  "gt6r": "Rear-engine flat-six GT: the weight over the rear tyres gives traction and braking, staying planted on power while the light nose pushes.",
+  "gt6s": "Long front-engine straight-six GT: the stable, understeering heavyweight, with turbo torque that gets it up to speed quickly.",
+  "gs4": "Entry GT: easy-to-read turbo six with plenty of torque, the heaviest GT, and it lets go on full throttle at the limit.",
+  "gs6m": "Mid-engine entry GT: planted under power and neutral-ish, with about a quarter less torque than the GS-4 and a lighter nose.",
+  "tc1": "Front-drive touring saloon: stable on a lift and under braking, but it pushes wide as soon as you ask for power.",
+  "tc2": "Rear-drive touring saloon: rotates well on entry, then goes loose if you are early on the power.",
+  "tc3": "All-wheel-drive touring saloon: the best launch of the touring cars and planted on throttle, though it pushes on turn-in.",
+  "cr1": "Lightweight club roadster: low inertia and quick to rotate, with a tail that comes round fast on throttle or a lift; short of top speed.",
+  "hh2": "Front-drive hot-hatch racer: braking-stable and torquey, but the front tyres are overloaded on power and it pushes wide.",
+  "rh3": "Road hot hatch: usable torque and a soft front end that saturates on power out of slow corners.",
+  "rl2": "Rally car on gravel tyres: traction on any surface and short gearing, but very understeery and tall on asphalt.",
+  "rl7": "Seventies rear-drive rally saloon: light and tail-happy on throttle, very stable on a lift, short of grip and top speed.",
+  "gb4": "Group-supercar rally monster: violent acceleration and planted traction everywhere, understeering on asphalt.",
+  "rcx6": "Rallycross supercar: brutal sprint acceleration and abrupt power with short gearing; built for loose surface, very understeery on tarmac.",
+  "rxe": "Electric rallycross car: instant torque and no gear changes, but heavy and understeery in direction changes.",
+  "dx8": "Desert trophy truck: huge power in a heavy, tall body that rolls, brakes long and spins up on throttle; a loose-surface specialist.",
+  "bg2": "Desert buggy: lighter than the truck and quick to turn, but the tail swings on a lift and under power, and it brakes long.",
+  "sk125": "Shifter kart: enormous grip for its weight and very short stops for its speed, but a low top speed makes it slow on a big circuit.",
+  "dk100": "Direct-drive sprint kart: momentum and line discipline, slow off the line, with rear-only brakes that make it stop long.",
+  "xf2": "Fan-assisted prototype: grip and braking that do not wait for speed, the highest in the game, until a crest or kerb breaks the seal.",
+  "xe1": "Electric time-attack prototype: the quickest launch here and strong downforce in medium and fast corners, drag-capped on the straights.",
+  "xh3": "Hydrogen prototype: efficient low drag and four-wheel traction, but a single reduction gives up acceleration at the top.",
+  "xt1": "Track-only V12 hypercar: power everywhere, the highest top speed of any car, and a rear that spins up on full throttle.",
+  "eh3": "Electric road hypercar: instant torque and four-wheel traction launch it hard, but its mass pushes wide in every corner.",
+  "sc7": "Mid-engine road supercar: acceleration and top speed first, planted on power, with strong road-tyre braking.",
+  "rs5": "Four-door sports sedan: launch, torque and all-weather traction, with a heavy, understeery nose and mass in the braking zones.",
+  "rm8": "Front-engine muscle coupe: torque and a long top gear, planted under throttle until the tail snaps at the limit.",
+  "rg63": "Sixties grand tourer: a sweet high-revving V12 and a long top speed on narrow tyres, long to stop and rolling in corners.",
+  "rp6": "Performance pickup: goes anywhere with torque to spare, but mass and height give it the longest stop of any road machine.",
+  "rr4": "Rally-bred road car: traction on any surface, with turbo lag and understeer on power.",
+  "lx12": "Luxury grand tourer: effortless torque, top speed and great stability, the most understeery machine here and heavy in every corner.",
+  "rd2": "Light road roadster: balanced and easy to slide, a lift rotates it readily, short of power and top speed.",
+  "gpr1": "Prototype GP bike: wings, the highest top speed of any bike and the strongest lean grip; braking is stoppie-limited.",
+  "gpr2": "Second GP prototype: inline-four with more wing and drag, stops shorter but tops out and launches slower than the GP-R1.",
+  "sbk1000": "Production-based superbike: quick, but a step down from the prototypes in lean, braking and top speed, with kind electronics.",
+  "ss600": "Supersport: light and agile, revs hard to make its speed, with less power to correct a late line.",
+  "nr900": "Naked roadster: upright and draggy on road tyres, quick off the line, out of breath at high speed and long to stop.",
+  "cr750": "Seventies two-stroke racer: narrow tyres, the weakest brakes of any bike and a lean limit you can feel; delicate to ride.",
+  "mx450": "Four-stroke motocross bike: torque everywhere and a tall fifth for the straights; built for jumps, with long stops on asphalt.",
+  "mx250": "Two-stroke motocross bike: light and revvy, quicker off the line than the four-stroke but out of breath at the top end.",
+  "sm450": "Supermoto: the motocross chassis on road wheels, with the best tarmac grip and top speed of the dirt bikes, still long to stop."
+ },
+ "machineBlurb": {
+  "apx01": "770 kg · 605 kW · RWD — The reference formula car: huge downforce and brutal brakes, near neutral on the nose, and it spins if you floor it mid-corner.",
+  "tc1": "1265 kg · 198 kW · FWD — Front-drive touring saloon: stable on a lift and under braking, but it pushes wide as soon as you ask for power.",
+  "gpr1": "229 kg · 224 kW · BIKE — Prototype GP bike: wings, the highest top speed of any bike and the strongest lean grip; braking is stoppie-limited.",
+  "sbk1000": "272 kg · 160 kW · BIKE — Production-based superbike: quick, but a step down from the prototypes in lean, braking and top speed, with kind electronics.",
+  "jf2": "790 kg · 456 kW · RWD — Feeder-series single-seater: two-thirds of the top cars' aero grip, firm brakes, and a rear that steps out when you floor it.",
+  "hf67": "595 kg · 306 kW · RWD — Sixties cigar-tube: light and quick in a straight line but short of grip on narrow tyres, so it pushes, then spins when you add power.",
+  "hy9": "1030 kg · 460 kW · RWD — Hybrid endurance prototype: low drag, a front motor that only joins in at speed, strong stable braking, and a rear that steps out on full throttle.",
+  "pr2": "950 kg · 440 kW · RWD — Closed spec prototype: near neutral and strong in fast corners, short of straight-line speed against the hypercars.",
+  "gt8f": "1310 kg · 405 kW · RWD — Front-mid V8 GT: stable under braking with torque out of slow corners; it pushes on turn-in and spins up on full throttle.",
+  "gt10m": "1290 kg · 432 kW · RWD — Mid-engine V10 GT: the most power of the four GTs, neutral-ish balance, and it spins less than the V8 under full throttle.",
+  "gs4": "1460 kg · 330 kW · RWD — Entry GT: easy-to-read turbo six with plenty of torque, the heaviest GT, and it lets go on full throttle at the limit.",
+  "tc2": "1240 kg · 280 kW · RWD — Rear-drive touring saloon: rotates well on entry, then goes loose if you are early on the power.",
+  "cr1": "620 kg · 132 kW · RWD — Lightweight club roadster: low inertia and quick to rotate, with a tail that comes round fast on throttle or a lift; short of top speed.",
+  "rl2": "1330 kg · 213 kW · AWD — Rally car on gravel tyres: traction on any surface and short gearing, but very understeery and tall on asphalt.",
+  "rcx6": "1300 kg · 472 kW · AWD — Rallycross supercar: brutal sprint acceleration and abrupt power with short gearing; built for loose surface, very understeery on tarmac.",
+  "dx8": "2720 kg · 630 kW · RWD — Desert trophy truck: huge power in a heavy, tall body that rolls, brakes long and spins up on throttle; a loose-surface specialist.",
+  "sk125": "175 kg · 36 kW · RWD — Shifter kart: enormous grip for its weight and very short stops for its speed, but a low top speed makes it slow on a big circuit.",
+  "eh3": "1980 kg · 1131 kW · AWD — Electric road hypercar: instant torque and four-wheel traction launch it hard, but its mass pushes wide in every corner.",
+  "sc7": "1480 kg · 530 kW · RWD — Mid-engine road supercar: acceleration and top speed first, planted on power, with strong road-tyre braking.",
+  "fx26": "768 kg · 759 kW · RWD — Electrified top-tier formula: more power and a quarter less downforce than the APX-01, so it launches harder and lifts earlier in fast sweeps.",
+  "fr3": "675 kg · 277 kW · RWD — Third-rung spec formula: honest balance, little speed lost weaving, and tow-heavy pack racing on modest power.",
+  "fe4": "570 kg · 126 kW · RWD — First rung of the ladder: light, nearly neutral and planted under power, with a sharp turn-in on a lift and little power to cover mistakes.",
+  "hf76": "650 kg · 357 kW · RWD — Seventies winged formula: wide slicks and a big wing give real fast-corner grip and drag; a lift swings the tail round quickly.",
+  "hf86": "620 kg · 583 kW · RWD — Turbo-era brute: huge power for its weight, and the boost arrives late, so it comes in a rush out of slow corners.",
+  "hy11": "1030 kg · 520 kW · RWD — Hybrid prototype with more downforce and less top speed than the HY-9, its torque helped by a small crankshaft motor.",
+  "pr3": "930 kg · 403 kW · RWD — Open-cockpit prototype: turbo torque and low-speed downforce, draggy on the straights and laggy at corner exit.",
+  "sp71": "860 kg · 435 kW · RWD — Long-tail seventies prototype: very high top speed on little grip, so it pushes in corners and takes a long stop, but stays planted on power.",
+  "gt6r": "1270 kg · 381 kW · RWD — Rear-engine flat-six GT: the weight over the rear tyres gives traction and braking, staying planted on power while the light nose pushes.",
+  "gt6s": "1340 kg · 400 kW · RWD — Long front-engine straight-six GT: the stable, understeering heavyweight, with turbo torque that gets it up to speed quickly.",
+  "gs6m": "1400 kg · 300 kW · RWD — Mid-engine entry GT: planted under power and neutral-ish, with about a quarter less torque than the GS-4 and a lighter nose.",
+  "tc3": "1300 kg · 286 kW · AWD — All-wheel-drive touring saloon: the best launch of the touring cars and planted on throttle, though it pushes on turn-in.",
+  "hh2": "1180 kg · 207 kW · FWD — Front-drive hot-hatch racer: braking-stable and torquey, but the front tyres are overloaded on power and it pushes wide.",
+  "vc62": "760 kg · 100 kW · RWD — Vintage club roadster: slow and soft with a long brake lead, forgiving until the tail swings out under power.",
+  "rl7": "1100 kg · 182 kW · RWD — Seventies rear-drive rally saloon: light and tail-happy on throttle, very stable on a lift, short of grip and top speed.",
+  "gb4": "1120 kg · 368 kW · AWD — Group-supercar rally monster: violent acceleration and planted traction everywhere, understeering on asphalt.",
+  "rxe": "1490 kg · 518 kW · AWD — Electric rallycross car: instant torque and no gear changes, but heavy and understeery in direction changes.",
+  "bg2": "1650 kg · 323 kW · RWD — Desert buggy: lighter than the truck and quick to turn, but the tail swings on a lift and under power, and it brakes long.",
+  "dk100": "155 kg · 23 kW · RWD — Direct-drive sprint kart: momentum and line discipline, slow off the line, with rear-only brakes that make it stop long.",
+  "xf2": "780 kg · 390 kW · RWD — Fan-assisted prototype: grip and braking that do not wait for speed, the highest in the game, until a crest or kerb breaks the seal.",
+  "xe1": "1000 kg · 508 kW · AWD — Electric time-attack prototype: the quickest launch here and strong downforce in medium and fast corners, drag-capped on the straights.",
+  "xh3": "1250 kg · 494 kW · AWD — Hydrogen prototype: efficient low drag and four-wheel traction, but a single reduction gives up acceleration at the top.",
+  "xt1": "1120 kg · 748 kW · RWD — Track-only V12 hypercar: power everywhere, the highest top speed of any car, and a rear that spins up on full throttle.",
+  "rh3": "1500 kg · 233 kW · FWD — Road hot hatch: usable torque and a soft front end that saturates on power out of slow corners.",
+  "rs5": "1820 kg · 395 kW · AWD — Four-door sports sedan: launch, torque and all-weather traction, with a heavy, understeery nose and mass in the braking zones.",
+  "rm8": "1820 kg · 341 kW · RWD — Front-engine muscle coupe: torque and a long top gear, planted under throttle until the tail snaps at the limit.",
+  "rg63": "1250 kg · 220 kW · RWD — Sixties grand tourer: a sweet high-revving V12 and a long top speed on narrow tyres, long to stop and rolling in corners.",
+  "rp6": "2650 kg · 358 kW · AWD — Performance pickup: goes anywhere with torque to spare, but mass and height give it the longest stop of any road machine.",
+  "rr4": "1600 kg · 228 kW · AWD — Rally-bred road car: traction on any surface, with turbo lag and understeer on power.",
+  "lx12": "2080 kg · 475 kW · RWD — Luxury grand tourer: effortless torque, top speed and great stability, the most understeery machine here and heavy in every corner.",
+  "rd2": "1110 kg · 135 kW · RWD — Light road roadster: balanced and easy to slide, a lift rotates it readily, short of power and top speed.",
+  "gpr2": "229 kg · 216 kW · BIKE — Second GP prototype: inline-four with more wing and drag, stops shorter but tops out and launches slower than the GP-R1.",
+  "ss600": "247 kg · 95 kW · BIKE — Supersport: light and agile, revs hard to make its speed, with less power to correct a late line.",
+  "nr900": "257 kg · 88 kW · BIKE — Naked roadster: upright and draggy on road tyres, quick off the line, out of breath at high speed and long to stop.",
+  "cr750": "232 kg · 75 kW · BIKE — Seventies two-stroke racer: narrow tyres, the weakest brakes of any bike and a lean limit you can feel; delicate to ride.",
+  "mx450": "179 kg · 47 kW · BIKE — Four-stroke motocross bike: torque everywhere and a tall fifth for the straights; built for jumps, with long stops on asphalt.",
+  "mx250": "172 kg · 36 kW · BIKE — Two-stroke motocross bike: light and revvy, quicker off the line than the four-stroke but out of breath at the top end.",
+  "sm450": "183 kg · 47 kW · BIKE — Supermoto: the motocross chassis on road wheels, with the best tarmac grip and top speed of the dirt bikes, still long to stop."
+ },
+ "achievements": [
+  [
+   "circuit_first_finish",
+   "Flag to Flag",
+   "Finish a circuit race in a car."
+  ],
+  [
+   "circuit_podium",
+   "Rostrum Regular",
+   "Finish a circuit car race on the podium."
+  ],
+  [
+   "circuit_win",
+   "First Chequered",
+   "Win a circuit car race."
+  ],
+  [
+   "circuit_pole_win",
+   "Lights to Flag",
+   "Start from pole in a field of at least four and win the circuit race."
+  ],
+  [
+   "circuit_comeback",
+   "Back of the Grid Hero",
+   "Start the circuit race 8th or lower and finish on the podium."
+  ],
+  [
+   "circuit_endurance",
+   "Long Haul",
+   "Finish an endurance race."
+  ],
+  [
+   "gp_first_finish",
+   "First Lean Angle",
+   "Finish a GP motorcycle race."
+  ],
+  [
+   "gp_podium",
+   "Knee Down, Hands Up",
+   "Finish a GP motorcycle race on the podium."
+  ],
+  [
+   "gp_win",
+   "Chequered Handlebars",
+   "Win a GP motorcycle race."
+  ],
+  [
+   "gp_hat_trick",
+   "Three in a Row",
+   "Win three GP motorcycle races in a row."
+  ],
+  [
+   "mx_first_finish",
+   "Gate Drop",
+   "Finish a motocross moto."
+  ],
+  [
+   "mx_podium",
+   "Mud on the Podium",
+   "Finish a motocross moto on the podium."
+  ],
+  [
+   "mx_win",
+   "King of the Hill",
+   "Win a motocross moto."
+  ],
+  [
+   "sx_first_finish",
+   "Under the Floodlights",
+   "Finish a supercross race."
+  ],
+  [
+   "sx_win",
+   "Rhythm Section",
+   "Win a supercross race."
+  ],
+  [
+   "dirt_double",
+   "Dirt Double",
+   "Finish both a motocross moto and a supercross race."
+  ],
+  [
+   "festival_first",
+   "Off the Map",
+   "Complete an open-world festival event."
+  ],
+  [
+   "festival_stars",
+   "Three-Star Day",
+   "Earn three stars in a festival event."
+  ],
+  [
+   "festival_race_win",
+   "Street Legal Winner",
+   "Win a festival race against rivals."
+  ],
+  [
+   "festival_drifter",
+   "Sideways Savant",
+   "Score 7,000 points in a drift zone."
+  ],
+  [
+   "festival_radar",
+   "Radar Magnet",
+   "Break 250 km/h through a speed trap."
+  ],
+  [
+   "festival_wanderer",
+   "Wanderer",
+   "Discover 8 places in the festival world."
+  ],
+  [
+   "festival_cartographer",
+   "Cartographer",
+   "Discover 16 places in the festival world."
+  ],
+  [
+   "festival_air",
+   "Hang Time",
+   "Land a jump after a full second in the air."
+  ],
+  [
+   "festival_big_air",
+   "Long Way Down",
+   "Land a jump after two seconds in the air."
+  ],
+  [
+   "festival_flow",
+   "Flow State",
+   "Bank a skill chain worth 1,500 points."
+  ],
+  [
+   "festival_unbroken",
+   "Unbroken",
+   "Bank a skill chain worth 5,000 points."
+  ],
+  [
+   "festival_needle",
+   "Needle Thread",
+   "Make 25 clean passes of ambient traffic."
+  ],
+  [
+   "weather_wet_finish",
+   "Wet Wheels",
+   "Finish a race while it is raining."
+  ],
+  [
+   "weather_wet_win",
+   "Rain Maker",
+   "Win a race while it is raining."
+  ],
+  [
+   "weather_three",
+   "Three Skies",
+   "Finish races in three different weather conditions."
+  ],
+  [
+   "weather_all",
+   "Whole Forecast",
+   "Finish races in six different weather conditions."
+  ],
+  [
+   "clean_race",
+   "Spotless",
+   "Finish a race with no penalties and no damage."
+  ],
+  [
+   "clean_win",
+   "Not a Mark on It",
+   "Win a race with no penalties and no damage."
+  ],
+  [
+   "clean_streak",
+   "Hands Off the Paint",
+   "Finish five races in a row without a penalty or damage."
+  ],
+  [
+   "venue_five",
+   "Passport Stamp",
+   "Finish races at five different venues."
+  ],
+  [
+   "venue_fifteen",
+   "Grand Tour",
+   "Finish races at fifteen different venues."
+  ],
+  [
+   "vehicle_five",
+   "Test Pilot",
+   "Finish races in five different vehicles."
+  ],
+  [
+   "vehicle_fifteen",
+   "Whole Garage",
+   "Finish races in fifteen different vehicles."
+  ],
+  [
+   "lap_record_first",
+   "Faster Than Before",
+   "Set a personal-best lap time."
+  ],
+  [
+   "lap_record_ten",
+   "Chasing Hundredths",
+   "Set ten personal-best lap times."
+  ],
+  [
+   "photo_first",
+   "Shutter Click",
+   "Take a photo in photo mode."
+  ],
+  [
+   "photo_ten",
+   "Contact Sheet",
+   "Take ten photos in photo mode."
+  ],
+  [
+   "wildcard_first",
+   "Wrong Tool, Right Job",
+   "Finish a Wildcard race in a vehicle that does not belong at the venue."
+  ],
+  [
+   "wildcard_podium",
+   "Odd Couple",
+   "Finish a Wildcard race on the podium."
+  ],
+  [
+   "wildcard_five",
+   "Misfit Maestro",
+   "Finish five Wildcard races on the podium."
+  ],
+  [
+   "licence_first",
+   "Learner's Badge",
+   "Earn any medal in a licence test."
+  ],
+  [
+   "licence_gold",
+   "Gold Standard",
+   "Earn a gold medal in a licence test."
+  ],
+  [
+   "licence_all_gold",
+   "Full Marks",
+   "Earn gold in every licence test."
+  ],
+  [
+   "season_complete",
+   "Season Done",
+   "Complete a championship season."
+  ],
+  [
+   "season_title",
+   "Title Fight Won",
+   "Win a championship."
+  ],
+  [
+   "mastery_ten",
+   "Rising Star",
+   "Unlock 10 other achievements."
+  ],
+  [
+   "mastery_twenty_five",
+   "Seasoned Racer",
+   "Unlock 25 other achievements."
+  ],
+  [
+   "mastery_all",
+   "Motobound",
+   "Unlock every other achievement."
+  ]
+ ],
+ "wildcard": [
+  [
+   "descent-in-the-cloud",
+   "THE DESCENT IN THE CLOUD",
+   "A formula car runs a mountain pass downhill in cold fog: stacked switchbacks, rock on one side and a long drop on the other."
+  ],
+  [
+   "formula-on-the-wall",
+   "FORMULA ON THE WALL",
+   "Downforce cars on a 31-degree banked oval: three laps near 300 km/h with a safety wall at the mirrors."
+  ],
+  [
+   "hypercars-in-the-harbour",
+   "HYPERCARS IN THE HARBOUR TUNNEL",
+   "Prototype hypercars race a harbour street circuit in a thunderstorm: a curving tunnel, 2.6 m walls and gusts off the water."
+  ],
+  [
+   "karts-after-dark",
+   "KARTS AFTER DARK",
+   "Shifter karts take a floodlit city circuit in the rain: two tunnels that stay dry, a riverside blast and a plaza corner."
+  ],
+  [
+   "knobblies-on-the-banking",
+   "KNOBBLIES ON THE BANKING",
+   "Motocross bikes on a 31-degree banked tri-oval: knobbly tyres, safety walls and 110 km/h of pure nerve."
+  ],
+  [
+   "prototypes-and-the-flyover",
+   "PROTOTYPES AND THE FLYOVER",
+   "Prototype grand-prix bikes thread a docklands street circuit: concrete walls, a 9.9 m flyover and no bike-safe run-off."
+  ],
+  [
+   "red-canyon-scramble",
+   "RED CANYON SCRAMBLE",
+   "Two-stroke motocross bikes on a tarmac circuit through a slot canyon, with rain due mid-race: 100 km/h dry, 70 wet."
+  ],
+  [
+   "supermoto-after-dark",
+   "SUPERMOTO AFTER DARK",
+   "Supermotos under the cranes of a floodlit container terminal, with rain due: a figure-eight with a flyover, built for cars."
+  ],
+  [
+   "supermoto-meets-the-joker",
+   "SUPERMOTO MEETS THE JOKER",
+   "Supermotos on a rallycross circuit in a dust storm: tarmac, rolled gravel and a crest jump; the joker road is for cars."
+  ],
+  [
+   "forest-stage-on-slicks",
+   "THE FOREST STAGE ON SLICKS",
+   "A full lap of a gravel rally stage in the rain on supermoto tyres: crests over the ridge, a hairpin and a watersplash."
+  ],
+  [
+   "the-long-way-round",
+   "THE LONG WAY ROUND",
+   "One lap of a 20.8 km forest ring on a motocross bike: twelve minutes, 33 corners, blind crests and a banked hairpin."
+  ],
+  [
+   "grand-tourers-on-gravel",
+   "GRAND TOURERS ON GRAVEL",
+   "Front-engine GT cars on a wet rallycross circuit: tarmac, mud, a crest and a hairpin they were never tuned for."
+  ],
+  [
+   "rallycross-on-the-grid",
+   "RALLYCROSS ON THE GRAND PRIX GRID",
+   "Rallycross cars on a full grand-prix circuit: built to slide, they now face two long tarmac straights."
+  ],
+  [
+   "trophy-trucks-on-neon-streets",
+   "TROPHY TRUCKS ON NEON STREETS",
+   "Desert trucks on a floodlit city circuit: long-travel suspension, concrete walls and two tunnels."
+  ],
+  [
+   "desert-trucks-on-the-iced-col",
+   "DESERT TRUCKS ON THE ICED COL",
+   "Trophy trucks climb a mountain pass in a snowfall: loose snow on the climb, polished wheel tracks, 400 m of view in the squall."
+  ],
+  [
+   "haboob-in-the-canyon",
+   "HABOOB IN THE RED CANYON",
+   "Trophy trucks race a slot-canyon circuit inside a dust storm: 170 m of amber haze and a loose film over the tarmac, thinnest on the line."
+  ],
+  [
+   "roof-deck-hatchbacks",
+   "ROOF DECK HATCHBACKS",
+   "Hot-hatch racers in a multi-storey car park: roofed ramps, pillar slaloms and two tight hairpins. It never rains inside."
+  ],
+  [
+   "supermoto-on-the-roof",
+   "SUPERMOTO ON THE ROOF DECK",
+   "Supermotos take a car park flat out: 4% ramps, pillar slaloms and a 1.4 km lap done in under a minute."
+  ],
+  [
+   "grand-prix-bikes-on-the-runway",
+   "GRAND PRIX BIKES ON THE RUNWAY",
+   "Prototype grand-prix bikes on a salt-flat airbase: a two-kilometre runway, sweepers across the salt and a 230 km/h lap average."
+  ],
+  [
+   "hypercar-roof-deck-attack",
+   "HYPERCAR ROOF DECK ATTACK",
+   "A solo hot lap of a multi-storey car park in a hypercar with no ABS and no traction control, and walls 1.4 m off the asphalt."
+  ],
+  [
+   "road-machines-on-the-forest-ring",
+   "ROAD MACHINES ON THE FOREST RING",
+   "A rally-bred road car, a muscle coupe, a supercar and a roadster take one lap of a 20.8 km forest ring as the light goes."
+  ],
+  [
+   "supercars-in-the-ski-resort",
+   "SUPERCARS IN THE SKI RESORT",
+   "A supercar, a muscle coupe, a roadster and a rally-bred road car share a snowed-in resort road: six hairpins and a polished wheel track."
+  ],
+  [
+   "trucks-on-the-ski-road",
+   "TROPHY TRUCKS ON THE SKI ROAD",
+   "Desert trucks take a ski-resort road in a snowfall: six hairpins, a ridge run and a roofed gallery where the snow stops."
+  ],
+  [
+   "trophy-trucks-on-the-taxiway",
+   "TROPHY TRUCKS ON THE TAXIWAY",
+   "Desert trucks race an airport at dawn in fog: a runway sprint, a blast-pad turn, taxiway chicanes and a slalom between the gates."
+  ],
+  [
+   "hypercars-on-the-runway",
+   "HYPERCARS ON THE RUNWAY",
+   "Prototype hypercars take an airport in a dust storm: a 1.6 km runway, taxiway chicanes and 170 m of amber haze on the apron slalom."
+  ],
+  [
+   "karts-on-the-dam-road",
+   "KARTS ON THE DAM ROAD",
+   "Shifter karts race a dam crest in a thunderstorm: concrete parapets, water 20 m below on both sides and gusts off the reservoir."
+  ],
+  [
+   "formula-gale-on-the-dam",
+   "FORMULA CARS IN A GALE ON THE DAM",
+   "Formula cars cross a dam crest in a thunderstorm on wet tyres: a kilometre of concrete, 20 m of water either side and gusts off the lake."
+  ],
+  [
+   "karts-in-the-night-market",
+   "KARTS IN THE NIGHT MARKET",
+   "Shifter karts race a night market in the rain: the covered halls stay dry, the open lanes do not."
+  ],
+  [
+   "supermoto-in-the-night-market",
+   "SUPERMOTO IN THE NIGHT MARKET",
+   "Supermotos weave a night market: three hairpins, covered halls and a spice-row slalom, under the lamps."
+  ]
+ ],
+ "loadingTips": [
+  "Brake in a straight line, then release smoothly as you turn in.",
+  "Cold tyres have less grip. Build temperature on your first lap.",
+  "Harvest energy on the straights you do not need, deploy where you do.",
+  "Press C to change camera. The cockpit view gives the best sense of speed.",
+  "In the wet, avoid the painted kerbs and look for grip off the usual racing line.",
+  "Press P to request a pit stop and choose your next set of tyres.",
+  "A smooth exit is worth more than a late apex."
+ ],
+ "tips": [
+  "A rallycross heat needs its joker laps: every one you are short costs a time penalty.",
+  "A smooth exit is worth more than a late apex.",
+  "Brake before the face of a jump, not on it.",
+  "Brake in a straight line, then release smoothly as you turn in.",
+  "Cold tyres have less grip. Build temperature on your first lap.",
+  "DRS opens inside a marked zone when you are within 1.0 s of the car ahead, in the dry, from lap 3. Press F; braking closes it.",
+  "Drive to an event marker, or travel to any discovered route from the world map.",
+  "Dry at the start; a storm arrives and later clears. Be ready to change tyres.",
+  "Dust storm: visibility drops to about 170 m and a loose film settles on the tarmac, thinner on the racing line.",
+  "Fog: visibility starts near 110 m and thins over about a quarter of an hour. The cold, damp surface costs a slick about a seventh of its grip.",
+  "Gold asks 40.96 s, silver 42.61 s, bronze 45.51 s or faster. The machine is loaned: nothing to buy.",
+  "Gold asks P1, silver P3, bronze P4 or better. The machine is loaned: nothing to buy.",
+  "Gold asks P1, silver P3, bronze P5 or better. The machine is loaned: nothing to buy.",
+  "Harvest energy on the straights you do not need, deploy where you do. E changes the hybrid mode.",
+  "Heavy rain leaves standing water: use full wets and stay off the painted kerbs.",
+  "In solo practice, land smoothly on each surveyed downslope to clear its target.",
+  "In the air, tap a brake to lower the nose, then release for touchdown.",
+  "Night sessions run under floodlights. Lighting is visual only and never changes grip or weather.",
+  "One lap decides it. A clean first corner is worth more than a brave last one.",
+  "Press C to change camera.",
+  "Press C to change camera. The cockpit view gives the best sense of speed.",
+  "Press P to request a pit stop and choose your next set of tyres.",
+  "Q / Z shift rider weight forward and back; release to settle.",
+  "Set your speed before turn-in, then ease the brake as lean builds.",
+  "Snow: the road starts covered. Deep snow grips about a quarter of dry; the worn, polished wheel tracks along the racing line about two-fifths. Stay in the tracks, brake early, and use full wets or a winter tread.",
+  "Storm: standing water about twice as deep as heavy rain, and gusts to 20 m/s push cars and bikes sideways. Give the wind room.",
+  "This event runs with no ABS and no traction control: the throttle and brake are yours alone.",
+  "Unwind lean, then add power gently.",
+  "Use the front brake for a strong stop; the rear pedal is a light touch."
+ ],
+ "stages": [
+  {
+   "title": "Loading",
+   "fraction": 0.2
+  },
+  {
+   "title": "Building the circuit",
+   "fraction": 0.3145
+  },
+  {
+   "title": "Loading cars",
+   "fraction": 0.102
+  },
+  {
+   "title": "Building the pit lane",
+   "fraction": 0.34
+  },
+  {
+   "title": "Preparing cars",
+   "fraction": 0.2125
+  },
+  {
+   "title": "Loading Vellamar Coast Circuit",
+   "fraction": 0.02
+  },
+  {
+   "title": "Preparing motorcycles",
+   "fraction": 0.42
+  },
+  {
+   "title": "Almost ready",
+   "fraction": 0.9
+  },
+  {
+   "title": "Preparing materials",
+   "fraction": 0.84
+  },
+  {
+   "title": "Preparing graphics",
+   "fraction": 0.45
+  },
+  {
+   "title": "Warming up tyres",
+   "fraction": 0.94
+  },
+  {
+   "title": "Loading",
+   "fraction": 0.2
+  }
+ ],
+ "rules": [
+  "FORMULA ENDURANCE: two dry compounds required · DRS on · points scored.",
+  "FORMULA GRAND PRIX: no mandatory stop · DRS on · points scored.",
+  "GP MOTORCYCLE SPRINT: no mandatory stop · DRS off · points scored.",
+  "MOTOCROSS MOTO: no mandatory stop · DRS off · points scored.",
+  "MULTI-CLASS ENDURANCE: no mandatory stop · DRS off · points scored.",
+  "PRACTICE: no mandatory stop · DRS off · no points.",
+  "PRACTICE: no mandatory stop · DRS on · no points.",
+  "PROTOTYPE SPRINT: no mandatory stop · DRS off · points scored.",
+  "QUALIFYING: no mandatory stop · DRS off · no points.",
+  "QUALIFYING: no mandatory stop · DRS on · no points.",
+  "RALLYCROSS HEAT: no mandatory stop · DRS off · points scored.",
+  "TIME TRIAL: no mandatory stop · DRS off · no points.",
+  "TIME TRIAL: no mandatory stop · DRS on · no points.",
+  "Unavailable: Car 1 (DX-8 TROPHY TRUCK) is not eligible for FORMULA ENDURANCE.",
+  "Unavailable: Car 1 (DX-8 TROPHY TRUCK) is not eligible for FORMULA ENDURANCE; Car 2 (DX-8 TROPHY TRUCK) is not eligible for FORMULA ENDURANCE; Car 3 (DX-8 TROPHY TRUCK) is not eligible for FORMULA ENDURANCE; Car 4 (DX-8 TROPHY TRUCK) is not eligible for FORMULA ENDURANCE; Car 5 (DX-8 TROPHY TRUCK) is not eligible for FORMULA ENDURANCE; Car 6 (DX-8 TROPHY TRUCK) is not eligible for FORMULA ENDURANCE; Car 7 (DX-8 TROPHY TRUCK) is not eligible for FORMULA ENDURANCE; Car 8 (DX-8 TROPHY TRUCK) is not eligible for FORMULA ENDURANCE.",
+  "Unavailable: Car 1 (GP-R1 PROTOTYPE) is not eligible for FORMULA ENDURANCE.",
+  "Unavailable: Car 1 (GP-R1 PROTOTYPE) is not eligible for FORMULA ENDURANCE; Car 2 (GP-R1 PROTOTYPE) is not eligible for FORMULA ENDURANCE; Car 3 (GP-R1 PROTOTYPE) is not eligible for FORMULA ENDURANCE; Car 4 (GP-R1 PROTOTYPE) is not eligible for FORMULA ENDURANCE; Car 5 (GP-R1 PROTOTYPE) is not eligible for FORMULA ENDURANCE; Car 6 (GP-R1 PROTOTYPE) is not eligible for FORMULA ENDURANCE; Car 7 (GP-R1 PROTOTYPE) is not eligible for FORMULA ENDURANCE; Car 8 (GP-R1 PROTOTYPE) is not eligible for FORMULA ENDURANCE.",
+  "Unavailable: Car 1 (MX-450 MOTOCROSS) is not eligible for FORMULA ENDURANCE.",
+  "Unavailable: Car 1 (MX-450 MOTOCROSS) is not eligible for FORMULA ENDURANCE; Car 2 (MX-450 MOTOCROSS) is not eligible for FORMULA ENDURANCE; Car 3 (MX-450 MOTOCROSS) is not eligible for FORMULA ENDURANCE; Car 4 (MX-450 MOTOCROSS) is not eligible for FORMULA ENDURANCE; Car 5 (MX-450 MOTOCROSS) is not eligible for FORMULA ENDURANCE; Car 6 (MX-450 MOTOCROSS) is not eligible for FORMULA ENDURANCE; Car 7 (MX-450 MOTOCROSS) is not eligible for FORMULA ENDURANCE; Car 8 (MX-450 MOTOCROSS) is not eligible for FORMULA ENDURANCE.",
+  "Unavailable: GP MOTORCYCLE SPRINT needs a bike-safe circuit; COL D’ARGENT / MOUNTAIN PASS is not."
+ ],
+ "firstLapHint": [
+  "W throttle · S brake · A / D steer · ESC pause. The line on the road marks the braking zones.",
+  "Right trigger throttle · left trigger brake · left stick steer · START pause. The line on the road marks the braking zones."
+ ],
+ "firstRun": [
+  "<section class=\"fr\" data-device=\"keys\"><header><div><span class=\"eyebrow\">FIRST LAUNCH</span><h2>Pick your first lap.</h2></div><button type=\"button\" data-action=\"firstrun:skip\">SKIP TO THE PADDOCK</button></header><p class=\"fr-lead\">A short solo session, dry, on medium tyres, with the braking zones and the racing line painted on the road. It runs the Driving Academy: five timed laps that score how repeatable you are. Everything else is in the paddock.</p><div class=\"fr-groups\"><div class=\"fr-group\"><h3 class=\"fr-label\" id=\"frDeviceLabel\"><b>1</b> INPUT</h3><div class=\"fr-devices\" role=\"radiogroup\" aria-labelledby=\"frDeviceLabel\"><button type=\"button\" role=\"radio\" class=\"fr-device\" data-device=\"keys\" aria-checked=\"true\" tabindex=\"0\"><b>KEYBOARD</b><small>W throttle · S brake · A / D steer</small></button><button type=\"button\" role=\"radio\" class=\"fr-device\" data-device=\"pad\" aria-checked=\"false\" tabindex=\"-1\"><b>CONTROLLER</b><small>Right trigger throttle · left trigger brake · left stick steer</small></button></div></div><div class=\"fr-group\"><h3 class=\"fr-label\" id=\"frDisciplineLabel\"><b>2</b> DISCIPLINE</h3><div class=\"fr-plates\" role=\"radiogroup\" aria-labelledby=\"frDisciplineLabel\"><button type=\"button\" role=\"radio\" class=\"fr-plate\" data-discipline=\"circuit\" aria-checked=\"true\" tabindex=\"0\"><span class=\"fr-plate-art\"><svg class=\"plate\" viewBox=\"0 0 64 56\" aria-hidden=\"true\" focusable=\"false\"><circle class=\"plate-body\" cx=\"32\" cy=\"28\" r=\"25\"/><circle class=\"plate-rim\" cx=\"32\" cy=\"28\" r=\"21\"/><text class=\"plate-numeral\" x=\"32\" y=\"45\" text-anchor=\"middle\">1</text></svg></span><b>CIRCUIT</b><small>Braking points, tyre management and racecraft.</small><em>47 VENUES · 50 MACHINES</em></button><button type=\"button\" role=\"radio\" class=\"fr-plate\" data-discipline=\"gp\" aria-checked=\"false\" tabindex=\"-1\"><span class=\"fr-plate-art\"><svg class=\"plate\" viewBox=\"0 0 64 56\" aria-hidden=\"true\" focusable=\"false\"><path class=\"plate-body\" d=\"M4 20Q4 6 18 6H46Q60 6 60 20V36L52 50H12L4 36Z\"/><path class=\"plate-rim\" d=\"M9 21Q9 11 19 11H45Q55 11 55 21V34L49 45H15L9 34Z\"/><text class=\"plate-numeral\" x=\"32\" y=\"45\" text-anchor=\"middle\">2</text></svg></span><b>GP BIKE</b><small>Lean angle, trail braking and the front/rear brake split.</small><em>16 VENUES · 7 MACHINES</em></button><button type=\"button\" role=\"radio\" class=\"fr-plate\" data-discipline=\"dirt\" aria-checked=\"false\" tabindex=\"-1\"><span class=\"fr-plate-art\"><svg class=\"plate\" viewBox=\"0 0 64 56\" aria-hidden=\"true\" focusable=\"false\"><path class=\"plate-body\" d=\"M6 52V26Q6 4 32 4Q58 4 58 26V52Z\"/><path class=\"plate-rim\" d=\"M11 47V27Q11 9 32 9Q53 9 53 27V47Z\"/><text class=\"plate-numeral\" x=\"32\" y=\"45\" text-anchor=\"middle\">3</text></svg></span><b>DIRT</b><small>Throttle on loose ground, jump take-off and landing, ruts and berms.</small><em>4 VENUES · 3 MACHINES</em></button><button type=\"button\" role=\"radio\" class=\"fr-plate\" data-discipline=\"festival\" aria-checked=\"false\" tabindex=\"-1\"><span class=\"fr-plate-art\"><svg class=\"plate\" viewBox=\"0 0 64 56\" aria-hidden=\"true\" focusable=\"false\"><rect class=\"plate-body\" x=\"2\" y=\"10\" width=\"60\" height=\"36\" rx=\"3\"/><rect class=\"plate-rim\" x=\"6\" y=\"14\" width=\"52\" height=\"28\" rx=\"1\"/><text class=\"plate-numeral\" x=\"32\" y=\"44\" text-anchor=\"middle\">4</text><text class=\"plate-caption\" x=\"32\" y=\"24\" text-anchor=\"middle\">SOLVANE</text></svg></span><b>FESTIVAL</b><small>Exploration, point-to-point, speed traps and drift zones.</small><em>18 EVENTS · 53 MACHINES</em></button></div></div></div><div class=\"fr-go\"><button type=\"button\" class=\"primary\" data-action=\"firstrun:go\">DRIVE THE FIRST LAP <svg class=\"enter-glyph\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"square\" stroke-linejoin=\"miter\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M4 5l7 7-7 7M12 5l7 7-7 7\"/></svg></button><p class=\"fr-keys\" aria-hidden=\"true\"><span data-for=\"keys\"><kbd>←</kbd><kbd>→</kbd> CHANGE · <kbd>ENTER</kbd> DRIVE · <kbd>ESC</kbd> SKIP</span><span data-for=\"pad\"><kbd>A</kbd> SELECT · <kbd>START</kbd> DRIVE · <kbd>B</kbd> SKIP</span></p></div></section>",
+  "<section class=\"fr\" data-device=\"pad\"><header><div><span class=\"eyebrow\">FIRST LAUNCH</span><h2>Pick your first lap.</h2></div><button type=\"button\" data-action=\"firstrun:skip\">SKIP TO THE PADDOCK</button></header><p class=\"fr-lead\">A short solo session, dry, on medium tyres, with the braking zones and the racing line painted on the road. It runs the Driving Academy: five timed laps that score how repeatable you are. Everything else is in the paddock.</p><div class=\"fr-groups\"><div class=\"fr-group\"><h3 class=\"fr-label\" id=\"frDeviceLabel\"><b>1</b> INPUT</h3><div class=\"fr-devices\" role=\"radiogroup\" aria-labelledby=\"frDeviceLabel\"><button type=\"button\" role=\"radio\" class=\"fr-device\" data-device=\"keys\" aria-checked=\"false\" tabindex=\"-1\"><b>KEYBOARD</b><small>W throttle · S brake · A / D steer</small></button><button type=\"button\" role=\"radio\" class=\"fr-device\" data-device=\"pad\" aria-checked=\"true\" tabindex=\"0\"><b>CONTROLLER</b><small>Right trigger throttle · left trigger brake · left stick steer</small></button></div></div><div class=\"fr-group\"><h3 class=\"fr-label\" id=\"frDisciplineLabel\"><b>2</b> DISCIPLINE</h3><div class=\"fr-plates\" role=\"radiogroup\" aria-labelledby=\"frDisciplineLabel\"><button type=\"button\" role=\"radio\" class=\"fr-plate\" data-discipline=\"circuit\" aria-checked=\"false\" tabindex=\"-1\"><span class=\"fr-plate-art\"><svg class=\"plate\" viewBox=\"0 0 64 56\" aria-hidden=\"true\" focusable=\"false\"><circle class=\"plate-body\" cx=\"32\" cy=\"28\" r=\"25\"/><circle class=\"plate-rim\" cx=\"32\" cy=\"28\" r=\"21\"/><text class=\"plate-numeral\" x=\"32\" y=\"45\" text-anchor=\"middle\">1</text></svg></span><b>CIRCUIT</b><small>Braking points, tyre management and racecraft.</small><em>47 VENUES · 50 MACHINES</em></button><button type=\"button\" role=\"radio\" class=\"fr-plate\" data-discipline=\"gp\" aria-checked=\"true\" tabindex=\"0\"><span class=\"fr-plate-art\"><svg class=\"plate\" viewBox=\"0 0 64 56\" aria-hidden=\"true\" focusable=\"false\"><path class=\"plate-body\" d=\"M4 20Q4 6 18 6H46Q60 6 60 20V36L52 50H12L4 36Z\"/><path class=\"plate-rim\" d=\"M9 21Q9 11 19 11H45Q55 11 55 21V34L49 45H15L9 34Z\"/><text class=\"plate-numeral\" x=\"32\" y=\"45\" text-anchor=\"middle\">2</text></svg></span><b>GP BIKE</b><small>Lean angle, trail braking and the front/rear brake split.</small><em>16 VENUES · 7 MACHINES</em></button><button type=\"button\" role=\"radio\" class=\"fr-plate\" data-discipline=\"dirt\" aria-checked=\"false\" tabindex=\"-1\"><span class=\"fr-plate-art\"><svg class=\"plate\" viewBox=\"0 0 64 56\" aria-hidden=\"true\" focusable=\"false\"><path class=\"plate-body\" d=\"M6 52V26Q6 4 32 4Q58 4 58 26V52Z\"/><path class=\"plate-rim\" d=\"M11 47V27Q11 9 32 9Q53 9 53 27V47Z\"/><text class=\"plate-numeral\" x=\"32\" y=\"45\" text-anchor=\"middle\">3</text></svg></span><b>DIRT</b><small>Throttle on loose ground, jump take-off and landing, ruts and berms.</small><em>4 VENUES · 3 MACHINES</em></button><button type=\"button\" role=\"radio\" class=\"fr-plate\" data-discipline=\"festival\" aria-checked=\"false\" tabindex=\"-1\"><span class=\"fr-plate-art\"><svg class=\"plate\" viewBox=\"0 0 64 56\" aria-hidden=\"true\" focusable=\"false\"><rect class=\"plate-body\" x=\"2\" y=\"10\" width=\"60\" height=\"36\" rx=\"3\"/><rect class=\"plate-rim\" x=\"6\" y=\"14\" width=\"52\" height=\"28\" rx=\"1\"/><text class=\"plate-numeral\" x=\"32\" y=\"44\" text-anchor=\"middle\">4</text><text class=\"plate-caption\" x=\"32\" y=\"24\" text-anchor=\"middle\">SOLVANE</text></svg></span><b>FESTIVAL</b><small>Exploration, point-to-point, speed traps and drift zones.</small><em>18 EVENTS · 53 MACHINES</em></button></div></div></div><div class=\"fr-go\"><button type=\"button\" class=\"primary\" data-action=\"firstrun:go\">DRIVE THE FIRST LAP <svg class=\"enter-glyph\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"square\" stroke-linejoin=\"miter\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M4 5l7 7-7 7M12 5l7 7-7 7\"/></svg></button><p class=\"fr-keys\" aria-hidden=\"true\"><span data-for=\"keys\"><kbd>←</kbd><kbd>→</kbd> CHANGE · <kbd>ENTER</kbd> DRIVE · <kbd>ESC</kbd> SKIP</span><span data-for=\"pad\"><kbd>A</kbd> SELECT · <kbd>START</kbd> DRIVE · <kbd>B</kbd> SKIP</span></p></div></section>"
+ ],
+ "weather": {
+  "clear": {
+   "id": "clear",
+   "option": "Clear / Dry",
+   "loading": "Dry",
+   "card": "Dry",
+   "tag": "DRY",
+   "brief": "Dry, mild and clear.",
+   "suggestedTyre": null
+  },
+  "changeable": {
+   "id": "changeable",
+   "option": "Dry → Rain",
+   "loading": "Changeable",
+   "card": "Dry, rain expected",
+   "tag": "CHANGEABLE",
+   "brief": "Dry at the start; a storm arrives and later clears.",
+   "suggestedTyre": null
+  },
+  "rain": {
+   "id": "rain",
+   "option": "Heavy rain",
+   "loading": "Wet",
+   "card": "Wet",
+   "tag": "RAIN",
+   "brief": "Steady heavy rain from the start; standing water.",
+   "suggestedTyre": "wet"
+  },
+  "fog": {
+   "id": "fog",
+   "option": "Dawn fog",
+   "loading": "Fog",
+   "card": "Cold fog, damp track, lifting",
+   "tag": "FOG",
+   "brief": "Cold dawn fog. Visibility starts near 110 m and thins over a quarter of an hour; the damp, cold surface costs a slick about a seventh of its grip and the tyres are slow to warm.",
+   "suggestedTyre": "medium"
+  },
+  "storm": {
+   "id": "storm",
+   "option": "Thunderstorm",
+   "loading": "Storm",
+   "card": "Thunderstorm, gusting crosswind",
+   "tag": "STORM",
+   "brief": "A 60 to 76 mm/h cell: standing water about twice as deep as heavy rain, gusts to 20 m/s that push cars and bikes sideways, a dark sky and lightning.",
+   "suggestedTyre": "wet"
+  },
+  "dust": {
+   "id": "dust",
+   "option": "Dust storm",
+   "loading": "Dust",
+   "card": "Hot dust storm, loose surface",
+   "tag": "DUST",
+   "brief": "Hot desert dust storm: visibility drops to about 170 m, a strong gusting wind loads the bodywork, and a loose dust film settles on the tarmac, thinner on the racing line.",
+   "suggestedTyre": "medium"
+  },
+  "snow": {
+   "id": "snow",
+   "option": "Snow and ice",
+   "loading": "Snow",
+   "card": "Snowfall, packed snow and ice, sub-zero",
+   "tag": "SNOW",
+   "brief": "Sub-zero snowfall on a snow-covered road: deep snow gives about a quarter of dry grip and the worn, polished wheel tracks along the racing line about two-fifths, so stay in the tracks. Visibility closes to 400 m in the squall. Winter tread helps.",
+   "suggestedTyre": "wet"
+  }
+ },
+ "light": {
+  "auto": {
+   "id": "auto",
+   "option": "Venue",
+   "brief": "The venue's own light: floodlit at the night venues, daylight everywhere else."
+  },
+  "day": {
+   "id": "day",
+   "option": "Midday",
+   "brief": "High sun, hard shadows."
+  },
+  "sunset": {
+   "id": "sunset",
+   "option": "Sunset",
+   "brief": "A low sun and long shadows."
+  },
+  "night": {
+   "id": "night",
+   "option": "Night",
+   "brief": "Moon and floodlights."
+  },
+  "live": {
+   "id": "live",
+   "option": "Live sky",
+   "brief": "The real sun, moon and stars over your location, on your clock."
+  }
+ },
+ "disciplines": {
+  "circuit": {
+   "id": "circuit",
+   "label": "CIRCUIT",
+   "numeral": "1",
+   "shape": "roundel",
+   "motto": "EVERY INPUT. EVERY FORCE.",
+   "venueNoun": "CIRCUIT",
+   "skill": "Braking points, tyre management and racecraft."
+  },
+  "gp": {
+   "id": "gp",
+   "label": "GP BIKE",
+   "numeral": "2",
+   "shape": "fairing",
+   "motto": "LEAN IN. LET GO LATE.",
+   "venueNoun": "CIRCUIT",
+   "skill": "Lean angle, trail braking and the front/rear brake split."
+  },
+  "dirt": {
+   "id": "dirt",
+   "label": "DIRT",
+   "numeral": "3",
+   "shape": "arch",
+   "motto": "FIND YOUR FLOW.",
+   "venueNoun": "VENUE",
+   "skill": "Throttle on loose ground, jump take-off and landing, ruts and berms."
+  },
+  "festival": {
+   "id": "festival",
+   "label": "FESTIVAL",
+   "numeral": "4",
+   "shape": "licence",
+   "motto": "ONE COAST. NO FENCES.",
+   "venueNoun": "REGION",
+   "skill": "Exploration, point-to-point, speed traps and drift zones."
+  }
+ },
+ "options": [
+  "<option value=\"clear\">Clear / Dry</option><option value=\"changeable\">Dry → Rain</option><option value=\"rain\">Heavy rain</option><option value=\"fog\">Dawn fog</option><option value=\"storm\">Thunderstorm</option><option value=\"dust\">Dust storm</option><option value=\"snow\">Snow and ice</option>",
+  "<option value=\"auto\">Venue</option><option value=\"day\">Midday</option><option value=\"sunset\">Sunset</option><option value=\"night\">Night</option><option value=\"live\">Live sky</option>",
+  "<optgroup label=\"Original\"><option value=\"aurel\">Aurel Grand Circuit · 2.97 km</option><option value=\"vellamar\">Vellamar Coast Circuit · 4.00 km</option></optgroup><optgroup label=\"Real-world approximations\"><option value=\"parco-reale\">Parco Reale Autodromo · 5.79 km</option><option value=\"ardennes\">Ardennes Forest Circuit · 7.00 km</option><option value=\"northfield\">Northfield Airfield GP · 5.89 km</option><option value=\"northfield-classic\">Northfield Airfield GP — Classic · 5.14 km</option><option value=\"kansai\">Kansai Figure-Eight · 5.81 km</option><option value=\"kansai-east\">Kansai Figure-Eight — East Course · 2.24 km</option><option value=\"riviera\">Riviera Harbour Street Circuit · 3.34 km</option><option value=\"texas-hill\">Texas Hill Country Circuit · 5.51 km</option><option value=\"poggio-alto\">Poggio Alto Autodromo · 5.24 km</option><option value=\"cape-wrenna\">Cape Wrenna Island Circuit · 4.45 km</option><option value=\"haarveld\">Haarveld Circuit · 4.54 km</option><option value=\"montejaral\">Montejaral Circuit · 4.42 km</option><option value=\"hochwald\">Hochwald Forest Ring — Forest Ring · 20.83 km</option><option value=\"loirette\">Loirette Endurance Circuit — Endurance · 13.63 km</option><option value=\"loirette-club\">Loirette Endurance Circuit — Club Circuit · 4.19 km</option><option value=\"serra-verde\">Serra Verde Autódromo · 4.31 km</option><option value=\"mount-ardlow\">Mount Ardlow Circuit — Mountain Circuit · 6.21 km</option><option value=\"arroyo-oro\">Arroyo Oro Raceway · 3.60 km</option><option value=\"fiume-verde\">Autodromo Fiume Verde · 4.91 km</option><option value=\"duinwijk\">Duinwijk Circuit · 4.26 km</option><option value=\"ramla-night\">Ramla Desert Circuit · 5.41 km</option><option value=\"ramla-outer\">Ramla Desert Circuit — Outer Circuit · 3.54 km</option><option value=\"mirvari\">Mirvari Boulevard Street Circuit · 6.00 km</option><option value=\"lantern-bay\">Lantern Bay Street Circuit · 4.94 km</option><option value=\"lotus-hill\">Lotus Hill Harbour Circuit · 6.12 km</option></optgroup><optgroup label=\"Unconventional\"><option value=\"neon-city\">Neon City Street Circuit · 4.87 km</option><option value=\"neon-city-reverse\">Neon City Street Circuit — Reverse · 4.87 km</option><option value=\"alpine-pass\">Col d’Argent Mountain Pass — Ascent · 7.28 km</option><option value=\"alpine-pass-reverse\">Col d’Argent Mountain Pass — Descent · 7.28 km</option><option value=\"speedbowl\">Mesa Speedbowl — Tri-Oval · 4.00 km</option><option value=\"speedbowl-infield\">Mesa Speedbowl — Infield Road Course · 4.49 km</option><option value=\"desert-canyon\">Red Mesa Canyon Circuit · 5.60 km</option><option value=\"desert-canyon-reverse\">Red Mesa Canyon Circuit — Reverse · 5.60 km</option><option value=\"coastal-cliff\">Cap Lumière Cliff Road · 4.71 km</option><option value=\"coastal-cliff-reverse\">Cap Lumière Cliff Road — Reverse · 4.71 km</option><option value=\"dockyard\">Iron Quay Docklands · 4.60 km</option><option value=\"dockyard-reverse\">Iron Quay Docklands — Reverse · 4.60 km</option><option value=\"gantry-point\">Gantry Point Container Terminal · 5.38 km</option><option value=\"gantry-point-reverse\">Gantry Point Container Terminal — Reverse · 5.38 km</option><option value=\"salt-flat\">Bright Basin Salt Flat Airbase — High-Speed Course · 6.80 km</option><option value=\"level-nine\">Level Nine Multi-Storey — Roof Deck · 1.42 km</option><option value=\"haut-givre\">Haut-Givre Ski Resort — Resort Road · 3.65 km</option><option value=\"marram-field\">Marram Field Airport — Apron and Runway · 3.69 km</option><option value=\"kalder-dam\">Kalder Dam — Crest Road · 3.33 km</option><option value=\"saffron-lane\">Saffron Lane Night Market — Market Loop · 2.02 km</option></optgroup><optgroup label=\"Off-road\"><option value=\"valley-ridge-mx\">Valley Ridge Motocross Park — National · 0.92 km</option><option value=\"arena-nord-sx\">Arena Nord Stadium — Supercross · 0.62 km</option><option value=\"kestrel-rx\">Kestrel Rallycross Circuit — Joker · 0.95 km</option><option value=\"pinewood-stage\">Pinewood Forest Stage — Special Stage · 2.82 km</option></optgroup>",
+  "<optgroup label=\"Formula\"><option value=\"apx01\" selected>APX-01 Formula · RWD</option><option value=\"fx26\">FX-26 Formula · RWD</option></optgroup><optgroup label=\"Junior formula\"><option value=\"jf2\">JF-2 Junior Formula · RWD</option></optgroup><optgroup label=\"Feeder formula\"><option value=\"fr3\">FR-3 Feeder Formula · RWD</option></optgroup><optgroup label=\"Entry formula\"><option value=\"fe4\">FE-4 Entry Formula · RWD</option></optgroup><optgroup label=\"Historic formula\"><option value=\"hf67\">HF-67 Historic Formula · RWD</option></optgroup><optgroup label=\"Historic formula · 1970s\"><option value=\"hf76\">HF-76 Historic Formula · RWD</option></optgroup><optgroup label=\"Historic formula · 1980s turbo\"><option value=\"hf86\">HF-86 Turbo Formula · RWD</option></optgroup><optgroup label=\"Hypercar\"><option value=\"hy9\">HY-9 Hypercar · RWD</option><option value=\"hy11\">HY-11 Hypercar · RWD</option></optgroup><optgroup label=\"Prototype\"><option value=\"pr2\">PR-2 Prototype · RWD</option><option value=\"pr3\">PR-3 Open Prototype · RWD</option></optgroup><optgroup label=\"Historic sports prototype\"><option value=\"sp71\">SP-71 Long-Tail Prototype · RWD</option></optgroup><optgroup label=\"GT\"><option value=\"gt8f\">GT-8F Front-Engine GT · RWD</option><option value=\"gt10m\">GT-10M Mid-Engine GT · RWD</option><option value=\"gt6r\">GT-6R Rear-Engine GT · RWD</option><option value=\"gt6s\">GT-6S Straight-Six GT · RWD</option></optgroup><optgroup label=\"GT Sport\"><option value=\"gs4\">GS-4 GT Sport · RWD</option><option value=\"gs6m\">GS-6M Mid-Engine GT Sport · RWD</option></optgroup><optgroup label=\"Touring\"><option value=\"tc1\">TC-1 Touring · FWD</option><option value=\"tc2\">TC-2 Touring · RWD</option><option value=\"tc3\">TC-3 Awd Touring · AWD</option></optgroup><optgroup label=\"Club\"><option value=\"cr1\">CR-1 Club Roadster · RWD</option><option value=\"hh2\">HH-2 Hot-Hatch Racer · FWD</option></optgroup><optgroup label=\"Vintage club\"><option value=\"vc62\">VC-62 Vintage Roadster · RWD</option></optgroup><optgroup label=\"Rally\"><option value=\"rl2\">RL-2 Rally · AWD</option></optgroup><optgroup label=\"Historic rally\"><option value=\"rl7\">RL-7 Classic Rally · RWD</option><option value=\"gb4\">GB-4 Group Rally · AWD</option></optgroup><optgroup label=\"Rallycross\"><option value=\"rcx6\">RCX-6 Rallycross · AWD</option><option value=\"rxe\">RX-E Electric Rallycross · AWD</option></optgroup><optgroup label=\"Off-road\"><option value=\"dx8\">DX-8 Trophy Truck · RWD</option><option value=\"bg2\">BG-2 Desert Buggy · RWD</option></optgroup><optgroup label=\"Kart\"><option value=\"sk125\">SK-125 Shifter Kart · RWD</option><option value=\"dk100\">DK-100 Direct-Drive Kart · RWD</option></optgroup><optgroup label=\"Experimental\"><option value=\"xf2\">XF-2 Fan Prototype · RWD</option><option value=\"xe1\">XE-1 Electric Time Attack · AWD</option><option value=\"xh3\">XH-3 Hydrogen Prototype · AWD</option><option value=\"xt1\">XT-1 Track Hypercar · RWD</option></optgroup><optgroup label=\"Road (open-world)\"><option value=\"eh3\">EH-3 Electric Hypercar · AWD</option><option value=\"sc7\">SC-7 Supercar · RWD</option><option value=\"rh3\">RH-3 Hot Hatch · FWD</option><option value=\"rs5\">RS-5 Sports Sedan · AWD</option><option value=\"rm8\">RM-8 Muscle Coupe · RWD</option><option value=\"rg63\">RG-63 Classic Grand Tourer · RWD</option><option value=\"rp6\">RP-6 Desert Pickup · AWD</option><option value=\"rr4\">RR-4 Rally-Bred Road Car · AWD</option><option value=\"lx12\">LX-12 Luxury GT · RWD</option><option value=\"rd2\">RD-2 Roadster · RWD</option></optgroup><optgroup label=\"Motorcycles\"><option value=\"gpr1\">GP-R1 Prototype · motorcycle</option><option value=\"gpr2\">GP-R2 Prototype · motorcycle</option><option value=\"sbk1000\">SBK-1000 Superbike · motorcycle</option><option value=\"ss600\">SS-600 Supersport · motorcycle</option><option value=\"cr750\">CR-750 Classic Racer · motorcycle</option><option value=\"nr900\">NR-900 Naked Roadster · motorcycle</option><option value=\"bikes\">Motorcycle grid · GP-R1 + SBK-1000</option></optgroup><optgroup label=\"Off-road motorcycles\"><option value=\"mx450\">MX-450 MOTOCROSS · motocross</option><option value=\"mx250\">MX-250 TWO-STROKE · motocross</option><option value=\"sm450\">SM-450 SUPERMOTO · supermoto</option></optgroup><optgroup label=\"Mixed classes\"><option value=\"mixed\">Mixed exhibition · Formula + Touring</option><option value=\"multiclass\">Multi-class endurance · Hypercar + Prototype + GT</option></optgroup>"
+ ],
+ "board": [
+  "<div id=\"boardPlates\" class=\"lb-plates\" role=\"radiogroup\" aria-label=\"Discipline\"><button type=\"button\" class=\"lb-plate\" role=\"radio\" data-discipline=\"circuit\" aria-checked=\"false\" tabindex=\"-1\" aria-label=\"CIRCUIT, 47 venues\"><span class=\"lb-plate-art\"><svg class=\"plate\" viewBox=\"0 0 64 56\" aria-hidden=\"true\" focusable=\"false\"><circle class=\"plate-body\" cx=\"32\" cy=\"28\" r=\"25\"/><circle class=\"plate-rim\" cx=\"32\" cy=\"28\" r=\"21\"/><text class=\"plate-numeral\" x=\"32\" y=\"45\" text-anchor=\"middle\">1</text></svg></span><b>CIRCUIT</b><small>47 VENUES</small></button><button type=\"button\" class=\"lb-plate\" role=\"radio\" data-discipline=\"gp\" aria-checked=\"false\" tabindex=\"-1\" aria-label=\"GP BIKE, 16 venues\"><span class=\"lb-plate-art\"><svg class=\"plate\" viewBox=\"0 0 64 56\" aria-hidden=\"true\" focusable=\"false\"><path class=\"plate-body\" d=\"M4 20Q4 6 18 6H46Q60 6 60 20V36L52 50H12L4 36Z\"/><path class=\"plate-rim\" d=\"M9 21Q9 11 19 11H45Q55 11 55 21V34L49 45H15L9 34Z\"/><text class=\"plate-numeral\" x=\"32\" y=\"45\" text-anchor=\"middle\">2</text></svg></span><b>GP BIKE</b><small>16 VENUES</small></button><button type=\"button\" class=\"lb-plate\" role=\"radio\" data-discipline=\"dirt\" aria-checked=\"false\" tabindex=\"-1\" aria-label=\"DIRT, 4 venues\"><span class=\"lb-plate-art\"><svg class=\"plate\" viewBox=\"0 0 64 56\" aria-hidden=\"true\" focusable=\"false\"><path class=\"plate-body\" d=\"M6 52V26Q6 4 32 4Q58 4 58 26V52Z\"/><path class=\"plate-rim\" d=\"M11 47V27Q11 9 32 9Q53 9 53 27V47Z\"/><text class=\"plate-numeral\" x=\"32\" y=\"45\" text-anchor=\"middle\">3</text></svg></span><b>DIRT</b><small>4 VENUES</small></button><button type=\"button\" class=\"lb-plate\" role=\"radio\" data-discipline=\"festival\" aria-checked=\"false\" tabindex=\"-1\" aria-label=\"FESTIVAL, 18 events\"><span class=\"lb-plate-art\"><svg class=\"plate\" viewBox=\"0 0 64 56\" aria-hidden=\"true\" focusable=\"false\"><rect class=\"plate-body\" x=\"2\" y=\"10\" width=\"60\" height=\"36\" rx=\"3\"/><rect class=\"plate-rim\" x=\"6\" y=\"14\" width=\"52\" height=\"28\" rx=\"1\"/><text class=\"plate-numeral\" x=\"32\" y=\"44\" text-anchor=\"middle\">4</text><text class=\"plate-caption\" x=\"32\" y=\"24\" text-anchor=\"middle\">SOLVANE</text></svg></span><b>FESTIVAL</b><small>18 EVENTS</small></button></div>",
+  "<div class=\"lb-dial\" data-dial=\"laps\"><label><span class=\"lb-dial-face\"><span class=\"lb-dial-label\"><svg class=\"lb-dial-glyph\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"square\" stroke-linejoin=\"miter\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M4 9h13l-3-3M20 15H7l3 3\"/></svg><span class=\"lb-dial-name\">DISTANCE</span><span class=\"lb-dial-count\" aria-hidden=\"true\"></span></span><select></select><svg class=\"lb-dial-caret\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"square\" stroke-linejoin=\"miter\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M6 9l6 6 6-6\"/></svg></span></label><button type=\"button\" class=\"lb-step\" data-step=\"-1\" tabindex=\"-1\" aria-hidden=\"true\"><svg class=\"glyph\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"square\" stroke-linejoin=\"miter\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M15 5 8 12l7 7\"/></svg></button><button type=\"button\" class=\"lb-step\" data-step=\"1\" tabindex=\"-1\" aria-hidden=\"true\"><svg class=\"glyph\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"square\" stroke-linejoin=\"miter\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M9 5l7 7-7 7\"/></svg></button></div>",
+  "",
+  "<div class=\"dm-end\" role=\"alertdialog\" aria-labelledby=\"dmEndTitle\"><span class=\"dm-kicker\">STEAM DEMO</span><h2 id=\"dmEndTitle\">That was 30 minutes of the coast.</h2><p>The full game keeps the whole region, every road and every event open, with the rest of the circuits, machines, weather fronts and the full career behind it. Your demo times and medals stay on this machine.</p><ul class=\"dm-counts\"></ul><div class=\"dm-end-actions\"><button type=\"button\" data-action=\"modalClose\">BACK TO THE PADDOCK</button></div></div>",
+  "<div id=\"demoClock\" class=\"dm-clock\" role=\"timer\" aria-label=\"Demo time left on the coast\"><small>DEMO COAST</small><b>2:05</b></div>"
+ ],
+ "continue": [
+  {
+   "title": "KARTS AFTER DARK",
+   "detail": "WILDCARD SERIES"
+  },
+  {
+   "title": "GP-R1 · VELLAMAR COAST",
+   "detail": "5 LAPS"
+  }
+ ],
+ "format": [
+  "1:23.456",
+  "—:——.———",
+  "+0.644",
+  "2:05",
+  "DRY<small>21°C</small>",
+  "RAIN<small>14°C</small>",
+  {
+   "race": "Grand Prix",
+   "practice": "Free Practice",
+   "time-trial": "Time Trial",
+   "qualifying": "Qualifying",
+   "endurance": "Endurance"
+  }
+ ]
+}
