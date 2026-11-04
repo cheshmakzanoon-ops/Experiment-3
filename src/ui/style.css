@@ -364,7 +364,7 @@ h1 {
   height: 100%;
   font-variant-numeric: tabular-nums;
   /* HUD SCALE (core/hud-scale.ts). --hud-scale is written on the root by the setting when a step is
-     chosen; `auto` leaves it unset and the window decides: 100%, or 115% under 900 px tall. --hud-k is
+     chosen; `auto` leaves it unset and the window decides: 100%, or 115% under 900 px tall (desktop layout). --hud-k is
      the interface size times that, and is the one multiplier every HUD sheet reads: the desktop layout
      through --u (f1-hud.css), the compact layout through --scale (kept inside the 1.35 the layout
      contracts are tested to), the GP bike panel and the older sheets through --hud-k directly, and the
@@ -377,7 +377,10 @@ h1 {
   --hud-auto: 1;
   --hud-k: calc(var(--ui-scale, 1) * var(--hud-scale, var(--hud-auto)));
 }
-@media (max-height: 899px) {
+/* Automatic is 115% in the desktop layout (1280 x 680 and up) when the window is under 900 px tall. The compact
+   layout below it keeps the size its contracts were measured at (e2e/28, 44, 52 at 640 x 400 and 800 x 600); a
+   step the player chooses applies there too, capped at 1.35. */
+@media (min-width: 1280px) and (min-height: 680px) and (max-height: 899px) {
   .hud,
   .fest-hud {
     --hud-auto: 1.15;

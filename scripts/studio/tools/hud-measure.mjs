@@ -104,7 +104,8 @@ for (const [w, h] of viewports) {
       return window.hudLegibility.measure(root && !root.hidden ? root : document.getElementById('app'));
     });
     const floors = await page.evaluate(() => window.hudLegibility.FLOOR);
-    records.push({ viewport: `${w}x${h}`, scene, family: family(scene), rows });
+    const box = await page.evaluate(() => window.hudLegibility.layout());
+    records.push({ viewport: `${w}x${h}`, scene, family: family(scene), rows, layout: box });
     const shown = rows.filter((r) => r.shown);
     const under = (set) => set.filter((r) => r.tier !== 'decor' && r.px < floors[r.tier]);
     const bad = under(shown);
@@ -113,8 +114,10 @@ for (const [w, h] of viewports) {
     console.log(
       `${w}x${h} ${scene.padEnd(19)} rows ${String(rows.length).padStart(3)} shown ${String(shown.length).padStart(3)} ` +
         `min ${sizes.length ? Math.min(...sizes).toFixed(1) : '-'} px  under floor: shown ${bad.length}, off-state ${off.length}  ` +
-        `(primary ${bad.filter((r) => r.tier === 'primary').length}, secondary ${bad.filter((r) => r.tier === 'secondary').length}, tertiary ${bad.filter((r) => r.tier === 'tertiary').length})`,
+        `(primary ${bad.filter((r) => r.tier === 'primary').length}, secondary ${bad.filter((r) => r.tier === 'secondary').length}, tertiary ${bad.filter((r) => r.tier === 'tertiary').length})  ` +
+        `panels cover ${(box.share * 100).toFixed(1)}%`,
     );
+    for (const problem of [...box.overlaps, ...box.outside, ...box.sight, ...box.clipped]) console.log(`    layout: ${problem}`);
     for (const r of (list ? bad : bad.sort((a, b) => a.px - b.px).slice(0, 12)))
       console.log(`    ${r.tier.padEnd(9)} ${String(r.px).padStart(5)} px  ${r.name} "${r.text}"`);
     if (shots) {
@@ -128,8 +131,8 @@ for (const [w, h] of viewports) {
 {
   const floors = await page.evaluate(() => window.hudLegibility.FLOOR);
   const lines = [
-    `| viewport | scene | family | text rows | smallest px | under floor | smallest three |`,
-    `| --- | --- | --- | ---: | ---: | ---: | --- |`,
+    `| viewport | scene | family | text rows | smallest px | under floor | panels cover | smallest three |`,
+    `| --- | --- | --- | ---: | ---: | ---: | ---: | --- |`,
   ];
   for (const r of records) {
     const shown = r.rows.filter((x) => x.shown && x.tier !== 'decor');
@@ -137,6 +140,7 @@ for (const [w, h] of viewports) {
     const smallest = [...shown].sort((a, b) => a.px - b.px).slice(0, 3);
     lines.push(
       `| ${r.viewport} | ${r.scene} | ${r.family} | ${shown.length} | ${smallest[0] ? smallest[0].px.toFixed(1) : '-'} | ${bad.length} | ` +
+        `${r.layout ? (r.layout.share * 100).toFixed(1) + '%' : '-'} | ` +
         `${smallest.map((x) => `${x.text.slice(0, 14)} ${x.px.toFixed(1)}`).join(', ')} |`,
     );
   }

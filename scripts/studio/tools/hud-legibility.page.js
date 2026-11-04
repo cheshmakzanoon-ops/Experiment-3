@@ -208,7 +208,13 @@
         return l < SIGHT.x1 * w && r > SIGHT.x0 * w && t < SIGHT.y1 * h && b > SIGHT.y0 * h;
       })
       .map((k) => `${k.name} [${k.rect.map(Math.round)}] in the sight window`);
-    return { viewport: [w, h], blocks, overlaps, outside, sight, clipped: clipped() };
+    // The share of the frame the always-on panels cover (the measure e2e/49-hud-footprint holds under 12% at desktop
+    // sizes): the tower, the lap panel, the cluster, the map and the dock, as bounding boxes.
+    const always = new Set(['tower', 'lap-panel', 'instruments', 'minimap', 'dock']);
+    const share =
+      blocks.filter((k) => always.has(k.name)).reduce((a, k) => a + (k.rect[2] - k.rect[0]) * (k.rect[3] - k.rect[1]), 0) /
+      (w * h);
+    return { viewport: [w, h], blocks, overlaps, outside, sight, clipped: clipped(), share: round(share) };
   };
 
   window.hudLegibility = { measure, layout, TIERS, FLOOR, BLOCKS, SIGHT };

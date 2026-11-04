@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
   AUTO_HUD_SCALE_BELOW,
+  AUTO_HUD_SCALE_MIN_HEIGHT,
+  AUTO_HUD_SCALE_MIN_WIDTH,
   AUTO_HUD_SCALE_SHORT,
   DEFAULT_HUD_SCALE,
   HUD_SCALES,
@@ -38,15 +40,18 @@ describe('the HUD SCALE setting', () => {
   it('is automatic until the player chooses: 115% under 900 px tall, 100% above, a choice always honoured', () => {
     expect(AUTO_HUD_SCALE_BELOW).toBe(900);
     expect(AUTO_HUD_SCALE_SHORT).toBe(1.15);
-    for (const height of [600, 680, 720, 768, 800, 899]) expect(resolveHudScale('auto', height)).toBe(1.15);
-    for (const height of [900, 1080, 1440, 2160]) expect(resolveHudScale('auto', height)).toBe(1);
+    for (const height of [680, 720, 768, 800, 899]) expect(resolveHudScale('auto', height, 1280)).toBe(1.15);
+    for (const height of [900, 1080, 1440, 2160]) expect(resolveHudScale('auto', height, 1920)).toBe(1);
+    // The compact layout (under 1280 x 680) keeps its measured size: automatic is 100% there.
+    for (const [w, h] of [[1024, 768], [800, 600], [640, 400], [1279, 800], [1280, 679]])
+      expect(resolveHudScale('auto', h, w)).toBe(1);
     for (const step of HUD_SCALES)
       for (const height of [720, 800, 1080]) expect(resolveHudScale(step, height)).toBe(step);
   });
   it('the style sheet decides automatic by the same height, so a resized window follows without a reload', () => {
     const sheet = css('src/ui/style.css');
     const query = new RegExp(
-      `@media \\(max-height: ${AUTO_HUD_SCALE_BELOW - 1}px\\) \\{\\s*\\.hud,\\s*\\.fest-hud \\{\\s*--hud-auto: ${AUTO_HUD_SCALE_SHORT};`,
+      `@media \\(min-width: ${AUTO_HUD_SCALE_MIN_WIDTH}px\\) and \\(min-height: ${AUTO_HUD_SCALE_MIN_HEIGHT}px\\) and \\(max-height: ${AUTO_HUD_SCALE_BELOW - 1}px\\) \\{\\s*\\.hud,\\s*\\.fest-hud \\{\\s*--hud-auto: ${AUTO_HUD_SCALE_SHORT};`,
     );
     expect(sheet).toMatch(query);
     // The base rule leaves --hud-scale to the setting and falls back to the automatic value.

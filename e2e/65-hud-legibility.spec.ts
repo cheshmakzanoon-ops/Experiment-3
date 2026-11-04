@@ -223,6 +223,29 @@ test('the layout unit follows the HUD SCALE and the window: 115% under 900 px ta
   // ... up to the limit of the window (0.8 vw: the tower, the banner and the lap panel side by side).
   near((await unit(1280, 800, '1.5')).u, 0.8 * 12.8);
   near((await unit(1920, 1080, '1.5')).u, 0.8 * 19.2);
+  // The compact layout (under 1280 x 680) keeps its measured size at automatic and honours a step.
+  const compact = async (width: number, height: number, step: string) => {
+    await page.setViewportSize({ width, height });
+    await page.evaluate((scale) => {
+      const root = document.documentElement;
+      if (scale === 'auto') root.style.removeProperty('--hud-scale');
+      else root.style.setProperty('--hud-scale', scale);
+    }, step);
+    await page.evaluate(() => window.UxFixture.hud());
+    return page.evaluate(() => {
+      const hud = document.getElementById('hud')!;
+      const probe = document.createElement('i');
+      probe.style.cssText = 'position:absolute;width:calc(100px * var(--scale));height:1px';
+      hud.append(probe);
+      const scale = probe.getBoundingClientRect().width / 100;
+      probe.remove();
+      return scale;
+    });
+  };
+  near(await compact(800, 600, 'auto'), 1);
+  near(await compact(640, 400, 'auto'), 1);
+  near(await compact(1024, 768, '1.15'), 1.15);
+  near(await compact(1024, 768, '1.5'), 1.35);
   // The interface size multiplies it, inside the same limits.
   near((await unit(1920, 1080, '1', '1.35')).u, 10.8 * 1.35);
   near((await unit(1920, 1080, 'auto', '0.8')).u, 10.8 * 0.8);

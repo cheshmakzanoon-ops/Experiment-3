@@ -375,6 +375,14 @@
   /* Include the scaled arrow's painted edge in its measured alert box. */
   padding-inline: 3px;
 }
+/* The polite live region is a 1 px clipped node (f1-hud.css); inside the zoomed stack it must stay under 1 px of
+   screen, or it counts as a drawn panel (e2e/44 measures it against the banner beside it). */
+@media (min-width: 1280px) and (min-height: 680px) {
+  #hud[data-motocross='true'] .mx-status-stack > .race-message {
+    width: calc(0.5px / var(--mx-zoom));
+    height: calc(0.5px / var(--mx-zoom));
+  }
+}
 @media (max-width: 1279px), (max-height: 679px) {
   .hud[data-motocross='true'] .mx-status-stack {
     top: calc(var(--race-header, 47px) + 10px);
