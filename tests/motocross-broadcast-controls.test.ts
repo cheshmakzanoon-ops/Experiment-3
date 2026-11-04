@@ -10,6 +10,10 @@ import { trackInfrastructurePlan } from '../src/rendering/track-infrastructure.t
 // SHA256(JSON.stringify(tracksideRigs(new Track('clear', false, undefined, definition)))).
 // These 44 venue signatures cover all 880 original non-MX/SX CameraRig records.
 // The fixture is embedded so the regression has no dependency on scratch files.
+// Venues built after that capture (a647eb3, the Wildcard series) have no historical
+// rigs to preserve; they are listed so a new venue still has to be classified here,
+// and only get the generic structural check below.
+const VENUES_ADDED_AFTER_CAPTURE = ['level-nine'] as const;
 const ORIGINAL_NON_MX_SIGNATURES = {
   aurel: '2e7146774fbdbfe3b968ca71248204bae1329f08dd33d2b9f056296dc0e1d5c3',
   vellamar: 'ef47691fc49c677f4b6e5b7dbdba21b634896668d088ee30cb7091279516e1b4',
@@ -124,13 +128,26 @@ function metadata(rig: CameraRig) {
 
 describe('replay-camera control preservation outside MX/SX', () => {
   it('retains explicit historical coverage for every other built-in venue', () => {
-    const controlIds = Object.values(CIRCUITS)
+    const nonMx = Object.values(CIRCUITS)
       .filter((circuit) => !['motocross', 'supercross'].includes(circuit.offroad?.kind ?? ''))
-      .map((circuit) => circuit.id)
+      .map((circuit) => circuit.id as string)
       .sort();
+    const added: readonly string[] = VENUES_ADDED_AFTER_CAPTURE;
+    const controlIds = nonMx.filter((id) => !added.includes(id));
     expect(Object.keys(ORIGINAL_NON_MX_SIGNATURES).sort()).toEqual(controlIds);
     expect(controlIds).toHaveLength(44);
+    // Every exemption is a real, non-MX venue (a removed venue must leave the list).
+    for (const id of added) expect(nonMx).toContain(id);
   });
+
+  it.each(VENUES_ADDED_AFTER_CAPTURE)(
+    '%s, built after the capture, still gets a full set of 20 distinct replay cameras',
+    (id) => {
+      const rigs = tracksideRigs(new Track('clear', false, undefined, circuitDefinition(id)));
+      expect(rigs).toHaveLength(20);
+      expect(new Set(rigs.map((rig) => rig.id)).size).toBe(20);
+    },
+  );
 
   it.each(Object.entries(ORIGINAL_NON_MX_SIGNATURES))(
     '%s retains historical controls outside documented venue-site corrections',
