@@ -83,7 +83,7 @@ const reasonsList = (reasons: readonly string[]) =>
     : '';
 // In the Steam demo the registry is cut to the slice, so what is "missing from this build" is the
 // full game's content: say so (the full game has no 'coming' content to mislabel).
-const comingTag = () => t(demoPolicy() ? FULL_GAME : 'COMING');
+const comingTag = () => t(demoPolicy() ? FULL_GAME : N_('COMING'));
 const comingLead = () => (demoPolicy() ? t('In the full game:') : t('Coming — missing from this build:'));
 const stateTag = (state: 'open' | 'locked' | 'coming') =>
   `<span class="career-state" data-state="${state}">${state === 'open' ? th('OPEN') : state === 'locked' ? th('LOCKED') : comingTag()}</span>`;

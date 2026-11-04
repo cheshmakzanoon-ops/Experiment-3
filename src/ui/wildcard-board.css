@@ -274,13 +274,13 @@
   min-width: 0;
 }
 .wc-row-text b {
-  overflow: hidden;
+  /* An event title that does not fit one line (a longer translation) wraps to a second. */
   font: 750 calc(13px * var(--mb-u)) / 1.15 var(--mb-sans);
   font-stretch: 94%;
   letter-spacing: 0.07em;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
   text-transform: uppercase;
-  white-space: nowrap;
+  text-wrap: balance;
 }
 .wc-row-text span {
   overflow: hidden;

@@ -152,23 +152,56 @@ export function layout(scene: Scene) {
     part[scene] === '#modalContent' ? dialog! : document.querySelector(part[scene])!
   ) as HTMLElement;
   const wide = (el: HTMLElement | null) => (el ? el.scrollWidth - el.clientWidth : 0);
-  const clipped: string[] = [];
+  const clipped: { sig: string; name: string }[] = [];
   const bad: string[] = [];
   const visible = (el: HTMLElement) => {
     const r = el.getBoundingClientRect();
     return r.width > 0 && r.height > 0 && el.offsetParent !== null;
   };
+  /** What the element is, without its words: tag and class, with its parent's. */
+  const sig = (el: HTMLElement) => {
+    const one = (e: Element) =>
+      `${e.tagName.toLowerCase()}${typeof e.className === 'string' && e.className ? '.' + e.className.split(' ')[0] : ''}`;
+    return `${el.parentElement ? one(el.parentElement) + '>' : ''}${one(el)}`;
+  };
   const name = (el: HTMLElement) =>
     `${el.tagName.toLowerCase()}${el.className && typeof el.className === 'string' ? '.' + el.className.split(' ')[0] : ''}[${(el.textContent ?? '').trim().slice(0, 40)}]`;
-  for (const el of scope.querySelectorAll<HTMLElement>('button, a, label, h1, h2, h3, .lb-plate b')) {
-    if (!visible(el) || el.closest('[hidden]')) continue;
+  const clips = (style: CSSStyleDeclaration) =>
+    style.overflowX === 'hidden' || style.overflowX === 'clip';
+  for (const el of scope.querySelectorAll<HTMLElement>('*')) {
+    if (
+      !visible(el) ||
+      el.closest('[hidden], svg, canvas, select, option, .visually-hidden') ||
+      el.getBoundingClientRect().width < 3
+    )
+      continue;
     const style = getComputedStyle(el);
-    // Text that is cut off by the element's own box.
-    const cuts = style.overflowX !== 'visible' || style.textOverflow === 'ellipsis';
-    if (cuts && el.scrollWidth > el.clientWidth + 1) clipped.push(name(el));
+    // Text cut off by the element's own box (an ellipsis counts: the words are not all there).
+    if ((clips(style) || style.textOverflow === 'ellipsis') && el.scrollWidth > el.clientWidth + 1)
+      clipped.push({ sig: sig(el), name: name(el) });
+    // A primary control whose label is cut off vertically (a line clamp, a fixed height).
+    if (
+      el.tagName === 'BUTTON' &&
+      (style.overflowY === 'hidden' || style.overflowY === 'clip') &&
+      el.scrollHeight > el.clientHeight + 1
+    )
+      clipped.push({ sig: `${sig(el)} (height)`, name: `${name(el)} (height)` });
+    // Text that leaves the box that is meant to hold it.
+    if (!el.children.length && (el.textContent ?? '').trim()) {
+      let box = el.parentElement;
+      while (box && box !== scope && !clips(getComputedStyle(box))) box = box.parentElement;
+      if (box && box !== scope) {
+        const r = el.getBoundingClientRect(),
+          c = box.getBoundingClientRect();
+        if (r.right > c.right + 1 || r.left < c.left - 1)
+          clipped.push({ sig: `${sig(el)} in ${sig(box)}`, name: `${name(el)} in ${name(box)}` });
+      }
+    }
     // A control that pokes out of the viewport sideways.
-    const r = el.getBoundingClientRect();
-    if (r.right > innerWidth + 1 || r.left < -1) bad.push(name(el));
+    if (el.matches('button, a, label, h1, h2, h3')) {
+      const r = el.getBoundingClientRect();
+      if (r.right > innerWidth + 1 || r.left < -1) bad.push(name(el));
+    }
   }
   return {
     page: wide(root),

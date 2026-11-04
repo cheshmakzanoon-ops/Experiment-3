@@ -1,4 +1,4 @@
-import { fixed, t, ta, th, upper } from '../i18n/index.ts';
+import { currentLocale, fixed, t, ta, th, upper } from '../i18n/index.ts';
 import { validateLanguage, type LanguageSetting } from '../i18n/locales.ts';
 import { settingsLanguageRow } from './language-control.ts';
 import { N_ } from '../i18n/mark.ts';
@@ -114,6 +114,13 @@ const HTML_ESCAPES: Record<string, string> = {
   "'": '&#39;',
 };
 const escapeHtml = (text: string) => text.replace(/[&<>"']/g, (c) => HTML_ESCAPES[c]);
+const CSS_WORDS: readonly (readonly [string, string])[] = [
+  ['--t-paddock', N_('PADDOCK')],
+  ['--t-chosen', N_('CHOSEN')],
+  ['--t-smooth', N_('SMOOTH')],
+  ['--t-playable', N_('PLAYABLE')],
+  ['--t-low', N_('LOW')],
+];
 const DRS_ZONES = N_('{n, plural, one {DRS ZONE} other {DRS ZONES}}');
 const CARS = N_('{n, plural, one {# car} other {# cars}}');
 const RIDERS = N_('{n, plural, one {# rider} other {# riders}}');
@@ -393,6 +400,11 @@ export class Interface {
       '',
     )}</select></label><canvas id="graph" width="1100" height="590" role="img"></canvas><div class="telemetry-actions"><button data-action="compare">${th('COMPARE LAPS')}</button><button data-action="csv">${th('EXPORT CSV')}</button><span>${th('SI UNITS · RECORDED THIS SESSION')}</span></div></dialog>
   `;
+    // Words the style sheets draw themselves (`content: var(--t-paddock, 'PADDOCK')`): the
+    // English stays in the CSS, any other language arrives as custom properties on the root.
+    if (currentLocale() !== 'en')
+      for (const [name, word] of CSS_WORDS)
+        document.documentElement.style.setProperty(name, JSON.stringify(t(word)));
     this.menu = this.get('menu');
     this.hud = this.get('hud');
     this.offroadHud = new OffroadHud(this.hud);

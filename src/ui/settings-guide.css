@@ -114,14 +114,14 @@
   letter-spacing: 0.14em;
 }
 #app .gq .gq-fps-now[data-band='good']::after {
-  content: 'SMOOTH';
+  content: var(--t-smooth, 'SMOOTH');
   color: var(--mb-go);
 }
 #app .gq .gq-fps-now[data-band='fair']::after {
-  content: 'PLAYABLE';
+  content: var(--t-playable, 'PLAYABLE');
 }
 #app .gq .gq-fps-now[data-band='low']::after {
-  content: 'LOW';
+  content: var(--t-low, 'LOW');
   color: var(--mb-flag-text);
 }
 #app .gq .gq-fps-low {

@@ -878,7 +878,7 @@
   counter-reset: paddock;
 }
 #menu .menu-actions::before {
-  content: 'PADDOCK';
+  content: var(--t-paddock, 'PADDOCK');
   padding-bottom: var(--mb-s2);
   color: var(--mb-chalk-faint);
   font: 650 var(--mb-f-label) / 1 var(--mb-sans);
@@ -897,13 +897,17 @@
   border-top: 1px solid var(--mb-line);
   border-radius: 0;
   color: var(--mb-chalk-dim);
-  font: 650 calc(12.5px * var(--mb-u)) / calc(34px * var(--mb-u)) var(--mb-sans);
+  /* One line is exactly the old 34px row; a longer word in another language wraps to a second
+     line (the rail is narrow) instead of being cut off with an ellipsis. */
+  --row: calc(34px * var(--mb-u));
+  font: 650 calc(12.5px * var(--mb-u)) / 1.2 var(--mb-sans);
+  padding-block: calc((var(--row) - 1.2em) / 2);
   font-stretch: 92%;
   letter-spacing: 0.08em;
   text-align: left;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
   transition:
     background var(--mb-d-tick),
     color var(--mb-d-tick);
@@ -1111,8 +1115,8 @@
     --rail-w: calc(184px * var(--mb-u));
   }
   #menu .menu-actions button {
-    min-height: calc(30px * var(--mb-u));
-    line-height: calc(30px * var(--mb-u));
+    --row: calc(30px * var(--mb-u));
+    min-height: var(--row);
   }
 }
 @media (max-height: 640px) {

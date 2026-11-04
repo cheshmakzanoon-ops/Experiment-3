@@ -104,7 +104,7 @@
 /* A written state beside the rim: the chosen line carries a tick. */
 #app .fr .fr-device[aria-checked='true'] b::after,
 #app .fr .fr-plate[aria-checked='true'] b::after {
-  content: 'CHOSEN';
+  content: var(--t-chosen, 'CHOSEN');
   margin-left: var(--mb-s2);
   color: var(--mb-amber);
   font: 700 calc(11px * var(--mb-u)) / 1 var(--mb-sans);

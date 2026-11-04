@@ -36,16 +36,23 @@ function walk(dir: string): string[] {
   });
 }
 
-/** The value of a string literal, a template literal without substitutions, or a `+` of those. */
-function literal(node: ts.Expression): string | null {
-  if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) return node.text;
+/** The strings an argument can be: a string literal, a template literal without substitutions,
+ * a `+` of those, or either branch of a conditional whose branches are such strings
+ * (`t(cond ? 'a' : 'b')` is two messages). Anything else is not extractable (mark data with N_). */
+function literals(node: ts.Expression): string[] {
+  if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) return [node.text];
   if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
-    const a = literal(node.left),
-      b = literal(node.right);
-    return a !== null && b !== null ? a + b : null;
+    const a = literals(node.left),
+      b = literals(node.right);
+    return a.length === 1 && b.length === 1 ? [a[0] + b[0]] : [];
   }
-  if (ts.isParenthesizedExpression(node)) return literal(node.expression);
-  return null;
+  if (ts.isParenthesizedExpression(node)) return literals(node.expression);
+  if (ts.isConditionalExpression(node)) {
+    const a = literals(node.whenTrue),
+      b = literals(node.whenFalse);
+    return a.length && b.length ? [...a, ...b] : [];
+  }
+  return [];
 }
 
 /** Strings in the code, in file order. */
@@ -63,8 +70,7 @@ export function scanSource(): Entry[] {
         CALLEES.has(node.expression.text) &&
         node.arguments.length >= 1
       ) {
-        const value = literal(node.arguments[0]);
-        if (value !== null) {
+        for (const value of literals(node.arguments[0])) {
           const entry = found.get(value) ?? { key: value, source: value, from: [] };
           if (!entry.from.includes(rel)) entry.from.push(rel);
           found.set(value, entry);
