@@ -150,9 +150,10 @@
   font-style: normal;
 }
 /* The controls a player has to read mid-race (the dock under the instruments and the VEHICLE
-   toggle) were 8 and 9 px; they are not under a scaled panel, so this is the size on screen.
-   The labels inside the scaled panels (tyre letter, sector tags, the GP panel's captions) are
-   still 7 to 9 px and need their own pass (docs/studio/reports/ux4.md, open items). */
+   toggle) were 8 and 9 px; this is their size in the compact layout (the desktop layout sizes them in
+   HUD units, f1-hud.css, at 1.4 u: 11.2 px on a 1280x800 handheld). The labels inside the panels (tyre
+   letter, sector tags, the GP panel's captions) got their floors in the HUD legibility pass
+   (docs/studio/reports/hud-legibility.md). */
 #hud .hud-actions button,
 #hud .hud-actions kbd,
 #hud .vehicle-toggle,

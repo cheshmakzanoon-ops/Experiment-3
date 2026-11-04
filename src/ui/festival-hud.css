@@ -14,6 +14,19 @@
 .fest-hud [hidden] {
   display: none !important;
 }
+/* HUD SCALE (core/hud-scale.ts): the five widgets that are always on screen (the road card, the event card,
+   the key hint, the minimap and the speed readout) grow with the HUD scale (capped at 130%: the live event panel
+   sits between the road card and the event card) and, above an 800 px tall window, with the window, as the race
+   HUD's unit does (tan(atan2(a, b)) is a / b as a plain number). `zoom` scales their layout, offsets and type
+   together (nothing is drawn under a transform). The dialogs (menu, map, event card, results) are screens of
+   their own and keep their size. */
+.fest-road,
+.fest-explore,
+.fest-hint,
+.fest-minimap,
+.fest-speed {
+  zoom: calc(min(var(--hud-k, 1), 1.3) * max(1, tan(atan2(100vh, 800px))));
+}
 .fest-hud * {
   box-sizing: border-box;
 }

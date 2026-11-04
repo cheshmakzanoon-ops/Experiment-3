@@ -29,6 +29,7 @@ import {
   surname,
   towerWindow,
   tyreBand,
+  tyreBandName,
   type F1Hud,
 } from './f1-hud.ts';
 import { TrackMap } from './f1-minimap.ts';
@@ -1050,6 +1051,8 @@ export class Interface {
       writeText(e.querySelector('span')!, `${Math.round(100 * (1 - frame[p + W.WEAR]))}%`);
       writeText(e.querySelector('small')!, `${Math.round(frame[p + W.DISC_TEMP])}° ${t('BRAKE')}`);
       const band = tyreBand(temp);
+      const name = tyreBandName(temp);
+      if ((e as HTMLElement).dataset.band !== name) (e as HTMLElement).dataset.band = name;
       writeText(
         e.querySelector('label')!,
         definition.bike ? (i < 2 ? t('FRONT') : t('REAR')) : WHEEL_NAMES[i],

@@ -10,3 +10,38 @@ html[data-colorblind='true'] #hud {
   --t-yellow: #f0e442;
   --t-red: #e69f00;
 }
+
+/* Tyre temperature tiles (the cluster's four tiles and the VEHICLE panel's): the default bands are a blue, two
+   greens, a yellow and a red, and the two greens are one colour to a tritan viewer (CIE76 delta-E 5) and the
+   green and the red nearly so to a deutan (21). Under the setting the bands are navy, sky blue, grey, yellow
+   and vermillion: the closest pair is delta-E 30 for protan, deutan and tritan viewers alike
+   (scripts/studio/tools/hud-cvd.mjs, asserted by tests/hud-colourblind.test.ts). Overheating also draws a white
+   ring, so the one state that needs action never depends on colour; the temperature is printed in the panel. */
+html[data-colorblind='true'] #hud :is(.f1-car > i, .tires > div)[data-band='cold'] {
+  --cbt: #1b3a8a;
+}
+html[data-colorblind='true'] #hud :is(.f1-car > i, .tires > div)[data-band='cool'] {
+  --cbt: #56b4e9;
+}
+html[data-colorblind='true'] #hud :is(.f1-car > i, .tires > div)[data-band='ideal'] {
+  --cbt: #9a9a9a;
+}
+html[data-colorblind='true'] #hud :is(.f1-car > i, .tires > div)[data-band='warm'] {
+  --cbt: #f0e442;
+}
+html[data-colorblind='true'] #hud :is(.f1-car > i, .tires > div)[data-band='hot'] {
+  --cbt: #d55e00;
+}
+html[data-colorblind='true'] #hud .f1-car > i[data-band] {
+  background: var(--cbt);
+}
+html[data-colorblind='true'] #hud .tires > div[data-band] {
+  box-shadow: inset 2px 0 0 var(--cbt);
+}
+html[data-colorblind='true'] #hud .tires > div[data-band]::after {
+  border-color: var(--cbt);
+}
+html[data-colorblind='true'] #hud :is(.f1-car > i, .tires > div)[data-band='hot']:not([data-puncture='true']) {
+  outline: 1.5px solid #fff;
+  outline-offset: 1px;
+}

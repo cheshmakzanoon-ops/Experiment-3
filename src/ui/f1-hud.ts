@@ -61,13 +61,28 @@ export function surname(name: string): string {
   const words = name.trim().toUpperCase().split(/\s+/).filter(Boolean);
   return words.at(-1) ?? '';
 }
+/** The five carcass temperature bands (Art Bible B §1.7), cold to overheating. */
+export const TYRE_BANDS = ['cold', 'cool', 'ideal', 'warm', 'hot'] as const;
+export type TyreBand = (typeof TYRE_BANDS)[number];
+const BAND_COLOURS: Record<TyreBand, string> = {
+  cold: '#4fa3ff',
+  cool: '#5fd3a0',
+  ideal: '#4cd964',
+  warm: '#ffd60a',
+  hot: '#ff3b30',
+};
+/** Carcass temperature (°C) -> band. The tiles carry it as `data-band`, so the colour-blind palette
+ * (hud-colourblind.css) can recolour them without the HUD knowing about the setting. */
+export function tyreBandName(celsius: number): TyreBand {
+  if (!(celsius >= 70)) return 'cold';
+  if (celsius < 85) return 'cool';
+  if (celsius < 105) return 'ideal';
+  if (celsius <= 115) return 'warm';
+  return 'hot';
+}
 /** Carcass temperature band (Art Bible B §1.7), °C -> colour. */
 export function tyreBand(celsius: number): string {
-  if (!(celsius >= 70)) return '#4fa3ff';
-  if (celsius < 85) return '#5fd3a0';
-  if (celsius < 105) return '#4cd964';
-  if (celsius <= 115) return '#ffd60a';
-  return '#ff3b30';
+  return BAND_COLOURS[tyreBandName(celsius)];
 }
 const COMPOUND_KEYS = Object.keys(COMPOUNDS) as (keyof typeof COMPOUNDS)[];
 const COMPOUND_LETTERS: Record<string, string> = {
@@ -625,7 +640,9 @@ export class F1Hud {
     attr(this.compound, 'c', compound);
     this.tyres.forEach((node, w) => {
       const p = o + WHEEL_BASE + w * WHEEL_STRIDE;
-      const color = tyreBand(frame[p + W.CARCASS_TEMP]);
+      const band = tyreBandName(frame[p + W.CARCASS_TEMP]);
+      const color = BAND_COLOURS[band];
+      attr(node, 'band', band);
       const wear = `${Math.round(100 * clamp(frame[p + W.WEAR]))}%`;
       if (node.style.getPropertyValue('--t') !== color) node.style.setProperty('--t', color);
       if (node.style.getPropertyValue('--wear') !== wear) node.style.setProperty('--wear', wear);

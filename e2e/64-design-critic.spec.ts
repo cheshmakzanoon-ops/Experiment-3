@@ -10,8 +10,9 @@ test.use({ actionTimeout: 15000 });
  * real style sheets with no renderer, through the fixture scenes the screenshot tools use
  * (scripts/studio/tools/ux-fixture.ts) and the in-page audit (ux4-audit.page.js). Every screen of the
  * front end is mounted and must
- *   - show no text under 11 px (the race HUD's scaled panels are the one declared exception: it is in
- *     the report's open items),
+ *   - show no text under 11 px, the race HUD included (its labels were the one exception until the HUD
+ *     legibility pass, docs/studio/reports/hud-legibility.md; e2e/65-hud-legibility.spec.ts holds the HUD's own
+ *     floors by tier, in every state and at every HUD scale),
  *   - pass WCAG AA against its own background (4.5:1, 3:1 for large text) wherever the background is
  *     known (text over the 3D scene or a gradient is not judged here),
  *   - show a focus ring on every interactive element, under the keyboard and under the gamepad.
@@ -118,7 +119,7 @@ const SCREENS = [
   'festivalCard',
   'festivalMap',
 ];
-/** The race HUD and the screens that sit over it (their own text is held to the floor; the HUD's is not). */
+/** The race HUD and the screens that sit over it (all held to the floor). */
 const HUD_SCREENS = ['hud', 'hudGp', 'hudMx', 'replay', 'pause', 'results'];
 /** Demo scenes switch the demo policy on for the rest of the page: last. */
 const DEMO_SCREENS = ['demoMenu', 'demoWildcard', 'demoWildcardLocked', 'demoRecords'];
@@ -144,10 +145,9 @@ for (const viewport of VIEWPORTS)
       await mountScene(page, scene);
       const audit = await page.evaluate(() => window.ux4Audit.audit());
       expect(audit.texts, `${scene} drew text`).toBeGreaterThan(5);
-      // The race HUD's scaled panels are the declared exception (they sit under every screen that
-      // keeps the HUD on show, such as the results board); everything else is held to 11 px.
-      for (const s of audit.small)
-        if (!s.hud) small.push(`${scene}: ${s.name} "${s.text}" ${s.size}px`);
+      // Nothing is exempt: the race HUD (which sits under every screen that keeps it on show, such as
+      // the results board) is held to the same 11 px as every other screen.
+      for (const s of audit.small) small.push(`${scene}: ${s.name} "${s.text}" ${s.size}px`);
       for (const l of audit.low) low.push(`${scene}: ${l.name} "${l.text}" ${l.ratio}:1`);
       await page.keyboard.press('Tab'); // keyboard modality: :focus-visible matches
       for (const pad of [false, true]) {

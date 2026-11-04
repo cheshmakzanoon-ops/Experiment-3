@@ -124,6 +124,24 @@ for (const [w, h] of viewports) {
     }
   }
 }
+// A markdown table of the same numbers, for the report: one row per scene and viewport.
+{
+  const floors = await page.evaluate(() => window.hudLegibility.FLOOR);
+  const lines = [
+    `| viewport | scene | family | text rows | smallest px | under floor | smallest three |`,
+    `| --- | --- | --- | ---: | ---: | ---: | --- |`,
+  ];
+  for (const r of records) {
+    const shown = r.rows.filter((x) => x.shown && x.tier !== 'decor');
+    const bad = shown.filter((x) => x.px < floors[x.tier]);
+    const smallest = [...shown].sort((a, b) => a.px - b.px).slice(0, 3);
+    lines.push(
+      `| ${r.viewport} | ${r.scene} | ${r.family} | ${shown.length} | ${smallest[0] ? smallest[0].px.toFixed(1) : '-'} | ${bad.length} | ` +
+        `${smallest.map((x) => `${x.text.slice(0, 14)} ${x.px.toFixed(1)}`).join(', ')} |`,
+    );
+  }
+  writeFileSync(`${out}/${label}-hud-measure.md`, lines.join('\n') + '\n');
+}
 writeFileSync(
   `${out}/${label}-hud-measure.json`,
   JSON.stringify({ label, hudScale, floors: await page.evaluate(() => window.hudLegibility.FLOOR), records, errors }, null, 1),

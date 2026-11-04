@@ -1,9 +1,15 @@
-/* GP bike panel. Sizes are in --bp, one CSS px times the HUD scale (--hud-k: interface size times the HUD
-   SCALE setting, style.css .hud), capped at 1.5 so the largest steps do not outgrow the panel's column.
-   Type floors at 100%: labels and captions 11 px, microcopy 10 px, readouts 12 px and up
+/* GP bike panel. Sizes are in --bp: one CSS px (growing with the window above 800 px tall, 0.125 vh, as the
+   desktop layout's unit does) times the HUD scale (--hud-k: interface size times the HUD SCALE setting,
+   style.css .hud), capped at 1.5 and at 0.16 vh, never under 1 px (the panel's tallest state, with the corner
+   guide and the practice timer, is 345 bp: the cap keeps it under 56% of the window height, clear of the lap panel above it), so the largest steps
+   do not outgrow the panel's column.
+   Type floors at 100%: every label, caption and note 11 px, readouts 12 px and up
    (docs/studio/reports/hud-legibility.md). Nothing here is drawn under a transform. */
 #hud {
-  --bp: calc(1px * min(var(--hud-k, var(--ui-scale, 1)), 1.5));
+  --bp: min(calc(max(1px, 0.125vh) * min(var(--hud-k, var(--ui-scale, 1)), 1.5)), max(1px, 0.16vh));
+  /* The panel's distance from the bottom edge: 66 px or 7 vh, and always clear of the dock under it (the dock
+     grows with the HUD unit; --f1-dock and --u exist only in the desktop layout, which falls back to 66 px). */
+  --bike-lift: max(66px, 7vh, calc(var(--f1-dock, 12px) + 3.4 * var(--u, 8px) + 12px));
 }
 .gp-feedback,
 .gp-heading {
@@ -13,8 +19,8 @@
 .gp-practice:not([hidden]) {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 2px 6px;
-  padding-top: 5px;
+  gap: calc(2 * var(--bp)) calc(6 * var(--bp));
+  padding-top: calc(5 * var(--bp));
   border-top: 1px solid #b4c4d22e;
   font-size: calc(11 * var(--bp));
   font-variant-numeric: tabular-nums;
@@ -22,7 +28,7 @@
 }
 .gp-practice > small {
   grid-column: 1 / -1;
-  font-size: calc(10 * var(--bp));
+  font-size: calc(11 * var(--bp));
   line-height: 1.35;
   overflow-wrap: anywhere;
 }
@@ -54,12 +60,12 @@
 }
 #hud[data-f1][data-bike='true'][data-camera] .instruments {
   --gp-accent: #79dcc5;
-  inset: auto max(22px, 2.7vw) max(66px, 7vh) auto;
+  inset: auto max(22px, 2.7vw) var(--bike-lift) auto;
   transform: none;
   width: calc(278 * var(--bp));
   max-width: calc(100vw - 28px);
   height: auto;
-  padding: 13px 15px 10px;
+  padding: calc(13 * var(--bp)) calc(15 * var(--bp)) calc(10 * var(--bp));
   border: 1px solid #b4c4d22e;
   border-radius: 12px;
   background: linear-gradient(145deg, #101a24ec, #070d13d9);
@@ -72,8 +78,8 @@
 #hud[data-bike='true'] .gp-heading {
   display: flex;
   justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 11px;
+  gap: calc(10 * var(--bp));
+  margin-bottom: calc(11 * var(--bp));
   font-size: calc(11 * var(--bp));
   letter-spacing: 0.1em;
   color: #96aabc;
@@ -90,20 +96,20 @@
   position: static;
   transform: none;
   padding: 0;
-  margin-bottom: 5px;
-  gap: 3px;
+  margin-bottom: calc(5 * var(--bp));
+  gap: calc(3 * var(--bp));
 }
 #hud[data-f1][data-bike='true'] .rev-lights i {
   flex: 1;
   width: auto;
-  height: 3px;
+  height: calc(3 * var(--bp));
   border-radius: 1px;
 }
 #hud[data-f1][data-bike='true'] .dash-main {
   display: flex;
   align-items: center;
-  gap: 18px;
-  padding: 0 0 6px;
+  gap: calc(18 * var(--bp));
+  padding: 0 0 calc(6 * var(--bp));
 }
 #hud[data-f1][data-bike='true'] :is(.gear, .speed, .engine),
 #hud[data-f1][data-bike='true'] .engine > :is(b, span) {
@@ -112,7 +118,7 @@
   transform: none;
 }
 #hud[data-f1][data-bike='true'] .gear {
-  padding: 0 18px 0 0;
+  padding: 0 calc(18 * var(--bp)) 0 0;
   border-right: 1px solid #bfdbef2a;
 }
 #hud[data-f1][data-bike='true'] .gear > b {
@@ -132,7 +138,7 @@
 }
 #hud[data-f1][data-bike='true'] .speed > span,
 #hud[data-f1][data-bike='true'] .engine > span {
-  margin: 4px 0 0;
+  margin: calc(4 * var(--bp)) 0 0;
   color: #a6b7c5;
   font-size: calc(11 * var(--bp));
 }
@@ -148,27 +154,27 @@
 }
 #hud[data-f1][data-bike='true'] .pedals {
   display: flex;
-  gap: 12px;
-  padding: 0 0 5px;
+  gap: calc(12 * var(--bp));
+  padding: 0 0 calc(5 * var(--bp));
 }
 #hud[data-bike='true'] .pedals label {
   font-size: calc(11 * var(--bp));
 }
 #hud[data-bike='true'] .pedals .meter {
-  height: 3px;
+  height: calc(3 * var(--bp));
 }
 #hud[data-f1][data-bike='true'][data-camera] .resources {
   position: static;
   display: flex;
   transform: none;
-  padding: 4px 0;
+  padding: calc(4 * var(--bp)) 0;
   border-top: 1px solid #aac4d826;
   align-items: flex-start;
 }
 #hud[data-f1][data-bike='true'] .resources label:last-child {
   flex-direction: row;
   margin: 0;
-  gap: 7px;
+  gap: calc(7 * var(--bp));
   font-size: calc(11 * var(--bp));
 }
 #hud[data-f1][data-bike='true'] #fuel {
@@ -177,21 +183,21 @@
 }
 #hud[data-bike='true'] .gp-feedback {
   display: grid;
-  gap: 6px;
+  gap: calc(6 * var(--bp));
   font-size: calc(11 * var(--bp));
 }
 #hud[data-bike='true'] .gp-craft:not([hidden]) {
   display: grid;
-  gap: 5px;
-  margin-bottom: 2px;
-  padding: 6px 0 8px;
+  gap: calc(5 * var(--bp));
+  margin-bottom: calc(2 * var(--bp));
+  padding: calc(6 * var(--bp)) 0 calc(8 * var(--bp));
   border-block: 1px solid #aac4d826;
 }
 #hud[data-bike='true'] .gp-next,
 #hud[data-bike='true'] .gp-cue {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: calc(6 * var(--bp));
 }
 #hud[data-bike='true'] .gp-next > b {
   font-size: calc(17 * var(--bp));
@@ -214,7 +220,7 @@
   position: relative;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  padding-bottom: 4px;
+  padding-bottom: calc(4 * var(--bp));
   font-size: calc(11 * var(--bp));
   letter-spacing: 0.08em;
   line-height: 1;
@@ -233,7 +239,7 @@
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 2px;
+  height: calc(2 * var(--bp));
   background: #aac4d826;
 }
 #hud[data-bike='true'] .gp-phase > i {
@@ -274,7 +280,7 @@
   display: grid;
   grid-template-columns: calc(80 * var(--bp)) 1fr calc(40 * var(--bp));
   align-items: center;
-  gap: 8px;
+  gap: calc(8 * var(--bp));
 }
 #hud[data-bike='true'] :is(.gp-lean, .gp-rear-brake) > span {
   font-size: calc(11 * var(--bp));
@@ -289,27 +295,27 @@
 }
 #hud[data-bike='true'] .gp-lean-track {
   position: relative;
-  height: 3px;
+  height: calc(3 * var(--bp));
   background: linear-gradient(90deg, #efab642b, #70d8c05c 50%, #efab642b);
 }
 #hud[data-bike='true'] .gp-lean-track::after {
   content: '';
   position: absolute;
   left: 50%;
-  top: -2px;
-  height: 7px;
+  top: calc(-2 * var(--bp));
+  height: calc(7 * var(--bp));
   border-left: 1px solid #dbe9f359;
 }
 #hud[data-bike='true'] .gp-lean-track i {
   position: absolute;
-  top: -3px;
-  width: 3px;
-  height: 9px;
+  top: calc(-3 * var(--bp));
+  width: calc(3 * var(--bp));
+  height: calc(9 * var(--bp));
   border-radius: 2px;
   background: var(--gp-accent);
 }
 #hud[data-bike='true'] .gp-rear-brake > div {
-  height: 3px;
+  height: calc(3 * var(--bp));
   background: #eff5fa18;
 }
 #hud[data-bike='true'] .gp-rear-brake i {
@@ -320,14 +326,14 @@
 #hud[data-bike='true'] .gp-tyres {
   display: flex;
   justify-content: space-between;
-  padding-top: 6px;
+  padding-top: calc(6 * var(--bp));
   border-top: 1px solid #aac4d826;
-  gap: 12px;
+  gap: calc(12 * var(--bp));
 }
 #hud[data-bike='true'] .gp-tyres > div {
   display: grid;
   grid-template-columns: auto auto;
-  gap: 2px 8px;
+  gap: calc(2 * var(--bp)) calc(8 * var(--bp));
   align-items: center;
 }
 #hud[data-bike='true'] .gp-tyres span,
@@ -335,10 +341,7 @@
   color: #9eb2c2;
   font-size: calc(11 * var(--bp));
 }
-/* "100% LIFE" under the temperature is microcopy: the tertiary floor (10 px), not the label's. */
-#hud[data-bike='true'] .gp-tyres small {
-  font-size: calc(10 * var(--bp));
-}
+
 #hud[data-bike='true'] .gp-tyres b {
   font-size: calc(12 * var(--bp));
   font-weight: 550;
@@ -353,8 +356,8 @@
   display: flex;
   justify-content: space-between;
   color: #9eb2c2;
-  padding-top: 3px;
-  font-size: calc(10 * var(--bp));
+  padding-top: calc(3 * var(--bp));
+  font-size: calc(11 * var(--bp));
   letter-spacing: 0.02em;
 }
 #hud[data-bike='true'] .gp-rider b[data-active='true'] {
@@ -373,7 +376,7 @@
 @media (min-width: 1280px) and (min-height: 680px) {
   #hud[data-f1][data-bike='true'] .car-status {
     right: calc(max(22px, 2.7vw) + 278 * var(--bp) + 16px);
-    bottom: max(66px, 7vh);
+    bottom: var(--bike-lift);
     max-height: calc(100vh - 160px);
     background: #0b131df5;
   }

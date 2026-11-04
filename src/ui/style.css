@@ -367,14 +367,19 @@ h1 {
      chosen; `auto` leaves it unset and the window decides: 100%, or 115% under 900 px tall. --hud-k is
      the interface size times that, and is the one multiplier every HUD sheet reads: the desktop layout
      through --u (f1-hud.css), the compact layout through --scale (kept inside the 1.35 the layout
-     contracts are tested to), the GP bike panel and the older sheets through --hud-k directly. */
-  --hud-auto: 1;
-  --hud-k: calc(var(--ui-scale, 1) * var(--hud-scale, var(--hud-auto)));
+     contracts are tested to), the GP bike panel and the older sheets through --hud-k directly, and the
+     open-world HUD (.fest-hud, festival-hud.css) through zoom on its five always-on widgets. */
   --hud-kc: min(var(--hud-k), 1.35);
   --scale: var(--hud-kc);
 }
+.hud,
+.fest-hud {
+  --hud-auto: 1;
+  --hud-k: calc(var(--ui-scale, 1) * var(--hud-scale, var(--hud-auto)));
+}
 @media (max-height: 899px) {
-  .hud {
+  .hud,
+  .fest-hud {
     --hud-auto: 1.15;
   }
 }

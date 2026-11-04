@@ -39,9 +39,13 @@
   #hud[data-f1] {
     /* --hud-k is the interface size times the HUD SCALE setting (style.css .hud). The floor is what makes a
        1280x800 handheld read: 1 vh is 8 px there but 0.5625 vw is 7.2, and a 1.4 u label needs 8. The caps are
-       the window: 1.55 vh keeps the timing tower above the map and the cluster under the sight line, 0.84 vw
-       keeps the tower, the race-control banner and the lap panel side by side; a larger step stops there. */
-    --u: min(calc(var(--hud-k, var(--ui-scale, 1)) * max(8px, min(1vh, 0.5625vw))), 1.55vh, 0.84vw);
+       the window: 1.55 vh keeps the timing tower above the map and the cluster under the sight line, 0.8 vw
+       keeps the tower, the start lights, the race-control banner and the lap panel side by side; a larger step
+       stops there (on a 1280 px wide window 130% and 150% are the same size). */
+    --u: min(calc(var(--hud-k, var(--ui-scale, 1)) * max(8px, min(1vh, 0.5625vw))), 1.55vh, 0.8vw);
+    /* The width left between the timing tower (38.5 u and the 3.8 u fastest-lap tab) and its mirror on the right
+       edge: the most a centred banner, pit panel or dirt card can take. */
+    --f1-room: calc(100vw - 2 * (var(--f1-side) + 42.3 * var(--u)) - 2vw);
     --f1-side: 2.7vw;
     --f1-top: 4.4vh;
     --f1-floor: max(5vh, 52px);
@@ -1016,7 +1020,7 @@
     left: 50%;
     top: 10vh;
     min-width: calc(30 * var(--u));
-    max-width: calc(46 * var(--u));
+    max-width: min(calc(46 * var(--u)), var(--f1-room));
     overflow: hidden;
     border-radius: 6px;
     background: var(--hud-panel);
@@ -1091,6 +1095,7 @@
     justify-content: center;
     gap: calc(0.15 * var(--u));
     padding: calc(0.6 * var(--u)) calc(1.6 * var(--u));
+    min-width: 0;
   }
   #hud[data-f1] .f1-banner b {
     font-size: calc(1.9 * var(--u));
@@ -1107,7 +1112,7 @@
     font-stretch: 108%;
     letter-spacing: 0.04em;
     color: var(--hud-text-dim);
-    white-space: nowrap;
+    overflow-wrap: anywhere;
   }
   #hud[data-f1] .f1-banner[data-state='mini'] b {
     font-size: calc(1.4 * var(--u));
@@ -1120,7 +1125,7 @@
     position: absolute;
     left: 50%;
     top: 14.9vh;
-    width: calc(41 * var(--u));
+    width: min(calc(41 * var(--u)), var(--f1-room));
     overflow: hidden;
     border-radius: 6px;
     background: rgba(9, 10, 15, 0.88);
@@ -1183,14 +1188,18 @@
 
   /* ---------- Start lights (five 5.6 u lamps centred at y 0.31) ---------- */
   #hud[data-f1][data-camera] .start-sequence {
+    /* A lamp is 5.6 u, until five lamps, their gaps (0.348 lamp) and the pill's padding would not fit between the
+       timing tower and its mirror: then the lamps stop growing (at 150% on a 1280 px window they are the size
+       they are at 100%). */
+    --f1-lamp: min(calc(5.6 * var(--u)), calc((var(--f1-room) - 2.8 * var(--u)) / 6.39));
     top: 31vh;
     left: 50%;
     bottom: auto;
-    transform: translate(-50%, calc(-2.8 * var(--u) - 0.9 * var(--u)));
+    transform: translate(-50%, calc(-0.5 * var(--f1-lamp) - 0.9 * var(--u)));
   }
   #hud[data-f1] .start-sequence > #lights {
     display: flex;
-    gap: calc(1.95 * var(--u));
+    gap: calc(0.348 * var(--f1-lamp));
     padding: calc(0.9 * var(--u)) calc(1.4 * var(--u));
     border-radius: 999px;
     background: rgba(10, 12, 18, 0.82);
@@ -1198,8 +1207,8 @@
     clip-path: none;
   }
   #hud[data-f1] .start-sequence i {
-    width: calc(5.6 * var(--u));
-    height: calc(5.6 * var(--u));
+    width: var(--f1-lamp);
+    height: var(--f1-lamp);
     border: 0;
     border-radius: 50%;
     background: radial-gradient(circle at 50% 40%, #34363b, #2b2d31 60%, #1d1f23);
@@ -1318,7 +1327,8 @@
   /* ---------- Vehicle MFD (grows up from the dock) ---------- */
   #hud[data-f1] .car-status {
     inset: auto var(--f1-side) calc(var(--f1-dock) + 4.6 * var(--u)) auto;
-    width: calc(38 * var(--u));
+    /* Left of the cluster's tyre widget (centre + 24.75 u), never wider than 38 u. */
+    width: min(calc(38 * var(--u)), calc(50vw - var(--f1-side) - 24.75 * var(--u) - 10px));
     max-height: min(calc(50 * var(--u)), calc(100vh - var(--f1-dock) - 4.6 * var(--u) - 90px));
     transform: none;
   }
@@ -1333,7 +1343,7 @@
     border: 0;
     border-radius: 4px;
     background: rgba(10, 12, 18, 0.55);
-    font-size: calc(1.4 * var(--u));
+    font-size: max(11px, calc(1.25 * var(--u)));
     font-weight: 600;
     letter-spacing: 0;
     color: var(--hud-text);

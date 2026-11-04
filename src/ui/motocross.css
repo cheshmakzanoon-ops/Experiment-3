@@ -234,7 +234,13 @@
   top: 67px;
   left: 50%;
   transform: translateX(-50%);
-  width: min(350px, calc(100vw - 460px));
+  /* It grows with the race HUD's unit (--u, f1-hud.css: 8 px is 1), so the gate card and the ride readout read at
+     the size of the timing tower beside them, and takes no more than the room between the tower and the lap
+     panel (--f1-room); never more than 115% of the window's own growth above 800 px tall, so the card stays above
+     the road. tan(atan2(a, b)) is a / b as a plain number. */
+  --mx-zoom: clamp(1, tan(atan2(var(--u, 8px), 8px)), calc(1.15 * max(1, tan(atan2(100vh, 800px)))));
+  zoom: var(--mx-zoom);
+  width: min(350px, calc(100vw - 460px), calc(var(--f1-room, 9999px) / var(--mx-zoom)));
   display: flex;
   flex-direction: column;
   gap: 6px;

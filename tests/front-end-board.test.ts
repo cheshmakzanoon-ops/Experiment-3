@@ -290,7 +290,11 @@ describe('the screens added in wave 3 follow the anti-slop rules too', () => {
   it('gives the colour-blind HUD four distinct timing colours, only under the setting', () => {
     const css = readFileSync('src/ui/hud-colourblind.css', 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
     const blocks = rules(css);
-    expect(blocks).toHaveLength(1);
+    // The sheet used to be this one rule. The HUD legibility pass added the tyre temperature palette
+    // (tests/hud-colourblind.test.ts), so the guard is now what it was for: the timing-colour rule comes
+    // first and unchanged, and nothing in the sheet applies outside the setting.
+    expect(blocks.length).toBeGreaterThanOrEqual(1);
+    for (const block of blocks) expect(block.selector).toMatch(/^html\[data-colorblind='true'\] #hud/);
     expect(blocks[0].selector).toBe("html[data-colorblind='true'] #hud");
     const colours = Object.fromEntries(
       [...blocks[0].body.matchAll(/--t-(purple|green|yellow|red):\s*(#[0-9a-f]{6})/g)].map((m) => [
