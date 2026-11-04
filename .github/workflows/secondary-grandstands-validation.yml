@@ -30,7 +30,7 @@ jobs:
   browser:
     # Use the same verified Linux/Mesa backend as full CI. The macOS
     # SwiftShader fallback exceeded the unchanged application GPU deadline.
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 40
     env:
       APEX_BROWSER_BACKEND: mesa

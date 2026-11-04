@@ -8,7 +8,7 @@ permissions:
   contents: read
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -53,7 +53,7 @@ jobs:
             ${{ runner.temp }}/source-commit.txt
           retention-days: 7
   unit-tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -67,7 +67,7 @@ jobs:
       - name: Full unit suite without source changes
         run: node --experimental-transform-types scripts/source-stability.ts -- npm test
   scenarios:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -101,7 +101,7 @@ jobs:
             docs/reference-targets.json
           retention-days: 7
   offroad-scenarios:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # The full original gate took about 14 minutes locally. Give it a separate
     # bounded job so it cannot exhaust the existing 15-minute scenario job.
     timeout-minutes: 35
@@ -150,7 +150,7 @@ jobs:
       matrix:
         shard: [1, 2, 3, 4, 5, 6, 7, 8]
     needs: validate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # Enumerate the full suite, balance long race cases, then verify the selected
     # IDs against Playwright itself. Every case belongs to exactly one partition;
     # serial groups remain intact. Long Mesa shards previously reached the 45
@@ -235,7 +235,7 @@ jobs:
     # Early GPU evidence for wet presentation and source-preserving player passes.
     # The complete browser suite above still runs unchanged, including these cases.
     needs: validate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # The five specs take 6.6-7.3 min of an 8-9 min job on a typical runner and
     # 9.0-9.4 min on a slower one (unrelated specs 15-35% slower in the same
     # run), so 10 min cancelled passing runs. Installing Playwright's system
@@ -327,7 +327,7 @@ jobs:
       MOTOBOUND_SUPPLIED_PLAYER: '1'
       MOTOBOUND_REVIEW_TOOLS: '1'
     needs: validate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
@@ -364,7 +364,7 @@ jobs:
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       github.ref == 'refs/heads/main' &&
       github.repository == 'cheshmakzanoon-ops/Experiment-3'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
       contents: read

@@ -268,7 +268,7 @@ describe('desktop packaging matrix: native runners, smoke where it can run, neve
       'full/windows',
     ]);
     const runner: Record<string, string> = {
-      linux: 'ubuntu-latest',
+      linux: 'ubuntu-24.04',
       windows: 'windows-latest',
       macos: 'macos-latest',
     };

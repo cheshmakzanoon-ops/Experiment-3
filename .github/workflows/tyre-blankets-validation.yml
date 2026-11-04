@@ -15,7 +15,7 @@ permissions:
   contents: read
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -43,7 +43,7 @@ jobs:
     # Preserve all workloads, one worker, zero retries and existing test limits;
     # each group now consumes the same build rather than rebuilding or skipping.
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -126,7 +126,7 @@ jobs:
     # MOTOBOUND_SUPPLIED_PLAYER=1, MOTOBOUND_REVIEW_TOOLS=1). That build is made and used inside
     # this job only: not uploaded, not passed through `npm run build`, `check:ip` or the IP guard.
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
       APEX_BROWSER_BACKEND: mesa

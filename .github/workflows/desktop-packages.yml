@@ -45,7 +45,7 @@ jobs:
   web:
     # Builds each web edition once, on Linux, and certifies it. The platform jobs package exactly
     # these directories instead of rebuilding.
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -89,8 +89,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { edition: full, platform: linux, os: ubuntu-latest, script: 'dist:linux', unpacked: 'desktop/release/linux-unpacked/motobound', web: dist }
-          - { edition: demo, platform: linux, os: ubuntu-latest, script: 'dist:demo:linux', unpacked: 'desktop/release-demo/linux-unpacked/motobound-demo', web: dist-demo }
+          - { edition: full, platform: linux, os: ubuntu-24.04, script: 'dist:linux', unpacked: 'desktop/release/linux-unpacked/motobound', web: dist }
+          - { edition: demo, platform: linux, os: ubuntu-24.04, script: 'dist:demo:linux', unpacked: 'desktop/release-demo/linux-unpacked/motobound-demo', web: dist-demo }
           - { edition: full, platform: windows, os: windows-latest, script: 'dist:win', unpacked: 'desktop/release/win-unpacked/MOTOBOUND.exe', web: dist }
           - { edition: demo, platform: windows, os: windows-latest, script: 'dist:demo:win', unpacked: 'desktop/release-demo/win-unpacked/MOTOBOUND Demo.exe', web: dist-demo }
           - { edition: full, platform: macos, os: macos-latest, script: 'dist:mac', unpacked: '', web: dist }

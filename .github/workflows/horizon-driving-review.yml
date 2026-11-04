@@ -42,7 +42,7 @@ concurrency:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # The outer limits allow 3 x 8m effects, 42m night and 12m journey,
     # plus setup and artifact retention. Each phase keeps its own failure.
     timeout-minutes: 90

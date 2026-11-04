@@ -14,7 +14,7 @@ permissions:
   contents: read
 jobs:
   capture:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # Five independent groups under SwiftShader. Each frame costs 10-15 s at
     # 1280x720 Medium, so the drive is split across 'driving' (3.5 min) and
     # 'braking' (2.1 min); the specs total about 11.5 min on a slow runner,

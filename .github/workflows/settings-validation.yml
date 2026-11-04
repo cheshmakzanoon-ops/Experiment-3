@@ -20,7 +20,7 @@ permissions:
   contents: read
 jobs:
   settings:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:
       # Include graphics-process diagnostics when a cold software draw loses its context.
@@ -61,7 +61,7 @@ jobs:
     # IP guard (which refuses it), and nothing downstream consumes it. The assertions are the same
     # spec files and the same cases as the job above.
     needs: settings
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
       DEBUG: pw:browser
