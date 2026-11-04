@@ -62,13 +62,13 @@ const hautGivrePath: Segment[] = [
   S(330, { y: 0, drs: true, facades: 'both', stands: 'left' }),
   A(45, 90, { name: 'CHALET BEND', y: 1, facades: 'in', stands: 'out' }),
   S(250, { y: 12, rock: 'left', drop: 'right' }),
-  A(18, -180, { name: 'FIRST LACET', y: 14, w: 6.4, rock: 'out' }),
+  A(18, -180, { name: 'FIRST LACET', y: 14, w: 6.4 }),
   S(150, { y: 21, rock: 'right', drop: 'left' }),
-  A(18, 180, { name: 'SECOND LACET', y: 23, w: 6.4, rock: 'out' }),
+  A(18, 180, { name: 'SECOND LACET', y: 23, w: 6.4 }),
   S(250, { y: 34, tunnel: true }),
-  A(18, -180, { name: 'THIRD LACET', y: 36, w: 6.4, rock: 'out' }),
+  A(18, -180, { name: 'THIRD LACET', y: 36, w: 6.4 }),
   S(150, { y: 43, rock: 'right', drop: 'left' }),
-  A(18, 180, { name: 'FOURTH LACET', y: 45, w: 6.4, rock: 'out' }),
+  A(18, 180, { name: 'FOURTH LACET', y: 45, w: 6.4 }),
   S(220, { y: 56, rock: 'left', drop: 'right' }),
   A(80, 90, { name: 'LIFT STATION', y: 59, facades: 'in', stands: 'out' }),
   // The ridge road, west along the top of the climb.
@@ -80,9 +80,9 @@ const hautGivrePath: Segment[] = [
     drop: 'left',
   }),
   S(100, { y: 38, tunnel: true }),
-  A(18, 180, { name: 'CHAMOIS HAIRPIN', y: 36, w: 6.4, rock: 'out' }),
+  A(18, 180, { name: 'CHAMOIS HAIRPIN', y: 36, w: 6.4 }),
   S(110, { y: 30, rock: 'left', drop: 'right' }),
-  A(18, -180, { name: 'TORRENT HAIRPIN', y: 28, w: 6.4, rock: 'out' }),
+  A(18, -180, { name: 'TORRENT HAIRPIN', y: 28, w: 6.4 }),
   S(175, { y: 17, rock: 'right', drop: 'left' }),
   A(40, 90, { name: 'LAST BEND', y: 9, facades: 'in' }),
   S(240, { y: 0, drs: true, facades: 'both' }),
@@ -112,7 +112,7 @@ const hautGivre: CircuitSpec = {
 };
 
 /** Marram Field: an airport raced where the aircraft move. The start is on
- * the runway (1.5 km, flat out), a blast-pad turn leads onto the parallel
+ * the runway (1.6 km, flat out), a blast-pad turn leads onto the parallel
  * taxiway with two chicanes between the hangars, and a tight apron slalom
  * past the terminal gates feeds the runway again. Concrete everywhere, the
  * apron floodlight masts along the lap, nothing taller than the terminal. */
@@ -172,7 +172,8 @@ const marramField: CircuitSpec = {
  * tailwater on the other, turns through the powerhouse at the east abutment
  * (a roofed spillway gallery), and returns along the north shore. Water
  * either side of the crest, concrete walls 12 m to 20 m down to it, and a
- * gale off the lake in a storm. */
+ * gale off the lake in a storm (the events take it in
+ * one; in clear weather the water shows, in a storm it does not read). */
 const kalderPath: Segment[] = [
   // The powerhouse yard on the east abutment: land, the paddock and the line.
   S(320, { y: 0, w: 6.2, drs: true, facades: 'right', stands: 'left' }),
@@ -207,7 +208,7 @@ const kalderDam: CircuitSpec = {
     'A hydro dam raced along its crest: 1.1 km of concrete between reservoir and tailwater, a powerhouse turn, a spillway gallery and the shore road home.',
   theme: 'dam',
   signage: 'KALDER DAM',
-  suggested: { lighting: 'day', weather: 'storm' },
+  suggested: { lighting: 'day', weather: 'clear' },
   seaLevel: -20,
   heading: 90,
   winding: 1,

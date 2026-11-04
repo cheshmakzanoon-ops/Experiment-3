@@ -31,6 +31,7 @@ const { values: v, positionals } = parseArgs({
     url: { type: 'string' },
     plan: { type: 'string', multiple: true },
     size: { type: 'string', default: '1024x576' },
+    quality: { type: 'string', default: '' },
     'max-kb': { type: 'string', default: '150' },
     view: { type: 'string', default: 'chase' },
   },
@@ -78,10 +79,15 @@ page.on('pageerror', (e) => {
   errors.push(`pageerror: ${e.message}`);
   log(`PAGE ERROR ${e.message.slice(0, 200)}`);
 });
+// Errors after which a session never leaves `loading` (software GL under load can
+// miss the renderer's 45 s GPU fence); the entry is retried after a page reload.
+let fatal = null;
 page.on('console', (m) => {
   if (m.type() === 'error') {
     errors.push(`console: ${m.text()}`);
     log(`CONSOLE ERROR ${m.text().slice(0, 200)}`);
+    if (/GPU preparation did not complete|enters pit driving clearance/.test(m.text()))
+      fatal = m.text().slice(0, 120);
   }
 });
 
@@ -107,6 +113,7 @@ async function waitFor(label, predicate, timeout = 1800000, interval = 400) {
   let last = null,
     beat = Date.now();
   while (Date.now() < end) {
+    if (fatal) throw new Error(`fatal page error: ${fatal}`);
     last = await probe();
     if (last && predicate(last)) return last;
     if (Date.now() - beat > 120000) {
@@ -167,81 +174,98 @@ const setForm = (values) =>
 await page.goto(v.url);
 await waitFor('menu', (x) => x.state === 'menu', 1800000, 1000);
 log('menu ready');
-// Render quality stays at the game's default (medium).
+// Render quality stays at the game's default (medium) unless --quality is given
+// (software GL can miss the renderer's 45 s GPU fence on a heavy night venue).
+if (v.quality) {
+  await click('#menu [data-action="settings"]');
+  await page.waitForSelector('#settingsForm');
+  await page.locator('#settingsForm [name=quality]').selectOption(v.quality);
+  await page.locator('#settingsForm button[type=submit]').click();
+  await sleep(4000);
+  log(`render quality ${v.quality}`);
+}
 
 let index = 0;
 for (const entry of plan) {
   const label = `${String(index).padStart(2, '0')}-${entry.kind === 'venue' ? entry.id : entry.id}`;
-  try {
-    await toMenu();
-    if (entry.kind === 'venue') {
-      const set = await setForm({
-        mode: 'practice',
-        circuit: entry.id,
-        weather: entry.weather,
-        light: entry.light,
-        opponents: '3',
-      });
-      log(`form ${JSON.stringify(set)}`);
-      await page.getByRole('button', { name: 'ENTER CIRCUIT', exact: true }).click();
-    } else {
-      if (!(await page.locator('.wc-board').count()))
-        await page.locator('[data-action="career:wildcard"]').first().click();
-      await page.waitForSelector('.wc-board');
-      await page.locator(`.wc-row[data-id="${entry.id}"]`).click();
-      await page.locator(`[data-action="career:wildcardGo:${entry.id}"]:visible`).click();
-    }
-    // A race opens a briefing first; practice goes straight to the grid.
-    const briefing = page.getByRole('button', { name: /GO STRAIGHT TO LIGHTS|GO TO THE GATE/ });
-    const first = await Promise.race([
-      briefing.waitFor({ state: 'visible', timeout: 1800000 }).then(() => 'briefing'),
-      waitFor('driving', (x) => x.state === 'driving', 1800000, 500).then(() => 'driving'),
-    ]);
-    if (first === 'briefing') {
-      await briefing.click();
-      await waitFor('driving', (x) => x.state === 'driving', 1800000, 500);
-    }
-    log(`driving: ${label}`);
-    await setView(v.view);
-    let driven = 0;
-    for (const seconds of entry.seconds) {
-      if (seconds > driven) {
-        const before = (await probe())?.time ?? 0;
-        if ((await probe())?.auto !== true) await page.keyboard.press('g');
-        await waitFor('autopilot', (x) => x.auto === true, 60000, 250);
-        await waitFor(
-          `${seconds}s`,
-          (x) => (x.time ?? 0) >= before + (seconds - driven),
-          1800000,
-          200,
-        );
-        driven = seconds;
-        await page.keyboard.press('Escape');
-        await waitFor('paused', (x) => x.state === 'paused', 180000, 250);
-        await page.evaluate(() => {
-          const s = document.createElement('style');
-          s.id = 'c2-hide';
-          s.textContent =
-            '#modal{visibility:hidden!important}#modal::backdrop{background:transparent!important}';
-          document.head.append(s);
+  for (let attempt = 0; attempt < 3; attempt++) {
+    fatal = null;
+    try {
+      await toMenu();
+      if (entry.kind === 'venue') {
+        const set = await setForm({
+          mode: 'practice',
+          circuit: entry.id,
+          weather: entry.weather,
+          light: entry.light,
+          opponents: '3',
         });
+        log(`form ${JSON.stringify(set)}`);
+        await page.getByRole('button', { name: 'ENTER CIRCUIT', exact: true }).click();
+      } else {
+        if (!(await page.locator('.wc-board').count()))
+          await page.locator('[data-action="career:wildcard"]').first().click();
+        await page.waitForSelector('.wc-board');
+        await page.locator(`.wc-row[data-id="${entry.id}"]`).click();
+        await page.locator(`[data-action="career:wildcardGo:${entry.id}"]:visible`).click();
       }
-      await sleep(3500);
-      const file = `${label}-t${seconds}.jpg`;
-      const info = await encode(join(out, file));
-      const d = await probe();
-      log(
-        `${file} ${(info.bytes / 1024).toFixed(0)} KB q${info.quality} t=${d?.time?.toFixed(1)} s lighting=${d?.lighting}`,
-      );
-      if (seconds > 0 && seconds !== entry.seconds.at(-1)) {
-        await page.evaluate(() => document.getElementById('c2-hide')?.remove());
-        await page.getByRole('button', { name: 'RESUME SESSION', exact: true }).click();
-        await waitFor('driving', (x) => x.state === 'driving', 180000, 250);
+      // A race opens a briefing first; practice goes straight to the grid.
+      const briefing = page.getByRole('button', { name: /GO STRAIGHT TO LIGHTS|GO TO THE GATE/ });
+      const first = await Promise.race([
+        briefing.waitFor({ state: 'visible', timeout: 1800000 }).then(() => 'briefing'),
+        waitFor('driving', (x) => x.state === 'driving', 1800000, 500).then(() => 'driving'),
+      ]);
+      if (first === 'briefing') {
+        await briefing.click();
+        await waitFor('driving', (x) => x.state === 'driving', 1800000, 500);
       }
+      log(`driving: ${label}`);
+      await setView(v.view);
+      let driven = 0;
+      for (const seconds of entry.seconds) {
+        if (seconds > driven) {
+          const before = (await probe())?.time ?? 0;
+          if ((await probe())?.auto !== true) await page.keyboard.press('g');
+          await waitFor('autopilot', (x) => x.auto === true, 60000, 250);
+          await waitFor(
+            `${seconds}s`,
+            (x) => (x.time ?? 0) >= before + (seconds - driven),
+            1800000,
+            200,
+          );
+          driven = seconds;
+          await page.keyboard.press('Escape');
+          await waitFor('paused', (x) => x.state === 'paused', 180000, 250);
+          await page.evaluate(() => {
+            const s = document.createElement('style');
+            s.id = 'c2-hide';
+            s.textContent =
+              '#modal{visibility:hidden!important}#modal::backdrop{background:transparent!important}';
+            document.head.append(s);
+          });
+        }
+        await sleep(3500);
+        const file = `${label}-t${seconds}.jpg`;
+        const info = await encode(join(out, file));
+        const d = await probe();
+        log(
+          `${file} ${(info.bytes / 1024).toFixed(0)} KB q${info.quality} t=${d?.time?.toFixed(1)} s lighting=${d?.lighting}`,
+        );
+        if (seconds > 0 && seconds !== entry.seconds.at(-1)) {
+          await page.evaluate(() => document.getElementById('c2-hide')?.remove());
+          await page.getByRole('button', { name: 'RESUME SESSION', exact: true }).click();
+          await waitFor('driving', (x) => x.state === 'driving', 180000, 250);
+        }
+      }
+      await page.evaluate(() => document.getElementById('c2-hide')?.remove());
+      break;
+    } catch (error) {
+      log(`FAILED ${label} (attempt ${attempt + 1}): ${String(error.message).split('\n')[0]}`);
+      if (!fatal) break;
+      await page.goto(v.url);
+      fatal = null;
+      await waitFor('menu', (x) => x.state === 'menu', 1800000, 1000);
     }
-    await page.evaluate(() => document.getElementById('c2-hide')?.remove());
-  } catch (error) {
-    log(`FAILED ${label}: ${String(error.message).split('\n')[0]}`);
   }
   index++;
 }

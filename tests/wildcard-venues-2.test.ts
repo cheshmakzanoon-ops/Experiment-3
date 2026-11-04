@@ -52,7 +52,7 @@ describe('Wildcard wave 2 venues', () => {
     const want = {
       'haut-givre': { lighting: 'day', weather: 'snow', theme: 'alpine' },
       'marram-field': { lighting: 'sunset', weather: 'fog', theme: 'airport' },
-      'kalder-dam': { lighting: 'day', weather: 'storm', theme: 'dam' },
+      'kalder-dam': { lighting: 'day', weather: 'clear', theme: 'dam' },
       'saffron-lane': { lighting: 'night', weather: 'clear', theme: 'market' },
     } as const;
     for (const id of NEW) {

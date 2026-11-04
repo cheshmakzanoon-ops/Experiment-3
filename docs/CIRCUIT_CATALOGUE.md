@@ -10,6 +10,10 @@ CIRCUIT menu, built by the production simulation and renderer, and covered by
 automated tests and seeded AI races. Nothing here is performance-, player- or
 release-accepted, and no layout has had a human art review.
 
+Five more original layouts follow the forty for the Wildcard series (Level
+Nine, then Haut-Givre, Marram Field, Kalder Dam and Saffron Lane; see the two
+Wildcard sections below), so the registry holds forty-five.
+
 ## Rights and provenance
 
 The **real-world** layouts (six in wave 1, fifteen venues / seventeen layouts in
@@ -131,7 +135,7 @@ the simulation reads it) for menus and events to default to.
 |---|---|---:|---:|---:|---|---:|---:|---|---|
 | Haut-Givre Ski Resort — Resort Road (`haut-givre`) | unconventional | 3650 | 13 | 2 | right | 60 | 10.0% | snow, midday | alpine theme; village frontage, six hairpins (R 18 m), two roofed snow galleries, rock cuttings on the mountain side, 700 m ridge run |
 | Marram Field Airport — Apron and Runway (`marram-field`) | unconventional | 3686 | 9 | 2 | right | 0 | 0.0% | dawn fog (sunset light) | `airport` theme; 28 m wide runway, 13 m taxiways with two chicanes, hangar frontage, apron slalom, floodlight masts |
-| Kalder Dam — Crest Road (`kalder-dam`) | unconventional | 3329 | 10 | 2 | right | 3 | 1.6% | thunderstorm, midday | `dam` theme; 1 km crest with the water 20 m down on both hands, concrete parapets 1.4 m off the asphalt, spillway gallery, lake-shore slalom |
+| Kalder Dam — Crest Road (`kalder-dam`) | unconventional | 3329 | 10 | 2 | right | 3 | 1.6% | clear, midday (the events take it in a storm) | `dam` theme; 1 km crest with the water 20 m down on both hands, concrete parapets 1.4 m off the asphalt, spillway gallery, lake-shore slalom |
 | Saffron Lane Night Market — Market Loop (`saffron-lane`) | unconventional | 2016 | 8 | 0 | right | 0 | 0.0% | clear, night | `market` theme (street lamps); 8.8 m lanes, concrete walls 1.2 m away, three hairpins, two covered halls, spice-row slalom |
 
 How each one gets its character from the kit, and what was checked:
@@ -152,14 +156,27 @@ How each one gets its character from the kit, and what was checked:
   gives a concrete quay wall (non-cliff theme) 17-20 m high and a water basin
   either side; the lake-shore road has the water only on the lake hand. The
   line, paddock and stands are on the land of the powerhouse yard on purpose:
-  the first draft put the start on the crest, where the default stands would
-  have floated over the water. A unit test checks the ground under every stand
-  and the paddock is above the water.
+  the first draft put the start on the crest, where the default stand sites
+  (opposite the paddock) sit beside the drop spans. A unit test checks the
+  ground under every stand and the paddock is above the water.
 - **Saffron Lane.** The market hall roofs are `tunnel` spans (so rain and dust
   stay out), the stalls are `facades` blocks in the street theme.
 
+Looked at in a browser (software GL, 1024x576 JPEGs in
+`docs/studio/reports/content2-screens/`; critique in
+`docs/studio/reports/content-2.md`): a grid and a mid-lap frame of every venue
+and of three Wildcard events. What the frames changed: Marram Field's
+session stayed in `loading` (the pit-lane clearance check of the garage tyre
+equipment threw for a 26 m lane; fixed in `rendering/tyre-trolleys-racks.ts`;
+the same check, run in Node, also threw for Bright Basin), the first Haut-Givre dressing wrapped each hairpin in a
+7-16 m plain grey rock wall (removed; the rock stays on the legs), and Kalder
+Dam's water only reads in clear weather (in a thunderstorm the lake is a flat
+grey haze), so its suggested weather is clear and the storm belongs to the
+events.
+
 Seeded Formula race (`catalogue-races.ts <ids> --merge`: 6 cars, 2 laps,
-clear): see the recorded table below. Not `bikeSafe` (walls, roofs, frontage or
+clear): all four PASS, no contact, nothing stuck (best laps 1:43.0, 1:08.8, 1:02.1
+and 1:00.1; recorded table below). Not `bikeSafe` (walls, roofs, frontage or
 a 1.2 m barrier): motorcycles run them only in the Wildcard series, where each
 pairing has its own passing race in `docs/wildcard-races.json`.
 
@@ -382,6 +399,11 @@ Recorded run (seed 29030, 6 cars, 2 laps; AI pace on the default setup, not refe
 | gantry-point | 5379 | 1:38.522 | 196.6 km/h | 1:45.158 |
 | gantry-point-reverse | 5379 | 1:38.304 | 197.0 km/h | 1:44.899 |
 | salt-flat | 6800 | 1:38.811 | 247.7 km/h | 1:45.935 |
+| level-nine | 1424 | 0:36.444 | 140.6 km/h | 0:42.365 |
+| haut-givre | 3650 | 1:42.997 | 127.6 km/h | 1:50.819 |
+| marram-field | 3686 | 1:08.841 | 192.8 km/h | 1:14.719 |
+| kalder-dam | 3329 | 1:02.148 | 192.9 km/h | 1:08.835 |
+| saffron-lane | 2016 | 1:00.126 | 120.7 km/h | 1:07.545 |
 <!-- /catalogue-race-table -->
 
 ## Venue kit (rendering)
@@ -416,9 +438,13 @@ batching, probe-detail survey and far-shadow bake apply unchanged.
   elevation are public-knowledge estimates, closed by solver adjustments of up
   to ~10 % on some straights (`catalogue.authoring.closureAdjustment`).
 - Sectors are thirds of the lap, not authored per venue.
-- The kit's look has been checked in plan view and node scene builds only; no
+- The kit's look has been checked in plan view and node scene builds, plus a
+  handful of software-GL frames of the Wildcard wave-2 venues (see above); no
   in-browser capture-suite review, hardware frame timing or art sign-off exists
-  (software-GL capture was impractical on the shared CI machine).
+  (software-GL capture was impractical on the shared CI machine: under load the
+  renderer's 45 s GPU fence timed out on 6 of 9 Medium-quality session loads
+  (all four Saffron Lane attempts) and on none of 6 Low-quality loads, which is
+  why some frames are Low)
 - Tunnels block rain on the surface and in rain particles; spray from cars,
   sky light and reflections inside tunnels are not specially treated.
 - The pit lane template still requires a straight of about 365–550 m.
