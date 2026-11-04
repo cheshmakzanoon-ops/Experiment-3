@@ -20,7 +20,7 @@ or hand-authored vector.
 | Header Capsule | 920x430 | `art/capsule/header-920x430.png` | The one most people see. A 460x215 check of the same art: `header-460x215.png` (do not upload) |
 | Small Capsule | 462x174 | `art/capsule/capsule-small-462x174.png` | Wordmark only; 231x87 check: `capsule-small-231x87.png` |
 | Main Capsule | 1232x706 | `art/capsule/capsule-main-1232x706.png` | Four discipline bands; 616x353 check: `capsule-main-616x353.png` |
-| Vertical Capsule | 748x896 | `art/capsule/capsule-vertical-748x896.png` | |
+| Vertical Capsule | 748x896 | `art/capsule/capsule-vertical-748x896.png` | 374x448 check: `capsule-vertical-374x448.png` (do not upload) |
 | Page Background | 1438x810 | `art/page/page-background-1438x810.jpg` | Optional; blurred, mean luminance about 15% |
 | Screenshots (5 required, plan 12) | 1920x1080 | `screenshots/*.jpg` (10) and the unlabelled frames in `art/frames/` (see below) | Alt text per file in `screenshots/manifest.json` and `STORE_PAGE.md` |
 | Trailer | 1920x1080 H.264 | **none yet** | `trailer/capsule-teaser-animatic.mp4` is an animatic from stills, **not** uploadable as the trailer. See `TRAILER_CAPTURE.md` |
@@ -59,8 +59,7 @@ translation pass per language: `localized/`).
 
 Steam wants gameplay captured from the game. The frames in `art/frames/` are the game's own renders (the photo studio
 is the camera; no HUD, no composite). They are fair as store screenshots if the page also shows HUD shots first (the
-first screenshot is judged as gameplay): lead with a HUD frame (`screenshots/` has the HUD-free ones; the trailer
-keyframes `trailer/keyframes/t02-*`, `t04-*` are HUD frames if the capture run reached them). Capsule art is allowed to be
+first screenshot is judged as gameplay): lead with a HUD frame: `trailer/keyframes/t02-grid-pack.jpg` (the AI driver on software GL; see `STORE_PAGE.md`). Capsule art is allowed to be
 composed; screenshots are not.
 
 ## Final checks before pressing upload

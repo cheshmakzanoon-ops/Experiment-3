@@ -30,15 +30,15 @@ A replay seek was tried by the earlier tool and redrew a stale frame at the high
 | Shot | Time | Keyframe now | Status |
 | --- | --- | --- | --- |
 | t01 cold open, showroom orbit | 0:00-0:04 | `art/frames/apx01-showroom.jpg` | keyframe |
-| t02 lights out, low chase with the pack | 0:04-0:09 | `trailer/keyframes/t02-grid-pack.jpg` | see manifest |
-| t03 night street run | 0:09-0:14 | `art/frames/night-gt-neon.jpg` | see manifest |
-| t04 harbour streets in rain | 0:14-0:19 | `trailer/keyframes/t04-rain-harbour.jpg` | see manifest |
-| t05 GP bike lean | 0:19-0:24 | `art/frames/gp-lean-side.jpg` | see manifest |
+| t02 lights out, low chase with the pack | 0:04-0:09 | `trailer/keyframes/t02-grid-pack.jpg` | **captured**, HUD on: formula car at 286 km/h on Aurel, P2 of 8 (AI driver, software GL; the first take had the pause menu over it and was retaken) |
+| t03 night street run | 0:09-0:14 | `art/frames/night-gt-neon.jpg` | keyframe (a tunnel, not neon streets) |
+| t04 harbour streets in rain | 0:14-0:19 | `screenshots/night-street-rain.jpg` (stand-in) | **capture rejected**: on software GL the wet road and car rendered as flat black and blown-out white (`trailer/keyframes/rejected/t04-rain-harbour.jpg`, a render defect, not diagnosed); the older neon-city rain screenshot stands in |
+| t05 GP bike lean | 0:19-0:24 | `art/frames/gp-lean-side.jpg` | keyframe |
 | t06 superbikes, rain arrives | 0:24-0:29 | none (the GP frame stands in) | not captured |
-| t07 holeshot and the jump | 0:29-0:35 | `art/frames/mx-jump-side.jpg` | see manifest |
-| t08 floodlit supercross | 0:35-0:40 | `trailer/keyframes/t08-sx-floodlit.jpg` | see manifest |
+| t07 holeshot and the jump | 0:29-0:35 | `art/frames/mx-jump-side.jpg` | keyframe (a real in-air frame) |
+| t08 floodlit supercross | 0:35-0:40 | none | not captured this pass (entry is in the tool: `--only t08`) |
 | t09 the hook: wrong machine, right track | 0:40-0:46 | `art/frames/wildcard-knobblies-banking.jpg` | keyframe (the Wildcard series shipped, so this is no longer PENDING) |
-| t10 trophy truck, forest gravel | 0:46-0:50 | `trailer/keyframes/t10-gravel-truck.jpg` | see manifest |
+| t10 trophy truck, forest gravel | 0:46-0:50 | none | not captured this pass (entry is in the tool: `--only t10`) |
 | t11 coast road, golden hour | 0:50-0:56 | `art/frames/coast-eh3-wide.jpg` | keyframe |
 | t12 drift zone | 0:56-1:01 | none | not captured: a drift needs a driver |
 | t13 airfield jump | 1:01-1:05 | none | not captured: a festival jump needs a driver |
@@ -46,11 +46,14 @@ A replay seek was tried by the earlier tool and redrew a stale frame at the high
 | t15 podium and results, montage | 1:08-1:12 | `screenshots/results-board.jpg` | keyframe (AI-driven result; layout only) |
 | t16 end card | 1:12-1:15 | designed (the animatic end card) | designed; add the wishlist line and release window when real |
 
-"See manifest": open `trailer/keyframes/manifest.json` (`status` captured or failed, with the note). A shot that did
-not capture keeps its fallback still in the animatic and is named as a fallback in `teaser-timings.json`.
+`trailer/keyframes/manifest.json` has the status and note of every keyframe this tool took (captured, failed or rejected). The beats of the
+animatic and the file each one used (including stand-ins) are in `trailer/teaser-timings.json`.
 
 30 s cut-down: shots 2, 7, 5, 11, 9, 15 at 5 s each. The first three seconds must read without sound (lights out, a
 jump, a lean): autoplay on a Steam page is muted.
+
+Measured: the animatic is 19.4 s, 582 frames, H.264 High 1920x1080 30 fps yuv420p, 5.5 MB (`ffprobe`), eight beats and an end card;
+rendering the frames took about one minute on the shared CPUs.
 
 ## The commands
 

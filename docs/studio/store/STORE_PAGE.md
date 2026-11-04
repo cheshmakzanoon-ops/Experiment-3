@@ -276,8 +276,12 @@ real in-air frame and replaces `motocross-jump.jpg` as the dirt shot (that file 
 `wildcard-knobblies-banking.jpg` (the Wildcard hook: a motocross bike on the banked speed bowl, chase camera);
 `apx01-showroom.jpg` and `apx01-portrait.jpg` (the hero car without the paddock board); `coast-eh3-wide.jpg`
 (3840x1240, the EH-3 on the coast road; a parked traffic car intrudes bottom-left, taken before the tool learnt to
-turn ambient traffic off). Lead the page with a HUD shot: the trailer keyframes in `trailer/keyframes/` (when captured) keep
-the HUD on.
+turn ambient traffic off). **Lead the page with a HUD shot:** `trailer/keyframes/t02-grid-pack.jpg` (1920x1080 JPEG, kept after one retake: the first
+take had the pause menu over it) is the best candidate for screenshot 1: the formula car at 286 km/h through a fast
+corner of the Aurel circuit with the full race HUD. It was driven by the in-game AI driver on software GL (say so if
+asked; retake with a human driver on a GPU for launch). Alt text: *A formula car at 286 km/h on the Aurel circuit seen
+from behind, with the position tower, speed, gear, battery and lap timer of the race HUD, a track map, grandstands
+and mountains under a blue sky.*
 
 ## Not for the page until true
 

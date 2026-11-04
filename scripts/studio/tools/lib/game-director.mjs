@@ -28,6 +28,8 @@ import { join } from 'node:path';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const HIDE_CHROME = `#app,#app *{visibility:hidden!important}#modal::backdrop{background:transparent!important}`;
+// A held frame WITH the HUD: only the pause menu, the race-control banner (it says AI DEMONSTRATION) and toasts go.
+const HIDE_PAUSE_ONLY = `#modal,#toast,.f1-banner{display:none!important}`;
 
 export class Director {
   /**
@@ -135,6 +137,7 @@ export class Director {
     await this.page.setViewportSize({ width: w, height: h });
     await sleep(2500);
   }
+  /** on: true = hide the whole interface; 'hud' = keep the HUD, hide the pause menu and banners; false = show everything. */
   async hideChrome(on) {
     await this.page.evaluate(
       ([css, enable]) => {
@@ -145,7 +148,7 @@ export class Director {
         s.textContent = css;
         document.head.append(s);
       },
-      [HIDE_CHROME, on],
+      [on === 'hud' ? HIDE_PAUSE_ONLY : HIDE_CHROME, !!on],
     );
   }
   async encode(size, type = 'jpeg') {
@@ -435,7 +438,7 @@ export class Director {
     } else {
       const frames = held.presentationFrames ?? 0;
       await this.setViewport(w, h);
-      await this.hideChrome(!shot.hud);
+      await this.hideChrome(shot.hud ? 'hud' : true);
       await this.waitFor('redraw', (d) => (d.presentationFrames ?? 0) >= frames + 4, 1800000, 500);
       await sleep(4000);
     }
@@ -482,7 +485,7 @@ export class Director {
     } else {
       const frames = held.presentationFrames ?? 0;
       await this.setViewport(w, h);
-      await this.hideChrome(!shot.hud);
+      await this.hideChrome(shot.hud ? 'hud' : true);
       await this.waitFor('redraw', (d) => (d.presentationFrames ?? 0) >= frames + 4, 1800000, 500);
       await sleep(4000);
     }

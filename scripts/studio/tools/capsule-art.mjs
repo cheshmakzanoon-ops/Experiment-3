@@ -20,7 +20,7 @@
  * hero's left third quiet.
  */
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -157,6 +157,7 @@ function band(cells, box, { labelH = 20, font = 11 } = {}) {
 const ASSETS = [
   {
     id: 'header',
+    minMargin: 20,
     file: 'capsule/header-920x430.png',
     size: [920, 430],
     dpr: 2,
@@ -190,6 +191,7 @@ const ASSETS = [
   },
   {
     id: 'small',
+    minMargin: 10,
     file: 'capsule/capsule-small-462x174.png',
     size: [462, 174],
     dpr: 2,
@@ -222,6 +224,7 @@ const ASSETS = [
   },
   {
     id: 'main',
+    minMargin: 26,
     file: 'capsule/capsule-main-1232x706.png',
     size: [1232, 706],
     dpr: 2,
@@ -267,6 +270,7 @@ const ASSETS = [
   },
   {
     id: 'vertical',
+    minMargin: 20,
     file: 'capsule/capsule-vertical-748x896.png',
     size: [748, 896],
     dpr: 2,
@@ -299,7 +303,20 @@ const ASSETS = [
     },
   },
   {
+    id: 'vertical-1x',
+    file: 'capsule/capsule-vertical-374x448.png',
+    size: [374, 448],
+    dpr: 1,
+    format: 'png',
+    minMargin: 20,
+    where: 'Legibility check at the size Steam shows on a 1x screen',
+    safe: 'same layout as vertical',
+    alt: 'MOTOBOUND vertical capsule at 374x448.',
+    build: () => ASSETS.find((a) => a.id === 'vertical').build(),
+  },
+  {
     id: 'library-capsule',
+    minMargin: 40,
     file: 'library/library-capsule-600x900.png',
     size: [600, 900],
     dpr: 1,
@@ -365,6 +382,7 @@ const ASSETS = [
   },
   {
     id: 'library-logo',
+    minMargin: 40,
     file: 'library/library-logo-1280x720.png',
     size: [1280, 720],
     dpr: 1,
@@ -380,6 +398,7 @@ const ASSETS = [
   },
   {
     id: 'library-logo-mono',
+    minMargin: 40,
     file: 'library/library-logo-mono-white-1280x720.png',
     size: [1280, 720],
     dpr: 1,
@@ -395,6 +414,7 @@ const ASSETS = [
   },
   {
     id: 'community-icon',
+    minMargin: 18,
     file: 'icons/community-icon-184x184.jpg',
     size: [184, 184],
     dpr: 1,
@@ -406,6 +426,7 @@ const ASSETS = [
   },
   {
     id: 'client-icon',
+    minMargin: 28,
     file: 'icons/client-icon-256x256.png',
     size: [256, 256],
     dpr: 1,
@@ -417,6 +438,7 @@ const ASSETS = [
   },
   {
     id: 'icon-master',
+    minMargin: 110,
     file: 'icons/icon-1024x1024.png',
     size: [1024, 1024],
     dpr: 1,
@@ -428,6 +450,7 @@ const ASSETS = [
   },
   {
     id: 'event-banner',
+    minMargin: 30,
     file: 'event/event-banner-800x450.png',
     size: [800, 450],
     dpr: 1,
@@ -532,6 +555,42 @@ if (v.verify) {
     console.log(`${ok ? 'ok      ' : 'BAD SIZE'} ${a.file} ${info.width}x${info.height} ${info.format}${a.transparent ? ` alpha(colour type ${info.colourType})` : ''}${same ? '' : ' (differs from the manifest hash: rebuilt since?)'}`);
     if (!ok) bad++;
   }
+  // The required list, written out here (not read from the tool's own asset table): a wrong size in ASSETS cannot hide.
+  const REQUIRED = [
+    ['capsule/header-920x430.png', 920, 430], ['capsule/header-460x215.png', 460, 215],
+    ['capsule/capsule-small-462x174.png', 462, 174], ['capsule/capsule-small-231x87.png', 231, 87],
+    ['capsule/capsule-main-1232x706.png', 1232, 706], ['capsule/capsule-main-616x353.png', 616, 353],
+    ['capsule/capsule-vertical-748x896.png', 748, 896], ['capsule/capsule-vertical-374x448.png', 374, 448],
+    ['page/page-background-1438x810.jpg', 1438, 810], ['library/library-capsule-600x900.png', 600, 900],
+    ['library/library-header-920x430.png', 920, 430], ['library/library-hero-3840x1240.jpg', 3840, 1240],
+    ['library/library-logo-1280x720.png', 1280, 720], ['icons/community-icon-184x184.jpg', 184, 184],
+    ['icons/client-icon-256x256.png', 256, 256], ['event/event-banner-800x450.png', 800, 450],
+  ];
+  for (const [file, w, h] of REQUIRED) {
+    const path = join(ART, file);
+    const info = existsSync(path) ? imageInfo(readFileSync(path)) : null;
+    const ok = info && info.width === w && info.height === h;
+    if (!ok) {
+      console.log(`REQUIRED SIZE MISSING OR WRONG: ${file} wants ${w}x${h}, has ${info ? `${info.width}x${info.height}` : 'nothing'}`);
+      bad++;
+    }
+  }
+  console.log(`required Steam sizes: ${REQUIRED.length} files checked against the list in the tool`);
+  // Screenshots: 1920x1080 or larger, 16:9 (the store-page rule), for the store screenshots and the 16:9 key-art frames.
+  const shotFiles = [
+    ...readdirSync(join(ART, '../screenshots')).filter((f) => f.endsWith('.jpg')).map((f) => join(ART, '../screenshots', f)),
+    ...readdirSync(FRAMES).filter((f) => f.endsWith('.jpg') && !/portrait|wide/.test(f)).map((f) => join(FRAMES, f)),
+  ];
+  let shotsOk = 0;
+  for (const path of shotFiles) {
+    const info = imageInfo(readFileSync(path));
+    if (info.width >= 1920 && info.height >= 1080 && Math.abs(info.width / info.height - 16 / 9) < 0.01) shotsOk++;
+    else {
+      console.log(`SCREENSHOT RULE: ${relative(ROOT, path)} is ${info.width}x${info.height} (needs 16:9 and at least 1920x1080)`);
+      bad++;
+    }
+  }
+  console.log(`screenshot rule (16:9, at least 1920x1080): ${shotsOk} of ${shotFiles.length} files pass`);
   const hits = await ipCheck(allText());
   console.log(hits.length ? `IP check: ${hits.length} hit(s)\n  ${hits.join('\n  ')}` : 'IP check: findBrands found nothing in the tagline, alt text or brand SVG text');
   if (hits.length) bad++;
@@ -601,6 +660,17 @@ for (const asset of todo) {
     await document.fonts.ready;
     await Promise.all([...document.images].map((i) => i.decode().catch(() => {})));
   });
+  // Safe area, checked on the layout itself: the logo and the tagline strip keep `minMargin` (1x px) from every edge.
+  const margin = await page.evaluate(() => {
+    const cv = document.querySelector('.cv').getBoundingClientRect();
+    let min = Infinity;
+    for (const el of document.querySelectorAll('.brand, .tag')) {
+      const r = el.getBoundingClientRect();
+      min = Math.min(min, r.left - cv.left, r.top - cv.top, cv.right - r.right, cv.bottom - r.bottom);
+    }
+    return min === Infinity ? null : Math.round(min * 10) / 10;
+  });
+  if (asset.minMargin && margin !== null && margin < asset.minMargin) throw new Error(`${asset.id}: logo or tagline ${margin}px from an edge, the safe area asks for ${asset.minMargin}px`);
   const options = { type: asset.format === 'png' ? 'png' : 'jpeg', omitBackground: !!asset.transparent, timeout: 600000 };
   if (asset.format === 'jpeg') options.quality = 92;
   let buffer = await page.screenshot(options);
@@ -623,8 +693,8 @@ for (const asset of todo) {
   if (info.width !== asset.size[0] || info.height !== asset.size[1]) throw new Error(`${asset.id}: rendered ${info.width}x${info.height}, wanted ${asset.size.join('x')}`);
   if (asset.transparent && (info.colourType !== 6 || facts.cornerAlpha !== 0)) throw new Error(`${asset.id}: expected a transparent PNG (colour type ${info.colourType}, corner alpha ${facts.cornerAlpha})`);
   writeFileSync(out, buffer);
-  console.log(`${asset.id.padEnd(18)} ${asset.size.join('x').padEnd(10)} ${(buffer.length / 1024).toFixed(0).padStart(5)} KB  luma ${facts.meanLuma.toFixed(3)}${asset.transparent ? `  clear ${(facts.clearFraction * 100).toFixed(0)}%` : ''}  ${asset.file}`);
-  results.push({ asset, buffer, facts, info, roles });
+  console.log(`${asset.id.padEnd(18)} ${asset.size.join('x').padEnd(10)} ${(buffer.length / 1024).toFixed(0).padStart(5)} KB  luma ${facts.meanLuma.toFixed(3)}  margin ${margin ?? '-'}px${asset.transparent ? `  clear ${(facts.clearFraction * 100).toFixed(0)}%` : ''}  ${asset.file}`);
+  results.push({ asset, buffer, facts, info, roles, margin });
 }
 
 // ---- ICO / ICNS-ready icon set (ImageMagick if it is there; the PNGs are the source of truth) -------------------
@@ -661,6 +731,8 @@ const entries = ASSETS.map((asset) => {
     bytes: r.buffer.length,
     sha256: createHash('sha256').update(r.buffer).digest('hex'),
     meanLuma: Number(r.facts.meanLuma.toFixed(3)),
+    minMarginPx: r.margin,
+    requiredMarginPx: asset.minMargin ?? null,
     steamSlot: asset.where,
     safeArea: asset.safe,
     alt: asset.alt,
@@ -705,7 +777,7 @@ figure{display:block}figcaption{font:600 12px 'Saira';letter-spacing:.1em;color:
 h2{font:700 13px 'Saira';letter-spacing:.16em;text-transform:uppercase;color:${C.amber};margin:8px 0 12px}
 </style></head><body><h1>MOTOBOUND STEAM ART</h1><p class="s">Generated by scripts/studio/tools/capsule-art.mjs. Game frames are software-GL captures. Capsules at 50%; the legibility row is at true 1x pixels.</p>
 <h2>Capsules (2x files at 50%)</h2>${row('header', 'main', 'vertical')}${row('small', 'library-capsule', 'event-banner')}
-<h2>Legibility at the pixel size Steam shows on a 1x screen (not scaled)</h2><div class="row">${['header-1x', 'small-1x', 'main-1x'].filter((i) => by[i]).map((i) => tile(by[i], 1)).join('')}</div>
+<h2>Legibility at the pixel size Steam shows on a 1x screen (not scaled)</h2><div class="row">${['header-1x', 'small-1x', 'main-1x', 'vertical-1x'].filter((i) => by[i]).map((i) => tile(by[i], 1)).join('')}</div>
 <h2>Library hero 3840x1240 and page background 1438x810 (scaled)</h2><div class="row">${by['library-hero'] ? tile(by['library-hero'], 0.32) : ''}${by['page-background'] ? tile(by['page-background'], 0.5) : ''}</div>
 <h2>Library logo (transparent) on dark and on light ground, then icons</h2><div class="row">${by['library-logo'] ? tile(by['library-logo'], 0.4, '#0b0c0d') + tile(by['library-logo'], 0.4, '#e8dfc8') : ''}${by['library-logo-mono'] ? tile(by['library-logo-mono'], 0.4, '#3a5a7a') : ''}${['community-icon', 'client-icon'].filter((i) => by[i]).map((i) => tile(by[i], 1)).join('')}${by['icon-master'] ? tile(by['icon-master'], 0.25) : ''}</div>
 </body></html>`;

@@ -4,7 +4,7 @@ Generated files. Do not edit by hand: change the layout in `scripts/studio/tools
 
 | Folder | Contents |
 | --- | --- |
-| `capsule/` | header, small, main and vertical capsules at the 2x sizes Steam takes (920x430, 462x174, 1232x706, 748x896) and the 1x legibility checks (460x215, 231x87, 616x353) |
+| `capsule/` | header, small, main and vertical capsules at the 2x sizes Steam takes (920x430, 462x174, 1232x706, 748x896) and the 1x legibility checks (460x215, 231x87, 616x353, 374x448) |
 | `library/` | library capsule 600x900, library header 920x430, library hero 3840x1240 (no text), library logo 1280x720 (transparent PNG, plus a one-colour version) |
 | `page/` | page background 1438x810 |
 | `icons/` | community icon 184x184 JPG, client icon 256x256, master 1024x1024, `icon.ico` (16-256 px) |

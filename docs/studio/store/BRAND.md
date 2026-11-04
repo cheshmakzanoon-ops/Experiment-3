@@ -80,16 +80,21 @@ rule                    2 u hairline 20 u under the baseline, ending in three 31
 
 ## Safe areas used by the capsule tool
 
-| Asset | Rule |
-| --- | --- |
-| Header 920x430 (460x215 at 1x) | board 45% wide at the bottom; logo and strip 22 px (1x) from the left and centred vertically on the board; nothing but the photograph right of the lane line |
-| Small 462x174 (231x87) | wordmark only, 112 px wide, 14 px left margin; board 140 px; one subject crop on the right |
-| Main 1232x706 (616x353) | board over the hero only, four 22 px-label bands (11 px at 1x) along the bottom 90 px |
-| Vertical 748x896 (374x448) | board on top 118 px, hero in the middle, three bands in the bottom 86 px |
-| Library capsule 600x900 | quiet lower third: logo and strip on asphalt below y=612; no detail under it (the play bar can sit there) |
-| Library hero 3840x1240 | no text, no logo; the left 40% is held dark by a mask for the logo overlay |
-| Library logo 1280x720 | transparent, 1180 px wide lockup, 50 px minimum margin |
-| Icons | roundel only, 12-14% margins on a square |
+The tool measures the logo and the tagline strip on the real layout (`getBoundingClientRect`) and **refuses to write
+an image** whose logo or strip comes closer to an edge than the minimum below (1x px; the measured value is
+`minMarginPx` in `art/manifest.json`).
+
+| Asset | Rule | Minimum margin (measured) |
+| --- | --- | --- |
+| Header 920x430 (460x215 at 1x) | board 45% wide at the bottom; logo and strip centred vertically on the board; nothing but the photograph right of the lane line | 20 (22) |
+| Small 462x174 (231x87) | wordmark only, 124 px wide, no tagline; board 152 px; one subject crop on the right | 10 (14) |
+| Main 1232x706 (616x353) | board over the hero only; four bands 90 px high with 22 px (11 px at 1x) labels along the bottom | 26 (30) |
+| Vertical 748x896 (374x448) | board on top 118 px, hero in the middle, three bands in the bottom 86 px | 20 (22) |
+| Library capsule 600x900 | quiet lower third: logo and strip on asphalt below y=612; no detail under it (the play bar can sit there) | 40 (42) |
+| Library hero 3840x1240 | no text, no logo; the left half carries a mask that holds the left third dark for the logo overlay | n/a |
+| Library logo 1280x720 | transparent, 1180 px wide lockup | 40 (50) |
+| Event banner 800x450 | header layout at 800 wide | 30 (38) |
+| Icons | roundel only: 11% (community), 12% (client, master) of the side | 18 / 28 / 110 (20 / 30 / 124) |
 
 Steam crops and overlays differ by placement and change over time; re-check the Steamworks "Store graphical
 assets" page before uploading (`ART_UPLOAD_CHECKLIST.md`).
