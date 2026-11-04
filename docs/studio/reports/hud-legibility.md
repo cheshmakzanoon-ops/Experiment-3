@@ -133,7 +133,7 @@ automatic: banner / pit / start / alert 12.9 px, VEHICLE panels 11.5 px (the pan
 ## 5. HUD SCALE setting
 
 * **Settings > HUD > HUD SCALE**: Automatic, 100, 115, 130, 150 %. Stored as `Settings.hudScale` (`'auto' | 1 | 1.15 | 1.3 | 1.5`);
-  `validateHudScale` maps a number to the nearest step and anything else (missing, a string, junk) to `auto`, so every earlier save
+  `validateHudScale` maps a number or a numeric string to the nearest step and anything else (missing, non-numeric, junk) to `auto`, so every earlier save
   reads as automatic (`tests/hud-scale.test.ts` runs settings versions 1 to 6 through `validateSettings`).
 * **Applied live** through one CSS custom property: a step sets `--hud-scale` on the root, automatic removes it and the style sheet
   decides. The dial applies as it moves and goes back when the screen is cancelled (the settings-dial test in `e2e/65`).
@@ -234,7 +234,9 @@ and tritan, below the 25 line; the times are always printed, so colour is never 
   element to buy the room back; that is a design call for the next pass.
 * **130 % and 150 % are the same size on a 1280 px wide window** (the cap that keeps the panels apart), and the dial does not
   say so beyond its help text.
-* **The default tyre palette is still not safe for a tritan viewer** (delta-E 5.1); only the colour-blind setting is.
+* **The default tyre palette is still not safe for a tritan viewer** (delta-E 5.1); only the colour-blind setting is. That
+  checkbox's description ("Colour-blind-safe HUD · patterned flags, and blue, orange, yellow and rose for the timing colours") still
+  names only the timing colours; I did not change the string, because that means seven translations and a settings baseline.
 * **Hardware.** Measured in desktop Chromium (headless, DOM fixtures, device scale factor 1) and one SwiftShader game frame; not on
   a Steam Deck, not at a Deck's viewing distance. Pixel floors are CSS px at 1 x; the 11 px floor is the studio's, not a measured
   acuity limit. The 18 px primary floor is met at every scale: the smallest primary readout (the lap time) is 22.1 px at
@@ -256,7 +258,27 @@ and tritan, below the 25 line; the times are always printed, so colour is never 
 
 ## 10. Verification (commands actually run)
 
-VERIFY_BLOCK
+All in this worktree, one browser at a time, no full vitest suite. Final results on the commit this report ships in:
+
+| Command | Result |
+| --- | --- |
+| `npx tsc --noEmit` | pass, no output |
+| `npx eslint` on the 26 changed `.ts` / `.mts` / `.mjs` / `.js` files | pass, no output |
+| `npx vitest run tests/hud-scale tests/hud-colourblind tests/hud-identity tests/f1-hud tests/motocross-hud tests/front-end-board tests/results-settings tests/settings-transition tests/i18n tests/i18n-english-identity tests/audio-music-settings tests/frontend-menus tests/ultra-options tests/presentation tests/race-day tests/career-hub` | 16 files, 253 tests pass |
+| `npm run check:i18n` | 1,077 strings x 7 languages, 0 errors, 0 warnings |
+| `CHROMIUM_PATH=/opt/pw-browsers/chromium APEX_WT=$PWD APEX_OUT=<dir> npx playwright test -c scripts/studio/tools/pw-dom.config.ts e2e/28-race-hud-layout e2e/49-hud-footprint e2e/52-vehicle-hud e2e/60-launch-board e2e/62-results-settings e2e/63-i18n-layout e2e/64-design-critic e2e/65-hud-legibility` | 40 passed (7.4 min, one worker) |
+| the same config on `e2e/44-motocross-interface e2e/49-festival-menu-access e2e/59-career-hub e2e/61-first-run e2e/instruments` (HUD-adjacent DOM specs, run after the compact-layout change) | 17 passed |
+| `npm run build` (tsc, vite build, the IP guard) then `npm run check:bundle` | build ok, IP guard clean (75 shipped text files, 68 internal-identifier mentions tolerated), initial JS 3.5 MB gzip against the 4 MB budget |
+| `node scripts/studio/tools/hud-measure.mjs` (before: `main` eccc6d0; after: this branch), four viewports | tables in section 3; after: 2,424 texts, 0 under floor, 0 page errors |
+| `node scripts/studio/tools/hud-real.mjs` against a preview of each build, 1280 x 800 | before and after frames, section 1 |
+| `node scripts/studio/tools/hud-cvd.mjs` | section 7 |
+
+What the history of this branch got wrong and I fixed on the way (the first full run of the set failed 4 of 39): the compact layout
+override of `--scale` (the unit test expected a chosen step to reach it), the audit counting font-size-0 elements as 0 px text
+once the `#hud` exemption was gone, and the English-markup baseline, which had not been regenerated for the new CSS and the new
+settings fieldset. The mutation check (section 8) shows the new guard fails when the unit floor is removed. Not run: the full
+vitest suite and the real-WebGL e2e specs (the host is shared; the DOM fixtures and one real frame cover this change), any
+hardware test.
 
 ## 11. Recommended next tasks (ranked)
 
