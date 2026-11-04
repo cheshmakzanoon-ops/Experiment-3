@@ -487,7 +487,7 @@ export function soundFamilyFor(definition: VehicleDefinition): SoundFamily {
 export interface EngineSignature {
   /** Low-band lift (+) / high-band cut (dB): the low band gets +tilt/2, the high band -tilt/2. */
   tiltDb: number;
-  /** Multiplier on the voice low-pass corner. */
+  /** Multiplier (1 to 1.5) on the voice low-pass corner. */
   brightness: number;
 }
 /** FNV-1a of a string to [0, 1). */
@@ -502,7 +502,10 @@ export function engineSignature(id: string, loadTorque: number): EngineSignature
     b = hash01(`${id}#`);
   return {
     tiltDb: Math.max(-6, Math.min(6, 2 * size + (a - 0.5) * 7)),
-    brightness: Math.max(0.7, Math.min(1.4, 2 ** (-0.3 * size + (b - 0.5) * 0.8))),
+    // Only ever brighter than the family voice: a lower corner would also darken the Doppler-shifted
+    // harmonics (e2e/spatial-audio pins that the output frequency follows the Doppler factor); a
+    // bigger engine is darkened by the band tilt instead.
+    brightness: Math.max(1, Math.min(1.5, 2 ** (-0.3 * size + (b - 0.5) * 0.8 + 0.25))),
   };
 }
 

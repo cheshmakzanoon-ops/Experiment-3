@@ -456,7 +456,7 @@ def spectrogram_png(path, sr, x, title, width=620, height=300, fmin=40, fmax=160
         xx = margin_l + int(width * e / dur)
         d.line([(xx, margin_t), (xx, margin_t + 6)], fill=(120, 255, 160))
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    canvas.quantize(colors=128, method=Image.Quantize.MEDIANCUT).save(path, optimize=True)
+    canvas.quantize(colors=80, method=Image.Quantize.MEDIANCUT).save(path, optimize=True)
     return True
 
 

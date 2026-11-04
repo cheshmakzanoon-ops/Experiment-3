@@ -206,8 +206,8 @@ describe('the trophy truck voice and the per-machine signature', () => {
     for (const d of Object.values(VEHICLES)) {
       const { signature, profile } = engineCharacter(d);
       expect(Math.abs(signature.tiltDb), d.id).toBeLessThanOrEqual(6);
-      expect(signature.brightness, d.id).toBeGreaterThanOrEqual(0.7);
-      expect(signature.brightness, d.id).toBeLessThanOrEqual(1.4);
+      expect(signature.brightness, d.id).toBeGreaterThanOrEqual(1);
+      expect(signature.brightness, d.id).toBeLessThanOrEqual(1.5);
       expect(profile.family).toBeTruthy();
     }
     const twins = ['fe4', 'hh2', 'rh3', 'tc2', 'tc3'].map(
