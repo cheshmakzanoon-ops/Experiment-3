@@ -37,5 +37,5 @@ for r in range(rows):
     for c, t in enumerate(tiles[r * cols : (r + 1) * cols]):
         sheet.paste(t, (c * tile, y))
     y += row_h[r]
-sheet.save(out, quality=82)
+sheet.save(out, quality=70, optimize=True)
 print(out, sheet.size)

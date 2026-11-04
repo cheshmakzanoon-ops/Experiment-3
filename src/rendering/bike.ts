@@ -2151,6 +2151,11 @@ export class BikeShells {
   serviceRig(id: number) {
     return this.entries.get(id)?.rig ?? null;
   }
+  /** The model of entrant `id` that is drawn now (its visible level of detail): a bike is not the
+   * `FormulaCar` that holds its slot, so anything that measures what is on screen asks here. */
+  drawnRoot(id: number): T.Object3D | null {
+    return this.entries.get(id)?.levels.find((level) => level.root.visible)?.root ?? null;
+  }
   /** Shared service pose of a stopped bike from the discrete snapshot fields
    * the crew presentation reads (phase, service clock, stand lift); null when
    * the entrant is not in an active service. */

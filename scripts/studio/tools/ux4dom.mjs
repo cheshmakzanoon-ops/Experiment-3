@@ -82,9 +82,15 @@ const shoot = async (name, [w, h]) => {
   report.shots.push(path);
   console.log(`${path} ${(statSync(path).size / 1024).toFixed(0)} KB`);
 };
-for (const vp of viewports) {
+// Demo scenes switch the demo policy on for the rest of the page, so every viewport of the other scenes
+// runs first and every viewport of the demo scenes after.
+const passes = [
+  ...viewports.map((vp) => [vp, scenes.filter((s) => !s.startsWith('demo'))]),
+  ...viewports.map((vp) => [vp, scenes.filter((s) => s.startsWith('demo'))]),
+];
+for (const [vp, passScenes] of passes) {
   await page.setViewportSize({ width: vp[0], height: vp[1] });
-  for (const scene of scenes) {
+  for (const scene of passScenes) {
     const [name, argument] = scene.split(':');
     const key = `${scene}@${vp.join('x')}`;
     try {

@@ -383,6 +383,9 @@ export class RacingRenderer {
     shift: number;
     left: number;
     right: number;
+    /** The extent the camera fitted (metres, machine frame) and the collision half extents it replaces. */
+    box: ShowroomBox;
+    collision: { halfWidth: number; halfLength: number };
   } | null = null;
   private showroomFit = { key: '', radius: 0 };
   private showroomMeasure: { key: string; box: ShowroomBox } = {
@@ -1475,14 +1478,24 @@ export class RacingRenderer {
       // off just far enough that its whole length fits there (never closer than authored).
       // The drawn meshes' own extent, measured now and again every two seconds of orbit (the machine's
       // model can finish loading after its first frame); the collision box until then.
-      const measureKey = `${car.root.uuid}|${Math.floor(this.orbitTime / 2)}`;
+      // (A motorcycle is not the FormulaCar that holds its slot: measure the model that is drawn.)
+      const drawn = bikeFollow ? (this.bikeShells?.drawnRoot(this.follow) ?? null) : car.root;
+      const measureKey = `${drawn?.uuid ?? 'collision'}|${Math.floor(this.orbitTime / 2)}`;
+      const collision = {
+        halfWidth: followedDefinition.halfExtents[0],
+        halfLength: followedDefinition.halfExtents[2],
+      };
       if (this.showroomMeasure.key !== measureKey)
         this.showroomMeasure = {
           key: measureKey,
-          box: measureShowroomBox(car.root, {
-            halfWidth: followedDefinition.halfExtents[0],
-            halfLength: followedDefinition.halfExtents[2],
-          }),
+          box: drawn
+            ? measureShowroomBox(drawn, collision)
+            : {
+                minX: -collision.halfWidth,
+                maxX: collision.halfWidth,
+                minZ: -collision.halfLength,
+                maxZ: collision.halfLength,
+              },
         };
       const box = this.showroomMeasure.box;
       // (The fit only changes with the lens, the machine, the aspect or the strip: cache it.)
@@ -1502,6 +1515,8 @@ export class RacingRenderer {
         shift,
         left: (span.left + 1) / 2,
         right: (span.right + 1) / 2,
+        box,
+        collision,
       };
       this.desired
         .set(Math.sin(angle) * radius, 0, Math.cos(angle) * radius)

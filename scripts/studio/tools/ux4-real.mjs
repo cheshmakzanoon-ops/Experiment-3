@@ -81,7 +81,7 @@ const showroomNow = () =>
 
 for (const scene of scenes) {
   if (scene === 'menus') {
-    for (const discipline of ['circuit', 'gp', 'dirt', 'festival']) {
+    for (const discipline of arg('plates', 'circuit,gp,dirt,festival').split(',')) {
       await resize([1280, 720]);
       await plate(discipline);
       for (const vp of viewports) {

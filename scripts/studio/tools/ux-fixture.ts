@@ -456,6 +456,16 @@ export function demoWildcard() {
   useDemoPolicy(createDemoPolicy());
   wildcardBoard('descent-in-the-cloud');
 }
+/** The demo's Wildcard board with a locked (FULL GAME) event chosen: the tag sits on the paper row. */
+export function demoWildcardLocked() {
+  useDemoPolicy(createDemoPolicy());
+  wildcardBoard('karts-after-dark');
+}
+/** RECORDS in the demo: locked events are listed dimmed. */
+export function demoRecords() {
+  useDemoPolicy(createDemoPolicy());
+  return records('wildcard', false);
+}
 
 // ---- Wave 4 (design critic): every other screen --------------------------------------
 import '../../../src/ui/grid-presentation.css';

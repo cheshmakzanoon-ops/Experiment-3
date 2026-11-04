@@ -121,7 +121,7 @@ const SCREENS = [
 /** The race HUD and the screens that sit over it (their own text is held to the floor; the HUD's is not). */
 const HUD_SCREENS = ['hud', 'hudGp', 'hudMx', 'replay', 'pause', 'results'];
 /** Demo scenes switch the demo policy on for the rest of the page: last. */
-const DEMO_SCREENS = ['demoMenu', 'demoWildcard'];
+const DEMO_SCREENS = ['demoMenu', 'demoWildcard', 'demoWildcardLocked', 'demoRecords'];
 const VIEWPORTS = [
   { width: 1280, height: 800 }, // Steam Deck
   { width: 1280, height: 720 },

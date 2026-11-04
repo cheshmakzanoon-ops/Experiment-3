@@ -178,5 +178,6 @@
   max-width: 60ch;
 }
 .rc-event[data-locked='true'] {
-  opacity: 0.75;
+  /* 0.75 took the faint caption to 4.2:1 and the bronze medal's letter to 4.2:1; 0.9 keeps both above 4.5:1. */
+  opacity: 0.9;
 }

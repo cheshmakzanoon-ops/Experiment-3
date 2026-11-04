@@ -1137,6 +1137,11 @@
   #menu .menu-body h1 {
     margin-bottom: var(--mb-s2);
   }
+}
+/* The venue blurb is cut to one line where the board has no height to spare (1280x720 and the
+   in-between laptop heights). The machine line left the board, which gives a 1280x800 handheld its two
+   lines back (the 800 px board was the one that overflowed with both). */
+@media (max-height: 779px) {
   #menu .circuit-blurb {
     -webkit-line-clamp: 1;
   }
