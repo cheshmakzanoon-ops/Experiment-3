@@ -19,9 +19,10 @@
  * and the run goes on (the browser is relaunched). --budget-minutes stops cleanly between shots.
  * One browser at a time: the host has 4 shared CPUs, so run it under `nice`.
  *
- * Honest limits: hero frames are parked with the game's own pause and replay (the replay clock is
- * seeked to the moment a scan of the recorded session picked), the HUD and menus are hidden by a
- * style rule for the "clean" shots and left on for the "hud" ones. Software GL shows the game's
+ * Honest limits: hero frames are parked with the game's own pause (a poll of the presented car at a
+ * small viewport finds the lean or the jump and presses pause; the viewport then grows to 1080p and
+ * the held frame is redrawn), the HUD and menus are hidden by a style rule for the "clean" shots and
+ * left on for the "hud" ones. Software GL shows the game's
  * look but not a GPU's frame rate, and reflections and bloom differ from a real GPU.
  */
 import {
@@ -34,19 +35,6 @@ import {
 } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
-
-// ---- Channels (src/simulation/protocol.ts: HEADER 24, car 0 starts at 24) -------------------------
-const CAR0 = 24;
-const CH = {
-  time: 0,
-  x: CAR0 + 0, // F.X, m
-  z: CAR0 + 2, // F.Z, m
-  speed: CAR0 + 13, // F.SPEED, m/s
-  y: CAR0 + 1, // F.Y, m
-  lean: CAR0 + 257 + 0, // BIKE_BASE + B.LEAN, rad (+ left)
-  airborne: CAR0 + 277 + 0, // OFFROAD_BASE + O.AIRBORNE
-  airTime: CAR0 + 277 + 1, // OFFROAD_BASE + O.AIR_TIME
-};
 
 /**
  * The shot table. `kind`: menu | wildcard | session | festival | results | photo.
@@ -78,7 +66,7 @@ export const SHOTS = [
     weather: 'fog',
     light: 'sunset',
     view: 'chase',
-    pick: { seconds: [24, 34, 44] },
+    pick: { seconds: 30 },
     alt: 'A formula car on a mountain road in fog under a low golden sun, seen from behind.',
   },
   {
@@ -91,7 +79,7 @@ export const SHOTS = [
     weather: 'clear',
     light: 'day',
     view: 'chase',
-    pick: { scan: 'lean', seconds: 70 },
+    pick: { scan: 'lean', attempts: 10 },
     alt: 'A GP motorcycle leaned over through a corner on the Vellamar coast circuit.',
   },
   {
@@ -104,7 +92,7 @@ export const SHOTS = [
     weather: 'clear',
     light: 'day',
     view: 'chase',
-    pick: { scan: 'air', seconds: 80 },
+    pick: { scan: 'air', attempts: 10 },
     alt: 'A motocross rider in the air over a jump on a hillside loam course.',
   },
   {
@@ -117,7 +105,7 @@ export const SHOTS = [
     weather: 'snow',
     light: 'day',
     view: 'chase',
-    pick: { seconds: [26, 38, 50] },
+    pick: { seconds: 32 },
     alt: 'A trophy truck driving up a snow-covered mountain pass in falling snow.',
   },
   {
@@ -130,7 +118,7 @@ export const SHOTS = [
     weather: 'rain',
     light: 'night',
     view: 'chase',
-    pick: { seconds: [22, 32, 42] },
+    pick: { seconds: 28 },
     alt: 'A touring car on a floodlit city street circuit at night in the rain, wet asphalt reflecting the lights.',
   },
   {
@@ -167,6 +155,7 @@ const { values: v } = parseArgs({
     force: { type: 'boolean', default: false },
     list: { type: 'boolean', default: false },
     'manifest-only': { type: 'boolean', default: false },
+    markdown: { type: 'boolean', default: false },
     reject: { type: 'string' },
     reason: { type: 'string', default: '' },
     size: { type: 'string', default: '1920x1080' },
@@ -232,6 +221,21 @@ if (v.list) {
     console.log(
       `${shot.id.padEnd(20)} ${(m?.status ?? 'todo').padEnd(9)} ${m?.bytes ? `${(m.bytes / 1024).toFixed(0)} KB` : ''.padEnd(6)} ${m?.note ?? ''}`,
     );
+  }
+  process.exit(0);
+}
+if (v.markdown) {
+  // The shot list for docs/studio/store/STORE_PAGE.md: only what was captured and kept.
+  const rows = SHOTS.filter((shot) => manifest.shots[shot.id]?.status === 'captured');
+  console.log('| File | Shot | Alt text |\n| --- | --- | --- |');
+  for (const shot of rows) {
+    const m = manifest.shots[shot.id];
+    console.log(`| \`${m.file}\` (${(m.bytes / 1024).toFixed(0)} KB) | ${m.title} | ${m.alt} |`);
+  }
+  const dropped = SHOTS.filter((shot) => ['rejected', 'failed'].includes(manifest.shots[shot.id]?.status));
+  if (dropped.length) {
+    console.log('\nNot kept:\n');
+    for (const shot of dropped) console.log(`- \`${shot.id}\` (${manifest.shots[shot.id].status}): ${manifest.shots[shot.id].note}`);
   }
   process.exit(0);
 }
@@ -319,6 +323,7 @@ const probe = () =>
         requestedCamera: r.requestedCamera,
         presentedCamera: r.presentedCamera,
         frame: d.frame,
+        presentationFrames: d.presentation?.frames ?? 0,
         replaySeconds: d.replaySeconds,
         replayStart: d.replayStart,
         replayPosition: d.replayPosition,
@@ -470,7 +475,7 @@ async function setEntry(shot) {
   if (shot.laps) await select('laps', shot.laps);
 }
 async function enterAndDrive(label) {
-  await page.locator('#sessionForm .enter.primary').click();
+  await page.locator('#menu button.enter.primary').click();
   const briefing = page.getByRole('button', { name: /GO STRAIGHT TO LIGHTS|GO TO THE GATE/ });
   const first = await Promise.race([
     briefing.waitFor({ state: 'visible', timeout: 1800000 }).then(() => 'briefing'),
@@ -491,91 +496,81 @@ async function setView(view) {
   }
   return false;
 }
-async function driveFor(seconds) {
-  const start = (await probe())?.frame?.[CH.time] ?? 0;
+/** The player's car in the frame being drawn (diagnostics `presentation.car`). */
+const carNow = (d) => d?.presented?.car ?? null;
+
+/**
+ * Drive on the AI driver at the low scan size and PAUSE on the moment the shot asks for:
+ *   pick.scan 'lean': a GP bike leaned over hard at speed (not a crash on the floor);
+ *   pick.scan 'air':  a rider just off the lip of a jump (airborne, early in the flight);
+ *   pick.seconds:     session time reached (a number, or a list: the first is the shot).
+ * The pause is the game's own and holds the exact frame; the viewport then grows to 1080p and the
+ * held frame is redrawn. A replay would be neater but at the high render preset it redrew the car
+ * stuck on the grid (found by logging the presented car), so nothing here uses the replay.
+ * A moment that slips past (the pause lands a frame late on a loaded host) is resumed and retried.
+ */
+async function parkOnMoment(shot) {
+  const pick = shot.pick;
+  const wanted = Array.isArray(pick.seconds) ? pick.seconds[0] : pick.seconds;
+  const limit = pick.attempts ?? 8;
+  const hit = (d) => {
+    const car = carNow(d);
+    if (!car) return false;
+    if (pick.scan === 'lean') return Math.abs(car.lean) > 0.5 && car.speed > 15;
+    if (pick.scan === 'air') return car.airborne > 0.5 && car.airTime > 0.05 && car.airTime < 0.7;
+    return (d.presented?.time ?? 0) >= wanted;
+  };
+  const stillGood = (d) => {
+    const car = carNow(d);
+    if (!car) return false;
+    if (pick.scan === 'lean') return Math.abs(car.lean) > 0.35 && car.speed > 12;
+    if (pick.scan === 'air') return car.airborne > 0.5;
+    return true;
+  };
+  /** Poll the presented car until `hit`, logging what has been seen so a stuck search can be read. */
+  const search = async () => {
+    const started = Date.now();
+    const seen = { lean: 0, speed: 0, air: 0, airTime: 0 };
+    let beat = started;
+    for (;;) {
+      const d = await probe();
+      const car = carNow(d);
+      if (car) {
+        seen.lean = Math.max(seen.lean, Math.abs(car.lean));
+        seen.speed = Math.max(seen.speed, car.speed);
+        seen.air = Math.max(seen.air, car.airborne);
+        seen.airTime = Math.max(seen.airTime, car.airTime);
+      }
+      if (d && hit(d)) return d;
+      if (d?.state === 'results' || d?.state === 'menu') throw new Error(`the session ended (${d.state}) before the moment`);
+      if (Date.now() - beat > 20000) {
+        beat = Date.now();
+        log(
+          `${shot.id}: searching t=${d?.presented?.time?.toFixed(1)} s; seen max |lean| ${seen.lean.toFixed(2)}, speed ${seen.speed.toFixed(1)}, airborne ${seen.air}, air time ${seen.airTime.toFixed(2)}`,
+        );
+      }
+      if (Date.now() - started > (pick.scan ? 900000 : 1800000)) throw new Error(`no moment found in ${(Date.now() - started) / 60000} min`);
+      await sleep(pick.scan ? 60 : 400);
+    }
+  };
   if ((await probe())?.auto !== true) await page.keyboard.press('g');
   await waitFor('autopilot', (d) => d.auto === true, 120000, 300);
-  await waitFor(`${seconds} s of driving`, (d) => (d.frame?.[CH.time] ?? 0) >= start + seconds, 1800000, 500);
-}
-async function pauseAndReplay() {
-  await page.keyboard.press('Escape');
-  await waitFor('paused', (d) => d.state === 'paused', 180000, 300);
-  await click('#modal [data-action="replay"]');
-  await waitFor('replay', (d) => d.state === 'replay', 180000, 300);
-  await page.evaluate(() => {
-    const play = document.getElementById('replayPlay');
-    if (play && /PAUSE/.test(play.textContent ?? '')) play.click();
-  });
-  await sleep(1500);
-}
-/** Wait until the frame being DRAWN is the one asked for (a slow software-GL frame can lag the seek by minutes). */
-async function waitPresented(simTime, timeout = 900000) {
-  await waitFor(
-    `frame at ${simTime.toFixed(2)} s`,
-    (d) => Math.abs((d.presented?.time ?? -1) - simTime) < 0.05,
-    timeout,
-    400,
-  );
-  await sleep(1500);
-}
-async function seekTo(time) {
-  await page.evaluate((value) => {
-    const el = document.getElementById('replaySeek');
-    el.value = String(value);
-    el.dispatchEvent(new Event('input', { bubbles: true }));
-  }, time);
-}
-async function logReplay(label) {
-  const d = await probe();
-  const c = d?.presented?.car;
-  log(
-    `${label}: state ${d?.state}, replay ${d?.replaySeconds?.toFixed?.(1)} s from ${d?.replayStart?.toFixed?.(2)}, position ${d?.replayPosition?.toFixed?.(2)}, presented t=${d?.presented?.time?.toFixed?.(2)} speed=${c?.speed?.toFixed?.(1)} x=${c?.x?.toFixed?.(1)} z=${c?.z?.toFixed?.(1)} lean=${c?.lean?.toFixed?.(2)} air=${c?.airborne}`,
-  );
-}
-/** Scan the recorded session (replay seeks at low resolution) for the strongest moment. */
-async function scan(kind, from, to, first) {
-  const rows = [];
-  for (let t = from; t <= to; t += 0.25) {
-    await seekTo(t);
-    await waitPresented(t + first, 15000).catch(() => {});
-    const d = await probe();
-    const car = d?.presented?.car;
-    if (!car) continue;
-    rows.push({
-      t,
-      sim: d.presented.time,
-      speed: car.speed,
-      lean: car.lean,
-      air: car.airborne,
-      airTime: car.airTime,
-      y: car.y,
-    });
+  for (let attempt = 1; attempt <= limit; attempt++) {
+    const found = await search();
+    await page.keyboard.press('Escape');
+    const held = await waitFor('paused', (d) => d.state === 'paused', 120000, 100);
+    const car = carNow(held);
+    log(
+      `${shot.id}: attempt ${attempt}: triggered at t=${found.presented?.time?.toFixed(2)} s, held at t=${held.presented?.time?.toFixed(2)} s, speed ${car?.speed?.toFixed(1)}, lean ${car?.lean?.toFixed(2)}, air ${car?.airborne} (${car?.airTime?.toFixed(2)} s)`,
+    );
+    if (stillGood(held)) return held;
+    if (attempt === limit) break;
+    await page.getByRole('button', { name: 'RESUME SESSION', exact: true }).click();
+    await waitFor('driving', (d) => d.state === 'driving', 120000, 200);
+    // Let the car leave this corner or jump before looking for the next one.
+    await sleep(pick.scan === 'air' ? 4000 : 6000);
   }
-  let best = null;
-  if (kind === 'lean') {
-    // The deepest lean while still moving fast: a corner at pace, not a crash on the floor.
-    for (const r of rows)
-      if (r.speed > 18 && Math.abs(r.lean) < 1.25 && (!best || Math.abs(r.lean) > Math.abs(best.lean)))
-        best = r;
-  } else if (kind === 'air') {
-    // The middle of the longest flight.
-    let run = [];
-    const runs = [];
-    for (const r of rows) {
-      if (r.air > 0.5) run.push(r);
-      else if (run.length) {
-        runs.push(run);
-        run = [];
-      }
-    }
-    if (run.length) runs.push(run);
-    const longest = runs.sort((a, b) => b.length - a.length)[0];
-    if (longest) best = longest[Math.floor(longest.length / 2)];
-  }
-  log(
-    `scan ${kind}: ${rows.length} samples, ${best ? `best at t=${best.t.toFixed(2)} s (speed ${best.speed.toFixed(1)}, lean ${best.lean.toFixed(2)}, air ${best.air})` : 'no moment found'}`,
-  );
-  return { rows, best };
+  throw new Error(`no ${pick.scan ?? 'timed'} moment held after ${limit} attempts`);
 }
 
 async function sceneSession(shot) {
@@ -583,35 +578,18 @@ async function sceneSession(shot) {
   await setEntry(shot);
   await enterAndDrive(shot.id);
   if (shot.view) await setView(shot.view);
-  const picks = Array.isArray(shot.pick.seconds) ? shot.pick.seconds : [shot.pick.seconds];
-  // Fixed-time shots: one candidate per time, kept as `<id>.jpg` (the best) and `<id>-N.jpg` (the rest).
-  const total = Math.max(...picks) + 2;
-  await driveFor(total);
-  const live = await probe();
-  log(
-    `${shot.id}: live t=${live?.frame?.[CH.time]?.toFixed(2)} s, speed ${live?.frame?.[CH.speed]?.toFixed(1)} m/s, x=${live?.frame?.[CH.x]?.toFixed(1)} z=${live?.frame?.[CH.z]?.toFixed(1)}`,
-  );
-  await pauseAndReplay();
-  const first = (await probe())?.replayStart ?? 0;
-  await logReplay(`${shot.id}: replay opened`);
-  const targets = [];
-  if (shot.pick.scan) {
-    const { best } = await scan(shot.pick.scan, 4, Math.max(8, total - 2), first);
-    if (best) targets.push(best.t);
-  }
-  if (!targets.length) targets.push(...picks.map((s) => s - first));
+  const held = await parkOnMoment(shot);
+  const frames = held.presentationFrames ?? 0;
   await setViewport(width, height);
   await hideChrome(!shot.hud);
-  const notes = [];
-  for (const [i, t] of targets.entries()) {
-    await seekTo(t);
-    await waitPresented(t + first);
-    await logReplay(`${shot.id}: after seek to ${t.toFixed(2)}`);
-    const candidate = i === 0 ? shot : { ...shot, id: `${shot.id}-alt${i}` };
-    await encode(candidate, `replay t=${t.toFixed(2)} s`);
-    if (i > 0) describe(candidate, { alt: shot.alt, title: `${shot.title} (alternate ${i})`, kind: shot.kind });
-    notes.push(t.toFixed(2));
-  }
+  // Paused sessions redraw a few times a second; wait for several frames at the new size.
+  await waitFor('redraw at 1080p', (d) => (d.presentationFrames ?? 0) >= frames + 4, 1800000, 500);
+  await sleep(4000);
+  const car = carNow(await probe());
+  await encode(
+    shot,
+    `held on ${shot.pick.scan ?? `t=${held.presented?.time?.toFixed(1)} s`}: speed ${car?.speed?.toFixed(1)} m/s, lean ${car?.lean?.toFixed(2)} rad, airborne ${car?.airborne}`,
+  );
   await hideChrome(false);
   await setViewport(scanW, scanH);
 }
@@ -624,7 +602,7 @@ async function sceneFestival(shot) {
   await page.locator('#light').selectOption(shot.light ?? 'day');
   if (shot.vehicle) await page.locator('#vehicle').selectOption(shot.vehicle);
   await sleep(800);
-  await page.locator('#sessionForm .enter.primary').click();
+  await page.locator('#menu button.enter.primary').click();
   await waitFor('festival', (d) => d.festival?.active === true, 1800000, 1000);
   await waitFor('festival mode', (d) => d.mode === 'festival', 1800000, 1000);
   log(`${shot.id}: festival running`);
