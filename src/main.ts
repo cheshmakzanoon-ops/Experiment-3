@@ -83,6 +83,7 @@ import {
 import { InputController, type TouchAction } from './input/controller.ts';
 import { InputPump } from './input/pump.ts';
 import { RacingAudio } from './audio/engine.ts';
+import { MUSIC_AVAILABLE } from './audio/music.ts';
 import {
   SaveStore,
   DEFAULT_SETTINGS,
@@ -218,7 +219,11 @@ export class GameApp {
   private lightChoice: LightChoice = readLightChoice();
   /** Menu sounds: they play the front end's `motobound:cue` events. */
   private readonly uiSounds = new UiSounds({
-    settings: () => ({ volume: this.settings.volume, muted: this.audio.muted }),
+    settings: () => ({
+      volume: this.settings.volume,
+      muted: this.audio.muted,
+      level: this.settings.audioLevels.ui,
+    }),
   });
   private liveSkyChecked = -Infinity;
   private input: InputController;
@@ -660,6 +665,12 @@ export class GameApp {
     renderer.reducedMotion = reduced;
     document.documentElement.dataset.reducedMotion = String(reduced);
   }
+  /** Master volume, the per-class sliders and the (off by default) music switch. */
+  private applyAudio(settings: Settings) {
+    this.audio.volume = settings.volume;
+    this.audio.setLevels(settings.audioLevels);
+    this.audio.musicEnabled = settings.musicEnabled && MUSIC_AVAILABLE;
+  }
   private applyCommunication(settings: Settings) {
     this.radio.options.engineer = settings.engineerRadio;
     this.radioCaption.enabled = settings.captions;
@@ -719,7 +730,7 @@ export class GameApp {
     this.ui.loading('Preparing your vehicle showroom…');
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     if (!(await this.buildRenderer(canvas, true))) return;
-    this.audio.volume = this.settings.volume;
+    this.applyAudio(this.settings);
     document.documentElement.style.setProperty('--ui-scale', String(this.settings.uiScale));
     document.documentElement.dataset.colorblind = String(this.settings.colorblind);
     document.documentElement.dataset.highContrast = String(this.settings.highContrast);
@@ -1106,6 +1117,9 @@ export class GameApp {
     this.audio.stop();
     try {
       await this.audio.start();
+      // The browser's autoplay policy holds the sound until a key press, click or tap; a
+      // gamepad button does not count. Say so once instead of racing in silence.
+      if (this.audio.locked) this.ui.toast('Sound starts after your next key press or click.');
     } catch (e) {
       this.ui.toast(
         `Audio unavailable: ${e instanceof Error ? e.message : String(e)}. Racing remains available.`,
@@ -3129,7 +3143,7 @@ export class GameApp {
             this.applyMotion(renderer, settings);
             renderer.colorblind = settings.colorblind;
           }
-          this.audio.volume = settings.volume;
+          this.applyAudio(settings);
           this.audio.configureDriving(this.track, settings.drivingAudio);
           document.documentElement.style.setProperty('--ui-scale', String(settings.uiScale));
           document.documentElement.dataset.colorblind = String(settings.colorblind);

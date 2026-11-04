@@ -37,6 +37,28 @@ export interface ContactMix {
   hybrid: number;
   hybridHz: number;
 }
+/** Rolling-noise gain per unit of (speed x load) for each surface. First rig
+ * run, rolling at 50 m/s: asphalt -39 LUFS but gravel -24 and sand -22 (the
+ * engine pull sits at -21): loose surfaces drowned the engine, paved ones were
+ * inaudible. Set so every surface lands 7 to 14 dB under the engine, the loose
+ * ones loudest. Re-measure with audio-render.mjs --group surface. */
+export const ROLLING = Object.freeze({
+  asphalt: 0.05,
+  grass: 0.25,
+  gravel: 0.145,
+  kerb: 0.17,
+  dirt: 0.19,
+  mud: 0.25,
+  sand: 0.095,
+  snow: 0.12,
+  ice: 0.05,
+  gravelRoad: 0.12,
+});
+/** Impact and touchdown thumps are filtered low-pass noise (210 and 110 Hz): at
+ * unit gain they measured 25 dB under the engine (-24 dBFS peak for the hardest
+ * hit). The gains lift them to peak 5 to 10 dB over the engine. */
+export const IMPACT_GAIN = 7;
+export const LAND_GAIN = 4;
 export function contactMix(frame: Float32Array, out: ContactMix): ContactMix {
   const o = carBase(0),
     speed = Math.max(0, frame[o + F.SPEED]);
@@ -56,22 +78,22 @@ export function contactMix(frame: Float32Array, out: ContactMix): ContactMix {
     const surface = Math.round(frame[p + W.SURFACE]);
     const roll = (clamp(speed / 60, 0, 1.5) * load) / 4;
     if (surface === SURFACE.ASPHALT || surface === SURFACE.PAINT || surface === SURFACE.PIT)
-      out.asphalt += roll * 0.028;
-    if (surface === SURFACE.GRASS) out.grass += roll * 0.16;
-    if (surface === SURFACE.GRAVEL) out.gravel += roll * 0.23;
-    if (surface === SURFACE.KERB) out.kerb += roll * 0.1;
+      out.asphalt += roll * ROLLING.asphalt;
+    if (surface === SURFACE.GRASS) out.grass += roll * ROLLING.grass;
+    if (surface === SURFACE.GRAVEL) out.gravel += roll * ROLLING.gravel;
+    if (surface === SURFACE.KERB) out.kerb += roll * ROLLING.kerb;
     const power = Math.max(0, frame[p + W.SLIP_POWER]);
     if (surface >= MATERIAL.DIRT && surface <= MATERIAL.GRAVEL_ROAD) {
       // Loose ground: rolling and slip both throw soil (no tyre squeal).
       const thrown = roll + clamp(power / 300000, 0, 0.5);
       if (surface === MATERIAL.DIRT) {
-        out.dirt += thrown * 0.19 * (1 - wet);
-        out.mud += thrown * 0.17 * wet;
-      } else if (surface === MATERIAL.MUD) out.mud += thrown * 0.17;
-      else if (surface === MATERIAL.SAND) out.sand += thrown * 0.2;
-      else if (surface === MATERIAL.SNOW) out.snow += thrown * 0.12;
-      else if (surface === MATERIAL.ICE) out.snow += thrown * 0.04;
-      else out.gravel += thrown * 0.18;
+        out.dirt += thrown * ROLLING.dirt * (1 - wet);
+        out.mud += thrown * ROLLING.mud * wet;
+      } else if (surface === MATERIAL.MUD) out.mud += thrown * ROLLING.mud;
+      else if (surface === MATERIAL.SAND) out.sand += thrown * ROLLING.sand;
+      else if (surface === MATERIAL.SNOW) out.snow += thrown * ROLLING.snow;
+      else if (surface === MATERIAL.ICE) out.snow += thrown * ROLLING.ice;
+      else out.gravel += thrown * ROLLING.gravelRoad;
     } else {
       slipPower += power;
       if (frame[p + W.SLIP] < -0.5) lockPower += power;
@@ -88,12 +110,12 @@ export function contactMix(frame: Float32Array, out: ContactMix): ContactMix {
     1050 +
     (1350 * lockPower) / Math.max(1, slipPower) +
     (2200 * spinPower) / Math.max(1, slipPower);
-  out.spray = clamp(out.spray, 0, 0.22);
+  out.spray = clamp(out.spray, 0, 0.05);
   for (const key of ['dirt', 'mud', 'sand', 'snow', 'gravel'] as const)
     out[key] = clamp(out[key], 0, 0.3);
   out.flat = clamp(flatWeight * 0.055, 0, 0.19);
   out.flatHz = clamp(flatRate / Math.max(flatWeight, 1e-6), 1, 80);
-  out.rain = clamp(frameLiquidRain(frame) * 0.0025, 0, 0.12);
+  out.rain = clamp(frameLiquidRain(frame) * 0.0025, 0, 0.035);
   out.bottom = clamp(Math.max(0, frame[o + F.BOTTOM_ENERGY]) / 150000, 0, 0.23);
   const electrical = Math.abs(frame[o + F.MOTOR_POWER]) + Math.abs(frame[o + F.REGEN_POWER]) * 0.65;
   out.hybrid = clamp(electrical / 120000, 0, 1) * 0.034;
@@ -219,7 +241,15 @@ export class ContactAudio {
       filter.frequency.value = frequency;
       filter.Q.value = q;
       gain.gain.value = 0;
-      source.connect(filter).connect(gain).connect(this.output);
+      source.connect(filter).connect(gain);
+      // The thumps are low-passed noise and sit far under the rest at unit gain.
+      const boost = name === 'impact' ? IMPACT_GAIN : name === 'land' ? LAND_GAIN : 1;
+      if (boost !== 1) {
+        const lift = context.createGain();
+        lift.gain.value = boost;
+        gain.connect(lift).connect(this.output);
+        this.nodes.push(lift);
+      } else gain.connect(this.output);
       source.start(0, this.sources.length * 0.071);
       this.layers[name] = { gain, filter };
       this.sources.push(source);

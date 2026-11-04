@@ -200,6 +200,11 @@ export class DrivingCueDirector {
     return cue;
   }
 }
+/** Peak amplitude of a cue tone at volume 1. The first rig run measured the tones
+ * 8 dB under the engine at the default settings (-29 dBFS RMS against -21 LUFS):
+ * an advisory the player cannot hear over the engine is no advisory. */
+export const CUE_PEAK = 0.5;
+
 /** Constant-size synthesized graph, also testable in OfflineAudioContext. */
 export class CueSynth {
   private oscillator: OscillatorNode;
@@ -225,7 +230,7 @@ export class CueSynth {
     this.pan.pan.setValueAtTime(clamp(cue.pan, -1, 1), time);
     this.gain.gain.cancelScheduledValues(time);
     this.gain.gain.setValueAtTime(0, time);
-    this.gain.gain.linearRampToValueAtTime(clamp(volume, 0, 1) * 0.18, time + 0.012);
+    this.gain.gain.linearRampToValueAtTime(clamp(volume, 0, 1) * CUE_PEAK, time + 0.012);
     this.gain.gain.linearRampToValueAtTime(0, time + duration);
   }
   silence() {

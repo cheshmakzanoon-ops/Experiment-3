@@ -29,7 +29,9 @@ export type SoundFamily =
   | 'v12-turbo'
   | 'fuel-cell'
   | 'i3-bike'
-  | 'two-stroke-bike';
+  | 'two-stroke-bike'
+  // Big-bore off-road V8: low revs, lumpy firing, a heavy dark voice.
+  | 'v8-truck';
 
 export interface SoundProfile {
   family: SoundFamily;
@@ -57,6 +59,10 @@ export interface SoundProfile {
   motorGain: number;
   /** Load normaliser override (Nm); null uses the torque-curve peak. */
   loadTorqueNm: number | null;
+  /** Deliberate loudness trim of the family against the designed engine level
+   * (engine-loudness.ts): 0 dB for a combustion engine, negative for the quiet
+   * electric families, positive for a big-bore truck. */
+  levelDb: number;
 }
 
 const base = {
@@ -75,6 +81,7 @@ const base = {
   motorHzPerMS: 0,
   motorGain: 0,
   loadTorqueNm: null,
+  levelDb: 0,
 } satisfies Partial<SoundProfile>;
 
 export const SOUND_PROFILES: Readonly<Record<SoundFamily, SoundProfile>> = Object.freeze({
@@ -230,6 +237,8 @@ export const SOUND_PROFILES: Readonly<Record<SoundFamily, SoundProfile>> = Objec
     whineGain: 0.004,
     motorHzPerMS: 95,
     motorGain: 0.03,
+    // An electric drivetrain is quieter than a combustion engine on purpose.
+    levelDb: -4,
   },
   // Naturally aspirated V6: three firings per revolution, a hard-edged
   // mid band and a dry overrun.
@@ -339,6 +348,7 @@ export const SOUND_PROFILES: Readonly<Record<SoundFamily, SoundProfile>> = Objec
     whineGain: 0.004,
     motorHzPerMS: 70,
     motorGain: 0.026,
+    levelDb: -4,
   },
   // Motorcycle triple: 1.5 firings per revolution, a growl between twin
   // and four.
@@ -368,6 +378,24 @@ export const SOUND_PROFILES: Readonly<Record<SoundFamily, SoundProfile>> = Objec
     rolloff: 1.05,
     whineGain: 0.001,
   },
+  // Trophy-truck V8: big bore, long stroke, low rev limit. A dark, lumpy voice
+  // with a strong sub-harmonic burble and little turbine or gear whine.
+  'v8-truck': {
+    ...base,
+    family: 'v8-truck',
+    firingsPerRev: 4,
+    bandCentres: [0.27, 0.57, 0.88],
+    bandWidth: 0.34,
+    bandGain: [0.38, 0.2, 0.04],
+    odd: 0.85,
+    third: 0.5,
+    rolloff: 1.75,
+    burble: 0.6,
+    whineGain: 0.002,
+    crackleFraction: 0.6,
+    crackleMaxRate: 8,
+    levelDb: 1.5,
+  },
 } satisfies Record<SoundFamily, SoundProfile>);
 
 /** Explicit family per catalogue id; extended as vehicles are added. */
@@ -387,7 +415,7 @@ const BY_VEHICLE: Readonly<Record<string, SoundFamily>> = {
   cr1: 'i4-na',
   rl2: 'i4-turbo',
   rcx6: 'i4-turbo',
-  dx8: 'v8-na',
+  dx8: 'v8-truck',
   sk125: 'two-stroke-kart',
   eh3: 'electric',
   sc7: 'v12-na',
@@ -450,12 +478,44 @@ export function soundFamilyFor(definition: VehicleDefinition): SoundFamily {
   return 'i4-turbo';
 }
 
+/** What sets one machine of a family apart from another: 57 machines share 26
+ * families, and the first rig run found 20 pairs whose engines were closer than
+ * 0.08 octave in pitch, 0.12 octave in centroid and 2.5 dB in harmonic profile.
+ * A bigger engine (more peak torque) is darker, a smaller one brighter; a
+ * deterministic per-id jitter separates machines of equal size. Derived from
+ * the vehicle's own numbers, never from a random draw at run time. */
+export interface EngineSignature {
+  /** Low-band lift (+) / high-band cut (dB): the low band gets +tilt/2, the high band -tilt/2. */
+  tiltDb: number;
+  /** Multiplier (1 to 1.5) on the voice low-pass corner. */
+  brightness: number;
+}
+/** FNV-1a of a string to [0, 1). */
+export function hash01(text: string): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 0x01000193) >>> 0;
+  return h / 0x100000000;
+}
+export function engineSignature(id: string, loadTorque: number): EngineSignature {
+  const size = Math.log2(Math.max(20, loadTorque) / 450);
+  const a = hash01(id),
+    b = hash01(`${id}#`);
+  return {
+    tiltDb: Math.max(-6, Math.min(6, 2 * size + (a - 0.5) * 7)),
+    // Only ever brighter than the family voice: a lower corner would also darken the Doppler-shifted
+    // harmonics (e2e/spatial-audio pins that the output frequency follows the Doppler factor); a
+    // bigger engine is darkened by the band tilt instead.
+    brightness: Math.max(1, Math.min(1.5, 2 ** (-0.3 * size + (b - 0.5) * 0.8 + 0.25))),
+  };
+}
+
 /** What the synthesis needs from a vehicle: its family, rev range and the
  * torque that counts as full load. */
 export interface EngineCharacter {
   profile: SoundProfile;
   limiterRPM: number;
   loadTorque: number;
+  signature: EngineSignature;
 }
 
 const characters = new Map<string, EngineCharacter>();
@@ -465,10 +525,12 @@ export function engineCharacter(definition: VehicleDefinition): EngineCharacter 
     const profile = SOUND_PROFILES[soundFamilyFor(definition)];
     let peak = 1;
     for (const [, torque] of definition.spec.torqueCurve) peak = Math.max(peak, torque);
+    const loadTorque = profile.loadTorqueNm ?? peak;
     character = Object.freeze({
       profile,
       limiterRPM: definition.spec.limiterRPM,
-      loadTorque: profile.loadTorqueNm ?? peak,
+      loadTorque,
+      signature: Object.freeze(engineSignature(definition.id, loadTorque)),
     });
     characters.set(definition.id, character);
   }
