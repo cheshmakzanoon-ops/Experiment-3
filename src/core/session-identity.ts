@@ -58,8 +58,15 @@ import {
  * seeded sessions move), the MX-450's fifth gear is longer (top speed
  * 125 -> 140 km/h; first to fourth unchanged) and the GT-6S has more rear grip; every
  * other machine replays exactly as under v21;
+ * v24: motocross rider AI: the heading guard of the off-road riders (offroad/ai.ts
+ * headingGuardLimit) allows a rider the yaw lag of the corner it is in (up to 0.5 rad
+ * on top of its 0.5 rad limit) instead of capping it at 2.8-4.5 m/s with a 0.6 steering
+ * clamp, so the field no longer stops nose to tail in the 7 m hairpin of Arena Nord;
+ * seeded motocross, supercross and supermoto sessions whose AI riders trail a corner by
+ * more than 0.5 rad move differently (rider physics, cars, road bikes and rally cars
+ * unchanged);
  * prior records remain in their original physics category. */
-export const SIMULATION_VERSION = 23;
+export const SIMULATION_VERSION = 24;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 

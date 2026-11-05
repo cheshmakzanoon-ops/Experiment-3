@@ -31,6 +31,24 @@ const ABORT_MARGIN = 2.5;
 /** Heading error to the course direction (rad) beyond which a rider only
  * steers back toward it. */
 const HEADING_LIMIT = 0.5;
+/** A bike turns by leaning, so in a corner its heading trails the course's by
+ * the yaw rate the course asks of it (curvature x speed, rad/s) times the time
+ * the lean takes to come up. A rider that is merely trailing the corner by that
+ * much is not facing across the lane, so the guard allows it the lag, up to
+ * YAW_LAG_MAX rad. Without it HEADING_LIMIT tripped on the riders of the 7 m
+ * hairpin that opens Arena Nord (0.13 1/m at 6-8 m/s: about 0.5 rad of lag). */
+const YAW_LAG_SECONDS = 1,
+  YAW_LAG_MAX = 0.5;
+
+/** The heading error (rad, course heading minus the rider's) from which the
+ * heading guard takes over: HEADING_LIMIT on a straight, plus the yaw lag of a
+ * rider whose heading trails a turning course (an error with the sign of the
+ * course's curvature; a heading that is ahead of the course gets no allowance). */
+export function headingGuardLimit(error: number, curvature: number, speed: number) {
+  const lag =
+    error * curvature > 0 ? Math.min(YAW_LAG_MAX, YAW_LAG_SECONDS * Math.abs(curvature) * speed) : 0;
+  return HEADING_LIMIT + lag;
+}
 
 /** Preserve front support at turn-in. Sustained drive can lever the front
  * spring free before the legacy lean controller notices its lost contact.
@@ -156,7 +174,7 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     track.at(c.s, squarePoint);
     const error =
       mod(Math.atan2(squarePoint.tx, squarePoint.tz) - d.heading + Math.PI, Math.PI * 2) - Math.PI;
-    if (Math.abs(error) < HEADING_LIMIT) return;
+    if (Math.abs(error) < headingGuardLimit(error, squarePoint.curvature, c.speed)) return;
     c.input.steer = clamp(error * 2.2 - d.lean * 0.4, -0.6, 0.6);
     const rejoin = Math.max(2.8, 5.5 - 2 * Math.abs(error));
     // This rejoin limit runs after the jump planner. A committed clear
