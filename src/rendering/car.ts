@@ -5,6 +5,7 @@ import type { DriverAsset } from './driver-asset.ts';
 import type { HeroShells } from './hero-shells.ts';
 import { installManufacturingFinish, ventilatedBrakeGeometry } from './manufacturing.ts';
 import { installRotorGlow, rotorGlowColour } from './car-brake-glow.ts';
+import { installExhaustHeatTint } from './exhaust-heat-tint.ts';
 import { addSafetyCell, addAirbox, buildWing } from './car-architecture.ts';
 import { floorGeometry, floorFenceGeometry, wheelCoverGeometry } from './car-floor.ts';
 import { rearLampIntensity } from './rear-signal.ts';
@@ -206,9 +207,13 @@ export class FormulaCar {
     // Raw satin carbon for the floor (one extra submission per near car).
     const floorCarbon = carbonMaterial('satin');
     const dark = new T.MeshStandardMaterial({ color: 0x101416, roughness: 0.75 });
-    const metal = installManufacturingFinish(
-      new T.MeshStandardMaterial({ color: 0x7c8589, metalness: 0.88, roughness: 0.3 }),
-      'turned-alloy',
+    // Turned alloy. The tailpipe's heat-tint oxide film lives inside this same
+    // material (position-gated thin-film lobe), so the exhaust costs no draw.
+    const metal = installExhaustHeatTint(
+      installManufacturingFinish(
+        new T.MeshPhysicalMaterial({ color: 0x7c8589, metalness: 0.88, roughness: 0.3 }),
+        'turned-alloy',
+      ),
     );
     // D12: anthracite rims and painted covers (one for one, draw-neutral).
     const rimAlloy = anthraciteRimMaterial();
