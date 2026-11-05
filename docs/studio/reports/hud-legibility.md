@@ -296,3 +296,8 @@ hardware test.
 5. **Timing colours under the colour-blind setting** (delta-E 17 for deutan and tritan): pick them with the same exhaustive search
    as the tyre bands, or add a glyph to the sector tabs.
 6. **Show the cap in the dial**: grey out or relabel 150 % where it equals 130 % (a window about 1280 px wide).
+
+
+## PM correction at merge
+
+The skeptic review rejected the first version: the GP bike panel unit `--bp` was capped at 0.16 vh, which let the panel's tallest state (corner practice) grow to about 57% of the window height at a 135% interface size and broke the existing guards `e2e/motorcycle-presentation.spec.ts:53` and `:402` (`top > 45% of the viewport`). The cap is now 0.115 vh (about 1.04 px per unit at 900 px tall, never under 1 px), measured so the panel top stays below 45% at 1440x900 for both interface scales the spec uses. Verified: `e2e/motorcycle-presentation`, `65-hud-legibility`, `52-vehicle-hud`, `49-hud-footprint`, `28-race-hud-layout`, `64-design-critic` all pass (23 tests); the 11 px label floor still holds because the unit is never under 1 px. Side effect: above about 800 px tall the GP panel stops growing with the HUD SCALE setting once it reaches the cap.

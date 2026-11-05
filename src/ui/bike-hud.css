@@ -1,12 +1,13 @@
-/* GP bike panel. Sizes are in --bp: one CSS px (growing with the window above 800 px tall, 0.125 vh, as the
+/* GP bike panel. Sizes are in --bp: one CSS px (growing with the window above 800 px tall, up to 0.115 vh, as the
    desktop layout's unit does) times the HUD scale (--hud-k: interface size times the HUD SCALE setting,
-   style.css .hud), capped at 1.5 and at 0.16 vh, never under 1 px (the panel's tallest state, with the corner
-   guide and the practice timer, is 345 bp: the cap keeps it under 56% of the window height, clear of the lap panel above it), so the largest steps
+   style.css .hud), capped at 1.5 and at 0.115 vh, never under 1 px (the panel's tallest state, with the corner
+   guide and the practice timer, is about 358 bp: the cap keeps it under about 44% of the window height, so its top
+   stays below 45% as e2e/motorcycle-presentation requires, clear of the lap panel above it), so the largest steps
    do not outgrow the panel's column.
    Type floors at 100%: every label, caption and note 11 px, readouts 12 px and up
    (docs/studio/reports/hud-legibility.md). Nothing here is drawn under a transform. */
 #hud {
-  --bp: min(calc(max(1px, 0.125vh) * min(var(--hud-k, var(--ui-scale, 1)), 1.5)), max(1px, 0.16vh));
+  --bp: min(calc(max(1px, 0.125vh) * min(var(--hud-k, var(--ui-scale, 1)), 1.5)), max(1px, 0.115vh));
   /* The panel's distance from the bottom edge: 66 px or 7 vh, and always clear of the dock under it (the dock
      grows with the HUD unit; --f1-dock and --u exist only in the desktop layout, which falls back to 66 px). */
   --bike-lift: max(66px, 7vh, calc(var(--f1-dock, 12px) + 3.4 * var(--u, 8px) + 12px));
