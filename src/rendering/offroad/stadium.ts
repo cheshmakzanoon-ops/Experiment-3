@@ -7,6 +7,7 @@ import { installCrowdImpostorShader, spectatorImpostorGeometry } from '../crowd-
 import { installScannedMaps, libraryAlbedo } from '../ground/scanned-ground.ts';
 import { materials } from '../materials/index.ts';
 import { mxAtlasRow, mxEventAtlas } from './mx-course-dressing.ts';
+import { onMxDetail } from './mx-quality.ts';
 import { STADIUM } from './stadium-dimensions.ts';
 export { STADIUM } from './stadium-dimensions.ts';
 
@@ -88,6 +89,7 @@ export class Stadium {
   readonly crowd: T.InstancedMesh;
   readonly nearCrowd: T.InstancedMesh;
   private readonly textures = new Set<T.Texture>();
+  private stopHaze: (() => void) | null = null;
   private readonly crowdUniforms = {
     crowdClock: { value: new T.Vector2() },
     crowdMotion: { value: 0.32 },
@@ -512,6 +514,10 @@ export class Stadium {
       // Additive light drawn after the bowl; it never casts or receives.
       haze.renderOrder = 2;
       this.root.add(haze);
+      // Additive fill over much of the frame: High/Ultra presentation only.
+      this.stopHaze = onMxDetail((high) => {
+        haze.visible = high;
+      });
     }
     this.batch(ribbons, ribbon, 'Arena concourse ribbon boards');
     const main = new T.Group();
@@ -554,6 +560,8 @@ export class Stadium {
     this.root.add(mesh);
   }
   dispose() {
+    this.stopHaze?.();
+    this.stopHaze = null;
     const geometries = new Set<T.BufferGeometry>(),
       materials = new Set<T.Material>();
     this.root.traverse((o) => {
