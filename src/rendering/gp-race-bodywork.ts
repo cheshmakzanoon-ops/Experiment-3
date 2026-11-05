@@ -1316,7 +1316,8 @@ export function gpWingPaint(materials: BikeMaterials, entrant: number) {
   if (material) return material;
   material = new T.MeshPhysicalMaterial({
     color: liveryScheme(entrant).primary,
-    metalness: 0,
+    // Same metallic-pearl basecoat as the gloss livery they are painted with.
+    metalness: GP_PAINT_FLAKE.metalness,
     roughness: 0.28,
     clearcoat: 1,
     clearcoatRoughness: 0.035,
