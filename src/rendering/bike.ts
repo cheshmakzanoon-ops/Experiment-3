@@ -29,6 +29,17 @@ import {
   gpFrontBrakeGeometry,
 } from './gp-front-brake.ts';
 import { bikeSurfaceMaps } from './bike-surface-detail.ts';
+import {
+  acquireGpOcclusion,
+  bindGpOcclusion,
+  gpOcclusionSources,
+  gpOcclusionUniforms,
+  installGpOcclusion,
+  releaseGpOcclusion,
+  setGpOcclusionStrength,
+  voxelizeGpOcclusion,
+  type GpOcclusionGrid,
+} from './gp-occlusion.ts';
 import { BikeCockpit } from './bike-cockpit.ts';
 import { tcamFov } from './cockpit-framing.ts';
 import { tagWeatherSurface } from './weather-presentation.ts';
@@ -465,6 +476,9 @@ export class BikeMaterials {
   readonly lamp: T.MeshStandardMaterial;
   readonly band: T.MeshStandardMaterial;
   readonly plate: T.MeshPhysicalMaterial;
+  /** GP bike-space occlusion uniforms shared by this entrant's bike and rider
+   * materials (gp-occlusion.ts); inert until a GP entrant binds a volume. */
+  readonly occlusion = gpOcclusionUniforms();
   constructor(id: number) {
     const scheme = liveryScheme(id);
     const add = <M extends T.Material>(m: M) => (this.list.push(m), m);
@@ -1943,6 +1957,27 @@ export class BikeModel {
       batchBikeRigidMeshes(group);
     void L;
   }
+  /** Rest-pose occupancy of the machine without its rider, in the sprung
+   * frame (gp-occlusion.ts). Poses the model upright at static sag; the next
+   * presented pose replaces it. */
+  occlusionGrid(): GpOcclusionGrid {
+    this.pose({
+      fork: this.sag.fork,
+      shock: this.sag.shock,
+      steer: 0,
+      frontRotation: 0,
+      rearRotation: 0,
+      chassisLean: 0,
+      riderOffset: 0,
+      tuck: 0.75,
+      brake: 0,
+      rearBrake: 0,
+      discTemp: 20,
+      compoundColour: 0xffffff,
+      riding: true,
+    });
+    return voxelizeGpOcclusion(gpOcclusionSources(this.root, this.sprung, [this.rider.root]));
+  }
   /** Pose from interpolated snapshot values (bike frame = chassis pose). */
   pose(v: BikePoseValues) {
     const b = this.definition.bike!,
@@ -2110,6 +2145,8 @@ interface Entry {
   rig: BikeServiceRig;
   /** GP prototypes: the rider's spring-damped mass (gp-rider-dynamics). */
   riderBody?: GpRiderBody;
+  /** GP prototypes: key of the shared bike-space occlusion volume. */
+  occlusion?: string;
 }
 const COMPOUND_COLOURS = Object.values(COMPOUNDS).map((c) => c.color);
 /** Chase-camera roll as a fraction of the followed bike's lean. */
@@ -2219,9 +2256,24 @@ export class BikeShells {
     this.root.add(rig.root);
     this.install(rig.root);
     // One spring-damped rider body per GP entrant, shared by its LODs.
-    const riderBody =
-      definition.id === 'gpr1' || definition.id === 'gpr2' ? new GpRiderBody() : undefined;
-    return { definition, materials, levels, level: -1, rig, riderBody };
+    const gp = definition.id === 'gpr1' || definition.id === 'gpr2';
+    const riderBody = gp ? new GpRiderBody() : undefined;
+    const occlusion = gp
+      ? this.occlude(definition.id, levels as BikeModel[], materials)
+      : undefined;
+    return { definition, materials, levels, level: -1, rig, riderBody, occlusion };
+  }
+  /** GP: bake (or share) the definition's rest-pose occupancy from the high
+   * model and hook every lit, opaque bike and rider material of the entrant. */
+  private occlude(key: string, levels: BikeModel[], materials: BikeMaterials) {
+    const volume = acquireGpOcclusion(key, () => levels[0].occlusionGrid());
+    bindGpOcclusion(materials.occlusion, volume);
+    const owned = new Set<T.Material>(materials.list);
+    for (const level of levels) for (const m of level.rider.ownedMaterials) owned.add(m);
+    for (const m of owned)
+      if (m instanceof T.MeshStandardMaterial && !m.transparent && m.colorWrite)
+        installGpOcclusion(m, materials.occlusion);
+    return key;
   }
   private dispose(entry: Entry) {
     for (const level of entry.levels) {
@@ -2232,6 +2284,7 @@ export class BikeShells {
     this.root.remove(entry.rig.root);
     entry.rig.dispose();
     entry.materials.dispose();
+    if (entry.occlusion) releaseGpOcclusion(entry.occlusion);
   }
   /** Exclude the followed rider's first-person self geometry. Restore every
    * rider for tail, chase, replay and photo views. */
@@ -2340,6 +2393,14 @@ export class BikeShells {
       if (service)
         model.root.position.add(this.lift.set(0, service.lift, 0).applyQuaternion(car.quaternion));
       this.pose(model, a, b, t, id, entry.riderBody);
+      if (entry.occlusion) {
+        // Bike-space occlusion follows the presented sprung frame; High/ULTRA only.
+        const occlusion = entry.materials.occlusion;
+        setGpOcclusionStrength(occlusion, quality === 'high');
+        const sprung = (model as BikeModel).sprung;
+        sprung.updateWorldMatrix(true, false);
+        occlusion.gpOccFromWorld.value.copy(sprung.matrixWorld).invert();
+      }
     }
   }
   private pose(
