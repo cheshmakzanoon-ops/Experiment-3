@@ -119,7 +119,7 @@ describe('the HUD sheets read the one multiplier', () => {
   });
   it('the GP bike panel is sized in --bp (a CSS px times the HUD scale), not in px times the interface size alone', () => {
     const bike = css('src/ui/bike-hud.css');
-    expect(bike).toMatch(/--bp: min\(calc\(max\(1px, 0\.125vh\) \* min\(var\(--hud-k, var\(--ui-scale, 1\)\), 1\.5\)\), max\(1px, 0\.16vh\)\);/);
+    expect(bike).toMatch(/--bp: min\(calc\(max\(1px, 0\.125vh\) \* min\(var\(--hud-k, var\(--ui-scale, 1\)\), 1\.5\)\), max\(1px, 0\.115vh\)\);/);
     expect(bike).not.toMatch(/px \* var\(--ui-scale/);
   });
 });
