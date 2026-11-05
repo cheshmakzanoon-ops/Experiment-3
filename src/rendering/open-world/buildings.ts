@@ -85,9 +85,10 @@ class Mesher {
  * and bay (dark glazing with low roughness, deep reveals), shopfronts on
  * town ground floors, ribbed cladding on sheds, weathering stains, and
  * individually lit windows at night. */
-/** Glazing: the largest per-pane tilt (radians, about 0.9 degrees) and the
- * slope of the tempered-glass roller wave (period about 0.31 m). */
-export const GLAZING = Object.freeze({ tilt: 0.016, roller: 0.0045 });
+/** Glazing: the largest per-pane tilt (radians, about 0.9 degrees), the
+ * slope of the tempered-glass roller wave (period about 0.31 m) and the
+ * air-glass interfaces of a double-glazed unit. */
+export const GLAZING = Object.freeze({ tilt: 0.016, roller: 0.0045, interfaces: 4 });
 function facadeMaterial(night: { value: number }, interiorDepth: { value: number }) {
   const material = new T.MeshStandardMaterial({
     vertexColors: true,
@@ -322,9 +323,26 @@ if (abs(owRib) > 0.001) normal = normalize(normal + (viewMatrix * vec4(0.0, 0.0,
         '#include <emissivemap_fragment>',
         `#include <emissivemap_fragment>
 totalEmissiveRadiance += owLamp * owLit * owNight * 0.2;`,
+      )
+      .replace(
+        '#include <lights_fragment_end>',
+        `#include <lights_fragment_end>
+if (owGlass > 0.001) {
+  // Insulated glazing: ${GLAZING.interfaces} air-glass interfaces, not one. Single-surface
+  // Schlick F becomes 1-(1-F)^n (about 15% at normal incidence, unity at
+  // grazing), so windows mirror the sky and street as real ones do while
+  // the lit or furnished room still shows through the remaining share.
+  float owF = 0.04 + 0.96 * pow(1.0 - clamp(dot(geometryNormal, geometryViewDir), 0.0, 1.0), 5.0);
+  float owGain = (1.0 - pow(1.0 - owF, ${GLAZING.interfaces.toFixed(1)})) / owF;
+  float owSpecular = mix(1.0, owGain, owGlass);
+  reflectedLight.indirectSpecular *= owSpecular;
+  reflectedLight.directSpecular *= owSpecular;
+  reflectedLight.indirectDiffuse *= 1.0 - owGlass * (owGain - 1.0) * owF;
+  reflectedLight.directDiffuse *= 1.0 - owGlass * (owGain - 1.0) * owF;
+}`,
       );
   };
-  material.customProgramCacheKey = () => 'festival-facades-v8-glazing-tilt';
+  material.customProgramCacheKey = () => 'festival-facades-v9-insulated-glazing';
   return material;
 }
 
