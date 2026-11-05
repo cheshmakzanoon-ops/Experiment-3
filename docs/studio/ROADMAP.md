@@ -3,6 +3,8 @@
 Written when development was wound down on 2026-11-05. Everything is merged to `main`; no agent branch remains.
 What the game is and where it lives: [GAME_OVERVIEW.md](GAME_OVERVIEW.md). Gates: [RELEASE_GATES.md](RELEASE_GATES.md).
 Studio record: [BOARD.md](BOARD.md), [reports/](reports/), store kit [store/](store/).
+Rendering realism pass (F1, MotoGP, motocross, open world): status, remaining work and capture tooling are in
+[HYPERREALISM_HANDOVER.md](HYPERREALISM_HANDOVER.md).
 
 ## 1. Honest status
 

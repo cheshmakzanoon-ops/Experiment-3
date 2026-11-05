@@ -1,0 +1,18 @@
+import { build } from '/home/user/Experiment-3/node_modules/vite/dist/node/index.js';
+import { chromium } from '/home/user/Experiment-3/node_modules/playwright/index.mjs';
+import { writeFileSync } from 'node:fs';
+const root = '/home/user/Experiment-3/.claude/worktrees/agent-a54a73eab89a18e33';
+const out = await build({ root, configFile: false, logLevel: 'error', build: { write: false, lib: { entry: process.argv[2], name: 'Check', formats: ['iife'] } } });
+const result = Array.isArray(out) ? out[0] : out;
+const code = result.output.find((o) => o.type === 'chunk').code;
+const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1243/chrome-linux64/chrome', args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const page = await browser.newPage();
+const logs = [];
+page.on('console', (m) => logs.push(m.type() + ': ' + m.text().slice(0, 400)));
+page.on('pageerror', (e) => logs.push('pageerror: ' + e.message));
+await page.setContent('<!doctype html><body></body>');
+await page.addScriptTag({ content: code });
+const r = await page.evaluate((f) => window.Check.run(f), process.argv[4] ? Number(process.argv[4]) : undefined);
+writeFileSync(process.argv[3], Buffer.from(r.url.split(',')[1], 'base64'));
+console.log(JSON.stringify({ errors: r.errors, maxR: r.maxR, maxG: r.maxG, zRange: r.zRange, info: r.info, logs }, null, 1));
+await browser.close();
