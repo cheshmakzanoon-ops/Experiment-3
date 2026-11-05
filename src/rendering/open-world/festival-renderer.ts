@@ -471,6 +471,7 @@ export class FestivalRenderer {
     this.environment.highDetail = g.reflections === 'local';
     this.water.setDetail(tier === 'high');
     festivalRoadDetail.value = tier === 'high' ? 1 : 0;
+    this.terrain.material.userData.ow.owGrassDetail.value = tier === 'high' ? 1 : 0;
     this.photoSky.setQuality(preset);
     scannedGround.attach(this.renderer, preset);
     this.ultra.configure(preset, g);
