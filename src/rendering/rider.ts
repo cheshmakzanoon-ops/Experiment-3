@@ -598,6 +598,10 @@ export class Rider {
         helmet.roughness = 0.3;
         helmet.clearcoat = 1;
         helmet.clearcoatRoughness = 0.035;
+        // Metallic-pearl basecoat under that lacquer, matching the bike's
+        // gloss livery (GP_PAINT_FLAKE): a tinted broad highlight under the
+        // sharp clear-coat one, instead of a solid moulded-plastic shell.
+        helmet.metalness = 0.38;
         visor.color.setHex(0x10161d);
         visor.metalness = 0.62;
         visor.roughness = 0.045;
