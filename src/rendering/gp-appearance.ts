@@ -24,8 +24,10 @@ export function calibrateGpMaterials(materials: BikeMaterials, vehicle: string):
   // deep clear coat over the twill, so the weave flips under sky reflections.
   // Inner and structural carbon uses the raw satin finish instead.
   materials.carbon.roughness = 0.42;
-  materials.carbon.clearcoat = 0.8;
-  materials.carbon.clearcoatRoughness = 0.09;
+  // Race lacquer is a full, deep coat (several flatted layers): crisp sky
+  // reflections over the weave on wings and covers, not a hazy film.
+  materials.carbon.clearcoat = 1;
+  materials.carbon.clearcoatRoughness = 0.045;
   materials.aluminium.roughness = 0.41;
   materials.wheel.roughness = 0.42;
   materials.wheel.clearcoat = 0.2;
