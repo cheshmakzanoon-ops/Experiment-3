@@ -1,5 +1,6 @@
 import * as T from 'three';
 import type { GpTyreAppearance } from '../gp-tyre-finish.ts';
+import type { MudUniforms } from './mud.ts';
 import {
   chainShaderHook,
   injectAfter,
@@ -42,6 +43,8 @@ varying vec4 vMxTyreBind;
 uniform vec2 mxTyreFront, mxTyreRear;
 // Radius and rim radius of each axle, in metres.
 uniform vec4 mxTyreDimensions;
+// This entrant's deposited coat and its moisture (the bike's mud uniforms).
+uniform float mxTyreMudCoat, mxTyreMudWet;
 float mxTyreHeight, mxTyreRoughness;
 `;
 const SAMPLE = /* glsl */ `
@@ -80,6 +83,32 @@ const SAMPLE = /* glsl */ `
     mix(1., .6, water);
   mxTyreRoughness = clamp(mix(.77, .92 - wear * .14, crown) +
     .035 * streak * scuff - .24 * water, .46, .96);
+  // Packed tread: clay fills the block roots between the knobs from the
+  // carcass up, while knob tops scrub clean on the ground. The fill level
+  // rises with this entrant's coat (wet clay packs higher than dry crumbs),
+  // so worn knob edges stand proud of a lumpy, darker band of soil.
+  float coat = clamp(mxTyreMudCoat, 0., 1.);
+  if (coat > .01) {
+    float wetClay = clamp(mxTyreMudWet, 0., 1.);
+    float lumps = sin(angle * 37. + p.x * 211.) * sin(angle * 23. - p.x * 157.);
+    float crumbs = sin(angle * 151. + p.x * 613.) * sin(angle * 97. - p.x * 887.);
+    float root = dimensions.x - .016;
+    float level = root + .016 * coat * mix(.18, .82, wetClay) * (.78 + .22 * lumps);
+    // Only the tread band and its shoulders: the sidewall below stays rubber
+    // (the splatter layer still reaches it).
+    float band = (1. - smoothstep(.92, 1.22, across)) *
+      smoothstep(root - .024, root - .009, radial);
+    float edge = max(pixel * .7, .0004);
+    // Dry fines settle patchily; wet clay packs every void.
+    float patchy = mix(.5 + .5 * smoothstep(-.45, .55, lumps + .35 * crumbs), 1., wetClay);
+    float packed = band * smoothstep(.01, .16, coat) * patchy *
+      (1. - smoothstep(level - edge, level + edge, radial));
+    vec3 clay = mix(vec3(.205, .15, .092), vec3(.06, .041, .025), mix(.35, 1., wetClay));
+    diffuseColor.rgb = mix(diffuseColor.rgb, clay * (1. + .1 * lumps + .06 * crumbs * detail), packed);
+    mxTyreRoughness = mix(mxTyreRoughness, mix(.95, .4, wetClay) + .04 * crumbs, packed);
+    mxTyreHeight += packed * ((.0004 + .00035 * lumps) * detail +
+      .00012 * crumbs * fine * (1. - wetClay));
+  }
 }
 `;
 const NORMAL = /* glsl */ `
@@ -103,6 +132,7 @@ export function installMotocrossTyreFinish(
   frontRim: number,
   rearRadius: number,
   rearRim: number,
+  mud?: MudUniforms,
 ): MotocrossTyreFinish {
   const existing = finishes.get(material);
   if (existing) return existing;
@@ -123,6 +153,9 @@ export function installMotocrossTyreFinish(
     shader.uniforms.mxTyreDimensions = {
       value: new T.Vector4(frontRadius, frontRim, rearRadius, rearRim),
     };
+    // The same uniform objects as the mud layer: one coat state per entrant.
+    shader.uniforms.mxTyreMudCoat = mud?.offroadMud ?? { value: 0 };
+    shader.uniforms.mxTyreMudWet = mud?.offroadMudWet ?? { value: 0 };
     injectDeclarations(
       shader,
       'common',

@@ -222,7 +222,14 @@ export class DirtBikeModel {
       frontRim = supermoto ? 0.2159 : 0.2667,
       rearRim = supermoto ? 0.2159 : 0.2286;
     if (!supermoto)
-      this.tyreFinish = installMotocrossTyreFinish(tyreMaterial, frontR, frontRim, rearR, rearRim);
+      this.tyreFinish = installMotocrossTyreFinish(
+        tyreMaterial,
+        frontR,
+        frontRim,
+        rearR,
+        rearRim,
+        this.mud,
+      );
     const wheel = (
       spin: T.Group,
       radius: number,
