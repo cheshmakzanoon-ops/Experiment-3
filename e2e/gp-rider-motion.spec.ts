@@ -61,11 +61,23 @@ for (const id of ['gpr1', 'gpr2']) {
       expect(samples[0].hash).not.toBe(samples[1].hash);
       expect(samples[1].hash).toBe(samples[2].hash);
       expect(samples[0].hash).toBe(samples[3].hash);
+      // The first presentation of a pose may upload what only that pose draws. The knee-slider
+      // sparks (vehicle art 3: a 72-point Points object and its sprite, hidden until a knee is on
+      // the road at a lean past 0.72 rad) reach the GPU the first time the rider-corner pose
+      // scrapes: exactly one geometry and one texture, no program. Nothing may grow after that:
+      // the repeated and the rewound pose reuse them, and a pose that draws nothing new (the
+      // pedal) creates nothing at all.
+      const sparks = view === 'rider-corner' ? 1 : 0;
+      expect(samples[1].resources).toEqual({
+        geometries: samples[0].resources.geometries + sparks,
+        programs: samples[0].resources.programs,
+        textures: samples[0].resources.textures + sparks,
+      });
+      for (const sample of samples.slice(2)) expect(sample.resources).toEqual(samples[1].resources);
       for (const sample of samples) {
         expect(sample.glError).toBe(0);
         expect(sample.sourceFrameUnchanged).toBe(true);
         expect(sample.instance).toBe(samples[0].instance);
-        expect(sample.resources).toEqual(samples[0].resources);
         expect(sample.triangles).toBeLessThan(125000);
         expect(sample.calls).toBeLessThan(220);
       }
