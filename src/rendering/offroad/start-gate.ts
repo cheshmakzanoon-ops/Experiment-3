@@ -9,9 +9,96 @@ import { trackPoint, type Track } from '../../simulation/track.ts';
 import { installScannedMaps, libraryAlbedo } from '../ground/scanned-ground.ts';
 import { materials } from '../materials/index.ts';
 import { installMud, mudUniforms } from './mud.ts';
+import { MX_SOIL_COLOURS } from './mx-soil-detail.ts';
+import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
 
 /** Gate panel (m): a perforated steel grate hinged at its foot. */
 const PANEL = Object.freeze({ height: 0.52, thickness: 0.035, gap: 0.08 });
+
+/** The starter's pad after a day of motos: a patchy skin of tracked-in soil,
+ * clods shed at the gate, a worn, rubber-dark lane under every slot and the
+ * soil spray the rear tyres threw back at each drop. Coordinates are the
+ * slab's own metres (x across the gate, z toward it); lane spacing/offset
+ * follow the session's slots. Shading only: no geometry, textures or draws. */
+function installStartPadDirt(material: T.MeshPhysicalMaterial, lanes: T.IUniform<T.Vector2>) {
+  chainShaderHook(material, 'mx-start-pad-dirt-v1', (shader) => {
+    shader.uniforms.mxPadLanes = lanes;
+    shader.uniforms.mxPadSoil = {
+      value: new T.Color(MX_SOIL_COLOURS.hardpack),
+    };
+    injectDeclarations(shader, 'common', 'varying vec3 vMxPadPosition;', 'vertex');
+    injectAfter(shader, 'begin_vertex', 'vMxPadPosition = position;', 'vertex');
+    injectDeclarations(
+      shader,
+      'common',
+      `
+varying vec3 vMxPadPosition;
+uniform vec2 mxPadLanes;
+uniform vec3 mxPadSoil;
+float mxPadDirt, mxPadHeight;
+float mxPadHash( vec2 p ) {
+  vec3 q = fract( vec3( p.xyx ) * 0.1031 );
+  q += dot( q, q.yzx + 33.33 );
+  return fract( ( q.x + q.y ) * q.z );
+}
+float mxPadNoise( vec2 p ) {
+  vec2 i = floor( p ), f = fract( p );
+  f = f * f * ( 3.0 - 2.0 * f );
+  return mix( mix( mxPadHash( i ), mxPadHash( i + vec2( 1.0, 0.0 ) ), f.x ),
+    mix( mxPadHash( i + vec2( 0.0, 1.0 ) ), mxPadHash( i + 1.0 ), f.x ), f.y );
+}`,
+      'fragment',
+    );
+    injectAfter(
+      shader,
+      'color_fragment',
+      `{
+  vec2 p = vMxPadPosition.xz;
+  float footprint = length( fwidth( p ) );
+  float fine = 1.0 - smoothstep( 0.004, 0.02, footprint );
+  float broad = mxPadNoise( p * 1.3 );
+  float patches = 0.6 * mxPadNoise( p * 4.3 + 11.0 ) + 0.4 * mxPadNoise( p * 11.0 + 5.0 );
+  float grit = mxPadNoise( p * 37.0 + 3.0 );
+  // Toward the gate (z = +1.3): soil shed by front wheels and dropped panels.
+  float gate = smoothstep( 0.1, 1.3, p.y );
+  // Every slot's lane: tyres sat and spun here; the spray fans out behind.
+  float across = abs( fract( ( p.x - mxPadLanes.y ) / mxPadLanes.x + 0.5 ) - 0.5 ) * mxPadLanes.x;
+  float behind = clamp( ( -0.35 - p.y ) / 0.95, 0.0, 1.0 );
+  float lane = ( 1.0 - smoothstep( 0.04, 0.12, across ) ) * smoothstep( -0.6, -0.3, p.y )
+    * ( 1.0 - smoothstep( 0.95, 1.25, p.y ) ) * ( 0.55 + 0.45 * patches );
+  float spray = ( 1.0 - smoothstep( 0.05 + behind * 0.3, 0.2 + behind * 0.45, across ) )
+    * smoothstep( -0.25, -0.55, p.y ) * smoothstep( 0.25, 0.75, patches + 0.25 * grit );
+  mxPadDirt = clamp( 0.16 + 0.3 * broad + 0.34 * patches + 0.42 * gate * ( 0.5 + 0.5 * patches )
+    + 0.4 * spray, 0.0, 1.0 );
+  mxPadDirt *= smoothstep( 0.05, 0.45, mxPadDirt + 0.22 * ( grit - 0.5 ) * fine );
+  vec3 soil = mxPadSoil * ( 0.8 + 0.34 * patches ) * ( 1.0 + ( grit - 0.5 ) * 0.25 * fine );
+  diffuseColor.rgb = mix( diffuseColor.rgb, soil, mxPadDirt * 0.88 );
+  // Rubber and packed soil darken the worn lanes where the tyres sat.
+  diffuseColor.rgb *= 1.0 - lane * 0.28;
+  mxPadHeight = mxPadDirt * ( 0.0012 + 0.0016 * grit ) * fine;
+}`,
+      'fragment',
+    );
+    injectAfter(
+      shader,
+      'roughnessmap_fragment',
+      'roughnessFactor = mix( roughnessFactor, 0.95, mxPadDirt * 0.85 );',
+      'fragment',
+    );
+    injectAfter(
+      shader,
+      'normal_fragment_maps',
+      `{
+  vec3 dx = dFdx( -vViewPosition ), dy = dFdy( -vViewPosition );
+  vec3 r1 = cross( dy, normal ), r2 = cross( normal, dx );
+  float det = dot( dx, r1 );
+  vec3 gradient = sign( det ) * ( dFdx( mxPadHeight ) * r1 + dFdy( mxPadHeight ) * r2 );
+  normal = normalize( max( abs( det ), 1e-10 ) * normal - gradient );
+}`,
+      'fragment',
+    );
+  });
+}
 /**
  * Motocross / supercross start gate (WP41): one hinged steel panel per slot
  * across the start straight, a concrete starter's pad behind the line and
@@ -36,6 +123,7 @@ export class StartGate {
     roughness: 0.62,
   });
   private readonly pad = materials.concrete({ variant: 'rough', horizontal: 1 });
+  private readonly lanes = { value: new T.Vector2(1, 0) };
   constructor(
     private readonly track: Track,
     private readonly course: OffroadCourse,
@@ -52,6 +140,7 @@ export class StartGate {
     roost.offroadMudWet.value = 0.25;
     installMud(this.steel, roost);
     installMud(this.frame, roost);
+    installStartPadDirt(this.pad, this.lanes);
     this.root.position.set(p.x, p.y, p.z);
     // Local +Z along the lap, +X along the track normal (lateral).
     this.root.rotation.y = Math.atan2(p.tx, p.tz);
@@ -70,6 +159,8 @@ export class StartGate {
     this.panels.length = 0;
     const { lateral } = gateSlots(this.track, this.course, riders);
     this.slots = lateral.length;
+    // Equally spaced slot centres: the pad's lane pattern repeats with them.
+    this.lanes.value.set(gate.spacing, lateral[0] ?? 0);
     const panelWidth = gate.spacing - PANEL.gap;
     // Open welded bars reveal the soil and the front tyre through each
     // panel. The hinge and release timing are still the session's gate.

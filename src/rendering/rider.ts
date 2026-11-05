@@ -1685,6 +1685,10 @@ export class Rider {
     }
     for (const garment of this.gpGarments) garment.updatePose();
   }
+  /** Materials this rider created and disposes (bike-space occlusion hooks them). */
+  get ownedMaterials(): readonly T.Material[] {
+    return this.materials;
+  }
   dispose() {
     this.gpBrakeFingers?.dispose();
     this.gpSpine?.dispose();

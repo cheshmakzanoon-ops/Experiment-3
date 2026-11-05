@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { gateMxDetail } from './mx-quality.ts';
 
 /** A single-scattering appearance for the existing MX dust point pool.
  * References 023/036/066/094–096: translucent, illuminated fines separate
@@ -144,11 +145,17 @@ void main() {
   q.x *= 0.84 + vMxDustSeed * 0.25;
   float r2 = dot( q, q );
   if ( r2 >= 1.0 ) discard;
+  #ifdef MX_HIGH_DETAIL
   // Cauliflower lumps in the puff's own frame: two value-noise octaves with
   // a per-puff offset, so no two clouds share a silhouette or a sine stripe.
   vec2 offset = vec2( vMxDustSeed * 37.0, vMxDustSeed * 91.0 );
   float lumps = 0.64 * mxDustNoise( q * 2.4 + offset )
     + 0.36 * mxDustNoise( q * 5.3 - offset.yx );
+  #else
+  // Low/Medium: one analytic billow per puff instead of two noise octaves.
+  float lumps = 0.5 + 0.24 * sin( q.x * 3.1 + vMxDustSeed * 19.0 )
+    * sin( q.y * 2.7 - vMxDustSeed * 7.0 );
+  #endif
   float envelope = 1.0 - smoothstep( 0.05, 0.95, r2 + ( lumps - 0.5 ) * 0.42 );
   // The chord through a sphere: a dense rounded body, feathered limb.
   float chord = sqrt( max( 0.0, 1.0 - r2 ) );
@@ -202,6 +209,7 @@ export class MxDustMaterial extends T.ShaderMaterial {
     // The production atmosphere uses this point position for the same aerial
     // perspective and local weather pockets as terrain and other particles.
     this.userData.localWeatherPosition = 'position';
+    gateMxDetail(this);
   }
 
   /** Match Three's PointsMaterial size/attenuation contract, including DPR

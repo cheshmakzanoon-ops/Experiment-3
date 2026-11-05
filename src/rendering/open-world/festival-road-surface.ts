@@ -19,12 +19,14 @@ export const FESTIVAL_ROAD_SURFACE = Object.freeze({
   normalSample: 0.5,
   /** Pavement cracking (High and ULTRA): thermal cracks across the road per
    * cell (metres) with the chance of one, the share carrying a hot-poured
-   * bitumen seal and that seal's half-width range; longitudinal centre-joint
+   * bitumen seal and that seal's half-width range; longitudinal lane-joint
    * cracks per cell and their chance. */
-  crackCell: 17,
-  crackChance: 0.62,
+  crackCell: 14,
+  crackChance: 0.8,
   crackSealed: 0.68,
-  crackSealHalfWidth: Object.freeze([0.022, 0.05] as const),
+  crackSealHalfWidth: Object.freeze([0.03, 0.065] as const),
+  /** Half-width of an unsealed (open) crack. */
+  crackHalfWidth: 0.004,
   jointCrackCell: 41,
   jointCrackChance: 0.5,
 });
@@ -229,14 +231,16 @@ float festivalSeal = 0.0;
   diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.015, 0.017, 0.018) * (1.0 - wet * 0.25), festivalSeal * 0.82);
   }
 
-  // Pavement cracking, near the camera only. Thermal cracks run across the
-  // carriageway at irregular spacing from one edge, a longitudinal crack
-  // follows the centre joint in broken runs, and most carry a hot-poured
-  // bitumen seal wider than the crack: dark, glossy, feathered and wavy.
-  // Unsealed cracks are a hairline cavity whose contrast is conserved over
-  // the pixel footprint, so they thin out with distance instead of shimmering.
-  if (festivalRoadDetail > 0.5 && fine > 0.001 && admission > 0.001) {
-    float ckAge = age * admission * max(roadUse, circuitUse * 0.55);
+  // Pavement cracking. Thermal cracks run across the carriageway at
+  // irregular spacing from one edge, longitudinal cracks follow the lane
+  // joints in broken runs, and most carry a hot-poured bitumen seal wider
+  // than the crack: dark, glossy, feathered and wavy. Every band is box
+  // filtered by the pixel footprint along its own width, so coverage is
+  // conserved: a seal thins and fades with distance instead of vanishing
+  // at a fixed range or shimmering, and transverse cracks (whose width runs
+  // along the road) fade sooner than longitudinal ones, as on a real road.
+  if (festivalRoadDetail > 0.5 && admission > 0.001) {
+    float ckAge = (0.5 + 0.5 * age) * admission * max(roadUse, circuitUse * 0.5);
     float ckSeal = 0.0, ckOpen = 0.0;
     float ckCell = floor(q.y / ${f(S.crackCell)});
     float ckId = owHash(vec2(ckCell + 41.3, seed + 3.1));
@@ -248,29 +252,38 @@ float festivalSeal = 0.0;
       float ckReach = mix(0.35, 1.05, owHash(vec2(ckCell + 2.3, seed + 9.9)));
       float ckU = (ckSide * q.x + halfRoad) / max(2.0 * halfRoad, 0.5);
       float ckRun = 1.0 - smoothstep(ckReach - 0.06, ckReach, ckU);
-      float ckD = abs(q.y - ckY - ckWob);
+      float ckS = q.y - ckY - ckWob;
+      float ckAa = max(footprint.y, 0.002);
       bool ckSealed = owHash(vec2(ckCell + 23.7, seed + 4.4)) < ${f(S.crackSealed)};
       float ckW = mix(${f(S.crackSealHalfWidth[0])}, ${f(S.crackSealHalfWidth[1])}, owNoise(vec2(q.x * 1.3, ckCell + 0.5)));
-      if (ckSealed) ckSeal = (1.0 - smoothstep(ckW * 0.55, ckW + pixel, ckD)) * ckRun;
-      float ckHair = max(pixel, 0.004);
-      ckOpen = (1.0 - smoothstep(0.0, ckHair * 1.5, ckD)) * (0.004 / ckHair) * ckRun * (ckSealed ? 0.0 : 1.0);
+      float ckHalf = ckSealed ? ckW : ${f(S.crackHalfWidth)};
+      float ckCover = clamp((min(ckHalf, ckS + ckAa * 0.5) - max(-ckHalf, ckS - ckAa * 0.5)) / ckAa, 0.0, 1.0) * ckRun;
+      if (ckSealed) ckSeal = ckCover; else ckOpen = ckCover;
     }
-    float jcCell = floor(q.y / ${f(S.jointCrackCell)});
-    if (roadUse > 0.5 && owHash(vec2(jcCell + 71.9, seed + 6.2)) < ${f(S.jointCrackChance)} * ckAge) {
-      float jcLocal = fract(q.y / ${f(S.jointCrackCell)});
-      float jcA = owHash(vec2(jcCell + 3.3, seed + 8.1)) * 0.4;
-      float jcB = jcA + mix(0.25, 0.6, owHash(vec2(jcCell + 9.4, seed + 2.2)));
-      float jcRun = smoothstep(jcA, jcA + 0.04, jcLocal) * (1.0 - smoothstep(jcB - 0.04, jcB, jcLocal));
-      float jcX = (owNoise(vec2(q.y * 0.05, seed + 5.0)) - 0.5) * 0.14
-        + (owNoise(vec2(q.y * 0.9, seed + 11.0)) - 0.5) * 0.07;
-      float jcD = abs(q.x - jcX);
-      float jcW = mix(${f(S.crackSealHalfWidth[0])}, ${f(S.crackSealHalfWidth[1])}, owNoise(vec2(q.y * 0.7, seed + 1.0)));
-      ckSeal = max(ckSeal, (1.0 - smoothstep(jcW * 0.55, jcW + pixel, jcD)) * jcRun);
+    if (roadUse > 0.5) {
+      // Nearest interior lane joint (the centre line on a two-lane road).
+      float jcLane = floor((q.x + halfRoad) / lanePitch + 0.5);
+      float jcJoint = jcLane * lanePitch - halfRoad;
+      float jcCell = floor(q.y / ${f(S.jointCrackCell)});
+      if (abs(jcJoint) < halfRoad - 0.5
+        && owHash(vec2(jcCell + 71.9 + jcLane * 13.1, seed + 6.2)) < ${f(S.jointCrackChance)} * ckAge) {
+        float jcLocal = fract(q.y / ${f(S.jointCrackCell)});
+        float jcA = owHash(vec2(jcCell + 3.3, seed + 8.1 + jcLane)) * 0.4;
+        float jcB = jcA + mix(0.25, 0.6, owHash(vec2(jcCell + 9.4, seed + 2.2 + jcLane)));
+        float jcRun = smoothstep(jcA, jcA + 0.04, jcLocal) * (1.0 - smoothstep(jcB - 0.04, jcB, jcLocal));
+        // Paving joints rarely sit exactly under the lane paint.
+        float jcSide = owHash(vec2(jcCell + 1.9, seed + jcLane)) < 0.5 ? -1.0 : 1.0;
+        float jcX = jcJoint + jcSide * (0.2 + 0.3 * owHash(vec2(jcCell + 7.7, seed + jcLane)))
+          + (owNoise(vec2(q.y * 0.05, seed + 5.0 + jcLane)) - 0.5) * 0.14
+          + (owNoise(vec2(q.y * 0.9, seed + 11.0)) - 0.5) * 0.07;
+        float jcS = q.x - jcX;
+        float jcAa = max(footprint.x, 0.002);
+        float jcW = mix(${f(S.crackSealHalfWidth[0])}, ${f(S.crackSealHalfWidth[1])}, owNoise(vec2(q.y * 0.7, seed + 1.0)));
+        ckSeal = max(ckSeal, clamp((min(jcW, jcS + jcAa * 0.5) - max(-jcW, jcS - jcAa * 0.5)) / jcAa, 0.0, 1.0) * jcRun);
+      }
     }
-    ckSeal *= fine;
-    ckOpen *= fine;
-    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.021, 0.022, 0.023) * (1.0 - wet * 0.3), ckSeal * 0.78);
-    diffuseColor.rgb *= 1.0 - ckOpen * 0.55;
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.021, 0.022, 0.023) * (1.0 - wet * 0.3), ckSeal * 0.8);
+    diffuseColor.rgb *= 1.0 - ckOpen * 0.6;
     festivalSeal = max(festivalSeal, ckSeal * 0.85);
     festivalRepair = max(festivalRepair, ckOpen * 0.6);
   }

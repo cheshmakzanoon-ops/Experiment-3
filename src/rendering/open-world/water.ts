@@ -10,29 +10,34 @@ import { OW_NOISE_GLSL } from './terrain-material.ts';
 const SEA_UV_METRES = FESTIVAL_SEA.uvMetres;
 
 /** Open-sea finish of the festival coast (High and ULTRA):
- *  - sun glitter: sparse, world-anchored micro-facet glints (a very sharp
- *    lobe on a per-cell jittered wave normal) inside the sun's reflection
- *    path, flickering as facets turn. Physically it is the same GGX lobe the
- *    sea already draws, resolved into the points a camera actually sees;
- *    glints fade where a cell drops below a few pixels so they never alias;
- *  - whitecaps: wind-blown foam on the steepest short-wave faces, clumped by
- *    a slow world-space field so only a few crests break. Foam is rough,
- *    diffuse and lit by the scene (no emissive tint).
+ *  - sun glitter: world-anchored micro-facets, one per jittered cell, whose
+ *    tilts follow a Gaussian slope distribution (Cox-Munk style) on top of
+ *    the normal-mapped waves. Only facets turned into the sun's mirror
+ *    direction flash, so the glints crowd the reflection path and thin out
+ *    away from it instead of dotting the whole sea. Each glint is a small,
+ *    sharp point that flickers as its facet turns, and the field fades
+ *    where a cell drops below a few pixels so it never aliases;
+ *  - whitecaps: sparse wind-streaked foam on the steepest short-wave faces,
+ *    clumped by a slow world-space field so only a few crests break. Foam
+ *    is bright, rough and diffuse; the water's reflection gives way to it
+ *    without the darker rim a shared roughness ramp would leave.
  * Cheap ALU only: no extra textures, targets or draws. */
 export const FESTIVAL_SEA_FINISH = Object.freeze({
-  /** Glint cells per metre and the half-angle spread of their facet tilt. */
-  glintCells: 1.6,
-  glintSpread: 0.32,
+  /** Glint cells per metre and the RMS slope of their facet tilt (radians). */
+  glintCells: 2.4,
+  glintSlope: 0.085,
   /** Glint lobe exponent and peak gain over the sun's irradiance. */
-  glintPower: 1100,
-  glintGain: 260,
+  glintPower: 1600,
+  glintGain: 150,
+  /** Glint radius range as a share of the cell. */
+  glintRadius: Object.freeze([0.035, 0.13] as const),
   /** Footprint (m per pixel) over which the glints fade out. */
-  glintFade: Object.freeze([0.22, 0.9] as const),
+  glintFade: Object.freeze([0.16, 0.7] as const),
   /** Wave-face slope (1 - n.up) at which whitecaps start, and their coverage. */
-  capSlope: 0.075,
-  capCoverage: 0.34,
+  capSlope: 0.085,
+  capCoverage: 0.16,
   /** Linear foam albedo. */
-  foam: Object.freeze([0.62, 0.65, 0.64] as const),
+  foam: Object.freeze([0.78, 0.8, 0.8] as const),
 });
 const f4 = (v: number) => v.toFixed(4);
 export interface FestivalSeaUniforms {
@@ -41,7 +46,7 @@ export interface FestivalSeaUniforms {
 export function installFestivalSeaFinish(material: T.MeshPhysicalMaterial): FestivalSeaUniforms {
   const uniforms: FestivalSeaUniforms = { owSeaDetail: { value: 0 } };
   const F = FESTIVAL_SEA_FINISH;
-  chainShaderHook(material, 'festival-open-sea-v1', (shader) => {
+  chainShaderHook(material, 'festival-open-sea-v2', (shader) => {
     useStudioUniforms(shader, ['studioTime'], 'fragment');
     Object.assign(shader.uniforms, uniforms);
     injectAfter(
@@ -63,16 +68,19 @@ if (owSeaDetail > 0.5) {
   vec3 seaUp = normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz);
   float seaSlope = 1.0 - clamp(dot(normal, seaUp), 0.0, 1.0);
   float seaFootprint = max(length(dFdx(owSeaWorld)), length(dFdy(owSeaWorld)));
-  // Wind-clumped breaking crests: a slow field picks the few that break.
-  float capField = owFbm(owSeaWorld * 0.011 + vec2(studioTime * 0.012, 0.0), 1.0);
-  float capPores = owNoise(owSeaWorld * 0.9 + vec2(0.0, studioTime * 0.05));
-  float capAt = ${f4(F.capSlope)} + 0.05 * (1.0 - capField);
-  owSeaFoam = smoothstep(capAt, capAt + 0.035, seaSlope)
-    * smoothstep(1.0 - ${f4(F.capCoverage)}, 1.0, capField + 0.25 * capPores)
-    * mix(0.55, smoothstep(0.3, 0.7, capPores), 1.0 - smoothstep(0.4, 2.0, seaFootprint));
-  owSeaFoam = clamp(owSeaFoam, 0.0, 0.85);
+  // Wind-clumped breaking crests: a slow field picks the few that break;
+  // the pores are streaked along the wind (+x) like blown foam.
+  float capField = owFbm(owSeaWorld * 0.016 + vec2(studioTime * 0.01, 0.0), 1.0);
+  float capPores = owNoise(owSeaWorld * vec2(0.45, 1.7) + vec2(studioTime * 0.06, 0.0));
+  float capAt = ${f4(F.capSlope)} + 0.06 * (1.0 - capField);
+  float capDetail = 1.0 - smoothstep(0.4, 2.0, seaFootprint);
+  owSeaFoam = smoothstep(capAt, capAt + 0.03, seaSlope)
+    * smoothstep(1.0 - ${f4(F.capCoverage)}, 1.0, capField + 0.18 * capPores)
+    * mix(0.6, smoothstep(0.25, 0.6, capPores), capDetail);
+  owSeaFoam = clamp(owSeaFoam * 1.6, 0.0, 0.9);
   material.diffuseColor = mix(material.diffuseColor, vec3(${F.foam.map(f4).join(', ')}), owSeaFoam);
-  material.roughness = mix(material.roughness, 0.72, owSeaFoam);
+  // Roughen only where foam is dense, so thin foam stays on a reflective sea.
+  material.roughness = mix(material.roughness, 0.62, smoothstep(0.45, 0.85, owSeaFoam));
 #ifdef USE_CLEARCOAT
   material.clearcoat *= 1.0 - owSeaFoam;
 #endif
@@ -95,18 +103,24 @@ if (owSeaDetail > 0.5) {
     vec2 gp = owSeaWorld * ${f4(F.glintCells)};
     vec2 gc = floor(gp);
     float r1 = owHash(gc), r2 = owHash(gc + 17.31), r3 = owHash(gc + 43.7);
+    float r4 = owHash(gc + 71.9), r5 = owHash(gc + 5.17);
     // Facets turn with the wave phase: each cell flashes, then dims.
     float flash = fract(r3 * 7.0 + studioTime * (0.45 + 0.9 * r1));
-    float flashOn = smoothstep(0.0, 0.18, flash) * (1.0 - smoothstep(0.32, 0.6, flash));
-    vec3 tilt = (viewMatrix * vec4((r1 - 0.5) * ${f4(2 * F.glintSpread)}, 0.0, (r2 - 0.5) * ${f4(2 * F.glintSpread)}, 0.0)).xyz;
+    float flashOn = smoothstep(0.0, 0.12, flash) * (1.0 - smoothstep(0.22, 0.45, flash));
+    // Gaussian facet slope (Box-Muller): most facets lie close to the
+    // wave surface, so glints gather where the sun's mirror direction is.
+    float slope = ${f4(F.glintSlope)} * sqrt(-2.0 * log(max(r1, 1e-4)));
+    float azimuth = 6.2831853 * r2;
+    vec3 tilt = (viewMatrix * vec4(cos(azimuth) * slope, 0.0, sin(azimuth) * slope, 0.0)).xyz;
     vec3 gn = normalize(normal + tilt);
     vec3 gh = normalize(seaL + geometryViewDir);
     float ndh = max(dot(gn, gh), 0.0);
     float vdh = clamp(dot(geometryViewDir, gh), 0.0, 1.0);
     float fres = 0.02 + 0.98 * pow(1.0 - vdh, 5.0);
-    // Keep the spot inside its cell so neighbours never seam.
-    vec2 local = fract(gp) - 0.5;
-    float spot = 1.0 - smoothstep(0.18, 0.5, length(local));
+    // One small, sharp point per cell at a jittered place inside it.
+    vec2 local = fract(gp) - (0.3 + 0.4 * vec2(r4, r5));
+    float radius = mix(${f4(F.glintRadius[0])}, ${f4(F.glintRadius[1])}, r3);
+    float spot = 1.0 - smoothstep(radius * 0.25, radius, length(local));
     float glint = pow(ndh, ${f4(F.glintPower)}) * spot * flashOn * fres
       * clamp(dot(gn, seaL), 0.0, 1.0);
     reflectedLight.directSpecular += directionalLights[0].color * glint * ${f4(F.glintGain)} * seaGlintFade;

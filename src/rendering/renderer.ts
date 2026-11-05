@@ -112,6 +112,7 @@ import { prewarmSky, skySunKey } from './sky-light.ts';
 import { PhotoSky } from './assets/photo-sky.ts';
 import { disposeTextureLoaders } from './assets/texture-loader.ts';
 import { scannedGround } from './ground/scan-store.ts';
+import { setMxQuality } from './offroad/mx-quality.ts';
 import { skyPaletteFor } from './assets/sky-catalogue.ts';
 import { aerialFogColor } from './studio/aerial-perspective.ts';
 import { SKY_CLOUDS, SkyClouds } from './studio/sky-clouds.ts';
@@ -1105,6 +1106,7 @@ export class RacingRenderer {
     this.environment.highDetail = g.reflections === 'local';
     this.photoSky?.setQuality(preset);
     scannedGround.attach(this.renderer, preset);
+    setMxQuality(preset);
     this.renderer.shadowMap.enabled = g.shadowSize > 0;
     this.configureFarShadow();
     if (this.sun.shadow.mapSize.x !== g.shadowSize && g.shadowSize > 0) {

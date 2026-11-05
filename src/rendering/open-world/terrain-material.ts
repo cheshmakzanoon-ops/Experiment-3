@@ -195,6 +195,20 @@ ${SCAN_COMMON_GLSL}`,
   vec3 grass = mix(lush, dry, smoothstep(0.35, 0.75, macro));
   grass *= 0.82 + 0.36 * meso;
   grass = mix(grass, vec3(0.055, 0.07, 0.03) * (0.8 + 0.4 * micro), smoothstep(0.3, 0.8, forest) * 0.85);
+  if (owGrassDetail > 0.5) {
+    // Sward mosaic (High and ULTRA): species and moisture patches tens of
+    // metres across shift the hue between yellow- and blue-green, seeding
+    // patches turn to straw, and tussock-scale mottling carries the turf's
+    // texture into the middle distance where the scanned detail has
+    // filtered to its mean. A meadow then reads as vegetation, not a lawn.
+    float swardMix = smoothstep(0.3, 0.7, owFbm(p * 0.035 + vec2(11.3, 4.1), mid));
+    float swardStraw = smoothstep(0.6, 0.78, owFbm(p * 0.012 + vec2(-7.7, 2.9), 1.0));
+    float swardTuft = owNoise(p * 0.45 + vec2(3.7, -1.3)) - 0.5;
+    float swardOpen = (1.0 - forest) * (1.0 - town);
+    grass *= mix(vec3(1.0), mix(vec3(0.9, 0.96, 1.07), vec3(1.1, 1.03, 0.84), swardMix), swardOpen);
+    grass = mix(grass, vec3(0.2, 0.175, 0.085), swardStraw * 0.34 * swardOpen);
+    grass *= 1.0 + swardTuft * 0.16 * (1.0 - smoothstep(150.0, 420.0, dist)) * swardOpen;
+  }
   // Short airfield and park turf, worn paving in towns.
   grass = mix(grass, mix(vec3(0.17, 0.165, 0.15), vec3(0.11, 0.15, 0.06), smoothstep(0.4, 0.7, meso)), town * 0.8);
   vec3 rockC = mix(vec3(0.17, 0.16, 0.145), vec3(0.29, 0.27, 0.24), owFbm(vec2(p.x * 0.05, vOwWorld.y * 0.6), mid));
@@ -235,13 +249,16 @@ ${SCAN_COMMON_GLSL}`,
   // a ragged drying edge and a faint strand line of wrack along its top.
   float owAbove = vOwWorld.y - owSeaLevel;
   if (owAbove < 2.0) {
-    float owEdge = 0.42 + 0.34 * meso + 0.14 * (micro - 0.5);
+    float owEdge = 0.55 + 0.4 * meso + 0.14 * (micro - 0.5);
     float owShore = clamp(sand + 0.6 * soil + 0.4 * rock, 0.0, 1.0) * (1.0 - snow) * (1.0 - town);
-    float owDamp = (1.0 - smoothstep(owEdge * 0.35, owEdge, owAbove)) * owShore;
+    float owDamp = (1.0 - smoothstep(owEdge * 0.3, owEdge, owAbove)) * owShore;
+    // The last swash leaves a glassy film right at the water's edge.
+    float owFilm = (1.0 - smoothstep(0.02, 0.12, owAbove)) * owShore;
     float owStrand = (1.0 - smoothstep(0.0, 0.07, abs(owAbove - owEdge - 0.12)))
       * smoothstep(0.45, 0.7, micro) * owShore * near;
-    col *= (1.0 - 0.45 * owDamp) * (1.0 - 0.24 * owStrand);
-    owRoughness = mix(owRoughness, 0.26, owDamp * 0.85);
+    col *= (1.0 - 0.56 * owDamp) * (1.0 - 0.24 * owStrand);
+    owRoughness = mix(owRoughness, 0.17, owDamp * 0.9);
+    owRoughness = mix(owRoughness, 0.07, owFilm);
   }
   diffuseColor.rgb = col;
   // Detail normal: gradient of the micro and meso relief (fades with distance).
@@ -284,7 +301,7 @@ normal = apexScanPerturb(normal, owScanN, 1.1);
 #endif`,
       );
   };
-  material.customProgramCacheKey = () => 'festival-terrain-v4-swash-zone';
+  material.customProgramCacheKey = () => 'festival-terrain-v5-swash-film';
   scannedGround.register(material, FESTIVAL_SCAN_LAYERS);
   return material;
 }
