@@ -4,6 +4,7 @@ import { mountAuthoredWing, mountAuthoredWheel, uprightSocketX } from './car-ass
 import type { DriverAsset } from './driver-asset.ts';
 import type { HeroShells } from './hero-shells.ts';
 import { installManufacturingFinish, ventilatedBrakeGeometry } from './manufacturing.ts';
+import { installRotorGlow, rotorGlowColour } from './car-brake-glow.ts';
 import { addSafetyCell, addAirbox, buildWing } from './car-architecture.ts';
 import { floorGeometry, floorFenceGeometry, wheelCoverGeometry } from './car-floor.ts';
 import { rearLampIntensity } from './rear-signal.ts';
@@ -453,14 +454,18 @@ export class FormulaCar {
       const carrierDetails = new T.Group();
       pivot.add(carrierDetails);
       this.wheelCarriers.push(carrierDetails);
-      const disc = mesh(
-        pivot,
-        hero?.copy('brake_rotor') ?? ventilatedBrakeGeometry(),
-        discMaterial,
-        0,
-        0,
-        0,
+      const rotorGeometry = hero?.copy('brake_rotor') ?? ventilatedBrakeGeometry();
+      // Incandescence sits on the pads' friction band of this rotor (its own radius).
+      rotorGeometry.computeBoundingBox();
+      const rotorBox = rotorGeometry.boundingBox!;
+      const rotorRadius = Math.max(
+        -rotorBox.min.y,
+        rotorBox.max.y,
+        -rotorBox.min.z,
+        rotorBox.max.z,
       );
+      if (rotorRadius > 0.02 && rotorRadius <= 0.5) installRotorGlow(discMaterial, rotorRadius);
+      const disc = mesh(pivot, rotorGeometry, discMaterial, 0, 0, 0);
       if (hero) {
         // The bell is rotor-owned: spins with the disc, never leaves with a
         // withdrawn rim during the real pit service state.
@@ -867,11 +872,10 @@ export class FormulaCar {
         Math.sign(WHEEL_POSITIONS[i][0]) *
         serviceWheelOffset(source[o + F.PIT_PHASE], source[o + F.PIT_CLOCK], source[p + W.LOAD]);
       this.brakeRotors[i].rotation.x = this.wheelSpins[i].rotation.x;
-      this.discs[i].emissiveIntensity = clamp(
-        (wheelValue(a, b, o, p, W.DISC_TEMP, t) - 500) / 450,
-        0,
-        2,
-      );
+      const discTemp = wheelValue(a, b, o, p, W.DISC_TEMP, t);
+      this.discs[i].emissiveIntensity = clamp((discTemp - 500) / 450, 0, 2);
+      // Blackbody hue: cherry red as the glow begins, orange at race heat.
+      rotorGlowColour(discTemp, this.discs[i].emissive);
       this.carcasses[i].update(
         this.wheelSpins[i].rotation.x,
         wheelValue(a, b, o, p, W.RADIUS, t),
