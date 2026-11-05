@@ -26,6 +26,7 @@ uniform float offroadMud;
 uniform float offroadMudWet;
 uniform float offroadMudExposure;
 float offroadMudHeight;
+float offroadMudThick;
 float offroadMudHash( vec3 p ) {
 	p = fract( p * 0.3183099 + 0.1 );
 	p *= 17.0;
@@ -42,31 +43,53 @@ float offroadMudNoise( vec3 x ) {
 const COLOR = /* glsl */ `
 float offroadMudMask = 0.0;
 offroadMudHeight = 0.0;
+offroadMudThick = 0.0;
 if ( offroadMud * offroadMudExposure > 0.002 ) {
-	float n = 0.67 * offroadMudNoise( vOffroadMudPos * 9.0 ) +
-		0.25 * offroadMudNoise( vOffroadMudPos * 31.0 ) +
-		0.08 * offroadMudNoise( vOffroadMudPos * 103.0 );
+	// Roost is flung along the machine: splats stretch slightly fore-aft.
+	vec3 flung = vOffroadMudPos * vec3( 1.0, 1.0, 0.72 );
+	float n = 0.67 * offroadMudNoise( flung * 9.0 ) +
+		0.25 * offroadMudNoise( flung * 31.0 ) +
+		0.08 * offroadMudNoise( flung * 103.0 );
 	// Lower parts (fenders, legs, sills) catch the roost first.
 	float low = clamp( 0.6 - vOffroadMudPos.y, 0.0, 1.0 );
 	// Never a uniform coat: at most ~80 % of a part, splattered from below.
 	float cover = 0.8 * offroadMud * offroadMudExposure;
 	float aa = clamp( fwidth( n ), 0.009, 0.1 );
-	offroadMudMask = smoothstep( 1.0 - cover - aa, 1.10 - cover + aa, n + 0.3 * low * cover );
+	float field = n + 0.3 * low * cover;
+	offroadMudMask = smoothstep( 1.0 - cover - aa, 1.10 - cover + aa, field );
+	// Each splat is a dome: a thick core where the clod struck, feathering to
+	// a thin margin. Heavier coats pile up lowest on the machine.
+	offroadMudThick = offroadMudMask *
+		smoothstep( 1.05 - cover, 1.36 - cover, field + 0.12 * low * cover );
 	// A thin powder film bridges separated splats; prints remain legible until
 	// actual wet deposits cover them. Fine grains fade at a subpixel footprint.
 	float footprint = length( fwidth( vOffroadMudPos ) );
 	float resolved = 1.0 - smoothstep( 0.002, 0.012, footprint );
+	float bodyResolved = 1.0 - smoothstep( 0.012, 0.06, footprint );
 	float grain = offroadMudNoise( vOffroadMudPos * 370.0 );
+	float crumb = offroadMudNoise( vOffroadMudPos * 150.0 + 7.3 );
 	float film = offroadMud * offroadMudExposure * ( 0.035 + low * 0.13 ) * ( 1.0 - offroadMudWet * 0.7 );
 	vec3 dust = vec3( 0.215, 0.157, 0.094 ), mud = vec3( 0.057, 0.038, 0.022 );
-	vec3 earth = mix( dust, mud, offroadMudWet ) * ( 1.0 + ( grain - 0.5 ) * 0.18 * resolved );
+	// Thin margins dry first; thick cores keep their water and dark tone.
+	float coreWet = offroadMudWet * ( 0.5 + 0.5 * offroadMudThick );
+	vec3 earth = mix( dust, mud, coreWet ) * ( 1.0 + ( grain - 0.5 ) * 0.18 * resolved );
+	// A dried crust rim pales toward the fines it is made of.
+	earth = mix( earth, dust * vec3( 1.1, 1.08, 1.04 ),
+		( 1.0 - offroadMudThick ) * 0.32 * ( 1.0 - offroadMudWet * 0.55 ) );
 	diffuseColor.rgb = mix( diffuseColor.rgb, dust, film );
-	diffuseColor.rgb = mix( diffuseColor.rgb, earth, offroadMudMask * mix( 0.62, 0.94, offroadMudWet ) );
+	// Margins are a translucent smear over the part; cores are opaque earth.
+	diffuseColor.rgb = mix( diffuseColor.rgb, earth, offroadMudMask *
+		mix( mix( 0.56, 0.86, offroadMudWet ), 0.97, offroadMudThick ) );
+	// Skin and rim at millimetres, the slumped body at a few millimetres;
+	// dry clay also breaks into crumbs while wet mud flows smooth.
 	offroadMudHeight = offroadMudMask * ( 0.55 + grain * 0.45 ) *
-		mix( 0.00013, 0.00048, offroadMudWet ) * resolved;
+		mix( 0.00013, 0.00048, offroadMudWet ) * resolved
+		+ offroadMudThick * mix( 0.0009, 0.0021, offroadMudWet ) * bodyResolved
+		+ offroadMudMask * ( crumb - 0.5 ) * 0.00016 * ( 1.0 - offroadMudWet * 0.8 ) * resolved;
 }`;
 const ROUGHNESS = /* glsl */ `
-roughnessFactor = mix( roughnessFactor, mix( 0.96, 0.5, offroadMudWet ), offroadMudMask );`;
+roughnessFactor = mix( roughnessFactor,
+	mix( 0.96, mix( 0.64, 0.3, offroadMudThick ), offroadMudWet ), offroadMudMask );`;
 const NORMAL = /* glsl */ `
 {
 	vec3 dx = dFdx( -vViewPosition ), dy = dFdy( -vViewPosition );

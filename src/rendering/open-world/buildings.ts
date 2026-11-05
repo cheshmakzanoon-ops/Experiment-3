@@ -85,6 +85,10 @@ class Mesher {
  * and bay (dark glazing with low roughness, deep reveals), shopfronts on
  * town ground floors, ribbed cladding on sheds, weathering stains, and
  * individually lit windows at night. */
+/** Glazing: the largest per-pane tilt (radians, about 0.9 degrees), the
+ * slope of the tempered-glass roller wave (period about 0.31 m) and the
+ * air-glass interfaces of a double-glazed unit. */
+export const GLAZING = Object.freeze({ tilt: 0.016, roller: 0.0045, interfaces: 4 });
 function facadeMaterial(night: { value: number }, interiorDepth: { value: number }) {
   const material = new T.MeshStandardMaterial({
     vertexColors: true,
@@ -116,7 +120,8 @@ float owLit;
 float owRib;
 float owWallRelief;
 float owWallRoughness;
-vec3 owLamp;`,
+vec3 owLamp;
+vec2 owPaneTilt;`,
       )
       .replace(
         '#include <color_fragment>',
@@ -127,6 +132,7 @@ vec3 owLamp;`,
   vec3 interiorColor = vec3(0.0);
   float interiorVisibility = 0.0;
   owGlass = 0.0; owLit = 0.0; owRib = 0.0; owWallRelief = 0.0; owWallRoughness = -1.0; owLamp = vec3(1.0, 0.7, 0.42);
+  owPaneTilt = vec2(0.0);
   bool shed = kind > 4.5 && kind < 5.5 || kind > 8.5;
   bool roof = vFacade.z < -0.5 && vFacade.z > -1.5;
   bool trim = vFacade.z < -1.5;
@@ -150,6 +156,7 @@ vec3 owLamp;`,
                       1.0-smoothstep(0.012,0.012+aa.y,transom));
     frame = max(frame,1.0-smoothstep(0.028,0.028+max(aa.x,aa.y),perimeter));
     owGlass = 1.0-frame;
+    owPaneTilt = vec2(fract(room * 37.13 + style * 0.71), fract(room * 91.71 + 0.37)) - 0.5;
     diffuseColor.rgb = vec3(0.043,0.050,0.047);
     float ceiling = 1.0 - smoothstep(0.77,1.0,q.y)*0.52;
     float curtain = smoothstep(0.06,0.16,q.x)*smoothstep(0.06,0.16,1.0-q.x);
@@ -211,11 +218,21 @@ vec3 owLamp;`,
     vec2 f = fract(tile), aa = max(fwidth(tile), vec2(0.002));
     vec2 seam = smoothstep(vec2(0.025), vec2(0.025) + aa, min(f, 1.0 - f));
     diffuseColor.rgb *= (0.8 + 0.27 * owHash(floor(tile))) * (0.78 + 0.22 * seam.x * seam.y);
+    // Each course laps over the one below: a gently rising tile face that
+    // drops at its butt edge, per-tile roughness, and lichen colonising
+    // patches of the older roofs. Relief fades once a tile spans few pixels.
+    float roofResolve = 1.0 - smoothstep(0.18, 0.6, max(aa.x, aa.y));
+    float lichen = smoothstep(0.58, 0.86, owNoise(q * 0.45 + style * 17.0) * 0.7 + owNoise(q * 2.3 + style * 5.0) * 0.3);
+    lichen *= step(0.35, fract(style * 7.31));
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.105, 0.11, 0.068) * (0.8 + 0.4 * owNoise(q * 9.0)), lichen * 0.42);
+    owWallRelief = smoothstep(0.0, 0.88, f.y) * (1.0 - smoothstep(0.9, 1.0, f.y)) * 0.009 * roofResolve;
+    owWallRoughness = 0.76 + 0.12 * owHash(floor(tile) + 3.1) + 0.08 * lichen;
   } else if (shed) {
     owRib = sin(q.x * 6.2832 / 0.6);
     diffuseColor.rgb *= 0.92 + 0.08 * owRib;
     // A band of clerestory glazing.
     float band = step(height - 2.6, q.y) * step(q.y, height - 1.2);
+    owPaneTilt = vec2(owHash(vec2(floor(q.x / 3.0), style * 5.0 + 1.0)), owHash(vec2(style * 3.0, floor(q.x / 3.0) + 9.0))) - 0.5;
     owGlass = band * step(0.1, fract(q.x / 3.0)) * step(fract(q.x / 3.0), 0.9) * (kind > 8.5 && kind < 9.5 ? 0.0 : 1.0);
   } else {
     float bay = kind < 0.5 ? 2.7 : kind > 6.5 ? 2.2 : 3.3;
@@ -230,6 +247,7 @@ vec3 owLamp;`,
     // Some bays are blind on houses and the chapel has tall lancets.
     float blind = kind < 0.5 ? step(0.82, owHash(id + style * 31.0)) : 0.0;
     owGlass = inside * underRoof * (1.0 - blind);
+    owPaneTilt = vec2(owHash(id + vec2(style * 13.0, 71.0)), owHash(id + vec2(29.0, style * 7.0))) - 0.5;
     // Divide the wide shop panes and room windows into real-looking glazing
     // bays. Keep the frames dark when the room lights switch on; otherwise a
     // three-metre shopfront becomes one broad luminous rectangle at night.
@@ -292,15 +310,48 @@ if (owWallRoughness >= 0.0) {
     normal = normalize(abs(determinant)*normal-gradient);
   }
 }
-if (abs(owRib) > 0.001) normal = normalize(normal + (viewMatrix * vec4(0.0, 0.0, 0.0, 0.0)).xyz + cross(normal, vec3(0.0, 1.0, 0.0)) * owRib * 0.12);`,
+if (abs(owRib) > 0.001) normal = normalize(normal + (viewMatrix * vec4(0.0, 0.0, 0.0, 0.0)).xyz + cross(normal, vec3(0.0, 1.0, 0.0)) * owRib * 0.12);
+{
+  // Glazing is never one mirror: each pane sits a fraction of a degree off
+  // its neighbours, and tempered glass carries a faint roller wave, so the
+  // reflected sky and street break up pane by pane. Filtered by footprint.
+  float rollerFade = 1.0 - smoothstep(0.04, 0.16, fwidth(vUv.y));
+  if (owGlass > 0.001) {
+    vec3 wallUp = (viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz;
+    vec3 across = cross(wallUp, normal);
+    if (dot(across, across) > 0.01) {
+      across = normalize(across);
+      vec3 rise = cross(normal, across);
+      float roller = sin(vUv.y * 20.27 + owPaneTilt.x * 31.0) * ${GLAZING.roller.toFixed(4)} * rollerFade;
+      normal = normalize(normal + (across * owPaneTilt.x + rise * (owPaneTilt.y + roller / ${(2 * GLAZING.tilt).toFixed(4)})) * ${(2 * GLAZING.tilt).toFixed(4)} * owGlass);
+    }
+  }
+}`,
       )
       .replace(
         '#include <emissivemap_fragment>',
         `#include <emissivemap_fragment>
 totalEmissiveRadiance += owLamp * owLit * owNight * 0.2;`,
+      )
+      .replace(
+        '#include <lights_fragment_end>',
+        `#include <lights_fragment_end>
+if (owGlass > 0.001) {
+  // Insulated glazing: ${GLAZING.interfaces} air-glass interfaces, not one. Single-surface
+  // Schlick F becomes 1-(1-F)^n (about 15% at normal incidence, unity at
+  // grazing), so windows mirror the sky and street as real ones do while
+  // the lit or furnished room still shows through the remaining share.
+  float owF = 0.04 + 0.96 * pow(1.0 - clamp(dot(geometryNormal, geometryViewDir), 0.0, 1.0), 5.0);
+  float owGain = (1.0 - pow(1.0 - owF, ${GLAZING.interfaces.toFixed(1)})) / owF;
+  float owSpecular = mix(1.0, owGain, owGlass);
+  reflectedLight.indirectSpecular *= owSpecular;
+  reflectedLight.directSpecular *= owSpecular;
+  reflectedLight.indirectDiffuse *= 1.0 - owGlass * (owGain - 1.0) * owF;
+  reflectedLight.directDiffuse *= 1.0 - owGlass * (owGain - 1.0) * owF;
+}`,
       );
   };
-  material.customProgramCacheKey = () => 'festival-facades-v7-parallax-rooms';
+  material.customProgramCacheKey = () => 'festival-facades-v10-lapped-roofs';
   return material;
 }
 

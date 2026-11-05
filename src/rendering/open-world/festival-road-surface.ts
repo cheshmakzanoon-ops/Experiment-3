@@ -17,7 +17,20 @@ export const FESTIVAL_ROAD_SURFACE = Object.freeze({
   wheelOffset: 0.79,
   wheelHalfWidth: 0.24,
   normalSample: 0.5,
+  /** Pavement cracking (High and ULTRA): thermal cracks across the road per
+   * cell (metres) with the chance of one, the share carrying a hot-poured
+   * bitumen seal and that seal's half-width range; longitudinal centre-joint
+   * cracks per cell and their chance. */
+  crackCell: 17,
+  crackChance: 0.62,
+  crackSealed: 0.68,
+  crackSealHalfWidth: Object.freeze([0.022, 0.05] as const),
+  jointCrackCell: 41,
+  jointCrackChance: 0.5,
 });
+/** Shared by every festival road material; FestivalRenderer.setQuality sets
+ * it (1 on High and ULTRA). */
+export const festivalRoadDetail = { value: 0 };
 
 /** A differential frame over the same crowned, banked road that physics
  * samples. The two along-road samples stay on this edge, including at its
@@ -216,6 +229,52 @@ float festivalSeal = 0.0;
   diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.015, 0.017, 0.018) * (1.0 - wet * 0.25), festivalSeal * 0.82);
   }
 
+  // Pavement cracking, near the camera only. Thermal cracks run across the
+  // carriageway at irregular spacing from one edge, a longitudinal crack
+  // follows the centre joint in broken runs, and most carry a hot-poured
+  // bitumen seal wider than the crack: dark, glossy, feathered and wavy.
+  // Unsealed cracks are a hairline cavity whose contrast is conserved over
+  // the pixel footprint, so they thin out with distance instead of shimmering.
+  if (festivalRoadDetail > 0.5 && fine > 0.001 && admission > 0.001) {
+    float ckAge = age * admission * max(roadUse, circuitUse * 0.55);
+    float ckSeal = 0.0, ckOpen = 0.0;
+    float ckCell = floor(q.y / ${f(S.crackCell)});
+    float ckId = owHash(vec2(ckCell + 41.3, seed + 3.1));
+    if (ckId < ${f(S.crackChance)} * ckAge) {
+      float ckY = (ckCell + 0.5 + (owHash(vec2(ckCell + 12.9, seed)) - 0.5) * 0.6) * ${f(S.crackCell)};
+      float ckWob = (owNoise(vec2(q.x * 0.85 + ckCell * 7.1, seed)) - 0.5) * 0.55
+        + (owNoise(vec2(q.x * 3.7, ckCell + seed)) - 0.5) * 0.09;
+      float ckSide = owHash(vec2(ckCell + 6.6, seed + 1.7)) < 0.5 ? -1.0 : 1.0;
+      float ckReach = mix(0.35, 1.05, owHash(vec2(ckCell + 2.3, seed + 9.9)));
+      float ckU = (ckSide * q.x + halfRoad) / max(2.0 * halfRoad, 0.5);
+      float ckRun = 1.0 - smoothstep(ckReach - 0.06, ckReach, ckU);
+      float ckD = abs(q.y - ckY - ckWob);
+      bool ckSealed = owHash(vec2(ckCell + 23.7, seed + 4.4)) < ${f(S.crackSealed)};
+      float ckW = mix(${f(S.crackSealHalfWidth[0])}, ${f(S.crackSealHalfWidth[1])}, owNoise(vec2(q.x * 1.3, ckCell + 0.5)));
+      if (ckSealed) ckSeal = (1.0 - smoothstep(ckW * 0.55, ckW + pixel, ckD)) * ckRun;
+      float ckHair = max(pixel, 0.004);
+      ckOpen = (1.0 - smoothstep(0.0, ckHair * 1.5, ckD)) * (0.004 / ckHair) * ckRun * (ckSealed ? 0.0 : 1.0);
+    }
+    float jcCell = floor(q.y / ${f(S.jointCrackCell)});
+    if (roadUse > 0.5 && owHash(vec2(jcCell + 71.9, seed + 6.2)) < ${f(S.jointCrackChance)} * ckAge) {
+      float jcLocal = fract(q.y / ${f(S.jointCrackCell)});
+      float jcA = owHash(vec2(jcCell + 3.3, seed + 8.1)) * 0.4;
+      float jcB = jcA + mix(0.25, 0.6, owHash(vec2(jcCell + 9.4, seed + 2.2)));
+      float jcRun = smoothstep(jcA, jcA + 0.04, jcLocal) * (1.0 - smoothstep(jcB - 0.04, jcB, jcLocal));
+      float jcX = (owNoise(vec2(q.y * 0.05, seed + 5.0)) - 0.5) * 0.14
+        + (owNoise(vec2(q.y * 0.9, seed + 11.0)) - 0.5) * 0.07;
+      float jcD = abs(q.x - jcX);
+      float jcW = mix(${f(S.crackSealHalfWidth[0])}, ${f(S.crackSealHalfWidth[1])}, owNoise(vec2(q.y * 0.7, seed + 1.0)));
+      ckSeal = max(ckSeal, (1.0 - smoothstep(jcW * 0.55, jcW + pixel, jcD)) * jcRun);
+    }
+    ckSeal *= fine;
+    ckOpen *= fine;
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.021, 0.022, 0.023) * (1.0 - wet * 0.3), ckSeal * 0.78);
+    diffuseColor.rgb *= 1.0 - ckOpen * 0.55;
+    festivalSeal = max(festivalSeal, ckSeal * 0.85);
+    festivalRepair = max(festivalRepair, ckOpen * 0.6);
+  }
+
   // Standing-water sheen drains off steep/banked surfaces. This only
   // adjusts the existing weather film's appearance; it is not hydrology.
   if (wet > 0.25) {
@@ -242,6 +301,7 @@ export function installFestivalRoadSurface(material: T.MeshPhysicalMaterial, age
   const ageUniform = { value: age };
   return chainShaderHook(material, 'festival-road-surface-v2', (shader) => {
     shader.uniforms.festivalSurfaceAge = ageUniform;
+    shader.uniforms.festivalRoadDetail = festivalRoadDetail;
     injectDeclarations(
       shader,
       'common',
@@ -267,6 +327,7 @@ vFestivalRoadMetres = uv;`,
       'common',
       `
 uniform float festivalSurfaceAge;
+uniform float festivalRoadDetail;
 varying vec4 vFestivalRoadData;
 varying vec2 vFestivalSurfaceData;
 varying vec2 vFestivalRoadMetres;

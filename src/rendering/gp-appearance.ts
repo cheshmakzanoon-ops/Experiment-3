@@ -1,5 +1,6 @@
 import * as T from 'three';
 import { installGlassFresnel } from './materials/library.ts';
+import { chainShaderHook, injectAfter } from './studio/shader-hooks.ts';
 import type { BikeMaterials } from './bike.ts';
 import type { RiderDetail } from './rider.ts';
 
@@ -23,8 +24,10 @@ export function calibrateGpMaterials(materials: BikeMaterials, vehicle: string):
   // deep clear coat over the twill, so the weave flips under sky reflections.
   // Inner and structural carbon uses the raw satin finish instead.
   materials.carbon.roughness = 0.42;
-  materials.carbon.clearcoat = 0.8;
-  materials.carbon.clearcoatRoughness = 0.09;
+  // Race lacquer is a full, deep coat (several flatted layers): crisp sky
+  // reflections over the weave on wings and covers, not a hazy film.
+  materials.carbon.clearcoat = 1;
+  materials.carbon.clearcoatRoughness = 0.045;
   materials.aluminium.roughness = 0.41;
   materials.wheel.roughness = 0.42;
   materials.wheel.clearcoat = 0.2;
@@ -33,6 +36,7 @@ export function calibrateGpMaterials(materials: BikeMaterials, vehicle: string):
   // silencers did not. Mark their missing-attribute fallback explicitly.
   materials.titanium.userData.gpBareTitanium = true;
   materials.titanium.roughness = 0.4;
+  installGpTitaniumOxideGloss(materials.titanium);
   // Burnished, not polished: bare titanium reads warm grey, not white.
   materials.titanium.color.setHex(0x8f8b85);
   // Fork: hard-anodised graphite outer tubes and caps' recess, TiN-coated
@@ -68,6 +72,29 @@ export function calibrateGpMaterials(materials: BikeMaterials, vehicle: string):
   materials.screenLight.opacity = 0.3;
   materials.screenLight.roughness = 0.12;
   return true;
+}
+
+/** Temper oxide is a smooth glassy TiO2 film over burnished metal, so the
+ * coloured bands mirror the sky more sharply than bare titanium. The band
+ * strength is the authored vertex tint's chroma (bare grey: none), which
+ * survives static batching; ALU only, no texture, no new attribute. */
+export const GP_TITANIUM_OXIDE_GLOSS = 0.62;
+export function installGpTitaniumOxideGloss(material: T.Material): boolean {
+  return chainShaderHook(material, 'gp-titanium-oxide-v1', (shader) => {
+    injectAfter(
+      shader,
+      'roughnessmap_fragment',
+      `#ifdef USE_COLOR
+{
+  float gpTiHi=max(max(vColor.r,vColor.g),vColor.b),
+    gpTiLo=min(min(vColor.r,vColor.g),vColor.b);
+  float gpTiFilm=smoothstep(.1,.45,(gpTiHi-gpTiLo)/max(gpTiHi,.001));
+  roughnessFactor*=mix(1.,${GP_TITANIUM_OXIDE_GLOSS.toFixed(2)},gpTiFilm);
+}
+#endif`,
+      'fragment',
+    );
+  });
 }
 
 /** Screen coverage over the GP screen panel's net UVs (u: base edge 0 to
@@ -165,6 +192,34 @@ export function bindGpBareMetal(geometry: T.BufferGeometry, material: T.Material
   );
 }
 
+/** Heat soak on the formed silencer shell (local +Y inlet, -Y outlet): a
+ * faint straw temper where the hot header gas enters, bare burnished metal
+ * along the cooled body, and a gold-bronze ring on the rolled outlet lip that
+ * the exhaust stream licks. Vertex colour multiplies the calibrated titanium
+ * base, so bare stays exactly 1; the lathe's around-angle adds slight
+ * unevenness. Authored here, so bindGpBareMetal preserves it verbatim. */
+export function gpSilencerHeatSoak(geometry: T.BufferGeometry): T.BufferGeometry {
+  const p = geometry.getAttribute('position');
+  if (!p) throw new Error('Missing GP silencer positions');
+  const colours = new Float32Array(p.count * 3),
+    straw = new T.Color(0xe9d6a4),
+    bronze = new T.Color(0xc39255),
+    c = new T.Color();
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i),
+      y = p.getY(i),
+      z = p.getZ(i),
+      a = Math.atan2(z, x),
+      uneven = 0.85 + 0.15 * Math.sin(a * 3 + 0.6),
+      inlet = T.MathUtils.smoothstep(y, 0.06, 0.15) * 0.75 * uneven,
+      lip = (1 - T.MathUtils.smoothstep(y, -0.15, -0.125)) * 0.6 * uneven;
+    c.setRGB(1, 1, 1).lerp(straw, inlet).lerp(bronze, lip);
+    colours.set([c.r, c.g, c.b], i * 3);
+  }
+  geometry.setAttribute('color', new T.Float32BufferAttribute(colours, 3));
+  return geometry;
+}
+
 /** Hollow, tapered silencer with a recessed bore and rolled outlet, rather
  * than the former two sealed black cylinders. Local -Y is the outlet. */
 export function gpSilencer(detail: RiderDetail, materials: BikeMaterials): T.Group {
@@ -191,9 +246,11 @@ export function gpSilencer(detail: RiderDetail, materials: BikeMaterials): T.Gro
     [0.034, 0.15],
   ];
   mesh(
-    new T.LatheGeometry(
-      profile.map(([r, y]) => new T.Vector2(r, y)),
-      segments,
+    gpSilencerHeatSoak(
+      new T.LatheGeometry(
+        profile.map(([r, y]) => new T.Vector2(r, y)),
+        segments,
+      ),
     ),
     materials.titanium,
     'Rolled titanium shell and open outlet',

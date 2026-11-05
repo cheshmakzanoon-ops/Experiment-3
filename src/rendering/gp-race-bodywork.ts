@@ -862,14 +862,21 @@ function atlasPoint(side: 1 | -1, [z, y]: ZY): [number, number] {
 }
 const PX_PER_M = 1024 / (GP_LIVERY_FRAME.zMax - GP_LIVERY_FRAME.zMin);
 
-/** Clearcoat (R) and roughness (G) of each painted zone: the livery is a
- * colour atlas plus this finish atlas sharing the same side-view UVs, so
- * ducts, seams and satin keels read as different surfaces, not one gloss. */
+/** Clearcoat (R), roughness (G) and metallic-flake share (B) of each painted
+ * zone: the livery is a colour atlas plus this finish atlas sharing the same
+ * side-view UVs, so ducts, seams and satin keels read as different surfaces,
+ * not one gloss. Only the gloss livery carries flake; satin and matte do not. */
 const FINISH = Object.freeze({
-  gloss: '#ff4700',
+  gloss: '#ff47ff',
   satin: '#80a000',
   matte: '#00f000',
 });
+/** Metallic-pearl basecoat under the clear coat on gloss zones: aluminium
+ * flake gives the colour its own broad tinted highlight beneath the sharp
+ * clear-coat reflection (the two-lobe look of race paint in sun) and a
+ * darker flop at grazing angles, where solid paint read as moulded plastic.
+ * Sub-pixel sparkle is left out: it only aliases at race distance. */
+export const GP_PAINT_FLAKE = Object.freeze({ metalness: 0.42 });
 type Finish = keyof typeof FINISH;
 
 interface LiveryPen {
@@ -1309,7 +1316,8 @@ export function gpWingPaint(materials: BikeMaterials, entrant: number) {
   if (material) return material;
   material = new T.MeshPhysicalMaterial({
     color: liveryScheme(entrant).primary,
-    metalness: 0,
+    // Same metallic-pearl basecoat as the gloss livery they are painted with.
+    metalness: GP_PAINT_FLAKE.metalness,
     roughness: 0.28,
     clearcoat: 1,
     clearcoatRoughness: 0.035,
@@ -1361,7 +1369,8 @@ export function gpLiveryMaterial(
     map,
     roughness: 1,
     roughnessMap: finish,
-    metalness: 0,
+    metalness: GP_PAINT_FLAKE.metalness,
+    metalnessMap: finish,
     clearcoat: 1,
     clearcoatMap: finish,
     clearcoatRoughness: 0.035,

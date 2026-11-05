@@ -16,7 +16,9 @@ import {
 import { vehicleAt } from '../../simulation/vehicles.ts';
 import { TrackTerrainSurface } from '../../simulation/offroad/course-terrain.ts';
 import { Track, trackPoint } from '../../simulation/track.ts';
+import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { MxDustMaterial } from './mx-dust-material.ts';
+import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
 
 /** Loose ground a spinning tyre throws (WP41). */
 const LOOSE = new Set<number>([
@@ -43,9 +45,109 @@ function soilFragmentGeometry() {
     const grain = 0.82 + 0.17 * Math.sin(x * 19 + y * 31 + z * 23);
     position.setXYZ(i, x * grain, y * grain * 0.72, z * grain * 1.12);
   }
-  geometry.computeVertexNormals();
-  geometry.computeBoundingSphere();
-  return geometry;
+  // Weld the coincident corners so the lump also has a rounded normal field.
+  // The shader blends it with the fractured face per particle wetness; the
+  // twenty-triangle silhouette and draw stay exactly as before.
+  geometry.deleteAttribute('normal');
+  geometry.deleteAttribute('uv');
+  const welded = mergeVertices(geometry);
+  geometry.dispose();
+  welded.computeVertexNormals();
+  welded.setAttribute(
+    'mxClodWet',
+    new T.InstancedBufferAttribute(new Float32Array(ROOST_CAPACITY), 1).setUsage(
+      T.DynamicDrawUsage,
+    ),
+  );
+  welded.computeBoundingSphere();
+  return welded;
+}
+
+/** Thrown soil as clay, not faceted gems. Dry clods keep their fractured
+ * planes, crumb relief and a matte, mottled skin; wet clay slumps into a
+ * rounded, darker lump whose film catches glints. Per-instance wetness is
+ * the particle's own recorded soil moisture. No textures or extra draws. */
+function installClodFinish(material: T.MeshStandardMaterial) {
+  chainShaderHook(material, 'mx-roost-clod-v1', (shader) => {
+    injectDeclarations(
+      shader,
+      'common',
+      'attribute float mxClodWet;\nvarying float vMxClodWet;\nvarying vec3 vMxClodPosition;',
+      'vertex',
+    );
+    injectAfter(
+      shader,
+      'begin_vertex',
+      'vMxClodWet = mxClodWet;\nvMxClodPosition = position;',
+      'vertex',
+    );
+    injectDeclarations(
+      shader,
+      'common',
+      `
+varying float vMxClodWet;
+varying vec3 vMxClodPosition;
+float mxClodRelief, mxClodMottle;
+float mxClodHash( vec3 p ) {
+  p = fract( p * 0.3183099 + 0.1 );
+  p *= 17.0;
+  return fract( p.x * p.y * p.z * ( p.x + p.y + p.z ) );
+}
+float mxClodNoise( vec3 x ) {
+  vec3 i = floor( x ), f = fract( x );
+  f = f * f * ( 3.0 - 2.0 * f );
+  return mix( mix( mix( mxClodHash( i ), mxClodHash( i + vec3( 1, 0, 0 ) ), f.x ),
+      mix( mxClodHash( i + vec3( 0, 1, 0 ) ), mxClodHash( i + vec3( 1, 1, 0 ) ), f.x ), f.y ),
+    mix( mix( mxClodHash( i + vec3( 0, 0, 1 ) ), mxClodHash( i + vec3( 1, 0, 1 ) ), f.x ),
+      mix( mxClodHash( i + vec3( 0, 1, 1 ) ), mxClodHash( i + vec3( 1, 1, 1 ) ), f.x ), f.y ), f.z );
+}`,
+      'fragment',
+    );
+    injectAfter(
+      shader,
+      'color_fragment',
+      `{
+  // Unit-lump coordinates: the grain scales with each clod, so it reads as
+  // crumbs at every size and fades before it can sparkle.
+  float resolved = 1.0 - smoothstep( 0.08, 0.3, length( fwidth( vMxClodPosition ) ) );
+  float crumb = mxClodNoise( vMxClodPosition * 9.0 );
+  float fine = mxClodNoise( vMxClodPosition * 23.0 + 5.1 );
+  float dry = 1.0 - clamp( vMxClodWet, 0.0, 1.0 );
+  mxClodMottle = crumb * 0.7 + fine * 0.3;
+  mxClodRelief = ( ( crumb - 0.5 ) * 0.024 + ( fine - 0.5 ) * 0.01 ) * resolved
+    * ( 0.35 + 0.65 * dry );
+  // Dry fines dust the skin paler; wet clay is darker and more uniform.
+  diffuseColor.rgb *= mix( 0.92, 0.84 + 0.3 * mxClodMottle, mix( 0.35, 1.0, dry ) );
+  diffuseColor.rgb *= 1.0 - 0.12 * ( 1.0 - dry );
+}`,
+      'fragment',
+    );
+    injectAfter(
+      shader,
+      'normal_fragment_maps',
+      `{
+  // Fractured faces for dry crumbs, a slumped rounded lump for wet clay.
+  vec3 faceNormal = normalize( cross( dFdx( vViewPosition ), dFdy( vViewPosition ) ) );
+  faceNormal *= sign( dot( faceNormal, normal ) + 1e-6 );
+  normal = normalize( mix( faceNormal, normal, 0.25 + 0.75 * clamp( vMxClodWet, 0.0, 1.0 ) ) );
+  vec3 dx = dFdx( -vViewPosition ), dy = dFdy( -vViewPosition );
+  vec3 r1 = cross( dy, normal ), r2 = cross( normal, dx );
+  float det = dot( dx, r1 );
+  float scale = length( dx ) / max( length( dFdx( vMxClodPosition ) ), 1e-6 );
+  vec3 gradient = sign( det ) * scale *
+    ( dFdx( mxClodRelief ) * r1 + dFdy( mxClodRelief ) * r2 );
+  normal = normalize( max( abs( det ), 1e-10 ) * normal - gradient );
+}`,
+      'fragment',
+    );
+    injectAfter(
+      shader,
+      'roughnessmap_fragment',
+      `roughnessFactor = mix( roughnessFactor, 0.42 + 0.22 * mxClodMottle,
+        smoothstep( 0.25, 0.95, vMxClodWet ) );`,
+      'fragment',
+    );
+  });
 }
 function softDisc(soft = false) {
   const size = 64,
@@ -165,7 +267,11 @@ export class Roost {
     this.clods = this.motocross
       ? new T.InstancedMesh(
           soilFragmentGeometry(),
-          new T.MeshStandardMaterial({ roughness: 0.94, metalness: 0, flatShading: true }),
+          (() => {
+            const material = new T.MeshStandardMaterial({ roughness: 0.94, metalness: 0 });
+            installClodFinish(material);
+            return material;
+          })(),
           ROOST_CAPACITY,
         )
       : null;
@@ -319,7 +425,8 @@ export class Roost {
     if (!mesh) return;
     mesh.visible = this.enabled;
     let count = 0;
-    const pose = this.clodPose;
+    const pose = this.clodPose,
+      clodWet = mesh.geometry.getAttribute('mxClodWet') as T.InstancedBufferAttribute;
     for (let i = 0; i < ROOST_CAPACITY; i++) {
       if (this.life[i] <= 0 || this.dust[i]) continue;
       const k = i * 3,
@@ -335,11 +442,13 @@ export class Roost {
       pose.updateMatrix();
       mesh.setMatrixAt(count, pose.matrix);
       this.clodColour.setRGB(this.colours[k], this.colours[k + 1], this.colours[k + 2]);
+      clodWet.setX(count, this.particleWet[i]);
       mesh.setColorAt(count++, this.clodColour);
     }
     mesh.count = count;
     mesh.instanceMatrix.needsUpdate = true;
     mesh.instanceColor!.needsUpdate = true;
+    clodWet.needsUpdate = true;
   }
   update(frame: Float32Array, dt: number) {
     if (!Number.isFinite(dt) || dt < 0) return;

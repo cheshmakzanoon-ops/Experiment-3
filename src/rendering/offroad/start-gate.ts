@@ -8,6 +8,7 @@ import { PHASE } from '../../simulation/race.ts';
 import { trackPoint, type Track } from '../../simulation/track.ts';
 import { installScannedMaps, libraryAlbedo } from '../ground/scanned-ground.ts';
 import { materials } from '../materials/index.ts';
+import { installMud, mudUniforms } from './mud.ts';
 
 /** Gate panel (m): a perforated steel grate hinged at its foot. */
 const PANEL = Object.freeze({ height: 0.52, thickness: 0.035, gap: 0.08 });
@@ -44,6 +45,13 @@ export class StartGate {
     track.at(gate.s, p);
     this.root.name = 'Start gate';
     installScannedMaps(this.pad, 'concrete', libraryAlbedo(this.pad));
+    // A gate that has dropped for every moto carries roost: a dusty film and
+    // damp splatter low on the grates and frame, cleaner toward the top bar.
+    const roost = mudUniforms();
+    roost.offroadMud.value = 0.42;
+    roost.offroadMudWet.value = 0.25;
+    installMud(this.steel, roost);
+    installMud(this.frame, roost);
     this.root.position.set(p.x, p.y, p.z);
     // Local +Z along the lap, +X along the track normal (lateral).
     this.root.rotation.y = Math.atan2(p.tx, p.tz);

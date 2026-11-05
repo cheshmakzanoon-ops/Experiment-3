@@ -165,6 +165,25 @@ export function mxShoulderPlantMaterial(time: { value: number }) {
     `,
       'vertex',
     );
+    // Thin blades transmit sunlight: seen against a low sun, a leaf glows
+    // yellow-green instead of reading as a dark card. The directional light
+    // here already carries its shadow, so shaded plants stay unlit.
+    injectAfter(
+      shader,
+      'lights_fragment_begin',
+      `
+      #if ( NUM_DIR_LIGHTS > 0 )
+      {
+        float mxBacklit = saturate( -dot( geometryNormal, directLight.direction ) );
+        float mxThrough = saturate( dot( geometryViewDir, -directLight.direction ) );
+        reflectedLight.directDiffuse += directLight.color * material.diffuseColor
+          * vec3( 0.95, 1.12, 0.55 ) * RECIPROCAL_PI * mxBacklit
+          * ( 0.3 + 0.7 * mxThrough * mxThrough ) * 0.55;
+      }
+      #endif
+    `,
+      'fragment',
+    );
   });
   return material;
 }

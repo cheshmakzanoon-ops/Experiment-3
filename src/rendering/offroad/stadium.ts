@@ -20,6 +20,64 @@ function member(a: T.Vector3, b: T.Vector3, radius: number) {
   return g;
 }
 
+/** Floodlight shafts through the arena's suspended dust: single scattering
+ * in a thin haze, so each beam is brightest beside its lamp, dims as the cone
+ * spreads, and fades before the floor, at its silhouette and near the lens.
+ * One additive draw of open cones; no lights, shadows, textures or depth. */
+function hazeBeamMaterial() {
+  return new T.ShaderMaterial({
+    name: 'Arena floodlight haze beams',
+    uniforms: {
+      beamColour: { value: new T.Color(0xeaf4ff) },
+      beamStrength: { value: 0.05 },
+    },
+    vertexShader: /* glsl */ `
+varying float vBeamAlong;
+varying vec3 vBeamView;
+varying vec3 vBeamNormal;
+void main() {
+  vBeamAlong = 1.0 - uv.y;
+  vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+  vBeamView = mvPosition.xyz;
+  vBeamNormal = normalMatrix * normal;
+  gl_Position = projectionMatrix * mvPosition;
+}`,
+    fragmentShader: /* glsl */ `
+uniform vec3 beamColour;
+uniform float beamStrength;
+varying float vBeamAlong;
+varying vec3 vBeamView;
+varying vec3 vBeamNormal;
+void main() {
+  // The chord through a cone is longest along its axis: fade the silhouette.
+  float facing = abs( dot( normalize( vBeamNormal ), normalize( -vBeamView ) ) );
+  float chord = facing * facing;
+  float spread = 1.0 / ( 1.0 + 6.0 * vBeamAlong );
+  float ends = smoothstep( 0.0, 0.08, vBeamAlong ) * ( 1.0 - smoothstep( 0.45, 1.0, vBeamAlong ) );
+  float near = smoothstep( 2.0, 12.0, length( vBeamView ) );
+  gl_FragColor = vec4( beamColour * ( beamStrength * chord * spread * ends * near ), 1.0 );
+  #include <tonemapping_fragment>
+  #include <colorspace_fragment>
+}`,
+    blending: T.AdditiveBlending,
+    transparent: true,
+    depthWrite: false,
+    fog: false,
+  });
+}
+
+function hazeBeam(lamp: T.Vector3, target: T.Vector3) {
+  const direction = target.clone().sub(lamp),
+    length = direction.length();
+  const g = new T.CylinderGeometry(0.42, 3.1, length, 14, 1, true);
+  g.translate(0, -length / 2, 0);
+  g.applyQuaternion(
+    new T.Quaternion().setFromUnitVectors(new T.Vector3(0, -1, 0), direction.normalize()),
+  );
+  g.translate(lamp.x, lamp.y, lamp.z);
+  return g;
+}
+
 /** Stepped arena with open-web roof trusses, housed round floodlights,
  * original event ribbons and two bounded spectator batches. All static
  * structure is merged by material; crowd occupancy never adds draw calls. */
@@ -103,6 +161,7 @@ export class Stadium {
       ribbons: T.BufferGeometry[] = [],
       cases: T.BufferGeometry[] = [],
       lights: T.BufferGeometry[] = [],
+      beams: T.BufferGeometry[] = [],
       soffits: T.BufferGeometry[] = [];
     let portals = 0;
     const seats: T.Matrix4[] = [],
@@ -409,6 +468,16 @@ export class Stadium {
       for (let i = 0; i < 8; i++) {
         const x = min.x + ((i + 0.5) / 8) * span.x;
         cases.push(new T.BoxGeometry(1.18, 0.3, 0.75).translate(x, y - 1.1, z));
+        // Alternate housings carry a visible shaft, aimed a little inboard.
+        if ((i + k) % 2 === 0) {
+          const lamp = new T.Vector3(x, y - 1.36, z);
+          const target = new T.Vector3(
+            x + ((min.x + max.x) / 2 - x) * 0.22,
+            floor + 0.5,
+            z + ((min.z + max.z) / 2 - z) * 0.22,
+          );
+          beams.push(hazeBeam(lamp, target));
+        }
         for (let lens = -1; lens <= 1; lens++)
           lights.push(
             new T.CylinderGeometry(0.13, 0.17, 0.07, 10).translate(x + lens * 0.34, y - 1.3, z),
@@ -434,6 +503,16 @@ export class Stadium {
     this.batch(rigging, steel, 'Merged open-web roof trusses and columns');
     this.batch(cases, housing, 'Merged arena lamp housings');
     this.batch(lights, lamp, 'Merged arena round floodlight lenses');
+    const shafts = mergeGeometries(beams, false);
+    for (const g of beams) g.dispose();
+    if (shafts) {
+      shafts.computeBoundingSphere();
+      const haze = new T.Mesh(shafts, hazeBeamMaterial());
+      haze.name = 'Arena floodlight haze beams';
+      // Additive light drawn after the bowl; it never casts or receives.
+      haze.renderOrder = 2;
+      this.root.add(haze);
+    }
     this.batch(ribbons, ribbon, 'Arena concourse ribbon boards');
     const main = new T.Group();
     main.name = 'Suspended MOTOBOUND main event board';
@@ -447,10 +526,13 @@ export class Stadium {
         ),
       );
     main.add(new T.Mesh(new T.BoxGeometry(20.6, 3.6, 0.45).translate(0, 0, -0.26), housing));
-    for (const side of [-1, 1])
-      main.add(
-        new T.Mesh(new T.BoxGeometry(0.16, 3.5, 0.09).translate(side * 10.2, 0, 0.05), accent),
-      );
+    // Both accent bars share one draw, leaving the arena batch budget intact.
+    const bars = mergeGeometries(
+      [-1, 1].map((side) => new T.BoxGeometry(0.16, 3.5, 0.09).translate(side * 10.2, 0, 0.05)),
+      false,
+    );
+    if (!bars) throw new Error('Arena event board accents contain incompatible geometry');
+    main.add(new T.Mesh(bars, accent));
     this.root.add(main);
   }
   /** Absolute simulation time only: a held frame freezes the entire crowd,

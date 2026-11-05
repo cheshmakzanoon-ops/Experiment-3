@@ -69,6 +69,7 @@ import { Vegetation } from './vegetation.ts';
 import { photoVegetationEnabled, VegetationLibrary } from '../vegetation/library.ts';
 import { speciesForPalette } from '../vegetation/species.ts';
 import { Water } from './water.ts';
+import { festivalRoadDetail } from './festival-road-surface.ts';
 import { Effects } from '../effects.ts';
 import { EffectPlayback } from '../effect-playback.ts';
 import { ReflectionSystem } from '../reflections.ts';
@@ -293,6 +294,7 @@ export class FestivalRenderer {
     // These materials belong to this region. Catalogue cars use shared
     // materials, and navigation emissives retain their own presentation.
     this.atmosphere.installMaterial(this.terrain.material);
+    this.terrain.material.userData.ow.owSeaLevel.value = world.field.region.seaLevel;
     for (const root of [this.roads.root, this.buildings.root, this.water.root])
       this.atmosphere.install(root);
     this.atmosphere.watch(this.dressing.root);
@@ -468,6 +470,9 @@ export class FestivalRenderer {
     const budget = TERRAIN_BUDGETS[tier];
     this.terrain.budget = { ...budget, trees: budget.trees * clamp(g.vegetationDensity, 0, 1) };
     this.environment.highDetail = g.reflections === 'local';
+    this.water.setDetail(tier === 'high');
+    festivalRoadDetail.value = tier === 'high' ? 1 : 0;
+    this.terrain.material.userData.ow.owGrassDetail.value = tier === 'high' ? 1 : 0;
     this.photoSky.setQuality(preset);
     scannedGround.attach(this.renderer, preset);
     this.ultra.configure(preset, g);

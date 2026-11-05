@@ -1,10 +1,123 @@
 import * as T from 'three';
 import type { TerrainField } from '../../simulation/open-world/terrain-field.ts';
 import { buildSea, installSeaWaves } from '../sea.ts';
+import { chainShaderHook, injectAfter } from '../studio/shader-hooks.ts';
+import { useStudioUniforms } from '../studio/studio-frame.ts';
 import { CoastalWater, FESTIVAL_SEA } from './coastal-water.ts';
+import { OW_NOISE_GLSL } from './terrain-material.ts';
 
 /** The sea wave shader maps plane UV to world metres at this scale. */
 const SEA_UV_METRES = FESTIVAL_SEA.uvMetres;
+
+/** Open-sea finish of the festival coast (High and ULTRA):
+ *  - sun glitter: sparse, world-anchored micro-facet glints (a very sharp
+ *    lobe on a per-cell jittered wave normal) inside the sun's reflection
+ *    path, flickering as facets turn. Physically it is the same GGX lobe the
+ *    sea already draws, resolved into the points a camera actually sees;
+ *    glints fade where a cell drops below a few pixels so they never alias;
+ *  - whitecaps: wind-blown foam on the steepest short-wave faces, clumped by
+ *    a slow world-space field so only a few crests break. Foam is rough,
+ *    diffuse and lit by the scene (no emissive tint).
+ * Cheap ALU only: no extra textures, targets or draws. */
+export const FESTIVAL_SEA_FINISH = Object.freeze({
+  /** Glint cells per metre and the half-angle spread of their facet tilt. */
+  glintCells: 1.6,
+  glintSpread: 0.32,
+  /** Glint lobe exponent and peak gain over the sun's irradiance. */
+  glintPower: 1100,
+  glintGain: 260,
+  /** Footprint (m per pixel) over which the glints fade out. */
+  glintFade: Object.freeze([0.22, 0.9] as const),
+  /** Wave-face slope (1 - n.up) at which whitecaps start, and their coverage. */
+  capSlope: 0.075,
+  capCoverage: 0.34,
+  /** Linear foam albedo. */
+  foam: Object.freeze([0.62, 0.65, 0.64] as const),
+});
+const f4 = (v: number) => v.toFixed(4);
+export interface FestivalSeaUniforms {
+  owSeaDetail: { value: number };
+}
+export function installFestivalSeaFinish(material: T.MeshPhysicalMaterial): FestivalSeaUniforms {
+  const uniforms: FestivalSeaUniforms = { owSeaDetail: { value: 0 } };
+  const F = FESTIVAL_SEA_FINISH;
+  chainShaderHook(material, 'festival-open-sea-v1', (shader) => {
+    useStudioUniforms(shader, ['studioTime'], 'fragment');
+    Object.assign(shader.uniforms, uniforms);
+    injectAfter(
+      shader,
+      'common',
+      `uniform float owSeaDetail;
+${OW_NOISE_GLSL}
+float owSeaFoam = 0.0;
+vec2 owSeaWorld = vec2(0.0);`,
+      'fragment',
+    );
+    injectAfter(
+      shader,
+      'lights_physical_fragment',
+      /* glsl */ `
+#ifdef USE_NORMALMAP_TANGENTSPACE
+if (owSeaDetail > 0.5) {
+  owSeaWorld = vNormalMapUv / ${f4(160 / 5500)};
+  vec3 seaUp = normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz);
+  float seaSlope = 1.0 - clamp(dot(normal, seaUp), 0.0, 1.0);
+  float seaFootprint = max(length(dFdx(owSeaWorld)), length(dFdy(owSeaWorld)));
+  // Wind-clumped breaking crests: a slow field picks the few that break.
+  float capField = owFbm(owSeaWorld * 0.011 + vec2(studioTime * 0.012, 0.0), 1.0);
+  float capPores = owNoise(owSeaWorld * 0.9 + vec2(0.0, studioTime * 0.05));
+  float capAt = ${f4(F.capSlope)} + 0.05 * (1.0 - capField);
+  owSeaFoam = smoothstep(capAt, capAt + 0.035, seaSlope)
+    * smoothstep(1.0 - ${f4(F.capCoverage)}, 1.0, capField + 0.25 * capPores)
+    * mix(0.55, smoothstep(0.3, 0.7, capPores), 1.0 - smoothstep(0.4, 2.0, seaFootprint));
+  owSeaFoam = clamp(owSeaFoam, 0.0, 0.85);
+  material.diffuseColor = mix(material.diffuseColor, vec3(${F.foam.map(f4).join(', ')}), owSeaFoam);
+  material.roughness = mix(material.roughness, 0.72, owSeaFoam);
+#ifdef USE_CLEARCOAT
+  material.clearcoat *= 1.0 - owSeaFoam;
+#endif
+}
+#endif`,
+      'fragment',
+    );
+    injectAfter(
+      shader,
+      'lights_fragment_end',
+      /* glsl */ `
+#if defined( USE_NORMALMAP_TANGENTSPACE ) && NUM_DIR_LIGHTS > 0
+if (owSeaDetail > 0.5) {
+  vec3 seaL = directionalLights[0].direction;
+  vec3 seaUpV = normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz);
+  float seaSunUp = smoothstep(-0.02, 0.06, dot(seaL, seaUpV));
+  float seaCell = max(length(dFdx(owSeaWorld)), length(dFdy(owSeaWorld))) * ${f4(F.glintCells)};
+  float seaGlintFade = (1.0 - smoothstep(${f4(F.glintFade[0])}, ${f4(F.glintFade[1])}, seaCell)) * seaSunUp * (1.0 - owSeaFoam);
+  if (seaGlintFade > 0.0) {
+    vec2 gp = owSeaWorld * ${f4(F.glintCells)};
+    vec2 gc = floor(gp);
+    float r1 = owHash(gc), r2 = owHash(gc + 17.31), r3 = owHash(gc + 43.7);
+    // Facets turn with the wave phase: each cell flashes, then dims.
+    float flash = fract(r3 * 7.0 + studioTime * (0.45 + 0.9 * r1));
+    float flashOn = smoothstep(0.0, 0.18, flash) * (1.0 - smoothstep(0.32, 0.6, flash));
+    vec3 tilt = (viewMatrix * vec4((r1 - 0.5) * ${f4(2 * F.glintSpread)}, 0.0, (r2 - 0.5) * ${f4(2 * F.glintSpread)}, 0.0)).xyz;
+    vec3 gn = normalize(normal + tilt);
+    vec3 gh = normalize(seaL + geometryViewDir);
+    float ndh = max(dot(gn, gh), 0.0);
+    float vdh = clamp(dot(geometryViewDir, gh), 0.0, 1.0);
+    float fres = 0.02 + 0.98 * pow(1.0 - vdh, 5.0);
+    // Keep the spot inside its cell so neighbours never seam.
+    vec2 local = fract(gp) - 0.5;
+    float spot = 1.0 - smoothstep(0.18, 0.5, length(local));
+    float glint = pow(ndh, ${f4(F.glintPower)}) * spot * flashOn * fres
+      * clamp(dot(gn, seaL), 0.0, 1.0);
+    reflectedLight.directSpecular += directionalLights[0].color * glint * ${f4(F.glintGain)} * seaGlintFade;
+  }
+}
+#endif`,
+      'fragment',
+    );
+  });
+  return uniforms;
+}
 
 /**
  * Water of the region: the open sea (the circuit sea material and its wave
@@ -18,6 +131,7 @@ export class Water {
   readonly river: T.Mesh;
   readonly coast: CoastalWater;
   private readonly normalTexture: T.Texture | null;
+  private readonly seaFinish: FestivalSeaUniforms;
   private disposed = false;
   constructor(field: TerrainField) {
     this.root.name = 'Festival water';
@@ -94,7 +208,13 @@ export class Water {
       this.sea.material as T.MeshPhysicalMaterial,
       this.sea.position.y,
     );
+    // After the river and shore clones, which keep their own hook chains.
+    this.seaFinish = installFestivalSeaFinish(this.sea.material as T.MeshPhysicalMaterial);
     this.root.add(this.sea, this.river, this.coast.root);
+  }
+  /** Glitter and whitecaps on High and ULTRA; Low and Medium keep the plain sea. */
+  setDetail(enabled: boolean) {
+    this.seaFinish.owSeaDetail.value = enabled ? 1 : 0;
   }
   dispose() {
     if (this.disposed) return;

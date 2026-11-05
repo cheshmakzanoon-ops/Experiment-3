@@ -82,7 +82,28 @@ float owFbm(vec2 p, float detail) {
 export interface TerrainUniforms {
   owWet: { value: number };
   owSnowTint: { value: number };
+  /** 1 on High and ULTRA: view-dependent grass scattering (see below). */
+  owGrassDetail: { value: number };
+  /** Still-water datum for the beach swash zone; far below the world (off)
+   * until the festival renderer sets the region's sea level. */
+  owSeaLevel: { value: number };
 }
+/** View-dependent sward response (High and ULTRA). A meadow is not a
+ * Lambertian plane: looking toward a low sun, light forward-scatters through
+ * thin backlit blades (a warm yellow-green glow along the sun's path); with
+ * the sun behind the viewer, blades hide their own shadows and the turf
+ * brightens around the antisolar point (the opposition hot spot). Both are
+ * lobes on the existing sun irradiance (shadowed), weighted by grass cover. */
+export const TERRAIN_GRASS_SCATTER = Object.freeze({
+  /** Forward lobe exponent and gain over the Lambert response. */
+  forwardPower: 5,
+  forward: 0.11,
+  /** Transmitted tint relative to the grass albedo (chlorophyll window). */
+  transmit: Object.freeze([1.25, 1.55, 0.55] as const),
+  /** Opposition lobe exponent and relative gain. */
+  hotSpotPower: 10,
+  hotSpot: 0.32,
+});
 /**
  * Festival terrain: one physically based material blending five layers per
  * pixel — meadow grass (with forest-floor and dry variants), rock, soil
@@ -101,7 +122,14 @@ export function terrainMaterial(): T.MeshStandardMaterial & { userData: { ow: Te
   material.polygonOffset = true;
   material.polygonOffsetFactor = 1;
   material.polygonOffsetUnits = 2;
-  const uniforms: TerrainUniforms = { owWet: { value: 0 }, owSnowTint: { value: 1 } };
+  const uniforms: TerrainUniforms = {
+    owWet: { value: 0 },
+    owSnowTint: { value: 1 },
+    owGrassDetail: { value: 0 },
+    owSeaLevel: { value: -1e4 },
+  };
+  const G = TERRAIN_GRASS_SCATTER,
+    g4 = (v: number) => v.toFixed(4);
   material.userData.ow = uniforms;
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms, scannedGround.uniformsFor(FESTIVAL_SCAN_LAYERS));
@@ -128,6 +156,9 @@ vOwWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;`,
         `#include <common>
 uniform float owWet;
 uniform float owSnowTint;
+uniform float owGrassDetail;
+uniform float owSeaLevel;
+float owGrass = 0.0;
 varying vec4 vSplat;
 varying vec4 vShade;
 varying vec3 vOwWorld;
@@ -187,6 +218,7 @@ ${SCAN_COMMON_GLSL}`,
   col = mix(col, rockC, rock);
   col = mix(col, vec3(0.19, 0.17, 0.14) * (0.85 + 0.3 * micro), verge * 0.6);
   col = mix(col, snowC, snow);
+  owGrass = (1.0 - soil) * (1.0 - sand) * (1.0 - rock) * (1.0 - snow) * (1.0 - verge * 0.6) * (1.0 - town * 0.5);
   owRoughness = mix(0.93, 0.78, rock);
   owRoughness = mix(owRoughness, 0.96, soil * 0.6);
   owRoughness = mix(owRoughness, 0.88, sand);
@@ -198,6 +230,19 @@ ${SCAN_COMMON_GLSL}`,
   float wet = owWet * (1.0 - snow) * (1.0 - 0.6 * rock);
   col *= 1.0 - 0.38 * wet;
   owRoughness = mix(owRoughness, 0.32, wet * 0.75);
+  // Beach swash zone: sand and shingle stay saturated a little above the
+  // still-water line (darker and glossy, mirroring the sky at grazing), with
+  // a ragged drying edge and a faint strand line of wrack along its top.
+  float owAbove = vOwWorld.y - owSeaLevel;
+  if (owAbove < 2.0) {
+    float owEdge = 0.42 + 0.34 * meso + 0.14 * (micro - 0.5);
+    float owShore = clamp(sand + 0.6 * soil + 0.4 * rock, 0.0, 1.0) * (1.0 - snow) * (1.0 - town);
+    float owDamp = (1.0 - smoothstep(owEdge * 0.35, owEdge, owAbove)) * owShore;
+    float owStrand = (1.0 - smoothstep(0.0, 0.07, abs(owAbove - owEdge - 0.12)))
+      * smoothstep(0.45, 0.7, micro) * owShore * near;
+    col *= (1.0 - 0.45 * owDamp) * (1.0 - 0.24 * owStrand);
+    owRoughness = mix(owRoughness, 0.26, owDamp * 0.85);
+  }
   diffuseColor.rgb = col;
   // Detail normal: gradient of the micro and meso relief (fades with distance).
   float e = 0.35;
@@ -213,6 +258,24 @@ ${SCAN_COMMON_GLSL}`,
 roughnessFactor = owRoughness;`,
       )
       .replace(
+        '#include <lights_fragment_end>',
+        `#include <lights_fragment_end>
+#if NUM_DIR_LIGHTS > 0
+if (owGrassDetail > 0.5 && owGrass > 0.001) {
+  // directLight still holds the (only) sun after the light loop, shadowed.
+  vec3 owL = directionalLights[0].direction;
+  float owSunN = clamp(dot(geometryNormal, owL), 0.0, 1.0);
+  float owGraze = 1.0 - clamp(dot(geometryNormal, geometryViewDir), 0.0, 1.0);
+  vec3 owLambert = directLight.color * material.diffuseColor * RECIPROCAL_PI;
+  float owForward = pow(clamp(dot(-geometryViewDir, owL), 0.0, 1.0), ${g4(G.forwardPower)});
+  float owHot = pow(clamp(dot(geometryViewDir, owL), 0.0, 1.0), ${g4(G.hotSpotPower)});
+  reflectedLight.directDiffuse += owLambert * owGrass * (
+    vec3(${G.transmit.map(g4).join(', ')}) * owForward * owGraze * smoothstep(0.0, 0.2, owSunN) * ${g4(G.forward / 0.3183)}
+    + owHot * owSunN * ${g4(G.hotSpot)});
+}
+#endif`,
+      )
+      .replace(
         '#include <normal_fragment_maps>',
         `#include <normal_fragment_maps>
 normal = normalize(normal + (viewMatrix * vec4(-owBump.x, 0.0, -owBump.y, 0.0)).xyz);
@@ -221,7 +284,7 @@ normal = apexScanPerturb(normal, owScanN, 1.1);
 #endif`,
       );
   };
-  material.customProgramCacheKey = () => 'festival-terrain-v2-continuous-farm';
+  material.customProgramCacheKey = () => 'festival-terrain-v4-swash-zone';
   scannedGround.register(material, FESTIVAL_SCAN_LAYERS);
   return material;
 }
