@@ -362,12 +362,33 @@ export function tube(
     false,
   );
 }
-/** Exhaust tube with a heat-tint vertex gradient (blued headers to straw). */
+/** Titanium temper (thin-film TiO2) colours in the order the oxide grows with
+ * temperature, read from the port (t = 0, hottest) down the header. A plain
+ * blue-to-straw lerp passes through muddy grey-green; real headers step
+ * through discrete interference bands: burned grey-blue, light then deep blue,
+ * violet, bronze, gold, pale straw and finally bare metal. Original values,
+ * stored as sRGB hex and multiplied by the calibrated titanium base colour. */
+export const GP_TITANIUM_OXIDE: readonly (readonly [number, number])[] = Object.freeze([
+  [0, 0x76869a],
+  [0.06, 0x5a7cb8],
+  [0.14, 0x2f4a9c],
+  [0.23, 0x5b4189],
+  [0.31, 0x8c5c52],
+  [0.39, 0xb4813f],
+  [0.49, 0xcda35a],
+  [0.61, 0xd2bf8e],
+  [0.77, 0xc8c6c2],
+]);
+/** Exhaust tube with a heat-tint vertex gradient. `classic`: blued headers
+ * to straw (road and off-road). `gp-oxide`: the banded temper sequence above,
+ * with wavy, mottled band boundaries (weld-seam and airflow variation) so the
+ * tint never reads as a perfect CG gradient. Deterministic; no textures. */
 export function exhaustGeometry(
   points: readonly [number, number, number][],
   radius: number,
   segments: number,
   sides: number,
+  tint: 'classic' | 'gp-oxide' = 'classic',
 ) {
   const g = tube(points, radius, segments, sides);
   const count = g.getAttribute('position').count,
@@ -375,10 +396,28 @@ export function exhaustGeometry(
     hot = new T.Color(0x3c4a8a),
     warm = new T.Color(0xb7955a),
     cool = new T.Color(0xc8c6c2),
-    c = new T.Color();
+    c = new T.Color(),
+    stops =
+      tint === 'gp-oxide'
+        ? GP_TITANIUM_OXIDE.map(([at, hex]) => [at, new T.Color(hex)] as const)
+        : [];
   for (let i = 0; i < count; i++) {
     const t = Math.floor(i / (sides + 1)) / segments;
-    if (t < 0.35) c.copy(hot).lerp(warm, t / 0.35);
+    if (tint === 'gp-oxide') {
+      // Around-the-tube angle and along-pipe phase: low-order waves only, so
+      // the boundaries undulate across a few centimetres instead of sparkling.
+      const a = ((i % (sides + 1)) / sides) * Math.PI * 2;
+      const wave =
+        0.028 * Math.sin(a * 2 + 1.3 + t * 9.1) +
+        0.017 * Math.sin(a * 3 - 0.7 + t * 23.7) +
+        0.012 * Math.sin(t * 61.3 + 2.2);
+      const s = T.MathUtils.clamp(t + wave * Math.min(1, t * 12), 0, 1);
+      let k = 1;
+      while (k < stops.length - 1 && stops[k][0] < s) k++;
+      const [a0, c0] = stops[k - 1],
+        [a1, c1] = stops[k];
+      c.copy(c0).lerp(c1, T.MathUtils.clamp((s - a0) / (a1 - a0), 0, 1));
+    } else if (t < 0.35) c.copy(hot).lerp(warm, t / 0.35);
     else c.copy(warm).lerp(cool, Math.min(1, (t - 0.35) / 0.4));
     colours.set([c.r, c.g, c.b], i * 3);
   }
@@ -1328,7 +1367,13 @@ export class BikeModel {
       ];
       add(
         this.sprung,
-        exhaustGeometry(pipe, 0.03, detail === 'high' ? 40 : 14, detail === 'far' ? 5 : 10),
+        exhaustGeometry(
+          pipe,
+          0.03,
+          detail === 'high' ? 40 : 14,
+          detail === 'far' ? 5 : 10,
+          gpPrototype ? 'gp-oxide' : 'classic',
+        ),
         m.titanium,
       );
       if (gpPrototype && detail !== 'far' && look.exhaust === 'side-high') {

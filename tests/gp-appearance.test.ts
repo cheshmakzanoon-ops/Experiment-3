@@ -1,6 +1,11 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import * as T from 'three';
-import { BikeMaterials, BikeModel } from '../src/rendering/bike.ts';
+import {
+  BikeMaterials,
+  BikeModel,
+  exhaustGeometry,
+  GP_TITANIUM_OXIDE,
+} from '../src/rendering/bike.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
 import {
   bindGpBareMetal,
@@ -8,8 +13,11 @@ import {
   gpFrontFender,
   gpScreenAlpha,
   gpSilencer,
+  gpSilencerHeatSoak,
   GP_SCREEN_ALPHA,
+  installGpTitaniumOxideGloss,
 } from '../src/rendering/gp-appearance.ts';
+import { studioHookKeys } from '../src/rendering/studio/shader-hooks.ts';
 
 beforeAll(() => {
   const ctx = new Proxy(
@@ -204,4 +212,97 @@ describe('GP refined surface and mechanical contracts', () => {
       }
     },
   );
+  it('bands GP headers through the titanium temper sequence; classic stays unchanged', () => {
+    const pipe: [number, number, number][] = [
+      [0, 0, 0],
+      [0, -0.3, 0.1],
+      [0, -0.4, -0.3],
+      [0, -0.2, -0.7],
+    ];
+    const classic = exhaustGeometry(pipe, 0.03, 40, 10);
+    const oxide = exhaustGeometry(pipe, 0.03, 40, 10, 'gp-oxide');
+    try {
+      const first = new T.Color().fromBufferAttribute(
+        classic.getAttribute('color') as T.BufferAttribute,
+        0,
+      );
+      expect(first.getHex()).toBe(0x3c4a8a);
+      const c = oxide.getAttribute('color') as T.BufferAttribute;
+      expect(c.count).toBe(classic.getAttribute('color').count);
+      const ring = (row: number) => new T.Color().fromBufferAttribute(c, row * 11);
+      // Port: burned grey-blue exactly; a deep-blue band, then a gold band,
+      // then bare metal at the tail.
+      expect(ring(0).getHex()).toBe(GP_TITANIUM_OXIDE[0][1]);
+      const rows = Array.from({ length: 41 }, (_, i) => ring(i));
+      expect(rows.some((k) => k.b > k.r * 1.8)).toBe(true);
+      expect(rows.some((k) => k.r > k.b * 1.8 && k.g > k.b * 1.3)).toBe(true);
+      expect(ring(40).getHex()).toBe(0xc8c6c2);
+      for (const value of c.array) expect(value).toBeGreaterThanOrEqual(0);
+      for (const value of c.array) expect(value).toBeLessThanOrEqual(1);
+      // Band boundaries undulate around the tube rather than forming rings.
+      const row = 9,
+        around = Array.from({ length: 11 }, (_, j) =>
+          new T.Color().fromBufferAttribute(c, row * 11 + j).getHex(),
+        );
+      expect(new Set(around).size).toBeGreaterThan(1);
+    } finally {
+      classic.dispose();
+      oxide.dispose();
+    }
+  });
+  it('heat-soaks the silencer inlet and outlet lip but leaves its body bare', () => {
+    const g = gpSilencerHeatSoak(
+      new T.LatheGeometry(
+        [
+          [0.03, -0.153],
+          [0.037, -0.157],
+          [0.056, 0],
+          [0.034, 0.15],
+        ].map(([r, y]) => new T.Vector2(r, y)),
+        12,
+      ),
+    );
+    try {
+      const p = g.getAttribute('position'),
+        c = g.getAttribute('color') as T.BufferAttribute;
+      for (let i = 0; i < p.count; i++) {
+        const k = new T.Color().fromBufferAttribute(c, i);
+        if (Math.abs(p.getY(i)) < 0.01) expect(k.getHex()).toBe(0xffffff);
+        else expect(k.r).toBeGreaterThan(k.b);
+      }
+      // Authored colour survives the bare-metal binder.
+      const m = new T.MeshStandardMaterial();
+      m.userData.gpBareTitanium = true;
+      bindGpBareMetal(g, m);
+      expect(g.getAttribute('color')).toBe(c);
+      m.dispose();
+    } finally {
+      g.dispose();
+    }
+  });
+  it('glosses only the GP titanium oxide film, once, through the house hook chain', () => {
+    const m = new BikeMaterials(0);
+    try {
+      expect(studioHookKeys(m.titanium)).not.toContain('gp-titanium-oxide-v1');
+      calibrateGpMaterials(m, 'gpr1');
+      expect(studioHookKeys(m.titanium)).toContain('gp-titanium-oxide-v1');
+      expect(installGpTitaniumOxideGloss(m.titanium)).toBe(false);
+      const shader = {
+        vertexShader: '#include <begin_vertex>',
+        fragmentShader: '#include <roughnessmap_fragment>\n',
+        uniforms: {},
+      } as unknown as T.WebGLProgramParametersWithUniforms;
+      m.titanium.onBeforeCompile(shader, {} as T.WebGLRenderer);
+      expect(shader.fragmentShader).toContain('gpTiFilm');
+      expect(shader.fragmentShader.indexOf('gpTiFilm')).toBeGreaterThan(
+        shader.fragmentShader.indexOf('#include <roughnessmap_fragment>'),
+      );
+      const road = new BikeMaterials(1);
+      calibrateGpMaterials(road, 'sbk1000');
+      expect(studioHookKeys(road.titanium)).not.toContain('gp-titanium-oxide-v1');
+      road.dispose();
+    } finally {
+      m.dispose();
+    }
+  });
 });
