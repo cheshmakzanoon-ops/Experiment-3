@@ -69,6 +69,7 @@ import { Vegetation } from './vegetation.ts';
 import { photoVegetationEnabled, VegetationLibrary } from '../vegetation/library.ts';
 import { speciesForPalette } from '../vegetation/species.ts';
 import { Water } from './water.ts';
+import { festivalRoadDetail } from './festival-road-surface.ts';
 import { Effects } from '../effects.ts';
 import { EffectPlayback } from '../effect-playback.ts';
 import { ReflectionSystem } from '../reflections.ts';
@@ -469,6 +470,7 @@ export class FestivalRenderer {
     this.terrain.budget = { ...budget, trees: budget.trees * clamp(g.vegetationDensity, 0, 1) };
     this.environment.highDetail = g.reflections === 'local';
     this.water.setDetail(tier === 'high');
+    festivalRoadDetail.value = tier === 'high' ? 1 : 0;
     this.photoSky.setQuality(preset);
     scannedGround.attach(this.renderer, preset);
     this.ultra.configure(preset, g);
