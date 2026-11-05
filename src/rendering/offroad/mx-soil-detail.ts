@@ -27,6 +27,8 @@ float mxPreparedRelief = 0.0;
 float mxPreparedWet = 0.0;
 float mxPreparedPacked = 0.0;
 float mxPreparedAggregate = 0.0;
+float mxPreparedCrest = 0.0;
+varying float vMxSoilTopo;
 float mxSoilHash( vec2 p ) {
   vec3 q = fract( vec3( p.xyx ) * 0.1031 );
   q += dot( q, q.yzx + 33.33 );
@@ -166,11 +168,14 @@ const COLOUR = /* glsl */ `{
     - 0.005 * touchdown )
     + 0.003 * mxPreparedAggregate;
   mxPreparedWet = clamp( vApexSoil.x + apexSoilWetness, 0.0, 1.0 );
+  // Drained, sun-dried crests and lips keep a pale skin of loose fines.
+  mxPreparedCrest = onSoil * max( -vMxSoilTopo, 0.0 ) *
+    ( 1.0 - smoothstep( 0.22, 0.62, mxPreparedWet ) ) * ( 1.0 - mxPreparedPacked * 0.5 );
   float grainTone = 0.92 + 0.15 * broad + 0.045 * broken;
   diffuseColor.rgb *= mix( 1.0, grainTone, onSoil )
     * ( 1.0 - mxPreparedPacked * 0.18 - mxPreparedGroove * 0.21
       + onSoil * passes.y * 0.095 + mxPreparedAggregate * 0.13 - tread * 0.045
-      - onSoil * touchdown * 0.065 + onSoil * bermLip * 0.055 );
+      - onSoil * touchdown * 0.065 + onSoil * bermLip * 0.055 + mxPreparedCrest * 0.07 );
   // 043/059/092: wet loam reflects chiefly along its depressions. Dry raised
   // aggregate remains rough; the complete course never becomes one mirror.
   float dampPatch = smoothstep( 0.38, 0.86, mxPreparedWet )
@@ -201,13 +206,20 @@ export function installMxSoilDetail(material: T.MeshPhysicalMaterial, courseLeng
     injectDeclarations(
       shader,
       'common',
-      'attribute vec4 mxCourse;\nattribute float mxCourseWidth;\nattribute vec4 mxCourseWear;\nvarying vec4 vMxCourse;\nvarying float vMxCourseWidth;\nvarying vec4 vMxCourseWear;',
+      'attribute vec4 mxCourse;\nattribute float mxCourseWidth;\nattribute vec4 mxCourseWear;\nattribute float mxSoilTopo;\nvarying vec4 vMxCourse;\nvarying float vMxCourseWidth;\nvarying vec4 vMxCourseWear;\nvarying float vMxSoilTopo;',
       'vertex',
     );
     injectAfter(
       shader,
       'begin_vertex',
-      'vMxCourse = mxCourse;\nvMxCourseWidth = mxCourseWidth;\nvMxCourseWear = mxCourseWear;',
+      `vMxCourse = mxCourse;
+vMxCourseWidth = mxCourseWidth;
+vMxCourseWear = mxCourseWear;
+vMxSoilTopo = mxSoilTopo;
+// Presentation drainage: water runs off crests and lips and lingers in
+// hollows and at berm feet. Every wetness consumer clamps the sum.
+vApexSoil.x += ( max( mxSoilTopo, 0.0 ) * 0.16 - max( -mxSoilTopo, 0.0 ) * 0.22 )
+  * clamp( mxCourse.z, 0.0, 1.0 );`,
       'vertex',
     );
     injectAfter(shader, 'common', DECLARATIONS, 'fragment');
@@ -221,7 +233,8 @@ export function installMxSoilDetail(material: T.MeshPhysicalMaterial, courseLeng
       roughnessFactor = mix( roughnessFactor, max( 0.29, roughnessFactor * 0.52 ),
         mxPreparedGroove * smoothstep( 0.42, 0.94, mxPreparedWet ) );
       roughnessFactor = mix( roughnessFactor, max( 0.86, roughnessFactor ),
-        mxPreparedAggregate * 0.45 );`,
+        mxPreparedAggregate * 0.45 );
+      roughnessFactor = mix( roughnessFactor, max( 0.9, roughnessFactor ), mxPreparedCrest * 0.6 );`,
       'fragment',
     );
   });

@@ -142,6 +142,7 @@ export class TerrainView {
       mxCourseWear = this.motocross ? new Float32Array(count * 4) : null,
       mxSoilMix = this.motocross ? new Float32Array(count * 4) : null,
       mxBrakingWork = this.motocross ? new Float32Array(count * 2) : null,
+      mxSoilTopo = this.motocross ? new Float32Array(count) : null,
       uv = new Float32Array(count * 2),
       base = new Float32Array(count),
       keep = new Uint8Array(count);
@@ -228,6 +229,34 @@ export class TerrainView {
         }
       }
     }
+    if (mxSoilTopo && mxCourse) {
+      // Presentation-only drainage: concavity of the prepared ground at the
+      // scale of lips, landings, rollers and berm feet (base course, not the
+      // live ruts, which the soil shader already reads). Neighbours beyond
+      // this strip come from the same analytic course, so strips agree.
+      const height = (row: number, column: number, k: number) => {
+        const c = clamp(column, 0, vx - 1);
+        if (row >= 0 && row < vz) return base[row * vx + c];
+        return t.baseHeight(
+          mod(mxCourse[k * 4 + 1] + (row - Math.floor(k / vx)) * stepAlong, L),
+          mxCourse[(Math.floor(k / vx) * vx + c) * 4],
+        );
+      };
+      for (let r = 0; r < vz; r++)
+        for (let c = 0; c < vx; c++) {
+          const k = r * vx + c,
+            h = base[k];
+          const near =
+              (height(r - 2, c, k) +
+                height(r + 2, c, k) +
+                height(r, c - 2, k) +
+                height(r, c + 2, k)) /
+                4 -
+              h,
+            far = (height(r - 5, c, k) + height(r + 5, c, k)) / 2 - h;
+          mxSoilTopo[k] = clamp((near * 0.6 + far * 0.4) / 0.22, -1, 1);
+        }
+    }
     const index: number[] = [];
     for (let r = 0; r < rows; r++)
       for (let c = 0; c < cols; c++) {
@@ -256,6 +285,7 @@ export class TerrainView {
     if (mxSoilMix) geometry.setAttribute('mxSoilMix', new T.BufferAttribute(mxSoilMix, 4));
     if (mxBrakingWork)
       geometry.setAttribute('mxBrakingWork', new T.BufferAttribute(mxBrakingWork, 2));
+    if (mxSoilTopo) geometry.setAttribute('mxSoilTopo', new T.BufferAttribute(mxSoilTopo, 1));
     geometry.setAttribute('uv', new T.BufferAttribute(uv, 2));
     geometry.setAttribute('uv1', new T.BufferAttribute(uv.slice(), 2));
     geometry.setIndex(index);
