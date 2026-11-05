@@ -218,6 +218,15 @@ vec2 owPaneTilt;`,
     vec2 f = fract(tile), aa = max(fwidth(tile), vec2(0.002));
     vec2 seam = smoothstep(vec2(0.025), vec2(0.025) + aa, min(f, 1.0 - f));
     diffuseColor.rgb *= (0.8 + 0.27 * owHash(floor(tile))) * (0.78 + 0.22 * seam.x * seam.y);
+    // Each course laps over the one below: a gently rising tile face that
+    // drops at its butt edge, per-tile roughness, and lichen colonising
+    // patches of the older roofs. Relief fades once a tile spans few pixels.
+    float roofResolve = 1.0 - smoothstep(0.18, 0.6, max(aa.x, aa.y));
+    float lichen = smoothstep(0.58, 0.86, owNoise(q * 0.45 + style * 17.0) * 0.7 + owNoise(q * 2.3 + style * 5.0) * 0.3);
+    lichen *= step(0.35, fract(style * 7.31));
+    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.105, 0.11, 0.068) * (0.8 + 0.4 * owNoise(q * 9.0)), lichen * 0.42);
+    owWallRelief = smoothstep(0.0, 0.88, f.y) * (1.0 - smoothstep(0.9, 1.0, f.y)) * 0.009 * roofResolve;
+    owWallRoughness = 0.76 + 0.12 * owHash(floor(tile) + 3.1) + 0.08 * lichen;
   } else if (shed) {
     owRib = sin(q.x * 6.2832 / 0.6);
     diffuseColor.rgb *= 0.92 + 0.08 * owRib;
@@ -342,7 +351,7 @@ if (owGlass > 0.001) {
 }`,
       );
   };
-  material.customProgramCacheKey = () => 'festival-facades-v9-insulated-glazing';
+  material.customProgramCacheKey = () => 'festival-facades-v10-lapped-roofs';
   return material;
 }
 
