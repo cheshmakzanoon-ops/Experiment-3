@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as T from 'three';
 import {
   PAINT_FINISHES,
+  PAINT_FLOP,
   applyPaintFinish,
   installPaintFinish,
   installPaintFlakes,
@@ -100,7 +101,7 @@ describe('D06 paint finishes', () => {
     expect(installPaintFlakes(m, 1, 0.002)).toBe(true);
     expect(installPaintFlakes(m, 1, 0.002)).toBe(false);
     installPaintFinish(m);
-    expect(studioHookKeys(m)).toEqual(['paint-flake-100-20-v1']);
+    expect(studioHookKeys(m)).toEqual(['paint-flake-100-20-v2']);
     expect(m.customProgramCacheKey()).toContain('aurel-filtered-pigment-v2');
     const s = compile(m);
     expect(previous).toBe(1);
@@ -114,10 +115,20 @@ describe('D06 paint finishes', () => {
     expect(s.fragmentShader.indexOf('peelResolved')).toBeGreaterThan(
       s.fragmentShader.indexOf('#include <clearcoat_normal_fragment_maps>'),
     );
+    // Metallic face-to-flop darkens towards grazing on the base normal, before the flakes tilt it.
+    expect(s.fragmentShader).toContain(
+      `pow(1.0 - clamp(dot(normal, normalize(vViewPosition)), 0.0, 1.0), ${PAINT_FLOP.power.toFixed(2)})`,
+    );
+    expect(s.fragmentShader).toContain(`flopColour * ${(1 - PAINT_FLOP.depth).toFixed(3)}`);
+    expect(s.fragmentShader.indexOf('flopTravel')).toBeLessThan(
+      s.fragmentShader.indexOf('flakeTilt -= normal'),
+    );
     const gloss = new T.MeshPhysicalMaterial();
     installPaintFlakes(gloss, 0, 0.002);
     const g = compile(gloss);
     expect(g.fragmentShader).not.toContain('flakeTilt');
+    // A solid colour keeps its lightness at every angle.
+    expect(g.fragmentShader).not.toContain('flopTravel');
     expect(g.fragmentShader).toContain('peelResolved');
     expect(gloss.customProgramCacheKey()).not.toBe(m.customProgramCacheKey());
     const matte = new T.MeshPhysicalMaterial();
@@ -165,7 +176,7 @@ describe('D06 team liveries', () => {
     // TEST-UPDATE (vehicle art 3, D8): the grazing-Fresnel cap is chained last on team paint,
     // flank skins and carbon (tests/grazing-cap.test.ts); it changes no lobe constant.
     expect(studioHookKeys(paint)).toEqual([
-      'paint-flake-100-20-v1',
+      'paint-flake-100-20-v2',
       'livery-pattern-v1',
       'grazing-cap-v1',
     ]);
@@ -192,7 +203,7 @@ describe('D06 team liveries', () => {
     const flank = flankLivery(paint, 1, 5);
     expect(flank.userData.liverySide).toBe(1);
     expect(flank.userData.paintFinish).toBe('metallic');
-    expect(studioHookKeys(flank)).toEqual(['paint-flake-100-20-v1', 'grazing-cap-v1']);
+    expect(studioHookKeys(flank)).toEqual(['paint-flake-100-20-v2', 'grazing-cap-v1']);
     expect(flank.clearcoatRoughness).toBe(0.04);
     // Base coat first: the whole canvas in the team primary (the under-floor
     // corner keeps it, which the e2e livery checks read back).

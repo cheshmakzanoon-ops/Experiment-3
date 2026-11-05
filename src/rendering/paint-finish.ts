@@ -166,6 +166,14 @@ vec3 apexObjectToView(vec3 d, vec3 ox, vec3 oy, vec3 vx, vec3 vy) {
 #endif`;
 /** Flake cell size (0.4 mm) and the distance by which the sparkle is gone. */
 export const PAINT_FLAKE = Object.freeze({ cell: 0.0004, fadeStart: 4, fadeEnd: 10, tilt: 0.18 });
+/** Face-to-flop of a metallic base coat. Aligned flakes return light towards
+ * the specular direction, so a metallic panel is lightest seen face-on and
+ * falls to a darker, more saturated flop colour towards grazing incidence
+ * (unlike a solid colour, which keeps its lightness). `depth` is the lightness
+ * lost at full flop, `chroma` the share of the flop that is the saturated
+ * (self-filtered) pigment colour and `power` shapes the travel; it follows the
+ * smooth base normal, so it holds at every distance where the flakes fade. */
+export const PAINT_FLOP = Object.freeze({ depth: 0.42, chroma: 0.55, power: 1.6 });
 const flakeGlsl = (amount: number) => `{
   // Metallic flake (D06): 0.4 mm cells in object space, a glitter LOD that never
   // makes cells smaller than ~1.5 px (two levels blended like a mip), averaged
@@ -187,6 +195,11 @@ const flakeGlsl = (amount: number) => `{
     flakeTilt += weight * apexObjectToView(vec3(r.y, r.z, s.x) * 2.0 - 1.0, flakeOx, flakeOy, flakeVx, flakeVy);
     flakeCover += weight;
   }
+  // Face-to-flop: lightness and chroma travel with the base normal's view angle.
+  float flopTravel = pow(1.0 - clamp(dot(normal, normalize(vViewPosition)), 0.0, 1.0), ${PAINT_FLOP.power.toFixed(2)});
+  float flopPeak = max(max(diffuseColor.r, diffuseColor.g), max(diffuseColor.b, 1e-4));
+  vec3 flopColour = mix(diffuseColor.rgb, diffuseColor.rgb * diffuseColor.rgb / flopPeak, ${PAINT_FLOP.chroma.toFixed(3)});
+  diffuseColor.rgb = mix(diffuseColor.rgb, flopColour * ${(1 - PAINT_FLOP.depth).toFixed(3)}, ${Math.min(1, amount).toFixed(4)} * flopTravel);
   flakeTilt -= normal * dot(normal, flakeTilt);
   normal = normalize(normal + ${(PAINT_FLAKE.tilt * amount).toFixed(4)} * flakeFade * flakeTilt);
   metalnessFactor = min(1.0, metalnessFactor + ${(0.25 * amount).toFixed(4)} * flakeFade * flakeCover);
@@ -219,7 +232,7 @@ export function installPaintFlakes(material: MeshPhysicalMaterial, flake: number
     throw new Error('Invalid paint flake setting');
   installPaintFinish(material);
   if (flake === 0 && peel === 0) return false;
-  const key = `paint-flake-${Math.round(flake * 100)}-${Math.round(peel * 10000)}-v1`;
+  const key = `paint-flake-${Math.round(flake * 100)}-${Math.round(peel * 10000)}-v2`;
   return chainShaderHook(material, key, (shader) => {
     injectDeclarations(shader, 'common', FLAKE_DECLARATIONS, 'fragment');
     if (flake > 0) injectAfter(shader, 'normal_fragment_maps', flakeGlsl(flake), 'fragment');
