@@ -27,6 +27,7 @@ uniform float offroadMudWet;
 uniform float offroadMudExposure;
 float offroadMudHeight;
 float offroadMudThick;
+float offroadMudFilm;
 float offroadMudHash( vec3 p ) {
 	p = fract( p * 0.3183099 + 0.1 );
 	p *= 17.0;
@@ -44,6 +45,7 @@ const COLOR = /* glsl */ `
 float offroadMudMask = 0.0;
 offroadMudHeight = 0.0;
 offroadMudThick = 0.0;
+offroadMudFilm = 0.0;
 if ( offroadMud * offroadMudExposure > 0.002 ) {
 	// Roost is flung along the machine: splats stretch slightly fore-aft.
 	vec3 flung = vOffroadMudPos * vec3( 1.0, 1.0, 0.72 );
@@ -68,7 +70,14 @@ if ( offroadMud * offroadMudExposure > 0.002 ) {
 	float bodyResolved = 1.0 - smoothstep( 0.012, 0.06, footprint );
 	float grain = offroadMudNoise( vOffroadMudPos * 370.0 );
 	float crumb = offroadMudNoise( vOffroadMudPos * 150.0 + 7.3 );
-	float film = offroadMud * offroadMudExposure * ( 0.035 + low * 0.13 ) * ( 1.0 - offroadMudWet * 0.7 );
+	// Dry laps leave a patchy film of fines, heaviest low on the part and on
+	// faces that look up (dust settles); wet laps wash it into splats. The
+	// face normal comes from derivatives: no smooth normal exists yet here.
+	vec3 dustFace = normalize( cross( dFdx( vViewPosition ), dFdy( vViewPosition ) ) );
+	float settle = 0.55 + 0.45 * smoothstep( -0.2, 0.8, ( vec4( dustFace, 0.0 ) * viewMatrix ).y );
+	float film = offroadMud * offroadMudExposure * ( 0.1 + low * 0.42 ) * settle *
+		( 0.55 + 0.9 * n ) * ( 1.0 - offroadMudWet * 0.7 );
+	offroadMudFilm = film;
 	vec3 dust = vec3( 0.215, 0.157, 0.094 ), mud = vec3( 0.057, 0.038, 0.022 );
 	// Thin margins dry first; thick cores keep their water and dark tone.
 	float coreWet = offroadMudWet * ( 0.5 + 0.5 * offroadMudThick );
@@ -89,7 +98,9 @@ if ( offroadMud * offroadMudExposure > 0.002 ) {
 }`;
 const ROUGHNESS = /* glsl */ `
 roughnessFactor = mix( roughnessFactor,
-	mix( 0.96, mix( 0.64, 0.3, offroadMudThick ), offroadMudWet ), offroadMudMask );`;
+	mix( 0.96, mix( 0.64, 0.3, offroadMudThick ), offroadMudWet ), offroadMudMask );
+// Settled fines dull a gloss finish toward chalky matte.
+roughnessFactor = mix( roughnessFactor, max( roughnessFactor, 0.88 ), clamp( offroadMudFilm * 1.6, 0.0, 1.0 ) );`;
 const NORMAL = /* glsl */ `
 {
 	vec3 dx = dFdx( -vViewPosition ), dy = dFdy( -vViewPosition );
@@ -100,7 +111,7 @@ const NORMAL = /* glsl */ `
 }`;
 const COAT = /* glsl */ `
 #ifdef USE_CLEARCOAT
-material.clearcoat *= 1.0 - offroadMudMask;
+material.clearcoat *= ( 1.0 - offroadMudMask ) * ( 1.0 - clamp( offroadMudFilm * 1.5, 0.0, 0.8 ) );
 #endif`;
 const METAL = /* glsl */ `
 metalnessFactor *= 1.0 - offroadMudMask;`;
