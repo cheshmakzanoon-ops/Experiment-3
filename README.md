@@ -6,13 +6,13 @@
 
 MOTOBOUND is an independent browser-based motorsport game built with TypeScript and Three.js. It brings together circuit racing, motorcycles, off-road competition and an open-world festival, with vehicle simulation driving the handling, sound and presentation.
 
-[Repository map](docs/REPOSITORY_MAP.md) · [Current status](docs/CURRENT_STATUS.md) · [Run locally](#run-locally) · [Controls](#controls) · [Development](#development) · [Documentation](#documentation)
+[Game overview](docs/studio/GAME_OVERVIEW.md) · [Roadmap & handover](docs/studio/ROADMAP.md) · [Repository map](docs/REPOSITORY_MAP.md) · [Current status](docs/CURRENT_STATUS.md) · [Run locally](#run-locally) · [Controls](#controls) · [Development](#development) · [Documentation](#documentation)
 
 > **In development.** The game is not a finished commercial release. Visual polish, target-hardware performance and release validation remain ongoing. Online racing is an [experimental networking implementation](docs/production/ONLINE_SLICE.md), not a public multiplayer service.
 
 ## Development source and downloads
 
-`main` is the consolidated development source, including the latest GP motorcycle work integrated on **2026-10-31**. [Current validation status](docs/CURRENT_STATUS.md) is distinct from historical phase reports.
+`main` is the consolidated development source (studio wind-down merge, **2026-11-05**): Paddock Board front end, Wildcard Series (29 events), 51 venues, 57 machines, 7 weather states, 8 UI languages, original hero car, Electron/Steam shell and demo edition. What is verified, what is not, and the exact plan to release are in the [Roadmap & handover](docs/studio/ROADMAP.md). [Current validation status](docs/CURRENT_STATUS.md) is distinct from historical phase reports.
 
 - [Playable website](https://cheshmakzanoon-ops.github.io/Experiment-3/)
 - [Downloadable releases](https://github.com/cheshmakzanoon-ops/Experiment-3/releases)
