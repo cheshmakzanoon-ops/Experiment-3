@@ -294,6 +294,7 @@ export class FestivalRenderer {
     // These materials belong to this region. Catalogue cars use shared
     // materials, and navigation emissives retain their own presentation.
     this.atmosphere.installMaterial(this.terrain.material);
+    this.terrain.material.userData.ow.owSeaLevel.value = world.field.region.seaLevel;
     for (const root of [this.roads.root, this.buildings.root, this.water.root])
       this.atmosphere.install(root);
     this.atmosphere.watch(this.dressing.root);

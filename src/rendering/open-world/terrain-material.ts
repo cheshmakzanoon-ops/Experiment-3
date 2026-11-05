@@ -84,6 +84,9 @@ export interface TerrainUniforms {
   owSnowTint: { value: number };
   /** 1 on High and ULTRA: view-dependent grass scattering (see below). */
   owGrassDetail: { value: number };
+  /** Still-water datum for the beach swash zone; far below the world (off)
+   * until the festival renderer sets the region's sea level. */
+  owSeaLevel: { value: number };
 }
 /** View-dependent sward response (High and ULTRA). A meadow is not a
  * Lambertian plane: looking toward a low sun, light forward-scatters through
@@ -123,6 +126,7 @@ export function terrainMaterial(): T.MeshStandardMaterial & { userData: { ow: Te
     owWet: { value: 0 },
     owSnowTint: { value: 1 },
     owGrassDetail: { value: 0 },
+    owSeaLevel: { value: -1e4 },
   };
   const G = TERRAIN_GRASS_SCATTER,
     g4 = (v: number) => v.toFixed(4);
@@ -153,6 +157,7 @@ vOwWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;`,
 uniform float owWet;
 uniform float owSnowTint;
 uniform float owGrassDetail;
+uniform float owSeaLevel;
 float owGrass = 0.0;
 varying vec4 vSplat;
 varying vec4 vShade;
@@ -225,6 +230,19 @@ ${SCAN_COMMON_GLSL}`,
   float wet = owWet * (1.0 - snow) * (1.0 - 0.6 * rock);
   col *= 1.0 - 0.38 * wet;
   owRoughness = mix(owRoughness, 0.32, wet * 0.75);
+  // Beach swash zone: sand and shingle stay saturated a little above the
+  // still-water line (darker and glossy, mirroring the sky at grazing), with
+  // a ragged drying edge and a faint strand line of wrack along its top.
+  float owAbove = vOwWorld.y - owSeaLevel;
+  if (owAbove < 2.0) {
+    float owEdge = 0.42 + 0.34 * meso + 0.14 * (micro - 0.5);
+    float owShore = clamp(sand + 0.6 * soil + 0.4 * rock, 0.0, 1.0) * (1.0 - snow) * (1.0 - town);
+    float owDamp = (1.0 - smoothstep(owEdge * 0.35, owEdge, owAbove)) * owShore;
+    float owStrand = (1.0 - smoothstep(0.0, 0.07, abs(owAbove - owEdge - 0.12)))
+      * smoothstep(0.45, 0.7, micro) * owShore * near;
+    col *= (1.0 - 0.45 * owDamp) * (1.0 - 0.24 * owStrand);
+    owRoughness = mix(owRoughness, 0.26, owDamp * 0.85);
+  }
   diffuseColor.rgb = col;
   // Detail normal: gradient of the micro and meso relief (fades with distance).
   float e = 0.35;
@@ -266,7 +284,7 @@ normal = apexScanPerturb(normal, owScanN, 1.1);
 #endif`,
       );
   };
-  material.customProgramCacheKey = () => 'festival-terrain-v3-sward-scatter';
+  material.customProgramCacheKey = () => 'festival-terrain-v4-swash-zone';
   scannedGround.register(material, FESTIVAL_SCAN_LAYERS);
   return material;
 }
