@@ -63,7 +63,13 @@ Integration done by PM: weather glyphs on the board dial, weather options data-d
 - CI Keeper: arena-nord supercross heading guard (physics v24), `scenarios` job cap 15 → 25 min (test:vehicles ran into the cap), five colon-named tracked log files renamed (Windows checkouts), reviewer-confirmed root cause. HUD legibility: HUD SCALE setting, 11 px label floor, handheld footprint pins, colour-blind tyre palette (first version rejected by review: the GP panel outgrew a 45%-height guard; capped at 0.115 vh before merge).
 - **GitHub Actions, ubuntu-24.04 + Mesa llvmpipe, 15 jobs: 12 passed** (full unit suite, lint/content/typecheck/build/IP guard/demo build, scenarios, wet-presentation, owner-qa, browser shards 1,2,3,4,5,8). Failed: offroad-scenarios (since fixed), browser shard 6 (7 specs: photo-studio open after lazy-load > 60 s, three 8–12 car grid loads > 180 s, a 20 min survey timeout, a GPU-fence trip, a stale GP-R1 triangle pin) and shard 7 (being triaged).
 
-## In flight now (wave 9)
+## WOUND DOWN 2026-11-05
+Development was stopped at the owner's request. Everything is merged to `main`; the only other branch is the owner's
+pre-existing `claude/focused-maxwell-1p25li`, untouched. The last in-flight item (CI browser-shard triage) was merged as
+saved work in progress (GP triangle pins, spark-resource expectation, board scrollbar CSS fix, motocross note overhang
+tolerance) and its remaining steps are Phase 0 of [ROADMAP.md](ROADMAP.md). Read ROADMAP.md and GAME_OVERVIEW.md first.
+
+## Previously in flight (wave 9)
 - CI browser-shard triage (classify REGRESSION / STALE / ENVIRONMENT against baseline run 41719338961, cold-start measurements lazy-data vs before).
 
 ## Previous in-flight (wave 8)
