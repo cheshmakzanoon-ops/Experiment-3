@@ -231,6 +231,21 @@ describe('every workflow is well-formed YAML (the dry parse: they cannot run out
   }
 });
 
+describe('Linux runners are pinned to an image Playwright supports', () => {
+  // Run 0b8ec67 on GitHub: ubuntu-latest had become Ubuntu 26.04, which Playwright 1.55.1 cannot
+  // install Chromium on, so every browser shard, wet-presentation and owner-qa failed at
+  // `playwright install` before running a spec. eccc6d0 pinned the 45 Linux workflows; this keeps
+  // a new or edited one from floating again.
+  const directory = new URL('../.github/workflows/', import.meta.url);
+  it('no workflow runs a job (or a matrix leg) on ubuntu-latest', () => {
+    for (const name of readdirSync(directory).filter((file) => file.endsWith('.yml')))
+      expect(
+        withoutComments(readFileSync(new URL(name, directory), 'utf8')),
+        `${name} floats on ubuntu-latest`,
+      ).not.toMatch(/\bubuntu-latest\b/);
+  });
+});
+
 describe('desktop packaging matrix: native runners, smoke where it can run, never published', () => {
   const file = readFileSync(
     new URL('../.github/workflows/desktop-packages.yml', import.meta.url),
