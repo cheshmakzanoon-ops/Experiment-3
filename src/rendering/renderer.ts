@@ -150,7 +150,8 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
 import { Sky } from 'three/addons/objects/Sky.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { SceneAmbientPass } from './scene-ambient-pass.ts';
+import { SceneAmbientPass, type LateLayer } from './scene-ambient-pass.ts';
+import { HeatHaze } from './heat-haze.ts';
 import { BroadcastGradePass, GRADE_PROFILES } from './broadcast-grade.ts';
 import {
   GP_PHOTOGRAPHIC,
@@ -179,7 +180,7 @@ import { CircuitScene } from './circuit.ts';
 import { Effects } from './effects.ts';
 import { GpContactEffects } from './gp-contact-effects.ts';
 import { PresentedFrame } from './frame-state.ts';
-import { StudioFrame } from './studio/studio-frame.ts';
+import { StudioFrame, studioUniforms } from './studio/studio-frame.ts';
 import { EffectPlayback } from './effect-playback.ts';
 import { AudioViewTracker } from '../audio/spatial.ts';
 import { Track, trackPoint } from '../simulation/track.ts';
@@ -291,6 +292,8 @@ export class RacingRenderer {
   gpCamera = true;
   private readonly gpChaseDynamics = new GpChaseDynamics();
   readonly studioFrame = new StudioFrame();
+  /** Exhaust heat haze (High and Ultra), fed to the scene composite. */
+  private readonly heatHaze = new HeatHaze();
   /** Time Trial ghost, built on first use; posed from setGhost() each frame. */
   private ghost: GhostCar | null = null;
   private ghostPose: GhostPose = ghostPose();
@@ -1126,6 +1129,8 @@ export class RacingRenderer {
     this.scenePass.ambientOcclusion = g.ambientOcclusion;
     this.grade.enabled = g.filmGrade;
     this.scenePass.temporal.enabled = g.temporalAA;
+    // Heat haze is a High-tier detail (ULTRA draws High-tier detail too).
+    this.scenePass.setHeatHaze(q === 'high' ? this.heatHaze : null);
     // Stored only: lensEffects (post-lens), cockpitFov (camera-cockpit).
     this.circuit.crowd.visible = g.crowd;
     this.applyVegetationDensity();
@@ -1217,6 +1222,14 @@ export class RacingRenderer {
   /** Called by the application's RAF loop before mutating presentation state. */
   canSubmitFrame(): boolean {
     return this.gpuFrames.ready();
+  }
+  /** Draw a transparent layer (dust, spray, smoke) after the scene draw, into the
+   * scene target, with this frame's resolved depth sampleable through
+   * `softParticleUniforms` (soft-particles.ts). The layer is called with
+   * autoClear and the shadow-map update off and the same camera; returns the
+   * unregister function. Low (no multisampling) gets hard edges. */
+  addLateLayer(layer: LateLayer) {
+    return this.scenePass.addLateLayer(layer);
   }
   /** Called immediately after draw; preserveDrawingBuffer is not required. */
   capturePhoto(): Promise<Blob> {
@@ -1372,7 +1385,11 @@ export class RacingRenderer {
       );
     // Fog, dust and thunderstorm (weather-atmosphere.ts): scale and tint the
     // daylight for the obscuring air; clear air leaves it untouched.
-    const air = weatherAtmosphere(presented, this.weatherAir, sceneryCover(this.circuit.meanFrozen));
+    const air = weatherAtmosphere(
+      presented,
+      this.weatherAir,
+      sceneryCover(this.circuit.meanFrozen),
+    );
     if (!studio) adjustDaylight(daylight, air, illumination === 'night', illumination === 'sunset');
     if (this.night && !studio)
       this.nightFog.setRGB(daylight.fogRed, daylight.fogGreen, daylight.fogBlue);
@@ -2054,6 +2071,16 @@ export class RacingRenderer {
           )
         : 0;
       this.motionBlur.prepareFrame(presented, this.camera, this.follow, cameraMode, replay);
+      if (this.scenePass.heatHaze && !studio && !menu)
+        this.heatHaze.update(
+          presented,
+          this.camera,
+          studioUniforms.studioCarNow.value,
+          studioUniforms.studioCarCount.value,
+          presented[H.TIME],
+          this.scenePass.target.height,
+        );
+      else this.heatHaze.clear();
       // D29/D30: depth of field on the subject car (showroom, broadcast telephoto).
       const lens: SubjectLens | null =
         pregame && this.gridShot.maxblur > 0

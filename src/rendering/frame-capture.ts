@@ -117,6 +117,12 @@ export function captureRenderedCanvas(canvas: HTMLCanvasElement): Promise<Blob> 
       try {
         gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
         stores.forEach((store, i) => gl.pixelStorei(store, i === 0 ? 1 : 0));
+        // The WebGL error flag is sticky: an unrelated earlier call (a skipped
+        // draw, a driver warning) would otherwise be reported as a failed
+        // readback. Drain it so only errors of the readback itself count.
+        for (let drained = 0; drained < 32 && gl.getError() !== gl.NO_ERROR; drained++) {
+          /* discarded */
+        }
         gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
         const error = gl.getError();
         if (error !== gl.NO_ERROR || gl.isContextLost())

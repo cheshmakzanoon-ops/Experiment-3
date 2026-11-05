@@ -4,6 +4,8 @@ import type { MotionBlur } from './motion-blur.ts';
 import { MOTION_BLUR, MOTION_VELOCITY_GLSL, createMotionUniforms } from './studio/velocity.ts';
 import { TemporalAA } from './studio/temporal-aa.ts';
 import { studioUniforms } from './studio/studio-frame.ts';
+import { bindSoftParticleDepth } from './soft-particles.ts';
+import { HEAT_HAZE_GLSL, type HeatHaze } from './heat-haze.ts';
 
 /** Scalable ambient obscurance tuning. World-space radius in metres; the screen
  * radius is clamped so a cockpit surface 30 cm from the eye cannot black out.
@@ -302,8 +304,16 @@ const compositeFragment = /* glsl */ `
   varying vec2 vUv;
   ${interleavedNoise}
   ${motionGather}
+  #ifdef HEAT_HAZE
+    ${HEAT_HAZE_GLSL}
+  #endif
   void main() {
-    vec4 color = texture2D(tColor, vUv);
+    vec2 colorUv = vUv;
+    #ifdef HEAT_HAZE
+      // Refraction through a hot exhaust plume (High/Ultra): see heat-haze.ts.
+      if (hazeCount > 0) colorUv = heatHazeUv(vUv, viewZAt(vUv));
+    #endif
+    vec4 color = texture2D(tColor, colorUv);
     #ifdef MOTION_DEBUG_VELOCITY
       // Test reference output: unclamped streak (uv units), linear depth, geometry mask.
       float debugZ = viewZAt(vUv);
@@ -315,7 +325,7 @@ const compositeFragment = /* glsl */ `
     if (motionActive < 0.5 && enabled < 0.5) { gl_FragColor = color; return; }
     float z = viewZAt(vUv);
     if (motionActive > 0.5)
-      color.rgb = motionBlur(color.rgb, vUv, -z, motionPixels(viewAtZ(vUv, z), colorResolution), colorResolution);
+      color.rgb = motionBlur(color.rgb, colorUv, -z, motionPixels(viewAtZ(vUv, z), colorResolution), colorResolution);
     if (enabled < 0.5) { gl_FragColor = color; return; }
     // Joint-bilateral upsample: prefer half-resolution texels on the same surface.
     vec2 grid = vUv * obscuranceResolution - 0.5;
@@ -348,6 +358,12 @@ export const SCENE_AMBIENT_GLSL = Object.freeze({
   composite: compositeFragment,
 });
 
+/** A scene layer drawn after the main scene draw (see `lateScene`). */
+export type LateLayer = (
+  renderer: T.WebGLRenderer,
+  target: T.WebGLRenderTarget,
+  depth: T.DepthTexture,
+) => void;
 /** A scene-linear stage between the scene draw and the temporal resolve (e.g.
  * ULTRA screen-space reflections). Inactive stages cost nothing. */
 export interface SceneStage {
@@ -410,9 +426,37 @@ export class SceneAmbientPass extends Pass {
    * feedback loop); without it (Low) `depth` is the attachment itself and must
    * not be sampled. Disable the shadow map update for any extra `render` call.
    */
-  lateScene:
-    | ((renderer: T.WebGLRenderer, target: T.WebGLRenderTarget, depth: T.DepthTexture) => void)
-    | null = null;
+  lateScene: LateLayer | null = null;
+  /** Additional late layers (soft particles: see soft-particles.ts), in
+   * registration order, after `lateScene`. */
+  private readonly lateLayers: LateLayer[] = [];
+  /** Register a late layer; returns its unregister function. The pass runs it
+   * with autoClear and the shadow-map update off, after binding the shared
+   * soft-particle depth uniforms to this frame's depth. */
+  addLateLayer(layer: LateLayer) {
+    this.lateLayers.push(layer);
+    return () => {
+      const i = this.lateLayers.indexOf(layer);
+      if (i >= 0) this.lateLayers.splice(i, 1);
+    };
+  }
+  private drawLateLayers(renderer: T.WebGLRenderer) {
+    if (!this.lateScene && this.lateLayers.length === 0) return;
+    const depth = this.target.depthTexture!;
+    bindSoftParticleDepth(this.camera, this.target, depth);
+    const autoClear = renderer.autoClear,
+      shadows = renderer.shadowMap as T.WebGLRenderer['shadowMap'] | undefined,
+      shadowUpdate = shadows?.autoUpdate;
+    renderer.autoClear = false;
+    if (shadows) shadows.autoUpdate = false;
+    try {
+      this.lateScene?.(renderer, this.target, depth);
+      for (const layer of this.lateLayers) layer(renderer, this.target, depth);
+    } finally {
+      renderer.autoClear = autoClear;
+      if (shadows) shadows.autoUpdate = shadowUpdate!;
+    }
+  }
   /** ULTRA stages (screen-space reflections); empty on every other preset. */
   readonly sceneStages: SceneStage[] = [];
   /** ULTRA temporal obscurance, or null. */
@@ -514,6 +558,21 @@ export class SceneAmbientPass extends Pass {
     this.motion = motion;
     Object.assign(this.compositeMaterial.uniforms, motion.uniforms);
     motion.setSize(this.width, this.height);
+  }
+  private haze: HeatHaze | null = null;
+  /** Exhaust heat haze in the composite (High/Ultra), or null to compile it out. */
+  setHeatHaze(haze: HeatHaze | null) {
+    if (haze === this.haze) return;
+    this.haze = haze;
+    const material = this.compositeMaterial;
+    if (haze) {
+      Object.assign(material.uniforms, haze.uniforms);
+      material.defines.HEAT_HAZE = '';
+    } else delete material.defines.HEAT_HAZE;
+    material.needsUpdate = true;
+  }
+  get heatHaze() {
+    return this.haze;
   }
   get samples() {
     return this.target.samples;
@@ -628,7 +687,7 @@ export class SceneAmbientPass extends Pass {
         } finally {
           for (const stage of stages) stage.afterScene?.();
         }
-        this.lateScene?.(renderer, this.target, this.target.depthTexture!);
+        this.drawLateLayers(renderer);
       } finally {
         this.temporal.end(this.camera);
       }
