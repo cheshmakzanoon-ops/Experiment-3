@@ -59,7 +59,14 @@ Integration done by PM: weather glyphs on the board dial, weather options data-d
 - UX 4 design-critic pass (showroom centred between board and rail, nameplate card, legacy screens on tokens, type floor, contrast/focus audits), Vehicle art 3 (APX-01 livery/wing material, CR-750, GP-R1 knee sparks, karts, trucks, grazing-cap hook), Marketing art (logo system, 16/16 Steam capsule sizes, key-art + trailer tooling, 19 s teaser animatic). Key-art frames are software-GL stand-ins and need a GPU retake before upload.
 - **GitHub Actions on main (clean ubuntu runners), commit 0b8ec67:** unit-tests PASS (full suite), validate (lint, content, typecheck, build, IP guard, demo build) PASS, scenarios mostly PASS; **offroad-scenarios FAILED** (arena-nord-supercross parks car 0 for 21.1 s vs 20 s limit); all browser shards + wet-presentation + owner-qa FAILED at `playwright install` because `ubuntu-latest` became Ubuntu 26.04 (unsupported by Playwright 1.55.1). Fixed the runner pin in eccc6d0 (45 workflows → ubuntu-24.04); first browser-shard results on real runners pending.
 
-## In flight now (wave 8)
+## Wave 8 merged (62ac250) + CI on pinned runners (run 41915850034, main eab1d91)
+- CI Keeper: arena-nord supercross heading guard (physics v24), `scenarios` job cap 15 → 25 min (test:vehicles ran into the cap), five colon-named tracked log files renamed (Windows checkouts), reviewer-confirmed root cause. HUD legibility: HUD SCALE setting, 11 px label floor, handheld footprint pins, colour-blind tyre palette (first version rejected by review: the GP panel outgrew a 45%-height guard; capped at 0.115 vh before merge).
+- **GitHub Actions, ubuntu-24.04 + Mesa llvmpipe, 15 jobs: 12 passed** (full unit suite, lint/content/typecheck/build/IP guard/demo build, scenarios, wet-presentation, owner-qa, browser shards 1,2,3,4,5,8). Failed: offroad-scenarios (since fixed), browser shard 6 (7 specs: photo-studio open after lazy-load > 60 s, three 8–12 car grid loads > 180 s, a 20 min survey timeout, a GPU-fence trip, a stale GP-R1 triangle pin) and shard 7 (being triaged).
+
+## In flight now (wave 9)
+- CI browser-shard triage (classify REGRESSION / STALE / ENVIRONMENT against baseline run 41719338961, cold-start measurements lazy-data vs before).
+
+## Previous in-flight (wave 8)
 - CI keeper (offroad gate root cause, cancelled test:vehicles step, workflow audit) and HUD legibility (7–9 px race-HUD labels, HUD SCALE setting).
 
 ## Previous in-flight (wave 7)
