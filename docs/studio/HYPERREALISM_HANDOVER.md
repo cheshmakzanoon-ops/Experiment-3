@@ -12,6 +12,7 @@ vehicles, buildings, scenery) towards PS5 / Unreal Engine 5 level, with one dedi
 | --- | --- | --- | --- |
 | 1 | 02:43–03:23 | 4 × Opus 5.5, max reasoning, one-hour box | 20 commits, merged as `2f4ffe8` |
 | 2 | 03:32–04:55 | the same 4 agents, max reasoning, no time box, captures mandatory | 8 commits, merged in this handover |
+| 3 | 05:00–06:18 | 4 × Sonnet 5.5, xhigh reasoning, stopped by the user | F1 heat haze + soft-particle depth merged; MotoGP, motocross and open-world work saved as patches in [`hyperrealism-wip/`](hyperrealism-wip/README.md) |
 
 Each agent worked in its own git worktree branched from `main` and owned a fixed set of files (listed per section
 below). The orchestrator merged the branches into `claude/fervent-edison-2fnn2i` and then into `main`.

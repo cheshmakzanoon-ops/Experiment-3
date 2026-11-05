@@ -1,0 +1,1979 @@
+diff --git a/src/rendering/open-world/coastal-water.ts b/src/rendering/open-world/coastal-water.ts
+index 1fe57cb..dc18869 100644
+--- a/src/rendering/open-world/coastal-water.ts
++++ b/src/rendering/open-world/coastal-water.ts
+@@ -2,6 +2,7 @@ import * as T from 'three';
+ import type { TerrainField } from '../../simulation/open-world/terrain-field.ts';
+ import { installSeaWaves } from '../sea.ts';
+ import { chainShaderHook, injectAfter } from '../studio/shader-hooks.ts';
++import { installSeaHorizonClamp } from './sea-horizon.ts';
+ import { useStudioUniforms } from '../studio/studio-frame.ts';
+ 
+ /** Keep shore UVs in the exact same metre frame as the open-water plane. */
+@@ -226,8 +227,12 @@ export class CoastalWater {
+     this.material.depthTest = true;
+     this.material.depthWrite = false;
+     installSeaWaves(this.material);
++    const owDbg = { value: 0 }; // OW-DEBUG
++    (globalThis as any).__owDbg = Object.assign((globalThis as any).__owDbg ?? {}, { coastal: owDbg }); // OW-DEBUG
+     chainShaderHook(this.material, 'solvane-coastal-water-v1', (shader) => {
++      shader.uniforms.owDbg = owDbg; // OW-DEBUG
+       useStudioUniforms(shader, ['studioTime'], 'fragment');
++      installSeaHorizonClamp(shader);
+       injectAfter(
+         shader,
+         'common',
+@@ -246,6 +251,8 @@ export class CoastalWater {
+         /* glsl */ `
+ varying vec4 vCoastal;
+ varying vec2 vCoastalWorld;
++uniform float owDbg; // OW-DEBUG
++float owDbgA = 0.0, owDbgD = 0.0, owDbgF = 0.0; // OW-DEBUG
+ float coastalFoam = 0.0;
+ float coastalNoise(vec2 p) {
+   vec2 i = floor(p), f = fract(p);
+@@ -288,6 +295,10 @@ float coastalNoise(vec2 p) {
+   vec3 waterColour = mix(shallow, diffuseColor.rgb, smoothstep(1.6, 7.5, depth));
+   diffuseColor.rgb = mix(waterColour, vec3(0.58, 0.61, 0.57), coastalFoam);
+   diffuseColor.a *= clamp(max(body * 0.82, coastalFoam) * vCoastal.w, 0.0, 1.0);
++  owDbgA = diffuseColor.a; owDbgD = depth; owDbgF = coastalFoam; // OW-DEBUG
++  if (owDbg > 3.5) { diffuseColor.a = 1.0; } // OW-DEBUG
++  if (owDbg > 1.5 && owDbg < 2.5) { diffuseColor.rgb = vec3(0.022, 0.16, 0.155); } // OW-DEBUG
++  if (owDbg > 2.5 && owDbg < 3.5) { coastalFoam = 0.0; diffuseColor.rgb = vec3(0.022, 0.16, 0.155); diffuseColor.a = clamp(body * 0.82 * vCoastal.w, 0.0, 1.0); } // OW-DEBUG
+ }`,
+         'fragment',
+       );
+@@ -308,6 +319,18 @@ float coastalNoise(vec2 p) {
+         'fragment',
+       );
+     });
++    // OW-DEBUG begin
++    const prevHook = this.material.onBeforeCompile;
++    this.material.onBeforeCompile = (shader, r) => {
++      prevHook.call(this.material, shader, r);
++      shader.fragmentShader = shader.fragmentShader.replace(
++        '#include <dithering_fragment>',
++        `#include <dithering_fragment>
++if (owDbg > 0.5 && owDbg < 1.5) gl_FragColor = vec4(owDbgF, clamp(owDbgD / 4.0, 0.0, 1.0), owDbgA, 1.0);`,
++      );
++    };
++    this.material.needsUpdate = true;
++    // OW-DEBUG end
+     for (const geometry of geometries) {
+       const mesh = new T.Mesh(geometry, this.material);
+       mesh.name = 'Solvane shore water chunk';
+diff --git a/src/rendering/open-world/festival-car-finish.ts b/src/rendering/open-world/festival-car-finish.ts
+index 9b53bb1..c76af56 100644
+--- a/src/rendering/open-world/festival-car-finish.ts
++++ b/src/rendering/open-world/festival-car-finish.ts
+@@ -27,6 +27,17 @@ export const FESTIVAL_CAR_FINISH = Object.freeze({
+   /** Individual beads disappear once their millimetre relief is unresolved. */
+   detailFadeStartM: 12,
+   detailFadeEndM: 30,
++  /** Pearlescent interference of a metallic base coat (thin-film iridescence
++   * of the followed car's paint only): strength, film index and thickness
++   * range (nm). The catalogue and traffic cars keep their own finish. */
++  pearl: Object.freeze({
++    amount: 0.32,
++    /** A light gloss colour is a pearl white: a thinner film at this share. */
++    whiteAmount: 0.2,
++    whiteLuminance: 0.5,
++    ior: 1.45,
++    thickness: Object.freeze([250, 650] as const),
++  }),
+ });
+ 
+ export interface FestivalFinishObservation {
+@@ -317,6 +328,22 @@ export class FestivalCarFinish {
+       clone.onBeforeCompile = source.onBeforeCompile;
+       clone.customProgramCacheKey = source.customProgramCacheKey;
+       clone.name = `${source.name || role} · Festival contact finish`;
++      // A metallic base coat (and a pearl-white gloss one) carries a thin
++      // interference film: its hue travels with the viewing angle (blue-violet
++      // face-on, bronze toward grazing).
++      if (role === 'paint') {
++        const pearl = FESTIVAL_CAR_FINISH.pearl,
++          finish = source.userData.paintFinish,
++          white =
++            finish === 'gloss' &&
++            0.2126 * source.color.r + 0.7152 * source.color.g + 0.0722 * source.color.b >
++              pearl.whiteLuminance;
++        if (finish === 'metallic' || white) {
++          clone.iridescence = finish === 'metallic' ? pearl.amount : pearl.whiteAmount;
++          clone.iridescenceIOR = pearl.ior;
++          clone.iridescenceThicknessRange = [pearl.thickness[0], pearl.thickness[1]];
++        }
++      }
+       installFinish(clone, this.uniforms, role);
+       this.clones.set(source, clone);
+       if (role === 'paint') this.paintCount++;
+diff --git a/src/rendering/open-world/festival-meadow.ts b/src/rendering/open-world/festival-meadow.ts
+index 31ef602..c4519de 100644
+--- a/src/rendering/open-world/festival-meadow.ts
++++ b/src/rendering/open-world/festival-meadow.ts
+@@ -132,8 +132,10 @@ export function festivalMeadowGeometry() {
+       for (const side of [-1, 1]) {
+         positions.push(x + dx * halfWidth * side, y, z + dz * halfWidth * side);
+         normals.push(n.x, n.y, n.z);
+-        if (seed) colors.push(0.28 + t * 0.08, 0.23 + t * 0.07, 0.115 + t * 0.07);
+-        else colors.push(0.055 + t * 0.11, 0.125 + t * 0.12, 0.025 + t * 0.055);
++        // Seedheads are pale straw (sun-bleached, not orange); leaves run from
++        // a dark green base to a yellow-green tip like the terrain's own sward.
++        if (seed) colors.push(0.36 + t * 0.07, 0.32 + t * 0.06, 0.2 + t * 0.06);
++        else colors.push(0.07 + t * 0.15, 0.15 + t * 0.14, 0.03 + t * 0.06);
+       }
+       if (row) {
+         const i = offset + row * 2;
+@@ -144,8 +146,10 @@ export function festivalMeadowGeometry() {
+   for (let blade = 0; blade < 17; blade++) {
+     const angle = blade * 2.399963,
+       h = 0.38 + hash01(blade, 2, 916) * 0.38,
+-      radius = 0.025 + hash01(blade, 3, 916) * 0.19,
+-      bend = 0.16 + hash01(blade, 4, 916) * 0.18;
++      // Blades fan out only a little: a tussock stands up, it does not splay
++      // flat into a star.
++      radius = 0.02 + hash01(blade, 3, 916) * 0.1,
++      bend = 0.05 + hash01(blade, 4, 916) * 0.1;
+     const points: [number, number, number, number][] = [];
+     for (let row = 0; row <= 3; row++) {
+       const t = row / 3,
+@@ -154,7 +158,7 @@ export function festivalMeadowGeometry() {
+         Math.sin(angle) * spread,
+         h * t,
+         Math.cos(angle) * spread,
+-        (1 - t) * (0.019 + hash01(blade, 5, 916) * 0.018),
++        (1 - t * 0.9) * (0.019 + hash01(blade, 5, 916) * 0.018),
+       ]);
+     }
+     ribbon(points, angle, false);
+diff --git a/src/rendering/open-world/festival-renderer.ts b/src/rendering/open-world/festival-renderer.ts
+index 74b9ffa..b0d9270 100644
+--- a/src/rendering/open-world/festival-renderer.ts
++++ b/src/rendering/open-world/festival-renderer.ts
+@@ -66,8 +66,11 @@ import { EventMarkers } from './markers.ts';
+ import { RoadMeshes } from './roads.ts';
+ import { TERRAIN_BUDGETS, TerrainStreamer } from './terrain.ts';
+ import { Vegetation } from './vegetation.ts';
++import { GrassField } from './grass-field.ts';
++import { StructureGrid } from '../../simulation/open-world/placement.ts';
++import { trackPoint } from '../../simulation/track.ts';
+ import { photoVegetationEnabled, VegetationLibrary } from '../vegetation/library.ts';
+-import { speciesForPalette } from '../vegetation/species.ts';
++import { SPECIES, speciesForPalette } from '../vegetation/species.ts';
+ import { Water } from './water.ts';
+ import { festivalRoadDetail } from './festival-road-surface.ts';
+ import { Effects } from '../effects.ts';
+@@ -145,6 +148,8 @@ export class FestivalRenderer {
+   readonly chaseDynamics = new FestivalChaseDynamics();
+   driftCue: DriftCue | null = null;
+   readonly vegetation = new Vegetation();
++  /** Near-field photographic meadow (High and ULTRA, once the library loads). */
++  grassField: GrassField | null = null;
+   /** Photographic trees and shrubs, when loaded (see loadPhotoVegetation). */
+   photoVegetation: VegetationLibrary | null = null;
+   readonly water: Water;
+@@ -295,6 +300,7 @@ export class FestivalRenderer {
+     // materials, and navigation emissives retain their own presentation.
+     this.atmosphere.installMaterial(this.terrain.material);
+     this.terrain.material.userData.ow.owSeaLevel.value = world.field.region.seaLevel;
++    (globalThis as any).__owDbg = Object.assign((globalThis as any).__owDbg ?? {}, { terrain: this.terrain.material.userData.ow, renderer: this }); // OW-DEBUG
+     for (const root of [this.roads.root, this.buildings.root, this.water.root])
+       this.atmosphere.install(root);
+     this.atmosphere.watch(this.dressing.root);
+@@ -388,6 +394,7 @@ export class FestivalRenderer {
+       }
+       this.photoVegetation = library;
+       this.dressing.usePhotoVegetation(library);
++      this.plantGrassField(library);
+       // Trees never stand on roads: the natural ground alone (cheap per tile).
+       this.vegetation.setPhotoLibrary(library, (x, z) => this.world.field.height(x, z));
+       return true;
+@@ -396,6 +403,32 @@ export class FestivalRenderer {
+       return false;
+     }
+   }
++  /** The near meadow plants every open grass cell around the camera from the
++   * resident finest terrain tile; roads, structures and the shore stay clear. */
++  private plantGrassField(library: VegetationLibrary) {
++    const species = library.get(SPECIES.grass);
++    if (!species?.grass || this.grassField) return;
++    const blocked = new StructureGrid(this.structures),
++      net = this.world.network,
++      sea = this.world.field.region.seaLevel,
++      q = trackPoint();
++    this.grassField = new GrassField(species, {
++      ground: (x, z, out) => this.terrain.sampleGround(x, z, out),
++      allowed: (x, z, radius, ground) => {
++        if (ground.y < sea + 1.1 || blocked.blocks(x, z, radius + 0.4)) return false;
++        // The road's carve influence reaches 0 where no road is near: only
++        // then is the exact distance needed.
++        if (ground.road > 0.001) {
++          const distance = Math.abs(net.nearest(x, z, q)),
++            edge = net.edges[net.edgeOf[net.lastSegment]];
++          if (distance < edge.spec.halfWidth + edge.spec.shoulder + 0.8 + radius) return false;
++        }
++        return true;
++      },
++    });
++    this.vegetation.root.add(this.grassField.root);
++    (globalThis as any).__owDbg = Object.assign((globalThis as any).__owDbg ?? {}, { grass: this.grassField }); // OW-DEBUG
++  }
+   loadAuthoredDetails(): Promise<boolean> {
+     if (this.details) return Promise.resolve(true);
+     if (this.detailLoading) return this.detailLoading;
+@@ -706,6 +739,7 @@ export class FestivalRenderer {
+       this.vegetation.sync(this.terrain.treeTiles);
+     }
+     this.vegetation.update(this.camera, this.preset);
++    this.grassField?.update(this.camera, this.preset);
+     this.markers.update(time, this.discovered, this.activeEvent, this.gate, (x, z) =>
+       this.groundHeight(x, z),
+     );
+@@ -930,6 +964,8 @@ export class FestivalRenderer {
+     this.streetDetails?.dispose();
+     this.streetDetails = null;
+     this.contacts.dispose();
++    this.grassField?.dispose();
++    this.grassField = null;
+     this.vegetation.dispose();
+     this.photoVegetation?.dispose();
+     this.photoVegetation = null;
+diff --git a/src/rendering/open-world/festival-road-surface.ts b/src/rendering/open-world/festival-road-surface.ts
+index fefb18f..29add61 100644
+--- a/src/rendering/open-world/festival-road-surface.ts
++++ b/src/rendering/open-world/festival-road-surface.ts
+@@ -16,6 +16,12 @@ export const FESTIVAL_ROAD_SURFACE = Object.freeze({
+   sealHalfWidth: 0.025,
+   wheelOffset: 0.79,
+   wheelHalfWidth: 0.24,
++  /** Albedo lost in a wheel path (rubber, oil film, polished binder) at age
++   * 0 and 1, and in the oil drip line down a lane's centre. */
++  wheelDarkening: Object.freeze([0.06, 0.15] as const),
++  oilDarkening: 0.3,
++  /** Large-scale tonal patchwork of resurfacing and binder oxidation: +-share. */
++  tonePatch: 0.09,
+   normalSample: 0.5,
+   /** Pavement cracking (High and ULTRA): thermal cracks across the road per
+    * cell (metres) with the chance of one, the share carrying a hot-poured
+@@ -173,7 +179,24 @@ float festivalSeal = 0.0;
+   festivalPolish *= (0.45 + 0.55 * wearNoise) * roadUse * admission;
+   festivalPolish *= 1.0 - smoothstep(0.16, 0.45, footprint.x);
+   festivalPolish *= (1.0 - smoothstep(halfRoad - 0.3, halfRoad, abs(q.x)));
+-  diffuseColor.rgb *= 1.0 - festivalPolish * mix(0.025, 0.075, age);
++  diffuseColor.rgb *= 1.0 - festivalPolish * mix(${f(S.wheelDarkening[0])}, ${f(S.wheelDarkening[1])}, age);
++  // Resurfacing and oxidation leave metres-long patches of lighter or darker
++  // binder: a subtle, low-frequency tone that breaks the flat black plane.
++  {
++    float tone = owFbm(vec2(q.x * 0.11 + seed * 1.7, q.y * 0.045), 1.0) - 0.5;
++    diffuseColor.rgb *= 1.0 + tone * ${f(S.tonePatch * 2)} * admission * max(roadUse, circuitUse);
++  }
++  // Oil drips between the wheels: a narrow, broken dark line down each lane
++  // centre, heavier on older roads, with a glossier film.
++  float festivalOil = 0.0;
++  if (roadUse > 0.5) {
++    float oilBand = 1.0 - smoothstep(0.04, 0.15 + footprint.x, abs(laneX));
++    float oilBlot = smoothstep(0.5, 0.78, owNoise(vec2(q.y * 0.42 + seed * 2.3, laneX * 3.0)));
++    festivalOil = oilBand * oilBlot * admission * age * (1.0 - smoothstep(0.16, 0.45, footprint.x));
++    festivalOil *= 1.0 - smoothstep(halfRoad - 0.5, halfRoad, abs(q.x));
++    diffuseColor.rgb *= 1.0 - festivalOil * ${f(S.oilDarkening)};
++  }
++  festivalPolish = max(festivalPolish, festivalOil * 0.9);
+ 
+   // Circuit wear is a broad, broken history of use, with stronger polish
+   // through bends. It is independent of the public-road wheel-path mask.
+@@ -202,10 +225,15 @@ float festivalSeal = 0.0;
+   // Settled fines at the edge stay narrow, irregular and subordinate to
+   // the road paint. The junction admission prevents a dark border across
+   // a joining road. No geometric kerb is introduced here.
+-  float edgeWidth = 0.16 + wearNoise * 0.30;
++  // Dust and grit blown or washed onto the edge, in scallops that creep
++  // further in where verge growth and sweepings gather.
++  float edgeGather = smoothstep(0.55, 0.85, owNoise(vec2(q.y * 0.8 + seed * 1.3, 7.0)));
++  float edgeWidth = 0.13 + wearNoise * 0.26 + edgeGather * 0.3;
+   float edgeDust = smoothstep(halfRoad - edgeWidth - footprint.x, halfRoad - 0.025 + footprint.x, abs(q.x));
+   edgeDust *= admission * max(roadUse, circuitUse) * (0.55 + 0.45 * age);
+-  diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.17, 1.105, 0.99), edgeDust * 0.6);
++  vec3 edgeSoil = vec3(0.17, 0.148, 0.112) * (0.8 + 0.4 * owNoise(q * 9.0));
++  diffuseColor.rgb = mix(diffuseColor.rgb, edgeSoil, edgeDust * (0.32 + 0.3 * edgeGather) * (1.0 - smoothstep(0.1, 0.4, footprint.x)));
++  diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.17, 1.105, 0.99), edgeDust * 0.35);
+ 
+   // Sparse independently sized utility/resurfacing patches. A bounded
+   // rectangle has a fine chipped edge and a separate darker bitumen seal.
+@@ -301,7 +329,7 @@ float festivalSeal = 0.0;
+ const SURFACE_ROUGHNESS = /* glsl */ `
+ {
+   float festivalDry = 1.0 - smoothstep(0.05, 0.65, clamp(apexSurfaceWetness * apexWetAmount, 0.0, 1.0));
+-  roughnessFactor = clamp(roughnessFactor - festivalPolish * 0.032 * festivalDry + festivalRepair * 0.025 * festivalDry, 0.04, 1.0);
++  roughnessFactor = clamp(roughnessFactor - festivalPolish * 0.05 * festivalDry + festivalRepair * 0.025 * festivalDry, 0.04, 1.0);
+   roughnessFactor = mix(roughnessFactor, min(roughnessFactor, 0.53), festivalSeal * festivalDry);
+ }
+ `;
+diff --git a/src/rendering/open-world/grass-field.ts b/src/rendering/open-world/grass-field.ts
+new file mode 100644
+index 0000000..2e02fdd
+--- /dev/null
++++ b/src/rendering/open-world/grass-field.ts
+@@ -0,0 +1,200 @@
++import * as T from 'three';
++import type { QualityPreset } from '../options.ts';
++import { GRASS, TrackGrass, type GrassClump } from '../vegetation/grass.ts';
++import type { VegetationSpecies } from '../vegetation/library.ts';
++import { VEGETATION } from '../vegetation/materials.ts';
++import { owFbm, owHash, smooth01 } from './ow-noise.ts';
++import { groundSample, type GroundSample } from './terrain.ts';
++
++/**
++ * Near-field meadow (High and ULTRA). The terrain's scanned grass carries the
++ * far field, but a lawn seen from a car is not a texture: within the grass
++ * distance of the camera every open meadow is planted with the same
++ * photographed clump cards the circuit verges use, so the ground reads as
++ * vegetation with parallax, silhouettes and self-shadowing instead of a
++ * printed surface. Cells of `cell` metres stream in around the camera (four
++ * per vegetation chunk, so each is one instanced draw), planted
++ * deterministically from the terrain's own surface weights, density patches
++ * and the shader's dryness fields; the clump material fades them into the
++ * ground at the grass distance.
++ */
++export const GRASS_FIELD = Object.freeze({
++  /** Cell edge (m); divides the vegetation chunk, so a cell is one draw. */
++  cell: GRASS.chunk / 4,
++  /** Clumps per m² on open grass (before patchiness). */
++  density: Object.freeze({ low: 0, medium: 0, high: 0.8, ultra: 1.45 }),
++  /** Cells planted per frame (the rest wait their turn). */
++  perFrame: 2,
++  /** Steepest ground (surface normal's up component) that carries grass. */
++  minUp: 0.8,
++});
++
++export interface GrassSampler {
++  /** Ground and surface weights; false while the tile is not resident. */
++  ground(x: number, z: number, out: GroundSample): boolean;
++  /** May a clump of this radius root here (not road, structure, shore)? */
++  allowed(x: number, z: number, radius: number, ground: GroundSample): boolean;
++}
++
++/** Share of a point's ground that is grass, from the terrain layer weights. */
++export function grassCover(g: GroundSample): number {
++  const bare = Math.min(
++    1,
++    g.rock * 1.15 + g.sand * 1.1 + g.snow * 1.2 + g.soil * 0.9 + g.town * 0.7,
++  );
++  // The shader fades the layers by their splat weight: grass is the remainder.
++  return Math.max(0, 1 - bare) * (1 - 0.55 * g.forest);
++}
++
++/** Share of dry (late-summer) tiles at a point: the same macro dryness and
++ * seeding patches the terrain shader paints, so tufts match the ground. */
++export function dryShare(x: number, z: number): number {
++  const macro = owFbm(x * 0.0021, z * 0.0021, 1),
++    straw = smooth01(0.6, 0.78, owFbm(x * 0.012 - 7.7, z * 0.012 + 2.9, 1));
++  return Math.min(1, smooth01(0.35, 0.75, macro) * 0.5 + straw * 0.85);
++}
++
++/** Deterministic clumps of one cell: a pure function of the cell, the
++ * sampler and the tile layout (unit-tested without a GPU). Null while any
++ * ground under the cell is not yet resident. */
++export function grassFieldCell(
++  cx: number,
++  cz: number,
++  density: number,
++  tiles: number,
++  sampler: GrassSampler,
++): GrassClump[] | null {
++  const size = GRASS_FIELD.cell,
++    n = Math.ceil(size * Math.sqrt(density)),
++    spacing = size / n,
++    green = Math.ceil(tiles / 2),
++    out: GrassClump[] = [],
++    g = groundSample();
++  const x0 = cx * size,
++    z0 = cz * size;
++  for (let j = 0; j < n; j++)
++    for (let i = 0; i < n; i++) {
++      const seed = cx * 7919 + cz * 104729 + (j * n + i) * 31;
++      const x = x0 + (i + owHash(seed, 1.7)) * spacing,
++        z = z0 + (j + owHash(seed, 4.3)) * spacing;
++      if (!sampler.ground(x, z, g)) return null;
++      // Patchy density: bald spots, thick tussock areas, a few gaps.
++      const patch = smooth01(0.22, 0.62, owFbm(x * 0.16 + 3.1, z * 0.16 - 5.7, 1)),
++        keep = grassCover(g) * (0.3 + 0.95 * patch);
++      if (g.ny < GRASS_FIELD.minUp || owHash(seed, 9.1) > keep) continue;
++      const w = 0.5 + 0.55 * owHash(seed, 6.9);
++      if (!sampler.allowed(x, z, w * 0.5, g)) continue;
++      const dry = owHash(seed, 2.9) < dryShare(x, z),
++        pick = owHash(seed, 8.3);
++      out.push({
++        x,
++        y: g.y - 0.04,
++        z,
++        width: w,
++        height: GRASS.height[0] + (GRASS.height[1] - GRASS.height[0]) * owHash(seed, 5.5),
++        yaw: owHash(seed, 3.3) * Math.PI * 2,
++        tile: dry
++          ? Math.min(tiles - 1, green + Math.floor(pick * Math.max(1, tiles - green)))
++          : Math.min(green - 1, Math.floor(pick * green)),
++        tint: owHash(seed, 7.7),
++      });
++    }
++  return out;
++}
++
++interface Cell {
++  grass: TrackGrass | null;
++  /** Frames to wait before the next attempt (tile still streaming). */
++  retry: number;
++}
++
++/** Streams the near meadow around the camera. */
++export class GrassField {
++  readonly root = new T.Group();
++  private readonly cells = new Map<string, Cell>();
++  private readonly eye = new T.Vector3();
++  private readonly tiles: number;
++  /** Switch the whole layer off (A/B captures, diagnostics). */
++  enabled = true;
++  stats = { cells: 0, clumps: 0, built: 0 };
++  constructor(
++    private readonly species: VegetationSpecies,
++    private readonly sampler: GrassSampler,
++  ) {
++    this.root.name = 'Festival near meadow';
++    this.tiles = species.grass?.tiles ?? 0;
++  }
++
++  update(camera: T.Camera, preset: QualityPreset) {
++    const density = GRASS_FIELD.density[preset],
++      reach = VEGETATION.grass[preset];
++    this.root.visible = this.enabled && density > 0 && reach > 0 && this.tiles > 0;
++    if (!this.root.visible) {
++      this.drop(() => true);
++      return;
++    }
++    camera.getWorldPosition(this.eye);
++    const size = GRASS_FIELD.cell,
++      range = Math.ceil((reach + size * 0.5) / size),
++      ccx = Math.floor(this.eye.x / size),
++      ccz = Math.floor(this.eye.z / size);
++    const wanted: { key: string; cx: number; cz: number; d: number }[] = [];
++    for (let dz = -range; dz <= range; dz++)
++      for (let dx = -range; dx <= range; dx++) {
++        const cx = ccx + dx,
++          cz = ccz + dz,
++          // Distance from the eye to the cell's nearest edge point.
++          nx = Math.max(cx * size - this.eye.x, 0, this.eye.x - (cx + 1) * size),
++          nz = Math.max(cz * size - this.eye.z, 0, this.eye.z - (cz + 1) * size),
++          d = Math.hypot(nx, nz);
++        if (d < reach) wanted.push({ key: `${cx}:${cz}`, cx, cz, d });
++      }
++    wanted.sort((a, b) => a.d - b.d);
++    let budget = GRASS_FIELD.perFrame;
++    for (const w of wanted) {
++      let cell = this.cells.get(w.key);
++      if (!cell) this.cells.set(w.key, (cell = { grass: null, retry: 0 }));
++      // A planted cell, or an empty one (retry parked high), is final.
++      if (cell.grass || budget <= 0) continue;
++      if (cell.retry > 0) {
++        cell.retry--;
++        continue;
++      }
++      const plan = grassFieldCell(w.cx, w.cz, density, this.tiles, this.sampler);
++      if (!plan) {
++        cell.retry = 20;
++        continue;
++      }
++      budget--;
++      this.stats.built++;
++      if (plan.length) {
++        cell.grass = new TrackGrass(this.species, plan);
++        this.root.add(cell.grass.root);
++      } else cell.retry = 1e9;
++    }
++    const keep = new Set(wanted.map((w) => w.key));
++    this.drop((key) => !keep.has(key));
++    let clumps = 0;
++    for (const cell of this.cells.values())
++      if (cell.grass) {
++        cell.grass.update(camera, reach);
++        clumps += cell.grass.clumps;
++      }
++    this.stats.cells = this.cells.size;
++    this.stats.clumps = clumps;
++  }
++
++  private drop(test: (key: string) => boolean) {
++    for (const [key, cell] of this.cells)
++      if (test(key)) {
++        cell.grass?.dispose();
++        this.cells.delete(key);
++      }
++  }
++
++  /** The loaded library owns the shared geometry and materials. */
++  dispose() {
++    this.drop(() => true);
++    this.root.removeFromParent();
++  }
++}
+diff --git a/src/rendering/open-world/horizon-dressing.ts b/src/rendering/open-world/horizon-dressing.ts
+index 1aa85a9..9f08de1 100644
+--- a/src/rendering/open-world/horizon-dressing.ts
++++ b/src/rendering/open-world/horizon-dressing.ts
+@@ -13,6 +13,7 @@ import { VEGETATION } from '../vegetation/materials.ts';
+ import { SPECIES } from '../vegetation/species.ts';
+ import type { FestivalPracticalSocket } from './festival-practical-lights.ts';
+ import { FESTIVAL_MEADOW, festivalMeadowGeometry, festivalMeadowPlan } from './festival-meadow.ts';
++import { ROADSIDE_FURNITURE, roadsidePlan } from './roadside-furniture.ts';
+ 
+ /** Original Solvane scenery derived from the reference review's visual
+  * principles: human-scale commercial detail, legible road edges, layered
+@@ -220,6 +221,10 @@ export class HorizonDressing {
+     shopSigns: 0,
+     meadowClumps: 0,
+     meadowPlanMs: 0,
++    guidePosts: 0,
++    poles: 0,
++    wireSpans: 0,
++    furnitureMs: 0,
+     planters: 0,
+     boats: 0,
+     lanterns: 0,
+@@ -238,6 +243,8 @@ export class HorizonDressing {
+     sphere: new T.SphereGeometry(1, 8, 5),
+     plane: new T.PlaneGeometry(1, 1),
+     ring: new T.TorusGeometry(1, 0.19, 6, 18),
++    /** Open four-sided tube: a wire's cross-section, no end caps. */
++    wire: new T.CylinderGeometry(1, 1, 1, 4, 1, true),
+   };
+   private readonly transform = new T.Matrix4();
+   private readonly orientation = new T.Quaternion();
+@@ -312,6 +319,7 @@ export class HorizonDressing {
+     this.coastalBoats();
+     this.batchScope = '';
+     this.buildMeadow();
++    this.roadsideFurniture();
+     this.makeLanterns();
+     for (const [key, chunk] of this.chunks) {
+       const g = chunk.batch.finish();
+@@ -375,12 +383,19 @@ export class HorizonDressing {
+   ) {
+     this.part(kind, this.primitives.box, x, y, z, sx, sy, sz, color, yaw);
+   }
+-  private beam(kind: BatchKind, a: T.Vector3, b: T.Vector3, radius: number, color: number) {
++  private beam(
++    kind: BatchKind,
++    a: T.Vector3,
++    b: T.Vector3,
++    radius: number,
++    color: number,
++    shape: T.BufferGeometry = this.primitives.cylinder,
++  ) {
+     const length = a.distanceTo(b);
+     this.orientation.setFromUnitVectors(UP, this.position.copy(b).sub(a).normalize());
+     this.position.copy(a).add(b).multiplyScalar(0.5);
+     this.transform.compose(this.position, this.orientation, this.scale.set(radius, length, radius));
+-    this.batch(kind, a.x, a.z).add(this.primitives.cylinder, this.transform, color);
++    this.batch(kind, a.x, a.z).add(shape, this.transform, color);
+   }
+ 
+   private shopfronts() {
+@@ -727,6 +742,73 @@ export class HorizonDressing {
+     }
+   }
+ 
++  /** Guide posts and utility lines from the roadside plan (see
++   * roadside-furniture.ts): a few boxes and cylinders each, batched per
++   * chunk with the other static dressing and culled by the same reach. */
++  private roadsideFurniture() {
++    const started = performance.now(),
++      plan = roadsidePlan(this.world, this.structures),
++      F = ROADSIDE_FURNITURE,
++      a = new T.Vector3(),
++      b = new T.Vector3();
++    for (const post of plan.posts) {
++      const { x, y, z, yaw } = post,
++        h = F.postHeight;
++      this.box('stone', x, y + h / 2, z, 0.1, h, 0.045, 0xe3e1d6, yaw);
++      this.box('stone', x, y + h * 0.78, z, 0.104, 0.16, 0.048, 0x1f2326, yaw);
++      // Retro-reflector on both faces: amber on the left, red on the right.
++      const reflector = post.side > 0 ? 0xd8a528 : 0xc23d24;
++      for (const face of [-1, 1]) {
++        const dx = Math.sin(yaw) * 0.026 * face,
++          dz = Math.cos(yaw) * 0.026 * face;
++        this.box('stone', x + dx, y + h * 0.78, z + dz, 0.07, 0.09, 0.012, reflector, yaw);
++      }
++      this.stats.guidePosts++;
++    }
++    for (const pole of plan.poles) {
++      const { x, y, z } = pole;
++      this.part('stone', this.primitives.cylinder, x, y + F.poleHeight / 2, z, 0.13, F.poleHeight, 0.13, 0x544a3e);
++      // Crossarm and three ceramic insulators.
++      const arm = Math.atan2(pole.ax, pole.az);
++      this.box('stone', x, y + F.poleHeight - 0.45, z, 0.1, 0.1, F.armHalf * 2.2, 0x4a4036, arm);
++      for (const lane of [-1, 0, 1]) {
++        const top = y + F.poleHeight - (lane === 0 ? -0.35 : 0.1);
++        this.part(
++          'glass',
++          this.primitives.cylinder,
++          x + pole.ax * lane * F.armHalf,
++          top - 0.07,
++          z + pole.az * lane * F.armHalf,
++          0.04,
++          0.16,
++          0.04,
++          0x6d7d72,
++        );
++      }
++      this.stats.poles++;
++    }
++    for (const wire of plan.wires) {
++      const steps = 6;
++      for (let k = 0; k < steps; k++) {
++        for (const [i, v] of [
++          [k, a],
++          [k + 1, b],
++        ] as const) {
++          const t = i / steps,
++            drop = wire.sag * 4 * t * (1 - t);
++          v.set(
++            wire.from[0] + (wire.to[0] - wire.from[0]) * t,
++            wire.from[1] + (wire.to[1] - wire.from[1]) * t - drop,
++            wire.from[2] + (wire.to[2] - wire.from[2]) * t,
++          );
++        }
++        this.beam('metal', a, b, 0.011, 0x2b2e30, this.primitives.wire);
++      }
++      this.stats.wireSpans++;
++    }
++    this.stats.furnitureMs = performance.now() - started;
++  }
++
+   private buildMeadow() {
+     const groups = new Map<string, GrassClump[]>(),
+       started = performance.now(),
+diff --git a/src/rendering/open-world/ow-noise.ts b/src/rendering/open-world/ow-noise.ts
+new file mode 100644
+index 0000000..3ab5f2c
+--- /dev/null
++++ b/src/rendering/open-world/ow-noise.ts
+@@ -0,0 +1,43 @@
++/** CPU twin of OW_NOISE_GLSL (terrain-material.ts): the same hash, value noise
++ * and fbm, so placement code can read the terrain shader's own world-space
++ * fields (macro dryness, sward patches) and agree with the ground it sits on. */
++const fract = (x: number) => x - Math.floor(x);
++
++export function owHash(x: number, y: number): number {
++  let a = fract(x * 0.1031),
++    b = fract(y * 0.1031),
++    c = a;
++  const d = a * (b + 33.33) + b * (c + 33.33) + c * (a + 33.33);
++  a += d;
++  b += d;
++  c += d;
++  return fract((a + b) * c);
++}
++
++export function owNoise(x: number, y: number): number {
++  const ix = Math.floor(x),
++    iy = Math.floor(y),
++    fx = x - ix,
++    fy = y - iy,
++    ux = fx * fx * (3 - 2 * fx),
++    uy = fy * fy * (3 - 2 * fy),
++    a = owHash(ix, iy),
++    b = owHash(ix + 1, iy),
++    c = owHash(ix, iy + 1),
++    d = owHash(ix + 1, iy + 1);
++  return a + (b - a) * ux + (c + (d - c) * ux - (a + (b - a) * ux)) * uy;
++}
++
++/** `detail` in 0..1 scales the two upper octaves, as in the shader. */
++export function owFbm(x: number, y: number, detail = 1): number {
++  const s =
++    owNoise(x, y) * 0.5 +
++    owNoise(x * 2.07 + 17.1, y * 2.07 + 17.1) * 0.25 * detail +
++    owNoise(x * 4.13 - 9.7, y * 4.13 - 9.7) * 0.125 * detail;
++  return s / (0.5 + 0.375 * detail);
++}
++
++export const smooth01 = (a: number, b: number, x: number) => {
++  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
++  return t * t * (3 - 2 * t);
++};
+diff --git a/src/rendering/open-world/roads.ts b/src/rendering/open-world/roads.ts
+index 7055cfd..f2c4483 100644
+--- a/src/rendering/open-world/roads.ts
++++ b/src/rendering/open-world/roads.ts
+@@ -187,7 +187,7 @@ float festivalPaintWearAt(vec2 metres, vec2 crossSection) {
+   float width = max(crossSection.y, 0.001);
+   float edgeDistance = min(crossSection.x, width - crossSection.x);
+   float grain = owNoise(metres * vec2(31.0, 24.0));
+-  float flake = smoothstep(0.66, 0.86, grain) * fine;
++  float flake = smoothstep(0.6, 0.82, grain) * fine;
+   float notches = owNoise(vec2(metres.y * 7.3, metres.x * 1.4));
+   float notchWidth = min(width * 0.12, 0.003 + notches * 0.012);
+   float edge = 1.0 - smoothstep(notchWidth, notchWidth + max(fwidth(crossSection.x), 0.0005), edgeDistance);
+@@ -213,6 +213,9 @@ function wornPaint(material: T.MeshStandardMaterial, wet: { value: number }) {
+ float festivalPaintWear = festivalPaintWearAt(vUv, vFestivalSurfaceData);
+ {
+   float pigment = 0.90 + 0.10 * owNoise(vUv * vec2(2.8, 0.17));
++  // Tyre grime and oxidised paint: markings are dirty off-white, not fresh.
++  float soil = owFbm(vUv * vec2(1.3, 0.35), 1.0);
++  pigment *= 0.8 + 0.2 * smoothstep(0.25, 0.7, soil);
+   diffuseColor.rgb = mix(diffuseColor.rgb * pigment, vec3(0.075), festivalPaintWear * 0.72);
+   diffuseColor.rgb *= 1.0 - festivalPaintWet * 0.18;
+ }`,
+@@ -412,7 +415,7 @@ export class RoadMeshes {
+     // Photographed asphalt on Medium and above (ground/scanned-ground.ts).
+     for (const m of [asphaltMajor, asphalt, town])
+       installScannedMaps(m, 'asphalt', libraryAlbedo(m));
+-    installFestivalRoadSurface(asphaltMajor, 0.32);
++    installFestivalRoadSurface(asphaltMajor, 0.5);
+     installFestivalRoadSurface(asphalt, 0.9);
+     installFestivalRoadSurface(town, 1);
+     for (const [m, units] of [
+diff --git a/src/rendering/open-world/roadside-furniture.ts b/src/rendering/open-world/roadside-furniture.ts
+new file mode 100644
+index 0000000..9304083
+--- /dev/null
++++ b/src/rendering/open-world/roadside-furniture.ts
+@@ -0,0 +1,175 @@
++import { hash01 } from '../../simulation/open-world/noise.ts';
++import { StructureGrid, type Structure } from '../../simulation/open-world/placement.ts';
++import { carvedGroundHeight } from '../../simulation/open-world/ground-height.ts';
++import { ROAD_FLAG, type RoadEdge } from '../../simulation/open-world/road-network.ts';
++import type { OpenWorld } from '../../simulation/open-world/world.ts';
++import { trackPoint } from '../../simulation/track.ts';
++
++/**
++ * Rural roadside furniture: reflective guide posts along the open roads and
++ * wooden utility poles carrying sagging three-wire spans along some of them.
++ * They give a long drive its scale, rhythm and speed cues (the posts tick
++ * past at a steady pitch, the wires rise and fall between poles). Original,
++ * deterministic plan from the road network; heights come from the carved
++ * ground the physics uses. Posts stand on the shoulder edge, poles well
++ * outside the barrier line, both clear of structures, towns and bridges.
++ */
++export const ROADSIDE_FURNITURE = Object.freeze({
++  /** Guide posts: pitch (m) per road class, offset beyond the shoulder (m). */
++  postPitch: Object.freeze({ highway: 40, country: 50, mountain: 25 }) as Readonly<
++    Record<string, number>
++  >,
++  postOffset: 0.55,
++  postHeight: 0.98,
++  /** Utility poles: span (m), height (m), offset beyond the shoulder (m),
++   * share of eligible roads that carry a line, and the wire sag (share of span). */
++  poleSpan: 52,
++  poleHeight: 9.2,
++  poleOffset: 6.5,
++  lineShare: 0.55,
++  sag: 0.011,
++  /** Crossarm half-length (m): wires hang this far to each side of the pole. */
++  armHalf: 0.85,
++});
++
++export interface RoadsidePost {
++  x: number;
++  y: number;
++  z: number;
++  /** Road heading (rad): the post's wide face looks along the road. */
++  yaw: number;
++  /** +1 on the left of travel (positive lateral), -1 on the right. */
++  side: -1 | 1;
++}
++export interface RoadsidePole {
++  x: number;
++  y: number;
++  z: number;
++  /** Road heading (rad). */
++  yaw: number;
++  /** Unit across-road axis (the crossarm lies along it). */
++  ax: number;
++  az: number;
++}
++export interface RoadsideWire {
++  from: readonly [number, number, number];
++  to: readonly [number, number, number];
++  /** Sag at the span's midpoint (m). */
++  sag: number;
++}
++export interface RoadsidePlan {
++  posts: RoadsidePost[];
++  poles: RoadsidePole[];
++  wires: RoadsideWire[];
++}
++
++/** Roads that carry furniture: public paved roads outside the towns. */
++export function furnishedEdge(edge: RoadEdge) {
++  return (
++    edge.roadClass === 'highway' || edge.roadClass === 'country' || edge.roadClass === 'mountain'
++  );
++}
++
++export function roadsidePlan(
++  world: OpenWorld,
++  structures: readonly Structure[],
++  roads: readonly RoadEdge[] = world.network.edges,
++): RoadsidePlan {
++  const net = world.network,
++    field = world.field,
++    blocked = new StructureGrid(structures),
++    p = trackPoint(),
++    q = trackPoint(),
++    plan: RoadsidePlan = { posts: [], poles: [], wires: [] };
++  const F = ROADSIDE_FURNITURE;
++  const ground = (x: number, z: number) => carvedGroundHeight(world.carver, x, z);
++  /** Is (x, z) a place furniture may stand: clear of town ground, structures,
++   * the water's edge and the carriageway of any other road. */
++  const free = (x: number, z: number, own: RoadEdge, margin: number) => {
++    if (blocked.blocks(x, z, margin) || field.flatWeight('town', x, z) > 0.3) return false;
++    if (field.height(x, z) < field.region.seaLevel + 1.5) return false;
++    // Another road (a junction or a parallel leg) must stay clear too.
++    const lateral = Math.abs(net.nearest(x, z, q)),
++      near = net.edges[net.edgeOf[net.lastSegment]];
++    return near === own
++      ? true
++      : lateral > near.spec.halfWidth + near.spec.shoulder + margin + 1;
++  };
++  for (const edge of roads) {
++    if (!furnishedEdge(edge)) continue;
++    const reach = edge.spec.halfWidth + edge.spec.shoulder;
++    const pitch = F.postPitch[edge.roadClass] ?? 50;
++    // Guide posts on both sides, staggered between sides by half a pitch.
++    for (const side of [-1, 1] as const) {
++      const start = 24 + (side > 0 ? pitch / 2 : 0);
++      for (let s = start; s < edge.length - 24; s += pitch) {
++        net.at(edge.offset + s, p);
++        net.nearest(p.x, p.z, q, p.y);
++        const flags = net.flags[net.lastSegment];
++        if (flags & (ROAD_FLAG.BRIDGE | ROAD_FLAG.JUNCTION)) continue;
++        // Guardrail on this side: the rail is the delineation.
++        if (flags & (side > 0 ? ROAD_FLAG.BARRIER_RIGHT : ROAD_FLAG.BARRIER_LEFT)) continue;
++        const lateral = side * (reach + F.postOffset),
++          x = p.x + p.nx * lateral,
++          z = p.z + p.nz * lateral;
++        if (!free(x, z, edge, 0.4)) continue;
++        plan.posts.push({
++          x,
++          y: ground(x, z),
++          z,
++          yaw: Math.atan2(p.tx, p.tz),
++          side,
++        });
++      }
++    }
++    // Utility poles on one side of selected roads.
++    if (edge.roadClass === 'mountain' || hash01(edge.index, 5, 0x2b71) >= F.lineShare) continue;
++    const side: -1 | 1 = hash01(edge.index, 9, 0x2b71) < 0.5 ? -1 : 1,
++      offset = F.poleOffset + hash01(edge.index, 11, 0x2b71) * 1.5;
++    let previous: RoadsidePole | null = null;
++    for (let s = 30; s < edge.length - 30; s += F.poleSpan) {
++      net.at(edge.offset + s, p);
++      net.nearest(p.x, p.z, q, p.y);
++      const flags = net.flags[net.lastSegment];
++      const lateral = side * (reach + offset),
++        x = p.x + p.nx * lateral,
++        z = p.z + p.nz * lateral;
++      if (
++        flags & (ROAD_FLAG.BRIDGE | ROAD_FLAG.JUNCTION) ||
++        !free(x, z, edge, 1.4) ||
++        field.forestDensity(x, z) > 0.45 ||
++        // Steep banks beside the road: the line would run through the hill.
++        Math.abs(ground(x, z) - p.y) > 6
++      ) {
++        previous = null;
++        continue;
++      }
++      const pole: RoadsidePole = {
++        x,
++        y: ground(x, z),
++        z,
++        yaw: Math.atan2(p.tx, p.tz),
++        ax: p.nx,
++        az: p.nz,
++      };
++      plan.poles.push(pole);
++      if (previous) {
++        const span = Math.hypot(pole.x - previous.x, pole.z - previous.z);
++        // Three wires: one on each arm tip and one at the pole's top.
++        for (const lane of [-1, 0, 1] as const) {
++          const reachAt = (pl: RoadsidePole) => {
++            const along = lane * F.armHalf;
++            return [
++              pl.x + pl.ax * along,
++              pl.y + F.poleHeight - (lane === 0 ? -0.35 : 0.1),
++              pl.z + pl.az * along,
++            ] as const;
++          };
++          plan.wires.push({ from: reachAt(previous), to: reachAt(pole), sag: span * F.sag });
++        }
++      }
++      previous = pole;
++    }
++  }
++  return plan;
++}
+diff --git a/src/rendering/open-world/sea-horizon.ts b/src/rendering/open-world/sea-horizon.ts
+new file mode 100644
+index 0000000..9987105
+--- /dev/null
++++ b/src/rendering/open-world/sea-horizon.ts
+@@ -0,0 +1,48 @@
++import { injectAfter, injectBefore, injectDeclarations } from '../studio/shader-hooks.ts';
++
++/** 1 keeps the sea's reflections above the horizon (see below); a debug and
++ * A/B switch, on for every preset. */
++export const seaHorizon = { value: 1 };
++/** A wave facet tilted away from the viewer can turn a grazing view's mirror
++ * ray below the horizon, where a flat cube probe holds the *land* around
++ * the car (tan, grassy) and paints it into the sea as pale patches with dark
++ * rims. A real sea would show other waves there, i.e. dark water, and the
++ * horizon's sky is the closest honest value: the ray is bent back above the
++ * horizon by tilting the facet normal toward the sky, for the environment
++ * lookup only. Shared by the open sea and the shore water. */
++export function installSeaHorizonClamp(shader: Parameters<typeof injectAfter>[0]) {
++  shader.uniforms.owSeaHorizon = seaHorizon;
++  injectDeclarations(shader, 'common', 'uniform float owSeaHorizon;', 'fragment');
++  injectBefore(
++    shader,
++    'lights_fragment_maps',
++    /* glsl */ `
++vec3 owSeaSaveN = geometryNormal;
++#ifdef USE_CLEARCOAT
++vec3 owSeaSaveCN = geometryClearcoatNormal;
++#endif
++if (owSeaHorizon > 0.5) {
++  vec3 owSeaUp = normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz);
++  vec3 owSeaN = geometryNormal;
++  for (int i = 0; i < 3; i++) {
++    if (dot(reflect(-geometryViewDir, owSeaN), owSeaUp) >= 0.05) break;
++    owSeaN = normalize(mix(owSeaN, owSeaUp, 0.4));
++  }
++  geometryNormal = owSeaN;
++#ifdef USE_CLEARCOAT
++  geometryClearcoatNormal = owSeaN;
++#endif
++}`,
++    'fragment',
++  );
++  injectAfter(
++    shader,
++    'lights_fragment_maps',
++    /* glsl */ `
++geometryNormal = owSeaSaveN;
++#ifdef USE_CLEARCOAT
++geometryClearcoatNormal = owSeaSaveCN;
++#endif`,
++    'fragment',
++  );
++}
+diff --git a/src/rendering/open-world/terrain-material.ts b/src/rendering/open-world/terrain-material.ts
+index 29bcbb6..44529a9 100644
+--- a/src/rendering/open-world/terrain-material.ts
++++ b/src/rendering/open-world/terrain-material.ts
+@@ -87,6 +87,9 @@ export interface TerrainUniforms {
+   /** Still-water datum for the beach swash zone; far below the world (off)
+    * until the festival renderer sets the region's sea level. */
+   owSeaLevel: { value: number };
++  /** The streamer's split distance (tile edges): vertices morph toward the
++   * next-coarser level's surface as they near its hand-over distance. */
++  owMorphSplit: { value: number };
+ }
+ /** View-dependent sward response (High and ULTRA). A meadow is not a
+  * Lambertian plane: looking toward a low sun, light forward-scatters through
+@@ -127,6 +130,7 @@ export function terrainMaterial(): T.MeshStandardMaterial & { userData: { ow: Te
+     owSnowTint: { value: 1 },
+     owGrassDetail: { value: 0 },
+     owSeaLevel: { value: -1e4 },
++    owMorphSplit: { value: 0 },
+   };
+   const G = TERRAIN_GRASS_SCATTER,
+     g4 = (v: number) => v.toFixed(4);
+@@ -139,6 +143,8 @@ export function terrainMaterial(): T.MeshStandardMaterial & { userData: { ow: Te
+         `#include <common>
+ attribute vec4 splat;
+ attribute vec4 shade;
++attribute vec2 owMorph;
++uniform float owMorphSplit;
+ varying vec4 vSplat;
+ varying vec4 vShade;
+ varying vec3 vOwWorld;`,
+@@ -148,6 +154,17 @@ varying vec3 vOwWorld;`,
+         `#include <begin_vertex>
+ vSplat = splat;
+ vShade = shade;
++// Geomorph. A tile is drawn instead of its parent only while the camera is
++// within split x (parent edge) of it, so by that distance a vertex sits on
++// the parent's surface and the hand-over (and the seam to an unsplit
++// neighbour of the parent's level, whose edge vertices are always at or
++// beyond it) shows no step. Distance as the streamer measures it, per vertex.
++if (owMorph.y > 0.0 && owMorphSplit > 0.0) {
++  vec3 owMorphP = (modelMatrix * vec4(transformed, 1.0)).xyz;
++  float owMorphD = length(vec3(cameraPosition.x - owMorphP.x, cameraPosition.z - owMorphP.z,
++    0.6 * max(0.0, cameraPosition.y - owMorphP.y)));
++  transformed.y = mix(transformed.y, owMorph.x, smoothstep(0.8, 1.0, owMorphD / (owMorph.y * owMorphSplit)));
++}
+ vOwWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;`,
+       );
+     shader.fragmentShader = shader.fragmentShader
+@@ -165,6 +182,10 @@ varying vec3 vOwWorld;
+ ${OW_NOISE_GLSL}
+ float owRoughness;
+ vec2 owBump;
++// Crown relief of a far wood: rounded crowns (about 8 m) and clumps of them.
++float owCrown(vec2 p) {
++  return owNoise(p * 0.13) * 0.55 + owNoise(p * 0.31 + 7.3) * 0.3 + owNoise(p * 0.77 + 2.1) * 0.15;
++}
+ #ifdef APEX_SCAN
+ ${scanUniformDeclarations(FESTIVAL_SCAN_LAYERS)}
+ vec3 owScanN = vec3(0.0, 0.0, 1.0);
+@@ -195,6 +216,18 @@ ${SCAN_COMMON_GLSL}`,
+   vec3 grass = mix(lush, dry, smoothstep(0.35, 0.75, macro));
+   grass *= 0.82 + 0.36 * meso;
+   grass = mix(grass, vec3(0.055, 0.07, 0.03) * (0.8 + 0.4 * micro), smoothstep(0.3, 0.8, forest) * 0.85);
++  // Far woods. Real crowns stand only on the near tiles; beyond them the
++  // forest is terrain shading alone, so it carries a canopy of its own:
++  // brightness and (below) relief of rounded crowns, bright on top and dark
++  // in the gaps, fading in past the planted range and out where it would
++  // alias at the horizon.
++  float owCanopy = smoothstep(0.3, 0.8, forest) * (1.0 - vShade.w) * smoothstep(280.0, 800.0, dist)
++    * (1.0 - smoothstep(6000.0, 14000.0, dist)) * step(0.5, owGrassDetail);
++  if (owCanopy > 0.01) {
++    float crown = owCrown(p);
++    grass *= mix(1.0, 0.45 + 1.25 * crown, owCanopy * 0.85);
++    grass = mix(grass, grass * vec3(1.14, 1.0, 0.68), owCanopy * smoothstep(0.5, 0.9, crown));
++  }
+   if (owGrassDetail > 0.5) {
+     // Sward mosaic (High and ULTRA): species and moisture patches tens of
+     // metres across shift the hue between yellow- and blue-green, seeding
+@@ -266,6 +299,13 @@ ${SCAN_COMMON_GLSL}`,
+   float h0 = owFbm(p * 0.21, near) * near * (0.35 + 0.65 * rock + 0.3 * soil) + meso * 0.6 * mid;
+   float hx = owFbm((p + vec2(e, 0.0)) * 0.21, near) * near * (0.35 + 0.65 * rock + 0.3 * soil) + owFbm((p + vec2(e, 0.0)) * 0.019, mid) * 0.6 * mid;
+   float hz = owFbm((p + vec2(0.0, e)) * 0.21, near) * near * (0.35 + 0.65 * rock + 0.3 * soil) + owFbm((p + vec2(0.0, e)) * 0.019, mid) * 0.6 * mid;
++  if (owCanopy > 0.01) {
++    // Crowns stand a few metres proud of their gaps.
++    float ch = 3.5 * owCanopy;
++    h0 += ch * owCrown(p);
++    hx += ch * owCrown(p + vec2(e, 0.0));
++    hz += ch * owCrown(p + vec2(0.0, e));
++  }
+   owBump = vec2(hx - h0, hz - h0) / e * (0.55 * (1.0 - snow * 0.7));
+ }`,
+       )
+@@ -301,7 +341,7 @@ normal = apexScanPerturb(normal, owScanN, 1.1);
+ #endif`,
+       );
+   };
+-  material.customProgramCacheKey = () => 'festival-terrain-v5-swash-film';
++  material.customProgramCacheKey = () => 'festival-terrain-v6-geomorph-canopy';
+   scannedGround.register(material, FESTIVAL_SCAN_LAYERS);
+   return material;
+ }
+diff --git a/src/rendering/open-world/terrain-morph.ts b/src/rendering/open-world/terrain-morph.ts
+new file mode 100644
+index 0000000..aefa52b
+--- /dev/null
++++ b/src/rendering/open-world/terrain-morph.ts
+@@ -0,0 +1,22 @@
++import { gridHeight } from '../../simulation/open-world/terrain-tiles.ts';
++
++/**
++ * Geomorph targets. The next-coarser level draws this footprint as a coarse
++ * lattice (`cells` per side, its own band-limited carved heights, every quad
++ * split along the same (i, j)-(i+1, j+1) diagonal as the render mesh). This
++ * returns, for each vertex of the child's (res + 1)² grid, the height that
++ * coarse mesh has at that vertex's position. Moving a vertex to it makes the
++ * child draw exactly the parent's surface, so the hand-over between the two
++ * levels (and the seam to an unsplit neighbour of the parent's level) is
++ * free of height steps.
++ */
++export function morphTargetHeights(parent: Float32Array, cells: number, res: number): Float32Array {
++  const side = res + 1;
++  if (!(cells >= 1) || res % cells !== 0 || parent.length !== (cells + 1) * (cells + 1))
++    throw new RangeError('Morph lattice does not tile the child grid');
++  const k = res / cells,
++    out = new Float32Array(side * side);
++  for (let j = 0; j < side; j++)
++    for (let i = 0; i < side; i++) out[j * side + i] = gridHeight(parent, cells + 1, i / k, j / k, 1);
++  return out;
++}
+diff --git a/src/rendering/open-world/terrain.ts b/src/rendering/open-world/terrain.ts
+index c6cb2e9..e32e0ed 100644
+--- a/src/rendering/open-world/terrain.ts
++++ b/src/rendering/open-world/terrain.ts
+@@ -1,7 +1,8 @@
+ import * as T from 'three';
+-import { TILE_SIZE } from '../../simulation/open-world/terrain-tiles.ts';
++import { gridHeight, TILE_SIZE } from '../../simulation/open-world/terrain-tiles.ts';
+ import type { FromTileWorker, TileMeshData, ToTileWorker } from '../../workers/open-world-protocol.ts';
+ import { terrainMaterial } from './terrain-material.ts';
++import { morphTargetHeights } from './terrain-morph.ts';
+ 
+ /** Quadtree levels: level L tiles are TILE_SIZE·2^L wide. Level 6 tiles
+  * (16.4 km) cover the drivable region and the horizon ranges around it. */
+@@ -37,7 +38,36 @@ interface Tile {
+   id: number;
+   used: number;
+ }
++/** Ground under a point from the resident finest tile (see sampleGround). */
++export interface GroundSample {
++  y: number;
++  /** Surface normal's vertical component. */
++  ny: number;
++  /** Layer weights: rock, soil (fields, verges, worn ground), sand, snow. */
++  rock: number;
++  soil: number;
++  sand: number;
++  snow: number;
++  /** Road carve influence (0 beyond reach, 1 on the bed and shoulder), forest
++   * floor, and town/airfield ground weights. */
++  road: number;
++  forest: number;
++  town: number;
++}
++export const groundSample = (): GroundSample => ({
++  y: 0,
++  ny: 1,
++  rock: 0,
++  soil: 0,
++  sand: 0,
++  snow: 0,
++  road: 0,
++  forest: 0,
++  town: 0,
++});
+ const res = (level: number) => (level <= 2 ? 64 : 32);
++/** Cells of the next-coarser level's lattice across a level's footprint (0 at the top). */
++const parentCells = (level: number) => (level < TERRAIN_LEVELS ? res(level + 1) / 2 : 0);
+ const key = (level: number, ix: number, iz: number) => (level * 4096 + ix) * 4096 + iz;
+ 
+ /**
+@@ -139,6 +169,14 @@ export class TerrainStreamer {
+     normal.set(data.normals);
+     splat.set(data.splat);
+     shade.set(data.shade);
++    // Geomorph: per vertex, the height of the next-coarser level's surface
++    // here and that level's tile edge (0: none, the vertex never morphs).
++    const morph = new Float32Array(count * 2),
++      parent = data.parentHeights ? morphTargetHeights(data.parentHeights, parentCells(tile.level), r) : null;
++    for (let v = 0; v < side * side; v++) {
++      morph[v * 2] = parent ? parent[v] : data.heights[v];
++      morph[v * 2 + 1] = parent ? size * 2 : 0;
++    }
+     const edges = [
+       (k: number) => k,
+       (k: number) => r * side + k,
+@@ -152,6 +190,8 @@ export class TerrainStreamer {
+         position[to * 3] = position[from * 3];
+         position[to * 3 + 1] = position[from * 3 + 1] - skirt;
+         position[to * 3 + 2] = position[from * 3 + 2];
++        morph[to * 2] = morph[from * 2] - skirt;
++        morph[to * 2 + 1] = morph[from * 2 + 1];
+         for (let c = 0; c < 3; c++) normal[to * 3 + c] = normal[from * 3 + c];
+         for (let c = 0; c < 4; c++) {
+           splat[to * 4 + c] = splat[from * 4 + c];
+@@ -164,6 +204,7 @@ export class TerrainStreamer {
+     geometry.setAttribute('normal', new T.BufferAttribute(normal, 3));
+     geometry.setAttribute('splat', new T.BufferAttribute(splat, 4));
+     geometry.setAttribute('shade', new T.BufferAttribute(shade, 4));
++    geometry.setAttribute('owMorph', new T.BufferAttribute(morph, 2));
+     geometry.setIndex(this.indexFor(r));
+     geometry.boundingBox = new T.Box3(new T.Vector3(0, data.minY - skirt, 0), new T.Vector3(size, data.maxY, size));
+     geometry.boundingSphere = geometry.boundingBox.getBoundingSphere(new T.Sphere());
+@@ -206,6 +247,7 @@ export class TerrainStreamer {
+       // The finest level carries every collider tree (density thins the
+       // shrubs and the far level only).
+       colliders: t.level === 0,
++      parentCells: parentCells(t.level),
+     };
+     this.worker.postMessage(message);
+     return true;
+@@ -226,6 +268,7 @@ export class TerrainStreamer {
+    * missing (nearest first); evict beyond the budget. */
+   update(camera: T.Camera) {
+     camera.getWorldPosition(this.camera);
++    this.material.userData.ow.owMorphSplit.value = (globalThis as any).__owMorphOff ? 0 : this.budget.split; // OW-DEBUG
+     this.frame++;
+     for (const t of this.tiles.values()) if (t.mesh) t.mesh.visible = false;
+     let drawn = 0;
+@@ -297,6 +340,33 @@ export class TerrainStreamer {
+       });
+     this.stats.resident = Math.min(resident.length, this.budget.maxTiles);
+   }
++  /** The carved ground and its surface weights at (x, z), read from the
++   * resident finest (level 0, 4 m lattice) tile exactly as drawn and
++   * simulated; false while that tile is still streaming. */
++  sampleGround(x: number, z: number, out: GroundSample): boolean {
++    const ix = Math.floor((x - ORIGIN) / TILE_SIZE),
++      iz = Math.floor((z - ORIGIN) / TILE_SIZE),
++      data = this.tiles.get(key(0, ix, iz))?.data;
++    if (!data) return false;
++    const r = res(0),
++      side = r + 1,
++      step = TILE_SIZE / r,
++      fx = (x - ORIGIN - ix * TILE_SIZE) / step,
++      fz = (z - ORIGIN - iz * TILE_SIZE) / step,
++      normal = this.sampleNormal;
++    out.y = gridHeight(data.heights, side, fx, fz, step, normal);
++    out.ny = normal.y;
++    const v = Math.min(r, Math.max(0, Math.round(fz))) * side + Math.min(r, Math.max(0, Math.round(fx)));
++    out.rock = data.splat[v * 4];
++    out.soil = data.splat[v * 4 + 1];
++    out.sand = data.splat[v * 4 + 2];
++    out.snow = data.splat[v * 4 + 3];
++    out.road = data.shade[v * 4];
++    out.forest = data.shade[v * 4 + 1];
++    out.town = data.shade[v * 4 + 3];
++    return true;
++  }
++  private readonly sampleNormal = { x: 0, y: 1, z: 0 };
+   /** True once the coarse cover and the tiles under `at` are resident. */
+   readyAround(x: number, z: number) {
+     const top = this.tiles.get(key(TERRAIN_LEVELS, 0, 0));
+diff --git a/src/rendering/open-world/tile-data.ts b/src/rendering/open-world/tile-data.ts
+index bbecf18..f5fd724 100644
+--- a/src/rendering/open-world/tile-data.ts
++++ b/src/rendering/open-world/tile-data.ts
+@@ -98,6 +98,12 @@ export function buildTileData(world: OpenWorld, structures: StructureGrid, req:
+         o += TILE_TREE_STRIDE;
+       }
+   }
++  // The coarser level's surface over this footprint: its own (band-limited,
++  // coarser-carved) heights at its lattice points, which the render mesh
++  // morphs toward as the camera nears the level hand-over distance.
++  let parentHeights: Float32Array | undefined;
++  if (req.parentCells && req.parentCells > 0)
++    parentHeights = world.carver.build(x0, z0, size / req.parentCells, req.parentCells).heights;
+   return {
+     type: 'tile',
+     id: req.id,
+@@ -106,6 +112,7 @@ export function buildTileData(world: OpenWorld, structures: StructureGrid, req:
+     splat,
+     shade,
+     trees,
++    parentHeights,
+     minY,
+     maxY,
+     ms: performance.now() - start,
+diff --git a/src/rendering/open-world/water.ts b/src/rendering/open-world/water.ts
+index b1e8010..598198a 100644
+--- a/src/rendering/open-world/water.ts
++++ b/src/rendering/open-world/water.ts
+@@ -2,6 +2,7 @@ import * as T from 'three';
+ import type { TerrainField } from '../../simulation/open-world/terrain-field.ts';
+ import { buildSea, installSeaWaves } from '../sea.ts';
+ import { chainShaderHook, injectAfter } from '../studio/shader-hooks.ts';
++import { installSeaHorizonClamp, seaHorizon } from './sea-horizon.ts';
+ import { useStudioUniforms } from '../studio/studio-frame.ts';
+ import { CoastalWater, FESTIVAL_SEA } from './coastal-water.ts';
+ import { OW_NOISE_GLSL } from './terrain-material.ts';
+@@ -33,13 +34,24 @@ export const FESTIVAL_SEA_FINISH = Object.freeze({
+   glintRadius: Object.freeze([0.035, 0.13] as const),
+   /** Footprint (m per pixel) over which the glints fade out. */
+   glintFade: Object.freeze([0.16, 0.7] as const),
+-  /** Wave-face slope (1 - n.up) at which whitecaps start, and their coverage. */
+-  capSlope: 0.085,
+-  capCoverage: 0.16,
++  /** Whitecap crest lines: spacing (m) across the wind, their heading (unit
++   * vector), warp amplitude (m), band threshold (higher: thinner), the
++   * segmenting noise (scale per m and smoothstep range), the wind-clump
++   * smoothstep range, foam drift (m/s) and far-field mean coverage. */
++  capSpacing: 13,
++  capDir: Object.freeze([0.92, 0.39] as const),
++  capWarp: 30,
++  capBand: 0.62,
++  capSegment: Object.freeze([0.5, 0.66] as const),
++  capSegmentScale: 0.09,
++  capClump: Object.freeze([0.47, 0.62] as const),
++  capDrift: 0.35,
++  capMeanCoverage: 0.2,
+   /** Linear foam albedo. */
+   foam: Object.freeze([0.78, 0.8, 0.8] as const),
+ });
+ const f4 = (v: number) => v.toFixed(4);
++
+ export interface FestivalSeaUniforms {
+   owSeaDetail: { value: number };
+ }
+@@ -49,6 +61,7 @@ export function installFestivalSeaFinish(material: T.MeshPhysicalMaterial): Fest
+   chainShaderHook(material, 'festival-open-sea-v2', (shader) => {
+     useStudioUniforms(shader, ['studioTime'], 'fragment');
+     Object.assign(shader.uniforms, uniforms);
++    installSeaHorizonClamp(shader);
+     injectAfter(
+       shader,
+       'common',
+@@ -65,19 +78,28 @@ vec2 owSeaWorld = vec2(0.0);`,
+ #ifdef USE_NORMALMAP_TANGENTSPACE
+ if (owSeaDetail > 0.5) {
+   owSeaWorld = vNormalMapUv / ${f4(160 / 5500)};
+-  vec3 seaUp = normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz);
+-  float seaSlope = 1.0 - clamp(dot(normal, seaUp), 0.0, 1.0);
+   float seaFootprint = max(length(dFdx(owSeaWorld)), length(dFdy(owSeaWorld)));
+-  // Wind-clumped breaking crests: a slow field picks the few that break;
+-  // the pores are streaked along the wind (+x) like blown foam.
+-  float capField = owFbm(owSeaWorld * 0.016 + vec2(studioTime * 0.01, 0.0), 1.0);
+-  float capPores = owNoise(owSeaWorld * vec2(0.45, 1.7) + vec2(studioTime * 0.06, 0.0));
+-  float capAt = ${f4(F.capSlope)} + 0.06 * (1.0 - capField);
+-  float capDetail = 1.0 - smoothstep(0.4, 2.0, seaFootprint);
+-  owSeaFoam = smoothstep(capAt, capAt + 0.03, seaSlope)
+-    * smoothstep(1.0 - ${f4(F.capCoverage)}, 1.0, capField + 0.18 * capPores)
+-    * mix(0.6, smoothstep(0.25, 0.6, capPores), capDetail);
+-  owSeaFoam = clamp(owSeaFoam * 1.6, 0.0, 0.9);
++  // Breaking crests. The wave normals alone are far too gentle (and too
++  // speckled at centimetre scale) to place foam, so whitecaps follow their
++  // own slowly drifting crest lines: wavy bands across the wind, broken
++  // into separate segments, only inside wind-clumped zones, each with a
++  // lacy interior and a faint streak trailing downwind. Where a band falls
++  // under a pixel the foam fades to its mean coverage rather than aliasing.
++  vec2 capW = owSeaWorld - vec2(${f4(F.capDrift)}, 0.0) * studioTime;
++  float capClump = smoothstep(${f4(F.capClump[0])}, ${f4(F.capClump[1])}, owFbm(owSeaWorld * 0.016 + vec2(studioTime * 0.01, 0.0), 1.0));
++  if (capClump > 0.001) {
++    float capPhase = (dot(capW, vec2(${f4(F.capDir[0])}, ${f4(F.capDir[1])})) + (owFbm(capW * 0.03, 1.0) - 0.5) * ${f4(F.capWarp)}) / ${f4(F.capSpacing)};
++    float capCrest = smoothstep(${f4(F.capBand)}, 1.0, 1.0 - abs(fract(capPhase) * 2.0 - 1.0));
++    float capAlong = dot(capW, vec2(${f4(-F.capDir[1])}, ${f4(F.capDir[0])}));
++    float capSeg = smoothstep(${f4(F.capSegment[0])}, ${f4(F.capSegment[1])}, owFbm(vec2(capAlong * ${f4(F.capSegmentScale)}, floor(capPhase) * 7.3), 1.0));
++    float capLace = mix(0.35, smoothstep(0.3, 0.72, owNoise(capW * vec2(1.1, 3.4)))
++      * 0.6 + 0.4 * smoothstep(0.35, 0.65, owNoise(capW * vec2(4.0, 9.0) + 5.0)), 1.0 - smoothstep(0.35, 1.6, seaFootprint));
++    float capTrail = smoothstep(0.55, 0.8, owNoise(capW * vec2(0.18, 1.9))) * 0.45;
++    float capMean = capSeg * ${f4(F.capMeanCoverage)};
++    float capFine = (capCrest * capSeg * capLace + capTrail * capSeg * 0.5) * 1.5;
++    owSeaFoam = capClump * mix(capFine, capMean, smoothstep(1.2, 4.0, seaFootprint));
++  }
++  owSeaFoam = clamp(owSeaFoam, 0.0, 0.9);
+   material.diffuseColor = mix(material.diffuseColor, vec3(${F.foam.map(f4).join(', ')}), owSeaFoam);
+   // Roughen only where foam is dense, so thin foam stays on a reflective sea.
+   material.roughness = mix(material.roughness, 0.62, smoothstep(0.45, 0.85, owSeaFoam));
+@@ -224,6 +246,7 @@ export class Water {
+     );
+     // After the river and shore clones, which keep their own hook chains.
+     this.seaFinish = installFestivalSeaFinish(this.sea.material as T.MeshPhysicalMaterial);
++    (globalThis as any).__owDbg = Object.assign((globalThis as any).__owDbg ?? {}, { sea: this.seaFinish.owSeaDetail, horizon: seaHorizon }); // OW-DEBUG
+     this.root.add(this.sea, this.river, this.coast.root);
+   }
+   /** Glitter and whitecaps on High and ULTRA; Low and Medium keep the plain sea. */
+diff --git a/src/workers/open-world-protocol.ts b/src/workers/open-world-protocol.ts
+index 6c8cf18..f077b48 100644
+--- a/src/workers/open-world-protocol.ts
++++ b/src/workers/open-world-protocol.ts
+@@ -39,6 +39,10 @@ export interface TileRequest {
+    * finest level, where the car can reach them): physics collides with
+    * every trunk, so each must be drawn. */
+   colliders?: boolean;
++  /** Cells across this tile of the next-coarser level's lattice (0 or unset:
++   * no coarser level). The worker then also returns that lattice's carved
++   * heights over this footprint, the geomorph target of the render mesh. */
++  parentCells?: number;
+ }
+ export type ToTileWorker = TileRequest | { type: 'cancel'; id: number };
+ /** A built terrain tile: positions are local to the tile origin. */
+@@ -53,6 +57,9 @@ export interface TileMeshData {
+   shade: Float32Array;
+   /** Packed trees (TREE_STRIDE) with ground y appended per tree. */
+   trees: Float32Array;
++  /** (parentCells + 1)² heights of the next-coarser level's own surface over
++   * this footprint (its band-limited, coarser-carved heights). */
++  parentHeights?: Float32Array;
+   minY: number;
+   maxY: number;
+   ms: number;
+diff --git a/src/workers/open-world-tiles.worker.ts b/src/workers/open-world-tiles.worker.ts
+index a3ff4c8..70323a3 100644
+--- a/src/workers/open-world-tiles.worker.ts
++++ b/src/workers/open-world-tiles.worker.ts
+@@ -21,13 +21,15 @@ function pump() {
+     try {
+       const data = buildTileData(world, structures, req);
+       const message: FromTileWorker = data;
+-      scope.postMessage(message, [
++      const transfer = [
+         data.heights.buffer,
+         data.normals.buffer,
+         data.splat.buffer,
+         data.shade.buffer,
+         data.trees.buffer,
+-      ]);
++      ];
++      if (data.parentHeights) transfer.push(data.parentHeights.buffer);
++      scope.postMessage(message, transfer);
+     } catch (error) {
+       scope.postMessage({ type: 'error', id: req.id, message: error instanceof Error ? error.message : String(error) });
+     }
+diff --git a/tests/festival-car-finish.test.ts b/tests/festival-car-finish.test.ts
+index 04fe30d..7d4a7fb 100644
+--- a/tests/festival-car-finish.test.ts
++++ b/tests/festival-car-finish.test.ts
+@@ -215,6 +215,40 @@ describe('Festival car finish ownership and shader integration', () => {
+     }
+   });
+ 
++  it('gives only a metallic base coat a pearl film, on the owned clone alone', () => {
++    const b = body('eh3'),
++      finish = new FestivalCarFinish(),
++      lofted = b.root.getObjectByName('Body (lofted)') as T.Mesh,
++      slots = lofted.material as T.MeshPhysicalMaterial[];
++    slots[0].userData.paintFinish = 'metallic';
++    slots[3].userData.paintFinish = 'gloss';
++    slots[3].color.setRGB(0.05, 0.08, 0.3);
++    const shared = [slots[0], slots[3]];
++    try {
++      expect(finish.bind(b.root, b.definition, b.sheet)).toBe(true);
++      const owned = lofted.material as T.MeshPhysicalMaterial[],
++        pearl = FESTIVAL_CAR_FINISH.pearl;
++      expect(owned[0]).not.toBe(slots[0]);
++      expect(owned[0].iridescence).toBeCloseTo(pearl.amount, 6);
++      expect(owned[0].iridescenceIOR).toBe(pearl.ior);
++      expect(owned[0].iridescenceThicknessRange).toEqual([...pearl.thickness]);
++      expect(owned[3].iridescence).toBe(0);
++      // A pearl-white gloss coat gets the thinner film; a dark gloss never does.
++      finish.dispose();
++      slots[3].color.setRGB(0.8, 0.8, 0.78);
++      expect(finish.bind(b.root, b.definition, b.sheet)).toBe(true);
++      expect((lofted.material as T.MeshPhysicalMaterial[])[3].iridescence).toBeCloseTo(
++        pearl.whiteAmount,
++        6,
++      );
++      // The shared paint (catalogue and traffic cars) never gains the film.
++      expect(shared.map((m) => m.iridescence)).toEqual([0, 0]);
++    } finally {
++      finish.dispose();
++      b.bodies.clear();
++    }
++  });
++
+   it('restores exact material slots and releases owned clones once while preserving borrowed textures and other bodies', () => {
+     const a = body('rh3'),
+       b = body('rh3'),
+diff --git a/tests/festival-grass-field.test.ts b/tests/festival-grass-field.test.ts
+new file mode 100644
+index 0000000..c2f2e77
+--- /dev/null
++++ b/tests/festival-grass-field.test.ts
+@@ -0,0 +1,126 @@
++import { describe, expect, it } from 'vitest';
++import {
++  GRASS_FIELD,
++  dryShare,
++  grassCover,
++  grassFieldCell,
++  type GrassSampler,
++} from '../src/rendering/open-world/grass-field.ts';
++import { groundSample, type GroundSample } from '../src/rendering/open-world/terrain.ts';
++import { owFbm, owHash, owNoise } from '../src/rendering/open-world/ow-noise.ts';
++
++const meadow = (over: Partial<GroundSample> = {}): GroundSample => ({ ...groundSample(), ...over });
++const sampler = (
++  ground: (x: number, z: number) => Partial<GroundSample> | null,
++  allowed: GrassSampler['allowed'] = () => true,
++): GrassSampler => ({
++  ground: (x, z, out) => {
++    const g = ground(x, z);
++    if (!g) return false;
++    Object.assign(out, groundSample(), { y: 10 + x * 0.01 }, g);
++    return true;
++  },
++  allowed,
++});
++const TILES = 8;
++
++describe('Near-field meadow planting', () => {
++  it('is deterministic and keeps every clump inside its cell', () => {
++    const a = grassFieldCell(3, -7, 1.2, TILES, sampler(() => ({}))),
++      b = grassFieldCell(3, -7, 1.2, TILES, sampler(() => ({})));
++    expect(a).toEqual(b);
++    expect(a!.length).toBeGreaterThan(200);
++    const size = GRASS_FIELD.cell;
++    for (const c of a!) {
++      expect(c.x).toBeGreaterThanOrEqual(3 * size);
++      expect(c.x).toBeLessThan(4 * size + 1e-6);
++      expect(c.z).toBeGreaterThanOrEqual(-7 * size);
++      expect(c.z).toBeLessThan(-6 * size + 1e-6);
++      expect(c.tile).toBeGreaterThanOrEqual(0);
++      expect(c.tile).toBeLessThan(TILES);
++      expect(c.width).toBeGreaterThan(0.45);
++    }
++  });
++
++  it('plants more densely where the density setting is higher', () => {
++    const lo = grassFieldCell(0, 0, 0.8, TILES, sampler(() => ({})))!.length,
++      hi = grassFieldCell(0, 0, 1.45, TILES, sampler(() => ({})))!.length;
++    expect(hi).toBeGreaterThan(lo * 1.4);
++  });
++
++  it('leaves bare ground, steep faces and refused spots empty', () => {
++    expect(grassFieldCell(0, 0, 1, TILES, sampler(() => ({ sand: 1 })))).toHaveLength(0);
++    expect(grassFieldCell(0, 0, 1, TILES, sampler(() => ({ rock: 1 })))).toHaveLength(0);
++    expect(grassFieldCell(0, 0, 1, TILES, sampler(() => ({ ny: 0.6 })))).toHaveLength(0);
++    expect(
++      grassFieldCell(
++        0,
++        0,
++        1,
++        TILES,
++        sampler(
++          () => ({}),
++          () => false,
++        ),
++      ),
++    ).toHaveLength(0);
++    // Half the cell is road: nothing roots in that half.
++    const half = grassFieldCell(
++      0,
++      0,
++      1,
++      TILES,
++      sampler(
++        () => ({}),
++        (x) => x > GRASS_FIELD.cell / 2,
++      ),
++    )!;
++    expect(half.length).toBeGreaterThan(50);
++    expect(half.every((c) => c.x > GRASS_FIELD.cell / 2)).toBe(true);
++  });
++
++  it('defers the whole cell while any ground under it is still streaming', () => {
++    const size = GRASS_FIELD.cell;
++    expect(grassFieldCell(0, 0, 1, TILES, sampler((x) => (x > size * 0.9 ? null : {})))).toBeNull();
++  });
++
++  it('roots each clump on the sampled ground', () => {
++    for (const c of grassFieldCell(2, 2, 1, TILES, sampler(() => ({})))!)
++      expect(c.y).toBeCloseTo(10 + c.x * 0.01 - 0.04, 6);
++  });
++
++  it('picks late-summer tiles where the terrain shader is dry and green tiles where it is lush', () => {
++    // Find a dry and a lush neighbourhood from the shared field.
++    let dry = 0,
++      lush = 0;
++    for (let x = 0; x < 20000; x += 700) {
++      const s = dryShare(x, 123);
++      if (s > dry) dry = s;
++      if (s < 0.01) lush++;
++    }
++    expect(dry).toBeGreaterThan(0.5);
++    expect(lush).toBeGreaterThan(0);
++  });
++
++  it('measures grass cover from the terrain layers', () => {
++    expect(grassCover(meadow())).toBe(1);
++    expect(grassCover(meadow({ sand: 1 }))).toBe(0);
++    expect(grassCover(meadow({ rock: 0.5 }))).toBeLessThan(0.5);
++    expect(grassCover(meadow({ forest: 1 }))).toBeCloseTo(0.45, 6);
++  });
++});
++
++describe('Shader noise twin', () => {
++  it('stays in range and is continuous', () => {
++    for (let i = 0; i < 500; i++) {
++      const x = (i * 7.31) % 211,
++        y = (i * 3.77) % 197;
++      expect(owHash(x, y)).toBeGreaterThanOrEqual(0);
++      expect(owHash(x, y)).toBeLessThan(1);
++      expect(Math.abs(owNoise(x, y) - owNoise(x + 1e-4, y))).toBeLessThan(1e-3);
++      const f = owFbm(x, y);
++      expect(f).toBeGreaterThanOrEqual(0);
++      expect(f).toBeLessThanOrEqual(1);
++    }
++  });
++});
+diff --git a/tests/festival-roadside-furniture.test.ts b/tests/festival-roadside-furniture.test.ts
+new file mode 100644
+index 0000000..cf47e52
+--- /dev/null
++++ b/tests/festival-roadside-furniture.test.ts
+@@ -0,0 +1,62 @@
++import { describe, expect, it } from 'vitest';
++import {
++  ROADSIDE_FURNITURE,
++  furnishedEdge,
++  roadsidePlan,
++} from '../src/rendering/open-world/roadside-furniture.ts';
++import { regionStructures } from '../src/simulation/open-world/placement.ts';
++import { openWorld } from '../src/simulation/open-world/world.ts';
++import { trackPoint } from '../src/simulation/track.ts';
++
++const world = openWorld(),
++  structures = regionStructures(world),
++  plan = roadsidePlan(world, structures),
++  net = world.network;
++
++describe('Roadside furniture plan', () => {
++  it('is deterministic', () => {
++    const again = roadsidePlan(world, structures);
++    expect(again.posts.length).toBe(plan.posts.length);
++    expect(again.poles[again.poles.length - 1]).toEqual(plan.poles[plan.poles.length - 1]);
++    expect(again.wires[0]).toEqual(plan.wires[0]);
++  });
++
++  it('lines the public roads with posts at their pitch and carries some utility lines', () => {
++    const km = net.edges.filter(furnishedEdge).reduce((n, e) => n + e.length / 1000, 0);
++    expect(plan.posts.length).toBeGreaterThan(km * 15);
++    expect(plan.posts.length).toBeLessThan(km * 60);
++    expect(plan.poles.length).toBeGreaterThan(20);
++    // Three wires per span, one span fewer than poles per unbroken line.
++    expect(plan.wires.length % 3).toBe(0);
++    expect(plan.wires.length / 3).toBeLessThan(plan.poles.length);
++    expect(plan.wires.length).toBeGreaterThan(0);
++  });
++
++  it('keeps every post and pole off the carriageway and its shoulder', () => {
++    const q = trackPoint();
++    for (const thing of [...plan.posts.slice(0, 600), ...plan.poles]) {
++      const lateral = Math.abs(net.nearest(thing.x, thing.z, q)),
++        edge = net.edges[net.edgeOf[net.lastSegment]];
++      expect(lateral).toBeGreaterThan(edge.spec.halfWidth + edge.spec.shoulder + 0.2);
++    }
++  });
++
++  it('stands on finite ground and puts the wires above it with a real sag', () => {
++    for (const post of plan.posts) expect(Number.isFinite(post.y)).toBe(true);
++    for (const wire of plan.wires.slice(0, 300)) {
++      expect(wire.sag).toBeGreaterThan(0);
++      expect(wire.sag).toBeLessThan(2);
++      expect(Math.hypot(wire.to[0] - wire.from[0], wire.to[2] - wire.from[2])).toBeLessThan(
++        ROADSIDE_FURNITURE.poleSpan * 1.05,
++      );
++      expect(wire.from[1]).toBeGreaterThan(ROADSIDE_FURNITURE.poleHeight - 1);
++    }
++  });
++
++  it('plants nothing on towns, runways, dirt tracks or circuits', () => {
++    expect(furnishedEdge(net.edges.find((e) => e.roadClass === 'town')!)).toBe(false);
++    expect(furnishedEdge(net.edges.find((e) => e.roadClass === 'dirt')!)).toBe(false);
++    expect(furnishedEdge(net.edges.find((e) => e.roadClass === 'runway')!)).toBe(false);
++    expect(furnishedEdge(net.edges.find((e) => e.roadClass === 'circuit')!)).toBe(false);
++  });
++});
+diff --git a/tests/festival-sea-horizon.test.ts b/tests/festival-sea-horizon.test.ts
+new file mode 100644
+index 0000000..bcc24a4
+--- /dev/null
++++ b/tests/festival-sea-horizon.test.ts
+@@ -0,0 +1,47 @@
++import * as T from 'three';
++import { describe, expect, it } from 'vitest';
++import { installSeaHorizonClamp, seaHorizon } from '../src/rendering/open-world/sea-horizon.ts';
++import type { StudioShader } from '../src/rendering/studio/shader-hooks.ts';
++
++function physicalShader() {
++  return {
++    vertexShader: T.ShaderLib.physical.vertexShader,
++    fragmentShader: T.ShaderLib.physical.fragmentShader,
++    uniforms: T.UniformsUtils.clone(T.ShaderLib.physical.uniforms),
++  } as StudioShader;
++}
++
++describe('Sea horizon clamp', () => {
++  it('brackets the environment lookup: tilt before, restore after, one uniform', () => {
++    const shader = physicalShader();
++    installSeaHorizonClamp(shader);
++    const f = shader.fragmentShader,
++      before = f.indexOf('owSeaSaveN = geometryNormal'),
++      anchor = f.indexOf('#include <lights_fragment_maps>'),
++      restore = f.indexOf('geometryNormal = owSeaSaveN');
++    expect(before).toBeGreaterThan(0);
++    expect(anchor).toBeGreaterThan(before);
++    expect(restore).toBeGreaterThan(anchor);
++    // The save sits after the geometry exists (lights_fragment_begin) and the
++    // restore before the end of the light loop's consumers.
++    expect(f.indexOf('#include <lights_fragment_begin>')).toBeLessThan(before);
++    expect(f.indexOf('#include <lights_fragment_end>')).toBeGreaterThan(restore);
++    expect(shader.uniforms.owSeaHorizon).toBe(seaHorizon);
++    expect(seaHorizon.value).toBe(1);
++    expect(f.match(/uniform float owSeaHorizon;/g)).toHaveLength(1);
++  });
++
++  it('only touches the clearcoat normal when the material has a clearcoat', () => {
++    const shader = physicalShader();
++    installSeaHorizonClamp(shader);
++    const lines = shader.fragmentShader.split('\n');
++    lines.forEach((line, i) => {
++      if (line.includes('geometryClearcoatNormal = owSea') || line.includes('owSeaSaveCN')) {
++        // Every such line is inside an #ifdef USE_CLEARCOAT region.
++        const above = lines.slice(Math.max(0, i - 3), i).join('\n');
++        expect(above + line).toMatch(/#ifdef USE_CLEARCOAT|geometryClearcoatNormal = owSea/);
++      }
++    });
++    expect(shader.fragmentShader).toContain('#ifdef USE_CLEARCOAT\nvec3 owSeaSaveCN = geometryClearcoatNormal;\n#endif');
++  });
++});
+diff --git a/tests/festival-terrain-morph.test.ts b/tests/festival-terrain-morph.test.ts
+new file mode 100644
+index 0000000..f70df8e
+--- /dev/null
++++ b/tests/festival-terrain-morph.test.ts
+@@ -0,0 +1,109 @@
++import { describe, expect, it } from 'vitest';
++import { morphTargetHeights } from '../src/rendering/open-world/terrain-morph.ts';
++import { buildTileData } from '../src/rendering/open-world/tile-data.ts';
++import { StructureGrid, regionStructures } from '../src/simulation/open-world/placement.ts';
++import { gridHeight, TILE_SIZE } from '../src/simulation/open-world/terrain-tiles.ts';
++import { openWorld } from '../src/simulation/open-world/world.ts';
++
++describe('Terrain geomorph targets', () => {
++  it('reproduces a planar coarse surface exactly at every child vertex', () => {
++    const cells = 4,
++      res = 8,
++      parent = new Float32Array((cells + 1) ** 2);
++    for (let j = 0; j <= cells; j++)
++      for (let i = 0; i <= cells; i++) parent[j * (cells + 1) + i] = 3 + 0.5 * i - 0.25 * j;
++    const out = morphTargetHeights(parent, cells, res);
++    for (let j = 0; j <= res; j++)
++      for (let i = 0; i <= res; i++)
++        expect(out[j * (res + 1) + i]).toBeCloseTo(3 + 0.5 * (i / 2) - 0.25 * (j / 2), 5);
++  });
++
++  it('keeps the coarse lattice vertices and splits each coarse quad along the render diagonal', () => {
++    const cells = 2,
++      res = 8,
++      parent = Float32Array.from([0, 4, 0, 0, 0, 8, 12, 0, 0]);
++    const out = morphTargetHeights(parent, cells, res),
++      k = res / cells;
++    for (let j = 0; j <= cells; j++)
++      for (let i = 0; i <= cells; i++)
++        expect(out[j * k * (res + 1) + i * k]).toBe(parent[j * (cells + 1) + i]);
++    for (let j = 0; j <= res; j++)
++      for (let i = 0; i <= res; i++)
++        expect(out[j * (res + 1) + i]).toBeCloseTo(
++          gridHeight(parent, cells + 1, i / k, j / k, 1),
++          6,
++        );
++    // The diagonal a-d is shared: a point on it is the mean of the two corners.
++    const quad = Float32Array.from([2, 9, 5, 7, 11, 13, 17, 19, 23]);
++    const mid = morphTargetHeights(quad, 2, 4);
++    // child vertex (1, 1) is halfway along the a-d diagonal of coarse quad (0, 0)
++    expect(mid[1 * 5 + 1]).toBeCloseTo((quad[0] + quad[4]) / 2, 6);
++  });
++
++  it('rejects a lattice that does not tile the child grid', () => {
++    expect(() => morphTargetHeights(new Float32Array(9), 2, 5)).toThrow(RangeError);
++    expect(() => morphTargetHeights(new Float32Array(8), 2, 4)).toThrow(RangeError);
++  });
++});
++
++describe('Tile worker morph lattice', () => {
++  const world = openWorld(),
++    structures = new StructureGrid(regionStructures(world));
++  const base = { type: 'tile' as const, trees: 0 };
++
++  // The parent lattice a child tile carries must be the very surface its parent
++  // tile draws there, for the same-resolution (64 -> 64) and the 64 -> 32 hand-overs.
++  it.each([
++    { name: 'level 0 -> 1', size: TILE_SIZE, res: 64, parentRes: 64 },
++    { name: 'level 2 -> 3', size: TILE_SIZE * 4, res: 64, parentRes: 32 },
++    { name: 'level 3 -> 4', size: TILE_SIZE * 8, res: 32, parentRes: 32 },
++  ])('$name: child parentHeights equal the parent tile heights', ({ size, res, parentRes }) => {
++    const x0 = -2048, // an arbitrary tile-aligned origin
++      z0 = -2560;
++    const aligned = (v: number) => Math.floor(v / (size * 2)) * size * 2;
++    const px0 = aligned(x0),
++      pz0 = aligned(z0),
++      // child = the quadrant of the parent tile containing (x0, z0)
++      cx0 = px0 + (x0 - px0 >= size ? size : 0),
++      cz0 = pz0 + (z0 - pz0 >= size ? size : 0);
++    const cells = parentRes / 2;
++    const child = buildTileData(world, structures, {
++      ...base,
++      id: 1,
++      x0: cx0,
++      z0: cz0,
++      size,
++      res,
++      parentCells: cells,
++    });
++    const parent = buildTileData(world, structures, {
++      ...base,
++      id: 2,
++      x0: px0,
++      z0: pz0,
++      size: size * 2,
++      res: parentRes,
++    });
++    expect(child.parentHeights?.length).toBe((cells + 1) ** 2);
++    const offI = Math.round((cx0 - px0) / ((size * 2) / parentRes)),
++      offJ = Math.round((cz0 - pz0) / ((size * 2) / parentRes));
++    for (let j = 0; j <= cells; j++)
++      for (let i = 0; i <= cells; i++)
++        expect(child.parentHeights![j * (cells + 1) + i]).toBeCloseTo(
++          parent.heights[(offJ + j) * (parentRes + 1) + offI + i],
++          3,
++        );
++  });
++
++  it('carries no lattice for a tile without a coarser level', () => {
++    const top = buildTileData(world, structures, {
++      ...base,
++      id: 3,
++      x0: -2048,
++      z0: -2560,
++      size: TILE_SIZE,
++      res: 64,
++    });
++    expect(top.parentHeights).toBeUndefined();
++  });
++});
+diff --git a/tests/festival-terrain-streamer-morph.test.ts b/tests/festival-terrain-streamer-morph.test.ts
+new file mode 100644
+index 0000000..824ea0d
+--- /dev/null
++++ b/tests/festival-terrain-streamer-morph.test.ts
+@@ -0,0 +1,160 @@
++import * as T from 'three';
++import { describe, expect, it } from 'vitest';
++import {
++  TERRAIN_EXTENT,
++  TERRAIN_LEVELS,
++  TERRAIN_BUDGETS,
++  TerrainStreamer,
++  groundSample,
++} from '../src/rendering/open-world/terrain.ts';
++import { TILE_SIZE } from '../src/simulation/open-world/terrain-tiles.ts';
++import type { TileMeshData, TileRequest } from '../src/workers/open-world-protocol.ts';
++
++/** A worker that answers every tile request with a synthetic surface:
++ * height h(x, z) at the lattice of the requested level, and a coarser lattice
++ * (`parentCells`) of the same smooth field plus a level-dependent offset, so
++ * parent and child surfaces are distinguishable. */
++class FakeWorker {
++  listeners: ((event: MessageEvent) => void)[] = [];
++  requests: TileRequest[] = [];
++  addEventListener(_: string, fn: (event: MessageEvent) => void) {
++    this.listeners.push(fn);
++  }
++  removeEventListener() {}
++  postMessage(request: TileRequest) {
++    this.requests.push(request);
++  }
++  /** Reply to everything requested so far. */
++  flush() {
++    const batch = this.requests.splice(0);
++    for (const req of batch) {
++      const side = req.res + 1,
++        step = req.size / req.res,
++        height = (x: number, z: number, lod = 0) => 40 + 0.02 * x + 0.01 * z + lod * 3;
++      const heights = new Float32Array(side * side);
++      for (let j = 0; j < side; j++)
++        for (let i = 0; i < side; i++) heights[j * side + i] = height(req.x0 + i * step, req.z0 + j * step);
++      let parentHeights: Float32Array | undefined;
++      if (req.parentCells) {
++        const cells = req.parentCells,
++          pstep = req.size / cells;
++        parentHeights = new Float32Array((cells + 1) ** 2);
++        for (let j = 0; j <= cells; j++)
++          for (let i = 0; i <= cells; i++)
++            parentHeights[j * (cells + 1) + i] = height(req.x0 + i * pstep, req.z0 + j * pstep, 1);
++      }
++      const normals = new Float32Array(side * side * 3);
++      for (let v = 0; v < side * side; v++) normals[v * 3 + 1] = 1;
++      const splat = new Float32Array(side * side * 4),
++        shade = new Float32Array(side * side * 4);
++      for (let v = 0; v < side * side; v++) {
++        splat[v * 4 + 2] = 0.25; // sand
++        shade[v * 4] = 0.5; // road influence
++        shade[v * 4 + 1] = 0.75; // forest
++      }
++      const data: TileMeshData = {
++        type: 'tile',
++        id: req.id,
++        heights,
++        normals,
++        splat,
++        shade,
++        trees: new Float32Array(0),
++        parentHeights,
++        minY: Math.min(...heights),
++        maxY: Math.max(...heights),
++        ms: 1,
++      };
++      for (const fn of this.listeners) fn({ data } as MessageEvent);
++    }
++    return batch.length;
++  }
++}
++
++function settle(streamer: TerrainStreamer, worker: FakeWorker, camera: T.Camera, rounds = 14) {
++  for (let i = 0; i < rounds; i++) {
++    streamer.update(camera);
++    if (!worker.flush()) break;
++  }
++  streamer.update(camera);
++}
++
++describe('Terrain streamer geomorph attributes and ground sampling', () => {
++  const origin = -TERRAIN_EXTENT / 2;
++  // The centre of a finest-level tile, 20 m above its surface.
++  const cx = origin + 40 * TILE_SIZE + TILE_SIZE / 2,
++    cz = origin + 35 * TILE_SIZE + TILE_SIZE / 2;
++  const camera = new T.PerspectiveCamera();
++  camera.position.set(cx, 80, cz);
++  camera.updateMatrixWorld();
++
++  it('asks every level except the top one for its parent lattice', () => {
++    const worker = new FakeWorker(),
++      streamer = new TerrainStreamer(worker as unknown as Worker, TERRAIN_BUDGETS.high);
++    streamer.update(camera);
++    const requested = new Map(worker.requests.map((r) => [Math.round(Math.log2(r.size / TILE_SIZE)), r]));
++    expect(requested.get(TERRAIN_LEVELS)?.parentCells ?? 0).toBe(0);
++    worker.flush();
++    for (let i = 0; i < 12; i++) {
++      streamer.update(camera);
++      for (const r of worker.requests) requested.set(Math.round(Math.log2(r.size / TILE_SIZE)), r);
++      worker.flush();
++    }
++    // 64 -> 64: 32 cells; level 2 (64 cells) under level 3 (32 cells): 16; 32 -> 32: 16.
++    expect(requested.get(0)?.parentCells).toBe(32);
++    expect(requested.get(1)?.parentCells).toBe(32);
++    expect(requested.get(2)?.parentCells).toBe(16);
++    expect(requested.get(3)?.parentCells).toBe(16);
++  });
++
++  it('builds the morph attribute: parent surface height, parent tile edge, dropped skirt twins', () => {
++    const worker = new FakeWorker(),
++      streamer = new TerrainStreamer(worker as unknown as Worker, TERRAIN_BUDGETS.high);
++    settle(streamer, worker, camera);
++    const tiles = streamer.root.children.filter((c): c is T.Mesh => c instanceof T.Mesh);
++    const level0 = tiles.find((m) => m.name.startsWith('Terrain L0'))!;
++    expect(level0).toBeTruthy();
++    const morph = level0.geometry.getAttribute('owMorph') as T.BufferAttribute,
++      position = level0.geometry.getAttribute('position') as T.BufferAttribute;
++    const side = 65;
++    // Interior vertex: the coarse surface is the field plus the parent's offset.
++    const v = 20 * side + 12,
++      wx = level0.position.x + position.getX(v),
++      wz = level0.position.z + position.getZ(v);
++    expect(morph.getY(v)).toBe(TILE_SIZE * 2);
++    expect(morph.getX(v)).toBeCloseTo(40 + 0.02 * wx + 0.01 * wz + 3, 2);
++    // A skirt twin morphs with its edge vertex, dropped by the same skirt.
++    const twin = side * side + 0 * side + 5,
++      skirtDrop = position.getY(5) - position.getY(twin);
++    expect(skirtDrop).toBeGreaterThan(2);
++    expect(morph.getX(twin)).toBeCloseTo(morph.getX(5) - skirtDrop, 4);
++    expect(morph.getY(twin)).toBe(morph.getY(5));
++    // The top level has nothing coarser to morph toward.
++    const top = tiles.find((m) => m.name.startsWith(`Terrain L${TERRAIN_LEVELS}`))!;
++    const topMorph = top.geometry.getAttribute('owMorph') as T.BufferAttribute;
++    expect(topMorph.getY(0)).toBe(0);
++  });
++
++  it('feeds the material its split distance each frame', () => {
++    const worker = new FakeWorker(),
++      streamer = new TerrainStreamer(worker as unknown as Worker, TERRAIN_BUDGETS.high);
++    streamer.update(camera);
++    expect(streamer.material.userData.ow.owMorphSplit.value).toBe(TERRAIN_BUDGETS.high.split);
++  });
++
++  it('samples the carved ground and layer weights from the resident finest tile', () => {
++    const worker = new FakeWorker(),
++      streamer = new TerrainStreamer(worker as unknown as Worker, TERRAIN_BUDGETS.high),
++      out = groundSample();
++    expect(streamer.sampleGround(cx, cz, out)).toBe(false);
++    settle(streamer, worker, camera);
++    expect(streamer.sampleGround(cx + 3.3, cz - 7.1, out)).toBe(true);
++    expect(out.y).toBeCloseTo(40 + 0.02 * (cx + 3.3) + 0.01 * (cz - 7.1), 2);
++    expect(out.ny).toBeGreaterThan(0.99);
++    expect(out.sand).toBeCloseTo(0.25, 6);
++    expect(out.road).toBeCloseTo(0.5, 6);
++    expect(out.forest).toBeCloseTo(0.75, 6);
++    // Far from any resident finest tile: not available.
++    expect(streamer.sampleGround(origin + 5, origin + 5, out)).toBe(false);
++  });
++});

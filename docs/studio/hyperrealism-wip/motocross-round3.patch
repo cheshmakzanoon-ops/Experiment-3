@@ -1,0 +1,3225 @@
+diff --git a/docs/studio/hyperrealism-tooling/motocross/bike.mjs b/docs/studio/hyperrealism-tooling/motocross/bike.mjs
+index e7f692a..680ff5d 100644
+--- a/docs/studio/hyperrealism-tooling/motocross/bike.mjs
++++ b/docs/studio/hyperrealism-tooling/motocross/bike.mjs
+@@ -18,7 +18,7 @@ await page.addScriptTag({ content: code });
+ let i = 0;
+ for (const [view, sample] of cases) {
+   const r = await page.evaluate(([v, s]) => window.MotocrossReview.captureMotocrossBike('mx450', 'high', v, [s]), [view, sample]);
+-  const name = `/tmp/claude-0/-home-user-Experiment-3/77bc90d5-fa90-573c-91d6-9e500a2bf2c9/scratchpad/mx/${tag}-${i++}-${view}.png`;
++  const name = `/tmp/claude-0/-home-user-Experiment-3/77bc90d5-fa90-573c-91d6-9e500a2bf2c9/scratchpad/mx2/${tag}-${i++}-${view}.png`;
+   writeFileSync(name, Buffer.from(r[0].image.split(',')[1], 'base64'));
+   console.log('wrote', name, 'glError', r[0].glError);
+ }
+diff --git a/docs/studio/hyperrealism-tooling/motocross/capbuild.sh b/docs/studio/hyperrealism-tooling/motocross/capbuild.sh
+index 1b8e7da..ec09b5f 100755
+--- a/docs/studio/hyperrealism-tooling/motocross/capbuild.sh
++++ b/docs/studio/hyperrealism-tooling/motocross/capbuild.sh
+@@ -4,7 +4,7 @@
+ # for contended software rendering. Never committed; output in scratch dist-<tag>.
+ set -e
+ W=/home/user/Experiment-3/.claude/worktrees/agent-a86a2314095fca118
+-S=/tmp/claude-0/-home-user-Experiment-3/77bc90d5-fa90-573c-91d6-9e500a2bf2c9/scratchpad/mx
++S=/tmp/claude-0/-home-user-Experiment-3/77bc90d5-fa90-573c-91d6-9e500a2bf2c9/scratchpad/mx2
+ D=$S/src-$1
+ rm -rf "$D"; mkdir -p "$D"
+ FILES="src index.html vite.config.ts package.json package-lock.json tsconfig.json scripts"
+@@ -17,5 +17,7 @@ ln -s $W/node_modules "$D/node_modules"
+ ln -s $W/public "$D/public"
+ sed -i 's/const deadline = performance.now() + 45000;/const deadline = performance.now() + 1800000;/' "$D/src/rendering/renderer.ts"
+ grep -q "performance.now() + 1800000" "$D/src/rendering/renderer.ts"
++sed -i "s|elapsed = (now - previous) / 1000;|elapsed = ((now - previous) / 1000) * 0.1;|" "$D/src/workers/physics.worker.ts"
++grep -q "\* 0.1;" "$D/src/workers/physics.worker.ts"
+ cd "$D" && npx vite build --outDir "$S/dist-$1" --emptyOutDir --logLevel warn 2>&1 | grep -v "chunk\|manualChunks\|dynamic import\|Adjust chunk" || true
+ ls "$S/dist-$1/index.html"
+diff --git a/docs/studio/hyperrealism-tooling/motocross/capture.mjs b/docs/studio/hyperrealism-tooling/motocross/capture.mjs
+index 97d6a70..d87de4d 100644
+--- a/docs/studio/hyperrealism-tooling/motocross/capture.mjs
++++ b/docs/studio/hyperrealism-tooling/motocross/capture.mjs
+@@ -6,7 +6,7 @@ import { chromium } from 'playwright';
+ const [circuit = 'valley-ridge-mx', quality = 'high', tag = 'before', rideArg = '12', shotsArg = 'gate,ride'] = process.argv.slice(2);
+ const ride = Number(rideArg);
+ const shots = new Set(shotsArg.split(','));
+-const OUT = '/tmp/claude-0/-home-user-Experiment-3/77bc90d5-fa90-573c-91d6-9e500a2bf2c9/scratchpad/mx';
++const OUT = '/tmp/claude-0/-home-user-Experiment-3/77bc90d5-fa90-573c-91d6-9e500a2bf2c9/scratchpad/mx2';
+ const entry = circuit.endsWith('-sx') ? 'STADIUM SX' : 'OUTDOOR MX';
+ const machine = circuit.endsWith('-sx') ? 'mx250' : 'mx450';
+ const t0 = Date.now();
+@@ -21,6 +21,7 @@ const browser = await chromium.launch(mesa ? {
+   args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'],
+ });
+ const page = await browser.newPage({ viewport: { width: 960, height: 540 } });
++page.setDefaultTimeout(300000);
+ const errors = [];
+ page.on('pageerror', (e) => errors.push('PAGEERROR ' + e.message));
+ page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text().slice(0, 1500)); });
+@@ -37,7 +38,7 @@ const frames = async () => (await diag()).presentation?.frames ?? 0;
+ const hideUi = (hidden) => page.evaluate((h) => {
+   let s = document.getElementById('mx-capture-hide');
+   if (!s) { s = document.createElement('style'); s.id = 'mx-capture-hide'; document.head.appendChild(s); }
+-  s.textContent = h ? '#app { visibility: hidden !important; }' : '';
++  s.textContent = h ? '#app { display: none !important; }' : '';
+ }, hidden);
+ const shot = async (name, ui = false) => {
+   await hideUi(!ui);
+@@ -58,7 +59,7 @@ const resume = async () => {
+   await poll(async () => (await diag()).workerPause.paused === false, 120000, 'resume');
+ };
+ try {
+-  await page.goto('http://127.0.0.1:5183/?firstrun=0', { timeout: 180000 });
++  await page.goto('http://127.0.0.1:' + (process.env.MXPORT ?? '5193') + '/?firstrun=0', { timeout: 180000 });
+   await page.locator('#menu').waitFor({ state: 'visible', timeout: 300000 });
+   log('menu visible');
+   await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
+@@ -81,20 +82,28 @@ try {
+   await poll(async () => (await diag()).state === 'driving', 300000, 'driving');
+   log('driving');
+   if (shots.has('gate')) { await pause(); await shot('gate'); await resume(); }
+-  if (shots.has('ride') || shots.has('onboard') || shots.has('tv')) {
++  // Timed shots: ride@T (chase frame T s after the autopilot starts), cam@T
++  // (cycle the camera with C, then frame). The physics clock is slowed 10x in
++  // the capture build, so the pause latency costs only a fraction of a second.
++  const timed = [...shots].filter((x) => x.includes('@')).map((x) => { const [k, t] = x.split('@'); return { kind: k, t: Number(t) }; }).sort((x, y) => x.t - y.t);
++  if (timed.length) {
+     await page.keyboard.press('g');
+     await poll(async () => (await diag()).auto === true, 60000, 'auto');
+     const start = (await diag()).frame[0];
+-    await poll(async () => (await diag()).frame[0] > start + ride, 1800000, 'ride time');
+-    await pause();
+-    log('paused at sim', ((await diag()).frame[0] - start).toFixed(1), 's after auto');
+-    if (shots.has('ride')) await shot('ride');
+-    if (shots.has('onboard') || shots.has('tv')) {
+-      await resume();
+-      await page.keyboard.press('c');
+-      await new Promise((r) => setTimeout(r, 1500));
++    let cams = 0;
++    for (const { kind, t } of timed) {
++      await poll(async () => (await diag()).frame[0] > start + t, 3600000, 'ride time');
+       await pause();
+-      await shot(shots.has('tv') ? 'tv' : 'onboard');
++      log('paused at sim', ((await diag()).frame[0] - start).toFixed(1), 's after auto');
++      if (kind === 'ride') await shot(`ride${t}`);
++      else {
++        await resume();
++        await page.keyboard.press('c');
++        await new Promise((r) => setTimeout(r, 1500));
++        await pause();
++        await shot(`cam${++cams}-${t}`);
++      }
++      await resume();
+     }
+   }
+ } catch (e) {
+diff --git a/docs/studio/hyperrealism-tooling/motocross/check.mjs b/docs/studio/hyperrealism-tooling/motocross/check.mjs
+index f56fb2d..7f3006b 100644
+--- a/docs/studio/hyperrealism-tooling/motocross/check.mjs
++++ b/docs/studio/hyperrealism-tooling/motocross/check.mjs
+@@ -17,7 +17,7 @@ await page.addScriptTag({ content: code });
+ for (const [mode, opts, tag] of cases) {
+   const r = await page.evaluate(([m, o]) => window.MxCheck.run(m, o), [mode, opts]);
+   console.log(tag || mode, 'errors:', r.errors.length ? r.errors.join('\n').slice(0, 3000) : 'none');
+-  writeFileSync(`/tmp/claude-0/-home-user-Experiment-3/77bc90d5-fa90-573c-91d6-9e500a2bf2c9/scratchpad/mx/${out}-${tag || mode}.png`, Buffer.from(r.url.split(',')[1], 'base64'));
++  writeFileSync(`/tmp/claude-0/-home-user-Experiment-3/77bc90d5-fa90-573c-91d6-9e500a2bf2c9/scratchpad/mx2/${out}-${tag || mode}.png`, Buffer.from(r.url.split(',')[1], 'base64'));
+ }
+ console.log('console:', logs.slice(0, 6).join('\n---\n') || 'clean');
+ await browser.close();
+diff --git a/docs/studio/hyperrealism-tooling/motocross/cmp.py b/docs/studio/hyperrealism-tooling/motocross/cmp.py
+new file mode 100755
+index 0000000..2cf6024
+--- /dev/null
++++ b/docs/studio/hyperrealism-tooling/motocross/cmp.py
+@@ -0,0 +1,19 @@
++#!/usr/bin/env python3
++"""cmp.py out.png labelA a.png labelB b.png [labelC c.png ...] : stack images vertically with labels."""
++import sys
++from PIL import Image, ImageDraw
++out = sys.argv[1]
++pairs = [(sys.argv[i], sys.argv[i + 1]) for i in range(2, len(sys.argv), 2)]
++imgs = [(l, Image.open(p).convert('RGB')) for l, p in pairs]
++w = max(i.width for _, i in imgs)
++h = sum(i.height for _, i in imgs)
++canvas = Image.new('RGB', (w, h))
++y = 0
++for label, im in imgs:
++    canvas.paste(im, (0, y))
++    d = ImageDraw.Draw(canvas)
++    d.rectangle([0, y, 8 * len(label) + 12, y + 18], fill=(0, 0, 0))
++    d.text((6, y + 3), label, fill=(255, 255, 255))
++    y += im.height
++canvas.save(out)
++print(out, canvas.size)
+diff --git a/docs/studio/hyperrealism-tooling/motocross/entry.ts b/docs/studio/hyperrealism-tooling/motocross/entry.ts
+index e5c662b..825e6b2 100644
+--- a/docs/studio/hyperrealism-tooling/motocross/entry.ts
++++ b/docs/studio/hyperrealism-tooling/motocross/entry.ts
+@@ -9,14 +9,19 @@ import { Stadium } from '../../src/rendering/offroad/stadium.ts';
+ import { MxDustMaterial } from '../../src/rendering/offroad/mx-dust-material.ts';
+ import { setMxQuality } from '../../src/rendering/offroad/mx-quality.ts';
+ import { StartGate } from '../../src/rendering/offroad/start-gate.ts';
++import { MxLooseSoil } from '../../src/rendering/offroad/mx-loose-soil.ts';
++import { MxCourseDressing } from '../../src/rendering/offroad/mx-course-dressing.ts';
++import { MxSpectators } from '../../src/rendering/offroad/mx-spectators.ts';
++import { MxMeadow } from '../../src/rendering/offroad/mx-meadow.ts';
++import { installMxArenaLighting } from '../../src/rendering/offroad/mx-arena-lighting.ts';
+ import { Track } from '../../src/simulation/track.ts';
+ import { TrackTerrainSurface } from '../../src/simulation/offroad/course-terrain.ts';
+ 
+-export function run(mode: string, opts: { mud?: number; wet?: number; view?: string; preset?: string } = {}) {
++export function run(mode: string, opts: { mud?: number; wet?: number; view?: string; preset?: string; loose?: boolean; sunElev?: number; station?: number } = {}) {
+   const errors: string[] = [];
+   const canvas = document.createElement('canvas');
+   document.body.appendChild(canvas);
+-  const W = 640, H = 400;
++  const W = mode === 'chase' || mode === 'arena' ? 960 : 640, H = mode === 'chase' || mode === 'arena' ? 540 : 400;
+   const renderer = new T.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+   renderer.setSize(W, H, false);
+   renderer.toneMapping = T.ACESFilmicToneMapping;
+@@ -49,11 +54,94 @@ export function run(mode: string, opts: { mud?: number; wet?: number; view?: str
+     const track = rigTrack('valley-ridge-mx');
+     const view = new TerrainView(track);
+     scene.add(view.group);
+-    const p = track.at(40, { ...track.points[0] } as never) as unknown as { x: number; y: number; z: number; tx: number; tz: number };
+-    camera.position.set(p.x - p.tx * 6, p.y + 1.8, p.z - p.tz * 6);
+-    camera.lookAt(p.x + p.tx * 6, p.y, p.z + p.tz * 6);
+-    sun.position.set(p.x - 30, p.y + 40, p.z + 20);
+-    sun.target.position.set(p.x, p.y, p.z);
++    if (opts.loose) scene.add(new MxLooseSoil(track).root);
++    const s0 = opts.station ?? 40;
++    const p = track.at(s0, { ...track.points[0] } as never) as unknown as { x: number; y: number; z: number; tx: number; tz: number; nx: number; nz: number };
++    const v = opts.view ?? 'chase';
++    const elev = ((opts.sunElev ?? 35) * Math.PI) / 180;
++    if (v === 'chase') {
++      camera.position.set(p.x - p.tx * 6, p.y + 1.8, p.z - p.tz * 6);
++      camera.lookAt(p.x + p.tx * 6, p.y, p.z + p.tz * 6);
++      sun.position.set(p.x - 30, p.y + 40, p.z + 20);
++      sun.target.position.set(p.x, p.y, p.z);
++    } else {
++      // Close grazing view of the ridden lanes; the sun low and square to the track.
++      camera.fov = 40;
++      camera.updateProjectionMatrix();
++      const lat = v === 'rut-side' ? 0.9 : 0.15;
++      camera.position.set(p.x + p.nx * lat - p.tx * 2.6, p.y + 0.85, p.z + p.nz * lat - p.tz * 2.6);
++      camera.lookAt(p.x + p.nx * (lat * 0.3) + p.tx * 2.5, p.y, p.z + p.nz * (lat * 0.3) + p.tz * 2.5);
++      const d = 40;
++      sun.position.set(p.x - p.nx * d * Math.cos(elev) + p.tx * 6, p.y + d * Math.sin(elev), p.z - p.nz * d * Math.cos(elev) + p.tz * 6);
++      sun.target.position.set(p.x, p.y, p.z);
++    }
++  } else if (mode === 'chase') {
++    // A proxy of the gameplay chase frame: terrain, loose soil, a bike and rider, the real
++    // chase-camera framing, a low sun with shadows. No scans, atmosphere or post.
++    const track = rigTrack('valley-ridge-mx');
++    const view = new TerrainView(track);
++    scene.add(view.group);
++    scene.add(new MxLooseSoil(track).root);
++    const dressing = new MxCourseDressing(track);
++    scene.add(dressing.root, dressing.turf);
++    const people = new MxSpectators(track, dressing.trackside.plan.sites);
++    scene.add(people.root);
++    const field = new MxMeadow(track, dressing.trackside.plan.sites);
++    scene.add(field.root);
++    field.update(3.0);
++    people.update(3.0);
++    dressing.update(3.0);
++    const s0 = opts.station ?? 40;
++    const p = track.at(s0, { ...track.points[0] } as never) as unknown as { x: number; y: number; z: number; tx: number; tz: number; nx: number; nz: number };
++    const lat = 0.3;
++    const mud = mudUniforms();
++    mud.offroadMud.value = opts.mud ?? 0.0;
++    mud.offroadMudWet.value = opts.wet ?? 0.0;
++    const model = new DirtBikeModel(VEHICLES['mx450'], 0, 'high', new BikeMaterials(0), mud);
++    const hx = p.x + p.nx * lat, hz = p.z + p.nz * lat;
++    model.root.position.set(hx, view.heightAt(s0, lat), hz);
++    model.root.rotation.y = Math.atan2(p.tx, p.tz);
++    scene.add(model.root);
++    const elev = ((opts.sunElev ?? 32) * Math.PI) / 180;
++    sun.position.set(hx - p.nx * 30 * Math.cos(elev) - p.tx * 10, model.root.position.y + 30 * Math.sin(elev), hz - p.nz * 30 * Math.cos(elev) - p.tz * 10);
++    sun.target.position.copy(model.root.position);
++    sun.castShadow = true;
++    sun.shadow.mapSize.set(2048, 2048);
++    Object.assign(sun.shadow.camera, { left: -14, right: 14, top: 14, bottom: -14, near: 1, far: 90 });
++    sun.shadow.bias = -0.0002;
++    sun.shadow.normalBias = 0.02;
++    camera.fov = 56;
++    camera.updateProjectionMatrix();
++    const ahead = view.heightAt(s0 + 7, lat);
++    camera.position.set(hx - p.tx * 5.4, model.root.position.y + 1.72, hz - p.tz * 5.4);
++    camera.lookAt(hx + p.tx * 7, ahead + 0.3, hz + p.tz * 7);
++  } else if (mode === 'arena') {
++    // The supercross floor under the roof's floodlight grid, night: terrain, stadium, a bike and rider.
++    const track = rigTrack('arena-nord-sx');
++    const stadium = new Stadium(track);
++    scene.add(stadium.root);
++    const view = new TerrainView(track);
++    scene.add(view.group);
++    scene.add(new MxLooseSoil(track).root);
++    const lit = opts.loose === false ? null : installMxArenaLighting(view.material, stadium.lampGrid);
++    if (lit && opts.sunElev === 0) lit.value.w = 0;
++    scene.background = new T.Color(0x05070a);
++    sun.intensity = 0.4;
++    scene.children.forEach((c) => { if (c instanceof T.HemisphereLight) c.intensity = 0.08; });
++    const s0 = opts.station ?? 40;
++    const p = track.at(s0, { ...track.points[0] } as never) as unknown as { x: number; y: number; z: number; tx: number; tz: number; nx: number; nz: number };
++    const lat = 0.3;
++    const mud = mudUniforms();
++    const model = new DirtBikeModel(VEHICLES['mx250'], 0, 'high', new BikeMaterials(0), mud);
++    const hx = p.x + p.nx * lat, hz = p.z + p.nz * lat;
++    model.root.position.set(hx, view.heightAt(s0, lat), hz);
++    model.root.rotation.y = Math.atan2(p.tx, p.tz);
++    scene.add(model.root);
++    camera.fov = 56;
++    camera.updateProjectionMatrix();
++    const ahead = view.heightAt(s0 + 7, lat);
++    camera.position.set(hx - p.tx * 5.4, model.root.position.y + 1.72, hz - p.tz * 5.4);
++    camera.lookAt(hx + p.tx * 7, ahead + 0.3, hz + p.tz * 7);
+   } else if (mode === 'gate') {
+     const track = rigTrack('valley-ridge-mx');
+     const course = (Track.offroadOf(track) as TrackTerrainSurface).course;
+diff --git a/docs/studio/hyperrealism-tooling/motocross/runafter.sh b/docs/studio/hyperrealism-tooling/motocross/runafter.sh
+new file mode 100755
+index 0000000..9f5e971
+--- /dev/null
++++ b/docs/studio/hyperrealism-tooling/motocross/runafter.sh
+@@ -0,0 +1,27 @@
++#!/bin/bash
++# usage: runafter.sh <tag> <shots> [venues=mx,sx]
++# One lock hold: capture build of the worktree, a shader-compile check (abort on errors), then the
++# gameplay captures. Kills only its own processes.
++T=$1; SH=$2; V=${3:-mx,sx}; Q=${QUALITY:-high}
++W=/home/user/Experiment-3/.claude/worktrees/agent-a86a2314095fca118
++S=/tmp/claude-0/-home-user-Experiment-3/77bc90d5-fa90-573c-91d6-9e500a2bf2c9/scratchpad
++export MXPORT=5193
++flock $S/heavy.lock bash -c "
++  cd $W
++  mkdir -p test-results/mx-capture
++  cp $S/mx2/capture.mjs test-results/mx-capture/capture.mjs
++  bash $S/mx2/capbuild.sh $T WORKTREE > $S/mx2/build-$T.log 2>&1 || { echo build failed; tail -20 $S/mx2/build-$T.log; exit 1; }
++  node test-results/mx-shader-check/check.mjs chk-$T '[[\"terrain\",{\"preset\":\"high\",\"view\":\"rut\",\"sunElev\":16},\"high\"],[\"terrain\",{\"preset\":\"medium\",\"view\":\"rut\",\"sunElev\":16},\"medium\"],[\"stadium\",{\"preset\":\"high\"},\"stadium\"],[\"chase\",{\"preset\":\"high\",\"station\":170,\"sunElev\":32},\"chase\"]]' > $S/mx2/check-chk-$T.log 2>&1
++  if grep -q 'errors: [^n]' $S/mx2/check-chk-$T.log; then echo 'shader errors, aborting'; cat $S/mx2/check-chk-$T.log | head -30; exit 1; fi
++  node node_modules/vite/bin/vite.js preview --host 127.0.0.1 --port $MXPORT --strictPort --outDir $S/mx2/dist-$T > $S/mx2/preview-$T.log 2>&1 &
++  VP=\$!
++  sleep 6
++  for venue in ${V//,/ }; do
++    if [ \$venue = mx ]; then C=valley-ridge-mx; else C=arena-nord-sx; fi
++    setsid node test-results/mx-capture/capture.mjs \$C $Q $T 0 $SH > $S/mx2/cap-$T-\$C-$Q.log 2>&1 &
++    CP=\$!
++    wait \$CP || true
++    kill -- -\$CP 2>/dev/null || true
++  done
++  kill \$VP 2>/dev/null || true
++"
+diff --git a/docs/studio/hyperrealism-tooling/motocross/runbike.sh b/docs/studio/hyperrealism-tooling/motocross/runbike.sh
+new file mode 100755
+index 0000000..8a7a590
+--- /dev/null
++++ b/docs/studio/hyperrealism-tooling/motocross/runbike.sh
+@@ -0,0 +1,5 @@
++#!/bin/bash
++# usage: runbike.sh <tag> '<json cases>'
++W=/home/user/Experiment-3/.claude/worktrees/agent-a86a2314095fca118
++S=/tmp/claude-0/-home-user-Experiment-3/77bc90d5-fa90-573c-91d6-9e500a2bf2c9/scratchpad
++flock $S/heavy.lock bash -c "cd $W && node test-results/mx-shader-check/bike.mjs '$1' '$2' > $S/mx2/bike-$1.log 2>&1"
+diff --git a/docs/studio/hyperrealism-tooling/motocross/runcap.sh b/docs/studio/hyperrealism-tooling/motocross/runcap.sh
+new file mode 100755
+index 0000000..17d5362
+--- /dev/null
++++ b/docs/studio/hyperrealism-tooling/motocross/runcap.sh
+@@ -0,0 +1,24 @@
++#!/bin/bash
++# usage: runcap.sh <tag> <circuit> <quality> <shots> <rideSeconds> [build=0|1]
++# Runs under the shared heavy lock: (optional build) + private preview server + capture.
++# Kills only its own processes (never a pattern that could match another agent's browser).
++T=$1; C=$2; Q=$3; SH=$4; R=$5; B=${6:-0}
++W=/home/user/Experiment-3/.claude/worktrees/agent-a86a2314095fca118
++S=/tmp/claude-0/-home-user-Experiment-3/77bc90d5-fa90-573c-91d6-9e500a2bf2c9/scratchpad
++export MXPORT=5193
++flock $S/heavy.lock bash -c "
++  set -e
++  if [ '$B' = 1 ]; then bash $S/mx2/capbuild.sh $T ${REV:-WORKTREE}; fi
++  cd $W
++  mkdir -p test-results/mx-capture
++  cp $S/mx2/capture.mjs test-results/mx-capture/capture.mjs
++  node node_modules/vite/bin/vite.js preview --host 127.0.0.1 --port $MXPORT --strictPort --outDir $S/mx2/dist-$T > $S/mx2/preview-$T.log 2>&1 &
++  VP=\$!
++  sleep 6
++  grep -q 'Local' $S/mx2/preview-$T.log || { echo 'preview failed'; cat $S/mx2/preview-$T.log; kill \$VP; exit 1; }
++  setsid node test-results/mx-capture/capture.mjs $C $Q $T $R $SH > $S/mx2/cap-$T-$C-$Q.log 2>&1 &
++  CP=\$!
++  wait \$CP || true
++  kill \$VP 2>/dev/null || true
++  kill -- -\$CP 2>/dev/null || true
++"
+diff --git a/docs/studio/hyperrealism-tooling/motocross/runcheck.sh b/docs/studio/hyperrealism-tooling/motocross/runcheck.sh
+new file mode 100755
+index 0000000..6bd4d1b
+--- /dev/null
++++ b/docs/studio/hyperrealism-tooling/motocross/runcheck.sh
+@@ -0,0 +1,5 @@
++#!/bin/bash
++# usage: runcheck.sh <out-prefix> '<cases-json>'
++W=/home/user/Experiment-3/.claude/worktrees/agent-a86a2314095fca118
++S=/tmp/claude-0/-home-user-Experiment-3/77bc90d5-fa90-573c-91d6-9e500a2bf2c9/scratchpad
++flock $S/heavy.lock bash -c "cd $W && node test-results/mx-shader-check/check.mjs '$1' '$2' > $S/mx2/check-$1.log 2>&1"
+diff --git a/src/rendering/ground/soil-splat.ts b/src/rendering/ground/soil-splat.ts
+index 641d840..5bdb475 100644
+--- a/src/rendering/ground/soil-splat.ts
++++ b/src/rendering/ground/soil-splat.ts
+@@ -96,7 +96,7 @@ function splatGlsl(slots: readonly ScanLayer[], macroLayer: ScanLayer) {
+     lines.push(`float apexW${i} = ${weight(i)};
+ 	ApexScanSample apexS${i};
+ 	apexS${i}.ratio = vec3( 1.0 ); apexS${i}.n = vec3( 0.0, 0.0, 1.0 ); apexS${i}.rough = 1.0; apexS${i}.ao = 1.0; apexS${i}.height = 1.0;
+-	if ( apexW${i} > 0.002 ) apexS${i} = ${scanLayerCall(slots[i], 'vScanWorld.xz', 'apexScanDx', 'apexScanDy', 1.5, false)};`);
++	if ( apexW${i} > 0.002 ) apexS${i} = ${scanLayerCall(slots[i], '( vScanWorld.xz + apexSoilShift )', 'apexScanDx', 'apexScanDy', 1.5, false)};`);
+   }
+   // Height blend: each set's relief proxy lifts its weight; the top wins.
+   const b = (i: number) =>
+@@ -184,6 +184,9 @@ varying vec4 vScanSoil;
+ varying vec3 vScanWorld;
+ ${scanUniformDeclarations(slots)}
+ vec3 apexScanN = vec3( 0.0, 0.0, 1.0 );
++// World-plane slide of the photographed sets (a course relief march moves the
++// shaded point inside a groove); zero everywhere else.
++vec2 apexSoilShift = vec2( 0.0 );
+ float apexScanRough = 1.0;
+ float apexScanRelief = 0.0;
+ #endif
+diff --git a/src/rendering/offroad/index.ts b/src/rendering/offroad/index.ts
+index 52581a8..c89f1db 100644
+--- a/src/rendering/offroad/index.ts
++++ b/src/rendering/offroad/index.ts
+@@ -14,6 +14,9 @@ import { StartGate } from './start-gate.ts';
+ import { TerrainView } from './terrain-view.ts';
+ import { MxCourseDressing } from './mx-course-dressing.ts';
+ import { MxCourseLandmarks } from './mx-course-landmarks.ts';
++import { MxLooseSoil } from './mx-loose-soil.ts';
++import { MxMeadow } from './mx-meadow.ts';
++import { MxSpectators } from './mx-spectators.ts';
+ 
+ export { installMud, installMudOn, mudUniforms, type MudUniforms } from './mud.ts';
+ export { DirtBikeModel } from './dirt-bike-model.ts';
+@@ -31,6 +34,9 @@ export class OffroadScene {
+   stadium: Stadium | null = null;
+   dressing: MxCourseDressing | null = null;
+   landmarks: MxCourseLandmarks | null = null;
++  looseSoil: MxLooseSoil | null = null;
++  spectators: MxSpectators | null = null;
++  meadow: MxMeadow | null = null;
+   readonly roost: Roost;
+   private lastTime = NaN;
+   private readonly pending: {
+@@ -71,8 +77,23 @@ export class OffroadScene {
+     if (course.kind === 'motocross' || course.kind === 'supercross') {
+       construction.add('MX course furniture and shoulders', 3, () => {
+         this.dressing = new MxCourseDressing(track);
+-        this.group.add(this.dressing.root);
++        this.group.add(this.dressing.root, this.dressing.turf);
+       });
++      construction.add('MX loose soil', 1, () => {
++        this.looseSoil = new MxLooseSoil(track);
++        this.group.add(this.looseSoil.root);
++      });
++      if (course.kind === 'motocross')
++        // After the furniture: onlookers keep clear of its service bays and posts.
++        construction.add('MX spectators and marshals', 4, () => {
++          this.spectators = new MxSpectators(track, this.dressing?.trackside.plan.sites ?? []);
++          this.group.add(this.spectators.root);
++        });
++      if (course.kind === 'motocross')
++        construction.add('MX field grass', 4, () => {
++          this.meadow = new MxMeadow(track, this.dressing?.trackside.plan.sites ?? []);
++          this.group.add(this.meadow.root);
++        });
+       construction.add('MX course identities and jump profiles', 2, () => {
+         this.landmarks = new MxCourseLandmarks(track);
+         this.group.add(this.landmarks.root);
+@@ -96,6 +117,9 @@ export class OffroadScene {
+     const time = frame[H.TIME],
+       dt = Number.isFinite(this.lastTime) ? clamp(time - this.lastTime, 0, 0.1) : 0;
+     this.dressing?.update(time);
++    this.spectators?.update(time);
++    this.meadow?.update(time);
++    if (this.terrain) this.looseSoil?.setWetness(this.terrain.soilWetness);
+     // Even a sub-frame reverse seek can cross a takeoff/contact edge.
+     // Drop particles and edge history before reading that earlier snapshot.
+     if (time < this.lastTime) this.roost.clear();
+@@ -108,6 +132,9 @@ export class OffroadScene {
+     this.stadium?.dispose();
+     this.dressing?.dispose();
+     this.landmarks?.dispose();
++    this.looseSoil?.dispose();
++    this.spectators?.dispose();
++    this.meadow?.dispose();
+     this.roost.dispose();
+   }
+ }
+diff --git a/src/rendering/offroad/motocross-detail.ts b/src/rendering/offroad/motocross-detail.ts
+index f56424c..7f8fa7d 100644
+--- a/src/rendering/offroad/motocross-detail.ts
++++ b/src/rendering/offroad/motocross-detail.ts
+@@ -211,12 +211,16 @@ export function motocrossTripleClamp(detail: RiderDetail, thickness: number, off
+   return geometry;
+ }
+ 
+-/** Mould texture and fine riding scuffs in metres. The same physical grain
+- * survives the very different fender, number-board and shroud UV layouts.
+- * Derivative filtering removes unresolved grain instead of making it sparkle.
+- * No extra textures, geometry or draws are allocated by this finish. */
++/** Mould texture, riding scuffs and boot wear in metres. The same physical
++ * grain survives the very different fender, number-board and shroud UV
++ * layouts. Derivative filtering removes unresolved grain instead of making it
++ * sparkle. Positions are the part's own frame: for the batched sprung meshes
++ * that is the sprung frame (+z forward, origin at the tank), so the wear zones
++ * sit where a rider's boots and knees really rub the shrouds, side panels and
++ * tank, with thin whitened scratches running fore and aft. No extra textures,
++ * geometry or draws are allocated by this finish. */
+ export function installMotocrossPlasticFinish(material: T.MeshPhysicalMaterial) {
+-  chainShaderHook(material, 'motocross-moulded-polymer-v1', (shader) => {
++  chainShaderHook(material, 'motocross-moulded-polymer-v2', (shader) => {
+     injectDeclarations(shader, 'common', 'varying vec3 vMxPlasticPosition;', 'vertex');
+     injectAfter(shader, 'begin_vertex', 'vMxPlasticPosition = position;', 'vertex');
+     injectDeclarations(
+@@ -224,7 +228,7 @@ export function installMotocrossPlasticFinish(material: T.MeshPhysicalMaterial)
+       'common',
+       `
+ varying vec3 vMxPlasticPosition;
+-float mxPlasticHeight, mxPlasticScuff;
++float mxPlasticHeight, mxPlasticScuff, mxPlasticWear;
+ float mxPlasticNoise(vec3 p) {
+   vec3 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
+   vec4 a=fract(sin(vec4(dot(i,vec3(127.1,311.7,74.7)),
+@@ -245,20 +249,44 @@ float mxPlasticNoise(vec3 p) {
+       'color_fragment',
+       `
+ {
+-  float footprint=length(fwidth(vMxPlasticPosition));
++  vec3 q=vMxPlasticPosition;
++  float footprint=length(fwidth(q));
+   float fine=1.-smoothstep(.0008,.0035,footprint);
+-  float grain=mxPlasticNoise(vMxPlasticPosition*850.);
+-  float scuff=mxPlasticNoise(vMxPlasticPosition*vec3(330.,92.,21.));
++  float grain=mxPlasticNoise(q*850.);
++  float scuff=mxPlasticNoise(q*vec3(330.,92.,21.));
+   mxPlasticScuff=smoothstep(.66,.87,scuff)*(1.-smoothstep(.004,.019,footprint));
+-  mxPlasticHeight=(grain-.5)*.000018*fine-mxPlasticScuff*.000018;
++  // Where a boot or knee rides the shroud and side panel: a band either side
++  // of the tank, from the seat's front to the radiator, between peg and knee.
++  float side=abs(q.x);
++  float boot=smoothstep(.08,.15,side)*(1.-smoothstep(.27,.36,side))
++    *smoothstep(-.3,-.12,q.y)*(1.-smoothstep(.02,.14,q.y))
++    *smoothstep(-.5,-.3,q.z)*(1.-smoothstep(.08,.3,q.z));
++  // Abrasion clouds (matte, paler) and fore-aft scratch lines stretched along
++  // the boot's sliding direction; a few random hairlines everywhere else.
++  float cloud=smoothstep(.38,.8,mxPlasticNoise(q*vec3(16.,11.,7.)+3.1));
++  float line=mxPlasticNoise(q*vec3(520.,260.,17.)+7.7);
++  float hair=mxPlasticNoise(q*vec3(41.,310.,380.)+1.9);
++  float scratch=smoothstep(.8,.92,line)*(.16+.84*boot)
++    +smoothstep(.93,.985,hair)*.35;
++  float resolved=1.-smoothstep(.003,.012,footprint);
++  // Larger than a pixel at the chase camera: the scuffed boot zone reads as a
++  // pale, dull patch, not only as hairlines that vanish beyond a metre.
++  mxPlasticWear=(boot*cloud*.9)*(1.-smoothstep(.04,.2,footprint))+scratch*resolved;
++  mxPlasticHeight=(grain-.5)*.000018*fine-mxPlasticScuff*.000018-scratch*resolved*.000045;
++  // Polymer in service is never showroom-saturated: a little of its own
++  // luminance comes back, then the whitened stress marks on top.
++  float luma=dot(diffuseColor.rgb,vec3(.2126,.7152,.0722));
++  float mottle=mxPlasticNoise(q*vec3(9.,7.,8.)+5.3);
++  diffuseColor.rgb=mix(vec3(luma),diffuseColor.rgb,.9)*(.95+.1*mottle);
+   diffuseColor.rgb*=1.+(grain-.5)*.022*fine;
++  diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*.55+vec3(.2,.195,.185),clamp(mxPlasticWear,0.,1.)*.62);
+ }`,
+       'fragment',
+     );
+     injectAfter(
+       shader,
+       'roughnessmap_fragment',
+-      'roughnessFactor = clamp(roughnessFactor + mxPlasticScuff * .17, .28, .86);',
++      'roughnessFactor = clamp(roughnessFactor + mxPlasticScuff * .17 + mxPlasticWear * .3, .28, .9);',
+       'fragment',
+     );
+     injectAfter(
+diff --git a/src/rendering/offroad/mx-arena-lighting.ts b/src/rendering/offroad/mx-arena-lighting.ts
+new file mode 100644
+index 0000000..9a01d0f
+--- /dev/null
++++ b/src/rendering/offroad/mx-arena-lighting.ts
+@@ -0,0 +1,90 @@
++import * as T from 'three';
++import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
++
++export const MX_ARENA_LIGHT_HOOK = 'mx-arena-floodlights-v1';
++
++/** The roof's regular floodlight grid in world metres (`Stadium.lampGrid`). */
++export interface MxArenaGrid {
++  minX: number;
++  minZ: number;
++  spanX: number;
++  spanZ: number;
++  /** World height of the lamps. */
++  y: number;
++  columns: number;
++  rows: number;
++}
++
++/** Floodlights of the supercross roof: 40 lamps on a regular 8 x 5 grid, each
++ * lighting the dirt beneath it the way it hangs over it. The analytic lamp
++ * rows used for circuit floodlights stand poles 9 m up; an arena's light comes
++ * from 30 m overhead, in a grid, and the pools it leaves are broad overlapping
++ * discs with soft valleys between them, not a row of tight spots. */
++export const MX_ARENA_LIGHT = Object.freeze({
++  /** Each lamp's intensity (cd-like units in the renderer's linear scale). */
++  intensity: 2400,
++  colour: 0xe6efff,
++  /** A lamp lights the floor out to this many grid cells; beyond it, nothing. */
++  reachCells: 2,
++  /** Share of the directional key kept on the floor: the key stands for the
++   * same lamps, seen from far away. */
++  keyShare: 0.45,
++});
++
++const DECLARATIONS = /* glsl */ `
++uniform vec4 mxArenaGrid;   // minX, minZ, cell X, cell Z (m)
++uniform vec4 mxArenaLamp;   // columns, rows, lamp height (m), strength
++uniform vec4 mxArenaColour; // linear colour x intensity, key share
++// Irradiance (cos / r^2) summed over the 4 x 4 lamps around a floor point; each
++// is faded to nothing at ${MX_ARENA_LIGHT.reachCells} cells so no cell edge shows.
++float mxArenaIrradiance( vec3 world, vec3 up ) {
++  vec2 cell = ( world.xz - mxArenaGrid.xy ) / mxArenaGrid.zw - 0.5;
++  vec2 base = floor( cell );
++  float e = 0.0;
++  for ( int j = -1; j <= 2; j ++ ) {
++    for ( int i = -1; i <= 2; i ++ ) {
++      vec2 index = base + vec2( float( i ), float( j ) );
++      if ( index.x < 0.0 || index.y < 0.0 || index.x >= mxArenaLamp.x || index.y >= mxArenaLamp.y ) continue;
++      float reach = 1.0 - smoothstep( ${(MX_ARENA_LIGHT.reachCells * 0.5).toFixed(2)}, ${MX_ARENA_LIGHT.reachCells.toFixed(2)}, length( index - cell ) );
++      vec3 lamp = vec3( mxArenaGrid.x + ( index.x + 0.5 ) * mxArenaGrid.z, mxArenaLamp.z,
++        mxArenaGrid.y + ( index.y + 0.5 ) * mxArenaGrid.w );
++      vec3 d = lamp - world;
++      float r2 = dot( d, d );
++      e += reach * max( dot( up, d ) * inversesqrt( r2 ), 0.0 ) / r2;
++    }
++  }
++  return e;
++}`;
++
++const LIGHTING = /* glsl */ `
++if ( mxArenaLamp.w > 0.0 ) {
++  reflectedLight.directDiffuse *= mxArenaColour.a;
++  vec3 arenaUp = normalize( ( vec4( normal, 0.0 ) * viewMatrix ).xyz );
++  reflectedLight.directDiffuse += mxArenaColour.rgb * ( mxArenaLamp.w * mxArenaIrradiance( vApexWorld, arenaUp ) )
++    * BRDF_Lambert( material.diffuseColor );
++}`;
++
++/** Light a supercross floor from the roof's floodlight grid. The terrain soil
++ * material supplies `vApexWorld`. The returned uniform's `.w` is the arena's
++ * strength: 1 lit, 0 off (the material's other lighting is untouched at 0). */
++export function installMxArenaLighting(material: T.MeshPhysicalMaterial, grid: MxArenaGrid) {
++  const cellX = grid.spanX / grid.columns,
++    cellZ = grid.spanZ / grid.rows;
++  const colour = new T.Color(MX_ARENA_LIGHT.colour).convertSRGBToLinear();
++  const lamp = { value: new T.Vector4(grid.columns, grid.rows, grid.y, 1) };
++  const installed = chainShaderHook(material, MX_ARENA_LIGHT_HOOK, (shader) => {
++    shader.uniforms.mxArenaGrid = { value: new T.Vector4(grid.minX, grid.minZ, cellX, cellZ) };
++    shader.uniforms.mxArenaLamp = lamp;
++    shader.uniforms.mxArenaColour = {
++      value: new T.Vector4(
++        colour.r * MX_ARENA_LIGHT.intensity,
++        colour.g * MX_ARENA_LIGHT.intensity,
++        colour.b * MX_ARENA_LIGHT.intensity,
++        MX_ARENA_LIGHT.keyShare,
++      ),
++    };
++    injectDeclarations(shader, 'common', DECLARATIONS, 'fragment');
++    injectAfter(shader, 'lights_fragment_end', LIGHTING, 'fragment');
++  });
++  return installed ? lamp : null;
++}
+diff --git a/src/rendering/offroad/mx-course-dressing.ts b/src/rendering/offroad/mx-course-dressing.ts
+index 657e110..02bb1da 100644
+--- a/src/rendering/offroad/mx-course-dressing.ts
++++ b/src/rendering/offroad/mx-course-dressing.ts
+@@ -2,6 +2,7 @@ import * as T from 'three';
+ import { MxTracksideFurniture } from './mx-trackside-furniture.ts';
+ import { mxAuthoredGeometry } from './authored-kit.ts';
+ import { mxPaddingMaterial } from './mx-padding.ts';
++import { onMxDetail } from './mx-quality.ts';
+ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+ import { mod, Random } from '../../core/math.ts';
+ import { TrackTerrainSurface } from '../../simulation/offroad/course-terrain.ts';
+@@ -115,6 +116,8 @@ export interface MxDressingStats {
+   jumpMarkers: number;
+   grassClumps: number;
+   fernClumps: number;
++  tufts: number;
++  tapeSpans: number;
+   shrubs: number;
+   stones: number;
+   canopies: number;
+@@ -126,6 +129,8 @@ export interface MxDressingStats {
+ export class MxCourseDressing {
+   readonly trackside: MxTracksideFurniture;
+   readonly root = new T.Group();
++  /** Boundary tape and close-cropped shoulder turf, outside `root`'s pinned batch budget. */
++  readonly turf = new T.Group();
+   readonly stats: MxDressingStats = {
+     stakes: 0,
+     blocks: 0,
+@@ -133,6 +138,8 @@ export class MxCourseDressing {
+     jumpMarkers: 0,
+     grassClumps: 0,
+     fernClumps: 0,
++    tufts: 0,
++    tapeSpans: 0,
+     shrubs: 0,
+     stones: 0,
+     canopies: 0,
+@@ -145,6 +152,7 @@ export class MxCourseDressing {
+   private readonly object = new T.Object3D();
+   private readonly surface: TrackTerrainSurface;
+   private readonly plantTime = { value: 0 };
++  private stopTufts: (() => void) | null = null;
+   constructor(private readonly track: Track) {
+     const surface = Track.offroadOf(track);
+     if (
+@@ -188,6 +196,7 @@ export class MxCourseDressing {
+       blocks: T.Matrix4[] = [],
+       markers: T.Matrix4[] = [];
+     const pole = mxCourseStakeGeometry();
++    const staked: Record<'-1' | '1', number[]> = { '-1': [], '1': [] };
+     const block = mxAuthoredGeometry('safety-pad', 'mid')
+       .scale(0.55 / 0.68, 0.38 / 0.58, 1.6 / 2.1)
+       .rotateY(Math.PI / 2)
+@@ -201,6 +210,7 @@ export class MxCourseDressing {
+         this.object.rotateZ((r.next() - 0.5) * 0.13);
+         this.object.updateMatrix();
+         stakes.push(this.object.matrix.clone());
++        if (!indoor) staked[String(side) as '-1' | '1'].push(s);
+         if (indoor && Math.floor(s / 7) % 2 === 0) {
+           this.pose(s, l + side * 0.54);
+           this.object.rotateY(Math.PI / 2);
+@@ -212,6 +222,7 @@ export class MxCourseDressing {
+     this.stats.stakes = stakes.length;
+     this.stats.blocks = blocks.length;
+     this.instances('MX course-edge stakes', pole, yellow, stakes);
++    if (!indoor) this.boundaryTape(staked);
+     this.instances('SX padded lane dividers', block, pad, blocks);
+     // Paired tall, warm markers mark the actual take-off. Short pale stakes
+     // at the surveyed landing distinguish front and back faces at speed.
+@@ -301,6 +312,85 @@ export class MxCourseDressing {
+     }
+     this.batches.clear();
+   }
++  /** Barrier tape strung between consecutive course-edge stakes: a narrow red
++   * and white ribbon at knee height that sags a few centimetres between posts.
++   * It follows the same edge and the same clearance as the stakes, never
++   * crossing a gap where a stake was refused. Its own group and one draw. */
++  private boundaryTape(staked: Record<'-1' | '1', number[]>) {
++    const course = this.surface.course,
++      positions: number[] = [],
++      uvs: number[] = [],
++      indices: number[] = [],
++      normals: number[] = [];
++    const segments = 8,
++      height = 0.58,
++      half = 0.022,
++      stripe = 0.42;
++    let spans = 0;
++    for (const key of ['-1', '1'] as const) {
++      const side = Number(key) as -1 | 1,
++        list = staked[key];
++      for (let i = 0; i + 1 < list.length; i++) {
++        const from = list[i],
++          to = list[i + 1];
++        if (to - from > 8.6) continue;
++        const first = positions.length / 3;
++        let run = 0,
++          previous: T.Vector3 | null = null;
++        for (let k = 0; k <= segments; k++) {
++          const t = k / segments,
++            s = from + (to - from) * t,
++            at = this.track.at(s, this.point);
++          const lateral = side * (course.legalWidth(at.width, s, side) + 0.18),
++            x = at.x + at.nx * lateral,
++            z = at.z + at.nz * lateral,
++            sag = 0.05 * Math.sin(Math.PI * t),
++            y = this.surface.terrain.baseHeight(s, lateral) + height - sag;
++          const here = new T.Vector3(x, y, z);
++          if (previous) run += here.distanceTo(previous);
++          previous = here;
++          // The ribbon's face looks across the course: normal along the lateral.
++          positions.push(x, y + half, z, x, y - half, z);
++          normals.push(at.nx, 0, at.nz, at.nx, 0, at.nz);
++          uvs.push(run / stripe, 1, run / stripe, 0);
++          if (k > 0) {
++            const a = first + (k - 1) * 2;
++            indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
++          }
++        }
++        spans++;
++      }
++    }
++    if (!spans) return;
++    const geometry = new T.BufferGeometry();
++    geometry.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
++    geometry.setAttribute('normal', new T.Float32BufferAttribute(normals, 3));
++    geometry.setAttribute('uv', new T.Float32BufferAttribute(uvs, 2));
++    geometry.setIndex(indices);
++    geometry.computeBoundingSphere();
++    // Alternating red and white, eight centimetres at a time, crisp.
++    const data = new Uint8Array(16 * 4);
++    for (let i = 0; i < 16; i++) data.set(i < 8 ? [226, 222, 212, 255] : [196, 44, 34, 255], i * 4);
++    const map = new T.DataTexture(data, 16, 1, T.RGBAFormat);
++    map.colorSpace = T.SRGBColorSpace;
++    map.wrapS = T.RepeatWrapping;
++    map.magFilter = T.NearestFilter;
++    map.minFilter = T.LinearMipmapLinearFilter;
++    map.generateMipmaps = true;
++    map.needsUpdate = true;
++    this.ownedTextures.add(map);
++    const material = new T.MeshStandardMaterial({
++      map,
++      roughness: 0.5,
++      side: T.DoubleSide,
++      name: 'MX boundary tape',
++    });
++    const mesh = new T.Mesh(geometry, material);
++    mesh.name = 'MX boundary tape';
++    mesh.receiveShadow = true;
++    this.turf.add(mesh);
++    this.stats.tapeSpans = spans;
++  }
+   private clear(s: number, lateral: number, margin: number) {
+     const p = this.track.at(s, this.point),
+       q = this.nearby;
+@@ -337,6 +427,7 @@ export class MxCourseDressing {
+     material: T.Material,
+     poses: T.Matrix4[],
+     colours?: T.Color[],
++    parent: T.Group = this.root,
+   ) {
+     if (!poses.length) {
+       geometry.dispose();
+@@ -351,7 +442,7 @@ export class MxCourseDressing {
+     mesh.receiveShadow = true;
+     mesh.castShadow = name.includes('stones');
+     mesh.computeBoundingSphere();
+-    this.root.add(mesh);
++    parent.add(mesh);
+   }
+   private banner(s: number, lateral: number, material: T.Material, row: number) {
+     const g = new T.PlaneGeometry(8, 0.6, 16, 2);
+@@ -389,6 +480,7 @@ export class MxCourseDressing {
+         grass: mxShoulderPlantGeometry('grass'),
+         fern: mxShoulderPlantGeometry('fern'),
+         scrub: mxShoulderPlantGeometry('scrub'),
++        tuft: mxShoulderPlantGeometry('tuft'),
+       };
+     // The same low-frequency field clusters all three plant layers. Bare
+     // loam gaps and short inner tufts leave room for the outside berm line.
+@@ -533,6 +625,44 @@ export class MxCourseDressing {
+         ),
+       );
+     }
++    // Close-cropped turf along the course edge: a dense, low band that the tall
++    // grass islands above leave bare. The same grounding and clearance rules apply.
++    const tuftPoses: T.Matrix4[] = [],
++      tuftColours: T.Color[] = [];
++    for (let i = 0; i < 16000; i++) {
++      const s = random.next() * track.length,
++        side = random.next() < 0.5 ? -1 : 1,
++        p = track.at(s, this.point),
++        outer = Math.pow(random.next(), 1.6),
++        l = side * (surface.course.legalWidth(p.width, s, side) + 0.2 + outer * 3.6),
++        patch = patchAt(p.x + p.nx * l, p.z + p.nz * l);
++      if (random.next() > 0.5 + patch * 0.5 - outer * 0.25) continue;
++      // Short blades cannot hide a root hovering over the rendered facets of a
++      // crest or lip: keep to ground the one-by-half-metre grid follows closely.
++      const ground = surface.terrain,
++        bulge =
++          (ground.baseHeight(s, l - 0.5) +
++            ground.baseHeight(s, l + 0.5) +
++            ground.baseHeight(s - 1, l) +
++            ground.baseHeight(s + 1, l)) /
++            4 -
++          ground.baseHeight(s, l);
++      const slope =
++        Math.hypot(
++          ground.baseHeight(s, l + 0.25) - ground.baseHeight(s, l - 0.25),
++          ground.baseHeight(s + 0.25, l) - ground.baseHeight(s - 0.25, l),
++        ) / 0.5;
++      if (Math.abs(bulge) > 0.012 || slope > 0.2) continue;
++      if (!plantPose(s, l, 0.7 + random.next() * 0.7, 'tuft')) continue;
++      tuftPoses.push(this.object.matrix.clone());
++      tuftColours.push(
++        new T.Color().setHSL(
++          0.17 + random.next() * 0.06,
++          0.22 + random.next() * 0.14,
++          0.2 + random.next() * 0.12 + patch * 0.05,
++        ),
++      );
++    }
+     const grassMaterial = mxShoulderPlantMaterial(this.plantTime);
+     const rockMaterial = new T.MeshStandardMaterial({
+       color: 0x807a68,
+@@ -561,11 +691,29 @@ export class MxCourseDressing {
+       shrubPoses,
+       shrubColours,
+     );
++    // Their own group: the furniture root keeps its pinned submission budget.
++    this.instances(
++      'MX shoulder grass tufts',
++      plantGeometry.tuft,
++      grassMaterial,
++      tuftPoses,
++      tuftColours,
++      this.turf,
++    );
++    const tufts = tuftPoses.length
++      ? (this.turf.children.find((o) => o.name === 'MX shoulder grass tufts') as T.InstancedMesh)
++      : null;
++    if (tufts)
++      this.stopTufts = onMxDetail((high) => {
++        tufts.count = high ? tuftPoses.length : Math.floor(tuftPoses.length * 0.3);
++      });
+     this.instances('MX shoulder stones', new T.IcosahedronGeometry(1, 1), rockMaterial, stonePoses);
+-    if (!grassPoses.length && !fernPoses.length && !shrubPoses.length) grassMaterial.dispose();
++    if (!grassPoses.length && !fernPoses.length && !shrubPoses.length && !tuftPoses.length)
++      grassMaterial.dispose();
+     if (!stonePoses.length) rockMaterial.dispose();
+     this.stats.grassClumps = grassPoses.length;
+     this.stats.fernClumps = fernPoses.length;
++    this.stats.tufts = tuftPoses.length;
+     this.stats.shrubs = shrubPoses.length;
+     this.stats.stones = stonePoses.length;
+   }
+@@ -573,21 +721,26 @@ export class MxCourseDressing {
+     if (Number.isFinite(time)) this.plantTime.value = Math.max(0, time);
+   }
+   dispose() {
++    this.stopTufts?.();
++    this.stopTufts = null;
+     this.root.remove(this.trackside.root);
+     this.trackside.dispose();
+     const geometries = new Set<T.BufferGeometry>(),
+       materials = new Set<T.Material>();
+-    this.root.traverse((o) => {
++    const release = (o: T.Object3D) => {
+       if (!(o instanceof T.Mesh)) return;
+       // Instance buffers belong to the mesh, separately from shared geometry
+       // and materials; releasing only those leaves GPU instance data resident.
+       if (o instanceof T.InstancedMesh) o.dispose();
+       geometries.add(o.geometry);
+       for (const m of Array.isArray(o.material) ? o.material : [o.material]) materials.add(m);
+-    });
++    };
++    this.root.traverse(release);
++    this.turf.traverse(release);
+     geometries.forEach((g) => g.dispose());
+     materials.forEach((m) => m.dispose());
+     this.ownedTextures.forEach((t) => t.dispose());
+     this.root.clear();
++    this.turf.clear();
+   }
+ }
+diff --git a/src/rendering/offroad/mx-dust-material.ts b/src/rendering/offroad/mx-dust-material.ts
+index 97ea257..1323f31 100644
+--- a/src/rendering/offroad/mx-dust-material.ts
++++ b/src/rendering/offroad/mx-dust-material.ts
+@@ -11,6 +11,9 @@ uniform float scale;
+ attribute float mxParticleSize;
+ attribute float mxParticleAlpha;
+ attribute vec2 mxParticleShape;
++attribute float mxParticleFloor;
++varying float vMxDustHeight;
++varying float vMxDustRadius;
+ varying float vMxDustAlpha;
+ varying float vMxDustSeed;
+ varying vec3 vMxDustAmbient;
+@@ -46,6 +49,10 @@ void main() {
+   #include <project_vertex>
+   vMxDustAlpha = mxParticleAlpha * mxParticleShape.x;
+   vMxDustSeed = mxParticleShape.y;
++  // Analytic ground contact: height of the puff's centre over the soil it was
++  // thrown from and the sprite's world half-size (point size / projection).
++  vMxDustHeight = ( modelMatrix * vec4( position, 1.0 ) ).y - mxParticleFloor;
++  vMxDustRadius = 0.5 * mxParticleSize / max( projectionMatrix[ 1 ][ 1 ], 1e-3 );
+   vMxDustAmbient = vec3( 0.0 );
+   vMxDustSun = vec3( 0.0 );
+   vMxDustSunDir = vec3( 0.0 );
+@@ -113,6 +120,8 @@ void main() {
+ `;
+ 
+ const FRAGMENT = /* glsl */ `
++varying float vMxDustHeight;
++varying float vMxDustRadius;
+ varying float vMxDustAlpha;
+ varying float vMxDustSeed;
+ varying vec3 vMxDustAmbient;
+@@ -161,6 +170,13 @@ void main() {
+   float chord = sqrt( max( 0.0, 1.0 - r2 ) );
+   float density = envelope * envelope * ( 0.55 + 0.7 * lumps ) * ( 0.45 + 0.55 * chord );
+   float opacity = vMxDustAlpha * clamp( density * 1.25, 0.0, 1.0 );
++  #ifdef MX_HIGH_DETAIL
++  // A screen-facing sprite thrown from the ground would be cut by the soil
++  // along a hard line. Its lower part is the soil's own surface: fade it
++  // out below the floor it was born over (point-coord y runs downward).
++  opacity *= smoothstep( -0.02 - 0.05 * vMxDustRadius, 0.06 + 0.25 * vMxDustRadius,
++    vMxDustHeight - p.y * vMxDustRadius );
++  #endif
+   if ( opacity < 0.008 ) discard;
+   // Self-shadowed volume: a pseudo-sphere normal in view space (point-coord
+   // y runs downward). The side away from the key light darkens through the
+diff --git a/src/rendering/offroad/mx-loose-soil.ts b/src/rendering/offroad/mx-loose-soil.ts
+new file mode 100644
+index 0000000..81df8f7
+--- /dev/null
++++ b/src/rendering/offroad/mx-loose-soil.ts
+@@ -0,0 +1,298 @@
++import * as T from 'three';
++import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
++import { clamp, mod, Random } from '../../core/math.ts';
++import { TrackTerrainSurface } from '../../simulation/offroad/course-terrain.ts';
++import { Track, trackPoint } from '../../simulation/track.ts';
++import { albedoOf, installScannedMaps } from '../ground/scanned-ground.ts';
++import { chainShaderHook, injectAfter } from '../studio/shader-hooks.ts';
++import { mxCourseWearSample, sampleMxCourseWear } from './mx-course-wear.ts';
++import { onMxDetail } from './mx-quality.ts';
++
++/** Loose soil lying on the prepared surface: crumbs kicked out of the line,
++ * broken clods on berm lips, and a few pebbles. Presentation only (no
++ * collider, no contact, no effect on grip): none is larger than a fist, and
++ * those on the prepared surface are thumb-sized. None stand on the starter's
++ * pad or a jump face. Scatter is deterministic per course. */
++export interface MxLooseSoilStats {
++  clods: number;
++  stones: number;
++  chunks: number;
++}
++
++const CHUNK = 150;
++/** Share of the scatter that stays on Low and Medium. */
++const LOW_SHARE = 0.3;
++
++/** A broken, faceted clod: a displaced 80-triangle ball with its underside
++ * darkened (contact occlusion) and metre UVs for the photographed soil. */
++export function looseClodGeometry(seed: number, angular: number, flat: number) {
++  const raw = new T.IcosahedronGeometry(1, 1);
++  raw.deleteAttribute('uv');
++  raw.deleteAttribute('normal');
++  const g = mergeVertices(raw, 1e-4);
++  raw.dispose();
++  const random = new Random(seed);
++  const position = g.getAttribute('position') as T.BufferAttribute;
++  const radial = new Float32Array(position.count);
++  for (let i = 0; i < position.count; i++) radial[i] = 1 + (random.next() - 0.5) * angular;
++  const colour = new Float32Array(position.count * 3);
++  const uv = new Float32Array(position.count * 2);
++  const v = new T.Vector3();
++  for (let i = 0; i < position.count; i++) {
++    v.fromBufferAttribute(position, i).normalize().multiplyScalar(radial[i]);
++    // Squash and tilt toward a flat-topped, broad-based crumb.
++    v.y *= flat;
++    position.setXYZ(i, v.x, v.y, v.z);
++    // Occlusion: the base meets the ground, the crown is open sky.
++    const open = clamp(0.62 + 0.55 * (v.y / Math.max(flat, 0.2)), 0.38, 1);
++    colour[i * 3] = colour[i * 3 + 1] = colour[i * 3 + 2] = open;
++    uv[i * 2] = v.x + v.y * 0.37;
++    uv[i * 2 + 1] = v.z + v.y * 0.21;
++  }
++  g.setAttribute('color', new T.BufferAttribute(colour, 3));
++  g.setAttribute('uv', new T.BufferAttribute(uv, 2));
++  g.computeVertexNormals();
++  g.computeBoundingBox();
++  g.computeBoundingSphere();
++  return g;
++}
++
++interface Pose {
++  matrix: T.Matrix4;
++  colour: T.Color;
++}
++
++export class MxLooseSoil {
++  readonly root = new T.Group();
++  readonly stats: MxLooseSoilStats = { clods: 0, stones: 0, chunks: 0 };
++  private readonly clodMaterial: T.MeshStandardMaterial;
++  private stoneMaterial: T.MeshStandardMaterial | null = null;
++  private readonly meshes: { mesh: T.InstancedMesh; total: number }[] = [];
++  private readonly geometries: T.BufferGeometry[] = [];
++  private readonly clodBase: T.Color;
++  private readonly unsubscribe: () => void;
++  private readonly wet = { value: 0 };
++  constructor(private readonly track: Track) {
++    const surface = Track.offroadOf(track);
++    if (
++      !(surface instanceof TrackTerrainSurface) ||
++      !['motocross', 'supercross'].includes(surface.kind)
++    )
++      throw new Error('Loose soil needs a motocross or supercross course');
++    this.root.name = 'MX loose soil: clods and pebbles';
++    const indoor = surface.kind === 'supercross';
++    this.clodBase = new T.Color(indoor ? 0x6e5238 : 0x8f6d4b).convertSRGBToLinear();
++    this.clodMaterial = new T.MeshStandardMaterial({
++      name: 'MX loose clods',
++      color: this.clodBase.clone(),
++      roughness: 0.96,
++      vertexColors: true,
++      flatShading: true,
++    });
++    installScannedMaps(
++      this.clodMaterial,
++      'dryEarth',
++      [this.clodBase.r, this.clodBase.g, this.clodBase.b],
++      // The geometry's UVs are unit-ball coordinates; one unit is a few
++      // centimetres of the photographed set, not a metre of it.
++      0.04,
++    );
++    this.wetten(this.clodMaterial);
++    this.build(surface, indoor);
++    this.unsubscribe = onMxDetail((high) => {
++      for (const { mesh, total } of this.meshes)
++        mesh.count = high ? total : Math.floor(total * LOW_SHARE);
++    });
++  }
++  /** Damp ground darkens and glosses its loose crumbs (a uniform, not a recompile). */
++  private wetten(material: T.MeshStandardMaterial) {
++    chainShaderHook(material, 'mx-loose-soil-wet-v1', (shader) => {
++      shader.uniforms.mxLooseWet = this.wet;
++      shader.fragmentShader = `uniform float mxLooseWet;\n${shader.fragmentShader}`;
++      injectAfter(
++        shader,
++        'color_fragment',
++        'diffuseColor.rgb *= 1.0 - 0.34 * mxLooseWet;',
++        'fragment',
++      );
++      injectAfter(
++        shader,
++        'roughnessmap_fragment',
++        'roughnessFactor = mix( roughnessFactor, roughnessFactor * 0.55, mxLooseWet );',
++        'fragment',
++      );
++    });
++  }
++  /** Created with the first pebble: a venue without any (the indoor arena)
++   * registers no scanned-ground material it would never draw. */
++  private pebbles() {
++    if (!this.stoneMaterial) {
++      this.stoneMaterial = new T.MeshStandardMaterial({
++        name: 'MX loose pebbles',
++        color: 0x8c8576,
++        roughness: 0.9,
++        vertexColors: true,
++        flatShading: true,
++      });
++      installScannedMaps(this.stoneMaterial, 'rock', albedoOf(0x8c8576), 0.03);
++      this.wetten(this.stoneMaterial);
++    }
++    return this.stoneMaterial;
++  }
++  private build(surface: TrackTerrainSurface, indoor: boolean) {
++    const track = this.track,
++      course = surface.course,
++      terrain = surface.terrain,
++      random = new Random(90417),
++      point = trackPoint(),
++      here = trackPoint(),
++      nearby = trackPoint(),
++      wear = mxCourseWearSample(),
++      object = new T.Object3D();
++    const chunks = Math.ceil(track.length / CHUNK);
++    const clods: Pose[][] = Array.from({ length: chunks }, () => []);
++    const stones: Pose[][] = Array.from({ length: chunks }, () => []);
++    const lateralLimit = -terrain.lateralMin - 0.3;
++    const clear = (s: number, lateral: number) => {
++      // A vertex belongs to another section of the course (hairpin legs,
++      // parallel straights) when that one is the nearer road.
++      track.at(s, point);
++      const x = point.x + point.nx * lateral,
++        z = point.z + point.nz * lateral;
++      const l = track.nearest(x, z, nearby),
++        gap = Math.abs(mod(nearby.s - s + track.length / 2, track.length) - track.length / 2);
++      return gap < 8 || Math.abs(l) > course.legalWidth(nearby.width, nearby.s, l) + 0.4;
++    };
++    const place = (
++      list: Pose[],
++      s: number,
++      lateral: number,
++      radius: number,
++      stone: boolean,
++      tone: number,
++    ) => {
++      if (Math.abs(lateral) > lateralLimit || !clear(s, lateral)) return false;
++      track.at(s, point);
++      const x = point.x + point.nx * lateral,
++        z = point.z + point.nz * lateral;
++      const y = terrain.baseHeight(s, lateral);
++      // Sit slightly sunk; a squat crumb, a rounder pebble.
++      object.position.set(x, y + radius * (stone ? 0.2 : 0.12), z);
++      object.rotation.set(
++        (random.next() - 0.5) * 0.5,
++        random.next() * Math.PI * 2,
++        (random.next() - 0.5) * 0.5,
++      );
++      const stretch = 0.78 + random.next() * 0.47;
++      object.scale.set(radius * stretch, radius * (0.8 + random.next() * 0.35), radius / stretch);
++      object.updateMatrix();
++      const c = new T.Color().setScalar(tone);
++      // A drier crumb is paler; a freshly turned one is darker and redder.
++      c.r *= 1 + (random.next() - 0.5) * 0.12;
++      c.b *= 1 - (random.next() - 0.5) * 0.12;
++      list.push({ matrix: object.matrix.clone(), colour: c });
++      return true;
++    };
++    const step = 0.55,
++      gate = course.spec.gate;
++    for (let s = 0; s < track.length; s += step) {
++      // The starter's pad and its approach are groomed by hand.
++      if (
++        gate &&
++        Math.abs(mod(s - gate.s + track.length / 2, track.length) - track.length / 2 + 5) < 12
++      )
++        continue;
++      const chunk = Math.min(chunks - 1, Math.floor(s / CHUNK));
++      track.at(s, here);
++      sampleMxCourseWear(course, s, here.curvature, wear);
++      const face = Math.max(wear.launch, wear.landing);
++      for (const side of [-1, 1] as const) {
++        if (side === track.pit.side && track.isPitSection(s)) continue;
++        const legal = course.legalWidth(here.width, s, side);
++        const jitter = s + (random.next() - 0.5) * step;
++        // 1. Kicked out of the line: clods and crumbs along the shoulder, thick
++        // at the legal edge and thinning into the grass.
++        const outside = random.next() * random.next();
++        if (random.next() < (indoor ? 0.55 : 0.78)) {
++          const lateral = side * (legal + 0.08 + outside * 2.4);
++          const stone = !indoor && random.next() < 0.12;
++          const radius = stone
++            ? 0.011 + random.next() * random.next() * 0.03
++            : 0.012 + Math.pow(random.next(), 3) * 0.048;
++          const tone = (stone ? 0.9 : 0.78) + random.next() * 0.4;
++          place(stone ? stones[chunk] : clods[chunk], jitter, lateral, radius, stone, tone);
++        }
++        // 2. Berm lips keep the loose crumb the line's tyres threw up there.
++        const berm = wear.berm * side > 0 ? Math.abs(wear.berm) : 0;
++        if (berm > 0.15 && random.next() < 0.9 * berm) {
++          const lateral = side * (here.width * (0.8 + random.next() * 0.45));
++          place(
++            clods[chunk],
++            jitter,
++            lateral,
++            0.011 + Math.pow(random.next(), 3) * 0.045,
++            false,
++            0.85 + random.next() * 0.35,
++          );
++        }
++        // 3. Sparse small crumbs resting on the prepared surface itself,
++        // never on a jump face and never large enough to read as an obstacle.
++        if (face < 0.25 && random.next() < 0.05) {
++          const lateral = side * legal * (0.1 + random.next() * 0.8);
++          const stone = !indoor && random.next() < 0.1;
++          place(
++            stone ? stones[chunk] : clods[chunk],
++            jitter,
++            lateral,
++            0.008 + random.next() * 0.014,
++            stone,
++            (stone ? 0.95 : 0.85) + random.next() * 0.3,
++          );
++        }
++      }
++    }
++    const clodGeometry = looseClodGeometry(4711, 0.42, 0.62);
++    const stoneGeometry = looseClodGeometry(8123, 0.3, 0.7);
++    this.geometries.push(clodGeometry, stoneGeometry);
++    for (let c = 0; c < chunks; c++) {
++      for (const [poses, geometry, material, label] of [
++        [clods[c], clodGeometry, this.clodMaterial, 'clods'],
++        [stones[c], stoneGeometry, null, 'pebbles'],
++      ] as const) {
++        if (!poses.length) continue;
++        // A random order, so the Low/Medium subset is spatially uniform.
++        for (let i = poses.length - 1; i > 0; i--) {
++          const j = Math.floor(random.next() * (i + 1));
++          [poses[i], poses[j]] = [poses[j], poses[i]];
++        }
++        const mesh = new T.InstancedMesh(geometry, material ?? this.pebbles(), poses.length);
++        poses.forEach((pose, i) => {
++          mesh.setMatrixAt(i, pose.matrix);
++          mesh.setColorAt(i, pose.colour);
++        });
++        mesh.name = `MX loose ${label} ${c * CHUNK}-${(c + 1) * CHUNK} m`;
++        mesh.receiveShadow = true;
++        mesh.castShadow = false;
++        mesh.computeBoundingSphere();
++        this.root.add(mesh);
++        this.meshes.push({ mesh, total: poses.length });
++        if (label === 'clods') this.stats.clods += poses.length;
++        else this.stats.stones += poses.length;
++      }
++    }
++    this.stats.chunks = this.meshes.length;
++  }
++  /** Damp ground darkens and glosses its loose crumbs (session wetness 0..1). */
++  setWetness(wetness: number) {
++    this.wet.value = clamp(wetness, 0, 1);
++  }
++  dispose() {
++    this.unsubscribe();
++    for (const { mesh } of this.meshes) mesh.dispose();
++    for (const g of this.geometries) g.dispose();
++    this.clodMaterial.dispose();
++    this.stoneMaterial?.dispose();
++    this.root.clear();
++    this.meshes.length = 0;
++  }
++}
+diff --git a/src/rendering/offroad/mx-meadow.ts b/src/rendering/offroad/mx-meadow.ts
+new file mode 100644
+index 0000000..2427214
+--- /dev/null
++++ b/src/rendering/offroad/mx-meadow.ts
+@@ -0,0 +1,135 @@
++import * as T from 'three';
++import { mod, Random } from '../../core/math.ts';
++import { TrackTerrainSurface } from '../../simulation/offroad/course-terrain.ts';
++import { Track, trackPoint } from '../../simulation/track.ts';
++import { inStandFootprint } from '../grandstand.ts';
++import { valueNoise } from '../terrain-profile.ts';
++import { onMxDetail } from './mx-quality.ts';
++import { mxShoulderPlantGeometry, mxShoulderPlantMaterial } from './mx-shoulder-plants.ts';
++import { mxFurnitureGround, type MxFurnitureSite } from './mx-trackside-furniture.ts';
++
++/** Uncut field grass beyond the shoulder, where the photographed meadow alone
++ * left the fields flat: leaning fans of blades scattered in patches from the
++ * outer edge of the tall-grass band out to tens of metres, thinning with
++ * distance. High and Ultra only (nothing is drawn on Low and Medium). It stands
++ * on the visible ground (`mxFurnitureGround`), never on a course, a stand, or a
++ * service site. */
++export interface MxMeadowStats {
++  clumps: number;
++  chunks: number;
++}
++
++const CHUNK = 110;
++/** Metres beyond the legal edge where the field begins and ends. */
++export const MX_MEADOW_BAND = Object.freeze({ near: 5.2, far: 34 });
++const MAX_SLOPE = 0.4;
++
++export class MxMeadow {
++  readonly root = new T.Group();
++  readonly stats: MxMeadowStats = { clumps: 0, chunks: 0 };
++  private readonly time = { value: 0 };
++  private readonly meshes: T.InstancedMesh[] = [];
++  private readonly material: T.MeshStandardMaterial;
++  private readonly geometry: T.BufferGeometry;
++  private readonly unsubscribe: () => void;
++  constructor(track: Track, furniture: readonly MxFurnitureSite[] = []) {
++    const surface = Track.offroadOf(track);
++    if (!(surface instanceof TrackTerrainSurface) || surface.kind !== 'motocross')
++      throw new Error('Meadow grass needs an outdoor motocross course');
++    this.root.name = 'MX field grass';
++    this.material = mxShoulderPlantMaterial(this.time);
++    this.geometry = mxShoulderPlantGeometry('meadow');
++    const course = surface.course,
++      random = new Random(77213),
++      point = trackPoint(),
++      nearby = trackPoint(),
++      object = new T.Object3D(),
++      up = new T.Vector3(0, 1, 0),
++      normal = new T.Vector3();
++    const chunks = Math.ceil(track.length / CHUNK);
++    const poses: T.Matrix4[][] = Array.from({ length: chunks }, () => []);
++    const colours: T.Color[][] = Array.from({ length: chunks }, () => []);
++    const patchAt = (x: number, z: number) => valueNoise(x * 0.045 + 3.1, z * 0.045 - 9.4);
++    const slopeAt = (x: number, z: number) => {
++      const h = 0.5,
++        gx = (mxFurnitureGround(track, x + h, z) - mxFurnitureGround(track, x - h, z)) / (2 * h),
++        gz = (mxFurnitureGround(track, x, z + h) - mxFurnitureGround(track, x, z - h)) / (2 * h);
++      return { gx, gz };
++    };
++    for (let i = 0; i < 26000; i++) {
++      const s = random.next() * track.length,
++        side = random.next() < 0.5 ? -1 : 1;
++      const at = track.at(s, point);
++      // Denser by the shoulder, a thinning field beyond.
++      const reach = Math.pow(random.next(), 1.35);
++      const lateral =
++        side *
++        (course.legalWidth(at.width, s, side) +
++          MX_MEADOW_BAND.near +
++          reach * (MX_MEADOW_BAND.far - MX_MEADOW_BAND.near));
++      const x = at.x + at.nx * lateral,
++        z = at.z + at.nz * lateral;
++      const patch = patchAt(x, z);
++      if (random.next() > 0.18 + patch * 0.95 - reach * 0.32) continue;
++      // The nearest road must be this one, and well clear of it.
++      const l = track.nearest(x, z, nearby),
++        gap = Math.abs(mod(nearby.s - s + track.length / 2, track.length) - track.length / 2);
++      if (gap > 12) continue;
++      if (Math.abs(l) < course.legalWidth(nearby.width, nearby.s, l) + MX_MEADOW_BAND.near - 0.6)
++        continue;
++      if (inStandFootprint(track, x, z, 3)) continue;
++      if (furniture.some((site) => Math.hypot(site.x - x, site.z - z) < site.radius + 1.5))
++        continue;
++      const { gx, gz } = slopeAt(x, z);
++      if (Math.hypot(gx, gz) > MAX_SLOPE) continue;
++      normal.set(-gx, 1, -gz).normalize();
++      object.position.set(x, mxFurnitureGround(track, x, z) - 0.045, z);
++      object.quaternion.setFromUnitVectors(up, normal);
++      object.rotateY(random.next() * Math.PI * 2);
++      // Taller where the field has gone to seed, shorter at the margin.
++      object.scale.setScalar(0.75 + patch * 0.7 + random.next() * 0.35 - reach * 0.2);
++      object.updateMatrix();
++      const chunk = Math.min(chunks - 1, Math.floor(s / CHUNK));
++      poses[chunk].push(object.matrix.clone());
++      // Linear-light tints: cool fresh green to straw (setHSL reads linear).
++      colours[chunk].push(
++        new T.Color().setHSL(
++          0.15 + random.next() * 0.075 - patch * 0.02,
++          0.2 + random.next() * 0.16,
++          0.2 + random.next() * 0.1 + patch * 0.05,
++        ),
++      );
++    }
++    for (let c = 0; c < chunks; c++) {
++      if (!poses[c].length) continue;
++      const mesh = new T.InstancedMesh(this.geometry, this.material, poses[c].length);
++      poses[c].forEach((m, k) => {
++        mesh.setMatrixAt(k, m);
++        mesh.setColorAt(k, colours[c][k]);
++      });
++      mesh.name = `MX field grass ${c * CHUNK}-${(c + 1) * CHUNK} m`;
++      mesh.castShadow = false;
++      mesh.receiveShadow = true;
++      mesh.computeBoundingSphere();
++      this.root.add(mesh);
++      this.meshes.push(mesh);
++      this.stats.clumps += poses[c].length;
++    }
++    this.stats.chunks = this.meshes.length;
++    this.unsubscribe = onMxDetail((high) => {
++      this.root.visible = high;
++    });
++  }
++  /** Absolute simulation time only: a held frame is still. */
++  update(time: number) {
++    if (Number.isFinite(time)) this.time.value = Math.max(0, time);
++  }
++  dispose() {
++    this.unsubscribe();
++    for (const mesh of this.meshes) mesh.dispose();
++    this.geometry.dispose();
++    this.material.dispose();
++    this.root.clear();
++    this.meshes.length = 0;
++  }
++}
+diff --git a/src/rendering/offroad/mx-shoulder-plants.ts b/src/rendering/offroad/mx-shoulder-plants.ts
+index 07be90b..7a04310 100644
+--- a/src/rendering/offroad/mx-shoulder-plants.ts
++++ b/src/rendering/offroad/mx-shoulder-plants.ts
+@@ -2,7 +2,7 @@ import * as T from 'three';
+ import { Random } from '../../core/math.ts';
+ import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
+ 
+-export type MxPlantKind = 'grass' | 'fern' | 'scrub';
++export type MxPlantKind = 'grass' | 'fern' | 'scrub' | 'tuft' | 'meadow';
+ type Point = readonly [number, number, number];
+ 
+ /** Maximum local displacement at full tip flexibility. The culling sphere
+@@ -18,17 +18,75 @@ export function mxShoulderPlantGeometry(kind: MxPlantKind): T.BufferGeometry {
+   const position: number[] = [],
+     colour: number[] = [],
+     flexibility: number[] = [],
+-    random = new Random(kind === 'grass' ? 47033 : kind === 'fern' ? 42051 : 51047);
+-  const triangle = (a: Point, b: Point, c: Point, tip = 1) => {
++    random = new Random(
++      kind === 'grass'
++        ? 47033
++        : kind === 'fern'
++          ? 42051
++          : kind === 'tuft'
++            ? 33071
++            : kind === 'meadow'
++              ? 27119
++              : 51047,
++    );
++  const triangle = (a: Point, b: Point, c: Point, tip = 1, span = 1) => {
+     for (const p of [a, b, c]) {
+       position.push(...p);
+-      const f = Math.max(0, Math.min(1, p[1]));
++      const f = Math.max(0, Math.min(1, p[1] / span));
+       // Linear-light multipliers: shaded crown, olive body, pale dry tips.
+       colour.push(0.48 + f * 0.47 * tip, 0.59 + f * 0.34, 0.39 + f * 0.26 * tip);
+-      flexibility.push(f * f * (kind === 'grass' ? 1 : kind === 'fern' ? 0.65 : 0.35));
++      flexibility.push(
++        f *
++          f *
++          (kind === 'grass' || kind === 'tuft' || kind === 'meadow'
++            ? 1
++            : kind === 'fern'
++              ? 0.65
++              : 0.35),
++      );
+     }
+   };
+-  if (kind === 'grass') {
++  if (kind === 'meadow') {
++    // Uncut field grass seen from a few metres to a few tens: a leaning fan of
++    // eleven blades, one triangle each, 28-55 cm. Cheap enough to scatter by the
++    // thousand; individually bent so the field reads as grass, not as cards.
++    for (let i = 0; i < 11; i++) {
++      const angle = i * 2.39996 + random.next() * 0.45,
++        dx = Math.cos(angle),
++        dz = Math.sin(angle),
++        height = 0.28 + Math.pow(random.next(), 1.2) * 0.27,
++        lean = 0.05 + random.next() * 0.16,
++        base = 0.02 + random.next() * 0.1,
++        width = 0.012 + random.next() * 0.01;
++      const at = (t: number, side: number): Point => {
++        const spread = base + lean * t * t,
++          w = width * (1 - t * 0.85) * side;
++        return [dx * spread - dz * w, height * (t - 0.2 * t * t), dz * spread + dx * w];
++      };
++      triangle(at(0, -1), at(0, 1), at(1, 0), i % 4 === 0 ? 1.2 : 0.95, height * 0.8);
++    }
++  } else if (kind === 'tuft') {
++    // Short cropped turf: seven thin blades, one kinked triangle each, 8-22 cm.
++    // Many of these line the course edge where the long grass islands thin out.
++    for (let i = 0; i < 7; i++) {
++      const angle = i * 2.39996 + random.next() * 0.5,
++        dx = Math.cos(angle),
++        dz = Math.sin(angle),
++        height = 0.08 + Math.pow(random.next(), 1.4) * 0.15,
++        lean = 0.025 + random.next() * 0.07,
++        base = 0.008 + random.next() * 0.022,
++        width = 0.0075 + random.next() * 0.0055;
++      const at = (t: number, side: number): Point => {
++        const spread = base + lean * t * t,
++          w = width * (1 - t) * side;
++        return [dx * spread - dz * w, height * (t - 0.18 * t * t), dz * spread + dx * w];
++      };
++      const span = height * 0.85;
++      triangle(at(0, -1), at(0, 1), at(0.5, -0.6), i % 3 === 0 ? 1.12 : 0.9, span);
++      triangle(at(0, 1), at(0.5, 0.6), at(0.5, -0.6), 1, span);
++      triangle(at(0.5, -0.6), at(0.5, 0.6), at(1, 0), 1, span);
++    }
++  } else if (kind === 'grass') {
+     for (let i = 0; i < 9; i++) {
+       const angle = i * 2.39996 + random.next() * 0.36,
+         dx = Math.cos(angle),
+diff --git a/src/rendering/offroad/mx-soil-detail.ts b/src/rendering/offroad/mx-soil-detail.ts
+index 4a63041..3accba0 100644
+--- a/src/rendering/offroad/mx-soil-detail.ts
++++ b/src/rendering/offroad/mx-soil-detail.ts
+@@ -22,6 +22,20 @@ varying vec4 vMxCourse;
+ varying float vMxCourseWidth;
+ varying vec4 vMxCourseWear;
+ uniform float mxCourseLength;
++// Screen footprint of the course coordinates (set per fragment, uniform flow).
++// Every filter below reads this, never a derivative of a parallax-shifted
++// coordinate, which would spike wherever the relief march changes its hit.
++vec2 mxFp = vec2( 0.001 );
++// High/Ultra relief march (mx-soil-parallax.ts): course-space shift of the
++// shaded point, tangent-space slope of the groove height, self-shadow and
++// cavity. All stay neutral where that hook is absent or gated off.
++vec2 mxPomShift = vec2( 0.0 );
++vec2 mxPomSlope = vec2( 0.0 );
++vec3 mxPomT = vec3( 1.0, 0.0, 0.0 );
++vec3 mxPomS = vec3( 0.0, 0.0, 1.0 );
++float mxPomOn = 0.0;
++float mxPomShadow = 1.0;
++float mxPomCavity = 0.0;
+ float mxPreparedGroove = 0.0;
+ float mxPreparedRelief = 0.0;
+ float mxPreparedWet = 0.0;
+@@ -55,35 +69,46 @@ float mxTrafficNoise( float station, float frequency, float seed ) {
+ // compact support ends before a lane can leave that neighbourhood.
+ // The narrow cut, displaced lip, broad packed swathe and cleats are separate
+ // scales. Real widths prevent both railway stripes and enlarged tire prints.
+-vec4 mxWheelPass( vec2 p, float lane, float spacing, float corner, float pixel ) {
++struct MxLane { float centre; float width; float pressure; float spread; float variation; };
++// One passage's lateral centre, width and pressure at a station. Separate
++// from the profile so the relief march can evaluate the three neighbouring
++// passages once per fragment and then only their cheap cross-section.
++MxLane mxLaneAt( float y, float lane, float spacing, float corner ) {
+   float seed = lane * 9.73 + 41.0;
+   float variation = mxSoilHash( vec2( lane, 18.7 ) );
+   float loadedFace = max( vMxCourseWear.x, vMxCourseWear.y );
+   // Riders arrive and leave a jump in straighter passages than a corner.
+   // Drift returns continuously as the landing fans back into the lap.
+-  float drift = ( mxTrafficNoise( p.y, 0.093, seed ) - 0.5 ) * spacing * 0.94
++  float drift = ( mxTrafficNoise( y, 0.093, seed ) - 0.5 ) * spacing * 0.94
+     * ( 1.0 - loadedFace * 0.65 );
+-  float centre = ( lane + ( variation - 0.5 ) * 0.27 ) * spacing + drift;
+-  float d = abs( p.x - centre );
+-  float width = ( 0.068 + 0.046 * variation ) * ( 1.0 + abs( corner ) * 0.46 );
+-  float pressure = smoothstep( 0.26, 0.72, mxTrafficNoise( p.y, 0.20, seed + 3.0 ) );
++  MxLane l;
++  l.centre = ( lane + ( variation - 0.5 ) * 0.27 ) * spacing + drift;
++  l.width = ( 0.068 + 0.046 * variation ) * ( 1.0 + abs( corner ) * 0.46 );
++  float pressure = smoothstep( 0.26, 0.72, mxTrafficNoise( y, 0.20, seed + 3.0 ) );
+   pressure = mix( pressure, 0.66 + pressure * 0.34, loadedFace * 0.82 );
+   pressure *= 1.0 - vMxCourseWear.z * 0.66;
+-  float spread = 0.29 + 0.20 * mxTrafficNoise( p.y, 0.11, seed + 8.0 );
+-  float edge = max( pixel, fwidth( d ) );
++  l.pressure = pressure;
++  l.spread = 0.29 + 0.20 * mxTrafficNoise( y, 0.11, seed + 8.0 );
++  l.variation = variation;
++  return l;
++}
++vec4 mxWheelPassL( MxLane lane, vec2 p, float spacing, vec2 fp ) {
++  float width = lane.width;
++  float d = abs( p.x - lane.centre );
++  float edge = max( fp.x, 0.001 ) + 0.1 * fp.y;
+   float resolved = 1.0 - smoothstep( width * 0.7, width * 3.5, edge );
+   float core = ( 1.0 - smoothstep( width * 0.20, width + edge, d ) ) * resolved;
+   float lip = ( 1.0 - smoothstep( 0.025, 0.075 + edge,
+     abs( d - width * 1.48 ) ) ) * resolved;
+-  float pass = ( 1.0 - smoothstep( 0.09, spread + edge, d ) )
++  float pass = ( 1.0 - smoothstep( 0.09, lane.spread + edge, d ) )
+     * ( 1.0 - smoothstep( 0.36, 1.1, edge ) );
+   // Cleats belong to this curved passage and each pass has its own phase.
+   // Three staggered lug rows leave a pressed impression, not a painted line.
+-  float across = ( p.x - centre ) / width;
++  float across = ( p.x - lane.centre ) / width;
+   float column = floor( across * 1.5 );
+-  float phase = p.y * floor( mxCourseLength * 8.2 ) / mxCourseLength
+-    + variation * 7.0 + mod( column, 2.0 ) * 0.5;
+-  float cleatPixel = fwidth( phase );
++  float cleatRate = floor( mxCourseLength * 8.2 ) / mxCourseLength;
++  float phase = p.y * cleatRate + lane.variation * 7.0 + mod( column, 2.0 ) * 0.5;
++  float cleatPixel = fp.y * cleatRate + 0.5 * min( 1.0, fp.x * 1.5 / width );
+   float cleat = ( 1.0 - smoothstep( 0.12, 0.27 + cleatPixel,
+     abs( fract( phase ) - 0.5 ) ) ) * core
+     * ( 1.0 - smoothstep( 0.3, 0.85, cleatPixel ) );
+@@ -91,8 +116,62 @@ vec4 mxWheelPass( vec2 p, float lane, float spacing, float corner, float pixel )
+   // keeps the three-neighbour evaluation continuous when its index changes,
+   // even if the pixel filter broadens a distant passage.
+   float support = 1.0 - smoothstep( spacing * 0.70, spacing * 0.82, d );
+-  return vec4( core * pressure, lip * pressure,
+-    pass * ( 0.24 + 0.76 * pressure ), cleat * pressure ) * support;
++  return vec4( core * lane.pressure, lip * lane.pressure,
++    pass * ( 0.24 + 0.76 * lane.pressure ), cleat * lane.pressure ) * support;
++}
++vec4 mxWheelPass( vec2 p, float lane, float spacing, float corner, vec2 fp ) {
++  return mxWheelPassL( mxLaneAt( p.y, lane, spacing, corner ), p, spacing, fp );
++}
++// The authored half-width carries traffic out to the broad MX/SX lines;
++// a fixed five-pass pattern previously left the outer half almost blank.
++// Cornering shifts and compresses the family toward its outside bank.
++struct MxFrame { float spacing; float corner; float halfWidth; float berm; float wallSide; };
++MxFrame mxFrameAt() {
++  MxFrame f;
++  f.halfWidth = max( vMxCourseWidth, 1.0 );
++  f.berm = abs( vMxCourseWear.w );
++  f.wallSide = sign( vMxCourseWear.w );
++  f.corner = mix( vMxCourse.w, -f.wallSide, f.berm * 0.6 );
++  f.spacing = clamp( f.halfWidth * 0.19, 0.88, 1.22 )
++    * ( 1.0 - abs( f.corner ) * 0.10 )
++    * ( 1.0 - vMxCourseWear.x * 0.045 - vMxCourseWear.y * 0.035 );
++  return f;
++}
++vec2 mxTrafficPos( vec2 p, vec2 fp, MxFrame f ) {
++  float shift = -f.corner * f.halfWidth * 0.16
++    + ( mxTrafficNoise( p.y, 0.027, 6.4 ) - 0.5 ) * 0.46;
++  vec2 traffic = vec2( p.x - shift, p.y );
++  // Torn soil edges are millimetres/centimetres, subordinate to the tyre
++  // width. Fade this breakup before its frequency becomes sub-pixel.
++  float tearFade = 1.0 - smoothstep( 0.025, 0.12, length( fp ) );
++  float tearAcross = floor( p.x * 5.0 );
++  float tearBlend = fract( p.x * 5.0 );
++  tearBlend = tearBlend * tearBlend * ( 3.0 - 2.0 * tearBlend );
++  float tear = mix( mxTrafficNoise( p.y, 1.7, tearAcross + 73.0 ),
++    mxTrafficNoise( p.y, 1.7, tearAcross + 74.0 ), tearBlend );
++  traffic.x += ( tear - 0.5 ) * 0.055 * tearFade;
++  return traffic;
++}
++float mxShoulder( vec2 p, MxFrame f ) {
++  float wallAcross = p.x * f.wallSide / f.halfWidth;
++  float bermWidth = f.berm * smoothstep( 0.25, 0.75, wallAcross );
++  return 1.0 - smoothstep( f.halfWidth * 0.76 + bermWidth * 0.45,
++    f.halfWidth + 0.35 + bermWidth * 0.4, abs( p.x ) );
++}
++vec4 mxPassesTraffic( vec2 p, vec2 traffic, vec2 fp, MxFrame f, MxLane a, MxLane b, MxLane c ) {
++  vec4 passes = mxWheelPassL( a, traffic, f.spacing, fp );
++  passes = max( passes, mxWheelPassL( b, traffic, f.spacing, fp ) );
++  passes = max( passes, mxWheelPassL( c, traffic, f.spacing, fp ) );
++  return passes * mxShoulder( p, f );
++}
++vec4 mxPassesAt( vec2 p, vec2 fp ) {
++  MxFrame f = mxFrameAt();
++  vec2 traffic = mxTrafficPos( p, fp, f );
++  float lane = floor( traffic.x / f.spacing + 0.5 );
++  return mxPassesTraffic( p, traffic, fp, f,
++    mxLaneAt( p.y, lane - 1.0, f.spacing, f.corner ),
++    mxLaneAt( p.y, lane, f.spacing, f.corner ),
++    mxLaneAt( p.y, lane + 1.0, f.spacing, f.corner ) );
+ }
+ `;
+ 
+@@ -101,47 +180,27 @@ const COLOUR = /* glsl */ `{
+   // a fixed five-pass pattern previously left the outer half almost blank.
+   // Cornering shifts and compresses the family toward its outside bank.
+   // These are prepared traffic marks, never an ideal-line or grip override.
+-  vec2 p = vMxCourse.xy;
++  // The footprint comes from the unshifted coordinates; the shaded point may
++  // carry the High/Ultra relief-march parallax (zero otherwise).
++  vec2 fp = fwidth( vMxCourse.xy );
++  mxFp = fp;
++  vec2 p = vMxCourse.xy + mxPomShift;
+   float onSoil = clamp( vMxCourse.z, 0.0, 1.0 );
+-  float pixel = max( fwidth( p.x ), 0.001 );
+   float halfWidth = max( vMxCourseWidth, 1.0 );
+   float berm = abs( vMxCourseWear.w );
+   float wallSide = sign( vMxCourseWear.w );
+   float wallAcross = p.x * wallSide / halfWidth;
+-  float corner = mix( vMxCourse.w, -wallSide, berm * 0.6 );
+-  float spacing = clamp( halfWidth * 0.19, 0.88, 1.22 )
+-    * ( 1.0 - abs( corner ) * 0.10 )
+-    * ( 1.0 - vMxCourseWear.x * 0.045 - vMxCourseWear.y * 0.035 );
+-  float shift = -corner * halfWidth * 0.16
+-    + ( mxTrafficNoise( p.y, 0.027, 6.4 ) - 0.5 ) * 0.46;
+-  vec2 traffic = vec2( p.x - shift, p.y );
+-  // Torn soil edges are millimetres/centimetres, subordinate to the tyre
+-  // width. Fade this breakup before its frequency becomes sub-pixel.
+-  float tearFade = 1.0 - smoothstep( 0.025, 0.12, length( fwidth( p ) ) );
+-  float tearAcross = floor( p.x * 5.0 );
+-  float tearBlend = fract( p.x * 5.0 );
+-  tearBlend = tearBlend * tearBlend * ( 3.0 - 2.0 * tearBlend );
+-  float tear = mix( mxTrafficNoise( p.y, 1.7, tearAcross + 73.0 ),
+-    mxTrafficNoise( p.y, 1.7, tearAcross + 74.0 ), tearBlend );
+-  traffic.x += ( tear - 0.5 ) * 0.055 * tearFade;
+-  float lane = floor( traffic.x / spacing + 0.5 );
+-  vec4 passes = mxWheelPass( traffic, lane - 1.0, spacing, corner, pixel );
+-  passes = max( passes, mxWheelPass( traffic, lane, spacing, corner, pixel ) );
+-  passes = max( passes, mxWheelPass( traffic, lane + 1.0, spacing, corner, pixel ) );
+-  float bermWidth = berm * smoothstep( 0.25, 0.75, wallAcross );
+-  float shoulder = 1.0 - smoothstep( halfWidth * 0.76 + bermWidth * 0.45,
+-    halfWidth + 0.35 + bermWidth * 0.4, abs( p.x ) );
+-  passes *= shoulder;
++  vec4 passes = mxPassesAt( p, fp );
+   float broad = mxSoilNoise( p * vec2( 0.3, 0.085 ) );
+   float broken = mxSoilNoise( p * vec2( 2.1, 0.67 ) );
+   float wander = 0.045 * sin( p.y * 0.24 ) + ( broad - 0.5 ) * 0.16;
+   float rakePhase = ( p.x + wander ) * 5.6;
+-  float rakeWidth = fwidth( rakePhase );
++  float rakeWidth = ( fp.x + 0.1 * fp.y ) * 5.6;
+   float rake = ( 1.0 - smoothstep( 0.045, 0.16 + rakeWidth,
+     abs( fract( rakePhase ) - 0.5 ) ) )
+     * ( 1.0 - smoothstep( 0.32, 0.9, rakeWidth ) );
+   float tread = passes.w;
+-  float aggregateFade = 1.0 - smoothstep( 0.035, 0.12, length( fwidth( p ) ) );
++  float aggregateFade = 1.0 - smoothstep( 0.035, 0.12, length( fp ) );
+   float aggregate = smoothstep( 0.63, 0.84, mxSoilNoise( p * 19.0 ) ) * aggregateFade;
+   // A bank's lower ridden shelf is pressed, while the upper lip retains
+   // pale loose crumbs. The side and span come from the physical wall,
+@@ -163,9 +222,12 @@ const COLOUR = /* glsl */ `{
+     ( 0.35 + 0.65 * mxTrafficNoise( p.y, 0.48, 91.0 ) );
+   // Centimetre-scale skin only. The existing deformed CourseTerrain mesh
+   // continues to own every jump, braking bump, wheel contact and shadow.
++  // Where the relief march owns the groove and lip profile (mxPomOn), its
++  // analytic slope replaces their bump; the rest stays a shading skin.
++  float grooveBump = 1.0 - mxPomOn;
+   mxPreparedRelief = onSoil * ( 0.0045 * rakeUnridden
+-    - 0.020 * passes.x - 0.006 * passes.z + 0.009 * passes.y - 0.0035 * tread
+-    - 0.005 * touchdown )
++    - 0.020 * passes.x * grooveBump - 0.006 * passes.z + 0.009 * passes.y * grooveBump
++    - 0.0035 * tread - 0.005 * touchdown )
+     + 0.003 * mxPreparedAggregate;
+   mxPreparedWet = clamp( vApexSoil.x + apexSoilWetness, 0.0, 1.0 );
+   // Drained, sun-dried crests and lips keep a pale skin of loose fines.
+diff --git a/src/rendering/offroad/mx-soil-morphology.ts b/src/rendering/offroad/mx-soil-morphology.ts
+index f65e3b9..28a1129 100644
+--- a/src/rendering/offroad/mx-soil-morphology.ts
++++ b/src/rendering/offroad/mx-soil-morphology.ts
+@@ -34,7 +34,9 @@ vec2 mxSoilFragment( vec2 p, float frequency ) {
+   float d = mix( length( local ),
+     max( abs( local.x ) + abs( local.y ) * 0.28,
+          abs( local.y ) + abs( local.x ) * 0.28 ), 0.7 );
+-  float footprint = max( length( fwidth( q ) ), 0.001 );
++  // Footprint of the unshifted coordinates (mxFp), widened for the warp above:
++  // a derivative of q itself would spike where the relief march moves its hit.
++  float footprint = max( length( mxFp ) * frequency * 1.3, 0.001 );
+   float edge = 0.035 + footprint * 0.65;
+   float top = 1.0 - smoothstep( radius * 0.38, radius + edge, d );
+   float skirt = 1.0 - smoothstep( edge, edge + 0.045, abs( d - radius ) );
+@@ -47,7 +49,7 @@ const COLOUR = /* glsl */ `{
+   vec4 soil = clamp( vMxSoilMix, 0.0, 1.0 );
+   float onSoil = clamp( vMxCourse.z, 0.0, 1.0 );
+   float gravel = max( 0.0, onSoil - dot( soil, vec4( 1.0 ) ) );
+-  vec2 p = vMxCourse.xy;
++  vec2 p = vMxCourse.xy + mxPomShift;
+   float broad = mxSoilNoise( p * vec2( 0.7, 0.37 ) + 17.0 );
+   float dry = 1.0 - smoothstep( 0.42, 0.85, mxPreparedWet );
+   float loose = 1.0 - mxPreparedPacked * 0.8;
+@@ -66,7 +68,7 @@ const COLOUR = /* glsl */ `{
+   float crumb = clod.x * clodAmount * loose;
+   float chip = chips.x * chipAmount * ( 0.3 + loose * 0.7 );
+   float pore = clod.y * clodAmount * loose + chips.y * chipAmount * 0.45;
+-  float grainFade = 1.0 - smoothstep( 0.018, 0.075, length( fwidth( p ) ) );
++  float grainFade = 1.0 - smoothstep( 0.018, 0.075, length( mxFp ) );
+   float sandGrain = ( mxSoilNoise( p * 32.0 + 4.8 ) - 0.5 ) * grainFade * soil.z;
+   mxMorphRelief = crumb * 0.011 + chip * 0.0035 + sandGrain * 0.002
+     - pore * 0.0018;
+diff --git a/src/rendering/offroad/mx-soil-parallax.ts b/src/rendering/offroad/mx-soil-parallax.ts
+new file mode 100644
+index 0000000..8d96829
+--- /dev/null
++++ b/src/rendering/offroad/mx-soil-parallax.ts
+@@ -0,0 +1,170 @@
++import type * as T from 'three';
++import { chainShaderHook, injectAfter, injectBefore } from '../studio/shader-hooks.ts';
++import { gateMxDetail } from './mx-quality.ts';
++
++export const MX_SOIL_PARALLAX_HOOK = 'mx-soil-relief-march-v1';
++
++/** Wheel passage relief, metres. The cross-section is the one the prepared
++ * soil already paints (`mxPassesAt`: core, displaced lip); only its height is
++ * new. A tyre cuts a few centimetres into loam, less into hardpack. */
++export const MX_RUT_CUT = 0.045;
++export const MX_RUT_LIP = 0.012;
++
++const DECLARATIONS = /* glsl */ `
++// Height of the prepared passages above the mesh surface at course point p:
++// the cut is negative, the displaced lip positive. Lane parameters are fixed
++// for the fragment, so each sample costs only the cross-sections and the tear.
++float mxRutHeightAt( vec2 p, vec2 fp, MxFrame f, MxLane a, MxLane b, MxLane c, float soft ) {
++  vec4 q = mxPassesTraffic( p, mxTrafficPos( p, fp, f ), fp, f, a, b, c );
++  return ${(-MX_RUT_CUT).toFixed(4)} * soft * q.x + ${MX_RUT_LIP.toFixed(4)} * q.y;
++}
++`;
++
++/** Relief march ahead of the colour chunk. Every derivative is taken before
++ * the first divergent branch; the march itself is derivative free. */
++const MARCH = /* glsl */ `
++#ifdef MX_HIGH_DETAIL
++{
++  vec3 pomPos = -vViewPosition;
++  vec3 pomDx = dFdx( pomPos ), pomDy = dFdy( pomPos );
++  vec2 pomCx = dFdx( vMxCourse.xy ), pomCy = dFdy( vMxCourse.xy );
++  vec2 pomFp = fwidth( vMxCourse.xy );
++  mxFp = pomFp;
++  float pomDet = pomCx.x * pomCy.y - pomCx.y * pomCy.x;
++  float pomFade = ( 1.0 - smoothstep( 14.0, 34.0, length( vViewPosition ) ) )
++    * clamp( vMxCourse.z, 0.0, 1.0 );
++  mxPomOn = pomFade;
++  if ( pomFade > 0.01 && abs( pomDet ) > 1e-10 ) {
++    // Surface tangents per metre of lateral / station: the course frame in view space.
++    vec3 pomTl = ( pomDx * pomCy.y - pomDy * pomCx.y ) / pomDet;
++    vec3 pomTs = ( pomDy * pomCx.x - pomDx * pomCy.x ) / pomDet;
++    mat3 pomFrame = mat3( pomTl, pomTs, normalize( vNormal ) );
++    if ( abs( determinant( pomFrame ) ) > 1e-5 ) {
++      mat3 pomInv = inverse( pomFrame );
++      vec3 pomView = pomInv * normalize( vViewPosition );
++      // Course-space slide per metre of height along the eye ray, limited at
++      // grazing angles so a near-horizontal ray cannot sweep the whole lane.
++      vec2 pomDir = pomView.xy / max( pomView.z, 0.09 );
++      float pomLen = length( pomDir );
++      pomDir *= min( 1.0, 6.0 / max( pomLen, 1e-4 ) );
++      pomLen = min( pomLen, 6.0 );
++      MxFrame pomF = mxFrameAt();
++      vec2 pomP0 = vMxCourse.xy;
++      vec2 pomT0 = mxTrafficPos( pomP0, pomFp, pomF );
++      float pomLane = floor( pomT0.x / pomF.spacing + 0.5 );
++      MxLane pomA = mxLaneAt( pomP0.y, pomLane - 1.0, pomF.spacing, pomF.corner );
++      MxLane pomB = mxLaneAt( pomP0.y, pomLane, pomF.spacing, pomF.corner );
++      MxLane pomC = mxLaneAt( pomP0.y, pomLane + 1.0, pomF.spacing, pomF.corner );
++      float pomEdge = max( pomFp.x, 0.001 ) + 0.1 * pomFp.y;
++      // Distance from this fragment to the nearest passage's lip, less its reach.
++      float pomNear = min( min(
++        abs( pomT0.x - pomA.centre ) - pomA.width * 1.48,
++        abs( pomT0.x - pomB.centre ) - pomB.width * 1.48 ),
++        abs( pomT0.x - pomC.centre ) - pomC.width * 1.48 ) - 0.075 - pomEdge;
++      float pomReach = pomLen * ( ${(MX_RUT_CUT + MX_RUT_LIP).toFixed(3)} ) + 0.02;
++      if ( pomView.z > 0.05 && pomNear < pomReach ) {
++        // Softer ground (loam, sand, damp) takes a deeper cut than hardpack.
++        float pomMix = dot( clamp( vMxSoilMix, 0.0, 1.0 ), vec4( 1.0 ) );
++        float pomSoft = pomMix > 0.02
++          ? dot( clamp( vMxSoilMix, 0.0, 1.0 ), vec4( 0.55, 1.0, 0.78, 0.92 ) ) / pomMix
++          : 0.7;
++        pomSoft *= 0.82 + 0.4 * clamp( vApexSoil.x + apexSoilWetness, 0.0, 1.0 );
++        pomSoft *= 1.0 - 0.5 * smoothstep( 0.02, 0.08, vApexSoil.z );
++        float pomTop = ${MX_RUT_LIP.toFixed(4)};
++        float pomBottom = ${(-MX_RUT_CUT - 0.004).toFixed(4)};
++        int pomSteps = 8 + int( 8.0 * clamp( pomLen / 5.0, 0.0, 1.0 ) );
++        float pomStep = ( pomTop - pomBottom ) / float( pomSteps );
++        float pomUp = pomTop, pomDown = pomBottom;
++        bool pomFound = false;
++        for ( int i = 1; i <= 16; i++ ) {
++          if ( i > pomSteps ) break;
++          float z = pomTop - pomStep * float( i );
++          if ( z - mxRutHeightAt( pomP0 + z * pomDir, pomFp, pomF, pomA, pomB, pomC, pomSoft ) <= 0.0 ) {
++            pomDown = z;
++            pomFound = true;
++            break;
++          }
++          pomUp = z;
++        }
++        float pomZ = 0.0;
++        if ( pomFound ) {
++          for ( int k = 0; k < 3; k++ ) {
++            float zm = 0.5 * ( pomUp + pomDown );
++            if ( zm - mxRutHeightAt( pomP0 + zm * pomDir, pomFp, pomF, pomA, pomB, pomC, pomSoft ) > 0.0 ) pomUp = zm;
++            else pomDown = zm;
++          }
++          pomZ = 0.5 * ( pomUp + pomDown );
++        }
++        vec2 pomHit = pomP0 + pomZ * pomDir;
++        mxPomShift = pomZ * pomDir * pomFade;
++        // Analytic cross-section slope at the hit, not a screen derivative of
++        // shaded values (which would blow up where the ray grazes a wall).
++        float pomH1 = mxRutHeightAt( pomHit + vec2( 0.012, 0.0 ), pomFp, pomF, pomA, pomB, pomC, pomSoft );
++        float pomH0 = mxRutHeightAt( pomHit - vec2( 0.012, 0.0 ), pomFp, pomF, pomA, pomB, pomC, pomSoft );
++        mxPomSlope = vec2( ( pomH1 - pomH0 ) / 0.024, 0.0 ) * pomFade;
++        mxPomT = normalize( pomTl );
++        mxPomS = normalize( pomTs );
++        float pomDepth = max( -pomZ, 0.0 );
++        mxPomCavity = smoothstep( 0.0, ${MX_RUT_CUT.toFixed(3)}, pomDepth ) * 0.6 * pomFade;
++        #if NUM_DIR_LIGHTS > 0
++        vec3 pomSun = pomInv * directionalLights[ 0 ].direction;
++        if ( pomSun.z > 0.06 && pomZ < ${MX_RUT_LIP.toFixed(4)} * 0.5 ) {
++          vec2 pomLs = pomSun.xy / pomSun.z;
++          pomLs *= min( 1.0, 6.0 / max( length( pomLs ), 1e-4 ) );
++          float pomOcc = 0.0;
++          for ( int j = 1; j <= 6; j++ ) {
++            float zz = pomZ + ( pomTop - pomZ ) * float( j ) / 6.0;
++            float blocker = mxRutHeightAt( pomHit + ( zz - pomZ ) * pomLs, pomFp, pomF, pomA, pomB, pomC, pomSoft ) - zz;
++            pomOcc = max( pomOcc, blocker * 30.0 );
++          }
++          mxPomShadow = 1.0 - clamp( pomOcc, 0.0, 1.0 ) * 0.85 * pomFade;
++        }
++        #endif
++        #ifdef APEX_SCAN
++        // The photographed soil is mapped in world space: slide it by the
++        // same surface shift so grain and tread follow the groove.
++        vec3 pomShiftView = pomTl * mxPomShift.x + pomTs * mxPomShift.y;
++        apexSoilShift = ( pomShiftView * mat3( viewMatrix ) ).xz;
++        #endif
++      }
++    }
++  }
++}
++#endif
++`;
++
++/** High/Ultra relief march for the prepared passages of a motocross or
++ * supercross soil. The tyre cuts and displaced lips that the soil detail
++ * paints are given real depth by marching the eye ray through their analytic
++ * cross-section (about twenty cheap samples a fragment, none where no
++ * passage is near), then shading at the point the ray reaches: the near
++ * wall hides, the far wall shows, the grain slides, the groove floor sits in
++ * its own shadow and cavity. Geometry, the physics ruts and lap closure are
++ * untouched; Low and Medium keep the painted version. Needs the soil detail
++ * and morphology hooks. */
++export function installMxSoilParallax(material: T.MeshPhysicalMaterial) {
++  gateMxDetail(material);
++  return chainShaderHook(material, MX_SOIL_PARALLAX_HOOK, (shader) => {
++    injectAfter(shader, 'common', DECLARATIONS, 'fragment');
++    injectBefore(shader, 'color_fragment', MARCH, 'fragment');
++    injectAfter(
++      shader,
++      'normal_fragment_maps',
++      `#ifdef MX_HIGH_DETAIL
++      normal = normalize( normal - mxPomSlope.x * mxPomT - mxPomSlope.y * mxPomS );
++      #endif`,
++      'fragment',
++    );
++    injectAfter(
++      shader,
++      'lights_fragment_end',
++      `#ifdef MX_HIGH_DETAIL
++      reflectedLight.directDiffuse *= mxPomShadow;
++      reflectedLight.directSpecular *= mxPomShadow;
++      reflectedLight.indirectDiffuse *= 1.0 - mxPomCavity * 0.45;
++      reflectedLight.indirectSpecular *= 1.0 - mxPomCavity * 0.35;
++      #endif`,
++      'fragment',
++    );
++  });
++}
+diff --git a/src/rendering/offroad/mx-spectators.ts b/src/rendering/offroad/mx-spectators.ts
+new file mode 100644
+index 0000000..7a847d8
+--- /dev/null
++++ b/src/rendering/offroad/mx-spectators.ts
+@@ -0,0 +1,376 @@
++import * as T from 'three';
++import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
++import { clamp, mod, Random } from '../../core/math.ts';
++import { TrackTerrainSurface } from '../../simulation/offroad/course-terrain.ts';
++import { Track, trackPoint } from '../../simulation/track.ts';
++import { installCrowdShader, spectatorGeometry, spectatorVariation } from '../crowd.ts';
++import { inStandFootprint } from '../grandstand.ts';
++import { tagWeatherSurface } from '../weather-presentation.ts';
++import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
++import { onMxDetail } from './mx-quality.ts';
++import { mxFurnitureGround, type MxFurnitureSite } from './mx-trackside-furniture.ts';
++
++/** Who stands where at an outdoor motocross: groups of onlookers behind the
++ * tape at the jumps, the start and the turns, and a flag marshal at each
++ * marshal post. Presentation only: nobody stands on the course, in a rider's
++ * run-off, in the stands' footprint or among the service furniture, and the
++ * simulation never sees them. Deterministic per course. */
++export interface MxSpectatorPlacement {
++  kind: 'spectator' | 'marshal';
++  x: number;
++  y: number;
++  z: number;
++  /** Yaw about +Y of the local +Z facing, toward the course. */
++  yaw: number;
++  station: number;
++  side: 1 | -1;
++}
++
++/** Lateral clearance beyond the legal edge (m): tape, then the run-off a
++ * rider may use when a line goes wide. */
++export const MX_SPECTATOR_SETBACK = 3.2;
++const MAX_SLOPE = 0.32;
++/** Share kept on Low and Medium. */
++const LOW_SHARE = 0.35;
++
++export function planMxSpectators(track: Track, furniture: readonly MxFurnitureSite[]) {
++  const surface = Track.offroadOf(track);
++  if (!(surface instanceof TrackTerrainSurface) || surface.kind !== 'motocross')
++    return { placements: [] as MxSpectatorPlacement[], groups: 0 };
++  const course = surface.course,
++    random = new Random(60217),
++    point = trackPoint(),
++    nearby = trackPoint(),
++    placements: MxSpectatorPlacement[] = [];
++  const taken: { x: number; z: number }[] = [];
++  const slope = (x: number, z: number) => {
++    const h = 0.4;
++    return (
++      Math.hypot(
++        mxFurnitureGround(track, x + h, z) - mxFurnitureGround(track, x - h, z),
++        mxFurnitureGround(track, x, z + h) - mxFurnitureGround(track, x, z - h),
++      ) /
++      (2 * h)
++    );
++  };
++  const accept = (
++    x: number,
++    z: number,
++    kind: 'spectator' | 'marshal',
++    spacing: number,
++    stationHint: number,
++    own?: MxFurnitureSite,
++  ) => {
++    const lateral = track.nearest(x, z, nearby),
++      gap = Math.abs(
++        mod(nearby.s - stationHint + track.length / 2, track.length) - track.length / 2,
++      );
++    // The nearest road must be the one this viewpoint was chosen for, and the
++    // person must be well outside it (and its legal edge, jumps' side fall-away).
++    if (gap > 10) return null;
++    // Marshals stand at the tape beside their post; onlookers further back.
++    const setback = kind === 'marshal' ? 0.9 : MX_SPECTATOR_SETBACK;
++    if (Math.abs(lateral) < course.legalWidth(nearby.width, nearby.s, lateral) + setback)
++      return null;
++    if (
++      inStandFootprint(track, x, z, 3) ||
++      (track.isPitSection(nearby.s) && lateral * track.pit.side > 0)
++    )
++      return null;
++    for (const site of furniture)
++      if (site !== own && Math.hypot(site.x - x, site.z - z) < site.radius + 0.7) return null;
++    for (const other of taken) if (Math.hypot(other.x - x, other.z - z) < spacing) return null;
++    if (slope(x, z) > MAX_SLOPE) return null;
++    // Face the nearest part of the course, with a little individual drift.
++    const toward = Math.atan2(nearby.x - x, nearby.z - z);
++    taken.push({ x, z });
++    return {
++      kind,
++      x,
++      y: mxFurnitureGround(track, x, z),
++      z,
++      yaw: toward + (random.next() - 0.5) * (kind === 'marshal' ? 0.25 : 0.9),
++      station: nearby.s,
++      side: (lateral < 0 ? -1 : 1) as 1 | -1,
++    } satisfies MxSpectatorPlacement;
++  };
++  // Viewpoints: where an event draws a crowd.
++  const views: { s: number; side: 1 | -1 | 0; size: number }[] = [];
++  for (const jump of course.jumps) {
++    views.push({ s: jump.landing + 2, side: 0, size: 7 + Math.floor(random.next() * 5) });
++    if (random.next() < 0.7)
++      views.push({ s: jump.takeoff - 3, side: 0, size: 4 + Math.floor(random.next() * 5) });
++  }
++  const gate = course.spec.gate;
++  if (gate) {
++    views.push({ s: gate.s - 20, side: 0, size: 7 }, { s: gate.s - 8, side: 0, size: 6 });
++    views.push({ s: gate.holeshot, side: 0, size: 6 });
++  }
++  for (let s = 20; s < track.length - 10; s += 24 + random.next() * 18)
++    views.push({ s, side: 0, size: 3 + Math.floor(random.next() * 5) });
++  let groups = 0;
++  for (const view of views) {
++    const side = view.side || (random.next() < 0.5 ? -1 : 1);
++    const at = track.at(mod(view.s, track.length), point);
++    const legal = course.legalWidth(at.width, at.s, side);
++    const back = MX_SPECTATOR_SETBACK + 0.8 + random.next() * 6;
++    const cx = at.x + at.nx * side * (legal + back),
++      cz = at.z + at.nz * side * (legal + back);
++    let added = 0;
++    for (let k = 0; k < view.size * 6 && added < view.size; k++) {
++      const a = random.next() * Math.PI * 2,
++        r = Math.sqrt(random.next()) * (1.1 + view.size * 0.28);
++      const along = Math.cos(a) * r * 1.5,
++        across = Math.sin(a) * r;
++      const x = cx + at.tx * along + at.nx * across,
++        z = cz + at.tz * along + at.nz * across;
++      const found = accept(x, z, 'spectator', 0.72, at.s);
++      if (!found) continue;
++      placements.push(found);
++      added++;
++    }
++    if (added) groups++;
++  }
++  // One flag marshal beside each marshal post.
++  for (const site of furniture) {
++    if (site.type !== 'marshal') continue;
++    const at = track.at(site.station, point);
++    const found = accept(
++      site.x + at.tx * 1.2,
++      site.z + at.tz * 1.2,
++      'marshal',
++      0.9,
++      site.station,
++      site,
++    );
++    if (found) placements.push(found);
++  }
++  return { placements, groups };
++}
++
++const WARDROBE = [
++  0x27313d, 0x252a2d, 0x314655, 0x45463f, 0x4a3934, 0x444f3f, 0x686b66, 0x817c6e, 0xb4afa2,
++  0xd6d0be, 0x923f37, 0x426889, 0x6a7a4e, 0x8d5f3a,
++];
++const HIGH_VIS = [0xe0a81c, 0xd9631f, 0xcfd12e];
++const SKIN = [0xe0b497, 0xc39473, 0xa77454, 0x85573d, 0x61412f, 0x422c21];
++
++/** A marshal's signal flag: a pole at the person's side and a yellow cloth that
++ * ripples from its free edge. One merged draw; the ripple is a vertex term of
++ * absolute simulation time, so a held frame is still and a replay seek repeats it. */
++function flagGeometry(placements: readonly MxSpectatorPlacement[]) {
++  const parts: T.BufferGeometry[] = [];
++  const random = new Random(9217);
++  for (const p of placements) {
++    if (p.kind !== 'marshal') continue;
++    // Pole beside the marshal's right hand, leaning a few degrees out.
++    const right = new T.Vector3(Math.cos(p.yaw), 0, -Math.sin(p.yaw));
++    const base = new T.Vector3(p.x, p.y, p.z).addScaledVector(right, 0.42);
++    const pole = new T.CylinderGeometry(0.014, 0.017, 2.1, 6).translate(0, 1.05, 0);
++    pole.rotateZ(0.05);
++    pole.rotateY(p.yaw);
++    pole.translate(base.x, base.y, base.z);
++    const polePart = new T.BufferGeometry();
++    polePart.setAttribute('position', pole.getAttribute('position'));
++    polePart.setAttribute('normal', pole.getAttribute('normal'));
++    polePart.setIndex(pole.getIndex());
++    polePart.setAttribute(
++      'mxFlagWave',
++      new T.BufferAttribute(new Float32Array(polePart.getAttribute('position').count), 1),
++    );
++    polePart.setAttribute(
++      'color',
++      new T.BufferAttribute(
++        new Float32Array(polePart.getAttribute('position').count * 3).fill(0.55),
++        3,
++      ),
++    );
++    parts.push(polePart);
++    const cloth = new T.PlaneGeometry(0.62, 0.42, 8, 3);
++    cloth.deleteAttribute('uv');
++    const position = cloth.getAttribute('position');
++    const wave = new Float32Array(position.count),
++      colour = new Float32Array(position.count * 3);
++    for (let i = 0; i < position.count; i++) {
++      wave[i] = clamp(position.getX(i) / 0.62 + 0.5, 0, 1);
++      colour.set([0.82, 0.62, 0.05], i * 3);
++    }
++    cloth.setAttribute('mxFlagWave', new T.BufferAttribute(wave, 1));
++    cloth.setAttribute('color', new T.BufferAttribute(colour, 3));
++    cloth.translate(0.31 + 0.02, 1.88, 0);
++    cloth.rotateY(p.yaw + (random.next() - 0.5) * 0.7);
++    cloth.translate(base.x, base.y, base.z);
++    parts.push(cloth);
++  }
++  if (!parts.length) return null;
++  const merged = mergeGeometries(parts, false);
++  parts.forEach((g) => g.dispose());
++  merged?.computeBoundingSphere();
++  if (merged?.boundingSphere) merged.boundingSphere.radius += 0.3;
++  return merged;
++}
++
++/** Station span of one instanced draw: culling works on whole meshes. */
++const CHUNK = 140;
++
++export class MxSpectators {
++  readonly root = new T.Group();
++  readonly stats = { spectators: 0, marshals: 0, groups: 0, triangles: 0, draws: 0 };
++  readonly plan: ReturnType<typeof planMxSpectators>;
++  private readonly crowds: { mesh: T.InstancedMesh; total: number }[] = [];
++  private readonly flags: T.Mesh | null = null;
++  private readonly time = { value: 0 };
++  private readonly uniforms = {
++    crowdClock: { value: new T.Vector2() },
++    crowdMotion: { value: 0.28 },
++    crowdReaction: { value: new T.Vector2(0.5, 0.3) },
++  };
++  private readonly unsubscribe: (() => void) | null = null;
++  constructor(track: Track, furniture: readonly MxFurnitureSite[]) {
++    this.root.name = 'MX spectators and flag marshals';
++    this.plan = planMxSpectators(track, furniture);
++    const placements = this.plan.placements;
++    if (!placements.length) return;
++    const random = new Random(31337);
++    const wardrobe = WARDROBE.map((c) => new T.Color(c)),
++      highVis = HIGH_VIS.map((c) => new T.Color(c)),
++      skinTones = SKIN.map((c) => new T.Color(c));
++    const material = new T.MeshStandardMaterial({
++      color: 0xffffff,
++      roughness: 0.94,
++      vertexColors: true,
++      name: 'MX spectator fabric, skin and hair',
++    });
++    // Outdoors, unlike the covered bowl: damp cloth in rain, as the stands' crowd.
++    tagWeatherSurface(material, 'fabric', 0.55, 'spectator');
++    installCrowdShader(material, this.uniforms, true);
++    const depth = new T.MeshDepthMaterial({ depthPacking: T.RGBADepthPacking });
++    installCrowdShader(depth, this.uniforms, false);
++    const standing = new T.Matrix4().makeRotationY(Math.PI / 2).setPosition(0, 0.3, 0.02),
++      base = new T.Matrix4(),
++      pose = new T.Matrix4(),
++      colour = new T.Color();
++    const kit = spectatorGeometry(1);
++    // One draw per stretch of course. A random order inside each, so the
++    // Low/Medium subset thins every group evenly.
++    const chunks = new Map<number, MxSpectatorPlacement[]>();
++    for (const p of placements) {
++      const key = Math.floor(p.station / CHUNK);
++      const list = chunks.get(key);
++      if (list) list.push(p);
++      else chunks.set(key, [p]);
++    }
++    let identity = 0;
++    for (const [key, list] of chunks) {
++      for (let i = list.length - 1; i > 0; i--) {
++        const j = Math.floor(random.next() * (i + 1));
++        [list[i], list[j]] = [list[j], list[i]];
++      }
++      const count = list.length,
++        phase = new Float32Array(count),
++        skin = new Float32Array(count * 3),
++        style = new Float32Array(count * 4);
++      const geometry = kit.clone();
++      const mesh = new T.InstancedMesh(geometry, material, count);
++      list.forEach((p, slot) => {
++        phase[slot] = random.next() * Math.PI * 2;
++        const tone = skinTones[Math.floor(random.next() * skinTones.length)];
++        skin.set([tone.r, tone.g, tone.b], slot * 3);
++        // Everyone stands: this is a field, not a bowl of seats.
++        const variation = spectatorVariation(identity++, 60217, true);
++        style.set([variation[0], variation[1], 1, variation[3]], slot * 4);
++        base.makeRotationY(p.yaw).setPosition(p.x, p.y, p.z);
++        pose.multiplyMatrices(base, standing);
++        mesh.setMatrixAt(slot, pose);
++        if (p.kind === 'marshal') {
++          colour.copy(highVis[Math.floor(random.next() * highVis.length)]);
++          this.stats.marshals++;
++        } else {
++          colour.copy(wardrobe[Math.floor(random.next() * wardrobe.length)]);
++          colour.multiplyScalar(0.85 + random.next() * 0.25);
++          this.stats.spectators++;
++        }
++        mesh.setColorAt(slot, colour);
++      });
++      geometry.setAttribute('spectatorPhase', new T.InstancedBufferAttribute(phase, 1));
++      geometry.setAttribute('spectatorSkin', new T.InstancedBufferAttribute(skin, 3));
++      geometry.setAttribute('spectatorStyle', new T.InstancedBufferAttribute(style, 4));
++      mesh.name = `MX standing spectators and marshals ${key * CHUNK}-${(key + 1) * CHUNK} m`;
++      mesh.customDepthMaterial = depth;
++      mesh.castShadow = true;
++      mesh.receiveShadow = true;
++      mesh.computeBoundingBox();
++      mesh.computeBoundingSphere();
++      // The shared shader's bounded forearm/gaze envelope and a raised cup.
++      mesh.boundingBox!.expandByScalar(0.6);
++      mesh.boundingSphere!.radius += 0.6;
++      this.crowds.push({ mesh, total: count });
++      this.root.add(mesh);
++      this.stats.triangles += ((geometry.getIndex()?.count ?? 0) / 3) * count;
++    }
++    kit.dispose();
++    this.stats.draws = this.crowds.length;
++    this.stats.groups = this.plan.groups;
++    const flagMesh = flagGeometry(placements);
++    if (flagMesh) {
++      const flagMaterial = new T.MeshStandardMaterial({
++        color: 0xffffff,
++        vertexColors: true,
++        roughness: 0.78,
++        side: T.DoubleSide,
++        name: 'MX marshal signal flags',
++      });
++      chainShaderHook(flagMaterial, 'mx-marshal-flag-v1', (shader) => {
++        shader.uniforms.mxFlagTime = this.time;
++        injectDeclarations(
++          shader,
++          'common',
++          'attribute float mxFlagWave;\nuniform float mxFlagTime;',
++          'vertex',
++        );
++        injectAfter(
++          shader,
++          'begin_vertex',
++          `float mxRipple = sin( mxFlagTime * 6.0 + mxFlagWave * 9.0 + position.x * 2.0 )
++            + 0.45 * sin( mxFlagTime * 11.0 + mxFlagWave * 17.0 + position.z * 3.0 );
++          transformed += normalize( normal ) * mxRipple * 0.045 * mxFlagWave;`,
++          'vertex',
++        );
++      });
++      this.flags = new T.Mesh(flagMesh, flagMaterial);
++      this.flags.name = 'MX marshal signal flags and poles';
++      this.flags.castShadow = true;
++      this.flags.receiveShadow = true;
++      this.root.add(this.flags);
++    }
++    this.unsubscribe = onMxDetail((high) => {
++      for (const { mesh, total } of this.crowds)
++        mesh.count = high ? total : Math.floor(total * LOW_SHARE);
++    });
++  }
++  /** Absolute simulation time only. */
++  update(time: number) {
++    if (!Number.isFinite(time)) return;
++    const cycle = Math.PI * 2;
++    this.uniforms.crowdClock.value.set((time * 0.71) % cycle, (time * 0.43) % cycle);
++    this.uniforms.crowdReaction.value.set(0.55 + Math.sin(time * 0.37) * 0.15, 0.32);
++    this.time.value = Math.max(0, time) % 600;
++  }
++  dispose() {
++    this.unsubscribe?.();
++    const materials = new Set<T.Material>();
++    for (const { mesh } of this.crowds) {
++      mesh.geometry.dispose();
++      materials.add(mesh.material as T.Material);
++      if (mesh.customDepthMaterial) materials.add(mesh.customDepthMaterial);
++      mesh.dispose();
++    }
++    materials.forEach((m) => m.dispose());
++    this.crowds.length = 0;
++    if (this.flags) {
++      this.flags.geometry.dispose();
++      (this.flags.material as T.Material).dispose();
++    }
++    this.root.clear();
++  }
++}
+diff --git a/src/rendering/offroad/roost.ts b/src/rendering/offroad/roost.ts
+index bd51d29..d007371 100644
+--- a/src/rendering/offroad/roost.ts
++++ b/src/rendering/offroad/roost.ts
+@@ -243,11 +243,17 @@ export class Roost {
+       'mxParticleAlpha',
+       new T.BufferAttribute(this.opacity, 1).setUsage(T.DynamicDrawUsage),
+     );
+-    if (this.motocross)
++    if (this.motocross) {
+       g.setAttribute(
+         'mxParticleShape',
+         new T.BufferAttribute(this.shapes, 2).setUsage(T.DynamicDrawUsage),
+       );
++      // Birth floor of each particle: the dust shader fades a puff into it.
++      g.setAttribute(
++        'mxParticleFloor',
++        new T.BufferAttribute(this.floor, 1).setUsage(T.DynamicDrawUsage),
++      );
++    }
+     const material = this.motocross
+       ? new MxDustMaterial()
+       : new T.PointsMaterial({
+@@ -420,7 +426,10 @@ export class Roost {
+     g.getAttribute('color').needsUpdate = true;
+     g.getAttribute('mxParticleSize').needsUpdate = true;
+     g.getAttribute('mxParticleAlpha').needsUpdate = true;
+-    if (this.motocross) g.getAttribute('mxParticleShape').needsUpdate = true;
++    if (this.motocross) {
++      g.getAttribute('mxParticleShape').needsUpdate = true;
++      g.getAttribute('mxParticleFloor').needsUpdate = true;
++    }
+     const mesh = this.clods;
+     if (!mesh) return;
+     mesh.visible = this.enabled;
+diff --git a/src/rendering/offroad/stadium.ts b/src/rendering/offroad/stadium.ts
+index 302b60a..567bd22 100644
+--- a/src/rendering/offroad/stadium.ts
++++ b/src/rendering/offroad/stadium.ts
+@@ -88,6 +88,9 @@ export class Stadium {
+    * and represented once by nearCrowd; count remains the bowl's occupancy. */
+   readonly crowd: T.InstancedMesh;
+   readonly nearCrowd: T.InstancedMesh;
++  /** The roof's regular floodlight grid (world metres): lamp (i, k) hangs at
++   * (minX + (i + 0.5) * spanX / columns, y, minZ + (k + 0.5) * spanZ / rows). */
++  readonly lampGrid = { minX: 0, minZ: 0, spanX: 1, spanZ: 1, y: 0, columns: 8, rows: 5 };
+   private readonly textures = new Set<T.Texture>();
+   private stopHaze: (() => void) | null = null;
+   private readonly crowdUniforms = {
+@@ -423,6 +426,13 @@ export class Stadium {
+     chairs.computeBoundingSphere();
+     this.root.add(chairs);
+     const span = box.getSize(new T.Vector3());
++    Object.assign(this.lampGrid, {
++      minX: min.x,
++      minZ: min.z,
++      spanX: span.x,
++      spanZ: span.z,
++      y: floor + STADIUM.roof - 2 - 1.36,
++    });
+     const outer = STADIUM.tiers * STADIUM.depth + STADIUM.concourse;
+     const roof = new T.Mesh(new T.BoxGeometry(span.x + 2 * outer, 0.45, span.z + 2 * outer), deck);
+     roof.name = 'Arena roof deck';
+diff --git a/src/rendering/offroad/terrain-view.ts b/src/rendering/offroad/terrain-view.ts
+index e22f2c2..a241c71 100644
+--- a/src/rendering/offroad/terrain-view.ts
++++ b/src/rendering/offroad/terrain-view.ts
+@@ -13,6 +13,7 @@ import { installScannedSoil, soilSlotOf, soilSlots, writeSoilSlot } from '../gro
+ import type { ScanLayer } from '../ground/scan-store.ts';
+ import { installMxSoilDetail, MX_SOIL_COLOURS } from './mx-soil-detail.ts';
+ import { installMxSoilMorphology, MX_SOIL_MORPHOLOGY_KINDS } from './mx-soil-morphology.ts';
++import { installMxSoilParallax } from './mx-soil-parallax.ts';
+ import { mxSoilSample, sampleMxSoilTransition } from './mx-soil-transition.ts';
+ import { installMxTerrainShadow } from './mx-terrain-shadow.ts';
+ import { MxTerrainNormalEdges } from './mx-terrain-normal-edges.ts';
+@@ -97,6 +98,7 @@ export class TerrainView {
+       installMxSoilMorphology(this.material);
+       installMxBrakingBumps(this.material);
+       installMxTerrainShadow(this.material);
++      installMxSoilParallax(this.material);
+     }
+     for (let first = 0; first < t.renderRows; first += CHUNK_ROWS)
+       this.chunks.push(this.buildChunk(first, Math.min(CHUNK_ROWS, t.renderRows - first)));
+@@ -457,6 +459,10 @@ export class TerrainView {
+     const h = positions.getY(e);
+     return h + (positions.getY(d) - h) * (1 - x) + (positions.getY(b) - h) * (1 - z);
+   }
++  /** Session soaking of the soil as currently shown, 0..1. */
++  get soilWetness() {
++    return this.wetness;
++  }
+   /** Deformed blocks shown (diagnostics, tests). */
+   get deformedBlocks() {
+     let n = 0;
+diff --git a/tests/motocross-arena-lighting.test.ts b/tests/motocross-arena-lighting.test.ts
+new file mode 100644
+index 0000000..f3a0c99
+--- /dev/null
++++ b/tests/motocross-arena-lighting.test.ts
+@@ -0,0 +1,67 @@
++import * as T from 'three';
++import { describe, expect, it } from 'vitest';
++import {
++  installMxArenaLighting,
++  MX_ARENA_LIGHT,
++  MX_ARENA_LIGHT_HOOK,
++} from '../src/rendering/offroad/mx-arena-lighting.ts';
++import { Stadium } from '../src/rendering/offroad/stadium.ts';
++import { STADIUM } from '../src/rendering/offroad/stadium-dimensions.ts';
++import { TerrainView } from '../src/rendering/offroad/terrain-view.ts';
++import { studioHookKeys, type StudioShader } from '../src/rendering/studio/shader-hooks.ts';
++import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
++
++const count = (text: string, token: string) => text.split(token).length - 1;
++
++describe('supercross roof floodlight grid', () => {
++  it('exposes the 8 x 5 lamp grid the trusses hang, over the floor and inside the bowl', () => {
++    const track = rigTrack('arena-nord-sx'),
++      stadium = new Stadium(track),
++      grid = stadium.lampGrid;
++    try {
++      expect(grid.columns).toBe(8);
++      expect(grid.rows).toBe(5);
++      expect(grid.spanX).toBeGreaterThan(40);
++      expect(grid.spanZ).toBeGreaterThan(20);
++      // Hung from the roof's trusses (2 m under the deck) with the housing below.
++      const box = new T.Box3().setFromObject(stadium.root);
++      expect(grid.y).toBeLessThan(box.min.y + STADIUM.roof);
++      expect(grid.y).toBeGreaterThan(box.min.y + STADIUM.roof - 6);
++      // The first and last lamps sit half a cell inside the grid's edge.
++      const cellX = grid.spanX / grid.columns;
++      expect(grid.minX + 0.5 * cellX).toBeGreaterThan(grid.minX);
++      expect(grid.minX + (grid.columns - 0.5) * cellX).toBeLessThan(grid.minX + grid.spanX);
++    } finally {
++      stadium.dispose();
++    }
++  });
++
++  it('chains once onto the floor and fades every lamp out before a cell edge shows', () => {
++    const track = rigTrack('arena-nord-sx'),
++      view = new TerrainView(track),
++      grid = { minX: -40, minZ: -20, spanX: 80, spanZ: 40, y: 30, columns: 8, rows: 5 };
++    const uniform = installMxArenaLighting(view.material, grid);
++    expect(uniform).not.toBeNull();
++    expect(installMxArenaLighting(view.material, grid)).toBeNull();
++    expect(studioHookKeys(view.material)).toContain(MX_ARENA_LIGHT_HOOK);
++    const source = T.ShaderLib.physical,
++      shader = {
++        vertexShader: source.vertexShader,
++        fragmentShader: source.fragmentShader,
++        uniforms: T.UniformsUtils.clone(source.uniforms),
++      } as StudioShader;
++    view.material.onBeforeCompile(shader, {} as T.WebGLRenderer);
++    const f = shader.fragmentShader;
++    expect(f).toContain('float mxArenaIrradiance( vec3 world, vec3 up )');
++    expect(f).toContain('reflectedLight.directDiffuse *= mxArenaColour.a;');
++    expect(count(f, '{')).toBe(count(f, '}'));
++    expect(count(f, '(')).toBe(count(f, ')'));
++    // 4 x 4 lamps suffice because the fade reaches zero by the reach, two cells.
++    expect(MX_ARENA_LIGHT.reachCells).toBeLessThanOrEqual(2);
++    expect((shader.uniforms.mxArenaGrid.value as T.Vector4).z).toBeCloseTo(10, 6);
++    expect((shader.uniforms.mxArenaLamp.value as T.Vector4).toArray()).toEqual([8, 5, 30, 1]);
++    uniform!.value.w = 0;
++    expect((shader.uniforms.mxArenaLamp.value as T.Vector4).w).toBe(0);
++    view.dispose();
++  });
++});
+diff --git a/tests/motocross-boundary-tape.test.ts b/tests/motocross-boundary-tape.test.ts
+new file mode 100644
+index 0000000..d9ecce1
+--- /dev/null
++++ b/tests/motocross-boundary-tape.test.ts
+@@ -0,0 +1,46 @@
++import * as T from 'three';
++import { describe, expect, it } from 'vitest';
++import { MxCourseDressing } from '../src/rendering/offroad/mx-course-dressing.ts';
++import { TrackTerrainSurface } from '../src/simulation/offroad/course-terrain.ts';
++import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
++import { Track, trackPoint } from '../src/simulation/track.ts';
++
++describe('MX boundary tape', () => {
++  it('strings one ribbon between the course-edge stakes, knee high and just outside the legal edge', () => {
++    const track = rigTrack('valley-ridge-mx'),
++      surface = Track.offroadOf(track) as TrackTerrainSurface,
++      dressing = new MxCourseDressing(track),
++      nearest = trackPoint();
++    try {
++      const tape = dressing.turf.getObjectByName('MX boundary tape') as T.Mesh;
++      expect(tape).toBeInstanceOf(T.Mesh);
++      expect(dressing.stats.tapeSpans).toBeGreaterThan(60);
++      // One submission, a few thousand triangles at most.
++      expect(tape.geometry.index!.count / 3).toBeLessThan(6000);
++      expect((tape.material as T.MeshStandardMaterial).side).toBe(T.DoubleSide);
++      const position = tape.geometry.getAttribute('position');
++      let lowest = Infinity,
++        highest = -Infinity;
++      for (let i = 0; i < position.count; i += 7) {
++        const lateral = track.nearest(position.getX(i), position.getZ(i), nearest);
++        const edge = surface.course.legalWidth(nearest.width, nearest.s, lateral);
++        expect(Math.abs(lateral)).toBeGreaterThan(edge + 0.05);
++        const above = position.getY(i) - surface.terrain.baseHeight(nearest.s, lateral);
++        lowest = Math.min(lowest, above);
++        highest = Math.max(highest, above);
++      }
++      // Knee height with a few centimetres of sag between posts.
++      expect(lowest).toBeGreaterThan(0.35);
++      expect(highest).toBeLessThan(0.75);
++    } finally {
++      dressing.dispose();
++    }
++  });
++
++  it('leaves the arena to its padded lane dividers', () => {
++    const dressing = new MxCourseDressing(rigTrack('arena-nord-sx'));
++    expect(dressing.stats.tapeSpans).toBe(0);
++    expect(dressing.turf.getObjectByName('MX boundary tape')).toBeUndefined();
++    dressing.dispose();
++  });
++});
+diff --git a/tests/motocross-dust-ground.test.ts b/tests/motocross-dust-ground.test.ts
+new file mode 100644
+index 0000000..bdb3b76
+--- /dev/null
++++ b/tests/motocross-dust-ground.test.ts
+@@ -0,0 +1,88 @@
++import * as T from 'three';
++import { afterEach, describe, expect, it } from 'vitest';
++import { MxDustMaterial } from '../src/rendering/offroad/mx-dust-material.ts';
++import { setMxQuality } from '../src/rendering/offroad/mx-quality.ts';
++import { Roost } from '../src/rendering/offroad/roost.ts';
++import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
++import {
++  CAR_STRIDE,
++  F,
++  H,
++  HEADER,
++  R,
++  RACE_BASE,
++  W,
++  WHEEL_BASE,
++  WHEEL_STRIDE,
++  carBase,
++} from '../src/simulation/protocol.ts';
++import { MATERIAL } from '../src/simulation/surface-material.ts';
++import { trackPoint } from '../src/simulation/track.ts';
++import { vehicleIndex } from '../src/simulation/vehicles.ts';
++
++afterEach(() => setMxQuality('high'));
++
++describe('MX dust fades into the soil it was thrown from', () => {
++  it('reads each puff birth floor and fades its lower part only on High and Ultra', () => {
++    const dust = new MxDustMaterial();
++    expect(dust.vertexShader).toContain('attribute float mxParticleFloor;');
++    expect(dust.vertexShader).toContain(
++      'vMxDustHeight = ( modelMatrix * vec4( position, 1.0 ) ).y - mxParticleFloor;',
++    );
++    const fragment = dust.fragmentShader;
++    const gate = fragment.indexOf('#ifdef MX_HIGH_DETAIL', fragment.indexOf('float opacity'));
++    const fade = fragment.indexOf('vMxDustHeight - p.y * vMxDustRadius');
++    expect(gate).toBeGreaterThan(0);
++    // The ground fade sits inside the High/Ultra gate, ahead of the discard.
++    expect(fade).toBeGreaterThan(gate);
++    expect(fade).toBeLessThan(fragment.indexOf('if ( opacity < 0.008 ) discard;'));
++    expect((dust as T.Material & { defines: Record<string, string> }).defines).toHaveProperty(
++      'MX_HIGH_DETAIL',
++    );
++    setMxQuality('low');
++    expect((dust as T.Material & { defines: Record<string, string> }).defines).not.toHaveProperty(
++      'MX_HIGH_DETAIL',
++    );
++    dust.dispose();
++  });
++
++  it('publishes the floor of every live particle with the pool', () => {
++    const track = rigTrack('valley-ridge-mx'),
++      roost = new Roost(track),
++      frame = new Float32Array(HEADER + CAR_STRIDE),
++      p = track.at(100, trackPoint()),
++      b = carBase(0),
++      yaw = Math.atan2(p.tx, p.tz);
++    frame[H.CARS] = 1;
++    frame[b + RACE_BASE + R.VEHICLE] = vehicleIndex('mx450');
++    frame[b + F.X] = p.x;
++    frame[b + F.Y] = p.y + 0.55;
++    frame[b + F.Z] = p.z;
++    frame[b + F.QY] = Math.sin(yaw / 2);
++    frame[b + F.QW] = Math.cos(yaw / 2);
++    frame[b + F.SPEED] = 15;
++    frame[b + F.VX] = p.tx * 15;
++    frame[b + F.VZ] = p.tz * 15;
++    for (const wheel of [0, 2]) {
++      const w = b + WHEEL_BASE + wheel * WHEEL_STRIDE;
++      frame[w + W.LOAD] = 600;
++      frame[w + W.SLIP] = 0.3;
++      frame[w + W.SURFACE] = MATERIAL.DIRT;
++    }
++    for (let i = 0; i < 30; i++) roost.update(frame, 1 / 60);
++    const floor = roost.points.geometry.getAttribute('mxParticleFloor') as T.BufferAttribute,
++      position = roost.points.geometry.getAttribute('position') as T.BufferAttribute;
++    expect(floor.itemSize).toBe(1);
++    expect(floor.count).toBe(position.count);
++    let live = 0;
++    for (let i = 0; i < position.count; i++) {
++      if (position.getY(i) < -1000) continue;
++      live++;
++      // A puff is born a few centimetres over the soil it left.
++      expect(position.getY(i) - floor.getX(i)).toBeGreaterThan(-0.2);
++      expect(position.getY(i) - floor.getX(i)).toBeLessThan(4);
++    }
++    expect(live).toBeGreaterThan(10);
++    roost.dispose();
++  });
++});
+diff --git a/tests/motocross-grass-tufts.test.ts b/tests/motocross-grass-tufts.test.ts
+new file mode 100644
+index 0000000..5102d4b
+--- /dev/null
++++ b/tests/motocross-grass-tufts.test.ts
+@@ -0,0 +1,78 @@
++import * as T from 'three';
++import { afterEach, describe, expect, it } from 'vitest';
++import { MxCourseDressing } from '../src/rendering/offroad/mx-course-dressing.ts';
++import { setMxQuality } from '../src/rendering/offroad/mx-quality.ts';
++import { mxShoulderPlantGeometry } from '../src/rendering/offroad/mx-shoulder-plants.ts';
++import { TerrainView } from '../src/rendering/offroad/terrain-view.ts';
++import { TrackTerrainSurface } from '../src/simulation/offroad/course-terrain.ts';
++import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
++import { Track, trackPoint } from '../src/simulation/track.ts';
++
++describe('MX close-cropped shoulder turf', () => {
++  afterEach(() => setMxQuality('high'));
++
++  it('forms short, kinked blades that stay under a quarter metre and colour by height', () => {
++    const g = mxShoulderPlantGeometry('tuft');
++    const box = g.boundingBox!;
++    expect(box.max.y).toBeGreaterThan(0.1);
++    expect(box.max.y).toBeLessThan(0.25);
++    expect((g.getAttribute('position').count / 3) | 0).toBe(21);
++    const colour = g.getAttribute('color'),
++      position = g.getAttribute('position');
++    let base = 1,
++      tip = 0;
++    for (let i = 0; i < position.count; i++) {
++      if (position.getY(i) < 0.01) base = Math.min(base, colour.getY(i));
++      if (position.getY(i) > 0.8 * box.max.y) tip = Math.max(tip, colour.getY(i));
++    }
++    expect(tip).toBeGreaterThan(base + 0.1);
++    g.dispose();
++  });
++
++  it('roots every tuft on the rendered terrain beside, never inside, the riding lanes', () => {
++    const track = rigTrack('valley-ridge-mx'),
++      surface = Track.offroadOf(track) as TrackTerrainSurface,
++      terrain = new TerrainView(track),
++      dressing = new MxCourseDressing(track),
++      matrix = new T.Matrix4(),
++      root = new T.Vector3(),
++      nearest = trackPoint(),
++      ray = new T.Raycaster(new T.Vector3(), new T.Vector3(0, -1, 0), 0, 20);
++    const mesh = dressing.turf.getObjectByName('MX shoulder grass tufts') as T.InstancedMesh;
++    try {
++      expect(mesh).toBeInstanceOf(T.InstancedMesh);
++      expect(dressing.stats.tufts).toBe(mesh.count);
++      expect(mesh.count).toBeGreaterThan(1500);
++      terrain.group.updateMatrixWorld(true);
++      for (let i = 0; i < mesh.count; i += 7) {
++        mesh.getMatrixAt(i, matrix);
++        root.setFromMatrixPosition(matrix);
++        const lateral = track.nearest(root.x, root.z, nearest);
++        expect(Math.abs(lateral)).toBeGreaterThan(
++          surface.course.legalWidth(nearest.width, nearest.s, lateral) + 0.1,
++        );
++        ray.ray.origin.set(root.x, root.y + 10, root.z);
++        const hit = ray.intersectObject(terrain.group, true)[0];
++        expect(hit, `tuft ${i}`).toBeDefined();
++        const burial = hit.point.y - root.y;
++        expect(burial).toBeGreaterThanOrEqual(0);
++        expect(burial).toBeLessThanOrEqual(0.08);
++      }
++      // High and Ultra draw the whole band; Low and Medium a third.
++      const total = mesh.count;
++      setMxQuality('low');
++      expect(mesh.count).toBeLessThan(total * 0.4);
++      setMxQuality('ultra');
++      expect(mesh.count).toBe(total);
++    } finally {
++      dressing.dispose();
++      terrain.dispose();
++    }
++  });
++
++  it('leaves the indoor arena without outdoor turf', () => {
++    const dressing = new MxCourseDressing(rigTrack('arena-nord-sx'));
++    expect(dressing.stats.tufts).toBe(0);
++    dressing.dispose();
++  });
++});
+diff --git a/tests/motocross-loose-soil.test.ts b/tests/motocross-loose-soil.test.ts
+new file mode 100644
+index 0000000..cf6508c
+--- /dev/null
++++ b/tests/motocross-loose-soil.test.ts
+@@ -0,0 +1,103 @@
++import * as T from 'three';
++import { afterEach, describe, expect, it } from 'vitest';
++import { MxLooseSoil, looseClodGeometry } from '../src/rendering/offroad/mx-loose-soil.ts';
++import { setMxQuality } from '../src/rendering/offroad/mx-quality.ts';
++import { TrackTerrainSurface } from '../src/simulation/offroad/course-terrain.ts';
++import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
++import { Track, trackPoint } from '../src/simulation/track.ts';
++
++describe('MX loose soil', () => {
++  afterEach(() => setMxQuality('high'));
++
++  it('builds a small faceted clod with metre UVs and a darkened underside', () => {
++    const g = looseClodGeometry(11, 0.4, 0.62);
++    expect((g.getAttribute('position') as T.BufferAttribute).count).toBeLessThan(60);
++    expect(g.index!.count / 3).toBe(80);
++    const box = g.boundingBox!;
++    expect(box.max.y).toBeLessThan(0.95);
++    expect(box.max.y).toBeGreaterThan(0.35);
++    const colour = g.getAttribute('color'),
++      position = g.getAttribute('position');
++    let low = 1,
++      high = 0;
++    for (let i = 0; i < position.count; i++) {
++      if (position.getY(i) < -0.2) low = Math.min(low, colour.getX(i));
++      if (position.getY(i) > 0.2) high = Math.max(high, colour.getX(i));
++    }
++    expect(low).toBeLessThan(high);
++    g.dispose();
++  });
++
++  it.each([
++    ['valley-ridge-mx', true],
++    ['arena-nord-sx', false],
++  ] as const)('scatters %s crumbs off the starter pad, none larger than a fist', (id, pebbles) => {
++    const track = rigTrack(id),
++      surface = Track.offroadOf(track) as TrackTerrainSurface,
++      soil = new MxLooseSoil(track);
++    expect(soil.stats.clods).toBeGreaterThan(400);
++    if (pebbles) expect(soil.stats.stones).toBeGreaterThan(20);
++    else expect(soil.stats.stones).toBe(0);
++    const gate = surface.course.spec.gate;
++    const matrix = new T.Matrix4(),
++      position = new T.Vector3(),
++      scale = new T.Vector3(),
++      quaternion = new T.Quaternion(),
++      point = trackPoint();
++    let total = 0;
++    soil.root.traverse((object) => {
++      if (!(object instanceof T.InstancedMesh)) return;
++      expect(object.castShadow).toBe(false);
++      for (let i = 0; i < object.count; i++) {
++        object.getMatrixAt(i, matrix);
++        matrix.decompose(position, quaternion, scale);
++        // A 1-6 cm crumb: half-extent under 8 cm in every axis.
++        expect(Math.max(scale.x, scale.y, scale.z)).toBeLessThan(0.08);
++        const lateral = track.nearest(position.x, position.z, point);
++        expect(Number.isFinite(lateral)).toBe(true);
++        // Not on the starter's pad or its approach.
++        if (gate) {
++          const gap = Math.abs(
++            ((point.s - gate.s + track.length * 1.5) % track.length) - track.length / 2,
++          );
++          expect(gap).toBeGreaterThan(3);
++        }
++        expect(Math.abs(lateral)).toBeLessThan(-surface.terrain.lateralMin);
++        total++;
++      }
++    });
++    expect(total).toBe(soil.stats.clods + soil.stats.stones);
++    soil.dispose();
++  });
++
++  it('thins to a third on Low and Medium, restores on High, and is deterministic', () => {
++    const track = rigTrack('valley-ridge-mx'),
++      a = new MxLooseSoil(track),
++      b = new MxLooseSoil(track);
++    expect(a.stats).toEqual(b.stats);
++    const drawn = () => {
++      let n = 0;
++      a.root.traverse((o) => {
++        if (o instanceof T.InstancedMesh) n += o.count;
++      });
++      return n;
++    };
++    const full = drawn();
++    expect(full).toBe(a.stats.clods + a.stats.stones);
++    setMxQuality('medium');
++    expect(drawn()).toBeLessThan(full * 0.4);
++    expect(drawn()).toBeGreaterThan(full * 0.2);
++    setMxQuality('high');
++    expect(drawn()).toBe(full);
++    a.dispose();
++    b.dispose();
++  });
++
++  it('darkens and glosses with session wetness through a uniform, not a recompile', () => {
++    const soil = new MxLooseSoil(rigTrack('valley-ridge-mx'));
++    soil.setWetness(2);
++    soil.setWetness(-1);
++    soil.setWetness(0.6);
++    soil.dispose();
++  });
++});
+diff --git a/tests/motocross-meadow.test.ts b/tests/motocross-meadow.test.ts
+new file mode 100644
+index 0000000..7e485e1
+--- /dev/null
++++ b/tests/motocross-meadow.test.ts
+@@ -0,0 +1,62 @@
++import * as T from 'three';
++import { afterEach, describe, expect, it } from 'vitest';
++import { MX_MEADOW_BAND, MxMeadow } from '../src/rendering/offroad/mx-meadow.ts';
++import { setMxQuality } from '../src/rendering/offroad/mx-quality.ts';
++import { mxShoulderPlantGeometry } from '../src/rendering/offroad/mx-shoulder-plants.ts';
++import { mxFurnitureGround } from '../src/rendering/offroad/mx-trackside-furniture.ts';
++import { TrackTerrainSurface } from '../src/simulation/offroad/course-terrain.ts';
++import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
++import { Track, trackPoint } from '../src/simulation/track.ts';
++
++afterEach(() => setMxQuality('high'));
++
++describe('MX uncut field grass', () => {
++  it('forms a leaning fan of eleven single-triangle blades between 25 and 60 cm', () => {
++    const g = mxShoulderPlantGeometry('meadow');
++    expect((g.getAttribute('position').count / 3) | 0).toBe(11);
++    expect(g.boundingBox!.max.y).toBeGreaterThan(0.25);
++    expect(g.boundingBox!.max.y).toBeLessThan(0.6);
++    g.dispose();
++  });
++
++  it('stands in the field beyond the shoulder, on the visible ground and clear of every course', () => {
++    const track = rigTrack('valley-ridge-mx'),
++      surface = Track.offroadOf(track) as TrackTerrainSurface,
++      meadow = new MxMeadow(track),
++      matrix = new T.Matrix4(),
++      root = new T.Vector3(),
++      nearest = trackPoint();
++    try {
++      expect(meadow.stats.clumps).toBeGreaterThan(2000);
++      expect(meadow.stats.clumps).toBeLessThan(40000);
++      let checked = 0;
++      meadow.root.traverse((o) => {
++        if (!(o instanceof T.InstancedMesh)) return;
++        expect(o.castShadow).toBe(false);
++        for (let i = 0; i < o.count; i += 5) {
++          o.getMatrixAt(i, matrix);
++          root.setFromMatrixPosition(matrix);
++          const lateral = track.nearest(root.x, root.z, nearest);
++          const edge = surface.course.legalWidth(nearest.width, nearest.s, lateral);
++          expect(Math.abs(lateral)).toBeGreaterThan(edge + MX_MEADOW_BAND.near - 0.7);
++          // Rooted a few centimetres into the visible ground.
++          expect(root.y - mxFurnitureGround(track, root.x, root.z)).toBeCloseTo(-0.045, 1);
++          checked++;
++        }
++      });
++      expect(checked).toBeGreaterThan(300);
++      // Field grass is a High/Ultra term: absent on Low and Medium.
++      setMxQuality('medium');
++      expect(meadow.root.visible).toBe(false);
++      setMxQuality('ultra');
++      expect(meadow.root.visible).toBe(true);
++      meadow.update(7.5);
++    } finally {
++      meadow.dispose();
++    }
++  });
++
++  it('refuses the indoor arena', () => {
++    expect(() => new MxMeadow(rigTrack('arena-nord-sx'))).toThrow();
++  });
++});
+diff --git a/tests/motocross-plastic-wear.test.ts b/tests/motocross-plastic-wear.test.ts
+new file mode 100644
+index 0000000..553f255
+--- /dev/null
++++ b/tests/motocross-plastic-wear.test.ts
+@@ -0,0 +1,37 @@
++import * as T from 'three';
++import { describe, expect, it } from 'vitest';
++import { installMotocrossPlasticFinish } from '../src/rendering/offroad/motocross-detail.ts';
++import { studioHookKeys, type StudioShader } from '../src/rendering/studio/shader-hooks.ts';
++
++function compiled(material: T.MeshPhysicalMaterial) {
++  const source = T.ShaderLib.physical,
++    shader = {
++      vertexShader: source.vertexShader,
++      fragmentShader: source.fragmentShader,
++      uniforms: T.UniformsUtils.clone(source.uniforms),
++    } as StudioShader;
++  material.onBeforeCompile(shader, {} as T.WebGLRenderer);
++  return shader;
++}
++const count = (text: string, token: string) => text.split(token).length - 1;
++
++describe('motocross moulded plastic finish', () => {
++  it('chains once and adds boot-wear zones, whitened scratches and a desaturated service colour', () => {
++    const material = new T.MeshPhysicalMaterial({ color: 0x6a2cd8, roughness: 0.4 });
++    installMotocrossPlasticFinish(material);
++    installMotocrossPlasticFinish(material);
++    expect(
++      studioHookKeys(material).filter((k) => k.startsWith('motocross-moulded-polymer')),
++    ).toEqual(['motocross-moulded-polymer-v2']);
++    const shader = compiled(material);
++    // Wear lives in the part's own frame (the sprung frame for batched meshes).
++    expect(shader.vertexShader).toContain('vMxPlasticPosition = position;');
++    expect(shader.fragmentShader).toContain('float boot=');
++    expect(shader.fragmentShader).toContain('mxPlasticWear=');
++    expect(shader.fragmentShader).toContain('mix(vec3(luma),diffuseColor.rgb,.9)');
++    expect(count(shader.fragmentShader, '{')).toBe(count(shader.fragmentShader, '}'));
++    expect(count(shader.fragmentShader, '(')).toBe(count(shader.fragmentShader, ')'));
++    // Derivative filters read the part position, never a value derived from the wear.
++    expect(shader.fragmentShader).toContain('float resolved=1.-smoothstep(.003,.012,footprint);');
++  });
++});
+diff --git a/tests/motocross-soil-parallax.test.ts b/tests/motocross-soil-parallax.test.ts
+new file mode 100644
+index 0000000..5d15a67
+--- /dev/null
++++ b/tests/motocross-soil-parallax.test.ts
+@@ -0,0 +1,178 @@
++import * as T from 'three';
++import { afterEach, describe, expect, it } from 'vitest';
++import {
++  installMxSoilParallax,
++  MX_RUT_CUT,
++  MX_RUT_LIP,
++  MX_SOIL_PARALLAX_HOOK,
++} from '../src/rendering/offroad/mx-soil-parallax.ts';
++import { setMxQuality } from '../src/rendering/offroad/mx-quality.ts';
++import { TerrainView } from '../src/rendering/offroad/terrain-view.ts';
++import { studioHookKeys, type StudioShader } from '../src/rendering/studio/shader-hooks.ts';
++import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
++
++function compile(material: T.MeshPhysicalMaterial) {
++  const source = T.ShaderLib.physical,
++    shader = {
++      vertexShader: source.vertexShader,
++      fragmentShader: source.fragmentShader,
++      uniforms: T.UniformsUtils.clone(source.uniforms),
++    } as StudioShader;
++  material.onBeforeCompile(shader, {} as T.WebGLRenderer);
++  return shader;
++}
++const count = (text: string, token: string) => text.split(token).length - 1;
++
++describe('MX relief march on the prepared passages', () => {
++  afterEach(() => setMxQuality('high'));
++
++  it('chains once onto the terrain, with its march ahead of the colour chunk', () => {
++    const view = new TerrainView(rigTrack('valley-ridge-mx'));
++    expect(studioHookKeys(view.material)).toContain(MX_SOIL_PARALLAX_HOOK);
++    expect(installMxSoilParallax(view.material)).toBe(false);
++    const fragment = compile(view.material).fragmentShader;
++    const march = fragment.indexOf('pomFade'),
++      colour = fragment.indexOf('#include <color_fragment>');
++    expect(march).toBeGreaterThan(0);
++    expect(march).toBeLessThan(colour);
++    // The groove shading reads the shift the march writes, after it.
++    expect(fragment.indexOf('vec2 p = vMxCourse.xy + mxPomShift;')).toBeGreaterThan(colour);
++    expect(fragment).toContain('reflectedLight.directDiffuse *= mxPomShadow;');
++    expect(fragment).toContain('normal = normalize( normal - mxPomSlope.x * mxPomT');
++    view.dispose();
++  });
++
++  it('keeps every brace and preprocessor block balanced in the compiled fragment source', () => {
++    const view = new TerrainView(rigTrack('valley-ridge-mx'));
++    const fragment = compile(view.material).fragmentShader;
++    expect(count(fragment, '{')).toBe(count(fragment, '}'));
++    expect(count(fragment, '(')).toBe(count(fragment, ')'));
++    expect(count(fragment, '#ifdef MX_HIGH_DETAIL')).toBe(3);
++    // Every #if/#ifdef/#ifndef closes: nothing the march adds leaks a block.
++    const opens = (fragment.match(/^\s*#if(n?def)?\b/gm) ?? []).length,
++      closes = (fragment.match(/^\s*#endif\b/gm) ?? []).length;
++    expect(opens).toBe(closes);
++    view.dispose();
++  });
++
++  it('never differentiates a parallax-shifted coordinate', () => {
++    const view = new TerrainView(rigTrack('valley-ridge-mx'));
++    const fragment = compile(view.material).fragmentShader;
++    // Filters read the unshifted footprint; a derivative of the shifted point
++    // would spike wherever the march moves its hit.
++    expect(fragment).not.toMatch(/fwidth\(\s*p\b/);
++    expect(fragment).not.toMatch(/fwidth\(\s*q\b/);
++    expect(fragment).not.toContain('fwidth( rakePhase )');
++    view.dispose();
++  });
++
++  it('follows the High/Ultra gate and bounds the cut and lip to centimetres', () => {
++    const view = new TerrainView(rigTrack('valley-ridge-mx')),
++      defines = () => (view.material as T.Material & { defines?: Record<string, string> }).defines;
++    expect(defines()).toHaveProperty('MX_HIGH_DETAIL');
++    setMxQuality('medium');
++    expect(defines()).not.toHaveProperty('MX_HIGH_DETAIL');
++    setMxQuality('ultra');
++    expect(defines()).toHaveProperty('MX_HIGH_DETAIL');
++    expect(MX_RUT_CUT).toBeGreaterThan(0.02);
++    expect(MX_RUT_CUT).toBeLessThan(0.07);
++    expect(MX_RUT_LIP).toBeGreaterThan(0);
++    expect(MX_RUT_LIP).toBeLessThan(0.02);
++    view.dispose();
++  });
++
++  it('leaves non-motocross terrain without the hook', () => {
++    const rallycross = new TerrainView(rigTrack('kestrel-rx'));
++    expect(studioHookKeys(rallycross.material)).not.toContain(MX_SOIL_PARALLAX_HOOK);
++    rallycross.dispose();
++  });
++});
++
++/** A CPU mirror of the march's geometry: tangent frame from screen
++ * derivatives, the eye ray in that frame and the descent through a groove. The
++ * GLSL cannot run under vitest; this pins the algebra it is written from. */
++describe('relief march geometry (CPU mirror of the shader algebra)', () => {
++  const camera = new T.PerspectiveCamera(56, 16 / 9, 0.1, 500);
++  camera.position.set(0.4, 1.8, -5);
++  camera.lookAt(0, 0, 4);
++  camera.updateMatrixWorld();
++  camera.updateProjectionMatrix();
++  // A flat ground in course coordinates (lateral = world x, station = world z).
++  const viewOf = (p: T.Vector3) => p.clone().applyMatrix4(camera.matrixWorldInverse);
++  const pixelRay = (px: number, py: number, w = 960, h = 540) => {
++    const ndc = new T.Vector3((px / w) * 2 - 1, 1 - (py / h) * 2, 0.5).unproject(camera);
++    return ndc.sub(camera.position).normalize();
++  };
++  const hitGround = (px: number, py: number) => {
++    const d = pixelRay(px, py),
++      t = -camera.position.y / d.y;
++    return camera.position.clone().addScaledVector(d, t);
++  };
++  const frameAt = (px: number, py: number) => {
++    // Derivatives as the GPU forms them: differences between neighbouring pixels.
++    const a = hitGround(px, py),
++      bx = hitGround(px + 1, py),
++      by = hitGround(px, py + 1);
++    const P = viewOf(a),
++      dPx = viewOf(bx).sub(P),
++      dPy = viewOf(by).sub(P);
++    const cx = [bx.x - a.x, bx.z - a.z],
++      cy = [by.x - a.x, by.z - a.z];
++    const det = cx[0] * cy[1] - cx[1] * cy[0];
++    const Tl = dPx.clone().multiplyScalar(cy[1]).addScaledVector(dPy, -cx[1]).divideScalar(det);
++    const Ts = dPy.clone().multiplyScalar(cx[0]).addScaledVector(dPx, -cy[0]).divideScalar(det);
++    // The shader takes the mesh's interpolated normal, which faces the eye.
++    const N = new T.Vector3().crossVectors(Tl, Ts).normalize();
++    if (N.dot(P) > 0) N.negate();
++    return { a, P, Tl, Ts, N };
++  };
++
++  it('recovers the course axes in view space from screen derivatives', () => {
++    const { a, Tl, Ts } = frameAt(430, 380);
++    const lateral = viewOf(a.clone().add(new T.Vector3(1, 0, 0))).sub(viewOf(a)),
++      station = viewOf(a.clone().add(new T.Vector3(0, 0, 1))).sub(viewOf(a));
++    expect(Tl.distanceTo(lateral)).toBeLessThan(0.02);
++    expect(Ts.distanceTo(station)).toBeLessThan(0.02);
++  });
++
++  it('descends the eye ray to the point a world-space ray meets a groove', () => {
++    // A groove whose floor is 4.5 cm below the surface, 8 cm either side of x = 1.
++    const depth = 0.045,
++      half = 0.08;
++    const height = (x: number) => (Math.abs(x - 1) < half ? -depth : 0);
++    let checked = 0,
++      shifted = 0;
++    for (let px = 380; px < 900; px += 3) {
++      const a0 = hitGround(px, 330);
++      // Pixels whose surface point lies at the groove or just beside it.
++      if (a0.x < 0.82 || a0.x > 1.2) continue;
++      const { a, P, Tl, Ts, N } = frameAt(px, 330);
++      const frame = new T.Matrix3().set(Tl.x, Ts.x, N.x, Tl.y, Ts.y, N.y, Tl.z, Ts.z, N.z);
++      const co = P.clone().negate().normalize().applyMatrix3(frame.clone().invert());
++      const dir = [co.x / co.z, co.y / co.z];
++      let hit = 0.012;
++      for (let i = 1; i <= 400; i++) {
++        const z = 0.012 - (0.057 * i) / 400;
++        hit = z;
++        if (z - height(a.x + z * dir[0]) <= 0) break;
++      }
++      // Independent: walk the eye ray through the real groove geometry.
++      const ray = pixelRay(px, 330);
++      let expected = new T.Vector3();
++      for (let t = 0; t < 40; t += 0.0002) {
++        const p = camera.position.clone().addScaledVector(ray, t);
++        if (p.y <= Math.max(height(p.x), -1) && p.y <= 0.0001) {
++          expected = p;
++          break;
++        }
++      }
++      expect(hit).toBeCloseTo(expected.y, 2);
++      expect(a.x + hit * dir[0]).toBeCloseTo(expected.x, 2);
++      expect(a.z + hit * dir[1]).toBeCloseTo(expected.z, 1);
++      checked++;
++      if (Math.abs(hit) > 0.01) shifted++;
++    }
++    expect(checked).toBeGreaterThan(8);
++    expect(shifted).toBeGreaterThan(3);
++  });
++});
+diff --git a/tests/motocross-spectators.test.ts b/tests/motocross-spectators.test.ts
+new file mode 100644
+index 0000000..0790e02
+--- /dev/null
++++ b/tests/motocross-spectators.test.ts
+@@ -0,0 +1,98 @@
++import * as T from 'three';
++import { afterEach, describe, expect, it } from 'vitest';
++import { MxCourseDressing } from '../src/rendering/offroad/mx-course-dressing.ts';
++import { setMxQuality } from '../src/rendering/offroad/mx-quality.ts';
++import {
++  MX_SPECTATOR_SETBACK,
++  MxSpectators,
++  planMxSpectators,
++} from '../src/rendering/offroad/mx-spectators.ts';
++import { TrackTerrainSurface } from '../src/simulation/offroad/course-terrain.ts';
++import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
++import { Track, trackPoint } from '../src/simulation/track.ts';
++
++afterEach(() => setMxQuality('high'));
++
++describe('MX spectators and flag marshals', () => {
++  it('stands onlookers beside the course, outside its run-off and clear of the furniture', () => {
++    const track = rigTrack('valley-ridge-mx'),
++      surface = Track.offroadOf(track) as TrackTerrainSurface,
++      dressing = new MxCourseDressing(track),
++      sites = dressing.trackside.plan.sites,
++      plan = planMxSpectators(track, sites),
++      nearest = trackPoint();
++    try {
++      expect(plan.groups).toBeGreaterThan(15);
++      expect(plan.placements.filter((p) => p.kind === 'spectator').length).toBeGreaterThan(80);
++      expect(plan.placements.filter((p) => p.kind === 'marshal').length).toBeGreaterThan(0);
++      for (const p of plan.placements) {
++        const lateral = track.nearest(p.x, p.z, nearest);
++        const edge = surface.course.legalWidth(nearest.width, nearest.s, lateral);
++        expect(Math.abs(lateral)).toBeGreaterThan(
++          edge + (p.kind === 'marshal' ? 0.8 : MX_SPECTATOR_SETBACK - 0.05),
++        );
++        expect(Number.isFinite(p.y)).toBe(true);
++        for (const site of sites)
++          if (!(p.kind === 'marshal' && Math.hypot(site.x - p.x, site.z - p.z) < 1.4))
++            expect(Math.hypot(site.x - p.x, site.z - p.z)).toBeGreaterThan(site.radius);
++      }
++      // Deterministic, and no two people share a spot.
++      expect(planMxSpectators(track, sites).placements).toEqual(plan.placements);
++      for (let i = 0; i < plan.placements.length; i += 3)
++        for (let j = i + 1; j < plan.placements.length; j += 5)
++          expect(
++            Math.hypot(
++              plan.placements[i].x - plan.placements[j].x,
++              plan.placements[i].z - plan.placements[j].z,
++            ),
++          ).toBeGreaterThan(0.4);
++    } finally {
++      dressing.dispose();
++    }
++  });
++
++  it('keeps the indoor arena to its own bowl crowd', () => {
++    const track = rigTrack('arena-nord-sx');
++    expect(planMxSpectators(track, []).placements).toHaveLength(0);
++    const none = new MxSpectators(track, []);
++    expect(none.root.children).toHaveLength(0);
++    none.dispose();
++  });
++
++  it('builds standing instanced crowds per stretch of course and one flag draw, thinned on Low and Medium', () => {
++    const track = rigTrack('valley-ridge-mx'),
++      dressing = new MxCourseDressing(track),
++      crowd = new MxSpectators(track, dressing.trackside.plan.sites);
++    try {
++      const people = crowd.root.children.filter(
++        (o): o is T.InstancedMesh => o instanceof T.InstancedMesh,
++      );
++      expect(people.length).toBeGreaterThan(3);
++      expect(people.length).toBe(crowd.stats.draws);
++      expect(people.length).toBeLessThan(16);
++      const total = people.reduce((n, m) => n + m.count, 0);
++      expect(total).toBe(crowd.stats.spectators + crowd.stats.marshals);
++      for (const mesh of people) {
++        const style = mesh.geometry.getAttribute('spectatorStyle') as T.InstancedBufferAttribute;
++        // Everyone stands (style z), nobody floats in a seated pose.
++        for (let i = 0; i < style.count; i++) expect(style.getZ(i)).toBe(1);
++        expect(mesh.customDepthMaterial).toBeDefined();
++        expect(mesh.instanceColor).not.toBeNull();
++      }
++      expect(crowd.root.getObjectByName('MX marshal signal flags and poles')).toBeDefined();
++      const drawn = () => people.reduce((n, m) => n + m.count, 0);
++      setMxQuality('medium');
++      expect(drawn()).toBeLessThan(total * 0.5);
++      expect(drawn()).toBeGreaterThan(total * 0.2);
++      setMxQuality('high');
++      expect(drawn()).toBe(total);
++      crowd.update(12.3);
++      crowd.update(Number.NaN);
++      expect(crowd.stats.triangles).toBeGreaterThan(100_000);
++      expect(crowd.stats.triangles).toBeLessThan(900_000);
++    } finally {
++      crowd.dispose();
++      dressing.dispose();
++    }
++  });
++});

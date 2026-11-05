@@ -1,0 +1,2445 @@
+diff --git a/docs/studio/hyperrealism-tooling/motogp/live-race/capture.ts b/docs/studio/hyperrealism-tooling/motogp/live-race/capture.ts
+new file mode 100644
+index 0000000..2fff7b5
+--- /dev/null
++++ b/docs/studio/hyperrealism-tooling/motogp/live-race/capture.ts
+@@ -0,0 +1,277 @@
++/** Local GP look-development capture (not committed): production Simulation + RacingRenderer in a live GP
++ * race (AI rides the player bike), one boot then many shots. Ported from e2e/fixtures/motogp-hyperreal-capture.ts. */
++import { Simulation } from '../../src/simulation/world.ts';
++import { DEFAULT_OPTIONS } from '../../src/simulation/config.ts';
++import { RacingRenderer, type CameraMode } from '../../src/rendering/renderer.ts';
++import { graphicsPreset, type QualityPreset } from '../../src/rendering/options.ts';
++import { F, B, H, BIKE_BASE, carBase } from '../../src/simulation/protocol.ts';
++import { GpuFrameGate } from '../../src/rendering/gpu-frame-gate.ts';
++import { DEFAULT_PHOTO, type PhotoSettings } from '../../src/rendering/photo-camera.ts';
++import * as T from 'three';
++
++interface BootOptions {
++  preset: QualityPreset;
++  width: number;
++  height: number;
++  circuit?: string;
++  vehicles?: string[];
++  opponents?: number;
++  weather?: 'clear' | 'rain';
++  seed?: number;
++  crowd?: boolean;
++  vegetation?: number;
++  /** Simulated seconds before the first frame. */
++  warm?: number;
++  lighting?: string;
++  grid?: boolean;
++}
++let sim: Simulation, renderer: RacingRenderer, canvas: HTMLCanvasElement;
++let previous: Float32Array, current: Float32Array;
++let clock = 0;
++let gate: GpuFrameGate;
++const step = 1 / 120;
++const yieldGpu = () => new Promise<void>((r) => setTimeout(r, 12));
++const log = (...a: unknown[]) => console.log('GPCAP', ...a);
++
++function advance(seconds: number) {
++  const ticks = Math.max(1, Math.round(seconds / step));
++  for (let i = 0; i < ticks; i++) sim.step(step);
++  previous = current;
++  current = sim.makeFrame();
++  clock += ticks * step;
++}
++async function settle() {
++  const t0 = performance.now();
++  while (!gate.ready()) {
++    if (performance.now() - t0 > 3600000) throw new Error('GPU frame not ready in 60 min');
++    await yieldGpu();
++  }
++  return (performance.now() - t0) / 1000;
++}
++async function boot(o: BootOptions) {
++  const t0 = performance.now();
++  const weather = o.weather ?? 'clear';
++  const opponents = o.opponents ?? 3;
++  const vehicles = o.vehicles ?? Array.from({ length: opponents + 1 }, (_, i) => (i % 2 ? 'gpr2' : 'gpr1'));
++  sim = new Simulation({
++    ...DEFAULT_OPTIONS,
++    circuit: (o.circuit ?? 'poggio-alto') as never,
++    mode: 'race',
++    laps: 3,
++    ruleset: 'gp-motorcycle',
++    vehicles,
++    weather,
++    compound: weather === 'rain' ? 'wet' : 'medium',
++    opponents,
++    seed: o.seed ?? 34100,
++  });
++  sim.autoPlayer = true;
++  canvas = document.createElement('canvas');
++  canvas.style.cssText = `display:block;width:${o.width}px;height:${o.height}px`;
++  document.body.append(canvas);
++  renderer = new RacingRenderer(canvas, sim.track);
++  renderer.setQuality(o.preset, {
++    ...graphicsPreset(o.preset),
++    resolutionScale: 1,
++    ...(o.crowd === undefined ? {} : { crowd: o.crowd }),
++    ...(o.vegetation === undefined ? {} : { vegetationDensity: o.vegetation }),
++  });
++  if (o.lighting) (renderer as unknown as { lighting: string }).lighting = o.lighting;
++  const internals = renderer as unknown as { gpuFrames: GpuFrameGate };
++  internals.gpuFrames.dispose();
++  gate = internals.gpuFrames = new GpuFrameGate(
++    renderer.renderer.getContext() as WebGL2RenderingContext,
++    undefined,
++    1000,
++    10000,
++    3600000,
++  );
++  // Capture-only: the production 45 s "GPU preparation" deadline cannot hold on a CPU rasteriser.
++  (renderer as unknown as { waitForPreparedFrame: unknown }).waitForPreparedFrame = async (
++    cancelled: () => boolean,
++    yieldFrame: () => Promise<void>,
++  ) => {
++    while (!cancelled() && !gate.ready()) await yieldFrame();
++  };
++  current = sim.makeFrame();
++  previous = current;
++  if (o.warm) advance(o.warm);
++  const prepared = await renderer.prepare(current, (m) => log('prepare:', m), () => false, yieldGpu);
++  if (!prepared) throw new Error('prepare cancelled');
++  log('prepared', ((performance.now() - t0) / 1000).toFixed(1), 's');
++  return { prepareS: (performance.now() - t0) / 1000, tris: renderer.renderer.info.render.triangles };
++}
++
++export interface ShotSpec {
++  name: string;
++  view?: CameraMode;
++  photo?: Partial<PhotoSettings>;
++  /** Advance the race to this sim time first (s). */
++  at?: number;
++  /** JS run (as a Function of `cap`) before the shot, after the camera is set. */
++  pre?: string;
++  frames?: number;
++  jpeg?: boolean;
++  /** Re-draw the current instant: the simulation is not advanced (identical scene for A/B variants). */
++  freeze?: boolean;
++  /** Keep the camera as the previous shot left it (no mode change; for A/B on a held view). */
++  hold?: boolean;
++}
++async function shoot(s: ShotSpec) {
++  const t0 = performance.now();
++  if (s.at !== undefined && s.at > clock) advance(s.at - clock);
++  if (s.hold) {
++    /* camera untouched */
++  } else if (s.photo) renderer.setPhoto({ ...DEFAULT_PHOTO, ...s.photo } as PhotoSettings, current[H.CARS]);
++  else {
++    renderer.setPhoto(null);
++    renderer.changeCamera(s.view ?? 'chase');
++  }
++  if (s.pre) await new Function('cap', `return (async()=>{${s.pre}})()`)(api);
++  const frames = s.frames ?? 6;
++  if (s.freeze) previous = current;
++  for (let f = 0; f < frames; f++) {
++    if (!s.freeze) advance(1 / 12);
++    renderer.draw(previous, current, 1, 1 / 12, false);
++    if (f === 0) log('first frame', s.name, (await settle()).toFixed(1), 's');
++  }
++  await settle();
++  let image = '';
++  let luma = 0;
++  for (let attempt = 0; attempt < 4; attempt++) {
++    // Draw and read back in ONE task (the drawing buffer is cleared once presented).
++    await settle();
++    if (!s.freeze) advance(1 / 60);
++    renderer.draw(previous, current, 1, 1 / 60, false);
++    const gl = renderer.renderer.getContext();
++    const px = new Uint8Array(4);
++    let sum = 0;
++    for (let gy = 1; gy < 8; gy++)
++      for (let gx = 1; gx < 8; gx++) {
++        gl.readPixels(Math.floor((canvas.width * gx) / 8), Math.floor((canvas.height * gy) / 8), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
++        sum += px[0] + px[1] + px[2];
++      }
++    luma = sum / 49 / 3;
++    image = canvas.toDataURL(s.jpeg ? 'image/jpeg' : 'image/png', 0.93);
++    if (luma > 1) break;
++    log('black read-back, retrying', s.name, attempt);
++  }
++  const base = carBase(0);
++  const info = {
++    name: s.name,
++    sec: (performance.now() - t0) / 1000,
++    clock,
++    luma,
++    speedKph: current[base + F.SPEED] * 3.6,
++    leanDeg: (current[base + BIKE_BASE + B.LEAN] * 180) / Math.PI,
++    calls: renderer.renderer.info.render.calls,
++    tris: renderer.renderer.info.render.triangles,
++  };
++  await (globalThis as { saveCapture?: (n: string, u: string) => Promise<void> }).saveCapture?.(
++    `${s.name}.${s.jpeg ? 'jpg' : 'png'}`,
++    image,
++  );
++  log('shot', JSON.stringify(info));
++  return info;
++}
++const api = {
++  boot,
++  shoot,
++  advance,
++  get renderer() {
++    return renderer;
++  },
++  get sim() {
++    return sim;
++  },
++  T,
++  /** Run-time override of the GP occlusion strengths on every entrant (null restores the product values). */
++  occlusion(diffuse: number | null, specular = diffuse) {
++    const seen = new Set<unknown>();
++    let patched = 0;
++    for (const m of api.materials()) {
++      const u = (renderer.renderer.properties.get(m) as { uniforms?: Record<string, { value: T.Vector3 }> })
++        .uniforms?.gpOccParams;
++      if (!u || seen.has(u)) continue;
++      seen.add(u);
++      const v = u.value as T.Vector3 & { __ov?: [number, number] | null };
++      if (!('__ov' in v)) {
++        let x = v.x, y = v.y;
++        v.__ov = null;
++        Object.defineProperty(v, 'x', { get: () => (v.__ov ? v.__ov[0] : x), set: (n: number) => (x = n), configurable: true });
++        Object.defineProperty(v, 'y', { get: () => (v.__ov ? v.__ov[1] : y), set: (n: number) => (y = n), configurable: true });
++      }
++      v.__ov = diffuse === null ? null : [diffuse, specular ?? diffuse];
++      patched++;
++    }
++    return patched;
++  },
++  /** Force a numeric (or Vector3-axis) uniform of every entrant to `value` (null restores). */
++  force(name: string, value: number | null) {
++    const seen = new Set<unknown>();
++    let patched = 0;
++    for (const m of api.materials()) {
++      const u = (renderer.renderer.properties.get(m) as { uniforms?: Record<string, { value: unknown }> }).uniforms?.[name];
++      if (!u || seen.has(u)) continue;
++      seen.add(u);
++      const holder = u as { value: unknown; __ov?: number | null; __stored?: unknown };
++      if (!('__ov' in holder)) {
++        holder.__stored = holder.value;
++        holder.__ov = null;
++        Object.defineProperty(holder, 'value', {
++          get: () => (holder.__ov !== null && holder.__ov !== undefined ? holder.__ov : holder.__stored),
++          set: (n: unknown) => (holder.__stored = n),
++          configurable: true,
++        });
++      }
++      holder.__ov = value;
++      patched++;
++    }
++    return patched;
++  },
++  /** Metal anisotropy forced off (0) / on (null restores the product value). */
++  aniso(strength: number | null) {
++    const proto = Object.getOwnPropertyDescriptor(T.MeshPhysicalMaterial.prototype, 'anisotropy')!;
++    let n = 0;
++    for (const m of api.materials()) {
++      if (!(m instanceof T.MeshPhysicalMaterial) || typeof m.userData.gpAnisotropy !== 'number') continue;
++      const holder = m as T.MeshPhysicalMaterial & { __ov?: number | null };
++      if (!('__ov' in holder)) {
++        Object.defineProperty(holder, 'anisotropy', {
++          get: () => (holder.__ov !== null && holder.__ov !== undefined ? holder.__ov : proto.get!.call(holder)),
++          set: (v: number) => proto.set!.call(holder, v),
++          configurable: true,
++        });
++      }
++      holder.__ov = strength;
++      m.needsUpdate = true;
++      n++;
++    }
++    return n;
++  },
++  /** Show or hide the rolled panel hems (draw range of the hem strips). */
++  hems(on: boolean) {
++    let n = 0;
++    renderer.scene.traverse((o) => {
++      const g = (o as T.Mesh).geometry as T.BufferGeometry | undefined;
++      const start = g?.userData?.gpHemStart;
++      if (typeof start === 'number') {
++        g!.setDrawRange(0, on ? Infinity : start);
++        n++;
++      }
++    });
++    return n;
++  },
++  /** All materials of the scene (deduplicated), for run-time tuning. */
++  materials() {
++    const set = new Set<T.Material>();
++    renderer.scene.traverse((o) => {
++      const m = (o as T.Mesh).material;
++      if (Array.isArray(m)) m.forEach((x) => set.add(x));
++      else if (m) set.add(m);
++    });
++    return [...set];
++  },
++};
++(window as unknown as { GPCap: unknown }).GPCap = api;
++(window as unknown as { GPCapReady: boolean }).GPCapReady = true;
+diff --git a/docs/studio/hyperrealism-tooling/motogp/live-race/cmp3.py b/docs/studio/hyperrealism-tooling/motogp/live-race/cmp3.py
+new file mode 100644
+index 0000000..54b26e9
+--- /dev/null
++++ b/docs/studio/hyperrealism-tooling/motogp/live-race/cmp3.py
+@@ -0,0 +1,23 @@
++# cmp3.py out.png a.png b.png [x0 y0 x1 y1] [scale] [label_a label_b]
++# side by side A | B | amplified abs-diff (x4), optional crop and scale.
++import sys
++from PIL import Image, ImageChops, ImageDraw
++import numpy as np
++args = sys.argv[1:]
++out, a, b = args[:3]
++rest = args[3:]
++A = Image.open(a).convert('RGB'); B = Image.open(b).convert('RGB')
++if len(rest) >= 4 and all(r.lstrip('-').isdigit() for r in rest[:4]):
++    box = tuple(int(v) for v in rest[:4]); A = A.crop(box); B = B.crop(box); rest = rest[4:]
++scale = float(rest[0]) if rest else 1.0
++la = rest[1] if len(rest) > 1 else 'A'; lb = rest[2] if len(rest) > 2 else 'B'
++d = np.abs(np.asarray(A, dtype=np.int16) - np.asarray(B, dtype=np.int16))
++D = Image.fromarray(np.clip(d * 4, 0, 255).astype(np.uint8))
++w, h = A.size
++o = Image.new('RGB', (w * 3 + 12, h + 14), (255, 255, 255))
++for i, im in enumerate((A, B, D)): o.paste(im, (i * (w + 6), 14))
++dr = ImageDraw.Draw(o)
++for i, t in enumerate((la, lb, 'diff x4')): dr.text((i * (w + 6) + 3, 1), t, fill=(0, 0, 0))
++if scale != 1.0: o = o.resize((int(o.width * scale), int(o.height * scale)), Image.LANCZOS)
++o.save(out)
++print('mean abs diff', float(d.mean()), 'max', int(d.max()), 'pixels>8:', int((d.max(axis=2) > 8).sum()))
+diff --git a/docs/studio/hyperrealism-tooling/motogp/live-race/index.html b/docs/studio/hyperrealism-tooling/motogp/live-race/index.html
+new file mode 100644
+index 0000000..86539ec
+--- /dev/null
++++ b/docs/studio/hyperrealism-tooling/motogp/live-race/index.html
+@@ -0,0 +1,4 @@
++<!doctype html>
++<html><head><meta charset="utf-8"><base href="/"><title>GP capture</title>
++<style>html,body{margin:0;background:#000;overflow:hidden}canvas{display:block}</style></head>
++<body><script type="module" src="/test-results/gp-capture/capture.ts"></script></body></html>
+diff --git a/docs/studio/hyperrealism-tooling/motogp/live-race/mksnap.sh b/docs/studio/hyperrealism-tooling/motogp/live-race/mksnap.sh
+new file mode 100755
+index 0000000..6afee08
+--- /dev/null
++++ b/docs/studio/hyperrealism-tooling/motogp/live-race/mksnap.sh
+@@ -0,0 +1,16 @@
++#!/bin/bash
++# mksnap.sh <name>: copy the current worktree sources into scratchpad/motogp/<name> (symlinks for the heavy read-only dirs)
++set -e
++WT=/home/user/Experiment-3/.claude/worktrees/agent-a98ba1889308b2f68
++DST=/tmp/claude-0/-home-user-Experiment-3/77bc90d5-fa90-573c-91d6-9e500a2bf2c9/scratchpad/motogp/$1
++mkdir -p $DST/test-results
++rm -rf $DST/src; cp -a $WT/src $DST/src
++for f in index.html vite.config.ts package.json package-lock.json tsconfig.json; do cp $WT/$f $DST/$f; done
++for d in public scripts node_modules; do [ -e $DST/$d ] || ln -s $( [ $d = node_modules ] && echo /home/user/Experiment-3/node_modules || echo $WT/$d ) $DST/$d; done
++rm -rf $DST/test-results/gp-capture; cp -a $WT/test-results/gp-capture $DST/test-results/gp-capture
++cat > $DST/test-results/gp-capture/vite.capture.config.ts <<'EOT'
++import { mergeConfig } from 'vite';
++import base from '../../vite.config.ts';
++export default mergeConfig(base, { server: { hmr: false, fs: { allow: ['/home/user/Experiment-3', '.'] } } });
++EOT
++echo "snapshot $1 ready"
+diff --git a/docs/studio/hyperrealism-tooling/motogp/live-race/ref-ab.mjs b/docs/studio/hyperrealism-tooling/motogp/live-race/ref-ab.mjs
+new file mode 100644
+index 0000000..7e8a3b7
+--- /dev/null
++++ b/docs/studio/hyperrealism-tooling/motogp/live-race/ref-ab.mjs
+@@ -0,0 +1,40 @@
++// Usage: node ref-ab.mjs <beforeRoot|-> <afterRoot|-> <outPrefix> <views,comma> [lean] [vehicle] [flagsJson]
++import { createRequire } from 'node:module';
++import { resolve } from 'node:path';
++import { writeFileSync, copyFileSync, mkdirSync } from 'node:fs';
++const { chromium } = createRequire('/opt/node22/lib/node_modules/playwright/package.json')('playwright');
++const [beforeRoot, afterRoot, out, viewList, lean = '0', vehicle = 'gpr1', flagsJson = '{}'] = process.argv.slice(2);
++const SRC = '/home/user/Experiment-3/.claude/worktrees/agent-a98ba1889308b2f68/test-results/gp-capture/ref.ts';
++const views = viewList.split(',');
++const req = createRequire('/home/user/Experiment-3/package.json');
++const { build } = await import(req.resolve('vite'));
++async function bundle(root) {
++  mkdirSync(resolve(root, 'test-results/gp-capture'), { recursive: true });
++  copyFileSync(SRC, resolve(root, 'test-results/gp-capture/ref.ts'));
++  process.chdir(root);
++  const b = await build({
++    root, configFile: false, logLevel: 'error',
++    define: { __SUPPLIED_PLAYER__: 'false' },
++    build: { write: false, lib: { entry: resolve(root, 'test-results/gp-capture/ref.ts'), name: 'GpRef', formats: ['iife'] } },
++  });
++  return (Array.isArray(b) ? b[0] : b).output.find((e) => e.type === 'chunk').code;
++}
++const sides = [['before', beforeRoot], ['after', afterRoot]].filter(([, r]) => r && r !== '-');
++const browser = await chromium.launch();
++for (const [label, root] of sides) {
++  const t0 = Date.now();
++  const code = await bundle(root);
++  console.log(label, 'built', ((Date.now() - t0) / 1000).toFixed(0), 's');
++  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
++  page.on('pageerror', (e) => console.log(label, 'pageerror', e.message));
++  page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') console.log(label, 'console', m.type(), m.text().slice(0, 300)); });
++  await page.setContent('<!doctype html><title>cap</title>');
++  await page.addScriptTag({ content: code });
++  const t1 = Date.now();
++  const r = await page.evaluate((a) => window.GpRef.capture(a), { views, lean: Number(lean), vehicle, flags: JSON.parse(flagsJson) });
++  for (const o of r.out) writeFileSync(`${out}-${o.view}-${label}.png`, Buffer.from(o.image.split(',')[1], 'base64'));
++  console.log(label, 'captured', ((Date.now() - t1) / 1000).toFixed(0), 's', 'tris', r.triangles, 'glError', r.glError, 'programs', r.programs);
++  await page.close();
++}
++await Promise.race([browser.close(), new Promise((r) => setTimeout(r, 15000))]);
++process.exit(0);
+diff --git a/docs/studio/hyperrealism-tooling/motogp/live-race/ref.ts b/docs/studio/hyperrealism-tooling/motogp/live-race/ref.ts
+new file mode 100644
+index 0000000..68920d1
+--- /dev/null
++++ b/docs/studio/hyperrealism-tooling/motogp/live-race/ref.ts
+@@ -0,0 +1,122 @@
++// Scratch reference-scene fixture for A/B (works on any tree: features that do not exist yet are skipped).
++import * as T from 'three';
++import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
++import { BikeMaterials, BikeModel, staticSag, type BikePoseValues } from '../../src/rendering/bike.ts';
++import * as occ from '../../src/rendering/gp-occlusion.ts';
++import * as app from '../../src/rendering/gp-appearance.ts';
++import { VEHICLES } from '../../src/simulation/vehicles.ts';
++
++type V = { pos: [number, number, number]; at: [number, number, number]; fov: number };
++const VIEWS: Record<string, V> = {
++  'three-quarter': { pos: [-2.8, 1.65, 3.35], at: [0, 0.68, 0], fov: 38 },
++  side: { pos: [3.7, 1.35, 0.1], at: [0, 0.68, 0], fov: 38 },
++  'side-low': { pos: [2.2, 0.75, 0.2], at: [0, 0.55, 0.05], fov: 40 },
++  'front-q': { pos: [1.5, 0.9, 2.2], at: [0, 0.55, 0.55], fov: 36 },
++  'front-brake': { pos: [1.05, 0.65, 1.0], at: [0, 0.34, 0.75], fov: 35 },
++  'fork-top': { pos: [0.7, 1.0, 1.6], at: [0, 0.78, 0.7], fov: 30 },
++  'rear-chassis': { pos: [1.35, 0.8, -1.62], at: [0, 0.53, -0.37], fov: 35 },
++  'rear-q': { pos: [-1.9, 1.2, -2.4], at: [0, 0.6, -0.2], fov: 36 },
++  chase: { pos: [0.4, 1.55, -3.4], at: [0, 0.8, 0], fov: 34 },
++  'rider-rear': { pos: [-1.45, 1.65, -1.85], at: [0, 1.03, -0.15], fov: 32 },
++  'rider-side': { pos: [2.35, 1.45, 0], at: [0, 1.0, -0.08], fov: 32 },
++  'wheel-lip': { pos: [0.9, 0.5, 1.35], at: [0, 0.32, 0.78], fov: 28 },
++  'front-wheel-side': { pos: [1.35, 0.42, 0.78], at: [0, 0.33, 0.78], fov: 32 },
++  'rear-wheel': { pos: [1.2, 0.5, -1.35], at: [0, 0.33, -0.78], fov: 32 },
++  'nose-close': { pos: [0.55, 0.62, 1.55], at: [0, 0.5, 0.8], fov: 30 },
++  'flank-close': { pos: [1.1, 0.5, 0.45], at: [0, 0.35, 0.25], fov: 30 },
++  'tail-close': { pos: [0.7, 0.95, -1.2], at: [0, 0.75, -0.7], fov: 30 },
++};
++
++export function capture(o: {
++  views: string[];
++  flags?: { occlusion?: boolean; aniso?: boolean; relief?: number };
++  lean?: number;
++  vehicle?: string;
++  width?: number;
++  height?: number;
++  env?: number;
++}) {
++  const width = o.width ?? 1280,
++    height = o.height ?? 800,
++    lean = o.lean ?? 0,
++    flags = { occlusion: true, aniso: true, relief: 1, ...o.flags };
++  const renderer = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
++  renderer.setSize(width, height);
++  renderer.setPixelRatio(1);
++  renderer.outputColorSpace = T.SRGBColorSpace;
++  renderer.toneMapping = T.ACESFilmicToneMapping;
++  renderer.shadowMap.enabled = true;
++  renderer.shadowMap.type = T.PCFSoftShadowMap;
++  const scene = new T.Scene();
++  scene.background = new T.Color('#aab9c6');
++  const pmrem = new T.PMREMGenerator(renderer);
++  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.06).texture;
++  scene.environmentIntensity = o.env ?? 0.55;
++  const sun = new T.DirectionalLight(0xfff0d9, 3.1);
++  sun.position.set(3, 6, 4);
++  sun.castShadow = true;
++  sun.shadow.mapSize.set(2048, 2048);
++  Object.assign(sun.shadow.camera, { left: -3, right: 3, top: 3, bottom: -3, near: 0.1, far: 15 });
++  sun.shadow.bias = -0.00015;
++  sun.shadow.normalBias = 0.012;
++  scene.add(sun, new T.HemisphereLight(0xc9e4ff, 0x514737, 1.3));
++  const def = VEHICLES[o.vehicle ?? 'gpr1'],
++    materials = new BikeMaterials(0),
++    bike = new BikeModel(def, 0, 'high', materials, true);
++  const occAny = occ as Record<string, any>,
++    appAny = app as Record<string, any>;
++  if (flags.occlusion) {
++    const grid = bike.occlusionGrid();
++    occAny.bindGpOcclusion(materials.occlusion, { grid, texture: occAny.gpOcclusionTexture(grid) });
++    const owned = new Set<T.Material>([...materials.list, ...bike.rider.ownedMaterials]);
++    for (const m of owned)
++      if (m instanceof T.MeshStandardMaterial && !m.transparent && m.colorWrite)
++        occAny.installGpOcclusion(m, materials.occlusion);
++    occAny.setGpOcclusionStrength(materials.occlusion, true);
++  }
++  appAny.setGpMetalAnisotropy?.(materials, flags.aniso);
++  for (const m of materials.list) {
++    const u = (m.userData as { gpRelief?: { gpReliefStrength: { value: number } } }).gpRelief;
++    if (u) u.gpReliefStrength.value = flags.relief;
++  }
++  const sag = staticSag(def);
++  const pose: BikePoseValues = {
++    fork: sag.fork, shock: sag.shock, steer: 0, frontRotation: 0, rearRotation: 0, chassisLean: lean,
++    riderOffset: lean ? 0.18 : 0, tuck: 0.75, brake: 0.05, rearBrake: 0, discTemp: 280,
++    compoundColour: 0xffffff, riding: true, speed: 42, gear: 4, rpm: 12200,
++  };
++  bike.pose(pose);
++  bike.root.position.y = def.bike!.cgHeight;
++  if (lean) {
++    bike.root.rotation.z = -lean;
++    bike.root.position.y *= Math.cos(lean);
++  }
++  scene.add(bike.root);
++  const floor = new T.Mesh(new T.PlaneGeometry(200, 200), new T.MeshStandardMaterial({ color: 0x45494d, roughness: 0.91 }));
++  floor.rotation.x = -Math.PI / 2;
++  floor.receiveShadow = true;
++  scene.add(floor);
++  bike.root.traverse((m) => {
++    if (m instanceof T.Mesh) m.castShadow = m.receiveShadow = true;
++  });
++  scene.updateMatrixWorld(true);
++  bike.sprung.updateWorldMatrix(true, false);
++  materials.occlusion.gpOccFromWorld.value.copy(bike.sprung.matrixWorld).invert();
++  let triangles = 0;
++  bike.root.traverse((m) => {
++    if (m instanceof T.Mesh) triangles += ((m.geometry.index?.count ?? m.geometry.getAttribute('position').count) / 3) * (m instanceof T.InstancedMesh ? m.count : 1);
++  });
++  const camera = new T.PerspectiveCamera(38, width / height, 0.03, 80);
++  const out: { view: string; image: string }[] = [];
++  for (const view of o.views) {
++    const v = VIEWS[view];
++    if (!v) throw new Error('unknown view ' + view);
++    camera.position.set(...v.pos);
++    camera.fov = v.fov;
++    camera.updateProjectionMatrix();
++    camera.lookAt(...v.at);
++    renderer.render(scene, camera);
++    out.push({ view, image: renderer.domElement.toDataURL('image/png') });
++  }
++  return { out, triangles, glError: renderer.getContext().getError(), programs: renderer.info.programs?.length ?? 0 };
++}
+diff --git a/docs/studio/hyperrealism-tooling/motogp/live-race/run.mjs b/docs/studio/hyperrealism-tooling/motogp/live-race/run.mjs
+new file mode 100644
+index 0000000..22d5c02
+--- /dev/null
++++ b/docs/studio/hyperrealism-tooling/motogp/live-race/run.mjs
+@@ -0,0 +1,49 @@
++// node run.mjs <outDir> <planJson|file> [--port 5182]
++// plan = { boot: {...}, shots: [ {name, view|photo, at, pre, frames} ] }
++import { chromium } from '/home/user/Experiment-3/node_modules/playwright/index.mjs';
++import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
++const [out, planArg, ...rest] = process.argv.slice(2);
++const port = rest.includes('--port') ? rest[rest.indexOf('--port') + 1] : '5182';
++const plan = JSON.parse(existsSync(planArg) ? readFileSync(planArg, 'utf8') : planArg);
++mkdirSync(out, { recursive: true });
++const t0 = Date.now();
++const log = (...m) => console.log(`[${((Date.now() - t0) / 1000).toFixed(0)}s]`, ...m);
++const browser = await chromium.launch({
++  executablePath: '/opt/pw-browsers/chromium-1243/chrome-linux64/chrome',
++  args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-watchdog', '--gpu-watchdog-timeout-seconds=3600', '--js-flags=--max-old-space-size=3072'],
++});
++const page = await browser.newPage({ viewport: { width: plan.boot.width ?? 960, height: plan.boot.height ?? 540 }, deviceScaleFactor: 1 });
++const errors = [];
++page.on('console', (m) => {
++  const text = m.text();
++  if (text.startsWith('GPCAP')) log(text);
++  else if (m.type() === 'error' || m.type() === 'warning') errors.push(`${m.type()}: ${text.slice(0, 400)}`);
++});
++page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
++page.on('crash', () => { console.log('PAGE CRASHED (likely OOM)'); process.exit(3); });
++await page.exposeFunction('saveCapture', (name, url) => {
++  writeFileSync(`${out}/${name}`, Buffer.from(url.split(',')[1], 'base64'));
++  log('wrote', `${out}/${name}`);
++});
++try {
++  await page.goto(`http://127.0.0.1:${port}/test-results/gp-capture/index.html`, { timeout: 600000 });
++  await page.waitForFunction(() => window.GPCapReady === true, null, { timeout: 900000, polling: 1000 });
++  log('module ready');
++  const b = await page.evaluate((o) => window.GPCap.boot(o), plan.boot);
++  log('booted', JSON.stringify(b));
++  for (const shot of plan.shots) {
++    try {
++      await page.evaluate((s) => window.GPCap.shoot(s), shot);
++    } catch (e) {
++      errors.push(`shot ${shot.name}: ${e.message}`);
++    }
++  }
++} catch (e) {
++  errors.push('runner: ' + (e instanceof Error ? e.message : String(e)));
++} finally {
++  const unique = [...new Set(errors)];
++  log('console errors/warnings:', unique.length);
++  for (const e of unique.slice(0, 40)) console.log('  ', e);
++  await Promise.race([browser.close(), new Promise((r) => setTimeout(r, 15000))]);
++  process.exit(0);
++}
+diff --git a/docs/studio/hyperrealism-tooling/motogp/live-race/session.mjs b/docs/studio/hyperrealism-tooling/motogp/live-race/session.mjs
+new file mode 100644
+index 0000000..2ef5421
+--- /dev/null
++++ b/docs/studio/hyperrealism-tooling/motogp/live-race/session.mjs
+@@ -0,0 +1,102 @@
++// Long-lived capture session: boots the race once, then runs plan files dropped into <cmdDir>.
++// node session.mjs <outDir> <cmdDir> <bootJson> [--port 5184]
++// Each plan file: {"shots":[...], "evals":[...]} ; results: <plan>.done.  Create <cmdDir>/STOP to quit.
++// The shared heavy lock is held only while booting and while each plan file runs.
++import { chromium } from '/home/user/Experiment-3/node_modules/playwright/index.mjs';
++import { writeFileSync, mkdirSync, readFileSync, readdirSync, existsSync } from 'node:fs';
++import { spawn } from 'node:child_process';
++const [out, cmdDir, bootArg, ...rest] = process.argv.slice(2);
++const port = rest.includes('--port') ? rest[rest.indexOf('--port') + 1] : '5184';
++const LOCK = '/tmp/claude-0/-home-user-Experiment-3/77bc90d5-fa90-573c-91d6-9e500a2bf2c9/scratchpad/heavy.lock';
++const boot = JSON.parse(existsSync(bootArg) ? readFileSync(bootArg, 'utf8') : bootArg);
++mkdirSync(out, { recursive: true });
++mkdirSync(cmdDir, { recursive: true });
++const t0 = Date.now();
++const log = (...m) => console.log(`[${((Date.now() - t0) / 1000).toFixed(0)}s]`, ...m);
++async function withLock(label, fn) {
++  const child = spawn('flock', [LOCK, 'bash', '-c', 'echo LOCKED; cat >/dev/null'], { stdio: ['pipe', 'pipe', 'inherit'] });
++  await new Promise((resolve) => child.stdout.once('data', resolve));
++  log('lock acquired for', label);
++  try {
++    return await fn();
++  } finally {
++    child.stdin.end();
++    log('lock released after', label);
++  }
++}
++const browser = await chromium.launch({
++  executablePath: '/opt/pw-browsers/chromium-1243/chrome-linux64/chrome',
++  args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-watchdog', '--gpu-watchdog-timeout-seconds=3600', '--js-flags=--max-old-space-size=3072'],
++});
++const page = await browser.newPage({ viewport: { width: boot.width ?? 960, height: boot.height ?? 540 }, deviceScaleFactor: 1 });
++const errors = [];
++page.on('console', (m) => {
++  const text = m.text();
++  if (text.startsWith('GPCAP')) log(text);
++  else if (m.type() === 'error' || m.type() === 'warning') errors.push(`${m.type()}: ${text.slice(0, 300)}`);
++});
++page.on('pageerror', (e) => log('pageerror', e.message.slice(0, 300)));
++page.on('crash', () => { log('PAGE CRASHED (likely OOM)'); process.exit(3); });
++let outDir = out;
++await page.exposeFunction('saveCapture', (name, url) => {
++  writeFileSync(`${outDir}/${name}`, Buffer.from(url.split(',')[1], 'base64'));
++  log('wrote', `${outDir}/${name}`);
++});
++async function main() {
++  await page.goto(`http://127.0.0.1:${port}/test-results/gp-capture/index.html`, { timeout: 600000 });
++  await page.waitForFunction(() => window.GPCapReady === true, null, { timeout: 900000, polling: 1000 });
++  log('module ready');
++  const b = await withLock('boot', () => page.evaluate((o) => window.GPCap.boot(o), boot));
++  log('booted', JSON.stringify(b));
++  const done = new Set();
++  let idle = 0;
++  for (;;) {
++    if (existsSync(`${cmdDir}/STOP`)) break;
++    const files = readdirSync(cmdDir).filter((f) => f.endsWith('.json') && !done.has(f)).sort();
++    if (!files.length) {
++      if (++idle > 3 * 3600 / 5) break;
++      await new Promise((r) => setTimeout(r, 5000));
++      continue;
++    }
++    idle = 0;
++    const f = files[0];
++    done.add(f);
++    let plan;
++    try {
++      plan = JSON.parse(readFileSync(`${cmdDir}/${f}`, 'utf8'));
++    } catch (e) {
++      log('bad plan', f, e.message);
++      continue;
++    }
++    outDir = plan.out ?? out;
++    mkdirSync(outDir, { recursive: true });
++    await withLock(f, async () => {
++      for (const code of plan.evals ?? []) {
++        try {
++          const r = await page.evaluate((c) => new Function('cap', `return (async()=>{${c}})()`)(window.GPCap), code);
++          log('eval ok', JSON.stringify(r) ?? '');
++        } catch (e) {
++          log('eval error', e.message.slice(0, 300));
++        }
++      }
++      for (const shot of plan.shots ?? []) {
++        try {
++          await page.evaluate((s) => window.GPCap.shoot(s), shot);
++        } catch (e) {
++          log('shot error', shot.name, e.message.slice(0, 300));
++        }
++      }
++    });
++    writeFileSync(`${cmdDir}/${f}.done`, 'done');
++    log('plan done', f);
++  }
++}
++try {
++  await main();
++} catch (e) {
++  log('SESSION ERROR', e.message.slice(0, 500));
++} finally {
++  log('errors', JSON.stringify([...new Set(errors)].slice(0, 12)));
++  await Promise.race([browser.close(), new Promise((r) => setTimeout(r, 15000))]);
++  process.exit(0);
++}
+diff --git a/docs/studio/hyperrealism-tooling/motogp/live-race/vite.capture.config.ts b/docs/studio/hyperrealism-tooling/motogp/live-race/vite.capture.config.ts
+new file mode 100644
+index 0000000..5c28a0b
+--- /dev/null
++++ b/docs/studio/hyperrealism-tooling/motogp/live-race/vite.capture.config.ts
+@@ -0,0 +1,4 @@
++import { mergeConfig } from 'vite';
++import base from '../../vite.config.ts';
++// Captures run for many minutes: never let a source edit hot-reload the page under test.
++export default mergeConfig(base, { server: { hmr: false } });
+diff --git a/src/rendering/bike.ts b/src/rendering/bike.ts
+index 774a8dd..d10de74 100644
+--- a/src/rendering/bike.ts
++++ b/src/rendering/bike.ts
+@@ -1,6 +1,7 @@
+ import {
+   bindGpBareMetal,
+   calibrateGpMaterials,
++  setGpMetalAnisotropy,
+   gpFrontFender,
+   gpSilencer,
+ } from './gp-appearance.ts';
+@@ -30,16 +31,19 @@ import {
+ } from './gp-front-brake.ts';
+ import { bikeSurfaceMaps } from './bike-surface-detail.ts';
+ import {
++  GP_CAPSULES,
+   acquireGpOcclusion,
+   bindGpOcclusion,
+   gpOcclusionSources,
+   gpOcclusionUniforms,
+   installGpOcclusion,
+   releaseGpOcclusion,
++  setGpCapsule,
+   setGpOcclusionStrength,
+   voxelizeGpOcclusion,
+   type GpOcclusionGrid,
+ } from './gp-occlusion.ts';
++import { setGpPanelRelief } from './gp-panel-relief.ts';
+ import { BikeCockpit } from './bike-cockpit.ts';
+ import { tcamFov } from './cockpit-framing.ts';
+ import { tagWeatherSurface } from './weather-presentation.ts';
+@@ -458,6 +462,7 @@ export class BikeMaterials {
+   readonly secondary: T.MeshPhysicalMaterial;
+   readonly accent: T.MeshPhysicalMaterial;
+   readonly carbon: T.MeshPhysicalMaterial;
++  /** Physical so GP High/ULTRA can switch on the anisotropic lobe (gp-appearance.ts). */
+   readonly aluminium: T.MeshStandardMaterial;
+   readonly titanium: T.MeshStandardMaterial;
+   readonly rubber: T.MeshStandardMaterial;
+@@ -520,7 +525,7 @@ export class BikeMaterials {
+     this.carbon = add(carbonMaterial('lacquered'));
+     this.carbon.name = 'GP carbon: metre-scale filtered twill';
+     this.aluminium = add(
+-      new T.MeshStandardMaterial({
++      new T.MeshPhysicalMaterial({
+         color: 0xb9bcc0,
+         metalness: 0.92,
+         roughness: 0.34,
+@@ -560,7 +565,7 @@ export class BikeMaterials {
+       }),
+     );
+     this.forkUpper = add(
+-      new T.MeshStandardMaterial({
++      new T.MeshPhysicalMaterial({
+         color: 0x8c6a2c,
+         metalness: 0.85,
+         roughness: 0.28,
+@@ -568,7 +573,7 @@ export class BikeMaterials {
+       }),
+     );
+     this.forkLower = add(
+-      new T.MeshStandardMaterial({
++      new T.MeshPhysicalMaterial({
+         color: 0x2d2b29,
+         metalness: 0.9,
+         roughness: 0.14,
+@@ -971,14 +976,14 @@ export class BikeModel {
+       add(
+         this.steer,
+         tripleClampGeometry(0.024, detail === 'high' ? 9 : 5),
+-        gpPrototype ? m.dark : m.aluminium,
++        gpPrototype ? m.forkUpper : m.aluminium,
+         0,
+         0.01,
+       ).name = 'Relieved upper triple clamp';
+       add(
+         this.steer,
+         tripleClampGeometry(0.028, detail === 'high' ? 7 : 4),
+-        m.dark,
++        gpPrototype ? m.forkUpper : m.dark,
+         0,
+         -0.14,
+       ).name = 'Relieved lower triple clamp';
+@@ -1173,7 +1178,7 @@ export class BikeModel {
+       add(
+         this.forkLower,
+         new T.BoxGeometry(0.045, 0.11, 0.07),
+-        m.dark,
++        gpPrototype ? m.forkUpper : m.dark,
+         side * 0.105,
+         0.0,
+         FORK_OFFSET,
+@@ -1644,7 +1649,7 @@ export class BikeModel {
+       add(
+         this.steer,
+         new T.CylinderGeometry(0.024, 0.024, 0.009, 16),
+-        m.dark,
++        gpPrototype ? m.forkUpper : m.dark,
+         -0.207,
+         0.025,
+         0.065,
+@@ -2397,6 +2402,15 @@ export class BikeShells {
+         // Bike-space occlusion follows the presented sprung frame; High/ULTRA only.
+         const occlusion = entry.materials.occlusion;
+         setGpOcclusionStrength(occlusion, quality === 'high');
++        setGpMetalAnisotropy(entry.materials, quality === 'high');
++        setGpPanelRelief(entry.materials, quality === 'high');
++        const rider = (model as BikeModel).rider;
++        // The seated rider as capsule occluders; none while he is thrown clear.
++        const seated =
++          quality === 'high' && rider.root.parent === (model as BikeModel).sprung
++            ? rider.gpOccluders((slot, a, b, r) => setGpCapsule(occlusion, slot, a, b, r))
++            : 0;
++        for (let slot = seated; slot < GP_CAPSULES; slot++) occlusion.gpCapA.value[slot].w = 0;
+         const sprung = (model as BikeModel).sprung;
+         sprung.updateWorldMatrix(true, false);
+         occlusion.gpOccFromWorld.value.copy(sprung.matrixWorld).invert();
+diff --git a/src/rendering/gp-appearance.ts b/src/rendering/gp-appearance.ts
+index 6c83b83..33068b6 100644
+--- a/src/rendering/gp-appearance.ts
++++ b/src/rendering/gp-appearance.ts
+@@ -1,6 +1,7 @@
+ import * as T from 'three';
+ import { installGlassFresnel } from './materials/library.ts';
+ import { chainShaderHook, injectAfter } from './studio/shader-hooks.ts';
++import { installSsrMask } from './ultra/ssr-mask.ts';
+ import type { BikeMaterials } from './bike.ts';
+ import type { RiderDetail } from './rider.ts';
+ 
+@@ -20,6 +21,10 @@ export function calibrateGpMaterials(materials: BikeMaterials, vehicle: string):
+   }
+   materials.paint.color.multiplyScalar(0.84);
+   materials.paint.userData.gpAppearance = 'r5-refined';
++  // Lacquered surfaces join the ULTRA screen-space reflection mask (a no-op
++  // everywhere the SSR stage is not running).
++  for (const lacquer of [materials.paint, materials.secondary, materials.accent])
++    installSsrMask(lacquer);
+   // Visible carbon covers are lacquered (REF 056 tank cover, REF 073): a
+   // deep clear coat over the twill, so the weave flips under sky reflections.
+   // Inner and structural carbon uses the raw satin finish instead.
+@@ -28,10 +33,20 @@ export function calibrateGpMaterials(materials: BikeMaterials, vehicle: string):
+   // reflections over the weave on wings and covers, not a hazy film.
+   materials.carbon.clearcoat = 1;
+   materials.carbon.clearcoatRoughness = 0.045;
++  installSsrMask(materials.carbon);
+   materials.aluminium.roughness = 0.41;
+   materials.wheel.roughness = 0.42;
+   materials.wheel.clearcoat = 0.2;
+   materials.wheel.clearcoatRoughness = 0.24;
++  // Brushed and turned metal (High/ULTRA, setGpMetalAnisotropy): the
++  // highlight stretches across the tool marks. The brushed frame map's marks
++  // run along U, a turned tube's around its circumference (U), so both
++  // stretch along V: the spar length and the tube axis.
++  for (const metal of [materials.aluminium, materials.forkUpper, materials.forkLower])
++    if (metal instanceof T.MeshPhysicalMaterial) metal.anisotropyRotation = Math.PI / 2;
++  materials.aluminium.userData.gpAnisotropy = GP_METAL_ANISOTROPY.brushed;
++  materials.forkUpper.userData.gpAnisotropy = GP_METAL_ANISOTROPY.turned;
++  materials.forkLower.userData.gpAnisotropy = GP_METAL_ANISOTROPY.polished;
+   // Coloured headers supply a vertex attribute, but the old plain-cylinder
+   // silencers did not. Mark their missing-attribute fallback explicitly.
+   materials.titanium.userData.gpBareTitanium = true;
+@@ -67,6 +82,12 @@ export function calibrateGpMaterials(materials: BikeMaterials, vehicle: string):
+   materials.screen.depthWrite = false;
+   materials.screen.roughness = 0.03;
+   installGlassFresnel(materials.screen);
++  // Tail rain light: a smoked-red lens over a two-row LED array, not a flat
++  // red slab. The emissive map makes only the diodes glow (rain and braking);
++  // between them the lens stays dark.
++  materials.lamp.color.setHex(0x1c0404);
++  materials.lamp.roughness = 0.22;
++  materials.lamp.emissiveMap = gpTailLampMap();
+   materials.screenLight.color.setHex(0x9aa6ad);
+   materials.screenLight.metalness = 0;
+   materials.screenLight.opacity = 0.3;
+@@ -74,6 +95,24 @@ export function calibrateGpMaterials(materials: BikeMaterials, vehicle: string):
+   return true;
+ }
+ 
++/** Anisotropy strengths of the GP machine's metals (three.js
++ * KHR_materials_anisotropy): brushed frame aluminium, the hard-anodised
++ * turned outer fork tubes, and the superfinished stanchions. */
++export const GP_METAL_ANISOTROPY = Object.freeze({ brushed: 0.62, turned: 0.45, polished: 0.22 });
++/** Switch the anisotropic lobes with the graphics tier. Crossing zero
++ * recompiles once (three.js keys USE_ANISOTROPY), so this only flips when the
++ * preset changes; it is idempotent per frame. */
++export function setGpMetalAnisotropy(
++  materials: Pick<BikeMaterials, 'aluminium' | 'forkUpper' | 'forkLower'>,
++  enabled: boolean,
++) {
++  for (const metal of [materials.aluminium, materials.forkUpper, materials.forkLower]) {
++    const strength = metal.userData.gpAnisotropy;
++    if (typeof strength !== 'number' || !(metal instanceof T.MeshPhysicalMaterial)) continue;
++    const target = enabled ? strength : 0;
++    if (metal.anisotropy !== target) metal.anisotropy = target;
++  }
++}
+ /** Temper oxide is a smooth glassy TiO2 film over burnished metal, so the
+  * coloured bands mirror the sky more sharply than bare titanium. The band
+  * strength is the authored vertex tint's chroma (bare grey: none), which
+@@ -97,6 +136,35 @@ export function installGpTitaniumOxideGloss(material: T.Material): boolean {
+   });
+ }
+ 
++/** Emissive pattern of the tail rain light: two rows of round diodes on a
++ * near-black lens, with a faint glow floor so the lens still reads lit. Linear
++ * data in the lamp's emissive colour space (sRGB, like any emissive map). */
++export const GP_TAIL_LED = Object.freeze({ columns: 8, rows: 2, floor: 0.07 });
++function gpTailLampMap() {
++  const w = 128,
++    h = 32,
++    { columns, rows, floor } = GP_TAIL_LED,
++    data = new Uint8Array(w * h * 4);
++  for (let y = 0; y < h; y++)
++    for (let x = 0; x < w; x++) {
++      const cx = ((Math.floor((x / w) * columns) + 0.5) / columns) * w,
++        cy = ((Math.floor((y / h) * rows) + 0.5) / rows) * h,
++        d = Math.hypot(x + 0.5 - cx, (y + 0.5 - cy) * 1.0) / (0.3 * (h / rows)),
++        led = Math.min(1, Math.max(0, 1.6 - d * 1.6)),
++        v = Math.round(255 * Math.max(floor, led));
++      data.set([v, v, v, 255], (y * w + x) * 4);
++    }
++  const texture = new T.DataTexture(data, w, h, T.RGBAFormat);
++  texture.name = 'GP tail LED array (emissive)';
++  texture.colorSpace = T.SRGBColorSpace;
++  texture.wrapS = texture.wrapT = T.ClampToEdgeWrapping;
++  texture.magFilter = T.LinearFilter;
++  texture.minFilter = T.LinearMipmapLinearFilter;
++  texture.generateMipmaps = true;
++  texture.needsUpdate = true;
++  return texture;
++}
++
+ /** Screen coverage over the GP screen panel's net UVs (u: base edge 0 to
+  * crown 1 around the half section; v: rear free rim 0 to the nose 1). Linear
+  * data in the green channel, as three.js samples alpha maps. */
+diff --git a/src/rendering/gp-forged-wheel.ts b/src/rendering/gp-forged-wheel.ts
+index 2932e91..da92fbd 100644
+--- a/src/rendering/gp-forged-wheel.ts
++++ b/src/rendering/gp-forged-wheel.ts
+@@ -132,10 +132,15 @@ export function gpForgedWheel(rim: number, halfWidth: number, detail: RiderDetai
+   return geometry;
+ }
+ 
++/** Outward tilt of the diamond-cut lip face from the wheel's flange plane (rad). */
++export const GP_LIP_BEVEL = (32 * Math.PI) / 180;
++
+ /** Diamond-cut lip on both rim flanges (REF 003/018/046): a 6.5 mm bright
+- * ring standing 0.4 mm proud of the black flange face, so the forged wheel
+- * reads as machined metal under paint rather than a plain black disc. One
+- * owned geometry for the caller's existing bright-metal batch. Axle is X. */
++ * chamfer whose outer edge stands 0.4 mm proud of the black flange face and
++ * whose inner edge rises a further 4 mm, so the forged wheel reads as
++ * machined metal under paint rather than a plain black disc, and the lip
++ * catches a different reflection at every angle round the wheel. One owned
++ * geometry for the caller's existing bright-metal batch. Axle is X. */
+ export function gpWheelMachinedLip(rim: number, halfWidth: number, detail: RiderDetail) {
+   if (!Number.isFinite(rim) || rim < 0.15 || rim > 0.3)
+     throw new RangeError('Invalid GP wheel rim radius');
+@@ -144,9 +149,36 @@ export function gpWheelMachinedLip(rim: number, halfWidth: number, detail: Rider
+   const width = halfWidth * 0.76 + 0.0004,
+     segments = detail === 'high' ? 64 : 32,
+     pieces: T.BufferGeometry[] = [];
++  const inner = rim - 0.0085,
++    outer = rim - 0.002,
++    bevel = Math.tan(GP_LIP_BEVEL) * (outer - inner);
+   for (const side of [-1, 1]) {
+     // Annulus in the flange plane, facing outward along the axle.
+-    const g = new T.RingGeometry(rim - 0.0085, rim - 0.002, segments, 1);
++    const g = new T.RingGeometry(inner, outer, segments, 1);
++    // Polar texture coordinates: U runs round the circumference, V across the
++    // 6.5 mm band. The lathe marks of a diamond-cut lip run along U, and the
++    // anisotropic highlight (a tangent frame taken from these UVs) stretches
++    // radially across them instead of following RingGeometry's planar map.
++    const uv = g.getAttribute('uv'),
++      p = g.getAttribute('position'),
++      n = g.getAttribute('normal');
++    for (let i = 0; i < uv.count; i++) {
++      uv.setXY(i, (i % (segments + 1)) / segments, Math.floor(i / (segments + 1)));
++      // A diamond-cut chamfer, not a flat washer: the inner edge stands proud
++      // and the face tilts outward by GP_LIP_BEVEL, so its normal turns with
++      // the angle round the wheel and the lip mirrors sky above, road below
++      // and the machine to either side, instead of one uniform white ring.
++      const x = p.getX(i),
++        y = p.getY(i),
++        r = Math.hypot(x, y);
++      p.setZ(i, (1 - (r - inner) / (outer - inner)) * bevel);
++      n.setXYZ(
++        i,
++        (Math.sin(GP_LIP_BEVEL) * x) / r,
++        (Math.sin(GP_LIP_BEVEL) * y) / r,
++        Math.cos(GP_LIP_BEVEL),
++      );
++    }
+     g.rotateY((side * Math.PI) / 2);
+     g.translate(side * width, 0, 0);
+     pieces.push(g);
+diff --git a/src/rendering/gp-occlusion.ts b/src/rendering/gp-occlusion.ts
+index 7321578..8b1f937 100644
+--- a/src/rendering/gp-occlusion.ts
++++ b/src/rendering/gp-occlusion.ts
+@@ -14,9 +14,18 @@ import { chainShaderHook, injectAfter, injectDeclarations } from './studio/shade
+  * the open sky; open panels are untouched. Direct sunlight keeps its own
+  * shadow maps, and a rider moving off the bike leaves the occluded volume.
+  *
++ * The rider moves through that volume, so he is not in it. He enters as a
++ * handful of analytic capsules instead (torso, head, arms, thighs, shins:
++ * `GP_CAPSULES`), refreshed from his bones each frame. Their sphere-occlusion
++ * term darkens the seat and tank under him and the cockpit around his arms,
++ * and his own armpits, inner elbows, knees and chin-to-chest creases, where
++ * his segments close on each other. A fragment on a convex capsule faces away
++ * from its own axis and sees nothing of it.
++ *
+  * Cost: a few cached megabytes of R8 texels per definition, about twenty
+- * trilinear 3D fetches per bike fragment, and nothing at all below the High
+- * tier (the strength uniforms are zero and the branch is skipped). */
++ * trilinear 3D fetches and 2 x 10 capsule terms per bike fragment, and
++ * nothing at all below the High tier (the strength uniforms are zero and the
++ * branch is skipped). */
+ export const GP_OCCLUSION = Object.freeze({
+   /** Finest cell edge (m). Taps start 1.5 cells off the surface at each level. */
+   voxel: 0.02,
+@@ -28,7 +37,12 @@ export const GP_OCCLUSION = Object.freeze({
+   diffuse: 0.82,
+   /** Fraction of environment specular (and clear coat) removed at full occlusion. */
+   specular: 0.9,
++  /** Share of the rider capsules' sphere occlusion applied (0 disables them). */
++  rider: 0.85,
+ });
++/** Capsule occluders for the rider: torso, head, two upper arms, two forearms,
++ * two thighs and two shins. Unused slots carry radius 0. */
++export const GP_CAPSULES = 10;
+ 
+ export interface GpOcclusionSource {
+   readonly geometry: T.BufferGeometry;
+@@ -178,6 +192,11 @@ export interface GpOcclusionUniforms {
+   readonly gpOccInvSize: T.IUniform<T.Vector3>;
+   /** x: diffuse strength, y: specular strength (0 disables), z: finest cell (m). */
+   readonly gpOccParams: T.IUniform<T.Vector3>;
++  /** Rider capsules in the occlusion frame: xyz one end, w radius (0 = unused) / xyz the other end. */
++  readonly gpCapA: T.IUniform<T.Vector4[]>;
++  readonly gpCapB: T.IUniform<T.Vector4[]>;
++  /** Strength of the capsule term (0 disables). */
++  readonly gpCapStrength: T.IUniform<number>;
+ }
+ /** One set per entrant, shared by all of its bike and rider materials. */
+ export function gpOcclusionUniforms(): GpOcclusionUniforms {
+@@ -187,6 +206,9 @@ export function gpOcclusionUniforms(): GpOcclusionUniforms {
+     gpOccMin: { value: new T.Vector3() },
+     gpOccInvSize: { value: new T.Vector3(1, 1, 1) },
+     gpOccParams: { value: new T.Vector3(0, 0, GP_OCCLUSION.voxel) },
++    gpCapA: { value: Array.from({ length: GP_CAPSULES }, () => new T.Vector4(0, 0, 0, 0)) },
++    gpCapB: { value: Array.from({ length: GP_CAPSULES }, () => new T.Vector4(0, 0, 0, 0)) },
++    gpCapStrength: { value: 0 },
+   };
+ }
+ /** Point an entrant's uniforms at a baked volume (still disabled until
+@@ -203,6 +225,51 @@ export function setGpOcclusionStrength(uniforms: GpOcclusionUniforms, enabled: b
+   const on = enabled && uniforms.gpOccVolume.value !== null;
+   uniforms.gpOccParams.value.x = on ? GP_OCCLUSION.diffuse : 0;
+   uniforms.gpOccParams.value.y = on ? GP_OCCLUSION.specular : 0;
++  uniforms.gpCapStrength.value = on ? GP_OCCLUSION.rider : 0;
++}
++/** Write one rider capsule (slot `i`) in the occlusion frame. A radius of 0
++ * retires the slot. */
++export function setGpCapsule(
++  uniforms: GpOcclusionUniforms,
++  i: number,
++  a: T.Vector3,
++  b: T.Vector3,
++  radius: number,
++) {
++  uniforms.gpCapA.value[i].set(a.x, a.y, a.z, radius);
++  uniforms.gpCapB.value[i].set(b.x, b.y, b.z, 0);
++}
++
++/** CPU reference of the shader's capsule term (`gpCapsules`): the share of the
++ * cosine-weighted hemisphere about `dir` hidden by the capsules at point `p`
++ * (all in the occlusion frame). Each capsule counts as a ball of its radius at
++ * the closest point of its axis: coverage is cos * r^2 / d^2, saturating inside
++ * the skin, and the open fractions multiply. */
++export function gpCapsuleOcclusion(
++  p: T.Vector3,
++  dir: T.Vector3,
++  uniforms: Pick<GpOcclusionUniforms, 'gpCapA' | 'gpCapB' | 'gpCapStrength'>,
++): number {
++  const strength = uniforms.gpCapStrength.value,
++    ab = new T.Vector3(),
++    d = new T.Vector3();
++  let open = 1;
++  for (let i = 0; i < GP_CAPSULES; i++) {
++    const a = uniforms.gpCapA.value[i],
++      r = a.w;
++    if (r <= 0) continue;
++    const b = uniforms.gpCapB.value[i];
++    ab.set(b.x - a.x, b.y - a.y, b.z - a.z);
++    const t = Math.min(
++      1,
++      Math.max(0, d.set(p.x - a.x, p.y - a.y, p.z - a.z).dot(ab) / Math.max(ab.lengthSq(), 1e-6)),
++    );
++    d.set(a.x + ab.x * t - p.x, a.y + ab.y * t - p.y, a.z + ab.z * t - p.z);
++    const dd = Math.max(d.lengthSq(), r * r),
++      facing = Math.min(1, Math.max(0, dir.dot(d) / Math.sqrt(dd)));
++    open *= 1 - (strength * facing * r * r) / dd;
++  }
++  return 1 - open;
+ }
+ 
+ /** The cone trace. Tap i sits 1.5 cells of mip i off the surface (so a flat
+@@ -215,7 +282,28 @@ uniform mat4 gpOccFromWorld;
+ uniform vec3 gpOccMin;
+ uniform vec3 gpOccInvSize;
+ uniform vec3 gpOccParams;
++uniform vec4 gpCapA[ ${GP_CAPSULES} ];
++uniform vec4 gpCapB[ ${GP_CAPSULES} ];
++uniform float gpCapStrength;
+ varying vec3 vGpOccPos;
++// Sphere occlusion at the closest point of each capsule axis: the share of the
++// cosine-weighted hemisphere about dir that a ball of radius r at distance
++// d covers is about cos * r^2 / d^2; fragments inside the skin saturate.
++float gpCapsules( vec3 p, vec3 dir ) {
++  float open = 1.0;
++  for ( int i = 0; i < ${GP_CAPSULES}; i ++ ) {
++    float r = gpCapA[ i ].w;
++    if ( r <= 0.0 ) continue;
++    vec3 a = gpCapA[ i ].xyz;
++    vec3 ab = gpCapB[ i ].xyz - a;
++    float t = clamp( dot( p - a, ab ) / max( dot( ab, ab ), 1e-6 ), 0.0, 1.0 );
++    vec3 d = a + ab * t - p;
++    float dd = max( dot( d, d ), r * r );
++    float facing = clamp( dot( dir, d ) * inversesqrt( dd ), 0.0, 1.0 );
++    open *= 1.0 - gpCapStrength * facing * ( r * r ) / dd;
++  }
++  return 1.0 - open;
++}
+ float gpOccCone( vec3 p, vec3 n, vec3 dir, int taps ) {
+   float open = 1.0;
+   float cell = gpOccParams.z;
+@@ -259,6 +347,8 @@ if ( gpOccParams.x + gpOccParams.y > 0.0 ) {
+   gpOcc += 0.16 * gpOccCone( vGpOccPos, gpOccN, normalize( gpOccN - 1.4 * gpOccT ), 3 );
+   gpOcc += 0.16 * gpOccCone( vGpOccPos, gpOccN, normalize( gpOccN + 1.4 * gpOccB ), 3 );
+   gpOcc += 0.16 * gpOccCone( vGpOccPos, gpOccN, normalize( gpOccN - 1.4 * gpOccB ), 3 );
++  float gpOccCap = gpCapStrength > 0.0 ? gpCapsules( vGpOccPos, gpOccN ) : 0.0;
++  gpOcc = 1.0 - ( 1.0 - gpOcc ) * ( 1.0 - gpOccCap );
+   gpOccDiffuse = 1.0 - gpOccParams.x * gpOcc;
+   reflectedLight.indirectDiffuse *= gpOccDiffuse;
+   #ifdef USE_SHEEN
+@@ -266,7 +356,9 @@ if ( gpOccParams.x + gpOccParams.y > 0.0 ) {
+   #endif
+   // Specular occlusion along the mirror direction; rough lobes widen toward
+   // the hemisphere estimate.
+-  float gpOccR = gpOccCone( vGpOccPos, gpOccN, reflect( - gpOccV, gpOccN ), 4 );
++  vec3 gpOccRefl = reflect( - gpOccV, gpOccN );
++  float gpOccR = gpOccCone( vGpOccPos, gpOccN, gpOccRefl, 4 );
++  if ( gpCapStrength > 0.0 ) gpOccR = 1.0 - ( 1.0 - gpOccR ) * ( 1.0 - gpCapsules( vGpOccPos, gpOccRefl ) );
+   gpOccMirror = 1.0 - gpOccParams.y * gpOccR;
+   reflectedLight.indirectSpecular *= 1.0 - gpOccParams.y * mix( gpOccR, gpOcc, material.roughness );
+   #ifdef USE_CLEARCOAT
+diff --git a/src/rendering/gp-panel-relief.ts b/src/rendering/gp-panel-relief.ts
+new file mode 100644
+index 0000000..a8bbaf2
+--- /dev/null
++++ b/src/rendering/gp-panel-relief.ts
+@@ -0,0 +1,93 @@
++import * as T from 'three';
++import type { BikeMaterials } from './bike.ts';
++import { chainShaderHook, injectAfter, injectDeclarations } from './studio/shader-hooks.ts';
++
++/** Sub-millimetre panel relief for the GP race shell.
++ *
++ * The livery draws its panel seams, quick-release fasteners and louvre gills
++ * as flat colour: they never catch a highlight. This hook reads a height
++ * atlas that shares the livery's UVs (128 = flat paint; below it a groove or
++ * recess, above it a raised fastener head or louvre blade) and bends BOTH the
++ * base normal and the clear-coat normal by its screen-space gradient, so the
++ * lacquer's mirror reflection breaks along a seam and glints on a fastener the
++ * way a moulded panel's does. The clear coat has its own normal in three.js
++ * (the orange-peel map), which three's own bump map would not touch.
++ *
++ * Gradients come from the height texture's own derivatives, so a face whose
++ * side-view UVs collapse (the tank top) gets no relief and a distant panel
++ * (mipped flat) shows none: there is nothing to shimmer. The strength uniform
++ * is zero below High and skips the three texture reads. */
++export const GP_PANEL_RELIEF = Object.freeze({
++  /** Atlas height values (0-255): flat paint, and what the livery draws into it. */
++  flat: 128,
++  groove: 40,
++  recess: 70,
++  dome: 220,
++  /** Metres of paint height per atlas unit (0..1): a groove 88/255 down is about 0.3 mm. */
++  heightMetres: 0.0009,
++});
++export const GP_PANEL_RELIEF_HOOK = 'gp-panel-relief-v1';
++
++const DECLARATIONS = /* glsl */ `
++uniform sampler2D gpReliefMap;
++uniform float gpReliefStrength;
++vec2 gpReliefGradient( vec2 uv ) {
++  vec2 dSTdx = dFdx( uv );
++  vec2 dSTdy = dFdy( uv );
++  float h = texture2D( gpReliefMap, uv ).x;
++  float dBx = texture2D( gpReliefMap, uv + dSTdx ).x - h;
++  float dBy = texture2D( gpReliefMap, uv + dSTdy ).x - h;
++  return vec2( dBx, dBy ) * ${GP_PANEL_RELIEF.heightMetres.toFixed(5)} * gpReliefStrength;
++}
++vec3 gpReliefBend( vec3 n, vec2 dHdxy ) {
++  vec3 sx = dFdx( - vViewPosition );
++  vec3 sy = dFdy( - vViewPosition );
++  vec3 r1 = cross( sy, n );
++  vec3 r2 = cross( n, sx );
++  float det = dot( sx, r1 );
++  vec3 grad = sign( det ) * ( dHdxy.x * r1 + dHdxy.y * r2 );
++  return normalize( abs( det ) * n - grad );
++}`;
++const BASE = /* glsl */ `
++vec2 gpReliefD = vec2( 0.0 );
++#ifdef USE_MAP
++if ( gpReliefStrength > 0.0 && gl_FrontFacing ) {
++  gpReliefD = gpReliefGradient( vMapUv );
++  normal = gpReliefBend( normal, gpReliefD );
++}
++#endif`;
++const COAT = /* glsl */ `
++#if defined( USE_MAP ) && defined( USE_CLEARCOAT )
++if ( gpReliefStrength > 0.0 && gl_FrontFacing ) clearcoatNormal = gpReliefBend( clearcoatNormal, gpReliefD );
++#endif`;
++
++export interface GpPanelReliefUniforms {
++  readonly gpReliefMap: T.IUniform<T.Texture>;
++  readonly gpReliefStrength: T.IUniform<number>;
++}
++/** Chain the relief onto one painted physical material (needs its colour map's
++ * UVs and a clear coat). `strength` is the shared on/off uniform. */
++export function installGpPanelRelief(
++  material: T.MeshPhysicalMaterial,
++  relief: T.Texture,
++): GpPanelReliefUniforms {
++  const uniforms: GpPanelReliefUniforms = {
++    gpReliefMap: { value: relief },
++    gpReliefStrength: { value: 0 },
++  };
++  chainShaderHook(material, GP_PANEL_RELIEF_HOOK, (shader) => {
++    Object.assign(shader.uniforms, uniforms);
++    injectDeclarations(shader, 'common', DECLARATIONS, 'fragment');
++    injectAfter(shader, 'normal_fragment_maps', BASE, 'fragment');
++    injectAfter(shader, 'clearcoat_normal_fragment_maps', COAT, 'fragment');
++  });
++  return uniforms;
++}
++
++/** Switch the entrant's livery relief with the graphics tier (per frame, idempotent). */
++export function setGpPanelRelief(materials: Pick<BikeMaterials, 'list'>, enabled: boolean) {
++  for (const material of materials.list) {
++    const uniforms = material.userData.gpRelief as GpPanelReliefUniforms | undefined;
++    if (uniforms) uniforms.gpReliefStrength.value = enabled ? 1 : 0;
++  }
++}
+diff --git a/src/rendering/gp-race-bodywork.ts b/src/rendering/gp-race-bodywork.ts
+index 57cb798..627be4e 100644
+--- a/src/rendering/gp-race-bodywork.ts
++++ b/src/rendering/gp-race-bodywork.ts
+@@ -15,9 +15,12 @@ import {
+ import { tagWeatherSurface } from './weather-presentation.ts';
+ import { carbonMaterial } from './materials.ts';
+ import { bikeSurfaceMaps } from './bike-surface-detail.ts';
++import { installSsrMask } from './ultra/ssr-mask.ts';
++import { GP_PANEL_RELIEF, installGpPanelRelief } from './gp-panel-relief.ts';
+ import {
+   GP_LIVERY_FRAME,
+   installShellInterior,
++  hemShellEdges,
+   liveryUv,
+   shellPanelGeometry,
+   type P3,
+@@ -879,10 +882,21 @@ const FINISH = Object.freeze({
+ export const GP_PAINT_FLAKE = Object.freeze({ metalness: 0.42 });
+ type Finish = keyof typeof FINISH;
+ 
++/** What one pass over the livery draws: the colour atlas, the finish atlas, or
++ * the height atlas (only elements that pass a `relief` value are drawn there). */
++type LiveryLayer = 'colour' | 'finish' | 'relief';
++const RELIEF_VALUE = (v: number) => `rgb(${v}, ${v}, ${v})`;
++
+ interface LiveryPen {
+-  poly(points: readonly ZY[], colour: string, finish?: Finish): void;
+-  line(points: readonly ZY[], width: number, colour: string, finish?: Finish): void;
+-  dots(points: readonly ZY[], radius: number, colour: string): void;
++  poly(points: readonly ZY[], colour: string, finish?: Finish, relief?: number): void;
++  line(
++    points: readonly ZY[],
++    width: number,
++    colour: string,
++    finish?: Finish,
++    relief?: number,
++  ): void;
++  dots(points: readonly ZY[], radius: number, colour: string, relief?: number): void;
+   text(
+     value: string,
+     at: ZY,
+@@ -897,9 +911,11 @@ interface LiveryPen {
+ function pen(
+   c: CanvasRenderingContext2D,
+   side: 1 | -1,
+-  finishOnly: boolean,
++  layer: LiveryLayer,
+   accent: string,
+ ): LiveryPen {
++  const finishOnly = layer === 'finish',
++    heightOnly = layer === 'relief';
+   const path = (points: readonly ZY[]) => {
+     c.beginPath();
+     points.forEach((p, i) => {
+@@ -909,22 +925,24 @@ function pen(
+     });
+   };
+   return {
+-    poly(points, colour, finish = 'gloss') {
++    poly(points, colour, finish = 'gloss', relief) {
++      if (heightOnly && relief === undefined) return;
+       path(points);
+       c.closePath();
+-      c.fillStyle = finishOnly ? FINISH[finish] : colour;
++      c.fillStyle = heightOnly ? RELIEF_VALUE(relief!) : finishOnly ? FINISH[finish] : colour;
+       c.fill();
+     },
+-    line(points, width, colour, finish = 'gloss') {
++    line(points, width, colour, finish = 'gloss', relief) {
++      if (heightOnly && relief === undefined) return;
+       path(points);
+       c.lineWidth = Math.max(1, width * PX_PER_M);
+       c.lineJoin = 'round';
+-      c.strokeStyle = finishOnly ? FINISH[finish] : colour;
++      c.strokeStyle = heightOnly ? RELIEF_VALUE(relief!) : finishOnly ? FINISH[finish] : colour;
+       c.stroke();
+     },
+-    dots(points, radius, colour) {
+-      if (finishOnly) return;
+-      c.fillStyle = colour;
++    dots(points, radius, colour, relief) {
++      if (finishOnly || (heightOnly && relief === undefined)) return;
++      c.fillStyle = heightOnly ? RELIEF_VALUE(relief!) : colour;
+       for (const p of points) {
+         const [x, y] = atlasPoint(side, p);
+         c.beginPath();
+@@ -933,7 +951,7 @@ function pen(
+       }
+     },
+     text(value, at, height, width, colour, style = { weight: 0.2, slant: 0.12, tracking: 0.08 }) {
+-      if (finishOnly) return;
++      if (finishOnly || heightOnly) return;
+       const [x, y] = atlasPoint(side, at);
+       c.strokeStyle = colour;
+       drawWordmark(
+@@ -946,7 +964,7 @@ function pen(
+       );
+     },
+     mark(brand, at, w, h, colour) {
+-      if (finishOnly || !(brand in BRAND_ART)) return;
++      if (finishOnly || heightOnly || !(brand in BRAND_ART)) return;
+       const [x, y] = atlasPoint(side, at),
+         art = BRAND_ART[brand as keyof typeof BRAND_ART],
+         tab = new T.Color(accent),
+@@ -1031,6 +1049,7 @@ function drawLivery(p: LiveryPen, entrant: number, variant: GpShellVariant) {
+         ],
+     black,
+     'matte',
++    GP_PANEL_RELIEF.recess,
+   );
+   // Exit gills behind the radiator, raked like the reference flanks; the
+   // carbon louvre blades sit in front of them.
+@@ -1043,6 +1062,7 @@ function drawLivery(p: LiveryPen, entrant: number, variant: GpShellVariant) {
+     ],
+     black,
+     'matte',
++    GP_PANEL_RELIEF.recess,
+   );
+   for (let i = 1; i < 5; i++) {
+     const t = i / 5;
+@@ -1054,6 +1074,7 @@ function drawLivery(p: LiveryPen, entrant: number, variant: GpShellVariant) {
+       0.009,
+       '#2b2f33',
+       'satin',
++      GP_PANEL_RELIEF.dome,
+     );
+   }
+   // Knee-grip pads on the tank flanks (textured, matte).
+@@ -1100,7 +1121,7 @@ function drawLivery(p: LiveryPen, entrant: number, variant: GpShellVariant) {
+     [0.12, -0.15],
+     [-0.08, -0.17],
+   ];
+-  p.line(joint, 0.004, seam, 'matte');
++  p.line(joint, 0.004, seam, 'matte', GP_PANEL_RELIEF.groove);
+   p.line(
+     [
+       [0.66, 0.28],
+@@ -1110,6 +1131,7 @@ function drawLivery(p: LiveryPen, entrant: number, variant: GpShellVariant) {
+     0.003,
+     seam,
+     'matte',
++    GP_PANEL_RELIEF.groove,
+   );
+   p.line(
+     [
+@@ -1120,6 +1142,7 @@ function drawLivery(p: LiveryPen, entrant: number, variant: GpShellVariant) {
+     0.004,
+     seam,
+     'matte',
++    GP_PANEL_RELIEF.groove,
+   );
+   p.dots(
+     [
+@@ -1135,6 +1158,7 @@ function drawLivery(p: LiveryPen, entrant: number, variant: GpShellVariant) {
+     ],
+     0.0045,
+     '#9aa0a6',
++    GP_PANEL_RELIEF.dome,
+   );
+   // Belly cooling slots.
+   for (let i = 0; i < 4; i++) {
+@@ -1148,6 +1172,7 @@ function drawLivery(p: LiveryPen, entrant: number, variant: GpShellVariant) {
+       ],
+       black,
+       'matte',
++      GP_PANEL_RELIEF.recess,
+     );
+   }
+   // Sponsor hierarchy of a factory machine (REF 001/006/018/056): one huge
+@@ -1269,21 +1294,53 @@ function drawLivery(p: LiveryPen, entrant: number, variant: GpShellVariant) {
+ /** Colour and finish atlases for one entrant. */
+ export function gpLiveryTextures(entrant: number, variant: GpShellVariant) {
+   const scheme = liveryScheme(entrant);
+-  const draw = (finishOnly: boolean) => (c: CanvasRenderingContext2D) => {
+-    c.fillStyle = finishOnly ? FINISH.gloss : scheme.primary;
++  const draw = (layer: LiveryLayer) => (c: CanvasRenderingContext2D) => {
++    c.fillStyle = layer === 'finish' ? FINISH.gloss : scheme.primary;
+     c.fillRect(0, 0, ATLAS.w, ATLAS.h);
+     for (const side of [1, -1] as const)
+-      drawLivery(pen(c, side, finishOnly, scheme.accent), entrant, variant);
++      drawLivery(pen(c, side, layer, scheme.accent), entrant, variant);
+   };
+-  const map = canvasTexture(ATLAS.w, ATLAS.h, draw(false));
++  const map = canvasTexture(ATLAS.w, ATLAS.h, draw('colour'));
+   const finish = canvasTexture(ATLAS.w / 2, ATLAS.h / 2, (c) => {
+     c.scale(0.5, 0.5);
+-    draw(true)(c);
++    draw('finish')(c);
+   });
+   finish.colorSpace = T.NoColorSpace;
+   return { map, finish };
+ }
+ 
++/** Height atlas of the livery's seams, fasteners and gills: one per shell
++ * variant (the relief does not depend on the entrant's colours or sponsors),
++ * shared by every entrant on it and freed with the last of their paints. */
++const reliefAtlases = new Map<GpShellVariant, { texture: T.Texture; users: number }>();
++function acquireRelief(variant: GpShellVariant) {
++  let entry = reliefAtlases.get(variant);
++  if (!entry) {
++    const texture = canvasTexture(ATLAS.w, ATLAS.h, (c) => {
++      c.fillStyle = RELIEF_VALUE(GP_PANEL_RELIEF.flat);
++      c.fillRect(0, 0, ATLAS.w, ATLAS.h);
++      for (const side of [1, -1] as const)
++        drawLivery(pen(c, side, 'relief', '#000000'), 0, variant);
++    });
++    texture.name = 'GP livery panel relief (height)';
++    texture.colorSpace = T.NoColorSpace;
++    entry = { texture, users: 0 };
++    reliefAtlases.set(variant, entry);
++  }
++  entry.users++;
++  return entry.texture;
++}
++function releaseRelief(variant: GpShellVariant) {
++  const entry = reliefAtlases.get(variant);
++  if (!entry || --entry.users > 0) return;
++  entry.texture.dispose();
++  reliefAtlases.delete(variant);
++}
++/** Live relief atlases (resource accounting in tests). */
++export function gpReliefAtlasCount() {
++  return reliefAtlases.size;
++}
++
+ /** Front number decal art: number on a light oval bay. */
+ function noseNumberTexture(entrant: number, accent: string) {
+   const number = String((entrant % 98) + 2).padStart(2, '0');
+@@ -1324,6 +1381,7 @@ export function gpWingPaint(materials: BikeMaterials, entrant: number) {
+     name: 'GP box wing paint (clear-coated)',
+   });
+   installShellInterior(material);
++  installSsrMask(material);
+   tagWeatherSurface(material, 'paint');
+   materials.list.push(material);
+   wingPaints.set(materials, material);
+@@ -1379,6 +1437,16 @@ export function gpLiveryMaterial(
+     name: 'GP race shell livery (clear-coated)',
+   });
+   installShellInterior(material);
++  // ULTRA screen-space reflections: the lacquer mirrors the road, kerbs and
++  // neighbouring bikes (inert unless the SSR stage is running).
++  installSsrMask(material);
++  // Seams, fasteners and gills bend the lacquer's normals (High/ULTRA only).
++  material.userData.gpRelief = installGpPanelRelief(material, acquireRelief(variant));
++  let held = true;
++  material.addEventListener('dispose', () => {
++    if (held) releaseRelief(variant);
++    held = false;
++  });
+   tagWeatherSurface(material, 'paint');
+   materials.list.push(material);
+   byVariant.set(variant, material);
+@@ -1448,30 +1516,47 @@ export function gpRaceBodywork(
+     geometries.forEach((g) => g.dispose());
+     return merged;
+   };
++  // Free edges of the moulded skins get a rolled 2.8 mm lip at the High tier
++  // (the panels were single paper-thin surfaces); lower LODs keep one sheet.
++  // The flat end caps' closing diagonals are not free edges (facing along Z).
++  const hemmed = (g: T.BufferGeometry) =>
++    high ? hemShellEdges(g, undefined, (face) => Math.abs(face.z) > 0.92) : g;
+   const bodyGeometry = liveryUv(
+-    shellPanelGeometry({
+-      name: 'GP flank and nose',
+-      net: bodyNet(variant),
+-      creases: [2, 4, 6],
+-      ridge: true,
+-      caps: { end: true },
+-      rows,
+-      cols,
+-      exclude: gpFrontTyreExclusion,
+-    }),
++    hemmed(
++      shellPanelGeometry({
++        name: 'GP flank and nose',
++        net: bodyNet(variant),
++        creases: [2, 4, 6],
++        ridge: true,
++        caps: { end: true },
++        rows,
++        cols,
++        exclude: gpFrontTyreExclusion,
++      }),
++    ),
+   );
+   const tankGeometry = liveryUv(
+-    shellPanelGeometry({ name: 'GP tank cover', net: tankNet(variant), creases: [2], rows, cols }),
++    hemmed(
++      shellPanelGeometry({
++        name: 'GP tank cover',
++        net: tankNet(variant),
++        creases: [2],
++        rows,
++        cols,
++      }),
++    ),
+   );
+   const tailGeometry = liveryUv(
+-    shellPanelGeometry({
+-      name: 'GP tail',
+-      net: tailNet(variant),
+-      creases: [2, 4],
+-      rows,
+-      cols,
+-      caps: { start: true },
+-    }),
++    hemmed(
++      shellPanelGeometry({
++        name: 'GP tail',
++        net: tailNet(variant),
++        creases: [2, 4],
++        rows,
++        cols,
++        caps: { start: true },
++      }),
++    ),
+   );
+   const body = mesh(bodyGeometry, paint, 'GP race shell / flank and nose');
+   const tank = mesh(tankGeometry, paint, 'GP race shell / tank');
+diff --git a/src/rendering/gp-race-shell.ts b/src/rendering/gp-race-shell.ts
+index 367fd25..614e489 100644
+--- a/src/rendering/gp-race-shell.ts
++++ b/src/rendering/gp-race-shell.ts
+@@ -350,3 +350,204 @@ export function installShellInterior(material: T.MeshPhysicalMaterial) {
+   });
+   return material;
+ }
++
++/** Rolled, thickened free edges for an open shell panel.
++ *
++ * A moulded skin has a thickness: its cut edge is a few millimetres of
++ * composite, rounded where the paint wraps over it, not a razor line.
++ * Every boundary edge of `geometry` (the tyre notch, the lower fairing rim,
++ * the seam to the next panel that is not welded to it) grows a strip: a
++ * quarter-round roll of `radius` that turns the outer skin over the edge,
++ * then a wall `thickness` deep. Welded boundary vertices share their profile,
++ * so the strips of a curved edge are continuous, and the roll starts on the
++ * panel's own vertex normal, so shading flows from the skin into the hem.
++ * Purely additive: the panel's vertices, indices and shape are unchanged. */
++export interface HemOptions {
++  /** Depth of the cut edge below the outer skin (m). */
++  readonly thickness: number;
++  /** Radius of the rolled outer corner (m); at most `thickness`. */
++  readonly radius: number;
++  /** Quarter-round segments (1 = chamfer). */
++  readonly arc: number;
++}
++export const GP_SHELL_HEM: HemOptions = Object.freeze({
++  thickness: 0.0028,
++  radius: 0.0016,
++  arc: 2,
++});
++
++/** `ignore` drops a boundary edge from its adjacent face's outward normal:
++ * the flat end caps are fans whose closing diagonals are not real free edges. */
++export function hemShellEdges(
++  source: T.BufferGeometry,
++  options: HemOptions = GP_SHELL_HEM,
++  ignore?: (faceNormal: T.Vector3) => boolean,
++): T.BufferGeometry {
++  const { thickness, radius, arc } = options;
++  if (!(thickness > 0) || !(radius > 0) || radius > thickness || !(arc >= 1))
++    throw new RangeError('Invalid shell hem');
++  const position = source.getAttribute('position'),
++    normal = source.getAttribute('normal'),
++    uv = source.getAttribute('uv'),
++    index = source.getIndex();
++  if (!position || !normal || !uv || !index)
++    throw new Error('A hemmed shell needs indexed position, normal and uv');
++  for (const name of Object.keys(source.attributes))
++    if (name !== 'position' && name !== 'normal' && name !== 'uv')
++      throw new Error(`Hemming does not carry attribute ${name}`);
++  const weld = new Map<string, number>(),
++    welded = new Int32Array(position.count);
++  const quantum = 1e5;
++  for (let i = 0; i < position.count; i++) {
++    const key = `${Math.round(position.getX(i) * quantum)},${Math.round(position.getY(i) * quantum)},${Math.round(position.getZ(i) * quantum)}`;
++    let id = weld.get(key);
++    if (id === undefined) weld.set(key, (id = weld.size));
++    welded[i] = id;
++  }
++  interface Edge {
++    count: number;
++    a: number;
++    b: number;
++    /** The triangle's third vertex (its winding side). */
++    c: number;
++  }
++  const edges = new Map<number, Edge>(),
++    stride = weld.size + 1;
++  for (let t = 0; t < index.count; t += 3)
++    for (let k = 0; k < 3; k++) {
++      const a = index.getX(t + k),
++        b = index.getX(t + ((k + 1) % 3)),
++        c = index.getX(t + ((k + 2) % 3)),
++        wa = welded[a],
++        wb = welded[b];
++      if (wa === wb) continue;
++      const key = Math.min(wa, wb) * stride + Math.max(wa, wb),
++        e = edges.get(key);
++      if (e) e.count++;
++      else edges.set(key, { count: 1, a, b, c });
++    }
++  const pa = new T.Vector3(),
++    pb = new T.Vector3(),
++    pc = new T.Vector3(),
++    face = new T.Vector3(),
++    along = new T.Vector3(),
++    inward = new T.Vector3(),
++    n = new T.Vector3(),
++    d = new T.Vector3();
++  const boundary: Edge[] = [];
++  for (const e of edges.values()) {
++    if (e.count !== 1) continue;
++    if (ignore) {
++      pa.fromBufferAttribute(position, e.a);
++      pb.fromBufferAttribute(position, e.b);
++      pc.fromBufferAttribute(position, e.c);
++      face.crossVectors(along.subVectors(pb, pa), inward.subVectors(pc, pa)).normalize();
++      if (ignore(face)) continue;
++    }
++    boundary.push(e);
++  }
++  if (!boundary.length) return source;
++  // Inward (in-surface, away from the free edge) direction at each welded
++  // boundary vertex: the mean of its boundary edges' own inward directions.
++  const inwardSum = new Map<number, T.Vector3>();
++  for (const e of boundary) {
++    pa.fromBufferAttribute(position, e.a);
++    pb.fromBufferAttribute(position, e.b);
++    pc.fromBufferAttribute(position, e.c);
++    along.subVectors(pb, pa);
++    face.crossVectors(along, inward.subVectors(pc, pa));
++    if (face.lengthSq() < 1e-20 || along.lengthSq() < 1e-20) continue;
++    face.normalize();
++    along.normalize();
++    // The interior lies to the left of a directed boundary edge (a -> b).
++    inward.crossVectors(face, along).normalize();
++    for (const w of [welded[e.a], welded[e.b]]) {
++      const sum = inwardSum.get(w);
++      if (sum) sum.add(inward);
++      else inwardSum.set(w, inward.clone());
++    }
++  }
++  // One profile (arc + 2 points) per welded boundary vertex.
++  const profile = arc + 2,
++    positions: number[] = [],
++    normals: number[] = [],
++    uvs: number[] = [],
++    indices: number[] = [],
++    first = new Map<number, number>();
++  const ensure = (vertex: number) => {
++    const w = welded[vertex];
++    let at = first.get(w);
++    if (at !== undefined) return at;
++    at = positions.length / 3;
++    first.set(w, at);
++    pa.fromBufferAttribute(position, vertex);
++    n.fromBufferAttribute(normal, vertex).normalize();
++    d.copy(inwardSum.get(w) ?? d.set(0, 0, 0));
++    // Keep the inward direction in the tangent plane of the skin.
++    d.addScaledVector(n, -d.dot(n));
++    if (d.lengthSq() < 1e-12) d.set(0, 0, 0);
++    else d.normalize();
++    const { x: u, y: v } = new T.Vector2(uv.getX(vertex), uv.getY(vertex));
++    const push = (p: T.Vector3, q: T.Vector3) => {
++      positions.push(p.x, p.y, p.z);
++      normals.push(q.x, q.y, q.z);
++      uvs.push(u, v);
++    };
++    // Roll: quarter circle about C = E - n*r from the skin outward and down.
++    const centre = pa.clone().addScaledVector(n, -radius),
++      p = new T.Vector3(),
++      q = new T.Vector3();
++    for (let k = 0; k <= arc; k++) {
++      const theta = (k / arc) * (Math.PI / 2),
++        c = Math.cos(theta),
++        s = Math.sin(theta);
++      q.copy(n).multiplyScalar(c).addScaledVector(d, -s);
++      push(p.copy(centre).addScaledVector(q, radius), q);
++    }
++    // Wall: straight down to the full thickness, facing away from the panel.
++    const wall = new T.Vector3().copy(d).multiplyScalar(-1);
++    push(
++      p
++        .copy(centre)
++        .addScaledVector(d, -radius)
++        .addScaledVector(n, -(thickness - radius)),
++      wall,
++    );
++    return at;
++  };
++  for (const e of boundary) {
++    const a = ensure(e.a),
++      b = ensure(e.b);
++    for (let k = 0; k < profile - 1; k++) {
++      // Directed a -> b with the interior on the left: the strip runs to the
++      // right (outward), so (a_k, a_k+1, b_k) faces out of the skin.
++      indices.push(a + k, a + k + 1, b + k, b + k, a + k + 1, b + k + 1);
++    }
++  }
++  if (!indices.length) return source;
++  const base = position.count,
++    total = base + positions.length / 3,
++    out = new T.BufferGeometry(),
++    join = (
++      src: T.BufferAttribute | T.InterleavedBufferAttribute,
++      extra: number[],
++      size: number,
++    ) => {
++      const array = new Float32Array(total * size);
++      for (let i = 0; i < base; i++)
++        for (let c = 0; c < size; c++) array[i * size + c] = src.getComponent(i, c);
++      array.set(extra, base * size);
++      return new T.BufferAttribute(array, size);
++    };
++  out.setAttribute('position', join(position, positions, 3));
++  out.setAttribute('normal', join(normal, normals, 3));
++  out.setAttribute('uv', join(uv, uvs, 2));
++  const all = new Uint32Array(index.count + indices.length);
++  for (let i = 0; i < index.count; i++) all[i] = index.getX(i);
++  for (let i = 0; i < indices.length; i++) all[index.count + i] = indices[i] + base;
++  out.setIndex(new T.BufferAttribute(all, 1));
++  out.name = source.name;
++  // Where the hem strips start in the index (the skin alone is `[0, hemStart)`).
++  out.userData.gpHemStart = index.count;
++  return out;
++}
+diff --git a/src/rendering/rider.ts b/src/rendering/rider.ts
+index 655369b..244a1e0 100644
+--- a/src/rendering/rider.ts
++++ b/src/rendering/rider.ts
+@@ -3,6 +3,7 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
+ import { tagWeatherSurface } from './weather-presentation.ts';
+ import { helmetLiveryTexture, riderPanelTexture } from './bike-livery.ts';
+ import { bikeSurfaceMaps } from './bike-surface-detail.ts';
++import { installSsrMask } from './ultra/ssr-mask.ts';
+ import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
+ import { sampleProfile } from './profile-sampling.ts';
+ import { tagMudExposure } from './offroad/mud.ts';
+@@ -544,6 +545,8 @@ export class Rider {
+       clearcoatRoughness: 0.04,
+       name: 'Rider helmet shell',
+     });
++    // ULTRA screen-space reflections (inert unless that stage is running).
++    installSsrMask(helmet);
+     const visor = new T.MeshPhysicalMaterial({
+       color: 0x5e6f79,
+       roughness: 0.1,
+@@ -1689,6 +1692,38 @@ export class Rider {
+   get ownedMaterials(): readonly T.Material[] {
+     return this.materials;
+   }
++  /** The seated body as ten capsule occluders in the rider-root frame (the
++   * sprung frame while riding): torso, head, upper arms, forearms, thighs and
++   * shins (gp-occlusion.ts). Radii sit a little inside the suit's skin so a
++   * garment never occludes itself. Returns the number written (0 off-GP). */
++  gpOccluders(emit: (slot: number, a: T.Vector3, b: T.Vector3, radius: number) => void): number {
++    if (!this.gp) return 0;
++    const { a, b } = scratch,
++      up = this.gpScratch[0],
++      chest = this.gpSpine?.chest ?? this.torso;
++    let slot = 0;
++    a.set(0, 0.04, 0).applyQuaternion(this.torso.quaternion).add(this.torso.position);
++    b.set(0, RIDER.spine - 0.1, 0)
++      .applyQuaternion(chest.quaternion)
++      .add(chest.position);
++    emit(slot++, a, b, 0.095);
++    // The helmet sits above the neck base along the head's own up axis.
++    up.set(0, 0.095, 0.015).applyQuaternion(this.head.quaternion);
++    a.copy(this.head.position).add(up).applyQuaternion(chest.quaternion).add(chest.position);
++    emit(slot++, a, a, 0.115);
++    const limb = (bones: readonly Bone[], radius: number) => {
++      for (const bone of bones) {
++        a.copy(bone.group.position);
++        b.set(0, bone.length, 0).applyQuaternion(bone.group.quaternion).add(a);
++        emit(slot++, a, b, radius);
++      }
++    };
++    limb(this.upperArms, 0.042);
++    limb(this.forearms, 0.036);
++    limb(this.thighs, 0.066);
++    limb(this.shins, 0.046);
++    return slot;
++  }
+   dispose() {
+     this.gpBrakeFingers?.dispose();
+     this.gpSpine?.dispose();
+diff --git a/tests/gp-appearance.test.ts b/tests/gp-appearance.test.ts
+index fdc7235..2d321f9 100644
+--- a/tests/gp-appearance.test.ts
++++ b/tests/gp-appearance.test.ts
+@@ -14,10 +14,15 @@ import {
+   gpScreenAlpha,
+   gpSilencer,
+   gpSilencerHeatSoak,
++  GP_METAL_ANISOTROPY,
+   GP_SCREEN_ALPHA,
++  GP_TAIL_LED,
+   installGpTitaniumOxideGloss,
++  setGpMetalAnisotropy,
+ } from '../src/rendering/gp-appearance.ts';
+ import { studioHookKeys } from '../src/rendering/studio/shader-hooks.ts';
++import { SSR_MASK_HOOK, ssrMaskUniforms } from '../src/rendering/ultra/ssr-mask.ts';
++import { gpLiveryMaterial, gpWingPaint } from '../src/rendering/gp-race-bodywork.ts';
+ 
+ beforeAll(() => {
+   const ctx = new Proxy(
+@@ -62,6 +67,11 @@ describe('GP refined surface and mechanical contracts', () => {
+       expect(m.screen.depthWrite).toBe(false);
+       expect(m.paint.metalness).toBe(0);
+       expect(m.paint.roughness).toBe(0.3);
++      // The tail rain light is a diode array: only the LEDs are emissive.
++      const led = m.lamp.emissiveMap!.image as { data: Uint8Array; width: number };
++      const values = Array.from({ length: led.width * 32 }, (_, i) => led.data[i * 4]);
++      expect(Math.max(...values)).toBe(255);
++      expect(Math.min(...values)).toBe(Math.round(255 * GP_TAIL_LED.floor));
+       expect(m.paint.clearcoatRoughness).toBe(0.04);
+     } finally {
+       m.dispose();
+@@ -305,4 +315,55 @@ describe('GP refined surface and mechanical contracts', () => {
+       m.dispose();
+     }
+   });
++
++  it('stretches GP brushed and turned metal highlights across the tool marks on High/ULTRA only', () => {
++    const m = new BikeMaterials(0);
++    try {
++      // Physical materials so three.js can compile the anisotropic lobe.
++      for (const metal of [m.aluminium, m.forkUpper, m.forkLower])
++        expect(metal).toBeInstanceOf(T.MeshPhysicalMaterial);
++      setGpMetalAnisotropy(m, true);
++      expect(m.aluminium.anisotropy).toBe(0);
++      calibrateGpMaterials(m, 'gpr1');
++      expect(m.aluminium.anisotropy).toBe(0);
++      setGpMetalAnisotropy(m, true);
++      expect(m.aluminium.anisotropy).toBe(GP_METAL_ANISOTROPY.brushed);
++      expect(m.forkUpper.anisotropy).toBe(GP_METAL_ANISOTROPY.turned);
++      expect(m.forkLower.anisotropy).toBe(GP_METAL_ANISOTROPY.polished);
++      // Marks run along U; the highlight stretches along V.
++      for (const metal of [m.aluminium, m.forkUpper, m.forkLower])
++        expect(metal.anisotropyRotation).toBeCloseTo(Math.PI / 2, 6);
++      setGpMetalAnisotropy(m, false);
++      expect([m.aluminium, m.forkUpper, m.forkLower].map((x) => x.anisotropy)).toEqual([0, 0, 0]);
++      // Road and motocross families keep isotropic metal.
++      const road = new BikeMaterials(1);
++      calibrateGpMaterials(road, 'sbk1000');
++      setGpMetalAnisotropy(road, true);
++      expect(road.aluminium.anisotropy).toBe(0);
++      road.dispose();
++    } finally {
++      m.dispose();
++    }
++  });
++
++  it('opts the GP lacquer and carbon into the ULTRA reflection mask, and leaves other families alone', () => {
++    const m = new BikeMaterials(0);
++    const road = new BikeMaterials(1);
++    try {
++      for (const lacquer of [m.paint, m.carbon])
++        expect(studioHookKeys(lacquer)).not.toContain(SSR_MASK_HOOK);
++      calibrateGpMaterials(m, 'gpr1');
++      for (const lacquer of [m.paint, m.secondary, m.accent, m.carbon])
++        expect(studioHookKeys(lacquer)).toContain(SSR_MASK_HOOK);
++      expect(studioHookKeys(gpLiveryMaterial(m, 0, 'gpr1'))).toContain(SSR_MASK_HOOK);
++      expect(studioHookKeys(gpWingPaint(m, 0))).toContain(SSR_MASK_HOOK);
++      calibrateGpMaterials(road, 'sbk1000');
++      expect(studioHookKeys(road.paint)).not.toContain(SSR_MASK_HOOK);
++      // The hook only writes the mask while the SSR stage drives its uniform: off by default.
++      expect(ssrMaskUniforms.apexSsrEncode.value).toBe(0);
++    } finally {
++      m.dispose();
++      road.dispose();
++    }
++  });
+ });
+diff --git a/tests/gp-bike-finish.test.ts b/tests/gp-bike-finish.test.ts
+index 4ee901d..f3a8ae8 100644
+--- a/tests/gp-bike-finish.test.ts
++++ b/tests/gp-bike-finish.test.ts
+@@ -5,7 +5,7 @@ import {
+   gpTyreScrubEdge,
+ } from '../src/rendering/gp-tyre-finish.ts';
+ import { GP_SHIFT_LIGHTS, gpShiftLightsLit } from '../src/rendering/bike-cockpit.ts';
+-import { gpWheelMachinedLip } from '../src/rendering/gp-forged-wheel.ts';
++import { GP_LIP_BEVEL, gpWheelMachinedLip } from '../src/rendering/gp-forged-wheel.ts';
+ import { gpInnerFairingNet } from '../src/rendering/gp-race-bodywork.ts';
+ 
+ describe('GP slick scrub band follows the presented lean', () => {
+@@ -69,11 +69,17 @@ describe('GP forged wheel machined lips', () => {
+         for (let i = 0; i < p.count; i++) {
+           const x = p.getX(i),
+             r = Math.hypot(p.getY(i), p.getZ(i));
+-          expect(Math.abs(Math.abs(x) - (halfWidth * 0.76 + 0.0004))).toBeLessThan(1e-6);
++          // The outer edge is 0.4 mm proud of the flange face; the chamfer rises to
++          // 6.5 mm * tan(32 deg) = 4 mm above that at its inner edge.
++          const proud = Math.abs(x) - (halfWidth * 0.76 + 0.0004);
++          expect(proud).toBeGreaterThan(-1e-6);
++          expect(proud).toBeLessThan(0.0042);
+           expect(r).toBeGreaterThan(rim - 0.009);
+           expect(r).toBeLessThan(rim - 0.0019);
+-          // Each ring faces away from the wheel's centre plane.
++          // Each ring faces away from the wheel's centre plane, tilted outward
++          // along the radius by the chamfer angle.
+           expect(Math.sign(n.getX(i))).toBe(Math.sign(x));
++          expect(Math.abs(n.getX(i))).toBeCloseTo(Math.cos(GP_LIP_BEVEL), 5);
+         }
+       } finally {
+         g.dispose();
+@@ -81,6 +87,37 @@ describe('GP forged wheel machined lips', () => {
+     }
+     expect(() => gpWheelMachinedLip(0.5, 0.06, 'high')).toThrow();
+   });
++  it('maps U round the circumference and V across the band, so lathe marks and anisotropy follow the lip', () => {
++    const rim = 0.2159,
++      g = gpWheelMachinedLip(rim, 0.06, 'high');
++    try {
++      const p = g.getAttribute('position'),
++        uv = g.getAttribute('uv');
++      let maxV = 0;
++      for (let i = 0; i < p.count; i++) {
++        const r = Math.hypot(p.getY(i), p.getZ(i));
++        // V is the radial position: inner edge 0, outer edge 1.
++        const expectedV = (r - (rim - 0.0085)) / (0.0085 - 0.002);
++        expect(uv.getY(i)).toBeCloseTo(expectedV, 3);
++        expect(uv.getX(i)).toBeGreaterThanOrEqual(0);
++        expect(uv.getX(i)).toBeLessThanOrEqual(1);
++        maxV = Math.max(maxV, uv.getY(i));
++      }
++      expect(maxV).toBe(1);
++      // U advances with the angle about the axle (X): a quarter turn is a quarter of U.
++      const angle = (i: number) => Math.atan2(p.getZ(i), p.getY(i));
++      const outer = Array.from({ length: p.count }, (_, i) => i).filter(
++        (i) => uv.getY(i) === 1 && p.getX(i) > 0,
++      );
++      const first = outer[0],
++        quarter = outer[16];
++      const turn = ((angle(quarter) - angle(first) + 3 * Math.PI) % (2 * Math.PI)) - Math.PI;
++      expect(Math.abs(Math.abs(turn) - Math.PI / 2)).toBeLessThan(1e-3);
++      expect(uv.getX(quarter) - uv.getX(first)).toBeCloseTo(0.25, 6);
++    } finally {
++      g.dispose();
++    }
++  });
+ });
+ 
+ describe('GP inner upper fairing', () => {
+diff --git a/tests/gp-occlusion.test.ts b/tests/gp-occlusion.test.ts
+index 3d1b420..6334a2f 100644
+--- a/tests/gp-occlusion.test.ts
++++ b/tests/gp-occlusion.test.ts
+@@ -17,14 +17,17 @@ import {
+   carBase,
+ } from '../src/simulation/protocol.ts';
+ import {
++  GP_CAPSULES,
+   GP_OCCLUSION,
+   acquireGpOcclusion,
+   bindGpOcclusion,
+   gpOcclusionCacheSize,
+   gpOcclusionSources,
++  gpCapsuleOcclusion,
+   gpOcclusionUniforms,
+   installGpOcclusion,
+   releaseGpOcclusion,
++  setGpCapsule,
+   setGpOcclusionStrength,
+   voxelizeGpOcclusion,
+ } from '../src/rendering/gp-occlusion.ts';
+@@ -167,6 +170,14 @@ describe('GP bike-space occlusion', () => {
+     const bound = shader.uniforms as unknown as typeof uniforms;
+     expect(bound.gpOccFromWorld).toBe(uniforms.gpOccFromWorld);
+     expect(bound.gpOccParams).toBe(uniforms.gpOccParams);
++    // The rider capsules: one shared pair of arrays, folded into both the
++    // hemisphere and the mirror-direction estimates.
++    expect(bound.gpCapA).toBe(uniforms.gpCapA);
++    expect(bound.gpCapB).toBe(uniforms.gpCapB);
++    expect(bound.gpCapStrength).toBe(uniforms.gpCapStrength);
++    expect(shader.fragmentShader).toContain(`uniform vec4 gpCapA[ ${GP_CAPSULES} ];`);
++    expect(shader.fragmentShader).toContain('gpCapsules( vGpOccPos, gpOccN )');
++    expect(shader.fragmentShader).toContain('gpCapsules( vGpOccPos, gpOccRefl )');
+     // No volume: enabling it is refused, so the shader branch stays skipped.
+     setGpOcclusionStrength(uniforms, true);
+     expect(uniforms.gpOccParams.value.x).toBe(0);
+@@ -192,8 +203,10 @@ describe('GP bike-space occlusion', () => {
+     setGpOcclusionStrength(uniforms, true);
+     expect(uniforms.gpOccParams.value.x).toBe(GP_OCCLUSION.diffuse);
+     expect(uniforms.gpOccParams.value.y).toBe(GP_OCCLUSION.specular);
++    expect(uniforms.gpCapStrength.value).toBe(GP_OCCLUSION.rider);
+     setGpOcclusionStrength(uniforms, false);
+     expect(uniforms.gpOccParams.value.toArray()).toEqual([0, 0, 0.02]);
++    expect(uniforms.gpCapStrength.value).toBe(0);
+     const disposed = vi.fn();
+     a.texture.addEventListener('dispose', disposed);
+     releaseGpOcclusion('test-def');
+@@ -203,6 +216,77 @@ describe('GP bike-space occlusion', () => {
+     expect(gpOcclusionCacheSize()).toBe(before);
+     plane.dispose();
+   });
++  it('writes capsule slots, retiring unused ones with a zero radius', () => {
++    const uniforms = gpOcclusionUniforms();
++    expect(uniforms.gpCapA.value).toHaveLength(GP_CAPSULES);
++    expect(uniforms.gpCapA.value.every((c) => c.w === 0)).toBe(true);
++    setGpCapsule(uniforms, 3, new T.Vector3(1, 2, 3), new T.Vector3(4, 5, 6), 0.07);
++    expect(uniforms.gpCapA.value[3].toArray()).toEqual([1, 2, 3, 0.07]);
++    expect(uniforms.gpCapB.value[3].toArray()).toEqual([4, 5, 6, 0]);
++  });
++  it('shades a surface under a capsule, never the capsule itself, and fades with distance', () => {
++    const u = gpOcclusionUniforms();
++    setGpOcclusionStrength(u, false);
++    // A thigh along X, radius 6.6 cm, with a seat plane (normal +Y) below it.
++    setGpCapsule(u, 0, new T.Vector3(-0.2, 0.3, 0), new T.Vector3(0.2, 0.3, 0), 0.066);
++    const down = new T.Vector3(0, 1, 0);
++    // Disabled strength: no occlusion at all.
++    expect(gpCapsuleOcclusion(new T.Vector3(0, 0.2, 0), down, u)).toBe(0);
++    u.gpCapStrength.value = GP_OCCLUSION.rider;
++    const at = (gap: number) => gpCapsuleOcclusion(new T.Vector3(0, 0.3 - 0.066 - gap, 0), down, u);
++    // Touching, 3 cm and 15 cm below the skin: strictly decreasing, bounded by the strength.
++    const touching = at(0),
++      near = at(0.03),
++      far = at(0.15);
++    expect(touching).toBeLessThanOrEqual(GP_OCCLUSION.rider);
++    expect(touching).toBeGreaterThan(near);
++    expect(near).toBeGreaterThan(far);
++    expect(far).toBeGreaterThan(0);
++    expect(far).toBeLessThan(0.08);
++    // The capsule's own surface faces away from its axis: nothing, from any side.
++    for (const n of [new T.Vector3(0, 1, 0), new T.Vector3(0, 0, 1), new T.Vector3(0, -1, 0)]) {
++      const p = new T.Vector3(0, 0.3, 0).addScaledVector(n, 0.066);
++      expect(gpCapsuleOcclusion(p, n, u)).toBeCloseTo(0, 6);
++    }
++    // The far side of the capsule is not hidden by a surface facing away from it.
++    expect(gpCapsuleOcclusion(new T.Vector3(0, 0.45, 0), down, u)).toBe(0);
++    // Past the capsule's end the term falls to the rounded cap, and retired slots do nothing.
++    expect(gpCapsuleOcclusion(new T.Vector3(0.6, 0.2, 0), down, u)).toBeLessThan(near);
++    u.gpCapA.value[0].w = 0;
++    expect(gpCapsuleOcclusion(new T.Vector3(0, 0.2, 0), down, u)).toBe(0);
++  });
++  it.each(['gpr1', 'gpr2'])(
++    '%s rider reports ten finite capsules around the seated body, inside the bike envelope',
++    (id) => {
++      const m = new BikeMaterials(0),
++        model = new BikeModel(VEHICLES[id], 0, 'high', m, true);
++      try {
++        const seen: { a: T.Vector3; b: T.Vector3; r: number }[] = [];
++        const n = model.rider.gpOccluders(
++          (slot, a, b, r) => (seen[slot] = { a: a.clone(), b: b.clone(), r }),
++        );
++        expect(n).toBe(GP_CAPSULES);
++        for (const { a, b, r } of seen) {
++          expect([...a.toArray(), ...b.toArray(), r].every(Number.isFinite)).toBe(true);
++          expect(r).toBeGreaterThan(0.03);
++          expect(r).toBeLessThan(0.13);
++          // Everything sits within a metre of the sprung origin.
++          expect(a.length()).toBeLessThan(1.1);
++          expect(b.length()).toBeLessThan(1.1);
++        }
++        // Torso rises from the pelvis; the head sits above the torso's top.
++        expect(seen[0].b.y).toBeGreaterThan(seen[0].a.y + 0.15);
++        expect(seen[1].a.y).toBeGreaterThan(seen[0].b.y);
++        // The non-GP riders contribute nothing.
++        const road = new BikeModel(VEHICLES.ss600, 0, 'high', new BikeMaterials(0), true);
++        expect(road.rider.gpOccluders(() => undefined)).toBe(0);
++        road.dispose();
++      } finally {
++        model.dispose();
++        m.dispose();
++      }
++    },
++  );
+   it.each(['gpr1', 'gpr2'])(
+     '%s bakes a deterministic rider-free rest-pose volume inside the cell budget',
+     (id) => {
+@@ -275,9 +359,14 @@ describe('GP bike-space occlusion', () => {
+       const occlusion = entry.materials.occlusion;
+       expect(occlusion.gpOccFromWorld.value.equals(inverse)).toBe(true);
+       expect(occlusion.gpOccParams.value.x).toBe(GP_OCCLUSION.diffuse);
++      // The seated rider feeds ten live capsules on High.
++      expect(occlusion.gpCapStrength.value).toBe(GP_OCCLUSION.rider);
++      expect(occlusion.gpCapA.value.filter((c) => c.w > 0)).toHaveLength(GP_CAPSULES);
+       shells.update(frame, frame, 1, [host], camera, 'medium', 0);
+       expect(occlusion.gpOccParams.value.x).toBe(0);
+       expect(occlusion.gpOccParams.value.y).toBe(0);
++      expect(occlusion.gpCapStrength.value).toBe(0);
++      expect(occlusion.gpCapA.value.every((c) => c.w === 0)).toBe(true);
+     } finally {
+       shells.disposeAll();
+     }
+diff --git a/tests/gp-panel-relief.test.ts b/tests/gp-panel-relief.test.ts
+new file mode 100644
+index 0000000..b71efe5
+--- /dev/null
++++ b/tests/gp-panel-relief.test.ts
+@@ -0,0 +1,125 @@
++import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
++import * as T from 'three';
++import { BikeMaterials } from '../src/rendering/bike.ts';
++import { gpLiveryMaterial, gpReliefAtlasCount } from '../src/rendering/gp-race-bodywork.ts';
++import {
++  GP_PANEL_RELIEF,
++  GP_PANEL_RELIEF_HOOK,
++  setGpPanelRelief,
++  type GpPanelReliefUniforms,
++} from '../src/rendering/gp-panel-relief.ts';
++import { studioHookKeys } from '../src/rendering/studio/shader-hooks.ts';
++
++/** Every paint operation the relief pass issues: [operation, style]. */
++const recorded: [string, string][] = [];
++let recording = false;
++beforeAll(() => {
++  const ctx = new Proxy({} as Record<string, unknown>, {
++    get: (target, key: string) => {
++      if (key === 'measureText') return () => ({ width: 10 });
++      if (key === 'fill' || key === 'stroke' || key === 'fillRect')
++        return () => {
++          if (recording)
++            recorded.push([key, String(key === 'stroke' ? target.strokeStyle : target.fillStyle)]);
++        };
++      return typeof target[key] === 'undefined' ? () => undefined : target[key];
++    },
++    set: (target, key: string, value) => {
++      target[key] = value;
++      return true;
++    },
++  });
++  vi.stubGlobal('document', {
++    createElement: () => ({ width: 0, height: 0, getContext: () => ctx }),
++  });
++});
++afterAll(() => vi.unstubAllGlobals());
++
++describe('GP livery panel relief', () => {
++  it('draws only the annotated seams, fasteners, gills and recesses into the height atlas', () => {
++    const m = new BikeMaterials(5);
++    const before = gpReliefAtlasCount();
++    recording = true;
++    recorded.length = 0;
++    const paint = gpLiveryMaterial(m, 5, 'gpr1');
++    recording = false;
++    try {
++      expect(gpReliefAtlasCount()).toBe(before + 1);
++      const heights = recorded
++        .map(([, style]) => /^rgb\((\d+), \1, \1\)$/.exec(style)?.[1])
++        .filter((v): v is string => v !== undefined)
++        .map(Number);
++      // The flat base plus the annotated elements; nothing else is height data.
++      const allowed = new Set([
++        GP_PANEL_RELIEF.flat,
++        GP_PANEL_RELIEF.groove,
++        GP_PANEL_RELIEF.recess,
++        GP_PANEL_RELIEF.dome,
++      ]);
++      expect(heights.length).toBeGreaterThan(40);
++      for (const h of heights) expect(allowed.has(h)).toBe(true);
++      for (const wanted of [GP_PANEL_RELIEF.groove, GP_PANEL_RELIEF.recess, GP_PANEL_RELIEF.dome])
++        expect(heights).toContain(wanted);
++      expect(paint.userData.gpRelief).toBeTruthy();
++    } finally {
++      m.dispose();
++    }
++  });
++
++  it('bends both normals through the house hook chain, on High only, and frees its atlas', () => {
++    const before = gpReliefAtlasCount();
++    const a = new BikeMaterials(1),
++      b = new BikeMaterials(2);
++    const pa = gpLiveryMaterial(a, 1, 'gpr1'),
++      pb = gpLiveryMaterial(b, 2, 'gpr1'),
++      pc = gpLiveryMaterial(b, 2, 'gpr2');
++    try {
++      // One atlas per shell variant, shared by every entrant on it.
++      expect(gpReliefAtlasCount()).toBe(before + 2);
++      expect(studioHookKeys(pa)).toContain(GP_PANEL_RELIEF_HOOK);
++      const ua = pa.userData.gpRelief as GpPanelReliefUniforms,
++        ub = pb.userData.gpRelief as GpPanelReliefUniforms;
++      expect(ua.gpReliefMap.value).toBe(ub.gpReliefMap.value);
++      expect(ua.gpReliefMap.value.colorSpace).toBe(T.NoColorSpace);
++      expect(pc.userData.gpRelief.gpReliefMap.value).not.toBe(ua.gpReliefMap.value);
++      expect(ua.gpReliefStrength.value).toBe(0);
++      setGpPanelRelief(a, true);
++      expect(ua.gpReliefStrength.value).toBe(1);
++      expect(ub.gpReliefStrength.value).toBe(0);
++      setGpPanelRelief(a, false);
++      expect(ua.gpReliefStrength.value).toBe(0);
++
++      const shader = {
++        vertexShader: '',
++        fragmentShader:
++          '#include <common>\n#include <normal_fragment_maps>\n#include <clearcoat_normal_fragment_maps>\n',
++        uniforms: {},
++      } as unknown as T.WebGLProgramParametersWithUniforms;
++      pa.onBeforeCompile(shader, {} as T.WebGLRenderer);
++      const f = shader.fragmentShader;
++      expect(f).toContain('uniform sampler2D gpReliefMap;');
++      // Base normal first, then the clear-coat normal, both from the same gradient.
++      const base = f.indexOf('normal = gpReliefBend( normal, gpReliefD )'),
++        coat = f.indexOf('clearcoatNormal = gpReliefBend( clearcoatNormal, gpReliefD )');
++      expect(base).toBeGreaterThan(f.indexOf('#include <normal_fragment_maps>'));
++      expect(coat).toBeGreaterThan(f.indexOf('#include <clearcoat_normal_fragment_maps>'));
++      expect(coat).toBeGreaterThan(base);
++      expect(f).toContain(GP_PANEL_RELIEF.heightMetres.toFixed(5));
++      expect((shader.uniforms as unknown as GpPanelReliefUniforms).gpReliefMap).toBe(
++        ua.gpReliefMap,
++      );
++
++      // The shared atlas outlives one entrant and goes with the last.
++      const disposed = vi.fn();
++      ua.gpReliefMap.value.addEventListener('dispose', disposed);
++      a.dispose();
++      expect(disposed).not.toHaveBeenCalled();
++      b.dispose();
++      expect(disposed).toHaveBeenCalledTimes(1);
++      expect(gpReliefAtlasCount()).toBe(before);
++    } finally {
++      a.dispose();
++      b.dispose();
++    }
++  });
++});
+diff --git a/tests/gp-shell-hem.test.ts b/tests/gp-shell-hem.test.ts
+new file mode 100644
+index 0000000..1be0f83
+--- /dev/null
++++ b/tests/gp-shell-hem.test.ts
+@@ -0,0 +1,170 @@
++import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
++import * as T from 'three';
++import { BikeMaterials } from '../src/rendering/bike.ts';
++import { gpRaceBodywork } from '../src/rendering/gp-race-bodywork.ts';
++import { GP_SHELL_HEM, hemShellEdges } from '../src/rendering/gp-race-shell.ts';
++
++/** A flat, outward-facing (+Z, counter-clockwise from +Z) n x n patch of `size` metres. */
++function patch(n: number, size = 0.2) {
++  const position: number[] = [],
++    uv: number[] = [],
++    index: number[] = [];
++  for (let j = 0; j <= n; j++)
++    for (let i = 0; i <= n; i++) {
++      position.push((i / n - 0.5) * size, (j / n - 0.5) * size, 0);
++      uv.push(i / n, j / n);
++    }
++  for (let j = 0; j < n; j++)
++    for (let i = 0; i < n; i++) {
++      const a = j * (n + 1) + i,
++        b = a + 1,
++        c = a + n + 1,
++        d = c + 1;
++      index.push(a, b, c, b, d, c);
++    }
++  const g = new T.BufferGeometry();
++  g.setAttribute('position', new T.Float32BufferAttribute(position, 3));
++  g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
++  g.setIndex(index);
++  g.computeVertexNormals();
++  return g;
++}
++const triangleCount = (g: T.BufferGeometry) => (g.index?.count ?? 0) / 3;
++
++describe('GP shell hems', () => {
++  it('rolls every free edge of a flat patch into a closed strip and leaves the skin untouched', () => {
++    const base = patch(3),
++      hemmed = hemShellEdges(base);
++    try {
++      const { arc } = GP_SHELL_HEM;
++      // 12 boundary edges (3 per side); each strip is (arc + 1) quads of two triangles.
++      expect(triangleCount(hemmed) - triangleCount(base)).toBe(12 * (arc + 1) * 2);
++      // One shared profile of (arc + 2) points per boundary vertex (12 on a 3 x 3 patch).
++      expect(hemmed.getAttribute('position').count - base.getAttribute('position').count).toBe(
++        12 * (arc + 2),
++      );
++      const p = hemmed.getAttribute('position'),
++        bp = base.getAttribute('position');
++      for (let i = 0; i < bp.count; i++) {
++        expect(p.getX(i)).toBe(bp.getX(i));
++        expect(p.getZ(i)).toBe(bp.getZ(i));
++      }
++      // The original index is a prefix of the new one.
++      for (let i = 0; i < base.index!.count; i++)
++        expect(hemmed.index!.getX(i)).toBe(base.index!.getX(i));
++    } finally {
++      base.dispose();
++      hemmed.dispose();
++    }
++  });
++
++  it('turns the skin over the edge: outward roll, wall of the full thickness, consistent winding', () => {
++    const { thickness, radius } = GP_SHELL_HEM,
++      size = 0.2,
++      base = patch(3, size),
++      hemmed = hemShellEdges(base);
++    try {
++      const p = hemmed.getAttribute('position'),
++        n = hemmed.getAttribute('normal'),
++        index = hemmed.index!,
++        first = base.index!.count;
++      let lowest = 0,
++        widest = 0;
++      const a = new T.Vector3(),
++        b = new T.Vector3(),
++        c = new T.Vector3(),
++        face = new T.Vector3(),
++        vertex = new T.Vector3();
++      for (let t = first; t < index.count; t += 3) {
++        const ids = [index.getX(t), index.getX(t + 1), index.getX(t + 2)];
++        a.fromBufferAttribute(p, ids[0]);
++        b.fromBufferAttribute(p, ids[1]);
++        c.fromBufferAttribute(p, ids[2]);
++        face.crossVectors(b.sub(a), c.sub(a));
++        if (face.lengthSq() < 1e-20) continue;
++        face.normalize();
++        // Every hem triangle faces the way its smoothed vertex normals do.
++        for (const id of ids) {
++          vertex.fromBufferAttribute(n, id);
++          expect(vertex.length()).toBeCloseTo(1, 5);
++          expect(face.dot(vertex)).toBeGreaterThan(0);
++        }
++      }
++      for (let i = base.getAttribute('position').count; i < p.count; i++) {
++        lowest = Math.min(lowest, p.getZ(i));
++        widest = Math.max(widest, Math.abs(p.getX(i)), Math.abs(p.getY(i)));
++        expect(p.getZ(i)).toBeLessThanOrEqual(1e-9);
++      }
++      expect(lowest).toBeCloseTo(-thickness, 6);
++      // The roll bulges at most one radius beyond the original outline.
++      expect(widest).toBeCloseTo(size / 2 + radius, 6);
++    } finally {
++      base.dispose();
++      hemmed.dispose();
++    }
++  });
++
++  it('leaves a closed surface alone, honours the ignore filter and rejects bad options', () => {
++    const sphere = new T.SphereGeometry(0.1, 12, 8);
++    // Merge the UV seam by position: the sphere is closed once welded.
++    expect(hemShellEdges(sphere)).toBeDefined();
++    const flat = patch(2);
++    const skipped = hemShellEdges(flat, GP_SHELL_HEM, (face) => face.z > 0.5);
++    expect(skipped).toBe(flat);
++    expect(() => hemShellEdges(flat, { thickness: 0.001, radius: 0.002, arc: 2 })).toThrow(
++      RangeError,
++    );
++    expect(() => hemShellEdges(flat, { thickness: 0.002, radius: 0.001, arc: 0 })).toThrow(
++      RangeError,
++    );
++    const colour = patch(2);
++    colour.setAttribute('color', new T.Float32BufferAttribute(new Float32Array(27), 3));
++    expect(() => hemShellEdges(colour)).toThrow(/color/);
++    for (const g of [sphere, flat, colour]) g.dispose();
++  });
++});
++
++describe('GP race shell hems on the production models', () => {
++  beforeAll(() => {
++    const ctx = new Proxy(
++      {},
++      {
++        get: (_, key) => (key === 'measureText' ? () => ({ width: 10 }) : () => undefined),
++        set: () => true,
++      },
++    );
++    vi.stubGlobal('document', {
++      createElement: () => ({ width: 0, height: 0, getContext: () => ctx }),
++    });
++  });
++  afterAll(() => vi.unstubAllGlobals());
++  it.each(['gpr1', 'gpr2'] as const)(
++    '%s: only the High shell carries rolled edges and every vertex stays finite and unit-normal',
++    (id) => {
++      const materials = new BikeMaterials(3);
++      const counts = (['high', 'mid', 'far'] as const).map((detail) => {
++        const shell = gpRaceBodywork(materials, detail, id, 3);
++        const panels = [shell.body, shell.tank, shell.tail].map((mesh) => {
++          const g = mesh.geometry,
++            p = g.getAttribute('position'),
++            n = g.getAttribute('normal');
++          for (let i = 0; i < p.count; i++) {
++            expect(Number.isFinite(p.getX(i) + p.getY(i) + p.getZ(i))).toBe(true);
++            expect(Math.hypot(n.getX(i), n.getY(i), n.getZ(i))).toBeCloseTo(1, 3);
++          }
++          return triangleCount(g);
++        });
++        shell.root.traverse((o) => {
++          if (o instanceof T.Mesh) o.geometry.dispose();
++        });
++        return panels.reduce((a, b) => a + b, 0);
++      });
++      materials.dispose();
++      // The pre-hem panels were 6924 triangles at High; hems add a bounded strip budget.
++      expect(counts[0]).toBeGreaterThan(6924 + 600);
++      expect(counts[0]).toBeLessThan(6924 + 4000);
++      expect(counts[1]).toBeLessThan(counts[0] * 0.5);
++      expect(counts[2]).toBeLessThan(counts[1]);
++    },
++  );
++});
