@@ -7,7 +7,7 @@ owner decisions and phased roadmap are in [studio/ROADMAP.md](studio/ROADMAP.md)
 ## State of `main`
 
 - Build, typecheck, lint, content validation and the IP guard pass on clean GitHub runners; initial JS is 3.5 MB gzip.
-- Full unit suite: 616 files / 6,086 tests passing at the last full run (see ROADMAP § 7 for the final record).
+- Full unit suite: **625 files / 6,179 tests passing** at the wind-down (ROADMAP § 7).
 - GitHub Actions browser shards: 6 of 8 pass on real runners; shards 6 and 7 and the cold-start timing of full-grid sessions
   are the open CI triage (ROADMAP § 3.1).
 - Not verified anywhere: real-GPU performance, Steam Deck, Windows/macOS package runs, the Steam client, human playtests.
