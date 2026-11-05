@@ -468,6 +468,7 @@ export class FestivalRenderer {
     const budget = TERRAIN_BUDGETS[tier];
     this.terrain.budget = { ...budget, trees: budget.trees * clamp(g.vegetationDensity, 0, 1) };
     this.environment.highDetail = g.reflections === 'local';
+    this.water.setDetail(tier === 'high');
     this.photoSky.setQuality(preset);
     scannedGround.attach(this.renderer, preset);
     this.ultra.configure(preset, g);
