@@ -1191,7 +1191,12 @@
   }
   #menu .menu-body,
   #menu .mx-menu-scroll {
-    grid-template-columns: var(--board-w);
+    /* --board-w is a viewport width (100vw less the margins at 900 px and below), but this
+       container scrolls: a real scrollbar (every desktop player has one; the headless test
+       browser hides it) takes 10 to 17 px of its content box, so a viewport-wide column
+       overflows and the board's right edge is clipped. A percentage resolves against the
+       content box, scrollbar excluded. */
+    grid-template-columns: min(var(--board-w), 100%);
     row-gap: var(--mb-s3);
   }
   #menu .menu-actions,

@@ -160,15 +160,24 @@ test('synthetic retry snapshots show measured placement and keep the longest pra
         expect(layout.panel.y).toBeGreaterThanOrEqual(0);
         expect(layout.panel.bottom).toBeLessThanOrEqual(801);
         expect(layout.panel.overflowX).toBeLessThanOrEqual(1);
+        // A client rect is the glyph box (Saira Variable is 1.58 em tall), taller than the 1.35
+        // line box: it overhangs the note by half the difference on each side, 1.4 px at the
+        // 12 px type floor. That is paint overhang inside the note's own margins, not a line
+        // leaving the note, and it is what scrollHeight counts. Allow that half-leading plus the
+        // original 1 px of rounding; a line that really leaves the note still fails.
+        const overhang = Math.max(
+          0,
+          ...layout.note.lines.map((l) => (l.bottom - l.y - layout.note.lineHeight) / 2),
+        );
         expect(layout.note.overflowX, layout.note.text).toBeLessThanOrEqual(1);
-        expect(layout.note.overflowY, layout.note.text).toBeLessThanOrEqual(1);
+        expect(layout.note.overflowY, layout.note.text).toBeLessThanOrEqual(1 + overhang);
         expect(layout.documentOverflowX).toBeLessThanOrEqual(1);
         expect(layout.note.lines.length).toBeGreaterThan(0);
         for (const line of layout.note.lines) {
           expect(line.x).toBeGreaterThanOrEqual(layout.note.x - 1);
           expect(line.right).toBeLessThanOrEqual(layout.note.right + 1);
-          expect(line.y).toBeGreaterThanOrEqual(layout.note.y - 1);
-          expect(line.bottom).toBeLessThanOrEqual(layout.note.bottom + 1);
+          expect(line.y).toBeGreaterThanOrEqual(layout.note.y - 1 - overhang);
+          expect(line.bottom).toBeLessThanOrEqual(layout.note.bottom + 1 + overhang);
         }
         expect(layout.controls.some((control) => control.label === 'Pause session')).toBe(true);
         if (width === 390)

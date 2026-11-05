@@ -4,6 +4,19 @@ import { resolve } from 'node:path';
 import type { captureBikeSequence } from './fixtures/motogp-reference-review.ts';
 import { fixtureDefine } from './fixtures/owner-build.ts';
 
+/**
+ * Exact production triangle totals of the isolated GP bikes (every link of an instanced mesh
+ * counted, the procedural R6 race shell and the w3 GP rider with the elongated helmet). The
+ * earlier pins (GP-R1 95,029 / GP-R2 94,250) were never true in this repository: the root commit
+ * 395d7df and ebf691d (measured locally) already build 95,916 for GP-R2, CI run 41719338961 (main
+ * 3ae3842) reports the same 95,916, and CI run 41915850034 (main eab1d91) reports 96,695 for
+ * GP-R1; main today builds 96,695 / 95,916 locally. GP-R1 keeps its 779 extra triangles over
+ * GP-R2 and both carry +1,666 against the old pins. The knee-slider sparks of vehicle art 3 add
+ * no mesh triangles (a Points object). A change in these numbers is a change in the model:
+ * update the pin together with the model, with the reason.
+ */
+const TRIANGLES = { gpr1: 96695, gpr2: 95916 } as const;
+
 let fixtureScript: string;
 test.beforeAll(async () => {
   const bundle = await build({
@@ -69,9 +82,7 @@ for (const id of ['gpr1', 'gpr2']) {
         expect(result.glError).toBe(0);
         expect(result.sourceFrameUnchanged).toBe(true);
         expect(result.instance).toBe(sequence[0].instance);
-        // Exact production totals with the procedural R6 race shell and the
-        // w3 GP rider (elongated helmet: 2,108 fewer rider triangles).
-        expect(result.triangles).toBe(id === 'gpr1' ? 95029 : 94250);
+        expect(result.triangles).toBe(TRIANGLES[id as keyof typeof TRIANGLES]);
         expect(result.calls).toBeLessThan(220);
         if (i > 1) expect(result.resources).toEqual(sequence[1].resources);
         if (i < 2)
@@ -113,7 +124,7 @@ test('gpr1 rider recovery restores the original wrist and ankle cuff pose after 
   for (const result of recovery) {
     expect(result.glError).toBe(0);
     expect(result.instance).toBe(recovery[0].instance);
-    expect(result.triangles).toBe(95029);
+    expect(result.triangles).toBe(TRIANGLES.gpr1);
   }
   await info.attach('gpr1-rider-recovery.png', {
     body: Buffer.from(recovery[0].image.split(',')[1], 'base64'),

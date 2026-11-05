@@ -401,6 +401,7 @@ export function measureMotocrossPractice() {
       text: note.textContent ?? '',
       overflowX: note.scrollWidth - note.clientWidth,
       overflowY: note.scrollHeight - note.clientHeight,
+      lineHeight: Number.parseFloat(getComputedStyle(note).lineHeight),
       lines: [...range.getClientRects()].map((line) => ({
         x: line.x,
         right: line.right,
