@@ -167,4 +167,18 @@ Each phase has an exit test so progress is checkable. Commands are in [GAME_OVER
 
 ## 7. Final verification record
 
-Filled in at the end of the wind-down (below).
+Run on `main` at the wind-down (commit e91a744 plus this record), local 4-CPU container, 2026-11-05:
+
+| Check | Result |
+| --- | --- |
+| `npx vitest run` (full suite) | **625 files, 6,179 tests, 0 failing** (45.7 min) |
+| `npx tsc --noEmit` | 0 errors |
+| `npm run lint` | clean |
+| `npm run validate:content` | Content valid |
+| `npm run check:i18n` | 0 errors, 0 warnings (7 dictionaries) |
+| `npm run build` + `npm run check:bundle` | built; initial JS 3.5 MB gzip (budget 4); `dist/` 128.3 MB; IP guard clean (75 shipped text files) |
+| `npm run build:demo` | built; IP guard passed |
+| DOM e2e (launch board, i18n layout, design critic, HUD legibility, motorcycle presentation, career hub, first-run, results/settings, motocross practice and interface) | 38/38 passed |
+| GitHub Actions on `main` (earlier run, eab1d91) | 12/15 jobs passed; browser shards 6 and 7 red (§ 3.1) — no CI run of the final commit has been read |
+
+Not run for the record: the real-game browser specs on this host (software GL), any hardware GPU, Windows/macOS.
