@@ -653,6 +653,10 @@ export class FormulaCar {
       for (let i = 0; i < 4; i++) {
         bindTireSurface(reduced.tires[i].geometry, 'y');
         reduced.tires[i].material = this.treads[i].material;
+        // The reduced rotor shares this wheel's disc (same radius and spin
+        // axis), so a hot rotor keeps glowing across a level change instead of
+        // popping dark at the mid-distance switch. Same draw, no new program.
+        reduced.brakes[i].material = this.discs[i];
       }
       this.reduced.push(reduced);
       reduced.root.visible = false;

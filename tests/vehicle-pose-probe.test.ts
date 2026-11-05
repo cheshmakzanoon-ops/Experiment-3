@@ -286,6 +286,14 @@ describe('rendered pose follows a real driven session', () => {
     // A normal Aurel lap only reaches ~320 C, so the glow is probed with a temperature sweep on a
     // rolling frame (every wheel), and the lap itself must stay dark below the threshold.
     expect(m.discGlowFrames).toBe(rows.discRec.filter((t) => t > 500).length);
+    // The reduced (mid/far) rotors share their wheel's disc, so a hot rotor keeps
+    // its glow across a level switch instead of popping dark.
+    const reducedRotors: T.Mesh[] = [];
+    car.root.traverse((o) => {
+      if (o instanceof T.Mesh && o.name === 'Upright-owned reduced brake') reducedRotors.push(o);
+    });
+    expect(reducedRotors).toHaveLength(8);
+    for (const rotor of reducedRotors) expect(car.discs).toContain(rotor.material);
     const base = frames[frames.length >> 1].slice();
     const sweep: { temp: number; glow: number[] }[] = [];
     for (const temp of [200, 500, 600, 800, 950, 1300, 1600]) {
