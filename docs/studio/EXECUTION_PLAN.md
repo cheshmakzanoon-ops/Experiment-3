@@ -67,6 +67,36 @@ Seasonal Wildcard drops, venues, weather, regions; Cyrillic/CJK; evaluate online
 | --- | --- | --- |
 | 0.1 CI reporter | done | commit `9fafa3f`, `ci-reports/build-and-validation.md` |
 | 0.2 CI trigger hygiene | done | commit `0394101` |
-| 0.3 CI triage | done | fixed `.board-sheet` overflow (`9fafa3f`, verified `44-motocross-interface.spec.ts`), `unit-tests` 45m budget + workflow concurrency, lazy-showroom → circuit/grid software-GL budgets, `ci-report.sh` log fetch |
-| 0.4 Hardware benchmark | built, unmeasured | `scripts/bench/gpu-bench.mjs`, `tests/gpu-bench.test.ts` (6 tests), [HARDWARE_BENCHMARK.md](HARDWARE_BENCHMARK.md); CI smoke `bench-smoke.yml` (software GL, proves plumbing only); needs the owner's GPU for numbers |
+| 0.3 CI triage | done | commit `c238c12` (`.board-sheet` overflow in `9fafa3f`, verified `44-motocross-interface.spec.ts`; `unit-tests` 45m budget + workflow concurrency; lazy-showroom → circuit/grid software-GL budgets; `ci-report.sh` log fetch; `RacingRenderer.preparationTimeoutMs`) |
+| 0.4 Hardware benchmark | built, unmeasured | `scripts/bench/gpu-bench.mjs`, `tests/gpu-bench.test.ts` (6 tests), [HARDWARE_BENCHMARK.md](HARDWARE_BENCHMARK.md); CI smoke `bench-smoke.yml` (`ci-reports/benchmark-smoke.md`, run `42761743565` passed); needs the owner's GPU for numbers |
 | 0.5 Build hygiene audit | done | verified `deploy-playable-pages.yml`, `publish-playable-cdn.yml`, and `desktop-packages.yml` produce product builds guarded by `scripts/ip-guard.mjs` (`tests/ci-workflow.test.ts`) |
+
+## Exact Next Steps for the Next Developer
+
+### 1. Check the `Build and validation` CI Run on `c238c12`
+- Phase 0 is committed and pushed on `main` (`c238c12`), which triggered a fresh `Build and validation` run with the new 45-minute `unit-tests` budget, workflow concurrency cancellation, 90s software-GL GPU preparation timeout (`RacingRenderer.preparationTimeoutMs = 90000`), and 120s/240s lazy-showroom → circuit/grid E2E budgets.
+- Check `ci-reports/build-and-validation.md` (or run `gh run list --workflow="ci.yml" --limit 3`) once the run finishes to confirm all jobs (`validate`, `unit-tests`, `scenarios`, `offroad-scenarios`, `wet-presentation`, `owner-qa`, `browser (1..8)`) are green.
+
+### 2. Land the Three Saved Round-3 Hyperrealism Patches ([`docs/studio/hyperrealism-wip/README.md`](hyperrealism-wip/README.md))
+Apply, fix, verify (`npx tsc --noEmit && npm run lint && npx vitest run <section-tests>`), commit, and push each discipline's Round-3 patch in its own commit:
+1. **MotoGP (`docs/studio/hyperrealism-wip/motogp-round3.patch`):**
+   - Apply source & test changes: `git apply --include='src/**' --include='tests/**' docs/studio/hyperrealism-wip/motogp-round3.patch`.
+   - In [`src/rendering/bike.ts`](../../src/rendering/bike.ts) lines 466, 471, 472: change `readonly aluminium`, `readonly forkUpper`, and `readonly forkLower` on `BikeMaterials` from `T.MeshStandardMaterial` to `T.MeshPhysicalMaterial`.
+   - In [`src/rendering/gp-front-hydraulics.ts`](../../src/rendering/gp-front-hydraulics.ts) (or [`tests/gp-front-hydraulics.test.ts`](../../tests/gp-front-hydraulics.test.ts) line 42): widen the `Materials` helper parameter type (`Pick<BikeMaterials, ...>`) or construct `new T.MeshPhysicalMaterial()` for `aluminium` in `tests/gp-front-hydraulics.test.ts` so `tsc --noEmit` passes.
+   - In `tests/gp-panel-relief.test.ts` line 53: type `const allowed = new Set<number>([...])`.
+   - Check if `hemShellEdges` changes the GP shell triangle count pin in [`e2e/gp-rider-contact.spec.ts`](../../e2e/gp-rider-contact.spec.ts) (`TRIANGLES = { gpr1: 96695, gpr2: 95916 }`) and update with the exact delta if needed.
+   - Verify with `npx tsc --noEmit && npm run lint && npx vitest run tests/gp-*.test.ts tests/bike.test.ts`.
+2. **Motocross / Supercross (`docs/studio/hyperrealism-wip/motocross-round3.patch`):**
+   - Apply source & test changes: `git apply --include='src/**' --include='tests/**' docs/studio/hyperrealism-wip/motocross-round3.patch`.
+   - In [`src/rendering/offroad/mx-course-dressing.ts`](../../src/rendering/offroad/mx-course-dressing.ts): add `meadow: mxShoulderPlantGeometry('meadow'),` to `plantGeometry`.
+   - In [`src/rendering/offroad/index.ts`](../../src/rendering/offroad/index.ts) (`OffroadScene`): wire `installMxArenaLighting(this.terrain.material, this.stadium.lampGrid)` when both `this.terrain` and `this.stadium` exist.
+   - Verify with `npx tsc --noEmit && npm run lint && npx vitest run tests/motocross-*.test.ts`.
+3. **Open-World Solvane Coast (`docs/studio/hyperrealism-wip/open-world-round3.patch`):**
+   - Apply source & test changes: `git apply --include='src/**' --include='tests/**' docs/studio/hyperrealism-wip/open-world-round3.patch`.
+   - Remove all temporary `// OW-DEBUG` hooks (`__owDbg`, `__owMorphOff`) from `src/rendering/open-world/coastal-water.ts`, `src/rendering/open-world/festival-renderer.ts`, `src/rendering/open-world/terrain.ts`, and `src/rendering/open-world/water.ts`.
+   - Verify with `npx tsc --noEmit && npm run lint && npx vitest run tests/festival-*.test.ts`.
+
+### 3. Execute Remaining Hyperrealism & Phase 2 Items
+- Follow the per-discipline priority lists in [`docs/studio/HYPERREALISM_HANDOVER.md`](HYPERREALISM_HANDOVER.md) (Lagarde specular occlusion, hot brake rotor light spill, soft-particle depth binding for smoke/dust, split `BikeMaterials.dark`, titanium header thin-film iridescence, MX garment micro-normals, open-world cliff triplanar detail & building ground-contact AO).
+- Proceed through Phase 2 in [`docs/studio/ROADMAP.md`](ROADMAP.md) (localisation plural strings via `npm run check:i18n`, procedural engine/ambience audio polish, vehicle art gaps, and gameplay reliability).
+

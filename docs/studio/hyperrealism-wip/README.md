@@ -7,18 +7,17 @@ committed each agent's working tree and checked it:
 | Section | Saved as | Size | Why it is a patch, not code |
 | --- | --- | --- | --- |
 | F1 / shared pipeline | **merged as code** (`dfb00ca`) | 7 files, +709 | tsc, eslint and 49 related test files (490 tests) pass |
-| MotoGP | `motogp-round3.patch` | 22 files, +1794 / −55 | 10 tsc errors in tests (`anisotropy` on `MeshStandardMaterial`, a literal-union argument in `gp-panel-relief.test.ts`) |
-| Motocross | `motocross-round3.patch` | 35 files, +2475 / −96 | tsc error in `mx-course-dressing.ts:528` (new `meadow` plant kind missing from the geometry table) |
-| Open world | `open-world-round3.patch` | 24 files, +1411 / −33 | temporary `globalThis.__owDbg` / `__owMorphOff` capture hooks marked `OW-DEBUG` (9 eslint `no-explicit-any` errors); terrain geomorphing was mid-implementation |
+| MotoGP | `motogp-round3.patch` | 22 files, +1794 / −55 | `BikeMaterials` (`src/rendering/bike.ts:466,471,472`) needs `aluminium`, `forkUpper`, `forkLower` typed as `T.MeshPhysicalMaterial`; `tests/gp-front-hydraulics.test.ts:42` mock `aluminium` needs `MeshPhysicalMaterial` (or widened `Materials` type in `gp-front-hydraulics.ts`); `tests/gp-panel-relief.test.ts:53` needs `new Set<number>([...])` |
+| Motocross | `motocross-round3.patch` | 35 files, +2475 / −96 | `src/rendering/offroad/mx-course-dressing.ts:528` needs `meadow: mxShoulderPlantGeometry('meadow')` in `plantGeometry`; wire `installMxArenaLighting` in `src/rendering/offroad/index.ts` |
+| Open world | `open-world-round3.patch` | 24 files, +1411 / −33 | remove temporary `globalThis.__owDbg` / `__owMorphOff` capture hooks marked `OW-DEBUG` in `coastal-water.ts`, `festival-renderer.ts`, `terrain.ts`, and `water.ts` |
 
-Each patch is a `git diff --binary` against `812b933`. To resume a section:
+Each patch is a `git diff --binary` against `812b933`. Because binary capture PNGs in `docs/studio/hyperrealism-tooling/` conflict if applied wholesale, apply only `src/` and `tests/` for each section:
 
 ```bash
-git apply --3way docs/studio/hyperrealism-wip/<section>-round3.patch
+git apply --include='src/**' --include='tests/**' docs/studio/hyperrealism-wip/<section>-round3.patch
 ```
 
-Then fix the listed errors, remove any debug hooks, run `npx tsc --noEmit`, the section's targeted vitest files and
-eslint, take before/after captures, and commit.
+Then fix the listed items in the table above, run `npx tsc --noEmit && npm run lint`, run the section's targeted vitest files, and commit.
 
 What each patch contains (from file names and the agents' last messages; none of it has been seen in a game frame):
 
