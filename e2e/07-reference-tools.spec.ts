@@ -28,7 +28,7 @@ test('reference tools: actual livery pixels persist through save, quality change
   expect(showroom.presentationPurpose).toBe('showroom');
   expect(showroom.construction.tasks).toBe(0);
   await page.getByRole('button', { name: 'PHOTO / LIVERY', exact: true }).click();
-  await expect(page.locator('#photoStudio')).toBeVisible();
+  await expect(page.locator('#photoStudio')).toBeVisible({ timeout: 120000 });
   await expect(page.locator('#loading')).toBeHidden();
   await expect(page.locator('#loading')).toHaveAttribute('aria-busy', 'false');
   const photoVenue = (await diag(page)).renderer!;

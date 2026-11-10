@@ -138,7 +138,7 @@ for (const drive of drives)
       .click();
     if (!pausedStart) await finishRaceEntry(page);
     await expect
-      .poll(async () => (await diag(page)).state, { timeout: 90000 })
+      .poll(async () => (await diag(page)).state, { timeout: 240000 })
       .toBe(pausedStart ? 'paused' : 'driving');
     if (pausedStart) {
       await expect

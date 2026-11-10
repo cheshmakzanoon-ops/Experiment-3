@@ -67,6 +67,6 @@ Seasonal Wildcard drops, venues, weather, regions; Cyrillic/CJK; evaluate online
 | --- | --- | --- |
 | 0.1 CI reporter | done | commit `9fafa3f`, `ci-reports/build-and-validation.md` |
 | 0.2 CI trigger hygiene | done | commit `0394101` |
-| 0.3 CI triage | in progress | waiting on run for `a27e738` |
+| 0.3 CI triage | done | fixed `.board-sheet` overflow (`9fafa3f`, verified `44-motocross-interface.spec.ts`), `unit-tests` 45m budget + workflow concurrency, lazy-showroom → circuit/grid software-GL budgets, `ci-report.sh` log fetch |
 | 0.4 Hardware benchmark | built, unmeasured | `scripts/bench/gpu-bench.mjs`, `tests/gpu-bench.test.ts` (6 tests), [HARDWARE_BENCHMARK.md](HARDWARE_BENCHMARK.md); CI smoke `bench-smoke.yml` (software GL, proves plumbing only); needs the owner's GPU for numbers |
-| 0.5 Build hygiene audit | not started | |
+| 0.5 Build hygiene audit | done | verified `deploy-playable-pages.yml`, `publish-playable-cdn.yml`, and `desktop-packages.yml` produce product builds guarded by `scripts/ip-guard.mjs` (`tests/ci-workflow.test.ts`) |

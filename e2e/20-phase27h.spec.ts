@@ -24,7 +24,7 @@ test('27H: actual application loads the authored GLB and retains frozen native v
   });
   expect(initial.renderer!.authoredBodywork!.sha256).toBe(manifest.sha256);
   await page.getByRole('button', { name: 'PHOTO / LIVERY', exact: true }).click();
-  await expect(page.locator('#photoStudio')).toBeVisible();
+  await expect(page.locator('#photoStudio')).toBeVisible({ timeout: 120000 });
   await page.locator('#photoBackdrop').selectOption('studio');
   await page.locator('#liveryPrimary').evaluate((e) => {
     (e as HTMLInputElement).value = '#285c89';

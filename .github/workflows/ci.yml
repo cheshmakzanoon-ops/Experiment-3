@@ -8,6 +8,9 @@ on:
       - '**/*.md'
   pull_request:
   workflow_dispatch:
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
@@ -58,7 +61,7 @@ jobs:
           retention-days: 7
   unit-tests:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

@@ -98,7 +98,7 @@ async function start(
     .click();
   if (!holdOnGrid) await finishRaceEntry(page);
   await expect
-    .poll(async () => (await read(page)).state, { timeout: 90000 })
+    .poll(async () => (await read(page)).state, { timeout: 240000 })
     .toBe(holdOnGrid ? 'paused' : 'driving');
   if (holdOnGrid) {
     await expect

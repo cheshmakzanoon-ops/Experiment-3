@@ -49,7 +49,7 @@ for (const scenario of scenarios) {
     await page.locator('#compound').selectOption(scenario.weather === 'rain' ? 'wet' : 'medium');
     await page.locator('#opponents').selectOption('11');
     await page.getByRole('button', { name: 'PREPARE GRID START PAUSED', exact: true }).click();
-    await expect.poll(async () => (await read()).state, { timeout: 180000 }).toBe('paused');
+    await expect.poll(async () => (await read()).state, { timeout: 240000 }).toBe('paused');
     await expect
       .poll(async () => (await read()).workerPause)
       .toMatchObject({ paused: true, pending: false });

@@ -617,7 +617,6 @@ export class GameApp {
       showroomOnly,
     );
     if (!this.renderer || this.disposed || this.errorStopped) return false;
-    this.renderer.setQuality(this.settings.quality, this.settings.graphics);
     this.renderer.showroomWindow = this.showroomWindow;
     this.applyMotion(this.renderer, this.settings);
     this.renderer.colorblind = this.settings.colorblind;

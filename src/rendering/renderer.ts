@@ -929,13 +929,15 @@ export class RacingRenderer {
   readonly preparation = new PreparationTrace();
   warmupFrames = 0;
   warmupPitPasses = 0;
+  preparationTimeoutMs = 90000;
   async waitForPreparedFrame(cancelled: () => boolean, yieldFrame: () => Promise<void>) {
-    const deadline = performance.now() + 45000;
+    const timeoutMs = this.preparationTimeoutMs ?? 45000;
+    const deadline = performance.now() + timeoutMs;
     while (!cancelled() && !this.gpuFrames.ready()) {
       // A timeout is not completion. Releasing targets or applying a new
       // quality while this fence is unfinished would violate GPU ownership.
       if (performance.now() >= deadline)
-        throw new Error('GPU preparation did not complete within 45000ms');
+        throw new Error(`GPU preparation did not complete within ${timeoutMs}ms`);
       await yieldFrame();
     }
   }

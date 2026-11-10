@@ -122,7 +122,7 @@ test('Aurel venue ships through ordinary menu, held grid, camera changes and sta
   // byte-identical shader sources, 1331 draws / 9.41 M triangles, ~70-90 s
   // GPU-process CPU - and both straddle 60 s (54-87 s). Only a real paused
   // grid at tick 0 is accepted.
-  await expect.poll(async () => (await diag()).state, { timeout: 180000 }).toBe('paused');
+  await expect.poll(async () => (await diag()).state, { timeout: 240000 }).toBe('paused');
   await expect.poll(async () => (await diag()).frame?.[H.TICK] ?? -1).toBe(0);
   const before = (await diag()).frame;
   await page.getByRole('button', { name: 'CHANGE CAMERA', exact: true }).click();

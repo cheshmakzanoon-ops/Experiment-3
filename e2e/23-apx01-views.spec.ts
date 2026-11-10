@@ -27,7 +27,7 @@ for (const view of [
       (await page.evaluate(() => window.apexDiagnostics())).renderer?.authoredBodywork,
     ).toMatchObject({ partCount: 41, loaded: true, finalArtApproved: false });
     await page.getByRole('button', { name: 'PHOTO / LIVERY', exact: true }).click();
-    await expect(page.locator('#photoStudio')).toBeVisible();
+    await expect(page.locator('#photoStudio')).toBeVisible({ timeout: 120000 });
     await page.locator('#photoBackdrop').selectOption('studio');
     for (const [key, value] of Object.entries({
       azimuth: view.azimuth,

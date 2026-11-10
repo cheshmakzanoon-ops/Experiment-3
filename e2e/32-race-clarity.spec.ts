@@ -117,7 +117,7 @@ test('normal-resolution eight-car night inspection follows the selected car and 
   await page.getByRole('button', { name: 'PREPARE GRID START PAUSED', exact: true }).click();
   // Cold full-grid initialization under software rasterization can outlast the
   // generic 60 s expectation; do not accept anything short of a real pause.
-  await expect.poll(async () => (await read(page)).state, { timeout: 180000 }).toBe('paused');
+  await expect.poll(async () => (await read(page)).state, { timeout: 240000 }).toBe('paused');
   await expect
     .poll(async () => (await read(page)).workerPause)
     .toMatchObject({ pending: false, paused: true });

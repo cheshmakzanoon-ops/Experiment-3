@@ -67,7 +67,7 @@ jq -r '.[] | select(.conclusion != "success" and .conclusion != "skipped" and .c
 while IFS=$'\t' read -r JOB_ID JOB_NAME; do
   JSLUG="$(tr '[:upper:] ' '[:lower:]-' <<<"$JOB_NAME" | tr -cd 'a-z0-9-' | cut -c1-60)"
   FULL="$(mktemp)"
-  if gh api "repos/$REPO/actions/jobs/$JOB_ID/logs" >"$FULL" 2>/dev/null; then
+  if gh run view "$RUN_ID" -R "$REPO" --job "$JOB_ID" --log >"$FULL" 2>/dev/null || gh api "repos/$REPO/actions/jobs/$JOB_ID/logs" >"$FULL" 2>/dev/null; then
     {
       echo "### $JOB_NAME (job $JOB_ID)"
       echo "--- error digest (first 120 matching lines) ---"
