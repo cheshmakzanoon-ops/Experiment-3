@@ -1,0 +1,82 @@
+name: CI report
+# Publishes small, readable CI evidence (job table, failure digest, optional downscaled
+# screenshots) into ci-reports/ on main, so a developer with only `git` access can read results.
+#  * automatically after the main workflows finish, and
+#  * on demand by editing ci-reports/request.json (run_id, shots, artifact_pattern, ...).
+# Commits made with GITHUB_TOKEN do not trigger further workflows, so this cannot loop.
+on:
+  workflow_run:
+    workflows:
+      - Build and validation
+      - Desktop packages
+      - Scenery shadow budget
+      - Settings interaction validation
+    types: [completed]
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - ci-reports/request.json
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Run id to report on
+        required: true
+permissions:
+  actions: read
+  contents: write
+concurrency:
+  group: ci-report
+  cancel-in-progress: false
+jobs:
+  report:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - name: Build the report
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          WR_ID: ${{ github.event.workflow_run.id }}
+          DISPATCH_ID: ${{ github.event.inputs.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ARGS=()
+          case "$EVENT" in
+            workflow_run) RUN_ID="$WR_ID" ;;
+            workflow_dispatch) RUN_ID="$DISPATCH_ID" ;;
+            push)
+              RUN_ID="$(jq -r '.run_id' ci-reports/request.json)"
+              if [ "$RUN_ID" = latest ]; then
+                WF="$(jq -r '.workflow // "ci.yml"' ci-reports/request.json)"
+                RUN_ID="$(gh run list -R "$GITHUB_REPOSITORY" --workflow "$WF" --branch main --limit 1 --json databaseId --jq '.[0].databaseId')"
+              fi
+              if [ "$(jq -r '.shots // false' ci-reports/request.json)" = true ]; then
+                ARGS+=(--shots --artifact-pattern "$(jq -r '.artifact_pattern // "*"' ci-reports/request.json)"
+                       --max-shots "$(jq -r '.max_shots // 12' ci-reports/request.json)"
+                       --width "$(jq -r '.width // 1280' ci-reports/request.json)")
+              fi
+              ARGS+=(--log-lines "$(jq -r '.log_lines // 250' ci-reports/request.json)")
+              ;;
+          esac
+          bash scripts/ci/ci-report.sh "$RUN_ID" "${ARGS[@]}"
+      - name: Commit the report to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'ci-report[bot]'
+          git config user.email 'ci-report@users.noreply.github.com'
+          git add ci-reports
+          git reset -q ci-reports/request.json || true
+          if git diff --cached --quiet; then echo 'no change'; exit 0; fi
+          git commit -q -m "CI report: $(git diff --cached --name-only | grep -m1 '\.md$' || echo update) [skip ci]"
+          for i in 1 2 3 4; do
+            git pull --rebase -q origin main && git push -q origin HEAD:main && exit 0
+            sleep $((i * 3))
+          done
+          exit 1
