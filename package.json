@@ -45,6 +45,7 @@
     "prebuild:demo": "npm run generate:player-lods -- --owner-only",
     "predev": "npm run generate:player-lods -- --owner-only",
     "pretest": "npm run generate:player-lods",
+    "bench:gpu": "node scripts/bench/gpu-bench.mjs",
     "test:e2e:shard": "node --experimental-strip-types scripts/run-browser-shard.ts",
     "check:bundle": "node scripts/bundle-budget.mjs && node scripts/ip-guard.mjs",
     "check:ip": "node scripts/ip-guard.mjs --dist dist",

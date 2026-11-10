@@ -1,0 +1,53 @@
+name: Benchmark smoke
+# Proves the hardware-benchmark plumbing (scripts/bench/gpu-bench.mjs -> journey.mjs --gpu) runs end to end
+# and produces a report. GitHub runners have NO GPU: the run uses Mesa llvmpipe, the report says
+# NOT HARDWARE, and its numbers must never be quoted as performance. Real numbers come from the owner's
+# machine (docs/studio/HARDWARE_BENCHMARK.md).
+on:
+  push:
+    branches: [main]
+    paths:
+      - scripts/bench/**
+      - scripts/studio/tools/journey.mjs
+      - .github/workflows/bench-smoke.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    env:
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Install Mesa software graphics and virtual display
+        run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
+      - name: Build
+        run: npm run build
+      - name: Benchmark smoke (one short cell, software renderer allowed)
+        run: >-
+          xvfb-run -a -s '-screen 0 1920x1080x24'
+          node scripts/bench/gpu-bench.mjs --allow-software --headed --journeys formula-practice --qualities low
+          --sim-seconds 12 --viewport 1280x720 --out bench-out/smoke
+        # A software cell failing its fps targets is expected; the job proves the report was produced.
+        continue-on-error: true
+      - name: Report must exist and say NOT HARDWARE
+        run: |
+          test -s bench-out/smoke/bench-report.json
+          test -s bench-out/smoke/bench-report.md
+          cat bench-out/smoke/bench-report.md
+          grep -q 'SOFTWARE' bench-out/smoke/bench-report.md
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bench-smoke
+          path: bench-out/smoke/
+          retention-days: 7

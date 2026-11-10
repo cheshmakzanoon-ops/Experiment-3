@@ -75,6 +75,11 @@ const cfg = {
   wildcardId: args.wildcard ?? 'formula-on-the-wall',
   secondSimSeconds: Number(args['second-sim-seconds'] ?? 15),
   festivalSingle: !!args['festival-single'],
+  // Real-hardware mode (`--gpu`): the browser's own GPU path instead of SwiftShader, so the frame
+  // numbers describe the machine running the tool. `--headed` shows the window (needed on some
+  // Linux/macOS setups for a real GPU context). Used by scripts/bench/gpu-bench.mjs.
+  gpu: !!args.gpu,
+  headed: !!args.headed,
 };
 if (!JOURNEYS[cfg.journey]) {
   console.error(`Unknown journey "${cfg.journey}". Use --list.`);
@@ -378,18 +383,21 @@ class Run {
     this.driverCache = new Map();
   }
   async open() {
+    const softwareArgs = [
+      '--use-gl=angle',
+      '--use-angle=swiftshader',
+      '--enable-unsafe-swiftshader',
+      '--ignore-gpu-blocklist',
+      '--no-sandbox',
+      '--headless=new',
+      '--enable-precise-memory-info',
+    ];
+    const hardwareArgs = ['--ignore-gpu-blocklist', '--enable-gpu-rasterization', '--enable-precise-memory-info'];
     this.browser = await chromium.launch({
-      headless: true,
-      executablePath: cfg.chromium,
-      args: [
-        '--use-gl=angle',
-        '--use-angle=swiftshader',
-        '--enable-unsafe-swiftshader',
-        '--ignore-gpu-blocklist',
-        '--no-sandbox',
-        '--headless=new',
-        '--enable-precise-memory-info',
-      ],
+      headless: cfg.gpu ? !cfg.headed : true,
+      // Software mode: the container's Chromium. GPU mode: Playwright's own build unless one is named.
+      executablePath: cfg.gpu ? (args.chromium ?? process.env.CHROMIUM_PATH ?? undefined) : cfg.chromium,
+      args: cfg.gpu ? hardwareArgs : softwareArgs,
     });
     this.context = await this.browser.newContext({
       viewport: { width: cfg.viewport[0], height: cfg.viewport[1] },
@@ -617,7 +625,16 @@ class Run {
         const s = await this.state();
         return (s.presentationFrames ?? 0) > 0 || (s.menuPreview?.completedRevision ?? -1) >= 0;
       }, 600, 1000);
+      const gpu = await this.page.evaluate(() => {
+        const gl = document.createElement('canvas').getContext('webgl2');
+        if (!gl) return { renderer: 'no WebGL2', vendor: '', software: true };
+        const ext = gl.getExtension('WEBGL_debug_renderer_info');
+        const renderer = String(ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER));
+        const vendor = String(ext ? gl.getParameter(ext.UNMASKED_VENDOR_WEBGL) : gl.getParameter(gl.VENDOR));
+        return { renderer, vendor, software: /swiftshader|llvmpipe|softpipe|software|basic render/i.test(renderer) };
+      });
       this.bootInfo = {
+        gpu,
         timeToMenuS: Number(((Date.now() - nav) / 1000).toFixed(1)),
         timeToFirstMenuFrameS: Number(((Date.now() - nav) / 1000).toFixed(1)),
         paint,

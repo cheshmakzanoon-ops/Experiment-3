@@ -68,5 +68,5 @@ Seasonal Wildcard drops, venues, weather, regions; Cyrillic/CJK; evaluate online
 | 0.1 CI reporter | done | commit `9fafa3f`, `ci-reports/build-and-validation.md` |
 | 0.2 CI trigger hygiene | done | commit `0394101` |
 | 0.3 CI triage | in progress | waiting on run for `a27e738` |
-| 0.4 Hardware benchmark | not started | |
+| 0.4 Hardware benchmark | built, unmeasured | `scripts/bench/gpu-bench.mjs`, `tests/gpu-bench.test.ts` (6 tests), [HARDWARE_BENCHMARK.md](HARDWARE_BENCHMARK.md); CI smoke `bench-smoke.yml` (software GL, proves plumbing only); needs the owner's GPU for numbers |
 | 0.5 Build hygiene audit | not started | |
