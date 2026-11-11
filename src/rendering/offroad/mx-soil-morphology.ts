@@ -34,7 +34,9 @@ vec2 mxSoilFragment( vec2 p, float frequency ) {
   float d = mix( length( local ),
     max( abs( local.x ) + abs( local.y ) * 0.28,
          abs( local.y ) + abs( local.x ) * 0.28 ), 0.7 );
-  float footprint = max( length( fwidth( q ) ), 0.001 );
+  // Footprint of the unshifted coordinates (mxFp), widened for the warp above:
+  // a derivative of q itself would spike where the relief march moves its hit.
+  float footprint = max( length( mxFp ) * frequency * 1.3, 0.001 );
   float edge = 0.035 + footprint * 0.65;
   float top = 1.0 - smoothstep( radius * 0.38, radius + edge, d );
   float skirt = 1.0 - smoothstep( edge, edge + 0.045, abs( d - radius ) );
@@ -47,7 +49,7 @@ const COLOUR = /* glsl */ `{
   vec4 soil = clamp( vMxSoilMix, 0.0, 1.0 );
   float onSoil = clamp( vMxCourse.z, 0.0, 1.0 );
   float gravel = max( 0.0, onSoil - dot( soil, vec4( 1.0 ) ) );
-  vec2 p = vMxCourse.xy;
+  vec2 p = vMxCourse.xy + mxPomShift;
   float broad = mxSoilNoise( p * vec2( 0.7, 0.37 ) + 17.0 );
   float dry = 1.0 - smoothstep( 0.42, 0.85, mxPreparedWet );
   float loose = 1.0 - mxPreparedPacked * 0.8;
@@ -66,7 +68,7 @@ const COLOUR = /* glsl */ `{
   float crumb = clod.x * clodAmount * loose;
   float chip = chips.x * chipAmount * ( 0.3 + loose * 0.7 );
   float pore = clod.y * clodAmount * loose + chips.y * chipAmount * 0.45;
-  float grainFade = 1.0 - smoothstep( 0.018, 0.075, length( fwidth( p ) ) );
+  float grainFade = 1.0 - smoothstep( 0.018, 0.075, length( mxFp ) );
   float sandGrain = ( mxSoilNoise( p * 32.0 + 4.8 ) - 0.5 ) * grainFade * soil.z;
   mxMorphRelief = crumb * 0.011 + chip * 0.0035 + sandGrain * 0.002
     - pore * 0.0018;

@@ -2,6 +2,7 @@ import * as T from 'three';
 import { MxTracksideFurniture } from './mx-trackside-furniture.ts';
 import { mxAuthoredGeometry } from './authored-kit.ts';
 import { mxPaddingMaterial } from './mx-padding.ts';
+import { onMxDetail } from './mx-quality.ts';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { mod, Random } from '../../core/math.ts';
 import { TrackTerrainSurface } from '../../simulation/offroad/course-terrain.ts';
@@ -14,7 +15,6 @@ import {
   mxShoulderPlantGeometry,
   mxShoulderPlantMaterial,
   MX_SHOULDER_WIND_RADIUS,
-  type MxPlantKind,
 } from './mx-shoulder-plants.ts';
 
 /** Original event graphics, shared by the course/stadium. Four horizontal
@@ -115,6 +115,8 @@ export interface MxDressingStats {
   jumpMarkers: number;
   grassClumps: number;
   fernClumps: number;
+  tufts: number;
+  tapeSpans: number;
   shrubs: number;
   stones: number;
   canopies: number;
@@ -126,6 +128,8 @@ export interface MxDressingStats {
 export class MxCourseDressing {
   readonly trackside: MxTracksideFurniture;
   readonly root = new T.Group();
+  /** Boundary tape and close-cropped shoulder turf, outside `root`'s pinned batch budget. */
+  readonly turf = new T.Group();
   readonly stats: MxDressingStats = {
     stakes: 0,
     blocks: 0,
@@ -133,6 +137,8 @@ export class MxCourseDressing {
     jumpMarkers: 0,
     grassClumps: 0,
     fernClumps: 0,
+    tufts: 0,
+    tapeSpans: 0,
     shrubs: 0,
     stones: 0,
     canopies: 0,
@@ -145,6 +151,7 @@ export class MxCourseDressing {
   private readonly object = new T.Object3D();
   private readonly surface: TrackTerrainSurface;
   private readonly plantTime = { value: 0 };
+  private stopTufts: (() => void) | null = null;
   constructor(private readonly track: Track) {
     const surface = Track.offroadOf(track);
     if (
@@ -188,6 +195,7 @@ export class MxCourseDressing {
       blocks: T.Matrix4[] = [],
       markers: T.Matrix4[] = [];
     const pole = mxCourseStakeGeometry();
+    const staked: Record<'-1' | '1', number[]> = { '-1': [], '1': [] };
     const block = mxAuthoredGeometry('safety-pad', 'mid')
       .scale(0.55 / 0.68, 0.38 / 0.58, 1.6 / 2.1)
       .rotateY(Math.PI / 2)
@@ -201,6 +209,7 @@ export class MxCourseDressing {
         this.object.rotateZ((r.next() - 0.5) * 0.13);
         this.object.updateMatrix();
         stakes.push(this.object.matrix.clone());
+        if (!indoor) staked[String(side) as '-1' | '1'].push(s);
         if (indoor && Math.floor(s / 7) % 2 === 0) {
           this.pose(s, l + side * 0.54);
           this.object.rotateY(Math.PI / 2);
@@ -212,6 +221,7 @@ export class MxCourseDressing {
     this.stats.stakes = stakes.length;
     this.stats.blocks = blocks.length;
     this.instances('MX course-edge stakes', pole, yellow, stakes);
+    if (!indoor) this.boundaryTape(staked);
     this.instances('SX padded lane dividers', block, pad, blocks);
     // Paired tall, warm markers mark the actual take-off. Short pale stakes
     // at the surveyed landing distinguish front and back faces at speed.
@@ -301,6 +311,85 @@ export class MxCourseDressing {
     }
     this.batches.clear();
   }
+  /** Barrier tape strung between consecutive course-edge stakes: a narrow red
+   * and white ribbon at knee height that sags a few centimetres between posts.
+   * It follows the same edge and the same clearance as the stakes, never
+   * crossing a gap where a stake was refused. Its own group and one draw. */
+  private boundaryTape(staked: Record<'-1' | '1', number[]>) {
+    const course = this.surface.course,
+      positions: number[] = [],
+      uvs: number[] = [],
+      indices: number[] = [],
+      normals: number[] = [];
+    const segments = 8,
+      height = 0.58,
+      half = 0.022,
+      stripe = 0.42;
+    let spans = 0;
+    for (const key of ['-1', '1'] as const) {
+      const side = Number(key) as -1 | 1,
+        list = staked[key];
+      for (let i = 0; i + 1 < list.length; i++) {
+        const from = list[i],
+          to = list[i + 1];
+        if (to - from > 8.6) continue;
+        const first = positions.length / 3;
+        let run = 0,
+          previous: T.Vector3 | null = null;
+        for (let k = 0; k <= segments; k++) {
+          const t = k / segments,
+            s = from + (to - from) * t,
+            at = this.track.at(s, this.point);
+          const lateral = side * (course.legalWidth(at.width, s, side) + 0.18),
+            x = at.x + at.nx * lateral,
+            z = at.z + at.nz * lateral,
+            sag = 0.05 * Math.sin(Math.PI * t),
+            y = this.surface.terrain.baseHeight(s, lateral) + height - sag;
+          const here = new T.Vector3(x, y, z);
+          if (previous) run += here.distanceTo(previous);
+          previous = here;
+          // The ribbon's face looks across the course: normal along the lateral.
+          positions.push(x, y + half, z, x, y - half, z);
+          normals.push(at.nx, 0, at.nz, at.nx, 0, at.nz);
+          uvs.push(run / stripe, 1, run / stripe, 0);
+          if (k > 0) {
+            const a = first + (k - 1) * 2;
+            indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
+          }
+        }
+        spans++;
+      }
+    }
+    if (!spans) return;
+    const geometry = new T.BufferGeometry();
+    geometry.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute('normal', new T.Float32BufferAttribute(normals, 3));
+    geometry.setAttribute('uv', new T.Float32BufferAttribute(uvs, 2));
+    geometry.setIndex(indices);
+    geometry.computeBoundingSphere();
+    // Alternating red and white, eight centimetres at a time, crisp.
+    const data = new Uint8Array(16 * 4);
+    for (let i = 0; i < 16; i++) data.set(i < 8 ? [226, 222, 212, 255] : [196, 44, 34, 255], i * 4);
+    const map = new T.DataTexture(data, 16, 1, T.RGBAFormat);
+    map.colorSpace = T.SRGBColorSpace;
+    map.wrapS = T.RepeatWrapping;
+    map.magFilter = T.NearestFilter;
+    map.minFilter = T.LinearMipmapLinearFilter;
+    map.generateMipmaps = true;
+    map.needsUpdate = true;
+    this.ownedTextures.add(map);
+    const material = new T.MeshStandardMaterial({
+      map,
+      roughness: 0.5,
+      side: T.DoubleSide,
+      name: 'MX boundary tape',
+    });
+    const mesh = new T.Mesh(geometry, material);
+    mesh.name = 'MX boundary tape';
+    mesh.receiveShadow = true;
+    this.turf.add(mesh);
+    this.stats.tapeSpans = spans;
+  }
   private clear(s: number, lateral: number, margin: number) {
     const p = this.track.at(s, this.point),
       q = this.nearby;
@@ -337,6 +426,7 @@ export class MxCourseDressing {
     material: T.Material,
     poses: T.Matrix4[],
     colours?: T.Color[],
+    parent: T.Group = this.root,
   ) {
     if (!poses.length) {
       geometry.dispose();
@@ -351,7 +441,7 @@ export class MxCourseDressing {
     mesh.receiveShadow = true;
     mesh.castShadow = name.includes('stones');
     mesh.computeBoundingSphere();
-    this.root.add(mesh);
+    parent.add(mesh);
   }
   private banner(s: number, lateral: number, material: T.Material, row: number) {
     const g = new T.PlaneGeometry(8, 0.6, 16, 2);
@@ -389,6 +479,7 @@ export class MxCourseDressing {
         grass: mxShoulderPlantGeometry('grass'),
         fern: mxShoulderPlantGeometry('fern'),
         scrub: mxShoulderPlantGeometry('scrub'),
+        tuft: mxShoulderPlantGeometry('tuft'),
       };
     // The same low-frequency field clusters all three plant layers. Bare
     // loam gaps and short inner tufts leave room for the outside berm line.
@@ -398,7 +489,7 @@ export class MxCourseDressing {
       origin = new T.Vector3(),
       corner = new T.Vector3(),
       nearest = trackPoint();
-    const plantPose = (s: number, lateral: number, scale: number, kind: MxPlantKind) => {
+    const plantPose = (s: number, lateral: number, scale: number, kind: keyof typeof plantGeometry) => {
       const at = track.at(s, this.point),
         x = at.x + at.nx * lateral,
         z = at.z + at.nz * lateral;
@@ -533,6 +624,44 @@ export class MxCourseDressing {
         ),
       );
     }
+    // Close-cropped turf along the course edge: a dense, low band that the tall
+    // grass islands above leave bare. The same grounding and clearance rules apply.
+    const tuftPoses: T.Matrix4[] = [],
+      tuftColours: T.Color[] = [];
+    for (let i = 0; i < 16000; i++) {
+      const s = random.next() * track.length,
+        side = random.next() < 0.5 ? -1 : 1,
+        p = track.at(s, this.point),
+        outer = Math.pow(random.next(), 1.6),
+        l = side * (surface.course.legalWidth(p.width, s, side) + 0.2 + outer * 3.6),
+        patch = patchAt(p.x + p.nx * l, p.z + p.nz * l);
+      if (random.next() > 0.5 + patch * 0.5 - outer * 0.25) continue;
+      // Short blades cannot hide a root hovering over the rendered facets of a
+      // crest or lip: keep to ground the one-by-half-metre grid follows closely.
+      const ground = surface.terrain,
+        bulge =
+          (ground.baseHeight(s, l - 0.5) +
+            ground.baseHeight(s, l + 0.5) +
+            ground.baseHeight(s - 1, l) +
+            ground.baseHeight(s + 1, l)) /
+            4 -
+          ground.baseHeight(s, l);
+      const slope =
+        Math.hypot(
+          ground.baseHeight(s, l + 0.25) - ground.baseHeight(s, l - 0.25),
+          ground.baseHeight(s + 0.25, l) - ground.baseHeight(s - 0.25, l),
+        ) / 0.5;
+      if (Math.abs(bulge) > 0.012 || slope > 0.2) continue;
+      if (!plantPose(s, l, 0.7 + random.next() * 0.7, 'tuft')) continue;
+      tuftPoses.push(this.object.matrix.clone());
+      tuftColours.push(
+        new T.Color().setHSL(
+          0.17 + random.next() * 0.06,
+          0.22 + random.next() * 0.14,
+          0.2 + random.next() * 0.12 + patch * 0.05,
+        ),
+      );
+    }
     const grassMaterial = mxShoulderPlantMaterial(this.plantTime);
     const rockMaterial = new T.MeshStandardMaterial({
       color: 0x807a68,
@@ -561,11 +690,29 @@ export class MxCourseDressing {
       shrubPoses,
       shrubColours,
     );
+    // Their own group: the furniture root keeps its pinned submission budget.
+    this.instances(
+      'MX shoulder grass tufts',
+      plantGeometry.tuft,
+      grassMaterial,
+      tuftPoses,
+      tuftColours,
+      this.turf,
+    );
+    const tufts = tuftPoses.length
+      ? (this.turf.children.find((o) => o.name === 'MX shoulder grass tufts') as T.InstancedMesh)
+      : null;
+    if (tufts)
+      this.stopTufts = onMxDetail((high) => {
+        tufts.count = high ? tuftPoses.length : Math.floor(tuftPoses.length * 0.3);
+      });
     this.instances('MX shoulder stones', new T.IcosahedronGeometry(1, 1), rockMaterial, stonePoses);
-    if (!grassPoses.length && !fernPoses.length && !shrubPoses.length) grassMaterial.dispose();
+    if (!grassPoses.length && !fernPoses.length && !shrubPoses.length && !tuftPoses.length)
+      grassMaterial.dispose();
     if (!stonePoses.length) rockMaterial.dispose();
     this.stats.grassClumps = grassPoses.length;
     this.stats.fernClumps = fernPoses.length;
+    this.stats.tufts = tuftPoses.length;
     this.stats.shrubs = shrubPoses.length;
     this.stats.stones = stonePoses.length;
   }
@@ -573,21 +720,26 @@ export class MxCourseDressing {
     if (Number.isFinite(time)) this.plantTime.value = Math.max(0, time);
   }
   dispose() {
+    this.stopTufts?.();
+    this.stopTufts = null;
     this.root.remove(this.trackside.root);
     this.trackside.dispose();
     const geometries = new Set<T.BufferGeometry>(),
       materials = new Set<T.Material>();
-    this.root.traverse((o) => {
+    const release = (o: T.Object3D) => {
       if (!(o instanceof T.Mesh)) return;
       // Instance buffers belong to the mesh, separately from shared geometry
       // and materials; releasing only those leaves GPU instance data resident.
       if (o instanceof T.InstancedMesh) o.dispose();
       geometries.add(o.geometry);
       for (const m of Array.isArray(o.material) ? o.material : [o.material]) materials.add(m);
-    });
+    };
+    this.root.traverse(release);
+    this.turf.traverse(release);
     geometries.forEach((g) => g.dispose());
     materials.forEach((m) => m.dispose());
     this.ownedTextures.forEach((t) => t.dispose());
     this.root.clear();
+    this.turf.clear();
   }
 }

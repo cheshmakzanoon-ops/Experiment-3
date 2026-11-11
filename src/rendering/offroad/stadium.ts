@@ -88,6 +88,9 @@ export class Stadium {
    * and represented once by nearCrowd; count remains the bowl's occupancy. */
   readonly crowd: T.InstancedMesh;
   readonly nearCrowd: T.InstancedMesh;
+  /** The roof's regular floodlight grid (world metres): lamp (i, k) hangs at
+   * (minX + (i + 0.5) * spanX / columns, y, minZ + (k + 0.5) * spanZ / rows). */
+  readonly lampGrid = { minX: 0, minZ: 0, spanX: 1, spanZ: 1, y: 0, columns: 8, rows: 5 };
   private readonly textures = new Set<T.Texture>();
   private stopHaze: (() => void) | null = null;
   private readonly crowdUniforms = {
@@ -423,6 +426,13 @@ export class Stadium {
     chairs.computeBoundingSphere();
     this.root.add(chairs);
     const span = box.getSize(new T.Vector3());
+    Object.assign(this.lampGrid, {
+      minX: min.x,
+      minZ: min.z,
+      spanX: span.x,
+      spanZ: span.z,
+      y: floor + STADIUM.roof - 2 - 1.36,
+    });
     const outer = STADIUM.tiers * STADIUM.depth + STADIUM.concourse;
     const roof = new T.Mesh(new T.BoxGeometry(span.x + 2 * outer, 0.45, span.z + 2 * outer), deck);
     roof.name = 'Arena roof deck';

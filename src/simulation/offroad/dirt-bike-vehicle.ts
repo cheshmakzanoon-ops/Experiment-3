@@ -494,6 +494,7 @@ export class DirtBikeVehicle extends BikeVehicle {
             frontMu: d.p.mu * (d.frontGrip ?? d.grip),
             rearMu: d.p.mu * (d.rearGrip ?? d.grip),
             steer: d.steer,
+            lean: d.lean,
             driveTorque: force * spec.rearWheelRadius,
             frontBrakeTorque: frontPedal * d.p.frontBrake * spec.frontWheelRadius,
             rearBrakeTorque: (rearPedal * d.p.rearBrake + engineBraking) * spec.rearWheelRadius,
@@ -1122,7 +1123,7 @@ export class DirtBikeVehicle extends BikeVehicle {
     // A deep-overlap recovery removes only closing normal velocity. Exchange
     // forward, heave and pitch momentum together instead of injecting heave
     // while leaving the approach speed unchanged. Ordinary travel is untouched.
-    if (this.playerMotocross && this.projectedContact) {
+    if (this.projectedContact) {
       for (const [compression, travel, i, lever] of [
         [cF, spec.forkTravel, 0, fa * cos + HF * sin],
         [cR, spec.shockTravel, 2, -ra * cos + HR * sin],

@@ -1,5 +1,4 @@
 import * as T from 'three';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import type { VehicleDefinition } from '../../simulation/vehicles.ts';
 import {
@@ -155,16 +154,20 @@ export class DirtBikeModel {
     if (detail !== 'far') shroudMaterial.map = motocrossGraphics(colours, 'shroud', (id % 98) + 2);
     else shroudMaterial.color.set(scheme.primary);
     shroudMaterial.name = 'Motocross layered factory plastics';
-    const rimMaterial = new T.MeshStandardMaterial({
+    const rimMaterial = new T.MeshPhysicalMaterial({
       color: id % 2 ? scheme.primary : 0x33383b,
       metalness: 0.8,
       roughness: 0.32,
+      clearcoat: 0.35,
+      clearcoatRoughness: 0.22,
       name: 'Motocross anodised rim and hub',
     });
-    const rotorMaterial = new T.MeshStandardMaterial({
+    const rotorMaterial = new T.MeshPhysicalMaterial({
       color: 0xa3a7a8,
       metalness: 0.88,
       roughness: 0.35,
+      clearcoat: 0.15,
+      clearcoatRoughness: 0.28,
       name: 'Motocross stainless wave rotor',
     });
     const chainMaterial = new T.MeshStandardMaterial({
@@ -184,32 +187,33 @@ export class DirtBikeModel {
       normalScale: new T.Vector2(0.11, 0.11),
       name: 'Motocross moulded knobby rubber',
     });
-    const castMaterial = supermoto
-      ? this.m.aluminium
-      : new T.MeshStandardMaterial({
-          color: 0x92938d,
-          metalness: 0.78,
-          roughness: 0.59,
-          name: 'Motocross cast aluminium water-cooled engine',
-        });
-    const magnesiumMaterial = supermoto
-      ? this.m.dark
-      : new T.MeshStandardMaterial({
-          color: 0x5e5b54,
-          metalness: 0.66,
-          roughness: 0.56,
-          name: 'Motocross magnesium engine cover',
-        });
-    this.plastics.push(shroudMaterial, rimMaterial, rotorMaterial, chainMaterial, tyreMaterial);
-    if (!supermoto) {
-      this.plastics.push(castMaterial, magnesiumMaterial);
-      // Engine cases are partly sheltered by the shrouds and frame. Use the
-      // existing recorded-weather response with an authored exposure, while
-      // deposited mud continues to come from this entrant's own coat state.
-      tagWeatherSurface(castMaterial, 'metal', 0.4);
-      tagWeatherSurface(magnesiumMaterial, 'metal', 0.4);
-    }
-    if (!supermoto && detail !== 'far') {
+    const castMaterial = new T.MeshStandardMaterial({
+      color: 0x92938d,
+      metalness: 0.78,
+      roughness: 0.59,
+      name: 'Motocross cast aluminium water-cooled engine',
+    });
+    const magnesiumMaterial = new T.MeshStandardMaterial({
+      color: 0x5e5b54,
+      metalness: 0.66,
+      roughness: 0.56,
+      name: 'Motocross magnesium engine cover',
+    });
+    this.plastics.push(
+      shroudMaterial,
+      rimMaterial,
+      rotorMaterial,
+      chainMaterial,
+      tyreMaterial,
+      castMaterial,
+      magnesiumMaterial,
+    );
+    // Engine cases are partly sheltered by the shrouds and frame. Use the
+    // existing recorded-weather response with an authored exposure, while
+    // deposited mud continues to come from this entrant's own coat state.
+    tagWeatherSurface(castMaterial, 'metal', 0.4);
+    tagWeatherSurface(magnesiumMaterial, 'metal', 0.4);
+    if (detail !== 'far') {
       installMotocrossMetalFinish(castMaterial, 'aluminium');
       installMotocrossMetalFinish(magnesiumMaterial, 'magnesium');
     }
@@ -264,28 +268,12 @@ export class DirtBikeModel {
         const lip = add(spin, new T.TorusGeometry(rim, 0.006, 6, sides), rimMaterial, side * 0.019);
         lip.rotation.y = Math.PI / 2;
       }
-      if (supermoto || detail === 'far')
+      if (detail === 'far')
         add(spin, new T.CylinderGeometry(0.034, 0.034, 0.092, 12), rimMaterial).rotation.z =
           Math.PI / 2;
       else add(spin, motocrossWheelHub(detail), rimMaterial);
       if (detail !== 'far') {
-        add(
-          spin,
-          supermoto ? spokes(rim, detail === 'high' ? 36 : 20) : motocrossWheelSpokes(rim, detail),
-          this.m.steel,
-          0,
-          0,
-          0,
-          false,
-        );
-        if (supermoto)
-          for (const side of [-1, 1])
-            add(
-              spin,
-              new T.CylinderGeometry(0.048, 0.048, 0.008, 12),
-              rimMaterial,
-              side * 0.041,
-            ).rotation.z = Math.PI / 2;
+        add(spin, motocrossWheelSpokes(rim, detail), this.m.steel, 0, 0, 0, false);
         add(
           spin,
           motocrossRotor(front ? 0.131 : 0.117, detail),
@@ -331,13 +319,13 @@ export class DirtBikeModel {
         // Keep the lower endpoint at -0.38 m while the MX tube now passes
         // through the upper collar. The old 0.5 m tube ended 8 cm below it;
         // the former solid rectangular clamp hid that missing attachment.
-        new T.CylinderGeometry(0.03, 0.03, supermoto ? 0.5 : 0.6, sides / 2),
+        new T.CylinderGeometry(0.03, 0.03, 0.6, sides / 2),
         this.m.forkUpper,
         side * 0.095,
-        supermoto ? -0.13 : -0.08,
+        -0.08,
         OFFSET,
       );
-    if (supermoto || detail === 'far') {
+    if (detail === 'far') {
       add(this.steer, new T.BoxGeometry(0.24, 0.035, 0.08), this.m.aluminium, 0, 0, OFFSET * 0.5);
       add(
         this.steer,
@@ -487,19 +475,7 @@ export class DirtBikeModel {
     // moulding, not a mirrored duplicate of the graphics through the plate.
     mapUnprintedPlateBack(plate.geometry);
     // High front fender on the lower clamp: the wheel rises into the gap.
-    const fender = supermoto
-      ? superLoft(
-          [
-            { z: -0.26, y: -0.09, w: 0.062, top: 0.012, bottom: 0.004 },
-            { z: -0.05, y: -0.05, w: 0.095, top: 0.022, bottom: 0.004 },
-            { z: 0.15, y: -0.06, w: 0.103, top: 0.025, bottom: 0.004 },
-            { z: 0.36, y: -0.115, w: 0.082, top: 0.02, bottom: 0.004 },
-            { z: 0.48, y: -0.17, w: 0.067, top: 0.008, bottom: 0.004 },
-          ],
-          sides,
-          3,
-        )
-      : motocrossFender(true, detail);
+    const fender = motocrossFender(true, detail);
     add(this.steer, fender, primary, 0, -0.04, OFFSET);
     // Lower legs (stanchions and axle lugs) slide with the recorded compression.
     this.steer.add(this.forkLower);
@@ -515,29 +491,17 @@ export class DirtBikeModel {
       );
       add(
         this.forkLower,
-        supermoto || detail === 'far'
-          ? new T.BoxGeometry(0.05, 0.1, 0.07)
-          : motocrossAxleLug(detail),
-        supermoto ? this.m.dark : castMaterial,
+        detail === 'far' ? new T.BoxGeometry(0.05, 0.1, 0.07) : motocrossAxleLug(detail),
+        castMaterial,
         side * 0.095,
-        supermoto || detail === 'far' ? 0.01 : 0,
+        detail === 'far' ? 0.01 : 0,
         OFFSET,
       );
       // Plastic fork guards over the stanchions.
-      if (detail !== 'far') {
-        if (supermoto)
-          add(
-            this.forkLower,
-            new RoundedBoxGeometry(0.049, 0.34, 0.054, 2, 0.013),
-            primary,
-            side * 0.115,
-            0.2,
-            OFFSET + 0.023,
-          );
-        else add(this.forkLower, motocrossForkGuard(detail), primary, side * 0.095, 0, OFFSET);
-      }
+      if (detail !== 'far')
+        add(this.forkLower, motocrossForkGuard(detail), primary, side * 0.095, 0, OFFSET);
     }
-    if (!supermoto && detail !== 'far')
+    if (detail !== 'far')
       add(
         this.forkLower,
         new T.CylinderGeometry(0.0095, 0.0095, 0.245, 12),
@@ -645,148 +609,20 @@ export class DirtBikeModel {
       ),
       this.m.steel,
     );
-    // The dedicated MX casting replaces the old primitive engine while the
-    // separately calibrated supermoto presentation retains its existing kit.
-    if (!supermoto) {
-      addMotocrossPowertrain(
-        this.sprung,
-        detail,
-        this.m,
-        castMaterial,
-        magnesiumMaterial,
-        lightFrame ? 'two-stroke' : 'four-stroke',
-      );
-    } else {
-      add(
-        this.sprung,
-        new RoundedBoxGeometry(0.19, 0.17, 0.27, detail === 'high' ? 3 : 1, 0.055),
-        this.m.aluminium,
-        0,
-        -0.39,
-        -0.065,
-      );
-      for (const side of [-1, 1]) {
-        const cover = add(
-          this.sprung,
-          new T.CylinderGeometry(side > 0 ? 0.086 : 0.1, side > 0 ? 0.086 : 0.1, 0.033, sides),
-          this.m.dark,
-          side * 0.106,
-          -0.38,
-          -0.057,
-        );
-        cover.rotation.z = Math.PI / 2;
-        add(
-          this.sprung,
-          new T.CylinderGeometry(0.066, 0.066, 0.008, sides),
-          this.m.aluminium,
-          side * 0.125,
-          -0.38,
-          -0.057,
-        ).rotation.z = Math.PI / 2;
-        if (detail === 'high')
-          for (let k = 0; k < 7; k++) {
-            const a = (k / 7) * Math.PI * 2;
-            add(
-              this.sprung,
-              new T.CylinderGeometry(0.005, 0.005, 0.006, 6),
-              this.m.steel,
-              side * 0.127,
-              -0.38 + Math.sin(a) * 0.078,
-              -0.057 + Math.cos(a) * 0.078,
-            ).rotation.z = Math.PI / 2;
-          }
-      }
-      const barrel = add(
-        this.sprung,
-        new RoundedBoxGeometry(0.135, 0.21, 0.13, 2, 0.016),
-        this.m.aluminium,
-        0,
-        -0.23,
-        0.033,
-      );
-      barrel.rotation.x = -0.3;
-      add(
-        this.sprung,
-        new RoundedBoxGeometry(0.166, 0.054, 0.167, 2, 0.015),
-        this.m.dark,
-        0,
-        -0.106,
-        0.015,
-      ).rotation.x = -0.3;
-      if (detail !== 'far')
-        for (let i = 0; i < 6; i++)
-          add(
-            this.sprung,
-            new RoundedBoxGeometry(0.141, 0.009, 0.137, 1, 0.009),
-            this.m.steel,
-            0,
-            -0.304 + i * 0.025,
-            0.055 - i * 0.007,
-          ).rotation.x = -0.3;
-    }
-    add(
+    // Dedicated water-cooled powertrain casting across all off-road bikes.
+    addMotocrossPowertrain(
       this.sprung,
-      supermoto ? new RoundedBoxGeometry(0.218, 0.025, 0.35, 2, 0.015) : motocrossSumpGuard(detail),
-      this.m.dark,
-      0,
-      supermoto ? -0.52 : 0,
-      supermoto ? -0.02 : 0,
-    ).name = 'Motocross curved protective sump scoop';
+      detail,
+      this.m,
+      castMaterial,
+      magnesiumMaterial,
+      lightFrame ? 'two-stroke' : 'four-stroke',
+    );
+    add(this.sprung, motocrossSumpGuard(detail), this.m.dark).name =
+      'Motocross curved protective sump scoop';
     // Radiators either side of the frame, under the wing shrouds.
-    if (!supermoto) addMotocrossRadiators(this.sprung, detail, this.m);
+    addMotocrossRadiators(this.sprung, detail, this.m);
     for (const side of [1, -1]) {
-      if (supermoto) {
-        add(
-          this.sprung,
-          new RoundedBoxGeometry(0.104, 0.266, 0.031, 1, 0.008),
-          this.m.aluminium,
-          side * 0.115,
-          -0.105,
-          0.19,
-        );
-        add(
-          this.sprung,
-          new T.BoxGeometry(0.087, 0.236, 0.009),
-          this.m.dark,
-          side * 0.115,
-          -0.105,
-          0.209,
-        );
-        if (detail !== 'far') {
-          for (let k = 0; k < 13; k++)
-            add(
-              this.sprung,
-              new T.BoxGeometry(0.087, 0.0035, 0.011),
-              this.m.steel,
-              side * 0.115,
-              -0.214 + k * 0.018,
-              0.218,
-            );
-          for (let k = 0; k < 4; k++)
-            add(
-              this.sprung,
-              new T.BoxGeometry(0.004, 0.242, 0.015),
-              dark,
-              side * (0.08 + k * 0.024),
-              -0.105,
-              0.222,
-            );
-          add(
-            this.sprung,
-            tube(
-              [
-                [side * 0.119, -0.24, 0.18],
-                [side * 0.11, -0.27, 0.13],
-                [side * 0.076, -0.225, 0.04],
-              ],
-              0.011,
-              12,
-              6,
-            ),
-            dark,
-          );
-        }
-      }
       const shroud = add(
         this.sprung,
         motocrossRadiatorShroud(side, detail),
@@ -889,23 +725,9 @@ export class DirtBikeModel {
       panel.rotation.y = -side * 0.045;
       panel.name = 'Motocross tapered side number panel';
     }
-    add(
-      this.sprung,
-      supermoto
-        ? superLoft(
-            [
-              { z: -0.7, y: 0.04, w: 0.11, top: 0.012, bottom: 0.004 },
-              { z: -0.92, y: 0.09, w: 0.1, top: 0.012, bottom: 0.004 },
-              { z: -1.08, y: 0.15, w: 0.07, top: 0.01, bottom: 0.004 },
-            ],
-            sides,
-            3,
-          )
-        : motocrossFender(false, detail),
-      primary,
-    );
-    // MX250 carries a formed two-stroke expansion chamber. MX450 and the
-    // separately calibrated supermoto retain their four-stroke header.
+    add(this.sprung, motocrossFender(false, detail), primary);
+    // MX250 carries a formed two-stroke expansion chamber. MX450 and SM450
+    // retain their four-stroke header.
     add(
       this.sprung,
       lightFrame
@@ -931,41 +753,27 @@ export class DirtBikeModel {
     this.sprung.add(silencer);
     add(
       silencer,
-      new T.CylinderGeometry(0.049, 0.044, 0.342, sides / 2, 1, !supermoto),
+      new T.CylinderGeometry(0.049, 0.044, 0.342, sides / 2, 1, true),
       this.m.aluminium,
     ).rotation.x = Math.PI / 2;
-    if (supermoto) {
-      add(
-        silencer,
-        new T.CylinderGeometry(0.046, 0.033, 0.065, sides / 2),
-        this.m.dark,
-        0,
-        0,
-        -0.189,
-      ).rotation.x = Math.PI / 2;
-      add(silencer, new T.TorusGeometry(0.025, 0.005, 6, sides / 2), this.m.steel, 0, 0, -0.222);
-      add(silencer, new T.CircleGeometry(0.021, sides / 2), this.m.dark, 0, 0, -0.218).rotation.y =
-        Math.PI;
-    } else {
-      add(silencer, motocrossSilencerOutlet(detail), this.m.dark).name =
-        'Motocross recessed open silencer outlet';
-      const bore = new T.LatheGeometry(
-        [
-          new T.Vector2(0.0215, -0.163),
-          new T.Vector2(0.0215, 0.165),
-          new T.Vector2(0.019, 0.165),
-          new T.Vector2(0.019, -0.163),
-          new T.Vector2(0.0215, -0.163),
-        ],
-        sides / 2,
-      );
-      bore.rotateX(Math.PI / 2);
-      add(silencer, bore, this.m.dark);
-      add(silencer, new T.TorusGeometry(0.0245, 0.0025, 5, sides / 2), this.m.steel, 0, 0, -0.222);
-      // An annular inlet leaves the real header connection open as well.
-      const inlet = new T.RingGeometry(0.022, 0.049, sides / 2);
-      add(silencer, inlet, this.m.aluminium, 0, 0, 0.171);
-    }
+    add(silencer, motocrossSilencerOutlet(detail), this.m.dark).name =
+      'Motocross recessed open silencer outlet';
+    const bore = new T.LatheGeometry(
+      [
+        new T.Vector2(0.0215, -0.163),
+        new T.Vector2(0.0215, 0.165),
+        new T.Vector2(0.019, 0.165),
+        new T.Vector2(0.019, -0.163),
+        new T.Vector2(0.0215, -0.163),
+      ],
+      sides / 2,
+    );
+    bore.rotateX(Math.PI / 2);
+    add(silencer, bore, this.m.dark);
+    add(silencer, new T.TorusGeometry(0.0245, 0.0025, 5, sides / 2), this.m.steel, 0, 0, -0.222);
+    // An annular inlet leaves the real header connection open as well.
+    const inlet = new T.RingGeometry(0.022, 0.049, sides / 2);
+    add(silencer, inlet, this.m.aluminium, 0, 0, 0.171);
     if (detail !== 'far')
       for (const z of [-0.115, 0.11])
         add(silencer, new T.TorusGeometry(0.049, 0.004, 5, sides / 2), this.m.steel, 0, 0, z);
@@ -1006,25 +814,10 @@ export class DirtBikeModel {
     const arm = (this.armLength = this.rearAxle.clone().sub(this.pivot).length());
     this.swingarm.name = 'Motocross articulated swingarm';
     for (const side of [1, -1])
-      add(
-        this.swingarm,
-        supermoto
-          ? beam(
-              [
-                [side * 0.09, 0, 0],
-                [side * 0.11, 0.01, -arm * 0.5],
-                [side * 0.1, 0, -arm],
-              ],
-              0.03,
-              0.07,
-              detail === 'high' ? 14 : 6,
-            )
-          : motocrossSwingarmRail(arm, side, detail),
-        this.m.aluminium,
-      );
+      add(this.swingarm, motocrossSwingarmRail(arm, side, detail), this.m.aluminium);
     add(this.swingarm, new T.CylinderGeometry(0.018, 0.018, 0.26, 10), this.m.steel).rotation.z =
       Math.PI / 2;
-    if (!supermoto && detail !== 'far') {
+    if (detail !== 'far') {
       // The hub and the open adjustment slots share one actual rear spindle;
       // removing the old solid arm ends must not leave a floating rear wheel.
       add(
@@ -1246,25 +1039,4 @@ export class DirtBikeModel {
       m.dispose();
     }
   }
-}
-/** Laced spokes from the hub flanges to the rim, crossing (one geometry). */
-function spokes(rim: number, count: number) {
-  const parts: T.BufferGeometry[] = [];
-  const hub = 0.045;
-  for (let k = 0; k < count; k++) {
-    const side = k % 2 === 0 ? 1 : -1,
-      a = (k / count) * Math.PI * 2,
-      b = a + side * 0.35;
-    const from = new T.Vector3(side * 0.04, Math.cos(a) * hub, Math.sin(a) * hub),
-      to = new T.Vector3(0, Math.cos(b) * (rim - 0.01), Math.sin(b) * (rim - 0.01));
-    const length = from.distanceTo(to);
-    const g = new T.CylinderGeometry(0.0022, 0.0022, length, 4, 1, true);
-    const dir = to.clone().sub(from).normalize();
-    g.applyQuaternion(new T.Quaternion().setFromUnitVectors(new T.Vector3(0, 1, 0), dir));
-    g.translate((from.x + to.x) / 2, (from.y + to.y) / 2, (from.z + to.z) / 2);
-    parts.push(g);
-  }
-  const merged = mergeGeometries(parts, false);
-  for (const g of parts) g.dispose();
-  return merged;
 }

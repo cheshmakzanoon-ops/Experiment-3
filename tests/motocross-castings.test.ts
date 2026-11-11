@@ -272,7 +272,7 @@ describe('motocross cast components', () => {
     },
   );
 
-  it.each(['mx250', 'mx450'])(
+  it.each(['mx250', 'mx450', 'sm450'])(
     '%s complete LODs keep a real exhaust bore, contacts and the existing triangle budget',
     (id) => {
       const counts: number[] = [],

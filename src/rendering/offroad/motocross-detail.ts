@@ -211,12 +211,16 @@ export function motocrossTripleClamp(detail: RiderDetail, thickness: number, off
   return geometry;
 }
 
-/** Mould texture and fine riding scuffs in metres. The same physical grain
- * survives the very different fender, number-board and shroud UV layouts.
- * Derivative filtering removes unresolved grain instead of making it sparkle.
- * No extra textures, geometry or draws are allocated by this finish. */
+/** Mould texture, riding scuffs and boot wear in metres. The same physical
+ * grain survives the very different fender, number-board and shroud UV
+ * layouts. Derivative filtering removes unresolved grain instead of making it
+ * sparkle. Positions are the part's own frame: for the batched sprung meshes
+ * that is the sprung frame (+z forward, origin at the tank), so the wear zones
+ * sit where a rider's boots and knees really rub the shrouds, side panels and
+ * tank, with thin whitened scratches running fore and aft. No extra textures,
+ * geometry or draws are allocated by this finish. */
 export function installMotocrossPlasticFinish(material: T.MeshPhysicalMaterial) {
-  chainShaderHook(material, 'motocross-moulded-polymer-v1', (shader) => {
+  chainShaderHook(material, 'motocross-moulded-polymer-v2', (shader) => {
     injectDeclarations(shader, 'common', 'varying vec3 vMxPlasticPosition;', 'vertex');
     injectAfter(shader, 'begin_vertex', 'vMxPlasticPosition = position;', 'vertex');
     injectDeclarations(
@@ -224,7 +228,7 @@ export function installMotocrossPlasticFinish(material: T.MeshPhysicalMaterial) 
       'common',
       `
 varying vec3 vMxPlasticPosition;
-float mxPlasticHeight, mxPlasticScuff;
+float mxPlasticHeight, mxPlasticScuff, mxPlasticWear;
 float mxPlasticNoise(vec3 p) {
   vec3 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
   vec4 a=fract(sin(vec4(dot(i,vec3(127.1,311.7,74.7)),
@@ -245,20 +249,44 @@ float mxPlasticNoise(vec3 p) {
       'color_fragment',
       `
 {
-  float footprint=length(fwidth(vMxPlasticPosition));
+  vec3 q=vMxPlasticPosition;
+  float footprint=length(fwidth(q));
   float fine=1.-smoothstep(.0008,.0035,footprint);
-  float grain=mxPlasticNoise(vMxPlasticPosition*850.);
-  float scuff=mxPlasticNoise(vMxPlasticPosition*vec3(330.,92.,21.));
+  float grain=mxPlasticNoise(q*850.);
+  float scuff=mxPlasticNoise(q*vec3(330.,92.,21.));
   mxPlasticScuff=smoothstep(.66,.87,scuff)*(1.-smoothstep(.004,.019,footprint));
-  mxPlasticHeight=(grain-.5)*.000018*fine-mxPlasticScuff*.000018;
+  // Where a boot or knee rides the shroud and side panel: a band either side
+  // of the tank, from the seat's front to the radiator, between peg and knee.
+  float side=abs(q.x);
+  float boot=smoothstep(.08,.15,side)*(1.-smoothstep(.27,.36,side))
+    *smoothstep(-.3,-.12,q.y)*(1.-smoothstep(.02,.14,q.y))
+    *smoothstep(-.5,-.3,q.z)*(1.-smoothstep(.08,.3,q.z));
+  // Abrasion clouds (matte, paler) and fore-aft scratch lines stretched along
+  // the boot's sliding direction; a few random hairlines everywhere else.
+  float cloud=smoothstep(.38,.8,mxPlasticNoise(q*vec3(16.,11.,7.)+3.1));
+  float line=mxPlasticNoise(q*vec3(520.,260.,17.)+7.7);
+  float hair=mxPlasticNoise(q*vec3(41.,310.,380.)+1.9);
+  float scratch=smoothstep(.8,.92,line)*(.16+.84*boot)
+    +smoothstep(.93,.985,hair)*.35;
+  float resolved=1.-smoothstep(.003,.012,footprint);
+  // Larger than a pixel at the chase camera: the scuffed boot zone reads as a
+  // pale, dull patch, not only as hairlines that vanish beyond a metre.
+  mxPlasticWear=(boot*cloud*.9)*(1.-smoothstep(.04,.2,footprint))+scratch*resolved;
+  mxPlasticHeight=(grain-.5)*.000018*fine-mxPlasticScuff*.000018-scratch*resolved*.000045;
+  // Polymer in service is never showroom-saturated: a little of its own
+  // luminance comes back, then the whitened stress marks on top.
+  float luma=dot(diffuseColor.rgb,vec3(.2126,.7152,.0722));
+  float mottle=mxPlasticNoise(q*vec3(9.,7.,8.)+5.3);
+  diffuseColor.rgb=mix(vec3(luma),diffuseColor.rgb,.9)*(.95+.1*mottle);
   diffuseColor.rgb*=1.+(grain-.5)*.022*fine;
+  diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*.55+vec3(.2,.195,.185),clamp(mxPlasticWear,0.,1.)*.62);
 }`,
       'fragment',
     );
     injectAfter(
       shader,
       'roughnessmap_fragment',
-      'roughnessFactor = clamp(roughnessFactor + mxPlasticScuff * .17, .28, .86);',
+      'roughnessFactor = clamp(roughnessFactor + mxPlasticScuff * .17 + mxPlasticWear * .3, .28, .9);',
       'fragment',
     );
     injectAfter(

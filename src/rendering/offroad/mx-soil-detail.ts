@@ -22,6 +22,20 @@ varying vec4 vMxCourse;
 varying float vMxCourseWidth;
 varying vec4 vMxCourseWear;
 uniform float mxCourseLength;
+// Screen footprint of the course coordinates (set per fragment, uniform flow).
+// Every filter below reads this, never a derivative of a parallax-shifted
+// coordinate, which would spike wherever the relief march changes its hit.
+vec2 mxFp = vec2( 0.001 );
+// High/Ultra relief march (mx-soil-parallax.ts): course-space shift of the
+// shaded point, tangent-space slope of the groove height, self-shadow and
+// cavity. All stay neutral where that hook is absent or gated off.
+vec2 mxPomShift = vec2( 0.0 );
+vec2 mxPomSlope = vec2( 0.0 );
+vec3 mxPomT = vec3( 1.0, 0.0, 0.0 );
+vec3 mxPomS = vec3( 0.0, 0.0, 1.0 );
+float mxPomOn = 0.0;
+float mxPomShadow = 1.0;
+float mxPomCavity = 0.0;
 float mxPreparedGroove = 0.0;
 float mxPreparedRelief = 0.0;
 float mxPreparedWet = 0.0;
@@ -55,35 +69,46 @@ float mxTrafficNoise( float station, float frequency, float seed ) {
 // compact support ends before a lane can leave that neighbourhood.
 // The narrow cut, displaced lip, broad packed swathe and cleats are separate
 // scales. Real widths prevent both railway stripes and enlarged tire prints.
-vec4 mxWheelPass( vec2 p, float lane, float spacing, float corner, float pixel ) {
+struct MxLane { float centre; float width; float pressure; float spread; float variation; };
+// One passage's lateral centre, width and pressure at a station. Separate
+// from the profile so the relief march can evaluate the three neighbouring
+// passages once per fragment and then only their cheap cross-section.
+MxLane mxLaneAt( float y, float lane, float spacing, float corner ) {
   float seed = lane * 9.73 + 41.0;
   float variation = mxSoilHash( vec2( lane, 18.7 ) );
   float loadedFace = max( vMxCourseWear.x, vMxCourseWear.y );
   // Riders arrive and leave a jump in straighter passages than a corner.
   // Drift returns continuously as the landing fans back into the lap.
-  float drift = ( mxTrafficNoise( p.y, 0.093, seed ) - 0.5 ) * spacing * 0.94
+  float drift = ( mxTrafficNoise( y, 0.093, seed ) - 0.5 ) * spacing * 0.94
     * ( 1.0 - loadedFace * 0.65 );
-  float centre = ( lane + ( variation - 0.5 ) * 0.27 ) * spacing + drift;
-  float d = abs( p.x - centre );
-  float width = ( 0.068 + 0.046 * variation ) * ( 1.0 + abs( corner ) * 0.46 );
-  float pressure = smoothstep( 0.26, 0.72, mxTrafficNoise( p.y, 0.20, seed + 3.0 ) );
+  MxLane l;
+  l.centre = ( lane + ( variation - 0.5 ) * 0.27 ) * spacing + drift;
+  l.width = ( 0.068 + 0.046 * variation ) * ( 1.0 + abs( corner ) * 0.46 );
+  float pressure = smoothstep( 0.26, 0.72, mxTrafficNoise( y, 0.20, seed + 3.0 ) );
   pressure = mix( pressure, 0.66 + pressure * 0.34, loadedFace * 0.82 );
   pressure *= 1.0 - vMxCourseWear.z * 0.66;
-  float spread = 0.29 + 0.20 * mxTrafficNoise( p.y, 0.11, seed + 8.0 );
-  float edge = max( pixel, fwidth( d ) );
+  l.pressure = pressure;
+  l.spread = 0.29 + 0.20 * mxTrafficNoise( y, 0.11, seed + 8.0 );
+  l.variation = variation;
+  return l;
+}
+vec4 mxWheelPassL( MxLane lane, vec2 p, float spacing, vec2 fp ) {
+  float width = lane.width;
+  float d = abs( p.x - lane.centre );
+  float edge = max( fp.x, 0.001 ) + 0.1 * fp.y;
   float resolved = 1.0 - smoothstep( width * 0.7, width * 3.5, edge );
   float core = ( 1.0 - smoothstep( width * 0.20, width + edge, d ) ) * resolved;
   float lip = ( 1.0 - smoothstep( 0.025, 0.075 + edge,
     abs( d - width * 1.48 ) ) ) * resolved;
-  float pass = ( 1.0 - smoothstep( 0.09, spread + edge, d ) )
+  float pass = ( 1.0 - smoothstep( 0.09, lane.spread + edge, d ) )
     * ( 1.0 - smoothstep( 0.36, 1.1, edge ) );
   // Cleats belong to this curved passage and each pass has its own phase.
   // Three staggered lug rows leave a pressed impression, not a painted line.
-  float across = ( p.x - centre ) / width;
+  float across = ( p.x - lane.centre ) / width;
   float column = floor( across * 1.5 );
-  float phase = p.y * floor( mxCourseLength * 8.2 ) / mxCourseLength
-    + variation * 7.0 + mod( column, 2.0 ) * 0.5;
-  float cleatPixel = fwidth( phase );
+  float cleatRate = floor( mxCourseLength * 8.2 ) / mxCourseLength;
+  float phase = p.y * cleatRate + lane.variation * 7.0 + mod( column, 2.0 ) * 0.5;
+  float cleatPixel = fp.y * cleatRate + 0.5 * min( 1.0, fp.x * 1.5 / width );
   float cleat = ( 1.0 - smoothstep( 0.12, 0.27 + cleatPixel,
     abs( fract( phase ) - 0.5 ) ) ) * core
     * ( 1.0 - smoothstep( 0.3, 0.85, cleatPixel ) );
@@ -91,8 +116,62 @@ vec4 mxWheelPass( vec2 p, float lane, float spacing, float corner, float pixel )
   // keeps the three-neighbour evaluation continuous when its index changes,
   // even if the pixel filter broadens a distant passage.
   float support = 1.0 - smoothstep( spacing * 0.70, spacing * 0.82, d );
-  return vec4( core * pressure, lip * pressure,
-    pass * ( 0.24 + 0.76 * pressure ), cleat * pressure ) * support;
+  return vec4( core * lane.pressure, lip * lane.pressure,
+    pass * ( 0.24 + 0.76 * lane.pressure ), cleat * lane.pressure ) * support;
+}
+vec4 mxWheelPass( vec2 p, float lane, float spacing, float corner, vec2 fp ) {
+  return mxWheelPassL( mxLaneAt( p.y, lane, spacing, corner ), p, spacing, fp );
+}
+// The authored half-width carries traffic out to the broad MX/SX lines;
+// a fixed five-pass pattern previously left the outer half almost blank.
+// Cornering shifts and compresses the family toward its outside bank.
+struct MxFrame { float spacing; float corner; float halfWidth; float berm; float wallSide; };
+MxFrame mxFrameAt() {
+  MxFrame f;
+  f.halfWidth = max( vMxCourseWidth, 1.0 );
+  f.berm = abs( vMxCourseWear.w );
+  f.wallSide = sign( vMxCourseWear.w );
+  f.corner = mix( vMxCourse.w, -f.wallSide, f.berm * 0.6 );
+  f.spacing = clamp( f.halfWidth * 0.19, 0.88, 1.22 )
+    * ( 1.0 - abs( f.corner ) * 0.10 )
+    * ( 1.0 - vMxCourseWear.x * 0.045 - vMxCourseWear.y * 0.035 );
+  return f;
+}
+vec2 mxTrafficPos( vec2 p, vec2 fp, MxFrame f ) {
+  float shift = -f.corner * f.halfWidth * 0.16
+    + ( mxTrafficNoise( p.y, 0.027, 6.4 ) - 0.5 ) * 0.46;
+  vec2 traffic = vec2( p.x - shift, p.y );
+  // Torn soil edges are millimetres/centimetres, subordinate to the tyre
+  // width. Fade this breakup before its frequency becomes sub-pixel.
+  float tearFade = 1.0 - smoothstep( 0.025, 0.12, length( fp ) );
+  float tearAcross = floor( p.x * 5.0 );
+  float tearBlend = fract( p.x * 5.0 );
+  tearBlend = tearBlend * tearBlend * ( 3.0 - 2.0 * tearBlend );
+  float tear = mix( mxTrafficNoise( p.y, 1.7, tearAcross + 73.0 ),
+    mxTrafficNoise( p.y, 1.7, tearAcross + 74.0 ), tearBlend );
+  traffic.x += ( tear - 0.5 ) * 0.055 * tearFade;
+  return traffic;
+}
+float mxShoulder( vec2 p, MxFrame f ) {
+  float wallAcross = p.x * f.wallSide / f.halfWidth;
+  float bermWidth = f.berm * smoothstep( 0.25, 0.75, wallAcross );
+  return 1.0 - smoothstep( f.halfWidth * 0.76 + bermWidth * 0.45,
+    f.halfWidth + 0.35 + bermWidth * 0.4, abs( p.x ) );
+}
+vec4 mxPassesTraffic( vec2 p, vec2 traffic, vec2 fp, MxFrame f, MxLane a, MxLane b, MxLane c ) {
+  vec4 passes = mxWheelPassL( a, traffic, f.spacing, fp );
+  passes = max( passes, mxWheelPassL( b, traffic, f.spacing, fp ) );
+  passes = max( passes, mxWheelPassL( c, traffic, f.spacing, fp ) );
+  return passes * mxShoulder( p, f );
+}
+vec4 mxPassesAt( vec2 p, vec2 fp ) {
+  MxFrame f = mxFrameAt();
+  vec2 traffic = mxTrafficPos( p, fp, f );
+  float lane = floor( traffic.x / f.spacing + 0.5 );
+  return mxPassesTraffic( p, traffic, fp, f,
+    mxLaneAt( p.y, lane - 1.0, f.spacing, f.corner ),
+    mxLaneAt( p.y, lane, f.spacing, f.corner ),
+    mxLaneAt( p.y, lane + 1.0, f.spacing, f.corner ) );
 }
 `;
 
@@ -101,47 +180,27 @@ const COLOUR = /* glsl */ `{
   // a fixed five-pass pattern previously left the outer half almost blank.
   // Cornering shifts and compresses the family toward its outside bank.
   // These are prepared traffic marks, never an ideal-line or grip override.
-  vec2 p = vMxCourse.xy;
+  // The footprint comes from the unshifted coordinates; the shaded point may
+  // carry the High/Ultra relief-march parallax (zero otherwise).
+  vec2 fp = fwidth( vMxCourse.xy );
+  mxFp = fp;
+  vec2 p = vMxCourse.xy + mxPomShift;
   float onSoil = clamp( vMxCourse.z, 0.0, 1.0 );
-  float pixel = max( fwidth( p.x ), 0.001 );
   float halfWidth = max( vMxCourseWidth, 1.0 );
   float berm = abs( vMxCourseWear.w );
   float wallSide = sign( vMxCourseWear.w );
   float wallAcross = p.x * wallSide / halfWidth;
-  float corner = mix( vMxCourse.w, -wallSide, berm * 0.6 );
-  float spacing = clamp( halfWidth * 0.19, 0.88, 1.22 )
-    * ( 1.0 - abs( corner ) * 0.10 )
-    * ( 1.0 - vMxCourseWear.x * 0.045 - vMxCourseWear.y * 0.035 );
-  float shift = -corner * halfWidth * 0.16
-    + ( mxTrafficNoise( p.y, 0.027, 6.4 ) - 0.5 ) * 0.46;
-  vec2 traffic = vec2( p.x - shift, p.y );
-  // Torn soil edges are millimetres/centimetres, subordinate to the tyre
-  // width. Fade this breakup before its frequency becomes sub-pixel.
-  float tearFade = 1.0 - smoothstep( 0.025, 0.12, length( fwidth( p ) ) );
-  float tearAcross = floor( p.x * 5.0 );
-  float tearBlend = fract( p.x * 5.0 );
-  tearBlend = tearBlend * tearBlend * ( 3.0 - 2.0 * tearBlend );
-  float tear = mix( mxTrafficNoise( p.y, 1.7, tearAcross + 73.0 ),
-    mxTrafficNoise( p.y, 1.7, tearAcross + 74.0 ), tearBlend );
-  traffic.x += ( tear - 0.5 ) * 0.055 * tearFade;
-  float lane = floor( traffic.x / spacing + 0.5 );
-  vec4 passes = mxWheelPass( traffic, lane - 1.0, spacing, corner, pixel );
-  passes = max( passes, mxWheelPass( traffic, lane, spacing, corner, pixel ) );
-  passes = max( passes, mxWheelPass( traffic, lane + 1.0, spacing, corner, pixel ) );
-  float bermWidth = berm * smoothstep( 0.25, 0.75, wallAcross );
-  float shoulder = 1.0 - smoothstep( halfWidth * 0.76 + bermWidth * 0.45,
-    halfWidth + 0.35 + bermWidth * 0.4, abs( p.x ) );
-  passes *= shoulder;
+  vec4 passes = mxPassesAt( p, fp );
   float broad = mxSoilNoise( p * vec2( 0.3, 0.085 ) );
   float broken = mxSoilNoise( p * vec2( 2.1, 0.67 ) );
   float wander = 0.045 * sin( p.y * 0.24 ) + ( broad - 0.5 ) * 0.16;
   float rakePhase = ( p.x + wander ) * 5.6;
-  float rakeWidth = fwidth( rakePhase );
+  float rakeWidth = ( fp.x + 0.1 * fp.y ) * 5.6;
   float rake = ( 1.0 - smoothstep( 0.045, 0.16 + rakeWidth,
     abs( fract( rakePhase ) - 0.5 ) ) )
     * ( 1.0 - smoothstep( 0.32, 0.9, rakeWidth ) );
   float tread = passes.w;
-  float aggregateFade = 1.0 - smoothstep( 0.035, 0.12, length( fwidth( p ) ) );
+  float aggregateFade = 1.0 - smoothstep( 0.035, 0.12, length( fp ) );
   float aggregate = smoothstep( 0.63, 0.84, mxSoilNoise( p * 19.0 ) ) * aggregateFade;
   // A bank's lower ridden shelf is pressed, while the upper lip retains
   // pale loose crumbs. The side and span come from the physical wall,
@@ -163,9 +222,12 @@ const COLOUR = /* glsl */ `{
     ( 0.35 + 0.65 * mxTrafficNoise( p.y, 0.48, 91.0 ) );
   // Centimetre-scale skin only. The existing deformed CourseTerrain mesh
   // continues to own every jump, braking bump, wheel contact and shadow.
+  // Where the relief march owns the groove and lip profile (mxPomOn), its
+  // analytic slope replaces their bump; the rest stays a shading skin.
+  float grooveBump = 1.0 - mxPomOn;
   mxPreparedRelief = onSoil * ( 0.0045 * rakeUnridden
-    - 0.020 * passes.x - 0.006 * passes.z + 0.009 * passes.y - 0.0035 * tread
-    - 0.005 * touchdown )
+    - 0.020 * passes.x * grooveBump - 0.006 * passes.z + 0.009 * passes.y * grooveBump
+    - 0.0035 * tread - 0.005 * touchdown )
     + 0.003 * mxPreparedAggregate;
   mxPreparedWet = clamp( vApexSoil.x + apexSoilWetness, 0.0, 1.0 );
   // Drained, sun-dried crests and lips keep a pale skin of loose fines.

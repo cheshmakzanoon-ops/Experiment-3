@@ -256,4 +256,36 @@ describe('motocross suspension contact traction', () => {
       expect(actual.front).toBeGreaterThan(0);
     }
   });
+
+  it.each([MX_250, MX_450, SM_450])(
+    '$id smoothly enters a corner, reverses roll from right to left, and recovers upright under throttle',
+    (definition) => {
+      const { bike, track } = flatBike(definition);
+      bike.dynamics.speed = 16;
+      bike.gear = 3;
+      for (let i = 0; i < 240; i++) {
+        bike.input.throttle = 0.45;
+        bike.input.steer = 0.8;
+        bike.step(DT, track);
+      }
+      const rightLean = bike.dynamics.lean;
+      expect(rightLean).toBeGreaterThan(0.35);
+      for (let i = 0; i < 288; i++) {
+        bike.input.throttle = 0.45;
+        bike.input.steer = -0.8;
+        bike.step(DT, track);
+      }
+      const leftLean = bike.dynamics.lean;
+      expect(leftLean).toBeLessThan(-0.35);
+      for (let i = 0; i < 240; i++) {
+        bike.input.throttle = 0.45;
+        bike.input.steer = 0;
+        bike.step(DT, track);
+      }
+      expect(Math.abs(bike.dynamics.lean)).toBeLessThan(0.06);
+      expect(Math.abs(bike.slide)).toBeLessThan(0.15);
+      expect(bike.dynamics.crashes).toBe(0);
+      expect(bike.riding).toBe(true);
+    },
+  );
 });

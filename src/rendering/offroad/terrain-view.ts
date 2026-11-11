@@ -13,6 +13,7 @@ import { installScannedSoil, soilSlotOf, soilSlots, writeSoilSlot } from '../gro
 import type { ScanLayer } from '../ground/scan-store.ts';
 import { installMxSoilDetail, MX_SOIL_COLOURS } from './mx-soil-detail.ts';
 import { installMxSoilMorphology, MX_SOIL_MORPHOLOGY_KINDS } from './mx-soil-morphology.ts';
+import { installMxSoilParallax } from './mx-soil-parallax.ts';
 import { mxSoilSample, sampleMxSoilTransition } from './mx-soil-transition.ts';
 import { installMxTerrainShadow } from './mx-terrain-shadow.ts';
 import { MxTerrainNormalEdges } from './mx-terrain-normal-edges.ts';
@@ -97,6 +98,7 @@ export class TerrainView {
       installMxSoilMorphology(this.material);
       installMxBrakingBumps(this.material);
       installMxTerrainShadow(this.material);
+      installMxSoilParallax(this.material);
     }
     for (let first = 0; first < t.renderRows; first += CHUNK_ROWS)
       this.chunks.push(this.buildChunk(first, Math.min(CHUNK_ROWS, t.renderRows - first)));
@@ -456,6 +458,10 @@ export class TerrainView {
     }
     const h = positions.getY(e);
     return h + (positions.getY(d) - h) * (1 - x) + (positions.getY(b) - h) * (1 - z);
+  }
+  /** Session soaking of the soil as currently shown, 0..1. */
+  get soilWetness() {
+    return this.wetness;
   }
   /** Deformed blocks shown (diagnostics, tests). */
   get deformedBlocks() {

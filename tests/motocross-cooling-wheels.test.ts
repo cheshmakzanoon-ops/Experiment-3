@@ -147,7 +147,7 @@ describe('motocross open cooling and laced wheels', () => {
     },
   );
 
-  for (const rim of [0.2667, 0.2286])
+  for (const rim of [0.2667, 0.2286, 0.2159])
     it.each(['high', 'mid'] as const)(
       `%s ${rim} m rim has equal opposing spokes on both flanges and seated nipples`,
       (detail) => {
@@ -193,7 +193,7 @@ describe('motocross open cooling and laced wheels', () => {
       },
     );
 
-  for (const id of ['mx250', 'mx450'])
+  for (const id of ['mx250', 'mx450', 'sm450'])
     it(`${id} complete high-detail bike and rider stay inside the existing geometry budget`, () => {
       const materials = new BikeMaterials(0),
         model = new DirtBikeModel(VEHICLES[id], 0, 'high', materials, mudUniforms());

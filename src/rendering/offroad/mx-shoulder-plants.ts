@@ -2,7 +2,7 @@ import * as T from 'three';
 import { Random } from '../../core/math.ts';
 import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
 
-export type MxPlantKind = 'grass' | 'fern' | 'scrub';
+export type MxPlantKind = 'grass' | 'fern' | 'scrub' | 'tuft' | 'meadow';
 type Point = readonly [number, number, number];
 
 /** Maximum local displacement at full tip flexibility. The culling sphere
@@ -18,17 +18,75 @@ export function mxShoulderPlantGeometry(kind: MxPlantKind): T.BufferGeometry {
   const position: number[] = [],
     colour: number[] = [],
     flexibility: number[] = [],
-    random = new Random(kind === 'grass' ? 47033 : kind === 'fern' ? 42051 : 51047);
-  const triangle = (a: Point, b: Point, c: Point, tip = 1) => {
+    random = new Random(
+      kind === 'grass'
+        ? 47033
+        : kind === 'fern'
+          ? 42051
+          : kind === 'tuft'
+            ? 33071
+            : kind === 'meadow'
+              ? 27119
+              : 51047,
+    );
+  const triangle = (a: Point, b: Point, c: Point, tip = 1, span = 1) => {
     for (const p of [a, b, c]) {
       position.push(...p);
-      const f = Math.max(0, Math.min(1, p[1]));
+      const f = Math.max(0, Math.min(1, p[1] / span));
       // Linear-light multipliers: shaded crown, olive body, pale dry tips.
       colour.push(0.48 + f * 0.47 * tip, 0.59 + f * 0.34, 0.39 + f * 0.26 * tip);
-      flexibility.push(f * f * (kind === 'grass' ? 1 : kind === 'fern' ? 0.65 : 0.35));
+      flexibility.push(
+        f *
+          f *
+          (kind === 'grass' || kind === 'tuft' || kind === 'meadow'
+            ? 1
+            : kind === 'fern'
+              ? 0.65
+              : 0.35),
+      );
     }
   };
-  if (kind === 'grass') {
+  if (kind === 'meadow') {
+    // Uncut field grass seen from a few metres to a few tens: a leaning fan of
+    // eleven blades, one triangle each, 28-55 cm. Cheap enough to scatter by the
+    // thousand; individually bent so the field reads as grass, not as cards.
+    for (let i = 0; i < 11; i++) {
+      const angle = i * 2.39996 + random.next() * 0.45,
+        dx = Math.cos(angle),
+        dz = Math.sin(angle),
+        height = 0.28 + Math.pow(random.next(), 1.2) * 0.27,
+        lean = 0.05 + random.next() * 0.16,
+        base = 0.02 + random.next() * 0.1,
+        width = 0.012 + random.next() * 0.01;
+      const at = (t: number, side: number): Point => {
+        const spread = base + lean * t * t,
+          w = width * (1 - t * 0.85) * side;
+        return [dx * spread - dz * w, height * (t - 0.2 * t * t), dz * spread + dx * w];
+      };
+      triangle(at(0, -1), at(0, 1), at(1, 0), i % 4 === 0 ? 1.2 : 0.95, height * 0.8);
+    }
+  } else if (kind === 'tuft') {
+    // Short cropped turf: seven thin blades, one kinked triangle each, 8-22 cm.
+    // Many of these line the course edge where the long grass islands thin out.
+    for (let i = 0; i < 7; i++) {
+      const angle = i * 2.39996 + random.next() * 0.5,
+        dx = Math.cos(angle),
+        dz = Math.sin(angle),
+        height = 0.08 + Math.pow(random.next(), 1.4) * 0.15,
+        lean = 0.025 + random.next() * 0.07,
+        base = 0.008 + random.next() * 0.022,
+        width = 0.0075 + random.next() * 0.0055;
+      const at = (t: number, side: number): Point => {
+        const spread = base + lean * t * t,
+          w = width * (1 - t) * side;
+        return [dx * spread - dz * w, height * (t - 0.18 * t * t), dz * spread + dx * w];
+      };
+      const span = height * 0.85;
+      triangle(at(0, -1), at(0, 1), at(0.5, -0.6), i % 3 === 0 ? 1.12 : 0.9, span);
+      triangle(at(0, 1), at(0.5, 0.6), at(0.5, -0.6), 1, span);
+      triangle(at(0.5, -0.6), at(0.5, 0.6), at(1, 0), 1, span);
+    }
+  } else if (kind === 'grass') {
     for (let i = 0; i < 9; i++) {
       const angle = i * 2.39996 + random.next() * 0.36,
         dx = Math.cos(angle),

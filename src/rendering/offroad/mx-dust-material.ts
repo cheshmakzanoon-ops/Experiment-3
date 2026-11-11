@@ -11,6 +11,9 @@ uniform float scale;
 attribute float mxParticleSize;
 attribute float mxParticleAlpha;
 attribute vec2 mxParticleShape;
+attribute float mxParticleFloor;
+varying float vMxDustHeight;
+varying float vMxDustRadius;
 varying float vMxDustAlpha;
 varying float vMxDustSeed;
 varying vec3 vMxDustAmbient;
@@ -46,6 +49,10 @@ void main() {
   #include <project_vertex>
   vMxDustAlpha = mxParticleAlpha * mxParticleShape.x;
   vMxDustSeed = mxParticleShape.y;
+  // Analytic ground contact: height of the puff's centre over the soil it was
+  // thrown from and the sprite's world half-size (point size / projection).
+  vMxDustHeight = ( modelMatrix * vec4( position, 1.0 ) ).y - mxParticleFloor;
+  vMxDustRadius = 0.5 * mxParticleSize / max( projectionMatrix[ 1 ][ 1 ], 1e-3 );
   vMxDustAmbient = vec3( 0.0 );
   vMxDustSun = vec3( 0.0 );
   vMxDustSunDir = vec3( 0.0 );
@@ -113,6 +120,8 @@ void main() {
 `;
 
 const FRAGMENT = /* glsl */ `
+varying float vMxDustHeight;
+varying float vMxDustRadius;
 varying float vMxDustAlpha;
 varying float vMxDustSeed;
 varying vec3 vMxDustAmbient;
@@ -161,6 +170,13 @@ void main() {
   float chord = sqrt( max( 0.0, 1.0 - r2 ) );
   float density = envelope * envelope * ( 0.55 + 0.7 * lumps ) * ( 0.45 + 0.55 * chord );
   float opacity = vMxDustAlpha * clamp( density * 1.25, 0.0, 1.0 );
+  #ifdef MX_HIGH_DETAIL
+  // A screen-facing sprite thrown from the ground would be cut by the soil
+  // along a hard line. Its lower part is the soil's own surface: fade it
+  // out below the floor it was born over (point-coord y runs downward).
+  opacity *= smoothstep( -0.02 - 0.05 * vMxDustRadius, 0.06 + 0.25 * vMxDustRadius,
+    vMxDustHeight - p.y * vMxDustRadius );
+  #endif
   if ( opacity < 0.008 ) discard;
   // Self-shadowed volume: a pseudo-sphere normal in view space (point-coord
   // y runs downward). The side away from the key light darkens through the

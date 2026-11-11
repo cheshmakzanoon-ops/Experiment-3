@@ -14,6 +14,10 @@ import { StartGate } from './start-gate.ts';
 import { TerrainView } from './terrain-view.ts';
 import { MxCourseDressing } from './mx-course-dressing.ts';
 import { MxCourseLandmarks } from './mx-course-landmarks.ts';
+import { installMxArenaLighting } from './mx-arena-lighting.ts';
+import { MxLooseSoil } from './mx-loose-soil.ts';
+import { MxMeadow } from './mx-meadow.ts';
+import { MxSpectators } from './mx-spectators.ts';
 
 export { installMud, installMudOn, mudUniforms, type MudUniforms } from './mud.ts';
 export { DirtBikeModel } from './dirt-bike-model.ts';
@@ -31,6 +35,9 @@ export class OffroadScene {
   stadium: Stadium | null = null;
   dressing: MxCourseDressing | null = null;
   landmarks: MxCourseLandmarks | null = null;
+  looseSoil: MxLooseSoil | null = null;
+  spectators: MxSpectators | null = null;
+  meadow: MxMeadow | null = null;
   readonly roost: Roost;
   private lastTime = NaN;
   private readonly pending: {
@@ -55,6 +62,7 @@ export class OffroadScene {
       this.roost.groundHeight = (s, lateral) => this.terrain!.heightAt(s, lateral);
       // Night venues light the soil with the floodlight pools, like a ribbon.
       installLightPools(this.terrain.material);
+      if (this.stadium) installMxArenaLighting(this.terrain.material, this.stadium.lampGrid);
       this.group.add(this.terrain.group);
       for (const p of this.pending.splice(0)) this.terrain.record(p.delta, p.time, p.live);
     });
@@ -66,13 +74,29 @@ export class OffroadScene {
     if (course.kind === 'supercross')
       construction.add('Supercross stadium', 2, () => {
         this.stadium = new Stadium(track);
+        if (this.terrain) installMxArenaLighting(this.terrain.material, this.stadium.lampGrid);
         this.group.add(this.stadium.root);
       });
     if (course.kind === 'motocross' || course.kind === 'supercross') {
       construction.add('MX course furniture and shoulders', 3, () => {
         this.dressing = new MxCourseDressing(track);
-        this.group.add(this.dressing.root);
+        this.group.add(this.dressing.root, this.dressing.turf);
       });
+      construction.add('MX loose soil', 1, () => {
+        this.looseSoil = new MxLooseSoil(track);
+        this.group.add(this.looseSoil.root);
+      });
+      if (course.kind === 'motocross')
+        // After the furniture: onlookers keep clear of its service bays and posts.
+        construction.add('MX spectators and marshals', 4, () => {
+          this.spectators = new MxSpectators(track, this.dressing?.trackside.plan.sites ?? []);
+          this.group.add(this.spectators.root);
+        });
+      if (course.kind === 'motocross')
+        construction.add('MX field grass', 4, () => {
+          this.meadow = new MxMeadow(track, this.dressing?.trackside.plan.sites ?? []);
+          this.group.add(this.meadow.root);
+        });
       construction.add('MX course identities and jump profiles', 2, () => {
         this.landmarks = new MxCourseLandmarks(track);
         this.group.add(this.landmarks.root);
@@ -96,6 +120,9 @@ export class OffroadScene {
     const time = frame[H.TIME],
       dt = Number.isFinite(this.lastTime) ? clamp(time - this.lastTime, 0, 0.1) : 0;
     this.dressing?.update(time);
+    this.spectators?.update(time);
+    this.meadow?.update(time);
+    if (this.terrain) this.looseSoil?.setWetness(this.terrain.soilWetness);
     // Even a sub-frame reverse seek can cross a takeoff/contact edge.
     // Drop particles and edge history before reading that earlier snapshot.
     if (time < this.lastTime) this.roost.clear();
@@ -108,6 +135,9 @@ export class OffroadScene {
     this.stadium?.dispose();
     this.dressing?.dispose();
     this.landmarks?.dispose();
+    this.looseSoil?.dispose();
+    this.spectators?.dispose();
+    this.meadow?.dispose();
     this.roost.dispose();
   }
 }

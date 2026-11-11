@@ -243,11 +243,17 @@ export class Roost {
       'mxParticleAlpha',
       new T.BufferAttribute(this.opacity, 1).setUsage(T.DynamicDrawUsage),
     );
-    if (this.motocross)
+    if (this.motocross) {
       g.setAttribute(
         'mxParticleShape',
         new T.BufferAttribute(this.shapes, 2).setUsage(T.DynamicDrawUsage),
       );
+      // Birth floor of each particle: the dust shader fades a puff into it.
+      g.setAttribute(
+        'mxParticleFloor',
+        new T.BufferAttribute(this.floor, 1).setUsage(T.DynamicDrawUsage),
+      );
+    }
     const material = this.motocross
       ? new MxDustMaterial()
       : new T.PointsMaterial({
@@ -420,7 +426,10 @@ export class Roost {
     g.getAttribute('color').needsUpdate = true;
     g.getAttribute('mxParticleSize').needsUpdate = true;
     g.getAttribute('mxParticleAlpha').needsUpdate = true;
-    if (this.motocross) g.getAttribute('mxParticleShape').needsUpdate = true;
+    if (this.motocross) {
+      g.getAttribute('mxParticleShape').needsUpdate = true;
+      g.getAttribute('mxParticleFloor').needsUpdate = true;
+    }
     const mesh = this.clods;
     if (!mesh) return;
     mesh.visible = this.enabled;

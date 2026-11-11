@@ -121,4 +121,35 @@ describe('independent motocross wheel/soil/yaw dynamics', () => {
     expect(Math.abs(a.speed - b.speed)).toBeLessThan(0.2);
     expect(Math.abs(a.rearOmega - b.rearOmega)).toBeLessThan(1.5);
   });
+
+  it('tracks leaned motorcycle cornering demand within each tyre friction circle without false slip heat', () => {
+    const p = { ...params(), steer: 0.04, lean: 0.45 };
+    const rolling = stepMotocrossGround(state(), p, 1 / 240);
+    const wheelbase = p.frontArm + p.rearArm;
+    const expectedLat = 16 * 16 * (Math.tan(p.steer) / wheelbase) * Math.cos(p.lean!);
+    expect(rolling.lateralAcceleration).toBeCloseTo(expectedLat, 8);
+    expect(rolling.front.fy).toBeGreaterThan(400);
+    expect(rolling.rear.fy).toBeGreaterThan(400);
+    expect(rolling.front.slipPower + rolling.rear.slipPower).toBe(0);
+    expect(rolling.lateralSpeed).toBe(0);
+    expect(Math.hypot(rolling.front.fx, rolling.front.fy)).toBeLessThanOrEqual(
+      p.frontLoad * p.frontMu + 1e-9,
+    );
+    expect(Math.hypot(rolling.rear.fx, rolling.rear.fy)).toBeLessThanOrEqual(
+      p.rearLoad * p.rearMu + 1e-9,
+    );
+    const braked = stepMotocrossGround(
+      state(),
+      { ...p, frontBrakeTorque: 600, rearBrakeTorque: 500 },
+      1 / 240,
+    );
+    expect(Math.hypot(braked.front.fx, braked.front.fy)).toBeLessThanOrEqual(
+      p.frontLoad * p.frontMu + 1e-9,
+    );
+    expect(Math.hypot(braked.rear.fx, braked.rear.fy)).toBeLessThanOrEqual(
+      p.rearLoad * p.rearMu + 1e-9,
+    );
+    expect(braked.front.use).toBeLessThanOrEqual(1 + 1e-10);
+    expect(braked.rear.use).toBeLessThanOrEqual(1 + 1e-10);
+  });
 });

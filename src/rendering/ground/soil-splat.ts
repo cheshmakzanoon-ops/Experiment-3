@@ -96,7 +96,7 @@ function splatGlsl(slots: readonly ScanLayer[], macroLayer: ScanLayer) {
     lines.push(`float apexW${i} = ${weight(i)};
 	ApexScanSample apexS${i};
 	apexS${i}.ratio = vec3( 1.0 ); apexS${i}.n = vec3( 0.0, 0.0, 1.0 ); apexS${i}.rough = 1.0; apexS${i}.ao = 1.0; apexS${i}.height = 1.0;
-	if ( apexW${i} > 0.002 ) apexS${i} = ${scanLayerCall(slots[i], 'vScanWorld.xz', 'apexScanDx', 'apexScanDy', 1.5, false)};`);
+	if ( apexW${i} > 0.002 ) apexS${i} = ${scanLayerCall(slots[i], '( vScanWorld.xz + apexSoilShift )', 'apexScanDx', 'apexScanDy', 1.5, false)};`);
   }
   // Height blend: each set's relief proxy lifts its weight; the top wins.
   const b = (i: number) =>
@@ -184,6 +184,9 @@ varying vec4 vScanSoil;
 varying vec3 vScanWorld;
 ${scanUniformDeclarations(slots)}
 vec3 apexScanN = vec3( 0.0, 0.0, 1.0 );
+// World-plane slide of the photographed sets (a course relief march moves the
+// shaded point inside a groove); zero everywhere else.
+vec2 apexSoilShift = vec2( 0.0 );
 float apexScanRough = 1.0;
 float apexScanRelief = 0.0;
 #endif
