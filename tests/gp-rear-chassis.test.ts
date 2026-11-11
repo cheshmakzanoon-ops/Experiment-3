@@ -263,7 +263,8 @@ describe('GP rear structure on the production motorcycle', () => {
         expect(original.materials.size).toBeLessThanOrEqual(36);
         // +2: the GP screen's printed-border alpha map (gp-appearance.ts) and
         // the livery's clear-coat orange-peel normal map (gp-race-bodywork.ts).
-        expect(original.textures.size).toBeLessThanOrEqual(21);
+        // +1: the tail rain-light 8x2 LED emissive map (gp-appearance.ts).
+        expect(original.textures.size).toBeLessThanOrEqual(22);
       } finally {
         for (const geometry of inventory(rearStructure).geometries) geometry.dispose();
         tray.dispose();

@@ -10,12 +10,15 @@ import { fixtureDefine } from './fixtures/owner-build.ts';
  * earlier pins (GP-R1 95,029 / GP-R2 94,250) were never true in this repository: the root commit
  * 395d7df and ebf691d (measured locally) already build 95,916 for GP-R2, CI run 41719338961 (main
  * 3ae3842) reports the same 95,916, and CI run 41915850034 (main eab1d91) reports 96,695 for
- * GP-R1; main today builds 96,695 / 95,916 locally. GP-R1 keeps its 779 extra triangles over
- * GP-R2 and both carry +1,666 against the old pins. The knee-slider sparks of vehicle art 3 add
- * no mesh triangles (a Points object). A change in these numbers is a change in the model:
- * update the pin together with the model, with the reason.
+ * GP-R1; pre-hem main built 96,695 / 95,916 locally. Round-3 `hemShellEdges` (2.8 mm physical
+ * thickness, 1.6 mm rolled radius, 2 arc segments on high-LOD exposed nose/flank, tank and tail
+ * boundaries) adds +2,322 triangles on GP-R1 (+1,440 flank/nose, +600 tank, +216 tail, +66 nose
+ * number decal across the hemmed brow) -> 99,017, and +2,178 triangles on GP-R2 (+1,296
+ * flank/nose, +600 tank, +216 tail, +66 nose number decal) -> 98,094. The knee-slider sparks of
+ * vehicle art 3 add no mesh triangles (a Points object). A change in these numbers is a change in
+ * the model: update the pin together with the model, with the reason.
  */
-const TRIANGLES = { gpr1: 96695, gpr2: 95916 } as const;
+const TRIANGLES = { gpr1: 99017, gpr2: 98094 } as const;
 
 let fixtureScript: string;
 test.beforeAll(async () => {

@@ -14,9 +14,18 @@ import { chainShaderHook, injectAfter, injectDeclarations } from './studio/shade
  * the open sky; open panels are untouched. Direct sunlight keeps its own
  * shadow maps, and a rider moving off the bike leaves the occluded volume.
  *
+ * The rider moves through that volume, so he is not in it. He enters as a
+ * handful of analytic capsules instead (torso, head, arms, thighs, shins:
+ * `GP_CAPSULES`), refreshed from his bones each frame. Their sphere-occlusion
+ * term darkens the seat and tank under him and the cockpit around his arms,
+ * and his own armpits, inner elbows, knees and chin-to-chest creases, where
+ * his segments close on each other. A fragment on a convex capsule faces away
+ * from its own axis and sees nothing of it.
+ *
  * Cost: a few cached megabytes of R8 texels per definition, about twenty
- * trilinear 3D fetches per bike fragment, and nothing at all below the High
- * tier (the strength uniforms are zero and the branch is skipped). */
+ * trilinear 3D fetches and 2 x 10 capsule terms per bike fragment, and
+ * nothing at all below the High tier (the strength uniforms are zero and the
+ * branch is skipped). */
 export const GP_OCCLUSION = Object.freeze({
   /** Finest cell edge (m). Taps start 1.5 cells off the surface at each level. */
   voxel: 0.02,
@@ -28,7 +37,12 @@ export const GP_OCCLUSION = Object.freeze({
   diffuse: 0.82,
   /** Fraction of environment specular (and clear coat) removed at full occlusion. */
   specular: 0.9,
+  /** Share of the rider capsules' sphere occlusion applied (0 disables them). */
+  rider: 0.85,
 });
+/** Capsule occluders for the rider: torso, head, two upper arms, two forearms,
+ * two thighs and two shins. Unused slots carry radius 0. */
+export const GP_CAPSULES = 10;
 
 export interface GpOcclusionSource {
   readonly geometry: T.BufferGeometry;
@@ -178,6 +192,11 @@ export interface GpOcclusionUniforms {
   readonly gpOccInvSize: T.IUniform<T.Vector3>;
   /** x: diffuse strength, y: specular strength (0 disables), z: finest cell (m). */
   readonly gpOccParams: T.IUniform<T.Vector3>;
+  /** Rider capsules in the occlusion frame: xyz one end, w radius (0 = unused) / xyz the other end. */
+  readonly gpCapA: T.IUniform<T.Vector4[]>;
+  readonly gpCapB: T.IUniform<T.Vector4[]>;
+  /** Strength of the capsule term (0 disables). */
+  readonly gpCapStrength: T.IUniform<number>;
 }
 /** One set per entrant, shared by all of its bike and rider materials. */
 export function gpOcclusionUniforms(): GpOcclusionUniforms {
@@ -187,6 +206,9 @@ export function gpOcclusionUniforms(): GpOcclusionUniforms {
     gpOccMin: { value: new T.Vector3() },
     gpOccInvSize: { value: new T.Vector3(1, 1, 1) },
     gpOccParams: { value: new T.Vector3(0, 0, GP_OCCLUSION.voxel) },
+    gpCapA: { value: Array.from({ length: GP_CAPSULES }, () => new T.Vector4(0, 0, 0, 0)) },
+    gpCapB: { value: Array.from({ length: GP_CAPSULES }, () => new T.Vector4(0, 0, 0, 0)) },
+    gpCapStrength: { value: 0 },
   };
 }
 /** Point an entrant's uniforms at a baked volume (still disabled until
@@ -203,6 +225,51 @@ export function setGpOcclusionStrength(uniforms: GpOcclusionUniforms, enabled: b
   const on = enabled && uniforms.gpOccVolume.value !== null;
   uniforms.gpOccParams.value.x = on ? GP_OCCLUSION.diffuse : 0;
   uniforms.gpOccParams.value.y = on ? GP_OCCLUSION.specular : 0;
+  uniforms.gpCapStrength.value = on ? GP_OCCLUSION.rider : 0;
+}
+/** Write one rider capsule (slot `i`) in the occlusion frame. A radius of 0
+ * retires the slot. */
+export function setGpCapsule(
+  uniforms: GpOcclusionUniforms,
+  i: number,
+  a: T.Vector3,
+  b: T.Vector3,
+  radius: number,
+) {
+  uniforms.gpCapA.value[i].set(a.x, a.y, a.z, radius);
+  uniforms.gpCapB.value[i].set(b.x, b.y, b.z, 0);
+}
+
+/** CPU reference of the shader's capsule term (`gpCapsules`): the share of the
+ * cosine-weighted hemisphere about `dir` hidden by the capsules at point `p`
+ * (all in the occlusion frame). Each capsule counts as a ball of its radius at
+ * the closest point of its axis: coverage is cos * r^2 / d^2, saturating inside
+ * the skin, and the open fractions multiply. */
+export function gpCapsuleOcclusion(
+  p: T.Vector3,
+  dir: T.Vector3,
+  uniforms: Pick<GpOcclusionUniforms, 'gpCapA' | 'gpCapB' | 'gpCapStrength'>,
+): number {
+  const strength = uniforms.gpCapStrength.value,
+    ab = new T.Vector3(),
+    d = new T.Vector3();
+  let open = 1;
+  for (let i = 0; i < GP_CAPSULES; i++) {
+    const a = uniforms.gpCapA.value[i],
+      r = a.w;
+    if (r <= 0) continue;
+    const b = uniforms.gpCapB.value[i];
+    ab.set(b.x - a.x, b.y - a.y, b.z - a.z);
+    const t = Math.min(
+      1,
+      Math.max(0, d.set(p.x - a.x, p.y - a.y, p.z - a.z).dot(ab) / Math.max(ab.lengthSq(), 1e-6)),
+    );
+    d.set(a.x + ab.x * t - p.x, a.y + ab.y * t - p.y, a.z + ab.z * t - p.z);
+    const dd = Math.max(d.lengthSq(), r * r),
+      facing = Math.min(1, Math.max(0, dir.dot(d) / Math.sqrt(dd)));
+    open *= 1 - (strength * facing * r * r) / dd;
+  }
+  return 1 - open;
 }
 
 /** The cone trace. Tap i sits 1.5 cells of mip i off the surface (so a flat
@@ -215,7 +282,28 @@ uniform mat4 gpOccFromWorld;
 uniform vec3 gpOccMin;
 uniform vec3 gpOccInvSize;
 uniform vec3 gpOccParams;
+uniform vec4 gpCapA[ ${GP_CAPSULES} ];
+uniform vec4 gpCapB[ ${GP_CAPSULES} ];
+uniform float gpCapStrength;
 varying vec3 vGpOccPos;
+// Sphere occlusion at the closest point of each capsule axis: the share of the
+// cosine-weighted hemisphere about dir that a ball of radius r at distance
+// d covers is about cos * r^2 / d^2; fragments inside the skin saturate.
+float gpCapsules( vec3 p, vec3 dir ) {
+  float open = 1.0;
+  for ( int i = 0; i < ${GP_CAPSULES}; i ++ ) {
+    float r = gpCapA[ i ].w;
+    if ( r <= 0.0 ) continue;
+    vec3 a = gpCapA[ i ].xyz;
+    vec3 ab = gpCapB[ i ].xyz - a;
+    float t = clamp( dot( p - a, ab ) / max( dot( ab, ab ), 1e-6 ), 0.0, 1.0 );
+    vec3 d = a + ab * t - p;
+    float dd = max( dot( d, d ), r * r );
+    float facing = clamp( dot( dir, d ) * inversesqrt( dd ), 0.0, 1.0 );
+    open *= 1.0 - gpCapStrength * facing * ( r * r ) / dd;
+  }
+  return 1.0 - open;
+}
 float gpOccCone( vec3 p, vec3 n, vec3 dir, int taps ) {
   float open = 1.0;
   float cell = gpOccParams.z;
@@ -259,6 +347,8 @@ if ( gpOccParams.x + gpOccParams.y > 0.0 ) {
   gpOcc += 0.16 * gpOccCone( vGpOccPos, gpOccN, normalize( gpOccN - 1.4 * gpOccT ), 3 );
   gpOcc += 0.16 * gpOccCone( vGpOccPos, gpOccN, normalize( gpOccN + 1.4 * gpOccB ), 3 );
   gpOcc += 0.16 * gpOccCone( vGpOccPos, gpOccN, normalize( gpOccN - 1.4 * gpOccB ), 3 );
+  float gpOccCap = gpCapStrength > 0.0 ? gpCapsules( vGpOccPos, gpOccN ) : 0.0;
+  gpOcc = 1.0 - ( 1.0 - gpOcc ) * ( 1.0 - gpOccCap );
   gpOccDiffuse = 1.0 - gpOccParams.x * gpOcc;
   reflectedLight.indirectDiffuse *= gpOccDiffuse;
   #ifdef USE_SHEEN
@@ -266,7 +356,9 @@ if ( gpOccParams.x + gpOccParams.y > 0.0 ) {
   #endif
   // Specular occlusion along the mirror direction; rough lobes widen toward
   // the hemisphere estimate.
-  float gpOccR = gpOccCone( vGpOccPos, gpOccN, reflect( - gpOccV, gpOccN ), 4 );
+  vec3 gpOccRefl = reflect( - gpOccV, gpOccN );
+  float gpOccR = gpOccCone( vGpOccPos, gpOccN, gpOccRefl, 4 );
+  if ( gpCapStrength > 0.0 ) gpOccR = 1.0 - ( 1.0 - gpOccR ) * ( 1.0 - gpCapsules( vGpOccPos, gpOccRefl ) );
   gpOccMirror = 1.0 - gpOccParams.y * gpOccR;
   reflectedLight.indirectSpecular *= 1.0 - gpOccParams.y * mix( gpOccR, gpOcc, material.roughness );
   #ifdef USE_CLEARCOAT

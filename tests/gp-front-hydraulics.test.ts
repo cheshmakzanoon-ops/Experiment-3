@@ -29,7 +29,7 @@ describe('GP connected pressure circuit', () => {
         materials = {
           dark: new T.MeshStandardMaterial(),
           steel: new T.MeshStandardMaterial(),
-          aluminium: new T.MeshStandardMaterial(),
+          aluminium: new T.MeshPhysicalMaterial(),
           reservoir: new T.MeshStandardMaterial(),
         };
       chassis.rotation.x = -0.42;

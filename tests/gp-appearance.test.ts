@@ -14,10 +14,15 @@ import {
   gpScreenAlpha,
   gpSilencer,
   gpSilencerHeatSoak,
+  GP_METAL_ANISOTROPY,
   GP_SCREEN_ALPHA,
+  GP_TAIL_LED,
   installGpTitaniumOxideGloss,
+  setGpMetalAnisotropy,
 } from '../src/rendering/gp-appearance.ts';
 import { studioHookKeys } from '../src/rendering/studio/shader-hooks.ts';
+import { SSR_MASK_HOOK, ssrMaskUniforms } from '../src/rendering/ultra/ssr-mask.ts';
+import { gpLiveryMaterial, gpWingPaint } from '../src/rendering/gp-race-bodywork.ts';
 
 beforeAll(() => {
   const ctx = new Proxy(
@@ -62,6 +67,11 @@ describe('GP refined surface and mechanical contracts', () => {
       expect(m.screen.depthWrite).toBe(false);
       expect(m.paint.metalness).toBe(0);
       expect(m.paint.roughness).toBe(0.3);
+      // The tail rain light is a diode array: only the LEDs are emissive.
+      const led = m.lamp.emissiveMap!.image as { data: Uint8Array; width: number };
+      const values = Array.from({ length: led.width * 32 }, (_, i) => led.data[i * 4]);
+      expect(Math.max(...values)).toBe(255);
+      expect(Math.min(...values)).toBe(Math.round(255 * GP_TAIL_LED.floor));
       expect(m.paint.clearcoatRoughness).toBe(0.04);
     } finally {
       m.dispose();
@@ -303,6 +313,57 @@ describe('GP refined surface and mechanical contracts', () => {
       road.dispose();
     } finally {
       m.dispose();
+    }
+  });
+
+  it('stretches GP brushed and turned metal highlights across the tool marks on High/ULTRA only', () => {
+    const m = new BikeMaterials(0);
+    try {
+      // Physical materials so three.js can compile the anisotropic lobe.
+      for (const metal of [m.aluminium, m.forkUpper, m.forkLower])
+        expect(metal).toBeInstanceOf(T.MeshPhysicalMaterial);
+      setGpMetalAnisotropy(m, true);
+      expect(m.aluminium.anisotropy).toBe(0);
+      calibrateGpMaterials(m, 'gpr1');
+      expect(m.aluminium.anisotropy).toBe(0);
+      setGpMetalAnisotropy(m, true);
+      expect(m.aluminium.anisotropy).toBe(GP_METAL_ANISOTROPY.brushed);
+      expect(m.forkUpper.anisotropy).toBe(GP_METAL_ANISOTROPY.turned);
+      expect(m.forkLower.anisotropy).toBe(GP_METAL_ANISOTROPY.polished);
+      // Marks run along U; the highlight stretches along V.
+      for (const metal of [m.aluminium, m.forkUpper, m.forkLower])
+        expect(metal.anisotropyRotation).toBeCloseTo(Math.PI / 2, 6);
+      setGpMetalAnisotropy(m, false);
+      expect([m.aluminium, m.forkUpper, m.forkLower].map((x) => x.anisotropy)).toEqual([0, 0, 0]);
+      // Road and motocross families keep isotropic metal.
+      const road = new BikeMaterials(1);
+      calibrateGpMaterials(road, 'sbk1000');
+      setGpMetalAnisotropy(road, true);
+      expect(road.aluminium.anisotropy).toBe(0);
+      road.dispose();
+    } finally {
+      m.dispose();
+    }
+  });
+
+  it('opts the GP lacquer and carbon into the ULTRA reflection mask, and leaves other families alone', () => {
+    const m = new BikeMaterials(0);
+    const road = new BikeMaterials(1);
+    try {
+      for (const lacquer of [m.paint, m.carbon])
+        expect(studioHookKeys(lacquer)).not.toContain(SSR_MASK_HOOK);
+      calibrateGpMaterials(m, 'gpr1');
+      for (const lacquer of [m.paint, m.secondary, m.accent, m.carbon])
+        expect(studioHookKeys(lacquer)).toContain(SSR_MASK_HOOK);
+      expect(studioHookKeys(gpLiveryMaterial(m, 0, 'gpr1'))).toContain(SSR_MASK_HOOK);
+      expect(studioHookKeys(gpWingPaint(m, 0))).toContain(SSR_MASK_HOOK);
+      calibrateGpMaterials(road, 'sbk1000');
+      expect(studioHookKeys(road.paint)).not.toContain(SSR_MASK_HOOK);
+      // The hook only writes the mask while the SSR stage drives its uniform: off by default.
+      expect(ssrMaskUniforms.apexSsrEncode.value).toBe(0);
+    } finally {
+      m.dispose();
+      road.dispose();
     }
   });
 });

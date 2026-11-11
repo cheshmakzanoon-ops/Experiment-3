@@ -350,3 +350,204 @@ export function installShellInterior(material: T.MeshPhysicalMaterial) {
   });
   return material;
 }
+
+/** Rolled, thickened free edges for an open shell panel.
+ *
+ * A moulded skin has a thickness: its cut edge is a few millimetres of
+ * composite, rounded where the paint wraps over it, not a razor line.
+ * Every boundary edge of `geometry` (the tyre notch, the lower fairing rim,
+ * the seam to the next panel that is not welded to it) grows a strip: a
+ * quarter-round roll of `radius` that turns the outer skin over the edge,
+ * then a wall `thickness` deep. Welded boundary vertices share their profile,
+ * so the strips of a curved edge are continuous, and the roll starts on the
+ * panel's own vertex normal, so shading flows from the skin into the hem.
+ * Purely additive: the panel's vertices, indices and shape are unchanged. */
+export interface HemOptions {
+  /** Depth of the cut edge below the outer skin (m). */
+  readonly thickness: number;
+  /** Radius of the rolled outer corner (m); at most `thickness`. */
+  readonly radius: number;
+  /** Quarter-round segments (1 = chamfer). */
+  readonly arc: number;
+}
+export const GP_SHELL_HEM: HemOptions = Object.freeze({
+  thickness: 0.0028,
+  radius: 0.0016,
+  arc: 2,
+});
+
+/** `ignore` drops a boundary edge from its adjacent face's outward normal:
+ * the flat end caps are fans whose closing diagonals are not real free edges. */
+export function hemShellEdges(
+  source: T.BufferGeometry,
+  options: HemOptions = GP_SHELL_HEM,
+  ignore?: (faceNormal: T.Vector3) => boolean,
+): T.BufferGeometry {
+  const { thickness, radius, arc } = options;
+  if (!(thickness > 0) || !(radius > 0) || radius > thickness || !(arc >= 1))
+    throw new RangeError('Invalid shell hem');
+  const position = source.getAttribute('position'),
+    normal = source.getAttribute('normal'),
+    uv = source.getAttribute('uv'),
+    index = source.getIndex();
+  if (!position || !normal || !uv || !index)
+    throw new Error('A hemmed shell needs indexed position, normal and uv');
+  for (const name of Object.keys(source.attributes))
+    if (name !== 'position' && name !== 'normal' && name !== 'uv')
+      throw new Error(`Hemming does not carry attribute ${name}`);
+  const weld = new Map<string, number>(),
+    welded = new Int32Array(position.count);
+  const quantum = 1e5;
+  for (let i = 0; i < position.count; i++) {
+    const key = `${Math.round(position.getX(i) * quantum)},${Math.round(position.getY(i) * quantum)},${Math.round(position.getZ(i) * quantum)}`;
+    let id = weld.get(key);
+    if (id === undefined) weld.set(key, (id = weld.size));
+    welded[i] = id;
+  }
+  interface Edge {
+    count: number;
+    a: number;
+    b: number;
+    /** The triangle's third vertex (its winding side). */
+    c: number;
+  }
+  const edges = new Map<number, Edge>(),
+    stride = weld.size + 1;
+  for (let t = 0; t < index.count; t += 3)
+    for (let k = 0; k < 3; k++) {
+      const a = index.getX(t + k),
+        b = index.getX(t + ((k + 1) % 3)),
+        c = index.getX(t + ((k + 2) % 3)),
+        wa = welded[a],
+        wb = welded[b];
+      if (wa === wb) continue;
+      const key = Math.min(wa, wb) * stride + Math.max(wa, wb),
+        e = edges.get(key);
+      if (e) e.count++;
+      else edges.set(key, { count: 1, a, b, c });
+    }
+  const pa = new T.Vector3(),
+    pb = new T.Vector3(),
+    pc = new T.Vector3(),
+    face = new T.Vector3(),
+    along = new T.Vector3(),
+    inward = new T.Vector3(),
+    n = new T.Vector3(),
+    d = new T.Vector3();
+  const boundary: Edge[] = [];
+  for (const e of edges.values()) {
+    if (e.count !== 1) continue;
+    if (ignore) {
+      pa.fromBufferAttribute(position, e.a);
+      pb.fromBufferAttribute(position, e.b);
+      pc.fromBufferAttribute(position, e.c);
+      face.crossVectors(along.subVectors(pb, pa), inward.subVectors(pc, pa)).normalize();
+      if (ignore(face)) continue;
+    }
+    boundary.push(e);
+  }
+  if (!boundary.length) return source;
+  // Inward (in-surface, away from the free edge) direction at each welded
+  // boundary vertex: the mean of its boundary edges' own inward directions.
+  const inwardSum = new Map<number, T.Vector3>();
+  for (const e of boundary) {
+    pa.fromBufferAttribute(position, e.a);
+    pb.fromBufferAttribute(position, e.b);
+    pc.fromBufferAttribute(position, e.c);
+    along.subVectors(pb, pa);
+    face.crossVectors(along, inward.subVectors(pc, pa));
+    if (face.lengthSq() < 1e-20 || along.lengthSq() < 1e-20) continue;
+    face.normalize();
+    along.normalize();
+    // The interior lies to the left of a directed boundary edge (a -> b).
+    inward.crossVectors(face, along).normalize();
+    for (const w of [welded[e.a], welded[e.b]]) {
+      const sum = inwardSum.get(w);
+      if (sum) sum.add(inward);
+      else inwardSum.set(w, inward.clone());
+    }
+  }
+  // One profile (arc + 2 points) per welded boundary vertex.
+  const profile = arc + 2,
+    positions: number[] = [],
+    normals: number[] = [],
+    uvs: number[] = [],
+    indices: number[] = [],
+    first = new Map<number, number>();
+  const ensure = (vertex: number) => {
+    const w = welded[vertex];
+    let at = first.get(w);
+    if (at !== undefined) return at;
+    at = positions.length / 3;
+    first.set(w, at);
+    pa.fromBufferAttribute(position, vertex);
+    n.fromBufferAttribute(normal, vertex).normalize();
+    d.copy(inwardSum.get(w) ?? d.set(0, 0, 0));
+    // Keep the inward direction in the tangent plane of the skin.
+    d.addScaledVector(n, -d.dot(n));
+    if (d.lengthSq() < 1e-12) d.set(0, 0, 0);
+    else d.normalize();
+    const { x: u, y: v } = new T.Vector2(uv.getX(vertex), uv.getY(vertex));
+    const push = (p: T.Vector3, q: T.Vector3) => {
+      positions.push(p.x, p.y, p.z);
+      normals.push(q.x, q.y, q.z);
+      uvs.push(u, v);
+    };
+    // Roll: quarter circle about C = E - n*r from the skin outward and down.
+    const centre = pa.clone().addScaledVector(n, -radius),
+      p = new T.Vector3(),
+      q = new T.Vector3();
+    for (let k = 0; k <= arc; k++) {
+      const theta = (k / arc) * (Math.PI / 2),
+        c = Math.cos(theta),
+        s = Math.sin(theta);
+      q.copy(n).multiplyScalar(c).addScaledVector(d, -s);
+      push(p.copy(centre).addScaledVector(q, radius), q);
+    }
+    // Wall: straight down to the full thickness, facing away from the panel.
+    const wall = new T.Vector3().copy(d).multiplyScalar(-1);
+    push(
+      p
+        .copy(centre)
+        .addScaledVector(d, -radius)
+        .addScaledVector(n, -(thickness - radius)),
+      wall,
+    );
+    return at;
+  };
+  for (const e of boundary) {
+    const a = ensure(e.a),
+      b = ensure(e.b);
+    for (let k = 0; k < profile - 1; k++) {
+      // Directed a -> b with the interior on the left: the strip runs to the
+      // right (outward), so (a_k, a_k+1, b_k) faces out of the skin.
+      indices.push(a + k, a + k + 1, b + k, b + k, a + k + 1, b + k + 1);
+    }
+  }
+  if (!indices.length) return source;
+  const base = position.count,
+    total = base + positions.length / 3,
+    out = new T.BufferGeometry(),
+    join = (
+      src: T.BufferAttribute | T.InterleavedBufferAttribute,
+      extra: number[],
+      size: number,
+    ) => {
+      const array = new Float32Array(total * size);
+      for (let i = 0; i < base; i++)
+        for (let c = 0; c < size; c++) array[i * size + c] = src.getComponent(i, c);
+      array.set(extra, base * size);
+      return new T.BufferAttribute(array, size);
+    };
+  out.setAttribute('position', join(position, positions, 3));
+  out.setAttribute('normal', join(normal, normals, 3));
+  out.setAttribute('uv', join(uv, uvs, 2));
+  const all = new Uint32Array(index.count + indices.length);
+  for (let i = 0; i < index.count; i++) all[i] = index.getX(i);
+  for (let i = 0; i < indices.length; i++) all[index.count + i] = indices[i] + base;
+  out.setIndex(new T.BufferAttribute(all, 1));
+  out.name = source.name;
+  // Where the hem strips start in the index (the skin alone is `[0, hemStart)`).
+  out.userData.gpHemStart = index.count;
+  return out;
+}

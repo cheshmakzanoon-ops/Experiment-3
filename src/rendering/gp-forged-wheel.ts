@@ -132,10 +132,15 @@ export function gpForgedWheel(rim: number, halfWidth: number, detail: RiderDetai
   return geometry;
 }
 
+/** Outward tilt of the diamond-cut lip face from the wheel's flange plane (rad). */
+export const GP_LIP_BEVEL = (32 * Math.PI) / 180;
+
 /** Diamond-cut lip on both rim flanges (REF 003/018/046): a 6.5 mm bright
- * ring standing 0.4 mm proud of the black flange face, so the forged wheel
- * reads as machined metal under paint rather than a plain black disc. One
- * owned geometry for the caller's existing bright-metal batch. Axle is X. */
+ * chamfer whose outer edge stands 0.4 mm proud of the black flange face and
+ * whose inner edge rises a further 4 mm, so the forged wheel reads as
+ * machined metal under paint rather than a plain black disc, and the lip
+ * catches a different reflection at every angle round the wheel. One owned
+ * geometry for the caller's existing bright-metal batch. Axle is X. */
 export function gpWheelMachinedLip(rim: number, halfWidth: number, detail: RiderDetail) {
   if (!Number.isFinite(rim) || rim < 0.15 || rim > 0.3)
     throw new RangeError('Invalid GP wheel rim radius');
@@ -144,9 +149,36 @@ export function gpWheelMachinedLip(rim: number, halfWidth: number, detail: Rider
   const width = halfWidth * 0.76 + 0.0004,
     segments = detail === 'high' ? 64 : 32,
     pieces: T.BufferGeometry[] = [];
+  const inner = rim - 0.0085,
+    outer = rim - 0.002,
+    bevel = Math.tan(GP_LIP_BEVEL) * (outer - inner);
   for (const side of [-1, 1]) {
     // Annulus in the flange plane, facing outward along the axle.
-    const g = new T.RingGeometry(rim - 0.0085, rim - 0.002, segments, 1);
+    const g = new T.RingGeometry(inner, outer, segments, 1);
+    // Polar texture coordinates: U runs round the circumference, V across the
+    // 6.5 mm band. The lathe marks of a diamond-cut lip run along U, and the
+    // anisotropic highlight (a tangent frame taken from these UVs) stretches
+    // radially across them instead of following RingGeometry's planar map.
+    const uv = g.getAttribute('uv'),
+      p = g.getAttribute('position'),
+      n = g.getAttribute('normal');
+    for (let i = 0; i < uv.count; i++) {
+      uv.setXY(i, (i % (segments + 1)) / segments, Math.floor(i / (segments + 1)));
+      // A diamond-cut chamfer, not a flat washer: the inner edge stands proud
+      // and the face tilts outward by GP_LIP_BEVEL, so its normal turns with
+      // the angle round the wheel and the lip mirrors sky above, road below
+      // and the machine to either side, instead of one uniform white ring.
+      const x = p.getX(i),
+        y = p.getY(i),
+        r = Math.hypot(x, y);
+      p.setZ(i, (1 - (r - inner) / (outer - inner)) * bevel);
+      n.setXYZ(
+        i,
+        (Math.sin(GP_LIP_BEVEL) * x) / r,
+        (Math.sin(GP_LIP_BEVEL) * y) / r,
+        Math.cos(GP_LIP_BEVEL),
+      );
+    }
     g.rotateY((side * Math.PI) / 2);
     g.translate(side * width, 0, 0);
     pieces.push(g);

@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { installGlassFresnel } from './materials/library.ts';
 import { chainShaderHook, injectAfter } from './studio/shader-hooks.ts';
+import { installSsrMask } from './ultra/ssr-mask.ts';
 import type { BikeMaterials } from './bike.ts';
 import type { RiderDetail } from './rider.ts';
 
@@ -20,6 +21,10 @@ export function calibrateGpMaterials(materials: BikeMaterials, vehicle: string):
   }
   materials.paint.color.multiplyScalar(0.84);
   materials.paint.userData.gpAppearance = 'r5-refined';
+  // Lacquered surfaces join the ULTRA screen-space reflection mask (a no-op
+  // everywhere the SSR stage is not running).
+  for (const lacquer of [materials.paint, materials.secondary, materials.accent])
+    installSsrMask(lacquer);
   // Visible carbon covers are lacquered (REF 056 tank cover, REF 073): a
   // deep clear coat over the twill, so the weave flips under sky reflections.
   // Inner and structural carbon uses the raw satin finish instead.
@@ -28,10 +33,20 @@ export function calibrateGpMaterials(materials: BikeMaterials, vehicle: string):
   // reflections over the weave on wings and covers, not a hazy film.
   materials.carbon.clearcoat = 1;
   materials.carbon.clearcoatRoughness = 0.045;
+  installSsrMask(materials.carbon);
   materials.aluminium.roughness = 0.41;
   materials.wheel.roughness = 0.42;
   materials.wheel.clearcoat = 0.2;
   materials.wheel.clearcoatRoughness = 0.24;
+  // Brushed and turned metal (High/ULTRA, setGpMetalAnisotropy): the
+  // highlight stretches across the tool marks. The brushed frame map's marks
+  // run along U, a turned tube's around its circumference (U), so both
+  // stretch along V: the spar length and the tube axis.
+  for (const metal of [materials.aluminium, materials.forkUpper, materials.forkLower])
+    if (metal instanceof T.MeshPhysicalMaterial) metal.anisotropyRotation = Math.PI / 2;
+  materials.aluminium.userData.gpAnisotropy = GP_METAL_ANISOTROPY.brushed;
+  materials.forkUpper.userData.gpAnisotropy = GP_METAL_ANISOTROPY.turned;
+  materials.forkLower.userData.gpAnisotropy = GP_METAL_ANISOTROPY.polished;
   // Coloured headers supply a vertex attribute, but the old plain-cylinder
   // silencers did not. Mark their missing-attribute fallback explicitly.
   materials.titanium.userData.gpBareTitanium = true;
@@ -67,6 +82,12 @@ export function calibrateGpMaterials(materials: BikeMaterials, vehicle: string):
   materials.screen.depthWrite = false;
   materials.screen.roughness = 0.03;
   installGlassFresnel(materials.screen);
+  // Tail rain light: a smoked-red lens over a two-row LED array, not a flat
+  // red slab. The emissive map makes only the diodes glow (rain and braking);
+  // between them the lens stays dark.
+  materials.lamp.color.setHex(0x1c0404);
+  materials.lamp.roughness = 0.22;
+  materials.lamp.emissiveMap = gpTailLampMap();
   materials.screenLight.color.setHex(0x9aa6ad);
   materials.screenLight.metalness = 0;
   materials.screenLight.opacity = 0.3;
@@ -74,6 +95,24 @@ export function calibrateGpMaterials(materials: BikeMaterials, vehicle: string):
   return true;
 }
 
+/** Anisotropy strengths of the GP machine's metals (three.js
+ * KHR_materials_anisotropy): brushed frame aluminium, the hard-anodised
+ * turned outer fork tubes, and the superfinished stanchions. */
+export const GP_METAL_ANISOTROPY = Object.freeze({ brushed: 0.62, turned: 0.45, polished: 0.22 });
+/** Switch the anisotropic lobes with the graphics tier. Crossing zero
+ * recompiles once (three.js keys USE_ANISOTROPY), so this only flips when the
+ * preset changes; it is idempotent per frame. */
+export function setGpMetalAnisotropy(
+  materials: Pick<BikeMaterials, 'aluminium' | 'forkUpper' | 'forkLower'>,
+  enabled: boolean,
+) {
+  for (const metal of [materials.aluminium, materials.forkUpper, materials.forkLower]) {
+    const strength = metal.userData.gpAnisotropy;
+    if (typeof strength !== 'number' || !(metal instanceof T.MeshPhysicalMaterial)) continue;
+    const target = enabled ? strength : 0;
+    if (metal.anisotropy !== target) metal.anisotropy = target;
+  }
+}
 /** Temper oxide is a smooth glassy TiO2 film over burnished metal, so the
  * coloured bands mirror the sky more sharply than bare titanium. The band
  * strength is the authored vertex tint's chroma (bare grey: none), which
@@ -95,6 +134,35 @@ export function installGpTitaniumOxideGloss(material: T.Material): boolean {
       'fragment',
     );
   });
+}
+
+/** Emissive pattern of the tail rain light: two rows of round diodes on a
+ * near-black lens, with a faint glow floor so the lens still reads lit. Linear
+ * data in the lamp's emissive colour space (sRGB, like any emissive map). */
+export const GP_TAIL_LED = Object.freeze({ columns: 8, rows: 2, floor: 0.07 });
+function gpTailLampMap() {
+  const w = 128,
+    h = 32,
+    { columns, rows, floor } = GP_TAIL_LED,
+    data = new Uint8Array(w * h * 4);
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      const cx = ((Math.floor((x / w) * columns) + 0.5) / columns) * w,
+        cy = ((Math.floor((y / h) * rows) + 0.5) / rows) * h,
+        d = Math.hypot(x + 0.5 - cx, (y + 0.5 - cy) * 1.0) / (0.3 * (h / rows)),
+        led = Math.min(1, Math.max(0, 1.6 - d * 1.6)),
+        v = Math.round(255 * Math.max(floor, led));
+      data.set([v, v, v, 255], (y * w + x) * 4);
+    }
+  const texture = new T.DataTexture(data, w, h, T.RGBAFormat);
+  texture.name = 'GP tail LED array (emissive)';
+  texture.colorSpace = T.SRGBColorSpace;
+  texture.wrapS = texture.wrapT = T.ClampToEdgeWrapping;
+  texture.magFilter = T.LinearFilter;
+  texture.minFilter = T.LinearMipmapLinearFilter;
+  texture.generateMipmaps = true;
+  texture.needsUpdate = true;
+  return texture;
 }
 
 /** Screen coverage over the GP screen panel's net UVs (u: base edge 0 to

@@ -5,7 +5,7 @@ import {
   gpTyreScrubEdge,
 } from '../src/rendering/gp-tyre-finish.ts';
 import { GP_SHIFT_LIGHTS, gpShiftLightsLit } from '../src/rendering/bike-cockpit.ts';
-import { gpWheelMachinedLip } from '../src/rendering/gp-forged-wheel.ts';
+import { GP_LIP_BEVEL, gpWheelMachinedLip } from '../src/rendering/gp-forged-wheel.ts';
 import { gpInnerFairingNet } from '../src/rendering/gp-race-bodywork.ts';
 
 describe('GP slick scrub band follows the presented lean', () => {
@@ -69,17 +69,54 @@ describe('GP forged wheel machined lips', () => {
         for (let i = 0; i < p.count; i++) {
           const x = p.getX(i),
             r = Math.hypot(p.getY(i), p.getZ(i));
-          expect(Math.abs(Math.abs(x) - (halfWidth * 0.76 + 0.0004))).toBeLessThan(1e-6);
+          // The outer edge is 0.4 mm proud of the flange face; the chamfer rises to
+          // 6.5 mm * tan(32 deg) = 4 mm above that at its inner edge.
+          const proud = Math.abs(x) - (halfWidth * 0.76 + 0.0004);
+          expect(proud).toBeGreaterThan(-1e-6);
+          expect(proud).toBeLessThan(0.0042);
           expect(r).toBeGreaterThan(rim - 0.009);
           expect(r).toBeLessThan(rim - 0.0019);
-          // Each ring faces away from the wheel's centre plane.
+          // Each ring faces away from the wheel's centre plane, tilted outward
+          // along the radius by the chamfer angle.
           expect(Math.sign(n.getX(i))).toBe(Math.sign(x));
+          expect(Math.abs(n.getX(i))).toBeCloseTo(Math.cos(GP_LIP_BEVEL), 5);
         }
       } finally {
         g.dispose();
       }
     }
     expect(() => gpWheelMachinedLip(0.5, 0.06, 'high')).toThrow();
+  });
+  it('maps U round the circumference and V across the band, so lathe marks and anisotropy follow the lip', () => {
+    const rim = 0.2159,
+      g = gpWheelMachinedLip(rim, 0.06, 'high');
+    try {
+      const p = g.getAttribute('position'),
+        uv = g.getAttribute('uv');
+      let maxV = 0;
+      for (let i = 0; i < p.count; i++) {
+        const r = Math.hypot(p.getY(i), p.getZ(i));
+        // V is the radial position: inner edge 0, outer edge 1.
+        const expectedV = (r - (rim - 0.0085)) / (0.0085 - 0.002);
+        expect(uv.getY(i)).toBeCloseTo(expectedV, 3);
+        expect(uv.getX(i)).toBeGreaterThanOrEqual(0);
+        expect(uv.getX(i)).toBeLessThanOrEqual(1);
+        maxV = Math.max(maxV, uv.getY(i));
+      }
+      expect(maxV).toBe(1);
+      // U advances with the angle about the axle (X): a quarter turn is a quarter of U.
+      const angle = (i: number) => Math.atan2(p.getZ(i), p.getY(i));
+      const outer = Array.from({ length: p.count }, (_, i) => i).filter(
+        (i) => uv.getY(i) === 1 && p.getX(i) > 0,
+      );
+      const first = outer[0],
+        quarter = outer[16];
+      const turn = ((angle(quarter) - angle(first) + 3 * Math.PI) % (2 * Math.PI)) - Math.PI;
+      expect(Math.abs(Math.abs(turn) - Math.PI / 2)).toBeLessThan(1e-3);
+      expect(uv.getX(quarter) - uv.getX(first)).toBeCloseTo(0.25, 6);
+    } finally {
+      g.dispose();
+    }
   });
 });
 

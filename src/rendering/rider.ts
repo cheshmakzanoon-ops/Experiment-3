@@ -3,6 +3,7 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import { tagWeatherSurface } from './weather-presentation.ts';
 import { helmetLiveryTexture, riderPanelTexture } from './bike-livery.ts';
 import { bikeSurfaceMaps } from './bike-surface-detail.ts';
+import { installSsrMask } from './ultra/ssr-mask.ts';
 import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
 import { sampleProfile } from './profile-sampling.ts';
 import { tagMudExposure } from './offroad/mud.ts';
@@ -544,6 +545,8 @@ export class Rider {
       clearcoatRoughness: 0.04,
       name: 'Rider helmet shell',
     });
+    // ULTRA screen-space reflections (inert unless that stage is running).
+    installSsrMask(helmet);
     const visor = new T.MeshPhysicalMaterial({
       color: 0x5e6f79,
       roughness: 0.1,
@@ -1688,6 +1691,38 @@ export class Rider {
   /** Materials this rider created and disposes (bike-space occlusion hooks them). */
   get ownedMaterials(): readonly T.Material[] {
     return this.materials;
+  }
+  /** The seated body as ten capsule occluders in the rider-root frame (the
+   * sprung frame while riding): torso, head, upper arms, forearms, thighs and
+   * shins (gp-occlusion.ts). Radii sit a little inside the suit's skin so a
+   * garment never occludes itself. Returns the number written (0 off-GP). */
+  gpOccluders(emit: (slot: number, a: T.Vector3, b: T.Vector3, radius: number) => void): number {
+    if (!this.gp) return 0;
+    const { a, b } = scratch,
+      up = this.gpScratch[0],
+      chest = this.gpSpine?.chest ?? this.torso;
+    let slot = 0;
+    a.set(0, 0.04, 0).applyQuaternion(this.torso.quaternion).add(this.torso.position);
+    b.set(0, RIDER.spine - 0.1, 0)
+      .applyQuaternion(chest.quaternion)
+      .add(chest.position);
+    emit(slot++, a, b, 0.095);
+    // The helmet sits above the neck base along the head's own up axis.
+    up.set(0, 0.095, 0.015).applyQuaternion(this.head.quaternion);
+    a.copy(this.head.position).add(up).applyQuaternion(chest.quaternion).add(chest.position);
+    emit(slot++, a, a, 0.115);
+    const limb = (bones: readonly Bone[], radius: number) => {
+      for (const bone of bones) {
+        a.copy(bone.group.position);
+        b.set(0, bone.length, 0).applyQuaternion(bone.group.quaternion).add(a);
+        emit(slot++, a, b, radius);
+      }
+    };
+    limb(this.upperArms, 0.042);
+    limb(this.forearms, 0.036);
+    limb(this.thighs, 0.066);
+    limb(this.shins, 0.046);
+    return slot;
   }
   dispose() {
     this.gpBrakeFingers?.dispose();

@@ -1,6 +1,7 @@
 import {
   bindGpBareMetal,
   calibrateGpMaterials,
+  setGpMetalAnisotropy,
   gpFrontFender,
   gpSilencer,
 } from './gp-appearance.ts';
@@ -30,16 +31,19 @@ import {
 } from './gp-front-brake.ts';
 import { bikeSurfaceMaps } from './bike-surface-detail.ts';
 import {
+  GP_CAPSULES,
   acquireGpOcclusion,
   bindGpOcclusion,
   gpOcclusionSources,
   gpOcclusionUniforms,
   installGpOcclusion,
   releaseGpOcclusion,
+  setGpCapsule,
   setGpOcclusionStrength,
   voxelizeGpOcclusion,
   type GpOcclusionGrid,
 } from './gp-occlusion.ts';
+import { setGpPanelRelief } from './gp-panel-relief.ts';
 import { BikeCockpit } from './bike-cockpit.ts';
 import { tcamFov } from './cockpit-framing.ts';
 import { tagWeatherSurface } from './weather-presentation.ts';
@@ -458,13 +462,14 @@ export class BikeMaterials {
   readonly secondary: T.MeshPhysicalMaterial;
   readonly accent: T.MeshPhysicalMaterial;
   readonly carbon: T.MeshPhysicalMaterial;
-  readonly aluminium: T.MeshStandardMaterial;
+  /** Physical so GP High/ULTRA can switch on the anisotropic lobe (gp-appearance.ts). */
+  readonly aluminium: T.MeshPhysicalMaterial;
   readonly titanium: T.MeshStandardMaterial;
   readonly rubber: T.MeshStandardMaterial;
   readonly tyreFinish: ReturnType<typeof installGpTyreFinish>;
   readonly wheel: T.MeshPhysicalMaterial;
-  readonly forkUpper: T.MeshStandardMaterial;
-  readonly forkLower: T.MeshStandardMaterial;
+  readonly forkUpper: T.MeshPhysicalMaterial;
+  readonly forkLower: T.MeshPhysicalMaterial;
   readonly disc: T.MeshStandardMaterial;
   readonly caliper: T.MeshStandardMaterial;
   readonly dark: T.MeshStandardMaterial;
@@ -520,7 +525,7 @@ export class BikeMaterials {
     this.carbon = add(carbonMaterial('lacquered'));
     this.carbon.name = 'GP carbon: metre-scale filtered twill';
     this.aluminium = add(
-      new T.MeshStandardMaterial({
+      new T.MeshPhysicalMaterial({
         color: 0xb9bcc0,
         metalness: 0.92,
         roughness: 0.34,
@@ -560,7 +565,7 @@ export class BikeMaterials {
       }),
     );
     this.forkUpper = add(
-      new T.MeshStandardMaterial({
+      new T.MeshPhysicalMaterial({
         color: 0x8c6a2c,
         metalness: 0.85,
         roughness: 0.28,
@@ -568,7 +573,7 @@ export class BikeMaterials {
       }),
     );
     this.forkLower = add(
-      new T.MeshStandardMaterial({
+      new T.MeshPhysicalMaterial({
         color: 0x2d2b29,
         metalness: 0.9,
         roughness: 0.14,
@@ -971,14 +976,14 @@ export class BikeModel {
       add(
         this.steer,
         tripleClampGeometry(0.024, detail === 'high' ? 9 : 5),
-        gpPrototype ? m.dark : m.aluminium,
+        gpPrototype ? m.forkUpper : m.aluminium,
         0,
         0.01,
       ).name = 'Relieved upper triple clamp';
       add(
         this.steer,
         tripleClampGeometry(0.028, detail === 'high' ? 7 : 4),
-        m.dark,
+        gpPrototype ? m.forkUpper : m.dark,
         0,
         -0.14,
       ).name = 'Relieved lower triple clamp';
@@ -1173,7 +1178,7 @@ export class BikeModel {
       add(
         this.forkLower,
         new T.BoxGeometry(0.045, 0.11, 0.07),
-        m.dark,
+        gpPrototype && detail === 'high' ? m.forkUpper : m.dark,
         side * 0.105,
         0.0,
         FORK_OFFSET,
@@ -1644,7 +1649,7 @@ export class BikeModel {
       add(
         this.steer,
         new T.CylinderGeometry(0.024, 0.024, 0.009, 16),
-        m.dark,
+        gpPrototype ? m.forkUpper : m.dark,
         -0.207,
         0.025,
         0.065,
@@ -2397,6 +2402,15 @@ export class BikeShells {
         // Bike-space occlusion follows the presented sprung frame; High/ULTRA only.
         const occlusion = entry.materials.occlusion;
         setGpOcclusionStrength(occlusion, quality === 'high');
+        setGpMetalAnisotropy(entry.materials, quality === 'high');
+        setGpPanelRelief(entry.materials, quality === 'high');
+        const rider = (model as BikeModel).rider;
+        // The seated rider as capsule occluders; none while he is thrown clear.
+        const seated =
+          quality === 'high' && rider.root.parent === (model as BikeModel).sprung
+            ? rider.gpOccluders((slot, a, b, r) => setGpCapsule(occlusion, slot, a, b, r))
+            : 0;
+        for (let slot = seated; slot < GP_CAPSULES; slot++) occlusion.gpCapA.value[slot].w = 0;
         const sprung = (model as BikeModel).sprung;
         sprung.updateWorldMatrix(true, false);
         occlusion.gpOccFromWorld.value.copy(sprung.matrixWorld).invert();

@@ -15,9 +15,12 @@ import {
 import { tagWeatherSurface } from './weather-presentation.ts';
 import { carbonMaterial } from './materials.ts';
 import { bikeSurfaceMaps } from './bike-surface-detail.ts';
+import { installSsrMask } from './ultra/ssr-mask.ts';
+import { GP_PANEL_RELIEF, installGpPanelRelief } from './gp-panel-relief.ts';
 import {
   GP_LIVERY_FRAME,
   installShellInterior,
+  hemShellEdges,
   liveryUv,
   shellPanelGeometry,
   type P3,
@@ -879,10 +882,21 @@ const FINISH = Object.freeze({
 export const GP_PAINT_FLAKE = Object.freeze({ metalness: 0.42 });
 type Finish = keyof typeof FINISH;
 
+/** What one pass over the livery draws: the colour atlas, the finish atlas, or
+ * the height atlas (only elements that pass a `relief` value are drawn there). */
+type LiveryLayer = 'colour' | 'finish' | 'relief';
+const RELIEF_VALUE = (v: number) => `rgb(${v}, ${v}, ${v})`;
+
 interface LiveryPen {
-  poly(points: readonly ZY[], colour: string, finish?: Finish): void;
-  line(points: readonly ZY[], width: number, colour: string, finish?: Finish): void;
-  dots(points: readonly ZY[], radius: number, colour: string): void;
+  poly(points: readonly ZY[], colour: string, finish?: Finish, relief?: number): void;
+  line(
+    points: readonly ZY[],
+    width: number,
+    colour: string,
+    finish?: Finish,
+    relief?: number,
+  ): void;
+  dots(points: readonly ZY[], radius: number, colour: string, relief?: number): void;
   text(
     value: string,
     at: ZY,
@@ -897,9 +911,11 @@ interface LiveryPen {
 function pen(
   c: CanvasRenderingContext2D,
   side: 1 | -1,
-  finishOnly: boolean,
+  layer: LiveryLayer,
   accent: string,
 ): LiveryPen {
+  const finishOnly = layer === 'finish',
+    heightOnly = layer === 'relief';
   const path = (points: readonly ZY[]) => {
     c.beginPath();
     points.forEach((p, i) => {
@@ -909,22 +925,24 @@ function pen(
     });
   };
   return {
-    poly(points, colour, finish = 'gloss') {
+    poly(points, colour, finish = 'gloss', relief) {
+      if (heightOnly && relief === undefined) return;
       path(points);
       c.closePath();
-      c.fillStyle = finishOnly ? FINISH[finish] : colour;
+      c.fillStyle = heightOnly ? RELIEF_VALUE(relief!) : finishOnly ? FINISH[finish] : colour;
       c.fill();
     },
-    line(points, width, colour, finish = 'gloss') {
+    line(points, width, colour, finish = 'gloss', relief) {
+      if (heightOnly && relief === undefined) return;
       path(points);
       c.lineWidth = Math.max(1, width * PX_PER_M);
       c.lineJoin = 'round';
-      c.strokeStyle = finishOnly ? FINISH[finish] : colour;
+      c.strokeStyle = heightOnly ? RELIEF_VALUE(relief!) : finishOnly ? FINISH[finish] : colour;
       c.stroke();
     },
-    dots(points, radius, colour) {
-      if (finishOnly) return;
-      c.fillStyle = colour;
+    dots(points, radius, colour, relief) {
+      if (finishOnly || (heightOnly && relief === undefined)) return;
+      c.fillStyle = heightOnly ? RELIEF_VALUE(relief!) : colour;
       for (const p of points) {
         const [x, y] = atlasPoint(side, p);
         c.beginPath();
@@ -933,7 +951,7 @@ function pen(
       }
     },
     text(value, at, height, width, colour, style = { weight: 0.2, slant: 0.12, tracking: 0.08 }) {
-      if (finishOnly) return;
+      if (finishOnly || heightOnly) return;
       const [x, y] = atlasPoint(side, at);
       c.strokeStyle = colour;
       drawWordmark(
@@ -946,7 +964,7 @@ function pen(
       );
     },
     mark(brand, at, w, h, colour) {
-      if (finishOnly || !(brand in BRAND_ART)) return;
+      if (finishOnly || heightOnly || !(brand in BRAND_ART)) return;
       const [x, y] = atlasPoint(side, at),
         art = BRAND_ART[brand as keyof typeof BRAND_ART],
         tab = new T.Color(accent),
@@ -1031,6 +1049,7 @@ function drawLivery(p: LiveryPen, entrant: number, variant: GpShellVariant) {
         ],
     black,
     'matte',
+    GP_PANEL_RELIEF.recess,
   );
   // Exit gills behind the radiator, raked like the reference flanks; the
   // carbon louvre blades sit in front of them.
@@ -1043,6 +1062,7 @@ function drawLivery(p: LiveryPen, entrant: number, variant: GpShellVariant) {
     ],
     black,
     'matte',
+    GP_PANEL_RELIEF.recess,
   );
   for (let i = 1; i < 5; i++) {
     const t = i / 5;
@@ -1054,6 +1074,7 @@ function drawLivery(p: LiveryPen, entrant: number, variant: GpShellVariant) {
       0.009,
       '#2b2f33',
       'satin',
+      GP_PANEL_RELIEF.dome,
     );
   }
   // Knee-grip pads on the tank flanks (textured, matte).
@@ -1100,7 +1121,7 @@ function drawLivery(p: LiveryPen, entrant: number, variant: GpShellVariant) {
     [0.12, -0.15],
     [-0.08, -0.17],
   ];
-  p.line(joint, 0.004, seam, 'matte');
+  p.line(joint, 0.004, seam, 'matte', GP_PANEL_RELIEF.groove);
   p.line(
     [
       [0.66, 0.28],
@@ -1110,6 +1131,7 @@ function drawLivery(p: LiveryPen, entrant: number, variant: GpShellVariant) {
     0.003,
     seam,
     'matte',
+    GP_PANEL_RELIEF.groove,
   );
   p.line(
     [
@@ -1120,6 +1142,7 @@ function drawLivery(p: LiveryPen, entrant: number, variant: GpShellVariant) {
     0.004,
     seam,
     'matte',
+    GP_PANEL_RELIEF.groove,
   );
   p.dots(
     [
@@ -1135,6 +1158,7 @@ function drawLivery(p: LiveryPen, entrant: number, variant: GpShellVariant) {
     ],
     0.0045,
     '#9aa0a6',
+    GP_PANEL_RELIEF.dome,
   );
   // Belly cooling slots.
   for (let i = 0; i < 4; i++) {
@@ -1148,6 +1172,7 @@ function drawLivery(p: LiveryPen, entrant: number, variant: GpShellVariant) {
       ],
       black,
       'matte',
+      GP_PANEL_RELIEF.recess,
     );
   }
   // Sponsor hierarchy of a factory machine (REF 001/006/018/056): one huge
@@ -1269,19 +1294,51 @@ function drawLivery(p: LiveryPen, entrant: number, variant: GpShellVariant) {
 /** Colour and finish atlases for one entrant. */
 export function gpLiveryTextures(entrant: number, variant: GpShellVariant) {
   const scheme = liveryScheme(entrant);
-  const draw = (finishOnly: boolean) => (c: CanvasRenderingContext2D) => {
-    c.fillStyle = finishOnly ? FINISH.gloss : scheme.primary;
+  const draw = (layer: LiveryLayer) => (c: CanvasRenderingContext2D) => {
+    c.fillStyle = layer === 'finish' ? FINISH.gloss : scheme.primary;
     c.fillRect(0, 0, ATLAS.w, ATLAS.h);
     for (const side of [1, -1] as const)
-      drawLivery(pen(c, side, finishOnly, scheme.accent), entrant, variant);
+      drawLivery(pen(c, side, layer, scheme.accent), entrant, variant);
   };
-  const map = canvasTexture(ATLAS.w, ATLAS.h, draw(false));
+  const map = canvasTexture(ATLAS.w, ATLAS.h, draw('colour'));
   const finish = canvasTexture(ATLAS.w / 2, ATLAS.h / 2, (c) => {
     c.scale(0.5, 0.5);
-    draw(true)(c);
+    draw('finish')(c);
   });
   finish.colorSpace = T.NoColorSpace;
   return { map, finish };
+}
+
+/** Height atlas of the livery's seams, fasteners and gills: one per shell
+ * variant (the relief does not depend on the entrant's colours or sponsors),
+ * shared by every entrant on it and freed with the last of their paints. */
+const reliefAtlases = new Map<GpShellVariant, { texture: T.Texture; users: number }>();
+function acquireRelief(variant: GpShellVariant) {
+  let entry = reliefAtlases.get(variant);
+  if (!entry) {
+    const texture = canvasTexture(ATLAS.w, ATLAS.h, (c) => {
+      c.fillStyle = RELIEF_VALUE(GP_PANEL_RELIEF.flat);
+      c.fillRect(0, 0, ATLAS.w, ATLAS.h);
+      for (const side of [1, -1] as const)
+        drawLivery(pen(c, side, 'relief', '#000000'), 0, variant);
+    });
+    texture.name = 'GP livery panel relief (height)';
+    texture.colorSpace = T.NoColorSpace;
+    entry = { texture, users: 0 };
+    reliefAtlases.set(variant, entry);
+  }
+  entry.users++;
+  return entry.texture;
+}
+function releaseRelief(variant: GpShellVariant) {
+  const entry = reliefAtlases.get(variant);
+  if (!entry || --entry.users > 0) return;
+  entry.texture.dispose();
+  reliefAtlases.delete(variant);
+}
+/** Live relief atlases (resource accounting in tests). */
+export function gpReliefAtlasCount() {
+  return reliefAtlases.size;
 }
 
 /** Front number decal art: number on a light oval bay. */
@@ -1324,6 +1381,7 @@ export function gpWingPaint(materials: BikeMaterials, entrant: number) {
     name: 'GP box wing paint (clear-coated)',
   });
   installShellInterior(material);
+  installSsrMask(material);
   tagWeatherSurface(material, 'paint');
   materials.list.push(material);
   wingPaints.set(materials, material);
@@ -1379,6 +1437,16 @@ export function gpLiveryMaterial(
     name: 'GP race shell livery (clear-coated)',
   });
   installShellInterior(material);
+  // ULTRA screen-space reflections: the lacquer mirrors the road, kerbs and
+  // neighbouring bikes (inert unless the SSR stage is running).
+  installSsrMask(material);
+  // Seams, fasteners and gills bend the lacquer's normals (High/ULTRA only).
+  material.userData.gpRelief = installGpPanelRelief(material, acquireRelief(variant));
+  let held = true;
+  material.addEventListener('dispose', () => {
+    if (held) releaseRelief(variant);
+    held = false;
+  });
   tagWeatherSurface(material, 'paint');
   materials.list.push(material);
   byVariant.set(variant, material);
@@ -1448,30 +1516,47 @@ export function gpRaceBodywork(
     geometries.forEach((g) => g.dispose());
     return merged;
   };
+  // Free edges of the moulded skins get a rolled 2.8 mm lip at the High tier
+  // (the panels were single paper-thin surfaces); lower LODs keep one sheet.
+  // The flat end caps' closing diagonals are not free edges (facing along Z).
+  const hemmed = (g: T.BufferGeometry) =>
+    high ? hemShellEdges(g, undefined, (face) => Math.abs(face.z) > 0.92) : g;
   const bodyGeometry = liveryUv(
-    shellPanelGeometry({
-      name: 'GP flank and nose',
-      net: bodyNet(variant),
-      creases: [2, 4, 6],
-      ridge: true,
-      caps: { end: true },
-      rows,
-      cols,
-      exclude: gpFrontTyreExclusion,
-    }),
+    hemmed(
+      shellPanelGeometry({
+        name: 'GP flank and nose',
+        net: bodyNet(variant),
+        creases: [2, 4, 6],
+        ridge: true,
+        caps: { end: true },
+        rows,
+        cols,
+        exclude: gpFrontTyreExclusion,
+      }),
+    ),
   );
   const tankGeometry = liveryUv(
-    shellPanelGeometry({ name: 'GP tank cover', net: tankNet(variant), creases: [2], rows, cols }),
+    hemmed(
+      shellPanelGeometry({
+        name: 'GP tank cover',
+        net: tankNet(variant),
+        creases: [2],
+        rows,
+        cols,
+      }),
+    ),
   );
   const tailGeometry = liveryUv(
-    shellPanelGeometry({
-      name: 'GP tail',
-      net: tailNet(variant),
-      creases: [2, 4],
-      rows,
-      cols,
-      caps: { start: true },
-    }),
+    hemmed(
+      shellPanelGeometry({
+        name: 'GP tail',
+        net: tailNet(variant),
+        creases: [2, 4],
+        rows,
+        cols,
+        caps: { start: true },
+      }),
+    ),
   );
   const body = mesh(bodyGeometry, paint, 'GP race shell / flank and nose');
   const tank = mesh(tankGeometry, paint, 'GP race shell / tank');

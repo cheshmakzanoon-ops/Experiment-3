@@ -17,14 +17,17 @@ import {
   carBase,
 } from '../src/simulation/protocol.ts';
 import {
+  GP_CAPSULES,
   GP_OCCLUSION,
   acquireGpOcclusion,
   bindGpOcclusion,
   gpOcclusionCacheSize,
   gpOcclusionSources,
+  gpCapsuleOcclusion,
   gpOcclusionUniforms,
   installGpOcclusion,
   releaseGpOcclusion,
+  setGpCapsule,
   setGpOcclusionStrength,
   voxelizeGpOcclusion,
 } from '../src/rendering/gp-occlusion.ts';
@@ -167,6 +170,14 @@ describe('GP bike-space occlusion', () => {
     const bound = shader.uniforms as unknown as typeof uniforms;
     expect(bound.gpOccFromWorld).toBe(uniforms.gpOccFromWorld);
     expect(bound.gpOccParams).toBe(uniforms.gpOccParams);
+    // The rider capsules: one shared pair of arrays, folded into both the
+    // hemisphere and the mirror-direction estimates.
+    expect(bound.gpCapA).toBe(uniforms.gpCapA);
+    expect(bound.gpCapB).toBe(uniforms.gpCapB);
+    expect(bound.gpCapStrength).toBe(uniforms.gpCapStrength);
+    expect(shader.fragmentShader).toContain(`uniform vec4 gpCapA[ ${GP_CAPSULES} ];`);
+    expect(shader.fragmentShader).toContain('gpCapsules( vGpOccPos, gpOccN )');
+    expect(shader.fragmentShader).toContain('gpCapsules( vGpOccPos, gpOccRefl )');
     // No volume: enabling it is refused, so the shader branch stays skipped.
     setGpOcclusionStrength(uniforms, true);
     expect(uniforms.gpOccParams.value.x).toBe(0);
@@ -192,8 +203,10 @@ describe('GP bike-space occlusion', () => {
     setGpOcclusionStrength(uniforms, true);
     expect(uniforms.gpOccParams.value.x).toBe(GP_OCCLUSION.diffuse);
     expect(uniforms.gpOccParams.value.y).toBe(GP_OCCLUSION.specular);
+    expect(uniforms.gpCapStrength.value).toBe(GP_OCCLUSION.rider);
     setGpOcclusionStrength(uniforms, false);
     expect(uniforms.gpOccParams.value.toArray()).toEqual([0, 0, 0.02]);
+    expect(uniforms.gpCapStrength.value).toBe(0);
     const disposed = vi.fn();
     a.texture.addEventListener('dispose', disposed);
     releaseGpOcclusion('test-def');
@@ -203,6 +216,77 @@ describe('GP bike-space occlusion', () => {
     expect(gpOcclusionCacheSize()).toBe(before);
     plane.dispose();
   });
+  it('writes capsule slots, retiring unused ones with a zero radius', () => {
+    const uniforms = gpOcclusionUniforms();
+    expect(uniforms.gpCapA.value).toHaveLength(GP_CAPSULES);
+    expect(uniforms.gpCapA.value.every((c) => c.w === 0)).toBe(true);
+    setGpCapsule(uniforms, 3, new T.Vector3(1, 2, 3), new T.Vector3(4, 5, 6), 0.07);
+    expect(uniforms.gpCapA.value[3].toArray()).toEqual([1, 2, 3, 0.07]);
+    expect(uniforms.gpCapB.value[3].toArray()).toEqual([4, 5, 6, 0]);
+  });
+  it('shades a surface under a capsule, never the capsule itself, and fades with distance', () => {
+    const u = gpOcclusionUniforms();
+    setGpOcclusionStrength(u, false);
+    // A thigh along X, radius 6.6 cm, with a seat plane (normal +Y) below it.
+    setGpCapsule(u, 0, new T.Vector3(-0.2, 0.3, 0), new T.Vector3(0.2, 0.3, 0), 0.066);
+    const down = new T.Vector3(0, 1, 0);
+    // Disabled strength: no occlusion at all.
+    expect(gpCapsuleOcclusion(new T.Vector3(0, 0.2, 0), down, u)).toBe(0);
+    u.gpCapStrength.value = GP_OCCLUSION.rider;
+    const at = (gap: number) => gpCapsuleOcclusion(new T.Vector3(0, 0.3 - 0.066 - gap, 0), down, u);
+    // Touching, 3 cm and 15 cm below the skin: strictly decreasing, bounded by the strength.
+    const touching = at(0),
+      near = at(0.03),
+      far = at(0.15);
+    expect(touching).toBeLessThanOrEqual(GP_OCCLUSION.rider);
+    expect(touching).toBeGreaterThan(near);
+    expect(near).toBeGreaterThan(far);
+    expect(far).toBeGreaterThan(0);
+    expect(far).toBeLessThan(0.08);
+    // The capsule's own surface faces away from its axis: nothing, from any side.
+    for (const n of [new T.Vector3(0, 1, 0), new T.Vector3(0, 0, 1), new T.Vector3(0, -1, 0)]) {
+      const p = new T.Vector3(0, 0.3, 0).addScaledVector(n, 0.066);
+      expect(gpCapsuleOcclusion(p, n, u)).toBeCloseTo(0, 6);
+    }
+    // The far side of the capsule is not hidden by a surface facing away from it.
+    expect(gpCapsuleOcclusion(new T.Vector3(0, 0.45, 0), down, u)).toBe(0);
+    // Past the capsule's end the term falls to the rounded cap, and retired slots do nothing.
+    expect(gpCapsuleOcclusion(new T.Vector3(0.6, 0.2, 0), down, u)).toBeLessThan(near);
+    u.gpCapA.value[0].w = 0;
+    expect(gpCapsuleOcclusion(new T.Vector3(0, 0.2, 0), down, u)).toBe(0);
+  });
+  it.each(['gpr1', 'gpr2'])(
+    '%s rider reports ten finite capsules around the seated body, inside the bike envelope',
+    (id) => {
+      const m = new BikeMaterials(0),
+        model = new BikeModel(VEHICLES[id], 0, 'high', m, true);
+      try {
+        const seen: { a: T.Vector3; b: T.Vector3; r: number }[] = [];
+        const n = model.rider.gpOccluders(
+          (slot, a, b, r) => (seen[slot] = { a: a.clone(), b: b.clone(), r }),
+        );
+        expect(n).toBe(GP_CAPSULES);
+        for (const { a, b, r } of seen) {
+          expect([...a.toArray(), ...b.toArray(), r].every(Number.isFinite)).toBe(true);
+          expect(r).toBeGreaterThan(0.03);
+          expect(r).toBeLessThan(0.13);
+          // Everything sits within a metre of the sprung origin.
+          expect(a.length()).toBeLessThan(1.1);
+          expect(b.length()).toBeLessThan(1.1);
+        }
+        // Torso rises from the pelvis; the head sits above the torso's top.
+        expect(seen[0].b.y).toBeGreaterThan(seen[0].a.y + 0.15);
+        expect(seen[1].a.y).toBeGreaterThan(seen[0].b.y);
+        // The non-GP riders contribute nothing.
+        const road = new BikeModel(VEHICLES.ss600, 0, 'high', new BikeMaterials(0), true);
+        expect(road.rider.gpOccluders(() => undefined)).toBe(0);
+        road.dispose();
+      } finally {
+        model.dispose();
+        m.dispose();
+      }
+    },
+  );
   it.each(['gpr1', 'gpr2'])(
     '%s bakes a deterministic rider-free rest-pose volume inside the cell budget',
     (id) => {
@@ -275,9 +359,14 @@ describe('GP bike-space occlusion', () => {
       const occlusion = entry.materials.occlusion;
       expect(occlusion.gpOccFromWorld.value.equals(inverse)).toBe(true);
       expect(occlusion.gpOccParams.value.x).toBe(GP_OCCLUSION.diffuse);
+      // The seated rider feeds ten live capsules on High.
+      expect(occlusion.gpCapStrength.value).toBe(GP_OCCLUSION.rider);
+      expect(occlusion.gpCapA.value.filter((c) => c.w > 0)).toHaveLength(GP_CAPSULES);
       shells.update(frame, frame, 1, [host], camera, 'medium', 0);
       expect(occlusion.gpOccParams.value.x).toBe(0);
       expect(occlusion.gpOccParams.value.y).toBe(0);
+      expect(occlusion.gpCapStrength.value).toBe(0);
+      expect(occlusion.gpCapA.value.every((c) => c.w === 0)).toBe(true);
     } finally {
       shells.disposeAll();
     }

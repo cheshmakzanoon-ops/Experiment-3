@@ -3,7 +3,10 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import type { BikeMaterials } from './bike.ts';
 import { GP_CALIPER_HOSE_PROFILE } from './gp-radial-caliper.ts';
 
-type Materials = Pick<BikeMaterials, 'dark' | 'aluminium' | 'steel' | 'reservoir'>;
+type Materials = Record<
+  keyof Pick<BikeMaterials, 'dark' | 'aluminium' | 'steel' | 'reservoir'>,
+  T.MeshStandardMaterial
+>;
 const RADIUS = 0.0027;
 const GUIDE = [0.148, -0.22, -0.065] as const;
 const LEAD = new T.Vector3(0.008, 0.035, 0.036).normalize().multiplyScalar(0.12);
