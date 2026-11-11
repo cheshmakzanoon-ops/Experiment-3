@@ -1,24 +1,24 @@
 # Build and validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/42969399777
-- commit: `1bffdae9af` · Fix motocross leaned camber physics, deep-contact normal projection, and upgrade 3D bike/venue models and graphics
-- event: push · status: completed · conclusion: **cancelled**
-- started: 2026-11-11T06:00:19Z · updated: 2026-11-11T06:20:11Z
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/42971656546
+- commit: `25c3f306bf` · feat(gp): integrate and validate MotoGP Round-3 photorealism upgrade
+- event: push · status: completed · conclusion: **failure**
+- started: 2026-11-11T06:19:50Z · updated: 2026-11-11T08:05:00Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| scenarios | success | 8 |  |
-| offroad-scenarios | success | 11 |  |
-| validate | success | 2 |  |
-| unit-tests | cancelled | 19 | Full unit suite without source changes |
-| wet-presentation | cancelled | 9 | Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts |
-| owner-qa | cancelled | 12 | Owner-only and review-tool specs, plus the owner half of the dual-mode specs |
-| browser (4) | cancelled | 10 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 4/8 |
-| browser (2) | cancelled | 17 |  |
-| browser (1) | cancelled | 12 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 1/8 |
-| browser (6) | cancelled | 12 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 6/8 |
-| browser (5) | cancelled | 5 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/8 |
-| browser (8) | cancelled | 3 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/8 |
-| browser (7) | cancelled | 17 |  |
-| browser (3) | cancelled | 17 |  |
-| publish | cancelled | -1 |  |
+| unit-tests | failure | 34 | Full unit suite without source changes |
+| validate | success | 3 |  |
+| scenarios | success | 9 |  |
+| offroad-scenarios | success | 13 |  |
+| wet-presentation | success | 10 |  |
+| owner-qa | cancelled | 90 | Owner-only and review-tool specs, plus the owner half of the dual-mode specs |
+| browser (6) | cancelled | 90 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 6/8 |
+| browser (4) | cancelled | 90 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 4/8 |
+| browser (2) | cancelled | 90 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/8 |
+| browser (1) | cancelled | 90 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 1/8 |
+| browser (7) | failure | 88 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/8 |
+| browser (8) | cancelled | 90 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/8 |
+| browser (3) | cancelled | 90 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 3/8 |
+| browser (5) | cancelled | 90 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/8 |
+| publish | skipped | 0 |  |
