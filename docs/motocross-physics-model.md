@@ -74,6 +74,33 @@ forces are *impulse averaged* across these same substeps, rather than
 sampled from the last substep. Touchdown preserves wheel and yaw momentum.
 Rider physics and AI aids see the resultant contact load and velocities.
 
+## Rider balance and grip-loss allowance
+
+Three corrections make the ridden bike forgiving without changing its limits
+(`tests/motocross-forgiving-handling.test.ts`, measured with
+`scripts/motocross-feel-probe.ts`):
+
+- **Feet-up balance below 5 m/s** (`BikeParameters.lowSpeedBalance`, set for
+  every dirt bike, AI included). The shared lean assist counter-steers toward
+  a lean that its own low-speed support spring holds upright; between about
+  2.5 and 4.5 m/s a held stick therefore turned the bike the wrong way and
+  never leaned it. The bars now take the steady steer of the intended lean
+  (bounded by what the lock can balance at that speed) and the support spring
+  tips the bike to that lean instead of to vertical.
+- **Roll moment from the carried load** (player solver). The toppling moment
+  about the contact line is `N h sin(lean)`, not `m g h sin(lean)`: over a
+  crest, between whoops and on a rebound the springs carry less than the
+  static weight, so the bike rolls in more slowly exactly while its tyres
+  cannot make cornering force. Only the unloaded side is corrected.
+- **Grip-loss allowance** (`BikeParameters.gripFallGrace`, 0.4 s, player
+  solver). A tyre past its friction circle pushes or steps out first; the
+  rider goes down only when the overload is held. The allowance is spent in
+  proportion to the excess (a gross overload falls in a few hundredths of a
+  second) and recovers at twice real time once both tyres hold again.
+
+Both `BikeParameters` flags are undefined for road, GP and research bikes,
+which keep the immediate fall rule and the original walking-pace blend.
+
 ## Current test coverage
 
 - Pure rolling equilibrium and unloaded-contact zero force

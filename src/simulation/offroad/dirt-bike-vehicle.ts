@@ -34,6 +34,9 @@ const RIDER_AIR_LEVER = 0.65;
  * compliant stop before force integration can turn it into launch energy. */
 const DEEP_CONTACT = 0.12,
   STOP_COMPLIANCE = 0.015;
+/** Seconds the ridden motocross bike may hold a tyre past its friction
+ * circle before it is a fall (Bike `gripFallGrace`). */
+const PLAYER_GRIP_GRACE = 0.4;
 /** Nose-up margin (rad) the pitch aid aims for over the landing slope. */
 const LANDING_NOSE_UP = 0.1;
 
@@ -379,6 +382,11 @@ export class DirtBikeVehicle extends BikeVehicle {
     // player's rear pedal is a rear-only correction on a jump approach or
     // while covering a wheelie. AI keeps its surveyed linked-brake map.
     d.p.independentRearBrake = this.playerMotocross;
+    // Loose soil forgives a moment past the limit: the ridden bike pushes or
+    // steps out first and only goes down when the overload is held.
+    d.p.gripFallGrace = this.playerMotocross ? PLAYER_GRIP_GRACE : undefined;
+    // Every dirt bike balances a slow turn feet-up (the AI rides the same way).
+    d.p.lowSpeedBalance = true;
     if (!this.playerMotocross || !this.riding) this.wheelPickup = false;
     const mxGround = this.playerMotocross && this.riding && !this.airborne;
     if (!mxGround) {
@@ -511,6 +519,13 @@ export class DirtBikeVehicle extends BikeVehicle {
           ((coreLateral - contact.lateralAcceleration) * Math.cos(d.lean) * dt) / spec.cgHeight,
           -0.3, 0.3,
         );
+        // The toppling moment about the contact line is made by the load the
+        // tyres carry, not by gravity itself. The core's roll balance assumes
+        // the static weight; over a crest, between whoops and on a rebound the
+        // springs carry less, so the bike rolls in more slowly (not at all in
+        // free fall) exactly while its tyres cannot make cornering force.
+        const carried = clamp((this.forceFront + this.forceRear) / (d.mass * G), 0, 1);
+        d.leanRate -= ((1 - carried) * G * Math.sin(d.lean) * dt) / spec.cgHeight;
         d.speed = contact.speed;
         d.x = x0 + contact.dx;
         d.z = z0 + contact.dz;

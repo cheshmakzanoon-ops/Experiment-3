@@ -113,6 +113,22 @@ export interface BikeParameters {
    * still descending. The gate uses existing load and pitch; it is not a
    * complete single-wheel balance or rear-tyre camber-thrust model. */
   frontContactSteering?: boolean;
+  /** Seconds a tyre may stay past its friction circle before the rider is
+   * down. Loose soil lets a pushed front or a stepped-out rear slide and bite
+   * again, so a patch of sand or one unweighted bump is not an instant fall;
+   * a gross overload still spends this allowance several times faster. Set by
+   * the player's motocross adapter only: every other motorcycle keeps the
+   * immediate rule (undefined). */
+  gripFallGrace?: number;
+  /** Feet-up balance between walking pace and 5 m/s. The shared assist
+   * counter-steers toward a lean that its own low-speed support spring holds
+   * upright, so between roughly 2.5 and 4.5 m/s a held stick turns the bike
+   * the wrong way and never leans it. With this set, the bars take the steady
+   * steer of the lean the rider intends (bounded by what the lock can balance
+   * at that speed) and the support spring tips the bike to that lean instead
+   * of to vertical. Set by the motocross adapter; other motorcycles keep the
+   * original blend (undefined). */
+  lowSpeedBalance?: boolean;
 }
 export const BIKE: BikeParameters = Object.freeze({
   mass: 157 + 72,
@@ -212,6 +228,8 @@ export class Bike {
   /** Front/rear friction-circle use of the last step. */
   frontUse = 0;
   rearUse = 0;
+  /** Seconds of the `gripFallGrace` allowance already spent (0 without it). */
+  gripOver = 0;
   /** Environment set by the session adapter before each step: road friction
    * multiplier, sine of the uphill gradient along the heading, drag scale
    * (rider tuck) and whether the separated rider is back at the bike. */
@@ -474,7 +492,18 @@ export class Bike {
     }
     // At walking pace the rider steers the bars directly (pit box, remount).
     const authority = leanAuthority(this.speed);
-    if (authority < 1)
+    // Lean the rider's intended slow turn balances at (0 without the opt-in).
+    let balanceLean = 0;
+    if (authority < 1 && p.lowSpeedBalance && a.lean && !this.motoGP) {
+      const lock = Math.tan(p.maxSteer * 0.9) / p.wheelbase;
+      balanceLean =
+        clamp(input.lean, -1, 1) * Math.min(this.leanLimit, Math.atan((v * v * lock) / G));
+      steerTarget = lerp(
+        Math.atan((G * Math.tan(balanceLean) * p.wheelbase) / (v * v)),
+        steerTarget,
+        authority,
+      );
+    } else if (authority < 1)
       steerTarget = lerp(clamp(input.lean, -1, 1) * p.maxSteer * 0.5, steerTarget, authority);
     steerTarget = clamp(steerTarget, -p.maxSteer, p.maxSteer);
     this.steer += clamp(steerTarget - this.steer, -p.steerRate * dt, p.steerRate * dt);
@@ -745,7 +774,8 @@ export class Bike {
       const rollAccel =
         (G * Math.sin(this.lean) - lateralAccel * Math.cos(this.lean)) / h +
         ((G * this.riderOffset) / (h * h)) * 0.25;
-      this.leanRate += (rollAccel - support * (this.lean * 40 + this.leanRate * 10)) * dt;
+      this.leanRate +=
+        (rollAccel - support * ((this.lean - balanceLean) * 40 + this.leanRate * 10)) * dt;
       this.leanRate *= Math.exp(-(p.rollDamping ?? 1.2) * dt);
       this.lean += this.leanRate * dt;
     }
@@ -770,13 +800,28 @@ export class Bike {
     this.frontUse = frontUse;
     this.rearUse = rearUse;
     this.lateralUse = Math.max(frontUse, rearUse);
-    if (frontUse > 1.08 && this.speed > 3) return this.fall('lowside');
+    const grace = p.gripFallGrace ?? 0;
+    if (grace > 0) {
+      // Sustained overload only: the allowance is spent in proportion to how
+      // far past the circle the worse tyre is, and recovers once both hold.
+      const excess =
+        this.speed > 3
+          ? Math.max(
+              frontUse - 1.08,
+              rearApplied <= 0 ? rearCorneringUse - 1.45 : Number.NEGATIVE_INFINITY,
+            )
+          : Number.NEGATIVE_INFINITY;
+      if (excess > 0) {
+        this.gripOver += dt * (1 + 4 * excess);
+        if (this.gripOver > grace) return this.fall('lowside');
+      } else this.gripOver = Math.max(0, this.gripOver - 2 * dt);
+    } else if (frontUse > 1.08 && this.speed > 3) return this.fall('lowside');
     if (rearCorneringUse > 1.15 && this.speed > 3) {
       this.rearSlip += rearCorneringUse - 1;
       // Under power a sliding rear that bites throws the rider (highside);
       // a rear sliding on the brakes steps out, and only a gross slide falls.
       if (rearApplied > 0 && this.rearSlip > 0.6) return this.fall('highside');
-      if (rearApplied <= 0 && rearCorneringUse > 1.45) return this.fall('lowside');
+      if (grace <= 0 && rearApplied <= 0 && rearCorneringUse > 1.45) return this.fall('lowside');
     }
     if (Math.abs(this.lean) > 1.25) return this.fall('lowside');
     this.heading += (gp ? gp.yawRate : this.speed * kappa) * dt;
@@ -790,6 +835,7 @@ export class Bike {
     if (this.state !== 'riding') return this.state;
     this.state = kind;
     this.stateClock = 0;
+    this.gripOver = 0;
     this.crashes++;
     this.motoGP?.reset(this.speed);
     this.driveForce =
