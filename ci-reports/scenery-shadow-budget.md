@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/42971656522
-- commit: `25c3f306bf` · feat(gp): integrate and validate MotoGP Round-3 photorealism upgrade
-- event: push · status: completed · conclusion: **success**
-- started: 2026-11-11T06:19:50Z · updated: 2026-11-11T06:29:00Z
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/43326210627
+- commit: `4228221177` · Motocross graphics: closed bodywork, glossier plastics, rider armour and attack pose, daylight look, holeshot gantry
+- event: push · status: completed · conclusion: **failure**
+- started: 2026-11-12T23:08:07Z · updated: 2026-11-12T23:15:31Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (night) | success | 7 |  |
-| browser (sunset) | success | 7 |  |
 | browser (day) | success | 7 |  |
+| browser (night) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
+| browser (sunset) | success | 7 |  |
