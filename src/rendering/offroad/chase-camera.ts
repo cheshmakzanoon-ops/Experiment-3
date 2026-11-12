@@ -12,13 +12,21 @@ export const MOTOCROSS_CHASE = Object.freeze({
   lookAhead: 7,
   lookPerMS: 0.32,
   fov: 56,
-  fovGain: 5.5,
+  fovGain: 8,
   airDistance: 0.7,
   airHeight: 0.3,
   airFov: 1.5,
   terrainClearance: 1.05,
   sightlineClearance: 0.28,
   maximumRoll: 0.055,
+  /** Heading follow time constant (s). The chassis heading carries the
+   * tyres' small yaw corrections tick to tick; at 7-24 m of lookahead those
+   * become visible gaze shake. A short critically damped follow removes the
+   * shake and lets the rig swing a little wide through a turn. */
+  headingLag: 0.11,
+  /** Beyond this error (rad) the follow catches up at once: a spin, a
+   * rejoin or a recovery must not leave the camera looking sideways. */
+  headingSnap: 1.2,
 });
 
 type CameraTerrain = Pick<Track, 'at' | 'sample'>;
@@ -54,6 +62,7 @@ export class MotocrossChaseCamera {
   readonly up = new Vector3(0, 1, 0);
   fov: number = MOTOCROSS_CHASE.fov;
   private airBlend = 0;
+  private heading = 0;
   private roll = 0;
   private gazeHeight = 0;
   private landingOffset = 0;
@@ -67,7 +76,7 @@ export class MotocrossChaseCamera {
 
   reset() {
     this.initialized = false;
-    this.airBlend = this.roll = this.gazeHeight = 0;
+    this.airBlend = this.roll = this.gazeHeight = this.heading = 0;
     this.landingOffset = this.landingVelocity = 0;
     this.wasAirborne = false;
     this.flightTime = 0;
@@ -80,7 +89,9 @@ export class MotocrossChaseCamera {
       Number.isFinite(frame.velocityX) &&
       Number.isFinite(frame.velocityZ) &&
       frame.velocityX! ** 2 + frame.velocityZ! ** 2 > 4;
-    const heading = movingInAir ? Math.atan2(frame.velocityX!, frame.velocityZ!) : frame.heading;
+    const targetHeading = movingInAir
+      ? Math.atan2(frame.velocityX!, frame.velocityZ!)
+      : frame.heading;
     if (
       dt < 0 ||
       ![
@@ -89,7 +100,7 @@ export class MotocrossChaseCamera {
         anchor.y,
         anchor.z,
         frame.heading,
-        heading,
+        targetHeading,
         frame.s,
         frame.speed,
         cgHeight,
@@ -102,7 +113,19 @@ export class MotocrossChaseCamera {
     )
       throw new Error('Invalid motocross camera state');
 
-    const h = Math.min(dt, 2),
+    const h = Math.min(dt, 2);
+    if (!this.initialized) this.heading = targetHeading;
+    else if (h > 0) {
+      const error =
+        ((((targetHeading - this.heading + Math.PI) % (2 * Math.PI)) + 2 * Math.PI) %
+          (2 * Math.PI)) -
+        Math.PI;
+      this.heading =
+        Math.abs(error) > MOTOCROSS_CHASE.headingSnap
+          ? targetHeading
+          : this.heading + error * -Math.expm1(-h / MOTOCROSS_CHASE.headingLag);
+    }
+    const heading = this.heading,
       speed = clamp(frame.speed, 0, 60),
       motion = clamp(frame.motion, 0, 1),
       sh = Math.sin(heading),

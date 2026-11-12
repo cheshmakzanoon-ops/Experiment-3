@@ -195,3 +195,58 @@ describe('motocross chase composition', () => {
     ).toThrow();
   });
 });
+
+describe('motocross chase heading follow', () => {
+  it('filters tick-to-tick heading shake out of the gaze at every render rate', () => {
+    const shake = (fps: number) => {
+      const rig = new MotocrossChaseCamera();
+      rig.update(0, flat, frame());
+      let worst = 0;
+      for (let i = 0; i < fps * 2; i++) {
+        // +-0.02 rad alternating every presented frame, as a chattering yaw.
+        const t = i / fps,
+          heading = 0.02 * (i % 2 ? 1 : -1);
+        rig.update(1 / fps, flat, frame({ heading }));
+        if (t > 0.5) worst = Math.max(worst, Math.abs(rig.gaze.x));
+      }
+      return worst;
+    };
+    const raw = new MotocrossChaseCamera().update(0, flat, frame({ heading: 0.02 }));
+    for (const fps of [30, 60, 144]) expect(shake(fps)).toBeLessThan(Math.abs(raw.gaze.x) * 0.5);
+  });
+
+  it('follows a held turn, converging across render rates, and snaps after a spin', () => {
+    const settle = (fps: number) => {
+      const rig = new MotocrossChaseCamera();
+      rig.update(0, flat, frame());
+      for (let i = 0; i < fps; i++) rig.update(1 / fps, flat, frame({ heading: 0.4 }));
+      return rig;
+    };
+    const target = new MotocrossChaseCamera().update(0, flat, frame({ heading: 0.4 }));
+    const results = [30, 60, 144].map((fps) => settle(fps));
+    for (const rig of results) {
+      expect(rig.eye.x).toBeCloseTo(target.eye.x, 3);
+      expect(rig.gaze.z).toBeCloseTo(target.gaze.z, 3);
+    }
+    expect(results[0].eye.x).toBeCloseTo(results[2].eye.x, 6);
+    // A first frame of a turn lags behind the chassis (the swing), boundedly.
+    const swing = new MotocrossChaseCamera();
+    swing.update(0, flat, frame());
+    swing.update(1 / 60, flat, frame({ heading: 0.4 }));
+    expect(swing.eye.x).toBeGreaterThan(target.eye.x);
+    expect(swing.eye.x).toBeLessThan(0);
+    // A spin or recovery is not smoothed into a slow pan.
+    const spun = new MotocrossChaseCamera();
+    spun.update(0, flat, frame());
+    spun.update(1 / 60, flat, frame({ heading: 2.5 }));
+    const turned = new MotocrossChaseCamera().update(0, flat, frame({ heading: 2.5 }));
+    expect(spun.eye.toArray()).toEqual(turned.eye.toArray());
+  });
+
+  it('widens the view with speed within the composition bounds', () => {
+    const slow = new MotocrossChaseCamera().update(0, flat, frame({ speed: 0 })),
+      fast = new MotocrossChaseCamera().update(0, flat, frame({ speed: 32 }));
+    expect(fast.fov - slow.fov).toBeCloseTo(MOTOCROSS_CHASE.fovGain, 6);
+    expect(fast.fov).toBeLessThan(66);
+  });
+});
