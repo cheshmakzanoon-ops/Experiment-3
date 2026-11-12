@@ -83,7 +83,7 @@ const test = base.extend<{ review: Review }>({
       expect(result.finiteGeometry).toBe(true);
       expect(result.hash).not.toBe(0);
       expect(result.calls).toBeLessThan(200);
-      expect(result.triangles).toBeLessThan(130000);
+      expect(result.triangles).toBeLessThan(140000);
       if (result.chain) {
         expect(result.chain.finite).toBe(true);
         expect(result.chain.counts).toEqual([96, 192]);

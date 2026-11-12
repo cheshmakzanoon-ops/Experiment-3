@@ -272,23 +272,69 @@ export class MxCourseDressing {
       const span = this.point.width + 3.1;
       if (this.clear(s, -span, 0.7) && this.clear(s, span, 0.7)) {
         this.pose(s, 0);
+        // A box-truss gantry, as an event rigs over a timing line: four-chord
+        // legs and bridge with ladder rungs, padded feet, the event banner
+        // printed on both faces and plain scrim down the legs.
+        const half = 0.26,
+          top = 6.3,
+          bridge = 1.5,
+          chord = (length: number) => new T.CylinderGeometry(0.034, 0.034, length, 6);
         for (const side of [-1, 1]) {
-          this.part(
-            new T.CylinderGeometry(0.11, 0.14, 5.8, 10).translate(side * span, 2.9, 0),
-            steel,
-          );
-          this.part(new T.BoxGeometry(0.58, 1.65, 0.55).translate(side * span, 0.825, 0), pad);
+          for (const cx of [-half, half])
+            for (const cz of [-half, half])
+              this.part(chord(top).translate(side * span + cx, top / 2, cz), steel);
+          for (let y = 1.9; y < top - 0.2; y += 0.88) {
+            this.part(
+              new T.BoxGeometry(half * 2, 0.04, 0.04).translate(side * span, y, -half),
+              steel,
+            );
+            this.part(
+              new T.BoxGeometry(half * 2, 0.04, 0.04).translate(side * span, y, half),
+              steel,
+            );
+            for (const cx of [-half, half])
+              this.part(
+                new T.BoxGeometry(0.04, 0.04, half * 2).translate(side * span + cx, y, 0),
+                steel,
+              );
+          }
+          this.part(new T.BoxGeometry(0.78, 1.65, 0.78).translate(side * span, 0.825, 0), pad);
+          // Scrim on the approach and exit faces of each leg: the atlas row's
+          // plain leading field, without lettering turned on its side.
+          for (const face of [-1, 1]) {
+            const scrim = new T.PlaneGeometry(half * 2 - 0.04, top - bridge - 1.75);
+            const uv = scrim.getAttribute('uv');
+            for (let i = 0; i < uv.count; i++) uv.setXY(i, 0.955 + uv.getX(i) * 0.03, uv.getY(i));
+            if (face < 0) scrim.rotateY(Math.PI);
+            this.part(
+              mxAtlasRow(scrim, 0).translate(
+                side * span,
+                1.7 + (top - bridge - 1.75) / 2,
+                face * (half + 0.012),
+              ),
+              cloth,
+            );
+          }
         }
-        this.part(new T.BoxGeometry(span * 2 + 0.4, 0.18, 0.22).translate(0, 5.72, 0), steel);
-        this.part(
-          mxAtlasRow(
-            new T.PlaneGeometry(Math.min(11, span * 1.65), 0.88)
-              .rotateY(Math.PI)
-              .translate(0, 5.15, -0.12),
-            2,
-          ),
-          cloth,
-        );
+        const reach = span * 2 + half * 2;
+        for (const cy of [top - bridge, top])
+          for (const cz of [-half, half])
+            this.part(chord(reach).rotateZ(Math.PI / 2).translate(0, cy, cz), steel);
+        for (let x = -span + 0.9; x < span - 0.4; x += 1.05)
+          for (const cz of [-half, half])
+            this.part(
+              new T.BoxGeometry(0.04, bridge, 0.04).translate(x, top - bridge / 2, cz),
+              steel,
+            );
+        const width = Math.min(13, span * 2 - half * 2 - 0.3);
+        for (const face of [-1, 1]) {
+          const banner = new T.PlaneGeometry(width, bridge - 0.16);
+          if (face < 0) banner.rotateY(Math.PI);
+          this.part(
+            mxAtlasRow(banner, 2).translate(0, top - bridge / 2, face * (half + 0.014)),
+            cloth,
+          );
+        }
       }
     }
     for (const [material, geometries] of this.batches) {

@@ -299,7 +299,7 @@ describe('MX chain geometry, snapshot motion and ownership', () => {
         let sharedMaterialDisposals = 0;
         materials.aluminium.addEventListener('dispose', () => sharedMaterialDisposals++);
         try {
-          expect(total).toBeLessThan(130000);
+          expect(total).toBeLessThan(140000);
           expect(instances).toHaveLength(detail === 'far' ? 0 : 2);
           const pose = (rotation: number) =>
             model.pose({

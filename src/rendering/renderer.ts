@@ -113,6 +113,7 @@ import { PhotoSky } from './assets/photo-sky.ts';
 import { disposeTextureLoaders } from './assets/texture-loader.ts';
 import { scannedGround } from './ground/scan-store.ts';
 import { setMxQuality } from './offroad/mx-quality.ts';
+import { MX_PHOTOGRAPHIC, mxPhotographicActive } from './offroad/mx-photographic-light.ts';
 import { skyPaletteFor } from './assets/sky-catalogue.ts';
 import { aerialFogColor } from './studio/aerial-perspective.ts';
 import { SKY_CLOUDS, SkyClouds } from './studio/sky-clouds.ts';
@@ -1367,9 +1368,18 @@ export class RacingRenderer {
     const illumination: LightingMode = studio ? 'day' : this.lighting;
     // W1: GP sessions get their own sky, air, key, display transform and grade
     // (gp-photographic-light.ts); every other session keeps the shared light.
+    // Motocross on a terrain venue has its own daylight balance and grade
+    // through the same terms (offroad/mx-photographic-light.ts).
     const gpLook = gpPhotographicActive(followedDefinition.classId, studio, illumination)
       ? this.gpLook
-      : null;
+      : mxPhotographicActive(
+            followedDefinition.classId,
+            studio,
+            illumination,
+            !!this.circuit.offroad,
+          )
+        ? MX_PHOTOGRAPHIC
+        : null;
     if (this.photoSky) this.photoSky.clearDay = gpLook?.clearSky ?? null;
     const liquidRain = frameLiquidRain(presented);
     const daylight = circuitLightState(presented[H.CLOUD], liquidRain, illumination);

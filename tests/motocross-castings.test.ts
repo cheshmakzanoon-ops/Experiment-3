@@ -319,7 +319,7 @@ describe('motocross cast components', () => {
                 expect(Array.from(attribute.array).every(Number.isFinite)).toBe(true);
             });
             counts.push(triangles);
-            expect(triangles).toBeLessThan(130000);
+            expect(triangles).toBeLessThan(140000);
             // Test the production branch after batching as well as the
             // standalone helpers: only MX250 gets the broad two-stroke pipe.
             if (id === 'mx250') expect(exhaustBounds.min.x).toBeLessThan(-0.29);

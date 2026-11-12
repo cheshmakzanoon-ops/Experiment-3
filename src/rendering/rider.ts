@@ -66,6 +66,7 @@ import {
   addMotocrossHelmet,
   motocrossGarmentGeometry,
   motocrossHelmetShell,
+  motocrossNeckBrace,
   type MotocrossGarmentMesh,
 } from './offroad/motocross-gear.ts';
 import {
@@ -825,6 +826,9 @@ export class Rider {
       // The neck opening follows the upper jersey through spine flexion.
       // Keep the skin under the torso's first-person visibility boundary.
       this.motocrossSpine!.bind(collar);
+      const brace = part(this.torso, motocrossNeckBrace(detail), armour);
+      brace.name = 'Motocross neck brace';
+      this.motocrossSpine!.bind(brace);
     }
     if (detail !== 'far' && !mx) {
       // A turned leather collar closes the neck opening instead of leaving
@@ -1339,6 +1343,10 @@ export class Rider {
       dab = T.MathUtils.clamp(pose.dab ?? 0, -1, 1),
       body = T.MathUtils.clamp(pose.body ?? 0, -1, 1);
     const [pelvis, shoulder, joint, hip, pole, target] = this.v;
+    // A rider at racing pace carries the elbows up and out over the bars
+    // (the attack position); stopped at the gate the shoulders stay relaxed.
+    // Read from the presented speed alone: no pose history or clock.
+    const attack = T.MathUtils.smoothstep(Number.isFinite(pose.speed) ? pose.speed! : 0, 3, 11);
     // Hang off: the hips slide toward the inside and drop off the seat.
     pelvis.copy(this.seat);
     pelvis.x += offset * 0.6;
@@ -1398,9 +1406,15 @@ export class Rider {
         .copy(shoulder)
         .add(
           target.set(
-            side * (mx ? 0.3 : 0.35),
-            mx ? -0.24 + standing * 0.12 + Math.max(0, body) * 0.1 + motion!.elbowLift : -0.3,
-            mx ? 0.04 : -0.1,
+            side * (mx ? 0.3 + attack * 0.07 : 0.35),
+            mx
+              ? -0.24 +
+                  attack * (0.15 - 0.08 * standing) +
+                  standing * 0.12 +
+                  Math.max(0, body) * 0.1 +
+                  motion!.elbowLift
+              : -0.3,
+            mx ? 0.04 - attack * 0.03 : -0.1,
           ),
         );
       if (mx) {

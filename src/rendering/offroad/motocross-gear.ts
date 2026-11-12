@@ -24,12 +24,14 @@ const JERSEY_SECTIONS: readonly ClothSection[] = [
   [0.062, -0.002, 0.157, 0.112, 0.114],
   [0.104, -0.007, 0.17, 0.119, 0.137],
   [0.165, -0.008, 0.17, 0.121, 0.133],
-  [0.26, -0.002, 0.177, 0.128, 0.124],
-  [0.35, 0.008, 0.193, 0.131, 0.112],
-  [0.418, 0.015, 0.2, 0.125, 0.102],
-  [0.452, 0.018, 0.19, 0.111, 0.094],
-  [0.491, 0.022, 0.15, 0.079, 0.073],
-  [0.522, 0.026, 0.096, 0.061, 0.056],
+  [0.26, -0.002, 0.18, 0.13, 0.126],
+  // The jersey is cut over a chest and back protector: a deeper rib cage and
+  // squarer, wider shoulders than a bare torso (a rider's armoured outline).
+  [0.35, 0.008, 0.2, 0.138, 0.118],
+  [0.418, 0.015, 0.213, 0.134, 0.11],
+  [0.452, 0.018, 0.208, 0.12, 0.102],
+  [0.491, 0.022, 0.168, 0.087, 0.081],
+  [0.522, 0.026, 0.1, 0.063, 0.058],
   [0.542, 0.028, 0.064, 0.054, 0.052],
 ];
 const SEAT_SECTIONS: readonly ClothSection[] = [
@@ -50,12 +52,12 @@ function garmentSections(kind: MotocrossGarment, upper: number, lower: number): 
         // 004/020 show that shoulder volume tapering into the elbow, rather
         // than a capped cylinder perched on the edge of the jersey.
         [-0.3, 0, 0.042, 0.046, 0.044],
-        [-0.12, -0.003, 0.067, 0.071, 0.062],
-        [0.065, -0.003, 0.064, 0.069, 0.06],
-        [0.24, -0.004, 0.062, 0.062, 0.057],
-        [0.46, -0.004, 0.056, 0.055, 0.053],
-        [0.7, -0.002, 0.05, 0.047, 0.049],
-        [1, 0, 0.045, 0.042, 0.047],
+        [-0.12, -0.003, 0.071, 0.075, 0.066],
+        [0.065, -0.003, 0.069, 0.074, 0.065],
+        [0.24, -0.004, 0.066, 0.066, 0.061],
+        [0.46, -0.004, 0.059, 0.058, 0.056],
+        [0.7, -0.002, 0.052, 0.049, 0.051],
+        [1, 0, 0.047, 0.044, 0.049],
       ]
     : [
         [-0.12, 0, 0.042, 0.043, 0.047],
@@ -68,9 +70,9 @@ function garmentSections(kind: MotocrossGarment, upper: number, lower: number): 
       ];
   const distal: readonly ClothSection[] = arm
     ? [
-        [0.12, -0.002, 0.048, 0.049, 0.052],
-        [0.29, -0.004, 0.049, 0.049, 0.052],
-        [0.5, -0.003, 0.043, 0.042, 0.046],
+        [0.12, -0.002, 0.05, 0.051, 0.054],
+        [0.29, -0.004, 0.051, 0.051, 0.054],
+        [0.5, -0.003, 0.045, 0.044, 0.048],
         [0.76, -0.001, 0.034, 0.034, 0.037],
         [0.94, 0, 0.028, 0.029, 0.031],
         [1.025, 0, 0.026, 0.028, 0.028],
@@ -373,6 +375,74 @@ export function addMotocrossGarment(
 // Neck-centred assembly uses the same 150 mm shell offset as the road rig, but
 // an MX shell has its own projected chin, lower cheek rail and taller eye port.
 // Columns are [height, half-width, forward extent, rearward extent], in metres.
+/** Neck brace in torso coordinates (pelvis origin, spine +Y, chest +Z): a
+ * flattened ring that rests on the shoulders under the helmet rim, lower at
+ * the sternum than at the nape, with the sternum pad and the thoracic strut
+ * that carry a helmet load into the chest and back. One closed, indexed
+ * moulding; the spine binding makes it follow the upper chest. */
+export function motocrossNeckBrace(detail: RiderDetail) {
+  const around = detail === 'high' ? 40 : detail === 'mid' ? 24 : 12,
+    section = detail === 'high' ? 10 : detail === 'mid' ? 8 : 6,
+    positions: number[] = [],
+    indices: number[] = [];
+  for (let i = 0; i <= around; i++) {
+    const a = (i / around) * Math.PI * 2,
+      front = Math.sin(a),
+      // Wider over the collar bones, deeper table behind the helmet.
+      cx = Math.cos(a) * 0.112,
+      cz = 0.024 + front * (front > 0 ? 0.1 : 0.092),
+      cy = 0.553 - front * 0.016,
+      radial = 0.025 + 0.007 * Math.max(0, -front),
+      tall = 0.0135;
+    for (let j = 0; j <= section; j++) {
+      const b = (j / section) * Math.PI * 2,
+        out = Math.sign(Math.cos(b)) * Math.abs(Math.cos(b)) ** 0.7 * radial,
+        up = Math.sign(Math.sin(b)) * Math.abs(Math.sin(b)) ** 0.7 * tall;
+      positions.push(cx * (1 + out / 0.112), cy + up, 0.024 + (cz - 0.024) * (1 + out / 0.096));
+      if (i < around && j < section) {
+        const p = i * (section + 1) + j,
+          q = p + section + 1;
+        indices.push(p, q, p + 1, p + 1, q, q + 1);
+      }
+    }
+  }
+  const ring = new T.BufferGeometry();
+  ring.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
+  ring.setIndex(indices);
+  ring.computeVertexNormals();
+  const strut = (width: number, y0: number, z0: number, y1: number, z1: number) => {
+    const length = Math.hypot(y1 - y0, z1 - z0),
+      g: T.BufferGeometry =
+        detail === 'high'
+          ? new RoundedBoxGeometry(width, length, 0.016, 2, 0.006)
+          : new T.BoxGeometry(width, length, 0.016);
+    g.rotateX(Math.atan2(z1 - z0, y1 - y0));
+    g.translate(0, (y0 + y1) / 2, (z0 + z1) / 2);
+    return g.index ? g.toNonIndexed() : g;
+  };
+  const sternum = strut(0.05, 0.545, 0.124, 0.452, 0.146),
+    thoracic = strut(0.038, 0.566, -0.074, 0.418, -0.112),
+    flat = ring.toNonIndexed(),
+    merged = new T.BufferGeometry(),
+    all = [flat, sternum, thoracic],
+    count = all.reduce((n, g) => n + g.getAttribute('position').count, 0),
+    position = new Float32Array(count * 3),
+    normal = new Float32Array(count * 3);
+  let offset = 0;
+  for (const g of all) {
+    position.set(g.getAttribute('position').array, offset * 3);
+    normal.set(g.getAttribute('normal').array, offset * 3);
+    offset += g.getAttribute('position').count;
+    g.dispose();
+  }
+  ring.dispose();
+  merged.setAttribute('position', new T.BufferAttribute(position, 3));
+  merged.setAttribute('normal', new T.BufferAttribute(normal, 3));
+  merged.computeBoundingBox();
+  merged.computeBoundingSphere();
+  return merged;
+}
+
 const MX_HELMET_PROFILE = [
   [-0.15, 0.046, 0.168, 0.056],
   [-0.127, 0.066, 0.232, 0.072],

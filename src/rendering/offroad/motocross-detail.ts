@@ -546,15 +546,19 @@ export function motocrossSidePanel(
  * surface so the existing bevel stays hard without faceting the main panel. */
 export function motocrossRadiatorShroud(side: number, detail: RiderDetail) {
   const flat = motocrossSidePanel(
+    // The upper edge follows the tank from the seat nose to the steering
+    // head; the forward tip reaches toward the fork as a radiator intake.
     [
-      [-0.17, 0.135],
-      [0.085, 0.168],
-      [0.325, 0.105],
-      [0.23, -0.028],
-      [0.209, -0.265],
+      [-0.2, 0.13],
+      [0.02, 0.192],
+      [0.15, 0.258],
+      [0.262, 0.258],
+      [0.338, 0.128],
+      [0.24, -0.022],
+      [0.215, -0.265],
       [0.103, -0.299],
-      [0.027, -0.118],
-      [-0.129, -0.052],
+      [0.027, -0.128],
+      [-0.14, -0.058],
     ],
     side,
   );
@@ -566,12 +570,14 @@ export function motocrossRadiatorShroud(side: number, detail: RiderDetail) {
   const position = geometry.getAttribute('position'),
     normal = geometry.getAttribute('normal');
   const crown = (y: number, z: number) => {
-    const u = T.MathUtils.clamp((z + 0.17) / 0.495, 0, 1),
-      v = T.MathUtils.clamp((y + 0.3) / 0.47, 0, 1);
+    const u = T.MathUtils.clamp((z + 0.2) / 0.538, 0, 1),
+      v = T.MathUtils.clamp((y + 0.3) / 0.558, 0, 1);
     return (
-      0.028 * Math.sin(u * Math.PI) * Math.sin(v * Math.PI) -
+      0.03 * Math.sin(u * Math.PI) * Math.sin(v * Math.PI) -
       0.021 * (1 - T.MathUtils.smoothstep(u, 0, 0.38)) +
-      0.008 * T.MathUtils.smoothstep(v, 0.5, 0.8) * T.MathUtils.smoothstep(u, 0.35, 0.75)
+      0.008 * T.MathUtils.smoothstep(v, 0.42, 0.7) * T.MathUtils.smoothstep(u, 0.35, 0.75) -
+      // The shoulder rolls in over the tank instead of ending as a free edge.
+      0.062 * T.MathUtils.smoothstep(v, 0.68, 1) * T.MathUtils.smoothstep(u, 0.1, 0.5)
     );
   };
   const n = new T.Vector3(),

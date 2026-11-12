@@ -6,7 +6,6 @@ import {
   beam,
   exhaustGeometry,
   staticSag,
-  superLoft,
   tube,
   tyreGeometry,
   type BikeMaterials,
@@ -41,6 +40,13 @@ import {
   MotocrossRearShock,
 } from './motocross-mechanics.ts';
 import { mapUnprintedPlateBack } from './number-plate-uv.ts';
+import {
+  motocrossAirbox,
+  motocrossMudFlap,
+  motocrossSeat,
+  motocrossTankShell,
+  motocrossTankTop,
+} from './motocross-bodywork.ts';
 import {
   motocrossGraphics,
   motocrossRadiatorShroud,
@@ -126,14 +132,15 @@ export class DirtBikeModel {
     this.sag = staticSag(definition);
     this.root.name = `${definition.name} ${id + 1} (${detail})`;
     this.root.add(this.sprung);
-    // Moulded polypropylene: satin, slightly translucent-looking, no lacquer.
+    // Moulded polypropylene with its glossy in-mould skin: a soft primary
+    // lobe under a sharper surface reflection (wear and scuffs dull it).
     const plastic = (color: T.ColorRepresentation, name: string) => {
       const mat = new T.MeshPhysicalMaterial({
         color,
-        roughness: 0.46,
+        roughness: 0.37,
         metalness: 0,
-        clearcoat: 0.07,
-        clearcoatRoughness: 0.5,
+        clearcoat: 0.3,
+        clearcoatRoughness: 0.3,
         name,
       });
       this.plastics.push(mat);
@@ -143,8 +150,9 @@ export class DirtBikeModel {
       dark = plastic(0x1c1d20, 'Off-road black plastics'),
       board = new T.MeshPhysicalMaterial({
         map: motocrossGraphics(colours, 'number', (id % 98) + 2),
-        roughness: 0.5,
-        clearcoat: 0.1,
+        roughness: 0.4,
+        clearcoat: 0.28,
+        clearcoatRoughness: 0.3,
         name: 'Motocross factory number board',
       });
     this.plastics.push(board);
@@ -467,8 +475,9 @@ export class DirtBikeModel {
       ),
       board,
       0,
-      CLAMPS - 0.075,
-      OFFSET + 0.1,
+      CLAMPS - 0.088,
+      // Close against the fork tubes, as a plate strapped to the clamps sits.
+      OFFSET + 0.066,
     );
     plate.name = 'Motocross sculpted front number plate';
     // Race numbers are printed on the front. The cockpit sees the unprinted
@@ -553,7 +562,9 @@ export class DirtBikeModel {
         beam(
           [
             [side * 0.03, head.y - 0.01, head.z - 0.03],
-            [side * 0.1, head.y - 0.1, head.z - 0.2],
+            // Twin spars run straight from the head to the swingarm pivot,
+            // under the tank, rather than arching up through it.
+            [side * 0.112, head.y - 0.15, head.z - 0.2],
             [side * 0.14, -0.07, -0.12],
             [side * 0.115, -0.35, -0.16],
           ],
@@ -648,30 +659,31 @@ export class DirtBikeModel {
             z,
           ).rotation.z = Math.PI / 2;
     }
-    // Tank under the shrouds and the long flat seat.
-    add(
+    // Tank and upper shroud body from the seat nose to the steering head,
+    // its filler cap and breather, the airbox behind the frame and the seat.
+    add(this.sprung, motocrossTankShell(detail), primary).name =
+      'Motocross fuel tank and upper shroud body';
+    const capZ = 0.222,
+      capY = motocrossTankTop(capZ);
+    const cap = add(
       this.sprung,
-      superLoft(
-        [
-          { z: -0.12, y: 0.02, w: 0.11, top: 0.06, bottom: 0.08 },
-          { z: 0.05, y: 0.03, w: 0.13, top: 0.08, bottom: 0.1 },
-          { z: 0.2, y: 0.04, w: 0.1, top: 0.06, bottom: 0.08 },
-        ],
-        sides,
-        3,
-      ),
-      primary,
+      new T.CylinderGeometry(0.03, 0.034, 0.02, detail === 'high' ? 20 : 12),
+      this.m.dark,
+      0,
+      capY + 0.004,
+      capZ,
     );
-    add(this.sprung, new T.CylinderGeometry(0.034, 0.039, 0.016, 12), this.m.dark, 0, 0.15, 0.091);
+    cap.rotation.x = -0.52;
+    cap.name = 'Motocross fuel filler cap';
     if (detail !== 'far')
       add(
         this.sprung,
         tube(
           [
-            [0, 0.16, 0.093],
-            [0, 0.22, 0.075],
-            [0, 0.22, 0.225],
-            [0, 0.17, 0.283],
+            [0, capY + 0.014, capZ - 0.004],
+            [0.012, capY + 0.05, capZ + 0.012],
+            [0.03, capY + 0.03, capZ + 0.058],
+            [0.036, capY - 0.035, capZ + 0.066],
           ],
           0.004,
           18,
@@ -679,20 +691,13 @@ export class DirtBikeModel {
         ),
         this.m.dark,
       );
-    add(
-      this.sprung,
-      superLoft(
-        [
-          { z: -0.72, y: 0.08, w: 0.07, top: 0.03, bottom: 0.03 },
-          { z: -0.45, y: 0.085, w: 0.115, top: 0.045, bottom: 0.04 },
-          { z: -0.15, y: 0.09, w: 0.12, top: 0.045, bottom: 0.04 },
-          { z: 0.05, y: 0.1, w: 0.08, top: 0.04, bottom: 0.04 },
-        ],
-        sides,
-        3,
-      ),
-      this.m.seat,
-    );
+    add(this.sprung, motocrossAirbox(detail), dark).name = 'Motocross airbox and seat base';
+    if (detail !== 'far') {
+      const flap = add(this.sprung, motocrossMudFlap(), dark, 0, -0.14, -0.345);
+      flap.rotation.x = 0.3;
+      flap.name = 'Motocross rear mud flap';
+    }
+    add(this.sprung, motocrossSeat(detail), this.m.seat).name = 'Motocross one-piece seat';
     if (detail !== 'far')
       for (let i = 0; i < 6; i++)
         add(

@@ -206,7 +206,7 @@ describe('motocross open cooling and laced wheels', () => {
                 3) *
               (object instanceof T.InstancedMesh ? object.count : 1);
         });
-        expect(triangles).toBeLessThan(130000);
+        expect(triangles).toBeLessThan(140000);
       } finally {
         model.dispose();
         materials.dispose();
