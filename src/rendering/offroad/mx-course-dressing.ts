@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { MxTracksideFurniture } from './mx-trackside-furniture.ts';
 import { mxAuthoredGeometry } from './authored-kit.ts';
+import { planMxCourseSites } from './mx-course-sites.ts';
 import { mxPaddingMaterial } from './mx-padding.ts';
 import { onMxDetail } from './mx-quality.ts';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -120,6 +121,7 @@ export interface MxDressingStats {
   shrubs: number;
   stones: number;
   canopies: number;
+  flags: number;
 }
 
 /** The racing corridor remains defined by OffroadCourse. All solid dressing
@@ -142,6 +144,7 @@ export class MxCourseDressing {
     shrubs: 0,
     stones: 0,
     canopies: 0,
+    flags: 0,
   };
   private readonly ownedTextures = new Set<T.Texture>();
   private readonly batches = new Map<T.Material, T.BufferGeometry[]>();
@@ -265,6 +268,7 @@ export class MxCourseDressing {
     this.trackside = new MxTracksideFurniture(track);
     this.root.add(this.trackside.root);
     this.stats.canopies = this.trackside.stats.canopy;
+    if (!indoor) this.featherFlags(cloth, steel);
     // The arch is a sporting landmark at the actual holeshot timing line.
     if (course.spec.gate) {
       const s = course.spec.gate.holeshot;
@@ -435,6 +439,72 @@ export class MxCourseDressing {
     mesh.receiveShadow = true;
     this.turf.add(mesh);
     this.stats.tapeSpans = spans;
+  }
+  /** Event feather flags in clusters of three on the outside of the turns,
+   * where a rider's eye goes on corner entry. Printed with the event atlas
+   * (lettering reads up the sail, as on a real feather flag) and merged into
+   * the existing cloth and steel batches: no extra draw or texture. They stay
+   * clear of the course, its neighbouring lanes and every planned service
+   * site, marshal post and landmark. */
+  private featherFlags(cloth: T.Material, steel: T.Material) {
+    const track = this.track,
+      course = this.surface.course,
+      ahead = trackPoint(),
+      behind = trackPoint(),
+      occupied = [
+        ...this.trackside.plan.sites,
+        ...planMxCourseSites(track).landmarks,
+      ];
+    const sail = (row: number) => {
+      const columns = 6,
+        rows = 10,
+        g = new T.PlaneGeometry(1, 1, columns, rows),
+        p = g.getAttribute('position'),
+        uv = g.getAttribute('uv');
+      for (let i = 0; i < p.count; i++) {
+        const u = p.getX(i) + 0.5,
+          v = p.getY(i) + 0.5,
+          // A tall sail whose free edge sweeps back into a rounded head.
+          bottom = 0.62 + 0.12 * u * u,
+          top = 3.12 - 0.62 * u * u * u,
+          y = bottom + (top - bottom) * v,
+          width = 0.72 * (1 - 0.25 * v * v);
+        p.setXYZ(i, 0.03 + u * width, y, 0.07 * Math.sin(Math.PI * u) * (0.6 + 0.4 * v));
+        // Atlas along the height (text reads upward), across the row's band.
+        uv.setXY(i, 0.04 + v * 0.62, u);
+      }
+      g.computeVertexNormals();
+      return mxAtlasRow(g, row);
+    };
+    const pole = () => new T.CylinderGeometry(0.014, 0.02, 3.18, 6).translate(0, 1.59, 0);
+    let clusters = 0;
+    for (let s = 20; s < track.length - 20 && clusters < 14; s += 9) {
+      track.at(s + 6, ahead);
+      track.at(s - 6, behind);
+      const p = track.at(s, this.point),
+        turn = (ahead.tx - behind.tx) * p.nx + (ahead.tz - behind.tz) * p.nz;
+      if (Math.abs(turn) < 0.42) continue;
+      const side = turn > 0 ? -1 : 1,
+        lateral = side * (course.legalWidth(p.width, s, side) + 3.4);
+      let fits = true;
+      for (const ds of [-3, 0, 3])
+        if (!this.clear(s + ds, lateral, 2)) fits = false;
+      const x = p.x + p.nx * lateral,
+        z = p.z + p.nz * lateral;
+      if (!fits || occupied.some((q) => Math.hypot(q.x - x, q.z - z) < q.radius + 2.5)) continue;
+      for (const [k, ds] of [-3, 0, 3].entries()) {
+        this.pose(s + ds, lateral);
+        // Sails trail downwind together; the cluster alternates its prints.
+        this.object.rotateY(0.9 + 0.15 * k);
+        this.object.updateMatrix();
+        this.frame.copy(this.object.matrix);
+        this.part(pole(), steel);
+        this.part(sail(k === 1 ? 3 : (clusters + k) % 2 ? 0 : 1), cloth);
+        this.stats.flags++;
+      }
+      clusters++;
+      s += 40;
+    }
   }
   private clear(s: number, lateral: number, margin: number) {
     const p = this.track.at(s, this.point),
