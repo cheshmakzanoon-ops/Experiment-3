@@ -355,13 +355,20 @@ export class Roost {
     this.shapes[i * 2 + 1] = (i * 0.61803398875) % 1;
     this.bornSize[i] = this.sizes[i] = this.motocross
       ? dust
-        ? 0.28 + r.next() * 0.27
+        ? 0.34 + r.next() * 0.36
         : 0.035 + r.next() * 0.065
       : 1;
     this.bornOpacity[i] = this.opacity[i] = dust ? 0.24 * (1 - wet * 0.7) : 0.95;
-    if (this.motocross && dust) this.opacity[i] *= 0.3;
+    // Dry fines hang behind a pack as a visible trail (references 023/036/
+    // 066): denser, broader and longer-lived than the first MX pass, still
+    // translucent and suppressed further by moisture. The first frame keeps
+    // its faint birth; the update's fade-in carries it to bornOpacity.
+    if (this.motocross && dust) {
+      this.bornOpacity[i] = 0.34 * (1 - wet * 0.8);
+      this.opacity[i] = this.bornOpacity[i] * 0.3;
+    }
     if (this.motocross)
-      this.maxLife[i] = this.life[i] = dust ? 1.5 + r.next() * 1.1 : 0.55 + r.next() * 0.5;
+      this.maxLife[i] = this.life[i] = dust ? 2.1 + r.next() * 1.5 : 0.55 + r.next() * 0.5;
   }
   /** Contact height/normal from displayed terrain. Before its mesh is built,
    * the wheel's worker-reported rut depth supplies the course depression. */
@@ -553,7 +560,7 @@ export class Roost {
       }
       if (this.motocross) {
         const remaining = clamp(this.life[i] / this.maxLife[i], 0, 1);
-        this.sizes[i] = this.bornSize[i] * (this.dust[i] ? 1 + (1 - remaining) * 3.5 : 1);
+        this.sizes[i] = this.bornSize[i] * (this.dust[i] ? 1 + (1 - remaining) * 5 : 1);
         this.opacity[i] = this.dust[i]
           ? this.bornOpacity[i] * remaining * Math.min(1, (1 - remaining) * 12 + 0.3)
           : this.bornOpacity[i] * Math.min(1, remaining * 4);
@@ -662,7 +669,8 @@ export class Roost {
         const driven = !bike || wheel === 2;
         const spin = driven ? clamp((slip - 0.04) * 6, 0, 1.5) : 0,
           rate =
-            (spin * (40 + speed * 6) + (1 - wet) * speed * (driven ? 0.6 : 0.18)) *
+            (spin * (40 + speed * 6) +
+              (1 - wet) * speed * (driven ? 0.6 : 0.18) * (this.motocross && bike ? 2.2 : 1)) *
             (bike ? 1 : 0.7) *
             this.density;
         const sideKick = this.motocross ? clamp(frame[p + W.ANGLE], -0.5, 0.5) * speed * 0.35 : 0;
