@@ -47,10 +47,12 @@ const SEAT: readonly Section[] = [
   { z: -0.66, y: 0.088, w: 0.094, top: 0.04, bottom: 0.04, topWidth: 0.8 },
   { z: -0.45, y: 0.085, w: 0.118, top: 0.045, bottom: 0.052, topWidth: 0.78 },
   { z: -0.15, y: 0.09, w: 0.122, top: 0.045, bottom: 0.058, topWidth: 0.76 },
-  { z: -0.02, y: 0.098, w: 0.102, top: 0.042, bottom: 0.05, topWidth: 0.74 },
-  { z: 0.06, y: 0.14, w: 0.084, top: 0.04, bottom: 0.04, topWidth: 0.72 },
-  { z: 0.13, y: 0.196, w: 0.064, top: 0.034, bottom: 0.03, topWidth: 0.7 },
-  { z: 0.17, y: 0.232, w: 0.042, top: 0.022, bottom: 0.02, topWidth: 0.7 },
+  { z: -0.02, y: 0.102, w: 0.102, top: 0.042, bottom: 0.05, topWidth: 0.74 },
+  // The nose rides 1.5-2 cm proud of the tank top, as a pad over it: a
+  // coincident surface would leave an irregular black intersection patch.
+  { z: 0.06, y: 0.153, w: 0.084, top: 0.045, bottom: 0.035, topWidth: 0.72 },
+  { z: 0.13, y: 0.205, w: 0.066, top: 0.04, bottom: 0.03, topWidth: 0.7 },
+  { z: 0.17, y: 0.232, w: 0.044, top: 0.026, bottom: 0.022, topWidth: 0.7 },
 ];
 export function motocrossSeat(detail: RiderDetail) {
   return superLoft(SEAT, sidesFor(detail), 3);

@@ -139,8 +139,8 @@ export class DirtBikeModel {
         color,
         roughness: 0.37,
         metalness: 0,
-        clearcoat: 0.3,
-        clearcoatRoughness: 0.3,
+        clearcoat: 0.5,
+        clearcoatRoughness: 0.2,
         name,
       });
       this.plastics.push(mat);
@@ -207,6 +207,26 @@ export class DirtBikeModel {
       roughness: 0.56,
       name: 'Motocross magnesium engine cover',
     });
+    // Twin-spar frame, subframe and swingarm: polished-then-brushed
+    // aluminium. The anisotropic lobe streaks highlights along each tube's
+    // length (its UV direction) instead of the shared frame alloy's round
+    // hotspot. Distant LODs keep the shared material and program.
+    const brushedAlloy =
+      detail === 'far'
+        ? this.m.aluminium
+        : new T.MeshPhysicalMaterial({
+            color: 0xc3c6c8,
+            metalness: 1,
+            roughness: 0.27,
+            anisotropy: 0.65,
+            clearcoat: 0.12,
+            clearcoatRoughness: 0.18,
+            name: 'Motocross brushed aluminium frame and swingarm',
+          });
+    if (brushedAlloy !== this.m.aluminium) {
+      this.plastics.push(brushedAlloy);
+      tagWeatherSurface(brushedAlloy, 'metal', 0.6);
+    }
     this.plastics.push(
       shroudMaterial,
       rimMaterial,
@@ -572,7 +592,7 @@ export class DirtBikeModel {
           lightFrame ? 0.037 : 0.066,
           detail === 'high' ? 20 : 8,
         ),
-        lightFrame ? primary : this.m.aluminium,
+        lightFrame ? primary : brushedAlloy,
       );
       // Subframe to the rear fender.
       add(
@@ -587,7 +607,7 @@ export class DirtBikeModel {
           8,
           6,
         ),
-        this.m.aluminium,
+        brushedAlloy,
       );
       add(
         this.sprung,
@@ -603,7 +623,7 @@ export class DirtBikeModel {
           detail === 'high' ? 28 : 12,
           8,
         ),
-        lightFrame ? primary : this.m.aluminium,
+        lightFrame ? primary : brushedAlloy,
       );
     }
     add(
@@ -819,7 +839,7 @@ export class DirtBikeModel {
     const arm = (this.armLength = this.rearAxle.clone().sub(this.pivot).length());
     this.swingarm.name = 'Motocross articulated swingarm';
     for (const side of [1, -1])
-      add(this.swingarm, motocrossSwingarmRail(arm, side, detail), this.m.aluminium);
+      add(this.swingarm, motocrossSwingarmRail(arm, side, detail), brushedAlloy);
     add(this.swingarm, new T.CylinderGeometry(0.018, 0.018, 0.26, 10), this.m.steel).rotation.z =
       Math.PI / 2;
     if (detail !== 'far') {
