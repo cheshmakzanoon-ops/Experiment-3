@@ -759,7 +759,9 @@ export class Rider {
     if (mx) {
       part(this.torso, motocrossGarmentGeometry('seat', detail), leather).name =
         'Motocross separate trouser waist';
-      const neck = part(this.torso, new T.CylinderGeometry(0.041, 0.046, 0.075, sides), flex);
+      // An athlete's neck under the helmet: thick enough that the helmet
+      // does not sit on a stalk; the brace hides its base.
+      const neck = part(this.torso, new T.CylinderGeometry(0.049, 0.056, 0.075, sides), flex);
       neck.name = 'Motocross neck liner above textile collar';
       neck.position.set(0, 0.56, 0.029);
       this.motocrossSpine!.bind(neck);
@@ -1373,7 +1375,9 @@ export class Rider {
     );
     let pitch = T.MathUtils.lerp(1.05, 1.42, tuck) - braking * 0.3 + Math.abs(lean) * 0.1;
     // An off-road rider sits up; standing, bends at the hips over the bars.
-    if (mx) pitch = 0.36 + braking * 0.12 + body * 0.16 + standing * 0.23 + motion!.torsoPitch;
+    // Standing, the attack position folds the chest down over the bars
+    // (about 45 degrees) with the hips back; seated stays upright.
+    if (mx) pitch = 0.36 + braking * 0.12 + body * 0.16 + standing * 0.36 + motion!.torsoPitch;
     else pitch = T.MathUtils.lerp(pitch, 0.78 + body * 0.25, standing);
     const yaw = T.MathUtils.clamp(offset * 0.9, -0.3, 0.3) + pose.steer * 0.3;
     this.euler.set(pitch, yaw, -into, 'ZYX');

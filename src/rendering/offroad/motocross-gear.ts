@@ -184,10 +184,22 @@ export function motocrossGarmentGeometry(
         const hem = Math.exp(-(((y - 0.115) / 0.07) ** 2)),
           underarm = Math.exp(-(((y - 0.365) / 0.082) ** 2)),
           side = Math.abs(c) ** 3;
+        // A race jersey is cut loose over the protector: it blouses over the
+        // waistband in soft vertical drapes, gathers in horizontal ridges at
+        // the hem, pulls in diagonal folds from the underarm toward the
+        // sternum, and hangs off the shoulder blades behind. Centimetre-scale
+        // relief reads from the chase camera; the silhouette stays clear of
+        // the sleeves' buried armholes.
+        const waist = Math.exp(-(((y - 0.085) / 0.05) ** 2)),
+          back = Math.max(0, -s) * Math.exp(-(((y - 0.3) / 0.11) ** 2)),
+          diagonal = Math.exp(-(((y - 0.3) / 0.09) ** 2)) * side * Math.max(0, s);
         fold =
           0.0026 * Math.sin(angle * 7 + y * 11) * envelope +
-          0.0064 * hem * Math.sin(y * 116 + s * 4 + c * 3) +
-          0.0045 * underarm * side * Math.sin(y * 87 + s * 5);
+          0.008 * hem * Math.sin(y * 74 + s * 4 + c * 3) +
+          0.0065 * underarm * side * Math.sin(y * 63 + s * 5) +
+          waist * (0.009 + 0.0055 * Math.sin(angle * 9 + 0.7)) +
+          0.004 * back * Math.sin(c * 11 + y * 9) +
+          0.004 * diagonal * Math.sin((y + Math.abs(c) * 0.35) * 70);
       } else if (articulated) {
         const joint = Math.exp(-(((y - upper) / (kind === 'sleeve' ? 0.075 : 0.105)) ** 2)),
           hip = kind === 'pants' ? Math.exp(-(((y - 0.105) / 0.075) ** 2)) : 0,
@@ -389,16 +401,18 @@ export function motocrossNeckBrace(detail: RiderDetail) {
     const a = (i / around) * Math.PI * 2,
       front = Math.sin(a),
       // Wider over the collar bones, deeper table behind the helmet.
-      cx = Math.cos(a) * 0.112,
-      cz = 0.024 + front * (front > 0 ? 0.1 : 0.092),
-      cy = 0.553 - front * 0.016,
-      radial = 0.025 + 0.007 * Math.max(0, -front),
-      tall = 0.0135;
+      // Seated on the trapezius and collar bones: low and wide, its rim
+      // a finger's width under the helmet's lower edge.
+      cx = Math.cos(a) * 0.118,
+      cz = 0.024 + front * (front > 0 ? 0.104 : 0.094),
+      cy = 0.534 - front * 0.014,
+      radial = 0.028 + 0.008 * Math.max(0, -front),
+      tall = 0.0145;
     for (let j = 0; j <= section; j++) {
       const b = (j / section) * Math.PI * 2,
         out = Math.sign(Math.cos(b)) * Math.abs(Math.cos(b)) ** 0.7 * radial,
         up = Math.sign(Math.sin(b)) * Math.abs(Math.sin(b)) ** 0.7 * tall;
-      positions.push(cx * (1 + out / 0.112), cy + up, 0.024 + (cz - 0.024) * (1 + out / 0.096));
+      positions.push(cx * (1 + out / 0.118), cy + up, 0.024 + (cz - 0.024) * (1 + out / 0.1));
       if (i < around && j < section) {
         const p = i * (section + 1) + j,
           q = p + section + 1;
@@ -420,8 +434,9 @@ export function motocrossNeckBrace(detail: RiderDetail) {
     g.translate(0, (y0 + y1) / 2, (z0 + z1) / 2);
     return g.index ? g.toNonIndexed() : g;
   };
-  const sternum = strut(0.05, 0.545, 0.124, 0.452, 0.146),
-    thoracic = strut(0.038, 0.566, -0.074, 0.418, -0.112),
+  // Broad, flat chest and back pads lying on the jersey, not posts.
+  const sternum = strut(0.074, 0.522, 0.13, 0.44, 0.15),
+    thoracic = strut(0.062, 0.546, -0.083, 0.41, -0.118),
     flat = ring.toNonIndexed(),
     merged = new T.BufferGeometry(),
     all = [flat, sternum, thoracic],
