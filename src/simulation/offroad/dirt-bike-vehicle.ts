@@ -385,8 +385,10 @@ export class DirtBikeVehicle extends BikeVehicle {
     // Loose soil forgives a moment past the limit: the ridden bike pushes or
     // steps out first and only goes down when the overload is held.
     d.p.gripFallGrace = this.playerMotocross ? PLAYER_GRIP_GRACE : undefined;
-    // Every dirt bike balances a slow turn feet-up (the AI rides the same way).
-    d.p.lowSpeedBalance = true;
+    // The ridden bike balances a slow turn feet-up. Calibrated AI keeps the
+    // shared core's walking-pace blend: its race and jump surveys (and its
+    // crash bounds) were measured with it, as for the rest of its core path.
+    d.p.lowSpeedBalance = this.playerMotocross;
     if (!this.playerMotocross || !this.riding) this.wheelPickup = false;
     const mxGround = this.playerMotocross && this.riding && !this.airborne;
     if (!mxGround) {

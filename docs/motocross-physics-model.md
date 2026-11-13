@@ -80,8 +80,11 @@ Three corrections make the ridden bike forgiving without changing its limits
 (`tests/motocross-forgiving-handling.test.ts`, measured with
 `scripts/motocross-feel-probe.ts`):
 
-- **Feet-up balance below 5 m/s** (`BikeParameters.lowSpeedBalance`, set for
-  every dirt bike, AI included). The shared lean assist counter-steers toward
+- **Feet-up balance below 5 m/s** (`BikeParameters.lowSpeedBalance`, player
+  solver; calibrated AI keeps the shared core's blend, like the rest of its
+  core path, until its race gates are re-surveyed with it — enabling it for
+  AI raised the Valley Ridge event crash rate through changed race traffic
+  and jump approaches). The shared lean assist counter-steers toward
   a lean that its own low-speed support spring holds upright; between about
   2.5 and 4.5 m/s a held stick therefore turned the bike the wrong way and
   never leaned it. The bars now take the steady steer of the intended lean

@@ -40,17 +40,31 @@ function holdStick(speed: number, steer: number, seconds: number, ai: boolean) {
 }
 
 describe('motocross low-speed balance', () => {
-  for (const ai of [false, true])
-    for (const speed of [2, 2.6, 3, 3.5, 4, 4.5, 5, 8, 14])
-      it(`${ai ? 'AI' : 'player'} at ${speed} m/s turns and leans toward a held stick`, () => {
-        for (const steer of [0.6, -1]) {
-          const { bike, turned, wrongWay } = holdStick(speed, steer, 1.5, ai);
-          expect(bike.riding).toBe(true);
-          expect(turned).toBeGreaterThan(0.25);
-          expect(bike.dynamics.lean * Math.sign(steer)).toBeGreaterThan(0.08);
-          expect(wrongWay).toBeLessThan(0.2);
-        }
-      });
+  for (const speed of [2, 2.6, 3, 3.5, 4, 4.5, 5, 8, 14])
+    it(`player at ${speed} m/s turns and leans toward a held stick`, () => {
+      for (const steer of [0.6, -1]) {
+        const { bike, turned, wrongWay } = holdStick(speed, steer, 1.5, false);
+        expect(bike.riding).toBe(true);
+        expect(turned).toBeGreaterThan(0.25);
+        expect(bike.dynamics.lean * Math.sign(steer)).toBeGreaterThan(0.08);
+        expect(wrongWay).toBeLessThan(0.2);
+      }
+    });
+
+  it('leaves calibrated AI on the shared walking-pace blend', () => {
+    const track = rigTrack('valley-ridge-mx'),
+      bike = new DirtBikeVehicle(0, 'medium', DEFAULT_SETUP, 'sport', MX_450);
+    bike.place(track, 20, 0);
+    bike.aiControlled(2);
+    bike.step(DT, track);
+    expect(bike.dynamics.p.lowSpeedBalance).toBe(false);
+    expect(bike.dynamics.p.gripFallGrace).toBeUndefined();
+    const player = new DirtBikeVehicle(0, 'medium', DEFAULT_SETUP, 'sport', MX_450);
+    player.place(track, 20, 0);
+    player.step(DT, track);
+    expect(player.dynamics.p.lowSpeedBalance).toBe(true);
+    expect(player.dynamics.p.gripFallGrace).toBeGreaterThan(0);
+  });
 
   it('holds a tight feet-up turn at walking pace without falling or running wide', () => {
     const { bike, turned } = holdStick(3, 1, 4, false);
@@ -149,7 +163,11 @@ describe('motocross ridden lap', () => {
     let stalled = 0,
       longestStall = 0,
       t = 0;
-    for (; t < 260 && sim.race.phase !== PHASE.FINISHED && sim.race.laps[0].completed < 2; t += 1 / 120) {
+    for (
+      ;
+      t < 260 && sim.race.phase !== PHASE.FINISHED && sim.race.laps[0].completed < 2;
+      t += 1 / 120
+    ) {
       sim.step(1 / 120);
       if (sim.race.phase !== PHASE.RACING) continue;
       stalled = bike.riding && bike.dynamics.speed < 1 ? stalled + 1 / 120 : 0;
