@@ -97,14 +97,16 @@ export function planMxSpectators(track: Track, furniture: readonly MxFurnitureSi
   // Viewpoints: where an event draws a crowd.
   const views: { s: number; side: 1 | -1 | 0; size: number }[] = [];
   for (const jump of course.jumps) {
-    views.push({ s: jump.landing + 2, side: 0, size: 7 + Math.floor(random.next() * 5) });
+    // Jumps draw the deepest crowds: a packed bank at every landing and,
+    // usually, a second one watching the take-off.
+    views.push({ s: jump.landing + 2, side: 0, size: 15 + Math.floor(random.next() * 8) });
     if (random.next() < 0.7)
-      views.push({ s: jump.takeoff - 3, side: 0, size: 4 + Math.floor(random.next() * 5) });
+      views.push({ s: jump.takeoff - 3, side: 0, size: 8 + Math.floor(random.next() * 6) });
   }
   const gate = course.spec.gate;
   if (gate) {
-    views.push({ s: gate.s - 20, side: 0, size: 7 }, { s: gate.s - 8, side: 0, size: 6 });
-    views.push({ s: gate.holeshot, side: 0, size: 6 });
+    views.push({ s: gate.s - 20, side: 0, size: 14 }, { s: gate.s - 8, side: 0, size: 12 });
+    views.push({ s: gate.holeshot, side: 0, size: 14 });
   }
   for (let s = 20; s < track.length - 10; s += 24 + random.next() * 18)
     views.push({ s, side: 0, size: 3 + Math.floor(random.next() * 5) });
