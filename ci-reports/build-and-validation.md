@@ -1,24 +1,24 @@
 # Build and validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/43328510625
-- commit: `214ef8ff56` · Motocross venue: event feather flags on the outside of the outdoor turns
-- event: push · status: completed · conclusion: **cancelled**
-- started: 2026-11-12T23:23:54Z · updated: 2026-11-12T23:30:00Z
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/43329315084
+- commit: `42bea636c0` · Motocross roost: visible dry dust trails behind the pack
+- event: push · status: completed · conclusion: **failure**
+- started: 2026-11-12T23:29:42Z · updated: 2026-11-13T01:15:48Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| validate | success | 2 |  |
-| scenarios | cancelled | 1 | Run npm run test:physics |
-| offroad-scenarios | cancelled | 2 | Full offroad calibrations and races without source changes |
-| unit-tests | cancelled | 5 |  |
-| wet-presentation | cancelled | 0 |  |
-| owner-qa | cancelled | 0 |  |
-| browser (7) | cancelled | 0 |  |
-| browser (5) | cancelled | 0 |  |
-| browser (2) | cancelled | 0 |  |
-| browser (1) | cancelled | 0 |  |
-| browser (4) | cancelled | 0 |  |
-| browser (8) | cancelled | 0 |  |
-| browser (3) | cancelled | 0 |  |
-| browser (6) | cancelled | 0 |  |
-| publish | cancelled | -1 |  |
+| scenarios | success | 11 |  |
+| offroad-scenarios | success | 12 |  |
+| unit-tests | failure | 33 | Full unit suite without source changes |
+| validate | success | 3 |  |
+| wet-presentation | success | 11 |  |
+| browser (2) | cancelled | 90 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/8 |
+| browser (4) | cancelled | 90 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 4/8 |
+| browser (7) | cancelled | 90 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/8 |
+| browser (1) | cancelled | 90 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 1/8 |
+| browser (6) | cancelled | 90 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 6/8 |
+| browser (5) | cancelled | 90 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/8 |
+| browser (8) | cancelled | 90 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/8 |
+| browser (3) | cancelled | 90 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 3/8 |
+| owner-qa | cancelled | 90 | Owner-only and review-tool specs, plus the owner half of the dual-mode specs |
+| publish | skipped | -1 |  |
