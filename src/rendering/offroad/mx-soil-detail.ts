@@ -238,6 +238,14 @@ const COLOUR = /* glsl */ `{
     * ( 1.0 - mxPreparedPacked * 0.18 - mxPreparedGroove * 0.21
       + onSoil * passes.y * 0.095 + mxPreparedAggregate * 0.13 - tread * 0.045
       - onSoil * touchdown * 0.065 + onSoil * bermLip * 0.055 + mxPreparedCrest * 0.07 );
+  // Unridden margins: the loose, fluffier soil the graders push to the
+  // edge holds its moisture and reads darker and browner than the packed
+  // lines, with an irregular inner boundary. Reads at chase distance.
+  float edgeAcross = abs( p.x ) / halfWidth;
+  float edgeBand = onSoil * smoothstep( 0.68 + 0.1 * broken, 0.97, edgeAcross )
+    * ( 1.0 - passes.z * 0.8 ) * ( 1.0 - smoothstep( 1.12, 1.3, edgeAcross ) );
+  diffuseColor.rgb *= 1.0 - edgeBand * ( 0.2 + 0.1 * broad );
+  diffuseColor.rgb = mix( diffuseColor.rgb, diffuseColor.rgb * vec3( 0.95, 0.88, 0.8 ), edgeBand );
   // 043/059/092: wet loam reflects chiefly along its depressions. Dry raised
   // aggregate remains rough; the complete course never becomes one mirror.
   float dampPatch = smoothstep( 0.38, 0.86, mxPreparedWet )

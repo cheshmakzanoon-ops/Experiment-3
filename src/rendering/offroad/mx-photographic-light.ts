@@ -14,8 +14,9 @@ import type { LightingMode } from '../daylight.ts';
  *    read when the key separates their lit and shaded sides.
  *  - `sunTint` warms the key toward a low sun over ochre ground, leaving the
  *    open shade in the ruts and behind the berms cool.
- *  - `haze` adds the dust a pack hangs in the air: tree lines and the far
- *    side of the course fall back instead of sitting at full contrast.
+ *  - `haze` adds the dust a pack hangs in the air (2.3x the clear-day
+ *    aerosol): tree lines, the far side of the course and the hills behind
+ *    fall back in warm-grey depth instead of sitting at full contrast.
  *  - `toneMapper` null: the preset's own display transform is kept.
  *  - `grade`: a firmer S-curve and more vibrance than the shared grade (soil,
  *    grass and kit colours are all mid-saturation), a warm key / cool shade
@@ -29,7 +30,7 @@ export const MX_PHOTOGRAPHIC: Readonly<GpPhotographicLook> = Object.freeze({
   sun: 1.12,
   sunTint: Object.freeze([1, 0.95, 0.85] as const),
   exposureEV: 0,
-  haze: 1.6,
+  haze: 2.3,
   clearSky: null,
   toneMapper: null,
   grade: Object.freeze({
