@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/43369313699
-- commit: `604f1a8e85` · Motocross rider: loose jersey drape, seated neck brace, athletic neck, deeper attack pose
-- event: push · status: completed · conclusion: **failure**
-- started: 2026-11-13T05:02:00Z · updated: 2026-11-13T05:09:46Z
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/43369754091
+- commit: `0319d375ee` · Motocross bike materials: brushed anisotropic frame/swingarm alloy, glossier plastics, seat pad over the tank
+- event: push · status: completed · conclusion: **success**
+- started: 2026-11-13T05:05:57Z · updated: 2026-11-13T05:15:58Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (night) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
+| browser (sunset) | success | 5 |  |
+| browser (night) | success | 7 |  |
 | browser (day) | success | 6 |  |
-| browser (sunset) | success | 6 |  |
