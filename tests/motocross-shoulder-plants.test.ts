@@ -6,6 +6,7 @@ import {
   MX_SHOULDER_WIND,
 } from '../src/rendering/offroad/mx-shoulder-plants.ts';
 import { TerrainView } from '../src/rendering/offroad/terrain-view.ts';
+import { setMxQuality } from '../src/rendering/offroad/mx-quality.ts';
 import type { StudioShader } from '../src/rendering/studio/shader-hooks.ts';
 import { TrackTerrainSurface } from '../src/simulation/offroad/course-terrain.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
@@ -105,7 +106,23 @@ describe('formed, rooted motocross shoulder vegetation', () => {
     expect(dressing.stats.grassClumps).toBeGreaterThan(1000);
     expect(dressing.stats.fernClumps).toBeGreaterThan(20);
     expect(dressing.stats.shrubs).toBeGreaterThan(10);
-    expect(triangles).toBeLessThan(90000);
+    // High/Ultra verge density was deliberately doubled (about 150k
+    // triangles, instanced, no extra draws, no shadow casting); Low/Medium
+    // draw a 45% subset, which stays inside the earlier 90k budget.
+    expect(triangles).toBeLessThan(160000);
+    setMxQuality('medium');
+    try {
+      let reduced = 0;
+      for (const name of names) {
+        const mesh = dressing.root.getObjectByName(name) as T.InstancedMesh;
+        reduced +=
+          ((mesh.geometry.index?.count ?? mesh.geometry.getAttribute('position').count) / 3) *
+          mesh.count;
+      }
+      expect(reduced).toBeLessThan(90000);
+    } finally {
+      setMxQuality('high');
+    }
     expect(surface.terrain.hash()).toBe(initial);
     dressing.dispose();
   });

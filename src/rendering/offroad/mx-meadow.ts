@@ -56,7 +56,9 @@ export class MxMeadow {
         gz = (mxFurnitureGround(track, x, z + h) - mxFurnitureGround(track, x, z - h)) / (2 * h);
       return { gx, gz };
     };
-    for (let i = 0; i < 26000; i++) {
+    // Dense enough that the field reads as standing grass, not dots on a
+    // lawn, from the chase camera's height (High/Ultra only, instanced).
+    for (let i = 0; i < 58000; i++) {
       const s = random.next() * track.length,
         side = random.next() < 0.5 ? -1 : 1;
       const at = track.at(s, point);

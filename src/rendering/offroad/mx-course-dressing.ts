@@ -323,7 +323,12 @@ export class MxCourseDressing {
         const reach = span * 2 + half * 2;
         for (const cy of [top - bridge, top])
           for (const cz of [-half, half])
-            this.part(chord(reach).rotateZ(Math.PI / 2).translate(0, cy, cz), steel);
+            this.part(
+              chord(reach)
+                .rotateZ(Math.PI / 2)
+                .translate(0, cy, cz),
+              steel,
+            );
         for (let x = -span + 0.9; x < span - 0.4; x += 1.05)
           for (const cz of [-half, half])
             this.part(
@@ -451,10 +456,7 @@ export class MxCourseDressing {
       course = this.surface.course,
       ahead = trackPoint(),
       behind = trackPoint(),
-      occupied = [
-        ...this.trackside.plan.sites,
-        ...planMxCourseSites(track).landmarks,
-      ];
+      occupied = [...this.trackside.plan.sites, ...planMxCourseSites(track).landmarks];
     const sail = (row: number) => {
       const columns = 6,
         rows = 10,
@@ -487,8 +489,7 @@ export class MxCourseDressing {
       const side = turn > 0 ? -1 : 1,
         lateral = side * (course.legalWidth(p.width, s, side) + 3.4);
       let fits = true;
-      for (const ds of [-3, 0, 3])
-        if (!this.clear(s + ds, lateral, 2)) fits = false;
+      for (const ds of [-3, 0, 3]) if (!this.clear(s + ds, lateral, 2)) fits = false;
       const x = p.x + p.nx * lateral,
         z = p.z + p.nz * lateral;
       if (!fits || occupied.some((q) => Math.hypot(q.x - x, q.z - z) < q.radius + 2.5)) continue;
@@ -605,7 +606,12 @@ export class MxCourseDressing {
       origin = new T.Vector3(),
       corner = new T.Vector3(),
       nearest = trackPoint();
-    const plantPose = (s: number, lateral: number, scale: number, kind: keyof typeof plantGeometry) => {
+    const plantPose = (
+      s: number,
+      lateral: number,
+      scale: number,
+      kind: keyof typeof plantGeometry,
+    ) => {
       const at = track.at(s, this.point),
         x = at.x + at.nx * lateral,
         z = at.z + at.nz * lateral;
@@ -632,7 +638,20 @@ export class MxCourseDressing {
         )
         .normalize();
       if (normal.y < 0.72 || Math.abs(l - lateral) > 0.25) return false;
-      origin.set(x, surface.terrain.baseHeight(s, lateral) - 0.025, z);
+      // A convex crest renders as chords below the analytic surface; a root
+      // sunk only 25 mm there would hover over the drawn triangle.
+      const centre = surface.terrain.baseHeight(s, lateral),
+        bulge =
+          (surface.terrain.baseHeight(s, lateral - 0.5) +
+            surface.terrain.baseHeight(s, lateral + 0.5) +
+            surface.terrain.baseHeight(s - 1, lateral) +
+            surface.terrain.baseHeight(s + 1, lateral)) /
+            4 -
+          centre;
+      if (bulge < -0.018) return false;
+      // 35 mm: the denser verge also samples triangle edges where the drawn
+      // facet sits a few millimetres under the analytic height.
+      origin.set(x, centre - 0.035, z);
       this.object.position.copy(origin);
       this.object.quaternion.setFromUnitVectors(up, normal);
       this.object.rotateY(random.next() * Math.PI * 2);
@@ -678,7 +697,9 @@ export class MxCourseDressing {
       }
       return true;
     };
-    for (let i = 0; i < 3900; i++) {
+    // Tall grass islands along the shoulder, about twice the earlier
+    // density so the course edge reads as uncut verge rather than lawn.
+    for (let i = 0; i < 9100; i++) {
       const s = random.next() * track.length,
         side = random.next() < 0.5 ? -1 : 1;
       const p = track.at(s, this.point);
@@ -697,7 +718,8 @@ export class MxCourseDressing {
           0.31 + random.next() * 0.12,
         ),
       );
-      if (i % 13 !== 0) continue;
+      // Field stones keep their earlier count (one attempt per ~300 rolls).
+      if (i % 30 !== 0) continue;
       track.at(s, this.point);
       const far = side * (p.width + 9 + random.next() * 12),
         rockX = p.x + p.nx * far,
@@ -721,7 +743,7 @@ export class MxCourseDressing {
     }
     // Darker intermediate-height plants sit behind the cropped grass, in
     // connected patches rather than a uniform strip of identical bushes.
-    for (let i = 0; i < 1150; i++) {
+    for (let i = 0; i < 2100; i++) {
       const s = random.next() * track.length,
         side = random.next() < 0.5 ? -1 : 1,
         p = track.at(s, this.point),
@@ -744,7 +766,7 @@ export class MxCourseDressing {
     // grass islands above leave bare. The same grounding and clearance rules apply.
     const tuftPoses: T.Matrix4[] = [],
       tuftColours: T.Color[] = [];
-    for (let i = 0; i < 16000; i++) {
+    for (let i = 0; i < 28000; i++) {
       const s = random.next() * track.length,
         side = random.next() < 0.5 ? -1 : 1,
         p = track.at(s, this.point),
@@ -818,9 +840,18 @@ export class MxCourseDressing {
     const tufts = tuftPoses.length
       ? (this.turf.children.find((o) => o.name === 'MX shoulder grass tufts') as T.InstancedMesh)
       : null;
-    if (tufts)
+    // Low and Medium draw the earlier verge density (a uniform subset: the
+    // poses are in random station order); High and Ultra draw it all.
+    const verge = (
+      ['MX shoulder grass islands', 'MX shoulder fern fans', 'MX shoulder broadleaf scrub'] as const
+    )
+      .map((name) => this.root.children.find((o) => o.name === name))
+      .filter((o): o is T.InstancedMesh => o instanceof T.InstancedMesh)
+      .map((mesh) => ({ mesh, full: mesh.count }));
+    if (tufts || verge.length)
       this.stopTufts = onMxDetail((high) => {
-        tufts.count = high ? tuftPoses.length : Math.floor(tuftPoses.length * 0.3);
+        if (tufts) tufts.count = high ? tuftPoses.length : Math.floor(tuftPoses.length * 0.3);
+        for (const { mesh, full } of verge) mesh.count = high ? full : Math.floor(full * 0.45);
       });
     this.instances('MX shoulder stones', new T.IcosahedronGeometry(1, 1), rockMaterial, stonePoses);
     if (!grassPoses.length && !fernPoses.length && !shrubPoses.length && !tuftPoses.length)
