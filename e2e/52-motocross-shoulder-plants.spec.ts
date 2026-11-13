@@ -70,9 +70,13 @@ test('production MX shoulder plants compile and reproduce held and rewound wind 
     expect(plant.instances).toBeGreaterThan(0);
     expect(plant.rootsInView, plant.name).toBeGreaterThan(0);
   }
-  expect(result.foliage.reduce((sum, p) => sum + p.triangles, 0)).toBeLessThan(90000);
+  // The High/Ultra verge density was deliberately doubled (tests/motocross-
+  // shoulder-plants.test.ts pins the Low/Medium subset under the old 90k):
+  // instanced, the same three draws and shared geometry, so only the
+  // triangle and per-instance budgets grow.
+  expect(result.foliage.reduce((sum, p) => sum + p.triangles, 0)).toBeLessThan(160000);
   expect(result.foliage.reduce((sum, p) => sum + p.attributeBytes, 0)).toBeLessThan(32000);
-  expect(result.foliage.reduce((sum, p) => sum + p.instanceBytes, 0)).toBeLessThan(160000);
+  expect(result.foliage.reduce((sum, p) => sum + p.instanceBytes, 0)).toBeLessThan(340000);
   const samples = result.samples;
   for (const sample of samples) {
     expect(sample.glError, sample.label).toBe(0);
