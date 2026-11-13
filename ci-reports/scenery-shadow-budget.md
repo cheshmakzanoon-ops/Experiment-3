@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/43370913287
-- commit: `f40439fffd` · Motocross venue: denser verge and field grass, gated by quality tier
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/43371911558
+- commit: `977e15843c` · Motocross soil and air: darker loose margins, deeper daylight haze
 - event: push · status: completed · conclusion: **failure**
-- started: 2026-11-13T05:16:10Z · updated: 2026-11-13T05:23:48Z
+- started: 2026-11-13T05:25:15Z · updated: 2026-11-13T05:32:54Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (sunset) | success | 7 |  |
-| browser (night) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
-| browser (day) | success | 6 |  |
+| browser (night) | success | 7 |  |
+| browser (sunset) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
+| browser (day) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
