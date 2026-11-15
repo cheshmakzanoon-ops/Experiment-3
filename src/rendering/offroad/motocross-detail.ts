@@ -306,6 +306,115 @@ float mxPlasticNoise(vec3 p) {
   return material;
 }
 
+/** Textile structure the 64 px weave mips away beyond arm's length: stitched
+ * panel seams (double rows of dashes along the cut lines), soft compression
+ * creases that gather at the elbow, knee and waist and fade across the open
+ * panels, and a slightly glossier stretch band in the creases. `kind` picks
+ * the cut: the jersey's side and raglan seams, or a limb's inseam/outseam and
+ * the articulated panel joins either side of the joint. Height only (normal
+ * perturbation from screen derivatives) plus colour/roughness: no textures,
+ * geometry, draws or extra programs beyond the material's own variant. */
+export function installMotocrossFabricFinish(
+  material: T.MeshStandardMaterial,
+  kind: 'jersey' | 'limb',
+) {
+  chainShaderHook(material, `motocross-textile-${kind}-v1`, (shader) => {
+    injectDeclarations(
+      shader,
+      'common',
+      'varying vec3 vMxFabricPosition;\nvarying vec2 vMxFabricUv;',
+      'vertex',
+    );
+    injectAfter(
+      shader,
+      'begin_vertex',
+      '#ifdef USE_MAP\nvMxFabricUv = MAP_UV;\n#else\nvMxFabricUv = vec2(0.0);\n#endif\nvMxFabricPosition = position;',
+      'vertex',
+    );
+    injectDeclarations(
+      shader,
+      'common',
+      `
+varying vec3 vMxFabricPosition;
+varying vec2 vMxFabricUv;
+float mxFabricHeight, mxFabricSeam, mxFabricCrease;
+float mxFabricNoise(vec3 p) {
+  vec3 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
+  float n=dot(i,vec3(1.,57.,113.));
+  vec4 a=fract(sin(vec4(n,n+1.,n+57.,n+58.))*43758.5453);
+  vec4 b=fract(sin(vec4(n+113.,n+114.,n+170.,n+171.))*43758.5453);
+  return mix(mix(mix(a.x,a.y,f.x),mix(a.z,a.w,f.x),f.y),mix(mix(b.x,b.y,f.x),mix(b.z,b.w,f.x),f.y),f.z);
+}
+float mxFabricLine(float d, float w) { return 1. - smoothstep(w * .5, w, abs(d)); }`,
+      'fragment',
+    );
+    const cut =
+      kind === 'jersey'
+        ? `
+  // Side seams under the arms (the UV wrap starts at the left side) and a
+  // shoulder yoke across the back and chest just below the collar.
+  float around = uv.x;
+  float seams = max(mxFabricLine(fract(around * 2. + .5) - .5, .02),
+    mxFabricLine(uv.y - .9, .016) * .8);
+  float joint = exp(-pow((uv.y - .12) / .07, 2.));`
+        : `
+  // Inseam and outseam, and the articulated panel joins either side of the
+  // elbow/knee (the joint sits a little past the middle of the limb).
+  float around = uv.x;
+  float seams = max(mxFabricLine(fract(around * 2. + .5) - .5, .024),
+    max(mxFabricLine(uv.y - .46, .018), mxFabricLine(uv.y - .64, .018)) * .85);
+  float joint = exp(-pow((uv.y - .55) / .09, 2.));`;
+    injectAfter(
+      shader,
+      'color_fragment',
+      `
+{
+  vec2 uv = vMxFabricUv;
+  vec3 q = vMxFabricPosition;
+  float footprint = length(fwidth(q));
+  float near = 1. - smoothstep(.004, .02, footprint);
+  ${cut}
+  // Stitches: two dashed rows hugging each seam, resolved only up close.
+  float dash = step(.45, fract(uv.y * 160. + around * 40.));
+  float stitch = seams * dash * (1. - smoothstep(.0015, .006, footprint));
+  // Compression creases: elongated noise across the limb axis, deep at the
+  // joint, a soft drape elsewhere.
+  float crease = mxFabricNoise(vec3(q.x * 13., q.y * 34., q.z * 13.))
+    * (.4 + .6 * mxFabricNoise(q * 6. + 3.7));
+  crease = crease * crease * 1.6;
+  mxFabricCrease = crease * (.35 + .65 * joint);
+  mxFabricSeam = seams;
+  mxFabricHeight = (-.0016 * seams - .0004 * stitch) * near
+    + (mxFabricCrease - .3) * .009 * (1. - smoothstep(.03, .12, footprint));
+  diffuseColor.rgb *= 1. - .3 * seams * near - .1 * stitch;
+  // Creases catch less light in their folds: a soft ambient-occluded band.
+  diffuseColor.rgb *= .8 + .26 * (1. - clamp(mxFabricCrease, 0., 1.));
+}`,
+      'fragment',
+    );
+    injectAfter(
+      shader,
+      'roughnessmap_fragment',
+      'roughnessFactor = clamp(roughnessFactor - mxFabricCrease * .12 + mxFabricSeam * .05, .35, 1.);',
+      'fragment',
+    );
+    injectAfter(
+      shader,
+      'normal_fragment_maps',
+      `
+{
+  vec3 dx=dFdx(-vViewPosition),dy=dFdy(-vViewPosition);
+  vec3 r1=cross(dy,normal),r2=cross(normal,dx);
+  float det=dot(dx,r1);
+  vec3 gradient=sign(det)*(dFdx(mxFabricHeight)*r1+dFdy(mxFabricHeight)*r2);
+  normal=normalize(max(abs(det),1.e-10)*normal-gradient);
+}`,
+      'fragment',
+    );
+  });
+  return material;
+}
+
 /** Original race graphics authored for MOTObound. Reference photographs inform
  * the hierarchy and placement; no photographed manufacturer artwork is used. */
 export function motocrossGraphics(

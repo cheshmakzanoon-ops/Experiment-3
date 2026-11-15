@@ -207,11 +207,19 @@ export function motocrossGarmentGeometry(
         const joint = Math.exp(-(((y - upper) / (kind === 'sleeve' ? 0.075 : 0.105)) ** 2)),
           hip = kind === 'pants' ? Math.exp(-(((y - 0.105) / 0.075) ** 2)) : 0,
           cuff = Math.exp(-(((y - (upper + lower * 0.88)) / 0.043) ** 2));
+        // Hard armour under the fabric: a knee brace cup over the kneecap and
+        // an elbow guard over the point of the elbow (the outside of the bend,
+        // +Z), each a smooth raised shell rather than a cloth ripple.
+        const guard =
+          Math.exp(-(((y - upper) / (kind === 'sleeve' ? 0.055 : 0.075)) ** 2)) *
+          Math.max(0, s) ** 2.2 *
+          (kind === 'sleeve' ? 0.0055 : 0.0095);
         fold =
           (0.0018 * joint * (0.65 - s * 0.35) + 0.0037 * hip) *
             Math.sin((y - upper) * 127 + c * 3.8) +
           0.002 * cuff * Math.sin(y * 169 + s * 3) +
-          0.0013 * envelope * Math.sin(y * 39 + angle * 5);
+          0.0013 * envelope * Math.sin(y * 39 + angle * 5) +
+          guard;
       } else fold = 0.002 * envelope * Math.sin(y * 90 + angle * 5);
       // Rounded cloth facets give fabric a planar drape instead of a latex tube.
       const roundness = kind === 'jersey' ? 0.86 : 0.94,

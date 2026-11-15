@@ -43,7 +43,11 @@ import {
   installGpSuitFinish,
   shapeGpSuitGeometry,
 } from './gp-rider-suit.ts';
-import { motocrossFabricMaps, motocrossGraphics } from './offroad/motocross-detail.ts';
+import {
+  installMotocrossFabricFinish,
+  motocrossFabricMaps,
+  motocrossGraphics,
+} from './offroad/motocross-detail.ts';
 import type { MotocrossBootSkin } from './offroad/motocross-boot-skin.ts';
 import {
   MX_BOOT_ANKLE,
@@ -680,6 +684,8 @@ export class Rider {
         material.normalScale.set(0.22, 0.22);
         material.color.setHex(0xffffff);
       }
+      installMotocrossFabricFinish(torsoLeather, 'jersey');
+      installMotocrossFabricFinish(leather, 'limb');
       leather.map = panel.map = sleeve;
       torsoLeather.map = motocrossGraphics(colours, 'jersey', raceNumber);
       helmet.map = motocrossGraphics(colours, 'helmet', raceNumber);
@@ -761,7 +767,16 @@ export class Rider {
         'Motocross separate trouser waist';
       // An athlete's neck under the helmet: thick enough that the helmet
       // does not sit on a stalk; the brace hides its base.
-      const neck = part(this.torso, new T.CylinderGeometry(0.049, 0.056, 0.075, sides), flex);
+      // Rib-knit neck roll in the jersey colour: the collar runs up under the
+      // brace and helmet rim instead of showing a bare dark column.
+      const neckRoll = new T.MeshStandardMaterial({
+        color: colours.primary,
+        roughness: 0.88,
+        name: 'Motocross jersey neck roll',
+      });
+      if (detail !== 'far') Object.assign(neckRoll, motocrossFabricMaps());
+      this.materials.push(neckRoll);
+      const neck = part(this.torso, new T.CylinderGeometry(0.049, 0.056, 0.075, sides), neckRoll);
       neck.name = 'Motocross neck liner above textile collar';
       neck.position.set(0, 0.56, 0.029);
       this.motocrossSpine!.bind(neck);
