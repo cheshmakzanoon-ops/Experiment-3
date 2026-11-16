@@ -1,11 +1,11 @@
 # Settings interaction validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/42767290708
-- commit: `c238c122a5` · Phase 0: resolve lazy-showroom CI timeouts, unit-tests budget, and ci-report log fetch
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/43839759000
+- commit: `8b168cb298` · Renderer: detect the supercross arena from its built stadium bowl
 - event: push · status: completed · conclusion: **failure**
-- started: 2026-11-10T06:15:29Z · updated: 2026-11-10T07:15:10Z
+- started: 2026-11-16T09:26:30Z · updated: 2026-11-16T09:35:30Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| settings | success | 4 |  |
-| qa | failure | 13 | Review-tool specs of the settings and menu regression, on the QA build |
+| settings | failure | 6 | Original menu regression and transition ownership, without forced clicks or retries |
+| qa | skipped | 0 |  |
