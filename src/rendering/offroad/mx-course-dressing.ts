@@ -1,5 +1,5 @@
 import * as T from 'three';
-import { MxTracksideFurniture } from './mx-trackside-furniture.ts';
+import { MxTracksideFurniture, mxFurnitureGround } from './mx-trackside-furniture.ts';
 import { mxAuthoredGeometry } from './authored-kit.ts';
 import { planMxCourseSites } from './mx-course-sites.ts';
 import { mxPaddingMaterial } from './mx-padding.ts';
@@ -122,6 +122,8 @@ export interface MxDressingStats {
   stones: number;
   canopies: number;
   flags: number;
+  bales: number;
+  vans: number;
 }
 
 /** The racing corridor remains defined by OffroadCourse. All solid dressing
@@ -145,6 +147,8 @@ export class MxCourseDressing {
     stones: 0,
     canopies: 0,
     flags: 0,
+    bales: 0,
+    vans: 0,
   };
   private readonly ownedTextures = new Set<T.Texture>();
   private readonly batches = new Map<T.Material, T.BufferGeometry[]>();
@@ -268,7 +272,10 @@ export class MxCourseDressing {
     this.trackside = new MxTracksideFurniture(track);
     this.root.add(this.trackside.root);
     this.stats.canopies = this.trackside.stats.canopy;
-    if (!indoor) this.featherFlags(cloth, steel);
+    if (!indoor) {
+      this.featherFlags(cloth, steel);
+      this.paddockLife();
+    }
     // The arch is a sporting landmark at the actual holeshot timing line.
     if (course.spec.gate) {
       const s = course.spec.gate.holeshot;
@@ -506,6 +513,141 @@ export class MxCourseDressing {
       clusters++;
       s += 40;
     }
+  }
+  /** Trackside life: round straw bales stacked in front of the turn-outside
+   * flag clusters (between the flags and the tape) and team vans parked
+   * behind each service canopy, side-on to the course. One instanced draw
+   * each, no textures (instance colours and vertex-coloured glazing). */
+  private paddockLife() {
+    const track = this.track,
+      course = this.surface.course,
+      bales: T.Matrix4[] = [],
+      vans: T.Matrix4[] = [],
+      vanColours: T.Color[] = [],
+      sites = this.trackside.plan.sites,
+      landmarks = planMxCourseSites(track).landmarks,
+      random = new Random(52811);
+    const free = (x: number, z: number, r: number) =>
+      !sites.some((q) => Math.hypot(q.x - x, q.z - z) < q.radius + r) &&
+      !landmarks.some((q) => Math.hypot(q.x - x, q.z - z) < q.radius + r) &&
+      !inStandFootprint(track, x, z, r);
+    // Bales: on every tight turn's outside, a short row lying on their sides.
+    const ahead = trackPoint(),
+      behind = trackPoint();
+    for (let s = 24; s < track.length - 24; s += 11) {
+      track.at(s + 6, ahead);
+      track.at(s - 6, behind);
+      const p = track.at(s, this.point),
+        turn = (ahead.tx - behind.tx) * p.nx + (ahead.tz - behind.tz) * p.nz;
+      if (Math.abs(turn) < 0.38) continue;
+      const side = turn > 0 ? -1 : 1,
+        lateral = side * (course.legalWidth(p.width, s, side) + 1.9);
+      for (const ds of [-2.6, -1.3, 0, 1.3, 2.6]) {
+        if (!this.clear(s + ds, lateral, 1.2)) continue;
+        this.pose(s + ds, lateral);
+        const x = this.object.position.x,
+          z = this.object.position.z;
+        if (!free(x, z, 1)) continue;
+        this.object.position.y += 0.6;
+        this.object.rotateZ(Math.PI / 2);
+        this.object.rotateX((random.next() - 0.5) * 0.3);
+        this.object.updateMatrix();
+        bales.push(this.object.matrix.clone());
+      }
+      s += 26;
+    }
+    // Vans: behind each service canopy, away from the course.
+    const near = trackPoint();
+    for (const site of sites) {
+      if (site.type !== 'service') continue;
+      const lateral = track.nearest(site.x, site.z, near),
+        out = Math.sign(lateral) || 1;
+      for (const along of [-3.2, 3.2]) {
+        const x = site.x + near.nx * out * (site.radius + 3) + near.tx * along,
+          z = site.z + near.nz * out * (site.radius + 3) + near.tz * along;
+        const l = track.nearest(x, z, this.nearby);
+        if (Math.abs(l) < course.legalWidth(this.nearby.width, this.nearby.s, l) + 6) continue;
+        if (!free(x, z, 2.6) || inStandFootprint(track, x, z, 3)) continue;
+        this.object.position.set(x, mxFurnitureGround(track, x, z), z);
+        this.object.rotation.set(0, Math.atan2(near.tx, near.tz) + (along > 0 ? 0 : Math.PI), 0);
+        this.object.scale.set(1, 1, 1);
+        this.object.updateMatrix();
+        vans.push(this.object.matrix.clone());
+        vanColours.push(
+          new T.Color([0xe9ebe8, 0x2b3a46, 0xc9ccc7, 0x5d1f22, 0x1f2224][vans.length % 5]),
+        );
+      }
+    }
+    const straw = new T.MeshStandardMaterial({
+      color: 0xc9a85e,
+      roughness: 0.96,
+      name: 'MX round straw bales',
+    });
+    const bale = new T.CylinderGeometry(0.62, 0.62, 1.15, 14, 3);
+    {
+      // Wound straw: darker spiral bands on the faces and coarse rows along
+      // the roll, as vertex colour (no texture).
+      const p = bale.getAttribute('position'),
+        colour = new Float32Array(p.count * 3);
+      for (let i = 0; i < p.count; i++) {
+        const r = Math.hypot(p.getX(i), p.getZ(i)),
+          band = 0.84 + 0.16 * Math.sin(r * 38 + Math.atan2(p.getZ(i), p.getX(i)) * 2),
+          rows = 0.9 + 0.1 * Math.sin(p.getY(i) * 31);
+        const v = band * rows;
+        colour.set([v, v * 0.98, v * 0.92], i * 3);
+      }
+      bale.setAttribute('color', new T.BufferAttribute(colour, 3));
+      straw.vertexColors = true;
+    }
+    this.instances('MX round straw bales', bale, straw, bales);
+    if (!bales.length) straw.dispose();
+    const van = this.vanGeometry();
+    const paint = new T.MeshStandardMaterial({
+      roughness: 0.38,
+      metalness: 0.15,
+      vertexColors: true,
+      name: 'MX team vans',
+    });
+    this.instances('MX team vans', van, paint, vans, vanColours);
+    const mesh = this.root.getObjectByName('MX team vans');
+    if (mesh) mesh.castShadow = true;
+    if (!vans.length) paint.dispose();
+    this.stats.bales = bales.length;
+    this.stats.vans = vans.length;
+  }
+  /** A panel van about 5.4 m long: body, sloped bonnet and windscreen,
+   * dark glazing and tyres by vertex colour (white = instance paint). */
+  private vanGeometry() {
+    const parts: T.BufferGeometry[] = [];
+    const piece = (g: T.BufferGeometry, shade: number, x = 0, y = 0, z = 0) => {
+      g.translate(x, y, z);
+      const n = g.index ? g.toNonIndexed() : g;
+      if (n !== g) g.dispose();
+      const count = n.getAttribute('position').count,
+        colour = new Float32Array(count * 3).fill(shade);
+      n.setAttribute('color', new T.BufferAttribute(colour, 3));
+      n.deleteAttribute('uv');
+      parts.push(n);
+    };
+    piece(new T.BoxGeometry(2.0, 2.05, 3.9), 1, 0, 1.4, -0.65);
+    piece(new T.BoxGeometry(1.98, 1.15, 1.5), 1, 0, 0.98, 1.95);
+    piece(new T.BoxGeometry(1.9, 0.62, 0.9), 0.08, 0, 1.78, 1.55);
+    piece(new T.BoxGeometry(2.02, 0.5, 2.6), 0.08, 0, 1.95, -0.9);
+    for (const [x, z] of [
+      [-0.88, 1.75],
+      [0.88, 1.75],
+      [-0.88, -1.8],
+      [0.88, -1.8],
+    ]) {
+      const wheel = new T.CylinderGeometry(0.36, 0.36, 0.26, 12);
+      wheel.rotateZ(Math.PI / 2);
+      piece(wheel, 0.05, x, 0.36, z);
+    }
+    const merged = mergeGeometries(parts, false)!;
+    for (const g of parts) g.dispose();
+    merged.computeVertexNormals();
+    merged.computeBoundingSphere();
+    return merged;
   }
   private clear(s: number, lateral: number, margin: number) {
     const p = this.track.at(s, this.point),
