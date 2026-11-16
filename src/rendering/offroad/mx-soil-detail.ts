@@ -226,7 +226,7 @@ const COLOUR = /* glsl */ `{
   // analytic slope replaces their bump; the rest stays a shading skin.
   float grooveBump = 1.0 - mxPomOn;
   mxPreparedRelief = onSoil * ( 0.0045 * rakeUnridden
-    - 0.020 * passes.x * grooveBump - 0.006 * passes.z + 0.009 * passes.y * grooveBump
+    - 0.032 * passes.x * grooveBump - 0.006 * passes.z + 0.013 * passes.y * grooveBump
     - 0.0035 * tread - 0.005 * touchdown )
     + 0.003 * mxPreparedAggregate;
   mxPreparedWet = clamp( vApexSoil.x + apexSoilWetness, 0.0, 1.0 );
@@ -235,7 +235,7 @@ const COLOUR = /* glsl */ `{
     ( 1.0 - smoothstep( 0.22, 0.62, mxPreparedWet ) ) * ( 1.0 - mxPreparedPacked * 0.5 );
   float grainTone = 0.92 + 0.15 * broad + 0.045 * broken;
   diffuseColor.rgb *= mix( 1.0, grainTone, onSoil )
-    * ( 1.0 - mxPreparedPacked * 0.18 - mxPreparedGroove * 0.21
+    * ( 1.0 - mxPreparedPacked * 0.18 - mxPreparedGroove * 0.27
       + onSoil * passes.y * 0.095 + mxPreparedAggregate * 0.13 - tread * 0.045
       - onSoil * touchdown * 0.065 + onSoil * bermLip * 0.055 + mxPreparedCrest * 0.07 );
   // Unridden margins: the loose, fluffier soil the graders push to the

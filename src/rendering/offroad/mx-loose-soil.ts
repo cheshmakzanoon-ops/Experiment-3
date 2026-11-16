@@ -223,18 +223,21 @@ export class MxLooseSoil {
           place(stone ? stones[chunk] : clods[chunk], jitter, lateral, radius, stone, tone);
         }
         // 2. Berm lips keep the loose crumb the line's tyres threw up there.
+        // A ridden berm's lip is a rough rim of thrown clods, up to fist size,
+        // banked thickest at the crest (three tries per station).
         const berm = wear.berm * side > 0 ? Math.abs(wear.berm) : 0;
-        if (berm > 0.15 && random.next() < 0.9 * berm) {
-          const lateral = side * (here.width * (0.8 + random.next() * 0.45));
-          place(
-            clods[chunk],
-            jitter,
-            lateral,
-            0.011 + Math.pow(random.next(), 3) * 0.045,
-            false,
-            0.85 + random.next() * 0.35,
-          );
-        }
+        for (let k = 0; k < 3; k++)
+          if (berm > 0.15 && random.next() < 0.9 * berm) {
+            const lateral = side * (here.width * (0.82 + random.next() * random.next() * 0.45));
+            place(
+              clods[chunk],
+              s + (random.next() - 0.5) * step,
+              lateral,
+              0.012 + Math.pow(random.next(), 2.5) * 0.046,
+              false,
+              0.8 + random.next() * 0.4,
+            );
+          }
         // 3. Sparse small crumbs resting on the prepared surface itself,
         // never on a jump face and never large enough to read as an obstacle.
         if (face < 0.25 && random.next() < 0.05) {
