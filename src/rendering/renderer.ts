@@ -1389,7 +1389,8 @@ export class RacingRenderer {
               followedDefinition.classId,
               studio,
               illumination,
-              this.circuit.track.circuit.offroad?.kind === 'supercross',
+              // Only a supercross venue builds the stadium bowl.
+              !!this.circuit.offroad?.stadium,
             )
           ? MX_ARENA_PHOTOGRAPHIC
           : null;
