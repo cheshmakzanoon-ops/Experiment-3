@@ -113,7 +113,13 @@ import { PhotoSky } from './assets/photo-sky.ts';
 import { disposeTextureLoaders } from './assets/texture-loader.ts';
 import { scannedGround } from './ground/scan-store.ts';
 import { setMxQuality } from './offroad/mx-quality.ts';
-import { MX_PHOTOGRAPHIC, mxPhotographicActive } from './offroad/mx-photographic-light.ts';
+import {
+  MX_ARENA_GRADE,
+  MX_ARENA_PHOTOGRAPHIC,
+  MX_PHOTOGRAPHIC,
+  mxArenaActive,
+  mxPhotographicActive,
+} from './offroad/mx-photographic-light.ts';
 import { skyPaletteFor } from './assets/sky-catalogue.ts';
 import { aerialFogColor } from './studio/aerial-perspective.ts';
 import { SKY_CLOUDS, SkyClouds } from './studio/sky-clouds.ts';
@@ -1379,7 +1385,14 @@ export class RacingRenderer {
             !!this.circuit.offroad,
           )
         ? MX_PHOTOGRAPHIC
-        : null;
+        : mxArenaActive(
+              followedDefinition.classId,
+              studio,
+              illumination,
+              this.circuit.track.circuit.offroad?.kind === 'supercross',
+            )
+          ? MX_ARENA_PHOTOGRAPHIC
+          : null;
     if (this.photoSky) this.photoSky.clearDay = gpLook?.clearSky ?? null;
     const liquidRain = frameLiquidRain(presented);
     const daylight = circuitLightState(presented[H.CLOUD], liquidRain, illumination);
@@ -2152,7 +2165,12 @@ export class RacingRenderer {
       this.grade.photoOverride = this.photo
         ? photoGrade(GRADE_PROFILES[studio ? 'studio' : illumination], this.photo)
         : null;
-      this.grade.sessionOverride = gpLook ? gpGradeProfile(illumination, gpLook) : null;
+      this.grade.sessionOverride =
+        gpLook === MX_ARENA_PHOTOGRAPHIC
+          ? MX_ARENA_GRADE
+          : gpLook
+            ? gpGradeProfile(illumination, gpLook)
+            : null;
       // GP frames may use their own display transform (OutputPass reads it;
       // nothing else draws to the screen). Every other frame keeps the preset's.
       const toneMapper = gpLook?.toneMapper ?? this.graphics.toneMapper;

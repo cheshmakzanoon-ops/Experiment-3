@@ -30,7 +30,8 @@ function hazeBeamMaterial() {
     name: 'Arena floodlight haze beams',
     uniforms: {
       beamColour: { value: new T.Color(0xeaf4ff) },
-      beamStrength: { value: 0.05 },
+      // Dust hangs under the roof through the evening: shafts read clearly.
+      beamStrength: { value: 0.12 },
     },
     vertexShader: /* glsl */ `
 varying float vBeamAlong;
@@ -110,7 +111,9 @@ export class Stadium {
       floor = Math.min(floor, p.y);
     }
     box.expandByVector(new T.Vector3(STADIUM.margin, 0, STADIUM.margin));
-    const concrete = materials.concrete({ variant: 'rough', horizontal: 1, color: 0x827f79 });
+    // The bowl sits in the dark beyond the floodlit floor: darker concrete
+    // and roof, with the crowd lit by spill rather than by the floor's pools.
+    const concrete = materials.concrete({ variant: 'rough', horizontal: 1, color: 0x55534e });
     installScannedMaps(concrete, 'concrete', libraryAlbedo(concrete));
     const steel = materials.metal({
       kind: 'cast',
@@ -119,7 +122,7 @@ export class Stadium {
       roughness: 0.56,
     });
     const deck = new T.MeshStandardMaterial({
-      color: 0x626e73,
+      color: 0x23292c,
       roughness: 0.9,
       name: 'Stadium roof deck',
     });
@@ -141,7 +144,7 @@ export class Stadium {
       map: atlas,
       emissiveMap: atlas,
       emissive: 0xffffff,
-      emissiveIntensity: 0.48,
+      emissiveIntensity: 1.15,
       roughness: 0.62,
       name: 'MOTOBOUND arena ribbon boards',
     });
@@ -149,7 +152,7 @@ export class Stadium {
       map: atlas,
       emissiveMap: atlas,
       emissive: 0xffffff,
-      emissiveIntensity: 0.85,
+      emissiveIntensity: 1.7,
       roughness: 0.7,
       side: T.DoubleSide,
       name: 'MOTOBOUND main event board',
@@ -370,7 +373,7 @@ export class Stadium {
     person.setAttribute('spectatorSkin', new T.InstancedBufferAttribute(closeSkin, 3));
     person.setAttribute('spectatorStyle', new T.InstancedBufferAttribute(closeStyle, 4));
     const clothing = new T.MeshStandardMaterial({
-      color: 0xffffff,
+      color: 0xb4b4b4,
       roughness: 0.94,
       vertexColors: true,
       name: 'Instanced arena spectator fabric, skin and hair',
@@ -378,7 +381,7 @@ export class Stadium {
     installCrowdShader(clothing, this.crowdUniforms, true);
     this.nearCrowd = new T.InstancedMesh(person, clothing, closeCount);
     const distantClothing = new T.MeshStandardMaterial({
-      color: 0xffffff,
+      color: 0xa0a0a0,
       roughness: 0.94,
       name: 'Distant arena spectator fabric, skin and hair',
     });

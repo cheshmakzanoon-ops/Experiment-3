@@ -7,7 +7,10 @@ import {
   tintGpSun,
 } from '../src/rendering/gp-photographic-light.ts';
 import {
+  MX_ARENA_GRADE,
+  MX_ARENA_PHOTOGRAPHIC,
   MX_PHOTOGRAPHIC,
+  mxArenaActive,
   mxPhotographicActive,
 } from '../src/rendering/offroad/mx-photographic-light.ts';
 
@@ -70,5 +73,34 @@ describe('motocross daylight look', () => {
       expect(grade.fringe).toBe(0);
       expect(grade.sharpen).toBe(0);
     }
+  });
+});
+
+describe('motocross evening arena look', () => {
+  it('applies only to a followed motocross bike in a supercross stadium at night', () => {
+    expect(mxArenaActive('motocross', false, 'night', true)).toBe(true);
+    expect(mxArenaActive('motocross', false, 'day', true)).toBe(false);
+    expect(mxArenaActive('motocross', true, 'night', true)).toBe(false);
+    expect(mxArenaActive('motocross', false, 'night', false)).toBe(false);
+    for (const classId of ['formula', 'gp-bike', 'superbike', undefined])
+      expect(mxArenaActive(classId, false, 'night', true)).toBe(false);
+    // Never claimed by the daylight look in the same frame.
+    expect(mxPhotographicActive('motocross', false, 'night', true)).toBe(false);
+  });
+
+  it('darkens the bowl, strengthens the shadowed key and thickens the haze', () => {
+    const light = applyGpDaylight(
+      { sun: 0.6, fill: 0.085, environment: 0.07, exposure: 1.12, haze: 1 },
+      MX_ARENA_PHOTOGRAPHIC,
+    );
+    expect(light.sun).toBeGreaterThan(0.8);
+    expect(light.fill).toBeLessThan(0.06);
+    expect(light.environment).toBeLessThan(0.07);
+    expect(light.exposure).toBeLessThan(1.12);
+    expect(light.haze).toBeGreaterThan(2);
+    expect(MX_ARENA_PHOTOGRAPHIC.toneMapper).toBe('agx');
+    expect(MX_ARENA_GRADE.contrast).toBeGreaterThan(0.2);
+    expect(MX_ARENA_GRADE.shadowTint[2]).toBeGreaterThan(MX_ARENA_GRADE.shadowTint[0]);
+    expect(MX_ARENA_GRADE.grain + MX_ARENA_GRADE.fringe + MX_ARENA_GRADE.sharpen).toBe(0);
   });
 });

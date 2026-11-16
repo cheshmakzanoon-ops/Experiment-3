@@ -22,13 +22,15 @@ export interface MxArenaGrid {
  * discs with soft valleys between them, not a row of tight spots. */
 export const MX_ARENA_LIGHT = Object.freeze({
   /** Each lamp's intensity (cd-like units in the renderer's linear scale). */
-  intensity: 2400,
+  // Balanced against the evening arena look's stronger shadowed key: the
+  // pools still shape the floor, but the riders' key shadows now read on it.
+  intensity: 1700,
   colour: 0xe6efff,
   /** A lamp lights the floor out to this many grid cells; beyond it, nothing. */
   reachCells: 2,
   /** Share of the directional key kept on the floor: the key stands for the
    * same lamps, seen from far away. */
-  keyShare: 0.45,
+  keyShare: 0.75,
 });
 
 const DECLARATIONS = /* glsl */ `

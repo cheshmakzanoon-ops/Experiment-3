@@ -1,3 +1,4 @@
+import type { GradeProfile } from '../broadcast-grade.ts';
 import type { GpPhotographicLook } from '../gp-photographic-light.ts';
 import type { LightingMode } from '../daylight.ts';
 
@@ -72,4 +73,61 @@ export function mxPhotographicActive(
   terrainVenue: boolean,
 ) {
   return classId === 'motocross' && terrainVenue && !studio && lighting !== 'night';
+}
+
+/** Evening supercross broadcast inside the stadium: the arena falls dark and
+ * the floodlit floor carries the picture. The directional key stands for the
+ * dominant floodlight bank and is strengthened so riders cast crisp shadows
+ * on the dirt; the bias fill and the sky share drop so the stands sit well
+ * below the track, lit only by spill; exposure comes down so the floor pools
+ * keep their texture; the haze (dust hanging under the roof) thickens so the
+ * floodlight shafts and roost read in the air. AgX with a firm, slightly cool
+ * broadcast grade. Applied only to a followed motocross bike on a supercross
+ * venue at night (the stadium's only lighting); nothing else changes. */
+export const MX_ARENA_PHOTOGRAPHIC: Readonly<GpPhotographicLook> = Object.freeze({
+  skyFill: 0.55,
+  hemisphereFill: 0.5,
+  sun: 1.55,
+  sunTint: Object.freeze([0.96, 0.98, 1] as const),
+  exposureEV: -0.3,
+  haze: 2.6,
+  clearSky: null,
+  toneMapper: 'agx',
+  grade: Object.freeze({
+    day: Object.freeze({
+      contrast: 0.27,
+      saturation: 1.2,
+      vibrance: 0.22,
+      shadowTint: Object.freeze([0.93, 0.97, 1.09] as const),
+      highlightTint: Object.freeze([1.03, 1.0, 0.96] as const),
+      vignette: 0.26,
+      fringe: 0,
+      grain: 0,
+      sharpen: 0,
+    }),
+    sunset: Object.freeze({
+      contrast: 0.27,
+      saturation: 1.2,
+      vibrance: 0.22,
+      shadowTint: Object.freeze([0.93, 0.97, 1.09] as const),
+      highlightTint: Object.freeze([1.03, 1.0, 0.96] as const),
+      vignette: 0.26,
+      fringe: 0,
+      grain: 0,
+      sharpen: 0,
+    }),
+  }),
+});
+/** The arena grade (the stadium is always lit for the evening programme). */
+export const MX_ARENA_GRADE: Readonly<GradeProfile> = MX_ARENA_PHOTOGRAPHIC.grade.day;
+
+/** Whether the arena look applies: a followed motocross bike on a supercross
+ * venue's live view at night (never a showroom or photo studio backdrop). */
+export function mxArenaActive(
+  classId: string | undefined,
+  studio: boolean,
+  lighting: LightingMode,
+  supercross: boolean,
+) {
+  return classId === 'motocross' && supercross && !studio && lighting === 'night';
 }
