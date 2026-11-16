@@ -17,7 +17,10 @@ import type { LightingMode } from '../daylight.ts';
  *  - `haze` adds the dust a pack hangs in the air (2.3x the clear-day
  *    aerosol): tree lines, the far side of the course and the hills behind
  *    fall back in warm-grey depth instead of sitting at full contrast.
- *  - `toneMapper` null: the preset's own display transform is kept.
+ *  - `toneMapper` AgX (as the GP look): a soft toe that keeps detail in the
+ *    ruts, under the bike and in the kit's dark panels, and a filmic roll-off
+ *    on sunlit plastics and sky instead of ACES's crushed shadows. The grade
+ *    adds back the mid-chroma AgX takes out.
  *  - `grade`: a firmer S-curve and more vibrance than the shared grade (soil,
  *    grass and kit colours are all mid-saturation), a warm key / cool shade
  *    split and a light optical vignette. No grain, fringe or sharpening.
@@ -29,15 +32,15 @@ export const MX_PHOTOGRAPHIC: Readonly<GpPhotographicLook> = Object.freeze({
   hemisphereFill: 0.9,
   sun: 1.12,
   sunTint: Object.freeze([1, 0.95, 0.85] as const),
-  exposureEV: 0,
+  exposureEV: 0.08,
   haze: 2.3,
   clearSky: null,
-  toneMapper: null,
+  toneMapper: 'agx',
   grade: Object.freeze({
     day: Object.freeze({
-      contrast: 0.21,
-      saturation: 1.1,
-      vibrance: 0.22,
+      contrast: 0.2,
+      saturation: 1.16,
+      vibrance: 0.2,
       shadowTint: Object.freeze([0.965, 0.99, 1.045] as const),
       highlightTint: Object.freeze([1.04, 1.005, 0.95] as const),
       vignette: 0.16,
@@ -46,9 +49,9 @@ export const MX_PHOTOGRAPHIC: Readonly<GpPhotographicLook> = Object.freeze({
       sharpen: 0,
     }),
     sunset: Object.freeze({
-      contrast: 0.2,
-      saturation: 1.1,
-      vibrance: 0.18,
+      contrast: 0.19,
+      saturation: 1.15,
+      vibrance: 0.16,
       shadowTint: Object.freeze([0.95, 0.98, 1.06] as const),
       highlightTint: Object.freeze([1.06, 1.0, 0.92] as const),
       vignette: 0.18,

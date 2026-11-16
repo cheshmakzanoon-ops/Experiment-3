@@ -34,9 +34,10 @@ describe('motocross daylight look', () => {
     expect(light.sun).toBeLessThan(3.6);
     expect(light.fill).toBeLessThan(1);
     expect(light.fill).toBeGreaterThan(0.8);
-    // Specular sky stays at the dome's radiance; exposure is not re-centred.
+    // Specular sky stays at the dome's radiance; AgX re-centres exposure a little.
     expect(light.environment).toBe(1);
-    expect(light.exposure).toBe(1);
+    expect(light.exposure).toBeGreaterThan(1);
+    expect(light.exposure).toBeLessThan(1.12);
     expect(light.haze).toBeGreaterThan(1.2);
     expect(light.haze).toBeLessThan(2.5);
     const sun = tintGpSun({ r: 1, g: 1, b: 1 }, MX_PHOTOGRAPHIC);
@@ -46,8 +47,8 @@ describe('motocross daylight look', () => {
     expect(sun.b).toBeGreaterThan(0.75);
   });
 
-  it('keeps the preset display transform and the venue sky, and grades without lens artefacts', () => {
-    expect(MX_PHOTOGRAPHIC.toneMapper).toBeNull();
+  it('uses the AgX display transform, keeps the venue sky, and grades without lens artefacts', () => {
+    expect(MX_PHOTOGRAPHIC.toneMapper).toBe('agx');
     expect(MX_PHOTOGRAPHIC.clearSky).toBeNull();
     expect(gpGradeProfile('night', MX_PHOTOGRAPHIC)).toBeNull();
     expect(gpGradeProfile('studio', MX_PHOTOGRAPHIC)).toBeNull();
@@ -57,6 +58,8 @@ describe('motocross daylight look', () => {
       expect(grade.contrast).toBeGreaterThan(shared.contrast);
       expect(grade.contrast).toBeLessThan(0.3);
       expect(grade.vibrance).toBeGreaterThan(shared.vibrance);
+      // AgX desaturates mid-chroma; the grade restores it without going garish.
+      expect(grade.saturation).toBeGreaterThan(1.1);
       expect(grade.saturation).toBeLessThan(1.2);
       // Warm key, cool shade.
       expect(grade.highlightTint[0]).toBeGreaterThan(grade.highlightTint[2]);
