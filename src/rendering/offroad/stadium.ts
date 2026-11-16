@@ -183,6 +183,8 @@ export class Stadium {
     const wardrobe = [
       0x27313d, 0x252a2d, 0x314655, 0x45463f, 0x4a3934, 0x444f3f, 0x686b66, 0x817c6e, 0xb4afa2,
       0xd6d0be, 0x923f37, 0x426889,
+      // Team colours: supporters in their rider's shirt.
+      0x5a2ab8, 0x8f9a2c, 0x1d5f9e, 0xa8322a, 0xc4672f,
     ].map((color) => new T.Color(color));
     const skinTones = [0xe0b497, 0xc39473, 0xa77454, 0x85573d, 0x61412f, 0x422c21].map(
       (color) => new T.Color(color),
@@ -334,6 +336,44 @@ export class Stadium {
       }
     }
     this.root.userData.concoursePortals = portals;
+    // LED advertising boards along the track wall at the foot of the bowl,
+    // and a continuous LED strip under the concourse lip: both join the
+    // existing ribbon and lens batches (no extra draw).
+    for (const side of sides) {
+      const along = side.axis === 'x' ? max.z - min.z : max.x - min.x,
+        yaw =
+          side.axis === 'x'
+            ? side.sign < 0
+              ? Math.PI / 2
+              : -Math.PI / 2
+            : side.sign < 0
+              ? 0
+              : Math.PI,
+        edgeX =
+          side.axis === 'x' ? (side.sign < 0 ? min.x - 0.04 : max.x + 0.04) : (min.x + max.x) / 2,
+        edgeZ =
+          side.axis === 'z' ? (side.sign < 0 ? min.z - 0.04 : max.z + 0.04) : (min.z + max.z) / 2;
+      const wall = mxAtlasRow(
+        new T.PlaneGeometry(along, 0.82).rotateY(yaw).translate(edgeX, floor + 0.62, edgeZ),
+        side.axis === 'x' ? 0 : 2,
+      );
+      const uv = wall.getAttribute('uv');
+      for (let i = 0; i < uv.count; i++) uv.setX(i, (uv.getX(i) * along) / 9);
+      ribbons.push(wall);
+      const lip = 10 * STADIUM.depth + 0.15,
+        lipX =
+          side.axis === 'x' ? (side.sign < 0 ? min.x - lip : max.x + lip) : (min.x + max.x) / 2,
+        lipZ =
+          side.axis === 'z' ? (side.sign < 0 ? min.z - lip : max.z + lip) : (min.z + max.z) / 2,
+        lipLength = along + 2 * lip;
+      lights.push(
+        new T.BoxGeometry(
+          side.axis === 'x' ? 0.05 : lipLength,
+          0.045,
+          side.axis === 'x' ? lipLength : 0.05,
+        ).translate(lipX, floor + 10 * STADIUM.rise + 1.75, lipZ),
+      );
+    }
     this.batch(tiers, concrete, 'Arena concrete seating decks');
     this.batch(soffits, deck, 'Arena service walls and acoustic cladding');
     // Reuse the original SDF-sculpted people kit already used by outdoor
@@ -531,6 +571,30 @@ export class Stadium {
       this.stopHaze = onMxDetail((high) => {
         haze.visible = high;
       });
+    }
+    // Opposite the main event board: a big video wall over the far end,
+    // its four programme panels stacked in the ribbon batch and its frame
+    // with the lamp housings (no extra draw).
+    {
+      const cx = (min.x + max.x) / 2,
+        z = min.z - outer * 0.65,
+        y = floor + 22;
+      for (let row = 0; row < 4; row++)
+        ribbons.push(
+          mxAtlasRow(
+            new T.PlaneGeometry(16, 1.12).translate(cx, y + 1.74 - row * 1.16, z + 0.27),
+            row,
+          ),
+        );
+      cases.push(new T.BoxGeometry(16.8, 5.2, 0.45).translate(cx, y, z));
+      for (const dx of [-6, 6])
+        rigging.push(
+          member(
+            new T.Vector3(cx + dx, y + 2.6, z),
+            new T.Vector3(cx + dx, floor + STADIUM.roof - 0.6, z),
+            0.05,
+          ),
+        );
     }
     this.batch(ribbons, ribbon, 'Arena concourse ribbon boards');
     const main = new T.Group();
