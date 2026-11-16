@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/43710103242
-- commit: `29733d921b` · Motocross rider kit: stitched panel seams, compression creases, armour shells, jersey neck roll
-- event: push · status: completed · conclusion: **failure**
-- started: 2026-11-15T11:41:03Z · updated: 2026-11-15T11:48:33Z
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/43794644683
+- commit: `ebcc4b33a7` · Motocross track surface: deeper rut relief and darker grooves, clod rims on berm lips
+- event: push · status: completed · conclusion: **success**
+- started: 2026-11-16T02:51:19Z · updated: 2026-11-16T02:58:36Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (sunset) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
-| browser (day) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
 | browser (night) | success | 6 |  |
+| browser (day) | success | 6 |  |
+| browser (sunset) | success | 7 |  |
