@@ -605,7 +605,7 @@ export class DirtBikeModel {
           ],
           0.011,
           8,
-          6,
+          detail === 'high' ? 10 : 6,
         ),
         brushedAlloy,
       );
@@ -620,8 +620,10 @@ export class DirtBikeModel {
             [side * 0.11, -0.33, -0.2],
           ],
           lightFrame ? 0.014 : 0.018,
-          detail === 'high' ? 28 : 12,
-          8,
+          // Smooth bends and round sections up close: the brushed alloy's
+          // streaked highlight otherwise shows every facet of the cradle.
+          detail === 'high' ? 56 : 12,
+          detail === 'high' ? 12 : 8,
         ),
         lightFrame ? primary : brushedAlloy,
       );
