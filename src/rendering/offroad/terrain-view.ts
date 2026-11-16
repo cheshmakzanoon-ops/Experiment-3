@@ -11,7 +11,7 @@ import { TERRAIN } from '../../simulation/terrain.ts';
 import { materials } from '../materials/index.ts';
 import { installScannedSoil, soilSlotOf, soilSlots, writeSoilSlot } from '../ground/soil-splat.ts';
 import type { ScanLayer } from '../ground/scan-store.ts';
-import { installMxSoilDetail, MX_SOIL_COLOURS } from './mx-soil-detail.ts';
+import { installMxSoilDetail, MX_SOIL_COLOURS, MX_SX_SOIL_COLOURS } from './mx-soil-detail.ts';
 import { installMxSoilMorphology, MX_SOIL_MORPHOLOGY_KINDS } from './mx-soil-morphology.ts';
 import { installMxSoilParallax } from './mx-soil-parallax.ts';
 import { mxSoilSample, sampleMxSoilTransition } from './mx-soil-transition.ts';
@@ -73,11 +73,13 @@ export class TerrainView {
   readonly soilSlots: readonly ScanLayer[];
   /** Broad variation uses a resident soil scan, never the MX/SX turf slot. */
   readonly soilMacro: ScanLayer;
+  private readonly supercross: boolean;
   constructor(readonly track: Track) {
     const surface = Track.offroadOf(track);
     if (!(surface instanceof TrackTerrainSurface)) throw new Error('Not a terrain venue');
     this.terrain = surface.terrain;
     this.motocross = surface.kind === 'motocross' || surface.kind === 'supercross';
+    this.supercross = surface.kind === 'supercross';
     const t = this.terrain,
       blocks = t.renderColumns * t.renderRows;
     this.depth = new Float32Array(blocks);
@@ -94,7 +96,7 @@ export class TerrainView {
     this.soilMacro = this.motocross ? 'dryEarth' : this.soilSlots[0];
     installScannedSoil(this.material, this.soilSlots, this.soilMacro);
     if (this.motocross) {
-      installMxSoilDetail(this.material, track.length);
+      installMxSoilDetail(this.material, track.length, surface.kind === 'supercross');
       installMxSoilMorphology(this.material);
       installMxBrakingBumps(this.material);
       installMxTerrainShadow(this.material);
@@ -118,7 +120,9 @@ export class TerrainView {
       brakingSpans = t.course.spec.brakingBumps ?? [],
       brakingHeight = Math.max(0.001, ...brakingSpans.map((span) => span.height));
     const palette = this.motocross
-      ? SOIL_KINDS.map((kind) => new T.Color(MX_SOIL_COLOURS[kind]))
+      ? SOIL_KINDS.map(
+          (kind) => new T.Color((this.supercross ? MX_SX_SOIL_COLOURS : MX_SOIL_COLOURS)[kind]),
+        )
       : [];
     // A prepared MX line is mineral soil, not the photographed roots/leaves
     // of an undisturbed forest floor. Reuse dry earth's granular detail for

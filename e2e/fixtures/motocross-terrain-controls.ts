@@ -2,7 +2,7 @@ import * as T from 'three';
 import { disposeTextureLoaders } from '../../src/rendering/assets/texture-loader.ts';
 import { scannedGround } from '../../src/rendering/ground/scan-store.ts';
 import { materials } from '../../src/rendering/materials/index.ts';
-import { MX_SOIL_COLOURS } from '../../src/rendering/offroad/mx-soil-detail.ts';
+import { MX_SOIL_COLOURS, MX_SX_SOIL_COLOURS } from '../../src/rendering/offroad/mx-soil-detail.ts';
 import { TerrainView } from '../../src/rendering/offroad/terrain-view.ts';
 import { studioHookKeys } from '../../src/rendering/studio/shader-hooks.ts';
 import { installShadowFilter, sunPenumbraScale } from '../../src/rendering/studio/shadow-filter.ts';
@@ -263,8 +263,10 @@ export async function captureMotocrossTerrainControls(circuit: Circuit, filter: 
       key.position.set(point.x - point.tx * 35, height + 45, point.z - point.tz * 35);
       scene.updateMatrixWorld(true);
       const samples = [];
-      const colorA = new T.Color(MX_SOIL_COLOURS[site.before]),
-        colorB = new T.Color(MX_SOIL_COLOURS[site.after]);
+      // The stadium floor is built from its own supercross clay palette.
+      const palette = circuit === 'arena-nord-sx' ? MX_SX_SOIL_COLOURS : MX_SOIL_COLOURS,
+        colorA = new T.Color(palette[site.before]),
+        colorB = new T.Color(palette[site.after]);
       // Ray/barycentric sampling evaluates the displayed triangle field,
       // including its 1 m along-lap interpolation, not a resampled CPU grid.
       for (const lateral of [-3, -1.5, 0, 1.5, 3]) {

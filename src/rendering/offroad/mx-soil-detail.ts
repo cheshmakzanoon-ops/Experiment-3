@@ -15,6 +15,15 @@ export const MX_SOIL_COLOURS: Readonly<Record<SoilKind, number>> = Object.freeze
   turf: 0x627044,
 });
 
+/** Supercross clay hauled into a stadium: darker and redder than the outdoor
+ * loam, so the floodlit floor reads rich rather than pale under the lamps. */
+export const MX_SX_SOIL_COLOURS: Readonly<Record<SoilKind, number>> = Object.freeze({
+  ...MX_SOIL_COLOURS,
+  hardpack: 0x6f4c34,
+  loam: 0x5f412d,
+  sand: 0x86684a,
+});
+
 export const MX_SOIL_DETAIL_HOOK = 'mx-groomed-soil-v4';
 
 const DECLARATIONS = /* glsl */ `
@@ -22,6 +31,9 @@ varying vec4 vMxCourse;
 varying float vMxCourseWidth;
 varying vec4 vMxCourseWear;
 uniform float mxCourseLength;
+// 1 in a supercross stadium: the watered, tacky racing line runs darker and
+// glossier while the untouched edges dry lighter, with chalk lane lines.
+uniform float mxSoilIndoor;
 // Screen footprint of the course coordinates (set per fragment, uniform flow).
 // Every filter below reads this, never a derivative of a parallax-shifted
 // coordinate, which would spike wherever the relief march changes its hit.
@@ -244,8 +256,20 @@ const COLOUR = /* glsl */ `{
   float edgeAcross = abs( p.x ) / halfWidth;
   float edgeBand = onSoil * smoothstep( 0.68 + 0.1 * broken, 0.97, edgeAcross )
     * ( 1.0 - passes.z * 0.8 ) * ( 1.0 - smoothstep( 1.12, 1.3, edgeAcross ) );
-  diffuseColor.rgb *= 1.0 - edgeBand * ( 0.2 + 0.1 * broad );
-  diffuseColor.rgb = mix( diffuseColor.rgb, diffuseColor.rgb * vec3( 0.95, 0.88, 0.8 ), edgeBand );
+  float edgeTone = mix( 1.0 - edgeBand * ( 0.2 + 0.1 * broad ),
+    1.0 + edgeBand * ( 0.16 + 0.08 * broad ), mxSoilIndoor );
+  diffuseColor.rgb *= edgeTone;
+  diffuseColor.rgb = mix( diffuseColor.rgb, diffuseColor.rgb * vec3( 0.95, 0.88, 0.8 ), edgeBand * ( 1.0 - mxSoilIndoor ) );
+  // Stadium: the watered line (where the passes pack it) is darker and
+  // tacky; chalked lane lines mark the inside of each lane edge.
+  float tacky = mxSoilIndoor * onSoil * clamp( passes.z * 1.2 + mxPreparedGroove * 0.6, 0.0, 1.0 );
+  diffuseColor.rgb *= 1.0 - tacky * 0.24;
+  float chalkWidth = 0.035 + fp.x * 1.5;
+  float chalk = mxSoilIndoor * onSoil * ( 1.0 - smoothstep( chalkWidth * 0.5, chalkWidth,
+    abs( abs( vMxCourse.x ) - ( halfWidth - 0.25 ) ) ) )
+    * step( 0.3, fract( p.y * 0.25 ) ) * ( 1.0 - smoothstep( 0.05, 0.25, fp.x ) );
+  diffuseColor.rgb = mix( diffuseColor.rgb, vec3( 0.82, 0.82, 0.78 ), chalk * 0.85 );
+  mxPreparedWet = max( mxPreparedWet, tacky * 0.55 );
   // 043/059/092: wet loam reflects chiefly along its depressions. Dry raised
   // aggregate remains rough; the complete course never becomes one mirror.
   float dampPatch = smoothstep( 0.38, 0.86, mxPreparedWet )
@@ -270,9 +294,14 @@ const NORMAL = /* glsl */ `{
  * textures/draw calls. The course mesh supplies (lateral m, station m,
  * dirt mask, corner hand) and actual half-width. The two-tap longitudinal
  * noise closes at the lap seam. Scanned soil and replay deformation stay intact. */
-export function installMxSoilDetail(material: T.MeshPhysicalMaterial, courseLength: number) {
+export function installMxSoilDetail(
+  material: T.MeshPhysicalMaterial,
+  courseLength: number,
+  indoor = false,
+) {
   return chainShaderHook(material, MX_SOIL_DETAIL_HOOK, (shader) => {
     shader.uniforms.mxCourseLength = { value: Math.max(1, courseLength) };
+    shader.uniforms.mxSoilIndoor = { value: indoor ? 1 : 0 };
     injectDeclarations(
       shader,
       'common',

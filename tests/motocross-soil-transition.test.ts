@@ -1,7 +1,7 @@
 import * as T from 'three';
 import { describe, expect, it } from 'vitest';
 import { SOIL_SCAN } from '../src/rendering/ground/soil-splat.ts';
-import { MX_SOIL_COLOURS } from '../src/rendering/offroad/mx-soil-detail.ts';
+import { MX_SOIL_COLOURS, MX_SX_SOIL_COLOURS } from '../src/rendering/offroad/mx-soil-detail.ts';
 import {
   MX_SOIL_TRANSITION,
   mxSoilFootprint,
@@ -135,7 +135,9 @@ describe('MX construction-time soil boundary integration', () => {
           const expected = new T.Color().setRGB(0, 0, 0),
             expectedLayers = [0, 0, 0, 0];
           for (const [kindIndex, kind] of SOIL_KINDS.entries()) {
-            const color = new T.Color(MX_SOIL_COLOURS[kind]),
+            // The stadium floor uses its own darker supercross clay palette.
+            const palette = id === 'arena-nord-sx' ? MX_SX_SOIL_COLOURS : MX_SOIL_COLOURS,
+              color = new T.Color(palette[kind]),
               weight = sample.weights[kindIndex];
             expected.r += color.r * weight;
             expected.g += color.g * weight;
