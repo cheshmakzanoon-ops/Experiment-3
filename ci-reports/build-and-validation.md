@@ -1,24 +1,17 @@
 # Build and validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/43794644711
-- commit: `ebcc4b33a7` · Motocross track surface: deeper rut relief and darker grooves, clod rims on berm lips
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/43794988741
+- commit: `d4d886a9de` · Motocross image pipeline: AgX display transform with a re-grade for daylight venues
 - event: push · status: completed · conclusion: **cancelled**
-- started: 2026-11-16T02:51:19Z · updated: 2026-11-16T02:55:11Z
+- started: 2026-11-16T02:54:53Z · updated: 2026-11-16T02:57:36Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| offroad-scenarios | cancelled | 3 | Full offroad calibrations and races without source changes |
-| validate | success | 2 |  |
-| scenarios | cancelled | 3 | Run npm run test:physics |
-| unit-tests | cancelled | 3 | Full unit suite without source changes |
-| wet-presentation | cancelled | 1 | Run npx playwright install --with-deps chromium |
-| owner-qa | cancelled | 1 | Run npx playwright install --with-deps chromium |
-| browser (3) | cancelled | 1 | Run npx playwright install --with-deps chromium |
-| browser (1) | cancelled | 1 | Run npx playwright install --with-deps chromium |
-| browser (5) | cancelled | 0 | Install Mesa software graphics and virtual display |
-| browser (8) | cancelled | 0 | Install Mesa software graphics and virtual display |
-| browser (6) | cancelled | 1 | Run npx playwright install --with-deps chromium |
-| browser (4) | cancelled | 1 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 4/8 |
-| browser (7) | cancelled | 1 | Run npx playwright install --with-deps chromium |
-| browser (2) | cancelled | 0 | Run npx playwright install --with-deps chromium |
-| publish | cancelled | 0 |  |
+| offroad-scenarios | cancelled | 2 | Full offroad calibrations and races without source changes |
+| scenarios | cancelled | 2 | Run npm run test:physics |
+| unit-tests | cancelled | 2 | Full unit suite without source changes |
+| validate | cancelled | 2 | Steam demo build and IP guard |
+| owner-qa | cancelled | 0 |  |
+| wet-presentation | cancelled | 0 |  |
+| browser | cancelled | -1 |  |
+| publish | cancelled | -1 |  |
