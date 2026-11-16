@@ -750,6 +750,8 @@ export function addMotocrossHelmet(
   lens: T.Material,
   trim: T.Material,
   accent: T.Material,
+  /** Jacquard-woven goggle strap (defaults to the plain trim). */
+  strapMaterial: T.Material = trim,
 ) {
   part(head, motocrossHelmetPeak(detail), shell).name = 'Motocross swept vented helmet peak';
   part(
@@ -817,7 +819,7 @@ export function addMotocrossHelmet(
   const strap = part(
     head,
     motocrossHelmetPatch(0.002, 0.034, Math.PI - 0.11, Math.PI * 2 + 0.11, 0.006, 2, 32),
-    trim,
+    strapMaterial,
     0,
     0.15,
     0.02,
@@ -832,6 +834,30 @@ export function addMotocrossHelmet(
     0.02,
   );
   vent.name = 'Motocross integrated chin intake';
+  {
+    // Mouthpiece (near LODs only reach here): a raised centre spine down
+    // the chin bar and vertical louvres either side of it over the intake.
+    part(
+      head,
+      motocrossHelmetPatch(-0.142, -0.064, Math.PI / 2 - 0.07, Math.PI / 2 + 0.07, 0.0075, 3, 4),
+      shell,
+      0,
+      0.15,
+      0.02,
+    ).name = 'Motocross chin-bar mouthpiece spine';
+    for (const side of [-1, 1])
+      for (let k = 0; k < 3; k++) {
+        const phi = Math.PI / 2 + side * (0.15 + k * 0.11);
+        part(
+          head,
+          motocrossHelmetPatch(-0.128, -0.079, phi - 0.016, phi + 0.016, 0.0058, 1, 2),
+          accent,
+          0,
+          0.15,
+          0.02,
+        ).name = 'Motocross mouthpiece louvre';
+      }
+  }
   for (let i = 0; i < 3; i++) {
     const y = -0.121 + i * 0.015;
     part(

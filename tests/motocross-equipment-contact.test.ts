@@ -77,7 +77,9 @@ describe('motocross equipment contact and continuous ankle articulation', () => 
                 expect(contact.ankleError, context).toBeLessThan(0.009);
                 expect(contact.calfSamples, context).toBeGreaterThan(10);
                 expect(contact.calfAttachmentError, context).toBeLessThan(1e-6);
-                expect(contact.skinMeshes).toBe(detail === 'far' ? 2 : 3);
+                // Shell, rubber, buckle metal and the kit-coloured shin
+                // shield/straps: one skinned batch per material.
+                expect(contact.skinMeshes).toBe(detail === 'far' ? 2 : 4);
               }
               // The palm's transverse axis must follow the real steered grip,
               // not the changing forearm frame, in exterior and cockpit views.

@@ -213,6 +213,9 @@ export function addMotocrossBoot(
   boot: T.Material,
   flex: T.Material,
   metal: T.Material,
+  /** Kit-coloured shin shield and closure straps, so the boot's structure
+   * reads against its shell at chase distance (defaults to the shell). */
+  accent: T.Material = boot,
 ) {
   part(foot, motocrossBootShell(detail, side), boot, 'Motocross continuous calf instep and toe');
   part(foot, motocrossBootSole(detail, side), flex, 'Motocross shaped rubber sole');
@@ -220,7 +223,7 @@ export function addMotocrossBoot(
   part(
     foot,
     bootPanel(detail, side, -0.304, -0.132, 0.73, 2.41, 0.0034),
-    boot,
+    accent,
     'Motocross fitted shin shield',
   );
   for (const phi of [1.19, 1.88])
@@ -259,13 +262,13 @@ export function addMotocrossBoot(
     part(
       foot,
       bootPanel(detail, side, y - 0.0065, y + 0.0065, -0.13, 2.93, 0.0034, 0.0055),
-      boot,
+      accent,
       'Motocross fitted closure band',
     );
     const point = bootPoint(y + 0.0055, 0.18, side, 0.007),
       buckle = part(
         foot,
-        new RoundedBoxGeometry(0.009, 0.018, 0.036, 2, 0.003),
+        new RoundedBoxGeometry(0.011, 0.022, 0.042, 2, 0.003),
         metal,
         'Motocross recessed closure buckle',
       );
@@ -515,4 +518,23 @@ export function addMotocrossGlove(
     palm,
     'Motocross opposing wrapped thumb',
   );
+  // Moulded rubber knuckle guard: a ridged bar across the first knuckles.
+  const knuckle = part(
+    hand,
+    new RoundedBoxGeometry(0.066, 0.009, 0.017, 2, 0.004),
+    flex,
+    'Motocross moulded knuckle guard',
+  );
+  knuckle.position.set(side * -0.0005, 0.016, 0.041);
+  knuckle.rotation.x = -0.12;
+  // Gauntlet cuff pulled over the jersey sleeve's end.
+  const cuff = part(
+    hand,
+    new T.CylinderGeometry(0.035, 0.032, 0.042, detail === 'high' ? 18 : 10, 1, true),
+    textile,
+    'Motocross glove cuff over the sleeve',
+  );
+  cuff.rotation.x = Math.PI / 2;
+  cuff.position.set(0, 0.0, -0.012);
+  (cuff.material as T.Material).side = T.DoubleSide;
 }

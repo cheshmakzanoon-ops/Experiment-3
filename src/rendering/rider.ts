@@ -652,7 +652,62 @@ export class Rider {
           name: 'Motocross flexible glove textile',
         })
       : null;
+    // Polished alloy buckles and a moulded neck brace in the kit colour.
+    const mxBuckle = mx
+      ? new T.MeshStandardMaterial({
+          color: 0xc9cdd1,
+          metalness: 0.9,
+          roughness: 0.3,
+          name: 'Motocross polished boot buckles',
+        })
+      : null;
+    const mxBrace = mx
+      ? new T.MeshPhysicalMaterial({
+          color: colours.primary,
+          roughness: 0.42,
+          clearcoat: 0.45,
+          clearcoatRoughness: 0.25,
+          name: 'Motocross moulded neck brace',
+        })
+      : null;
     if (mxBoot && mxTrim) this.materials.push(mxBoot, mxTrim);
+    // Jacquard goggle strap: dark weave, kit-coloured edge stripes and a
+    // repeating woven block pattern (a 128x16 texture, near LODs only).
+    let mxStrap: T.MeshStandardMaterial | null = null;
+    if (mx) {
+      mxStrap = new T.MeshStandardMaterial({
+        roughness: 0.82,
+        name: 'Motocross jacquard goggle strap',
+      });
+      if (detail !== 'far') {
+        const w = 128,
+          h = 16,
+          data = new Uint8Array(w * h * 4),
+          edge = new T.Color(colours.accent),
+          block = new T.Color(colours.primary);
+        for (let y = 0; y < h; y++)
+          for (let x = 0; x < w; x++) {
+            const weave = ((x + y) & 1) * 10,
+              stripe = y <= 1 || y >= h - 2,
+              mark = y > 4 && y < h - 5 && x % 16 < 9 && (x % 16 > 1 || y % 3 === 0),
+              c = stripe ? edge : mark ? block : null,
+              i = (y * w + x) * 4;
+            if (c) data.set([c.r * 235 + weave, c.g * 235 + weave, c.b * 235 + weave, 255], i);
+            else data.set([28 + weave, 29 + weave, 32 + weave, 255], i);
+          }
+        const map = new T.DataTexture(data, w, h, T.RGBAFormat);
+        map.colorSpace = T.SRGBColorSpace;
+        map.wrapS = T.RepeatWrapping;
+        map.magFilter = T.LinearFilter;
+        map.minFilter = T.LinearMipmapLinearFilter;
+        map.generateMipmaps = true;
+        map.anisotropy = 4;
+        map.needsUpdate = true;
+        mxStrap.map = map;
+      } else mxStrap.color.setHex(0x1c1d20);
+      this.materials.push(mxStrap);
+    }
+    if (mxBuckle && mxBrace) this.materials.push(mxBuckle, mxBrace);
     if (mxGloveBack) this.materials.push(mxGloveBack);
     if (mx) {
       // A coated polycarbonate goggle lens has a dark eye cavity behind it.
@@ -776,9 +831,10 @@ export class Rider {
       });
       if (detail !== 'far') Object.assign(neckRoll, motocrossFabricMaps());
       this.materials.push(neckRoll);
-      const neck = part(this.torso, new T.CylinderGeometry(0.049, 0.056, 0.075, sides), neckRoll);
+      // Tall enough to run up inside the helmet's lower rim at any gaze.
+      const neck = part(this.torso, new T.CylinderGeometry(0.049, 0.057, 0.092, sides), neckRoll);
       neck.name = 'Motocross neck liner above textile collar';
-      neck.position.set(0, 0.56, 0.029);
+      neck.position.set(0, 0.565, 0.029);
       this.motocrossSpine!.bind(neck);
     }
     // Aero hump (spine protector and airbag housing) on the back.
@@ -843,7 +899,7 @@ export class Rider {
       // The neck opening follows the upper jersey through spine flexion.
       // Keep the skin under the torso's first-person visibility boundary.
       this.motocrossSpine!.bind(collar);
-      const brace = part(this.torso, motocrossNeckBrace(detail), armour);
+      const brace = part(this.torso, motocrossNeckBrace(detail), mxBrace!);
       brace.name = 'Motocross neck brace';
       this.motocrossSpine!.bind(brace);
     }
@@ -931,7 +987,7 @@ export class Rider {
       silhouette.receiveShadow = false;
     }
     if (mx) {
-      addMotocrossHelmet(this.head, detail, helmet, visor, flex, mxTrim!);
+      addMotocrossHelmet(this.head, detail, helmet, visor, flex, mxTrim!, mxStrap!);
     } else if (gpHelmet) {
       if (detail !== 'far')
         addGpHelmetDetails(this.head, detail, {
@@ -1235,7 +1291,9 @@ export class Rider {
       // The planted boot frame has +Y down, +Z forward and +X toward bike
       // right. Mirror its lateral buckles so they remain outside both legs.
       if (mx)
-        this.motocrossBoots.push(addMotocrossBoot(foot, detail, -side, mxBoot!, flex, armour));
+        this.motocrossBoots.push(
+          addMotocrossBoot(foot, detail, -side, mxBoot!, flex, mxBuckle!, mxTrim!),
+        );
       else
         foot.add(
           gpRacingBoot(detail, side, { leather: glove, panel, sole: flex, armour, slider }, gp),
