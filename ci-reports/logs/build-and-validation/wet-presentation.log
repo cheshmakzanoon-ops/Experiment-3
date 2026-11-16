@@ -1,0 +1,255 @@
+### wet-presentation (job 133061377552)
+--- error digest (first 120 matching lines) ---
+409:wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:06.5068574Z ##[error]The operation was canceled.
+
+--- last 250 lines ---
+wet-presentation	Download tested build (attempt 1 of 3)	2026-11-16T02:54:35.9278165Z (Use `node --trace-deprecation ...` to show where the warning was created)
+wet-presentation	Download tested build (attempt 1 of 3)	2026-11-16T02:54:36.2267198Z Preparing to download the following artifacts:
+wet-presentation	Download tested build (attempt 1 of 3)	2026-11-16T02:54:36.2268612Z - apex-formula-web (ID: 14194435027, Size: 79101907, Expected Digest: sha256:9ce97cc70a6db9395211233485997979dc8810f60b599b63f319f841cb08b1cf)
+wet-presentation	Download tested build (attempt 1 of 3)	2026-11-16T02:54:36.4969619Z Redirecting to blob download url: https://productionresultssa3.blob.core.windows.net/actions-results/17ba661c-21c1-8d31-9084-23cc7850f0af/workflow-job-run-284ff96e-9229-527f-8791-f63fe4d92f30/artifacts/a099db7dccca2bea13cabdb75d09ca0f68509ae9b06d93f8e4352c66fb8393f2.zip
+wet-presentation	Download tested build (attempt 1 of 3)	2026-11-16T02:54:36.4970873Z Starting download of artifact to: /home/runner/work/Experiment-3/Experiment-3/dist
+wet-presentation	Download tested build (attempt 1 of 3)	2026-11-16T02:54:36.8652476Z (node:2233) [DEP0005] DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead.
+wet-presentation	Download tested build (attempt 1 of 3)	2026-11-16T02:54:41.2236785Z SHA256 digest of downloaded artifact is 9ce97cc70a6db9395211233485997979dc8810f60b599b63f319f841cb08b1cf
+wet-presentation	Download tested build (attempt 1 of 3)	2026-11-16T02:54:41.2237882Z Artifact download completed successfully.
+wet-presentation	Download tested build (attempt 1 of 3)	2026-11-16T02:54:41.2238538Z Total of 1 artifact(s) downloaded
+wet-presentation	Download tested build (attempt 1 of 3)	2026-11-16T02:54:41.2241862Z Download artifact has finished successfully
+wet-presentation	Require downloaded build before continuing	﻿2026-11-16T02:54:41.2389872Z ##[group]Run set -euo pipefail
+wet-presentation	Require downloaded build before continuing	2026-11-16T02:54:41.2390256Z ^[[36;1mset -euo pipefail^[[0m
+wet-presentation	Require downloaded build before continuing	2026-11-16T02:54:41.2390542Z ^[[36;1mtest "$DOWNLOAD_SUCCEEDED" = true^[[0m
+wet-presentation	Require downloaded build before continuing	2026-11-16T02:54:41.2390875Z ^[[36;1mtest -s dist/index.html^[[0m
+wet-presentation	Require downloaded build before continuing	2026-11-16T02:54:41.2391134Z ^[[36;1mtest -d dist/assets^[[0m
+wet-presentation	Require downloaded build before continuing	2026-11-16T02:54:41.2418808Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+wet-presentation	Require downloaded build before continuing	2026-11-16T02:54:41.2419259Z env:
+wet-presentation	Require downloaded build before continuing	2026-11-16T02:54:41.2419589Z   APEX_BROWSER_BACKEND: swiftshader
+wet-presentation	Require downloaded build before continuing	2026-11-16T02:54:41.2419881Z   DOWNLOAD_SUCCEEDED: true
+wet-presentation	Require downloaded build before continuing	2026-11-16T02:54:41.2420134Z ##[endgroup]
+wet-presentation	Run npx playwright install --with-deps chromium	﻿2026-11-16T02:54:41.2486558Z ##[group]Run npx playwright install --with-deps chromium
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:41.2486954Z ^[[36;1mnpx playwright install --with-deps chromium^[[0m
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:41.2505990Z shell: /usr/bin/bash -e {0}
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:41.2506256Z env:
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:41.2506511Z   APEX_BROWSER_BACKEND: swiftshader
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:41.2506800Z ##[endgroup]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:41.7719422Z Installing dependencies...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:41.7786760Z Switching to root user to install dependencies...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:41.9790865Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [152 B]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:42.0664888Z Get:5 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:42.0982125Z Hit:2 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble InRelease
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:42.1542296Z Get:3 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:42.1616762Z Get:6 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [772 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:42.2496398Z Get:7 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:42.2559510Z Get:8 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [702 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:42.3781951Z Get:4 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:42.5289155Z Get:9 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1450 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:42.7533847Z Get:10 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [315 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:42.8136796Z Get:11 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1713 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:42.9279391Z Get:12 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [345 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:42.9710730Z Get:16 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages [1195 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:42.9877720Z Get:13 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1883 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:43.1021286Z Get:14 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [430 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:43.1628331Z Get:15 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/multiverse Translation-en [14.6 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:43.8024608Z Get:17 http://security.ubuntu.com/ubuntu noble-security/main Translation-en [238 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:43.9720745Z Get:18 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1228 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:44.2279112Z Get:19 http://security.ubuntu.com/ubuntu noble-security/universe Translation-en [248 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:44.3945449Z Get:20 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1788 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:44.6741564Z Get:21 http://security.ubuntu.com/ubuntu noble-security/restricted Translation-en [411 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:52.0424663Z Fetched 13.1 MB in 3s (4679 kB/s)
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:52.8808927Z Reading package lists...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:52.9046186Z Reading package lists...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.0566181Z Building dependency tree...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.0571203Z Reading state information...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1852562Z libasound2t64 is already the newest version (1.2.11-1ubuntu0.3).
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1853295Z libasound2t64 set to manually installed.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1853778Z libatk-bridge2.0-0t64 is already the newest version (2.52.0-1build1).
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1854294Z libatk-bridge2.0-0t64 set to manually installed.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1854746Z libatk1.0-0t64 is already the newest version (2.52.0-1build1).
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1855184Z libatk1.0-0t64 set to manually installed.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1855698Z libatspi2.0-0t64 is already the newest version (2.52.0-1build1).
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1856381Z libatspi2.0-0t64 set to manually installed.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1856839Z libcairo2 is already the newest version (1.18.0-3build1).
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1857343Z libcairo2 set to manually installed.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1858191Z libcups2t64 is already the newest version (2.4.7-1.2ubuntu7.14).
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1858834Z libcups2t64 set to manually installed.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1859329Z libdbus-1-3 is already the newest version (1.14.10-4ubuntu4.1).
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1859764Z libdbus-1-3 set to manually installed.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1860251Z libdrm2 is already the newest version (2.4.125-1ubuntu0.1~24.04.2).
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1860724Z libdrm2 set to manually installed.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1861220Z libgbm1 is already the newest version (25.2.8-0ubuntu0.24.04.4).
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1861760Z libgbm1 set to manually installed.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1862294Z libglib2.0-0t64 is already the newest version (2.80.0-6ubuntu3.10).
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1862783Z libglib2.0-0t64 set to manually installed.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1863320Z libnspr4 is already the newest version (2:4.35-1.1build1).
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1863785Z libnspr4 set to manually installed.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1864316Z libnss3 is already the newest version (2:3.98-1ubuntu0.3).
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1864810Z libnss3 set to manually installed.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1865341Z libpango-1.0-0 is already the newest version (1.52.1+ds-1build1).
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1865895Z libpango-1.0-0 set to manually installed.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1866421Z libx11-6 is already the newest version (2:1.8.7-1ubuntu0.1).
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1867123Z libx11-6 set to manually installed.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1867844Z libxcb1 is already the newest version (1.15-1ubuntu2).
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1868403Z libxcb1 set to manually installed.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1868902Z libxcomposite1 is already the newest version (1:0.4.5-1build3).
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1869474Z libxcomposite1 set to manually installed.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1870006Z libxdamage1 is already the newest version (1:1.1.6-1build1).
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1870552Z libxdamage1 set to manually installed.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1871004Z libxext6 is already the newest version (2:1.3.4-1build2).
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1871478Z libxext6 set to manually installed.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1871962Z libxfixes3 is already the newest version (1:6.0.0-2build1).
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1872404Z libxfixes3 set to manually installed.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1872891Z libxkbcommon0 is already the newest version (1.6.0-1build1).
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1873409Z libxkbcommon0 set to manually installed.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1873967Z libxrandr2 is already the newest version (2:1.5.2-2build1).
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1874446Z libxrandr2 set to manually installed.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1874952Z xvfb is already the newest version (2:21.1.12-1ubuntu1.9).
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1875565Z fonts-noto-color-emoji is already the newest version (2.047-0ubuntu0.24.04.1).
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1876256Z libfontconfig1 is already the newest version (2.15.0-1.1ubuntu2).
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1876802Z libfontconfig1 set to manually installed.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1877405Z libfreetype6 is already the newest version (2.13.2+dfsg-1ubuntu0.2).
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1878264Z libfreetype6 set to manually installed.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1878862Z fonts-liberation is already the newest version (1:2.1.5-3).
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1879416Z fonts-liberation set to manually installed.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1879993Z The following additional packages will be installed:
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1880439Z   xfonts-encodings xfonts-utils
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1880876Z Recommended packages:
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.1881256Z   fonts-ipafont-mincho fonts-tlwg-loma
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.2899306Z The following NEW packages will be installed:
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.2899974Z   fonts-freefont-ttf fonts-ipafont-gothic fonts-tlwg-loma-otf fonts-unifont
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.2904101Z   fonts-wqy-zenhei xfonts-cyrillic xfonts-encodings xfonts-scalable
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.2904533Z   xfonts-utils
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.3062685Z 0 upgraded, 9 newly installed, 0 to remove and 23 not upgraded.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.3063365Z Need to get 21.1 MB of archives.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.3063749Z After this operation, 79.5 MB of additional disk space will be used.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.3064498Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [152 B]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.4449496Z Get:2 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1 [3513 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:53.9936546Z Get:3 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2 [5641 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:54.1979200Z Get:4 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1 [107 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:54.2782260Z Get:5 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1 [2993 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:54.4214136Z Get:6 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8 [7472 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:54.6597844Z Get:7 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2 [578 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:54.8361088Z Get:8 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3 [94.4 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:54.9157799Z Get:9 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1 [384 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:54.9976780Z Get:10 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3 [304 kB]
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:55.9501168Z Fetched 21.1 MB in 2s (12.4 MB/s)
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:56.0055655Z Selecting previously unselected package fonts-ipafont-gothic.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:56.2290625Z (Reading database ... 
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:56.2291012Z (Reading database ... 5%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:56.2291404Z (Reading database ... 10%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:56.2291661Z (Reading database ... 15%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:56.2291947Z (Reading database ... 20%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:56.2292232Z (Reading database ... 25%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:56.2292519Z (Reading database ... 30%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:56.2292776Z (Reading database ... 35%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:56.2293005Z (Reading database ... 40%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:56.2293326Z (Reading database ... 45%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:56.2293581Z (Reading database ... 50%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:56.3918632Z (Reading database ... 55%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:57.0812606Z (Reading database ... 60%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:57.3486905Z (Reading database ... 65%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:57.5008885Z (Reading database ... 70%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:57.6170022Z (Reading database ... 75%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:57.8229594Z (Reading database ... 80%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:59.0413788Z (Reading database ... 85%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:54:59.8694688Z (Reading database ... 90%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:00.7392973Z (Reading database ... 95%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:00.7393968Z (Reading database ... 100%
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:00.7394712Z (Reading database ... 216380 files and directories currently installed.)
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:00.7436910Z Preparing to unpack .../0-fonts-ipafont-gothic_00303-21ubuntu1_all.deb ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:00.7532850Z Unpacking fonts-ipafont-gothic (00303-21ubuntu1) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:00.9460938Z Selecting previously unselected package fonts-freefont-ttf.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:00.9559342Z Preparing to unpack .../1-fonts-freefont-ttf_20211204+svn4273-2_all.deb ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:00.9563625Z Unpacking fonts-freefont-ttf (20211204+svn4273-2) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.0223244Z Selecting previously unselected package fonts-tlwg-loma-otf.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.0319103Z Preparing to unpack .../2-fonts-tlwg-loma-otf_1%3a0.7.3-1_all.deb ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.0322824Z Unpacking fonts-tlwg-loma-otf (1:0.7.3-1) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.0468066Z Selecting previously unselected package fonts-unifont.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.0562109Z Preparing to unpack .../3-fonts-unifont_1%3a15.1.01-1build1_all.deb ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.0566527Z Unpacking fonts-unifont (1:15.1.01-1build1) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.1504058Z Selecting previously unselected package fonts-wqy-zenhei.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.1599062Z Preparing to unpack .../4-fonts-wqy-zenhei_0.9.45-8_all.deb ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.1672494Z Unpacking fonts-wqy-zenhei (0.9.45-8) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.5663950Z Selecting previously unselected package xfonts-encodings.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.5762755Z Preparing to unpack .../5-xfonts-encodings_1%3a1.0.5-0ubuntu2_all.deb ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.5766577Z Unpacking xfonts-encodings (1:1.0.5-0ubuntu2) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.5945224Z Selecting previously unselected package xfonts-utils.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.6041073Z Preparing to unpack .../6-xfonts-utils_1%3a7.7+6build3_amd64.deb ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.6045503Z Unpacking xfonts-utils (1:7.7+6build3) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.6300056Z Selecting previously unselected package xfonts-cyrillic.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.6387678Z Preparing to unpack .../7-xfonts-cyrillic_1%3a1.0.5+nmu1_all.deb ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.6391478Z Unpacking xfonts-cyrillic (1:1.0.5+nmu1) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.6578562Z Selecting previously unselected package xfonts-scalable.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.6665086Z Preparing to unpack .../8-xfonts-scalable_1%3a1.0.3-1.3_all.deb ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.6669545Z Unpacking xfonts-scalable (1:1.0.3-1.3) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.6928348Z Setting up fonts-wqy-zenhei (0.9.45-8) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.7003065Z Setting up fonts-freefont-ttf (20211204+svn4273-2) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.7015217Z Setting up fonts-tlwg-loma-otf (1:0.7.3-1) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.7024914Z Setting up xfonts-encodings (1:1.0.5-0ubuntu2) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.7035859Z Setting up fonts-ipafont-gothic (00303-21ubuntu1) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.7076274Z update-alternatives: using /usr/share/fonts/opentype/ipafont-gothic/ipag.ttf to provide /usr/share/fonts/truetype/fonts-japanese-gothic.ttf (fonts-japanese-gothic.ttf) in auto mode
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.7084598Z Setting up fonts-unifont (1:15.1.01-1build1) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.7096265Z Setting up xfonts-utils (1:7.7+6build3) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.7123118Z Setting up xfonts-cyrillic (1:1.0.5+nmu1) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.7348609Z Setting up xfonts-scalable (1:1.0.3-1.3) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.7530784Z Processing triggers for man-db (2.12.0-4build2) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.7548795Z Not building database; man-db/auto-update is not 'true'.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:01.7556912Z Processing triggers for fontconfig (2.15.0-1.1ubuntu2) ...
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:02.7412029Z 
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:02.7412886Z Running kernel seems to be up-to-date.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:02.7413184Z 
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:02.7413345Z No services need to be restarted.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:02.7413527Z 
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:02.7413683Z No containers need to be restarted.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:02.7413843Z 
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:02.7414014Z No user sessions are running outdated binaries.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:02.7414222Z 
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:02.7414447Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:03.4553472Z Downloading Chromium 140.0.7339.186 (playwright build v1193) from https://cdn.playwright.dev/dbazure/download/playwright/builds/chromium/1193/chromium-linux.zip
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:03.6510583Z |                                                                                |   0% of 173.8 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:04.2737931Z |■■■■■■■■                                                                        |  10% of 173.8 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:04.8521071Z |■■■■■■■■■■■■■■■■                                                                |  20% of 173.8 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:05.3802259Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 173.8 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:05.8407232Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 173.8 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:06.0853365Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 173.8 MiB
+wet-presentation	Run npx playwright install --with-deps chromium	2026-11-16T02:55:06.5068574Z ##[error]The operation was canceled.
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	﻿2026-11-16T02:55:06.5142226Z ##[group]Run actions/upload-artifact@v4
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-16T02:55:06.5142547Z with:
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-16T02:55:06.5142754Z   name: wet-presentation
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-16T02:55:06.5143302Z   path: test-results/
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	playwright-report/
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	browser-backend.json
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	browser-progress.json
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-16T02:55:06.5143695Z   retention-days: 7
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-16T02:55:06.5143937Z   if-no-files-found: warn
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-16T02:55:06.5144209Z   compression-level: 6
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-16T02:55:06.5144455Z   overwrite: false
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-16T02:55:06.5144723Z   include-hidden-files: false
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-16T02:55:06.5144952Z env:
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-16T02:55:06.5145190Z   APEX_BROWSER_BACKEND: swiftshader
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-16T02:55:06.5145472Z ##[endgroup]
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-16T02:55:06.6411422Z (node:2868) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-16T02:55:06.6412436Z (Use `node --trace-deprecation ...` to show where the warning was created)
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-16T02:55:06.6464774Z Multiple search paths detected. Calculating the least common ancestor of all paths
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-16T02:55:06.6466403Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	2026-11-16T02:55:06.6478798Z ##[warning]No files were found with the provided path: test-results/
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	playwright-report/
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	browser-backend.json
+wet-presentation	Wet presentation and original-player-car screenshots and GPU measurements	browser-progress.json. No artifacts will be uploaded.
+wet-presentation	Post Run actions/checkout@v4	﻿2026-11-16T02:55:06.6606942Z Post job cleanup.
+wet-presentation	Post Run actions/checkout@v4	2026-11-16T02:55:06.7305870Z [command]/usr/bin/git version
+wet-presentation	Post Run actions/checkout@v4	2026-11-16T02:55:06.7337436Z git version 2.56.1
+wet-presentation	Post Run actions/checkout@v4	2026-11-16T02:55:06.7368768Z Temporarily overriding HOME='/home/runner/work/_temp/55b63f0f-f3fe-42f8-be88-82452205b0e6' before making global git config changes
+wet-presentation	Post Run actions/checkout@v4	2026-11-16T02:55:06.7370169Z Adding repository directory to the temporary git global config as a safe directory
+wet-presentation	Post Run actions/checkout@v4	2026-11-16T02:55:06.7375275Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+wet-presentation	Post Run actions/checkout@v4	2026-11-16T02:55:06.7404522Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+wet-presentation	Post Run actions/checkout@v4	2026-11-16T02:55:06.7429346Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+wet-presentation	Post Run actions/checkout@v4	2026-11-16T02:55:06.7605291Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+wet-presentation	Post Run actions/checkout@v4	2026-11-16T02:55:06.7623079Z http.https://github.com/.extraheader
+wet-presentation	Post Run actions/checkout@v4	2026-11-16T02:55:06.7630580Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+wet-presentation	Post Run actions/checkout@v4	2026-11-16T02:55:06.7660177Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+wet-presentation	Post Run actions/checkout@v4	2026-11-16T02:55:06.7882293Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+wet-presentation	Post Run actions/checkout@v4	2026-11-16T02:55:06.7908400Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+wet-presentation	Complete job	﻿2026-11-16T02:55:06.8173513Z Cleaning up orphan processes
+wet-presentation	Complete job	2026-11-16T02:55:06.8352639Z Terminate orphan process: pid (2247) (npm exec playwright install --with-deps chromium)
+wet-presentation	Complete job	2026-11-16T02:55:06.8379307Z Terminate orphan process: pid (2259) (sh)
+wet-presentation	Complete job	2026-11-16T02:55:06.8403912Z Terminate orphan process: pid (2260) (node)
+wet-presentation	Complete job	2026-11-16T02:55:06.8566572Z Terminate orphan process: pid (2856) (node)
+wet-presentation	Complete job	2026-11-16T02:55:06.8622736Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/download-artifact@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
