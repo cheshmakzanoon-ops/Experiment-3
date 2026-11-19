@@ -1,8 +1,12 @@
 # Completed continuation CI and next corrections — 19 November 2026
 
+The latest complete main validation is [run 44617126580](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44617126580) on published source `ffd2259`. Every original unit file and browser case is accounted for: **6,755 unit passes and two failures; 268 ordinary browser passes, 73 failures and 12 original conditional skips; 29 owner-QA passes and 13 failures**. All three corrected fixtures pass their original hosted cases. All partitions finish inside the unchanged job limits. The workflow fails and its release publication is skipped. Experimental physics and rendering remain isolated. The earlier cancelled run below is historical; the complete replacement results are recorded under “Published fixture and CI corrections.”
+
+## Earlier cancelled source
+
 The original [Build and validation run 44553045707](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44553045707) on `d8d87c73a8f3e921e865acdc02c61e84b8c877a7` has finished. All nineteen jobs are terminal. Its workflow conclusion is **cancelled**, and publication was skipped. This supersedes the pending browser/owner-QA state in the earlier [continuation checkpoint](continuation-2026-11-19.md); that earlier source-specific evidence remains unchanged.
 
-## Completed source result
+### Completed earlier-source result
 
 | Workload | Result |
 | --- | --- |
@@ -43,7 +47,40 @@ The [compact exact-source audit](evidence/continuation-final-20261119/graphics-b
 
 The accepted fixture and partition changes were published to [main at ffd2259](https://github.com/cheshmakzanoon-ops/Experiment-3/commit/ffd22598335dfa2a074ebd466e1d53830bb8bb41). The remote tree is exactly `cc67121b209279498206e4d575251ff866683ba9`, matching local reviewed source `a00f756397bd0db068f30d171dea31b621161614`. Publication used a non-force expected-head update from `57d1a982c8ed814df29592d49138e9908c651fef`; the resulting branch ref was independently fetched and verified. [The publication receipt](evidence/continuation-final-20261119/publication/accepted-main-publication.json) records this boundary.
 
-[Build and validation run 44617126580](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44617126580) is the new exact-source run. All four native unit partitions began executing. Final hosted outcomes remain pending at this checkpoint. No experimental rendering or physics change was included in this main publication.
+[Build and validation run 44617126580](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44617126580) completed at 22:44:21 UTC with failure. Build validation, road scenarios, offroad scenarios and wet presentation pass. All four native unit partitions, sixteen ordinary browser partitions and four owner-QA partitions finish with complete original inventories. The required publication gate is skipped after the failures. No experimental rendering or physics change was included in this main publication.
+
+### Complete main unit result
+
+The four original unit reporters contain **6,755 passing and two failing tests across all 694 files**. Every committed test file appears exactly once. There are no missing or unexpected files, duplicate assignments, pending tests or TODO tests. The native Vitest 3.2.4 SHA-1 shard assignment was independently reconstructed and matches every reported file.
+
+| Partition | Files | Passing tests | Failing tests | Native test duration |
+| --- | ---: | ---: | ---: | ---: |
+| 1 | 174 | 1,662 | 0 | 592.62 s |
+| 2 | 174 | 1,810 | 1 | 976.17 s |
+| 3 | 174 | 1,767 | 1 | 410.93 s |
+| 4 | 172 | 1,516 | 0 | 512.04 s |
+| Total | 694 | 6,755 | 2 | — |
+
+The two failures retain the original assertions. The eight-rider rainy Poggio case observes peak impact **0.9916666666666667**, failing the required zero at `tests/gp-tyre-contact.test.ts:294`. Its preceding finished-phase assertion passes; assertions following the impact failure were not reached. The mixed GP/SBK case observes GP best **91.13427179346363 s** versus SBK **90.36337145755091 s**, failing the GP-faster assertion at `tests/bike-session.test.ts:367`; the subsequent 0.15-second margin assertion was not reached.
+
+The [complete unit audit](evidence/continuation-resume-2146-20261119/main-unit-ffd2259/README.md) retains all four original artifact ZIPs, losslessly compressed full job logs, individual case outcomes, exact file assignments, committed-source provenance and a reproducible data audit. Every archive's advertised size and SHA-256 match, and both source and checkout logs identify `ffd2259`. This completes the previously interrupted unit inventory; the two failing races still block acceptance.
+
+### Complete main browser and owner-QA results
+
+| Execution group | Original cases accounted for | Passing | Failing | Original conditional skips |
+| --- | ---: | ---: | ---: | ---: |
+| Ordinary browser, sixteen partitions | 353 | 268 | 73 | 12 |
+| Owner QA, four partitions | 42 | 29 | 13 | 0 |
+
+Every original case ID appears exactly once within its execution group, with no missing or unexpected IDs. The groups intentionally overlap and must not be added as unique cases. Ten ordinary skips are original owner/review-build conditions whose owner counterparts actually execute: eight pass and two fail. The remaining two are the original opt-in cabin-cost and live-ULTRA measurements. Skips retain that status in ordinary totals.
+
+All twenty browser jobs complete before their original 90-minute cap; the longest takes 84.6167 minutes including setup and artifact upload. Seventy-two ordinary failures have deadline-related error records, and one fails the exact fresh-construction GP image-hash assertion. All thirteen owner failures contain deadline-related errors. These error categories describe the observations and do not establish a shared cause. The [complete source-specific audit](evidence/continuation-resume-2146-20261119/main-browser-ffd2259/README.md) retains all full job logs, original case IDs/errors, final metadata, explicit skip conditions, committed-source identities and a reproducible read-only reconciliation. Independent review confirms every native final summary and checkout identity. The partitioning correction has completed coverage; it has not resolved the remaining application failures.
+
+### Original fixture corrections verified in hosted browsers
+
+The three corrected fixtures all pass in this exact-source hosted run. Ordinary partition 10 passes the original APX assembly case, including its 68 poses and unchanged physical-state/asset assertions. Ordinary partition 13 passes the original GP contact-effects case. Owner partition 1 passes the original reference-depth survey/focus/headquarters case. The separate decals/audio case in the same reference-depth file fails its input-action deadline; it is a different test. These passes verify the corrected fixtures, without claiming that the remaining browser workload is accepted.
+
+A distinct original GP reference case reaches its final strict hash comparison and fails between two independently constructed dry renders. The [original images and reproducible numerical audit](evidence/continuation-resume-2146-20261119/main-gp-reference-ffd2259/README.md) show four differing pixels out of 1,024,000, in five colour components by at most one integer level. All other reported metrics differ only in instance identity. Its earlier same-instance wet/held/rewound-dry checks pass exact hash equality. The cause of the fresh-construction pixel difference remains unestablished; the original exact assertion and all rendering settings remain unchanged.
 
 ## Fullscreen graphics follow-up
 
@@ -54,6 +91,52 @@ The next isolated rendering source, `991cf4fc17f46e102318f25b643bc160789203a2` (
 The observed first-chase native delta contains no new shader compilation, linking or metadata queries. The chase draw begins at readiness +39,843.517 ms and returns at +90,983.346 ms, after the readiness assertion has already failed. The newer trace diagnostic then shows offscreen pit-service preparation, one scene-pass frame, two GPU submissions and zero GPU completions. This is distinct from the older diagnostic attachment; a returned draw call is not a completed GPU frame. No later original paused, driving, photo or final High acceptance assertion ran.
 
 The trace records substantial texture and geometry transfer call time and identifies an approximately 5.37-second Far sun shadow construction interval. Those CPU-call durations can include earlier queued work. The retained records do not establish duplicate native resource transfers or their owners. [The complete compact audit](evidence/continuation-final-20261119/graphics-fullscreen-991cf4fc/README.md) preserves both diagnostic timelines, full logs, every case result, the exact original test/workflow, and all verified artifact digests. This rendering candidate remains isolated while the remaining scene/resource cost is investigated.
+
+### Retained texture candidate
+
+The next isolated candidate is [c9d3ff07f0b459697133e5c6d68dcbe8492bd2ab](https://github.com/cheshmakzanoon-ops/Experiment-3/commit/c9d3ff07f0b459697133e5c6d68dcbe8492bd2ab), tree `365f4a448d3335e8ea111605471a80f457ba1a0a`, exactly matching reviewed local `4b9d6bb70f1443930ae674e610dc14d61e187ee3`. It prepares retained, ready static 2D texture owners through Three.js's native cache after shader metadata and before the actual shadow/probe submissions. It preserves texture bytes, dimensions, mip levels, pixel-store state, sampling settings, the original draws and GPU-completion requirements. Dynamic or unready resources are excluded. Native checks passed 186/186 across sixteen files, with lint and TypeScript passing; these checks establish ownership/cache behavior rather than browser timing.
+
+[Isolated run 44620560801](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44620560801) ended cancelled with no test artifacts or acceptance result. The diagnostic branch had advanced again while its jobs were queued. [Terminal metadata](evidence/continuation-resume-2146-20261119/graphics-texture-c9d3ff-cancelled/summary.json) retains this source separately. The earlier competing publication was reconciled by independently fetching the actual commit, parent and exact reviewed tree; no ref retry or overwrite was performed.
+
+### Static texture policy ordering and completed browser result
+
+The replacement isolated source, [f22622e3302ed6147c5aae6f8eb6f6bc4057a242](https://github.com/cheshmakzanoon-ops/Experiment-3/commit/f22622e3302ed6147c5aae6f8eb6f6bc4057a242), has tree `c413cd5062b6555d1e607297e99ad93db123de77`, exactly matching reviewed local `62f18b8`. It applies the selected static texture policy after construction/transform/survey tasks and before the existing Far sun shadow bake. The texture algorithms, quality settings and bake body remain unchanged. This deliberately makes the first shadow bake use the selected policy; it does not claim pixel equivalence to the former bake under earlier sampling settings. Native owner/policy, lifecycle and negative-control checks passed 107/107, with independent source and receipt verification.
+
+[Run 44623276067](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44623276067) is complete: the build, seven GPU component cases, seven menu/settings cases and one driving/replay case passed. The original High case failed its unchanged 90,000 ms `loading → paused` predicate. All sixteen browser cases executed, with fifteen passing and one failing; there were no retries, skipped or flaky outcomes. No High driving or photo assertion was reached, so authored-scene photo acceptance remains unmeasured.
+
+In this exact run the first chase warmup starts 50.233 s into the readiness predicate, leaving 39.767 s of its configured budget. The last successful application diagnostic predates that warmup and its zero frame counters are stale. At readiness +89.778 s the worker still observes a 26,568-byte index-buffer upload during the 256 × 256 +Z reflection face; no later native completion or GPU fence is retained.
+
+Subtracting the final pre-chase counters gives zero new shader/program metadata discovery, 1,394 draws, 28 raw texture transfers with 1.2 ms recorded call time, no compressed texture uploads, and 3,432 buffer-data starts with 36.858 s of returned-call time. The start count includes the final in-flight call. These CPU-call times can include waiting for earlier GPU work. Buffer owner/payload identities are not recorded, so the evidence does not establish an owning mesh or duplicated transfer. It also excludes some earlier texture preparation and cannot establish a whole-scene upload or timing reduction.
+
+The [complete 69-file exact-source package](evidence/continuation-resume-2146-20261119/graphics-texture-order-f22622/README.md) retains all original case results, five complete job logs, four verified artifact receipts, source/proof snapshots and both diagnostic timelines. This graphics source remains isolated after its failed original acceptance gate.
+
+### Native buffer ownership diagnostic
+
+The subsequent observation-only source is [1d17083c7364b0d960d3f4a548139ac95077daa2](https://github.com/cheshmakzanoon-ops/Experiment-3/commit/1d17083c7364b0d960d3f4a548139ac95077daa2), with exact reviewed local tree `efa81a0e2ef87d079d355a457c67be24b0a8f263`. It uses the installed Three renderer's existing devtools observation event to record bounded native buffer, typed-array, attribute and geometry identities. Actual direct-index ownership is distinguished from registered array candidates, derived wireframe indices, stale observations and unknown owners. Array identity alone is not treated as proof of unchanged bytes or duplicate transfers.
+
+All 18 native invocation/attribution controls pass, along with lint and typechecking. Independent review verifies the original High acceptance body, its viewport, preset, readiness deadline and GPU-completion assertions, as well as all five original workflow job definitions. Production files and dependencies are unchanged. Metadata overhead remains part of startup time, so the run is an ownership diagnostic rather than a clean timing comparison.
+
+[Run 44631109424](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44631109424) executes this exact source on the unique `ci/high-buffer-owner-2218-20261119` branch. Its original High case has failed the unchanged paused-readiness predicate; the build and driving/replay case pass, while component/menu outcomes and the owner-trace analysis remain pending at this checkpoint. [Its publication receipt](evidence/continuation-resume-2146-20261119/high-buffer-owner-publication.json) records the verified remote parent, tree and branch. The source remains isolated after the failed High gate.
+
+## Current physics acceptance boundary
+
+No experimental physics source is accepted for main. The contact/throttle-only candidate `7ac509f9198ae5d5b06c9a17edd2177caa799115` carries the reviewed AI/contact acceleration handoff and steering-throttle ownership correction while retaining the published native core. Its completed guarded run passed 73/76 cases: all 25 added native cases and 48/51 original acceptance cases. It passes the original mixed3303 pace and wet Poggio cases that fail on published main, but exposes three different falls: mixed Parco Reale seed5074 (one crash), mixed Vellamar seed5222 (two crashes), and all-GP Ardennes seed1000 (one pre-flag fall). Their original zero-crash/fall requirements remain unchanged. The [complete rejected-source receipt, log, manifest and patch](evidence/continuation-resume-2146-20261119/contact-throttle-7ac509f/README.md) preserve the independently checked source boundary.
+
+The observer-only decomposition `375cf3ab5017318bf19a067cca8c1474519fbe74` adds the pure current-contact force observation to the original roll forecast on earlier source `8de0feb`, preserving the old controller order and reserve arithmetic. Its 47 focused native cases pass, but three selected original checks fail: snapshot state, mixed3303 pace and dry Aurel impact. The [retained decomposition evidence](evidence/continuation-resume-2146-20261119/observer-only-375cf3a/README.md) includes the initially failing stale native fixture, its explicit correction and mirrored unmocked controls. These results do not support a full-gate acceptance claim.
+
+A later bounded recording reproduces the contact/throttle candidate's exact Ardennes1000 fall and identifies a current-history forecast difference that survives the native steering and actuator limits at an earlier saved state. Reusing that pure observer on the contact/throttle source produces `3e58984936a9e1ba2821580688a723fb93053fa4`. Its 72 focused cases, original Ardennes1000 and original snapshot checks pass. The original mixed3303 pace check still fails: GP best 92.15861774982307 s versus Superbike 89.90506409359712 s. The next 0.15-second margin assertion was not reached. [Exact-source receipts, logs, manifest and patch](evidence/continuation-resume-2146-20261119/contact-observer-3e58984/README.md) retain this composition, which remains isolated; its full 51-case gate was not expanded after the known failure.
+
+The earlier wet result that overlapped a concurrent source edit is [explicitly excluded](evidence/continuation-resume-2146-20261119/invalidated-wet-test/README.md), despite its child process returning zero. Subsequent research uses separate worktrees, fixed source identities and before/after protected-input guards. No seed, incident bound, pace margin, grip, controller gain or deadline was relaxed, and published simulation/protocol versions remain unchanged.
+
+### Exact incident and native steering-admission proof
+
+The frozen `3e58984` mixed-race recording reproduces the original failed GP/Superbike lap pair. A separate bounded recording identifies GP rider 4's first fall on lap two at simulation time 153.05000000002514 s and station 1931.934944540114 m. The native absolute-lean guard fires with zero pre-fall impact. Marshal bookkeeping then raises local yellow flags, and GP rider 2's next target changes from 46.720225005268254 to 25 m/s. This directly establishes the fall/caution/target sequence. The subsequent CONTACT label is not evidence of a collision causing the fall.
+
+The slower GP rider spends an additional 2.5166666667 s in the recorded 1850–2150 m window. At all 37 retained candidate reserve-allocation samples there, replacing only the residual historical-force term changes no actual pedals. That is a candidate- and window-specific result, not a general claim about every reserve state.
+
+Native saved-state replay finds usable steering authority earlier in the roll: at rear-unloaded state 18204/2, an admissible command within the existing inverse, bar, slew and tyre limits changes native roll acceleration from +0.806628 to −4.357577 rad/s²; at state 18274/2 it changes +4.423460 to −0.444756 rad/s². Steering gyro torque contributes to that improvement. A subsequent source-extracted replay uses the exact early controller inputs, preserves nineteen support/stopping/rate/reserve values and the literal trim law, and substitutes only the final signed command admission. It does not replace the stopping-energy model with a transient force interval, and it does not prevent the fall when applied at the final saved state.
+
+The [complete compact diagnostic package](evidence/continuation-resume-2146-20261119/physics-native-admission-3e58984/README.md) preserves the original mixed pair, full retained onset rows, saved native fixtures, both exact replays, source pins and guards. It distinguishes checked-query totals from inspectable retained hash pairs, and conditional front-force ranges from actual one-step delivered forces. Independent review seals this decomposition. A separate implementation is now being prepared and still requires the original race gates; no closed-loop correction is claimed by these saved-state results.
 
 ## Acceptance boundary
 

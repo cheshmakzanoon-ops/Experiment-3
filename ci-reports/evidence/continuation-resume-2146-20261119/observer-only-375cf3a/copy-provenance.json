@@ -1,0 +1,74 @@
+{
+  "sourceCommit": "375cf3ab5017318bf19a067cca8c1474519fbe74",
+  "baseCommit": "ffd22598335dfa2a074ebd466e1d53830bb8bb41",
+  "researchPatchScope": "All differing tracked protected inputs; excluded ci-reports outputs. This also restores older CI/fixture inputs, and is only for an isolated research checkout.",
+  "patchProtectedPaths": [
+    ".github/workflows/ci.yml",
+    "e2e/09-reference-depth.spec.ts",
+    "e2e/fixtures/apx01-assembly.ts",
+    "e2e/fixtures/gp-contact-effects.ts",
+    "src/simulation/bike-ai.ts",
+    "src/simulation/bike.ts",
+    "src/simulation/motogp-physics.ts",
+    "tests/ci-workflow.test.ts",
+    "tests/fixtures/gp-ardennes-load-phase.json",
+    "tests/fixtures/gp-runway-profile.json",
+    "tests/gp-current-contact-control.test.ts",
+    "tests/gp-current-observer.test.ts",
+    "tests/gp-passing-runway.test.ts",
+    "tests/gp-steering-throttle-ownership.test.ts"
+  ],
+  "patchSHA256": "8c3548faf734f688fa2193ed98942c5d31dabd48bc66046714d15090c446d4c4",
+  "originalEvidenceDirectory": "/workspace/scratch/dac6891506fb/observer-only-evidence-2144",
+  "originalsPreserved": true,
+  "checks": [
+    {
+      "receipt": "native-initial.json",
+      "manifest": "manifest-df392416e4653002d8a123c34ac43b43c5db4cb09f3a2d6dfced03168e3ea087.json.gz",
+      "log": "native-initial.log.gz",
+      "decodedLogSHA256": "13b4ca960cde5f924ce5d50c84e5d06ca087faf939b7e47f5aa56e3d98606b5d",
+      "sourceStable": true,
+      "passed": false
+    },
+    {
+      "receipt": "native-fixed.json",
+      "manifest": "manifest-b8522e98dd798fa4f3511c1a61c42dd6680c3b54240173d17baf179b8193a401.json.gz",
+      "log": "native-fixed.log.gz",
+      "decodedLogSHA256": "a63574691bd4883ebb0e0e6cbccf12e35d9b5f4f65d6145fc9f3a5124f8a0101",
+      "sourceStable": true,
+      "passed": true
+    },
+    {
+      "receipt": "snapshot.json",
+      "manifest": "manifest-b8522e98dd798fa4f3511c1a61c42dd6680c3b54240173d17baf179b8193a401.json.gz",
+      "log": "snapshot.log.gz",
+      "decodedLogSHA256": "8bed5aa31ecfd7955c347ecc791a914d805b8520dc2f2bf6a40846d9a1cba117",
+      "sourceStable": true,
+      "passed": false
+    },
+    {
+      "receipt": "mixed3303.json",
+      "manifest": "manifest-b8522e98dd798fa4f3511c1a61c42dd6680c3b54240173d17baf179b8193a401.json.gz",
+      "log": "mixed3303.log.gz",
+      "decodedLogSHA256": "4f3670c7c1f1a335f43e0a12fafd689155feb276027b7dfcfc200b3ec2383dd6",
+      "sourceStable": true,
+      "passed": false
+    },
+    {
+      "receipt": "aurel.json",
+      "manifest": "manifest-b8522e98dd798fa4f3511c1a61c42dd6680c3b54240173d17baf179b8193a401.json.gz",
+      "log": "aurel.log.gz",
+      "decodedLogSHA256": "43122f8f7861b14e9fa17c1c64cdcce43cd32b5f8ff1a85e4c665f56decca011",
+      "sourceStable": true,
+      "passed": false
+    },
+    {
+      "receipt": "typecheck-final.json",
+      "manifest": "manifest-b8522e98dd798fa4f3511c1a61c42dd6680c3b54240173d17baf179b8193a401.json.gz",
+      "log": "typecheck-final.log.gz",
+      "decodedLogSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sourceStable": true,
+      "passed": true
+    }
+  ]
+}

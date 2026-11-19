@@ -1,0 +1,21 @@
+diff --git a/src/simulation/bike-ai.ts b/src/simulation/bike-ai.ts
+index db4737d..a6c9341 100644
+--- a/src/simulation/bike-ai.ts
++++ b/src/simulation/bike-ai.ts
+@@ -297,11 +297,14 @@ export class BikeAIDriver extends AIDriver {
+     if (!d.contactLoads || d.speed < 3) return 1;
+     const lean = Math.max(Math.abs(c.input.steer) * d.leanLimit, Math.abs(d.lean));
+     if (lean < 0.05 && Math.abs(d.leanRate) < 0.1) return 1;
+-    const frontMass = (d.mass * p.cgToRear) / p.wheelbase,
++    // steerIntent already contains the signed path correction. Decode the
++    // combined demand once with the same reaction that encoded its lean.
++    const reaction = (d.frontLoad + d.rearLoad) / d.mass,
++      frontMass = (d.mass * p.cgToRear) / p.wheelbase,
+       staticFront =
+         frontMass * G + (p.downforce ?? 0) * d.speed * d.speed * (p.downforceFront ?? 0.6),
+       requiredFront =
+-        (frontMass * (G * Math.tan(Math.min(lean, 1.2)) + Math.abs(this.steeringCorrection))) /
++        (frontMass * reaction * Math.tan(Math.min(lean, 1.2))) /
+         Math.max(0.1, p.mu * (d.frontGrip ?? d.grip)),
+       drive = Math.max(0, ((staticFront - requiredFront) * p.wheelbase) / p.cgHeight),
+       ratio = c.spec.gearRatios[c.gear + 1] * c.spec.finalDrive * c.gearing,

@@ -1,0 +1,187 @@
+{
+  "sourceCommit": "f22622e3302ed6147c5aae6f8eb6f6bc4057a242",
+  "tree": "c413cd5062b6555d1e607297e99ad93db123de77",
+  "reviewedLocalCommit": "62f18b868163a9c86857ac3222414484b92bffc9",
+  "parent": "c9d3ff07f0b459697133e5c6d68dcbe8492bd2ab",
+  "localParent": "4b9d6bb70f1443930ae674e610dc14d61e187ee3",
+  "runId": 44623276067,
+  "attempt": 1,
+  "workflow": ".github/workflows/graphics-high-diagnostic.yml",
+  "branch": "ci/high-late-startup-20261119",
+  "jobs": [
+    {
+      "id": 135910316355,
+      "name": "build",
+      "status": "queued",
+      "conclusion": null,
+      "run_id": 44623276067,
+      "logs_url": null,
+      "steps": null
+    },
+    {
+      "id": 135910316754,
+      "name": "gameplay",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_id": 44623276067,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm run build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Run npx playwright install --with-deps chromium",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Existing complete application driving and replay journey",
+          "status": "in_progress",
+          "conclusion": null,
+          "number": 8
+        },
+        {
+          "name": "Run actions/upload-artifact@v4",
+          "status": "pending",
+          "conclusion": null,
+          "number": 9
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "pending",
+          "conclusion": null,
+          "number": 17
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "pending",
+          "conclusion": null,
+          "number": 18
+        }
+      ]
+    },
+    {
+      "id": 135910316811,
+      "name": "gpu",
+      "status": "queued",
+      "conclusion": null,
+      "run_id": 44623276067,
+      "logs_url": null,
+      "steps": null
+    },
+    {
+      "id": 135910316834,
+      "name": "high",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_id": 44623276067,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm run build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Run npx playwright install --with-deps chromium",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "High preset through the full application with completed GPU submissions",
+          "status": "in_progress",
+          "conclusion": null,
+          "number": 8
+        },
+        {
+          "name": "Run actions/upload-artifact@v4",
+          "status": "pending",
+          "conclusion": null,
+          "number": 9
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "pending",
+          "conclusion": null,
+          "number": 17
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "pending",
+          "conclusion": null,
+          "number": 18
+        }
+      ]
+    }
+  ],
+  "nativeReview": "Production routing and committed native owner/policy/lifecycle evidence accepted for isolated evaluation only. Original browser gates and authored-scene appearance inspection remain required.",
+  "originalAcceptanceInputsUnchanged": true,
+  "sourceOnlyDelta": "src/rendering/renderer.ts moves static circuit registration into priority8 before unchanged priority9 far-shadow bake; texture algorithms and all e2e/workflow bytes unchanged.",
+  "appearanceLimit": "Far-shadow inputs intentionally adopt selected final policy. Identical old far-shadow pixels are not claimed. Original High captures completed PNGs without a dedicated automated far-shadow pixel reference."
+}

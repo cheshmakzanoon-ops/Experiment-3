@@ -1,0 +1,52 @@
+diff --git a/src/rendering/renderer.ts b/src/rendering/renderer.ts
+index 546b00f..bc8b07c 100644
+--- a/src/rendering/renderer.ts
++++ b/src/rendering/renderer.ts
+@@ -608,9 +608,7 @@ export class RacingRenderer {
+       this.temporary.set(FAR_SHADOW_MARGIN_M, 0, FAR_SHADOW_MARGIN_M),
+     );
+     this.configureFarShadow();
+-    // Baked behind the loading screen, after every scenery task, so the first
+-    // menu or race frames never pay for it.
+-    this.circuit.construction.add('Far sun shadow', 9, () => this.bakeFarShadow(this.lighting));
++    this.queueStaticScenePreparation();
+     this.circuit.construction.add('Event hall broadcast bounds', 1, () =>
+       this.venueLighting.registerSightlines(this.circuit.sightlines),
+     );
+@@ -665,10 +663,7 @@ export class RacingRenderer {
+       wetReflection: this.circuit.wetReflection,
+       roadMaterial: this.circuit.roadMaterial,
+     });
+-    if (!deferred) {
+-      this.circuit.construction.runSynchronously();
+-      this.textures.register(this.circuit.group);
+-    }
++    if (!deferred) this.circuit.construction.runSynchronously();
+     this.resize();
+   }
+   /** The factory owns partial resources until the complete scene is ready.
+@@ -898,7 +893,6 @@ export class RacingRenderer {
+         renderer.dispose();
+         return null;
+       }
+-      renderer.textures.register(renderer.circuit.group);
+       // Sets first requested by construction tasks (the far terrain's rock).
+       await scannedGround.ready(10000);
+       // Large, bright or near-edge scenery mirrors in standing water; small
+@@ -2466,6 +2460,16 @@ export class RacingRenderer {
+     if (inputs !== this.farShadowInputs) this.farShadowBaked = null;
+     this.farShadowInputs = inputs;
+   }
++  /** Both construction paths bind the final texture policy after every static
++   * asset, batch and material installer, before any far-shadow submission.
++   * Registering after the bake discarded its uploaded owners and left the
++   * retained shadow sampling different foliage mips from the visible scene. */
++  private queueStaticScenePreparation() {
++    this.circuit.construction.add('Scene texture budget', 8, () =>
++      this.textures.register(this.circuit.group),
++    );
++    this.circuit.construction.add('Far sun shadow', 9, () => this.bakeFarShadow(this.lighting));
++  }
+   /** Compile every shadow caster's depth program while loading (see
+    * FarShadow.warmCasters). */
+   private warmShadowCasters() {

@@ -1,0 +1,862 @@
+{
+  "root": "/workspace/scratch/dac6891506fb/gp-observer-only-2144",
+  "final": {
+    "tick": 18368,
+    "substep": 2,
+    "time": 153.0750000000251,
+    "raceTime": 147.2991993825901,
+    "lap": 1,
+    "s": 1932.273241767256,
+    "lateral": -1.9615438749625964,
+    "speed": 32.33987971676068,
+    "lean": 1.334092870570435,
+    "leanRate": 0,
+    "steer": -0.26359800116348325,
+    "riderOffset": 0.17865389033985116,
+    "frontLoad": 1157.850853992455,
+    "rearLoad": 1052.2267958437878,
+    "drive": 0,
+    "frontBrake": 0,
+    "rearBrake": 0,
+    "state": "lowside",
+    "crashes": 1,
+    "impact": 0.9500000000000002,
+    "roadPitch": 0.009218706555398111,
+    "contactCrash": false
+  },
+  "rows": 960,
+  "observations": 5628,
+  "realControlCalls": 35113,
+  "realPlantCalls": 36733,
+  "nativeFallCalls": 1,
+  "referenceMatches": [
+    {
+      "tick": 18024,
+      "substep": 2,
+      "s": 1797.6854432872915,
+      "exact": true
+    }
+  ],
+  "poststates": [
+    {
+      "car4": {
+        "tick": 18366,
+        "substep": 2,
+        "time": 153.05833333335846,
+        "raceTime": 147.28253271592345,
+        "lap": 1,
+        "s": 1932.0027948713168,
+        "lateral": -2.428231684219619,
+        "speed": 32.43987971676067,
+        "lean": 1.2674262039037685,
+        "leanRate": 0,
+        "steer": -0.26359800116348325,
+        "riderOffset": 0.17865389033985116,
+        "frontLoad": 1157.850853992455,
+        "rearLoad": 1052.2267958437878,
+        "drive": 0,
+        "frontBrake": 0,
+        "rearBrake": 0,
+        "state": "lowside",
+        "crashes": 1,
+        "impact": 0.9833333333333334,
+        "roadPitch": 0.009273482367690973,
+        "contactCrash": false
+      },
+      "race": {
+        "tick": 18366,
+        "time": 153.05833333335846,
+        "raceTime": 147.28253271592345,
+        "message": "RIDER DOWN · YELLOW FLAG",
+        "flags": [
+          0,
+          0,
+          1,
+          0,
+          0,
+          1
+        ],
+        "events": [
+          {
+            "sequence": 1,
+            "time": 147.28253271592345,
+            "kind": "incident",
+            "car": 4,
+            "code": "CONTACT",
+            "seconds": 0
+          },
+          {
+            "sequence": 2,
+            "time": 147.28253271592345,
+            "kind": "flag",
+            "car": 2,
+            "code": "LOCAL YELLOW",
+            "seconds": 0
+          },
+          {
+            "sequence": 3,
+            "time": 147.28253271592345,
+            "kind": "flag",
+            "car": 5,
+            "code": "LOCAL YELLOW",
+            "seconds": 0
+          },
+          {
+            "sequence": 4,
+            "time": 147.28253271592345,
+            "kind": "incident",
+            "car": 4,
+            "code": "RIDER_DOWN_LOWSIDE",
+            "seconds": 0
+          }
+        ],
+        "cars": [
+          {
+            "id": 0,
+            "s": 2105.2877244744086,
+            "speed": 72.80631057612231,
+            "lateral": -5.3860848860574695,
+            "lap": 1,
+            "state": "riding",
+            "crashes": 0,
+            "impact": 0,
+            "input": {
+              "throttle": 0.9999116899738689,
+              "brake": 0,
+              "clutch": 0,
+              "manualClutch": false,
+              "steer": 0.2451250132128208,
+              "riderLean": 0,
+              "shift": 0,
+              "ers": 0,
+              "pit": false,
+              "reverse": false
+            },
+            "target": 91.08,
+            "free": 91.08,
+            "traffic": 110,
+            "plan": 97.67100502589946,
+            "rule": "",
+            "decision": "RACING LINE"
+          },
+          {
+            "id": 1,
+            "s": 2400.10875071832,
+            "speed": 74.12396707429399,
+            "lateral": 6.040175941155226,
+            "lap": 1,
+            "state": "riding",
+            "crashes": 0,
+            "impact": 0,
+            "input": {
+              "throttle": 0.8975433988905037,
+              "brake": 0,
+              "clutch": 0,
+              "manualClutch": false,
+              "steer": 0.5654771785004826,
+              "riderLean": 0,
+              "shift": 0,
+              "ers": 0,
+              "pit": false,
+              "reverse": false
+            },
+            "target": 81.25800000000001,
+            "free": 81.25800000000001,
+            "traffic": 110,
+            "plan": null,
+            "rule": "",
+            "decision": "RACING LINE"
+          },
+          {
+            "id": 2,
+            "s": 1895.7240241866457,
+            "speed": 49.23744937273739,
+            "lateral": -4.855665514576933,
+            "lap": 1,
+            "state": "riding",
+            "crashes": 0,
+            "impact": 0,
+            "input": {
+              "throttle": 0,
+              "brake": 0.19616940276243136,
+              "clutch": 0,
+              "manualClutch": false,
+              "steer": -0.15016120941095357,
+              "riderLean": 0,
+              "shift": 0,
+              "ers": 0,
+              "pit": false,
+              "reverse": false
+            },
+            "target": 46.720225005268254,
+            "free": 93.852,
+            "traffic": 46.720225005268254,
+            "plan": 183.70068332108443,
+            "rule": "follow",
+            "decision": "PASS / COMMITTED"
+          },
+          {
+            "id": 3,
+            "s": 2043.4837406191955,
+            "speed": 61.65573771107289,
+            "lateral": -5.126386003616639,
+            "lap": 1,
+            "state": "riding",
+            "crashes": 0,
+            "impact": 0,
+            "input": {
+              "throttle": 0.9999556587347138,
+              "brake": 0,
+              "clutch": 0,
+              "manualClutch": false,
+              "steer": -0.01568595023483347,
+              "riderLean": 0,
+              "shift": 0,
+              "ers": 0,
+              "pit": false,
+              "reverse": false
+            },
+            "target": 74.40294194871304,
+            "free": 83.694,
+            "traffic": 74.40294194871304,
+            "plan": null,
+            "rule": "follow",
+            "decision": "RACING LINE"
+          },
+          {
+            "id": 4,
+            "s": 1932.0027948713168,
+            "speed": 32.43987971676067,
+            "lateral": -2.428231684219619,
+            "lap": 1,
+            "state": "lowside",
+            "crashes": 1,
+            "impact": 0.9833333333333334,
+            "input": {
+              "throttle": 0,
+              "brake": 0,
+              "clutch": 0,
+              "manualClutch": false,
+              "steer": -0.5889605740614638,
+              "riderLean": 0,
+              "shift": 0,
+              "ers": 0,
+              "pit": false,
+              "reverse": false
+            },
+            "target": 83.4143422630601,
+            "free": 91.08,
+            "traffic": 83.4143422630601,
+            "plan": 120.44339831874304,
+            "rule": "follow",
+            "decision": "RACING LINE"
+          },
+          {
+            "id": 5,
+            "s": 1833.2001310130472,
+            "speed": 49.94515890797536,
+            "lateral": -0.4874921914221129,
+            "lap": 1,
+            "state": "riding",
+            "crashes": 0,
+            "impact": 0,
+            "input": {
+              "throttle": 0.5861187109237359,
+              "brake": 0,
+              "clutch": 0,
+              "manualClutch": false,
+              "steer": 0.6882663585693292,
+              "riderLean": 0,
+              "shift": 0,
+              "ers": 0,
+              "pit": false,
+              "reverse": false
+            },
+            "target": 51.73975267559226,
+            "free": 80.48641375897435,
+            "traffic": 51.73975267559226,
+            "plan": null,
+            "rule": "follow",
+            "decision": "RACING LINE"
+          }
+        ]
+      }
+    },
+    {
+      "car4": {
+        "tick": 18367,
+        "substep": 2,
+        "time": 153.0666666666918,
+        "raceTime": 147.29086604925678,
+        "lap": 1,
+        "s": 1932.1383386658526,
+        "lateral": -2.1946966987329666,
+        "speed": 32.389879716760674,
+        "lean": 1.3007595372371017,
+        "leanRate": 0,
+        "steer": -0.26359800116348325,
+        "riderOffset": 0.17865389033985116,
+        "frontLoad": 1157.850853992455,
+        "rearLoad": 1052.2267958437878,
+        "drive": 0,
+        "frontBrake": 0,
+        "rearBrake": 0,
+        "state": "lowside",
+        "crashes": 1,
+        "impact": 0.9666666666666668,
+        "roadPitch": 0.009265750075531745,
+        "contactCrash": false
+      },
+      "race": {
+        "tick": 18367,
+        "time": 153.0666666666918,
+        "raceTime": 147.29086604925678,
+        "message": "RIDER DOWN · YELLOW FLAG",
+        "flags": [
+          0,
+          0,
+          1,
+          0,
+          0,
+          1
+        ],
+        "events": [
+          {
+            "sequence": 1,
+            "time": 147.28253271592345,
+            "kind": "incident",
+            "car": 4,
+            "code": "CONTACT",
+            "seconds": 0
+          },
+          {
+            "sequence": 2,
+            "time": 147.28253271592345,
+            "kind": "flag",
+            "car": 2,
+            "code": "LOCAL YELLOW",
+            "seconds": 0
+          },
+          {
+            "sequence": 3,
+            "time": 147.28253271592345,
+            "kind": "flag",
+            "car": 5,
+            "code": "LOCAL YELLOW",
+            "seconds": 0
+          },
+          {
+            "sequence": 4,
+            "time": 147.28253271592345,
+            "kind": "incident",
+            "car": 4,
+            "code": "RIDER_DOWN_LOWSIDE",
+            "seconds": 0
+          }
+        ],
+        "cars": [
+          {
+            "id": 0,
+            "s": 2105.8947573080413,
+            "speed": 72.85688720164704,
+            "lateral": -5.3878601089886065,
+            "lap": 1,
+            "state": "riding",
+            "crashes": 0,
+            "impact": 0,
+            "input": {
+              "throttle": 0.9998583965250873,
+              "brake": 0,
+              "clutch": 0,
+              "manualClutch": false,
+              "steer": 0.2552047028050105,
+              "riderLean": 0,
+              "shift": 0,
+              "ers": 0,
+              "pit": false,
+              "reverse": false
+            },
+            "target": 91.08,
+            "free": 91.08,
+            "traffic": 110,
+            "plan": 97.75652722067026,
+            "rule": "",
+            "decision": "RACING LINE"
+          },
+          {
+            "id": 1,
+            "s": 2400.726508417356,
+            "speed": 74.1343809102606,
+            "lateral": 6.037211784269253,
+            "lap": 1,
+            "state": "riding",
+            "crashes": 0,
+            "impact": 0,
+            "input": {
+              "throttle": 0.9011999394780077,
+              "brake": 0,
+              "clutch": 0,
+              "manualClutch": false,
+              "steer": 0.5670826093453409,
+              "riderLean": 0,
+              "shift": 0,
+              "ers": 0,
+              "pit": false,
+              "reverse": false
+            },
+            "target": 81.25800000000001,
+            "free": 81.25800000000001,
+            "traffic": 110,
+            "plan": null,
+            "rule": "",
+            "decision": "RACING LINE"
+          },
+          {
+            "id": 2,
+            "s": 1896.1588047677424,
+            "speed": 49.173770500490825,
+            "lateral": -4.862694741006343,
+            "lap": 1,
+            "state": "riding",
+            "crashes": 0,
+            "impact": 0,
+            "input": {
+              "throttle": 0,
+              "brake": 0.19615094351828768,
+              "clutch": 0,
+              "manualClutch": false,
+              "steer": -0.1525681542587449,
+              "riderLean": 0,
+              "shift": 0,
+              "ers": 0,
+              "pit": false,
+              "reverse": false
+            },
+            "target": 25,
+            "free": 93.852,
+            "traffic": 46.720225005268254,
+            "plan": 184.3253984750512,
+            "rule": "follow",
+            "decision": "LOCAL CAUTION / NO OVERTAKING"
+          },
+          {
+            "id": 3,
+            "s": 2043.9977609544112,
+            "speed": 61.69442132704971,
+            "lateral": -5.130837144642114,
+            "lap": 1,
+            "state": "riding",
+            "crashes": 0,
+            "impact": 0,
+            "input": {
+              "throttle": 0.9999493569168068,
+              "brake": 0,
+              "clutch": 0,
+              "manualClutch": false,
+              "steer": -0.0180929752073947,
+              "riderLean": 0,
+              "shift": 0,
+              "ers": 0,
+              "pit": false,
+              "reverse": false
+            },
+            "target": 75.01553660968806,
+            "free": 83.694,
+            "traffic": 75.01553660968806,
+            "plan": null,
+            "rule": "follow",
+            "decision": "RACING LINE"
+          },
+          {
+            "id": 4,
+            "s": 1932.1383386658526,
+            "speed": 32.389879716760674,
+            "lateral": -2.1946966987329666,
+            "lap": 1,
+            "state": "lowside",
+            "crashes": 1,
+            "impact": 0.9666666666666668,
+            "input": {
+              "throttle": 0,
+              "brake": 0,
+              "clutch": 0,
+              "manualClutch": false,
+              "steer": 0,
+              "riderLean": 0,
+              "shift": 0,
+              "ers": 0,
+              "pit": false,
+              "reverse": false
+            },
+            "target": 0,
+            "free": 91.08,
+            "traffic": 83.4143422630601,
+            "plan": 120.44339831874304,
+            "rule": "follow",
+            "decision": "RIDER DOWN"
+          },
+          {
+            "id": 5,
+            "s": 1833.6124104299306,
+            "speed": 49.89627263134948,
+            "lateral": -0.5423274123010642,
+            "lap": 1,
+            "state": "riding",
+            "crashes": 0,
+            "impact": 0,
+            "input": {
+              "throttle": 0,
+              "brake": 0.9947437101722121,
+              "clutch": 0,
+              "manualClutch": false,
+              "steer": 0.6939342321184223,
+              "riderLean": 0,
+              "shift": 0,
+              "ers": 0,
+              "pit": false,
+              "reverse": false
+            },
+            "target": 25,
+            "free": 80.7447026960207,
+            "traffic": 51.73975267559226,
+            "plan": null,
+            "rule": "follow",
+            "decision": "LOCAL CAUTION / NO OVERTAKING"
+          }
+        ]
+      }
+    },
+    {
+      "car4": {
+        "tick": 18368,
+        "substep": 2,
+        "time": 153.0750000000251,
+        "raceTime": 147.2991993825901,
+        "lap": 1,
+        "s": 1932.273241767256,
+        "lateral": -1.9615438749625964,
+        "speed": 32.33987971676068,
+        "lean": 1.334092870570435,
+        "leanRate": 0,
+        "steer": -0.26359800116348325,
+        "riderOffset": 0.17865389033985116,
+        "frontLoad": 1157.850853992455,
+        "rearLoad": 1052.2267958437878,
+        "drive": 0,
+        "frontBrake": 0,
+        "rearBrake": 0,
+        "state": "lowside",
+        "crashes": 1,
+        "impact": 0.9500000000000002,
+        "roadPitch": 0.009218706555398111,
+        "contactCrash": false
+      },
+      "race": {
+        "tick": 18368,
+        "time": 153.0750000000251,
+        "raceTime": 147.2991993825901,
+        "message": "RIDER DOWN · YELLOW FLAG",
+        "flags": [
+          0,
+          0,
+          1,
+          0,
+          0,
+          1
+        ],
+        "events": [
+          {
+            "sequence": 1,
+            "time": 147.28253271592345,
+            "kind": "incident",
+            "car": 4,
+            "code": "CONTACT",
+            "seconds": 0
+          },
+          {
+            "sequence": 2,
+            "time": 147.28253271592345,
+            "kind": "flag",
+            "car": 2,
+            "code": "LOCAL YELLOW",
+            "seconds": 0
+          },
+          {
+            "sequence": 3,
+            "time": 147.28253271592345,
+            "kind": "flag",
+            "car": 5,
+            "code": "LOCAL YELLOW",
+            "seconds": 0
+          },
+          {
+            "sequence": 4,
+            "time": 147.28253271592345,
+            "kind": "incident",
+            "car": 4,
+            "code": "RIDER_DOWN_LOWSIDE",
+            "seconds": 0
+          }
+        ],
+        "cars": [
+          {
+            "id": 0,
+            "s": 2106.502211493488,
+            "speed": 72.907442819067,
+            "lateral": -5.3896170749153685,
+            "lap": 1,
+            "state": "riding",
+            "crashes": 0,
+            "impact": 0,
+            "input": {
+              "throttle": 0.9997325896232048,
+              "brake": 0,
+              "clutch": 0,
+              "manualClutch": false,
+              "steer": 0.2576398624031425,
+              "riderLean": 0,
+              "shift": 0,
+              "ers": 0,
+              "pit": false,
+              "reverse": false
+            },
+            "target": 91.08,
+            "free": 91.08,
+            "traffic": 110,
+            "plan": 97.6168639700977,
+            "rule": "",
+            "decision": "RACING LINE"
+          },
+          {
+            "id": 1,
+            "s": 2401.344355030773,
+            "speed": 74.14484933391714,
+            "lateral": 6.0346440609639025,
+            "lap": 1,
+            "state": "riding",
+            "crashes": 0,
+            "impact": 0,
+            "input": {
+              "throttle": 0.9016828528729544,
+              "brake": 0,
+              "clutch": 0,
+              "manualClutch": false,
+              "steer": 0.5662289533156847,
+              "riderLean": 0,
+              "shift": 0,
+              "ers": 0,
+              "pit": false,
+              "reverse": false
+            },
+            "target": 81.25800000000001,
+            "free": 81.25800000000001,
+            "traffic": 110,
+            "plan": null,
+            "rule": "",
+            "decision": "RACING LINE"
+          },
+          {
+            "id": 2,
+            "s": 1896.5681601272845,
+            "speed": 49.11015276341607,
+            "lateral": -4.867525334770026,
+            "lap": 1,
+            "state": "riding",
+            "crashes": 0,
+            "impact": 0,
+            "input": {
+              "throttle": 0,
+              "brake": 0.19613253715776283,
+              "clutch": 0,
+              "manualClutch": false,
+              "steer": -0.15916287075361854,
+              "riderLean": 0,
+              "shift": 0,
+              "ers": 0,
+              "pit": false,
+              "reverse": false
+            },
+            "target": 25,
+            "free": 93.852,
+            "traffic": 46.720225005268254,
+            "plan": 184.69468504790663,
+            "rule": "follow",
+            "decision": "LOCAL CAUTION / NO OVERTAKING"
+          },
+          {
+            "id": 3,
+            "s": 2044.5121033850573,
+            "speed": 61.733070003857094,
+            "lateral": -5.135295359507035,
+            "lap": 1,
+            "state": "riding",
+            "crashes": 0,
+            "impact": 0,
+            "input": {
+              "throttle": 0.9999794830319548,
+              "brake": 0,
+              "clutch": 0,
+              "manualClutch": false,
+              "steer": -0.019688923061223225,
+              "riderLean": 0,
+              "shift": 0,
+              "ers": 0,
+              "pit": false,
+              "reverse": false
+            },
+            "target": 75.01553660968806,
+            "free": 83.694,
+            "traffic": 75.01553660968806,
+            "plan": null,
+            "rule": "follow",
+            "decision": "RACING LINE"
+          },
+          {
+            "id": 4,
+            "s": 1932.273241767256,
+            "speed": 32.33987971676068,
+            "lateral": -1.9615438749625964,
+            "lap": 1,
+            "state": "lowside",
+            "crashes": 1,
+            "impact": 0.9500000000000002,
+            "input": {
+              "throttle": 0,
+              "brake": 0,
+              "clutch": 0,
+              "manualClutch": false,
+              "steer": 0,
+              "riderLean": 0,
+              "shift": 0,
+              "ers": 0,
+              "pit": false,
+              "reverse": false
+            },
+            "target": 0,
+            "free": 91.08,
+            "traffic": 83.4143422630601,
+            "plan": 120.44339831874304,
+            "rule": "follow",
+            "decision": "RIDER DOWN"
+          },
+          {
+            "id": 5,
+            "s": 1834.024169521158,
+            "speed": 49.83184499008612,
+            "lateral": -0.5972018224555301,
+            "lap": 1,
+            "state": "riding",
+            "crashes": 0,
+            "impact": 0,
+            "input": {
+              "throttle": 0,
+              "brake": 0.9921637952032232,
+              "clutch": 0,
+              "manualClutch": false,
+              "steer": 0.6985721721560499,
+              "riderLean": 0,
+              "shift": 0,
+              "ers": 0,
+              "pit": false,
+              "reverse": false
+            },
+            "target": 25,
+            "free": 81.00531876440121,
+            "traffic": 51.73975267559226,
+            "plan": null,
+            "rule": "follow",
+            "decision": "LOCAL CAUTION / NO OVERTAKING"
+          }
+        ]
+      }
+    }
+  ],
+  "fallEvents": [
+    {
+      "reason": "lowside",
+      "at": {
+        "tick": 18366,
+        "substep": 1,
+        "time": 153.05000000002514,
+        "raceTime": 147.27419938259013,
+        "lap": 1,
+        "s": 1931.934944540114,
+        "lateral": -2.5451343146817265,
+        "speed": 32.46487971676067,
+        "lean": 1.2507595372371019,
+        "leanRate": 1.391863119844436,
+        "steer": -0.26359800116348325,
+        "riderOffset": 0.17865389033985116,
+        "frontLoad": 1157.850853992455,
+        "rearLoad": 1052.2267958437878,
+        "drive": 0,
+        "frontBrake": 0,
+        "rearBrake": 0,
+        "state": "riding",
+        "crashes": 0,
+        "impact": 0,
+        "roadPitch": 0.009261751424667425,
+        "contactCrash": false
+      }
+    }
+  ],
+  "maxMismatch": 24.553907163782903,
+  "fixtures": [
+    {
+      "label": "maximumRollForecastDifference",
+      "tick": 18274,
+      "substep": 2,
+      "s": 1896.465607465855
+    },
+    {
+      "label": "firstRecordedControl",
+      "tick": 17731,
+      "substep": 2,
+      "s": 1700.1495812030007
+    },
+    {
+      "label": "lastRecordedControl",
+      "tick": 18366,
+      "substep": 1,
+      "s": 1931.934944540114
+    },
+    {
+      "label": "firstOppositeEffortDirection",
+      "tick": 17858,
+      "substep": 1,
+      "s": 1741.4217876065704
+    },
+    {
+      "label": "firstFrontUnloaded",
+      "tick": 17949,
+      "substep": 1,
+      "s": 1770.9949740208249
+    },
+    {
+      "label": "firstRearUnloaded",
+      "tick": 18204,
+      "substep": 2,
+      "s": 1867.6029440112416
+    },
+    {
+      "label": "beforeTargetFall",
+      "tick": 18366,
+      "substep": 1,
+      "s": 1931.934944540114
+    }
+  ],
+  "observerSource": {
+    "commit": "375cf3ab5017318bf19a067cca8c1474519fbe74",
+    "root": "/workspace/scratch/dac6891506fb/contact-throttle-onset-2144/observer-source-375cf3a",
+    "hashes": {
+      "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+      "src/simulation/tyre-force.ts": "ab735c1f2d06c1c25857e77e61aad477ba12e831adc6d03d9e809c727b4ca8a1",
+      "src/simulation/motorcycle-thermal.ts": "eba12f1b721cdf20437977614b5f609a06ca385739007061bfe94d2c2cd79e2b",
+      "src/core/math.ts": "7f32bf1fcb9c784129594225d2bae7073fbb87cfbc54c890994db46b71f452d0"
+    },
+    "unchanged": true,
+    "method": "reviewed pure currentLateralAcceleration on deep-cloned native history; newly initialized previewFront scratch; no contact step or relaxation integration"
+  }
+}
+(node:21) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

@@ -1,0 +1,115 @@
+{
+  "source": "ffd22598335dfa2a074ebd466e1d53830bb8bb41",
+  "runId": 44617126580,
+  "jobId": 135890460489,
+  "artifact": {
+    "artifactId": 14579711167,
+    "runId": 44617126580,
+    "source": "ffd22598335dfa2a074ebd466e1d53830bb8bb41",
+    "bytes": 408165063,
+    "sha256": "6821489dfb945440ea20fe3fe850b294083c55aff241cf810af87a8bb33dda17",
+    "verified": true
+  },
+  "caseId": "115f7b67105cc547e99c-dc61b472f248a863c6ed",
+  "title": "GP reference R1.1: authored LODs, production onboard and same-instance wet rewind on WebGL2",
+  "result": "failed",
+  "retry": 0,
+  "originalErrors": [
+    {
+      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m1540003535\u001b[39m\nReceived: \u001b[31m4250551400\u001b[39m\n\n  228 |   expect(triangleCounts[1]).toBeGreaterThan(triangleCounts[2]);\n  229 |   expect(hashes[0]).not.toBe(hashes[4]);\n> 230 |   expect(hashes[0]).toBe(hashes[5]);\n      |                     ^\n  231 | });\n  232 |\n    at /home/runner/work/Experiment-3/Experiment-3/e2e/41-motogp-reference.spec.ts:230:21",
+      "codeframe": "  130 |       contentType: 'application/json',\n  131 |     });\n  132 |     expectPrepared(result);\n  133 |     expect(result.glError).toBe(0);\n  134 |     expect(result.cockpit?.facing).toBeGreaterThan(0.7);\n  135 |     expect(result.cockpit?.visibleSamples).toBe(9);\n  136 |     for (const [x, y, z] of result.cockpit!.corners) {\n  137 |       expect(Math.abs(x)).toBeLessThan(0.95);\n  138 |       expect(Math.abs(y)).toBeLessThan(0.95);\n  139 |       expect(z).toBeGreaterThan(-1);\n  140 |       expect(z).toBeLessThan(1);\n  141 |     }\n  142 |   }\n  143 |   // The ray census deliberately admits glass, so retain a real optical A/B\n  144 |   // for visual review as well. Only thickness changes: every sample keeps\n  145 |   // the production display, windscreen shape, camera, pose and illumination.\n  146 |   // The R6 screen is premultiplied Fresnel glass with no transmission pass,\n  147 |   // so the former 2 mm volume setting must be optically inert: the dashboard\n  148 |   // can no longer be displaced or doubled by refraction through the bubble.\n  149 |   for (const id of ['gpr1', 'gpr2']) {\n  150 |     const optics = await page.evaluate(\n  151 |       (id) =>\n  152 |         (\n  153 |           window as unknown as {\n  154 |             MotoGPReview: { captureBikeSequence: typeof captureBikeSequence };\n  155 |           }\n  156 |         ).MotoGPReview.captureBikeSequence('onboard', 'high', id, [\n  157 |           { wet: false, time: 2, windscreen: 'legacy-volume' },\n  158 |           { wet: false, time: 2 },\n  159 |           { wet: false, time: 2 },\n  160 |           { wet: false, time: 2, windscreen: 'legacy-volume' },\n  161 |         ]),\n  162 |       id,\n  163 |     );\n  164 |     expect(optics).toHaveLength(4);\n  165 |     const names = ['legacy-volume-setting', 'production-fresnel-glass'];\n  166 |     for (let i = 0; i < names.length; i++)\n  167 |       await info.attach(`${id}-optics-${names[i]}.png`, {\n  168 |         body: Buffer.from(optics[i].image.split(',')[1], 'base64'),\n  169 |         contentType: 'image/png',\n  170 |       });\n  171 |     const samples = optics.map(({ image: _image, ...sample }) => sample);\n  172 |     await info.attach(`${id}-optics-metrics.json`, {\n  173 |       body: JSON.stringify(samples, null, 2),\n  174 |       contentType: 'application/json',\n  175 |     });\n  176 |     for (const sample of optics) {\n  177 |       expectPrepared(sample);\n  178 |       expect(sample.glError).toBe(0);\n  179 |       expect(sample.sourceFrameUnchanged).toBe(true);\n  180 |       expect(sample.instance).toBe(optics[0].instance);\n  181 |       expect(sample.resources).toEqual(optics[0].resources);\n  182 |       expect(sample.cockpit).toEqual(optics[0].cockpit);\n  183 |       expect(sample.bounds).toEqual(optics[0].bounds);\n  184 |       expect(sample.calls).toBe(optics[0].calls);\n  185 |       expect(sample.triangles).toBe(optics[0].triangles);\n  186 |     }\n  187 |     expect(optics[0].hash).toBe(optics[1].hash);\n  188 |     expect(optics[1].hash).toBe(optics[2].hash);\n  189 |     expect(optics[0].hash).toBe(optics[3].hash);\n  190 |   }\n  191 |   // A new construction is not evidence of weather reversal. Retain one bike,\n  192 |   // material set and renderer through wet, held-frame and rewound dry states.\n  193 |   const sequence = await page.evaluate(() =>\n  194 |     (\n  195 |       window as unknown as {\n  196 |         MotoGPReview: { captureBikeSequence: typeof captureBikeSequence };\n  197 |       }\n  198 |     ).MotoGPReview.captureBikeSequence('three-quarter', 'high', 'gpr1', [\n  199 |       { wet: false, time: 2 },\n  200 |       { wet: true, time: 10 },\n  201 |       { wet: true, time: 10 },\n  202 |       { wet: false, time: 2 },\n  203 |     ]),\n  204 |   );\n  205 |   expect(sequence).toHaveLength(4);\n  206 |   const samples = [];\n  207 |   for (const [i, { image, ...sample }] of sequence.entries()) {\n  208 |     await info.attach(`same-instance-weather-${i}.png`, {\n  209 |       body: Buffer.from(image.split(',')[1], 'base64'),\n  210 |       contentType: 'image/png',\n  211 |     });\n  212 |     samples.push(sample);\n  213 |     expectPrepared({ image, ...sample });\n  214 |     expect(sample.glError).toBe(0);\n  215 |     expect(sample.sourceFrameUnchanged).toBe(true);\n  216 |     expect(sample.instance).toBe(sequence[0].instance);\n  217 |     expect(sample.resources).toEqual(sequence[0].resources);\n  218 |   }\n  219 |   expect(sequence[0].hash).not.toBe(sequence[1].hash);\n  220 |   expect(sequence[1].hash).toBe(sequence[2].hash);\n  221 |   expect(sequence[0].hash).toBe(sequence[3].hash);\n  222 |   await info.attach('same-instance-weather-metrics.json', {\n  223 |     body: JSON.stringify(samples, null, 2),\n  224 |     contentType: 'application/json',\n  225 |   });\n  226 |   expect(errors).toEqual([]);\n  227 |   expect(triangleCounts[0]).toBeGreaterThan(triangleCounts[1]);\n  228 |   expect(triangleCounts[1]).toBeGreaterThan(triangleCounts[2]);\n  229 |   expect(hashes[0]).not.toBe(hashes[4]);\n> 230 |   expect(hashes[0]).toBe(hashes[5]);\n      |                     ^ Error: expect(received).toBe(expected) // Object.is equality\n  231 | });\n  232 |\n  233 | //"
+    }
+  ],
+  "freshConstruction": {
+    "firstHash": 4250551400,
+    "laterHash": 1540003535,
+    "pixelCount": 1024000,
+    "changedPixels": 4,
+    "changedComponents": 5,
+    "maxComponentDifference": 1,
+    "pixelChanges": [
+      {
+        "x": 646,
+        "y": 253,
+        "firstRGBA": [
+          89,
+          79,
+          150,
+          255
+        ],
+        "laterRGBA": [
+          89,
+          78,
+          150,
+          255
+        ]
+      },
+      {
+        "x": 647,
+        "y": 253,
+        "firstRGBA": [
+          75,
+          71,
+          105,
+          255
+        ],
+        "laterRGBA": [
+          74,
+          71,
+          105,
+          255
+        ]
+      },
+      {
+        "x": 645,
+        "y": 254,
+        "firstRGBA": [
+          94,
+          86,
+          154,
+          255
+        ],
+        "laterRGBA": [
+          94,
+          85,
+          154,
+          255
+        ]
+      },
+      {
+        "x": 644,
+        "y": 255,
+        "firstRGBA": [
+          79,
+          66,
+          153,
+          255
+        ],
+        "laterRGBA": [
+          78,
+          65,
+          153,
+          255
+        ]
+      }
+    ],
+    "differentReportedMetrics": {
+      "instance": [
+        "03d04955-2ef2-424b-bc0e-f70093e28b02",
+        "0423dfee-4835-4c79-a05e-f1c73a9eb6a3"
+      ],
+      "hash": [
+        4250551400,
+        1540003535
+      ]
+    },
+    "pngReconstructsExactNativeHash": true
+  },
+  "sameInstanceWeatherHashes": [
+    1540003535,
+    3758440645,
+    3758440645,
+    1540003535
+  ],
+  "interpretation": "The final fresh-construction exact hash assertion fails. Earlier same-instance wet/held/dry checks pass. The cause of the four fresh-context pixel differences is not established. No tolerance, renderer source or assertion was changed."
+}

@@ -1,0 +1,1365 @@
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index 314e510..7ad8b8a 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -67,13 +67,6 @@ jobs:
+   unit-tests:
+     runs-on: ubuntu-24.04
+     timeout-minutes: 45
+-    # The single-worker suite stopped near this cap in run 44553045707 before
+-    # 166 files produced a result. Native Vitest sharding partitions the whole
+-    # inventory across runners; a failed shard must not cancel the others.
+-    strategy:
+-      fail-fast: false
+-      matrix:
+-        shard: [1, 2, 3, 4]
+     steps:
+       - uses: actions/checkout@v4
+       - uses: actions/setup-node@v4
+@@ -81,27 +74,10 @@ jobs:
+           node-version: '22'
+           cache: npm
+       - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+-      # npm test retains pretest asset generation. The union of the native
+-      # shards is the unfiltered suite; every shard still blocks publication.
+-      - name: Complete unit-suite partition without source changes
+-        shell: bash
+-        run: |
+-          set -euo pipefail
+-          node --experimental-transform-types scripts/source-stability.ts -- npm test -- \
+-            --shard=${{ matrix.shard }}/${{ strategy.job-total }} \
+-            --reporter=default --reporter=json \
+-            --outputFile.json="$RUNNER_TEMP/unit-${{ matrix.shard }}.json" \
+-            2>&1 | tee "$RUNNER_TEMP/unit-${{ matrix.shard }}.log"
+-      - name: Unit results, including failures
+-        if: always()
+-        uses: actions/upload-artifact@v4
+-        with:
+-          name: unit-validation-${{ matrix.shard }}-of-${{ strategy.job-total }}
+-          path: |
+-            ${{ runner.temp }}/unit-${{ matrix.shard }}.json
+-            ${{ runner.temp }}/unit-${{ matrix.shard }}.log
+-          retention-days: 7
+-          if-no-files-found: error
++      # npm test retains pretest asset generation and runs the whole suite.
++      # No filters or skipped regressions; failures remain blocking for publication.
++      - name: Full unit suite without source changes
++        run: node --experimental-transform-types scripts/source-stability.ts -- npm test
+   scenarios:
+     runs-on: ubuntu-24.04
+     # Run 41879845721 (0b8ec67): the steps before `npm run test:vehicles` took
+@@ -192,15 +168,15 @@ jobs:
+     strategy:
+       fail-fast: false
+       matrix:
+-        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
++        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+     needs: validate
+     runs-on: ubuntu-24.04
+     # Enumerate the full suite, balance long race cases, then verify the selected
+     # IDs against Playwright itself. Every case belongs to exactly one partition;
+-    # serial groups remain intact. Run 44553045707 still lost two results in
+-    # partition 2 near the 90-minute limit with twelve runners. Sixteen reduce
+-    # each job's workload while keeping every case and its original deadline.
+-    # This scheduling change does not fix or accept any GPU/readiness failure.
++    # serial groups remain intact. The 347-case inventory with the complete
++    # scenery/pit surveys assigned 6,410-6,430 scheduling units to each of eight
++    # runners. Twelve assign 4,260-4,290, leaving headroom under the unchanged
++    # 90-minute cap. These are estimates, not proof that a GPU stall is fixed.
+     timeout-minutes: 90
+     steps:
+       - uses: actions/checkout@v4
+@@ -375,13 +351,6 @@ jobs:
+     needs: validate
+     runs-on: ubuntu-24.04
+     timeout-minutes: 90
+-    # Run 44553045707 ended near this cap with only 24 of 42 case results.
+-    # Keep the complete original file selection and native serial groups;
+-    # distribute it without cancelling other partitions after a failure.
+-    strategy:
+-      fail-fast: false
+-      matrix:
+-        shard: [1, 2, 3, 4]
+     steps:
+       - uses: actions/checkout@v4
+       - uses: actions/setup-node@v4
+@@ -393,12 +362,12 @@ jobs:
+         run: npm run build:qa
+       - run: npx playwright install --with-deps chromium
+       - name: Owner-only and review-tool specs, plus the owner half of the dual-mode specs
+-        run: npm run test:e2e -- e2e/39-supplied-player.spec.ts e2e/41-player-render-budget.spec.ts e2e/p0-cockpit-framing.spec.ts e2e/24-coupled-driver.spec.ts e2e/53-a61-rival.spec.ts e2e/application.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/a31-wheel-gun.spec.ts e2e/07-reference-tools.spec.ts e2e/08-reference-implementation.spec.ts e2e/09-reference-depth.spec.ts e2e/14-phase27e.spec.ts e2e/15-review-journey.spec.ts --shard=${{ matrix.shard }}/${{ strategy.job-total }}
++        run: npm run test:e2e -- e2e/39-supplied-player.spec.ts e2e/41-player-render-budget.spec.ts e2e/p0-cockpit-framing.spec.ts e2e/24-coupled-driver.spec.ts e2e/53-a61-rival.spec.ts e2e/application.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/a31-wheel-gun.spec.ts e2e/07-reference-tools.spec.ts e2e/08-reference-implementation.spec.ts e2e/09-reference-depth.spec.ts e2e/14-phase27e.spec.ts e2e/15-review-journey.spec.ts
+       - name: Owner QA screenshots and measurements (test results only, never the build)
+         if: always()
+         uses: actions/upload-artifact@v4
+         with:
+-          name: owner-qa-${{ matrix.shard }}-of-${{ strategy.job-total }}
++          name: owner-qa
+           path: |
+             test-results/
+             playwright-report/
+diff --git a/e2e/09-reference-depth.spec.ts b/e2e/09-reference-depth.spec.ts
+index a3b9872..d817bfb 100644
+--- a/e2e/09-reference-depth.spec.ts
++++ b/e2e/09-reference-depth.spec.ts
+@@ -25,9 +25,8 @@ test('reference depth: survey, focus and headquarters render without advancing t
+   const entry = page.locator('[data-reference="1"]');
+   await entry.locator('summary').click();
+   await entry.locator('[data-action="reference:1"]').click();
+-  // The photo renderer is published asynchronously after the menu owner leaves.
+   await expect
+-    .poll(async () => (await diag(page)).renderer?.geometrySurvey.count ?? 0)
++    .poll(async () => (await diag(page)).renderer!.geometrySurvey.count)
+     .toBeGreaterThan(0);
+   expect((await diag(page)).renderer!.geometrySurvey.active).toBe(true);
+   await info.attach('001-actual-geometry-split.png', {
+diff --git a/e2e/fixtures/apx01-assembly.ts b/e2e/fixtures/apx01-assembly.ts
+index 706b05c..8743b07 100644
+--- a/e2e/fixtures/apx01-assembly.ts
++++ b/e2e/fixtures/apx01-assembly.ts
+@@ -7,16 +7,7 @@ import { DriverAsset } from '../../src/rendering/driver-asset.ts';
+ import { HeroShells } from '../../src/rendering/hero-shells.ts';
+ import { Simulation } from '../../src/simulation/world.ts';
+ import { DEFAULT_OPTIONS } from '../../src/simulation/config.ts';
+-import {
+-  C,
+-  F,
+-  H,
+-  W,
+-  WHEEL_BASE,
+-  WHEEL_STRIDE,
+-  carBase,
+-  wheelContactBase,
+-} from '../../src/simulation/protocol.ts';
++import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../../src/simulation/protocol.ts';
+ import { WHEEL_POSITIONS } from '../../src/simulation/vehicle.ts';
+ import { TextureBudget } from '../../src/rendering/texture-budget.ts';
+ import { DEFAULT_LIVERY } from '../../src/storage/livery.ts';
+@@ -103,9 +94,6 @@ export async function exercise(bytes: number[], driverBytes?: number[]) {
+         for (let i = 0; i < 4; i++) {
+           const w = o + WHEEL_BASE + i * WHEEL_STRIDE;
+           frame[w + W.LENGTH] = 0.19 + 0.09 * (step / 16);
+-          // makeFrame retains valid measured contact blocks. Author the same
+-          // travel there; the renderer correctly prefers that recorded hub.
+-          frame[wheelContactBase(o, i) + C.HUB_LENGTH] = frame[w + W.LENGTH];
+           frame[w + W.STEER] = i < 2 ? -0.38 + (0.76 * step) / 16 : 0;
+           frame[w + W.CAMBER] = (i % 2 ? 1 : -1) * 0.06;
+           frame[w + W.ROTATION] = step * 0.47;
+diff --git a/e2e/fixtures/gp-contact-effects.ts b/e2e/fixtures/gp-contact-effects.ts
+index 11204a0..da1c35a 100644
+--- a/e2e/fixtures/gp-contact-effects.ts
++++ b/e2e/fixtures/gp-contact-effects.ts
+@@ -1,5 +1,4 @@
+ import * as T from 'three';
+-import type { Vec3 } from '../../src/core/math.ts';
+ import { BikeMaterials, BikeModel, staticSag } from '../../src/rendering/bike.ts';
+ import { EffectPlayback } from '../../src/rendering/effect-playback.ts';
+ import { Effects, PARTICLE_KIND } from '../../src/rendering/effects.ts';
+@@ -40,16 +39,8 @@ class ContactBike extends BikeVehicle {
+ const flatRoad = {
+   sample(_x: number, _z: number, out: SurfaceSample) {
+     out.height = 0;
+-    out.normal.set(0, 1, 0);
+     return out;
+   },
+-  cast(origin: Vec3, down: Vec3, maximum: number, out: SurfaceSample) {
+-    const distance = -origin.y / down.y;
+-    if (!Number.isFinite(distance) || distance < 0 || distance > maximum) return Infinity;
+-    out.height = 0;
+-    out.normal.set(0, 1, 0);
+-    return distance;
+-  },
+   nearest(_x: number, z: number, out: TrackPoint) {
+     out.s = z;
+     return 0;
+diff --git a/src/simulation/bike-ai.ts b/src/simulation/bike-ai.ts
+index 97c5d3e..dda52a7 100644
+--- a/src/simulation/bike-ai.ts
++++ b/src/simulation/bike-ai.ts
+@@ -57,8 +57,8 @@ export class BikeAIDriver extends AIDriver {
+   protected planRecovery = 0;
+   /** The GP approach plan's speed limit on the step it ran (Infinity otherwise). */
+   private planLimit = Infinity;
+-  /** Distance (m) along the approach plan to where it first asks the rider to brake
+-   * (Infinity: not within the plan's horizon, or no plan on this step). */
++  /** Observed distance (m) before the approach profile begins braking.
++   * Infinity means that no GP approach plan ran on this step. */
+   private planRunway = Infinity;
+   private readonly pace: PassPace = { topSpeed: 0, freeSpeed: 0, runway: 0, laneRate: 0 };
+   private planBrake = 0;
+@@ -294,11 +294,14 @@ export class BikeAIDriver extends AIDriver {
+     if (!d.contactLoads || d.speed < 3) return 1;
+     const lean = Math.max(Math.abs(c.input.steer) * d.leanLimit, Math.abs(d.lean));
+     if (lean < 0.05 && Math.abs(d.leanRate) < 0.1) return 1;
+-    const frontMass = (d.mass * p.cgToRear) / p.wheelbase,
++    // steerIntent already contains the signed path correction. Decode the
++    // combined demand once with the same reaction that encoded its lean.
++    const reaction = (d.frontLoad + d.rearLoad) / d.mass,
++      frontMass = (d.mass * p.cgToRear) / p.wheelbase,
+       staticFront =
+         frontMass * G + (p.downforce ?? 0) * d.speed * d.speed * (p.downforceFront ?? 0.6),
+       requiredFront =
+-        (frontMass * (G * Math.tan(Math.min(lean, 1.2)) + Math.abs(this.steeringCorrection))) /
++        (frontMass * reaction * Math.tan(Math.min(lean, 1.2))) /
+         Math.max(0.1, p.mu * (d.frontGrip ?? d.grip)),
+       drive = Math.max(0, ((staticFront - requiredFront) * p.wheelbase) / p.cgHeight),
+       ratio = c.spec.gearRatios[c.gear + 1] * c.spec.finalDrive * c.gearing,
+@@ -500,11 +503,7 @@ export class BikeAIDriver extends AIDriver {
+     this.planNext = count > 1 ? this.approachProfile[1] : planned;
+     this.planDistance = count > 1 ? this.approachDistances[0] : ENVELOPE_STEP;
+     this.planLimit = planned;
+-    for (let i = 1; i < count; i++)
+-      if (this.approachProfile[i] < d.speed - 1) {
+-        this.planRunway = i * ENVELOPE_STEP;
+-        break;
+-      }
++    this.planRunway = gpApproachRunway(this.approachProfile, count);
+     this.planBrake = Math.max(
+       0.5,
+       env.brakingBase * grip + env.brakingAero * aero * d.speed * d.speed,
+@@ -678,6 +677,26 @@ export function gpApproachSampleCount(speed: number, deceleration: number, track
+     Math.max(ENVELOPE_SAMPLES, Math.ceil(distance / ENVELOPE_STEP) + 1),
+   );
+ }
++/** Passing room ends at the first descending segment of the solved speed
++ * profile, even if the rider is currently slower than that profile. Comparing
++ * future limits with measured speed made the same braking feature alternate
++ * between a short runway and an unobserved straight as the rider accelerated.
++ * The result uses centreline metres, like the traffic planner. A monotone
++ * profile proves only its valid sampled extent, never the unused buffer tail.
++ * Roundoff-sized differences between equal limits are not braking events. */
++export function gpApproachRunway(profile: ArrayLike<number>, count: number) {
++  if (!Number.isInteger(count) || count < 2 || count > profile.length) return 0;
++  let previous = profile[0];
++  if (!Number.isFinite(previous) || previous < 0) return 0;
++  for (let i = 1; i < count; i++) {
++    const next = profile[i];
++    if (!Number.isFinite(next) || next < 0) return 0;
++    const roundoff = 32 * Number.EPSILON * Math.max(1, previous, next);
++    if (next < previous - roundoff) return (i - 1) * ENVELOPE_STEP;
++    previous = next;
++  }
++  return (count - 1) * ENVELOPE_STEP;
++}
+ /** Lean intent for a path curvature (tan φ = v²κ/g, less the hang-off share). */
+ export function leanFromCurvature(c: BikeVehicle, kappa: number, steer: number) {
+   const d = c.dynamics,
+diff --git a/src/simulation/bike.ts b/src/simulation/bike.ts
+index 6a78eaa..96048c4 100644
+--- a/src/simulation/bike.ts
++++ b/src/simulation/bike.ts
+@@ -462,12 +462,44 @@ export class Bike {
+     // The present roll acceleration (from the measured tyre force) carries
+     // the roll rate on for that lag too.
+     const measured = gp.lateralAcceleration,
++      // The road loads have already advanced. Yesterday's absolute Fy can
++      // no longer be paired with their new reaction: the native contact
++      // immediately interprets its stored strain at the current stiffness.
++      // Observe the existing bar and early-available Fx at current stiffness,
++      // without advancing relaxation before this step chooses its bars.
++      // TC/ABS and the physical actuator/plant still advance exactly once.
++      currentLateral = this.contactLoads
++        ? gp.currentLateralAcceleration({
++            speed: this.speed,
++            mass: m,
++            lean: this.lean,
++            steer: this.steer,
++            frontLoad: this.frontLoad,
++            rearLoad: this.rearLoad,
++            frontMu,
++            rearMu,
++            frontFx: -this.frontBrakeForce,
++            rearFx: this.driveForce - this.rearBrakeForce,
++            frontContact: clamp(
++              this.frontLoad /
++                Math.max(
++                  1,
++                  0.05 *
++                    ((m * G * p.cgToRear) / p.wheelbase +
++                      (p.downforce ?? 0) * this.speed * this.speed * (p.downforceFront ?? 0.6)),
++                ),
++              0,
++              1,
++            ),
++          })
++        : measured,
+       cornering = Math.max(4000, gp.frontStiffness),
+       // The front-force steering answers within a relaxation length, so the
+       // look-ahead is short; rateGain·lead < 1 keeps the measured-force
+       // prediction from feeding a step-to-step oscillation.
+       lag = GP_ASSIST.lead,
+-      rolling = (m * h * (reaction * Math.sin(psi) - measured * Math.cos(psi)) - gyro) / inertia,
++      rolling =
++        (m * h * (reaction * Math.sin(psi) - currentLateral * Math.cos(psi)) - gyro) / inertia,
+       rateAhead = this.leanRate + lag * rolling,
+       ahead = psi + lag * this.leanRate + 0.5 * lag * lag * rolling,
+       error = target - ahead,
+diff --git a/src/simulation/motogp-physics.ts b/src/simulation/motogp-physics.ts
+index db3adc5..09b74a3 100644
+--- a/src/simulation/motogp-physics.ts
++++ b/src/simulation/motogp-physics.ts
+@@ -185,6 +185,7 @@ export class MotoGPChassis {
+   /** Independent inverse scratch: trial steering must not rewrite the
+    * actual contact's slip/force/thermal reporting state. */
+   private readonly inverseFront = slipState();
++  private readonly previewFront = slipState();
+   private readonly previewRear = slipState();
+   private readonly inverseForces = new Float64Array(17);
+ 
+@@ -391,6 +392,76 @@ export class MotoGPChassis {
+     return 0.5 * (lo + hi);
+   }
+ 
++  /** Observe stored contact strain under the CURRENT load/friction and bar
++   * pose, with no time or relaxation advance. This road-contact observation
++   * is the zero-time preparation state used by step(), not its future force
++   * after the rider has chosen new bars or TC/ABS has allocated new pedals. */
++  currentLateralAcceleration(
++    q: Pick<
++      MotoGPContactStep,
++      | 'speed'
++      | 'mass'
++      | 'lean'
++      | 'steer'
++      | 'frontLoad'
++      | 'rearLoad'
++      | 'frontMu'
++      | 'rearMu'
++      | 'frontFx'
++      | 'rearFx'
++      | 'frontContact'
++    >,
++  ) {
++    if (q.speed < 2.5) return 0;
++    const ground = gpGroundSteer(q.steer, q.lean),
++      front = this.preparedHistoryForce(
++        this.previewFront,
++        q.frontLoad * clamp(q.frontContact, 0, 1),
++        q.frontMu,
++        q.lean,
++        q.frontFx,
++        this.frontFy,
++        this.frontElasticStiffness,
++        ground,
++      ),
++      rear = this.preparedHistoryForce(
++        this.previewRear,
++        q.rearLoad,
++        q.rearMu,
++        q.lean,
++        q.rearFx,
++        this.rearFy,
++        this.rearElasticStiffness,
++        0,
++      );
++    return (front + rear) / Math.max(1, q.mass);
++  }
++
++  private preparedHistoryForce(
++    state: ReturnType<typeof slipState>,
++    load: number,
++    mu: number,
++    lean: number,
++    longitudinal: number,
++    force: number,
++    stiffness: number,
++    steer: number,
++  ) {
++    if (!(load > 1 && mu > 0)) return 0;
++    prepareSlip(MOTOGP_SLICK, load, Math.max(0.05, mu) * gpCamberFriction(lean), 1, 1, 1, state);
++    // This early observer receives the prior force pair, before current
++    // TC/ABS allocation. Unlike step(), it cannot assume that old Fx is
++    // still transmissible after unloading or a grip change. Reinterpret it
++    // inside the current circle without modifying the actual pedal forces.
++    const transmitted = clamp(longitudinal, -state.dy, state.dy),
++      carried =
++        stiffness > 0 && state.corneringStiffness !== stiffness
++          ? (force * state.corneringStiffness) / stiffness
++          : force,
++      limit = Math.sqrt(Math.max(0, state.dy ** 2 - transmitted ** 2));
++    return clamp(carried, -limit, limit) * Math.cos(steer) + transmitted * Math.sin(steer);
++  }
++
+   /** Predict the rear force the next contact evaluation will actually apply,
+    * including current support, combined slip, carcass relaxation and the
+    * immediate friction clamp. This does not advance any physical state. */
+diff --git a/tests/ci-workflow.test.ts b/tests/ci-workflow.test.ts
+index c150911..3e2590a 100644
+--- a/tests/ci-workflow.test.ts
++++ b/tests/ci-workflow.test.ts
+@@ -22,38 +22,12 @@ describe('independent CI diagnostics with strict release gates', () => {
+       unit = job('unit-tests');
+     expect(build).toContain('npm run lint && npm run validate:content && npm run build');
+     expect(build).not.toMatch(/npm (?:test|run check)/);
+-    expect(unit).toContain('scripts/source-stability.ts -- npm test --');
+-    expect(unit).toContain('--shard=${{ matrix.shard }}/${{ strategy.job-total }}');
++    expect(unit).toMatch(/scripts\/source-stability\.ts -- npm test(?:\n|$)/);
+     expect(unit).not.toMatch(/continue-on-error|--exclude|--testNamePattern|--passWithNoTests/);
+     expect(build).not.toMatch(/needs:/);
+     expect(unit).not.toMatch(/needs:/);
+   });
+ 
+-  it('runs every unit partition after a failure and retains each result', () => {
+-    const doc = yaml.load(workflow) as {
+-      jobs: Record<
+-        string,
+-        {
+-          'timeout-minutes': number;
+-          strategy: { 'fail-fast': boolean; matrix: { shard: number[] } };
+-        }
+-      >;
+-    };
+-    const unit = doc.jobs['unit-tests'];
+-    const shards = unit.strategy.matrix.shard;
+-    expect(shards.length).toBeGreaterThan(1);
+-    expect(shards).toEqual(Array.from({ length: shards.length }, (_, i) => i + 1));
+-    expect(unit.strategy['fail-fast']).toBe(false);
+-    expect(unit['timeout-minutes']).toBe(45);
+-    const commands = job('unit-tests');
+-    expect(commands).toContain('set -euo pipefail');
+-    expect(commands).toContain('--reporter=default --reporter=json');
+-    expect(commands).toContain('if: always()');
+-    expect(commands).toContain('unit-validation-${{ matrix.shard }}-of-${{ strategy.job-total }}');
+-    expect(commands).toContain('${{ runner.temp }}/unit-${{ matrix.shard }}.json');
+-    expect(commands).toContain('${{ runner.temp }}/unit-${{ matrix.shard }}.log');
+-  });
+-
+   it('runs both browser gates on the exact build, independently of unit results', () => {
+     for (const name of ['browser', 'wet-presentation']) {
+       const browser = job(name);
+@@ -63,33 +37,6 @@ describe('independent CI diagnostics with strict release gates', () => {
+     }
+   });
+ 
+-  it('collects every browser and owner partition without fail-fast or artifact collisions', () => {
+-    const doc = yaml.load(workflow) as {
+-      jobs: Record<
+-        string,
+-        {
+-          'timeout-minutes': number;
+-          strategy: { 'fail-fast': boolean; matrix: { shard: number[] } };
+-        }
+-      >;
+-    };
+-    for (const name of ['browser', 'owner-qa']) {
+-      const partitioned = doc.jobs[name];
+-      const shards = partitioned.strategy.matrix.shard;
+-      expect(shards.length).toBeGreaterThan(1);
+-      expect(shards).toEqual(Array.from({ length: shards.length }, (_, i) => i + 1));
+-      expect(partitioned.strategy['fail-fast']).toBe(false);
+-      expect(partitioned['timeout-minutes']).toBe(90);
+-      expect(job(name)).toContain('if: always()');
+-      expect(job(name)).toContain(
+-        'name: ' +
+-          (name === 'browser' ? 'browser-validation' : 'owner-qa') +
+-          '-${{ matrix.shard }}-of-${{ strategy.job-total }}',
+-      );
+-    }
+-    expect(job('owner-qa')).toContain('--shard=${{ matrix.shard }}/${{ strategy.job-total }}');
+-  });
+-
+   it('runs the complete original offroad gate with guarded temporary reports', () => {
+     const offroad = job('offroad-scenarios');
+     expect(offroad).toContain('timeout-minutes: 35');
+diff --git a/tests/fixtures/gp-ardennes-load-phase.json b/tests/fixtures/gp-ardennes-load-phase.json
+new file mode 100644
+index 0000000..ca53f24
+--- /dev/null
++++ b/tests/fixtures/gp-ardennes-load-phase.json
+@@ -0,0 +1,287 @@
++{
++  "schema": 1,
++  "scope": "Exact saved-state native load-phase isolation. No new race, future bar-rate hold, controller mutation or assertion relaxation.",
++  "qualification": "All variants retain the same current speed, Fx, prior elastic/velocity/spin state and held bar angle. The proportional variant changes ONLY both normal loads by the observed common total-load factor. This is an immediate plant comparison; a full pedal/controller rerun or closed-loop improvement is not claimed.",
++  "provenance": {
++    "input": "/workspace/scratch/d611aefdb08c/w10-engine-final-results/gp-capacity-ardennes1000-onset.json",
++    "inputSha256": "b00bf9c5c597ca87b8cd555cd2a04e121b586f872493ed4ab10be66e43429438",
++    "sourceHashes": {
++      "src/simulation/bike.ts": "52b090530d8db770d023dd65c72fff2e64ff84e10feb3e3d5c27c869c542eafd",
++      "src/simulation/bike-ai.ts": "ffc70ab74e818298535eea6c48375df8cd3a5b30ba4ad776370a358eb3358c7d",
++      "src/simulation/motogp-physics.ts": "f43236152c81328f6bb0e0db6573235c492fcf2c8f5c2a84c3ca3976aa844e5b",
++      "src/simulation/bike-vehicle.ts": "e9c829ad70fa04396f14b065f39366bbc008c787493672619342967a8b8aa2b5",
++      "tests/gp-ai-braking-plan.test.ts": "f0124f304bbdc5311ace3a2624d9ae3e6656be61fcdc87a314e0874e2ff51b9a"
++    },
++    "index": 2047,
++    "time": 84.62755748965085,
++    "station": 3131.6782078395145
++  },
++  "geometry": {
++    "frontArm": 0.7,
++    "rearArm": 0.75,
++    "yawInertia": 55,
++    "frontRadius": 0.3,
++    "rearRadius": 0.32,
++    "frontWheelInertia": 0.6,
++    "rearWheelInertia": 0.9
++  },
++  "cgHeight": 0.62,
++  "state": {
++    "lateralSpeed": 0.4966346840157391,
++    "yawRate": 0.7380494592275002,
++    "lateralAcceleration": 6.359712524298852,
++    "frontFy": 1021.7501592296894,
++    "rearFy": 566.0089134915164,
++    "frontOmega": 45.04670357075631,
++    "rearOmega": 42.12246538159639,
++    "frontElasticStiffness": 25330.005478963103,
++    "rearElasticStiffness": 13650.397143762875,
++    "lastSpeed": 13.580106209184716
++  },
++  "q": {
++    "dt": 0.004166666666666667,
++    "speed": 13.579611403536585,
++    "mass": 244.6151617140294,
++    "lean": 0.7463773417964156,
++    "steer": 0.05576671085993583,
++    "frontLoad": 1068.0769247407459,
++    "rearLoad": 500.26899147372956,
++    "frontMu": 1.7686571896809604,
++    "rearMu": 1.7646985650958402,
++    "frontFx": 0,
++    "rearFx": -180.20602763672034,
++    "frontContact": 1,
++    "frontBrakeExcess": 0,
++    "rearDriveExcess": 0,
++    "rearBrakeExcess": 0,
++    "inertialContacts": true
++  },
++  "beforeBikeStep": {
++    "speed": 13.580427657322582,
++    "lean": 0.7463773417964156,
++    "rollRate": 0.15187959002636206,
++    "riderOffset": 0.3,
++    "bar": 0.05965408965820811,
++    "frontLoad": 942.2309482709325,
++    "rearLoad": 467.43214498145596,
++    "frontBrake": 395.39562096340995,
++    "rearBrake": 180.20709086531502,
++    "drive": 0,
++    "mass": 244.6151617140294,
++    "frontGrip": 1.0106612512462632,
++    "rearGrip": 1.0083991800547658,
++    "side": 0.4966346840157391,
++    "yaw": 0.7380494592275002,
++    "ay": 6.359712524298852,
++    "frontFy": 1021.7501592296894,
++    "rearFy": 566.0089134915164,
++    "frontOmega": 45.04670357075631,
++    "rearOmega": 42.12246538159639,
++    "frontSlip": -0.04809596306764234,
++    "rearSlip": -0.04663300136734294,
++    "frontElasticStiffness": 25330.005478963103,
++    "rearElasticStiffness": 13650.397143762875,
++    "trim": 0.0014281730742539862,
++    "target": 0.8270201250262278,
++    "demand": 10.62264021002485,
++    "frontUse": 0.6574242401635008,
++    "rearUse": 0.7201119638303038,
++    "groundSteer": 0.0741023717916041,
++    "state": "riding"
++  },
++  "plan": {
++    "early": {
++      "deferred": true,
++      "target": 0.8076457881877784,
++      "demand": 12.66322404418192,
++      "trim": 0.0014281730742539862
++    },
++    "capacity": {
++      "value": 7.290111955501515,
++      "frontFx": 0,
++      "rearFx": -180.20602763672034,
++      "speed": 13.579611403536585
++    },
++    "lateral": 7.180760276168992,
++    "frontRequest": {
++      "force": 1089.3015368211577,
++      "lean": 0.7463773417964156,
++      "speed": 13.579611403536585,
++      "fx": 0,
++      "load": 1068.0769247407459,
++      "mu": 1.7686571896809604,
++      "ground": 0.06789132756888624
++    },
++    "rearPreview": {
++      "force": 601.4539843264649,
++      "load": 500.26899147372956,
++      "mu": 1.7646985650958402,
++      "lean": 0.7463773417964156,
++      "speed": 13.579611403536585,
++      "fx": -180.20602763672034,
++      "dt": 0.004166666666666667
++    }
++  },
++  "originalReplayDeltas": {
++    "frontFy": 0,
++    "rearFy": 0,
++    "yawRate": 0,
++    "lateralSpeed": 0,
++    "lateralAcceleration": 0,
++    "frontOmega": 0,
++    "rearOmega": 0,
++    "groundSteer": 0
++  },
++  "observedTotalLoadRatio": 1.112567906276082,
++  "variants": [
++    {
++      "name": "previous-load-held-bar",
++      "q": {
++        "dt": 0.004166666666666667,
++        "speed": 13.579611403536585,
++        "mass": 244.6151617140294,
++        "lean": 0.7463773417964156,
++        "steer": 0.05965408965820811,
++        "frontLoad": 942.2309482709325,
++        "rearLoad": 467.43214498145596,
++        "frontMu": 1.7686571896809604,
++        "rearMu": 1.7646985650958402,
++        "frontFx": 0,
++        "rearFx": -180.20602763672034,
++        "frontContact": 1,
++        "frontBrakeExcess": 0,
++        "rearDriveExcess": 0,
++        "rearBrakeExcess": 0,
++        "inertialContacts": true
++      },
++      "reaction": 5.7627789028889955,
++      "frontShare": 0.66840860967496,
++      "native": {
++        "frontFy": 1032.5371933353392,
++        "rearFy": 565.4539013217197,
++        "ay": 6.52107646628053,
++        "yaw": 0.7605267141614124,
++        "side": 0.4807755014465758,
++        "frontOmega": 45.083471898805804,
++        "rearOmega": 42.08482802818264
++      },
++      "mixedCurrentNPreviousAyRolling": 0.05455955462271334,
++      "heldNativeRolling": -0.08675949945538317,
++      "heldNativeForceSameNominalGyroRolling": -0.07965330910690983,
++      "plannerLoadOnlyChange": 0,
++      "nativeLoadOnlyChange": 0
++    },
++    {
++      "name": "recorded-current-load-held-bar",
++      "q": {
++        "dt": 0.004166666666666667,
++        "speed": 13.579611403536585,
++        "mass": 244.6151617140294,
++        "lean": 0.7463773417964156,
++        "steer": 0.05965408965820811,
++        "frontLoad": 1068.0769247407459,
++        "rearLoad": 500.26899147372956,
++        "frontMu": 1.7686571896809604,
++        "rearMu": 1.7646985650958402,
++        "frontFx": 0,
++        "rearFx": -180.20602763672034,
++        "frontContact": 1,
++        "frontBrakeExcess": 0,
++        "rearDriveExcess": 0,
++        "rearBrakeExcess": 0,
++        "inertialContacts": true
++      },
++      "reaction": 6.411482858319188,
++      "frontShare": 0.6810212681388355,
++      "native": {
++        "frontFy": 1156.9434942716791,
++        "rearFy": 601.4539843264649,
++        "ay": 7.175429097456316,
++        "yaw": 0.7650604324893112,
++        "side": 0.48324592619543105,
++        "frontOmega": 45.083471898805804,
++        "rearOmega": 42.08998313155416
++      },
++      "mixedCurrentNPreviousAyRolling": 0.6899172432080488,
++      "heldNativeRolling": 0.002493854096845591,
++      "heldNativeForceSameNominalGyroRolling": 0.011453046494205183,
++      "plannerLoadOnlyChange": 0.6353576885853355,
++      "nativeLoadOnlyChange": 0.08925335355222876
++    },
++    {
++      "name": "exact-proportional-current-total-held-bar",
++      "q": {
++        "dt": 0.004166666666666667,
++        "speed": 13.579611403536585,
++        "mass": 244.6151617140294,
++        "lean": 0.7463773417964156,
++        "steer": 0.05965408965820811,
++        "frontLoad": 1048.2959133463187,
++        "rearLoad": 520.0500028681565,
++        "frontMu": 1.7686571896809604,
++        "rearMu": 1.7646985650958402,
++        "frontFx": 0,
++        "rearFx": -180.20602763672034,
++        "frontContact": 1,
++        "frontBrakeExcess": 0,
++        "rearDriveExcess": 0,
++        "rearBrakeExcess": 0,
++        "inertialContacts": true
++      },
++      "reaction": 6.411482858319187,
++      "frontShare": 0.66840860967496,
++      "native": {
++        "frontFy": 1137.4799788103808,
++        "rearFy": 623.0293232421831,
++        "ay": 7.1842809605515905,
++        "yaw": 0.7628052407103698,
++        "side": 0.483410334715656,
++        "frontOmega": 45.083471898805804,
++        "rearOmega": 42.09277437618586
++      },
++      "mixedCurrentNPreviousAyRolling": 0.6899172432080488,
++      "heldNativeRolling": -0.003969699742154769,
++      "heldNativeForceSameNominalGyroRolling": 0.00409059686159557,
++      "plannerLoadOnlyChange": 0.6353576885853355,
++      "nativeLoadOnlyChange": 0.08278979971322839
++    },
++    {
++      "name": "no-load-change-negative-control",
++      "q": {
++        "dt": 0.004166666666666667,
++        "speed": 13.579611403536585,
++        "mass": 244.6151617140294,
++        "lean": 0.7463773417964156,
++        "steer": 0.05965408965820811,
++        "frontLoad": 942.2309482709325,
++        "rearLoad": 467.43214498145596,
++        "frontMu": 1.7686571896809604,
++        "rearMu": 1.7646985650958402,
++        "frontFx": 0,
++        "rearFx": -180.20602763672034,
++        "frontContact": 1,
++        "frontBrakeExcess": 0,
++        "rearDriveExcess": 0,
++        "rearBrakeExcess": 0,
++        "inertialContacts": true
++      },
++      "reaction": 5.7627789028889955,
++      "frontShare": 0.66840860967496,
++      "native": {
++        "frontFy": 1032.5371933353392,
++        "rearFy": 565.4539013217197,
++        "ay": 6.52107646628053,
++        "yaw": 0.7605267141614124,
++        "side": 0.4807755014465758,
++        "frontOmega": 45.083471898805804,
++        "rearOmega": 42.08482802818264
++      },
++      "mixedCurrentNPreviousAyRolling": 0.05455955462271334,
++      "heldNativeRolling": -0.08675949945538317,
++      "heldNativeForceSameNominalGyroRolling": -0.07965330910690983,
++      "plannerLoadOnlyChange": 0,
++      "nativeLoadOnlyChange": 0
++    }
++  ],
++  "noChangeIdentical": true
++}
+diff --git a/tests/fixtures/gp-runway-profile.json b/tests/fixtures/gp-runway-profile.json
+new file mode 100644
+index 0000000..35495be
+--- /dev/null
++++ b/tests/fixtures/gp-runway-profile.json
+@@ -0,0 +1,53 @@
++{
++  "source": "gp-native-runway/profile-window.json.gz, recorded tick18168",
++  "station": 2181.459993896947,
++  "validCount": 42,
++  "profile": [
++    89.83730000374361,
++    88.55704289741182,
++    87.3144128204938,
++    86.11031250529672,
++    84.94483158520092,
++    83.84937972882109,
++    82.83316664695032,
++    81.90587714671575,
++    80.98252220280374,
++    80.10290532924495,
++    80.14076168304058,
++    80.71495988206287,
++    81.27626101680451,
++    81.83266152168495,
++    82.39766096533538,
++    82.97578835918928,
++    83.56321882256613,
++    84.15823016295197,
++    84.76152767974955,
++    85.37512780460757,
++    86.00051794283524,
++    86.63758974135631,
++    87.28881448450534,
++    87.95501866022089,
++    88.644269158933,
++    89.10018187581008,
++    89.66070892892401,
++    90.69200251092775,
++    91.71228929413941,
++    92.7260167546269,
++    93.734943528229,
++    94.74157365268603,
++    95.75270411213938,
++    96.77796363417241,
++    97.82789744966041,
++    98.91033125782914,
++    100.03270683491814,
++    101.19794016274845,
++    102.4082725651691,
++    103.66948416346169,
++    105.00004387318467,
++    106.42656233631045
++  ],
++  "measuredSpeeds": [
++    80.80081641717129,
++    81.14925971746447
++  ]
++}
+diff --git a/tests/gp-current-contact-control.test.ts b/tests/gp-current-contact-control.test.ts
+index b757576..f732745 100644
+--- a/tests/gp-current-contact-control.test.ts
++++ b/tests/gp-current-contact-control.test.ts
+@@ -51,14 +51,46 @@ describe('GP rider previews the current rear contact', () => {
+     // The rear now unloads: its old 400 N is no longer an applied road force.
+     gp.frontFy = -400;
+     gp.rearFy = 400;
+-    const inverse = vi.spyOn(gp, 'frontSteerFor');
++    // Isolate rear-force allocation from the roll forecast. The residual
++    // front strain has its own physical response, covered unmocked below.
++    const preview = vi.spyOn(gp, 'currentLateralAcceleration').mockReturnValue(0),
++      inverse = vi.spyOn(gp, 'frontSteerFor');
+     bike.step({ lean: 0, rider: 0, throttle: 0, frontBrake: 0, rearBrake: 0, drive: 0 }, 1 / 240);
+     expect(inverse).toHaveBeenCalled();
+     expect(inverse.mock.calls.at(-1)![0]).toBeCloseTo(0, 12);
+     expect(gp.rearFy).toBe(0);
+     expect(bike.state).toBe('riding');
++    preview.mockRestore();
+   });
+ 
++  it.each([-1, 1])(
++    'responds to residual front strain identically with or without unsupported rear history, sign %s',
++    (sign) => {
++      const run = (rearHistory: number) => {
++        const bike = new Bike(NOVICE, { ...BIKE, drag: 0, rolling: 0 });
++        bike.speed = 30;
++        bike.enableMotoGPPhysics(geometry);
++        bike.contactLoads = { front: 1400, rear: 0 };
++        const gp = bike.motoGP!;
++        gp.frontFy = -sign * 400;
++        gp.rearFy = rearHistory;
++        const inverse = vi.spyOn(gp, 'frontSteerFor');
++        bike.step(
++          { lean: 0, rider: 0, throttle: 0, frontBrake: 0, rearBrake: 0, drive: 0 },
++          1 / 240,
++        );
++        return { request: inverse.mock.calls.at(-1)![0], steer: bike.steer, state: bike.state };
++      };
++      const withoutHistory = run(0),
++        withHistory = run(sign * 400);
++      expect(withHistory).toEqual(withoutHistory);
++      // The front still carries strain after the rear lifts. Correcting
++      // its roll moment is necessary; it is not cancellation of stale rear Fy.
++      expect(sign * withHistory.request).toBeGreaterThan(0);
++      expect(withHistory.state).toBe('riding');
++    },
++  );
++
+   it.each([
+     [0, 1.5, 0],
+     [500, 1.5, 0],
+diff --git a/tests/gp-current-observer.test.ts b/tests/gp-current-observer.test.ts
+new file mode 100644
+index 0000000..4a826cd
+--- /dev/null
++++ b/tests/gp-current-observer.test.ts
+@@ -0,0 +1,313 @@
++import { describe, expect, it, vi } from 'vitest';
++import { GP_R1 } from '../src/simulation/bike-definitions.ts';
++import { BikeVehicle } from '../src/simulation/bike-vehicle.ts';
++import { BIKE, Bike, NOVICE } from '../src/simulation/bike.ts';
++import { DEFAULT_SETUP } from '../src/simulation/config.ts';
++import {
++  gpGroundSteer,
++  gpCamberFriction,
++  gpHangOffAngle,
++  gpRollInertia,
++  gpSpinPerSpeed,
++  MOTOGP_SLICK,
++  MotoGPChassis,
++  type MotoGPContactStep,
++} from '../src/simulation/motogp-physics.ts';
++import recorded from './fixtures/gp-ardennes-load-phase.json';
++import { prepareSlip, slipState } from '../src/simulation/tyre-force.ts';
++
++const scratch = new Set(['force', 'inverseFront', 'previewFront', 'previewRear', 'inverseForces']);
++function physical(gp: MotoGPChassis) {
++  return JSON.parse(
++    JSON.stringify(
++      Object.fromEntries(
++        Object.entries(gp).filter(
++          ([key, value]) => !scratch.has(key) && typeof value !== 'function',
++        ),
++      ),
++    ),
++  );
++}
++function clone(gp: MotoGPChassis) {
++  return Object.assign(new MotoGPChassis(gp.geometry), structuredClone(gp));
++}
++function fixture(sign = 1) {
++  const gp = new MotoGPChassis(recorded.geometry),
++    q: MotoGPContactStep = {
++      ...recorded.q,
++      lean: sign * recorded.q.lean,
++      steer: sign * recorded.beforeBikeStep.bar,
++    };
++  Object.assign(gp, recorded.state);
++  for (const key of [
++    'lateralSpeed',
++    'yawRate',
++    'lateralAcceleration',
++    'frontFy',
++    'rearFy',
++  ] as const)
++    gp[key] *= sign;
++  return { gp, q };
++}
++
++/** Exercise the REAL plant's preparation and force projection while its
++ * exponential relaxation increment is exactly zero. This positive timestep
++ * is valid for the native solver; no contact or math function is mocked.
++ * The normal120/240Hz step is tested separately and need not give this force. */
++function nativePreparation(gp: MotoGPChassis, q: MotoGPContactStep) {
++  const dt = 1e-20,
++    plant = clone(gp);
++  expect(1 - Math.exp((-dt * Math.max(q.speed, 3)) / MOTOGP_SLICK.relaxationLength)).toBe(0);
++  plant.step({ ...q, dt });
++  return plant;
++}
++
++describe('GP current strain observation has no contact-time advance', () => {
++  it.each([-1, 1].flatMap((sign) => recorded.variants.map((v) => ({ sign, ...v }))))(
++    'matches native zero-time preparation for $name, sign $sign',
++    ({ sign, q: saved }) => {
++      const { gp } = fixture(sign),
++        q = { ...saved, lean: sign * saved.lean, steer: sign * saved.steer },
++        before = physical(gp),
++        observed = gp.currentLateralAcceleration(q),
++        prepared = nativePreparation(gp, q),
++        advanced = clone(gp);
++      expect(physical(gp)).toEqual(before);
++      expect(observed).toBe(prepared.lateralAcceleration);
++      advanced.step(q);
++      // The previous full-step predictor answers a different question: it
++      // relaxes the force toward this held bar before choosing the new bar.
++      expect(Math.abs(observed - advanced.lateralAcceleration)).toBeGreaterThan(0.01);
++    },
++  );
++
++  const transitions = [
++    { name: 'reload', front: 1.5, rear: 1.5, contact: 1, frontFx: 0, rearFx: -180, mu: 1 },
++    {
++      name: 'unequal unload',
++      front: 0.4,
++      rear: 1.2,
++      contact: 0.4,
++      frontFx: -100,
++      rearFx: 400,
++      mu: 1,
++    },
++    { name: 'front lift', front: 0, rear: 1, contact: 0, frontFx: 0, rearFx: -180, mu: 1 },
++    { name: 'rear lift', front: 1, rear: 0, contact: 1, frontFx: -300, rearFx: 0, mu: 1 },
++    {
++      name: 'low grip braking',
++      front: 1,
++      rear: 1,
++      contact: 1,
++      frontFx: -350,
++      rearFx: -300,
++      mu: 0.25,
++    },
++    { name: 'brake release', front: 1, rear: 1, contact: 1, frontFx: 0, rearFx: 0, mu: 1 },
++  ];
++  it.each([-1, 1].flatMap((sign) => transitions.map((v) => ({ sign, ...v }))))(
++    'observes native prepared strain for $name, sign $sign',
++    ({ sign, front, rear, contact, frontFx, rearFx, mu }) => {
++      const { gp, q } = fixture(sign);
++      Object.assign(q, {
++        frontLoad: q.frontLoad * front,
++        rearLoad: q.rearLoad * rear,
++        frontMu: q.frontMu * mu,
++        rearMu: q.rearMu * mu,
++        frontContact: contact,
++        frontFx,
++        rearFx,
++      });
++      const before = physical(gp),
++        observed = gp.currentLateralAcceleration(q),
++        plant = nativePreparation(gp, q);
++      expect(observed).toBe(plant.lateralAcceleration);
++      expect(gp.currentLateralAcceleration(q)).toBe(observed);
++      expect(physical(gp)).toEqual(before);
++    },
++  );
++
++  it.each([-1, 1])(
++    'pairs current reaction and current strain in the native roll equation, sign %s',
++    (sign) => {
++      const { gp } = fixture(sign),
++        saved = recorded.variants.find(
++          (v) => v.name === 'exact-proportional-current-total-held-bar',
++        )!,
++        q = { ...saved.q, lean: sign * saved.q.lean, steer: sign * saved.q.steer },
++        reaction = (q.frontLoad + q.rearLoad) / q.mass,
++        psi =
++          q.lean + gpHangOffAngle(sign * recorded.beforeBikeStep.riderOffset, recorded.cgHeight),
++        inertia = gpRollInertia(gp.geometry, q.mass, recorded.cgHeight),
++        gyro =
++          gpSpinPerSpeed(gp.geometry) *
++          recorded.beforeBikeStep.speed *
++          gp.yawRate *
++          Math.cos(q.lean),
++        rolling = (lateral: number) =>
++          (q.mass * recorded.cgHeight * (reaction * Math.sin(psi) - lateral * Math.cos(psi)) -
++            gyro) /
++          inertia,
++        old = rolling(gp.lateralAcceleration),
++        observed = rolling(gp.currentLateralAcceleration(q)),
++        native = rolling(nativePreparation(gp, q).lateralAcceleration);
++      expect(observed).toBe(native);
++      expect(Math.abs(old)).toBeGreaterThan(0.68);
++      expect(Math.abs(observed)).toBeLessThan(0.08);
++      expect(Math.abs(old - observed)).toBeGreaterThan(0.6);
++    },
++  );
++
++  it('is independent of120/240Hz step duration and differs from both full future steps', () => {
++    const { gp, q } = fixture(),
++      observed = gp.currentLateralAcceleration(q),
++      future: number[] = [];
++    for (const dt of [1 / 120, 1 / 240]) {
++      const request = { ...q, dt },
++        plant = clone(gp);
++      expect(gp.currentLateralAcceleration(request)).toBe(observed);
++      plant.step(request);
++      future.push(plant.lateralAcceleration);
++      expect(Math.abs(plant.lateralAcceleration - observed)).toBeGreaterThan(0.01);
++    }
++    expect(future[0]).not.toBe(future[1]);
++  });
++
++  it('preserves the exact measured force when contact preparation and bar pose have not changed', () => {
++    const { gp, q } = fixture();
++    gp.step(q);
++    const actual = gp.lateralAcceleration;
++    expect(gp.currentLateralAcceleration(q)).toBe(actual);
++    const ground = gpGroundSteer(q.steer, q.lean);
++    expect(actual).toBe(
++      (gp.frontFy * Math.cos(ground) + q.frontFx * Math.sin(ground) + gp.rearFy) / q.mass,
++    );
++  });
++
++  it('leaves all physical history and the next full step unchanged by repeated mixed queries', () => {
++    const { gp, q } = fixture(),
++      untouched = clone(gp),
++      before = physical(gp),
++      observed = gp.currentLateralAcceleration(q);
++    for (let i = 0; i < 8; i++) {
++      gp.frontSteerFor(400, q.lean, q.speed, q.frontFx, q.frontLoad, q.frontMu);
++      gp.rearForceFor(q.rearLoad, q.rearMu, q.lean, q.speed, q.rearFx, q.dt);
++      expect(gp.currentLateralAcceleration(q)).toBe(observed);
++      expect(physical(gp)).toEqual(before);
++    }
++    gp.step(q);
++    untouched.step(q);
++    expect(physical(gp)).toEqual(physical(untouched));
++  });
++
++  it('keeps force and heat zero through flight and a fresh zero-slip landing', () => {
++    const { gp, q } = fixture();
++    gp.reset(q.speed);
++    q.lean = q.steer = q.frontFx = q.rearFx = 0;
++    for (const load of [500, 1900, 0, 1900, 1200]) {
++      q.frontLoad = q.rearLoad = load;
++      q.frontContact = load ? 1 : 0;
++      expect(gp.currentLateralAcceleration(q)).toBe(0);
++      gp.step(q);
++      expect(gp.lateralAcceleration).toBe(0);
++      expect(gp.frontSlidingPower).toBe(0);
++      expect(gp.rearSlidingPower).toBe(0);
++    }
++  });
++
++  it.each([-1, 1])(
++    'does not transmit obsolete front Fx through a lost contact, bar sign %s',
++    (sign) => {
++      const { gp, q } = fixture(sign);
++      q.frontLoad = q.rearLoad = 0;
++      q.frontContact = 0;
++      q.frontFx = -1500;
++      q.rearFx = 1800;
++      q.steer = sign * 0.2;
++      const before = physical(gp);
++      expect(Math.abs(q.frontFx * Math.sin(gpGroundSteer(q.steer, q.lean)))).toBeGreaterThan(300);
++      expect(gp.currentLateralAcceleration(q)).toBe(0);
++      expect(physical(gp)).toEqual(before);
++      // A valid physical plant receives the zero force pair after allocation;
++      // the observer must reach that force-free result before allocation too.
++      expect(nativePreparation(gp, { ...q, frontFx: 0, rearFx: 0 }).lateralAcceleration).toBe(0);
++    },
++  );
++
++  it.each([-1, 1])(
++    'projects prior braking only inside a newly smaller front circle, sign %s',
++    (sign) => {
++      const { gp, q } = fixture(sign);
++      q.frontLoad = 150;
++      q.frontMu = 0.4;
++      q.frontContact = 0.5;
++      q.frontFx = -1500;
++      q.rearLoad = 0;
++      q.rearFx = 0;
++      const prepared = slipState();
++      prepareSlip(
++        MOTOGP_SLICK,
++        q.frontLoad * q.frontContact,
++        q.frontMu * gpCamberFriction(q.lean),
++        1,
++        1,
++        1,
++        prepared,
++      );
++      const bound = prepared.dy,
++        before = physical(gp),
++        observed = gp.currentLateralAcceleration(q),
++        ground = gpGroundSteer(q.steer, q.lean),
++        feasible = { ...q, frontFx: -bound };
++      expect(observed).toBe((-bound * Math.sin(ground)) / q.mass);
++      expect(observed).toBe(nativePreparation(gp, feasible).lateralAcceleration);
++      expect(Math.abs(observed * q.mass)).toBeLessThanOrEqual(bound);
++      expect(physical(gp)).toEqual(before);
++      expect(q.frontFx).toBe(-1500);
++    },
++  );
++
++  it('observes known pedal history before the original single control/contact step', () => {
++    const bike = new BikeVehicle(0, 'medium', DEFAULT_SETUP, 'sport', GP_R1).dynamics,
++      gp = bike.motoGP!,
++      dt = 1 / 240,
++      oldSpeed = (bike.speed = 30),
++      oldBar = (bike.steer = -0.1),
++      priorFront = (bike.frontBrakeForce = 700),
++      priorRear = (bike.driveForce = 1500);
++    gp.reset(oldSpeed);
++    bike.contactLoads = { front: 30, rear: 2400 };
++    const observation = vi.spyOn(gp, 'currentLateralAcceleration'),
++      inverse = vi.spyOn(gp, 'frontSteerFor').mockReturnValue(0.6),
++      plant = vi.spyOn(gp, 'step');
++    bike.step({ lean: 0.3, rider: 0, throttle: 0, frontBrake: 0.5, rearBrake: 0, drive: 0 }, dt);
++    expect(observation).toHaveBeenCalledTimes(1);
++    expect(plant).toHaveBeenCalledTimes(1);
++    const p = observation.mock.calls[0][0],
++      q = plant.mock.calls[0][0];
++    expect('dt' in p).toBe(false);
++    expect(p.speed).toBe(oldSpeed);
++    expect(p.steer).toBe(oldBar);
++    expect(p.frontFx).toBe(-priorFront);
++    expect(p.rearFx).toBe(priorRear);
++    expect(p.frontLoad).toBe(q.frontLoad);
++    expect(p.rearLoad).toBe(q.rearLoad);
++    expect(p.frontContact).toBe(q.frontContact);
++    expect(q.frontFx).not.toBe(p.frontFx);
++    expect(q.rearFx).not.toBe(p.rearFx);
++    // This decomposition deliberately retains the original early inverse.
++    // Current-force phase resolution is a separate, unaccepted candidate.
++    expect(inverse.mock.calls[0][3]).toBe(p.frontFx);
++    expect(q.steer - oldBar).toBeCloseTo(bike.p.steerRate * dt, 12);
++  });
++
++  it.each(['standalone', 'flight'])('does not invoke the road observation for %s', (mode) => {
++    const bike = new Bike(NOVICE, BIKE);
++    bike.speed = 30;
++    bike.enableMotoGPPhysics(recorded.geometry);
++    if (mode === 'flight') bike.contactLoads = { front: 0, rear: 0 };
++    const observe = vi.spyOn(bike.motoGP!, 'currentLateralAcceleration');
++    bike.step({ lean: 0.3, rider: 0, throttle: 0, frontBrake: 0, rearBrake: 0, drive: 0 }, 1 / 240);
++    expect(observe).not.toHaveBeenCalled();
++  });
++});
+diff --git a/tests/gp-passing-runway.test.ts b/tests/gp-passing-runway.test.ts
+new file mode 100644
+index 0000000..9c1d787
+--- /dev/null
++++ b/tests/gp-passing-runway.test.ts
+@@ -0,0 +1,91 @@
++import { afterEach, describe, expect, it, vi } from 'vitest';
++import { ENVELOPE_STEP } from '../src/simulation/ai.ts';
++import { BikeAIDriver, gpApproachRunway } from '../src/simulation/bike-ai.ts';
++import type { BikeVehicle } from '../src/simulation/bike-vehicle.ts';
++import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
++import * as braking from '../src/simulation/motorcycle-braking-plan.ts';
++import { racingLineFor } from '../src/simulation/racing-line.ts';
++import type { RaceDirector } from '../src/simulation/race.ts';
++import type { Track } from '../src/simulation/track.ts';
++import { Simulation } from '../src/simulation/world.ts';
++import recorded from './fixtures/gp-runway-profile.json';
++
++afterEach(() => vi.restoreAllMocks());
++
++class RunwayProbe extends BikeAIDriver {
++  plan(track: Track, race: RaceDirector) {
++    return this.limitSpeed(100, track, race);
++  }
++  paceFor(track: Track) {
++    return this.passPace(track);
++  }
++}
++
++describe('GP passing runway observes the braking profile', () => {
++  it('ends passing room before a descending segment, including braking already underway', () => {
++    expect(gpApproachRunway([70, 60, 50, 55], 4)).toBe(0);
++    // Acceleration, a level section, then a real braking descent. The end of
++    // the level section is the onset; the later minimum is not usable runway.
++    expect(gpApproachRunway([50, 60, 70, 70, 60, 50, 55], 7)).toBe(3 * ENVELOPE_STEP);
++  });
++
++  it('bounds an accelerating or level profile to the observed extent', () => {
++    expect(gpApproachRunway([50, 60, 70, 80], 4)).toBe(3 * ENVELOPE_STEP);
++    expect(gpApproachRunway([80, 80, 80, 80], 4)).toBe(3 * ENVELOPE_STEP);
++    const reused = new Float64Array([50, 60, 70, NaN, 0]);
++    expect(gpApproachRunway(reused, 3)).toBe(2 * ENVELOPE_STEP);
++    expect(gpApproachRunway(reused, 2)).toBe(ENVELOPE_STEP);
++  });
++
++  it('ignores floating point roundoff at a plateau without hiding a physical descent', () => {
++    const ulp = Number.EPSILON * 80;
++    expect(gpApproachRunway([80, 80 - ulp, 80, 80], 4)).toBe(3 * ENVELOPE_STEP);
++    expect(gpApproachRunway([80, 80 - ulp, 80, 79.99], 4)).toBe(2 * ENVELOPE_STEP);
++  });
++
++  it('does not promise passing distance from missing or invalid observed samples', () => {
++    for (const count of [0, 1, 1.5, 4, NaN, Infinity])
++      expect(gpApproachRunway([50, 60, 70], count)).toBe(0);
++    for (const invalid of [NaN, Infinity, -1])
++      expect(gpApproachRunway([50, invalid, 70], 3)).toBe(0);
++  });
++
++  it('keeps the same native profile runway when measured speed crosses its old minimum threshold', () => {
++    const sim = new Simulation({
++      ...DEFAULT_OPTIONS,
++      circuit: 'vellamar',
++      mode: 'practice',
++      ruleset: 'gp-motorcycle',
++      opponents: 0,
++      vehicles: ['gpr1'],
++      seed: 3303,
++    });
++    const bike = sim.cars[0] as BikeVehicle;
++    bike.place(sim.track, recorded.station, racingLineFor(sim.track).offsetAt(recorded.station));
++    bike.dynamics.grip = bike.dynamics.frontGrip = bike.dynamics.rearGrip = 1;
++    const driver = new RunwayProbe(bike, 0.92, 3303);
++    const counts: number[] = [];
++    // Freeze only the solved profile to the recorded native result. All
++    // production limitSpeed/passPace wiring remains active. This isolates
++    // the measured-speed threshold from geometry and tyre-plan changes.
++    vi.spyOn(braking, 'motorcycleApproachProfile').mockImplementation(
++      (_curvatures, _corners, _grip, _aero, _env, count, profile) => {
++        expect(count).toBeLessThanOrEqual(recorded.validCount);
++        counts.push(count);
++        profile.set(recorded.profile);
++        return recorded.profile[0];
++      },
++    );
++    const runways: number[] = [];
++    for (const speed of recorded.measuredSpeeds) {
++      bike.dynamics.speed = bike.speed = speed;
++      bike.aiOffset = racingLineFor(sim.track).offsetAt(
++        bike.s + Math.min(46, Math.max(8, 6 + speed * 0.48)),
++      );
++      expect(driver.plan(sim.track, sim.race)).toBe(recorded.profile[0]);
++      runways.push(driver.paceFor(sim.track)!.runway);
++    }
++    expect(counts[0]).toBe(counts[1]);
++    expect(runways).toEqual([0, 0]);
++  });
++});
+diff --git a/tests/gp-steering-throttle-ownership.test.ts b/tests/gp-steering-throttle-ownership.test.ts
+new file mode 100644
+index 0000000..36ce2d4
+--- /dev/null
++++ b/tests/gp-steering-throttle-ownership.test.ts
+@@ -0,0 +1,76 @@
++import { describe, expect, it } from 'vitest';
++import { G } from '../src/core/math.ts';
++import { BikeAIDriver } from '../src/simulation/bike-ai.ts';
++import { GP_R1 } from '../src/simulation/bike-definitions.ts';
++import { BikeVehicle } from '../src/simulation/bike-vehicle.ts';
++import { DEFAULT_SETUP } from '../src/simulation/config.ts';
++import { Track } from '../src/simulation/track.ts';
++
++class DemandDriver extends BikeAIDriver {
++  constructor(
++    bike: BikeVehicle,
++    private readonly pathAcceleration: number,
++    private readonly correctionAcceleration: number,
++  ) {
++    super(bike);
++  }
++  protected override steeringLineOffset() {
++    return 0;
++  }
++  protected override steeringLineCurvature() {
++    return this.pathAcceleration / this.bike.dynamics.speed ** 2;
++  }
++  protected override pathCorrection() {
++    return this.correctionAcceleration / this.bike.dynamics.speed ** 2;
++  }
++}
++
++/** Exercise the actual intent conversion followed by the actual throttle
++ * budget, with controlled path/feedback inputs instead of duplicating either
++ * controller formula. The final physical contact controls still run in Bike. */
++function plannedThrottle(track: Track, path: number, correction: number, support = 1) {
++  const bike = new BikeVehicle(0, 'medium', DEFAULT_SETUP, 'sport', GP_R1);
++  bike.place(track, 120, 0);
++  const d = bike.dynamics;
++  d.speed = 30;
++  d.frontLoad = (support * d.mass * G * d.p.cgToRear) / d.p.wheelbase;
++  d.rearLoad = (support * d.mass * G * d.p.cgToFront) / d.p.wheelbase;
++  d.contactLoads = { front: d.frontLoad, rear: d.rearLoad };
++  bike.gear = 1;
++  bike.rpm = 12000;
++  bike.aiOffset = 0;
++  const driver = new DemandDriver(bike, path, correction) as unknown as {
++    steerIntent(track: Track, steer: number): number;
++    steeringThrottle(): number;
++  };
++  bike.input.steer = driver.steerIntent(track, 0);
++  return { intent: bike.input.steer, throttle: driver.steeringThrottle() };
++}
++
++describe('GP AI charges the total requested lateral acceleration once', () => {
++  const track = new Track('clear', true);
++
++  it.each([-1, 1])(
++    'keeps the same %s turn budget when path correction agrees with or opposes its curve',
++    (sign) => {
++      const total = sign * 6;
++      const plain = plannedThrottle(track, total, 0);
++      expect(plain.throttle).toBeGreaterThan(0);
++      expect(plain.throttle).toBeLessThan(1);
++      for (const correction of [sign * 2, -sign * 2]) {
++        const result = plannedThrottle(track, total - correction, correction);
++        expect(result.intent).toBeCloseTo(plain.intent, 12);
++        expect(result.throttle).toBeCloseTo(plain.throttle, 12);
++      }
++    },
++  );
++
++  it('inverts intent with the same normal reaction used to encode its path demand', () => {
++    const nominal = plannedThrottle(track, 6, 0);
++    for (const support of [0.7, 1.3]) {
++      const result = plannedThrottle(track, 6, 0, support);
++      expect(result.intent).not.toBeCloseTo(nominal.intent, 3);
++      expect(result.throttle).toBeCloseTo(nominal.throttle, 12);
++    }
++  });
++});

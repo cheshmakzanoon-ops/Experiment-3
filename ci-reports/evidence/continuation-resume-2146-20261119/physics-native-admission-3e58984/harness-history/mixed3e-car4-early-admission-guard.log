@@ -1,0 +1,228 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+
+  {
+    force: {
+      fx: 0,
++     fy: 1649.4994910122923
+-     fy: 9554.393385775098
+    },
+    forwardSpeed: 48.03795854444651,
+    front: {
+      alpha: -0.04637401861054056,
+      alphaRef: 0.14980315153316892,
+
+    at earlyAdmission (file:///workspace/scratch/dac6891506fb/contact-observer-evidence-2204/replay-car4-early-admission.mjs:89:10)
+    at file:///workspace/scratch/dac6891506fb/contact-observer-evidence-2204/replay-car4-early-admission.mjs:112:125
+    at Bike.gpSteer (eval at functionFactory (file:///workspace/scratch/dac6891506fb/contact-observer-evidence-2204/replay-car4-early-admission.mjs:36:35), <anonymous>:121:21)
+    at b.gpSteer (file:///workspace/scratch/dac6891506fb/contact-observer-evidence-2204/replay-car4-early-admission.mjs:119:29)
+    at Bike.step (/workspace/scratch/dac6891506fb/gp-observer-only-2144/src/simulation/bike.ts:714:42)
+    at run (file:///workspace/scratch/dac6891506fb/contact-observer-evidence-2204/replay-car4-early-admission.mjs:127:7)
+    at file:///workspace/scratch/dac6891506fb/contact-observer-evidence-2204/replay-car4-early-admission.mjs:143:83 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: {
+    geometry: {
+      frontArm: 0.7,
+      rearArm: 0.75,
+      yawInertia: 55,
+      frontRadius: 0.3,
+      rearRadius: 0.32,
+      frontWheelInertia: 0.6,
+      rearWheelInertia: 0.9
+    },
+    forwardSpeed: 48.03795854444651,
+    longitudinalCorrection: 0,
+    lateralSpeed: -3.9289694924186116,
+    yawRate: -0.36411503278630075,
+    lateralAcceleration: 35.02704409336897,
+    frontFy: 0,
+    rearFy: 8561.053010029773,
+    frontSlipAngle: -0.04637401861054056,
+    rearSlipAngle: -0.15332452636820737,
+    frontSlip: 0.008405845507194932,
+    rearSlip: 0.007657899446202321,
+    frontOmega: 161.45230509611147,
+    rearOmega: 151.24926945838334,
+    frontSlidingPower: 0,
+    rearSlidingPower: 31298.210026311313,
+    groundSteer: -0.05969740282488563,
+    frontStiffness: 0,
+    steerTrim: -0.000006813386870312414,
+    leanTarget: -0.27961516069821324,
+    lateralDemand: 19.6133,
+    frontLoadUsed: 0,
+    frontMuUsed: 1.5990997126850723,
+    frontLimit: 0,
+    rearLimit: 9597.563512287332,
+    frontElasticStiffness: 0,
+    rearElasticStiffness: 122120.35907597047,
+    sideLimit: 9597.563512287332,
+    lastSpeed: 48.03194244126171,
+    front: {
+      dx: 1424.642034998266,
+      dy: 1424.642034998266,
+      cx: 1.3,
+      ex: 0.15,
+      cy: 1.6,
+      ey: -0.3,
+      x0x: 2.6367832955817585,
+      x0y: 1.496605762665489,
+      kappaRef: 0.2370323384902537,
+      alphaRef: 0.14980315153316892,
+      alpha: -0.04637401861054056,
+      corneringStiffness: 22772.578093237837,
+      slipStiffness: 20602.31125926278,
+      by1: 0.7,
+      by2: 0.6,
+      bx1: 0.7,
+      bx2: 0.6,
+      cache: {
+        stamp: 34836,
+        alpha: -0.04637401861054056,
+        dy: 1424.642034998266,
+        alphaRef: 0.14980315153316892,
+        sy: -0.30956637517918023,
+        fy0: -924.0491504851959,
+        by: 0.6882289595842445
+      },
+      stamp: 34836
+    },
+    rear: {
+      dx: 9597.563512287332,
+      dy: 9597.563512287332,
+      cx: 1.3,
+      ex: 0.15,
+      cy: 1.6,
+      ey: -0.3,
+      x0x: 2.6367832955817585,
+      x0y: 1.496605762665489,
+      kappaRef: 0.23677108096950492,
+      alphaRef: 0.18819163610354764,
+      alpha: -0.15332452636820737,
+      corneringStiffness: 122120.35907597047,
+      slipStiffness: 138947.30537622838,
+      by1: 0.7,
+      by2: 0.6,
+      bx1: 0.7,
+      bx2: 0.6,
+      cache: {
+        stamp: 34936,
+        alpha: -0.15332452636820737,
+        dy: 9597.563512287332,
+        alphaRef: 0.18819163610354764,
+        sy: -0.8147255082252671,
+        fy0: -9554.393385775098,
+        by: 0.6288823485968263
+      },
+      stamp: 34936
+    },
+    force: { fx: 0, fy: 1649.4994910122923 }
+  },
+  expected: {
+    geometry: {
+      frontArm: 0.7,
+      rearArm: 0.75,
+      yawInertia: 55,
+      frontRadius: 0.3,
+      rearRadius: 0.32,
+      frontWheelInertia: 0.6,
+      rearWheelInertia: 0.9
+    },
+    forwardSpeed: 48.03795854444651,
+    longitudinalCorrection: 0,
+    lateralSpeed: -3.9289694924186116,
+    yawRate: -0.36411503278630075,
+    lateralAcceleration: 35.02704409336897,
+    frontFy: 0,
+    rearFy: 8561.053010029773,
+    frontSlipAngle: -0.04637401861054056,
+    rearSlipAngle: -0.15332452636820737,
+    frontSlip: 0.008405845507194932,
+    rearSlip: 0.007657899446202321,
+    frontOmega: 161.45230509611147,
+    rearOmega: 151.24926945838334,
+    frontSlidingPower: 0,
+    rearSlidingPower: 31298.210026311313,
+    groundSteer: -0.05969740282488563,
+    frontStiffness: 0,
+    steerTrim: -0.000006813386870312414,
+    leanTarget: -0.27961516069821324,
+    lateralDemand: 19.6133,
+    frontLoadUsed: 0,
+    frontMuUsed: 1.5990997126850723,
+    frontLimit: 0,
+    rearLimit: 9597.563512287332,
+    frontElasticStiffness: 0,
+    rearElasticStiffness: 122120.35907597047,
+    sideLimit: 9597.563512287332,
+    lastSpeed: 48.03194244126171,
+    front: {
+      dx: 1424.642034998266,
+      dy: 1424.642034998266,
+      cx: 1.3,
+      ex: 0.15,
+      cy: 1.6,
+      ey: -0.3,
+      x0x: 2.6367832955817585,
+      x0y: 1.496605762665489,
+      kappaRef: 0.2370323384902537,
+      alphaRef: 0.14980315153316892,
+      alpha: -0.04637401861054056,
+      corneringStiffness: 22772.578093237837,
+      slipStiffness: 20602.31125926278,
+      by1: 0.7,
+      by2: 0.6,
+      bx1: 0.7,
+      bx2: 0.6,
+      cache: {
+        stamp: 34836,
+        alpha: -0.04637401861054056,
+        dy: 1424.642034998266,
+        alphaRef: 0.14980315153316892,
+        sy: -0.30956637517918023,
+        fy0: -924.0491504851959,
+        by: 0.6882289595842445
+      },
+      stamp: 34836
+    },
+    rear: {
+      dx: 9597.563512287332,
+      dy: 9597.563512287332,
+      cx: 1.3,
+      ex: 0.15,
+      cy: 1.6,
+      ey: -0.3,
+      x0x: 2.6367832955817585,
+      x0y: 1.496605762665489,
+      kappaRef: 0.23677108096950492,
+      alphaRef: 0.18819163610354764,
+      alpha: -0.15332452636820737,
+      corneringStiffness: 122120.35907597047,
+      slipStiffness: 138947.30537622838,
+      by1: 0.7,
+      by2: 0.6,
+      bx1: 0.7,
+      bx2: 0.6,
+      cache: {
+        stamp: 34936,
+        alpha: -0.15332452636820737,
+        dy: 9597.563512287332,
+        alphaRef: 0.18819163610354764,
+        sy: -0.8147255082252671,
+        fy0: -9554.393385775098,
+        by: 0.6288823485968263
+      },
+      stamp: 34936
+    },
+    force: { fx: 0, fy: 9554.393385775098 }
+  },
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.22.3

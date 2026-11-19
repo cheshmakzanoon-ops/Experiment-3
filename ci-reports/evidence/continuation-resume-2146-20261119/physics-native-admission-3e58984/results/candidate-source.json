@@ -1,0 +1,59 @@
+{
+  "commit": "3e58984936a9e1ba2821580688a723fb93053fa4",
+  "parent": "7ac509f9198ae5d5b06c9a17edd2177caa799115",
+  "originDelta": "375cf3ab5017318bf19a067cca8c1474519fbe74 minus8de0feb83cf7efaf7777a42b04f078efcca4b20b",
+  "deltaFiles": {
+    "src/simulation/bike.ts": {
+      "sha256": "b36649ae95435db2a1ca1c1b3e08b7d22ac3ef6e58dc77573a917969a764d497",
+      "matches375": true
+    },
+    "src/simulation/motogp-physics.ts": {
+      "sha256": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+      "matches375": true
+    },
+    "tests/fixtures/gp-ardennes-load-phase.json": {
+      "sha256": "0a7ab3e9a84f353b40aef435674cefd17fee62804408fbad75236b53e280a8af",
+      "matches375": true
+    },
+    "tests/gp-current-contact-control.test.ts": {
+      "sha256": "1f65d4a34ca5ab9810fe0a8d0f022c662946fa03fc59488fd40846e4a4506d42",
+      "matches375": true
+    },
+    "tests/gp-current-observer.test.ts": {
+      "sha256": "f75e11825a71613099b5ca427cb616f18d2849fe3b2dfc5d6d3f8daf675b31b1",
+      "matches375": true
+    }
+  },
+  "patchSha256": "2cdc753c40f27ff0e4338886b38feadae5caebe572a58802fb61b72decb757ca",
+  "original51Files": {
+    "tests/gp-ai-braking-plan.test.ts": {
+      "sha256": "f0124f304bbdc5311ace3a2624d9ae3e6656be61fcdc87a314e0874e2ff51b9a",
+      "equalsPublishedFfd2259": true
+    },
+    "tests/gp-tyre-contact.test.ts": {
+      "sha256": "e3e67c87d1bf99f2dcd1761efd9c1ad3ca66f30da2ba332607d621e1f8e0ecc4",
+      "equalsPublishedFfd2259": true
+    },
+    "tests/bike-session.test.ts": {
+      "sha256": "28b653c92029c494cd11ec713ab21c9eae1808af8c378afc1590d60590df09ae",
+      "equalsPublishedFfd2259": true
+    },
+    "tests/bike-mixed-passing.test.ts": {
+      "sha256": "de20c703b20d780a5aafee7eeba45be8efaab5f59c780c303a3b6c704e734253",
+      "equalsPublishedFfd2259": true
+    }
+  },
+  "accepted": false,
+  "acceptanceBoundary": {
+    "native": "72/72",
+    "ardennes1000": "pass",
+    "snapshot": "pass",
+    "mixed3303": {
+      "passed": false,
+      "gpBestSeconds": 92.15861774982307,
+      "superbikeBestSeconds": 89.90506409359712,
+      "marginSeconds": -2.2535536562259466
+    },
+    "furtherRaces": "not run after pace failure"
+  }
+}

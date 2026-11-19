@@ -1,0 +1,728 @@
+{
+  "sourceCommit": "3e58984936a9e1ba2821580688a723fb93053fa4",
+  "sourceStable": true,
+  "extraction": {
+    "originalFunctionSha256": "91b2ae9b8db2635bbc431af39dc952d4ba81d110edbed2aa4e48efe2394c03de",
+    "strippedFunctionSha256": "363d297b2c9aebdbc003e7251c86299efbb51d8e2854a12f71417468004618bd",
+    "tracedOriginalSha256": "1ce8e96a10c69c69503eaab2386341c7a07d3e40690129adbafbe46277519cd0",
+    "diagnosticFunctionSha256": "69041a202808d8089153742baef0657cb3b93c8351264e1a03d739c055216ea7",
+    "originalTrimLawSha256": "15dd45d438b477530a0c3102fbbed88dc6818d4fdd917a6af5db202a6ae8f7ac",
+    "originalTrimLawLiteralUnchanged": true,
+    "alteration": "Replace exactly one final clamp expression; inject observational traces. All support/energy/reserve/gain and anti-windup/trim expressions remain literal."
+  },
+  "results": [
+    {
+      "label": "maximumRollForecastDifference",
+      "tick": 18274,
+      "substep": 2,
+      "originalProof": {
+        "once": true,
+        "target": true,
+        "reserve": true,
+        "barRequest": true,
+        "inverse": true,
+        "rear": true,
+        "plantInput": true,
+        "plantOutput": true,
+        "after": true
+      },
+      "mirrorTwoStepExact": true,
+      "queryNoOpTwoStepDynamicsExact": true,
+      "fallbackTwoStepExact": null,
+      "retainedController": {
+        "reaction": true,
+        "capacity": true,
+        "recovery": true,
+        "requestedTarget": true,
+        "supportCapacity": true,
+        "supportedLimit": true,
+        "target": true,
+        "measured": true,
+        "currentLateral": true,
+        "rolling": true,
+        "rateAhead": true,
+        "ahead": true,
+        "error": true,
+        "direction": true,
+        "stopping": true,
+        "effort": true,
+        "rate": true,
+        "demand": true,
+        "reserve": true
+      },
+      "samePedals": true,
+      "early": {
+        "phase": "inside the original early gpSteer, before trim, bar commit and pedal allocation",
+        "legacy": 13.797987017393941,
+        "demand": 42.83865604417939,
+        "recovery": 13.797987017393941,
+        "early": {
+          "speed": 48.03795854444651,
+          "v": 48.03795854444651,
+          "mass": 244.4126551235032,
+          "lean": 0.7547072956863439,
+          "frontLoad": 3238.547197848438,
+          "rearLoad": 1040.7029279739627,
+          "frontMu": 1.6008463618305018,
+          "rearMu": 1.5951860733114154,
+          "frontFx": 0,
+          "rearFx": 0,
+          "frontContact": 1,
+          "effectiveFrontLoad": 3238.547197848438,
+          "yawRate": -0.36411503278630075,
+          "dt": 0.004166666666666667
+        },
+        "nativeProbe": -0.1473880702761527,
+        "nativeProjectedSamples": [
+          -4923.468421459977,
+          -4915.635192502206,
+          -4819.256069724501,
+          -4587.445318264443,
+          -4162.788499517732,
+          -3490.0088091739713,
+          -2541.41328602358,
+          -1345.9288712187406,
+          0,
+          1353.814851221329,
+          2571.2933932338337,
+          3551.780000334537,
+          4261.408105498514,
+          4723.860102324283,
+          4991.98931108888,
+          5122.159327651676,
+          5161.058889812547
+        ],
+        "neutralFrontForce": 0,
+        "reservedFrontForceInterval": [
+          -4775.764368816178,
+          5006.22712311817
+        ],
+        "rearArgs": [
+          1040.7029279739627,
+          1.5951860733114154,
+          0.7547072956863439,
+          48.03795854444651,
+          0,
+          0.004166666666666667
+        ],
+        "heldRearPreview": 1652.8491857844326,
+        "K": 314.2857142857143,
+        "denominator": 250.9551003857207,
+        "requestInterval": [
+          -12.900121699926839,
+          26.078928643737513
+        ],
+        "conditionalFrontWithHeldRearAccelerationInterval": [
+          -12.777223754857198,
+          27.24521897418827
+        ],
+        "physicalStateBeforeSha256": "e0d4829d438844149e61a1b1533b420f013c2145ea6c958f0e825104d4cac112",
+        "physicalStateAfterSha256": "e0d4829d438844149e61a1b1533b420f013c2145ea6c958f0e825104d4cac112",
+        "physicalStateUnchanged": true,
+        "nativeAdmitted": 26.078928643737513,
+        "selected": 26.078928643737513,
+        "control": "native signed admission diagnostic"
+      },
+      "original": {
+        "lateral": 13.797987017393941,
+        "trim": -0.000006813386870312414,
+        "bar": -0.05768115006410847,
+        "delivered": 16.636801828203627,
+        "physical": {
+          "reaction": 17.508300147797456,
+          "psi": 0.8292176272651512,
+          "steerRate": -2.4000000000000004,
+          "componentsNm": {
+            "reaction": 1956.430139818105,
+            "lateral": -1702.8652641961728,
+            "yawGyro": 55.997332351084694,
+            "steerGyro": 212.19470475453508
+          },
+          "rollAcceleration": 4.4234597046944755
+        },
+        "after": {
+          "speed": 48.03661262920287,
+          "lean": 0.7555310056919232,
+          "leanRate": -0.042922316775919976,
+          "riderOffset": 0.18262834705646303,
+          "steer": -0.05768115006410847,
+          "frontLoad": 3238.547197848438,
+          "rearLoad": 1040.7029279739627,
+          "drive": 0,
+          "frontBrake": 0,
+          "rearBrake": 0,
+          "state": "riding",
+          "crashes": 0
+        }
+      },
+      "diagnostic": {
+        "lateral": 26.078928643737513,
+        "trim": -0.000006813386870312414,
+        "bar": -0.037681150064108465,
+        "delivered": 18.069811522172785,
+        "physical": {
+          "reaction": 17.508300147797456,
+          "psi": 0.8292176272651512,
+          "steerRate": 2.4000000000000004,
+          "componentsNm": {
+            "reaction": 1956.430139818105,
+            "lateral": -1849.5414376768033,
+            "yawGyro": 52.84601116040832,
+            "steerGyro": -212.19470475453508
+          },
+          "rollAcceleration": -0.44475626990180317
+        },
+        "after": {
+          "speed": 48.03555951714709,
+          "lean": 0.7554469095869557,
+          "leanRate": -0.0631053819681219,
+          "riderOffset": 0.18262834705646303,
+          "steer": -0.037681150064108465,
+          "frontLoad": 3238.547197848438,
+          "rearLoad": 1040.7029279739627,
+          "drive": 0,
+          "frontBrake": 0,
+          "rearBrake": 0,
+          "state": "riding",
+          "crashes": 0
+        }
+      },
+      "barInterval": [
+        -0.05768115006410847,
+        -0.037681150064108465
+      ]
+    },
+    {
+      "label": "lastRecordedControl",
+      "tick": 18366,
+      "substep": 1,
+      "originalProof": {
+        "once": true,
+        "target": true,
+        "reserve": true,
+        "barRequest": true,
+        "inverse": true,
+        "rear": true,
+        "plantInput": true,
+        "plantOutput": true,
+        "after": true
+      },
+      "mirrorTwoStepExact": true,
+      "queryNoOpTwoStepDynamicsExact": true,
+      "fallbackTwoStepExact": null,
+      "retainedController": {
+        "reaction": true,
+        "capacity": true,
+        "recovery": true,
+        "requestedTarget": true,
+        "supportCapacity": true,
+        "supportedLimit": true,
+        "target": true,
+        "measured": true,
+        "currentLateral": true,
+        "rolling": true,
+        "rateAhead": true,
+        "ahead": true,
+        "error": true,
+        "direction": true,
+        "stopping": true,
+        "effort": true,
+        "rate": true,
+        "demand": true,
+        "reserve": true
+      },
+      "samePedals": true,
+      "early": {
+        "phase": "inside the original early gpSteer, before trim, bar commit and pedal allocation",
+        "legacy": 14.612475612834828,
+        "demand": 110.56919011508579,
+        "recovery": 14.612475612834828,
+        "early": {
+          "speed": 32.727278488351935,
+          "v": 32.727278488351935,
+          "mass": 244.41178549089312,
+          "lean": 1.2447136971550272,
+          "frontLoad": 1157.850853992455,
+          "rearLoad": 1052.2267958437878,
+          "frontMu": 1.7422653026300483,
+          "rearMu": 1.7393237415994438,
+          "frontFx": 0,
+          "rearFx": 0,
+          "frontContact": 1,
+          "effectiveFrontLoad": 1157.850853992455,
+          "yawRate": 2.5,
+          "dt": 0.004166666666666667
+        },
+        "nativeProbe": -0.7312308861531531,
+        "nativeProjectedSamples": [
+          -1239.8324445330963,
+          -1256.2548533233921,
+          -1249.5416992792827,
+          -1206.3992339057702,
+          -1110.0443135894918,
+          -943.4388076968445,
+          -696.3019340681423,
+          -373.6725996471814,
+          0,
+          385.7328336494624,
+          742.0000421059533,
+          1037.9163801806803,
+          1260.8936405982656,
+          1415.0834543436745,
+          1513.8208232699158,
+          1572.28407088957,
+          1603.467436748521
+        ],
+        "neutralFrontForce": 0,
+        "reservedFrontForceInterval": [
+          -1218.5672077236902,
+          1555.3634136460655
+        ],
+        "rearArgs": [
+          1052.2267958437878,
+          1.7393237415994438,
+          1.2447136971550272,
+          32.727278488351935,
+          0,
+          0.004166666666666667
+        ],
+        "heldRearPreview": 1256.424063274188,
+        "K": 314.2857142857143,
+        "denominator": 254.01495840359263,
+        "requestInterval": [
+          3.2422151295367785,
+          14.16255871403697
+        ],
+        "conditionalFrontWithHeldRearAccelerationInterval": [
+          0.1548896485268235,
+          11.504303981384817
+        ],
+        "physicalStateBeforeSha256": "0256cac698b63dc9d166978bb504e8787556e990bb11a59db200efe8276c9a8a",
+        "physicalStateAfterSha256": "0256cac698b63dc9d166978bb504e8787556e990bb11a59db200efe8276c9a8a",
+        "physicalStateUnchanged": true,
+        "nativeAdmitted": 14.16255871403697,
+        "selected": 14.16255871403697,
+        "control": "native signed admission diagnostic"
+      },
+      "original": {
+        "lateral": 14.612475612834828,
+        "trim": 0.00012893692732340279,
+        "bar": -0.26359800116348325,
+        "delivered": 11.509078315384105,
+        "physical": {
+          "reaction": 9.042434862121619,
+          "psi": 1.316873740784342,
+          "steerRate": -0.01028307843371934,
+          "componentsNm": {
+            "reaction": 1326.3104602889157,
+            "lateral": -438.1054557804318,
+            "yawGyro": -141.42905595070866,
+            "steerGyro": 0.6788636103885752
+          },
+          "rollAcceleration": 6.336946444830147
+        },
+        "after": {
+          "speed": 32.46487971676067,
+          "lean": 1.2507595372371019,
+          "leanRate": 1.391863119844436,
+          "riderOffset": 0.17865389033985116,
+          "steer": -0.26359800116348325,
+          "frontLoad": 1157.850853992455,
+          "rearLoad": 1052.2267958437878,
+          "drive": 0,
+          "frontBrake": 0,
+          "rearBrake": 0,
+          "state": "lowside",
+          "crashes": 1
+        }
+      },
+      "diagnostic": {
+        "lateral": 14.16255871403697,
+        "trim": 0.00018542686930726407,
+        "bar": -0.2635678137302395,
+        "delivered": 11.509526633675819,
+        "physical": {
+          "reaction": 9.042434862121619,
+          "psi": 1.316873740784342,
+          "steerRate": -0.0030380944552232947,
+          "componentsNm": {
+            "reaction": 1326.3104602889157,
+            "lateral": -438.1225214988276,
+            "yawGyro": -141.42905595070866,
+            "steerGyro": 0.2005675424794381
+          },
+          "rollAcceleration": 6.332746751337609
+        },
+        "after": {
+          "speed": 32.464878809343894,
+          "lean": 1.2507594646894034,
+          "leanRate": 1.3918457083967948,
+          "riderOffset": 0.17865389033985116,
+          "steer": -0.2635678137302395,
+          "frontLoad": 1157.850853992455,
+          "rearLoad": 1052.2267958437878,
+          "drive": 0,
+          "frontBrake": 0,
+          "rearBrake": 0,
+          "state": "lowside",
+          "crashes": 1
+        }
+      },
+      "barInterval": [
+        -0.27355515500334276,
+        -0.25355515500334275
+      ]
+    },
+    {
+      "label": "firstFrontUnloaded",
+      "tick": 17949,
+      "substep": 1,
+      "originalProof": {
+        "once": true,
+        "target": true,
+        "reserve": true,
+        "barRequest": true,
+        "inverse": true,
+        "rear": true,
+        "plantInput": true,
+        "plantOutput": true,
+        "after": true
+      },
+      "mirrorTwoStepExact": true,
+      "queryNoOpTwoStepDynamicsExact": true,
+      "fallbackTwoStepExact": true,
+      "retainedController": {
+        "reaction": true,
+        "capacity": true,
+        "recovery": true,
+        "requestedTarget": true,
+        "supportCapacity": true,
+        "supportedLimit": true,
+        "target": true,
+        "measured": true,
+        "currentLateral": true,
+        "rolling": true,
+        "rateAhead": true,
+        "ahead": true,
+        "error": true,
+        "direction": true,
+        "stopping": true,
+        "effort": true,
+        "rate": true,
+        "demand": true,
+        "reserve": true
+      },
+      "samePedals": true,
+      "early": {
+        "phase": "inside the original early gpSteer, before trim, bar commit and pedal allocation",
+        "legacy": -0.4925,
+        "demand": -3.492405175216383,
+        "recovery": 0.4925,
+        "early": {
+          "speed": 39.5861797547073,
+          "v": 39.5861797547073,
+          "mass": 244.4314097434952,
+          "lean": 0.17868231552599184,
+          "frontLoad": 0,
+          "rearLoad": 2089.4079541951605,
+          "frontMu": 1.7670131819646966,
+          "rearMu": 1.7621286985155349,
+          "frontFx": 0,
+          "rearFx": 2398.757394299002,
+          "frontContact": 0,
+          "effectiveFrontLoad": 0,
+          "yawRate": 0.03600514903013602,
+          "dt": 0.004166666666666667
+        },
+        "fallback": "no loaded rolling front inverse",
+        "nativeProbe": null,
+        "selected": -0.4925,
+        "physicalStateUnchanged": true
+      },
+      "original": {
+        "lateral": -0.4925,
+        "trim": 0.0006550266048569649,
+        "bar": 0.004683491093554511,
+        "delivered": 0.946301289631236,
+        "physical": {
+          "reaction": 8.548033807879978,
+          "psi": 0.1999690479812673,
+          "steerRate": -2.4,
+          "componentsNm": {
+            "reaction": 257.32349647917954,
+            "lateral": -140.55180841162812,
+            "yawGyro": -4.320712996287904,
+            "steerGyro": 171.561352333631
+          },
+          "rollAcceleration": 2.4077118548454988
+        },
+        "after": {
+          "speed": 39.61904137310189,
+          "lean": 0.17448988867284368,
+          "leanRate": -1.2480134240678933,
+          "riderOffset": 0.05029907158939584,
+          "steer": 0.004683491093554511,
+          "frontLoad": 0,
+          "rearLoad": 2089.4079541951605,
+          "drive": 2359.01872327026,
+          "frontBrake": 0,
+          "rearBrake": 0,
+          "state": "riding",
+          "crashes": 0
+        }
+      },
+      "diagnostic": {
+        "lateral": -0.4925,
+        "trim": 0.0006550266048569649,
+        "bar": 0.004683491093554511,
+        "delivered": 0.946301289631236,
+        "physical": {
+          "reaction": 8.548033807879978,
+          "psi": 0.1999690479812673,
+          "steerRate": -2.4,
+          "componentsNm": {
+            "reaction": 257.32349647917954,
+            "lateral": -140.55180841162812,
+            "yawGyro": -4.320712996287904,
+            "steerGyro": 171.561352333631
+          },
+          "rollAcceleration": 2.4077118548454988
+        },
+        "after": {
+          "speed": 39.61904137310189,
+          "lean": 0.17448988867284368,
+          "leanRate": -1.2480134240678933,
+          "riderOffset": 0.05029907158939584,
+          "steer": 0.004683491093554511,
+          "frontLoad": 0,
+          "rearLoad": 2089.4079541951605,
+          "drive": 2359.01872327026,
+          "frontBrake": 0,
+          "rearBrake": 0,
+          "state": "riding",
+          "crashes": 0
+        }
+      },
+      "barInterval": [
+        0.004683491093554511,
+        0.024683491093554513
+      ]
+    },
+    {
+      "label": "firstRearUnloaded",
+      "tick": 18204,
+      "substep": 2,
+      "originalProof": {
+        "once": true,
+        "target": true,
+        "reserve": true,
+        "barRequest": true,
+        "inverse": true,
+        "rear": true,
+        "plantInput": true,
+        "plantOutput": true,
+        "after": true
+      },
+      "mirrorTwoStepExact": true,
+      "queryNoOpTwoStepDynamicsExact": true,
+      "fallbackTwoStepExact": null,
+      "retainedController": {
+        "reaction": true,
+        "capacity": true,
+        "recovery": true,
+        "requestedTarget": true,
+        "supportCapacity": true,
+        "supportedLimit": true,
+        "target": true,
+        "measured": true,
+        "currentLateral": true,
+        "rolling": true,
+        "rateAhead": true,
+        "ahead": true,
+        "error": true,
+        "direction": true,
+        "stopping": true,
+        "effort": true,
+        "rate": true,
+        "demand": true,
+        "reserve": true
+      },
+      "samePedals": true,
+      "early": {
+        "phase": "inside the original early gpSteer, before trim, bar commit and pedal allocation",
+        "legacy": 0.4925,
+        "demand": 14.592590292635053,
+        "recovery": 0.4925,
+        "early": {
+          "speed": 49.710762410087916,
+          "v": 49.710762410087916,
+          "mass": 244.4141945382203,
+          "lean": 0.5010775973610472,
+          "frontLoad": 1453.8557375219684,
+          "rearLoad": 0,
+          "frontMu": 1.5874139975634032,
+          "rearMu": 1.5835825201238385,
+          "frontFx": 0,
+          "rearFx": 0,
+          "frontContact": 1,
+          "effectiveFrontLoad": 1453.8557375219684,
+          "yawRate": 0.46554953703999785,
+          "dt": 0.004166666666666667
+        },
+        "nativeProbe": -0.021265247850764703,
+        "nativeProjectedSamples": [
+          -2276.726679115539,
+          -2265.8706673646907,
+          -2214.5857166229375,
+          -2101.7467010054092,
+          -1901.645321750947,
+          -1589.8089544317138,
+          -1154.5251297545447,
+          -609.8110306796533,
+          0,
+          610.2740345768891,
+          1156.2795193681352,
+          1593.4360144764396,
+          1907.4364990893393,
+          2109.758127306638,
+          2224.731348657126,
+          2278.002845434264,
+          2290.686240487283
+        ],
+        "neutralFrontForce": 0,
+        "reservedFrontForceInterval": [
+          -2208.4248787420725,
+          2221.9656532726644
+        ],
+        "rearArgs": [
+          0,
+          1.5835825201238385,
+          0.5010775973610472,
+          49.710762410087916,
+          0,
+          0.004166666666666667
+        ],
+        "heldRearPreview": 0,
+        "K": 314.2857142857143,
+        "denominator": 250.73648168588102,
+        "requestInterval": [
+          -8.224209321647312,
+          9.445299727159815
+        ],
+        "conditionalFrontWithHeldRearAccelerationInterval": [
+          -9.035583563035368,
+          9.090984496504781
+        ],
+        "physicalStateBeforeSha256": "84905e801d2fbd63a2e9d5320fd13ad97fded844336cbcead41838d9b2878d78",
+        "physicalStateAfterSha256": "84905e801d2fbd63a2e9d5320fd13ad97fded844336cbcead41838d9b2878d78",
+        "physicalStateUnchanged": true,
+        "nativeAdmitted": 9.445299727159815,
+        "selected": 9.445299727159815,
+        "control": "native signed admission diagnostic"
+      },
+      "original": {
+        "lateral": 0.4925,
+        "trim": -0.00007805146635147685,
+        "bar": 0.004871276152773902,
+        "delivered": 4.355065625094957,
+        "physical": {
+          "reaction": 5.948327756776915,
+          "psi": 0.6214604181616065,
+          "steerRate": -2.4,
+          "componentsNm": {
+            "reaction": 524.810443656131,
+            "lateral": -536.5607158303321,
+            "yawGyro": -110.5640792729199,
+            "steerGyro": 217.45841181214553
+          },
+          "rollAcceleration": 0.8066281355937205
+        },
+        "after": {
+          "speed": 49.70108521696315,
+          "lean": 0.5003111246580801,
+          "leanRate": -0.18395344871209393,
+          "riderOffset": 0.3,
+          "steer": 0.004871276152773902,
+          "frontLoad": 1453.8557375219684,
+          "rearLoad": 0,
+          "drive": 0,
+          "frontBrake": 0,
+          "rearBrake": 0,
+          "state": "riding",
+          "crashes": 0
+        }
+      },
+      "diagnostic": {
+        "lateral": 9.445299727159815,
+        "trim": -0.00007805146635147685,
+        "bar": 0.024871276152773902,
+        "delivered": 5.738288354506246,
+        "physical": {
+          "reaction": 5.948327756776915,
+          "psi": 0.6214604181616065,
+          "steerRate": 2.4,
+          "componentsNm": {
+            "reaction": 524.810443656131,
+            "lateral": -706.9790382475803,
+            "yawGyro": -114.36149905902988,
+            "steerGyro": -217.45841181214553
+          },
+          "rollAcceleration": -4.357577218034388
+        },
+        "after": {
+          "speed": 49.70059668381061,
+          "lean": 0.5002219154780111,
+          "leanRate": -0.20536365192865075,
+          "riderOffset": 0.3,
+          "steer": 0.024871276152773902,
+          "frontLoad": 1453.8557375219684,
+          "rearLoad": 0,
+          "drive": 0,
+          "frontBrake": 0,
+          "rearBrake": 0,
+          "state": "riding",
+          "crashes": 0
+        }
+      },
+      "barInterval": [
+        0.004871276152773902,
+        0.024871276152773902
+      ]
+    }
+  ],
+  "standalone": [
+    {
+      "derivedFrom": {
+        "label": "maximumRollForecastDifference",
+        "tick": 18274,
+        "substep": 2
+      },
+      "exactTwoStepParity": true
+    },
+    {
+      "derivedFrom": {
+        "label": "firstRearUnloaded",
+        "tick": 18204,
+        "substep": 2
+      },
+      "exactTwoStepParity": true
+    }
+  ],
+  "omitted": [
+    {
+      "label": "firstRecordedControl",
+      "tick": 17731,
+      "substep": 2,
+      "reason": "No retained row for exact original full-step proof"
+    },
+    {
+      "label": "firstOppositeEffortDirection",
+      "tick": 17858,
+      "substep": 1,
+      "reason": "No retained row for exact original full-step proof"
+    }
+  ]
+}
+(node:12) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:12) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time

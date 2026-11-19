@@ -1,0 +1,160 @@
+{
+  "sourceCommit": "ffd22598335dfa2a074ebd466e1d53830bb8bb41",
+  "sourceTree": "cc67121b209279498206e4d575251ff866683ba9",
+  "runId": 44617126580,
+  "runAttempt": 1,
+  "complete": true,
+  "accepted": false,
+  "expectedFiles": 694,
+  "observedFiles": 694,
+  "passedFiles": 692,
+  "failedFiles": 2,
+  "missingFiles": [],
+  "unexpectedFiles": [],
+  "duplicateFileAssignments": [],
+  "nativePartitionMatches": true,
+  "tests": 6757,
+  "passed": 6755,
+  "failed": 2,
+  "pending": 0,
+  "todo": 0,
+  "shards": [
+    {
+      "shard": 1,
+      "jobId": 135888698226,
+      "artifactId": 14576002723,
+      "conclusion": "success",
+      "files": 174,
+      "fileStatuses": {
+        "passed": 174
+      },
+      "tests": 1662,
+      "passed": 1662,
+      "failed": 0,
+      "pending": 0,
+      "todo": 0,
+      "nativeShardAssignmentMatches": true,
+      "durationSeconds": 592.62,
+      "defaultReporterSummary": [
+        "Test Files  174 passed (174)",
+        "Tests  1662 passed (1662)",
+        "Duration  592.62s (transform 5.35s, setup 0ms, collect 87.25s, tests 481.67s, environment 24ms, prepare 8.10s)"
+      ]
+    },
+    {
+      "shard": 2,
+      "jobId": 135888698481,
+      "artifactId": 14576028943,
+      "conclusion": "failure",
+      "files": 174,
+      "fileStatuses": {
+        "passed": 173,
+        "failed": 1
+      },
+      "tests": 1811,
+      "passed": 1810,
+      "failed": 1,
+      "pending": 0,
+      "todo": 0,
+      "nativeShardAssignmentMatches": true,
+      "durationSeconds": 976.17,
+      "defaultReporterSummary": [
+        "Test Files  1 failed | 173 passed (174)",
+        "Tests  1 failed | 1810 passed (1811)",
+        "Duration  976.17s (transform 7.43s, setup 0ms, collect 113.74s, tests 830.16s, environment 36ms, prepare 11.81s)"
+      ]
+    },
+    {
+      "shard": 3,
+      "jobId": 135888698707,
+      "artifactId": 14575148518,
+      "conclusion": "failure",
+      "files": 174,
+      "fileStatuses": {
+        "passed": 173,
+        "failed": 1
+      },
+      "tests": 1768,
+      "passed": 1767,
+      "failed": 1,
+      "pending": 0,
+      "todo": 0,
+      "nativeShardAssignmentMatches": true,
+      "durationSeconds": 410.93,
+      "defaultReporterSummary": [
+        "Test Files  1 failed | 173 passed (174)",
+        "Tests  1 failed | 1767 passed (1768)",
+        "Duration  410.93s (transform 5.53s, setup 0ms, collect 89.86s, tests 297.55s, environment 24ms, prepare 8.06s)"
+      ]
+    },
+    {
+      "shard": 4,
+      "jobId": 135888698377,
+      "artifactId": 14576142276,
+      "conclusion": "success",
+      "files": 172,
+      "fileStatuses": {
+        "passed": 172
+      },
+      "tests": 1516,
+      "passed": 1516,
+      "failed": 0,
+      "pending": 0,
+      "todo": 0,
+      "nativeShardAssignmentMatches": true,
+      "durationSeconds": 512.04,
+      "defaultReporterSummary": [
+        "Test Files  172 passed (172)",
+        "Tests  1516 passed (1516)",
+        "Duration  512.04s (transform 5.36s, setup 0ms, collect 91.42s, tests 396.55s, environment 26ms, prepare 8.22s)"
+      ]
+    }
+  ],
+  "failures": [
+    {
+      "shard": 2,
+      "file": "tests/gp-tyre-contact.test.ts",
+      "caseIndex": 21,
+      "ancestorTitles": [
+        "GP contact grip in production races"
+      ],
+      "fullName": "GP contact grip in production races classifies all eight GP riders at 'poggio-alto' in 'rain' without a contact or crash",
+      "status": "failed",
+      "title": "classifies all eight GP riders at 'poggio-alto' in 'rain' without a contact or crash",
+      "duration": 84448.03291300002,
+      "failureMessages": [
+        "AssertionError: expected 0.9916666666666667 to be +0 // Object.is equality\n    at /home/runner/work/Experiment-3/Experiment-3/tests/gp-tyre-contact.test.ts:294:22\n    at file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20"
+      ],
+      "meta": {}
+    },
+    {
+      "shard": 3,
+      "file": "tests/bike-session.test.ts",
+      "caseIndex": 13,
+      "ancestorTitles": [
+        "WP35 seeded AI bike race"
+      ],
+      "fullName": "WP35 seeded AI bike race finishes a mixed GP/superbike race with bounded incidents and no stuck rider",
+      "status": "failed",
+      "title": "finishes a mixed GP/superbike race with bounded incidents and no stuck rider",
+      "duration": 14593.66429,
+      "failureMessages": [
+        "AssertionError: expected 91.13427179346363 to be less than 90.36337145755091\n    at /home/runner/work/Experiment-3/Experiment-3/tests/bike-session.test.ts:367:16\n    at file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26\n    at file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runTest (file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1574:12)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at runSuite (file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1729:8)\n    at runSuite (file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1729:8)"
+      ],
+      "meta": {}
+    }
+  ],
+  "repeatedNativeCaseTitles": [
+    {
+      "file": "tests/motocross-equipment-surface.test.ts",
+      "fullName": "motocross equipment surface and ownership chamfered lugs preserve the 0.352 m physical tyre contact envelope",
+      "occurrences": 2
+    },
+    {
+      "file": "tests/motocross-equipment-surface.test.ts",
+      "fullName": "motocross equipment surface and ownership chamfered lugs preserve the 0.338 m physical tyre contact envelope",
+      "occurrences": 2
+    }
+  ],
+  "caseIdentity": "repository file plus zero-based assertionResults index; titles are never deduplicated"
+}

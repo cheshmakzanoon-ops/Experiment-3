@@ -1,0 +1,118 @@
+{
+  "sourceCommit": "ffd22598335dfa2a074ebd466e1d53830bb8bb41",
+  "files": {
+    ".github/workflows/ci.yml": {
+      "blob": "314e510b26c9387d93c58bc6db8f1194037ed0f9",
+      "bytes": 22913,
+      "sha256": "45986425f646d5815c9b17cea388a342dd5d7c77494cedb930241730102384ae"
+    },
+    "vitest.config.ts": {
+      "blob": "a44508482d99f78b2c8c72108ad77b2cfac9784f",
+      "bytes": 408,
+      "sha256": "c330c0a749e72759e4415b48a1a3edb676d12c9e96b0d4bc5bf0b156e1bcdaad"
+    },
+    "package.json": {
+      "blob": "0bf0f7b00946143bb578cc375cabc9f215ea4bef",
+      "bytes": 5195,
+      "sha256": "9f6a7789a1676b0e56188e15e9c6a0d47ce73810ec5f0bd78594c6d969e2d6ad"
+    },
+    "package-lock.json": {
+      "blob": "ce64111d5f01cf64c1a386af1abdace633b23db3",
+      "bytes": 118958,
+      "sha256": "d85b97d2e51497b62414087966db13b740b174fe4b96663d29447644948d2969"
+    },
+    "scripts/source-stability.ts": {
+      "blob": "f25e0f02d559e4fc69c69656fee459763a85566c",
+      "bytes": 3430,
+      "sha256": "07b7b0b7d277172516fe75502d917dfbf31b9c628c8d562cf9cb0182f80bca34"
+    },
+    "tests/gp-tyre-contact.test.ts": {
+      "blob": "9a27ddb37733234200d43a1530489248455be701",
+      "bytes": 12092,
+      "sha256": "e3e67c87d1bf99f2dcd1761efd9c1ad3ca66f30da2ba332607d621e1f8e0ecc4"
+    },
+    "tests/bike-session.test.ts": {
+      "blob": "0fd48a47d8723fc658dcacce0881c1dda425e7ab",
+      "bytes": 15258,
+      "sha256": "28b653c92029c494cd11ec713ab21c9eae1808af8c378afc1590d60590df09ae"
+    }
+  },
+  "vitestLock": {
+    "version": "3.2.4",
+    "resolved": "https://registry.npmjs.org/vitest/-/vitest-3.2.4.tgz",
+    "integrity": "sha512-LUCP5ev3GURDysTWiP47wRRUpLKMOfPh+yKTx3kVIEiu5KOMeqzpnYNsKyOoVrULivR8tLcks4+lga33Whn90A==",
+    "dev": true,
+    "license": "MIT",
+    "dependencies": {
+      "@types/chai": "^5.2.2",
+      "@vitest/expect": "3.2.4",
+      "@vitest/mocker": "3.2.4",
+      "@vitest/pretty-format": "^3.2.4",
+      "@vitest/runner": "3.2.4",
+      "@vitest/snapshot": "3.2.4",
+      "@vitest/spy": "3.2.4",
+      "@vitest/utils": "3.2.4",
+      "chai": "^5.2.0",
+      "debug": "^4.4.1",
+      "expect-type": "^1.2.1",
+      "magic-string": "^0.30.17",
+      "pathe": "^2.0.3",
+      "picomatch": "^4.0.2",
+      "std-env": "^3.9.0",
+      "tinybench": "^2.9.0",
+      "tinyexec": "^0.3.2",
+      "tinyglobby": "^0.2.14",
+      "tinypool": "^1.1.1",
+      "tinyrainbow": "^2.0.0",
+      "vite": "^5.0.0 || ^6.0.0 || ^7.0.0-0",
+      "vite-node": "3.2.4",
+      "why-is-node-running": "^2.3.0"
+    },
+    "bin": {
+      "vitest": "vitest.mjs"
+    },
+    "engines": {
+      "node": "^18.0.0 || ^20.0.0 || >=22.0.0"
+    },
+    "funding": {
+      "url": "https://opencollective.com/vitest"
+    },
+    "peerDependencies": {
+      "@edge-runtime/vm": "*",
+      "@types/debug": "^4.1.12",
+      "@types/node": "^18.0.0 || ^20.0.0 || >=22.0.0",
+      "@vitest/browser": "3.2.4",
+      "@vitest/ui": "3.2.4",
+      "happy-dom": "*",
+      "jsdom": "*"
+    },
+    "peerDependenciesMeta": {
+      "@edge-runtime/vm": {
+        "optional": true
+      },
+      "@types/debug": {
+        "optional": true
+      },
+      "@types/node": {
+        "optional": true
+      },
+      "@vitest/browser": {
+        "optional": true
+      },
+      "@vitest/ui": {
+        "optional": true
+      },
+      "happy-dom": {
+        "optional": true
+      },
+      "jsdom": {
+        "optional": true
+      }
+    }
+  },
+  "nativeSequencerModule": {
+    "path": "node_modules/vitest/dist/chunks/coverage.DL5VHqXY.js",
+    "sha256": "2c463b7deb10ed2969658c14e564f55d32b1d7ba2c105a78c82434f7f6853f3a",
+    "shardMethod": "\tasync shard(files) {\n\t\tconst { config } = this.ctx;\n\t\tconst { index, count } = config.shard;\n\t\tconst shardSize = Math.ceil(files.length / count);\n\t\tconst shardStart = shardSize * (index - 1);\n\t\tconst shardEnd = shardSize * index;\n\t\treturn [...files].map((spec) => {\n\t\t\tconst fullPath = resolve$1(slash(config.root), slash(spec.moduleId));\n\t\t\tconst specPath = fullPath?.slice(config.root.length);\n\t\t\treturn {\n\t\t\t\tspec,\n\t\t\t\thash: hash(\"sha1\", specPath, \"hex\")\n\t\t\t};\n\t\t}).sort((a, b) => a.hash < b.hash ? -1 : a.hash > b.hash ? 1 : 0).slice(shardStart, shardEnd).map(({ spec }) => spec);\n\t}"
+  }
+}
