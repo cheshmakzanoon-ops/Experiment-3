@@ -2,6 +2,7 @@ import * as T from 'three';
 import type { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import type { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import type { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { cacheRetainedArrayUniforms } from './uniform-array-cache.ts';
 
 /** Borrow renderables without reparenting them. Three's compilation traverses
  * invisible objects too, so keep inactive bike LODs and service parts. Only
@@ -298,7 +299,8 @@ function compileTarget(
       if (preparation?.cancelled()) return compiled;
       const retained = new Set(renderer.info.programs ?? []);
       for (const program of programs)
-        if (retained.has(program) && program.usedTimes > 0) program.getUniforms();
+        if (retained.has(program) && program.usedTimes > 0)
+          cacheRetainedArrayUniforms(renderer, program.getUniforms());
       return compiled;
     });
   } finally {
