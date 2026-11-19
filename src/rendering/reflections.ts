@@ -4,6 +4,7 @@ import { STUDIO_REFLECTION_LAYER } from './photo-stage.ts';
 import { cullProbeDetail, type ProbeDetail } from './probe-detail.ts';
 import { hasSpecularIBL, setOwnEnvMap } from './studio/ibl-energy.ts';
 import { compileProbeBackground, compileProbeBlur } from './pmrem-preparation.ts';
+import { prepareProbeGeometry } from './geometry-preparation.ts';
 
 /** Local probe face size (High). 256 px keeps a 0.04 clearcoat's horizon line
  * crisp; draws per face are unchanged. */
@@ -438,7 +439,8 @@ export class ReflectionSystem {
     this.pendingFace = -1;
     const cube = this.cubes[this.nextTarget];
     const visible = car.visible;
-    const mirrorVisibility = this.mirrors.map((m) => m.visible);
+    const mirrors = [...this.mirrors],
+      mirrorVisibility = mirrors.map((m) => m.visible);
     const shadows = renderer.shadowMap.autoUpdate;
     const target = renderer.getRenderTarget();
     const face = renderer.getActiveCubeFace();
@@ -460,7 +462,7 @@ export class ReflectionSystem {
     }));
     this.activePass = true;
     try {
-      this.mirrors.forEach((mirror) => {
+      mirrors.forEach((mirror) => {
         mirror.visible = false;
       });
       car.visible = false;
@@ -487,6 +489,14 @@ export class ReflectionSystem {
       // The ordinary visible sky is restored even if a cube face throws.
       if (skyScale) skyScale.value = scene.environmentIntensity * this.specularGain;
       cube.position.copy(this.probeEye);
+      // Prepare the same first-capture geometry before any face queues real
+      // draws. Native per-face traversal otherwise interleaves cold vertex
+      // arrays and deferred index uploads with already submitted cube work.
+      if (
+        !this.sceneryResident &&
+        !prepareProbeGeometry(renderer, scene, cube, () => this.disposed)
+      )
+        return;
       if (from === 0 && to === 6) cube.update(renderer, scene);
       else this.renderFaces(renderer, scene, cube, from, to);
       if (to === 6) {
@@ -521,7 +531,7 @@ export class ReflectionSystem {
       renderer.setViewport(viewport);
       renderer.setScissor(scissor);
       renderer.setScissorTest(scissorTest);
-      this.mirrors.forEach((mirror, i) => {
+      mirrors.forEach((mirror, i) => {
         mirror.visible = mirrorVisibility[i];
       });
       this.activePass = false;
