@@ -1,0 +1,11 @@
+--- candidate/src/rendering/renderer.ts
++++ priority10-control/src/rendering/renderer.ts
+@@ -2465,7 +2465,7 @@
+    * Registering after the bake discarded its uploaded owners and left the
+    * retained shadow sampling different foliage mips from the visible scene. */
+   private queueStaticScenePreparation() {
+-    this.circuit.construction.add('Scene texture budget', 8, () =>
++    this.circuit.construction.add('Scene texture budget', 10, () =>
+       this.textures.register(this.circuit.group),
+     );
+     this.circuit.construction.add('Far sun shadow', 9, () => this.bakeFarShadow(this.lighting));

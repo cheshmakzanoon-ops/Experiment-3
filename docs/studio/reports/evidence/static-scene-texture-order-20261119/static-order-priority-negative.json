@@ -1,0 +1,24 @@
+{
+  "mutation": "Only scene texture registration priority changes from 8 to 10, after the unchanged priority-9 far bake. Test source is unchanged.",
+  "command": [
+    "node",
+    "--experimental-transform-types",
+    "scripts/source-stability.ts",
+    "--",
+    "npx",
+    "vitest",
+    "run",
+    "tests/static-scene-texture-order.test.ts",
+    "-t",
+    "binds final owners"
+  ],
+  "exitCode": 1,
+  "candidateSourceSha256": "6017c26a41a7e618d1c661fb544f701e034c88aeff419667fda0d02389fc0b61",
+  "mutatedSourceSha256": "e1355fc69b82fa1e7bd8ad977d8d6764ebfa10684a4e9c8ca86aea7daa949a46",
+  "restoredExactly": true,
+  "log": {
+    "bytes": 18946,
+    "sha256": "803cb5ec8c70a0ce6570ca1aaf683358ee374089514cc571fdb43a124e820a2f"
+  },
+  "expectedFailure": true
+}

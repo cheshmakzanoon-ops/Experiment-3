@@ -1,0 +1,152 @@
+{
+  "recordedAt": "2026-11-19T21:52:01.850966+00:00",
+  "baseCommit": "4b9d6bb70f1443930ae674e610dc14d61e187ee3",
+  "baseTree": "365f4a448d3335e8ea111605471a80f457ba1a0a",
+  "branch": "studio/static-texture-budget-order-20261119",
+  "node": "v24.22.3",
+  "threeVersion": "0.180.0",
+  "sources": {
+    "src/rendering/renderer.ts": {
+      "bytes": 133789,
+      "sha256": "6017c26a41a7e618d1c661fb544f701e034c88aeff419667fda0d02389fc0b61"
+    },
+    "src/rendering/build-queue.ts": {
+      "bytes": 3409,
+      "sha256": "7911310d0371e8e6f791cc625c694098c37f8dd3fb4f38f66afda1c45f6daa10"
+    },
+    "src/rendering/texture-budget.ts": {
+      "bytes": 7921,
+      "sha256": "960359fece98f727bd6078d50c17f47c6849a106e030241aa0c82a20fb58406f"
+    },
+    "src/rendering/imported-texture-budget.ts": {
+      "bytes": 6153,
+      "sha256": "06474e8906e7cc6debc447eab9c53eea3bfeded9c0334555bec15329206ba239"
+    },
+    "src/rendering/far-shadow.ts": {
+      "bytes": 14587,
+      "sha256": "9d7d2f48cee396a39e9223fa47f81dc9c2625442436aa607e8c25ad5f95cccaf"
+    },
+    "tests/scene-texture-preparation.test.ts": {
+      "bytes": 11808,
+      "sha256": "a33d467d43c9a5f56f53ae42ad3f1de12efacf90f6a4f0d883ecbe26fa8123fb"
+    },
+    "tests/helpers/native-texture-cache.ts": {
+      "bytes": 8805,
+      "sha256": "7ef4fa3c49921225eec9bfd01b266e3ef95320274d8350c62af82e5c868877b1"
+    },
+    "tests/static-scene-texture-order.test.ts": {
+      "bytes": 17439,
+      "sha256": "4d6155714d1634270b43f99e0e1da17e8d13ffe4899fbdfccdd12ee09a30f1d7"
+    },
+    "e2e/graphics-high-journey.spec.ts": {
+      "bytes": 36263,
+      "sha256": "8145efd6bf378e614ea605d69da12984b232ab5311a2981e895cf6c017dc3497"
+    },
+    ".github/workflows/graphics-high-diagnostic.yml": {
+      "bytes": 6617,
+      "sha256": "9ee2fdb2e0414afec25b6d3775835bc29c5ae6c82b7dacbfc408131a14b7cdfa"
+    }
+  },
+  "nativeModules": {
+    "node_modules/three/src/renderers/WebGLRenderer.js": {
+      "bytes": 102861,
+      "sha256": "35cea4871231c3fddc3517dcd03fc876bdb8f9e73f1a77042b35e3de0498c4cd"
+    },
+    "node_modules/three/src/renderers/webgl/WebGLShadowMap.js": {
+      "bytes": 11870,
+      "sha256": "7c157a05d05d1f3f4d1090dbb923a6f14f0f03e799d64680d278d2a55f915041"
+    },
+    "node_modules/three/src/renderers/webgl/WebGLMaterials.js": {
+      "bytes": 13988,
+      "sha256": "7f388b17feb29d5bfac07d6f9fcda3bc0ccb9e2ea5c8ed72a79550fa20007395"
+    },
+    "node_modules/three/src/renderers/webgl/WebGLUniforms.js": {
+      "bytes": 20800,
+      "sha256": "5d856cbcb1fa946d82fd1ad5caee985a40128a5a09ae63d9897221b97175b6be"
+    },
+    "node_modules/three/src/renderers/webgl/WebGLTextures.js": {
+      "bytes": 66805,
+      "sha256": "b163f0d958d36ed9985ebecfa8b69e6496642bb26e56a5af1b499a92b350ff79"
+    }
+  },
+  "logs": {
+    "static-order-lint.log": {
+      "bytes": 273,
+      "sha256": "9d3c522dc63d469779a7ee38f55b22fc0473f88e04848cbd92c319671e8f5097"
+    },
+    "static-order-priority-negative.json": {
+      "bytes": 760,
+      "sha256": "f9022d268defb4314519cb478be1cee900b08223e61b768f73aac856880e1d3e"
+    },
+    "static-order-priority-negative.log": {
+      "bytes": 18946,
+      "sha256": "803cb5ec8c70a0ce6570ca1aaf683358ee374089514cc571fdb43a124e820a2f"
+    },
+    "static-order-priority-negative.patch": {
+      "bytes": 605,
+      "sha256": "fd959cf1758f7c5a25750ff90356e223c766158555aa1f85e665653c8c60f2d1"
+    },
+    "static-order-tests.log": {
+      "bytes": 2768,
+      "sha256": "0f3c08dd3fc66bc33cd9c226f70f6ce2b22f8c032f3e7a1edb55a9eac703a438"
+    },
+    "static-order-typecheck.log": {
+      "bytes": 273,
+      "sha256": "9d3c522dc63d469779a7ee38f55b22fc0473f88e04848cbd92c319671e8f5097"
+    }
+  },
+  "checks": [
+    {
+      "command": "node --experimental-transform-types scripts/source-stability.ts -- npx vitest run tests/static-scene-texture-order.test.ts tests/scene-texture-preparation.test.ts tests/startup.test.ts tests/build-queue.test.ts tests/far-shadow.test.ts tests/canvas-texture-budget.test.ts tests/imported-render-budget.test.ts tests/vegetation-quality-transition.test.ts tests/foliage-coverage.test.ts",
+      "exitCode": 0,
+      "testFiles": 9,
+      "passed": 107,
+      "failed": 0,
+      "durationSeconds": 46.08,
+      "log": "static-order-tests.log"
+    },
+    {
+      "command": "node --experimental-transform-types scripts/source-stability.ts -- npx tsc --noEmit",
+      "exitCode": 0,
+      "log": "static-order-typecheck.log"
+    },
+    {
+      "command": "node --experimental-transform-types scripts/source-stability.ts -- npx eslint src/rendering/renderer.ts tests/scene-texture-preparation.test.ts tests/helpers/native-texture-cache.ts tests/static-scene-texture-order.test.ts",
+      "exitCode": 0,
+      "log": "static-order-lint.log"
+    }
+  ],
+  "newFixtureCases": 7,
+  "nativeFixture": {
+    "textureWrappers": 4,
+    "distinctSources": 2,
+    "configuredLimit": 8,
+    "configuredAnisotropy": 16,
+    "originalOrder": {
+      "sampledTextureAllocations": 4,
+      "sampledTextureDeletionsBeforeTeardown": 2,
+      "payloadUploads": 7
+    },
+    "priority8Order": {
+      "sampledTextureAllocations": 2,
+      "sampledTextureDeletionsBeforeTeardown": 0,
+      "payloadUploads": 5
+    },
+    "finalColourPolicyEqual": true,
+    "farNearColourOwnerAndPolicyEqualAfterCorrection": true
+  },
+  "existingTenNativeCasesUnchanged": true,
+  "originalHighTestUnchanged": true,
+  "originalIsolatedWorkflowUnchanged": true,
+  "mutationNegative": {
+    "receipt": "static-order-priority-negative.json",
+    "exitCode": 1,
+    "failed": 2,
+    "filteredOut": 5,
+    "restoredExactly": true,
+    "restoredRendererMatchesPositive": true
+  },
+  "browserRunForFollowup": null,
+  "validationScope": "Actual production scheduling and bake entry points, real BuildQueue and TextureBudget, installed Three shadow/material/uniform/texture consumers; deterministic fixture rasterization and recorded native GL calls. No driver pixels, hosted timing, full-scene duplicate-transfer count or physical-GPU claim.",
+  "remainingAcceptance": "Original High paused readiness, completed chase/cockpit work, driving and photo views on this source; component/menu/gameplay regression gates."
+}
