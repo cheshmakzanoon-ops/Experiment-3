@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44509609068
-- commit: `44a6d8cfca` · Prepare retained reflection shaders before scene rendering
-- event: push · status: completed · conclusion: **success**
-- started: 2026-11-19T10:52:07Z · updated: 2026-11-19T11:07:32Z
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44516038722
+- commit: `2d67572a9a` · Prepare native reflection blur and scene shader metadata before drawing
+- event: push · status: completed · conclusion: **failure**
+- started: 2026-11-19T11:34:29Z · updated: 2026-11-19T11:50:09Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (night) | success | 13 |  |
-| browser (day) | success | 9 |  |
-| browser (sunset) | success | 11 |  |
+| browser (night) | cancelled | 15 | First complete cockpit frame, all shadow submissions, unchanged budget |
+| browser (day) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
+| browser (sunset) | failure | 9 | First complete cockpit frame, all shadow submissions, unchanged budget |
