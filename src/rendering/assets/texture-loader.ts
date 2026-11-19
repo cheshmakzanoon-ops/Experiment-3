@@ -2,6 +2,7 @@ import * as T from 'three';
 import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
 import { assetUrl, thirdPartyAsset, type ShippedFile } from './third-party.ts';
 import { disposeNormalResidency } from '../ground/normal-residency.ts';
+import { markSharedTextureSource } from './texture-source-ownership.ts';
 
 /**
  * PBR texture sets from the third-party manifest.
@@ -104,6 +105,7 @@ function loadRole(renderer: T.WebGLRenderer, files: ShippedFile[], prefer: 'ktx2
           texture.name = file.path;
           texture.wrapS = texture.wrapT = T.RepeatWrapping;
           texture.needsUpdate = true;
+          markSharedTextureSource(texture);
           return { texture, format: file.format as 'ktx2' | 'webp' };
         } catch (error) {
           console.warn(

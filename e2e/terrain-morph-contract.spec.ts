@@ -106,7 +106,9 @@ test('Festival native geomorph agrees across material, normal, depth and far-sha
     expect(cleanup.listenersRemoved).toBe(1);
     expect(cleanup.children).toBe(0);
     expect(cleanup.resident).toBe(0);
-    expect(cleanup.requested).toBe(0);
+    expect(cleanup.totalRequests).toBeGreaterThan(0);
+    expect(cleanup.retainedTotalRequests).toBe(cleanup.totalRequests);
+    expect(cleanup.pendingRequests).toBe(0);
     expect(cleanup.morphBytes).toBe(0);
   }
 });

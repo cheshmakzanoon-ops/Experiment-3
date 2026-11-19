@@ -112,6 +112,7 @@ import {
 import { prewarmSky, skySunKey } from './sky-light.ts';
 import { PhotoSky } from './assets/photo-sky.ts';
 import { disposeTextureLoaders } from './assets/texture-loader.ts';
+import { disposeSceneTexture } from './assets/texture-source-ownership.ts';
 import { scannedGround } from './ground/scan-store.ts';
 import { setMxQuality } from './offroad/mx-quality.ts';
 import type { MxMeadowTransition } from './offroad/mx-meadow.ts';
@@ -2891,10 +2892,7 @@ export class RacingRenderer {
     for (const skeleton of skeletons) skeleton.dispose();
     for (const g of geometries) g.dispose();
     for (const m of materials) m.dispose();
-    for (const t of textures) {
-      t.dispose();
-      if (typeof ImageBitmap !== 'undefined' && t.image instanceof ImageBitmap) t.image.close();
-    }
+    for (const t of textures) disposeSceneTexture(t);
     this.circuit.stateTexture.dispose();
     this.environment.dispose();
     this.photoSky?.dispose();

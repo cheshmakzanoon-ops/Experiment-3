@@ -69,6 +69,7 @@ function tileData(request: TileRequest): TileMeshData {
 
 function stream(maxTiles: number) {
   const pending = new Map<number, TileRequest>();
+  let lastRequest: TileRequest | undefined;
   let receive: (event: MessageEvent<FromTileWorker>) => void = () => {},
     removed = 0;
   const worker = {
@@ -87,10 +88,14 @@ function stream(maxTiles: number) {
     for (const request of [...pending.values()]) {
       if (!accept(request)) continue;
       pending.delete(request.id);
+      lastRequest = request;
       receive({ data: tileData(request) } as MessageEvent<FromTileWorker>);
     }
   };
-  return { terrain, camera, pending, deliver, removed: () => removed };
+  const deliverStale = () => {
+    if (lastRequest) receive({ data: tileData(lastRequest) } as MessageEvent<FromTileWorker>);
+  };
+  return { terrain, camera, pending, deliver, deliverStale, removed: () => removed };
 }
 
 const visible = (terrain: TerrainStreamer) =>
@@ -440,9 +445,16 @@ export function capture() {
       mesh.geometry.addEventListener('dispose', () => geometriesDisposed++);
     owner.terrain.material.addEventListener('dispose', () => materialDisposals++);
     const geometries = meshes.length;
+    // requested counts lifetime submissions, not outstanding work. Preserve
+    // that diagnostic and inspect the actual worker queue after cancellation.
+    const totalRequests = owner.terrain.stats.requested;
     owner.terrain.dispose();
     owner.terrain.dispose();
+    const pendingRequests = owner.pending.size;
     owner.deliver();
+    // Emulate a callback already queued before removeEventListener. It must
+    // not recreate a mesh, change residency, or dispose the material again.
+    owner.deliverStale();
     return {
       geometries,
       geometriesDisposed,
@@ -450,7 +462,9 @@ export function capture() {
       listenersRemoved: owner.removed(),
       children: owner.terrain.root.children.length,
       resident: owner.terrain.stats.resident,
-      requested: owner.terrain.stats.requested,
+      totalRequests,
+      retainedTotalRequests: owner.terrain.stats.requested,
+      pendingRequests,
       morphBytes: owner.terrain.stats.morphBytes,
     };
   });

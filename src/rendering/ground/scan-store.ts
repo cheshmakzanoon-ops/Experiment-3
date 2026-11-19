@@ -3,6 +3,7 @@ import { loadPbrSet, type PbrSet } from '../assets/texture-loader.ts';
 import { thirdPartyAsset } from '../assets/third-party.ts';
 import type { QualityPreset } from '../options.ts';
 import { expandSampledNormal } from './normal-residency.ts';
+import { markSharedTextureSource } from '../assets/texture-source-ownership.ts';
 
 /**
  * Photographed ground sets (assets/third-party/sources/ground.json, plus the
@@ -238,6 +239,9 @@ export class ScanStore {
   adopt(layer: ScanLayer, set: PbrSet) {
     const id = SCAN_LAYERS[layer];
     if (!set.maps.map || !set.maps.normalMap) throw new Error(`${id}: colour or normal missing`);
+    // Map-swap materials clone these handles, sharing the decoded pixels.
+    // Neither a material nor a renderer teardown owns this page cache's images.
+    for (const texture of Object.values(set.maps)) if (texture) markSharedTextureSource(texture);
     const info = thirdPartyAsset(id)?.texture;
     const mean = info?.meanColor ?? [0.5, 0.5, 0.5];
     const u = this.uniforms[layer];
