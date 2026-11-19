@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44492180726
-- commit: `414c9ac352` · Guard retired GPU preparation and stabilize road-bike contact control
-- event: push · status: completed · conclusion: **failure**
-- started: 2026-11-19T08:58:31Z · updated: 2026-11-19T09:12:34Z
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44495022973
+- commit: `b7540527d9` · Resume retained ground normals after renderer replacement
+- event: push · status: completed · conclusion: **cancelled**
+- started: 2026-11-19T09:17:18Z · updated: 2026-11-19T09:32:55Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
+| browser (sunset) | cancelled | 15 | First complete cockpit frame, all shadow submissions, unchanged budget |
 | browser (night) | success | 13 |  |
-| browser (sunset) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
-| browser (day) | success | 13 |  |
+| browser (day) | cancelled | 15 | First complete cockpit frame, all shadow submissions, unchanged budget |
