@@ -30,7 +30,7 @@ it('reuses the exact installed Three conversion handle and first-use metadata be
     previous = h.state();
   reflection.beginProbePreparation(h.renderer, target);
   expect(h.state()).toEqual(previous);
-  expect(h.created).toHaveLength(2);
+  expect(h.created).toHaveLength(3);
   expect(h.queries).toEqual([]);
   expect(h.render).not.toHaveBeenCalled();
   await Promise.resolve(); // The existing photographed-asset wait.
@@ -39,6 +39,9 @@ it('reuses the exact installed Three conversion handle and first-use metadata be
     handle = warmed.program;
   expect(warmed.usedTimes).toBe(1);
   expect(h.queries.map((query) => query.kind)).toEqual([
+    'program-log',
+    'shader-log',
+    'shader-log',
     'program-log',
     'shader-log',
     'shader-log',
@@ -180,11 +183,12 @@ it('prepares once across repeated quality entry and selects its linear reference
   reflection.completeProbePreparation();
   reflection.beginProbePreparation(h.renderer, target);
   reflection.completeProbePreparation();
-  expect(h.created).toHaveLength(3);
+  expect(h.created).toHaveLength(4);
   expect(linearProgram.usedTimes).toBe(1);
   expect(h.queries.filter((query) => query.kind === 'program-log')).toEqual([
     { kind: 'program-log', program: linearProgram.program, stage: 'before-scene' },
     { kind: 'program-log', program: h.cache.programs[2].program, stage: 'before-scene' },
+    { kind: 'program-log', program: h.cache.programs[3].program, stage: 'before-scene' },
   ]);
   reflection.dispose();
   canvasOwner.dispose();
@@ -227,9 +231,9 @@ it('does no late work after disposal and gives a replacement renderer its own li
     replacement = new ReflectionSystem();
   replacement.beginProbePreparation(next.renderer, target);
   replacement.completeProbePreparation();
-  expect(next.created).toHaveLength(2);
+  expect(next.created).toHaveLength(3);
   expect(next.created[0]).not.toBe(old.created[0]);
-  expect(next.queries.filter((query) => query.kind === 'program-log')).toHaveLength(2);
+  expect(next.queries.filter((query) => query.kind === 'program-log')).toHaveLength(3);
   expect(() => replacement.beginProbePreparation(old.renderer, target)).toThrow(
     'Reflection preparation belongs to another renderer',
   );

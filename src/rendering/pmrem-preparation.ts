@@ -35,3 +35,32 @@ export function compileProbeBlur(generator: T.PMREMGenerator, size: number) {
     unusedOutput.dispose();
   }
 }
+
+/** r180's fromScene creates and disposes a background material for every sky
+ * bin. Keep an equivalent native MeshBasicMaterial owner alive so the next bin
+ * reuses its linked program and first-use metadata. There are no shader copies
+ * or draws here; the native-consumer regression checks the complete cache key
+ * and shader sources against fromScene's own temporary material. */
+export function compileProbeBackground(renderer: T.WebGLRenderer) {
+  if (T.REVISION !== '180')
+    throw new Error('Reflection background preparation requires Three r180');
+  const material = new T.MeshBasicMaterial({
+    name: 'PMREM.Background',
+    side: T.BackSide,
+    depthWrite: false,
+    depthTest: false,
+  });
+  const geometry = new T.BoxGeometry();
+  const toneMapping = renderer.toneMapping;
+  try {
+    renderer.toneMapping = T.NoToneMapping;
+    renderer.compile(new T.Mesh(geometry, material), new T.PerspectiveCamera(90, 1, 0.1, 700000));
+    return material;
+  } catch (error) {
+    material.dispose();
+    throw error;
+  } finally {
+    geometry.dispose();
+    renderer.toneMapping = toneMapping;
+  }
+}

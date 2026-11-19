@@ -1,0 +1,59 @@
+{
+  "at": "2026-11-19T20:41:11.975676+00:00",
+  "sourceBase": "872fa9d06edbcbb57b47167f0c99a660bb9bb3ef",
+  "checks": [
+    {
+      "name": "focused-tests",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npx",
+        "vitest",
+        "run",
+        "tests/pmrem-background-preparation.test.ts",
+        "tests/reflection-preparation.test.ts",
+        "tests/reflections.test.ts",
+        "tests/startup.test.ts",
+        "tests/scene-ambient-preparation.test.ts"
+      ],
+      "exitCode": 0,
+      "seconds": 15.344406447999063,
+      "log": "focused-tests.log"
+    },
+    {
+      "name": "lint",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npx",
+        "eslint",
+        "src/rendering/pmrem-preparation.ts",
+        "src/rendering/reflections.ts",
+        "tests/pmrem-background-preparation.test.ts",
+        "tests/reflection-preparation.test.ts"
+      ],
+      "exitCode": 0,
+      "seconds": 3.741079774001264,
+      "log": "lint.log"
+    },
+    {
+      "name": "typecheck",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npx",
+        "tsc",
+        "--noEmit"
+      ],
+      "exitCode": 0,
+      "seconds": 36.376468953007134,
+      "log": "typecheck.log"
+    }
+  ]
+}
