@@ -1,0 +1,47 @@
+{
+  "commit": "152643b15f9b3b591e3477374c6b81f2e8b13bc9",
+  "runId": 44502345613,
+  "jobId": 135485439756,
+  "runUrl": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44502345613",
+  "jobUrl": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44502345613/job/135485439756",
+  "command": "node --experimental-transform-types scripts/source-stability.ts -- npm test",
+  "complete": true,
+  "exitCode": 1,
+  "files": {
+    "total": 691,
+    "passed": 689,
+    "failed": 2
+  },
+  "tests": {
+    "total": 6734,
+    "passed": 6732,
+    "failed": 2
+  },
+  "durationSeconds": 2575.0,
+  "failures": [
+    {
+      "test": "tests/bike-session.test.ts > WP35 seeded AI bike race > finishes a mixed GP/superbike race with bounded incidents and no stuck rider",
+      "observed": {
+        "gpBestLapSeconds": 91.13427179346363,
+        "sbkBestLapSeconds": 90.36337145755091
+      },
+      "originalRequirement": "GP faster than SBK with a margin greater than 0.15 seconds"
+    },
+    {
+      "test": "tests/gp-tyre-contact.test.ts > GP contact grip in production races > classifies all eight GP riders at 'poggio-alto' in 'rain' without a contact or crash",
+      "observed": {
+        "maximumImpact": 0.9916666666666667
+      },
+      "originalRequirement": "Zero impact and zero crashes"
+    }
+  ],
+  "allSixOriginalMixedPassingCasesPassed": true,
+  "logFile": "unit-152643b-complete.log",
+  "logSha256": "34fed2a393690985411f6d2c6cc97628dda696b576f3b4b7a3c00a3cd202f7d3",
+  "logBytes": 219800,
+  "logNormalization": "ANSI color codes removed; timestamps and complete log text retained.",
+  "scope": "Complete npm test invocation including pretest, wrapped by the unchanged source-stability guard; original race assertions and timeouts unchanged. Expected source-stability negative-control stderr belongs to tests/source-stability.test.ts; no outer source drift was reported. The invocation finished normally with two test failures and was not cancelled. This failed historical checkpoint does not accept the later reflection or unpublished GP changes.",
+  "startedAt": "2026-11-19T10:06:46Z",
+  "completedAt": "2026-11-19T10:49:42.7856452Z",
+  "vellamarBroadcastFixturePassed": true
+}

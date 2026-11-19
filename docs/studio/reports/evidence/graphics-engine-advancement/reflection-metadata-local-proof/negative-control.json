@@ -1,0 +1,29 @@
+{
+  "scope": "The two application subjects are restored byte-for-byte from published 44a6d8c; selected new regressions and native harness are identical to the candidate. Four selected counterexamples fail as expected. Unselected cases are skipped.",
+  "baselineSubjects": {
+    "src/rendering/reflections.ts": "e010ed76dea4dd6d2e172e1613e6a0933e1efa595ca2f79a6db30d2be75b1a18",
+    "src/rendering/preparation.ts": "1e4d1033a86e16ff43843292b7e17dfcb447393cc0cb77117496fb50b63b6940"
+  },
+  "selected": 4,
+  "failed": 4,
+  "passed": 0,
+  "skipped": 9,
+  "failures": [
+    {
+      "name": "retains the exact r180 blur handle through two sky captures and the later CubeUV consumer",
+      "message": "AssertionError: expected undefined to be defined"
+    },
+    {
+      "name": "initializes owned native scene variants before drawing while leaving unrelated pending owners alone",
+      "message": "AssertionError: expected \"spy\" to be called once, but got 0 times"
+    },
+    {
+      "name": "snapshots native program references before an await can add a different material variant",
+      "message": "AssertionError: expected [] to deeply equal [ { id: 1, shaders: [ \u2026(2) ] }, \u2026(2) ]"
+    },
+    {
+      "name": "cancels metadata before native work and prepares the same retained variants on a live reentry",
+      "message": "AssertionError: expected \"spy\" to be called once, but got 0 times"
+    }
+  ]
+}

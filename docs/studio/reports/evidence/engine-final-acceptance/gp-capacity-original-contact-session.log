@@ -1,0 +1,56 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+ RUN  v3.2.4 /workspace/scratch/d611aefdb08c/w27-gp-capacity-candidate
+
+ ❯ tests/bike-session.test.ts (14 tests | 1 failed) 42475ms
+   ✓ WP34 motorcycles in real sessions > builds the bike adapter and bike AI for bike definitions only  1270ms
+   ✓ WP34 motorcycles in real sessions > laps a circuit under AI with lean, gears, tyre wear and valid timing  4605ms
+   ✓ WP34 motorcycles in real sessions > crash flows through race control: rider down, separation, remount, back on track  2054ms
+   ✓ WP34 motorcycles in real sessions > a hard contact between bikes unseats a rider without non-finite state  993ms
+   ✓ WP34 motorcycles in real sessions > race control penalises a bike jump start like any entrant  1008ms
+   ✓ WP34 motorcycles in real sessions > rear brake is the secondary (clutch) input and decelerates on its own  1513ms
+   ✓ WP34 motorcycles in real sessions > services a bike in the pit lane and releases it  3715ms
+   ✓ WP34 snapshot v12 bike block > round-trips lean, steer, rider pose and loads; cars carry zeros  1289ms
+   ✓ WP34 snapshot v12 bike block > rejects unknown vehicle indices and old layouts 0ms
+   ✓ WP34 snapshot v12 bike block > chassis lean inverts to the dynamics lean (tyre crown geometry) 0ms
+   ✓ WP36 bike identity, rules and content > gives every bike its own identity hash and record category 1ms
+   ✓ WP36 bike identity, rules and content > rejects mixed car and bike grids, admits all-bike grids 1ms
+   ✓ WP36 bike identity, rules and content > validates bike content and names what is wrong  3719ms
+   × WP35 seeded AI bike race > finishes a mixed GP/superbike race with bounded incidents and no stuck rider 22300ms
+     → expected 90.98598437500547 to be less than 90.28917234415549
+ ✓ tests/gp-tyre-contact.test.ts (22 tests) 165473ms
+   ✓ GP front and rear contact grip > gpr1 retains useful drive from a clean rear contact when the front crosses a low-grip patch  2955ms
+   ✓ GP front and rear contact grip > gpr2 retains useful drive from a clean rear contact when the front crosses a low-grip patch  2427ms
+   ✓ GP front and rear contact grip > gpr1 keeps front braking available with a low-grip rear while respecting rear unloading  1772ms
+   ✓ GP front and rear contact grip > gpr2 keeps front braking available with a low-grip rear while respecting rear unloading  1578ms
+   ✓ GP front and rear contact grip > uses separately sampled real kerb and asphalt contacts and refreshes them after repositioning  722ms
+   ✓ GP front and rear contact grip > lets rear tyre wear reduce rear drive without assigning that wear to the front tyre  1503ms
+   ✓ GP front and rear contact grip > retains shared contact grip for sbk1000  761ms
+   ✓ GP front and rear contact grip > retains shared contact grip for ss600  751ms
+   ✓ GP front and rear contact grip > retains shared contact grip for nr900  683ms
+   ✓ GP front and rear contact grip > retains shared contact grip for cr750  677ms
+   ✓ GP front and rear contact grip > retains shared contact grip for mx450  808ms
+   ✓ GP contact grip in production races > classifies all eight GP riders at 'aurel' in 'clear' without a contact or crash  27684ms
+   ✓ GP contact grip in production races > classifies all eight GP riders at 'poggio-alto' in 'clear' without a contact or crash  39989ms
+   ✓ GP contact grip in production races > classifies all eight GP riders at 'poggio-alto' in 'rain' without a contact or crash  82891ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/bike-session.test.ts > WP35 seeded AI bike race > finishes a mixed GP/superbike race with bounded incidents and no stuck rider
+AssertionError: expected 90.98598437500547 to be less than 90.28917234415549
+ ❯ tests/bike-session.test.ts:367:16
+    365|     const gp = Math.min(best(0), best(2), best(4)),
+    366|       sbk = Math.min(best(1), best(3), best(5));
+    367|     expect(gp).toBeLessThan(sbk);
+       |                ^
+    368|     // ...by a margin that is more than the noise of one seeded lap (0…
+    369|     expect(sbk - gp).toBeGreaterThan(0.15);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 35 passed (36)
+   Start at  03:55:18
+   Duration  211.36s (transform 1.19s, setup 0ms, collect 2.91s, tests 207.95s, environment 0ms, prepare 131ms)
+

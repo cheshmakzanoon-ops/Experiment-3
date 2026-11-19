@@ -1,0 +1,124 @@
+(node:5) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{
+  "status": "bounded exact original Ardennes1000 first-fall diagnosis, not complete original case acceptance",
+  "root": "/workspace/scratch/d611aefdb08c/w27-gp-capacity-candidate",
+  "options": {
+    "mode": "race",
+    "laps": 1,
+    "opponents": 3,
+    "weather": "clear",
+    "assist": "sport",
+    "compound": "medium",
+    "setup": {
+      "frontWing": 0.55,
+      "rearWing": 0.58,
+      "brakeBias": 0.56,
+      "diffPower": 0.5,
+      "diffCoast": 0.25,
+      "frontSpring": 115000,
+      "rearSpring": 125000,
+      "frontARB": 26000,
+      "rearARB": 21000,
+      "frontRide": 0.065,
+      "rearRide": 0.075,
+      "frontPressure": 155,
+      "rearPressure": 148,
+      "frontCamber": -0.044,
+      "rearCamber": -0.023,
+      "frontToe": -0.001,
+      "rearToe": 0.002,
+      "frontPreload": 0,
+      "rearPreload": 0,
+      "frontDamping": 0.5,
+      "rearDamping": 0.5,
+      "steeringDamper": 0.5,
+      "gearing": 1,
+      "tractionMap": 3,
+      "wheelieMap": 3,
+      "engineBrakeMap": 0
+    },
+    "seed": 1000,
+    "ruleset": "gp-motorcycle",
+    "circuit": "ardennes",
+    "vehicles": [
+      "gpr1",
+      "gpr1",
+      "gpr1",
+      "gpr1"
+    ]
+  },
+  "originalTest": "tests/gp-ai-braking-plan.test.ts / no rider falls at the ardennes hairpin (seed1000)",
+  "sourceBefore": {
+    "src/simulation/bike.ts": "52b090530d8db770d023dd65c72fff2e64ff84e10feb3e3d5c27c869c542eafd",
+    "src/simulation/bike-ai.ts": "ffc70ab74e818298535eea6c48375df8cd3a5b30ba4ad776370a358eb3358c7d",
+    "src/simulation/motogp-physics.ts": "f43236152c81328f6bb0e0db6573235c492fcf2c8f5c2a84c3ca3976aa844e5b",
+    "src/simulation/bike-vehicle.ts": "e9c829ad70fa04396f14b065f39366bbc008c787493672619342967a8b8aa2b5",
+    "tests/gp-ai-braking-plan.test.ts": "f0124f304bbdc5311ace3a2624d9ae3e6656be61fcdc87a314e0874e2ff51b9a"
+  },
+  "sourceAfter": {
+    "src/simulation/bike.ts": "52b090530d8db770d023dd65c72fff2e64ff84e10feb3e3d5c27c869c542eafd",
+    "src/simulation/bike-ai.ts": "ffc70ab74e818298535eea6c48375df8cd3a5b30ba4ad776370a358eb3358c7d",
+    "src/simulation/motogp-physics.ts": "f43236152c81328f6bb0e0db6573235c492fcf2c8f5c2a84c3ca3976aa844e5b",
+    "src/simulation/bike-vehicle.ts": "e9c829ad70fa04396f14b065f39366bbc008c787493672619342967a8b8aa2b5",
+    "tests/gp-ai-braking-plan.test.ts": "f0124f304bbdc5311ace3a2624d9ae3e6656be61fcdc87a314e0874e2ff51b9a"
+  },
+  "sourceStable": true,
+  "ticks": 11011,
+  "raceSeconds": 86.10255748965203,
+  "wallSeconds": 6.706182302999999,
+  "finished": false,
+  "maxImpact": 0.9833333333333334,
+  "crashes": [
+    0,
+    1,
+    0,
+    0
+  ],
+  "falls": [
+    {
+      "id": 1,
+      "t": 86.09422415631869,
+      "s": 3156.9205131069057,
+      "kind": "lowside",
+      "afterFlag": false,
+      "state": {
+        "speed": 13.738739912580833,
+        "lean": 1.253605663402047,
+        "rollRate": 1.7483635986818618,
+        "riderOffset": 0.3,
+        "bar": 0.03038957069488568,
+        "frontLoad": 1062.9644793292607,
+        "rearLoad": 702.5236008073723,
+        "frontBrake": 0,
+        "rearBrake": 0,
+        "drive": 0,
+        "mass": 244.61486838069618,
+        "frontGrip": 1.0063928160886082,
+        "rearGrip": 1.0029363732280705,
+        "side": 0.876232088473162,
+        "yaw": 0.599721780947755,
+        "ay": 9.108529967208904,
+        "frontFy": 1268.3464720617706,
+        "rearFy": 963.7052166177406,
+        "frontOmega": 45.74711800397473,
+        "rearOmega": 42.87320021086246,
+        "frontSlip": -0.07054224397463912,
+        "rearSlip": -0.04920789541805416,
+        "frontElasticStiffness": 27410.73287928959,
+        "rearElasticStiffness": 18999.810367275855,
+        "trim": -0.00034535558492101564,
+        "target": 0.2435693898574294,
+        "demand": 19.6133,
+        "frontUse": 0.7377426346977211,
+        "rearUse": 0.8510658541726877,
+        "groundSteer": 0.07913986759624207,
+        "state": "riding"
+      },
+      "historyLength": 2400
+    }
+  ],
+  "impacts": 0
+}
+(node:13) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

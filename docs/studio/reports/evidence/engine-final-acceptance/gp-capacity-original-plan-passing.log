@@ -1,0 +1,56 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+ RUN  v3.2.4 /workspace/scratch/d611aefdb08c/w27-gp-capacity-candidate
+
+ ✓ tests/bike-mixed-passing.test.ts (6 tests) 135573ms
+   ✓ a mixed GP/superbike race at parco-reale (seed 5259) has no fall  27012ms
+   ✓ a mixed GP/superbike race at parco-reale (seed 5074) has no fall  24545ms
+   ✓ a mixed GP/superbike race at haarveld (seed 5000) has no fall  25271ms
+   ✓ a mixed GP/superbike race at vellamar (seed 5222) has no fall  23229ms
+   ✓ a mixed GP/superbike race at montejaral (seed 5111) has no fall  26446ms
+   ✓ a field of one class is not touched by the mixed-class passing rules  9067ms
+ ❯ tests/gp-ai-braking-plan.test.ts (9 tests | 1 failed) 81141ms
+   ✓ GP rider follows its braking plan > reports the plan speed at every active sample without touching the tail 2ms
+   ✓ GP rider follows its braking plan > feeds the planned deceleration forward instead of waiting for a speed error  845ms
+   ✓ GP rider follows its braking plan > brakes gently once the flag has fallen  793ms
+   × GP rider follows its braking plan > no rider falls at the ardennes hairpin (seed 1000) 15338ms
+     → expected [ { car: 1, …(2) } ] to deeply equal []
+   ✓ GP rider follows its braking plan > no rider falls at the ardennes hairpin (seed 1037)  13659ms
+   ✓ GP rider follows its braking plan > no rider falls at the montejaral hairpin (seed 1000)  10470ms
+   ✓ GP rider follows its braking plan > no rider falls after taking the flag at montejaral (seed 1000)  11174ms
+   ✓ GP rider follows its braking plan > no rider falls after taking the flag at ardennes (seed 1000)  15212ms
+   ✓ GP rider follows its braking plan > no rider falls after taking the flag at ardennes (seed 1037)  13647ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/gp-ai-braking-plan.test.ts > GP rider follows its braking plan > no rider falls at the ardennes hairpin (seed 1000)
+AssertionError: expected [ { car: 1, …(2) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "afterFlag": false,
++     "car": 1,
++     "s": 3156.977486304114,
++   },
++ ]
+
+ ❯ tests/gp-ai-braking-plan.test.ts:148:61
+    146|       const { finished, falls } = aiRace(circuit, seed, 1, Array(4).fi…
+    147|       expect(finished).toBe(true);
+    148|       expect(falls.filter((f) => f.s >= from && f.s <= to)).toEqual([]…
+       |                                                             ^
+    149|     },
+    150|     60000,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 14 passed (15)
+   Start at  04:02:01
+   Duration  220.37s (transform 1.31s, setup 0ms, collect 3.08s, tests 216.71s, environment 0ms, prepare 156ms)
+

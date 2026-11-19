@@ -1,0 +1,406 @@
+{
+  "schema": 1,
+  "updatedUTC": "2026-11-19T10:53:23.525660+00:00",
+  "status": "both finite-force and coupled-moment integrations rejected by original bounded dry race probes; native mapping proofs retained separately; final acceptance remains pending",
+  "scope": "Assignment 29 read-only source review, saved-history reconstruction and independent single-step plant clones. No world/race rerun or application/test edit.",
+  "candidateSourceHashes": {
+    "bike.ts": "67b8f16b6e1eef9d1b27743a1657be9dcee2ae013e1a5e8d893ab5a07d5889f0",
+    "motogp-physics.ts": "b0b5c42989e21ca5f91f6c5ed211fdaeb98116ad10345a9d6629fd3b61c3f8c7",
+    "bike-ai.ts": "ffc70ab74e818298535eea6c48375df8cd3a5b30ba4ad776370a358eb3358c7d"
+  },
+  "historicalForceOnlyNative": {
+    "files": 7,
+    "passedFiles": 6,
+    "failedFiles": 1,
+    "tests": 95,
+    "passedTests": 94,
+    "failedTests": 1,
+    "exitCode": 1,
+    "failure": "Original current-contact spy observes the second finite-force reference (-0.0002787467054830254 N) instead of the unchanged steady 0 N request. No tolerance/assertion change accepted. The subsequent separate step API keeps the original steady call contract."
+  },
+  "historicalRaceProbes": {
+    "w27-gp-finite-dry-contacts.json": {
+      "sourceReceiptSha256": "a62512e7f16cb597393413bf7bf72663675d9eee114ed844441090d830043455",
+      "sourceReceiptBytes": 3133331,
+      "raceSeconds": 27.91243149237577,
+      "maxImpact": 0.9916666666666667,
+      "crashes": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "falls": [
+        {
+          "id": 1,
+          "t": 27.904098159042437,
+          "s": 878.7188474619625,
+          "kind": "lowside",
+          "lean": 1.26149103340799,
+          "rate": 5.372751135673562,
+          "frontLoad": 1178.4591389993975,
+          "rearLoad": 1194.143007664052,
+          "frontGap": 0,
+          "rearGap": 0
+        }
+      ]
+    },
+    "w27-gp-finite-mixed5222-10s.json": {
+      "sourceReceiptSha256": "9ba62f4ad8da72d0b9aaa19e76a109a784b446a9974c596990b5ab5a8dddfd77",
+      "sourceReceiptBytes": 3054822,
+      "raceSeconds": 8.107894932478512,
+      "maxImpact": 0.9916666666666667,
+      "crashes": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        0
+      ],
+      "falls": [
+        {
+          "id": 2,
+          "t": 8.09956159914518,
+          "s": 151.05714590213483,
+          "kind": "lowside",
+          "lean": 1.2514853608073366,
+          "rate": 6.225612696353737,
+          "frontLoad": 564.0248069510772,
+          "rearLoad": 0,
+          "frontGap": 0,
+          "rearGap": 0
+        }
+      ]
+    },
+    "w27-gp-phase-arrest-dry-contacts.json": {
+      "sourceReceiptSha256": "39e8295440b19330f4c34991f9f932badc42cafb56fe2bf240489a95893f21c6",
+      "sourceReceiptBytes": 2276,
+      "raceSeconds": 40.00409815904175,
+      "maxImpact": 0,
+      "crashes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "falls": []
+    }
+  },
+  "savedHistoryReconstruction": {
+    "steps": 44,
+    "timeRange": [
+      27.404098159042466,
+      27.579098159042456
+    ],
+    "residualMax": {
+      "front": 0,
+      "rear": 2.2737367544323206e-13,
+      "yaw": 1.3877787807814457e-17,
+      "side": 2.220446049250313e-16,
+      "selectedBar": 0
+    },
+    "independentNodeInvocationExitCode": 0,
+    "interpretation": "During braking near a negative tyre peak, improving only immediate projected body force can select farther negative bar. The preserved strain reload and that steering change are valid physical inputs; force prediction is correct but the control objective omits simultaneous steering/yaw roll moments."
+  },
+  "exactRecordedFixture": {
+    "time": 27.47076482570913,
+    "station": 865.946710931079,
+    "referenceN": -406.57773666483865,
+    "previousBar": -0.12934782406507192,
+    "forceOnlyBar": -0.13737408019492117,
+    "frontOmega": 98.31971192814778,
+    "rearOmega": 95.51236965210191,
+    "offsetBefore": -0.02287503180600209,
+    "provenance": {
+      "history": "w27-gp-finite-dry-contacts.json",
+      "historySha256": "a62512e7f16cb597393413bf7bf72663675d9eee114ed844441090d830043455",
+      "reconstructionIndex": 1814,
+      "reconstructionResiduals": {
+        "front": 0,
+        "rear": -5.684341886080802e-14,
+        "yaw": 0,
+        "side": -5.551115123125783e-17,
+        "selectedBar": 0
+      },
+      "unknownInitialStateBounds": {
+        "frontOmega": [
+          0,
+          500
+        ],
+        "rearOmega": [
+          0,
+          500
+        ],
+        "riderOffset": [
+          -0.3,
+          0.3
+        ]
+      },
+      "wheelBoundsConvergedAtHistoryIndex": 482,
+      "wheelBoundsConvergedAtTime": 21.92076482570944,
+      "riderBoundsConvergedAtHistoryIndex": 199,
+      "riderBoundsConvergedAtTime": 20.737431492376174,
+      "reconstructionNote": "Wheel momenta and original rider offset are uniquely recovered by propagating their actual bounded recurrences from BOTH extremes of every legal initial value through the already saved history; both bounds become bit-identical before this fixture. No race or chassis simulation was repeated. Remaining physical state comes directly from saved scalars or previous actual tyre preparation. Scratch force caches/trim are not needed or claimed recovered."
+    }
+  },
+  "coupledMomentIndependentReview": {
+    "cases": 4,
+    "timesteps": [
+      0.004166666666666667,
+      0.008333333333333333
+    ],
+    "mirrors": [
+      -1,
+      1
+    ],
+    "maximumAbsoluteRollAccelerationError": 3.643612855874778e-08,
+    "maximumForceOnlyError": 0.9656322073281556,
+    "allQueriesReadOnly": true,
+    "allWithinOriginalActuatorRate": true,
+    "independentNodeInvocationExitCode": 0,
+    "reference": "Retained steady-plus-trim front body force, with actual next wheel spin at prior yaw. This is explicitly not equality to the nominal-spin full gpRollRequest acceleration.",
+    "ownership": [
+      "Current q speed, signed Fx, raw/effective loads, contact multiplier and torque excess shared with the one actual plant call",
+      "Actual combined lean uses offsetBefore, matching the roll plant",
+      "One physical actuator update; no second trim; previews do not mutate wheel/contact history",
+      "Actual next wheel-spin preview and yaw clamp match the plant",
+      "Original six-argument steady API remains unchanged; optional step inverse is separate"
+    ]
+  },
+  "nativeInitialSummaryLines": [
+    "Test Files  7 passed (7)",
+    "Tests  131 passed (131)"
+  ],
+  "wheelRefactorParity": {
+    "steps": 2400,
+    "firstDifference": null,
+    "bitIdentical": true
+  },
+  "evidence": {
+    "gp-finite-dry-history-review.json": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-finite-dry-history-review.json",
+      "bytes": 143988,
+      "sha256": "8b4615581c01e5405bc0d07d3ab68d60f24e388767577ae858ebcb0405006e4a"
+    },
+    "gp-finite-dry-onset-fixture.json": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-finite-dry-onset-fixture.json",
+      "bytes": 3016,
+      "sha256": "f3d65ca296144f8bc1c163f27671f3633927e8393bc06de3a06a5b3c6536eac3"
+    },
+    "gp-moment-dry-fixture-review.json": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-moment-dry-fixture-review.json",
+      "bytes": 6818,
+      "sha256": "6fce6ac0cf2aff859907bd3038f33202ca0472b24c6d21891db8403d6117a366"
+    },
+    "gp-finite-wired-native-failed.log": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-finite-wired-native-failed.log",
+      "bytes": 2699,
+      "sha256": "cc8564136f03378116aeee39e48c24c331b202dbb92933daee6482c655c3b7cc"
+    },
+    "gp-moment-native-initial.log": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-moment-native-initial.log",
+      "bytes": 900,
+      "sha256": "1c01131b54be2c244d426df8f2e783e4aebbe3f8e5d92dd8bc03543df52aba50"
+    },
+    "gp-wheel-refactor-parity.json": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-wheel-refactor-parity.json",
+      "bytes": 70,
+      "sha256": "5eae25763b807d2dd3f9a7fb30f3392b098c94e1e272e9394a97b16d3e664dcd"
+    },
+    "gp-moment-dry-onset-review.json": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-moment-dry-onset-review.json",
+      "bytes": 579831,
+      "sha256": "281871f7c6bd10a2e17227fe8158138b641be0ed9fbf6a68e7435267617b24d1"
+    }
+  },
+  "limits": [
+    "Full original race gates have not passed on this source.",
+    "The first complete original 19-scenario matrix and complete historical unit failures remain authoritative for those sources.",
+    "Final immutable combined 19 scenarios, strict GP calibration and complete unfiltered CI npm test remain required.",
+    "Native oracle and bounded probes do not authorize controller gain changes, friction increases, or relaxed race/test assertions."
+  ],
+  "coupledMomentFailure": {
+    "receipt": "w27-gp-moment-dry-contacts.json",
+    "receiptSha256": "9745eda78f36aac63d9e17d07735d6a892645b99926ff37a9c5a95ce0010615a",
+    "fall": {
+      "id": 5,
+      "t": 14.31243149237654,
+      "s": 432.52052781851125,
+      "kind": "lowside",
+      "impacts": []
+    },
+    "classification": "Supported braking/reload yaw oscillation, with no contact gap or external impact. The single-step moment objective can replace intended yaw-restoring tyre force with steering gyroscopic roll torque.",
+    "onsetSummary": [
+      {
+        "timeRange": [
+          11.75,
+          12.2
+        ],
+        "samples": 108,
+        "frontForceErrorRms": 162.82173029296206,
+        "barEquivalentRms": 69.41459740523766,
+        "yawEquivalentRms": 3.211277080661019,
+        "referenceDifferenceRms": 124.0353817383084,
+        "rawYawDampingRms": 11.817195319884265,
+        "forceErrorWorsensYawFraction": 0.6666666666666666,
+        "maxYaw": 0.19100189800429956,
+        "maxSide": 0.5831835738102832,
+        "maxBar": 0.08505798847846478,
+        "frontLoadRange": [
+          147.51484400153726,
+          538.7253980643753
+        ],
+        "rearLoadRange": [
+          1689.051422335214,
+          2087.359303480987
+        ]
+      },
+      {
+        "timeRange": [
+          12.2,
+          12.5
+        ],
+        "samples": 72,
+        "frontForceErrorRms": 167.43906857267328,
+        "barEquivalentRms": 145.10968630184922,
+        "yawEquivalentRms": 8.65177744580329,
+        "referenceDifferenceRms": 91.5442912069274,
+        "rawYawDampingRms": 76.8629406880081,
+        "forceErrorWorsensYawFraction": 0.8194444444444444,
+        "maxYaw": 0.4334511040255641,
+        "maxSide": 1.6177860559461348,
+        "maxBar": 0.07772694901138658,
+        "frontLoadRange": [
+          228.41275703620633,
+          2012.5358637073452
+        ],
+        "rearLoadRange": [
+          295.89285193904436,
+          2033.8623797389032
+        ]
+      },
+      {
+        "timeRange": [
+          12.5,
+          12.8
+        ],
+        "samples": 72,
+        "frontForceErrorRms": 174.2940387943109,
+        "barEquivalentRms": 160.58857794596804,
+        "yawEquivalentRms": 14.116247572708144,
+        "referenceDifferenceRms": 36.878322345350625,
+        "rawYawDampingRms": 101.38690496341104,
+        "forceErrorWorsensYawFraction": 0.9166666666666666,
+        "maxYaw": 0.49175235899947445,
+        "maxSide": 1.9558444999067577,
+        "maxBar": 0.0759583569716663,
+        "frontLoadRange": [
+          627.2905613906264,
+          2043.5547275748552
+        ],
+        "rearLoadRange": [
+          342.80823804732563,
+          1720.7990388755147
+        ]
+      },
+      {
+        "timeRange": [
+          12.8,
+          13.1
+        ],
+        "samples": 72,
+        "frontForceErrorRms": 195.51124517294795,
+        "barEquivalentRms": 147.66419960811808,
+        "yawEquivalentRms": 5.493087054128749,
+        "referenceDifferenceRms": 51.29114332702545,
+        "rawYawDampingRms": 206.24320295412687,
+        "forceErrorWorsensYawFraction": 1,
+        "maxYaw": 0.850436267866969,
+        "maxSide": 11.528417929146707,
+        "maxBar": 0.24074014971638252,
+        "frontLoadRange": [
+          1689.0172749169396,
+          2282.6218212888234
+        ],
+        "rearLoadRange": [
+          167.9506265630764,
+          585.2641137089316
+        ]
+      },
+      {
+        "timeRange": [
+          13.1,
+          13.5
+        ],
+        "samples": 96,
+        "frontForceErrorRms": 1246.6265134726866,
+        "barEquivalentRms": 239.20137977244656,
+        "yawEquivalentRms": 23.176554829846445,
+        "referenceDifferenceRms": 1045.8235815414453,
+        "rawYawDampingRms": 392.2838503910324,
+        "forceErrorWorsensYawFraction": 0.8958333333333334,
+        "maxYaw": 2.1860611664847167,
+        "maxSide": 12.585283664229886,
+        "maxBar": 0.2866743028369784,
+        "frontLoadRange": [
+          1675.9842863147896,
+          2229.9323400463036
+        ],
+        "rearLoadRange": [
+          267.39327504284404,
+          874.6196291124428
+        ]
+      }
+    ],
+    "representativeSample": {
+      "i": 1593,
+      "t": 12.954098159043284,
+      "s": 366.2240573334193,
+      "speed": 54.853692116056976,
+      "lean": 0.20485039788390993,
+      "rollRate": -0.3773265083174286,
+      "combined": 0.22514544372754403,
+      "priorBar": -0.10822300880766482,
+      "bar": -0.11209537158592153,
+      "barRate": -0.9293670667816112,
+      "priorYaw": 0.8341407314247494,
+      "yaw": 0.8356124797037073,
+      "side": -5.83726123561648,
+      "frontLoad": 2250.451009721536,
+      "rearLoad": 221.35506475825238,
+      "frontFx": -1696.9365874047614,
+      "rearFx": -194.39195441830688,
+      "frontTyre": 152.46731838134994,
+      "rearTyre": 298.1702478897109,
+      "frontBody": 328.80297035386616,
+      "rawFrontRequest": 121.22584244734801,
+      "forceError": 207.57712790651814,
+      "lateralRequest": 2.674402379961145,
+      "yawAim": 0.04875519362129289,
+      "yawError": 0.7853855378034565,
+      "dampingForce": -235.61566134103697,
+      "barEquivalent": -155.06753812209786,
+      "yawEquivalent": 0.6369852825801986,
+      "actualEquivalent": 174.3724175143485,
+      "equivalentMinusRaw": 53.1465750670005,
+      "actualYawAcceleration": 0.35321958694989775,
+      "requestedYawAcceleration": -2.4144754518036735,
+      "correction": -0.6738085292541784,
+      "leanTarget": -0.049041605422765484,
+      "frontGap": 0,
+      "rearGap": 0
+    },
+    "traceSemanticWarning": "frontRequest is the original raw six-argument steady inverse request in this trace, unlike the rejected finite trace whose spy last saw the finite reference. Actual-equivalent minus raw includes steady inverse/trim/reachability effects and cannot be labeled solver residual.",
+    "interpretation": "Native total-roll equality does not prove closed-loop yaw stability. No gain change, friction increase, or relaxed race assertion is justified by this failure."
+  },
+  "nextInvestigation": "Assignment 27 returns to the minimal phase-arrest source to test the independently demonstrated stale longitudinal-force capacity in roll stopping/trim planning. No finite API or moment-control redesign accepted into production."
+}

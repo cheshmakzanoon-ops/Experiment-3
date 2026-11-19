@@ -1,0 +1,56 @@
+{
+  "scope": "Complete unchanged original four-file race invocation on the isolated steady-conversion candidate; failed and not integrated into production. This is not a full unit-suite invocation.",
+  "sourceRoot": "/workspace/scratch/d611aefdb08c/w27-gp-steady-candidate",
+  "sourceHashes": {
+    "src/simulation/bike.ts": "24c6c03405193bc30977e0caebf91a2078419e17f0ab357cc7832034f0068fec",
+    "src/simulation/bike-ai.ts": "80006ea7d138643444346c31f17050800dfe724fa6e8c82e172cd475c67565e5",
+    "src/simulation/motogp-physics.ts": "3b8c3ad88c857fdb6a668605d183173e982e6d622096b35752d737b2c3f94b6e"
+  },
+  "originalTestHashes": {
+    "tests/gp-tyre-contact.test.ts": "e3e67c87d1bf99f2dcd1761efd9c1ad3ca66f30da2ba332607d621e1f8e0ecc4",
+    "tests/bike-session.test.ts": "28b653c92029c494cd11ec713ab21c9eae1808af8c378afc1590d60590df09ae",
+    "tests/bike-mixed-passing.test.ts": "de20c703b20d780a5aafee7eeba45be8efaab5f59c780c303a3b6c704e734253",
+    "tests/gp-ai-braking-plan.test.ts": "f0124f304bbdc5311ace3a2624d9ae3e6656be61fcdc87a314e0874e2ff51b9a"
+  },
+  "complete": true,
+  "exitCode": 1,
+  "durationSeconds": 442.66,
+  "tests": {
+    "total": 51,
+    "passed": 47,
+    "failed": 4
+  },
+  "files": {
+    "total": 4,
+    "passed": 0,
+    "failed": 4
+  },
+  "failures": [
+    {
+      "test": "bike-mixed-passing: Vellamar seed5222",
+      "observedFalls": 1,
+      "requiredFalls": 0
+    },
+    {
+      "test": "bike-session: mixed GP/superbike pace",
+      "gpBestLapSeconds": 90.57340871500166,
+      "sbkBestLapSeconds": 90.38180463154522,
+      "originalRequirement": "GP faster with a margin greater than 0.15 seconds"
+    },
+    {
+      "test": "gp-ai-braking-plan: Ardennes seed1000",
+      "observed": "rider1 hairpin fall",
+      "originalRequirement": "No rider falls"
+    },
+    {
+      "test": "gp-tyre-contact: dry Poggio",
+      "observedMaximumImpact": 0.9833333333333334,
+      "requiredMaximumImpact": 0
+    }
+  ],
+  "logFile": "gp-steady-original-four-files.log",
+  "logBytes": 9452,
+  "logSha256": "ec0a403b923b4d4353264920c2731b9403f6b92eb8859bf209ca37a4c4828eaa",
+  "command": "npx vitest run tests/gp-tyre-contact.test.ts tests/bike-session.test.ts tests/bike-mixed-passing.test.ts tests/gp-ai-braking-plan.test.ts",
+  "logCapture": "Standard output and standard error redirected to the retained log by the original invocation."
+}

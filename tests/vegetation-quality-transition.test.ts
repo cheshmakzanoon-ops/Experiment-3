@@ -108,6 +108,8 @@ function fixture(id: 'vellamar' | 'aurel' | 'alpine-pass' | 'valley-ridge-mx' = 
   camera.position.set(10, 3, 20);
   camera.updateMatrixWorld();
   const backend = {
+    info: { programs: [] },
+    properties: { get: () => ({}) },
     getRenderTarget: () => null,
     getActiveCubeFace: () => 0,
     getActiveMipmapLevel: () => 0,

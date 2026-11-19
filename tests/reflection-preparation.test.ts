@@ -1,198 +1,9 @@
 import { expect, it, vi } from 'vitest';
 import * as T from 'three';
-import { WebGLPrograms } from 'three/src/renderers/webgl/WebGLPrograms.js';
 import { WebGLCubeUVMaps } from 'three/src/renderers/webgl/WebGLCubeUVMaps.js';
 import { ReflectionSystem } from '../src/rendering/reflections.ts';
-
-/** Use the installed Three program cache, first-use metadata initializer and
- * actual cube-to-CubeUV consumer. The small renderer adapter connects those
- * owners; native GL calls are recorded, never executed by a browser/driver. */
-function programHarness() {
-  type NativeProgram = { id: number };
-  type NativeShader = { type: number; source?: string };
-  const created: NativeProgram[] = [],
-    deleted: NativeProgram[] = [],
-    queries: { kind: string; program?: NativeProgram; stage: string }[] = [];
-  let stage = 'before-scene',
-    retired = false,
-    failCompile = false,
-    target: T.WebGLRenderTarget | null = new T.WebGLCubeRenderTarget(32),
-    face = 3,
-    mip = 2,
-    scissorTest = true;
-  const viewport = new T.Vector4(11, 13, 17, 19),
-    scissor = new T.Vector4(23, 29, 31, 37);
-  const alive = () => {
-    if (retired) throw new Error('Native work after renderer retirement');
-  };
-  const gl = {
-    VERTEX_SHADER: 35633,
-    FRAGMENT_SHADER: 35632,
-    LINK_STATUS: 35714,
-    ACTIVE_UNIFORMS: 35718,
-    ACTIVE_ATTRIBUTES: 35721,
-    createProgram: () => {
-      alive();
-      const program = { id: created.length + 1 };
-      created.push(program);
-      return program;
-    },
-    createShader: (type: number) => ({ type }),
-    shaderSource: (shader: NativeShader, source: string) => {
-      shader.source = source;
-    },
-    compileShader: alive,
-    attachShader: alive,
-    linkProgram: alive,
-    getProgramInfoLog: (program: NativeProgram) => {
-      alive();
-      queries.push({ kind: 'program-log', program, stage });
-      return '';
-    },
-    getShaderInfoLog: () => {
-      alive();
-      queries.push({ kind: 'shader-log', stage });
-      return '';
-    },
-    getProgramParameter: (_program: NativeProgram, parameter: number) =>
-      parameter === 35714 ? true : 0,
-    deleteShader: alive,
-    deleteProgram: (program: NativeProgram) => {
-      alive();
-      deleted.push(program);
-    },
-  };
-  const owners = new Map<T.Material, Map<string, T.WebGLProgram>>();
-  const lights = Object.fromEntries(
-    [
-      'directional',
-      'point',
-      'spot',
-      'spotLightMap',
-      'rectArea',
-      'hemi',
-      'directionalShadowMap',
-      'pointShadowMap',
-      'spotShadowMap',
-    ].map((name) => [name, []]),
-  ) as unknown as Parameters<WebGLPrograms['getParameters']>[1];
-  lights.numSpotLightShadowsWithMaps = 0;
-  lights.numLightProbes = 0;
-  const scene = new T.Scene();
-  const adapter = {
-    xr: { enabled: true },
-    autoClear: true,
-    debug: { checkShaderErrors: true },
-    state: { buffers: { depth: { getReversed: () => false } } },
-    shadowMap: { enabled: true, type: T.PCFSoftShadowMap },
-    outputColorSpace: T.SRGBColorSpace,
-    toneMapping: T.ACESFilmicToneMapping,
-    info: { programs: [] as T.WebGLProgram[] },
-    getContext: () => gl,
-    getRenderTarget: () => target,
-    getActiveCubeFace: () => face,
-    getActiveMipmapLevel: () => mip,
-    getViewport: (out: T.Vector4) => out.copy(viewport),
-    getScissor: (out: T.Vector4) => out.copy(scissor),
-    getScissorTest: () => scissorTest,
-    setRenderTarget: (next: T.WebGLRenderTarget | null, cubeFace = 0, mipLevel = 0) => {
-      target = next;
-      face = cubeFace;
-      mip = mipLevel;
-      if (next) {
-        viewport.copy(next.viewport);
-        scissor.copy(next.scissor);
-        scissorTest = next.scissorTest;
-      }
-    },
-    setViewport: (next: T.Vector4) => viewport.copy(next),
-    setScissor: (next: T.Vector4) => scissor.copy(next),
-    setScissorTest: (next: boolean) => {
-      scissorTest = next;
-    },
-    compile: (root: T.Object3D) => {
-      alive();
-      const materials = new Set<T.Material>();
-      root.traverse((object) => {
-        const material = (object as T.Mesh).material;
-        if (!material || Array.isArray(material)) return;
-        let programs = owners.get(material);
-        if (!programs) {
-          programs = new Map();
-          owners.set(material, programs);
-          material.addEventListener('dispose', () => {
-            for (const program of owners.get(material)?.values() ?? [])
-              cache.releaseProgram(program);
-            owners.delete(material);
-          });
-        }
-        const parameters = cache.getParameters(material, lights, [], scene, object),
-          key = cache.getProgramCacheKey(parameters);
-        if (!programs.has(key))
-          programs.set(
-            key,
-            cache.acquireProgram({ ...parameters, uniforms: cache.getUniforms(material) }, key),
-          );
-        materials.add(material);
-        if (failCompile && material.name === 'CubemapToCubeUV')
-          throw new Error('Interrupted cube shader compilation');
-      });
-      return materials;
-    },
-    render: vi.fn((root: T.Object3D) => {
-      for (const material of adapter.compile(root))
-        for (const program of owners.get(material)!.values()) {
-          program.getUniforms();
-          program.getAttributes();
-        }
-    }),
-  };
-  const renderer = adapter as unknown as T.WebGLRenderer,
-    maps = { get: (texture: T.Texture | null) => texture };
-  // r180 takes a separate cubeUV map argument; the installed declarations
-  // still omit it. Preserve the runtime signature rather than shift owners.
-  const cache = Reflect.construct(WebGLPrograms, [
-    renderer,
-    maps,
-    maps,
-    { has: () => false },
-    {
-      vertexTextures: true,
-      precision: 'highp',
-      getMaxPrecision: (precision: string) => precision,
-      logarithmicDepthBuffer: false,
-    },
-    { releaseStatesOfProgram: () => {} },
-    { numPlanes: 0, numIntersection: 0 },
-  ]) as WebGLPrograms;
-  adapter.info.programs = cache.programs;
-  const state = () => ({
-    target,
-    face,
-    mip,
-    viewport: viewport.toArray(),
-    scissor: scissor.toArray(),
-    scissorTest,
-  });
-  return {
-    renderer,
-    cache,
-    created,
-    deleted,
-    queries,
-    render: adapter.render,
-    state,
-    stage: (next: string) => {
-      stage = next;
-    },
-    failCompile: (next: boolean) => {
-      failCompile = next;
-    },
-    retire: () => {
-      retired = true;
-    },
-  };
-}
+import { compileProbeBlur } from '../src/rendering/pmrem-preparation.ts';
+import { programHarness } from './helpers/three-program-harness.ts';
 
 function linearTarget() {
   return new T.WebGLRenderTarget(960, 600, { type: T.HalfFloatType });
@@ -219,7 +30,7 @@ it('reuses the exact installed Three conversion handle and first-use metadata be
     previous = h.state();
   reflection.beginProbePreparation(h.renderer, target);
   expect(h.state()).toEqual(previous);
-  expect(h.created).toHaveLength(1);
+  expect(h.created).toHaveLength(2);
   expect(h.queries).toEqual([]);
   expect(h.render).not.toHaveBeenCalled();
   await Promise.resolve(); // The existing photographed-asset wait.
@@ -227,7 +38,14 @@ it('reuses the exact installed Three conversion handle and first-use metadata be
   const warmed = h.cache.programs[0],
     handle = warmed.program;
   expect(warmed.usedTimes).toBe(1);
-  expect(h.queries.map((query) => query.kind)).toEqual(['program-log', 'shader-log', 'shader-log']);
+  expect(h.queries.map((query) => query.kind)).toEqual([
+    'program-log',
+    'shader-log',
+    'shader-log',
+    'program-log',
+    'shader-log',
+    'shader-log',
+  ]);
   const source = new T.WebGLCubeRenderTarget(256),
     maps = new WebGLCubeUVMaps(h.renderer);
   h.stage('after-six-faces');
@@ -249,6 +67,100 @@ it('reuses the exact installed Three conversion handle and first-use metadata be
   target.dispose();
 });
 
+it('retains the exact r180 blur handle through two sky captures and the later CubeUV consumer', () => {
+  expect(T.REVISION).toBe('180');
+  const h = programHarness(),
+    reflection = new ReflectionSystem(),
+    target = linearTarget(),
+    before = h.state();
+  reflection.beginProbePreparation(h.renderer, target);
+  expect(h.state()).toEqual(before);
+  expect(h.render).not.toHaveBeenCalled();
+  reflection.completeProbePreparation();
+  const blur = h.cache.programs.find((program) => program.name === 'SphericalGaussianBlur')!;
+  expect(blur).toBeDefined();
+  const handle = h.created.find((program) => program === blur.program)!;
+  const fragment = handle.shaders.find((shader) => shader.type === 35632)!.source!;
+  // Compare with the actual unprepared consumer, not a copied shader. Three's
+  // source modules and packaged build have different whitespace; the exact
+  // packaged-build hash is retained separately with the CI trace attribution.
+  const cold = programHarness(),
+    coldSource = new T.WebGLCubeRenderTarget(256),
+    coldMaps = new WebGLCubeUVMaps(cold.renderer);
+  coldMaps.get(coldSource.texture);
+  const coldBlur = cold.cache.programs.find((program) => program.name === 'SphericalGaussianBlur')!;
+  const coldHandle = cold.created.find((program) => program === coldBlur.program)!;
+  expect(fragment).toBe(coldHandle.shaders.find((shader) => shader.type === 35632)!.source);
+  coldMaps.dispose();
+  coldSource.dispose();
+  expect(blur.usedTimes).toBe(1);
+  h.stage('sky-captures');
+  for (let bin = 0; bin < 2; bin++) {
+    const sky = new T.PMREMGenerator(h.renderer);
+    const atlas = sky.fromScene(new T.Scene(), 0.04, 0.1, 700000, { size: 256 });
+    expect(blur.usedTimes).toBe(2);
+    expect(h.cache.programs.filter((program) => program.name === 'SphericalGaussianBlur')).toEqual([
+      blur,
+    ]);
+    sky.dispose();
+    atlas.dispose();
+    expect(blur.usedTimes).toBe(1);
+    expect(h.deleted).not.toContain(handle);
+  }
+  h.stage('after-six-faces');
+  const source = new T.WebGLCubeRenderTarget(256),
+    maps = new WebGLCubeUVMaps(h.renderer);
+  maps.get(source.texture);
+  expect(blur.usedTimes).toBe(2);
+  expect(h.cache.programs.filter((program) => program.name === 'SphericalGaussianBlur')).toEqual([
+    blur,
+  ]);
+  expect(h.queries.filter((query) => query.program === handle)).toEqual([
+    { kind: 'program-log', program: handle, stage: 'before-scene' },
+  ]);
+  reflection.dispose();
+  expect(blur.usedTimes).toBe(1);
+  expect(h.deleted).not.toContain(handle);
+  maps.dispose();
+  expect(h.deleted.filter((program) => program === handle)).toHaveLength(1);
+  source.dispose();
+  target.dispose();
+});
+
+it('cleans up both native owners if blur compilation fails, and can then retry', () => {
+  const h = programHarness(),
+    reflection = new ReflectionSystem(),
+    target = linearTarget(),
+    before = h.state();
+  const releaseTarget = vi.spyOn(T.WebGLRenderTarget.prototype, 'dispose');
+  try {
+    h.failCompile('SphericalGaussianBlur');
+    expect(() => reflection.beginProbePreparation(h.renderer, target)).toThrow(
+      'Interrupted SphericalGaussianBlur compilation',
+    );
+    expect(h.render).not.toHaveBeenCalled();
+    expect(h.state()).toEqual(before);
+    expect(h.deleted).toHaveLength(h.created.length);
+    expect(new Set(h.deleted)).toEqual(new Set(h.created));
+    expect(h.cache.programs).toEqual([]);
+    // Unused output and retained ping-pong descriptors both have an owner.
+    expect(releaseTarget).toHaveBeenCalledTimes(2);
+    h.failCompile(null);
+    reflection.beginProbePreparation(h.renderer, target);
+    reflection.completeProbePreparation();
+  } finally {
+    releaseTarget.mockRestore();
+    reflection.dispose();
+    target.dispose();
+  }
+});
+
+it('rejects an incompatible private PMREM interface before using it', () => {
+  expect(() => compileProbeBlur({} as T.PMREMGenerator, 256)).toThrow(
+    'Reflection blur preparation requires the Three r180 PMREM interface',
+  );
+});
+
 it('prepares once across repeated quality entry and selects its linear reference over a canvas variant', () => {
   const h = programHarness(),
     target = linearTarget();
@@ -268,10 +180,11 @@ it('prepares once across repeated quality entry and selects its linear reference
   reflection.completeProbePreparation();
   reflection.beginProbePreparation(h.renderer, target);
   reflection.completeProbePreparation();
-  expect(h.created).toHaveLength(2);
+  expect(h.created).toHaveLength(3);
   expect(linearProgram.usedTimes).toBe(1);
   expect(h.queries.filter((query) => query.kind === 'program-log')).toEqual([
     { kind: 'program-log', program: linearProgram.program, stage: 'before-scene' },
+    { kind: 'program-log', program: h.cache.programs[2].program, stage: 'before-scene' },
   ]);
   reflection.dispose();
   canvasOwner.dispose();
@@ -283,14 +196,14 @@ it('restores the exact target, face, mip, viewport and scissor after an interrup
     reflection = new ReflectionSystem(),
     target = linearTarget(),
     previous = h.state();
-  h.failCompile(true);
+  h.failCompile('CubemapToCubeUV');
   expect(() => reflection.beginProbePreparation(h.renderer, target)).toThrow(
-    'Interrupted cube shader compilation',
+    'Interrupted CubemapToCubeUV compilation',
   );
   expect(h.state()).toEqual(previous);
   expect(h.cache.programs).toEqual([]);
   expect(h.deleted).toEqual(h.created);
-  h.failCompile(false);
+  h.failCompile(null);
   reflection.beginProbePreparation(h.renderer, target);
   reflection.completeProbePreparation();
   reflection.dispose();
@@ -308,14 +221,15 @@ it('does no late work after disposal and gives a replacement renderer its own li
   await pending;
   reflection.beginProbePreparation(old.renderer, target);
   expect(old.queries).toEqual([]);
-  expect(old.deleted).toEqual(old.created);
+  expect(old.deleted).toHaveLength(old.created.length);
+  expect(new Set(old.deleted)).toEqual(new Set(old.created));
   const next = programHarness(),
     replacement = new ReflectionSystem();
   replacement.beginProbePreparation(next.renderer, target);
   replacement.completeProbePreparation();
-  expect(next.created).toHaveLength(1);
+  expect(next.created).toHaveLength(2);
   expect(next.created[0]).not.toBe(old.created[0]);
-  expect(next.queries.filter((query) => query.kind === 'program-log')).toHaveLength(1);
+  expect(next.queries.filter((query) => query.kind === 'program-log')).toHaveLength(2);
   expect(() => replacement.beginProbePreparation(old.renderer, target)).toThrow(
     'Reflection preparation belongs to another renderer',
   );

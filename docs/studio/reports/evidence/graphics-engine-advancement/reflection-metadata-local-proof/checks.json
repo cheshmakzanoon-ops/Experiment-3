@@ -1,0 +1,38 @@
+{
+  "scope": "Local candidate validation; these checks do not certify the High startup deadline or physical-hardware performance.",
+  "sourceManifest": "source-manifest.json",
+  "checks": [
+    {
+      "name": "37 distinct scoped native/cache, preparation and quality regressions",
+      "exitCode": 0
+    },
+    {
+      "name": "four selected counterexamples against published subject sources",
+      "exitCode": 1,
+      "expectedFailure": true
+    },
+    {
+      "name": "full TypeScript tsc --noEmit",
+      "exitCode": 0
+    },
+    {
+      "name": "ESLint on all 11 changed files",
+      "exitCode": 0
+    },
+    {
+      "name": "Prettier on all 11 changed files",
+      "exitCode": 0
+    },
+    {
+      "name": "Playwright High specification --list",
+      "exitCode": 0,
+      "listedTests": 1
+    }
+  ],
+  "limitations": [
+    "No local browser or GL driver was launched.",
+    "Private PMREM interface is explicitly guarded for Three r180; dependency upgrades require the native-version tests.",
+    "Participating material owners include older retained variants; unrelated material owners are excluded.",
+    "Real six-face capture, High quality/resolution, 90-second readiness predicate and actual GPU completion gates remain unchanged."
+  ]
+}

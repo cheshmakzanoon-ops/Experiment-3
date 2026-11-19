@@ -459,13 +459,14 @@ function installFirstChaseStartup() {
     if (next === stage) return;
     stage = next;
     if (/Warming shadows and scene reflections/.test(stage)) chaseStarted = true;
-    active = chaseStarted || /Preparing reflections/.test(stage);
+    active =
+      chaseStarted || /Preparing reflections|Preparing circuit and vehicle materials/.test(stage);
     if (chaseStarted && /Warming cockpit|completed cockpit/.test(stage)) {
       active = false;
       finished = true;
     }
     if (
-      /Preparing reflections|Building GP|photographed (sky|ground)|Compiling|Warming|Waiting for completed/.test(
+      /Preparing reflections|Preparing circuit and vehicle materials|Building GP|photographed (sky|ground)|Compiling|Warming|Waiting for completed/.test(
         stage,
       ) &&
       stageReports++ < 32

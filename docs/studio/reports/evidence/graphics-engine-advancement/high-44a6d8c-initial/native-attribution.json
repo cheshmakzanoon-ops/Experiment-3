@@ -1,0 +1,75 @@
+{
+  "scope": "Observed High failure on the published application; this receipt is separate from the later local correction and proves no High acceptance.",
+  "commit": "44a6d8cfcadef01b323964d01740ae3cf9d0c5ef",
+  "fingerprint": "a74ef885f179df3a9bc6cece662b18efca1dc84b4f0af056b735154cbb70fb7f",
+  "runId": 44509609060,
+  "jobId": 135510085187,
+  "artifactId": 14524311678,
+  "artifactBytes": 106973401,
+  "artifactSha256": "dc9013116af005a0f077b668bb09dddbafad8b8793ee3db49c0cee7a705ee30d",
+  "result": "failed_original_90_second_paused_readiness_predicate",
+  "errors": [],
+  "nativeMonitor": {
+    "workerObserved": true,
+    "lastStarted": {
+      "sequence": 20921,
+      "atMs": 122200.59999999998,
+      "method": "getProgramInfoLog",
+      "program": 326,
+      "fragmentHash": "576687b0",
+      "framebuffer": 323,
+      "cubeFace": 3553,
+      "mip": 0,
+      "viewport": [
+        0,
+        512,
+        384,
+        256
+      ],
+      "count": 0,
+      "instances": 1,
+      "numericArguments": [
+        -1,
+        -1,
+        -1,
+        -1
+      ],
+      "sourceBufferBytes": null,
+      "shader": 0,
+      "shaderType": 0,
+      "shaderHash": "00000000"
+    },
+    "lastCompleted": {
+      "sequence": 20920,
+      "atMs": 122200.59999999998,
+      "method": "linkProgram",
+      "cpuCallMs": 0.09999999997671694,
+      "returned": true
+    },
+    "inFlight": true,
+    "observedInFlightMs": 11331.800000000047,
+    "completedProgramInfoLogCalls": 94,
+    "completedProgramInfoLogCpuMs": 40672.700000000186,
+    "completedShaderInfoLogCpuMs": 806.7000000000698,
+    "programInfoLogInFlightShader": "SphericalGaussianBlur",
+    "matchingFragmentHash": "576687b0",
+    "shaderAttribution": "../reflection-metadata-local-proof/blur-attribution.json"
+  },
+  "earlierConversionPreparation": {
+    "program": 5,
+    "fragmentHash": "8a7c27ed",
+    "name": "CubemapToCubeUV",
+    "programInfoLogCpuMs": 124.19999999995343,
+    "programInfoLogCalls": 1,
+    "shaderInfoLogCalls": 2,
+    "drawCalls": 0,
+    "evidence": "early-reflection-preparation.json"
+  },
+  "interpretation": [
+    "The early conversion metadata query completed before monitored scene draws.",
+    "The remaining directly observed native wait is the first Gaussian blur metadata query after conversion, with the first smaller-mip viewport [0,512,384,256].",
+    "Earlier completed native query duration can include waiting for queued driver work; it is not a standalone shader-compile or GPU-time measurement.",
+    "The bounded event cap does not retain every later use of conversion program 5; exact native cache reuse is established separately by the dependency-level CPU tests.",
+    "No completed High gameplay/photo frame or physical-hardware performance is established."
+  ]
+}

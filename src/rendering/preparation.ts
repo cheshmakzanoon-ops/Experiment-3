@@ -29,13 +29,21 @@ function compilationView(scene: T.Scene, hiddenRoots: readonly T.Object3D[]) {
 
 /** Compile the programs actually used by the linear scene pass, rather than
  * unused canvas/tone-mapped variants. Never leave an offscreen target bound
- * while awaiting parallel compilation, cancellation or a UI repaint. */
+ * while awaiting parallel compilation, cancellation or a UI repaint.
+ *
+ * r180 compileAsync readies material.currentProgram but defers error logs and
+ * uniform/attribute metadata to the first draw. Snapshot every retained variant
+ * owned by the participating materials immediately after its synchronous compile
+ * phase: one material can own separate skinned, instanced and two-sided programs.
+ * Older retained variants of these materials are included; unrelated material
+ * owners are not. Resolve metadata before scene work can queue behind it. */
 export function compileSceneTarget(
   renderer: T.WebGLRenderer,
   scene: T.Scene,
   camera: T.Camera,
   target: T.WebGLRenderTarget,
   hiddenRoots?: readonly T.Object3D[],
+  preparation?: { cancelled: () => boolean; beforeMetadata?: () => void },
 ) {
   const previous = renderer.getRenderTarget();
   const face = renderer.getActiveCubeFace(),
@@ -43,11 +51,42 @@ export function compileSceneTarget(
   const viewport = renderer.getViewport(new T.Vector4());
   const scissor = renderer.getScissor(new T.Vector4());
   const scissorTest = renderer.getScissorTest();
+  const view = hiddenRoots ? compilationView(scene, hiddenRoots) : scene;
+  const materials = new Set<T.Material>();
+  view.traverse((object) => {
+    if (
+      !(object as T.Mesh).isMesh &&
+      !(object as T.Points).isPoints &&
+      !(object as T.Line).isLine &&
+      !(object as T.Sprite).isSprite
+    )
+      return;
+    const material = (object as T.Mesh).material;
+    if (Array.isArray(material)) material.forEach((entry) => materials.add(entry));
+    else if (material) materials.add(material);
+  });
   try {
     renderer.setRenderTarget(target);
-    return hiddenRoots
-      ? renderer.compileAsync(compilationView(scene, hiddenRoots), camera, scene)
+    const compiling = hiddenRoots
+      ? renderer.compileAsync(view, camera, scene)
       : renderer.compileAsync(scene, camera);
+    const programs = new Set<T.WebGLProgram>();
+    for (const material of materials) {
+      const properties = renderer.properties.get(material) as {
+        programs?: Map<string, T.WebGLProgram>;
+      };
+      const owned = properties.programs;
+      for (const program of owned?.values() ?? []) programs.add(program);
+    }
+    return compiling.then((compiled) => {
+      if (preparation?.cancelled()) return compiled;
+      preparation?.beforeMetadata?.();
+      if (preparation?.cancelled()) return compiled;
+      const retained = new Set(renderer.info.programs ?? []);
+      for (const program of programs)
+        if (retained.has(program) && program.usedTimes > 0) program.getUniforms();
+      return compiled;
+    });
   } finally {
     renderer.setRenderTarget(previous, face, mip);
     renderer.setViewport(viewport);

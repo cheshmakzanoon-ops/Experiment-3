@@ -3,6 +3,7 @@ import { MirrorViews } from './mirrors.ts';
 import { STUDIO_REFLECTION_LAYER } from './photo-stage.ts';
 import { cullProbeDetail, type ProbeDetail } from './probe-detail.ts';
 import { hasSpecularIBL, setOwnEnvMap } from './studio/ibl-energy.ts';
+import { compileProbeBlur } from './pmrem-preparation.ts';
 
 /** Local probe face size (High). 256 px keeps a 0.04 clearcoat's horizon line
  * crisp; draws per face are unchanged. */
@@ -24,12 +25,12 @@ export class ReflectionSystem {
   private surfaces: T.Mesh[] = [];
   private preparationRenderer: T.WebGLRenderer | null = null;
   private prefilterPreparation: T.PMREMGenerator | null = null;
-  private prefilterProgram: T.WebGLProgram | null = null;
+  private prefilterPrograms: T.WebGLProgram[] = [];
   private disposed = false;
-  /** Link the same cube-to-CubeUV program used by Three's local-map cache
+  /** Link the same conversion and blur programs used by Three's local-map cache
    * before asset/scenery preparation. A linear target matters: this is a
    * ShaderMaterial, so compiling against the tone-mapped canvas uses another
-   * program key. This owner never captures or allocates a PMREM atlas. */
+   * program key. This owner never captures or allocates a GPU PMREM atlas. */
   beginProbePreparation(renderer: T.WebGLRenderer, target: T.WebGLRenderTarget) {
     if (this.disposed) return;
     if (this.preparationRenderer) {
@@ -53,15 +54,17 @@ export class ReflectionSystem {
       renderer.setRenderTarget(target);
       preparation = new T.PMREMGenerator(renderer);
       preparation.compileCubemapShader();
+      compileProbeBlur(preparation, PROBE_FACE_SIZE);
       const acquired = (renderer.info.programs ?? []).filter(
         (program) =>
-          program.name === 'CubemapToCubeUV' && program.usedTimes > (references.get(program) ?? 0),
+          (program.name === 'CubemapToCubeUV' || program.name === 'SphericalGaussianBlur') &&
+          program.usedTimes > (references.get(program) ?? 0),
       );
-      if (acquired.length !== 1)
-        throw new Error('Reflection prefilter program was not retained by the renderer');
+      if (acquired.length !== 2 || new Set(acquired.map((program) => program.name)).size !== 2)
+        throw new Error('Reflection prefilter programs were not retained by the renderer');
       this.preparationRenderer = renderer;
       this.prefilterPreparation = preparation;
-      this.prefilterProgram = acquired[0];
+      this.prefilterPrograms = acquired;
       preparation = null;
     } finally {
       try {
@@ -79,9 +82,9 @@ export class ReflectionSystem {
    * Resolve them once here, rather than synchronizing behind six cube faces.
    * Disposal clears the pending program before an awaited owner can resume. */
   completeProbePreparation() {
-    if (this.disposed || !this.prefilterProgram) return;
-    this.prefilterProgram.getUniforms();
-    this.prefilterProgram = null;
+    if (this.disposed) return;
+    for (const program of this.prefilterPrograms) program.getUniforms();
+    this.prefilterPrograms = [];
   }
   get mirrorUpdates() {
     return this.views.updates;
@@ -608,7 +611,7 @@ export class ReflectionSystem {
   }
   dispose() {
     this.disposed = true;
-    this.prefilterProgram = null;
+    this.prefilterPrograms = [];
     this.preparationRenderer = null;
     this.prefilterPreparation?.dispose();
     this.prefilterPreparation = null;

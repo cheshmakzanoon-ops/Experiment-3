@@ -12,6 +12,8 @@ function compilerHarness(compileAsync: T.WebGLRenderer['compileAsync']) {
     scissor = new T.Vector4(2, 3, 8, 8);
   let scissorTest = true;
   const renderer = {
+    info: { programs: [] },
+    properties: { get: () => ({}) },
     getRenderTarget: () => current,
     getActiveCubeFace: () => face,
     getActiveMipmapLevel: () => mip,
@@ -204,6 +206,8 @@ describe('grid preparation diagnostics and target ownership', () => {
       finish = resolve;
     });
     const renderer = {
+      info: { programs: [] },
+      properties: { get: () => ({}) },
       getRenderTarget: () => current,
       getActiveCubeFace: () => face,
       getActiveMipmapLevel: () => mip,

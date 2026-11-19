@@ -1,0 +1,86 @@
+{
+  "description": "Exact recorded dry Poggio braking transition at 27.47076482570913 s, rider 1 GP-R2. Reconstructible inputs for independent single-step inverse/plant tests; not a Bike/world replay.",
+  "geometry": {
+    "frontArm": 0.72,
+    "rearArm": 0.73,
+    "yawInertia": 54,
+    "frontRadius": 0.3,
+    "rearRadius": 0.32,
+    "frontWheelInertia": 0.6,
+    "rearWheelInertia": 0.9
+  },
+  "state": {
+    "frontFy": -446.8685429229983,
+    "rearFy": -360.8604745323197,
+    "lateralSpeed": -0.25183216234871647,
+    "yawRate": -0.12573373160566412,
+    "frontElasticStiffness": 9398.200037506229,
+    "rearElasticStiffness": 54687.70668847762,
+    "frontOmega": 98.31971192814778,
+    "rearOmega": 95.51236965210191,
+    "lastSpeed": 29.978269639496745
+  },
+  "q": {
+    "dt": 0.004166666666666667,
+    "speed": 29.990435856963032,
+    "mass": 244.87781269969074,
+    "lean": -0.1711466325773941,
+    "steer": -0.12934782406507192,
+    "frontLoad": 366.87666409902226,
+    "rearLoad": 2145.303462569808,
+    "frontMu": 1.771734483622817,
+    "rearMu": 1.7638285915079883,
+    "frontFx": -440.23798848379863,
+    "rearFx": 1568.4284513772236,
+    "frontContact": 1,
+    "frontBrakeExcess": 0,
+    "rearDriveExcess": 0,
+    "rearBrakeExcess": 0,
+    "inertialContacts": true
+  },
+  "previousBar": -0.12934782406507192,
+  "offsetBefore": -0.02287503180600209,
+  "cgHeight": 0.61,
+  "combinedLean": -0.18052137096777518,
+  "reference": -406.57773666483865,
+  "observed": {
+    "time": 27.47076482570913,
+    "station": 865.946710931079,
+    "previousBar": -0.12934782406507192,
+    "finiteForceBar": -0.13737408019492117,
+    "finiteForceBody": -418.4127141561943,
+    "finiteForceFront": -478.22689352157755,
+    "finiteForceRear": -346.37400304400643
+  },
+  "provenance": {
+    "history": "w27-gp-finite-dry-contacts.json",
+    "historySha256": "a62512e7f16cb597393413bf7bf72663675d9eee114ed844441090d830043455",
+    "reconstructionIndex": 1814,
+    "reconstructionResiduals": {
+      "front": 0,
+      "rear": -5.684341886080802e-14,
+      "yaw": 0,
+      "side": -5.551115123125783e-17,
+      "selectedBar": 0
+    },
+    "unknownInitialStateBounds": {
+      "frontOmega": [
+        0,
+        500
+      ],
+      "rearOmega": [
+        0,
+        500
+      ],
+      "riderOffset": [
+        -0.3,
+        0.3
+      ]
+    },
+    "wheelBoundsConvergedAtHistoryIndex": 482,
+    "wheelBoundsConvergedAtTime": 21.92076482570944,
+    "riderBoundsConvergedAtHistoryIndex": 199,
+    "riderBoundsConvergedAtTime": 20.737431492376174,
+    "reconstructionNote": "Wheel momenta and original rider offset are uniquely recovered by propagating their actual bounded recurrences from BOTH extremes of every legal initial value through the already saved history; both bounds become bit-identical before this fixture. No race or chassis simulation was repeated. Remaining physical state comes directly from saved scalars or previous actual tyre preparation. Scratch force caches/trim are not needed or claimed recovered."
+  }
+}

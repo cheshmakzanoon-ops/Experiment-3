@@ -1072,6 +1072,10 @@ export class RacingRenderer {
         this.camera,
         this.composer.readBuffer,
         hiddenHosts,
+        {
+          cancelled: () => this.disposed || cancelled(),
+          beforeMetadata: () => progress('Preparing circuit and vehicle materials…'),
+        },
       );
       if (cancelled()) return false;
       progress('Compiling shadow casters around the circuit…');
@@ -1102,6 +1106,7 @@ export class RacingRenderer {
             this.camera,
             this.composer.readBuffer,
             hiddenHosts,
+            { cancelled: () => this.disposed || cancelled() },
           );
           // Shader linking alone does not finish GPU uploads or the warmup draw.
           // Keep the worker paused until its actual submission has completed.
@@ -1176,7 +1181,14 @@ export class RacingRenderer {
       this.circuit.photoPlanting?.update(this.camera, quality, this.graphics.vegetationDensity);
       await yieldControl();
       if (stopped()) return false;
-      await compileSceneTarget(this.renderer, this.scene, this.camera, this.composer.readBuffer);
+      await compileSceneTarget(
+        this.renderer,
+        this.scene,
+        this.camera,
+        this.composer.readBuffer,
+        undefined,
+        { cancelled: stopped },
+      );
       complete = !stopped();
       return complete;
     } catch (error) {

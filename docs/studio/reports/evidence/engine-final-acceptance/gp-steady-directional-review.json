@@ -1,0 +1,167 @@
+{
+  "schema": 1,
+  "updatedUTC": "2026-11-19T11:23:08.817890+00:00",
+  "status": "Paired steady conversion independently reviewed; original race gates pending and final source not accepted.",
+  "candidate": "w27-gp-steady-candidate",
+  "parentCandidate": "w27-gp-capacity-candidate",
+  "sourceHashes": {
+    "src/simulation/bike.ts": "24c6c03405193bc30977e0caebf91a2078419e17f0ab357cc7832034f0068fec",
+    "src/simulation/bike-ai.ts": "80006ea7d138643444346c31f17050800dfe724fa6e8c82e172cd475c67565e5",
+    "src/simulation/motogp-physics.ts": "3b8c3ad88c857fdb6a668605d183173e982e6d622096b35752d737b2c3f94b6e",
+    "tests/gp-steady-balance.test.ts": "06762a6b55090f0bf7dfe0f875570b25c6cfc207296e8d9c68af9f949922c42b",
+    "tests/gp-steering-budget.test.ts": "6608a138da55e215582ce0de6c2289d83b8a24f9fc5e3501a09f19260231b7ec",
+    "tests/gp-path-reaction.test.ts": "855749cdbbc284e2da9f5bb7e71d819ed439dbbf1260b0c089d13b8ecf1f21da"
+  },
+  "independentDerivation": {
+    "scope": "Steady yaw with fixed bar angle, fixed rider angle and wheel spin at the sampled state; no transient prediction or race acceptance.",
+    "symbols": {
+      "psi": "combined bike+rider lean",
+      "theta": "rider hangoff angle",
+      "R": "current normal reaction divided by mass",
+      "a": "requested lateral acceleration",
+      "c": "wheel spin angular momentum divided by speed*mass*CG height"
+    },
+    "nativeEquation": "R*sin(psi) = a*(cos(psi)+c*cos(psi-theta))",
+    "lateralFromLean": "a=R*sin(psi)/(cos(psi)+c*cos(psi-theta))",
+    "leanFromLateral": "psi=atan2(a*(1+c*cos(theta)), R-a*c*sin(theta))",
+    "zeroHangoff": "tan(psi)=(a/R)*(1+c)",
+    "directionalSymmetry": "Changing lateral and hangoff signs together negates combined lean. With a fixed nonzero hangoff angle, positive and negative support limits are asymmetric."
+  },
+  "reviewedOwnership": [
+    "The nominal road-GP intent angle uses nominal rolling spin, full authored hangoff clearance and the original lean margin. Nominal aero scales available lateral force and normal reaction together; current suspension load does not change this angle scale.",
+    "The current road encoding, decoding, supported target and steady reserve share measured H/(v*m*h), current reaction and current rider offset. Paired helpers add no state and do not advance any physical history.",
+    "The asymmetric negative and positive support limits preserve the existing weaker-contact force budget. The tyre friction, camber function, physical force circles, controller gains, actuator rate and original race limits are not increased.",
+    "The MotoGP module differs from the parent only by the two pure conversion helpers. Removing that exact helper insertion reproduces the parent module byte-for-byte.",
+    "Standalone GP keeps its original nominal law. Existing original zero-spin path-reaction fixtures are byte-identical and all four pass.",
+    "Four new draft steering-budget expectations now use the independently derived native roll equation rather than R*tan(psi); the test assertions and tolerances are unchanged."
+  ],
+  "nativeValidation": {
+    "tests": 121,
+    "files": 10,
+    "passed": 121,
+    "newSteadyBalanceCases": 40,
+    "durationSeconds": 6.59,
+    "actualRollOracle": "Prescribed feasible tyre forces and wheel spin are fed through the actual Bike.step roll integrator. The old no-gyro mapping is a negative control.",
+    "logRead": true,
+    "typeAndLint": "Owner reports pass; logs contain only the existing npm http-proxy warning."
+  },
+  "unaffectedPathsParity": {
+    "steps": 5760,
+    "firstDifference": null,
+    "identical": true,
+    "sources": {
+      "w27-gp-capacity-candidate": "52b090530d8db770d023dd65c72fff2e64ff84e10feb3e3d5c27c869c542eafd",
+      "w27-gp-steady-candidate": "24c6c03405193bc30977e0caebf91a2078419e17f0ab357cc7832034f0068fec"
+    }
+  },
+  "negativeForwardPrediction": {
+    "scope": "Observation along an unchanged live trajectory; future controls vary. Not a frozen-input causal test.",
+    "samples": 2401,
+    "stationRange": [
+      3200,
+      3600
+    ],
+    "oldPoseRMSE": 0.006368710343148582,
+    "fullMomentPoseRMSE": 0.006938305453505167,
+    "oldRateRMSE": 0.2042469563553795,
+    "fullMomentRateRMSE": 0.22406664349173114,
+    "interpretation": "Adding the prior bar moment to the short-horizon predictor worsens aggregate pose and rate error. Its large instantaneous magnitude does not justify changing the predictor; alternating bar motion partly cancels over the horizon."
+  },
+  "separateDirectionalFinding": {
+    "candidate": "w27-gp-capacity-candidate",
+    "includedInSteadySource": false,
+    "scope": "Exact saved-state one-step native replay, not a new race or an accepted controller correction.",
+    "time": 83.89422415631694,
+    "station": 3118.259304226328,
+    "physicalStepReplay": {
+      "exactFields": [
+        "frontFy",
+        "rearFy",
+        "yawRate",
+        "lateralSpeed",
+        "lateralAcceleration",
+        "frontOmega",
+        "rearOmega",
+        "groundSteer",
+        "rearPreview"
+      ],
+      "deltas": {
+        "frontFy": 0,
+        "rearFy": 0,
+        "yawRate": 0,
+        "lateralSpeed": 0,
+        "lateralAcceleration": 0,
+        "frontOmega": 0,
+        "rearOmega": 0,
+        "groundSteer": 0,
+        "rearPreview": 0
+      },
+      "repeatedRearPreview": 324.3219803857146,
+      "previewDidNotAdvancePhysicalState": true,
+      "physicalPlantSteps": 1
+    },
+    "outerBound": {
+      "equation": "Ffront(a) = (m + K/v)*a - FrearPreview - K*yaw; K=yawDamping*IYaw/frontArm; v=max(speed,3)",
+      "inverseEquation": "a interval = [(Fmin+FrearPreview+K*yaw)/(m+K/v), (Fmax+FrearPreview+K*yaw)/(m+K/v)]",
+      "qualification": "The symmetric friction-vector magnitude is an absolute outer bound only. It does not guarantee actual transient or actuator reachability, nor zero force error from the steady inverse. The yaw term is retained without substituting roll moment.",
+      "K": 314.2857142857143,
+      "v": 13.776508436218846,
+      "slope": 267.4284692233246,
+      "rearPreview": 324.3219803857146,
+      "yaw": 0.30532837443789496,
+      "frontBodyInterval": [
+        -1163.518567332624,
+        1163.518567332624
+      ],
+      "requestInterval": [
+        -2.779196406626164,
+        5.922334666051
+      ],
+      "actualRequestedLateral": 8.138857703096404,
+      "reconstructedFrontRequest": 1756.2799301279106,
+      "recordedFrontRequest": 1756.2799301279108,
+      "frontRequestAlgebraError": -2.2737367544323206e-13,
+      "frontRequestExcessOverAbsoluteBound": 592.7613627952869,
+      "requestedLateralExcessOverOuterInterval": 2.2165230370454037
+    },
+    "interpretation": "The original yaw-preserving front-force allocation can require a front force outside its absolute friction-vector bound even while the scalar static-share capacity permits the request. The mapped interval is necessary only; transient/actuator feasibility inside it is not established."
+  },
+  "evidence": {
+    "gp-steady-path-equilibrium-counterexample.json": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-steady-path-equilibrium-counterexample.json",
+      "bytes": 5005,
+      "sha256": "3f30be6aa6fd53127110ea57b2234874b37fab763d90d831b024c8ed7a4611f1"
+    },
+    "gp-steady-nominal-limit-counterexample.json": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-steady-nominal-limit-counterexample.json",
+      "bytes": 2550,
+      "sha256": "c3e170c6acbfa40c1315a5c0b6eb8768d00c0b3990b0bb08f192eab969603135"
+    },
+    "gp-roll-forward-prediction-negative.json": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-roll-forward-prediction-negative.json",
+      "bytes": 2029,
+      "sha256": "2943ad2ea35f1839558fc44667e7f5642dcbe546476df24d2b515514cc0f2b75"
+    },
+    "gp-steady-native.log": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-steady-native.log",
+      "bytes": 1056,
+      "sha256": "39c9e9003a48e82e965847c8c35cc781708bf7de637478fed99409c3f51a1464"
+    },
+    "gp-steady-parity.json": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-steady-parity.json",
+      "bytes": 286,
+      "sha256": "f70fe9f4c3b0a6938461fb4616ebe9c493b4f81f17be1b370b19d34f7def6dd3"
+    },
+    "gp-capacity-ardennes-native-fixture.json": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-capacity-ardennes-native-fixture.json",
+      "bytes": 7912,
+      "sha256": "f6bed701f92bce90828e4289d9f7ee44d0c243b2d1a76e0efc11fc8281f0ec82"
+    }
+  },
+  "pending": [
+    "Complete original GP race gates on the frozen candidate",
+    "Any direction-specific force feasibility correction requires its own native and original integration proof",
+    "Final original19 matrix and strictGP calibration after actual accepted freeze",
+    "Complete final-source unfiltered npm test with pretest/source guard"
+  ]
+}

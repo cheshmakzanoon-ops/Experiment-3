@@ -580,7 +580,14 @@ export class FestivalRenderer {
     progress('Compiling the festival materials…');
     await yieldFrame();
     if (stopped()) return false;
-    await compileSceneTarget(this.renderer, this.scene, this.camera, this.composer.readBuffer);
+    await compileSceneTarget(
+      this.renderer,
+      this.scene,
+      this.camera,
+      this.composer.readBuffer,
+      undefined,
+      { cancelled: stopped },
+    );
     progress('Warming the festival view…');
     for (let i = 0; i < 2; i++) {
       await yieldFrame();

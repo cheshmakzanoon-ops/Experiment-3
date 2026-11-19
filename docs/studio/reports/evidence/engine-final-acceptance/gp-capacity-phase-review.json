@@ -1,0 +1,164 @@
+{
+  "schema": 1,
+  "updatedUTC": "2026-11-19T11:15:05.659907+00:00",
+  "status": "minimal capacity-phase ownership reviewed; native contracts pass; original mixed pace and Ardennes1000 still fail; not accepted",
+  "candidate": "w27-gp-capacity-candidate",
+  "sourceHashes": {
+    "src/simulation/bike.ts": "52b090530d8db770d023dd65c72fff2e64ff84e10feb3e3d5c27c869c542eafd",
+    "src/simulation/bike-ai.ts": "ffc70ab74e818298535eea6c48375df8cd3a5b30ba4ad776370a358eb3358c7d",
+    "src/simulation/motogp-physics.ts": "f43236152c81328f6bb0e0db6573235c492fcf2c8f5c2a84c3ca3976aa844e5b"
+  },
+  "independentSourceComparison": {
+    "baseline": "exact archived b754 engine",
+    "engineTypeScriptFilesCompared": 173,
+    "changed": [
+      "src/simulation/bike.ts",
+      "src/simulation/bike-ai.ts"
+    ],
+    "tyrePlantUnchanged": true,
+    "finiteInverseOrMomentControlIncluded": false
+  },
+  "reviewedContracts": [
+    "Road planning captures speed,pose,target,measured lateral state and effort once before pedal allocation.",
+    "Early reserve is independent of unresolved current Fx and includes zero-rate arrest, supported-target effort and raw-target effort. Affine balance and convex absolute demand justify the endpoints on the unchanged2g reserve/report scale.",
+    "The final road closure evaluates capacity once with the actual signed front/rear Fx, then stopping request and trim once. It retains captured planning speed/pose; the force inverse uses actual post-longitudinal plant speed.",
+    "The call site advances the steering actuator and physical plant once; no new physical state, force law, replay field, gain or margin is added.",
+    "Standalone immediate and non-GP paths retain their prior arithmetic, supported by5760 complete-state paired steps."
+  ],
+  "nativeValidation": {
+    "retained": {
+      "tests": 57,
+      "files": 6,
+      "passed": 57
+    },
+    "capacityInvariants": {
+      "tests": 15,
+      "passed": 15
+    },
+    "negativeControlOnPriorEngine": {
+      "actualExitCode": 1,
+      "failedTests": 10,
+      "skippedUnselectedTests": 5,
+      "meaning": "All10 selected application/release and stale-force direction regressions fail on the preceding phase-arrest source."
+    }
+  },
+  "originalContactSession": {
+    "actualExitCode": 1,
+    "passedTests": 35,
+    "totalTests": 36,
+    "durationSeconds": 211.36,
+    "all22OriginalContactCasesPass": true,
+    "failure": "Mixed GP/superbike pace",
+    "gpBest": 90.98598437500547,
+    "sbkBest": 90.28917234415549,
+    "required": "sbkBest-gpBest>0.15"
+  },
+  "originalGPPlanAndPassing": {
+    "totalTests": 15,
+    "passedTests": 14,
+    "failedTests": 1,
+    "all6MixedPassingPass": true,
+    "failure": "Original Ardennes hairpin seed1000; rider1 station3156.977486 after outer step"
+  },
+  "sampledPaceClassification": {
+    "qualification": "The fastest GP rider2 and SBK rider1 have their best lap on lap index1. Station crossings interpolate existing0.2s samples; exact final lap times anchor the endpoint. Use large segment differences for localization, not sub-tenth margin acceptance. Traffic ownership is asserted only where recorded aiTarget equals traffic within1e-6 and traffic is below own plan by>0.05m/s. Unreported tactical time loss is not excluded.",
+    "capacityGpLossVersusPhase": 0.5533331520258713,
+    "stations400to800": {
+      "lossVersusPhase": 0.8463250050343163,
+      "explicitTrafficBindingSamples": 32,
+      "totalSamples": 32
+    },
+    "stations3200to3600": {
+      "lossVersusPhase": 0.0075937612832888135,
+      "lossVersusReaction": 1.0484159043359398,
+      "explicitTrafficBindingSamples": 3,
+      "totalSamples": 50
+    },
+    "interpretation": "New deficit versus phase-arrest primarily coincides with changed early traffic encounters. The previous late tracking/drive deficit remains; these distinct trajectories do not constitute an isolated causal counterfactual."
+  },
+  "ardennesDiagnosis": {
+    "boundedInvocationExitCode": 0,
+    "sourceGuardPassed": true,
+    "candidateSourceStable": true,
+    "fall": {
+      "id": 1,
+      "t": 86.09422415631869,
+      "s": 3156.9205131069057,
+      "kind": "lowside",
+      "afterFlag": false,
+      "stack": "Error\n    at d.fall (file:///workspace/scratch/d611aefdb08c/w10-acceptance-tools/gp-capacity-ardennes-onset.mjs:37:198)\n    at Bike.step (/workspace/scratch/d611aefdb08c/w27-gp-capacity-candidate/src/simulation/bike.ts:1230:49)\n    at d.step (file:///workspace/scratch/d611aefdb08c/w10-acceptance-tools/gp-capacity-ardennes-onset.mjs:28:16)\n    at BikeVehicle.step (/workspace/scratch/d611aefdb08c/w27-gp-capacity-candidate/src/simulation/bike-vehicle.ts:460:7)\n    at Simulation.step (/workspace/scratch/d611aefdb08c/w27-gp-capacity-candidate/src/simulation/world.ts:194:36)\n    at file:///workspace/scratch/d611aefdb08c/w10-acceptance-tools/gp-capacity-ardennes-onset.mjs:41:6"
+    },
+    "classification": {
+      "externalImpacts": 0,
+      "historySamples": 2400,
+      "airborneSamples": 0,
+      "absentFrontSamples": 0,
+      "absentRearSamples": 0,
+      "maximumGap": 0
+    },
+    "finding": "The rider enters a supported positive-roll manoeuvre near3110\u20133118m. Onset then includes front requests exceeding an absolute current friction-vector bound while actual rear preview remains exact. The static axle-share capacity is optimistic about the immediate front/rear force allocation in this trajectory. This is diagnostic evidence, not authorization for more grip/reserve or a new controller."
+  },
+  "evidence": {
+    "gp-capacity-pace-review.json": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-capacity-pace-review.json",
+      "bytes": 248756,
+      "sha256": "7c7f54c21cf5af945b11f3df7bf4c22999ab543ab6fcfa7cd63a818ac9f0cee2"
+    },
+    "gp-capacity-parity.json": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-capacity-parity.json",
+      "bytes": 292,
+      "sha256": "820190d9794ce938fc9442e1e338d6846ba55cfd529833a82d9281105a3ab669"
+    },
+    "gp-capacity-phase-probe.json": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-capacity-phase-probe.json",
+      "bytes": 1542,
+      "sha256": "ab23350aa7767d730ab2b23a1cd919069ae8423edd11d615bf0c101143e1c249"
+    },
+    "gp-capacity-native-initial.log": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-capacity-native-initial.log",
+      "bytes": 846,
+      "sha256": "bb55a4c9da2d74759a4385659badc814aa090dfd218b3e0e0c57a4d750c718ab"
+    },
+    "gp-capacity-phase-invariants.log": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-capacity-phase-invariants.log",
+      "bytes": 409,
+      "sha256": "0f4639f367feec88a747a83449be80bd19b20cf668c19e9fdd6feca3bdc743e9"
+    },
+    "gp-capacity-negative-control.log": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-capacity-negative-control.log",
+      "bytes": 9158,
+      "sha256": "129fb79923aeccb17dab5f40ea156d9549bc8894e38384a381ed4f02ec7f8d7a"
+    },
+    "gp-capacity-original-contact-session.log": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-capacity-original-contact-session.log",
+      "bytes": 4517,
+      "sha256": "29127462dd13c5314e3dc750ef2901e5db3b40792d2707d40a464a7536a7b75d"
+    },
+    "gp-capacity-original-plan-passing.log": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-capacity-original-plan-passing.log",
+      "bytes": 2859,
+      "sha256": "950727b7f854ecbc8fb1c51ffc28641b2caca060c3cd80cff2955bb4a4ce9f87"
+    },
+    "gp-capacity-ardennes1000-status.json": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-capacity-ardennes1000-status.json",
+      "bytes": 514,
+      "sha256": "4d9f8d64a1116b754709d3f1aff8b611e9d1ee29b1c63007d41924e1ec9548b2"
+    },
+    "gp-capacity-ardennes1000.log": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-capacity-ardennes1000.log",
+      "bytes": 4310,
+      "sha256": "6dfb45d4fdc76f4c63654c65ac55f35363e3e15d35abd92400011d9ed288d722"
+    },
+    "gp-capacity-ardennes1000-review.json": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-capacity-ardennes1000-review.json",
+      "bytes": 13000,
+      "sha256": "c13765261f8d30dee7bc88182f05959d367bf145f30ed5ad21ee1adf1f657fd6"
+    }
+  },
+  "pending": [
+    "Original mixed pace and Ardennes gates",
+    "Other final-source replay/thermal/integration checks",
+    "Final immutable original19 matrix and strictGP calibration",
+    "Complete final-source unfiltered npm test including pretest/sourceguard"
+  ]
+}

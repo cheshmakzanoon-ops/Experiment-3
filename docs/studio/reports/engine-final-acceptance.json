@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedUTC": "2026-11-19T10:20:14.737856+00:00",
-  "status": "original matrix historical failures retained; phase consistency correction reviewed; wet GP correction and final combined acceptance pending",
+  "updatedUTC": "2026-11-19T11:32:03.699146+00:00",
+  "status": "Historical matrix and complete152 CI failures retained; minimal GP capacity phase reviewed, pace and Ardennes gates remain unresolved; final combined acceptance pending",
   "source": {
     "localCommit": "e1c34e2500980129b5edbf4f9a39f880b7f2ad10",
     "gitTree": "9bfc8a98fcd203fe7adf06b6c1c2b8c137dfe791",
@@ -1815,7 +1815,7 @@
     ]
   },
   "unitSuite": {
-    "status": "Final combined simulation28 candidate pending GP force-phase/remaining wet correction; complete failed CI and matrix evidence retained.",
+    "status": "Final combined simulation28 candidate pending original GP pace and Ardennes gates; complete failed historical CI and matrix evidence retained.",
     "filtered": false,
     "completedPriorCI": {
       "source": "8763bfc8e1a811abc93a546d5f8f3179965b4547",
@@ -1861,6 +1861,58 @@
       "runId": 44495022671,
       "jobId": 135460080016,
       "sourceDriftReported": false
+    },
+    "completed152CI": {
+      "commit": "152643b15f9b3b591e3477374c6b81f2e8b13bc9",
+      "runId": 44502345613,
+      "jobId": 135485439756,
+      "runUrl": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44502345613",
+      "jobUrl": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44502345613/job/135485439756",
+      "command": "node --experimental-transform-types scripts/source-stability.ts -- npm test",
+      "complete": true,
+      "exitCode": 1,
+      "files": {
+        "total": 691,
+        "passed": 689,
+        "failed": 2
+      },
+      "tests": {
+        "total": 6734,
+        "passed": 6732,
+        "failed": 2
+      },
+      "durationSeconds": 2575.0,
+      "failures": [
+        {
+          "test": "tests/bike-session.test.ts > WP35 seeded AI bike race > finishes a mixed GP/superbike race with bounded incidents and no stuck rider",
+          "observed": {
+            "gpBestLapSeconds": 91.13427179346363,
+            "sbkBestLapSeconds": 90.36337145755091
+          },
+          "originalRequirement": "GP faster than SBK with a margin greater than 0.15 seconds"
+        },
+        {
+          "test": "tests/gp-tyre-contact.test.ts > GP contact grip in production races > classifies all eight GP riders at 'poggio-alto' in 'rain' without a contact or crash",
+          "observed": {
+            "maximumImpact": 0.9916666666666667
+          },
+          "originalRequirement": "Zero impact and zero crashes"
+        }
+      ],
+      "allSixOriginalMixedPassingCasesPassed": true,
+      "logFile": "unit-152643b-complete.log",
+      "logSha256": "34fed2a393690985411f6d2c6cc97628dda696b576f3b4b7a3c00a3cd202f7d3",
+      "logBytes": 219800,
+      "logNormalization": "ANSI color codes removed; timestamps and complete log text retained.",
+      "scope": "Complete npm test invocation including pretest, wrapped by the unchanged source-stability guard; original race assertions and timeouts unchanged. Expected source-stability negative-control stderr belongs to tests/source-stability.test.ts; no outer source drift was reported. The invocation finished normally with two test failures and was not cancelled. This failed historical checkpoint does not accept the later reflection or unpublished GP changes.",
+      "startedAt": "2026-11-19T10:06:46Z",
+      "completedAt": "2026-11-19T10:49:42.7856452Z",
+      "vellamarBroadcastFixturePassed": true,
+      "receipt": "docs/studio/reports/evidence/graphics-engine-advancement/unit-152643b-complete.json",
+      "receiptSha256": "f84c65c35cf2757ab0e418bad84e13bac25b53e0ff2e3eefc4dd4532c4f744ae",
+      "log": "docs/studio/reports/evidence/graphics-engine-advancement/unit-152643b-complete.log",
+      "finalAcceptance": false,
+      "independentVerification": "Assignment29 read the complete receipt, verified complete log bytes/SHA256 and inspected source-stability negative-control stderr context. The13 expected markers belong to tests/source-stability.test.ts; no outer source drift is reported."
     }
   },
   "preflight": {
@@ -1977,6 +2029,26 @@
       "report": "docs/studio/reports/evidence/engine-final-acceptance/gp-phase-pace-review.json",
       "sha256": "7598d9418ddf02e3b7ddf151bf92347cfc71db6f814ee8e41f9345c7084fe7e2",
       "status": "current minimal candidate margin0.0487014<required0.15; actual late-lap lane telemetry rules out the earlier clipping mechanism"
+    },
+    "gpFiniteMomentReview": {
+      "report": "docs/studio/reports/evidence/engine-final-acceptance/gp-finite-moment-review.json",
+      "sha256": "f1a97e0d49485775fa7790434582004c0f0aeaa7d6914699fc4b9b9635e56676",
+      "status": "both finite-force and coupled-moment integrations rejected by original bounded dry race probes; native mapping proofs retained separately; final acceptance remains pending"
+    },
+    "gpCapacityPhaseReview": {
+      "report": "docs/studio/reports/evidence/engine-final-acceptance/gp-capacity-phase-review.json",
+      "sha256": "17aea613e2d5180bd73f7af4244c55088eaefb8e0b6c204dcff95dbc212b1a8b",
+      "status": "minimal capacity-phase ownership reviewed; native contracts pass; original mixed pace and Ardennes1000 still fail; not accepted"
+    },
+    "gpSteadyDirectionalReview": {
+      "report": "docs/studio/reports/evidence/engine-final-acceptance/gp-steady-directional-review.json",
+      "sha256": "96eb06d3c11cd01477db872543166efcb84a7919f2cf44b7b7cb4b26b8c2f5bf",
+      "status": "Paired steady conversion independently reviewed; original race gates pending and final source not accepted."
+    },
+    "gpSteadyOriginalGates": {
+      "report": "docs/studio/reports/evidence/engine-final-acceptance/gp-steady-original-gates-complete.json",
+      "sha256": "17962e820a1733e788788663019881b701892d8a2554a04e784d67193441d5ee",
+      "status": "Complete original four-file invocation: 47/51; four failures block the steady candidate. No production source change."
     }
   }
 }
