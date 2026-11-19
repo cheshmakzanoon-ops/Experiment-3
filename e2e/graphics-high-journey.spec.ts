@@ -2,6 +2,7 @@ import { expect, test, type Page, type TestInfo } from '@playwright/test';
 import { graphicsPreset } from '../src/rendering/options.ts';
 import { H, carBase, hasRoadBikeContact } from '../src/simulation/protocol.ts';
 import { MENU_STARTUP_TIMEOUT_MS } from './menu-startup.ts';
+import { installProgramSetupDiagnostic } from './fixtures/program-setup-diagnostic.ts';
 
 // Full production UI, worker, assets and High settings. Fixed small scene,
 // original five-minute test deadline and all actual GPU completion gates.
@@ -32,7 +33,7 @@ async function capture(page: Page, info: TestInfo, name: string) {
   }
 }
 
-function installFirstChaseStartup() {
+function installFirstChaseStartup(installProgramSetup: typeof installProgramSetupDiagnostic) {
   // A main-thread poll cannot identify a native call that never returns.
   // This test-only worker receives numeric command state, retains one start
   // and completion, and reports directly through its own console. It owns no
@@ -508,6 +509,30 @@ function installFirstChaseStartup() {
       }
     };
   }
+  const programSetup = installProgramSetup({
+    prototype: callable,
+    active: () => active && chaseStarted && !finished,
+    stage: () => stage,
+    identify: id,
+    describeContext(gl) {
+      const state = context(gl),
+        attachment = state.framebuffer && attachments.get(state.framebuffer);
+      return {
+        program: id(state.program),
+        fragmentHash: ((state.program && hashes.get(state.program)) || 0)
+          .toString(16)
+          .padStart(8, '0'),
+        framebuffer: id(state.framebuffer),
+        cubeFace: attachment?.face ?? 0,
+        viewport: [...state.viewport],
+      };
+    },
+    report,
+  });
+  // One bounded cumulative summary per second or stage transition. Individual
+  // uniform calls never send worker messages; slow returned calls have their
+  // own capped records, independent of the generic activity ring.
+  const setupTimer = setInterval(() => programSetup.flush('interval'), 1000);
   let loadingText: HTMLElement | null = null;
   const observe = () => {
     if (finished) return;
@@ -539,6 +564,7 @@ function installFirstChaseStartup() {
     }
     const next = loadingText.textContent ?? '';
     if (next === stage) return;
+    programSetup.flush('stage-transition');
     stage = next;
     if (/Warming shadows and scene reflections/.test(stage)) chaseStarted = true;
     active =
@@ -555,7 +581,10 @@ function installFirstChaseStartup() {
     )
       report({ kind: 'stage', atMs: performance.now(), stage, active });
     post({ kind: 'stage', stage, active });
-    if (finished) observer.disconnect();
+    if (finished) {
+      observer.disconnect();
+      clearInterval(setupTimer);
+    }
   };
   const observer = new MutationObserver(observe);
   observer.observe(document, { childList: true, subtree: true });
@@ -715,10 +744,12 @@ test('High production scene presents an active GP chassis and two completed phot
     startupRecords: Record<string, unknown>[] = [],
     startupPrograms: Record<string, unknown>[] = [],
     startupLatePrograms: Record<string, unknown>[] = [],
-    startupSlowUploads: Record<string, unknown>[] = [];
+    startupSlowUploads: Record<string, unknown>[] = [],
+    startupSlowProgramSetup: Record<string, unknown>[] = [];
   let startupWorkerUrl: string | null = null,
     startupLastStarted: unknown = null,
-    startupLastCompleted: unknown = null;
+    startupLastCompleted: unknown = null,
+    startupProgramSetupSummary: Record<string, unknown> | null = null;
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('console', (message) => {
     const text = message.text();
@@ -735,6 +766,9 @@ test('High production scene presents an active GP chassis and two completed phot
           startupLatePrograms.push(record);
         if (record.kind === 'slow-upload' && startupSlowUploads.length < 16)
           startupSlowUploads.push(record);
+        if (record.kind === 'slow-program-setup' && startupSlowProgramSetup.length < 16)
+          startupSlowProgramSetup.push(record);
+        if (record.kind === 'program-setup-summary') startupProgramSetupSummary = record;
         if (record.kind === 'worker-ready' && typeof record.workerUrl === 'string')
           startupWorkerUrl = record.workerUrl;
         if (record.lastStarted) startupLastStarted = record.lastStarted;
@@ -763,7 +797,7 @@ test('High production scene presents an active GP chassis and two completed phot
   // outside the native-command wrappers, so its own queries are not mistaken
   // for the duration of an instanced draw.
   await page.addInitScript({
-    content: `(${installFirstChaseStartup.toString()})();(${installInstancedFragmentOutputs.toString()})();`,
+    content: `(${installFirstChaseStartup.toString()})(${installProgramSetupDiagnostic.toString()});(${installInstancedFragmentOutputs.toString()})();`,
   });
   try {
     await page.goto('/');
@@ -881,6 +915,12 @@ test('High production scene presents an active GP chassis and two completed phot
           programs: startupPrograms,
           latePrograms: startupLatePrograms,
           slowUploads: startupSlowUploads,
+          programSetup: {
+            slowCalls: startupSlowProgramSetup,
+            summary: startupProgramSetupSummary,
+            limitation:
+              'Passive returned-call timings add wrapper/clock overhead; they identify CPU call boundaries, not isolated GPU execution. No extra GL queries or per-uniform worker messages are issued.',
+          },
           records: startupRecords,
         },
         null,
