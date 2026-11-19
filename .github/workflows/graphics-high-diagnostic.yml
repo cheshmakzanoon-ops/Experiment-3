@@ -1,16 +1,79 @@
-name: Isolated High startup diagnostics
+name: Isolated startup rendering validation
 on:
   push:
     branches: ['ci/high-late-startup-20261119']
     paths:
       - '.github/workflows/graphics-high-diagnostic.yml'
       - 'e2e/graphics-high-journey.spec.ts'
+      - 'src/rendering/**'
 permissions:
   contents: read
 concurrency:
   group: isolated-high-startup-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  gpu:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
+      - name: Production geometry, grounding, occlusion, temporal depth and resource lifetime
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' npx playwright test e2e/graphics-engine-advancement.spec.ts e2e/terrain-morph-contract.spec.ts e2e/temporal-depth-rejection.spec.ts e2e/texture-source-ownership.spec.ts e2e/festival-rendering.spec.ts e2e/gp-grounding.spec.ts e2e/road-bike-presentation.spec.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: graphics-advancement-gpu
+          path: |
+            test-results/
+            playwright-report/
+            browser-backend.json
+            browser-progress.json
+          retention-days: 14
+  gameplay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
+      - name: Existing complete application driving and replay journey
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' npx playwright test e2e/36-compact-race-journey.spec.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: graphics-advancement-gameplay
+          path: |
+            test-results/
+            playwright-report/
+            browser-backend.json
+            browser-progress.json
+          retention-days: 14
   high:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -42,5 +105,70 @@ jobs:
             browser-backend.json
             browser-progress.json
           retention-days: 14
-# Diagnostic evidence only. All existing full CI and publication gates remain
-# required; this workflow cannot publish or substitute for those gates.
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm run build
+      - name: Identify the reviewed source
+        run: git rev-parse HEAD > dist/SOURCE_COMMIT.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: motogp-reviewed-build
+          path: dist/
+          retention-days: 7
+          if-no-files-found: error
+  browser:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - scene: menu-entry
+            specs: e2e/30-menu-access.spec.ts e2e/settings-transition.spec.ts e2e/gpu-frame-gate.spec.ts e2e/gpu-context-reuse.spec.ts
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        with:
+          name: motogp-reviewed-build
+          path: dist/
+      - name: Require the exact source build
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s dist/index.html
+          test "$(cat dist/SOURCE_COMMIT.txt)" = "$GITHUB_SHA"
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
+      - name: Original workloads, viewports, deadlines and assertions
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e -- ${{ matrix.specs }}
+      - name: Screenshots, traces and diagnostics, including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: motogp-${{ matrix.scene }}
+          path: |
+            test-results/
+            playwright-report/
+            browser-backend.json
+            browser-progress.json
+          retention-days: 7
+          if-no-files-found: error
+# Isolated candidate evidence only; no main or publication gate is replaced.

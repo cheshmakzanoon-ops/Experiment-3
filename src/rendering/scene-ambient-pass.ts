@@ -6,6 +6,7 @@ import { TemporalAA } from './studio/temporal-aa.ts';
 import { studioUniforms } from './studio/studio-frame.ts';
 import { bindSoftParticleDepth } from './soft-particles.ts';
 import { HEAT_HAZE_GLSL, type HeatHaze } from './heat-haze.ts';
+import { compileFullscreenTarget } from './preparation.ts';
 
 /** Scalable ambient obscurance tuning. World-space radius in metres; the screen
  * radius is clamped so a cockpit surface 30 cm from the eye cannot black out.
@@ -412,6 +413,7 @@ export class SceneAmbientPass extends Pass {
   private blurMaterial: T.ShaderMaterial;
   private compositeMaterial: T.ShaderMaterial;
   private quad = new FullScreenQuad();
+  private disposed = false;
   private width = 1;
   private height = 1;
   ambientOcclusion = true;
@@ -550,6 +552,36 @@ export class SceneAmbientPass extends Pass {
       ...(createMotionUniforms() as unknown as Record<string, T.IUniform>),
     });
     this.attach(motion, sun);
+  }
+  /** Ready only this pass's enabled native program owners before scene work
+   * queues behind their first-use metadata. This neither renders a frame nor
+   * touches temporal history, uniforms, defines or the completion gate. */
+  async prepare(
+    renderer: T.WebGLRenderer,
+    writeBuffer: T.WebGLRenderTarget,
+    cancelled: () => boolean,
+  ): Promise<void> {
+    const stopped = () => this.disposed || cancelled();
+    if (!this.enabled || stopped()) return;
+    const passes: [T.ShaderMaterial, T.WebGLRenderTarget | null][] = [];
+    if (this.ambientOcclusion) {
+      passes.push([this.obscuranceMaterial, this.obscurance], [this.blurMaterial, this.blurred]);
+    }
+    passes.push([this.compositeMaterial, this.renderToScreen ? null : writeBuffer]);
+    for (const [material, target] of passes) {
+      if (!this.enabled || stopped()) return;
+      const previous = this.quad.material;
+      let compiling: Promise<void>;
+      try {
+        this.quad.material = material;
+        compiling = compileFullscreenTarget(renderer, this.quad, target, stopped);
+      } finally {
+        // Like the renderer's target state, restore the shared quad before
+        // yielding to parallel compilation, cancellation or another owner.
+        this.quad.material = previous;
+      }
+      await compiling;
+    }
   }
   /** Gather the camera motion blur in the composite (the controller's uniform
    * objects are bound by identity; it writes them once per frame), and cast
@@ -773,6 +805,7 @@ export class SceneAmbientPass extends Pass {
     };
   }
   override dispose() {
+    this.disposed = true;
     this.target.depthTexture?.dispose();
     this.target.dispose();
     this.obscurance.dispose();

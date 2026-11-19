@@ -1,0 +1,25 @@
+{
+  "command": [
+    "node",
+    "--experimental-transform-types",
+    "scripts/source-stability.ts",
+    "--",
+    "node",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "tests/scene-ambient-preparation.test.ts",
+    "tests/scene-program-preparation.test.ts",
+    "tests/preparation.test.ts",
+    "tests/startup.test.ts",
+    "tests/temporal-aa.test.ts",
+    "tests/broadcast-presentation.test.ts",
+    "tests/recorded-signal-displays.test.ts"
+  ],
+  "startedUTC": "2026-11-19T16:09:30.237583+00:00",
+  "finishedUTC": "2026-11-19T16:09:51.944967+00:00",
+  "durationSeconds": 21.70739296299871,
+  "exit": 0,
+  "logBytes": 810,
+  "logSha256": "4adbf785fca383ca81b0a3b4d0badafda6d0b633bfe14ff369127b4b4e4b1fcc",
+  "base": "d784d94c9ee1d4c0d50d0e0f7f59b91639a218a6"
+}

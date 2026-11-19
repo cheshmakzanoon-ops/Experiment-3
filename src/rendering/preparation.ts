@@ -1,4 +1,5 @@
 import * as T from 'three';
+import type { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 
 /** Borrow renderables without reparenting them. Three's compilation traverses
  * invisible objects too, so keep inactive bike LODs and service parts. Only
@@ -45,13 +46,50 @@ export function compileSceneTarget(
   hiddenRoots?: readonly T.Object3D[],
   preparation?: { cancelled: () => boolean; beforeMetadata?: () => void },
 ) {
+  return compileTarget(
+    renderer,
+    hiddenRoots ? compilationView(scene, hiddenRoots) : scene,
+    camera,
+    target,
+    preparation,
+    hiddenRoots ? scene : undefined,
+  );
+}
+
+/** FullScreenQuad exposes its real mesh and camera through render(). Capture
+ * that public call with a compile-only adapter: never invoke the renderer's
+ * draw path, borrow private fields, or rebuild the pass's geometry/shaders. */
+export function compileFullscreenTarget(
+  renderer: T.WebGLRenderer,
+  quad: FullScreenQuad,
+  target: T.WebGLRenderTarget | null,
+  cancelled: () => boolean,
+): Promise<void> {
+  if (cancelled()) return Promise.resolve();
+  let compiling: Promise<T.Object3D> | undefined;
+  quad.render({
+    render(object: T.Object3D, camera: T.Camera) {
+      compiling = compileTarget(renderer, object, camera, target, { cancelled });
+    },
+  } as unknown as T.WebGLRenderer);
+  if (!compiling) throw new Error('Fullscreen preparation did not receive its native draw owner');
+  return compiling.then(() => {});
+}
+
+function compileTarget(
+  renderer: T.WebGLRenderer,
+  view: T.Object3D,
+  camera: T.Camera,
+  target: T.WebGLRenderTarget | null,
+  preparation?: { cancelled: () => boolean; beforeMetadata?: () => void },
+  targetScene?: T.Scene,
+) {
   const previous = renderer.getRenderTarget();
   const face = renderer.getActiveCubeFace(),
     mip = renderer.getActiveMipmapLevel();
   const viewport = renderer.getViewport(new T.Vector4());
   const scissor = renderer.getScissor(new T.Vector4());
   const scissorTest = renderer.getScissorTest();
-  const view = hiddenRoots ? compilationView(scene, hiddenRoots) : scene;
   const materials = new Set<T.Material>();
   view.traverse((object) => {
     if (
@@ -67,9 +105,9 @@ export function compileSceneTarget(
   });
   try {
     renderer.setRenderTarget(target);
-    const compiling = hiddenRoots
-      ? renderer.compileAsync(view, camera, scene)
-      : renderer.compileAsync(scene, camera);
+    const compiling = targetScene
+      ? renderer.compileAsync(view, camera, targetScene)
+      : renderer.compileAsync(view, camera);
     const programs = new Set<T.WebGLProgram>();
     for (const material of materials) {
       const properties = renderer.properties.get(material) as {

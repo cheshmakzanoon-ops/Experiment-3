@@ -1,0 +1,78 @@
+{
+  "baseCommit": "d784d94c9ee1d4c0d50d0e0f7f59b91639a218a6",
+  "checks": {
+    "focused-tests": {
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "tests/scene-ambient-preparation.test.ts",
+        "tests/scene-program-preparation.test.ts",
+        "tests/preparation.test.ts",
+        "tests/startup.test.ts",
+        "tests/temporal-aa.test.ts",
+        "tests/broadcast-presentation.test.ts",
+        "tests/recorded-signal-displays.test.ts"
+      ],
+      "startedUTC": "2026-11-19T16:09:30.237583+00:00",
+      "finishedUTC": "2026-11-19T16:09:51.944967+00:00",
+      "durationSeconds": 21.70739296299871,
+      "exit": 0,
+      "logBytes": 810,
+      "logSha256": "4adbf785fca383ca81b0a3b4d0badafda6d0b633bfe14ff369127b4b4e4b1fcc",
+      "base": "d784d94c9ee1d4c0d50d0e0f7f59b91639a218a6"
+    },
+    "typecheck": {
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "startedUTC": "2026-11-19T16:09:56.598451+00:00",
+      "finishedUTC": "2026-11-19T16:10:39.922074+00:00",
+      "durationSeconds": 43.32363859799807,
+      "exit": 0,
+      "logBytes": 174,
+      "logSha256": "7d0c51cca30a22670aba342064706df763646514533356099b25e1d69f5c93e1"
+    },
+    "lint": {
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "src/rendering/preparation.ts",
+        "src/rendering/scene-ambient-pass.ts",
+        "src/rendering/renderer.ts",
+        "tests/scene-ambient-preparation.test.ts",
+        "tests/startup.test.ts"
+      ],
+      "startedUTC": "2026-11-19T16:09:56.603107+00:00",
+      "finishedUTC": "2026-11-19T16:10:00.358425+00:00",
+      "durationSeconds": 3.755591111003014,
+      "exit": 0,
+      "logBytes": 174,
+      "logSha256": "7d0c51cca30a22670aba342064706df763646514533356099b25e1d69f5c93e1"
+    }
+  },
+  "focusedFiles": 7,
+  "focusedTests": 87,
+  "protectedInputsAfterChecks": 7486,
+  "protectedManifestSha256": "c1c545a7528e8000e124e2b30e68b0f2154e70b430e227cfe9f55f216b1b175d",
+  "sourceStability": "Every command ran through the original guard and exited0, establishing no protected-input changes during each invocation. This package and report update were added afterward; checked implementation hashes are in candidate-files.json.",
+  "browserExecutedLocally": false,
+  "ciCandidateResult": "not yet available",
+  "physicsChanged": false,
+  "originalGateChanges": false,
+  "mainPublished": false
+}

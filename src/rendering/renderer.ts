@@ -1039,6 +1039,10 @@ export class RacingRenderer {
         vehicleAt(Math.round(frame[carBase(this.follow) + RACE_BASE + R.VEHICLE])).classId ===
           'gp-bike',
       );
+      // The first draw selects these recorded LED materials. Bind the same
+      // paused snapshot now so compilation owns the material actually drawn,
+      // instead of discovering it after reflection work has already queued.
+      this.circuit.signalHardware?.displays.update(frame);
       // A GP grid's clear day sky is loaded with the venue's own.
       if (this.photoSky)
         this.photoSky.clearDay =
@@ -1078,6 +1082,13 @@ export class RacingRenderer {
         },
       );
       if (cancelled()) return false;
+      progress('Preparing post-processing materials…');
+      await this.scenePass.prepare(
+        this.renderer,
+        this.composer.writeBuffer,
+        () => this.disposed || cancelled(),
+      );
+      if (this.disposed || cancelled()) return false;
       progress('Compiling shadow casters around the circuit…');
       await yieldFrame();
       if (cancelled()) return false;

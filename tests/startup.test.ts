@@ -10,6 +10,7 @@ import { VenueLighting } from '../src/rendering/venue-lighting.ts';
 import { Track } from '../src/simulation/track.ts';
 import type { LightingMode } from '../src/rendering/daylight.ts';
 import { DEFAULT_PHOTO, type PhotoSettings } from '../src/rendering/photo-camera.ts';
+import { RecordedSignalDisplays } from '../src/rendering/recorded-signal-displays.ts';
 
 function fixture(vehicle = 'apx01', entrants = 3) {
   const calls: string[] = [];
@@ -23,6 +24,7 @@ function fixture(vehicle = 'apx01', entrants = 3) {
   const follow = 1;
   sample[carBase(follow) + RACE_BASE + R.VEHICLE] = vehicleIndex(vehicle);
   const target = {
+    disposed: false,
     cars: [] as { root: T.Group; update: ReturnType<typeof vi.fn> }[],
     follow,
     quality: 'high',
@@ -32,6 +34,7 @@ function fixture(vehicle = 'apx01', entrants = 3) {
       }),
     },
     circuit: {
+      signalHardware: null as { displays: RecordedSignalDisplays } | null,
       setMotorcyclePresentation: vi.fn((enabled: boolean) => {
         calls.push(`motorcycle-surface:${enabled}`);
       }),
@@ -47,7 +50,21 @@ function fixture(vehicle = 'apx01', entrants = 3) {
     },
     mode: 'pod',
     preparation: new PreparationTrace(),
-    composer: { readBuffer: new T.WebGLRenderTarget(8, 8, { type: T.HalfFloatType }) },
+    composer: {
+      readBuffer: new T.WebGLRenderTarget(8, 8, { type: T.HalfFloatType }),
+      writeBuffer: new T.WebGLRenderTarget(8, 8, { type: T.HalfFloatType }),
+    },
+    scenePass: {
+      prepare: vi.fn(
+        async (
+          _renderer: T.WebGLRenderer,
+          _writeBuffer: T.WebGLRenderTarget,
+          _cancelled: () => boolean,
+        ) => {
+          calls.push('post-materials');
+        },
+      ),
+    },
     warmupFrames: 0,
     waitForPreparedFrame: vi.fn(async () => {
       calls.push('gpu-ready');
@@ -147,6 +164,7 @@ function linkedProgramFixture() {
       geometry.dispose();
       material.dispose();
       target.composer.readBuffer.dispose();
+      target.composer.writeBuffer.dispose();
     },
   };
 }
@@ -198,6 +216,135 @@ it('rejects retained program metadata failure before any startup draw', async ()
   } finally {
     dispose();
   }
+});
+
+it('selects the recorded marshal display material before the first scene compile', async () => {
+  const { target, typed, sample } = fixture();
+  const displays = new RecordedSignalDisplays(),
+    geometry = new T.BoxGeometry(0.09, 0.72, 1.15),
+    original = new T.MeshStandardMaterial(),
+    panel = new T.Mesh(geometry, original);
+  displays.bind(panel, 0);
+  target.circuit.signalHardware = { displays };
+  target.scene.add(panel);
+  sample[H.LENGTH] = 3000;
+  const before = sample.slice();
+  const compile = target.renderer.compileAsync.getMockImplementation()!;
+  target.renderer.compileAsync.mockImplementation((...args) => {
+    expect(panel.material).toBe(displays.materials[0]);
+    return compile(...args);
+  });
+  try {
+    expect(panel.material).toBe(original);
+    expect(
+      await RacingRenderer.prototype.prepare.call(
+        typed,
+        sample,
+        vi.fn(),
+        () => false,
+        async () => {},
+      ),
+    ).toBe(true);
+    expect(target.renderer.compileAsync).toHaveBeenCalledTimes(3);
+    expect(target.draw).toHaveBeenCalledTimes(2);
+    expect(target.waitForPreparedFrame).toHaveBeenCalledTimes(2);
+    expect(panel.material).toBe(displays.materials[0]);
+    expect(sample).toEqual(before);
+  } finally {
+    displays.dispose();
+    geometry.dispose();
+    original.dispose();
+    target.composer.readBuffer.dispose();
+    target.composer.writeBuffer.dispose();
+  }
+});
+
+it('finishes pass-owned preparation before warming either view and preserves both GPU waits', async () => {
+  const { target, typed, sample, calls } = fixture();
+  let finish: () => void = () => {};
+  let entered: () => void = () => {};
+  const started = new Promise<void>((resolve) => {
+    entered = resolve;
+  });
+  target.scenePass.prepare.mockImplementation((renderer, buffer, stopped) => {
+    expect(renderer).toBe(target.renderer);
+    expect(buffer).toBe(target.composer.writeBuffer);
+    expect(stopped()).toBe(false);
+    calls.push('post-start');
+    entered();
+    return new Promise<void>((resolve) => {
+      finish = () => {
+        calls.push('post-finish');
+        resolve();
+      };
+    });
+  });
+  const pending = RacingRenderer.prototype.prepare.call(
+    typed,
+    sample,
+    vi.fn(),
+    () => false,
+    async () => {},
+  );
+  await started;
+  expect(target.draw).not.toHaveBeenCalled();
+  expect(target.warmShadowCasters).not.toHaveBeenCalled();
+  expect(target.waitForPreparedFrame).not.toHaveBeenCalled();
+  finish();
+  expect(await pending).toBe(true);
+  expect(target.scenePass.prepare).toHaveBeenCalledOnce();
+  expect(calls.indexOf('post-finish')).toBeLessThan(calls.indexOf('draw'));
+  expect(target.draw).toHaveBeenCalledTimes(2);
+  expect(target.waitForPreparedFrame).toHaveBeenCalledTimes(2);
+  target.composer.readBuffer.dispose();
+  target.composer.writeBuffer.dispose();
+});
+
+it.each(['cancelled', 'disposed'] as const)(
+  'does not warm a view after pass preparation is %s',
+  async (reason) => {
+    const { target, typed, sample } = fixture();
+    let cancelled = false;
+    target.scenePass.prepare.mockImplementation(async (_renderer, _buffer, stopped) => {
+      expect(stopped()).toBe(false);
+      if (reason === 'disposed') target.disposed = true;
+      else cancelled = true;
+      expect(stopped()).toBe(true);
+    });
+    expect(
+      await RacingRenderer.prototype.prepare.call(
+        typed,
+        sample,
+        vi.fn(),
+        () => cancelled,
+        async () => {},
+      ),
+    ).toBe(false);
+    expect(target.draw).not.toHaveBeenCalled();
+    expect(target.waitForPreparedFrame).not.toHaveBeenCalled();
+    expect(target.preparation.snapshot()?.status).toBe('cancelled');
+    target.composer.readBuffer.dispose();
+    target.composer.writeBuffer.dispose();
+  },
+);
+
+it('rejects pass-owned shader preparation failure before any warmup draw', async () => {
+  const { target, typed, sample } = fixture();
+  target.scenePass.prepare.mockRejectedValue(new Error('Post material compilation failed'));
+  await expect(
+    RacingRenderer.prototype.prepare.call(
+      typed,
+      sample,
+      vi.fn(),
+      () => false,
+      async () => {},
+    ),
+  ).rejects.toThrow('Post material compilation failed');
+  expect(target.draw).not.toHaveBeenCalled();
+  expect(target.waitForPreparedFrame).not.toHaveBeenCalled();
+  expect(target.preparation.snapshot()?.status).toBe('failed');
+  target.composer.readBuffer.dispose();
+  target.composer.writeBuffer.dispose();
 });
 
 it.each([
