@@ -11,11 +11,57 @@ export function catalogueOf(track: Track): CatalogueMeta | null {
   return track.circuit.catalogue ?? null;
 }
 const fields = new WeakMap<Track, VenueField>();
+const pendingFields = new WeakMap<Track, { field: VenueField; waiters: number }>();
+const FIELD_SEGMENTS_PER_STEP = 4;
+/** Only completed rasters are visible to synchronous scene construction. */
+export function venueFieldReady(track: Track) {
+  return fields.has(track);
+}
 /** The venue's coarse distance/height field, built once per Track. */
 export function venueField(track: Track) {
   let field = fields.get(track);
-  if (!field) fields.set(track, (field = new VenueField(track)));
+  if (!field) {
+    // A synchronous caller must never observe an unfinished raster. Finish
+    // the shared preparation rather than allocating a second field; suspended
+    // generators subsequently return this exact completed owner.
+    field = pendingFields.get(track)?.field ?? new VenueField(track);
+    if (!field.ready) field.advance(Infinity);
+    fields.set(track, field);
+    pendingFields.delete(track);
+  }
   return field;
+}
+/** Maximum extra construction tasks needed for a cold catalogue field. */
+export function venueFieldPreparationSteps(track: Track) {
+  return Math.ceil((track.points.length - 1) / FIELD_SEGMENTS_PER_STEP);
+}
+/** Cooperative, shared preparation with completed-only cache publication.
+ * Each waiter advances at most four segments, and cancelling one does not
+ * cancel another. Once the final waiter leaves, an unfinished raster can be
+ * collected. A synchronous consumer may complete the same owner at any time. */
+export function* prepareVenueField(track: Track): Generator<void, VenueField, void> {
+  const known = fields.get(track);
+  if (known) return known;
+  let pending = pendingFields.get(track);
+  if (!pending) {
+    pending = { field: new VenueField(track, 10, 320, 24, true), waiters: 0 };
+    pendingFields.set(track, pending);
+  }
+  pending.waiters++;
+  try {
+    while (!pending.field.ready) {
+      const completed = fields.get(track);
+      if (completed) return completed;
+      pending.field.advance(FIELD_SEGMENTS_PER_STEP);
+      yield;
+    }
+    // Never replace an owner installed while this generator was suspended.
+    if (!fields.has(track)) fields.set(track, pending.field);
+    return fields.get(track)!;
+  } finally {
+    pending.waiters--;
+    if (pending.waiters === 0 && pendingFields.get(track) === pending) pendingFields.delete(track);
+  }
 }
 /** Is lap distance `s` inside a (possibly wrapping) span? */
 export function inSpan(span: { from: number; to: number }, s: number, length: number) {

@@ -6,6 +6,7 @@ import type { BuildQueue } from '../build-queue.ts';
 import { inStandFootprint } from '../grandstand.ts';
 import type { QualityPreset } from '../options.ts';
 import { valueNoise } from '../terrain-profile.ts';
+import { prepareVenueField, venueFieldPreparationSteps } from '../venue-kit/plan.ts';
 import { mxHighDetail, onMxDetail } from './mx-quality.ts';
 import { mxShoulderPlantGeometry, mxShoulderPlantMaterial } from './mx-shoulder-plants.ts';
 import { mxFurnitureGround, type MxFurnitureSite } from './mx-trackside-furniture.ts';
@@ -88,7 +89,10 @@ export class MxMeadow {
     if (this.queued) throw new Error('Meadow construction already queued');
     this.queued = true;
     const steps =
-      Math.ceil(CANDIDATES / CANDIDATE_BATCH) + Math.ceil(this.track.length / CHUNK) + 1;
+      Math.ceil(CANDIDATES / CANDIDATE_BATCH) +
+      Math.ceil(this.track.length / CHUNK) +
+      (this.track.circuit.catalogue ? venueFieldPreparationSteps(this.track) : 0) +
+      1;
     let begun = false;
     for (let step = 0; step < steps; step++) {
       construction.add('MX field grass', 4, () => {
@@ -235,6 +239,10 @@ export class MxMeadow {
   }
 
   private *build(build: MeadowBuild): Generator<void, void, void> {
+    // The first ground query otherwise builds the entire shared venue raster
+    // inside a candidate batch. Prepare that identical dependency cooperatively
+    // too; a cancelled iterator releases its waiter before any grass is installed.
+    if (this.track.circuit.catalogue) yield* prepareVenueField(this.track);
     const track = this.track,
       furniture = this.furniture(),
       course = (Track.offroadOf(track) as TrackTerrainSurface).course,

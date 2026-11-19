@@ -4,7 +4,10 @@ import { BuildQueue } from '../src/rendering/build-queue.ts';
 import { MxMeadow, type MxMeadowTransition } from '../src/rendering/offroad/mx-meadow.ts';
 import { setMxQuality } from '../src/rendering/offroad/mx-quality.ts';
 import * as plants from '../src/rendering/offroad/mx-shoulder-plants.ts';
+import { prepareVenueField, venueFieldPreparationSteps } from '../src/rendering/venue-kit/plan.ts';
+import { circuitDefinition } from '../src/simulation/circuits.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
+import { Track } from '../src/simulation/track.ts';
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -78,6 +81,12 @@ describe('cooperative MX meadow ownership', () => {
   it('prepares the exact fresh High placement on upgrade, yielding before bounded work', async () => {
     const fresh = planted();
     const expected = fingerprint(fresh.root);
+    // Frozen before cooperative field preparation: every matrix/colour byte
+    // and the nine draw partitions retain the authored placement exactly.
+    expect(expected).toEqual({
+      hash: 2074184440,
+      counts: [2042, 2368, 2160, 2607, 2017, 3271, 3220, 2322, 966],
+    });
     fresh.dispose();
     setMxQuality('medium');
     const meadow = new MxMeadow(rigTrack('valley-ridge-mx'));
@@ -161,6 +170,46 @@ describe('cooperative MX meadow ownership', () => {
       meadow.dispose();
     }
   });
+
+  it.each(['cancel', 'dispose'] as const)(
+    'releases its cold field waiter on %s before grass allocation or sampling',
+    async (stop) => {
+      setMxQuality('medium');
+      const track = new Track('clear', false, undefined, circuitDefinition('valley-ridge-mx'));
+      const meadow = new MxMeadow(track);
+      const geometry = vi.spyOn(plants, 'mxShoulderPlantGeometry');
+      const material = vi.spyOn(plants, 'mxShoulderPlantMaterial');
+      let yields = 0,
+        cancelled = false;
+      try {
+        expect(
+          await meadow.prepareQuality(
+            'high',
+            () => cancelled,
+            async () => {
+              if (++yields !== 2) return;
+              if (stop === 'dispose') meadow.dispose();
+              else cancelled = true;
+            },
+          ),
+        ).toBe(false);
+        expect(meadow.stats).toEqual({ clumps: 0, chunks: 0, candidates: 0 });
+        expect(meadow.root.children).toHaveLength(0);
+        expect(geometry).not.toHaveBeenCalled();
+        expect(material).not.toHaveBeenCalled();
+        // The cancelled generator must release the final pending owner. A
+        // replacement starts from the beginning, with no orphaned shared work.
+        let steps = 0;
+        for (const _ of prepareVenueField(track)) {
+          void _;
+          steps++;
+        }
+        expect(steps).toBe(venueFieldPreparationSteps(track));
+      } finally {
+        meadow.dispose();
+      }
+    },
+  );
 
   it.each(['cancel', 'dispose'] as const)(
     'cleans partial GPU owners on %s without installing them',

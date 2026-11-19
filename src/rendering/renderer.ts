@@ -132,6 +132,7 @@ import * as T from 'three';
 import { gpGridForFrame } from '../simulation/gp-grid.ts';
 import type { FrameMetrics } from '../core/performance.ts';
 import type { BuildProgress } from './build-queue.ts';
+import { prepareVenueGround } from './venue-kit/preparation.ts';
 import { TracksideDirector } from './trackside.ts';
 import { CameraClock, InertialCamera, ViewOrientation } from './camera-dynamics.ts';
 import { MotocrossChaseCamera } from './offroad/chase-camera.ts';
@@ -667,6 +668,11 @@ export class RacingRenderer {
       label: 'Loading authored venue and crew data',
     });
     await (showroomOnly ? loadLazyData('showroom') : loadLazyData());
+    if (cancelled()) return null;
+    // Catalogue scene constructors share this raster for terrain, furniture
+    // and planting. Finish it cooperatively before any constructor can turn
+    // the first ground sample into one large synchronous raster task.
+    if (!showroomOnly && !(await prepareVenueGround(track, progress, cancelled))) return null;
     if (cancelled()) return null;
     const renderer = new RacingRenderer(canvas, track, true, showroomOnly);
     // Night venues open floodlit (a live sky, if enabled, still overrides).

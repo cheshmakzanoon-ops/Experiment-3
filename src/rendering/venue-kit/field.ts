@@ -15,12 +15,16 @@ export class VenueField {
   readonly station: Float32Array;
   readonly side: Int8Array;
   readonly corridorLow: Float32Array;
+  private nextSegment = 0;
   constructor(
     readonly track: Track,
     readonly cell = 10,
     readonly reach = 320,
     /** Lateral half-width (m) treated as "under this road". */
     readonly corridor = 24,
+    /** The preparation owner advances the same raster in bounded batches.
+     * Ordinary construction remains synchronous and complete on return. */
+    deferred = false,
   ) {
     let minX = Infinity,
       maxX = -Infinity,
@@ -43,9 +47,21 @@ export class VenueField {
     this.station = new Float32Array(n).fill(NaN);
     this.side = new Int8Array(n);
     this.corridorLow = new Float32Array(n).fill(Infinity);
-    const points = track.points,
-      radius = Math.ceil(reach / cell);
-    for (let i = 0; i < points.length - 1; i++) {
+    if (!deferred) this.advance(Infinity);
+  }
+  get ready() {
+    return this.nextSegment >= this.track.points.length - 1;
+  }
+  /** Continue in original segment/cell order, preserving Float32 stores and
+   * nearest-hit tie behavior exactly. No partially built field is cached. */
+  advance(segments: number) {
+    if (segments !== Infinity && (!Number.isInteger(segments) || segments <= 0))
+      throw new Error('Invalid venue field preparation batch');
+    const points = this.track.points,
+      cell = this.cell,
+      radius = Math.ceil(this.reach / cell),
+      end = Math.min(points.length - 1, this.nextSegment + segments);
+    for (let i = this.nextSegment; i < end; i++) {
       const a = points[i],
         b = points[i + 1];
       const cx = Math.round((a.x - this.originX) / cell),
@@ -73,6 +89,8 @@ export class VenueField {
           }
         }
     }
+    this.nextSegment = end;
+    return this.ready;
   }
   private index(x: number, z: number) {
     const gx = Math.round((x - this.originX) / this.cell),
