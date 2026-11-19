@@ -1,0 +1,122 @@
+{
+  "sourceCommit": "a02e516cf3a58b33e4f783ecb37baafeed0e6ba5",
+  "testDurationMs": 173669,
+  "readinessPredicate": {
+    "expected": "paused",
+    "lastReceived": "loading",
+    "configuredTimeoutMs": 90000,
+    "traceStartedAtMs": 74278.491,
+    "traceEndedAtMs": 164278.369,
+    "traceElapsedMs": 89999.87800000001
+  },
+  "lastPreparationSnapshotObservedAt": "2026-11-19T16:18:14.058Z",
+  "lastPreparationSnapshot": {
+    "status": "preparing",
+    "elapsedMs": 14990.200000000012,
+    "error": null,
+    "stages": [
+      {
+        "label": "Building GP motorcycles and riders\u2026",
+        "elapsedMs": 404.8999999999942,
+        "complete": true
+      },
+      {
+        "label": "Loading the photographed sky\u2026",
+        "elapsedMs": 147.70000000001164,
+        "complete": true
+      },
+      {
+        "label": "Loading photographed ground\u2026",
+        "elapsedMs": 4.600000000005821,
+        "complete": true
+      },
+      {
+        "label": "Compiling circuit and vehicle materials\u2026",
+        "elapsedMs": 14064.300000000017,
+        "complete": true
+      },
+      {
+        "label": "Preparing circuit and vehicle materials\u2026",
+        "elapsedMs": 303.19999999995343,
+        "complete": true
+      },
+      {
+        "label": "Preparing post-processing materials\u2026",
+        "elapsedMs": 52.100000000034925,
+        "complete": false
+      }
+    ]
+  },
+  "observedStageTransitions": [
+    {
+      "stage": "Building GP motorcycles and riders\u2026",
+      "pageAtMs": 102748.29999999999,
+      "traceReceivedAtMs": 108859.245,
+      "msSinceReadinessPollStarted": 34580.754,
+      "observedNativeMonitorActive": false
+    },
+    {
+      "stage": "Loading the photographed sky\u2026",
+      "pageAtMs": 103153,
+      "traceReceivedAtMs": 109263.683,
+      "msSinceReadinessPollStarted": 34985.19200000001,
+      "observedNativeMonitorActive": false
+    },
+    {
+      "stage": "Loading photographed ground\u2026",
+      "pageAtMs": 103304.6,
+      "traceReceivedAtMs": 109418.159,
+      "msSinceReadinessPollStarted": 35139.668000000005,
+      "observedNativeMonitorActive": false
+    },
+    {
+      "stage": "Compiling circuit and vehicle materials\u2026",
+      "pageAtMs": 103306,
+      "traceReceivedAtMs": 109418.222,
+      "msSinceReadinessPollStarted": 35139.731,
+      "observedNativeMonitorActive": false
+    },
+    {
+      "stage": "Preparing circuit and vehicle materials\u2026",
+      "pageAtMs": 117369.79999999999,
+      "traceReceivedAtMs": 123480.473,
+      "msSinceReadinessPollStarted": 49201.982,
+      "observedNativeMonitorActive": true
+    },
+    {
+      "stage": "Compiling shadow casters around the circuit\u2026",
+      "pageAtMs": 117767.90000000002,
+      "traceReceivedAtMs": 123886.936,
+      "msSinceReadinessPollStarted": 49608.44500000001,
+      "observedNativeMonitorActive": false
+    },
+    {
+      "stage": "Warming shadows and scene reflections\u2026",
+      "pageAtMs": 118431.09999999998,
+      "traceReceivedAtMs": 124542.148,
+      "msSinceReadinessPollStarted": 50263.65700000001,
+      "observedNativeMonitorActive": true
+    }
+  ],
+  "postProcessingObservation": {
+    "entryWorkerTraceTimeMs": 123783.462,
+    "nextShadowWorkerTraceTimeMs": 123887.025,
+    "observerGapMs": 103.56299999999464,
+    "exactNativeDurationMeasured": false,
+    "returnedBeforeShadowStage": true,
+    "limitation": "The active-regex excludes the new post-processing label. Worker transition times bound observed stage progress, but owner-specific native metadata calls during this stage were not recorded."
+  },
+  "firstWarmup": {
+    "traceReceivedAtMs": 124542.148,
+    "msIntoReadinessPredicate": 50263.65700000001,
+    "msUntilPredicateDeadline": 39736.221000000005,
+    "lastActivityTraceTimeMs": 164188.823,
+    "observedPeriodMs": 39646.675,
+    "lastNativeStartPageMs": 156851.90000000002
+  },
+  "limitations": [
+    "Console reception timestamps include message-delivery delay and use a different clock from page performance.now. Only compare timestamps from the same named clock.",
+    "The preparation snapshot was last read during post-processing; its incomplete label is stale relative to subsequent worker shadow/warmup observations.",
+    "Phase elapsed values and native-call CPU times include host/driver scheduling and instrumentation; they are not isolated GPU execution times."
+  ]
+}

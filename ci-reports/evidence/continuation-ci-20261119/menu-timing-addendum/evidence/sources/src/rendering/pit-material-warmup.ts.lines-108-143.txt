@@ -1,0 +1,36 @@
+            object.layers.mask = 0;
+          }
+        });
+        renderer.render(scene, camera);
+        submitted();
+        passes++;
+      } finally {
+        for (const [object, mask] of excluded) object.layers.mask = mask;
+        excluded.clear();
+        try {
+          crew.update(frame, camera.position, visibility, camera.fov, camera.aspect);
+        } finally {
+          crew.root.visible = visibility;
+          renderer.xr.enabled = xr;
+          renderer.autoClear = autoClear;
+          renderer.shadowMap.autoUpdate = shadowAuto;
+          renderer.shadowMap.needsUpdate = shadowNeeds;
+          renderer.setRenderTarget(previousTarget, face, mip);
+          renderer.setViewport(viewport);
+          renderer.setScissor(scissor);
+          renderer.setScissorTest(scissorTest);
+        }
+      }
+      const deadline = performance.now() + 45000;
+      while (!cancelled() && !ready()) {
+        // Warmup only moves shader/upload cost off the race. A slow GPU
+        // continues into the session rather than failing it.
+        if (performance.now() >= deadline) break;
+        await yieldFrame();
+      }
+    }
+  } finally {
+    target.dispose();
+  }
+  return passes;
+}

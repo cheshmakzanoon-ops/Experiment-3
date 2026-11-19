@@ -1,0 +1,42 @@
+      this.warmShadowCasters();
+      const camera = this.mode;
+      try {
+        for (const mode of ['chase', 'cockpit'] as const) {
+          progress(
+            mode === 'chase'
+              ? 'Warming shadows and scene reflections…'
+              : 'Warming cockpit, mirrors and post-processing…',
+          );
+          await yieldFrame();
+          if (cancelled()) return false;
+          this.changeCamera(mode);
+          this.draw(frame, frame, 1, 1 / 120, false, true);
+          this.warmupFrames++;
+          if (mode === 'chase' && pitService) {
+            progress('Warming offscreen pit-service materials…');
+            await this.warmPitPresentation(frame, cancelled, yieldFrame);
+            if (cancelled()) return false;
+          }
+          await compileSceneTarget(
+            this.renderer,
+            this.scene,
+            this.camera,
+            this.composer.readBuffer,
+            hiddenHosts,
+            { cancelled: () => this.disposed || cancelled() },
+          );
+          // Shader linking alone does not finish GPU uploads or the warmup draw.
+          // Keep the worker paused until its actual submission has completed.
+          progress(`Waiting for completed ${mode} GPU work…`);
+          await this.waitForPreparedFrame(cancelled, yieldFrame);
+          if (cancelled()) return false;
+        }
+      } finally {
+        if (!cancelled()) {
+          this.changeCamera(camera);
+          this.reset();
+        }
+      }
+      return true;
+    });
+  }

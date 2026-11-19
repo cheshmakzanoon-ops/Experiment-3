@@ -1,0 +1,6 @@
+    this.planRunway = Infinity;
+    for (let i = 1; i < count; i++)
+      if (this.approachProfile[i] < d.speed - 1) {
+        this.planRunway = i * ENVELOPE_STEP;
+        break;
+      }

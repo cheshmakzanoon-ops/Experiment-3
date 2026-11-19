@@ -1,0 +1,115 @@
+{
+  "source": {
+    "repository": "cheshmakzanoon-ops/Experiment-3",
+    "runId": 44563795294,
+    "runUrl": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44563795294",
+    "runAttempt": 1,
+    "branch": "ci/high-late-startup-20261119",
+    "serverCommit": "a02e516cf3a58b33e4f783ecb37baafeed0e6ba5",
+    "localEquivalentCommit": "872fa9d06edbcbb57b47167f0c99a660bb9bb3ef",
+    "tree": "a9c5d75554b2805b42eea1f393e01e616bbc5d9d",
+    "buildFingerprint": "309319589892bdad8078295f2458ebe55403c1708b2ec8b5d8bcb36d8f24555b",
+    "mainAtPublication": "d8d87c73a8f3e921e865acdc02c61e84b8c877a7",
+    "baselineComponentRun": 44553045749,
+    "baselineComponentArtifact": 14544128271,
+    "diagnosticBaselineRun": 44559369205,
+    "diagnosticBaselineCommit": "d784d94c9ee1d4c0d50d0e0f7f59b91639a218a6",
+    "validationScope": "Candidate GPU/gameplay/High jobs copied verbatim into an isolated branch workflow; root owns publication and workflow parity. This evidence is read-only; no reruns or local browser execution."
+  },
+  "workflowStatus": "completed",
+  "workflowConclusion": "failure",
+  "jobs": [
+    {
+      "id": 135699929521,
+      "name": "high",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44563795294/job/135699929521",
+      "startedAt": "2026-11-19T16:14:21Z",
+      "completedAt": "2026-11-19T16:19:19Z"
+    },
+    {
+      "id": 135699931724,
+      "name": "build",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44563795294/job/135699931724",
+      "startedAt": "2026-11-19T16:14:21Z",
+      "completedAt": "2026-11-19T16:15:19Z"
+    },
+    {
+      "id": 135699933098,
+      "name": "gpu",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44563795294/job/135699933098",
+      "startedAt": "2026-11-19T16:14:49Z",
+      "completedAt": "2026-11-19T16:17:41Z"
+    },
+    {
+      "id": 135699936147,
+      "name": "gameplay",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44563795294/job/135699936147",
+      "startedAt": "2026-11-19T16:15:19Z",
+      "completedAt": "2026-11-19T16:24:32Z"
+    },
+    {
+      "id": 135700617960,
+      "name": "browser (menu-entry, e2e/30-menu-access.spec.ts e2e/settings-transition.spec.ts e2e/gpu-frame-gat...",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44563795294/job/135700617960",
+      "startedAt": "2026-11-19T16:15:21Z",
+      "completedAt": "2026-11-19T16:23:38Z"
+    }
+  ],
+  "graphicsCounts": {
+    "components": {
+      "passed": 7,
+      "total": 7
+    },
+    "gameplay": {
+      "passed": 1,
+      "total": 1
+    },
+    "high": {
+      "passed": 0,
+      "total": 1
+    }
+  },
+  "artifacts": [
+    {
+      "id": 14551657377,
+      "name": "motogp-menu-entry",
+      "size_in_bytes": 698245,
+      "digest": "sha256:ce4f93913e6ead116caff1c41771804af99f03e37754b8cc6100c45bd7fd4a45"
+    },
+    {
+      "id": 14551546317,
+      "name": "graphics-advancement-gpu",
+      "size_in_bytes": 791591,
+      "digest": "sha256:e3123107fb6b04e64a88520282e6ff4da095107cceb99e6bc7bcb5791092b83f"
+    },
+    {
+      "id": 14551187918,
+      "name": "graphics-advancement-high",
+      "size_in_bytes": 107327006,
+      "digest": "sha256:b0deacfe1d1748072ca74969082a138737db435819e50431f9e1b68f04d061a4"
+    },
+    {
+      "id": 14550622414,
+      "name": "motogp-reviewed-build",
+      "size_in_bytes": 79157848,
+      "digest": "sha256:81ba0382efce1c694ff37daf9d2822fcb1a994abf0b06e0428507c6161ee951a"
+    },
+    {
+      "id": 14550468712,
+      "name": "graphics-advancement-gameplay",
+      "size_in_bytes": 13062125,
+      "digest": "sha256:d552438f3f40cf673b750ec8164f9a8133ea178f73d3e1b6b7d59e9ba5b63096"
+    }
+  ],
+  "scope": "Graphics evidence owns gpu, gameplay, high. Build/menu detailed evidence is owned separately by ci_engine. Main CI was not replaced or rerun."
+}

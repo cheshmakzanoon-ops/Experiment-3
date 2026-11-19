@@ -1,0 +1,99 @@
+{
+  "run": 44553045866,
+  "source": "d8d87c73a8f3e921e865acdc02c61e84b8c877a7",
+  "browser": {
+    "passed": 26,
+    "failed": 1,
+    "jobs": [
+      {
+        "job": 135662500452,
+        "name": "course-construction",
+        "passed": 2,
+        "failed": 0,
+        "sourceConfirmed": true,
+        "log": "browser-135662500452.log",
+        "bytes": 57863,
+        "sha256": "98d82f337afbb3bebbdda5994619bfac9de7edbf48aaf7b8d8d3642169c522cb"
+      },
+      {
+        "job": 135662500574,
+        "name": "presentation",
+        "passed": 9,
+        "failed": 0,
+        "sourceConfirmed": true,
+        "log": "browser-135662500574.log",
+        "bytes": 60939,
+        "sha256": "f71519f527e80ea524a443c5f3afce7c127e96538891b6ca63490d51c26bc38f"
+      },
+      {
+        "job": 135662500618,
+        "name": "rider-contact",
+        "passed": 7,
+        "failed": 0,
+        "sourceConfirmed": true,
+        "log": "browser-135662500618.log",
+        "bytes": 59504,
+        "sha256": "f89a96c073e5d62f494c76ec3d29e1a10331b5b634e1f26190a8c035aeaf57cb"
+      },
+      {
+        "job": 135662500723,
+        "name": "wet-riding",
+        "passed": 1,
+        "failed": 0,
+        "sourceConfirmed": true,
+        "log": "browser-135662500723.log",
+        "bytes": 58830,
+        "sha256": "5804342fcdc1d33970970efeca3a9ef401968f834612f732e9711706adfe97ab"
+      },
+      {
+        "job": 135662500733,
+        "name": "menu-entry",
+        "passed": 6,
+        "failed": 1,
+        "sourceConfirmed": true,
+        "log": "browser-135662500733.log",
+        "bytes": 65673,
+        "sha256": "9d208edf7e4a6e24f9474016e7a5b64028763f7edaac0270ddae50294883b627"
+      },
+      {
+        "job": 135662500754,
+        "name": "dry-riding",
+        "passed": 1,
+        "failed": 0,
+        "sourceConfirmed": true,
+        "log": "browser-135662500754.log",
+        "bytes": 57693,
+        "sha256": "1eb991e99857bb299a0877d842c4f18bca4d025f82c566717ac79cb0111e3db5"
+      }
+    ]
+  },
+  "unit": {
+    "filesPassed": 55,
+    "testsPassed": 699,
+    "job": 135661596180
+  },
+  "build": {
+    "job": 135661596989,
+    "conclusion": "success"
+  },
+  "failure": {
+    "spec": "e2e/30-menu-access.spec.ts",
+    "line": 162,
+    "name": "640x400 settings persist and the normal paused grid starts",
+    "viewport": {
+      "width": 640,
+      "height": 400
+    },
+    "quality": "low",
+    "cars": 4,
+    "assertion": "state === paused",
+    "actual": "loading",
+    "expectationTimeoutMs": 60000,
+    "lastVisibleProgress": "Warming up tyres \u2014 94%",
+    "stageEvidence": "src/ui/loading-copy.ts maps /completed cockpit/ to this displayed message and0.94",
+    "inference": "Failure snapshot is consistent with the second GPU completion wait; this is distinct from High first reflection warmup, which had not submitted its first fence. No exact native call trace was installed in this menu case.",
+    "consoleErrorsInTrace": 0
+  },
+  "changesApplied": false,
+  "retried": false
+}

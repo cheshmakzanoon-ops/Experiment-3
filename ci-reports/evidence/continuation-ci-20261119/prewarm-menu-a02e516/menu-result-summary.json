@@ -1,0 +1,469 @@
+{
+  "sourceCommit": "a02e516cf3a58b33e4f783ecb37baafeed0e6ba5",
+  "sourceTree": "a9c5d75554b2805b42eea1f393e01e616bbc5d9d",
+  "runId": 44563795294,
+  "runAttempt": 1,
+  "buildJobId": 135699931724,
+  "buildConclusion": "success",
+  "menuJobId": 135700617960,
+  "menuConclusion": "success",
+  "reportStats": {
+    "total": 7,
+    "expected": 7,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "tests": [
+    {
+      "title": "27H.6 menu access: real interface keeps all actions reachable with mouse and keyboard",
+      "location": {
+        "file": "30-menu-access.spec.ts",
+        "line": 12,
+        "column": 1
+      },
+      "durationMs": 25377,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "27H.6 menu access: 640x400 settings persist and the normal paused grid starts",
+      "location": {
+        "file": "30-menu-access.spec.ts",
+        "line": 136,
+        "column": 1
+      },
+      "durationMs": 86317,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "renderer context reuse clears fallback upload state and preserves 2D texture orientation",
+      "location": {
+        "file": "gpu-context-reuse.spec.ts",
+        "line": 15,
+        "column": 1
+      },
+      "durationMs": 1222,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "GPU frame completion stays asynchronous with timer polling",
+      "location": {
+        "file": "gpu-frame-gate.spec.ts",
+        "line": 12,
+        "column": 3
+      },
+      "durationMs": 369,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "GPU frame completion stays asynchronous with animation-frame polling",
+      "location": {
+        "file": "gpu-frame-gate.spec.ts",
+        "line": 12,
+        "column": 3
+      },
+      "durationMs": 425,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "settings transition: 640x400 owns its first covered frame and persists quality",
+      "location": {
+        "file": "settings-transition.spec.ts",
+        "line": 8,
+        "column": 3
+      },
+      "durationMs": 19716,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "title": "settings transition: 1280x720 owns its first covered frame and persists quality",
+      "location": {
+        "file": "settings-transition.spec.ts",
+        "line": 8,
+        "column": 3
+      },
+      "durationMs": 20778,
+      "results": [
+        {
+          "status": "passed",
+          "retry": 0,
+          "errors": []
+        }
+      ]
+    }
+  ],
+  "pausedGridTest": {
+    "durationMs": 86317,
+    "sourceAssertions": [
+      {
+        "line": 138,
+        "source": "}, info) => {"
+      },
+      {
+        "line": 139,
+        "source": "  test.setTimeout(240000);"
+      },
+      {
+        "line": 140,
+        "source": "  await page.setViewportSize({ width: 640, height: 400 });"
+      },
+      {
+        "line": 141,
+        "source": "  const errors: string[] = [];"
+      },
+      {
+        "line": 142,
+        "source": "  page.on('pageerror', (error) => errors.push(error.message));"
+      },
+      {
+        "line": 143,
+        "source": "  await page.goto('/');"
+      },
+      {
+        "line": 144,
+        "source": "  await expect(page.locator('#menu')).toBeVisible({ timeout: MENU_STARTUP_TIMEOUT_MS });"
+      },
+      {
+        "line": 145,
+        "source": "  const showroom = await page.evaluate(() => window.apexDiagnostics().renderer);"
+      },
+      {
+        "line": 146,
+        "source": "  expect(showroom?.presentationPurpose).toBe('showroom');"
+      },
+      {
+        "line": 147,
+        "source": "  expect(showroom?.construction.tasks).toBe(0);"
+      },
+      {
+        "line": 148,
+        "source": "  expect(showroom?.gpuFrameQueue.completed).toBeGreaterThan(0);"
+      },
+      {
+        "line": 149,
+        "source": "  const settings = page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true });"
+      },
+      {
+        "line": 150,
+        "source": "  await settings.click();"
+      },
+      {
+        "line": 151,
+        "source": "  await page.locator('[name=quality]').selectOption('low');"
+      },
+      {
+        "line": 152,
+        "source": "  await page.getByRole('button', { name: 'APPLY & SAVE', exact: true }).click();"
+      },
+      {
+        "line": 153,
+        "source": "  await expect(page.locator('#modal')).toBeHidden();"
+      },
+      {
+        "line": 154,
+        "source": "  await page.reload();"
+      },
+      {
+        "line": 155,
+        "source": "  await expect(page.locator('#menu')).toBeVisible({ timeout: MENU_STARTUP_TIMEOUT_MS });"
+      },
+      {
+        "line": 156,
+        "source": "  await settings.click();"
+      },
+      {
+        "line": 157,
+        "source": "  await expect(page.locator('[name=quality]')).toHaveValue('low');"
+      },
+      {
+        "line": 158,
+        "source": "  await page.getByRole('button', { name: 'CANCEL', exact: true }).click();"
+      },
+      {
+        "line": 159,
+        "source": "  await page.selectOption('#mode', 'race');"
+      },
+      {
+        "line": 160,
+        "source": "  await page.selectOption('#opponents', '3');"
+      },
+      {
+        "line": 161,
+        "source": "  await page.getByRole('button', { name: 'PREPARE GRID START PAUSED', exact: true }).click();"
+      },
+      {
+        "line": 162,
+        "source": "  await expect.poll(() => page.evaluate(() => window.apexDiagnostics().state)).toBe('paused');"
+      },
+      {
+        "line": 163,
+        "source": "  const circuit = await page.evaluate(() => window.apexDiagnostics());"
+      },
+      {
+        "line": 164,
+        "source": "  expect(circuit.options.circuit).toBe('aurel');"
+      },
+      {
+        "line": 165,
+        "source": "  expect(circuit.renderer?.presentationPurpose).toBe('circuit');"
+      },
+      {
+        "line": 166,
+        "source": "  expect(circuit.renderer?.construction.tasks).toBeGreaterThan(100);"
+      },
+      {
+        "line": 167,
+        "source": "  expect(circuit.renderer?.preparation?.status).toBe('complete');"
+      },
+      {
+        "line": 168,
+        "source": "  await expect"
+      },
+      {
+        "line": 169,
+        "source": "    .poll(() => page.evaluate(() => window.apexDiagnostics().workerPause))"
+      },
+      {
+        "line": 170,
+        "source": "    .toMatchObject({ pending: false, paused: true });"
+      },
+      {
+        "line": 171,
+        "source": "  expect(errors).toEqual([]);"
+      }
+    ],
+    "screenshot": {
+      "artifactPath": "playwright-report/data/5dbaf773d49b72c514aa28558222eefbb0c00e11.png",
+      "file": "menu/menu-access-paused-grid.png",
+      "bytes": 42838,
+      "sha256": "345abc9f2f1180a883b34e064bbd2ab94fbc4866ba4271266f6ace6d3e05be32"
+    },
+    "timingCaptureMetadata": {
+      "status": "passed",
+      "packets": {
+        "1795105286850.8": 61,
+        "1795105315305.2": 167
+      },
+      "totalEvents": 7321,
+      "retainedEvents": 4096,
+      "nodeDropped": 3225,
+      "browserDroppedByDocument": {
+        "1795105286850.8": 212,
+        "1795105315305.2": 0
+      },
+      "contextMetadataDropped": 0,
+      "totalMilestones": 283
+    }
+  },
+  "baselineComparison": {
+    "baselineSource": "d8d87c73a8f3e921e865acdc02c61e84b8c877a7",
+    "baselineResult": "Same 640x400 test failed at unchanged line 162: expected paused, received loading after 60000 ms predicate timeout.",
+    "candidateResult": "Passed all assertions, including paused state, completed circuit preparation, acknowledged paused worker, no page errors, and final screenshot.",
+    "workloadParity": "All four menu specs, menu timing fixture and Playwright config byte-identical; see menu-workload-parity.json.",
+    "limits": [
+      "Test duration 86317 ms is total case duration, not time since paused-grid click.",
+      "No Playwright trace ZIP is included in the successful menu artifact; no exact stage-entry or poll-return timeline is reconstructed.",
+      "Native attachment uses a bounded Node ring and reports retention loss; zero post-reload browser drops does not remove that Node retention limit.",
+      "Different source and separate runner execution; passing outcome does not isolate one causal native operation or establish other CI gates."
+    ]
+  },
+  "workflowConclusion": "failure",
+  "workflowScope": "Full isolated candidate workflow failed High; build, menu-entry, GPU and gameplay jobs succeeded. This package covers build/menu evidence.",
+  "jobMetadata": [
+    {
+      "id": 135699931724,
+      "name": "build",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 44563795294,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm run build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Identify the reviewed source",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Run actions/upload-artifact@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15
+        }
+      ]
+    },
+    {
+      "id": 135700617960,
+      "name": "browser (menu-entry, e2e/30-menu-access.spec.ts e2e/settings-transition.spec.ts e2e/gpu-frame-gat...",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 44563795294,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Run actions/download-artifact@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Require the exact source build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Run npx playwright install --with-deps chromium",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8
+        },
+        {
+          "name": "Original workloads, viewports, deadlines and assertions",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9
+        },
+        {
+          "name": "Screenshots, traces and diagnostics, including failures",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 20
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 21
+        }
+      ]
+    }
+  ]
+}

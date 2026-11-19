@@ -1,0 +1,58 @@
+{
+  "parentArtifactId": 14543054190,
+  "traceZipBytes": 32854438,
+  "traceZipSha256": "0c34a460c3b08af3df75d2b8e35c9334574a4d804ea0b502d29f46acc65ff1d2",
+  "traceArchiveIncluded": false,
+  "scope": "Read-only JSON event count and exact terminal test error; no native command monitor existed in this case.",
+  "traceFiles": [
+    {
+      "entry": "test.trace",
+      "bytes": 68609,
+      "sha256": "6b06b3c00fff998dac55fcd17ca8dfb014c2dea4927c5f4bcb28fc91030dbfa3",
+      "eventTypes": {
+        "context-options": 1,
+        "before": 100,
+        "after": 100,
+        "error": 1
+      },
+      "consoleTypes": {},
+      "consoleErrors": 0,
+      "pageErrorEvents": [],
+      "testErrorEvents": [
+        {
+          "type": "error",
+          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"paused\"\u001b[39m\nReceived: \u001b[31m\"loading\"\u001b[39m\n\nCall Log:\n- Timeout 60000ms exceeded while waiting on the predicate",
+          "stack": [
+            {
+              "file": "/home/runner/work/Experiment-3/Experiment-3/e2e/30-menu-access.spec.ts",
+              "line": 162,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry": "0-trace.trace",
+      "bytes": 5051183,
+      "sha256": "b2a1a39febedd890fda63540a52b497e1b9d5c79b848ec766a155ed149e4b04c",
+      "eventTypes": {
+        "context-options": 1,
+        "before": 47,
+        "event": 1,
+        "after": 47,
+        "frame-snapshot": 98,
+        "log": 128,
+        "console": 239,
+        "screencast-frame": 162,
+        "input": 8
+      },
+      "consoleTypes": {
+        "debug": 239
+      },
+      "consoleErrors": 0,
+      "pageErrorEvents": [],
+      "testErrorEvents": []
+    }
+  ]
+}

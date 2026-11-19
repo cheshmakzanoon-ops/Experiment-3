@@ -1,0 +1,19 @@
+    [/bodywork, materials and/i, N_('Loading circuit'), 0],
+    [/^building GP motorcycles and riders$/i, N_('Preparing motorcycles'), 0.42],
+    [/^building (.+)$/i, '', 0.02],
+    [/grid, race timing|recording buffers/i, N_('Preparing session'), 0.05],
+    [/compiling circuit and vehicle/i, N_('Preparing graphics'), 0.45],
+    [/shadow casters/i, N_('Preparing graphics'), 0.55],
+    [/shadows and scene reflections/i, N_('Setting up cameras'), 0.62],
+    [/pit-service|pit service/i, N_('Readying the pit crew'), 0.7],
+    [/completed chase/i, N_('Setting up cameras'), 0.8],
+    [/cockpit, mirrors/i, N_('Setting up the cockpit'), 0.86],
+    [/completed cockpit/i, N_('Warming up tyres'), 0.94],
+  ];
+  for (const [pattern, title, fraction] of stages) {
+    const match = pattern.exec(text);
+    if (!match) continue;
+    // "Building Vellamar Coast Circuit / VELLAMAR" → "Loading Vellamar Coast Circuit".
+    if (!title)
+      return { title: t('Loading {name}', { name: match[1].split(' / ')[0] }), fraction };
+    return { title: t(title), fraction };

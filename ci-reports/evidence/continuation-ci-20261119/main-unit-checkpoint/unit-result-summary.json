@@ -1,0 +1,52 @@
+{
+  "sourceCommit": "d8d87c73a8f3e921e865acdc02c61e84b8c877a7",
+  "runId": 44553045707,
+  "jobId": 135661597381,
+  "conclusion": "cancelled",
+  "fullSuiteCompleted": false,
+  "globalVitestTotalsAvailable": false,
+  "loggedCompletedFileSummaries": 528,
+  "loggedPassingFiles": 526,
+  "loggedFailingFiles": 2,
+  "loggedTestCases": 5960,
+  "loggedPassingTestCases": 5958,
+  "loggedFailingTestCases": 2,
+  "countScope": "Counts summed from the 528 unique completed file-result lines before cancellation; not final suite totals. Unfinished and not-yet-run files are excluded.",
+  "startupRegression": {
+    "file": "tests/startup.test.ts",
+    "tests": 32,
+    "allPassed": true,
+    "observedAt": "2026-11-19T15:20:03.5844687Z"
+  },
+  "failures": [
+    {
+      "file": "tests/bike-session.test.ts",
+      "test": "WP35 seeded AI bike race > finishes a mixed GP/superbike race with bounded incidents and no stuck rider",
+      "circuit": "vellamar",
+      "seed": 3303,
+      "observedAt": "2026-11-19T15:26:25.1996035Z",
+      "assertion": "expect(gp).toBeLessThan(sbk)",
+      "actualGpBest": 91.13427179346363,
+      "comparisonSuperbikeBest": 90.36337145755091,
+      "logMessage": "expected 91.13427179346363 to be less than 90.36337145755091",
+      "sourceLine": 367
+    },
+    {
+      "file": "tests/gp-tyre-contact.test.ts",
+      "test": "GP contact grip in production races > classifies all eight GP riders at 'poggio-alto' in 'rain' without a contact or crash",
+      "circuit": "poggio-alto",
+      "weather": "rain",
+      "seed": 30101,
+      "observedAt": "2026-11-19T15:36:27.3190648Z",
+      "assertion": "expect(impact).toBe(0)",
+      "actualImpact": 0.9916666666666667,
+      "expectedImpact": 0,
+      "logMessage": "expected 0.9916666666666667 to be +0 // Object.is equality",
+      "sourceLine": 294
+    }
+  ],
+  "lastCompletedFile": "tests/motocross-grid-preparation.test.ts",
+  "lastCompletedFileAt": "2026-11-19T16:00:53.0341761Z",
+  "cancellation": "Executed tests, then cancellation near unchanged 45-minute cap; dependency installation succeeded. The connector log does not explicitly label the cancellation trigger.",
+  "expectedNegativeFixtureOutput": "source-stability.test.ts deliberately logs rejected fixture mutations and missing executable errors, then passes all19 tests; these lines are not evidence of application input drift in this run."
+}

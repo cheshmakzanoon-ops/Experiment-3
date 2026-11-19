@@ -1,0 +1,28 @@
+{
+  "schema": "compact-data-verification-v1",
+  "scope": "Stored-data verification only; no game imports, native rerun or simulation",
+  "checks": {
+    "nativeLapsCsvByteExact": true,
+    "nativeSectorDeltasExact": true,
+    "Lap2TotalsExactFromStoredAggregates": true,
+    "ResidenceCsvByteExactFromStoredAggregates": true,
+    "ResidenceRangesExactFromStoredAggregates": true,
+    "PlanSteerPhaseStatisticsExact": true,
+    "ThrottleReconstructionExact": true,
+    "ProfilePayloadMatchesNativeReplayHash": true,
+    "OriginalNative96ComparisonsPreserved": true,
+    "RecordedSevenTransitionMatchesPreserved": true
+  },
+  "allPassed": true,
+  "records": {
+    "timing": 42,
+    "aggregates": 480,
+    "analysisSamples": 2750,
+    "nativeProfiles": 96
+  },
+  "limitations": [
+    "Residence tables are recomputed from original observer substep aggregates. Individual 240 Hz state inputs were not stored, even in the full original trace; this is not independent reintegration.",
+    "The 11,706-record full race trace and unselected planner/physical states are omitted. Full original observer reproduction requires the pinned source, patch, seed and observer command.",
+    "The 96 native profile replay receipts are preserved; this verifier checks their payload hashes/results without rerunning native code."
+  ]
+}

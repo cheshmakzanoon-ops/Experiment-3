@@ -1,0 +1,82 @@
+{
+  "createdUTC": "2026-11-19T15:16:55.329850+00:00",
+  "baseCommit": "a1e2e385251b94f7cc82e123440a0a4c72611d63",
+  "productionAnchor": "2d67572a9a2ba4daa33311dcc9abed2c1b537632",
+  "candidateSource": "/workspace/scratch/0ab62d15db18/gp-baseline-throttle-only",
+  "allowedDiff": [
+    "src/simulation/bike-ai.ts",
+    "tests/gp-steering-throttle-ownership.test.ts"
+  ],
+  "candidateBikeAiSha256": "ffc70ab74e818298535eea6c48375df8cd3a5b30ba4ad776370a358eb3358c7d",
+  "other930ProductionFilesUnchanged": true,
+  "originalTestsUnchanged": true,
+  "native": {
+    "baseline": {
+      "passed": 0,
+      "failed": 3,
+      "actualExit": 1,
+      "expectedNegative": true
+    },
+    "candidate": {
+      "passed": 3,
+      "failed": 0,
+      "actualExit": 0
+    }
+  },
+  "originalRaces": {
+    "selected": 2,
+    "passed": 1,
+    "failed": 1,
+    "mixed3303": {
+      "passed": false,
+      "gpBestSeconds": 91.4372396579149,
+      "sbkBestSeconds": 90.3703801553851,
+      "requiredGpAdvantageSeconds": 0.15,
+      "actualExit": 1
+    },
+    "wetPoggio30101": {
+      "passed": true,
+      "actualExit": 0,
+      "allOriginalAssertions": true
+    }
+  },
+  "sourceStable": true,
+  "protectedInputs": 7459,
+  "runs": {
+    "baseline-native": {
+      "actualExit": 1,
+      "wallSeconds": 4.69195334,
+      "logSha256": "cbd824519ba7e87947caa42c2d408a0a585c613900bddfb9cc706f1c7045b753",
+      "manifestSha256": "522c69489833a76a646f052ac40b80e1d5d926a92d1be1473ac9e72b032ad3e4"
+    },
+    "candidate-native": {
+      "actualExit": 0,
+      "wallSeconds": 4.312714596,
+      "logSha256": "de91eb3a5ac8d5c91056fdc7b36a5fd734fe574b1e68a24544004387bdbd0aa2",
+      "manifestSha256": "28843ec8e6f9c2cabd3d3bb09d6afe8a05596edc64c5cc6f41b257e9855c42bd"
+    },
+    "mixed3303": {
+      "actualExit": 1,
+      "wallSeconds": 25.954385499,
+      "logSha256": "e44f30338c67396b2e6c22ba8a58fdef7e4287e9afac0cf3a84106cc4a780eeb",
+      "manifestSha256": "28843ec8e6f9c2cabd3d3bb09d6afe8a05596edc64c5cc6f41b257e9855c42bd"
+    },
+    "wet30101": {
+      "actualExit": 0,
+      "wallSeconds": 102.234985463,
+      "logSha256": "507cbd2e7d4fd26eccf08918f09bef1519615dfd148112e4dc3dbec37e68d991",
+      "manifestSha256": "28843ec8e6f9c2cabd3d3bb09d6afe8a05596edc64c5cc6f41b257e9855c42bd"
+    }
+  },
+  "candidateDisposition": "Not accepted: mixed pace remains failed; no broader race/full-unit acceptance performed",
+  "processesFinished": true,
+  "integrated": false,
+  "published": false,
+  "additionalChecksRun": false,
+  "duplicateCandidateProtectedManifests": {
+    "candidate-native-manifest.json": "manifests/candidate-native-protected-inputs.json.gz",
+    "mixed3303-manifest.json": "manifests/candidate-native-protected-inputs.json.gz",
+    "wet30101-manifest.json": "manifests/candidate-native-protected-inputs.json.gz",
+    "byteIdentityVerified": true
+  }
+}
