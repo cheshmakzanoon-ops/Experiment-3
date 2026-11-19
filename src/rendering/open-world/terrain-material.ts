@@ -115,7 +115,11 @@ export const TERRAIN_GRASS_SCATTER = Object.freeze({
  * follow each layer; standing water darkens and smooths the porous layers.
  */
 export function terrainMaterial(): T.MeshStandardMaterial & { userData: { ow: TerrainUniforms } } {
-  const material = new T.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9, metalness: 0 }) as T.MeshStandardMaterial & {
+  const material = new T.MeshStandardMaterial({
+    color: 0xffffff,
+    roughness: 0.9,
+    metalness: 0,
+  }) as T.MeshStandardMaterial & {
     userData: { ow: TerrainUniforms };
   };
   material.name = 'Festival terrain (layered PBR)';
@@ -139,6 +143,10 @@ export function terrainMaterial(): T.MeshStandardMaterial & { userData: { ow: Te
         `#include <common>
 attribute vec4 splat;
 attribute vec4 shade;
+#ifdef USE_MORPHTARGETS
+attribute vec4 parentSplat;
+attribute vec4 parentShade;
+#endif
 varying vec4 vSplat;
 varying vec4 vShade;
 varying vec3 vOwWorld;`,
@@ -148,6 +156,14 @@ varying vec3 vOwWorld;`,
         `#include <begin_vertex>
 vSplat = splat;
 vShade = shade;
+#ifdef USE_MORPHTARGETS
+vSplat = mix(splat, parentSplat, morphTargetInfluences[0]);
+vShade = mix(shade, parentShade, morphTargetInfluences[0]);
+#endif`,
+      )
+      .replace(
+        '#include <worldpos_vertex>',
+        `#include <worldpos_vertex>
 vOwWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;`,
       );
     shader.fragmentShader = shader.fragmentShader
@@ -301,7 +317,7 @@ normal = apexScanPerturb(normal, owScanN, 1.1);
 #endif`,
       );
   };
-  material.customProgramCacheKey = () => 'festival-terrain-v5-swash-film';
+  material.customProgramCacheKey = () => 'festival-terrain-v6-native-morph';
   scannedGround.register(material, FESTIVAL_SCAN_LAYERS);
   return material;
 }

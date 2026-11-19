@@ -52,6 +52,26 @@ export class TextureBudget {
       texture.needsUpdate = true;
     }
   }
+  /** A planting tier owns its maps exclusively. Forget them before disposing
+   * that tier so later quality changes never resize or retain dead assets. */
+  unregister(root: T.Object3D) {
+    const textures = new Set<T.Texture>();
+    root.traverse((object) => {
+      if (!(object instanceof T.Mesh)) return;
+      for (const material of Array.isArray(object.material) ? object.material : [object.material])
+        for (const value of Object.values(material))
+          if (value instanceof T.Texture) textures.add(value);
+    });
+    for (const texture of textures) {
+      this.imported.unregister(texture);
+      if (texture instanceof T.DataTexture) this.detailData.delete(texture);
+      if (texture instanceof T.CanvasTexture) {
+        const source = this.assets.get(texture);
+        if (source) texture.image = source;
+        this.assets.delete(texture);
+      }
+    }
+  }
   /** Repainted source assets keep their registered ownership and budget. */
   refresh(texture: T.Texture) {
     if (!(texture instanceof T.CanvasTexture)) return;

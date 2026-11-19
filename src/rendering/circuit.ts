@@ -3,6 +3,8 @@ import type { AurelQuarryKit } from './aurel-quarry.ts';
 import type { AurelVegetationKit } from './aurel-vegetation.ts';
 import { PhotoPlanting } from './vegetation/planting.ts';
 import type { VegetationLibrary } from './vegetation/library.ts';
+import { disposeCircuitPlanting, type CircuitPlanting } from './vegetation/ownership.ts';
+import { SPECIES } from './vegetation/species.ts';
 import { skyPaletteFor } from './assets/sky-catalogue.ts';
 import type { TrackSignalHardwareKit } from './track-signal-hardware.ts';
 import type { TrackBoardsKit } from './track-boards.ts';
@@ -112,10 +114,11 @@ interface RibbonOptions {
 export class CircuitScene {
   quarry: AurelQuarryKit | null = null;
   vegetation: AurelVegetationKit | null = null;
-  /** Photographic trees, shrubs and grass (loaded before construction; LOW
-   * and failed loads keep the procedural planting). */
+  /** Photographic trees, shrubs and grass. LOW/MEDIUM and failed loads keep
+   * procedural planting; prepareQuality replaces a complete planting tier. */
   photoLibrary: VegetationLibrary | null = null;
   photoPlanting: PhotoPlanting | null = null;
+  private activePlanting: CircuitPlanting | null = null;
   concreteBarriers: ConcreteBarrierKit | null = null;
   steelGuardrails: SteelGuardrailKit | null = null;
   catchFence: CatchFenceKit | null = null;
@@ -207,7 +210,12 @@ export class CircuitScene {
     this.stateTexture = new T.DataTexture(this.stateBytes, CELL_COLS, CELL_ROWS, T.RGBAFormat);
     this.stateTexture.magFilter = T.LinearFilter;
     this.stateTexture.minFilter = T.LinearFilter;
-    this.updateSurface(track.water, track.rubber, track.marbles, track.cold ? track.frozen : undefined);
+    this.updateSurface(
+      track.water,
+      track.rubber,
+      track.marbles,
+      track.cold ? track.frozen : undefined,
+    );
     this.tyreRubber = new TyreMarkPresentation(track, this.stateTexture);
     this.roadMaterial = surfaceMaterial('asphalt', undefined, true);
     installWetRoad(
@@ -477,39 +485,12 @@ export class CircuitScene {
     if (paved)
       this.construction.add('Laid tyre rubber', 1, () => this.tyreRubber.build(this.surfaces));
     this.construction.add('Rule-placed layered foliage', 3, () => {
-      const excluded = (x: number, z: number, padding: number) =>
-        (this.recoveryGates?.blocksVegetation(x, z, padding) ?? false) ||
-        (this.quarry?.blocksPlanting(track, x, z, padding) ?? false) ||
-        (this.venueKit?.blocks(x, z, padding) ?? false);
-      const style = this.venueKit?.context.style;
-      if (this.photoLibrary) {
-        const planting = !style || !!style.planting;
-        const belts = !style || style.forestBelts;
-        this.photoPlanting = new PhotoPlanting(
-          {
-            track,
-            library: this.photoLibrary,
-            palette: skyPaletteFor(track.circuit),
-            services: this.serviceSites,
-            exclusion: excluded,
-            aurel: track.circuit.id === 'aurel',
-            planting,
-            forestBelts: belts,
-            grass: !style || style.ground === 'grass',
-            kit: this.venueKit?.context ?? null,
-            shrubs: this.venueKit?.context.photoShrubs ?? [],
-          },
-          this.vegetationGroup,
-        );
-        return;
-      }
-      if (style && !style.planting) return;
-      if (this.vegetation)
-        this.vegetation.build(track, this.vegetationGroup, this.serviceSites, excluded);
-      else buildVegetation(track, this.vegetationGroup, this.serviceSites, excluded);
-      // Continuous woodland 30-120 m behind the boundary (D11).
-      if (!style || style.forestBelts)
-        buildForestBelts(track, this.vegetationGroup, this.serviceSites, excluded);
+      const library = this.photoLibrary,
+        authored = this.vegetation;
+      this.photoLibrary = null;
+      this.vegetation = null;
+      // The construction queue surveys all static meshes after batching.
+      this.installPlanting(this.buildPlanting(library, authored), false);
     });
     this.construction.add('Grid and finish markings', 0, () => this.grid());
     this.construction.add('Spatial geometry batches', 4, () =>
@@ -554,6 +535,85 @@ export class CircuitScene {
     });
     this.construction.add('Probe detail survey', 7, () => this.surveyProbeDetail());
     if (!deferred) this.construction.runSynchronously();
+  }
+  get planting() {
+    return this.activePlanting;
+  }
+  /** Build away from the visible circuit. Asset ownership transfers to the
+   * returned tier (including cleanup if construction throws). */
+  buildPlanting(library: VegetationLibrary | null, authored: AurelVegetationKit | null) {
+    const planting: CircuitPlanting = {
+      root: new StaticTransformGroup(),
+      library,
+      authored,
+      photo: null,
+      disposed: false,
+    };
+    const { track } = this;
+    const excluded = (x: number, z: number, padding: number) =>
+      (this.recoveryGates?.blocksVegetation(x, z, padding) ?? false) ||
+      (this.quarry?.blocksPlanting(track, x, z, padding) ?? false) ||
+      (this.venueKit?.blocks(x, z, padding) ?? false);
+    const style = this.venueKit?.context.style;
+    try {
+      if (library) {
+        planting.photo = new PhotoPlanting(
+          {
+            track,
+            library,
+            palette: skyPaletteFor(track.circuit),
+            services: this.serviceSites,
+            exclusion: excluded,
+            aurel: track.circuit.id === 'aurel',
+            planting: !style || !!style.planting,
+            forestBelts: !style || style.forestBelts,
+            grass: !style || style.ground === 'grass',
+            kit: this.venueKit?.context ?? null,
+            shrubs: this.venueKit?.context.photoShrubs ?? [],
+          },
+          planting.root,
+        );
+      } else if (!style || style.planting) {
+        if (authored) authored.build(track, planting.root, this.serviceSites, excluded);
+        else buildVegetation(track, planting.root, this.serviceSites, excluded);
+        if (!style || style.forestBelts)
+          buildForestBelts(track, planting.root, this.serviceSites, excluded);
+      }
+      planting.root.sealTransforms();
+      return planting;
+    } catch (error) {
+      disposeCircuitPlanting(planting);
+      throw error;
+    }
+  }
+  /** Swap only the planting, preserving the stable outer group and all race,
+   * camera, replay and venue state. The caller owns the detached previous tier. */
+  installPlanting(planting: CircuitPlanting | null, refreshProbes = true) {
+    if (planting?.disposed) throw new Error('Cannot install disposed circuit planting');
+    const previous = this.activePlanting;
+    this.vegetationGroup.clear();
+    if (planting) this.vegetationGroup.add(planting.root);
+    this.vegetationGroup.userData = { ...planting?.root.userData };
+    this.activePlanting = planting;
+    this.photoLibrary = planting?.library ?? null;
+    this.photoPlanting = planting?.photo ?? null;
+    this.vegetation = planting?.authored ?? null;
+    this.venueKit?.context.setPhotoShrubs(!!planting?.library?.get(SPECIES.shrub));
+    if (refreshProbes) this.surveyProbeDetail();
+    return previous;
+  }
+  disposePlanting() {
+    if (this.activePlanting) disposeCircuitPlanting(this.activePlanting);
+    else {
+      // A cancelled initial load may own assets before the build queue runs.
+      this.photoPlanting?.dispose();
+      this.photoLibrary?.dispose();
+      this.vegetation?.dispose();
+    }
+    this.activePlanting = null;
+    this.photoLibrary = null;
+    this.photoPlanting = null;
+    this.vegetation = null;
   }
   /** Include unused road/kit palette entries in the renderer's ordinary
    * material disposer. Terrain venues omit several of their meshes, but the
@@ -823,6 +883,9 @@ export class CircuitScene {
   /** Register static drawables once construction is sealed: narrow ribbons
    * as strips, tree trunks by instance, everything else by bounding sphere. */
   private surveyProbeDetail() {
+    // The same array is shared with the local reflection probe. Rebuild in
+    // place after a quality swap so no disposed meshes remain in its survey.
+    this.probeDetail.length = 0;
     for (const root of [this.props, this.surfaces, this.vegetationGroup])
       root.traverse((o) => {
         // A mesh drawn without frustum culling has no trustworthy bounds.

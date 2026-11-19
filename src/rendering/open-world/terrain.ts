@@ -1,13 +1,22 @@
 import * as T from 'three';
 import { TILE_SIZE } from '../../simulation/open-world/terrain-tiles.ts';
-import type { FromTileWorker, TileMeshData, ToTileWorker } from '../../workers/open-world-protocol.ts';
+import type {
+  FromTileWorker,
+  TileMeshData,
+  ToTileWorker,
+} from '../../workers/open-world-protocol.ts';
 import { terrainMaterial } from './terrain-material.ts';
+import { terrainParentMorph } from './terrain-morph.ts';
 
 /** Quadtree levels: level L tiles are TILE_SIZE·2^L wide. Level 6 tiles
  * (16.4 km) cover the drivable region and the horizon ranges around it. */
 export const TERRAIN_LEVELS = 6;
 export const TERRAIN_EXTENT = TILE_SIZE * 2 ** TERRAIN_LEVELS;
 const ORIGIN = -TERRAIN_EXTENT / 2;
+export const TERRAIN_MORPH_SECONDS = 0.28;
+/** Late arrivals under the car must restore the exact drivable heightfield
+ * before nearby vegetation is activated. Ordinary refinement starts far ahead. */
+export const TERRAIN_CONTACT_RADIUS = 64;
 
 export interface TerrainBudget {
   /** Split distance as a multiple of the tile edge (detail falloff). */
@@ -20,11 +29,12 @@ export interface TerrainBudget {
    * level and, on the finest level, only trees without a trunk collider. */
   trees: number;
 }
-export const TERRAIN_BUDGETS: Readonly<Record<'low' | 'medium' | 'high', TerrainBudget>> = Object.freeze({
-  low: { split: 1.25, maxTiles: 110, inFlight: 3, trees: 0.45 },
-  medium: { split: 1.6, maxTiles: 150, inFlight: 4, trees: 0.7 },
-  high: { split: 2.1, maxTiles: 220, inFlight: 6, trees: 1 },
-});
+export const TERRAIN_BUDGETS: Readonly<Record<'low' | 'medium' | 'high', TerrainBudget>> =
+  Object.freeze({
+    low: { split: 1.25, maxTiles: 110, inFlight: 3, trees: 0.45 },
+    medium: { split: 1.6, maxTiles: 150, inFlight: 4, trees: 0.7 },
+    high: { split: 2.1, maxTiles: 220, inFlight: 6, trees: 1 },
+  });
 
 interface Tile {
   key: number;
@@ -36,6 +46,9 @@ interface Tile {
   requested: boolean;
   id: number;
   used: number;
+  /** 0 draws this tile; 0..1 draws its complete child quartet; 1 may refine further. */
+  refinement: number;
+  morphBytes: number;
 }
 const res = (level: number) => (level <= 2 ? 64 : 32);
 const key = (level: number, ix: number, iz: number) => (level * 4096 + ix) * 4096 + iz;
@@ -46,8 +59,10 @@ const key = (level: number, ix: number, iz: number) => (level * 4096 + ix) * 409
  * Each frame the tree is refined around the camera (split while closer than
  * `split` tile edges); a node whose children are not all resident keeps
  * drawing itself, so there are never holes, only coarser ground for a few
- * frames. Skirts hide the cracks between neighbouring levels. Resident
- * tiles beyond the budget are evicted least-recently-used.
+ * frames. Complete child quartets inherit their parent's surface and morph
+ * to fine detail on the presentation clock; coarsening reverses this process.
+ * Skirts hide the cracks between neighbouring levels. Ancestors and active
+ * transitions are owned together; spare cached tiles are evicted first.
  */
 export class TerrainStreamer {
   readonly root = new T.Group();
@@ -57,15 +72,31 @@ export class TerrainStreamer {
   private nextId = 1;
   private frame = 0;
   private inFlight = 0;
+  private clock = NaN;
+  private disposed = false;
   private readonly indices = new Map<number, T.BufferAttribute>();
   private drawnTiles = new Set<number>();
-  /** Changes only when the displayed covering set changes, including swaps
-   * with the same tile count. Far shadows coalesce these streaming updates. */
+  /** Changes when the displayed covering set or its morph silhouette changes.
+   * Far shadows coalesce these streaming updates. */
   shadowRevision = 0;
   /** Diagnostics. */
-  stats = { resident: 0, drawn: 0, requested: 0, built: 0, evicted: 0, workerMs: 0 };
+  stats = {
+    resident: 0,
+    drawn: 0,
+    requested: 0,
+    built: 0,
+    evicted: 0,
+    workerMs: 0,
+    transitioning: 0,
+    reserved: 0,
+    /** CPU morph/parent-mask attribute payload; excludes driver texture padding. */
+    morphBytes: 0,
+  };
   /** Tree data of drawn near tiles changed (vegetation rebuilds instances). */
-  readonly treeTiles = new Map<number, { data: TileMeshData; level: number; ix: number; iz: number }>();
+  readonly treeTiles = new Map<
+    number,
+    { data: TileMeshData; level: number; ix: number; iz: number }
+  >();
   treesChanged = false;
   private readonly camera = new T.Vector3();
   constructor(
@@ -80,13 +111,18 @@ export class TerrainStreamer {
     worker.addEventListener('message', this.receive);
   }
   private receive = (event: MessageEvent<FromTileWorker>) => {
+    if (this.disposed) return;
     const msg = event.data;
     const tile = this.byId.get(msg.id);
+    // A cancelled worker reply must not decrement a different live request.
+    if (!tile) return;
     this.byId.delete(msg.id);
     this.inFlight = Math.max(0, this.inFlight - 1);
-    if (!tile || msg.type === 'error') return;
+    tile.requested = false;
+    if (msg.type === 'error') return;
     tile.data = msg;
     tile.mesh = this.build(tile, msg);
+    this.stats.resident++;
     this.stats.built++;
     this.stats.workerMs = this.stats.workerMs * 0.9 + msg.ms * 0.1;
   };
@@ -173,8 +209,32 @@ export class TerrainStreamer {
     geometry.setAttribute('splat', new T.BufferAttribute(splat, 4));
     geometry.setAttribute('shade', new T.BufferAttribute(shade, 4));
     geometry.setIndex(this.indexFor(r));
-    geometry.boundingBox = new T.Box3(new T.Vector3(0, data.minY - skirt, 0), new T.Vector3(size, data.maxY, size));
-    geometry.boundingSphere = geometry.boundingBox.getBoundingSphere(new T.Sphere());
+    const parent = this.tiles.get(key(tile.level + 1, tile.ix >> 1, tile.iz >> 1));
+    if (parent?.data) {
+      const morph = terrainParentMorph(
+        position,
+        normal,
+        data,
+        parent.data,
+        r,
+        res(parent.level),
+        tile.ix & 1,
+        tile.iz & 1,
+      );
+      geometry.morphAttributes.position = [new T.BufferAttribute(morph.position, 3)];
+      geometry.morphAttributes.normal = [new T.BufferAttribute(morph.normal, 3)];
+      geometry.setAttribute('parentSplat', new T.BufferAttribute(morph.splat, 4));
+      geometry.setAttribute('parentShade', new T.BufferAttribute(morph.shade, 4));
+      tile.morphBytes = Object.values(morph).reduce(
+        (total, values) => total + values.byteLength,
+        0,
+      );
+      this.stats.morphBytes += tile.morphBytes;
+    }
+    // Include both fine and parent targets; a partially morphed mountain must
+    // not be culled using only the fine surface's bounds.
+    geometry.computeBoundingBox();
+    geometry.computeBoundingSphere();
     const mesh = new T.Mesh(geometry, this.material);
     mesh.name = `Terrain L${tile.level} ${tile.ix},${tile.iz}`;
     mesh.position.set(ORIGIN + tile.ix * size, 0, ORIGIN + tile.iz * size);
@@ -189,7 +249,19 @@ export class TerrainStreamer {
     const k = key(level, ix, iz);
     let t = this.tiles.get(k);
     if (!t) {
-      t = { key: k, level, ix, iz, mesh: null, data: null, requested: false, id: 0, used: 0 };
+      t = {
+        key: k,
+        level,
+        ix,
+        iz,
+        mesh: null,
+        data: null,
+        requested: false,
+        id: 0,
+        used: 0,
+        refinement: 0,
+        morphBytes: 0,
+      };
       this.tiles.set(k, t);
     }
     return t;
@@ -218,112 +290,239 @@ export class TerrainStreamer {
     this.worker.postMessage(message);
     return true;
   }
-  private wantsSplit(level: number, ix: number, iz: number) {
-    if (level === 0) return false;
-    const size = TILE_SIZE * 2 ** level,
-      x0 = ORIGIN + ix * size,
-      z0 = ORIGIN + iz * size,
+  private distanceToTile(t: Tile) {
+    const size = TILE_SIZE * 2 ** t.level,
+      x0 = ORIGIN + t.ix * size,
+      z0 = ORIGIN + t.iz * size,
       c = this.camera;
     const dx = Math.max(x0 - c.x, 0, c.x - (x0 + size)),
       dz = Math.max(z0 - c.z, 0, c.z - (z0 + size));
-    const t = this.tiles.get(key(level, ix, iz));
-    const dy = t?.data ? Math.max(0, c.y - t.data.maxY) : 0;
-    return Math.hypot(dx, dz, dy * 0.6) < size * this.budget.split;
+    const dy = t.data ? Math.max(0, c.y - t.data.maxY) : 0;
+    return Math.hypot(dx, dz, dy * 0.6);
   }
-  /** Refine around the camera; show the covering set; request what is
-   * missing (nearest first); evict beyond the budget. */
-  update(camera: T.Camera) {
+  private children(t: Tile) {
+    const children: Tile[] = [];
+    for (let j = 0; j < 2; j++)
+      for (let i = 0; i < 2; i++) children.push(this.tile(t.level - 1, t.ix * 2 + i, t.iz * 2 + j));
+    return children;
+  }
+  /** Budget the hierarchy, including its retained ancestors. Admitting whole
+   * quartets prevents incomplete siblings from exhausting the cache forever. */
+  private plan() {
+    const split = new Set<number>(),
+      root = this.tile(TERRAIN_LEVELS, 0, 0),
+      queue = [{ tile: root, distance: this.distance(root) }],
+      limit = Math.max(1, Math.floor(this.budget.maxTiles));
+    let allocated = 1;
+    while (queue.length) {
+      // At most maxTiles entries; cache each distance once rather than
+      // recomputing square roots inside repeated sort comparisons.
+      queue.sort(
+        (a, b) => a.distance - b.distance || a.tile.level - b.tile.level || a.tile.key - b.tile.key,
+      );
+      const t = queue.shift()!.tile;
+      if (t.level === 0 || allocated + 4 > limit) continue;
+      const reach = TILE_SIZE * 2 ** t.level * this.budget.split * (t.refinement > 0 ? 1.12 : 1);
+      if (this.distanceToTile(t) >= reach) continue;
+      split.add(t.key);
+      allocated += 4;
+      for (const child of this.children(t))
+        queue.push({ tile: child, distance: this.distance(child) });
+    }
+    return split;
+  }
+  private collapse(t: Tile) {
+    if (t.refinement > 0) {
+      for (const child of this.children(t)) this.collapse(child);
+      t.refinement = 0;
+    }
+  }
+  /** Refine around the camera on presentation time. Omitting time is the
+   * loading/prestream path: settle complete levels before GPU preparation.
+   * Repeated times hold morphs; a seek settles the newly selected cover. */
+  update(camera: T.Camera, time?: number) {
+    if (this.disposed) return;
     camera.getWorldPosition(this.camera);
     this.frame++;
+    const timed = time !== undefined && Number.isFinite(time),
+      seek = timed && Number.isFinite(this.clock) && (time < this.clock || time - this.clock > 0.5),
+      elapsed =
+        timed && Number.isFinite(this.clock) ? Math.max(0, Math.min(0.1, time - this.clock)) : 0,
+      settle = !timed || seek,
+      plan = this.plan();
+    this.clock = timed ? time : NaN;
     for (const t of this.tiles.values()) if (t.mesh) t.mesh.visible = false;
-    let drawn = 0;
-    const drawnTiles = new Set<number>();
-    const wanted: { t: Tile; d: number }[] = [];
-    const visit = (level: number, ix: number, iz: number) => {
-      const t = this.tile(level, ix, iz);
+    let silhouetteChanged = false;
+    const drawnTiles = new Set<number>(),
+      protectedTiles = new Set<Tile>(),
+      treeOwners = new Set<Tile>(),
+      wanted: { parent: Tile; children: Tile[] }[] = [];
+    this.stats.transitioning = 0;
+    const keep = (t: Tile) => {
       t.used = this.frame;
-      if (this.wantsSplit(level, ix, iz)) {
-        const kids: Tile[] = [];
-        for (let j = 0; j < 2; j++) for (let i = 0; i < 2; i++) kids.push(this.tile(level - 1, ix * 2 + i, iz * 2 + j));
-        if (kids.every((k) => k.mesh)) {
-          for (let j = 0; j < 2; j++) for (let i = 0; i < 2; i++) visit(level - 1, ix * 2 + i, iz * 2 + j);
-          return;
-        }
-        for (const k of kids) {
-          k.used = this.frame;
-          if (!k.mesh) wanted.push({ t: k, d: this.distance(k) });
-        }
-      }
-      if (t.mesh) {
-        t.mesh.visible = true;
-        drawnTiles.add(t.key);
-        drawn++;
-      } else wanted.push({ t, d: this.distance(t) - 1e6 * (level === TERRAIN_LEVELS ? 1 : 0) });
+      protectedTiles.add(t);
     };
-    visit(TERRAIN_LEVELS, 0, 0);
-    wanted.sort((a, b) => a.d - b.d);
-    for (const w of wanted) if (!this.request(w.t, w.t.level === TERRAIN_LEVELS ? 0 : 1)) break;
-    this.stats.drawn = drawn;
+    const trees = (t: Tile) => {
+      if (t.level <= 1 && t.data?.trees.length) treeOwners.add(t);
+    };
+    const show = (t: Tile, coarse = 0, includeTrees = true) => {
+      keep(t);
+      if (!t.mesh) return;
+      t.mesh.visible = true;
+      drawnTiles.add(t.key);
+      if (t.mesh.morphTargetInfluences) {
+        silhouetteChanged ||= t.mesh.morphTargetInfluences[0] !== coarse;
+        t.mesh.morphTargetInfluences[0] = coarse;
+      }
+      if (includeTrees) trees(t);
+    };
+    const visit = (t: Tile, allowRefine = true) => {
+      keep(t);
+      const refine = allowRefine && plan.has(t.key);
+      if (!t.mesh || t.level === 0 || (!refine && t.refinement === 0)) {
+        show(t);
+        return;
+      }
+      const kids = this.children(t),
+        ready = kids.every((child) => child.mesh),
+        step =
+          settle || (elapsed > 0 && t.level <= 2 && this.distanceToTile(t) < TERRAIN_CONTACT_RADIUS)
+            ? 1
+            : elapsed / TERRAIN_MORPH_SECONDS;
+      if (!refine && settle) this.collapse(t);
+      else if (!refine && kids.some((child) => child.refinement > 0)) {
+        // Collapse one complete descendant covering set before moving its
+        // parent. A grandchild never needs two simultaneous morph targets.
+        for (const child of kids) visit(child, false);
+        return;
+      } else if (ready)
+        t.refinement = Math.min(1, Math.max(0, t.refinement + (refine ? step : -step)));
+      else t.refinement = 0;
+      if (t.refinement === 1) {
+        for (const child of kids) visit(child, refine);
+      } else if (t.refinement > 0) {
+        this.stats.transitioning++;
+        for (const child of kids) show(child, 1 - t.refinement, false);
+        // Do not anchor new trees to the final child height while its ground
+        // is still morphing. Near-camera transitions settle before this branch.
+        if (t.level === 1) trees(t);
+        else if (!refine && t.level === 2) for (const child of kids) trees(child);
+      } else {
+        show(t);
+        if (refine) wanted.push({ parent: t, children: kids });
+      }
+    };
+    visit(this.tile(TERRAIN_LEVELS, 0, 0));
+    // Reserve complete desired quartets, then retire stale requests/cache
+    // entries before issuing replacements. Current covering sets are retained
+    // during a quality-budget downgrade and release as their morphs complete.
+    const limit = Math.max(1, Math.floor(this.budget.maxTiles));
+    wanted.sort(
+      (a, b) => this.distance(a.parent) - this.distance(b.parent) || a.parent.key - b.parent.key,
+    );
+    for (const group of wanted) {
+      const extra = group.children.filter((child) => !protectedTiles.has(child)).length;
+      if (protectedTiles.size + extra <= limit) for (const child of group.children) keep(child);
+    }
+    for (const t of this.tiles.values())
+      if (t.requested && !protectedTiles.has(t)) {
+        this.worker.postMessage({ type: 'cancel', id: t.id } satisfies ToTileWorker);
+        this.byId.delete(t.id);
+        this.inFlight--;
+        t.requested = false;
+      }
+    this.evict(protectedTiles);
+    const requests = [...protectedTiles].filter((t) => !t.mesh && !t.requested);
+    requests.sort(
+      (a, b) => b.level - a.level || this.distance(a) - this.distance(b) || a.key - b.key,
+    );
+    for (const t of requests) if (!this.request(t, t.level === TERRAIN_LEVELS ? 0 : 1)) break;
+    this.stats.drawn = drawnTiles.size;
     if (
+      silhouetteChanged ||
       drawnTiles.size !== this.drawnTiles.size ||
       [...drawnTiles].some((key) => !this.drawnTiles.has(key))
-    ) this.shadowRevision++;
+    )
+      this.shadowRevision++;
     this.drawnTiles = drawnTiles;
     // Trees of the drawn near tiles.
     let changed = false;
     for (const t of this.tiles.values()) {
-      const near = t.mesh?.visible && t.level <= 1 && t.data && t.data.trees.length > 0;
-      if (near && !this.treeTiles.has(t.key)) {
+      if (treeOwners.has(t) && this.treeTiles.get(t.key)?.data !== t.data) {
         this.treeTiles.set(t.key, { data: t.data!, level: t.level, ix: t.ix, iz: t.iz });
         changed = true;
-      } else if (!near && this.treeTiles.has(t.key)) {
+      } else if (!treeOwners.has(t) && this.treeTiles.has(t.key)) {
         this.treeTiles.delete(t.key);
         changed = true;
       }
     }
     if (changed) this.treesChanged = true;
-    this.evict();
   }
   private distance(t: Tile) {
     const size = TILE_SIZE * 2 ** t.level;
-    return Math.hypot(ORIGIN + (t.ix + 0.5) * size - this.camera.x, ORIGIN + (t.iz + 0.5) * size - this.camera.z);
+    return Math.hypot(
+      ORIGIN + (t.ix + 0.5) * size - this.camera.x,
+      ORIGIN + (t.iz + 0.5) * size - this.camera.z,
+    );
   }
-  private evict() {
+  private evict(protectedTiles: ReadonlySet<Tile>) {
     const resident = [...this.tiles.values()].filter((t) => t.mesh);
-    this.stats.resident = resident.length;
-    if (resident.length <= this.budget.maxTiles) {
-      // Forget never-built entries that fell out of use.
-      for (const t of this.tiles.values()) if (!t.mesh && !t.requested && t.used < this.frame - 2) this.tiles.delete(t.key);
-      return;
-    }
+    const missing = [...protectedTiles].filter((t) => !t.mesh).length;
+    this.stats.reserved = missing;
+    const target = Math.max(0, Math.floor(this.budget.maxTiles) - missing);
+    let count = resident.length;
     resident
-      .filter((t) => t.used < this.frame && t.level < TERRAIN_LEVELS)
-      .sort((a, b) => a.used - b.used)
-      .slice(0, resident.length - this.budget.maxTiles)
+      .filter((t) => !protectedTiles.has(t) && t.level < TERRAIN_LEVELS)
+      .sort((a, b) => a.used - b.used || a.key - b.key)
+      .slice(0, Math.max(0, resident.length - target))
       .forEach((t) => {
         this.root.remove(t.mesh!);
         t.mesh!.geometry.dispose();
         t.mesh = null;
         t.data = null;
         t.requested = false;
+        this.stats.morphBytes -= t.morphBytes;
+        t.morphBytes = 0;
         this.tiles.delete(t.key);
         this.treeTiles.delete(t.key);
         this.stats.evicted++;
+        count--;
       });
-    this.stats.resident = Math.min(resident.length, this.budget.maxTiles);
+    this.stats.resident = count;
+    for (const t of this.tiles.values())
+      if (!t.mesh && !t.requested && !protectedTiles.has(t) && t.used < this.frame - 2)
+        this.tiles.delete(t.key);
   }
-  /** True once the coarse cover and the tiles under `at` are resident. */
+  /** Ready for GPU preparation only once exact ground under `at` is visible.
+   * A received but hidden child must not skip its first real shader warm-up. */
   readyAround(x: number, z: number) {
     const top = this.tiles.get(key(TERRAIN_LEVELS, 0, 0));
     if (!top?.mesh) return false;
     const ix = Math.floor((x - ORIGIN) / TILE_SIZE),
       iz = Math.floor((z - ORIGIN) / TILE_SIZE);
-    return !!this.tiles.get(key(0, ix, iz))?.mesh;
+    const mesh = this.tiles.get(key(0, ix, iz))?.mesh;
+    return !!mesh?.visible && (mesh.morphTargetInfluences?.[0] ?? 0) === 0;
   }
   dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
     this.worker.removeEventListener('message', this.receive);
+    for (const t of this.byId.values())
+      this.worker.postMessage({ type: 'cancel', id: t.id } satisfies ToTileWorker);
     for (const t of this.tiles.values()) t.mesh?.geometry.dispose();
     this.tiles.clear();
+    this.byId.clear();
+    this.indices.clear();
+    this.drawnTiles.clear();
+    this.treeTiles.clear();
+    this.root.clear();
+    this.inFlight =
+      this.stats.resident =
+      this.stats.drawn =
+      this.stats.reserved =
+      this.stats.morphBytes =
+        0;
+    this.stats.transitioning = 0;
     this.material.dispose();
   }
 }

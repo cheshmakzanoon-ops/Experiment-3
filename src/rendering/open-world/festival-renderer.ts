@@ -402,6 +402,8 @@ export class FestivalRenderer {
       // Trees never stand on roads: the natural ground alone (cheap per tile).
       this.vegetation.setPhotoLibrary(library, (x, z) => this.world.field.height(x, z));
       this.shadows.invalidate();
+      this.streetLights.invalidate();
+      this.reflection.sceneryChanged();
       return true;
     } catch (error) {
       console.warn('Festival photographic vegetation unavailable:', error);
@@ -417,6 +419,8 @@ export class FestivalRenderer {
         this.atmosphere.install(kit.root);
         this.scene.add(kit.root);
         this.shadows.invalidate();
+        this.streetLights.invalidate();
+        this.reflection.sceneryChanged();
         this.reflection.probeExclusions.push(kit.aero);
         this.guidance.useFlagTemplate(kit.flagTemplate(this.preset === 'low'));
         if (kit.stats.boats === this.dressing.stats.boats) this.dressing.useAuthoredBoats();
@@ -446,6 +450,8 @@ export class FestivalRenderer {
         this.atmosphere.install(kit.root);
         this.scene.add(kit.root);
         this.shadows.invalidate();
+        this.streetLights.invalidate();
+        this.reflection.sceneryChanged();
         return true;
       })
       .catch((error: unknown) => {
@@ -473,6 +479,11 @@ export class FestivalRenderer {
     }
     this.sun.castShadow = g.shadowSize > 0;
     this.shadows.configure(g.shadowSize);
+    this.streetLights.configureShadows(
+      preset,
+      g.shadowSize > 0,
+      this.renderer.capabilities.maxTextureSize,
+    );
     this.bloom.enabled = g.bloom;
     this.imagePipeline.configure(g);
     this.fxaa.enabled = g.antialias && this.scenePass.samples === 0;
@@ -715,7 +726,7 @@ export class FestivalRenderer {
     this.camera.updateProjectionMatrix();
     this.camera.updateMatrixWorld();
     // --- World streaming and dressing -------------------------------------
-    this.terrain.update(this.camera);
+    this.terrain.update(this.camera, time);
     this.buildings.update(this.camera, this.preset);
     if (this.terrain.treesChanged) {
       this.terrain.treesChanged = false;
@@ -739,6 +750,7 @@ export class FestivalRenderer {
     if (discontinuity) {
       this.effectPlayback.reset();
       this.practicalLights.reset();
+      this.streetLights.invalidate();
       // Travel/recovery may keep time and the current car's material identity.
       // Capture the destination even if the player immediately pauses for a photo.
       this.reflection.invalidate();
@@ -895,6 +907,7 @@ export class FestivalRenderer {
       this.reflectedVehicleVersion = this.vehiclePaintVersion;
     }
     this.reflection.beginFrame(time, false);
+    this.reflection.setSceneryRevision(this.terrain.shadowRevision);
     this.reflection.setSkyIntensity(
       this.reflectionMaterials,
       daylight.environment,
@@ -937,7 +950,9 @@ export class FestivalRenderer {
       otherDof: false,
       cut,
     });
-    this.composer.render();
+    this.streetLights.renderWithShadows(this.renderer, time, this.terrain.shadowRevision, () =>
+      this.composer.render(),
+    );
     this.ultra.afterFrame();
     this.stats.drawCalls = this.renderer.info.render.calls;
     this.stats.triangles = this.renderer.info.render.triangles;
@@ -951,6 +966,8 @@ export class FestivalRenderer {
     return {
       ...this.imagePipeline.diagnostics(),
       shadows: this.shadows.diagnostics(),
+      localShadows: this.streetLights.diagnostics(),
+      reflectionProbe: this.reflection.probeDiagnostics,
       ultra: this.ultra.diagnostics(),
     };
   }

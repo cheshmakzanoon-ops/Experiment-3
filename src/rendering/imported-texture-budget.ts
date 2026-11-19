@@ -70,6 +70,27 @@ export class ImportedTextureBudget {
     for (const asset of this.assets) this.apply(asset);
   }
 
+  /** Release a replaced asset's wrapper without affecting maps which share
+   * its immutable source and still belong to a live scene. */
+  unregister(texture: T.Texture) {
+    if (!this.registered.delete(texture)) return;
+    const asset = this.sources.get(texture.source);
+    if (!asset) return;
+    texture.dispose();
+    texture.source = asset.original;
+    if (asset.coverage) {
+      texture.mipmaps = [];
+      texture.generateMipmaps = true;
+    }
+    texture.needsUpdate = true;
+    asset.textures.delete(texture);
+    if (!asset.textures.size) {
+      this.sources.delete(asset.original);
+      this.sources.delete(asset.owned);
+      this.assets.delete(asset);
+    }
+  }
+
   private apply(asset: ImportedAsset) {
     const factor = Math.min(1, this.limit / Math.max(asset.image.width, asset.image.height));
     const width = Math.max(1, Math.round(asset.image.width * factor));

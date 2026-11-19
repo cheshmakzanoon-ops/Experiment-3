@@ -10,6 +10,13 @@ export const PROBE_FACE_SIZE = 256;
 /** Detail culling keeps its 128 px-face texel threshold: props below one such
  * texel are a few texels at 256 px but would cost one draw per face. */
 export const PROBE_DETAIL_FACE_SIZE = 128;
+/** Moving captures may replace the ordinary time cadence, but never raise
+ * its normal start rate above two cycles per second. A caller's explicitly
+ * faster time cadence remains valid. Face work is still bounded separately.
+ * These are capture-origin distances, not accumulated path length or heading:
+ * a world-oriented cubemap remains valid when a stationary car turns. */
+export const PROBE_MOTION_REFRESH = Object.freeze({ distance: 12, minimumInterval: 0.5 });
+type ProbeRefreshReason = 'immediate' | 'motion' | 'scenery' | 'cadence';
 
 /** Coordinates recursive render passes. Mirrors render actual rear-facing camera feeds, and are hidden during other mirror/probe passes to prevent cycles. */
 export class ReflectionSystem {
@@ -71,10 +78,27 @@ export class ReflectionSystem {
   /** Next face of the refresh in progress, or -1 when none is. */
   private pendingFace = -1;
   private pendingStart = 0;
+  private pendingSceneryRevision = 0;
+  private pendingReason: ProbeRefreshReason = 'immediate';
   /** Presentation time of the last refresh face. A paused or held frame does
    * no probe work: a refresh advances only as presentation time does. */
   private faceClock = NaN;
   private probeEye = new T.Vector3();
+  private currentEye = new T.Vector3();
+  private completedEye = new T.Vector3();
+  private consideredClock = NaN;
+  private lastStart = -Infinity;
+  private lastCompleted = -Infinity;
+  private sceneryRevision = 0;
+  private externalSceneryRevision = 0;
+  private capturedSceneryRevision = -1;
+  private requestEpoch = 0;
+  private attemptedEpoch = -1;
+  private attemptedClock = NaN;
+  private attemptedCar: T.Object3D | null = null;
+  private attemptedEnvironment: object | null = null;
+  private immediateRetryPending = false;
+  private probeStarts = { immediate: 0, motion: 0, scenery: 0, cadence: 0 };
   private activePass = false;
   private clock = NaN;
   private enabled = false;
@@ -125,6 +149,11 @@ export class ReflectionSystem {
     this.capturedCar = null;
     this.lastProbe = -Infinity;
     this.pendingFace = -1;
+    this.lastStart = this.lastCompleted = -Infinity;
+    this.consideredClock = this.attemptedClock = NaN;
+    this.attemptedCar = null;
+    this.immediateRetryPending = false;
+    this.capturedSceneryRevision = -1;
   }
   /** Sky-only IBL uses the authored gain. A completed local cubemap already
    * contains lit scene radiance, so applying that gain again also darkens every
@@ -167,7 +196,46 @@ export class ReflectionSystem {
    * catches its old timestamp, and mirrors can briefly show the old position. */
   invalidate() {
     this.lastProbe = -Infinity;
+    this.pendingFace = -1;
+    this.requestEpoch++;
     this.views.invalidate();
+  }
+  /** Queue a bounded refresh for streamed/authored scenery. Changes arriving
+   * during a six-face cycle coalesce into a later cycle; they never keep
+   * restarting the back buffer. A held presentation waits until it resumes. */
+  sceneryChanged() {
+    this.sceneryRevision++;
+  }
+  /** Streamers can report their revision every frame without generating
+   * needless captures when nothing changed. Other owners use sceneryChanged. */
+  setSceneryRevision(revision: number) {
+    if (!Number.isSafeInteger(revision) || revision < 0)
+      throw new Error('Invalid reflection scenery revision');
+    if (revision === this.externalSceneryRevision) return;
+    this.externalSceneryRevision = revision;
+    this.sceneryChanged();
+  }
+  get probeDiagnostics() {
+    return {
+      completed: this.probeUpdates,
+      starts: { ...this.probeStarts },
+      pendingFace: this.pendingFace,
+      pendingReason: this.pendingFace >= 0 ? this.pendingReason : null,
+      facesPerFrame: this.probeFacesPerFrame,
+      motionDistance: PROBE_MOTION_REFRESH.distance,
+      minimumInterval: PROBE_MOTION_REFRESH.minimumInterval,
+      // Initial/seek/subject/environment captures deliberately retain their
+      // existing six-face immediate cost; the ordinary face budget is not a
+      // claim that these exceptional captures are sliced.
+      immediateFaces: 6,
+      immediateRetryPending: this.immediateRetryPending,
+      lastStart: Number.isFinite(this.lastStart) ? this.lastStart : null,
+      lastCompleted: Number.isFinite(this.lastCompleted) ? this.lastCompleted : null,
+      capturedAt: Number.isFinite(this.lastProbe) ? this.lastProbe : null,
+      origin: this.probeActive ? this.completedEye.toArray() : null,
+      displacement: this.probeActive ? this.currentEye.distanceTo(this.completedEye) : 0,
+      sceneryPending: this.capturedSceneryRevision !== this.sceneryRevision,
+    };
   }
   beginFrame(time: number, cockpit: boolean) {
     if (!Number.isFinite(time)) throw new Error('Invalid reflection presentation time');
@@ -231,21 +299,63 @@ export class ReflectionSystem {
     const environmentIdentity: object | null =
       scene.environment?.userData.aurelSkyEpoch ?? scene.environment;
     const environmentChanged = environmentIdentity !== this.capturedEnvironment;
+    car.getWorldPosition(this.currentEye);
+    this.currentEye.y += 1.5;
+    const advancing = this.clock !== this.consideredClock;
+    this.consideredClock = this.clock;
+    const immediate = environmentChanged || this.lastProbe === -Infinity,
+      minimum = Math.min(intervalSeconds, PROBE_MOTION_REFRESH.minimumInterval);
+    // Failed first/forced captures cannot resubmit six faces every frame.
+    // The same request waits for the start budget, even before a cube exists.
+    // A genuinely new source/subject/environment can still request a capture
+    // at that instant, as can an explicit invalidate().
+    if (
+      this.requestEpoch === this.attemptedEpoch &&
+      car === this.attemptedCar &&
+      environmentIdentity === this.attemptedEnvironment &&
+      (this.clock === this.attemptedClock ||
+        (immediate && this.immediateRetryPending && this.clock - this.lastStart < minimum))
+    )
+      return;
+    if (!immediate && !advancing) return;
     // First captures, seeks (invalidate) and subject or environment changes
     // render all six faces now and drop any refresh in progress.
     let from = 0,
       to = 6;
-    if (environmentChanged || this.lastProbe === -Infinity) this.pendingFace = -1;
-    else if (this.pendingFace >= 0) {
+    let starting = false;
+    if (immediate) {
+      this.pendingFace = -1;
+      this.pendingReason = 'immediate';
+      this.immediateRetryPending = true;
+      starting = true;
+    } else if (this.pendingFace >= 0) {
       if (this.clock === this.faceClock) return;
       from = this.pendingFace;
       to = Math.min(6, from + this.probeFacesPerFrame);
-    } else if (this.clock - this.lastProbe < intervalSeconds) return;
-    else {
-      this.pendingStart = this.clock;
+    } else {
+      const elapsed = this.clock - this.lastProbe,
+        moved =
+          this.currentEye.distanceToSquared(this.completedEye) >=
+          PROBE_MOTION_REFRESH.distance ** 2,
+        scenery = this.sceneryRevision !== this.capturedSceneryRevision;
+      // Failed sliced captures also respect the start budget before retrying
+      // from face zero. The last complete map remains installed meanwhile.
+      if (this.clock - this.lastStart < minimum) return;
+      if (elapsed < intervalSeconds && !(elapsed >= minimum && (moved || scenery))) return;
+      this.pendingReason = moved ? 'motion' : scenery ? 'scenery' : 'cadence';
+      starting = true;
       to = this.probeFacesPerFrame;
     }
-    // A failed face abandons the refresh; the next frame starts a new one.
+    if (starting) {
+      this.pendingStart = this.lastStart = this.clock;
+      this.pendingSceneryRevision = this.sceneryRevision;
+      this.probeStarts[this.pendingReason]++;
+    }
+    this.attemptedClock = this.clock;
+    this.attemptedEpoch = this.requestEpoch;
+    this.attemptedCar = car;
+    this.attemptedEnvironment = environmentIdentity;
+    // A failed face abandons the refresh; a bounded retry starts from face zero.
     this.pendingFace = -1;
     const cube = this.cubes[this.nextTarget];
     const visible = car.visible;
@@ -281,10 +391,7 @@ export class ReflectionSystem {
         root.visible = false;
       }
       // Every face of one capture shares the eye of its first face.
-      if (from === 0) {
-        this.probeEye.copy(car.position);
-        this.probeEye.y += 1.5;
-      }
+      if (from === 0) this.probeEye.copy(this.currentEye);
       if (this.sceneryResident)
         cullProbeDetail(this.probeDetail, this.probeEye, PROBE_DETAIL_FACE_SIZE, this.detailHidden);
       this.probeDetailOmitted = this.detailHidden.length;
@@ -308,8 +415,12 @@ export class ReflectionSystem {
         this.probeUpdates++;
         // A spread refresh dates from its eye, so the cadence is unchanged.
         this.lastProbe = from === 0 && to === 6 ? this.clock : this.pendingStart;
+        this.lastCompleted = this.clock;
+        this.completedEye.copy(this.probeEye);
+        this.capturedSceneryRevision = this.pendingSceneryRevision;
         this.capturedEnvironment = environmentIdentity;
         this.capturedCar = car;
+        this.immediateRetryPending = false;
       }
     } finally {
       if (skyScale) skyScale.value = priorSkyScale!;

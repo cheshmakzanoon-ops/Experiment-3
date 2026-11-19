@@ -4,6 +4,7 @@ import { CircuitScene } from '../src/rendering/circuit.ts';
 import { RacingRenderer } from '../src/rendering/renderer.ts';
 import { scannedGround } from '../src/rendering/ground/scan-store.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
+import { setMxQuality } from '../src/rendering/offroad/mx-quality.ts';
 
 class Canvas {
   width = 300;
@@ -93,9 +94,54 @@ afterEach(() => {
 });
 
 describe('complete terrain-venue resource ownership', () => {
+  it('cancels detached meadow work when the real renderer is torn down during preparation', async () => {
+    setMxQuality('medium');
+    const circuit = new CircuitScene(rigTrack('valley-ridge-mx'), true);
+    const { renderer } = rendererOwner(circuit);
+    const meadow = circuit.offroad!.meadow!;
+    const instances = vi.spyOn(T.InstancedMesh.prototype, 'dispose');
+    let signal!: () => void,
+      resume!: () => void,
+      postSampling = 0;
+    const staged = new Promise<void>((resolve) => {
+      signal = resolve;
+    });
+    const pending = meadow.prepareQuality(
+      'high',
+      () => false,
+      async () => {
+        if (meadow.stats.candidates !== 58000 || ++postSampling < 2) return;
+        signal();
+        await new Promise<void>((resolve) => {
+          resume = resolve;
+        });
+      },
+    );
+    try {
+      await staged;
+      expect(meadow.root.children).toHaveLength(0);
+      renderer.dispose();
+      const released = instances.mock.contexts.filter(
+        (object) => object instanceof T.InstancedMesh && object.name.startsWith('MX field grass '),
+      );
+      expect(released).toHaveLength(1);
+      resume();
+      expect(await pending).toBe(false);
+      expect(meadow.stats.clumps).toBe(0);
+      setMxQuality('high');
+      expect(meadow.root.visible).toBe(false);
+      expect(meadow.root.children).toHaveLength(0);
+    } finally {
+      resume?.();
+      renderer.dispose();
+      setMxQuality('high');
+    }
+  });
+
   it.each(['valley-ridge-mx', 'arena-nord-sx'] as const)(
     '%s releases unused palette registrations, textures and both main-shadow targets once',
-    (id) => {
+    async (id) => {
+      setMxQuality('high');
       const baseline = scannedGround.diagnostics().materials;
       const register = vi.spyOn(scannedGround, 'register');
       const circuit = new CircuitScene(rigTrack(id));
@@ -134,6 +180,17 @@ describe('complete terrain-venue resource ownership', () => {
         vi.spyOn(texture, 'dispose'),
       );
       const { renderer, sun } = rendererOwner(circuit);
+      const meadow = circuit.offroad?.meadow;
+      const meadowDisposals: ReturnType<typeof vi.spyOn>[] = [];
+      if (meadow) {
+        expect(meadow.stats.clumps).toBeGreaterThan(2000);
+        const first = meadow.root.children[0].children[0] as T.InstancedMesh;
+        meadowDisposals.push(
+          vi.spyOn(first, 'dispose'),
+          vi.spyOn(first.geometry, 'dispose'),
+          vi.spyOn(first.material as T.Material, 'dispose'),
+        );
+      }
       const shadow = vi.spyOn(sun.shadow.map!, 'dispose');
       const shadowPass = vi.spyOn(sun.shadow.mapPass!, 'dispose');
 
@@ -145,11 +202,27 @@ describe('complete terrain-venue resource ownership', () => {
       for (const dispose of sharedDisposals) expect(dispose).not.toHaveBeenCalled();
       expect(shadow).toHaveBeenCalledTimes(1);
       expect(shadowPass).toHaveBeenCalledTimes(1);
+      if (meadow) {
+        expect(meadow.stats.clumps).toBe(0);
+        expect(meadow.root.children).toHaveLength(0);
+        setMxQuality('medium');
+        setMxQuality('high');
+        expect(meadow.root.visible).toBe(false);
+        expect(
+          await meadow.prepareQuality(
+            'high',
+            () => false,
+            async () => {},
+          ),
+        ).toBe(false);
+        for (const dispose of meadowDisposals) expect(dispose).toHaveBeenCalledOnce();
+      }
 
       renderer.dispose();
       for (const dispose of orphanDisposals) expect(dispose).toHaveBeenCalledTimes(1);
       expect(shadow).toHaveBeenCalledTimes(1);
       expect(shadowPass).toHaveBeenCalledTimes(1);
+      for (const dispose of meadowDisposals) expect(dispose).toHaveBeenCalledOnce();
     },
     120000,
   );

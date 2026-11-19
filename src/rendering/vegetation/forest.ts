@@ -62,15 +62,14 @@ const COMPACT_MARGIN = 2.5;
  * sky the crown hides from the ground beneath it), drawn within
  * `CONTACT_DISTANCE` metres. */
 export const CONTACT = Object.freeze({ distance: 240, opacity: 0.42, radius: 0.85 });
-let contactParts: {
+interface ContactParts {
   geometry: T.BufferGeometry;
   material: T.MeshBasicMaterial;
   /** Shadow passes (the far map bakes every non-casting vegetation mesh):
    * the disc never casts. */
   depth: T.MeshDepthMaterial;
-} | null = null;
-function contactShared() {
-  if (contactParts) return contactParts;
+}
+function createContactParts(): ContactParts {
   const size = 64,
     data = new Uint8Array(size * size * 4);
   for (let y = 0; y < size; y++)
@@ -102,8 +101,7 @@ function contactShared() {
   chainShaderHook(depth, 'crown-contact-no-shadow-v1', (shader) =>
     injectAfter(shader, 'clipping_planes_fragment', 'discard;', 'fragment'),
   );
-  contactParts = { geometry, material, depth };
-  return contactParts;
+  return { geometry, material, depth };
 }
 
 /**
@@ -118,6 +116,7 @@ export class PhotoForest {
   private readonly chunks: Chunk[] = [];
   private readonly eye = new T.Vector3();
   private nearEnd: number = VEGETATION.near.high;
+  private contactParts: ContactParts | null = null;
   plants = 0;
 
   constructor(private readonly library: VegetationLibrary) {
@@ -237,7 +236,7 @@ export class PhotoForest {
     ground: (x: number, z: number) => number,
     key: string,
   ) {
-    const { geometry, material, depth } = contactShared();
+    const { geometry, material, depth } = (this.contactParts ??= createContactParts());
     const mesh = new T.InstancedMesh(geometry, material, list.length);
     mesh.customDepthMaterial = depth;
     mesh.name = `Crown contact occlusion ${key}`;
@@ -277,6 +276,7 @@ export class PhotoForest {
   update(camera: T.Camera, preset: QualityPreset, density = 1) {
     camera.getWorldPosition(this.eye);
     PhotoForest.setEye(this.eye, preset);
+    const distanceChanged = this.nearEnd !== VEGETATION.near[preset];
     this.nearEnd = VEGETATION.near[preset];
     const share = Math.min(1, Math.max(0, density));
     for (const chunk of this.chunks) {
@@ -290,7 +290,8 @@ export class PhotoForest {
       const stale =
         !(chunk.compactedAt.distanceToSquared(this.eye) < COMPACT_STEP * COMPACT_STEP) ||
         chunk.near.some((set) => set.mesh.count !== set.drawn) ||
-        share !== this.share;
+        share !== this.share ||
+        distanceChanged;
       if (stale) {
         for (const set of chunk.near) this.compact(set, share);
         chunk.compactedAt.copy(this.eye);
@@ -365,5 +366,12 @@ export class PhotoForest {
         m.dispose();
     this.chunks.length = 0;
     this.root.clear();
+    if (this.contactParts) {
+      this.contactParts.geometry.dispose();
+      this.contactParts.material.map?.dispose();
+      this.contactParts.material.dispose();
+      this.contactParts.depth.dispose();
+      this.contactParts = null;
+    }
   }
 }

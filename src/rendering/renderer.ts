@@ -1,7 +1,8 @@
 import { loadLazyData } from '../core/lazy-data.ts';
 import { loadAurelQuarry } from './aurel-quarry.ts';
 import { loadAurelVegetation } from './aurel-vegetation.ts';
-import { loadVenueVegetation } from './vegetation/index.ts';
+import { loadVenueVegetation, photoVegetationEnabled } from './vegetation/index.ts';
+import { disposeCircuitPlanting, type CircuitPlanting } from './vegetation/ownership.ts';
 import { loadTrackSignalHardware } from './track-signal-hardware.ts';
 import { loadTrackBoards } from './track-boards.ts';
 import { loadBroadcastCameras } from './broadcast-cameras.ts';
@@ -113,6 +114,7 @@ import { PhotoSky } from './assets/photo-sky.ts';
 import { disposeTextureLoaders } from './assets/texture-loader.ts';
 import { scannedGround } from './ground/scan-store.ts';
 import { setMxQuality } from './offroad/mx-quality.ts';
+import type { MxMeadowTransition } from './offroad/mx-meadow.ts';
 import {
   MX_ARENA_GRADE,
   MX_ARENA_PHOTOGRAPHIC,
@@ -766,7 +768,7 @@ export class RacingRenderer {
         label: 'Loading Aurel pit-building frontage',
       });
       renderer.circuit.pitBuildingFrontage = await loadPitBuildingFrontage(cancelled);
-      // Photographic trees, shrubs and grass for this venue (not on LOW).
+      // Photographic trees, shrubs and grass for HIGH/ULTRA.
       progress({
         completed: 0,
         total: 1,
@@ -777,7 +779,6 @@ export class RacingRenderer {
         renderer.renderer,
         track,
         renderer.preset,
-        renderer.circuit.venueKit?.context ?? null,
       );
       if (cancelled()) {
         renderer.dispose();
@@ -1101,12 +1102,105 @@ export class RacingRenderer {
     if (stopped()) return false;
     await this.waitForPreparedFrame(stopped, yieldControl);
     if (stopped()) return false;
-    this.setQuality(quality, graphics);
-    await yieldControl();
-    if (stopped()) return false;
-    await compileSceneTarget(this.renderer, this.scene, this.camera, this.composer.readBuffer);
-    return !stopped();
+    const previousQuality = this.preset,
+      previousGraphics = this.graphics;
+    let next: CircuitPlanting | null = null,
+      previous: CircuitPlanting | null = null;
+    let meadowChange: MxMeadowTransition | null | false = null;
+    let installed = false,
+      applied = false,
+      complete = false;
+    try {
+      next = await this.preparePlanting(quality, stopped);
+      if (stopped()) return false;
+      meadowChange =
+        (await this.circuit.offroad?.prepareQuality(quality, stopped, yieldControl)) ?? null;
+      if (meadowChange === false || stopped()) return false;
+      if (next) {
+        this.textures.register(next.root);
+        this.weatherPresentation.install(next.root);
+        this.atmosphere.install(next.root);
+        installSpecularIBL(next.root);
+        previous = this.circuit.planting;
+        installed = true;
+        this.circuit.installPlanting(next);
+        this.invalidatePlanting();
+      }
+      if (meadowChange) {
+        if (meadowChange.root) {
+          this.weatherPresentation.install(meadowChange.root);
+          this.atmosphere.install(meadowChange.root);
+          installSpecularIBL(meadowChange.root);
+        }
+        if (!meadowChange.apply()) return false;
+        this.reflection.invalidate();
+        this.scenePass.temporal.reset();
+      }
+      applied = true;
+      this.setQuality(quality, graphics);
+      this.circuit.vegetation?.update(this.camera, this.quality);
+      this.circuit.photoPlanting?.update(this.camera, quality, this.graphics.vegetationDensity);
+      await yieldControl();
+      if (stopped()) return false;
+      await compileSceneTarget(this.renderer, this.scene, this.camera, this.composer.readBuffer);
+      complete = !stopped();
+      return complete;
+    } catch (error) {
+      if (stopped()) return false;
+      throw error;
+    } finally {
+      if (meadowChange) meadowChange.finish(complete);
+      if (complete) {
+        if (previous) this.releasePlanting(previous);
+      } else {
+        // Teardown owns the installed tier, but not the detached old one.
+        // Otherwise restore exactly the paused scene that preceded this edit.
+        if (this.disposed) {
+          if (previous) this.releasePlanting(previous);
+        } else {
+          if (installed) this.circuit.installPlanting(previous);
+          if (applied) this.setQuality(previousQuality, previousGraphics);
+          if (installed) this.invalidatePlanting();
+        }
+        if (next) this.releasePlanting(next);
+      }
+    }
   }
+  /** Load only across the photographic/procedural boundary. The old tier
+   * remains visible and owned until compilation of the replacement succeeds. */
+  private async preparePlanting(preset: QualityPreset, cancelled: () => boolean) {
+    if (this.showroomOnly || photoVegetationEnabled(preset) === !!this.circuit.photoLibrary)
+      return null;
+    if (photoVegetationEnabled(preset)) {
+      const library = await loadVenueVegetation(this.renderer, this.circuit.track, preset);
+      // Missing optional photographs retain the existing complete fallback.
+      if (!library) return null;
+      if (cancelled()) {
+        library.dispose();
+        return null;
+      }
+      return this.circuit.buildPlanting(library, null);
+    }
+    const authored =
+      this.circuit.track.circuit.id === 'aurel' ? await loadAurelVegetation(cancelled) : null;
+    if (cancelled()) {
+      authored?.dispose();
+      return null;
+    }
+    return this.circuit.buildPlanting(null, authored);
+  }
+  private releasePlanting(planting: CircuitPlanting) {
+    if (planting.disposed) return;
+    this.textures.unregister(planting.root);
+    disposeCircuitPlanting(planting);
+  }
+  private invalidatePlanting() {
+    this.farShadowBaked = null;
+    this.reflection.invalidate();
+    this.scenePass.temporal.reset();
+  }
+  /** Apply synchronous rendering budgets. Live settings use prepareQuality so
+   * quality-dependent assets are ready before these budgets are committed. */
   setQuality(preset: QualityPreset, options: GraphicsOptions = graphicsPreset(preset)) {
     this.preset = preset;
     const q = detailTier(preset);
@@ -2651,6 +2745,7 @@ export class RacingRenderer {
       mirrorUpdates: this.reflection.mirrorUpdates,
       mirrorWidth: this.reflection.mirrorWidth,
       reflectionProbeUpdates: this.reflection.probeUpdates,
+      reflectionProbe: this.reflection.probeDiagnostics,
       reflectionProbeDetailOmitted: this.reflection.probeDetailOmitted,
       shadowCasters: this.shadowProxies.count,
       farShadow: this.farShadow.diagnostics(),
@@ -2727,9 +2822,11 @@ export class RacingRenderer {
     this.circuit.signalHardware?.dispose();
     this.circuit.trackBoards?.dispose();
     this.circuit.broadcastCameras?.dispose();
-    this.circuit.vegetation?.dispose();
-    this.circuit.photoPlanting?.dispose();
-    this.circuit.photoLibrary?.dispose();
+    this.circuit.disposePlanting();
+    // The meadow can own a detached asynchronous build and a retained tier
+    // during compilation. Traversing only the visible scene cannot release
+    // those owners or unsubscribe its quality listener.
+    this.circuit.offroad?.meadow?.dispose();
     this.circuit.quarry?.dispose();
     this.circuit.secondaryStands.dispose();
 

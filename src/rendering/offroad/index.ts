@@ -7,6 +7,7 @@ import {
 import { H } from '../../simulation/protocol.ts';
 import { Track } from '../../simulation/track.ts';
 import type { BuildQueue } from '../build-queue.ts';
+import type { QualityPreset } from '../options.ts';
 import { installLightPools } from '../studio/light-pools.ts';
 import { Roost } from './roost.ts';
 import { Stadium } from './stadium.ts';
@@ -92,16 +93,25 @@ export class OffroadScene {
           this.spectators = new MxSpectators(track, this.dressing?.trackside.plan.sites ?? []);
           this.group.add(this.spectators.root);
         });
-      if (course.kind === 'motocross')
-        construction.add('MX field grass', 4, () => {
-          this.meadow = new MxMeadow(track, this.dressing?.trackside.plan.sites ?? []);
-          this.group.add(this.meadow.root);
-        });
+      if (course.kind === 'motocross') {
+        this.meadow = new MxMeadow(track, () => this.dressing?.trackside.plan.sites ?? []);
+        this.group.add(this.meadow.root);
+        this.meadow.queueInitial(construction);
+      }
       construction.add('MX course identities and jump profiles', 2, () => {
         this.landmarks = new MxCourseLandmarks(track);
         this.group.add(this.landmarks.root);
       });
     }
+  }
+  /** Prepare optional scenery inside the renderer's existing paused graphics
+   * transaction. Its owner releases or restores assets after compilation. */
+  async prepareQuality(
+    quality: QualityPreset,
+    cancelled: () => boolean,
+    yieldControl: () => Promise<void>,
+  ) {
+    return this.meadow ? this.meadow.prepareQuality(quality, cancelled, yieldControl) : null;
   }
   /** A worker surface keyframe's terrain export. */
   record(delta: TerrainRenderDelta | undefined, time: number, live: boolean) {

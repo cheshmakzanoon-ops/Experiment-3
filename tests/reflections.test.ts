@@ -1,6 +1,10 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import * as T from 'three';
-import { PROBE_FACE_SIZE, ReflectionSystem } from '../src/rendering/reflections.ts';
+import {
+  PROBE_FACE_SIZE,
+  PROBE_MOTION_REFRESH,
+  ReflectionSystem,
+} from '../src/rendering/reflections.ts';
 import {
   installSpecularIBLMaterial,
   ownEnvMapUniform,
@@ -626,9 +630,14 @@ it('abandons a refresh after a failed face, restores state and restarts it from 
   renderer.render.mockImplementation(render);
   reflection.beginFrame(3.04, false);
   reflection.updateProbe(gl, scene, car, [material], true);
+  expect(faces.map((f) => f.face)).toEqual([0, 1, 2]);
+  expect(material.envMap).toBe(complete);
+  // Failure must not bypass the minimum capture-start interval.
+  reflection.beginFrame(3.5, false);
+  reflection.updateProbe(gl, scene, car, [material], true);
   expect(faces.map((f) => f.face)).toEqual([0, 1, 2, 0, 1, 2]);
   expect(material.envMap).toBe(complete);
-  reflection.beginFrame(3.06, false);
+  reflection.beginFrame(3.52, false);
   reflection.updateProbe(gl, scene, car, [material], true);
   expect(material.envMap).toBe(faces[0].texture);
   expect(reflection.probeUpdates).toBe(2);
@@ -639,6 +648,325 @@ it('abandons a refresh after a failed face, restores state and restarts it from 
     );
   }
   reflection.dispose();
+});
+it('refreshes from world displacement after the minimum interval, without heading or held-time triggers', () => {
+  const reflection = new ReflectionSystem(),
+    { gl, faces } = slicedFixture(),
+    scene = new T.Scene(),
+    parent = new T.Group(),
+    car = new T.Group(),
+    material = new T.MeshStandardMaterial();
+  reflection.probeFacesPerFrame = 1;
+  parent.position.set(100, 8, -20);
+  car.position.set(5, 2, 3);
+  parent.add(car);
+  scene.add(parent);
+  const frame = (time: number) => {
+    reflection.beginFrame(time, false);
+    reflection.updateProbe(gl, scene, car, [material], true, 2);
+  };
+  frame(0);
+  const complete = material.envMap;
+  expect(faces).toHaveLength(6);
+  expect(reflection.probeDiagnostics.origin).toEqual([105, 11.5, -17]);
+  // Local car coordinates stay unchanged: its parent supplies the movement.
+  parent.position.x += PROBE_MOTION_REFRESH.distance;
+  frame(0.49);
+  expect(faces).toHaveLength(6);
+  parent.position.x -= 0.01;
+  car.rotation.y = Math.PI;
+  frame(0.5);
+  expect(faces).toHaveLength(6);
+  parent.position.x += 0.01;
+  // Moving the subject at an already considered paused time does no work.
+  frame(0.5);
+  expect(faces).toHaveLength(6);
+  frame(0.51);
+  expect(faces).toHaveLength(7);
+  expect(faces[6].face).toBe(0);
+  expect(faces[6].x).toBe(117);
+  expect(material.envMap).toBe(complete);
+  expect(reflection.probeDiagnostics.pendingReason).toBe('motion');
+  for (let i = 1; i < 6; i++) frame(0.51 + i / 60);
+  expect(material.envMap).not.toBe(complete);
+  expect(reflection.probeDiagnostics.origin).toEqual([117, 11.5, -17]);
+  expect(reflection.probeDiagnostics.starts).toEqual({
+    immediate: 1,
+    motion: 1,
+    scenery: 0,
+    cadence: 0,
+  });
+  reflection.dispose();
+  material.dispose();
+});
+it('completes coherent one-face refreshes during sustained fast travel without exceeding the start budget', () => {
+  const reflection = new ReflectionSystem(),
+    { gl, faces } = slicedFixture(),
+    scene = new T.Scene(),
+    car = new T.Group(),
+    material = new T.MeshStandardMaterial();
+  reflection.probeFacesPerFrame = 1;
+  const frame = (time: number) => {
+    car.position.x = time * 100;
+    reflection.beginFrame(time, false);
+    reflection.updateProbe(gl, scene, car, [material], true, 2);
+  };
+  frame(0);
+  expect(faces.map((face) => face.face)).toEqual([0, 1, 2, 3, 4, 5]);
+  const starts: number[] = [];
+  let priorStart = 0,
+    cycleEye = 0,
+    published = material.envMap,
+    completions = 0;
+  // 300 m of travel: the old two-second cadence would first update near 200 m.
+  for (let i = 1; i <= 180; i++) {
+    const before = faces.length,
+      time = i / 60;
+    frame(time);
+    const submitted = faces.slice(before),
+      diagnostic = reflection.probeDiagnostics;
+    expect(submitted.length).toBeLessThanOrEqual(1);
+    if (diagnostic.lastStart !== priorStart) {
+      expect(diagnostic.lastStart! - priorStart).toBeGreaterThanOrEqual(0.5);
+      priorStart = diagnostic.lastStart!;
+      starts.push(priorStart);
+      cycleEye = car.position.x;
+      expect(submitted[0].face).toBe(0);
+    }
+    for (const face of submitted) {
+      expect(face.x).toBe(cycleEye);
+      if (face.face === 5) {
+        completions++;
+        expect(material.envMap).toBe(face.texture);
+        expect(material.envMap).not.toBe(published);
+        expect(diagnostic.origin).toEqual([cycleEye, 1.5, 0]);
+        published = material.envMap;
+      } else expect(material.envMap).toBe(published);
+    }
+  }
+  expect(starts).toEqual([0.5, 1, 1.5, 2, 2.5, 3]);
+  expect(completions).toBe(5);
+  expect(reflection.probeUpdates).toBe(6);
+  expect(reflection.probeDiagnostics.starts).toEqual({
+    immediate: 1,
+    motion: 6,
+    scenery: 0,
+    cadence: 0,
+  });
+  expect(reflection.probeDiagnostics.immediateFaces).toBe(6);
+  reflection.dispose();
+  material.dispose();
+});
+it.each([0.55, 0.8, 1.5, 2])(
+  'retains the stationary %s-second cadence and submits no faces on held frames',
+  (interval) => {
+    const reflection = new ReflectionSystem(),
+      { gl, faces } = slicedFixture(),
+      scene = new T.Scene(),
+      car = new T.Group(),
+      material = new T.MeshStandardMaterial();
+    reflection.probeFacesPerFrame = 1;
+    const frame = (time: number) => {
+      reflection.beginFrame(time, false);
+      reflection.updateProbe(gl, scene, car, [material], true, interval);
+    };
+    frame(0);
+    const starts = [0];
+    for (let i = 1; i <= 240; i++) {
+      const before = faces.length,
+        time = i / 60;
+      car.rotation.y = time;
+      frame(time);
+      const count = faces.length;
+      expect(count - before).toBeLessThanOrEqual(1);
+      if (count > before && faces[count - 1].face === 0) starts.push(time);
+      frame(time);
+      expect(faces).toHaveLength(count);
+    }
+    expect(starts.length).toBeGreaterThanOrEqual(2);
+    for (let i = 1; i < starts.length; i++) {
+      expect(starts[i] - starts[i - 1]).toBeGreaterThanOrEqual(interval);
+      expect(starts[i] - starts[i - 1]).toBeLessThanOrEqual(interval + 1 / 60 + 1e-9);
+    }
+    expect(reflection.probeDiagnostics.starts).toEqual({
+      immediate: 1,
+      motion: 0,
+      scenery: 0,
+      cadence: starts.length - 1,
+    });
+    expect(faces.length).toBeLessThanOrEqual(6 + Math.floor(4 / interval) * 6);
+    reflection.dispose();
+    material.dispose();
+  },
+);
+it('coalesces scenery revisions behind a fixed-origin cycle and holds them until presentation advances', () => {
+  const reflection = new ReflectionSystem(),
+    { gl, faces } = slicedFixture(),
+    scene = new T.Scene(),
+    car = new T.Group(),
+    material = new T.MeshStandardMaterial();
+  reflection.probeFacesPerFrame = 1;
+  const frame = (time: number) => {
+    reflection.beginFrame(time, false);
+    reflection.updateProbe(gl, scene, car, [material], true, 2);
+  };
+  frame(0);
+  frame(0.5);
+  const first = material.envMap;
+  reflection.setSceneryRevision(1);
+  for (let i = 0; i < 5; i++) frame(0.5);
+  expect(faces).toHaveLength(6);
+  frame(0.51);
+  expect(reflection.probeDiagnostics.pendingReason).toBe('scenery');
+  for (let i = 1; i < 6; i++) {
+    reflection.setSceneryRevision(i + 1);
+    reflection.sceneryChanged(); // Authored asset arrivals use the same soft queue.
+    frame(0.51 + i / 60);
+  }
+  expect(faces.slice(6).map((face) => face.face)).toEqual([0, 1, 2, 3, 4, 5]);
+  expect(material.envMap).not.toBe(first);
+  expect(reflection.probeUpdates).toBe(2);
+  expect(reflection.probeDiagnostics.sceneryPending).toBe(true);
+  frame(1);
+  expect(faces).toHaveLength(12);
+  for (let i = 0; i < 6; i++) frame(1.01 + i / 60);
+  expect(faces.slice(12).map((face) => face.face)).toEqual([0, 1, 2, 3, 4, 5]);
+  expect(reflection.probeUpdates).toBe(3);
+  expect(reflection.probeDiagnostics.sceneryPending).toBe(false);
+  // Repeating the same streamer revision never creates another dirty cycle.
+  reflection.setSceneryRevision(6);
+  frame(1.6);
+  expect(faces).toHaveLength(18);
+  expect(reflection.probeDiagnostics.starts).toEqual({
+    immediate: 1,
+    motion: 0,
+    scenery: 2,
+    cadence: 0,
+  });
+  for (const revision of [-1, 0.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1])
+    expect(() => reflection.setSceneryRevision(revision)).toThrow(
+      'Invalid reflection scenery revision',
+    );
+  reflection.dispose();
+  material.dispose();
+});
+it('bounds failed initial and forced full-capture retries while allowing explicit new requests', () => {
+  const reflection = new ReflectionSystem(),
+    { gl, faces, renderer, previous } = slicedFixture(),
+    scene = new T.Scene(),
+    car = new T.Group(),
+    rival = new T.Group(),
+    original = new T.Texture(),
+    material = new T.MeshStandardMaterial({ envMap: original, envMapIntensity: 0.7 }),
+    sky = { value: 1 };
+  reflection.probeFacesPerFrame = 1;
+  reflection.probeExclusions = [rival];
+  const render = renderer.render.getMockImplementation()!;
+  let failedFaces = 0,
+    failure = 'capture unavailable';
+  const failLastFace = (scene: T.Scene, camera: T.Camera) => {
+    expect(car.visible).toBe(false);
+    expect(rival.visible).toBe(false);
+    // Exercise the expensive failure case: five faces already submitted.
+    if (++failedFaces % 6 === 0) throw new Error(failure);
+    render(scene, camera);
+  };
+  renderer.render.mockImplementation(failLastFace);
+  const frame = (time: number) => {
+    reflection.beginFrame(time, false);
+    reflection.updateProbe(gl, scene, car, [material], true, 2, sky);
+  };
+  expect(() => frame(0)).toThrow('capture unavailable');
+  for (let i = 0; i < 30; i++) frame(i / 60);
+  expect(renderer.render).toHaveBeenCalledTimes(6);
+  expect(reflection.probeDiagnostics.immediateRetryPending).toBe(true);
+  expect(reflection.localProbeActive).toBe(false);
+  expect(material.envMap).toBe(original);
+  expect(material.envMapIntensity).toBe(0.7);
+  expect([car.visible, rival.visible]).toEqual([true, true]);
+  expect(renderer.xr.enabled).toBe(true);
+  expect(renderer.shadowMap.autoUpdate).toBe(true);
+  expect(renderer.setRenderTarget).toHaveBeenLastCalledWith(previous, 2, 1);
+  expect(renderer.setViewport).toHaveBeenLastCalledWith(new T.Vector4(3, 4, 800, 600));
+  expect(renderer.setScissor).toHaveBeenLastCalledWith(new T.Vector4(5, 6, 700, 500));
+  expect(renderer.setScissorTest).toHaveBeenLastCalledWith(true);
+  expect(sky.value).toBe(1);
+  expect(() => frame(0.5)).toThrow('capture unavailable');
+  for (let i = 30; i < 60; i++) frame(i / 60);
+  expect(renderer.render).toHaveBeenCalledTimes(12);
+  expect(faces).toHaveLength(10);
+  faces.length = 0;
+  renderer.render.mockImplementation(render);
+  frame(1);
+  const complete = material.envMap;
+  expect(faces.map((face) => face.face)).toEqual([0, 1, 2, 3, 4, 5]);
+  expect(reflection.probeUpdates).toBe(1);
+  expect(reflection.probeDiagnostics.immediateRetryPending).toBe(false);
+  failure = 'forced capture unavailable';
+  renderer.render.mockImplementation(failLastFace);
+  car.position.x = 400;
+  reflection.invalidate();
+  expect(() => frame(1)).toThrow('forced capture unavailable');
+  const calls = renderer.render.mock.calls.length;
+  for (let i = 60; i < 90; i++) frame(i / 60);
+  expect(renderer.render).toHaveBeenCalledTimes(calls);
+  expect(material.envMap).toBe(complete);
+  // A newly requested seek or new environment can retry at the held instant.
+  reflection.invalidate();
+  expect(() => frame(89 / 60)).toThrow('forced capture unavailable');
+  renderer.render.mockImplementation(render);
+  scene.environment = new T.Texture();
+  frame(89 / 60);
+  expect(reflection.probeUpdates).toBe(2);
+  expect(material.envMap).not.toBe(complete);
+  expect(reflection.probeDiagnostics.origin).toEqual([400, 1.5, 0]);
+  expect(reflection.probeDiagnostics.immediateRetryPending).toBe(false);
+  expect(reflection.probeDiagnostics.starts.immediate).toBe(6);
+  reflection.dispose();
+  expect(material.envMap).toBe(original);
+  material.dispose();
+  original.dispose();
+  scene.environment.dispose();
+});
+it('replaces a pending cycle coherently for teleport and reverse seek even at a held instant', () => {
+  const reflection = new ReflectionSystem(),
+    { gl, faces } = slicedFixture(),
+    scene = new T.Scene(),
+    car = new T.Group(),
+    material = new T.MeshStandardMaterial();
+  reflection.probeFacesPerFrame = 1;
+  const frame = (time: number) => {
+    reflection.beginFrame(time, false);
+    reflection.updateProbe(gl, scene, car, [material], true, 2);
+  };
+  frame(10);
+  const first = material.envMap;
+  car.position.x = 40;
+  frame(10.5);
+  expect(faces).toHaveLength(7);
+  expect(material.envMap).toBe(first);
+  car.position.x = 1000;
+  reflection.invalidate();
+  frame(10.5);
+  const teleported = material.envMap;
+  expect(teleported).not.toBe(first);
+  expect(faces.slice(7).map((face) => [face.face, face.x])).toEqual(
+    [0, 1, 2, 3, 4, 5].map((face) => [face, 1000]),
+  );
+  expect(reflection.probeDiagnostics.pendingFace).toBe(-1);
+  frame(10.5);
+  expect(faces).toHaveLength(13);
+  car.position.x = -400;
+  frame(4);
+  expect(faces.slice(13).map((face) => [face.face, face.x])).toEqual(
+    [0, 1, 2, 3, 4, 5].map((face) => [face, -400]),
+  );
+  expect(material.envMap).toBe(first);
+  expect(reflection.probeUpdates).toBe(3);
+  expect(reflection.probeDiagnostics.starts.immediate).toBe(3);
+  expect(reflection.probeDiagnostics.origin).toEqual([-400, 1.5, 0]);
+  reflection.dispose();
+  material.dispose();
 });
 it('poses the mirror cameras on the car for profiling, wherever they were last rendered', () => {
   const reflection = new ReflectionSystem();

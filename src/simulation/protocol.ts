@@ -21,8 +21,10 @@ export const HEADER = 24,
   WHEEL_CONTACT_SIZE = 1 + 4 * WHEEL_CONTACT_STRIDE;
 /** v15 appends measured carcass displacement, radial compression, hub
  * distance and the road normal in the non-spinning wheel frame. Every
- * earlier per-entrant offset is unchanged. */
-export const PROTOCOL_VERSION = 15;
+ * earlier per-entrant offset is unchanged. v16 versions the Festival traffic
+ * payload and appends authoritative signed wheel travel to each traffic entry;
+ * the main frame's header, stride and per-entrant offsets remain unchanged. */
+export const PROTOCOL_VERSION = 16;
 /** The contact block begins with a valid-wheel bitmask. Four eight-float
  * records follow it. Zero-mask synthetic and motorcycle snapshots retain
  * the presentation fallback without claiming measured car-carcass state.
@@ -369,9 +371,10 @@ export const carBase = (id: number) => HEADER + id * CAR_STRIDE;
  * instead of mutating magic offsets, and decoders can reject what they do not
  * understand. v12 appended the 'bike' entity block after the v11 blocks and
  * v13 the 'offroad' block after it, v14 the 'wheel-motion' block, and v15 the
- * 'wheel-contact' block. Older
- * recordings are rejected explicitly by version (their stride differs),
- * never re-read at the wrong offsets.
+ * 'wheel-contact' block. v16 changes the companion Festival traffic payload
+ * while retaining this frame layout. Older recordings are rejected explicitly
+ * by version, including revisions whose main-frame stride is unchanged, so
+ * incompatible companion payloads cannot be decoded under a current identity.
  * R.VEHICLE selects the entity family. */
 export const SNAPSHOT_SCHEMA = Object.freeze({
   version: PROTOCOL_VERSION,

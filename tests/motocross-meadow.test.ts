@@ -1,5 +1,6 @@
 import * as T from 'three';
 import { afterEach, describe, expect, it } from 'vitest';
+import { BuildQueue } from '../src/rendering/build-queue.ts';
 import { MX_MEADOW_BAND, MxMeadow } from '../src/rendering/offroad/mx-meadow.ts';
 import { setMxQuality } from '../src/rendering/offroad/mx-quality.ts';
 import { mxShoulderPlantGeometry } from '../src/rendering/offroad/mx-shoulder-plants.ts';
@@ -26,6 +27,9 @@ describe('MX uncut field grass', () => {
       matrix = new T.Matrix4(),
       root = new T.Vector3(),
       nearest = trackPoint();
+    const construction = new BuildQueue();
+    meadow.queueInitial(construction);
+    construction.runSynchronously();
     try {
       expect(meadow.stats.clumps).toBeGreaterThan(2000);
       expect(meadow.stats.clumps).toBeLessThan(40000);

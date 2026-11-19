@@ -49,9 +49,12 @@ export const TRAFFIC = Object.freeze({
   /** A claim that is not released (despawned car) expires (s). */
   claimTimeout: 8,
 });
-/** Snapshot layout of the traffic block sent with each festival frame. */
-export const TRAFFIC_HEADER = 2;
-export const TRAFFIC_STRIDE = 12;
+/** Snapshot layout of the traffic block sent with each festival frame.
+ * Header: count, simulation time, traffic schema version. Version 2 adds
+ * authoritative wheel travel; renderers reject unversioned/stale blocks. */
+export const TRAFFIC_VERSION = 2;
+export const TRAFFIC_HEADER = 3;
+export const TRAFFIC_STRIDE = 13;
 export const TF = Object.freeze({
   ID: 0,
   VEHICLE: 1,
@@ -66,6 +69,8 @@ export const TF = Object.freeze({
   BRAKE: 10,
   /** 1 hazard lights (after a collision), 2 waiting at a junction. */
   FLAGS: 11,
+  /** Cumulative signed longitudinal travel (m), independent of edge changes. */
+  DISTANCE: 12,
 });
 export const TRAFFIC_FLAG = Object.freeze({ HAZARD: 1, WAITING: 2 });
 
@@ -91,6 +96,9 @@ export class TrafficCar {
   readonly body = new RigidBody();
   readonly box = new ChassisBox();
   speed = 0;
+  /** Actual forward travel, including road slope and excluding lateral shove.
+   * Rendered wheels use this authoritative phase during holds and replay. */
+  distance = 0;
   /** Distance travelled along the current edge in the travel direction (m). */
   s = 0;
   /** Lateral offset in the travel frame (m, positive left: right-hand lanes are negative). */
@@ -253,6 +261,13 @@ export class AmbientTraffic {
     }
     for (let i = this.cars.length - 1; i >= 0; i--) {
       const c = this.cars[i];
+      const oldX = c.position.x,
+        oldY = c.position.y,
+        oldZ = c.position.z;
+      const oldQ = c.body.orientation;
+      const oldForwardX = 2 * (oldQ.x * oldQ.z + oldQ.w * oldQ.y);
+      const oldForwardY = 2 * (oldQ.y * oldQ.z - oldQ.w * oldQ.x);
+      const oldForwardZ = 1 - 2 * (oldQ.x * oldQ.x + oldQ.y * oldQ.y);
       c.speed = Math.max(0, c.speed + c.accel * dt);
       if (c.stunned > 0) {
         c.stunned = Math.max(0, c.stunned - dt);
@@ -270,6 +285,16 @@ export class AmbientTraffic {
         continue;
       }
       this.pose(c, dt);
+      const q = c.body.orientation;
+      const forwardX = oldForwardX + 2 * (q.x * q.z + q.w * q.y);
+      const forwardY = oldForwardY + 2 * (q.y * q.z - q.w * q.x);
+      const forwardZ = oldForwardZ + 1 - 2 * (q.x * q.x + q.y * q.y);
+      const norm = Math.hypot(forwardX, forwardY, forwardZ);
+      if (norm > 1e-8)
+        c.distance +=
+          ((c.position.x - oldX) * forwardX +
+            (c.position.y - oldY) * forwardY +
+            (c.position.z - oldZ) * forwardZ) / norm;
       c.stopped = c.speed < 0.3 ? c.stopped + dt : 0;
     }
   }
@@ -681,6 +706,7 @@ export class AmbientTraffic {
   writeSnapshot(out = new Float32Array(TRAFFIC_HEADER + this.cars.length * TRAFFIC_STRIDE)) {
     out[0] = this.cars.length;
     out[1] = this.time;
+    out[2] = TRAFFIC_VERSION;
     this.cars.forEach((c, k) => {
       const o = TRAFFIC_HEADER + k * TRAFFIC_STRIDE,
         b = c.body,
@@ -697,6 +723,7 @@ export class AmbientTraffic {
       out[o + TF.SPEED] = c.speed;
       out[o + TF.BRAKE] = c.brake;
       out[o + TF.FLAGS] = (c.stunned > 0 ? TRAFFIC_FLAG.HAZARD : 0) | (c.waiting ? TRAFFIC_FLAG.WAITING : 0);
+      out[o + TF.DISTANCE] = c.distance;
     });
     return out;
   }
@@ -713,6 +740,7 @@ export class AmbientTraffic {
       mix(c.dir);
       mix(c.s);
       mix(c.speed);
+      mix(c.distance);
       mix(c.lateral);
     }
     return h >>> 0;

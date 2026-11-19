@@ -164,8 +164,17 @@ export class PhotoPlanting {
     readonly options: PhotoPlantingOptions,
     group: T.Object3D,
   ) {
+    this.forest = new PhotoForest(options.library);
+    try {
+      this.build(group);
+    } catch (error) {
+      this.dispose();
+      throw error;
+    }
+  }
+  private build(group: T.Object3D) {
+    const options = this.options;
     const { track, library, palette, services, exclusion } = options;
-    this.forest = new PhotoForest(library);
     const terrain = terrainFor(track);
     const ground = (x: number, z: number) => terrain.height(x, z);
     let trees = 0;

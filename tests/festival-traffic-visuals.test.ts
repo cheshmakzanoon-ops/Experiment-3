@@ -2,14 +2,19 @@ import * as T from 'three';
 import { describe, expect, it } from 'vitest';
 import { TrafficCars, TRAFFIC_CAPACITY } from '../src/rendering/traffic-cars.ts';
 import {
+  TRAFFIC_VISUAL_PROFILES,
+  trafficBodyGeometry,
+} from '../src/rendering/traffic-car-geometry.ts';
+import {
   TF,
   TRAFFIC_FLAG,
   TRAFFIC_HEADER,
   TRAFFIC_STRIDE,
+  TRAFFIC_VERSION,
 } from '../src/simulation/open-world/ambient-traffic.ts';
 import { VEHICLES, vehicleIndex, type VehicleDefinition } from '../src/simulation/vehicles.ts';
 
-const machines = Object.values(VEHICLES).filter((v) => v.classId === 'road');
+const machines = [VEHICLES.rh3, VEHICLES.rs5];
 type Pose = {
   id: number;
   machine: VehicleDefinition;
@@ -18,10 +23,13 @@ type Pose = {
   yaw?: number;
   brake?: number;
   flags?: number;
+  distance?: number;
 };
-function block(poses: Pose[]) {
+function block(poses: Pose[], time = 0) {
   const data = new Float32Array(TRAFFIC_HEADER + poses.length * TRAFFIC_STRIDE);
   data[0] = poses.length;
+  data[1] = time;
+  data[2] = TRAFFIC_VERSION;
   for (let i = 0; i < poses.length; i++) {
     const p = poses[i],
       offset = TRAFFIC_HEADER + i * TRAFFIC_STRIDE;
@@ -34,51 +42,102 @@ function block(poses: Pose[]) {
     data[offset + TF.QW] = Math.cos((p.yaw ?? 0) / 2);
     data[offset + TF.BRAKE] = p.brake ?? 0;
     data[offset + TF.FLAGS] = p.flags ?? 0;
+    data[offset + TF.DISTANCE] = p.distance ?? 0;
   }
   return data;
 }
 const batches = (cars: TrafficCars) =>
   cars.root.children.filter((m): m is T.InstancedMesh => m instanceof T.InstancedMesh);
+const bodyBatches = (cars: TrafficCars) => batches(cars).filter((m) => m !== cars.wheels);
+const matrixAt = (mesh: T.InstancedMesh, index: number) => {
+  const m = new T.Matrix4();
+  mesh.getMatrixAt(index, m);
+  return m;
+};
 
 describe('festival traffic visual geometry', () => {
-  it('keeps four bounded material batches with real wheel cutouts and finite curved geometry', () => {
+  it('keeps five bounded batches and the previous per-car triangle budget while adding independent wheels', () => {
     const cars = new TrafficCars(),
       meshes = batches(cars),
-      bounds = new T.Box3();
-    expect(meshes).toHaveLength(4);
-    let triangles = 0;
+      diagnostics = cars.diagnostics;
+    expect(meshes).toHaveLength(5);
+    expect(diagnostics.profiles).toBe(10);
+    expect(diagnostics.morphTargets).toBe(9);
+    expect(diagnostics.morphPayloadBytes).toBeLessThan(1_800_000);
+    const triangles =
+      (Object.values(diagnostics.vertices).reduce((sum, n) => sum + n, 0) +
+        diagnostics.wheelVertices * 4) /
+      3;
+    expect(triangles).toBeLessThan(6000);
     for (const mesh of meshes) {
-      triangles += mesh.geometry.getAttribute('position').count / 3;
-      bounds.union(mesh.geometry.boundingBox!);
-      for (const attr of Object.values(mesh.geometry.attributes))
+      expect(mesh.frustumCulled).toBe(false);
+      for (const attr of [
+        ...Object.values(mesh.geometry.attributes),
+        ...Object.values(mesh.geometry.morphAttributes).flat(),
+      ])
         for (const n of attr.array) expect(Number.isFinite(n)).toBe(true);
     }
-    expect(triangles).toBeLessThan(6000);
-    // Same 4.5 m nominal body; existing small tyre/bumper overhang retained.
-    expect(Math.max(Math.abs(bounds.min.x), Math.abs(bounds.max.x))).toBeLessThan(0.95);
-    expect(bounds.min.y).toBeGreaterThanOrEqual(-0.721);
-    expect(bounds.max.y).toBeLessThan(0.721);
-    expect(Math.max(Math.abs(bounds.min.z), Math.abs(bounds.max.z))).toBeLessThan(2.291);
-    const body = new T.Mesh(cars.bodies.geometry, cars.bodies.material);
-    body.updateMatrixWorld();
-    for (const side of [-1, 1])
-      for (const z of [-1.47, 0, 1.47]) {
-        const ray = new T.Raycaster(new T.Vector3(side * 2, -0.2, z), new T.Vector3(-side, 0, 0));
-        const hits = ray.intersectObject(body);
-        if (z === 0) expect(hits.length).toBeGreaterThan(0);
-        else expect(hits).toHaveLength(0);
-      }
+    for (const mesh of bodyBatches(cars)) {
+      expect(mesh.geometry.morphAttributes.position).toHaveLength(9);
+      expect(mesh.geometry.morphAttributes.normal).toHaveLength(9);
+      for (const attr of mesh.geometry.morphAttributes.position!)
+        expect(attr.count).toBe(mesh.geometry.getAttribute('position').count);
+      expect(mesh.morphTexture!.image.width).toBe(10);
+      expect(mesh.morphTexture!.image.height).toBe(TRAFFIC_CAPACITY);
+    }
     const glass = meshes.find((mesh) => mesh.name.includes('glazing'))!;
-    const hardware = meshes.find((mesh) => mesh.name.includes('wheels'))!;
     expect(glass.material).not.toBe(cars.bodies.material);
-    expect(hardware.material).not.toBe(cars.bodies.material);
-    // Neither fixed dark glazing nor neutral tyres inherits body paint.
+    expect(cars.wheels.material).not.toBe(cars.bodies.material);
     expect(glass.instanceColor).toBeNull();
-    expect(hardware.instanceColor).toBeNull();
+    expect(cars.wheels.instanceColor).toBeNull();
+    expect(cars.wheels.castShadow).toBe(true);
+    expect((cars.bodies.material as T.MeshPhysicalMaterial).clearcoat).toBeGreaterThan(0);
     cars.dispose();
   });
 
-  it('poses every batch from the same id-matched snapshot and keeps lamp-state mapping', () => {
+  it('uses the existing original sheets for distinct cabins, a pickup bed and registry-aligned open wheel arches', () => {
+    const roofLengths = new Map<string, number>();
+    for (const profile of TRAFFIC_VISUAL_PROFILES) {
+      const geometry = trafficBodyGeometry(profile),
+        def = profile.vehicle;
+      const body = new T.Mesh(geometry.paint, new T.MeshBasicMaterial());
+      body.updateMatrixWorld();
+      const centreY = def.spec.wheelRadius - def.halfExtents[1];
+      for (const side of [-1, 1])
+        for (const wheel of [0, 2])
+          for (const height of [0.1, def.spec.wheelRadius * 0.85]) {
+            const ray = new T.Raycaster(
+              new T.Vector3(side * 3, centreY + height, def.wheelPositions[wheel][2]),
+              new T.Vector3(-side, 0, 0),
+            );
+            expect(
+              ray.intersectObject(body),
+              `${def.id} must not paint over its tyre aperture`,
+            ).toHaveLength(0);
+          }
+      const middleZ = (def.wheelPositions[0][2] + def.wheelPositions[2][2]) / 2;
+      const sillRay = new T.Raycaster(
+        new T.Vector3(3, centreY + 0.05, middleZ),
+        new T.Vector3(-1, 0, 0),
+      );
+      expect(sillRay.intersectObject(body).length, def.id).toBeGreaterThan(0);
+      const bounds = geometry.paint.boundingBox!;
+      expect(bounds.min.y, def.id).toBeGreaterThanOrEqual(-def.halfExtents[1]);
+      expect(bounds.max.y, def.id).toBeCloseTo(
+        profile.sheet.roof - def.halfExtents[1] - 0.024 / 9,
+        2,
+      );
+      const cabin = profile.sheet.cabin;
+      roofLengths.set(def.id, (cabin[2] - cabin[1]) * def.spec.wheelbase);
+      for (const g of Object.values(geometry)) g.dispose();
+      body.material.dispose();
+    }
+    expect(roofLengths.get('rh3')).toBeGreaterThan(roofLengths.get('rs5')!);
+    expect(roofLengths.get('rp6')).toBeLessThan(roofLengths.get('rh3')!);
+    expect(roofLengths.get('rd2')).toBe(0);
+  });
+
+  it('poses each body batch from the same id-matched snapshot and retains brake/hazard mapping', () => {
     const cars = new TrafficCars();
     const older = block([
       { id: 7, machine: machines[0], x: 0, z: 4 },
@@ -89,16 +148,13 @@ describe('festival traffic visual geometry', () => {
       { id: 7, machine: machines[0], x: 8, z: 12, brake: 0.6 },
     ]);
     cars.update(older, newer, 0.25, 0, 0);
-    const matrix = new T.Matrix4(),
-      position = new T.Vector3(),
+    const position = new T.Vector3(),
       orientation = new T.Quaternion(),
       scale = new T.Vector3();
-    for (const mesh of batches(cars)) {
+    for (const mesh of bodyBatches(cars)) {
       expect(mesh.count).toBe(2);
       for (let i = 0; i < 2; i++) {
-        mesh.getMatrixAt(i, matrix);
-        matrix.decompose(position, orientation, scale);
-        const def = i === 0 ? machines[1] : machines[0];
+        matrixAt(mesh, i).decompose(position, orientation, scale);
         expect(position.x).toBeCloseTo(i === 0 ? 22 : 2, 5);
         expect(position.y).toBeCloseTo(3, 5);
         expect(position.z).toBeCloseTo(i === 0 ? 10 : 6, 5);
@@ -108,20 +164,98 @@ describe('festival traffic visual geometry', () => {
             orientation.dot(new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 1, 0), yaw)),
           ),
         ).toBeCloseTo(1, 5);
-        expect(scale.x).toBeCloseTo(def.halfExtents[0] / 0.92, 5);
-        expect(scale.y).toBeCloseTo(Math.max(0.5, def.halfExtents[1]) / 0.72, 5);
-        expect(scale.z).toBeCloseTo(def.halfExtents[2] / 2.25, 5);
+        for (const axis of scale.toArray()) expect(axis).toBeCloseTo(1, 6);
       }
     }
+    expect(cars.wheels.count).toBe(8);
     const colour = new T.Color();
     cars.lamps.getColorAt(0, colour);
     expect(colour.r).toBeCloseTo(3, 5);
     cars.lamps.getColorAt(1, colour);
     expect(colour.r).toBeCloseTo(2.6, 5);
+    // The reordered sedan retains its own silhouette; the hatch is the base.
+    const target = new T.Mesh(cars.bodies.geometry);
+    cars.bodies.getMorphAt(0, target);
+    expect(target.morphTargetInfluences![0]).toBe(1);
+    cars.bodies.getMorphAt(1, target);
+    expect(target.morphTargetInfluences!.every((x) => x === 0)).toBe(true);
+    (target.material as T.Material).dispose();
     cars.dispose();
   });
 
-  it('keeps the existing capacity, clears all batches on an absent block and disposes owned assets', () => {
+  it('puts all wheels at the registry axles with circular tyres and the correct forward rolling sign', () => {
+    const cars = new TrafficCars(),
+      def = VEHICLES.rp6,
+      radius = def.spec.wheelRadius;
+    const frame = block([{ id: 1, machine: def, x: 0, z: 0, distance: (radius * Math.PI) / 2 }]);
+    cars.update(null, frame, 1, 0, 0);
+    const p = new T.Vector3(),
+      q = new T.Quaternion(),
+      scale = new T.Vector3();
+    for (let i = 0; i < 4; i++) {
+      matrixAt(cars.wheels, i).decompose(p, q, scale);
+      expect(p.x).toBeCloseTo(def.wheelPositions[i][0], 6);
+      expect(p.z).toBeCloseTo(def.wheelPositions[i][2], 6);
+      expect(p.y - radius).toBeCloseTo(3 - def.halfExtents[1], 6);
+      expect(scale.y).toBeCloseTo(radius, 6);
+      expect(scale.z).toBeCloseTo(radius, 6);
+      // With +Z forward, +X wheel rotation moves a bottom marker toward -Z.
+      const bottom = new T.Vector3(0, -1, 0).applyQuaternion(q);
+      expect(bottom.z).toBeCloseTo(-1, 5);
+    }
+    cars.dispose();
+  });
+
+  it('derives Ackermann front steering from movement while rear axles stay straight', () => {
+    const cars = new TrafficCars(),
+      def = VEHICLES.rs5;
+    const a = block([{ id: 1, machine: def, x: 0, z: 0, yaw: 0, distance: 10 }], 1);
+    const b = block([{ id: 1, machine: def, x: 0.1, z: 2, yaw: 0.12, distance: 12 }], 1.2);
+    cars.update(a, b, 1, 0, 1.2);
+    const axis = new T.Vector3(1, 0, 0),
+      q = new T.Quaternion(),
+      p = new T.Vector3(),
+      scale = new T.Vector3();
+    const headings: number[] = [];
+    for (let i = 0; i < 4; i++) {
+      matrixAt(cars.wheels, i).decompose(p, q, scale);
+      const axle = axis.clone().applyQuaternion(q);
+      headings.push(Math.atan2(-axle.z, axle.x) - 0.12);
+    }
+    expect(headings[0]).toBeGreaterThan(0);
+    expect(headings[1]).toBeGreaterThan(headings[0]); // inner left tyre steers farther
+    expect(headings[1]).toBeLessThanOrEqual(def.spec.maxSteer);
+    expect(headings[2]).toBeCloseTo(0, 6);
+    expect(headings[3]).toBeCloseTo(0, 6);
+    cars.dispose();
+  });
+
+  it('has identical wheel matrices on held frames, reordered ids and a fresh replay seek', () => {
+    const cars = new TrafficCars(),
+      replay = new TrafficCars(),
+      def = machines[0];
+    const a = block([{ id: 5, machine: def, x: 0, z: 0, distance: 20 }], 2);
+    const b = block([{ id: 5, machine: def, x: 0, z: 2, distance: 22 }], 2.2);
+    cars.update(a, b, 0.4, 0, 2.1);
+    const held = Array.from(cars.wheels.instanceMatrix.array.slice(0, 64));
+    cars.update(a, b, 0.4, 1, 1000);
+    expect(Array.from(cars.wheels.instanceMatrix.array.slice(0, 64))).toEqual(held);
+    cars.update(
+      null,
+      block([{ id: 99, machine: machines[1], x: 90, z: 200, distance: 50 }]),
+      1,
+      0,
+      2000,
+    );
+    cars.update(a, b, 0.4, 0, 0);
+    replay.update(a, b, 0.4, 0, 0);
+    expect(Array.from(cars.wheels.instanceMatrix.array.slice(0, 64))).toEqual(held);
+    expect(Array.from(replay.wheels.instanceMatrix.array.slice(0, 64))).toEqual(held);
+    cars.dispose();
+    replay.dispose();
+  });
+
+  it('keeps capacity, rejects old/truncated frames, clears absent traffic and disposes every owned asset once', () => {
     const cars = new TrafficCars(),
       meshes = batches(cars);
     const full = block(
@@ -134,19 +268,27 @@ describe('festival traffic visual geometry', () => {
     );
     cars.update(null, full, 1, 1, 0);
     expect(cars.count).toBe(TRAFFIC_CAPACITY);
-    for (const mesh of meshes) expect(mesh.count).toBe(TRAFFIC_CAPACITY);
-    cars.update(null, null, 1, 1, 0);
-    expect(cars.count).toBe(0);
-    for (const mesh of meshes) expect(mesh.count).toBe(0);
+    for (const mesh of bodyBatches(cars)) expect(mesh.count).toBe(TRAFFIC_CAPACITY);
+    expect(cars.wheels.count).toBe(TRAFFIC_CAPACITY * 4);
+    const stale = full.slice();
+    stale[2] = 1;
+    for (const invalid of [null, stale, full.subarray(0, full.length - 1)]) {
+      cars.update(null, invalid, 1, 1, 0);
+      expect(cars.count).toBe(0);
+      for (const mesh of meshes) expect(mesh.count).toBe(0);
+    }
     let geometryDisposals = 0,
-      materialDisposals = 0;
+      materialDisposals = 0,
+      morphDisposals = 0;
     for (const mesh of meshes) {
       mesh.geometry.addEventListener('dispose', () => geometryDisposals++);
       (mesh.material as T.Material).addEventListener('dispose', () => materialDisposals++);
+      mesh.morphTexture?.addEventListener('dispose', () => morphDisposals++);
     }
     cars.dispose();
-    expect(geometryDisposals).toBe(4);
-    expect(materialDisposals).toBe(4);
+    expect(geometryDisposals).toBe(5);
+    expect(materialDisposals).toBe(5);
+    expect(morphDisposals).toBe(4);
     expect(cars.root.children).toHaveLength(0);
   });
 });

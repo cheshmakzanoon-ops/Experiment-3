@@ -45,18 +45,17 @@ export function buildScatter(kit: VenueKitContext) {
     const rock = random.next() < (desert ? 0.45 : 0.35),
       size = rock ? 0.6 + random.next() * random.next() * 3.5 : 0.5 + random.next() * 1.1;
     e.set(random.next() * 0.6, random.next() * Math.PI * 2, random.next() * 0.6);
-    // Photographic shrubs (green venues) replace the faceted scrub.
-    if (!rock && kit.photoShrubs && !desert) {
-      // Same draws as a drawn shrub, so the boulders stay where they were.
-      const stretch = 0.8 + random.next() * 0.5;
+    // Keep one deterministic distribution across quality changes. The small
+    // fallback meshes remain available when photographic shrub loading fails.
+    const stretch = 0.8 + random.next() * 0.5;
+    if (!rock && !desert) {
       kit.photoShrubs.push({ x, y, z, height: size * 1.5, width: size * 2 * stretch, yaw: e.y });
-      continue;
     }
     q.setFromEuler(e);
     m.compose(
       new T.Vector3(x, y + (rock ? size * 0.25 : size * 0.45), z),
       q,
-      new T.Vector3(size * (0.8 + random.next() * 0.5), size * (rock ? 0.7 : 0.9), size),
+      new T.Vector3(size * stretch, size * (rock ? 0.7 : 0.9), size),
     );
     (rock ? cell.rocks : cell.shrubs).push(m.clone());
   }
@@ -76,6 +75,7 @@ export function buildScatter(kit: VenueKitContext) {
       im.castShadow = true;
       im.receiveShadow = true;
       im.name = name;
+      if (name === 'Scrub' && !desert) kit.proceduralShrubs.push(im);
       group.add(im);
     }
     kit.detail(group, 900);

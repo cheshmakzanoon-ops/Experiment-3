@@ -30,10 +30,12 @@ describe('budgeted physical street-light pools', () => {
       settle(pools, camera, quality);
       const lights = pools.root.children.filter((o) => o instanceof T.SpotLight) as T.SpotLight[];
       expect(lights.filter((l) => l.visible)).toHaveLength(count);
+      expect(lights.filter((l) => l.castShadow)).toHaveLength(
+        quality === 'high' ? 1 : quality === 'ultra' ? 2 : 0,
+      );
       expect(pools.activeSockets.length).toBeLessThanOrEqual(count);
       expect(new Set(pools.activeSockets).size).toBe(pools.activeSockets.length);
       for (const light of lights) {
-        expect(light.castShadow).toBe(false);
         expect(light.intensity).toBeGreaterThanOrEqual(0);
         expect(light.intensity).toBeLessThanOrEqual(520);
         if (light.intensity > 0 && light.visible) {

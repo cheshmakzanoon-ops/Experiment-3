@@ -3,7 +3,6 @@ import type { Track } from '../../simulation/track.ts';
 import { skyPaletteFor } from '../assets/sky-catalogue.ts';
 import type { QualityPreset } from '../options.ts';
 import { VENUE_THEMES } from '../venue-kit/theme.ts';
-import type { VenueKitContext } from '../venue-kit/context.ts';
 import { photoVegetationEnabled, VegetationLibrary } from './library.ts';
 import { speciesForPalette } from './species.ts';
 
@@ -14,7 +13,7 @@ export { VEGETATION, vegetationUniforms } from './materials.ts';
 export { SPECIES, speciesForPalette } from './species.ts';
 
 /**
- * Load the photographic vegetation a circuit venue shows, or null (LOW,
+ * Load the photographic vegetation a circuit venue shows, or null (LOW/MEDIUM,
  * nothing to plant, no browser, or every tree species failed): the caller
  * then builds the procedural planting.
  */
@@ -22,7 +21,6 @@ export async function loadVenueVegetation(
   renderer: T.WebGLRenderer,
   track: Track,
   preset: QualityPreset,
-  kit: VenueKitContext | null,
 ): Promise<VegetationLibrary | null> {
   if (!photoVegetationEnabled(preset) || typeof document === 'undefined') return null;
   const style = track.circuit.catalogue ? VENUE_THEMES[track.circuit.catalogue.theme] : null;
@@ -40,8 +38,10 @@ export async function loadVenueVegetation(
       library.dispose();
       return null;
     }
-    if (!library.species.size) return null;
-    if (kit && shrubs) kit.photoShrubs = [];
+    if (!library.species.size) {
+      library.dispose();
+      return null;
+    }
     return library;
   } catch (error) {
     console.warn('Photographic vegetation unavailable, procedural planting kept:', error);
