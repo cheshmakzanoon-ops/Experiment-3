@@ -1,0 +1,169 @@
+
+ RUN  v3.2.4 /workspace/scratch/dac6891506fb/gp-signed-admission-2245
+
+ ❯ tests/gp-signed-command.test.ts (26 tests | 13 failed) 67ms
+   × GP final command admission uses its native signed front interval > matches the sealed early-phase native replay at 'maximumRollForecastDifference' 14ms
+     → expected { dt: 0.004166666666666667, …(15) } to deeply equal { dt: 0.004166666666666667, …(15) }
+   × GP final command admission uses its native signed front interval > matches the sealed early-phase native replay at 'lastRecordedControl' 2ms
+     → expected { dt: 0.004166666666666667, …(15) } to deeply equal { dt: 0.004166666666666667, …(15) }
+   × GP final command admission uses its native signed front interval > matches the sealed early-phase native replay at 'firstFrontUnloaded' 2ms
+     → expected { dt: 0.004166666666666667, …(15) } to deeply equal { dt: 0.004166666666666667, …(15) }
+   × GP final command admission uses its native signed front interval > matches the sealed early-phase native replay at 'firstRearUnloaded' 3ms
+     → expected { dt: 0.004166666666666667, …(15) } to deeply equal { dt: 0.004166666666666667, …(15) }
+   × GP final command admission uses its native signed front interval > also admits the reflected recovery at 'maximumRollForecastDifference' 3ms
+     → expected -0 to be +0 // Object.is equality
+   × GP final command admission uses its native signed front interval > also admits the reflected recovery at 'firstRearUnloaded' 2ms
+     → expected -0 to be +0 // Object.is equality
+   × GP final command admission uses its native signed front interval > retains two original standalone steps from 'maximumRollForecastDifference' 2ms
+     → expected "rearForceFor" to be called 1 times, but got 0 times
+   × GP final command admission uses its native signed front interval > retains two original standalone steps from 'firstRearUnloaded' 2ms
+     → expected "rearForceFor" to be called 1 times, but got 0 times
+   × GP final command admission uses its native signed front interval > keeps the unloaded-front fallback unchanged on the next native step 3ms
+     → expected { dt: 0.004166666666666667, …(15) } to deeply equal { dt: 0.004166666666666667, …(15) }
+   × GP final command admission uses its native signed front interval > repeats only the pure inverse for a complete legacy fallback when output is missing 2ms
+     → expected +0 to be 0.00012893692732340279 // Object.is equality
+   × GP final command admission uses its native signed front interval > repeats only the pure inverse for a complete legacy fallback when output is nonfinite 1ms
+     → expected +0 to be 0.00012893692732340279 // Object.is equality
+   × GP final command admission uses its native signed front interval > repeats only the pure inverse for a complete legacy fallback when output is reversed 1ms
+     → expected +0 to be 0.00012893692732340279 // Object.is equality
+   × GP final command admission uses its native signed front interval > repeats only the pure inverse for a complete legacy fallback when output is null inverse 1ms
+     → expected +0 to be 0.00012893692732340279 // Object.is equality
+   ✓ GP final command admission uses its native signed front interval > repeats only the pure inverse for a complete legacy fallback when output is nonfinite inverse 1ms
+   ✓ Native front inverse exposes only its own invocation range > retains signed combined-slip roots and query purity at lean -0.6, Fx -1400 6ms
+   ✓ Native front inverse exposes only its own invocation range > retains signed combined-slip roots and query purity at lean -0.6, Fx +0 2ms
+   ✓ Native front inverse exposes only its own invocation range > retains signed combined-slip roots and query purity at lean -0.6, Fx 900 2ms
+   ✓ Native front inverse exposes only its own invocation range > retains signed combined-slip roots and query purity at lean 0.6, Fx -1400 4ms
+   ✓ Native front inverse exposes only its own invocation range > retains signed combined-slip roots and query purity at lean 0.6, Fx +0 3ms
+   ✓ Native front inverse exposes only its own invocation range > retains signed combined-slip roots and query purity at lean 0.6, Fx 900 4ms
+   ✓ Native front inverse exposes only its own invocation range > clears a previous output without front availability: +0 N, mu 1.5, 30 m/s 2ms
+   ✓ Native front inverse exposes only its own invocation range > clears a previous output without front availability: 1 N, mu 1.5, 30 m/s 1ms
+   ✓ Native front inverse exposes only its own invocation range > clears a previous output without front availability: 1400 N, mu +0, 30 m/s 1ms
+   ✓ Native front inverse exposes only its own invocation range > clears a previous output without front availability: 1400 N, mu 1.5, 2.49 m/s 0ms
+   ✓ Native front inverse exposes only its own invocation range > does not advertise a range after a nonfinite inverse input NaN 0ms
+   ✓ Native front inverse exposes only its own invocation range > does not advertise a range after a nonfinite inverse input Infinity 0ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 13 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/gp-signed-command.test.ts > GP final command admission uses its native signed front interval > matches the sealed early-phase native replay at 'maximumRollForecastDifference'
+ FAIL  tests/gp-signed-command.test.ts > GP final command admission uses its native signed front interval > matches the sealed early-phase native replay at 'lastRecordedControl'
+ FAIL  tests/gp-signed-command.test.ts > GP final command admission uses its native signed front interval > matches the sealed early-phase native replay at 'firstFrontUnloaded'
+ FAIL  tests/gp-signed-command.test.ts > GP final command admission uses its native signed front interval > matches the sealed early-phase native replay at 'firstRearUnloaded'
+AssertionError: expected { dt: 0.004166666666666667, …(15) } to deeply equal { dt: 0.004166666666666667, …(15) }
+
+- Expected
++ Received
+
+@@ -1,10 +1,10 @@
+  {
+    "dt": 0.004166666666666667,
+    "frontBrakeExcess": 0,
+    "frontContact": 1,
+-   "frontFx": 0,
++   "frontFx": -0,
+    "frontLoad": 3238.547197848438,
+    "frontMu": 1.6008463618305018,
+    "inertialContacts": true,
+    "lean": 0.7547072956863439,
+    "mass": 244.4126551235032,
+
+ ❯ tests/gp-signed-command.test.ts:111:26
+    109|       early = f.admission.early;
+    110|     // Exact finite-dt outcomes, not a comparison against a computed c…
+    111|     expect(result.plant).toEqual(f.diagnostic.plantInput);
+       |                          ^
+    112|     expect(result.output).toEqual(f.diagnostic.plantOutput);
+    113|     expect(result.after).toEqual(f.diagnostic.after);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/13]⎯
+
+ FAIL  tests/gp-signed-command.test.ts > GP final command admission uses its native signed front interval > also admits the reflected recovery at 'maximumRollForecastDifference'
+ FAIL  tests/gp-signed-command.test.ts > GP final command admission uses its native signed front interval > also admits the reflected recovery at 'firstRearUnloaded'
+AssertionError: expected -0 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ -0
+
+ ❯ tests/gp-signed-command.test.ts:179:34
+    177|     expect(result.after.leanRate).toBeCloseTo(-f.diagnostic.after.lean…
+    178|     expect(result.reserve).toBeCloseTo(f.original.reserve, 12);
+    179|     expect(result.plant.frontFx).toBe(f.original.plantInput.frontFx);
+       |                                  ^
+    180|     expect(result.plant.rearFx).toBe(f.original.plantInput.rearFx);
+    181|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/13]⎯
+
+ FAIL  tests/gp-signed-command.test.ts > GP final command admission uses its native signed front interval > retains two original standalone steps from 'maximumRollForecastDifference'
+ FAIL  tests/gp-signed-command.test.ts > GP final command admission uses its native signed front interval > retains two original standalone steps from 'firstRearUnloaded'
+AssertionError: expected "rearForceFor" to be called 1 times, but got 0 times
+ ❯ run tests/gp-signed-command.test.ts:82:16
+     80|   expect(control).toHaveBeenCalledTimes(1);
+     81|   expect(inverse).toHaveBeenCalledTimes(1);
+     82|   expect(rear).toHaveBeenCalledTimes(1);
+       |                ^
+     83|   expect(plant).toHaveBeenCalledTimes(1);
+     84|   const result = {
+ ❯ tests/gp-signed-command.test.ts:191:24
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/13]⎯
+
+ FAIL  tests/gp-signed-command.test.ts > GP final command admission uses its native signed front interval > keeps the unloaded-front fallback unchanged on the next native step
+AssertionError: expected { dt: 0.004166666666666667, …(15) } to deeply equal { dt: 0.004166666666666667, …(15) }
+
+- Expected
++ Received
+
+@@ -1,10 +1,10 @@
+  {
+    "dt": 0.004166666666666667,
+    "frontBrakeExcess": 0,
+    "frontContact": 0,
+-   "frontFx": 0,
++   "frontFx": -0,
+    "frontLoad": 0,
+    "frontMu": 1.7670131819646966,
+    "inertialContacts": true,
+    "lean": 0.17448988867284368,
+    "mass": 244.4314097434952,
+
+ ❯ tests/gp-signed-command.test.ts:208:24
+    206|     const next = run(b, f.input, f.dt);
+    207|     expect(next.inverse[6]).toBeUndefined();
+    208|     expect(next.plant).toEqual(f.nextOriginal.plantInput);
+       |                        ^
+    209|     expect(next.output).toEqual(f.nextOriginal.plantOutput);
+    210|     expect(next.after).toEqual(f.nextOriginal.after);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/13]⎯
+
+ FAIL  tests/gp-signed-command.test.ts > GP final command admission uses its native signed front interval > repeats only the pure inverse for a complete legacy fallback when output is missing
+ FAIL  tests/gp-signed-command.test.ts > GP final command admission uses its native signed front interval > repeats only the pure inverse for a complete legacy fallback when output is nonfinite
+ FAIL  tests/gp-signed-command.test.ts > GP final command admission uses its native signed front interval > repeats only the pure inverse for a complete legacy fallback when output is reversed
+ FAIL  tests/gp-signed-command.test.ts > GP final command admission uses its native signed front interval > repeats only the pure inverse for a complete legacy fallback when output is null inverse
+AssertionError: expected +0 to be 0.00012893692732340279 // Object.is equality
+
+- Expected
++ Received
+
+- 0.00012893692732340279
++ 0
+
+ ❯ tests/gp-signed-command.test.ts:238:28
+    236|       expect(inverse).toHaveBeenCalledTimes(2);
+    237|       expect(plant).toHaveBeenCalledTimes(1);
+    238|       expect(gp.steerTrim).toBe(f.original.trim);
+       |                            ^
+    239|       const lateral = f.originalController.lateral,
+    240|         v = Math.max(f.bike.speed, 3),
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/13]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  13 failed | 13 passed (26)
+   Start at  15:56:13
+   Duration  549ms (transform 139ms, setup 0ms, collect 172ms, tests 67ms, environment 0ms, prepare 79ms)
+

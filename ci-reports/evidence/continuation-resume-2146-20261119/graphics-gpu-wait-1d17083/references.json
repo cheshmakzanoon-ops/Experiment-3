@@ -1,0 +1,185 @@
+[
+  {
+    "path": "src/rendering/gpu-frame-gate.ts",
+    "needle": "const result = gl.clientWaitSync(this.fence, 0, 0);",
+    "lines": [
+      54
+    ]
+  },
+  {
+    "path": "src/rendering/gpu-frame-gate.ts",
+    "needle": "if (result === gl.TIMEOUT_EXPIRED)",
+    "lines": [
+      61
+    ]
+  },
+  {
+    "path": "src/rendering/gpu-frame-gate.ts",
+    "needle": "result !== gl.ALREADY_SIGNALED",
+    "lines": [
+      72
+    ]
+  },
+  {
+    "path": "src/rendering/gpu-frame-gate.ts",
+    "needle": "this.completed = this.submitted;",
+    "lines": [
+      76
+    ]
+  },
+  {
+    "path": "src/rendering/gpu-frame-gate.ts",
+    "needle": "this.fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);",
+    "lines": [
+      91
+    ]
+  },
+  {
+    "path": "src/rendering/gpu-frame-gate.ts",
+    "needle": "gl.flush();",
+    "lines": [
+      66,
+      96
+    ]
+  },
+  {
+    "path": "src/rendering/pit-material-warmup.ts",
+    "needle": "renderer.render(scene, camera);",
+    "lines": [
+      111
+    ]
+  },
+  {
+    "path": "src/rendering/pit-material-warmup.ts",
+    "needle": "submitted();",
+    "lines": [
+      112
+    ]
+  },
+  {
+    "path": "src/rendering/pit-material-warmup.ts",
+    "needle": "const deadline = performance.now() + 45000;",
+    "lines": [
+      131
+    ]
+  },
+  {
+    "path": "src/rendering/pit-material-warmup.ts",
+    "needle": "while (!cancelled() && !ready())",
+    "lines": [
+      132
+    ]
+  },
+  {
+    "path": "src/rendering/pit-material-warmup.ts",
+    "needle": "target.dispose();",
+    "lines": [
+      140
+    ]
+  },
+  {
+    "path": "src/rendering/renderer.ts",
+    "needle": "async waitForPreparedFrame(",
+    "lines": [
+      983
+    ]
+  },
+  {
+    "path": "src/rendering/renderer.ts",
+    "needle": "while (!cancelled() && !this.gpuFrames.ready())",
+    "lines": [
+      986
+    ]
+  },
+  {
+    "path": "src/rendering/renderer.ts",
+    "needle": "this.warmupFrames++;",
+    "lines": [
+      1187
+    ]
+  },
+  {
+    "path": "src/rendering/renderer.ts",
+    "needle": "await this.warmPitPresentation(frame, cancelled, yieldFrame);",
+    "lines": [
+      1190
+    ]
+  },
+  {
+    "path": "src/rendering/renderer.ts",
+    "needle": "await this.waitForPreparedFrame(cancelled, yieldFrame);",
+    "lines": [
+      1204
+    ]
+  },
+  {
+    "path": "src/rendering/renderer.ts",
+    "needle": "this.gpuFrames.submittedFrame();",
+    "lines": [
+      2446
+    ]
+  },
+  {
+    "path": "src/rendering/adaptive-exposure.ts",
+    "needle": "renderer.readRenderTargetPixelsAsync(this.target",
+    "lines": [
+      124
+    ]
+  },
+  {
+    "path": "src/rendering/adaptive-exposure.ts",
+    "needle": "if (!this.pending) this.target.dispose();",
+    "lines": [
+      186
+    ]
+  },
+  {
+    "path": "src/rendering/ground/normal-residency.ts",
+    "needle": "renderer.readRenderTargetPixelsAsync(target",
+    "lines": [
+      158
+    ]
+  },
+  {
+    "path": "node_modules/three/src/renderers/WebGLRenderer.js",
+    "needle": "this.readRenderTargetPixelsAsync = async function",
+    "lines": [
+      2931
+    ]
+  },
+  {
+    "path": "node_modules/three/src/renderers/WebGLRenderer.js",
+    "needle": "const sync = _gl.fenceSync( _gl.SYNC_GPU_COMMANDS_COMPLETE, 0 );",
+    "lines": [
+      2985
+    ]
+  },
+  {
+    "path": "node_modules/three/src/renderers/WebGLRenderer.js",
+    "needle": "await probeAsync( _gl, sync, 4 );",
+    "lines": [
+      2989
+    ]
+  },
+  {
+    "path": "node_modules/three/src/renderers/WebGLRenderer.js",
+    "needle": "_gl.deleteSync( sync );",
+    "lines": [
+      2995
+    ]
+  },
+  {
+    "path": "node_modules/three/src/utils.js",
+    "needle": "function probeAsync(",
+    "lines": [
+      91
+    ]
+  },
+  {
+    "path": "node_modules/three/src/utils.js",
+    "needle": "gl.clientWaitSync( sync, gl.SYNC_FLUSH_COMMANDS_BIT, 0 )",
+    "lines": [
+      97
+    ]
+  }
+]

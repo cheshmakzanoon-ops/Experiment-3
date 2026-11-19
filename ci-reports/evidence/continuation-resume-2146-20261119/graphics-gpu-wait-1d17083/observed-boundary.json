@@ -1,0 +1,173 @@
+{
+  "sourceSummarySHA256": "bfa1195032077934cbbe9e9d70d7d833d377d4de3cf0ad39da95c81882fc13be",
+  "predicate": {
+    "configuredTimeoutMs": 90000,
+    "traceStart": 50183.708,
+    "traceEnd": 139888.565,
+    "observedTraceSpanMs": 89704.857,
+    "failure": "expected paused, received loading; original 90000 ms timeout reported"
+  },
+  "lastApplicationDiagnostic": {
+    "traceTime": 139878.635,
+    "relativeMs": 89694.92700000001,
+    "beforePredicateEndMs": 9.929999999993015,
+    "afterChaseStartMs": 55463.178000000014,
+    "buildIdentity": {
+      "commit": "1d17083c7364b0d960d3f4a548139ac95077daa2",
+      "fingerprint": "9654582fc293da474310e3a5a19db6be2fadc6c0e780b7b1348d9fc6c019837c"
+    },
+    "state": "loading",
+    "warmupFrames": 1,
+    "gpuFrameQueue": {
+      "pending": true,
+      "submitted": 2,
+      "completed": 0,
+      "deferredCallbacks": 824,
+      "flushRefreshes": 13,
+      "pendingMs": 13750.200000000012,
+      "activeWaitMs": 13748.5,
+      "failure": null,
+      "latencyMs": 0
+    },
+    "preparation": {
+      "status": "preparing",
+      "elapsedMs": 71495.20000000001,
+      "error": null,
+      "stages": [
+        {
+          "label": "Building GP motorcycles and riders\u2026",
+          "elapsedMs": 272,
+          "complete": true
+        },
+        {
+          "label": "Loading the photographed sky\u2026",
+          "elapsedMs": 62.90000000002328,
+          "complete": true
+        },
+        {
+          "label": "Loading photographed ground\u2026",
+          "elapsedMs": 1.099999999976717,
+          "complete": true
+        },
+        {
+          "label": "Preparing recorded sky lighting\u2026",
+          "elapsedMs": 5417.300000000047,
+          "complete": true
+        },
+        {
+          "label": "Compiling circuit and vehicle materials\u2026",
+          "elapsedMs": 9249.199999999953,
+          "complete": true
+        },
+        {
+          "label": "Preparing circuit and vehicle materials\u2026",
+          "elapsedMs": 222.5,
+          "complete": true
+        },
+        {
+          "label": "Preparing post-processing materials\u2026",
+          "elapsedMs": 185.10000000003492,
+          "complete": true
+        },
+        {
+          "label": "Preparing retained scene textures\u2026",
+          "elapsedMs": 208.29999999998836,
+          "complete": true
+        },
+        {
+          "label": "Compiling shadow casters around the circuit\u2026",
+          "elapsedMs": 416.20000000001164,
+          "complete": true
+        },
+        {
+          "label": "Warming shadows and scene reflections\u2026",
+          "elapsedMs": 41694.09999999998,
+          "complete": true
+        },
+        {
+          "label": "Warming offscreen pit-service materials\u2026",
+          "elapsedMs": 13760.700000000012,
+          "complete": false
+        }
+      ]
+    },
+    "reflectionCaptureSubmissionMetric": {
+      "completed": 1,
+      "starts": {
+        "immediate": 1,
+        "motion": 0,
+        "scenery": 0,
+        "cadence": 0
+      },
+      "pendingFace": -1,
+      "pendingReason": null,
+      "facesPerFrame": 1,
+      "motionDistance": 12,
+      "minimumInterval": 0.5,
+      "immediateFaces": 6,
+      "immediateRetryPending": false,
+      "lastStart": 5.907441139221191,
+      "lastCompleted": 5.907441139221191,
+      "capturedAt": 5.907441139221191,
+      "origin": [
+        -354.6912841796875,
+        1.8953696489334106,
+        -211.8518524169922
+      ],
+      "displacement": 0,
+      "sceneryPending": false
+    },
+    "reflectionMetricMeaning": "Capture/submission calls returned. This metric does not certify GPU completion."
+  },
+  "lastNativeSnapshot": {
+    "traceTime": 139581.257,
+    "relativeMs": 89397.54900000001,
+    "beforePredicateEndMs": 307.30799999999,
+    "stage": "Warming offscreen pit-service materials\u2026",
+    "inFlight": false,
+    "observedInFlightMs": 0,
+    "lastStarted": {
+      "sequence": 30474,
+      "atMs": 133556.3,
+      "method": "clientWaitSync",
+      "program": 88,
+      "fragmentHash": "1e97beee",
+      "framebuffer": 0,
+      "cubeFace": 0,
+      "mip": 0,
+      "viewport": [
+        0,
+        0,
+        960,
+        600
+      ],
+      "count": 0,
+      "instances": 1,
+      "numericArguments": [
+        -1,
+        1,
+        0,
+        -1
+      ],
+      "sourceBufferBytes": null,
+      "shader": 0,
+      "shaderType": 0,
+      "shaderHash": "00000000",
+      "bufferOwner": null
+    },
+    "lastCompleted": {
+      "sequence": 30474,
+      "atMs": 133556.3,
+      "method": "clientWaitSync",
+      "cpuCallMs": 0,
+      "returned": true
+    }
+  },
+  "observedNativeCalls": {
+    "fenceSync": 3,
+    "clientWaitSync": 3966,
+    "flush": 16,
+    "readPixels": 1,
+    "getBufferSubData": 0
+  }
+}

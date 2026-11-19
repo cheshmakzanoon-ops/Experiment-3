@@ -1,0 +1,258 @@
+{
+  "source": "1d17083c7364b0d960d3f4a548139ac95077daa2",
+  "run": 44631109424,
+  "predicate": {
+    "configuredTimeoutMs": 90000,
+    "traceStart": 50183.708,
+    "traceEnd": 139888.565,
+    "observedTraceSpanMs": 89704.857,
+    "failure": "expected paused, received loading; original 90000 ms timeout reported"
+  },
+  "firstChaseRelativeToPredicateTraceStartMs": 34231.748999999996,
+  "configuredBudgetMinusObservedChaseOffsetMs": 55768.251000000004,
+  "observedPredicateEndMinusChaseMs": 55473.10800000001,
+  "preChaseSnapshot": {
+    "traceTime": 83999.09,
+    "stage": "Compiling shadow casters around the circuit\u2026"
+  },
+  "lastPrePredicateEndSnapshot": {
+    "traceTime": 139581.257,
+    "relativeMs": 89397.54900000001,
+    "beforePredicateEndMs": 307.30799999999,
+    "stage": "Warming offscreen pit-service materials\u2026",
+    "inFlight": false,
+    "observedInFlightMs": 0,
+    "lastStarted": {
+      "sequence": 30474,
+      "atMs": 133556.3,
+      "method": "clientWaitSync",
+      "program": 88,
+      "fragmentHash": "1e97beee",
+      "framebuffer": 0,
+      "cubeFace": 0,
+      "mip": 0,
+      "viewport": [
+        0,
+        0,
+        960,
+        600
+      ],
+      "count": 0,
+      "instances": 1,
+      "numericArguments": [
+        -1,
+        1,
+        0,
+        -1
+      ],
+      "sourceBufferBytes": null,
+      "shader": 0,
+      "shaderType": 0,
+      "shaderHash": "00000000",
+      "bufferOwner": null
+    },
+    "lastCompleted": {
+      "sequence": 30474,
+      "atMs": 133556.3,
+      "method": "clientWaitSync",
+      "cpuCallMs": 0,
+      "returned": true
+    }
+  },
+  "lastSuccessfulApplicationDiagnostic": {
+    "traceTime": 139878.635,
+    "relativeMs": 89694.92700000001,
+    "beforePredicateEndMs": 9.929999999993015,
+    "afterChaseStartMs": 55463.178000000014,
+    "buildIdentity": {
+      "commit": "1d17083c7364b0d960d3f4a548139ac95077daa2",
+      "fingerprint": "9654582fc293da474310e3a5a19db6be2fadc6c0e780b7b1348d9fc6c019837c"
+    },
+    "state": "loading",
+    "warmupFrames": 1,
+    "gpuFrameQueue": {
+      "pending": true,
+      "submitted": 2,
+      "completed": 0,
+      "deferredCallbacks": 824,
+      "flushRefreshes": 13,
+      "pendingMs": 13750.200000000012,
+      "activeWaitMs": 13748.5,
+      "failure": null,
+      "latencyMs": 0
+    },
+    "preparation": {
+      "status": "preparing",
+      "elapsedMs": 71495.20000000001,
+      "error": null,
+      "stages": [
+        {
+          "label": "Building GP motorcycles and riders\u2026",
+          "elapsedMs": 272,
+          "complete": true
+        },
+        {
+          "label": "Loading the photographed sky\u2026",
+          "elapsedMs": 62.90000000002328,
+          "complete": true
+        },
+        {
+          "label": "Loading photographed ground\u2026",
+          "elapsedMs": 1.099999999976717,
+          "complete": true
+        },
+        {
+          "label": "Preparing recorded sky lighting\u2026",
+          "elapsedMs": 5417.300000000047,
+          "complete": true
+        },
+        {
+          "label": "Compiling circuit and vehicle materials\u2026",
+          "elapsedMs": 9249.199999999953,
+          "complete": true
+        },
+        {
+          "label": "Preparing circuit and vehicle materials\u2026",
+          "elapsedMs": 222.5,
+          "complete": true
+        },
+        {
+          "label": "Preparing post-processing materials\u2026",
+          "elapsedMs": 185.10000000003492,
+          "complete": true
+        },
+        {
+          "label": "Preparing retained scene textures\u2026",
+          "elapsedMs": 208.29999999998836,
+          "complete": true
+        },
+        {
+          "label": "Compiling shadow casters around the circuit\u2026",
+          "elapsedMs": 416.20000000001164,
+          "complete": true
+        },
+        {
+          "label": "Warming shadows and scene reflections\u2026",
+          "elapsedMs": 41694.09999999998,
+          "complete": true
+        },
+        {
+          "label": "Warming offscreen pit-service materials\u2026",
+          "elapsedMs": 13760.700000000012,
+          "complete": false
+        }
+      ]
+    },
+    "reflectionCaptureSubmissionMetric": {
+      "completed": 1,
+      "starts": {
+        "immediate": 1,
+        "motion": 0,
+        "scenery": 0,
+        "cadence": 0
+      },
+      "pendingFace": -1,
+      "pendingReason": null,
+      "facesPerFrame": 1,
+      "motionDistance": 12,
+      "minimumInterval": 0.5,
+      "immediateFaces": 6,
+      "immediateRetryPending": false,
+      "lastStart": 5.907441139221191,
+      "lastCompleted": 5.907441139221191,
+      "capturedAt": 5.907441139221191,
+      "origin": [
+        -354.6912841796875,
+        1.8953696489334106,
+        -211.8518524169922
+      ],
+      "displacement": 0,
+      "sceneryPending": false
+    },
+    "reflectionMetricMeaning": "Capture/submission calls returned. This metric does not certify GPU completion."
+  },
+  "observedChaseThroughPitDelta": {
+    "counts": {
+      "blitFramebuffer": 1,
+      "bufferData": 3851,
+      "bufferSubData": 105,
+      "checkFramebufferStatus": 0,
+      "clear": 17,
+      "clientWaitSync": 3966,
+      "compileShader": 0,
+      "compressedTexImage2D": 0,
+      "compressedTexSubImage2D": 0,
+      "drawArrays": 83,
+      "drawArraysInstanced": 3,
+      "drawElements": 1894,
+      "drawElementsInstanced": 1110,
+      "fenceSync": 3,
+      "flush": 16,
+      "generateMipmap": 8,
+      "getActiveAttrib": 0,
+      "getActiveUniform": 0,
+      "getAttribLocation": 0,
+      "getBufferSubData": 0,
+      "getFragDataLocation": 0,
+      "getProgramInfoLog": 0,
+      "getProgramParameter": 0,
+      "getShaderInfoLog": 0,
+      "getShaderParameter": 0,
+      "getUniformLocation": 0,
+      "linkProgram": 0,
+      "readPixels": 1,
+      "renderbufferStorage": 7,
+      "renderbufferStorageMultisample": 2,
+      "texImage2D": 14,
+      "texStorage2D": 11,
+      "texSubImage2D": 45,
+      "useProgram": 2089
+    },
+    "cpuMs": {
+      "blitFramebuffer": 0,
+      "bufferData": 35535.900000000256,
+      "bufferSubData": 0.5,
+      "checkFramebufferStatus": 0,
+      "clear": 0.1000000000349246,
+      "clientWaitSync": 80.89999999973224,
+      "compileShader": 0.0,
+      "compressedTexImage2D": 0,
+      "compressedTexSubImage2D": 0,
+      "drawArrays": 0.6000000000349246,
+      "drawArraysInstanced": 0,
+      "drawElements": 9.90000000008149,
+      "drawElementsInstanced": 361.4999999998836,
+      "fenceSync": 0,
+      "flush": 0.29999999998835847,
+      "generateMipmap": 0.1000000000349246,
+      "getActiveAttrib": 0.0,
+      "getActiveUniform": 0.0,
+      "getAttribLocation": 0.0,
+      "getBufferSubData": 0,
+      "getFragDataLocation": 0.0,
+      "getProgramInfoLog": 0.0,
+      "getProgramParameter": 0.0,
+      "getShaderInfoLog": 0.0,
+      "getShaderParameter": 0,
+      "getUniformLocation": 0.0,
+      "linkProgram": 0.0,
+      "readPixels": 0,
+      "renderbufferStorage": 0,
+      "renderbufferStorageMultisample": 0,
+      "texImage2D": 0.0,
+      "texStorage2D": 0.1000000000349246,
+      "texSubImage2D": 1.599999999976717,
+      "useProgram": 9.999999999941792
+    }
+  },
+  "latePrograms": [],
+  "consoleErrorsAndWarnings": [],
+  "limitations": [
+    "Configured predicate timeout remains90000ms. Recorded trace operation span is reported separately without treating its instrumentation boundary as the internal timeout start.",
+    "Native counts cover selected trace-active stages, not all construction/texture-preparation work.",
+    "CPU call spans can include queued prior GPU work; owner metadata overhead is outside those spans but inside total startup time.",
+    "A returned cube capture or scene draw does not certify GPU completion; the final fence queue remains pending with completed0.",
+    "No cockpit, paused/driving or photo acceptance assertion follows the failed readiness predicate.",
+    "The observer/source did not change production rendering, so cross-run timing differences are not a demonstrated source optimization."
+  ]
+}

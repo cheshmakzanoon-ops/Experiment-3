@@ -1,0 +1,177 @@
+{
+  "sourceCommit": "f79c088bba9d407be8273d03f36721b67e7308d3",
+  "parent": "3e58984936a9e1ba2821580688a723fb93053fa4",
+  "accepted": false,
+  "reason": "Original fastest-valid GP class lap is slower than Superbike; subsequent0.15-second assertion not reached.",
+  "native": "127/127 including26 new and101 unchanged",
+  "negative": "22failed/4passed against immutable3e; identical additive assertions",
+  "originalMixed": {
+    "executed": 1,
+    "failed": 1,
+    "skipped": 13,
+    "fastestValidGPSeconds": 90.93835068988787,
+    "fastestValidSuperbikeSeconds": 89.74459670278252,
+    "superbikeMinusGPSeconds": -1.193753987105353,
+    "subsequentPoint15AssertionReached": false
+  },
+  "originalArdennes1000": {
+    "executed": 1,
+    "passed": 1,
+    "skipped": 8
+  },
+  "originalSnapshot": {
+    "executed": 1,
+    "passed": 1,
+    "skipped": 13
+  },
+  "recording": {
+    "originalRun": {
+      "receiptPath": "/workspace/scratch/dac6891506fb/signed-admission-evidence-2245/signed-mixed3303.json",
+      "receiptSha256": "e818dd5c11f783fdf30d5a7d126503b213b4d9a875994383ff26354bda1786f0",
+      "logPath": "/workspace/scratch/dac6891506fb/signed-admission-evidence-2245/signed-mixed3303.log",
+      "logSha256": "cc61bf62abedbe382fa4a6ce65cea4d837415153809a39149c55af1c0f9cb05f",
+      "sourceManifestSha256": "d63fb30a0514cdc592e48f846440427a2a01bcd27f1f8263c510d9afe139bd5c",
+      "expectedFastestValidGP": 90.93835068988787,
+      "expectedFastestValidSuperbike": 89.74459670278252,
+      "originalAssertion": "GP fastest valid lap must be less than Superbike fastest valid lap",
+      "subsequentPoint15AssertionReached": false,
+      "exactFastestValidClassLapReproduction": true
+    },
+    "nativeFallCalls": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "crashes": 0,
+    "localYellowEvents": [],
+    "marshalRows": 6,
+    "gp2WindowRows": 1047,
+    "gp2WindowAllFlagsZero": true,
+    "runtimeHistoryQueryCount": 37300,
+    "distinctRetainedHistoryQueryHashPairs": 15,
+    "retainedAdditionalBikeAndGPHashPairs": 1053,
+    "exactAllocationReplays": 1593,
+    "retainedLapEvents": 11,
+    "finalCompletedLaps": [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "nativeBestLapRecords": [
+      {
+        "id": 1,
+        "tick": 22870,
+        "time": 190.59166666665766,
+        "completed": 2,
+        "last": 89.74459670278252,
+        "best": 89.74459670278252,
+        "sectors": [
+          30.12235439548779,
+          25.644898038276494,
+          33.97734426901823
+        ],
+        "valid": true
+      },
+      {
+        "id": 2,
+        "tick": 23541,
+        "time": 196.18333333331924,
+        "completed": 2,
+        "last": 90.93835068988787,
+        "best": 90.93835068988787,
+        "sectors": [
+          29.625119825163182,
+          26.32418069871119,
+          34.9890501660135
+        ],
+        "valid": true
+      }
+    ]
+  },
+  "notRunOnF79": [
+    "Original Parco5074",
+    "Original Vellamar5222",
+    "Wet Poggio30101",
+    "Full original51",
+    "Full unit suite"
+  ],
+  "sourceVersionsChanged": false,
+  "checks": {
+    "signed-draft-new-native-v3": {
+      "passed": true,
+      "wallSeconds": 1.886678921,
+      "receiptSha256": "6e135a8d032ad91d41b7512592edbdd30bbd16f947b7203ed3e1a7bf0ff944ea",
+      "manifestSha256": "d63fb30a0514cdc592e48f846440427a2a01bcd27f1f8263c510d9afe139bd5c",
+      "logSha256": "ca440d5fdc3387a83027ca4afcae917f3d4d61291bbf08877a3f58775babd4f4"
+    },
+    "signed-negative-3e": {
+      "passed": false,
+      "wallSeconds": 1.746079165,
+      "receiptSha256": "0c0d45727b3b7c7f105db30516716a62d0c09c52d8fe8d60b955d3c55f649938",
+      "manifestSha256": "c0b3962e9352deabeba2f27d09e46d4e4e95cdf600c17703a2d96f18e82bc5df",
+      "logSha256": "c5daf313f5867fb216ecb348cf76d818ffeb80ed6368fdd26fca5371373fbcef"
+    },
+    "signed-focused-native": {
+      "passed": true,
+      "wallSeconds": 28.437319593,
+      "receiptSha256": "92fbe30de0b94bb8c45ed0c08c0229eb803100a2b2c171f0a1ceb9912d524123",
+      "manifestSha256": "d63fb30a0514cdc592e48f846440427a2a01bcd27f1f8263c510d9afe139bd5c",
+      "logSha256": "54480673aa18e02908ff971547ae1b675b508462c8e2e445090db26b896bc26e"
+    },
+    "signed-typecheck": {
+      "passed": true,
+      "wallSeconds": 32.292195554,
+      "receiptSha256": "651c4492e36591b3f789d0eb71a5e6176137a7de7995643897562e1d941a5142",
+      "manifestSha256": "d63fb30a0514cdc592e48f846440427a2a01bcd27f1f8263c510d9afe139bd5c",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "signed-lint": {
+      "passed": true,
+      "wallSeconds": 2.9851487810000004,
+      "receiptSha256": "d086df749f155c57784c27c6df64a246a991ca1f7379b4a6d138459192ca62f2",
+      "manifestSha256": "d63fb30a0514cdc592e48f846440427a2a01bcd27f1f8263c510d9afe139bd5c",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "signed-mixed3303": {
+      "passed": false,
+      "wallSeconds": 25.275095402999998,
+      "receiptSha256": "e818dd5c11f783fdf30d5a7d126503b213b4d9a875994383ff26354bda1786f0",
+      "manifestSha256": "d63fb30a0514cdc592e48f846440427a2a01bcd27f1f8263c510d9afe139bd5c",
+      "logSha256": "cc61bf62abedbe382fa4a6ce65cea4d837415153809a39149c55af1c0f9cb05f"
+    },
+    "signed-ardennes1000": {
+      "passed": true,
+      "wallSeconds": 17.1444871,
+      "receiptSha256": "d639fae71e6967bded769e26c7557e6ab169fb60f555a2d308dfcf161f465677",
+      "manifestSha256": "d63fb30a0514cdc592e48f846440427a2a01bcd27f1f8263c510d9afe139bd5c",
+      "logSha256": "1111f7d77b43b7ee2ed519301ca41c49f02f2a73e14e54e005cb837143521f00"
+    },
+    "signed-snapshot": {
+      "passed": true,
+      "wallSeconds": 8.021298116,
+      "receiptSha256": "8ca8433253bc2fc0e4a89c9196124139eed15e4a57efa75de140d07ae00680a9",
+      "manifestSha256": "d63fb30a0514cdc592e48f846440427a2a01bcd27f1f8263c510d9afe139bd5c",
+      "logSha256": "b710b6b9c64c803832d8914852c56d7783d44c4bb62f207ce14d5d864707d3b9"
+    },
+    "f79-mixed-observations-guard": {
+      "passed": true,
+      "wallSeconds": 30.182784422999998,
+      "receiptSha256": "4a2156edca4e4cfe4f29616f97d9714582b9b10ff78a727bdfe95ce6c47987e6",
+      "manifestSha256": "d63fb30a0514cdc592e48f846440427a2a01bcd27f1f8263c510d9afe139bd5c",
+      "logSha256": "551c1a933c31d3bb930f270f58b84b373a7f7d7189a1fe1866aea53c08709694"
+    }
+  },
+  "manifestFilesBySha256": {
+    "d63fb30a0514cdc592e48f846440427a2a01bcd27f1f8263c510d9afe139bd5c": "manifests/d63fb30a0514cdc592e48f846440427a2a01bcd27f1f8263c510d9afe139bd5c.json.gz",
+    "c0b3962e9352deabeba2f27d09e46d4e4e95cdf600c17703a2d96f18e82bc5df": "manifests/c0b3962e9352deabeba2f27d09e46d4e4e95cdf600c17703a2d96f18e82bc5df.json.gz",
+    "d557212826af6add34f2c8c5f553e39431d02009724bac09c8ceafd3fb1120af": "manifests/d557212826af6add34f2c8c5f553e39431d02009724bac09c8ceafd3fb1120af.json.gz",
+    "915158ebf8f396f3ae269abe9cd0c227e4229d5236b6ae022d000112d31c26d7": "manifests/915158ebf8f396f3ae269abe9cd0c227e4229d5236b6ae022d000112d31c26d7.json.gz"
+  },
+  "publication": "Evidence only; the patch is a rejected isolated candidate, not application code to integrate."
+}

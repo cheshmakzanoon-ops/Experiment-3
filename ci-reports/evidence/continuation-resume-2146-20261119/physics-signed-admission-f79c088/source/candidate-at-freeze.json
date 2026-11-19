@@ -1,0 +1,79 @@
+{
+  "commit": "f79c088bba9d407be8273d03f36721b67e7308d3",
+  "parent": "3e58984936a9e1ba2821580688a723fb93053fa4",
+  "tree": "3083b99420162eadfa4ea2d5612413f8e10af9a9",
+  "branch": "studio/gp-signed-admission-2245-20261119",
+  "worktree": "/workspace/scratch/dac6891506fb/gp-signed-admission-2245",
+  "files": {
+    "src/simulation/bike.ts": {
+      "bytes": 62329,
+      "sha256": "861e71515039680daf3324a3a8c198a229322751c536cf068092943e026ceee7",
+      "equalsCommittedBlob": true
+    },
+    "src/simulation/motogp-physics.ts": {
+      "bytes": 25769,
+      "sha256": "bebda556859b78893fbee4299dc4589cbeaa420b53895db5fb804bf4e92b8d08",
+      "equalsCommittedBlob": true
+    },
+    "tests/gp-signed-command.test.ts": {
+      "bytes": 14408,
+      "sha256": "c3a16253c83295547840237d39c05bc6f9a78da5fd11fafc896e4863c33c4781",
+      "equalsCommittedBlob": true
+    },
+    "tests/fixtures/gp-signed-command-onset.json": {
+      "bytes": 85261,
+      "sha256": "b85a44f4e38c60314233d1c75bd9a24a75d78e250ec863c2ac492e1c020a7fa9",
+      "equalsCommittedBlob": true
+    }
+  },
+  "original51UnchangedFromFfd": {
+    "tests/gp-ai-braking-plan.test.ts": "f0124f304bbdc5311ace3a2624d9ae3e6656be61fcdc87a314e0874e2ff51b9a",
+    "tests/gp-tyre-contact.test.ts": "e3e67c87d1bf99f2dcd1761efd9c1ad3ca66f30da2ba332607d621e1f8e0ecc4",
+    "tests/bike-session.test.ts": "28b653c92029c494cd11ec713ab21c9eae1808af8c378afc1590d60590df09ae",
+    "tests/bike-mixed-passing.test.ts": "de20c703b20d780a5aafee7eeba45be8efaab5f59c780c303a3b6c704e734253"
+  },
+  "checks": {
+    "signed-draft-new-native-v3": {
+      "receiptSha256": "6e135a8d032ad91d41b7512592edbdd30bbd16f947b7203ed3e1a7bf0ff944ea",
+      "manifestSha256": "d63fb30a0514cdc592e48f846440427a2a01bcd27f1f8263c510d9afe139bd5c",
+      "logSha256": "ca440d5fdc3387a83027ca4afcae917f3d4d61291bbf08877a3f58775babd4f4",
+      "passed": true,
+      "wallSeconds": 1.886678921
+    },
+    "signed-negative-3e": {
+      "receiptSha256": "0c0d45727b3b7c7f105db30516716a62d0c09c52d8fe8d60b955d3c55f649938",
+      "manifestSha256": "c0b3962e9352deabeba2f27d09e46d4e4e95cdf600c17703a2d96f18e82bc5df",
+      "logSha256": "c5daf313f5867fb216ecb348cf76d818ffeb80ed6368fdd26fca5371373fbcef",
+      "passed": false,
+      "wallSeconds": 1.746079165
+    },
+    "signed-focused-native": {
+      "receiptSha256": "92fbe30de0b94bb8c45ed0c08c0229eb803100a2b2c171f0a1ceb9912d524123",
+      "manifestSha256": "d63fb30a0514cdc592e48f846440427a2a01bcd27f1f8263c510d9afe139bd5c",
+      "logSha256": "54480673aa18e02908ff971547ae1b675b508462c8e2e445090db26b896bc26e",
+      "passed": true,
+      "wallSeconds": 28.437319593
+    },
+    "signed-typecheck": {
+      "receiptSha256": "651c4492e36591b3f789d0eb71a5e6176137a7de7995643897562e1d941a5142",
+      "manifestSha256": "d63fb30a0514cdc592e48f846440427a2a01bcd27f1f8263c510d9afe139bd5c",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "passed": true,
+      "wallSeconds": 32.292195554
+    },
+    "signed-lint": {
+      "receiptSha256": "d086df749f155c57784c27c6df64a246a991ca1f7379b4a6d138459192ca62f2",
+      "manifestSha256": "d63fb30a0514cdc592e48f846440427a2a01bcd27f1f8263c510d9afe139bd5c",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "passed": true,
+      "wallSeconds": 2.9851487810000004
+    }
+  },
+  "nativeResult": "127/127, including26 new and101 unchanged native tests",
+  "negativeControl": "22 failed /4 passed against immutable3e production, identical26 new tests; candidate bytes restored exactly after completed guard",
+  "patchSha256": "0316b45ea8e699730af4b02274f7cb6a57a0628bdee240f53e93f4043f07f8c7",
+  "accepted": false,
+  "raceAcceptance": "pending",
+  "simulationVersionChanged": false,
+  "scope": "Final road-GP signed command admission only; native single preparation/inverse on valid range, second pure inverse only for missing/invalid-range complete legacy fallback. No new persistent native state, gains, support/energy/reserve or physical limit changes."
+}

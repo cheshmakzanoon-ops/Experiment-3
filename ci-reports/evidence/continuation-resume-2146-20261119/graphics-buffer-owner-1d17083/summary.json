@@ -1,0 +1,550 @@
+{
+  "source": "1d17083c7364b0d960d3f4a548139ac95077daa2",
+  "tree": "efa81a0e2ef87d079d355a457c67be24b0a8f263",
+  "parent": "f22622e3302ed6147c5aae6f8eb6f6bc4057a242",
+  "matchingLocalCommit": "07bf358316f4a51e1566a052628ca57a68ca2610",
+  "branch": "ci/high-buffer-owner-2218-20261119",
+  "run": 44631109424,
+  "attempt": 1,
+  "workflow": ".github/workflows/graphics-high-diagnostic.yml",
+  "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44631109424",
+  "conclusion": "failure",
+  "coverage": {
+    "cases": 16,
+    "passed": 15,
+    "failed": 1,
+    "skipped": 0,
+    "flaky": 0,
+    "retries": 0,
+    "unique_case_identity_count": 16,
+    "original_f226_case_set_matches": true,
+    "case_identity": "group,title,path,projectName,sourceFile (line numbers excluded because diagnostics added lines)",
+    "jobs": [
+      {
+        "id": 135937650532,
+        "name": "gameplay",
+        "head_sha": "1d17083c7364b0d960d3f4a548139ac95077daa2",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-19T22:42:26Z",
+        "completed_at": "2026-11-19T22:48:07Z"
+      },
+      {
+        "id": 135937650931,
+        "name": "gpu",
+        "head_sha": "1d17083c7364b0d960d3f4a548139ac95077daa2",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-19T22:42:26Z",
+        "completed_at": "2026-11-19T22:52:25Z"
+      },
+      {
+        "id": 135937650956,
+        "name": "high",
+        "head_sha": "1d17083c7364b0d960d3f4a548139ac95077daa2",
+        "status": "completed",
+        "conclusion": "failure",
+        "started_at": "2026-11-19T22:42:26Z",
+        "completed_at": "2026-11-19T22:47:52Z"
+      },
+      {
+        "id": 135937650979,
+        "name": "build",
+        "head_sha": "1d17083c7364b0d960d3f4a548139ac95077daa2",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-19T22:42:26Z",
+        "completed_at": "2026-11-19T22:43:47Z"
+      },
+      {
+        "id": 135938383818,
+        "name": "browser (menu-entry, e2e/30-menu-access.spec.ts e2e/settings-transition.spec.ts e2e/gpu-frame-gat...",
+        "head_sha": "1d17083c7364b0d960d3f4a548139ac95077daa2",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-19T22:44:11Z",
+        "completed_at": "2026-11-19T22:53:04Z"
+      }
+    ]
+  },
+  "uniqueOriginalTestIds": 16,
+  "artifacts": [
+    {
+      "artifactId": 14581806173,
+      "name": "motogp-reviewed-build",
+      "sourceCommit": "1d17083c7364b0d960d3f4a548139ac95077daa2",
+      "runId": 44631109424,
+      "file": "buffer-build-1d17083.zip",
+      "bytes": 79159685,
+      "sha256": "ba20be313c04cd6d37a58c87856f707d42d4024052fe23a79d04e663b5832a21",
+      "githubArtifactDigest": "sha256:ba20be313c04cd6d37a58c87856f707d42d4024052fe23a79d04e663b5832a21",
+      "matchesGitHubArtifactDigest": true,
+      "deliveryFileId": "file_00000000dfa8822f9493c1aa06b97b3e",
+      "acquisition": "GitHub artifact GET through its authorized file delivery; no workflow mutations"
+    },
+    {
+      "artifactId": 14581647268,
+      "name": "graphics-advancement-gpu",
+      "sourceCommit": "1d17083c7364b0d960d3f4a548139ac95077daa2",
+      "runId": 44631109424,
+      "file": "buffer-gpu-1d17083.zip",
+      "bytes": 790988,
+      "sha256": "2846fd6fc250985ca91ffe161c0c51e28cd80eba51308c7892049df7e9309c12",
+      "githubArtifactDigest": "sha256:2846fd6fc250985ca91ffe161c0c51e28cd80eba51308c7892049df7e9309c12",
+      "matchesGitHubArtifactDigest": true,
+      "deliveryFileId": "file_00000000acc4822f8cd8dbaf741c9343",
+      "acquisition": "GitHub artifact GET through its authorized file delivery; no workflow mutations"
+    },
+    {
+      "artifactId": 14581908175,
+      "name": "motogp-menu-entry",
+      "sourceCommit": "1d17083c7364b0d960d3f4a548139ac95077daa2",
+      "runId": 44631109424,
+      "file": "buffer-menu-1d17083.zip",
+      "bytes": 698521,
+      "sha256": "3dfdc5c9369145d5fe65b4444ec44baba6ecc1dbad85acb4e54cb05abd99b435",
+      "githubArtifactDigest": "sha256:3dfdc5c9369145d5fe65b4444ec44baba6ecc1dbad85acb4e54cb05abd99b435",
+      "matchesGitHubArtifactDigest": true,
+      "deliveryFileId": "file_000000003254822f910ced5a27b3fdf4",
+      "acquisition": "GitHub artifact GET through its authorized file delivery; no workflow mutations"
+    },
+    {
+      "artifactId": 14580348894,
+      "name": "graphics-advancement-gameplay",
+      "sourceCommit": "1d17083c7364b0d960d3f4a548139ac95077daa2",
+      "runId": 44631109424,
+      "file": "buffer-gameplay-1d17083.zip",
+      "bytes": 13096382,
+      "sha256": "bb5ea5bfde9ce6c2567a6fe418228afdbd749be97ded555a62ede560b94d4d36",
+      "githubArtifactDigest": "sha256:bb5ea5bfde9ce6c2567a6fe418228afdbd749be97ded555a62ede560b94d4d36",
+      "matchesGitHubArtifactDigest": true,
+      "deliveryFileId": "file_000000007e90822fb1e52df5be9182ba",
+      "acquisition": "GitHub artifact GET through its authorized file delivery; no workflow mutations"
+    },
+    {
+      "artifactId": 14583020560,
+      "name": "graphics-advancement-high",
+      "sourceCommit": "1d17083c7364b0d960d3f4a548139ac95077daa2",
+      "runId": 44631109424,
+      "file": "buffer-high-1d17083.zip",
+      "bytes": 107481015,
+      "sha256": "4e5eb489e34a35ef57b57d44d9aab967039ce50935d6506a277141cb7abed888",
+      "githubArtifactDigest": "sha256:4e5eb489e34a35ef57b57d44d9aab967039ce50935d6506a277141cb7abed888",
+      "matchesGitHubArtifactDigest": true,
+      "deliveryFileId": "file_000000000f34822f97e8c544ea4086f9",
+      "acquisition": "GitHub artifact GET through its authorized file delivery; no workflow mutations"
+    }
+  ],
+  "logs": [
+    {
+      "jobId": 135937650979,
+      "runId": 44631109424,
+      "sourceCommit": "1d17083c7364b0d960d3f4a548139ac95077daa2",
+      "file": "build-job.log.gz",
+      "decoded_bytes": 28111,
+      "decoded_sha256": "c90c99db269a8c47ba60a54ac736e681072e0c50504df46cea6385df3ee87c0c",
+      "sha256": "aeb2ca44045f6fd593b79d4632606e7d1f700ec5d02434fac12ec0c31e537f44"
+    },
+    {
+      "jobId": 135937650931,
+      "runId": 44631109424,
+      "sourceCommit": "1d17083c7364b0d960d3f4a548139ac95077daa2",
+      "file": "gpu-job.log.gz",
+      "decoded_bytes": 67085,
+      "decoded_sha256": "c3e9ecd9cf2eb949031fd6c6a4d2170c4695d06f4a44a9b857cc6a6e4b95ae23",
+      "sha256": "5421accb118f9d4c392d4bd9f68a53a84cdbc4ad5e8c89428ddc2c56446f96cd"
+    },
+    {
+      "jobId": 135938383818,
+      "runId": 44631109424,
+      "sourceCommit": "1d17083c7364b0d960d3f4a548139ac95077daa2",
+      "file": "menu-job.log.gz",
+      "decoded_bytes": 60519,
+      "decoded_sha256": "0e8f55840e322db2d80cba4897ab2215399f02c6c972ef2b41f1b9ecc27fa220",
+      "sha256": "f197703fb8a524dd1d9ed8fd4c32580411d826d6c0e76685b0bf845625724f8c"
+    },
+    {
+      "jobId": 135937650532,
+      "runId": 44631109424,
+      "sourceCommit": "1d17083c7364b0d960d3f4a548139ac95077daa2",
+      "file": "gameplay-job.log.gz",
+      "decoded_bytes": 66100,
+      "decoded_sha256": "baaccbff1f212c28da1810b47d69b361ba942c9628fee375ab882bf6fd1f1e86",
+      "sha256": "43f7d0549de2788846ef82ca7334b5bbfdc867638a29935a4ea53f1c09a494c0"
+    },
+    {
+      "jobId": 135937650956,
+      "runId": 44631109424,
+      "sourceCommit": "1d17083c7364b0d960d3f4a548139ac95077daa2",
+      "file": "high-job.log.gz",
+      "decoded_bytes": 68651,
+      "decoded_sha256": "a425ce8690f6864359992ec4ba433bdd6e831fbb6d71fda1225b3df24bb93518",
+      "sha256": "7d4d23481d0cd4c8f7db86e75a59855fe97e509e133863103366ce7aa2893c1b"
+    }
+  ],
+  "high": {
+    "wholeTestDurationMs": 146170,
+    "predicate": {
+      "configuredTimeoutMs": 90000,
+      "traceStart": 50183.708,
+      "traceEnd": 139888.565,
+      "observedTraceSpanMs": 89704.857,
+      "failure": "expected paused, received loading; original 90000 ms timeout reported"
+    },
+    "firstChaseRelativeToPredicateTraceStartMs": 34231.748999999996,
+    "lastSuccessfulApplicationDiagnostic": {
+      "traceTime": 139878.635,
+      "relativeMs": 89694.92700000001,
+      "beforePredicateEndMs": 9.929999999993015,
+      "afterChaseStartMs": 55463.178000000014,
+      "buildIdentity": {
+        "commit": "1d17083c7364b0d960d3f4a548139ac95077daa2",
+        "fingerprint": "9654582fc293da474310e3a5a19db6be2fadc6c0e780b7b1348d9fc6c019837c"
+      },
+      "state": "loading",
+      "warmupFrames": 1,
+      "gpuFrameQueue": {
+        "pending": true,
+        "submitted": 2,
+        "completed": 0,
+        "deferredCallbacks": 824,
+        "flushRefreshes": 13,
+        "pendingMs": 13750.200000000012,
+        "activeWaitMs": 13748.5,
+        "failure": null,
+        "latencyMs": 0
+      },
+      "preparation": {
+        "status": "preparing",
+        "elapsedMs": 71495.20000000001,
+        "error": null,
+        "stages": [
+          {
+            "label": "Building GP motorcycles and riders\u2026",
+            "elapsedMs": 272,
+            "complete": true
+          },
+          {
+            "label": "Loading the photographed sky\u2026",
+            "elapsedMs": 62.90000000002328,
+            "complete": true
+          },
+          {
+            "label": "Loading photographed ground\u2026",
+            "elapsedMs": 1.099999999976717,
+            "complete": true
+          },
+          {
+            "label": "Preparing recorded sky lighting\u2026",
+            "elapsedMs": 5417.300000000047,
+            "complete": true
+          },
+          {
+            "label": "Compiling circuit and vehicle materials\u2026",
+            "elapsedMs": 9249.199999999953,
+            "complete": true
+          },
+          {
+            "label": "Preparing circuit and vehicle materials\u2026",
+            "elapsedMs": 222.5,
+            "complete": true
+          },
+          {
+            "label": "Preparing post-processing materials\u2026",
+            "elapsedMs": 185.10000000003492,
+            "complete": true
+          },
+          {
+            "label": "Preparing retained scene textures\u2026",
+            "elapsedMs": 208.29999999998836,
+            "complete": true
+          },
+          {
+            "label": "Compiling shadow casters around the circuit\u2026",
+            "elapsedMs": 416.20000000001164,
+            "complete": true
+          },
+          {
+            "label": "Warming shadows and scene reflections\u2026",
+            "elapsedMs": 41694.09999999998,
+            "complete": true
+          },
+          {
+            "label": "Warming offscreen pit-service materials\u2026",
+            "elapsedMs": 13760.700000000012,
+            "complete": false
+          }
+        ]
+      },
+      "reflectionCaptureSubmissionMetric": {
+        "completed": 1,
+        "starts": {
+          "immediate": 1,
+          "motion": 0,
+          "scenery": 0,
+          "cadence": 0
+        },
+        "pendingFace": -1,
+        "pendingReason": null,
+        "facesPerFrame": 1,
+        "motionDistance": 12,
+        "minimumInterval": 0.5,
+        "immediateFaces": 6,
+        "immediateRetryPending": false,
+        "lastStart": 5.907441139221191,
+        "lastCompleted": 5.907441139221191,
+        "capturedAt": 5.907441139221191,
+        "origin": [
+          -354.6912841796875,
+          1.8953696489334106,
+          -211.8518524169922
+        ],
+        "displacement": 0,
+        "sceneryPending": false
+      },
+      "reflectionMetricMeaning": "Capture/submission calls returned. This metric does not certify GPU completion."
+    },
+    "observedChaseThroughPitDelta": {
+      "counts": {
+        "blitFramebuffer": 1,
+        "bufferData": 3851,
+        "bufferSubData": 105,
+        "checkFramebufferStatus": 0,
+        "clear": 17,
+        "clientWaitSync": 3966,
+        "compileShader": 0,
+        "compressedTexImage2D": 0,
+        "compressedTexSubImage2D": 0,
+        "drawArrays": 83,
+        "drawArraysInstanced": 3,
+        "drawElements": 1894,
+        "drawElementsInstanced": 1110,
+        "fenceSync": 3,
+        "flush": 16,
+        "generateMipmap": 8,
+        "getActiveAttrib": 0,
+        "getActiveUniform": 0,
+        "getAttribLocation": 0,
+        "getBufferSubData": 0,
+        "getFragDataLocation": 0,
+        "getProgramInfoLog": 0,
+        "getProgramParameter": 0,
+        "getShaderInfoLog": 0,
+        "getShaderParameter": 0,
+        "getUniformLocation": 0,
+        "linkProgram": 0,
+        "readPixels": 1,
+        "renderbufferStorage": 7,
+        "renderbufferStorageMultisample": 2,
+        "texImage2D": 14,
+        "texStorage2D": 11,
+        "texSubImage2D": 45,
+        "useProgram": 2089
+      },
+      "cpuMs": {
+        "blitFramebuffer": 0,
+        "bufferData": 35535.900000000256,
+        "bufferSubData": 0.5,
+        "checkFramebufferStatus": 0,
+        "clear": 0.1000000000349246,
+        "clientWaitSync": 80.89999999973224,
+        "compileShader": 0.0,
+        "compressedTexImage2D": 0,
+        "compressedTexSubImage2D": 0,
+        "drawArrays": 0.6000000000349246,
+        "drawArraysInstanced": 0,
+        "drawElements": 9.90000000008149,
+        "drawElementsInstanced": 361.4999999998836,
+        "fenceSync": 0,
+        "flush": 0.29999999998835847,
+        "generateMipmap": 0.1000000000349246,
+        "getActiveAttrib": 0.0,
+        "getActiveUniform": 0.0,
+        "getAttribLocation": 0.0,
+        "getBufferSubData": 0,
+        "getFragDataLocation": 0.0,
+        "getProgramInfoLog": 0.0,
+        "getProgramParameter": 0.0,
+        "getShaderInfoLog": 0.0,
+        "getShaderParameter": 0,
+        "getUniformLocation": 0.0,
+        "linkProgram": 0.0,
+        "readPixels": 0,
+        "renderbufferStorage": 0,
+        "renderbufferStorageMultisample": 0,
+        "texImage2D": 0.0,
+        "texStorage2D": 0.1000000000349246,
+        "texSubImage2D": 1.599999999976717,
+        "useProgram": 9.999999999941792
+      }
+    },
+    "lastPrePredicateEndSnapshot": {
+      "traceTime": 139581.257,
+      "relativeMs": 89397.54900000001,
+      "beforePredicateEndMs": 307.30799999999,
+      "stage": "Warming offscreen pit-service materials\u2026",
+      "inFlight": false,
+      "observedInFlightMs": 0,
+      "lastStarted": {
+        "sequence": 30474,
+        "atMs": 133556.3,
+        "method": "clientWaitSync",
+        "program": 88,
+        "fragmentHash": "1e97beee",
+        "framebuffer": 0,
+        "cubeFace": 0,
+        "mip": 0,
+        "viewport": [
+          0,
+          0,
+          960,
+          600
+        ],
+        "count": 0,
+        "instances": 1,
+        "numericArguments": [
+          -1,
+          1,
+          0,
+          -1
+        ],
+        "sourceBufferBytes": null,
+        "shader": 0,
+        "shaderType": 0,
+        "shaderHash": "00000000",
+        "bufferOwner": null
+      },
+      "lastCompleted": {
+        "sequence": 30474,
+        "atMs": 133556.3,
+        "method": "clientWaitSync",
+        "cpuCallMs": 0,
+        "returned": true
+      }
+    },
+    "exactGarageIndexObservation": {
+      "pageId": "page@9ece583fa4eb72f96de18ba82cd9894e",
+      "sequence": 23145,
+      "method": "bufferData",
+      "nativeAtMs": 101855.59999999998,
+      "owner": {
+        "upload": 11884,
+        "method": "bufferData",
+        "context": 1,
+        "generation": 1,
+        "renderer": 4479,
+        "target": 34963,
+        "buffer": 52332,
+        "bufferKnown": true,
+        "vao": 52336,
+        "view": 52337,
+        "backingBuffer": 52338,
+        "viewType": "Uint16Array",
+        "byteOffset": 0,
+        "byteLength": 26568,
+        "sourceOffset": null,
+        "sourceLength": null,
+        "destinationOffset": null,
+        "attribution": "exact-direct-index",
+        "exact": {
+          "object": 52333,
+          "objectId": 2480,
+          "objectType": "Mesh",
+          "path": [
+            "Scene:#2031",
+            "Group:Aurel circuit#2203",
+            "Group:Venue props and structures#2205",
+            "Group:Authored garage bay 5#6088",
+            "Group:Aurel hero working garage / A22#2436",
+            "Object3D:AUREL_GARAGE#2437",
+            "Object3D:GARAGE_LOD1#2439",
+            "Mesh:LOD1_GARAGE_TeamEnamel#2480"
+          ],
+          "pathTruncated": false,
+          "geometry": 52334,
+          "geometryId": 3696,
+          "geometryName": "",
+          "slot": "index",
+          "attribute": 52335,
+          "nativeAttribute": 52335,
+          "versionAtCall": 0,
+          "registeredVersion": 0,
+          "usage": 35044,
+          "itemSize": 1,
+          "normalized": false,
+          "interleaved": false,
+          "stride": 0,
+          "offset": 0
+        },
+        "candidates": [],
+        "aliasesTruncated": false,
+        "staleCandidates": 0,
+        "inventoryTruncated": true,
+        "bufferDataStarts": 1,
+        "bufferDataReturnsBeforeCall": 0,
+        "bufferSubDataStarts": 0,
+        "previousView": 0,
+        "previousExactNativeAttribute": 0,
+        "previousExactVersion": null,
+        "priorBuffersForView": [],
+        "priorBuffersTruncated": false
+      },
+      "firstObservedTraceTime": 108081.217,
+      "lastObservedTraceTime": 139581.257,
+      "observedKinds": [
+        "activity-last-started",
+        "activity-retained-slow-call"
+      ],
+      "stages": [
+        "Warming shadows and scene reflections\u2026",
+        "Warming offscreen pit-service materials\u2026"
+      ],
+      "returnedObserved": true,
+      "maxObservedInFlightMs": 12200.600000000035,
+      "returnedCpuCallMs": 12268.900000000023,
+      "chaseClassification": "started-after-chase-label"
+    },
+    "ownerSample": {
+      "retainedUniqueUploadRecords": 17,
+      "attributionCountsInRetainedRecords": {
+        "registered-array": 3,
+        "exact-direct-index": 3,
+        "unknown": 11
+      },
+      "contextGenerations": [
+        [
+          1,
+          1
+        ]
+      ],
+      "unknownNativeBufferRecords": 0,
+      "recordsWithInventoryTruncation": 17,
+      "recordsWithAliasTruncation": 0,
+      "recordsWithPriorHistoryTruncation": 0,
+      "recordsWithStaleCandidates": 0,
+      "priorViewRelations": {},
+      "observerUnavailable": [],
+      "identityInconsistencies": []
+    },
+    "noLaterAcceptance": "No paused/driving/cockpit/photo acceptance follows the failed readiness predicate.",
+    "gpuCompletion": "Six reflection face capture/submission calls and one scene frame returned; the fresh final GPU frame queue is pending, submitted2/completed0.",
+    "appearance": "Original High photo views were not reached; authored-scene appearance remains unverified.",
+    "limitations": [
+      "Only worker snapshots and bounded retained slow calls are represented; these are not counts of all native uploads.",
+      "Registered-array matches remain candidate consumers, including when only one candidate is retained.",
+      "Exact direct-index claims apply only to the actual non-wireframe invocation and the live index view at that call.",
+      "Typed-array identity does not establish unchanged submitted bytes, and backing-buffer identity is weaker still.",
+      "Prior-view history totals belong to the native buffer lifetime, not exclusively to that view; returns may be zero.",
+      "An earlier buffer can belong to another renderer; prior history alone does not retain that renderer identity.",
+      "No native driver query confirms attempted binding/deletion success; bufferKnown is knowledge from observed native calls.",
+      "Metadata/inventory/postMessage overhead affects whole-startup timing, while native CPU spans can wait behind earlier queued GPU work.",
+      "Configured predicate timeout remains90000ms. Recorded trace operation span is reported separately without treating its instrumentation boundary as the internal timeout start.",
+      "Native counts cover selected trace-active stages, not all construction/texture-preparation work.",
+      "CPU call spans can include queued prior GPU work; owner metadata overhead is outside those spans but inside total startup time.",
+      "A returned cube capture or scene draw does not certify GPU completion; the final fence queue remains pending with completed0.",
+      "No cockpit, paused/driving or photo acceptance assertion follows the failed readiness predicate.",
+      "The observer/source did not change production rendering, so cross-run timing differences are not a demonstrated source optimization."
+    ]
+  },
+  "actions": "Read-only GitHub GETs and isolated scratch analysis. No source/ref changes, workflow rerun/cancel, or local browser execution."
+}

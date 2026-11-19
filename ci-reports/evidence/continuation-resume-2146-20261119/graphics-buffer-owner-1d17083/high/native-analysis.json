@@ -1,0 +1,411 @@
+{
+  "source": "1d17083c7364b0d960d3f4a548139ac95077daa2",
+  "run": 44631109424,
+  "job": 135937650956,
+  "title": "High production scene presents an active GP chassis and two completed photo views",
+  "outcome": "unexpected",
+  "durationMs": 146170,
+  "results": [
+    {
+      "status": "failed",
+      "duration": 146170,
+      "retry": 0,
+      "errors": [
+        {
+          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"paused\"\u001b[39m\nReceived: \u001b[31m\"loading\"\u001b[39m\n\nCall Log:\n- Timeout 90000ms exceeded while waiting on the predicate\n\n  816 |     await page.selectOption('#weather', 'clear');\n  817 |     await page.getByRole('button', { name: 'PREPARE GRID START PAUSED', exact: true }).click();\n> 818 |     await expect.poll(async () => (await read()).state, { timeout: 90000 }).toBe('paused');\n      |     ^\n  819 |     const prepared = await read();\n  820 |     expect(prepared.renderer?.presentationPurpose).toBe('circuit');\n  821 |     expect(prepared.renderer?.preparation?.status).toBe('complete');\n    at /home/runner/work/Experiment-3/Experiment-3/e2e/graphics-high-journey.spec.ts:818:5",
+          "codeframe": "  718 |     if (outputs.some((output) => output.location >= 0)) return;\n  719 |     const drawBuffers = Array.from(\n  720 |       { length: gl.getParameter(gl.MAX_DRAW_BUFFERS) as number },\n  721 |       (_, i) => gl.getParameter(gl.DRAW_BUFFER0 + i) as number,\n  722 |     );\n  723 |     if (drawBuffers.every((buffer) => buffer === gl.NONE)) return;\n  724 |     reports++;\n  725 |     console.warn(\n  726 |       'APEX_HIGH_MISSING_FRAGMENT_OUTPUT ' +\n  727 |         JSON.stringify({ atMs: performance.now(), outputs, drawBuffers, source }),\n  728 |     );\n  729 |   };\n  730 |   const elements = prototype.drawElementsInstanced,\n  731 |     arrays = prototype.drawArraysInstanced;\n  732 |   prototype.drawElementsInstanced = function (...args) {\n  733 |     inspect(this);\n  734 |     elements.apply(this, args);\n  735 |   };\n  736 |   prototype.drawArraysInstanced = function (...args) {\n  737 |     inspect(this);\n  738 |     arrays.apply(this, args);\n  739 |   };\n  740 | }\n  741 |\n  742 | test('High production scene presents an active GP chassis and two completed photo views', async ({\n  743 |   page,\n  744 | }, info) => {\n  745 |   const errors: string[] = [],\n  746 |     observations = [],\n  747 |     startupRecords: Record<string, unknown>[] = [],\n  748 |     startupPrograms: Record<string, unknown>[] = [],\n  749 |     startupLatePrograms: Record<string, unknown>[] = [],\n  750 |     startupSlowUploads: Record<string, unknown>[] = [];\n  751 |   let startupWorkerUrl: string | null = null,\n  752 |     startupLastStarted: unknown = null,\n  753 |     startupLastCompleted: unknown = null;\n  754 |   page.on('pageerror', (error) => errors.push(error.message));\n  755 |   page.on('console', (message) => {\n  756 |     const text = message.text();\n  757 |     if (text.startsWith('APEX_HIGH_STARTUP ')) {\n  758 |       try {\n  759 |         const record = JSON.parse(text.slice('APEX_HIGH_STARTUP '.length)) as Record<\n  760 |           string,\n  761 |           unknown\n  762 |         >;\n  763 |         startupRecords.push(record);\n  764 |         if (startupRecords.length > 256) startupRecords.shift();\n  765 |         if (record.kind === 'program' && startupPrograms.length < 32) startupPrograms.push(record);\n  766 |         if (record.kind === 'late-program' && startupLatePrograms.length < 8)\n  767 |           startupLatePrograms.push(record);\n  768 |         if (record.kind === 'slow-upload' && startupSlowUploads.length < 16)\n  769 |           startupSlowUploads.push(record);\n  770 |         if (record.kind === 'worker-ready' && typeof record.workerUrl === 'string')\n  771 |           startupWorkerUrl = record.workerUrl;\n  772 |         if (record.lastStarted) startupLastStarted = record.lastStarted;\n  773 |         if (record.lastCompleted) startupLastCompleted = record.lastCompleted;\n  774 |       } catch {\n  775 |         errors.push('Malformed High startup diagnostic');\n  776 |       }\n  777 |     }\n  778 |     if (\n  779 |       message.type() === 'error' ||\n  780 |       /\\bGL_(?:INVALID_\\w+|OUT_OF_MEMORY|CONTEXT_LOST)\\b|APEX_HIGH_(?:MISSING_FRAGMENT_OUTPUT|TEXTURE_REALLOCATION)/.test(\n  781 |         message.text(),\n  782 |       )\n  783 |     )\n  784 |       errors.push(message.text());\n  785 |   });\n  786 |   let lastDiagnostic: ReturnType<Window['apexDiagnostics']> | null = null,\n  787 |     lastObservedAt: string | null = null;\n  788 |   const read = async () => {\n  789 |     const diagnostic = await page.evaluate(() => window.apexDiagnostics());\n  790 |     lastDiagnostic = diagnostic;\n  791 |     lastObservedAt = new Date().toISOString();\n  792 |     return diagnostic;\n  793 |   };\n  794 |   // One init script fixes wrapper order: missing-output inspection remains\n  795 |   // outside the native-command wrappers, so its own queries are not mistaken\n  796 |   // for the duration of an instanced draw.\n  797 |   await page.addInitScript({\n  798 |     content: `(${installFirstChaseStartup.toString()})(${installHighBufferOwners.toString()});(${installInstancedFragmentOutputs.toString()})();`,\n  799 |   });\n  800 |   try {\n  801 |     await page.goto('/');\n  802 |     await expect(page.locator('#menu')).toBeVisible({ timeout: MENU_STARTUP_TIMEOUT_MS });\n  803 |     expect((await read()).renderer?.gpuFrameQueue.completed).toBeGreaterThan(0);\n  804 |     await page.selectOption('#vehicle', 'gpr1');\n  805 |     await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();\n  806 |     await page.locator('[name=quality]').selectOption('high');\n  807 |     await page.getByRole('button', { name: 'APPLY & SAVE', exact: true }).click();\n  808 |     await expect(page.locator('#modal')).toBeHidden();\n  809 |     await expect.poll(async () => (await read()).settingsTransition.busy).toBe(false);\n  810 |     await expect\n  811 |       .poll(async () => (await read()).renderer?.graphics)\n  812 |       .toEqual(graphicsPreset('high'));\n  813 |     await page.selectOption('#circuit', 'aurel');\n  814 |     await page.selectOption('#mode', 'practice');\n  815 |     await page.selectOption('#opponents', '0');\n  816 |     await page.selectOption('#weather', 'clear');\n  817 |     await page.getByRole('button', { name: 'PREPARE GRID START PAUSED', exact: true }).click();\n> 818 |     await expect.poll(async () => (await read()).state, { timeout: 90000 }).toBe('paused');\n      |     ^ Error: expect(received).toBe(expected) // Object.is equality\n  819 |     const prepared = await read();\n  820 |     expect(prepared.renderer?.presentationPurpose).toBe('circuit');\n  821 |     expect(prepared.renderer?.preparation?.status).toBe('complete');\n  822 |     expect(prepared.renderer?.construction.cancelled).toBe(false);\n  823 |     expect(prepared.renderer?.gpuFrameQueue.completed).toBeGreaterThan(0);\n  824 |     expect(prepared.frame?.[H.CARS]).toBe(1);\n  825 |     await page.getByRole('button', { name: 'RESUME SESSION', exact: true }).click();\n  826 |     await expect.poll(async () => (await read()).frame?.[H.TICK] ?? 0).toBeGreaterThan(4);\n  827 |     await page.keyboard.press('Escape');\n  828 |     await expect\n  829 |       .poll(async () => (await read()).workerPause)\n  830 |       .toMatchObject({ paused: true, pending: false });\n  831 |     const held = await read();\n  832 |     expect(held.frame?.every(Number.isFinite)).toBe(true);\n  833 |     expect(hasRoadBikeContact(new Float32Array(held.frame!), carBase(0))).toBe(true);\n  834 |     await page.getByRole('button', { name: 'PHOTO STUDIO', exact: true }).click();\n  835 |     await slide(page, 'distance', 5.5);\n  836 |     await slide(page, 'focalLength', 38);\n  837 |     await slide(page, 'elevation', 10);\n  838 |     for (const [view, azimuth] of [\n  839 |       ['three-quarter', 38],\n  840 |       ['side', 90],\n  841 |     ] as const) {\n  842 |       await slide(page, 'azimuth', azimuth);\n  843 |       await expect\n  844 |         .poll(async () => (await read()).renderer?.photo)\n  845 |         .toMatchObject({ target: 0, azimuth, distance: 5.5 });\n  846 |       const submitted = (await read()).renderer!.gpuFrameQueue.submitted;\n  847 |       // At least one later submission must actually complete after this view\n  848 |       // was requested. Two animation callbacks alone cannot establish that.\n  849 |       await expect\n  850 |         .poll(async () => (await read()).renderer?.gpuFrameQueue.completed ?? 0)\n  851 |         .toBeGreaterThan(submitted);\n  852 |       await page.getByRole('button', { name: 'CLEAN FRAME', exact: true }).click();\n  853 |       await capture(page, info, `high-gp-${view}.png`);\n  854 |       const observed = await read();\n  855 |       expect(observed.frame).toEqual(held.frame);\n  856 |       expect(observed.renderer?.graphics).toEqual(graphicsPreset('high'));\n  857 |       expect(observed.renderer?.gpuFrameQueue.failure).toBeNull();\n  858 |       expect(observed.renderer?.renderWidth).toBe(960);\n  859 |       expect(observed.renderer?.renderHeight).toBe(600);\n  860 |       expect(observed.renderer?.drawCalls).toBeGreaterThan(0);\n  861 |       expect(observed.renderer?.triangles).toBeGreaterThan(0);\n  862 |       observations.push({ view, renderer: observed.renderer, presented: observed.presentation });\n  863 |       await page.getByRole('button', { name: 'SHOW CONTROLS', exact: true }).click();\n  864 |     }\n  865 |     const backend = await page.evaluate(() => {\n  866 |       const canvas = document.querySelector<HTMLCanvasElement>('#world');\n  867 |       const gl = canvas?.getContext('webgl2');\n  868 |       if (!gl) throw new Error('Production WebGL2 canvas unavailable');\n  869 |       const debug = gl.getExtension('WEBGL_debug_renderer_info');\n  870 |       return {\n  871 |         vendor: String(gl.getParameter(debug?.UNMASKED_VENDOR_WEBGL ?? gl.VENDOR)),\n  872 |         renderer: String(gl.getParameter(debug?.UNMASKED_RENDERER_WEBGL ?? gl.RENDERER)),\n  873 |         contextAlive: !gl.isContextLost(),\n  874 |       };\n  875 |     });\n  876 |     expect(backend.contextAlive).toBe(true);\n  877 |     expect(held.buildIdentity.fingerprint).toMatch(/^[0-9a-f]{64}$/);\n  878 |     await info.attach('high-gp-application.json', {\n  879 |       body: JSON.stringify(\n  880 |         {\n  881 |           scope: 'Full application at 960x600 High; paused appearance, not FPS certification',\n  882 |           physicalHardwareValidated: false,\n  883 |           buildIdentity: held.buildIdentity,\n  884 |           backend,\n  885 |           options: held.options,\n  886 |           frame: held.frame,\n  887 |           observations,\n  888 |         },\n  889 |         null,\n  890 |         2,\n  891 |       ),\n  892 |       contentType: 'application/json',\n  893 |     });\n  894 |     expect(errors).toEqual([]);\n  895 |   } finally {\n  896 |     // A blocked render thread cannot answer another evaluate call. Preserve the\n  897 |     // last successful poll and console errors entirely from the Node process.\n  898 |     await info.attach('high-gp-last-diagnostic.json', {\n  899 |       body: JSON.stringify({ lastObservedAt, lastDiagnostic, errors }, null, 2),\n  900 |       contentType: 'application/json',\n  901 |     });\n  902 |     await info.attach('high-gp-startup-commands.json', {\n  903 |       body: JSON.stringify(\n  904 |         {\n  905 |           scope:\n  906 |             'Test-only first-chase command tracing; CPU call duration includes instrumentation and is not GPU execution time.',\n  907 |           workerObserved: startupWorkerUrl !== null,\n  908 |           limitation: startupWorkerUrl\n  909 |             ? null\n  910 |             : 'The independent worker was unavailable or its console was not observed; only bounded main-thread records may be present.',\n  911 |           lastStarted: startupLastStarted,\n  912 |           lastCompleted: startupLastCompleted,\n  913 |           programs: startupPrograms,\n  914 |           latePrograms: startupLatePrograms,\n  915 |           slowUploads: startupSlowUploads,\n  916 |           records: startupRecords,\n  917 |         },\n  918 |         null,"
+        }
+      ]
+    }
+  ],
+  "traceAvailable": true,
+  "readinessPredicate": {
+    "configuredTimeoutMs": 90000,
+    "before": {
+      "type": "before",
+      "callId": "test.step@58",
+      "stepId": "test.step@58",
+      "startTime": 50183.708,
+      "class": "Test",
+      "method": "test.step",
+      "title": "Expect \"poll toBe\"",
+      "params": {
+        "expected": "paused"
+      },
+      "stack": [
+        {
+          "file": "/home/runner/work/Experiment-3/Experiment-3/e2e/graphics-high-journey.spec.ts",
+          "line": 818,
+          "column": 77
+        }
+      ]
+    },
+    "after": {
+      "type": "after",
+      "callId": "test.step@58",
+      "endTime": 139888.565,
+      "annotations": [],
+      "error": {
+        "name": "",
+        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"paused\"\u001b[39m\nReceived: \u001b[31m\"loading\"\u001b[39m\n\nCall Log:\n- Timeout 90000ms exceeded while waiting on the predicate",
+        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"paused\"\u001b[39m\nReceived: \u001b[31m\"loading\"\u001b[39m\n\nCall Log:\n- Timeout 90000ms exceeded while waiting on the predicate\n    at /home/runner/work/Experiment-3/Experiment-3/e2e/graphics-high-journey.spec.ts:818:5"
+      }
+    }
+  },
+  "stages": [
+    {
+      "traceTime": 8169.54,
+      "atMs": 2143.5,
+      "stage": "0% \u00b7 Loading photographed sky\u2026",
+      "active": false,
+      "relativeToReadinessMs": -42014.168
+    },
+    {
+      "traceTime": 8317.84,
+      "atMs": 2290.2999999999884,
+      "stage": "0% \u00b7 Loading photographed ground\u2026",
+      "active": false,
+      "relativeToReadinessMs": -41865.868
+    },
+    {
+      "traceTime": 51360.927,
+      "atMs": 45336.19999999995,
+      "stage": "0% \u00b7 Preparing reflections\u2026",
+      "active": true,
+      "relativeToReadinessMs": 1177.2190000000046
+    },
+    {
+      "traceTime": 51369.256,
+      "atMs": 45342.79999999999,
+      "stage": "0% \u00b7 Loading photographed sky\u2026",
+      "active": false,
+      "relativeToReadinessMs": 1185.5480000000025
+    },
+    {
+      "traceTime": 51513.295,
+      "atMs": 45488,
+      "stage": "0% \u00b7 Preparing reflections\u2026",
+      "active": true,
+      "relativeToReadinessMs": 1329.5869999999995
+    },
+    {
+      "traceTime": 51643.106,
+      "atMs": 45617.19999999995,
+      "stage": "0% \u00b7 Loading photographed ground\u2026",
+      "active": false,
+      "relativeToReadinessMs": 1459.398000000001
+    },
+    {
+      "traceTime": 68382.131,
+      "atMs": 62355.69999999995,
+      "stage": "Building GP motorcycles and riders\u2026",
+      "active": false,
+      "relativeToReadinessMs": 18198.422999999995
+    },
+    {
+      "traceTime": 68651.895,
+      "atMs": 62627.69999999995,
+      "stage": "Loading the photographed sky\u2026",
+      "active": false,
+      "relativeToReadinessMs": 18468.187000000005
+    },
+    {
+      "traceTime": 68715.464,
+      "atMs": 62691,
+      "stage": "Loading photographed ground\u2026",
+      "active": false,
+      "relativeToReadinessMs": 18531.75600000001
+    },
+    {
+      "traceTime": 74133.24,
+      "atMs": 68108.79999999999,
+      "stage": "Compiling circuit and vehicle materials\u2026",
+      "active": false,
+      "relativeToReadinessMs": 23949.532000000007
+    },
+    {
+      "traceTime": 83382.319,
+      "atMs": 77357.89999999997,
+      "stage": "Preparing circuit and vehicle materials\u2026",
+      "active": true,
+      "relativeToReadinessMs": 33198.611000000004
+    },
+    {
+      "traceTime": 83998.228,
+      "atMs": 77973.69999999995,
+      "stage": "Compiling shadow casters around the circuit\u2026",
+      "active": false,
+      "relativeToReadinessMs": 33814.520000000004
+    },
+    {
+      "traceTime": 84415.457,
+      "atMs": 78390.09999999998,
+      "stage": "Warming shadows and scene reflections\u2026",
+      "active": true,
+      "relativeToReadinessMs": 34231.748999999996
+    },
+    {
+      "traceTime": 126108.334,
+      "atMs": 120084.19999999995,
+      "stage": "Warming offscreen pit-service materials\u2026",
+      "active": true,
+      "relativeToReadinessMs": 75924.626
+    }
+  ],
+  "firstChase": {
+    "traceTime": 84415.457,
+    "atMs": 78390.09999999998,
+    "stage": "Warming shadows and scene reflections\u2026",
+    "active": true,
+    "relativeToReadinessMs": 34231.748999999996
+  },
+  "nativeConsoleRecords": 410,
+  "activityRecords": 283,
+  "lastActivity": {
+    "traceTime": 139581.257,
+    "pageId": "page@9ece583fa4eb72f96de18ba82cd9894e",
+    "kind": "activity",
+    "stage": "Warming offscreen pit-service materials\u2026",
+    "inFlight": false,
+    "observedInFlightMs": 0,
+    "lastStarted": {
+      "sequence": 30474,
+      "atMs": 133556.3,
+      "method": "clientWaitSync",
+      "program": 88,
+      "fragmentHash": "1e97beee",
+      "framebuffer": 0,
+      "cubeFace": 0,
+      "mip": 0,
+      "viewport": [
+        0,
+        0,
+        960,
+        600
+      ],
+      "count": 0,
+      "instances": 1,
+      "numericArguments": [
+        -1,
+        1,
+        0,
+        -1
+      ],
+      "sourceBufferBytes": null,
+      "shader": 0,
+      "shaderType": 0,
+      "shaderHash": "00000000",
+      "bufferOwner": null
+    },
+    "lastCompleted": {
+      "sequence": 30474,
+      "atMs": 133556.3,
+      "method": "clientWaitSync",
+      "cpuCallMs": 0,
+      "returned": true
+    },
+    "counts": {
+      "drawElements": 1894,
+      "drawArrays": 83,
+      "drawElementsInstanced": 1110,
+      "drawArraysInstanced": 3,
+      "compileShader": 6,
+      "linkProgram": 3,
+      "getProgramParameter": 417,
+      "getShaderParameter": 0,
+      "getProgramInfoLog": 139,
+      "getShaderInfoLog": 278,
+      "getActiveUniform": 7618,
+      "getUniformLocation": 7618,
+      "getActiveAttrib": 514,
+      "getAttribLocation": 514,
+      "getFragDataLocation": 139,
+      "useProgram": 2089,
+      "checkFramebufferStatus": 0,
+      "clear": 17,
+      "blitFramebuffer": 1,
+      "generateMipmap": 8,
+      "texStorage2D": 11,
+      "texImage2D": 15,
+      "texSubImage2D": 45,
+      "compressedTexImage2D": 0,
+      "compressedTexSubImage2D": 0,
+      "bufferData": 3851,
+      "bufferSubData": 105,
+      "renderbufferStorage": 8,
+      "renderbufferStorageMultisample": 2,
+      "readPixels": 1,
+      "getBufferSubData": 0,
+      "fenceSync": 3,
+      "clientWaitSync": 3966,
+      "flush": 16
+    },
+    "cpuMs": {
+      "drawElements": 9.90000000008149,
+      "drawArrays": 0.6000000000349246,
+      "drawElementsInstanced": 361.4999999998836,
+      "drawArraysInstanced": 0,
+      "compileShader": 0.09999999997671694,
+      "linkProgram": 0.09999999997671694,
+      "getProgramParameter": 23.200000000360887,
+      "getShaderParameter": 0,
+      "getProgramInfoLog": 140.59999999962747,
+      "getShaderInfoLog": 24.999999999592546,
+      "getActiveUniform": 17.600000000267755,
+      "getUniformLocation": 23.499999999592546,
+      "getActiveAttrib": 1.3000000000465661,
+      "getAttribLocation": 0.9999999999417923,
+      "getFragDataLocation": 13.299999999348074,
+      "useProgram": 9.999999999941792,
+      "checkFramebufferStatus": 0,
+      "clear": 0.1000000000349246,
+      "blitFramebuffer": 0,
+      "generateMipmap": 0.1000000000349246,
+      "texStorage2D": 0.1000000000349246,
+      "texImage2D": 0.1000000000349246,
+      "texSubImage2D": 1.599999999976717,
+      "compressedTexImage2D": 0,
+      "compressedTexSubImage2D": 0,
+      "bufferData": 35535.900000000256,
+      "bufferSubData": 0.5,
+      "renderbufferStorage": 0,
+      "renderbufferStorageMultisample": 0,
+      "readPixels": 0,
+      "getBufferSubData": 0,
+      "fenceSync": 0,
+      "clientWaitSync": 80.89999999973224,
+      "flush": 0.29999999998835847
+    },
+    "slowCalls": [
+      {
+        "sequence": 23145,
+        "method": "bufferData",
+        "cpuCallMs": 12268.900000000023,
+        "program": 229,
+        "fragmentHash": "d2bbc2e3",
+        "framebuffer": 425,
+        "cubeFace": 34073,
+        "viewport": [
+          0,
+          0,
+          256,
+          256
+        ],
+        "shader": 0,
+        "shaderType": 0,
+        "shaderHash": "00000000",
+        "bufferOwner": {
+          "upload": 11884,
+          "method": "bufferData",
+          "context": 1,
+          "generation": 1,
+          "renderer": 4479,
+          "target": 34963,
+          "buffer": 52332,
+          "bufferKnown": true,
+          "vao": 52336,
+          "view": 52337,
+          "backingBuffer": 52338,
+          "viewType": "Uint16Array",
+          "byteOffset": 0,
+          "byteLength": 26568,
+          "sourceOffset": null,
+          "sourceLength": null,
+          "destinationOffset": null,
+          "attribution": "exact-direct-index",
+          "exact": {
+            "object": 52333,
+            "objectId": 2480,
+            "objectType": "Mesh",
+            "path": [
+              "Scene:#2031",
+              "Group:Aurel circuit#2203",
+              "Group:Venue props and structures#2205",
+              "Group:Authored garage bay 5#6088",
+              "Group:Aurel hero working garage / A22#2436",
+              "Object3D:AUREL_GARAGE#2437",
+              "Object3D:GARAGE_LOD1#2439",
+              "Mesh:LOD1_GARAGE_TeamEnamel#2480"
+            ],
+            "pathTruncated": false,
+            "geometry": 52334,
+            "geometryId": 3696,
+            "geometryName": "",
+            "slot": "index",
+            "attribute": 52335,
+            "nativeAttribute": 52335,
+            "versionAtCall": 0,
+            "registeredVersion": 0,
+            "usage": 35044,
+            "itemSize": 1,
+            "normalized": false,
+            "interleaved": false,
+            "stride": 0,
+            "offset": 0
+          },
+          "candidates": [],
+          "aliasesTruncated": false,
+          "staleCandidates": 0,
+          "inventoryTruncated": true,
+          "bufferDataStarts": 1,
+          "bufferDataReturnsBeforeCall": 0,
+          "bufferSubDataStarts": 0,
+          "previousView": 0,
+          "previousExactNativeAttribute": 0,
+          "previousExactVersion": null,
+          "priorBuffersForView": [],
+          "priorBuffersTruncated": false
+        }
+      },
+      {
+        "sequence": 26343,
+        "method": "drawElementsInstanced",
+        "cpuCallMs": 356.5,
+        "program": 343,
+        "fragmentHash": "bbf269fb",
+        "framebuffer": 427,
+        "cubeFace": 0,
+        "viewport": [
+          0,
+          0,
+          960,
+          600
+        ],
+        "shader": 0,
+        "shaderType": 0,
+        "shaderHash": "00000000",
+        "bufferOwner": null
+      },
+      {
+        "sequence": 12,
+        "method": "getProgramInfoLog",
+        "cpuCallMs": 121.29999999998836,
+        "program": 5,
+        "fragmentHash": "8a7c27ed",
+        "framebuffer": 0,
+        "cubeFace": 0,
+        "viewport": [
+          0,
+          0,
+          960,
+          600
+        ],
+        "shader": 0,
+        "shaderType": 0,
+        "shaderHash": "00000000",
+        "bufferOwner": null
+      }
+    ]
+  },
+  "latePrograms": [],
+  "retainedSlowUploads": 16,
+  "lastTraceDiagnosticEndTime": 139878.635,
+  "lastTraceDiagnosticState": "loading",
+  "consoleErrorsAndWarnings": [],
+  "limitations": [
+    "Native CPU call time may include queued earlier driver work; it is not isolated GPU execution time.",
+    "Bounded records may omit earlier completions or late resource owners.",
+    "The current program during an upload does not prove the uploaded resource owner.",
+    "A readiness deadline failure is not proof of an infinite stall."
+  ]
+}
