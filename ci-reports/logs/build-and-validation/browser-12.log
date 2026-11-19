@@ -1,257 +1,262 @@
-### browser (12) (job 135406387591)
+### browser (12) (job 135421857052)
 --- error digest (first 120 matching lines) ---
-672:browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:46:08.9726233Z   ✘   8 e2e/37-race-surface-atmosphere.spec.ts:44:3 › race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls (5.3m)
-676:browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:46:08.9731709Z Error: page.evaluate: Test timeout of 300000ms exceeded.
-705:browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:52:33.8842193Z ##[error]The operation was canceled.
+633:browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:19:37.7140365Z   ✘   8 e2e/37-race-surface-atmosphere.spec.ts:44:3 › race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls (5.4m)
+637:browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:19:37.7147284Z Error: page.evaluate: Test timeout of 300000ms exceeded.
+673:browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:28:54.7829330Z   ✘  14 e2e/49-motocross-worked-soil.spec.ts:7:1 › MX and SX prepared traffic remains visible and reversible with resident production soil (5.3m)
+677:browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:28:54.7833548Z Error: page.evaluate: Test timeout of 300000ms exceeded.
+690:browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:33:40.8870914Z   ✘  15 e2e/53-a61-rival.spec.ts:31:3 › A61 full-grid rival presentation on aurel in clear/day (4.7m)
+692:browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:33:40.8872936Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+698:browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:33:40.8875312Z - Timeout 240000ms exceeded while waiting on the predicate
+705:browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:35:59.6070386Z ##[error]The operation was canceled.
 
 --- last 250 lines ---
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:00.5306434Z Ign:5 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libxcb-xkb1 amd64 1.15-1ubuntu2
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:00.5307805Z Ign:6 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libxkbcommon-x11-0 amd64 1.6.0-1build1
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:00.5309165Z Ign:7 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libegl1 amd64 1.7.0-1build1
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:00.5310328Z Ign:8 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libgles2 amd64 1.7.0-1build1
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:00.5311274Z Ign:9 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 mesa-utils-bin amd64 9.0.0-2
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:00.5312107Z Ign:10 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 mesa-utils amd64 9.0.0-2
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:00.5312955Z Ign:2 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libdecor-0-0 amd64 0.2.2-1build2
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:01.5310410Z Ign:3 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libdecor-0-plugin-1-gtk amd64 0.2.2-1build2
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:01.5312428Z Ign:4 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libegl-mesa0 amd64 25.2.8-0ubuntu0.24.04.5
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:01.5313486Z Ign:5 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libxcb-xkb1 amd64 1.15-1ubuntu2
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:01.5314755Z Ign:6 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libxkbcommon-x11-0 amd64 1.6.0-1build1
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:01.5315562Z Ign:7 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libegl1 amd64 1.7.0-1build1
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:01.5316333Z Ign:8 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libgles2 amd64 1.7.0-1build1
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:01.5317147Z Ign:9 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 mesa-utils-bin amd64 9.0.0-2
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:01.5318446Z Ign:10 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 mesa-utils amd64 9.0.0-2
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:05.0346618Z Get:2 https://archive.ubuntu.com/ubuntu noble/main amd64 libdecor-0-0 amd64 0.2.2-1build2 [16.5 kB]
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:05.2102266Z Get:3 https://archive.ubuntu.com/ubuntu noble/main amd64 libdecor-0-plugin-1-gtk amd64 0.2.2-1build2 [22.2 kB]
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:08.7304055Z Get:4 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 libegl-mesa0 amd64 25.2.8-0ubuntu0.24.04.5 [117 kB]
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:09.0708371Z Get:5 https://archive.ubuntu.com/ubuntu noble/main amd64 libxcb-xkb1 amd64 1.15-1ubuntu2 [32.3 kB]
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:09.1739101Z Get:6 https://archive.ubuntu.com/ubuntu noble/main amd64 libxkbcommon-x11-0 amd64 1.6.0-1build1 [14.5 kB]
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:09.2684004Z Get:7 https://archive.ubuntu.com/ubuntu noble/main amd64 libegl1 amd64 1.7.0-1build1 [28.7 kB]
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:09.3725611Z Get:8 https://archive.ubuntu.com/ubuntu noble/main amd64 libgles2 amd64 1.7.0-1build1 [17.1 kB]
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:09.4684659Z Get:9 https://archive.ubuntu.com/ubuntu noble/universe amd64 mesa-utils-bin amd64 9.0.0-2 [164 kB]
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.0402841Z Get:10 https://archive.ubuntu.com/ubuntu noble/universe amd64 mesa-utils amd64 9.0.0-2 [1051 kB]
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.8307100Z Fetched 1464 kB in 1min 20s (18.4 kB/s)
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.8496523Z Selecting previously unselected package libdecor-0-0:amd64.
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.8527474Z (Reading database ... 
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.8528143Z (Reading database ... 5%
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.8528751Z (Reading database ... 10%
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.8529179Z (Reading database ... 15%
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.8529544Z (Reading database ... 20%
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.8529928Z (Reading database ... 25%
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.8530341Z (Reading database ... 30%
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.8530701Z (Reading database ... 35%
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.8531084Z (Reading database ... 40%
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.8531434Z (Reading database ... 45%
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.8531891Z (Reading database ... 50%
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.8541266Z (Reading database ... 55%
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.8584367Z (Reading database ... 60%
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.8600029Z (Reading database ... 65%
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.8625423Z (Reading database ... 70%
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.8643920Z (Reading database ... 75%
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.8770189Z (Reading database ... 80%
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.8791723Z (Reading database ... 85%
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.8979944Z (Reading database ... 90%
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.9242780Z (Reading database ... 95%
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.9243277Z (Reading database ... 100%
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.9244270Z (Reading database ... 217019 files and directories currently installed.)
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.9286956Z Preparing to unpack .../0-libdecor-0-0_0.2.2-1build2_amd64.deb ...
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.9313938Z Unpacking libdecor-0-0:amd64 (0.2.2-1build2) ...
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.9518660Z Selecting previously unselected package libdecor-0-plugin-1-gtk:amd64.
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.9647389Z Preparing to unpack .../1-libdecor-0-plugin-1-gtk_0.2.2-1build2_amd64.deb ...
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.9658747Z Unpacking libdecor-0-plugin-1-gtk:amd64 (0.2.2-1build2) ...
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.9856424Z Selecting previously unselected package libegl-mesa0:amd64.
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.9984232Z Preparing to unpack .../2-libegl-mesa0_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:12.9999098Z Unpacking libegl-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.0226454Z Selecting previously unselected package libxcb-xkb1:amd64.
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.0360873Z Preparing to unpack .../3-libxcb-xkb1_1.15-1ubuntu2_amd64.deb ...
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.0373773Z Unpacking libxcb-xkb1:amd64 (1.15-1ubuntu2) ...
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.0575375Z Selecting previously unselected package libxkbcommon-x11-0:amd64.
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.0708381Z Preparing to unpack .../4-libxkbcommon-x11-0_1.6.0-1build1_amd64.deb ...
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.0722231Z Unpacking libxkbcommon-x11-0:amd64 (1.6.0-1build1) ...
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.0926045Z Selecting previously unselected package libegl1:amd64.
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.1060910Z Preparing to unpack .../5-libegl1_1.7.0-1build1_amd64.deb ...
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.1075418Z Unpacking libegl1:amd64 (1.7.0-1build1) ...
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.1279265Z Selecting previously unselected package libgles2:amd64.
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.1413471Z Preparing to unpack .../6-libgles2_1.7.0-1build1_amd64.deb ...
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.1426635Z Unpacking libgles2:amd64 (1.7.0-1build1) ...
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.1618662Z Selecting previously unselected package mesa-utils-bin:amd64.
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.1752462Z Preparing to unpack .../7-mesa-utils-bin_9.0.0-2_amd64.deb ...
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.1764157Z Unpacking mesa-utils-bin:amd64 (9.0.0-2) ...
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.1998041Z Selecting previously unselected package mesa-utils.
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.2129856Z Preparing to unpack .../8-mesa-utils_9.0.0-2_amd64.deb ...
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.2144097Z Unpacking mesa-utils (9.0.0-2) ...
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.2676523Z Setting up libxcb-xkb1:amd64 (1.15-1ubuntu2) ...
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.2709766Z Setting up libegl-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.2736138Z Setting up libgles2:amd64 (1.7.0-1build1) ...
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.2761956Z Setting up libxkbcommon-x11-0:amd64 (1.6.0-1build1) ...
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.2789158Z Setting up libegl1:amd64 (1.7.0-1build1) ...
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.2814511Z Setting up libdecor-0-0:amd64 (0.2.2-1build2) ...
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.2839945Z Setting up libdecor-0-plugin-1-gtk:amd64 (0.2.2-1build2) ...
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.2865604Z Setting up mesa-utils-bin:amd64 (9.0.0-2) ...
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.2889283Z Setting up mesa-utils (9.0.0-2) ...
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.2917660Z Processing triggers for man-db (2.12.0-4build2) ...
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.2935549Z Not building database; man-db/auto-update is not 'true'.
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.2953007Z Processing triggers for libc-bin (2.39-0ubuntu8.9) ...
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.8064847Z 
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.8065581Z Running kernel seems to be up-to-date.
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.8065901Z 
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.8066232Z No services need to be restarted.
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.8066540Z 
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.8066756Z No containers need to be restarted.
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.8067029Z 
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.8067220Z No user sessions are running outdated binaries.
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.8067546Z 
-browser (12)	Install Mesa software graphics and virtual display	2026-11-19T07:37:13.8067907Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	﻿2026-11-19T07:37:14.8305433Z ##[group]Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:37:14.8306148Z ^[[36;1mxvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12^[[0m
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:37:14.8320461Z shell: /usr/bin/bash -e {0}
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:37:14.8320817Z env:
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:37:14.8321197Z   APEX_BROWSER_BACKEND: mesa
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:37:14.8321557Z   LIBGL_ALWAYS_SOFTWARE: true
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:37:14.8321899Z   GALLIUM_DRIVER: llvmpipe
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:37:14.8322286Z ##[endgroup]
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:37:18.5292129Z 
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:37:18.5293099Z > apex-formula-laboratory@0.1.0 test:e2e:shard
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:37:18.5294021Z > node --experimental-strip-types scripts/run-browser-shard.ts 12/12
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:37:18.5294401Z 
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:37:27.8226922Z Verified 29 of 353 cases for shard 12/12; no omissions or duplicate assignments.
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:37:33.1008394Z Observed mesa test backend: ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:37:35.0036916Z 
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:37:35.0038029Z Running 29 tests using 1 worker
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:37:35.0038647Z 
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:37:35.0052705Z [browser-progress] START  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:37:35.0062972Z   -   1 e2e/08-reference-implementation.spec.ts:74:1 › reference continuation: night and guide controls are real, reversible and non-physical
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:37:36.2353110Z [browser-progress] START  >  > 15-review-journey.spec.ts > live review exports every observed frame and interrupts on a real viewport change
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:38:05.0240512Z [browser-progress] 29s  >  > 15-review-journey.spec.ts > live review exports every observed frame and interrupts on a real viewport change / Expect "toBeVisible"
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:38:35.0245742Z [browser-progress] 59s  >  > 15-review-journey.spec.ts > live review exports every observed frame and interrupts on a real viewport change / Expect "toMatch"
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:39:05.0388157Z [browser-progress] 89s  >  > 15-review-journey.spec.ts > live review exports every observed frame and interrupts on a real viewport change / Evaluate
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:39:35.0464957Z [browser-progress] 119s  >  > 15-review-journey.spec.ts > live review exports every observed frame and interrupts on a real viewport change / Expect "toBe"
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:40:03.6611182Z   ✓   2 e2e/15-review-journey.spec.ts:63:1 › live review exports every observed frame and interrupts on a real viewport change (2.5m)
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:40:03.7905907Z [browser-progress] START  >  > 16-phase27f.spec.ts > explicit game-audio capture records the real post-compressor bus and releases its tracks
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:40:05.0446749Z [browser-progress] 1s  >  > 16-phase27f.spec.ts > explicit game-audio capture records the real post-compressor bus and releases its tracks / Create page
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:40:11.2782864Z   ✓   3 e2e/16-phase27f.spec.ts:58:1 › explicit game-audio capture records the real post-compressor bus and releases its tracks (7.5s)
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:40:11.2916335Z [browser-progress] START  >  > 18-phase27g.spec.ts > 27G: UV guide pointer and keyboard controls change actual car texture without saving or moving other slots
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:40:16.3246184Z   ✓   4 e2e/18-phase27g.spec.ts:72:1 › 27G: UV guide pointer and keyboard controls change actual car texture without saving or moving other slots (5.0s)
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:40:16.3335614Z [browser-progress] START  >  > 19-phase27g-completion.spec.ts > 27G closure: real instanced local fog and synchronously-owned PNG survive subsequent canvas resize
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:40:27.3427943Z   ✓   5 e2e/19-phase27g-completion.spec.ts:58:1 › 27G closure: real instanced local fog and synchronously-owned PNG survive subsequent canvas resize (11.0s)
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:40:27.3580014Z [browser-progress] START  >  > 28-race-hud-layout.spec.ts > 27H.6 DOM-only: menu controls are reachable at 360x640
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:40:34.2952423Z   ✓   6 e2e/28-race-hud-layout.spec.ts:202:3 › 27H.6 DOM-only: menu controls are reachable at 360x640 (6.9s)
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:40:34.3016235Z [browser-progress] START  >  > 30-race-finish.spec.ts > race finish: production canopyGPU pixels, continuity and resource bounds
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:40:35.0447200Z [browser-progress] 1s  >  > 30-race-finish.spec.ts > race finish: production canopyGPU pixels, continuity and resource bounds / beforeAll hook
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:40:40.0829338Z   ✓   7 e2e/30-race-finish.spec.ts:29:3 › race finish: production canopyGPU pixels, continuity and resource bounds (2.9s)
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:40:40.0909469Z [browser-progress] START  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:41:05.0588336Z [browser-progress] 25s  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls / Evaluate
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:41:35.0888995Z [browser-progress] 55s  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls / Evaluate
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:42:05.1197075Z [browser-progress] 85s  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls / Evaluate
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:42:35.1487818Z [browser-progress] 115s  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls / Evaluate
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:43:05.1836240Z [browser-progress] 145s  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls / Evaluate
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:43:35.2109346Z [browser-progress] 175s  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls / Evaluate
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:44:05.2324578Z [browser-progress] 205s  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls / Evaluate
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:44:35.2623460Z [browser-progress] 235s  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls / Evaluate
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:45:05.2967783Z [browser-progress] 265s  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls / Evaluate
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:45:35.3245874Z [browser-progress] 295s  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls / Evaluate
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:46:05.3247033Z [browser-progress] 325s  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls / Fixture "browser"
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:46:08.9726233Z   ✘   8 e2e/37-race-surface-atmosphere.spec.ts:44:3 › race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls (5.3m)
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:46:08.9728121Z [browser-failure]  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:46:08.9729404Z ^[[31mTest timeout of 300000ms exceeded.^[[39m
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:46:08.9730586Z [browser-failure]  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:46:08.9731709Z Error: page.evaluate: Test timeout of 300000ms exceeded.
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:46:08.9732529Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/37-race-surface-atmosphere.spec.ts:61:31
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:46:09.7047219Z [browser-progress] START  >  > 42-motocross-bike.spec.ts > Motocross MX450 reachable pose: rear-components
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:46:21.7318075Z   ✓   9 e2e/42-motocross-bike.spec.ts:132:3 › Motocross MX450 reachable pose: rear-components (11.8s)
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:46:21.7334214Z [browser-progress] START  >  > 42-motocross-bike.spec.ts > Motocross MX450: suspension absorption, gaze and lever are reversible on the production rig
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:46:25.0800536Z   ✓  10 e2e/42-motocross-bike.spec.ts:236:1 › Motocross MX450: suspension absorption, gaze and lever are reversible on the production rig (3.3s)
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:46:25.0946577Z [browser-progress] START  >  > 45-a21-pit-building-frontage.spec.ts > A21 actual circuit frontage, retained garages and pit station in day
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:46:35.3267422Z [browser-progress] 10s  >  > 45-a21-pit-building-frontage.spec.ts > A21 actual circuit frontage, retained garages and pit station in day / Add script tag
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:47:05.3518047Z [browser-progress] 40s  >  > 45-a21-pit-building-frontage.spec.ts > A21 actual circuit frontage, retained garages and pit station in day / Evaluate
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:47:35.3750706Z [browser-progress] 70s  >  > 45-a21-pit-building-frontage.spec.ts > A21 actual circuit frontage, retained garages and pit station in day / Evaluate
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:48:05.4045140Z [browser-progress] 100s  >  > 45-a21-pit-building-frontage.spec.ts > A21 actual circuit frontage, retained garages and pit station in day / Evaluate
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:48:35.4191842Z [browser-progress] 130s  >  > 45-a21-pit-building-frontage.spec.ts > A21 actual circuit frontage, retained garages and pit station in day / Evaluate
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:49:05.4487591Z [browser-progress] 160s  >  > 45-a21-pit-building-frontage.spec.ts > A21 actual circuit frontage, retained garages and pit station in day / Evaluate
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:49:30.4544170Z   ✓  11 e2e/45-a21-pit-building-frontage.spec.ts:66:3 › A21 actual circuit frontage, retained garages and pit station in day (3.1m)
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:49:30.4736894Z [browser-progress] START  >  > 49-festival-menu-access.spec.ts > festival menus remain usable when browser policy denies gamepad access
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:49:34.8885747Z   ✓  12 e2e/49-festival-menu-access.spec.ts:559:1 › festival menus remain usable when browser policy denies gamepad access (4.4s)
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:49:34.8951258Z [browser-progress] START  >  > 49-hud-footprint.spec.ts > race HUD panels leave the road visible at desktop resolutions
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:49:35.4535328Z [browser-progress] 1s  >  > 49-hud-footprint.spec.ts > race HUD panels leave the road visible at desktop resolutions / Create page
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:49:38.3141925Z 1600x900 chase 10.8% .timing=347x263 .lap-panel=320x67 .car-status=0x0 .instruments=341x128 .position-badge=0x0 .session-status=0x0
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:49:38.3147809Z 1600x900 cockpit 10.8% .timing=347x263 .lap-panel=320x67 .car-status=0x0 .instruments=341x128 .position-badge=0x0 .session-status=0x0
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:49:38.3153879Z 1920x1080 chase 10.8% .timing=416x315 .lap-panel=384x80 .car-status=0x0 .instruments=409x153 .position-badge=0x0 .session-status=0x0
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:49:38.3159888Z 1920x1080 cockpit 10.8% .timing=416x315 .lap-panel=384x80 .car-status=0x0 .instruments=409x153 .position-badge=0x0 .session-status=0x0
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:49:39.0049577Z   ✓  13 e2e/49-hud-footprint.spec.ts:73:1 › race HUD panels leave the road visible at desktop resolutions (4.1s)
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:49:39.0109134Z [browser-progress] START  >  > 49-motocross-worked-soil.spec.ts > MX and SX prepared traffic remains visible and reversible with resident production soil
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:50:05.4795561Z [browser-progress] 26s  >  > 49-motocross-worked-soil.spec.ts > MX and SX prepared traffic remains visible and reversible with resident production soil / Evaluate
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:50:35.5107510Z [browser-progress] 56s  >  > 49-motocross-worked-soil.spec.ts > MX and SX prepared traffic remains visible and reversible with resident production soil / Evaluate
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:51:05.5385417Z [browser-progress] 87s  >  > 49-motocross-worked-soil.spec.ts > MX and SX prepared traffic remains visible and reversible with resident production soil / Evaluate
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:51:35.5685418Z [browser-progress] 117s  >  > 49-motocross-worked-soil.spec.ts > MX and SX prepared traffic remains visible and reversible with resident production soil / Evaluate
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:52:05.5984950Z [browser-progress] 147s  >  > 49-motocross-worked-soil.spec.ts > MX and SX prepared traffic remains visible and reversible with resident production soil / Evaluate
-browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T07:52:33.8842193Z ##[error]The operation was canceled.
-browser (12)	Browser screenshots and diagnostics	﻿2026-11-19T07:52:33.8940254Z ##[group]Run actions/upload-artifact@v4
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:33.8940627Z with:
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:33.8940893Z   name: browser-validation-12-of-12
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:33.8941602Z   path: test-results/
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:18.8797973Z Preparing to unpack .../1-libdecor-0-plugin-1-gtk_0.2.2-1build2_amd64.deb ...
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:18.8807100Z Unpacking libdecor-0-plugin-1-gtk:amd64 (0.2.2-1build2) ...
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:18.9035726Z Selecting previously unselected package libegl-mesa0:amd64.
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:18.9170137Z Preparing to unpack .../2-libegl-mesa0_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:18.9179422Z Unpacking libegl-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) ...
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:18.9428251Z Selecting previously unselected package libxcb-xkb1:amd64.
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:18.9561104Z Preparing to unpack .../3-libxcb-xkb1_1.15-1ubuntu2_amd64.deb ...
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:18.9569740Z Unpacking libxcb-xkb1:amd64 (1.15-1ubuntu2) ...
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:18.9795245Z Selecting previously unselected package libxkbcommon-x11-0:amd64.
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:18.9926802Z Preparing to unpack .../4-libxkbcommon-x11-0_1.6.0-1build1_amd64.deb ...
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:18.9934759Z Unpacking libxkbcommon-x11-0:amd64 (1.6.0-1build1) ...
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.0185048Z Selecting previously unselected package libegl1:amd64.
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.0316750Z Preparing to unpack .../5-libegl1_1.7.0-1build1_amd64.deb ...
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.0326041Z Unpacking libegl1:amd64 (1.7.0-1build1) ...
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.0559502Z Selecting previously unselected package libgles2:amd64.
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.0695133Z Preparing to unpack .../6-libgles2_1.7.0-1build1_amd64.deb ...
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.0703503Z Unpacking libgles2:amd64 (1.7.0-1build1) ...
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.0924616Z Selecting previously unselected package mesa-utils-bin:amd64.
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.1059708Z Preparing to unpack .../7-mesa-utils-bin_9.0.0-2_amd64.deb ...
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.1068228Z Unpacking mesa-utils-bin:amd64 (9.0.0-2) ...
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.1338344Z Selecting previously unselected package mesa-utils.
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.1473480Z Preparing to unpack .../8-mesa-utils_9.0.0-2_amd64.deb ...
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.1482506Z Unpacking mesa-utils (9.0.0-2) ...
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.2045243Z Setting up libxcb-xkb1:amd64 (1.15-1ubuntu2) ...
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.2068258Z Setting up libegl-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) ...
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.2091080Z Setting up libgles2:amd64 (1.7.0-1build1) ...
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.2112112Z Setting up libxkbcommon-x11-0:amd64 (1.6.0-1build1) ...
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.2132018Z Setting up libegl1:amd64 (1.7.0-1build1) ...
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.2152198Z Setting up libdecor-0-0:amd64 (0.2.2-1build2) ...
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.2173324Z Setting up libdecor-0-plugin-1-gtk:amd64 (0.2.2-1build2) ...
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.2193826Z Setting up mesa-utils-bin:amd64 (9.0.0-2) ...
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.2213919Z Setting up mesa-utils (9.0.0-2) ...
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.2235912Z Processing triggers for man-db (2.12.0-4build2) ...
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.2300248Z Not building database; man-db/auto-update is not 'true'.
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.2312868Z Processing triggers for libc-bin (2.39-0ubuntu8.9) ...
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.8167371Z 
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.8168236Z Running kernel seems to be up-to-date.
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.8168998Z 
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.8169337Z No services need to be restarted.
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.8169631Z 
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.8169861Z No containers need to be restarted.
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.8170155Z 
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.8170437Z No user sessions are running outdated binaries.
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.8171167Z 
+browser (12)	Install Mesa software graphics and virtual display	2026-11-19T08:10:19.8171623Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	﻿2026-11-19T08:10:20.7382969Z ##[group]Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:10:20.7383603Z ^[[36;1mxvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12^[[0m
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:10:20.7403635Z shell: /usr/bin/bash -e {0}
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:10:20.7403899Z env:
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:10:20.7404106Z   APEX_BROWSER_BACKEND: mesa
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:10:20.7404380Z   LIBGL_ALWAYS_SOFTWARE: true
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:10:20.7404634Z   GALLIUM_DRIVER: llvmpipe
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:10:20.7404872Z ##[endgroup]
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:10:23.6858052Z 
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:10:23.6859071Z > apex-formula-laboratory@0.1.0 test:e2e:shard
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:10:23.6859767Z > node --experimental-strip-types scripts/run-browser-shard.ts 12/12
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:10:23.6860139Z 
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:10:33.5757886Z Verified 29 of 353 cases for shard 12/12; no omissions or duplicate assignments.
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:10:37.6265913Z Observed mesa test backend: ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:10:39.6448265Z 
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:10:39.6449210Z Running 29 tests using 1 worker
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:10:39.6449716Z 
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:10:39.6466454Z [browser-progress] START  >  > 08-reference-implementation.spec.ts > reference continuation: night and guide controls are real, reversible and non-physical
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:10:39.6475891Z   -   1 e2e/08-reference-implementation.spec.ts:74:1 › reference continuation: night and guide controls are real, reversible and non-physical
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:10:40.9483678Z [browser-progress] START  >  > 15-review-journey.spec.ts > live review exports every observed frame and interrupts on a real viewport change
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:11:09.6635292Z [browser-progress] 29s  >  > 15-review-journey.spec.ts > live review exports every observed frame and interrupts on a real viewport change / Expect "toBeVisible"
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:11:39.6642065Z [browser-progress] 59s  >  > 15-review-journey.spec.ts > live review exports every observed frame and interrupts on a real viewport change / Expect "toMatch"
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:12:09.6709578Z [browser-progress] 89s  >  > 15-review-journey.spec.ts > live review exports every observed frame and interrupts on a real viewport change / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:12:39.6707457Z [browser-progress] 119s  >  > 15-review-journey.spec.ts > live review exports every observed frame and interrupts on a real viewport change / Expect "toMatch"
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:13:09.6750576Z [browser-progress] 149s  >  > 15-review-journey.spec.ts > live review exports every observed frame and interrupts on a real viewport change / Expect "toBe"
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:13:24.0706505Z   ✓   2 e2e/15-review-journey.spec.ts:63:1 › live review exports every observed frame and interrupts on a real viewport change (2.7m)
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:13:24.2133842Z [browser-progress] START  >  > 16-phase27f.spec.ts > explicit game-audio capture records the real post-compressor bus and releases its tracks
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:13:32.1649965Z   ✓   3 e2e/16-phase27f.spec.ts:58:1 › explicit game-audio capture records the real post-compressor bus and releases its tracks (7.9s)
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:13:32.1760635Z [browser-progress] START  >  > 18-phase27g.spec.ts > 27G: UV guide pointer and keyboard controls change actual car texture without saving or moving other slots
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:13:37.2951400Z   ✓   4 e2e/18-phase27g.spec.ts:72:1 › 27G: UV guide pointer and keyboard controls change actual car texture without saving or moving other slots (5.1s)
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:13:37.3027433Z [browser-progress] START  >  > 19-phase27g-completion.spec.ts > 27G closure: real instanced local fog and synchronously-owned PNG survive subsequent canvas resize
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:13:39.6746516Z [browser-progress] 2s  >  > 19-phase27g-completion.spec.ts > 27G closure: real instanced local fog and synchronously-owned PNG survive subsequent canvas resize / Create page
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:13:49.1311033Z   ✓   5 e2e/19-phase27g-completion.spec.ts:58:1 › 27G closure: real instanced local fog and synchronously-owned PNG survive subsequent canvas resize (11.8s)
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:13:49.1438360Z [browser-progress] START  >  > 28-race-hud-layout.spec.ts > 27H.6 DOM-only: menu controls are reachable at 360x640
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:13:56.3923568Z   ✓   6 e2e/28-race-hud-layout.spec.ts:202:3 › 27H.6 DOM-only: menu controls are reachable at 360x640 (7.2s)
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:13:56.3988735Z [browser-progress] START  >  > 30-race-finish.spec.ts > race finish: production canopyGPU pixels, continuity and resource bounds
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:14:02.7460719Z   ✓   7 e2e/30-race-finish.spec.ts:29:3 › race finish: production canopyGPU pixels, continuity and resource bounds (3.2s)
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:14:02.7547142Z [browser-progress] START  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:14:09.6828747Z [browser-progress] 7s  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls / beforeAll hook
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:14:39.7082739Z [browser-progress] 37s  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:15:09.7410692Z [browser-progress] 67s  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:15:39.7581170Z [browser-progress] 97s  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:16:09.7873189Z [browser-progress] 127s  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:16:39.8210795Z [browser-progress] 157s  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:17:09.8490805Z [browser-progress] 187s  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:17:39.8630304Z [browser-progress] 217s  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:18:09.8950740Z [browser-progress] 247s  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:18:39.9240791Z [browser-progress] 277s  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:19:09.9540870Z [browser-progress] 307s  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:19:37.7140365Z   ✘   8 e2e/37-race-surface-atmosphere.spec.ts:44:3 › race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls (5.4m)
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:19:37.7142258Z [browser-failure]  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:19:37.7143889Z ^[[31mTest timeout of 300000ms exceeded.^[[39m
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:19:37.7145666Z [browser-failure]  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:19:37.7147284Z Error: page.evaluate: Test timeout of 300000ms exceeded.
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:19:37.7148349Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/37-race-surface-atmosphere.spec.ts:61:31
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:19:38.5110618Z [browser-progress] START  >  > 42-motocross-bike.spec.ts > Motocross MX450 reachable pose: rear-components
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:19:39.9539032Z [browser-progress] 1s  >  > 42-motocross-bike.spec.ts > Motocross MX450 reachable pose: rear-components / Set content
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:19:52.0361397Z   ✓   9 e2e/42-motocross-bike.spec.ts:132:3 › Motocross MX450 reachable pose: rear-components (13.3s)
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:19:52.0374768Z [browser-progress] START  >  > 42-motocross-bike.spec.ts > Motocross MX450: suspension absorption, gaze and lever are reversible on the production rig
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:19:55.6868128Z   ✓  10 e2e/42-motocross-bike.spec.ts:236:1 › Motocross MX450: suspension absorption, gaze and lever are reversible on the production rig (3.6s)
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:19:55.6991577Z [browser-progress] START  >  > 45-a21-pit-building-frontage.spec.ts > A21 actual circuit frontage, retained garages and pit station in day
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:20:09.9561712Z [browser-progress] 14s  >  > 45-a21-pit-building-frontage.spec.ts > A21 actual circuit frontage, retained garages and pit station in day / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:20:39.9573855Z [browser-progress] 44s  >  > 45-a21-pit-building-frontage.spec.ts > A21 actual circuit frontage, retained garages and pit station in day / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:21:09.9718726Z [browser-progress] 74s  >  > 45-a21-pit-building-frontage.spec.ts > A21 actual circuit frontage, retained garages and pit station in day / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:21:39.9876949Z [browser-progress] 104s  >  > 45-a21-pit-building-frontage.spec.ts > A21 actual circuit frontage, retained garages and pit station in day / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:22:10.0173814Z [browser-progress] 134s  >  > 45-a21-pit-building-frontage.spec.ts > A21 actual circuit frontage, retained garages and pit station in day / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:22:40.0479797Z [browser-progress] 164s  >  > 45-a21-pit-building-frontage.spec.ts > A21 actual circuit frontage, retained garages and pit station in day / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:23:10.0780700Z [browser-progress] 194s  >  > 45-a21-pit-building-frontage.spec.ts > A21 actual circuit frontage, retained garages and pit station in day / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:23:27.3244770Z   ✓  11 e2e/45-a21-pit-building-frontage.spec.ts:66:3 › A21 actual circuit frontage, retained garages and pit station in day (3.5m)
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:23:27.3434748Z [browser-progress] START  >  > 49-festival-menu-access.spec.ts > festival menus remain usable when browser policy denies gamepad access
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:23:32.1045094Z   ✓  12 e2e/49-festival-menu-access.spec.ts:559:1 › festival menus remain usable when browser policy denies gamepad access (4.7s)
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:23:32.1137925Z [browser-progress] START  >  > 49-hud-footprint.spec.ts > race HUD panels leave the road visible at desktop resolutions
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:23:35.8003558Z 1600x900 chase 10.8% .timing=347x263 .lap-panel=320x67 .car-status=0x0 .instruments=341x128 .position-badge=0x0 .session-status=0x0
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:23:35.8006130Z 1600x900 cockpit 10.8% .timing=347x263 .lap-panel=320x67 .car-status=0x0 .instruments=341x128 .position-badge=0x0 .session-status=0x0
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:23:35.8008995Z 1920x1080 chase 10.8% .timing=416x315 .lap-panel=384x80 .car-status=0x0 .instruments=409x153 .position-badge=0x0 .session-status=0x0
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:23:35.8011027Z 1920x1080 cockpit 10.8% .timing=416x315 .lap-panel=384x80 .car-status=0x0 .instruments=409x153 .position-badge=0x0 .session-status=0x0
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:23:36.5625115Z   ✓  13 e2e/49-hud-footprint.spec.ts:73:1 › race HUD panels leave the road visible at desktop resolutions (4.4s)
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:23:36.5684439Z [browser-progress] START  >  > 49-motocross-worked-soil.spec.ts > MX and SX prepared traffic remains visible and reversible with resident production soil
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:23:40.0790612Z [browser-progress] 4s  >  > 49-motocross-worked-soil.spec.ts > MX and SX prepared traffic remains visible and reversible with resident production soil / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:24:10.1110480Z [browser-progress] 34s  >  > 49-motocross-worked-soil.spec.ts > MX and SX prepared traffic remains visible and reversible with resident production soil / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:24:40.1404523Z [browser-progress] 64s  >  > 49-motocross-worked-soil.spec.ts > MX and SX prepared traffic remains visible and reversible with resident production soil / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:25:10.1700666Z [browser-progress] 94s  >  > 49-motocross-worked-soil.spec.ts > MX and SX prepared traffic remains visible and reversible with resident production soil / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:25:40.2001073Z [browser-progress] 124s  >  > 49-motocross-worked-soil.spec.ts > MX and SX prepared traffic remains visible and reversible with resident production soil / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:26:10.2300462Z [browser-progress] 154s  >  > 49-motocross-worked-soil.spec.ts > MX and SX prepared traffic remains visible and reversible with resident production soil / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:26:40.2620404Z [browser-progress] 184s  >  > 49-motocross-worked-soil.spec.ts > MX and SX prepared traffic remains visible and reversible with resident production soil / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:27:10.2770877Z [browser-progress] 214s  >  > 49-motocross-worked-soil.spec.ts > MX and SX prepared traffic remains visible and reversible with resident production soil / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:27:40.2974088Z [browser-progress] 244s  >  > 49-motocross-worked-soil.spec.ts > MX and SX prepared traffic remains visible and reversible with resident production soil / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:28:10.3294584Z [browser-progress] 274s  >  > 49-motocross-worked-soil.spec.ts > MX and SX prepared traffic remains visible and reversible with resident production soil / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:28:40.3350426Z [browser-progress] 304s  >  > 49-motocross-worked-soil.spec.ts > MX and SX prepared traffic remains visible and reversible with resident production soil / After Hooks
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:28:54.7829330Z   ✘  14 e2e/49-motocross-worked-soil.spec.ts:7:1 › MX and SX prepared traffic remains visible and reversible with resident production soil (5.3m)
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:28:54.7830975Z [browser-failure]  >  > 49-motocross-worked-soil.spec.ts > MX and SX prepared traffic remains visible and reversible with resident production soil
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:28:54.7831958Z ^[[31mTest timeout of 300000ms exceeded.^[[39m
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:28:54.7832780Z [browser-failure]  >  > 49-motocross-worked-soil.spec.ts > MX and SX prepared traffic remains visible and reversible with resident production soil
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:28:54.7833548Z Error: page.evaluate: Test timeout of 300000ms exceeded.
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:28:54.7834352Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/49-motocross-worked-soil.spec.ts:41:31
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:28:55.4867127Z [browser-progress] START  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on aurel in clear/day
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:29:10.3342508Z [browser-progress] 15s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on aurel in clear/day / Click getByRole('button', { name: 'PREPARE GRID START PAUSED', exact: true })
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:29:40.3349382Z [browser-progress] 45s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on aurel in clear/day / Expect "toBe"
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:30:10.3397770Z [browser-progress] 75s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on aurel in clear/day / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:30:40.3717742Z [browser-progress] 105s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on aurel in clear/day / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:31:10.4013905Z [browser-progress] 135s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on aurel in clear/day / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:31:40.4330085Z [browser-progress] 165s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on aurel in clear/day / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:32:10.4613585Z [browser-progress] 195s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on aurel in clear/day / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:32:40.4940017Z [browser-progress] 225s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on aurel in clear/day / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:33:10.5230145Z [browser-progress] 255s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on aurel in clear/day / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:33:40.5231798Z [browser-progress] 285s  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on aurel in clear/day / Fixture "browser"
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:33:40.8870914Z   ✘  15 e2e/53-a61-rival.spec.ts:31:3 › A61 full-grid rival presentation on aurel in clear/day (4.7m)
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:33:40.8871965Z [browser-failure]  >  > 53-a61-rival.spec.ts > A61 full-grid rival presentation on aurel in clear/day
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:33:40.8872936Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:33:40.8873366Z 
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:33:40.8873670Z Expected: ^[[32m"paused"^[[39m
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:33:40.8874277Z Received: ^[[31m"loading"^[[39m
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:33:40.8874570Z 
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:33:40.8874726Z Call Log:
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:33:40.8875312Z - Timeout 240000ms exceeded while waiting on the predicate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:33:40.8876232Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/53-a61-rival.spec.ts:52:5
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:33:41.6614901Z [browser-progress] START  >  > 53-motocross-course-landmarks.spec.ts > Production MX course components render with surveyed jump-profile signs
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:34:10.5474766Z [browser-progress] 29s  >  > 53-motocross-course-landmarks.spec.ts > Production MX course components render with surveyed jump-profile signs / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:34:40.5783106Z [browser-progress] 59s  >  > 53-motocross-course-landmarks.spec.ts > Production MX course components render with surveyed jump-profile signs / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:35:10.6090385Z [browser-progress] 89s  >  > 53-motocross-course-landmarks.spec.ts > Production MX course components render with surveyed jump-profile signs / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:35:40.6300387Z [browser-progress] 119s  >  > 53-motocross-course-landmarks.spec.ts > Production MX course components render with surveyed jump-profile signs / Evaluate
+browser (12)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12	2026-11-19T08:35:59.6070386Z ##[error]The operation was canceled.
+browser (12)	Browser screenshots and diagnostics	﻿2026-11-19T08:35:59.6252553Z ##[group]Run actions/upload-artifact@v4
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:35:59.6253050Z with:
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:35:59.6253413Z   name: browser-validation-12-of-12
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:35:59.6254354Z   path: test-results/
 browser (12)	Browser screenshots and diagnostics	playwright-report/
 browser (12)	Browser screenshots and diagnostics	browser-shard-plan.json
 browser (12)	Browser screenshots and diagnostics	browser-backend.json
 browser (12)	Browser screenshots and diagnostics	browser-progress.json
 browser (12)	Browser screenshots and diagnostics	
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:33.8942400Z   retention-days: 7
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:33.8942697Z   if-no-files-found: warn
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:33.8943046Z   compression-level: 6
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:33.8943353Z   overwrite: false
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:33.8943822Z   include-hidden-files: false
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:33.8944217Z env:
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:33.8944583Z   APEX_BROWSER_BACKEND: mesa
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:33.8944910Z   LIBGL_ALWAYS_SOFTWARE: true
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:33.8945337Z   GALLIUM_DRIVER: llvmpipe
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:33.8945718Z ##[endgroup]
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:34.1081582Z (node:4575) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:34.1087806Z (Use `node --trace-deprecation ...` to show where the warning was created)
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:34.1299248Z Multiple search paths detected. Calculating the least common ancestor of all paths
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:34.1304889Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:34.1306404Z With the provided path, there will be 24 files uploaded
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:34.1309372Z Artifact name is valid!
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:34.1310000Z Root directory input is valid!
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:34.3944865Z Beginning upload of artifact content to blob storage
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:34.7339036Z (node:4575) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:34.8702055Z Uploaded bytes 8388608
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:35.1182487Z Uploaded bytes 16777216
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:35.4274177Z Uploaded bytes 25165824
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:35.7774177Z Uploaded bytes 33554432
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:36.1034709Z Uploaded bytes 41943040
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:36.1494813Z Uploaded bytes 43112612
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:36.1742126Z Finished uploading artifact content to blob storage!
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:36.1764425Z SHA256 digest of uploaded artifact zip is d6051546bbcc80efdb1056c792a1240d4318395ba8d5f2f378bc27fba024d5b3
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:36.1794389Z Finalizing artifact upload
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:36.5924533Z Artifact browser-validation-12-of-12.zip successfully finalized. Artifact ID 14509312486
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:36.5926168Z Artifact browser-validation-12-of-12 has been successfully uploaded! Final size is 43112612 bytes. Artifact ID is 14509312486
-browser (12)	Browser screenshots and diagnostics	2026-11-19T07:52:36.5966528Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44478414165/artifacts/14509312486
-browser (12)	Post Run actions/checkout@v4	﻿2026-11-19T07:52:36.6389387Z Post job cleanup.
-browser (12)	Post Run actions/checkout@v4	2026-11-19T07:52:36.8931846Z [command]/usr/bin/git version
-browser (12)	Post Run actions/checkout@v4	2026-11-19T07:52:36.9022263Z git version 2.56.1
-browser (12)	Post Run actions/checkout@v4	2026-11-19T07:52:36.9254847Z Temporarily overriding HOME='/home/runner/work/_temp/d65a2de9-631d-494a-960e-14b77c8bf7df' before making global git config changes
-browser (12)	Post Run actions/checkout@v4	2026-11-19T07:52:36.9295221Z Adding repository directory to the temporary git global config as a safe directory
-browser (12)	Post Run actions/checkout@v4	2026-11-19T07:52:36.9331093Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
-browser (12)	Post Run actions/checkout@v4	2026-11-19T07:52:36.9474663Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-browser (12)	Post Run actions/checkout@v4	2026-11-19T07:52:36.9625324Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-browser (12)	Post Run actions/checkout@v4	2026-11-19T07:52:37.0224832Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-browser (12)	Post Run actions/checkout@v4	2026-11-19T07:52:37.0254036Z http.https://github.com/.extraheader
-browser (12)	Post Run actions/checkout@v4	2026-11-19T07:52:37.0335086Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-browser (12)	Post Run actions/checkout@v4	2026-11-19T07:52:37.0495363Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-browser (12)	Post Run actions/checkout@v4	2026-11-19T07:52:37.1184642Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-browser (12)	Post Run actions/checkout@v4	2026-11-19T07:52:37.1334905Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-browser (12)	Complete job	﻿2026-11-19T07:52:37.2260169Z Cleaning up orphan processes
-browser (12)	Complete job	2026-11-19T07:52:37.2820926Z Terminate orphan process: pid (3633) (xvfb-run)
-browser (12)	Complete job	2026-11-19T07:52:37.2901541Z Terminate orphan process: pid (3643) (Xvfb)
-browser (12)	Complete job	2026-11-19T07:52:37.2940386Z Terminate orphan process: pid (3646) (npm run test:e2)
-browser (12)	Complete job	2026-11-19T07:52:37.3114402Z Terminate orphan process: pid (3657) (sh)
-browser (12)	Complete job	2026-11-19T07:52:37.3259162Z Terminate orphan process: pid (3658) (node)
-browser (12)	Complete job	2026-11-19T07:52:37.3502742Z Terminate orphan process: pid (3692) (node)
-browser (12)	Complete job	2026-11-19T07:52:37.3664997Z Terminate orphan process: pid (3709) (sh)
-browser (12)	Complete job	2026-11-19T07:52:37.3723123Z Terminate orphan process: pid (3710) (npm run preview --port 4173)
-browser (12)	Complete job	2026-11-19T07:52:37.3876144Z Terminate orphan process: pid (3721) (sh)
-browser (12)	Complete job	2026-11-19T07:52:37.3910780Z Terminate orphan process: pid (3722) (node)
-browser (12)	Complete job	2026-11-19T07:52:37.3950025Z Terminate orphan process: pid (3730) (esbuild)
-browser (12)	Complete job	2026-11-19T07:52:37.4024944Z Terminate orphan process: pid (4292) (node)
-browser (12)	Complete job	2026-11-19T07:52:37.4072264Z Terminate orphan process: pid (4307) (chrome_crashpad_handler)
-browser (12)	Complete job	2026-11-19T07:52:37.4108246Z Terminate orphan process: pid (4309) (chrome_crashpad_handler)
-browser (12)	Complete job	2026-11-19T07:52:37.4189473Z Terminate orphan process: pid (4397) (esbuild)
-browser (12)	Complete job	2026-11-19T07:52:37.4310090Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/download-artifact@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:35:59.6255303Z   retention-days: 7
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:35:59.6255687Z   if-no-files-found: warn
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:35:59.6256096Z   compression-level: 6
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:35:59.6256478Z   overwrite: false
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:35:59.6256865Z   include-hidden-files: false
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:35:59.6257278Z env:
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:35:59.6257609Z   APEX_BROWSER_BACKEND: mesa
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:35:59.6258045Z   LIBGL_ALWAYS_SOFTWARE: true
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:35:59.6288609Z   GALLIUM_DRIVER: llvmpipe
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:35:59.6289032Z ##[endgroup]
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:00.1640286Z (node:4806) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:00.1952899Z (Use `node --trace-deprecation ...` to show where the warning was created)
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:01.3415672Z Multiple search paths detected. Calculating the least common ancestor of all paths
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:01.3418685Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:01.3419892Z With the provided path, there will be 43 files uploaded
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:01.3420764Z Artifact name is valid!
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:01.3421248Z Root directory input is valid!
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:01.3426181Z Beginning upload of artifact content to blob storage
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:01.9466214Z (node:4806) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:02.6129370Z Uploaded bytes 8388608
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:02.9849083Z Uploaded bytes 16777216
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:03.8909402Z Uploaded bytes 25165824
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:04.7399328Z Uploaded bytes 33554432
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:05.7229619Z Uploaded bytes 41943040
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:06.4549372Z Uploaded bytes 50331648
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:07.5944834Z Uploaded bytes 58720256
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:08.6733014Z Uploaded bytes 67108864
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:09.9879839Z Uploaded bytes 75497472
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:11.3080036Z Uploaded bytes 83886080
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:12.3383931Z Uploaded bytes 92274688
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:13.1741661Z Uploaded bytes 100663296
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:14.1208991Z Uploaded bytes 109051904
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:14.3960261Z Uploaded bytes 117440512
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:14.7439549Z Uploaded bytes 125829120
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:15.2564998Z Uploaded bytes 134217728
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:15.3940951Z Uploaded bytes 142606336
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:15.7826751Z Uploaded bytes 145986845
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:15.8506317Z Finished uploading artifact content to blob storage!
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:15.8507328Z SHA256 digest of uploaded artifact zip is 16a8072a8e9568c3c39502fcdec165b17ea69e1d5baa859db08806eb6d6cd672
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:15.8507933Z Finalizing artifact upload
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:16.3597820Z Artifact browser-validation-12-of-12.zip successfully finalized. Artifact ID 14511358447
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:16.3599518Z Artifact browser-validation-12-of-12 has been successfully uploaded! Final size is 145986845 bytes. Artifact ID is 14511358447
+browser (12)	Browser screenshots and diagnostics	2026-11-19T08:36:16.3607834Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44482949737/artifacts/14511358447
+browser (12)	Post Run actions/checkout@v4	﻿2026-11-19T08:36:16.4029013Z Post job cleanup.
+browser (12)	Post Run actions/checkout@v4	2026-11-19T08:36:16.5149321Z [command]/usr/bin/git version
+browser (12)	Post Run actions/checkout@v4	2026-11-19T08:36:16.5220746Z git version 2.56.1
+browser (12)	Post Run actions/checkout@v4	2026-11-19T08:36:16.5270279Z Temporarily overriding HOME='/home/runner/work/_temp/dcfbf161-51a0-46ba-bdc9-dea3481f67a0' before making global git config changes
+browser (12)	Post Run actions/checkout@v4	2026-11-19T08:36:16.5299396Z Adding repository directory to the temporary git global config as a safe directory
+browser (12)	Post Run actions/checkout@v4	2026-11-19T08:36:16.5359523Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+browser (12)	Post Run actions/checkout@v4	2026-11-19T08:36:16.5386116Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+browser (12)	Post Run actions/checkout@v4	2026-11-19T08:36:16.5447836Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+browser (12)	Post Run actions/checkout@v4	2026-11-19T08:36:16.5862540Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+browser (12)	Post Run actions/checkout@v4	2026-11-19T08:36:16.5920357Z http.https://github.com/.extraheader
+browser (12)	Post Run actions/checkout@v4	2026-11-19T08:36:16.5950922Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+browser (12)	Post Run actions/checkout@v4	2026-11-19T08:36:16.6035037Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+browser (12)	Post Run actions/checkout@v4	2026-11-19T08:36:16.6574508Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+browser (12)	Post Run actions/checkout@v4	2026-11-19T08:36:16.6624139Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+browser (12)	Complete job	﻿2026-11-19T08:36:16.7269558Z Cleaning up orphan processes
+browser (12)	Complete job	2026-11-19T08:36:16.7608088Z Terminate orphan process: pid (3565) (xvfb-run)
+browser (12)	Complete job	2026-11-19T08:36:16.7630399Z Terminate orphan process: pid (3575) (Xvfb)
+browser (12)	Complete job	2026-11-19T08:36:16.7651126Z Terminate orphan process: pid (3578) (npm run test:e2)
+browser (12)	Complete job	2026-11-19T08:36:16.7682121Z Terminate orphan process: pid (3589) (sh)
+browser (12)	Complete job	2026-11-19T08:36:16.7730985Z Terminate orphan process: pid (3590) (node)
+browser (12)	Complete job	2026-11-19T08:36:16.7846413Z Terminate orphan process: pid (3626) (node)
+browser (12)	Complete job	2026-11-19T08:36:16.7894303Z Terminate orphan process: pid (3642) (sh)
+browser (12)	Complete job	2026-11-19T08:36:16.7941736Z Terminate orphan process: pid (3643) (npm run preview --port 4173)
+browser (12)	Complete job	2026-11-19T08:36:16.7992166Z Terminate orphan process: pid (3654) (sh)
+browser (12)	Complete job	2026-11-19T08:36:16.8041018Z Terminate orphan process: pid (3655) (node)
+browser (12)	Complete job	2026-11-19T08:36:16.8120519Z Terminate orphan process: pid (3663) (esbuild)
+browser (12)	Complete job	2026-11-19T08:36:16.8356058Z Terminate orphan process: pid (4665) (node)
+browser (12)	Complete job	2026-11-19T08:36:16.8422576Z Terminate orphan process: pid (4681) (chrome_crashpad_handler)
+browser (12)	Complete job	2026-11-19T08:36:16.8471131Z Terminate orphan process: pid (4683) (chrome_crashpad_handler)
+browser (12)	Complete job	2026-11-19T08:36:16.8568554Z Terminate orphan process: pid (4774) (esbuild)
+browser (12)	Complete job	2026-11-19T08:36:16.8656131Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/download-artifact@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
