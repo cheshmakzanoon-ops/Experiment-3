@@ -1,0 +1,285 @@
+
+ RUN  v3.2.4 /workspace/scratch/dac6891506fb/gp-signed-admission-2245
+
+ ❯ tests/gp-signed-command.test.ts (26 tests | 22 failed) 56ms
+   × GP final command admission uses its native signed front interval > matches the sealed early-phase native replay at 'maximumRollForecastDifference' 17ms
+     → expected { dt: 0.004166666666666667, …(15) } to deeply equal { dt: 0.004166666666666667, …(15) }
+   × GP final command admission uses its native signed front interval > matches the sealed early-phase native replay at 'lastRecordedControl' 2ms
+     → expected { dt: 0.004166666666666667, …(15) } to deeply equal { dt: 0.004166666666666667, …(15) }
+   ✓ GP final command admission uses its native signed front interval > matches the sealed early-phase native replay at 'firstFrontUnloaded' 1ms
+   × GP final command admission uses its native signed front interval > matches the sealed early-phase native replay at 'firstRearUnloaded' 3ms
+     → expected { dt: 0.004166666666666667, …(15) } to deeply equal { dt: 0.004166666666666667, …(15) }
+   × GP final command admission uses its native signed front interval > also admits the reflected recovery at 'maximumRollForecastDifference' 2ms
+     → expected 0.05768115006410847 to be close to 0.037681150064108465, received difference is 0.020000000000000004, but expected 5e-15
+   × GP final command admission uses its native signed front interval > also admits the reflected recovery at 'firstRearUnloaded' 2ms
+     → expected -0.004871276152773902 to be close to -0.024871276152773902, received difference is 0.02, but expected 5e-15
+   ✓ GP final command admission uses its native signed front interval > retains two original standalone steps from 'maximumRollForecastDifference' 3ms
+   ✓ GP final command admission uses its native signed front interval > retains two original standalone steps from 'firstRearUnloaded' 3ms
+   ✓ GP final command admission uses its native signed front interval > keeps the unloaded-front fallback unchanged on the next native step 2ms
+   × GP final command admission uses its native signed front interval > repeats only the pure inverse for a complete legacy fallback when output is missing 2ms
+     → expected "frontSteerFor" to be called 2 times, but got 1 times
+   × GP final command admission uses its native signed front interval > repeats only the pure inverse for a complete legacy fallback when output is nonfinite 2ms
+     → expected "frontSteerFor" to be called 2 times, but got 1 times
+   × GP final command admission uses its native signed front interval > repeats only the pure inverse for a complete legacy fallback when output is reversed 1ms
+     → expected "frontSteerFor" to be called 2 times, but got 1 times
+   × GP final command admission uses its native signed front interval > repeats only the pure inverse for a complete legacy fallback when output is null inverse 1ms
+     → expected "frontSteerFor" to be called 2 times, but got 1 times
+   × GP final command admission uses its native signed front interval > repeats only the pure inverse for a complete legacy fallback when output is nonfinite inverse 1ms
+     → expected "frontSteerFor" to be called 2 times, but got 1 times
+   × Native front inverse exposes only its own invocation range > retains signed combined-slip roots and query purity at lean -0.6, Fx -1400 2ms
+     → expected 99999 to be -1151.6956134945003 // Object.is equality
+   × Native front inverse exposes only its own invocation range > retains signed combined-slip roots and query purity at lean -0.6, Fx +0 2ms
+     → expected 99999 to be -1982.1039193820081 // Object.is equality
+   × Native front inverse exposes only its own invocation range > retains signed combined-slip roots and query purity at lean -0.6, Fx 900 2ms
+     → expected 99999 to be -1768.9546012257092 // Object.is equality
+   × Native front inverse exposes only its own invocation range > retains signed combined-slip roots and query purity at lean 0.6, Fx -1400 2ms
+     → expected 99999 to be -995.2538044386271 // Object.is equality
+   × Native front inverse exposes only its own invocation range > retains signed combined-slip roots and query purity at lean 0.6, Fx +0 1ms
+     → expected 99999 to be -1931.7786674816043 // Object.is equality
+   × Native front inverse exposes only its own invocation range > retains signed combined-slip roots and query purity at lean 0.6, Fx 900 1ms
+     → expected 99999 to be -1807.3539668461744 // Object.is equality
+   × Native front inverse exposes only its own invocation range > clears a previous output without front availability: +0 N, mu 1.5, 30 m/s 1ms
+     → expected false to be true // Object.is equality
+   × Native front inverse exposes only its own invocation range > clears a previous output without front availability: 1 N, mu 1.5, 30 m/s 1ms
+     → expected false to be true // Object.is equality
+   × Native front inverse exposes only its own invocation range > clears a previous output without front availability: 1400 N, mu +0, 30 m/s 0ms
+     → expected false to be true // Object.is equality
+   × Native front inverse exposes only its own invocation range > clears a previous output without front availability: 1400 N, mu 1.5, 2.49 m/s 0ms
+     → expected false to be true // Object.is equality
+   × Native front inverse exposes only its own invocation range > does not advertise a range after a nonfinite inverse input NaN 1ms
+     → expected false to be true // Object.is equality
+   × Native front inverse exposes only its own invocation range > does not advertise a range after a nonfinite inverse input Infinity 1ms
+     → expected false to be true // Object.is equality
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 22 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/gp-signed-command.test.ts > GP final command admission uses its native signed front interval > matches the sealed early-phase native replay at 'maximumRollForecastDifference'
+ FAIL  tests/gp-signed-command.test.ts > GP final command admission uses its native signed front interval > matches the sealed early-phase native replay at 'lastRecordedControl'
+ FAIL  tests/gp-signed-command.test.ts > GP final command admission uses its native signed front interval > matches the sealed early-phase native replay at 'firstRearUnloaded'
+AssertionError: expected { dt: 0.004166666666666667, …(15) } to deeply equal { dt: 0.004166666666666667, …(15) }
+
+- Expected
++ Received
+
+@@ -12,7 +12,7 @@
+    "rearDriveExcess": 0,
+    "rearFx": 0,
+    "rearLoad": 1040.7029279739627,
+    "rearMu": 1.5951860733114154,
+    "speed": 48.02837242773739,
+-   "steer": -0.037681150064108465,
++   "steer": -0.05768115006410847,
+  }
+
+ ❯ tests/gp-signed-command.test.ts:124:36
+    122|       early = f.admission.early;
+    123|     // Exact finite-dt outcomes, not a comparison against a computed c…
+    124|     expect(recorded(result.plant)).toEqual(f.diagnostic.plantInput);
+       |                                    ^
+    125|     expect(recorded(result.output)).toEqual(f.diagnostic.plantOutput);
+    126|     expect(recorded(result.after)).toEqual(f.diagnostic.after);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/22]⎯
+
+ FAIL  tests/gp-signed-command.test.ts > GP final command admission uses its native signed front interval > also admits the reflected recovery at 'maximumRollForecastDifference'
+AssertionError: expected 0.05768115006410847 to be close to 0.037681150064108465, received difference is 0.020000000000000004, but expected 5e-15
+ ❯ tests/gp-signed-command.test.ts:184:32
+    182|       gp[key] *= -1;
+    183|     const result = run(b, { ...f.input, lean: -f.input.lean, rider: -f…
+    184|     expect(result.plant.steer).toBeCloseTo(-f.diagnostic.plantInput.st…
+       |                                ^
+    185|     expect(result.output.lateralAcceleration).toBeCloseTo(
+    186|       -f.diagnostic.plantOutput.lateralAcceleration,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/22]⎯
+
+ FAIL  tests/gp-signed-command.test.ts > GP final command admission uses its native signed front interval > also admits the reflected recovery at 'firstRearUnloaded'
+AssertionError: expected -0.004871276152773902 to be close to -0.024871276152773902, received difference is 0.02, but expected 5e-15
+ ❯ tests/gp-signed-command.test.ts:184:32
+    182|       gp[key] *= -1;
+    183|     const result = run(b, { ...f.input, lean: -f.input.lean, rider: -f…
+    184|     expect(result.plant.steer).toBeCloseTo(-f.diagnostic.plantInput.st…
+       |                                ^
+    185|     expect(result.output.lateralAcceleration).toBeCloseTo(
+    186|       -f.diagnostic.plantOutput.lateralAcceleration,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/22]⎯
+
+ FAIL  tests/gp-signed-command.test.ts > GP final command admission uses its native signed front interval > repeats only the pure inverse for a complete legacy fallback when output is missing
+ FAIL  tests/gp-signed-command.test.ts > GP final command admission uses its native signed front interval > repeats only the pure inverse for a complete legacy fallback when output is nonfinite
+ FAIL  tests/gp-signed-command.test.ts > GP final command admission uses its native signed front interval > repeats only the pure inverse for a complete legacy fallback when output is reversed
+ FAIL  tests/gp-signed-command.test.ts > GP final command admission uses its native signed front interval > repeats only the pure inverse for a complete legacy fallback when output is null inverse
+ FAIL  tests/gp-signed-command.test.ts > GP final command admission uses its native signed front interval > repeats only the pure inverse for a complete legacy fallback when output is nonfinite inverse
+AssertionError: expected "frontSteerFor" to be called 2 times, but got 1 times
+ ❯ tests/gp-signed-command.test.ts:254:23
+    252|         });
+    253|       b.step(f.input, f.dt);
+    254|       expect(inverse).toHaveBeenCalledTimes(2);
+       |                       ^
+    255|       expect(plant).toHaveBeenCalledTimes(1);
+    256|       expect(trimAtPlant).toBe(f.original.trim);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/22]⎯
+
+ FAIL  tests/gp-signed-command.test.ts > Native front inverse exposes only its own invocation range > retains signed combined-slip roots and query purity at lean -0.6, Fx -1400
+AssertionError: expected 99999 to be -1151.6956134945003 // Object.is equality
+
+- Expected
++ Received
+
+- -1151.6956134945003
++ 99999
+
+ ❯ tests/gp-signed-command.test.ts:305:31
+    303|           neutral = samples[8];
+    304|         expect(withRange).toBe(withoutRange);
+    305|         expect(range.minimum).toBe(neutral + 0.97 * (Math.min(...sampl…
+       |                               ^
+    306|         expect(range.maximum).toBe(neutral + 0.97 * (Math.max(...sampl…
+    307|         expect(Number.isFinite(range.minimum)).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/22]⎯
+
+ FAIL  tests/gp-signed-command.test.ts > Native front inverse exposes only its own invocation range > retains signed combined-slip roots and query purity at lean -0.6, Fx +0
+AssertionError: expected 99999 to be -1982.1039193820081 // Object.is equality
+
+- Expected
++ Received
+
+- -1982.1039193820081
++ 99999
+
+ ❯ tests/gp-signed-command.test.ts:305:31
+    303|           neutral = samples[8];
+    304|         expect(withRange).toBe(withoutRange);
+    305|         expect(range.minimum).toBe(neutral + 0.97 * (Math.min(...sampl…
+       |                               ^
+    306|         expect(range.maximum).toBe(neutral + 0.97 * (Math.max(...sampl…
+    307|         expect(Number.isFinite(range.minimum)).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/22]⎯
+
+ FAIL  tests/gp-signed-command.test.ts > Native front inverse exposes only its own invocation range > retains signed combined-slip roots and query purity at lean -0.6, Fx 900
+AssertionError: expected 99999 to be -1768.9546012257092 // Object.is equality
+
+- Expected
++ Received
+
+- -1768.9546012257092
++ 99999
+
+ ❯ tests/gp-signed-command.test.ts:305:31
+    303|           neutral = samples[8];
+    304|         expect(withRange).toBe(withoutRange);
+    305|         expect(range.minimum).toBe(neutral + 0.97 * (Math.min(...sampl…
+       |                               ^
+    306|         expect(range.maximum).toBe(neutral + 0.97 * (Math.max(...sampl…
+    307|         expect(Number.isFinite(range.minimum)).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/22]⎯
+
+ FAIL  tests/gp-signed-command.test.ts > Native front inverse exposes only its own invocation range > retains signed combined-slip roots and query purity at lean 0.6, Fx -1400
+AssertionError: expected 99999 to be -995.2538044386271 // Object.is equality
+
+- Expected
++ Received
+
+- -995.2538044386271
++ 99999
+
+ ❯ tests/gp-signed-command.test.ts:305:31
+    303|           neutral = samples[8];
+    304|         expect(withRange).toBe(withoutRange);
+    305|         expect(range.minimum).toBe(neutral + 0.97 * (Math.min(...sampl…
+       |                               ^
+    306|         expect(range.maximum).toBe(neutral + 0.97 * (Math.max(...sampl…
+    307|         expect(Number.isFinite(range.minimum)).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/22]⎯
+
+ FAIL  tests/gp-signed-command.test.ts > Native front inverse exposes only its own invocation range > retains signed combined-slip roots and query purity at lean 0.6, Fx +0
+AssertionError: expected 99999 to be -1931.7786674816043 // Object.is equality
+
+- Expected
++ Received
+
+- -1931.7786674816043
++ 99999
+
+ ❯ tests/gp-signed-command.test.ts:305:31
+    303|           neutral = samples[8];
+    304|         expect(withRange).toBe(withoutRange);
+    305|         expect(range.minimum).toBe(neutral + 0.97 * (Math.min(...sampl…
+       |                               ^
+    306|         expect(range.maximum).toBe(neutral + 0.97 * (Math.max(...sampl…
+    307|         expect(Number.isFinite(range.minimum)).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/22]⎯
+
+ FAIL  tests/gp-signed-command.test.ts > Native front inverse exposes only its own invocation range > retains signed combined-slip roots and query purity at lean 0.6, Fx 900
+AssertionError: expected 99999 to be -1807.3539668461744 // Object.is equality
+
+- Expected
++ Received
+
+- -1807.3539668461744
++ 99999
+
+ ❯ tests/gp-signed-command.test.ts:305:31
+    303|           neutral = samples[8];
+    304|         expect(withRange).toBe(withoutRange);
+    305|         expect(range.minimum).toBe(neutral + 0.97 * (Math.min(...sampl…
+       |                               ^
+    306|         expect(range.maximum).toBe(neutral + 0.97 * (Math.max(...sampl…
+    307|         expect(Number.isFinite(range.minimum)).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/22]⎯
+
+ FAIL  tests/gp-signed-command.test.ts > Native front inverse exposes only its own invocation range > clears a previous output without front availability: +0 N, mu 1.5, 30 m/s
+ FAIL  tests/gp-signed-command.test.ts > Native front inverse exposes only its own invocation range > clears a previous output without front availability: 1 N, mu 1.5, 30 m/s
+ FAIL  tests/gp-signed-command.test.ts > Native front inverse exposes only its own invocation range > clears a previous output without front availability: 1400 N, mu +0, 30 m/s
+ FAIL  tests/gp-signed-command.test.ts > Native front inverse exposes only its own invocation range > clears a previous output without front availability: 1400 N, mu 1.5, 2.49 m/s
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/gp-signed-command.test.ts:350:46
+    348|         range = { minimum: NaN, maximum: NaN };
+    349|       expect(gp.frontSteerFor(500, 0.4, 30, -300, 1400, 1.5, range)).n…
+    350|       expect(Number.isFinite(range.minimum)).toBe(true);
+       |                                              ^
+    351|       expect(gp.frontSteerFor(500, 0.4, speed, -300, load, mu, range))…
+    352|       expect(Number.isNaN(range.minimum)).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/22]⎯
+
+ FAIL  tests/gp-signed-command.test.ts > Native front inverse exposes only its own invocation range > does not advertise a range after a nonfinite inverse input NaN
+ FAIL  tests/gp-signed-command.test.ts > Native front inverse exposes only its own invocation range > does not advertise a range after a nonfinite inverse input Infinity
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/gp-signed-command.test.ts:363:43
+    361|         range = { minimum: -123, maximum: 456 };
+    362|       gp.frontSteerFor(500, lean, 30, -300, 1400, 1.5, range);
+    363|       expect(Number.isNaN(range.minimum)).toBe(true);
+       |                                           ^
+    364|       expect(Number.isNaN(range.maximum)).toBe(true);
+    365|     },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/22]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  22 failed | 4 passed (26)
+   Start at  15:58:17
+   Duration  512ms (transform 146ms, setup 0ms, collect 181ms, tests 56ms, environment 0ms, prepare 77ms)
+

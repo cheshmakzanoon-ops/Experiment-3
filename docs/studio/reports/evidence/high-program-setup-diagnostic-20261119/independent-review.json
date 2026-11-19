@@ -1,0 +1,32 @@
+{
+  "reviewer": "checkpoint_ci",
+  "reviewedSource": "2f51253549fd431040c5c04331e14d0f1c259f63",
+  "verdict": "No concrete observational-semantics blocker.",
+  "workloadBodyBytes": 4842,
+  "workloadBodySha256": "e012214e1b2e37cf1e2646ed1b8e21e000f031ca2ab3c956e2bcb492528e1549",
+  "fragmentProbeBytes": 6339,
+  "fragmentProbeSha256": "9f2327ef5446c354401d0f1223fe85282e4be6220f439ec5253ab2048c1f8659",
+  "readinessTimeoutMs": 90000,
+  "newReadinessLine": 820,
+  "findings": [
+    "Each native call forwards original receiver and argument identities exactly once.",
+    "Original returns and thrown errors remain unchanged.",
+    "Uniform owner/name cache uses actual getUniformLocation returns only, with weak retention.",
+    "Slow records are capped at16 and retained separately from the256-record generic ring.",
+    "No per-uniform worker traffic or added native GL query."
+  ],
+  "limits": [
+    "Returned-call timing does not identify an indefinitely blocked call or isolated GPU execution time.",
+    "Texture unit denotes the last observed returned activeTexture argument, not a newly queried GL state.",
+    "Coverage is the listed29 APIs; nonsquare matrices and uniform-buffer APIs remain outside this observer."
+  ],
+  "validationEvidence": [
+    "focused-tests-command.json",
+    "focused-tests.log",
+    "lint-command.json",
+    "lint.log",
+    "typecheck-command.json",
+    "typecheck.log",
+    "source-manifest.json"
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "reviewedAt": "2026-11-19T23:07:29.053674+00:00",
+  "reviewer": "checkpoint_ci",
+  "verdict": "No concrete observational-semantics blocker; diagnostic-only, no production or acceptance claim.",
+  "base": "619ffceb23ed4351ddfcdf6a3fc232d15e5b5e12",
+  "sourceCommit": "2f51253549fd431040c5c04331e14d0f1c259f63",
+  "sourceTree": "6c9ef74ee4c52e502e1e4484037f72e453eec886",
+  "changedFiles": [
+    "e2e/fixtures/program-setup-diagnostic.ts",
+    "e2e/graphics-high-journey.spec.ts",
+    "tests/program-setup-diagnostic.test.ts"
+  ],
+  "fileHashes": {
+    "e2e/fixtures/program-setup-diagnostic.ts": "caae6e5b3ddf071f2815a0f7315061a6ee2bbc4440f8b43764d1ecd9a5228965",
+    "e2e/graphics-high-journey.spec.ts": "2370d339f3f3652a0b027f8feea5afc09cf58607bcf2e557245d6c3823c6b059",
+    "tests/program-setup-diagnostic.test.ts": "081b37da715471be9ab8c47a498f8d5adcbfdc2a4aa4063d2c12d7b77344b165"
+  },
+  "byteComparisons": {
+    "originalHighTryBody": {
+      "equal": true,
+      "bytes": 4842,
+      "sha256": "e012214e1b2e37cf1e2646ed1b8e21e000f031ca2ab3c956e2bcb492528e1549"
+    },
+    "originalFragmentObserver": {
+      "equal": true,
+      "bytes": 6339,
+      "sha256": "9f2327ef5446c354401d0f1223fe85282e4be6220f439ec5253ab2048c1f8659"
+    }
+  },
+  "readiness": {
+    "line": 820,
+    "timeoutMs": 90000,
+    "expectedState": "paused",
+    "parserRequirement": "Locate original readiness assertion semantically, or use this exact source line. Do not reuse prior line 786."
+  },
+  "validation": {
+    "focused-tests": {
+      "receipt": "/workspace/scratch/1c4b13d5bcb1/program-setup-diagnostic-evidence/focused-tests-command.json",
+      "receiptSha256": "56e944b895f22068a96b9bef3681db812aa5c45eb4453c01f8db94559545aeef",
+      "log": "focused-tests.log",
+      "logSha256": "7456448b8803d8064f9b52ef2e83ff38f3e4dc98f037657aff8de4c64151a18e",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npx",
+        "vitest",
+        "run",
+        "tests/program-setup-diagnostic.test.ts"
+      ],
+      "startedAt": "2026-11-19T23:02:17.050867+00:00",
+      "durationSeconds": 5.936,
+      "exitCode": 0
+    },
+    "lint": {
+      "receipt": "/workspace/scratch/1c4b13d5bcb1/program-setup-diagnostic-evidence/lint-command.json",
+      "receiptSha256": "3add9fc4d6eaad8160729dd86f96f9abb850796fd29aaafeffaaee21a83ddfb0",
+      "log": "lint.log",
+      "logSha256": "9975fc9b7de9f6c2c8c94c7a089b8a0f3c89450d98539d4e9ad856f47300dadc",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npx",
+        "eslint",
+        "e2e/fixtures/program-setup-diagnostic.ts",
+        "e2e/graphics-high-journey.spec.ts",
+        "tests/program-setup-diagnostic.test.ts"
+      ],
+      "startedAt": "2026-11-19T23:02:17.040625+00:00",
+      "durationSeconds": 6.314,
+      "exitCode": 0
+    },
+    "typecheck": {
+      "receipt": "/workspace/scratch/1c4b13d5bcb1/program-setup-diagnostic-evidence/typecheck-command.json",
+      "receiptSha256": "9c6ecdd34126172e34c619071cde3ba525b19c1b45a11290ab77cad6f488e5f3",
+      "log": "typecheck.log",
+      "logSha256": "9975fc9b7de9f6c2c8c94c7a089b8a0f3c89450d98539d4e9ad856f47300dadc",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npx",
+        "tsc",
+        "--noEmit"
+      ],
+      "startedAt": "2026-11-19T23:02:17.041771+00:00",
+      "durationSeconds": 34.296,
+      "exitCode": 0
+    }
+  },
+  "reviewLimits": [
+    "Returned-call CPU timing includes wrapper/driver overhead and cannot establish isolated GPU time or blocked-call attribution.",
+    "Texture unit tracks the last returned activeTexture argument, not a newly queried or error-validated GL state.",
+    "Coverage is the listed 29 APIs; nonsquare matrix setters and uniformBlockBinding are outside this observer."
+  ],
+  "sourceMutatedByReviewer": false,
+  "testsRerunByReviewer": false
+}

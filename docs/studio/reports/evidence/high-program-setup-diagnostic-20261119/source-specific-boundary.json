@@ -1,0 +1,48 @@
+{
+  "source": "b8f1445cb07d57b35ac1c5dd45e54b01d6aaec92",
+  "runId": 44630631215,
+  "jobId": 135935986093,
+  "artifactSha256": "5e7165c6f199fbf384e9442297b4b0a316d5b013bec2a8063d563f4dd791eb54",
+  "readinessTimeoutMs": 90000,
+  "failure": "loading instead of paused at original line786",
+  "chaseStartRelativeToReadinessMs": 35634.467,
+  "chaseElapsedMs": 42187.1,
+  "pitStartRelativeToReadinessMs": 77821.567,
+  "lastPitElapsedMs": 12110.7,
+  "lastGpuFrameQueue": {
+    "pending": true,
+    "submitted": 2,
+    "completed": 0,
+    "deferredCallbacks": 703,
+    "flushRefreshes": 11,
+    "pendingMs": 11733.100000000093,
+    "activeWaitMs": 11731.900000000023,
+    "failure": null,
+    "latencyMs": 0
+  },
+  "sourceOrder": {
+    "rendererPrepare": "draw chase \u2192 first pit render \u2192 superseding GPU fence \u2192 poll \u2192 second pit layout \u2192 compileSceneTarget \u2192 wait for completed chase \u2192 cockpit",
+    "pitSubmission": "32\u00d720 half-float target; crew-only draw surfaces; scene lights, fog, environment retained; no environment.update or reflection.update call",
+    "fenceOwnership": "GpuFrameGate.submittedFrame releases the old sync object and submits a later fence covering all preceding commands; pit wait includes prior chase work"
+  },
+  "unwrappedNativeProgramSetup": [
+    "camera projection/view matrices",
+    "camera position and orthographic flag",
+    "skin/batch/morph uniforms",
+    "lighting/fog/material values and texture samplers",
+    "model-view/normal/model matrices"
+  ],
+  "sourceReferences": {
+    "rendererPrepare": "src/rendering/renderer.ts prepare() chase loop and warmPitPresentation()",
+    "pitWarmup": "src/rendering/pit-material-warmup.ts warmPitMaterials()",
+    "gpuGate": "src/rendering/gpu-frame-gate.ts submittedFrame()/ready()",
+    "nativeSetProgram": "node_modules/three/src/renderers/WebGLRenderer.js setProgram() after state.useProgram()",
+    "nativeUniforms": "node_modules/three/src/renderers/webgl/WebGLUniforms.js setters and upload()"
+  },
+  "limits": [
+    "Pit label does not establish which earlier command keeps the fence pending.",
+    "Returned useProgram plateaus do not prove an unwrapped native uniform stall.",
+    "Slow CPU call times can include queued earlier driver work and observer overhead.",
+    "The added passive diagnostic cannot report an unreturned uniform call while it remains blocked."
+  ]
+}

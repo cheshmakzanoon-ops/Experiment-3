@@ -1,0 +1,40 @@
+{
+  "base": "b8f1445cb07d57b35ac1c5dd45e54b01d6aaec92",
+  "head": "31a39636a3907ff5159640affdbeb2e2c9184c6f",
+  "comparisonFile": "source-compare.json",
+  "changedPaths": [
+    "e2e/fixtures/program-setup-diagnostic.ts",
+    "e2e/graphics-high-journey.spec.ts",
+    "tests/program-setup-diagnostic.test.ts"
+  ],
+  "protectedPathsUnchanged": [
+    ".github/workflows/graphics-high-diagnostic.yml",
+    "e2e/30-menu-access.spec.ts",
+    "e2e/36-compact-race-journey.spec.ts",
+    "e2e/gpu-frame-gate.spec.ts",
+    "e2e/settings-transition.spec.ts",
+    "package-lock.json",
+    "playwright.config.ts"
+  ],
+  "reviewedLocalCommit": "2f51253549fd431040c5c04331e14d0f1c259f63",
+  "reviewedLocalTreeEqualsPublishedTree": true,
+  "originalHighByteComparisons": {
+    "originalHighTryBody": {
+      "equal": true,
+      "bytes": 4842,
+      "sha256": "e012214e1b2e37cf1e2646ed1b8e21e000f031ca2ab3c956e2bcb492528e1549"
+    },
+    "originalFragmentObserver": {
+      "equal": true,
+      "bytes": 6339,
+      "sha256": "9f2327ef5446c354401d0f1223fe85282e4be6220f439ec5253ab2048c1f8659"
+    }
+  },
+  "readiness": {
+    "line": 820,
+    "timeoutMs": 90000,
+    "expectedState": "paused",
+    "parserRequirement": "Locate original readiness assertion semantically, or use this exact source line. Do not reuse prior line 786."
+  },
+  "scope": "Complete three-path one-commit comparison changes only High diagnostic setup/attachments and their new helper/tests; all production files and workflow are unchanged. The original High workload/assertion body and fragment observer are independently byte-identical."
+}

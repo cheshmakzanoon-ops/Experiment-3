@@ -1,0 +1,1530 @@
+{
+  "scope": "Read-only exact source3e saved-state native replays and one-substep actuator-reachable force/torque samples. No production/capacity/reserve change.",
+  "sourceCommit": "3e58984936a9e1ba2821580688a723fb93053fa4",
+  "sourceBefore": {
+    "src/simulation/bike.ts": "b36649ae95435db2a1ca1c1b3e08b7d22ac3ef6e58dc77573a917969a764d497",
+    "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+    "src/simulation/tyre-force.ts": "ab735c1f2d06c1c25857e77e61aad477ba12e831adc6d03d9e809c727b4ca8a1",
+    "src/core/math.ts": "7f32bf1fcb9c784129594225d2bae7073fbb87cfbc54c890994db46b71f452d0"
+  },
+  "scriptSha256": "cc9e1fb4f50a824c1ae770263ff0ab862ee479cb0019a67e9a57a42d2a659498",
+  "inputSha256": "90734f6e9ba8bc6d04f5bf91561290dfc40043d5717284e995920c94c9486878",
+  "sourceStable": true,
+  "results": [
+    {
+      "label": "maximumRollForecastDifference",
+      "tick": 18274,
+      "substep": 2,
+      "s": 1896.465607465855,
+      "input": {
+        "lean": -0.29135460403478747,
+        "throttle": 0.0625,
+        "frontBrake": 0,
+        "rearBrake": 0,
+        "rider": 0.4514170400097546,
+        "drive": 224.8691107875864,
+        "engineBrake": 0
+      },
+      "state": {
+        "lean": 0.7547072956863439,
+        "leanRate": -0.06156854788698674,
+        "riderOffsetBefore": 0.18512834705646303,
+        "riderOffsetAtControl": 0.18262834705646303,
+        "speed": 48.03795854444651,
+        "frontLoad": 3238.547197848438,
+        "rearLoad": 1040.7029279739627
+      },
+      "native": {
+        "controls": 1,
+        "plants": 1,
+        "capacity": 14.008108647100448,
+        "recovery": 13.797987017393941,
+        "observation": 6.762535208945043,
+        "rear": {
+          "args": [
+            1040.7029279739627,
+            1.5951860733114154,
+            0.7547072956863439,
+            48.03795854444651,
+            0,
+            0.004166666666666667
+          ],
+          "returned": 1652.8491857844326
+        },
+        "inverse": {
+          "args": [
+            1924.2621844479438,
+            0.7547072956863439,
+            48.03795854444651,
+            0,
+            3238.547197848438,
+            1.6008463618305018
+          ],
+          "returned": -0.1188910613192076
+        },
+        "barRequest": -0.09502051486935656,
+        "target": -0.27961516069821324,
+        "demand": 19.6133,
+        "trim": -0.000006813386870312414,
+        "plantInput": {
+          "dt": 0.004166666666666667,
+          "speed": 48.02837242773739,
+          "mass": 244.4126551235032,
+          "lean": 0.7547072956863439,
+          "steer": -0.05768115006410847,
+          "frontLoad": 3238.547197848438,
+          "rearLoad": 1040.7029279739627,
+          "frontMu": 1.6008463618305018,
+          "rearMu": 1.5951860733114154,
+          "frontFx": 0,
+          "rearFx": 0,
+          "frontContact": 1,
+          "frontBrakeExcess": 0,
+          "rearDriveExcess": 0,
+          "rearBrakeExcess": 0,
+          "inertialContacts": true
+        },
+        "plantOutput": {
+          "frontFy": 2419.709118084549,
+          "rearFy": 1652.8491857844326,
+          "lateralAcceleration": 16.636801828203627,
+          "frontOmega": 161.38343960985293,
+          "rearOmega": 151.1967625327759,
+          "yawRate": -0.3300438118825937,
+          "lateralSpeed": -3.7935939812803543
+        },
+        "after": {
+          "speed": 48.03661262920287,
+          "lean": 0.7555310056919232,
+          "leanRate": -0.042922316775919976,
+          "riderOffset": 0.18262834705646303,
+          "steer": -0.05768115006410847,
+          "frontLoad": 3238.547197848438,
+          "rearLoad": 1040.7029279739627,
+          "drive": 0,
+          "frontBrake": 0,
+          "rearBrake": 0,
+          "state": "riding",
+          "crashes": 0
+        },
+        "proof": {
+          "once": true,
+          "target": true,
+          "reserve": true,
+          "barRequest": true,
+          "inverse": true,
+          "rear": true,
+          "plantInput": true,
+          "plantOutput": true,
+          "after": true
+        },
+        "physical": {
+          "psi": 0.8292176272651512,
+          "reaction": 17.508300147797456,
+          "inertia": 117.95222462947464,
+          "steerRate": -2.4000000000000004,
+          "componentsNm": {
+            "reaction": 1956.430139818105,
+            "lateral": -1702.8652641961728,
+            "yawGyro": 55.997332351084694,
+            "steerGyro": 212.19470475453508
+          },
+          "rollAcceleration": 4.4234597046944755,
+          "predictedRate": -0.042922316775919976,
+          "predictedLean": 0.7555310056919232
+        },
+        "controller": {
+          "reaction": 17.508300147797456,
+          "psi": 0.8282150742730056,
+          "measuredStored": 35.02704409336897,
+          "currentObservation": 6.762535208945043,
+          "rolling": 11.216528038207985,
+          "rateAhead": 0.6114231344054923,
+          "ahead": 0.8447107118685607,
+          "target": -0.27961516069821324,
+          "effort": -1.624518247280519,
+          "stopping": 24.83317663124411,
+          "rate": -1.624518247280519,
+          "desiredRollAcceleration": -20.1234724351741,
+          "uncappedLateralDemand": 42.83865604417939,
+          "capacity": 14.008108647100448,
+          "recovery": 13.797987017393941,
+          "lateralAfterRecoveryClamp": 13.797987017393941,
+          "lateralDecodedFromNativeFrontForce": 13.797987017393943,
+          "nativeControllerReserve": 19.6133,
+          "frontForceRequested": 1924.2621844479438,
+          "rearForcePreview": 1652.8491857844326,
+          "rawBarRequest": -0.09502051486935656,
+          "committedBar": -0.05768115006410847,
+          "steerTrim": -0.000006813386870312414
+        }
+      },
+      "reachable": {
+        "scope": "Actual allocated Fx, speed, contacts and saved tyre history held fixed. Native inverse includes projected combined-slip and97percent reserve. Existing trim held; each alternative passes max-bar and one-substep rate limits, then one real native plant relaxation step. Sampled attainable lower bound, not an optimum or future support guarantee.",
+        "barInterval": [
+          -0.05768115006410847,
+          -0.037681150064108465
+        ],
+        "actual": {
+          "label": "actual native command",
+          "bar": -0.05768115006410847,
+          "ground": -0.07225358757759726,
+          "frontChassisForce": 2413.3957218103683,
+          "rearForce": 1652.8491857844326,
+          "deliveredLateral": 16.636801828203627,
+          "output": {
+            "frontFy": 2419.709118084549,
+            "rearFy": 1652.8491857844326,
+            "lateralAcceleration": 16.636801828203627,
+            "frontOmega": 161.38343960985293,
+            "rearOmega": 151.1967625327759,
+            "yawRate": -0.3300438118825937,
+            "lateralSpeed": -3.7935939812803543
+          },
+          "physical": {
+            "psi": 0.8292176272651512,
+            "reaction": 17.508300147797456,
+            "inertia": 117.95222462947464,
+            "steerRate": -2.4000000000000004,
+            "componentsNm": {
+              "reaction": 1956.430139818105,
+              "lateral": -1702.8652641961728,
+              "yawGyro": 55.997332351084694,
+              "steerGyro": 212.19470475453508
+            },
+            "rollAcceleration": 4.4234597046944755,
+            "predictedRate": -0.042922316775919976,
+            "predictedLean": 0.7555310056919232
+          }
+        },
+        "nativeRange": {
+          "sampledProjectedMin": -4923.441700697613,
+          "sampledProjectedMax": 5161.059778592438,
+          "neutralForce": 0,
+          "reservedProjectedMin": -4775.7384496766845,
+          "reservedProjectedMax": 5006.227985234665,
+          "rearPreview": 1652.8491857844326,
+          "heldYawRate": -0.36411503278630075,
+          "K": 314.2857142857143,
+          "requestInterval": [
+            -12.899951294078031,
+            26.07879638013853
+          ],
+          "steadyDeliveredInterval": [
+            -12.777117708222745,
+            27.245222501487188
+          ]
+        },
+        "minRoll": {
+          "label": "native97percent inverse, frozen trim and actual actuator limits",
+          "bar": -0.037681150064108465,
+          "ground": -0.047217935920542325,
+          "frontChassisForce": 2763.641425931089,
+          "rearForce": 1652.8491857844326,
+          "deliveredLateral": 18.069811522172785,
+          "output": {
+            "frontFy": 2766.7251060532535,
+            "rearFy": 1652.8491857844326,
+            "lateralAcceleration": 18.069811522172785,
+            "frontOmega": 161.38343960985293,
+            "rearOmega": 151.1967625327759,
+            "yawRate": -0.31147017605801003,
+            "lateralSpeed": -3.7913416373048574
+          },
+          "physical": {
+            "psi": 0.8292176272651512,
+            "reaction": 17.508300147797456,
+            "inertia": 117.95222462947464,
+            "steerRate": 2.4000000000000004,
+            "componentsNm": {
+              "reaction": 1956.430139818105,
+              "lateral": -1849.5414376768033,
+              "yawGyro": 52.84601116040832,
+              "steerGyro": -212.19470475453508
+            },
+            "rollAcceleration": -0.44475626990180317,
+            "predictedRate": -0.0631053819681219,
+            "predictedLean": 0.7554469095869557
+          },
+          "inverseProjectedForce": 5006.227985234664,
+          "inverseGround": -0.02785838949623777,
+          "requestedBar": -0.02223324774770631
+        },
+        "maxRoll": {
+          "label": "actual native command",
+          "bar": -0.05768115006410847,
+          "ground": -0.07225358757759726,
+          "frontChassisForce": 2413.3957218103683,
+          "rearForce": 1652.8491857844326,
+          "deliveredLateral": 16.636801828203627,
+          "output": {
+            "frontFy": 2419.709118084549,
+            "rearFy": 1652.8491857844326,
+            "lateralAcceleration": 16.636801828203627,
+            "frontOmega": 161.38343960985293,
+            "rearOmega": 151.1967625327759,
+            "yawRate": -0.3300438118825937,
+            "lateralSpeed": -3.7935939812803543
+          },
+          "physical": {
+            "psi": 0.8292176272651512,
+            "reaction": 17.508300147797456,
+            "inertia": 117.95222462947464,
+            "steerRate": -2.4000000000000004,
+            "componentsNm": {
+              "reaction": 1956.430139818105,
+              "lateral": -1702.8652641961728,
+              "yawGyro": 55.997332351084694,
+              "steerGyro": 212.19470475453508
+            },
+            "rollAcceleration": 4.4234597046944755,
+            "predictedRate": -0.042922316775919976,
+            "predictedLean": 0.7555310056919232
+          }
+        },
+        "samples": [
+          {
+            "label": "actual native command",
+            "bar": -0.05768115006410847,
+            "ground": -0.07225358757759726,
+            "frontChassisForce": 2413.3957218103683,
+            "rearForce": 1652.8491857844326,
+            "deliveredLateral": 16.636801828203627,
+            "output": {
+              "frontFy": 2419.709118084549,
+              "rearFy": 1652.8491857844326,
+              "lateralAcceleration": 16.636801828203627,
+              "frontOmega": 161.38343960985293,
+              "rearOmega": 151.1967625327759,
+              "yawRate": -0.3300438118825937,
+              "lateralSpeed": -3.7935939812803543
+            },
+            "physical": {
+              "psi": 0.8292176272651512,
+              "reaction": 17.508300147797456,
+              "inertia": 117.95222462947464,
+              "steerRate": -2.4000000000000004,
+              "componentsNm": {
+                "reaction": 1956.430139818105,
+                "lateral": -1702.8652641961728,
+                "yawGyro": 55.997332351084694,
+                "steerGyro": 212.19470475453508
+              },
+              "rollAcceleration": 4.4234597046944755,
+              "predictedRate": -0.042922316775919976,
+              "predictedLean": 0.7555310056919232
+            }
+          },
+          {
+            "label": "native97percent inverse, frozen trim and actual actuator limits",
+            "bar": -0.051036543606481244,
+            "ground": -0.06393907122596534,
+            "frontChassisForce": 2553.6649590250386,
+            "rearForce": 1652.8491857844326,
+            "deliveredLateral": 17.210705160434077,
+            "output": {
+              "frontFy": 2558.893818306287,
+              "rearFy": 1652.8491857844326,
+              "lateralAcceleration": 17.210705160434077,
+              "frontOmega": 161.38343960985293,
+              "rearOmega": 151.1967625327759,
+              "yawRate": -0.32260529172727026,
+              "lateralSpeed": -3.7926918126949856
+            },
+            "physical": {
+              "psi": 0.8292176272651512,
+              "reaction": 17.508300147797456,
+              "inertia": 117.95222462947464,
+              "steerRate": -0.8052944501694664,
+              "componentsNm": {
+                "reaction": 1956.430139818105,
+                "lateral": -1761.6073264959673,
+                "yawGyro": 54.735265709198785,
+                "steerGyro": 71.19967420590649
+              },
+              "rollAcceleration": 2.7193870589965163,
+              "predictedRate": -0.04998720655892148,
+              "predictedLean": 0.7555015686511607
+            },
+            "inverseProjectedForce": 4394.855083052704,
+            "inverseGround": -0.06393225783909504,
+            "requestedBar": -0.051036543606481244
+          },
+          {
+            "label": "native97percent inverse, frozen trim and actual actuator limits",
+            "bar": -0.04015690337940661,
+            "ground": -0.05031843839009609,
+            "frontChassisForce": 2731.3242998816636,
+            "rearForce": 1652.8491857844326,
+            "deliveredLateral": 17.93758790211066,
+            "output": {
+              "frontFy": 2734.7857333052275,
+              "rearFy": 1652.8491857844326,
+              "lateralAcceleration": 17.93758790211066,
+              "frontOmega": 161.38343960985293,
+              "rearOmega": 151.1967625327759,
+              "yawRate": -0.3131839630454795,
+              "lateralSpeed": -3.7915494023015865
+            },
+            "physical": {
+              "psi": 0.8292176272651512,
+              "reaction": 17.508300147797456,
+              "inertia": 117.95222462947464,
+              "steerRate": 1.8058192043284456,
+              "componentsNm": {
+                "reaction": 1956.430139818105,
+                "lateral": -1836.0076460241096,
+                "yawGyro": 53.13678316115842,
+                "steerGyro": -159.66053037605997
+              },
+              "rollAcceleration": 0.11783369599644887,
+              "predictedRate": -0.0607729484817163,
+              "predictedLean": 0.7554566280598157
+            },
+            "inverseProjectedForce": 4700.541534143684,
+            "inverseGround": -0.05031162500322577,
+            "requestedBar": -0.04015690337940661
+          },
+          {
+            "label": "native97percent inverse, frozen trim and actual actuator limits",
+            "bar": -0.037681150064108465,
+            "ground": -0.047217935920542325,
+            "frontChassisForce": 2763.641425931089,
+            "rearForce": 1652.8491857844326,
+            "deliveredLateral": 18.069811522172785,
+            "output": {
+              "frontFy": 2766.7251060532535,
+              "rearFy": 1652.8491857844326,
+              "lateralAcceleration": 18.069811522172785,
+              "frontOmega": 161.38343960985293,
+              "rearOmega": 151.1967625327759,
+              "yawRate": -0.31147017605801003,
+              "lateralSpeed": -3.7913416373048574
+            },
+            "physical": {
+              "psi": 0.8292176272651512,
+              "reaction": 17.508300147797456,
+              "inertia": 117.95222462947464,
+              "steerRate": 2.4000000000000004,
+              "componentsNm": {
+                "reaction": 1956.430139818105,
+                "lateral": -1849.5414376768033,
+                "yawGyro": 52.84601116040832,
+                "steerGyro": -212.19470475453508
+              },
+              "rollAcceleration": -0.44475626990180317,
+              "predictedRate": -0.0631053819681219,
+              "predictedLean": 0.7554469095869557
+            },
+            "inverseProjectedForce": 5006.227985234664,
+            "inverseGround": -0.02785838949623777,
+            "requestedBar": -0.02223324774770631
+          }
+        ]
+      }
+    },
+    {
+      "label": "lastRecordedControl",
+      "tick": 18366,
+      "substep": 1,
+      "s": 1931.934944540114,
+      "input": {
+        "lean": -0.5951323839007894,
+        "throttle": 0,
+        "frontBrake": 0,
+        "rearBrake": 0,
+        "rider": 0.5955129677995039,
+        "drive": 0,
+        "engineBrake": 0
+      },
+      "state": {
+        "lean": 1.2447136971550272,
+        "leanRate": 1.3724359192459616,
+        "riderOffsetBefore": 0.1792681703516694,
+        "riderOffsetAtControl": 0.17865389033985116,
+        "speed": 32.727278488351935,
+        "frontLoad": 1157.850853992455,
+        "rearLoad": 1052.2267958437878
+      },
+      "native": {
+        "controls": 1,
+        "plants": 1,
+        "capacity": 14.835000622167339,
+        "recovery": 14.612475612834828,
+        "observation": 11.533237334369488,
+        "rear": {
+          "args": [
+            1052.2267958437878,
+            1.7393237415994438,
+            1.2447136971550272,
+            32.727278488351935,
+            0,
+            0.004166666666666667
+          ],
+          "returned": 1256.424063274188
+        },
+        "inverse": {
+          "args": [
+            1669.649035979277,
+            1.2447136971550272,
+            32.727278488351935,
+            0,
+            1157.850853992455,
+            1.7422653026300483
+          ],
+          "returned": -0.613577405087306
+        },
+        "barRequest": -0.26359800116348325,
+        "target": -0.588847607355478,
+        "demand": 19.6133,
+        "trim": 0.00012893692732340279,
+        "plantInput": {
+          "dt": 0.004166666666666667,
+          "speed": 32.72236136326553,
+          "mass": 244.41178549089312,
+          "lean": 1.2447136971550272,
+          "steer": -0.26359800116348325,
+          "frontLoad": 1157.850853992455,
+          "rearLoad": 1052.2267958437878,
+          "frontMu": 1.7422653026300483,
+          "rearMu": 1.7393237415994438,
+          "frontFx": 0,
+          "rearFx": 0,
+          "frontContact": 1,
+          "frontBrakeExcess": 0,
+          "rearDriveExcess": 0,
+          "rearBrakeExcess": 0,
+          "inertialContacts": true
+        },
+        "plantOutput": {
+          "frontFy": 1903.6323434353856,
+          "rearFy": 1256.4158281152295,
+          "lateralAcceleration": 11.509078315384105,
+          "frontOmega": 120.50222008931696,
+          "rearOmega": 115.88928280361478,
+          "yawRate": 2.5,
+          "lateralSpeed": -26.177889090612425
+        },
+        "after": {
+          "speed": 32.46487971676067,
+          "lean": 1.2507595372371019,
+          "leanRate": 1.391863119844436,
+          "riderOffset": 0.17865389033985116,
+          "steer": -0.26359800116348325,
+          "frontLoad": 1157.850853992455,
+          "rearLoad": 1052.2267958437878,
+          "drive": 0,
+          "frontBrake": 0,
+          "rearBrake": 0,
+          "state": "lowside",
+          "crashes": 1
+        },
+        "proof": {
+          "once": true,
+          "target": true,
+          "reserve": true,
+          "barRequest": true,
+          "inverse": true,
+          "rear": true,
+          "plantInput": true,
+          "plantOutput": true,
+          "after": true
+        },
+        "physical": {
+          "psi": 1.316873740784342,
+          "reaction": 9.042434862121619,
+          "inertia": 117.95189034269931,
+          "steerRate": -0.01028307843371934,
+          "componentsNm": {
+            "reaction": 1326.3104602889157,
+            "lateral": -438.1054557804318,
+            "yawGyro": -141.42905595070866,
+            "steerGyro": 0.6788636103885752
+          },
+          "rollAcceleration": 6.336946444830147,
+          "predictedRate": 1.391863119844436,
+          "predictedLean": 1.2507595372371019
+        },
+        "controller": {
+          "reaction": 9.042434862121619,
+          "psi": 1.3166273303682858,
+          "measuredStored": 11.658905573443942,
+          "currentObservation": 11.533237334369488,
+          "rolling": 6.448832029093159,
+          "rateAhead": 1.7593658409915511,
+          "ahead": 1.4105813831754113,
+          "target": -0.588847607355478,
+          "effort": -1.845161196023131,
+          "stopping": 36.76631390198653,
+          "rate": -1.845161196023131,
+          "desiredRollAcceleration": -32.44074333313214,
+          "uncappedLateralDemand": 110.56919011508579,
+          "capacity": 14.835000622167339,
+          "recovery": 14.612475612834828,
+          "lateralAfterRecoveryClamp": 14.612475612834828,
+          "lateralDecodedFromNativeFrontForce": 14.612475612834828,
+          "nativeControllerReserve": 19.6133,
+          "frontForceRequested": 1669.649035979277,
+          "rearForcePreview": 1256.424063274188,
+          "rawBarRequest": -0.26359800116348325,
+          "committedBar": -0.26359800116348325,
+          "steerTrim": 0.00012893692732340279
+        }
+      },
+      "reachable": {
+        "scope": "Actual allocated Fx, speed, contacts and saved tyre history held fixed. Native inverse includes projected combined-slip and97percent reserve. Existing trim held; each alternative passes max-bar and one-substep rate limits, then one real native plant relaxation step. Sampled attainable lower bound, not an optimum or future support guarantee.",
+        "barInterval": [
+          -0.27355515500334276,
+          -0.25355515500334275
+        ],
+        "actual": {
+          "label": "actual native command",
+          "bar": -0.26359800116348325,
+          "ground": -0.6134484681599826,
+          "frontChassisForce": 1556.53855230232,
+          "rearForce": 1256.4158281152295,
+          "deliveredLateral": 11.509078315384105,
+          "output": {
+            "frontFy": 1903.6323434353856,
+            "rearFy": 1256.4158281152295,
+            "lateralAcceleration": 11.509078315384105,
+            "frontOmega": 120.50222008931696,
+            "rearOmega": 115.88928280361478,
+            "yawRate": 2.5,
+            "lateralSpeed": -26.177889090612425
+          },
+          "physical": {
+            "psi": 1.316873740784342,
+            "reaction": 9.042434862121619,
+            "inertia": 117.95189034269931,
+            "steerRate": -0.01028307843371934,
+            "componentsNm": {
+              "reaction": 1326.3104602889157,
+              "lateral": -438.1054557804318,
+              "yawGyro": -141.42905595070866,
+              "steerGyro": 0.6788636103885752
+            },
+            "rollAcceleration": 6.336946444830147,
+            "predictedRate": 1.391863119844436,
+            "predictedLean": 1.2507595372371019
+          }
+        },
+        "nativeRange": {
+          "sampledProjectedMin": -1256.1505240533613,
+          "sampledProjectedMax": 1603.389978233058,
+          "neutralForce": 0,
+          "reservedProjectedMin": -1218.4660083317603,
+          "reservedProjectedMax": 1555.288278886066,
+          "rearPreview": 1256.4158281152295,
+          "heldYawRate": 2.5,
+          "K": 314.2857142857143,
+          "requestInterval": [
+            3.242562688017393,
+            14.162150050666304
+          ],
+          "steadyDeliveredInterval": [
+            0.155270007570413,
+            11.503962877052263
+          ]
+        },
+        "minRoll": {
+          "label": "actual native command",
+          "bar": -0.26359800116348325,
+          "ground": -0.6134484681599826,
+          "frontChassisForce": 1556.53855230232,
+          "rearForce": 1256.4158281152295,
+          "deliveredLateral": 11.509078315384105,
+          "output": {
+            "frontFy": 1903.6323434353856,
+            "rearFy": 1256.4158281152295,
+            "lateralAcceleration": 11.509078315384105,
+            "frontOmega": 120.50222008931696,
+            "rearOmega": 115.88928280361478,
+            "yawRate": 2.5,
+            "lateralSpeed": -26.177889090612425
+          },
+          "physical": {
+            "psi": 1.316873740784342,
+            "reaction": 9.042434862121619,
+            "inertia": 117.95189034269931,
+            "steerRate": -0.01028307843371934,
+            "componentsNm": {
+              "reaction": 1326.3104602889157,
+              "lateral": -438.1054557804318,
+              "yawGyro": -141.42905595070866,
+              "steerGyro": 0.6788636103885752
+            },
+            "rollAcceleration": 6.336946444830147,
+            "predictedRate": 1.391863119844436,
+            "predictedLean": 1.2507595372371019
+          }
+        },
+        "maxRoll": {
+          "label": "native97percent inverse, frozen trim and actual actuator limits",
+          "bar": -0.27355515500334276,
+          "ground": -0.6318869302468875,
+          "frontChassisForce": 1511.9334228431346,
+          "rearForce": 1256.4158281152295,
+          "deliveredLateral": 11.326578402912219,
+          "output": {
+            "frontFy": 1873.722208245854,
+            "rearFy": 1256.4158281152295,
+            "lateralAcceleration": 11.326578402912219,
+            "frontOmega": 120.50222008931696,
+            "rearOmega": 115.88928280361478,
+            "yawRate": 2.5,
+            "lateralSpeed": -26.177889090612425
+          },
+          "physical": {
+            "psi": 1.316873740784342,
+            "reaction": 9.042434862121619,
+            "inertia": 117.95189034269931,
+            "steerRate": -2.400000000000002,
+            "componentsNm": {
+              "reaction": 1326.3104602889157,
+              "lateral": -431.15840014813926,
+              "yawGyro": -141.42905595070866,
+              "steerGyro": 158.44211200315448
+            },
+            "rollAcceleration": 7.733365811628818,
+            "predictedRate": 1.397652514411732,
+            "predictedLean": 1.2507836597144657
+          },
+          "inverseProjectedForce": -1218.4660083317603,
+          "inverseGround": -0.8232966553946872,
+          "requestedBar": -0.39202230976048175
+        },
+        "samples": [
+          {
+            "label": "actual native command",
+            "bar": -0.26359800116348325,
+            "ground": -0.6134484681599826,
+            "frontChassisForce": 1556.53855230232,
+            "rearForce": 1256.4158281152295,
+            "deliveredLateral": 11.509078315384105,
+            "output": {
+              "frontFy": 1903.6323434353856,
+              "rearFy": 1256.4158281152295,
+              "lateralAcceleration": 11.509078315384105,
+              "frontOmega": 120.50222008931696,
+              "rearOmega": 115.88928280361478,
+              "yawRate": 2.5,
+              "lateralSpeed": -26.177889090612425
+            },
+            "physical": {
+              "psi": 1.316873740784342,
+              "reaction": 9.042434862121619,
+              "inertia": 117.95189034269931,
+              "steerRate": -0.01028307843371934,
+              "componentsNm": {
+                "reaction": 1326.3104602889157,
+                "lateral": -438.1054557804318,
+                "yawGyro": -141.42905595070866,
+                "steerGyro": 0.6788636103885752
+              },
+              "rollAcceleration": 6.336946444830147,
+              "predictedRate": 1.391863119844436,
+              "predictedLean": 1.2507595372371019
+            }
+          },
+          {
+            "label": "native97percent inverse, frozen trim and actual actuator limits",
+            "bar": -0.27355515500334276,
+            "ground": -0.6318869302468875,
+            "frontChassisForce": 1511.9334228431346,
+            "rearForce": 1256.4158281152295,
+            "deliveredLateral": 11.326578402912219,
+            "output": {
+              "frontFy": 1873.722208245854,
+              "rearFy": 1256.4158281152295,
+              "lateralAcceleration": 11.326578402912219,
+              "frontOmega": 120.50222008931696,
+              "rearOmega": 115.88928280361478,
+              "yawRate": 2.5,
+              "lateralSpeed": -26.177889090612425
+            },
+            "physical": {
+              "psi": 1.316873740784342,
+              "reaction": 9.042434862121619,
+              "inertia": 117.95189034269931,
+              "steerRate": -2.400000000000002,
+              "componentsNm": {
+                "reaction": 1326.3104602889157,
+                "lateral": -431.15840014813926,
+                "yawGyro": -141.42905595070866,
+                "steerGyro": 158.44211200315448
+              },
+              "rollAcceleration": 7.733365811628818,
+              "predictedRate": 1.397652514411732,
+              "predictedLean": 1.2507836597144657
+            },
+            "inverseProjectedForce": -1218.4660083317603,
+            "inverseGround": -0.8232966553946872,
+            "requestedBar": -0.39202230976048175
+          },
+          {
+            "label": "native97percent inverse, frozen trim and actual actuator limits",
+            "bar": -0.26363588381848346,
+            "ground": -0.6135193531659325,
+            "frontChassisForce": 1556.4008515870942,
+            "rearForce": 1256.4158281152295,
+            "deliveredLateral": 11.508514919003897,
+            "output": {
+              "frontFy": 1903.558943569028,
+              "rearFy": 1256.4158281152295,
+              "lateralAcceleration": 11.508514919003897,
+              "frontOmega": 120.50222008931696,
+              "rearOmega": 115.88928280361478,
+              "yawRate": 2.5,
+              "lateralSpeed": -26.177889090612425
+            },
+            "physical": {
+              "psi": 1.316873740784342,
+              "reaction": 9.042434862121619,
+              "inertia": 117.95189034269931,
+              "steerRate": -0.019374915633769696,
+              "componentsNm": {
+                "reaction": 1326.3104602889157,
+                "lateral": -438.084009490714,
+                "yawGyro": -141.42905595070866,
+                "steerGyro": 1.2790843970405852
+              },
+              "rollAcceleration": 6.342216958719867,
+              "predictedRate": 1.3918849707906529,
+              "predictedLean": 1.2507596282827111
+            },
+            "inverseProjectedForce": 1555.288278886066,
+            "inverseGround": -0.6136482900932559,
+            "requestedBar": -0.26363588381848346
+          }
+        ]
+      }
+    },
+    {
+      "label": "firstFrontUnloaded",
+      "tick": 17949,
+      "substep": 1,
+      "s": 1770.9949740208249,
+      "input": {
+        "lean": -0.20201389291631372,
+        "throttle": 0.5932695038992968,
+        "frontBrake": 0,
+        "rearBrake": 0,
+        "rider": -0.06537931044477706,
+        "drive": 2607.9390963771243,
+        "engineBrake": 0
+      },
+      "state": {
+        "lean": 0.17868231552599184,
+        "leanRate": -1.264301250117369,
+        "riderOffsetBefore": 0.05279907158939584,
+        "riderOffsetAtControl": 0.05029907158939584,
+        "speed": 39.5861797547073,
+        "frontLoad": 0,
+        "rearLoad": 2089.4079541951605
+      },
+      "native": {
+        "controls": 1,
+        "plants": 1,
+        "capacity": 0.5,
+        "recovery": 0.4925,
+        "observation": 1.0755521109217911,
+        "rear": {
+          "args": [
+            2089.4079541951605,
+            1.7621286985155349,
+            0.17868231552599184,
+            39.5861797547073,
+            2398.757394299002,
+            0.004166666666666667
+          ],
+          "returned": 230.86535181598117
+        },
+        "inverse": {
+          "args": [
+            -366.47381986208035,
+            0.17868231552599184,
+            39.5861797547073,
+            0,
+            0,
+            1.7670131819646966
+          ],
+          "returned": null
+        },
+        "barRequest": -0.05188902596100047,
+        "target": 0,
+        "demand": 3.492405175216383,
+        "trim": 0.0006550266048569649,
+        "plantInput": {
+          "dt": 0.004166666666666667,
+          "speed": 39.619006619365145,
+          "mass": 244.4314097434952,
+          "lean": 0.17868231552599184,
+          "steer": 0.004683491093554511,
+          "frontLoad": 0,
+          "rearLoad": 2089.4079541951605,
+          "frontMu": 1.7670131819646966,
+          "rearMu": 1.7621286985155349,
+          "frontFx": 0,
+          "rearFx": 2359.01872327026,
+          "frontContact": 0,
+          "frontBrakeExcess": 0,
+          "rearDriveExcess": 0,
+          "rearBrakeExcess": 0,
+          "inertialContacts": true
+        },
+        "plantOutput": {
+          "frontFy": 0,
+          "rearFy": 231.3057582666506,
+          "lateralAcceleration": 0.946301289631236,
+          "frontOmega": 130.47998146677367,
+          "rearOmega": 126.393532022733,
+          "yawRate": 0.022862776401349053,
+          "lateralSpeed": 0.36293723295591995
+        },
+        "after": {
+          "speed": 39.61904137310189,
+          "lean": 0.17448988867284368,
+          "leanRate": -1.2480134240678933,
+          "riderOffset": 0.05029907158939584,
+          "steer": 0.004683491093554511,
+          "frontLoad": 0,
+          "rearLoad": 2089.4079541951605,
+          "drive": 2359.01872327026,
+          "frontBrake": 0,
+          "rearBrake": 0,
+          "state": "riding",
+          "crashes": 0
+        },
+        "proof": {
+          "once": true,
+          "target": true,
+          "reserve": true,
+          "barRequest": true,
+          "inverse": true,
+          "rear": true,
+          "plantInput": true,
+          "plantOutput": true,
+          "after": true
+        },
+        "physical": {
+          "psi": 0.1999690479812673,
+          "reaction": 8.548033807879978,
+          "inertia": 117.95943390539955,
+          "steerRate": -2.4,
+          "componentsNm": {
+            "reaction": 257.32349647917954,
+            "lateral": -140.55180841162812,
+            "yawGyro": -4.320712996287904,
+            "steerGyro": 171.561352333631
+          },
+          "rollAcceleration": 2.4077118548454988,
+          "predictedRate": -1.2480134240678933,
+          "predictedLean": 0.17448988867284368
+        },
+        "controller": {
+          "reaction": 8.548033807879978,
+          "psi": 0.19896141890079924,
+          "measuredStored": 2.2013795705868127,
+          "currentObservation": 1.0755521109217911,
+          "rolling": 0.7588398930281276,
+          "rateAhead": -1.2187708565356812,
+          "ahead": 0.12446925570120775,
+          "target": 0,
+          "effort": -0.5601116506554349,
+          "stopping": 0.16351315727530402,
+          "rate": -0.4952471462946112,
+          "desiredRollAcceleration": 6.5117133921696295,
+          "uncappedLateralDemand": -3.492405175216383,
+          "capacity": 0.5,
+          "recovery": 0.4925,
+          "lateralAfterRecoveryClamp": -0.4925,
+          "lateralDecodedFromNativeFrontForce": -0.49249999999999994,
+          "nativeControllerReserve": 3.492405175216383,
+          "frontForceRequested": -366.47381986208035,
+          "rearForcePreview": 230.86535181598117,
+          "rawBarRequest": -0.05188902596100047,
+          "committedBar": 0.004683491093554511,
+          "steerTrim": 0.0006550266048569649
+        }
+      },
+      "reachable": {
+        "scope": "No loaded rolling front inverse; no front-force authority advertised.",
+        "barInterval": [
+          0.004683491093554511,
+          0.024683491093554513
+        ],
+        "actual": {
+          "label": "actual native command",
+          "bar": 0.004683491093554511,
+          "ground": 0.004345636259426673,
+          "frontChassisForce": 0,
+          "rearForce": 231.3057582666506,
+          "deliveredLateral": 0.946301289631236,
+          "output": {
+            "frontFy": 0,
+            "rearFy": 231.3057582666506,
+            "lateralAcceleration": 0.946301289631236,
+            "frontOmega": 130.47998146677367,
+            "rearOmega": 126.393532022733,
+            "yawRate": 0.022862776401349053,
+            "lateralSpeed": 0.36293723295591995
+          },
+          "physical": {
+            "psi": 0.1999690479812673,
+            "reaction": 8.548033807879978,
+            "inertia": 117.95943390539955,
+            "steerRate": -2.4,
+            "componentsNm": {
+              "reaction": 257.32349647917954,
+              "lateral": -140.55180841162812,
+              "yawGyro": -4.320712996287904,
+              "steerGyro": 171.561352333631
+            },
+            "rollAcceleration": 2.4077118548454988,
+            "predictedRate": -1.2480134240678933,
+            "predictedLean": 0.17448988867284368
+          }
+        },
+        "nativeRange": null,
+        "samples": [
+          {
+            "label": "actual native command",
+            "bar": 0.004683491093554511,
+            "ground": 0.004345636259426673,
+            "frontChassisForce": 0,
+            "rearForce": 231.3057582666506,
+            "deliveredLateral": 0.946301289631236,
+            "output": {
+              "frontFy": 0,
+              "rearFy": 231.3057582666506,
+              "lateralAcceleration": 0.946301289631236,
+              "frontOmega": 130.47998146677367,
+              "rearOmega": 126.393532022733,
+              "yawRate": 0.022862776401349053,
+              "lateralSpeed": 0.36293723295591995
+            },
+            "physical": {
+              "psi": 0.1999690479812673,
+              "reaction": 8.548033807879978,
+              "inertia": 117.95943390539955,
+              "steerRate": -2.4,
+              "componentsNm": {
+                "reaction": 257.32349647917954,
+                "lateral": -140.55180841162812,
+                "yawGyro": -4.320712996287904,
+                "steerGyro": 171.561352333631
+              },
+              "rollAcceleration": 2.4077118548454988,
+              "predictedRate": -1.2480134240678933,
+              "predictedLean": 0.17448988867284368
+            }
+          }
+        ]
+      }
+    },
+    {
+      "label": "firstRearUnloaded",
+      "tick": 18204,
+      "substep": 2,
+      "s": 1867.6029440112416,
+      "input": {
+        "lean": 0.889048722344647,
+        "throttle": 0.1791666666666667,
+        "frontBrake": 0,
+        "rearBrake": 0,
+        "rider": 1,
+        "drive": 647.7165806851701,
+        "engineBrake": 0
+      },
+      "state": {
+        "lean": 0.5010775973610472,
+        "leanRate": -0.18823646977589592,
+        "riderOffsetBefore": 0.3,
+        "riderOffsetAtControl": 0.3,
+        "speed": 49.710762410087916,
+        "frontLoad": 1453.8557375219684,
+        "rearLoad": 0
+      },
+      "native": {
+        "controls": 1,
+        "plants": 1,
+        "capacity": 0.5,
+        "recovery": 0.4925,
+        "observation": 5.447074782644653,
+        "rear": {
+          "args": [
+            0,
+            1.5835825201238385,
+            0.5010775973610472,
+            49.710762410087916,
+            0,
+            0.004166666666666667
+          ],
+          "returned": 0
+        },
+        "inverse": {
+          "args": [
+            -22.827851553702928,
+            0.5010775973610472,
+            49.710762410087916,
+            0,
+            1453.8557375219684,
+            1.5874139975634032
+          ],
+          "returned": -0.021920483610390833
+        },
+        "barRequest": -0.021130904535477047,
+        "target": 0,
+        "demand": 14.592590292635053,
+        "trim": -0.00007805146635147685,
+        "plantInput": {
+          "dt": 0.004166666666666667,
+          "speed": 49.70030777868141,
+          "mass": 244.4141945382203,
+          "lean": 0.5010775973610472,
+          "steer": 0.004871276152773902,
+          "frontLoad": 1453.8557375219684,
+          "rearLoad": 0,
+          "frontMu": 1.5874139975634032,
+          "rearMu": 1.5835825201238385,
+          "frontFx": 0,
+          "rearFx": 0,
+          "frontContact": 1,
+          "frontBrakeExcess": 0,
+          "rearDriveExcess": 0,
+          "rearBrakeExcess": 0,
+          "inertialContacts": true
+        },
+        "plantOutput": {
+          "frontFy": 1064.4535450100113,
+          "rearFy": 0,
+          "lateralAcceleration": 4.355065625094957,
+          "frontOmega": 165.38672117636753,
+          "rearOmega": 158.07356257599383,
+          "yawRate": 0.5219971052099276,
+          "lateralSpeed": 0.34570659194654296
+        },
+        "after": {
+          "speed": 49.70108521696315,
+          "lean": 0.5003111246580801,
+          "leanRate": -0.18395344871209393,
+          "riderOffset": 0.3,
+          "steer": 0.004871276152773902,
+          "frontLoad": 1453.8557375219684,
+          "rearLoad": 0,
+          "drive": 0,
+          "frontBrake": 0,
+          "rearBrake": 0,
+          "state": "riding",
+          "crashes": 0
+        },
+        "proof": {
+          "once": true,
+          "target": true,
+          "reserve": true,
+          "barRequest": true,
+          "inverse": true,
+          "rear": true,
+          "plantInput": true,
+          "plantOutput": true,
+          "after": true
+        },
+        "physical": {
+          "psi": 0.6214604181616065,
+          "reaction": 5.948327756776915,
+          "inertia": 117.95281638049188,
+          "steerRate": -2.4,
+          "componentsNm": {
+            "reaction": 524.810443656131,
+            "lateral": -536.5607158303321,
+            "yawGyro": -110.5640792729199,
+            "steerGyro": 217.45841181214553
+          },
+          "rollAcceleration": 0.8066281355937205,
+          "predictedRate": -0.18395344871209393,
+          "predictedLean": 0.5003111246580801
+        },
+        "controller": {
+          "reaction": 5.948327756776915,
+          "psi": 0.6214604181616065,
+          "measuredStored": 10.280168846310776,
+          "currentObservation": 5.447074782644653,
+          "rolling": -2.068394745508204,
+          "rateAhead": -0.3123401545063882,
+          "ahead": 0.606443119433138,
+          "target": 0,
+          "effort": -1.6035677852420314,
+          "stopping": 1.723332143981822,
+          "rate": -1.6035677852420314,
+          "desiredRollAcceleration": -11.621048676620788,
+          "uncappedLateralDemand": 14.592590292635053,
+          "capacity": 0.5,
+          "recovery": 0.4925,
+          "lateralAfterRecoveryClamp": 0.4925,
+          "lateralDecodedFromNativeFrontForce": 0.49249999999999994,
+          "nativeControllerReserve": 14.592590292635053,
+          "frontForceRequested": -22.827851553702928,
+          "rearForcePreview": 0,
+          "rawBarRequest": -0.021130904535477047,
+          "committedBar": 0.004871276152773902,
+          "steerTrim": -0.00007805146635147685
+        }
+      },
+      "reachable": {
+        "scope": "Actual allocated Fx, speed, contacts and saved tyre history held fixed. Native inverse includes projected combined-slip and97percent reserve. Existing trim held; each alternative passes max-bar and one-substep rate limits, then one real native plant relaxation step. Sampled attainable lower bound, not an optimum or future support guarantee.",
+        "barInterval": [
+          0.004871276152773902,
+          0.024871276152773902
+        ],
+        "actual": {
+          "label": "actual native command",
+          "bar": 0.004871276152773902,
+          "ground": 0.00507134964546986,
+          "frontChassisForce": 1064.4398569186749,
+          "rearForce": 0,
+          "deliveredLateral": 4.355065625094957,
+          "output": {
+            "frontFy": 1064.4535450100113,
+            "rearFy": 0,
+            "lateralAcceleration": 4.355065625094957,
+            "frontOmega": 165.38672117636753,
+            "rearOmega": 158.07356257599383,
+            "yawRate": 0.5219971052099276,
+            "lateralSpeed": 0.34570659194654296
+          },
+          "physical": {
+            "psi": 0.6214604181616065,
+            "reaction": 5.948327756776915,
+            "inertia": 117.95281638049188,
+            "steerRate": -2.4,
+            "componentsNm": {
+              "reaction": 524.810443656131,
+              "lateral": -536.5607158303321,
+              "yawGyro": -110.5640792729199,
+              "steerGyro": 217.45841181214553
+            },
+            "rollAcceleration": 0.8066281355937205,
+            "predictedRate": -0.18395344871209393,
+            "predictedLean": 0.5003111246580801
+          }
+        },
+        "nativeRange": {
+          "sampledProjectedMin": -2276.7278928865917,
+          "sampledProjectedMax": 2290.6853396591605,
+          "neutralForce": 0,
+          "reservedProjectedMin": -2208.4260560999937,
+          "reservedProjectedMax": 2221.9647794693856,
+          "rearPreview": 0,
+          "heldYawRate": 0.46554953703999785,
+          "K": 314.2857142857143,
+          "requestInterval": [
+            -8.224170395962938,
+            9.445246144302084
+          ],
+          "steadyDeliveredInterval": [
+            -9.035588380095701,
+            9.090980921412589
+          ]
+        },
+        "minRoll": {
+          "label": "native97percent inverse, frozen trim and actual actuator limits",
+          "bar": 0.024871276152773902,
+          "ground": 0.02589236110880067,
+          "frontChassisForce": 1402.5191261946939,
+          "rearForce": 0,
+          "deliveredLateral": 5.738288354506246,
+          "output": {
+            "frontFy": 1402.9893920413986,
+            "rearFy": 0,
+            "lateralAcceleration": 5.738288354506246,
+            "frontOmega": 165.38672117636753,
+            "rearOmega": 158.07356257599383,
+            "yawRate": 0.5399255513078983,
+            "lateralSpeed": 0.3477584269982259
+          },
+          "physical": {
+            "psi": 0.6214604181616065,
+            "reaction": 5.948327756776915,
+            "inertia": 117.95281638049188,
+            "steerRate": 2.4,
+            "componentsNm": {
+              "reaction": 524.810443656131,
+              "lateral": -706.9790382475803,
+              "yawGyro": -114.36149905902988,
+              "steerGyro": -217.45841181214553
+            },
+            "rollAcceleration": -4.357577218034388,
+            "predictedRate": -0.20536365192865075,
+            "predictedLean": 0.5002219154780111
+          },
+          "inverseProjectedForce": 1529.71621141167,
+          "inverseGround": 0.02931359595914916,
+          "requestedBar": 0.028082751967193585
+        },
+        "maxRoll": {
+          "label": "actual native command",
+          "bar": 0.004871276152773902,
+          "ground": 0.00507134964546986,
+          "frontChassisForce": 1064.4398569186749,
+          "rearForce": 0,
+          "deliveredLateral": 4.355065625094957,
+          "output": {
+            "frontFy": 1064.4535450100113,
+            "rearFy": 0,
+            "lateralAcceleration": 4.355065625094957,
+            "frontOmega": 165.38672117636753,
+            "rearOmega": 158.07356257599383,
+            "yawRate": 0.5219971052099276,
+            "lateralSpeed": 0.34570659194654296
+          },
+          "physical": {
+            "psi": 0.6214604181616065,
+            "reaction": 5.948327756776915,
+            "inertia": 117.95281638049188,
+            "steerRate": -2.4,
+            "componentsNm": {
+              "reaction": 524.810443656131,
+              "lateral": -536.5607158303321,
+              "yawGyro": -110.5640792729199,
+              "steerGyro": 217.45841181214553
+            },
+            "rollAcceleration": 0.8066281355937205,
+            "predictedRate": -0.18395344871209393,
+            "predictedLean": 0.5003111246580801
+          }
+        },
+        "samples": [
+          {
+            "label": "actual native command",
+            "bar": 0.004871276152773902,
+            "ground": 0.00507134964546986,
+            "frontChassisForce": 1064.4398569186749,
+            "rearForce": 0,
+            "deliveredLateral": 4.355065625094957,
+            "output": {
+              "frontFy": 1064.4535450100113,
+              "rearFy": 0,
+              "lateralAcceleration": 4.355065625094957,
+              "frontOmega": 165.38672117636753,
+              "rearOmega": 158.07356257599383,
+              "yawRate": 0.5219971052099276,
+              "lateralSpeed": 0.34570659194654296
+            },
+            "physical": {
+              "psi": 0.6214604181616065,
+              "reaction": 5.948327756776915,
+              "inertia": 117.95281638049188,
+              "steerRate": -2.4,
+              "componentsNm": {
+                "reaction": 524.810443656131,
+                "lateral": -536.5607158303321,
+                "yawGyro": -110.5640792729199,
+                "steerGyro": 217.45841181214553
+              },
+              "rollAcceleration": 0.8066281355937205,
+              "predictedRate": -0.18395344871209393,
+              "predictedLean": 0.5003111246580801
+            }
+          },
+          {
+            "label": "native97percent inverse, frozen trim and actual actuator limits",
+            "bar": 0.007778881519517772,
+            "ground": 0.008098368117989266,
+            "frontChassisForce": 1119.0301361184588,
+            "rearForce": 0,
+            "deliveredLateral": 4.578417134212188,
+            "output": {
+              "frontFy": 1119.0668321147225,
+              "rearFy": 0,
+              "lateralAcceleration": 4.578417134212188,
+              "frontOmega": 165.38672117636753,
+              "rearOmega": 158.07356257599383,
+              "yawRate": 0.524892044258401,
+              "lateralSpeed": 0.34603785088566474
+            },
+            "physical": {
+              "psi": 0.6214604181616065,
+              "reaction": 5.948327756776915,
+              "inertia": 117.95281638049188,
+              "steerRate": -1.7021747119814712,
+              "componentsNm": {
+                "reaction": 524.810443656131,
+                "lateral": -564.0784746726258,
+                "yawGyro": -111.17725560522344,
+                "steerGyro": 154.23008728928625
+              },
+              "rollAcceleration": 0.03208741243921607,
+              "predictedRate": -0.18716460573368418,
+              "predictedLean": 0.5002977448371568
+            },
+            "inverseProjectedForce": 975.9173569654977,
+            "inverseGround": 0.008176419584340743,
+            "requestedBar": 0.007778881519517772
+          },
+          {
+            "label": "native97percent inverse, frozen trim and actual actuator limits",
+            "bar": 0.01234260478772554,
+            "ground": 0.012849495184568625,
+            "frontChassisForce": 1201.2562595627107,
+            "rearForce": 0,
+            "deliveredLateral": 4.914838362118384,
+            "output": {
+              "frontFy": 1201.3554358117024,
+              "rearFy": 0,
+              "lateralAcceleration": 4.914838362118384,
+              "frontOmega": 165.38672117636753,
+              "rearOmega": 158.07356257599383,
+              "yawRate": 0.5292525205016567,
+              "lateralSpeed": 0.3465368415030772
+            },
+            "physical": {
+              "psi": 0.6214604181616065,
+              "reaction": 5.948327756776915,
+              "inertia": 117.95281638049188,
+              "steerRate": -0.6068811276116071,
+              "componentsNm": {
+                "reaction": 524.810443656131,
+                "lateral": -605.5268546524183,
+                "yawGyro": -112.10084701256108,
+                "steerGyro": 54.98808590382671
+              },
+              "rollAcceleration": -1.1685110736178823,
+              "predictedRate": -0.19214214938421192,
+              "predictedLean": 0.5002770050719463
+            },
+            "inverseProjectedForce": 1114.367070577041,
+            "inverseGround": 0.0129275466509201,
+            "requestedBar": 0.01234260478772554
+          },
+          {
+            "label": "native97percent inverse, frozen trim and actual actuator limits",
+            "bar": 0.017184715514839254,
+            "ground": 0.017890391933113977,
+            "frontChassisForce": 1283.4783808378968,
+            "rearForce": 0,
+            "deliveredLateral": 5.251243215488422,
+            "output": {
+              "frontFy": 1283.6838072086402,
+              "rearFy": 0,
+              "lateralAcceleration": 5.251243215488422,
+              "frontOmega": 165.38672117636753,
+              "rearOmega": 158.07356257599383,
+              "yawRate": 0.5336127845086742,
+              "lateralSpeed": 0.3470358553115432
+            },
+            "physical": {
+              "psi": 0.6214604181616065,
+              "reaction": 5.948327756776915,
+              "inertia": 117.95281638049188,
+              "steerRate": 0.5552254468956845,
+              "componentsNm": {
+                "reaction": 524.810443656131,
+                "lateral": -646.973217226826,
+                "yawGyro": -113.02439346619298,
+                "steerGyro": -50.307684949843456
+              },
+              "rollAcceleration": -2.4204157284874235,
+              "predictedRate": -0.19733240252735607,
+              "predictedLean": 0.5002553790171832
+            },
+            "inverseProjectedForce": 1252.8167841885838,
+            "inverseGround": 0.017968443399465454,
+            "requestedBar": 0.017184715514839254
+          },
+          {
+            "label": "native97percent inverse, frozen trim and actual actuator limits",
+            "bar": 0.02239073662497072,
+            "ground": 0.023310059902370218,
+            "frontChassisForce": 1365.6934057903075,
+            "rearForce": 0,
+            "deliveredLateral": 5.587619034854161,
+            "output": {
+              "frontFy": 1366.0645206384174,
+              "rearFy": 0,
+              "lateralAcceleration": 5.587619034854161,
+              "frontOmega": 165.38672117636753,
+              "rearOmega": 158.07356257599383,
+              "yawRate": 0.5379726721955445,
+              "lateralSpeed": 0.34753488201420474
+            },
+            "physical": {
+              "psi": 0.6214604181616065,
+              "reaction": 5.948327756776915,
+              "inertia": 117.95281638049188,
+              "steerRate": 1.804670513327236,
+              "componentsNm": {
+                "reaction": 524.810443656131,
+                "lateral": -688.4160027010312,
+                "yawGyro": -113.94786021154644,
+                "steerGyro": -163.51699319681256
+              },
+              "rollAcceleration": -3.7393800842402545,
+              "predictedRate": -0.20280067750062444,
+              "predictedLean": 0.500232594538128
+            },
+            "inverseProjectedForce": 1391.2664978001271,
+            "inverseGround": 0.023388111368721695,
+            "requestedBar": 0.02239073662497072
+          },
+          {
+            "label": "native97percent inverse, frozen trim and actual actuator limits",
+            "bar": 0.024871276152773902,
+            "ground": 0.02589236110880067,
+            "frontChassisForce": 1402.5191261946939,
+            "rearForce": 0,
+            "deliveredLateral": 5.738288354506246,
+            "output": {
+              "frontFy": 1402.9893920413986,
+              "rearFy": 0,
+              "lateralAcceleration": 5.738288354506246,
+              "frontOmega": 165.38672117636753,
+              "rearOmega": 158.07356257599383,
+              "yawRate": 0.5399255513078983,
+              "lateralSpeed": 0.3477584269982259
+            },
+            "physical": {
+              "psi": 0.6214604181616065,
+              "reaction": 5.948327756776915,
+              "inertia": 117.95281638049188,
+              "steerRate": 2.4,
+              "componentsNm": {
+                "reaction": 524.810443656131,
+                "lateral": -706.9790382475803,
+                "yawGyro": -114.36149905902988,
+                "steerGyro": -217.45841181214553
+              },
+              "rollAcceleration": -4.357577218034388,
+              "predictedRate": -0.20536365192865075,
+              "predictedLean": 0.5002219154780111
+            },
+            "inverseProjectedForce": 1529.71621141167,
+            "inverseGround": 0.02931359595914916,
+            "requestedBar": 0.028082751967193585
+          }
+        ]
+      }
+    }
+  ],
+  "omitted": [
+    {
+      "label": "firstRecordedControl",
+      "tick": 17731,
+      "substep": 2,
+      "reason": "No retained original row for exact full-step comparison"
+    },
+    {
+      "label": "firstOppositeEffortDirection",
+      "tick": 17858,
+      "substep": 1,
+      "reason": "No retained original row for exact full-step comparison"
+    }
+  ],
+  "limitations": [
+    "Requested lateral interval includes the existing yaw correction; it differs from delivered acceleration.",
+    "Native steady inverse endpoints do not claim immediately available force; each retained sample also runs the actual finite-dt tyre relaxation and body force projection.",
+    "Thirty-three inverse-force samples give demonstrated reachable examples, not a proven global optimum.",
+    "Original trim, requested support reserve, longitudinal forces and current contacts are held fixed; no future force allocation, suspension trajectory or arrest adequacy is established.",
+    "The original full Bike step is reproduced before interpreting a counterfactual. JSON serialization caveats are limited to unused non-GP fields; recorded commands, plant outputs and selected after-state values match exactly."
+  ]
+}

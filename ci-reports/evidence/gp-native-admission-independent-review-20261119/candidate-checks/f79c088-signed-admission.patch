@@ -1,0 +1,3190 @@
+diff --git a/src/simulation/bike.ts b/src/simulation/bike.ts
+index 96048c4..c583f60 100644
+--- a/src/simulation/bike.ts
++++ b/src/simulation/bike.ts
+@@ -9,6 +9,7 @@ import {
+   gpRollInertia,
+   gpRollRateLimit,
+   gpSpinPerSpeed,
++  type GPFrontForceRange,
+   type MotoGPGeometry,
+ } from './motogp-physics.ts';
+ 
+@@ -543,16 +544,7 @@ export class Bike {
+       ),
+       2 * G,
+     );
+-    const lateral = clamp(demand, -recovery, recovery);
+-    const saturated = Math.abs(lateral) >= recovery * 0.999;
+-    // Integral trim on the measured acceleration: relaxation and the slip
+-    // the inverse below does not model (combined-slip weighting).
+-    if (!saturated || Math.sign(lateral - measured) !== Math.sign(gp.steerTrim))
+-      gp.steerTrim = clamp(
+-        gp.steerTrim + (GP_ASSIST.trimRate * p.wheelbase * (lateral - measured) * dt) / (v * v),
+-        -GP_ASSIST.trimLimit,
+-        GP_ASSIST.trimLimit,
+-      );
++    let lateral = clamp(demand, -recovery, recovery);
+     // The front tyre supplies what the rear presently does not, less a yaw
+     // correction toward the path's own yaw rate (a/v): with the rear light
+     // under braking, nothing else damps the yaw. Steering the front for a
+@@ -572,25 +564,87 @@ export class Bike {
+             dt,
+           )
+         : gp.rearFy,
+-      yawError = gp.yawRate - lateral / v,
+-      frontForce =
+-        m * lateral -
+-        rearForce -
+-        (GP_ASSIST.yawDamping * gp.geometry.yawInertia * yawError) / gp.geometry.frontArm,
+       staticFront =
+         (m * G * p.cgToRear) / p.wheelbase +
+         (p.downforce ?? 0) * this.speed * this.speed * (p.downforceFront ?? 0.6),
+       contact =
+         clamp(this.frontLoad / Math.max(1, 0.05 * staticFront), 0, 1) *
+         (this.contactLoads ? 1 : gpFrontSteeringContact(this.pitch, p.wheelbase)),
++      // The static axle-share budget still limits the target and stopping
++      // energy above. It must not discard a transient front-only command:
++      // the native inverse already bounds that command by its signed,
++      // projected combined-slip curve. Get those same bounds from this one
++      // invocation, without a second preparation or a retained range cache.
++      range: GPFrontForceRange | undefined =
++        this.contactLoads &&
++        this.frontLoad * contact > 1 &&
++        frontMu > 0 &&
++        this.speed >= 2.5 &&
++        Number.isFinite(demand)
++          ? { minimum: NaN, maximum: NaN }
++          : undefined,
++      requestedLateral = range ? demand : lateral,
++      yawError = gp.yawRate - requestedLateral / v,
++      frontForce =
++        m * requestedLateral -
++        rearForce -
++        (GP_ASSIST.yawDamping * gp.geometry.yawInertia * yawError) / gp.geometry.frontArm;
++    let inverse = gp.frontSteerFor(
++      frontForce,
++      this.lean,
++      this.speed,
++      -this.frontBrakeForce,
++      this.frontLoad * contact,
++      frontMu,
++      range,
++    );
++    let admitted = false;
++    if (
++      range &&
++      inverse !== null &&
++      Number.isFinite(inverse) &&
++      Number.isFinite(range.minimum) &&
++      Number.isFinite(range.maximum)
++    ) {
++      // Ffront = (m + K/v) a_request - Frear - K*yaw. The request interval
++      // therefore differs from (Ffront + Frear)/m, the conditional force
++      // range. Neither is substituted for the sustained stopping energy.
++      const yaw = (GP_ASSIST.yawDamping * gp.geometry.yawInertia) / gp.geometry.frontArm,
++        denominator = m + yaw / v,
++        minimum = (range.minimum + rearForce + yaw * gp.yawRate) / denominator,
++        maximum = (range.maximum + rearForce + yaw * gp.yawRate) / denominator;
++      if (Number.isFinite(minimum) && Number.isFinite(maximum) && minimum <= maximum) {
++        lateral = clamp(demand, minimum, maximum);
++        admitted = true;
++      }
++    }
++    // Missing native bounds (including prescribed inverse overrides) retain
++    // the complete original command, not just its trim. Only this fallback
++    // repeats the pure inverse with the legacy force; a valid native range
++    // prepares/inverts once. No actuator or physical contact is stepped here.
++    if (range && !admitted)
+       inverse = gp.frontSteerFor(
+-        frontForce,
++        m * lateral -
++          rearForce -
++          (GP_ASSIST.yawDamping * gp.geometry.yawInertia * (gp.yawRate - lateral / v)) /
++            gp.geometry.frontArm,
+         this.lean,
+         this.speed,
+         -this.frontBrakeForce,
+         this.frontLoad * contact,
+         frontMu,
+       );
++    // These pure previews do not read trim; apply its original law once to
++    // the selected command before the bars.
++    const saturated = Math.abs(lateral) >= recovery * 0.999;
++    // Integral trim on the measured acceleration: relaxation and the slip
++    // the inverse below does not model (combined-slip weighting).
++    if (!saturated || Math.sign(lateral - measured) !== Math.sign(gp.steerTrim))
++      gp.steerTrim = clamp(
++        gp.steerTrim + (GP_ASSIST.trimRate * p.wheelbase * (lateral - measured) * dt) / (v * v),
++        -GP_ASSIST.trimLimit,
++        GP_ASSIST.trimLimit,
++      );
+     const ground =
+       (inverse ??
+         Math.atan((p.wheelbase * lateral) / (v * v)) +
+diff --git a/src/simulation/motogp-physics.ts b/src/simulation/motogp-physics.ts
+index 09b74a3..0e836b5 100644
+--- a/src/simulation/motogp-physics.ts
++++ b/src/simulation/motogp-physics.ts
+@@ -63,6 +63,13 @@ export interface MotoGPGeometry {
+   rollInertia?: number;
+ }
+ 
++/** This invocation's reserved projected front-force interval (N), not an
++ * immediately delivered force or a steady two-axle cornering capacity. */
++export interface GPFrontForceRange {
++  minimum: number;
++  maximum: number;
++}
++
+ /** Share of the combined mass that moves with the hanging-off rider. The
+  * same share the reduced core has always used for its hang-off torque. */
+ export const GP_RIDER_SHARE = 0.25;
+@@ -331,7 +338,9 @@ export class MotoGPChassis {
+    * the plant, using current load/friction when the suspension provides it.
+    * The nearest pre-peak root avoids steering through the tyre-force peak;
+    * the existing 3% inverse reserve remains inside the achievable range.
+-   * Returns null without a loaded, rolling front contact. */
++   * Returns null without a loaded, rolling front contact. An optional local
++   * output exposes the exact reserved interval used by this inverse; it is
++   * cleared on every call and is unavailable for a nonfinite result. */
+   frontSteerFor(
+     force: number,
+     lean: number,
+@@ -339,7 +348,9 @@ export class MotoGPChassis {
+     longitudinal: number,
+     load = this.frontLoadUsed,
+     mu = this.frontMuUsed,
++    range?: GPFrontForceRange,
+   ) {
++    if (range) range.minimum = range.maximum = NaN;
+     if (!(load > 1 && mu > 0 && speed >= 2.5)) return null;
+     const state = this.inverseFront;
+     prepareSlip(MOTOGP_SLICK, load, Math.max(0.05, mu) * gpCamberFriction(lean), 1, 1, 1, state);
+@@ -368,7 +379,9 @@ export class MotoGPChassis {
+       maximum = Math.max(maximum, value);
+     }
+     const zero = this.inverseForces[8],
+-      target = clamp(force, zero + 0.97 * (minimum - zero), zero + 0.97 * (maximum - zero));
++      reservedMinimum = zero + 0.97 * (minimum - zero),
++      reservedMaximum = zero + 0.97 * (maximum - zero),
++      target = clamp(force, reservedMinimum, reservedMaximum);
+     let index = -1,
+       nearest = Infinity;
+     for (let i = 0; i < this.inverseForces.length - 1; i++) {
+@@ -380,16 +393,34 @@ export class MotoGPChassis {
+         nearest = distance;
+       }
+     }
+-    if (index < 0) return neutral;
+-    let lo = start + index * step,
+-      hi = lo + step;
+-    const increasing = this.inverseForces[index + 1] > this.inverseForces[index];
+-    for (let i = 0; i < 20; i++) {
+-      const mid = 0.5 * (lo + hi);
+-      if (at(mid) < target === increasing) lo = mid;
+-      else hi = mid;
++    let result = neutral;
++    if (index >= 0) {
++      let lo = start + index * step,
++        hi = lo + step;
++      const increasing = this.inverseForces[index + 1] > this.inverseForces[index];
++      for (let i = 0; i < 20; i++) {
++        const mid = 0.5 * (lo + hi);
++        if (at(mid) < target === increasing) lo = mid;
++        else hi = mid;
++      }
++      result = 0.5 * (lo + hi);
++    }
++    if (
++      range &&
++      Number.isFinite(result) &&
++      Number.isFinite(reservedMinimum) &&
++      Number.isFinite(reservedMaximum) &&
++      Number.isFinite(force) &&
++      Number.isFinite(lean) &&
++      Number.isFinite(speed) &&
++      Number.isFinite(longitudinal) &&
++      Number.isFinite(load) &&
++      Number.isFinite(mu)
++    ) {
++      range.minimum = reservedMinimum;
++      range.maximum = reservedMaximum;
+     }
+-    return 0.5 * (lo + hi);
++    return result;
+   }
+ 
+   /** Observe stored contact strain under the CURRENT load/friction and bar
+diff --git a/tests/fixtures/gp-signed-command-onset.json b/tests/fixtures/gp-signed-command-onset.json
+new file mode 100644
+index 0000000..ee1fc6e
+--- /dev/null
++++ b/tests/fixtures/gp-signed-command-onset.json
+@@ -0,0 +1,2593 @@
++{
++  "sourceCommit": "3e58984936a9e1ba2821580688a723fb93053fa4",
++  "onsetSha256": "90734f6e9ba8bc6d04f5bf91561290dfc40043d5717284e995920c94c9486878",
++  "earlyReplaySha256": "609044726e5b41a44a6e3262637ed5bed545f261bb6511405f4202b249a30a62",
++  "scope": "Full selected native state and immutable one-step expected outputs from independently sealed early-phase diagnostic. Two-step standalone controls repeat saved inputs/contacts; they are not live race continuations.",
++  "cases": [
++    {
++      "label": "maximumRollForecastDifference",
++      "tick": 18274,
++      "substep": 2,
++      "s": 1896.465607465855,
++      "dt": 0.004166666666666667,
++      "input": {
++        "lean": -0.29135460403478747,
++        "throttle": 0.0625,
++        "frontBrake": 0,
++        "rearBrake": 0,
++        "rider": 0.4514170400097546,
++        "drive": 224.8691107875864,
++        "engineBrake": 0
++      },
++      "stepEntry": {
++        "tick": 18274,
++        "substep": 2,
++        "time": 152.28333333335917,
++        "raceTime": 146.50753271592416,
++        "lap": 1,
++        "s": 1896.465607465855,
++        "lateral": -8.4623178566057,
++        "speed": 48.03795854444651,
++        "lean": 0.7547072956863439,
++        "leanRate": -0.06156854788698674,
++        "steer": -0.04768115006410847,
++        "riderOffset": 0.18512834705646303,
++        "frontLoad": 0,
++        "rearLoad": 6042.7465428074975,
++        "drive": 0,
++        "frontBrake": 0,
++        "rearBrake": 0,
++        "state": "riding",
++        "crashes": 0,
++        "impact": 0,
++        "roadPitch": 0.012606595556434093,
++        "contactCrash": false
++      },
++      "bike": {
++        "assists": {
++          "lean": true,
++          "wheelie": true,
++          "traction": true,
++          "combinedBrakes": true,
++          "abs": true
++        },
++        "p": {
++          "mass": 245,
++          "wheelbase": 1.45,
++          "cgHeight": 0.62,
++          "cgToFront": 0.7,
++          "cgToRear": 0.75,
++          "maxSteer": 0.6,
++          "steerRate": 2.4,
++          "maxLean": 1.0036671374806159,
++          "mu": 1.75,
++          "power": 224000,
++          "maxDrive": 0,
++          "frontBrake": 7600,
++          "rearBrake": 1900,
++          "drag": 0.215,
++          "riderOffsetMax": 0.3,
++          "downforce": 0.045,
++          "downforceFront": 0.6,
++          "rolling": 0.015,
++          "wheelieLimit": 0.1,
++          "stoppieMargin": 0.92,
++          "wheelieKeep": 0.2,
++          "tractionMargin": 0.92,
++          "rollDamping": 1.2,
++          "engineBrakeReleaseThrottle": 0.12,
++          "independentRearBrake": true,
++          "currentDriveTraction": true,
++          "frontContactSteering": true,
++          "lowSpeedBalance": false
++        },
++        "x": -489.40605962660214,
++        "z": 300.62122582932733,
++        "heading": 7.60027898337197,
++        "speed": 48.03795854444651,
++        "lean": 0.7547072956863439,
++        "leanRate": -0.06156854788698674,
++        "steer": -0.04768115006410847,
++        "pitch": 0,
++        "mass": 244.4126551235032,
++        "frontLoad": 3238.547197848438,
++        "rearLoad": 1040.7029279739627,
++        "riderOffset": 0.18262834705646303,
++        "rearSlip": 0,
++        "state": "riding",
++        "stateClock": 0,
++        "crashes": 0,
++        "penaltySeconds": 0,
++        "longitudinal": -2.3730722382217078,
++        "lateralUse": 0.8881520468429169,
++        "frontUse": 0,
++        "rearUse": 0.8881520468429169,
++        "gripOver": 0,
++        "grip": 0.9115348990350945,
++        "frontGrip": 0.9147693496174296,
++        "rearGrip": 0.9115348990350945,
++        "contactLoads": {
++          "front": 3238.547197848438,
++          "rear": 1040.7029279739627,
++          "rearLiftForce": 4326.264151270659
++        },
++        "slope": 0.012606261639258138,
++        "dragScale": 1,
++        "riderReady": true,
++        "driveForce": 0,
++        "frontBrakeForce": 0,
++        "rearBrakeForce": 0,
++        "engineBrakeForce": 0,
++        "intervention": 1,
++        "roadLateralDemand": 0,
++        "roadAdmittedCapacity": null
++      },
++      "gp": {
++        "geometry": {
++          "frontArm": 0.7,
++          "rearArm": 0.75,
++          "yawInertia": 55,
++          "frontRadius": 0.3,
++          "rearRadius": 0.32,
++          "frontWheelInertia": 0.6,
++          "rearWheelInertia": 0.9
++        },
++        "forwardSpeed": 48.03795854444651,
++        "longitudinalCorrection": 0,
++        "lateralSpeed": -3.9289694924186116,
++        "yawRate": -0.36411503278630075,
++        "lateralAcceleration": 35.02704409336897,
++        "frontFy": 0,
++        "rearFy": 8561.053010029773,
++        "frontSlipAngle": -0.04637401861054056,
++        "rearSlipAngle": -0.15332452636820737,
++        "frontSlip": 0.008405845507194932,
++        "rearSlip": 0.007657899446202321,
++        "frontOmega": 161.45230509611147,
++        "rearOmega": 151.24926945838334,
++        "frontSlidingPower": 0,
++        "rearSlidingPower": 31298.210026311313,
++        "groundSteer": -0.05969740282488563,
++        "frontStiffness": 0,
++        "steerTrim": -6.813386870312414e-6,
++        "leanTarget": 0,
++        "lateralDemand": 19.6133,
++        "frontLoadUsed": 0,
++        "frontMuUsed": 1.5990997126850723,
++        "frontLimit": 0,
++        "rearLimit": 9597.563512287332,
++        "frontElasticStiffness": 0,
++        "rearElasticStiffness": 122120.35907597047,
++        "sideLimit": 9597.563512287332,
++        "lastSpeed": 48.03194244126171,
++        "front": {
++          "dx": 1424.642034998266,
++          "dy": 1424.642034998266,
++          "cx": 1.3,
++          "ex": 0.15,
++          "cy": 1.6,
++          "ey": -0.3,
++          "x0x": 2.6367832955817585,
++          "x0y": 1.496605762665489,
++          "kappaRef": 0.2370323384902537,
++          "alphaRef": 0.14980315153316892,
++          "alpha": -0.04637401861054056,
++          "corneringStiffness": 22772.578093237837,
++          "slipStiffness": 20602.31125926278,
++          "by1": 0.7,
++          "by2": 0.6,
++          "bx1": 0.7,
++          "bx2": 0.6,
++          "cache": {
++            "stamp": 34836,
++            "alpha": -0.04637401861054056,
++            "dy": 1424.642034998266,
++            "alphaRef": 0.14980315153316892,
++            "sy": -0.30956637517918023,
++            "fy0": -924.0491504851959,
++            "by": 0.6882289595842445
++          },
++          "stamp": 34836
++        },
++        "rear": {
++          "dx": 9597.563512287332,
++          "dy": 9597.563512287332,
++          "cx": 1.3,
++          "ex": 0.15,
++          "cy": 1.6,
++          "ey": -0.3,
++          "x0x": 2.6367832955817585,
++          "x0y": 1.496605762665489,
++          "kappaRef": 0.23677108096950492,
++          "alphaRef": 0.18819163610354764,
++          "alpha": -0.15332452636820737,
++          "corneringStiffness": 122120.35907597047,
++          "slipStiffness": 138947.30537622838,
++          "by1": 0.7,
++          "by2": 0.6,
++          "bx1": 0.7,
++          "bx2": 0.6,
++          "cache": {
++            "stamp": 34936,
++            "alpha": -0.15332452636820737,
++            "dy": 9597.563512287332,
++            "alphaRef": 0.18819163610354764,
++            "sy": -0.8147255082252671,
++            "fy0": -9554.393385775098,
++            "by": 0.6288823485968263
++          },
++          "stamp": 34936
++        },
++        "force": {
++          "fx": 0,
++          "fy": 9554.393385775098
++        },
++        "inverseFront": {
++          "dx": 1424.642034998266,
++          "dy": 1424.642034998266,
++          "cx": 1.3,
++          "ex": 0.15,
++          "cy": 1.6,
++          "ey": -0.3,
++          "x0x": 2.6367832955817585,
++          "x0y": 1.496605762665489,
++          "kappaRef": 0.2370323384902537,
++          "alphaRef": 0.14980315153316892,
++          "alpha": -0.10245026262858367,
++          "corneringStiffness": 22772.578093237837,
++          "slipStiffness": 20602.31125926278,
++          "by1": 0.7,
++          "by2": 0.6,
++          "bx1": 0.7,
++          "bx2": 0.6,
++          "cache": {
++            "stamp": 34823,
++            "alpha": -0.10245026262858367,
++            "dy": 1424.642034998266,
++            "alphaRef": 0.14980315153316892,
++            "sy": -0.6838992476463319,
++            "fy0": -1382.3668332843351,
++            "by": 0.6475991250021635
++          },
++          "stamp": 34823
++        },
++        "previewFront": {
++          "dx": 1424.642034998266,
++          "dy": 1424.642034998266,
++          "cx": 1.3,
++          "ex": 0.15,
++          "cy": 1.6,
++          "ey": -0.3,
++          "x0x": 2.6367832955817585,
++          "x0y": 1.496605762665489,
++          "kappaRef": 0.2370323384902537,
++          "alphaRef": 0.14980315153316892,
++          "alpha": 0,
++          "corneringStiffness": 22772.578093237837,
++          "slipStiffness": 20602.31125926278,
++          "by1": 0.7,
++          "by2": 0.6,
++          "bx1": 0.7,
++          "bx2": 0.6,
++          "cache": {
++            "stamp": -1,
++            "alpha": null,
++            "dy": null,
++            "alphaRef": null,
++            "sy": 0,
++            "fy0": 0,
++            "by": 0
++          },
++          "stamp": 34823
++        },
++        "previewRear": {
++          "dx": 9597.563512287332,
++          "dy": 9597.563512287332,
++          "cx": 1.3,
++          "ex": 0.15,
++          "cy": 1.6,
++          "ey": -0.3,
++          "x0x": 2.6367832955817585,
++          "x0y": 1.496605762665489,
++          "kappaRef": 0.23677108096950492,
++          "alphaRef": 0.18819163610354764,
++          "alpha": -0.15330650045098565,
++          "corneringStiffness": 122120.35907597047,
++          "slipStiffness": 138947.30537622838,
++          "by1": 0.7,
++          "by2": 0.6,
++          "bx1": 0.7,
++          "bx2": 0.6,
++          "cache": {
++            "stamp": 69846,
++            "alpha": -0.15330650045098565,
++            "dy": 9597.563512287332,
++            "alphaRef": 0.18819163610354764,
++            "sy": -0.8146297233243281,
++            "fy0": -9554.303639371947,
++            "by": 0.6288966083577897
++          },
++          "stamp": 69846
++        },
++        "inverseForces": {
++          "0": -1374.3222192821484,
++          "1": -1370.035509210455,
++          "2": -1341.2758713716437,
++          "3": -1275.102710644301,
++          "4": -1155.697447009136,
++          "5": -967.8776950208375,
++          "6": -704.1275292379137,
++          "7": -372.5868377391117,
++          "8": 0,
++          "9": 374.2512002668107,
++          "10": 710.4341508287647,
++          "11": 980.9165026540138,
++          "12": 1176.5168068262806,
++          "13": 1303.9053770284831,
++          "14": 1377.753725409527,
++          "15": 1413.6590843759411,
++          "16": 1424.5208126451457
++        }
++      },
++      "original": {
++        "target": -0.27961516069821324,
++        "reserve": 19.6133,
++        "barRequest": -0.09502051486935656,
++        "trim": -6.813386870312414e-6,
++        "plantInput": {
++          "dt": 0.004166666666666667,
++          "speed": 48.02837242773739,
++          "mass": 244.4126551235032,
++          "lean": 0.7547072956863439,
++          "steer": -0.05768115006410847,
++          "frontLoad": 3238.547197848438,
++          "rearLoad": 1040.7029279739627,
++          "frontMu": 1.6008463618305018,
++          "rearMu": 1.5951860733114154,
++          "frontFx": 0,
++          "rearFx": 0,
++          "frontContact": 1,
++          "frontBrakeExcess": 0,
++          "rearDriveExcess": 0,
++          "rearBrakeExcess": 0,
++          "inertialContacts": true
++        },
++        "plantOutput": {
++          "frontFy": 2419.709118084549,
++          "rearFy": 1652.8491857844326,
++          "lateralAcceleration": 16.636801828203627,
++          "frontOmega": 161.38343960985293,
++          "rearOmega": 151.1967625327759,
++          "yawRate": -0.3300438118825937,
++          "lateralSpeed": -3.7935939812803543
++        },
++        "after": {
++          "speed": 48.03661262920287,
++          "lean": 0.7555310056919232,
++          "leanRate": -0.042922316775919976,
++          "riderOffset": 0.18262834705646303,
++          "steer": -0.05768115006410847,
++          "frontLoad": 3238.547197848438,
++          "rearLoad": 1040.7029279739627,
++          "drive": 0,
++          "frontBrake": 0,
++          "rearBrake": 0,
++          "state": "riding",
++          "crashes": 0
++        }
++      },
++      "diagnostic": {
++        "target": -0.27961516069821324,
++        "reserve": 19.6133,
++        "barRequest": -0.022219764044663002,
++        "trim": -6.813386870312414e-6,
++        "plantInput": {
++          "dt": 0.004166666666666667,
++          "speed": 48.02837242773739,
++          "mass": 244.4126551235032,
++          "lean": 0.7547072956863439,
++          "steer": -0.037681150064108465,
++          "frontLoad": 3238.547197848438,
++          "rearLoad": 1040.7029279739627,
++          "frontMu": 1.6008463618305018,
++          "rearMu": 1.5951860733114154,
++          "frontFx": 0,
++          "rearFx": 0,
++          "frontContact": 1,
++          "frontBrakeExcess": 0,
++          "rearDriveExcess": 0,
++          "rearBrakeExcess": 0,
++          "inertialContacts": true
++        },
++        "plantOutput": {
++          "frontFy": 2766.7251060532535,
++          "rearFy": 1652.8491857844326,
++          "lateralAcceleration": 18.069811522172785,
++          "frontOmega": 161.38343960985293,
++          "rearOmega": 151.1967625327759,
++          "yawRate": -0.31147017605801003,
++          "lateralSpeed": -3.7913416373048574
++        },
++        "after": {
++          "speed": 48.03555951714709,
++          "lean": 0.7554469095869557,
++          "leanRate": -0.0631053819681219,
++          "riderOffset": 0.18262834705646303,
++          "steer": -0.037681150064108465,
++          "frontLoad": 3238.547197848438,
++          "rearLoad": 1040.7029279739627,
++          "drive": 0,
++          "frontBrake": 0,
++          "rearBrake": 0,
++          "state": "riding",
++          "crashes": 0
++        }
++      },
++      "nextOriginal": {
++        "target": -0.27961484211431753,
++        "reserve": 19.6133,
++        "barRequest": -0.09247719885059483,
++        "trim": -6.813386870312414e-6,
++        "plantInput": {
++          "dt": 0.004166666666666667,
++          "speed": 48.02702698644066,
++          "mass": 244.4126551235032,
++          "lean": 0.7555310056919232,
++          "steer": -0.06768115006410846,
++          "frontLoad": 3238.547197848438,
++          "rearLoad": 1040.7029279739627,
++          "frontMu": 1.6008463618305018,
++          "rearMu": 1.5951860733114154,
++          "frontFx": 0,
++          "rearFx": 0,
++          "frontContact": 1,
++          "frontBrakeExcess": 0,
++          "rearDriveExcess": 0,
++          "rearBrakeExcess": 0,
++          "inertialContacts": true
++        },
++        "plantOutput": {
++          "frontFy": 3093.97530555195,
++          "rearFy": 1649.840939241442,
++          "lateralAcceleration": 19.3635302737895,
++          "frontOmega": 161.31783778801625,
++          "rearOmega": 151.14644085563512,
++          "yawRate": -0.26030025651541433,
++          "lateralSpeed": -3.6608162204730754
++        },
++        "after": {
++          "speed": 48.03549445206498,
++          "lean": 0.756389437799335,
++          "leanRate": -0.03462454570679813,
++          "riderOffset": 0.18012834705646302,
++          "steer": -0.06768115006410846,
++          "frontLoad": 3238.547197848438,
++          "rearLoad": 1040.7029279739627,
++          "drive": 0,
++          "frontBrake": 0,
++          "rearBrake": 0,
++          "state": "riding",
++          "crashes": 0
++        }
++      },
++      "nextDiagnostic": {
++        "target": -0.2796145928437199,
++        "reserve": 19.6133,
++        "barRequest": -0.01937448455978005,
++        "trim": 7.761835532089391e-5,
++        "plantInput": {
++          "dt": 0.004166666666666667,
++          "speed": 48.025974245215615,
++          "mass": 244.4126551235032,
++          "lean": 0.7554469095869557,
++          "steer": -0.027681150064108463,
++          "frontLoad": 3238.547197848438,
++          "rearLoad": 1040.7029279739627,
++          "frontMu": 1.6008463618305018,
++          "rearMu": 1.5951860733114154,
++          "frontFx": 0,
++          "rearFx": 0,
++          "frontContact": 1,
++          "frontBrakeExcess": 0,
++          "rearDriveExcess": 0,
++          "rearBrakeExcess": 0,
++          "inertialContacts": true
++        },
++        "plantOutput": {
++          "frontFy": 4003.078320355431,
++          "rearFy": 1649.965707470192,
++          "lateralAcceleration": 23.119228768631757,
++          "frontOmega": 161.3176583913754,
++          "rearOmega": 151.1462920211491,
++          "yawRate": -0.1930616771494874,
++          "lateralSpeed": -3.6563751909870645
++        },
++        "after": {
++          "speed": 48.03129967759109,
++          "lean": 0.7561015045697262,
++          "leanRate": -0.08354545562069227,
++          "riderOffset": 0.18012834705646302,
++          "steer": -0.027681150064108463,
++          "frontLoad": 3238.547197848438,
++          "rearLoad": 1040.7029279739627,
++          "drive": 0,
++          "frontBrake": 0,
++          "rearBrake": 0,
++          "state": "riding",
++          "crashes": 0
++        }
++      },
++      "admission": {
++        "phase": "inside the original early gpSteer, before trim, bar commit and pedal allocation",
++        "legacy": 13.797987017393941,
++        "demand": 42.83865604417939,
++        "recovery": 13.797987017393941,
++        "early": {
++          "speed": 48.03795854444651,
++          "v": 48.03795854444651,
++          "mass": 244.4126551235032,
++          "lean": 0.7547072956863439,
++          "frontLoad": 3238.547197848438,
++          "rearLoad": 1040.7029279739627,
++          "frontMu": 1.6008463618305018,
++          "rearMu": 1.5951860733114154,
++          "frontFx": 0,
++          "rearFx": 0,
++          "frontContact": 1,
++          "effectiveFrontLoad": 3238.547197848438,
++          "yawRate": -0.36411503278630075,
++          "dt": 0.004166666666666667
++        },
++        "nativeProbe": -0.1473880702761527,
++        "nativeProjectedSamples": [
++          -4923.468421459977, -4915.635192502206, -4819.256069724501, -4587.445318264443,
++          -4162.788499517732, -3490.0088091739713, -2541.41328602358, -1345.9288712187406, 0,
++          1353.814851221329, 2571.2933932338337, 3551.780000334537, 4261.408105498514,
++          4723.860102324283, 4991.98931108888, 5122.159327651676, 5161.058889812547
++        ],
++        "neutralFrontForce": 0,
++        "reservedFrontForceInterval": [-4775.764368816178, 5006.22712311817],
++        "rearArgs": [
++          1040.7029279739627, 1.5951860733114154, 0.7547072956863439, 48.03795854444651, 0,
++          0.004166666666666667
++        ],
++        "heldRearPreview": 1652.8491857844326,
++        "K": 314.2857142857143,
++        "denominator": 250.9551003857207,
++        "requestInterval": [-12.900121699926839, 26.078928643737513],
++        "conditionalFrontWithHeldRearAccelerationInterval": [
++          -12.777223754857198, 27.24521897418827
++        ],
++        "physicalStateBeforeSha256": "e0d4829d438844149e61a1b1533b420f013c2145ea6c958f0e825104d4cac112",
++        "physicalStateAfterSha256": "e0d4829d438844149e61a1b1533b420f013c2145ea6c958f0e825104d4cac112",
++        "physicalStateUnchanged": true,
++        "nativeAdmitted": 26.078928643737513,
++        "selected": 26.078928643737513,
++        "control": "native signed admission diagnostic"
++      },
++      "controller": {
++        "speed": 48.03795854444651,
++        "frontFx": 0,
++        "rearFx": 0,
++        "reaction": 17.508300147797456,
++        "capacity": 14.008108647100448,
++        "recovery": 13.797987017393941,
++        "requestedTarget": -0.27961516069821324,
++        "supportCapacity": 14.008108647100446,
++        "supportedLimit": 0.6240727670413104,
++        "target": -0.27961516069821324,
++        "measured": 35.02704409336897,
++        "currentLateral": 6.762535208945043,
++        "rolling": 11.216528038207985,
++        "rateAhead": 0.6114231344054923,
++        "ahead": 0.8447107118685607,
++        "error": -1.124325872566774,
++        "direction": -1,
++        "stopping": 24.83317663124411,
++        "effort": -1.624518247280519,
++        "rate": -1.624518247280519,
++        "demand": 42.83865604417939,
++        "reserve": 19.6133,
++        "lateral": 26.078928643737513,
++        "saturated": true,
++        "trim": -6.813386870312414e-6
++      },
++      "originalController": {
++        "speed": 48.03795854444651,
++        "frontFx": 0,
++        "rearFx": 0,
++        "reaction": 17.508300147797456,
++        "capacity": 14.008108647100448,
++        "recovery": 13.797987017393941,
++        "requestedTarget": -0.27961516069821324,
++        "supportCapacity": 14.008108647100446,
++        "supportedLimit": 0.6240727670413104,
++        "target": -0.27961516069821324,
++        "measured": 35.02704409336897,
++        "currentLateral": 6.762535208945043,
++        "rolling": 11.216528038207985,
++        "rateAhead": 0.6114231344054923,
++        "ahead": 0.8447107118685607,
++        "error": -1.124325872566774,
++        "direction": -1,
++        "stopping": 24.83317663124411,
++        "effort": -1.624518247280519,
++        "rate": -1.624518247280519,
++        "demand": 42.83865604417939,
++        "reserve": 19.6133,
++        "lateral": 13.797987017393941,
++        "saturated": true,
++        "trim": -6.813386870312414e-6
++      }
++    },
++    {
++      "label": "lastRecordedControl",
++      "tick": 18366,
++      "substep": 1,
++      "s": 1931.934944540114,
++      "dt": 0.004166666666666667,
++      "input": {
++        "lean": -0.5951323839007894,
++        "throttle": 0,
++        "frontBrake": 0,
++        "rearBrake": 0,
++        "rider": 0.5955129677995039,
++        "drive": 0,
++        "engineBrake": 0
++      },
++      "stepEntry": {
++        "tick": 18366,
++        "substep": 1,
++        "time": 153.05000000002514,
++        "raceTime": 147.27419938259013,
++        "lap": 1,
++        "s": 1931.934944540114,
++        "lateral": -2.5451343146817265,
++        "speed": 32.727278488351935,
++        "lean": 1.2447136971550272,
++        "leanRate": 1.3724359192459616,
++        "steer": -0.26355515500334276,
++        "riderOffset": 0.1792681703516694,
++        "frontLoad": 1149.7102709424576,
++        "rearLoad": 1089.8742972329578,
++        "drive": 0,
++        "frontBrake": 0,
++        "rearBrake": 0,
++        "state": "riding",
++        "crashes": 0,
++        "impact": 0,
++        "roadPitch": 0.009261751424667425,
++        "contactCrash": false
++      },
++      "bike": {
++        "assists": {
++          "lean": true,
++          "wheelie": true,
++          "traction": true,
++          "combinedBrakes": true,
++          "abs": true
++        },
++        "p": {
++          "mass": 245,
++          "wheelbase": 1.45,
++          "cgHeight": 0.62,
++          "cgToFront": 0.7,
++          "cgToRear": 0.75,
++          "maxSteer": 0.6,
++          "steerRate": 2.4,
++          "maxLean": 1.0036671374806159,
++          "mu": 1.75,
++          "power": 224000,
++          "maxDrive": 0,
++          "frontBrake": 7600,
++          "rearBrake": 1900,
++          "drag": 0.215,
++          "riderOffsetMax": 0.3,
++          "downforce": 0.045,
++          "downforceFront": 0.6,
++          "rolling": 0.015,
++          "wheelieLimit": 0.1,
++          "stoppieMargin": 0.92,
++          "wheelieKeep": 0.2,
++          "tractionMargin": 0.92,
++          "rollDamping": 1.2,
++          "engineBrakeReleaseThrottle": 0.12,
++          "independentRearBrake": true,
++          "currentDriveTraction": true,
++          "frontContactSteering": true,
++          "lowSpeedBalance": false
++        },
++        "x": -454.8940527207619,
++        "z": 309.8737130021539,
++        "heading": 8.46215753189665,
++        "speed": 32.727278488351935,
++        "lean": 1.2447136971550272,
++        "leanRate": 1.3724359192459616,
++        "steer": -0.26355515500334276,
++        "pitch": 0,
++        "mass": 244.41178549089312,
++        "frontLoad": 1157.850853992455,
++        "rearLoad": 1052.2267958437878,
++        "riderOffset": 0.17865389033985116,
++        "rearSlip": 0,
++        "state": "riding",
++        "stateClock": 0,
++        "crashes": 0,
++        "penaltySeconds": 0,
++        "longitudinal": 3.2616016899641678,
++        "lateralUse": 1.0272508431301577,
++        "frontUse": 1.0272508431301577,
++        "rearUse": 0.7464203021045013,
++        "gripOver": 0,
++        "grip": 0.9938992809139678,
++        "frontGrip": 0.9955801729314562,
++        "rearGrip": 0.9938992809139678,
++        "contactLoads": {
++          "front": 1157.850853992455,
++          "rear": 1052.2267958437878,
++          "rearLiftForce": 14220.409210203048
++        },
++        "slope": 0.009261619013001572,
++        "dragScale": 1,
++        "riderReady": true,
++        "driveForce": 0,
++        "frontBrakeForce": 0,
++        "rearBrakeForce": 0,
++        "engineBrakeForce": 0,
++        "intervention": 0,
++        "roadLateralDemand": 0,
++        "roadAdmittedCapacity": null
++      },
++      "gp": {
++        "geometry": {
++          "frontArm": 0.7,
++          "rearArm": 0.75,
++          "yawInertia": 55,
++          "frontRadius": 0.3,
++          "rearRadius": 0.32,
++          "frontWheelInertia": 0.6,
++          "rearWheelInertia": 0.9
++        },
++        "forwardSpeed": 32.727278488351935,
++        "longitudinalCorrection": 4.458214283919631,
++        "lateralSpeed": -26.389679980737004,
++        "yawRate": 2.5,
++        "lateralAcceleration": 11.658905573443942,
++        "frontFy": 1892.9686616511194,
++        "rearFy": 1301.6673613049018,
++        "frontSlipAngle": -0.11776805926220917,
++        "rearSlipAngle": -0.7971615374451303,
++        "frontSlip": 0.104154503622137,
++        "rearSlip": 0.1321041771942303,
++        "frontOmega": 121.40951666615715,
++        "rearOmega": 116.70260523832545,
++        "frontSlidingPower": 2478.967125223928,
++        "rearSlidingPower": 36791.21140865342,
++        "groundSteer": -0.6133682887960095,
++        "frontStiffness": 29189.856091078902,
++        "steerTrim": 0.00012893692732340279,
++        "leanTarget": -0.5831391818646445,
++        "lateralDemand": 19.6133,
++        "frontLoadUsed": 1149.7102709424576,
++        "frontMuUsed": 1.742262377390852,
++        "frontLimit": 1916.6180845205504,
++        "rearLimit": 1813.78261836346,
++        "frontElasticStiffness": 29189.856091078902,
++        "rearElasticStiffness": 27820.336978044514,
++        "sideLimit": 1813.78261836346,
++        "lastSpeed": 32.987099975921254,
++        "front": {
++          "dx": 1916.6180845205504,
++          "dy": 1916.6180845205504,
++          "cx": 1.3,
++          "ex": 0.15,
++          "cy": 1.6,
++          "ey": -0.3,
++          "x0x": 2.6367832955817585,
++          "x0y": 1.496605762665489,
++          "kappaRef": 0.24139978482242522,
++          "alphaRef": 0.1572284103722733,
++          "alpha": -0.11776805926220917,
++          "corneringStiffness": 29189.856091078902,
++          "slipStiffness": 27215.51106140625,
++          "by1": 0.7,
++          "by2": 0.6,
++          "bx1": 0.7,
++          "bx2": 0.6,
++          "cache": {
++            "stamp": 34987,
++            "alpha": -0.11776805926220917,
++            "dy": 1916.6180845205504,
++            "alphaRef": 0.1572284103722733,
++            "sy": -0.749025312813168,
++            "fy0": -1890.2375033359344,
++            "by": 0.6384847096370845
++          },
++          "stamp": 34987
++        },
++        "rear": {
++          "dx": 1813.78261836346,
++          "dy": 1813.78261836346,
++          "cx": 1.3,
++          "ex": 0.15,
++          "cy": 1.6,
++          "ey": -0.3,
++          "x0x": 2.6367832955817585,
++          "x0y": 1.496605762665489,
++          "kappaRef": 0.24123567880452476,
++          "alphaRef": 0.15611701733203415,
++          "alpha": -0.7971615374451303,
++          "corneringStiffness": 27820.336978044514,
++          "slipStiffness": 25772.793036681993,
++          "by1": 0.7,
++          "by2": 0.6,
++          "bx1": 0.7,
++          "bx2": 0.6,
++          "cache": {
++            "stamp": 35068,
++            "alpha": -0.7971615374451303,
++            "dy": 1813.78261836346,
++            "alphaRef": 0.15611701733203415,
++            "sy": -5.1061796533667065,
++            "fy0": -1296.1657398001687,
++            "by": 0.21720383802855803
++          },
++          "stamp": 35068
++        },
++        "force": {
++          "fx": 0,
++          "fy": 1296.1657398001687
++        },
++        "inverseFront": {
++          "dx": 1916.6180845205504,
++          "dy": 1916.6180845205504,
++          "cx": 1.3,
++          "ex": 0.15,
++          "cy": 1.6,
++          "ey": -0.3,
++          "x0x": 2.6367832955817585,
++          "x0y": 1.496605762665489,
++          "kappaRef": 0.24139978482242522,
++          "alphaRef": 0.1572284103722733,
++          "alpha": -0.11756649551751985,
++          "corneringStiffness": 29189.856091078902,
++          "slipStiffness": 27215.51106140625,
++          "by1": 0.7,
++          "by2": 0.6,
++          "bx1": 0.7,
++          "bx2": 0.6,
++          "cache": {
++            "stamp": 34974,
++            "alpha": -0.11756649551751985,
++            "dy": 1916.6180845205504,
++            "alphaRef": 0.1572284103722733,
++            "sy": -0.7477433323860171,
++            "fy0": -1889.7718067133196,
++            "by": 0.638668258307298
++          },
++          "stamp": 34974
++        },
++        "previewFront": {
++          "dx": 1916.6180845205504,
++          "dy": 1916.6180845205504,
++          "cx": 1.3,
++          "ex": 0.15,
++          "cy": 1.6,
++          "ey": -0.3,
++          "x0x": 2.6367832955817585,
++          "x0y": 1.496605762665489,
++          "kappaRef": 0.24139978482242522,
++          "alphaRef": 0.1572284103722733,
++          "alpha": 0,
++          "corneringStiffness": 29189.856091078902,
++          "slipStiffness": 27215.51106140625,
++          "by1": 0.7,
++          "by2": 0.6,
++          "bx1": 0.7,
++          "bx2": 0.6,
++          "cache": {
++            "stamp": -1,
++            "alpha": null,
++            "dy": null,
++            "alphaRef": null,
++            "sy": 0,
++            "fy0": 0,
++            "by": 0
++          },
++          "stamp": 34974
++        },
++        "previewRear": {
++          "dx": 1813.78261836346,
++          "dy": 1813.78261836346,
++          "cx": 1.3,
++          "ex": 0.15,
++          "cy": 1.6,
++          "ey": -0.3,
++          "x0x": 2.6367832955817585,
++          "x0y": 1.496605762665489,
++          "kappaRef": 0.24123567880452476,
++          "alphaRef": 0.15611701733203415,
++          "alpha": -0.7970867796128239,
++          "corneringStiffness": 27820.336978044514,
++          "slipStiffness": 25772.793036681993,
++          "by1": 0.7,
++          "by2": 0.6,
++          "bx1": 0.7,
++          "bx2": 0.6,
++          "cache": {
++            "stamp": 70110,
++            "alpha": -0.7970867796128239,
++            "dy": 1813.78261836346,
++            "alphaRef": 0.15611701733203415,
++            "sy": -5.105700795689408,
++            "fy0": -1296.1863776003663,
++            "by": 0.21722224771106066
++          },
++          "stamp": 70110
++        },
++        "inverseForces": {
++          "0": -1232.0204608718398,
++          "1": -1248.3083883825066,
++          "2": -1241.6086055064313,
++          "3": -1198.7135363660439,
++          "4": -1102.9494492860842,
++          "5": -937.3903323323091,
++          "6": -691.8250049715311,
++          "7": -371.263520775804,
++          "8": 0,
++          "9": 383.23365431161733,
++          "10": 737.1817179179687,
++          "11": 1031.1621280570125,
++          "12": 1252.6719592696923,
++          "13": 1405.8390557007374,
++          "14": 1503.9139842403706,
++          "15": 1561.977658821402,
++          "16": 1592.9403940811576
++        }
++      },
++      "original": {
++        "target": -0.588847607355478,
++        "reserve": 19.6133,
++        "barRequest": -0.26359800116348325,
++        "trim": 0.00012893692732340279,
++        "plantInput": {
++          "dt": 0.004166666666666667,
++          "speed": 32.72236136326553,
++          "mass": 244.41178549089312,
++          "lean": 1.2447136971550272,
++          "steer": -0.26359800116348325,
++          "frontLoad": 1157.850853992455,
++          "rearLoad": 1052.2267958437878,
++          "frontMu": 1.7422653026300483,
++          "rearMu": 1.7393237415994438,
++          "frontFx": 0,
++          "rearFx": 0,
++          "frontContact": 1,
++          "frontBrakeExcess": 0,
++          "rearDriveExcess": 0,
++          "rearBrakeExcess": 0,
++          "inertialContacts": true
++        },
++        "plantOutput": {
++          "frontFy": 1903.6323434353856,
++          "rearFy": 1256.4158281152295,
++          "lateralAcceleration": 11.509078315384105,
++          "frontOmega": 120.50222008931696,
++          "rearOmega": 115.88928280361478,
++          "yawRate": 2.5,
++          "lateralSpeed": -26.177889090612425
++        },
++        "after": {
++          "speed": 32.46487971676067,
++          "lean": 1.2507595372371019,
++          "leanRate": 1.391863119844436,
++          "riderOffset": 0.17865389033985116,
++          "steer": -0.26359800116348325,
++          "frontLoad": 1157.850853992455,
++          "rearLoad": 1052.2267958437878,
++          "drive": 0,
++          "frontBrake": 0,
++          "rearBrake": 0,
++          "state": "lowside",
++          "crashes": 1
++        }
++      },
++      "diagnostic": {
++        "target": -0.588847607355478,
++        "reserve": 19.6133,
++        "barRequest": -0.2635678137302395,
++        "trim": 0.00018542686930726407,
++        "plantInput": {
++          "dt": 0.004166666666666667,
++          "speed": 32.72236136326553,
++          "mass": 244.41178549089312,
++          "lean": 1.2447136971550272,
++          "steer": -0.2635678137302395,
++          "frontLoad": 1157.850853992455,
++          "rearLoad": 1052.2267958437878,
++          "frontMu": 1.7422653026300483,
++          "rearMu": 1.7393237415994438,
++          "frontFx": 0,
++          "rearFx": 0,
++          "frontContact": 1,
++          "frontBrakeExcess": 0,
++          "rearDriveExcess": 0,
++          "rearBrakeExcess": 0,
++          "inertialContacts": true
++        },
++        "plantOutput": {
++          "frontFy": 1903.6906401705994,
++          "rearFy": 1256.4158281152295,
++          "lateralAcceleration": 11.509526633675819,
++          "frontOmega": 120.50222008931696,
++          "rearOmega": 115.88928280361478,
++          "yawRate": 2.5,
++          "lateralSpeed": -26.177889090612425
++        },
++        "after": {
++          "speed": 32.464878809343894,
++          "lean": 1.2507594646894034,
++          "leanRate": 1.3918457083967948,
++          "riderOffset": 0.17865389033985116,
++          "steer": -0.2635678137302395,
++          "frontLoad": 1157.850853992455,
++          "rearLoad": 1052.2267958437878,
++          "drive": 0,
++          "frontBrake": 0,
++          "rearBrake": 0,
++          "state": "lowside",
++          "crashes": 1
++        }
++      },
++      "nextOriginal": {
++        "after": {
++          "speed": 32.43987971676067,
++          "lean": 1.2674262039037685,
++          "leanRate": 0,
++          "riderOffset": 0.17865389033985116,
++          "steer": -0.26359800116348325,
++          "frontLoad": 1157.850853992455,
++          "rearLoad": 1052.2267958437878,
++          "drive": 0,
++          "frontBrake": 0,
++          "rearBrake": 0,
++          "state": "lowside",
++          "crashes": 1
++        }
++      },
++      "nextDiagnostic": {
++        "after": {
++          "speed": 32.439878809343895,
++          "lean": 1.26742613135607,
++          "leanRate": 0,
++          "riderOffset": 0.17865389033985116,
++          "steer": -0.2635678137302395,
++          "frontLoad": 1157.850853992455,
++          "rearLoad": 1052.2267958437878,
++          "drive": 0,
++          "frontBrake": 0,
++          "rearBrake": 0,
++          "state": "lowside",
++          "crashes": 1
++        }
++      },
++      "admission": {
++        "phase": "inside the original early gpSteer, before trim, bar commit and pedal allocation",
++        "legacy": 14.612475612834828,
++        "demand": 110.56919011508579,
++        "recovery": 14.612475612834828,
++        "early": {
++          "speed": 32.727278488351935,
++          "v": 32.727278488351935,
++          "mass": 244.41178549089312,
++          "lean": 1.2447136971550272,
++          "frontLoad": 1157.850853992455,
++          "rearLoad": 1052.2267958437878,
++          "frontMu": 1.7422653026300483,
++          "rearMu": 1.7393237415994438,
++          "frontFx": 0,
++          "rearFx": 0,
++          "frontContact": 1,
++          "effectiveFrontLoad": 1157.850853992455,
++          "yawRate": 2.5,
++          "dt": 0.004166666666666667
++        },
++        "nativeProbe": -0.7312308861531531,
++        "nativeProjectedSamples": [
++          -1239.8324445330963, -1256.2548533233921, -1249.5416992792827, -1206.3992339057702,
++          -1110.0443135894918, -943.4388076968445, -696.3019340681423, -373.6725996471814, 0,
++          385.7328336494624, 742.0000421059533, 1037.9163801806803, 1260.8936405982656,
++          1415.0834543436745, 1513.8208232699158, 1572.28407088957, 1603.467436748521
++        ],
++        "neutralFrontForce": 0,
++        "reservedFrontForceInterval": [-1218.5672077236902, 1555.3634136460655],
++        "rearArgs": [
++          1052.2267958437878, 1.7393237415994438, 1.2447136971550272, 32.727278488351935, 0,
++          0.004166666666666667
++        ],
++        "heldRearPreview": 1256.424063274188,
++        "K": 314.2857142857143,
++        "denominator": 254.01495840359263,
++        "requestInterval": [3.2422151295367785, 14.16255871403697],
++        "conditionalFrontWithHeldRearAccelerationInterval": [
++          0.1548896485268235, 11.504303981384817
++        ],
++        "physicalStateBeforeSha256": "0256cac698b63dc9d166978bb504e8787556e990bb11a59db200efe8276c9a8a",
++        "physicalStateAfterSha256": "0256cac698b63dc9d166978bb504e8787556e990bb11a59db200efe8276c9a8a",
++        "physicalStateUnchanged": true,
++        "nativeAdmitted": 14.16255871403697,
++        "selected": 14.16255871403697,
++        "control": "native signed admission diagnostic"
++      },
++      "controller": {
++        "speed": 32.727278488351935,
++        "frontFx": 0,
++        "rearFx": 0,
++        "reaction": 9.042434862121619,
++        "capacity": 14.835000622167339,
++        "recovery": 14.612475612834828,
++        "requestedTarget": -0.588847607355478,
++        "supportCapacity": 14.835000622167339,
++        "supportedLimit": 0.9754958126669435,
++        "target": -0.588847607355478,
++        "measured": 11.658905573443942,
++        "currentLateral": 11.533237334369488,
++        "rolling": 6.448832029093159,
++        "rateAhead": 1.7593658409915511,
++        "ahead": 1.4105813831754113,
++        "error": -1.9994289905308893,
++        "direction": -1,
++        "stopping": 36.76631390198653,
++        "effort": -1.845161196023131,
++        "rate": -1.845161196023131,
++        "demand": 110.56919011508579,
++        "reserve": 19.6133,
++        "lateral": 14.16255871403697,
++        "saturated": false,
++        "trim": 0.00012893692732340279
++      },
++      "originalController": {
++        "speed": 32.727278488351935,
++        "frontFx": 0,
++        "rearFx": 0,
++        "reaction": 9.042434862121619,
++        "capacity": 14.835000622167339,
++        "recovery": 14.612475612834828,
++        "requestedTarget": -0.588847607355478,
++        "supportCapacity": 14.835000622167339,
++        "supportedLimit": 0.9754958126669435,
++        "target": -0.588847607355478,
++        "measured": 11.658905573443942,
++        "currentLateral": 11.533237334369488,
++        "rolling": 6.448832029093159,
++        "rateAhead": 1.7593658409915511,
++        "ahead": 1.4105813831754113,
++        "error": -1.9994289905308893,
++        "direction": -1,
++        "stopping": 36.76631390198653,
++        "effort": -1.845161196023131,
++        "rate": -1.845161196023131,
++        "demand": 110.56919011508579,
++        "reserve": 19.6133,
++        "lateral": 14.612475612834828,
++        "saturated": true,
++        "trim": 0.00012893692732340279
++      }
++    },
++    {
++      "label": "firstFrontUnloaded",
++      "tick": 17949,
++      "substep": 1,
++      "s": 1770.9949740208249,
++      "dt": 0.004166666666666667,
++      "input": {
++        "lean": -0.20201389291631372,
++        "throttle": 0.5932695038992968,
++        "frontBrake": 0,
++        "rearBrake": 0,
++        "rider": -0.06537931044477706,
++        "drive": 2607.9390963771243,
++        "engineBrake": 0
++      },
++      "stepEntry": {
++        "tick": 17949,
++        "substep": 1,
++        "time": 149.5750000000283,
++        "raceTime": 143.7991993825933,
++        "lap": 1,
++        "s": 1770.9949740208249,
++        "lateral": 4.219809991255822,
++        "speed": 39.5861797547073,
++        "lean": 0.17868231552599184,
++        "leanRate": -1.264301250117369,
++        "steer": 0.014683491093554511,
++        "riderOffset": 0.05279907158939584,
++        "frontLoad": 571.567719044473,
++        "rearLoad": 2590.6221329373743,
++        "drive": 2398.757394299002,
++        "frontBrake": 0,
++        "rearBrake": 0,
++        "state": "riding",
++        "crashes": 0,
++        "impact": 0,
++        "roadPitch": 0.025333662025918934,
++        "contactCrash": false
++      },
++      "bike": {
++        "assists": {
++          "lean": true,
++          "wheelie": true,
++          "traction": true,
++          "combinedBrakes": true,
++          "abs": true
++        },
++        "p": {
++          "mass": 245,
++          "wheelbase": 1.45,
++          "cgHeight": 0.62,
++          "cgToFront": 0.7,
++          "cgToRear": 0.75,
++          "maxSteer": 0.6,
++          "steerRate": 2.4,
++          "maxLean": 1.0036671374806159,
++          "mu": 1.75,
++          "power": 224000,
++          "maxDrive": 0,
++          "frontBrake": 7600,
++          "rearBrake": 1900,
++          "drag": 0.215,
++          "riderOffsetMax": 0.3,
++          "downforce": 0.045,
++          "downforceFront": 0.6,
++          "rolling": 0.015,
++          "wheelieLimit": 0.1,
++          "stoppieMargin": 0.92,
++          "wheelieKeep": 0.2,
++          "tractionMargin": 0.92,
++          "rollDamping": 1.2,
++          "engineBrakeReleaseThrottle": 0.12,
++          "independentRearBrake": true,
++          "currentDriveTraction": true,
++          "frontContactSteering": true,
++          "lowSpeedBalance": false
++        },
++        "x": -598.9711482137303,
++        "z": 239.7029077578894,
++        "heading": 7.31041902396923,
++        "speed": 39.5861797547073,
++        "lean": 0.17868231552599184,
++        "leanRate": -1.264301250117369,
++        "steer": 0.014683491093554511,
++        "pitch": 0,
++        "mass": 244.4314097434952,
++        "frontLoad": 0,
++        "rearLoad": 2089.4079541951605,
++        "riderOffset": 0.05029907158939584,
++        "rearSlip": 0,
++        "state": "riding",
++        "stateClock": 0,
++        "crashes": 0,
++        "penaltySeconds": 0,
++        "longitudinal": 8.033541492114498,
++        "lateralUse": 0.5300538689786184,
++        "frontUse": 0.21827039907383197,
++        "rearUse": 0.5300538689786184,
++        "gripOver": 0,
++        "grip": 1.00693068486602,
++        "frontGrip": 1.009721818265541,
++        "rearGrip": 1.00693068486602,
++        "contactLoads": {
++          "front": 0,
++          "rear": 2089.4079541951605,
++          "rearLiftForce": 2985.6415575530114
++        },
++        "slope": 0.02533095227900519,
++        "dragScale": 0.9990625,
++        "riderReady": true,
++        "driveForce": 2398.757394299002,
++        "frontBrakeForce": 0,
++        "rearBrakeForce": 0,
++        "engineBrakeForce": 0,
++        "intervention": 0.09609889531881088,
++        "roadLateralDemand": 0,
++        "roadAdmittedCapacity": null
++      },
++      "gp": {
++        "geometry": {
++          "frontArm": 0.7,
++          "rearArm": 0.75,
++          "yawInertia": 55,
++          "frontRadius": 0.3,
++          "rearRadius": 0.32,
++          "frontWheelInertia": 0.6,
++          "rearWheelInertia": 0.9
++        },
++        "forwardSpeed": 39.5861797547073,
++        "longitudinalCorrection": -0.012296662011049711,
++        "lateralSpeed": 0.36276848128058387,
++        "yawRate": 0.03600514903013602,
++        "lateralAcceleration": 2.2013795705868127,
++        "frontFy": 220.44623035696276,
++        "rearFy": 317.6606560331222,
++        "frontSlipAngle": -0.015001093473958203,
++        "rearSlipAngle": -0.005166504508526775,
++        "frontSlip": -0.011170103444047636,
++        "rearSlip": 0.02069915276443814,
++        "frontOmega": 130.47998146677367,
++        "rearOmega": 126.26742634120947,
++        "frontSlidingPower": 33.46478643199792,
++        "rearSlidingPower": 1858.8746224666393,
++        "groundSteer": 0.013634998538988861,
++        "frontStiffness": 16342.16173436464,
++        "steerTrim": 0.0006965705507371279,
++        "leanTarget": -0.13425783662642882,
++        "lateralDemand": 2.2236884739132927,
++        "frontLoadUsed": 571.567719044473,
++        "frontMuUsed": 1.767014614755014,
++        "frontLimit": 1009.9685128737717,
++        "rearLimit": 3883.973294570918,
++        "frontElasticStiffness": 16342.16173436464,
++        "rearElasticStiffness": 61682.76563980901,
++        "sideLimit": 3883.973294570918,
++        "lastSpeed": 39.586176122272164,
++        "front": {
++          "dx": 1009.9685128737717,
++          "dy": 1009.9685128737717,
++          "cx": 1.3,
++          "ex": 0.15,
++          "cy": 1.6,
++          "ey": -0.3,
++          "x0x": 2.6367832955817585,
++          "x0y": 1.496605762665489,
++          "kappaRef": 0.24708937282246535,
++          "alphaRef": 0.1479877358745376,
++          "alpha": -0.015001093473958203,
++          "corneringStiffness": 16342.16173436464,
++          "slipStiffness": 14011.078240258019,
++          "by1": 0.7,
++          "by2": 0.6,
++          "bx1": 0.7,
++          "bx2": 0.6,
++          "cache": {
++            "stamp": 34262,
++            "alpha": -0.015001093473958203,
++            "dy": 1009.9685128737717,
++            "alphaRef": 0.1479877358745376,
++            "sy": -0.1013671395491581,
++            "fy0": -241.47715342031077,
++            "by": 0.698708893434257
++          },
++          "stamp": 34262
++        },
++        "rear": {
++          "dx": 4565.006636319843,
++          "dy": 4565.006636319843,
++          "cx": 1.3,
++          "ex": 0.15,
++          "cy": 1.6,
++          "ey": -0.3,
++          "x0x": 2.6367832955817585,
++          "x0y": 1.496605762665489,
++          "kappaRef": 0.24681579392897934,
++          "alphaRef": 0.1772168330691894,
++          "alpha": -0.005166504508526775,
++          "corneringStiffness": 61682.76563980901,
++          "slipStiffness": 63399.561943070476,
++          "by1": 0.7,
++          "by2": 0.6,
++          "bx1": 0.7,
++          "bx2": 0.6,
++          "cache": {
++            "stamp": 34336,
++            "alpha": -0.005166504508526775,
++            "dy": 4565.006636319843,
++            "alphaRef": 0.1772168330691894,
++            "sy": -0.029153576548282278,
++            "fy0": -318.2843323639095,
++            "by": 0.6998929332599764
++          },
++          "stamp": 34336
++        },
++        "force": {
++          "fx": 4252.290031863909,
++          "fy": 298.72293400937764
++        },
++        "inverseFront": {
++          "dx": 1009.9685128737717,
++          "dy": 1009.9685128737717,
++          "cx": 1.3,
++          "ex": 0.15,
++          "cy": 1.6,
++          "ey": -0.3,
++          "x0x": 2.6367832955817585,
++          "x0y": 1.496605762665489,
++          "kappaRef": 0.24708937282246535,
++          "alphaRef": 0.1479877358745376,
++          "alpha": -0.014296182763552674,
++          "corneringStiffness": 16342.16173436464,
++          "slipStiffness": 14011.078240258019,
++          "by1": 0.7,
++          "by2": 0.6,
++          "bx1": 0.7,
++          "bx2": 0.6,
++          "cache": {
++            "stamp": 34249,
++            "alpha": -0.014296182763552674,
++            "dy": 1009.9685128737717,
++            "alphaRef": 0.1479877358745376,
++            "sy": -0.09660383462905887,
++            "fy0": -230.44725426136134,
++            "by": 0.6988270846845915
++          },
++          "stamp": 34249
++        },
++        "previewFront": {
++          "dx": 1009.9685128737717,
++          "dy": 1009.9685128737717,
++          "cx": 1.3,
++          "ex": 0.15,
++          "cy": 1.6,
++          "ey": -0.3,
++          "x0x": 2.6367832955817585,
++          "x0y": 1.496605762665489,
++          "kappaRef": 0.24708937282246535,
++          "alphaRef": 0.1479877358745376,
++          "alpha": 0,
++          "corneringStiffness": 16342.16173436464,
++          "slipStiffness": 14011.078240258019,
++          "by1": 0.7,
++          "by2": 0.6,
++          "bx1": 0.7,
++          "bx2": 0.6,
++          "cache": {
++            "stamp": -1,
++            "alpha": null,
++            "dy": null,
++            "alphaRef": null,
++            "sy": 0,
++            "fy0": 0,
++            "by": 0
++          },
++          "stamp": 34249
++        },
++        "previewRear": {
++          "dx": 4565.006636319843,
++          "dy": 4565.006636319843,
++          "cx": 1.3,
++          "ex": 0.15,
++          "cy": 1.6,
++          "ey": -0.3,
++          "x0x": 2.6367832955817585,
++          "x0y": 1.496605762665489,
++          "kappaRef": 0.24681579392897934,
++          "alphaRef": 0.1772168330691894,
++          "alpha": -0.005159487230537411,
++          "corneringStiffness": 61682.76563980901,
++          "slipStiffness": 63399.561943070476,
++          "by1": 0.7,
++          "by2": 0.6,
++          "bx1": 0.7,
++          "bx2": 0.6,
++          "cache": {
++            "stamp": 68646,
++            "alpha": -0.005159487230537411,
++            "dy": 4565.006636319843,
++            "alphaRef": 0.1772168330691894,
++            "sy": -0.029113979418213802,
++            "fy0": -317.85311349623737,
++            "by": 0.6998932238375098
++          },
++          "stamp": 68646
++        },
++        "inverseForces": {
++          "0": -1000.7611516793572,
++          "1": -995.3158757786418,
++          "2": -972.1734259027398,
++          "3": -922.0956624863194,
++          "4": -833.8504564698115,
++          "5": -696.7630801673749,
++          "6": -505.75878909241686,
++          "7": -267.02587295792773,
++          "8": 1.1339642191090603e-13,
++          "9": 267.03794652721325,
++          "10": 505.80453855624086,
++          "11": 696.8576667620492,
++          "12": 834.0014862365381,
++          "13": 922.3046076557889,
++          "14": 972.4380530386549,
++          "15": 995.632345962218,
++          "16": 1001.1253270207113
++        }
++      },
++      "original": {
++        "target": 0,
++        "reserve": 3.492405175216383,
++        "barRequest": -0.05188902596100047,
++        "trim": 0.0006550266048569649,
++        "plantInput": {
++          "dt": 0.004166666666666667,
++          "speed": 39.619006619365145,
++          "mass": 244.4314097434952,
++          "lean": 0.17868231552599184,
++          "steer": 0.004683491093554511,
++          "frontLoad": 0,
++          "rearLoad": 2089.4079541951605,
++          "frontMu": 1.7670131819646966,
++          "rearMu": 1.7621286985155349,
++          "frontFx": 0,
++          "rearFx": 2359.01872327026,
++          "frontContact": 0,
++          "frontBrakeExcess": 0,
++          "rearDriveExcess": 0,
++          "rearBrakeExcess": 0,
++          "inertialContacts": true
++        },
++        "plantOutput": {
++          "frontFy": 0,
++          "rearFy": 231.3057582666506,
++          "lateralAcceleration": 0.946301289631236,
++          "frontOmega": 130.47998146677367,
++          "rearOmega": 126.393532022733,
++          "yawRate": 0.022862776401349053,
++          "lateralSpeed": 0.36293723295591995
++        },
++        "after": {
++          "speed": 39.61904137310189,
++          "lean": 0.17448988867284368,
++          "leanRate": -1.2480134240678933,
++          "riderOffset": 0.05029907158939584,
++          "steer": 0.004683491093554511,
++          "frontLoad": 0,
++          "rearLoad": 2089.4079541951605,
++          "drive": 2359.01872327026,
++          "frontBrake": 0,
++          "rearBrake": 0,
++          "state": "riding",
++          "crashes": 0
++        }
++      },
++      "diagnostic": {
++        "target": 0,
++        "reserve": 3.492405175216383,
++        "barRequest": -0.05188902596100047,
++        "trim": 0.0006550266048569649,
++        "plantInput": {
++          "dt": 0.004166666666666667,
++          "speed": 39.619006619365145,
++          "mass": 244.4314097434952,
++          "lean": 0.17868231552599184,
++          "steer": 0.004683491093554511,
++          "frontLoad": 0,
++          "rearLoad": 2089.4079541951605,
++          "frontMu": 1.7670131819646966,
++          "rearMu": 1.7621286985155349,
++          "frontFx": 0,
++          "rearFx": 2359.01872327026,
++          "frontContact": 0,
++          "frontBrakeExcess": 0,
++          "rearDriveExcess": 0,
++          "rearBrakeExcess": 0,
++          "inertialContacts": true
++        },
++        "plantOutput": {
++          "frontFy": 0,
++          "rearFy": 231.3057582666506,
++          "lateralAcceleration": 0.946301289631236,
++          "frontOmega": 130.47998146677367,
++          "rearOmega": 126.393532022733,
++          "yawRate": 0.022862776401349053,
++          "lateralSpeed": 0.36293723295591995
++        },
++        "after": {
++          "speed": 39.61904137310189,
++          "lean": 0.17448988867284368,
++          "leanRate": -1.2480134240678933,
++          "riderOffset": 0.05029907158939584,
++          "steer": 0.004683491093554511,
++          "frontLoad": 0,
++          "rearLoad": 2089.4079541951605,
++          "drive": 2359.01872327026,
++          "frontBrake": 0,
++          "rearBrake": 0,
++          "state": "riding",
++          "crashes": 0
++        }
++      },
++      "nextOriginal": {
++        "target": 0,
++        "reserve": 3.475279355637563,
++        "barRequest": -0.06450875487576145,
++        "trim": 0.0006328747731102092,
++        "plantInput": {
++          "dt": 0.004166666666666667,
++          "speed": 39.65191497340348,
++          "mass": 244.4314097434952,
++          "lean": 0.17448988867284368,
++          "steer": -0.005316508906445489,
++          "frontLoad": 0,
++          "rearLoad": 2089.4079541951605,
++          "frontMu": 1.7670131819646966,
++          "rearMu": 1.7621286985155349,
++          "frontFx": 0,
++          "rearFx": 2362.319481396549,
++          "frontContact": 0,
++          "frontBrakeExcess": 0,
++          "rearDriveExcess": 0,
++          "rearBrakeExcess": 0,
++          "inertialContacts": true
++        },
++        "plantOutput": {
++          "frontFy": 0,
++          "rearFy": 202.86018247927737,
++          "lateralAcceleration": 0.82992681952028,
++          "frontOmega": 130.47998146677367,
++          "rearOmega": 126.51898619846725,
++          "yawRate": 0.011336629669571928,
++          "lateralSpeed": 0.3645222648135988
++        },
++        "after": {
++          "speed": 39.65193223619789,
++          "lean": 0.17036689418247433,
++          "leanRate": -1.231359541815296,
++          "riderOffset": 0.047799071589395836,
++          "steer": -0.005316508906445489,
++          "frontLoad": 0,
++          "rearLoad": 2089.4079541951605,
++          "drive": 2362.319481396549,
++          "frontBrake": 0,
++          "rearBrake": 0,
++          "state": "riding",
++          "crashes": 0
++        }
++      },
++      "nextDiagnostic": {
++        "target": 0,
++        "reserve": 3.475279355637563,
++        "barRequest": -0.06450875487576145,
++        "trim": 0.0006328747731102092,
++        "plantInput": {
++          "dt": 0.004166666666666667,
++          "speed": 39.65191497340348,
++          "mass": 244.4314097434952,
++          "lean": 0.17448988867284368,
++          "steer": -0.005316508906445489,
++          "frontLoad": 0,
++          "rearLoad": 2089.4079541951605,
++          "frontMu": 1.7670131819646966,
++          "rearMu": 1.7621286985155349,
++          "frontFx": 0,
++          "rearFx": 2362.319481396549,
++          "frontContact": 0,
++          "frontBrakeExcess": 0,
++          "rearDriveExcess": 0,
++          "rearBrakeExcess": 0,
++          "inertialContacts": true
++        },
++        "plantOutput": {
++          "frontFy": 0,
++          "rearFy": 202.86018247927737,
++          "lateralAcceleration": 0.82992681952028,
++          "frontOmega": 130.47998146677367,
++          "rearOmega": 126.51898619846725,
++          "yawRate": 0.011336629669571928,
++          "lateralSpeed": 0.3645222648135988
++        },
++        "after": {
++          "speed": 39.65193223619789,
++          "lean": 0.17036689418247433,
++          "leanRate": -1.231359541815296,
++          "riderOffset": 0.047799071589395836,
++          "steer": -0.005316508906445489,
++          "frontLoad": 0,
++          "rearLoad": 2089.4079541951605,
++          "drive": 2362.319481396549,
++          "frontBrake": 0,
++          "rearBrake": 0,
++          "state": "riding",
++          "crashes": 0
++        }
++      },
++      "admission": {
++        "phase": "inside the original early gpSteer, before trim, bar commit and pedal allocation",
++        "legacy": -0.4925,
++        "demand": -3.492405175216383,
++        "recovery": 0.4925,
++        "early": {
++          "speed": 39.5861797547073,
++          "v": 39.5861797547073,
++          "mass": 244.4314097434952,
++          "lean": 0.17868231552599184,
++          "frontLoad": 0,
++          "rearLoad": 2089.4079541951605,
++          "frontMu": 1.7670131819646966,
++          "rearMu": 1.7621286985155349,
++          "frontFx": 0,
++          "rearFx": 2398.757394299002,
++          "frontContact": 0,
++          "effectiveFrontLoad": 0,
++          "yawRate": 0.03600514903013602,
++          "dt": 0.004166666666666667
++        },
++        "fallback": "no loaded rolling front inverse",
++        "nativeProbe": null,
++        "selected": -0.4925,
++        "physicalStateUnchanged": true
++      },
++      "controller": {
++        "speed": 39.5861797547073,
++        "frontFx": 0,
++        "rearFx": 2398.757394299002,
++        "reaction": 8.548033807879978,
++        "capacity": 0.5,
++        "recovery": 0.4925,
++        "requestedTarget": -0.20192151917879442,
++        "supportCapacity": 0,
++        "supportedLimit": 0,
++        "target": 0,
++        "measured": 2.2013795705868127,
++        "currentLateral": 1.0755521109217911,
++        "rolling": 0.7588398930281276,
++        "rateAhead": -1.2187708565356812,
++        "ahead": 0.12446925570120775,
++        "error": -0.12446925570120775,
++        "direction": -1,
++        "stopping": 0.16351315727530402,
++        "effort": -0.5601116506554349,
++        "rate": -0.4952471462946112,
++        "demand": -3.492405175216383,
++        "reserve": 3.492405175216383,
++        "lateral": -0.4925,
++        "saturated": true,
++        "trim": 0.0006965705507371279
++      },
++      "originalController": {
++        "speed": 39.5861797547073,
++        "frontFx": 0,
++        "rearFx": 2398.757394299002,
++        "reaction": 8.548033807879978,
++        "capacity": 0.5,
++        "recovery": 0.4925,
++        "requestedTarget": -0.20192151917879442,
++        "supportCapacity": 0,
++        "supportedLimit": 0,
++        "target": 0,
++        "measured": 2.2013795705868127,
++        "currentLateral": 1.0755521109217911,
++        "rolling": 0.7588398930281276,
++        "rateAhead": -1.2187708565356812,
++        "ahead": 0.12446925570120775,
++        "error": -0.12446925570120775,
++        "direction": -1,
++        "stopping": 0.16351315727530402,
++        "effort": -0.5601116506554349,
++        "rate": -0.4952471462946112,
++        "demand": -3.492405175216383,
++        "reserve": 3.492405175216383,
++        "lateral": -0.4925,
++        "saturated": true,
++        "trim": 0.0006965705507371279
++      }
++    },
++    {
++      "label": "firstRearUnloaded",
++      "tick": 18204,
++      "substep": 2,
++      "s": 1867.6029440112416,
++      "dt": 0.004166666666666667,
++      "input": {
++        "lean": 0.889048722344647,
++        "throttle": 0.1791666666666667,
++        "frontBrake": 0,
++        "rearBrake": 0,
++        "rider": 1,
++        "drive": 647.7165806851701,
++        "engineBrake": 0
++      },
++      "stepEntry": {
++        "tick": 18204,
++        "substep": 2,
++        "time": 151.70000000002636,
++        "raceTime": 145.92419938259135,
++        "lap": 1,
++        "s": 1867.6029440112416,
++        "lateral": -7.803383462573632,
++        "speed": 49.710762410087916,
++        "lean": 0.5010775973610472,
++        "leanRate": -0.18823646977589592,
++        "steer": 0.014871276152773902,
++        "riderOffset": 0.3,
++        "frontLoad": 1107.7088967525024,
++        "rearLoad": 1950.9427937037156,
++        "drive": 0,
++        "frontBrake": 0,
++        "rearBrake": 0,
++        "state": "riding",
++        "crashes": 0,
++        "impact": 0,
++        "roadPitch": 0.019196860328262604,
++        "contactCrash": false
++      },
++      "bike": {
++        "assists": {
++          "lean": true,
++          "wheelie": true,
++          "traction": true,
++          "combinedBrakes": true,
++          "abs": true
++        },
++        "p": {
++          "mass": 245,
++          "wheelbase": 1.45,
++          "cgHeight": 0.62,
++          "cgToFront": 0.7,
++          "cgToRear": 0.75,
++          "maxSteer": 0.6,
++          "steerRate": 2.4,
++          "maxLean": 1.0036671374806159,
++          "mu": 1.75,
++          "power": 224000,
++          "maxDrive": 0,
++          "frontBrake": 7600,
++          "rearBrake": 1900,
++          "drag": 0.215,
++          "riderOffsetMax": 0.3,
++          "downforce": 0.045,
++          "downforceFront": 0.6,
++          "rolling": 0.015,
++          "wheelieLimit": 0.1,
++          "stoppieMargin": 0.92,
++          "wheelieKeep": 0.2,
++          "tractionMargin": 0.92,
++          "rollDamping": 1.2,
++          "engineBrakeReleaseThrottle": 0.12,
++          "independentRearBrake": true,
++          "currentDriveTraction": true,
++          "frontContactSteering": true,
++          "lowSpeedBalance": false
++        },
++        "x": -515.6713915983967,
++        "z": 289.35402613254314,
++        "heading": 7.404054665358989,
++        "speed": 49.710762410087916,
++        "lean": 0.5010775973610472,
++        "leanRate": -0.18823646977589592,
++        "steer": 0.014871276152773902,
++        "pitch": 0,
++        "mass": 244.4141945382203,
++        "frontLoad": 1453.8557375219684,
++        "rearLoad": 0,
++        "riderOffset": 0.3,
++        "rearSlip": 0,
++        "state": "riding",
++        "stateClock": 0,
++        "crashes": 0,
++        "penaltySeconds": 0,
++        "longitudinal": -2.577782832707121,
++        "lateralUse": 0.5960760389077997,
++        "frontUse": 0.5960760389077997,
++        "rearUse": 0.4740632346327089,
++        "gripOver": 0,
++        "grip": 0.904904297213622,
++        "frontGrip": 0.9070937128933733,
++        "rearGrip": 0.904904297213622,
++        "contactLoads": {
++          "front": 1453.8557375219684,
++          "rear": 0,
++          "rearLiftForce": 3426.9581426536797
++        },
++        "slope": 0.019195681280597583,
++        "dragScale": 1,
++        "riderReady": true,
++        "driveForce": 0,
++        "frontBrakeForce": 0,
++        "rearBrakeForce": 0,
++        "engineBrakeForce": 0,
++        "intervention": 1,
++        "roadLateralDemand": 0,
++        "roadAdmittedCapacity": null
++      },
++      "gp": {
++        "geometry": {
++          "frontArm": 0.7,
++          "rearArm": 0.75,
++          "yawInertia": 55,
++          "frontRadius": 0.3,
++          "rearRadius": 0.32,
++          "frontWheelInertia": 0.6,
++          "rearWheelInertia": 0.9
++        },
++        "forwardSpeed": 49.710762410087916,
++        "longitudinalCorrection": -0.06645449100719965,
++        "lateralSpeed": 0.43565884312306463,
++        "yawRate": 0.46554953703999785,
++        "lateralAcceleration": 10.280168846310776,
++        "frontFy": 1048.136354593169,
++        "rearFy": 1464.6088432528559,
++        "frontSlipAngle": -0.03424630871851882,
++        "rearSlipAngle": -0.03568618993617112,
++        "frontSlip": -0.001980136284910166,
++        "rearSlip": 0.01757066108863625,
++        "frontOmega": 165.3722263942097,
++        "rearOmega": 158.07356257599383,
++        "frontSlidingPower": 9.317572977692443,
++        "rearSlidingPower": 0,
++        "groundSteer": 0.015497098208333965,
++        "frontStiffness": 27431.825042877037,
++        "steerTrim": -7.805146635147685e-5,
++        "leanTarget": 0.49715320578757644,
++        "lateralDemand": 9.196824567174332,
++        "frontLoadUsed": 1107.7088967525024,
++        "frontMuUsed": 1.5874149880742396,
++        "frontLimit": 1758.3937051281027,
++        "rearLimit": 3089.479917985191,
++        "frontElasticStiffness": 27431.825042877037,
++        "rearElasticStiffness": 45076.01819396833,
++        "sideLimit": 3089.479917985191,
++        "lastSpeed": 49.7101006923704,
++        "front": {
++          "dx": 1758.3937051281027,
++          "dy": 1758.3937051281027,
++          "cx": 1.3,
++          "ex": 0.15,
++          "cy": 1.6,
++          "ey": -0.3,
++          "x0x": 2.6367832955817585,
++          "x0y": 1.496605762665489,
++          "kappaRef": 0.2367195905916457,
++          "alphaRef": 0.1534930846498829,
++          "alpha": -0.03424630871851882,
++          "corneringStiffness": 27431.825042877037,
++          "slipStiffness": 25462.421924161554,
++          "by1": 0.7,
++          "by2": 0.6,
++          "bx1": 0.7,
++          "bx2": 0.6,
++          "cache": {
++            "stamp": 34737,
++            "alpha": -0.03424630871851882,
++            "dy": 1758.3937051281027,
++            "alphaRef": 0.1534930846498829,
++            "sy": -0.2231130398912401,
++            "fy0": -874.7120203072161,
++            "by": 0.6938108537582357
++          },
++          "stamp": 34737
++        },
++        "rear": {
++          "dx": 3089.479917985191,
++          "dy": 3089.479917985191,
++          "cx": 1.3,
++          "ex": 0.15,
++          "cy": 1.6,
++          "ey": -0.3,
++          "x0x": 2.6367832955817585,
++          "x0y": 1.496605762665489,
++          "kappaRef": 0.23649085262457306,
++          "alphaRef": 0.1641221610657579,
++          "alpha": -0.03568618993617112,
++          "corneringStiffness": 45076.01819396833,
++          "slipStiffness": 44780.48784628491,
++          "by1": 0.7,
++          "by2": 0.6,
++          "bx1": 0.7,
++          "bx2": 0.6,
++          "cache": {
++            "stamp": 34847,
++            "alpha": -0.03568618993617112,
++            "dy": 3089.479917985191,
++            "alphaRef": 0.1641221610657579,
++            "sy": -0.21743675384503947,
++            "fy0": -1502.9832032540207,
++            "by": 0.6941178599627279
++          },
++          "stamp": 34847
++        },
++        "force": {
++          "fx": 0,
++          "fy": 1502.9832032540207
++        },
++        "inverseFront": {
++          "dx": 1758.3937051281027,
++          "dy": 1758.3937051281027,
++          "cx": 1.3,
++          "ex": 0.15,
++          "cy": 1.6,
++          "ey": -0.3,
++          "x0x": 2.6367832955817585,
++          "x0y": 1.496605762665489,
++          "kappaRef": 0.2367195905916457,
++          "alphaRef": 0.1534930846498829,
++          "alpha": -0.026093201167358557,
++          "corneringStiffness": 27431.825042877037,
++          "slipStiffness": 25462.421924161554,
++          "by1": 0.7,
++          "by2": 0.6,
++          "bx1": 0.7,
++          "bx2": 0.6,
++          "cache": {
++            "stamp": 34724,
++            "alpha": -0.026093201167358557,
++            "dy": 1758.3937051281027,
++            "alphaRef": 0.1534930846498829,
++            "sy": -0.16999593973159796,
++            "fy0": -686.3573032052223,
++            "by": 0.6963869409782574
++          },
++          "stamp": 34724
++        },
++        "previewFront": {
++          "dx": 1758.3937051281027,
++          "dy": 1758.3937051281027,
++          "cx": 1.3,
++          "ex": 0.15,
++          "cy": 1.6,
++          "ey": -0.3,
++          "x0x": 2.6367832955817585,
++          "x0y": 1.496605762665489,
++          "kappaRef": 0.2367195905916457,
++          "alphaRef": 0.1534930846498829,
++          "alpha": 0,
++          "corneringStiffness": 27431.825042877037,
++          "slipStiffness": 25462.421924161554,
++          "by1": 0.7,
++          "by2": 0.6,
++          "bx1": 0.7,
++          "bx2": 0.6,
++          "cache": {
++            "stamp": -1,
++            "alpha": null,
++            "dy": null,
++            "alphaRef": null,
++            "sy": 0,
++            "fy0": 0,
++            "by": 0
++          },
++          "stamp": 34724
++        },
++        "previewRear": {
++          "dx": 3089.479917985191,
++          "dy": 3089.479917985191,
++          "cx": 1.3,
++          "ex": 0.15,
++          "cy": 1.6,
++          "ey": -0.3,
++          "x0x": 2.6367832955817585,
++          "x0y": 1.496605762665489,
++          "kappaRef": 0.23649085262457306,
++          "alphaRef": 0.1641221610657579,
++          "alpha": -0.03568669525831676,
++          "corneringStiffness": 45076.01819396833,
++          "slipStiffness": 44780.48784628491,
++          "by1": 0.7,
++          "by2": 0.6,
++          "bx1": 0.7,
++          "bx2": 0.6,
++          "cache": {
++            "stamp": 69668,
++            "alpha": -0.03568669525831676,
++            "dy": 3089.479917985191,
++            "alphaRef": 0.1641221610657579,
++            "sy": -0.21743983278418066,
++            "fy0": -1503.001679905169,
++            "by": 0.6941176954713801
++          },
++          "stamp": 69668
++        },
++        "inverseForces": {
++          "0": -1736.6573353075362,
++          "1": -1728.0138351548158,
++          "2": -1688.5838202491138,
++          "3": -1602.277047137434,
++          "4": -1449.5154818714186,
++          "5": -1211.6670633418507,
++          "6": -879.8236716981256,
++          "7": -464.67598829866847,
++          "8": -9.515652770284372e-14,
++          "9": 464.9770954852206,
++          "10": 880.9646224239234,
++          "11": 1214.0259271454333,
++          "12": 1453.2818709267046,
++          "13": 1607.487569542543,
++          "14": 1695.1826445316997,
++          "15": 1735.905073988858,
++          "16": 1745.7376326053275
++        }
++      },
++      "original": {
++        "target": 0,
++        "reserve": 14.592590292635053,
++        "barRequest": -0.021130904535477047,
++        "trim": -7.805146635147685e-5,
++        "plantInput": {
++          "dt": 0.004166666666666667,
++          "speed": 49.70030777868141,
++          "mass": 244.4141945382203,
++          "lean": 0.5010775973610472,
++          "steer": 0.004871276152773902,
++          "frontLoad": 1453.8557375219684,
++          "rearLoad": 0,
++          "frontMu": 1.5874139975634032,
++          "rearMu": 1.5835825201238385,
++          "frontFx": 0,
++          "rearFx": 0,
++          "frontContact": 1,
++          "frontBrakeExcess": 0,
++          "rearDriveExcess": 0,
++          "rearBrakeExcess": 0,
++          "inertialContacts": true
++        },
++        "plantOutput": {
++          "frontFy": 1064.4535450100113,
++          "rearFy": 0,
++          "lateralAcceleration": 4.355065625094957,
++          "frontOmega": 165.38672117636753,
++          "rearOmega": 158.07356257599383,
++          "yawRate": 0.5219971052099276,
++          "lateralSpeed": 0.34570659194654296
++        },
++        "after": {
++          "speed": 49.70108521696315,
++          "lean": 0.5003111246580801,
++          "leanRate": -0.18395344871209393,
++          "riderOffset": 0.3,
++          "steer": 0.004871276152773902,
++          "frontLoad": 1453.8557375219684,
++          "rearLoad": 0,
++          "drive": 0,
++          "frontBrake": 0,
++          "rearBrake": 0,
++          "state": "riding",
++          "crashes": 0
++        }
++      },
++      "diagnostic": {
++        "target": 0,
++        "reserve": 14.592590292635053,
++        "barRequest": 0.08175136376438931,
++        "trim": -7.805146635147685e-5,
++        "plantInput": {
++          "dt": 0.004166666666666667,
++          "speed": 49.70030777868141,
++          "mass": 244.4141945382203,
++          "lean": 0.5010775973610472,
++          "steer": 0.024871276152773902,
++          "frontLoad": 1453.8557375219684,
++          "rearLoad": 0,
++          "frontMu": 1.5874139975634032,
++          "rearMu": 1.5835825201238385,
++          "frontFx": 0,
++          "rearFx": 0,
++          "frontContact": 1,
++          "frontBrakeExcess": 0,
++          "rearDriveExcess": 0,
++          "rearBrakeExcess": 0,
++          "inertialContacts": true
++        },
++        "plantOutput": {
++          "frontFy": 1402.9893920413986,
++          "rearFy": 0,
++          "lateralAcceleration": 5.738288354506246,
++          "frontOmega": 165.38672117636753,
++          "rearOmega": 158.07356257599383,
++          "yawRate": 0.5399255513078983,
++          "lateralSpeed": 0.3477584269982259
++        },
++        "after": {
++          "speed": 49.70059668381061,
++          "lean": 0.5002219154780111,
++          "leanRate": -0.20536365192865075,
++          "riderOffset": 0.3,
++          "steer": 0.024871276152773902,
++          "frontLoad": 1453.8557375219684,
++          "rearLoad": 0,
++          "drive": 0,
++          "frontBrake": 0,
++          "rearBrake": 0,
++          "state": "riding",
++          "crashes": 0
++        }
++      },
++      "nextOriginal": {
++        "target": 0,
++        "reserve": 15.055284851327077,
++        "barRequest": -0.022547601107692782,
++        "trim": -7.805146635147685e-5,
++        "plantInput": {
++          "dt": 0.004166666666666667,
++          "speed": 49.69063411160568,
++          "mass": 244.4141945382203,
++          "lean": 0.5003111246580801,
++          "steer": -0.005128723847226098,
++          "frontLoad": 1453.8557375219684,
++          "rearLoad": 0,
++          "frontMu": 1.5874139975634032,
++          "rearMu": 1.5835825201238385,
++          "frontFx": 0,
++          "rearFx": 0,
++          "frontContact": 1,
++          "frontBrakeExcess": 0,
++          "rearDriveExcess": 0,
++          "rearBrakeExcess": 0,
++          "inertialContacts": true
++        },
++        "plantOutput": {
++          "frontFy": 776.0695495533027,
++          "rearFy": 0,
++          "lateralAcceleration": 3.175177685092832,
++          "frontOmega": 165.39892531858294,
++          "rearOmega": 158.07356257599383,
++          "yawRate": 0.5631517224441993,
++          "lateralSpeed": 0.2423380930226062
++        },
++        "after": {
++          "speed": 49.69141015740549,
++          "lean": 0.4995823023852262,
++          "leanRate": -0.1749173454849167,
++          "riderOffset": 0.3,
++          "steer": -0.005128723847226098,
++          "frontLoad": 1453.8557375219684,
++          "rearLoad": 0,
++          "drive": 0,
++          "frontBrake": 0,
++          "rearBrake": 0,
++          "state": "riding",
++          "crashes": 0
++        }
++      },
++      "nextDiagnostic": {
++        "target": 0,
++        "reserve": 14.057735755975353,
++        "barRequest": 0.08120629090262152,
++        "trim": -4.0865463193852654e-5,
++        "plantInput": {
++          "dt": 0.004166666666666667,
++          "speed": 49.69014575644026,
++          "mass": 244.4141945382203,
++          "lean": 0.5002219154780111,
++          "steer": 0.034871276152773904,
++          "frontLoad": 1453.8557375219684,
++          "rearLoad": 0,
++          "frontMu": 1.5874139975634032,
++          "rearMu": 1.5835825201238385,
++          "frontFx": 0,
++          "rearFx": 0,
++          "frontContact": 1,
++          "frontBrakeExcess": 0,
++          "rearDriveExcess": 0,
++          "rearBrakeExcess": 0,
++          "inertialContacts": true
++        },
++        "plantOutput": {
++          "frontFy": 1572.6084343913137,
++          "rearFy": 0,
++          "lateralAcceleration": 6.429959124300728,
++          "frontOmega": 165.39884556161184,
++          "rearOmega": 158.07356257599383,
++          "yawRate": 0.6232665585954551,
++          "lateralSpeed": 0.24550880549563134
++        },
++        "after": {
++          "speed": 49.68997832073903,
++          "lean": 0.49927998592970074,
++          "leanRate": -0.22606309159445878,
++          "riderOffset": 0.3,
++          "steer": 0.034871276152773904,
++          "frontLoad": 1453.8557375219684,
++          "rearLoad": 0,
++          "drive": 0,
++          "frontBrake": 0,
++          "rearBrake": 0,
++          "state": "riding",
++          "crashes": 0
++        }
++      },
++      "admission": {
++        "phase": "inside the original early gpSteer, before trim, bar commit and pedal allocation",
++        "legacy": 0.4925,
++        "demand": 14.592590292635053,
++        "recovery": 0.4925,
++        "early": {
++          "speed": 49.710762410087916,
++          "v": 49.710762410087916,
++          "mass": 244.4141945382203,
++          "lean": 0.5010775973610472,
++          "frontLoad": 1453.8557375219684,
++          "rearLoad": 0,
++          "frontMu": 1.5874139975634032,
++          "rearMu": 1.5835825201238385,
++          "frontFx": 0,
++          "rearFx": 0,
++          "frontContact": 1,
++          "effectiveFrontLoad": 1453.8557375219684,
++          "yawRate": 0.46554953703999785,
++          "dt": 0.004166666666666667
++        },
++        "nativeProbe": -0.021265247850764703,
++        "nativeProjectedSamples": [
++          -2276.726679115539, -2265.8706673646907, -2214.5857166229375, -2101.7467010054092,
++          -1901.645321750947, -1589.8089544317138, -1154.5251297545447, -609.8110306796533, 0,
++          610.2740345768891, 1156.2795193681352, 1593.4360144764396, 1907.4364990893393,
++          2109.758127306638, 2224.731348657126, 2278.002845434264, 2290.686240487283
++        ],
++        "neutralFrontForce": 0,
++        "reservedFrontForceInterval": [-2208.4248787420725, 2221.9656532726644],
++        "rearArgs": [
++          0, 1.5835825201238385, 0.5010775973610472, 49.710762410087916, 0, 0.004166666666666667
++        ],
++        "heldRearPreview": 0,
++        "K": 314.2857142857143,
++        "denominator": 250.73648168588102,
++        "requestInterval": [-8.224209321647312, 9.445299727159815],
++        "conditionalFrontWithHeldRearAccelerationInterval": [-9.035583563035368, 9.090984496504781],
++        "physicalStateBeforeSha256": "84905e801d2fbd63a2e9d5320fd13ad97fded844336cbcead41838d9b2878d78",
++        "physicalStateAfterSha256": "84905e801d2fbd63a2e9d5320fd13ad97fded844336cbcead41838d9b2878d78",
++        "physicalStateUnchanged": true,
++        "nativeAdmitted": 9.445299727159815,
++        "selected": 9.445299727159815,
++        "control": "native signed admission diagnostic"
++      },
++      "controller": {
++        "speed": 49.710762410087916,
++        "frontFx": 0,
++        "rearFx": 0,
++        "reaction": 5.948327756776915,
++        "capacity": 0.5,
++        "recovery": 0.4925,
++        "requestedTarget": 0.8514025538898353,
++        "supportCapacity": 0,
++        "supportedLimit": 0,
++        "target": 0,
++        "measured": 10.280168846310776,
++        "currentLateral": 5.447074782644653,
++        "rolling": -2.068394745508204,
++        "rateAhead": -0.3123401545063882,
++        "ahead": 0.606443119433138,
++        "error": -0.606443119433138,
++        "direction": -1,
++        "stopping": 1.723332143981822,
++        "effort": -1.6035677852420314,
++        "rate": -1.6035677852420314,
++        "demand": 14.592590292635053,
++        "reserve": 14.592590292635053,
++        "lateral": 9.445299727159815,
++        "saturated": true,
++        "trim": -7.805146635147685e-5
++      },
++      "originalController": {
++        "speed": 49.710762410087916,
++        "frontFx": 0,
++        "rearFx": 0,
++        "reaction": 5.948327756776915,
++        "capacity": 0.5,
++        "recovery": 0.4925,
++        "requestedTarget": 0.8514025538898353,
++        "supportCapacity": 0,
++        "supportedLimit": 0,
++        "target": 0,
++        "measured": 10.280168846310776,
++        "currentLateral": 5.447074782644653,
++        "rolling": -2.068394745508204,
++        "rateAhead": -0.3123401545063882,
++        "ahead": 0.606443119433138,
++        "error": -0.606443119433138,
++        "direction": -1,
++        "stopping": 1.723332143981822,
++        "effort": -1.6035677852420314,
++        "rate": -1.6035677852420314,
++        "demand": 14.592590292635053,
++        "reserve": 14.592590292635053,
++        "lateral": 0.4925,
++        "saturated": true,
++        "trim": -7.805146635147685e-5
++      }
++    }
++  ],
++  "standalone": [
++    {
++      "derivedFrom": {
++        "label": "maximumRollForecastDifference",
++        "tick": 18274,
++        "substep": 2
++      },
++      "original": [
++        {
++          "target": -0.27961516069821324,
++          "reserve": 14.653505725022635,
++          "barRequest": -0.20951921732059614,
++          "trim": -6.813386870312414e-6,
++          "plantInput": {
++            "dt": 0.004166666666666667,
++            "speed": 48.02837242773739,
++            "mass": 244.4126551235032,
++            "lean": 0.7547072956863439,
++            "steer": -0.05768115006410847,
++            "frontLoad": 1302.066443502031,
++            "rearLoad": 1198.6469666151797,
++            "frontMu": 1.6008463618305018,
++            "rearMu": 1.5951860733114154,
++            "frontFx": 0,
++            "rearFx": 0,
++            "frontContact": 1,
++            "frontBrakeExcess": 0,
++            "rearDriveExcess": 0,
++            "rearBrakeExcess": 0,
++            "inertialContacts": false
++          },
++          "plantOutput": {
++            "frontFy": 985.0811385360087,
++            "rearFy": 1903.6966357631377,
++            "lateralAcceleration": 11.80874837847374,
++            "frontOmega": 161.38343960985293,
++            "rearOmega": 151.1967625327759,
++            "yawRate": -0.4201767631233355,
++            "lateralSpeed": -3.7956813489051013
++          },
++          "after": {
++            "speed": 48.02837242773739,
++            "lean": 0.7554795805703685,
++            "leanRate": -0.055264345949058484,
++            "riderOffset": 0.18262834705646303,
++            "steer": -0.05768115006410847,
++            "frontLoad": 1302.066443502031,
++            "rearLoad": 1198.6469666151797,
++            "drive": 0,
++            "frontBrake": 0,
++            "rearBrake": 0,
++            "state": "riding",
++            "crashes": 0
++          }
++        },
++        {
++          "target": -0.27961289179631643,
++          "reserve": 19.6133,
++          "barRequest": -0.025488626626029624,
++          "trim": 3.595558716175043e-5,
++          "plantInput": {
++            "dt": 0.004166666666666667,
++            "speed": 48.01878968636764,
++            "mass": 244.4126551235032,
++            "lean": 0.7554795805703685,
++            "steer": -0.04768115006410847,
++            "frontLoad": 1302.041579119397,
++            "rearLoad": 1198.6303903600904,
++            "frontMu": 1.6008463618305018,
++            "rearMu": 1.5951860733114154,
++            "frontFx": 0,
++            "rearFx": 0,
++            "frontContact": 1,
++            "frontBrakeExcess": 0,
++            "rearDriveExcess": 0,
++            "rearBrakeExcess": 0,
++            "inertialContacts": false
++          },
++          "plantOutput": {
++            "frontFy": 1471.2652007084116,
++            "rearFy": 1898.617487483316,
++            "lateralAcceleration": 13.776923121341841,
++            "frontOmega": 161.31643387286474,
++            "rearOmega": 151.14527628233486,
++            "yawRate": -0.45017049836478473,
++            "lateralSpeed": -3.6482081588829023
++          },
++          "after": {
++            "speed": 48.01878968636764,
++            "lean": 0.7561871532883545,
++            "leanRate": -0.07083079916894724,
++            "riderOffset": 0.18012834705646302,
++            "steer": -0.04768115006410847,
++            "frontLoad": 1302.041579119397,
++            "rearLoad": 1198.6303903600904,
++            "drive": 0,
++            "frontBrake": 0,
++            "rearBrake": 0,
++            "state": "riding",
++            "crashes": 0
++          }
++        }
++      ]
++    },
++    {
++      "derivedFrom": {
++        "label": "firstRearUnloaded",
++        "tick": 18204,
++        "substep": 2
++      },
++      "original": [
++        {
++          "target": 0.8514025538898353,
++          "reserve": 7.228192594292642,
++          "barRequest": -0.06742074877953687,
++          "trim": -7.805146635147685e-5,
++          "plantInput": {
++            "dt": 0.004166666666666667,
++            "speed": 49.70030777868141,
++            "mass": 244.4141945382203,
++            "lean": 0.5010775973610472,
++            "steer": 0.004871276152773902,
++            "frontLoad": 1306.4891418706093,
++            "rearLoad": 1201.597514470278,
++            "frontMu": 1.5874139975634032,
++            "rearMu": 1.5835825201238385,
++            "frontFx": 0,
++            "rearFx": 0,
++            "frontContact": 1,
++            "frontBrakeExcess": 0,
++            "rearDriveExcess": 0,
++            "rearBrakeExcess": 0,
++            "inertialContacts": false
++          },
++          "plantOutput": {
++            "frontFy": 894.0667586595165,
++            "rearFy": 1150.3466865393316,
++            "lateralAcceleration": 8.364497618557238,
++            "frontOmega": 165.38672117636753,
++            "rearOmega": 157.948692936416,
++            "yawRate": 0.44760095129965993,
++            "lateralSpeed": 0.3778196455269544
++          },
++          "after": {
++            "speed": 49.70030777868141,
++            "lean": 0.5002909489619848,
++            "leanRate": -0.18879561577497558,
++            "riderOffset": 0.3,
++            "steer": 0.004871276152773902,
++            "frontLoad": 1306.4891418706093,
++            "rearLoad": 1201.597514470278,
++            "drive": 0,
++            "frontBrake": 0,
++            "rearBrake": 0,
++            "state": "riding",
++            "crashes": 0
++          }
++        },
++        {
++          "target": 0.8513947517359103,
++          "reserve": 6.053287943466535,
++          "barRequest": -0.12185183724938872,
++          "trim": -0.0002191092830000273,
++          "plantInput": {
++            "dt": 0.004166666666666667,
++            "speed": 49.700898946543376,
++            "mass": 244.4141945382203,
++            "lean": 0.5002909489619848,
++            "steer": -0.005128723847226098,
++            "frontLoad": 1029.5064047268263,
++            "rearLoad": 1478.5334828397163,
++            "frontMu": 1.5874139975634032,
++            "rearMu": 1.5835825201238385,
++            "frontFx": 0,
++            "rearFx": 647.7165806851701,
++            "frontContact": 1,
++            "frontBrakeExcess": 0,
++            "rearDriveExcess": 0,
++            "rearBrakeExcess": 0,
++            "inertialContacts": false
++          },
++          "plantOutput": {
++            "frontFy": 600.821754194272,
++            "rearFy": 1152.8507768102534,
++            "lateralAcceleration": 7.174967793215812,
++            "frontOmega": 165.40060139265404,
++            "rearOmega": 157.955905356195,
++            "yawRate": 0.41395937216607603,
++            "lateralSpeed": 0.32198970748201744
++          },
++          "after": {
++            "speed": 49.700898946543376,
++            "lean": 0.49952427305943087,
++            "leanRate": -0.1840022166129351,
++            "riderOffset": 0.3,
++            "steer": -0.005128723847226098,
++            "frontLoad": 1029.5064047268263,
++            "rearLoad": 1478.5334828397163,
++            "drive": 647.7165806851701,
++            "frontBrake": 0,
++            "rearBrake": 0,
++            "state": "riding",
++            "crashes": 0
++          }
++        }
++      ]
++    }
++  ]
++}
+diff --git a/tests/gp-signed-command.test.ts b/tests/gp-signed-command.test.ts
+new file mode 100644
+index 0000000..4820c71
+--- /dev/null
++++ b/tests/gp-signed-command.test.ts
+@@ -0,0 +1,367 @@
++import { describe, expect, it, vi } from 'vitest';
++import { Bike, GP_ASSIST, type BikeInput } from '../src/simulation/bike.ts';
++import {
++  gpBarSteer,
++  MotoGPChassis,
++  type GPFrontForceRange,
++  type MotoGPContactStep,
++} from '../src/simulation/motogp-physics.ts';
++import { clamp } from '../src/core/math.ts';
++import saved from './fixtures/gp-signed-command-onset.json';
++
++type SavedCase = (typeof saved.cases)[number];
++const scratch = new Set(['force', 'inverseFront', 'previewFront', 'previewRear', 'inverseForces']);
++// The sealed JSON trace preserves every finite value, but JSON normalizes
++// signed zero. Compare its command/output records in that same encoding.
++const recorded = (value: unknown) => JSON.parse(JSON.stringify(value));
++function hydrate<T extends object>(target: T, source: object): T {
++  const fields = target as Record<string, unknown>;
++  for (const [key, value] of Object.entries(source)) {
++    const current = fields[key];
++    if (current instanceof Float64Array) current.set(Object.values(value));
++    else fields[key] = structuredClone(value);
++  }
++  return target;
++}
++function physical(gp: MotoGPChassis) {
++  return structuredClone(
++    Object.fromEntries(
++      Object.entries(gp).filter(([key, value]) => !scratch.has(key) && typeof value !== 'function'),
++    ),
++  );
++}
++function chassis(f: SavedCase) {
++  return hydrate(new MotoGPChassis(f.gp.geometry), f.gp);
++}
++function bike(f: SavedCase, standalone = false) {
++  const b = hydrate(new Bike(f.bike.assists, f.bike.p), f.bike);
++  b.motoGP = chassis(f);
++  b.riderOffset = f.stepEntry.riderOffset;
++  if (standalone) b.contactLoads = undefined;
++  return b;
++}
++function after(b: Bike) {
++  return {
++    speed: b.speed,
++    lean: b.lean,
++    leanRate: b.leanRate,
++    riderOffset: b.riderOffset,
++    steer: b.steer,
++    frontLoad: b.frontLoad,
++    rearLoad: b.rearLoad,
++    drive: b.driveForce,
++    frontBrake: b.frontBrakeForce,
++    rearBrake: b.rearBrakeForce,
++    state: b.state,
++    crashes: b.crashes,
++  };
++}
++function output(gp: MotoGPChassis) {
++  return {
++    frontFy: gp.frontFy,
++    rearFy: gp.rearFy,
++    lateralAcceleration: gp.lateralAcceleration,
++    frontOmega: gp.frontOmega,
++    rearOmega: gp.rearOmega,
++    yawRate: gp.yawRate,
++    lateralSpeed: gp.lateralSpeed,
++  };
++}
++function run(b: Bike, input: BikeInput, dt: number) {
++  const controller = b as unknown as {
++      gpSteer: (stick: number, frontMu: number, rearMu: number, dt: number) => number;
++    },
++    originalControl = controller.gpSteer;
++  let selected: { target: number; reserve: number; trim: number } | undefined,
++    outputAtPlant: ReturnType<typeof output> | undefined;
++  const gp = b.motoGP!,
++    originalPlant = gp.step,
++    inverse = vi.spyOn(gp, 'frontSteerFor'),
++    rear = vi.spyOn(gp, 'rearForceFor'),
++    observer = vi.spyOn(gp, 'currentLateralAcceleration'),
++    plant = vi.spyOn(gp, 'step').mockImplementation((q) => {
++      const returned = originalPlant.call(gp, q);
++      outputAtPlant = output(gp);
++      return returned;
++    }),
++    control = vi.spyOn(controller, 'gpSteer').mockImplementation((...args) => {
++      const returned = originalControl.apply(b, args);
++      selected = { target: gp.leanTarget, reserve: gp.lateralDemand, trim: gp.steerTrim };
++      return returned;
++    });
++  b.step(input, dt);
++  expect(control).toHaveBeenCalledTimes(1);
++  expect(inverse).toHaveBeenCalledTimes(1);
++  expect(rear).toHaveBeenCalledTimes(b.contactLoads ? 1 : 0);
++  expect(plant).toHaveBeenCalledTimes(1);
++  const result = {
++    inverse: inverse.mock.calls[0],
++    inverseResult: inverse.mock.results[0].value as number | null,
++    rear: rear.mock.calls[0],
++    observation: observer.mock.calls[0]?.[0],
++    plant: { ...plant.mock.calls[0][0] },
++    barRequest: control.mock.results[0].value as number,
++    target: selected!.target,
++    reserve: selected!.reserve,
++    trim: selected!.trim,
++    output: outputAtPlant!,
++    after: after(b),
++  };
++  control.mockRestore();
++  inverse.mockRestore();
++  rear.mockRestore();
++  observer.mockRestore();
++  plant.mockRestore();
++  return result;
++}
++
++describe('GP final command admission uses its native signed front interval', () => {
++  it.each(saved.cases)('matches the sealed early-phase native replay at $label', (f) => {
++    const b = bike(f),
++      result = run(b, f.input, f.dt),
++      early = f.admission.early;
++    // Exact finite-dt outcomes, not a comparison against a computed circle.
++    expect(recorded(result.plant)).toEqual(f.diagnostic.plantInput);
++    expect(recorded(result.output)).toEqual(f.diagnostic.plantOutput);
++    expect(recorded(result.after)).toEqual(f.diagnostic.after);
++    expect(result.trim).toBe(f.diagnostic.trim);
++    expect(result.barRequest).toBe(f.diagnostic.barRequest);
++    expect(result.target === f.original.target).toBe(true);
++    expect(result.reserve).toBe(f.original.reserve);
++    expect(result.observation?.speed).toBe(early.speed);
++    expect(result.observation?.frontFx === early.frontFx).toBe(true);
++    expect(result.observation?.rearFx === early.rearFx).toBe(true);
++    expect(recorded(result.inverse.slice(1, 6))).toEqual([
++      early.lean,
++      early.speed,
++      early.frontFx,
++      early.effectiveFrontLoad,
++      early.frontMu,
++    ]);
++    expect(recorded(result.rear)).toEqual([
++      early.rearLoad,
++      early.rearMu,
++      early.lean,
++      early.speed,
++      early.rearFx,
++      early.dt,
++    ]);
++    const range = result.inverse[6];
++    if ('reservedFrontForceInterval' in f.admission) {
++      expect(range).toEqual({
++        minimum: f.admission.reservedFrontForceInterval?.[0],
++        maximum: f.admission.reservedFrontForceInterval?.[1],
++      });
++    } else expect(range).toBeUndefined();
++    expect(result.plant.frontFx === f.original.plantInput.frontFx).toBe(true);
++    expect(result.plant.rearFx === f.original.plantInput.rearFx).toBe(true);
++    expect(result.plant.speed).toBe(f.original.plantInput.speed);
++    expect(Math.abs(b.steer - f.stepEntry.steer)).toBeLessThanOrEqual(b.p.steerRate * f.dt + 1e-15);
++    expect(Math.abs(b.steer)).toBeLessThanOrEqual(b.p.maxSteer);
++  });
++
++  const precursors = saved.cases.filter((f) =>
++    ['maximumRollForecastDifference', 'firstRearUnloaded'].includes(f.label),
++  );
++  it.each(precursors)('also admits the reflected recovery at $label', (f) => {
++    const b = bike(f),
++      gp = b.motoGP!;
++    for (const key of ['lean', 'leanRate', 'steer', 'riderOffset'] as const) b[key] *= -1;
++    for (const key of [
++      'lateralSpeed',
++      'yawRate',
++      'lateralAcceleration',
++      'frontFy',
++      'rearFy',
++      'frontSlipAngle',
++      'rearSlipAngle',
++      'groundSteer',
++      'steerTrim',
++      'leanTarget',
++    ] as const)
++      gp[key] *= -1;
++    const result = run(b, { ...f.input, lean: -f.input.lean, rider: -f.input.rider }, f.dt);
++    expect(result.plant.steer).toBeCloseTo(-f.diagnostic.plantInput.steer, 14);
++    expect(result.output.lateralAcceleration).toBeCloseTo(
++      -f.diagnostic.plantOutput.lateralAcceleration,
++      12,
++    );
++    expect(result.after.lean).toBeCloseTo(-f.diagnostic.after.lean, 14);
++    expect(result.after.leanRate).toBeCloseTo(-f.diagnostic.after.leanRate, 12);
++    expect(result.reserve).toBeCloseTo(f.original.reserve, 12);
++    expect(result.plant.frontFx === f.original.plantInput.frontFx).toBe(true);
++    expect(result.plant.rearFx === f.original.plantInput.rearFx).toBe(true);
++  });
++
++  it.each(saved.standalone)(
++    'retains two original standalone steps from $derivedFrom.label',
++    (s) => {
++      const f = saved.cases.find(
++          (c) => c.tick === s.derivedFrom.tick && c.substep === s.derivedFrom.substep,
++        )!,
++        b = bike(f, true);
++      for (const expected of s.original) {
++        const result = run(b, f.input, f.dt);
++        expect(result.inverse[6]).toBeUndefined();
++        expect(result.observation).toBeUndefined();
++        expect(recorded(result.plant)).toEqual(expected.plantInput);
++        expect(recorded(result.output)).toEqual(expected.plantOutput);
++        expect(recorded(result.after)).toEqual(expected.after);
++        expect(result.trim).toBe(expected.trim);
++      }
++    },
++  );
++
++  it('keeps the unloaded-front fallback unchanged on the next native step', () => {
++    const f = saved.cases.find((c) => c.label === 'firstFrontUnloaded')!,
++      b = bike(f);
++    run(b, f.input, f.dt);
++    const next = run(b, f.input, f.dt);
++    expect(next.inverse[6]).toBeUndefined();
++    expect(recorded(next.plant)).toEqual(f.nextOriginal.plantInput);
++    expect(recorded(next.output)).toEqual(f.nextOriginal.plantOutput);
++    expect(recorded(next.after)).toEqual(f.nextOriginal.after);
++  });
++
++  it.each(['missing', 'nonfinite', 'reversed', 'null inverse', 'nonfinite inverse'])(
++    'repeats only the pure inverse for a complete legacy fallback when output is %s',
++    (mode) => {
++      const f = saved.cases.find((c) => c.label === 'lastRecordedControl')!,
++        b = bike(f),
++        gp = b.motoGP!;
++      const inverse = vi
++        .spyOn(gp, 'frontSteerFor')
++        .mockImplementation((force, _lean, _speed, _fx, _load, _mu, range) => {
++          if (range && mode !== 'missing') {
++            range.minimum = mode === 'reversed' ? 100 : -100;
++            range.maximum = mode === 'nonfinite' ? Infinity : mode === 'reversed' ? -100 : 100;
++          }
++          return mode === 'null inverse'
++            ? null
++            : mode === 'nonfinite inverse'
++              ? NaN
++              : force / 100000;
++        });
++      let trimAtPlant: number | undefined;
++      const oldMeasured = gp.lateralAcceleration,
++        oldStiffness = gp.frontStiffness,
++        nativePlant = gp.step,
++        plant = vi.spyOn(gp, 'step').mockImplementation((q) => {
++          trimAtPlant = gp.steerTrim;
++          return nativePlant.call(gp, q);
++        });
++      b.step(f.input, f.dt);
++      expect(inverse).toHaveBeenCalledTimes(2);
++      expect(plant).toHaveBeenCalledTimes(1);
++      expect(trimAtPlant).toBe(f.original.trim);
++      const lateral = f.originalController.lateral,
++        v = Math.max(f.bike.speed, 3),
++        rear = f.admission.heldRearPreview!,
++        legacyForce =
++          b.mass * lateral -
++          rear -
++          (GP_ASSIST.yawDamping * gp.geometry.yawInertia * (f.gp.yawRate - lateral / v)) /
++            gp.geometry.frontArm,
++        fallback =
++          Math.atan((b.p.wheelbase * lateral) / (v * v)) +
++          clamp(
++            (GP_ASSIST.feedback * b.mass * (lateral - oldMeasured)) / Math.max(4000, oldStiffness),
++            -0.06,
++            0.06,
++          ),
++        ground = (mode === 'null inverse' ? fallback : legacyForce / 100000) + f.original.trim,
++        requested = clamp(gpBarSteer(ground, f.bike.lean), -b.p.maxSteer, b.p.maxSteer);
++      expect(inverse.mock.calls[1][0]).toBe(legacyForce);
++      expect(inverse.mock.calls[1][6]).toBeUndefined();
++      expect(inverse.mock.calls[0][0]).not.toBe(legacyForce);
++      if (mode === 'nonfinite inverse') {
++        // Preserve the existing prescribed nonfinite-return semantics;
++        // this change does not introduce an unrelated sanitization policy.
++        expect(Number.isNaN(b.steer)).toBe(true);
++      } else
++        expect(b.steer).toBe(
++          f.stepEntry.steer +
++            clamp(requested - f.stepEntry.steer, -b.p.steerRate * f.dt, b.p.steerRate * f.dt),
++        );
++    },
++  );
++});
++
++describe('Native front inverse exposes only its own invocation range', () => {
++  it.each([-0.6, 0.6].flatMap((lean) => [-1400, 0, 900].map((fx) => ({ lean, fx }))))(
++    'retains signed combined-slip roots and query purity at lean $lean, Fx $fx',
++    ({ lean, fx }) => {
++      const f = saved.cases[0],
++        queried = chassis(f),
++        control = chassis(f),
++        range: GPFrontForceRange = { minimum: 99999, maximum: -99999 },
++        before = physical(queried);
++      for (const force of [-1e6, -400, 0, 400, 1e6]) {
++        const withRange = queried.frontSteerFor(force, lean, 30, fx, 1400, 1.5, range),
++          withoutRange = control.frontSteerFor(force, lean, 30, fx, 1400, 1.5),
++          samples = (queried as unknown as { inverseForces: Float64Array }).inverseForces,
++          neutral = samples[8];
++        expect(withRange).toBe(withoutRange);
++        expect(range.minimum).toBe(neutral + 0.97 * (Math.min(...samples) - neutral));
++        expect(range.maximum).toBe(neutral + 0.97 * (Math.max(...samples) - neutral));
++        expect(Number.isFinite(range.minimum)).toBe(true);
++        expect(Number.isFinite(range.maximum)).toBe(true);
++        // Raw force and the same invocation's bounded force have the same
++        // native root; output metadata cannot create extra steering authority.
++        expect(
++          queried.frontSteerFor(
++            clamp(force, range.minimum, range.maximum),
++            lean,
++            30,
++            fx,
++            1400,
++            1.5,
++          ),
++        ).toBe(withRange);
++      }
++      expect(physical(queried)).toEqual(before);
++      expect(physical(control)).toEqual(before);
++      const q: MotoGPContactStep = {
++        ...f.diagnostic.plantInput,
++        lean,
++        speed: 30,
++        frontFx: fx,
++        frontLoad: 1400,
++        frontMu: 1.5,
++      };
++      queried.step(q);
++      control.step(q);
++      expect(physical(queried)).toEqual(physical(control));
++      expect(output(queried)).toEqual(output(control));
++    },
++  );
++
++  it.each([
++    { load: 0, mu: 1.5, speed: 30 },
++    { load: 1, mu: 1.5, speed: 30 },
++    { load: 1400, mu: 0, speed: 30 },
++    { load: 1400, mu: 1.5, speed: 2.49 },
++  ])(
++    'clears a previous output without front availability: $load N, mu $mu, $speed m/s',
++    ({ load, mu, speed }) => {
++      const gp = chassis(saved.cases[0]),
++        range = { minimum: NaN, maximum: NaN };
++      expect(gp.frontSteerFor(500, 0.4, 30, -300, 1400, 1.5, range)).not.toBeNull();
++      expect(Number.isFinite(range.minimum)).toBe(true);
++      expect(gp.frontSteerFor(500, 0.4, speed, -300, load, mu, range)).toBeNull();
++      expect(Number.isNaN(range.minimum)).toBe(true);
++      expect(Number.isNaN(range.maximum)).toBe(true);
++    },
++  );
++
++  it.each([NaN, Infinity])(
++    'does not advertise a range after a nonfinite inverse input %s',
++    (lean) => {
++      const gp = chassis(saved.cases[0]),
++        range = { minimum: -123, maximum: 456 };
++      gp.frontSteerFor(500, lean, 30, -300, 1400, 1.5, range);
++      expect(Number.isNaN(range.minimum)).toBe(true);
++      expect(Number.isNaN(range.maximum)).toBe(true);
++    },
++  );
++});

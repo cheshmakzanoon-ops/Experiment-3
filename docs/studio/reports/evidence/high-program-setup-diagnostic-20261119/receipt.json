@@ -1,0 +1,123 @@
+{
+  "recordedAt": "2026-11-19T23:07:24.696001+00:00",
+  "status": "diagnostic-only source verified and independently reviewed; exact-source hosted run in progress; no graphics acceptance claim",
+  "sourceBranch": "studio/high-program-setup-diagnostic-20261119",
+  "receiptBranch": "studio/high-program-setup-diagnostic-receipt-20261119",
+  "baseSource": "619ffceb23ed4351ddfcdf6a3fc232d15e5b5e12",
+  "testedSource": "2f51253549fd431040c5c04331e14d0f1c259f63",
+  "testedTree": "6c9ef74ee4c52e502e1e4484037f72e453eec886",
+  "sourcePaths": [
+    "e2e/fixtures/program-setup-diagnostic.ts",
+    "e2e/graphics-high-journey.spec.ts",
+    "tests/program-setup-diagnostic.test.ts"
+  ],
+  "sourceSha256": {
+    "e2e/fixtures/program-setup-diagnostic.ts": "caae6e5b3ddf071f2815a0f7315061a6ee2bbc4440f8b43764d1ecd9a5228965",
+    "e2e/graphics-high-journey.spec.ts": "2370d339f3f3652a0b027f8feea5afc09cf58607bcf2e557245d6c3823c6b059",
+    "tests/program-setup-diagnostic.test.ts": "081b37da715471be9ab8c47a498f8d5adcbfdc2a4aa4063d2c12d7b77344b165"
+  },
+  "originalWorkloadBodyUnchanged": true,
+  "existingFragmentOutputProbeUnchanged": true,
+  "productionAndWorkflowInputsUnchanged": true,
+  "protectedBranchesPreserved": {
+    "studio/retained-geometry-preparation-20261119": "619ffceb23ed4351ddfcdf6a3fc232d15e5b5e12",
+    "studio/retained-geometry-receipt-20261119": "eb691e3c8abccc6cd7a0cee10aedfc207540fddd",
+    "studio/graphics-main-integration-20261119": "bd3f98655c96f4bad0be202c4cb568567b84b305",
+    "studio/graphics-geometry-main-integration-20261119": "3e82ea840fa0d12c6b9703831760b714cd11b146"
+  },
+  "checks": {
+    "focused-tests": {
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npx",
+        "vitest",
+        "run",
+        "tests/program-setup-diagnostic.test.ts"
+      ],
+      "startedAt": "2026-11-19T23:02:17.050867+00:00",
+      "durationSeconds": 5.936,
+      "exitCode": 0,
+      "log": "focused-tests.log"
+    },
+    "typecheck": {
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npx",
+        "tsc",
+        "--noEmit"
+      ],
+      "startedAt": "2026-11-19T23:02:17.041771+00:00",
+      "durationSeconds": 34.296,
+      "exitCode": 0,
+      "log": "typecheck.log"
+    },
+    "lint": {
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npx",
+        "eslint",
+        "e2e/fixtures/program-setup-diagnostic.ts",
+        "e2e/graphics-high-journey.spec.ts",
+        "tests/program-setup-diagnostic.test.ts"
+      ],
+      "startedAt": "2026-11-19T23:02:17.040625+00:00",
+      "durationSeconds": 6.314,
+      "exitCode": 0,
+      "log": "lint.log"
+    }
+  },
+  "focusedTests": {
+    "filesPassed": 1,
+    "testsPassed": 6,
+    "vitestDurationSeconds": 0.483
+  },
+  "independentReview": "independent-review.json",
+  "publishedSource": {
+    "provenance": "Parent published and independently verified the exact tree after the preceding hosted run was terminal.",
+    "commit": "31a39636a3907ff5159640affdbeb2e2c9184c6f",
+    "parent": "b8f1445cb07d57b35ac1c5dd45e54b01d6aaec92",
+    "tree": "6c9ef74ee4c52e502e1e4484037f72e453eec886",
+    "runId": 44634762506,
+    "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44634762506",
+    "statusWhenWritten": "in_progress",
+    "resultClaimed": false
+  },
+  "observer": {
+    "methods": 29,
+    "slowCallThresholdMs": 100,
+    "slowRecordCap": 16,
+    "periodicSummaryIntervalMs": 1000,
+    "perCallWorkerMessages": 0,
+    "addedNativeQueries": 0,
+    "productionEdits": 0,
+    "completedGpuRequirementRelaxed": false,
+    "passiveReturnedCallsOnly": true
+  },
+  "notRunHere": [
+    "product build",
+    "full unit suite",
+    "local browser",
+    "remote writes"
+  ],
+  "evidenceSha256": {
+    "focused-tests-command.json": "56e944b895f22068a96b9bef3681db812aa5c45eb4453c01f8db94559545aeef",
+    "focused-tests.log": "7456448b8803d8064f9b52ef2e83ff38f3e4dc98f037657aff8de4c64151a18e",
+    "lint-command.json": "3add9fc4d6eaad8160729dd86f96f9abb850796fd29aaafeffaaee21a83ddfb0",
+    "lint.log": "9975fc9b7de9f6c2c8c94c7a089b8a0f3c89450d98539d4e9ad856f47300dadc",
+    "typecheck-command.json": "9c6ecdd34126172e34c619071cde3ba525b19c1b45a11290ab77cad6f488e5f3",
+    "typecheck.log": "9975fc9b7de9f6c2c8c94c7a089b8a0f3c89450d98539d4e9ad856f47300dadc",
+    "source-manifest.json": "c0daebc3d2e4a3c4b602c9ebbf2cdaaf5d8d270556a8a35908bd3dd79b04aad1",
+    "source-specific-boundary.json": "6bda51c4fe11ad188ed5ef69b5c396bd88ffee037b1dffab00e05b87520be527",
+    "chase-native-gap.json": "e0b399b6d9497a9162ba17ad6988cb4e846ef9fa50b24f41dd8516ee682c1797",
+    "independent-review.json": "69b8f07dc9b8e534bd4415f8fbc3cefa4e8d11307a9a960cf3676d4a722d6885"
+  }
+}

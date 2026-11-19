@@ -1,0 +1,455 @@
+[
+  {
+    "testId": "bce7337eedd8e3256aff-4037ce877af48ba07fef",
+    "title": "High production scene presents an active GP chassis and two completed photo views",
+    "projectName": "",
+    "location": {
+      "file": "graphics-high-journey.spec.ts",
+      "line": 739,
+      "column": 1
+    },
+    "duration": 147608,
+    "annotations": [],
+    "tags": [],
+    "outcome": "unexpected",
+    "path": [],
+    "ok": false,
+    "results": [
+      {
+        "status": "failed",
+        "duration": 147608,
+        "retry": 0,
+        "errors": [
+          {
+            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"paused\"\u001b[39m\nReceived: \u001b[31m\"loading\"\u001b[39m\n\nCall Log:\n- Timeout 90000ms exceeded while waiting on the predicate\n\n  818 |     await page.selectOption('#weather', 'clear');\n  819 |     await page.getByRole('button', { name: 'PREPARE GRID START PAUSED', exact: true }).click();\n> 820 |     await expect.poll(async () => (await read()).state, { timeout: 90000 }).toBe('paused');\n      |     ^\n  821 |     const prepared = await read();\n  822 |     expect(prepared.renderer?.presentationPurpose).toBe('circuit');\n  823 |     expect(prepared.renderer?.preparation?.status).toBe('complete');\n    at /home/runner/work/Experiment-3/Experiment-3/e2e/graphics-high-journey.spec.ts:820:5",
+            "codeframe": "  720 |     if (drawBuffers.every((buffer) => buffer === gl.NONE)) return;\n  721 |     reports++;\n  722 |     console.warn(\n  723 |       'APEX_HIGH_MISSING_FRAGMENT_OUTPUT ' +\n  724 |         JSON.stringify({ atMs: performance.now(), outputs, drawBuffers, source }),\n  725 |     );\n  726 |   };\n  727 |   const elements = prototype.drawElementsInstanced,\n  728 |     arrays = prototype.drawArraysInstanced;\n  729 |   prototype.drawElementsInstanced = function (...args) {\n  730 |     inspect(this);\n  731 |     elements.apply(this, args);\n  732 |   };\n  733 |   prototype.drawArraysInstanced = function (...args) {\n  734 |     inspect(this);\n  735 |     arrays.apply(this, args);\n  736 |   };\n  737 | }\n  738 |\n  739 | test('High production scene presents an active GP chassis and two completed photo views', async ({\n  740 |   page,\n  741 | }, info) => {\n  742 |   const errors: string[] = [],\n  743 |     observations = [],\n  744 |     startupRecords: Record<string, unknown>[] = [],\n  745 |     startupPrograms: Record<string, unknown>[] = [],\n  746 |     startupLatePrograms: Record<string, unknown>[] = [],\n  747 |     startupSlowUploads: Record<string, unknown>[] = [],\n  748 |     startupSlowProgramSetup: Record<string, unknown>[] = [];\n  749 |   let startupWorkerUrl: string | null = null,\n  750 |     startupLastStarted: unknown = null,\n  751 |     startupLastCompleted: unknown = null,\n  752 |     startupProgramSetupSummary: Record<string, unknown> | null = null;\n  753 |   page.on('pageerror', (error) => errors.push(error.message));\n  754 |   page.on('console', (message) => {\n  755 |     const text = message.text();\n  756 |     if (text.startsWith('APEX_HIGH_STARTUP ')) {\n  757 |       try {\n  758 |         const record = JSON.parse(text.slice('APEX_HIGH_STARTUP '.length)) as Record<\n  759 |           string,\n  760 |           unknown\n  761 |         >;\n  762 |         startupRecords.push(record);\n  763 |         if (startupRecords.length > 256) startupRecords.shift();\n  764 |         if (record.kind === 'program' && startupPrograms.length < 32) startupPrograms.push(record);\n  765 |         if (record.kind === 'late-program' && startupLatePrograms.length < 8)\n  766 |           startupLatePrograms.push(record);\n  767 |         if (record.kind === 'slow-upload' && startupSlowUploads.length < 16)\n  768 |           startupSlowUploads.push(record);\n  769 |         if (record.kind === 'slow-program-setup' && startupSlowProgramSetup.length < 16)\n  770 |           startupSlowProgramSetup.push(record);\n  771 |         if (record.kind === 'program-setup-summary') startupProgramSetupSummary = record;\n  772 |         if (record.kind === 'worker-ready' && typeof record.workerUrl === 'string')\n  773 |           startupWorkerUrl = record.workerUrl;\n  774 |         if (record.lastStarted) startupLastStarted = record.lastStarted;\n  775 |         if (record.lastCompleted) startupLastCompleted = record.lastCompleted;\n  776 |       } catch {\n  777 |         errors.push('Malformed High startup diagnostic');\n  778 |       }\n  779 |     }\n  780 |     if (\n  781 |       message.type() === 'error' ||\n  782 |       /\\bGL_(?:INVALID_\\w+|OUT_OF_MEMORY|CONTEXT_LOST)\\b|APEX_HIGH_(?:MISSING_FRAGMENT_OUTPUT|TEXTURE_REALLOCATION)/.test(\n  783 |         message.text(),\n  784 |       )\n  785 |     )\n  786 |       errors.push(message.text());\n  787 |   });\n  788 |   let lastDiagnostic: ReturnType<Window['apexDiagnostics']> | null = null,\n  789 |     lastObservedAt: string | null = null;\n  790 |   const read = async () => {\n  791 |     const diagnostic = await page.evaluate(() => window.apexDiagnostics());\n  792 |     lastDiagnostic = diagnostic;\n  793 |     lastObservedAt = new Date().toISOString();\n  794 |     return diagnostic;\n  795 |   };\n  796 |   // One init script fixes wrapper order: missing-output inspection remains\n  797 |   // outside the native-command wrappers, so its own queries are not mistaken\n  798 |   // for the duration of an instanced draw.\n  799 |   await page.addInitScript({\n  800 |     content: `(${installFirstChaseStartup.toString()})(${installProgramSetupDiagnostic.toString()});(${installInstancedFragmentOutputs.toString()})();`,\n  801 |   });\n  802 |   try {\n  803 |     await page.goto('/');\n  804 |     await expect(page.locator('#menu')).toBeVisible({ timeout: MENU_STARTUP_TIMEOUT_MS });\n  805 |     expect((await read()).renderer?.gpuFrameQueue.completed).toBeGreaterThan(0);\n  806 |     await page.selectOption('#vehicle', 'gpr1');\n  807 |     await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();\n  808 |     await page.locator('[name=quality]').selectOption('high');\n  809 |     await page.getByRole('button', { name: 'APPLY & SAVE', exact: true }).click();\n  810 |     await expect(page.locator('#modal')).toBeHidden();\n  811 |     await expect.poll(async () => (await read()).settingsTransition.busy).toBe(false);\n  812 |     await expect\n  813 |       .poll(async () => (await read()).renderer?.graphics)\n  814 |       .toEqual(graphicsPreset('high'));\n  815 |     await page.selectOption('#circuit', 'aurel');\n  816 |     await page.selectOption('#mode', 'practice');\n  817 |     await page.selectOption('#opponents', '0');\n  818 |     await page.selectOption('#weather', 'clear');\n  819 |     await page.getByRole('button', { name: 'PREPARE GRID START PAUSED', exact: true }).click();\n> 820 |     await expect.poll(async () => (await read()).state, { timeout: 90000 }).toBe('paused');\n      |     ^ Error: expect(received).toBe(expected) // Object.is equality\n  821 |     const prepared = await read();\n  822 |     expect(prepared.renderer?.presentationPurpose).toBe('circuit');\n  823 |     expect(prepared.renderer?.preparation?.status).toBe('complete');\n  824 |     expect(prepared.renderer?.construction.cancelled).toBe(false);\n  825 |     expect(prepared.renderer?.gpuFrameQueue.completed).toBeGreaterThan(0);\n  826 |     expect(prepared.frame?.[H.CARS]).toBe(1);\n  827 |     await page.getByRole('button', { name: 'RESUME SESSION', exact: true }).click();\n  828 |     await expect.poll(async () => (await read()).frame?.[H.TICK] ?? 0).toBeGreaterThan(4);\n  829 |     await page.keyboard.press('Escape');\n  830 |     await expect\n  831 |       .poll(async () => (await read()).workerPause)\n  832 |       .toMatchObject({ paused: true, pending: false });\n  833 |     const held = await read();\n  834 |     expect(held.frame?.every(Number.isFinite)).toBe(true);\n  835 |     expect(hasRoadBikeContact(new Float32Array(held.frame!), carBase(0))).toBe(true);\n  836 |     await page.getByRole('button', { name: 'PHOTO STUDIO', exact: true }).click();\n  837 |     await slide(page, 'distance', 5.5);\n  838 |     await slide(page, 'focalLength', 38);\n  839 |     await slide(page, 'elevation', 10);\n  840 |     for (const [view, azimuth] of [\n  841 |       ['three-quarter', 38],\n  842 |       ['side', 90],\n  843 |     ] as const) {\n  844 |       await slide(page, 'azimuth', azimuth);\n  845 |       await expect\n  846 |         .poll(async () => (await read()).renderer?.photo)\n  847 |         .toMatchObject({ target: 0, azimuth, distance: 5.5 });\n  848 |       const submitted = (await read()).renderer!.gpuFrameQueue.submitted;\n  849 |       // At least one later submission must actually complete after this view\n  850 |       // was requested. Two animation callbacks alone cannot establish that.\n  851 |       await expect\n  852 |         .poll(async () => (await read()).renderer?.gpuFrameQueue.completed ?? 0)\n  853 |         .toBeGreaterThan(submitted);\n  854 |       await page.getByRole('button', { name: 'CLEAN FRAME', exact: true }).click();\n  855 |       await capture(page, info, `high-gp-${view}.png`);\n  856 |       const observed = await read();\n  857 |       expect(observed.frame).toEqual(held.frame);\n  858 |       expect(observed.renderer?.graphics).toEqual(graphicsPreset('high'));\n  859 |       expect(observed.renderer?.gpuFrameQueue.failure).toBeNull();\n  860 |       expect(observed.renderer?.renderWidth).toBe(960);\n  861 |       expect(observed.renderer?.renderHeight).toBe(600);\n  862 |       expect(observed.renderer?.drawCalls).toBeGreaterThan(0);\n  863 |       expect(observed.renderer?.triangles).toBeGreaterThan(0);\n  864 |       observations.push({ view, renderer: observed.renderer, presented: observed.presentation });\n  865 |       await page.getByRole('button', { name: 'SHOW CONTROLS', exact: true }).click();\n  866 |     }\n  867 |     const backend = await page.evaluate(() => {\n  868 |       const canvas = document.querySelector<HTMLCanvasElement>('#world');\n  869 |       const gl = canvas?.getContext('webgl2');\n  870 |       if (!gl) throw new Error('Production WebGL2 canvas unavailable');\n  871 |       const debug = gl.getExtension('WEBGL_debug_renderer_info');\n  872 |       return {\n  873 |         vendor: String(gl.getParameter(debug?.UNMASKED_VENDOR_WEBGL ?? gl.VENDOR)),\n  874 |         renderer: String(gl.getParameter(debug?.UNMASKED_RENDERER_WEBGL ?? gl.RENDERER)),\n  875 |         contextAlive: !gl.isContextLost(),\n  876 |       };\n  877 |     });\n  878 |     expect(backend.contextAlive).toBe(true);\n  879 |     expect(held.buildIdentity.fingerprint).toMatch(/^[0-9a-f]{64}$/);\n  880 |     await info.attach('high-gp-application.json', {\n  881 |       body: JSON.stringify(\n  882 |         {\n  883 |           scope: 'Full application at 960x600 High; paused appearance, not FPS certification',\n  884 |           physicalHardwareValidated: false,\n  885 |           buildIdentity: held.buildIdentity,\n  886 |           backend,\n  887 |           options: held.options,\n  888 |           frame: held.frame,\n  889 |           observations,\n  890 |         },\n  891 |         null,\n  892 |         2,\n  893 |       ),\n  894 |       contentType: 'application/json',\n  895 |     });\n  896 |     expect(errors).toEqual([]);\n  897 |   } finally {\n  898 |     // A blocked render thread cannot answer another evaluate call. Preserve the\n  899 |     // last successful poll and console errors entirely from the Node process.\n  900 |     await info.attach('high-gp-last-diagnostic.json', {\n  901 |       body: JSON.stringify({ lastObservedAt, lastDiagnostic, errors }, null, 2),\n  902 |       contentType: 'application/json',\n  903 |     });\n  904 |     await info.attach('high-gp-startup-commands.json', {\n  905 |       body: JSON.stringify(\n  906 |         {\n  907 |           scope:\n  908 |             'Test-only first-chase command tracing; CPU call duration includes instrumentation and is not GPU execution time.',\n  909 |           workerObserved: startupWorkerUrl !== null,\n  910 |           limitation: startupWorkerUrl\n  911 |             ? null\n  912 |             : 'The independent worker was unavailable or its console was not observed; only bounded main-thread records may be present.',\n  913 |           lastStarted: startupLastStarted,\n  914 |           lastCompleted: startupLastCompleted,\n  915 |           programs: startupPrograms,\n  916 |           latePrograms: startupLatePrograms,\n  917 |           slowUploads: startupSlowUploads,\n  918 |           programSetup: {\n  919 |             slowCalls: startupSlowProgramSetup,\n  920 |             summary: startupProgramSetupSummary,"
+          }
+        ],
+        "startTime": "2026-11-19T23:12:48.446Z"
+      }
+    ],
+    "group": "high",
+    "jobId": 135950307285,
+    "artifactId": 14584815204
+  },
+  {
+    "testId": "214dab2fd6f5254fe411-78aa766343a49e668687",
+    "title": "Festival renders streamed cascade maps, exposure and motion through quality and photo transitions",
+    "projectName": "",
+    "location": {
+      "file": "festival-rendering.spec.ts",
+      "line": 7,
+      "column": 1
+    },
+    "duration": 9344,
+    "annotations": [],
+    "tags": [],
+    "outcome": "expected",
+    "path": [],
+    "ok": true,
+    "results": [
+      {
+        "status": "passed",
+        "duration": 9344,
+        "retry": 0,
+        "errors": [],
+        "startTime": "2026-11-19T23:08:32.665Z"
+      }
+    ],
+    "group": "gpu",
+    "jobId": 135950307197,
+    "artifactId": 14581978918
+  },
+  {
+    "testId": "4156996eee980569723e-d0010cee1bc1af4bc866",
+    "title": "GP grounding: real WebGL2 receivers, two tyre footprints and deterministic family changes",
+    "projectName": "",
+    "location": {
+      "file": "gp-grounding.spec.ts",
+      "line": 13,
+      "column": 1
+    },
+    "duration": 3070,
+    "annotations": [],
+    "tags": [],
+    "outcome": "expected",
+    "path": [],
+    "ok": true,
+    "results": [
+      {
+        "status": "passed",
+        "duration": 3070,
+        "retry": 0,
+        "errors": [],
+        "startTime": "2026-11-19T23:08:42.382Z"
+      }
+    ],
+    "group": "gpu",
+    "jobId": 135950307197,
+    "artifactId": 14581978918
+  },
+  {
+    "testId": "1eb99b03e32c2cda79f5-90cd3f004f62d7a3c261",
+    "title": "traffic native morphs cast bounded local shadows and release their maps",
+    "projectName": "",
+    "location": {
+      "file": "graphics-engine-advancement.spec.ts",
+      "line": 7,
+      "column": 1
+    },
+    "duration": 7261,
+    "annotations": [],
+    "tags": [],
+    "outcome": "expected",
+    "path": [],
+    "ok": true,
+    "results": [
+      {
+        "status": "passed",
+        "duration": 7261,
+        "retry": 0,
+        "errors": [],
+        "startTime": "2026-11-19T23:08:45.469Z"
+      }
+    ],
+    "group": "gpu",
+    "jobId": 135950307197,
+    "artifactId": 14581978918
+  },
+  {
+    "testId": "371963fbc78c9e98490d-4419bb11326efe8ee7cc",
+    "title": "active road-bike snapshots render supported, airborne and landed poses with measured grounding",
+    "projectName": "",
+    "location": {
+      "file": "road-bike-presentation.spec.ts",
+      "line": 7,
+      "column": 1
+    },
+    "duration": 15195,
+    "annotations": [],
+    "tags": [],
+    "outcome": "expected",
+    "path": [],
+    "ok": true,
+    "results": [
+      {
+        "status": "passed",
+        "duration": 15195,
+        "retry": 0,
+        "errors": [],
+        "startTime": "2026-11-19T23:08:54.092Z"
+      }
+    ],
+    "group": "gpu",
+    "jobId": 135950307197,
+    "artifactId": 14581978918
+  },
+  {
+    "testId": "c06b02b032cd9fcd8f19-410149c98d94a160f8b2",
+    "title": "temporal AA rejects revealed surfaces while retaining valid static and rigid history",
+    "projectName": "",
+    "location": {
+      "file": "temporal-depth-rejection.spec.ts",
+      "line": 7,
+      "column": 1
+    },
+    "duration": 3040,
+    "annotations": [],
+    "tags": [],
+    "outcome": "expected",
+    "path": [],
+    "ok": true,
+    "results": [
+      {
+        "status": "passed",
+        "duration": 3040,
+        "retry": 0,
+        "errors": [],
+        "startTime": "2026-11-19T23:09:09.305Z"
+      }
+    ],
+    "group": "gpu",
+    "jobId": 135950307197,
+    "artifactId": 14581978918
+  },
+  {
+    "testId": "fd75f59118f8d41579db-f088a2e869d3610100f4",
+    "title": "Festival native geomorph agrees across material, normal, depth and far-shadow passes",
+    "projectName": "",
+    "location": {
+      "file": "terrain-morph-contract.spec.ts",
+      "line": 7,
+      "column": 1
+    },
+    "duration": 2395,
+    "annotations": [],
+    "tags": [],
+    "outcome": "expected",
+    "path": [],
+    "ok": true,
+    "results": [
+      {
+        "status": "passed",
+        "duration": 2395,
+        "retry": 0,
+        "errors": [],
+        "startTime": "2026-11-19T23:09:12.364Z"
+      }
+    ],
+    "group": "gpu",
+    "jobId": 135950307197,
+    "artifactId": 14581978918
+  },
+  {
+    "testId": "27ba22349694fa5d4dec-f19b04010c700b3faba6",
+    "title": "retained bitmap pixels survive three scene closures and independent GPU uploads",
+    "projectName": "",
+    "location": {
+      "file": "texture-source-ownership.spec.ts",
+      "line": 7,
+      "column": 1
+    },
+    "duration": 1395,
+    "annotations": [],
+    "tags": [],
+    "outcome": "expected",
+    "path": [],
+    "ok": true,
+    "results": [
+      {
+        "status": "passed",
+        "duration": 1395,
+        "retry": 0,
+        "errors": [],
+        "startTime": "2026-11-19T23:09:14.774Z"
+      }
+    ],
+    "group": "gpu",
+    "jobId": 135950307197,
+    "artifactId": 14581978918
+  },
+  {
+    "testId": "abfbd66f6c59ff7421d1-6133b4c301c43959855e",
+    "title": "compact race information stays live through a populated dusk drive, measured capture and recorded replay",
+    "projectName": "",
+    "location": {
+      "file": "36-compact-race-journey.spec.ts",
+      "line": 12,
+      "column": 1
+    },
+    "duration": 158744,
+    "annotations": [],
+    "tags": [],
+    "outcome": "expected",
+    "path": [],
+    "ok": true,
+    "results": [
+      {
+        "status": "passed",
+        "duration": 158744,
+        "retry": 0,
+        "errors": [],
+        "startTime": "2026-11-19T23:09:21.536Z"
+      }
+    ],
+    "group": "gameplay",
+    "jobId": 135950307226,
+    "artifactId": 14582774531
+  },
+  {
+    "testId": "4e6e65a34911da55f23e-5a0975aede7883417c79",
+    "title": "27H.6 menu access: real interface keeps all actions reachable with mouse and keyboard",
+    "projectName": "",
+    "location": {
+      "file": "30-menu-access.spec.ts",
+      "line": 12,
+      "column": 1
+    },
+    "duration": 27165,
+    "annotations": [],
+    "tags": [],
+    "outcome": "expected",
+    "path": [],
+    "ok": true,
+    "results": [
+      {
+        "status": "passed",
+        "duration": 27165,
+        "retry": 0,
+        "errors": [],
+        "startTime": "2026-11-19T23:09:01.125Z"
+      }
+    ],
+    "group": "menu",
+    "jobId": 135951027769,
+    "artifactId": 14583301803
+  },
+  {
+    "testId": "4e6e65a34911da55f23e-1629a880df3ab2f717cb",
+    "title": "27H.6 menu access: 640x400 settings persist and the normal paused grid starts",
+    "projectName": "",
+    "location": {
+      "file": "30-menu-access.spec.ts",
+      "line": 136,
+      "column": 1
+    },
+    "duration": 75213,
+    "annotations": [],
+    "tags": [],
+    "outcome": "expected",
+    "path": [],
+    "ok": true,
+    "results": [
+      {
+        "status": "passed",
+        "duration": 75213,
+        "retry": 0,
+        "errors": [],
+        "startTime": "2026-11-19T23:09:28.478Z"
+      }
+    ],
+    "group": "menu",
+    "jobId": 135951027769,
+    "artifactId": 14583301803
+  },
+  {
+    "testId": "60b32d707d632841c049-ef05116690bf4632ca80",
+    "title": "renderer context reuse clears fallback upload state and preserves 2D texture orientation",
+    "projectName": "",
+    "location": {
+      "file": "gpu-context-reuse.spec.ts",
+      "line": 15,
+      "column": 1
+    },
+    "duration": 1124,
+    "annotations": [],
+    "tags": [],
+    "outcome": "expected",
+    "path": [],
+    "ok": true,
+    "results": [
+      {
+        "status": "passed",
+        "duration": 1124,
+        "retry": 0,
+        "errors": [],
+        "startTime": "2026-11-19T23:10:43.709Z"
+      }
+    ],
+    "group": "menu",
+    "jobId": 135951027769,
+    "artifactId": 14583301803
+  },
+  {
+    "testId": "86cac892c7b2b2137d79-43535dfed35fd734e528",
+    "title": "GPU frame completion stays asynchronous with timer polling",
+    "projectName": "",
+    "location": {
+      "file": "gpu-frame-gate.spec.ts",
+      "line": 12,
+      "column": 3
+    },
+    "duration": 355,
+    "annotations": [],
+    "tags": [],
+    "outcome": "expected",
+    "path": [],
+    "ok": true,
+    "results": [
+      {
+        "status": "passed",
+        "duration": 355,
+        "retry": 0,
+        "errors": [],
+        "startTime": "2026-11-19T23:10:44.848Z"
+      }
+    ],
+    "group": "menu",
+    "jobId": 135951027769,
+    "artifactId": 14583301803
+  },
+  {
+    "testId": "86cac892c7b2b2137d79-2b5ffc29d615ab1e43c4",
+    "title": "GPU frame completion stays asynchronous with animation-frame polling",
+    "projectName": "",
+    "location": {
+      "file": "gpu-frame-gate.spec.ts",
+      "line": 12,
+      "column": 3
+    },
+    "duration": 420,
+    "annotations": [],
+    "tags": [],
+    "outcome": "expected",
+    "path": [],
+    "ok": true,
+    "results": [
+      {
+        "status": "passed",
+        "duration": 420,
+        "retry": 0,
+        "errors": [],
+        "startTime": "2026-11-19T23:10:45.212Z"
+      }
+    ],
+    "group": "menu",
+    "jobId": 135951027769,
+    "artifactId": 14583301803
+  },
+  {
+    "testId": "b05ae3220977b9523a9c-af31a00caed26f0c5a51",
+    "title": "settings transition: 640x400 owns its first covered frame and persists quality",
+    "projectName": "",
+    "location": {
+      "file": "settings-transition.spec.ts",
+      "line": 8,
+      "column": 3
+    },
+    "duration": 15100,
+    "annotations": [],
+    "tags": [],
+    "outcome": "expected",
+    "path": [],
+    "ok": true,
+    "results": [
+      {
+        "status": "passed",
+        "duration": 15100,
+        "retry": 0,
+        "errors": [],
+        "startTime": "2026-11-19T23:10:45.644Z"
+      }
+    ],
+    "group": "menu",
+    "jobId": 135951027769,
+    "artifactId": 14583301803
+  },
+  {
+    "testId": "b05ae3220977b9523a9c-692c7ff79fd6329d0fc0",
+    "title": "settings transition: 1280x720 owns its first covered frame and persists quality",
+    "projectName": "",
+    "location": {
+      "file": "settings-transition.spec.ts",
+      "line": 8,
+      "column": 3
+    },
+    "duration": 16096,
+    "annotations": [],
+    "tags": [],
+    "outcome": "expected",
+    "path": [],
+    "ok": true,
+    "results": [
+      {
+        "status": "passed",
+        "duration": 16096,
+        "retry": 0,
+        "errors": [],
+        "startTime": "2026-11-19T23:11:00.758Z"
+      }
+    ],
+    "group": "menu",
+    "jobId": 135951027769,
+    "artifactId": 14583301803
+  }
+]
