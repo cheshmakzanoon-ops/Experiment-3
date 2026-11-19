@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44466611689
-- commit: `8c2d521cfd` · Advance vegetation, traffic, terrain and bounded night rendering
-- event: push · status: completed · conclusion: **failure**
-- started: 2026-11-19T05:39:01Z · updated: 2026-11-19T05:52:16Z
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44467539956
+- commit: `5942bef713` · Reject disoccluded temporal history with depth-aware reprojection
+- event: push · status: completed · conclusion: **success**
+- started: 2026-11-19T05:47:12Z · updated: 2026-11-19T06:03:17Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (day) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
-| browser (night) | success | 11 |  |
-| browser (sunset) | success | 7 |  |
+| browser (night) | success | 5 |  |
+| browser (sunset) | success | 8 |  |
+| browser (day) | success | 10 |  |
