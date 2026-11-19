@@ -1,11 +1,11 @@
 # Settings interaction validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44475208510
-- commit: `d0c9a2e136` · Prepare venue fields cooperatively before scene construction
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44488933725
+- commit: `f1068433d4` · Preserve Vellamar road-grade continuity and correct shadow and acceptance contracts
 - event: push · status: completed · conclusion: **failure**
-- started: 2026-11-19T06:51:15Z · updated: 2026-11-19T07:22:02Z
+- started: 2026-11-19T08:35:45Z · updated: 2026-11-19T09:05:36Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
 | settings | success | 5 |  |
-| qa | failure | 17 | Review-tool specs of the settings and menu regression, on the QA build |
+| qa | failure | 16 | Review-tool specs of the settings and menu regression, on the QA build |
