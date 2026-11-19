@@ -253,9 +253,9 @@ describe('recorded whole wheel turns', () => {
       expect(right[motion + i]).toBe(b[motion + i]);
     }
     expect(wheelPhase(left, right, car, wheel, alpha)).toBe(wheelPhase(a, b, car, wheel, 0.5));
-    expect(PROTOCOL_VERSION).toBe(16);
+    expect(PROTOCOL_VERSION).toBe(17);
     expect(snapshotIncompatibility(a, 13)).toBe(
-      'snapshot format v13 is not supported (this build reads v16)',
+      'snapshot format v13 is not supported (this build reads v17)',
     );
   });
 });

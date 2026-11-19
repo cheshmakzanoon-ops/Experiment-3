@@ -1,4 +1,12 @@
-import { CAR_STRIDE, HEADER, F, H, carBase, PROTOCOL_VERSION } from '../simulation/protocol.ts';
+import {
+  CAR_STRIDE,
+  HEADER,
+  F,
+  H,
+  carBase,
+  PROTOCOL_VERSION,
+  snapshotIncompatibility,
+} from '../simulation/protocol.ts';
 import { allFinite, clamp } from '../core/math.ts';
 
 /** Words per road cell in a recorded surface keyframe: water (mm x 1000),
@@ -174,6 +182,7 @@ export class SessionReplay {
       !(frame instanceof Float32Array) ||
       frame.length !== this.stride ||
       !allFinite(frame) ||
+      snapshotIncompatibility(frame) !== null ||
       frame[H.CARS] !== this.cars ||
       frame[H.TIME] < 0 ||
       frame[H.TIME] < this.lastTime
@@ -361,6 +370,10 @@ export class SessionReplay {
           for (let i = 0; i < page.count; i++) {
             const offset = i * this.stride;
             if (
+              snapshotIncompatibility(
+                page.frames.subarray(offset, offset + this.stride),
+                page.version,
+              ) !== null ||
               page.frames[offset + H.CARS] !== this.cars ||
               (i > 0 && page.frames[offset + H.TIME] <= page.frames[offset - this.stride + H.TIME])
             )

@@ -71,8 +71,13 @@ import {
  * landed after v24 without a version bump. Their solver code is not part of
  * a vehicle-definition hash, so v24 results cannot certify the current model.
  * Calibrated AI and the GP controller retain their existing handling;
+ * v26: road motorcycle sprung contact, load-gated traction, paired GP momentum
+ * and current-contact steering inversion; mechanical motorcycle tyre/brake
+ * heat; path-distance, grade and recovery-aware motorcycle braking; local road
+ * contact ownership; finite-height/footprint Festival static contacts; and
+ * catalogue suspension/intake/shift hardware response;
  * prior records remain in their original physics category. */
-export const SIMULATION_VERSION = 25;
+export const SIMULATION_VERSION = 26;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 

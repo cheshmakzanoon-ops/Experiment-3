@@ -1,6 +1,13 @@
 import { gpBrakeEfficiency } from './gp-brake-fade.ts';
 import { advanceWheelRotation } from './wheel-rotation.ts';
 import { OrientationKinematics } from './pose-kinematics.ts';
+import { RoadBikeSuspension } from './road-bike-suspension.ts';
+import {
+  MOTORCYCLE_THERMAL,
+  motorcycleBrakePower,
+  motorcycleRollingPower,
+} from './motorcycle-thermal.ts';
+import { advanceWheelTemperatures, hotPressure, type ThermalInputs } from './tyre-thermal.ts';
 import { GP_ENGINE_BRAKE_RELEASE_THROTTLE, gpEngineBrakingGain } from './gp-engine-braking.ts';
 import { approach, clamp, G, lerp, mod, Quat, Vec3 } from '../core/math.ts';
 import { BIKE_STATES, Bike, EXPERT, NOVICE, type BikeAssists } from './bike.ts';
@@ -19,7 +26,7 @@ import { bikeSlipstreamDragScale } from './bike-slipstream.ts';
 import { bikeStandLift } from './pit-service.ts';
 import { B, BIKE_STRIDE } from './protocol.ts';
 import { peakGrip } from './tire.ts';
-import { SURFACE, surfaceSample, trackPoint, type Track } from './track.ts';
+import { SURFACE, surfaceSample, trackPoint, type SurfaceSample, type Track } from './track.ts';
 import { Vehicle, engineTorque } from './vehicle.ts';
 import { CROSSWIND, crosswindForce, windLoadFactor } from './weather.ts';
 import { FORMULA_APX01, type VehicleDefinition } from './vehicles.ts';
@@ -118,6 +125,30 @@ export class BikeVehicle extends Vehicle {
   protected readonly scratch = new Vec3();
   protected readonly riderSurface = surfaceSample();
   protected readonly remountPoint = trackPoint();
+  /** Road/GP sprung chassis; the MX subclass owns its separate flight model
+   * and overrides both step and writeBody, so never activates this solver. */
+  readonly roadSuspension: RoadBikeSuspension;
+  private roadSuspensionLive = false;
+  private roadRideHeight = 0;
+  private roadRollVelocity = 0;
+  private readonly roadLoads = { front: 0, rear: 0, rearLiftForce: 0 };
+  private readonly nextFrontSurface = surfaceSample();
+  private readonly nextRearSurface = surfaceSample();
+  private readonly roadRayOrigin = new Vec3();
+  private readonly roadRayDown = new Vec3(0, -1, 0);
+  /** Reused input scratch only; all thermal state lives in the recorded
+   * physical front/rear tyres and their legacy slot aliases. */
+  private readonly motorcycleThermalInput: ThermalInputs = {
+    slipPower: 0,
+    rollingPower: 0,
+    load: 0,
+    speed: 0,
+    airTemp: 20,
+    trackTemp: 20,
+    waterMm: 0,
+    discTemp: 20,
+    wear: 0,
+  };
   constructor(
     id: number,
     compound: Compound = 'medium',
@@ -160,6 +191,20 @@ export class BikeVehicle extends Vehicle {
       ENGINE_BRAKE_MAPS[Math.min(3, Math.max(0, Math.round(this.setup.engineBrakeMap)))];
     this.forkFirmness = dampingFirmness(this.setup.frontDamping);
     this.shockFirmness = dampingFirmness(this.setup.rearDamping);
+    this.roadSuspension = new RoadBikeSuspension({
+      mass: this.body.mass,
+      pitchInertia: definition.spec.inertia[0],
+      frontArm: this.bikeSpec.cgToFront,
+      rearArm: this.bikeSpec.cgToRear,
+      frontRate: this.bikeSpec.forkRate,
+      rearRate: this.bikeSpec.shockRate,
+      frontTravel: this.bikeSpec.forkTravel,
+      rearTravel: this.bikeSpec.shockTravel,
+      frontPreload: this.setup.frontPreload,
+      rearPreload: this.setup.rearPreload,
+      frontDamping: this.forkFirmness,
+      rearDamping: this.shockFirmness,
+    });
     this.fitFrontRadius();
   }
   /** Setup terms the adapter owns (bikeSetupParameters has the core's):
@@ -174,6 +219,17 @@ export class BikeVehicle extends Vehicle {
   }
   get riding() {
     return this.dynamics.state === 'riding';
+  }
+  /** The body already contains the road solver's sprung heave and pitch.
+   * Placement, service and MX retain their existing presentation contract. */
+  get sprungRoadPose() {
+    return (
+      this.roadSuspensionLive &&
+      this.riding &&
+      !this.bikeSpec.offroad &&
+      this.jackHeight === 0 &&
+      !(this.inPit && this.pitPhase >= 2 && this.pitPhase <= 5 && Math.abs(this.speed) <= 0.5)
+    );
   }
   /** The AI rides with the aids whatever the player's assist setting; the
    * mark lasts the physics substeps of the tick it was given in. */
@@ -400,6 +456,7 @@ export class BikeVehicle extends Vehicle {
       ? gpBrakeEfficiency((this.tires[2].discTemp + this.tires[3].discTemp) * 0.5)
       : 1;
     this.applyCrosswind(dt, track);
+    this.advanceRoadSuspension(dt, track);
     d.step(
       {
         lean: this.input.steer,
@@ -412,6 +469,13 @@ export class BikeVehicle extends Vehicle {
       },
       dt,
     );
+    if (
+      this.riding &&
+      this.roadSuspensionLive &&
+      !this.roadSuspension.airborne &&
+      Math.abs(this.roadSuspension.pitch - this.roadPitch) > 1.1
+    )
+      d.fall('highside');
     if (was === 'riding' && d.state !== 'riding') this.separate();
     this.lastState = d.state;
     if (was === 'separated' && d.state === 'remount') this.planRemount(track);
@@ -421,7 +485,7 @@ export class BikeVehicle extends Vehicle {
       this.slide = 0;
     }
     // Contact slide decays with available lateral grip; a large one unseats the rider.
-    if (this.slide !== 0) {
+    if (this.slide !== 0 && !this.roadSuspension.airborne) {
       const decel = Math.max(1, 0.7 * d.p.mu * d.grip * G) * dt;
       this.slide = Math.abs(this.slide) <= decel ? 0 : this.slide - Math.sign(this.slide) * decel;
       if (Math.abs(this.slide) > 5.5 && this.riding) {
@@ -442,14 +506,115 @@ export class BikeVehicle extends Vehicle {
     // Fuel: ~0.3 overall efficiency against 43 MJ/kg, plus idle.
     const power = Math.max(0, this.engineOutputTorque * this.clutch.engineOmega);
     this.fuel = Math.max(0, this.fuel - (power / (0.3 * 43e6) + 0.0002) * dt);
-    this.updateSuspensionAndTyres(dt);
-    this.updateSkid(dt);
     this.writeBody(track, dt);
+    this.updateSuspensionAndTyres(dt, track);
+    this.updateSkid(dt);
     this.impact = Math.max(0, this.impact - dt * 2);
     // Paddock-stand lift for the crew presentation, from the service clock;
     // recorded in the snapshot (F.JACK_HEIGHT) and never fed to the dynamics.
     this.jackHeight = this.inPit ? bikeStandLift(this.pitPhase, this.pitClock) : 0;
     if (b.position.y < this.groundY - 4) this.retired = true;
+  }
+  /** Predict only the road samples for this interval. The same actual
+   * front/rear support then drives the core's traction, braking and yaw;
+   * writeBody publishes the integrated chassis instead of pinning it to the
+   * road. Keep the layer hint for bridges and the open-world surface owner. */
+  private advanceRoadSuspension(dt: number, track: Track) {
+    const d = this.dynamics,
+      s = this.bikeSpec;
+    if (!this.riding) {
+      this.roadSuspensionLive = false;
+      d.contactLoads = undefined;
+      return;
+    }
+    const sh = Math.sin(d.heading),
+      ch = Math.cos(d.heading),
+      side = this.slide + (d.motoGP?.lateralSpeed ?? 0),
+      vx = sh * d.speed + ch * side,
+      vz = ch * d.speed - sh * side,
+      frontX = d.x + sh * s.cgToFront,
+      frontZ = d.z + ch * s.cgToFront,
+      rearX = d.x - sh * s.cgToRear,
+      rearZ = d.z - ch * s.cgToRear;
+    this.roadSurface(track, frontX, frontZ, this.contacts[0]);
+    this.roadSurface(track, rearX, rearZ, this.contacts[2]);
+    this.roadSurface(track, frontX + vx * dt, frontZ + vz * dt, this.nextFrontSurface);
+    this.roadSurface(track, rearX + vx * dt, rearZ + vz * dt, this.nextRearSurface);
+    const roll = chassisLean(d.lean, s),
+      rideHeight = s.crownRadius + (s.cgHeight - s.crownRadius) * Math.cos(roll),
+      vertical = this.roadSuspension;
+    if (!this.roadSuspensionLive) {
+      const velocityAt = (index: number) => {
+        const n = this.contacts[index].normal;
+        return -(n.x * vx + n.z * vz) / Math.max(0.2, n.y);
+      };
+      vertical.reset(
+        this.contacts[0].height,
+        this.contacts[2].height,
+        rideHeight,
+        lerp(velocityAt(2), velocityAt(0), s.cgToRear / this.spec.wheelbase),
+      );
+      this.roadRideHeight = rideHeight;
+      this.roadRollVelocity = 0;
+      this.roadSuspensionLive = true;
+    }
+    const supportedBefore = !vertical.airborne;
+    // The existing roll DOF rotates the CG about its tyre crowns. Its
+    // supported geometric lowering must not be counted again as fork
+    // extension: that would unload a bike solely because it leans. Rebase
+    // the sprung coordinate while supported; in flight the CG is inertial
+    // and rotation cannot translate it. Preserve the roll's vertical launch
+    // velocity when the last contact lets go.
+    if (supportedBefore)
+      vertical.height += (rideHeight - this.roadRideHeight) * Math.cos(vertical.pitch);
+    this.roadRideHeight = rideHeight;
+    const crownRatio = s.crownRadius / (s.cgHeight - s.crownRadius),
+      rollRate =
+        d.leanRate *
+        (1 + (crownRatio * Math.cos(d.lean)) / Math.sqrt(1 - (crownRatio * Math.sin(d.lean)) ** 2)),
+      rollVelocity =
+        -(s.cgHeight - s.crownRadius) * Math.sin(roll) * rollRate * Math.cos(vertical.pitch);
+    vertical.step(
+      {
+        mass: d.mass,
+        rideHeight,
+        frontHeight: this.contacts[0].height,
+        rearHeight: this.contacts[2].height,
+        nextFrontHeight: this.nextFrontSurface.height,
+        nextRearHeight: this.nextRearSurface.height,
+        frontForce: -d.frontBrakeForce,
+        rearForce: d.driveForce - d.rearBrakeForce,
+        cgHeight: d.p.cgHeight * Math.cos(roll),
+        downforce: s.downforce * d.speed * d.speed,
+        downforceFront: s.downforceFront,
+      },
+      dt,
+    );
+    if (vertical.airborne) {
+      if (supportedBefore) vertical.velocity += rollVelocity;
+      this.roadRollVelocity = 0;
+    } else {
+      if (!supportedBefore) vertical.velocity -= rollVelocity;
+      this.roadRollVelocity = rollVelocity;
+    }
+    this.roadLoads.front = vertical.frontLoad;
+    this.roadLoads.rear = vertical.rearLoad;
+    this.roadLoads.rearLiftForce = vertical.rearLiftForce;
+    d.contactLoads = this.roadLoads;
+    // The published wheelie/stoppie coordinate describes actual wheel lift;
+    // spring dive/squat is already present in the authoritative orientation.
+    d.pitch = Math.atan2(vertical.frontGap - vertical.rearGap, this.spec.wheelbase);
+  }
+  /** Sprung contacts need the continuous collision ribbon. The analytic
+   * nearest-centreline station can jump at an inside bend's segment seam;
+   * on a grade that is a false height step and therefore a damper impulse.
+   * A short vertical cast around the current road layer cannot latch onto
+   * an overhead bridge. Beyond the finite ribbon, retain the venue's
+   * analytic surface and its existing layer hint. */
+  private roadSurface(track: Track, x: number, z: number, out: SurfaceSample) {
+    this.roadRayOrigin.set(x, this.groundY + 1, z);
+    if (!Number.isFinite(track.cast(this.roadRayOrigin, this.roadRayDown, 2, out)))
+      track.sample(x, z, out, this.groundY);
   }
   /** Strong or gusting wind (weather.ts CROSSWIND; zero in the mild-breeze
    * presets) pushes the machine sideways. The side acceleration enters the
@@ -495,6 +660,13 @@ export class BikeVehicle extends Vehicle {
         across = vx * ch - vz * sh;
       d.speed = Math.max(0, d.speed + along);
       this.slide += across;
+    }
+    if (this.roadSuspensionLive && this.riding) {
+      // A collision impulse changes velocity; positional depenetration is
+      // still excluded from physical heave and its published derivative.
+      this.roadSuspension.velocity += b.velocity.y - w.velocity.y;
+      const pitchImpulse = -(b.omega.x - w.omega.x) * ch + (b.omega.z - w.omega.z) * sh;
+      this.roadSuspension.pitchRate += clamp(pitchImpulse, -3, 3);
     }
     const yaw = b.omega.y - w.omega.y;
     if (Math.abs(yaw) > 1e-6) this.yawKick = clamp(this.yawKick + yaw, -3, 3);
@@ -650,7 +822,7 @@ export class BikeVehicle extends Vehicle {
       );
     }
   }
-  protected updateSuspensionAndTyres(dt: number) {
+  protected updateSuspensionAndTyres(dt: number, track: Track) {
     const d = this.dynamics,
       spec = this.bikeSpec,
       riding = this.riding;
@@ -664,8 +836,13 @@ export class BikeVehicle extends Vehicle {
     const shockTarget = riding
       ? clamp(d.rearLoad / spec.shockRate + kerb(2) - this.setup.rearPreload, 0, spec.shockTravel)
       : 0.02;
-    this.fork += (forkTarget - this.fork) * (1 - Math.exp(-dt / (0.04 * this.forkFirmness)));
-    this.shock += (shockTarget - this.shock) * (1 - Math.exp(-dt / (0.04 * this.shockFirmness)));
+    if (riding && this.roadSuspensionLive) {
+      this.fork = this.roadSuspension.frontCompression;
+      this.shock = this.roadSuspension.rearCompression;
+    } else {
+      this.fork += (forkTarget - this.fork) * (1 - Math.exp(-dt / (0.04 * this.forkFirmness)));
+      this.shock += (shockTarget - this.shock) * (1 - Math.exp(-dt / (0.04 * this.shockFirmness)));
+    }
     const gp = d.motoGP,
       m = d.mass,
       lateral = d.speed * d.speed * d.curvature,
@@ -673,8 +850,7 @@ export class BikeVehicle extends Vehicle {
     for (let i = 0; i < 4; i++) {
       const t = this.tires[i],
         front = i < 2,
-        c = this.contacts[i],
-        ideal = COMPOUNDS[t.compound].ideal;
+        c = this.contacts[i];
       const rolling = riding || d.state === 'remount';
       t.omega = rolling
         ? gp
@@ -699,29 +875,86 @@ export class BikeVehicle extends Vehicle {
       t.length = (front ? spec.forkTravel : spec.shockTravel) - t.compression + 0.2;
       t.water = c.water;
       t.surface = c.surface;
-      // Utilization is a demand ratio: an unloaded, locked tyre can report
-      // a large value. It is not an unbounded heat source, and a separated
-      // rider must not keep heating tyres from the last pre-crash sample.
-      const use = riding ? clamp(front ? d.frontUse : d.rearUse, 0, 1.5) : 0;
-      const work =
-        gp && riding
-          ? front
-            ? gp.frontSlidingPower
-            : gp.rearSlidingPower
-          : Math.hypot(t.fx, t.fy) * d.speed;
-      t.energy = work * 0.02;
-      t.wear = Math.min(1, t.wear + (work * dt) / (COMPOUNDS[t.compound].lifeJ * 10));
-      const carcass = ideal - 4 + 10 * use - 6 * clamp(c.water, 0, 1);
-      t.carcassTemp += (carcass - t.carcassTemp) * (1 - Math.exp(-dt / 30));
-      t.surfaceTemp += (t.carcassTemp + 8 * use - t.surfaceTemp) * (1 - Math.exp(-dt / 3));
-      const discForce = front
-        ? d.frontBrakeForce
-        : Math.max(0, d.rearBrakeForce - d.engineBrakeForce);
-      const brakePower = discForce * d.speed * 0.5;
-      t.discTemp +=
-        (brakePower / (front ? 1600 : 900) - (t.discTemp - 40) * (0.015 + 0.003 * d.speed)) * dt;
       this.wheelSteering[i] = front ? d.steer : 0;
       this.wheelCamber[i] = d.lean;
+    }
+    // Ordinary road steering is kinematic and has no independent patch
+    // slip state. Its cornering force is not a heat source. GP reports the
+    // signed wheel-frame sliding work from its actual contact solution.
+    this.updateMotorcycleThermals(
+      dt,
+      track,
+      riding,
+      gp?.frontSlidingPower ?? 0,
+      gp?.rearSlidingPower ?? 0,
+    );
+  }
+  /** Advance exactly two physical wheel reservoirs and publish aliases in
+   * the four-slot vehicle ABI. Slip telemetry is watts; each alias receives
+   * half so the existing vehicle sum counts the physical work only once. */
+  protected updateMotorcycleThermals(
+    dt: number,
+    track: Track,
+    supported: boolean,
+    frontSlipPower: number,
+    rearSlipPower: number,
+    frontBrakePower?: number,
+    rearBrakePower?: number,
+  ) {
+    const d = this.dynamics,
+      input = this.motorcycleThermalInput,
+      totalLoad = supported ? this.tires[0].load + this.tires[2].load : 0;
+    for (let i = 0; i < 4; i += 2) {
+      const t = this.tires[i],
+        alias = this.tires[i + 1],
+        front = i === 0,
+        model = front ? MOTORCYCLE_THERMAL.front : MOTORCYCLE_THERMAL.rear,
+        c = this.contacts[i],
+        load = supported ? t.load : 0,
+        slip = load > 1e-6 ? Math.max(0, front ? frontSlipPower : rearSlipPower) : 0;
+      input.slipPower = slip;
+      input.rollingPower = motorcycleRollingPower(
+        d.p.rolling ?? 0,
+        d.mass,
+        d.speed,
+        load,
+        totalLoad,
+      );
+      input.load = load;
+      input.speed = Math.hypot(d.speed, this.slide + (d.motoGP?.lateralSpeed ?? 0));
+      // Analytic geometry-only fixtures may omit climate. The real track
+      // always supplies ambient; otherwise retain the shared tyre solver's
+      // road-temperature boundary fallback.
+      input.airTemp = Number.isFinite(track.ambient) ? track.ambient : c.temp;
+      input.trackTemp = c.temp;
+      input.waterMm = c.water;
+      input.discTemp = t.discTemp;
+      input.wear = t.wear;
+      const brakePower =
+        (front ? frontBrakePower : rearBrakePower) ??
+        (this.riding
+          ? motorcycleBrakePower(
+              front ? d.frontBrakeForce : d.rearBrakeForce,
+              front ? 0 : d.engineBrakeForce,
+              t.radius,
+              t.omega,
+            )
+          : 0);
+      advanceWheelTemperatures(t, input, brakePower, dt, model.tyre, model.brake);
+      t.pressure = hotPressure(
+        t.punctured ? 12 : t.coldPressure,
+        t.coreTemp,
+        COMPOUNDS[t.compound].ideal - 5,
+      );
+      t.wear = Math.min(1, t.wear + (slip * dt) / COMPOUNDS[t.compound].lifeJ);
+      t.energy = slip * 0.5;
+      alias.surfaceTemp = t.surfaceTemp;
+      alias.carcassTemp = t.carcassTemp;
+      alias.coreTemp = t.coreTemp;
+      alias.discTemp = t.discTemp;
+      alias.pressure = t.pressure;
+      alias.wear = t.wear;
+      alias.energy = t.energy;
     }
   }
   /** Sliding fairing and pegs on asphalt: the shared skid/spark channel. */
@@ -749,6 +982,10 @@ export class BikeVehicle extends Vehicle {
   /** Rigid-body pose from the bike state: the bike rolls on its tyre crowns
    * and pitches about the contact that stays on the road. */
   protected writeBody(track: Track, dt: number) {
+    if (dt === 0) {
+      this.roadSuspensionLive = false;
+      this.dynamics.contactLoads = undefined;
+    }
     const d = this.dynamics,
       b = this.body,
       spec = this.bikeSpec,
@@ -760,9 +997,8 @@ export class BikeVehicle extends Vehicle {
       rear = this.contactPoints[2];
     front.set(d.x + sh * spec.cgToFront, 0, d.z + ch * spec.cgToFront);
     rear.set(d.x - sh * spec.cgToRear, 0, d.z - ch * spec.cgToRear);
-    const y = this.groundY;
-    track.sample(front.x, front.z, this.contacts[0], y);
-    track.sample(rear.x, rear.z, this.contacts[2], y);
+    this.roadSurface(track, front.x, front.z, this.contacts[0]);
+    this.roadSurface(track, rear.x, rear.z, this.contacts[2]);
     this.copySample(this.contacts[0], this.contacts[1]);
     this.copySample(this.contacts[2], this.contacts[3]);
     front.y = this.contacts[0].height;
@@ -774,7 +1010,8 @@ export class BikeVehicle extends Vehicle {
     // Differentiate the preceding authoritative pose, as the MX adapter does.
     const previousY = this.written.position.y;
     const fallen = Math.abs(d.lean) > 1.2;
-    const pitch = this.roadPitch + (fallen ? 0 : d.pitch);
+    const vertical = this.roadSuspensionLive && this.riding;
+    const pitch = vertical ? this.roadSuspension.pitch : this.roadPitch + (fallen ? 0 : d.pitch);
     // The chassis rolls on its tyre crowns: its lean exceeds the contact-to-CG lean.
     bikeOrientation(b.orientation, h, pitch, fallen ? d.lean : chassisLean(d.lean, spec));
     // Pivot: the rear contact for a wheelie, the front for a stoppie.
@@ -788,12 +1025,23 @@ export class BikeVehicle extends Vehicle {
     }
     b.orientation.rotate(this.offset, this.scratch);
     b.position.copy(this.pivot).add(this.scratch);
+    if (vertical) {
+      const rollHeight =
+        spec.crownRadius + (spec.cgHeight - spec.crownRadius) * Math.cos(chassisLean(d.lean, spec));
+      b.position.y =
+        this.roadSuspension.height +
+        (this.roadSuspension.airborne ? 0 : (rollHeight - this.roadRideHeight) * Math.cos(pitch));
+    }
     this.groundY = lerp(rear.y, front.y, spec.cgToRear / L);
     const sideSpeed = this.slide + (d.motoGP?.lateralSpeed ?? 0);
     const v = Math.hypot(d.speed, sideSpeed);
     b.velocity.set(
       sh * d.speed + ch * sideSpeed,
-      dt > 0 && Math.abs(b.position.y - previousY) < 0.5 ? (b.position.y - previousY) / dt : 0,
+      vertical
+        ? this.roadSuspension.velocity + this.roadRollVelocity
+        : dt > 0 && Math.abs(b.position.y - previousY) < 0.5
+          ? (b.position.y - previousY) / dt
+          : 0,
       ch * d.speed - sh * sideSpeed,
     );
     this.writeAngularKinematics(dt, fallen);
@@ -809,14 +1057,23 @@ export class BikeVehicle extends Vehicle {
       : 0;
     this.gLong = d.longitudinal / G;
     this.gLat = lateralAccel / G;
-    this.gVert = Math.hypot(1, this.gLat);
+    this.gVert = vertical ? (d.frontLoad + d.rearLoad) / (d.mass * G) : Math.hypot(1, this.gLat);
     const downforce = spec.downforce * d.speed * d.speed;
     this.aero.front = downforce * spec.downforceFront;
     this.aero.rear = downforce - this.aero.front;
     this.aero.floor = 0;
     this.aero.drag = spec.drag * d.dragScale * d.speed * d.speed;
-    this.frontRideHeight = this.rearRideHeight = 0.12;
-    b.acceleration.set(0, 0, 0);
+    this.frontRideHeight = vertical
+      ? 0.12 +
+        (d.mass * G * spec.cgToRear) / (L * spec.forkRate) -
+        this.roadSuspension.frontCompression
+      : 0.12;
+    this.rearRideHeight = vertical
+      ? 0.12 +
+        (d.mass * G * spec.cgToFront) / (L * spec.shockRate) -
+        this.roadSuspension.rearCompression
+      : 0.12;
+    b.acceleration.set(0, vertical ? this.roadSuspension.acceleration : 0, 0);
     this.written.position.copy(b.position);
     this.written.velocity.copy(b.velocity);
     this.written.omega.copy(b.omega);

@@ -1,4 +1,5 @@
 import { clamp } from '../../core/math.ts';
+import { motorcycleRotorBrakeWork } from '../motorcycle-thermal.ts';
 
 /** SI-unit, planar, two-contact motocross model. The separate sprung heave /
  * pitch suspension supplies its *current* axle loads; a free tyre has no
@@ -34,6 +35,8 @@ export interface MxGroundParameters {
   driveTorque: number;
   frontBrakeTorque: number;
   rearBrakeTorque: number;
+  /** Part of rearBrakeTorque dissipated by the engine, not the rotor. */
+  rearEngineBrakeTorque?: number;
   /** Quadratic drag + soil rolling resistance (N) and uphill gravity (m/s²). */
   drag: number;
   slope: number;
@@ -59,6 +62,10 @@ export interface MxGroundResult extends MxGroundState {
   /** Acceleration in chassis coordinates (m/s²). */
   longitudinal: number;
   lateralAcceleration: number;
+  /** Friction brake work / dt, from limited actuator torque and finite
+   * rotor rotation. Engine-braking work is excluded (W). */
+  frontBrakePower: number;
+  rearBrakePower: number;
   front: MxContactForce;
   rear: MxContactForce;
 }
@@ -129,6 +136,7 @@ export function stepMotocrossGround(
   // chassis' finite impulse disagree with suspension, replay and tyre heat.
   let ffx = 0, ffy = 0, rfx = 0, rfy = 0;
   let fPower = 0, rPower = 0, fUse = 0, rUse = 0;
+  let frontBrakeWork = 0, rearBrakeWork = 0;
   const steer = clamp(p.steer, -0.75, 0.75),
     cs = Math.cos(steer),
     sn = Math.sin(steer),
@@ -205,6 +213,18 @@ export function stepMotocrossGround(
     const rBrake = p.abs
       ? p.rearBrakeTorque * clamp((rear.slip + 0.32) / 0.22, 0, 1)
       : p.rearBrakeTorque;
+    // These are diagnostic heat ports only: preserve the exact original
+    // momentum arithmetic below. Wheel lock limits the positive angular
+    // distance, and ABS scales friction/engine torque together.
+    frontBrakeWork += motorcycleRotorBrakeWork(
+      frontOmega, (-fBrake - front.fx * p.frontRadius) / p.frontInertia, fBrake, h,
+    );
+    const rearFrictionShare = p.rearBrakeTorque > 0
+      ? clamp(1 - (p.rearEngineBrakeTorque ?? 0) / p.rearBrakeTorque, 0, 1) : 0;
+    rearBrakeWork += motorcycleRotorBrakeWork(
+      rearOmega, (drive - rBrake - rear.fx * p.rearRadius) / p.rearInertia,
+      rBrake * rearFrictionShare, h,
+    );
     frontOmega = Math.max(0, frontOmega + (-fBrake - front.fx * p.frontRadius) * h / p.frontInertia);
     rearOmega = Math.max(
       0,
@@ -225,6 +245,8 @@ export function stepMotocrossGround(
   return {
     speed, lateralSpeed, yawRate, heading, frontOmega, rearOmega,
     dx, dz, longitudinal: ax, lateralAcceleration: totalLateralAccel,
+    frontBrakePower: frontBrakeWork / dt,
+    rearBrakePower: rearBrakeWork / dt,
     front: {
       ...front,
       fx: ffx / dt,

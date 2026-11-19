@@ -39,10 +39,10 @@ const legacyGhost = () => {
   };
 };
 describe('WP12 recorded identity and schema policy', () => {
-  it.each([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24])(
+  it.each([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25])(
     'keeps physics v%i records out of the current physics category',
     (physics) => {
-      expect(SIMULATION_VERSION).toBe(25);
+      expect(SIMULATION_VERSION).toBe(26);
       expect(
         recordIncompatibility(
           { circuit: 'aurel', vehicle: 'apx01', physics },
@@ -54,8 +54,20 @@ describe('WP12 recorded identity and schema policy', () => {
       );
     },
   );
-  it.each(['mx250', 'mx450', 'sm450', 'sbk1000', 'ss600', 'nr900', 'cr750'])(
-    'separates %s v24 records, ghosts and network identities despite unchanged definition hashes',
+  it.each([
+    'apx01',
+    'tc1',
+    'gpr1',
+    'gpr2',
+    'mx250',
+    'mx450',
+    'sm450',
+    'sbk1000',
+    'ss600',
+    'nr900',
+    'cr750',
+  ])(
+    'separates %s v25 records, ghosts and network identities despite unchanged definition hashes',
     (vehicle) => {
       const circuit = vehicle.startsWith('mx') ? 'valley-ridge-mx' : 'aurel';
       const options: SessionOptions = {
@@ -66,23 +78,23 @@ describe('WP12 recorded identity and schema policy', () => {
       };
       const current = sessionIdentity(options);
       // The preceding build has the same content but a different solver.
-      const previous = { ...current, simulationVersion: 24 };
+      const previous = { ...current, simulationVersion: 25 };
       const category = recordCategory(options);
       expect(identityMismatch(current, previous)).toBe(
-        "simulation version 24 does not match the server's version 25",
+        "simulation version 25 does not match the server's version 26",
       );
-      expect(recordIncompatibility({ ...category, physics: 24 }, category)).toBe(
-        'recorded with physics v24; current physics is v25',
+      expect(recordIncompatibility({ ...category, physics: 25 }, category)).toBe(
+        'recorded with physics v25; current physics is v26',
       );
-      expect(leaderboardKey(category.circuit, vehicle, 24)).not.toBe(
+      expect(leaderboardKey(category.circuit, vehicle, 25)).not.toBe(
         leaderboardKey(category.circuit, vehicle, category.physics),
       );
       expect(
-        validateGhost({ ...legacyGhost(), circuit, vehicle, physics: 24 }, circuit, 3000, category),
+        validateGhost({ ...legacyGhost(), circuit, vehicle, physics: 25 }, circuit, 3000, category),
       ).toBeNull();
       expect(
-        validateGhost({ ...legacyGhost(), circuit, vehicle, physics: 25 }, circuit, 3000, category),
-      ).toMatchObject({ vehicle, physics: 25 });
+        validateGhost({ ...legacyGhost(), circuit, vehicle, physics: 26 }, circuit, 3000, category),
+      ).toMatchObject({ vehicle, physics: 26 });
     },
   );
   it.each(['gpr1', 'gpr2'])('separates %s records after GP contact model updates', (vehicle) => {

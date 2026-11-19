@@ -348,6 +348,11 @@ export class TireFootprint {
     // Near-vertical features belong to chassis/side collision, not an
     // unbounded tire support division at the suspension's cosine limit.
     if (nx * this.direction.x + ny * this.direction.y + nz * this.direction.z > -0.15) return;
+    if (
+      this.bvh.ownsContact &&
+      !this.bvh.ownsContact(triangle, this.origin.x + x, this.origin.y + y, this.origin.z + z)
+    )
+      return;
     hit.distance = distance;
     hit.triangle = triangle;
     hit.point.set(this.origin.x + x, this.origin.y + y, this.origin.z + z);

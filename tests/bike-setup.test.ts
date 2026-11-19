@@ -219,13 +219,21 @@ describe('motorcycle setup: physical effect', () => {
   });
   it('road bike damping: the fork follows a load step more slowly and kerbs grip less when firmer', () => {
     const at = (click: number) => ({ frontDamping: click, rearDamping: click });
-    // Hard braking from 40 m/s: 50 ms later a softer fork has dived further.
+    // Hard braking from 40 m/s: after 75 ms the physical fork has had time
+    // to accelerate into the stroke (the former visual load filter changed
+    // compression instantly). Retain the 4 mm separation between clicks and
+    // use an exact tick count rather than a floating-point duration loop.
     const dive = (click: number) => {
       const bike = ride(at(click), 40, 4, 0.3, 0.5);
       const track = new Track();
       bike.input.throttle = 0;
       bike.input.brake = 1;
-      for (let t = 0; t < 0.05; t += 1 / 120) bike.step(1 / 120, track);
+      for (let i = 0; i < 9; i++) {
+        bike.step(1 / 120, track);
+        expect(bike.fork).toBeGreaterThanOrEqual(0);
+        expect(bike.fork).toBeLessThanOrEqual(bike.bikeSpec.forkTravel);
+        expect(Number.isFinite(bike.dynamics.frontLoad)).toBe(true);
+      }
       return bike.fork;
     };
     expect(dive(0)).toBeGreaterThan(dive(0.5) + 0.004);
@@ -241,7 +249,9 @@ describe('motorcycle setup: physical effect', () => {
       bike.gear = 3;
       bike.autoShift = false;
       bike.input.throttle = 0.5;
-      bike.step(1 / 120, track);
+      // Compare the initial surface/damping grip decision. Subsequent tyre
+      // work and temperature can legitimately differ with physical stroke,
+      // so a later grip value would also measure that separate feedback.
       bike.step(1 / 120, track);
       expect(bike.contacts[0].surface).toBe(kerb ? SURFACE.KERB : SURFACE.ASPHALT);
       return bike.dynamics.grip;

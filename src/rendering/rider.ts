@@ -108,6 +108,8 @@ export interface RiderPose extends MotocrossRiderMotionInput {
   speed?: number;
   /** Sprung chassis pitch relative to the bike frame, in radians. */
   suspensionPitch?: number;
+  /** Measured road-bike support loss; feet stay on pegs even at low airspeed. */
+  roadAirborne?: boolean;
   /** Independent rear pedal; the front lever must not animate the right foot. */
   rearBraking?: number;
   /** Off-road (WP41): 0 seated .. 1 standing on the pegs. */
@@ -423,7 +425,7 @@ export class Rider {
   readonly pegs = [new T.Vector3(0.17, -0.2, -0.3), new T.Vector3(-0.17, -0.2, -0.3)];
   /** GP road plane: this frame's origin height above the road when upright,
    * and the tyre crown radius the chassis rolls on. Set from the machine. */
-  readonly ground = { height: 0.62, crown: 0.08 };
+  readonly ground = { height: 0.62, crown: 0.08, plane: undefined as T.Plane | undefined };
   private readonly torso = new T.Group();
   private readonly head = new T.Group();
   private readonly headShadow = new T.Group();
@@ -1627,7 +1629,19 @@ export class Rider {
         pole.add(joint);
       }
       twoBone(this.upperArms[i], this.forearms[i], shoulder, target, pole, joint);
-      if (gpClearJoint(shoulder, target, joint, pole, lean, height, crown, GP_ELBOW_CLEARANCE))
+      if (
+        gpClearJoint(
+          shoulder,
+          target,
+          joint,
+          pole,
+          lean,
+          height,
+          crown,
+          GP_ELBOW_CLEARANCE,
+          this.ground.plane,
+        )
+      )
         twoBone(this.upperArms[i], this.forearms[i], shoulder, target, pole, joint);
       gpAttachAtJoint(
         this.hands[i],
@@ -1664,6 +1678,7 @@ export class Rider {
         height,
         crown,
         GP_KNEE_CLEARANCE,
+        this.ground.plane,
       );
       this.kneeDown[i] = kneeOnRoad ? 1 : 0;
       if (kneeOnRoad) twoBone(this.thighs[i], this.shins[i], hip, target, pole, joint);
@@ -1697,7 +1712,8 @@ export class Rider {
     // Solve the contact's height on the road plane, then lift by the toe pad.
     contact.y = 0;
     contact.y =
-      -gpRoadClearance(contact, lean, this.ground.height, this.ground.crown) / Math.cos(lean);
+      -gpRoadClearance(contact, lean, this.ground.height, this.ground.crown, this.ground.plane) /
+      (this.ground.plane?.normal.y ?? Math.cos(lean));
     return gpContactJoint(contact, frame, GP_BOOT_PEDAL, GP_BOOT_ANKLE, ankle);
   }
   /** Separated rider: `phase` 0 sliding/tumbling, 1 standing/jogging, 2 at the bike. */

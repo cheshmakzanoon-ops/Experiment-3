@@ -221,7 +221,7 @@ describe('measured wheel contact recording', () => {
     const start = car + WHEEL_CONTACT_BASE;
     expect(left.subarray(start)).toEqual(a.subarray(start));
     expect(right.subarray(start)).toEqual(b.subarray(start));
-    expect(PROTOCOL_VERSION).toBe(16);
+    expect(PROTOCOL_VERSION).toBe(17);
     expect(snapshotIncompatibility(a, 14)).toContain('v14 is not supported');
   });
 

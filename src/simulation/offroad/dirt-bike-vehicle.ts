@@ -3,7 +3,7 @@ import { advanceWheelRotation } from '../wheel-rotation.ts';
 import { NOVICE } from '../bike.ts';
 import { BIKE_RECOVERY, BikeVehicle, bikeOrientation } from '../bike-vehicle.ts';
 import { chassisLean } from '../bike-definitions.ts';
-import { COMPOUNDS, DEFAULT_SETUP, type Assist, type Compound, type Setup } from '../config.ts';
+import { DEFAULT_SETUP, type Assist, type Compound, type Setup } from '../config.ts';
 import { MARSHAL } from '../marshal.ts';
 import { MATERIAL } from '../surface-material.ts';
 import { surfaceSample, Track } from '../track.ts';
@@ -18,6 +18,7 @@ import { engineTorque } from '../vehicle.ts';
 import { stepMotocrossGround } from './mx-ground-physics.ts';
 import { RiderWeight } from './rider-weight.ts';
 import { factoryBikeSag, risingRateSag } from './suspension-geometry.ts';
+import { motorcycleContactSlipPower, motorcycleRotorBrakeWork } from '../motorcycle-thermal.ts';
 
 /** How far (m) the rider's body moves fore/aft over the pegs at full lean;
  * on the ground that shifts the system CG (a weight-shift pitch torque). */
@@ -172,6 +173,10 @@ export class DirtBikeVehicle extends BikeVehicle {
   private mxLateralAcceleration = 0;
   private mxFrontSlipPower = 0;
   private mxRearSlipPower = 0;
+  /** Current step's friction-brake heat port; undefined uses the legacy
+   * reduced ground contact-force estimate. Never persisted across steps. */
+  private mxFrontBrakePower: number | undefined;
+  private mxRearBrakePower: number | undefined;
   private readonly probe = surfaceSample();
   constructor(
     id: number,
@@ -374,6 +379,7 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.rearBrake = rear;
     const course = offroadCourse(track.circuit);
     this.pickupFrontForce = this.pickupRearForce = 0;
+    this.mxFrontBrakePower = this.mxRearBrakePower = undefined;
     this.playerMotocross =
       !ai &&
       (course?.kind === 'motocross' || course?.kind === 'supercross') &&
@@ -510,6 +516,7 @@ export class DirtBikeVehicle extends BikeVehicle {
             driveTorque: force * spec.rearWheelRadius,
             frontBrakeTorque: frontPedal * d.p.frontBrake * spec.frontWheelRadius,
             rearBrakeTorque: (rearPedal * d.p.rearBrake + engineBraking) * spec.rearWheelRadius,
+            rearEngineBrakeTorque: engineBraking * spec.rearWheelRadius,
             drag: d.p.drag * d.dragScale * initialSpeed ** 2 +
               (initialSpeed > 0.05 ? (d.p.rolling ?? 0) * d.mass * G : 0),
             slope: G * d.slope,
@@ -558,6 +565,8 @@ export class DirtBikeVehicle extends BikeVehicle {
         this.mxLateralAcceleration = contact.lateralAcceleration;
         this.mxFrontSlipPower = contact.front.slipPower;
         this.mxRearSlipPower = contact.rear.slipPower;
+        this.mxFrontBrakePower = contact.frontBrakePower;
+        this.mxRearBrakePower = contact.rearBrakePower;
         this.slide = contact.lateralSpeed;
         this.yawKick = 0;
         this.wheelPickup = false; // Contact momentum already exchanged.
@@ -669,7 +678,7 @@ export class DirtBikeVehicle extends BikeVehicle {
     const power = Math.max(0, this.engineOutputTorque * this.clutch.engineOmega);
     this.fuel = Math.max(0, this.fuel - (power / (0.3 * 43e6) + 0.0002) * dt);
     this.writeBody(track, dt);
-    this.updateSuspensionAndTyres(dt);
+    this.updateSuspensionAndTyres(dt, track);
     this.updateSkid(dt);
     this.updateMud(dt);
     this.impact = Math.max(0, this.impact - dt * 2);
@@ -755,10 +764,15 @@ export class DirtBikeVehicle extends BikeVehicle {
         ? Math.min(pedal * a.spinUp, (limit - this.rearSpin) / dt + spinResistance)
         : 0;
     this.rearSpin = Math.max(0, this.rearSpin + (spinDrive - spinResistance) * dt);
+    this.mxRearBrakePower = motorcycleRotorBrakeWork(
+      previous, spinDrive - spinResistance, a.spinInertia * rearBrake * a.spinBrake, dt,
+    ) / dt;
     this.rpm = clamp((this.rearSpin * ratio * 30) / Math.PI, spec.idleRPM, spec.limiterRPM);
     const spinTorque = (a.spinInertia * (this.rearSpin - previous)) / dt;
     const frontCoast = this.frontSpin * Math.exp(-0.4 * dt);
     this.frontSpin = Math.max(0, frontCoast - (ai ? 0 : brake * a.spinBrake * 0.7 * dt));
+    this.mxFrontBrakePower =
+      0.5 * spec.wheelInertia * (frontCoast * frontCoast - this.frontSpin * this.frontSpin) / dt;
     // Decelerating the front wheel also pitches the machine nose-down. The
     // player can use the normal brake, including the touch brake, in flight.
     // AI retains its surveyed rear-brake controller without a second pedal.
@@ -1451,7 +1465,7 @@ export class DirtBikeVehicle extends BikeVehicle {
       : wetSoil * (0.0004 * d.speed + 0.012 * Math.abs(d.rearSlip)) * dt;
     this.mud = clamp(this.mud + pick - 0.0015 * dt * this.mud, 0, 1);
   }
-  protected override updateSuspensionAndTyres(dt: number) {
+  protected override updateSuspensionAndTyres(dt: number, track: Track) {
     const d = this.dynamics,
       spec = this.bikeSpec,
       riding = this.riding;
@@ -1464,8 +1478,7 @@ export class DirtBikeVehicle extends BikeVehicle {
     for (let i = 0; i < 4; i++) {
       const t = this.tires[i],
         front = i < 2,
-        c = this.contacts[i],
-        ideal = COMPOUNDS[t.compound].ideal;
+        c = this.contacts[i];
       const rolling = (riding || d.state === 'remount') && !this.airborne;
       t.omega =
         this.airborne || (this.playerMotocross && riding) || (this.wheelPickup && riding)
@@ -1508,26 +1521,23 @@ export class DirtBikeVehicle extends BikeVehicle {
       t.length = (front ? spec.forkTravel : spec.shockTravel) - t.compression + 0.2;
       t.water = c.water;
       t.surface = c.surface;
-      // A locked, unloaded tyre reports force demand, not unlimited heat.
-      // Flight and recovery have no contact work, even if that sample remains.
-      const use = grounded ? clamp(front ? d.frontUse : d.rearUse, 0, 1.5) : 0;
-      const work = Math.hypot(t.fx, t.fy) * d.speed;
-      // Rolling contact can transmit a large lateral force with almost no
-      // irreversible soil work. Use rotor/patch relative-velocity loss for
-      // motocross; preserve the old thermal calibration for other bikes.
-      const slipWork = front ? this.mxFrontSlipPower : this.mxRearSlipPower;
-      t.energy = this.playerMotocross && grounded ? slipWork * dt : work * 0.02;
-      const wearWork = this.playerMotocross && grounded ? slipWork : work / 10;
-      t.wear = Math.min(1, t.wear + (wearWork * dt) / COMPOUNDS[t.compound].lifeJ);
-      const carcass = ideal - 4 + 10 * use - 6 * clamp(c.water, 0, 1);
-      t.carcassTemp += (carcass - t.carcassTemp) * (1 - Math.exp(-dt / 30));
-      t.surfaceTemp += (t.carcassTemp + 8 * use - t.surfaceTemp) * (1 - Math.exp(-dt / 3));
-      const brakePower = (front ? d.frontBrakeForce : d.rearBrakeForce) * d.speed * 0.5;
-      t.discTemp +=
-        (brakePower / (front ? 1600 : 900) - (t.discTemp - 40) * (0.015 + 0.003 * d.speed)) * dt;
       this.wheelSteering[i] = front ? d.steer : 0;
       this.wheelCamber[i] = d.lean;
     }
+    const grounded = riding && !this.airborne,
+      front = this.tires[0],
+      rear = this.tires[2];
+    this.updateMotorcycleThermals(
+      dt, track, grounded,
+      this.playerMotocross ? this.mxFrontSlipPower : motorcycleContactSlipPower(
+        front.fx, 0, d.speed, 0, front.omega * front.radius,
+      ),
+      this.playerMotocross ? this.mxRearSlipPower : motorcycleContactSlipPower(
+        rear.fx, 0, d.speed, 0, rear.omega * rear.radius,
+      ),
+      riding ? this.mxFrontBrakePower : 0,
+      riding ? this.mxRearBrakePower : 0,
+    );
   }
   /** Contact patches on the terrain, the vertical model, then the rigid-body
    * pose: CG at the sprung height, pitched by the chassis pitch. */

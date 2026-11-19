@@ -5,6 +5,12 @@ import {
   WHEEL_MOTION_STRIDE,
   WHEEL_CONTACT_BASE,
   WHEEL_CONTACT_SIZE,
+  B,
+  BIKE_BASE,
+  O,
+  OFFROAD_BASE,
+  R,
+  RACE_BASE,
 } from '../simulation/protocol.ts';
 import { drawTelemetry, type TelemetryView } from './telemetry-plots.ts';
 import {
@@ -61,6 +67,11 @@ const REPLAY_FIELDS = [
   F.COMPOUND,
   F.WAKE,
   F.PIT_STOPS,
+  F.PIT_CLOCK,
+  F.JACK_HEIGHT,
+  RACE_BASE + R.VEHICLE,
+  ...Object.values(B).map((field) => BIKE_BASE + field),
+  ...Object.values(O).map((field) => OFFROAD_BASE + field),
 ];
 // Preserve all tire channels even in the small in-memory diagnostic recorder.
 // The full-session application recorder retains complete versioned snapshots.

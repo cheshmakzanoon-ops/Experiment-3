@@ -63,7 +63,7 @@ export const LAUNCH_MERGE_LENGTH = 50;
 /** A car stuck for 5 s backs out for `reverseSeconds` at `throttle`, below
  * `speed` (m/s). */
 export const AI_RECOVERY = Object.freeze({ reverseSeconds: 4, throttle: 0.25, speed: 3 });
-/** Backward velocity profile over samples ENVELOPE_STEP apart: returns the
+/** Backward velocity profile over stations ENVELOPE_STEP apart: returns the
  * highest speed at sample 0 from which every later sample's corner speed can
  * be met, with braking limited to what the friction circle leaves after the
  * lateral load at each sample. */
@@ -76,6 +76,15 @@ export function envelopeProfile(
   count = corners.length,
   /** Optional: receives the profile speed at every active sample. */
   profile?: Float64Array,
+  /** Optional road gradients dy/path-distance at the samples, positive uphill. */
+  gradients?: ArrayLike<number>,
+  /** Optional vehicle-specific stopping bound before road grade (m/s²). */
+  brakeCapacity?: (speed: number, lateral: number) => number,
+  /** Optional physical path distances between samples i and i+1 (m).
+   * A lane offset changes travel distance even at the same station spacing. */
+  distances?: ArrayLike<number>,
+  /** Current additional lateral acceleration reserved for path recovery. */
+  lateralReserve = 0,
 ) {
   // A bounded active prefix lets the GP rider extend its horizon in reusable
   // buffers. Callers must provide 1..min(curvatures.length, corners.length).
@@ -85,13 +94,24 @@ export function envelopeProfile(
   for (let i = n - 2; i >= 0; i--) {
     const lateralLimit =
       (env.lateralBase + env.lateralAero * aero * v * v) * grip * lateralMarginAt(v, env);
-    const usage = Math.min(1, (v * v * curvatures[i + 1]) / Math.max(1e-6, lateralLimit));
-    const braking =
+    const lateral = v * v * curvatures[i + 1] + lateralReserve;
+    const usage = Math.min(1, lateral / Math.max(1e-6, lateralLimit));
+    const gradient = gradients ? Math.min(gradients[i], gradients[i + 1]) : 0;
+    let tyreBraking =
       (env.brakingBase + env.brakingAero * aero * v * v) *
       grip *
       env.brakingMargin *
       Math.sqrt(Math.max(0, 1 - usage * usage));
-    v = Math.min(corners[i], Math.sqrt(v * v + 2 * Math.max(0.5, braking) * ENVELOPE_STEP));
+    if (brakeCapacity) tyreBraking = Math.min(tyreBraking, brakeCapacity(v, lateral));
+    const braking = tyreBraking + (G * gradient) / Math.sqrt(1 + gradient * gradient);
+    const distance = distances ? distances[i] : ENVELOPE_STEP;
+    // A vehicle-specific limit is a physical capacity, including zero. A
+    // downhill segment may accelerate even at that limit, so its safe entry
+    // speed is below the exit speed. If no nonnegative entry speed is feasible,
+    // return zero to request a stop; never manufacture braking or return NaN.
+    // Keep the existing car profile's arithmetic when no such bound is given.
+    const entrySquared = v * v + 2 * (brakeCapacity ? braking : Math.max(0.5, braking)) * distance;
+    v = Math.min(corners[i], Math.sqrt(brakeCapacity ? Math.max(0, entrySquared) : entrySquared));
     if (profile) profile[i] = v;
   }
   return v;
@@ -102,15 +122,22 @@ export function envelopeCornerSpeed(
   grip: number,
   aero: number,
   env: CapabilityEnvelope = AI_ENVELOPE,
+  lateralReserve = 0,
 ) {
   // Solve with the fast margin, then once more with the margin at that speed.
   let speed = Infinity;
   for (const margin of [env.lateralMargin, 0]) {
     const m = margin || lateralMarginAt(speed, env);
-    const a0 = env.lateralBase * grip * m,
+    const lateral = env.lateralBase * grip * m,
+      a0 = lateralReserve > 0 ? Math.max(0, lateral - lateralReserve) : lateral,
       k = env.lateralAero * aero * grip * m,
       denominator = Math.abs(curvature) - k;
-    speed = denominator <= 1e-7 ? Infinity : Math.sqrt(a0 / denominator);
+    speed =
+      lateralReserve > 0 && a0 === 0
+        ? 0
+        : denominator <= 1e-7
+          ? Infinity
+          : Math.sqrt(a0 / denominator);
     if (!Number.isFinite(speed)) return speed;
   }
   return speed;
@@ -310,7 +337,11 @@ export class AIDriver {
     if (pit && c.pitPhase === 1 && boxGap < 35)
       lookahead = Math.min(lookahead, Math.max(1, boxGap));
     track.at(c.s + lookahead, this.target);
-    const reach = this.laneReach(track, c.s + lookahead, Math.max(1, this.target.width - RACING_LINE.edgeMargin));
+    const reach = this.laneReach(
+      track,
+      c.s + lookahead,
+      Math.max(1, this.target.width - RACING_LINE.edgeMargin),
+    );
     const pathOffset = pit
       ? this.pitLine(track, c.s + lookahead)
       : corridor
@@ -471,8 +502,7 @@ export class AIDriver {
       0.2 + 0.8 * Math.sqrt(Math.max(0, 1 - lateralUsage * lateralUsage)),
     );
     // Snow or ice under the front tyre and a low grip ratio: 1 anywhere else.
-    const lowGrip =
-      (c.contacts[0].frozen ?? 0) > 0 && grip < 0.35 ? smooth(0.08, 0.35, grip) : 1;
+    const lowGrip = (c.contacts[0].frozen ?? 0) > 0 && grip < 0.35 ? smooth(0.08, 0.35, grip) : 1;
     // A driver feathers the pedal against wheelspin (rear slip ratio above the
     // traction peak) rather than holding it flat through a slide.
     // Thresholds are relative to the tyre's present force peak (0.08 and 0.12

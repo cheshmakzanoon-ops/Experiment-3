@@ -33,7 +33,7 @@ export function gpBodyTargets(pose: RiderPose, out: GpRiderBodyState): GpRiderBo
     offset = T.MathUtils.clamp(finite(pose.offset), -0.35, 0.35),
     leanRate = T.MathUtils.clamp(finite(pose.leanRate), -3, 3);
   // Feet leave the pegs below a walking pace; a crawl keeps them up.
-  out.plant = 1 - T.MathUtils.smoothstep(speed, 0.45, 2.2);
+  out.plant = pose.roadAirborne ? 0 : 1 - T.MathUtils.smoothstep(speed, 0.45, 2.2);
   // Braking at speed lifts the chest into the airflow; at a crawl it does not.
   out.sitUp = Math.sqrt(braking) * T.MathUtils.smoothstep(speed, 3, 12) * (1 - out.plant);
   // Deceleration throws the upper body forward against braced arms; drive
@@ -81,7 +81,7 @@ export class GpRiderPosture {
       speed = Math.abs(finite(pose.speed, GP_POSTURE_DEFAULT_SPEED)),
       throttle = clamp01(finite(pose.throttle)),
       braking = clamp01(finite(pose.braking)),
-      plant = clamp01(body.plant),
+      plant = pose.roadAirborne ? 0 : clamp01(body.plant),
       sitUp = clamp01(body.sitUp) * (1 - plant),
       sway = T.MathUtils.clamp(body.sway, -0.35, 0.35),
       hang = T.MathUtils.clamp(sway / HANG_FULL, -1.2, 1.2),
@@ -173,7 +173,14 @@ const tmp = new T.Vector3(),
 /** Road plane in the rider's (sprung bike) frame for a chassis leaned by
  * `lean` (+ left) rolling on a crown of radius `crown`, with the frame origin
  * `height` above the road when upright. Returns the signed clearance of `p`. */
-export function gpRoadClearance(p: T.Vector3, lean: number, height: number, crown: number) {
+export function gpRoadClearance(
+  p: T.Vector3,
+  lean: number,
+  height: number,
+  crown: number,
+  plane?: T.Plane,
+) {
+  if (plane) return plane.distanceToPoint(p);
   const s = Math.sin(lean),
     c = Math.cos(lean);
   return -p.x * s + p.y * c + (height - crown) * c + crown;
@@ -193,8 +200,9 @@ export function gpClearJoint(
   height: number,
   crown: number,
   margin: number,
+  plane?: T.Plane,
 ) {
-  if (gpRoadClearance(joint, lean, height, crown) >= margin) return false;
+  if (gpRoadClearance(joint, lean, height, crown, plane) >= margin) return false;
   axis.subVectors(end, root);
   const length = axis.length();
   if (length < 1e-6) return false;
@@ -207,11 +215,12 @@ export function gpClearJoint(
   v.crossVectors(axis, u);
   // Clearance along the circle is A + B cos θ + C sin θ; take the smallest
   // rotation |θ| that reaches the margin (the joint then just touches it).
-  const A = gpRoadClearance(centre, lean, height, crown),
-    nx = -Math.sin(lean),
-    ny = Math.cos(lean),
-    B = radius * (u.x * nx + u.y * ny),
-    C = radius * (v.x * nx + v.y * ny),
+  const A = gpRoadClearance(centre, lean, height, crown, plane),
+    nx = plane ? plane.normal.x : -Math.sin(lean),
+    ny = plane ? plane.normal.y : Math.cos(lean),
+    nz = plane ? plane.normal.z : 0,
+    B = radius * (u.x * nx + u.y * ny + u.z * nz),
+    C = radius * (v.x * nx + v.y * ny + v.z * nz),
     R = Math.hypot(B, C);
   if (R < 1e-9) return false;
   const phase = Math.atan2(C, B),

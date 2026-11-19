@@ -12,6 +12,10 @@ export const rayHit = (): RayHit => ({
   normal: new Vec3(0, 1, 0),
   triangle: -1,
 });
+/** Optional ownership of a geometric contact point. Rejected candidates must
+ * not shorten a query: a legitimate surface can lie behind an overlapping
+ * auxiliary patch. Shape queries over this hierarchy use the same predicate. */
+export type ContactOwnership = (triangle: number, x: number, y: number, z: number) => boolean;
 interface Node {
   min: number[];
   max: number[];
@@ -35,6 +39,7 @@ export class TriangleBVH {
     readonly vertices: Float64Array,
     readonly indices: Uint32Array,
     readonly normals?: Float64Array,
+    readonly ownsContact?: ContactOwnership,
   ) {
     if (vertices.length % 3 || indices.length % 3 || !indices.length)
       throw new Error('BVH requires nonempty triangle geometry');
@@ -163,6 +168,11 @@ export class TriangleBVH {
     if (w < -1e-8 || u + w > 1 + 1e-8) return;
     const distance = (fx * qx + fy * qy + fz * qz) / determinant;
     if (distance < 0 || distance > hit.distance) return;
+    if (
+      this.ownsContact &&
+      !this.ownsContact(t, o.x + d.x * distance, o.y + d.y * distance, o.z + d.z * distance)
+    )
+      return;
     hit.distance = distance;
     hit.triangle = t;
     hit.point.copy(o).addScaled(d, distance);

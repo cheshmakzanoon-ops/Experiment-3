@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { B, BIKE_BASE, F } from '../simulation/protocol.ts';
 import type { VehicleDefinition } from '../simulation/vehicles.ts';
+import { RoadBikeContactPose, RoadBikeWheelPose } from './road-bike-pose.ts';
 
 const finiteValue = (frame: Float32Array, offset: number) =>
   Number.isFinite(frame[offset]) ? frame[offset] : 0;
@@ -16,6 +17,8 @@ export class GpTyreContactProjector {
   private readonly axle = new T.Vector3();
   private readonly pivot = new T.Vector3();
   private readonly point = new T.Vector3();
+  private readonly roadContact = new RoadBikeContactPose();
+  private readonly roadWheels = new RoadBikeWheelPose();
 
   /** Recover the GP road plane from BikeVehicle.writeBody's crown/pivot
    * kinematics, then project the definition's two tyre centres onto it.
@@ -44,6 +47,48 @@ export class GpTyreContactProjector {
     this.up.set(0, 1, 0).applyQuaternion(quaternion);
     this.forward.set(0, 0, 1).applyQuaternion(quaternion);
     this.axle.set(1, 0, 0).applyQuaternion(quaternion);
+    shape.set(
+      Math.round(finiteValue(presented, o + BIKE_BASE + B.STATE)) === 0 ? 1 : 2,
+      T.MathUtils.clamp(this.up.x * ch - this.up.z * sh, -1, 1),
+      T.MathUtils.clamp(
+        finiteValue(presented, o + BIKE_BASE + B.RIDER_OFFSET),
+        -spec.riderOffsetMax,
+        spec.riderOffsetMax,
+      ),
+      lift,
+    );
+    const measured = this.roadContact.sample(presented, presented, o, 1);
+    if (measured.valid) {
+      this.roadWheels.solve(
+        definition,
+        finiteValue(presented, o + BIKE_BASE + B.STEER),
+        position,
+        quaternion,
+        measured,
+      );
+      for (let i = 0; i < 2; i++) {
+        const point = this.roadWheels.patches[i],
+          normal = measured.normals[i],
+          plane = measured.points[i],
+          surface =
+            plane.y - ((point.x - plane.x) * normal.x + (point.z - plane.z) * normal.z) / normal.y;
+        (i === 0 ? front : rear).set(
+          point.x,
+          point.z,
+          surface,
+          1 - T.MathUtils.smoothstep(Math.max(0, point.y - surface), 0.012, 0.075),
+        );
+      }
+      this.pivot
+        .copy(measured.points[1])
+        .lerp(measured.points[0], spec.cgToRear / definition.spec.wheelbase);
+      this.point.copy(measured.normals[0]).add(measured.normals[1]).normalize();
+      return (
+        this.pivot.y -
+        ((position.x - this.pivot.x) * this.point.x + (position.z - this.pivot.z) * this.point.z) /
+          this.point.y
+      );
+    }
     // The forward axis is unaffected by roll: its elevation carries the road
     // pitch plus a wheelie/stoppie. The crash pose omits the dynamic pitch.
     const roadPitch = T.MathUtils.clamp(
@@ -108,16 +153,6 @@ export class GpTyreContactProjector {
         fallen ? 0 : 1 - T.MathUtils.smoothstep(clearance, 0.012, 0.075),
       );
     }
-    shape.set(
-      Math.round(finiteValue(presented, o + BIKE_BASE + B.STATE)) === 0 ? 1 : 2,
-      T.MathUtils.clamp(this.up.x * ch - this.up.z * sh, -1, 1),
-      T.MathUtils.clamp(
-        finiteValue(presented, o + BIKE_BASE + B.RIDER_OFFSET),
-        -spec.riderOffsetMax,
-        spec.riderOffsetMax,
-      ),
-      lift,
-    );
     return ground;
   }
 }

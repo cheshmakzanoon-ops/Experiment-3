@@ -84,6 +84,13 @@ import {
 import { pitServiceActive } from './pit-presentation.ts';
 import { wheelPhase, wheelValue } from './wheel-pose.ts';
 import {
+  RoadBikeContactPose,
+  RoadBikeWheelPose,
+  ROAD_BIKE_RAKE,
+  ROAD_FORK_LENGTH,
+  ROAD_FORK_OFFSET,
+} from './road-bike-pose.ts';
+import {
   presentationAlpha,
   sampleBikeField,
   sampleOffroadField,
@@ -101,9 +108,9 @@ import {
  * steer, fork/shock, rider block), so live play and replays agree. Three LODs:
  * near, mid (simplified parts, fewer segments) and far (silhouette). */
 type Detail = RiderDetail;
-const RAKE = 0.42,
-  FORK_OFFSET = 0.03,
-  FORK_LENGTH = 0.7;
+const RAKE = ROAD_BIKE_RAKE,
+  FORK_OFFSET = ROAD_FORK_OFFSET,
+  FORK_LENGTH = ROAD_FORK_LENGTH;
 export interface Section {
   z: number;
   y: number;
@@ -766,6 +773,7 @@ export class BikeModel {
   private armLength = 1;
   private readonly rearAxle: T.Vector3;
   private readonly sag: { fork: number; shock: number };
+  private readonly roadWheels = new RoadBikeWheelPose();
   private readonly gripLocal = [new T.Vector3(), new T.Vector3()];
   private readonly gripAxisLocal = [new T.Vector3(), new T.Vector3()];
   private readonly scratch = new T.Vector3();
@@ -1983,23 +1991,35 @@ export class BikeModel {
     });
     return voxelizeGpOcclusion(gpOcclusionSources(this.root, this.sprung, [this.rider.root]));
   }
-  /** Pose from interpolated snapshot values (bike frame = chassis pose). */
+  /** Marked road snapshots carry a sprung CG pose. Unmarked standalone,
+   * legacy and service callers retain the authored wheel-plane convention. */
   pose(v: BikePoseValues) {
     const b = this.definition.bike!,
       L = this.definition.spec.wheelbase;
     this.cockpit?.update(v);
     this.gpRearsets?.update(v.rearBrake);
     this.m.tyreFinish.update(v, this.definition.id === 'gpr1' || this.definition.id === 'gpr2');
-    // Sprung mass dips and pitches on the springs; the tyres stay on the road.
+    const road = v.roadContact?.valid
+      ? this.roadWheels.solve(
+          this.definition,
+          v.steer,
+          this.root.position,
+          this.root.quaternion,
+          v.roadContact,
+        )
+      : undefined;
+    // Legacy frames derive visual heave/pitch. A live road body already owns
+    // both; applying this local spring transform again doubles the motion.
     const df = (v.fork - this.sag.fork) * Math.cos(RAKE),
       dr = v.shock - this.sag.shock;
-    this.sprung.rotation.x = Math.atan2(df - dr, L);
-    this.sprung.position.y = -(dr + ((df - dr) * b.cgToRear) / L);
+    this.sprung.rotation.x = road ? 0 : Math.atan2(df - dr, L);
+    this.sprung.position.y = road ? 0 : -(dr + ((df - dr) * b.cgToRear) / L);
+    this.rider.ground.plane = road?.localGround;
     this.steer.rotation.y = v.steer;
     // Presented front-brake input only: rear pedal, wheel speed and elapsed
     // display time do not pull the hand lever. An absolute pose restores on seek.
     if (this.gpFrontBrakeLever) this.gpFrontBrakeLever.rotation.y = gpFrontBrakeAngle(v.brake);
-    this.forkLower.position.y = -(FORK_LENGTH + this.sag.fork - v.fork);
+    this.forkLower.position.y = road ? road.forkY : -(FORK_LENGTH + this.sag.fork - v.fork);
     this.gpFrontHydraulics?.update(this.forkLower.position.y);
     this.frontSpin.rotation.x = v.frontRotation;
     this.rearSpin.rotation.x = v.rearRotation;
@@ -2007,6 +2027,7 @@ export class BikeModel {
     // Pit service: the rear wheel rolls back out of the swingarm and the
     // front drops out of the fork while the axles are drawn (bike-pit-service).
     this.rearWheel.position.copy(this.rearAxle);
+    if (road) this.rearWheel.position.y = road.rearY;
     this.rearWheel.position.z -= v.rearWheelOut ?? 0;
     forkLocalOffset(
       this.scratch.set(0, -(v.frontWheelDrop ?? 0), 0),
@@ -2019,7 +2040,7 @@ export class BikeModel {
     this.sprung.updateMatrix();
     const p = this.scratch.copy(this.pivot).applyMatrix4(this.sprung.matrix);
     this.swingarm.position.copy(p);
-    const dy = this.rearAxle.y - p.y,
+    const dy = this.rearWheel.position.y - p.y,
       dz = this.rearAxle.z - p.z;
     this.swingarm.rotation.x = Math.atan2(dy, -dz);
     this.swingarm.scale.z = Math.hypot(dy, dz) / this.armLength;
@@ -2062,7 +2083,13 @@ export class BikeModel {
         braking: v.brake,
         steer: v.steer,
         speed: v.speed,
-        suspensionPitch: this.sprung.rotation.x,
+        suspensionPitch: road
+          ? -Math.atan2(road.localGround.normal.z, road.localGround.normal.y)
+          : this.sprung.rotation.x,
+        roadAirborne:
+          road && v.roadContact
+            ? v.roadContact.loads[0] + v.roadContact.loads[1] <= 1e-6
+            : undefined,
         rearBraking: v.rearBrake,
         throttle: v.throttle,
         gLong: v.gLong,
@@ -2104,6 +2131,8 @@ export class BikeModel {
   }
 }
 export interface BikePoseValues extends GpTyreAppearance {
+  /** Explicit measured road pose; absent for legacy, stands and dirt bikes. */
+  roadContact?: RoadBikeContactPose;
   /** Snapshot values for the near cockpit; metres/second and protocol gear index. */
   speed?: number;
   /** Presented simulation time (s): the knee-slider sparks are a function of it. */
@@ -2199,6 +2228,7 @@ export function bikeOnboardFov(speed: number, definition?: VehicleDefinition, ta
  * touring representations are hidden for bike entrants; LODs follow lens-
  * corrected distance like the cars. */
 export class BikeShells {
+  private readonly roadContact = new RoadBikeContactPose();
   readonly root = new T.Group();
   /** Renderer hook: install weather/atmosphere/IBL on newly built bikes. */
   install: (root: T.Object3D) => void = () => undefined;
@@ -2400,6 +2430,8 @@ export class BikeShells {
       // recorded lift along its own up axis; the stands stay on the floor.
       if (service)
         model.root.position.add(this.lift.set(0, service.lift, 0).applyQuaternion(car.quaternion));
+      this.values.roadContact =
+        !service && !definition.bike.offroad ? this.roadContact.sample(a, b, o, t) : undefined;
       this.pose(model, a, b, t, id, entry.riderBody);
       if (entry.occlusion) {
         // Bike-space occlusion follows the presented sprung frame; High/ULTRA only.

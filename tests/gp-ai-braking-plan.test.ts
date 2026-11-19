@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { setImmediate } from 'node:timers/promises';
+import { afterEach, describe, expect, it } from 'vitest';
 import { envelopeProfile } from '../src/simulation/ai.ts';
 import { BikeAIDriver, GP_AI_HANDS } from '../src/simulation/bike-ai.ts';
 import type { BikeVehicle } from '../src/simulation/bike-vehicle.ts';
@@ -9,6 +10,12 @@ import type { Track } from '../src/simulation/track.ts';
 import { Simulation } from '../src/simulation/world.ts';
 
 const DT = 1 / 120;
+
+// Each seeded race is synchronous. Give the worker an event-loop turn between
+// cases so Vitest can acknowledge its pending result messages before the
+// aggregate file exceeds the RPC deadline. Simulation loops, assertions and
+// individual test deadlines stay unchanged.
+afterEach(() => setImmediate());
 
 /** Exposes the planned-stop controller of the GP rider for inspection. */
 class PlanProbe extends BikeAIDriver {

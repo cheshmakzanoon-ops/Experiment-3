@@ -6,6 +6,10 @@ on:
     paths:
       - 'src/rendering/**'
       - 'src/simulation/open-world/ambient-traffic.ts'
+      - 'src/simulation/bike-vehicle.ts'
+      - 'src/simulation/road-bike-suspension.ts'
+      - 'src/simulation/protocol.ts'
+      - 'src/simulation/wheel-contact-state.ts'
       - 'e2e/graphics-engine-advancement.spec.ts'
       - 'e2e/fixtures/graphics-engine-advancement.ts'
       - 'e2e/temporal-depth-rejection.spec.ts'
@@ -14,6 +18,11 @@ on:
       - 'e2e/fixtures/terrain-morph-contract.ts'
       - 'e2e/texture-source-ownership.spec.ts'
       - 'e2e/fixtures/texture-source-ownership.ts'
+      - 'e2e/road-bike-presentation.spec.ts'
+      - 'e2e/fixtures/road-bike-presentation.ts'
+      - 'e2e/gp-grounding.spec.ts'
+      - 'e2e/fixtures/gp-grounding.ts'
+      - 'e2e/graphics-high-journey.spec.ts'
       - '.github/workflows/graphics-engine-validation.yml'
 permissions:
   contents: read
@@ -40,8 +49,8 @@ jobs:
       - run: node --experimental-transform-types scripts/source-stability.ts -- npm run build
       - run: npx playwright install --with-deps chromium
       - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
-      - name: Production morphs, terrain, occlusion, temporal depth, texture lifetime and Festival pipeline
-        run: xvfb-run -a -s '-screen 0 1920x1080x24' npx playwright test e2e/graphics-engine-advancement.spec.ts e2e/terrain-morph-contract.spec.ts e2e/temporal-depth-rejection.spec.ts e2e/texture-source-ownership.spec.ts e2e/festival-rendering.spec.ts
+      - name: Production geometry, grounding, occlusion, temporal depth and resource lifetime
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' npx playwright test e2e/graphics-engine-advancement.spec.ts e2e/terrain-morph-contract.spec.ts e2e/temporal-depth-rejection.spec.ts e2e/texture-source-ownership.spec.ts e2e/festival-rendering.spec.ts e2e/gp-grounding.spec.ts e2e/road-bike-presentation.spec.ts
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -77,6 +86,37 @@ jobs:
         if: always()
         with:
           name: graphics-advancement-gameplay
+          path: |
+            test-results/
+            playwright-report/
+            browser-backend.json
+            browser-progress.json
+          retention-days: 14
+  high:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
+      - name: High preset through the full application with completed GPU submissions
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' npx playwright test e2e/graphics-high-journey.spec.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: graphics-advancement-high
           path: |
             test-results/
             playwright-report/

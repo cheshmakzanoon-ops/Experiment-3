@@ -40,6 +40,15 @@ function road(slope = 0) {
       out.lateral = x;
       return out;
     },
+    cast(origin: Vec3, down: Vec3, maximum: number, out: SurfaceSample) {
+      const distance = (slope * origin.z - origin.y) / down.y;
+      if (distance < 0 || distance > maximum) return Infinity;
+      out.height = slope * origin.z;
+      out.normal.set(0, 1, -slope).normalize();
+      out.s = origin.z;
+      out.lateral = origin.x;
+      return distance;
+    },
     nearest(x: number, z: number, out: TrackPoint) {
       out.s = out.z = z;
       out.x = 0;

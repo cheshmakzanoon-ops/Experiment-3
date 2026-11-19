@@ -45,9 +45,18 @@ const sameInput = (a: Controls, b: Controls) =>
 export class InputLog {
   readonly entries: FlashbackEntry[] = [];
   private lastInput: Controls | null = null;
-  /** Record an applied input; an unchanged repeat (watchdog, held keys) is skipped. */
-  input(tick: number, input: Controls) {
-    if (this.lastInput && sameInput(this.lastInput, input)) return;
+  /** Record an applied input. Live callers supply the controls about to be
+   * overwritten: AI, grid holds and consumed commands can change that state
+   * even when the player's previous message had exactly the same payload. */
+  input(tick: number, input: Controls, applied?: Controls) {
+    const edge = input.shift !== 0 || input.drs === true || input.overtake === true;
+    if (
+      !edge &&
+      this.lastInput &&
+      sameInput(this.lastInput, input) &&
+      (!applied || sameInput(applied, input))
+    )
+      return;
     this.lastInput = { ...input };
     this.entries.push({ tick, kind: 'input', input: { ...input } });
   }
@@ -69,6 +78,14 @@ export class InputLog {
     }
     this.lastInput = last ? { ...last } : null;
   }
+}
+
+/** The worker's live input boundary. Inspect mutable controls before applying
+ * the new message, so resimulation retains a held input after AI handback or
+ * any other owner changed those controls. Replaying uses applyEntry instead. */
+export function applyLoggedInput(simulation: Simulation, log: InputLog, input: Controls) {
+  log.input(simulation.tick, input, simulation.cars[0].input);
+  simulation.setInput(input);
 }
 
 /** Apply one logged input to a simulation, exactly as the worker did. */

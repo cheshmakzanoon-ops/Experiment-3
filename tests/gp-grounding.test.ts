@@ -19,6 +19,7 @@ import {
 } from '../src/simulation/protocol.ts';
 import { vehicleIndex, type VehicleDefinition } from '../src/simulation/vehicles.ts';
 import type { SurfaceSample, Track, TrackPoint } from '../src/simulation/track.ts';
+import type { Vec3 } from '../src/core/math.ts';
 import { tyreGeometry } from '../src/rendering/bike.ts';
 import {
   createStudioUniforms,
@@ -47,7 +48,15 @@ function bikeOnPlane(definition = GP_R1, heading = 0, slope = 0) {
   const track = {
     sample(x: number, z: number, out: SurfaceSample) {
       out.height = heightAt(x, z);
+      out.normal.set(-slope * Math.sin(heading), 1, -slope * Math.cos(heading)).normalize();
       return out;
+    },
+    cast(origin: Vec3, down: Vec3, maximum: number, out: SurfaceSample) {
+      const distance = (heightAt(origin.x, origin.z) - origin.y) / down.y;
+      if (distance < 0 || distance > maximum) return Infinity;
+      out.height = heightAt(origin.x, origin.z);
+      out.normal.set(-slope * Math.sin(heading), 1, -slope * Math.cos(heading)).normalize();
+      return distance;
     },
     nearest(_x: number, z: number, out: TrackPoint) {
       out.s = z;

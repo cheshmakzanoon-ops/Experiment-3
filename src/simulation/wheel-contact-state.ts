@@ -1,5 +1,13 @@
 import { Vec3 } from '../core/math.ts';
-import { C, WHEEL_CONTACT_BASE, WHEEL_CONTACT_SIZE, wheelContactBase } from './protocol.ts';
+import {
+  BC,
+  C,
+  ROAD_BIKE_CONTACT,
+  WHEEL_CONTACT_BASE,
+  WHEEL_CONTACT_SIZE,
+  wheelContactBase,
+} from './protocol.ts';
+import { BikeVehicle } from './bike-vehicle.ts';
 import type { Vehicle } from './vehicle.ts';
 
 const local = new Vec3();
@@ -11,9 +19,40 @@ const local = new Vec3();
 export function writeWheelContact(out: Float32Array, car: number, vehicle: Vehicle) {
   const block = car + WHEEL_CONTACT_BASE;
   out.fill(0, block, block + WHEEL_CONTACT_SIZE);
-  // GP and MX have separate contact models. Their inherited car hub fields
-  // are not measured motorcycle suspension or carcass displacement.
-  if (vehicle.definition.bike) return;
+  // A road bike publishes its actual sampled planes, never inherited car-hub
+  // fields. The explicit tag distinguishes its sprung CG from old wheel-plane
+  // snapshots. MX, placement and stands retain their separate pose contracts.
+  if (vehicle.definition.bike) {
+    if (!(vehicle instanceof BikeVehicle) || !vehicle.sprungRoadPose) return;
+    for (let wheel = 0; wheel < 4; wheel += 2) {
+      const point = vehicle.contactPoints[wheel],
+        normal = vehicle.contacts[wheel].normal,
+        gap = wheel === 0 ? vehicle.roadSuspension.frontGap : vehicle.roadSuspension.rearGap,
+        load = wheel === 0 ? vehicle.roadSuspension.frontLoad : vehicle.roadSuspension.rearLoad,
+        length = normal.length();
+      if (
+        !Number.isFinite(point.x + point.y + point.z + length + gap + load) ||
+        length < 1e-8 ||
+        normal.y / length < 0.2 ||
+        gap < 0 ||
+        load < 0
+      ) {
+        out.fill(0, block, block + WHEEL_CONTACT_SIZE);
+        return;
+      }
+      const p = wheelContactBase(car, wheel);
+      out[p + BC.X] = point.x;
+      out[p + BC.Y] = point.y;
+      out[p + BC.Z] = point.z;
+      out[p + BC.GAP] = gap;
+      out[p + BC.NORMAL_X] = normal.x / length;
+      out[p + BC.NORMAL_Y] = normal.y / length;
+      out[p + BC.NORMAL_Z] = normal.z / length;
+      out[p + BC.LOAD] = load;
+    }
+    out[block] = ROAD_BIKE_CONTACT;
+    return;
+  }
   let mask = 0;
   for (let wheel = 0; wheel < 4; wheel++) {
     const tire = vehicle.tires[wheel],

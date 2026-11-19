@@ -1,10 +1,10 @@
 import { clamp } from '../core/math.ts';
+import { motorcycleContactSlipPower } from './motorcycle-thermal.ts';
 import {
   FORMULA_SLICK,
   camberShift,
   combinedForces,
   prepareSlip,
-  slipCurve,
   slipState,
   type TyreConstruction,
 } from './tyre-force.ts';
@@ -45,6 +45,10 @@ export interface MotoGPContactStep {
   frontBrakeExcess: number;
   rearDriveExcess: number;
   rearBrakeExcess: number;
+  /** Road suspension opt-in: preserve planar inertia on contact loss,
+   * resolve the steered front force, and rotate both body-frame velocity
+   * components. The adapter consumes forwardSpeed as well as lateralSpeed. */
+  inertialContacts?: boolean;
 }
 
 export interface MotoGPGeometry {
@@ -131,6 +135,12 @@ export function gpRollRateLimit(speed: number, geometry: MotoGPGeometry) {
  * and any untransmitted torque. This is a reduced-order model, not a fully
  * coupled six-DOF simulation or fitted manufacturer tyre dataset. */
 export class MotoGPChassis {
+  /** Forward component after opt-in coupled body-frame integration. The
+   * adapter has already applied its longitudinal tyre/drag/gravity impulse. */
+  forwardSpeed = 0;
+  /** Additional longitudinal acceleration from resolving the steered front
+   * tyre force into the body frame; the adapter's straight Fx is already applied. */
+  longitudinalCorrection = 0;
   lateralSpeed = 0;
   yawRate = 0;
   lateralAcceleration = 0;
@@ -159,13 +169,24 @@ export class MotoGPChassis {
   /** Lateral acceleration the assist's roll control asked for (m/s², ≥ 0). */
   lateralDemand = 0;
   private frontLoadUsed = 0;
+  private frontMuUsed = 0;
   private frontLimit = 0;
   private rearLimit = 0;
+  /** Preparation belonging to the stored relaxed force. Fy / C_alpha is
+   * the reduced carcass's elastic strain; a load change must not retain the
+   * same absolute newtons while silently changing that strain. */
+  private frontElasticStiffness = 0;
+  private rearElasticStiffness = 0;
   private sideLimit = 0;
   private lastSpeed = 0;
   private readonly front = slipState();
   private readonly rear = slipState();
   private readonly force = { fx: 0, fy: 0 };
+  /** Independent inverse scratch: trial steering must not rewrite the
+   * actual contact's slip/force/thermal reporting state. */
+  private readonly inverseFront = slipState();
+  private readonly previewRear = slipState();
+  private readonly inverseForces = new Float64Array(17);
 
   constructor(readonly geometry: MotoGPGeometry) {
     if (!(geometry.yawInertia > 0 && geometry.frontRadius > 0 && geometry.rearRadius > 0))
@@ -173,8 +194,12 @@ export class MotoGPChassis {
   }
 
   reset(speed = 0) {
+    this.forwardSpeed = speed;
+    this.longitudinalCorrection = 0;
     this.lateralSpeed = this.yawRate = this.lateralAcceleration = 0;
     this.frontFy = this.rearFy = this.frontSlipAngle = this.rearSlipAngle = 0;
+    this.frontLoadUsed = this.frontMuUsed = 0;
+    this.frontElasticStiffness = this.rearElasticStiffness = 0;
     this.frontSlip = this.rearSlip = 0;
     this.frontSlidingPower = this.rearSlidingPower = 0;
     this.groundSteer = this.steerTrim = this.leanTarget = this.lateralDemand = 0;
@@ -187,6 +212,8 @@ export class MotoGPChassis {
     const g = this.geometry;
     const v = Math.max(0, q.speed);
     const dt = q.dt;
+    this.forwardSpeed = v;
+    this.longitudinalCorrection = 0;
     if (!(dt > 0 && dt <= 0.05)) throw new Error('Invalid GP bike timestep');
     // Grid placement, teleportation and tests that set speed explicitly are
     // not dual-wheel lockups: reinitialize the contact rotations.
@@ -197,7 +224,7 @@ export class MotoGPChassis {
     }
     this.lastSpeed = v;
     const contact = clamp(q.frontContact, 0, 1);
-    if (contact <= 1e-6 || v < 2.5) {
+    if ((contact <= 1e-6 && !q.inertialContacts) || v < 2.5) {
       // No fictitious front road steering while raised. Below walking speed
       // retain the geometric pit-box steering model instead of freezing turn.
       this.yawRate =
@@ -224,9 +251,23 @@ export class MotoGPChassis {
       q.frontFx,
     );
     this.frontLimit = this.sideLimit;
+    // Carry the same elastic state into the new contact preparation once.
+    // Keeping absolute newtons on reload, but immediately clipping them on
+    // unload, rectified oscillating normal load into lost cornering force.
+    // Constant preparation and standalone callers keep the original arithmetic.
+    const frontStiffness =
+      q.frontLoad * contact > 1 && q.frontMu > 0 ? this.front.corneringStiffness : 0;
+    const oldFront =
+      q.inertialContacts &&
+      this.frontElasticStiffness > 0 &&
+      frontStiffness !== this.frontElasticStiffness
+        ? (this.frontFy * frontStiffness) / this.frontElasticStiffness
+        : this.frontFy;
+    this.frontElasticStiffness = frontStiffness;
     this.frontSlipAngle = this.front.alpha;
     this.frontStiffness = q.frontLoad * contact > 1 ? this.front.corneringStiffness : 0;
     this.frontLoadUsed = q.frontLoad * contact;
+    this.frontMuUsed = q.frontMu;
     const rearFy = this.sideForce(
       this.rear,
       q.rearLoad,
@@ -238,61 +279,146 @@ export class MotoGPChassis {
       q.rearFx,
     );
     this.rearLimit = this.sideLimit;
+    const rearStiffness = q.rearLoad > 1 && q.rearMu > 0 ? this.rear.corneringStiffness : 0;
+    const oldRear =
+      q.inertialContacts &&
+      this.rearElasticStiffness > 0 &&
+      rearStiffness !== this.rearElasticStiffness
+        ? (this.rearFy * rearStiffness) / this.rearElasticStiffness
+        : this.rearFy;
+    this.rearElasticStiffness = rearStiffness;
     this.rearSlipAngle = this.rear.alpha;
     // Transient lateral contact forces relax over distance travelled.
     const mix = 1 - Math.exp((-dt * Math.max(v, 3)) / MOTOGP_SLICK.relaxationLength);
     // Relaxation delays the build-up of carcass deflection, never the friction
     // limit: a contact whose load or grip falls cannot keep its old force.
-    this.frontFy = clamp(
-      this.frontFy + (frontFy - this.frontFy) * mix,
-      -this.frontLimit,
-      this.frontLimit,
-    );
-    this.rearFy = clamp(
-      this.rearFy + (rearFy - this.rearFy) * mix,
-      -this.rearLimit,
-      this.rearLimit,
-    );
+    this.frontFy = clamp(oldFront + (frontFy - oldFront) * mix, -this.frontLimit, this.frontLimit);
+    this.rearFy = clamp(oldRear + (rearFy - oldRear) * mix, -this.rearLimit, this.rearLimit);
     const frontSide = this.frontFy * Math.cos(steer) + q.frontFx * Math.sin(steer);
     const lateral = frontSide + this.rearFy;
     const yawMoment = g.frontArm * frontSide - g.rearArm * this.rearFy;
     this.lateralAcceleration = lateral / Math.max(1, q.mass);
     this.yawRate += (yawMoment / g.yawInertia) * dt;
-    this.lateralSpeed += (this.lateralAcceleration - v * this.yawRate) * dt;
+    if (q.inertialContacts) {
+      // Resolve the steered front force once. q.speed already contains
+      // q.frontFx, so add only the projection difference and tyre scrub.
+      this.longitudinalCorrection =
+        (q.frontFx * (Math.cos(steer) - 1) - this.frontFy * Math.sin(steer)) / Math.max(1, q.mass);
+      const forward = v + this.longitudinalCorrection * dt,
+        side = this.lateralSpeed + this.lateralAcceleration * dt;
+      // A yawing body rotates BOTH velocity components. Advancing only
+      // side' = ay - v*r manufactures kinetic energy during a slide. Clip
+      // yaw before using the same rotation that the adapter gives its pose.
+      this.yawRate = clamp(this.yawRate, -2.5, 2.5);
+      const turn = this.yawRate * dt,
+        cos = Math.cos(turn),
+        sin = Math.sin(turn);
+      this.forwardSpeed = Math.max(0, forward * cos + side * sin);
+      this.lateralSpeed = side * cos - forward * sin;
+    } else {
+      this.lateralSpeed += (this.lateralAcceleration - v * this.yawRate) * dt;
+      this.yawRate = clamp(this.yawRate, -2.5, 2.5);
+    }
     // Dissipative numerical limits only, for the incident transition.
-    this.yawRate = clamp(this.yawRate, -2.5, 2.5);
     this.lateralSpeed = clamp(this.lateralSpeed, -0.8 * Math.max(v, 1), 0.8 * Math.max(v, 1));
     this.stepWheels(q);
     return this;
   }
 
-  /** Ground-plane steer at which the front tyre, in its present contact
-   * state (load, friction, longitudinal force, camber, yaw and sideslip),
-   * produces `force` newtons of lateral force: the exact inverse of the
-   * pure-slip curve below its peak, with the friction ellipse reduced by
-   * the longitudinal force. Steering for a force rather than a path is what
-   * a rider does through the bars; it also steers into a sliding rear.
-   * Returns null when the front is not on the road. */
-  frontSteerFor(force: number, lean: number, speed: number, longitudinal: number) {
-    const state = this.front,
-      load = this.frontLoadUsed;
-    if (!(load > 1 && state.dy > 1 && speed >= 2.5)) return null;
-    const limit = Math.sqrt(Math.max(1, state.dy ** 2 - longitudinal ** 2)),
-      fraction = Math.min(0.97, Math.abs(force) / limit);
-    // Bisection on σ ∈ [0, 0.9]: the curve rises monotonically to its peak.
-    let lo = 0,
-      hi = 0.9;
-    for (let i = 0; i < 18; i++) {
-      const mid = 0.5 * (lo + hi);
-      if (slipCurve(mid, state.cy, state.ey, state.x0y) < fraction) lo = mid;
-      else hi = mid;
-    }
-    const slip = -Math.sign(force) * 0.5 * (lo + hi) * state.alphaRef,
+  /** Ground-plane steer producing `force` N in the CHASSIS lateral frame.
+   * Invert the same combined-slip law and signed front-force projection as
+   * the plant, using current load/friction when the suspension provides it.
+   * The nearest pre-peak root avoids steering through the tyre-force peak;
+   * the existing 3% inverse reserve remains inside the achievable range.
+   * Returns null without a loaded, rolling front contact. */
+  frontSteerFor(
+    force: number,
+    lean: number,
+    speed: number,
+    longitudinal: number,
+    load = this.frontLoadUsed,
+    mu = this.frontMuUsed,
+  ) {
+    if (!(load > 1 && mu > 0 && speed >= 2.5)) return null;
+    const state = this.inverseFront;
+    prepareSlip(MOTOGP_SLICK, load, Math.max(0.05, mu) * gpCamberFriction(lean), 1, 1, 1, state);
+    const limit = Math.sqrt(Math.max(0, state.dy ** 2 - longitudinal ** 2)),
       geometric = Math.atan2(
         this.lateralSpeed + this.geometry.frontArm * this.yawRate,
         Math.max(1, speed),
-      );
-    return geometric - camberShift(MOTOGP_SLICK, load, state, lean, speed) - slip;
+      ),
+      neutral = geometric - camberShift(MOTOGP_SLICK, load, state, lean, speed),
+      radius = 0.9 * state.alphaRef,
+      start = neutral - radius,
+      step = (2 * radius) / (this.inverseForces.length - 1),
+      at = (steer: number) => {
+        state.alpha = neutral - steer;
+        const lateral = this.preparedSideForce(state, longitudinal, limit);
+        return lateral * Math.cos(steer) + longitudinal * Math.sin(steer);
+      };
+    // Projection and combined slip can move the peak within the pure-slip
+    // bracket. Locate a physical root before bisecting, rather than assuming
+    // that a pure-slip inverse remains monotone under signed braking.
+    let minimum = Infinity,
+      maximum = -Infinity;
+    for (let i = 0; i < this.inverseForces.length; i++) {
+      const value = (this.inverseForces[i] = at(start + i * step));
+      minimum = Math.min(minimum, value);
+      maximum = Math.max(maximum, value);
+    }
+    const zero = this.inverseForces[8],
+      target = clamp(force, zero + 0.97 * (minimum - zero), zero + 0.97 * (maximum - zero));
+    let index = -1,
+      nearest = Infinity;
+    for (let i = 0; i < this.inverseForces.length - 1; i++) {
+      const a = this.inverseForces[i],
+        b = this.inverseForces[i + 1],
+        distance = Math.abs(i + 0.5 - 8);
+      if (target >= Math.min(a, b) && target <= Math.max(a, b) && distance < nearest) {
+        index = i;
+        nearest = distance;
+      }
+    }
+    if (index < 0) return neutral;
+    let lo = start + index * step,
+      hi = lo + step;
+    const increasing = this.inverseForces[index + 1] > this.inverseForces[index];
+    for (let i = 0; i < 20; i++) {
+      const mid = 0.5 * (lo + hi);
+      if (at(mid) < target === increasing) lo = mid;
+      else hi = mid;
+    }
+    return 0.5 * (lo + hi);
+  }
+
+  /** Predict the rear force the next contact evaluation will actually apply,
+   * including current support, combined slip, carcass relaxation and the
+   * immediate friction clamp. This does not advance any physical state. */
+  rearForceFor(
+    load: number,
+    mu: number,
+    lean: number,
+    speed: number,
+    longitudinal: number,
+    dt: number,
+  ) {
+    if (!(load > 1 && mu > 0)) return 0;
+    const state = this.previewRear,
+      friction = Math.max(0.05, mu) * gpCamberFriction(lean);
+    prepareSlip(MOTOGP_SLICK, load, friction, 1, 1, 1, state);
+    state.alpha =
+      Math.atan2(this.lateralSpeed - this.geometry.rearArm * this.yawRate, Math.max(1, speed)) -
+      camberShift(MOTOGP_SLICK, load, state, lean, speed);
+    const limit = Math.sqrt(Math.max(0, state.dy ** 2 - longitudinal ** 2)),
+      raw = this.preparedSideForce(state, longitudinal, limit),
+      mix = 1 - Math.exp((-dt * Math.max(speed, 3)) / MOTOGP_SLICK.relaxationLength);
+    // Preview the same strain interpretation without advancing the stored
+    // preparation or force: repeated controller queries must be read-only.
+    const oldRear =
+      this.rearElasticStiffness > 0 && state.corneringStiffness !== this.rearElasticStiffness
+        ? (this.rearFy * state.corneringStiffness) / this.rearElasticStiffness
+        : this.rearFy;
+    return clamp(oldRear + (raw - oldRear) * mix, -limit, limit);
   }
 
   private sideForce(
@@ -311,12 +437,21 @@ export class MotoGPChassis {
     prepareSlip(MOTOGP_SLICK, load, friction, 1, 1, 1, state);
     const alpha = Math.atan2(lateralVelocity, Math.max(1, speed)) - steer;
     state.alpha = alpha - camberShift(MOTOGP_SLICK, load, state, lean, speed);
+    this.sideLimit = Math.sqrt(Math.max(0, state.dy ** 2 - longitudinal ** 2));
+    return this.preparedSideForce(state, longitudinal, this.sideLimit);
+  }
+
+  /** Shared by the forward contact and steering inverse. */
+  private preparedSideForce(
+    state: ReturnType<typeof slipState>,
+    longitudinal: number,
+    limit: number,
+  ) {
     // Longitudinal force demand spends part of the same tyre friction budget.
     const ratio = clamp(longitudinal / Math.max(1, state.dx), -1, 1);
     const kappa = Math.sign(ratio) * Math.min(0.95, Math.abs(ratio)) * state.kappaRef;
     combinedForces(state, kappa, this.force);
-    const sideLimit = (this.sideLimit = Math.sqrt(Math.max(0, state.dy ** 2 - longitudinal ** 2)));
-    return clamp(this.force.fy, -sideLimit, sideLimit);
+    return clamp(this.force.fy, -limit, limit);
   }
 
   private stepWheels(q: MotoGPContactStep) {
@@ -338,8 +473,10 @@ export class MotoGPChassis {
       0.012,
       0.09,
     );
-    this.frontOmega += (targetFront - this.frontOmega) * (1 - Math.exp(-q.dt / frontTau));
-    this.rearOmega += (targetRear - this.rearOmega) * (1 - Math.exp(-q.dt / rearTau));
+    if (!q.inertialContacts || q.frontLoad > 1e-6)
+      this.frontOmega += (targetFront - this.frontOmega) * (1 - Math.exp(-q.dt / frontTau));
+    if (!q.inertialContacts || q.rearLoad > 1e-6)
+      this.rearOmega += (targetRear - this.rearOmega) * (1 - Math.exp(-q.dt / rearTau));
     this.frontOmega = Math.max(
       0,
       this.frontOmega - (q.frontBrakeExcess * g.frontRadius * q.dt) / g.frontWheelInertia,
@@ -353,12 +490,31 @@ export class MotoGPChassis {
     this.rearOmega = Math.min(500, this.rearOmega);
     this.frontSlip = clamp((this.frontOmega * g.frontRadius - v) / Math.max(2, v), -1, 6);
     this.rearSlip = clamp((this.rearOmega * g.rearRadius - v) / Math.max(2, v), -1, 6);
-    // Only contact sliding dissipates power; pure rolling creates none.
+    // Forces are in each wheel's frame. Rotate the front contact velocity
+    // into that steered frame before measuring work: geometric turning at
+    // an aligned rolling wheel is not sliding heat. Use the same body frame
+    // for both velocity components after the inertial-contact yaw update.
+    const forward = q.inertialContacts ? this.forwardSpeed : v;
     this.frontSlidingPower =
-      Math.abs(q.frontFx * (this.frontOmega * g.frontRadius - v)) +
-      Math.abs(this.frontFy * (this.lateralSpeed + g.frontArm * this.yawRate));
+      q.frontLoad * q.frontContact > 1e-6
+        ? motorcycleContactSlipPower(
+            q.frontFx,
+            this.frontFy,
+            forward,
+            this.lateralSpeed + g.frontArm * this.yawRate,
+            this.frontOmega * g.frontRadius,
+            this.groundSteer,
+          )
+        : 0;
     this.rearSlidingPower =
-      Math.abs(q.rearFx * (this.rearOmega * g.rearRadius - v)) +
-      Math.abs(this.rearFy * (this.lateralSpeed - g.rearArm * this.yawRate));
+      q.rearLoad > 1e-6
+        ? motorcycleContactSlipPower(
+            q.rearFx,
+            this.rearFy,
+            forward,
+            this.lateralSpeed - g.rearArm * this.yawRate,
+            this.rearOmega * g.rearRadius,
+          )
+        : 0;
   }
 }

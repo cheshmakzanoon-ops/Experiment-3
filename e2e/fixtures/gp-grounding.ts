@@ -1,4 +1,5 @@
 import * as T from 'three';
+import type { Vec3 } from '../../src/core/math.ts';
 import { GP_R1, GP_R2 } from '../../src/simulation/bike-definitions.ts';
 import { BikeVehicle, writeBikeBlock } from '../../src/simulation/bike-vehicle.ts';
 import { DEFAULT_SETUP } from '../../src/simulation/config.ts';
@@ -37,7 +38,15 @@ class GroundingBike extends BikeVehicle {
 const flatRoad = {
   sample(_x: number, _z: number, out: SurfaceSample) {
     out.height = 0;
+    out.normal.set(0, 1, 0);
     return out;
+  },
+  cast(origin: Vec3, down: Vec3, maximum: number, out: SurfaceSample) {
+    const distance = -origin.y / down.y;
+    if (distance < 0 || distance > maximum) return Infinity;
+    out.height = 0;
+    out.normal.set(0, 1, 0);
+    return distance;
   },
   nearest(_x: number, z: number, out: TrackPoint) {
     out.s = z;

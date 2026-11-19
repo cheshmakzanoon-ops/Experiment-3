@@ -31,6 +31,16 @@ export const GP_ASSIST = Object.freeze({
   yawDamping: 4,
 });
 
+/** Road-adapter roll control. Lean uses the existing 72% grip target;
+ * transient recovery may use the remaining contact capacity. The stopping
+ * bound slows a roll before its remaining tyre moment becomes insufficient. */
+const ROAD_ASSIST = Object.freeze({
+  recovery: 0.96,
+  rollGain: 4.5,
+  rateGain: 9,
+  stopShare: 0.75,
+});
+
 /** Reduced-order road-racing motorcycle model (WP33, masterplan §8). It began
  * as an isolated research model that settled the control contract and the
  * failure states; it is now the dynamics core of the session adapter
@@ -242,6 +252,10 @@ export class Bike {
    * These are sampled environment inputs, not integrated/replay state. */
   frontGrip?: number;
   rearGrip?: number;
+  /** Optional unilateral loads from the road adapter's heave/pitch solver.
+   * Undefined keeps the standalone research and MX load-transfer model.
+   * These contacts already contain dynamic transfer; do not add it twice. */
+  contactLoads?: { front: number; rear: number; rearLiftForce?: number };
   slope = 0;
   dragScale = 1;
   riderReady = true;
@@ -268,7 +282,36 @@ export class Bike {
   get curvature() {
     const p = this.p,
       geometric = (Math.tan(this.steer) / p.wheelbase) * Math.cos(this.lean);
-    if (!p.frontContactSteering) return geometric;
+    if (this.contactLoads && !this.motoGP) {
+      // Ordinary road bikes retain the reduced steering model, but a
+      // geometric bar angle cannot demand lateral force from an unloaded
+      // tyre. Bound the realised curvature by both actual contact circles,
+      // as the GP patch solver does, including the current brake/drive use.
+      const front = Math.sqrt(
+          Math.max(
+            0,
+            (p.mu * (this.frontGrip ?? this.grip) * this.frontLoad) ** 2 -
+              this.frontBrakeForce ** 2,
+          ),
+        ),
+        rear = Math.sqrt(
+          Math.max(
+            0,
+            (p.mu * (this.rearGrip ?? this.grip) * this.rearLoad) ** 2 -
+              (this.driveForce - this.rearBrakeForce) ** 2,
+          ),
+        ),
+        lateral = Math.min(
+          (front * p.wheelbase) / (this.mass * p.cgToRear),
+          (rear * p.wheelbase) / (this.mass * p.cgToFront),
+        );
+      return clamp(
+        geometric,
+        -lateral / Math.max(0.01, this.speed ** 2),
+        lateral / Math.max(0.01, this.speed ** 2),
+      );
+    }
+    if (!p.frontContactSteering && !this.contactLoads) return geometric;
     // A turned handlebar cannot transmit road steering through an unloaded
     // front tyre. Fade only in the lowest 5% of its static normal load, below
     // the 8% retained by the least intrusive GP wheelie-control map. Ordinary
@@ -283,7 +326,7 @@ export class Bike {
     return (
       geometric *
       clamp(this.frontLoad / (0.05 * staticFront), 0, 1) *
-      gpFrontSteeringContact(this.pitch, p.wheelbase)
+      (this.contactLoads ? 1 : gpFrontSteeringContact(this.pitch, p.wheelbase))
     );
   }
   /** Lateral acceleration the rider's hang-off adds at a lean, in units of g.
@@ -307,8 +350,42 @@ export class Bike {
       const clearance = p.maxLean + gpHangOffAngle(p.riderOffsetMax, p.cgHeight);
       return Math.min(clearance, Math.atan(GP_ASSIST.leanMargin * this.gpFriction(clearance)));
     }
-    const gain = (p.riderOffsetMax * 0.25) / p.cgHeight;
-    return Math.min(p.maxLean, Math.atan(Math.max(0.2, 0.72 * p.mu * this.grip - gain)));
+    return this.roadLeanLimit(1);
+  }
+  /** The intent scale stays independent of instantaneous load. Apply the
+   * contact bound to the physical target after decoding that intent, so a
+   * suspension transient cannot turn a modest requested lean into full stick. */
+  private get supportedRoadLeanLimit() {
+    if (!this.contactLoads) return this.roadLeanLimit(1);
+    const p = this.p,
+      reaction = (this.frontLoad + this.rearLoad) / this.mass;
+    if (reaction <= 1e-6) return 0;
+    // The nominal 72% lean intent already includes its conservative margin.
+    // Physical clipping instead leaves the documented 10% headroom inside
+    // the CURRENT recovery budget, including the weaker contact and camber.
+    // Applying the nominal margin again to every axle-load change needlessly
+    // reduced an already arrestable request during a steady powered corner.
+    const capacity = this.roadLateralCapacity(
+        p.mu * (this.frontGrip ?? this.grip),
+        p.mu * (this.rearGrip ?? this.grip),
+      ),
+      lateralRatio = (0.9 * ROAD_ASSIST.recovery * capacity) / reaction,
+      gain = (p.riderOffsetMax * 0.25) / p.cgHeight;
+    // Invert the actual road roll equilibrium with full rider hang-off:
+    // sin(phi) + gain = lateralRatio * cos(phi). This also lets the bound
+    // approach zero continuously when a contact loses lateral capacity.
+    return Math.min(
+      p.maxLean,
+      Math.max(
+        0,
+        Math.atan(lateralRatio) - Math.asin(Math.min(1, gain / Math.hypot(1, lateralRatio))),
+      ),
+    );
+  }
+  private roadLeanLimit(support: number) {
+    const p = this.p,
+      gain = (p.riderOffsetMax * 0.25) / p.cgHeight;
+    return Math.min(p.maxLean, Math.atan(Math.max(0.2, 0.72 * p.mu * this.grip * support - gain)));
   }
   /** Steady lateral friction (in g) of both GP slicks at a combined lean,
    * including wing load, the shoulder's camber factor and the gyroscopic
@@ -350,6 +427,7 @@ export class Bike {
       gp = this.motoGP!,
       v = Math.max(this.speed, 3),
       m = this.mass,
+      reaction = this.contactLoads ? (this.frontLoad + this.rearLoad) / m : G,
       h = p.cgHeight,
       inertia = gpRollInertia(gp.geometry, m, h),
       k = (m * h) / inertia,
@@ -360,7 +438,22 @@ export class Bike {
     // Target: the stick's share of the steady lean limit (surface grip, wing
     // load). Cornering ABS, traction and wheelie control keep the margin
     // between it and the tyres' present capacity, which bounds recovery.
-    const target = (gp.leanTarget = clamp(stick, -1, 1) * this.leanLimit);
+    const requestedTarget = clamp(stick, -1, 1) * this.leanLimit;
+    // A sprung contact can unload before the road changes the requested
+    // corner. Keep the target inside the lateral capacity already computed
+    // for this exact front/rear load pair; otherwise the rider asks for a
+    // lean the saturated tyres cannot arrest. The standalone model retains
+    // its original nominal-weight target.
+    const supportCapacity = this.contactLoads
+      ? Math.min(
+          (frontMu * this.frontLoad * p.wheelbase) / (m * p.cgToRear),
+          (rearMu * this.rearLoad * p.wheelbase) / (m * p.cgToFront),
+        ) * gpCamberFriction(this.lean)
+      : Infinity;
+    const supportedLimit = this.contactLoads
+      ? Math.atan2(GP_ASSIST.leanMargin * supportCapacity, reaction)
+      : this.leanLimit;
+    const target = (gp.leanTarget = clamp(requestedTarget, -supportedLimit, supportedLimit));
     // The lateral force answers a steer change within a fraction of a second
     // (sideslip and yaw modes); plan from where the roll will be by then.
     // The present roll acceleration (from the measured tyre force) carries
@@ -371,7 +464,7 @@ export class Bike {
       // look-ahead is short; rateGain·lead < 1 keeps the measured-force
       // prediction from feeding a step-to-step oscillation.
       lag = GP_ASSIST.lead,
-      rolling = (m * h * (G * Math.sin(psi) - measured * Math.cos(psi)) - gyro) / inertia,
+      rolling = (m * h * (reaction * Math.sin(psi) - measured * Math.cos(psi)) - gyro) / inertia,
       rateAhead = this.leanRate + lag * rolling,
       ahead = psi + lag * this.leanRate + 0.5 * lag * lag * rolling,
       error = target - ahead,
@@ -381,7 +474,7 @@ export class Bike {
     const stopping =
       k *
       (recovery * direction * (Math.sin(target) - Math.sin(ahead)) +
-        G * (Math.cos(target) - Math.cos(ahead)));
+        reaction * (Math.cos(target) - Math.cos(ahead)));
     const effort =
       direction *
       Math.min(gpRollRateLimit(this.speed, gp.geometry), GP_ASSIST.rollGain * Math.abs(error));
@@ -390,14 +483,29 @@ export class Bike {
       Math.min(Math.abs(effort), Math.sqrt(2 * GP_ASSIST.stopShare * Math.max(0, stopping)));
     // Inverse roll balance: I·ψ'' = m h (g sinψ − a cosψ) − H·r·cosφ.
     const balance = (accel: number) =>
-      (m * h * G * Math.sin(psi) - gyro - inertia * accel) / (m * h * Math.max(0.3, Math.cos(psi)));
+      (m * h * reaction * Math.sin(psi) - gyro - inertia * accel) /
+      (m * h * Math.max(0.3, Math.cos(psi)));
     const demand = balance(GP_ASSIST.rateGain * (rate - rateAhead));
     // Traction and wheelie control give way to the roll the rider asks for:
     // the reserve is the lateral acceleration of the effort-limited roll,
     // not of the slower roll today's (drive-reduced) capacity permits, or a
     // light front under full throttle could never regain steering.
+    // The actual roll target above is bounded by today's contact support.
+    // Reserve for the original request, however: using that already clipped
+    // target here traps a powered-up bike on a light front, because the drive
+    // limiter never sees the extra support needed to complete its lane change.
+    const requestedError = requestedTarget - ahead,
+      reserveEffort =
+        Math.sign(requestedError) *
+        Math.min(
+          gpRollRateLimit(this.speed, gp.geometry),
+          GP_ASSIST.rollGain * Math.abs(requestedError),
+        );
     gp.lateralDemand = Math.min(
-      Math.max(Math.abs(demand), Math.abs(balance(GP_ASSIST.rateGain * (effort - rateAhead)))),
+      Math.max(
+        Math.abs(demand),
+        Math.abs(balance(GP_ASSIST.rateGain * (reserveEffort - rateAhead))),
+      ),
       2 * G,
     );
     const lateral = clamp(demand, -recovery, recovery);
@@ -415,18 +523,95 @@ export class Bike {
     // under braking, nothing else damps the yaw. Steering the front for a
     // force, through the inverse of its own curve at its present slip,
     // camber and sideslip, answers within one relaxation length.
-    const yawError = gp.yawRate - lateral / v,
+    // The current suspension can unload/reload a tyre before the rider runs.
+    // Never cancel yesterday's rear force after it has ceased to exist. The
+    // longitudinal controls are resolved below, so this preview uses the
+    // preceding applied rear force, just as the front inverse does for Fx.
+    const rearForce = this.contactLoads
+        ? gp.rearForceFor(
+            this.rearLoad,
+            rearMu,
+            this.lean,
+            this.speed,
+            this.driveForce - this.rearBrakeForce,
+            dt,
+          )
+        : gp.rearFy,
+      yawError = gp.yawRate - lateral / v,
       frontForce =
         m * lateral -
-        gp.rearFy -
+        rearForce -
         (GP_ASSIST.yawDamping * gp.geometry.yawInertia * yawError) / gp.geometry.frontArm,
-      inverse = gp.frontSteerFor(frontForce, this.lean, this.speed, this.frontBrakeForce);
+      staticFront =
+        (m * G * p.cgToRear) / p.wheelbase +
+        (p.downforce ?? 0) * this.speed * this.speed * (p.downforceFront ?? 0.6),
+      contact =
+        clamp(this.frontLoad / Math.max(1, 0.05 * staticFront), 0, 1) *
+        (this.contactLoads ? 1 : gpFrontSteeringContact(this.pitch, p.wheelbase)),
+      inverse = gp.frontSteerFor(
+        frontForce,
+        this.lean,
+        this.speed,
+        -this.frontBrakeForce,
+        this.frontLoad * contact,
+        frontMu,
+      );
     const ground =
       (inverse ??
         Math.atan((p.wheelbase * lateral) / (v * v)) +
           clamp((GP_ASSIST.feedback * m * (lateral - measured)) / cornering, -0.06, 0.06)) +
       gp.steerTrim;
     return gpBarSteer(ground, this.lean);
+  }
+  private roadLateralDemand = 0;
+  private roadLateralCapacity(frontMu: number, rearMu: number) {
+    const p = this.p,
+      camber = 1 - 0.18 * Math.max(0, Math.abs(this.lean) - 0.8);
+    return (
+      Math.min(
+        (frontMu * this.frontLoad * p.wheelbase) / (this.mass * p.cgToRear),
+        (rearMu * this.rearLoad * p.wheelbase) / (this.mass * p.cgToFront),
+      ) * camber
+    );
+  }
+  private roadSteer(stick: number, frontMu: number, rearMu: number) {
+    const p = this.p,
+      reaction = (this.frontLoad + this.rearLoad) / this.mass,
+      cosine = Math.max(0.2, Math.cos(this.lean)),
+      capacity = this.roadLateralCapacity(frontMu, rearMu),
+      budget = ROAD_ASSIST.recovery * capacity,
+      limit = this.supportedRoadLeanLimit,
+      target = clamp(clamp(stick, -1, 1) * this.leanLimit, -limit, limit),
+      // The rate tracker takes 1/rateGain seconds to answer a new command.
+      // Reserve the roll distance travelled during that existing response;
+      // otherwise a soft-damped bike can reach a feasible target too fast.
+      ahead = this.lean + this.leanRate / ROAD_ASSIST.rateGain,
+      error = target - ahead,
+      equilibrium = reaction * (Math.tan(this.lean) + this.riderGain()),
+      // Integrate the opposing roll moment to the target. Its strength
+      // shrinks as the bike leans, so multiplying today's acceleration by
+      // the angle left overstates stopping energy under weak support.
+      // The rider-offset torque is part of the same road roll plant.
+      stoppingEnergy = Math.max(
+        0,
+        (budget * Math.sign(error) * (Math.sin(target) - Math.sin(ahead)) +
+          reaction * (Math.cos(target) - Math.cos(ahead)) -
+          reaction * ((this.riderOffset * 0.25) / p.cgHeight) * error) /
+          p.cgHeight,
+      ),
+      rate =
+        Math.sign(error) *
+        Math.min(
+          ROAD_ASSIST.rollGain * Math.abs(error),
+          Math.sqrt(2 * stoppingEnergy * ROAD_ASSIST.stopShare),
+        ),
+      acceleration = ROAD_ASSIST.rateGain * (rate - this.leanRate),
+      demand = equilibrium - (p.cgHeight * acceleration) / cosine,
+      lateral = clamp(demand, -budget, budget);
+    // Keep the uncapped roll-arrest demand for TC/ABS. The tyre's current
+    // lack of support must not erase the load needed to arrest that roll.
+    this.roadLateralDemand = Math.abs(demand);
+    return Math.atan((lateral * p.wheelbase) / (this.speed * this.speed * cosine));
   }
   step(input: BikeInput, dt: number) {
     if (!(dt > 0) || dt > 0.05) throw new Error('Invalid bike timestep');
@@ -437,6 +622,12 @@ export class Bike {
       mu = p.mu * this.grip,
       frontMu = p.mu * (this.frontGrip ?? this.grip),
       rearMu = p.mu * (this.rearGrip ?? this.grip);
+    const contacts = this.contactLoads;
+    if (contacts) {
+      this.frontLoad = Math.max(0, contacts.front);
+      this.rearLoad = Math.max(0, contacts.rear);
+    }
+    const airborne = !!contacts && this.frontLoad + this.rearLoad <= 1e-6;
     // Rider hang-off moves toward its command at a bounded rate. On a GP
     // prototype the combined lean is conserved while the rider moves: the
     // bike rolls the other way by the hang-off angle (an internal force).
@@ -453,19 +644,25 @@ export class Bike {
     // The GP roll assist runs above 3 m/s only. Below that the rider steers the
     // bars directly and gpSteer leaves its lean target and roll demand at the
     // last values it computed, which traction control must not treat as live.
-    const gpAssistLive = !!(a.lean && this.motoGP && this.speed > 3);
+    const gpAssistLive = !!(a.lean && this.motoGP && this.speed > 3 && !airborne);
     if (gpAssistLive) steerTarget = this.gpSteer(input.lean, frontMu, rearMu, dt);
     else if (a.lean) {
       // Stable intention: the requested lean is capped by what grip allows.
       // The assist commands the lateral acceleration that makes the lean
       // converge (less than g·tanφ to fall in, more to stand up): this is
       // counter-steering expressed as curvature, then converted to steer.
-      const target = clamp(input.lean, -1, 1) * this.leanLimit;
+      const requested = clamp(input.lean, -1, 1) * this.leanLimit,
+        limit = this.motoGP ? this.leanLimit : this.supportedRoadLeanLimit,
+        target = clamp(requested, -limit, limit);
+      // The inverse balance must use the same vertical contact reaction as
+      // the roll plant. A landing can support more than mg and a crest less;
+      // neither should be mistaken for an unexplained lean disturbance.
+      const reaction = contacts && !this.motoGP ? (this.frontLoad + this.rearLoad) / m : G;
       // Never ask the tyres for more than 80% of the friction circle.
-      const budget = 0.8 * mu * G;
+      const budget = 0.8 * mu * reaction;
       const lateral = clamp(
-        G * Math.tan(this.lean) +
-          G * this.riderGain() -
+        reaction * Math.tan(this.lean) +
+          reaction * this.riderGain() -
           G * 2 * (target - this.lean) +
           G * 0.7 * this.leanRate,
         -budget,
@@ -473,6 +670,14 @@ export class Bike {
       );
       const kappa = lateral / (v * v);
       steerTarget = Math.atan((kappa * p.wheelbase) / Math.max(0.2, Math.cos(this.lean)));
+      if (contacts && !this.motoGP && this.speed > 5)
+        // Enter the sprung high-speed controller continuously above walking
+        // pace; its counter-steer must not step when player balance hands off.
+        steerTarget = lerp(
+          steerTarget,
+          this.roadSteer(input.lean, frontMu, rearMu),
+          clamp((this.speed - 5) / 3, 0, 1),
+        );
       if (this.motoGP && this.speed > 3) {
         // Feedback on physical yaw and drift, not the bars' geometric path.
         // Rider intent remains a lean target; rear slip must not induce a
@@ -537,7 +742,6 @@ export class Bike {
     const lateralNow = Math.abs(
         this.motoGP?.lateralAcceleration ?? this.speed * this.speed * this.curvature,
       ),
-      rearLatNow = m * lateralNow * (p.cgToFront / p.wheelbase),
       // GP traction control keeps the rear's share of the lean assist's
       // recovery reserve, not just today's cornering force: drive that
       // spends the margin leaves nothing to stand the bike up with.
@@ -564,7 +768,32 @@ export class Bike {
           ) *
           (GP_ASSIST.recovery / GP_ASSIST.leanMargin)
         : 0,
-      rearLatReserve = this.motoGP ? gpReserve * (p.cgToFront / p.wheelbase) : rearLatNow,
+      // With a sprung road bike, realised curvature can be zero because a
+      // tyre just unloaded. Reserving only that force lets the accelerator
+      // or front brake keep the contact unloaded, even while a roll needs
+      // it back. Keep the intended lean and the uncapped bar correction in
+      // the assist budget; only the real contact circles apply tyre force.
+      roadReserve =
+        contacts && !this.motoGP && this.speed > 5
+          ? m *
+            Math.max(
+              lateralNow,
+              a.lean ? this.roadLateralDemand : 0,
+              Math.abs((v * v * Math.tan(steerTarget) * Math.cos(this.lean)) / p.wheelbase),
+              G *
+                (Math.tan(
+                  Math.min(
+                    1.3,
+                    Math.max(
+                      Math.abs(this.lean),
+                      a.lean ? Math.abs(clamp(input.lean, -1, 1)) * this.roadLeanLimit(1) : 0,
+                    ),
+                  ),
+                ) +
+                  Math.abs(this.riderGain())),
+            )
+          : m * lateralNow,
+      rearLatReserve = (this.motoGP ? gpReserve : roadReserve) * (p.cgToFront / p.wheelbase),
       rearDriveCapacity = this.motoGP ? rearCapacity * gpCamberFriction(this.lean) : rearCapacity;
     if (a.traction)
       drive = Math.min(
@@ -577,11 +806,10 @@ export class Bike {
     // the front tyre needs for its share of the cornering force.
     // GP: the front keeps the load its share of the assist's reserve needs;
     // drive that unloads it below that pushes the front wide on the exit.
-    const frontLatNow = m * lateralNow * (p.cgToRear / p.wheelbase);
     if (a.wheelie) {
       const frontNeed = this.motoGP
         ? (gpReserve * (p.cgToRear / p.wheelbase)) / (frontMu * gpCamberFriction(this.lean))
-        : frontLatNow / (0.8 * frontMu);
+        : (roadReserve * (p.cgToRear / p.wheelbase)) / (0.8 * frontMu);
       const keep = Math.min(staticFront, Math.max((p.wheelieKeep ?? 0.2) * staticFront, frontNeed));
       drive = Math.min(drive, ((staticFront - keep) * p.wheelbase) / p.cgHeight);
     }
@@ -598,15 +826,26 @@ export class Bike {
     const brakeR = rearServiceRequest + engineRequest;
     // What the rear can actually take (a light rear locks and slides).
     const rearHeld = Math.min(brakeR, rearMu * this.rearLoad);
+    // The sprung adapter supplies the rear-lift threshold from its current
+    // pitch geometry. Standalone and MX retain their original upright model.
+    // Rear service AND engine braking spend this same total force budget.
+    const geometricBrakeLimit =
+      a.wheelie && contacts?.rearLiftForce !== undefined
+        ? (p.stoppieMargin ?? 0.92) * contacts.rearLiftForce
+        : undefined;
     const liftLimit = a.wheelie
-      ? Math.max(0, ((p.stoppieMargin ?? 0.92) * staticRear * p.wheelbase) / p.cgHeight - rearHeld)
+      ? Math.max(
+          0,
+          (geometricBrakeLimit ??
+            ((p.stoppieMargin ?? 0.92) * staticRear * p.wheelbase) / p.cgHeight) - rearHeld,
+        )
       : Infinity;
     let brakeF = Math.min(liftLimit, p.frontBrake * front) * (v > 0.2 ? 1 : 0);
     // GP cornering ABS keeps each tyre the lateral force of the roll the
     // rider is asking for (trail braking trades stopping for turning), not
     // only the cornering force of the lean it happens to have reached.
-    const frontLatAbs = this.motoGP ? gpReserve * (p.cgToRear / p.wheelbase) : frontLatNow,
-      rearLatAbs = this.motoGP ? rearLatReserve : rearLatNow;
+    const frontLatAbs = (this.motoGP ? gpReserve : roadReserve) * (p.cgToRear / p.wheelbase),
+      rearLatAbs = rearLatReserve;
     if (a.abs) {
       // Cornering ABS: the front stays inside its friction circle, and the
       // weight it takes off the rear leaves the rear its cornering load.
@@ -628,6 +867,11 @@ export class Bike {
       const camberNow = 1 - 0.18 * Math.max(0, Math.abs(this.lean) - 0.8);
       const rearBrakeGrip = 0.95 * rearMu * camberNow;
       const frontBrakeGrip = 0.95 * frontMu * camberNow;
+      // With a sprung chassis this is also an anticipatory ABS bound: do
+      // not spend grip that the current brake stroke is about to unload.
+      // The initial force clamps above still enforce the actual contact
+      // loads, and these bounds only reduce force; they do not replace the
+      // suspension's measured normal support.
       const transferRatio = p.cgHeight / p.wheelbase;
       if (rearApplied < 0) {
         const capacity = rearBrakeGrip * Math.max(0, staticRear + frontApplied * transferRatio);
@@ -655,6 +899,17 @@ export class Bike {
             ? (capacity * coupling + Math.sqrt(discriminant)) / (1 - coupling * coupling)
             : 0;
         frontApplied = Math.max(frontApplied, -limit);
+      }
+    }
+    // A rear-only stroke can itself exceed the geometric bound, especially
+    // after a nose-down landing. Clamp the final braking pair as well as the
+    // front request; all contact/ABS reductions above remain authoritative.
+    if (geometricBrakeLimit !== undefined) {
+      const totalBraking = -frontApplied + Math.max(0, -rearApplied);
+      if (totalBraking > geometricBrakeLimit) {
+        const scale = geometricBrakeLimit / totalBraking;
+        frontApplied *= scale;
+        if (rearApplied < 0) rearApplied *= scale;
       }
     }
     if (p.currentDriveTraction && a.traction && rearApplied > 0) {
@@ -694,35 +949,43 @@ export class Bike {
     this.rearBrakeForce = Math.max(0, -rearApplied);
     this.engineBrakeForce = brakeR > 0 ? this.rearBrakeForce * (engineRequest / brakeR) : 0;
     const dragForce = p.drag * this.dragScale * this.speed * this.speed,
-      rolling = this.speed > 0.05 ? (p.rolling ?? 0) * m * G : 0;
-    const ax = (rearApplied + frontApplied - dragForce - rolling) / m - G * this.slope;
+      rolling = this.speed > 0.05 && !airborne ? (p.rolling ?? 0) * m * G : 0;
+    const ax =
+      (rearApplied + frontApplied - dragForce - rolling) / m - (airborne ? 0 : G * this.slope);
     this.longitudinal = ax;
     // Load transfer from the tyres' longitudinal forces (they act at the road,
-    // h below the CG; drag and gravity act near the CG): ΔF = Fx·h/L, with
+    // h below the CG; drag and reaction act near the CG): ΔF = Fx·h/L, with
     // loads clamped so they never become negative.
     const transfer = ((rearApplied + frontApplied) * p.cgHeight) / p.wheelbase;
-    this.frontLoad = Math.max(0, staticFront - transfer);
-    this.rearLoad = Math.max(0, staticRear + transfer);
-    // Wheelie/stoppie: pitch grows only while a wheel load would be negative.
-    const excess =
-      staticFront - transfer < 0
-        ? transfer - staticFront
-        : staticRear + transfer < 0
-          ? transfer + staticRear
-          : 0;
-    const settlingFront = p.frontContactSteering && excess === 0 && this.pitch > 0;
-    let pitchRate = excess !== 0 ? (excess / (m * G)) * 3 : -this.pitch * 4;
-    if (settlingFront) pitchRate = Math.min(pitchRate, -GP_FRONT_SETTLE_RATE);
-    if (a.wheelie && this.pitch > (p.wheelieLimit ?? 0.12) && pitchRate > 0) pitchRate = -1.5;
-    this.pitch = clamp(this.pitch + pitchRate * dt, -0.5, 0.9);
-    // Contact ends the GP descent; closing the final gap cannot itself
-    // overshoot into a stoppie. Real braking-induced negative pitch still
-    // follows the existing excess-load branch above.
-    if (settlingFront) this.pitch = Math.max(0, this.pitch);
-    if (this.pitch > 0.75 || this.pitch < -0.4) return this.fall('highside');
+    if (!contacts) {
+      this.frontLoad = Math.max(0, staticFront - transfer);
+      this.rearLoad = Math.max(0, staticRear + transfer);
+      // Wheelie/stoppie: pitch grows only while a wheel load would be negative.
+      const excess =
+        staticFront - transfer < 0
+          ? transfer - staticFront
+          : staticRear + transfer < 0
+            ? transfer + staticRear
+            : 0;
+      const settlingFront = p.frontContactSteering && excess === 0 && this.pitch > 0;
+      let pitchRate = excess !== 0 ? (excess / (m * G)) * 3 : -this.pitch * 4;
+      if (settlingFront) pitchRate = Math.min(pitchRate, -GP_FRONT_SETTLE_RATE);
+      if (a.wheelie && this.pitch > (p.wheelieLimit ?? 0.12) && pitchRate > 0) pitchRate = -1.5;
+      this.pitch = clamp(this.pitch + pitchRate * dt, -0.5, 0.9);
+      // Contact ends the GP descent; closing the final gap cannot itself
+      // overshoot into a stoppie. Real braking-induced negative pitch still
+      // follows the existing excess-load branch above.
+      if (settlingFront) this.pitch = Math.max(0, this.pitch);
+    }
+    // The road adapter integrates actual pitch and detects a supported
+    // loop-over itself. A flight attitude relative to falling terrain is
+    // not an algebraic wheelie/stoppie instability.
+    if (!contacts && (this.pitch > 0.75 || this.pitch < -0.4)) return this.fall('highside');
     this.speed = Math.max(0, this.speed + ax * dt);
     // GP prototypes integrate a physically separate contact-patch/yaw state.
     // The shared car and off-road solvers never enter this code path.
+    const flightYaw = this.motoGP?.yawRate ?? 0,
+      flightSideSpeed = this.motoGP?.lateralSpeed ?? 0;
     const gp = this.motoGP?.step({
       dt,
       speed: this.speed,
@@ -737,19 +1000,47 @@ export class Bike {
       rearFx: rearApplied,
       frontContact:
         clamp(this.frontLoad / Math.max(1, 0.05 * staticFront), 0, 1) *
-        gpFrontSteeringContact(this.pitch, p.wheelbase),
+        (contacts ? 1 : gpFrontSteeringContact(this.pitch, p.wheelbase)),
       frontBrakeExcess: a.abs ? 0 : Math.max(0, p.frontBrake * front - this.frontBrakeForce),
       rearDriveExcess: a.traction || a.wheelie ? 0 : Math.max(0, requested - drive),
       rearBrakeExcess: a.abs ? 0 : Math.max(0, brakeR - this.rearBrakeForce),
+      inertialContacts: !!contacts,
     });
-    // --- Roll balance: gravity vs tyre-generated lateral acceleration.
+    if (gp && airborne) {
+      // The GP single-wheel controller clears these when its front contact
+      // disappears. With BOTH contacts absent, yaw and lateral momentum
+      // instead persist; wheel rotation still advances in its contact solve.
+      gp.yawRate = flightYaw;
+      const turn = flightYaw * dt,
+        forward = this.speed;
+      this.speed = forward * Math.cos(turn) + flightSideSpeed * Math.sin(turn);
+      gp.lateralSpeed = flightSideSpeed * Math.cos(turn) - forward * Math.sin(turn);
+    } else if (gp && contacts) {
+      this.speed = gp.forwardSpeed;
+      this.longitudinal += gp.longitudinalCorrection;
+    }
+    // --- Roll balance: reaction vs tyre-generated lateral acceleration.
     const kappa = this.curvature;
     const lateralAccel = gp ? gp.lateralAcceleration : this.speed * this.speed * kappa;
     const h = p.cgHeight;
     // Low-speed balance assist (explicit, §8.3): below walking pace the rider
     // supports the bike, so lean is held near upright instead of toppling.
-    const support = a.lean ? 1 - clamp((this.speed - 1) / 4, 0, 1) : 0;
-    if (gp) {
+    const support = a.lean && !airborne ? 1 - clamp((this.speed - 1) / 4, 0, 1) : 0;
+    // Gravity acts through the CG. The contact's vertical reaction, applied
+    // below and to the side of that CG, supplies the overturning moment.
+    // N = mg only in steady support: retaining mg through a crest while
+    // lateral force falls with N created a roll impulse just before lift.
+    // The sprung model must approach zero moment continuously; the isolated
+    // research/MX cores retain their original steady-support approximation.
+    const contactGravity = contacts ? (this.frontLoad + this.rearLoad) / m : G;
+    if (airborne) {
+      // Gravity acts through the free CG. The supported roll controller and
+      // its wheel/contact-line gyroscopic balance have no road pivot here;
+      // conserve roll motion until touchdown, including the rider's internal
+      // hang-off displacement, instead of manufacturing an airborne lean.
+      this.lean += this.leanRate * dt;
+      if (gp) this.lean += gpHangOffAngle(offsetBefore, h) - gpHangOffAngle(this.riderOffset, h);
+    } else if (gp) {
       // GP: roll of the COMBINED CG ψ = φ + θ(hang-off) about the contact
       // line with the full roll inertia, I·ψ'' = m h (g sinψ − a_y cosψ)
       // − H·r·cosφ − H_f·δ'·cosε. H is the wheels' measured spin momentum:
@@ -764,7 +1055,7 @@ export class Bike {
         spin = frontSpin + geometry.rearWheelInertia * gp.rearOmega,
         steerRate = (this.steer - steerBefore) / dt;
       const rollAccel =
-        (m * h * (G * Math.sin(psi) - lateralAccel * Math.cos(psi)) -
+        (m * h * (contactGravity * Math.sin(psi) - lateralAccel * Math.cos(psi)) -
           spin * gp.yawRate * Math.cos(this.lean) -
           frontSpin * steerRate * Math.cos(GP_RAKE)) /
         inertia;
@@ -773,8 +1064,8 @@ export class Bike {
       this.lean = psi + this.leanRate * dt - gpHangOffAngle(this.riderOffset, h);
     } else {
       const rollAccel =
-        (G * Math.sin(this.lean) - lateralAccel * Math.cos(this.lean)) / h +
-        ((G * this.riderOffset) / (h * h)) * 0.25;
+        (contactGravity * Math.sin(this.lean) - lateralAccel * Math.cos(this.lean)) / h +
+        ((contactGravity * this.riderOffset) / (h * h)) * 0.25;
       this.leanRate +=
         (rollAccel - support * ((this.lean - balanceLean) * 40 + this.leanRate * 10)) * dt;
       this.leanRate *= Math.exp(-(p.rollDamping ?? 1.2) * dt);
@@ -798,9 +1089,12 @@ export class Bike {
     // Report the full force circle under braking too. The crash model still
     // distinguishes a recoverable rear brake slide from a powered highside.
     const rearUse = Math.hypot(rearLat, rearApplied) / Math.max(1, rearMu * camber * this.rearLoad);
-    this.frontUse = frontUse;
-    this.rearUse = rearUse;
-    this.lateralUse = Math.max(frontUse, rearUse);
+    // Canonicalize only floating-point roundoff at the exact friction-circle
+    // boundary (hypot/sqrt can return 1 + 2e-16 for an exactly limited pair).
+    // Genuine overloads remain unbounded for the failure/telemetry model.
+    this.frontUse = Math.abs(frontUse - 1) < 1e-12 ? 1 : frontUse;
+    this.rearUse = Math.abs(rearUse - 1) < 1e-12 ? 1 : rearUse;
+    this.lateralUse = Math.max(this.frontUse, this.rearUse);
     const grace = p.gripFallGrace ?? 0;
     if (grace > 0) {
       // Sustained overload only: the allowance is spent in proportion to how

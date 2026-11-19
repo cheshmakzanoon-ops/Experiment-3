@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { COMPOUNDS, controls, DEFAULT_SETUP } from '../src/simulation/config.ts';
+import { controls, DEFAULT_SETUP } from '../src/simulation/config.ts';
+import { MOTORCYCLE_THERMAL } from '../src/simulation/motorcycle-thermal.ts';
 import { MX_250, MX_450, SM_450 } from '../src/simulation/offroad/dirt-bikes.ts';
 import { DirtBikeVehicle } from '../src/simulation/offroad/dirt-bike-vehicle.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
@@ -24,17 +25,32 @@ function brakeIntoRecovery(definition: VehicleDefinition) {
     peakRearBrake = 0,
     peakCarcass = 0,
     peakSurface = 0,
+    brakeHeatJ = 0,
+    treadWorkJ = 0,
     groundedBrakeSteps = 0;
   for (let i = 0; i < 4 / DT && bike.riding; i++) {
+    const discs = [bike.tires[0].discTemp, bike.tires[2].discTemp];
     bike.step(DT, track);
     peakRearDemand = Math.max(peakRearDemand, bike.dynamics.rearUse);
     peakFrontBrake = Math.max(peakFrontBrake, bike.dynamics.frontBrakeForce);
     peakRearBrake = Math.max(peakRearBrake, bike.dynamics.rearBrakeForce);
-    if (bike.riding && !bike.airborne && bike.dynamics.frontBrakeForce > 0)
-      groundedBrakeSteps++;
+    if (bike.riding && !bike.airborne && bike.dynamics.frontBrakeForce > 0) groundedBrakeSteps++;
     for (const tire of bike.tires) {
       peakCarcass = Math.max(peakCarcass, tire.carcassTemp);
       peakSurface = Math.max(peakSurface, tire.surfaceTemp);
+      treadWorkJ += tire.energy * DT;
+    }
+    // Independent rotor first-law balance: source work equals stored heat
+    // plus heat sent to ambient/core. Net rotor temperature may still fall
+    // when a short brake application starts from a hot disc.
+    for (let end = 0; end < 2; end++) {
+      const tire = bike.tires[2 * end],
+        p = end === 0 ? MOTORCYCLE_THERMAL.front : MOTORCYCLE_THERMAL.rear,
+        speed = Math.hypot(bike.dynamics.speed, bike.slide),
+        loss =
+          (p.brake.airBase + p.brake.airSpeed * speed) * (tire.discTemp - track.ambient) +
+          p.tyre.discToCore * (tire.discTemp - tire.coreTemp);
+      brakeHeatJ += p.brake.capacity * (tire.discTemp - discs[end]) + loss * DT;
     }
   }
   return {
@@ -46,6 +62,8 @@ function brakeIntoRecovery(definition: VehicleDefinition) {
     peakRearBrake,
     peakCarcass,
     peakSurface,
+    brakeHeatJ,
+    treadWorkJ,
     groundedBrakeSteps,
   };
 }
@@ -65,24 +83,55 @@ describe('off-road thermal integration with full brake-force utilisation', () =>
       expect(run.peakRearDemand).toBeGreaterThan(1.5);
       expect(bike.riding).toBe(false);
       expect(bike.dynamics.crashes).toBe(1);
-      expect(run.peakSurface).toBeGreaterThan(run.initialSurface);
+      expect(run.brakeHeatJ).toBeGreaterThan(1);
+      if (definition.id === 'sm450') {
+        // This reduced steering model has no independent sliding patch.
+        // Its rolling corner force must not fabricate tread heat to make a
+        // warm tyre rise during this very short braking/fall transient.
+        expect(run.treadWorkJ).toBeLessThan(1e-7);
+        expect(run.peakSurface).toBeLessThanOrEqual(run.initialSurface);
+      } else {
+        expect(run.treadWorkJ).toBeGreaterThan(0);
+        expect(run.peakSurface).toBeGreaterThan(run.initialSurface);
+      }
       expect(run.peakCarcass).toBeLessThan(120);
       expect(run.peakSurface).toBeLessThan(140);
 
       Object.assign(bike.input, controls());
-      // With no tyre contact work, passive exchange can approach the warm
-      // carcass equilibrium or redistribute existing heat. It cannot exceed
-      // both temperatures at the fall and that equilibrium. This envelope
-      // checks the physical outcome without copying the integration formula.
+      // With no tyre contact work, only the finite hot tyre/rotor reservoirs
+      // and ambient/road boundaries can exchange heat. There is no authored
+      // ideal-temperature source during recovery.
       const ceilings = bike.tires.map((tire) =>
-          Math.max(tire.carcassTemp, tire.surfaceTemp, COMPOUNDS[tire.compound].ideal - 4),
+          Math.max(
+            tire.carcassTemp,
+            tire.surfaceTemp,
+            tire.coreTemp,
+            tire.discTemp,
+            track.ambient,
+            bike.contacts[0].temp,
+            bike.contacts[2].temp,
+          ),
         ),
         wear = bike.tires.map((tire) => tire.wear),
         states = new Set<string>();
+      const storedHeat = () =>
+        [0, 2].reduce((sum, i) => {
+          const tire = bike.tires[i],
+            p = i === 0 ? MOTORCYCLE_THERMAL.front : MOTORCYCLE_THERMAL.rear;
+          return (
+            sum +
+            p.tyre.surfaceCapacity * (1 - p.tyre.wearCapacityLoss * tire.wear) * tire.surfaceTemp +
+            p.tyre.carcassCapacity * tire.carcassTemp +
+            p.tyre.coreCapacity * tire.coreTemp +
+            p.brake.capacity * tire.discTemp
+          );
+        }, 0);
       for (let i = 0; i < 2 / DT; i++) {
+        const before = storedHeat();
         bike.step(DT, track);
         states.add(bike.dynamics.state);
         expect(bike.riding).toBe(false);
+        expect(storedHeat()).toBeLessThanOrEqual(before + 1e-6);
         for (let wheel = 0; wheel < bike.tires.length; wheel++) {
           const tire = bike.tires[wheel];
           expect(tire.fx).toBe(0);

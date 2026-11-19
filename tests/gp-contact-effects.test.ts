@@ -1,5 +1,6 @@
 import * as T from 'three';
 import { describe, expect, it } from 'vitest';
+import type { Vec3 } from '../src/core/math.ts';
 import { GP_R1, GP_R2 } from '../src/simulation/bike-definitions.ts';
 import { BikeVehicle, writeBikeBlock } from '../src/simulation/bike-vehicle.ts';
 import { DEFAULT_OPTIONS, DEFAULT_SETUP } from '../src/simulation/config.ts';
@@ -39,7 +40,15 @@ function onRoad(definition = GP_R1, heading = 0, slope = 0) {
   const track = {
     sample(x: number, z: number, out: SurfaceSample) {
       out.height = ground(x, z);
+      out.normal.set(-slope * Math.sin(heading), 1, -slope * Math.cos(heading)).normalize();
       return out;
+    },
+    cast(origin: Vec3, down: Vec3, maximum: number, out: SurfaceSample) {
+      const distance = (ground(origin.x, origin.z) - origin.y) / down.y;
+      if (distance < 0 || distance > maximum) return Infinity;
+      out.height = ground(origin.x, origin.z);
+      out.normal.set(-slope * Math.sin(heading), 1, -slope * Math.cos(heading)).normalize();
+      return distance;
     },
     nearest(_x: number, z: number, out: TrackPoint) {
       out.s = z;

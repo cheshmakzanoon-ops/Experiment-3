@@ -1,5 +1,6 @@
 import type { TerrainRenderDelta } from './offroad/course-terrain.ts';
 import type { Compound, Controls, SessionOptions } from './config.ts';
+import { vehicleAt } from './vehicles.ts';
 export const HEADER = 24,
   CAR_STRIDE = 331,
   WHEEL_BASE = 96,
@@ -23,11 +24,14 @@ export const HEADER = 24,
  * distance and the road normal in the non-spinning wheel frame. Every
  * earlier per-entrant offset is unchanged. v16 versions the Festival traffic
  * payload and appends authoritative signed wheel travel to each traffic entry;
- * the main frame's header, stride and per-entrant offsets remain unchanged. */
-export const PROTOCOL_VERSION = 16;
+ * the main frame's header, stride and per-entrant offsets remain unchanged.
+ * v17 defines the explicit road-motorcycle sprung-CG/contact-plane marker in
+ * its previously unused contact tail; legacy unmarked poses retain their
+ * original interpretation, with no stride or offset changes. */
+export const PROTOCOL_VERSION = 17;
 /** The contact block begins with a valid-wheel bitmask. Four eight-float
- * records follow it. Zero-mask synthetic and motorcycle snapshots retain
- * the presentation fallback without claiming measured car-carcass state.
+ * records follow it. Zero-mask synthetic and legacy motorcycle snapshots
+ * retain the fallback; ROAD_BIKE_CONTACT selects the distinct bike contract.
  * Lengths are metres. LONGITUDINAL displaces the patch forward; LATERAL is
  * the signed strain opposing leftward slip (patch displacement is -LATERAL).
  * RADIAL is compression along the road normal. HUB_LENGTH is the physical
@@ -45,6 +49,62 @@ export const C = {
 } as const;
 export const wheelContactBase = (car: number, wheel: number) =>
   car + WHEEL_CONTACT_BASE + 1 + wheel * WHEEL_CONTACT_STRIDE;
+/** Explicit road-motorcycle sprung chassis contract. The otherwise unused
+ * motorcycle contact tail stores front (record 0) and rear (record 2) sampled
+ * world planes and vertical wheel gaps. It is not a car's 0..15 contact mask.
+ * Zero retains the legacy wheel-plane pose, including MX and pit service. */
+export const ROAD_BIKE_CONTACT = 16;
+export const BC = {
+  X: 0,
+  Y: 1,
+  Z: 2,
+  GAP: 3,
+  NORMAL_X: 4,
+  NORMAL_Y: 5,
+  NORMAL_Z: 6,
+  LOAD: 7,
+} as const;
+/** The tag is trusted only with a live, ridden road-bike record. Old car,
+ * synthetic, MX and service frames cannot accidentally opt into a new frame. */
+export function hasRoadBikeContact(frame: Float32Array, car: number) {
+  if (frame[car + WHEEL_CONTACT_BASE] !== ROAD_BIKE_CONTACT) return false;
+  const definition = vehicleAt(frame[car + RACE_BASE + R.VEHICLE]);
+  if (
+    !definition.bike ||
+    definition.bike.offroad ||
+    frame[car + BIKE_BASE + B.STATE] !== 0 ||
+    frame[car + F.JACK_HEIGHT] !== 0 ||
+    (frame[car + F.IN_PIT] !== 0 &&
+      frame[car + F.PIT_PHASE] >= 2 &&
+      frame[car + F.PIT_PHASE] <= 5 &&
+      Math.abs(frame[car + F.SPEED]) <= 0.5)
+  )
+    return false;
+  for (let wheel = 0; wheel < 4; wheel += 2) {
+    const p = wheelContactBase(car, wheel);
+    for (let field = 0; field < WHEEL_CONTACT_STRIDE; field++)
+      if (!Number.isFinite(frame[p + field])) return false;
+    const length = Math.hypot(
+      frame[p + BC.NORMAL_X],
+      frame[p + BC.NORMAL_Y],
+      frame[p + BC.NORMAL_Z],
+    );
+    if (
+      Math.abs(length - 1) > 1e-4 ||
+      frame[p + BC.NORMAL_Y] < 0.2 ||
+      frame[p + BC.GAP] < 0 ||
+      frame[p + BC.LOAD] < 0
+    )
+      return false;
+  }
+  // The remaining two records are reserved, not aliased inherited car data.
+  for (let wheel = 1; wheel < 4; wheel += 2) {
+    const p = wheelContactBase(car, wheel);
+    for (let field = 0; field < WHEEL_CONTACT_STRIDE; field++)
+      if (frame[p + field] !== 0) return false;
+  }
+  return true;
+}
 /** Wheel winding is stored separately from its bounded ROTATION phase, so a
  * long session does not lose sub-turn precision to an enormous Float32 angle.
  * VALID is a bit mask (bit 0..3 = FR/FL/RR/RL); zero-initialized synthetic poses
@@ -407,9 +467,17 @@ export function snapshotIncompatibility(
   if (frame.length !== HEADER + cars * CAR_STRIDE)
     return 'snapshot length does not match its car count';
   for (let id = 0; id < cars; id++) {
-    const vehicle = frame[carBase(id) + RACE_BASE + R.VEHICLE];
+    const o = carBase(id),
+      vehicle = frame[o + RACE_BASE + R.VEHICLE];
     if (!Number.isInteger(vehicle) || vehicle < 0 || vehicle >= vehicleCount)
       return `snapshot entrant ${id + 1} names an unknown vehicle`;
+    const mask = frame[o + WHEEL_CONTACT_BASE];
+    if (
+      mask === ROAD_BIKE_CONTACT
+        ? !hasRoadBikeContact(frame, o)
+        : !Number.isInteger(mask) || mask < 0 || mask > 15
+    )
+      return `snapshot entrant ${id + 1} has invalid wheel contact geometry`;
   }
   return null;
 }

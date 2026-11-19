@@ -15,6 +15,9 @@ export function trackHeight(y: number, bank: number, s: number, lateral: number,
   );
 }
 
+const BANDS = [-35, -12, -4, -1.1, -0.55, 0, 0.18, 100, 0.18, 0, 0.55, 1.1, 4, 12, 35];
+const COLUMNS = BANDS.length;
+
 /** Independent static collision ribbon. Narrow bands preserve kerb profiles;
  * vertex normals are shared across triangle seams. No Three.js/DOM dependency.
  */
@@ -25,14 +28,16 @@ export class TrackContactMesh {
   readonly indices: Uint32Array;
   private hit = rayHit();
   private readonly tireHit = rayHit();
+  private readonly ownershipPoint;
   readonly tireFootprint: TireFootprint;
   constructor(
     readonly track: Track,
     readonly rows = 8192,
   ) {
     const p = { ...track.points[0] };
-    const bands = [-35, -12, -4, -1.1, -0.55, 0, 0.18, 100, 0.18, 0, 0.55, 1.1, 4, 12, 35];
-    const columns = bands.length;
+    this.ownershipPoint = { ...p };
+    const bands = BANDS,
+      columns = COLUMNS;
     this.vertices = new Float64Array((rows + 1) * columns * 3);
     this.normals = new Float64Array(this.vertices.length);
     this.indices = new Uint32Array(rows * (columns - 1) * 6);
@@ -82,9 +87,26 @@ export class TrackContactMesh {
         }
       }
     }
-    this.bvh = new TriangleBVH(this.vertices, this.indices, this.normals);
+    this.bvh = new TriangleBVH(this.vertices, this.indices, this.normals, this.ownsContact);
     this.tireFootprint = new TireFootprint(this.bvh);
   }
+  /** The 35 m runoff ribbon can cross the opposite leg of a tight hairpin.
+   * It is auxiliary terrain, not a second road deck. Preserve the narrower
+   * road/kerb (and then its paved shoulder) wherever they own the same layer.
+   * Test the actual hit point, not the ray origin or tire centre, so oblique
+   * casts and finite-crown contacts retain the same geometric ownership.
+   * Core road triangles bypass this entirely; real stacked decks therefore
+   * keep their normal nearest-hit rule. */
+  private readonly ownsContact = (triangle: number, x: number, y: number, z: number) => {
+    const band = Math.floor(triangle / 2) % (COLUMNS - 1);
+    if (band >= 3 && band <= 10) return true;
+    const p = this.ownershipPoint;
+    this.track.nearest(x, z, p, y);
+    const protectedWidth = p.width + (band === 2 || band === 11 ? 1.1 : 4) - 1e-7;
+    // Equal boundaries have a legitimate adjacent inner triangle; the small
+    // tolerance only admits floating-point seam error, never a height blend.
+    return (x - p.x) ** 2 + (z - p.z) ** 2 >= protectedWidth * protectedWidth;
+  };
   cast(origin: Vec3, down: Vec3, maximum: number, surface: SurfaceSample) {
     if (!this.bvh.raycast(origin, down, maximum, this.hit)) return Infinity;
     this.track.sample(this.hit.point.x, this.hit.point.z, surface, this.hit.point.y);

@@ -60,7 +60,7 @@ import {
 } from './festival-machines.ts';
 import { asTrack, OpenWorldTrack, WORLD_SURFACE_NAMES } from './open-world-track.ts';
 import {
-  insideFootprint,
+  MAX_TRUNK_RADIUS,
   regionStructures,
   StructureGrid,
   treesForTile,
@@ -68,6 +68,7 @@ import {
   TREE_STRIDE,
   type Structure,
 } from './placement.ts';
+import { StaticFootprintContact } from './static-footprint.ts';
 import { SOLVANE, SPEED_CLASS_KMH, type RegionDefinition } from './region-data.ts';
 import { RouteDriver, type RouteObstacle } from './route-driver.ts';
 import { pathPoint, planRoute, RoutePath } from './route-path.ts';
@@ -266,6 +267,9 @@ export class OpenWorldSimulation {
   private readonly treeBudget: number;
   private readonly corner = new Vec3();
   private readonly normal = new Vec3();
+  private readonly staticBox = new ChassisBox();
+  private readonly staticFootprint = new StaticFootprintContact();
+  private readonly nearStructures: number[] = [];
   private readonly point = trackPoint();
   private readonly pp = pathPoint();
   private readonly located = { lateral: 0, distance: 0 };
@@ -1140,87 +1144,117 @@ export class OpenWorldSimulation {
   /** Buildings and tree trunks as static colliders (impulse with damage). */
   private collideStatic(car: Vehicle) {
     const b = car.body,
-      [hx, hy, hz] = car.definition.halfExtents,
+      [hx, hy, hz] = car.definition.halfExtents;
+    this.staticBox.half = car.definition.halfExtents;
+    const axes = this.staticBox.update(b).axes,
       fx = car.forward.x,
       fz = car.forward.z,
-      fl = Math.hypot(fx, fz) || 1,
-      ux = fx / fl,
-      uz = fz / fl;
+      fl = Math.hypot(fx, fz),
+      sideLength = Math.hypot(axes[0].x, axes[0].z) || 1,
+      // A near-vertical forward vector still needs a non-degenerate yaw
+      // footprint. Its horizontal side axis supplies the equivalent frame.
+      ux = fl > 1e-8 ? fx / fl : -axes[0].z / sideLength,
+      uz = fl > 1e-8 ? fz / fl : axes[0].x / sideLength;
     // Car frame: +z forward (u), +x left (v = up × u).
     const vx = uz,
       vz = -ux;
+    // Height overlap uses the oriented chassis, including pitch and roll.
+    // A jumping car can clear a finite trunk/building; a pitched nose can
+    // still touch it even when the centre is above its top.
+    const verticalRadius =
+        Math.abs(axes[0].y) * hx + Math.abs(axes[1].y) * hy + Math.abs(axes[2].y) * hz,
+      bottom = b.position.y - verticalRadius,
+      top = b.position.y + verticalRadius,
+      extentX = Math.abs(vx) * hx + Math.abs(ux) * hz,
+      extentZ = Math.abs(vz) * hx + Math.abs(uz) * hz;
     let deepest = 0;
-    // Buildings: car perimeter points inside a footprint.
-    const nearBuildings = this.structureGrid.near(b.position.x, b.position.z);
-    if (nearBuildings.length)
-      for (const [a, c] of PERIMETER) {
-        const px = b.position.x + vx * a * hx + ux * c * hz,
-          pz = b.position.z + vz * a * hx + uz * c * hz;
-        for (const index of nearBuildings) {
-          const s = this.structures[index];
-          if (b.position.y > s.base + s.height + hy || !insideFootprint(s, px, pz)) continue;
-          const cos = Math.cos(s.heading),
-            sin = Math.sin(s.heading),
-            dx = px - s.x,
-            dz = pz - s.z,
-            lx = dx * cos + dz * sin,
-            lz = -dx * sin + dz * cos,
-            ex = s.hx - Math.abs(lx),
-            ez = s.hz - Math.abs(lz);
-          const depth = Math.min(ex, ez);
-          if (depth <= deepest) continue;
-          deepest = depth;
-          if (ex < ez) this.normal.set(Math.sign(lx) * cos, 0, Math.sign(lx) * sin);
-          else this.normal.set(-Math.sign(lz) * sin, 0, Math.sign(lz) * cos);
-          this.corner.set(px, b.position.y, pz);
-        }
-      }
+    // Every cell touched by the yaw footprint, with unique, stable candidates.
+    // Four separating axes also cover a narrow structure contained entirely
+    // inside the car, or crossed edges without a sampled corner inside.
+    const nearBuildings = this.structureGrid.queryBounds(
+      b.position.x - extentX,
+      b.position.z - extentZ,
+      b.position.x + extentX,
+      b.position.z + extentZ,
+      this.nearStructures,
+    );
+    for (const index of nearBuildings) {
+      const s = this.structures[index],
+        contact = this.staticFootprint;
+      if (
+        bottom > s.base + s.height ||
+        top < s.base ||
+        !contact.intersect(b.position.x, b.position.z, ux, uz, hx, hz, s) ||
+        contact.depth <= deepest
+      )
+        continue;
+      deepest = contact.depth;
+      this.normal.set(contact.nx, 0, contact.nz);
+      this.corner.set(contact.x, b.position.y, contact.z);
+    }
     if (deepest > 0)
       this.collisions.impulse(car, null, this.corner, this.normal, Math.min(deepest, 0.6));
-    // Tree trunks: circle against the chassis rectangle.
-    const trees = this.treesAt(b.position.x, b.position.z);
-    for (let i = 0; i < trees.length; i += TREE_STRIDE) {
-      const dx = trees[i] - b.position.x,
-        dz = trees[i + 1] - b.position.z;
-      if (Math.abs(dx) > 6 || Math.abs(dz) > 6) continue;
-      const r = trunkRadius(trees[i + 3], trees[i + 2]);
-      if (r <= 0) continue;
-      const lx = dx * vx + dz * vz,
-        lz = dx * ux + dz * uz,
-        cx = clamp(lx, -hx, hx),
-        cz = clamp(lz, -hz, hz),
-        ex = lx - cx,
-        ez = lz - cz,
-        d = Math.hypot(ex, ez);
-      if (d >= r) continue;
-      let nx: number, nz: number, depth: number;
-      if (d > 1e-4) {
-        // From the trunk toward the car's closest point.
-        nx = -(ex * vx + ez * ux) / d;
-        nz = -(ex * vz + ez * uz) / d;
-        depth = r - d;
-      } else {
-        // Trunk inside the box: push out along the shallow axis.
-        const px = hx - Math.abs(lx),
-          pz = hz - Math.abs(lz);
-        if (px < pz) {
-          nx = -Math.sign(lx) * vx;
-          nz = -Math.sign(lx) * vz;
-          depth = px + r;
-        } else {
-          nx = -Math.sign(lz) * ux;
-          nz = -Math.sign(lz) * uz;
-          depth = pz + r;
+    // A trunk can cross a tile boundary while its centre stays in the next
+    // tile. Visit each footprint-plus-radius tile once, in fixed integer order.
+    // The existing LRU still owns a bounded number of generated tree arrays.
+    const reachX = extentX + MAX_TRUNK_RADIUS,
+      reachZ = extentZ + MAX_TRUNK_RADIUS,
+      minTileX = Math.floor((b.position.x - reachX) / TILE_SIZE),
+      maxTileX = Math.floor((b.position.x + reachX) / TILE_SIZE),
+      minTileZ = Math.floor((b.position.z - reachZ) / TILE_SIZE),
+      maxTileZ = Math.floor((b.position.z + reachZ) / TILE_SIZE);
+    for (let tx = minTileX; tx <= maxTileX; tx++)
+      for (let tz = minTileZ; tz <= maxTileZ; tz++) {
+        const trees = this.treesAt(tx * TILE_SIZE, tz * TILE_SIZE);
+        for (let i = 0; i < trees.length; i += TREE_STRIDE) {
+          const dx = trees[i] - b.position.x,
+            dz = trees[i + 1] - b.position.z;
+          if (Math.abs(dx) > reachX || Math.abs(dz) > reachZ) continue;
+          const r = trunkRadius(trees[i + 3], trees[i + 2]);
+          if (r <= 0) continue;
+          const lx = dx * vx + dz * vz,
+            lz = dx * ux + dz * uz,
+            cx = clamp(lx, -hx, hx),
+            cz = clamp(lz, -hz, hz),
+            ex = lx - cx,
+            ez = lz - cz,
+            d = Math.hypot(ex, ez);
+          if (d >= r) continue;
+          // The same carved LOD0 ground anchors the rendered near tree. Query
+          // only horizontally touching trunks so the broad phase loads no ground.
+          const base = this.track.tiles.height(trees[i], trees[i + 1]);
+          if (bottom > base + trees[i + 2] || top < base) continue;
+          let nx: number, nz: number, depth: number;
+          if (d > 1e-4) {
+            // From the trunk toward the car's closest point.
+            nx = -(ex * vx + ez * ux) / d;
+            nz = -(ex * vz + ez * uz) / d;
+            depth = r - d;
+          } else {
+            // Trunk inside the box: push out along the shallow axis.
+            const px = hx - Math.abs(lx),
+              pz = hz - Math.abs(lz);
+            if (px < pz) {
+              const sign = Math.sign(lx) || Math.sign(b.velocity.x * vx + b.velocity.z * vz) || -1;
+              nx = -sign * vx;
+              nz = -sign * vz;
+              depth = px + r;
+            } else {
+              const sign = Math.sign(lz) || Math.sign(b.velocity.x * ux + b.velocity.z * uz) || -1;
+              nx = -sign * ux;
+              nz = -sign * uz;
+              depth = pz + r;
+            }
+          }
+          this.normal.set(nx, 0, nz);
+          this.corner.set(
+            b.position.x + cx * vx + cz * ux,
+            b.position.y,
+            b.position.z + cx * vz + cz * uz,
+          );
+          this.collisions.impulse(car, null, this.corner, this.normal, Math.min(depth, 0.6));
         }
       }
-      this.normal.set(nx, 0, nz);
-      this.corner.set(
-        b.position.x + cx * vx + cz * ux,
-        b.position.y,
-        b.position.z + cx * vz + cz * uz,
-      );
-      this.collisions.impulse(car, null, this.corner, this.normal, Math.min(depth, 0.6));
-    }
   }
   // --- Output -------------------------------------------------------------
   status(): FestivalStatus {
@@ -1393,17 +1427,6 @@ const SAMPLE = {
   cell: 0,
   pit: false,
 };
-/** Car perimeter sample points in half-extent units (x: left, z: forward). */
-const PERIMETER: readonly (readonly [number, number])[] = Object.freeze([
-  [-1, -1],
-  [1, -1],
-  [1, 1],
-  [-1, 1],
-  [0, 1],
-  [0, -1],
-  [1, 0],
-  [-1, 0],
-]);
 /** One car's block of the snapshot (same fields as the circuit writer). */
 function writeCar(out: Float32Array, id: number, c: Vehicle) {
   const b = c.body,

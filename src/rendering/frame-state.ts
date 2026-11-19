@@ -10,9 +10,12 @@ import {
   C,
   WHEEL_CONTACT_BASE,
   wheelContactBase,
+  ROAD_BIKE_CONTACT,
+  hasRoadBikeContact,
 } from '../simulation/protocol.ts';
 import { wheelPhase, wheelValue } from './wheel-pose.ts';
 import { sampleWheelContact, wheelContactPose } from './wheel-contact.ts';
+import { RoadBikeContactPose } from './road-bike-pose.ts';
 import { Quaternion, Vector3 } from 'three';
 import {
   sampleBikeField,
@@ -76,6 +79,7 @@ export class PresentedFrame {
   private readonly velocity = new Vector3();
   private readonly angularVelocity = new Vector3();
   private readonly contact = wheelContactPose();
+  private readonly roadBike = new RoadBikeContactPose();
   sample(a: Float32Array, b: Float32Array, alpha: number): Float32Array {
     const cars = b[H.CARS];
     if (
@@ -93,6 +97,14 @@ export class PresentedFrame {
       b[H.TIME] < a[H.TIME]
     )
       throw new Error('Invalid presentation snapshot pair');
+    for (let id = 0; id < cars; id++) {
+      const o = carBase(id);
+      if (
+        (a[o + WHEEL_CONTACT_BASE] === ROAD_BIKE_CONTACT && !hasRoadBikeContact(a, o)) ||
+        (b[o + WHEEL_CONTACT_BASE] === ROAD_BIKE_CONTACT && !hasRoadBikeContact(b, o))
+      )
+        throw new Error('Invalid road motorcycle presentation contact');
+    }
     if (this.value.length !== b.length) this.value = new Float32Array(b.length);
     const out = this.value;
     out.set(alpha < 1 ? a : b);
@@ -164,6 +176,7 @@ export class PresentedFrame {
         // A replacement tire starts a new counter, not a negative pickup ramp.
         if (b[counter] >= a[counter]) this.blend(a, b, counter, t);
       }
+      this.roadBike.sample(a, b, o, t).write(out, o);
     }
     return out;
   }

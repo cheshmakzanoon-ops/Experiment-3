@@ -1,0 +1,2444 @@
+{
+  "schema": 1,
+  "createdUtc": "2026-11-19T07:00:20.825116+00:00",
+  "scope": {
+    "initialFullVehicles": 57,
+    "initialMetricPairs": 228,
+    "initialFailedMetricPairs": 3,
+    "retainedUnchangedCars": 48,
+    "finalMotorcyclesRerun": 9,
+    "finalCombinedPassedMetricPairs": 228,
+    "finalCombinedIndividualBandChecks": 456,
+    "timestepsSeconds": [0.004166666666666667, 0.008333333333333333],
+    "full57RerunAfterEachCorrection": false,
+    "timestepDriftIsInformational": true
+  },
+  "sources": {
+    "baselineCommit": "0f928c8c0250623eb8cfe4dc439cc273af8c482a",
+    "aggregateAlgorithm": "SHA256 of sorted relativePath + NUL + fileSHA256 + newline; src/core/**/*.ts and src/simulation/**/*.ts",
+    "initialFull57": {
+      "baseCommit": "4e3d65c8485aa81d2e720b99a7616923a359b35e",
+      "engineAggregate": "6bb5fe0212f774773be9f489913779f3cd8980a3172a079fff318eefa2af4868",
+      "files": {
+        "src/core/championship.ts": "947f2c7189b6d71bebb8ccf402940d961dc45c7f0c490e929d64ec7abef47f02",
+        "src/core/dialog-close.ts": "5ad5a7cdaf93cf6213f6f3efbd27c0edb5c779c18d5fe443ab08a6252dea378b",
+        "src/core/flashback.ts": "db61059dbe12854ef67bdefc514b9f255f4ef2f6893674c2c00109a44f04e2b2",
+        "src/core/ghost-lap.ts": "9766853ddd0515cf71acd0a0cbcb25aefde14519aa43c48e36fadcf8ea4eb7ce",
+        "src/core/grid-presentation.ts": "cc92889ad8ae96d708adae15ca860c3099d70e48ed1e0768f2922f3623cd50a6",
+        "src/core/hud-scale.ts": "344bc4dcdd222b34305bb25652f52d90aafb11febe6ccd94b3237420f554b53e",
+        "src/core/lazy-data.ts": "0595702a029cf5b0e16a5d0418c0f4f5354a9661722f0d5d4c440c9761a08bc9",
+        "src/core/math.ts": "7f32bf1fcb9c784129594225d2bae7073fbb87cfbc54c890994db46b71f452d0",
+        "src/core/performance.ts": "6054aa6e5d5d61219d69ef46abc04f1c146a4c5463dedae2e1b2cebc4031fb6b",
+        "src/core/radio.ts": "6a23e0d89a143f7d5f6cf14ac948b916cca611d348ecabd150262293ef0dc73f",
+        "src/core/scoring.ts": "2b1e9403633063f47587c393e460ea9e79dc5d2c9275fada3c2b40959347f5fb",
+        "src/core/session-identity.ts": "7fdd241374fc28f6786c9989a02dbed59ac076807d93a8d63435dfed8acf5f58",
+        "src/core/session-review.ts": "3e935c95403bf692980d9fb3ebab25a9ba7f1b33ec0e467f4f0d318b4d725731",
+        "src/core/settings-transition.ts": "8d7875aa4bbf77f5ac12582e72b3b42bdd0b97e9e8395ed2b4508d49a2c1e02d",
+        "src/core/stage-rules.ts": "79adc4ec8dec2d26482c6411582fa3dcfaf666094b92ce4d5a65639d64383dcd",
+        "src/simulation/aero-map.ts": "8322cbb61e600c5a835b4d909da03f73ec766b045ce81e8cfd04cbf588f7c8c6",
+        "src/simulation/aero.ts": "072678c4ce515b222475a02e4f1eda20f21042640dcc74127f1a9bb7f048fef5",
+        "src/simulation/ai.ts": "5be0791ac44bc88a17e0c84744216e66ea6455f1dbe55a489c2628d2f5412525",
+        "src/simulation/bike-ai.ts": "4f9fc34126eb124dc18c57c3cdce7fc04e132c532e2cfb554ce61eab0f542854",
+        "src/simulation/bike-definitions.ts": "7d891a82479f1a8214ff72349b5c5139267fb09ed3478a30bbebe33a02cd386d",
+        "src/simulation/bike-slipstream.ts": "69249d407d3db7d150934e0479dfc629f27bf4579239231bc2850128dc39c66a",
+        "src/simulation/bike-vehicle.ts": "8bbc3cb2af0a1528bdbe71d16f0f41d2f47af16416a7280e1175d6ae981a7edc",
+        "src/simulation/bike.ts": "a6086b7f6b3439001c6dbb666b73ae8edd3710abfc647dd9dec6aba4bbc7b56d",
+        "src/simulation/brake-thermal.ts": "ea1dd82070364d8972bdfbfff849a4eeda1b857cb759db8c3761529372d9d78c",
+        "src/simulation/bvh.ts": "dfb23acad4705a911ec0a8edc2a510965c276aee24fcc9156c0d7d8de999381a",
+        "src/simulation/catalogue-dynamics.ts": "5e37bfa5416470a8e91b653e5e24b2d072e440241026e0c9eed38f0877925821",
+        "src/simulation/catalogue-events.ts": "ab2f64fa925f5a170531efeca109c95323b8bd3c616868e43e015211ce36980a",
+        "src/simulation/circuit-catalogue/builder.ts": "20f793e8f21d99413ebdb64374f994f859f2222a06a7f59f56d9a6efacd248f5",
+        "src/simulation/circuit-catalogue/dsl.ts": "3e4e980d31fa1ab9424e86084f37dcaad10265669d015656003e35e59952c0a6",
+        "src/simulation/circuit-catalogue/endurance.ts": "0d5a4c8914d3b214fbb6dc1ade62946a7c995aa81d8a57022b97f7aee0ace261",
+        "src/simulation/circuit-catalogue/events.ts": "8d89c3696663168b70b85a80be05ef4fcbd23e8eb5d6d1c583302411573eb720",
+        "src/simulation/circuit-catalogue/geometry-checks.ts": "5b654d0e90ae0e73206f0bedf1f822b12747837b6fe313bf4c9c9af803015982",
+        "src/simulation/circuit-catalogue/index.ts": "b445880e967d922307eb6636b551978ed5052822c308e7143ebc782f9169a9c6",
+        "src/simulation/circuit-catalogue/industrial.ts": "38c6ac91871dbc636fa79c9813612dae189d1ba3176c574b60fa65412d8bd0cb",
+        "src/simulation/circuit-catalogue/motorcycle-gp.ts": "8dd2de0842929ed80bb876b6cb5a8760ec2896841da86560f1cf4909d66fed15",
+        "src/simulation/circuit-catalogue/night-and-street.ts": "4833619d220db7bf321c18510df4e83aef5cbea8ec088f40636379e9feb74d37",
+        "src/simulation/circuit-catalogue/real-world-classics.ts": "562832bea489c70327f09db1e493808d803ac1b8c1a972811ea003be04241c68",
+        "src/simulation/circuit-catalogue/real-world.ts": "09daee5348767edae8aef65ad920d79403d1807f4b2ae41fa11ef7ffe23bcecc",
+        "src/simulation/circuit-catalogue/unconventional.ts": "a6d5b3b91b0faf02d0b7ac0d38fc719649ac8cb6526465621d6372ae2f5439c5",
+        "src/simulation/circuit-catalogue/venue-data.ts": "43fa90bf86ee29875cde68db0704ffaa5a9c12aa20834966a1b6f2b6e4ea8386",
+        "src/simulation/circuit-catalogue/wildcard-venues.ts": "5856ef3e72a47ba23234addaf942210a169fec4495a5405a58b6c26a359af09a",
+        "src/simulation/circuits.ts": "7b0208025d6c0cb25a49bc757e7c69b1fdcb651bdb66803ee75648de24752c90",
+        "src/simulation/clutch.ts": "f511e6588d5326ac7573ae566c405589bc904c31a94ceddbb40d5eb110b863c4",
+        "src/simulation/collision.ts": "4f85907e1a79b8f8c8dc2213aec44140e60b955c9a6e59f7f8c264e5220fa895",
+        "src/simulation/config.ts": "53334c48e2a88177db4e7342c8f34fc344076caab152e4bf76648b8134f17a1e",
+        "src/simulation/contact.ts": "004ca3566893be27745e5047b976e57a6f8404e055b8b5baa7c804d2df114db1",
+        "src/simulation/contamination.ts": "be99152f738ba230ac65986f83df15869f5227db80bf93737e4c337186b9f005",
+        "src/simulation/content-import.ts": "3be5abec0a96bcbfafff3b0ba4e5ce64dda6ba5784b7a223257b0a3eb972a773",
+        "src/simulation/content-validation.ts": "d13329931d23459d5a14d28f781239b8f2eb167af90fd3ae17958e71427a9bd7",
+        "src/simulation/damage.ts": "2b0268d4c9572e88c8d370d1649a579f151d55a2b5d801849197adaa2a7f95ad",
+        "src/simulation/differential.ts": "e8fbd3986683225e7a39694df5441dd1f922648edb48cc40aed975c457197bb4",
+        "src/simulation/driver-brain.ts": "3059874d81d65bf3978e2f808eb83cbe11459872c72f304e2adf6cec49adcc8d",
+        "src/simulation/driving-assists.ts": "cd7d3c95813ceba55f214f87f52ce74ec0ba1af5f22fa9861796f765adc8f0d6",
+        "src/simulation/drs.ts": "8b25937af380288f974e6112ca0241601a5a17e593871193a89796a21e59bc81",
+        "src/simulation/events.ts": "adf92e82801c967a01952543f3ebcd6061249d8345c6938f5668aaabf50f03d4",
+        "src/simulation/gp-brake-fade.ts": "44b747004eb4c7c1256b6d65ccd16dd9b60fb00a49174e77962c99bc29fe543c",
+        "src/simulation/gp-corner-shape.ts": "ed691d13341177d8b677df5188cd3fa093fbb73f84db3081b3a61aeddfbb54f0",
+        "src/simulation/gp-engine-braking.ts": "11c1a601b8d7cae52fee5572dfb67286f4eed25f8a91bd1e8c0b7af01e09b8d8",
+        "src/simulation/gp-front-contact.ts": "b98fd97de63feff43ba77f4fc36f3a91e1761e5ca91a90d927a3d9044f68396e",
+        "src/simulation/gp-grid.ts": "5372cea0c59890a260e28868f6dfce09fba8b5ef59b60841ce75199554be5f24",
+        "src/simulation/lap-reference.ts": "f9e6e02cc5f968d7d63f91aa1373d7427e6fa56caa6a8e1957ad47d09d436dd5",
+        "src/simulation/local-frame.ts": "dc031f159d403f8f550c1dd20deed37d01bfde55d59d4bc555540229ccdc8b4d",
+        "src/simulation/marshal.ts": "2c9164f1d26629aaa4280a9bf0401e3021d660a5f89c09d8fff426c26e705f46",
+        "src/simulation/motogp-physics.ts": "5055e08b81a7de2d2ff3d4929e4b74d3f3416cb60e77cb5b8d66cdd291b56f6b",
+        "src/simulation/motorcycle-braking-plan.ts": "593dd7177cf9f5b6f74da6b285ec2ecd612910182bc151233cd66d1b8ad185c7",
+        "src/simulation/motorcycle-thermal.ts": "eba12f1b721cdf20437977614b5f609a06ca385739007061bfe94d2c2cd79e2b",
+        "src/simulation/moving-surface.ts": "d9e80a5be758f27f9186a7028f6d9831036d1ccead13c72265c93c2374421a3a",
+        "src/simulation/obb.ts": "14185b3ad455cd7eba9f371cdc686d839fd2729ed936e1dd808196414d392b19",
+        "src/simulation/offroad/ai.ts": "bd5fe4c6e2e26500e596a7674cf57c65f333bc4dba44a7e7a2513ffa1f563770",
+        "src/simulation/offroad/berm-practice.ts": "cf16f0666d01ddf3ccbb26185d09f05116a36c2f64b7b226816f49d93241b8f2",
+        "src/simulation/offroad/braking-bumps.ts": "33f87c67f9146f52a500450232be671e7ec632e31ed23d195a62f2c351e4dfaf",
+        "src/simulation/offroad/contact-impulse.ts": "9c6daf1253551a5b2ec7039ec086ba8bed03bc5e5f495aa8ce4c4322f379a847",
+        "src/simulation/offroad/course-terrain.ts": "15cf18d425f8b6fc04612cff9f39fd068509e2fc28b78f4aa82ca8ab54f43edc",
+        "src/simulation/offroad/course.ts": "eafa8e56f4770fd913d76209444e627189646095120777230faa3968c5e24e99",
+        "src/simulation/offroad/dirt-bike-vehicle.ts": "319fe56ff3eb6308f6076f6d604dfca3db17bd73f5ddef6df40c2a4430f2a81a",
+        "src/simulation/offroad/dirt-bikes.ts": "9f25cf072ac30a0399240c0b009b5f8bd8c23e79be5bd5caabeb230c46075324",
+        "src/simulation/offroad/flow-practice.ts": "1aaa1bf18f724593b3a3fc1b1169bc43510e28be210b9913c0ccc301ba343552",
+        "src/simulation/offroad/formats.ts": "8f80f9eacd13cf1a80b727c3ef4ad2ed0cb792a35f4e480b5e5bde6279608c5a",
+        "src/simulation/offroad/jump-rig.ts": "1670e6a47702b5b770f4d21876f4ee0439293b17330a2fb545d02d338cf1d9b0",
+        "src/simulation/offroad/jump-target.ts": "083aec63010da088331229746c59d90a946806e6e74118fe9a9b741967bc3cc5",
+        "src/simulation/offroad/landing-challenge.ts": "65c2ff9b88013bda4bd13724abdba2971ceb41170f684f5c056e3215f7133519",
+        "src/simulation/offroad/meeting.ts": "c77c2c4f57ea8c185dbc05858e6672f01b1db17f806284dced99b2f6efa79468",
+        "src/simulation/offroad/mx-ground-physics.ts": "0baaba17249751fa2629861fedfd7ac119f5b537d7392b5d8e7650f529bde9ca",
+        "src/simulation/offroad/profile.ts": "7d94f8c4a3b2bf414c2950afcec20323fc7cb603d3bdc509493c7f442749a2ce",
+        "src/simulation/offroad/rhythm-coach.ts": "4058b976e130d5a84abee7a2912dcc0c1946dc4026d485e2ea6b3d1380e8003d",
+        "src/simulation/offroad/rider-weight.ts": "1b4819b96e4bf48f03113f0440b964cd0cc0aefb697bbc775f8ac823bb75940a",
+        "src/simulation/offroad/riding-feedback.ts": "6d2a7783e0a4065850e0469699338e7fb99468f1a87bc11edd238934d28c7449",
+        "src/simulation/offroad/session.ts": "25e9bd4b3d2d9371015d9cda8123964ac2e92890bbecf87de8badc0b02c8da78",
+        "src/simulation/offroad/suspension-geometry.ts": "12fddb8870154e0a2ca5e833202c1796710274fc530ab28beb20de489befcf86",
+        "src/simulation/offroad/types.ts": "dc338bd0062fc98f15ac1086efda4e92bc6f4ff7a6411714fff898be900ab19d",
+        "src/simulation/offroad/venues.ts": "4b439f57482138176bbd4cb4c7212ace1266e5764fd2b10bc53c3f39a3d54891",
+        "src/simulation/offroad/wheel-pickup.ts": "3872c53e7b7bf7c6268b45fd436fd05dc4e5932c773ca660101c8b11864d0251",
+        "src/simulation/open-world/activity-progress.ts": "e53394796b3e4e2645f5197478a8e951cba5a2e314634a59594c60fd877b1d40",
+        "src/simulation/open-world/ambient-traffic.ts": "b95b56699ac8eb965d836926b70d9cec150980210c2a202286a8b1374597d0a7",
+        "src/simulation/open-world/circuit-pace.ts": "51ac236b8b9feeea487fb6b1cd81774c0295fc901df268ab7bf6d9e9ebbc419e",
+        "src/simulation/open-world/drift-feedback.ts": "4c4f76cb681498c00bf37d810e34c8eaa790af14ad43d373029acbf629e97ea8",
+        "src/simulation/open-world/festival-events.ts": "fb92d7d0fdd0886cb5c915841c3e9dfdb089a8b84c042c7b610b4c0bc90be6cb",
+        "src/simulation/open-world/festival-machines.ts": "04439d579be1e32fa292da837d9547257f8bb37958a344ecc59006e373fe634b",
+        "src/simulation/open-world/festival-markings.ts": "b8a6e6f97a3ac3f6edbf3ea931cad87fac79373096a79c240e68b86bc5ef3157",
+        "src/simulation/open-world/festival-result.ts": "89310824a2b230575b970c44f82708395ac01dd6479f8aa5c5b004c4b6966a89",
+        "src/simulation/open-world/ground-height.ts": "01041c5f1df743792f976f9f2cbdb40f39f36bc8859e7ad8a0fc2302e7029d1c",
+        "src/simulation/open-world/near-miss.ts": "a2b7786735c06bc86ba9b684bfd30be2bf5b4ef80c274afebc48aeb17e0699ce",
+        "src/simulation/open-world/noise.ts": "fe17fc4cecec2d538f96fe1052b8625111bf7796e26767dcfe7d932d80dc623e",
+        "src/simulation/open-world/open-world-track.ts": "1d055b7026e73ceeb5c98fe75bb6dc59adb543989481b4858ed84715bb12829b",
+        "src/simulation/open-world/placement.ts": "5bd72c2204bbf5f41c10ca3a1f5480a53dd9de524bf14a596de4a10d7c1f2e83",
+        "src/simulation/open-world/racecraft.ts": "5807d84afb2ebdf596d0717b7d76681715453ae8bb3c13f3c49b0ca53764b4fa",
+        "src/simulation/open-world/region-data.ts": "573ad18c1379b0f3f5d49e1f46b34dc841f5c42f02a2c6773a8e02434af4524c",
+        "src/simulation/open-world/region-validation.ts": "97d831c59afcec5552b4aca377f6f6a8165917821b7e6ceaa64496aaae8ff585",
+        "src/simulation/open-world/rival-gap.ts": "4adce694fb1cdec6de944cfe8d2eac0020eb8f3cf14ffcaf710c9df9aeaccdd6",
+        "src/simulation/open-world/road-network.ts": "df45c45d441a0c8f39741d343057e2d59263a07dcc7b48eb64be07a17bbbd841",
+        "src/simulation/open-world/route-driver.ts": "32084ab4a53f4215ba9e2061860e2795d17da16c80b010279a5674bac310806a",
+        "src/simulation/open-world/route-path.ts": "a11b711efe9fde3641330a2132499adb2c78f796171072a63d2188eba9bfe344",
+        "src/simulation/open-world/session.ts": "f3738991bd1e0596aa5a972d108f297528ce84de448f954508a59924ba0a74e0",
+        "src/simulation/open-world/skill-chain.ts": "2a2bb99f98c52840513e8fb226872a8feaae17068c2c491b999baa2154a78993",
+        "src/simulation/open-world/static-footprint.ts": "1de60607c0946b9cd2730977dcb967aaf6ac2e4f5e3ff9220a7c4889b712f88f",
+        "src/simulation/open-world/terrain-field.ts": "fc6a915fc00f796806ed2e922e7f5e13544e1fcd388706692f3dafbc5107fff1",
+        "src/simulation/open-world/terrain-tiles.ts": "d754e8453313d09375c0650cedc48cf5ab9b7b73cdd0bc2b613436d094adc57f",
+        "src/simulation/open-world/world.ts": "d90fdb0cca4331df439e6ac82859aa40742fcf3045d731d525234cf45020f5e3",
+        "src/simulation/pit-safety.ts": "bcd4d012ea7abb7d8f5d37227752fa0d23defbcfd11218f17bff0a970b1561aa",
+        "src/simulation/pit-service.ts": "af259102f985e8f12daabd174f72f78f9977cc13cba448fb307cb324fd3a3caf",
+        "src/simulation/pose-kinematics.ts": "9f3d5dcb5562ea3751dc8ab6806ca0ffab729667e91b6c8b2647b3c2d5d00bb7",
+        "src/simulation/powertrain.ts": "12c3859d0b4fef04fa8ee8d3b07824b352cb335ceb697e869eda85c23b859307",
+        "src/simulation/practice-programme.ts": "a20e8382c8b5310d7f8edb4ec198dad6536eeca56788509fc6a4c9a7c09b79be",
+        "src/simulation/protocol.ts": "e1e4340dc19a1273d3af420177c9722b151bd3231e886314658c62c40983d8ef",
+        "src/simulation/race.ts": "4e0d31219f729cdfa09242be147b3d9ba75d30f44fd0c5eee9f22fe42a7986f1",
+        "src/simulation/racing-line.ts": "30e541a6c9f624f6809c47eb9447428593e9882ecf806f9db66fe20f9fda0923",
+        "src/simulation/regenerative-braking.ts": "721323648909372df75e2a981980ffdd93499d3214a8bc0cb0380b280aba46a0",
+        "src/simulation/rigid.ts": "08c32ae36662f45d25c6ef5acf15f01dc5332463973ccaa3b1959bba6e10d61b",
+        "src/simulation/road-bike-suspension.ts": "4a24914612885230e301cf76b9eb800e2344caf0dd795489c1ff4b56f1305c89",
+        "src/simulation/road-contact.ts": "1d38e02c09ea1791b1d7ea69f715455f411fef38651236643f24f477aa25fe57",
+        "src/simulation/route-graph.ts": "280981ed91e145ff3e6d1a64e3b4ddd98f79bfba48aa1d0993e8c43983bf17f6",
+        "src/simulation/safety-car.ts": "514d97f852575bd0f657dc59909ed7df28ca2c000f2b2eca2f2b202143a62fbc",
+        "src/simulation/skid-contact.ts": "ca3a97e965f0ba6507031847d981fca847345be071dfc65a2e2d7470527a27f0",
+        "src/simulation/surface-drainage.ts": "1a4b181fbb06c72f24170bec027155c7f30c53e3572ecbfaf01d94be1fead1bd",
+        "src/simulation/surface-material.ts": "cc2bb921006642c3dd0cfe472b660775073e89b55a2eca1c284d2c9566c6fdec",
+        "src/simulation/surface-thermal.ts": "971ee08fd2e0ca5e362f1bd6578e32545ba263e301605fd18e79ea1069351f72",
+        "src/simulation/suspension.ts": "acd7de2cba56de0f2e41196d81ecfdec012db7ba201e2c5184d3e300940a7c97",
+        "src/simulation/terrain.ts": "7f5cd88652e9f085429816d16f949802c72240aafaddf8b2412ccd1b10009679",
+        "src/simulation/test-venues.ts": "1b549431c90100c63607de2f93348c2b6e3283cd1b1b4d0232fe33ec0b0277d5",
+        "src/simulation/tire-families.ts": "2d8d24c230cdb6c7ede9763ee5ef448e32ffdc609bccc41013bf96fc81ad3a6c",
+        "src/simulation/tire-footprint.ts": "cf077d5ba14a5e28c86e45ac81a1e3f0c26bf53d5b987323a2da385650792909",
+        "src/simulation/tire.ts": "8fc0ad9071df33a287e75ee57751d98b00ac58c52cf3238ab1ce996d57b709c7",
+        "src/simulation/track.ts": "736c483c754c14eea1a725f98d391b73aeb06a464e8dd342e33109e1cc7af134",
+        "src/simulation/traffic.ts": "58bbe1c1e66fdb5a7a7850f3bd1e04b320ddc58b030aa2ec0638ff639160e874",
+        "src/simulation/tyre-force.ts": "ab735c1f2d06c1c25857e77e61aad477ba12e831adc6d03d9e809c727b4ca8a1",
+        "src/simulation/tyre-thermal.ts": "737de041a15c8c0cb46261c884f62b46529524e7695907c13297d79810076469",
+        "src/simulation/vehicle-catalogue/builder.ts": "e2776bd76d94467498430c27d726d02ce3786762a4b6a93f859f6f9093a7912a",
+        "src/simulation/vehicle-catalogue/common.ts": "b0c6464cf0b7974ae930a050aa54edb675100ce62c6efd8506090da40a382ede",
+        "src/simulation/vehicle-catalogue/dirt-2.ts": "ffa6bbcf58d533ec0193dc3e24fa08e323a502098f81ee59f5fcc5dd90a3b733",
+        "src/simulation/vehicle-catalogue/dirt.ts": "09d2171018c2bf2f14ad52c7139a629866cfc75988540624a84d22de02693114",
+        "src/simulation/vehicle-catalogue/endurance.ts": "0639678d503ee22d5684f302aaf80e46822975a901a1f6bb580806a92d3e0a70",
+        "src/simulation/vehicle-catalogue/experimental.ts": "4dd232d2f9f243a91de1c2c4d96e5be7c1ffedacda1065a3d3e7d952bafbe419",
+        "src/simulation/vehicle-catalogue/formula.ts": "e0e3ccc8fd187467d7b047c48d7fb9f80815d72684017c7157290f78787daaa2",
+        "src/simulation/vehicle-catalogue/gt-layouts.ts": "2d56b902ff8788a31399a7225d85d27dde11f838a3a86727dbc2e9a044130a05",
+        "src/simulation/vehicle-catalogue/gt.ts": "78a02c349c0e431def3a2d114c7be409eacc1f53f4ec2371d585184e48df564c",
+        "src/simulation/vehicle-catalogue/index.ts": "ed281de1db31688b40ebf7b5900a20857934717e993e22391d7630242116068b",
+        "src/simulation/vehicle-catalogue/prototypes.ts": "99b898854c42087dae8f1768ed1c80442a04a373ea22fcb521b8a05d84cf9d47",
+        "src/simulation/vehicle-catalogue/road-festival.ts": "e28c3bbae13e119c5a0d333292a36a8a4948a3071b86c884cf1dafd94d19790e",
+        "src/simulation/vehicle-catalogue/single-seaters.ts": "865ca4fa2851d4b3869c02469cf05c3db9f6fe8db48fd4108560d400f607def4",
+        "src/simulation/vehicle-catalogue/small-road.ts": "d15a264998c750f8a4ee19ea7f464ba7e2597a24aec7c4fe2a21837f7b505bb7",
+        "src/simulation/vehicle-catalogue/touring-club-2.ts": "5dd81dc1f389e4d3c5caf7824391de3136c6d3cb7ba41680bd586155ca72446f",
+        "src/simulation/vehicle-catalogue/touring-club.ts": "18f8f95393837aa7531430ca59175ef6ba6ae518ddee5ae127134d9acdae1bc0",
+        "src/simulation/vehicle-classes.ts": "88d42f4f70db3ca42bd6fc29e46e388a6cded97e1d4fd2961b111c4e2b4f948c",
+        "src/simulation/vehicle-dynamics.ts": "faed2d5f2983d1de935721a7e134667825731ec7d256e21e840af4f15fd812e7",
+        "src/simulation/vehicle.ts": "a3ca802f3b656356a79b70ff83870ee23aaeb1c6ea913b63544b2df3208894d7",
+        "src/simulation/vehicles.ts": "d362e0a36d566ba8cfe866e84a2b3014e2d6bf2307b07c286e52335334f0b090",
+        "src/simulation/weather-catalogue.ts": "c90b575d4839d11afbc2adf36fd65f46aae3e400766955b825f2523a9f57ceb9",
+        "src/simulation/weather.ts": "c1362e300f89639f8d9d8f668fbf94ed99aae769d8e0c46a25a62be9f7ce2756",
+        "src/simulation/wheel-contact-state.ts": "67d222e20d0a0b5880a5934ba1182ce7807965f978eedfd300df6943c1f65293",
+        "src/simulation/wheel-momentum.ts": "46eef7c2e24ec379282988c53ddbd2ea01aec3c04f84a359027536813838ac66",
+        "src/simulation/wheel-rotation.ts": "e7f1a5e4aac194cd2e8021a8420034e06c98888ec6054d9ac54b54865d0817ef",
+        "src/simulation/wildcard-rulesets.ts": "5d1cccc138a361f781716508444a1363ba9911790d6a2fb3a540e60d815342ae",
+        "src/simulation/world.ts": "e1d37b1ec6dc23605d49ce79be0a20b5a836ef5709abcfcfc5b2e73b3d552b80"
+      }
+    },
+    "finalMotorcycles": {
+      "baseCommit": "d0c9a2e136495a498a5baeef504c03f61ed7e3f8",
+      "capturedAt": "2026-11-19T06:56:21.588470+00:00",
+      "engineAggregate": "3731fbbf518aa377159c0f6efd97da6ea6cfa9b62589bd8e3975cd43b77c965d",
+      "changedFilesFromInitial": {
+        "src/simulation/bike-vehicle.ts": "f9fc88261177dd83a4c46a0bb196630d7c635054f31c370ca89880e04c019fab",
+        "src/simulation/bike.ts": "6a997eeb6d8455c1f4ae2ee76e70a9682f09d12c3b676ab839b7695aa60a5c44",
+        "src/simulation/motogp-physics.ts": "c571841bfa76e9ab1e10d6d8d320df84b840f075f4f1bc6b9369a499945aac48",
+        "src/simulation/protocol.ts": "c0693eba94ebc225cb430706f4e9a2ce81feffc48d57731bf58b7c5544cd01c2",
+        "src/simulation/road-bike-suspension.ts": "f2a0787ea34795ad4f826cfd8e33c07048e8251651b39052a0806cae835904f1",
+        "src/simulation/wheel-contact-state.ts": "e6ee933cd118e41ed1399355563488cef1a68bf7357af8965c0172f5bf202c87"
+      },
+      "unchangedFileCount": 167,
+      "fixtureFiles": {
+        "scripts/vehicle-calibration.ts": "6bc0ed3a6a1cec40f6b5143fb8269a76410dc20c21125d218a93c66a56f120a4",
+        "scripts/bike-calibration.ts": "ff12b8577a8d79796e651ec13a3351fedc9182d3b66f853b99037f818fe66490",
+        "scripts/dynamics-fixtures.ts": "b2e18ca9a17680f5658f5891053108290da21ccae585868852d0fa54075af1b2"
+      }
+    }
+  },
+  "initialFailures": [
+    {
+      "vehicle": "gpr1",
+      "metric": "braking100Distance",
+      "measured": 44.857084097544714,
+      "coarseDt": 43.87808368105077,
+      "band": [30, 42],
+      "within": false,
+      "coarseWithin": false,
+      "timestepDrift": 0.021824878638233475
+    },
+    {
+      "vehicle": "sbk1000",
+      "metric": "braking100Distance",
+      "measured": 47.586533631218295,
+      "coarseDt": 47.324084654684896,
+      "band": [32, 45],
+      "within": false,
+      "coarseWithin": false,
+      "timestepDrift": 0.005515194247332697
+    },
+    {
+      "vehicle": "nr900",
+      "metric": "lateral80G",
+      "measured": 0.89784225930953,
+      "coarseDt": 0.8978454085621291,
+      "band": [0.9, 1.2],
+      "within": false,
+      "coarseWithin": false,
+      "timestepDrift": 3.5075789388280413e-6
+    }
+  ],
+  "measurements": {
+    "apx01": {
+      "sourceSnapshot": "initialFull57",
+      "name": "APX-01 FORMULA",
+      "metrics": {
+        "accel0to100": {
+          "fine": 2.537500000000021,
+          "coarse": 2.533333333333327,
+          "band": [2.3, 3.2],
+          "timestepDrift": 0.0016420361248054892,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 320.70737311968855,
+          "coarse": 320.69923160560944,
+          "band": [320, 360],
+          "timestepDrift": 2.5386114450431575e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 19.427001770399652,
+          "coarse": 19.427006560864196,
+          "band": [15, 32],
+          "timestepDrift": 2.4658795015177005e-7,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.9471881583515287,
+          "coarse": 1.9472181095023158,
+          "band": [1.8, 3.2],
+          "timestepDrift": 1.5381744521512455e-5,
+          "passed": true
+        }
+      }
+    },
+    "tc1": {
+      "sourceSnapshot": "initialFull57",
+      "name": "TC-1 TOURING",
+      "metrics": {
+        "accel0to100": {
+          "fine": 4.93750000000004,
+          "coarse": 4.933333333333368,
+          "band": [4.8, 7.5],
+          "timestepDrift": 0.0008438818565411089,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 232.40349372773412,
+          "coarse": 232.3972534860627,
+          "band": [205, 255],
+          "timestepDrift": 2.6850894413476624e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 28.552615855068805,
+          "coarse": 28.552578794580068,
+          "band": [26, 42],
+          "timestepDrift": 1.2979717488809254e-6,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.3332534798031361,
+          "coarse": 1.3332541460328322,
+          "band": [1, 1.45],
+          "timestepDrift": 4.997021992969893e-7,
+          "passed": true
+        }
+      }
+    },
+    "gpr1": {
+      "sourceSnapshot": "finalMotorcycles",
+      "name": "GP-R1 PROTOTYPE",
+      "metrics": {
+        "accel0to100": {
+          "fine": 3.029166666666712,
+          "coarse": 3.024999999999992,
+          "band": [2.4, 3.4],
+          "timestepDrift": 0.0013755158184495524,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 353.678379817538,
+          "coarse": 353.66988917839484,
+          "band": [335, 365],
+          "timestepDrift": 2.400666715198565e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 38.641592622716985,
+          "coarse": 38.686482115762914,
+          "band": [30, 42],
+          "timestepDrift": 0.00116168848122318,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.4526318389875772,
+          "coarse": 1.4526398128590294,
+          "band": [1.15, 1.5],
+          "timestepDrift": 5.489258350412867e-6,
+          "passed": true
+        }
+      },
+      "measurementCrashes": {
+        "fineCrashes": 0,
+        "coarseCrashes": 0
+      }
+    },
+    "sbk1000": {
+      "sourceSnapshot": "finalMotorcycles",
+      "name": "SBK-1000 SUPERBIKE",
+      "metrics": {
+        "accel0to100": {
+          "fine": 3.162500000000052,
+          "coarse": 3.1583333333333248,
+          "band": [2.7, 3.8],
+          "timestepDrift": 0.0013175230566726329,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 307.63439307311825,
+          "coarse": 307.6100698519774,
+          "band": [285, 320],
+          "timestepDrift": 7.906535058663454e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 41.12286744861688,
+          "coarse": 41.1004169804724,
+          "band": [32, 45],
+          "timestepDrift": 0.0005459363497092939,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.1986113636991924,
+          "coarse": 1.1986105767575965,
+          "band": [1.1, 1.45],
+          "timestepDrift": 6.565444144117988e-7,
+          "passed": true
+        }
+      },
+      "measurementCrashes": {
+        "fineCrashes": 0,
+        "coarseCrashes": 0
+      }
+    },
+    "jf2": {
+      "sourceSnapshot": "initialFull57",
+      "name": "JF-2 JUNIOR FORMULA",
+      "metrics": {
+        "accel0to100": {
+          "fine": 2.662500000000027,
+          "coarse": 2.6583333333333266,
+          "band": [2.6, 3.5],
+          "timestepDrift": 0.001564945226929796,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 308.578134986486,
+          "coarse": 308.58365031342123,
+          "band": [295, 340],
+          "timestepDrift": 1.7873356242340165e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 21.036835033657802,
+          "coarse": 21.03706837399804,
+          "band": [18, 34],
+          "timestepDrift": 1.1091988878752134e-5,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.7279971706677526,
+          "coarse": 1.7279973182156245,
+          "band": [1.6, 2.4],
+          "timestepDrift": 8.538663976132422e-8,
+          "passed": true
+        }
+      }
+    },
+    "hf67": {
+      "sourceSnapshot": "initialFull57",
+      "name": "HF-67 HISTORIC FORMULA",
+      "metrics": {
+        "accel0to100": {
+          "fine": 4.366666666666739,
+          "coarse": 4.366666666666673,
+          "band": [3.4, 5.2],
+          "timestepDrift": 1.5051573219345385e-14,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 276.3066079052323,
+          "coarse": 276.30367821998556,
+          "band": [265, 315],
+          "timestepDrift": 1.060302273962156e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 34.83439149651419,
+          "coarse": 34.834731730567256,
+          "band": [32, 52],
+          "timestepDrift": 9.767188070351745e-6,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.0121521088873562,
+          "coarse": 1.012152246691086,
+          "band": [0.95, 1.35],
+          "timestepDrift": 1.361492294987784e-7,
+          "passed": true
+        }
+      }
+    },
+    "hy9": {
+      "sourceSnapshot": "initialFull57",
+      "name": "HY-9 HYPERCAR",
+      "metrics": {
+        "accel0to100": {
+          "fine": 2.9583333333333752,
+          "coarse": 2.9583333333333255,
+          "band": [2.6, 3.8],
+          "timestepDrift": 1.6812842198266922e-14,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 334.5565822739058,
+          "coarse": 334.5688161600298,
+          "band": [315, 355],
+          "timestepDrift": 3.656746503348208e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 23.109964878462797,
+          "coarse": 23.10997871376544,
+          "band": [20, 36],
+          "timestepDrift": 5.986725949159881e-7,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.5401994613174632,
+          "coarse": 1.540200057573807,
+          "band": [1.45, 2.2],
+          "timestepDrift": 3.871293029439044e-7,
+          "passed": true
+        }
+      }
+    },
+    "pr2": {
+      "sourceSnapshot": "initialFull57",
+      "name": "PR-2 PROTOTYPE",
+      "metrics": {
+        "accel0to100": {
+          "fine": 2.9583333333333752,
+          "coarse": 2.9583333333333255,
+          "band": [2.7, 3.9],
+          "timestepDrift": 1.6812842198266922e-14,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 311.7547368172954,
+          "coarse": 311.7614031026805,
+          "band": [300, 345],
+          "timestepDrift": 2.1383108571708046e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 23.05264759712202,
+          "coarse": 23.05273486640294,
+          "band": [20, 36],
+          "timestepDrift": 3.7856511079913252e-6,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.547194799652259,
+          "coarse": 1.547195253502573,
+          "band": [1.45, 2.2],
+          "timestepDrift": 2.933375384271302e-7,
+          "passed": true
+        }
+      }
+    },
+    "gt8f": {
+      "sourceSnapshot": "initialFull57",
+      "name": "GT-8F FRONT-ENGINE GT",
+      "metrics": {
+        "accel0to100": {
+          "fine": 3.425000000000065,
+          "coarse": 3.4249999999999905,
+          "band": [3, 4.2],
+          "timestepDrift": 2.1783061972207036e-14,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 279.09484178041293,
+          "coarse": 279.0901304094156,
+          "band": [265, 300],
+          "timestepDrift": 1.688089599670943e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 26.023037581539576,
+          "coarse": 26.02315589661477,
+          "band": [24, 36],
+          "timestepDrift": 4.5465512941816246e-6,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.339321769685606,
+          "coarse": 1.3393223612611256,
+          "band": [1.3, 1.75],
+          "timestepDrift": 4.416978302537146e-7,
+          "passed": true
+        }
+      }
+    },
+    "gt10m": {
+      "sourceSnapshot": "initialFull57",
+      "name": "GT-10M MID-ENGINE GT",
+      "metrics": {
+        "accel0to100": {
+          "fine": 3.3083333333333926,
+          "coarse": 3.3083333333333242,
+          "band": [3, 4.2],
+          "timestepDrift": 2.06719612041033e-14,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 279.6504177181678,
+          "coarse": 279.65041386898133,
+          "band": [265, 300],
+          "timestepDrift": 1.3764279249043798e-8,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 25.273921618143348,
+          "coarse": 25.274189735188855,
+          "band": [24, 36],
+          "timestepDrift": 1.0608446506979455e-5,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.3311821917868143,
+          "coarse": 1.3311825993860997,
+          "band": [1.3, 1.75],
+          "timestepDrift": 3.0619346318594134e-7,
+          "passed": true
+        }
+      }
+    },
+    "gs4": {
+      "sourceSnapshot": "initialFull57",
+      "name": "GS-4 GT SPORT",
+      "metrics": {
+        "accel0to100": {
+          "fine": 3.8500000000000862,
+          "coarse": 3.849999999999989,
+          "band": [3.6, 5],
+          "timestepDrift": 2.526117843043157e-14,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 259.18074894653097,
+          "coarse": 259.184176636484,
+          "band": [245, 280],
+          "timestepDrift": 1.3225094714581818e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 29.398402093255378,
+          "coarse": 29.39839371228615,
+          "band": [28, 40],
+          "timestepDrift": 2.850824749071913e-7,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.2066735169257539,
+          "coarse": 1.2066741219470594,
+          "band": [1.15, 1.5],
+          "timestepDrift": 5.01396025530742e-7,
+          "passed": true
+        }
+      }
+    },
+    "tc2": {
+      "sourceSnapshot": "initialFull57",
+      "name": "TC-2 TOURING",
+      "metrics": {
+        "accel0to100": {
+          "fine": 4.112500000000087,
+          "coarse": 4.108333333333327,
+          "band": [4, 5.6],
+          "timestepDrift": 0.0010131712259597813,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 240.04193491034442,
+          "coarse": 240.0423762735374,
+          "band": [225, 265],
+          "timestepDrift": 1.8386920316291611e-6,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 28.430857576484524,
+          "coarse": 28.430828635291267,
+          "band": [26, 40],
+          "timestepDrift": 1.0179500628557762e-6,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.3259349576767803,
+          "coarse": 1.3259446810152384,
+          "band": [1.15, 1.5],
+          "timestepDrift": 7.333194137368578e-6,
+          "passed": true
+        }
+      }
+    },
+    "cr1": {
+      "sourceSnapshot": "initialFull57",
+      "name": "CR-1 CLUB ROADSTER",
+      "metrics": {
+        "accel0to100": {
+          "fine": 4.508333333333398,
+          "coarse": 4.508333333333347,
+          "band": [3.5, 5],
+          "timestepDrift": 1.1229464677909001e-14,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 199.61898660694152,
+          "coarse": 199.58386727088038,
+          "band": [190, 220],
+          "timestepDrift": 0.00017593184224652317,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 29.725617191834054,
+          "coarse": 29.72562437847514,
+          "band": [28, 42],
+          "timestepDrift": 2.4176591653323163e-7,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.2674709340862629,
+          "coarse": 1.2675208356006156,
+          "band": [1.1, 1.45],
+          "timestepDrift": 3.937093388943479e-5,
+          "passed": true
+        }
+      }
+    },
+    "rl2": {
+      "sourceSnapshot": "initialFull57",
+      "name": "RL-2 RALLY",
+      "metrics": {
+        "accel0to100": {
+          "fine": 4.241666666666746,
+          "coarse": 4.241666666666667,
+          "band": [3.5, 5],
+          "timestepDrift": 1.8636042283687937e-14,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 192.4081183778642,
+          "coarse": 192.43562937291628,
+          "band": [180, 210],
+          "timestepDrift": 0.00014298250658031328,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 34.23507333389057,
+          "coarse": 34.23546011244445,
+          "band": [30, 46],
+          "timestepDrift": 1.1297728213092429e-5,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.0634896943134107,
+          "coarse": 1.0634904675593126,
+          "band": [0.95, 1.35],
+          "timestepDrift": 7.270835872783187e-7,
+          "passed": true
+        }
+      }
+    },
+    "rcx6": {
+      "sourceSnapshot": "initialFull57",
+      "name": "RCX-6 RALLYCROSS",
+      "metrics": {
+        "accel0to100": {
+          "fine": 2.570833333333356,
+          "coarse": 2.56666666666666,
+          "band": [2, 3],
+          "timestepDrift": 0.0016207455429610514,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 237.16789318804715,
+          "coarse": 237.159311967439,
+          "band": [220, 255],
+          "timestepDrift": 3.6182050161957535e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 32.93931250281285,
+          "coarse": 32.93934758731342,
+          "band": [28, 44],
+          "timestepDrift": 1.065125465842819e-6,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.1008331802266442,
+          "coarse": 1.10083395779055,
+          "band": [1, 1.4],
+          "timestepDrift": 7.063412692077286e-7,
+          "passed": true
+        }
+      }
+    },
+    "dx8": {
+      "sourceSnapshot": "initialFull57",
+      "name": "DX-8 TROPHY TRUCK",
+      "metrics": {
+        "accel0to100": {
+          "fine": 5.479166666666676,
+          "coarse": 5.475000000000062,
+          "band": [4.2, 6.5],
+          "timestepDrift": 0.0007604562737546501,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 210.75237750925848,
+          "coarse": 210.76807409936376,
+          "band": [195, 230],
+          "timestepDrift": 7.447882814317962e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 40.215800783920756,
+          "coarse": 40.216202859314514,
+          "band": [38, 62],
+          "timestepDrift": 9.997945730795901e-6,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 0.9330311396320944,
+          "coarse": 0.9330574109414074,
+          "band": [0.7, 1.05],
+          "timestepDrift": 2.8156948034280365e-5,
+          "passed": true
+        }
+      }
+    },
+    "sk125": {
+      "sourceSnapshot": "initialFull57",
+      "name": "SK-125 SHIFTER KART",
+      "metrics": {
+        "accel0to100": {
+          "fine": 3.8666666666667537,
+          "coarse": 3.8666666666666556,
+          "band": [2.6, 4.2],
+          "timestepDrift": 2.5381995356084904e-14,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 136.82683121267652,
+          "coarse": 136.80646577883806,
+          "band": [125, 150],
+          "timestepDrift": 0.00014884093754103547,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 19.163268043184317,
+          "coarse": 19.163235420423224,
+          "band": [18, 34],
+          "timestepDrift": 1.7023589619410152e-6,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.941732850134595,
+          "coarse": 1.9420774182741602,
+          "band": [1.8, 2.8],
+          "timestepDrift": 0.00017745393736394216,
+          "passed": true
+        }
+      }
+    },
+    "eh3": {
+      "sourceSnapshot": "initialFull57",
+      "name": "EH-3 ELECTRIC HYPERCAR",
+      "metrics": {
+        "accel0to100": {
+          "fine": 2.441666666666683,
+          "coarse": 2.4416666666666607,
+          "band": [1.9, 2.8],
+          "timestepDrift": 9.09397699351658e-15,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 348.94197785931095,
+          "coarse": 348.9617925070381,
+          "band": [320, 365],
+          "timestepDrift": 5.6784935560726577e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 29.451990983113852,
+          "coarse": 29.452186300145716,
+          "band": [28, 40],
+          "timestepDrift": 6.631708938644573e-6,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.1630028968438595,
+          "coarse": 1.1630041300342127,
+          "band": [1.1, 1.45],
+          "timestepDrift": 1.060350199052522e-6,
+          "passed": true
+        }
+      }
+    },
+    "sc7": {
+      "sourceSnapshot": "initialFull57",
+      "name": "SC-7 SUPERCAR",
+      "metrics": {
+        "accel0to100": {
+          "fine": 3.229166666666722,
+          "coarse": 3.224999999999991,
+          "band": [2.6, 3.8],
+          "timestepDrift": 0.001290322580665007,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 331.622421724465,
+          "coarse": 331.6462078449706,
+          "band": [315, 350],
+          "timestepDrift": 7.172651469670424e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 29.48741740883419,
+          "coarse": 29.487421548326584,
+          "band": [28, 40],
+          "timestepDrift": 1.4038165282208645e-7,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.1514273743689645,
+          "coarse": 1.1514278592784977,
+          "band": [1.05, 1.4],
+          "timestepDrift": 4.2113774953418415e-7,
+          "passed": true
+        }
+      }
+    },
+    "fx26": {
+      "sourceSnapshot": "initialFull57",
+      "name": "FX-26 FORMULA",
+      "metrics": {
+        "accel0to100": {
+          "fine": 2.3458333333333448,
+          "coarse": 2.341666666666661,
+          "band": [2.2, 3.1],
+          "timestepDrift": 0.001776198934287913,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 342.71309697978825,
+          "coarse": 342.7130975634944,
+          "band": [325, 365],
+          "timestepDrift": 1.703191808446064e-9,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 19.015267314574018,
+          "coarse": 19.015274475681792,
+          "band": [15, 30],
+          "timestepDrift": 3.765977966996146e-7,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.917591688667568,
+          "coarse": 1.917591876172819,
+          "band": [1.75, 2.6],
+          "timestepDrift": 9.778163527285961e-8,
+          "passed": true
+        }
+      }
+    },
+    "fr3": {
+      "sourceSnapshot": "initialFull57",
+      "name": "FR-3 FEEDER FORMULA",
+      "metrics": {
+        "accel0to100": {
+          "fine": 2.9083333333333727,
+          "coarse": 2.9083333333333257,
+          "band": [2.8, 3.8],
+          "timestepDrift": 1.6185715614019254e-14,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 267.31281176673383,
+          "coarse": 267.3013648715114,
+          "band": [255, 295],
+          "timestepDrift": 4.2822097252948713e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 21.74607827293581,
+          "coarse": 21.74608436786913,
+          "band": [18, 34],
+          "timestepDrift": 2.802773558724683e-7,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.6698763785333353,
+          "coarse": 1.669876379179259,
+          "band": [1.5, 2.2],
+          "timestepDrift": 3.8680932746132205e-10,
+          "passed": true
+        }
+      }
+    },
+    "fe4": {
+      "sourceSnapshot": "initialFull57",
+      "name": "FE-4 ENTRY FORMULA",
+      "metrics": {
+        "accel0to100": {
+          "fine": 3.533333333333404,
+          "coarse": 3.5333333333333234,
+          "band": [3.4, 4.8],
+          "timestepDrift": 2.274909820269615e-14,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 207.78056385117986,
+          "coarse": 207.7664724951701,
+          "band": [200, 235],
+          "timestepDrift": 6.781845110336821e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 23.04621404200436,
+          "coarse": 23.04647325972613,
+          "band": [22, 36],
+          "timestepDrift": 1.1247735584544833e-5,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.607201403300087,
+          "coarse": 1.6072013492722288,
+          "band": [1.35, 1.9],
+          "timestepDrift": 3.361610939137743e-8,
+          "passed": true
+        }
+      }
+    },
+    "hf76": {
+      "sourceSnapshot": "initialFull57",
+      "name": "HF-76 HISTORIC FORMULA",
+      "metrics": {
+        "accel0to100": {
+          "fine": 3.1416666666667177,
+          "coarse": 3.141666666666658,
+          "band": [2.9, 4.2],
+          "timestepDrift": 1.8941523857795468e-14,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 285.3927262912083,
+          "coarse": 285.38018171267146,
+          "band": [265, 310],
+          "timestepDrift": 4.395549494154514e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 25.31158438564396,
+          "coarse": 25.311578122495803,
+          "band": [24, 40],
+          "timestepDrift": 2.4744196423664335e-7,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.346703955945556,
+          "coarse": 1.3467041132683326,
+          "band": [1.25, 1.8],
+          "timestepDrift": 1.168206092284088e-7,
+          "passed": true
+        }
+      }
+    },
+    "hf86": {
+      "sourceSnapshot": "initialFull57",
+      "name": "HF-86 TURBO FORMULA",
+      "metrics": {
+        "accel0to100": {
+          "fine": 2.9750000000000427,
+          "coarse": 2.974999999999992,
+          "band": [2.5, 3.6],
+          "timestepDrift": 1.701719997408619e-14,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 321.6287437396807,
+          "coarse": 321.61415168428,
+          "band": [305, 345],
+          "timestepDrift": 4.536925161308548e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 21.44549944938773,
+          "coarse": 21.445510185798128,
+          "band": [20, 36],
+          "timestepDrift": 5.006369949222499e-7,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.5185213020865491,
+          "coarse": 1.5185215250716708,
+          "band": [1.4, 2],
+          "timestepDrift": 1.468435914558502e-7,
+          "passed": true
+        }
+      }
+    },
+    "hy11": {
+      "sourceSnapshot": "initialFull57",
+      "name": "HY-11 HYPERCAR",
+      "metrics": {
+        "accel0to100": {
+          "fine": 2.8416666666667028,
+          "coarse": 2.8416666666666592,
+          "band": [2.7, 3.8],
+          "timestepDrift": 1.5315217325034224e-14,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 318.32821712835755,
+          "coarse": 318.33625524167866,
+          "band": [310, 345],
+          "timestepDrift": 2.525102359325283e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 22.955460395679232,
+          "coarse": 22.95547354072311,
+          "band": [20, 36],
+          "timestepDrift": 5.726325523394833e-7,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.5569159941125272,
+          "coarse": 1.5569166067642235,
+          "band": [1.45, 2.2],
+          "timestepDrift": 3.9350337370814853e-7,
+          "passed": true
+        }
+      }
+    },
+    "pr3": {
+      "sourceSnapshot": "initialFull57",
+      "name": "PR-3 OPEN PROTOTYPE",
+      "metrics": {
+        "accel0to100": {
+          "fine": 3.0750000000000477,
+          "coarse": 3.0749999999999917,
+          "band": [2.8, 4],
+          "timestepDrift": 1.81968261597096e-14,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 295.26051800877667,
+          "coarse": 295.26513038273566,
+          "band": [280, 320],
+          "timestepDrift": 1.562137054455248e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 22.791720634100137,
+          "coarse": 22.791939473835846,
+          "band": [20, 36],
+          "timestepDrift": 9.601720695952103e-6,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.5506350033987701,
+          "coarse": 1.5506353477546873,
+          "band": [1.45, 2.2],
+          "timestepDrift": 2.220741285729978e-7,
+          "passed": true
+        }
+      }
+    },
+    "sp71": {
+      "sourceSnapshot": "initialFull57",
+      "name": "SP-71 LONG-TAIL PROTOTYPE",
+      "metrics": {
+        "accel0to100": {
+          "fine": 3.487500000000068,
+          "coarse": 3.4833333333333236,
+          "band": [3, 4.6],
+          "timestepDrift": 0.0011947431302493214,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 336.4573152342919,
+          "coarse": 336.46435344212244,
+          "band": [320, 365],
+          "timestepDrift": 2.09185757356229e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 29.286995311757455,
+          "coarse": 29.286957174754235,
+          "band": [28, 44],
+          "timestepDrift": 1.302182173809685e-6,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.080806398065782,
+          "coarse": 1.080806573416103,
+          "band": [1.05, 1.45],
+          "timestepDrift": 1.6224026915818308e-7,
+          "passed": true
+        }
+      }
+    },
+    "gt6r": {
+      "sourceSnapshot": "initialFull57",
+      "name": "GT-6R REAR-ENGINE GT",
+      "metrics": {
+        "accel0to100": {
+          "fine": 3.554166666666738,
+          "coarse": 3.54999999999999,
+          "band": [3, 4.2],
+          "timestepDrift": 0.0011723329425785863,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 290.8193690327738,
+          "coarse": 290.8110718601412,
+          "band": [265, 300],
+          "timestepDrift": 2.8530330218981557e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 24.912378878522343,
+          "coarse": 24.91269339806346,
+          "band": [24, 36],
+          "timestepDrift": 1.26250304176419e-5,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.3258292545672141,
+          "coarse": 1.3258296032565837,
+          "band": [1.3, 1.75],
+          "timestepDrift": 2.6299719092722043e-7,
+          "passed": true
+        }
+      }
+    },
+    "gt6s": {
+      "sourceSnapshot": "initialFull57",
+      "name": "GT-6S STRAIGHT-SIX GT",
+      "metrics": {
+        "accel0to100": {
+          "fine": 3.3083333333333926,
+          "coarse": 3.3083333333333242,
+          "band": [3, 4.2],
+          "timestepDrift": 2.06719612041033e-14,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 281.6094149851913,
+          "coarse": 281.6258406386915,
+          "band": [265, 300],
+          "timestepDrift": 5.8327785316001314e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 25.6872145018632,
+          "coarse": 25.687180411671303,
+          "band": [24, 36],
+          "timestepDrift": 1.3271268433394572e-6,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.3380204575760501,
+          "coarse": 1.3380211549679384,
+          "band": [1.3, 1.75],
+          "timestepDrift": 5.212116782589567e-7,
+          "passed": true
+        }
+      }
+    },
+    "gs6m": {
+      "sourceSnapshot": "initialFull57",
+      "name": "GS-6M MID-ENGINE GT SPORT",
+      "metrics": {
+        "accel0to100": {
+          "fine": 3.99166666666676,
+          "coarse": 3.991666666666655,
+          "band": [3.6, 5],
+          "timestepDrift": 2.625596330470455e-14,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 257.4548046738605,
+          "coarse": 257.43206906217046,
+          "band": [240, 275],
+          "timestepDrift": 8.830913728276866e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 29.202063974781847,
+          "coarse": 29.202247984566572,
+          "band": [28, 40],
+          "timestepDrift": 6.3012595576770985e-6,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.188748438237003,
+          "coarse": 1.188748849483702,
+          "band": [1.15, 1.5],
+          "timestepDrift": 3.4594930743035857e-7,
+          "passed": true
+        }
+      }
+    },
+    "tc3": {
+      "sourceSnapshot": "initialFull57",
+      "name": "TC-3 AWD TOURING",
+      "metrics": {
+        "accel0to100": {
+          "fine": 3.6500000000000763,
+          "coarse": 3.6499999999999897,
+          "band": [3.4, 4.8],
+          "timestepDrift": 2.3725313950893262e-14,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 245.6469217332009,
+          "coarse": 245.65532373244258,
+          "band": [225, 265],
+          "timestepDrift": 3.4203560062500734e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 29.064896484302963,
+          "coarse": 29.06514937655851,
+          "band": [26, 40],
+          "timestepDrift": 8.700951530385405e-6,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.2454665128752593,
+          "coarse": 1.2454675856373112,
+          "band": [1.15, 1.5],
+          "timestepDrift": 8.613335170131193e-7,
+          "passed": true
+        }
+      }
+    },
+    "hh2": {
+      "sourceSnapshot": "initialFull57",
+      "name": "HH-2 HOT-HATCH RACER",
+      "metrics": {
+        "accel0to100": {
+          "fine": 4.975000000000038,
+          "coarse": 4.975000000000037,
+          "band": [4.6, 6.4],
+          "timestepDrift": 1.7852832556786302e-16,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 229.48103781774302,
+          "coarse": 229.47512778508246,
+          "band": [215, 245],
+          "timestepDrift": 2.5753904186390805e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 31.89253794471098,
+          "coarse": 31.892589572335382,
+          "band": [28, 42],
+          "timestepDrift": 1.6187994975772803e-6,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.1646088250775737,
+          "coarse": 1.164607940633785,
+          "band": [1.1, 1.4],
+          "timestepDrift": 7.594342148251846e-7,
+          "passed": true
+        }
+      }
+    },
+    "vc62": {
+      "sourceSnapshot": "initialFull57",
+      "name": "VC-62 VINTAGE ROADSTER",
+      "metrics": {
+        "accel0to100": {
+          "fine": 6.558333333333281,
+          "coarse": 6.558333333333449,
+          "band": [6, 8.5],
+          "timestepDrift": 2.5595789782463786e-14,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 193.60554333091835,
+          "coarse": 193.62653255699342,
+          "band": [180, 210],
+          "timestepDrift": 0.0001084123197815563,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 36.062676259779174,
+          "coarse": 36.06303120246877,
+          "band": [34, 50],
+          "timestepDrift": 9.842383494790879e-6,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.042995234387592,
+          "coarse": 1.0430296343794445,
+          "band": [0.9, 1.15],
+          "timestepDrift": 3.298192620488503e-5,
+          "passed": true
+        }
+      }
+    },
+    "rl7": {
+      "sourceSnapshot": "initialFull57",
+      "name": "RL-7 CLASSIC RALLY",
+      "metrics": {
+        "accel0to100": {
+          "fine": 5.541666666666672,
+          "coarse": 5.541666666666732,
+          "band": [4.6, 6.4],
+          "timestepDrift": 1.0738277435171428e-14,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 185.4990787453092,
+          "coarse": 185.504444364834,
+          "band": [175, 200],
+          "timestepDrift": 2.8925316293222833e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 34.585956325320716,
+          "coarse": 34.586300640715926,
+          "band": [32, 48],
+          "timestepDrift": 9.955352744097414e-6,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.0961900803274878,
+          "coarse": 1.0962301469560813,
+          "band": [0.95, 1.25],
+          "timestepDrift": 3.65508038365038e-5,
+          "passed": true
+        }
+      }
+    },
+    "gb4": {
+      "sourceSnapshot": "initialFull57",
+      "name": "GB-4 GROUP RALLY",
+      "metrics": {
+        "accel0to100": {
+          "fine": 3.6166666666667413,
+          "coarse": 3.6166666666666565,
+          "band": [2.6, 3.8],
+          "timestepDrift": 2.3452821865813883e-14,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 221.27555853036057,
+          "coarse": 221.28836983079552,
+          "band": [205, 235],
+          "timestepDrift": 5.789749450881838e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 32.264210762519795,
+          "coarse": 32.26441038097485,
+          "band": [30, 46],
+          "timestepDrift": 6.186993276408554e-6,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.1461798629197875,
+          "coarse": 1.146179414657378,
+          "band": [1, 1.35],
+          "timestepDrift": 3.910925535472684e-7,
+          "passed": true
+        }
+      }
+    },
+    "rxe": {
+      "sourceSnapshot": "initialFull57",
+      "name": "RX-E ELECTRIC RALLYCROSS",
+      "metrics": {
+        "accel0to100": {
+          "fine": 2.504166666666686,
+          "coarse": 2.499999999999994,
+          "band": [1.9, 2.8],
+          "timestepDrift": 0.0016638935108254861,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 226.44613351058533,
+          "coarse": 226.4271367579193,
+          "band": [215, 245],
+          "timestepDrift": 8.38908237094666e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 33.34634280396589,
+          "coarse": 33.3467358149117,
+          "band": [28, 44],
+          "timestepDrift": 1.1785728591717042e-5,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.0894708546003524,
+          "coarse": 1.089470492088671,
+          "band": [1, 1.4],
+          "timestepDrift": 3.327410548058377e-7,
+          "passed": true
+        }
+      }
+    },
+    "bg2": {
+      "sourceSnapshot": "initialFull57",
+      "name": "BG-2 DESERT BUGGY",
+      "metrics": {
+        "accel0to100": {
+          "fine": 4.650000000000056,
+          "coarse": 4.650000000000021,
+          "band": [4, 6],
+          "timestepDrift": 7.64024447053862e-15,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 190.8924437029633,
+          "coarse": 190.87277897499544,
+          "band": [180, 205],
+          "timestepDrift": 0.0001030147007728786,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 38.36110080002052,
+          "coarse": 38.36112701154928,
+          "band": [36, 56],
+          "timestepDrift": 6.83284061427873e-7,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.0156754929606828,
+          "coarse": 1.0156915207836041,
+          "band": [0.8, 1.1],
+          "timestepDrift": 1.578045648674193e-5,
+          "passed": true
+        }
+      }
+    },
+    "dk100": {
+      "sourceSnapshot": "initialFull57",
+      "name": "DK-100 DIRECT-DRIVE KART",
+      "metrics": {
+        "accel0to100": {
+          "fine": 9.404166666666454,
+          "coarse": 9.400000000000107,
+          "band": [6, 10.5],
+          "timestepDrift": 0.0004430660168024932,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 115.91719629455858,
+          "coarse": 115.92422041493151,
+          "band": [105, 125],
+          "timestepDrift": 6.0596016790152114e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 42.10082173857872,
+          "coarse": 42.10082945423179,
+          "band": [26, 44],
+          "timestepDrift": 1.8326609198389842e-7,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.8054019001786632,
+          "coarse": 1.8054123062271092,
+          "band": [1.6, 2.5],
+          "timestepDrift": 5.763840419694655e-6,
+          "passed": true
+        }
+      }
+    },
+    "xf2": {
+      "sourceSnapshot": "initialFull57",
+      "name": "XF-2 FAN PROTOTYPE",
+      "metrics": {
+        "accel0to100": {
+          "fine": 2.6458333333333597,
+          "coarse": 2.64166666666666,
+          "band": [2.4, 3.4],
+          "timestepDrift": 0.0015748031496187823,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 316.57953894508415,
+          "coarse": 316.586479287607,
+          "band": [290, 335],
+          "timestepDrift": 2.1922902996130873e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 14.671288338206262,
+          "coarse": 14.671112266606334,
+          "band": [13, 24],
+          "timestepDrift": 1.200110009895854e-5,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 2.3179946998735184,
+          "coarse": 2.3180044432874545,
+          "band": [2, 3],
+          "timestepDrift": 4.203380592995212e-6,
+          "passed": true
+        }
+      }
+    },
+    "xe1": {
+      "sourceSnapshot": "initialFull57",
+      "name": "XE-1 ELECTRIC TIME ATTACK",
+      "metrics": {
+        "accel0to100": {
+          "fine": 2.1833333333333367,
+          "coarse": 2.1833333333333282,
+          "band": [1.9, 2.8],
+          "timestepDrift": 3.8645931238860355e-15,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 255.7850779906963,
+          "coarse": 255.79198606599,
+          "band": [245, 280],
+          "timestepDrift": 2.7007342836259396e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 20.065100351327587,
+          "coarse": 20.065044411811567,
+          "band": [16, 28],
+          "timestepDrift": 2.7879011338475672e-6,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.7563609957376818,
+          "coarse": 1.756419535206347,
+          "band": [1.7, 2.6],
+          "timestepDrift": 3.3329975333800566e-5,
+          "passed": true
+        }
+      }
+    },
+    "xh3": {
+      "sourceSnapshot": "initialFull57",
+      "name": "XH-3 HYDROGEN PROTOTYPE",
+      "metrics": {
+        "accel0to100": {
+          "fine": 2.9750000000000427,
+          "coarse": 2.974999999999992,
+          "band": [2.4, 3.4],
+          "timestepDrift": 1.701719997408619e-14,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 316.27075477273775,
+          "coarse": 316.2566724958823,
+          "band": [300, 335],
+          "timestepDrift": 4.452601653151979e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 23.914903697360657,
+          "coarse": 23.914972146351083,
+          "band": [20, 34],
+          "timestepDrift": 2.8621896743603023e-6,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.46775003558583,
+          "coarse": 1.467778984184845,
+          "band": [1.4, 2.1],
+          "timestepDrift": 1.9723112460003106e-5,
+          "passed": true
+        }
+      }
+    },
+    "xt1": {
+      "sourceSnapshot": "initialFull57",
+      "name": "XT-1 TRACK HYPERCAR",
+      "metrics": {
+        "accel0to100": {
+          "fine": 2.3791666666666798,
+          "coarse": 2.3749999999999942,
+          "band": [2.3, 3.2],
+          "timestepDrift": 0.0017513134851217524,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 355.23265663832274,
+          "coarse": 355.21649007347247,
+          "band": [330, 370],
+          "timestepDrift": 4.5509793506192476e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 21.829544120877483,
+          "coarse": 21.82951523540239,
+          "band": [18, 32],
+          "timestepDrift": 1.3232285077861866e-6,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.528542872642732,
+          "coarse": 1.5285434131309712,
+          "band": [1.45, 2.2],
+          "timestepDrift": 3.5359704261431563e-7,
+          "passed": true
+        }
+      }
+    },
+    "rh3": {
+      "sourceSnapshot": "initialFull57",
+      "name": "RH-3 HOT HATCH",
+      "metrics": {
+        "accel0to100": {
+          "fine": 5.325000000000018,
+          "coarse": 5.325000000000054,
+          "band": [5, 6.6],
+          "timestepDrift": 6.838556846517373e-15,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 259.77753056556213,
+          "coarse": 259.75584318581855,
+          "band": [245, 275],
+          "timestepDrift": 8.348443260803479e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 33.56948790636213,
+          "coarse": 33.56950667261318,
+          "band": [30, 42],
+          "timestepDrift": 5.590270279078471e-7,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.094115111356516,
+          "coarse": 1.0941162098773138,
+          "band": [0.95, 1.2],
+          "timestepDrift": 1.0040267120705392e-6,
+          "passed": true
+        }
+      }
+    },
+    "rs5": {
+      "sourceSnapshot": "initialFull57",
+      "name": "RS-5 SPORTS SEDAN",
+      "metrics": {
+        "accel0to100": {
+          "fine": 3.5458333333334044,
+          "coarse": 3.5416666666666567,
+          "band": [3.3, 4.3],
+          "timestepDrift": 0.0011750881316326997,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 302.06096647612793,
+          "coarse": 302.09437744657754,
+          "band": [285, 310],
+          "timestepDrift": 0.00011061002300093316,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 32.37918794866866,
+          "coarse": 32.37921854826227,
+          "band": [31, 40],
+          "timestepDrift": 9.450389448623925e-7,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.0869554443217124,
+          "coarse": 1.0869549509209124,
+          "band": [1, 1.25],
+          "timestepDrift": 4.5392918594054956e-7,
+          "passed": true
+        }
+      }
+    },
+    "rm8": {
+      "sourceSnapshot": "initialFull57",
+      "name": "RM-8 MUSCLE COUPE",
+      "metrics": {
+        "accel0to100": {
+          "fine": 4.895833333333376,
+          "coarse": 4.8916666666666995,
+          "band": [4, 5.4],
+          "timestepDrift": 0.0008510638297891739,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 295.04643987839273,
+          "coarse": 295.0560457520462,
+          "band": [265, 300],
+          "timestepDrift": 3.255715831524449e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 33.25570612097637,
+          "coarse": 33.25573250372959,
+          "band": [32, 42],
+          "timestepDrift": 7.933301167459365e-7,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.0736334604061355,
+          "coarse": 1.0736344308343,
+          "band": [0.95, 1.2],
+          "timestepDrift": 9.038728768063843e-7,
+          "passed": true
+        }
+      }
+    },
+    "rg63": {
+      "sourceSnapshot": "initialFull57",
+      "name": "RG-63 CLASSIC GRAND TOURER",
+      "metrics": {
+        "accel0to100": {
+          "fine": 6.187499999999969,
+          "coarse": 6.18333333333343,
+          "band": [5.6, 7.6],
+          "timestepDrift": 0.0006734006733799682,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 267.79922071258613,
+          "coarse": 267.7844240245661,
+          "band": [250, 285],
+          "timestepDrift": 5.5252916646595026e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 37.86034276336219,
+          "coarse": 37.86037263215782,
+          "band": [36, 52],
+          "timestepDrift": 7.88920370201544e-7,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 0.965279028576201,
+          "coarse": 0.9652795387876051,
+          "band": [0.85, 1.1],
+          "timestepDrift": 5.285636474233957e-7,
+          "passed": true
+        }
+      }
+    },
+    "rp6": {
+      "sourceSnapshot": "initialFull57",
+      "name": "RP-6 DESERT PICKUP",
+      "metrics": {
+        "accel0to100": {
+          "fine": 5.470833333333343,
+          "coarse": 5.466666666666728,
+          "band": [5, 7],
+          "timestepDrift": 0.0007616146229913008,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 186.99984754736715,
+          "coarse": 187.00756245706702,
+          "band": [170, 190],
+          "timestepDrift": 4.125623523792872e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 41.53316617530953,
+          "coarse": 41.533343748083084,
+          "band": [38, 54],
+          "timestepDrift": 4.275445141901503e-6,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 0.879318294722944,
+          "coarse": 0.8793175668908397,
+          "band": [0.75, 0.98],
+          "timestepDrift": 8.277231448731094e-7,
+          "passed": true
+        }
+      }
+    },
+    "rr4": {
+      "sourceSnapshot": "initialFull57",
+      "name": "RR-4 RALLY-BRED ROAD CAR",
+      "metrics": {
+        "accel0to100": {
+          "fine": 5.183333333333359,
+          "coarse": 5.183333333333381,
+          "band": [4.4, 5.8],
+          "timestepDrift": 4.112465994752971e-15,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 265.62963596753053,
+          "coarse": 265.6382519194229,
+          "band": [240, 270],
+          "timestepDrift": 3.243595866466305e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 33.321516418101346,
+          "coarse": 33.32188786362095,
+          "band": [32, 42],
+          "timestepDrift": 1.1147317395281608e-5,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.0931984388357328,
+          "coarse": 1.093199385093733,
+          "band": [0.95, 1.2],
+          "timestepDrift": 8.655866735285683e-7,
+          "passed": true
+        }
+      }
+    },
+    "lx12": {
+      "sourceSnapshot": "initialFull57",
+      "name": "LX-12 LUXURY GT",
+      "metrics": {
+        "accel0to100": {
+          "fine": 4.070833333333423,
+          "coarse": 4.066666666666658,
+          "band": [3.2, 4.2],
+          "timestepDrift": 0.0010235414534527831,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 332.6587846579257,
+          "coarse": 332.6678768818241,
+          "band": [310, 345],
+          "timestepDrift": 2.7331981951842087e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 35.4663847787846,
+          "coarse": 35.466411280326945,
+          "band": [32, 40],
+          "timestepDrift": 7.472298772213841e-7,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 0.9948448916328257,
+          "coarse": 0.9948455157287932,
+          "band": [0.95, 1.2],
+          "timestepDrift": 6.273299211865122e-7,
+          "passed": true
+        }
+      }
+    },
+    "rd2": {
+      "sourceSnapshot": "initialFull57",
+      "name": "RD-2 ROADSTER",
+      "metrics": {
+        "accel0to100": {
+          "fine": 6.5999999999999455,
+          "coarse": 6.600000000000118,
+          "band": [6, 7.6],
+          "timestepDrift": 2.6107062639670563e-14,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 233.06161247453136,
+          "coarse": 233.07585402777946,
+          "band": [210, 240],
+          "timestepDrift": 6.110638769245822e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 34.7352765387868,
+          "coarse": 34.73529101169972,
+          "band": [32, 42],
+          "timestepDrift": 4.166632416777675e-7,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.1737683509398975,
+          "coarse": 1.1751438711237547,
+          "band": [0.95, 1.2],
+          "timestepDrift": 0.0011718838583062625,
+          "passed": true
+        }
+      }
+    },
+    "gpr2": {
+      "sourceSnapshot": "finalMotorcycles",
+      "name": "GP-R2 PROTOTYPE",
+      "metrics": {
+        "accel0to100": {
+          "fine": 3.070833333333381,
+          "coarse": 3.0666666666666584,
+          "band": [2.4, 3.4],
+          "timestepDrift": 0.0013568521031388833,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 342.50722768914466,
+          "coarse": 342.52631927546736,
+          "band": [330, 360],
+          "timestepDrift": 5.574068159527776e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 36.82123295939478,
+          "coarse": 36.85655384870209,
+          "band": [30, 42],
+          "timestepDrift": 0.0009592533021983584,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.4554713324443356,
+          "coarse": 1.4554467785894014,
+          "band": [1.15, 1.55],
+          "timestepDrift": 1.6870036796207936e-5,
+          "passed": true
+        }
+      },
+      "measurementCrashes": {
+        "fineCrashes": 0,
+        "coarseCrashes": 0
+      }
+    },
+    "ss600": {
+      "sourceSnapshot": "finalMotorcycles",
+      "name": "SS-600 SUPERSPORT",
+      "metrics": {
+        "accel0to100": {
+          "fine": 3.4791666666667345,
+          "coarse": 3.4749999999999903,
+          "band": [2.9, 4],
+          "timestepDrift": 0.0011976047904414078,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 265.339046821916,
+          "coarse": 265.3288708699411,
+          "band": [250, 280],
+          "timestepDrift": 3.8350751978476006e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 40.49648896397191,
+          "coarse": 40.497327325272664,
+          "band": [36, 48],
+          "timestepDrift": 2.070207374019129e-5,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 1.1472845734100368,
+          "coarse": 1.1472830612760532,
+          "band": [1.05, 1.4],
+          "timestepDrift": 1.3180112577377644e-6,
+          "passed": true
+        }
+      },
+      "measurementCrashes": {
+        "fineCrashes": 0,
+        "coarseCrashes": 0
+      }
+    },
+    "nr900": {
+      "sourceSnapshot": "finalMotorcycles",
+      "name": "NR-900 NAKED ROADSTER",
+      "metrics": {
+        "accel0to100": {
+          "fine": 3.3458333333333945,
+          "coarse": 3.3416666666666575,
+          "band": [2.9, 4.2],
+          "timestepDrift": 0.0012453300124743104,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 224.34198610096743,
+          "coarse": 224.34114005866095,
+          "band": [210, 240],
+          "timestepDrift": 3.771216976285423e-6,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 43.71414886589347,
+          "coarse": 43.60780671314447,
+          "band": [36, 50],
+          "timestepDrift": 0.0024326712405001367,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 0.9464723770544026,
+          "coarse": 0.9464712188832397,
+          "band": [0.9, 1.2],
+          "timestepDrift": 1.2236713832760843e-6,
+          "passed": true
+        }
+      },
+      "measurementCrashes": {
+        "fineCrashes": 0,
+        "coarseCrashes": 0
+      }
+    },
+    "cr750": {
+      "sourceSnapshot": "finalMotorcycles",
+      "name": "CR-750 CLASSIC RACER",
+      "metrics": {
+        "accel0to100": {
+          "fine": 4.212500000000081,
+          "coarse": 4.208333333333332,
+          "band": [3.2, 4.6],
+          "timestepDrift": 0.0009891196835012345,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 236.98462177105267,
+          "coarse": 236.98569435085946,
+          "band": [230, 265],
+          "timestepDrift": 4.525946868503148e-6,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 49.52476937118789,
+          "coarse": 49.50952786584083,
+          "band": [40, 56],
+          "timestepDrift": 0.0003077552008939458,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 0.9116026261629061,
+          "coarse": 0.9116015338655546,
+          "band": [0.85, 1.15],
+          "timestepDrift": 1.1982165475485464e-6,
+          "passed": true
+        }
+      },
+      "measurementCrashes": {
+        "fineCrashes": 0,
+        "coarseCrashes": 0
+      }
+    },
+    "mx450": {
+      "sourceSnapshot": "finalMotorcycles",
+      "name": "MX-450 MOTOCROSS",
+      "metrics": {
+        "accel0to100": {
+          "fine": 5.079166666666699,
+          "coarse": 5.108333333333377,
+          "band": [3.4, 5.4],
+          "timestepDrift": 0.005742411812963704,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 140.37459324604865,
+          "coarse": 140.36543675169187,
+          "band": [118, 145],
+          "timestepDrift": 6.522900009921119e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 46.16407584227696,
+          "coarse": 46.278923595559704,
+          "band": [40, 62],
+          "timestepDrift": 0.002487816580042275,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 0.7983415127318487,
+          "coarse": 0.7984360802106468,
+          "band": [0.75, 1.1],
+          "timestepDrift": 0.00011845491846528336,
+          "passed": true
+        }
+      },
+      "measurementCrashes": {
+        "fineCrashes": 0,
+        "coarseCrashes": 0
+      }
+    },
+    "mx250": {
+      "sourceSnapshot": "finalMotorcycles",
+      "name": "MX-250 TWO-STROKE",
+      "metrics": {
+        "accel0to100": {
+          "fine": 4.983333333333371,
+          "coarse": 5.000000000000038,
+          "band": [3.6, 5.6],
+          "timestepDrift": 0.003344481605351312,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 128.5528823921248,
+          "coarse": 128.56491712776142,
+          "band": [118, 145],
+          "timestepDrift": 9.361700346727994e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 45.54704506915033,
+          "coarse": 45.571415134351284,
+          "band": [40, 62],
+          "timestepDrift": 0.0005350526069025119,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 0.7983206498683842,
+          "coarse": 0.798421978633741,
+          "band": [0.75, 1.1],
+          "timestepDrift": 0.00012692740113066063,
+          "passed": true
+        }
+      },
+      "measurementCrashes": {
+        "fineCrashes": 0,
+        "coarseCrashes": 0
+      }
+    },
+    "sm450": {
+      "sourceSnapshot": "finalMotorcycles",
+      "name": "SM-450 SUPERMOTO",
+      "metrics": {
+        "accel0to100": {
+          "fine": 4.750000000000051,
+          "coarse": 4.766666666666693,
+          "band": [3.4, 5.2],
+          "timestepDrift": 0.003508771929819463,
+          "passed": true
+        },
+        "topSpeed": {
+          "fine": 149.99501009044207,
+          "coarse": 149.99298454801533,
+          "band": [138, 165],
+          "timestepDrift": 1.3504065405341165e-5,
+          "passed": true
+        },
+        "braking100Distance": {
+          "fine": 44.02167862066972,
+          "coarse": 44.10328357406499,
+          "band": [34, 50],
+          "timestepDrift": 0.0018537446992526623,
+          "passed": true
+        },
+        "lateral80G": {
+          "fine": 0.9890513246568493,
+          "coarse": 0.9891576728499949,
+          "band": [0.95, 1.3],
+          "timestepDrift": 0.00010752545443734824,
+          "passed": true
+        }
+      },
+      "measurementCrashes": {
+        "fineCrashes": 0,
+        "coarseCrashes": 0
+      }
+    }
+  },
+  "mxOptOutMetricsBitIdenticalToInitial": ["mx450", "mx250", "sm450"],
+  "largestObservedFinalTimestepDrift": {
+    "vehicle": "mx450",
+    "metric": "accel0to100",
+    "measured": 5.079166666666699,
+    "coarseDt": 5.108333333333377,
+    "band": [3.4, 5.4],
+    "within": true,
+    "coarseWithin": true,
+    "timestepDrift": 0.005742411812963704
+  },
+  "dynamicsBenchmark": {
+    "sourceSHA256": "7ec7cef5d3b009b2680d182cd4f5a7be7b685d9f6fe40833f54afee329d538e5",
+    "fixedDtSeconds": 0.004166666666666667,
+    "fixture": "Isolated analytic runway/skidpad/kerbs with the production Vehicle solver",
+    "passed": true,
+    "cases": [
+      {
+        "name": "braking-100kmh",
+        "passed": true,
+        "measurements": {
+          "distanceM": 19.378181169688613,
+          "stopSeconds": 1.4625,
+          "lateralDriftM": -2.4682483989301893e-16,
+          "minimumSlip": -1,
+          "peakLoadN": 5403.325903938652,
+          "discTemperaturesC": [
+            317.71387839518815, 317.71387839518815, 317.35913432373997, 317.35913432373997
+          ]
+        }
+      },
+      {
+        "name": "braking-200kmh",
+        "passed": true,
+        "measurements": {
+          "distanceM": 55.89582030068866,
+          "stopSeconds": 2.3666666666666667,
+          "lateralDriftM": -6.760024526492367e-16,
+          "minimumSlip": -1,
+          "peakLoadN": 7380.653897691372,
+          "discTemperaturesC": [
+            320.3568266634172, 320.3568266634172, 322.58481584103345, 322.58481584103345
+          ]
+        }
+      },
+      {
+        "name": "braking-300kmh",
+        "passed": true,
+        "measurements": {
+          "distanceM": 97.55629903035091,
+          "stopSeconds": 2.9583333333333335,
+          "lateralDriftM": 1.3451303775798037e-15,
+          "minimumSlip": -1,
+          "peakLoadN": 13148.686443208355,
+          "discTemperaturesC": [
+            340.57462584127353, 340.57462584127353, 334.5166678039517, 334.5166678039517
+          ]
+        }
+      },
+      {
+        "name": "braking-speed-order",
+        "passed": true,
+        "measurements": [19.378181169688613, 55.89582030068866, 97.55629903035091]
+      },
+      {
+        "name": "skidpad-15mps",
+        "passed": true,
+        "measurements": {
+          "commandedSpeedMps": 15,
+          "meanSpeedMps": 15.031884378793109,
+          "radialRmsErrorM": 0.04662238781076319,
+          "measuredLateralG": 0.2881808693407818,
+          "kinematicLateralG": 0.28818366645976035
+        }
+      },
+      {
+        "name": "skidpad-25mps",
+        "passed": true,
+        "measurements": {
+          "commandedSpeedMps": 25,
+          "meanSpeedMps": 24.94523561152051,
+          "radialRmsErrorM": 0.32615197773646787,
+          "measuredLateralG": 0.7897972414560009,
+          "kinematicLateralG": 0.7899463243089502
+        }
+      },
+      {
+        "name": "skidpad-35mps",
+        "passed": true,
+        "measurements": {
+          "commandedSpeedMps": 35,
+          "meanSpeedMps": 34.72674147459106,
+          "radialRmsErrorM": 1.1318979166029208,
+          "measuredLateralG": 1.513888716137932,
+          "kinematicLateralG": 1.5157087476402815
+        }
+      },
+      {
+        "name": "slalom-repeated-steering",
+        "passed": true,
+        "measurements": {
+          "cyclePeakYawRadps": [
+            0.2019769135333851, 0.2019628623358219, 0.20195936936660477, 0.20195578952009405,
+            0.2019521440839489, 0.20194845110679574
+          ],
+          "recoveredYawRadps": 5.8159923696360326e-9
+        }
+      },
+      {
+        "name": "low-kerb",
+        "passed": true,
+        "measurements": {
+          "peakCompressionM": 0.02928447618920116,
+          "peakLoadN": 4188.828144658294,
+          "peakVerticalG": 0.3715334368425568,
+          "skidWorkJ": 0,
+          "finalHeightM": 0.5174569384794769
+        }
+      },
+      {
+        "name": "high-kerb",
+        "passed": true,
+        "measurements": {
+          "peakCompressionM": 0.03867980862646592,
+          "peakLoadN": 5860.742942811073,
+          "peakVerticalG": 0.6669145281963181,
+          "skidWorkJ": 0,
+          "finalHeightM": 0.5174569573385971
+        }
+      },
+      {
+        "name": "sausage-kerb",
+        "passed": true,
+        "measurements": {
+          "peakCompressionM": 0.04941430043504569,
+          "peakLoadN": 7683.125951123465,
+          "peakVerticalG": 1.5485961775715766,
+          "skidWorkJ": 0,
+          "finalHeightM": 0.5174569965308142
+        }
+      }
+    ]
+  },
+  "weatherScenarios": [
+    {
+      "passed": true,
+      "failures": [],
+      "weather": "clear",
+      "simulatedSeconds": 320,
+      "cars": 4,
+      "elapsedSeconds": 41.866268405999996,
+      "maxSpeedKmh": 304.26669976645286,
+      "maxLateral": 7.789119579323577,
+      "laps": [5, 6, 6, 6],
+      "bestLaps": [51.30480906904074, 49.76911342661161, 50.49406817860569, 49.501293076690395],
+      "pitStops": [1, 0, 0, 0],
+      "frontHealth": [1, 1, 1, 1],
+      "compounds": ["medium", "medium", "medium", "medium"],
+      "waterMm": 0
+    },
+    {
+      "passed": true,
+      "failures": [],
+      "weather": "changeable",
+      "simulatedSeconds": 320,
+      "cars": 4,
+      "elapsedSeconds": 44.517318663000005,
+      "maxSpeedKmh": 302.4648555830712,
+      "maxLateral": 7.241344694232256,
+      "laps": [4, 4, 3, 3],
+      "bestLaps": [53.520896551640796, 51.399217605620194, 55.53601860823357, 54.22471336017116],
+      "pitStops": [1, 1, 1, 1],
+      "frontHealth": [1, 1, 1, 1],
+      "compounds": ["intermediate", "intermediate", "intermediate", "intermediate"],
+      "waterMm": 1.2265411024813406
+    },
+    {
+      "passed": true,
+      "failures": [],
+      "weather": "rain",
+      "simulatedSeconds": 320,
+      "cars": 4,
+      "elapsedSeconds": 36.840819067000005,
+      "maxSpeedKmh": 280.5088815087189,
+      "maxLateral": 6.501125056050511,
+      "laps": [4, 4, 4, 4],
+      "bestLaps": [68.42559572788582, 66.81421573780531, 69.75415216462125, 69.29802943078371],
+      "pitStops": [0, 0, 0, 0],
+      "frontHealth": [1, 1, 1, 1],
+      "compounds": ["wet", "wet", "wet", "wet"],
+      "waterMm": 1.2764717214740813
+    }
+  ],
+  "verification": {
+    "focusedVitest": {
+      "files": {
+        "tests/road-bike-braking-geometry.test.ts": "852c02697b577b7fedbe6eac6b24960a20af42dd27dd239ba8966f7622f1a979",
+        "tests/road-bike-intent-capacity.test.ts": "6e3ee57d58d81befad71226bc8dbf260087e5d2419e8b48c333db023f2af1a3b",
+        "tests/road-bike-suspension.test.ts": "1df9a77c216ba24305485d15ebcce3e3a373b480e6f80a79f2201248149ae8d3",
+        "tests/road-bike-contact-surface.test.ts": "0cc9b98a35008d0960fd697831cc4fdd397a3c2fae65538c8d5c97153ac7d530",
+        "tests/road-bike-control-reserve.test.ts": "e468a97dda98385cd9c28be90b3b93a92cb68d9118fdba14180a0be743e559fb"
+      },
+      "testsPassed": 61,
+      "filesPassed": 5
+    },
+    "targetedESLintExitCode": 0,
+    "initialStrictCalibrationExitCode": 1,
+    "baselineNineBikeStrictExitCode": 0,
+    "finalNineBikeStrictExitCode": 0
+  },
+  "evidenceCollection": "Final scratch copy of vehicle-calibration.ts only adds measurement crash counts to its report and writes that report under --only. It does not change measurement functions, inputs, bands, comparisons, or strict exit behavior.",
+  "limits": [
+    "Full57 pass is the union of the unchanged48-car initial run and final9-bike rerun, not a claim that every intermediate patch ran all228 metrics again.",
+    "Car force source files remained byte-identical; intervening protocol/wheel-contact edits are road-bike snapshot presentation.",
+    "Finite Festival collider-specific acceptance belongs to its implementation and final integration reviewers; this report adds no new standalone Festival certification.",
+    "The separate seeded GP race/hairpin acceptance gate remained open when this report was frozen.",
+    "These are authored fictional-vehicle design bands, not measured manufacturer data or a claim of console rendering performance."
+  ]
+}

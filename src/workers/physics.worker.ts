@@ -4,7 +4,7 @@ import { CAR_STRIDE, HEADER } from '../simulation/protocol.ts';
 import { REPLAY_TICKS, TelemetrySampler } from '../storage/telemetry-sampler.ts';
 import { Simulation } from '../simulation/world.ts';
 import { controls, type Controls, type SessionOptions } from '../simulation/config.ts';
-import { InputLog, Resimulation, flashbackFloor } from '../core/flashback.ts';
+import { InputLog, Resimulation, applyLoggedInput, flashbackFloor } from '../core/flashback.ts';
 import { EngineeringProbe, type ClientMessage, type WorkerMessage } from './diagnostics.ts';
 const probe = new EngineeringProbe();
 const scope = self as unknown as DedicatedWorkerGlobalScope;
@@ -22,8 +22,7 @@ let log = new InputLog(),
   rewind: Resimulation | null = null;
 function applyInput(input: Controls) {
   if (!simulation) return;
-  log.input(simulation.tick, input);
-  simulation.setInput(input);
+  applyLoggedInput(simulation, log, input);
 }
 function recorder(sim: Simulation) {
   return new TelemetrySampler(

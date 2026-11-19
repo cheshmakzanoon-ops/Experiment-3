@@ -1,4 +1,5 @@
 import type { VehicleDefinition } from './vehicles.ts';
+import { catalogueHardware } from './catalogue-dynamics.ts';
 import {
   FAMILY_CARCASS,
   FORMULA_SLICK,
@@ -106,13 +107,10 @@ function touring(): VehicleDynamics {
     aero: TOURING_AERO_DYNAMICS,
   });
 }
-/** Catalogue cars (vehicle-catalogue/, which all name a tyre family) and the
- * motorcycle adapters keep the behaviour their sheets were fitted against:
- * the legacy-reproducing suspension geometry, legacy throttle response and
- * 0.09 s shifts, their own power unit and driveline blocks, and the former
- * aero platform and wake. They share the combined-slip tyre law, thermal
- * model, hub suspension and ground materials; per-car geometry and response
- * can be added through `VehicleDefinition.dynamics`. */
+/** Catalogue cars use authored family suspension and powertrain response.
+ * Their own tyres, power curves, driveline, aero platform and explicit dynamics
+ * overrides remain authoritative. Motorcycle adapters retain their separate
+ * suspension/control path and do not inherit four-wheel hardware defaults. */
 function catalogue(def: VehicleDefinition): VehicleDynamics {
   return Object.freeze({
     tyre: def.tireFamily === 'formula-slick' ? FORMULA_SLICK : FAMILY_CARCASS,
@@ -121,6 +119,7 @@ function catalogue(def: VehicleDefinition): VehicleDynamics {
     gearbox: LEGACY_GEARBOX,
     differential: LEGACY_AXLE,
     aero: NEUTRAL_AERO_DYNAMICS,
+    ...(def.dynamicsKind === 'bike' ? {} : catalogueHardware(def)),
   });
 }
 /** The former model's blocks, for regression comparisons. */

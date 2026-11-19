@@ -14,6 +14,8 @@ import {
   W,
   WHEEL_BASE,
   WHEEL_STRIDE,
+  WHEEL_CONTACT_BASE,
+  ROAD_BIKE_CONTACT,
 } from '../simulation/protocol.ts';
 
 const targetQuaternion = new Quaternion();
@@ -53,6 +55,13 @@ export function presentationAlpha(a: Float32Array, b: Float32Array, car: number,
   if (alpha <= 0) return 0;
   if (alpha >= 1 || a === b) return 1;
   if (a[car + RACE_BASE + R.VEHICLE] !== b[car + RACE_BASE + R.VEHICLE]) return 0;
+  // Placement/stands/crash switch the motorcycle root convention. Never
+  // blend a legacy wheel-plane root with an authoritative sprung CG root.
+  if (
+    (a[car + WHEEL_CONTACT_BASE] === ROAD_BIKE_CONTACT) !==
+    (b[car + WHEEL_CONTACT_BASE] === ROAD_BIKE_CONTACT)
+  )
+    return 0;
   const dt = b[H.TIME] - a[H.TIME];
   if (!(dt > 0)) return 0;
   const distance = Math.hypot(

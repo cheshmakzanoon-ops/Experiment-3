@@ -1,0 +1,771 @@
+{
+  "assignment": 25,
+  "wave": 9,
+  "source": {
+    "aggregate": "b203fd368750f746c659bb8372c115f3b95a6b8450da0ce9a1bc4dde6aedb307",
+    "count": 173,
+    "files": {
+      "src/core/championship.ts": "947f2c7189b6d71bebb8ccf402940d961dc45c7f0c490e929d64ec7abef47f02",
+      "src/core/dialog-close.ts": "5ad5a7cdaf93cf6213f6f3efbd27c0edb5c779c18d5fe443ab08a6252dea378b",
+      "src/core/flashback.ts": "db61059dbe12854ef67bdefc514b9f255f4ef2f6893674c2c00109a44f04e2b2",
+      "src/core/ghost-lap.ts": "9766853ddd0515cf71acd0a0cbcb25aefde14519aa43c48e36fadcf8ea4eb7ce",
+      "src/core/grid-presentation.ts": "cc92889ad8ae96d708adae15ca860c3099d70e48ed1e0768f2922f3623cd50a6",
+      "src/core/hud-scale.ts": "344bc4dcdd222b34305bb25652f52d90aafb11febe6ccd94b3237420f554b53e",
+      "src/core/lazy-data.ts": "0595702a029cf5b0e16a5d0418c0f4f5354a9661722f0d5d4c440c9761a08bc9",
+      "src/core/math.ts": "7f32bf1fcb9c784129594225d2bae7073fbb87cfbc54c890994db46b71f452d0",
+      "src/core/performance.ts": "6054aa6e5d5d61219d69ef46abc04f1c146a4c5463dedae2e1b2cebc4031fb6b",
+      "src/core/radio.ts": "6a23e0d89a143f7d5f6cf14ac948b916cca611d348ecabd150262293ef0dc73f",
+      "src/core/scoring.ts": "2b1e9403633063f47587c393e460ea9e79dc5d2c9275fada3c2b40959347f5fb",
+      "src/core/session-identity.ts": "7fdd241374fc28f6786c9989a02dbed59ac076807d93a8d63435dfed8acf5f58",
+      "src/core/session-review.ts": "3e935c95403bf692980d9fb3ebab25a9ba7f1b33ec0e467f4f0d318b4d725731",
+      "src/core/settings-transition.ts": "8d7875aa4bbf77f5ac12582e72b3b42bdd0b97e9e8395ed2b4508d49a2c1e02d",
+      "src/core/stage-rules.ts": "79adc4ec8dec2d26482c6411582fa3dcfaf666094b92ce4d5a65639d64383dcd",
+      "src/simulation/aero-map.ts": "8322cbb61e600c5a835b4d909da03f73ec766b045ce81e8cfd04cbf588f7c8c6",
+      "src/simulation/aero.ts": "072678c4ce515b222475a02e4f1eda20f21042640dcc74127f1a9bb7f048fef5",
+      "src/simulation/ai.ts": "5be0791ac44bc88a17e0c84744216e66ea6455f1dbe55a489c2628d2f5412525",
+      "src/simulation/bike-ai.ts": "4f9fc34126eb124dc18c57c3cdce7fc04e132c532e2cfb554ce61eab0f542854",
+      "src/simulation/bike-definitions.ts": "7d891a82479f1a8214ff72349b5c5139267fb09ed3478a30bbebe33a02cd386d",
+      "src/simulation/bike-slipstream.ts": "69249d407d3db7d150934e0479dfc629f27bf4579239231bc2850128dc39c66a",
+      "src/simulation/bike-vehicle.ts": "9564df64bbb78e53bd8145f44732cdbdfd5b4bc003b98a3c2fedd2c5c200cada",
+      "src/simulation/bike.ts": "6a997eeb6d8455c1f4ae2ee76e70a9682f09d12c3b676ab839b7695aa60a5c44",
+      "src/simulation/brake-thermal.ts": "ea1dd82070364d8972bdfbfff849a4eeda1b857cb759db8c3761529372d9d78c",
+      "src/simulation/bvh.ts": "dfb23acad4705a911ec0a8edc2a510965c276aee24fcc9156c0d7d8de999381a",
+      "src/simulation/catalogue-dynamics.ts": "5e37bfa5416470a8e91b653e5e24b2d072e440241026e0c9eed38f0877925821",
+      "src/simulation/catalogue-events.ts": "ab2f64fa925f5a170531efeca109c95323b8bd3c616868e43e015211ce36980a",
+      "src/simulation/circuit-catalogue/builder.ts": "20f793e8f21d99413ebdb64374f994f859f2222a06a7f59f56d9a6efacd248f5",
+      "src/simulation/circuit-catalogue/dsl.ts": "3e4e980d31fa1ab9424e86084f37dcaad10265669d015656003e35e59952c0a6",
+      "src/simulation/circuit-catalogue/endurance.ts": "0d5a4c8914d3b214fbb6dc1ade62946a7c995aa81d8a57022b97f7aee0ace261",
+      "src/simulation/circuit-catalogue/events.ts": "8d89c3696663168b70b85a80be05ef4fcbd23e8eb5d6d1c583302411573eb720",
+      "src/simulation/circuit-catalogue/geometry-checks.ts": "5b654d0e90ae0e73206f0bedf1f822b12747837b6fe313bf4c9c9af803015982",
+      "src/simulation/circuit-catalogue/index.ts": "b445880e967d922307eb6636b551978ed5052822c308e7143ebc782f9169a9c6",
+      "src/simulation/circuit-catalogue/industrial.ts": "38c6ac91871dbc636fa79c9813612dae189d1ba3176c574b60fa65412d8bd0cb",
+      "src/simulation/circuit-catalogue/motorcycle-gp.ts": "8dd2de0842929ed80bb876b6cb5a8760ec2896841da86560f1cf4909d66fed15",
+      "src/simulation/circuit-catalogue/night-and-street.ts": "4833619d220db7bf321c18510df4e83aef5cbea8ec088f40636379e9feb74d37",
+      "src/simulation/circuit-catalogue/real-world-classics.ts": "562832bea489c70327f09db1e493808d803ac1b8c1a972811ea003be04241c68",
+      "src/simulation/circuit-catalogue/real-world.ts": "09daee5348767edae8aef65ad920d79403d1807f4b2ae41fa11ef7ffe23bcecc",
+      "src/simulation/circuit-catalogue/unconventional.ts": "a6d5b3b91b0faf02d0b7ac0d38fc719649ac8cb6526465621d6372ae2f5439c5",
+      "src/simulation/circuit-catalogue/venue-data.ts": "43fa90bf86ee29875cde68db0704ffaa5a9c12aa20834966a1b6f2b6e4ea8386",
+      "src/simulation/circuit-catalogue/wildcard-venues.ts": "5856ef3e72a47ba23234addaf942210a169fec4495a5405a58b6c26a359af09a",
+      "src/simulation/circuits.ts": "7b0208025d6c0cb25a49bc757e7c69b1fdcb651bdb66803ee75648de24752c90",
+      "src/simulation/clutch.ts": "f511e6588d5326ac7573ae566c405589bc904c31a94ceddbb40d5eb110b863c4",
+      "src/simulation/collision.ts": "4f85907e1a79b8f8c8dc2213aec44140e60b955c9a6e59f7f8c264e5220fa895",
+      "src/simulation/config.ts": "53334c48e2a88177db4e7342c8f34fc344076caab152e4bf76648b8134f17a1e",
+      "src/simulation/contact.ts": "004ca3566893be27745e5047b976e57a6f8404e055b8b5baa7c804d2df114db1",
+      "src/simulation/contamination.ts": "be99152f738ba230ac65986f83df15869f5227db80bf93737e4c337186b9f005",
+      "src/simulation/content-import.ts": "3be5abec0a96bcbfafff3b0ba4e5ce64dda6ba5784b7a223257b0a3eb972a773",
+      "src/simulation/content-validation.ts": "d13329931d23459d5a14d28f781239b8f2eb167af90fd3ae17958e71427a9bd7",
+      "src/simulation/damage.ts": "2b0268d4c9572e88c8d370d1649a579f151d55a2b5d801849197adaa2a7f95ad",
+      "src/simulation/differential.ts": "e8fbd3986683225e7a39694df5441dd1f922648edb48cc40aed975c457197bb4",
+      "src/simulation/driver-brain.ts": "3059874d81d65bf3978e2f808eb83cbe11459872c72f304e2adf6cec49adcc8d",
+      "src/simulation/driving-assists.ts": "cd7d3c95813ceba55f214f87f52ce74ec0ba1af5f22fa9861796f765adc8f0d6",
+      "src/simulation/drs.ts": "8b25937af380288f974e6112ca0241601a5a17e593871193a89796a21e59bc81",
+      "src/simulation/events.ts": "adf92e82801c967a01952543f3ebcd6061249d8345c6938f5668aaabf50f03d4",
+      "src/simulation/gp-brake-fade.ts": "44b747004eb4c7c1256b6d65ccd16dd9b60fb00a49174e77962c99bc29fe543c",
+      "src/simulation/gp-corner-shape.ts": "ed691d13341177d8b677df5188cd3fa093fbb73f84db3081b3a61aeddfbb54f0",
+      "src/simulation/gp-engine-braking.ts": "11c1a601b8d7cae52fee5572dfb67286f4eed25f8a91bd1e8c0b7af01e09b8d8",
+      "src/simulation/gp-front-contact.ts": "b98fd97de63feff43ba77f4fc36f3a91e1761e5ca91a90d927a3d9044f68396e",
+      "src/simulation/gp-grid.ts": "5372cea0c59890a260e28868f6dfce09fba8b5ef59b60841ce75199554be5f24",
+      "src/simulation/lap-reference.ts": "f9e6e02cc5f968d7d63f91aa1373d7427e6fa56caa6a8e1957ad47d09d436dd5",
+      "src/simulation/local-frame.ts": "dc031f159d403f8f550c1dd20deed37d01bfde55d59d4bc555540229ccdc8b4d",
+      "src/simulation/marshal.ts": "2c9164f1d26629aaa4280a9bf0401e3021d660a5f89c09d8fff426c26e705f46",
+      "src/simulation/motogp-physics.ts": "c571841bfa76e9ab1e10d6d8d320df84b840f075f4f1bc6b9369a499945aac48",
+      "src/simulation/motorcycle-braking-plan.ts": "593dd7177cf9f5b6f74da6b285ec2ecd612910182bc151233cd66d1b8ad185c7",
+      "src/simulation/motorcycle-thermal.ts": "eba12f1b721cdf20437977614b5f609a06ca385739007061bfe94d2c2cd79e2b",
+      "src/simulation/moving-surface.ts": "d9e80a5be758f27f9186a7028f6d9831036d1ccead13c72265c93c2374421a3a",
+      "src/simulation/obb.ts": "14185b3ad455cd7eba9f371cdc686d839fd2729ed936e1dd808196414d392b19",
+      "src/simulation/offroad/ai.ts": "bd5fe4c6e2e26500e596a7674cf57c65f333bc4dba44a7e7a2513ffa1f563770",
+      "src/simulation/offroad/berm-practice.ts": "cf16f0666d01ddf3ccbb26185d09f05116a36c2f64b7b226816f49d93241b8f2",
+      "src/simulation/offroad/braking-bumps.ts": "33f87c67f9146f52a500450232be671e7ec632e31ed23d195a62f2c351e4dfaf",
+      "src/simulation/offroad/contact-impulse.ts": "9c6daf1253551a5b2ec7039ec086ba8bed03bc5e5f495aa8ce4c4322f379a847",
+      "src/simulation/offroad/course-terrain.ts": "15cf18d425f8b6fc04612cff9f39fd068509e2fc28b78f4aa82ca8ab54f43edc",
+      "src/simulation/offroad/course.ts": "eafa8e56f4770fd913d76209444e627189646095120777230faa3968c5e24e99",
+      "src/simulation/offroad/dirt-bike-vehicle.ts": "319fe56ff3eb6308f6076f6d604dfca3db17bd73f5ddef6df40c2a4430f2a81a",
+      "src/simulation/offroad/dirt-bikes.ts": "9f25cf072ac30a0399240c0b009b5f8bd8c23e79be5bd5caabeb230c46075324",
+      "src/simulation/offroad/flow-practice.ts": "1aaa1bf18f724593b3a3fc1b1169bc43510e28be210b9913c0ccc301ba343552",
+      "src/simulation/offroad/formats.ts": "8f80f9eacd13cf1a80b727c3ef4ad2ed0cb792a35f4e480b5e5bde6279608c5a",
+      "src/simulation/offroad/jump-rig.ts": "1670e6a47702b5b770f4d21876f4ee0439293b17330a2fb545d02d338cf1d9b0",
+      "src/simulation/offroad/jump-target.ts": "083aec63010da088331229746c59d90a946806e6e74118fe9a9b741967bc3cc5",
+      "src/simulation/offroad/landing-challenge.ts": "65c2ff9b88013bda4bd13724abdba2971ceb41170f684f5c056e3215f7133519",
+      "src/simulation/offroad/meeting.ts": "c77c2c4f57ea8c185dbc05858e6672f01b1db17f806284dced99b2f6efa79468",
+      "src/simulation/offroad/mx-ground-physics.ts": "0baaba17249751fa2629861fedfd7ac119f5b537d7392b5d8e7650f529bde9ca",
+      "src/simulation/offroad/profile.ts": "7d94f8c4a3b2bf414c2950afcec20323fc7cb603d3bdc509493c7f442749a2ce",
+      "src/simulation/offroad/rhythm-coach.ts": "4058b976e130d5a84abee7a2912dcc0c1946dc4026d485e2ea6b3d1380e8003d",
+      "src/simulation/offroad/rider-weight.ts": "1b4819b96e4bf48f03113f0440b964cd0cc0aefb697bbc775f8ac823bb75940a",
+      "src/simulation/offroad/riding-feedback.ts": "6d2a7783e0a4065850e0469699338e7fb99468f1a87bc11edd238934d28c7449",
+      "src/simulation/offroad/session.ts": "25e9bd4b3d2d9371015d9cda8123964ac2e92890bbecf87de8badc0b02c8da78",
+      "src/simulation/offroad/suspension-geometry.ts": "12fddb8870154e0a2ca5e833202c1796710274fc530ab28beb20de489befcf86",
+      "src/simulation/offroad/types.ts": "dc338bd0062fc98f15ac1086efda4e92bc6f4ff7a6411714fff898be900ab19d",
+      "src/simulation/offroad/venues.ts": "4b439f57482138176bbd4cb4c7212ace1266e5764fd2b10bc53c3f39a3d54891",
+      "src/simulation/offroad/wheel-pickup.ts": "3872c53e7b7bf7c6268b45fd436fd05dc4e5932c773ca660101c8b11864d0251",
+      "src/simulation/open-world/activity-progress.ts": "e53394796b3e4e2645f5197478a8e951cba5a2e314634a59594c60fd877b1d40",
+      "src/simulation/open-world/ambient-traffic.ts": "b95b56699ac8eb965d836926b70d9cec150980210c2a202286a8b1374597d0a7",
+      "src/simulation/open-world/circuit-pace.ts": "51ac236b8b9feeea487fb6b1cd81774c0295fc901df268ab7bf6d9e9ebbc419e",
+      "src/simulation/open-world/drift-feedback.ts": "4c4f76cb681498c00bf37d810e34c8eaa790af14ad43d373029acbf629e97ea8",
+      "src/simulation/open-world/festival-events.ts": "fb92d7d0fdd0886cb5c915841c3e9dfdb089a8b84c042c7b610b4c0bc90be6cb",
+      "src/simulation/open-world/festival-machines.ts": "04439d579be1e32fa292da837d9547257f8bb37958a344ecc59006e373fe634b",
+      "src/simulation/open-world/festival-markings.ts": "b8a6e6f97a3ac3f6edbf3ea931cad87fac79373096a79c240e68b86bc5ef3157",
+      "src/simulation/open-world/festival-result.ts": "89310824a2b230575b970c44f82708395ac01dd6479f8aa5c5b004c4b6966a89",
+      "src/simulation/open-world/ground-height.ts": "01041c5f1df743792f976f9f2cbdb40f39f36bc8859e7ad8a0fc2302e7029d1c",
+      "src/simulation/open-world/near-miss.ts": "a2b7786735c06bc86ba9b684bfd30be2bf5b4ef80c274afebc48aeb17e0699ce",
+      "src/simulation/open-world/noise.ts": "fe17fc4cecec2d538f96fe1052b8625111bf7796e26767dcfe7d932d80dc623e",
+      "src/simulation/open-world/open-world-track.ts": "1d055b7026e73ceeb5c98fe75bb6dc59adb543989481b4858ed84715bb12829b",
+      "src/simulation/open-world/placement.ts": "5bd72c2204bbf5f41c10ca3a1f5480a53dd9de524bf14a596de4a10d7c1f2e83",
+      "src/simulation/open-world/racecraft.ts": "5807d84afb2ebdf596d0717b7d76681715453ae8bb3c13f3c49b0ca53764b4fa",
+      "src/simulation/open-world/region-data.ts": "573ad18c1379b0f3f5d49e1f46b34dc841f5c42f02a2c6773a8e02434af4524c",
+      "src/simulation/open-world/region-validation.ts": "97d831c59afcec5552b4aca377f6f6a8165917821b7e6ceaa64496aaae8ff585",
+      "src/simulation/open-world/rival-gap.ts": "4adce694fb1cdec6de944cfe8d2eac0020eb8f3cf14ffcaf710c9df9aeaccdd6",
+      "src/simulation/open-world/road-network.ts": "df45c45d441a0c8f39741d343057e2d59263a07dcc7b48eb64be07a17bbbd841",
+      "src/simulation/open-world/route-driver.ts": "32084ab4a53f4215ba9e2061860e2795d17da16c80b010279a5674bac310806a",
+      "src/simulation/open-world/route-path.ts": "a11b711efe9fde3641330a2132499adb2c78f796171072a63d2188eba9bfe344",
+      "src/simulation/open-world/session.ts": "f3738991bd1e0596aa5a972d108f297528ce84de448f954508a59924ba0a74e0",
+      "src/simulation/open-world/skill-chain.ts": "2a2bb99f98c52840513e8fb226872a8feaae17068c2c491b999baa2154a78993",
+      "src/simulation/open-world/static-footprint.ts": "1de60607c0946b9cd2730977dcb967aaf6ac2e4f5e3ff9220a7c4889b712f88f",
+      "src/simulation/open-world/terrain-field.ts": "fc6a915fc00f796806ed2e922e7f5e13544e1fcd388706692f3dafbc5107fff1",
+      "src/simulation/open-world/terrain-tiles.ts": "d754e8453313d09375c0650cedc48cf5ab9b7b73cdd0bc2b613436d094adc57f",
+      "src/simulation/open-world/world.ts": "d90fdb0cca4331df439e6ac82859aa40742fcf3045d731d525234cf45020f5e3",
+      "src/simulation/pit-safety.ts": "bcd4d012ea7abb7d8f5d37227752fa0d23defbcfd11218f17bff0a970b1561aa",
+      "src/simulation/pit-service.ts": "af259102f985e8f12daabd174f72f78f9977cc13cba448fb307cb324fd3a3caf",
+      "src/simulation/pose-kinematics.ts": "9f3d5dcb5562ea3751dc8ab6806ca0ffab729667e91b6c8b2647b3c2d5d00bb7",
+      "src/simulation/powertrain.ts": "12c3859d0b4fef04fa8ee8d3b07824b352cb335ceb697e869eda85c23b859307",
+      "src/simulation/practice-programme.ts": "a20e8382c8b5310d7f8edb4ec198dad6536eeca56788509fc6a4c9a7c09b79be",
+      "src/simulation/protocol.ts": "c9b5d7c496a32e27a61541d248bd971018c8f27856607b2850c1f856f170b29e",
+      "src/simulation/race.ts": "4e0d31219f729cdfa09242be147b3d9ba75d30f44fd0c5eee9f22fe42a7986f1",
+      "src/simulation/racing-line.ts": "30e541a6c9f624f6809c47eb9447428593e9882ecf806f9db66fe20f9fda0923",
+      "src/simulation/regenerative-braking.ts": "721323648909372df75e2a981980ffdd93499d3214a8bc0cb0380b280aba46a0",
+      "src/simulation/rigid.ts": "08c32ae36662f45d25c6ef5acf15f01dc5332463973ccaa3b1959bba6e10d61b",
+      "src/simulation/road-bike-suspension.ts": "f2a0787ea34795ad4f826cfd8e33c07048e8251651b39052a0806cae835904f1",
+      "src/simulation/road-contact.ts": "1d38e02c09ea1791b1d7ea69f715455f411fef38651236643f24f477aa25fe57",
+      "src/simulation/route-graph.ts": "280981ed91e145ff3e6d1a64e3b4ddd98f79bfba48aa1d0993e8c43983bf17f6",
+      "src/simulation/safety-car.ts": "514d97f852575bd0f657dc59909ed7df28ca2c000f2b2eca2f2b202143a62fbc",
+      "src/simulation/skid-contact.ts": "ca3a97e965f0ba6507031847d981fca847345be071dfc65a2e2d7470527a27f0",
+      "src/simulation/surface-drainage.ts": "1a4b181fbb06c72f24170bec027155c7f30c53e3572ecbfaf01d94be1fead1bd",
+      "src/simulation/surface-material.ts": "cc2bb921006642c3dd0cfe472b660775073e89b55a2eca1c284d2c9566c6fdec",
+      "src/simulation/surface-thermal.ts": "971ee08fd2e0ca5e362f1bd6578e32545ba263e301605fd18e79ea1069351f72",
+      "src/simulation/suspension.ts": "acd7de2cba56de0f2e41196d81ecfdec012db7ba201e2c5184d3e300940a7c97",
+      "src/simulation/terrain.ts": "7f5cd88652e9f085429816d16f949802c72240aafaddf8b2412ccd1b10009679",
+      "src/simulation/test-venues.ts": "1b549431c90100c63607de2f93348c2b6e3283cd1b1b4d0232fe33ec0b0277d5",
+      "src/simulation/tire-families.ts": "2d8d24c230cdb6c7ede9763ee5ef448e32ffdc609bccc41013bf96fc81ad3a6c",
+      "src/simulation/tire-footprint.ts": "cf077d5ba14a5e28c86e45ac81a1e3f0c26bf53d5b987323a2da385650792909",
+      "src/simulation/tire.ts": "8fc0ad9071df33a287e75ee57751d98b00ac58c52cf3238ab1ce996d57b709c7",
+      "src/simulation/track.ts": "736c483c754c14eea1a725f98d391b73aeb06a464e8dd342e33109e1cc7af134",
+      "src/simulation/traffic.ts": "58bbe1c1e66fdb5a7a7850f3bd1e04b320ddc58b030aa2ec0638ff639160e874",
+      "src/simulation/tyre-force.ts": "ab735c1f2d06c1c25857e77e61aad477ba12e831adc6d03d9e809c727b4ca8a1",
+      "src/simulation/tyre-thermal.ts": "737de041a15c8c0cb46261c884f62b46529524e7695907c13297d79810076469",
+      "src/simulation/vehicle-catalogue/builder.ts": "e2776bd76d94467498430c27d726d02ce3786762a4b6a93f859f6f9093a7912a",
+      "src/simulation/vehicle-catalogue/common.ts": "b0c6464cf0b7974ae930a050aa54edb675100ce62c6efd8506090da40a382ede",
+      "src/simulation/vehicle-catalogue/dirt-2.ts": "ffa6bbcf58d533ec0193dc3e24fa08e323a502098f81ee59f5fcc5dd90a3b733",
+      "src/simulation/vehicle-catalogue/dirt.ts": "09d2171018c2bf2f14ad52c7139a629866cfc75988540624a84d22de02693114",
+      "src/simulation/vehicle-catalogue/endurance.ts": "0639678d503ee22d5684f302aaf80e46822975a901a1f6bb580806a92d3e0a70",
+      "src/simulation/vehicle-catalogue/experimental.ts": "4dd232d2f9f243a91de1c2c4d96e5be7c1ffedacda1065a3d3e7d952bafbe419",
+      "src/simulation/vehicle-catalogue/formula.ts": "e0e3ccc8fd187467d7b047c48d7fb9f80815d72684017c7157290f78787daaa2",
+      "src/simulation/vehicle-catalogue/gt-layouts.ts": "2d56b902ff8788a31399a7225d85d27dde11f838a3a86727dbc2e9a044130a05",
+      "src/simulation/vehicle-catalogue/gt.ts": "78a02c349c0e431def3a2d114c7be409eacc1f53f4ec2371d585184e48df564c",
+      "src/simulation/vehicle-catalogue/index.ts": "ed281de1db31688b40ebf7b5900a20857934717e993e22391d7630242116068b",
+      "src/simulation/vehicle-catalogue/prototypes.ts": "99b898854c42087dae8f1768ed1c80442a04a373ea22fcb521b8a05d84cf9d47",
+      "src/simulation/vehicle-catalogue/road-festival.ts": "e28c3bbae13e119c5a0d333292a36a8a4948a3071b86c884cf1dafd94d19790e",
+      "src/simulation/vehicle-catalogue/single-seaters.ts": "865ca4fa2851d4b3869c02469cf05c3db9f6fe8db48fd4108560d400f607def4",
+      "src/simulation/vehicle-catalogue/small-road.ts": "d15a264998c750f8a4ee19ea7f464ba7e2597a24aec7c4fe2a21837f7b505bb7",
+      "src/simulation/vehicle-catalogue/touring-club-2.ts": "5dd81dc1f389e4d3c5caf7824391de3136c6d3cb7ba41680bd586155ca72446f",
+      "src/simulation/vehicle-catalogue/touring-club.ts": "18f8f95393837aa7531430ca59175ef6ba6ae518ddee5ae127134d9acdae1bc0",
+      "src/simulation/vehicle-classes.ts": "88d42f4f70db3ca42bd6fc29e46e388a6cded97e1d4fd2961b111c4e2b4f948c",
+      "src/simulation/vehicle-dynamics.ts": "faed2d5f2983d1de935721a7e134667825731ec7d256e21e840af4f15fd812e7",
+      "src/simulation/vehicle.ts": "a3ca802f3b656356a79b70ff83870ee23aaeb1c6ea913b63544b2df3208894d7",
+      "src/simulation/vehicles.ts": "d362e0a36d566ba8cfe866e84a2b3014e2d6bf2307b07c286e52335334f0b090",
+      "src/simulation/weather-catalogue.ts": "c90b575d4839d11afbc2adf36fd65f46aae3e400766955b825f2523a9f57ceb9",
+      "src/simulation/weather.ts": "c1362e300f89639f8d9d8f668fbf94ed99aae769d8e0c46a25a62be9f7ce2756",
+      "src/simulation/wheel-contact-state.ts": "e6ee933cd118e41ed1399355563488cef1a68bf7357af8965c0172f5bf202c87",
+      "src/simulation/wheel-momentum.ts": "46eef7c2e24ec379282988c53ddbd2ea01aec3c04f84a359027536813838ac66",
+      "src/simulation/wheel-rotation.ts": "e7f1a5e4aac194cd2e8021a8420034e06c98888ec6054d9ac54b54865d0817ef",
+      "src/simulation/wildcard-rulesets.ts": "5d1cccc138a361f781716508444a1363ba9911790d6a2fb3a540e60d815342ae",
+      "src/simulation/world.ts": "e1d37b1ec6dc23605d49ce79be0a20b5a836ef5709abcfcfc5b2e73b3d552b80"
+    }
+  },
+  "productionEdits": [],
+  "experimentalVariantsRetained": [],
+  "highRateSupport": {
+    "intervalSeconds": [88, 89.5],
+    "steps": 358,
+    "externalVerticalImpulseSum": 0,
+    "maxAbsExternalVerticalImpulse": 0,
+    "meanNormalForceByContactEvaluation": [
+      2381.6813725400107, 2383.2277069372203, 2384.801089346285
+    ],
+    "velocityChange": -0.14970731488043554,
+    "integratedAcceleration": -0.14970731488043573,
+    "nextContactPredictionErrors": {
+      "front": {
+        "count": 357,
+        "rmsHeightMetres": 3.682320668566342e-5,
+        "maxAbsHeightMetres": 8.206059284443512e-5,
+        "rmsVerticalRate": 0.008837569604559222,
+        "maxAbsVerticalRate": 0.01969454228266443
+      },
+      "rear": {
+        "count": 357,
+        "rmsHeightMetres": 1.6097066550123104e-5,
+        "maxAbsHeightMetres": 3.6609903536266586e-5,
+        "rmsVerticalRate": 0.0038632959720295455,
+        "maxAbsVerticalRate": 0.00878637684870398
+      }
+    }
+  },
+  "trials": [
+    {
+      "trial": "retained current-contact GP baseline",
+      "artifact": "w09-current-1037.events",
+      "retained": true,
+      "falls": [
+        {
+          "time": 89.508333,
+          "riders": [
+            {
+              "id": 1,
+              "s": 3142.17898,
+              "beforeFall": {
+                "kind": "lowside",
+                "lean": 1.2569732799317075,
+                "rollRate": 1.8784357502289868,
+                "speed": 13.30914308011567,
+                "frontFy": 1762.6356213433207,
+                "rearFy": 1252.3485348523232,
+                "yawRate": 0.8164477561422893,
+                "lateralSpeed": 0.548140120959522,
+                "lateralAcceleration": 12.30820665075729,
+                "lateralDemand": 19.6133,
+                "leanTarget": 0.7835156147020651
+              }
+            }
+          ]
+        }
+      ],
+      "summary": {
+        "event": "summary",
+        "finished": false,
+        "fallEvents": 1,
+        "cars": [
+          {
+            "id": 0,
+            "s": 3888.9538107834496,
+            "finishTime": 0,
+            "crashes": 0
+          },
+          {
+            "id": 1,
+            "s": 3381.9989142983222,
+            "finishTime": 0,
+            "crashes": 1
+          },
+          {
+            "id": 2,
+            "s": 3589.7030379494036,
+            "finishTime": 0,
+            "crashes": 0
+          },
+          {
+            "id": 3,
+            "s": 3501.647317552758,
+            "finishTime": 0,
+            "crashes": 0
+          }
+        ]
+      }
+    },
+    {
+      "trial": "current forward force as roll measurement",
+      "artifact": "w09-shadow-preview.events",
+      "retained": false,
+      "falls": [
+        {
+          "time": 88.075,
+          "riders": [
+            {
+              "id": 0,
+              "s": 3174.083332,
+              "beforeFall": {
+                "kind": "lowside",
+                "lean": -1.2557324839166653,
+                "rollRate": -2.77580008795475,
+                "speed": 8.444631382557818,
+                "frontFy": -1843.5030776783344,
+                "rearFy": -1389.3963094903816,
+                "yawRate": -2.5,
+                "lateralSpeed": -0.08051216671681206,
+                "lateralAcceleration": -13.029552056702506,
+                "lateralDemand": 19.6133,
+                "leanTarget": -0.4697050569592693
+              }
+            }
+          ]
+        },
+        {
+          "time": 91.008333,
+          "riders": [
+            {
+              "id": 1,
+              "s": 3151.948193,
+              "beforeFall": {
+                "kind": "lowside",
+                "lean": 1.2544058666349065,
+                "rollRate": 1.834137655709547,
+                "speed": 13.427261270927414,
+                "frontFy": 1488.3384474525708,
+                "rearFy": 1238.5006008673868,
+                "yawRate": 0.7767396499559954,
+                "lateralSpeed": 0.5386137731598506,
+                "lateralAcceleration": 11.134088190336843,
+                "lateralDemand": 19.6133,
+                "leanTarget": 0.5951398463949997
+              }
+            }
+          ]
+        },
+        {
+          "time": 94.2,
+          "riders": [
+            {
+              "id": 2,
+              "s": 3164.672804,
+              "beforeFall": {
+                "kind": "lowside",
+                "lean": 0.3896759951718496,
+                "rollRate": -1.6934447523637906,
+                "speed": 7.255607899519026,
+                "frontFy": 1303.4464143911134,
+                "rearFy": 1160.9538670030795,
+                "yawRate": 0.538712546206544,
+                "lateralSpeed": 0.07687020340889521,
+                "lateralAcceleration": 9.985258399310219,
+                "lateralDemand": 10.762554919293827,
+                "leanTarget": 0.38207009352027393
+              }
+            }
+          ]
+        }
+      ],
+      "summary": {
+        "event": "summary",
+        "finished": false,
+        "fallEvents": 3,
+        "cars": [
+          {
+            "id": 0,
+            "s": 3379.6545356316174,
+            "finishTime": 0,
+            "crashes": 1
+          },
+          {
+            "id": 1,
+            "s": 3286.12437625608,
+            "finishTime": 0,
+            "crashes": 1
+          },
+          {
+            "id": 2,
+            "s": 3240.0403957851204,
+            "finishTime": 0,
+            "crashes": 1
+          },
+          {
+            "id": 3,
+            "s": 3434.1479842643084,
+            "finishTime": 0,
+            "crashes": 0
+          }
+        ]
+      }
+    },
+    {
+      "trial": "same requested lateral acceleration with substep support, activated after 80 s",
+      "artifact": "w09-ai-reaction-local.events",
+      "retained": false,
+      "falls": [
+        {
+          "time": 89.308333,
+          "riders": [
+            {
+              "id": 1,
+              "s": 3138.36848,
+              "beforeFall": {
+                "kind": "lowside",
+                "lean": 1.2570336366961776,
+                "rollRate": 1.8260453584952878,
+                "speed": 13.254983684065172,
+                "frontFy": 1218.274892378816,
+                "rearFy": 986.1825169181658,
+                "yawRate": 0.7361123519574294,
+                "lateralSpeed": 0.26141157709331275,
+                "lateralAcceleration": 9.004846434997164,
+                "lateralDemand": 19.6133,
+                "leanTarget": 0.8302692014116253
+              }
+            }
+          ]
+        }
+      ],
+      "summary": {
+        "event": "summary",
+        "finished": false,
+        "fallEvents": 1,
+        "cars": [
+          {
+            "id": 0,
+            "s": 3877.7281147273798,
+            "finishTime": 0,
+            "crashes": 0
+          },
+          {
+            "id": 1,
+            "s": 3374.423540173201,
+            "finishTime": 0,
+            "crashes": 1
+          },
+          {
+            "id": 2,
+            "s": 3585.3883650807193,
+            "finishTime": 0,
+            "crashes": 0
+          },
+          {
+            "id": 3,
+            "s": 3497.0664353143757,
+            "finishTime": 0,
+            "crashes": 0
+          }
+        ]
+      }
+    },
+    {
+      "trial": "rate response in tracking and energy, activated after 80 s",
+      "artifact": "w09-response-local.events",
+      "retained": false,
+      "falls": [
+        {
+          "time": 95.1,
+          "riders": [
+            {
+              "id": 3,
+              "s": 3164.753309,
+              "beforeFall": {
+                "kind": "lowside",
+                "lean": -1.2591259766325815,
+                "rollRate": -3.0011604676249024,
+                "speed": 7.926751149857184,
+                "frontFy": -1927.6578176048379,
+                "rearFy": -1496.3460906626913,
+                "yawRate": -2.5,
+                "lateralSpeed": -0.46523066118333767,
+                "lateralAcceleration": -13.642704824379736,
+                "lateralDemand": 19.6133,
+                "leanTarget": -0.3581809907013861
+              }
+            }
+          ]
+        }
+      ],
+      "summary": {
+        "event": "summary",
+        "finished": false,
+        "fallEvents": 1,
+        "cars": [
+          {
+            "id": 0,
+            "s": 3909.2709767319984,
+            "finishTime": 0,
+            "crashes": 0
+          },
+          {
+            "id": 1,
+            "s": 3765.7241296195325,
+            "finishTime": 0,
+            "crashes": 0
+          },
+          {
+            "id": 2,
+            "s": 3710.1322926976,
+            "finishTime": 0,
+            "crashes": 0
+          },
+          {
+            "id": 3,
+            "s": 3255.260488059169,
+            "finishTime": 0,
+            "crashes": 1
+          }
+        ]
+      }
+    },
+    {
+      "trial": "rate response in tracking and energy, whole race",
+      "artifact": "w09-response-full.events",
+      "retained": false,
+      "falls": [
+        {
+          "time": 88.708333,
+          "riders": [
+            {
+              "id": 0,
+              "s": 3160.270702,
+              "beforeFall": {
+                "kind": "lowside",
+                "lean": 1.2526787070593068,
+                "rollRate": 1.7950206424545652,
+                "speed": 7.6920048593827595,
+                "frontFy": 1655.142694019943,
+                "rearFy": 1158.9008712532902,
+                "yawRate": 2.4878317871426407,
+                "lateralSpeed": -6.193375592590017,
+                "lateralAcceleration": 10.487691975162585,
+                "lateralDemand": 19.6133,
+                "leanTarget": -0.2490694287726079
+              }
+            }
+          ]
+        }
+      ],
+      "summary": {
+        "event": "summary",
+        "finished": false,
+        "fallEvents": 1,
+        "cars": [
+          {
+            "id": 0,
+            "s": 3367.6482068541145,
+            "finishTime": 0,
+            "crashes": 1
+          },
+          {
+            "id": 1,
+            "s": 3251.391772043734,
+            "finishTime": 0,
+            "crashes": 0
+          },
+          {
+            "id": 2,
+            "s": 3404.5407508032886,
+            "finishTime": 0,
+            "crashes": 0
+          },
+          {
+            "id": 3,
+            "s": 3487.2715422360825,
+            "finishTime": 0,
+            "crashes": 0
+          }
+        ]
+      }
+    },
+    {
+      "trial": "rate response only in stop energy, whole race",
+      "artifact": "w09-energy-full.events",
+      "retained": false,
+      "falls": [
+        {
+          "time": 92.591667,
+          "riders": [
+            {
+              "id": 2,
+              "s": 3173.243217,
+              "beforeFall": {
+                "kind": "lowside",
+                "lean": -1.263325271738513,
+                "rollRate": -5.450106865035538,
+                "speed": 8.967453068653732,
+                "frontFy": -1927.2559126850804,
+                "rearFy": 1545.0791982758683,
+                "yawRate": -2.5,
+                "lateralSpeed": -3.9325313765203624,
+                "lateralAcceleration": 1.188361576151695,
+                "lateralDemand": 19.6133,
+                "leanTarget": -0.36883467319341706
+              }
+            }
+          ]
+        },
+        {
+          "time": 94.641667,
+          "riders": [
+            {
+              "id": 3,
+              "s": 3165.642032,
+              "beforeFall": {
+                "kind": "lowside",
+                "lean": -1.25910128526439,
+                "rollRate": -3.8106258949977603,
+                "speed": 7.8574072312717815,
+                "frontFy": -1959.106870861327,
+                "rearFy": -1398.1274081384631,
+                "yawRate": -2.4551397202282113,
+                "lateralSpeed": -1.110948809642577,
+                "lateralAcceleration": -12.792389051722164,
+                "lateralDemand": 19.6133,
+                "leanTarget": -0.29655097925592233
+              }
+            }
+          ]
+        }
+      ],
+      "summary": {
+        "event": "summary",
+        "finished": false,
+        "fallEvents": 2,
+        "cars": [
+          {
+            "id": 0,
+            "s": 3890.5400323958647,
+            "finishTime": 0,
+            "crashes": 0
+          },
+          {
+            "id": 1,
+            "s": 3814.574476253226,
+            "finishTime": 0,
+            "crashes": 0
+          },
+          {
+            "id": 2,
+            "s": 3267.645306676587,
+            "finishTime": 0,
+            "crashes": 1
+          },
+          {
+            "id": 3,
+            "s": 3233.2590403218246,
+            "finishTime": 0,
+            "crashes": 1
+          }
+        ]
+      }
+    }
+  ],
+  "acceptance": {
+    "status": "failed",
+    "sourceUnchangedAfterSuites": true,
+    "fullSuites": {
+      "total": 23,
+      "passed": 21,
+      "failed": 2,
+      "files": [
+        {
+          "name": "gp-ai-braking-plan",
+          "total": 9,
+          "passed": 8,
+          "failed": 1
+        },
+        {
+          "name": "bike-session",
+          "total": 14,
+          "passed": 13,
+          "failed": 1
+        }
+      ],
+      "failures": [
+        {
+          "test": "Ardennes 1037 hairpin",
+          "car": 1,
+          "s": 3142.178980299498
+        },
+        {
+          "test": "Mixed GP/SBK pace",
+          "bestGPSeconds": 92.13344943086413,
+          "bestSBKSeconds": 90.72731608645105
+        }
+      ],
+      "unhandledErrors": ["Vitest worker timeout calling onTaskUpdate"],
+      "exitCode": 1,
+      "durationSeconds": 121.98,
+      "log": "/workspace/scratch/d611aefdb08c/w09-full-acceptance.log"
+    },
+    "original19Scenarios": {
+      "status": "terminated-incomplete-historical-baseline",
+      "exitCode": 130,
+      "completedScenarios": 6,
+      "requiredScenarios": 19,
+      "originalGateStillRequired": true,
+      "reason": "Coordinator stopped obsolete failing baseline after assignment27 produced a physically justified candidate; final full19 must run on corrected frozen source. No acceptance bound was weakened.",
+      "snapshot": "/workspace/scratch/d611aefdb08c/w09-acceptance-baseline",
+      "log": "/workspace/scratch/d611aefdb08c/w09-road-race-matrix.log",
+      "finalJsonWritten": false,
+      "observedCompletedRows": [
+        {
+          "circuit": "aurel",
+          "weather": "clear",
+          "seed": 3303,
+          "finished": true,
+          "raceSecondsRounded": 221.8,
+          "crashes": [0, 0, 0, 0, 0, 0, 0, 0],
+          "totalCrashes": 0,
+          "withinOriginalSixCrashBound": true,
+          "bestLapSecondsRounded": 66.08,
+          "classificationAndStationaryTimeAssertions": "not emitted before termination"
+        },
+        {
+          "circuit": "vellamar",
+          "weather": "clear",
+          "seed": 77,
+          "finished": true,
+          "raceSecondsRounded": 288.5,
+          "crashes": [0, 0, 0, 0, 0, 1, 0, 0],
+          "totalCrashes": 1,
+          "withinOriginalSixCrashBound": true,
+          "bestLapSecondsRounded": 88.63,
+          "classificationAndStationaryTimeAssertions": "not emitted before termination"
+        },
+        {
+          "circuit": "aurel",
+          "weather": "rain",
+          "seed": 2024,
+          "finished": true,
+          "raceSecondsRounded": 427.6,
+          "crashes": [0, 0, 0, 0, 0, 0, 0, 0],
+          "totalCrashes": 0,
+          "withinOriginalSixCrashBound": true,
+          "bestLapSecondsRounded": 86.37,
+          "classificationAndStationaryTimeAssertions": "not emitted before termination"
+        },
+        {
+          "circuit": "vellamar",
+          "weather": "clear",
+          "seed": 8624,
+          "finished": true,
+          "raceSecondsRounded": 311.4,
+          "crashes": [0, 1, 0, 0, 0, 3, 2, 1],
+          "totalCrashes": 7,
+          "withinOriginalSixCrashBound": false,
+          "bestLapSecondsRounded": 86.26,
+          "classificationAndStationaryTimeAssertions": "not emitted before termination"
+        },
+        {
+          "circuit": "aurel",
+          "weather": "clear",
+          "seed": 8725,
+          "finished": true,
+          "raceSecondsRounded": 230.7,
+          "crashes": [0, 0, 0, 0, 0, 0, 0, 1],
+          "totalCrashes": 1,
+          "withinOriginalSixCrashBound": true,
+          "bestLapSecondsRounded": 69.76,
+          "classificationAndStationaryTimeAssertions": "not emitted before termination"
+        },
+        {
+          "circuit": "vellamar",
+          "weather": "clear",
+          "seed": 8826,
+          "finished": true,
+          "raceSecondsRounded": 327.9,
+          "crashes": [0, 0, 0, 0, 0, 0, 0, 0],
+          "totalCrashes": 0,
+          "withinOriginalSixCrashBound": true,
+          "bestLapSecondsRounded": 104.37,
+          "classificationAndStationaryTimeAssertions": "not emitted before termination"
+        }
+      ]
+    },
+    "focusedInvariants": {
+      "tests": 37,
+      "passed": 37,
+      "files": 7,
+      "exitCode": 0,
+      "log": "/workspace/scratch/d611aefdb08c/w09-force-invariants.log"
+    }
+  }
+}

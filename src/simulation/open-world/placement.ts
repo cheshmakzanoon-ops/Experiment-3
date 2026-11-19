@@ -69,11 +69,22 @@ export function insideFootprint(s: Structure, x: number, z: number, pad = 0) {
 export class StructureGrid {
   readonly cell = 48;
   private readonly cells = new Map<number, number[]>();
+  private readonly visited: Uint32Array;
+  private queryId = 0;
   constructor(readonly items: readonly Structure[]) {
+    this.visited = new Uint32Array(items.length);
     items.forEach((s, i) => {
       const r = Math.hypot(s.hx, s.hz);
-      for (let cx = Math.floor((s.x - r) / this.cell); cx <= Math.floor((s.x + r) / this.cell); cx++)
-        for (let cz = Math.floor((s.z - r) / this.cell); cz <= Math.floor((s.z + r) / this.cell); cz++) {
+      for (
+        let cx = Math.floor((s.x - r) / this.cell);
+        cx <= Math.floor((s.x + r) / this.cell);
+        cx++
+      )
+        for (
+          let cz = Math.floor((s.z - r) / this.cell);
+          cz <= Math.floor((s.z + r) / this.cell);
+          cz++
+        ) {
           const key = cx * 65536 + cz,
             list = this.cells.get(key);
           if (list) list.push(i);
@@ -85,12 +96,36 @@ export class StructureGrid {
   near(x: number, z: number): readonly number[] {
     return this.cells.get(Math.floor(x / this.cell) * 65536 + Math.floor(z / this.cell)) ?? EMPTY;
   }
+  /** Unique structure candidates touched by a finite footprint. The caller
+   * owns the result buffer; query stamps avoid allocating a Set per substep.
+   * Stable item order also makes cell-edge traversal order immaterial. */
+  queryBounds(minX: number, minZ: number, maxX: number, maxZ: number, out: number[]) {
+    out.length = 0;
+    this.queryId = (this.queryId + 1) >>> 0;
+    if (this.queryId === 0) {
+      this.visited.fill(0);
+      this.queryId = 1;
+    }
+    for (let cx = Math.floor(minX / this.cell); cx <= Math.floor(maxX / this.cell); cx++)
+      for (let cz = Math.floor(minZ / this.cell); cz <= Math.floor(maxZ / this.cell); cz++) {
+        const list = this.cells.get(cx * 65536 + cz);
+        if (!list) continue;
+        for (const index of list)
+          if (this.visited[index] !== this.queryId) {
+            this.visited[index] = this.queryId;
+            out.push(index);
+          }
+      }
+    out.sort(structureOrder);
+    return out;
+  }
   blocks(x: number, z: number, pad = 0) {
     for (const i of this.near(x, z)) if (insideFootprint(this.items[i], x, z, pad)) return true;
     return false;
   }
 }
 const EMPTY: readonly number[] = Object.freeze([]);
+const structureOrder = (a: number, b: number) => a - b;
 
 /**
  * Every building and landmark of the region, deterministic from the region
@@ -210,9 +245,12 @@ function boxesOverlap(a: Structure, b: Structure) {
  * 2 shrub), rotation (rad), tint (0..1). */
 export const TREE_STRIDE = 6;
 export const TREE_SPECIES = Object.freeze({ BROADLEAF: 0, CONIFER: 1, SHRUB: 2 });
+/** Shared broad-phase bound; changing the trunk model cannot leave a stale
+ * neighbour-tile query radius in the collision owner. */
+export const MAX_TRUNK_RADIUS = 0.55;
 /** Trunk collider radius by species (m per m of tree height, clamped). */
 export function trunkRadius(species: number, height: number) {
-  return species === TREE_SPECIES.SHRUB ? 0 : clamp(height * 0.022, 0.18, 0.55);
+  return species === TREE_SPECIES.SHRUB ? 0 : clamp(height * 0.022, 0.18, MAX_TRUNK_RADIUS);
 }
 
 /**

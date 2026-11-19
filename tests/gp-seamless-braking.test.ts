@@ -105,10 +105,38 @@ describe('GP seamless coast engagement', () => {
       d.rearGrip = rear;
       bike.input.brake = 0.3;
       bike.input.clutch = 0.1;
+      // Settle the newly prescribed loaded corner before judging its shared
+      // circle. The road chassis now transfers load through finite fork /
+      // shock motion; the first brake sample cannot instantaneously be the
+      // steady rear normal load of the former algebraic model. The separate
+      // engagement test above still checks both actual shift edges.
+      for (let i = 0; i < 180; i++) {
+        // Keep the prescribed chassis lean as the rider finishes hanging
+        // off; a fixed combined-CG target would instead stand the chassis
+        // up by that internal rider displacement during this longer setup.
+        if (i > 0)
+          bike.input.steer = (0.22 + gpHangOffAngle(d.riderOffset, d.p.cgHeight)) / d.leanLimit;
+        bike.contacts[2].grip = bike.contacts[3].grip = rearGrip;
+        bike.step(DT, track);
+        expect(d.state).toBe('riding');
+        expect(d.frontUse).toBeLessThanOrEqual(1);
+        expect(d.rearUse).toBeLessThanOrEqual(1);
+        for (const value of [
+          d.frontLoad,
+          d.rearLoad,
+          d.frontBrakeForce,
+          d.rearBrakeForce,
+          d.engineBrakeForce,
+        ]) {
+          expect(Number.isFinite(value)).toBe(true);
+          expect(value).toBeGreaterThanOrEqual(0);
+        }
+      }
       for (let i = 0; i < 12; i++) {
         if (i === 4) bike.input.shift = -1;
         bike.contacts[2].grip = bike.contacts[3].grip = rearGrip;
-        const beforeSpeed = d.speed;
+        const beforeSpeed = d.speed,
+          beforeSide = d.motoGP!.lateralSpeed;
         bike.step(DT, track);
         expect(d.engineBrakeForce).toBeGreaterThan(50);
         expect(d.frontUse).toBeLessThanOrEqual(1);
@@ -121,7 +149,20 @@ describe('GP seamless coast engagement', () => {
         expect(pedalForce).toBeGreaterThan(0);
         expect(pedalForce).toBeLessThan(d.p.rearBrake * 0.1);
         expect(d.state).toBe('riding');
-        expect(d.speed).toBeCloseTo(beforeSpeed + d.longitudinal * DT, 10);
+        const gp = d.motoGP!,
+          forwardAfterForce = beforeSpeed + d.longitudinal * DT,
+          sideAfterForce = beforeSide + gp.lateralAcceleration * DT,
+          turn = gp.yawRate * DT;
+        // The force impulse is followed by a coupled body-frame rotation;
+        // a yawing bike's forward component is not its scalar road speed.
+        expect(d.speed).toBeCloseTo(
+          forwardAfterForce * Math.cos(turn) + sideAfterForce * Math.sin(turn),
+          10,
+        );
+        expect(gp.lateralSpeed).toBeCloseTo(
+          sideAfterForce * Math.cos(turn) - forwardAfterForce * Math.sin(turn),
+          10,
+        );
       }
       // GP cornering ABS fills the rear circle up to the lean assist's
       // recovery reserve (0.985/0.9 of the lateral force, 95% friction).

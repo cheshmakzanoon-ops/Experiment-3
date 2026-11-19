@@ -1,19 +1,14 @@
 import { clamp, G, lerp, mod, Quat, Vec3 } from '../core/math.ts';
-import {
-  AIDriver,
-  ENVELOPE_SAMPLES,
-  ENVELOPE_STEP,
-  envelopeCornerSpeed,
-  envelopeProfile,
-} from './ai.ts';
-import { leanAuthority } from './bike.ts';
+import { AIDriver, ENVELOPE_SAMPLES, ENVELOPE_STEP, envelopeCornerSpeed } from './ai.ts';
+import { GP_ASSIST, leanAuthority } from './bike.ts';
 import { BikeVehicle } from './bike-vehicle.ts';
+import { motorcycleApproachProfile, motorcyclePathMetric } from './motorcycle-braking-plan.ts';
 import type { RaceDirector } from './race.ts';
 import { pitPreparationDistance } from './pit-safety.ts';
 import { racingLineFor } from './racing-line.ts';
 import { trackPoint, type Track } from './track.ts';
 import type { PassPace } from './traffic.ts';
-import type { Vehicle } from './vehicle.ts';
+import { engineTorque, type Vehicle } from './vehicle.ts';
 
 /** Bounded GP preview work: at most 1,524 m at the shared 12 m spacing. */
 export const GP_APPROACH_SAMPLES = 128;
@@ -44,9 +39,22 @@ export class BikeAIDriver extends AIDriver {
   private readonly approachCurvatures = new Float64Array(GP_APPROACH_SAMPLES);
   private readonly approachCorners = new Float64Array(GP_APPROACH_SAMPLES);
   private readonly approachProfile = new Float64Array(GP_APPROACH_SAMPLES);
+  private readonly approachGradients = new Float64Array(GP_APPROACH_SAMPLES);
+  private readonly approachMetrics = new Float64Array(GP_APPROACH_SAMPLES);
+  private readonly approachDistances = new Float64Array(GP_APPROACH_SAMPLES);
+  private readonly approachPoint = trackPoint();
+  private readonly roadCurvatures = new Float64Array(GP_APPROACH_SAMPLES);
+  private readonly roadCorners = new Float64Array(GP_APPROACH_SAMPLES);
+  private readonly roadProfile = new Float64Array(GP_APPROACH_SAMPLES);
+  private readonly roadGradients = new Float64Array(GP_APPROACH_SAMPLES);
+  private readonly roadPoint = trackPoint();
   /** Planned speed one sample ahead and the stoppie-limited deceleration, set by
    * the GP approach plan on the step it ran (NaN otherwise). */
   protected planNext = NaN;
+  /** Physical travel to the next profile sample, not centreline station span. */
+  protected planDistance = ENVELOPE_STEP;
+  /** The same current path-correction acceleration requested by steering. */
+  protected planRecovery = 0;
   /** The GP approach plan's speed limit on the step it ran (Infinity otherwise). */
   private planLimit = Infinity;
   /** Distance (m) along the approach plan to where it first asks the rider to brake
@@ -127,8 +135,80 @@ export class BikeAIDriver extends AIDriver {
           GP_AI_HANDS.leverShare * this.leverAtLimit() * (this.heldBack ? this.trafficShare() : 1),
         );
       this.gpPedals(dt);
-    }
+    } else if (d.contactLoads) this.roadPedals(track);
     c.aiControlled();
+  }
+  /** Ordinary road bikes retain their own steering and pedal controller.
+   * Their sprung chassis still needs a motorcycle stopping profile: the
+   * rear-load transfer bound is tighter than a car-style friction ellipse. */
+  private roadPedals(track: Track) {
+    const c = this.bike,
+      d = c.dynamics,
+      command = c.input;
+    if (
+      c.inPit ||
+      this.pitCorridor ||
+      d.speed < 6 ||
+      Math.abs(c.lateral) > c.trackPosition.width ||
+      Math.sin(d.heading) * c.trackPosition.tx + Math.cos(d.heading) * c.trackPosition.tz < 0.5
+    )
+      return;
+    const env = c.definition.ai,
+      p = d.p,
+      near = clamp(6 + c.speed * 0.48, 8, 46),
+      tactical = c.aiOffset - this.steeringLineOffset(track, c.s + near),
+      wetness = clamp(Math.max(c.contacts[0].water, c.contacts[2].water) / 0.8, 0, 1),
+      grip =
+        clamp(d.grip, 0.1, 1) *
+        (1 - 0.15 * wetness) *
+        clamp(1 - (0.25 * Math.max(0, Math.abs(tactical) - 1.5)) / 6, 0.8, 1),
+      aero = env.downforceReference / d.mass,
+      count = gpApproachSampleCount(
+        d.speed,
+        env.brakingBase * grip * env.brakingMargin,
+        track.length,
+      ),
+      preview = bikePreviewDistance(d.speed);
+    for (let i = 0; i < count; i++) {
+      const s = c.s + preview + i * ENVELOPE_STEP,
+        k = this.steeringLineCurvature(track, s),
+        curvature = k / Math.max(0.5, 1 - k * tactical);
+      this.roadCurvatures[i] = Math.abs(curvature);
+      this.roadCorners[i] = envelopeCornerSpeed(curvature, grip, aero, env) * this.skill;
+      this.roadGradients[i] = track.at(s, this.roadPoint).gradient;
+    }
+    const planned = motorcycleApproachProfile(
+      this.roadCurvatures,
+      this.roadCorners,
+      grip,
+      aero,
+      env,
+      count,
+      this.roadProfile,
+      this.roadGradients,
+      p,
+      d.mass,
+      1,
+      (p.riderOffsetMax * 0.25) / p.cgHeight,
+    );
+    if (planned < c.aiTarget) {
+      c.aiTarget = planned;
+      if (d.speed > planned) {
+        command.throttle = 0;
+        command.brake = Math.max(command.brake, super.brakeDemand(planned - d.speed));
+      }
+    }
+    if (d.speed > this.roadProfile[1]) {
+      const gradient = this.roadGradients[0],
+        grade = (G * gradient) / Math.sqrt(1 + gradient * gradient),
+        required = Math.max(
+          0,
+          (d.speed * d.speed - this.roadProfile[1] ** 2) / (2 * ENVELOPE_STEP) - grade,
+        ),
+        fullLever = (p.frontBrake * 0.78 + p.rearBrake * 0.3) / d.mass;
+      command.brake = Math.max(command.brake, clamp(required / fullLever, 0, 1));
+      if (command.brake > 0.05) command.throttle = 0;
+    }
   }
   private heldBack = false;
   /** Held back by a slower class's traffic and by nothing else: the traffic cap is under
@@ -157,6 +237,8 @@ export class BikeAIDriver extends AIDriver {
   private trafficShare() {
     return lerp(GP_AI_HANDS.trafficShare, 1, this.urgency());
   }
+  private steeringCorrection = 0;
+  private steeringTarget = 0;
   private lastThrottle = 0;
   private lastBrake = 0;
   /** A GP rider's hands, not a car's pedals: the lever is squeezed on over
@@ -196,10 +278,33 @@ export class BikeAIDriver extends AIDriver {
       this.lastThrottle + (launch ? GP_AI_HANDS.launchRate : GP_AI_HANDS.throttleOpen) * dt,
     );
     throttle = Math.min(throttle, 1 - clamp((slip - 0.035) / 0.05, 0, 0.85));
+    throttle = Math.min(throttle, this.steeringThrottle());
     // Still on the lever: the throttle stays shut until it is released.
     if (brake > 0.05) throttle = Math.min(throttle, 0.05);
     command.brake = this.lastBrake = brake;
     command.throttle = this.lastThrottle = throttle;
+  }
+  /** Reserve front load for a planned steering correction before opening
+   * the throttle to its wheelie limit. This changes only the rider's input;
+   * the sprung chassis and contact solver still determine the actual load. */
+  private steeringThrottle() {
+    const c = this.bike,
+      d = c.dynamics,
+      p = d.p;
+    if (!d.contactLoads || d.speed < 3) return 1;
+    const lean = Math.max(Math.abs(c.input.steer) * d.leanLimit, Math.abs(d.lean));
+    if (lean < 0.05 && Math.abs(d.leanRate) < 0.1) return 1;
+    const frontMass = (d.mass * p.cgToRear) / p.wheelbase,
+      staticFront =
+        frontMass * G + (p.downforce ?? 0) * d.speed * d.speed * (p.downforceFront ?? 0.6),
+      requiredFront =
+        (frontMass * (G * Math.tan(Math.min(lean, 1.2)) + Math.abs(this.steeringCorrection))) /
+        Math.max(0.1, p.mu * (d.frontGrip ?? d.grip)),
+      drive = Math.max(0, ((staticFront - requiredFront) * p.wheelbase) / p.cgHeight),
+      ratio = c.spec.gearRatios[c.gear + 1] * c.spec.finalDrive * c.gearing,
+      fullDrive =
+        (engineTorque(c.rpm, c.spec) * ratio * c.bikeSpec.drivelineEfficiency) / c.spec.wheelRadius;
+    return fullDrive > 0 ? clamp(drive / fullDrive, 0, 1) : 1;
   }
   protected override pitLine(track: Track, s: number) {
     const lane = super.pitLine(track, s);
@@ -226,6 +331,7 @@ export class BikeAIDriver extends AIDriver {
   private steerIntent(track: Track, steer: number) {
     const c = this.bike,
       d = c.dynamics;
+    this.steeringCorrection = 0;
     if (d.speed < 6) return leanIntent(c, steer);
     // Mirror the line follower's pit-approach latch (same inputs, same rule).
     const entryGap = mod(track.pitEntryS() - c.s, track.length);
@@ -236,11 +342,29 @@ export class BikeAIDriver extends AIDriver {
       near = clamp(6 + c.speed * 0.48, 8, 46),
       absolute = c.inPit || this.pitCorridor;
     const tactical = absolute ? 0 : c.aiOffset - this.steeringLineOffset(track, c.s + near);
+    const correction = this.pathCorrection(track, tactical, absolute);
+    // Feed-forward: the lane's curvature where the bike will be once it has leaned.
+    const ahead = c.s + bikePreviewDistance(v);
+    const k = absolute
+      ? track.at(ahead, this.ahead).curvature
+      : this.steeringLineCurvature(track, ahead);
+    const feedForward = k / Math.max(0.5, 1 - k * (absolute ? this.steeringTarget : tactical));
+    this.steeringCorrection = correction * v * v;
+    return leanFromCurvature(c, feedForward + correction, steer);
+  }
+  /** One current path-error law for steering and the brake/corner budget.
+   * Returns curvature so the existing steering arithmetic is unchanged. */
+  protected pathCorrection(track: Track, tactical: number, absolute: boolean) {
+    const c = this.bike,
+      d = c.dynamics,
+      v = d.speed;
+    if (v < 6) return 0;
     const p = track.at(c.s, this.preview);
     const reach = Math.max(1, p.width - 1.4);
     const target = absolute
       ? c.aiOffset
       : clamp(this.steeringLineOffset(track, c.s) + tactical, -reach, reach);
+    this.steeringTarget = target;
     const pathSlope = absolute
       ? c.inPit
         ? (track.pitOffset(c.s + 3) - track.pitOffset(c.s - 3)) / 6
@@ -253,12 +377,6 @@ export class BikeAIDriver extends AIDriver {
     const heading = mod(course - Math.atan2(p.tx, p.tz) + Math.PI, Math.PI * 2) - Math.PI;
     const error = target - c.lateral,
       headingError = Math.atan(slope) - heading;
-    // Feed-forward: the lane's curvature where the bike will be once it has leaned.
-    const ahead = c.s + v * BIKE_AI.preview;
-    const k = absolute
-      ? track.at(ahead, this.ahead).curvature
-      : this.steeringLineCurvature(track, ahead);
-    const feedForward = k / Math.max(0.5, 1 - k * (absolute ? target : tactical));
     const w = BIKE_AI.bandwidth;
     // Corrections are gentle: their lateral acceleration is bounded, so a
     // lane error never asks for a full-lean swerve on a straight.
@@ -268,12 +386,11 @@ export class BikeAIDriver extends AIDriver {
     const wetContact = Math.max(c.contacts[0].water, c.contacts[2].water) > 0.01;
     const correctionG =
       d.motoGP && wetContact ? BIKE_AI.correctionG * clamp(d.grip, 0.15, 1) : BIKE_AI.correctionG;
-    const correction = clamp(
+    return clamp(
       (w * w * error) / (v * v) + (2 * BIKE_AI.damping * w * headingError) / v,
       (-correctionG * G) / (v * v),
       (correctionG * G) / (v * v),
     );
-    return leanFromCurvature(c, feedForward + correction, steer);
   }
   /** The lane used by the lean tracker. Venue riders can choose a different
    * path; its slope and feed-forward must agree with the path planner. The
@@ -295,6 +412,8 @@ export class BikeAIDriver extends AIDriver {
     const c = this.bike,
       d = c.dynamics;
     this.planNext = NaN;
+    this.planDistance = ENVELOPE_STEP;
+    this.planRecovery = 0;
     this.planLimit = Infinity;
     this.planRunway = Infinity;
     if (
@@ -327,17 +446,42 @@ export class BikeAIDriver extends AIDriver {
         env.brakingBase * grip * env.brakingMargin,
         track.length,
       );
-    // The GP lever ramps to full pressure rather than applying instantly.
-    // Reserve the mean half-rise travel before the solved braking profile.
-    // Otherwise the planner promises deceleration the rider cannot yet supply.
-    const leverResponseDistance = d.speed / (2 * GP_AI_HANDS.brakeApply);
+    // Steering adds a bounded lane/course correction to v²κ. Keep the
+    // same actual request inside the corner and trail-braking budgets:
+    // |v²κ + correction| <= |v²κ| + |correction|. Hold that current reserve
+    // over this plan, as with current grip, and recompute it next step.
+    const recovery = (this.planRecovery = Math.abs(
+      this.pathCorrection(track, tactical, false) * d.speed * d.speed,
+    ));
+    // The lean controller already reserves force for the curve previewed
+    // by BIKE_AI.preview. Plan braking against that same curvature, then
+    // include the lever's mean half-rise travel; otherwise the profile
+    // promises upright stopping force after the rider has begun leaning.
+    const leverResponseDistance = bikePreviewDistance(d.speed, 1 / (2 * GP_AI_HANDS.brakeApply));
     for (let i = 0; i < count; i++) {
-      const k = this.steeringLineCurvature(track, c.s + leverResponseDistance + i * ENVELOPE_STEP),
-        curvature = k / Math.max(0.5, 1 - k * tactical);
+      const station = c.s + leverResponseDistance + i * ENVELOPE_STEP,
+        k = this.steeringLineCurvature(track, station),
+        curvature = k / Math.max(0.5, 1 - k * tactical),
+        point = track.at(station, this.approachPoint),
+        offset = this.steeringLineOffset(track, station) + tactical,
+        slope =
+          (this.steeringLineOffset(track, station + 3) -
+            this.steeringLineOffset(track, station - 3)) /
+          6,
+        metric = motorcyclePathMetric(point.curvature, offset, slope);
+      // An inside lane covers less horizontal distance per centreline metre.
+      // Both stopping work and grade use this physical path distance. The
+      // slope of the authored lane also contributes to its travelled length.
+      this.approachMetrics[i] = metric;
+      this.approachGradients[i] = point.gradient / Math.max(1e-6, metric);
       this.approachCurvatures[i] = Math.abs(curvature);
-      this.approachCorners[i] = envelopeCornerSpeed(curvature, grip, aero, env) * this.skill;
+      this.approachCorners[i] =
+        envelopeCornerSpeed(curvature, grip, aero, env, recovery) * this.skill;
     }
-    const planned = envelopeProfile(
+    for (let i = 0; i < count - 1; i++)
+      this.approachDistances[i] =
+        0.5 * (this.approachMetrics[i] + this.approachMetrics[i + 1]) * ENVELOPE_STEP;
+    const planned = motorcycleApproachProfile(
       this.approachCurvatures,
       this.approachCorners,
       grip,
@@ -345,8 +489,16 @@ export class BikeAIDriver extends AIDriver {
       env,
       count,
       this.approachProfile,
+      this.approachGradients,
+      d.p,
+      d.mass,
+      GP_ASSIST.recovery / GP_ASSIST.leanMargin,
+      0,
+      this.approachDistances,
+      recovery,
     );
     this.planNext = count > 1 ? this.approachProfile[1] : planned;
+    this.planDistance = count > 1 ? this.approachDistances[0] : ENVELOPE_STEP;
     this.planLimit = planned;
     for (let i = 1; i < count; i++)
       if (this.approachProfile[i] < d.speed - 1) {
@@ -370,7 +522,12 @@ export class BikeAIDriver extends AIDriver {
     if (!(v > this.planNext)) return proportional;
     // The deceleration the plan asks for, as a share of the stoppie-limited
     // stop, is the same share of the lever travel that reaches that limit.
-    const required = (v * v - this.planNext * this.planNext) / (2 * ENVELOPE_STEP);
+    // The profile asks for net deceleration. The tyre force request must
+    // additionally oppose downhill gravity (slope is sin(angle), as in Bike).
+    // The plant still applies that gravity exactly once in its force balance.
+    const required =
+      (v * v - this.planNext * this.planNext) / (2 * Math.max(1e-6, this.planDistance)) -
+      G * this.bike.dynamics.slope;
     return clamp(Math.max(proportional, (required / this.planBrake) * this.leverAtLimit()), 0, 1);
   }
   /** Lever travel at which the front brake reaches the stoppie limit (more
@@ -499,6 +656,11 @@ export const BIKE_AI = Object.freeze({
   /** Lateral acceleration a lane correction may use (g). */
   correctionG: 0.6,
 });
+/** Steering and brake-capacity planning share one lateral-response horizon.
+ * Braking may add the pedal's response time before that same future curve. */
+export function bikePreviewDistance(speed: number, pedalResponseSeconds = 0) {
+  return speed * (BIKE_AI.preview + pedalResponseSeconds);
+}
 /** Number of existing 12 m envelope samples needed to see a conservative
  * full stop, ignoring helpful aero drag, plus the lean response distance.
  * Cap at one circuit and fixed scratch capacity, including for invalid or
@@ -519,7 +681,14 @@ export function gpApproachSampleCount(speed: number, deceleration: number, track
 /** Lean intent for a path curvature (tan φ = v²κ/g, less the hang-off share). */
 export function leanFromCurvature(c: BikeVehicle, kappa: number, steer: number) {
   const d = c.dynamics,
-    lean = Math.atan((d.speed * d.speed * kappa) / G);
+    lateral = d.speed * d.speed * kappa,
+    // The GP inverse and roll plant balance Fy/N when the sprung road
+    // supplies actual normal reaction. Using full weight here would ask
+    // for the wrong curvature during crest unloading or a landing load.
+    lean =
+      d.motoGP && d.contactLoads
+        ? Math.atan2(lateral, (d.frontLoad + d.rearLoad) / d.mass)
+        : Math.atan(lateral / G);
   const fast = clamp(lean / Math.max(0.1, d.leanLimit), -1, 1);
   return lerp(slowIntent(c, steer), fast, leanAuthority(d.speed));
 }
