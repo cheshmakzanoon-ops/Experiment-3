@@ -1,256 +1,273 @@
-### browser (5) (job 135542271766)
+### browser (5) (job 135663983211)
 --- error digest (first 120 matching lines) ---
-398:browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.6990593Z Error: Installation process exited with code: 100
-399:browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7119325Z ##[error]Process completed with exit code 1.
+685:browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T15:57:16.3117102Z   ✘  17 e2e/a32-pit-jacks.spec.ts:59:3 › A32 actual car contact and moving service render in night (15.3m)
+689:browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T15:57:16.3119922Z Error: page.evaluate: Test timeout of 900000ms exceeded.
+741:browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:19:45.4942182Z   ✘  20 e2e/aurel-vegetation.spec.ts:11:3 › A51-A54 day full production landscape, cockpit and stable camera cycles (20.5m)
+745:browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:19:45.4944977Z Error: page.evaluate: Test timeout of 1200000ms exceeded.
+748:browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:19:49.9664803Z   ✘  21 e2e/gp-contact-effects.spec.ts:13:1 › GP contact effects use two actual tyres, readable moving spray and fixed WebGL resources (3.6s)
+750:browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:19:49.9666922Z Error: page.evaluate: TypeError: e.cast is not a function
+797:browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:30:43.5335568Z   ✘  26 e2e/lazy-chunks.spec.ts:20:1 › circuit-only chunks load when a session starts, not with the menu (10.2m)
+799:browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:30:43.5337264Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+805:browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:30:43.5338586Z - Timeout 600000ms exceeded while waiting on the predicate
+825:browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5879468Z   1) e2e/a32-pit-jacks.spec.ts:59:3 › A32 actual car contact and moving service render in night ────
+829:browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5880304Z     Error: page.evaluate: Test timeout of 900000ms exceeded.
+848:browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5886274Z   2) e2e/aurel-vegetation.spec.ts:11:3 › A51-A54 day full production landscape, cockpit and stable camera cycles 
+852:browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5887234Z     Error: page.evaluate: Test timeout of 1200000ms exceeded.
+871:browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5893031Z   3) e2e/gp-contact-effects.spec.ts:13:1 › GP contact effects use two actual tyres, readable moving spray and fixed WebGL resources 
+873:browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5893609Z     Error: page.evaluate: TypeError: e.cast is not a function
+902:browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5903857Z   4) e2e/lazy-chunks.spec.ts:20:1 › circuit-only chunks load when a session starts, not with the menu › Expect "poll toBe" 
+904:browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5904851Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+910:browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5906761Z     - Timeout 600000ms exceeded while waiting on the predicate
+946:browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.9941261Z ##[error]Process completed with exit code 1.
 
 --- last 250 lines ---
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:20.5389244Z ##[endgroup]
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:24.1380755Z npm warn deprecated eslint@9.36.0: This version is no longer supported. Please see https://eslint.org/version-support for other options.
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:24.4005007Z 
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:24.4005707Z added 192 packages in 3s
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.0141206Z (node:2286) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.0142297Z (Use `node --trace-warnings ...` to show where the warning was created)
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.0262177Z ##[group]Run actions/download-artifact@v4
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.0262498Z with:
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.0262730Z   name: apex-formula-web
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.0263007Z   path: dist/
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.0263218Z   merge-multiple: false
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.0263502Z   repository: cheshmakzanoon-ops/Experiment-3
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.0263794Z   run-id: 44516038410
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.0264402Z env:
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.0264692Z   APEX_BROWSER_BACKEND: mesa
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.0264938Z   LIBGL_ALWAYS_SOFTWARE: true
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.0265262Z   GALLIUM_DRIVER: llvmpipe
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.0265531Z ##[endgroup]
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.1455109Z Downloading single artifact
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.1566475Z (node:2320) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.1567212Z (Use `node --trace-deprecation ...` to show where the warning was created)
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.2239909Z Preparing to download the following artifacts:
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.2241415Z - apex-formula-web (ID: 14527745633, Size: 79157373, Expected Digest: sha256:78330f02eb6c89d4b83ec412071f0a04ffd5d2fa556aba5d4521fb963a6eab48)
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.3237445Z Redirecting to blob download url: https://productionresultssa15.blob.core.windows.net/actions-results/18ebe7e2-8f98-8ce6-bfcf-1a9ab785a3dd/workflow-job-run-dcc85d67-96c3-5c91-8c26-5dcf23175daf/artifacts/a099db7dccca2bea13cabdb75d09ca0f68509ae9b06d93f8e4352c66fb8393f2.zip
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.3239138Z Starting download of artifact to: /home/runner/work/Experiment-3/Experiment-3/dist
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.4243791Z (node:2320) [DEP0005] DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead.
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.3957273Z SHA256 digest of downloaded artifact is 78330f02eb6c89d4b83ec412071f0a04ffd5d2fa556aba5d4521fb963a6eab48
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.3958000Z Artifact download completed successfully.
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.3958576Z Total of 1 artifact(s) downloaded
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.3961807Z Download artifact has finished successfully
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4104371Z ##[group]Run set -euo pipefail
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4104749Z ^[[36;1mset -euo pipefail^[[0m
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4105048Z ^[[36;1mtest "$DOWNLOAD_SUCCEEDED" = true^[[0m
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4105335Z ^[[36;1mtest -s dist/index.html^[[0m
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4105606Z ^[[36;1mtest -d dist/assets^[[0m
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4133542Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4133964Z env:
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4134440Z   APEX_BROWSER_BACKEND: mesa
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4134706Z   LIBGL_ALWAYS_SOFTWARE: true
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4135027Z   GALLIUM_DRIVER: llvmpipe
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4135278Z   DOWNLOAD_SUCCEEDED: true
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4135501Z ##[endgroup]
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4205403Z ##[group]Run npx playwright install --with-deps chromium
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4205806Z ^[[36;1mnpx playwright install --with-deps chromium^[[0m
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4225875Z shell: /usr/bin/bash -e {0}
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4226206Z env:
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4226489Z   APEX_BROWSER_BACKEND: mesa
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4226752Z   LIBGL_ALWAYS_SOFTWARE: true
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4227017Z   GALLIUM_DRIVER: llvmpipe
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4227271Z ##[endgroup]
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.9325903Z Installing dependencies...
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.9411203Z Switching to root user to install dependencies...
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:27.1679902Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [152 B]
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:27.1970205Z Get:6 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:27.2110787Z Ign:2 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble InRelease
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:27.2385211Z Ign:3 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates InRelease
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:27.2655994Z Ign:4 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-backports InRelease
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:27.2927587Z Ign:5 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-security InRelease
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:27.3104910Z Get:7 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [794 kB]
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:27.3318950Z Get:8 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [723 kB]
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:28.2405005Z Ign:2 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble InRelease
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:28.2710117Z Ign:3 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates InRelease
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:28.2996442Z Ign:4 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-backports InRelease
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:28.3274992Z Ign:5 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-security InRelease
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:43.2792542Z Ign:2 https://archive.ubuntu.com/ubuntu noble InRelease
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:58.3180143Z Ign:3 https://archive.ubuntu.com/ubuntu noble-updates InRelease
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:58.3183697Z Err:2 https://security.ubuntu.com/ubuntu noble InRelease
-browser (5)	UNKNOWN STEP	2026-11-19T12:09:58.3184639Z   503  Service Unavailable [IP: 52.15.102.108 80]
-browser (5)	UNKNOWN STEP	2026-11-19T12:10:13.3390582Z Err:3 https://security.ubuntu.com/ubuntu noble-updates InRelease
-browser (5)	UNKNOWN STEP	2026-11-19T12:10:13.3391122Z   503  Service Unavailable [IP: 52.15.102.108 80]
-browser (5)	UNKNOWN STEP	2026-11-19T12:10:13.3511520Z Ign:4 https://archive.ubuntu.com/ubuntu noble-backports InRelease
-browser (5)	UNKNOWN STEP	2026-11-19T12:10:28.3841626Z Ign:5 https://archive.ubuntu.com/ubuntu noble-security InRelease
-browser (5)	UNKNOWN STEP	2026-11-19T12:10:28.3856340Z Err:4 https://security.ubuntu.com/ubuntu noble-backports InRelease
-browser (5)	UNKNOWN STEP	2026-11-19T12:10:28.3857183Z   503  Service Unavailable [IP: 52.15.102.108 80]
-browser (5)	UNKNOWN STEP	2026-11-19T12:10:43.4183804Z Err:5 https://security.ubuntu.com/ubuntu noble-security InRelease
-browser (5)	UNKNOWN STEP	2026-11-19T12:10:43.4184580Z   503  Service Unavailable [IP: 52.15.102.108 80]
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:03.7849077Z Fetched 1521 kB in 1min 16s (19.9 kB/s)
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:04.6866561Z Reading package lists...
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:04.6983201Z W: Failed to fetch mirror+file:/etc/apt/apt-mirrors.txt/dists/noble/InRelease  503  Service Unavailable [IP: 52.15.102.108 80]
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:04.6984863Z W: Failed to fetch mirror+file:/etc/apt/apt-mirrors.txt/dists/noble-updates/InRelease  503  Service Unavailable [IP: 52.15.102.108 80]
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:04.6985992Z W: Failed to fetch mirror+file:/etc/apt/apt-mirrors.txt/dists/noble-backports/InRelease  503  Service Unavailable [IP: 52.15.102.108 80]
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:04.6987080Z W: Failed to fetch mirror+file:/etc/apt/apt-mirrors.txt/dists/noble-security/InRelease  503  Service Unavailable [IP: 52.15.102.108 80]
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:04.6987756Z W: Some index files failed to download. They have been ignored, or old ones used instead.
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:04.7104175Z Reading package lists...
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:04.8832480Z Building dependency tree...
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:04.8838726Z Reading state information...
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0213419Z libasound2t64 is already the newest version (1.2.11-1ubuntu0.3).
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0215051Z libasound2t64 set to manually installed.
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0215691Z libatk-bridge2.0-0t64 is already the newest version (2.52.0-1build1).
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0216212Z libatk-bridge2.0-0t64 set to manually installed.
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0216701Z libatk1.0-0t64 is already the newest version (2.52.0-1build1).
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0217148Z libatk1.0-0t64 set to manually installed.
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0217608Z libatspi2.0-0t64 is already the newest version (2.52.0-1build1).
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0218116Z libatspi2.0-0t64 set to manually installed.
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0218604Z libcairo2 is already the newest version (1.18.0-3build1).
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0219042Z libcairo2 set to manually installed.
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0219490Z libcups2t64 is already the newest version (2.4.7-1.2ubuntu7.14).
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0219953Z libcups2t64 set to manually installed.
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0220393Z libdbus-1-3 is already the newest version (1.14.10-4ubuntu4.1).
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0220834Z libdbus-1-3 set to manually installed.
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0221332Z libdrm2 is already the newest version (2.4.125-1ubuntu0.1~24.04.2).
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0221836Z libdrm2 set to manually installed.
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0222330Z libgbm1 is already the newest version (25.2.8-0ubuntu0.24.04.4).
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0222817Z libgbm1 set to manually installed.
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0223806Z libglib2.0-0t64 is already the newest version (2.80.0-6ubuntu3.10).
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0224662Z libglib2.0-0t64 set to manually installed.
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0225190Z libnspr4 is already the newest version (2:4.35-1.1build1).
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0225705Z libnspr4 set to manually installed.
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0226169Z libnss3 is already the newest version (2:3.98-1ubuntu0.3).
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0226634Z libnss3 set to manually installed.
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0227210Z libpango-1.0-0 is already the newest version (1.52.1+ds-1build1).
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0227702Z libpango-1.0-0 set to manually installed.
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0228294Z libx11-6 is already the newest version (2:1.8.7-1ubuntu0.1).
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0228787Z libx11-6 set to manually installed.
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0229362Z libxcb1 is already the newest version (1.15-1ubuntu2).
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0229850Z libxcb1 set to manually installed.
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0230421Z libxcomposite1 is already the newest version (1:0.4.5-1build3).
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0230929Z libxcomposite1 set to manually installed.
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0231505Z libxdamage1 is already the newest version (1:1.1.6-1build1).
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0232028Z libxdamage1 set to manually installed.
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0232538Z libxext6 is already the newest version (2:1.3.4-1build2).
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0233057Z libxext6 set to manually installed.
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0233551Z libxfixes3 is already the newest version (1:6.0.0-2build1).
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0234349Z libxfixes3 set to manually installed.
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0234851Z libxkbcommon0 is already the newest version (1.6.0-1build1).
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0235368Z libxkbcommon0 set to manually installed.
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0235856Z libxrandr2 is already the newest version (2:1.5.2-2build1).
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0236550Z libxrandr2 set to manually installed.
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0237099Z xvfb is already the newest version (2:21.1.12-1ubuntu1.9).
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0237750Z fonts-noto-color-emoji is already the newest version (2.047-0ubuntu0.24.04.1).
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0238398Z libfontconfig1 is already the newest version (2.15.0-1.1ubuntu2).
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0238924Z libfontconfig1 set to manually installed.
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0239431Z libfreetype6 is already the newest version (2.13.2+dfsg-1ubuntu0.2).
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0240012Z libfreetype6 set to manually installed.
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0240494Z fonts-liberation is already the newest version (1:2.1.5-3).
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0241078Z fonts-liberation set to manually installed.
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0241612Z The following additional packages will be installed:
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0242185Z   xfonts-encodings xfonts-utils
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0242773Z Recommended packages:
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0243237Z   fonts-ipafont-mincho fonts-tlwg-loma
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.1954755Z The following NEW packages will be installed:
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.1955434Z   fonts-freefont-ttf fonts-ipafont-gothic fonts-tlwg-loma-otf fonts-unifont
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.1963438Z   fonts-wqy-zenhei xfonts-cyrillic xfonts-encodings xfonts-scalable
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.1964356Z   xfonts-utils
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.2123817Z 0 upgraded, 9 newly installed, 0 to remove and 6 not upgraded.
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.2124453Z Need to get 21.1 MB of archives.
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.2124961Z After this operation, 79.5 MB of additional disk space will be used.
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.2125395Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [152 B]
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.2498235Z Ign:2 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.2766059Z Ign:3 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.3030226Z Ign:4 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.3295004Z Ign:5 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.3571650Z Ign:6 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.3837738Z Ign:7 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.4105955Z Ign:8 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.4378514Z Ign:9 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.4646479Z Ign:10 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:06.2779058Z Ign:2 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:06.3136111Z Ign:3 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:06.3399031Z Ign:4 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:06.3672606Z Ign:5 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:06.3941702Z Ign:6 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:06.4213912Z Ign:7 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:06.4491982Z Ign:8 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:06.4760073Z Ign:9 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:06.5030926Z Ign:10 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:21.3215708Z Ign:2 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:36.3598121Z Ign:3 https://archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:36.6731021Z Err:2 https://security.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:36.6731587Z   503  Service Unavailable [IP: 52.15.107.13 80]
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:51.3930869Z Ign:4 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:52.4582688Z Err:3 https://security.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2
-browser (5)	UNKNOWN STEP	2026-11-19T12:11:52.4583250Z   503  Service Unavailable [IP: 52.15.107.13 80]
-browser (5)	UNKNOWN STEP	2026-11-19T12:12:06.4202872Z Ign:5 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1
-browser (5)	UNKNOWN STEP	2026-11-19T12:12:07.4919852Z Err:4 https://security.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1
-browser (5)	UNKNOWN STEP	2026-11-19T12:12:07.4920432Z   503  Service Unavailable [IP: 52.15.107.13 80]
-browser (5)	UNKNOWN STEP	2026-11-19T12:12:21.4408778Z Ign:6 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8
-browser (5)	UNKNOWN STEP	2026-11-19T12:12:22.5259929Z Err:5 https://security.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1
-browser (5)	UNKNOWN STEP	2026-11-19T12:12:22.5260457Z   503  Service Unavailable [IP: 52.15.107.13 80]
-browser (5)	UNKNOWN STEP	2026-11-19T12:12:36.4742232Z Ign:7 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2
-browser (5)	UNKNOWN STEP	2026-11-19T12:12:37.5568419Z Err:6 https://security.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8
-browser (5)	UNKNOWN STEP	2026-11-19T12:12:37.5568943Z   503  Service Unavailable [IP: 52.15.107.13 80]
-browser (5)	UNKNOWN STEP	2026-11-19T12:12:51.5094500Z Ign:8 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3
-browser (5)	UNKNOWN STEP	2026-11-19T12:12:52.5899472Z Err:7 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2
-browser (5)	UNKNOWN STEP	2026-11-19T12:12:52.5900258Z   503  Service Unavailable [IP: 52.15.107.13 80]
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:06.5428996Z Ign:9 https://archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:07.6236848Z Err:8 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:07.6237546Z   503  Service Unavailable [IP: 52.15.107.13 80]
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:21.5760695Z Ign:10 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:22.6570446Z Err:9 https://security.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:22.6571204Z   503  Service Unavailable [IP: 52.15.107.13 80]
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.6902230Z Err:10 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.6903061Z   503  Service Unavailable [IP: 52.15.107.13 80]
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.6971923Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/universe/f/fonts-ipafont/fonts-ipafont-gothic_00303-21ubuntu1_all.deb  503  Service Unavailable [IP: 52.15.107.13 80]
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.6973136Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/main/f/fonts-freefont/fonts-freefont-ttf_20211204%2bsvn4273-2_all.deb  503  Service Unavailable [IP: 52.15.107.13 80]
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.6974359Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/universe/f/fonts-tlwg/fonts-tlwg-loma-otf_0.7.3-1_all.deb  503  Service Unavailable [IP: 52.15.107.13 80]
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.6975628Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/universe/u/unifont/fonts-unifont_15.1.01-1build1_all.deb  503  Service Unavailable [IP: 52.15.107.13 80]
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.6976574Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/universe/f/fonts-wqy-zenhei/fonts-wqy-zenhei_0.9.45-8_all.deb  503  Service Unavailable [IP: 52.15.107.13 80]
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.6977544Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/main/x/xfonts-encodings/xfonts-encodings_1.0.5-0ubuntu2_all.deb  503  Service Unavailable [IP: 52.15.107.13 80]
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.6978759Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/main/x/xfonts-utils/xfonts-utils_7.7%2b6build3_amd64.deb  503  Service Unavailable [IP: 52.15.107.13 80]
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.6979862Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/universe/x/xfonts-cyrillic/xfonts-cyrillic_1.0.5%2bnmu1_all.deb  503  Service Unavailable [IP: 52.15.107.13 80]
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.6980833Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/main/x/xfonts-scalable/xfonts-scalable_1.0.3-1.3_all.deb  503  Service Unavailable [IP: 52.15.107.13 80]
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.6981679Z E: Unable to fetch some archives, maybe run apt-get update or try with --fix-missing?
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.6989998Z Failed to install browsers
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.6990593Z Error: Installation process exited with code: 100
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7119325Z ##[error]Process completed with exit code 1.
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7182098Z ##[group]Run actions/upload-artifact@v4
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7182442Z with:
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7182693Z   name: browser-validation-5-of-12
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7183174Z   path: test-results/
-browser (5)	UNKNOWN STEP	playwright-report/
-browser (5)	UNKNOWN STEP	browser-shard-plan.json
-browser (5)	UNKNOWN STEP	browser-backend.json
-browser (5)	UNKNOWN STEP	browser-progress.json
-browser (5)	UNKNOWN STEP	
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7183622Z   retention-days: 7
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7183854Z   if-no-files-found: warn
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7184329Z   compression-level: 6
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7184579Z   overwrite: false
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7184858Z   include-hidden-files: false
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7185103Z env:
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7185358Z   APEX_BROWSER_BACKEND: mesa
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7185676Z   LIBGL_ALWAYS_SOFTWARE: true
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7185929Z   GALLIUM_DRIVER: llvmpipe
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7186208Z ##[endgroup]
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.8395862Z (node:2632) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.8397195Z (Use `node --trace-deprecation ...` to show where the warning was created)
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.8477069Z Multiple search paths detected. Calculating the least common ancestor of all paths
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.8479650Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.8494345Z ##[warning]No files were found with the provided path: test-results/
-browser (5)	UNKNOWN STEP	playwright-report/
-browser (5)	UNKNOWN STEP	browser-shard-plan.json
-browser (5)	UNKNOWN STEP	browser-backend.json
-browser (5)	UNKNOWN STEP	browser-progress.json. No artifacts will be uploaded.
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.8593699Z Post job cleanup.
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.9266389Z [command]/usr/bin/git version
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.9293583Z git version 2.56.1
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.9317495Z Temporarily overriding HOME='/home/runner/work/_temp/2ee3fadc-bd33-4029-82ce-053981756148' before making global git config changes
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.9318619Z Adding repository directory to the temporary git global config as a safe directory
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.9320971Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.9350109Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.9372767Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.9568410Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.9599304Z http.https://github.com/.extraheader
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.9620750Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.9655908Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.9794477Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.9813489Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:38.0107473Z Cleaning up orphan processes
-browser (5)	UNKNOWN STEP	2026-11-19T12:13:38.0345855Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/download-artifact@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:25:25.3724049Z [browser-progress] 297s  >  > lazy-chunks.spec.ts > circuit-only chunks load when a session starts, not with the menu / Expect "toBe"
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:25:55.3725660Z [browser-progress] 327s  >  > lazy-chunks.spec.ts > circuit-only chunks load when a session starts, not with the menu / Expect "toBe"
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:26:25.3725950Z [browser-progress] 357s  >  > lazy-chunks.spec.ts > circuit-only chunks load when a session starts, not with the menu / Expect "toBe"
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:26:55.3733682Z [browser-progress] 387s  >  > lazy-chunks.spec.ts > circuit-only chunks load when a session starts, not with the menu / Expect "toBe"
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:27:25.3739908Z [browser-progress] 417s  >  > lazy-chunks.spec.ts > circuit-only chunks load when a session starts, not with the menu / Expect "toBe"
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:27:55.3744884Z [browser-progress] 447s  >  > lazy-chunks.spec.ts > circuit-only chunks load when a session starts, not with the menu / Expect "toBe"
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:28:25.3756526Z [browser-progress] 477s  >  > lazy-chunks.spec.ts > circuit-only chunks load when a session starts, not with the menu / Expect "toBe"
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:28:55.3770082Z [browser-progress] 507s  >  > lazy-chunks.spec.ts > circuit-only chunks load when a session starts, not with the menu / Expect "toBe"
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:29:25.3785043Z [browser-progress] 537s  >  > lazy-chunks.spec.ts > circuit-only chunks load when a session starts, not with the menu / Expect "toBe"
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:29:55.3806134Z [browser-progress] 567s  >  > lazy-chunks.spec.ts > circuit-only chunks load when a session starts, not with the menu / Expect "toBe"
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:30:25.3802878Z [browser-progress] 597s  >  > lazy-chunks.spec.ts > circuit-only chunks load when a session starts, not with the menu / Expect "toBe"
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:30:43.5335568Z   ✘  26 e2e/lazy-chunks.spec.ts:20:1 › circuit-only chunks load when a session starts, not with the menu (10.2m)
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:30:43.5336465Z [browser-failure]  >  > lazy-chunks.spec.ts > circuit-only chunks load when a session starts, not with the menu
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:30:43.5337264Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:30:43.5337530Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:30:43.5337698Z Expected: ^[[32m"^[[7mdriv^[[27ming"^[[39m
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:30:43.5338024Z Received: ^[[31m"^[[7mload^[[27ming"^[[39m
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:30:43.5338183Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:30:43.5338279Z Call Log:
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:30:43.5338586Z - Timeout 600000ms exceeded while waiting on the predicate
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:30:43.5339097Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/lazy-chunks.spec.ts:44:3
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:30:43.9617130Z [browser-progress] START  >  > settings-transition.spec.ts > settings transition: 1280x720 owns its first covered frame and persists quality
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:30:55.3814601Z [browser-progress] 11s  >  > settings-transition.spec.ts > settings transition: 1280x720 owns its first covered frame and persists quality / Click getByRole('button', { name: 'APPLY & SAVE', exact: true })
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:31:11.5076764Z   ✓  27 e2e/settings-transition.spec.ts:8:3 › settings transition: 1280x720 owns its first covered frame and persists quality (27.3s)
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:31:11.6079975Z [browser-progress] START  >  > temporal-depth-rejection.spec.ts > temporal AA rejects revealed surfaces while retaining valid static and rigid history
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:31:14.3604929Z   ✓  28 e2e/temporal-depth-rejection.spec.ts:7:1 › temporal AA rejects revealed surfaces while retaining valid static and rigid history (2.7s)
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:31:15.3627584Z [browser-progress] START  >  > 28-race-pit-presentation.spec.ts > 27H.6 low-preset populated start: real lights, moving pack, continuous video and frame distribution
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:31:25.3899126Z [browser-progress] 10s  >  > 28-race-pit-presentation.spec.ts > 27H.6 low-preset populated start: real lights, moving pack, continuous video and frame distribution / Expect "toBeVisible"
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:31:55.3968938Z [browser-progress] 40s  >  > 28-race-pit-presentation.spec.ts > 27H.6 low-preset populated start: real lights, moving pack, continuous video and frame distribution / Evaluate
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:32:25.3979286Z [browser-progress] 70s  >  > 28-race-pit-presentation.spec.ts > 27H.6 low-preset populated start: real lights, moving pack, continuous video and frame distribution / Expect "toBe"
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:32:55.3979265Z [browser-progress] 100s  >  > 28-race-pit-presentation.spec.ts > 27H.6 low-preset populated start: real lights, moving pack, continuous video and frame distribution / Expect "toBe"
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:33:25.3986525Z [browser-progress] 130s  >  > 28-race-pit-presentation.spec.ts > 27H.6 low-preset populated start: real lights, moving pack, continuous video and frame distribution / Expect "toBe"
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:33:31.3384876Z   ✓  29 e2e/28-race-pit-presentation.spec.ts:243:1 › 27H.6 low-preset populated start: real lights, moving pack, continuous video and frame distribution (2.3m)
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:33:32.3706014Z [browser-progress] START  >  > 29-populated-race-review.spec.ts > 27H.6 close-racing day: low-preset populated race and pod evidence
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:33:55.3988043Z [browser-progress] 23s  >  > 29-populated-race-review.spec.ts > 27H.6 close-racing day: low-preset populated race and pod evidence / Expect "toBe"
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:25.4025844Z [browser-progress] 53s  >  > 29-populated-race-review.spec.ts > 27H.6 close-racing day: low-preset populated race and pod evidence / Expect "toBe"
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5063968Z   ✓  30 e2e/29-populated-race-review.spec.ts:74:3 › 27H.6 close-racing day: low-preset populated race and pod evidence (1.4m)
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5868902Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5872221Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5879468Z   1) e2e/a32-pit-jacks.spec.ts:59:3 › A32 actual car contact and moving service render in night ────
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5879783Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5879984Z     ^[[31mTest timeout of 900000ms exceeded.^[[39m
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5880147Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5880304Z     Error: page.evaluate: Test timeout of 900000ms exceeded.
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5880493Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5880604Z       126 |     await page.goto('/a32-survey');
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5880917Z       127 |     await page.addScriptTag({ content: chunk.code });
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5881215Z     > 128 |     const report = await page.evaluate(
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5881556Z           |                               ^
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5881825Z       129 |       async ({ samples, lighting }) =>
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5882221Z       130 |         (window as unknown as { A32Survey: { surveyA32: typeof surveyA32 } }).A32Survey.surveyA32(
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5882564Z       131 |           samples,
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5882923Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/a32-pit-jacks.spec.ts:128:31
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5883171Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5883462Z     attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5884017Z     test-results/a32-pit-jacks-A32-actual-c-29f02-ing-service-render-in-night/trace.zip
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5884351Z     Usage:
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5884446Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5884754Z         npx playwright show-trace test-results/a32-pit-jacks-A32-actual-c-29f02-ing-service-render-in-night/trace.zip
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5885085Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5885521Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5885855Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5886274Z   2) e2e/aurel-vegetation.spec.ts:11:3 › A51-A54 day full production landscape, cockpit and stable camera cycles 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5886663Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5886854Z     ^[[31mTest timeout of 1200000ms exceeded.^[[39m
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5887048Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5887234Z     Error: page.evaluate: Test timeout of 1200000ms exceeded.
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5887472Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5887634Z       46 |     await page.goto('/vegetation-survey');
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5888045Z       47 |     await page.addScriptTag({ content: chunk.code });
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5888453Z     > 48 |     const report = await page.evaluate(
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5888707Z          |                               ^
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5888912Z       49 |       (l) =>
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5889099Z       50 |         (
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5889401Z       51 |           window as unknown as {
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5889793Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/aurel-vegetation.spec.ts:48:31
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5890294Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5890610Z     attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5891098Z     test-results/aurel-vegetation-A51-A54-d-2580e-it-and-stable-camera-cycles/trace.zip
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5891433Z     Usage:
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5891529Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5891840Z         npx playwright show-trace test-results/aurel-vegetation-A51-A54-d-2580e-it-and-stable-camera-cycles/trace.zip
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5892182Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5892438Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5892647Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5893031Z   3) e2e/gp-contact-effects.spec.ts:13:1 › GP contact effects use two actual tyres, readable moving spray and fixed WebGL resources 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5893354Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5893609Z     Error: page.evaluate: TypeError: e.cast is not a function
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5893911Z         at KT.roadSurface (<anonymous>:4884:26429)
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5894181Z         at KT.writeBody (<anonymous>:4884:33777)
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5894434Z         at KT.placeFree (<anonymous>:4884:19383)
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5894744Z         at Module.$T [as captureGpContactEffects] (<anonymous>:4885:454)
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5895063Z         at eval (eval at evaluate (:291:30), <anonymous>:1:38)
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5895527Z         at UtilityScript.evaluate (<anonymous>:293:16)
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5895821Z         at UtilityScript.<anonymous> (<anonymous>:1:44)
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5896087Z         at KT.roadSurface (<anonymous>:4884:26429)
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5896344Z         at KT.writeBody (<anonymous>:4884:33777)
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5896596Z         at KT.placeFree (<anonymous>:4884:19383)
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5896842Z         at Module.$T (<anonymous>:4885:454)
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5897106Z         at eval (eval at evaluate (:291:30), <anonymous>:1:38)
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5897408Z         at UtilityScript.evaluate (<anonymous>:293:16)
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5897684Z         at UtilityScript.<anonymous> (<anonymous>:1:44)
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5898060Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/gp-contact-effects.spec.ts:40:29
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5898312Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5898609Z     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5899112Z     test-results/gp-contact-effects-GP-cont-3096d-y-and-fixed-WebGL-resources/test-failed-1.png
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5899652Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5899895Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5900280Z     attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5900938Z     test-results/gp-contact-effects-GP-cont-3096d-y-and-fixed-WebGL-resources/trace.zip
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5901455Z     Usage:
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5901689Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5902093Z         npx playwright show-trace test-results/gp-contact-effects-GP-cont-3096d-y-and-fixed-WebGL-resources/trace.zip
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5902609Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5902993Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5903316Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5903857Z   4) e2e/lazy-chunks.spec.ts:20:1 › circuit-only chunks load when a session starts, not with the menu › Expect "poll toBe" 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5904341Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5904851Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5905463Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5905680Z     Expected: ^[[32m"^[[7mdriv^[[27ming"^[[39m
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5906078Z     Received: ^[[31m"^[[7mload^[[27ming"^[[39m
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5906301Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5906404Z     Call Log:
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5906761Z     - Timeout 600000ms exceeded while waiting on the predicate
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5907188Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5907388Z       42 |   await page.selectOption('#opponents', '0');
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5908113Z       43 |   await page.getByRole('button', { name: /ENTER CIRCUIT/ }).click();
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5908571Z     > 44 |   await expect
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5908837Z          |   ^
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5910352Z       45 |     .poll(
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5910618Z       46 |       async () => {
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5911015Z       47 |         if (await page.locator('#raceBriefing').isVisible())
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5911593Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/lazy-chunks.spec.ts:44:3
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5911958Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5912475Z     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5913271Z     test-results/lazy-chunks-circuit-only-c-46d5c-on-starts-not-with-the-menu/test-failed-1.png
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5914148Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5914515Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5914979Z     Error Context: test-results/lazy-chunks-circuit-only-c-46d5c-on-starts-not-with-the-menu/error-context.md
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5915717Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5916145Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5916894Z     test-results/lazy-chunks-circuit-only-c-46d5c-on-starts-not-with-the-menu/trace.zip
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5917418Z     Usage:
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5917551Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5918078Z         npx playwright show-trace test-results/lazy-chunks-circuit-only-c-46d5c-on-starts-not-with-the-menu/trace.zip
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5918615Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5919027Z     ────────────────────────────────────────────────────────────────────────────────────────────────
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5919356Z 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5919562Z   Slow test file: e2e/aurel-vegetation.spec.ts (20.5m)
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5920067Z   Slow test file: e2e/a32-pit-jacks.spec.ts (15.3m)
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5920685Z   Slow test file: e2e/lazy-chunks.spec.ts (10.2m)
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5921304Z   Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5921823Z   4 failed
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5922421Z     e2e/a32-pit-jacks.spec.ts:59:3 › A32 actual car contact and moving service render in night ─────
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5923346Z     e2e/aurel-vegetation.spec.ts:11:3 › A51-A54 day full production landscape, cockpit and stable camera cycles 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5924405Z     e2e/gp-contact-effects.spec.ts:13:1 › GP contact effects use two actual tyres, readable moving spray and fixed WebGL resources 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5925695Z     e2e/lazy-chunks.spec.ts:20:1 › circuit-only chunks load when a session starts, not with the menu 
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5926221Z   1 skipped
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.5926462Z   25 passed (1.1h)
+browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T16:34:54.9941261Z ##[error]Process completed with exit code 1.
+browser (5)	Browser screenshots and diagnostics	﻿2026-11-19T16:34:54.9993125Z ##[group]Run actions/upload-artifact@v4
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:54.9993373Z with:
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:54.9993550Z   name: browser-validation-5-of-12
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:54.9993943Z   path: test-results/
+browser (5)	Browser screenshots and diagnostics	playwright-report/
+browser (5)	Browser screenshots and diagnostics	browser-shard-plan.json
+browser (5)	Browser screenshots and diagnostics	browser-backend.json
+browser (5)	Browser screenshots and diagnostics	browser-progress.json
+browser (5)	Browser screenshots and diagnostics	
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:54.9994363Z   retention-days: 7
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:54.9994544Z   if-no-files-found: warn
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:54.9994742Z   compression-level: 6
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:54.9994919Z   overwrite: false
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:54.9995096Z   include-hidden-files: false
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:54.9995529Z env:
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:54.9995695Z   APEX_BROWSER_BACKEND: mesa
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:54.9995887Z   LIBGL_ALWAYS_SOFTWARE: true
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:54.9996087Z   GALLIUM_DRIVER: llvmpipe
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:54.9996267Z ##[endgroup]
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:55.1155159Z (node:5577) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:55.1156299Z (Use `node --trace-deprecation ...` to show where the warning was created)
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:55.1330316Z Multiple search paths detected. Calculating the least common ancestor of all paths
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:55.1332108Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:55.1332895Z With the provided path, there will be 124 files uploaded
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:55.1336330Z Artifact name is valid!
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:55.1336931Z Root directory input is valid!
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:55.6539342Z Beginning upload of artifact content to blob storage
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:55.8919666Z (node:5577) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:56.9767266Z Uploaded bytes 8388608
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:57.2360405Z Uploaded bytes 16777216
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:57.3511796Z Uploaded bytes 25165824
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:57.5167628Z Uploaded bytes 33554432
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:57.6350538Z Uploaded bytes 41943040
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:57.6960296Z Uploaded bytes 50331648
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:57.6992300Z Uploaded bytes 58720256
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:57.8940425Z Uploaded bytes 67108864
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:58.0139406Z Uploaded bytes 75497472
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:58.2356823Z Uploaded bytes 83886080
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:58.5153977Z Uploaded bytes 92274688
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:58.7446001Z Uploaded bytes 100663296
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:58.8969232Z Uploaded bytes 109051904
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:59.2359847Z Uploaded bytes 117440512
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:59.3991673Z Uploaded bytes 125829120
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:59.7363229Z Uploaded bytes 134217728
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:59.7735796Z Uploaded bytes 142606336
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:34:59.9944980Z Uploaded bytes 150994944
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:35:00.3111615Z Uploaded bytes 159383552
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:35:00.3754026Z Uploaded bytes 167772160
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:35:00.6962682Z Uploaded bytes 176160768
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:35:00.8725615Z Uploaded bytes 184549376
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:35:01.1598772Z Uploaded bytes 192937984
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:35:01.2701622Z Uploaded bytes 201326592
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:35:01.6047029Z Uploaded bytes 209715200
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:35:01.6951377Z Uploaded bytes 218103808
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:35:01.9528354Z Uploaded bytes 226492416
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:35:02.1420893Z Uploaded bytes 234881024
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:35:02.4168024Z Uploaded bytes 243269632
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:35:02.5944325Z Uploaded bytes 251658240
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:35:02.8225161Z Uploaded bytes 260046848
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:35:03.0894542Z Uploaded bytes 268435456
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:35:03.2414375Z Uploaded bytes 276824064
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:35:03.5177655Z Uploaded bytes 285212672
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:35:03.6905401Z Uploaded bytes 293601280
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:35:03.8911952Z Uploaded bytes 301989888
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:35:04.1966348Z Uploaded bytes 310378496
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:35:04.4021979Z Uploaded bytes 318767104
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:35:04.7048768Z Uploaded bytes 323954127
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:35:04.7942684Z Finished uploading artifact content to blob storage!
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:35:04.7945637Z SHA256 digest of uploaded artifact zip is 92f8e7c40ce5ac9a34928061ab74d9292eb07bcbe9bb19215997a03011e0e40d
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:35:04.7946744Z Finalizing artifact upload
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:35:05.3928751Z Artifact browser-validation-5-of-12.zip successfully finalized. Artifact ID 14553535359
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:35:05.3929618Z Artifact browser-validation-5-of-12 has been successfully uploaded! Final size is 323954127 bytes. Artifact ID is 14553535359
+browser (5)	Browser screenshots and diagnostics	2026-11-19T16:35:05.3935587Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44553045707/artifacts/14553535359
+browser (5)	Post Run actions/checkout@v4	﻿2026-11-19T16:35:05.4123304Z Post job cleanup.
+browser (5)	Post Run actions/checkout@v4	2026-11-19T16:35:05.4746733Z [command]/usr/bin/git version
+browser (5)	Post Run actions/checkout@v4	2026-11-19T16:35:05.4780273Z git version 2.56.1
+browser (5)	Post Run actions/checkout@v4	2026-11-19T16:35:05.4811716Z Temporarily overriding HOME='/home/runner/work/_temp/4238d398-358c-4085-bdb3-e58133b42441' before making global git config changes
+browser (5)	Post Run actions/checkout@v4	2026-11-19T16:35:05.4812391Z Adding repository directory to the temporary git global config as a safe directory
+browser (5)	Post Run actions/checkout@v4	2026-11-19T16:35:05.4816660Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+browser (5)	Post Run actions/checkout@v4	2026-11-19T16:35:05.4846418Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+browser (5)	Post Run actions/checkout@v4	2026-11-19T16:35:05.4872159Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+browser (5)	Post Run actions/checkout@v4	2026-11-19T16:35:05.5053828Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+browser (5)	Post Run actions/checkout@v4	2026-11-19T16:35:05.5069708Z http.https://github.com/.extraheader
+browser (5)	Post Run actions/checkout@v4	2026-11-19T16:35:05.5078097Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+browser (5)	Post Run actions/checkout@v4	2026-11-19T16:35:05.5102477Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+browser (5)	Post Run actions/checkout@v4	2026-11-19T16:35:05.5292549Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+browser (5)	Post Run actions/checkout@v4	2026-11-19T16:35:05.5319846Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+browser (5)	Complete job	﻿2026-11-19T16:35:05.5577081Z Cleaning up orphan processes
+browser (5)	Complete job	2026-11-19T16:35:05.5773499Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/download-artifact@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
