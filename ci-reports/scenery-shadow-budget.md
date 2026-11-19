@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44471671467
-- commit: `e9683c8689` · Preserve shared texture pixels across scene lifecycles
-- event: push · status: completed · conclusion: **cancelled**
-- started: 2026-11-19T06:22:22Z · updated: 2026-11-19T06:38:00Z
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44472167370
+- commit: `bd7f66c7ef` · Prepare actual venue lighting before compiling scene materials
+- event: push · status: completed · conclusion: **success**
+- started: 2026-11-19T06:26:24Z · updated: 2026-11-19T06:55:51Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (sunset) | success | 14 |  |
-| browser (day) | cancelled | 15 | First complete cockpit frame, all shadow submissions, unchanged budget |
-| browser (night) | success | 13 |  |
+| browser (day) | success | 7 |  |
+| browser (sunset) | success | 12 |  |
+| browser (night) | success | 8 |  |
