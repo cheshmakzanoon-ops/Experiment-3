@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44495022973
-- commit: `b7540527d9` · Resume retained ground normals after renderer replacement
-- event: push · status: completed · conclusion: **cancelled**
-- started: 2026-11-19T09:17:18Z · updated: 2026-11-19T09:32:55Z
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44509609068
+- commit: `44a6d8cfca` · Prepare retained reflection shaders before scene rendering
+- event: push · status: completed · conclusion: **success**
+- started: 2026-11-19T10:52:07Z · updated: 2026-11-19T11:07:32Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (sunset) | cancelled | 15 | First complete cockpit frame, all shadow submissions, unchanged budget |
 | browser (night) | success | 13 |  |
-| browser (day) | cancelled | 15 | First complete cockpit frame, all shadow submissions, unchanged budget |
+| browser (day) | success | 9 |  |
+| browser (sunset) | success | 11 |  |
