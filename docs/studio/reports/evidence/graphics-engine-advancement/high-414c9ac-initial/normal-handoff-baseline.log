@@ -1,0 +1,115 @@
+
+ RUN  v3.2.4 /workspace/scratch/d611aefdb08c/w10-ground-handoff
+
+ ❯ tests/scan-store-renderer-handoff.test.ts (5 tests | 4 failed) 28ms
+   × finishes a cancelled normal on the replacement owner attached before the old read settles 11ms
+     → expected "spy" to be called 1 times, but got 0 times
+   × finishes a cancelled normal on the replacement owner attached after the old read settles 2ms
+     → expected "spy" to be called 1 times, but got 0 times
+   × rebinds actual map-swap wrappers after a retained normal finishes and reuses the completed chain 10ms
+     → expected CompressedTexture{ …(37) } to be DataTexture{ isTexture: true, …(35) } // Object.is equality
+   × keeps the full source after an unavailable preparation and retries only on a new owner 3ms
+     → expected "spy" to be called 3 times, but got 0 times
+   ✓ leaves an unsupported compressed format unchanged across renderer replacement 2ms
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 1 passed (5)
+   Start at  02:12:57
+   Duration  792ms (transform 188ms, setup 0ms, collect 274ms, tests 28ms, environment 0ms, prepare 115ms)
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+stderr | tests/scan-store-renderer-handoff.test.ts > rebinds actual map-swap wrappers after a retained normal finishes and reuses the completed chain
+THREE.Texture: Unable to serialize Texture.
+THREE.Texture: Unable to serialize Texture.
+THREE.Texture: Unable to serialize Texture.
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/scan-store-renderer-handoff.test.ts > finishes a cancelled normal on the replacement owner attached before the old read settles
+ FAIL  tests/scan-store-renderer-handoff.test.ts > finishes a cancelled normal on the replacement owner attached after the old read settles
+AssertionError: expected "spy" to be called 1 times, but got 0 times
+ ❯ tests/scan-store-renderer-handoff.test.ts:104:36
+    102|     await Promise.resolve();
+    103|     expect(ready).toBe(false);
+    104|     expect(replacement.gpu.render).toHaveBeenCalledTimes(1);
+       |                                    ^
+    105|     replacement.release();
+    106|     expect(await complete).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  tests/scan-store-renderer-handoff.test.ts > rebinds actual map-swap wrappers after a retained normal finishes and reuses the completed chain
+AssertionError: expected CompressedTexture{ …(37) } to be DataTexture{ isTexture: true, …(35) } // Object.is equality
+
+- Expected
++ Received
+
+@@ -5,36 +5,36 @@
+      0,
+    ],
+    "channel": 0,
+    "colorSpace": "",
+    "flipY": false,
+-   "format": 1023,
++   "format": 36492,
+    "generateMipmaps": false,
+-   "image": "8c3038d0-7783-46ad-8d86-8a3bbe67a449",
++   "image": "00fe958f-78f9-4ff8-9a95-119a348c6678",
+    "internalFormat": null,
+-   "magFilter": 1003,
++   "magFilter": 1006,
+    "mapping": 300,
+    "metadata": {
+      "generator": "Texture.toJSON",
+      "type": "Texture",
+      "version": 4.7,
+    },
+-   "minFilter": 1003,
++   "minFilter": 1008,
+    "name": "",
+    "offset": [
+      0,
+      0,
+    ],
+    "premultiplyAlpha": false,
+    "repeat": [
+-     1,
+-     1,
++     1.25,
++     1.25,
+    ],
+    "rotation": 0,
+    "type": 1009,
+-   "unpackAlignment": 1,
+-   "uuid": "3073db7a-1ecb-4a8d-8089-915736a402c1",
++   "unpackAlignment": 4,
++   "uuid": "e4a18776-9023-4445-b224-7a6afc3b68d1",
+    "wrap": [
+      1001,
+      1001,
+    ],
+  }
+
+ ❯ tests/scan-store-renderer-handoff.test.ts:136:30
+    134|   expect(compressedWrapper.source).toBe(original.source);
+    135|   scannedGround.attach(replacement.owner, 'high');
+    136|   expect(material.normalMap).toBe(procedural);
+       |                              ^
+    137|   for (const release of wrapperDisposals) expect(release).toHaveBeenCa…
+    138|   const ready = scannedGround.ready();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  tests/scan-store-renderer-handoff.test.ts > keeps the full source after an unavailable preparation and retries only on a new owner
+AssertionError: expected "spy" to be called 3 times, but got 0 times
+ ❯ tests/scan-store-renderer-handoff.test.ts:188:34
+    186|   store.attach(replacement.owner, 'high');
+    187|   expect(await store.ready()).toBe(true);
+    188|   expect(replacement.gpu.render).toHaveBeenCalledTimes(3);
+       |                                  ^
+    189|   expect(store.diagnostics().normalResidency.lawn).toBe('decoded-rgba8…
+    190|   expect(load).toHaveBeenCalledTimes(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+

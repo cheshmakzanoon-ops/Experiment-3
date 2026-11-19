@@ -1,0 +1,36 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+ RUN  v3.2.4 /workspace/scratch/d611aefdb08c/root-normal-lifetime
+
+ ❯ tests/normal-residency.test.ts (9 tests | 1 failed) 18ms
+   ✓ sampled-normal residency budget and fidelity contract > accepts the linear-sRGB metadata produced by KTX2Loader for shipped ground normals 2ms
+   ✓ sampled-normal residency budget and fidelity contract > keeps every authored mip, down to 1x1, within the 1K ground budget 1ms
+   ✓ sampled-normal residency budget and fidelity contract > preserves rectangular authored chains instead of resizing them 0ms
+   ✓ sampled-normal residency budget and fidelity contract > leaves larger future textures compressed instead of silently lowering resolution 0ms
+   ✓ sampled-normal residency budget and fidelity contract > rejects incomplete and inconsistent mip chains rather than generating replacements 0ms
+   ✓ sampled-normal residency budget and fidelity contract > does not apply a linear-normal copy to colour, HDR or another compressed format 0ms
+   ✓ sampled-normal residency budget and fidelity contract > returns an ordinary normal map unchanged without touching a renderer 0ms
+   ✓ normal preparation renderer ownership > restores caller state immediately and drains asynchronous copies before decoder disposal 3ms
+   × normal preparation renderer ownership > drains submitted reads without starting another mip after renderer ownership ends 9ms
+     → expected "spy" to be called 2 times, but got 9 times
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/normal-residency.test.ts > normal preparation renderer ownership > drains submitted reads without starting another mip after renderer ownership ends
+AssertionError: expected "spy" to be called 2 times, but got 9 times
+ ❯ tests/normal-residency.test.ts:208:24
+    206|     await disposal;
+    207|     expect(drained).toBe(true);
+    208|     expect(gpu.render).toHaveBeenCalledTimes(2);
+       |                        ^
+    209|     expect(gpu.readRenderTargetPixelsAsync).toHaveBeenCalledTimes(2);
+    210|     expect(results[0]).toBe(normals[0]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 8 passed (9)
+   Start at  01:35:25
+   Duration  656ms (transform 141ms, setup 0ms, collect 231ms, tests 18ms, environment 0ms, prepare 139ms)
+

@@ -207,3 +207,29 @@ failure retry and unsupported-format preservation. The integrated normal,
 native Three, ground and handoff command passes 24 cases. Scoped lint and the
 complete TypeScript check pass. A new actual High run remains necessary;
 these CPU ownership results do not establish its startup time or appearance.
+
+## Vellamar camera controls after the road-profile correction
+
+The complete `b7540527` unit run passes 6,731 of 6,734 tests. Its two production
+failures are mixed-class GP pace and wet Poggio contact. The third is the
+historical Vellamar replay-camera checksum, following the intentional C1 road
+profile correction described in `VELLAMAR_PROFILE_CONTINUITY.md`.
+
+An independent comparison with the unchanged renderer at `e1c34e2` shows that
+all 20 records change only their vertical eye position. Their road-relative
+platform heights, horizontal positions, IDs, coverage, lenses, tracking,
+zoom, shot descriptors and lead times remain unchanged. The greatest eye
+height change is 0.4929036605 m, matching the changed local road elevation.
+The full comparison is retained in
+`studio/reports/evidence/graphics-engine-advancement/vellamar-broadcast-profile-audit.json`.
+
+The fixture keeps all 44 original venue hashes and the same 880-camera
+coverage. For Vellamar only, it first verifies each camera's original platform
+height above the corrected road and the complete corrected record hash. It
+then restores only the 20 explicitly captured historical y coordinates before
+checking the original hash. An unexpected horizontal, lens, metadata or
+platform-height change still fails. Production camera placement is unchanged.
+
+The focused camera-control, actual hardware-placement and trackside command
+passes all 61 tests across three files in 12.51 seconds; scoped ESLint passes.
+The retained validation log and test source hash accompany the comparison.

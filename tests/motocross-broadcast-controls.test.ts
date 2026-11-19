@@ -119,6 +119,17 @@ const ORIGINAL_PLATFORM_HEIGHTS = [
   5, 4.9, 5, 7, 4, 5, 3.5, 6, 5, 3.5, 6, 5, 4, 7, 3.5, 5, 6, 4, 5, 6,
 ];
 
+// Before the C1 road-profile correction documented in VELLAMAR_PROFILE_CONTINUITY.md.
+// All 20 x/z positions and camera controls are unchanged. Keep these original eye
+// heights only for comparison with the original hash; live eyes must follow the
+// corrected road height while retaining each authored platform's height above it.
+const ORIGINAL_VELLAMAR_EYE_HEIGHTS = [
+  6.999372413555436, 6.881185116178796, 6.9634324779958865, 8.981021926844063, 6.246770270733951,
+  8.14738617230711, 14.441208845259139, 27.745333226051436, 36.611259213959194, 41.07853614332969,
+  46.196970446528475, 47.60454751728468, 48.64013462378771, 52.01658586801815, 47.693573313137286,
+  47.20774126626333, 36.01467292673034, 22.11226676221517, 12.136265921894553, 7.997747539614577,
+];
+
 function metadata(rig: CameraRig) {
   return [
     rig.id,
@@ -185,6 +196,26 @@ describe('replay-camera control preservation outside MX/SX', () => {
               }
             : camera,
         );
+      }
+      if (id === 'vellamar') {
+        // Independently protect both the new road-relative placement and the
+        // corrected complete records before normalizing just y for the old hash.
+        for (const rig of rigs) {
+          const road = track.at(rig.centerS + (track.length / 20) * 0.18, trackPoint());
+          expect(rig.position.y - road.y, `Vellamar platform ${rig.id}`).toBeCloseTo(
+            ORIGINAL_PLATFORM_HEIGHTS[rig.id],
+            10,
+          );
+        }
+        expect(createHash('sha256').update(JSON.stringify(rigs)).digest('hex')).toBe(
+          'd5258478fda9c36e80e8eaa9b187f99ae699042011456def1e98fa947401e35b',
+        );
+        historicalRigs = rigs.map((camera) => ({
+          ...camera,
+          position: camera.position
+            .clone()
+            .set(camera.position.x, ORIGINAL_VELLAMAR_EYE_HEIGHTS[camera.id], camera.position.z),
+        }));
       }
       expect(createHash('sha256').update(JSON.stringify(historicalRigs)).digest('hex')).toBe(
         signature,

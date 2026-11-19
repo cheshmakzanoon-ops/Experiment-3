@@ -1,0 +1,168 @@
+# Final graphics review — assignment 28, wave 10
+
+## Review scope
+
+This independent review covers the implemented graphics and the new active-road motorcycle presentation contract. It checks coordinate ownership, recorded-pose compatibility, quality and resource limits, and whether the acceptance tests establish the claims made for them. Assignment 27 owns the GP force-state correction; assignment 29 owns the complete engine acceptance. The coordinator owns publication and changed-build GPU execution. The later High startup investigation below supersedes the initial source-review finding for that path.
+
+The initial immutable checks used local application commit `f2918554c9c2485af31d01f95b7e47ebadd220b2`. The same application was published as [`70822afe3079db4d1daf71dba89a216b8eaee330`](https://github.com/cheshmakzanoon-ops/Experiment-3/commit/70822afe3079db4d1daf71dba89a216b8eaee330), including protocol 17 and simulation identity 26. That publication adds a scoped GP-test event-loop yield and historical explanatory prose; application source, public assets and build configuration are byte-identical. The corrective build at the end of this report has its own exact source identity.
+
+## Findings
+
+The initial source review found no additional blocking defect in the paths below. The subsequent full High run exposed the concrete canvas ownership and startup-work issues recorded later in this report; its failure is not represented as acceptance. Neither source review nor the available component captures establish PS5 parity.
+
+- **One chassis frame:** active road snapshots explicitly identify the physical sprung CG. The visible model uses that frame once; the shared wheel solver positions the actual fork and rear hub against independently recorded road planes and free-wheel gaps. The rider ground plane is transformed into that same chassis frame. Placement, service, MX and separated riders retain their documented alternative conventions.
+- **Recorded interpretation:** the tag is independently validated against vehicle and service/rider state, finite values, upward unit normals, gaps, loads and reserved records. Car contact readers do not reinterpret the motorcycle tag. Interpolation holds the older convention across a tag transition. The presentation-only buffer does not write interpolated values into simulation or replay storage.
+- **Resource ownership:** complete offroad owners detach their roots before generic scene disposal, so detached work and hidden resources remain reachable by their owner. Shared decoded texture pixels survive disposal of a scene-owned texture handle; exclusive bitmap images are closed once. Neither mechanism is a new cache eviction policy.
+- **Bounded extra work:** local shadow selection has fixed map count and size, scoped main-pass updates and held-frame reuse. Reflection cycles keep one capture origin, publish only completed cubes, coalesce scenery changes and bound failure retries. Initial/seek/subject/environment captures retain their explicit six-face cost.
+- **Temporal history:** stored depth occupies existing history alpha. The two history targets and resolve draw remain unchanged. More validation reads are an explicit shader cost; no unmeasured FPS improvement is inferred.
+- **Cold construction:** cooperative venue-field preparation is a real dependency of the production renderer factory, with completed-only cache publication and independent cancellation. The existing timings include a long grass/GC outlier, so batching is not represented as a hard frame-time guarantee.
+
+### Acceptance-test review
+
+The active road fixture runs the real simulation to obtain supported, airborne and landed snapshots. It checks actual rubber-mesh vertices against recorded road planes, rather than comparing two calls to the same geometry helper. The deliberately unmarked frame and disabled tyre-grounding terms provide meaningful negative controls. Held, reversed and restored pixel comparisons are separate from geometric assertions. The older `gp-grounding` fixture deliberately remains an unmarked material contract.
+
+The full application capture selects the exact High preset through the normal Garage & Settings UI. It verifies native 960×600 render dimensions, an active road-bike frame, unchanged paused simulation data and two camera views. Its completion check is valid: `GpuFrameGate.completed` is the cumulative ID of the latest observed completed submission, so requiring it to exceed a previously observed `submitted` value proves a later view submission completed. The fixture does not change frame-gate limits or the default 300-second test deadline. A software-GPU High image still cannot certify physical-device performance.
+
+## Explicit implementation bounds
+
+| Area               | Bound and qualification                                                                                                                                                                       |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Traffic            | Ten original body profiles, nine native morph targets, five draw batches; 1,689,024 source morph/weight bytes before GPU row padding                                                          |
+| Local lamp shadows | High: one 512² map; Ultra: two 1024² maps; Low/Medium: none. Selection reach 32 m; shadow camera 0.4–29 m                                                                                     |
+| Terrain transition | 0.28-second native position/normal morph, complete parent/child coverage, 64 m near-contact alignment region; High residency target 220 tiles, with complete-cover retention during downgrade |
+| Reflections        | Two 256²-face cubes; one ordinary face per frame; motion trigger 12 m with ordinary minimum start interval 0.5 s. The trigger is not a maximum spatial lag                                    |
+| Temporal history   | Two RGBA16F targets, 16 bytes per output pixel in total; 31.64 MiB at 1080p / 126.56 MiB at 4K. Worst-case history validation uses 12 point reads; no added history target or resolve pass    |
+| Active road pose   | No new mesh, texture, render target, draw call or frame-stride expansion; measured contact semantics occupy the existing motorcycle tail                                                      |
+
+The lamp system still does not turn terrain, asphalt or bridge decks into new local-shadow casters. Existing sun/cascade budgets remain separate. Temporal rejection does not provide complete per-vertex motion for every skinned rider, wheel or animated leaf. The motorcycle solver remains reduced heave/pitch physics, and visual agreement with it is not proof of a full spatial suspension model.
+
+## Observed graphics evidence
+
+[Run 44472682351](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44472682351), source `4e3d65c8485aa81d2e720b99a7616923a359b35e`, passed the five existing component fixtures and the unchanged compact full application journey. These results precede the later cooperative field change and active road-pose integration and are not relabeled as final-candidate results.
+
+The reviewed component diagnostics show:
+
+- Traffic profile and native morph counts matched the fixed budget. Ultra allocated exactly two maps, held frames requested zero updates, shadows-off released all maps, and High allocated one map. The paired comparison contained 232 darker pixels and no brighter pixels.
+- Terrain material, normal, depth and far-shadow comparisons matched an independent CPU-baked oracle across parent, refining, held, reversed and coarsened stages. Cleanup retained cumulative request counts while proving zero pending work and zero resident geometry after disposal.
+- Temporal disocclusion maximum error was 0.0009765625, while retaining identical history RGB with deliberately wrong compatible depth produced a mean 0.3014526367 difference. This supports depth rejection as the cause; valid history still accumulated.
+- Shared native bitmap pixels remained identical through three renderer lifecycles. The deliberately closed-source control was rejected and exclusive bitmap storage was released.
+
+The reviewer visually inspected the shadowed traffic, terrain midpoint, temporal rejection and full application driving PNGs. The first three are intentionally small component scenes. The driving view is the original 640×400 Low workload with mobile controls; it establishes gameplay integration, not High-tier art quality. Its software-GPU measurement was 1.64 average FPS and 452.90 ms median GPU time. Neither that result nor the component images establishes PS5 parity or a consumer-hardware frame-rate target.
+
+At this initial checkpoint, the active-road GPU fixture and full application High capture still required acceptance on the corrective build below. The later `f106843` results are recorded separately at the end of this report with their exact tested source.
+
+## High startup failure and corrective review
+
+The High job in [run 44478414215](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44478414215), source `70822afe3079db4d1daf71dba89a216b8eaee330`, timed out at the unchanged 90-second circuit preparation check. Its trace contains five `glTexStorage2D: Texture is immutable` warnings at 52.968–52.996 seconds and 137 instanced-draw warnings about missing fragment outputs at 74.401–74.410 seconds. These were console warnings, which the original test's console-error-only listener did not retain as assertion failures.
+
+The last complete diagnostic poll was at 88.747 seconds. Circuit construction had completed 445 tasks with 17.687 seconds of CPU work. The recorded preparation stages included 9.983 seconds for material compilation and 1.930 seconds for shadow-caster warmup; no completed preparation frame or GPU fence had yet been recorded. The 3,281 draws / 58,977,299 triangles in that snapshot are consistent with the preceding circuit-wide warmup, not a measured gameplay frame. High remained native 960×600 with four-sample MSAA, ambient occlusion, local reflections and the existing two 2048² sun maps.
+
+Two runtime corrections were independently reproduced and reviewed:
+
+- **Generated canvas ownership:** `Texture.clone()` shares its `Source`. The old budget resized that shared source after disposing only the first registered wrapper; another uploaded wrapper could retain incompatible immutable GPU storage. It also overwrote the original pixels for later quality restoration. Four new tests failed before the change, covering clone invalidation, preservation/restoration of original detail, repaint/release isolation and independent resolution/readback claims. Compatible clones now share one budget-owned Source, every registered wrapper is disposed before its dimensions change, and unregister/dispose restore each wrapper's authored Source. Hero resolution multipliers and CPU-readback backing retain their existing contracts.
+- **Shadow-program warmup:** program preparation previously submitted every instance in each circuit-wide batch. Warmup now submits one representative per existing instanced shader layout, including tiers selected by shadow substitution. A temporary `renderBufferDirect` wrapper caps the count only after the original owner hooks and frustum checks, restores each submission in `finally`, and restores all snapshot counts and the renderer method when warmup ends. Hooks and bounds are untouched. Adversarial review reproduced a failure in an earlier draft that capped too soon: the actual static-shadow owner could retain count 1 internally after an interrupted draw and overwrite the restored full count on the next ordinary callback. The final regression exercises that exact owner, interruption and later callback. Real near/far shadow rendering, first six-face reflection residency, preset budgets and GPU completion gates are unchanged.
+
+The two focused suites plus relevant existing ownership, presentation, vegetation transition and shadow/proxy tests passed **81 distinct cases**, including the interrupted-owner regression. Scoped ESLint, formatting and full TypeScript checks passed too. These CPU checks establish the ownership and restoration contracts, not successful WebGL execution or a hardware speedup. The bounded failure evidence is retained in [`high-failure-70822af/`](evidence/graphics-engine-advancement/high-failure-70822af/), including the original trace's SHA256 and copied last diagnostic.
+
+At this corrective checkpoint, the 137 missing-output warnings had **not yet been attributed to a proven shader defect**. The inspected native Three r180 depth paths retained packed fragment outputs, and each inspected custom depth constructor selected RGBA packing. The High test was extended to treat the observed GL warning classes as failures and attach the last successful diagnostic poll from its Node process even if the page is blocked. Test-only instrumentation inspects each linked instanced program once and logs a bounded set of missing-output fragment sources and draw-buffer states. It does not drain `getError`, modify draw output, or introduce production per-draw queries. The subsequent GPU attribution and correction are recorded below.
+
+## Immutable checks before the High follow-up
+
+All checks below passed on the detached, immutable application candidate, under `scripts/source-stability.ts`. The guard exited zero and reported no protected input changes. Assignment 29 separately linted the subsequent test-only event-loop yield.
+
+| Check                                           | Result                                                                      |
+| ----------------------------------------------- | --------------------------------------------------------------------------- |
+| Full ESLint, `src tests e2e scripts`            | Pass                                                                        |
+| Content validation                              | Pass                                                                        |
+| TypeScript and production Vite build            | Pass; Vite 12.00 seconds on the shared local CPU                            |
+| Build variant / edition                         | `product` / `full`                                                          |
+| Initial JavaScript                              | 11.12 MiB raw / **3.56 MiB gzip**, within the unchanged **4 MiB gzip** gate |
+| Lazy JavaScript                                 | 12 chunks / 1.45 MiB gzip                                                   |
+| Complete distribution                           | 128.6 MiB; no source maps                                                   |
+| IP guard, including explicit built-output check | Pass; 75 shipped text files and GLB name tables scanned                     |
+| Protected-source stability                      | Pass                                                                        |
+
+Exact built source fingerprint:
+
+```text
+c4dba04f5958f97bb322b0e5ac316651f965fe44b760ee8f5b6ca4e27b8eb47c
+```
+
+The build retained the existing Vite large-chunk warning. It did not alter the configured warning or release budget. The elapsed build time is not a gameplay frame-time measurement.
+
+The complete command log, per-chunk byte counts, build identity and source attribution are preserved in [`evidence/graphics-engine-advancement/final-build-f291855/`](evidence/graphics-engine-advancement/final-build-f291855/). The original guard command was:
+
+```sh
+node --experimental-transform-types scripts/source-stability.ts -- bash -c 'npm run lint && npm run validate:content && npm run build && npm run check:bundle && npm run check:ip'
+```
+
+No local Chromium or GPU execution was attempted during this review. Final changed-build WebGL/High outcomes and complete engine acceptance remain attributed to their separate runs, with their actual source and status.
+
+## Corrective immutable build
+
+The same full guarded sequence passed again on detached commit `a9aaf733eb0795ae7ddd8f12a1fee9f70af2cace`, including the final interrupted-owner fix and assignment 26's garment correction. The guard returned zero with no protected input changes. Full lint, content validation, TypeScript, production build, bundle gate and explicit built-output IP check all passed.
+
+| Measurement                 | Corrective build                                                         |
+| --------------------------- | ------------------------------------------------------------------------ |
+| Product / edition           | `product` / `full`                                                       |
+| Initial JavaScript          | 11,662,895 raw bytes / **3,738,611 gzip bytes** (3.57 MiB)               |
+| Unchanged initial gzip gate | **4 MiB**                                                                |
+| Lazy JavaScript             | 12 chunks / 1.45 MiB gzip                                                |
+| Complete distribution       | 128.6 MiB; no source maps                                                |
+| Vite build                  | 11.73 seconds on the shared local CPU                                    |
+| IP check                    | 75 shipped text files and GLB name tables clean under the existing guard |
+
+Exact corrective source fingerprint:
+
+```text
+51d1fb5ce6703cffe47ddda5fa42518e083630fae89c1f12a716bdbef8c350c8
+```
+
+The command log, per-chunk bytes, build identity and provenance are preserved in [`final-build-a9aaf733/`](evidence/graphics-engine-advancement/final-build-a9aaf733/). The log SHA256 is `ce54b708c821ff455f3ec1e68dcb01f9e18f68849da49abf8dd04d27ee670bfe`. The existing large-chunk warning remains; no warning threshold, quality tier, timeout or release budget was relaxed. At this build checkpoint, High rendering acceptance and attribution of the fragment-output warning still required the next actual WebGL run.
+
+## Later GPU attribution and normal-texture lifetime proof
+
+[Run 44488933964](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44488933964) tested published application `f1068433d49dc494a3373af99d12d89483308ac8`, source fingerprint `5a2be47d23f63c4e4728ddcd65bf3bcba45e29c8fd7fe0fd3a05be65b4bbe2bc`. Its seven production component fixtures passed, including the active-road fixture's held, reversed and restored comparisons with zero changed pixels. The compact Low driving/replay journey passed too. These remain Mesa llvmpipe software-rendering results. The independent full High job failed the original 90-second loading predicate and produced no accepted High gameplay or photo view. The exact artifacts and scopes are retained in [`components-f106843/`](evidence/graphics-engine-advancement/components-f106843/), [`gameplay-f106843/`](evidence/graphics-engine-advancement/gameplay-f106843/) and [`high-f106843-initial/`](evidence/graphics-engine-advancement/high-f106843-initial/).
+
+The new shader instrumentation had identified an accidentally promoted contact-occlusion disc in the far-shadow caster collection. Its discard-only depth shader has no active fragment output. The coordinator excluded the existing contact-only vegetation category from that collection and removed the unused depth override, retaining visible contact discs and real vegetation casters. The `f106843` High trace contains **zero missing-fragment-output warnings**, so the earlier warning class is closed by observed changed-build execution. This does not imply the separate startup gate passed.
+
+The remaining five GL warnings are now causally attributed to a different ownership error. All five instrumented allocation records use `[3553, 11, 36492, 1024, 1024]`: a 1024² BC7 RGBA sampled texture with eleven mip levels. The repeated first/current stacks run through Three's ordinary sampled-texture upload path. These records do not identify a canvas resize or a render-target allocation. They occur at trace times 53.042–53.098 seconds, while successful application polls report the menu renderer disposed and the new renderer not yet published.
+
+Three r180's `WebGLRenderer.dispose()` clears its `WebGLProperties` cache, while the renderer's retained `WebGLTextures` closure still holds its Source-to-native-texture mapping. A normal expansion job that resumes after disposal and submits another mip can therefore reuse the already allocated native texture but encounter an empty source-properties record. That path attempts `texStorage2D` again on immutable storage. The ownership check added by the coordinator in `37d56c676ec9375033b558fabe6957d175616ad1` runs before each new mip submission, drains a read that was already queued, and returns the complete original compressed chain if its owner closes. It cannot publish a partial decoded chain.
+
+The new [`normal-residency-webgl-lifetime.test.ts`](../../../tests/normal-residency-webgl-lifetime.test.ts) exercises the installed Three `WebGLTextures` and `WebGLProperties` implementations with a recording native-driver adapter. Its negative control reproduces the exact immutable allocation on the same handle with the exact five observed arguments. The lifecycle case suspends a real normal-expansion read, closes the owner, performs the renderer's real property-cache disposal, and resumes the read. An external run against the unchanged `f106843` source fails with the duplicate allocation; the corrected source returns the original eleven-level texture with only one allocation. The durable regression and existing normal-residency suite pass **11 distinct cases**, and scoped ESLint plus full TypeScript checks pass. This establishes the precise CPU-side submission/caching cause; it is not a substitute for running the corrected application on WebGL. Commands, exit codes, source identities and the exact allocation records are preserved in [`normal-retired-upload-proof.json`](evidence/graphics-engine-advancement/high-f106843-initial/normal-retired-upload-proof.json).
+
+The last successful `f106843` diagnostic poll was at trace time 76.272 seconds, with construction complete, zero submitted/completed preparation frames, and its stage snapshot still showing photographed-sky preparation. That poll is stale relative to the later trace images: the loading UI says **Preparing graphics** at 85.898 seconds and **Setting up cameras** at 87.275 seconds. The latter corresponds to first-view shadows/reflections or completed-chase preparation. This evidence rules out treating the last poll as proof of a sky-load stall; it does not identify the exact blocking GPU command. The 2,016 draws / 47,801,520 triangles in the poll belong to earlier preparation work and are not a gameplay-frame performance measurement. Both later images and their trace times are preserved in [`loading-stage-evidence.json`](evidence/graphics-engine-advancement/high-f106843-initial/loading-stage-evidence.json).
+
+The coordinator's subsequently guarded checkpoint `726d117` passed the unchanged full lint, content, TypeScript/build, bundle and IP checks. Its application fingerprint is `e3ff11bee32968d37b2db3abd9f74e3014a8d541ad3683a67638bf9cc70d033e`, published with equivalent application source as `414c9ac35213a65e3d11d1145b681561f8a8483d`. That checkpoint includes the per-mip ownership guard. Its full High completion result is pending at this review checkpoint. A separate possible renderer-handoff gap remains conditional: a cancelled expansion can leave a complete compressed normal in the page cache; replacement-renderer residency must be observed before changing cache preparation. Native High dimensions, preset quality, mip/detail budgets, completion fences and both test deadlines remain unchanged. Physical GPU performance and PS5-level visual parity remain unverified.
+
+## Observed error closure and replacement-renderer correction
+
+The subsequent [run 44492180925](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44492180925) tested `414c9ac35213a65e3d11d1145b681561f8a8483d`. All seven component fixtures and the compact Low application journey passed again. The High trace now contains **zero immutable-texture warnings and zero missing-fragment-output warnings**. This changed-build evidence closes both observed GL error classes; the original 90-second High readiness predicate still failed. The exact High artifact, diagnostic and scope are retained in [`high-414c9ac-initial/`](evidence/graphics-engine-advancement/high-414c9ac-initial/).
+
+The same diagnostic confirms the remaining renderer-handoff gap: concrete, gravel, meadow, lawn and asphalt retained their complete compressed source normals; only rock had reached `decoded-rgba8`. The old renderer correctly stopped its remaining mip submissions, but the page-wide ground cache treated the retained source as permanently prepared. The next renderer therefore did not perform the existing residency optimization for those five layers. Later trace frames reached **Painting the sky** at 111.022 seconds and **Setting up cameras** at 126.692 seconds. These images narrow the outstanding startup investigation to subsequent first-view work without proving which GPU command is blocking. They are preserved with exact timestamps and hashes in [`loading-stage-evidence.json`](evidence/graphics-engine-advancement/high-414c9ac-initial/loading-stage-evidence.json).
+
+The reviewed follow-up changes only `ScanStore` preparation ownership. A layer that is already pending retains one promise across a renderer handoff, so `ready()` also waits for the replacement renderer's complete chain. A previously retained eligible source is temporarily removed from the scanned path while its new owner prepares it; the existing material swap contract releases old wrappers and binds the completed normal on adoption. Complete decoded chains and unsupported formats are reused unchanged. Failed or closed owners receive at most one attempt per source; a newly attached owner may retry without another asset download. No authored mip, sampler, texture-detail limit, first reflection-capture requirement, quality preset or readiness deadline changes.
+
+Five new cases exercise actual ground-store, normal-preparation and material-swap code. Both possible orderings of the cancelled read and replacement attach fail on unchanged `414c9ac`. A third failure proves that actual `installScannedMaps` wrappers were not rebound; a fourth proves that a new owner never retried an unavailable preparation. The unsupported-format control already passed. All five pass with the correction, alongside the existing seventeen ground and normal cases: **22 isolated passes**. Scoped ESLint and full TypeScript checks passed on the isolated candidate. After copying the two reviewed files, the shared-checkout run also passed the two native Three lifetime regressions, for **24 passes**. The counterexample log, successful candidate log and exact source hashes are preserved in [`normal-handoff-proof.json`](evidence/graphics-engine-advancement/high-414c9ac-initial/normal-handoff-proof.json).
+
+The frozen candidate hashes are:
+
+| File                                        | SHA256                                                             |
+| ------------------------------------------- | ------------------------------------------------------------------ |
+| `src/rendering/ground/scan-store.ts`        | `78537e243e5631bc9063d5d2d1cf0e7943875a5844c743f0a1b18768525d5531` |
+| `tests/scan-store-renderer-handoff.test.ts` | `4dedd211c19f7493144345ffcc3d9f1c08c81a319348c6d4addf9e604ce18469` |
+
+The coordinator will attribute the subsequent immutable application build and actual High result to their own exact source. The lifecycle counterexamples establish the missing preparation and the correction's ownership behavior. They do not establish that the full High startup gate now passes, or that physical hardware reaches a particular frame rate.
+
+## Replacement residency validated; first chase investigation
+
+[Run 44495022472](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44495022472) tested published `b7540527d9abdfba406aa442bfe9b0a9e372447d`, application fingerprint `a5ced834693f7c3635d4d0228880e2f8b1879dd06b0a16daf7cff42db484f16e`. All six ground normals now report `decoded-rgba8`, with no GL errors. The replacement-renderer correction is therefore validated by the actual application run. All seven component fixtures and the Low driving/replay journey also passed. The independent High test still failed its original 90-second readiness predicate.
+
+The full trace contains a later successful evaluate result than the Node-retained failure attachment. Recovered `call@69`, ending at trace time 85.535 seconds, records photographed-sky loading complete in 89.4 ms, ground preparation complete in 1.1 ms, material compilation complete in 9.521 seconds and shadow warmup complete in 1.384 seconds. These are preparation-stage wall times. The next stage is **Warming shadows and scene reflections**, with both photographed skies loaded, all ground normals decoded, zero probe starts and zero submitted preparation frames. This identifies the first chase warmup as the outstanding stage, without identifying its blocking native command. The later diagnostic and exact trace provenance are retained in [`high-gp-last-trace-diagnostic.json`](evidence/graphics-engine-advancement/high-b754052-initial/high-gp-last-trace-diagnostic.json) and [`later-trace-provenance.json`](evidence/graphics-engine-advancement/high-b754052-initial/later-trace-provenance.json).
+
+The next High run adds bounded instrumentation only in its test specification. It observes the existing detailed loading text and records selected native draw, upload, compilation, framebuffer, resolve and fence operations during the first chase warmup. A small Blob Worker receives numeric command starts and completions and emits at most two activity snapshots per second through its own console. Playwright's installed Chromium adapter forwards that worker console directly to the test process. This avoids depending on a main-thread callback or another page evaluation while a native call is blocked.
+
+The monitor preserves native arguments, receiver, return values and exceptions. It adds no GL query, context, flush, finish or render yield. First-use records are capped at 64 and program summaries at 32, with source hashes and bounded names/defines instead of complete shaders. Node retains the latest 256 timeline records, the latest command pair and the separately bounded program summaries. Slow completions and cumulative CPU call time survive later fast calls. CPU durations include instrumentation overhead and are not GPU execution times or hardware performance measurements. Worker unavailability is reported explicitly; it does not fabricate command evidence.
+
+The frozen test specification has SHA256 `68645e833a08a8f4e9bb9144eaa3d0ad141cf5a3a6b85337b0057d57fb2e728a`. Scoped ESLint, full TypeScript checking and Playwright's test-listing compiler passed. A CPU VM exercise verified exact native argument/receiver/return preservation, preservation of the original thrown error, an in-flight snapshot before return, retention of a slow completion after a subsequent fast call, and continued native execution if the diagnostic channel fails. That verification is retained in [`startup-monitor-cpu-proof.json`](evidence/graphics-engine-advancement/high-b754052-initial/startup-monitor-cpu-proof.json). It does not replace execution of the monitor in Chromium. No additional production rendering change was made for this investigation, and all original High quality, deadline and GPU completion gates remain in force.

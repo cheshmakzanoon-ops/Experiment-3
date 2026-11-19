@@ -1,0 +1,1177 @@
+{
+  "medium": {
+    "motionBlur": {
+      "supported": true,
+      "active": true,
+      "strength": 0.35,
+      "velocityFrames": 20,
+      "resets": 7,
+      "width": 320,
+      "height": 180,
+      "maximumPixels": 11.200000000000001,
+      "taps": 12,
+      "shutterSeconds": 0.005833333333333333,
+      "camera": "attached",
+      "cars": 1,
+      "extraDraws": 0
+    },
+    "automaticExposure": {
+      "active": true,
+      "ev": 0.34331703098002053,
+      "targetEV": 0.7667647058823537,
+      "samples": 4,
+      "pending": false,
+      "failedReads": 0,
+      "lastError": null,
+      "samplePixels": 192,
+      "maximumSampleHz": 4
+    },
+    "studioFrame": {
+      "source": "presented-snapshot",
+      "updates": 20,
+      "cuts": 1,
+      "time": 1.9500000476837158,
+      "frameDt": 0.05000007152557373,
+      "cars": 1,
+      "wind": [
+        2.6,
+        1.4,
+        1.9500000476837158,
+        0.5
+      ],
+      "sunDir": [
+        -0.47180588699468273,
+        0.7919598817410746,
+        -0.3875548357456323
+      ],
+      "view": "day:chase:0:false",
+      "extraDraws": 0
+    },
+    "scenePass": {
+      "samples": 2,
+      "ambientOcclusion": true,
+      "width": 320,
+      "height": 180,
+      "obscuranceWidth": 160,
+      "obscuranceHeight": 90,
+      "frames": 20,
+      "motionBlur": true,
+      "temporalAA": {
+        "enabled": false,
+        "active": false,
+        "frames": 0,
+        "resets": 5,
+        "index": 0,
+        "jitter": [
+          0,
+          0
+        ],
+        "extraDraws": 0
+      }
+    },
+    "shadows": {
+      "enabled": true,
+      "baked": true,
+      "mapSize": 512,
+      "bakes": 2,
+      "lastBakeMs": 0.10000000000582077,
+      "metresPerTexel": 3.5186641947131196,
+      "halfExtent": 640,
+      "refreshSeconds": 0.75,
+      "pending": false,
+      "bounds": {
+        "min": [
+          -640,
+          -96,
+          -640
+        ],
+        "max": [
+          640,
+          128,
+          640
+        ]
+      }
+    },
+    "ultra": {
+      "preset": "medium",
+      "tier": "medium",
+      "capabilities": {
+        "floatColorBuffer": true,
+        "maxTextureSize": 16384,
+        "maxSamples": 4
+      },
+      "unsupported": [],
+      "toneMapper": "aces",
+      "gpuPassTimestamps": false,
+      "passes": {
+        "ssr": {
+          "calls": 0,
+          "triangles": 0,
+          "frames": 0,
+          "gpuMs": null,
+          "fetchesM": 0
+        },
+        "aoTemporal": {
+          "calls": 0,
+          "triangles": 0,
+          "frames": 0,
+          "gpuMs": null,
+          "fetchesM": 0
+        },
+        "lightShafts": {
+          "calls": 0,
+          "triangles": 0,
+          "frames": 0,
+          "gpuMs": null,
+          "fetchesM": 0
+        },
+        "replayDof": {
+          "calls": 0,
+          "triangles": 0,
+          "frames": 0,
+          "gpuMs": null,
+          "fetchesM": 0
+        },
+        "taaSharpen": {
+          "calls": 0,
+          "triangles": 0,
+          "frames": 0,
+          "gpuMs": null,
+          "fetchesM": 0
+        }
+      },
+      "ssr": {
+        "enabled": false,
+        "supported": true,
+        "active": false,
+        "frames": 0,
+        "hizLevels": [
+          [
+            160,
+            90
+          ],
+          [
+            80,
+            45
+          ],
+          [
+            40,
+            23
+          ],
+          [
+            20,
+            12
+          ],
+          [
+            10,
+            6
+          ],
+          [
+            5,
+            3
+          ]
+        ],
+        "traceSize": [
+          160,
+          90
+        ],
+        "maxIterations": 56,
+        "extraDraws": 0,
+        "environmentProbe": false,
+        "localProbe": false
+      },
+      "hizLevels": 6,
+      "aoTemporal": {
+        "enabled": false,
+        "slices": 4,
+        "frames": 0,
+        "resets": 0,
+        "historyValid": false,
+        "extraDraws": 0
+      },
+      "taaSharpen": {
+        "wanted": false,
+        "strength": 0,
+        "frames": 0
+      },
+      "physicalBloom": {
+        "enabled": false,
+        "mix": 0.03
+      },
+      "chromaticAberration": 0,
+      "lightShafts": {
+        "wanted": false,
+        "active": false,
+        "strength": 0,
+        "sunScreen": [
+          0,
+          0
+        ],
+        "frames": 0,
+        "resolution": [
+          80,
+          45
+        ],
+        "extraDraws": 0
+      },
+      "replayDof": {
+        "enabled": false,
+        "focus": 10,
+        "backgroundBlur": 0,
+        "fNumber": 2.8,
+        "taps": 48,
+        "frames": 0,
+        "extraDraws": 0
+      },
+      "shadowCascades": {
+        "count": 2,
+        "near": {
+          "active": true,
+          "mapSize": 512,
+          "halfExtent": 70
+        },
+        "mid": {
+          "enabled": false,
+          "active": false,
+          "mapSize": 512,
+          "halfExtent": 60,
+          "metresPerTexel": 0.234375,
+          "cadence": 2,
+          "updates": 0
+        },
+        "far": {
+          "enabled": true,
+          "baked": true,
+          "mapSize": 512,
+          "bakes": 2,
+          "lastBakeMs": 0.10000000000582077,
+          "metresPerTexel": 3.5186641947131196,
+          "active": true
+        }
+      },
+      "materials": {
+        "textures": {
+          "size": 512,
+          "recipes": 0,
+          "pending": 0,
+          "bakes": 0,
+          "failures": 0,
+          "lastBakeMs": 0,
+          "clones": 0,
+          "bytes": 0
+        },
+        "weather": {
+          "wetness": 0,
+          "rain": 0,
+          "time": 1.9500000476837158
+        }
+      }
+    }
+  },
+  "reduced": {
+    "motionBlur": {
+      "supported": true,
+      "active": false,
+      "strength": 0,
+      "velocityFrames": 21,
+      "resets": 9,
+      "width": 320,
+      "height": 180,
+      "maximumPixels": 11.200000000000001,
+      "taps": 12,
+      "shutterSeconds": 0,
+      "camera": "still",
+      "cars": 0,
+      "extraDraws": 0
+    },
+    "automaticExposure": {
+      "active": true,
+      "ev": 0.3563451340738217,
+      "targetEV": 0.7667647058823537,
+      "samples": 5,
+      "pending": false,
+      "failedReads": 0,
+      "lastError": null,
+      "samplePixels": 192,
+      "maximumSampleHz": 4
+    },
+    "studioFrame": {
+      "source": "presented-snapshot",
+      "updates": 22,
+      "cuts": 2,
+      "time": 2,
+      "frameDt": 0,
+      "cars": 1,
+      "wind": [
+        2.6,
+        1.4,
+        2,
+        0.5
+      ],
+      "sunDir": [
+        -0.47180588699468273,
+        0.7919598817410746,
+        -0.3875548357456323
+      ],
+      "view": "day:chase:0:false",
+      "extraDraws": 0
+    },
+    "scenePass": {
+      "samples": 2,
+      "ambientOcclusion": true,
+      "width": 320,
+      "height": 180,
+      "obscuranceWidth": 160,
+      "obscuranceHeight": 90,
+      "frames": 22,
+      "motionBlur": false,
+      "temporalAA": {
+        "enabled": false,
+        "active": false,
+        "frames": 0,
+        "resets": 6,
+        "index": 0,
+        "jitter": [
+          0,
+          0
+        ],
+        "extraDraws": 0
+      }
+    }
+  },
+  "photo": {
+    "motionBlur": {
+      "supported": true,
+      "active": false,
+      "strength": 0.35,
+      "velocityFrames": 21,
+      "resets": 11,
+      "width": 320,
+      "height": 180,
+      "maximumPixels": 11.200000000000001,
+      "taps": 12,
+      "shutterSeconds": 0.005833333333333333,
+      "camera": "still",
+      "cars": 0,
+      "extraDraws": 0
+    },
+    "automaticExposure": {
+      "active": false,
+      "ev": 0,
+      "targetEV": 0,
+      "samples": 0,
+      "pending": false,
+      "failedReads": 0,
+      "lastError": null,
+      "samplePixels": 192,
+      "maximumSampleHz": 4
+    },
+    "studioFrame": {
+      "source": "presented-snapshot",
+      "updates": 23,
+      "cuts": 3,
+      "time": 2,
+      "frameDt": 0,
+      "cars": 1,
+      "wind": [
+        2.6,
+        1.4,
+        2,
+        0.5
+      ],
+      "sunDir": [
+        -0.47180588699468273,
+        0.7919598817410746,
+        -0.3875548357456323
+      ],
+      "view": "day:chase:0:true",
+      "extraDraws": 0
+    },
+    "scenePass": {
+      "samples": 2,
+      "ambientOcclusion": true,
+      "width": 320,
+      "height": 180,
+      "obscuranceWidth": 160,
+      "obscuranceHeight": 90,
+      "frames": 23,
+      "motionBlur": false,
+      "temporalAA": {
+        "enabled": false,
+        "active": false,
+        "frames": 0,
+        "resets": 7,
+        "index": 0,
+        "jitter": [
+          0,
+          0
+        ],
+        "extraDraws": 0
+      }
+    }
+  },
+  "high": {
+    "motionBlur": {
+      "supported": true,
+      "active": true,
+      "strength": 0.5,
+      "velocityFrames": 29,
+      "resets": 14,
+      "width": 320,
+      "height": 180,
+      "maximumPixels": 11.200000000000001,
+      "taps": 12,
+      "shutterSeconds": 0.008333333333333333,
+      "camera": "attached",
+      "cars": 1,
+      "extraDraws": 0
+    },
+    "automaticExposure": {
+      "active": true,
+      "ev": 0.15065191927464647,
+      "targetEV": 0.7667647058823537,
+      "samples": 2,
+      "pending": false,
+      "failedReads": 0,
+      "lastError": null,
+      "samplePixels": 192,
+      "maximumSampleHz": 4
+    },
+    "studioFrame": {
+      "source": "presented-snapshot",
+      "updates": 31,
+      "cuts": 4,
+      "time": 3.3499999046325684,
+      "frameDt": 0.04999995231628418,
+      "cars": 1,
+      "wind": [
+        2.6,
+        1.4,
+        3.3499999046325684,
+        0.5
+      ],
+      "sunDir": [
+        -0.47180588699468273,
+        0.7919598817410746,
+        -0.3875548357456323
+      ],
+      "view": "day:chase:0:false",
+      "extraDraws": 0
+    },
+    "scenePass": {
+      "samples": 4,
+      "ambientOcclusion": true,
+      "width": 320,
+      "height": 180,
+      "obscuranceWidth": 160,
+      "obscuranceHeight": 90,
+      "frames": 31,
+      "motionBlur": true,
+      "temporalAA": {
+        "enabled": true,
+        "active": true,
+        "frames": 7,
+        "resets": 9,
+        "index": 7,
+        "jitter": [
+          -0.4375,
+          0.38888888888888884
+        ],
+        "extraDraws": 1
+      }
+    },
+    "shadows": {
+      "enabled": true,
+      "baked": true,
+      "mapSize": 512,
+      "bakes": 3,
+      "lastBakeMs": 0.20000000001164153,
+      "metresPerTexel": 3.5186641947131196,
+      "halfExtent": 640,
+      "refreshSeconds": 0.75,
+      "pending": false,
+      "bounds": {
+        "min": [
+          -640,
+          -96,
+          -640
+        ],
+        "max": [
+          640,
+          128,
+          640
+        ]
+      }
+    },
+    "ultra": {
+      "preset": "ultra",
+      "tier": "high",
+      "capabilities": {
+        "floatColorBuffer": true,
+        "maxTextureSize": 16384,
+        "maxSamples": 4
+      },
+      "unsupported": [],
+      "toneMapper": "agx",
+      "gpuPassTimestamps": false,
+      "passes": {
+        "ssr": {
+          "calls": -41,
+          "triangles": -493,
+          "frames": 8,
+          "gpuMs": null,
+          "fetchesM": 1.900368
+        },
+        "aoTemporal": {
+          "calls": 0,
+          "triangles": 0,
+          "frames": 8,
+          "gpuMs": null,
+          "fetchesM": 0.1584
+        },
+        "lightShafts": {
+          "calls": 0,
+          "triangles": 0,
+          "frames": 0,
+          "gpuMs": null,
+          "fetchesM": 0
+        },
+        "replayDof": {
+          "calls": 0,
+          "triangles": 0,
+          "frames": 0,
+          "gpuMs": null,
+          "fetchesM": 0
+        },
+        "taaSharpen": {
+          "calls": 0,
+          "triangles": 0,
+          "frames": 7,
+          "gpuMs": null,
+          "fetchesM": 0
+        }
+      },
+      "ssr": {
+        "enabled": true,
+        "supported": true,
+        "active": true,
+        "frames": 8,
+        "hizLevels": [
+          [
+            160,
+            90
+          ],
+          [
+            80,
+            45
+          ],
+          [
+            40,
+            23
+          ],
+          [
+            20,
+            12
+          ],
+          [
+            10,
+            6
+          ],
+          [
+            5,
+            3
+          ]
+        ],
+        "traceSize": [
+          160,
+          90
+        ],
+        "maxIterations": 56,
+        "extraDraws": 8,
+        "environmentProbe": false,
+        "localProbe": false
+      },
+      "hizLevels": 6,
+      "aoTemporal": {
+        "enabled": true,
+        "slices": 4,
+        "frames": 7,
+        "resets": 0,
+        "historyValid": true,
+        "extraDraws": 1
+      },
+      "taaSharpen": {
+        "wanted": true,
+        "strength": 0.35,
+        "frames": 7
+      },
+      "physicalBloom": {
+        "enabled": true,
+        "mix": 0.03
+      },
+      "chromaticAberration": 0.0012,
+      "lightShafts": {
+        "wanted": true,
+        "active": false,
+        "strength": 0,
+        "sunScreen": [
+          0.5,
+          0.5
+        ],
+        "frames": 0,
+        "resolution": [
+          80,
+          45
+        ],
+        "extraDraws": 0
+      },
+      "replayDof": {
+        "enabled": false,
+        "focus": 10,
+        "backgroundBlur": 0,
+        "fNumber": 2.8,
+        "taps": 48,
+        "frames": 0,
+        "extraDraws": 0
+      },
+      "shadowCascades": {
+        "count": 3,
+        "near": {
+          "active": true,
+          "mapSize": 512,
+          "halfExtent": 70
+        },
+        "mid": {
+          "enabled": true,
+          "active": true,
+          "mapSize": 512,
+          "halfExtent": 251.10647615953496,
+          "metresPerTexel": 0.9808846724981835,
+          "cadence": 2,
+          "updates": 5
+        },
+        "far": {
+          "enabled": true,
+          "baked": true,
+          "mapSize": 512,
+          "bakes": 3,
+          "lastBakeMs": 0.20000000001164153,
+          "metresPerTexel": 3.5186641947131196,
+          "active": true
+        }
+      },
+      "materials": {
+        "textures": {
+          "size": 512,
+          "recipes": 0,
+          "pending": 0,
+          "bakes": 0,
+          "failures": 0,
+          "lastBakeMs": 0,
+          "clones": 0,
+          "bytes": 0
+        },
+        "weather": {
+          "wetness": 0,
+          "rain": 0,
+          "time": 3.3499999046325684
+        }
+      }
+    }
+  },
+  "off": {
+    "motionBlur": {
+      "supported": true,
+      "active": false,
+      "strength": 0,
+      "velocityFrames": 29,
+      "resets": 17,
+      "width": 320,
+      "height": 180,
+      "maximumPixels": 11.200000000000001,
+      "taps": 12,
+      "shutterSeconds": 0,
+      "camera": "still",
+      "cars": 0,
+      "extraDraws": 0
+    },
+    "automaticExposure": {
+      "active": false,
+      "ev": 0,
+      "targetEV": 0,
+      "samples": 0,
+      "pending": false,
+      "failedReads": 0,
+      "lastError": null,
+      "samplePixels": 192,
+      "maximumSampleHz": 4
+    },
+    "studioFrame": {
+      "source": "presented-snapshot",
+      "updates": 32,
+      "cuts": 5,
+      "time": 4,
+      "frameDt": 0,
+      "cars": 1,
+      "wind": [
+        2.6,
+        1.4,
+        4,
+        0.5
+      ],
+      "sunDir": [
+        -0.47180588699468273,
+        0.7919598817410746,
+        -0.3875548357456323
+      ],
+      "view": "day:chase:0:false",
+      "extraDraws": 0
+    },
+    "scenePass": {
+      "samples": 0,
+      "ambientOcclusion": false,
+      "width": 320,
+      "height": 180,
+      "obscuranceWidth": 160,
+      "obscuranceHeight": 90,
+      "frames": 32,
+      "motionBlur": false,
+      "temporalAA": {
+        "enabled": false,
+        "active": false,
+        "frames": 7,
+        "resets": 11,
+        "index": 7,
+        "jitter": [
+          -0.4375,
+          0.38888888888888884
+        ],
+        "extraDraws": 0
+      }
+    },
+    "ultra": {
+      "preset": "low",
+      "tier": "low",
+      "capabilities": {
+        "floatColorBuffer": true,
+        "maxTextureSize": 16384,
+        "maxSamples": 4
+      },
+      "unsupported": [],
+      "toneMapper": "aces",
+      "gpuPassTimestamps": false,
+      "passes": {
+        "ssr": {
+          "calls": 0,
+          "triangles": 0,
+          "frames": 8,
+          "gpuMs": null,
+          "fetchesM": 1.900368
+        },
+        "aoTemporal": {
+          "calls": 0,
+          "triangles": 0,
+          "frames": 8,
+          "gpuMs": null,
+          "fetchesM": 0.1584
+        },
+        "lightShafts": {
+          "calls": 0,
+          "triangles": 0,
+          "frames": 0,
+          "gpuMs": null,
+          "fetchesM": 0
+        },
+        "replayDof": {
+          "calls": 0,
+          "triangles": 0,
+          "frames": 0,
+          "gpuMs": null,
+          "fetchesM": 0
+        },
+        "taaSharpen": {
+          "calls": 0,
+          "triangles": 0,
+          "frames": 7,
+          "gpuMs": null,
+          "fetchesM": 0
+        }
+      },
+      "ssr": {
+        "enabled": false,
+        "supported": true,
+        "active": false,
+        "frames": 8,
+        "hizLevels": [
+          [
+            160,
+            90
+          ],
+          [
+            80,
+            45
+          ],
+          [
+            40,
+            23
+          ],
+          [
+            20,
+            12
+          ],
+          [
+            10,
+            6
+          ],
+          [
+            5,
+            3
+          ]
+        ],
+        "traceSize": [
+          160,
+          90
+        ],
+        "maxIterations": 56,
+        "extraDraws": 0,
+        "environmentProbe": false,
+        "localProbe": false
+      },
+      "hizLevels": 6,
+      "aoTemporal": {
+        "enabled": false,
+        "slices": 4,
+        "frames": 7,
+        "resets": 0,
+        "historyValid": true,
+        "extraDraws": 1
+      },
+      "taaSharpen": {
+        "wanted": false,
+        "strength": 0,
+        "frames": 7
+      },
+      "physicalBloom": {
+        "enabled": false,
+        "mix": 0.03
+      },
+      "chromaticAberration": 0,
+      "lightShafts": {
+        "wanted": false,
+        "active": false,
+        "strength": 0,
+        "sunScreen": [
+          0.5,
+          0.5
+        ],
+        "frames": 0,
+        "resolution": [
+          80,
+          45
+        ],
+        "extraDraws": 0
+      },
+      "replayDof": {
+        "enabled": false,
+        "focus": 10,
+        "backgroundBlur": 0,
+        "fNumber": 2.8,
+        "taps": 48,
+        "frames": 0,
+        "extraDraws": 0
+      },
+      "shadowCascades": {
+        "count": 0,
+        "near": {
+          "active": false,
+          "mapSize": 512,
+          "halfExtent": 70
+        },
+        "mid": {
+          "enabled": false,
+          "active": false,
+          "mapSize": 512,
+          "halfExtent": 251.10647615953496,
+          "metresPerTexel": 0.9808846724981835,
+          "cadence": 2,
+          "updates": 5
+        },
+        "far": {
+          "enabled": false,
+          "baked": true,
+          "mapSize": 512,
+          "bakes": 3,
+          "lastBakeMs": 0.20000000001164153,
+          "metresPerTexel": 3.5186641947131196,
+          "active": false
+        }
+      },
+      "materials": {
+        "textures": {
+          "size": 512,
+          "recipes": 0,
+          "pending": 0,
+          "bakes": 0,
+          "failures": 0,
+          "lastBakeMs": 0,
+          "clones": 0,
+          "bytes": 0
+        },
+        "weather": {
+          "wetness": 0,
+          "rain": 0,
+          "time": 4
+        }
+      }
+    }
+  },
+  "restored": {
+    "motionBlur": {
+      "supported": true,
+      "active": true,
+      "strength": 0.35,
+      "velocityFrames": 31,
+      "resets": 20,
+      "width": 320,
+      "height": 180,
+      "maximumPixels": 11.200000000000001,
+      "taps": 12,
+      "shutterSeconds": 0.005833333333333333,
+      "camera": "attached",
+      "cars": 1,
+      "extraDraws": 0
+    },
+    "automaticExposure": {
+      "active": true,
+      "ev": 0.02359095851091709,
+      "targetEV": 0.7667647058823537,
+      "samples": 1,
+      "pending": false,
+      "failedReads": 0,
+      "lastError": null,
+      "samplePixels": 192,
+      "maximumSampleHz": 4
+    },
+    "studioFrame": {
+      "source": "presented-snapshot",
+      "updates": 34,
+      "cuts": 6,
+      "time": 5.050000190734863,
+      "frameDt": 0.05000019073486328,
+      "cars": 1,
+      "wind": [
+        2.6,
+        1.4,
+        5.050000190734863,
+        0.5
+      ],
+      "sunDir": [
+        -0.47180588699468273,
+        0.7919598817410746,
+        -0.3875548357456323
+      ],
+      "view": "day:chase:0:false",
+      "extraDraws": 0
+    },
+    "scenePass": {
+      "samples": 2,
+      "ambientOcclusion": true,
+      "width": 320,
+      "height": 180,
+      "obscuranceWidth": 160,
+      "obscuranceHeight": 90,
+      "frames": 34,
+      "motionBlur": true,
+      "temporalAA": {
+        "enabled": false,
+        "active": false,
+        "frames": 7,
+        "resets": 13,
+        "index": 7,
+        "jitter": [
+          -0.4375,
+          0.38888888888888884
+        ],
+        "extraDraws": 0
+      }
+    },
+    "ultra": {
+      "preset": "medium",
+      "tier": "medium",
+      "capabilities": {
+        "floatColorBuffer": true,
+        "maxTextureSize": 16384,
+        "maxSamples": 4
+      },
+      "unsupported": [],
+      "toneMapper": "aces",
+      "gpuPassTimestamps": false,
+      "passes": {
+        "ssr": {
+          "calls": 0,
+          "triangles": 0,
+          "frames": 8,
+          "gpuMs": null,
+          "fetchesM": 1.900368
+        },
+        "aoTemporal": {
+          "calls": 0,
+          "triangles": 0,
+          "frames": 8,
+          "gpuMs": null,
+          "fetchesM": 0.1584
+        },
+        "lightShafts": {
+          "calls": 0,
+          "triangles": 0,
+          "frames": 0,
+          "gpuMs": null,
+          "fetchesM": 0
+        },
+        "replayDof": {
+          "calls": 0,
+          "triangles": 0,
+          "frames": 0,
+          "gpuMs": null,
+          "fetchesM": 0
+        },
+        "taaSharpen": {
+          "calls": 0,
+          "triangles": 0,
+          "frames": 7,
+          "gpuMs": null,
+          "fetchesM": 0
+        }
+      },
+      "ssr": {
+        "enabled": false,
+        "supported": true,
+        "active": false,
+        "frames": 8,
+        "hizLevels": [
+          [
+            160,
+            90
+          ],
+          [
+            80,
+            45
+          ],
+          [
+            40,
+            23
+          ],
+          [
+            20,
+            12
+          ],
+          [
+            10,
+            6
+          ],
+          [
+            5,
+            3
+          ]
+        ],
+        "traceSize": [
+          160,
+          90
+        ],
+        "maxIterations": 56,
+        "extraDraws": 0,
+        "environmentProbe": false,
+        "localProbe": false
+      },
+      "hizLevels": 6,
+      "aoTemporal": {
+        "enabled": false,
+        "slices": 4,
+        "frames": 7,
+        "resets": 0,
+        "historyValid": true,
+        "extraDraws": 1
+      },
+      "taaSharpen": {
+        "wanted": false,
+        "strength": 0,
+        "frames": 7
+      },
+      "physicalBloom": {
+        "enabled": false,
+        "mix": 0.03
+      },
+      "chromaticAberration": 0,
+      "lightShafts": {
+        "wanted": false,
+        "active": false,
+        "strength": 0,
+        "sunScreen": [
+          0.5,
+          0.5
+        ],
+        "frames": 0,
+        "resolution": [
+          80,
+          45
+        ],
+        "extraDraws": 0
+      },
+      "replayDof": {
+        "enabled": false,
+        "focus": 10,
+        "backgroundBlur": 0,
+        "fNumber": 2.8,
+        "taps": 48,
+        "frames": 0,
+        "extraDraws": 0
+      },
+      "shadowCascades": {
+        "count": 2,
+        "near": {
+          "active": true,
+          "mapSize": 512,
+          "halfExtent": 70
+        },
+        "mid": {
+          "enabled": false,
+          "active": false,
+          "mapSize": 512,
+          "halfExtent": 251.10647615953496,
+          "metresPerTexel": 0.9808846724981835,
+          "cadence": 2,
+          "updates": 5
+        },
+        "far": {
+          "enabled": true,
+          "baked": true,
+          "mapSize": 512,
+          "bakes": 4,
+          "lastBakeMs": 0.29999999998835847,
+          "metresPerTexel": 3.5186641947131196,
+          "active": true
+        }
+      },
+      "materials": {
+        "textures": {
+          "size": 512,
+          "recipes": 0,
+          "pending": 0,
+          "bakes": 0,
+          "failures": 0,
+          "lastBakeMs": 0,
+          "clones": 0,
+          "bytes": 0
+        },
+        "weather": {
+          "wetness": 0,
+          "rain": 0,
+          "time": 5.050000190734863
+        }
+      }
+    }
+  },
+  "glErrors": [],
+  "motionChangedPixels": 2378,
+  "sharedContextAlive": true
+}

@@ -1,0 +1,931 @@
+{
+  "scope": "Read-only historical versus corrected Vellamar camera controls; current renderer code is unchanged.",
+  "observations": {
+    "historical": {
+      "source": "/workspace/scratch/d611aefdb08c/engine-final-validation",
+      "sourceHashes": {
+        "src/simulation/circuits.ts": "7b0208025d6c0cb25a49bc757e7c69b1fdcb651bdb66803ee75648de24752c90",
+        "src/simulation/track.ts": "736c483c754c14eea1a725f98d391b73aeb06a464e8dd342e33109e1cc7af134",
+        "src/rendering/trackside.ts": "b86cc7d89623f6ede23e94295fbe6c7c6c1e3bcfde41e4757281ec8b3c1a934b"
+      },
+      "signature": "ef47691fc49c677f4b6e5b7dbdba21b634896668d088ee30cb7091279516e1b4",
+      "rigs": [
+        {
+          "id": 0,
+          "centerS": 0,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": 216.224780866368,
+            "y": 6.999372413555436,
+            "z": -447.389451581989
+          },
+          "baseFov": 43,
+          "trackingHz": 12,
+          "zoomHz": 7,
+          "shot": "grid-finish",
+          "leadSeconds": 0.1,
+          "roadY": 1.9993724135554367
+        },
+        {
+          "id": 1,
+          "centerS": 199.86344626285617,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": 14.326582408040823,
+            "y": 6.881185116178796,
+            "z": -445.87139128091843
+          },
+          "baseFov": 38,
+          "trackingHz": 9,
+          "zoomHz": 5,
+          "shot": "straight",
+          "leadSeconds": 0.16,
+          "roadY": 1.9811851161787957
+        },
+        {
+          "id": 2,
+          "centerS": 399.72689252571234,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": -185.12095078749476,
+            "y": 6.9634324779958865,
+            "z": -440.99442829645426
+          },
+          "baseFov": 42,
+          "trackingHz": 9,
+          "zoomHz": 5,
+          "shot": "straight",
+          "leadSeconds": 0.16,
+          "roadY": 1.9634324779958863
+        },
+        {
+          "id": 3,
+          "centerS": 599.5903387885685,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": -385.30874464177583,
+            "y": 8.981021926844063,
+            "z": -394.89351601520997
+          },
+          "baseFov": 36,
+          "trackingHz": 7,
+          "zoomHz": 4,
+          "shot": "elevated",
+          "leadSeconds": 0.12,
+          "roadY": 1.9810219268440628
+        },
+        {
+          "id": 4,
+          "centerS": 799.4537850514247,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": -585.3686304863115,
+            "y": 6.246770270733951,
+            "z": -444.0334912917621
+          },
+          "baseFov": 42,
+          "trackingHz": 9,
+          "zoomHz": 5,
+          "shot": "straight",
+          "leadSeconds": 0.16,
+          "roadY": 2.2467702707339514
+        },
+        {
+          "id": 5,
+          "centerS": 999.3172313142809,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": -722.850430307928,
+            "y": 8.14738617230711,
+            "z": -339.63881912779345
+          },
+          "baseFov": 40,
+          "trackingHz": 9,
+          "zoomHz": 5,
+          "shot": "straight",
+          "leadSeconds": 0.16,
+          "roadY": 3.1473861723071095
+        },
+        {
+          "id": 6,
+          "centerS": 1199.180677577137,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": -634.6327078856801,
+            "y": 14.441208845259139,
+            "z": -190.67438291374557
+          },
+          "baseFov": 45,
+          "trackingHz": 9,
+          "zoomHz": 5,
+          "shot": "straight",
+          "leadSeconds": 0.16,
+          "roadY": 10.941208845259139
+        },
+        {
+          "id": 7,
+          "centerS": 1399.0441238399933,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": -628.5424066356715,
+            "y": 27.745333226051436,
+            "z": -19.940812160433527
+          },
+          "baseFov": 39,
+          "trackingHz": 7,
+          "zoomHz": 4,
+          "shot": "elevated",
+          "leadSeconds": 0.12,
+          "roadY": 21.745333226051436
+        },
+        {
+          "id": 8,
+          "centerS": 1598.9075701028494,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": -711.6236084003358,
+            "y": 36.611259213959194,
+            "z": 152.02994388654037
+          },
+          "baseFov": 40,
+          "trackingHz": 9,
+          "zoomHz": 5,
+          "shot": "straight",
+          "leadSeconds": 0.16,
+          "roadY": 31.611259213959194
+        },
+        {
+          "id": 9,
+          "centerS": 1798.7710163657055,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": -534.2103595454552,
+            "y": 41.07853614332969,
+            "z": 246.44112002655578
+          },
+          "baseFov": 42,
+          "trackingHz": 9,
+          "zoomHz": 5,
+          "shot": "straight",
+          "leadSeconds": 0.16,
+          "roadY": 37.57853614332969
+        },
+        {
+          "id": 10,
+          "centerS": 1998.6344626285618,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": -371.789544884397,
+            "y": 46.196970446528475,
+            "z": 374.38659407758126
+          },
+          "baseFov": 38,
+          "trackingHz": 7,
+          "zoomHz": 4,
+          "shot": "elevated",
+          "leadSeconds": 0.12,
+          "roadY": 40.196970446528475
+        },
+        {
+          "id": 11,
+          "centerS": 2198.497908891418,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": -171.43534865213408,
+            "y": 47.60454751728468,
+            "z": 419.3624930331921
+          },
+          "baseFov": 40,
+          "trackingHz": 9,
+          "zoomHz": 5,
+          "shot": "straight",
+          "leadSeconds": 0.16,
+          "roadY": 42.60454751728468
+        },
+        {
+          "id": 12,
+          "centerS": 2398.361355154274,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": 2.7483601601285725,
+            "y": 48.64013462378771,
+            "z": 527.2050803800859
+          },
+          "baseFov": 43,
+          "trackingHz": 9,
+          "zoomHz": 5,
+          "shot": "straight",
+          "leadSeconds": 0.16,
+          "roadY": 44.64013462378771
+        },
+        {
+          "id": 13,
+          "centerS": 2598.22480141713,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": 204.3507809083703,
+            "y": 52.01658586801815,
+            "z": 482.8196827072347
+          },
+          "baseFov": 37,
+          "trackingHz": 7,
+          "zoomHz": 4,
+          "shot": "elevated",
+          "leadSeconds": 0.12,
+          "roadY": 45.01658586801815
+        },
+        {
+          "id": 14,
+          "centerS": 2798.0882476799866,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": 409.1551576095731,
+            "y": 47.693573313137286,
+            "z": 511.598417888922
+          },
+          "baseFov": 44,
+          "trackingHz": 9,
+          "zoomHz": 5,
+          "shot": "straight",
+          "leadSeconds": 0.16,
+          "roadY": 44.193573313137286
+        },
+        {
+          "id": 15,
+          "centerS": 2997.9516939428427,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": 507.4152253085909,
+            "y": 47.20774126626333,
+            "z": 391.5189677822608
+          },
+          "baseFov": 40,
+          "trackingHz": 9,
+          "zoomHz": 5,
+          "shot": "straight",
+          "leadSeconds": 0.16,
+          "roadY": 42.20774126626333
+        },
+        {
+          "id": 16,
+          "centerS": 3197.8151402056988,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": 462.6925807321448,
+            "y": 36.01467292673034,
+            "z": 225.17834020057543
+          },
+          "baseFov": 37,
+          "trackingHz": 7,
+          "zoomHz": 4,
+          "shot": "elevated",
+          "leadSeconds": 0.12,
+          "roadY": 30.014672926730338
+        },
+        {
+          "id": 17,
+          "centerS": 3397.678586468555,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": 474.4834817931203,
+            "y": 22.11226676221517,
+            "z": 25.91967032445429
+          },
+          "baseFov": 42,
+          "trackingHz": 9,
+          "zoomHz": 5,
+          "shot": "straight",
+          "leadSeconds": 0.16,
+          "roadY": 18.11226676221517
+        },
+        {
+          "id": 18,
+          "centerS": 3597.542032731411,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": 511.6400486752763,
+            "y": 12.136265921894553,
+            "z": -178.62124428398394
+          },
+          "baseFov": 40,
+          "trackingHz": 9,
+          "zoomHz": 5,
+          "shot": "straight",
+          "leadSeconds": 0.16,
+          "roadY": 7.136265921894553
+        },
+        {
+          "id": 19,
+          "centerS": 3797.4054789942675,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": 411.776040394448,
+            "y": 7.997747539614577,
+            "z": -364.6613948397796
+          },
+          "baseFov": 42,
+          "trackingHz": 7,
+          "zoomHz": 4,
+          "shot": "elevated",
+          "leadSeconds": 0.12,
+          "roadY": 1.9977475396145772
+        }
+      ]
+    },
+    "corrected": {
+      "source": "/workspace/scratch/d611aefdb08c/Experiment-3",
+      "sourceHashes": {
+        "src/simulation/circuits.ts": "d99cd460d6236494fe369cd25fdecd1370f47af599f8316c8f6919243c001be4",
+        "src/simulation/track.ts": "736c483c754c14eea1a725f98d391b73aeb06a464e8dd342e33109e1cc7af134",
+        "src/rendering/trackside.ts": "b86cc7d89623f6ede23e94295fbe6c7c6c1e3bcfde41e4757281ec8b3c1a934b"
+      },
+      "signature": "d5258478fda9c36e80e8eaa9b187f99ae699042011456def1e98fa947401e35b",
+      "rigs": [
+        {
+          "id": 0,
+          "centerS": 0,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": 216.224780866368,
+            "y": 6.999023754419568,
+            "z": -447.389451581989
+          },
+          "baseFov": 43,
+          "trackingHz": 12,
+          "zoomHz": 7,
+          "shot": "grid-finish",
+          "leadSeconds": 0.1,
+          "roadY": 1.9990237544195684
+        },
+        {
+          "id": 1,
+          "centerS": 199.86344626285617,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": 14.326582408040823,
+            "y": 6.870732402944793,
+            "z": -445.87139128091843
+          },
+          "baseFov": 38,
+          "trackingHz": 9,
+          "zoomHz": 5,
+          "shot": "straight",
+          "leadSeconds": 0.16,
+          "roadY": 1.9707324029447932
+        },
+        {
+          "id": 2,
+          "centerS": 399.72689252571234,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": -185.12095078749476,
+            "y": 6.943117187993601,
+            "z": -440.99442829645426
+          },
+          "baseFov": 42,
+          "trackingHz": 9,
+          "zoomHz": 5,
+          "shot": "straight",
+          "leadSeconds": 0.16,
+          "roadY": 1.943117187993601
+        },
+        {
+          "id": 3,
+          "centerS": 599.5903387885685,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": -385.30874464177583,
+            "y": 8.970478552868542,
+            "z": -394.89351601520997
+          },
+          "baseFov": 36,
+          "trackingHz": 7,
+          "zoomHz": 4,
+          "shot": "elevated",
+          "leadSeconds": 0.12,
+          "roadY": 1.970478552868542
+        },
+        {
+          "id": 4,
+          "centerS": 799.4537850514247,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": -585.3686304863115,
+            "y": 6.229165335087058,
+            "z": -444.0334912917621
+          },
+          "baseFov": 42,
+          "trackingHz": 9,
+          "zoomHz": 5,
+          "shot": "straight",
+          "leadSeconds": 0.16,
+          "roadY": 2.2291653350870577
+        },
+        {
+          "id": 5,
+          "centerS": 999.3172313142809,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": -722.850430307928,
+            "y": 8.144939278187634,
+            "z": -339.63881912779345
+          },
+          "baseFov": 40,
+          "trackingHz": 9,
+          "zoomHz": 5,
+          "shot": "straight",
+          "leadSeconds": 0.16,
+          "roadY": 3.144939278187634
+        },
+        {
+          "id": 6,
+          "centerS": 1199.180677577137,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": -634.6327078856801,
+            "y": 14.26754900284544,
+            "z": -190.67438291374557
+          },
+          "baseFov": 45,
+          "trackingHz": 9,
+          "zoomHz": 5,
+          "shot": "straight",
+          "leadSeconds": 0.16,
+          "roadY": 10.76754900284544
+        },
+        {
+          "id": 7,
+          "centerS": 1399.0441238399933,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": -628.5424066356715,
+            "y": 28.173056334893257,
+            "z": -19.940812160433527
+          },
+          "baseFov": 39,
+          "trackingHz": 7,
+          "zoomHz": 4,
+          "shot": "elevated",
+          "leadSeconds": 0.12,
+          "roadY": 22.173056334893257
+        },
+        {
+          "id": 8,
+          "centerS": 1598.9075701028494,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": -711.6236084003358,
+            "y": 37.104162874418996,
+            "z": 152.02994388654037
+          },
+          "baseFov": 40,
+          "trackingHz": 9,
+          "zoomHz": 5,
+          "shot": "straight",
+          "leadSeconds": 0.16,
+          "roadY": 32.104162874418996
+        },
+        {
+          "id": 9,
+          "centerS": 1798.7710163657055,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": -534.2103595454552,
+            "y": 41.265570499512506,
+            "z": 246.44112002655578
+          },
+          "baseFov": 42,
+          "trackingHz": 9,
+          "zoomHz": 5,
+          "shot": "straight",
+          "leadSeconds": 0.16,
+          "roadY": 37.765570499512506
+        },
+        {
+          "id": 10,
+          "centerS": 1998.6344626285618,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": -371.789544884397,
+            "y": 46.269688112503765,
+            "z": 374.38659407758126
+          },
+          "baseFov": 38,
+          "trackingHz": 7,
+          "zoomHz": 4,
+          "shot": "elevated",
+          "leadSeconds": 0.12,
+          "roadY": 40.269688112503765
+        },
+        {
+          "id": 11,
+          "centerS": 2198.497908891418,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": -171.43534865213408,
+            "y": 47.64898987631826,
+            "z": 419.3624930331921
+          },
+          "baseFov": 40,
+          "trackingHz": 9,
+          "zoomHz": 5,
+          "shot": "straight",
+          "leadSeconds": 0.16,
+          "roadY": 42.64898987631826
+        },
+        {
+          "id": 12,
+          "centerS": 2398.361355154274,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": 2.7483601601285725,
+            "y": 48.6469247634951,
+            "z": 527.2050803800859
+          },
+          "baseFov": 43,
+          "trackingHz": 9,
+          "zoomHz": 5,
+          "shot": "straight",
+          "leadSeconds": 0.16,
+          "roadY": 44.6469247634951
+        },
+        {
+          "id": 13,
+          "centerS": 2598.22480141713,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": 204.3507809083703,
+            "y": 52.050177762210986,
+            "z": 482.8196827072347
+          },
+          "baseFov": 37,
+          "trackingHz": 7,
+          "zoomHz": 4,
+          "shot": "elevated",
+          "leadSeconds": 0.12,
+          "roadY": 45.050177762210986
+        },
+        {
+          "id": 14,
+          "centerS": 2798.0882476799866,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": 409.1551576095731,
+            "y": 47.74539404628233,
+            "z": 511.598417888922
+          },
+          "baseFov": 44,
+          "trackingHz": 9,
+          "zoomHz": 5,
+          "shot": "straight",
+          "leadSeconds": 0.16,
+          "roadY": 44.24539404628233
+        },
+        {
+          "id": 15,
+          "centerS": 2997.9516939428427,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": 507.4152253085909,
+            "y": 46.97468566352784,
+            "z": 391.5189677822608
+          },
+          "baseFov": 40,
+          "trackingHz": 9,
+          "zoomHz": 5,
+          "shot": "straight",
+          "leadSeconds": 0.16,
+          "roadY": 41.97468566352784
+        },
+        {
+          "id": 16,
+          "centerS": 3197.8151402056988,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": 462.6925807321448,
+            "y": 36.00126880671494,
+            "z": 225.17834020057543
+          },
+          "baseFov": 37,
+          "trackingHz": 7,
+          "zoomHz": 4,
+          "shot": "elevated",
+          "leadSeconds": 0.12,
+          "roadY": 30.00126880671494
+        },
+        {
+          "id": 17,
+          "centerS": 3397.678586468555,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": 474.4834817931203,
+            "y": 22.09554768961016,
+            "z": 25.91967032445429
+          },
+          "baseFov": 42,
+          "trackingHz": 9,
+          "zoomHz": 5,
+          "shot": "straight",
+          "leadSeconds": 0.16,
+          "roadY": 18.09554768961016
+        },
+        {
+          "id": 18,
+          "centerS": 3597.542032731411,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": 511.6400486752763,
+            "y": 12.332739645222272,
+            "z": -178.62124428398394
+          },
+          "baseFov": 40,
+          "trackingHz": 9,
+          "zoomHz": 5,
+          "shot": "straight",
+          "leadSeconds": 0.16,
+          "roadY": 7.332739645222272
+        },
+        {
+          "id": 19,
+          "centerS": 3797.4054789942675,
+          "coverageM": 215.86344626285617,
+          "position": {
+            "x": 411.776040394448,
+            "y": 8.00132308013293,
+            "z": -364.6613948397796
+          },
+          "baseFov": 42,
+          "trackingHz": 7,
+          "zoomHz": 4,
+          "shot": "elevated",
+          "leadSeconds": 0.12,
+          "roadY": 2.0013230801329316
+        }
+      ]
+    }
+  },
+  "changes": [
+    {
+      "id": 0,
+      "fields": [
+        "position.y",
+        "roadY"
+      ],
+      "oldY": 6.999372413555436,
+      "newY": 6.999023754419568,
+      "deltaY": -0.0003486591358683455,
+      "oldPlatformHeight": 5,
+      "newPlatformHeight": 5
+    },
+    {
+      "id": 1,
+      "fields": [
+        "position.y",
+        "roadY"
+      ],
+      "oldY": 6.881185116178796,
+      "newY": 6.870732402944793,
+      "deltaY": -0.010452713234002431,
+      "oldPlatformHeight": 4.9,
+      "newPlatformHeight": 4.9
+    },
+    {
+      "id": 2,
+      "fields": [
+        "position.y",
+        "roadY"
+      ],
+      "oldY": 6.9634324779958865,
+      "newY": 6.943117187993601,
+      "deltaY": -0.02031529000228538,
+      "oldPlatformHeight": 5,
+      "newPlatformHeight": 5
+    },
+    {
+      "id": 3,
+      "fields": [
+        "position.y",
+        "roadY"
+      ],
+      "oldY": 8.981021926844063,
+      "newY": 8.970478552868542,
+      "deltaY": -0.010543373975520964,
+      "oldPlatformHeight": 7,
+      "newPlatformHeight": 7
+    },
+    {
+      "id": 4,
+      "fields": [
+        "position.y",
+        "roadY"
+      ],
+      "oldY": 6.246770270733951,
+      "newY": 6.229165335087058,
+      "deltaY": -0.017604935646893694,
+      "oldPlatformHeight": 4,
+      "newPlatformHeight": 4
+    },
+    {
+      "id": 5,
+      "fields": [
+        "position.y",
+        "roadY"
+      ],
+      "oldY": 8.14738617230711,
+      "newY": 8.144939278187634,
+      "deltaY": -0.002446894119476184,
+      "oldPlatformHeight": 5,
+      "newPlatformHeight": 5
+    },
+    {
+      "id": 6,
+      "fields": [
+        "position.y",
+        "roadY"
+      ],
+      "oldY": 14.441208845259139,
+      "newY": 14.26754900284544,
+      "deltaY": -0.17365984241369858,
+      "oldPlatformHeight": 3.5,
+      "newPlatformHeight": 3.5
+    },
+    {
+      "id": 7,
+      "fields": [
+        "position.y",
+        "roadY"
+      ],
+      "oldY": 27.745333226051436,
+      "newY": 28.173056334893257,
+      "deltaY": 0.4277231088418212,
+      "oldPlatformHeight": 6,
+      "newPlatformHeight": 6
+    },
+    {
+      "id": 8,
+      "fields": [
+        "position.y",
+        "roadY"
+      ],
+      "oldY": 36.611259213959194,
+      "newY": 37.104162874418996,
+      "deltaY": 0.4929036604598025,
+      "oldPlatformHeight": 5,
+      "newPlatformHeight": 5
+    },
+    {
+      "id": 9,
+      "fields": [
+        "position.y",
+        "roadY"
+      ],
+      "oldY": 41.07853614332969,
+      "newY": 41.265570499512506,
+      "deltaY": 0.1870343561828136,
+      "oldPlatformHeight": 3.5,
+      "newPlatformHeight": 3.5
+    },
+    {
+      "id": 10,
+      "fields": [
+        "position.y",
+        "roadY"
+      ],
+      "oldY": 46.196970446528475,
+      "newY": 46.269688112503765,
+      "deltaY": 0.07271766597528995,
+      "oldPlatformHeight": 6,
+      "newPlatformHeight": 6
+    },
+    {
+      "id": 11,
+      "fields": [
+        "position.y",
+        "roadY"
+      ],
+      "oldY": 47.60454751728468,
+      "newY": 47.64898987631826,
+      "deltaY": 0.044442359033581624,
+      "oldPlatformHeight": 5,
+      "newPlatformHeight": 5
+    },
+    {
+      "id": 12,
+      "fields": [
+        "position.y",
+        "roadY"
+      ],
+      "oldY": 48.64013462378771,
+      "newY": 48.6469247634951,
+      "deltaY": 0.006790139707391063,
+      "oldPlatformHeight": 4,
+      "newPlatformHeight": 4
+    },
+    {
+      "id": 13,
+      "fields": [
+        "position.y",
+        "roadY"
+      ],
+      "oldY": 52.01658586801815,
+      "newY": 52.050177762210986,
+      "deltaY": 0.03359189419283837,
+      "oldPlatformHeight": 7,
+      "newPlatformHeight": 7
+    },
+    {
+      "id": 14,
+      "fields": [
+        "position.y",
+        "roadY"
+      ],
+      "oldY": 47.693573313137286,
+      "newY": 47.74539404628233,
+      "deltaY": 0.05182073314504265,
+      "oldPlatformHeight": 3.5,
+      "newPlatformHeight": 3.5
+    },
+    {
+      "id": 15,
+      "fields": [
+        "position.y",
+        "roadY"
+      ],
+      "oldY": 47.20774126626333,
+      "newY": 46.97468566352784,
+      "deltaY": -0.2330556027354831,
+      "oldPlatformHeight": 5,
+      "newPlatformHeight": 5
+    },
+    {
+      "id": 16,
+      "fields": [
+        "position.y",
+        "roadY"
+      ],
+      "oldY": 36.01467292673034,
+      "newY": 36.00126880671494,
+      "deltaY": -0.013404120015401588,
+      "oldPlatformHeight": 6.0000000000000036,
+      "newPlatformHeight": 6
+    },
+    {
+      "id": 17,
+      "fields": [
+        "position.y",
+        "roadY"
+      ],
+      "oldY": 22.11226676221517,
+      "newY": 22.09554768961016,
+      "deltaY": -0.016719072605010155,
+      "oldPlatformHeight": 4,
+      "newPlatformHeight": 4
+    },
+    {
+      "id": 18,
+      "fields": [
+        "position.y",
+        "roadY"
+      ],
+      "oldY": 12.136265921894553,
+      "newY": 12.332739645222272,
+      "deltaY": 0.19647372332771873,
+      "oldPlatformHeight": 5,
+      "newPlatformHeight": 5
+    },
+    {
+      "id": 19,
+      "fields": [
+        "position.y",
+        "roadY"
+      ],
+      "oldY": 7.997747539614577,
+      "newY": 8.00132308013293,
+      "deltaY": 0.003575540518353293,
+      "oldPlatformHeight": 6,
+      "newPlatformHeight": 5.999999999999999
+    }
+  ],
+  "historicalCommit": "e1c34e2500980129b5edbf4f9a39f880b7f2ad10",
+  "correctedApplicationCommit": "b7540527d9abdfba406aa442bfe9b0a9e372447d",
+  "assertedChangedFields": [
+    "position.y",
+    "roadY"
+  ],
+  "maximumAbsoluteEyeHeightChangeMetres": 0.4929036604598025,
+  "retainedPlatformHeights": true,
+  "validation": {
+    "command": "npx vitest run tests/motocross-broadcast-controls.test.ts tests/motocross-broadcast-placement.test.ts tests/trackside.test.ts --maxWorkers=1",
+    "files": 3,
+    "testsPassed": 61,
+    "testsFailed": 0,
+    "durationSeconds": 12.51,
+    "exitCode": 0,
+    "scopedEslintExitCode": 0,
+    "testSha256": "78ee9016400debd0fd18d4758c647137a9752a33d58b20b354a5be4f3a42e27e",
+    "logFile": "vellamar-broadcast-validation.log",
+    "logSha256": "887bea6e2b9d5dbf3a9d7c4614431b83a6c2af66528d0b781aa25ab9946305d9",
+    "scope": "Targeted camera fixture and placement acceptance. Not a complete unit suite or runtime source change.",
+    "completeTypeScriptExitCode": 0
+  }
+}

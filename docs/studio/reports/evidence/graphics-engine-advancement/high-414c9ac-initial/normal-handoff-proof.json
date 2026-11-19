@@ -1,0 +1,41 @@
+{
+  "scope": "CPU tests of actual ScanStore, normal-residency and material map-swap ownership with a recording renderer; no browser or hardware execution",
+  "failedApplicationCommit": "414c9ac35213a65e3d11d1145b681561f8a8483d",
+  "artifactSHA256": "5d87f479db147e3adea5b9130660d1e202b0664adf66ac6ef9bd5f6e6372edc3",
+  "observation": {
+    "glErrors": [],
+    "retainedCompressed": ["concrete", "gravel", "meadow", "lawn", "asphalt"],
+    "decoded": ["rock"]
+  },
+  "candidateFiles": {
+    "src/rendering/ground/scan-store.ts": "78537e243e5631bc9063d5d2d1cf0e7943875a5844c743f0a1b18768525d5531",
+    "tests/scan-store-renderer-handoff.test.ts": "4dedd211c19f7493144345ffcc3d9f1c08c81a319348c6d4addf9e604ce18469"
+  },
+  "baseline": {
+    "exitCode": 1,
+    "tests": 5,
+    "failed": 4,
+    "passed": 1,
+    "log": "normal-handoff-baseline.log",
+    "sourceSHA256": "3d7997ab28bafdc8bc6086300698891f73dd3026bd8daf425bce067c0227d108"
+  },
+  "candidate": {
+    "exitCode": 0,
+    "tests": 22,
+    "failed": 0,
+    "passed": 22,
+    "log": "normal-handoff-candidate.log",
+    "scopedESLintExitCode": 0,
+    "fullTypeScriptExitCode": 0
+  },
+  "physicalHardwareValidated": false,
+  "unchanged": [
+    "High native 960x600",
+    "90-second loading predicate",
+    "300-second test deadline",
+    "authored mips and sampling",
+    "8MiB per-normal promotion ceiling",
+    "first six-face reflection capture",
+    "GPU completion gates"
+  ]
+}

@@ -1,0 +1,114 @@
+(node:5) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> apex-formula-laboratory@0.1.0 lint
+> eslint src tests e2e scripts
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> apex-formula-laboratory@0.1.0 validate:content
+> node --experimental-transform-types scripts/validate-content.ts
+
+(node:52) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Content valid
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> apex-formula-laboratory@0.1.0 prebuild
+> npm run generate:player-lods -- --owner-only
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> apex-formula-laboratory@0.1.0 generate:player-lods
+> node --experimental-strip-types scripts/build-player-lods.mjs --owner-only
+
+Player LODs skipped: product build (an owner QA build, npm run build:qa, generates them).
+
+> apex-formula-laboratory@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v7.1.7 building for production...
+transforming...
+✓ 915 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/BUILD_IDENTITY.json                                           0.21 kB │ gzip:     0.17 kB
+dist/index.html                                                    1.55 kB │ gzip:     0.68 kB
+dist/assets/saira-stencil-one-latin-400-normal-CaP09Fmm.woff2     20.90 kB
+dist/assets/saira-vietnamese-wdth-normal-Dabr_kLY.woff2           26.80 kB
+dist/assets/saira-vietnamese-wdth-italic-52KPIsOu.woff2           29.93 kB
+dist/assets/saira-latin-ext-wdth-normal-3Ba4ICIc.woff2            67.19 kB
+dist/assets/saira-latin-ext-wdth-italic-CqU2kHDy.woff2            77.37 kB
+dist/assets/saira-latin-wdth-normal-X2eA-qfZ.woff2                98.91 kB
+dist/assets/saira-latin-wdth-italic-wJlFlYW8.woff2               116.24 kB
+dist/assets/a61-rival-far.glb-ClvD6mFa.gz                        161.38 kB
+dist/assets/apx01-driver.glb-CNKxI3ag.gz                         209.40 kB
+dist/assets/a61-rival-mid.glb-CAutdD2Z.gz                        397.76 kB
+dist/assets/apx01-shell.glb-B2AhAkfx.gz                        1,142.77 kB
+dist/assets/a61-rival-near.glb-DNe8_BZp.gz                     1,219.90 kB
+dist/assets/free-roam-D1to5scX.css                                24.96 kB │ gzip:     5.84 kB
+dist/assets/index-CyeN7YtM.css                                    77.78 kB │ gzip:    17.71 kB
+dist/assets/tr-C_ZkFYkK.js                                        74.70 kB │ gzip:    28.61 kB
+dist/assets/de-DWYTLIdA.js                                        76.14 kB │ gzip:    28.94 kB
+dist/assets/it-DQ8hvcde.js                                        76.22 kB │ gzip:    28.21 kB
+dist/assets/pt-BR-BfoNy8ie.js                                     76.32 kB │ gzip:    28.47 kB
+dist/assets/pl-Bljj9ubQ.js                                        77.21 kB │ gzip:    30.32 kB
+dist/assets/es-Be31qU0T.js                                        77.43 kB │ gzip:    28.67 kB
+dist/assets/fr-BZUTkJoL.js                                        79.21 kB │ gzip:    29.00 kB
+dist/assets/secondary-grandstands.geometry.json-DlfECs0J.js      213.92 kB │ gzip:    23.37 kB
+dist/assets/event-hall.geometry.json-uwdcRGQc.js                 266.06 kB │ gzip:    85.02 kB
+dist/assets/physics.worker-0MpFcaQh.js                           535.45 kB │ gzip:   169.92 kB
+dist/assets/three-CA1EUyuQ.js                                    617.59 kB │ gzip:   158.89 kB
+dist/assets/mx-authored-kit.mesh.json-Dg5dz3LB.js                682.72 kB │ gzip:   225.97 kB
+dist/assets/aurel-people.geometry.json-D-420ieL.js             1,203.51 kB │ gzip:   243.73 kB
+dist/assets/free-roam-B9yS5uX9.js                              1,453.25 kB │ gzip:   396.69 kB
+dist/assets/a33-spare-wheel-set.geometry.json-CrXireCt.js      1,505.41 kB │ gzip:   316.24 kB
+dist/assets/index-Lm2qG6IT.js                                  1,782.51 kB │ gzip:   565.27 kB
+dist/assets/festival-save-BlC1O8qE.js                          1,836.62 kB │ gzip:   616.62 kB
+dist/assets/human-kit.json-D9ZNhZlG.js                         1,892.56 kB │ gzip: 1,111.10 kB
+dist/assets/start-finish.geometry.json-DOzR5xi4.js             2,327.73 kB │ gzip:   508.70 kB
+dist/assets/crew-performance.geometry.json-BDxhyVmP.js         2,558.64 kB │ gzip:   657.44 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 11.73s
+IP guard: clean (75 shipped text files and GLB name tables scanned in /workspace/scratch/d611aefdb08c/w10-graphics-c07a2fe/dist; 88 internal-identifier mentions of a series name tolerated).
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> apex-formula-laboratory@0.1.0 check:bundle
+> node scripts/bundle-budget.mjs && node scripts/ip-guard.mjs
+
+Initial JS (entry + static imports):
+  assets/a33-spare-wheel-set.geometry.json-CrXireCt.js              1470 KB raw     306 KB gzip
+  assets/human-kit.json-D9ZNhZlG.js                                 1848 KB raw    1085 KB gzip
+  assets/crew-performance.geometry.json-BDxhyVmP.js                 2499 KB raw     636 KB gzip
+  assets/aurel-people.geometry.json-D-420ieL.js                     1175 KB raw     235 KB gzip
+  assets/event-hall.geometry.json-uwdcRGQc.js                        260 KB raw      83 KB gzip
+  assets/festival-save-BlC1O8qE.js                                  1794 KB raw     601 KB gzip
+  assets/three-CA1EUyuQ.js                                           603 KB raw     155 KB gzip
+  assets/index-Lm2qG6IT.js                                          1741 KB raw     550 KB gzip
+  total 11.12 MB raw, 3.57 MB gzip (budget 4 MB gzip)
+Lazy JS (12 chunks, 1.45 MB gzip):
+  assets/start-finish.geometry.json-DOzR5xi4.js                     2273 KB raw     493 KB gzip
+  assets/free-roam-B9yS5uX9.js                                      1419 KB raw     386 KB gzip
+  assets/mx-authored-kit.mesh.json-Dg5dz3LB.js                       667 KB raw     221 KB gzip
+  assets/physics.worker-0MpFcaQh.js                                  523 KB raw     165 KB gzip
+  assets/pl-Bljj9ubQ.js                                               75 KB raw      30 KB gzip
+  assets/fr-BZUTkJoL.js                                               77 KB raw      28 KB gzip
+  assets/de-DWYTLIdA.js                                               74 KB raw      28 KB gzip
+  assets/es-Be31qU0T.js                                               76 KB raw      28 KB gzip
+  assets/tr-C_ZkFYkK.js                                               73 KB raw      28 KB gzip
+  assets/pt-BR-BfoNy8ie.js                                            75 KB raw      28 KB gzip
+  assets/it-DQ8hvcde.js                                               74 KB raw      28 KB gzip
+  assets/secondary-grandstands.geometry.json-DlfECs0J.js             209 KB raw      22 KB gzip
+dist 128.6 MB, sourcemaps 0 MB
+IP guard: clean (75 shipped text files and GLB name tables scanned in dist; 88 internal-identifier mentions of a series name tolerated).
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> apex-formula-laboratory@0.1.0 check:ip
+> node scripts/ip-guard.mjs --dist dist
+
+IP guard: clean (75 shipped text files and GLB name tables scanned in dist; 88 internal-identifier mentions of a series name tolerated).

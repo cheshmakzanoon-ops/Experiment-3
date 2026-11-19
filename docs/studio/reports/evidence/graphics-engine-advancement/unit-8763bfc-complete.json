@@ -1,0 +1,35 @@
+{
+  "commit": "8763bfc8e1a811abc93a546d5f8f3179965b4547",
+  "runId": 44482949737,
+  "jobId": 135419519782,
+  "runUrl": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44482949737",
+  "jobUrl": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44482949737/job/135419519782",
+  "command": "node --experimental-transform-types scripts/source-stability.ts -- npm test",
+  "complete": true,
+  "exitCode": 1,
+  "files": {
+    "total": 687,
+    "passed": 680,
+    "failed": 7
+  },
+  "tests": {
+    "total": 6692,
+    "passed": 6684,
+    "failed": 8
+  },
+  "durationSeconds": 2133.48,
+  "failures": [
+    "tests/bike-mixed-passing.test.ts > a mixed GP/superbike race at vellamar (seed 5222) has no fall",
+    "tests/bike-mixed-passing.test.ts > a mixed GP/superbike race at montejaral (seed 5111) has no fall",
+    "tests/bike-session.test.ts > WP35 seeded AI bike race > finishes a mixed GP/superbike race with bounded incidents and no stuck rider",
+    "tests/drivetrain.test.ts > WP17 differentials and all-wheel drive > a limited-slip axle out-launches an open one on split grip",
+    "tests/festival-qa-edge.test.ts > festival edge cases: flipping and respawn > puts a flipped car back on the route at its legal progress and the race can still be won",
+    "tests/gp-tyre-contact.test.ts > GP contact grip in production races > classifies all eight GP riders at 'poggio-alto' in 'rain' without a contact or crash",
+    "tests/motocross-forgiving-handling.test.ts > motocross ridden lap > valley-ridge-mx: the player solver completes a flying lap without a fall or a stall",
+    "tests/visual-coherence.test.ts > 27H.5 localized haze and paused reflection ownership > refreshes a changed lighting environment while paused and retries failures without publishing them"
+  ],
+  "logFile": "unit-8763bfc-complete.log",
+  "logSha256": "c1db4f75fe1fabfd77f48d1c6985a6673b128223f3e2ff140f2eae60654e53b0",
+  "logNormalization": "ANSI color codes removed; timestamps and complete log text retained.",
+  "scope": "Complete npm test invocation including pretest; original assertions and timeouts unchanged. This failed checkpoint is not final engine acceptance."
+}

@@ -1,0 +1,108 @@
+{
+  "scope": "CPU recording GL adapter with actual installed Three WebGLTextures and WebGLProperties; no browser or hardware run",
+  "dependency": "three@0.180.0",
+  "failedApplicationCommit": "f1068433d49dc494a3373af99d12d89483308ac8",
+  "fixCommit": "37d56c676ec9375033b558fabe6957d175616ad1",
+  "durableRegression": "tests/normal-residency-webgl-lifetime.test.ts",
+  "regressionSHA256": "27aa772bf144109ef3751d518d0a22eb112c5283f328d852419f8d9519081db4",
+  "harnessSHA256": "08a5af5399b28a11c2ce6a9520060c7300e177e6c0d0303d69021de12686e727",
+  "physicalHardwareValidated": false,
+  "results": [
+    {
+      "command": [
+        "node",
+        "normal-retired-upload-proof.mjs"
+      ],
+      "exitCode": 0,
+      "result": {
+        "mode": "native-three-counterexample",
+        "attempts": [
+          {
+            "handle": 1,
+            "args": [
+              3553,
+              11,
+              36492,
+              1024,
+              1024
+            ]
+          },
+          {
+            "handle": 1,
+            "args": [
+              3553,
+              11,
+              36492,
+              1024,
+              1024
+            ]
+          }
+        ],
+        "failure": "Error: GL_INVALID_OPERATION: glTexStorage2D: Texture is immutable."
+      }
+    },
+    {
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "normal-retired-upload-proof.mjs",
+        "./w10-normal-proof/normal-residency-f106843.ts"
+      ],
+      "exitCode": 1,
+      "result": {
+        "mode": "normal-owner-lifecycle",
+        "source": "./w10-normal-proof/normal-residency-f106843.ts",
+        "attempts": [
+          {
+            "handle": 1,
+            "args": [
+              3553,
+              11,
+              36492,
+              1024,
+              1024
+            ]
+          },
+          {
+            "handle": 1,
+            "args": [
+              3553,
+              11,
+              36492,
+              1024,
+              1024
+            ]
+          }
+        ],
+        "returnedOriginal": false,
+        "failure": "Error: GL_INVALID_OPERATION: glTexStorage2D: Texture is immutable."
+      }
+    },
+    {
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "normal-retired-upload-proof.mjs",
+        "./Experiment-3/src/rendering/ground/normal-residency.ts"
+      ],
+      "exitCode": 0,
+      "result": {
+        "mode": "normal-owner-lifecycle",
+        "source": "./Experiment-3/src/rendering/ground/normal-residency.ts",
+        "attempts": [
+          {
+            "handle": 1,
+            "args": [
+              3553,
+              11,
+              36492,
+              1024,
+              1024
+            ]
+          }
+        ],
+        "returnedOriginal": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "commit": "b7540527d9abdfba406aa442bfe9b0a9e372447d",
+  "runId": 44495022671,
+  "jobId": 135460080016,
+  "runUrl": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44495022671",
+  "jobUrl": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44495022671/job/135460080016",
+  "command": "node --experimental-transform-types scripts/source-stability.ts -- npm test",
+  "complete": true,
+  "exitCode": 1,
+  "files": {
+    "total": 691,
+    "passed": 688,
+    "failed": 3
+  },
+  "tests": {
+    "total": 6734,
+    "passed": 6731,
+    "failed": 3
+  },
+  "durationSeconds": 2184.11,
+  "failures": [
+    {
+      "test": "tests/bike-session.test.ts > WP35 seeded AI bike race > finishes a mixed GP/superbike race with bounded incidents and no stuck rider",
+      "observed": {
+        "gpBestLapSeconds": 91.13427179346363,
+        "sbkBestLapSeconds": 90.36337145755091
+      },
+      "originalRequirement": "GP faster than SBK with a margin greater than 0.15 seconds"
+    },
+    {
+      "test": "tests/gp-tyre-contact.test.ts > GP contact grip in production races > classifies all eight GP riders at 'poggio-alto' in 'rain' without a contact or crash",
+      "observed": {
+        "maximumImpact": 0.9916666666666667
+      },
+      "originalRequirement": "Zero impact and zero crashes"
+    },
+    {
+      "test": "tests/motocross-broadcast-controls.test.ts > replay-camera control preservation outside MX/SX > vellamar retains historical controls outside documented venue-site corrections",
+      "expectedHistoricalSignature": "ef47691fc49c677f4b6e5b7dbdba21b634896668d088ee30cb7091279516e1b4",
+      "observedSignature": "d5258478fda9c36e80e8eaa9b187f99ae699042011456def1e98fa947401e35b"
+    }
+  ],
+  "allSixOriginalMixedPassingCasesPassed": true,
+  "logFile": "unit-b754052-complete.log",
+  "logSha256": "290f63473da468cd63df6bb1e9dda6f72d2b3880c65b3c7d02005526e8fd3d4e",
+  "logBytes": 225448,
+  "logNormalization": "ANSI color codes removed; timestamps and complete log text retained.",
+  "scope": "Complete npm test invocation including pretest, wrapped by the unchanged source-stability guard; original assertions and timeouts unchanged. No source drift reported. This failed checkpoint is not final engine acceptance."
+}
