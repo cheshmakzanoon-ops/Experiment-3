@@ -1,284 +1,255 @@
-### unit-tests (job 135419519782)
+### unit-tests (job 135439673037)
 --- error digest (first 120 matching lines) ---
-1292:unit-tests	Full unit suite without source changes	2026-11-19T08:21:10.1760447Z    ^[[33m^[[2m✓^[[22m^[[39m GP rider follows its braking plan^[[2m > ^[[22mno rider falls at the ardennes hairpin (seed 1000) ^[[33m 9479^[[2mms^[[22m^[[39m
-1293:unit-tests	Full unit suite without source changes	2026-11-19T08:21:10.1761138Z    ^[[33m^[[2m✓^[[22m^[[39m GP rider follows its braking plan^[[2m > ^[[22mno rider falls at the ardennes hairpin (seed 1037) ^[[33m 8867^[[2mms^[[22m^[[39m
-1294:unit-tests	Full unit suite without source changes	2026-11-19T08:21:10.1761839Z    ^[[33m^[[2m✓^[[22m^[[39m GP rider follows its braking plan^[[2m > ^[[22mno rider falls at the montejaral hairpin (seed 1000) ^[[33m 6886^[[2mms^[[22m^[[39m
-1295:unit-tests	Full unit suite without source changes	2026-11-19T08:21:10.1762590Z    ^[[33m^[[2m✓^[[22m^[[39m GP rider follows its braking plan^[[2m > ^[[22mno rider falls after taking the flag at montejaral (seed 1000) ^[[33m 6827^[[2mms^[[22m^[[39m
-1296:unit-tests	Full unit suite without source changes	2026-11-19T08:21:10.1763327Z    ^[[33m^[[2m✓^[[22m^[[39m GP rider follows its braking plan^[[2m > ^[[22mno rider falls after taking the flag at ardennes (seed 1000) ^[[33m 8587^[[2mms^[[22m^[[39m
-1297:unit-tests	Full unit suite without source changes	2026-11-19T08:21:10.1764073Z    ^[[33m^[[2m✓^[[22m^[[39m GP rider follows its braking plan^[[2m > ^[[22mno rider falls after taking the flag at ardennes (seed 1037) ^[[33m 8550^[[2mms^[[22m^[[39m
-1726:unit-tests	Full unit suite without source changes	2026-11-19T08:30:39.4710142Z    ^[[33m^[[2m✓^[[22m^[[39m a mixed GP/superbike race at parco-reale (seed 5259) has no fall ^[[33m 17299^[[2mms^[[22m^[[39m
-1727:unit-tests	Full unit suite without source changes	2026-11-19T08:30:39.4710739Z    ^[[33m^[[2m✓^[[22m^[[39m a mixed GP/superbike race at parco-reale (seed 5074) has no fall ^[[33m 16441^[[2mms^[[22m^[[39m
-1728:unit-tests	Full unit suite without source changes	2026-11-19T08:30:39.4711305Z    ^[[33m^[[2m✓^[[22m^[[39m a mixed GP/superbike race at haarveld (seed 5000) has no fall ^[[33m 15598^[[2mms^[[22m^[[39m
-1729:unit-tests	Full unit suite without source changes	2026-11-19T08:30:39.4711906Z ^[[31m   ^[[31m×^[[31m a mixed GP/superbike race at vellamar (seed 5222) has no fall^[[39m^[[33m 14823^[[2mms^[[22m^[[39m
-1731:unit-tests	Full unit suite without source changes	2026-11-19T08:30:39.4713380Z ^[[31m   ^[[31m×^[[31m a mixed GP/superbike race at montejaral (seed 5111) has no fall^[[39m^[[33m 17509^[[2mms^[[22m^[[39m
-1868:unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2420726Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/bike-mixed-passing.test.ts^[[2m > ^[[22ma mixed GP/superbike race at vellamar (seed 5222) has no fall
-1869:unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2421745Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/bike-mixed-passing.test.ts^[[2m > ^[[22ma mixed GP/superbike race at montejaral (seed 5111) has no fall
-1881:unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2459865Z     ^[[90m 46| ^[[39m    expect(sim.cars.reduce((n, c) => n + (c as BikeVehicle).dynamics.c…
-1888:unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2463496Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/bike-session.test.ts^[[2m > ^[[22mWP35 seeded AI bike race^[[2m > ^[[22mfinishes a mixed GP/superbike race with bounded incidents and no stuck rider
-1900:unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2537709Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/drivetrain.test.ts^[[2m > ^[[22mWP17 differentials and all-wheel drive^[[2m > ^[[22ma limited-slip axle out-launches an open one on split grip
-1908:unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2680114Z     ^[[90m113| ^[[39m    expect(Math.abs(openCar.tires[3].omega - openCar.tires[2].omega)).…
-1912:unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2682087Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/festival-qa-edge.test.ts^[[2m > ^[[22mfestival edge cases: flipping and respawn^[[2m > ^[[22mputs a flipped car back on the route at its legal progress and the race can still be won
-1927:unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2691660Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/gp-tyre-contact.test.ts^[[2m > ^[[22mGP contact grip in production races^[[2m > ^[[22mclassifies all eight GP riders at 'poggio-alto' in 'rain' without a contact or crash
-1946:unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2701468Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/motocross-forgiving-handling.test.ts^[[2m > ^[[22mmotocross ridden lap^[[2m > ^[[22mvalley-ridge-mx: the player solver completes a flying lap without a fall or a stall
-1971:unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2745086Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/visual-coherence.test.ts^[[2m > ^[[22m27H.5 localized haze and paused reflection ownership^[[2m > ^[[22mrefreshes a changed lighting environment while paused and retries failures without publishing them
-1997:unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.3011085Z ##[error]AssertionError: expected 1 to be +0 // Object.is equality
-2009:unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.3021414Z ##[error]AssertionError: expected 1 to be +0 // Object.is equality
-2021:unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.3023896Z ##[error]AssertionError: expected 89.90527858824555 to be less than 89.02678898848674
-2026:unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.3026046Z ##[error]AssertionError: expected 8.875637718017519 to be greater than 9.199904593741035
-2031:unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.3029295Z ##[error]AssertionError: expected Vehicle{ …(113) } not to be Vehicle{ …(113) } // Object.is equality
-2039:unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.3032273Z ##[error]AssertionError: expected 0.9916666666666667 to be +0 // Object.is equality
-2051:unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.3035462Z ##[error]AssertionError: expected [ { cause: 'grip-lowside', …(2) } ] to deeply equal []
-2069:unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.3038629Z ##[error]AssertionError: expected 1 to be 2 // Object.is equality
-2082:unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.9229783Z ##[error]Process completed with exit code 1.
+1162:unit-tests	Full unit suite without source changes	2026-11-19T08:58:44.3330449Z ##[error]The operation was canceled.
 
 --- last 250 lines ---
-unit-tests	Full unit suite without source changes	2026-11-19T08:33:41.2869841Z    ^[[33m^[[2m✓^[[22m^[[39m Catalogue wave 2 venue kit^[[2m > ^[[22mdresses haut-givre from its CircuitDefinition ^[[33m 3020^[[2mms^[[22m^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:33:41.2870752Z    ^[[33m^[[2m✓^[[22m^[[39m Catalogue wave 2 venue kit^[[2m > ^[[22mdresses marram-field from its CircuitDefinition ^[[33m 2450^[[2mms^[[22m^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:33:41.2871525Z    ^[[33m^[[2m✓^[[22m^[[39m Catalogue wave 2 venue kit^[[2m > ^[[22mdresses kalder-dam from its CircuitDefinition ^[[33m 2684^[[2mms^[[22m^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:33:41.2872456Z    ^[[33m^[[2m✓^[[22m^[[39m Catalogue wave 2 venue kit^[[2m > ^[[22mdresses saffron-lane from its CircuitDefinition ^[[33m 2131^[[2mms^[[22m^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:33:42.0784582Z  ^[[32m✓^[[39m tests/wake-cull.test.ts ^[[2m(^[[22m^[[2m1 test^[[22m^[[2m)^[[22m^[[32m 128^[[2mms^[[22m^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:33:42.2893116Z  ^[[32m✓^[[39m tests/spray-plume.test.ts ^[[2m(^[[22m^[[2m1 test^[[22m^[[2m)^[[22m^[[32m 2^[[2mms^[[22m^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:00.0644410Z  ^[[32m✓^[[39m tests/venue-kit.test.ts ^[[2m(^[[22m^[[2m25 tests^[[22m^[[2m)^[[22m^[[33m 16712^[[2mms^[[22m^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:00.0645284Z    ^[[33m^[[2m✓^[[22m^[[39m WP30 procedural venue kit^[[2m > ^[[22mdresses riviera from its CircuitDefinition ^[[33m 3084^[[2mms^[[22m^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:00.0645961Z    ^[[33m^[[2m✓^[[22m^[[39m WP30 procedural venue kit^[[2m > ^[[22mdresses dockyard from its CircuitDefinition ^[[33m 2710^[[2mms^[[22m^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:00.0646659Z    ^[[33m^[[2m✓^[[22m^[[39m WP30 procedural venue kit^[[2m > ^[[22mdresses alpine-pass from its CircuitDefinition ^[[33m 3937^[[2mms^[[22m^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:00.0647533Z    ^[[33m^[[2m✓^[[22m^[[39m WP30 procedural venue kit^[[2m > ^[[22mdresses speedbowl from its CircuitDefinition ^[[33m 2322^[[2mms^[[22m^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:00.2877629Z  ^[[32m✓^[[39m tests/instruments.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[32m 12^[[2mms^[[22m^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:03.3125048Z  ^[[32m✓^[[39m tests/weather.test.ts ^[[2m(^[[22m^[[2m10 tests^[[22m^[[2m)^[[22m^[[33m 2282^[[2mms^[[22m^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:03.3150575Z    ^[[33m^[[2m✓^[[22m^[[39m evolves spatial wetting, drainage, temperature and contact sampling ^[[33m 1558^[[2mms^[[22m^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:03.3176513Z    ^[[33m^[[2m✓^[[22m^[[39m wind changes actual aerodynamic force rather than only particle direction ^[[33m 683^[[2mms^[[22m^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2147818Z  ^[[32m✓^[[39m tests/brake-coupling.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[32m 241^[[2mms^[[22m^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2417268Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2418505Z ^[[31m⎯⎯⎯⎯⎯⎯⎯^[[39m^[[1m^[[41m Failed Tests 8 ^[[49m^[[22m^[[31m⎯⎯⎯⎯⎯⎯⎯^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2418913Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2420726Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/bike-mixed-passing.test.ts^[[2m > ^[[22ma mixed GP/superbike race at vellamar (seed 5222) has no fall
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2421745Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/bike-mixed-passing.test.ts^[[2m > ^[[22ma mixed GP/superbike race at montejaral (seed 5111) has no fall
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2433307Z ^[[31m^[[1mAssertionError^[[22m: expected 1 to be +0 // Object.is equality^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2433843Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2434067Z ^[[32m- Expected^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2434430Z ^[[31m+ Received^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2434641Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2434837Z ^[[32m- 0^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2435188Z ^[[31m+ 1^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2435392Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2435892Z ^[[36m ^[[2m❯^[[22m tests/bike-mixed-passing.test.ts:^[[2m46:83^[[22m^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2457472Z     ^[[90m 44| ^[[39m    ^[[35mawait^[[39m ^[[34mrun^[[39m(sim^[[33m,^[[39m ^[[34m400^[[39m)^[[33m;^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2458654Z     ^[[90m 45| ^[[39m    ^[[34mexpect^[[39m(sim^[[33m.^[[39mrace^[[33m.^[[39mphase)^[[33m.^[[39m^[[34mtoBe^[[39m(^[[33mPHASE^[[39m^[[33m.^[[39m^[[33mFINISHED^[[39m)^[[33m;^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2459865Z     ^[[90m 46| ^[[39m    expect(sim.cars.reduce((n, c) => n + (c as BikeVehicle).dynamics.c…
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2460724Z     ^[[90m   | ^[[39m                                                                                  ^[[31m^^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2461264Z     ^[[90m 47| ^[[39m  }^[[33m,^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2461700Z     ^[[90m 48| ^[[39m  ^[[34m120000^[[39m^[[33m,^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2462036Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2462348Z ^[[31m^[[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯^[[22m^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2462625Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2463496Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/bike-session.test.ts^[[2m > ^[[22mWP35 seeded AI bike race^[[2m > ^[[22mfinishes a mixed GP/superbike race with bounded incidents and no stuck rider
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2464677Z ^[[31m^[[1mAssertionError^[[22m: expected 89.90527858824555 to be less than 89.02678898848674^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2465784Z ^[[36m ^[[2m❯^[[22m tests/bike-session.test.ts:^[[2m367:16^[[22m^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2530510Z     ^[[90m365| ^[[39m    ^[[35mconst^[[39m gp ^[[33m=^[[39m ^[[33mMath^[[39m^[[33m.^[[39m^[[34mmin^[[39m(^[[34mbest^[[39m(^[[34m0^[[39m)^[[33m,^[[39m ^[[34mbest^[[39m(^[[34m2^[[39m)^[[33m,^[[39m ^[[34mbest^[[39m(^[[34m4^[[39m))^[[33m,^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2532309Z     ^[[90m366| ^[[39m      sbk ^[[33m=^[[39m ^[[33mMath^[[39m^[[33m.^[[39m^[[34mmin^[[39m(^[[34mbest^[[39m(^[[34m1^[[39m)^[[33m,^[[39m ^[[34mbest^[[39m(^[[34m3^[[39m)^[[33m,^[[39m ^[[34mbest^[[39m(^[[34m5^[[39m))^[[33m;^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2533366Z     ^[[90m367| ^[[39m    ^[[34mexpect^[[39m(gp)^[[33m.^[[39m^[[34mtoBeLessThan^[[39m(sbk)^[[33m;^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2534000Z     ^[[90m   | ^[[39m               ^[[31m^^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2534653Z     ^[[90m368| ^[[39m    // ...by a margin that is more than the noise of one seeded lap (0…
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2535539Z     ^[[90m369| ^[[39m    ^[[34mexpect^[[39m(sbk ^[[33m-^[[39m gp)^[[33m.^[[39m^[[34mtoBeGreaterThan^[[39m(^[[34m0.15^[[39m)^[[33m;^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2536037Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2536367Z ^[[31m^[[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯^[[22m^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2536634Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2537709Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/drivetrain.test.ts^[[2m > ^[[22mWP17 differentials and all-wheel drive^[[2m > ^[[22ma limited-slip axle out-launches an open one on split grip
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2561899Z ^[[31m^[[1mAssertionError^[[22m: expected 8.875637718017519 to be greater than 9.199904593741035^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2570655Z ^[[36m ^[[2m❯^[[22m tests/drivetrain.test.ts:^[[2m111:26^[[22m^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2618051Z     ^[[90m109| ^[[39m    ^[[35mconst^[[39m lsdCar ^[[33m=^[[39m ^[[34mlaunch^[[39m(base^[[33m,^[[39m track^[[33m,^[[39m ^[[34m2.5^[[39m)^[[33m,^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2658225Z     ^[[90m110| ^[[39m      openCar ^[[33m=^[[39m ^[[34mlaunch^[[39m(open^[[33m,^[[39m ^[[35mnew^[[39m ^[[33mSplitTrack^[[39m()^[[33m,^[[39m ^[[34m2.5^[[39m)^[[33m;^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2677900Z     ^[[90m111| ^[[39m    ^[[34mexpect^[[39m(lsdCar^[[33m.^[[39mspeed)^[[33m.^[[39m^[[34mtoBeGreaterThan^[[39m(openCar^[[33m.^[[39mspeed ^[[33m*^[[39m ^[[34m1.15^[[39m)^[[33m;^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2678823Z     ^[[90m   | ^[[39m                         ^[[31m^^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2679410Z     ^[[90m112| ^[[39m    ^[[90m// The open differential spins its low-grip wheel.^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2680114Z     ^[[90m113| ^[[39m    expect(Math.abs(openCar.tires[3].omega - openCar.tires[2].omega)).…
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2680488Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2680774Z ^[[31m^[[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯^[[22m^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2681005Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2682087Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/festival-qa-edge.test.ts^[[2m > ^[[22mfestival edge cases: flipping and respawn^[[2m > ^[[22mputs a flipped car back on the route at its legal progress and the race can still be won
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2683344Z ^[[31m^[[1mAssertionError^[[22m: expected Vehicle{ …(113) } not to be Vehicle{ …(113) } // Object.is equality^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2683781Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2684334Z ^[[2mCompared values have no visual difference.^[[22m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2684580Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2684907Z ^[[36m ^[[2m❯^[[22m tests/festival-qa-edge.test.ts:^[[2m124:28^[[22m^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2685816Z     ^[[90m122| ^[[39m    flipped^[[33m.^[[39mbody^[[33m.^[[39momega^[[33m.^[[39m^[[35mset^[[39m(^[[34m0^[[39m^[[33m,^[[39m ^[[34m0^[[39m^[[33m,^[[39m ^[[34m0^[[39m)^[[33m;^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2686584Z     ^[[90m123| ^[[39m    ^[[34mrun^[[39m(sim^[[33m,^[[39m ^[[34m5^[[39m)^[[33m;^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2687500Z     ^[[90m124| ^[[39m    ^[[34mexpect^[[39m(sim^[[33m.^[[39mplayer)^[[33m.^[[39mnot^[[33m.^[[39m^[[34mtoBe^[[39m(flipped)^[[33m;^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2688131Z     ^[[90m   | ^[[39m                           ^[[31m^^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2688871Z     ^[[90m125| ^[[39m    ^[[34mexpect^[[39m(sim^[[33m.^[[39mplayer^[[33m.^[[39mup^[[33m.^[[39my)^[[33m.^[[39m^[[34mtoBeGreaterThan^[[39m(^[[34m0.9^[[39m)^[[33m;^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2689792Z     ^[[90m126| ^[[39m    ^[[35mconst^[[39m status ^[[33m=^[[39m sim^[[33m.^[[39m^[[34mstatus^[[39m()^[[33m;^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2690157Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2690431Z ^[[31m^[[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯^[[22m^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2690663Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2691660Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/gp-tyre-contact.test.ts^[[2m > ^[[22mGP contact grip in production races^[[2m > ^[[22mclassifies all eight GP riders at 'poggio-alto' in 'rain' without a contact or crash
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2692878Z ^[[31m^[[1mAssertionError^[[22m: expected 0.9916666666666667 to be +0 // Object.is equality^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2693270Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2693410Z ^[[32m- Expected^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2693698Z ^[[31m+ Received^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2693851Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2693973Z ^[[32m- 0^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2694274Z ^[[31m+ 0.9916666666666667^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2694446Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2694775Z ^[[36m ^[[2m❯^[[22m tests/gp-tyre-contact.test.ts:^[[2m294:22^[[22m^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2695200Z     ^[[90m292| ^[[39m      }
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2696041Z     ^[[90m293| ^[[39m      ^[[34mexpect^[[39m(sim^[[33m.^[[39mrace^[[33m.^[[39mphase)^[[33m.^[[39m^[[34mtoBe^[[39m(^[[33mPHASE^[[39m^[[33m.^[[39m^[[33mFINISHED^[[39m)^[[33m;^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2697169Z     ^[[90m294| ^[[39m      ^[[34mexpect^[[39m(impact)^[[33m.^[[39m^[[34mtoBe^[[39m(^[[34m0^[[39m)^[[33m;^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2697738Z     ^[[90m   | ^[[39m                     ^[[31m^^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2698474Z     ^[[90m295| ^[[39m      ^[[35mfor^[[39m (^[[35mconst^[[39m bike ^[[35mof^[[39m sim^[[33m.^[[39mcars ^[[35mas^[[39m ^[[33mBikeVehicle^[[39m[]) {
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2699469Z     ^[[90m296| ^[[39m        ^[[34mexpect^[[39m(bike^[[33m.^[[39mdynamics^[[33m.^[[39mcrashes)^[[33m.^[[39m^[[34mtoBe^[[39m(^[[34m0^[[39m)^[[33m;^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2699933Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2700197Z ^[[31m^[[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯^[[22m^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2700451Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2701468Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/motocross-forgiving-handling.test.ts^[[2m > ^[[22mmotocross ridden lap^[[2m > ^[[22mvalley-ridge-mx: the player solver completes a flying lap without a fall or a stall
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2702894Z ^[[31m^[[1mAssertionError^[[22m: expected [ { cause: 'grip-lowside', …(2) } ] to deeply equal []^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2703305Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2703442Z ^[[32m- Expected^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2703907Z ^[[31m+ Received^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2704099Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2704215Z ^[[32m- []^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2704470Z ^[[31m+ [^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2704711Z ^[[31m+   {^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2705060Z ^[[31m+     "cause": "grip-lowside",^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2705470Z ^[[31m+     "s": 561.3679002107244,^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2705872Z ^[[31m+     "time": 56.40833333335126,^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2706187Z ^[[31m+   },^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2706426Z ^[[31m+ ]^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2706589Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2737842Z ^[[36m ^[[2m❯^[[22m tests/motocross-forgiving-handling.test.ts:^[[2m196:36^[[22m^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2738738Z     ^[[90m194| ^[[39m      ^[[35mconst^[[39m run ^[[33m=^[[39m ^[[34mlap^[[39m(circuit)^[[33m;^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2739549Z     ^[[90m195| ^[[39m      ^[[34mexpect^[[39m(run^[[33m.^[[39mcompleted)^[[33m.^[[39m^[[34mtoBe^[[39m(^[[34m2^[[39m)^[[33m;^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2740670Z     ^[[90m196| ^[[39m      ^[[34mexpect^[[39m(run^[[33m.^[[39mbike^[[33m.^[[39mcrashCauses)^[[33m.^[[39m^[[34mtoEqual^[[39m([])^[[33m;^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2741334Z     ^[[90m   | ^[[39m                                   ^[[31m^^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2742065Z     ^[[90m197| ^[[39m      ^[[34mexpect^[[39m(run^[[33m.^[[39mbike^[[33m.^[[39mdynamics^[[33m.^[[39mcrashes)^[[33m.^[[39m^[[34mtoBe^[[39m(^[[34m0^[[39m)^[[33m;^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2743098Z     ^[[90m198| ^[[39m      ^[[34mexpect^[[39m(run^[[33m.^[[39mlongestStall)^[[33m.^[[39m^[[34mtoBeLessThan^[[39m(^[[34m1^[[39m)^[[33m;^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2743495Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2743754Z ^[[31m^[[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯^[[22m^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2743970Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2745086Z ^[[41m^[[1m FAIL ^[[22m^[[49m tests/visual-coherence.test.ts^[[2m > ^[[22m27H.5 localized haze and paused reflection ownership^[[2m > ^[[22mrefreshes a changed lighting environment while paused and retries failures without publishing them
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2746301Z ^[[31m^[[1mAssertionError^[[22m: expected 1 to be 2 // Object.is equality^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2746636Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2746789Z ^[[32m- Expected^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2747344Z ^[[31m+ Received^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2747511Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2747628Z ^[[32m- 2^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2747878Z ^[[31m+ 1^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2748041Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2748399Z ^[[36m ^[[2m❯^[[22m tests/visual-coherence.test.ts:^[[2m422:37^[[22m^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2807989Z     ^[[90m420| ^[[39m    ^[[34mexpect^[[39m(reflection^[[33m.^[[39mprobeUpdates)^[[33m.^[[39m^[[34mtoBe^[[39m(^[[34m1^[[39m)^[[33m;^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2808530Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2809235Z     ^[[90m421| ^[[39m    reflection^[[33m.^[[39m^[[34mupdateProbe^[[39m(renderer^[[33m,^[[39m scene^[[33m,^[[39m car^[[33m,^[[39m [material]^[[33m,^[[39m ^[[35mtrue^[[39m)^[[33m;^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2858098Z     ^[[90m422| ^[[39m    ^[[34mexpect^[[39m(reflection^[[33m.^[[39mprobeUpdates)^[[33m.^[[39m^[[34mtoBe^[[39m(^[[34m2^[[39m)^[[33m;^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2858970Z ^[[2m Test Files ^[[22m ^[[1m^[[31m7 failed^[[39m^[[22m^[[2m | ^[[22m^[[1m^[[32m680 passed^[[39m^[[22m^[[90m (687)^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2866122Z ^[[2m      Tests ^[[22m ^[[1m^[[31m8 failed^[[39m^[[22m^[[2m | ^[[22m^[[1m^[[32m6684 passed^[[39m^[[22m^[[90m (6692)^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2866565Z ^[[2m   Start at ^[[22m 07:58:30
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2885197Z     ^[[90m   | ^[[39m                                    ^[[31m^^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2886191Z     ^[[90m423| ^[[39m    ^[[34mexpect^[[39m(material^[[33m.^[[39menvMap)^[[33m.^[[39mnot^[[33m.^[[39m^[[34mtoBe^[[39m(completed)^[[33m;^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2887711Z     ^[[90m424| ^[[39m    reflection^[[33m.^[[39m^[[34mupdateProbe^[[39m(renderer^[[33m,^[[39m scene^[[33m,^[[39m car^[[33m,^[[39m [material]^[[33m,^[[39m ^[[35mtrue^[[39m)^[[33m;^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2888418Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2888794Z ^[[31m^[[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/8]⎯^[[22m^[[39m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2889313Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2905744Z ^[[2m   Duration ^[[22m 2133.48s^[[2m (transform 10.93s, setup 0ms, collect 332.45s, tests 1708.06s, environment 97ms, prepare 31.84s)^[[22m
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2925301Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.2953598Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.3011085Z ##[error]AssertionError: expected 1 to be +0 // Object.is equality
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	- Expected
-unit-tests	Full unit suite without source changes	+ Received
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	- 0
-unit-tests	Full unit suite without source changes	+ 1
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	 ❯ tests/bike-mixed-passing.test.ts:46:83
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.3019392Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.3021414Z ##[error]AssertionError: expected 1 to be +0 // Object.is equality
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	- Expected
-unit-tests	Full unit suite without source changes	+ Received
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	- 0
-unit-tests	Full unit suite without source changes	+ 1
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	 ❯ tests/bike-mixed-passing.test.ts:46:83
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.3022607Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.3023896Z ##[error]AssertionError: expected 89.90527858824555 to be less than 89.02678898848674
-unit-tests	Full unit suite without source changes	 ❯ tests/bike-session.test.ts:367:16
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.3024797Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.3026046Z ##[error]AssertionError: expected 8.875637718017519 to be greater than 9.199904593741035
-unit-tests	Full unit suite without source changes	 ❯ tests/drivetrain.test.ts:111:26
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.3027600Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.3029295Z ##[error]AssertionError: expected Vehicle{ …(113) } not to be Vehicle{ …(113) } // Object.is equality
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	Compared values have no visual difference.
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	 ❯ tests/festival-qa-edge.test.ts:124:28
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.3030667Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.3032273Z ##[error]AssertionError: expected 0.9916666666666667 to be +0 // Object.is equality
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	- Expected
-unit-tests	Full unit suite without source changes	+ Received
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	- 0
-unit-tests	Full unit suite without source changes	+ 0.9916666666666667
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	 ❯ tests/gp-tyre-contact.test.ts:294:22
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.3033329Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.3035462Z ##[error]AssertionError: expected [ { cause: 'grip-lowside', …(2) } ] to deeply equal []
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	- Expected
-unit-tests	Full unit suite without source changes	+ Received
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	- []
-unit-tests	Full unit suite without source changes	+ [
-unit-tests	Full unit suite without source changes	+   {
-unit-tests	Full unit suite without source changes	+     "cause": "grip-lowside",
-unit-tests	Full unit suite without source changes	+     "s": 561.3679002107244,
-unit-tests	Full unit suite without source changes	+     "time": 56.40833333335126,
-unit-tests	Full unit suite without source changes	+   },
-unit-tests	Full unit suite without source changes	+ ]
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	 ❯ tests/motocross-forgiving-handling.test.ts:196:36
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.3036801Z 
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.3038629Z ##[error]AssertionError: expected 1 to be 2 // Object.is equality
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	- Expected
-unit-tests	Full unit suite without source changes	+ Received
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	- 2
-unit-tests	Full unit suite without source changes	+ 1
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	 ❯ tests/visual-coherence.test.ts:422:37
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.9166677Z (node:2242) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.9167708Z (Use `node --trace-warnings ...` to show where the warning was created)
-unit-tests	Full unit suite without source changes	2026-11-19T08:34:04.9229783Z ##[error]Process completed with exit code 1.
-unit-tests	Post Run actions/checkout@v4	﻿2026-11-19T08:34:04.9331630Z Post job cleanup.
-unit-tests	Post Run actions/checkout@v4	2026-11-19T08:34:04.9980915Z [command]/usr/bin/git version
-unit-tests	Post Run actions/checkout@v4	2026-11-19T08:34:05.0011924Z git version 2.56.1
-unit-tests	Post Run actions/checkout@v4	2026-11-19T08:34:05.0044878Z Temporarily overriding HOME='/home/runner/work/_temp/553df902-0e26-4a28-8bb0-054336cff3d5' before making global git config changes
-unit-tests	Post Run actions/checkout@v4	2026-11-19T08:34:05.0045797Z Adding repository directory to the temporary git global config as a safe directory
-unit-tests	Post Run actions/checkout@v4	2026-11-19T08:34:05.0050736Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
-unit-tests	Post Run actions/checkout@v4	2026-11-19T08:34:05.0083130Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-unit-tests	Post Run actions/checkout@v4	2026-11-19T08:34:05.0107656Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-unit-tests	Post Run actions/checkout@v4	2026-11-19T08:34:05.0292284Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-unit-tests	Post Run actions/checkout@v4	2026-11-19T08:34:05.0308842Z http.https://github.com/.extraheader
-unit-tests	Post Run actions/checkout@v4	2026-11-19T08:34:05.0316558Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-unit-tests	Post Run actions/checkout@v4	2026-11-19T08:34:05.0344583Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-unit-tests	Post Run actions/checkout@v4	2026-11-19T08:34:05.0519513Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-unit-tests	Post Run actions/checkout@v4	2026-11-19T08:34:05.0540866Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-unit-tests	Complete job	﻿2026-11-19T08:34:05.0845007Z Cleaning up orphan processes
-unit-tests	Complete job	2026-11-19T08:34:05.1090625Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+unit-tests	Full unit suite without source changes	2026-11-19T08:54:59.0026731Z    ^[[33m^[[2m✓^[[22m^[[39m verified records (WP52)^[[2m > ^[[22mrejects a forged lap time, even with a recomputed digest ^[[33m 2046^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:54:59.0027503Z    ^[[33m^[[2m✓^[[22m^[[39m verified records (WP52)^[[2m > ^[[22mrejects a tampered input log at the first divergent checkpoint ^[[33m 836^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:54:59.0028391Z    ^[[33m^[[2m✓^[[22m^[[39m verified records (WP52)^[[2m > ^[[22mrequires exactly the session checkpoints and compares every one of them ^[[33m 831^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:54:59.0029257Z    ^[[33m^[[2m✓^[[22m^[[39m verified records (WP52)^[[2m > ^[[22mAI-driven laps verify as a session but never count for the category ^[[33m 8029^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:54:59.0030168Z    ^[[33m^[[2m✓^[[22m^[[39m verified records (WP52)^[[2m > ^[[22mbounds the journal by the session, so a full-length race fits and a padded one does not ^[[33m 384^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:05.1698632Z  ^[[32m✓^[[39m tests/circuits.test.ts ^[[2m(^[[22m^[[2m11 tests^[[22m^[[2m)^[[22m^[[33m 5045^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:05.1699989Z    ^[[33m^[[2m✓^[[22m^[[39m circuit definitions^[[2m > ^[[22mlabels the menu with the real lap lengths ^[[33m 2128^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:05.1701314Z    ^[[33m^[[2m✓^[[22m^[[39m circuit definitions^[[2m > ^[[22mdrives the production simulation on Vellamar with finite state ^[[33m 2404^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:05.1702705Z    ^[[33m^[[2m✓^[[22m^[[39m Vellamar venue and terrain^[[2m > ^[[22mresolves every authored site clear of the circuit and above the waterline ^[[33m 304^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:05.9541969Z  ^[[32m✓^[[39m tests/gp-proximity.test.ts ^[[2m(^[[22m^[[2m23 tests^[[22m^[[2m)^[[22m^[[32m 17^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:06.1279782Z  ^[[32m✓^[[39m tests/motocross-landing-challenge.test.ts ^[[2m(^[[22m^[[2m17 tests^[[22m^[[2m)^[[22m^[[32m 7^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:09.6820950Z  ^[[32m✓^[[39m tests/motocross-braking-bumps.test.ts ^[[2m(^[[22m^[[2m9 tests^[[22m^[[2m)^[[22m^[[33m 2801^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:09.6822278Z    ^[[33m^[[2m✓^[[22m^[[39m physical motocross braking lines^[[2m > ^[[22m'mx250' traverses all entries with a measurable suspension choice and no crash at 32/47 km/h ^[[33m 451^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:09.6823291Z    ^[[33m^[[2m✓^[[22m^[[39m physical motocross braking lines^[[2m > ^[[22mvalley-ridge-mx renders the physical bumped height and shades only its shared worked footprint ^[[33m 1092^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:09.6825024Z    ^[[33m^[[2m✓^[[22m^[[39m physical motocross braking lines^[[2m > ^[[22marena-nord-sx renders the physical bumped height and shades only its shared worked footprint ^[[33m 810^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:10.4202388Z  ^[[32m✓^[[39m tests/controller-buttons.test.ts ^[[2m(^[[22m^[[2m34 tests^[[22m^[[2m)^[[22m^[[32m 17^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:10.7280897Z  ^[[32m✓^[[39m tests/engine-loudness.test.ts ^[[2m(^[[22m^[[2m14 tests^[[22m^[[2m)^[[22m^[[32m 74^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:12.7661495Z  ^[[32m✓^[[39m tests/gp-rearsets.test.ts ^[[2m(^[[22m^[[2m7 tests^[[22m^[[2m)^[[22m^[[33m 1267^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:12.7683860Z    ^[[33m^[[2m✓^[[22m^[[39m GP machined rearsets and independent rear-brake articulation^[[2m > ^[[22mgpr1 keeps the physical toe spindle on the boot sole throughout pedal travel ^[[33m 337^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:12.7686120Z    ^[[33m^[[2m✓^[[22m^[[39m GP machined rearsets and independent rear-brake articulation^[[2m > ^[[22muses existing shared finishes and limits new articulation to the close GP prototypes ^[[33m 307^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:14.4580067Z  ^[[32m✓^[[39m tests/gp-front-hydraulics.test.ts ^[[2m(^[[22m^[[2m7 tests^[[22m^[[2m)^[[22m^[[33m 886^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:14.4582122Z    ^[[33m^[[2m✓^[[22m^[[39m 'gpr1' 'high' uses the live fork and restores the same hose geometry on replay seek without new resources ^[[33m 333^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:16.0021678Z  ^[[32m✓^[[39m tests/race-surface-finish.test.ts ^[[2m(^[[22m^[[2m12 tests^[[22m^[[2m)^[[22m^[[33m 683^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:16.0022592Z    ^[[33m^[[2m✓^[[22m^[[39m race surface continuity^[[2m > ^[[22mkeeps bind coordinates, topology and UVs independent of live authored carcasses ^[[33m 346^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:16.5967017Z  ^[[32m✓^[[39m tests/gp-rider-garment.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[33m 347^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:17.9582361Z  ^[[32m✓^[[39m tests/weather-dawn.test.ts ^[[2m(^[[22m^[[2m12 tests^[[22m^[[2m)^[[22m^[[33m 539^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:18.9451912Z  ^[[32m✓^[[39m tests/photo-sky.test.ts ^[[2m(^[[22m^[[2m12 tests^[[22m^[[2m)^[[22m^[[32m 255^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:19.9514971Z  ^[[32m✓^[[39m tests/f1-hud.test.ts ^[[2m(^[[22m^[[2m14 tests^[[22m^[[2m)^[[22m^[[32m 176^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:20.6917196Z  ^[[32m✓^[[39m tests/regenerative-braking.test.ts ^[[2m(^[[22m^[[2m17 tests^[[22m^[[2m)^[[22m^[[32m 20^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:21.6128132Z  ^[[32m✓^[[39m tests/presentation-review.test.ts ^[[2m(^[[22m^[[2m22 tests^[[22m^[[2m)^[[22m^[[32m 190^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:22.9142281Z  ^[[32m✓^[[39m tests/apx01-livery.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[33m 507^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:22.9143482Z    ^[[33m^[[2m✓^[[22m^[[39m APX-01 hero livery layer^[[2m > ^[[22mis the player's alone, follows a livery edit, and leaves the wings' alloy role in carbon ^[[33m 326^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:24.3870630Z  ^[[32m✓^[[39m tests/motocross-tyre-contact.test.ts ^[[2m(^[[22m^[[2m6 tests^[[22m^[[2m)^[[22m^[[33m 801^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:24.3871914Z    ^[[33m^[[2m✓^[[22m^[[39m motocross independently sampled tyre grip^[[2m > ^[[22mchanges each contact at real soil entry and exit while the lean intent settles continuously ^[[33m 669^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:27.7716263Z  ^[[32m✓^[[39m tests/gp-grandstand-architecture.test.ts ^[[2m(^[[22m^[[2m14 tests^[[22m^[[2m)^[[22m^[[33m 2639^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:27.7717259Z    ^[[33m^[[2m✓^[[22m^[[39m GP spectator-side venue architecture^[[2m > ^[[22mpoggio-alto preserves the existing seats, audience and clear riding corridor ^[[33m 726^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:27.7718262Z    ^[[33m^[[2m✓^[[22m^[[39m GP spectator-side venue architecture^[[2m > ^[[22mcape-wrenna preserves the existing seats, audience and clear riding corridor ^[[33m 461^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:27.7719185Z    ^[[33m^[[2m✓^[[22m^[[39m GP spectator-side venue architecture^[[2m > ^[[22mhaarveld preserves the existing seats, audience and clear riding corridor ^[[33m 484^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:27.7720512Z    ^[[33m^[[2m✓^[[22m^[[39m GP spectator-side venue architecture^[[2m > ^[[22mmontejaral preserves the existing seats, audience and clear riding corridor ^[[33m 449^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:28.5978436Z  ^[[32m✓^[[39m tests/motocross-flow-practice.test.ts ^[[2m(^[[22m^[[2m16 tests^[[22m^[[2m)^[[22m^[[32m 152^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:30.9944750Z  ^[[32m✓^[[39m tests/driver-asset.test.ts ^[[2m(^[[22m^[[2m6 tests^[[22m^[[2m)^[[22m^[[33m 2178^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:30.9945966Z    ^[[33m^[[2m✓^[[22m^[[39m Blender-authored coupled driver^[[2m > ^[[22mkeeps continuous sleeves inside their culling envelope through rapid full-lock countersteering and loads ^[[33m 1733^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:30.9947229Z    ^[[33m^[[2m✓^[[22m^[[39m Blender-authored coupled driver^[[2m > ^[[22mreconstructs identical suit vertices after a replay seek, transforms correctly, and isolates two cars ^[[33m 361^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:32.4458406Z  ^[[32m✓^[[39m tests/ip-guard.test.ts ^[[2m(^[[22m^[[2m24 tests^[[22m^[[2m)^[[22m^[[33m 1297^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:32.4460029Z    ^[[33m^[[2m✓^[[22m^[[39m the certifying build path^[[2m > ^[[22m`vite build` (npm run build) refuses MOTOBOUND_SUPPLIED_PLAYER=1 and points at build:qa ^[[33m 452^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:34.2643650Z  ^[[32m✓^[[39m tests/gp-control-feedback.test.ts ^[[2m(^[[22m^[[2m9 tests^[[22m^[[2m)^[[22m^[[33m 1068^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:34.2645592Z    ^[[33m^[[2m✓^[[22m^[[39m GP control feedback reads the actual two tyre contacts^[[2m > ^[[22mreads a real simulation snapshot and reports a heated front brake only while braking ^[[33m 1060^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:35.8473900Z  ^[[32m✓^[[39m tests/solvane-street-kit-r2.test.ts ^[[2m(^[[22m^[[2m10 tests^[[22m^[[2m)^[[22m^[[33m 468^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:35.8475172Z    ^[[33m^[[2m✓^[[22m^[[39m Solvane native street construction R2^[[2m > ^[[22mauthenticates compressed transport and exactly restores the source GLB ^[[33m 328^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:39.4102247Z  ^[[32m✓^[[39m tests/forest-belts.test.ts ^[[2m(^[[22m^[[2m8 tests^[[22m^[[2m)^[[22m^[[33m 2211^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:39.4103324Z    ^[[33m^[[2m✓^[[22m^[[39m forest belts^[[2m > ^[[22mplants 6-12 k deterministic trees 30-120 m behind the nearest boundary ^[[33m 857^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:39.4104210Z    ^[[33m^[[2m✓^[[22m^[[39m forest belts^[[2m > ^[[22mbuilds unshadowed, density-scalable 240 m buckets within the draw allocation ^[[33m 520^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:39.4105191Z    ^[[33m^[[2m✓^[[22m^[[39m forest belts^[[2m > ^[[22mplants the coastal circuit too ^[[33m 710^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:40.8387903Z  ^[[32m✓^[[39m tests/camera-dynamics.test.ts ^[[2m(^[[22m^[[2m16 tests^[[22m^[[2m)^[[22m^[[32m 141^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:41.6680393Z  ^[[32m✓^[[39m tests/net-transport.test.ts ^[[2m(^[[22m^[[2m11 tests^[[22m^[[2m)^[[22m^[[32m 190^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:43.5029536Z  ^[[32m✓^[[39m tests/gp-rider-suit.test.ts ^[[2m(^[[22m^[[2m12 tests^[[22m^[[2m)^[[22m^[[33m 1034^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:44.2333547Z  ^[[32m✓^[[39m tests/team-career.test.ts ^[[2m(^[[22m^[[2m22 tests^[[22m^[[2m)^[[22m^[[32m 27^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:46.6816896Z  ^[[32m✓^[[39m tests/gp-radiator.test.ts ^[[2m(^[[22m^[[2m8 tests^[[22m^[[2m)^[[22m^[[33m 1660^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:46.6818573Z    ^[[33m^[[2m✓^[[22m^[[39m GP recessed radiator and fin resolution^[[2m > ^[[22mgpr1 preserves the complete-model gate and exposes the GP core through the fork opening ^[[33m 786^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:46.6819638Z    ^[[33m^[[2m✓^[[22m^[[39m GP recessed radiator and fin resolution^[[2m > ^[[22mgpr2 preserves the complete-model gate and exposes the GP core through the fork opening ^[[33m 571^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:46.9899114Z  ^[[32m✓^[[39m tests/snapshot-interpolation.test.ts ^[[2m(^[[22m^[[2m20 tests^[[22m^[[2m)^[[22m^[[32m 92^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:48.8975233Z  ^[[32m✓^[[39m tests/human-kit.test.ts ^[[2m(^[[22m^[[2m7 tests^[[22m^[[2m)^[[22m^[[33m 1111^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:48.8976175Z    ^[[33m^[[2m✓^[[22m^[[39m procedural human kit^[[2m > ^[[22mdecodes every baked mesh into owned, valid, closed-index geometry ^[[33m 358^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:48.8977414Z    ^[[33m^[[2m✓^[[22m^[[39m procedural human kit^[[2m > ^[[22mskins bodies to the shared skeleton with four normalised influences ^[[33m 573^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:50.6806885Z  ^[[32m✓^[[39m tests/festival-skill-chain.test.ts ^[[2m(^[[22m^[[2m11 tests^[[22m^[[2m)^[[22m^[[33m 1029^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:50.6808412Z    ^[[33m^[[2m✓^[[22m^[[39m festival rolling gates and measurement^[[2m > ^[[22mcrosses a passive gate in the same moving car without teleporting or repairing it ^[[33m 684^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:53.5106934Z  ^[[32m✓^[[39m tests/branchless-release.test.ts ^[[2m(^[[22m^[[2m1 test^[[22m^[[2m)^[[22m^[[33m 2680^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:53.5108362Z    ^[[33m^[[2m✓^[[22m^[[39m publishes exact validated bytes, recovers reruns, and rejects altered or stale artifacts without pushing branches ^[[33m 2679^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:55.7485471Z  ^[[32m✓^[[39m tests/vehicle-art-3.test.ts ^[[2m(^[[22m^[[2m6 tests^[[22m^[[2m)^[[22m^[[33m 1373^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:55.7486488Z    ^[[33m^[[2m✓^[[22m^[[39m D11 trucks: an upright face with hardware on it^[[2m > ^[[22mkeeps the bonnet level to a tall, square front instead of drooping to the tip ^[[33m 332^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:55.7487921Z    ^[[33m^[[2m✓^[[22m^[[39m D11 trucks: an upright face with hardware on it^[[2m > ^[[22mis detailed at the near level (lamps in the face, arch lips, bumper) and cheap at the far one ^[[33m 447^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:55:55.7488889Z    ^[[33m^[[2m✓^[[22m^[[39m GP-R1 corner hero frame (photo preset)^[[2m > ^[[22mputs the knee on the road and lights the sparks through the real bike model ^[[33m 302^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:03.0286753Z  ^[[32m✓^[[39m tests/mx-trackside-models.test.ts ^[[2m(^[[22m^[[2m10 tests^[[22m^[[2m)^[[22m^[[33m 6479^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:03.0287680Z    ^[[33m^[[2m✓^[[22m^[[39m original MX trackside model kit^[[2m > ^[[22mcanopy has deterministic, finite, separately owned model variants ^[[33m 581^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:03.0288782Z    ^[[33m^[[2m✓^[[22m^[[39m original MX trackside model kit^[[2m > ^[[22mtool-trolley has deterministic, finite, separately owned model variants ^[[33m 622^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:03.0289673Z    ^[[33m^[[2m✓^[[22m^[[39m original MX trackside model kit^[[2m > ^[[22mpressure-washer has deterministic, finite, separately owned model variants ^[[33m 546^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:03.0290559Z    ^[[33m^[[2m✓^[[22m^[[39m original MX trackside model kit^[[2m > ^[[22mwater-tank has deterministic, finite, separately owned model variants ^[[33m 429^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:03.0291436Z    ^[[33m^[[2m✓^[[22m^[[39m original MX trackside model kit^[[2m > ^[[22mmarshal-post has deterministic, finite, separately owned model variants ^[[33m 437^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:03.0292420Z    ^[[33m^[[2m✓^[[22m^[[39m original MX trackside model kit^[[2m > ^[[22mspeaker-stack has deterministic, finite, separately owned model variants ^[[33m 580^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:03.0293390Z    ^[[33m^[[2m✓^[[22m^[[39m original MX trackside model kit^[[2m > ^[[22mvalley-ridge-mx integrates complete models without changing terrain or blocking lanes ^[[33m 2566^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:03.0294414Z    ^[[33m^[[2m✓^[[22m^[[39m original MX trackside model kit^[[2m > ^[[22marena-nord-sx integrates complete models without changing terrain or blocking lanes ^[[33m 678^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:03.7760465Z  ^[[32m✓^[[39m tests/presentation-velocity.test.ts ^[[2m(^[[22m^[[2m12 tests^[[22m^[[2m)^[[22m^[[32m 21^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:05.0226253Z  ^[[32m✓^[[39m tests/gp-rider-spine.test.ts ^[[2m(^[[22m^[[2m7 tests^[[22m^[[2m)^[[22m^[[33m 994^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:05.0227481Z    ^[[33m^[[2m✓^[[22m^[[39m GP articulated spine and connected one-piece suit^[[2m > ^[[22mhigh keeps the collar and shoulder skin on the chest, and the seat skin on the pelvis ^[[33m 441^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:06.6307654Z  ^[[32m✓^[[39m tests/service-lens.test.ts ^[[2m(^[[22m^[[2m7 tests^[[22m^[[2m)^[[22m^[[33m 743^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:06.6309247Z    ^[[33m^[[2m✓^[[22m^[[39m places the permanent pit lens above the actual foreground fence at all twelve bays ^[[33m 490^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:08.2067424Z  ^[[32m✓^[[39m tests/festival-wheel-construction.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[33m 878^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:08.2069095Z    ^[[33m^[[2m✓^[[22m^[[39m Festival road wheel construction^[[2m > ^[[22mcontains the brake caliper within the barrel and behind the spokes ^[[33m 610^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:08.9313438Z  ^[[32m✓^[[39m tests/records-board.test.ts ^[[2m(^[[22m^[[2m6 tests^[[22m^[[2m)^[[22m^[[32m 13^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:11.2221134Z  ^[[32m✓^[[39m tests/bike-animation.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[33m 1507^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:11.2225037Z    ^[[33m^[[2m✓^[[22m^[[39m poses gpr1 wheels, controls and rider weight from the same intermediate snapshot ^[[33m 479^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:11.2225993Z    ^[[33m^[[2m✓^[[22m^[[39m poses mx450 wheels, controls and rider weight from the same intermediate snapshot ^[[33m 344^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:12.0527872Z  ^[[32m✓^[[39m tests/replay-photo.test.ts ^[[2m(^[[22m^[[2m9 tests^[[22m^[[2m)^[[22m^[[32m 25^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:15.4206371Z  ^[[32m✓^[[39m tests/motocross-soil-transition.test.ts ^[[2m(^[[22m^[[2m7 tests^[[22m^[[2m)^[[22m^[[33m 2601^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:15.4207529Z    ^[[33m^[[2m✓^[[22m^[[39m MX construction-time soil boundary integration^[[2m > ^[[22mvalley-ridge-mx uses the same area weights in color, scan layers and displayed base moisture ^[[33m 1486^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:15.4208555Z    ^[[33m^[[2m✓^[[22m^[[39m MX construction-time soil boundary integration^[[2m > ^[[22marena-nord-sx uses the same area weights in color, scan layers and displayed base moisture ^[[33m 1026^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:17.2983097Z  ^[[32m✓^[[39m tests/race-control.test.ts ^[[2m(^[[22m^[[2m15 tests^[[22m^[[2m)^[[22m^[[33m 1155^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:17.3020160Z    ^[[33m^[[2m✓^[[22m^[[39m raised pit jack feet retain a finite support polygon on the sloped lane ^[[33m 913^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:18.1430394Z  ^[[32m✓^[[39m tests/meeting-flow.test.ts ^[[2m(^[[22m^[[2m7 tests^[[22m^[[2m)^[[22m^[[32m 10^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:20.4273371Z  ^[[32m✓^[[39m tests/circuit-catalogue-wave2.test.ts ^[[2m(^[[22m^[[2m6 tests^[[22m^[[2m)^[[22m^[[33m 1605^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:20.4274464Z    ^[[33m^[[2m✓^[[22m^[[39m catalogue wave 2^[[2m > ^[[22mbuilds the 20.8 km forest ring and 13.6 km endurance circuit with dense sampling ^[[33m 353^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:20.4275515Z    ^[[33m^[[2m✓^[[22m^[[39m catalogue wave 2^[[2m > ^[[22mmeasures every bike-safe circuit and keeps walled street circuits off the list ^[[33m 932^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:21.4426207Z  ^[[32m✓^[[39m tests/pit-material-warmup.test.ts ^[[2m(^[[22m^[[2m7 tests^[[22m^[[2m)^[[22m^[[32m 202^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:31.9136768Z  ^[[32m✓^[[39m tests/gp-seamless-braking.test.ts ^[[2m(^[[22m^[[2m14 tests^[[22m^[[2m)^[[22m^[[33m 9778^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:31.9138532Z    ^[[33m^[[2m✓^[[22m^[[39m GP seamless coast engagement^[[2m > ^[[22mgpr1 carries rear coast torque through both edges of an actual downshift ^[[33m 706^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:31.9140128Z    ^[[33m^[[2m✓^[[22m^[[39m GP seamless coast engagement^[[2m > ^[[22mgpr2 carries rear coast torque through both edges of an actual downshift ^[[33m 618^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:31.9141493Z    ^[[33m^[[2m✓^[[22m^[[39m GP seamless coast engagement^[[2m > ^[[22mgpr1 shares its rear circle during a downshift with pedal, lean and rear grip 1 ^[[33m 649^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:31.9153821Z    ^[[33m^[[2m✓^[[22m^[[39m GP seamless coast engagement^[[2m > ^[[22mgpr2 shares its rear circle during a downshift with pedal, lean and rear grip 1 ^[[33m 626^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:31.9155808Z    ^[[33m^[[2m✓^[[22m^[[39m GP seamless coast engagement^[[2m > ^[[22mgpr1 shares its rear circle during a downshift with pedal, lean and rear grip 0.5 ^[[33m 635^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:31.9157179Z    ^[[33m^[[2m✓^[[22m^[[39m GP seamless coast engagement^[[2m > ^[[22mgpr2 shares its rear circle during a downshift with pedal, lean and rear grip 0.5 ^[[33m 611^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:31.9159079Z    ^[[33m^[[2m✓^[[22m^[[39m GP seamless coast engagement^[[2m > ^[[22mgpr1 shares its rear circle during a downshift with pedal, lean and rear grip 0.3 ^[[33m 628^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:31.9160413Z    ^[[33m^[[2m✓^[[22m^[[39m GP seamless coast engagement^[[2m > ^[[22mgpr2 shares its rear circle during a downshift with pedal, lean and rear grip 0.3 ^[[33m 635^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:31.9161885Z    ^[[33m^[[2m✓^[[22m^[[39m GP seamless coast engagement^[[2m > ^[[22mgpr1 respects map off and throttle-on shifts without suppressing positive drive ^[[33m 1161^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:31.9163232Z    ^[[33m^[[2m✓^[[22m^[[39m GP seamless coast engagement^[[2m > ^[[22mgpr2 respects map off and throttle-on shifts without suppressing positive drive ^[[33m 1165^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:31.9164500Z    ^[[33m^[[2m✓^[[22m^[[39m GP seamless coast engagement^[[2m > ^[[22msbk1000 retains its interrupted coast/shift behavior ^[[33m 580^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:31.9165844Z    ^[[33m^[[2m✓^[[22m^[[39m GP seamless coast engagement^[[2m > ^[[22mss600 retains its interrupted coast/shift behavior ^[[33m 599^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:31.9167178Z    ^[[33m^[[2m✓^[[22m^[[39m GP seamless coast engagement^[[2m > ^[[22mnr900 retains its interrupted coast/shift behavior ^[[33m 580^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:31.9168287Z    ^[[33m^[[2m✓^[[22m^[[39m GP seamless coast engagement^[[2m > ^[[22mcr750 retains its interrupted coast/shift behavior ^[[33m 581^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:44.8083355Z  ^[[32m✓^[[39m tests/motocross-venue-integration.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[33m 11810^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:44.8084360Z    ^[[33m^[[2m✓^[[22m^[[39m full motocross venue construction^[[2m > ^[[22mvalley-ridge-mx has low marked boundaries without road furniture across its dirt lanes ^[[33m 6079^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:44.8085728Z    ^[[33m^[[2m✓^[[22m^[[39m full motocross venue construction^[[2m > ^[[22marena-nord-sx has low marked boundaries without road furniture across its dirt lanes ^[[33m 2533^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:44.8087141Z    ^[[33m^[[2m✓^[[22m^[[39m full motocross venue construction^[[2m > ^[[22mretains actual paved pit ribbons and both road lighting hardware systems on Aurel ^[[33m 3148^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:45.9163813Z  ^[[32m✓^[[39m tests/suspension.test.ts ^[[2m(^[[22m^[[2m9 tests^[[22m^[[2m)^[[22m^[[33m 395^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:45.9165004Z    ^[[33m^[[2m✓^[[22m^[[39m suspension kinematics and geometric load transfer^[[2m > ^[[22mrolls the production car less with roll centres while total load transfer is kept ^[[33m 357^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:48.1529684Z  ^[[32m✓^[[39m tests/catch-fence.test.ts ^[[2m(^[[22m^[[2m8 tests^[[22m^[[2m)^[[22m^[[33m 1416^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:48.1531298Z    ^[[33m^[[2m✓^[[22m^[[39m A03 authored catch-fence supports and retained analytic wire^[[2m > ^[[22muses exactly one closed gate at each retained marshal station across all 1596 spans ^[[33m 1049^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:48.9153534Z  ^[[32m✓^[[39m tests/season-board.test.ts ^[[2m(^[[22m^[[2m14 tests^[[22m^[[2m)^[[22m^[[32m 30^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:50.4630032Z  ^[[32m✓^[[39m tests/skid-recording.test.ts ^[[2m(^[[22m^[[2m14 tests^[[22m^[[2m)^[[22m^[[33m 772^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:50.4654541Z    ^[[33m^[[2m✓^[[22m^[[39m records a real chassis strike and exports every skid measurement without moving old CSV fields ^[[33m 697^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:51.7273140Z  ^[[32m✓^[[39m tests/race-finish.test.ts ^[[2m(^[[22m^[[2m6 tests^[[22m^[[2m)^[[22m^[[33m 345^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:51.7274334Z    ^[[33m^[[2m✓^[[22m^[[39m recorded rear signal across the production car LODs^[[2m > ^[[22mkeeps one visible lamp, matches the spray field and rewinds without stale emission ^[[33m 303^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:52.8235558Z  ^[[32m✓^[[39m tests/sky-linear.test.ts ^[[2m(^[[22m^[[2m7 tests^[[22m^[[2m)^[[22m^[[32m 274^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:54.7194189Z  ^[[32m✓^[[39m tests/gp-grid-paint.test.ts ^[[2m(^[[22m^[[2m7 tests^[[22m^[[2m)^[[22m^[[33m 827^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:54.7195785Z    ^[[33m^[[2m✓^[[22m^[[39m GP grid paint uses motorcycle scale and the production surface^[[2m > ^[[22mplaces all twelve GP launch paths under the real simulation rear-wheel contacts ^[[33m 641^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:54.9632851Z  ^[[32m✓^[[39m tests/driver-look.test.ts ^[[2m(^[[22m^[[2m9 tests^[[22m^[[2m)^[[22m^[[32m 39^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:56:55.7626037Z  ^[[32m✓^[[39m tests/supplied-lookdev.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[32m 9^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:21.2585710Z  ^[[32m✓^[[39m tests/wildcard-career-flow.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[33m 24752^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:21.2587039Z    ^[[33m^[[2m✓^[[22m^[[39m a Wildcard race through the career, from a real simulated session^[[2m > ^[[22mpays, medals and records a finished race exactly as the board then reads it ^[[33m 17372^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:21.2588304Z    ^[[33m^[[2m✓^[[22m^[[39m a Wildcard race through the career, from a real simulated session^[[2m > ^[[22mdoes not medal or pay a session the AI driver drove ^[[33m 666^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:21.2589550Z    ^[[33m^[[2m✓^[[22m^[[39m a Wildcard time attack (a time trial has no chequered flag)^[[2m > ^[[22mends when the laps are done, then medals the best lap and pays ^[[33m 6712^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:23.8645703Z  ^[[32m✓^[[39m tests/motorcycle-thermal-integration.test.ts ^[[2m(^[[22m^[[2m12 tests^[[22m^[[2m)^[[22m^[[33m 1895^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:23.8646984Z    ^[[33m^[[2m✓^[[22m^[[39m production motorcycle thermal ownership^[[2m > ^[[22mreproduces temperatures, pressure, wear and heat telemetry exactly through flashback ^[[33m 1581^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:24.0489283Z  ^[[32m✓^[[39m tests/solvane-driving-detail.test.ts ^[[2m(^[[22m^[[2m26 tests^[[22m^[[2m)^[[22m^[[32m 21^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:24.2513006Z  ^[[32m✓^[[39m tests/supplied-shader-work.test.ts ^[[2m(^[[22m^[[2m9 tests^[[22m^[[2m)^[[22m^[[32m 17^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:25.9746003Z ^[[90mstdout^[[2m | tests/motocross-broadcast-placement.test.ts^[[2m > ^[[22m^[[2mcomplete dirt-venue replay-camera hardware^[[2m > ^[[22m^[[2mvalley-ridge-mx keeps all 20 actual bases, posts, platforms, rails and heads outside every legal lane
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:25.9755716Z ^[[22m^[[39mMX_CAMERA_FOOTPRINT {"venue":"valley-ridge-mx","minimumExpandedEnvelopeClearanceM":0.4,"rigs":[{"rig":0,"nearestLegalVertexGapM":2.7050653208828344,"actualVertices":220},{"rig":1,"nearestLegalVertexGapM":4.303687793987177,"actualVertices":220},{"rig":2,"nearestLegalVertexGapM":4.323555130707525,"actualVertices":220},{"rig":3,"nearestLegalVertexGapM":2.6003954749167875,"actualVertices":220},{"rig":4,"nearestLegalVertexGapM":3.0284850308107947,"actualVertices":220},{"rig":5,"nearestLegalVertexGapM":4.300000023841858,"actualVertices":220},{"rig":6,"nearestLegalVertexGapM":2.916331591520372,"actualVertices":220},{"rig":7,"nearestLegalVertexGapM":4.300000023841858,"actualVertices":220},{"rig":8,"nearestLegalVertexGapM":4.475476493761275,"actualVertices":220},{"rig":9,"nearestLegalVertexGapM":4.300000023841858,"actualVertices":220},{"rig":10,"nearestLegalVertexGapM":4.404661624192204,"actualVertices":220},{"rig":11,"nearestLegalVertexGapM":4.2985695750882735,"actualVertices":220},{"rig":12,"nearestLegalVertexGapM":4.300000023841858,"actualVertices":220},{"rig":13,"nearestLegalVertexGapM":4.300000023841858,"actualVertices":220},{"rig":14,"nearestLegalVertexGapM":4.301261621317898,"actualVertices":220},{"rig":15,"nearestLegalVertexGapM":4.299410581213842,"actualVertices":220},{"rig":16,"nearestLegalVertexGapM":4.300000023841858,"actualVertices":220},{"rig":17,"nearestLegalVertexGapM":4.294104079126259,"actualVertices":220},{"rig":18,"nearestLegalVertexGapM":2.5056579271063653,"actualVertices":220},{"rig":19,"nearestLegalVertexGapM":2.948075903757033,"actualVertices":220}]}
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:25.9761729Z 
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:26.5338536Z ^[[90mstdout^[[2m | tests/motocross-broadcast-placement.test.ts^[[2m > ^[[22m^[[2mcomplete dirt-venue replay-camera hardware^[[2m > ^[[22m^[[2marena-nord-sx keeps all 20 actual bases, posts, platforms, rails and heads outside every legal lane
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:26.5345215Z ^[[22m^[[39mMX_CAMERA_FOOTPRINT {"venue":"arena-nord-sx","minimumExpandedEnvelopeClearanceM":0.4,"rigs":[{"rig":0,"nearestLegalVertexGapM":0.8500000238418837,"actualVertices":220},{"rig":1,"nearestLegalVertexGapM":0.8500000238418837,"actualVertices":220},{"rig":2,"nearestLegalVertexGapM":1.014180444905623,"actualVertices":220},{"rig":3,"nearestLegalVertexGapM":2.1944153423252413,"actualVertices":220},{"rig":4,"nearestLegalVertexGapM":2.1674165986126557,"actualVertices":220},{"rig":5,"nearestLegalVertexGapM":0.9264589866786705,"actualVertices":220},{"rig":6,"nearestLegalVertexGapM":1.0000000238418396,"actualVertices":220},{"rig":7,"nearestLegalVertexGapM":0.9002530650113174,"actualVertices":220},{"rig":8,"nearestLegalVertexGapM":1.2530053830131402,"actualVertices":220},{"rig":9,"nearestLegalVertexGapM":1.000000023841836,"actualVertices":220},{"rig":10,"nearestLegalVertexGapM":2.550000023841851,"actualVertices":220},{"rig":11,"nearestLegalVertexGapM":1.7263317195663204,"actualVertices":220},{"rig":12,"nearestLegalVertexGapM":1.3405717287343553,"actualVertices":220},{"rig":13,"nearestLegalVertexGapM":4.800000023841851,"actualVertices":220},{"rig":14,"nearestLegalVertexGapM":0.9000000238418933,"actualVertices":220},{"rig":15,"nearestLegalVertexGapM":4.800000023841858,"actualVertices":220},{"rig":16,"nearestLegalVertexGapM":3.7472432668897317,"actualVertices":220},{"rig":17,"nearestLegalVertexGapM":4.285613953279984,"actualVertices":220},{"rig":18,"nearestLegalVertexGapM":1.6171215932352805,"actualVertices":220},{"rig":19,"nearestLegalVertexGapM":1.2867860851832011,"actualVertices":220}]}
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:26.5349293Z 
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:26.5349752Z  ^[[32m✓^[[39m tests/motocross-broadcast-placement.test.ts ^[[2m(^[[22m^[[2m2 tests^[[22m^[[2m)^[[22m^[[33m 1510^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:26.5350743Z    ^[[33m^[[2m✓^[[22m^[[39m complete dirt-venue replay-camera hardware^[[2m > ^[[22mvalley-ridge-mx keeps all 20 actual bases, posts, platforms, rails and heads outside every legal lane ^[[33m 950^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:26.5351861Z    ^[[33m^[[2m✓^[[22m^[[39m complete dirt-venue replay-camera hardware^[[2m > ^[[22marena-nord-sx keeps all 20 actual bases, posts, platforms, rails and heads outside every legal lane ^[[33m 560^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:26.7440349Z  ^[[32m✓^[[39m tests/tyre-wheels.test.ts ^[[2m(^[[22m^[[2m7 tests^[[22m^[[2m)^[[22m^[[32m 11^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:26.9561192Z  ^[[32m✓^[[39m tests/supplied-draw-ranges.test.ts ^[[2m(^[[22m^[[2m9 tests^[[22m^[[2m)^[[22m^[[32m 24^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:28.3631145Z  ^[[32m✓^[[39m tests/gp-brake-fingers.test.ts ^[[2m(^[[22m^[[2m6 tests^[[22m^[[2m)^[[22m^[[33m 646^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:28.3632874Z    ^[[33m^[[2m✓^[[22m^[[39m GP control fingers solve the actual moving blade^[[2m > ^[[22mgpr1 keeps fixed phalanx lengths and fingertip contact across steering/braking ^[[33m 352^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:38.0285140Z  ^[[32m✓^[[39m tests/vehicle-bodies.test.ts ^[[2m(^[[22m^[[2m4 tests^[[22m^[[2m)^[[22m^[[33m 8890^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:38.0286124Z    ^[[33m^[[2m✓^[[22m^[[39m WP30 procedural vehicle bodies^[[2m > ^[[22mgives every four-wheel machine its own sheet and a distinct silhouette ^[[33m 4739^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:38.0287142Z    ^[[33m^[[2m✓^[[22m^[[39m WP30 procedural vehicle bodies^[[2m > ^[[22mbuilds every catalogue body with three LODs, a shadow proxy and matching wheels ^[[33m 4074^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:39.9354658Z  ^[[32m✓^[[39m tests/gp-edge-design.test.ts ^[[2m(^[[22m^[[2m12 tests^[[22m^[[2m)^[[22m^[[33m 672^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:40.1302984Z  ^[[32m✓^[[39m tests/imported-render-budget.test.ts ^[[2m(^[[22m^[[2m8 tests^[[22m^[[2m)^[[22m^[[32m 10^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:49.7803119Z  ^[[31m❯^[[39m tests/motocross-forgiving-handling.test.ts ^[[2m(^[[22m^[[2m18 tests^[[22m^[[2m | ^[[22m^[[31m1 failed^[[39m^[[2m)^[[22m^[[33m 8949^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:49.7804090Z    ^[[32m✓^[[39m motocross low-speed balance^[[2m > ^[[22mplayer at 2 m/s turns and leans toward a held stick^[[32m 162^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:49.7805703Z    ^[[32m✓^[[39m motocross low-speed balance^[[2m > ^[[22mplayer at 2.6 m/s turns and leans toward a held stick^[[32m 44^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:49.7806454Z    ^[[32m✓^[[39m motocross low-speed balance^[[2m > ^[[22mplayer at 3 m/s turns and leans toward a held stick^[[32m 37^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:49.7807166Z    ^[[32m✓^[[39m motocross low-speed balance^[[2m > ^[[22mplayer at 3.5 m/s turns and leans toward a held stick^[[32m 32^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:49.7807868Z    ^[[32m✓^[[39m motocross low-speed balance^[[2m > ^[[22mplayer at 4 m/s turns and leans toward a held stick^[[32m 38^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:49.7808581Z    ^[[32m✓^[[39m motocross low-speed balance^[[2m > ^[[22mplayer at 4.5 m/s turns and leans toward a held stick^[[32m 32^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:49.7809269Z    ^[[32m✓^[[39m motocross low-speed balance^[[2m > ^[[22mplayer at 5 m/s turns and leans toward a held stick^[[32m 30^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:49.7809973Z    ^[[32m✓^[[39m motocross low-speed balance^[[2m > ^[[22mplayer at 8 m/s turns and leans toward a held stick^[[32m 35^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:49.7810653Z    ^[[32m✓^[[39m motocross low-speed balance^[[2m > ^[[22mplayer at 14 m/s turns and leans toward a held stick^[[32m 37^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:49.7811587Z    ^[[32m✓^[[39m motocross low-speed balance^[[2m > ^[[22mleaves calibrated AI on the shared walking-pace blend^[[32m 2^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:49.7812389Z    ^[[32m✓^[[39m motocross low-speed balance^[[2m > ^[[22mholds a tight feet-up turn at walking pace without falling or running wide^[[32m 53^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:49.7813273Z    ^[[32m✓^[[39m motocross low-speed balance^[[2m > ^[[22mis opt-in: the standalone research core keeps its original walking-pace blend^[[32m 6^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:49.7814176Z    ^[[32m✓^[[39m motocross grip-loss allowance^[[2m > ^[[22mwithout the allowance an overloaded front is an immediate lowside (unchanged)^[[32m 4^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:49.7815171Z    ^[[32m✓^[[39m motocross grip-loss allowance^[[2m > ^[[22mrides through a brief patch and recovers the allowance afterwards^[[32m 4^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:49.7815927Z    ^[[32m✓^[[39m motocross grip-loss allowance^[[2m > ^[[22mstill goes down when the overload is held^[[32m 4^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:49.7816655Z    ^[[32m✓^[[39m motocross grip-loss allowance^[[2m > ^[[22mspends the allowance faster the further past the limit the tyre is^[[32m 8^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:49.7817596Z ^[[31m   ^[[31m×^[[31m motocross ridden lap^[[2m > ^[[22mvalley-ridge-mx: the player solver completes a flying lap without a fall or a stall^[[39m^[[33m 3971^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:49.7818292Z ^[[31m     → expected [ { cause: 'grip-lowside', …(2) } ] to deeply equal []^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:49.7819017Z    ^[[33m^[[2m✓^[[22m^[[39m motocross ridden lap^[[2m > ^[[22marena-nord-sx: the player solver completes a flying lap without a fall or a stall ^[[33m 4449^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:50.6412104Z  ^[[32m✓^[[39m tests/trackside-branding.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[32m 100^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:57.2469027Z  ^[[32m✓^[[39m tests/festival-qa-defects.test.ts ^[[2m(^[[22m^[[2m10 tests^[[22m^[[2m)^[[22m^[[33m 5875^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:57.2470052Z    ^[[33m^[[2m✓^[[22m^[[39m festival road profile^[[2m > ^[[22mhas no sharp sag on any highway (a 200 km/h car must not be launched by the road) ^[[33m 606^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:57.2470898Z    ^[[33m^[[2m✓^[[22m^[[39m festival road profile^[[2m > ^[[22mkeeps a hypercar upright over the Ridge Highway bridge approach at 200 km/h ^[[33m 506^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:57.2471799Z    ^[[33m^[[2m✓^[[22m^[[39m festival route driver at open-road speed^[[2m > ^[[22mbrakes in time for the T-junction at the end of the Coast Highway from 300 km/h ^[[33m 445^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:57.2472729Z    ^[[33m^[[2m✓^[[22m^[[39m festival route driver in the wet and after backing out^[[2m > ^[[22mkeeps a hypercar on the road over the plateau speed zone in rain ^[[33m 866^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:57.2474063Z    ^[[33m^[[2m✓^[[22m^[[39m festival route driver in the wet and after backing out^[[2m > ^[[22mkeeps a hypercar on the road over the plateau speed zone in storm ^[[33m 858^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:57.2475205Z    ^[[33m^[[2m✓^[[22m^[[39m festival route driver in the wet and after backing out^[[2m > ^[[22mkeeps a hypercar on the road over the plateau speed zone in snow ^[[33m 857^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:57.2476218Z    ^[[33m^[[2m✓^[[22m^[[39m festival route driver in the wet and after backing out^[[2m > ^[[22masks for a reset when wedged beside the road, instead of reversing and spinning for ever ^[[33m 687^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:57.2477280Z    ^[[33m^[[2m✓^[[22m^[[39m festival route driver in the wet and after backing out^[[2m > ^[[22mstops the car before driving on after a reversing recovery, not reversing away from the route ^[[33m 379^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:57.2478285Z    ^[[33m^[[2m✓^[[22m^[[39m festival TRY AGAIN on a skill challenge^[[2m > ^[[22marrives on the road behind the gate and drives in, so a retry can match the first run ^[[33m 540^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:57.9500520Z  ^[[32m✓^[[39m tests/wheel-thermal.test.ts ^[[2m(^[[22m^[[2m19 tests^[[22m^[[2m)^[[22m^[[32m 12^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:58.7432131Z  ^[[32m✓^[[39m tests/suspension-droop-direction.test.ts ^[[2m(^[[22m^[[2m9 tests^[[22m^[[2m)^[[22m^[[32m 87^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:57:59.4549549Z  ^[[32m✓^[[39m tests/ultra-options.test.ts ^[[2m(^[[22m^[[2m11 tests^[[22m^[[2m)^[[22m^[[32m 8^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:19.1512291Z  ^[[32m✓^[[39m tests/gp-rear-pedal.test.ts ^[[2m(^[[22m^[[2m15 tests^[[22m^[[2m)^[[22m^[[33m 19042^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:19.1513495Z    ^[[33m^[[2m✓^[[22m^[[39m GP rear pedal acts independently of the front lever^[[2m > ^[[22mgpr1 rear-only Sport braking keeps the front hydraulics and disc released ^[[33m 696^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:19.1517913Z    ^[[33m^[[2m✓^[[22m^[[39m GP rear pedal acts independently of the front lever^[[2m > ^[[22mgpr2 rear-only Sport braking keeps the front hydraulics and disc released ^[[33m 610^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:19.1519457Z    ^[[33m^[[2m✓^[[22m^[[39m GP rear pedal acts independently of the front lever^[[2m > ^[[22mgpr1 retains front-lever brake assistance while a stronger rear pedal cannot pull the lever ^[[33m 1238^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:19.1521038Z    ^[[33m^[[2m✓^[[22m^[[39m GP rear pedal acts independently of the front lever^[[2m > ^[[22mgpr2 retains front-lever brake assistance while a stronger rear pedal cannot pull the lever ^[[33m 1183^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:19.1522556Z    ^[[33m^[[2m✓^[[22m^[[39m GP rear pedal acts independently of the front lever^[[2m > ^[[22mgpr1 preserves the exact original front-led Sport trajectory and combined brake response ^[[33m 593^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:19.1524249Z    ^[[33m^[[2m✓^[[22m^[[39m GP rear pedal acts independently of the front lever^[[2m > ^[[22mgpr2 preserves the exact original front-led Sport trajectory and combined brake response ^[[33m 594^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:19.1525891Z    ^[[33m^[[2m✓^[[22m^[[39m GP rear pedal acts independently of the front lever^[[2m > ^[[22mgpr1 shares the rear-pedal and engine-braking budget through reduced-grip trail braking ^[[33m 3571^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:19.1527592Z    ^[[33m^[[2m✓^[[22m^[[39m GP rear pedal acts independently of the front lever^[[2m > ^[[22mgpr2 shares the rear-pedal and engine-braking budget through reduced-grip trail braking ^[[33m 3585^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:19.1529093Z    ^[[33m^[[2m✓^[[22m^[[39m GP rear pedal acts independently of the front lever^[[2m > ^[[22mgpr1 keeps rear-only input separate during AI handover and after returning to Raw ^[[33m 579^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:19.1530583Z    ^[[33m^[[2m✓^[[22m^[[39m GP rear pedal acts independently of the front lever^[[2m > ^[[22mgpr2 keeps rear-only input separate during AI handover and after returning to Raw ^[[33m 580^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:19.1532049Z    ^[[33m^[[2m✓^[[22m^[[39m GP rear pedal acts independently of the front lever^[[2m > ^[[22msbk1000 retains its original linked Sport brakes and independent Raw brakes ^[[33m 1162^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:19.1533481Z    ^[[33m^[[2m✓^[[22m^[[39m GP rear pedal acts independently of the front lever^[[2m > ^[[22mss600 retains its original linked Sport brakes and independent Raw brakes ^[[33m 1163^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:19.1534537Z    ^[[33m^[[2m✓^[[22m^[[39m GP rear pedal acts independently of the front lever^[[2m > ^[[22mnr900 retains its original linked Sport brakes and independent Raw brakes ^[[33m 1162^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:19.1535857Z    ^[[33m^[[2m✓^[[22m^[[39m GP rear pedal acts independently of the front lever^[[2m > ^[[22mcr750 retains its original linked Sport brakes and independent Raw brakes ^[[33m 1162^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:19.1536876Z    ^[[33m^[[2m✓^[[22m^[[39m GP rear pedal acts independently of the front lever^[[2m > ^[[22mmx450 retains its original linked Sport brakes and independent Raw brakes ^[[33m 1159^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:20.3012345Z  ^[[32m✓^[[39m tests/motocross-roost-contact.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[33m 395^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:23.5093096Z  ^[[32m✓^[[39m tests/motocross-soil-parallax.test.ts ^[[2m(^[[22m^[[2m7 tests^[[22m^[[2m)^[[22m^[[33m 2454^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:23.5119780Z    ^[[33m^[[2m✓^[[22m^[[39m MX relief march on the prepared passages^[[2m > ^[[22mchains once onto the terrain, with its march ahead of the colour chunk ^[[33m 670^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:23.5128436Z    ^[[33m^[[2m✓^[[22m^[[39m MX relief march on the prepared passages^[[2m > ^[[22mkeeps every brace and preprocessor block balanced in the compiled fragment source ^[[33m 401^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:23.5129679Z    ^[[33m^[[2m✓^[[22m^[[39m MX relief march on the prepared passages^[[2m > ^[[22mnever differentiates a parallax-shifted coordinate ^[[33m 401^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:23.5130543Z    ^[[33m^[[2m✓^[[22m^[[39m MX relief march on the prepared passages^[[2m > ^[[22mfollows the High/Ultra gate and bounds the cut and lip to centimetres ^[[33m 409^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:23.5131433Z    ^[[33m^[[2m✓^[[22m^[[39m MX relief march on the prepared passages^[[2m > ^[[22mleaves non-motocross terrain without the hook ^[[33m 544^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:24.2650297Z  ^[[32m✓^[[39m tests/hero-shells.test.ts ^[[2m(^[[22m^[[2m8 tests^[[22m^[[2m)^[[22m^[[33m 538^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:25.8365088Z  ^[[32m✓^[[39m tests/festival-verge-planting.test.ts ^[[2m(^[[22m^[[2m5 tests^[[22m^[[2m)^[[22m^[[32m 298^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:26.5560701Z  ^[[32m✓^[[39m tests/shadow-grounding.test.ts ^[[2m(^[[22m^[[2m6 tests^[[22m^[[2m)^[[22m^[[32m 6^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:27.3766795Z  ^[[32m✓^[[39m tests/presentation.test.ts ^[[2m(^[[22m^[[2m20 tests^[[22m^[[2m)^[[22m^[[32m 12^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:28.5593501Z  ^[[32m✓^[[39m tests/catalogue-dynamics.test.ts ^[[2m(^[[22m^[[2m8 tests^[[22m^[[2m)^[[22m^[[33m 488^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:29.6130677Z  ^[[32m✓^[[39m tests/core.test.ts ^[[2m(^[[22m^[[2m25 tests^[[22m^[[2m)^[[22m^[[32m 285^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:30.9345976Z  ^[[32m✓^[[39m tests/texture-source-ownership.test.ts ^[[2m(^[[22m^[[2m7 tests^[[22m^[[2m)^[[22m^[[32m 13^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:32.4209077Z  ^[[32m✓^[[39m tests/grid-presentation.test.ts ^[[2m(^[[22m^[[2m6 tests^[[22m^[[2m)^[[22m^[[33m 656^[[2mms^[[22m^[[39m
+unit-tests	Full unit suite without source changes	2026-11-19T08:58:44.3330449Z ##[error]The operation was canceled.
+unit-tests	Post Run actions/checkout@v4	﻿2026-11-19T08:58:44.3564161Z Post job cleanup.
+unit-tests	Post Run actions/checkout@v4	2026-11-19T08:58:44.4233678Z [command]/usr/bin/git version
+unit-tests	Post Run actions/checkout@v4	2026-11-19T08:58:44.4316250Z git version 2.56.1
+unit-tests	Post Run actions/checkout@v4	2026-11-19T08:58:44.4324485Z Temporarily overriding HOME='/home/runner/work/_temp/2f1f63f9-ae23-4038-b40a-8838ce812337' before making global git config changes
+unit-tests	Post Run actions/checkout@v4	2026-11-19T08:58:44.4325914Z Adding repository directory to the temporary git global config as a safe directory
+unit-tests	Post Run actions/checkout@v4	2026-11-19T08:58:44.4328658Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+unit-tests	Post Run actions/checkout@v4	2026-11-19T08:58:44.4359125Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+unit-tests	Post Run actions/checkout@v4	2026-11-19T08:58:44.4386327Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+unit-tests	Post Run actions/checkout@v4	2026-11-19T08:58:44.4570820Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+unit-tests	Post Run actions/checkout@v4	2026-11-19T08:58:44.4591316Z http.https://github.com/.extraheader
+unit-tests	Post Run actions/checkout@v4	2026-11-19T08:58:44.4597538Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+unit-tests	Post Run actions/checkout@v4	2026-11-19T08:58:44.4620619Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+unit-tests	Post Run actions/checkout@v4	2026-11-19T08:58:44.4865974Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+unit-tests	Post Run actions/checkout@v4	2026-11-19T08:58:44.4890066Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+unit-tests	Complete job	﻿2026-11-19T08:58:44.5256609Z Cleaning up orphan processes
+unit-tests	Complete job	2026-11-19T08:58:44.5395434Z Terminate orphan process: pid (2296) (node)
+unit-tests	Complete job	2026-11-19T08:58:44.5411035Z Terminate orphan process: pid (2303) (npm test)
+unit-tests	Complete job	2026-11-19T08:58:44.5429860Z Terminate orphan process: pid (2335) (sh)
+unit-tests	Complete job	2026-11-19T08:58:44.5448188Z Terminate orphan process: pid (2336) (node (vitest))
+unit-tests	Complete job	2026-11-19T08:58:44.5467289Z Terminate orphan process: pid (2360) (esbuild)
+unit-tests	Complete job	2026-11-19T08:58:44.5527483Z Terminate orphan process: pid (9582) (node (vitest 1))
+unit-tests	Complete job	2026-11-19T08:58:44.5570869Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
