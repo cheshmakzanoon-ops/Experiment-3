@@ -7,7 +7,16 @@ import { DriverAsset } from '../../src/rendering/driver-asset.ts';
 import { HeroShells } from '../../src/rendering/hero-shells.ts';
 import { Simulation } from '../../src/simulation/world.ts';
 import { DEFAULT_OPTIONS } from '../../src/simulation/config.ts';
-import { F, H, W, WHEEL_BASE, WHEEL_STRIDE, carBase } from '../../src/simulation/protocol.ts';
+import {
+  C,
+  F,
+  H,
+  W,
+  WHEEL_BASE,
+  WHEEL_STRIDE,
+  carBase,
+  wheelContactBase,
+} from '../../src/simulation/protocol.ts';
 import { WHEEL_POSITIONS } from '../../src/simulation/vehicle.ts';
 import { TextureBudget } from '../../src/rendering/texture-budget.ts';
 import { DEFAULT_LIVERY } from '../../src/storage/livery.ts';
@@ -94,6 +103,9 @@ export async function exercise(bytes: number[], driverBytes?: number[]) {
         for (let i = 0; i < 4; i++) {
           const w = o + WHEEL_BASE + i * WHEEL_STRIDE;
           frame[w + W.LENGTH] = 0.19 + 0.09 * (step / 16);
+          // makeFrame retains valid measured contact blocks. Author the same
+          // travel there; the renderer correctly prefers that recorded hub.
+          frame[wheelContactBase(o, i) + C.HUB_LENGTH] = frame[w + W.LENGTH];
           frame[w + W.STEER] = i < 2 ? -0.38 + (0.76 * step) / 16 : 0;
           frame[w + W.CAMBER] = (i % 2 ? 1 : -1) * 0.06;
           frame[w + W.ROTATION] = step * 0.47;

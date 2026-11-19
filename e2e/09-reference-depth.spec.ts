@@ -25,8 +25,9 @@ test('reference depth: survey, focus and headquarters render without advancing t
   const entry = page.locator('[data-reference="1"]');
   await entry.locator('summary').click();
   await entry.locator('[data-action="reference:1"]').click();
+  // The photo renderer is published asynchronously after the menu owner leaves.
   await expect
-    .poll(async () => (await diag(page)).renderer!.geometrySurvey.count)
+    .poll(async () => (await diag(page)).renderer?.geometrySurvey.count ?? 0)
     .toBeGreaterThan(0);
   expect((await diag(page)).renderer!.geometrySurvey.active).toBe(true);
   await info.attach('001-actual-geometry-split.png', {

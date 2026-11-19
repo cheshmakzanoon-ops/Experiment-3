@@ -1,0 +1,35 @@
+[
+  {
+    "traceTime": 129239.584,
+    "pageId": "page@cb6149ea23c98a59148cf0696e3bd76e",
+    "kind": "late-program",
+    "stage": "Warming shadows and scene reflections\u2026",
+    "sequence": 27284,
+    "program": 465,
+    "framebuffer": 462,
+    "cubeFace": 3553,
+    "viewport": [
+      0,
+      0,
+      16,
+      12
+    ],
+    "vertex": {
+      "shader": 463,
+      "hash": "f8a6a029",
+      "shaderName": null,
+      "sourceLength": 1591,
+      "source": "#version 300 es\n\n#define attribute in\n#define varying out\n#define texture2D texture\nprecision highp float;\n\tprecision highp int;\n\tprecision highp sampler2D;\n\tprecision highp samplerCube;\n\tprecision highp sampler3D;\n\tprecision highp sampler2DArray;\n\tprecision highp sampler2DShadow;\n\tprecision highp samplerCubeShadow;\n\tprecision highp sampler2DArrayShadow;\n\tprecision highp isampler2D;\n\tprecision highp isampler3D;\n\tprecision highp isamplerCube;\n\tprecision highp isampler2DArray;\n\tprecision highp usampler2D;\n\tprecision highp usampler3D;\n\tprecision highp usamplerCube;\n\tprecision highp usampler2DArray;\n\t\n#define HIGH_PRECISION\n#define SHADER_TYPE ShaderMaterial\n#define SHADER_NAME \nuniform mat4 modelMatrix;\nuniform mat4 modelViewMatrix;\nuniform mat4 projectionMatrix;\nuniform mat4 viewMatrix;\nuniform mat3 normalMatrix;\nuniform vec3 cameraPosition;\nuniform bool isOrthographic;\n#ifdef USE_INSTANCING\n\tattribute mat4 instanceMatrix;\n#endif\n#ifdef USE_INSTANCING_COLOR\n\tattribute vec3 instanceColor;\n#endif\n#ifdef USE_INSTANCING_MORPH\n\tuniform sampler2D morphTexture;\n#endif\nattribute vec3 position;\nattribute vec3 normal;\nattribute vec2 uv;\n#ifdef USE_UV1\n\tattribute vec2 uv1;\n#endif\n#ifdef USE_UV2\n\tattribute vec2 uv2;\n#endif\n#ifdef USE_UV3\n\tattribute vec2 uv3;\n#endif\n#ifdef USE_TANGENT\n\tattribute vec4 tangent;\n#endif\n#if defined( USE_COLOR_ALPHA )\n\tattribute vec4 color;\n#elif defined( USE_COLOR )\n\tattribute vec3 color;\n#endif\n#ifdef USE_SKINNING\n\tattribute vec4 skinIndex;\n\tattribute vec4 skinWeight;\n#endif\n\nvarying vec2 vUv; void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}",
+      "truncated": false
+    },
+    "fragment": {
+      "shader": 464,
+      "hash": "47dd29c3",
+      "shaderName": null,
+      "sourceLength": 2429,
+      "source": "#version 300 es\n#define varying in\nlayout(location = 0) out highp vec4 pc_fragColor;\n#define gl_FragColor pc_fragColor\n#define gl_FragDepthEXT gl_FragDepth\n#define texture2D texture\n#define textureCube texture\n#define texture2DProj textureProj\n#define texture2DLodEXT textureLod\n#define texture2DProjLodEXT textureProjLod\n#define textureCubeLodEXT textureLod\n#define texture2DGradEXT textureGrad\n#define texture2DProjGradEXT textureProjGrad\n#define textureCubeGradEXT textureGrad\nprecision highp float;\n\tprecision highp int;\n\tprecision highp sampler2D;\n\tprecision highp samplerCube;\n\tprecision highp sampler3D;\n\tprecision highp sampler2DArray;\n\tprecision highp sampler2DShadow;\n\tprecision highp samplerCubeShadow;\n\tprecision highp sampler2DArrayShadow;\n\tprecision highp isampler2D;\n\tprecision highp isampler3D;\n\tprecision highp isamplerCube;\n\tprecision highp isampler2DArray;\n\tprecision highp usampler2D;\n\tprecision highp usampler3D;\n\tprecision highp usamplerCube;\n\tprecision highp usampler2DArray;\n\t\n#define HIGH_PRECISION\n#define SHADER_TYPE ShaderMaterial\n#define SHADER_NAME \nuniform mat4 viewMatrix;\nuniform vec3 cameraPosition;\nuniform bool isOrthographic;\n#define OPAQUE\nvec4 LinearTransferOETF( in vec4 value ) {\n\treturn value;\n}\nvec4 sRGBTransferEOTF( in vec4 value ) {\n\treturn vec4( mix( pow( value.rgb * 0.9478672986 + vec3( 0.0521327014 ), vec3( 2.4 ) ), value.rgb * 0.0773993808, vec3( lessThanEqual( value.rgb, vec3( 0.04045 ) ) ) ), value.a );\n}\nvec4 sRGBTransferOETF( in vec4 value ) {\n\treturn vec4( mix( pow( value.rgb, vec3( 0.41666 ) ) * 1.055 - vec3( 0.055 ), value.rgb * 12.92, vec3( lessThanEqual( value.rgb, vec3( 0.0031308 ) ) ) ), value.a );\n}\nvec4 linearToOutputTexel( vec4 value ) {\n\treturn LinearTransferOETF( vec4( value.rgb * mat3( 1.0000,-0.0000,-0.0000,-0.0000,1.0000,0.0000,0.0000,0.0000,1.0000 ), value.a ) );\n}\nfloat luminance( const in vec3 rgb ) {\n\tconst vec3 weights = vec3( 0.2126, 0.7152, 0.0722 );\n\treturn dot( weights, rgb );\n}\n\n\n      uniform sampler2D tScene;\n      varying vec2 vUv;\n      void main() {\n        // Meter the road/car region, not the extreme sky or letterbox edges.\n        vec2 p = vec2(mix(.18,.82,vUv.x), mix(.12,.66,vUv.y));\n        vec3 rgb = texture2D(tScene,p).rgb;\n        float lum = dot(max(rgb,vec3(0.)),vec3(.2126,.7152,.0722));\n        float encoded = clamp((log2(max(lum,exp2(-12.)))+12.)/24.,0.,1.);\n        gl_FragColor = vec4(encoded,0.,0.,1.);\n      }",
+      "truncated": false
+    },
+    "stack": "    at boundedStack (<anonymous>:252:28)\n    at callable.<computed> [as getProgramInfoLog] (<anonymous>:345:18)\n    at I (http://127.0.0.1:4173/assets/three-tdHWoviK.js:3781:330)\n    at X_.getUniforms (http://127.0.0.1:4173/assets/three-tdHWoviK.js:3788:324)\n    at vh (http://127.0.0.1:4173/assets/three-tdHWoviK.js:3840:38393)\n    at r0.renderBufferDirect (http://127.0.0.1:4173/assets/three-tdHWoviK.js:3840:25308)\n    at ko (http://127.0.0.1:4173/assets/three-tdHWoviK.js:3840:33843)\n    at xs (http://127.0.0.1:4173/assets/three-tdHWoviK.js:3840:33419)\n    at zo (http://127.0.0.1:4173/assets/three-tdHWoviK.js:3840:31524)"
+  }
+]

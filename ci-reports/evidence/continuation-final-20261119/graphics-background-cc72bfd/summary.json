@@ -1,0 +1,238 @@
+{
+  "repository": "cheshmakzanoon-ops/Experiment-3",
+  "runId": 44611365105,
+  "sourceCommit": "cc72bfd8117ccad37180093c8ec45d7656810686",
+  "workflowUrl": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44611365105",
+  "status": "completed",
+  "conclusion": "failure",
+  "createdAt": "2026-11-19T20:42:14Z",
+  "updatedAt": "2026-11-19T20:49:00Z",
+  "jobs": [
+    {
+      "id": 135868516230,
+      "name": "high",
+      "status": "completed",
+      "conclusion": "failure",
+      "started_at": "2026-11-19T20:42:18Z",
+      "completed_at": "2026-11-19T20:48:46Z",
+      "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44611365105/job/135868516230"
+    },
+    {
+      "id": 135868516944,
+      "name": "gpu",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-19T20:42:17Z",
+      "completed_at": "2026-11-19T20:44:42Z",
+      "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44611365105/job/135868516944"
+    },
+    {
+      "id": 135868516958,
+      "name": "gameplay",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-19T20:42:17Z",
+      "completed_at": "2026-11-19T20:48:59Z",
+      "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44611365105/job/135868516958"
+    },
+    {
+      "id": 135868517035,
+      "name": "build",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-19T20:42:18Z",
+      "completed_at": "2026-11-19T20:43:37Z",
+      "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44611365105/job/135868517035"
+    },
+    {
+      "id": 135869331921,
+      "name": "browser (menu-entry, e2e/30-menu-access.spec.ts e2e/settings-transition.spec.ts e2e/gpu-frame-gat...",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-19T20:43:39Z",
+      "completed_at": "2026-11-19T20:47:18Z",
+      "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44611365105/job/135869331921"
+    }
+  ],
+  "browserCounts": {
+    "gpu": {
+      "cases": 7,
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "flaky": 0,
+      "retries": 0,
+      "caseResultsFile": "gpu-case-results.json"
+    },
+    "menu": {
+      "cases": 7,
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "flaky": 0,
+      "retries": 0,
+      "caseResultsFile": "menu-case-results.json"
+    },
+    "gameplay": {
+      "cases": 1,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "flaky": 0,
+      "retries": 0,
+      "caseResultsFile": "gameplay-case-results.json"
+    },
+    "high": {
+      "cases": 1,
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "flaky": 0,
+      "retries": 0
+    }
+  },
+  "originalHighAssertionsReached": [
+    "Menu visible",
+    "Menu GPU frame completion positive",
+    "Settings modal hidden",
+    "Settings transition no longer busy",
+    "Applied graphics exactly graphicsPreset(high)",
+    "Paused readiness predicate attempted and failed at original 90000ms deadline; received loading"
+  ],
+  "originalHighAssertionsNotReached": [
+    "Completed circuit preparation and GPU completion",
+    "Active finite GP chassis/contact snapshot after simulation resumes",
+    "Two complete photo views with held state, exact High options, dimensions, positive draw/triangle counts",
+    "Completed application/backend/error assertions and captured appearance"
+  ],
+  "high": {
+    "durationMs": 154879,
+    "readinessTimeoutMs": 90000,
+    "predicateObservedDurationMs": 90000.53900000002,
+    "firstChase": {
+      "traceTime": 86232.239,
+      "atMs": 78886.69999999995,
+      "stage": "Warming shadows and scene reflections\u2026",
+      "active": true,
+      "relativeToReadinessMs": 34514.703
+    },
+    "lastNativeStarted": {
+      "sequence": 27284,
+      "atMs": 121894.5,
+      "method": "getProgramInfoLog",
+      "program": 465,
+      "fragmentHash": "47dd29c3",
+      "framebuffer": 462,
+      "cubeFace": 3553,
+      "mip": 0,
+      "viewport": [
+        0,
+        0,
+        16,
+        12
+      ],
+      "count": 0,
+      "instances": 1,
+      "numericArguments": [
+        -1,
+        -1,
+        -1,
+        -1
+      ],
+      "sourceBufferBytes": null,
+      "shader": 0,
+      "shaderType": 0,
+      "shaderHash": "00000000"
+    },
+    "lastNativeCompleted": {
+      "sequence": 27283,
+      "atMs": 121893.69999999995,
+      "method": "linkProgram",
+      "cpuCallMs": 0,
+      "returned": true
+    },
+    "inFlightObservedMs": 12149.399999999965,
+    "latePrograms": 1,
+    "lateProgramOwner": "src/rendering/adaptive-exposure.ts",
+    "ownerProof": "Exact source fragment body is a substring of the complete retained native fragment source; framebuffer viewport is the owner\u2019s 16x12 target.",
+    "fragmentHash": "47dd29c3",
+    "latePmremBackgroundObserved": false,
+    "cockpitStageObserved": false,
+    "fenceSyncCalls": 0,
+    "consoleErrorsAndWarnings": [],
+    "lastSuccessfulDiagnosticState": "loading"
+  },
+  "backend": {
+    "requested": "mesa",
+    "renderer": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+    "vendor": "Google Inc. (Mesa)",
+    "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+    "pixel": [
+      64,
+      128,
+      191,
+      255
+    ],
+    "error": 0,
+    "softwareRendererDetected": true,
+    "physicalHardwareValidated": false
+  },
+  "artifacts": {
+    "high": {
+      "artifactId": 14573935586,
+      "bytes": 107159750,
+      "sha256": "d6e9a4fb3bc493dfdc22061543a6487548c0ee0da07382f382f403ecc389ab9f",
+      "matchesGitHubArtifactDigest": true,
+      "runId": 44611365105,
+      "sourceCommit": "cc72bfd8117ccad37180093c8ec45d7656810686",
+      "externalArchive": "background-high-cc72bfd.zip",
+      "includedInCompactPackage": false
+    },
+    "gpu": {
+      "artifactId": 14572377815,
+      "bytes": 791283,
+      "sha256": "89d4114ca696e25c0713a812ada629702dca50f195e52be1275a2de5862bb394",
+      "matchesGitHubArtifactDigest": true,
+      "runId": 44611365105,
+      "sourceCommit": "cc72bfd8117ccad37180093c8ec45d7656810686",
+      "externalArchive": "background-gpu-cc72bfd.zip",
+      "includedInCompactPackage": false
+    },
+    "menu": {
+      "artifactId": 14573550788,
+      "bytes": 698261,
+      "sha256": "cc030ef5583dc2e743238d1f6b41f0b9ecce67c78fa98c9b19317802a453a6d7",
+      "matchesGitHubArtifactDigest": true,
+      "runId": 44611365105,
+      "sourceCommit": "cc72bfd8117ccad37180093c8ec45d7656810686",
+      "externalArchive": "background-menu-cc72bfd.zip",
+      "includedInCompactPackage": false
+    },
+    "gameplay": {
+      "artifactId": 14571289198,
+      "bytes": 13344419,
+      "sha256": "05a307b45d8dd55be83606b1d994faac4da735cd7414eea1a24b4fc4d4b94c1d",
+      "matchesGitHubArtifactDigest": true,
+      "runId": 44611365105,
+      "sourceCommit": "cc72bfd8117ccad37180093c8ec45d7656810686",
+      "externalArchive": "background-gameplay-cc72bfd.zip",
+      "includedInCompactPackage": false
+    }
+  },
+  "verification": {
+    "allFiveLosslessDecodedJobLogsHashVerified": true,
+    "allFourDownloadedZipDigestsMatchGitHub": true,
+    "retainedHighAttachmentDigestsVerified": true,
+    "exposureSourceFragmentExactMatch": true
+  },
+  "limitations": [
+    "Native CPU call time may include queued earlier driver work; it is not isolated GPU execution time.",
+    "Bounded records may omit earlier completions or late resource owners.",
+    "The current program during an upload does not prove the uploaded resource owner.",
+    "A readiness deadline failure is not proof of an infinite stall.",
+    "This isolated run is not full main CI.",
+    "Software Mesa/llvmpipe evidence does not certify physical-hardware performance.",
+    "High failed its readiness assertion; no completed photo or full High acceptance is claimed.",
+    "Read-only source audit identifies later missing owner preparation, not proven later stalls."
+  ]
+}

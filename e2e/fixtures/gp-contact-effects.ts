@@ -1,4 +1,5 @@
 import * as T from 'three';
+import type { Vec3 } from '../../src/core/math.ts';
 import { BikeMaterials, BikeModel, staticSag } from '../../src/rendering/bike.ts';
 import { EffectPlayback } from '../../src/rendering/effect-playback.ts';
 import { Effects, PARTICLE_KIND } from '../../src/rendering/effects.ts';
@@ -39,7 +40,15 @@ class ContactBike extends BikeVehicle {
 const flatRoad = {
   sample(_x: number, _z: number, out: SurfaceSample) {
     out.height = 0;
+    out.normal.set(0, 1, 0);
     return out;
+  },
+  cast(origin: Vec3, down: Vec3, maximum: number, out: SurfaceSample) {
+    const distance = -origin.y / down.y;
+    if (!Number.isFinite(distance) || distance < 0 || distance > maximum) return Infinity;
+    out.height = 0;
+    out.normal.set(0, 1, 0);
+    return distance;
   },
   nearest(_x: number, z: number, out: TrackPoint) {
     out.s = z;

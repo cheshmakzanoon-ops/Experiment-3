@@ -1,0 +1,1592 @@
+[
+  {
+    "job": {
+      "id": 135663982919,
+      "name": "browser (3)",
+      "status": "completed",
+      "conclusion": "failure",
+      "run_id": 44553045707,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Download tested build (attempt 1 of 3)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Clear partial download and back off before retry 2",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 6
+        },
+        {
+          "name": "Download tested build (attempt 2 of 3)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 7
+        },
+        {
+          "name": "Clear partial download and back off before retry 3",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 8
+        },
+        {
+          "name": "Download tested build (final attempt)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 9
+        },
+        {
+          "name": "Require downloaded build before continuing",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Run npx playwright install --with-deps chromium",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        },
+        {
+          "name": "Install Mesa software graphics and virtual display",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 3/12",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 13
+        },
+        {
+          "name": "Browser screenshots and diagnostics",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 27
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 28
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 29
+        }
+      ]
+    },
+    "source": "github_fetch_workflow_job_logs",
+    "fetchedAt": "2026-11-19T20:37:31.476Z",
+    "file": "browser-3-135663982919.log.gz",
+    "decodedUtf8Bytes": 156482,
+    "decodedSha256": "d9bb2ac4a03dece313dd1b63b7ff4eb962034bc82aca8824696d415d545e9452",
+    "compressedSha256": "f3918a4e62b011be13fb4fc09cb6a1ba88df17b92b395698cc214be6ff68d553"
+  },
+  {
+    "job": {
+      "id": 135663983391,
+      "name": "browser (2)",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "run_id": 44553045707,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Download tested build (attempt 1 of 3)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Clear partial download and back off before retry 2",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 6
+        },
+        {
+          "name": "Download tested build (attempt 2 of 3)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 7
+        },
+        {
+          "name": "Clear partial download and back off before retry 3",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 8
+        },
+        {
+          "name": "Download tested build (final attempt)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 9
+        },
+        {
+          "name": "Require downloaded build before continuing",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Run npx playwright install --with-deps chromium",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        },
+        {
+          "name": "Install Mesa software graphics and virtual display",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "number": 13
+        },
+        {
+          "name": "Browser screenshots and diagnostics",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 27
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 28
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 29
+        }
+      ]
+    },
+    "source": "github_fetch_workflow_job_logs",
+    "fetchedAt": "2026-11-19T20:37:30.905Z",
+    "file": "browser-2-135663983391.log.gz",
+    "decodedUtf8Bytes": 147422,
+    "decodedSha256": "9432f8819210a19e7a89f931ce1fb20857054637a5d41909f87dc8ce331977ed",
+    "compressedSha256": "0e085989dafdba0923635ad7ef4595aa9997e047c2767ed5273b1c2c0179ef2c"
+  },
+  {
+    "job": {
+      "id": 135663983594,
+      "name": "browser (6)",
+      "status": "completed",
+      "conclusion": "failure",
+      "run_id": 44553045707,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Download tested build (attempt 1 of 3)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Clear partial download and back off before retry 2",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 6
+        },
+        {
+          "name": "Download tested build (attempt 2 of 3)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 7
+        },
+        {
+          "name": "Clear partial download and back off before retry 3",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 8
+        },
+        {
+          "name": "Download tested build (final attempt)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 9
+        },
+        {
+          "name": "Require downloaded build before continuing",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Run npx playwright install --with-deps chromium",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        },
+        {
+          "name": "Install Mesa software graphics and virtual display",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 6/12",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 13
+        },
+        {
+          "name": "Browser screenshots and diagnostics",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 27
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 28
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 29
+        }
+      ]
+    },
+    "source": "github_fetch_workflow_job_logs",
+    "fetchedAt": "2026-11-19T20:37:41.957Z",
+    "file": "browser-6-135663983594.log.gz",
+    "decodedUtf8Bytes": 114422,
+    "decodedSha256": "9bc5eca786aac1cadbe963c174eb17caa378f2f3993fbcb09f85905273991ded",
+    "compressedSha256": "be9e4de42f50d8e530c07ec587d6912687ba069e99d9fff77aa3829996462f1f"
+  },
+  {
+    "job": {
+      "id": 135663983171,
+      "name": "browser (12)",
+      "status": "completed",
+      "conclusion": "failure",
+      "run_id": 44553045707,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Download tested build (attempt 1 of 3)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Clear partial download and back off before retry 2",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 6
+        },
+        {
+          "name": "Download tested build (attempt 2 of 3)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 7
+        },
+        {
+          "name": "Clear partial download and back off before retry 3",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 8
+        },
+        {
+          "name": "Download tested build (final attempt)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 9
+        },
+        {
+          "name": "Require downloaded build before continuing",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Run npx playwright install --with-deps chromium",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        },
+        {
+          "name": "Install Mesa software graphics and virtual display",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/12",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 13
+        },
+        {
+          "name": "Browser screenshots and diagnostics",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 27
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 28
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 29
+        }
+      ]
+    },
+    "source": "github_fetch_workflow_job_logs",
+    "fetchedAt": "2026-11-19T20:37:43.411Z",
+    "file": "browser-12-135663983171.log.gz",
+    "decodedUtf8Bytes": 115588,
+    "decodedSha256": "98178f5521a7f33ec987de6bc6339f73acee5dedd371abb43166b05572b47b4d",
+    "compressedSha256": "5d30738bfa19f7b26cfec156922369dbf35a9668b41aa88966b56976fa998928"
+  },
+  {
+    "job": {
+      "id": 135663983008,
+      "name": "browser (4)",
+      "status": "completed",
+      "conclusion": "failure",
+      "run_id": 44553045707,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Download tested build (attempt 1 of 3)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Clear partial download and back off before retry 2",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 6
+        },
+        {
+          "name": "Download tested build (attempt 2 of 3)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 7
+        },
+        {
+          "name": "Clear partial download and back off before retry 3",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 8
+        },
+        {
+          "name": "Download tested build (final attempt)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 9
+        },
+        {
+          "name": "Require downloaded build before continuing",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Run npx playwright install --with-deps chromium",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        },
+        {
+          "name": "Install Mesa software graphics and virtual display",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 4/12",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 13
+        },
+        {
+          "name": "Browser screenshots and diagnostics",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 27
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 28
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 29
+        }
+      ]
+    },
+    "source": "github_fetch_workflow_job_logs",
+    "fetchedAt": "2026-11-19T20:37:31.717Z",
+    "file": "browser-4-135663983008.log.gz",
+    "decodedUtf8Bytes": 127480,
+    "decodedSha256": "dbd00064c850a2ff1f5f7d86a563915d6e1199190e7c676a3444071c6c8c17c4",
+    "compressedSha256": "56b480bf9b6bfd7b49c6710b34d2eefc3a67e9c526b1ff79214d74ece0c2fa4d"
+  },
+  {
+    "job": {
+      "id": 135663982993,
+      "name": "browser (7)",
+      "status": "completed",
+      "conclusion": "failure",
+      "run_id": 44553045707,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Download tested build (attempt 1 of 3)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Clear partial download and back off before retry 2",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 6
+        },
+        {
+          "name": "Download tested build (attempt 2 of 3)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 7
+        },
+        {
+          "name": "Clear partial download and back off before retry 3",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 8
+        },
+        {
+          "name": "Download tested build (final attempt)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 9
+        },
+        {
+          "name": "Require downloaded build before continuing",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Run npx playwright install --with-deps chromium",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        },
+        {
+          "name": "Install Mesa software graphics and virtual display",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/12",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 13
+        },
+        {
+          "name": "Browser screenshots and diagnostics",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 27
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 28
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 29
+        }
+      ]
+    },
+    "source": "github_fetch_workflow_job_logs",
+    "fetchedAt": "2026-11-19T20:37:42.190Z",
+    "file": "browser-7-135663982993.log.gz",
+    "decodedUtf8Bytes": 111495,
+    "decodedSha256": "8f2cc7dd9914e3bb056f65b8cdb745bbc67eecbc3251e060780798cd06f4019c",
+    "compressedSha256": "80541b62805d02a3491517646a6f168e39e6f8ca5f9e7376a65000afe8ac64cd"
+  },
+  {
+    "job": {
+      "id": 135663982106,
+      "name": "owner-qa",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "run_id": 44553045707,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "QA build (owner model and review tooling, not for release)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Run npx playwright install --with-deps chromium",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Owner-only and review-tool specs, plus the owner half of the dual-mode specs",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "number": 7
+        },
+        {
+          "name": "Owner QA screenshots and measurements (test results only, never the build)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 15
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 16
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17
+        }
+      ]
+    },
+    "source": "github_fetch_workflow_job_logs",
+    "fetchedAt": "2026-11-19T20:37:31.150Z",
+    "file": "owner-qa-135663982106.log.gz",
+    "decodedUtf8Bytes": 106180,
+    "decodedSha256": "5f60faf58dff02b71fc6f1168ddb62a8ce355242b57ef3f6f2a42dc223e06b8d",
+    "compressedSha256": "6c16af873bc91cdf3c431802eaf977efe52f75ac80365dfed5f78323da8b147b"
+  },
+  {
+    "job": {
+      "id": 135663983140,
+      "name": "browser (10)",
+      "status": "completed",
+      "conclusion": "failure",
+      "run_id": 44553045707,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Download tested build (attempt 1 of 3)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Clear partial download and back off before retry 2",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 6
+        },
+        {
+          "name": "Download tested build (attempt 2 of 3)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 7
+        },
+        {
+          "name": "Clear partial download and back off before retry 3",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 8
+        },
+        {
+          "name": "Download tested build (final attempt)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 9
+        },
+        {
+          "name": "Require downloaded build before continuing",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Run npx playwright install --with-deps chromium",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        },
+        {
+          "name": "Install Mesa software graphics and virtual display",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 10/12",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 13
+        },
+        {
+          "name": "Browser screenshots and diagnostics",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 27
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 28
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 29
+        }
+      ]
+    },
+    "source": "github_fetch_workflow_job_logs",
+    "fetchedAt": "2026-11-19T20:37:42.918Z",
+    "file": "browser-10-135663983140.log.gz",
+    "decodedUtf8Bytes": 119242,
+    "decodedSha256": "a568f16e187d4315ecee08ab91e8dcd1704948544cea102cc0af753818fbac51",
+    "compressedSha256": "f2e4dd49cae1a20e989621f4246b1a94165be16c1bac421eb06df93fd08f671f"
+  },
+  {
+    "job": {
+      "id": 135663983211,
+      "name": "browser (5)",
+      "status": "completed",
+      "conclusion": "failure",
+      "run_id": 44553045707,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Download tested build (attempt 1 of 3)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Clear partial download and back off before retry 2",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 6
+        },
+        {
+          "name": "Download tested build (attempt 2 of 3)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 7
+        },
+        {
+          "name": "Clear partial download and back off before retry 3",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 8
+        },
+        {
+          "name": "Download tested build (final attempt)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 9
+        },
+        {
+          "name": "Require downloaded build before continuing",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Run npx playwright install --with-deps chromium",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        },
+        {
+          "name": "Install Mesa software graphics and virtual display",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 13
+        },
+        {
+          "name": "Browser screenshots and diagnostics",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 27
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 28
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 29
+        }
+      ]
+    },
+    "source": "github_fetch_workflow_job_logs",
+    "fetchedAt": "2026-11-19T20:37:41.705Z",
+    "file": "browser-5-135663983211.log.gz",
+    "decodedUtf8Bytes": 106684,
+    "decodedSha256": "c5e44b0e6d1c7af839f297ef8a63d7162cd293819f1520a9a796e93b5707cb4e",
+    "compressedSha256": "204ad553e0a8f3ed0234a9aabdca72b29030805c3fa347c4e54e8efde5493683"
+  },
+  {
+    "job": {
+      "id": 135661597381,
+      "name": "unit-tests",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "run_id": 44553045707,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Full unit suite without source changes",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "number": 5
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 9
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        }
+      ]
+    },
+    "source": "github_fetch_workflow_job_logs",
+    "fetchedAt": "2026-11-19T20:37:43.663Z",
+    "file": "unit-tests-135661597381.log.gz",
+    "decodedUtf8Bytes": 276633,
+    "decodedSha256": "95383efdb43de8f407f21d4d845efe1f55a3d6d6380a33e84616fc789eacd724",
+    "compressedSha256": "4fc56ef1edc57cbb9a5ee9101614a3e2c919929e311a89a8e816a286dcdd398c"
+  },
+  {
+    "job": {
+      "id": 135663983207,
+      "name": "browser (8)",
+      "status": "completed",
+      "conclusion": "failure",
+      "run_id": 44553045707,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Download tested build (attempt 1 of 3)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Clear partial download and back off before retry 2",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 6
+        },
+        {
+          "name": "Download tested build (attempt 2 of 3)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 7
+        },
+        {
+          "name": "Clear partial download and back off before retry 3",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 8
+        },
+        {
+          "name": "Download tested build (final attempt)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 9
+        },
+        {
+          "name": "Require downloaded build before continuing",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Run npx playwright install --with-deps chromium",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        },
+        {
+          "name": "Install Mesa software graphics and virtual display",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/12",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 13
+        },
+        {
+          "name": "Browser screenshots and diagnostics",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 27
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 28
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 29
+        }
+      ]
+    },
+    "source": "github_fetch_workflow_job_logs",
+    "fetchedAt": "2026-11-19T20:37:42.433Z",
+    "file": "browser-8-135663983207.log.gz",
+    "decodedUtf8Bytes": 116245,
+    "decodedSha256": "985a3818a59f21d4b774f9a7e6b8f366e85d11a3017d1125bb96d9f2fc44e272",
+    "compressedSha256": "b18402f1b73d4055860042c180656e70f655011680c73c8679e71286f074b3cc"
+  },
+  {
+    "job": {
+      "id": 135663983304,
+      "name": "browser (11)",
+      "status": "completed",
+      "conclusion": "failure",
+      "run_id": 44553045707,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Download tested build (attempt 1 of 3)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Clear partial download and back off before retry 2",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 6
+        },
+        {
+          "name": "Download tested build (attempt 2 of 3)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 7
+        },
+        {
+          "name": "Clear partial download and back off before retry 3",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 8
+        },
+        {
+          "name": "Download tested build (final attempt)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 9
+        },
+        {
+          "name": "Require downloaded build before continuing",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Run npx playwright install --with-deps chromium",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        },
+        {
+          "name": "Install Mesa software graphics and virtual display",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 11/12",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 13
+        },
+        {
+          "name": "Browser screenshots and diagnostics",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 27
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 28
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 29
+        }
+      ]
+    },
+    "source": "github_fetch_workflow_job_logs",
+    "fetchedAt": "2026-11-19T20:37:43.159Z",
+    "file": "browser-11-135663983304.log.gz",
+    "decodedUtf8Bytes": 129210,
+    "decodedSha256": "8616a81786e4ba336b7c5db5bce4898ab482ed6518c8ad06cd90b76402b4fb66",
+    "compressedSha256": "9caec6519b2a04d799f34adccd50fa734f4f48847f54d77932faa34e39ae3481"
+  },
+  {
+    "job": {
+      "id": 135663983128,
+      "name": "browser (1)",
+      "status": "completed",
+      "conclusion": "failure",
+      "run_id": 44553045707,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Download tested build (attempt 1 of 3)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Clear partial download and back off before retry 2",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 6
+        },
+        {
+          "name": "Download tested build (attempt 2 of 3)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 7
+        },
+        {
+          "name": "Clear partial download and back off before retry 3",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 8
+        },
+        {
+          "name": "Download tested build (final attempt)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 9
+        },
+        {
+          "name": "Require downloaded build before continuing",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Run npx playwright install --with-deps chromium",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        },
+        {
+          "name": "Install Mesa software graphics and virtual display",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 1/12",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 13
+        },
+        {
+          "name": "Browser screenshots and diagnostics",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 27
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 28
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 29
+        }
+      ]
+    },
+    "source": "github_fetch_workflow_job_logs",
+    "fetchedAt": "2026-11-19T20:37:30.629Z",
+    "file": "browser-1-135663983128.log.gz",
+    "decodedUtf8Bytes": 171348,
+    "decodedSha256": "352dcb6ee6990a87ce3fbefbfda4b79104f2a831e821622cc75ed04d2dac0a86",
+    "compressedSha256": "e768e7fe426a13b2bfb86ceb0e6f77d239b523baef24cbe96ca8ad0eeaf0d09f"
+  },
+  {
+    "job": {
+      "id": 135663982988,
+      "name": "browser (9)",
+      "status": "completed",
+      "conclusion": "failure",
+      "run_id": 44553045707,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Download tested build (attempt 1 of 3)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Clear partial download and back off before retry 2",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 6
+        },
+        {
+          "name": "Download tested build (attempt 2 of 3)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 7
+        },
+        {
+          "name": "Clear partial download and back off before retry 3",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 8
+        },
+        {
+          "name": "Download tested build (final attempt)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 9
+        },
+        {
+          "name": "Require downloaded build before continuing",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Run npx playwright install --with-deps chromium",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        },
+        {
+          "name": "Install Mesa software graphics and virtual display",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/12",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 13
+        },
+        {
+          "name": "Browser screenshots and diagnostics",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 27
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 28
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 29
+        }
+      ]
+    },
+    "source": "github_fetch_workflow_job_logs",
+    "fetchedAt": "2026-11-19T20:37:42.677Z",
+    "file": "browser-9-135663982988.log.gz",
+    "decodedUtf8Bytes": 122398,
+    "decodedSha256": "c00781c44440a88d5a3cc77ee1e9a478d27687e3954f6765ba6d2a49deee86fb",
+    "compressedSha256": "7da01b7ff00f1eeb539c86a854bb0575dd1014228c5b96da6fcc6f58b498c6dd"
+  }
+]

@@ -1,0 +1,103 @@
+{
+  "source": "57d1a98",
+  "kind": "CPU proof using real runtime geometry and native Canvas 2D; no browser or WebGL",
+  "inputs": {
+    "e2e/fixtures/apx01-assembly.ts": {
+      "baselineSha256": "03f2e202a9431e98b1c2ad28cd2b00719d3ed2b654b8c573d3f11aafde14f493",
+      "candidateSha256": "62c73f06789760d220826b5f8e4103ab0fcf9bacb77083fb0b88f2b550d1a8a7"
+    },
+    "e2e/fixtures/gp-contact-effects.ts": {
+      "baselineSha256": "6f3e3b30f34663004f1892677e89837be3773ced060a197d3a23948732e56166",
+      "candidateSha256": "51a7790f1b27b0deaa03ec1f7a9e8d449dac09bcf5e74b712e49412bfd86181c"
+    },
+    "e2e/09-reference-depth.spec.ts": {
+      "baselineSha256": "929655e79c01419b0196bcf69fb1c37d6c1bdbce9c07d11852b2209486ac5c6a",
+      "candidateSha256": "986e080074274cbba5130948137462999533165f32a73dabe5bc283ddf4de493"
+    }
+  },
+  "results": {
+    "gp-baseline": {
+      "pass": false,
+      "error": "TypeError: track.cast is not a function"
+    },
+    "assembly-baseline": {
+      "pass": false,
+      "error": "Error: Upright joint detached: 0.060000004698496916 != 0"
+    },
+    "survey-baseline": {
+      "pass": false,
+      "error": "TypeError: Cannot read properties of undefined (reading 'geometrySurvey')"
+    },
+    "gp-candidate": {
+      "pass": true,
+      "poses": 9,
+      "bodyFinite": true
+    },
+    "assembly-candidate": {
+      "pass": true,
+      "report": {
+        "kind": "CPU component / no WebGL visual acceptance",
+        "parts": 41,
+        "driver": {
+          "loaded": true,
+          "revision": "27H-cockpit-tailoring-seated-suit-3",
+          "sha256": "7887cb43d21cdfbe1f09e167052fe8b6c64546882fe2206ce7b0e27f2684b50e",
+          "skinnedSleeves": 2,
+          "joints": 9,
+          "triangles": 14432,
+          "compressedBytes": 209403,
+          "finalArtApproved": false
+        },
+        "assetSHA256": "57fedbb96d692412ebb4e7fb5a6b8c840720fcd437a61ab43f236acaae23b587",
+        "poses": 68,
+        "suspensionEndpointsChecked": 2176,
+        "geometryBytes": 8791176,
+        "lod": [
+          {
+            "level": 0,
+            "visibleTriangles": 221140
+          },
+          {
+            "level": 1,
+            "visibleTriangles": 22113
+          },
+          {
+            "level": 2,
+            "visibleTriangles": 16517
+          },
+          {
+            "level": 0,
+            "visibleTriangles": 221140
+          }
+        ],
+        "updateMs": {
+          "median": 2.020487000000685,
+          "p95": 6.020760999999766
+        },
+        "physicalStateUnchanged": true,
+        "steeringTravelCamber": true,
+        "pitOwnership": true,
+        "damage": true,
+        "brakeHeat": true,
+        "livePaintAndMirrors": true,
+        "signedLiveryAcrossAllLodsAndTextureBudgets": true,
+        "replay": true,
+        "finalArtApproved": false
+      }
+    },
+    "survey-candidate": {
+      "pass": true,
+      "observed": [
+        0,
+        0,
+        12
+      ],
+      "accepted": [
+        false,
+        false,
+        true
+      ]
+    }
+  },
+  "inputsStable": true
+}

@@ -22,10 +22,36 @@ describe('independent CI diagnostics with strict release gates', () => {
       unit = job('unit-tests');
     expect(build).toContain('npm run lint && npm run validate:content && npm run build');
     expect(build).not.toMatch(/npm (?:test|run check)/);
-    expect(unit).toMatch(/scripts\/source-stability\.ts -- npm test(?:\n|$)/);
+    expect(unit).toContain('scripts/source-stability.ts -- npm test --');
+    expect(unit).toContain('--shard=${{ matrix.shard }}/${{ strategy.job-total }}');
     expect(unit).not.toMatch(/continue-on-error|--exclude|--testNamePattern|--passWithNoTests/);
     expect(build).not.toMatch(/needs:/);
     expect(unit).not.toMatch(/needs:/);
+  });
+
+  it('runs every unit partition after a failure and retains each result', () => {
+    const doc = yaml.load(workflow) as {
+      jobs: Record<
+        string,
+        {
+          'timeout-minutes': number;
+          strategy: { 'fail-fast': boolean; matrix: { shard: number[] } };
+        }
+      >;
+    };
+    const unit = doc.jobs['unit-tests'];
+    const shards = unit.strategy.matrix.shard;
+    expect(shards.length).toBeGreaterThan(1);
+    expect(shards).toEqual(Array.from({ length: shards.length }, (_, i) => i + 1));
+    expect(unit.strategy['fail-fast']).toBe(false);
+    expect(unit['timeout-minutes']).toBe(45);
+    const commands = job('unit-tests');
+    expect(commands).toContain('set -euo pipefail');
+    expect(commands).toContain('--reporter=default --reporter=json');
+    expect(commands).toContain('if: always()');
+    expect(commands).toContain('unit-validation-${{ matrix.shard }}-of-${{ strategy.job-total }}');
+    expect(commands).toContain('${{ runner.temp }}/unit-${{ matrix.shard }}.json');
+    expect(commands).toContain('${{ runner.temp }}/unit-${{ matrix.shard }}.log');
   });
 
   it('runs both browser gates on the exact build, independently of unit results', () => {
@@ -35,6 +61,33 @@ describe('independent CI diagnostics with strict release gates', () => {
       expect(browser).toContain('name: apex-formula-web');
       expect(browser).not.toContain('needs: unit-tests');
     }
+  });
+
+  it('collects every browser and owner partition without fail-fast or artifact collisions', () => {
+    const doc = yaml.load(workflow) as {
+      jobs: Record<
+        string,
+        {
+          'timeout-minutes': number;
+          strategy: { 'fail-fast': boolean; matrix: { shard: number[] } };
+        }
+      >;
+    };
+    for (const name of ['browser', 'owner-qa']) {
+      const partitioned = doc.jobs[name];
+      const shards = partitioned.strategy.matrix.shard;
+      expect(shards.length).toBeGreaterThan(1);
+      expect(shards).toEqual(Array.from({ length: shards.length }, (_, i) => i + 1));
+      expect(partitioned.strategy['fail-fast']).toBe(false);
+      expect(partitioned['timeout-minutes']).toBe(90);
+      expect(job(name)).toContain('if: always()');
+      expect(job(name)).toContain(
+        'name: ' +
+          (name === 'browser' ? 'browser-validation' : 'owner-qa') +
+          '-${{ matrix.shard }}-of-${{ strategy.job-total }}',
+      );
+    }
+    expect(job('owner-qa')).toContain('--shard=${{ matrix.shard }}/${{ strategy.job-total }}');
   });
 
   it('runs the complete original offroad gate with guarded temporary reports', () => {

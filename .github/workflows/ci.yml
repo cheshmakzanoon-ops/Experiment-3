@@ -67,6 +67,13 @@ jobs:
   unit-tests:
     runs-on: ubuntu-24.04
     timeout-minutes: 45
+    # The single-worker suite stopped near this cap in run 44553045707 before
+    # 166 files produced a result. Native Vitest sharding partitions the whole
+    # inventory across runners; a failed shard must not cancel the others.
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -74,10 +81,27 @@ jobs:
           node-version: '22'
           cache: npm
       - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
-      # npm test retains pretest asset generation and runs the whole suite.
-      # No filters or skipped regressions; failures remain blocking for publication.
-      - name: Full unit suite without source changes
-        run: node --experimental-transform-types scripts/source-stability.ts -- npm test
+      # npm test retains pretest asset generation. The union of the native
+      # shards is the unfiltered suite; every shard still blocks publication.
+      - name: Complete unit-suite partition without source changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --experimental-transform-types scripts/source-stability.ts -- npm test -- \
+            --shard=${{ matrix.shard }}/${{ strategy.job-total }} \
+            --reporter=default --reporter=json \
+            --outputFile.json="$RUNNER_TEMP/unit-${{ matrix.shard }}.json" \
+            2>&1 | tee "$RUNNER_TEMP/unit-${{ matrix.shard }}.log"
+      - name: Unit results, including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-validation-${{ matrix.shard }}-of-${{ strategy.job-total }}
+          path: |
+            ${{ runner.temp }}/unit-${{ matrix.shard }}.json
+            ${{ runner.temp }}/unit-${{ matrix.shard }}.log
+          retention-days: 7
+          if-no-files-found: error
   scenarios:
     runs-on: ubuntu-24.04
     # Run 41879845721 (0b8ec67): the steps before `npm run test:vehicles` took
@@ -168,15 +192,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
     needs: validate
     runs-on: ubuntu-24.04
     # Enumerate the full suite, balance long race cases, then verify the selected
     # IDs against Playwright itself. Every case belongs to exactly one partition;
-    # serial groups remain intact. The 347-case inventory with the complete
-    # scenery/pit surveys assigned 6,410-6,430 scheduling units to each of eight
-    # runners. Twelve assign 4,260-4,290, leaving headroom under the unchanged
-    # 90-minute cap. These are estimates, not proof that a GPU stall is fixed.
+    # serial groups remain intact. Run 44553045707 still lost two results in
+    # partition 2 near the 90-minute limit with twelve runners. Sixteen reduce
+    # each job's workload while keeping every case and its original deadline.
+    # This scheduling change does not fix or accept any GPU/readiness failure.
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
@@ -351,6 +375,13 @@ jobs:
     needs: validate
     runs-on: ubuntu-24.04
     timeout-minutes: 90
+    # Run 44553045707 ended near this cap with only 24 of 42 case results.
+    # Keep the complete original file selection and native serial groups;
+    # distribute it without cancelling other partitions after a failure.
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -362,12 +393,12 @@ jobs:
         run: npm run build:qa
       - run: npx playwright install --with-deps chromium
       - name: Owner-only and review-tool specs, plus the owner half of the dual-mode specs
-        run: npm run test:e2e -- e2e/39-supplied-player.spec.ts e2e/41-player-render-budget.spec.ts e2e/p0-cockpit-framing.spec.ts e2e/24-coupled-driver.spec.ts e2e/53-a61-rival.spec.ts e2e/application.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/a31-wheel-gun.spec.ts e2e/07-reference-tools.spec.ts e2e/08-reference-implementation.spec.ts e2e/09-reference-depth.spec.ts e2e/14-phase27e.spec.ts e2e/15-review-journey.spec.ts
+        run: npm run test:e2e -- e2e/39-supplied-player.spec.ts e2e/41-player-render-budget.spec.ts e2e/p0-cockpit-framing.spec.ts e2e/24-coupled-driver.spec.ts e2e/53-a61-rival.spec.ts e2e/application.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/a31-wheel-gun.spec.ts e2e/07-reference-tools.spec.ts e2e/08-reference-implementation.spec.ts e2e/09-reference-depth.spec.ts e2e/14-phase27e.spec.ts e2e/15-review-journey.spec.ts --shard=${{ matrix.shard }}/${{ strategy.job-total }}
       - name: Owner QA screenshots and measurements (test results only, never the build)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: owner-qa
+          name: owner-qa-${{ matrix.shard }}-of-${{ strategy.job-total }}
           path: |
             test-results/
             playwright-report/
