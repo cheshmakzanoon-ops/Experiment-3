@@ -1,0 +1,28 @@
+{
+  "source": "/workspace/scratch/d611aefdb08c/w27-gp-history-candidate",
+  "guardReceipt": "original-mixed-history-status.json",
+  "sourceStable": true,
+  "childExit": 0,
+  "inputDigest": "ba474076c03484564d0d6ecba4e8dde079d3f565d7899f6e84548cb77e64052e",
+  "sourceSha256": {
+    "src/simulation/bike.ts": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de",
+    "src/simulation/bike-ai.ts": "ffc70ab74e818298535eea6c48375df8cd3a5b30ba4ad776370a358eb3358c7d",
+    "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+    "src/simulation/ai.ts": "5be0791ac44bc88a17e0c84744216e66ea6455f1dbe55a489c2628d2f5412525",
+    "src/simulation/traffic.ts": "58bbe1c1e66fdb5a7a7850f3bd1e04b320ddc58b030aa2ec0638ff639160e874",
+    "tests/bike-mixed-passing.test.ts": "de20c703b20d780a5aafee7eeba45be8efaab5f59c780c303a3b6c704e734253"
+  },
+  "cases": [
+    {
+      "circuit": "vellamar",
+      "seed": 5222,
+      "passed": true
+    },
+    {
+      "circuit": "montejaral",
+      "seed": 5111,
+      "passed": true
+    }
+  ],
+  "meaning": "Unchanged original zero-fall cases pass on the preserved pure-history foundation; the later combined-source failures were not present on this baseline."
+}

@@ -1,0 +1,42 @@
+{
+  "base": "/workspace/scratch/0ab62d15db18/gp-final-physics-candidate",
+  "positive": "/workspace/scratch/0ab62d15db18/gp-width-snapshot-review",
+  "negative": "/workspace/scratch/0ab62d15db18/gp-width-snapshot-negative",
+  "baseBikeAISHA256": "9403ed4cffceb61cf20bd7e30eca162a11034a7119be2580e22682b2213cb9ed",
+  "testSHA256": "2c94e3b1bd5650d2801a79833f03f852c8a67bf3754a6f8c62b5e6ebaac00564",
+  "mutation": "Only omit explicit width from four authored-path helper calls inside snapshot approachPlan, restoring current-water reads.",
+  "results": [
+    {
+      "kind": "positive",
+      "exitCode": 0,
+      "passed": 2,
+      "failed": 0,
+      "durationSeconds": 4.45,
+      "log": "gp-width-snapshot-review.log",
+      "logSHA256": "beb24ff993bcbcef02704f2c230f07158b65a333a0b619fe47defded010c16fe"
+    },
+    {
+      "kind": "negative",
+      "exitCode": 1,
+      "passed": 0,
+      "failed": 2,
+      "expectedFailure": true,
+      "log": "gp-width-snapshot-negative.log",
+      "reason": "Without explicit snapshot width, both native passing extensions alter the previously sampled physical-path prefix when front water changes.",
+      "logSHA256": "043fbe101bd8e65c314c6d5909355b5c44826c099000a646c15a49e79d42077c"
+    }
+  ],
+  "sourceUnchanged": true,
+  "testContract": [
+    "Two transitions: wet to dry and dry to wet.",
+    "Real Vellamar/BikeAIDriver plan and passPace, without mocks.",
+    "Passing must extend into an unfilled buffer sample.",
+    "Original prefix metrics, distances, curvatures, gradients and corner capacities remain identical.",
+    "Next ordinary solve must adopt new contact geometry."
+  ],
+  "review": {
+    "blockingIssues": [],
+    "summary": "Width captured with ordinary path snapshot and applied to all four approachPlan helper calls. Current steering/road pedal calls retain current-water defaults; width-one return path and offroad overrides unchanged.",
+    "raceRuns": 0
+  }
+}

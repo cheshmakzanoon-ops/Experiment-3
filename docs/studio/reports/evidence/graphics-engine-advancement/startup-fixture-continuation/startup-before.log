@@ -1,0 +1,176 @@
+(node:5) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+ RUN  v3.2.4 /workspace/scratch/0ab62d15db18/Experiment-3
+
+ ❯ tests/startup.test.ts (30 tests | 22 failed) 675ms
+   × compiles the first prepared view with its actual venue-light slots: 'day' / studio=false 360ms
+     → Cannot read properties of undefined (reading 'get')
+   × compiles the first prepared view with its actual venue-light slots: 'sunset' / studio=false 85ms
+     → Cannot read properties of undefined (reading 'get')
+   × compiles the first prepared view with its actual venue-light slots: 'night' / studio=false 91ms
+     → Cannot read properties of undefined (reading 'get')
+   × compiles the first prepared view with its actual venue-light slots: 'night' / studio=true 80ms
+     → Cannot read properties of undefined (reading 'get')
+   × keeps bike LODs and omits hidden Formula hosts during preparation: 'MX250 gate' 5ms
+     → Cannot read properties of undefined (reading 'get')
+   × keeps bike LODs and omits hidden Formula hosts during preparation: 'MX450 gate' 3ms
+     → Cannot read properties of undefined (reading 'get')
+   × keeps bike LODs and omits hidden Formula hosts during preparation: 'mixed exhibition' 2ms
+     → Cannot read properties of undefined (reading 'get')
+   × keeps bike LODs and omits hidden Formula hosts during preparation: 'Formula grid' 1ms
+     → Cannot read properties of undefined (reading 'get')
+   × yields construction, compiles and warms 'apx01' camera passes without modifying simulation time 1ms
+     → Cannot read properties of undefined (reading 'programs')
+   × yields construction, compiles and warms 'gpr1' camera passes without modifying simulation time 1ms
+     → Cannot read properties of undefined (reading 'programs')
+   × yields construction, compiles and warms 'gpr2' camera passes without modifying simulation time 1ms
+     → Cannot read properties of undefined (reading 'programs')
+   × yields construction, compiles and warms 'sbk1000' camera passes without modifying simulation time 1ms
+     → Cannot read properties of undefined (reading 'programs')
+   × yields construction, compiles and warms 'ss600' camera passes without modifying simulation time 1ms
+     → Cannot read properties of undefined (reading 'programs')
+   × yields construction, compiles and warms 'mx450' camera passes without modifying simulation time 1ms
+     → Cannot read properties of undefined (reading 'programs')
+   × warms only reachable pit service while completing both GPU views: 'mx450' / 'race' / 'motocross-moto' 1ms
+     → Cannot read properties of undefined (reading 'programs')
+   × warms only reachable pit service while completing both GPU views: 'mx250' / 'race' / 'motocross-moto' 1ms
+     → Cannot read properties of undefined (reading 'programs')
+   × warms only reachable pit service while completing both GPU views: 'mx450' / 'practice' / undefined 1ms
+     → Cannot read properties of undefined (reading 'programs')
+   × warms only reachable pit service while completing both GPU views: 'mx250' / 'time-trial' / undefined 1ms
+     → Cannot read properties of undefined (reading 'programs')
+   × warms only reachable pit service while completing both GPU views: 'gpr1' / 'race' / 'gp-motorcycle' 1ms
+     → Cannot read properties of undefined (reading 'programs')
+   × warms only reachable pit service while completing both GPU views: 'apx01' / 'race' / 'formula-grand-prix' 6ms
+     → Cannot read properties of undefined (reading 'programs')
+   × keeps the GPU completion gate when a no-service motocross warmup stalls 7ms
+     → expected [Function] to throw error including 'GPU preparation did not complete' but got 'Cannot read properties of undefined (…'
+   ✓ allows cancellation before motorcycle construction only for a complete GP field: [ 'gpr1', 'gpr2', 'gpr1' ] 5ms
+   ✓ allows cancellation before motorcycle construction only for a complete GP field: [ 'apx01', 'gpr1', 'gpr2' ] 5ms
+   ✓ allows cancellation before motorcycle construction only for a complete GP field: [ 'mx450', 'mx450', 'mx450' ] 4ms
+   ✓ stops cancelled construction before touching any further GPU resources 1ms
+   ✓ requires the complete selected circuit before a showroom can prepare driving 5ms
+   ✓ a shader failure rejects initialization instead of starting unprepared gameplay 1ms
+   × restores the selected camera when a GPU warmup pass throws 1ms
+     → expected [Function] to throw error including 'GPU pass failed' but got 'Cannot read properties of undefined (…'
+   ✓ never treats an unfinished GPU preparation deadline as successful completion 1ms
+   ✓ does not apply graphics or compile when preparation fails 1ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 22 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/startup.test.ts > compiles the first prepared view with its actual venue-light slots: 'day' / studio=false
+ FAIL  tests/startup.test.ts > compiles the first prepared view with its actual venue-light slots: 'sunset' / studio=false
+ FAIL  tests/startup.test.ts > compiles the first prepared view with its actual venue-light slots: 'night' / studio=false
+ FAIL  tests/startup.test.ts > compiles the first prepared view with its actual venue-light slots: 'night' / studio=true
+TypeError: Cannot read properties of undefined (reading 'get')
+ ❯ compileSceneTarget src/rendering/preparation.ts:75:46
+     73|     const programs = new Set<T.WebGLProgram>();
+     74|     for (const material of materials) {
+     75|       const properties = renderer.properties.get(material) as {
+       |                                              ^
+     76|         programs?: Map<string, T.WebGLProgram>;
+     77|       };
+ ❯ src/rendering/renderer.ts:1069:13
+ ❯ PreparationTrace.run src/rendering/preparation.ts:130:25
+ ❯ tests/startup.test.ts:146:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/22]⎯
+
+ FAIL  tests/startup.test.ts > keeps bike LODs and omits hidden Formula hosts during preparation: 'MX250 gate'
+ FAIL  tests/startup.test.ts > keeps bike LODs and omits hidden Formula hosts during preparation: 'MX450 gate'
+ FAIL  tests/startup.test.ts > keeps bike LODs and omits hidden Formula hosts during preparation: 'mixed exhibition'
+ FAIL  tests/startup.test.ts > keeps bike LODs and omits hidden Formula hosts during preparation: 'Formula grid'
+TypeError: Cannot read properties of undefined (reading 'get')
+ ❯ compileSceneTarget src/rendering/preparation.ts:75:46
+     73|     const programs = new Set<T.WebGLProgram>();
+     74|     for (const material of materials) {
+     75|       const properties = renderer.properties.get(material) as {
+       |                                              ^
+     76|         programs?: Map<string, T.WebGLProgram>;
+     77|       };
+ ❯ src/rendering/renderer.ts:1069:13
+ ❯ PreparationTrace.run src/rendering/preparation.ts:130:25
+ ❯ tests/startup.test.ts:251:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/22]⎯
+
+ FAIL  tests/startup.test.ts > yields construction, compiles and warms 'apx01' camera passes without modifying simulation time
+ FAIL  tests/startup.test.ts > yields construction, compiles and warms 'gpr1' camera passes without modifying simulation time
+ FAIL  tests/startup.test.ts > yields construction, compiles and warms 'gpr2' camera passes without modifying simulation time
+ FAIL  tests/startup.test.ts > yields construction, compiles and warms 'sbk1000' camera passes without modifying simulation time
+ FAIL  tests/startup.test.ts > yields construction, compiles and warms 'ss600' camera passes without modifying simulation time
+ FAIL  tests/startup.test.ts > yields construction, compiles and warms 'mx450' camera passes without modifying simulation time
+TypeError: Cannot read properties of undefined (reading 'programs')
+ ❯ src/rendering/preparation.ts:85:46
+     83|       preparation?.beforeMetadata?.();
+     84|       if (preparation?.cancelled()) return compiled;
+     85|       const retained = new Set(renderer.info.programs ?? []);
+       |                                              ^
+     86|       for (const program of programs)
+     87|         if (retained.has(program) && program.usedTimes > 0) program.ge…
+ ❯ src/rendering/renderer.ts:1069:7
+ ❯ PreparationTrace.run src/rendering/preparation.ts:130:25
+ ❯ tests/startup.test.ts:287:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/22]⎯
+
+ FAIL  tests/startup.test.ts > warms only reachable pit service while completing both GPU views: 'mx450' / 'race' / 'motocross-moto'
+ FAIL  tests/startup.test.ts > warms only reachable pit service while completing both GPU views: 'mx250' / 'race' / 'motocross-moto'
+ FAIL  tests/startup.test.ts > warms only reachable pit service while completing both GPU views: 'mx450' / 'practice' / undefined
+ FAIL  tests/startup.test.ts > warms only reachable pit service while completing both GPU views: 'mx250' / 'time-trial' / undefined
+ FAIL  tests/startup.test.ts > warms only reachable pit service while completing both GPU views: 'gpr1' / 'race' / 'gp-motorcycle'
+ FAIL  tests/startup.test.ts > warms only reachable pit service while completing both GPU views: 'apx01' / 'race' / 'formula-grand-prix'
+TypeError: Cannot read properties of undefined (reading 'programs')
+ ❯ src/rendering/preparation.ts:85:46
+     83|       preparation?.beforeMetadata?.();
+     84|       if (preparation?.cancelled()) return compiled;
+     85|       const retained = new Set(renderer.info.programs ?? []);
+       |                                              ^
+     86|       for (const program of programs)
+     87|         if (retained.has(program) && program.usedTimes > 0) program.ge…
+ ❯ src/rendering/renderer.ts:1069:7
+ ❯ PreparationTrace.run src/rendering/preparation.ts:130:25
+ ❯ tests/startup.test.ts:343:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/22]⎯
+
+ FAIL  tests/startup.test.ts > keeps the GPU completion gate when a no-service motocross warmup stalls
+AssertionError: expected [Function] to throw error including 'GPU preparation did not complete' but got 'Cannot read properties of undefined (…'
+
+Expected: "GPU preparation did not complete"
+Received: "Cannot read properties of undefined (reading 'programs')"
+
+ ❯ tests/startup.test.ts:368:3
+    366|   const { target, typed, sample } = fixture('mx450');
+    367|   target.waitForPreparedFrame.mockRejectedValueOnce(new Error('GPU pre…
+    368|   await expect(
+       |   ^
+    369|     RacingRenderer.prototype.prepare.call(
+    370|       typed,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/22]⎯
+
+ FAIL  tests/startup.test.ts > restores the selected camera when a GPU warmup pass throws
+AssertionError: expected [Function] to throw error including 'GPU pass failed' but got 'Cannot read properties of undefined (…'
+
+Expected: "GPU pass failed"
+Received: "Cannot read properties of undefined (reading 'programs')"
+
+ ❯ tests/startup.test.ts:477:3
+    475|     throw new Error('GPU pass failed');
+    476|   });
+    477|   await expect(
+       |   ^
+    478|     RacingRenderer.prototype.prepare.call(
+    479|       typed,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/22]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  22 failed | 8 passed (30)
+   Start at  05:39:32
+   Duration  8.03s (transform 4.44s, setup 0ms, collect 7.04s, tests 675ms, environment 0ms, prepare 84ms)
+

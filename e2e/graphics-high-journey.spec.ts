@@ -482,13 +482,16 @@ function installFirstChaseStartup() {
 
 function installInstancedFragmentOutputs() {
   // Test-only diagnosis of the observed missing-fragment-output GL warning.
-  // Inspect each linked program once, retain ordinary draws and never drain
-  // getError or add a synchronous query to every instance submission.
+  // Cache linked outputs when production already checks completed metadata.
+  // Querying them after queued cube faces made the diagnostic itself stall.
+  // Actual draws still check missing outputs against their current draw buffers;
+  // programs without a metadata check retain the original first-draw fallback.
   const prototype = WebGL2RenderingContext.prototype,
     createShader = prototype.createShader,
     shaderSource = prototype.shaderSource,
     attachShader = prototype.attachShader,
     linkProgram = prototype.linkProgram,
+    getProgramParameter = prototype.getProgramParameter,
     useProgram = prototype.useProgram;
   // Record repeated immutable-storage allocation without querying or draining
   // driver errors. The first and repeated call sites identify the actual
@@ -532,6 +535,11 @@ function installInstancedFragmentOutputs() {
   const types = new WeakMap<WebGLShader, number>(),
     sources = new WeakMap<WebGLShader, string>(),
     fragments = new WeakMap<WebGLProgram, WebGLShader>(),
+    linkedSources = new WeakMap<WebGLProgram, string>(),
+    outputCache = new WeakMap<
+      WebGLProgram,
+      { source: string; outputs: { name: string; location: number }[] }
+    >(),
     current = new WeakMap<WebGL2RenderingContext, WebGLProgram | null>(),
     inspected = new WeakSet<WebGLProgram>();
   let reports = 0;
@@ -549,20 +557,23 @@ function installInstancedFragmentOutputs() {
     attachShader.call(this, program, shader);
   };
   prototype.linkProgram = function (program) {
-    inspected.delete(program);
     linkProgram.call(this, program);
+    inspected.delete(program);
+    outputCache.delete(program);
+    const fragment = fragments.get(program),
+      source = fragment && sources.get(fragment);
+    if (source !== undefined) linkedSources.set(program, source);
+    else linkedSources.delete(program);
   };
   prototype.useProgram = function (program) {
     current.set(this, program);
     useProgram.call(this, program);
   };
-  const inspect = (gl: WebGL2RenderingContext) => {
-    const program = current.get(gl);
-    if (!program || inspected.has(program) || reports >= 8) return;
-    inspected.add(program);
-    const fragment = fragments.get(program),
-      source = fragment && sources.get(fragment);
-    if (!source) return;
+  const cacheOutputs = (gl: WebGL2RenderingContext, program: WebGLProgram) => {
+    const cached = outputCache.get(program);
+    if (cached) return cached;
+    const source = linkedSources.get(program);
+    if (!source) return null;
     const declarations = source.matchAll(
       /\bout\s+(?:(?:lowp|mediump|highp)\s+)?(?:float|int|uint|[biu]?vec[234])\s+([A-Za-z_]\w*)(?:\s*\[\s*(\d+)\s*\])?\s*;/g,
     );
@@ -570,6 +581,26 @@ function installInstancedFragmentOutputs() {
       const name = declaration[1] + (declaration[2] ? '[0]' : '');
       return { name, location: gl.getFragDataLocation(program, name) };
     });
+    const result = { source, outputs };
+    outputCache.set(program, result);
+    return result;
+  };
+  prototype.getProgramParameter = function (program, parameter) {
+    const result = getProgramParameter.call(this, program, parameter);
+    // Do not introduce a status query or synchronize at linkProgram. In r180
+    // this true LINK_STATUS is requested after the ordinary first-use logs;
+    // COMPLETION_STATUS_KHR polling and failed links are left untouched.
+    if (parameter === this.LINK_STATUS && result === true && reports < 8)
+      cacheOutputs(this, program);
+    return result;
+  };
+  const inspect = (gl: WebGL2RenderingContext) => {
+    const program = current.get(gl);
+    if (!program || inspected.has(program) || reports >= 8) return;
+    inspected.add(program);
+    const cached = cacheOutputs(gl, program);
+    if (!cached) return;
+    const { source, outputs } = cached;
     if (outputs.some((output) => output.location >= 0)) return;
     const drawBuffers = Array.from(
       { length: gl.getParameter(gl.MAX_DRAW_BUFFERS) as number },

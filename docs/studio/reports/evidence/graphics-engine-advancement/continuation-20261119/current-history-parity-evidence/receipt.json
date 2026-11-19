@@ -1,0 +1,136 @@
+{
+  "createdAt": "2026-11-19T13:40:49.649475+00:00",
+  "scope": "Fresh current-history versus recorded remote production parity; no historical success transferred. No source modification or broad suite.",
+  "command": [
+    "nice",
+    "-n",
+    "10",
+    "node",
+    "--experimental-transform-types",
+    "scripts/source-stability.ts",
+    "--",
+    "node",
+    "--experimental-transform-types",
+    "/workspace/scratch/0ab62d15db18/current-history-parity-evidence/current-history-parity.mjs",
+    "/workspace/scratch/0ab62d15db18/graphics-local-validation",
+    "/workspace/scratch/d611aefdb08c/w27-gp-history-candidate",
+    "/workspace/scratch/0ab62d15db18/current-history-parity-evidence/result.json"
+  ],
+  "cwd": "/workspace/scratch/d611aefdb08c/w27-gp-history-candidate",
+  "actualExitCode": 0,
+  "exitEvidence": "Completed exec session52910 returned exit_code0; raw stdout/stderr redirected to run.log.",
+  "guardEntrySha256": "07b7b0b7d277172516fe75502d917dfbf31b9c628c8d562cf9cb0182f80bca34",
+  "recordedRemoteBaseline": {
+    "commit": "cd9f2f50b0655ee548c0fc943af15083693f42b5",
+    "publishedProductionCommit": "2d67572a9a2ba4daa33311dcc9abed2c1b537632",
+    "localWorktreeCommit": "3ccadaa4feda3a52a589b7145afd5523e3f0350e",
+    "gitSourceTree": "59b764d63a1893ea255c72c002db710addfe73e9",
+    "localSourceTree": "59b764d63a1893ea255c72c002db710addfe73e9",
+    "actualTrackedSrcDiffExit": 0,
+    "freshRemoteFetch": false,
+    "criticalBlobComparison": {
+      "src/simulation/bike.ts": {
+        "recordedRemoteBlobSHA256": "5bf7c5903f4b33ae306eedffc72e23f58ef85c4b5841f2a86153d80918102d9a",
+        "actualSourceSHA256": "5bf7c5903f4b33ae306eedffc72e23f58ef85c4b5841f2a86153d80918102d9a",
+        "matches": true
+      },
+      "src/simulation/motogp-physics.ts": {
+        "recordedRemoteBlobSHA256": "f43236152c81328f6bb0e0db6573235c492fcf2c8f5c2a84c3ca3976aa844e5b",
+        "actualSourceSHA256": "f43236152c81328f6bb0e0db6573235c492fcf2c8f5c2a84c3ca3976aa844e5b",
+        "matches": true
+      },
+      "src/simulation/bike-ai.ts": {
+        "recordedRemoteBlobSHA256": "4f9fc34126eb124dc18c57c3cdce7fc04e132c532e2cfb554ce61eab0f542854",
+        "actualSourceSHA256": "4f9fc34126eb124dc18c57c3cdce7fc04e132c532e2cfb554ce61eab0f542854",
+        "matches": true
+      },
+      "src/simulation/bike-vehicle.ts": {
+        "recordedRemoteBlobSHA256": "e9c829ad70fa04396f14b065f39366bbc008c787493672619342967a8b8aa2b5",
+        "actualSourceSHA256": "e9c829ad70fa04396f14b065f39366bbc008c787493672619342967a8b8aa2b5",
+        "matches": true
+      }
+    }
+  },
+  "candidate": {
+    "root": "/workspace/scratch/d611aefdb08c/w27-gp-history-candidate",
+    "sourceFiles": 930,
+    "sourceSha256": "e5df2a6300a93e2194a43b6b43b201f390ce757d6509f936f419720910b4c0cd",
+    "critical": {
+      "src/simulation/bike.ts": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de",
+      "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+      "src/simulation/bike-ai.ts": "ffc70ab74e818298535eea6c48375df8cd3a5b30ba4ad776370a358eb3358c7d",
+      "src/simulation/bike-vehicle.ts": "e9c829ad70fa04396f14b065f39366bbc008c787493672619342967a8b8aa2b5"
+    }
+  },
+  "comparison": "Exact JSON-serialized enumerable state strings after each step. Not a comparison of non-enumerable fields, methods or IEEE representations erased by JSON.",
+  "exclusions": "After-state JSON properties named previewFront only, matching the historical comparator. No other fields excluded.",
+  "scopeExclusions": [
+    "Road-contact GP control is intentionally changed and is not exercised by these modes.",
+    "No rider traffic, AI planner, race acceptance or GPU behavior is tested."
+  ],
+  "cases": [
+    {
+      "mode": "standalone-gp",
+      "sign": -1,
+      "steps": 960,
+      "identical": true
+    },
+    {
+      "mode": "standalone-gp",
+      "sign": 1,
+      "steps": 960,
+      "identical": true
+    },
+    {
+      "mode": "non-gp-road",
+      "sign": -1,
+      "steps": 960,
+      "identical": true
+    },
+    {
+      "mode": "non-gp-road",
+      "sign": 1,
+      "steps": 960,
+      "identical": true
+    },
+    {
+      "mode": "non-gp-standalone",
+      "sign": -1,
+      "steps": 960,
+      "identical": true
+    },
+    {
+      "mode": "non-gp-standalone",
+      "sign": 1,
+      "steps": 960,
+      "identical": true
+    }
+  ],
+  "pairedStepComparisons": 5760,
+  "actualBikeStepCalls": 11520,
+  "matching": true,
+  "sourceStable": true,
+  "resultsAttribution": "Only the modes and inputs in result.json. Not an acceptance statement for GP road control, traffic or original races.",
+  "files": [
+    {
+      "path": "current-history-parity.mjs",
+      "bytes": 4977,
+      "sha256": "769bfe0613a7a4aceed0a373e4196ffc1623ff27e73624b5070830ae1ee6e60d"
+    },
+    {
+      "path": "historical-harness.mjs",
+      "bytes": 1943,
+      "sha256": "63ee09d3cb2287b053a0bebe0a06814704c41f3c3016ce285927f3183d5485d5"
+    },
+    {
+      "path": "result.json",
+      "bytes": 4752,
+      "sha256": "018b7f756f4dead68c0098541073e7af1672494aa4cdb68b0457342764138302"
+    },
+    {
+      "path": "run.log",
+      "bytes": 841,
+      "sha256": "ac2babffde3ec32e0b20167877f4948aa954be0e3075285f26189c4ce4c98fca"
+    }
+  ]
+}

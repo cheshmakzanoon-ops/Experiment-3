@@ -1,0 +1,98 @@
+{
+  "schema": 1,
+  "updatedUTC": "2026-11-19T11:49:24.387193+00:00",
+  "status": "Full one-step current-load preview source and native contracts reviewed, but completed49/51 original integration fails; rejected.",
+  "candidate": "w27-gp-current-load-candidate",
+  "parentCandidate": "w27-gp-capacity-candidate",
+  "sourceHashes": {
+    "src/simulation/bike.ts": "7a6ac00c685f487d9dd7a13d0c48a7e4cd146d57b5368d4011f0c1e8d7d4a5fe",
+    "src/simulation/motogp-physics.ts": "9f8b6b54004ed94070167b8419fb2d32b615a1338f8dd4021f73eda7a70c0af4",
+    "src/simulation/bike-ai.ts": "ffc70ab74e818298535eea6c48375df8cd3a5b30ba4ad776370a358eb3358c7d"
+  },
+  "scope": "Excludes steady conversion, directional bounds, finite inverses, route changes and support-admission experiments.",
+  "independentSourceReview": [
+    "The held-bar query uses current load/grip, retained physical strain/force state, caller-owned Fx and speed, exact native friction clamp and one-step relaxation. It preserves signed front-body projection and actual low-speed/placement semantics.",
+    "Separate preview scratch does not change physical/reporting/heat state. Repeated interleaved inverse, rear and front preview queries leave the next real plant update identical.",
+    "Only early road roll-lookahead uses the preview. Its inputs are previous applied Fx, planning speed, current load and held existing bar; original gyro term, lead, gains, measured feedback/trim and final-force capacity/inverse remain unchanged.",
+    "The actual plant, wheel, slip and thermal implementation is byte-identical after removing the added query methods and new scratch declaration. AI is byte-identical to the capacity parent.",
+    "Prescribed-force isolation fixtures now give their existing analytic force to both the preview and physical mock, retaining original assertions/tolerances. Deferred phase references capture identical known priorFx before changing finalFx, so final-force ownership remains exercised."
+  ],
+  "validation": {
+    "initialRetainedTests": {
+      "total": 62,
+      "passed": 49,
+      "failed": 13,
+      "exitCode": 1,
+      "scope": "Prescribed-force and deferred-reference fixture stages were incomplete for the new query; failures retained."
+    },
+    "nativeFinal": {
+      "total": 106,
+      "passed": 106,
+      "files": 7,
+      "newQueryCases": 44,
+      "retainedCases": 62,
+      "exitCode": 0
+    },
+    "typeAndLint": "Final checks pass; initial fixture typing errors from Object.assign/private-field intersection retained.",
+    "parity": {
+      "excludedNewScratch": "previewFront only; all pre-existing fields compared",
+      "steps": 5760,
+      "firstDifference": null,
+      "identical": true,
+      "sources": {
+        "w27-gp-capacity-candidate": "52b090530d8db770d023dd65c72fff2e64ff84e10feb3e3d5c27c869c542eafd",
+        "w27-gp-current-load-candidate": "7a6ac00c685f487d9dd7a13d0c48a7e4cd146d57b5368d4011f0c1e8d7d4a5fe"
+      }
+    },
+    "originalSelectedArdennes": {
+      "passed": 1,
+      "skipped": 8,
+      "invocationSeconds": 19.38,
+      "caseSeconds": 16.843,
+      "scope": "Historical selected-case pass on this same source; complete51 fails and takes precedence."
+    }
+  },
+  "completedOriginalGates": {
+    "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-current-load-original-gates-complete.json",
+    "bytes": 2425,
+    "sha256": "1f6eb89f145b333457ab6d1cc6cd628098203b6ee347d33ba15f7fb523912c1f"
+  },
+  "evidence": {
+    "gp-current-load-native-initial.log": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-current-load-native-initial.log",
+      "bytes": 16288,
+      "sha256": "dedc92d9e973b740e68921e110c16cd71da6ba14d613bd71e38301d1c78a2114"
+    },
+    "gp-current-load-native-final.log": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-current-load-native-final.log",
+      "bytes": 914,
+      "sha256": "835e086f018093273935dc2740be0e14fa9d2fd4c96f90b187ddcedb4491d6a7"
+    },
+    "gp-current-load-tsc.log": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-current-load-tsc.log",
+      "bytes": 19863,
+      "sha256": "1f022b9b9105e088f1e2138b8cc7e384496a103f718180170254d9323742e676"
+    },
+    "gp-current-load-tsc-final.log": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-current-load-tsc-final.log",
+      "bytes": 99,
+      "sha256": "7125f194612fcff2f454c05d848e7cb71facc1967b4d5017e25b34fdee3ba74f"
+    },
+    "gp-current-load-lint-final.log": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-current-load-lint-final.log",
+      "bytes": 99,
+      "sha256": "7125f194612fcff2f454c05d848e7cb71facc1967b4d5017e25b34fdee3ba74f"
+    },
+    "gp-current-load-parity.json": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-current-load-parity.json",
+      "bytes": 371,
+      "sha256": "ae322f2e0051767962dec25628abdd9f9b123ab7f21421a2fc12e1a41c2718d9"
+    },
+    "gp-current-load-ardennes1000.log": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-current-load-ardennes1000.log",
+      "bytes": 545,
+      "sha256": "b9c0055e59e319b6ba06d00d310c3cd59edee061b0da5f5781064a336a58f7c3"
+    }
+  },
+  "nextStep": "History-only reinterpretation has separate native/forecast support; its implementation and original gates require fresh validation. No pass from this rejected candidate is transferred."
+}

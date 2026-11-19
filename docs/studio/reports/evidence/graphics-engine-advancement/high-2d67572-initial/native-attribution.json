@@ -1,0 +1,80 @@
+{
+  "scope": "Observed failure of the unchanged 90-second High readiness predicate. Local test-only correction is separately identified and has no new High result yet.",
+  "commit": "2d67572a9a2ba4daa33311dcc9abed2c1b537632",
+  "fingerprint": "3e42326b03d522f705e2bcab4be00f4d25b99cac5ab4d54638a3d1311539b8fa",
+  "runId": 44516038905,
+  "jobId": 135532167932,
+  "artifactId": 14525934826,
+  "artifactBytes": 106877552,
+  "artifactSha256": "ea260255791b5d22e79b62bc02052b93aeec93e0a77c0ce0d831a01003f26621",
+  "errors": [],
+  "reflectionMetadata": {
+    "programLogCalls": 2,
+    "programLogCpuMs": 136.20000000001164,
+    "conversionProgram": 5,
+    "blurProgram": 8,
+    "blurFragmentHash": "576687b0"
+  },
+  "sceneMetadata": {
+    "stageStartedPageMs": 76003.9,
+    "stageEndedPageMs": 76201.7,
+    "elapsedMs": 197.8,
+    "additionalProgramLogCalls": 135,
+    "additionalProgramLogCpuMs": 14.700000000477303
+  },
+  "firstChaseStartedPageMs": 76967.6,
+  "nativeWait": {
+    "lastStarted": {
+      "sequence": 26185,
+      "atMs": 120296.69999999995,
+      "method": "getFragDataLocation",
+      "program": 323,
+      "fragmentHash": "f5f00001",
+      "framebuffer": 437,
+      "cubeFace": 0,
+      "mip": 0,
+      "viewport": [
+        0,
+        0,
+        960,
+        600
+      ],
+      "count": 0,
+      "instances": 1,
+      "numericArguments": [
+        -1,
+        -1,
+        -1,
+        -1
+      ],
+      "sourceBufferBytes": null,
+      "shader": 0,
+      "shaderType": 0,
+      "shaderHash": "00000000"
+    },
+    "lastCompleted": {
+      "sequence": 26184,
+      "atMs": 120296.59999999998,
+      "method": "useProgram",
+      "cpuCallMs": 0,
+      "returned": true
+    },
+    "inFlight": true,
+    "observedInFlightMs": 12751.699999999953,
+    "completedFragmentLocationCalls": 13,
+    "completedFragmentLocationCpuMs": 29627.000000000116,
+    "completedProgramInfoLogCalls": 140,
+    "completedProgramInfoLogCpuMs": 6927.900000000547,
+    "completedShaderInfoLogCpuMs": 118.39999999961583
+  },
+  "completedHighFrameEvidence": null,
+  "monitoredFenceSyncCalls": 0,
+  "monitoredClientWaitSyncCalls": 0,
+  "limitations": [
+    "The blocked method is called by test-only output inspection after production rendering has already queued work. Its duration does not establish shader compilation cost.",
+    "Moving a diagnostic query earlier does not complete the queued GPU work or relax the real completion gates.",
+    "The final retained application poll has no published renderer, so it cannot supply current High frame counters.",
+    "The retained JPEG shows the loading screen at Setting up cameras, not accepted gameplay or a completed High photo view.",
+    "Backend is Mesa llvmpipe; physical GPU performance is unverified."
+  ]
+}

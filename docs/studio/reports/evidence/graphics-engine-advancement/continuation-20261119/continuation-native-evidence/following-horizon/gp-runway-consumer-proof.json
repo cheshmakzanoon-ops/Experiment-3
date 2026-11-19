@@ -1,0 +1,616 @@
+{
+  "scope": "Read-only native planner fixture; no race simulated, source edited, or constants changed. Traffic pair is a controlled setup, not an observed fall state.",
+  "source": "/workspace/scratch/0ab62d15db18/final-build-checks",
+  "sourceUnchanged": true,
+  "beforeHash": {
+    "src/simulation/ai.ts": "2887444a202aa4e5818570fad1a4d2e498600336ea05d0675a83cc3f2da5a1a3",
+    "src/simulation/bike-ai.ts": "9403ed4cffceb61cf20bd7e30eca162a11034a7119be2580e22682b2213cb9ed",
+    "src/simulation/traffic.ts": "7180a18b826bc8ccbfd6f638794c3c5efd427b2151baa087bc148502b8e18700"
+  },
+  "afterHash": {
+    "src/simulation/ai.ts": "2887444a202aa4e5818570fad1a4d2e498600336ea05d0675a83cc3f2da5a1a3",
+    "src/simulation/bike-ai.ts": "9403ed4cffceb61cf20bd7e30eca162a11034a7119be2580e22682b2213cb9ed",
+    "src/simulation/traffic.ts": "7180a18b826bc8ccbfd6f638794c3c5efd427b2151baa087bc148502b8e18700"
+  },
+  "plan": {
+    "station": 165.06075214680368,
+    "speed": 68.88404586322334,
+    "freeSpeed": 91.08,
+    "target": 91.08,
+    "normalControls": {
+      "planNext": 201.87320696422512,
+      "planDistance": 11.939426840327995,
+      "planLimit": 203.890346067805,
+      "planRecovery": 7.526753921302704e-05,
+      "planBrake": 15.105832198368175
+    },
+    "afterPassingControls": {
+      "planNext": 201.87320696422512,
+      "planDistance": 11.939426840327995,
+      "planLimit": 203.890346067805,
+      "planRecovery": 7.526753921302704e-05,
+      "planBrake": 15.105832198368175
+    },
+    "normalProfile": [
+      203.890346067805,
+      201.87320696422512,
+      199.73769039687943,
+      197.60892465669852,
+      195.4873831477302,
+      193.37264446128702,
+      191.27042241780217,
+      189.18560540047787,
+      187.12672852197235,
+      185.10263032693783,
+      183.1218205010102,
+      181.19179071661492,
+      179.31939580912243,
+      177.5113934160019,
+      175.77515514437928,
+      174.12031199805813,
+      172.5597445570189,
+      171.10731384652013,
+      169.77866701974517,
+      168.60932695299118,
+      167.6870168997519,
+      167.26193664238522,
+      171.78703053890806,
+      180.04578884195587,
+      189.2406799140369,
+      199.54979978339168,
+      211.56056424652417,
+      225.99585956590082,
+      243.45599914708535,
+      264.76522582838504,
+      291.78465298663417
+    ],
+    "pace": {
+      "topSpeed": 99,
+      "freeSpeed": 91.08,
+      "runway": 372,
+      "laneRate": 2
+    },
+    "context": {
+      "station": 165.060036431978,
+      "speed": 68.88404586322334,
+      "tactical": -7.477617254281199e-07,
+      "width": 1,
+      "grip": 1,
+      "aero": 1,
+      "recovery": 7.526753921302704e-05,
+      "mass": 245
+    },
+    "count": 112,
+    "stopping": 52,
+    "geometric": 720,
+    "inspected": 720,
+    "bound": 720,
+    "currentHorizon": 528,
+    "prospectiveHorizon": 372
+  },
+  "traffic": {
+    "gap": 64,
+    "leaderSpeed": 65,
+    "rows": [
+      {
+        "runway": 528,
+        "result": {
+          "offset": -4.755206201423871,
+          "speedLimit": 79.85498899355876,
+          "decision": "RACING LINE"
+        },
+        "blocker": -1,
+        "passTarget": -1,
+        "limitedBy": "settle",
+        "needDecel": 0.13005131403910766,
+        "slower": true
+      },
+      {
+        "runway": 372,
+        "result": {
+          "offset": -4.755206201423871,
+          "speedLimit": 67.22939964010767,
+          "decision": "RACING LINE"
+        },
+        "blocker": -1,
+        "passTarget": -1,
+        "limitedBy": "follow",
+        "needDecel": 0.13005131403910766,
+        "slower": true
+      },
+      {
+        "runway": 400,
+        "result": {
+          "offset": -4.755206201423871,
+          "speedLimit": 79.85498899355876,
+          "decision": "RACING LINE"
+        },
+        "blocker": -1,
+        "passTarget": -1,
+        "limitedBy": "settle",
+        "needDecel": 0.13005131403910766,
+        "slower": true
+      },
+      {
+        "runway": 399,
+        "result": {
+          "offset": -4.755206201423871,
+          "speedLimit": 67.22939964010767,
+          "decision": "RACING LINE"
+        },
+        "blocker": -1,
+        "passTarget": -1,
+        "limitedBy": "follow",
+        "needDecel": 0.13005131403910766,
+        "slower": true
+      }
+    ]
+  },
+  "profile": [
+    {
+      "stationDistance": 0,
+      "speed": 141.24024232610174
+    },
+    {
+      "stationDistance": 12,
+      "speed": 139.46006822421992
+    },
+    {
+      "stationDistance": 24,
+      "speed": 137.66457487030627
+    },
+    {
+      "stationDistance": 36,
+      "speed": 135.8707066012658
+    },
+    {
+      "stationDistance": 48,
+      "speed": 134.07721453160246
+    },
+    {
+      "stationDistance": 60,
+      "speed": 132.2890408261789
+    },
+    {
+      "stationDistance": 72,
+      "speed": 130.50817784455805
+    },
+    {
+      "stationDistance": 84,
+      "speed": 128.73442951969596
+    },
+    {
+      "stationDistance": 96,
+      "speed": 126.96953614039253
+    },
+    {
+      "stationDistance": 108,
+      "speed": 125.21473590557338
+    },
+    {
+      "stationDistance": 120,
+      "speed": 123.47112456126642
+    },
+    {
+      "stationDistance": 132,
+      "speed": 121.73951515751581
+    },
+    {
+      "stationDistance": 144,
+      "speed": 120.03034192672102
+    },
+    {
+      "stationDistance": 156,
+      "speed": 118.34321917045682
+    },
+    {
+      "stationDistance": 168,
+      "speed": 116.67758370602031
+    },
+    {
+      "stationDistance": 180,
+      "speed": 115.03324598161593
+    },
+    {
+      "stationDistance": 192,
+      "speed": 113.41029750682176
+    },
+    {
+      "stationDistance": 204,
+      "speed": 111.80843749045881
+    },
+    {
+      "stationDistance": 216,
+      "speed": 110.22705158045548
+    },
+    {
+      "stationDistance": 228,
+      "speed": 108.66708985580881
+    },
+    {
+      "stationDistance": 240,
+      "speed": 107.13166162271814
+    },
+    {
+      "stationDistance": 252,
+      "speed": 105.6230960892477
+    },
+    {
+      "stationDistance": 264,
+      "speed": 104.09755936815979
+    },
+    {
+      "stationDistance": 276,
+      "speed": 102.54561394239448
+    },
+    {
+      "stationDistance": 288,
+      "speed": 100.96782060884242
+    },
+    {
+      "stationDistance": 300,
+      "speed": 99.36443973885278
+    },
+    {
+      "stationDistance": 312,
+      "speed": 97.73502210445301
+    },
+    {
+      "stationDistance": 324,
+      "speed": 96.07912498186651
+    },
+    {
+      "stationDistance": 336,
+      "speed": 94.39722109714
+    },
+    {
+      "stationDistance": 348,
+      "speed": 92.69287334021266
+    },
+    {
+      "stationDistance": 360,
+      "speed": 90.98085575318025
+    },
+    {
+      "stationDistance": 372,
+      "speed": 89.26237230307615
+    },
+    {
+      "stationDistance": 384,
+      "speed": 87.53804038922512
+    },
+    {
+      "stationDistance": 396,
+      "speed": 85.80803390258414
+    },
+    {
+      "stationDistance": 408,
+      "speed": 84.07363049605695
+    },
+    {
+      "stationDistance": 420,
+      "speed": 82.33604677464015
+    },
+    {
+      "stationDistance": 432,
+      "speed": 80.59319076432908
+    },
+    {
+      "stationDistance": 444,
+      "speed": 78.84231890549214
+    },
+    {
+      "stationDistance": 456,
+      "speed": 77.08295618642845
+    },
+    {
+      "stationDistance": 468,
+      "speed": 75.31418129120392
+    },
+    {
+      "stationDistance": 480,
+      "speed": 73.53486626245179
+    },
+    {
+      "stationDistance": 492,
+      "speed": 71.74368569529328
+    },
+    {
+      "stationDistance": 504,
+      "speed": 69.93910687347862
+    },
+    {
+      "stationDistance": 516,
+      "speed": 68.1193780538065
+    },
+    {
+      "stationDistance": 528,
+      "speed": 66.28242528488636
+    },
+    {
+      "stationDistance": 540,
+      "speed": 64.42589803327809
+    },
+    {
+      "stationDistance": 552,
+      "speed": 62.54722371756531
+    },
+    {
+      "stationDistance": 564,
+      "speed": 60.64346001555357
+    },
+    {
+      "stationDistance": 576,
+      "speed": 58.71126216789097
+    },
+    {
+      "stationDistance": 588,
+      "speed": 56.7474789740084
+    },
+    {
+      "stationDistance": 600,
+      "speed": 54.75410622082001
+    },
+    {
+      "stationDistance": 612,
+      "speed": 52.74587335412852
+    },
+    {
+      "stationDistance": 624,
+      "speed": 50.71953419604963
+    },
+    {
+      "stationDistance": 636,
+      "speed": 48.76966138826484
+    },
+    {
+      "stationDistance": 648,
+      "speed": 46.896297887357086
+    },
+    {
+      "stationDistance": 660,
+      "speed": 45.08061374148821
+    },
+    {
+      "stationDistance": 672,
+      "speed": 43.301713071705464
+    },
+    {
+      "stationDistance": 684,
+      "speed": 41.5679663683071
+    },
+    {
+      "stationDistance": 696,
+      "speed": 39.84958518203408
+    },
+    {
+      "stationDistance": 708,
+      "speed": 38.124404231782414
+    },
+    {
+      "stationDistance": 720,
+      "speed": 36.37874054867692
+    },
+    {
+      "stationDistance": 732,
+      "speed": 34.609765364514715
+    },
+    {
+      "stationDistance": 744,
+      "speed": 32.831557117884294
+    },
+    {
+      "stationDistance": 756,
+      "speed": 31.076926956101396
+    },
+    {
+      "stationDistance": 768,
+      "speed": 29.38076176831204
+    },
+    {
+      "stationDistance": 780,
+      "speed": 27.735930503974156
+    },
+    {
+      "stationDistance": 792,
+      "speed": 26.07408897078685
+    },
+    {
+      "stationDistance": 804,
+      "speed": 25.387538258349128
+    },
+    {
+      "stationDistance": 816,
+      "speed": 26.883832313443065
+    },
+    {
+      "stationDistance": 828,
+      "speed": 28.6943421817915
+    },
+    {
+      "stationDistance": 840,
+      "speed": 28.795915783403583
+    },
+    {
+      "stationDistance": 852,
+      "speed": 27.42047326610437
+    },
+    {
+      "stationDistance": 864,
+      "speed": 25.79594979838392
+    },
+    {
+      "stationDistance": 876,
+      "speed": 24.003229680219135
+    },
+    {
+      "stationDistance": 888,
+      "speed": 23.17141620991592
+    },
+    {
+      "stationDistance": 900,
+      "speed": 23.786193609993294
+    },
+    {
+      "stationDistance": 912,
+      "speed": 31.11244786671527
+    },
+    {
+      "stationDistance": 924,
+      "speed": 38.755176661015824
+    },
+    {
+      "stationDistance": 936,
+      "speed": 45.686276734942176
+    },
+    {
+      "stationDistance": 948,
+      "speed": 46.509398861780205
+    },
+    {
+      "stationDistance": 960,
+      "speed": 44.73878434973506
+    },
+    {
+      "stationDistance": 972,
+      "speed": 42.348620968674794
+    },
+    {
+      "stationDistance": 984,
+      "speed": 39.78649575013088
+    },
+    {
+      "stationDistance": 996,
+      "speed": 37.24514935241819
+    },
+    {
+      "stationDistance": 1008,
+      "speed": 34.83936896202148
+    },
+    {
+      "stationDistance": 1020,
+      "speed": 32.53326258766897
+    },
+    {
+      "stationDistance": 1032,
+      "speed": 30.31554245683634
+    },
+    {
+      "stationDistance": 1044,
+      "speed": 28.235707652786147
+    },
+    {
+      "stationDistance": 1056,
+      "speed": 26.460159248335867
+    },
+    {
+      "stationDistance": 1068,
+      "speed": 25.589096051065955
+    },
+    {
+      "stationDistance": 1080,
+      "speed": 29.04365905610598
+    },
+    {
+      "stationDistance": 1092,
+      "speed": 31.4934552954539
+    },
+    {
+      "stationDistance": 1104,
+      "speed": 33.27478166335488
+    },
+    {
+      "stationDistance": 1116,
+      "speed": 34.519424491262356
+    },
+    {
+      "stationDistance": 1128,
+      "speed": 35.42661628085594
+    },
+    {
+      "stationDistance": 1140,
+      "speed": 35.83294053508537
+    },
+    {
+      "stationDistance": 1152,
+      "speed": 34.64688816514367
+    },
+    {
+      "stationDistance": 1164,
+      "speed": 33.33825457472952
+    },
+    {
+      "stationDistance": 1176,
+      "speed": 32.59681570693731
+    },
+    {
+      "stationDistance": 1188,
+      "speed": 35.5349719359983
+    },
+    {
+      "stationDistance": 1200,
+      "speed": 44.474486981104256
+    },
+    {
+      "stationDistance": 1212,
+      "speed": 51.49684330308678
+    },
+    {
+      "stationDistance": 1224,
+      "speed": 49.764734942980844
+    },
+    {
+      "stationDistance": 1236,
+      "speed": 47.488586983087814
+    },
+    {
+      "stationDistance": 1248,
+      "speed": 45.103110687064564
+    },
+    {
+      "stationDistance": 1260,
+      "speed": 43.050048811151505
+    },
+    {
+      "stationDistance": 1272,
+      "speed": 41.36906547920096
+    },
+    {
+      "stationDistance": 1284,
+      "speed": 40.133716301237186
+    },
+    {
+      "stationDistance": 1296,
+      "speed": 39.49326845128001
+    },
+    {
+      "stationDistance": 1308,
+      "speed": 44.38462128529178
+    },
+    {
+      "stationDistance": 1320,
+      "speed": 43.6090892470662
+    },
+    {
+      "stationDistance": 1332,
+      "speed": 42.99821389314519
+    }
+  ],
+  "consumerReview": {
+    "directRunway": [
+      "Passing gain after the existing brakeBy reserve",
+      "Existing blocker continuation at brakeBy",
+      "New blocker admission at startRunway"
+    ],
+    "cachedRunway": [
+      "Current relative-motion settle versus follow-reserve selection at settleRunway"
+    ],
+    "freeSpeed": [
+      "Mean projected passing speed",
+      "Slower-than-free-speed eligibility",
+      "Estimated passing gain"
+    ],
+    "finding": "Only the cached runway consumer selects present following behavior; it had received the newly prospective passing distance.",
+    "fallAttribution": "Not established by this controlled fixture alone."
+  }
+}

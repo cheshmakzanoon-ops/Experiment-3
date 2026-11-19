@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedUTC": "2026-11-19T11:32:03.699146+00:00",
-  "status": "Historical matrix and complete152 CI failures retained; minimal GP capacity phase reviewed, pace and Ardennes gates remain unresolved; final combined acceptance pending",
+  "updatedUTC": "2026-11-19T12:07:26.975315+00:00",
+  "status": "Historical original19 and completeCI failures retained; GP history/steady/directional candidates remain unaccepted; final combined matrix, strictGP calibration and fullunit acceptance pending.",
   "source": {
     "localCommit": "e1c34e2500980129b5edbf4f9a39f880b7f2ad10",
     "gitTree": "9bfc8a98fcd203fe7adf06b6c1c2b8c137dfe791",
@@ -2043,12 +2043,57 @@
     "gpSteadyDirectionalReview": {
       "report": "docs/studio/reports/evidence/engine-final-acceptance/gp-steady-directional-review.json",
       "sha256": "96eb06d3c11cd01477db872543166efcb84a7919f2cf44b7b7cb4b26b8c2f5bf",
-      "status": "Paired steady conversion independently reviewed; original race gates pending and final source not accepted."
+      "status": "Steady math reviewed; complete original race gates47/51, exit1. Four failures block acceptance; full receipt retained separately."
     },
     "gpSteadyOriginalGates": {
       "report": "docs/studio/reports/evidence/engine-final-acceptance/gp-steady-original-gates-complete.json",
       "sha256": "17962e820a1733e788788663019881b701892d8a2554a04e784d67193441d5ee",
       "status": "Complete original four-file invocation: 47/51; four failures block the steady candidate. No production source change."
+    },
+    "gpDirectionalBoundReview": {
+      "report": "docs/studio/reports/evidence/engine-final-acceptance/gp-directional-bound-review.json",
+      "sha256": "a840fcc01983495e4a6b7923039e83723ab45e356cffeedac1e5e3a1d3ea1c0b",
+      "status": "Initial directional work used request units incorrectly; separate corrected net/request source reviewed and48native pass. Corrected-source original integration remains pending."
+    },
+    "gpLoadPhaseReview": {
+      "report": "docs/studio/reports/evidence/engine-final-acceptance/gp-load-phase-review.json",
+      "sha256": "88b41ee816f76f3756694a3f78a59219e72b74c4a48e476b7811a2910a1eb5e0",
+      "status": "Same-epoch force history explains most forecast improvement; full one-step preview candidate rejected by completed49/51 original gates. A narrower history-only candidate remains unaccepted."
+    },
+    "gpCurrentLoadCandidateReview": {
+      "report": "docs/studio/reports/evidence/engine-final-acceptance/gp-current-load-candidate-review.json",
+      "sha256": "19233b4052fa1e3d311fc64340550a3b414c34df2b1206f5f823e8fc36b035f1",
+      "status": "Full one-step current-load preview source and native contracts reviewed, but completed49/51 original integration fails; rejected."
+    },
+    "gpCurrentLoadOriginalGates": {
+      "report": "docs/studio/reports/evidence/engine-final-acceptance/gp-current-load-original-gates-complete.json",
+      "sha256": "1f6eb89f145b333457ab6d1cc6cd628098203b6ee347d33ba15f7fb523912c1f",
+      "status": "Complete51 original tests:49pass/2fail, actualexit1; source rejected for integration."
+    },
+    "gpDryDirectionalReview": {
+      "report": "docs/studio/reports/evidence/engine-final-acceptance/gp-dry-directional-review.json",
+      "sha256": "6fca74ede07cbe9ed6f4759933a7d2ca49b64f534ad3743c9ef653e235cf1e71",
+      "status": "Exact2,400-step native replay identifies late infeasible recovery after53.45s, while52.8\u201353.3s initial rear-light onset is nonbinding; no race or combined-branch acceptance claim."
+    },
+    "gpDryPredictionReview": {
+      "report": "docs/studio/reports/evidence/engine-final-acceptance/gp-current-load-dry-prediction-review.json",
+      "sha256": "60ed279c66fbb5595ccbe7f29da04e2c4b1a9707a5e2280dd8bb9f1a8bfd14e4",
+      "status": "Retained negative qualification: pure current-history forecast is nearly unchanged from old forecast on this failed dry trajectory. Ardennes improvement is not generalized to this case."
+    },
+    "gpHistoryCandidateReview": {
+      "report": "docs/studio/reports/evidence/engine-final-acceptance/gp-history-candidate-review.json",
+      "sha256": "340d5b0e79ea923edfa85214137838370e4aa156a2c5a8373f414a98c4dc5b59",
+      "status": "History-only observer source/native contract reviewed; selected original dry and Ardennes cases pass, but mixed pace fails. Not accepted for final integration."
+    },
+    "gpHistorySteadyCandidateReview": {
+      "report": "docs/studio/reports/evidence/engine-final-acceptance/gp-history-steady-candidate-review.json",
+      "sha256": "981f74db713f3e9eddd48d0a600ee5f9e194072c028c603b2c7bd2c57ac8a90c",
+      "status": "Paired steady mapping and current-history observer compose without source ownership defects, but selected original gates finish1/3, exit1. Not accepted."
+    },
+    "gpHistorySteadyArdennesReview": {
+      "report": "docs/studio/reports/evidence/engine-final-acceptance/gp-history-steady-ardennes-directional-review.json",
+      "sha256": "9444714cbbc2e4deb4c26c89f4055643a1bf830a69705be29dc200e49fd784f2",
+      "status": "Exact observed combined-source onset identifies stopping-work overestimate before front request saturation; original race still fails, no corrected-source pass claim."
     }
   }
 }

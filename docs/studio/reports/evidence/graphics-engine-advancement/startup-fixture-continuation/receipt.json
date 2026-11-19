@@ -1,0 +1,63 @@
+{
+  "sourceBaseCommit": "90dde74",
+  "productionChanged": false,
+  "source": {
+    "tests/startup.test.ts": "9de29c1d0afa95bfa704c4cb14f3204aedad25b3a6ce77e325a2138859e23187",
+    "src/rendering/renderer.ts": "57acec3d67beea259d111bc322800a51b1b3463d5aa62bf8f66ce00d22a8b0cc"
+  },
+  "tests": {
+    "before": {
+      "command": "node --experimental-transform-types scripts/source-stability.ts -- npx vitest run tests/startup.test.ts",
+      "exitCode": 1,
+      "passed": 8,
+      "failed": 22,
+      "total": 30,
+      "durationSeconds": 8.03
+    },
+    "after": {
+      "command": "node --experimental-transform-types scripts/source-stability.ts -- npx vitest run tests/startup.test.ts tests/preparation.test.ts tests/high-fragment-inspector.test.ts",
+      "exitCode": 0,
+      "passed": 47,
+      "failed": 0,
+      "files": 3,
+      "durationSeconds": 10.31
+    },
+    "negativeControl": {
+      "change": "Bypass only owned retained program metadata initialization in isolated source",
+      "exitCode": 1,
+      "failed": 2,
+      "skipped": 30,
+      "durationSeconds": 7.17
+    }
+  },
+  "typecheck": {
+    "command": "npx tsc --noEmit",
+    "exitCode": 0
+  },
+  "scopedLint": {
+    "command": "npx eslint tests/startup.test.ts",
+    "exitCode": 0,
+    "evidence": "coordinator-observed command result"
+  },
+  "logs": {
+    "startup-before.log": {
+      "bytes": 11713,
+      "sha256": "d28796d9372ddf00c34f3aa79edc74ae80836e8e2a8d0e458fbbefba8154898a"
+    },
+    "startup-after.log": {
+      "bytes": 668,
+      "sha256": "ca32d8db2b82c1e827d369eff822883621d5647e482a04ded54b8a86ced4bf52"
+    },
+    "startup-metadata-bypass-review.log": {
+      "bytes": 5078,
+      "sha256": "81e71ca7b391674b9e9ca421a5b029cb8040e74738a6a3599f814091351a60ce"
+    },
+    "startup-typecheck.log": {
+      "bytes": 99,
+      "sha256": "7125f194612fcff2f454c05d848e7cb71facc1967b4d5017e25b34fdee3ba74f"
+    }
+  },
+  "limits": [
+    "CPU fixture coverage only; changed High browser test still unverified."
+  ]
+}

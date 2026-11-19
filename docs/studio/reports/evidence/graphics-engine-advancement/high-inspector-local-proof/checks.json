@@ -1,0 +1,83 @@
+{
+  "scope": "CPU fake-driver and actual-init VM validation; no browser or GL execution. Changed-test High execution remains pending.",
+  "sourceManifest": "source-manifest.json",
+  "regressions": {
+    "total": 6,
+    "passed": 6,
+    "failed": 0,
+    "cases": [
+      {
+        "name": "caches outputs after a completed native link-status read, before queued draws",
+        "status": "passed"
+      },
+      {
+        "name": "leaves failed links, parallel-completion polling and other metadata results untouched",
+        "status": "passed"
+      },
+      {
+        "name": "invalidates cached outputs and first-draw inspection on relink, but keeps the linked source stable",
+        "status": "passed"
+      },
+      {
+        "name": "retains first-instanced-draw fallback when production never requested link metadata",
+        "status": "passed"
+      },
+      {
+        "name": "uses actual draw-buffer state for missing outputs without warning on a color-disabled pass",
+        "status": "passed"
+      },
+      {
+        "name": "preserves the native status exception and performs no speculative output query after it",
+        "status": "passed"
+      }
+    ]
+  },
+  "negativeControl": {
+    "subjectCommit": "2d67572a9a2ba4daa33311dcc9abed2c1b537632",
+    "subject": "e2e/graphics-high-journey.spec.ts",
+    "subjectSha256": "e3d45c26c11087cc97c7e4d17de7628c908bc1717b0faa2f5383b7b0a85c8f17",
+    "sameTestAndDriverSource": true,
+    "failed": 3,
+    "passed": 3,
+    "failures": [
+      {
+        "name": "caches outputs after a completed native link-status read, before queued draws",
+        "message": "AssertionError: expected [] to have a length of 1 but got +0"
+      },
+      {
+        "name": "leaves failed links, parallel-completion polling and other metadata results untouched",
+        "message": "AssertionError: expected [] to have a length of 1 but got +0"
+      },
+      {
+        "name": "invalidates cached outputs and first-draw inspection on relink, but keeps the linked source stable",
+        "message": "AssertionError: expected [ 'pc_fragColor' ] to deeply equal [ 'pc_fragColor', 'replacement[0]' ]"
+      }
+    ]
+  },
+  "checks": [
+    {
+      "name": "full tsc --noEmit",
+      "exitCode": 0
+    },
+    {
+      "name": "scoped ESLint",
+      "exitCode": 0
+    },
+    {
+      "name": "Prettier --check",
+      "exitCode": 0
+    },
+    {
+      "name": "High Playwright --list",
+      "exitCode": 0,
+      "listedTests": 1
+    }
+  ],
+  "constraints": [
+    "Successful existing LINK_STATUS reads trigger output caching; no extra status query is made.",
+    "COMPLETION_STATUS_KHR and failed links are not used for prefetch.",
+    "Output locations are cached once per linked program, including non-instanced programs with a metadata check; first-draw fallback remains for unseen programs.",
+    "Missing outputs are still checked against actual draw buffers, and native errors/draws/return values remain intact.",
+    "No production source, quality, resolution, deadline, reflection-face count or actual GPU-completion requirement changed."
+  ]
+}

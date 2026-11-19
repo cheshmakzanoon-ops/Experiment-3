@@ -1,0 +1,140 @@
+{
+  "schema": 1,
+  "updatedUTC": "2026-11-19T12:06:40.428107+00:00",
+  "status": "Paired steady mapping and current-history observer compose without source ownership defects, but selected original gates finish1/3, exit1. Not accepted.",
+  "candidate": "/workspace/scratch/d611aefdb08c/w27-gp-history-steady-candidate",
+  "parents": [
+    "/workspace/scratch/d611aefdb08c/w27-gp-history-candidate",
+    "/workspace/scratch/d611aefdb08c/w27-gp-steady-candidate"
+  ],
+  "sourceHashes": {
+    "src/simulation/bike.ts": "c9bc0705187f093ba2cf43bf247215ef8ca9f827c2ef3b9ebf43dabcefd5f4e8",
+    "src/simulation/motogp-physics.ts": "92daa12c5b2bc32674b141be440136ab36a20ae9e291739fe20ba364c1e2d744",
+    "src/simulation/bike-ai.ts": "80006ea7d138643444346c31f17050800dfe724fa6e8c82e172cd475c67565e5",
+    "src/simulation/bike-vehicle.ts": "e9c829ad70fa04396f14b065f39366bbc008c787493672619342967a8b8aa2b5",
+    "tests/gp-current-history.test.ts": "26b4c2c6d7e072c9f90bad77d760e4ea48d562add0da9e30222a1cf4ce0e9acf",
+    "tests/gp-steady-balance.test.ts": "06762a6b55090f0bf7dfe0f875570b25c6cfc207296e8d9c68af9f949922c42b"
+  },
+  "independentSourceReview": {
+    "onlyEngineFilesChangedFromCapacity": [
+      "src/simulation/bike.ts",
+      "src/simulation/bike-ai.ts",
+      "src/simulation/motogp-physics.ts"
+    ],
+    "bikeAIIdenticalToSteady": true,
+    "currentHistoryTestIdenticalToParent": true,
+    "steady40TestIdenticalToParent": true,
+    "plantByteIdentity": "Removing only the two pure steady helpers, current-history helper/scratch and a geometric-hangoff comment cleanup reproduces the capacity MotoGP module byte-for-byte.",
+    "phaseOwnership": "Bike compared with steady has only the early current-history observation and rolling substitution. Target capture, prior-known Fx, measured trim, final-Fx capacity closure, inverse and single actuator/plant ownership remain unchanged.",
+    "excludedChanges": [
+      "directional bounds",
+      "finite force or moment inverse",
+      "GP support-admission state",
+      "route changes",
+      "new gains or margins",
+      "original race threshold changes"
+    ],
+    "standaloneAndNonGP": "Existing roadAdmittedCapacity is the already accepted ordinary-road controller; no GP admission addition appears in this candidate."
+  },
+  "validation": {
+    "native": {
+      "passed": 139,
+      "failed": 0,
+      "files": 9,
+      "durationSeconds": 8.53,
+      "exitCode": 0,
+      "evidence": "Owner-reported completion plus full log; original four zero-spin path-reaction tests retained."
+    },
+    "typeCheckExitCode": 0,
+    "scopedLintExitCode": 0,
+    "parity": {
+      "steps": 5760,
+      "identical": true,
+      "excludedNewScratch": "previewFront only"
+    }
+  },
+  "originalTriad": {
+    "commandQualification": "Literal invocation confirmed by assignment27; exact original3 selected cases, actual session74971 exit1.",
+    "cwd": "/workspace/scratch/d611aefdb08c/w27-gp-history-steady-candidate",
+    "actualExitCode": 1,
+    "exitEvidence": "Owner resumed exec session74971 and confirmed exit_code1.",
+    "durationSeconds": 84.67,
+    "selected": 3,
+    "passed": 1,
+    "failed": 2,
+    "skipped": 42,
+    "totalDefinedTests": 45,
+    "results": {
+      "mixedPace": "pass, both unchanged GP<faster SBK and margin>.15 assertions",
+      "dryPoggio": {
+        "status": "fail",
+        "observedImpact": 0.9916666666666667,
+        "expectedImpact": 0
+      },
+      "ardennes1000": {
+        "status": "fail",
+        "rider": 1,
+        "station": 3147.0013900932545
+      }
+    },
+    "originalTestHashes": {
+      "tests/gp-tyre-contact.test.ts": "e3e67c87d1bf99f2dcd1761efd9c1ad3ca66f30da2ba332607d621e1f8e0ecc4",
+      "tests/bike-session.test.ts": "28b653c92029c494cd11ec713ab21c9eae1808af8c378afc1590d60590df09ae",
+      "tests/bike-mixed-passing.test.ts": "de20c703b20d780a5aafee7eeba45be8efaab5f59c780c303a3b6c704e734253",
+      "tests/gp-ai-braking-plan.test.ts": "f0124f304bbdc5311ace3a2624d9ae3e6656be61fcdc87a314e0874e2ff51b9a"
+    },
+    "command": [
+      "npx",
+      "vitest",
+      "run",
+      "tests/gp-tyre-contact.test.ts",
+      "tests/bike-session.test.ts",
+      "tests/gp-ai-braking-plan.test.ts",
+      "-t",
+      "classifies all eight GP riders at .poggio-alto. in .clear.|finishes a mixed GP/superbike race|no rider falls at the ardennes hairpin \\(seed 1000\\)"
+    ]
+  },
+  "onsetDiagnosis": {
+    "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-history-steady-ardennes-directional-review.json",
+    "bytes": 48029,
+    "sha256": "9444714cbbc2e4deb4c26c89f4055643a1bf830a69705be29dc200e49fd784f2"
+  },
+  "nativeObservedWorkFixture": {
+    "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-history-steady-ardennes-work-fixture.json",
+    "bytes": 37874,
+    "sha256": "3067a567d0f8cb7b45797d784c5ee032de217ea1579d61af2f00afda0711f5e1"
+  },
+  "historyParent": {
+    "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-history-candidate-review.json",
+    "bytes": 7285,
+    "sha256": "340d5b0e79ea923edfa85214137838370e4aa156a2c5a8373f414a98c4dc5b59"
+  },
+  "evidence": {
+    "gp-history-steady-native.log": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-history-steady-native.log",
+      "bytes": 1008,
+      "sha256": "f7e51286fb2ea8ad0d6705337138c14fc3c3fb4bd0ce437bcd3bba989e5eba71"
+    },
+    "gp-history-steady-tsc.log": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-history-steady-tsc.log",
+      "bytes": 99,
+      "sha256": "7125f194612fcff2f454c05d848e7cb71facc1967b4d5017e25b34fdee3ba74f"
+    },
+    "gp-history-steady-lint.log": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-history-steady-lint.log",
+      "bytes": 99,
+      "sha256": "7125f194612fcff2f454c05d848e7cb71facc1967b4d5017e25b34fdee3ba74f"
+    },
+    "gp-history-steady-parity.json": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-history-steady-parity.json",
+      "bytes": 373,
+      "sha256": "c09a4eedc46f2b11bfb3fd04ea526235f685593a006490d4b94049c813f35184"
+    },
+    "gp-history-steady-original-triad.log": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-history-steady-original-triad.log",
+      "bytes": 5914,
+      "sha256": "86e93bd2b7771e18f3363604e4d656f4e71244ab1e06a52ad5cfbd2a627b433e"
+    }
+  },
+  "nextGate": "The actual combined-source onset supports separately testing corrected physical-work/request directional bounds. No full51 or final19 success is claimed."
+}

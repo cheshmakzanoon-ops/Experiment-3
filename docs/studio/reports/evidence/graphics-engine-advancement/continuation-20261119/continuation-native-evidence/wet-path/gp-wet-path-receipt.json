@@ -1,0 +1,163 @@
+{
+  "createdAt": "2026-11-19T12:40:16.066831+00:00",
+  "purpose": "Isolated correction of default road/GP authored wet-path ownership; no dry pace claim.",
+  "parent": "/workspace/scratch/0ab62d15db18/main-path-phase-control",
+  "candidate": "/workspace/scratch/0ab62d15db18/gp-wet-path-candidate",
+  "sourceManifest": "gp-wet-path-source.json",
+  "patch": "gp-wet-path.patch",
+  "implementation": {
+    "changedSource": [
+      "src/simulation/bike-ai.ts"
+    ],
+    "addedTests": [
+      "tests/bike-scaled-path.test.ts"
+    ],
+    "authoredWidth": "(1 - 0.45 * clamp(frontContactWater / 0.8, 0, 1)) * (lineScale ?? 1)",
+    "curvature": "Existing shared base-AI solved-curve/centreline width blend; no new geometric moving stencil.",
+    "widthOne": "Exact original offset and curvature returned without multiplication or centreline query.",
+    "offroad": "Existing DirtBikeAIDriver overrides unchanged.",
+    "physics": "No force, grip, gain, or crash-limit changes."
+  },
+  "checks": [
+    {
+      "kind": "native regressions",
+      "command": "node --experimental-transform-types scripts/source-stability.ts -- npx vitest run tests/bike-scaled-path.test.ts tests/gp-control-preview.test.ts tests/motorcycle-path-distance.test.ts",
+      "exitCode": 0,
+      "passed": 15,
+      "failed": 0,
+      "files": 3,
+      "durationSeconds": 9.19,
+      "log": "gp-wet-path-native.log"
+    },
+    {
+      "kind": "negative control",
+      "cwd": "/workspace/scratch/0ab62d15db18/gp-wet-path-negative",
+      "source": "/workspace/scratch/0ab62d15db18/main-path-phase-control",
+      "command": "node --experimental-transform-types scripts/source-stability.ts -- npx vitest run tests/bike-scaled-path.test.ts",
+      "exitCode": 1,
+      "passed": 1,
+      "failed": 7,
+      "expectedFailure": true,
+      "interpretation": "Untouched parent fails three real-circuit target cases, three straight-diagonal path/heading cases, and curvature-blend compatibility; original dry width-one identity passes.",
+      "log": "gp-wet-path-negative.log"
+    },
+    {
+      "kind": "typecheck",
+      "command": "npx tsc --noEmit",
+      "exitCode": 0,
+      "log": "gp-wet-path-type.log"
+    },
+    {
+      "kind": "lint",
+      "command": "npx eslint src/simulation/bike-ai.ts tests/bike-scaled-path.test.ts",
+      "exitCode": 0,
+      "log": "gp-wet-path-lint.log"
+    },
+    {
+      "kind": "format",
+      "command": "npx prettier --check src/simulation/bike-ai.ts tests/bike-scaled-path.test.ts",
+      "exitCode": 0,
+      "log": "gp-wet-path-format.log"
+    },
+    {
+      "kind": "original wet race",
+      "command": "node --experimental-transform-types scripts/source-stability.ts -- npx vitest run tests/gp-tyre-contact.test.ts -t 'classifies all eight GP riders at.*poggio-alto.*rain'",
+      "exitCode": 0,
+      "passed": 1,
+      "skipped": 21,
+      "failed": 0,
+      "testDurationSeconds": 83.575,
+      "durationSeconds": 85.8,
+      "log": "gp-wet-path-race.log",
+      "contract": {
+        "circuit": "poggio-alto",
+        "weather": "rain",
+        "seed": 30101,
+        "laps": 2,
+        "riders": 8,
+        "deadlineMs": 120000,
+        "assertionsUnchanged": true,
+        "finished": true,
+        "maxImpact": 0,
+        "crashes": 0,
+        "retired": 0,
+        "penalties": 0,
+        "allCompletedLaps": 2,
+        "finiteFinalFrame": true
+      }
+    },
+    {
+      "kind": "patch applicability",
+      "command": "git apply --check /workspace/scratch/0ab62d15db18/gp-wet-path.patch",
+      "cwd": "/workspace/scratch/0ab62d15db18/main-path-phase-control",
+      "exitCode": 0
+    }
+  ],
+  "originalTargetErrorMetres": {
+    "poggio-alto": 2.594249566910938,
+    "vellamar": 1.8163246425549195,
+    "ardennes": 2.9099183893203366
+  },
+  "historicalSetupAttempts": [
+    {
+      "log": "gp-wet-path-native.initial.log",
+      "exitCode": 1,
+      "cause": "One test-probe method collided with the existing private offset field; renamed sampleOffset/sampleCurvature. Other 14 cases passed."
+    },
+    {
+      "log": "gp-wet-path-type.initial.log",
+      "exitCode": 2,
+      "cause": "Same probe naming collision plus fixture/config/JSON inputs absent from the minimal parent candidate. Added unchanged support inputs from graphics-local-validation; final tsc passes."
+    }
+  ],
+  "sourceIdentityVerifiedAfterChecks": true,
+  "limitations": [
+    "Main-plus-current-path parent remains known to fail separate dry impact and mixed pace gates; this isolated correction was not presented as their fix.",
+    "Only the original wet Poggio race was run on this candidate.",
+    "Composition with the physics owners candidate remains to be verified by the coordinator.",
+    "Curvature is the existing shared planner approximation, not a newly derived exact scaled-path curvature.",
+    "Nothing published."
+  ],
+  "artifacts": [
+    {
+      "path": "gp-wet-path-native.log",
+      "bytes": 1386,
+      "sha256": "aaff1ed14778e9829463768b9bdaa506b1698efab7e8a0298e5a2653c243fb7f"
+    },
+    {
+      "path": "gp-wet-path-negative.log",
+      "bytes": 7319,
+      "sha256": "28ca968c28634209f28f2aeedcf96ed4f7ffbd527d5850ee529c4043b548b032"
+    },
+    {
+      "path": "gp-wet-path-type.log",
+      "bytes": 99,
+      "sha256": "7125f194612fcff2f454c05d848e7cb71facc1967b4d5017e25b34fdee3ba74f"
+    },
+    {
+      "path": "gp-wet-path-lint.log",
+      "bytes": 99,
+      "sha256": "7125f194612fcff2f454c05d848e7cb71facc1967b4d5017e25b34fdee3ba74f"
+    },
+    {
+      "path": "gp-wet-path-format.log",
+      "bytes": 165,
+      "sha256": "5bf5bf82219fcfa49043e9d2d1d1460f203bdff6d7d1fe0f377dbbd647a692dd"
+    },
+    {
+      "path": "gp-wet-path-race.log",
+      "bytes": 747,
+      "sha256": "4f973217f20a095e25ee41d7ed8b4491928c7c167b821ed350af084ba7d62271"
+    },
+    {
+      "path": "gp-wet-path.patch",
+      "bytes": 9332,
+      "sha256": "7c3eb07f2a76ceb2348fc1f292d66e7e8adba65a5044cf853c826d150ac96dec"
+    },
+    {
+      "path": "gp-wet-path-source.json",
+      "bytes": 1790,
+      "sha256": "0ad16579fc5a5f42f70931ed0310a9fa7b0752406cf3673d0922ea6d339495f7"
+    }
+  ]
+}

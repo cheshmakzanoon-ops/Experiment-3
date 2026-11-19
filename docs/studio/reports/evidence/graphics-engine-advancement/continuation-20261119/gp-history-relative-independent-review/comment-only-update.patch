@@ -1,0 +1,15 @@
+--- negative-copy/src/simulation/bike-ai.ts
++++ current-candidate/src/simulation/bike-ai.ts
+@@ -552,10 +552,11 @@
+   protected override trafficScale() {
+     return this.passingScale;
+   }
+-  /** A GP rider moves across quickly only to get past a slower rider on a straight. */
++  /** GP road traffic choices retain the racing-line frame in which they were sampled. */
+   protected override roadLaneIsRelative() {
+     return this.isGp;
+   }
++  /** A GP rider moves across quickly only to get past a slower rider on a straight. */
+   protected override laneRate() {
+     return this.isGp && this.planner.blocker >= 0 ? GP_AI_HANDS.laneRate : super.laneRate();
+   }

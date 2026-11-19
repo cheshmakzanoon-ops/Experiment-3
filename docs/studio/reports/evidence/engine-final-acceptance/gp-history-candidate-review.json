@@ -1,0 +1,143 @@
+{
+  "schema": 1,
+  "updatedUTC": "2026-11-19T12:06:40.428107+00:00",
+  "status": "History-only observer source/native contract reviewed; selected original dry and Ardennes cases pass, but mixed pace fails. Not accepted for final integration.",
+  "candidate": "/workspace/scratch/d611aefdb08c/w27-gp-history-candidate",
+  "parentCandidate": "/workspace/scratch/d611aefdb08c/w27-gp-capacity-candidate",
+  "sourceHashesAfterTypeOnlyCleanup": {
+    "src/simulation/bike.ts": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de",
+    "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+    "src/simulation/bike-ai.ts": "ffc70ab74e818298535eea6c48375df8cd3a5b30ba4ad776370a358eb3358c7d",
+    "src/simulation/bike-vehicle.ts": "e9c829ad70fa04396f14b065f39366bbc008c787493672619342967a8b8aa2b5",
+    "tests/gp-current-history.test.ts": "26b4c2c6d7e072c9f90bad77d760e4ea48d562add0da9e30222a1cf4ce0e9acf"
+  },
+  "sourceAtNativeAndOriginalTriad": {
+    "src/simulation/bike.ts": "d98e6527a92e6147758b0f6a23040f5fde584738b77ba586c92391c270b33d89",
+    "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+    "src/simulation/bike-ai.ts": "ffc70ab74e818298535eea6c48375df8cd3a5b30ba4ad776370a358eb3358c7d",
+    "src/simulation/bike-vehicle.ts": "e9c829ad70fa04396f14b065f39366bbc008c787493672619342967a8b8aa2b5"
+  },
+  "scope": {
+    "engineFilesChangedFromCapacity": [
+      "src/simulation/bike.ts",
+      "src/simulation/motogp-physics.ts"
+    ],
+    "physicalPlant": "Byte-identical after removing the added read-only helper/scratch; no physical force/relaxation/heat/limits changed.",
+    "noNewTimeStep": "The observation API has no dt input. Stored tyre-frame force is reinterpreted with current stiffness and immediately clamped, without evaluating a raw side-force target or relaxation update.",
+    "pedalBoundary": "Prior Fx is clipped to current effective load/camber friction circle for observation only. No contact returns zero before any body-frame longitudinal projection. Actual stored/allocated pedal forces remain unchanged.",
+    "controlOwnership": "Only early rolling lookahead reads the current observation. Measured trim feedback, deferred final-Fx stopping request, final inverse, one actuator advance and actual contact step remain unchanged."
+  },
+  "independentNativeReview": {
+    "oracle": "Real clone.step at dt1e\u221220 with explicit exponential-mix===0 assertion; full120/240Hz steps are distinct negative controls.",
+    "infeasiblePriorForceControls": "Force-free unload and reduced-circle analytic projections compared against a feasible clipped-Fx native clone, not an infeasible original input.",
+    "queryImmutability": "Repeated/interleaved inverse/rear/history queries preserve every physical/reporting/thermal/history field and the next actual step.",
+    "constants": "No gains, margins, grip, crash limits, original assertions or test timeouts changed."
+  },
+  "validation": {
+    "initialNative": {
+      "passed": 91,
+      "failed": 0,
+      "files": 7,
+      "durationSeconds": 5.61
+    },
+    "finalNative": {
+      "passed": 95,
+      "failed": 0,
+      "files": 7,
+      "durationSeconds": 6.44,
+      "newHistoryTests": 33,
+      "exitCode": 0,
+      "exitEvidence": "Owner-reported completed invocation, full log retained."
+    },
+    "parity": {
+      "steps": 5760,
+      "identical": true,
+      "excludedNewScratch": "previewFront only; all existing fields compared"
+    },
+    "typeCheck": {
+      "initialExitCode": 1,
+      "initialError": "TS2353: inertialContacts excess field in Pick-shaped observer input",
+      "correction": "Delete only the unused caller property after race capture ended. Re-inserting that exact line reconstructs the original d98e6527 source SHA.",
+      "finalExitCode": 0,
+      "finalExitEvidence": "Owner confirmed completed tsc exit0."
+    },
+    "scopedLint": {
+      "exitCode": 0,
+      "source": "Before type-only caller-field removal; log retained."
+    }
+  },
+  "originalTriad": {
+    "command": [
+      "npx",
+      "vitest",
+      "run",
+      "tests/gp-tyre-contact.test.ts",
+      "tests/bike-session.test.ts",
+      "tests/gp-ai-braking-plan.test.ts",
+      "-t",
+      "classifies all eight GP riders at .poggio-alto. in .clear.|finishes a mixed GP/superbike race|no rider falls at the ardennes hairpin \\(seed 1000\\)"
+    ],
+    "cwd": "/workspace/scratch/d611aefdb08c/w27-gp-history-candidate",
+    "actualExitCode": 1,
+    "exitEvidence": "Owner resumed exec session74528 and confirmed exit_code1.",
+    "durationSeconds": 81.58,
+    "selected": 3,
+    "passed": 2,
+    "failed": 1,
+    "skipped": 42,
+    "totalDefinedTests": 45,
+    "results": {
+      "dryPoggio": "pass, unchanged zero-impact/crash assertions",
+      "ardennes1000": "pass, unchanged no-fall assertion",
+      "mixedPace": {
+        "status": "fail",
+        "actualMarginSeconds": 0.02620197372232269,
+        "requiredMarginSeconds": 0.15
+      }
+    },
+    "originalTestHashes": {
+      "tests/gp-tyre-contact.test.ts": "e3e67c87d1bf99f2dcd1761efd9c1ad3ca66f30da2ba332607d621e1f8e0ecc4",
+      "tests/bike-session.test.ts": "28b653c92029c494cd11ec713ab21c9eae1808af8c378afc1590d60590df09ae",
+      "tests/bike-mixed-passing.test.ts": "de20c703b20d780a5aafee7eeba45be8efaab5f59c780c303a3b6c704e734253",
+      "tests/gp-ai-braking-plan.test.ts": "f0124f304bbdc5311ace3a2624d9ae3e6656be61fcdc87a314e0874e2ff51b9a"
+    }
+  },
+  "evidence": {
+    "gp-history-native.log": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-history-native.log",
+      "bytes": 897,
+      "sha256": "df0f4afea1e01b1cd3c1aeaa067cc8c3c2dd810f221bd4fe460c4e8be23e5ce2"
+    },
+    "gp-history-native-final.log": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-history-native-final.log",
+      "bytes": 896,
+      "sha256": "4699711a458ff9e16ede7310c9e0cb9bb582560129c1ffd7435fafd6e17c28c5"
+    },
+    "gp-history-tsc.log": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-history-tsc.log",
+      "bytes": 395,
+      "sha256": "8c9a98cf7cec36a3c972b2208f5d79879d7a9232caac035e1ca7be91e7b8c2dc"
+    },
+    "gp-history-tsc-final.log": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-history-tsc-final.log",
+      "bytes": 99,
+      "sha256": "7125f194612fcff2f454c05d848e7cb71facc1967b4d5017e25b34fdee3ba74f"
+    },
+    "gp-history-lint.log": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-history-lint.log",
+      "bytes": 99,
+      "sha256": "7125f194612fcff2f454c05d848e7cb71facc1967b4d5017e25b34fdee3ba74f"
+    },
+    "gp-history-parity.json": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-history-parity.json",
+      "bytes": 366,
+      "sha256": "7ae917c8e3e5eac38af30681cd74278462e733276934a6aad20e30065e3b2dcc"
+    },
+    "gp-history-original-triad.log": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-history-original-triad.log",
+      "bytes": 3017,
+      "sha256": "f9cdf7457139cd14ed1a314fad703d8d8693a9e4d0d9ffb1fdd0775f763d71b2"
+    }
+  },
+  "nextGate": "No final race matrix/calibration acceptance; original pace requirement unresolved."
+}

@@ -1,0 +1,242 @@
+{
+  "candidate": "/workspace/scratch/0ab62d15db18/gp-history-relative-only",
+  "createdAt": "2026-11-19T13:43:21.451415+00:00",
+  "sourceBefore": {
+    "sourceFiles": 931,
+    "sourceSha256": "5c423fb5637fbb4bb7d62de3ed85fec2a3dbc90ed58df85cdaf0bfd2e6a52b2c",
+    "critical": {
+      "src/simulation/ai.ts": "b8a21f5be872ad5b9a19a4a64d29cd2f51d341e8797d75e5c5240a89a1dd5106",
+      "src/simulation/bike-ai.ts": "de53ef7b77e07b0d504acb81d5ed79f814d05e696b985c2002614ea4b6352841",
+      "src/simulation/bike.ts": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de",
+      "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+      "src/simulation/traffic.ts": "58bbe1c1e66fdb5a7a7850f3bd1e04b320ddc58b030aa2ec0638ff639160e874"
+    }
+  },
+  "whitelistMatches": true,
+  "whitelistSha256": "e2f4f25046c23e0b1e09eb231d37aa70cd0cf3e6cfc3b20839f7f920b5ab0f3e",
+  "sourceDiffVsHistory": [
+    {
+      "path": "src/rendering/open-world/festival-renderer.ts",
+      "before": "cfd3f6ff91670c6885e87846edb0faae1f608d947ac13ecb1f67fe05bacc2be8",
+      "candidate": "c226ab4240ad675bb2e404d1ca2887a48cfda387b42441a3bf53acd4f48d5349"
+    },
+    {
+      "path": "src/rendering/pmrem-preparation.ts",
+      "before": null,
+      "candidate": "af8500434caa04d96f72c5a19a2d5971857abbd751c22d4f8bad8d51538ac8d1"
+    },
+    {
+      "path": "src/rendering/preparation.ts",
+      "before": "1e4d1033a86e16ff43843292b7e17dfcb447393cc0cb77117496fb50b63b6940",
+      "candidate": "45331e8d3e4b06906285c8195742b492b4c3ce0e5f949441fd2cf5d05a667b91"
+    },
+    {
+      "path": "src/rendering/reflections.ts",
+      "before": "3471ed31f22ec7e8db5c785ba9936f64e67b65577c583279af33cd620d92d4f5",
+      "candidate": "c7403bb37261d91968d9a399d50ecbd9925f705fe5738042901e84bef4abfb25"
+    },
+    {
+      "path": "src/rendering/renderer.ts",
+      "before": "37f828b37a755af8df42196b7da793163afdc4e0f9dbd9545068119e54bc7f06",
+      "candidate": "57acec3d67beea259d111bc322800a51b1b3463d5aa62bf8f66ce00d22a8b0cc"
+    },
+    {
+      "path": "src/simulation/ai.ts",
+      "before": "5be0791ac44bc88a17e0c84744216e66ea6455f1dbe55a489c2628d2f5412525",
+      "candidate": "b8a21f5be872ad5b9a19a4a64d29cd2f51d341e8797d75e5c5240a89a1dd5106"
+    },
+    {
+      "path": "src/simulation/bike-ai.ts",
+      "before": "ffc70ab74e818298535eea6c48375df8cd3a5b30ba4ad776370a358eb3358c7d",
+      "candidate": "de53ef7b77e07b0d504acb81d5ed79f814d05e696b985c2002614ea4b6352841"
+    }
+  ],
+  "sourceDiffVs5fb2Production": [
+    {
+      "path": "src/simulation/ai.ts",
+      "before": "5be0791ac44bc88a17e0c84744216e66ea6455f1dbe55a489c2628d2f5412525",
+      "candidate": "b8a21f5be872ad5b9a19a4a64d29cd2f51d341e8797d75e5c5240a89a1dd5106"
+    },
+    {
+      "path": "src/simulation/bike-ai.ts",
+      "before": "4f9fc34126eb124dc18c57c3cdce7fc04e132c532e2cfb554ce61eab0f542854",
+      "candidate": "de53ef7b77e07b0d504acb81d5ed79f814d05e696b985c2002614ea4b6352841"
+    },
+    {
+      "path": "src/simulation/bike.ts",
+      "before": "5bf7c5903f4b33ae306eedffc72e23f58ef85c4b5841f2a86153d80918102d9a",
+      "candidate": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de"
+    },
+    {
+      "path": "src/simulation/motogp-physics.ts",
+      "before": "f43236152c81328f6bb0e0db6573235c492fcf2c8f5c2a84c3ca3976aa844e5b",
+      "candidate": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a"
+    }
+  ],
+  "scope": "Read-only review plus native negative controls in separate copied sources. No active candidate mutation or race run.",
+  "runs": [
+    {
+      "kind": "cache",
+      "harness": "/workspace/scratch/0ab62d15db18/gp-history-relative-cache-negative",
+      "command": [
+        "nice",
+        "-n",
+        "10",
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npx",
+        "vitest",
+        "run",
+        "tests/gp-relative-intent.test.ts"
+      ],
+      "test": "tests/gp-relative-intent.test.ts",
+      "testSha256": "693c09fc9ed42f19795ccbfc897854857927fc4d1cfdce3485db7839901bf409",
+      "sourceBefore": {
+        "sourceFiles": 931,
+        "sourceSha256": "c8d876da4aa29422f6ca159b338d6d97d523cc4eca62f36125dc2d251c5cf7c1",
+        "critical": {
+          "src/simulation/ai.ts": "608e1b2739fe9bfa55820c5e01285956a0182414efdef9d90f4723398abd2883",
+          "src/simulation/bike-ai.ts": "de53ef7b77e07b0d504acb81d5ed79f814d05e696b985c2002614ea4b6352841",
+          "src/simulation/bike.ts": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de",
+          "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+          "src/simulation/traffic.ts": "58bbe1c1e66fdb5a7a7850f3bd1e04b320ddc58b030aa2ec0638ff639160e874"
+        }
+      },
+      "onlySourceDifference": [
+        "src/simulation/ai.ts"
+      ],
+      "startedAt": "2026-11-19T13:43:22.315220+00:00",
+      "actualExit": 1,
+      "sourceAfter": {
+        "sourceFiles": 931,
+        "sourceSha256": "c8d876da4aa29422f6ca159b338d6d97d523cc4eca62f36125dc2d251c5cf7c1",
+        "critical": {
+          "src/simulation/ai.ts": "608e1b2739fe9bfa55820c5e01285956a0182414efdef9d90f4723398abd2883",
+          "src/simulation/bike-ai.ts": "de53ef7b77e07b0d504acb81d5ed79f814d05e696b985c2002614ea4b6352841",
+          "src/simulation/bike.ts": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de",
+          "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+          "src/simulation/traffic.ts": "58bbe1c1e66fdb5a7a7850f3bd1e04b320ddc58b030aa2ec0638ff639160e874"
+        }
+      },
+      "finishedAt": "2026-11-19T13:43:30.657877+00:00",
+      "wallSeconds": 8.34265670300374,
+      "log": "cache-negative.log",
+      "sourceStable": true
+    },
+    {
+      "kind": "pit",
+      "harness": "/workspace/scratch/0ab62d15db18/gp-history-relative-pit-negative",
+      "command": [
+        "nice",
+        "-n",
+        "10",
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npx",
+        "vitest",
+        "run",
+        "tests/gp-relative-pit-cancel.test.ts"
+      ],
+      "test": "tests/gp-relative-pit-cancel.test.ts",
+      "testSha256": "e24c2edb48bfff7fe31385dd459a7e79245916d8d03cb914dcefa814756785fa",
+      "sourceBefore": {
+        "sourceFiles": 931,
+        "sourceSha256": "fca95d397db60c92f32ce272a30bb68e1d2cf0029e50c05c9f89db8886ecd314",
+        "critical": {
+          "src/simulation/ai.ts": "ebbd3319e0ba7616c256a73891773fcc0b80e53c9b12c449d682962707471e7f",
+          "src/simulation/bike-ai.ts": "de53ef7b77e07b0d504acb81d5ed79f814d05e696b985c2002614ea4b6352841",
+          "src/simulation/bike.ts": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de",
+          "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+          "src/simulation/traffic.ts": "58bbe1c1e66fdb5a7a7850f3bd1e04b320ddc58b030aa2ec0638ff639160e874"
+        }
+      },
+      "onlySourceDifference": [
+        "src/simulation/ai.ts"
+      ],
+      "startedAt": "2026-11-19T13:43:30.982059+00:00",
+      "actualExit": 1,
+      "sourceAfter": {
+        "sourceFiles": 931,
+        "sourceSha256": "fca95d397db60c92f32ce272a30bb68e1d2cf0029e50c05c9f89db8886ecd314",
+        "critical": {
+          "src/simulation/ai.ts": "ebbd3319e0ba7616c256a73891773fcc0b80e53c9b12c449d682962707471e7f",
+          "src/simulation/bike-ai.ts": "de53ef7b77e07b0d504acb81d5ed79f814d05e696b985c2002614ea4b6352841",
+          "src/simulation/bike.ts": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de",
+          "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+          "src/simulation/traffic.ts": "58bbe1c1e66fdb5a7a7850f3bd1e04b320ddc58b030aa2ec0638ff639160e874"
+        }
+      },
+      "finishedAt": "2026-11-19T13:43:35.613766+00:00",
+      "wallSeconds": 4.63170974500099,
+      "log": "pit-negative.log",
+      "sourceStable": true
+    }
+  ],
+  "sourceAfter": {
+    "sourceFiles": 931,
+    "sourceSha256": "12fefda976d6330eb99a81d0e8a916b6b6fb3c92a0c3bd419703d5110cb52d32",
+    "critical": {
+      "src/simulation/ai.ts": "b8a21f5be872ad5b9a19a4a64d29cd2f51d341e8797d75e5c5240a89a1dd5106",
+      "src/simulation/bike-ai.ts": "53781daa7badaf7814a63400bffd4ec96a0399ae9622671e51554f081fc265d5",
+      "src/simulation/bike.ts": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de",
+      "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+      "src/simulation/traffic.ts": "58bbe1c1e66fdb5a7a7850f3bd1e04b320ddc58b030aa2ec0638ff639160e874"
+    }
+  },
+  "candidateSourceStable": false,
+  "finishedAt": "2026-11-19T13:43:35.680954+00:00",
+  "activeCandidateUpdate": {
+    "kind": "Coordinator changed comments after its original triad and prior guards finished, during the second isolated negative run.",
+    "commentOnlyIndependentlyVerified": true,
+    "path": "src/simulation/bike-ai.ts",
+    "beforeSha256": "de53ef7b77e07b0d504acb81d5ed79f814d05e696b985c2002614ea4b6352841",
+    "afterSha256": "53781daa7badaf7814a63400bffd4ec96a0399ae9622671e51554f081fc265d5",
+    "explanation": "The active candidate aggregate correctly reports a change. Both negative controls use independent copied source; each guarded source stayed stable and retains its original exact hashes. No negative was rerun or relabelled with later bytes."
+  },
+  "results": {
+    "cache": {
+      "actualExit": 1,
+      "passed": 1,
+      "failed": 2,
+      "failedSlopes": [
+        0.01,
+        -0.01
+      ],
+      "flatControlPassed": true,
+      "observedUnwantedLaneMetres": 0.025000000000000022,
+      "firstFailure": "maxLane must be below1e-12",
+      "testSeconds": 3.697,
+      "totalSeconds": 7.24
+    },
+    "pit": {
+      "actualExit": 1,
+      "passed": 0,
+      "failed": 1,
+      "observedStalePitLaneMetres": 0.8557205287153025,
+      "expectedPriorRoadLaneMetres": 0,
+      "firstFailure": "desiredTactical must retain the independently sampled prior road intent",
+      "testSeconds": 1.263,
+      "totalSeconds": 3.68
+    }
+  },
+  "review": {
+    "blockingIssues": [],
+    "onlyNit": "The misplaced laneRate comment was corrected by coordinator after active guards completed.",
+    "testScope": [
+      "Analytic flat and +/-0.01 authored slopes prescribe an independent stationary world path. Native planner and complete driver update are not mocked.",
+      "Multiple native tactical refreshes and >80 held frames are required; generator lane state, rate, steering target and correction are observed.",
+      "No selected-path API is referenced; adapted tests read existing tactical and launch state.",
+      "Pit transition uses real Montejaral geometry and native planner; current pose is held fixed to isolate coordinate ownership.",
+      "No force integration or road-edge/wet-geometry acceptance is inferred from the native tests. Original race gates remain separate."
+    ],
+    "nonGpContract": "Default hook false preserves the exact existing desiredOffset-lineHere expression for cars and non-GP bike definitions.",
+    "trafficContract": "TrafficPlanner, admission constants and pace profile are byte-identical to pure history.",
+    "productionScopeVs5fb2": "Only ai.ts, bike-ai.ts, bike.ts and motogp-physics.ts differ. Relative to history simulation, only ai.ts and bike-ai.ts differ."
+  },
+  "positiveRunAttribution": "Coordinator native90 and original triad receipts are copied as historical owner execution evidence; this reviewer ran only the two stated native negative controls.",
+  "finalizedAt": "2026-11-19T13:46:28.283062+00:00"
+}

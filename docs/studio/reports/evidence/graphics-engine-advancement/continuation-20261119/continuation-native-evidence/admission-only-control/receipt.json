@@ -1,0 +1,93 @@
+{
+  "createdAt": "2026-11-19T13:03:05.258687+00:00",
+  "source": "/workspace/scratch/d611aefdb08c/w27-gp-history-candidate",
+  "candidate": "/workspace/scratch/0ab62d15db18/gp-history-admission-only-control",
+  "scope": "Pure preserved history plus only the already reviewed 220 m admission-reserve correction. No current-path handoff, horizon extension, or wet-path changes.",
+  "changedFiles": [
+    "src/simulation/traffic.ts"
+  ],
+  "hashesBefore": {
+    "source": {
+      "src/simulation/ai.ts": "5be0791ac44bc88a17e0c84744216e66ea6455f1dbe55a489c2628d2f5412525",
+      "src/simulation/bike-ai.ts": "ffc70ab74e818298535eea6c48375df8cd3a5b30ba4ad776370a358eb3358c7d",
+      "src/simulation/bike.ts": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de",
+      "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+      "src/simulation/traffic.ts": "58bbe1c1e66fdb5a7a7850f3bd1e04b320ddc58b030aa2ec0638ff639160e874",
+      "tests/bike-mixed-passing.test.ts": "de20c703b20d780a5aafee7eeba45be8efaab5f59c780c303a3b6c704e734253"
+    },
+    "candidate": {
+      "src/simulation/ai.ts": "5be0791ac44bc88a17e0c84744216e66ea6455f1dbe55a489c2628d2f5412525",
+      "src/simulation/bike-ai.ts": "ffc70ab74e818298535eea6c48375df8cd3a5b30ba4ad776370a358eb3358c7d",
+      "src/simulation/bike.ts": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de",
+      "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+      "src/simulation/traffic.ts": "7180a18b826bc8ccbfd6f638794c3c5efd427b2151baa087bc148502b8e18700",
+      "tests/bike-mixed-passing.test.ts": "de20c703b20d780a5aafee7eeba45be8efaab5f59c780c303a3b6c704e734253"
+    }
+  },
+  "trafficMatchesFrozen4c9b858": true,
+  "command": "node --experimental-transform-types scripts/source-stability.ts -- npx vitest run tests/bike-mixed-passing.test.ts -t 'montejaral.*5111'",
+  "race": {
+    "circuit": "montejaral",
+    "seed": 5111,
+    "laps": 2,
+    "vehicles": [
+      "gpr1",
+      "sbk1000",
+      "gpr1",
+      "sbk1000",
+      "gpr1",
+      "sbk1000"
+    ],
+    "durationLimitSimulationSeconds": 400,
+    "testTimeoutMs": 120000,
+    "originalAssertionsUnchanged": true
+  },
+  "hashesAfter": {
+    "source": {
+      "src/simulation/ai.ts": "5be0791ac44bc88a17e0c84744216e66ea6455f1dbe55a489c2628d2f5412525",
+      "src/simulation/bike-ai.ts": "ffc70ab74e818298535eea6c48375df8cd3a5b30ba4ad776370a358eb3358c7d",
+      "src/simulation/bike.ts": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de",
+      "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+      "src/simulation/traffic.ts": "58bbe1c1e66fdb5a7a7850f3bd1e04b320ddc58b030aa2ec0638ff639160e874",
+      "tests/bike-mixed-passing.test.ts": "de20c703b20d780a5aafee7eeba45be8efaab5f59c780c303a3b6c704e734253"
+    },
+    "candidate": {
+      "src/simulation/ai.ts": "5be0791ac44bc88a17e0c84744216e66ea6455f1dbe55a489c2628d2f5412525",
+      "src/simulation/bike-ai.ts": "ffc70ab74e818298535eea6c48375df8cd3a5b30ba4ad776370a358eb3358c7d",
+      "src/simulation/bike.ts": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de",
+      "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+      "src/simulation/traffic.ts": "7180a18b826bc8ccbfd6f638794c3c5efd427b2151baa087bc148502b8e18700",
+      "tests/bike-mixed-passing.test.ts": "de20c703b20d780a5aafee7eeba45be8efaab5f59c780c303a3b6c704e734253"
+    }
+  },
+  "sourceAndCandidateUnchangedDuringRun": true,
+  "exhaustiveSourceAndTestDiffAfter": [
+    "src/simulation/traffic.ts"
+  ],
+  "completedAt": "2026-11-19T13:04:23.096397+00:00",
+  "result": {
+    "exitCode": 0,
+    "passed": 1,
+    "skipped": 5,
+    "failed": 0,
+    "testDurationSeconds": 35.559,
+    "durationSeconds": 37.9,
+    "raceFinished": true,
+    "totalCrashes": 0,
+    "sourceGuardPassed": true,
+    "log": "montejaral-5111.log"
+  },
+  "interpretation": "The reviewed admission correction alone does not reproduce the Montejaral 5111 fall on preserved history. This control does not test other scenarios or establish the mechanism of the independently observed current-path-handoff regression.",
+  "artifacts": [
+    {
+      "path": "admission-only.patch",
+      "bytes": 937,
+      "sha256": "78de22a71b2d9bb956a6ce497897869fde02d26bec7048fc7815a1b9064da91e"
+    },
+    {
+      "path": "montejaral-5111.log",
+      "bytes": 700,
+      "sha256": "62fc1108ff7a477752a49d039f79f1023790edb6a17828dd364c81cdb913bfb6"
+    }
+  ]
+}

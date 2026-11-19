@@ -1,0 +1,58 @@
+{
+  "draft": "/workspace/scratch/0ab62d15db18/gp-follow-horizon.test.ts",
+  "negativeSource": "/workspace/scratch/0ab62d15db18/final-build-checks",
+  "positiveSource": "/workspace/scratch/0ab62d15db18/gp-dual-horizon-candidate",
+  "testSHA256": "dec38dceb2f2a017070565acec198a90245e54edaf077e6f816df3d5d3f94497",
+  "sourceHashes": {
+    "negative": {
+      "src/simulation/bike-ai.ts": "9403ed4cffceb61cf20bd7e30eca162a11034a7119be2580e22682b2213cb9ed",
+      "src/simulation/traffic.ts": "7180a18b826bc8ccbfd6f638794c3c5efd427b2151baa087bc148502b8e18700"
+    },
+    "positive": {
+      "src/simulation/bike-ai.ts": "212c1f3eee0f37ecc9c20bf4fa262d4ff5928bbdb22290e60542c3f3607dcffb",
+      "src/simulation/traffic.ts": "b36df9e5a2c33e93f4b591c942edfe68e9d8615ed85223aadcc42333cc423f82"
+    }
+  },
+  "completedAt": "2026-11-19T13:00:27.769045+00:00",
+  "results": [
+    {
+      "kind": "negative",
+      "sourceCommit": "4c9b858452fbf099509e471c3db619a7a4b33717",
+      "exitCode": 1,
+      "expectedFailure": true,
+      "failed": 3,
+      "passed": 3,
+      "durationSeconds": 8.52,
+      "log": "gp-follow-horizon-negative.log",
+      "failures": [
+        "No separate current following horizon emitted.",
+        "Prospective distance selects follow instead of current-speed settle.",
+        "Explicit exhausted following horizon ignored."
+      ],
+      "logSHA256": "12fafdd4a11cb98079e3dbc4df3409a7d6a24a931299cfb41c3f7155de6c30a2",
+      "logBytes": 3781
+    },
+    {
+      "kind": "positive",
+      "exitCode": 0,
+      "failed": 0,
+      "passed": 6,
+      "durationSeconds": 8.24,
+      "log": "gp-follow-horizon-positive.log",
+      "logSHA256": "44d59ae0e8a3ccea71c8f669deeadcc0a7f4b20cb085d999f0c09e509d6403ac",
+      "logBytes": 1180
+    }
+  ],
+  "testCoverage": [
+    "Exact same-profile native current crossing 528 m and prospective crossing 372 m.",
+    "Same GP/SBK traffic pair, lane, speeds, spacing and needDecel; current following cap 79.85498899355876 m/s versus prospective follow cap 67.22939964010767 m/s.",
+    "Passing admission still governed by prospective runway.",
+    "Omitted followingRunway preserves legacy behavior at 372 m and 528 m.",
+    "Explicit followingRunway zero is retained by nullish fallback."
+  ],
+  "sourceUnchanged": true,
+  "racesRun": 0,
+  "constantsChanged": false,
+  "review": "No blocking issue found in the separate dual-horizon candidate. Both crossings come from the same bounded native profile; separate stopping-tail reserves remain finite, station travel is deducted, and direct prospective pass consumers remain unchanged.",
+  "fallAttribution": "This establishes control-contract behavior only; correlation with original fall onset and unchanged original race gates is owned by the physics/coordinator review."
+}

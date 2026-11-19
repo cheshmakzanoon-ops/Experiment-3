@@ -1,0 +1,61 @@
+{
+  "scope": "Local immutable build and attempted unchanged High journey; browser launch blocked before application execution.",
+  "commit": "de039a3b016058325f87bf54fd620a6b5726c873",
+  "applicationFingerprint": "3e42326b03d522f705e2bcab4be00f4d25b99cac5ab4d54638a3d1311539b8fa",
+  "productionSourceMatchesPublished": "2d67572a9a2ba4daa33311dcc9abed2c1b537632",
+  "nodeVersion": "v24.22.3",
+  "browserVersion": "Chromium 156.0.8078.79 built on Debian GNU/Linux 13 (trixie)",
+  "requestedBackend": "swiftshader",
+  "observedBackend": null,
+  "physicalHardwareValidated": false,
+  "checks": [
+    {
+      "command": "node --experimental-transform-types scripts/source-stability.ts -- npm run build",
+      "exitCode": 0,
+      "result": "passed"
+    },
+    {
+      "command": "node --experimental-transform-types scripts/source-stability.ts -- npx vitest run tests/high-fragment-inspector.test.ts",
+      "exitCode": 0,
+      "result": "passed",
+      "sourceCommit": "de039a3b016058325f87bf54fd620a6b5726c873",
+      "testFilesPassed": 1,
+      "testsPassed": 6,
+      "testDurationMs": 15,
+      "totalDurationSeconds": 1.01,
+      "observation": "Coordinator directly observed the completed invocation in exec session 66663 and relayed its outcome. Raw stdout was returned by the tool, not saved as a log. This row is a coordinator-observed receipt, not an additional independently executed test run."
+    },
+    {
+      "command": "CI=1 CHROMIUM_PATH=/usr/bin/chromium APEX_BROWSER_BACKEND=swiftshader node --experimental-transform-types scripts/source-stability.ts -- npx playwright test e2e/graphics-high-journey.spec.ts",
+      "exitCode": 1,
+      "result": "environment-blocked",
+      "failureStage": "scripts/browser-backend-setup.ts: chromium.launch",
+      "testBodiesExecuted": 0,
+      "reason": "Chromium aborted at process_singleton_posix.cc:297: socket() failed: Operation not permitted (1)."
+    }
+  ],
+  "escalatedRetry": {
+    "executed": false,
+    "result": "rejected",
+    "reason": "Execution policy disables sandbox approval; require_escalated command did not execute."
+  },
+  "sourceHashes": {
+    "e2e/graphics-high-journey.spec.ts": "9c186c20710dffceb46859cb84b4d0ba982847d3e776ed756ff3eb01cea388de",
+    "tests/high-fragment-inspector.test.ts": "eba56dc56633529ec0a5406c5954413c4e6d9eaf6cd0f0577071c88ba7ed5ac0",
+    "playwright.config.ts": "052691e0974ab8073a021fa80fe1cda54bdff3863c6fd9ffebeba6462b2852fd",
+    "scripts/browser-backend.ts": "66022b027020928f169549b661bf27c366359c62efe04b7ca1d108335c3feaed",
+    "scripts/browser-backend-setup.ts": "b2a7cf39d52d4353e845319a3ce562e50f4003aaea1c9762e119e2a1f1eec769"
+  },
+  "artifacts": {
+    "browser-progress.json": "0acdab1ee2077589c25c1b6c94684cb9fb26d763de2655e027f48d5d837be6f4",
+    "build-identity.json": "8a541fc80e9cde958aaa842103633d85ab026159870658d774f72806ba82eac6",
+    "build.log": "c5c386d3ea2346230dbbb231f03830ebea9819bbe2e52a7366ba9dc24ab164ea",
+    "high-launch-failure.log": "fb09c17cab02d5f7c3f8654759efa44f3e6172e24b3071074a3c18e7c3fb637b"
+  },
+  "limits": [
+    "No page was opened, no graphics test body ran, and no GPU/backend identity was observed.",
+    "High resolution, graphics settings, test deadlines, native draws, diagnostics and GPU completion assertions remain unchanged.",
+    "This attempted SwiftShader execution is not a Mesa CI result or acceptance of the test-only inspector correction.",
+    "Real High execution on the changed test remains required."
+  ]
+}

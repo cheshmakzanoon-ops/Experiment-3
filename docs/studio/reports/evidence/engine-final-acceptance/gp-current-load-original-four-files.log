@@ -1,0 +1,100 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+ RUN  v3.2.4 /workspace/scratch/d611aefdb08c/w27-gp-current-load-candidate
+
+ ❯ tests/gp-tyre-contact.test.ts (22 tests | 1 failed) 177136ms
+   ✓ GP front and rear contact grip > gpr1 retains useful drive from a clean rear contact when the front crosses a low-grip patch  3075ms
+   ✓ GP front and rear contact grip > gpr2 retains useful drive from a clean rear contact when the front crosses a low-grip patch  2704ms
+   ✓ GP front and rear contact grip > gpr1 keeps front braking available with a low-grip rear while respecting rear unloading  1522ms
+   ✓ GP front and rear contact grip > gpr2 keeps front braking available with a low-grip rear while respecting rear unloading  1711ms
+   ✓ GP front and rear contact grip > uses separately sampled real kerb and asphalt contacts and refreshes them after repositioning  739ms
+   ✓ GP front and rear contact grip > lets rear tyre wear reduce rear drive without assigning that wear to the front tyre  1671ms
+   ✓ GP front and rear contact grip > retains shared contact grip for sbk1000  896ms
+   ✓ GP front and rear contact grip > retains shared contact grip for ss600  682ms
+   ✓ GP front and rear contact grip > retains shared contact grip for nr900  832ms
+   ✓ GP front and rear contact grip > retains shared contact grip for cr750  992ms
+   ✓ GP front and rear contact grip > retains shared contact grip for mx450  799ms
+   ✓ GP contact force and integration invariants > preserves the exact shared-grip trajectory when both contact coefficients are equal 21ms
+   ✓ GP contact force and integration invariants > keeps trail braking and coast torque inside each circle at front 1 / rear 0.35 78ms
+   ✓ GP contact force and integration invariants > keeps trail braking and coast torque inside each circle at front 0.35 / rear 1 87ms
+   ✓ GP contact force and integration invariants > keeps trail braking and coast torque inside each circle at front 0.65 / rear 0.4 75ms
+   ✓ GP contact force and integration invariants > keeps trail braking and coast torque inside each circle at front 0.4 / rear 0.65 72ms
+   ✓ GP contact force and integration invariants > does not hide a raw rider locking the rear wheel on its own low-grip patch 1ms
+   ✓ GP contact force and integration invariants > rolls on the throttle while picking up from a corner at front 1 / rear 0.35 34ms
+   ✓ GP contact force and integration invariants > rolls on the throttle while picking up from a corner at front 0.35 / rear 1 34ms
+   ✓ GP contact grip in production races > classifies all eight GP riders at 'aurel' in 'clear' without a contact or crash  30046ms
+   × GP contact grip in production races > classifies all eight GP riders at 'poggio-alto' in 'clear' without a contact or crash 39654ms
+     → expected 0.9916666666666667 to be +0 // Object.is equality
+   ✓ GP contact grip in production races > classifies all eight GP riders at 'poggio-alto' in 'rain' without a contact or crash  91407ms
+ ✓ tests/bike-mixed-passing.test.ts (6 tests) 129168ms
+   ✓ a mixed GP/superbike race at parco-reale (seed 5259) has no fall  24763ms
+   ✓ a mixed GP/superbike race at parco-reale (seed 5074) has no fall  24268ms
+   ✓ a mixed GP/superbike race at haarveld (seed 5000) has no fall  23633ms
+   ✓ a mixed GP/superbike race at vellamar (seed 5222) has no fall  21062ms
+   ✓ a mixed GP/superbike race at montejaral (seed 5111) has no fall  25367ms
+   ✓ a field of one class is not touched by the mixed-class passing rules  10072ms
+ ❯ tests/bike-session.test.ts (14 tests | 1 failed) 40767ms
+   ✓ WP34 motorcycles in real sessions > builds the bike adapter and bike AI for bike definitions only  1021ms
+   ✓ WP34 motorcycles in real sessions > laps a circuit under AI with lean, gears, tyre wear and valid timing  4825ms
+   ✓ WP34 motorcycles in real sessions > crash flows through race control: rider down, separation, remount, back on track  1667ms
+   ✓ WP34 motorcycles in real sessions > a hard contact between bikes unseats a rider without non-finite state  890ms
+   ✓ WP34 motorcycles in real sessions > race control penalises a bike jump start like any entrant  1050ms
+   ✓ WP34 motorcycles in real sessions > rear brake is the secondary (clutch) input and decelerates on its own  1501ms
+   ✓ WP34 motorcycles in real sessions > services a bike in the pit lane and releases it  3589ms
+   ✓ WP34 snapshot v12 bike block > round-trips lean, steer, rider pose and loads; cars carry zeros  1363ms
+   ✓ WP34 snapshot v12 bike block > rejects unknown vehicle indices and old layouts 0ms
+   ✓ WP34 snapshot v12 bike block > chassis lean inverts to the dynamics lean (tyre crown geometry) 0ms
+   ✓ WP36 bike identity, rules and content > gives every bike its own identity hash and record category 2ms
+   ✓ WP36 bike identity, rules and content > rejects mixed car and bike grids, admits all-bike grids 1ms
+   ✓ WP36 bike identity, rules and content > validates bike content and names what is wrong  3291ms
+   × WP35 seeded AI bike race > finishes a mixed GP/superbike race with bounded incidents and no stuck rider 21563ms
+     → expected 90.62116528909056 to be less than 90.00408604049784
+ ✓ tests/gp-ai-braking-plan.test.ts (9 tests) 74370ms
+   ✓ GP rider follows its braking plan > feeds the planned deceleration forward instead of waiting for a speed error  936ms
+   ✓ GP rider follows its braking plan > brakes gently once the flag has fallen  686ms
+   ✓ GP rider follows its braking plan > no rider falls at the ardennes hairpin (seed 1000)  13411ms
+   ✓ GP rider follows its braking plan > no rider falls at the ardennes hairpin (seed 1037)  12324ms
+   ✓ GP rider follows its braking plan > no rider falls at the montejaral hairpin (seed 1000)  10122ms
+   ✓ GP rider follows its braking plan > no rider falls after taking the flag at montejaral (seed 1000)  10934ms
+   ✓ GP rider follows its braking plan > no rider falls after taking the flag at ardennes (seed 1000)  12682ms
+   ✓ GP rider follows its braking plan > no rider falls after taking the flag at ardennes (seed 1037)  13270ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/bike-session.test.ts > WP35 seeded AI bike race > finishes a mixed GP/superbike race with bounded incidents and no stuck rider
+AssertionError: expected 90.62116528909056 to be less than 90.00408604049784
+ ❯ tests/bike-session.test.ts:367:16
+    365|     const gp = Math.min(best(0), best(2), best(4)),
+    366|       sbk = Math.min(best(1), best(3), best(5));
+    367|     expect(gp).toBeLessThan(sbk);
+       |                ^
+    368|     // ...by a margin that is more than the noise of one seeded lap (0…
+    369|     expect(sbk - gp).toBeGreaterThan(0.15);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/gp-tyre-contact.test.ts > GP contact grip in production races > classifies all eight GP riders at 'poggio-alto' in 'clear' without a contact or crash
+AssertionError: expected 0.9916666666666667 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 0.9916666666666667
+
+ ❯ tests/gp-tyre-contact.test.ts:294:22
+    292|       }
+    293|       expect(sim.race.phase).toBe(PHASE.FINISHED);
+    294|       expect(impact).toBe(0);
+       |                      ^
+    295|       for (const bike of sim.cars as BikeVehicle[]) {
+    296|         expect(bike.dynamics.crashes).toBe(0);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed | 2 passed (4)
+      Tests  2 failed | 49 passed (51)
+   Start at  04:39:53
+   Duration  426.46s (transform 1.19s, setup 0ms, collect 4.03s, tests 421.44s, environment 1ms, prepare 242ms)
+

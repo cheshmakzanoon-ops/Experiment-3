@@ -1,0 +1,134 @@
+{
+  "scope": "Independent full-update native pit-approach cancellation frame regression; production candidate unchanged; negative private copy removes only !preparingPit cache guard.",
+  "testSha256": "dbaf185fee7a6f90c33c4c3aced0b312c6697bb3b02d978d518f02178b1ffe2a",
+  "initialFixtureNote": "Initial test-only separation prerequisite expected >1m, observed0.85572m. Changed prerequisite to require two frames of existing1.6m/s lane slew; original log preserved. Application source unchanged.",
+  "calibrationRuns": [
+    {
+      "name": "positive",
+      "candidate": "/workspace/scratch/0ab62d15db18/gp-relative-pit-cancel-review",
+      "startedAt": "2026-11-19T13:22:36.936908+00:00",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npx",
+        "vitest",
+        "run",
+        "tests/gp-relative-pit-cancel.test.ts"
+      ],
+      "before": {
+        "fileCount": 931,
+        "sha256": "c0dda1b9b2abefef8509d353d66566a0478915fd12a7ed5dbaa498153dbdc7ff",
+        "ai": "77829b11c82ded3c3d4982aaed48b34da2e425b334db716b6061259286849585",
+        "bikeAI": "da0508e3168914a2fdb402449ee23d438ea185465e17f3b894bc69fb38ef12b3"
+      },
+      "log": "/workspace/scratch/0ab62d15db18/gp-relative-pit-cancel-positive-pre-slew.log",
+      "actualExit": 1,
+      "after": {
+        "fileCount": 931,
+        "sha256": "c0dda1b9b2abefef8509d353d66566a0478915fd12a7ed5dbaa498153dbdc7ff",
+        "ai": "77829b11c82ded3c3d4982aaed48b34da2e425b334db716b6061259286849585",
+        "bikeAI": "da0508e3168914a2fdb402449ee23d438ea185465e17f3b894bc69fb38ef12b3"
+      },
+      "finishedAt": "2026-11-19T13:22:43.385069+00:00",
+      "sourceStable": true
+    },
+    {
+      "name": "negative",
+      "candidate": "/workspace/scratch/0ab62d15db18/gp-relative-pit-cancel-negative",
+      "startedAt": "2026-11-19T13:22:43.385176+00:00",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npx",
+        "vitest",
+        "run",
+        "tests/gp-relative-pit-cancel.test.ts"
+      ],
+      "before": {
+        "fileCount": 931,
+        "sha256": "d833d43d96d967dc98fe450817e35d1b642ec5e4acdb00b073b0eb0bf0045f5c",
+        "ai": "9efae4ec3127bbe5822c4c78b3270321f441b0992bc8db2939ef18ebb2a49e26",
+        "bikeAI": "da0508e3168914a2fdb402449ee23d438ea185465e17f3b894bc69fb38ef12b3"
+      },
+      "log": "/workspace/scratch/0ab62d15db18/gp-relative-pit-cancel-negative-pre-slew.log",
+      "actualExit": 1,
+      "after": {
+        "fileCount": 931,
+        "sha256": "d833d43d96d967dc98fe450817e35d1b642ec5e4acdb00b073b0eb0bf0045f5c",
+        "ai": "9efae4ec3127bbe5822c4c78b3270321f441b0992bc8db2939ef18ebb2a49e26",
+        "bikeAI": "da0508e3168914a2fdb402449ee23d438ea185465e17f3b894bc69fb38ef12b3"
+      },
+      "finishedAt": "2026-11-19T13:22:49.028185+00:00",
+      "sourceStable": true
+    }
+  ],
+  "fixtureCalibration": "The native corridor starts moving only after its new tactical sample. Added two held frames before cancellation to establish >two-frame lane displacement; no production change.",
+  "runs": [
+    {
+      "name": "positive",
+      "candidate": "/workspace/scratch/0ab62d15db18/gp-relative-pit-cancel-review",
+      "startedAt": "2026-11-19T13:23:10.224873+00:00",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npx",
+        "vitest",
+        "run",
+        "tests/gp-relative-pit-cancel.test.ts"
+      ],
+      "before": {
+        "fileCount": 931,
+        "sha256": "c0dda1b9b2abefef8509d353d66566a0478915fd12a7ed5dbaa498153dbdc7ff",
+        "ai": "77829b11c82ded3c3d4982aaed48b34da2e425b334db716b6061259286849585",
+        "bikeAI": "da0508e3168914a2fdb402449ee23d438ea185465e17f3b894bc69fb38ef12b3"
+      },
+      "log": "/workspace/scratch/0ab62d15db18/gp-relative-pit-cancel-positive.log",
+      "actualExit": 0,
+      "after": {
+        "fileCount": 931,
+        "sha256": "c0dda1b9b2abefef8509d353d66566a0478915fd12a7ed5dbaa498153dbdc7ff",
+        "ai": "77829b11c82ded3c3d4982aaed48b34da2e425b334db716b6061259286849585",
+        "bikeAI": "da0508e3168914a2fdb402449ee23d438ea185465e17f3b894bc69fb38ef12b3"
+      },
+      "finishedAt": "2026-11-19T13:23:15.140302+00:00",
+      "sourceStable": true
+    },
+    {
+      "name": "negative",
+      "candidate": "/workspace/scratch/0ab62d15db18/gp-relative-pit-cancel-negative",
+      "startedAt": "2026-11-19T13:23:15.141062+00:00",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npx",
+        "vitest",
+        "run",
+        "tests/gp-relative-pit-cancel.test.ts"
+      ],
+      "before": {
+        "fileCount": 931,
+        "sha256": "d833d43d96d967dc98fe450817e35d1b642ec5e4acdb00b073b0eb0bf0045f5c",
+        "ai": "9efae4ec3127bbe5822c4c78b3270321f441b0992bc8db2939ef18ebb2a49e26",
+        "bikeAI": "da0508e3168914a2fdb402449ee23d438ea185465e17f3b894bc69fb38ef12b3"
+      },
+      "log": "/workspace/scratch/0ab62d15db18/gp-relative-pit-cancel-negative.log",
+      "actualExit": 1,
+      "after": {
+        "fileCount": 931,
+        "sha256": "d833d43d96d967dc98fe450817e35d1b642ec5e4acdb00b073b0eb0bf0045f5c",
+        "ai": "9efae4ec3127bbe5822c4c78b3270321f441b0992bc8db2939ef18ebb2a49e26",
+        "bikeAI": "da0508e3168914a2fdb402449ee23d438ea185465e17f3b894bc69fb38ef12b3"
+      },
+      "finishedAt": "2026-11-19T13:23:19.238671+00:00",
+      "sourceStable": true
+    }
+  ]
+}

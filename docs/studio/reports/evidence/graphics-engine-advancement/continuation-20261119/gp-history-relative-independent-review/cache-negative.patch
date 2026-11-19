@@ -1,0 +1,13 @@
+--- a/src/simulation/ai.ts
++++ b/src/simulation/ai.ts
+@@ -331,9 +331,7 @@
+       // A traffic result is sampled at tactical cadence. Retain its road
+       // frame: subtracting the authored line again at each new station would
+       // turn even an unchanged racing-line choice into a moving lane target.
+-      const desiredLane = this.roadLaneIsRelative()
+-        ? this.desiredTactical
+-        : this.desiredOffset - lineHere;
++      const desiredLane = this.desiredOffset - lineHere;
+       // At walking pace past a stalled car the lane change is bounded by the
+       // steering lock, not by a lateral rate: the lane is taken at once.
+       this.tactical =

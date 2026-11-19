@@ -1,0 +1,142 @@
+{
+  "schema": 1,
+  "updatedUTC": "2026-11-19T11:49:24.387193+00:00",
+  "status": "Initial directional work used request units incorrectly; separate corrected net/request source reviewed and48native pass. Corrected-source original integration remains pending.",
+  "candidate": "w27-gp-directional-candidate",
+  "parentCandidate": "w27-gp-steady-candidate",
+  "sourceHashes": {
+    "src/simulation/bike.ts": "1f4cca38a612029b99366e904488995a3e38abbe79e3ba6b3042f8032cf532f8",
+    "src/simulation/bike-ai.ts": "80006ea7d138643444346c31f17050800dfe724fa6e8c82e172cd475c67565e5",
+    "src/simulation/motogp-physics.ts": "3b8c3ad88c857fdb6a668605d183173e982e6d622096b35752d737b2c3f94b6e",
+    "tests/gp-directional-bound.test.ts": "00d4368f90e1be0976ef173506c4ee9df5a9aa74e62595d595934a8e2bedc293",
+    "tests/gp-capacity-phase.test.ts": "54c27868f5ec5e0c0aae79e3c9ac9b0f845a49152fb4faa07500641c3d216e9b",
+    "tests/fixtures/gp-ardennes-force-bound.json": "f6bed701f92bce90828e4289d9f7ee44d0c243b2d1a76e0efc11fc8281f0ec82"
+  },
+  "unchangedFromParent": {
+    "bikeAI": true,
+    "physicalPlant": true
+  },
+  "independentReview": [
+    "The exact existing yaw-force law is affine and monotone in requested a. Its front-body friction-vector outer interval is mapped without removing or replacing yaw damping.",
+    "The current rear preview consumes final signed Fx and final speed, is read-only and matches the later native rear force. The effective front load uses the same partial-contact multiplier passed to the plant.",
+    "Positive roll travel uses the upper signed stopping endpoint; negative travel uses the lower endpoint. If all available force is adverse to stopping, the sign is retained rather than inventing symmetric authority. No stopping budget is increased beyond the old recovery value.",
+    "When the interval is disjoint from the static budget, the final request is projected to the closest cancelling front force. This records an unavoidable rear contribution rather than fabricating zero acceleration.",
+    "The interval bounds the requested planner variable a. Because the yaw correction modifies net force, actual total Fy/m need not equal a. Relaxation, actual steering reach and the unchanged3% inverse reserve can further narrow achievable force; these tests do not prove exact stopping-energy realization.",
+    "The two initial draft capacity fixture failures compared different final speeds. The corrected oracle captures the same original pose in both deferred plans and advances both to the same final speed, retaining exact assertions and tolerances."
+  ],
+  "validation": {
+    "initialNative": {
+      "passed": 91,
+      "failed": 2,
+      "tests": 93,
+      "exitCode": 1
+    },
+    "directionalAndCorrectedCapacityNative": {
+      "passed": 46,
+      "tests": 46,
+      "files": 2,
+      "exitCode": 0,
+      "directionalCases": 31,
+      "retainedCapacityCases": 15
+    },
+    "unaffectedPathsParity": {
+      "steps": 5760,
+      "firstDifference": null,
+      "identical": true,
+      "sources": {
+        "w27-gp-steady-candidate": "24c6c03405193bc30977e0caebf91a2078419e17f0ab357cc7832034f0068fec",
+        "w27-gp-directional-candidate": "1f4cca38a612029b99366e904488995a3e38abbe79e3ba6b3042f8032cf532f8"
+      }
+    },
+    "selectedOriginalArdennes": {
+      "command": "npx vitest run tests/gp-ai-braking-plan.test.ts -t 'no rider falls at the ardennes hairpin \\(seed 1000\\)'",
+      "cwd": "w27-gp-directional-candidate",
+      "passed": 1,
+      "skippedOtherOriginalCases": 8,
+      "exitCode": 0,
+      "caseSeconds": 15.645,
+      "invocationSeconds": 18.07,
+      "scope": "Unchanged original case body/limits; selected test invocation, not full GP9 or full matrix.",
+      "sourceBikeSha256": "1f4cca38a612029b99366e904488995a3e38abbe79e3ba6b3042f8032cf532f8",
+      "notReusedForCorrectedSource": true
+    },
+    "netForceCorrectionNative": {
+      "passed": 48,
+      "tests": 48,
+      "files": 2,
+      "directionalCases": 33,
+      "retainedCapacityCases": 15,
+      "exitCode": 0
+    }
+  },
+  "evidence": {
+    "gp-directional-native-initial.log": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-directional-native-initial.log",
+      "bytes": 4941,
+      "sha256": "2df86ef53dd795c437f2d46afbbb27d67f2b8700ef0f7603d3cdae84c2952439"
+    },
+    "gp-directional-bound-native.log": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-directional-bound-native.log",
+      "bytes": 469,
+      "sha256": "080ac12d7e222df1874e0ee773b67207a6fa819e2d05c6c3c42704ecde31629e"
+    },
+    "gp-directional-parity.json": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-directional-parity.json",
+      "bytes": 289,
+      "sha256": "9b483b2517cc18117fce1ca10211b38366e7e5eee5077ae3ea266d93384964cf"
+    },
+    "gp-directional-ardennes1000.log": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-directional-ardennes1000.log",
+      "bytes": 543,
+      "sha256": "33977d8322923574b42c1029075639ad93162377b1b0393de18ea09ba4552955"
+    },
+    "gp-directional-net-work-probe.json": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-directional-net-work-probe.json",
+      "bytes": 6169,
+      "sha256": "b1514ada066439a1a91d291b579e8d5a23e658f72f2d2997c85b47ed919a6808"
+    },
+    "gp-directional-net-native.log": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-directional-net-native.log",
+      "bytes": 469,
+      "sha256": "0a0191bacb0e5b105869ec330b54837f06d4f2e6f5c1e82de037a902090fd427"
+    }
+  },
+  "steadyParentFailureReceipt": {
+    "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-steady-original-gates-complete.json",
+    "bytes": 2358,
+    "sha256": "17962e820a1733e788788663019881b701892d8a2554a04e784d67193441d5ee"
+  },
+  "scope": "No current-load force predictor is implemented in this directional candidate. Its original Ardennes pass does not accept the47/51 failed parent or any combined release.",
+  "initialSourceHashes": {
+    "src/simulation/bike.ts": "1f4cca38a612029b99366e904488995a3e38abbe79e3ba6b3042f8032cf532f8",
+    "src/simulation/bike-ai.ts": "80006ea7d138643444346c31f17050800dfe724fa6e8c82e172cd475c67565e5",
+    "src/simulation/motogp-physics.ts": "3b8c3ad88c857fdb6a668605d183173e982e6d622096b35752d737b2c3f94b6e",
+    "tests/gp-directional-bound.test.ts": "00d4368f90e1be0976ef173506c4ee9df5a9aa74e62595d595934a8e2bedc293",
+    "tests/gp-capacity-phase.test.ts": "54c27868f5ec5e0c0aae79e3c9ac9b0f845a49152fb4faa07500641c3d216e9b",
+    "tests/fixtures/gp-ardennes-force-bound.json": "f6bed701f92bce90828e4289d9f7ee44d0c243b2d1a76e0efc11fc8281f0ec82"
+  },
+  "correctedSourceHashes": {
+    "src/simulation/bike.ts": "616dc3fa5c0ba3c09262ed14561dd74e06689533b43419252c5dc4db88fe00f2",
+    "tests/gp-directional-bound.test.ts": "58174c2d78238748e080d6df5a25e0c9aae845535eb86a7a7e3eff3e0babdda0"
+  },
+  "requestVersusNetBlocker": {
+    "status": "Resolved in the isolated corrected source, not accepted by original race gates yet.",
+    "equation": "net(a)=(1+K/(m*v))*a-K*yaw/m",
+    "requestEndpointCannotOwnPhysicalWork": true,
+    "prescribedNativeControl": {
+      "yawSigns": [
+        -1.2,
+        1.2
+      ],
+      "requestedEndpointMagnitude": 7.396490970279729,
+      "physicalNetEndpointMagnitude": 6.544518479708094,
+      "recovery": 8.138857703096404,
+      "workUsingRequestEndpoint": 0.3058557070701538,
+      "workUsingPhysicalOuterEndpoint": 0.23764099541190592,
+      "actualNativeNetAccelerationMagnitude": 3.3758232054381874
+    },
+    "actualTraceQualification": "None of2399 saved capacity-source Ardennes samples overstates its signed physical stopping endpoint by>.01m/s\u00b2 after the old recovery cap. The prescribed high-yaw regression is a general correctness control, not attributed as that observed fall cause.",
+    "correction": "physicalMinimum/Maximum own signed stopping work; yaw-law minimum/maximum retain final request projection.",
+    "newOracle": "Mirrored high-yaw Simpson integration of the retained force/reaction stopping-work model matches the corrected controller within1e-9 and differs from the wrong endpoint by>.3m/s\u00b2; this is not the entire native gyroscopic roll model."
+  }
+}

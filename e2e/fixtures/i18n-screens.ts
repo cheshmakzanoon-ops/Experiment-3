@@ -6,6 +6,7 @@ import { F, H, carBase } from '../../src/simulation/protocol.ts';
 import { CareerController } from '../../src/career/controller.ts';
 import { wildcardBoardHtml } from '../../src/ui/wildcard-board.ts';
 import { setLocale, type Locale } from '../../src/i18n/index.ts';
+export { readGpuName } from '../../src/ui/settings-guide.ts';
 
 /** The production Interface in a given language with no renderer or worker, for the language
  * checks: `mount(scene, locale)` builds the screen, `snapshot(scene)` serialises it with the

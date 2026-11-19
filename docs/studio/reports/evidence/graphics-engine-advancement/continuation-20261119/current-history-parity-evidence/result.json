@@ -1,0 +1,110 @@
+{
+  "scope": "Fresh exact-source parity comparison; does not reuse historical d98e success and is not race acceptance.",
+  "historicalHarness": "/workspace/scratch/d611aefdb08c/w27-gp-history-parity.mjs",
+  "historicalHarnessSha256": "63ee09d3cb2287b053a0bebe0a06814704c41f3c3016ce285927f3183d5485d5",
+  "adaptation": "Same constructor preset, geometry, three modes, two signs, 960 steps per case, loads, control inputs, alternating timestep and JSON comparator. Imports/output are parameterized; source attribution and per-case result bookkeeping added.",
+  "excludedNewScratch": "After-state JSON properties named previewFront only, matching the historical comparator. No other fields excluded.",
+  "comparison": "Exact JSON-serialized enumerable state strings after each step. Not a comparison of non-enumerable fields, methods or IEEE representations erased by JSON.",
+  "modes": [
+    "standalone-gp",
+    "non-gp-road",
+    "non-gp-standalone"
+  ],
+  "exclusionsFromScope": [
+    "Road-contact GP control is intentionally changed and is not exercised by these modes.",
+    "No rider traffic, AI planner, race acceptance or GPU behavior is tested."
+  ],
+  "startedAt": "2026-11-19T13:38:41.371Z",
+  "completedAt": "2026-11-19T13:38:41.901Z",
+  "requestedSteps": 5760,
+  "steps": 5760,
+  "cases": [
+    {
+      "mode": "standalone-gp",
+      "sign": -1,
+      "steps": 960,
+      "identical": true
+    },
+    {
+      "mode": "standalone-gp",
+      "sign": 1,
+      "steps": 960,
+      "identical": true
+    },
+    {
+      "mode": "non-gp-road",
+      "sign": -1,
+      "steps": 960,
+      "identical": true
+    },
+    {
+      "mode": "non-gp-road",
+      "sign": 1,
+      "steps": 960,
+      "identical": true
+    },
+    {
+      "mode": "non-gp-standalone",
+      "sign": -1,
+      "steps": 960,
+      "identical": true
+    },
+    {
+      "mode": "non-gp-standalone",
+      "sign": 1,
+      "steps": 960,
+      "identical": true
+    }
+  ],
+  "firstDifference": null,
+  "identical": true,
+  "beforeSource": {
+    "baseline": {
+      "root": "/workspace/scratch/0ab62d15db18/graphics-local-validation",
+      "sourceFiles": 931,
+      "sourceSha256": "9a10688db1557696ef9f63144cdb891ae94f6ce3ee717ec7876a906363dbcc4a",
+      "critical": {
+        "src/simulation/bike.ts": "5bf7c5903f4b33ae306eedffc72e23f58ef85c4b5841f2a86153d80918102d9a",
+        "src/simulation/motogp-physics.ts": "f43236152c81328f6bb0e0db6573235c492fcf2c8f5c2a84c3ca3976aa844e5b",
+        "src/simulation/bike-ai.ts": "4f9fc34126eb124dc18c57c3cdce7fc04e132c532e2cfb554ce61eab0f542854",
+        "src/simulation/bike-vehicle.ts": "e9c829ad70fa04396f14b065f39366bbc008c787493672619342967a8b8aa2b5"
+      }
+    },
+    "candidate": {
+      "root": "/workspace/scratch/d611aefdb08c/w27-gp-history-candidate",
+      "sourceFiles": 930,
+      "sourceSha256": "e5df2a6300a93e2194a43b6b43b201f390ce757d6509f936f419720910b4c0cd",
+      "critical": {
+        "src/simulation/bike.ts": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de",
+        "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+        "src/simulation/bike-ai.ts": "ffc70ab74e818298535eea6c48375df8cd3a5b30ba4ad776370a358eb3358c7d",
+        "src/simulation/bike-vehicle.ts": "e9c829ad70fa04396f14b065f39366bbc008c787493672619342967a8b8aa2b5"
+      }
+    }
+  },
+  "afterSource": {
+    "baseline": {
+      "root": "/workspace/scratch/0ab62d15db18/graphics-local-validation",
+      "sourceFiles": 931,
+      "sourceSha256": "9a10688db1557696ef9f63144cdb891ae94f6ce3ee717ec7876a906363dbcc4a",
+      "critical": {
+        "src/simulation/bike.ts": "5bf7c5903f4b33ae306eedffc72e23f58ef85c4b5841f2a86153d80918102d9a",
+        "src/simulation/motogp-physics.ts": "f43236152c81328f6bb0e0db6573235c492fcf2c8f5c2a84c3ca3976aa844e5b",
+        "src/simulation/bike-ai.ts": "4f9fc34126eb124dc18c57c3cdce7fc04e132c532e2cfb554ce61eab0f542854",
+        "src/simulation/bike-vehicle.ts": "e9c829ad70fa04396f14b065f39366bbc008c787493672619342967a8b8aa2b5"
+      }
+    },
+    "candidate": {
+      "root": "/workspace/scratch/d611aefdb08c/w27-gp-history-candidate",
+      "sourceFiles": 930,
+      "sourceSha256": "e5df2a6300a93e2194a43b6b43b201f390ce757d6509f936f419720910b4c0cd",
+      "critical": {
+        "src/simulation/bike.ts": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de",
+        "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+        "src/simulation/bike-ai.ts": "ffc70ab74e818298535eea6c48375df8cd3a5b30ba4ad776370a358eb3358c7d",
+        "src/simulation/bike-vehicle.ts": "e9c829ad70fa04396f14b065f39366bbc008c787493672619342967a8b8aa2b5"
+      }
+    }
+  },
+  "sourceStable": true
+}

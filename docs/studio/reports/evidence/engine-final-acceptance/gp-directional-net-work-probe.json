@@ -1,0 +1,149 @@
+{
+  "schema": 1,
+  "scope": "Native prescribed high-yaw counterexample based on the exact saved Ardennes fixture. Only signed yaw is replaced by±1.2rad/s; this is not an observed race state or a new race.",
+  "qualification": "The original yaw law transforms the requested planner variable a into a different net physical lateral acceleration. Its request interval is valid for front-force allocation but cannot be substituted as physical stopping work. The net-force interval remains an outer bound, with actual actuator and contact response potentially smaller.",
+  "sourceFixture": "/workspace/scratch/d611aefdb08c/w10-engine-final-results/gp-capacity-ardennes-native-fixture.json",
+  "sourceFixtureSha256": "f6bed701f92bce90828e4289d9f7ee44d0c243b2d1a76e0efc11fc8281f0ec82",
+  "sourceHashes": {
+    "src/simulation/bike.ts": "52b090530d8db770d023dd65c72fff2e64ff84e10feb3e3d5c27c869c542eafd",
+    "src/simulation/bike-ai.ts": "ffc70ab74e818298535eea6c48375df8cd3a5b30ba4ad776370a358eb3358c7d",
+    "src/simulation/motogp-physics.ts": "f43236152c81328f6bb0e0db6573235c492fcf2c8f5c2a84c3ca3976aa844e5b",
+    "src/simulation/bike-vehicle.ts": "e9c829ad70fa04396f14b065f39366bbc008c787493672619342967a8b8aa2b5",
+    "tests/gp-ai-braking-plan.test.ts": "f0124f304bbdc5311ace3a2624d9ae3e6656be61fcdc87a314e0874e2ff51b9a"
+  },
+  "cases": [
+    {
+      "sign": -1,
+      "state": {
+        "lateralSpeed": -0.2783329499112939,
+        "yawRate": -1.2,
+        "lateralAcceleration": -4.205086422453891,
+        "frontFy": -432.1699736212085,
+        "rearFy": -597.081327460303,
+        "frontOmega": 45.907185436518084,
+        "rearOmega": 42.907961958417125,
+        "frontElasticStiffness": 17360.32983908765,
+        "rearElasticStiffness": 29568.934054393463,
+        "lastSpeed": 13.776727777551047
+      },
+      "q": {
+        "dt": 0.004166666666666667,
+        "speed": 13.776508436218846,
+        "mass": 244.61530754736268,
+        "lean": -0.3911652141681638,
+        "steer": -0.06446900945241739,
+        "frontLoad": 664.109682876352,
+        "rearLoad": 570.2207523591164,
+        "frontMu": 1.7519975951762394,
+        "rearMu": 1.7296735618821555,
+        "frontFx": 0,
+        "rearFx": -143.80900933942183,
+        "frontContact": 1,
+        "frontBrakeExcess": 0,
+        "rearDriveExcess": 0,
+        "rearBrakeExcess": 0,
+        "inertialContacts": true
+      },
+      "frontBound": 1163.518567332624,
+      "rearPreview": -437.37083333056995,
+      "recovery": 8.138857703096404,
+      "K": 314.2857142857143,
+      "requestedInterval": {
+        "minimum": -7.396490970279729,
+        "maximum": 1.3050401023974352
+      },
+      "physicalNetInterval": {
+        "minimum": -6.544518479708094,
+        "maximum": 2.9685294075942346
+      },
+      "requestEndpointUsedAsWork": -7.396490970279729,
+      "physicalEndpointForWork": -6.544518479708094,
+      "overestimatedStoppingAcceleration": 0.8519724905716348,
+      "target": -0.6547884536655961,
+      "ahead": -0.5783937987647767,
+      "oldWork": 0.3058557070701538,
+      "physicalOuterWork": 0.23764099541190592,
+      "workOverestimate": 0.06821471165824788,
+      "native": {
+        "requestedFront": -1163.518567332624,
+        "inverseGround": -0.15622798036222035,
+        "previousBar": -0.05446900945241739,
+        "appliedBar": -0.06446900945241739,
+        "actualFrontFy": -389.19599999064025,
+        "actualRearFy": -437.37083333056995,
+        "actualNetAy": -3.3758232054381874,
+        "yawAfter": -1.1957467358944942
+      },
+      "algebraIdentityResidual": 0
+    },
+    {
+      "sign": 1,
+      "state": {
+        "lateralSpeed": 0.2783329499112939,
+        "yawRate": 1.2,
+        "lateralAcceleration": 4.205086422453891,
+        "frontFy": 432.1699736212085,
+        "rearFy": 597.081327460303,
+        "frontOmega": 45.907185436518084,
+        "rearOmega": 42.907961958417125,
+        "frontElasticStiffness": 17360.32983908765,
+        "rearElasticStiffness": 29568.934054393463,
+        "lastSpeed": 13.776727777551047
+      },
+      "q": {
+        "dt": 0.004166666666666667,
+        "speed": 13.776508436218846,
+        "mass": 244.61530754736268,
+        "lean": 0.3911652141681638,
+        "steer": 0.06446900945241739,
+        "frontLoad": 664.109682876352,
+        "rearLoad": 570.2207523591164,
+        "frontMu": 1.7519975951762394,
+        "rearMu": 1.7296735618821555,
+        "frontFx": 0,
+        "rearFx": -143.80900933942183,
+        "frontContact": 1,
+        "frontBrakeExcess": 0,
+        "rearDriveExcess": 0,
+        "rearBrakeExcess": 0,
+        "inertialContacts": true
+      },
+      "frontBound": 1163.518567332624,
+      "rearPreview": 437.37083333056995,
+      "recovery": 8.138857703096404,
+      "K": 314.2857142857143,
+      "requestedInterval": {
+        "minimum": -1.3050401023974352,
+        "maximum": 7.396490970279729
+      },
+      "physicalNetInterval": {
+        "minimum": -2.9685294075942346,
+        "maximum": 6.544518479708094
+      },
+      "requestEndpointUsedAsWork": 7.396490970279729,
+      "physicalEndpointForWork": 6.544518479708094,
+      "overestimatedStoppingAcceleration": 0.8519724905716348,
+      "target": 0.6547884536655961,
+      "ahead": 0.5783937987647767,
+      "oldWork": 0.3058557070701538,
+      "physicalOuterWork": 0.23764099541190592,
+      "workOverestimate": 0.06821471165824788,
+      "native": {
+        "requestedFront": 1163.518567332624,
+        "inverseGround": 0.15622798036222035,
+        "previousBar": 0.05446900945241739,
+        "appliedBar": 0.06446900945241739,
+        "actualFrontFy": 389.19599999064025,
+        "actualRearFy": 437.37083333056995,
+        "actualNetAy": 3.3758232054381874,
+        "yawAfter": 1.1957467358944942
+      },
+      "algebraIdentityResidual": 0
+    }
+  ],
+  "observedTraceCheck": {
+    "samples": 2399,
+    "optimisticRequestedVsNetEndpointAbovePoint01": 0,
+    "qualification": "Using each recorded actual travel direction and the existing recovery cap, no saved capacity-candidate Ardennes sample exceeded the physical endpoint by>.01m/s². This general correctness counterexample is not attributed as the cause of that recorded fall."
+  }
+}

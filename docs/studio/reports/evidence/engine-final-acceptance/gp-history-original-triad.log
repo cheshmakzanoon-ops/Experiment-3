@@ -1,0 +1,45 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+ RUN  v3.2.4 /workspace/scratch/d611aefdb08c/w27-gp-history-candidate
+
+ ✓ tests/gp-tyre-contact.test.ts (22 tests | 21 skipped) 41981ms
+   ✓ GP contact grip in production races > classifies all eight GP riders at 'poggio-alto' in 'clear' without a contact or crash  41979ms
+ ❯ tests/bike-session.test.ts (14 tests | 1 failed | 13 skipped) 21303ms
+   ↓ WP34 motorcycles in real sessions > builds the bike adapter and bike AI for bike definitions only
+   ↓ WP34 motorcycles in real sessions > laps a circuit under AI with lean, gears, tyre wear and valid timing
+   ↓ WP34 motorcycles in real sessions > crash flows through race control: rider down, separation, remount, back on track
+   ↓ WP34 motorcycles in real sessions > a hard contact between bikes unseats a rider without non-finite state
+   ↓ WP34 motorcycles in real sessions > race control penalises a bike jump start like any entrant
+   ↓ WP34 motorcycles in real sessions > rear brake is the secondary (clutch) input and decelerates on its own
+   ↓ WP34 motorcycles in real sessions > services a bike in the pit lane and releases it
+   ↓ WP34 snapshot v12 bike block > round-trips lean, steer, rider pose and loads; cars carry zeros
+   ↓ WP34 snapshot v12 bike block > rejects unknown vehicle indices and old layouts
+   ↓ WP34 snapshot v12 bike block > chassis lean inverts to the dynamics lean (tyre crown geometry)
+   ↓ WP36 bike identity, rules and content > gives every bike its own identity hash and record category
+   ↓ WP36 bike identity, rules and content > rejects mixed car and bike grids, admits all-bike grids
+   ↓ WP36 bike identity, rules and content > validates bike content and names what is wrong
+   × WP35 seeded AI bike race > finishes a mixed GP/superbike race with bounded incidents and no stuck rider 21302ms
+     → expected 0.02620197372232269 to be greater than 0.15
+ ✓ tests/gp-ai-braking-plan.test.ts (9 tests | 8 skipped) 14334ms
+   ✓ GP rider follows its braking plan > no rider falls at the ardennes hairpin (seed 1000)  14332ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/bike-session.test.ts > WP35 seeded AI bike race > finishes a mixed GP/superbike race with bounded incidents and no stuck rider
+AssertionError: expected 0.02620197372232269 to be greater than 0.15
+ ❯ tests/bike-session.test.ts:369:22
+    367|     expect(gp).toBeLessThan(sbk);
+    368|     // ...by a margin that is more than the noise of one seeded lap (0…
+    369|     expect(sbk - gp).toBeGreaterThan(0.15);
+       |                      ^
+    370|   }, 120000);
+    371| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 2 passed (3)
+      Tests  1 failed | 2 passed | 42 skipped (45)
+   Start at  04:54:50
+   Duration  81.58s (transform 1.13s, setup 0ms, collect 3.35s, tests 77.62s, environment 0ms, prepare 175ms)
+

@@ -13,6 +13,9 @@ import { DEFAULT_PHOTO, type PhotoSettings } from '../src/rendering/photo-camera
 
 function fixture(vehicle = 'apx01', entrants = 3) {
   const calls: string[] = [];
+  // Match the native renderer's material ownership table and retained-program
+  // list. Startup now initializes linked-program metadata before drawing.
+  const materialProperties = new WeakMap<T.Material, { programs?: Map<string, T.WebGLProgram> }>();
   let bound: T.WebGLRenderTarget | null = null;
   const sample = new Float32Array(HEADER + CAR_STRIDE * entrants);
   sample[H.CARS] = entrants;
@@ -64,6 +67,17 @@ function fixture(vehicle = 'apx01', entrants = 3) {
       calls.push(`cars:${n}`);
     },
     renderer: {
+      properties: {
+        get(material: T.Material) {
+          let properties = materialProperties.get(material);
+          if (!properties) {
+            properties = {};
+            materialProperties.set(material, properties);
+          }
+          return properties;
+        },
+      },
+      info: { programs: [] as T.WebGLProgram[] },
       getRenderTarget: () => bound,
       getActiveCubeFace: () => 0,
       getActiveMipmapLevel: () => 0,
@@ -105,6 +119,87 @@ function fixture(vehicle = 'apx01', entrants = 3) {
   };
   return { target, calls, sample, typed: target as unknown as RacingRenderer };
 }
+
+function linkedProgramFixture() {
+  const result = fixture('gpr1');
+  const { target, calls } = result;
+  const geometry = new T.BufferGeometry(),
+    material = new T.MeshStandardMaterial();
+  target.scene.add(new T.Mesh(geometry, material));
+  const getUniforms = vi.fn(() => {
+    calls.push('program-metadata');
+    return {};
+  });
+  const program = { usedTimes: 1, getUniforms } as unknown as T.WebGLProgram;
+  const compile = target.renderer.compileAsync.getMockImplementation()!;
+  target.renderer.compileAsync.mockImplementation((...args) => {
+    // Native compileAsync acquires programs synchronously before awaiting
+    // parallel compilation; the preparation owner snapshots that ownership.
+    target.renderer.properties.get(material).programs = new Map([['scene', program]]);
+    if (!target.renderer.info.programs.includes(program))
+      target.renderer.info.programs.push(program);
+    return compile(...args);
+  });
+  return {
+    ...result,
+    getUniforms,
+    dispose() {
+      geometry.dispose();
+      material.dispose();
+      target.composer.readBuffer.dispose();
+    },
+  };
+}
+
+it('prepares retained scene metadata before drawing and still waits for both GPU views', async () => {
+  const { target, typed, sample, calls, getUniforms, dispose } = linkedProgramFixture();
+  try {
+    expect(
+      await RacingRenderer.prototype.prepare.call(
+        typed,
+        sample,
+        vi.fn(),
+        () => false,
+        async () => {},
+      ),
+    ).toBe(true);
+    expect(getUniforms).toHaveBeenCalledTimes(3);
+    expect(calls.indexOf('program-metadata')).toBeGreaterThan(calls.indexOf('compile'));
+    expect(calls.indexOf('program-metadata')).toBeLessThan(calls.indexOf('draw'));
+    expect(target.draw).toHaveBeenCalledTimes(2);
+    expect(target.waitForPreparedFrame).toHaveBeenCalledTimes(2);
+    expect(target.preparation.snapshot()?.status).toBe('complete');
+    expect(target.renderer.getRenderTarget()).toBeNull();
+  } finally {
+    dispose();
+  }
+});
+
+it('rejects retained program metadata failure before any startup draw', async () => {
+  const { target, typed, sample, getUniforms, dispose } = linkedProgramFixture();
+  getUniforms.mockImplementationOnce(() => {
+    throw new Error('Scene metadata failed');
+  });
+  try {
+    await expect(
+      RacingRenderer.prototype.prepare.call(
+        typed,
+        sample,
+        vi.fn(),
+        () => false,
+        async () => {},
+      ),
+    ).rejects.toThrow('Scene metadata failed');
+    expect(target.draw).not.toHaveBeenCalled();
+    expect(target.waitForPreparedFrame).not.toHaveBeenCalled();
+    expect(target.preparation.snapshot()?.error).toBe('Scene metadata failed');
+    expect(target.preparation.snapshot()?.status).toBe('failed');
+    expect(target.renderer.getRenderTarget()).toBeNull();
+  } finally {
+    dispose();
+  }
+});
+
 it.each([
   { lighting: 'day', studio: false, count: 0, strength: 1 },
   { lighting: 'sunset', studio: false, count: 4, strength: 0.18 },

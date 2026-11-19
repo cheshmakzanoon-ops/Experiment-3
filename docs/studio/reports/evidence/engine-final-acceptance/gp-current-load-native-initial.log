@@ -1,0 +1,234 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+ RUN  v3.2.4 /workspace/scratch/d611aefdb08c/w27-gp-current-load-candidate
+
+ ❯ tests/gp-steering-budget.test.ts (13 tests | 1 failed) 990ms
+   ✓ GP AI charges the total requested lateral acceleration once > keeps the same -1 turn budget when path correction agrees with or opposes its curve  971ms
+   ✓ GP AI charges the total requested lateral acceleration once > keeps the same 1 turn budget when path correction agrees with or opposes its curve 2ms
+   ✓ GP AI charges the total requested lateral acceleration once > inverts intent with the same normal reaction used to encode its path demand 1ms
+   ✓ GP physical controls retain the requested steady support > retains the sign -1 steady request under 1 load before clipping its lean target 4ms
+   ✓ GP physical controls retain the requested steady support > retains the sign -1 steady request under 1.3 load before clipping its lean target 1ms
+   ✓ GP physical controls retain the requested steady support > retains the sign 1 steady request under 1 load before clipping its lean target 0ms
+   ✓ GP physical controls retain the requested steady support > retains the sign 1 steady request under 1.3 load before clipping its lean target 0ms
+   ✓ GP physical controls retain the requested steady support > keeps requested steering and pedal forces absent during flight 1ms
+   ✓ GP physical controls preserve the current roll-arrest reserve > retains front support at lean sign -1 and roll-rate sign -1 1ms
+   ✓ GP physical controls preserve the current roll-arrest reserve > retains front support at lean sign -1 and roll-rate sign 1 0ms
+   ✓ GP physical controls preserve the current roll-arrest reserve > retains front support at lean sign 1 and roll-rate sign -1 0ms
+   ✓ GP physical controls preserve the current roll-arrest reserve > retains front support at lean sign 1 and roll-rate sign 1 0ms
+   × GP physical controls preserve the current roll-arrest reserve > reduces to the existing equilibrium force when roll rate and roll error are zero 5ms
+     → expected 1.14713342451593 to be close to 0.9839470120067836, received difference is 0.16318641250914634, but expected 5e-13
+ ✓ tests/gp-load-relaxation.test.ts (9 tests) 33ms
+ ❯ tests/gp-capacity-phase.test.ts (15 tests | 6 failed) 30ms
+   ✓ GP stopping work belongs to the actual current force allocation > uses the plant force pair once for 'drive application', sign -1 6ms
+   ✓ GP stopping work belongs to the actual current force allocation > uses the plant force pair once for 'drive release', sign -1 4ms
+   ✓ GP stopping work belongs to the actual current force allocation > uses the plant force pair once for 'brake application', sign -1 1ms
+   ✓ GP stopping work belongs to the actual current force allocation > uses the plant force pair once for 'brake release', sign -1 1ms
+   ✓ GP stopping work belongs to the actual current force allocation > uses the plant force pair once for 'drive application', sign 1 1ms
+   ✓ GP stopping work belongs to the actual current force allocation > uses the plant force pair once for 'drive release', sign 1 0ms
+   ✓ GP stopping work belongs to the actual current force allocation > uses the plant force pair once for 'brake application', sign 1 0ms
+   ✓ GP stopping work belongs to the actual current force allocation > uses the plant force pair once for 'brake release', sign 1 1ms
+   × GP stopping work belongs to the actual current force allocation > does not preserve the opposite stale-force request after drive release, sign -1 7ms
+     → expected 10.987845611849353 to be 11.04129871831423 // Object.is equality
+   × GP stopping work belongs to the actual current force allocation > does not preserve the opposite stale-force request after drive release, sign 1 1ms
+     → expected -10.987845611849353 to be -11.04129871831423 // Object.is equality
+   × GP stopping work belongs to the actual current force allocation > bounds current requests with raw/support effort directions opposed=false, sign -1 3ms
+     → expected 12.832800434935988 to be 12.844585894319966 // Object.is equality
+   × GP stopping work belongs to the actual current force allocation > bounds current requests with raw/support effort directions opposed=true, sign -1 1ms
+     → expected 9.72143277733322 to be 9.800106353106857 // Object.is equality
+   × GP stopping work belongs to the actual current force allocation > bounds current requests with raw/support effort directions opposed=false, sign 1 1ms
+     → expected 12.832800434935988 to be 12.844585894319966 // Object.is equality
+   × GP stopping work belongs to the actual current force allocation > bounds current requests with raw/support effort directions opposed=true, sign 1 1ms
+     → expected 9.72143277733322 to be 9.800106353106857 // Object.is equality
+   ✓ GP stopping work belongs to the actual current force allocation > keeps trim out of the early reserve and advances it once at final resolution 0ms
+ ✓ tests/gp-force-phase.test.ts (13 tests) 18ms
+ ❯ tests/gp-contact-reaction.test.ts (5 tests | 5 failed) 14ms
+   × GP roll reaction at partial support > preserves roll balance and demands the matching force at 0.02 static load 9ms
+     → expected 0.0809696088589089 to be close to 0.08292370237077189, received difference is 0.0019540935118629865, but expected 5e-11
+   × GP roll reaction at partial support > preserves roll balance and demands the matching force at 0.1 static load 1ms
+     → expected 0.3608656649086265 to be close to 0.41461851185385945, received difference is 0.05375284694523297, but expected 5e-11
+   × GP roll reaction at partial support > preserves roll balance and demands the matching force at 0.4 static load 1ms
+     → expected 1.443462659634506 to be close to 1.6584740474154378, received difference is 0.21501138778093187, but expected 5e-11
+   × GP roll reaction at partial support > preserves roll balance and demands the matching force at 1 static load 1ms
+     → expected 3.608656649086264 to be close to 4.146185118538594, received difference is 0.5375284694523299, but expected 5e-11
+   × GP roll reaction at partial support > preserves roll balance and demands the matching force at 1.5 static load 1ms
+     → expected 5.412984973629396 to be close to 6.2192776778078915, received difference is 0.806292704178496, but expected 5e-11
+ ❯ tests/gp-current-contact-control.test.ts (7 tests | 1 failed) 12ms
+   × GP rider previews the current rear contact > does not countersteer against a rear force that disappeared on unloading 8ms
+     → expected 117.72998858447488 to be close to +0, received difference is 117.72998858447488, but expected 5e-13
+   ✓ GP rider previews the current rear contact > predicts the actual relaxed rear force at load 0, friction 1.5, Fx 0 1ms
+   ✓ GP rider previews the current rear contact > predicts the actual relaxed rear force at load 500, friction 1.5, Fx 0 0ms
+   ✓ GP rider previews the current rear contact > predicts the actual relaxed rear force at load 1800, friction 1.5, Fx 0 0ms
+   ✓ GP rider previews the current rear contact > predicts the actual relaxed rear force at load 1050, friction 0.7, Fx -300 0ms
+   ✓ GP rider previews the current rear contact > predicts the actual relaxed rear force at load 1050, friction 1.5, Fx 300 0ms
+   ✓ GP rider previews the current rear contact > predicts the actual relaxed rear force at load 1050, friction 1.5, Fx -2000 0ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 13 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/gp-capacity-phase.test.ts > GP stopping work belongs to the actual current force allocation > does not preserve the opposite stale-force request after drive release, sign -1
+AssertionError: expected 10.987845611849353 to be 11.04129871831423 // Object.is equality
+
+- Expected
++ Received
+
+- 11.04129871831423
++ 10.987845611849353
+
+ ❯ tests/gp-capacity-phase.test.ts:97:41
+     95|       );
+     96|       expect(obsolete * expected).toBeLessThan(0);
+     97|       expect(resolved.mock.calls[0][0]).toBe(expected);
+       |                                         ^
+     98|       expect(Math.abs(obsolete - expected)).toBeGreaterThan(10);
+     99|     },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/13]⎯
+
+ FAIL  tests/gp-capacity-phase.test.ts > GP stopping work belongs to the actual current force allocation > does not preserve the opposite stale-force request after drive release, sign 1
+AssertionError: expected -10.987845611849353 to be -11.04129871831423 // Object.is equality
+
+- Expected
++ Received
+
+- -11.04129871831423
++ -10.987845611849353
+
+ ❯ tests/gp-capacity-phase.test.ts:97:41
+     95|       );
+     96|       expect(obsolete * expected).toBeLessThan(0);
+     97|       expect(resolved.mock.calls[0][0]).toBe(expected);
+       |                                         ^
+     98|       expect(Math.abs(obsolete - expected)).toBeGreaterThan(10);
+     99|     },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/13]⎯
+
+ FAIL  tests/gp-capacity-phase.test.ts > GP stopping work belongs to the actual current force allocation > bounds current requests with raw/support effort directions opposed=false, sign -1
+ FAIL  tests/gp-capacity-phase.test.ts > GP stopping work belongs to the actual current force allocation > bounds current requests with raw/support effort directions opposed=false, sign 1
+AssertionError: expected 12.832800434935988 to be 12.844585894319966 // Object.is equality
+
+- Expected
++ Received
+
+- 12.844585894319966
++ 12.832800434935988
+
+ ❯ tests/gp-capacity-phase.test.ts:133:30
+    131|           expect(gp.steerTrim).toBe(0.001);
+    132|           if (reserve === undefined) reserve = early;
+    133|           else expect(early).toBe(reserve);
+       |                              ^
+    134|           bike.frontBrakeForce = reference.bike.frontBrakeForce = fron…
+    135|           bike.driveForce = reference.bike.driveForce = rearDrive;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/13]⎯
+
+ FAIL  tests/gp-capacity-phase.test.ts > GP stopping work belongs to the actual current force allocation > bounds current requests with raw/support effort directions opposed=true, sign -1
+ FAIL  tests/gp-capacity-phase.test.ts > GP stopping work belongs to the actual current force allocation > bounds current requests with raw/support effort directions opposed=true, sign 1
+AssertionError: expected 9.72143277733322 to be 9.800106353106857 // Object.is equality
+
+- Expected
++ Received
+
+- 9.800106353106857
++ 9.72143277733322
+
+ ❯ tests/gp-capacity-phase.test.ts:133:30
+    131|           expect(gp.steerTrim).toBe(0.001);
+    132|           if (reserve === undefined) reserve = early;
+    133|           else expect(early).toBe(reserve);
+       |                              ^
+    134|           bike.frontBrakeForce = reference.bike.frontBrakeForce = fron…
+    135|           bike.driveForce = reference.bike.driveForce = rearDrive;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/13]⎯
+
+ FAIL  tests/gp-contact-reaction.test.ts > GP roll reaction at partial support > preserves roll balance and demands the matching force at 0.02 static load
+AssertionError: expected 0.0809696088589089 to be close to 0.08292370237077189, received difference is 0.0019540935118629865, but expected 5e-11
+ ❯ tests/gp-contact-reaction.test.ts:58:36
+     56|         if (assists.lean) {
+     57|           expect(gp.leanTarget).toBeCloseTo(lean, 10);
+     58|           expect(gp.lateralDemand).toBeCloseTo(lateral, 10);
+       |                                    ^
+     59|         }
+     60|         force.mockRestore();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/13]⎯
+
+ FAIL  tests/gp-contact-reaction.test.ts > GP roll reaction at partial support > preserves roll balance and demands the matching force at 0.1 static load
+AssertionError: expected 0.3608656649086265 to be close to 0.41461851185385945, received difference is 0.05375284694523297, but expected 5e-11
+ ❯ tests/gp-contact-reaction.test.ts:58:36
+     56|         if (assists.lean) {
+     57|           expect(gp.leanTarget).toBeCloseTo(lean, 10);
+     58|           expect(gp.lateralDemand).toBeCloseTo(lateral, 10);
+       |                                    ^
+     59|         }
+     60|         force.mockRestore();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/13]⎯
+
+ FAIL  tests/gp-contact-reaction.test.ts > GP roll reaction at partial support > preserves roll balance and demands the matching force at 0.4 static load
+AssertionError: expected 1.443462659634506 to be close to 1.6584740474154378, received difference is 0.21501138778093187, but expected 5e-11
+ ❯ tests/gp-contact-reaction.test.ts:58:36
+     56|         if (assists.lean) {
+     57|           expect(gp.leanTarget).toBeCloseTo(lean, 10);
+     58|           expect(gp.lateralDemand).toBeCloseTo(lateral, 10);
+       |                                    ^
+     59|         }
+     60|         force.mockRestore();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/13]⎯
+
+ FAIL  tests/gp-contact-reaction.test.ts > GP roll reaction at partial support > preserves roll balance and demands the matching force at 1 static load
+AssertionError: expected 3.608656649086264 to be close to 4.146185118538594, received difference is 0.5375284694523299, but expected 5e-11
+ ❯ tests/gp-contact-reaction.test.ts:58:36
+     56|         if (assists.lean) {
+     57|           expect(gp.leanTarget).toBeCloseTo(lean, 10);
+     58|           expect(gp.lateralDemand).toBeCloseTo(lateral, 10);
+       |                                    ^
+     59|         }
+     60|         force.mockRestore();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/13]⎯
+
+ FAIL  tests/gp-contact-reaction.test.ts > GP roll reaction at partial support > preserves roll balance and demands the matching force at 1.5 static load
+AssertionError: expected 5.412984973629396 to be close to 6.2192776778078915, received difference is 0.806292704178496, but expected 5e-11
+ ❯ tests/gp-contact-reaction.test.ts:58:36
+     56|         if (assists.lean) {
+     57|           expect(gp.leanTarget).toBeCloseTo(lean, 10);
+     58|           expect(gp.lateralDemand).toBeCloseTo(lateral, 10);
+       |                                    ^
+     59|         }
+     60|         force.mockRestore();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/13]⎯
+
+ FAIL  tests/gp-current-contact-control.test.ts > GP rider previews the current rear contact > does not countersteer against a rear force that disappeared on unloading
+AssertionError: expected 117.72998858447488 to be close to +0, received difference is 117.72998858447488, but expected 5e-13
+ ❯ tests/gp-current-contact-control.test.ts:57:43
+     55|     bike.step({ lean: 0, rider: 0, throttle: 0, frontBrake: 0, rearBra…
+     56|     expect(inverse).toHaveBeenCalled();
+     57|     expect(inverse.mock.calls.at(-1)![0]).toBeCloseTo(0, 12);
+       |                                           ^
+     58|     expect(gp.rearFy).toBe(0);
+     59|     expect(bike.state).toBe('riding');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/13]⎯
+
+ FAIL  tests/gp-steering-budget.test.ts > GP physical controls preserve the current roll-arrest reserve > reduces to the existing equilibrium force when roll rate and roll error are zero
+AssertionError: expected 1.14713342451593 to be close to 0.9839470120067836, received difference is 0.16318641250914634, but expected 5e-13
+ ❯ tests/gp-steering-budget.test.ts:232:30
+    230|       1 / 240,
+    231|     );
+    232|     expect(gp.lateralDemand).toBeCloseTo(equilibrium, 12);
+       |                              ^
+    233|     expect(d.state).toBe('riding');
+    234|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/13]⎯
+
+
+ Test Files  4 failed | 2 passed (6)
+      Tests  13 failed | 49 passed (62)
+   Start at  04:35:22
+   Duration  4.62s (transform 875ms, setup 0ms, collect 2.28s, tests 1.10s, environment 1ms, prepare 358ms)
+

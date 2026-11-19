@@ -1,0 +1,169 @@
+2026-11-19T11:52:40.5098126Z ##[group]Run npx playwright install --with-deps chromium
+2026-11-19T11:52:40.5098543Z npx playwright install --with-deps chromium
+2026-11-19T11:52:40.5124434Z shell: /usr/bin/bash -e {0}
+2026-11-19T11:52:40.5124724Z env:
+2026-11-19T11:52:40.5125039Z   APEX_BROWSER_BACKEND: mesa
+2026-11-19T11:52:40.5125440Z   LIBGL_ALWAYS_SOFTWARE: true
+2026-11-19T11:52:40.5125683Z   GALLIUM_DRIVER: llvmpipe
+2026-11-19T11:52:40.5125954Z ##[endgroup]
+2026-11-19T11:52:41.0396114Z Installing dependencies...
+2026-11-19T11:52:41.0475287Z Switching to root user to install dependencies...
+2026-11-19T11:52:41.1534328Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [152 B]
+2026-11-19T11:52:41.2150698Z Get:5 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
+2026-11-19T11:52:41.3099436Z Get:6 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [723 kB]
+2026-11-19T11:52:41.3117389Z Hit:2 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble InRelease
+2026-11-19T11:52:41.3969829Z Get:7 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [794 kB]
+2026-11-19T11:52:41.4080923Z Get:8 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+2026-11-19T11:52:41.5479178Z Get:3 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+2026-11-19T11:52:41.8263707Z Get:4 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+2026-11-19T11:52:42.1596854Z Get:16 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages [1198 kB]
+2026-11-19T11:52:42.9799292Z Get:17 http://security.ubuntu.com/ubuntu noble-security/main Translation-en [239 kB]
+2026-11-19T11:52:43.1491583Z Get:18 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1230 kB]
+2026-11-19T11:52:43.4034239Z Get:19 http://security.ubuntu.com/ubuntu noble-security/universe Translation-en [248 kB]
+2026-11-19T11:52:43.5696183Z Get:20 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1792 kB]
+2026-11-19T11:52:43.8469951Z Get:21 http://security.ubuntu.com/ubuntu noble-security/restricted Translation-en [414 kB]
+2026-11-19T11:52:44.0169556Z Get:22 http://security.ubuntu.com/ubuntu noble-security/multiverse Translation-en [12.7 kB]
+2026-11-19T11:52:50.7938752Z Get:9 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1456 kB]
+2026-11-19T11:52:51.5900285Z Get:10 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [317 kB]
+2026-11-19T11:52:52.6542417Z Get:11 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1716 kB]
+2026-11-19T11:52:53.9112873Z Get:12 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [346 kB]
+2026-11-19T11:52:54.3147843Z Get:13 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1887 kB]
+2026-11-19T11:52:55.0119784Z Get:14 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [433 kB]
+2026-11-19T11:52:55.2504667Z Get:15 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/multiverse Translation-en [14.6 kB]
+2026-11-19T11:53:03.5446801Z Fetched 13.2 MB in 14s (933 kB/s)
+2026-11-19T11:53:04.4754837Z Reading package lists...
+2026-11-19T11:53:04.5004954Z Reading package lists...
+2026-11-19T11:53:04.6984868Z Building dependency tree...
+2026-11-19T11:53:04.6990747Z Reading state information...
+2026-11-19T11:53:04.8429927Z libasound2t64 is already the newest version (1.2.11-1ubuntu0.3).
+2026-11-19T11:53:04.8430821Z libasound2t64 set to manually installed.
+2026-11-19T11:53:04.8431497Z libatk-bridge2.0-0t64 is already the newest version (2.52.0-1build1).
+2026-11-19T11:53:04.8432151Z libatk-bridge2.0-0t64 set to manually installed.
+2026-11-19T11:53:04.8432684Z libatk1.0-0t64 is already the newest version (2.52.0-1build1).
+2026-11-19T11:53:04.8433288Z libatk1.0-0t64 set to manually installed.
+2026-11-19T11:53:04.8434605Z libatspi2.0-0t64 is already the newest version (2.52.0-1build1).
+2026-11-19T11:53:04.8435538Z libatspi2.0-0t64 set to manually installed.
+2026-11-19T11:53:04.8436087Z libcairo2 is already the newest version (1.18.0-3build1).
+2026-11-19T11:53:04.8436700Z libcairo2 set to manually installed.
+2026-11-19T11:53:04.8437583Z libcups2t64 is already the newest version (2.4.7-1.2ubuntu7.14).
+2026-11-19T11:53:04.8438549Z libcups2t64 set to manually installed.
+2026-11-19T11:53:04.8439489Z libdbus-1-3 is already the newest version (1.14.10-4ubuntu4.1).
+2026-11-19T11:53:04.8440068Z libdbus-1-3 set to manually installed.
+2026-11-19T11:53:04.8440734Z libdrm2 is already the newest version (2.4.125-1ubuntu0.1~24.04.2).
+2026-11-19T11:53:04.8441374Z libdrm2 set to manually installed.
+2026-11-19T11:53:04.8441907Z libglib2.0-0t64 is already the newest version (2.80.0-6ubuntu3.10).
+2026-11-19T11:53:04.8442522Z libglib2.0-0t64 set to manually installed.
+2026-11-19T11:53:04.8443031Z libnspr4 is already the newest version (2:4.35-1.1build1).
+2026-11-19T11:53:04.8443488Z libnspr4 set to manually installed.
+2026-11-19T11:53:04.8443922Z libnss3 is already the newest version (2:3.98-1ubuntu0.3).
+2026-11-19T11:53:04.8444300Z libnss3 set to manually installed.
+2026-11-19T11:53:04.8444681Z libpango-1.0-0 is already the newest version (1.52.1+ds-1build1).
+2026-11-19T11:53:04.8445049Z libpango-1.0-0 set to manually installed.
+2026-11-19T11:53:04.8445470Z libx11-6 is already the newest version (2:1.8.7-1ubuntu0.1).
+2026-11-19T11:53:04.8445824Z libx11-6 set to manually installed.
+2026-11-19T11:53:04.8446157Z libxcb1 is already the newest version (1.15-1ubuntu2).
+2026-11-19T11:53:04.8446521Z libxcb1 set to manually installed.
+2026-11-19T11:53:04.8446870Z libxcomposite1 is already the newest version (1:0.4.5-1build3).
+2026-11-19T11:53:04.8447547Z libxcomposite1 set to manually installed.
+2026-11-19T11:53:04.8447966Z libxdamage1 is already the newest version (1:1.1.6-1build1).
+2026-11-19T11:53:04.8448324Z libxdamage1 set to manually installed.
+2026-11-19T11:53:04.8448678Z libxext6 is already the newest version (2:1.3.4-1build2).
+2026-11-19T11:53:04.8449042Z libxext6 set to manually installed.
+2026-11-19T11:53:04.8449415Z libxfixes3 is already the newest version (1:6.0.0-2build1).
+2026-11-19T11:53:04.8449760Z libxfixes3 set to manually installed.
+2026-11-19T11:53:04.8450212Z libxkbcommon0 is already the newest version (1.6.0-1build1).
+2026-11-19T11:53:04.8450565Z libxkbcommon0 set to manually installed.
+2026-11-19T11:53:04.8450924Z libxrandr2 is already the newest version (2:1.5.2-2build1).
+2026-11-19T11:53:04.8451312Z libxrandr2 set to manually installed.
+2026-11-19T11:53:04.8451653Z xvfb is already the newest version (2:21.1.12-1ubuntu1.9).
+2026-11-19T11:53:04.8452118Z fonts-noto-color-emoji is already the newest version (2.047-0ubuntu0.24.04.1).
+2026-11-19T11:53:04.8452608Z libfontconfig1 is already the newest version (2.15.0-1.1ubuntu2).
+2026-11-19T11:53:04.8452999Z libfontconfig1 set to manually installed.
+2026-11-19T11:53:04.8453467Z libfreetype6 is already the newest version (2.13.2+dfsg-1ubuntu0.2).
+2026-11-19T11:53:04.8453953Z libfreetype6 set to manually installed.
+2026-11-19T11:53:04.8454406Z fonts-liberation is already the newest version (1:2.1.5-3).
+2026-11-19T11:53:04.8454879Z fonts-liberation set to manually installed.
+2026-11-19T11:53:04.8455386Z The following additional packages will be installed:
+2026-11-19T11:53:04.8455904Z   libgl1-mesa-dri libglx-mesa0 mesa-libgallium xfonts-encodings xfonts-utils
+2026-11-19T11:53:04.8456284Z Recommended packages:
+2026-11-19T11:53:04.8456599Z   fonts-ipafont-mincho fonts-tlwg-loma
+2026-11-19T11:53:04.9676573Z The following NEW packages will be installed:
+2026-11-19T11:53:04.9677979Z   fonts-freefont-ttf fonts-ipafont-gothic fonts-tlwg-loma-otf fonts-unifont
+2026-11-19T11:53:04.9687582Z   fonts-wqy-zenhei xfonts-cyrillic xfonts-encodings xfonts-scalable
+2026-11-19T11:53:04.9688344Z   xfonts-utils
+2026-11-19T11:53:04.9692503Z The following packages will be upgraded:
+2026-11-19T11:53:04.9698658Z   libgbm1 libgl1-mesa-dri libglx-mesa0 mesa-libgallium
+2026-11-19T11:53:04.9861742Z 4 upgraded, 9 newly installed, 0 to remove and 29 not upgraded.
+2026-11-19T11:53:04.9862300Z Need to get 32.1 MB of archives.
+2026-11-19T11:53:04.9862894Z After this operation, 79.7 MB of additional disk space will be used.
+2026-11-19T11:53:04.9863506Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [152 B]
+2026-11-19T11:53:35.1286279Z Ign:2 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1
+2026-11-19T11:53:36.4869436Z Get:3 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2 [5641 kB]
+2026-11-19T11:55:33.3873662Z Get:4 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1 [107 kB]
+2026-11-19T11:56:04.5016854Z Ign:5 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1
+2026-11-19T11:56:25.3236086Z Get:6 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8 [7472 kB]
+2026-11-19T11:58:08.9103703Z Get:7 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 libgl1-mesa-dri amd64 25.2.8-0ubuntu0.24.04.5 [38.0 kB]
+2026-11-19T11:58:09.7294853Z Get:8 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 libglx-mesa0 amd64 25.2.8-0ubuntu0.24.04.5 [110 kB]
+2026-11-19T11:58:13.4080301Z Get:9 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 libgbm1 amd64 25.2.8-0ubuntu0.24.04.5 [34.2 kB]
+2026-11-19T11:58:14.3464608Z Get:10 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 mesa-libgallium amd64 25.2.8-0ubuntu0.24.04.5 [10.8 MB]
+2026-11-19T12:01:30.3550231Z Ign:11 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2
+2026-11-19T12:01:46.2758049Z Get:12 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3 [94.4 kB]
+2026-11-19T12:02:17.2102543Z Ign:13 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
+2026-11-19T12:02:18.9065621Z Get:14 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3 [304 kB]
+2026-11-19T12:02:21.1888558Z Get:2 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1 [3513 kB]
+2026-11-19T12:03:17.2429144Z Get:5 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1 [2993 kB]
+2026-11-19T12:03:47.9981788Z Ign:11 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2
+2026-11-19T12:03:48.0926792Z Ign:13 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
+2026-11-19T12:04:20.7329443Z Ign:11 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2
+2026-11-19T12:04:35.8871749Z Ign:13 https://archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
+2026-11-19T12:04:36.1403943Z Err:11 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2
+2026-11-19T12:04:36.1404659Z   Connection failed [IP: 52.15.107.13 80]
+2026-11-19T12:04:51.3050428Z Err:13 https://security.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
+2026-11-19T12:04:51.3051025Z   Connection failed [IP: 3.19.142.184 80]
+2026-11-19T12:04:51.3105750Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/main/x/xfonts-encodings/xfonts-encodings_1.0.5-0ubuntu2_all.deb  Connection failed [IP: 52.15.107.13 80]
+2026-11-19T12:04:51.3106566Z Fetched 31.1 MB in 11min 46s (44.0 kB/s)
+2026-11-19T12:04:51.3107839Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/universe/x/xfonts-cyrillic/xfonts-cyrillic_1.0.5%2bnmu1_all.deb  Connection failed [IP: 3.19.142.184 80]
+2026-11-19T12:04:51.3108893Z E: Unable to fetch some archives, maybe run apt-get update or try with --fix-missing?
+2026-11-19T12:04:51.3125201Z Failed to install browsers
+2026-11-19T12:04:51.3127837Z Error: Installation process exited with code: 100
+2026-11-19T12:04:51.3266490Z ##[error]Process completed with exit code 1.
+2026-11-19T12:04:51.3341016Z ##[group]Run actions/upload-artifact@v4
+2026-11-19T12:04:51.3341323Z with:
+2026-11-19T12:04:51.3341591Z   name: graphics-advancement-gameplay
+2026-11-19T12:04:51.3342216Z   path: test-results/
+playwright-report/
+browser-backend.json
+browser-progress.json
+
+2026-11-19T12:04:51.3342606Z   retention-days: 14
+2026-11-19T12:04:51.3342887Z   if-no-files-found: warn
+2026-11-19T12:04:51.3343129Z   compression-level: 6
+2026-11-19T12:04:51.3343392Z   overwrite: false
+2026-11-19T12:04:51.3343817Z   include-hidden-files: false
+2026-11-19T12:04:51.3344109Z env:
+2026-11-19T12:04:51.3344335Z   APEX_BROWSER_BACKEND: mesa
+2026-11-19T12:04:51.3344583Z   LIBGL_ALWAYS_SOFTWARE: true
+2026-11-19T12:04:51.3344864Z   GALLIUM_DRIVER: llvmpipe
+2026-11-19T12:04:51.3345153Z ##[endgroup]
+2026-11-19T12:04:51.4559805Z (node:2924) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-19T12:04:51.4561037Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-19T12:04:51.4618332Z Multiple search paths detected. Calculating the least common ancestor of all paths
+2026-11-19T12:04:51.4620204Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
+2026-11-19T12:04:51.4634960Z ##[warning]No files were found with the provided path: test-results/
+playwright-report/
+browser-backend.json
+browser-progress.json. No artifacts will be uploaded.
+2026-11-19T12:04:51.4782201Z Post job cleanup.
+2026-11-19T12:04:51.5459111Z [command]/usr/bin/git version
+2026-11-19T12:04:51.5486174Z git version 2.56.1
+2026-11-19T12:04:51.5541719Z Temporarily overriding HOME='/home/runner/work/_temp/f26498e4-d220-4f54-bd76-a5d988fa974d' before making global git config changes
+2026-11-19T12:04:51.5542870Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-19T12:04:51.5546100Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+2026-11-19T12:04:51.5578242Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-19T12:04:51.5610352Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-19T12:04:51.5770806Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-19T12:04:51.5793871Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-19T12:04:51.5954570Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-19T12:04:51.5978158Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-19T12:04:51.6248397Z Cleaning up orphan processes
+2026-11-19T12:04:51.6491510Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

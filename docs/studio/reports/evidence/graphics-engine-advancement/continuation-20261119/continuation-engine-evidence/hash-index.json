@@ -1,0 +1,492 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-11-19T13:29:02.180707+00:00",
+  "disposition": "HISTORICAL_EVIDENCE__4C9_REJECTED",
+  "rejectedSourceCommit": "4c9b858452fbf099509e471c3db619a7a4b33717",
+  "releaseAccepted": false,
+  "testsRunDuringStaging": false,
+  "subjects": [
+    {
+      "id": "rejected_4c9",
+      "sourceCommit": "4c9b858452fbf099509e471c3db619a7a4b33717",
+      "disposition": "REJECTED",
+      "releaseAccepted": false,
+      "matrix": {
+        "scenarios": 19,
+        "riderStarts": 158,
+        "passed": true,
+        "childExit": 0,
+        "sourceStable": true,
+        "totalFalls": 12,
+        "maxFallsInOneScenario": 4,
+        "longestStopSeconds": 11.258333333333335
+      },
+      "strictGpCalibration": {
+        "vehicles": [
+          "gpr1",
+          "gpr2"
+        ],
+        "passed": true,
+        "childExit": 0,
+        "sourceStable": true
+      },
+      "original51": {
+        "passed": 49,
+        "failed": 2,
+        "childExit": 1,
+        "sourceStable": true,
+        "failures": [
+          {
+            "circuit": "vellamar",
+            "seed": 5222,
+            "falls": 1,
+            "requiredFalls": 0
+          },
+          {
+            "circuit": "montejaral",
+            "seed": 5111,
+            "falls": 1,
+            "requiredFalls": 0
+          }
+        ],
+        "sourceLinkage": "rejected-4c9/original51-support/source-linkage.json"
+      },
+      "explanation": "The matrix/calibration passes do not override the original zero-fall failures. Original51 executed the same 17 integrated physics files and same 4 gate files in a separate frozen checkout."
+    },
+    {
+      "id": "pure_history_control",
+      "disposition": "DIAGNOSTIC_CONTROL_ONLY",
+      "releaseAccepted": false,
+      "cases": {
+        "vellamar5222": "PASS",
+        "montejaral5111": "PASS"
+      },
+      "attribution": "causal-controls/pure-history/history-source-attribution.json"
+    },
+    {
+      "id": "preprofile_control",
+      "disposition": "REGRESSION_REPRODUCED",
+      "releaseAccepted": false,
+      "cases": {
+        "vellamar5222": "PASS",
+        "montejaral5111": "FAIL:1 fall; required 0"
+      },
+      "attribution": "causal-controls/preprofile/preprofile-source-attribution.json"
+    },
+    {
+      "id": "path_only_control",
+      "disposition": "REGRESSION_REPRODUCED",
+      "releaseAccepted": false,
+      "cases": {
+        "montejaral5111": "FAIL:1 fall; required 0"
+      },
+      "attribution": "causal-controls/path-only/path-only-source-attribution.json"
+    },
+    {
+      "id": "moving_path_native",
+      "disposition": "LOCAL_INVARIANT_PROOF_ONLY",
+      "releaseAccepted": false,
+      "testsPassed": 7,
+      "testsFailed": 0,
+      "sourceGuardScope": "Five recorded production files, not full checkout",
+      "receipt": "native-path/moving-path-native/receipt.json",
+      "limitation": "The selected-path composition was rejected by later original race gates. The actual authored Montejaral spatial residual remains unresolved."
+    },
+    {
+      "id": "relative_intent_positive",
+      "disposition": "LOCAL_GENERATOR_PROOF_ONLY",
+      "releaseAccepted": false,
+      "testsPassed": 3,
+      "testsFailed": 0,
+      "sourceGuardScope": "Five recorded production files, not full checkout",
+      "receipt": "native-path/relative-intent-positive/receipt.json",
+      "limitation": "This source predates the later preparingPit capture restriction. This receipt does not confer race acceptance."
+    },
+    {
+      "id": "relative_intent_negative",
+      "disposition": "EXPECTED_NEGATIVE_CONTROL",
+      "releaseAccepted": false,
+      "testsPassed": 1,
+      "testsFailed": 2,
+      "expectedResult": true,
+      "receipt": "native-path/relative-intent-negative/receipt.json",
+      "explanation": "Flat path passes; mirrored diagonal paths fail on the old source at the expected invented 0.025 m selected lane."
+    }
+  ],
+  "indexedFileCount": 53,
+  "indexedBytes": 825862,
+  "integrityScope": "All staged payload files except this index and SHA256SUMS. SHA256SUMS separately covers this index and all indexed files.",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 7532,
+      "sha256": "9f1853e892ecda1a9b3524cb9a4e1d0d9fb4818a570ff7eb27e1c168edfdf9a7",
+      "group": "generated_evidence_summary_or_index",
+      "copiedVerbatim": false
+    },
+    {
+      "path": "causal-controls/path-only/original-montejaral-path-only-status.json",
+      "bytes": 1136,
+      "sha256": "605522b5232482dd4354c8a587f2d069eb942e1308bc771c56b0a17585c8d86e",
+      "group": "path_only_control",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "causal-controls/path-only/original-montejaral-path-only.log",
+      "bytes": 1522,
+      "sha256": "4d306097e4348996c847e06fda353e6d3156803e87d97191227f464482d1fd5d",
+      "group": "path_only_control",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "causal-controls/path-only/path-only-source-attribution.json",
+      "bytes": 1382,
+      "sha256": "7d9a1884a49406a316435fc61b9103aff910141020e293bae1b3fc7efa474727",
+      "group": "path_only_control",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "causal-controls/preprofile/original-mixed-preprofile-status.json",
+      "bytes": 1148,
+      "sha256": "c999d1e329c0b1e8e97d37136259bf7601494a70236508c9ca78bb3dc3673b16",
+      "group": "preprofile_control",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "causal-controls/preprofile/original-mixed-preprofile.log",
+      "bytes": 1545,
+      "sha256": "426196d423b23b28fac66218252e2883d6a498017baae45ab9a795502f7ecf8e",
+      "group": "preprofile_control",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "causal-controls/preprofile/preprofile-source-attribution.json",
+      "bytes": 1472,
+      "sha256": "9d7ac1bcbded9d2c456c5cfcd5031b9f5dbc1b18e8761f97545351e22cd3a897",
+      "group": "preprofile_control",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "causal-controls/pure-history/history-source-attribution.json",
+      "bytes": 1247,
+      "sha256": "12cf9884bb38706c6d22744eff8914e00a15b0856228d70fd3e71e6df473cf82",
+      "group": "pure_history_control",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "causal-controls/pure-history/original-mixed-history-status.json",
+      "bytes": 1123,
+      "sha256": "8f287df4bf10feebc9590365c0180cb2f79740f28dc88507b6db48d7b50a7630",
+      "group": "pure_history_control",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "causal-controls/pure-history/original-mixed-history.log",
+      "bytes": 495,
+      "sha256": "934580dfd2d89593dfa9658738eabfe2049e8fb8ef5c21a42b80a863eb72d81c",
+      "group": "pure_history_control",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "copy-provenance.json",
+      "bytes": 17792,
+      "sha256": "6f3b43fe9b70fa994cbab595bf1e8425b1eb95d535762ad39d91f87b6d1463f2",
+      "group": "generated_evidence_summary_or_index",
+      "copiedVerbatim": false
+    },
+    {
+      "path": "native-path/gp-held-lane-oracle-after.json",
+      "bytes": 308469,
+      "sha256": "910fc264eab7f307e51a22bfbe037651e17d47d6d4c400a05426f75bf6def2fd",
+      "group": "relative_intent_oracle",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "native-path/gp-held-lane-oracle-before.json",
+      "bytes": 331191,
+      "sha256": "1ed3676e18f144de3a2d317dab05e3fb43f8fa48033c23a85ef6dff447db12a5",
+      "group": "relative_intent_oracle",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "native-path/gp-held-lane-oracle.mjs",
+      "bytes": 4066,
+      "sha256": "58f1f001c0243fd5742bca187fae1f56ad556f5c1ad73929e0fb1c86badeae0f",
+      "group": "relative_intent_oracle",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "native-path/gp-moving-path-oracle-after.json",
+      "bytes": 8472,
+      "sha256": "12b2ed842acba9a25b6ae1b619421704b1c042eb83765d5f2367654fcb1ba60e",
+      "group": "moving_path_oracle",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "native-path/gp-moving-path-oracle-before.json",
+      "bytes": 8458,
+      "sha256": "931b0e18751696ee9f9b407f39a3d150d6dabf688f5cfa72109a04836109f015",
+      "group": "moving_path_oracle",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "native-path/gp-moving-path-oracle.mjs",
+      "bytes": 7157,
+      "sha256": "7e8097c3936db4f428cd7ad73e0bf150a9af755b971a184dec18af7a017e0147",
+      "group": "moving_path_oracle",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "native-path/gp-moving-path.test.ts",
+      "bytes": 6374,
+      "sha256": "003a56bc1dfbad1a4c88246de3325313dfa16c58f18fc08d12b8d0a597d31e7e",
+      "group": "moving_path_test_draft",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "native-path/gp-path-ownership-review.md",
+      "bytes": 7339,
+      "sha256": "7c3fd5a540919f9af4fb063bb319f86840baaa55464e41718310a9cfa0e67384",
+      "group": "independent_review",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "native-path/gp-relative-intent.test.ts",
+      "bytes": 4120,
+      "sha256": "8f08787770ccbaa3f25ffc8559643a86055e34dfb4d6e9758adb24a40cf4f194",
+      "group": "relative_intent_test_draft",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "native-path/moving-path-native/receipt.json",
+      "bytes": 832,
+      "sha256": "3bea4348474e0dc4d84cce5c1dba1bf0cc17a4f25ec77071a4256d85c985837b",
+      "group": "moving_path_native",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "native-path/moving-path-native/source-before.json",
+      "bytes": 497,
+      "sha256": "4b1a78e3a677006e18e85b1f7e21a476f22faba8b91cd9e2a2b176e045de8102",
+      "group": "moving_path_native",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "native-path/moving-path-native/tests/gp-moving-path.test.ts",
+      "bytes": 6374,
+      "sha256": "003a56bc1dfbad1a4c88246de3325313dfa16c58f18fc08d12b8d0a597d31e7e",
+      "group": "moving_path_native",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "native-path/moving-path-native/vitest.config.ts",
+      "bytes": 408,
+      "sha256": "c330c0a749e72759e4415b48a1a3edb676d12c9e96b0d4bc5bf0b156e1bcdaad",
+      "group": "moving_path_native",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "native-path/moving-path-native/vitest.log",
+      "bytes": 303,
+      "sha256": "ad5288dbce9801d75fc615cddf9c425bdb13fc296981c628a75c73602a4252d0",
+      "group": "moving_path_native",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "native-path/relative-intent-negative/receipt.json",
+      "bytes": 761,
+      "sha256": "5c9214710417dad1f4b5f9b6bbb84f13b9212bca2a80f03c82a52c6232b539d6",
+      "group": "relative_intent_negative",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "native-path/relative-intent-negative/source-before.json",
+      "bytes": 422,
+      "sha256": "12b13dbc2b66ae06055a95ca62de89cb61958673d5b53cf0adcd7ce2f2b074ff",
+      "group": "relative_intent_negative",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "native-path/relative-intent-negative/tests/gp-relative-intent.test.ts",
+      "bytes": 4120,
+      "sha256": "8f08787770ccbaa3f25ffc8559643a86055e34dfb4d6e9758adb24a40cf4f194",
+      "group": "relative_intent_negative",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "native-path/relative-intent-negative/vitest.config.ts",
+      "bytes": 408,
+      "sha256": "c330c0a749e72759e4415b48a1a3edb676d12c9e96b0d4bc5bf0b156e1bcdaad",
+      "group": "relative_intent_negative",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "native-path/relative-intent-negative/vitest.log",
+      "bytes": 1532,
+      "sha256": "98a8cfc68be97c1398ab912190ace43acd3f2cd8967cb60a778e4675e4c7d80a",
+      "group": "relative_intent_negative",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "native-path/relative-intent-positive/receipt.json",
+      "bytes": 763,
+      "sha256": "06ff6082616f1bcac754914048599fd96e37fb15a1a9cb0cb51c52ae784b3665",
+      "group": "relative_intent_positive",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "native-path/relative-intent-positive/source-before.json",
+      "bytes": 422,
+      "sha256": "b212f44df2f31761c7a3a1e1b60739eb62d3a9529fa96b9f49cbd58a3baef489",
+      "group": "relative_intent_positive",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "native-path/relative-intent-positive/tests/gp-relative-intent.test.ts",
+      "bytes": 4120,
+      "sha256": "8f08787770ccbaa3f25ffc8559643a86055e34dfb4d6e9758adb24a40cf4f194",
+      "group": "relative_intent_positive",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "native-path/relative-intent-positive/vitest.config.ts",
+      "bytes": 408,
+      "sha256": "c330c0a749e72759e4415b48a1a3edb676d12c9e96b0d4bc5bf0b156e1bcdaad",
+      "group": "relative_intent_positive",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "native-path/relative-intent-positive/vitest.log",
+      "bytes": 591,
+      "sha256": "35724c9db05643af415a9dbfa900df3545f644aa8ed5d825ac4550d5b4050dee",
+      "group": "relative_intent_positive",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "rejected-4c9/matrix-and-calibration/acceptance-summary.json",
+      "bytes": 5909,
+      "sha256": "f0dc0df7b0c032c26d57f31edb7a5e2a106af174e38ea19ac82c2a418a2a0eca",
+      "group": "rejected_4c9_acceptance",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "rejected-4c9/matrix-and-calibration/docs/bike-race.json",
+      "bytes": 25803,
+      "sha256": "6f8e92ea6e4f177f28b8bbf742e0f82d359dd0256366b783b9ceaf8b4f9e5f4d",
+      "group": "rejected_4c9_acceptance",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "rejected-4c9/matrix-and-calibration/motorcycle-matrix-status.json",
+      "bytes": 852,
+      "sha256": "d184cdd0569a48ed1029defaeff72daf62c8d8f7d4da9223824bdb26ea32abca",
+      "group": "rejected_4c9_acceptance",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "rejected-4c9/matrix-and-calibration/motorcycle-matrix.log",
+      "bytes": 2089,
+      "sha256": "f3f8259075c08cb735134c9ac2ce6371718baf6347332545bfa074dfe558ce8e",
+      "group": "rejected_4c9_acceptance",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "rejected-4c9/matrix-and-calibration/strict-gp-calibration-status.json",
+      "bytes": 908,
+      "sha256": "10e2c72edbb3d9dc04f631f61cce49f4cca8fd9b1c423aba838c2be21c63cd2f",
+      "group": "rejected_4c9_acceptance",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "rejected-4c9/matrix-and-calibration/strict-gp-calibration-summary.json",
+      "bytes": 2129,
+      "sha256": "48fcb33d7c11cd3b0b16b39602f62ce2a41cf2f265e1c94c31c36348ee40b7b7",
+      "group": "generated_evidence_summary_or_index",
+      "copiedVerbatim": false
+    },
+    {
+      "path": "rejected-4c9/matrix-and-calibration/strict-gp-calibration.log",
+      "bytes": 667,
+      "sha256": "4f31a84ed83c41a32978a933273994447e82ea98529cff4985c1f737a0d7c46d",
+      "group": "rejected_4c9_acceptance",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "rejected-4c9/original51-support/gp-final-original51.json",
+      "bytes": 1075,
+      "sha256": "d6185c39b5ea0c7b295a09cf90794bb07aba668db93a8e203a154a37c2c10d06",
+      "group": "same_physics_original51_rejection",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "rejected-4c9/original51-support/gp-final-original51.log",
+      "bytes": 5666,
+      "sha256": "e9f76b17cbafc410f208795d4209694dad3e2069644339da1e4363195ca62102",
+      "group": "same_physics_original51_rejection",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "rejected-4c9/original51-support/gp-final-physics-whitelist.json",
+      "bytes": 2570,
+      "sha256": "981a6c27c199d4f440950f3ba094f92412ef3830a6872f1a27ce6e75d8c83ea9",
+      "group": "same_physics_original51_rejection",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "rejected-4c9/original51-support/source-linkage.json",
+      "bytes": 6071,
+      "sha256": "9970d19f7b97022cc1942ddbdeb933b26f33af541ab5351960f4e77ede8ef457",
+      "group": "generated_evidence_summary_or_index",
+      "copiedVerbatim": false
+    },
+    {
+      "path": "reproducibility/inputs-4c9/scripts/bike-race.ts",
+      "bytes": 5266,
+      "sha256": "f379f3334d02480993288eeb00e57f65de81b27e8c9e5a11061c61703ded7293",
+      "group": "original_committed_gate_input",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "reproducibility/inputs-4c9/scripts/source-stability.ts",
+      "bytes": 3430,
+      "sha256": "07b7b0b7d277172516fe75502d917dfbf31b9c628c8d562cf9cb0182f80bca34",
+      "group": "original_committed_gate_input",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "reproducibility/inputs-4c9/scripts/vehicle-calibration.ts",
+      "bytes": 12770,
+      "sha256": "6bc0ed3a6a1cec40f6b5143fb8269a76410dc20c21125d218a93c66a56f120a4",
+      "group": "original_committed_gate_input",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "reproducibility/inputs-4c9/tests/bike-mixed-passing.test.ts",
+      "bytes": 2842,
+      "sha256": "de20c703b20d780a5aafee7eeba45be8efaab5f59c780c303a3b6c704e734253",
+      "group": "original_committed_gate_input",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "reproducibility/inputs-4c9/vitest.config.ts",
+      "bytes": 408,
+      "sha256": "c330c0a749e72759e4415b48a1a3edb676d12c9e96b0d4bc5bf0b156e1bcdaad",
+      "group": "original_committed_gate_input",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "reproducibility/run-frozen-acceptance.mjs",
+      "bytes": 2873,
+      "sha256": "77952a389a30a0053169708262ce82340127141ccd62801f45c7c91ea7ecb498",
+      "group": "original_external_guard_wrapper",
+      "copiedVerbatim": true
+    },
+    {
+      "path": "staging-receipt.json",
+      "bytes": 533,
+      "sha256": "faa49365914126516ee63aa4a42ea5abd9ee80d7a612093334321ab916bff325",
+      "group": "generated_evidence_summary_or_index",
+      "copiedVerbatim": false
+    }
+  ]
+}

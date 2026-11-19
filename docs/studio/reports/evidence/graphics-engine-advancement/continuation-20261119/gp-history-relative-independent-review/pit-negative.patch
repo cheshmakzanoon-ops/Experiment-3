@@ -1,0 +1,11 @@
+--- a/src/simulation/ai.ts
++++ b/src/simulation/ai.ts
+@@ -286,7 +286,7 @@
+         this.passPace(track),
+       );
+       this.desiredOffset = this.laneOverride(track, c.s, plan.offset);
+-      if (this.roadLaneIsRelative() && !preparingPit)
++      if (this.roadLaneIsRelative())
+         this.desiredTactical = this.desiredOffset - lineAt(c.s);
+       this.trafficSpeed = plan.speedLimit;
+       this.trafficRefreshed = true;

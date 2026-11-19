@@ -1,0 +1,15 @@
+--- a/src/simulation/traffic.ts
++++ b/src/simulation/traffic.ts
+@@ -343,7 +343,11 @@
+             Math.abs(other.lateral - (car.lateral + shiftAt(other.s))) < 3 * lateralScale);
+         // Worth starting when the straight left is long enough to gain the gap
+         // and a little more; once under way it goes on until the straight ends.
+-        const gains = (PASS_PACE.gain * (pace.freeSpeed - other.speed) * pace.runway) / mean,
++        // The continuation rule ends the pass with brakeBy metres still
++        // reserved. Those metres cannot also pay for the initial closing
++        // gain: that would approve an attempt its own deadline forbids.
++        const passingRunway = Math.max(0, pace.runway - PASS_PACE.brakeBy),
++          gains = (PASS_PACE.gain * (pace.freeSpeed - other.speed) * passingRunway) / mean,
+           worth =
+             other.id === this.blocker
+               ? pace.runway >= PASS_PACE.brakeBy

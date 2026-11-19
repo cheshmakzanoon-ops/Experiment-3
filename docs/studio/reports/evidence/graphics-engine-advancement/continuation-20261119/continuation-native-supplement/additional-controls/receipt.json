@@ -1,0 +1,202 @@
+{
+  "candidate": "/workspace/scratch/0ab62d15db18/gp-history-admission-only-control",
+  "sourceDescription": "Preserved pure-history plus existing admission-correction copied candidate, not a Git checkout. Source identity is established by exact input and file hashes.",
+  "scope": "Original Vellamar seed 5222 zero-fall and original mixed seed 3303 session contracts; no Montejaral rerun, no source edits or assertion changes.",
+  "hashing": "SHA-256 of JSON encoding of sorted source-stability [relative path, mode:file SHA or symlink destination] entries. Production digest selects src/ entries.",
+  "startedAt": "2026-11-19T13:29:31.781Z",
+  "before": {
+    "inputCount": 2231,
+    "inputSha256": "41bc65d76de8c7bdd8ef8dc34cee26444b9aa6d70c6940e82233cf724900a2c6",
+    "productionCount": 930,
+    "productionSha256": "db658d4ccc891ac1055734d622b760a0cfedc60014850824ecd417ee589aacf0",
+    "criticalSha256": {
+      "src/simulation/ai.ts": "5be0791ac44bc88a17e0c84744216e66ea6455f1dbe55a489c2628d2f5412525",
+      "src/simulation/bike-ai.ts": "ffc70ab74e818298535eea6c48375df8cd3a5b30ba4ad776370a358eb3358c7d",
+      "src/simulation/bike.ts": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de",
+      "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+      "src/simulation/traffic.ts": "7180a18b826bc8ccbfd6f638794c3c5efd427b2151baa087bc148502b8e18700",
+      "tests/bike-mixed-passing.test.ts": "de20c703b20d780a5aafee7eeba45be8efaab5f59c780c303a3b6c704e734253",
+      "tests/bike-session.test.ts": "28b653c92029c494cd11ec713ab21c9eae1808af8c378afc1590d60590df09ae",
+      "scripts/source-stability.ts": "07b7b0b7d277172516fe75502d917dfbf31b9c628c8d562cf9cb0182f80bca34"
+    }
+  },
+  "runs": [
+    {
+      "name": "vellamar-5222",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npx",
+        "vitest",
+        "run",
+        "tests/bike-mixed-passing.test.ts",
+        "-t",
+        "vellamar.*5222"
+      ],
+      "priorityWrapper": [
+        "nice",
+        "-n",
+        "10"
+      ],
+      "startedAt": "2026-11-19T13:29:32.374Z",
+      "before": {
+        "inputCount": 2231,
+        "inputSha256": "41bc65d76de8c7bdd8ef8dc34cee26444b9aa6d70c6940e82233cf724900a2c6",
+        "productionCount": 930,
+        "productionSha256": "db658d4ccc891ac1055734d622b760a0cfedc60014850824ecd417ee589aacf0",
+        "criticalSha256": {
+          "src/simulation/ai.ts": "5be0791ac44bc88a17e0c84744216e66ea6455f1dbe55a489c2628d2f5412525",
+          "src/simulation/bike-ai.ts": "ffc70ab74e818298535eea6c48375df8cd3a5b30ba4ad776370a358eb3358c7d",
+          "src/simulation/bike.ts": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de",
+          "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+          "src/simulation/traffic.ts": "7180a18b826bc8ccbfd6f638794c3c5efd427b2151baa087bc148502b8e18700",
+          "tests/bike-mixed-passing.test.ts": "de20c703b20d780a5aafee7eeba45be8efaab5f59c780c303a3b6c704e734253",
+          "tests/bike-session.test.ts": "28b653c92029c494cd11ec713ab21c9eae1808af8c378afc1590d60590df09ae",
+          "scripts/source-stability.ts": "07b7b0b7d277172516fe75502d917dfbf31b9c628c8d562cf9cb0182f80bca34"
+        }
+      },
+      "log": "/workspace/scratch/0ab62d15db18/history-admission-extra-controls/vellamar-5222.log",
+      "finishedAt": "2026-11-19T13:30:02.431Z",
+      "actualExit": 0,
+      "signal": null,
+      "error": null,
+      "after": {
+        "inputCount": 2231,
+        "inputSha256": "41bc65d76de8c7bdd8ef8dc34cee26444b9aa6d70c6940e82233cf724900a2c6",
+        "productionCount": 930,
+        "productionSha256": "db658d4ccc891ac1055734d622b760a0cfedc60014850824ecd417ee589aacf0",
+        "criticalSha256": {
+          "src/simulation/ai.ts": "5be0791ac44bc88a17e0c84744216e66ea6455f1dbe55a489c2628d2f5412525",
+          "src/simulation/bike-ai.ts": "ffc70ab74e818298535eea6c48375df8cd3a5b30ba4ad776370a358eb3358c7d",
+          "src/simulation/bike.ts": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de",
+          "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+          "src/simulation/traffic.ts": "7180a18b826bc8ccbfd6f638794c3c5efd427b2151baa087bc148502b8e18700",
+          "tests/bike-mixed-passing.test.ts": "de20c703b20d780a5aafee7eeba45be8efaab5f59c780c303a3b6c704e734253",
+          "tests/bike-session.test.ts": "28b653c92029c494cd11ec713ab21c9eae1808af8c378afc1590d60590df09ae",
+          "scripts/source-stability.ts": "07b7b0b7d277172516fe75502d917dfbf31b9c628c8d562cf9cb0182f80bca34"
+        }
+      },
+      "inputStable": true,
+      "productionStable": true
+    },
+    {
+      "name": "mixed-3303",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npx",
+        "vitest",
+        "run",
+        "tests/bike-session.test.ts",
+        "-t",
+        "finishes a mixed GP/superbike race with bounded incidents and no stuck rider"
+      ],
+      "priorityWrapper": [
+        "nice",
+        "-n",
+        "10"
+      ],
+      "startedAt": "2026-11-19T13:30:02.545Z",
+      "before": {
+        "inputCount": 2231,
+        "inputSha256": "41bc65d76de8c7bdd8ef8dc34cee26444b9aa6d70c6940e82233cf724900a2c6",
+        "productionCount": 930,
+        "productionSha256": "db658d4ccc891ac1055734d622b760a0cfedc60014850824ecd417ee589aacf0",
+        "criticalSha256": {
+          "src/simulation/ai.ts": "5be0791ac44bc88a17e0c84744216e66ea6455f1dbe55a489c2628d2f5412525",
+          "src/simulation/bike-ai.ts": "ffc70ab74e818298535eea6c48375df8cd3a5b30ba4ad776370a358eb3358c7d",
+          "src/simulation/bike.ts": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de",
+          "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+          "src/simulation/traffic.ts": "7180a18b826bc8ccbfd6f638794c3c5efd427b2151baa087bc148502b8e18700",
+          "tests/bike-mixed-passing.test.ts": "de20c703b20d780a5aafee7eeba45be8efaab5f59c780c303a3b6c704e734253",
+          "tests/bike-session.test.ts": "28b653c92029c494cd11ec713ab21c9eae1808af8c378afc1590d60590df09ae",
+          "scripts/source-stability.ts": "07b7b0b7d277172516fe75502d917dfbf31b9c628c8d562cf9cb0182f80bca34"
+        }
+      },
+      "log": "/workspace/scratch/0ab62d15db18/history-admission-extra-controls/mixed-3303.log",
+      "finishedAt": "2026-11-19T13:30:34.153Z",
+      "actualExit": 1,
+      "signal": null,
+      "error": null,
+      "after": {
+        "inputCount": 2231,
+        "inputSha256": "41bc65d76de8c7bdd8ef8dc34cee26444b9aa6d70c6940e82233cf724900a2c6",
+        "productionCount": 930,
+        "productionSha256": "db658d4ccc891ac1055734d622b760a0cfedc60014850824ecd417ee589aacf0",
+        "criticalSha256": {
+          "src/simulation/ai.ts": "5be0791ac44bc88a17e0c84744216e66ea6455f1dbe55a489c2628d2f5412525",
+          "src/simulation/bike-ai.ts": "ffc70ab74e818298535eea6c48375df8cd3a5b30ba4ad776370a358eb3358c7d",
+          "src/simulation/bike.ts": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de",
+          "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+          "src/simulation/traffic.ts": "7180a18b826bc8ccbfd6f638794c3c5efd427b2151baa087bc148502b8e18700",
+          "tests/bike-mixed-passing.test.ts": "de20c703b20d780a5aafee7eeba45be8efaab5f59c780c303a3b6c704e734253",
+          "tests/bike-session.test.ts": "28b653c92029c494cd11ec713ab21c9eae1808af8c378afc1590d60590df09ae",
+          "scripts/source-stability.ts": "07b7b0b7d277172516fe75502d917dfbf31b9c628c8d562cf9cb0182f80bca34"
+        }
+      },
+      "inputStable": true,
+      "productionStable": true
+    }
+  ],
+  "finishedAt": "2026-11-19T13:30:34.454Z",
+  "after": {
+    "inputCount": 2231,
+    "inputSha256": "41bc65d76de8c7bdd8ef8dc34cee26444b9aa6d70c6940e82233cf724900a2c6",
+    "productionCount": 930,
+    "productionSha256": "db658d4ccc891ac1055734d622b760a0cfedc60014850824ecd417ee589aacf0",
+    "criticalSha256": {
+      "src/simulation/ai.ts": "5be0791ac44bc88a17e0c84744216e66ea6455f1dbe55a489c2628d2f5412525",
+      "src/simulation/bike-ai.ts": "ffc70ab74e818298535eea6c48375df8cd3a5b30ba4ad776370a358eb3358c7d",
+      "src/simulation/bike.ts": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de",
+      "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+      "src/simulation/traffic.ts": "7180a18b826bc8ccbfd6f638794c3c5efd427b2151baa087bc148502b8e18700",
+      "tests/bike-mixed-passing.test.ts": "de20c703b20d780a5aafee7eeba45be8efaab5f59c780c303a3b6c704e734253",
+      "tests/bike-session.test.ts": "28b653c92029c494cd11ec713ab21c9eae1808af8c378afc1590d60590df09ae",
+      "scripts/source-stability.ts": "07b7b0b7d277172516fe75502d917dfbf31b9c628c8d562cf9cb0182f80bca34"
+    }
+  },
+  "inputStable": true,
+  "productionStable": true,
+  "priorMontejaralControl": {
+    "receipt": "/workspace/scratch/0ab62d15db18/history-admission-only-evidence/receipt.json",
+    "receiptSha256": "acb16a7696dba513a1989b15f00da952b2c810184e1526d85070031531da0d5e",
+    "criticalHashesMatch": true,
+    "result": "Original Montejaral 5111 race finished with zero falls; no repeat in this run."
+  },
+  "results": {
+    "vellamar-5222": {
+      "status": "PASS",
+      "actualExit": 0,
+      "testSeconds": 25.752,
+      "totalSeconds": 28.64,
+      "raceFinished": true,
+      "crashes": 0,
+      "originalAssertionsUnchanged": true
+    },
+    "mixed-3303": {
+      "status": "FAIL",
+      "actualExit": 1,
+      "testSeconds": 26.915,
+      "totalSeconds": 30.1,
+      "gpBestSeconds": 91.3319836339769,
+      "sbkBestSeconds": 89.71691286413457,
+      "sbkMinusGpSeconds": -1.6150707698423332,
+      "priorAssertionsPassed": [
+        "race finished",
+        "crashes <= 3",
+        "every rider not retired",
+        "every rider finishTime > 0",
+        "every rider completed 2 laps",
+        "longest stop < 20 seconds"
+      ],
+      "failedAssertion": "GP best lap must be less than SBK best lap (tests/bike-session.test.ts:367)",
+      "finalMarginAssertionReached": false,
+      "originalAssertionsUnchanged": true
+    }
+  },
+  "conclusion": "The existing 220 m admission correction on preserved history passes the two sampled zero-fall controls (prior Montejaral and current Vellamar), but does not satisfy the original mixed-race pace gate. This is a source-scope comparison, not acceptance of the candidate."
+}

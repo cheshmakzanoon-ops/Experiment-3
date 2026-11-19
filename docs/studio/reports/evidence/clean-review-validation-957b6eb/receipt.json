@@ -1,0 +1,276 @@
+{
+  "source": "/workspace/scratch/0ab62d15db18/review-build-4082ea5",
+  "expectedCommit": "957b6eb15ebac4ddb2f7f979108a90008534a3d4",
+  "actualCommit": "957b6eb15ebac4ddb2f7f979108a90008534a3d4",
+  "started": "2026-11-19T14:16:23.453Z",
+  "status": "complete",
+  "output": "/workspace/scratch/0ab62d15db18/clean-review-validation-957b6eb",
+  "dist": "/workspace/scratch/0ab62d15db18/clean-review-validation-957b6eb/dist",
+  "scope": {
+    "fullUnit": false,
+    "browser": false,
+    "publication": false,
+    "productionEdits": false,
+    "sequential": true,
+    "niceness": 10
+  },
+  "inputFiles": 7445,
+  "inputDigest": "b7560a03f261f38a6522fff0b1afdb18bf71706b2e9566b74e35ffbde74a2312",
+  "trackedFiles": 7580,
+  "trackedInputDigest": "3c8017dd5805909b5a44fd972c7968a611c122302544008f100798eac995a65e",
+  "expectedFingerprint": "3e42326b03d522f705e2bcab4be00f4d25b99cac5ab4d54638a3d1311539b8fa",
+  "commands": [
+    {
+      "label": "lint",
+      "command": [
+        "npm",
+        "run",
+        "lint"
+      ]
+    },
+    {
+      "label": "content",
+      "command": [
+        "npm",
+        "run",
+        "validate:content"
+      ]
+    },
+    {
+      "label": "build",
+      "command": [
+        "npm",
+        "run",
+        "build",
+        "--",
+        "--outDir",
+        "/workspace/scratch/0ab62d15db18/clean-review-validation-957b6eb/dist"
+      ]
+    },
+    {
+      "label": "bundle",
+      "command": [
+        "node",
+        "scripts/bundle-budget.mjs",
+        "--dist",
+        "/workspace/scratch/0ab62d15db18/clean-review-validation-957b6eb/dist"
+      ]
+    },
+    {
+      "label": "ip",
+      "command": [
+        "node",
+        "scripts/ip-guard.mjs",
+        "--dist",
+        "/workspace/scratch/0ab62d15db18/clean-review-validation-957b6eb/dist"
+      ]
+    },
+    {
+      "label": "startup-preparation-inspector",
+      "command": [
+        "npx",
+        "vitest",
+        "run",
+        "tests/startup.test.ts",
+        "tests/preparation.test.ts",
+        "tests/high-fragment-inspector.test.ts"
+      ]
+    }
+  ],
+  "results": [
+    {
+      "label": "lint",
+      "command": [
+        "nice",
+        "-n",
+        "10",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "--no-warnings",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npm",
+        "run",
+        "lint"
+      ],
+      "started": "2026-11-19T14:16:23.461Z",
+      "finished": "2026-11-19T14:17:06.741Z",
+      "wallSeconds": 43.279780267,
+      "guardExit": 0,
+      "commandExit": 0,
+      "signal": null,
+      "sourceStable": true,
+      "changed": [],
+      "log": "lint.log",
+      "logBytes": 169,
+      "logSha256": "89f0b098b1eb5d9131ba019d93bbaea75cfc7c5edac019f1c586e974855e1abc",
+      "passed": true
+    },
+    {
+      "label": "content",
+      "command": [
+        "nice",
+        "-n",
+        "10",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "--no-warnings",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npm",
+        "run",
+        "validate:content"
+      ],
+      "started": "2026-11-19T14:17:06.751Z",
+      "finished": "2026-11-19T14:17:15.181Z",
+      "wallSeconds": 8.429552599000003,
+      "guardExit": 0,
+      "commandExit": 0,
+      "signal": null,
+      "sourceStable": true,
+      "changed": [],
+      "log": "content.log",
+      "logBytes": 406,
+      "logSha256": "3568c2a215d4d501c183b086d12d22fce46eeb8410cf18baa5aaa3c3f082ba8d",
+      "passed": true
+    },
+    {
+      "label": "build",
+      "command": [
+        "nice",
+        "-n",
+        "10",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "--no-warnings",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npm",
+        "run",
+        "build",
+        "--",
+        "--outDir",
+        "/workspace/scratch/0ab62d15db18/clean-review-validation-957b6eb/dist"
+      ],
+      "started": "2026-11-19T14:17:15.183Z",
+      "finished": "2026-11-19T14:18:11.552Z",
+      "wallSeconds": 56.369761083,
+      "guardExit": 0,
+      "commandExit": 0,
+      "signal": null,
+      "sourceStable": true,
+      "changed": [],
+      "log": "build.log",
+      "logBytes": 5990,
+      "logSha256": "cee57754b23821baa84f371b6f8eaed3ef5d553e52b354cf5f623426d8b33e8e",
+      "passed": true
+    },
+    {
+      "label": "bundle",
+      "command": [
+        "nice",
+        "-n",
+        "10",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "--no-warnings",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "node",
+        "scripts/bundle-budget.mjs",
+        "--dist",
+        "/workspace/scratch/0ab62d15db18/clean-review-validation-957b6eb/dist"
+      ],
+      "started": "2026-11-19T14:18:11.554Z",
+      "finished": "2026-11-19T14:18:15.765Z",
+      "wallSeconds": 4.210396672000003,
+      "guardExit": 0,
+      "commandExit": 0,
+      "signal": null,
+      "sourceStable": true,
+      "changed": [],
+      "log": "bundle.log",
+      "logBytes": 2077,
+      "logSha256": "8391da867649479987a2cec34776a5c45f4f79c8e00398758eef4135b97e89bf",
+      "passed": true
+    },
+    {
+      "label": "ip",
+      "command": [
+        "nice",
+        "-n",
+        "10",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "--no-warnings",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "node",
+        "scripts/ip-guard.mjs",
+        "--dist",
+        "/workspace/scratch/0ab62d15db18/clean-review-validation-957b6eb/dist"
+      ],
+      "started": "2026-11-19T14:18:15.767Z",
+      "finished": "2026-11-19T14:18:22.841Z",
+      "wallSeconds": 7.073609843999991,
+      "guardExit": 0,
+      "commandExit": 0,
+      "signal": null,
+      "sourceStable": true,
+      "changed": [],
+      "log": "ip.log",
+      "logBytes": 201,
+      "logSha256": "31c8f66178b10a6618be44f58e84991a8a20d32cfd6de146de8f68614bfc877f",
+      "passed": true
+    },
+    {
+      "label": "startup-preparation-inspector",
+      "command": [
+        "nice",
+        "-n",
+        "10",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "--no-warnings",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npx",
+        "vitest",
+        "run",
+        "tests/startup.test.ts",
+        "tests/preparation.test.ts",
+        "tests/high-fragment-inspector.test.ts"
+      ],
+      "started": "2026-11-19T14:18:22.843Z",
+      "finished": "2026-11-19T14:18:40.684Z",
+      "wallSeconds": 17.841168833999998,
+      "guardExit": 0,
+      "commandExit": 0,
+      "signal": null,
+      "sourceStable": true,
+      "changed": [],
+      "log": "startup-preparation-inspector.log",
+      "logBytes": 503,
+      "logSha256": "9f0e281223dc098f3bc238575747cbe2050d3a2f6ffef85b875783f126a78ebd",
+      "passed": true,
+      "passedTests": 47
+    }
+  ],
+  "sourceStable": true,
+  "changed": [],
+  "outputDigest": "b7560a03f261f38a6522fff0b1afdb18bf71706b2e9566b74e35ffbde74a2312",
+  "trackedInputDigestAfter": "3c8017dd5805909b5a44fd972c7968a611c122302544008f100798eac995a65e",
+  "trackedInputsUnchanged": true,
+  "finalCommit": "957b6eb15ebac4ddb2f7f979108a90008534a3d4",
+  "finalTrackedGitStatus": "",
+  "buildIdentity": {
+    "version": 1,
+    "commit": "957b6eb15ebac4ddb2f7f979108a90008534a3d4",
+    "fingerprint": "3e42326b03d522f705e2bcab4be00f4d25b99cac5ab4d54638a3d1311539b8fa",
+    "variant": "product",
+    "edition": "full"
+  },
+  "buildIdentityMatches": true,
+  "finished": "2026-11-19T14:18:42.442Z",
+  "passed": true
+}

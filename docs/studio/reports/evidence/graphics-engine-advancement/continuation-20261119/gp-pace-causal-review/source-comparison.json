@@ -1,0 +1,38 @@
+{
+  "baselineRestoredSource": "/workspace/scratch/d611aefdb08c/w27-gp-history-candidate",
+  "baselineRecordedPathLabel": "/workspace/scratch/0ab62d15db18/gp-history-traffic-candidate",
+  "baselinePathNote": "The old trace path was later reused for other candidates. Attribution is by recorded hashes, not by its current directory contents.",
+  "admissionSource": "/workspace/scratch/0ab62d15db18/gp-history-admission-only-control",
+  "baselineCriticalSha256": {
+    "src/simulation/ai.ts": "5be0791ac44bc88a17e0c84744216e66ea6455f1dbe55a489c2628d2f5412525",
+    "src/simulation/bike-ai.ts": "ffc70ab74e818298535eea6c48375df8cd3a5b30ba4ad776370a358eb3358c7d",
+    "src/simulation/bike.ts": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de",
+    "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+    "src/simulation/traffic.ts": "58bbe1c1e66fdb5a7a7850f3bd1e04b320ddc58b030aa2ec0638ff639160e874",
+    "src/simulation/bike-vehicle.ts": "e9c829ad70fa04396f14b065f39366bbc008c787493672619342967a8b8aa2b5",
+    "tests/bike-session.test.ts": "28b653c92029c494cd11ec713ab21c9eae1808af8c378afc1590d60590df09ae",
+    "tests/bike-mixed-passing.test.ts": "de20c703b20d780a5aafee7eeba45be8efaab5f59c780c303a3b6c704e734253"
+  },
+  "admissionCriticalSha256": {
+    "src/simulation/ai.ts": "5be0791ac44bc88a17e0c84744216e66ea6455f1dbe55a489c2628d2f5412525",
+    "src/simulation/bike-ai.ts": "ffc70ab74e818298535eea6c48375df8cd3a5b30ba4ad776370a358eb3358c7d",
+    "src/simulation/bike.ts": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de",
+    "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+    "src/simulation/traffic.ts": "7180a18b826bc8ccbfd6f638794c3c5efd427b2151baa087bc148502b8e18700",
+    "src/simulation/bike-vehicle.ts": "e9c829ad70fa04396f14b065f39366bbc008c787493672619342967a8b8aa2b5",
+    "tests/bike-session.test.ts": "28b653c92029c494cd11ec713ab21c9eae1808af8c378afc1590d60590df09ae",
+    "tests/bike-mixed-passing.test.ts": "de20c703b20d780a5aafee7eeba45be8efaab5f59c780c303a3b6c704e734253"
+  },
+  "productionFilesCompared": 930,
+  "productionDifferences": [
+    "src/simulation/traffic.ts"
+  ],
+  "allEmbeddedBaselineTraceHashesMatchRestored": true,
+  "allEmbeddedFreePaceHashesMatchRestored": true,
+  "admissionOriginalGateCriticalHashesMatch": true,
+  "admissionGuardReceipt": "admission-3303-observer-status.json",
+  "baselineTraceSha256": "d30668936e860f61b79c58c16d30801f9d84677bcb1cee250f7fdab2b07ecc1f",
+  "admissionTraceSha256": "3ea7435411f76f9128e7d1aa471952c1b44f509e57c137a0a0ce5661a0a0fafe",
+  "soloTraceSha256": "4e0db5060c1ae40bac5ed72cc333c46b5b05eda8a53c6841defb5c0a5f1a2ae9",
+  "guardDigestNote": "The original admission receipt sorts inventory entries before hashing. The external observer wrapper hashes the source guard iteration order. Their aggregate digest strings are not directly comparable; exact critical files and before/after stability are checked independently."
+}

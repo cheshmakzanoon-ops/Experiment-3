@@ -82,10 +82,10 @@ async function load(page: Page) {
   return result.output.some((o) => o.type === 'chunk' && o.fileName !== script.fileName);
 }
 const mountScene = async (page: Page, scene: Fixture.Scene, locale: string) => {
-  await page.evaluate(([s, l]) => window.I18nScreens.mount(s as Fixture.Scene, l as never), [
-    scene,
-    locale,
-  ]);
+  await page.evaluate(
+    ([s, l]) => window.I18nScreens.mount(s as Fixture.Scene, l as never),
+    [scene, locale],
+  );
   await page.evaluate(() => document.fonts.ready);
 };
 const SCENES: readonly Fixture.Scene[] = [
@@ -110,7 +110,7 @@ const FIT: readonly Fixture.Scene[] = [
   'pause',
 ];
 
-test('English markup is unchanged by localisation', async ({ page }) => {
+test('English markup is unchanged by localisation', async ({ page }, info) => {
   test.setTimeout(180000);
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
@@ -120,12 +120,32 @@ test('English markup is unchanged by localisation', async ({ page }) => {
   for (const scene of SCENES) {
     await mountScene(page, scene, 'en');
     const html = await page.evaluate((s) => window.I18nScreens.snapshot(s), scene);
+    if (scene === 'settings') {
+      const gpu = await page.evaluate(() => ({
+        reported: window.I18nScreens.readGpuName(),
+        displayed: document.querySelector('#modalContent .gq-gpu')?.textContent ?? null,
+      }));
+      await info.attach('english-settings-runtime-gpu.json', {
+        body: JSON.stringify(gpu, null, 2),
+        contentType: 'application/json',
+      });
+      expect(gpu.displayed, 'settings show the renderer reported by this browser').toBe(
+        gpu.reported ?? 'GPU name not reported',
+      );
+    }
     const file = `${BASELINE}/${scene}.html`;
     if (process.env.I18N_CAPTURE === '1') await writeFile(file, html + '\n');
     else {
       // Report the first difference with context, not two whole screens.
-      const expected = await readFile(file, 'utf8');
-      const actual = html + '\n';
+      // Only the reported hardware name varies between SwiftShader and Mesa.
+      // Keep the guide's recommendation, wording and complete markup in the
+      // comparison; the actual name is asserted and attached separately above.
+      const normalizeGpuRenderer = (markup: string) =>
+        scene === 'settings'
+          ? markup.replace(/(<span class="gq-gpu">)[^<]*(<\/span>)/, '$1[runtime GPU renderer]$2')
+          : markup;
+      const expected = normalizeGpuRenderer(await readFile(file, 'utf8'));
+      const actual = normalizeGpuRenderer(html + '\n');
       let at = 0;
       while (at < actual.length && actual[at] === expected[at]) at++;
       expect(
@@ -164,8 +184,10 @@ test('every language fits the first-hour screens at 1280x720 and 1024x600', asyn
         const facts = await page.evaluate((s) => window.I18nScreens.layout(s), scene);
         const where = `${locale} ${size.width}x${size.height} ${scene}`;
         if (facts.page > 1) problems.push(`${where}: page scrolls sideways by ${facts.page}px`);
-        if (facts.dialog > 1) problems.push(`${where}: dialog scrolls sideways by ${facts.dialog}px`);
-        if (facts.menuBody > 1) problems.push(`${where}: paddock body scrolls sideways by ${facts.menuBody}px`);
+        if (facts.dialog > 1)
+          problems.push(`${where}: dialog scrolls sideways by ${facts.dialog}px`);
+        if (facts.menuBody > 1)
+          problems.push(`${where}: paddock body scrolls sideways by ${facts.menuBody}px`);
         const here = `${size.width}x${size.height} ${scene}`;
         if (locale === 'en') english.set(here, new Set(facts.clipped.map((c) => c.sig)));
         for (const c of facts.clipped)
@@ -213,10 +235,7 @@ test('every language fits the first-hour screens at 1280x720 and 1024x600', asyn
       await writeFile(`${SHEETS}/${locale}-contact-sheet.jpg`, jpeg);
     }
     await sheetPage.close();
-    await writeFile(
-      `${SHEETS}/text-length.json`,
-      JSON.stringify(length, null, 2) + '\n',
-    );
+    await writeFile(`${SHEETS}/text-length.json`, JSON.stringify(length, null, 2) + '\n');
   }
   expect(problems).toEqual([]);
   expect(errors).toEqual([]);

@@ -1,0 +1,138 @@
+{
+  "createdAt": "2026-11-19T13:36:45.224071+00:00",
+  "candidate": "/workspace/scratch/0ab62d15db18/gp-history-admission-only-control",
+  "status": "REJECTED: 2 of 3 original controls pass",
+  "sourceScope": "Pure preserved history plus only the already reviewed 220 m admission-reserve correction. No current-path handoff, horizon extension, or wet-path changes.",
+  "criticalSourceHashes": {
+    "src/simulation/ai.ts": "5be0791ac44bc88a17e0c84744216e66ea6455f1dbe55a489c2628d2f5412525",
+    "src/simulation/bike-ai.ts": "ffc70ab74e818298535eea6c48375df8cd3a5b30ba4ad776370a358eb3358c7d",
+    "src/simulation/bike.ts": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de",
+    "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+    "src/simulation/traffic.ts": "7180a18b826bc8ccbfd6f638794c3c5efd427b2151baa087bc148502b8e18700",
+    "tests/bike-mixed-passing.test.ts": "de20c703b20d780a5aafee7eeba45be8efaab5f59c780c303a3b6c704e734253",
+    "tests/bike-session.test.ts": "28b653c92029c494cd11ec713ab21c9eae1808af8c378afc1590d60590df09ae",
+    "scripts/source-stability.ts": "07b7b0b7d277172516fe75502d917dfbf31b9c628c8d562cf9cb0182f80bca34"
+  },
+  "priorCriticalHashesMatch": true,
+  "priorReceiptSha256": "acb16a7696dba513a1989b15f00da952b2c810184e1526d85070031531da0d5e",
+  "inputSha256": "41bc65d76de8c7bdd8ef8dc34cee26444b9aa6d70c6940e82233cf724900a2c6",
+  "productionSha256": "db658d4ccc891ac1055734d622b760a0cfedc60014850824ecd417ee589aacf0",
+  "sourceStable": true,
+  "commands": {
+    "prior": "node --experimental-transform-types scripts/source-stability.ts -- npx vitest run tests/bike-mixed-passing.test.ts -t 'montejaral.*5111'",
+    "new": [
+      [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npx",
+        "vitest",
+        "run",
+        "tests/bike-mixed-passing.test.ts",
+        "-t",
+        "vellamar.*5222"
+      ],
+      [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npx",
+        "vitest",
+        "run",
+        "tests/bike-session.test.ts",
+        "-t",
+        "finishes a mixed GP/superbike race with bounded incidents and no stuck rider"
+      ]
+    ]
+  },
+  "outcomes": {
+    "prior-montejaral-5111": {
+      "exitCode": 0,
+      "passed": 1,
+      "skipped": 5,
+      "failed": 0,
+      "testDurationSeconds": 35.559,
+      "durationSeconds": 37.9,
+      "raceFinished": true,
+      "totalCrashes": 0,
+      "sourceGuardPassed": true,
+      "log": "montejaral-5111.log"
+    },
+    "vellamar-5222": {
+      "status": "PASS",
+      "actualExit": 0,
+      "testSeconds": 25.752,
+      "totalSeconds": 28.64,
+      "raceFinished": true,
+      "crashes": 0,
+      "originalAssertionsUnchanged": true
+    },
+    "mixed-3303": {
+      "status": "FAIL",
+      "actualExit": 1,
+      "testSeconds": 26.915,
+      "totalSeconds": 30.1,
+      "gpBestSeconds": 91.3319836339769,
+      "sbkBestSeconds": 89.71691286413457,
+      "sbkMinusGpSeconds": -1.6150707698423332,
+      "priorAssertionsPassed": [
+        "race finished",
+        "crashes <= 3",
+        "every rider not retired",
+        "every rider finishTime > 0",
+        "every rider completed 2 laps",
+        "longest stop < 20 seconds"
+      ],
+      "failedAssertion": "GP best lap must be less than SBK best lap (tests/bike-session.test.ts:367)",
+      "finalMarginAssertionReached": false,
+      "originalAssertionsUnchanged": true
+    }
+  },
+  "noTestsRunWhileStaging": true,
+  "files": [
+    {
+      "path": "prior-montejaral/admission-only.patch",
+      "originalPath": "/workspace/scratch/0ab62d15db18/history-admission-only-evidence/admission-only.patch",
+      "bytes": 937,
+      "sha256": "78de22a71b2d9bb956a6ce497897869fde02d26bec7048fc7815a1b9064da91e"
+    },
+    {
+      "path": "prior-montejaral/montejaral-5111.log",
+      "originalPath": "/workspace/scratch/0ab62d15db18/history-admission-only-evidence/montejaral-5111.log",
+      "bytes": 700,
+      "sha256": "62fc1108ff7a477752a49d039f79f1023790edb6a17828dd364c81cdb913bfb6"
+    },
+    {
+      "path": "prior-montejaral/receipt.json",
+      "originalPath": "/workspace/scratch/0ab62d15db18/history-admission-only-evidence/receipt.json",
+      "bytes": 4608,
+      "sha256": "acb16a7696dba513a1989b15f00da952b2c810184e1526d85070031531da0d5e"
+    },
+    {
+      "path": "additional-controls/mixed-3303.log",
+      "originalPath": "/workspace/scratch/0ab62d15db18/history-admission-extra-controls/mixed-3303.log",
+      "bytes": 2892,
+      "sha256": "9194a86f4c26e1130f7a69d54a867dc5c6dc714cfef1a2f87b7c325667a8860a"
+    },
+    {
+      "path": "additional-controls/receipt.json",
+      "originalPath": "/workspace/scratch/0ab62d15db18/history-admission-extra-controls/receipt.json",
+      "bytes": 10724,
+      "sha256": "946ff11fc7d5c757b1fb1bac96d2fc83ff65daaf8ba417a82663b37d4dd7eb07"
+    },
+    {
+      "path": "additional-controls/vellamar-5222.log",
+      "originalPath": "/workspace/scratch/0ab62d15db18/history-admission-extra-controls/vellamar-5222.log",
+      "bytes": 698,
+      "sha256": "16f763dfd452d7f98424a37261983dc0fd001dbab068ffd876300d39417cbc23"
+    },
+    {
+      "path": "README.md",
+      "originalPath": null,
+      "bytes": 2146,
+      "sha256": "4da7e9a6f9e031c24c90f53907adb40655ba603949bd61abf9d378364a7594a0"
+    }
+  ]
+}

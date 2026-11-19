@@ -1,0 +1,135 @@
+{
+  "createdAt": "2026-11-19T12:47:21.993448+00:00",
+  "checkout": "/workspace/scratch/0ab62d15db18/final-build-checks",
+  "commit": "4c9b858452fbf099509e471c3db619a7a4b33717",
+  "trackedInputSHA256": "f1d8e744eab38344c0ccf4e131fc1fbf7556401564159633cb1c3ddf80561aec",
+  "inputHashContract": "Sorted tracked file path, NUL, file bytes, NUL for every tracked input at checkout.",
+  "trackedFiles": 7383,
+  "publicIsPrivateDirectory": true,
+  "nodeModules": "/workspace/scratch/d611aefdb08c/Experiment-3/node_modules",
+  "privateExcludeFile": "/workspace/scratch/0ab62d15db18/final-build-evidence-4c9b858/private-excludes",
+  "checks": [
+    {
+      "script": "lint",
+      "command": "nice -n 10 node --experimental-transform-types scripts/source-stability.ts -- npm run lint",
+      "exitCode": 0,
+      "completedAt": "2026-11-19T12:48:05.785205+00:00",
+      "log": "lint.log",
+      "logSHA256": "a3f3144e062ad9389a1a603412f83ae898dbf3bec6eae76fd668d073207c06dc"
+    },
+    {
+      "script": "validate:content",
+      "command": "nice -n 10 node --experimental-transform-types scripts/source-stability.ts -- npm run validate:content",
+      "exitCode": 0,
+      "completedAt": "2026-11-19T12:48:16.814898+00:00",
+      "log": "content.log",
+      "logSHA256": "050559495e8c4e131349a2c9eebbb545668b6ef54b4bc62094f1059c73c4e4d5"
+    },
+    {
+      "script": "build",
+      "command": "nice -n 10 node --experimental-transform-types scripts/source-stability.ts -- npm run build",
+      "exitCode": 0,
+      "observedCompletedAt": "2026-11-19T12:49:59.110459+00:00",
+      "log": "build.log",
+      "logSHA256": "c1a648a9abf150f6201703bc4780b9b4946ad3abab935ae10c086ce913cae4b8"
+    },
+    {
+      "script": "check:bundle",
+      "command": "nice -n 10 node --experimental-transform-types scripts/source-stability.ts -- npm run check:bundle",
+      "exitCode": 0,
+      "observedCompletedAt": "2026-11-19T12:49:59.110552+00:00",
+      "log": "bundle.log",
+      "logSHA256": "fdddc5ad882bd7111c2b653b546a94378f88f3d08f462839e0723df27dfe5b5b"
+    },
+    {
+      "script": "check:ip",
+      "command": "nice -n 10 node --experimental-transform-types scripts/source-stability.ts -- npm run check:ip",
+      "exitCode": 0,
+      "completedAt": "2026-11-19T12:50:29.030232+00:00",
+      "log": "ip.log",
+      "logSHA256": "8cd64652ca5c170ae071c2a665f43da6c1ae99ed065a6b8d75e0aad8b2213556"
+    }
+  ],
+  "expectedProductionFingerprint": "de33ffa96703025b1cd806396538e75e5c308808e339dd823e59f53b93394898",
+  "fingerprintAuditCorrection": {
+    "initialAuditHash": "ce62fb1cff3ae49bfe7bbb717917c6346a0bc9fa6ce07e2e7fe24abf56b80ca6",
+    "reason": "The initial independent Python audit sorted Path objects by path components. Production sorts complete path strings; repeating its exact canonical ordering resolves the discrepancy without any source change."
+  },
+  "productionBuildIdentity": {
+    "version": 1,
+    "commit": "4c9b858452fbf099509e471c3db619a7a4b33717",
+    "fingerprint": "de33ffa96703025b1cd806396538e75e5c308808e339dd823e59f53b93394898",
+    "variant": "product",
+    "edition": "full"
+  },
+  "buildIncludes": [
+    "prebuild owner-only LOD lifecycle",
+    "TypeScript noEmit",
+    "Vite production build",
+    "build-time distribution IP guard"
+  ],
+  "trackedInputSHA256After": "f1d8e744eab38344c0ccf4e131fc1fbf7556401564159633cb1c3ddf80561aec",
+  "trackedInputsUnchanged": true,
+  "finalGitStatus": "clean",
+  "completedAt": "2026-11-19T12:50:29.808091+00:00",
+  "status": "all five requested guarded commands passed",
+  "runtime": {
+    "node": "v24.22.3",
+    "npm": "11.9.0"
+  },
+  "bundleSummary": {
+    "initialJSRawMB": 11.13,
+    "initialJSGzipMB": 3.57,
+    "initialJSGzipBudgetMB": 4,
+    "lazyChunks": 12,
+    "lazyJSGzipMB": 1.45,
+    "distributionMB": 128.6,
+    "sourceMapMB": 0,
+    "buildChunkWarning": "Vite emitted its standard 500 kB chunk-size warning; the explicit 4 MB gzip initial-JS budget passed."
+  },
+  "ipSummary": {
+    "status": "clean",
+    "shippedTextFiles": 75,
+    "GLBNameTablesScanned": true,
+    "toleratedInternalIdentifierMentions": 92
+  },
+  "scope": {
+    "unitFullRun": false,
+    "browserRun": false,
+    "publication": false,
+    "sourceEdits": false,
+    "parallelism": "Requested checks sequential; processes at niceness 10 while coordinator unit and matrix tests run separately."
+  },
+  "artifacts": [
+    {
+      "path": "BUILD_IDENTITY.json",
+      "bytes": 205,
+      "sha256": "4d56c2271ed7dc0e4fcbbab1fae46f59a2fabd31e9885aec84e91b91cb35ad28"
+    },
+    {
+      "path": "build.log",
+      "bytes": 4648,
+      "sha256": "c1a648a9abf150f6201703bc4780b9b4946ad3abab935ae10c086ce913cae4b8"
+    },
+    {
+      "path": "bundle.log",
+      "bytes": 2596,
+      "sha256": "fdddc5ad882bd7111c2b653b546a94378f88f3d08f462839e0723df27dfe5b5b"
+    },
+    {
+      "path": "content.log",
+      "bytes": 579,
+      "sha256": "050559495e8c4e131349a2c9eebbb545668b6ef54b4bc62094f1059c73c4e4d5"
+    },
+    {
+      "path": "ip.log",
+      "bytes": 493,
+      "sha256": "8cd64652ca5c170ae071c2a665f43da6c1ae99ed065a6b8d75e0aad8b2213556"
+    },
+    {
+      "path": "lint.log",
+      "bytes": 343,
+      "sha256": "a3f3144e062ad9389a1a603412f83ae898dbf3bec6eae76fd668d073207c06dc"
+    }
+  ]
+}

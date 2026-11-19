@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "scope": "Complete unchanged original four-file invocation on isolated full current-load one-step-preview candidate. Failed and rejected for integration; not a full unit suite.",
+  "sourceRoot": "/workspace/scratch/d611aefdb08c/w27-gp-current-load-candidate",
+  "sourceHashes": {
+    "src/simulation/bike.ts": "7a6ac00c685f487d9dd7a13d0c48a7e4cd146d57b5368d4011f0c1e8d7d4a5fe",
+    "src/simulation/motogp-physics.ts": "9f8b6b54004ed94070167b8419fb2d32b615a1338f8dd4021f73eda7a70c0af4",
+    "src/simulation/bike-ai.ts": "ffc70ab74e818298535eea6c48375df8cd3a5b30ba4ad776370a358eb3358c7d"
+  },
+  "originalTestHashes": {
+    "tests/gp-tyre-contact.test.ts": "e3e67c87d1bf99f2dcd1761efd9c1ad3ca66f30da2ba332607d621e1f8e0ecc4",
+    "tests/bike-session.test.ts": "28b653c92029c494cd11ec713ab21c9eae1808af8c378afc1590d60590df09ae",
+    "tests/bike-mixed-passing.test.ts": "de20c703b20d780a5aafee7eeba45be8efaab5f59c780c303a3b6c704e734253",
+    "tests/gp-ai-braking-plan.test.ts": "f0124f304bbdc5311ace3a2624d9ae3e6656be61fcdc87a314e0874e2ff51b9a"
+  },
+  "originalTestByteIdentity": "All four files independently compared byte-for-byte with the immutable capacity candidate.",
+  "complete": true,
+  "exitCode": 1,
+  "exitProvenance": "Assignment27 confirmed actual write_stdin completion for session46129 with exit_code1, not inferred from the log.",
+  "durationSeconds": 426.46,
+  "tests": {
+    "total": 51,
+    "passed": 49,
+    "failed": 2
+  },
+  "files": {
+    "total": 4,
+    "passed": 2,
+    "failed": 2
+  },
+  "allNineOriginalPlanCasesPass": true,
+  "allSixOriginalMixedPassingCasesPass": true,
+  "failures": [
+    {
+      "test": "Mixed GP/superbike pace",
+      "gpBestLapSeconds": 90.62116528909056,
+      "sbkBestLapSeconds": 90.00408604049784,
+      "originalRequirement": "GP faster with margin greater than0.15 seconds"
+    },
+    {
+      "test": "Dry Poggio contact",
+      "maximumImpact": 0.9916666666666667,
+      "originalRequirement": "Zero impact and zero falls"
+    }
+  ],
+  "command": "npx vitest run tests/gp-tyre-contact.test.ts tests/bike-session.test.ts tests/bike-mixed-passing.test.ts tests/gp-ai-braking-plan.test.ts",
+  "log": {
+    "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-current-load-original-four-files.log",
+    "bytes": 7835,
+    "sha256": "fc1f0a2ff3384a4f41aebbb8d391198e4512a7472ddf19e7f341fe5fa02f03af"
+  },
+  "sourceRejectedForIntegration": true
+}

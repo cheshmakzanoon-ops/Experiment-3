@@ -1,0 +1,208 @@
+{
+  "schema": 1,
+  "updatedUTC": "2026-11-19T11:49:24.387193+00:00",
+  "status": "Same-epoch force history explains most forecast improvement; full one-step preview candidate rejected by completed49/51 original gates. A narrower history-only candidate remains unaccepted.",
+  "sourceCandidate": "w27-gp-capacity-candidate",
+  "sourceHashes": {
+    "src/simulation/bike.ts": "52b090530d8db770d023dd65c72fff2e64ff84e10feb3e3d5c27c869c542eafd",
+    "src/simulation/bike-ai.ts": "ffc70ab74e818298535eea6c48375df8cd3a5b30ba4ad776370a358eb3358c7d",
+    "src/simulation/motogp-physics.ts": "f43236152c81328f6bb0e0db6573235c492fcf2c8f5c2a84c3ca3976aa844e5b",
+    "src/simulation/bike-vehicle.ts": "e9c829ad70fa04396f14b065f39366bbc008c787493672619342967a8b8aa2b5",
+    "tests/gp-ai-braking-plan.test.ts": "f0124f304bbdc5311ace3a2624d9ae3e6656be61fcdc87a314e0874e2ff51b9a"
+  },
+  "sourceStableAfterAnalysis": true,
+  "scope": "Read-only saved-state reconstruction and forecast scoring; no new race or shared source edit. This remains separate from the directional-bound candidate and the rejected prior-bar-rate-hold predictor.",
+  "nativeReplay": {
+    "steps": 2399,
+    "maxErrors": {
+      "frontFy": 0,
+      "rearFy": 0,
+      "yawRate": 0,
+      "lateralSpeed": 0,
+      "lateralAcceleration": 0,
+      "frontOmega": 0,
+      "rearOmega": 0,
+      "groundSteer": 0
+    }
+  },
+  "exactCommonModeControl": {
+    "time": 84.62755748965085,
+    "station": 3131.6782078395145,
+    "totalNormalLoadRatio": 1.112567906276082,
+    "actualCurrentLoadHeldBarRolling": 0.002493854096845591,
+    "exactProportionalLoadHeldBarRolling": -0.003969699742154769,
+    "mixedCurrentNormalPreviousLateralRolling": 0.6899172432080488,
+    "plannerLoadOnlyChange": 0.6353576885853355,
+    "nativeLoadOnlyChange": 0.08278979971322839,
+    "noChangeNegativeControlIdentical": true
+  },
+  "forwardValidation": {
+    "samples": 2384,
+    "horizonSeconds": 0.06,
+    "metrics": {
+      "original_previous_ay": {
+        "poseRMSE": 0.002790450004636611,
+        "rateRMSE": 0.0884335694870147,
+        "poseMAE": 0.0018420514234148994,
+        "rateMAE": 0.05564711024813648,
+        "poseImprovesVersusOriginal": 0,
+        "rateImprovesVersusOriginal": 0
+      },
+      "current_load_final_fx": {
+        "poseRMSE": 0.0017930042995156655,
+        "rateRMSE": 0.0531469617040402,
+        "poseMAE": 0.0013193199808211598,
+        "rateMAE": 0.03789299008444552,
+        "poseImprovesVersusOriginal": 1826,
+        "rateImprovesVersusOriginal": 1865
+      },
+      "previous_load_final_fx": {
+        "poseRMSE": 0.002783886888245926,
+        "rateRMSE": 0.08848834596499175,
+        "poseMAE": 0.0018034342315982057,
+        "rateMAE": 0.054333739595014724,
+        "poseImprovesVersusOriginal": 1743,
+        "rateImprovesVersusOriginal": 1772
+      },
+      "current_load_early_fx": {
+        "poseRMSE": 0.0017948787507950563,
+        "rateRMSE": 0.053216459234127524,
+        "poseMAE": 0.0013216958530187601,
+        "rateMAE": 0.03796799819192692,
+        "poseImprovesVersusOriginal": 1825,
+        "rateImprovesVersusOriginal": 1862
+      },
+      "previous_load_early_fx": {
+        "poseRMSE": 0.0027892741043589447,
+        "rateRMSE": 0.08867171535631402,
+        "poseMAE": 0.0018068832697025869,
+        "rateMAE": 0.05444617180446358,
+        "poseImprovesVersusOriginal": 1738,
+        "rateImprovesVersusOriginal": 1766
+      }
+    },
+    "timebase": "Cumulative original240Hz physical dt; interpolate the two recorded physical states bracketing exactly0.06s. The duplicated120Hz outer race timestamps are not treated as separate elapsed time.",
+    "unchangedTerms": "Original nominal gpSpinPerSpeed*planningSpeed*priorYaw*cos(bodyLean), original planning combined lean, original roll rate and original prediction horizon held identical in every forecast. Only the lateral-force value changes.",
+    "qualification": "The actual future controls continue to vary. The final-Fx preview uses values resolved later in the current physical step and is diagnostic only at the original early planning point. The early-Fx preview uses the planning speed and preceding applied Fx already available there; its front-contact multiplier is independently recomputed from current load and planning-speed static load and equals the recorded plant multiplier at every sample. Unused wheel-torque excess inputs are zeroed and do not contribute to the lateral-force read-out. Previous-load controls replace only the tyre preparation load, retaining the CURRENT reaction in every roll forecast; this separates current force preparation from merely advancing relaxation. These immediate previews do not forecast future loads or inputs."
+  },
+  "causalLimit": "The load-only native experiment establishes immediate force-preparation inconsistency. Prediction scoring uses a single existing trajectory with changing future controls; it does not prove a future controller improves races. The mismatch becomes pronounced after83.8s; the earlier positive-roll manoeuvre is not attributed solely to this issue.",
+  "inputOwnership": "Early preview uses current contact loads/grip/body pose, previous physical force/elastic/yaw/velocity state, prior applied Fx, planning speed and recomputed available frontContact. It reads only lateral force; unused later torque excess values are zeroed. Final-Fx preview is a separate diagnostic using data only known after pedal allocation. Every forecast retains the same current reaction and original nominal gyro term. Previous-load controls change tyre preparation load only.",
+  "executionNotes": [
+    {
+      "operation": "2399-step native replay and held-bar load comparison",
+      "exitCode": 0
+    },
+    {
+      "operation": "compact common-load fixture exporter first invocation",
+      "exitCode": 1,
+      "reason": "Display-only undefined originalReplayDeltas variable after the JSON file and successful native checks; corrected output property, no physics change."
+    },
+    {
+      "operation": "corrected compact fixture exporter",
+      "exitCode": 0
+    },
+    {
+      "operation": "2384-horizon forward scoring with explicit early-contact/zero-unused-torque validation",
+      "exitCode": 0
+    }
+  ],
+  "evidence": {
+    "gp-ardennes-load-prediction.json": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-ardennes-load-prediction.json",
+      "bytes": 21337,
+      "sha256": "579eb2997f99dd2d25a0c7b78c660faf1816aed9c4499d6f075349f5c8f49c0f"
+    },
+    "gp-ardennes-forward-load-review.json": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-ardennes-forward-load-review.json",
+      "bytes": 20069,
+      "sha256": "10f9be2b54be8cda96038b69da61bc71c4da12d42db138fa8678cd0f1ea0327f"
+    },
+    "gp-ardennes-load-phase-fixture.json": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-ardennes-load-phase-fixture.json",
+      "bytes": 9781,
+      "sha256": "0a7ab3e9a84f353b40aef435674cefd17fee62804408fbad75236b53e280a8af"
+    },
+    "gp-ardennes-forward-history-review.json": {
+      "path": "docs/studio/reports/evidence/engine-final-acceptance/gp-ardennes-forward-history-review.json",
+      "bytes": 29782,
+      "sha256": "a85790405e75a7dff223016331cf6523f2a16544ed07a1d13ab4804daff848a6"
+    }
+  },
+  "nextGate": "Any implementation must preserve read-only contact history, existing gains/gyro/lead and actual measured feedback, then pass unchanged original integration gates before final19/strictGP.",
+  "historyOnlySeparation": {
+    "definition": "Rescale recorded tyre-frame Fy by current C_alpha/previous C_alpha using the exact native conditional, then immediately clamp to the current combined-force circle and project at the held bar. No new raw-force target, exponential relaxation, state advance or future steering input is evaluated. Current preparation stiffness is independently checked against the recorded real plant at every sample.",
+    "preparationProof": {
+      "samples": 2384,
+      "maximumFrontStiffnessError": 0,
+      "maximumRearStiffnessError": 0
+    },
+    "samples": 2384,
+    "forecasts": {
+      "original_previous_ay": {
+        "poseRMSE": 0.002790450004636611,
+        "rateRMSE": 0.0884335694870147,
+        "poseMAE": 0.0018420514234148994,
+        "rateMAE": 0.05564711024813648,
+        "poseImprovesVersusOriginal": 0,
+        "rateImprovesVersusOriginal": 0
+      },
+      "current_load_final_fx": {
+        "poseRMSE": 0.0017930042995156655,
+        "rateRMSE": 0.0531469617040402,
+        "poseMAE": 0.0013193199808211598,
+        "rateMAE": 0.03789299008444552,
+        "poseImprovesVersusOriginal": 1826,
+        "rateImprovesVersusOriginal": 1865
+      },
+      "previous_load_final_fx": {
+        "poseRMSE": 0.002783886888245926,
+        "rateRMSE": 0.08848834596499175,
+        "poseMAE": 0.0018034342315982057,
+        "rateMAE": 0.054333739595014724,
+        "poseImprovesVersusOriginal": 1743,
+        "rateImprovesVersusOriginal": 1772
+      },
+      "current_load_early_fx": {
+        "poseRMSE": 0.0017948787507950563,
+        "rateRMSE": 0.053216459234127524,
+        "poseMAE": 0.0013216958530187601,
+        "rateMAE": 0.03796799819192692,
+        "poseImprovesVersusOriginal": 1825,
+        "rateImprovesVersusOriginal": 1862
+      },
+      "previous_load_early_fx": {
+        "poseRMSE": 0.0027892741043589447,
+        "rateRMSE": 0.08867171535631402,
+        "poseMAE": 0.0018068832697025869,
+        "rateMAE": 0.05444617180446358,
+        "poseImprovesVersusOriginal": 1738,
+        "rateImprovesVersusOriginal": 1766
+      },
+      "current_load_history_early_fx": {
+        "poseRMSE": 0.0018737576828217516,
+        "rateRMSE": 0.05571187796614714,
+        "poseMAE": 0.0013860927096739073,
+        "rateMAE": 0.04017296927068667,
+        "poseImprovesVersusOriginal": 1387,
+        "rateImprovesVersusOriginal": 1395
+      },
+      "previous_load_history_early_fx": {
+        "poseRMSE": 0.0027905450852251253,
+        "rateRMSE": 0.0884370714842387,
+        "poseMAE": 0.001842060831286826,
+        "rateMAE": 0.055647382175454764,
+        "poseImprovesVersusOriginal": 1421,
+        "rateImprovesVersusOriginal": 1407
+      },
+      "current_load_history_final_fx": {
+        "poseRMSE": 0.0018718426593569665,
+        "rateRMSE": 0.05564107314717701,
+        "poseMAE": 0.0013836810565540415,
+        "rateMAE": 0.04009064029836945,
+        "poseImprovesVersusOriginal": 1386,
+        "rateImprovesVersusOriginal": 1397
+      }
+    },
+    "interpretation": "Without any raw contact relaxation advance, current-preparation history retains about93% of the full preview RMSE reduction. Previous-load history is essentially the original forecast. This supports the narrower phase correction but does not prove a closed-loop race improvement."
+  }
+}

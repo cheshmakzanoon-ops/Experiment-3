@@ -1,0 +1,75 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+ RUN  v3.2.4 /workspace/scratch/d611aefdb08c/w27-gp-directional-candidate
+
+ ✓ tests/gp-steering-budget.test.ts (13 tests) 1004ms
+   ✓ GP AI charges the total requested lateral acceleration once > keeps the same -1 turn budget when path correction agrees with or opposes its curve  990ms
+ ✓ tests/gp-steady-balance.test.ts (40 tests) 20ms
+ ✓ tests/gp-force-phase.test.ts (13 tests) 24ms
+ ❯ tests/gp-capacity-phase.test.ts (15 tests | 2 failed) 29ms
+   ✓ GP stopping work belongs to the actual current force allocation > uses the plant force pair once for 'drive application', sign -1 8ms
+   ✓ GP stopping work belongs to the actual current force allocation > uses the plant force pair once for 'drive release', sign -1 1ms
+   ✓ GP stopping work belongs to the actual current force allocation > uses the plant force pair once for 'brake application', sign -1 1ms
+   ✓ GP stopping work belongs to the actual current force allocation > uses the plant force pair once for 'brake release', sign -1 1ms
+   ✓ GP stopping work belongs to the actual current force allocation > uses the plant force pair once for 'drive application', sign 1 1ms
+   ✓ GP stopping work belongs to the actual current force allocation > uses the plant force pair once for 'drive release', sign 1 1ms
+   ✓ GP stopping work belongs to the actual current force allocation > uses the plant force pair once for 'brake application', sign 1 1ms
+   ✓ GP stopping work belongs to the actual current force allocation > uses the plant force pair once for 'brake release', sign 1 0ms
+   ✓ GP stopping work belongs to the actual current force allocation > does not preserve the opposite stale-force request after drive release, sign -1 1ms
+   ✓ GP stopping work belongs to the actual current force allocation > does not preserve the opposite stale-force request after drive release, sign 1 1ms
+   × GP stopping work belongs to the actual current force allocation > bounds current requests with raw/support effort directions opposed=false, sign -1 8ms
+     → expected 0.6196477893831179 to be 0.5928723046093862 // Object.is equality
+   ✓ GP stopping work belongs to the actual current force allocation > bounds current requests with raw/support effort directions opposed=true, sign -1 1ms
+   × GP stopping work belongs to the actual current force allocation > bounds current requests with raw/support effort directions opposed=false, sign 1 1ms
+     → expected -0.6196477893831179 to be -0.5928723046093862 // Object.is equality
+   ✓ GP stopping work belongs to the actual current force allocation > bounds current requests with raw/support effort directions opposed=true, sign 1 1ms
+   ✓ GP stopping work belongs to the actual current force allocation > keeps trim out of the early reserve and advances it once at final resolution 0ms
+ ✓ tests/gp-contact-reaction.test.ts (5 tests) 11ms
+ ✓ tests/gp-current-contact-control.test.ts (7 tests) 7ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/gp-capacity-phase.test.ts > GP stopping work belongs to the actual current force allocation > bounds current requests with raw/support effort directions opposed=false, sign -1
+AssertionError: expected 0.6196477893831179 to be 0.5928723046093862 // Object.is equality
+
+- Expected
++ Received
+
+- 0.5928723046093862
++ 0.6196477893831179
+
+ ❯ tests/gp-capacity-phase.test.ts:141:26
+    139|           const expected = reference.control.gpRollRequest(sign * 0.9,…
+    140|             actual = resolve();
+    141|           expect(actual).toBe(expected);
+       |                          ^
+    142|           expect(gp.steerTrim).toBe(reference.gp.steerTrim);
+    143|           expect(gp.lateralDemand).toBe(early);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/gp-capacity-phase.test.ts > GP stopping work belongs to the actual current force allocation > bounds current requests with raw/support effort directions opposed=false, sign 1
+AssertionError: expected -0.6196477893831179 to be -0.5928723046093862 // Object.is equality
+
+- Expected
++ Received
+
+- -0.5928723046093862
++ -0.6196477893831179
+
+ ❯ tests/gp-capacity-phase.test.ts:141:26
+    139|           const expected = reference.control.gpRollRequest(sign * 0.9,…
+    140|             actual = resolve();
+    141|           expect(actual).toBe(expected);
+       |                          ^
+    142|           expect(gp.steerTrim).toBe(reference.gp.steerTrim);
+    143|           expect(gp.lateralDemand).toBe(early);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed | 5 passed (6)
+      Tests  2 failed | 91 passed (93)
+   Start at  04:25:29
+   Duration  5.30s (transform 1.02s, setup 0ms, collect 3.01s, tests 1.09s, environment 1ms, prepare 373ms)
+

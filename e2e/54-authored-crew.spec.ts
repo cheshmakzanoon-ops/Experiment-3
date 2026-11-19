@@ -38,10 +38,24 @@ test('A41/A42 authored crew: continuous Low full-grid performance, held physics 
   // survey below retains the complete grid, shadows, contacts and close poses.
   await page.locator('[name=quality]').selectOption('low');
   await page.getByRole('button', { name: 'APPLY & SAVE', exact: true }).click();
+  await expect(page.locator('#modal')).toBeHidden();
+  await expect.poll(async () => (await read()).settingsTransition.busy).toBe(false);
   await page.selectOption('#mode', 'race');
   await page.selectOption('#opponents', '11');
   await page.selectOption('#laps', '3');
   await page.getByRole('button', { name: 'PREPARE GRID START PAUSED', exact: true }).click();
+  // The showroom already has a paused tick-zero frame. Wait for the requested
+  // session and its circuit preparation before inspecting the held race grid.
+  await expect
+    .poll(async () => {
+      const d = await read();
+      return {
+        state: d.state,
+        purpose: d.renderer?.presentationPurpose,
+        preparation: d.renderer?.preparation?.status,
+      };
+    })
+    .toEqual({ state: 'paused', purpose: 'circuit', preparation: 'complete' });
   await expect.poll(async () => (await read()).frame?.[H.TICK] ?? -1).toBe(0);
   await expect
     .poll(async () => (await read()).workerPause)
@@ -117,9 +131,21 @@ test('A41/A42 authored crew: Medium full-grid pose and shadow survey', async ({ 
   await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();
   await page.locator('[name=quality]').selectOption('medium');
   await page.getByRole('button', { name: 'APPLY & SAVE', exact: true }).click();
+  await expect(page.locator('#modal')).toBeHidden();
+  await expect.poll(async () => (await read()).settingsTransition.busy).toBe(false);
   await page.selectOption('#mode', 'race');
   await page.selectOption('#opponents', '11');
   await page.getByRole('button', { name: 'PREPARE GRID START PAUSED', exact: true }).click();
+  await expect
+    .poll(async () => {
+      const d = await read();
+      return {
+        state: d.state,
+        purpose: d.renderer?.presentationPurpose,
+        preparation: d.renderer?.preparation?.status,
+      };
+    })
+    .toEqual({ state: 'paused', purpose: 'circuit', preparation: 'complete' });
   await expect.poll(async () => (await read()).frame?.[H.TICK] ?? -1).toBe(0);
   await expect
     .poll(async () => (await read()).workerPause)

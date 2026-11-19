@@ -1,0 +1,84 @@
+{
+  "source": "/workspace/scratch/0ab62d15db18/gp-final-montejaral-path-onset.json",
+  "observedRider": 0,
+  "sampleCount": 480,
+  "observedSlewIntervals": 409,
+  "scope": "Postprocessing existing native onset trace only, no simulation or source change. Consecutive frame deltas demonstrate why published absolute offsets cannot serve as temporal lane velocity.",
+  "largestPublicationContamination": [
+    {
+      "t": 35.27709039430896,
+      "s": 941.1030797176127,
+      "rawSelectedRate": 1.600000011786007,
+      "publishedOffsetDifferenceRate": -3.8659011618482775,
+      "absoluteOffsetDifferenceRate": -0.6375968445306774,
+      "steeringTargetDifferenceRate": -0.6375968445306774,
+      "lag": 2.018422820909855,
+      "aiOffset": -4.596627742637063,
+      "nearEdgeApprox": 4.600000000000012
+    },
+    {
+      "t": 35.26875706097563,
+      "s": 940.8713387462722,
+      "rawSelectedRate": 1.6000000118148905,
+      "publishedOffsetDifferenceRate": -3.693173817550669,
+      "absoluteOffsetDifferenceRate": -0.6326481481494644,
+      "steeringTargetDifferenceRate": -0.6326481481494644,
+      "lag": 2.017472154509199,
+      "aiOffset": -4.564411899621662,
+      "nearEdgeApprox": 4.600000000000012
+    },
+    {
+      "t": 35.2604237276423,
+      "s": 940.6401107535612,
+      "rawSelectedRate": 1.6000000118436675,
+      "publishedOffsetDifferenceRate": -3.4256427462529784,
+      "absoluteOffsetDifferenceRate": -0.6276973773371176,
+      "steeringTargetDifferenceRate": -0.6276973773370643,
+      "lag": 2.01619319669675,
+      "aiOffset": -4.533635451142075,
+      "nearEdgeApprox": 4.600000000000012
+    },
+    {
+      "t": 35.252090394308965,
+      "s": 940.4093941474839,
+      "rawSelectedRate": 1.6000000118724444,
+      "publishedOffsetDifferenceRate": -3.413556821979976,
+      "absoluteOffsetDifferenceRate": -0.6227592470455078,
+      "steeringTargetDifferenceRate": -0.6227592470455078,
+      "lag": 2.014581547541585,
+      "aiOffset": -4.505088428256635,
+      "nearEdgeApprox": 4.600000000000012
+    }
+  ],
+  "selectedPathContract": {
+    "owner": "AIDriver normal-road selection",
+    "capturePoint": "After takeover/re-entry launch rebasing and bypass folding, before launch decay and lane approach.",
+    "retainedState": [
+      "width",
+      "unprojected tactical+launch before the step",
+      "unprojected tactical+launch after the step",
+      "dt"
+    ],
+    "query": "Evaluate retained selected state at the requested station; use the existing base laneReach hook and RACING_LINE.edgeMargin=2.4 local road bound.",
+    "currentAndPreview": "Both locations query the same retained state; never reconstruct current intent from a clipped preview point.",
+    "temporalMotion": "At one fixed station and frozen geometry/width, subtract locally clipped old/new selected positions and divide by dt.",
+    "spatialMotion": "The selected path tangent is separate from its temporal displacement; moving station/lookahead must not contribute to temporal velocity.",
+    "oldGPClamp": "Old current-only width-1.4 clamp differs from the existing base width-2.4 path contract. Resolving ownership uses the base query; this is not a newly tuned margin."
+  },
+  "lifecycleReview": [
+    "Invalidate before each base update, including LIGHTS/reaction early return.",
+    "Invalidate in Bike rider-down branch, which returns before base update.",
+    "Capture after placement or long-gap reanchor so a pose reset does not become a velocity impulse.",
+    "Bypass folding must preserve total lane offset without inventing motion.",
+    "Pit and preparing-pit absolute corridors do not expose a selected-road snapshot. In-pit offset approach is not the published pitLine target and must not create6m/s road motion.",
+    "Publish the current selection before limitSpeed; both planRecovery and subsequent steering consume the same snapshot.",
+    "Nonpositive or nonfinite dt must not divide into a rate.",
+    "Keep direct helper calls without a live road selection on the existing fallback contract."
+  ],
+  "scopeReview": {
+    "GPOnlyConsumption": "Appropriate for this GP regression; preserve nonGP/offroad specialized contracts until independently tested.",
+    "edgeGeometryLimit": "Temporal endpoint clipping alone is not proof of exact spatial edge curvature; the state oracle separately checks selected local tangent.",
+    "sourceEdits": false,
+    "raceRuns": 0
+  }
+}

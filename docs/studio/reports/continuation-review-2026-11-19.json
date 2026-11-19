@@ -1,0 +1,67 @@
+{
+  "schema": 1,
+  "updatedUTC": "2026-11-19T14:19:31.959734+00:00",
+  "branch": "continuation-review-20261119",
+  "recordedRemoteMain": "c53f18073618523d63603577fa8f9b7ab038010c",
+  "publishedProductionCommit": "2d67572a9a2ba4daa33311dcc9abed2c1b537632",
+  "finalCodeBearingCommit": "c20540711c262fd4cdeca9a979513a4b21f215c4",
+  "reviewReport": "continuation-review-2026-11-19.md",
+  "codeChanged": [
+    "e2e/54-authored-crew.spec.ts",
+    "e2e/63-i18n-layout.spec.ts",
+    "e2e/fixtures/i18n-screens.ts",
+    "e2e/graphics-high-journey.spec.ts",
+    "tests/high-fragment-inspector.test.ts",
+    "tests/startup.test.ts"
+  ],
+  "production": {
+    "files": 931,
+    "byteIdenticalToRemote": true,
+    "manifestSha256": "7683acc5c69b8548dffcf9480359393f926a7f9f4680d66417fa0be4a53f9d0e"
+  },
+  "validation": {
+    "status": "complete; all six checks passed",
+    "testedCommit": "957b6eb15ebac4ddb2f7f979108a90008534a3d4",
+    "receipt": "evidence/clean-review-validation-957b6eb/receipt.json",
+    "protectedInputs": 7445,
+    "trackedFiles": 7580,
+    "inputsUnchanged": true,
+    "buildIdentity": {
+      "version": 1,
+      "commit": "957b6eb15ebac4ddb2f7f979108a90008534a3d4",
+      "fingerprint": "3e42326b03d522f705e2bcab4be00f4d25b99cac5ab4d54638a3d1311539b8fa",
+      "variant": "product",
+      "edition": "full"
+    },
+    "focusedTestsPassed": 47,
+    "browser": "not run; local launch blocked",
+    "fullUnitOnReviewSource": "not run; published production retains known race failures",
+    "subsequentChanges": "documentation/evidence only"
+  },
+  "physicsCandidates": [
+    {
+      "source": "4c9b858452fbf099509e471c3db619a7a4b33717",
+      "gate": "full unfiltered unit",
+      "passed": 6860,
+      "failed": 2,
+      "accepted": false
+    },
+    {
+      "source": "history plus relative intent cache",
+      "gate": "original51",
+      "passed": 48,
+      "failed": 3,
+      "accepted": false
+    },
+    {
+      "source": "cache plus selected spatial path",
+      "gate": "original selected8",
+      "passed": 4,
+      "failed": 4,
+      "accepted": false
+    }
+  ],
+  "published": false,
+  "publicationBlock": "Automatic approval review rejected push to main and requires fresh authorization in this chat",
+  "activePhysicsRuns": false
+}

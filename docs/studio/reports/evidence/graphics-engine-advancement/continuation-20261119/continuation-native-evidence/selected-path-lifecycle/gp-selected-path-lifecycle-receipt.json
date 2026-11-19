@@ -1,0 +1,69 @@
+{
+  "source": "/workspace/scratch/0ab62d15db18/gp-selected-path-candidate",
+  "harness": "/workspace/scratch/0ab62d15db18/gp-selected-path-lifecycle-review",
+  "sourceHashesBefore": {
+    "src/simulation/ai.ts": "bf16ecc197eefcc687361b2f17baddd019a91e3a393246956f7cdd9dd4bce9d2",
+    "src/simulation/bike-ai.ts": "4db100553ec4ce1efc30647a82e2c10ae6da74b4aead8e5f158cad53ec9b2bd4"
+  },
+  "sourceHashesAfter": {
+    "src/simulation/ai.ts": "bf16ecc197eefcc687361b2f17baddd019a91e3a393246956f7cdd9dd4bce9d2",
+    "src/simulation/bike-ai.ts": "4db100553ec4ce1efc30647a82e2c10ae6da74b4aead8e5f158cad53ec9b2bd4"
+  },
+  "sourceUnchanged": true,
+  "draft": "/workspace/scratch/0ab62d15db18/gp-selected-path-lifecycle.test.ts",
+  "testSHA256": "2855fc72d9603b8c1d0448c5a7dbd11b0e66a7917f09c4bd2a360299b4ec4659",
+  "completedAt": "2026-11-19T13:16:27.880819+00:00",
+  "results": [
+    {
+      "command": "node --experimental-transform-types scripts/source-stability.ts -- npx vitest run tests/gp-selected-path-lifecycle.test.ts",
+      "exitCode": 0,
+      "passed": 9,
+      "failed": 0,
+      "durationSeconds": 12.2,
+      "log": "gp-selected-path-lifecycle.log",
+      "logSHA256": "462cff6edb58f0d2e92794f95a5757394ee768010cbcc43c5c273b7f53f0d6ea"
+    },
+    {
+      "command": "npx eslint tests/gp-selected-path-lifecycle.test.ts",
+      "exitCode": 0,
+      "log": "gp-selected-path-lifecycle-lint.log",
+      "logSHA256": "7125f194612fcff2f454c05d848e7cb71facc1967b4d5017e25b34fdee3ba74f"
+    }
+  ],
+  "historicalAttempt": {
+    "log": "gp-selected-path-lifecycle.initial.log",
+    "exitCode": 1,
+    "passed": 6,
+    "failed": 3,
+    "cause": "Test-only PathProbe method named sample collided with the existing AIDriver private sample field. Renamed selectedOffsetForReview; no production change."
+  },
+  "nativeProbe": {
+    "circuit": "montejaral",
+    "station": 960.0256300231913,
+    "currentSelectedOffset": -3.4837020119806814,
+    "publishedPreview": -4.600000000000012,
+    "previewRawBeforeClamp": -7.1748657236546975,
+    "oldPreviewReconstruction": -0.9088362883259964,
+    "currentAndPreviewMargin": "Existing base RACING_LINE.edgeMargin = 2.4 m, with local laneReach contract."
+  },
+  "coverage": [
+    "Unprojected selected current lane survives clipping at preview.",
+    "Selection available before native limitSpeed.",
+    "Both current and preview query the existing base local road bound.",
+    "Takeover rebases previous fixed-station point to actual placed lateral position.",
+    "Road selection invalidated during lights and reaction delay.",
+    "Bike rider-down early return invalidates selection.",
+    "Pit and pit-approach absolute corridors invalidate road selection.",
+    "NonGP steering ignores selected road metadata."
+  ],
+  "review": {
+    "blockingIssues": [],
+    "sourceEdits": false,
+    "raceRuns": 0,
+    "candidateCopies": false,
+    "limitations": [
+      "These native controls establish selected-path publication and lifecycle, not full-race acceptance.",
+      "Temporal/query consistency does not claim exact authored-curvature feed-forward on every clipped edge; that approximation was not changed."
+    ]
+  }
+}

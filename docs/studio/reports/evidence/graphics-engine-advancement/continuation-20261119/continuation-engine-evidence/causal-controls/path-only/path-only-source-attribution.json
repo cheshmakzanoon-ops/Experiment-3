@@ -1,0 +1,29 @@
+{
+  "source": "/workspace/scratch/0ab62d15db18/gp-current-path-candidate",
+  "sourceStable": true,
+  "childExit": 1,
+  "inputDigest": "0827f8167f78f84b944e8e8f492e74de709ea234e7ebebfdfe4c9bef67bb212d",
+  "sourceSha256": {
+    "src/simulation/bike.ts": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de",
+    "src/simulation/bike-ai.ts": "e3dba3f001d255f3b0dd2994bc997980a7d2172c903eb257d0c6ab8d5ffac791",
+    "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+    "src/simulation/ai.ts": "2887444a202aa4e5818570fad1a4d2e498600336ea05d0675a83cc3f2da5a1a3",
+    "src/simulation/traffic.ts": "58bbe1c1e66fdb5a7a7850f3bd1e04b320ddc58b030aa2ec0638ff639160e874",
+    "tests/bike-mixed-passing.test.ts": "de20c703b20d780a5aafee7eeba45be8efaab5f59c780c303a3b6c704e734253"
+  },
+  "sourceChangesFromPureHistory": [
+    "src/simulation/ai.ts",
+    "src/simulation/bike-ai.ts"
+  ],
+  "change": "Only the reviewed same-update pathOffset handoff. Original traffic.ts unchanged; no220m admission, extended profile, or wet width helpers.",
+  "cases": [
+    {
+      "circuit": "montejaral",
+      "seed": 5111,
+      "passed": false,
+      "crashes": 1,
+      "expectedCrashes": 0
+    }
+  ],
+  "meaning": "The current-path handoff alone is sufficient to introduce Montejaral5111 failure from the passing pure-history baseline."
+}

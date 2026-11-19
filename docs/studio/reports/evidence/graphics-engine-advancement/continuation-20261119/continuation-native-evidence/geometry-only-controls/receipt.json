@@ -1,0 +1,195 @@
+{
+  "candidate": "/workspace/scratch/0ab62d15db18/gp-selected-geometry-candidate",
+  "sourceDescription": "Preserved geometry-only copied candidate, not a Git checkout. Source identity is established by exact input and file hashes.",
+  "scope": "Original Vellamar seed 5222 zero-fall and original mixed seed 3303 session contracts; no Montejaral rerun, no source edits or assertion changes.",
+  "hashing": "SHA-256 of JSON encoding of sorted source-stability [relative path, mode:file SHA or symlink destination] entries. Production digest selects src/ entries.",
+  "startedAt": "2026-11-19T13:20:54.619Z",
+  "before": {
+    "inputCount": 2239,
+    "inputSha256": "c3f6c7d64d2780fcfa7c002efad1bd4e1b281546e49761e1676b305a157f8d3b",
+    "productionCount": 931,
+    "productionSha256": "93aa19f231028067abf32b8db53fd16c5b23f6183e8cd4e1715c215911adf923",
+    "criticalSha256": {
+      "src/simulation/ai.ts": "bf16ecc197eefcc687361b2f17baddd019a91e3a393246956f7cdd9dd4bce9d2",
+      "src/simulation/bike-ai.ts": "3385491c97e9848e1d2292cf34a2de2ce9ffe434c90b4e1aa977c58901f2a7a1",
+      "src/simulation/bike.ts": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de",
+      "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+      "src/simulation/traffic.ts": "b36df9e5a2c33e93f4b591c942edfe68e9d8615ed85223aadcc42333cc423f82",
+      "tests/bike-mixed-passing.test.ts": "de20c703b20d780a5aafee7eeba45be8efaab5f59c780c303a3b6c704e734253",
+      "tests/bike-session.test.ts": "28b653c92029c494cd11ec713ab21c9eae1808af8c378afc1590d60590df09ae",
+      "scripts/source-stability.ts": "07b7b0b7d277172516fe75502d917dfbf31b9c628c8d562cf9cb0182f80bca34"
+    }
+  },
+  "runs": [
+    {
+      "name": "vellamar-5222",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npx",
+        "vitest",
+        "run",
+        "tests/bike-mixed-passing.test.ts",
+        "-t",
+        "vellamar.*5222"
+      ],
+      "priorityWrapper": [
+        "nice",
+        "-n",
+        "10"
+      ],
+      "startedAt": "2026-11-19T13:20:54.818Z",
+      "before": {
+        "inputCount": 2239,
+        "inputSha256": "c3f6c7d64d2780fcfa7c002efad1bd4e1b281546e49761e1676b305a157f8d3b",
+        "productionCount": 931,
+        "productionSha256": "93aa19f231028067abf32b8db53fd16c5b23f6183e8cd4e1715c215911adf923",
+        "criticalSha256": {
+          "src/simulation/ai.ts": "bf16ecc197eefcc687361b2f17baddd019a91e3a393246956f7cdd9dd4bce9d2",
+          "src/simulation/bike-ai.ts": "3385491c97e9848e1d2292cf34a2de2ce9ffe434c90b4e1aa977c58901f2a7a1",
+          "src/simulation/bike.ts": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de",
+          "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+          "src/simulation/traffic.ts": "b36df9e5a2c33e93f4b591c942edfe68e9d8615ed85223aadcc42333cc423f82",
+          "tests/bike-mixed-passing.test.ts": "de20c703b20d780a5aafee7eeba45be8efaab5f59c780c303a3b6c704e734253",
+          "tests/bike-session.test.ts": "28b653c92029c494cd11ec713ab21c9eae1808af8c378afc1590d60590df09ae",
+          "scripts/source-stability.ts": "07b7b0b7d277172516fe75502d917dfbf31b9c628c8d562cf9cb0182f80bca34"
+        }
+      },
+      "log": "/workspace/scratch/0ab62d15db18/selected-geometry-original-controls/vellamar-5222.log",
+      "finishedAt": "2026-11-19T13:21:31.210Z",
+      "actualExit": 1,
+      "signal": null,
+      "error": null,
+      "after": {
+        "inputCount": 2239,
+        "inputSha256": "c3f6c7d64d2780fcfa7c002efad1bd4e1b281546e49761e1676b305a157f8d3b",
+        "productionCount": 931,
+        "productionSha256": "93aa19f231028067abf32b8db53fd16c5b23f6183e8cd4e1715c215911adf923",
+        "criticalSha256": {
+          "src/simulation/ai.ts": "bf16ecc197eefcc687361b2f17baddd019a91e3a393246956f7cdd9dd4bce9d2",
+          "src/simulation/bike-ai.ts": "3385491c97e9848e1d2292cf34a2de2ce9ffe434c90b4e1aa977c58901f2a7a1",
+          "src/simulation/bike.ts": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de",
+          "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+          "src/simulation/traffic.ts": "b36df9e5a2c33e93f4b591c942edfe68e9d8615ed85223aadcc42333cc423f82",
+          "tests/bike-mixed-passing.test.ts": "de20c703b20d780a5aafee7eeba45be8efaab5f59c780c303a3b6c704e734253",
+          "tests/bike-session.test.ts": "28b653c92029c494cd11ec713ab21c9eae1808af8c378afc1590d60590df09ae",
+          "scripts/source-stability.ts": "07b7b0b7d277172516fe75502d917dfbf31b9c628c8d562cf9cb0182f80bca34"
+        }
+      },
+      "inputStable": true,
+      "productionStable": true
+    },
+    {
+      "name": "mixed-3303",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npx",
+        "vitest",
+        "run",
+        "tests/bike-session.test.ts",
+        "-t",
+        "finishes a mixed GP/superbike race with bounded incidents and no stuck rider"
+      ],
+      "priorityWrapper": [
+        "nice",
+        "-n",
+        "10"
+      ],
+      "startedAt": "2026-11-19T13:21:31.363Z",
+      "before": {
+        "inputCount": 2239,
+        "inputSha256": "c3f6c7d64d2780fcfa7c002efad1bd4e1b281546e49761e1676b305a157f8d3b",
+        "productionCount": 931,
+        "productionSha256": "93aa19f231028067abf32b8db53fd16c5b23f6183e8cd4e1715c215911adf923",
+        "criticalSha256": {
+          "src/simulation/ai.ts": "bf16ecc197eefcc687361b2f17baddd019a91e3a393246956f7cdd9dd4bce9d2",
+          "src/simulation/bike-ai.ts": "3385491c97e9848e1d2292cf34a2de2ce9ffe434c90b4e1aa977c58901f2a7a1",
+          "src/simulation/bike.ts": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de",
+          "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+          "src/simulation/traffic.ts": "b36df9e5a2c33e93f4b591c942edfe68e9d8615ed85223aadcc42333cc423f82",
+          "tests/bike-mixed-passing.test.ts": "de20c703b20d780a5aafee7eeba45be8efaab5f59c780c303a3b6c704e734253",
+          "tests/bike-session.test.ts": "28b653c92029c494cd11ec713ab21c9eae1808af8c378afc1590d60590df09ae",
+          "scripts/source-stability.ts": "07b7b0b7d277172516fe75502d917dfbf31b9c628c8d562cf9cb0182f80bca34"
+        }
+      },
+      "log": "/workspace/scratch/0ab62d15db18/selected-geometry-original-controls/mixed-3303.log",
+      "finishedAt": "2026-11-19T13:22:04.994Z",
+      "actualExit": 1,
+      "signal": null,
+      "error": null,
+      "after": {
+        "inputCount": 2239,
+        "inputSha256": "c3f6c7d64d2780fcfa7c002efad1bd4e1b281546e49761e1676b305a157f8d3b",
+        "productionCount": 931,
+        "productionSha256": "93aa19f231028067abf32b8db53fd16c5b23f6183e8cd4e1715c215911adf923",
+        "criticalSha256": {
+          "src/simulation/ai.ts": "bf16ecc197eefcc687361b2f17baddd019a91e3a393246956f7cdd9dd4bce9d2",
+          "src/simulation/bike-ai.ts": "3385491c97e9848e1d2292cf34a2de2ce9ffe434c90b4e1aa977c58901f2a7a1",
+          "src/simulation/bike.ts": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de",
+          "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+          "src/simulation/traffic.ts": "b36df9e5a2c33e93f4b591c942edfe68e9d8615ed85223aadcc42333cc423f82",
+          "tests/bike-mixed-passing.test.ts": "de20c703b20d780a5aafee7eeba45be8efaab5f59c780c303a3b6c704e734253",
+          "tests/bike-session.test.ts": "28b653c92029c494cd11ec713ab21c9eae1808af8c378afc1590d60590df09ae",
+          "scripts/source-stability.ts": "07b7b0b7d277172516fe75502d917dfbf31b9c628c8d562cf9cb0182f80bca34"
+        }
+      },
+      "inputStable": true,
+      "productionStable": true
+    }
+  ],
+  "finishedAt": "2026-11-19T13:22:05.129Z",
+  "after": {
+    "inputCount": 2239,
+    "inputSha256": "c3f6c7d64d2780fcfa7c002efad1bd4e1b281546e49761e1676b305a157f8d3b",
+    "productionCount": 931,
+    "productionSha256": "93aa19f231028067abf32b8db53fd16c5b23f6183e8cd4e1715c215911adf923",
+    "criticalSha256": {
+      "src/simulation/ai.ts": "bf16ecc197eefcc687361b2f17baddd019a91e3a393246956f7cdd9dd4bce9d2",
+      "src/simulation/bike-ai.ts": "3385491c97e9848e1d2292cf34a2de2ce9ffe434c90b4e1aa977c58901f2a7a1",
+      "src/simulation/bike.ts": "8aaa0ede0ff7cd94ee627dee0f9ecebefdef5a83904490677dfd2c13135225de",
+      "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a",
+      "src/simulation/traffic.ts": "b36df9e5a2c33e93f4b591c942edfe68e9d8615ed85223aadcc42333cc423f82",
+      "tests/bike-mixed-passing.test.ts": "de20c703b20d780a5aafee7eeba45be8efaab5f59c780c303a3b6c704e734253",
+      "tests/bike-session.test.ts": "28b653c92029c494cd11ec713ab21c9eae1808af8c378afc1590d60590df09ae",
+      "scripts/source-stability.ts": "07b7b0b7d277172516fe75502d917dfbf31b9c628c8d562cf9cb0182f80bca34"
+    }
+  },
+  "inputStable": true,
+  "productionStable": true,
+  "results": {
+    "vellamar-5222": {
+      "status": "FAIL",
+      "testActualExit": 1,
+      "testSeconds": 31.85,
+      "totalSeconds": 34.85,
+      "raceFinished": true,
+      "crashes": 1,
+      "expectedCrashes": 0,
+      "assertion": "tests/bike-mixed-passing.test.ts:46"
+    },
+    "mixed-3303": {
+      "status": "FAIL",
+      "testActualExit": 1,
+      "testSeconds": 29.11,
+      "totalSeconds": 31.46,
+      "priorAssertionsPassed": [
+        "race finished",
+        "crashes <= 3",
+        "every rider not retired",
+        "every rider finishTime > 0",
+        "every rider completed2 laps",
+        "longest stop <20 seconds"
+      ],
+      "gpBestSeconds": 92.11271651987849,
+      "sbkBestSeconds": 89.67194144410922,
+      "sbkMinusGpSeconds": -2.4407750757692668,
+      "assertion": "tests/bike-session.test.ts:367 GP best must be less than SBK best",
+      "finalMarginAssertionReached": false
+    }
+  }
+}

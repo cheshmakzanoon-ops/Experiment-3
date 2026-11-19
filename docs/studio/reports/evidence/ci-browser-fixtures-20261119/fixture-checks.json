@@ -1,0 +1,48 @@
+{
+  "inputCommit": "4082ea5fe90b6eb2959ad69c44ca0b2c77b42ed1",
+  "inputFiles": 7411,
+  "inputHash": "65283cf3785831ecfeb2897c48ce654ac1cd6f49466de9359052a2215e9cc71d",
+  "sourceStable": true,
+  "changed": [],
+  "results": [
+    {
+      "name": "typecheck",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npx",
+        "tsc",
+        "--noEmit"
+      ],
+      "start": "2026-11-19T14:08:47.800Z",
+      "end": "2026-11-19T14:09:29.163Z",
+      "durationSeconds": 41.362282746999995,
+      "exitCode": 0,
+      "signal": null,
+      "error": null
+    },
+    {
+      "name": "scoped-lint",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npx",
+        "eslint",
+        "e2e/54-authored-crew.spec.ts",
+        "e2e/63-i18n-layout.spec.ts",
+        "e2e/fixtures/i18n-screens.ts"
+      ],
+      "start": "2026-11-19T14:09:29.166Z",
+      "end": "2026-11-19T14:09:33.647Z",
+      "durationSeconds": 4.4814306020000005,
+      "exitCode": 0,
+      "signal": null,
+      "error": null
+    }
+  ],
+  "browserValidation": "NOT RUN: local browser launch blocked earlier; no browser attempt made for these fixes"
+}

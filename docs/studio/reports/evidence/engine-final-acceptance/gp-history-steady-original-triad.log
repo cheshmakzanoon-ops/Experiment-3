@@ -1,0 +1,94 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+ RUN  v3.2.4 /workspace/scratch/d611aefdb08c/w27-gp-history-steady-candidate
+
+ ✓ tests/bike-session.test.ts (14 tests | 13 skipped) 23658ms
+   ✓ WP35 seeded AI bike race > finishes a mixed GP/superbike race with bounded incidents and no stuck rider  23657ms
+ ❯ tests/gp-tyre-contact.test.ts (22 tests | 1 failed | 21 skipped) 41269ms
+   ↓ GP front and rear contact grip > gpr1 retains useful drive from a clean rear contact when the front crosses a low-grip patch
+   ↓ GP front and rear contact grip > gpr2 retains useful drive from a clean rear contact when the front crosses a low-grip patch
+   ↓ GP front and rear contact grip > gpr1 keeps front braking available with a low-grip rear while respecting rear unloading
+   ↓ GP front and rear contact grip > gpr2 keeps front braking available with a low-grip rear while respecting rear unloading
+   ↓ GP front and rear contact grip > uses separately sampled real kerb and asphalt contacts and refreshes them after repositioning
+   ↓ GP front and rear contact grip > lets rear tyre wear reduce rear drive without assigning that wear to the front tyre
+   ↓ GP front and rear contact grip > retains shared contact grip for sbk1000
+   ↓ GP front and rear contact grip > retains shared contact grip for ss600
+   ↓ GP front and rear contact grip > retains shared contact grip for nr900
+   ↓ GP front and rear contact grip > retains shared contact grip for cr750
+   ↓ GP front and rear contact grip > retains shared contact grip for mx450
+   ↓ GP contact force and integration invariants > preserves the exact shared-grip trajectory when both contact coefficients are equal
+   ↓ GP contact force and integration invariants > keeps trail braking and coast torque inside each circle at front 1 / rear 0.35
+   ↓ GP contact force and integration invariants > keeps trail braking and coast torque inside each circle at front 0.35 / rear 1
+   ↓ GP contact force and integration invariants > keeps trail braking and coast torque inside each circle at front 0.65 / rear 0.4
+   ↓ GP contact force and integration invariants > keeps trail braking and coast torque inside each circle at front 0.4 / rear 0.65
+   ↓ GP contact force and integration invariants > does not hide a raw rider locking the rear wheel on its own low-grip patch
+   ↓ GP contact force and integration invariants > rolls on the throttle while picking up from a corner at front 1 / rear 0.35
+   ↓ GP contact force and integration invariants > rolls on the throttle while picking up from a corner at front 0.35 / rear 1
+   ↓ GP contact grip in production races > classifies all eight GP riders at 'aurel' in 'clear' without a contact or crash
+   × GP contact grip in production races > classifies all eight GP riders at 'poggio-alto' in 'clear' without a contact or crash 41268ms
+     → expected 0.9916666666666667 to be +0 // Object.is equality
+   ↓ GP contact grip in production races > classifies all eight GP riders at 'poggio-alto' in 'rain' without a contact or crash
+ ❯ tests/gp-ai-braking-plan.test.ts (9 tests | 1 failed | 8 skipped) 15995ms
+   ↓ GP rider follows its braking plan > reports the plan speed at every active sample without touching the tail
+   ↓ GP rider follows its braking plan > feeds the planned deceleration forward instead of waiting for a speed error
+   ↓ GP rider follows its braking plan > brakes gently once the flag has fallen
+   × GP rider follows its braking plan > no rider falls at the ardennes hairpin (seed 1000) 15995ms
+     → expected [ { car: 1, …(2) } ] to deeply equal []
+   ↓ GP rider follows its braking plan > no rider falls at the ardennes hairpin (seed 1037)
+   ↓ GP rider follows its braking plan > no rider falls at the montejaral hairpin (seed 1000)
+   ↓ GP rider follows its braking plan > no rider falls after taking the flag at montejaral (seed 1000)
+   ↓ GP rider follows its braking plan > no rider falls after taking the flag at ardennes (seed 1000)
+   ↓ GP rider follows its braking plan > no rider falls after taking the flag at ardennes (seed 1037)
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/gp-ai-braking-plan.test.ts > GP rider follows its braking plan > no rider falls at the ardennes hairpin (seed 1000)
+AssertionError: expected [ { car: 1, …(2) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "afterFlag": false,
++     "car": 1,
++     "s": 3147.0013900932545,
++   },
++ ]
+
+ ❯ tests/gp-ai-braking-plan.test.ts:148:61
+    146|       const { finished, falls } = aiRace(circuit, seed, 1, Array(4).fi…
+    147|       expect(finished).toBe(true);
+    148|       expect(falls.filter((f) => f.s >= from && f.s <= to)).toEqual([]…
+       |                                                             ^
+    149|     },
+    150|     60000,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/gp-tyre-contact.test.ts > GP contact grip in production races > classifies all eight GP riders at 'poggio-alto' in 'clear' without a contact or crash
+AssertionError: expected 0.9916666666666667 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 0.9916666666666667
+
+ ❯ tests/gp-tyre-contact.test.ts:294:22
+    292|       }
+    293|       expect(sim.race.phase).toBe(PHASE.FINISHED);
+    294|       expect(impact).toBe(0);
+       |                      ^
+    295|       for (const bike of sim.cars as BikeVehicle[]) {
+    296|         expect(bike.dynamics.crashes).toBe(0);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed | 1 passed (3)
+      Tests  2 failed | 1 passed | 42 skipped (45)
+   Start at  04:58:58
+   Duration  84.67s (transform 1.17s, setup 0ms, collect 3.04s, tests 80.92s, environment 0ms, prepare 205ms)
+

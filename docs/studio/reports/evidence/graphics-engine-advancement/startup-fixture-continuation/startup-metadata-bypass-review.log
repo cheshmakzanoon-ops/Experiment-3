@@ -1,0 +1,83 @@
+(node:5) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+ RUN  v3.2.4 /workspace/scratch/0ab62d15db18/startup-metadata-bypass-review
+
+ ❯ tests/startup.test.ts (32 tests | 2 failed | 30 skipped) 24ms
+   × prepares retained scene metadata before drawing and still waits for both GPU views 14ms
+     → expected "spy" to be called 3 times, but got 0 times
+   × rejects retained program metadata failure before any startup draw 6ms
+     → promise resolved "true" instead of rejecting
+   ↓ compiles the first prepared view with its actual venue-light slots: 'day' / studio=false
+   ↓ compiles the first prepared view with its actual venue-light slots: 'sunset' / studio=false
+   ↓ compiles the first prepared view with its actual venue-light slots: 'night' / studio=false
+   ↓ compiles the first prepared view with its actual venue-light slots: 'night' / studio=true
+   ↓ keeps bike LODs and omits hidden Formula hosts during preparation: 'MX250 gate'
+   ↓ keeps bike LODs and omits hidden Formula hosts during preparation: 'MX450 gate'
+   ↓ keeps bike LODs and omits hidden Formula hosts during preparation: 'mixed exhibition'
+   ↓ keeps bike LODs and omits hidden Formula hosts during preparation: 'Formula grid'
+   ↓ yields construction, compiles and warms 'apx01' camera passes without modifying simulation time
+   ↓ yields construction, compiles and warms 'gpr1' camera passes without modifying simulation time
+   ↓ yields construction, compiles and warms 'gpr2' camera passes without modifying simulation time
+   ↓ yields construction, compiles and warms 'sbk1000' camera passes without modifying simulation time
+   ↓ yields construction, compiles and warms 'ss600' camera passes without modifying simulation time
+   ↓ yields construction, compiles and warms 'mx450' camera passes without modifying simulation time
+   ↓ warms only reachable pit service while completing both GPU views: 'mx450' / 'race' / 'motocross-moto'
+   ↓ warms only reachable pit service while completing both GPU views: 'mx250' / 'race' / 'motocross-moto'
+   ↓ warms only reachable pit service while completing both GPU views: 'mx450' / 'practice' / undefined
+   ↓ warms only reachable pit service while completing both GPU views: 'mx250' / 'time-trial' / undefined
+   ↓ warms only reachable pit service while completing both GPU views: 'gpr1' / 'race' / 'gp-motorcycle'
+   ↓ warms only reachable pit service while completing both GPU views: 'apx01' / 'race' / 'formula-grand-prix'
+   ↓ keeps the GPU completion gate when a no-service motocross warmup stalls
+   ↓ allows cancellation before motorcycle construction only for a complete GP field: [ 'gpr1', 'gpr2', 'gpr1' ]
+   ↓ allows cancellation before motorcycle construction only for a complete GP field: [ 'apx01', 'gpr1', 'gpr2' ]
+   ↓ allows cancellation before motorcycle construction only for a complete GP field: [ 'mx450', 'mx450', 'mx450' ]
+   ↓ stops cancelled construction before touching any further GPU resources
+   ↓ requires the complete selected circuit before a showroom can prepare driving
+   ↓ a shader failure rejects initialization instead of starting unprepared gameplay
+   ↓ restores the selected camera when a GPU warmup pass throws
+   ↓ never treats an unfinished GPU preparation deadline as successful completion
+   ↓ does not apply graphics or compile when preparation fails
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/startup.test.ts > prepares retained scene metadata before drawing and still waits for both GPU views
+AssertionError: expected "spy" to be called 3 times, but got 0 times
+ ❯ tests/startup.test.ts:166:25
+    164|       ),
+    165|     ).toBe(true);
+    166|     expect(getUniforms).toHaveBeenCalledTimes(3);
+       |                         ^
+    167|     expect(calls.indexOf('program-metadata')).toBeGreaterThan(calls.in…
+    168|     expect(calls.indexOf('program-metadata')).toBeLessThan(calls.index…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/startup.test.ts > rejects retained program metadata failure before any startup draw
+AssertionError: promise resolved "true" instead of rejecting
+
+- Expected: 
+Error {
+  "message": "rejected promise",
+}
+
++ Received: 
+true
+
+ ❯ tests/startup.test.ts:192:5
+    190|         async () => {},
+    191|       ),
+    192|     ).rejects.toThrow('Scene metadata failed');
+       |     ^
+    193|     expect(target.draw).not.toHaveBeenCalled();
+    194|     expect(target.waitForPreparedFrame).not.toHaveBeenCalled();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 30 skipped (32)
+   Start at  05:42:21
+   Duration  7.17s (transform 4.40s, setup 0ms, collect 6.83s, tests 24ms, environment 0ms, prepare 84ms)
+

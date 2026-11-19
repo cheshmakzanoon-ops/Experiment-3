@@ -1,0 +1,54 @@
+{
+  "capturedAt": "2026-11-19T13:52:56.924894+00:00",
+  "source": "/workspace/scratch/0ab62d15db18/gp-history-relative-only",
+  "originalStatus": {
+    "source": "/workspace/scratch/0ab62d15db18/gp-history-relative-only",
+    "command": [
+      "npx",
+      "vitest",
+      "run",
+      "tests/gp-tyre-contact.test.ts",
+      "tests/bike-session.test.ts",
+      "tests/bike-mixed-passing.test.ts",
+      "tests/gp-ai-braking-plan.test.ts"
+    ],
+    "cwd": "/workspace/scratch/0ab62d15db18/gp-history-relative-only",
+    "started": "2026-11-19T13:43:38.567Z",
+    "phase": "complete",
+    "protectedInputs": 7245,
+    "sourceManifestSha256": "8391c2bae0ba1305b9c0054fb067ce1010c56b6c0d72fd9e59efeb66108224c2",
+    "finished": "2026-11-19T13:52:29.023Z",
+    "wallSeconds": 530.455142015,
+    "childExit": 1,
+    "signal": null,
+    "sourceStable": true,
+    "changed": [],
+    "logBytes": 8371,
+    "logSha256": "30789f121e666bb88c2e390c00c60890ca68a1e4879f4335eb8bfe371e95f8bf",
+    "passed": false
+  },
+  "completeRun": true,
+  "disposition": "Not accepted: at least three original failures already observed. This is a checkpoint, not a final failure count.",
+  "observedFailures": [
+    {
+      "case": "Ardennes hairpin, seed1000",
+      "failure": "nonempty fall report"
+    },
+    {
+      "case": "Aurel clear eight-rider contact gate",
+      "peakImpact": 0.9833333333333334,
+      "expected": 0
+    },
+    {
+      "case": "Poggio clear eight-rider contact gate",
+      "peakImpact": 0.9916666666666667,
+      "expected": 0
+    }
+  ],
+  "observedPassingCase": "Wet Poggio contact gate",
+  "limits": [
+    "The partial log may grow at its original path after this capture.",
+    "No total or final exit is inferred while the source status is running.",
+    "This candidate is different from rejected4c9 and from the earlier larger relative-intent composition."
+  ]
+}
