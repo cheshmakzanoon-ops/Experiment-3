@@ -1,6 +1,6 @@
 import * as T from 'three';
 import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
-import { studioGlsl, studioUniforms } from './studio-frame.ts';
+import { STUDIO_MAX_CARS, studioGlsl, studioUniforms } from './studio-frame.ts';
 import { MOTION_BLUR } from './velocity.ts';
 
 /**
@@ -8,12 +8,17 @@ import { MOTION_BLUR } from './velocity.ts';
  *
  * The scene draw is jittered by a Halton(2,3) sequence of 8 sub-pixel offsets;
  * one resolve quad blends the current frame into a reprojected history. The
- * history is fetched where the surface was last frame: static world through
- * render-core's `studioPrevViewProj`, cars rigidly through `studioCarPrev`
- * (the same footprint boxes as the motion blur). It is clipped to the current
- * 3x3 neighbourhood's YCoCg variance box (no ghosting on disocclusion, colour
- * or lighting change) and blended in a luminance-weighted space so HDR
- * highlights cannot smear. The motion blur and AO composite read the result.
+ * history is fetched where the surface was in the last successful resolve:
+ * static world through that frame's jittered projection, cars through their
+ * rigid chassis transforms (the same footprint boxes as the motion blur).
+ * History alpha stores positive linear view depth; zero marks background.
+ * Depth-incompatible history texels cannot enter the colour filter. Compatible
+ * interiors retain Catmull-Rom; edges use valid bilinear taps with reduced
+ * confidence, followed by the existing YCoCg variance clip and HDR blend.
+ * SceneAmbientPass consumes RGB and restores opaque output alpha.
+ *
+ * This is depth rejection, not per-vertex velocity: deformation, transparent
+ * particles and incorrectly classified chassis-box pixels remain approximate.
  *
  * Determinism: the jitter index advances only on frames whose presented time
  * advances (`studioFrameDt > 0`). Held, paused and photo frames, menus, cuts,
@@ -30,7 +35,40 @@ export const TEMPORAL_AA = Object.freeze({
   movingPixels: 3,
   /** Variance clip width in standard deviations. */
   gamma: 1.1,
+  /** History alpha is a view distance in metres, not nonlinear device depth.
+   * Half-float rounding is at most 1/2048 of a normal positive value. */
+  depthRelative: 0.002,
+  depthAbsolute: 0.02,
+  /** Both production far planes (7 km / 26 km) fit without clamping. */
+  maxDepth: 65000,
+  /** Conservative one-ULP spacing of the existing Float32 depth attachment. */
+  depthUlp: 2 ** -24,
+  /** Do not extrapolate a surface plane across a silhouette discontinuity. */
+  maxDepthGradient: 0.02,
+  edgeFeedback: 0.5,
+  /** The original five bilinear Catmull-Rom taps cover these 12 point texels.
+   * Read each once so depth is validated before any colour interpolation. */
+  historyFetches: 12,
 });
+
+/** Positive view-depth error per squared metre for one device-depth ULP.
+ * The source attachment, unlike the history, remains Float32 device depth. */
+export function temporalDepthPrecision(near: number, far: number) {
+  return TEMPORAL_AA.depthUlp * (1 / near - 1 / far);
+}
+
+/** CPU reference of the GLSL comparison, also used by precision/QA tooling. */
+export function temporalDepthTolerance(
+  expected: number,
+  sourceError: number,
+  previousPrecision: number,
+) {
+  return (
+    Math.max(TEMPORAL_AA.depthAbsolute, expected * TEMPORAL_AA.depthRelative) +
+    sourceError +
+    expected * expected * previousPrecision
+  );
+}
 
 /** Radical inverse of `index` (≥ 1) in `base`. */
 export function halton(index: number, base: number) {
@@ -57,16 +95,15 @@ const vertex = /* glsl */ `
   void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }
 `;
 const fragment = /* glsl */ `
-  #include <packing>
-  ${studioGlsl(['studioPrevViewProj', 'studioCarCount', 'studioCarNow', 'studioCarPrev', 'studioCarPose'])}
+  ${studioGlsl(['studioCarCount', 'studioCarNow', 'studioCarPrev', 'studioCarPose'])}
   uniform sampler2D tColor;
   uniform sampler2D tHistory;
   uniform sampler2D tDepth;
-  uniform float cameraNear;
-  uniform float cameraFar;
-  uniform vec2 projectionScale;
-  uniform vec2 jitterUv;
+  uniform mat4 projectionInverse;
   uniform mat4 cameraWorld;
+  uniform mat4 previousViewProjection;
+  uniform vec2 previousRange;
+  uniform vec2 depthPrecision;
   uniform vec2 resolution;
   uniform float historyValid;
   uniform float feedbackStill;
@@ -83,29 +120,69 @@ const fragment = /* glsl */ `
   // Clamped to the HalfFloat range: compress(Inf) is NaN, which would reach the history.
   vec3 finiteColor(vec3 c) { return clamp(c, vec3(0.0), vec3(65000.0)); }
   vec3 sampleCurrent(vec2 uv) { return toYCoCg(compress(finiteColor(texture2D(tColor, uv).rgb))); }
-  // Five-tap Catmull-Rom history fetch (sharper than bilinear, no ringing past the clip).
-  vec3 sampleHistory(vec2 uv) {
+  float depthTolerance(float expected, float sourceError) {
+    return max(${TEMPORAL_AA.depthAbsolute.toFixed(3)}, expected * ${TEMPORAL_AA.depthRelative.toFixed(4)})
+      + sourceError + expected * expected * depthPrecision.y;
+  }
+  // Point sampling is essential: interpolated foreground/background depths can
+  // appear to match a surface that never existed in the previous image.
+  vec4 historyTap(vec2 pixel, vec3 previous, vec2 inverseGradient, float sourceError, out float valid) {
+    pixel = clamp(pixel, vec2(0.0), resolution - 1.0);
+    vec4 tap = texelFetch(tHistory, ivec2(pixel), 0);
+    float inverseDepth = 1.0 / previous.z + dot(inverseGradient, pixel + 0.5 - previous.xy * resolution);
+    float expected = 1.0 / max(inverseDepth, 1e-8);
+    valid = tap.a > 0.0 && expected >= previousRange.x && expected <= previousRange.y
+      && abs(tap.a - expected) <= depthTolerance(expected, sourceError) ? 1.0 : 0.0;
+    return tap;
+  }
+  // Identical interior kernel to the original five bilinear Catmull-Rom taps,
+  // expanded to its 12 contributing texels so no incompatible depth is mixed.
+  // If the footprint crosses an edge, only validated central bilinear taps remain.
+  vec3 sampleHistory(vec3 previous, vec2 inverseGradient, float sourceError, out float confidence) {
+    vec2 uv = previous.xy;
     vec2 position = uv * resolution;
     vec2 center = floor(position - 0.5) + 0.5;
     vec2 f = position - center, f2 = f * f, f3 = f2 * f;
     vec2 w0 = -0.5 * f3 + f2 - 0.5 * f, w1 = 1.5 * f3 - 2.5 * f2 + 1.0;
     vec2 w2 = -1.5 * f3 + 2.0 * f2 + 0.5 * f, w3 = 0.5 * f3 - 0.5 * f2;
-    vec2 w12 = w1 + w2;
-    vec2 texel = 1.0 / resolution;
-    vec2 t0 = (center - 1.0) * texel, t3 = (center + 2.0) * texel;
-    vec2 t12 = (center + w2 / w12) * texel;
-    vec3 sum = texture2D(tHistory, vec2(t12.x, t0.y)).rgb * (w12.x * w0.y)
-      + texture2D(tHistory, vec2(t0.x, t12.y)).rgb * (w0.x * w12.y)
-      + texture2D(tHistory, t12).rgb * (w12.x * w12.y)
-      + texture2D(tHistory, vec2(t3.x, t12.y)).rgb * (w3.x * w12.y)
-      + texture2D(tHistory, vec2(t12.x, t3.y)).rgb * (w12.x * w3.y);
-    float weight = w12.x * w0.y + w0.x * w12.y + w12.x * w12.y + w3.x * w12.y + w12.x * w3.y;
+    vec3 bilinear = vec3(0.0), sum = vec3(0.0);
+    float weight = 0.0, complete = 1.0;
+    confidence = 0.0;
+    for (int y = 0; y < 2; y++) for (int x = 0; x < 2; x++) {
+      float valid;
+      vec3 color = historyTap(center - 0.5 + vec2(float(x), float(y)), previous, inverseGradient, sourceError, valid).rgb;
+      float b = (x == 0 ? 1.0 - f.x : f.x) * (y == 0 ? 1.0 - f.y : f.y);
+      float c = (x == 0 ? w1.x : w2.x) * (y == 0 ? w1.y : w2.y);
+      bilinear += color * (b * valid);
+      confidence += b * valid;
+      complete *= valid;
+      sum += color * c;
+      weight += c;
+    }
+    if (confidence < 1e-5) { confidence = 0.0; return vec3(0.0); }
+    bilinear /= confidence;
+    if (complete < 0.5) {
+      confidence *= ${TEMPORAL_AA.edgeFeedback.toFixed(2)};
+      return toYCoCg(compress(finiteColor(bilinear)));
+    }
+    for (int side = 0; side < 2; side++) for (int i = 0; i < 2; i++) {
+      float outside = side == 0 ? -1.0 : 2.0;
+      float validX, validY;
+      vec3 xTap = historyTap(center - 0.5 + vec2(outside, float(i)), previous, inverseGradient, sourceError, validX).rgb;
+      vec3 yTap = historyTap(center - 0.5 + vec2(float(i), outside), previous, inverseGradient, sourceError, validY).rgb;
+      float wx = (side == 0 ? w0.x : w3.x) * (i == 0 ? w1.y : w2.y);
+      float wy = (side == 0 ? w0.y : w3.y) * (i == 0 ? w1.x : w2.x);
+      sum += xTap * wx + yTap * wy;
+      weight += wx + wy;
+      complete *= validX * validY;
+    }
+    if (complete < 0.5) {
+      confidence *= ${TEMPORAL_AA.edgeFeedback.toFixed(2)};
+      return toYCoCg(compress(finiteColor(bilinear)));
+    }
     return toYCoCg(compress(finiteColor(sum / weight)));
   }
-  vec2 previousUv(vec2 uv, float depth) {
-    float z = perspectiveDepthToViewZ(depth, cameraNear, cameraFar);
-    // The jittered pixel at uv shows the unjittered surface at uv + jitterUv.
-    vec3 view = vec3(((uv + jitterUv) * 2.0 - 1.0) * -z / projectionScale, z);
+  vec3 previousSurface(vec3 view) {
     vec3 world = (cameraWorld * vec4(view, 1.0)).xyz;
     for (int i = 0; i < STUDIO_MAX_CARS; i++) {
       if (i >= studioCarCount) break;
@@ -117,15 +194,46 @@ const fragment = /* glsl */ `
         break;
       }
     }
-    vec4 clip = studioPrevViewProj * vec4(world, 1.0);
-    // History pixels are unjittered: the surface moved by (now + jitter) - before,
-    // so the history of pixel uv lies at before - jitter.
-    return clip.w > 1e-4 ? clip.xy / clip.w * 0.5 + 0.5 - jitterUv : vec2(-1.0);
+    vec4 clip = previousViewProjection * vec4(world, 1.0);
+    // Perspective clip.w is positive linear view distance. This projection
+    // contains the PREVIOUS successful frame's jitter, never the current one.
+    return vec3(clip.xy / max(clip.w, 1e-5) * 0.5 + 0.5, clip.w);
   }
   void main() {
     vec2 texel = 1.0 / resolution;
     vec3 current = sampleCurrent(vUv);
-    if (historyValid < 0.5) { gl_FragColor = vec4(expand(fromYCoCg(current)), 1.0); return; }
+    float depth = texture2D(tDepth, vUv).x;
+    vec4 homogeneous = projectionInverse * vec4(vUv * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
+    vec3 view = homogeneous.xyz / homogeneous.w;
+    float distance = -view.z;
+    // Exact clear depth, not 0.99999: the latter erases kilometres of Festival.
+    float storedDepth = depth < 1.0 && distance > 0.0 && distance <= ${TEMPORAL_AA.maxDepth.toFixed(1)} ? distance : 0.0;
+    vec3 previous = previousSurface(view);
+    // Reciprocal depth is planar in projected pixels. Use its local Jacobian
+    // to compare each history tap at that tap's own position (sloping roads).
+    // Evaluate derivatives before non-uniform early exits.
+    vec2 dx = dFdx(previous.xy * resolution), dy = dFdy(previous.xy * resolution);
+    float invDepth = 1.0 / max(previous.z, 1e-5);
+    float zx = dFdx(invDepth), zy = dFdy(invDepth), determinant = dx.x * dy.y - dx.y * dy.x;
+    vec2 gradient = abs(determinant) > 1e-5 ? vec2(zx * dy.y - zy * dx.y, zy * dx.x - zx * dy.x) / determinant : vec2(0.0);
+    float planeReliable = max(abs(gradient.x), abs(gradient.y)) <= ${TEMPORAL_AA.maxDepthGradient.toFixed(3)} * invDepth ? 1.0 : 0.0;
+    gradient *= planeReliable;
+    if (historyValid < 0.5 || storedDepth == 0.0 || previous.z < previousRange.x || previous.z > previousRange.y
+      || previous.x < 0.0 || previous.y < 0.0 || previous.x > 1.0 || previous.y > 1.0) {
+      gl_FragColor = vec4(expand(fromYCoCg(current)), storedDepth);
+      return;
+    }
+    float sourceError = distance * length(view) * depthPrecision.x;
+    float confidence;
+    vec3 history = sampleHistory(previous, gradient, sourceError, confidence);
+    if (confidence <= 0.0) {
+      gl_FragColor = vec4(expand(fromYCoCg(current)), storedDepth);
+      return;
+    }
+    // Far-distance Float32 source-depth uncertainty cannot be repaired by a
+    // higher-precision history. Reduce trust when that uncertainty dominates.
+    confidence *= min(1.0, ${TEMPORAL_AA.depthRelative.toFixed(4)} * previous.z / max(sourceError + previous.z * previous.z * depthPrecision.y, 1e-6));
+    confidence *= mix(${TEMPORAL_AA.edgeFeedback.toFixed(2)}, 1.0, planeReliable);
     // Neighbourhood moments (3x3) in YCoCg.
     vec3 m1 = current, m2 = current * current;
     for (int j = -1; j <= 1; j++)
@@ -137,20 +245,14 @@ const fragment = /* glsl */ `
       }
     m1 /= 9.0;
     vec3 sigma = sqrt(max(m2 / 9.0 - m1 * m1, vec3(0.0))) * gamma;
-    vec2 previous = previousUv(vUv, texture2D(tDepth, vUv).x);
-    if (previous.x < 0.0 || previous.y < 0.0 || previous.x > 1.0 || previous.y > 1.0) {
-      gl_FragColor = vec4(expand(fromYCoCg(current)), 1.0);
-      return;
-    }
-    vec3 history = sampleHistory(previous);
     // Clip the history toward the neighbourhood mean onto the variance box.
     vec3 offset = history - m1;
     vec3 units = abs(offset / max(sigma, vec3(1e-5)));
     float scale = max(units.x, max(units.y, units.z));
     if (scale > 1.0) history = m1 + offset / scale;
-    float pixels = length((previous - vUv) * resolution);
+    float pixels = length((previous.xy - vUv) * resolution);
     float feedback = mix(feedbackStill, feedbackMoving, clamp(pixels / ${TEMPORAL_AA.movingPixels.toFixed(1)}, 0.0, 1.0));
-    gl_FragColor = vec4(expand(fromYCoCg(mix(current, history, feedback))), 1.0);
+    gl_FragColor = vec4(expand(fromYCoCg(mix(current, history, feedback * confidence))), storedDepth);
   }
 `;
 
@@ -166,9 +268,17 @@ export class TemporalAA {
   private index = 0;
   private valid = false;
   private active = false;
-  private jittered = false;
+  private pending = false;
+  private jitteredCamera: T.PerspectiveCamera | null = null;
+  private previousCamera: T.PerspectiveCamera | null = null;
   private readonly unjittered = new T.Matrix4();
   private readonly unjitteredInverse = new T.Matrix4();
+  private readonly jitteredProjection = new T.Matrix4();
+  private readonly jitteredInverse = new T.Matrix4();
+  private readonly previousViewProjection = new T.Matrix4();
+  private readonly previousCars = Array.from({ length: STUDIO_MAX_CARS }, () => new T.Matrix4());
+  private readonly previousRange = new T.Vector2(0.1, 1000);
+  private previousPrecision = temporalDepthPrecision(0.1, 1000);
   private width = 1;
   private height = 1;
   private disposed = false;
@@ -196,10 +306,10 @@ export class TemporalAA {
         tColor: { value: null },
         tHistory: { value: null },
         tDepth: { value: null },
-        cameraNear: { value: 0.1 },
-        cameraFar: { value: 1000 },
-        projectionScale: { value: new T.Vector2(1, 1) },
-        jitterUv: { value: new T.Vector2() },
+        projectionInverse: { value: this.jitteredInverse },
+        previousViewProjection: { value: this.previousViewProjection },
+        previousRange: { value: this.previousRange },
+        depthPrecision: { value: new T.Vector2() },
         cameraWorld: { value: new T.Matrix4() },
         resolution: { value: new T.Vector2(1, 1) },
         historyValid: { value: 0 },
@@ -207,16 +317,18 @@ export class TemporalAA {
         feedbackMoving: { value: TEMPORAL_AA.feedbackMoving },
         gamma: { value: TEMPORAL_AA.gamma },
         // Bound by identity: render-core's StudioFrame writes them each frame.
-        studioPrevViewProj: u.studioPrevViewProj,
         studioCarCount: u.studioCarCount,
         studioCarNow: u.studioCarNow,
-        studioCarPrev: u.studioCarPrev,
+        // Capture only after a successful resolve. Shared StudioFrame previous
+        // matrices may have advanced even when a scene/stage draw failed.
+        studioCarPrev: { value: this.previousCars },
         studioCarPose: u.studioCarPose,
       },
     });
     this.quad = new FullScreenQuad(this.material);
   }
   setSize(width: number, height: number) {
+    if (![width, height].every(Number.isFinite)) throw new Error('Invalid temporal AA size');
     this.width = Math.max(1, Math.floor(width));
     this.height = Math.max(1, Math.floor(height));
     for (const target of this.history) target.setSize(this.width, this.height);
@@ -242,8 +354,22 @@ export class TemporalAA {
    * Returns whether this frame is jittered and resolved.
    */
   begin(camera: T.PerspectiveCamera, live: boolean, frameDt = studioUniforms.studioFrameDt.value) {
-    const advancing = frameDt > 0;
-    this.active = !this.disposed && this.enabled && live && advancing;
+    // A scene/stage failure can leave an unfinished frame. Its projection and
+    // object state must never be paired with an older published history.
+    if (this.jitteredCamera) this.end(this.jitteredCamera);
+    if (this.pending || (this.previousCamera && this.previousCamera !== camera)) this.reset();
+    this.pending = false;
+    const advancing = Number.isFinite(frameDt) && frameDt > 0;
+    // The production scene/depth pipeline is conventional WebGL perspective.
+    // Refuse unsupported projections instead of silently corrupting history.
+    const supported =
+      camera.isPerspectiveCamera &&
+      camera.coordinateSystem === T.WebGLCoordinateSystem &&
+      !camera.reversedDepth &&
+      camera.near > 0 &&
+      camera.far > camera.near &&
+      camera.far <= TEMPORAL_AA.maxDepth;
+    this.active = !this.disposed && this.enabled && live && advancing && supported;
     if (!this.active) {
       // Held frames render exactly as without TAA; the next advancing frame restarts.
       if (this.valid) this.reset();
@@ -257,15 +383,18 @@ export class TemporalAA {
     p[8] += (2 * this.offset.x) / this.width;
     p[9] += (2 * this.offset.y) / this.height;
     camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
-    this.jittered = true;
+    this.jitteredProjection.copy(camera.projectionMatrix);
+    this.jitteredInverse.copy(camera.projectionMatrixInverse);
+    this.jitteredCamera = camera;
+    this.pending = true;
     return true;
   }
   /** After the scene draw: restore the unjittered projection. */
   end(camera: T.PerspectiveCamera) {
-    if (!this.jittered) return;
+    if (this.jitteredCamera !== camera) return;
     camera.projectionMatrix.copy(this.unjittered);
     camera.projectionMatrixInverse.copy(this.unjitteredInverse);
-    this.jittered = false;
+    this.jitteredCamera = null;
   }
   /** Resolve the jittered scene colour into the history; returns the image the
    * composite reads, or `color` itself when inactive. One full-screen quad. */
@@ -276,25 +405,38 @@ export class TemporalAA {
     depth: T.Texture,
   ): T.Texture {
     if (!this.active) return color;
+    // Resolving the same presented frame twice is not a second history sample.
+    if (!this.pending) return this.history[0].texture;
     const u = this.material.uniforms;
     const [read, write] = this.history;
     u.tColor.value = color;
     u.tDepth.value = depth;
     u.tHistory.value = read.texture;
     u.historyValid.value = this.valid ? 1 : 0;
-    u.cameraNear.value = camera.near;
-    u.cameraFar.value = camera.far;
-    u.projectionScale.value.set(
-      camera.projectionMatrix.elements[0],
-      camera.projectionMatrix.elements[5],
-    );
-    // Adding 2j/size to projection[8], [9] moves every point by -j pixels.
-    u.jitterUv.value.set(this.offset.x / this.width, this.offset.y / this.height);
+    const precision = temporalDepthPrecision(camera.near, camera.far);
+    u.depthPrecision.value.set(precision, this.previousPrecision);
     u.cameraWorld.value.copy(camera.matrixWorld);
-    renderer.setRenderTarget(write);
-    this.quad.render(renderer);
+    try {
+      renderer.setRenderTarget(write);
+      this.quad.render(renderer);
+    } catch (error) {
+      this.reset();
+      this.active = false;
+      this.pending = false;
+      throw error;
+    }
     this.history.reverse();
+    this.previousViewProjection.multiplyMatrices(
+      this.jitteredProjection,
+      camera.matrixWorldInverse,
+    );
+    this.previousRange.set(camera.near, camera.far);
+    this.previousPrecision = precision;
+    for (let i = 0; i < STUDIO_MAX_CARS; i++)
+      this.previousCars[i].copy(studioUniforms.studioCarNow.value[i]);
+    this.previousCamera = camera;
     this.valid = true;
+    this.pending = false;
     this.frames++;
     return write.texture;
   }
@@ -307,12 +449,21 @@ export class TemporalAA {
       index: this.index,
       jitter: this.offset.toArray(),
       extraDraws: this.active ? 1 : 0,
+      historyValid: this.valid,
+      historyDepth: 'linear-view-metres-in-alpha',
+      historyFetches: TEMPORAL_AA.historyFetches,
+      /** Two RGBA16F targets, unchanged by depth rejection. No depth attachment. */
+      historyBytes: this.width * this.height * 8 * 2,
     };
   }
   dispose() {
     if (this.disposed) return;
+    if (this.jitteredCamera) this.end(this.jitteredCamera);
     this.disposed = true;
     this.enabled = false;
+    this.active = false;
+    this.pending = false;
+    this.valid = false;
     for (const target of this.history) target.dispose();
     this.material.dispose();
     this.quad.dispose();

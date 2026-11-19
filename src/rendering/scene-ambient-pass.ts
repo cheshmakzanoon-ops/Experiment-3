@@ -313,7 +313,9 @@ const compositeFragment = /* glsl */ `
       // Refraction through a hot exhaust plume (High/Ultra): see heat-haze.ts.
       if (hazeCount > 0) colorUv = heatHazeUv(vUv, viewZAt(vUv));
     #endif
-    vec4 color = texture2D(tColor, colorUv);
+    // Scene alpha may carry SSR metadata before TAA, or positive view depth
+    // after TAA. It is private to those passes; the composer image is opaque.
+    vec4 color = vec4(texture2D(tColor, colorUv).rgb, 1.0);
     #ifdef MOTION_DEBUG_VELOCITY
       // Test reference output: unclamped streak (uv units), linear depth, geometry mask.
       float debugZ = viewZAt(vUv);
@@ -678,7 +680,13 @@ export class SceneAmbientPass extends Pass {
       renderer.setRenderTarget(this.target);
       // High opt-in TAA: sub-pixel jitter for the scene draw only.
       const live = this.motion?.live ?? true;
-      const temporal = this.temporal.begin(this.camera, live);
+      // TAA reconstructs the production conventional perspective depth. Three
+      // can change a camera to reversed depth during its first draw, so check
+      // the renderer too, before adding any jitter to that unsupported path.
+      const temporalDepth =
+        !renderer.capabilities?.logarithmicDepthBuffer &&
+        !renderer.capabilities?.reversedDepthBuffer;
+      const temporal = this.temporal.begin(this.camera, live && temporalDepth);
       const stages = this.sceneStages;
       try {
         for (const stage of stages) if (stage.active) stage.beforeScene?.();
