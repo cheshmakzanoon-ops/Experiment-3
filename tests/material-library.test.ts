@@ -154,6 +154,30 @@ describe('material library API', () => {
 });
 
 describe('GPU-baked procedural textures', () => {
+  it('forgets released venue clones while retaining their shared recipe pixels', () => {
+    const set = new ProceduralTextures(8),
+      retired = set.get('soil', 'normal', 2),
+      live = set.get('soil', 'normal', 4),
+      source = live.source;
+    let retiredDisposals = 0,
+      liveDisposals = 0;
+    retired.addEventListener('dispose', () => retiredDisposals++);
+    live.addEventListener('dispose', () => liveDisposals++);
+    expect(set.diagnostics().clones).toBe(2);
+    retired.dispose();
+    expect(set.diagnostics().clones).toBe(1);
+    expect(live.source).toBe(source);
+    expect(set.diagnostics().recipes).toBe(1);
+    const next = set.get('soil', 'normal', 8);
+    expect(next.source).toBe(source);
+    set.dispose();
+    expect(retiredDisposals).toBe(1);
+    expect(liveDisposals).toBe(1);
+    expect(set.diagnostics().clones).toBe(0);
+    set.dispose();
+    expect(retiredDisposals).toBe(1);
+    expect(liveDisposals).toBe(1);
+  });
   it('hands out identity pixels before baking and shares one source per recipe', () => {
     const set = new ProceduralTextures(16);
     const a = set.get('flake', 'normal', 4),

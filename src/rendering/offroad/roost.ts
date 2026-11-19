@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { disposeOffroadResources } from './owned-resources.ts';
 import { clamp, Random } from '../../core/math.ts';
 import { MATERIAL } from '../../simulation/surface-material.ts';
 import {
@@ -174,6 +175,7 @@ function softDisc(soft = false) {
  * dark, heavy clods; dry soil adds pale dust that hangs.
  */
 export class Roost {
+  private disposed = false;
   readonly points: T.Points;
   /** Solid soil shares the existing pool; this is one additional bounded draw. */
   readonly clods: T.InstancedMesh | null;
@@ -467,6 +469,7 @@ export class Roost {
     clodWet.needsUpdate = true;
   }
   update(frame: Float32Array, dt: number) {
+    if (this.disposed) return;
     if (!Number.isFinite(dt) || dt < 0) return;
     this.points.visible = this.enabled;
     this.shadows(frame);
@@ -724,19 +727,12 @@ export class Roost {
     return n;
   }
   dispose() {
-    this.points.geometry.dispose();
-    const m = this.points.material as T.Material;
-    if (m instanceof T.PointsMaterial) m.map?.dispose();
-    m.dispose();
-    if (this.clods) {
-      this.clods.geometry.dispose();
-      (this.clods.material as T.Material).dispose();
-    }
-    if (this.contactShadows) {
-      this.contactShadows.geometry.dispose();
-      const shadow = this.contactShadows.material as T.MeshBasicMaterial;
-      shadow.map?.dispose();
-      shadow.dispose();
-    }
+    if (this.disposed) return;
+    this.disposed = true;
+    this.clear();
+    this.groundHeight = null;
+    disposeOffroadResources(
+      [this.points, this.clods, this.contactShadows].filter((root) => root !== null),
+    );
   }
 }

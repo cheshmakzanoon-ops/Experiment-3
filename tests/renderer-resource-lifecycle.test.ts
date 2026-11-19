@@ -5,6 +5,48 @@ import { RacingRenderer } from '../src/rendering/renderer.ts';
 import { scannedGround } from '../src/rendering/ground/scan-store.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
 import { setMxQuality } from '../src/rendering/offroad/mx-quality.ts';
+import { BuildQueue } from '../src/rendering/build-queue.ts';
+import { OffroadScene } from '../src/rendering/offroad/index.ts';
+import { TerrainView } from '../src/rendering/offroad/terrain-view.ts';
+import { Roost } from '../src/rendering/offroad/roost.ts';
+import { disposeOffroadResources } from '../src/rendering/offroad/owned-resources.ts';
+import { textures as proceduralTextures } from '../src/rendering/materials/library.ts';
+import type { TerrainRenderDelta } from '../src/simulation/offroad/course-terrain.ts';
+
+function ownedResources(root: T.Object3D) {
+  const geometries = new Set<T.BufferGeometry>(),
+    materials = new Set<T.Material>(),
+    textures = new Set<T.Texture>(),
+    instances = new Set<T.InstancedMesh>();
+  root.traverse((object) => {
+    if (!(object instanceof T.Mesh || object instanceof T.Points || object instanceof T.Line))
+      return;
+    geometries.add(object.geometry);
+    for (const material of Array.isArray(object.material) ? object.material : [object.material])
+      materials.add(material);
+    if (object instanceof T.Mesh) {
+      if (object.customDepthMaterial) materials.add(object.customDepthMaterial);
+      if (object.customDistanceMaterial) materials.add(object.customDistanceMaterial);
+    }
+    if (object instanceof T.InstancedMesh) instances.add(object);
+  });
+  for (const material of materials)
+    for (const value of Object.values(material))
+      if (value instanceof T.Texture) textures.add(value);
+  return { geometries, materials, textures, instances };
+}
+
+function watchResources(root: T.Object3D) {
+  const resources: {
+    name: string;
+    addEventListener(type: 'dispose', listener: () => void): void;
+  }[] = Object.values(ownedResources(root)).flatMap((owned) => [...owned]);
+  return resources.map((resource) => {
+    const disposed = vi.fn().mockName(`${resource.constructor.name}: ${resource.name}`);
+    resource.addEventListener('dispose', disposed);
+    return disposed;
+  });
+}
 
 class Canvas {
   width = 300;
@@ -180,6 +222,11 @@ describe('complete terrain-venue resource ownership', () => {
         vi.spyOn(texture, 'dispose'),
       );
       const { renderer, sun } = rendererOwner(circuit);
+      const offroad = circuit.offroad!;
+      const venueDisposals = watchResources(offroad.group);
+      const ownedObjects: T.Object3D[] = [];
+      offroad.group.traverse((object) => ownedObjects.push(object));
+      const closeVenue = vi.spyOn(offroad, 'dispose');
       const meadow = circuit.offroad?.meadow;
       const meadowDisposals: ReturnType<typeof vi.spyOn>[] = [];
       if (meadow) {
@@ -195,6 +242,24 @@ describe('complete terrain-venue resource ownership', () => {
       const shadowPass = vi.spyOn(sun.shadow.mapPass!, 'dispose');
 
       renderer.dispose();
+      expect(closeVenue).toHaveBeenCalledOnce();
+      expect(offroad.group.parent).toBeNull();
+      expect(offroad.group.children).toHaveLength(0);
+      for (const dispose of venueDisposals) expect(dispose).toHaveBeenCalledOnce();
+      // Keep references to the destroyed meshes. A retained quality listener
+      // would still mutate their counts/visibility despite an empty root.
+      const closedState = ownedObjects.map((object) => ({
+        object,
+        visible: object.visible,
+        count: object instanceof T.InstancedMesh ? object.count : null,
+      }));
+      for (const quality of ['low', 'medium', 'high', 'ultra'] as const) {
+        setMxQuality(quality);
+        for (const { object, visible, count } of closedState) {
+          expect(object.visible, object.name).toBe(visible);
+          if (object instanceof T.InstancedMesh) expect(object.count, object.name).toBe(count);
+        }
+      }
       expect(scannedGround.diagnostics().materials).toBe(baseline);
       expect(scannedGround.diagnostics().resident).toEqual(residentBefore);
       for (const dispose of orphanDisposals) expect(dispose).toHaveBeenCalledTimes(1);
@@ -219,6 +284,8 @@ describe('complete terrain-venue resource ownership', () => {
       }
 
       renderer.dispose();
+      offroad.dispose();
+      for (const dispose of venueDisposals) expect(dispose).toHaveBeenCalledOnce();
       for (const dispose of orphanDisposals) expect(dispose).toHaveBeenCalledTimes(1);
       expect(shadow).toHaveBeenCalledTimes(1);
       expect(shadowPass).toHaveBeenCalledTimes(1);
@@ -226,4 +293,110 @@ describe('complete terrain-venue resource ownership', () => {
     },
     120000,
   );
+
+  it('does not reconstruct an offroad venue when an already-running queue resumes after disposal', async () => {
+    setMxQuality('high');
+    const queue = new BuildQueue(),
+      world = new OffroadScene(rigTrack('valley-ridge-mx'), queue),
+      parent = new T.Group().add(world.group),
+      disposals = watchResources(world.group);
+    let yields = 0;
+    expect(
+      await queue.run(
+        () => {},
+        () => false,
+        async () => {
+          if (++yields === 1) world.dispose();
+        },
+      ),
+    ).toBe(true);
+    // The caller deliberately did not cancel its queue; its callbacks really
+    // ran, and the disposed venue still must not allocate or subscribe again.
+    expect(queue.statistics.tasks).toBeGreaterThan(200);
+    expect(world.terrain).toBeNull();
+    expect(world.gate).toBeNull();
+    expect(world.dressing).toBeNull();
+    expect(world.spectators).toBeNull();
+    expect(world.landmarks).toBeNull();
+    expect(world.looseSoil).toBeNull();
+    expect(world.meadow!.stats.clumps).toBe(0);
+    expect(parent.children).toHaveLength(0);
+    expect(world.group.children).toHaveLength(0);
+    for (const quality of ['low', 'high'] as const) setMxQuality(quality);
+    expect(world.meadow!.root.visible).toBe(false);
+    expect(
+      await world.prepareQuality(
+        'high',
+        () => false,
+        async () => {},
+      ),
+    ).toBe(false);
+    world.dispose();
+    for (const dispose of disposals) expect(dispose).toHaveBeenCalledOnce();
+  });
+
+  it('releases the completed owners when a terrain keyframe fails during construction', () => {
+    setMxQuality('medium');
+    const baseline = proceduralTextures.diagnostics().clones,
+      queue = new BuildQueue(),
+      world = new OffroadScene(rigTrack('valley-ridge-mx'), queue),
+      parent = new T.Group().add(world.group);
+    const failure = new Error('Invalid queued terrain keyframe');
+    let disposals: ReturnType<typeof watchResources> = [];
+    vi.spyOn(TerrainView.prototype, 'record').mockImplementation(() => {
+      disposals = watchResources(world.group);
+      throw failure;
+    });
+    world.record({ reset: true } as TerrainRenderDelta, 0, true);
+    expect(() => queue.runSynchronously()).toThrow(failure);
+    expect(disposals.length).toBeGreaterThan(30);
+    expect(parent.children).toHaveLength(0);
+    expect(world.group.children).toHaveLength(0);
+    expect(world.roost.groundHeight).toBeNull();
+    expect(proceduralTextures.diagnostics().clones).toBe(baseline);
+    world.record({ reset: true } as TerrainRenderDelta, 1, true);
+    world.showAt(0);
+    world.update(new Float32Array(0));
+    world.dispose();
+    for (const dispose of disposals) expect(dispose).toHaveBeenCalledOnce();
+    setMxQuality('high');
+    expect(world.meadow!.root.visible).toBe(false);
+  });
+
+  it('releases immediate resources if construction cannot be queued', () => {
+    const queue = new BuildQueue();
+    queue.runSynchronously();
+    const dispose = vi.spyOn(Roost.prototype, 'dispose');
+    expect(() => new OffroadScene(rigTrack('arena-nord-sx'), queue)).toThrow(
+      'Cannot extend a running construction queue',
+    );
+    expect(dispose).toHaveBeenCalledOnce();
+  });
+
+  it('releases a scan clone once without releasing its source or shader-uniform maps', () => {
+    const source = new T.DataTexture(new Uint8Array([1, 2, 3, 255]), 1, 1),
+      clone = source.clone(),
+      material = new T.MeshStandardMaterial({ map: clone, roughnessMap: clone }),
+      depth = new T.MeshDepthMaterial(),
+      geometry = new T.BoxGeometry(),
+      mesh = new T.InstancedMesh(geometry, material, 2),
+      root = new T.Group().add(mesh),
+      parent = new T.Group().add(root);
+    mesh.customDepthMaterial = depth;
+    material.userData.sharedUniforms = { scannedAlbedo: { value: source } };
+    const sourceDispose = vi.spyOn(source, 'dispose'),
+      cloneDispose = vi.spyOn(clone, 'dispose'),
+      depthDispose = vi.spyOn(depth, 'dispose'),
+      instanceDispose = vi.spyOn(mesh, 'dispose');
+    expect(clone.source).toBe(source.source);
+    disposeOffroadResources([root], [material], [clone], [geometry]);
+    expect(parent.children).toHaveLength(0);
+    expect(root.children).toHaveLength(0);
+    expect(sourceDispose).not.toHaveBeenCalled();
+    expect(cloneDispose).toHaveBeenCalledOnce();
+    expect(depthDispose).toHaveBeenCalledOnce();
+    expect(instanceDispose).toHaveBeenCalledOnce();
+    expect(source.image.data).toEqual(new Uint8Array([1, 2, 3, 255]));
+    source.dispose();
+  });
 });

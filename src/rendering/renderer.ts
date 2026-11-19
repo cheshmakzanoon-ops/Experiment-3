@@ -2823,10 +2823,9 @@ export class RacingRenderer {
     this.circuit.trackBoards?.dispose();
     this.circuit.broadcastCameras?.dispose();
     this.circuit.disposePlanting();
-    // The meadow can own a detached asynchronous build and a retained tier
-    // during compilation. Traversing only the visible scene cannot release
-    // those owners or unsubscribe its quality listener.
-    this.circuit.offroad?.meadow?.dispose();
+    // The venue owns queued/detached builds and quality listeners as well as
+    // visible meshes. It detaches its roots before the generic scene traversal.
+    this.circuit.offroad?.dispose();
     this.circuit.quarry?.dispose();
     this.circuit.secondaryStands.dispose();
 

@@ -327,6 +327,7 @@ export class ProceduralTextures {
     clone.userData = { ...clone.userData, procedural: `${recipe}:${output}` };
     clone.needsUpdate = true;
     this.handed.add(clone);
+    clone.addEventListener('dispose', () => this.handed.delete(clone));
     return clone;
   }
   /** Recipes still holding identity pixels. */

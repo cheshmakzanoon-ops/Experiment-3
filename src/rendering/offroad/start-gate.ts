@@ -11,6 +11,7 @@ import { materials } from '../materials/index.ts';
 import { installMud, mudUniforms } from './mud.ts';
 import { MX_SOIL_COLOURS } from './mx-soil-detail.ts';
 import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
+import { collectOffroadMaps, disposeOffroadResources } from './owned-resources.ts';
 
 /** Gate panel (m): a perforated steel grate hinged at its foot. */
 const PANEL = Object.freeze({ height: 0.52, thickness: 0.035, gap: 0.08 });
@@ -114,6 +115,8 @@ export class StartGate {
   private readonly panels: T.Group[] = [];
   private body = new T.Group();
   private slots = 0;
+  private disposed = false;
+  private readonly ownedTextures = new Set<T.Texture>();
   private readonly steel = materials.metal({ kind: 'bare', metal: 'steel', roughness: 0.48 });
   // Galvanised grates on a dark, weathered steel frame.
   private readonly frame = materials.metal({
@@ -132,6 +135,7 @@ export class StartGate {
     const p = trackPoint();
     track.at(gate.s, p);
     this.root.name = 'Start gate';
+    collectOffroadMaps(this.pad, this.ownedTextures);
     installScannedMaps(this.pad, 'concrete', libraryAlbedo(this.pad));
     // A gate that has dropped for every moto carries roost: a dusty film and
     // damp splatter low on the grates and frame, cleaner toward the top bar.
@@ -215,6 +219,7 @@ export class StartGate {
   }
   /** Panel angle from the snapshot: standing until the release, then falling. */
   update(frame: Float32Array) {
+    if (this.disposed) return;
     const riders = Math.round(frame[H.CARS]);
     if (riders > this.slots) this.build(riders);
     const phase = frame[H.PHASE],
@@ -225,14 +230,11 @@ export class StartGate {
     for (const panel of this.panels) panel.rotation.x = angle;
   }
   dispose() {
-    const geometry = new Set<T.BufferGeometry>();
-    this.root.traverse((o) => {
-      if (o instanceof T.Mesh) geometry.add(o.geometry);
-    });
-    for (const g of geometry) g.dispose();
-    this.steel.dispose();
-    this.frame.dispose();
-    this.pad.dispose();
-    this.root.clear();
+    if (this.disposed) return;
+    this.disposed = true;
+    disposeOffroadResources([this.root], [this.steel, this.frame, this.pad], this.ownedTextures);
+    this.panels.length = 0;
+    this.body.clear();
+    this.ownedTextures.clear();
   }
 }

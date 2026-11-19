@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { disposeOffroadResources } from './owned-resources.ts';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { clamp, mod, Random } from '../../core/math.ts';
 import { TrackTerrainSurface } from '../../simulation/offroad/course-terrain.ts';
@@ -228,6 +229,7 @@ export class MxSpectators {
     crowdReaction: { value: new T.Vector2(0.5, 0.3) },
   };
   private readonly unsubscribe: (() => void) | null = null;
+  private disposed = false;
   constructor(track: Track, furniture: readonly MxFurnitureSite[]) {
     this.root.name = 'MX spectators and flag marshals';
     this.plan = planMxSpectators(track, furniture);
@@ -352,27 +354,17 @@ export class MxSpectators {
   }
   /** Absolute simulation time only. */
   update(time: number) {
-    if (!Number.isFinite(time)) return;
+    if (this.disposed || !Number.isFinite(time)) return;
     const cycle = Math.PI * 2;
     this.uniforms.crowdClock.value.set((time * 0.71) % cycle, (time * 0.43) % cycle);
     this.uniforms.crowdReaction.value.set(0.55 + Math.sin(time * 0.37) * 0.15, 0.32);
     this.time.value = Math.max(0, time) % 600;
   }
   dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
     this.unsubscribe?.();
-    const materials = new Set<T.Material>();
-    for (const { mesh } of this.crowds) {
-      mesh.geometry.dispose();
-      materials.add(mesh.material as T.Material);
-      if (mesh.customDepthMaterial) materials.add(mesh.customDepthMaterial);
-      mesh.dispose();
-    }
-    materials.forEach((m) => m.dispose());
+    disposeOffroadResources([this.root]);
     this.crowds.length = 0;
-    if (this.flags) {
-      this.flags.geometry.dispose();
-      (this.flags.material as T.Material).dispose();
-    }
-    this.root.clear();
   }
 }

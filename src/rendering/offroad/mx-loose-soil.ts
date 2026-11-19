@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { disposeOffroadResources } from './owned-resources.ts';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { clamp, mod, Random } from '../../core/math.ts';
 import { TrackTerrainSurface } from '../../simulation/offroad/course-terrain.ts';
@@ -72,6 +73,7 @@ export class MxLooseSoil {
   private readonly clodBase: T.Color;
   private readonly unsubscribe: () => void;
   private readonly wet = { value: 0 };
+  private disposed = false;
   constructor(private readonly track: Track) {
     const surface = Track.offroadOf(track);
     if (
@@ -287,15 +289,20 @@ export class MxLooseSoil {
   }
   /** Damp ground darkens and glosses its loose crumbs (session wetness 0..1). */
   setWetness(wetness: number) {
+    if (this.disposed) return;
     this.wet.value = clamp(wetness, 0, 1);
   }
   dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
     this.unsubscribe();
-    for (const { mesh } of this.meshes) mesh.dispose();
-    for (const g of this.geometries) g.dispose();
-    this.clodMaterial.dispose();
-    this.stoneMaterial?.dispose();
-    this.root.clear();
+    disposeOffroadResources(
+      [this.root],
+      this.stoneMaterial ? [this.clodMaterial, this.stoneMaterial] : [this.clodMaterial],
+      [],
+      this.geometries,
+    );
+    this.geometries.length = 0;
     this.meshes.length = 0;
   }
 }

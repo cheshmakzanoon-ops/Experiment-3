@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { disposeOffroadResources } from './owned-resources.ts';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Random } from '../../core/math.ts';
 import type { OffroadCourse } from '../../simulation/offroad/course.ts';
@@ -570,6 +571,7 @@ export class MxCourseLandmarks {
   readonly draws: number;
   private readonly atlas: T.Texture;
   private readonly materials: Record<Role, T.MeshStandardMaterial>;
+  private disposed = false;
   constructor(track: Track) {
     const surface = Track.offroadOf(track);
     if (
@@ -617,11 +619,8 @@ export class MxCourseLandmarks {
     }
   }
   dispose() {
-    this.root.traverse((object) => {
-      if (object instanceof T.Mesh) object.geometry.dispose();
-    });
-    Object.values(this.materials).forEach((material) => material.dispose());
-    this.atlas.dispose();
-    this.root.clear();
+    if (this.disposed) return;
+    this.disposed = true;
+    disposeOffroadResources([this.root], Object.values(this.materials), [this.atlas]);
   }
 }

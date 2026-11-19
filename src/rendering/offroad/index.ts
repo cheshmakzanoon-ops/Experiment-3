@@ -41,6 +41,7 @@ export class OffroadScene {
   meadow: MxMeadow | null = null;
   readonly roost: Roost;
   private lastTime = NaN;
+  private disposed = false;
   private readonly pending: {
     delta: TerrainRenderDelta | undefined;
     time: number;
@@ -58,51 +59,69 @@ export class OffroadScene {
     this.group.add(this.roost.points);
     if (this.roost.clods) this.group.add(this.roost.clods);
     if (this.roost.contactShadows) this.group.add(this.roost.contactShadows);
-    construction.add('Off-road course terrain', 3, () => {
-      this.terrain = new TerrainView(track);
-      this.roost.groundHeight = (s, lateral) => this.terrain!.heightAt(s, lateral);
-      // Night venues light the soil with the floodlight pools, like a ribbon.
-      installLightPools(this.terrain.material);
-      if (this.stadium) installMxArenaLighting(this.terrain.material, this.stadium.lampGrid);
-      this.group.add(this.terrain.group);
-      for (const p of this.pending.splice(0)) this.terrain.record(p.delta, p.time, p.live);
-    });
-    if (course.spec.gate)
-      construction.add('Off-road start gate', 1, () => {
-        this.gate = new StartGate(track, course);
-        this.group.add(this.gate.root);
+    try {
+      this.queue(construction, 'Off-road course terrain', 3, () => {
+        this.terrain = new TerrainView(track);
+        this.roost.groundHeight = (s, lateral) => this.terrain!.heightAt(s, lateral);
+        // Night venues light the soil with the floodlight pools, like a ribbon.
+        installLightPools(this.terrain.material);
+        if (this.stadium) installMxArenaLighting(this.terrain.material, this.stadium.lampGrid);
+        this.group.add(this.terrain.group);
+        for (const p of this.pending.splice(0)) this.terrain.record(p.delta, p.time, p.live);
       });
-    if (course.kind === 'supercross')
-      construction.add('Supercross stadium', 2, () => {
-        this.stadium = new Stadium(track);
-        if (this.terrain) installMxArenaLighting(this.terrain.material, this.stadium.lampGrid);
-        this.group.add(this.stadium.root);
-      });
-    if (course.kind === 'motocross' || course.kind === 'supercross') {
-      construction.add('MX course furniture and shoulders', 3, () => {
-        this.dressing = new MxCourseDressing(track);
-        this.group.add(this.dressing.root, this.dressing.turf);
-      });
-      construction.add('MX loose soil', 1, () => {
-        this.looseSoil = new MxLooseSoil(track);
-        this.group.add(this.looseSoil.root);
-      });
-      if (course.kind === 'motocross')
-        // After the furniture: onlookers keep clear of its service bays and posts.
-        construction.add('MX spectators and marshals', 4, () => {
-          this.spectators = new MxSpectators(track, this.dressing?.trackside.plan.sites ?? []);
-          this.group.add(this.spectators.root);
+      if (course.spec.gate)
+        this.queue(construction, 'Off-road start gate', 1, () => {
+          this.gate = new StartGate(track, course);
+          this.group.add(this.gate.root);
         });
-      if (course.kind === 'motocross') {
-        this.meadow = new MxMeadow(track, () => this.dressing?.trackside.plan.sites ?? []);
-        this.group.add(this.meadow.root);
-        this.meadow.queueInitial(construction);
+      if (course.kind === 'supercross')
+        this.queue(construction, 'Supercross stadium', 2, () => {
+          this.stadium = new Stadium(track);
+          if (this.terrain) installMxArenaLighting(this.terrain.material, this.stadium.lampGrid);
+          this.group.add(this.stadium.root);
+        });
+      if (course.kind === 'motocross' || course.kind === 'supercross') {
+        this.queue(construction, 'MX course furniture and shoulders', 3, () => {
+          this.dressing = new MxCourseDressing(track);
+          this.group.add(this.dressing.root, this.dressing.turf);
+        });
+        this.queue(construction, 'MX loose soil', 1, () => {
+          this.looseSoil = new MxLooseSoil(track);
+          this.group.add(this.looseSoil.root);
+        });
+        if (course.kind === 'motocross')
+          // After the furniture: onlookers keep clear of its service bays and posts.
+          this.queue(construction, 'MX spectators and marshals', 4, () => {
+            this.spectators = new MxSpectators(track, this.dressing?.trackside.plan.sites ?? []);
+            this.group.add(this.spectators.root);
+          });
+        if (course.kind === 'motocross') {
+          this.meadow = new MxMeadow(track, () => this.dressing?.trackside.plan.sites ?? []);
+          this.group.add(this.meadow.root);
+          this.meadow.queueInitial(construction);
+        }
+        this.queue(construction, 'MX course identities and jump profiles', 2, () => {
+          this.landmarks = new MxCourseLandmarks(track);
+          this.group.add(this.landmarks.root);
+        });
       }
-      construction.add('MX course identities and jump profiles', 2, () => {
-        this.landmarks = new MxCourseLandmarks(track);
-        this.group.add(this.landmarks.root);
-      });
+    } catch (error) {
+      this.dispose();
+      throw error;
     }
+  }
+  /** A running queue may resume after its renderer closes. Every owned task
+   * checks the owner's lifetime, independently of the queue's caller signal. */
+  private queue(construction: BuildQueue, label: string, priority: number, work: () => void) {
+    construction.add(label, priority, () => {
+      if (this.disposed) return;
+      try {
+        work();
+      } catch (error) {
+        this.dispose();
+        throw error;
+      }
+    });
   }
   /** Prepare optional scenery inside the renderer's existing paused graphics
    * transaction. Its owner releases or restores assets after compilation. */
@@ -111,20 +130,25 @@ export class OffroadScene {
     cancelled: () => boolean,
     yieldControl: () => Promise<void>,
   ) {
-    return this.meadow ? this.meadow.prepareQuality(quality, cancelled, yieldControl) : null;
+    if (this.disposed) return false;
+    return this.meadow
+      ? this.meadow.prepareQuality(quality, () => this.disposed || cancelled(), yieldControl)
+      : null;
   }
   /** A worker surface keyframe's terrain export. */
   record(delta: TerrainRenderDelta | undefined, time: number, live: boolean) {
-    if (!delta) return;
+    if (this.disposed || !delta) return;
     if (this.terrain) this.terrain.record(delta, time, live);
     else this.pending.push({ delta, time, live });
   }
   /** Replay: show the terrain as it was at `time`; null returns to live. */
   showAt(time: number | null) {
+    if (this.disposed) return;
     if (time === null) this.terrain?.showLive();
     else this.terrain?.showAt(time);
   }
   update(frame: Float32Array) {
+    if (this.disposed) return;
     this.gate?.update(frame);
     this.stadium?.update(frame[H.TIME]);
     const time = frame[H.TIME],
@@ -140,6 +164,14 @@ export class OffroadScene {
     this.roost.update(frame, dt);
   }
   dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
+    // Detach before any nested disposal, so the renderer's generic traversal
+    // cannot dispose the same instance buffers, templates or texture handles.
+    this.group.removeFromParent();
+    this.group.visible = false;
+    this.pending.length = 0;
+    this.roost.groundHeight = null;
     this.terrain?.dispose();
     this.gate?.dispose();
     this.stadium?.dispose();
@@ -149,6 +181,7 @@ export class OffroadScene {
     this.spectators?.dispose();
     this.meadow?.dispose();
     this.roost.dispose();
+    this.group.clear();
   }
 }
 /** The off-road presentation for a terrain venue, else null. */

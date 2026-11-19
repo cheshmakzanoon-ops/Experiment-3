@@ -20,6 +20,7 @@ import { MxTerrainNormalEdges } from './mx-terrain-normal-edges.ts';
 import { brakingBumpSample, sampleBrakingBumps } from '../../simulation/offroad/braking-bumps.ts';
 import { installMxBrakingBumps } from './mx-braking-bumps.ts';
 import { mxCourseWearSample, sampleMxCourseWear } from './mx-course-wear.ts';
+import { collectOffroadMaps, disposeOffroadResources } from './owned-resources.ts';
 
 /** Soil albedo per kind (sRGB; the soil detail map multiplies it). */
 export const SOIL_COLOURS: Readonly<Record<SoilKind, number>> = Object.freeze({
@@ -68,6 +69,8 @@ export class TerrainView {
   private readonly history: Keyframe[] = [];
   private shown = -1;
   private wetness = 0;
+  private disposed = false;
+  private readonly ownedTextures = new Set<T.Texture>();
   private readonly motocross: boolean;
   /** Photographed soil sets of this course (ground/soil-splat.ts). */
   readonly soilSlots: readonly ScanLayer[];
@@ -86,6 +89,7 @@ export class TerrainView {
     this.compaction = new Float32Array(blocks);
     this.group.name = 'Off-road course terrain (deformable)';
     this.material = materials.soil({ tile: 0.28 });
+    collectOffroadMaps(this.material, this.ownedTextures);
     // Kinds on this course (cells off the course read as the venue's turf).
     const kinds = new Set<SoilKind>(['turf']);
     for (let i = 0; i < t.soil.length; i++) kinds.add(SOIL_KINDS[t.soil[i]] ?? 'loam');
@@ -474,7 +478,11 @@ export class TerrainView {
     return n;
   }
   dispose() {
-    for (const c of this.chunks) c.mesh.geometry.dispose();
-    this.material.dispose();
+    if (this.disposed) return;
+    this.disposed = true;
+    disposeOffroadResources([this.group], [this.material], this.ownedTextures);
+    this.chunks.length = 0;
+    this.history.length = 0;
+    this.ownedTextures.clear();
   }
 }

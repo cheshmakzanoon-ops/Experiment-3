@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { disposeOffroadResources } from './owned-resources.ts';
 import { MxTracksideFurniture, mxFurnitureGround } from './mx-trackside-furniture.ts';
 import { mxAuthoredGeometry } from './authored-kit.ts';
 import { planMxCourseSites } from './mx-course-sites.ts';
@@ -159,6 +160,7 @@ export class MxCourseDressing {
   private readonly surface: TrackTerrainSurface;
   private readonly plantTime = { value: 0 };
   private stopTufts: (() => void) | null = null;
+  private disposed = false;
   constructor(private readonly track: Track) {
     const surface = Track.offroadOf(track);
     if (
@@ -1006,29 +1008,16 @@ export class MxCourseDressing {
     this.stats.stones = stonePoses.length;
   }
   update(time: number) {
-    if (Number.isFinite(time)) this.plantTime.value = Math.max(0, time);
+    if (!this.disposed && Number.isFinite(time)) this.plantTime.value = Math.max(0, time);
   }
   dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
     this.stopTufts?.();
     this.stopTufts = null;
     this.root.remove(this.trackside.root);
     this.trackside.dispose();
-    const geometries = new Set<T.BufferGeometry>(),
-      materials = new Set<T.Material>();
-    const release = (o: T.Object3D) => {
-      if (!(o instanceof T.Mesh)) return;
-      // Instance buffers belong to the mesh, separately from shared geometry
-      // and materials; releasing only those leaves GPU instance data resident.
-      if (o instanceof T.InstancedMesh) o.dispose();
-      geometries.add(o.geometry);
-      for (const m of Array.isArray(o.material) ? o.material : [o.material]) materials.add(m);
-    };
-    this.root.traverse(release);
-    this.turf.traverse(release);
-    geometries.forEach((g) => g.dispose());
-    materials.forEach((m) => m.dispose());
-    this.ownedTextures.forEach((t) => t.dispose());
-    this.root.clear();
-    this.turf.clear();
+    disposeOffroadResources([this.root, this.turf], [], this.ownedTextures);
+    this.ownedTextures.clear();
   }
 }

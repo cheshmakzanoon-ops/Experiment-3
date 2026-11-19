@@ -9,6 +9,7 @@ import { materials } from '../materials/index.ts';
 import { mxAtlasRow, mxEventAtlas } from './mx-course-dressing.ts';
 import { onMxAtmosphere } from './mx-quality.ts';
 import { STADIUM } from './stadium-dimensions.ts';
+import { collectOffroadMaps, disposeOffroadResources } from './owned-resources.ts';
 export { STADIUM } from './stadium-dimensions.ts';
 
 function member(a: T.Vector3, b: T.Vector3, radius: number) {
@@ -94,6 +95,7 @@ export class Stadium {
   readonly lampGrid = { minX: 0, minZ: 0, spanX: 1, spanZ: 1, y: 0, columns: 8, rows: 5 };
   private readonly textures = new Set<T.Texture>();
   private stopHaze: (() => void) | null = null;
+  private disposed = false;
   private readonly crowdUniforms = {
     crowdClock: { value: new T.Vector2() },
     crowdMotion: { value: 0.32 },
@@ -114,6 +116,7 @@ export class Stadium {
     // The bowl sits in the dark beyond the floodlit floor: darker concrete
     // and roof, with the crowd lit by spill rather than by the floor's pools.
     const concrete = materials.concrete({ variant: 'rough', horizontal: 1, color: 0x55534e });
+    collectOffroadMaps(concrete, this.textures);
     installScannedMaps(concrete, 'concrete', libraryAlbedo(concrete));
     const steel = materials.metal({
       kind: 'cast',
@@ -637,19 +640,11 @@ export class Stadium {
     this.root.add(mesh);
   }
   dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
     this.stopHaze?.();
     this.stopHaze = null;
-    const geometries = new Set<T.BufferGeometry>(),
-      materials = new Set<T.Material>();
-    this.root.traverse((o) => {
-      if (o instanceof T.Mesh) {
-        geometries.add(o.geometry);
-        for (const m of Array.isArray(o.material) ? o.material : [o.material]) materials.add(m);
-      }
-    });
-    for (const g of geometries) g.dispose();
-    for (const m of materials) m.dispose();
-    for (const t of this.textures) t.dispose();
-    this.root.clear();
+    disposeOffroadResources([this.root], [], this.textures);
+    this.textures.clear();
   }
 }
