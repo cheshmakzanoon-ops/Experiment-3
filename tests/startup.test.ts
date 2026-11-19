@@ -6,6 +6,10 @@ import { CAR_STRIDE, HEADER, H, R, RACE_BASE, carBase } from '../src/simulation/
 import { vehicleIndex } from '../src/simulation/vehicles.ts';
 import { rulesetFor } from '../src/simulation/events.ts';
 import type { SessionOptions } from '../src/simulation/config.ts';
+import { VenueLighting } from '../src/rendering/venue-lighting.ts';
+import { Track } from '../src/simulation/track.ts';
+import type { LightingMode } from '../src/rendering/daylight.ts';
+import { DEFAULT_PHOTO, type PhotoSettings } from '../src/rendering/photo-camera.ts';
 
 function fixture(vehicle = 'apx01', entrants = 3) {
   const calls: string[] = [];
@@ -31,6 +35,13 @@ function fixture(vehicle = 'apx01', entrants = 3) {
     },
     scene: new T.Scene(),
     camera: new T.PerspectiveCamera(),
+    lighting: 'day' as LightingMode,
+    photo: null as PhotoSettings | null,
+    venueLighting: {
+      update: vi.fn((_night: boolean, _anchor: T.Vector3, _strength: number) => {
+        calls.push('venue-lighting');
+      }),
+    },
     mode: 'pod',
     preparation: new PreparationTrace(),
     composer: { readBuffer: new T.WebGLRenderTarget(8, 8, { type: T.HalfFloatType }) },
@@ -94,6 +105,79 @@ function fixture(vehicle = 'apx01', entrants = 3) {
   };
   return { target, calls, sample, typed: target as unknown as RacingRenderer };
 }
+it.each([
+  { lighting: 'day', studio: false, count: 0, strength: 1 },
+  { lighting: 'sunset', studio: false, count: 4, strength: 0.18 },
+  { lighting: 'night', studio: false, count: 4, strength: 1 },
+  { lighting: 'night', studio: true, count: 0, strength: 1 },
+] as const)(
+  'compiles the first prepared view with its actual venue-light slots: $lighting / studio=$studio',
+  async ({ lighting, studio, count, strength }) => {
+    const { target, typed, sample, calls } = fixture();
+    const venue = new VenueLighting(new Track());
+    target.lighting = lighting;
+    if (studio) target.photo = { ...DEFAULT_PHOTO, backdrop: 'studio' };
+    target.scene.add(venue.root);
+    target.setCars(3);
+    target.cars[target.follow].root.position.set(30, 1, 20);
+    const lightCount = () => {
+      let value = 0;
+      target.scene.traverseVisible((object) => {
+        if ((object as T.PointLight).isPointLight) value++;
+      });
+      return value;
+    };
+    // Negative control: new zero-intensity slots are visible to Three's
+    // compiler until the production update establishes the view's light list.
+    expect(lightCount()).toBe(4);
+    expect(venue.lights.every((light) => light.intensity === 0)).toBe(true);
+    target.venueLighting.update.mockImplementation((night, anchor, value) => {
+      calls.push('venue-lighting');
+      venue.update(night, anchor, value);
+    });
+    const observations: number[] = [];
+    target.renderer.compileAsync.mockImplementation(async () => {
+      calls.push('compile');
+      observations.push(lightCount());
+    });
+    const before = sample.slice();
+    try {
+      expect(
+        await RacingRenderer.prototype.prepare.call(
+          typed,
+          sample,
+          vi.fn(),
+          () => false,
+          async () => {},
+        ),
+      ).toBe(true);
+      expect(observations).toEqual([count, count, count]);
+      expect(target.venueLighting.update).toHaveBeenCalledExactlyOnceWith(
+        count > 0,
+        target.cars[target.follow].root.position,
+        strength,
+      );
+      expect(calls.indexOf('venue-lighting')).toBeLessThan(calls.indexOf('compile'));
+      expect(target.draw).toHaveBeenCalledTimes(2);
+      expect(target.waitForPreparedFrame).toHaveBeenCalledTimes(2);
+      expect(target.warmPitPresentation).toHaveBeenCalledTimes(1);
+      expect(sample).toEqual(before);
+      expect(target.preparation.snapshot()?.status).toBe('complete');
+    } finally {
+      const geometries = new Set<T.BufferGeometry>(),
+        materials = new Set<T.Material>();
+      venue.root.traverse((object) => {
+        if (!(object instanceof T.Mesh)) return;
+        geometries.add(object.geometry);
+        for (const material of Array.isArray(object.material) ? object.material : [object.material])
+          materials.add(material);
+      });
+      for (const geometry of geometries) geometry.dispose();
+      for (const material of materials) material.dispose();
+      target.composer.readBuffer.dispose();
+    }
+  },
+);
 it.each([
   { label: 'MX250 gate', machines: Array<string>(8).fill('mx250') },
   { label: 'MX450 gate', machines: Array<string>(8).fill('mx450') },

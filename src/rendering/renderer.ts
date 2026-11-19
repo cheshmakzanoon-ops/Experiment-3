@@ -1034,6 +1034,16 @@ export class RacingRenderer {
         await scannedGround.ready();
         if (cancelled()) return false;
       }
+      // Three keys lit programs by the visible light count, even when their
+      // intensity is zero. Bind the same venue slots as the first draw before
+      // compiling: a new daylight venue otherwise warms four-point-light
+      // variants and immediately replaces them with zero-point-light ones.
+      const illumination = this.photo && this.photo.backdrop !== 'circuit' ? 'day' : this.lighting;
+      this.venueLighting.update(
+        illumination !== 'day',
+        this.cars[this.follow].root.position,
+        illumination === 'sunset' ? 0.18 : 1,
+      );
       progress('Compiling circuit and vehicle materials…');
       await yieldFrame();
       if (cancelled()) return false;
