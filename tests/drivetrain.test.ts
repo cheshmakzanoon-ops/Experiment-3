@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { clamp, Vec3 } from '../src/core/math.ts';
 import { DEFAULT_SETUP } from '../src/simulation/config.ts';
 import {
   carrierOmega,
@@ -33,14 +34,42 @@ class SplitTrack extends DynamicsTrack {
   }
 }
 const dt = 1 / 240;
-function launch(def: VehicleDefinition, track: DynamicsTrack, seconds: number) {
+function launch(
+  def: VehicleDefinition,
+  track: DynamicsTrack,
+  seconds: number,
+  holdSplitLane = false,
+) {
   const car = new Vehicle(0, 'medium', DEFAULT_SETUP, 'raw', def);
   car.place(track, 0);
   car.input.brake = 1;
   for (let t = 0; t < 1.5; t += dt) car.step(dt, track);
   car.input.brake = 0;
   car.input.throttle = 1;
-  for (let t = 0; t < seconds; t += dt) car.step(dt, track);
+  const target = new Vec3(),
+    local = new Vec3();
+  for (let t = 0; t < seconds; t += dt) {
+    if (holdSplitLane) {
+      // The differential creates a yaw moment on split grip. Use the same
+      // physical pure-pursuit steering as the dynamics bench to hold the lane;
+      // otherwise one car can leave the split surface before it is measured.
+      // Only driver input changes: position, velocity and forces stay solved.
+      target.set(-car.body.position.x, 0, 8 + car.speed * 0.3);
+      car.body.orientation.inverseRotate(target, local);
+      car.input.steer = clamp(
+        Math.atan2(2 * car.spec.wheelbase * local.x, local.x ** 2 + local.z ** 2) /
+          car.spec.maxSteer,
+        -1,
+        1,
+      );
+    }
+    car.step(dt, track);
+    if (holdSplitLane) {
+      // Both rear patches must retain their distinct grip for the entire run.
+      expect(car.contactPoints[2].x).toBeLessThanOrEqual(0.3);
+      expect(car.contactPoints[3].x).toBeGreaterThan(0.3);
+    }
+  }
   return car;
 }
 describe('WP17 differentials and all-wheel drive', () => {
@@ -106,8 +135,8 @@ describe('WP17 differentials and all-wheel drive', () => {
     const base = VEHICLES.gt8f;
     const open: VehicleDefinition = { ...base, driveline: { rear: OPEN } };
     const track = new SplitTrack();
-    const lsdCar = launch(base, track, 2.5),
-      openCar = launch(open, new SplitTrack(), 2.5);
+    const lsdCar = launch(base, track, 2.5, true),
+      openCar = launch(open, new SplitTrack(), 2.5, true);
     expect(lsdCar.speed).toBeGreaterThan(openCar.speed * 1.15);
     // The open differential spins its low-grip wheel.
     expect(Math.abs(openCar.tires[3].omega - openCar.tires[2].omega)).toBeGreaterThan(

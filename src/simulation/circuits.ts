@@ -208,32 +208,34 @@ export const AUREL: CircuitDefinition = Object.freeze({
   bikeClasses: Object.freeze(['gp-bike', 'superbike', 'supersport', 'classic-bike']),
 });
 
-/** Periodic monotone-free cubic interpolation through (u, value) knots. */
-function periodicProfile(knots: readonly (readonly [number, number])[]) {
-  const n = knots.length;
+/** Periodic cubic through station/value knots. Every knot owns one slope in
+ * station units, shared by both adjacent Hermite intervals. Unequal interval
+ * lengths must not rescale that slope independently and create a road kink. */
+export function periodicProfile(knots: readonly (readonly [number, number])[]) {
+  const n = knots.length,
+    tangents = new Float64Array(n);
+  for (let i = 0; i < n; i++) {
+    const previous = knots[mod(i - 1, n)],
+      current = knots[i],
+      next = knots[(i + 1) % n],
+      before = previous[0] < current[0] ? previous[0] : previous[0] - 1,
+      after = next[0] > current[0] ? next[0] : next[0] + 1;
+    tangents[i] = (next[1] - previous[1]) / (after - before);
+  }
   return (u: number) => {
     u = mod(u, 1);
     let i = 0;
     while (i < n - 1 && knots[i + 1][0] <= u) i++;
-    const a = knots[mod(i - 1, n)],
-      b = knots[i],
-      c = knots[(i + 1) % n],
-      d = knots[(i + 2) % n];
-    const ub = b[0],
-      uc = c[0] > ub ? c[0] : c[0] + 1;
-    const t = clamp((u - ub) / (uc - ub), 0, 1);
-    // Catmull-Rom on values with uniform parameter: smooth, passes knots.
-    const p0 = a[1],
-      p1 = b[1],
-      p2 = c[1],
-      p3 = d[1];
-    return (
-      0.5 *
-      (2 * p1 +
-        (-p0 + p2) * t +
-        (2 * p0 - 5 * p1 + 4 * p2 - p3) * t * t +
-        (-p0 + 3 * p1 - 3 * p2 + p3) * t * t * t)
-    );
+    const next = (i + 1) % n,
+      a = knots[i],
+      b = knots[next],
+      end = b[0] > a[0] ? b[0] : b[0] + 1,
+      span = end - a[0],
+      t = clamp((u - a[0]) / span, 0, 1),
+      m0 = tangents[i] * span,
+      m1 = tangents[next] * span,
+      delta = b[1] - a[1];
+    return a[1] + t * (m0 + t * (3 * delta - 2 * m0 - m1 + t * (-2 * delta + m0 + m1)));
   };
 }
 

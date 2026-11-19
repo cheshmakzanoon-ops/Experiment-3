@@ -3,7 +3,6 @@ import type { QualityPreset } from '../options.ts';
 import type { VegetationLibrary, VegetationSpecies } from './library.ts';
 import { VEGETATION, vegetationUniforms } from './materials.ts';
 import type { SpeciesId } from './species.ts';
-import { chainShaderHook, injectAfter } from '../studio/shader-hooks.ts';
 
 /** One placed plant (plant space scaled uniformly, turned about +Y). */
 export interface PhotoPlant {
@@ -65,9 +64,6 @@ export const CONTACT = Object.freeze({ distance: 240, opacity: 0.42, radius: 0.8
 interface ContactParts {
   geometry: T.BufferGeometry;
   material: T.MeshBasicMaterial;
-  /** Shadow passes (the far map bakes every non-casting vegetation mesh):
-   * the disc never casts. */
-  depth: T.MeshDepthMaterial;
 }
 function createContactParts(): ContactParts {
   const size = 64,
@@ -97,11 +93,7 @@ function createContactParts(): ContactParts {
     polygonOffsetUnits: -4,
   });
   const geometry = new T.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
-  const depth = new T.MeshDepthMaterial();
-  chainShaderHook(depth, 'crown-contact-no-shadow-v1', (shader) =>
-    injectAfter(shader, 'clipping_planes_fragment', 'discard;', 'fragment'),
-  );
-  return { geometry, material, depth };
+  return { geometry, material };
 }
 
 /**
@@ -236,9 +228,8 @@ export class PhotoForest {
     ground: (x: number, z: number) => number,
     key: string,
   ) {
-    const { geometry, material, depth } = (this.contactParts ??= createContactParts());
+    const { geometry, material } = (this.contactParts ??= createContactParts());
     const mesh = new T.InstancedMesh(geometry, material, list.length);
-    mesh.customDepthMaterial = depth;
     mesh.name = `Crown contact occlusion ${key}`;
     const m = new T.Matrix4(),
       q = new T.Quaternion(),
@@ -370,7 +361,6 @@ export class PhotoForest {
       this.contactParts.geometry.dispose();
       this.contactParts.material.map?.dispose();
       this.contactParts.material.dispose();
-      this.contactParts.depth.dispose();
       this.contactParts = null;
     }
   }

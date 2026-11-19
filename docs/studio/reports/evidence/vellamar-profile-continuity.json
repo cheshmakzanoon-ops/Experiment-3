@@ -1,0 +1,532 @@
+{
+  "title": "Vellamar station-aware periodic profile continuity",
+  "assignment": 27,
+  "scope": [
+    "Vellamar elevation",
+    "Vellamar bank gain"
+  ],
+  "unchangedProfiles": [
+    "Aurel",
+    "all catalogue circuits including Arroyo Oro",
+    "all offroad circuits"
+  ],
+  "baselineEngineAggregate": "977cec4cf15dcebc94c8c9f2d14bf15b45a5a6093dd1ef17b950cf6f09bfdcea",
+  "baselineEngineCommit": "70822afe3079db4d1daf71dba89a216b8eaee330",
+  "sourceFiles": {
+    "baselineCircuitsSha256": "7b0208025d6c0cb25a49bc757e7c69b1fdcb651bdb66803ee75648de24752c90",
+    "correctedCircuitsSha256": "d99cd460d6236494fe369cd25fdecd1370f47af599f8316c8f6919243c001be4",
+    "regressionTestSha256": "34f21e76ec48c97262be6f5c1fe5f0f17d201cd533aed14a06ae198f00e75fa2"
+  },
+  "profileProbe": {
+    "baseline": {
+      "length": 3997.2689252571236,
+      "station": 3620.243560027717,
+      "derivative": {
+        "left": -0.0395428484731917,
+        "right": -0.06849922418508941
+      },
+      "derivativeJump": -0.028956375711897714,
+      "maxQuarterMetreContactSlopeChange": 0.009248197614735602
+    },
+    "candidate": {
+      "length": 3997.2689252571236,
+      "station": 3620.243560027717,
+      "derivative": {
+        "left": -0.05014072985088087,
+        "right": -0.050140725840237405
+      },
+      "derivativeJump": 4.010643463170371e-09,
+      "maxQuarterMetreContactSlopeChange": 0.003373621577553332
+    }
+  },
+  "nativeSuspensionBench": {
+    "method": "Prescribed real Track.cast front/rear heights into unchanged production GP_R1 RoadBikeSuspension; starts at station 3500 with measured initial vertical velocity; no AI or planar controller.",
+    "timeStepSeconds": 0.004166666666666667,
+    "observationStations": [
+      3605,
+      3640
+    ],
+    "baseline": [
+      {
+        "lateral": 0,
+        "speed": 40,
+        "zeroSteps": 0,
+        "minLoad": 332.2896081452691,
+        "maxLoad": 3113.7607606679667
+      },
+      {
+        "lateral": 0,
+        "speed": 55,
+        "zeroSteps": 22,
+        "minLoad": 0,
+        "maxLoad": 4604.270175249252
+      },
+      {
+        "lateral": 0,
+        "speed": 60,
+        "zeroSteps": 33,
+        "minLoad": 0,
+        "maxLoad": 6014.014563479526
+      },
+      {
+        "lateral": -2.2,
+        "speed": 40,
+        "zeroSteps": 1,
+        "minLoad": 0,
+        "maxLoad": 3404.948712909265
+      },
+      {
+        "lateral": -2.2,
+        "speed": 55,
+        "zeroSteps": 24,
+        "minLoad": 0,
+        "maxLoad": 5136.240527250897
+      },
+      {
+        "lateral": -2.2,
+        "speed": 60,
+        "zeroSteps": 34,
+        "minLoad": 0,
+        "maxLoad": 6149.570367490589
+      }
+    ],
+    "candidate": [
+      {
+        "lateral": 0,
+        "speed": 40,
+        "zeroSteps": 0,
+        "minLoad": 2407.5808901101454,
+        "maxLoad": 2570.7206449678793
+      },
+      {
+        "lateral": 0,
+        "speed": 55,
+        "zeroSteps": 0,
+        "minLoad": 2460.5040428833076,
+        "maxLoad": 2680.3233927350284
+      },
+      {
+        "lateral": 0,
+        "speed": 60,
+        "zeroSteps": 0,
+        "minLoad": 2483.7433347005185,
+        "maxLoad": 2723.212603965646
+      },
+      {
+        "lateral": -2.2,
+        "speed": 40,
+        "zeroSteps": 0,
+        "minLoad": 1717.6398543089756,
+        "maxLoad": 2906.004795795455
+      },
+      {
+        "lateral": -2.2,
+        "speed": 55,
+        "zeroSteps": 0,
+        "minLoad": 1884.1579208434343,
+        "maxLoad": 3122.8150780528986
+      },
+      {
+        "lateral": -2.2,
+        "speed": 60,
+        "zeroSteps": 0,
+        "minLoad": 1926.9052707068454,
+        "maxLoad": 3215.487660838977
+      }
+    ]
+  },
+  "originalEvent": {
+    "eventId": "vellamar-gp-motorcycle-sprint",
+    "autoPlayer": true,
+    "worldDtSeconds": 0.008333333333333333,
+    "options": {
+      "mode": "race",
+      "laps": 4,
+      "opponents": 7,
+      "weather": "clear",
+      "assist": "sport",
+      "compound": "medium",
+      "setup": {
+        "frontWing": 0.55,
+        "rearWing": 0.58,
+        "brakeBias": 0.56,
+        "diffPower": 0.5,
+        "diffCoast": 0.25,
+        "frontSpring": 115000,
+        "rearSpring": 125000,
+        "frontARB": 26000,
+        "rearARB": 21000,
+        "frontRide": 0.065,
+        "rearRide": 0.075,
+        "frontPressure": 155,
+        "rearPressure": 148,
+        "frontCamber": -0.044,
+        "rearCamber": -0.023,
+        "frontToe": -0.001,
+        "rearToe": 0.002,
+        "frontPreload": 0,
+        "rearPreload": 0,
+        "frontDamping": 0.5,
+        "rearDamping": 0.5,
+        "steeringDamper": 0.5,
+        "gearing": 1,
+        "tractionMap": 3,
+        "wheelieMap": 3,
+        "engineBrakeMap": 0
+      },
+      "seed": 3303,
+      "circuit": "vellamar",
+      "ruleset": "gp-motorcycle",
+      "vehicles": [
+        "gpr1",
+        "gpr1",
+        "gpr1",
+        "gpr1",
+        "gpr1",
+        "gpr1",
+        "gpr1",
+        "gpr1"
+      ]
+    },
+    "baseline": {
+      "finished": true,
+      "raceSeconds": 399.12419938236104,
+      "wallSeconds": 49.957545474,
+      "crashes": [
+        1,
+        0,
+        1,
+        0,
+        2,
+        1,
+        2,
+        1
+      ],
+      "best": [
+        90.42449707260084,
+        88.07417518427908,
+        87.85918092954236,
+        89.89449668152889,
+        87.3229561931181,
+        88.94713457224815,
+        86.36604743621757,
+        87.7535163481666
+      ]
+    },
+    "candidate": {
+      "finished": true,
+      "raceSeconds": 376.99086604904784,
+      "wallSeconds": 44.590936137999996,
+      "crashes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "best": [
+        87.04488219276101,
+        89.5276192039392,
+        86.99421749866269,
+        89.44646985739979,
+        89.38159688770679,
+        87.0401318247923,
+        90.07025200789417,
+        87.34030944322927
+      ]
+    },
+    "baselineFalls": [
+      {
+        "id": 7,
+        "t": 91.71586604925531,
+        "s": 3659.132255231789,
+        "kind": "lowside",
+        "speed": 48.789589206671074,
+        "target": 44.69226221851132,
+        "lean": 1.2639280360548617,
+        "rate": 6.1606680492266035,
+        "side": 20.7403922817203,
+        "yaw": 2.5,
+        "frontLoad": 1486.6910990610313,
+        "rearLoad": 1360.0412756645835,
+        "frontFy": 2439.975553867803,
+        "rearFy": -2050.5525821657675,
+        "impacts": []
+      },
+      {
+        "id": 6,
+        "t": 99.51586604926152,
+        "s": 3665.8658332369414,
+        "kind": "lowside",
+        "speed": 33.411568735313445,
+        "target": 44.216242019422566,
+        "lean": 1.2558961413958811,
+        "rate": 1.949183400595973,
+        "side": -26.934554334470917,
+        "yaw": 2.5,
+        "frontLoad": 1677.3817113515142,
+        "rearLoad": 1546.91066760209,
+        "frontFy": 2783.3213170317395,
+        "rearFy": 1842.1115476497177,
+        "impacts": []
+      },
+      {
+        "id": 2,
+        "t": 171.74086604923454,
+        "s": 3687.5201312778236,
+        "kind": "lowside",
+        "speed": 32.018390041331116,
+        "target": 20.588818182200583,
+        "lean": -1.2676675819174377,
+        "rate": -6.725344863302271,
+        "side": -19.545885415299036,
+        "yaw": -2.5,
+        "frontLoad": 1230.061295456422,
+        "rearLoad": 1176.859497874352,
+        "frontFy": -1758.7158531113005,
+        "rearFy": 1579.5167203536514,
+        "impacts": []
+      },
+      {
+        "id": 0,
+        "t": 179.30753271589433,
+        "s": 3675.163381790024,
+        "kind": "lowside",
+        "speed": 50.9608176875879,
+        "target": 44.95142157668479,
+        "lean": 1.251578907222986,
+        "rate": 3.560802088808528,
+        "side": -7.525923253234392,
+        "yaw": 2.170861670486378,
+        "frontLoad": 1543.737881548484,
+        "rearLoad": 1316.8300966254353,
+        "frontFy": 1859.9841451942286,
+        "rearFy": 2062.5562049297123,
+        "impacts": []
+      },
+      {
+        "id": 4,
+        "t": 188.99086604921885,
+        "s": 3695.234753722135,
+        "kind": "lowside",
+        "speed": 20.73491616394597,
+        "target": 24.76021697140781,
+        "lean": 1.253042006243552,
+        "rate": 1.7851198425685109,
+        "side": -16.708408102874984,
+        "yaw": 2.5,
+        "frontLoad": 1614.5728367185188,
+        "rearLoad": 1485.2775002363337,
+        "frontFy": 2639.440113570983,
+        "rearFy": 1770.8994585457501,
+        "impacts": []
+      },
+      {
+        "id": 5,
+        "t": 265.07419938248296,
+        "s": 3714.9890216773756,
+        "kind": "lowside",
+        "speed": 23.310388869514036,
+        "target": 10,
+        "lean": -1.2651290801309958,
+        "rate": -6.07560237297907,
+        "side": -12.060153606372662,
+        "yaw": -2.5,
+        "frontLoad": 1419.218500661728,
+        "rearLoad": 1387.8931320473057,
+        "frontFy": -1004.999921297374,
+        "rearFy": 1011.7830509977155,
+        "impacts": []
+      },
+      {
+        "id": 4,
+        "t": 290.6158660491264,
+        "s": 3702.0719167137795,
+        "kind": "lowside",
+        "speed": 16.023335761343397,
+        "target": 10,
+        "lean": -1.2611008954394356,
+        "rate": -5.572994844307593,
+        "side": -9.974727637798367,
+        "yaw": -2.191644423415203,
+        "frontLoad": 1148.6362411818827,
+        "rearLoad": 1125.806717924228,
+        "frontFy": -877.8069862707252,
+        "rearFy": 767.4948749935625,
+        "impacts": []
+      },
+      {
+        "id": 6,
+        "t": 291.44086604912565,
+        "s": 3706.3291681483734,
+        "kind": "lowside",
+        "speed": 15.768717622911351,
+        "target": 16.927302062768995,
+        "lean": 1.2544077735510262,
+        "rate": 1.711772668295183,
+        "side": -12.687239251399287,
+        "yaw": 1.721232828848168,
+        "frontLoad": 445.88550747920215,
+        "rearLoad": 1151.9350927995933,
+        "frontFy": 166.1517006226166,
+        "rearFy": 1327.1594371430147,
+        "impacts": []
+      }
+    ],
+    "candidateFalls": [],
+    "limitation": "Diagnostic records finished phase and per-bike crash counts/best laps, not all classification or stopped-time fields. Original full 19-scenario acceptance remains required."
+  },
+  "firstRiderFlight": {
+    "riderId": 7,
+    "steps": 19,
+    "seconds": 0.07916666666666666,
+    "first": {
+      "trace": true,
+      "t": 91.01586604925475,
+      "s": 3620.897674186168,
+      "dt": 0.004166666666666667,
+      "x": 491.6090350886731,
+      "z": -160.1817093737321,
+      "speed": 55.48043148125979,
+      "heading": 3.400794461881677,
+      "lateral": -1.6127754175270226,
+      "input": 1,
+      "lean": 0.21924439170759868,
+      "rate": -0.3543606858679844,
+      "target": 0,
+      "front": 0,
+      "rear": 0,
+      "fy": 0,
+      "ry": 0,
+      "ay": 0,
+      "yaw": -0.3991179162891806,
+      "side": 0.2766702882693731,
+      "bars": -0.021997867875138112,
+      "throttle": 0.0037496582967710573,
+      "brake": 0,
+      "road": {
+        "mass": 244.61233189220007,
+        "rideHeight": 0.6027881554354031,
+        "frontHeight": 7.980810217113568,
+        "rearHeight": 8.061166821426966,
+        "nextFrontHeight": 7.966752911550809,
+        "nextRearHeight": 8.048371678503155,
+        "frontForce": 0,
+        "rearForce": 0,
+        "cgHeight": 0.6004195529723853,
+        "downforce": 138.5717539465072,
+        "downforceFront": 0.6
+      }
+    },
+    "last": {
+      "trace": true,
+      "t": 91.09086604925481,
+      "s": 3625.258765570068,
+      "dt": 0.004166666666666667,
+      "x": 490.4642726999272,
+      "z": -164.41306887380424,
+      "speed": 55.23272032572192,
+      "heading": 3.369215634265833,
+      "lateral": -1.551815401714578,
+      "input": 1,
+      "lean": 0.17205407489451202,
+      "rate": -0.35714648870839255,
+      "target": 0,
+      "front": 0,
+      "rear": 0,
+      "fy": 0,
+      "ry": 0,
+      "ay": 0,
+      "yaw": -0.3988297975097807,
+      "side": 2.0246610174383095,
+      "bars": -0.10783307720212788,
+      "throttle": 0.05776347440874536,
+      "brake": 0,
+      "road": {
+        "mass": 244.6122823748051,
+        "rideHeight": 0.6093047662330582,
+        "frontHeight": 7.687212900433597,
+        "rearHeight": 7.782374841056302,
+        "nextFrontHeight": 7.671726963130697,
+        "nextRearHeight": 7.76656905532222,
+        "frontForce": 0,
+        "rearForce": 0,
+        "cgHeight": 0.6078329450724699,
+        "downforce": 137.3513240049961,
+        "downforceFront": 0.6
+      }
+    }
+  },
+  "validation": {
+    "focused": {
+      "files": 7,
+      "testsPassed": 56,
+      "failed": 0,
+      "durationSeconds": 67.34,
+      "command": "vitest run tests/vellamar-profile-contact.test.ts tests/circuits.test.ts tests/road-bike-suspension.test.ts tests/road-bike-contact-surface.test.ts tests/road-contact-ownership.test.ts tests/racing-line.test.ts tests/kerb-runoff.test.ts",
+      "logSha256": "3f1f6ba2d7921e1a5a951b29e12663c56e5feaf74980d86581866af68f14d905"
+    },
+    "negativeControl": {
+      "method": "Old production periodicProfile body with export visibility for test import; unchanged new test; candidate body restored in finally.",
+      "exitCode": 1,
+      "testsFailed": 7,
+      "testsPassed": 3,
+      "failures": [
+        "nonuniform elevation derivatives",
+        "raw bank derivatives",
+        "actual contact traversal 0m/55mps",
+        "actual contact traversal 0m/60mps",
+        "actual contact traversal -2.2m/40mps",
+        "actual contact traversal -2.2m/55mps",
+        "actual contact traversal -2.2m/60mps"
+      ],
+      "logSha256": "f5c2fca4528d51218998e2c5cff5ef6fea1c2aa9a5d2bd1ce2c86375244e4358"
+    },
+    "scopedLint": {
+      "exitCode": 0,
+      "files": [
+        "src/simulation/circuits.ts",
+        "tests/vellamar-profile-contact.test.ts"
+      ]
+    },
+    "isolatedTypecheck": {
+      "exitCode": 2,
+      "accepted": false,
+      "reason": "Reduced copy omitted unrelated imported docs/public/e2e fixture files."
+    },
+    "integratedTypecheck": {
+      "status": "passed",
+      "exitCode": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "integratedRegression": {
+      "status": "passed",
+      "exitCode": 0,
+      "logSha256": "3dccf8a4bec4c37948f03d7ca98c0efc5bcb225e96147dbee4ecc882c9587104",
+      "files": 1,
+      "testsPassed": 10,
+      "failed": 0,
+      "durationSeconds": 3.65
+    },
+    "precedingOriginalMatrix": {
+      "passed": 17,
+      "failed": 2,
+      "allFinished": true,
+      "classified": 158,
+      "failures": [
+        "Vellamar GP sprint: 8 crashes > 6",
+        "Arroyo Oro superbike: 29 crashes > 6"
+      ]
+    },
+    "finalOriginalMatrix": {
+      "status": "pending integrated corrections"
+    }
+  },
+  "limits": [
+    "No incident thresholds, deadlines, AI gains, grip, authored knot values, or suspension hardware were changed.",
+    "Raw cubic slopes are shared; existing nonnegative bank clamp and piecewise planar collision mesh remain."
+  ]
+}

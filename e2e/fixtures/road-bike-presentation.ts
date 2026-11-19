@@ -92,7 +92,6 @@ export function capture() {
   const sun = new T.DirectionalLight(0xffe5ce, 3),
     ambient = new T.HemisphereLight(0xc4dcff, 0x433c34, 2.5),
     shells = new BikeShells(),
-    coldShells = new BikeShells(),
     host = { root: new T.Object3D() },
     camera = new T.PerspectiveCamera(42, WIDTH / HEIGHT, 0.05, 50),
     top = new T.OrthographicCamera(-3, 3, 2, -2, 0.05, 30),
@@ -120,8 +119,7 @@ export function capture() {
   top.lookAt(centre);
   sun.position.copy(centre).add(new T.Vector3(-4, 9, 5));
   sun.target.position.copy(centre);
-  coldShells.root.visible = false;
-  scene.add(ground, shells.root, coldShells.root, sun, sun.target, ambient);
+  scene.add(ground, shells.root, sun, sun.target, ambient);
 
   const read = () => {
     const pixels = new Uint8Array(WIDTH * HEIGHT * 4);
@@ -130,11 +128,10 @@ export function capture() {
       glErrors.push(error);
     return pixels;
   };
-  const draw = (frame: Float32Array, view: T.Camera, bikes = true, models = shells) => {
+  const draw = (frame: Float32Array, view: T.Camera, bikes = true) => {
     sampleChassisPose(frame, frame, o, 1, host.root.position, host.root.quaternion);
-    models.update(frame, frame, 1, [host], camera, 'high', 0);
-    shells.root.visible = coldShells.root.visible = false;
-    models.root.visible = bikes;
+    shells.update(frame, frame, 1, [host], camera, 'high', 0);
+    shells.root.visible = bikes;
     scene.updateMatrixWorld(true);
     view.updateMatrixWorld(true);
     studio.update(frame, view, sun, view === camera ? 'active-bike' : 'active-ground');
@@ -153,8 +150,8 @@ export function capture() {
       }
     return darkness / 27;
   };
-  const describe = (frame: Float32Array, models = shells) => {
-    const root = models.drawnRoot(0)!;
+  const describe = (frame: Float32Array) => {
+    const root = shells.drawnRoot(0)!;
     // BikeModel attaches its actual sprung group first. Inspect the production
     // graph rather than posing a second independently constructed model.
     const sprung = root.children[0],
@@ -205,6 +202,14 @@ export function capture() {
     };
   };
   try {
+    // Capture the model's FIRST presentation before any spring history exists.
+    // Reuse its exact authored textures so the later pixel comparison isolates
+    // replay restoration from a second independent creation of the artwork.
+    // The subsequent earlier supported snapshot resets this cold state before
+    // the ordinary supported -> airborne -> landed sequence begins.
+    const coldSeek = draw(frames.airborne, camera),
+      coldSeekReference = describe(frames.airborne);
+    images['airborne-cold-seek'] = renderer.domElement.toDataURL('image/png');
     const observations = [],
       stagePixels: Record<string, Uint8Array> = {};
     for (const [name, frame] of Object.entries(frames)) {
@@ -225,13 +230,9 @@ export function capture() {
         tyreDarkness: [probe(noTyreTerm, grounded, front), probe(noTyreTerm, grounded, rear)],
       });
     }
-    // A backward seek intentionally restarts the rider's spring body at
-    // equilibrium. Its oracle is a separate model's FIRST presentation of
-    // this snapshot, not the earlier continuous spring-history pose. Keep
-    // their observed difference in the report rather than erasing history.
-    const coldSeek = draw(frames.airborne, camera, true, coldShells),
-      coldSeekReference = describe(frames.airborne, coldShells);
-    images['airborne-cold-seek'] = renderer.domElement.toDataURL('image/png');
+    // A backward seek restarts the rider's spring body at equilibrium. Compare
+    // it with the independently captured cold state, retaining the continuous
+    // history difference in the report and the exact zero-pixel gate.
     const flight = draw(frames.airborne, camera);
     images['airborne-rewind'] = renderer.domElement.toDataURL('image/png');
     const held = draw(frames.airborne, camera),
@@ -271,7 +272,6 @@ export function capture() {
     };
   } finally {
     shells.disposeAll();
-    coldShells.disposeAll();
     groundGeometry.dispose();
     groundMaterial.dispose();
     renderer.dispose();

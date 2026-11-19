@@ -43,6 +43,47 @@ async function inspectInstancedFragmentOutputs(page: Page) {
       attachShader = prototype.attachShader,
       linkProgram = prototype.linkProgram,
       useProgram = prototype.useProgram;
+    // Record repeated immutable-storage allocation without querying or draining
+    // driver errors. The first and repeated call sites identify the actual
+    // resource owner; warning text alone cannot distinguish cloned maps from
+    // render-target lifetime errors.
+    const activeTexture = prototype.activeTexture,
+      bindTexture = prototype.bindTexture,
+      texStorage2D = prototype.texStorage2D,
+      activeUnits = new WeakMap<WebGL2RenderingContext, number>(),
+      bindings = new WeakMap<WebGL2RenderingContext, Map<string, WebGLTexture | null>>(),
+      allocations = new WeakMap<WebGLTexture, { args: number[]; stack: string }>();
+    let textureReports = 0;
+    prototype.activeTexture = function (unit) {
+      activeUnits.set(this, unit);
+      activeTexture.call(this, unit);
+    };
+    prototype.bindTexture = function (target, texture) {
+      let contextBindings = bindings.get(this);
+      if (!contextBindings) bindings.set(this, (contextBindings = new Map()));
+      contextBindings.set(`${activeUnits.get(this) ?? this.TEXTURE0}:${target}`, texture);
+      bindTexture.call(this, target, texture);
+    };
+    prototype.texStorage2D = function (...args) {
+      const texture = bindings
+        .get(this)
+        ?.get(`${activeUnits.get(this) ?? this.TEXTURE0}:${args[0]}`);
+      if (texture) {
+        const previous = allocations.get(texture);
+        if (previous && textureReports < 12) {
+          textureReports++;
+          console.warn(
+            'APEX_HIGH_TEXTURE_REALLOCATION ' +
+              JSON.stringify({
+                atMs: performance.now(),
+                previous,
+                current: { args, stack: new Error().stack },
+              }),
+          );
+        } else if (!previous) allocations.set(texture, { args, stack: new Error().stack ?? '' });
+      }
+      texStorage2D.apply(this, args);
+    };
     const types = new WeakMap<WebGLShader, number>(),
       sources = new WeakMap<WebGLShader, string>(),
       fragments = new WeakMap<WebGLProgram, WebGLShader>(),
@@ -118,7 +159,7 @@ test('High production scene presents an active GP chassis and two completed phot
   page.on('console', (message) => {
     if (
       message.type() === 'error' ||
-      /\bGL_(?:INVALID_\w+|OUT_OF_MEMORY|CONTEXT_LOST)\b|APEX_HIGH_MISSING_FRAGMENT_OUTPUT/.test(
+      /\bGL_(?:INVALID_\w+|OUT_OF_MEMORY|CONTEXT_LOST)\b|APEX_HIGH_(?:MISSING_FRAGMENT_OUTPUT|TEXTURE_REALLOCATION)/.test(
         message.text(),
       )
     )

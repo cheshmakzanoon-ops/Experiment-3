@@ -114,6 +114,27 @@ describe('festival edge cases: flipping and respawn', () => {
     run(sim, 12, pilot);
     const flipped = sim.player,
       before = sim.status().event!.progress;
+    // Stage a stationary rollover at the recorded legal station, clear of
+    // the racing line. Abruptly stopping in front of a following rival adds
+    // a high-energy rear impact; its subsequent slide is not the low-speed
+    // inversion that starts the two-second recovery clock.
+    const race = event(sim, 'harbour-welcome'),
+      p = race.path.at(before * race.distance, pathPoint()),
+      shoulder = p.halfWidth - 1;
+    sim.placeAt(
+      flipped,
+      p.x - p.nx * shoulder,
+      p.z - p.nz * shoulder,
+      Math.atan2(p.tx, p.tz),
+      p.y + 1,
+    );
+    for (const rival of sim.cars.slice(1))
+      expect(
+        Math.hypot(
+          rival.body.position.x - flipped.body.position.x,
+          rival.body.position.z - flipped.body.position.z,
+        ),
+      ).toBeGreaterThan(4);
     flipped.body.orientation.x = 1;
     flipped.body.orientation.y = 0;
     flipped.body.orientation.z = 0;

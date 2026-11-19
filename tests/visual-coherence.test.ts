@@ -418,7 +418,21 @@ describe('27H.5 localized haze and paused reflection ownership', () => {
     expect(material.envMap).toBe(completed);
     expect(car.visible).toBe(true);
     expect(reflection.probeUpdates).toBe(1);
+    // A failed six-face capture keeps the completed cube and consumes the
+    // ordinary start budget. Repeated held frames must not retry the same
+    // failed request without an explicit invalidation or clock advancement.
+    for (let i = 0; i < 20; i++)
+      reflection.updateProbe(renderer, scene, car, [material], true);
+    expect(update).toHaveBeenCalledTimes(2);
+    expect(reflection.probeUpdates).toBe(1);
+    expect(material.envMap).toBe(completed);
+    reflection.beginFrame(10.49, false);
     reflection.updateProbe(renderer, scene, car, [material], true);
+    expect(update).toHaveBeenCalledTimes(2);
+    expect(reflection.probeUpdates).toBe(1);
+    reflection.beginFrame(10.5, false);
+    reflection.updateProbe(renderer, scene, car, [material], true);
+    expect(update).toHaveBeenCalledTimes(3);
     expect(reflection.probeUpdates).toBe(2);
     expect(material.envMap).not.toBe(completed);
     reflection.updateProbe(renderer, scene, car, [material], true);

@@ -2377,7 +2377,16 @@ export class RacingRenderer {
     this.applyVegetationDensity();
     const farCasters: T.Object3D[] = [];
     this.circuit.vegetationGroup.traverse((object) => {
-      if (object instanceof T.InstancedMesh && !object.castShadow) farCasters.push(object);
+      // Crown occlusion is already a projected ground term, never geometry
+      // that blocks sunlight. Exclude it before submission: an unconditional
+      // discard shader has no active colour output and is invalid for this
+      // colour-backed WebGL2 shadow framebuffer on ANGLE.
+      if (
+        object instanceof T.InstancedMesh &&
+        !object.castShadow &&
+        object.userData.photoVegetation !== 'contact'
+      )
+        farCasters.push(object);
     });
     this.farShadow.bake(this.renderer, this.scene, {
       direction: lightingDirection(illumination),

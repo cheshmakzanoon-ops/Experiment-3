@@ -396,6 +396,53 @@ describe('live circuit vegetation quality', () => {
     forest.dispose();
     photos.dispose();
   });
+
+  it('bakes photographed trees without submitting their projected crown occlusion as casters', () => {
+    const { renderer, circuit } = fixture(),
+      photos = library(),
+      forest = new PhotoForest(photos),
+      bake = vi.fn();
+    forest.add([{ species: SPECIES.linden, x: 0, y: 0, z: 0, scale: 1, yaw: 0, tint: [1, 1, 1] }], {
+      label: 'Far shadow contact exclusion',
+      shadows: false,
+      ground: () => 0,
+    });
+    circuit.vegetationGroup.add(forest.root);
+    Object.assign(renderer, {
+      cars: [],
+      farShadow: { bake },
+      farShadowBounds: new T.Box3(),
+      sun: new T.DirectionalLight(),
+      pitCrew: {},
+      gridPreparation: {},
+      gridPerformance: {},
+      debris: {},
+      guide: {},
+      engineeringView: {},
+      effects: {},
+    });
+    try {
+      (renderer as unknown as { bakeFarShadow(mode: 'day'): void }).bakeFarShadow('day');
+      const contact = forest.root.children.find(
+        (o) => o.userData.photoVegetation === 'contact',
+      ) as T.InstancedMesh;
+      const casters = bake.mock.calls[0][2].farCasters as T.Object3D[];
+      expect(casters.map((o) => o.userData.photoVegetation)).toEqual([
+        'cards',
+        'trunk',
+        'impostor',
+      ]);
+      expect(casters).not.toContain(contact);
+      expect(contact.castShadow).toBe(false);
+      expect(contact.customDepthMaterial).toBeUndefined();
+      expect(contact.visible).toBe(true);
+      expect((contact.material as T.MeshBasicMaterial).opacity).toBeGreaterThan(0);
+    } finally {
+      forest.dispose();
+      photos.dispose();
+      circuit.disposePlanting();
+    }
+  });
 });
 
 it('unregisters replaced imported maps while preserving a live clone and immutable image source', () => {
