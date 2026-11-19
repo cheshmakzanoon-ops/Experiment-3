@@ -18,7 +18,10 @@ function fixture(vehicle = 'apx01', entrants = 3) {
   const calls: string[] = [];
   // Match the native renderer's material ownership table and retained-program
   // list. Startup now initializes linked-program metadata before drawing.
-  const materialProperties = new WeakMap<T.Material, { programs?: Map<string, T.WebGLProgram> }>();
+  const materialProperties = new WeakMap<
+    T.Material,
+    { programs?: Map<string, T.WebGLProgram>; uniforms?: Record<string, T.IUniform> }
+  >();
   let bound: T.WebGLRenderTarget | null = null;
   const sample = new Float32Array(HEADER + CAR_STRIDE * entrants);
   sample[H.CARS] = entrants;
@@ -173,7 +176,7 @@ function linkedProgramFixture() {
   target.scene.add(new T.Mesh(geometry, material));
   const getUniforms = vi.fn(() => {
     calls.push('program-metadata');
-    return {};
+    return { seq: [] as { id: string; type: number }[] };
   });
   const program = { usedTimes: 1, getUniforms } as unknown as T.WebGLProgram;
   const compile = target.renderer.compileAsync.getMockImplementation()!;
@@ -187,6 +190,7 @@ function linkedProgramFixture() {
   });
   return {
     ...result,
+    material,
     getUniforms,
     dispose() {
       geometry.dispose();
@@ -222,6 +226,57 @@ it('prepares retained scene metadata before drawing and still waits for both GPU
     dispose();
   }
 });
+
+it.each([false, true])(
+  'prepares retained textures before shadow/probe draws and honors texture-stage cancellation=%s',
+  async (cancelAtTextures) => {
+    const { target, typed, sample, calls, material, getUniforms, dispose } = linkedProgramFixture();
+    const map = new T.DataTexture(new Uint8Array(16), 2, 2);
+    map.userData.normalResidency = 'decoded-rgba8';
+    map.needsUpdate = true;
+    material.map = map;
+    target.renderer.properties.get(material).uniforms = { map: { value: null } };
+    getUniforms.mockImplementation(() => {
+      calls.push('program-metadata');
+      return { seq: [{ id: 'map', type: 0x8b5e }] };
+    });
+    const upload = vi.fn((texture: T.Texture) => {
+      expect(texture).toBe(map);
+      calls.push('scene-texture');
+    });
+    Object.assign(target.renderer, { initTexture: upload });
+    let cancelled = false;
+    try {
+      expect(
+        await RacingRenderer.prototype.prepare.call(
+          typed,
+          sample,
+          (label) => {
+            if (cancelAtTextures && label === 'Preparing retained scene textures…')
+              cancelled = true;
+          },
+          () => cancelled,
+          async () => {},
+        ),
+      ).toBe(!cancelAtTextures);
+      expect(upload).toHaveBeenCalledTimes(cancelAtTextures ? 0 : 1);
+      expect(target.draw).toHaveBeenCalledTimes(cancelAtTextures ? 0 : 2);
+      expect(target.waitForPreparedFrame).toHaveBeenCalledTimes(cancelAtTextures ? 0 : 2);
+      if (!cancelAtTextures) {
+        expect(calls.indexOf('scene-texture')).toBeGreaterThan(calls.indexOf('program-metadata'));
+        expect(calls.indexOf('scene-texture')).toBeGreaterThan(calls.indexOf('exposure-material'));
+        expect(calls.indexOf('scene-texture')).toBeLessThan(calls.indexOf('shadow-casters'));
+        expect(calls.indexOf('scene-texture')).toBeLessThan(calls.indexOf('draw'));
+      }
+      expect(target.preparation.snapshot()?.status).toBe(
+        cancelAtTextures ? 'cancelled' : 'complete',
+      );
+    } finally {
+      map.dispose();
+      dispose();
+    }
+  },
+);
 
 it.each(['disabled', 'photo'] as const)(
   'does not prepare an inactive exposure meter when %s',

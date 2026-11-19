@@ -58,6 +58,135 @@ export function compileSceneTarget(
   );
 }
 
+interface PreparedSampler {
+  id: string;
+  type?: number;
+  size?: number;
+}
+
+// Direct assignments in r180 WebGLMaterials.refreshMaterialUniforms. envMap
+// is deliberately separate: its sampled owner is the renderer's processed map.
+const MATERIAL_TEXTURE_SLOTS = new Set([
+  'map',
+  'alphaMap',
+  'bumpMap',
+  'normalMap',
+  'displacementMap',
+  'emissiveMap',
+  'specularMap',
+  'lightMap',
+  'aoMap',
+  'gradientMap',
+  'metalnessMap',
+  'roughnessMap',
+  'sheenColorMap',
+  'sheenRoughnessMap',
+  'clearcoatMap',
+  'clearcoatRoughnessMap',
+  'clearcoatNormalMap',
+  'iridescenceMap',
+  'iridescenceThicknessMap',
+  'transmissionMap',
+  'thicknessMap',
+  'anisotropyMap',
+  'specularColorMap',
+  'specularIntensityMap',
+  'matcap',
+]);
+
+/** The compiled material owns the sampler; the texture still owns its pixels,
+ * filtering and lifetime. Upload only ready, static 2D owners through Three's
+ * normal cache before shadow/probe submissions can precede their first use.
+ * No source, version, sampler setting or dynamic update clock changes here. */
+export function prepareSceneTextures(
+  renderer: T.WebGLRenderer,
+  scene: T.Scene,
+  cancelled: () => boolean,
+  hiddenRoots?: readonly T.Object3D[],
+) {
+  if (cancelled()) return;
+  const view = hiddenRoots ? compilationView(scene, hiddenRoots) : scene;
+  const materials = new Set<T.Material>();
+  view.traverse((object) => {
+    if (
+      !(object as T.Mesh).isMesh &&
+      !(object as T.Points).isPoints &&
+      !(object as T.Line).isLine &&
+      !(object as T.Sprite).isSprite
+    )
+      return;
+    const assigned = (object as T.Mesh).material;
+    if (Array.isArray(assigned)) assigned.forEach((material) => materials.add(material));
+    else if (assigned) materials.add(assigned);
+  });
+  const retained = new Set(renderer.info.programs ?? []),
+    prepared = new Set<T.Texture>();
+  for (const material of materials) {
+    if (cancelled()) return;
+    if (!material.visible) continue;
+    const properties = renderer.properties.get(material) as {
+      programs?: Map<string, T.WebGLProgram>;
+      uniforms?: Record<string, T.IUniform & { needsUpdate?: boolean }>;
+      envMap?: T.Texture | null;
+    };
+    if (!properties.uniforms) continue;
+    for (const program of properties.programs?.values() ?? []) {
+      if (!retained.has(program) || program.usedTimes <= 0) continue;
+      // r180 exposes seq at runtime; the installed @types omits that field.
+      const samplers = program.getUniforms() as unknown as { seq: PreparedSampler[] };
+      for (const sampler of samplers.seq) {
+        // Native SingleUniform SAMPLER_2D only. Arrays, structured uniforms,
+        // cube/volume maps and framebuffer attachments keep their own paths.
+        if (sampler.type !== 0x8b5e || sampler.size !== undefined) continue;
+        const uniform = properties.uniforms?.[sampler.id];
+        if (!uniform || uniform.needsUpdate === false) continue;
+        // WebGLMaterials refreshes built-in map slots only at the real draw;
+        // their compiled uniforms can still be null (or an older binding).
+        // Custom shader uniforms already retain their installed owner.
+        let value: unknown = uniform.value;
+        if (!(material instanceof T.ShaderMaterial)) {
+          if (MATERIAL_TEXTURE_SLOTS.has(sampler.id))
+            value = (material as unknown as Record<string, unknown>)[sampler.id];
+          else if (sampler.id === 'envMap') value = properties.envMap;
+        }
+        if (!(value instanceof T.Texture) || prepared.has(value) || !staticTextureReady(value))
+          continue;
+        if (cancelled()) return;
+        renderer.initTexture(value);
+        prepared.add(value);
+      }
+    }
+  }
+}
+
+function staticTextureReady(texture: T.Texture) {
+  if (
+    texture.isRenderTargetTexture ||
+    (texture as T.Texture & { isExternalTexture?: boolean }).isExternalTexture ||
+    texture instanceof T.DepthTexture ||
+    texture instanceof T.VideoTexture ||
+    texture instanceof T.CubeTexture ||
+    texture instanceof T.Data3DTexture ||
+    texture instanceof T.DataArrayTexture ||
+    (texture as T.Texture & { isCompressedArrayTexture?: boolean }).isCompressedArrayTexture ||
+    texture.userData.dynamic ||
+    texture.version <= 0 ||
+    texture.source.dataReady === false
+  )
+    return false;
+  // Simulation fields, bones and mutable state atlases are DataTextures too.
+  // Only explicitly immutable data owners are safe to prepare ahead of a draw.
+  if (
+    texture instanceof T.DataTexture &&
+    texture.userData.normalResidency !== 'decoded-rgba8' &&
+    texture.userData.surfaceDetail !== true &&
+    texture.userData.immutableAssetTexture !== true
+  )
+    return false;
+  const image = texture.image as { width?: number; height?: number; complete?: boolean } | null;
+  return !!image && image.complete !== false && (image.width ?? 0) > 0 && (image.height ?? 0) > 0;
+}
+
 /** FullScreenQuad exposes its real mesh and camera through render(). Capture
  * that public call with a compile-only adapter: never invoke the renderer's
  * draw path, borrow private fields, or rebuild the pass's geometry/shaders. */

@@ -1,0 +1,90 @@
+{
+  "date": "2026-11-19",
+  "branch": "studio/retained-texture-preparation-20261119",
+  "baseCommit": "41c57598b017458c010b0d26d1627691c9b726ac",
+  "baseTree": "e40d41dd4894f2975e0e78cbbd9557daa43c0957",
+  "previousPublishedCommit": "991cf4fc17f46e102318f25b643bc160789203a2",
+  "previousIsolatedRun": 44615583958,
+  "sources": {
+    "src/rendering/preparation.ts": {
+      "bytes": 14048,
+      "sha256": "a984673fe78acf5c64b7845ce165384ed0c9058e04fce2a98af79dfbeea1a337"
+    },
+    "src/rendering/renderer.ts": {
+      "bytes": 133515,
+      "sha256": "19835c6610d2e75b30317d595b923a9b3d5da05f76f9611788f1ce15b86cad12"
+    },
+    "tests/scene-texture-preparation.test.ts": {
+      "bytes": 20372,
+      "sha256": "6a7787945cfeed072df469e79b5793641fa84a79b8ea902d1b6ea1fc3b5f570d"
+    },
+    "tests/startup.test.ts": {
+      "bytes": 36491,
+      "sha256": "fb82776f5daa9bd841d179609c8c4ebffce16031a51b8e93442b525265b2bb40"
+    }
+  },
+  "threeVersion": "0.180.0",
+  "nativeModules": {
+    "node_modules/three/src/renderers/WebGLRenderer.js": {
+      "bytes": 102861,
+      "sha256": "35cea4871231c3fddc3517dcd03fc876bdb8f9e73f1a77042b35e3de0498c4cd"
+    },
+    "node_modules/three/src/renderers/webgl/WebGLMaterials.js": {
+      "bytes": 13988,
+      "sha256": "7f388b17feb29d5bfac07d6f9fcda3bc0ccb9e2ea5c8ed72a79550fa20007395"
+    },
+    "node_modules/three/src/renderers/webgl/WebGLUniforms.js": {
+      "bytes": 20800,
+      "sha256": "5d856cbcb1fa946d82fd1ad5caee985a40128a5a09ae63d9897221b97175b6be"
+    },
+    "node_modules/three/src/renderers/webgl/WebGLTextures.js": {
+      "bytes": 66805,
+      "sha256": "b163f0d958d36ed9985ebecfa8b69e6496642bb26e56a5af1b499a92b350ff79"
+    },
+    "node_modules/three/src/renderers/webgl/WebGLProgram.js": {
+      "bytes": 31448,
+      "sha256": "d1ce381d6bfd7a632e708b1cd49b3332c16c5d0165a9532ab20788f6fafcc7fa"
+    }
+  },
+  "logs": {
+    "combined-tests.log": {
+      "bytes": 2802,
+      "sha256": "627f26a9514e096f7610785af2fd82a55147bc3c1f4a34d2852a210c43c487d0"
+    },
+    "combined-lint.log": {
+      "bytes": 273,
+      "sha256": "9d3c522dc63d469779a7ee38f55b22fc0473f88e04848cbd92c319671e8f5097"
+    },
+    "combined-typecheck.log": {
+      "bytes": 273,
+      "sha256": "9d3c522dc63d469779a7ee38f55b22fc0473f88e04848cbd92c319671e8f5097"
+    }
+  },
+  "checks": [
+    {
+      "command": "node --experimental-transform-types scripts/source-stability.ts -- npx vitest run tests/scene-texture-preparation.test.ts tests/post-processing-preparation.test.ts tests/exposure-preparation.test.ts tests/startup.test.ts tests/session-sky-preparation.test.ts tests/scene-ambient-preparation.test.ts tests/preparation.test.ts tests/lens-bloom.test.ts tests/visual-coherence.test.ts tests/exposure-key.test.ts tests/menu-startup-sky.test.ts tests/daylight-environment.test.ts tests/venue-preconstruction.test.ts tests/reflection-preparation.test.ts tests/pmrem-background-preparation.test.ts tests/reflections.test.ts",
+      "exitCode": 0,
+      "testFiles": 16,
+      "passed": 186,
+      "failed": 0,
+      "log": "combined-tests.log"
+    },
+    {
+      "command": "node --experimental-transform-types scripts/source-stability.ts -- npx eslint src/rendering/preparation.ts src/rendering/renderer.ts tests/scene-texture-preparation.test.ts tests/startup.test.ts",
+      "exitCode": 0,
+      "log": "combined-lint.log"
+    },
+    {
+      "command": "node --experimental-transform-types scripts/source-stability.ts -- npx tsc --noEmit",
+      "exitCode": 0,
+      "log": "combined-typecheck.log"
+    }
+  ],
+  "unchangedBrowserAcceptance": {
+    "bytes": 36263,
+    "sha256": "8145efd6bf378e614ea605d69da12984b232ab5311a2981e895cf6c017dc3497"
+  },
+  "proofScope": "Installed native material/uniform/texture submission and cache ownership; GL execution recorded. Synthetic eleven-mip data payloads are hashed at submission. No browser timing or authored-scene GPU pixel proof.",
+  "browserVerdictForThisSource": "pending",
+  "noProductionOrTestEditsAfterChecks": true
+}

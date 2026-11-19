@@ -30,7 +30,12 @@ import {
 import { loadPitWallStation } from './pit-wall-station.ts';
 import { loadHeroGarage } from './hero-garage.ts';
 import { loadTyreBlankets } from './tyre-blankets.ts';
-import { compilePassTarget, compileSceneTarget, PreparationTrace } from './preparation.ts';
+import {
+  compilePassTarget,
+  compileSceneTarget,
+  prepareSceneTextures,
+  PreparationTrace,
+} from './preparation.ts';
 import { warmPitMaterials } from './pit-material-warmup.ts';
 import { frontToBackOpaque } from './opaque-order.ts';
 import type { SuppliedPlayerAsset } from './supplied-player.ts';
@@ -1158,6 +1163,16 @@ export class RacingRenderer {
       this.renderer.toneMapping = TONE_MAPPING[toneMapper];
       this.grade.filmic = toneMapper !== 'aces';
       await this.preparePostProcessing(cancelled);
+      if (this.disposed || cancelled()) return false;
+      progress('Preparing retained scene textures…');
+      await yieldFrame();
+      if (this.disposed || cancelled()) return false;
+      prepareSceneTextures(
+        this.renderer,
+        this.scene,
+        () => this.disposed || cancelled(),
+        hiddenHosts,
+      );
       if (this.disposed || cancelled()) return false;
       progress('Compiling shadow casters around the circuit…');
       await yieldFrame();
