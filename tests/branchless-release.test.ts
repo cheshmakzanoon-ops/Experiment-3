@@ -149,6 +149,15 @@ else: raise ValueError(cmd)
     ]) {
       writeFileSync(join(release, 'BUILD_IDENTITY.json'), JSON.stringify(invalid));
       expect(run().status).not.toBe(0);
+      // Check the shared verifier independently too: owner/review rejection
+      // must not depend solely on the publisher's separate IP guard.
+      const verified = spawnSync(
+        process.execPath,
+        [join(root, 'verify-release-artifact.mjs'), release, sha],
+        { cwd: root, encoding: 'utf8' },
+      );
+      expect(verified.status).not.toBe(0);
+      expect(verified.stderr).toContain('Validated build identity differs from the gated source');
     }
     // A demo is product-class and may pass the IP guard, but can never replace
     // the full playable game. Exercise the shared verifier through publication.

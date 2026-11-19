@@ -155,15 +155,37 @@ try {
   assert.equal((await state()).paused, true);
   await page.locator('[data-fest="mapFilter"][data-value="races"]').click();
   await page.locator('[data-fest="mapSelect"][data-value="coast-to-summit"]').click();
-  assert.equal(
-    await page.locator('#festMapDetail [data-fest="travel"]').count(),
-    0,
-    'Undiscovered events must not allow fast travel.',
+  // Since 93576d20, discoveries record exploration; every Festival event is
+  // immediately travelable. The map and worker must honour that same contract.
+  assert.equal((await state()).status.discovered.includes('coast-to-summit'), false);
+  const freshTravel = page.locator(
+    '#festMapDetail [data-fest="travel"][data-value="coast-to-summit"]',
   );
+  assert.equal(
+    await freshTravel.count(),
+    1,
+    'Unvisited events must expose their travel action.',
+  );
+  assert.equal(await freshTravel.isEnabled(), true);
   await capture('journey-map');
   await page.keyboard.press('Escape');
   await page.locator('#festMenu').waitFor({ state: 'visible' });
-  pass('world map route preview, discovery gate and return to pause menu');
+  pass('world map route preview, enabled unvisited-event travel and return to pause menu');
+
+  phase = 'unvisited-event travel';
+  await page.locator('#festMenu [data-fest="travel"][data-value="coast-to-summit"]').click();
+  await page.locator('#loading').waitFor({ state: 'hidden' });
+  await page.waitForFunction(() => {
+    const current = window.horizonReview.state();
+    return current.status.card?.id === 'coast-to-summit' &&
+      current.status.discovered.includes('coast-to-summit');
+  });
+  assert.equal((await state()).results.length, 0, 'Travel alone must not create a race result.');
+  await page.locator('#festCard [data-fest="cancel"]').click();
+  await page.waitForFunction(() => window.horizonReview.state().status.mode === 'free');
+  await page.keyboard.press('Escape');
+  await page.locator('#festMenu').waitFor({ state: 'visible' });
+  pass('fresh-event travel records discovery on arrival without starting a race');
 
   phase = 'photo';
   await page.locator('[data-fest="photo"]').click();

@@ -176,7 +176,9 @@ describe('the certifying build path', () => {
     expect(stage).toMatch(/guard\.status !== 0/);
     const release = readFileSync(join(root, 'scripts/publish-validated-release.sh'), 'utf8');
     expect(release).toContain('ip-guard.mjs');
-    expect(release).toContain("identity.variant !== 'product'");
+    expect(release).toContain('/verify-release-artifact.mjs" "$release" "$VALIDATED_SHA"');
+    const verifier = readFileSync(join(root, 'scripts/verify-release-artifact.mjs'), 'utf8');
+    expect(verifier).toContain("identity.variant !== 'product'");
   });
   it('vite.config.ts runs the guard on product builds and labels every other build', () => {
     const config = readFileSync(join(root, 'vite.config.ts'), 'utf8');

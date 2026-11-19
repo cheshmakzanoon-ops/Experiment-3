@@ -71,7 +71,7 @@ Seasonal Wildcard drops, venues, weather, regions; Cyrillic/CJK; evaluate online
 | --- | --- | --- |
 | 0.1 CI reporter | implemented; browser failure evidence now persists before suite completion | `scripts/ci/ci-report.sh`, `scripts/browser-progress-reporter.mjs`, `tests/browser-progress-reporter.test.ts` |
 | 0.2 CI trigger/source identity | implemented with a conservative shared policy | `.github/workflows/ci.yml`, `scripts/release-source.mjs`, `tests/release-source.test.ts` |
-| 0.3 CI triage | open; fresh full run required | [November 16 report](../../ci-reports/build-and-validation.md): 6,307 unit tests passed, one failed; all eight browser jobs and owner QA canceled at 90 minutes; publish skipped |
+| 0.3 CI triage | open; fresh full run required | [November 16 report](https://github.com/cheshmakzanoon-ops/Experiment-3/blob/2b5afc838cc654f14f0bac1d7fe410827a7a8df5/ci-reports/build-and-validation.md): 6,307 unit tests passed, one failed; all eight browser jobs and owner QA canceled at 90 minutes; publish skipped |
 | 0.4 Hardware benchmark | built, hardware measurements outstanding | `scripts/bench/gpu-bench.mjs`, `tests/gpu-bench.test.ts`, [HARDWARE_BENCHMARK.md](HARDWARE_BENCHMARK.md); earlier benchmark smoke run `42761743565` is harness evidence only |
 | 0.5 Publication hygiene | code and targeted tests updated; live deployment requires a successful full run | Pages and CDN consume `apex-formula-release` from the triggering successful first-party main run; shared identity/asset/IP checks; `tests/ci-workflow.test.ts`, `tests/branchless-release.test.ts` |
 

@@ -10,7 +10,7 @@ Rendering realism pass (F1, MotoGP, motocross, open world): status, remaining wo
 ## Current priorities after the main-branch audit
 
 Use [CURRENT_STATUS.md](../CURRENT_STATUS.md) for the repair scope and verification limits.
-The latest committed pre-repair CI run, [43839758878](../../ci-reports/build-and-validation.md),
+The latest committed pre-repair CI run, [43839758878](https://github.com/cheshmakzanoon-ops/Experiment-3/blob/2b5afc838cc654f14f0bac1d7fe410827a7a8df5/ci-reports/build-and-validation.md),
 has 6,307 unit tests passing and one failing, successful build/scenario/offroad/wet jobs,
 and all eight browser shards plus owner QA canceled at 90 minutes. Publication was skipped.
 The branch cannot be described as green on that evidence.
