@@ -1,11 +1,11 @@
 # Settings interaction validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44488933725
-- commit: `f1068433d4` · Preserve Vellamar road-grade continuity and correct shadow and acceptance contracts
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44509609067
+- commit: `44a6d8cfca` · Prepare retained reflection shaders before scene rendering
 - event: push · status: completed · conclusion: **failure**
-- started: 2026-11-19T08:35:45Z · updated: 2026-11-19T09:05:36Z
+- started: 2026-11-19T10:52:07Z · updated: 2026-11-19T10:59:48Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| settings | success | 5 |  |
-| qa | failure | 16 | Review-tool specs of the settings and menu regression, on the QA build |
+| settings | failure | 7 | Original menu regression and transition ownership, without forced clicks or retries |
+| qa | skipped | -1 |  |
