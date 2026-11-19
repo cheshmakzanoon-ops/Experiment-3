@@ -1,13 +1,28 @@
 import * as T from 'three';
 import { ImportedTextureBudget } from './imported-texture-budget.ts';
 
+interface CanvasSource {
+  original: T.Source;
+  image: HTMLCanvasElement;
+  groups: Set<CanvasAsset>;
+}
+interface CanvasAsset {
+  source: CanvasSource;
+  owned: T.Source;
+  scale: number;
+  cpuReadback: boolean;
+  textures: Set<T.CanvasTexture>;
+}
+
 /** Resample generated canvases and opted-in immutable supplied-player maps.
  * Dynamic cockpit displays,
  * simulation state textures and render targets must retain their own ownership.
  * Keep one source canvas so quality can be restored without accumulating copies. */
 export class TextureBudget {
   private readonly imported = new ImportedTextureBudget();
-  private assets = new Map<T.CanvasTexture, HTMLCanvasElement>();
+  private readonly assets = new Map<T.CanvasTexture, CanvasAsset>();
+  private readonly sources = new Map<T.Source, CanvasSource>();
+  private readonly groups = new Set<CanvasAsset>();
   private detailData = new Set<T.DataTexture>();
   private limit = 512;
   private anisotropy = 8;
@@ -33,10 +48,37 @@ export class TextureBudget {
           }
           if (!(value instanceof T.CanvasTexture) || value.userData.dynamic) continue;
           if (this.assets.has(value)) continue;
-          const source = value.image as HTMLCanvasElement;
-          if (!(source instanceof HTMLCanvasElement)) continue;
-          this.assets.set(value, source);
-          this.apply(value, source);
+          if (!(value.image instanceof HTMLCanvasElement)) continue;
+          let source = this.sources.get(value.source);
+          if (!source) {
+            source = { original: value.source, image: value.image, groups: new Set() };
+            this.sources.set(source.original, source);
+          }
+          const claim = value.userData.textureBudgetScale,
+            scale = typeof claim === 'number' && claim > 1 ? Math.min(claim, 4) : 1,
+            cpuReadback = value.userData.cpuReadback === true;
+          let asset = [...source.groups].find(
+            (candidate) => candidate.scale === scale && candidate.cpuReadback === cpuReadback,
+          );
+          if (!asset) {
+            asset = {
+              source,
+              owned: new T.Source(source.image),
+              scale,
+              cpuReadback,
+              textures: new Set(),
+            };
+            source.groups.add(asset);
+            this.sources.set(asset.owned, source);
+            this.groups.add(asset);
+          }
+          this.assets.set(value, asset);
+          asset.textures.add(value);
+          // Texture.clone() shares Source. Keep the authored canvas untouched
+          // and share budget storage only between compatible resolution claims.
+          value.dispose();
+          value.source = asset.owned;
+          this.apply(asset);
         }
       }
     });
@@ -46,7 +88,7 @@ export class TextureBudget {
     this.limit = limit;
     this.anisotropy = anisotropy;
     this.imported.configure(limit, anisotropy);
-    for (const [texture, source] of this.assets) this.apply(texture, source);
+    for (const asset of this.groups) this.apply(asset);
     for (const texture of this.detailData) {
       texture.anisotropy = anisotropy;
       texture.needsUpdate = true;
@@ -66,28 +108,42 @@ export class TextureBudget {
       this.imported.unregister(texture);
       if (texture instanceof T.DataTexture) this.detailData.delete(texture);
       if (texture instanceof T.CanvasTexture) {
-        const source = this.assets.get(texture);
-        if (source) texture.image = source;
+        const asset = this.assets.get(texture);
+        if (!asset) continue;
+        texture.dispose();
+        texture.source = asset.source.original;
+        texture.needsUpdate = true;
         this.assets.delete(texture);
+        asset.textures.delete(texture);
+        if (!asset.textures.size) {
+          this.groups.delete(asset);
+          this.sources.delete(asset.owned);
+          asset.source.groups.delete(asset);
+          if (!asset.source.groups.size) this.sources.delete(asset.source.original);
+        }
       }
     }
   }
   /** Repainted source assets keep their registered ownership and budget. */
   refresh(texture: T.Texture) {
     if (!(texture instanceof T.CanvasTexture)) return;
-    const source = this.assets.get(texture);
-    if (source) this.apply(texture, source);
+    const asset = this.assets.get(texture);
+    if (asset) this.apply(asset);
   }
-  private apply(texture: T.CanvasTexture, source: HTMLCanvasElement) {
+  private apply(asset: CanvasAsset) {
     // A hero atlas spread over a whole vehicle (the GP-R3 livery) may claim a
     // fixed multiple of the preset limit; every other canvas keeps the limit.
-    const scale = texture.userData.textureBudgetScale,
-      limit = this.limit * (typeof scale === 'number' && scale > 1 ? Math.min(scale, 4) : 1),
+    const source = asset.source.image,
+      limit = this.limit * asset.scale,
       factor = Math.min(1, limit / Math.max(source.width, source.height));
     const width = Math.max(1, Math.round(source.width * factor));
     const height = Math.max(1, Math.round(source.height * factor));
-    const current = texture.image as HTMLCanvasElement;
-    if (current.width !== width || current.height !== height) {
+    const current = asset.owned.data as HTMLCanvasElement;
+    if (
+      current.width !== width ||
+      current.height !== height ||
+      (factor === 1 && current !== source)
+    ) {
       let image = source;
       if (factor < 1) {
         image = document.createElement('canvas');
@@ -98,30 +154,41 @@ export class TextureBudget {
         // copy makes getImageData wait behind every queued GPU submission.
         const context = image.getContext(
           '2d',
-          texture.userData.cpuReadback === true ? { willReadFrequently: true } : undefined,
+          asset.cpuReadback ? { willReadFrequently: true } : undefined,
         );
         if (!context) throw new Error('Texture resampling requires Canvas 2D');
         context.drawImage(source, 0, 0, width, height);
       }
-      texture.dispose();
-      texture.image = image;
+      // Every uploaded wrapper must release its immutable WebGL storage before
+      // shared Source.data changes dimensions, including differently wrapped UVs.
+      for (const texture of asset.textures) texture.dispose();
+      asset.owned.data = image;
     }
     // A same-size budget canvas still needs the new source pixels after editing.
-    const image = texture.image as HTMLCanvasElement;
+    const image = asset.owned.data as HTMLCanvasElement;
     if (image !== source) {
       const context = image.getContext('2d');
       if (!context) throw new Error('Texture repaint requires Canvas 2D');
       context.clearRect(0, 0, image.width, image.height);
       context.drawImage(source, 0, 0, image.width, image.height);
     }
-    texture.anisotropy = this.anisotropy;
-    texture.generateMipmaps = true;
-    texture.minFilter = T.LinearMipmapLinearFilter;
-    texture.needsUpdate = true;
+    for (const texture of asset.textures) {
+      texture.anisotropy = this.anisotropy;
+      texture.generateMipmaps = true;
+      texture.minFilter = T.LinearMipmapLinearFilter;
+      texture.needsUpdate = true;
+    }
   }
   dispose() {
     this.imported.dispose();
+    for (const [texture, asset] of this.assets) {
+      texture.dispose();
+      texture.source = asset.source.original;
+      texture.needsUpdate = true;
+    }
     this.assets.clear();
+    this.sources.clear();
+    this.groups.clear();
     this.detailData.clear();
   }
 }

@@ -6,6 +6,7 @@ import {
   farShadowChunks,
   installFarShadowChunks,
 } from '../src/rendering/far-shadow.ts';
+import { StaticInstanceShadowBounds } from '../src/rendering/static-instance-shadow-bounds.ts';
 
 /** three's WebGLProgram loop unrolling (r180), applied after light counts. */
 function unroll(source: string, lights: number, shadows: number) {
@@ -85,6 +86,64 @@ it('fits the far frustum to the circuit as the sun sees it, with one-texel offse
   expect(far.light.shadow.bias).toBeLessThan(0);
   expect(far.diagnostics().metresPerTexel).toBeCloseTo(texel, 9);
   expect(() => far.fit(direction, new T.Box3())).toThrow('Invalid far shadow region');
+  far.dispose();
+});
+
+it('does not leave a temporary count inside a shadow owner interrupted before its after-hook', () => {
+  const far = new FarShadow(1024),
+    scene = new T.Scene(),
+    sun = new T.DirectionalLight(),
+    geometry = new T.BoxGeometry(),
+    material = new T.MeshStandardMaterial(),
+    depth = new T.MeshDepthMaterial({ depthPacking: T.RGBADepthPacking }),
+    mesh = new T.InstancedMesh(geometry, material, 128),
+    drawGroup = new T.Group();
+  sun.castShadow = mesh.castShadow = true;
+  mesh.frustumCulled = false;
+  mesh.position.set(10000, 0, 0);
+  mesh.computeBoundingBox();
+  scene.add(mesh);
+  scene.updateMatrixWorld(true);
+  const owner = new StaticInstanceShadowBounds(mesh);
+  const renderer = {
+    shadowMap: { autoUpdate: false, enabled: true },
+    getRenderTarget: () => null,
+    setRenderTarget: vi.fn(),
+    renderBufferDirect: vi.fn(() => {
+      throw new Error('interrupted shadow draw');
+    }),
+    render: () => {
+      sun.shadow.updateMatrices(sun);
+      mesh.onBeforeShadow(
+        gl,
+        scene,
+        sun.shadow.camera,
+        sun.shadow.camera,
+        geometry,
+        depth,
+        drawGroup,
+      );
+      // This is the real owner's conservative frustum-rejection path: it has
+      // stored the count it must restore, and suppressed the empty submission.
+      expect(mesh.count).toBe(0);
+      gl.renderBufferDirect(sun.shadow.camera, scene, geometry, depth, mesh, null);
+    },
+  };
+  const gl = renderer as unknown as T.WebGLRenderer;
+  expect(() =>
+    far.warmCasters(
+      gl,
+      scene,
+      sun,
+      new T.Vector3(1, 2, 1),
+      new T.Box3(new T.Vector3(-10, -1, -10), new T.Vector3(10, 5, 10)),
+    ),
+  ).toThrow('interrupted shadow draw');
+  expect(mesh.count).toBe(128);
+  mesh.onBeforeRender(gl, scene, sun.shadow.camera, geometry, material, drawGroup);
+  expect(mesh.count).toBe(128);
+  expect(geometry.drawRange.count).toBe(Infinity);
+  owner.dispose();
   far.dispose();
 });
 
@@ -198,11 +257,29 @@ it('bakes shadow maps only, without cars or people, with far-only planting casti
   previous.dispose();
 });
 
-it('warms every caster through one circuit-wide sun pass and restores the sun', () => {
+it('warms instanced shader variants with one representative, then restores full live counts and the sun', () => {
   const far = new FarShadow(1024);
   const scene = new T.Scene();
   const sun = new T.DirectionalLight();
   sun.castShadow = true;
+  const people = new T.InstancedMesh(new T.BoxGeometry(), new T.MeshStandardMaterial(), 128),
+    shadowTier = new T.InstancedMesh(people.geometry, people.material, 128),
+    empty = new T.InstancedMesh(people.geometry, people.material, 0);
+  people.castShadow = shadowTier.castShadow = true;
+  shadowTier.visible = false;
+  people.setMatrixAt(127, new T.Matrix4().makeTranslation(40, 0, 0));
+  people.computeBoundingSphere();
+  const beforeShadow = vi.fn(() => {
+    // A pass-specific owner may choose its own instance count. Warmup must
+    // cap its submission after that hook without replacing the live owner.
+    shadowTier.count = 96;
+  });
+  shadowTier.onBeforeShadow = beforeShadow;
+  scene.add(people, shadowTier, empty);
+  const beforeCounts = [people.count, shadowTier.count, empty.count];
+  const instanceStorage = people.instanceMatrix,
+    beforeSphere = people.boundingSphere,
+    drawGroup = new T.Group();
   sun.position.set(3, 10, 2);
   sun.target.position.set(1, 0, 1);
   const camera = sun.shadow.camera;
@@ -214,7 +291,13 @@ it('warms every caster through one circuit-wide sun pass and restores the sun', 
     target: sun.target.position.clone(),
     frustum: [camera.left, camera.right, camera.top, camera.bottom, camera.near, camera.far],
   };
-  const seen: unknown[] = [];
+  const seen: unknown[] = [],
+    submittedCounts: number[] = [];
+  const draw = vi.fn<T.WebGLRenderer['renderBufferDirect']>(
+    (_camera, _scene, _geometry, _material, object) => {
+      submittedCounts.push((object as T.InstancedMesh).count);
+    },
+  );
   const renderer = {
     shadowMap: { autoUpdate: false, enabled: true },
     target: null as T.WebGLRenderTarget | null,
@@ -224,7 +307,18 @@ it('warms every caster through one circuit-wide sun pass and restores the sun', 
     setRenderTarget(target: T.WebGLRenderTarget | null) {
       this.target = target;
     },
+    renderBufferDirect: draw,
     render: vi.fn(() => {
+      // ShadowProxies can select a previously hidden coarse tier inside the
+      // shadow pass, after the view draw list was built.
+      for (const mesh of [people, shadowTier, empty]) {
+        const depth = new T.MeshDepthMaterial();
+        mesh.onBeforeShadow(gl, scene, camera, camera, mesh.geometry, depth, drawGroup);
+        gl.renderBufferDirect(camera, scene, mesh.geometry, depth, mesh, null);
+        mesh.onAfterShadow(gl, scene, camera, camera, mesh.geometry, depth, drawGroup);
+      }
+      expect(people.instanceMatrix).toBe(instanceStorage);
+      expect(people.boundingSphere!.radius).toBeGreaterThan(20);
       seen.push({
         width: camera.right - camera.left,
         sun: sun.shadow.autoUpdate,
@@ -237,6 +331,7 @@ it('warms every caster through one circuit-wide sun pass and restores the sun', 
   const bounds = new T.Box3(new T.Vector3(-400, -20, -300), new T.Vector3(400, 60, 300));
   const direction = new T.Vector3(1, 2, 1);
   expect(far.warmCasters(gl, scene, sun, direction, bounds)).toBe(true);
+  expect(submittedCounts).toEqual([1, 1, 0]);
   // One pass covering the whole region, far map skipped, sun rendered.
   expect(seen).toHaveLength(1);
   expect((seen[0] as { width: number }).width).toBeGreaterThan(700);
@@ -250,9 +345,15 @@ it('warms every caster through one circuit-wide sun pass and restores the sun', 
     expect([sun.shadow.bias, sun.shadow.normalBias]).toEqual([-0.0004, 0.02]);
     expect(sun.shadow.needsUpdate).toBe(true);
     expect([renderer.shadowMap.autoUpdate, renderer.target]).toEqual([false, null]);
+    expect([people.count, shadowTier.count, empty.count]).toEqual(beforeCounts);
+    expect(shadowTier.onBeforeShadow).toBe(beforeShadow);
+    expect(shadowTier.visible).toBe(false);
+    expect(people.boundingSphere).toBe(beforeSphere);
+    expect(renderer.renderBufferDirect).toBe(draw);
   };
   restored();
-  renderer.render.mockImplementationOnce(() => {
+  draw.mockImplementationOnce(() => {
+    expect(people.count).toBe(1);
     throw new Error('lost');
   });
   expect(() => far.warmCasters(gl, scene, sun, direction, bounds)).toThrow('lost');

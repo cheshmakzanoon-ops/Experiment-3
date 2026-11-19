@@ -103,3 +103,38 @@ still a reduced sprung heave/pitch model without separate unsprung wheel
 masses, tyre carcass deformation or a fully spatial motorcycle suspension.
 The visual geometry consumes its measured support and gaps; it does not create
 new forces or claim a more detailed physical solver.
+
+## Changed-build GPU review and rider seek semantics
+
+The first active-pose GPU run on `70822af` passed supported/flight/landing
+geometry, measured contact lighting, held frames, restored frames and the
+legacy-pose negative control. Its initial rewind comparison failed: it compared
+the earlier continuous rider-spring trajectory with a backward seek, which the
+existing `GpRiderBody` contract explicitly restarts at equilibrium. CPU capture
+of every object transform, deformed skin and occlusion capsule confirmed that
+first/repeated calls were identical; this was not stale one-draw geometry.
+
+The fixture now compares the backward seek with a separately constructed
+`BikeShells` rig's **first** presentation of the same recorded snapshot. The
+held, rewind and restored pixel assertions still require exact zero difference.
+The continuous-history versus cold-seek difference is retained separately in
+the GPU JSON and both cold/rewound images are retained. No artificial warmup,
+spring removal, physical-state mutation or pixel tolerance was introduced.
+
+That review also exposed a separate garment defect. A legitimate approximately
+0.12 mm rider posture change changed the scalar component of a mathematically
+half-turn relative joint quaternion from zero to -2.78e-17. Shortest-arc
+interpolation consequently selected the opposite middle-ring orientation and
+moved part of the left pants skin by 110 mm. The garment now resolves only this
+floating-point half-turn tie in its proximal frame before interpolation,
+including equivalent `q` and `-q` representations. The measured left-pants
+coordinate change is approximately 0.045 mm after correction. Authored joints,
+spring dynamics, IK endpoints, geometry buffers and physical forces are intact.
+
+`tests/road-bike-replay-state.test.ts` checks the complete cold/rewound scene
+state, preserves a nonzero continuous rider response, constrains the actual
+deformed skin's nearby-pose motion, and checks exact middle-ring and quaternion
+representation agreement across the observed numerical boundary. The original
+shortest-arc midpoint is retained as a failing-shape negative control; ordinary
+non-half-turn interpolation and buffer versions remain unchanged. The corrected
+GPU run must provide its own result; the original failed run is not relabeled.

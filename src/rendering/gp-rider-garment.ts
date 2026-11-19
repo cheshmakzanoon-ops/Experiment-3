@@ -352,6 +352,25 @@ export class GpRiderGarment {
       root.position.sub(this.rootOffset);
     }
     this.relative.copy(this.proximal.quaternion).invert().multiply(this.distal.quaternion);
+    // IK can oppose the two cross-section frames by exactly half a turn.
+    // Its scalar quaternion component is then zero up to multiplication
+    // roundoff. Letting its incidental sign choose slerp's shortest arc flips
+    // the middle ring by 180 degrees under submillimetre posture changes.
+    // Resolve only that numerical tie in the proximal limb frame: positive
+    // axial twist, with fixed component fallbacks at a completely folded joint.
+    // Canonicalizing q and -q together keeps held/seek results history-free.
+    if (Math.abs(this.relative.w) <= 32 * Number.EPSILON) {
+      const axis =
+          Math.abs(this.relative.y) > 32 * Number.EPSILON
+            ? this.relative.y
+            : Math.abs(this.relative.z) > 32 * Number.EPSILON
+              ? this.relative.z
+              : this.relative.x,
+        sign = axis < 0 ? -1 : 1;
+      this.relative
+        .set(this.relative.x * sign, this.relative.y * sign, this.relative.z * sign, 0)
+        .normalize();
+    }
     this.bend.quaternion.identity().slerp(this.relative, 0.5);
     const jointAngle = Math.acos(
         T.MathUtils.clamp(1 - 2 * (this.relative.x ** 2 + this.relative.z ** 2), -1, 1),

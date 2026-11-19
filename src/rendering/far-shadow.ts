@@ -204,8 +204,11 @@ export class FarShadow {
    * bake leaves cars and people out, and the car-following map meets
    * trackside crowds and staff only mid-race, where each first meeting is a
    * synchronous compile. While loading, render the sun's own map once over
-   * `bounds` with nothing hidden; the next frame renders its car-following
-   * map again. Returns false when shadows are off. */
+   * `bounds` with every shader variant retained. One representative instance
+   * per batch is sufficient to compile its program; drawing the whole audience
+   * only queues millions of unnecessary vertices before the first real frame.
+   * Restore full counts before rendering the car-following map again. Returns
+   * false when shadows are off. */
   warmCasters(
     renderer: T.WebGLRenderer,
     scene: T.Scene,
@@ -226,8 +229,29 @@ export class FarShadow {
     };
     const far = [this.light.shadow.autoUpdate, this.light.shadow.needsUpdate] as const;
     const target = renderer.getRenderTarget(),
-      autoUpdate = renderer.shadowMap.autoUpdate;
+      autoUpdate = renderer.shadowMap.autoUpdate,
+      draw = renderer.renderBufferDirect;
+    const instances = new Map<T.InstancedMesh, number>();
     try {
+      // Include hidden tiers: the installed shadow proxy owner can select one
+      // after traversal. Bounds and owner hooks always see the full count.
+      scene.traverse((object) => {
+        if (object instanceof T.InstancedMesh) instances.set(object, object.count);
+      });
+      renderer.renderBufferDirect = (...args) => {
+        const object = args[4];
+        if (!(object instanceof T.InstancedMesh)) return draw.apply(renderer, args);
+        // Clamp only after the original before-hook and frustum checks. An
+        // interrupted owner's deferred reset must retain its real count, not
+        // the temporary one used to submit this shader's representative.
+        const count = object.count;
+        object.count = Math.min(count, 1);
+        try {
+          return draw.apply(renderer, args);
+        } finally {
+          object.count = count;
+        }
+      };
       this.fitLight(sun, direction, bounds);
       shadow.autoUpdate = true;
       this.light.shadow.autoUpdate = false;
@@ -236,6 +260,8 @@ export class FarShadow {
       renderer.setRenderTarget(this.target);
       renderer.render(scene, this.camera);
     } finally {
+      renderer.renderBufferDirect = draw;
+      for (const [mesh, count] of instances) mesh.count = count;
       renderer.setRenderTarget(target);
       renderer.shadowMap.autoUpdate = autoUpdate;
       [this.light.shadow.autoUpdate, this.light.shadow.needsUpdate] = far;
