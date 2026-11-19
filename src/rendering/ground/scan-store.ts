@@ -2,7 +2,7 @@ import * as T from 'three';
 import { loadPbrSet, type PbrSet } from '../assets/texture-loader.ts';
 import { thirdPartyAsset } from '../assets/third-party.ts';
 import type { QualityPreset } from '../options.ts';
-import { expandSampledNormal } from './normal-residency.ts';
+import { expandSampledNormal, normalResidencyPlan } from './normal-residency.ts';
 import { markSharedTextureSource } from '../assets/texture-source-ownership.ts';
 
 /**
@@ -98,6 +98,7 @@ export class ScanStore {
   private renderer: T.WebGLRenderer | null = null;
   private readonly sets = new Map<ScanLayer, PbrSet>();
   private readonly pending = new Map<ScanLayer, Promise<boolean>>();
+  private readonly normalOwners = new WeakMap<T.Texture, WeakSet<T.WebGLRenderer>>();
   private readonly failed = new Set<ScanLayer>();
   private readonly materials = new Map<T.Material, Registration>();
   constructor() {
@@ -192,35 +193,64 @@ export class ScanStore {
   private request(layers: readonly ScanLayer[]) {
     if (!this.enabled || !this.renderer || typeof document === 'undefined') return;
     for (const layer of layers) {
-      if (this.sets.has(layer) || this.pending.has(layer) || this.failed.has(layer)) continue;
+      if (this.pending.has(layer) || this.failed.has(layer)) continue;
+      const retained = this.sets.get(layer);
+      if (retained) {
+        const normal = retained.maps.normalMap;
+        if (
+          !normal ||
+          !normalResidencyPlan(normal) ||
+          this.normalOwners.get(normal)?.has(this.renderer)
+        )
+          continue;
+        // A retired owner may have retained a complete compressed chain. Take
+        // this layer off the scanned path while the replacement prepares it,
+        // so map-swap materials release their old wrappers and bind the new
+        // normal together with uniform-based materials on completed adoption.
+        this.sets.delete(layer);
+        for (const material of this.materials.keys()) this.apply(material);
+      }
       if (!thirdPartyAsset(SCAN_LAYERS[layer])) {
         this.failed.add(layer);
         continue;
       }
-      this.pending.set(layer, this.load(this.renderer, layer));
+      const pending = this.load(this.renderer, layer, retained).finally(() => {
+        if (this.pending.get(layer) === pending) this.pending.delete(layer);
+      });
+      this.pending.set(layer, pending);
     }
   }
-  private async load(renderer: T.WebGLRenderer, layer: ScanLayer) {
+  private async load(renderer: T.WebGLRenderer, layer: ScanLayer, retained?: PbrSet) {
     const id = SCAN_LAYERS[layer];
     try {
-      const set = await loadPbrSet(renderer, id, { anisotropy: 16 });
+      const set = retained ?? (await loadPbrSet(renderer, id, { anisotropy: 16 }));
       const originalNormal = set.maps.normalMap;
-      if (originalNormal) {
-        try {
-          const prepared = await expandSampledNormal(renderer, originalNormal);
-          if (prepared !== originalNormal) {
-            set.maps.normalMap = prepared;
-            const release = set.dispose.bind(set);
-            set.dispose = () => {
-              prepared.dispose();
-              release();
-            };
-            originalNormal.dispose();
+      if (originalNormal && normalResidencyPlan(originalNormal)) {
+        let attempted = this.normalOwners.get(originalNormal);
+        if (!attempted) this.normalOwners.set(originalNormal, (attempted = new WeakSet()));
+        // An in-flight layer keeps one pending promise across renderer handoff.
+        // ready() therefore waits for the replacement's complete mip chain, not
+        // merely the retired owner's cancelled read. Never retry a failed or
+        // closed owner; only a newly attached renderer can make another attempt.
+        for (let owner = this.renderer; owner && !attempted.has(owner); owner = this.renderer) {
+          attempted.add(owner);
+          try {
+            const prepared = await expandSampledNormal(owner, originalNormal);
+            if (prepared !== originalNormal) {
+              set.maps.normalMap = prepared;
+              const release = set.dispose.bind(set);
+              set.dispose = () => {
+                prepared.dispose();
+                release();
+              };
+              originalNormal.dispose();
+              break;
+            }
+          } catch (error) {
+            // Preserve the complete loaded scan if residency preparation is
+            // unavailable; a new renderer can prepare it without another fetch.
+            console.warn(`Normal residency for ${id} kept compressed:`, error);
           }
-        } catch (error) {
-          // Preserve the loaded scan, not a procedural or lower-resolution
-          // substitute, when this optional residency optimization is unavailable.
-          console.warn(`Normal residency for ${id} kept compressed:`, error);
         }
       }
       this.adopt(layer, set);
@@ -229,8 +259,6 @@ export class ScanStore {
       console.warn(`Scanned ground layer ${layer} unavailable; procedural surface kept:`, error);
       this.failed.add(layer);
       return false;
-    } finally {
-      this.pending.delete(layer);
     }
   }
   /** Bind a loaded set to its layer's uniforms and switch every material

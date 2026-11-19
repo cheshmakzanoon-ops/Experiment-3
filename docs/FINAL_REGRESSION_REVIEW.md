@@ -51,9 +51,19 @@ and passes afterward; 27 distinct normal, decoder, texture ownership and rendere
 lifecycle tests across four files pass. Scoped lint, formatting and full
 TypeScript checks pass as well.
 
-This is a reproduced lifecycle defect. It is not yet proof of the cause of the
-five immutable-storage warnings in the High trace; that attribution still
-requires the new GPU allocation diagnostics.
+The subsequent f106 GPU trace identifies all five repeated allocations as
+1024x1024 BC7 RGBA with eleven mip levels, after the menu renderer was disposed.
+The installed Three r180 upload and property modules reproduce the exact call
+tuple `[3553, 11, 36492, 1024, 1024]` twice on the same native texture handle:
+renderer disposal clears the upload properties while the retired texture
+manager still retains its source-to-handle map. Resuming its next mip therefore
+attempts another immutable allocation. The durable dependency-level negative
+control reproduces that failure; the suspended normal-read integration with
+the ownership guard performs only the original allocation and returns the
+intact compressed source chain. Both new tests pass, alongside all nine normal
+residency cases. This establishes a causal CPU reproduction of the traced GL
+error. The changed application still requires its new High GPU run, and this
+result alone does not establish successful High startup.
 
 ## Replay reference: cold state on the same visual assets
 
@@ -169,3 +179,31 @@ Its five immutable BC7 allocations are retained with paired call stacks, while
 the missing-fragment-output errors are absent. Thus the crown correction is
 verified, but a completed High application view is still required. The normal
 lifetime correction above was not included in this published checkpoint.
+
+## Resume retained normals under the replacement renderer
+
+Published `414c9ac35213a65e3d11d1145b681561f8a8483d` confirms zero captured
+graphics errors after the lifetime correction. Its component GPU job passes
+all seven fixtures and its complete Low driving/replay journey also passes.
+The full High journey still fails the original 90-second readiness predicate.
+Its resident concrete, gravel, meadow, lawn and asphalt normals retain their
+complete compressed source chains; only rock finishes decoded RGBA8.
+
+The page-wide ground store treated these interrupted source chains as fully
+prepared because their layers were already resident. A replacement renderer
+therefore never resumed the work. The correction retains one pending promise
+across a renderer handoff and permits each new owner one preparation attempt.
+An already adopted compressed layer temporarily leaves the scanned path so
+existing map-swap wrappers release and rebind the completed normal. The cached
+asset is reused, and supported completed chains and unsupported formats remain
+unchanged. No authored resolution, mip chain, sampling mode, promotion ceiling,
+quality preset, startup deadline or GPU completion condition is reduced.
+
+Four of five independent lifecycle cases fail on the original `414c9ac3`
+store. All five pass after the change, including replacement attachment both
+before and after the retired read settles, readiness through the new read,
+actual material wrapper release/rebinding, completed-chain reuse, bounded
+failure retry and unsupported-format preservation. The integrated normal,
+native Three, ground and handoff command passes 24 cases. Scoped lint and the
+complete TypeScript check pass. A new actual High run remains necessary;
+these CPU ownership results do not establish its startup time or appearance.
