@@ -1,10 +1,11 @@
 name: Isolated startup rendering validation
 on:
   push:
-    branches: ['ci/high-late-startup-20261119']
+    branches: ['ci/high-late-startup-20261119', 'ci/high-buffer-owner-2218-20261119']
     paths:
       - '.github/workflows/graphics-high-diagnostic.yml'
       - 'e2e/graphics-high-journey.spec.ts'
+      - 'e2e/high-buffer-owners.ts'
       - 'src/rendering/**'
 permissions:
   contents: read

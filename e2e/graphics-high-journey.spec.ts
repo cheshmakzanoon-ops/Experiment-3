@@ -2,6 +2,7 @@ import { expect, test, type Page, type TestInfo } from '@playwright/test';
 import { graphicsPreset } from '../src/rendering/options.ts';
 import { H, carBase, hasRoadBikeContact } from '../src/simulation/protocol.ts';
 import { MENU_STARTUP_TIMEOUT_MS } from './menu-startup.ts';
+import { installHighBufferOwners, type HighBufferUpload } from './high-buffer-owners.ts';
 
 // Full production UI, worker, assets and High settings. Fixed small scene,
 // original five-minute test deadline and all actual GPU completion gates.
@@ -32,7 +33,7 @@ async function capture(page: Page, info: TestInfo, name: string) {
   }
 }
 
-function installFirstChaseStartup() {
+function installFirstChaseStartup(installOwners: typeof installHighBufferOwners) {
   // A main-thread poll cannot identify a native call that never returns.
   // This test-only worker receives numeric command state, retains one start
   // and completion, and reports directly through its own console. It owns no
@@ -45,10 +46,19 @@ function installFirstChaseStartup() {
       receivedAt = 0,
       stage = '',
       active = false,
-      methods: string[] = [];
+      methods: string[] = [],
+      lastOwner: HighBufferUpload | null = null,
+      startedOwner: HighBufferUpload | null = null;
     const counts: number[] = [],
       cpuMs: number[] = [];
-    const slowest = new Map<number, { started: Float64Array | null; completed: Float64Array }>();
+    const slowest = new Map<
+      number,
+      {
+        started: Float64Array | null;
+        completed: Float64Array;
+        owner: HighBufferUpload | null;
+      }
+    >();
     const emit = () => {
       const inFlight = !!started && (!completed || completed[1] < started[1]);
       console.info(
@@ -75,6 +85,7 @@ function installFirstChaseStartup() {
               shader: started[20],
               shaderType: started[21],
               shaderHash: started[22].toString(16).padStart(8, '0'),
+              bufferOwner: startedOwner,
             },
             lastCompleted: completed && {
               sequence: completed[1],
@@ -100,6 +111,7 @@ function installFirstChaseStartup() {
                 shader: entry.started?.[20],
                 shaderType: entry.started?.[21],
                 shaderHash: entry.started?.[22].toString(16).padStart(8, '0'),
+                bufferOwner: entry.owner,
               })),
           }),
       );
@@ -109,15 +121,17 @@ function installFirstChaseStartup() {
       if (message instanceof Float64Array) {
         if (message[0] === 1) {
           started = message;
+          startedOwner = lastOwner?.upload === message[23] ? lastOwner : null;
           receivedAt = performance.now();
           counts[message[3]] = (counts[message[3]] ?? 0) + 1;
         } else {
           completed = message;
           cpuMs[message[3]] = (cpuMs[message[3]] ?? 0) + message[4];
           if (message[4] >= 100 && message[4] > (slowest.get(message[3])?.completed[4] ?? 0))
-            slowest.set(message[3], { started, completed: message });
+            slowest.set(message[3], { started, completed: message, owner: startedOwner });
         }
       } else if (message.kind === 'configure') methods = message.methods;
+      else if (message.kind === 'buffer-owner') lastOwner = message.record;
       else if (message.kind === 'stage') {
         stage = message.stage;
         active = message.active;
@@ -336,7 +350,8 @@ function installFirstChaseStartup() {
       truncated: source.length > 32768,
     };
   };
-  const begin = new Float64Array(23),
+  let bufferOwners: ReturnType<typeof installOwners> | null = null;
+  const begin = new Float64Array(24),
     end = new Float64Array(6);
   const callable = prototype as unknown as Record<string, (...args: unknown[]) => unknown>;
   for (const [methodIndex, method] of methods.entries()) {
@@ -463,6 +478,7 @@ function installFirstChaseStartup() {
       begin[20] = id(shader);
       begin[21] = shader ? (shaderTypes.get(shader) ?? 0) : 0;
       begin[22] = shaderHash ?? 0;
+      begin[23] = bufferOwners?.currentUpload(this)?.upload ?? 0;
       post(begin);
       let returned = false;
       try {
@@ -502,12 +518,25 @@ function installFirstChaseStartup() {
             viewport: [...state.viewport],
             numericArguments: Array.from(begin.slice(15, 19)),
             sourceBufferBytes: begin[19] < 0 ? null : begin[19],
+            bufferOwner: bufferOwners?.currentUpload(this) ?? null,
             stack: boundedStack(),
           });
         }
       }
     };
   }
+  // The outer owner wrapper runs before this observer's existing native-start
+  // message. The worker retains one matching owner and the bounded slow calls,
+  // so an in-flight upload remains attributable if the main thread blocks.
+  bufferOwners = installOwners({
+    chaseStarted: () => chaseStarted,
+    onUpload(record) {
+      if (active) post({ kind: 'buffer-owner', record });
+    },
+    onUnavailable(message) {
+      report({ kind: 'unavailable', message });
+    },
+  });
   let loadingText: HTMLElement | null = null;
   const observe = () => {
     if (finished) return;
@@ -555,7 +584,10 @@ function installFirstChaseStartup() {
     )
       report({ kind: 'stage', atMs: performance.now(), stage, active });
     post({ kind: 'stage', stage, active });
-    if (finished) observer.disconnect();
+    if (finished) {
+      observer.disconnect();
+      bufferOwners?.stop();
+    }
   };
   const observer = new MutationObserver(observe);
   observer.observe(document, { childList: true, subtree: true });
@@ -763,7 +795,7 @@ test('High production scene presents an active GP chassis and two completed phot
   // outside the native-command wrappers, so its own queries are not mistaken
   // for the duration of an instanced draw.
   await page.addInitScript({
-    content: `(${installFirstChaseStartup.toString()})();(${installInstancedFragmentOutputs.toString()})();`,
+    content: `(${installFirstChaseStartup.toString()})(${installHighBufferOwners.toString()});(${installInstancedFragmentOutputs.toString()})();`,
   });
   try {
     await page.goto('/');
