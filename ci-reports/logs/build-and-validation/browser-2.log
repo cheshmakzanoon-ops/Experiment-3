@@ -1,258 +1,255 @@
-### browser (2) (job 135441239916)
+### browser (2) (job 135451788331)
 --- error digest (first 120 matching lines) ---
-612:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:58:07.3613395Z   ✘   5 e2e/20-phase27h.spec.ts:9:1 › 27H: actual application loads the authored GLB and retains frozen native views and live paint (3.1m)
-614:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:58:07.3615104Z Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoBeVisible^[[2m()^[[22m failed
-619:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:58:07.3616233Z Timeout:  120000ms
-630:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:58:44.3228326Z ##[error]The operation was canceled.
+632:browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:17:31.2612765Z ##[error]The operation was canceled.
 
 --- last 250 lines ---
-browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T08:48:35.6526478Z |                                                                                |   0% of 104.3 MiB
-browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T08:48:35.7131441Z |■■■■■■■■                                                                        |  10% of 104.3 MiB
-browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T08:48:35.7537467Z |■■■■■■■■■■■■■■■■                                                                |  20% of 104.3 MiB
-browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T08:48:35.7851813Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 104.3 MiB
-browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T08:48:35.8229424Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 104.3 MiB
-browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T08:48:35.8547689Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 104.3 MiB
-browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T08:48:35.8839617Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 104.3 MiB
-browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T08:48:35.9158179Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 104.3 MiB
-browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T08:48:35.9460045Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 104.3 MiB
-browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T08:48:35.9751729Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 104.3 MiB
-browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T08:48:35.9991661Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 104.3 MiB
-browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T08:48:37.3820158Z Chromium Headless Shell 140.0.7339.186 (playwright build v1193) downloaded to /home/runner/.cache/ms-playwright/chromium_headless_shell-1193
-browser (2)	Install Mesa software graphics and virtual display	﻿2026-11-19T08:48:37.4587387Z ##[group]Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:37.4587926Z ^[[36;1msudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb^[[0m
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:37.4607542Z shell: /usr/bin/bash -e {0}
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:37.4607776Z env:
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:37.4607946Z   APEX_BROWSER_BACKEND: mesa
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:37.4608155Z   LIBGL_ALWAYS_SOFTWARE: true
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:37.4608370Z   GALLIUM_DRIVER: llvmpipe
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:37.4608569Z ##[endgroup]
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:37.4822855Z Reading package lists...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:37.7519116Z Building dependency tree...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:37.7525362Z Reading state information...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:37.9543466Z libgl1-mesa-dri is already the newest version (25.2.8-0ubuntu0.24.04.5).
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:37.9543945Z libgl1-mesa-dri set to manually installed.
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:37.9544327Z libglx-mesa0 is already the newest version (25.2.8-0ubuntu0.24.04.5).
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:37.9544673Z libglx-mesa0 set to manually installed.
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:37.9545087Z xvfb is already the newest version (2:21.1.12-1ubuntu1.9).
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:37.9545448Z The following additional packages will be installed:
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:37.9546524Z   libdecor-0-0 libdecor-0-plugin-1-gtk libegl-mesa0 libgles2 libxcb-xkb1
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:37.9550463Z   libxkbcommon-x11-0 mesa-utils-bin
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:37.9764852Z The following NEW packages will be installed:
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:37.9768666Z   libdecor-0-0 libdecor-0-plugin-1-gtk libegl-mesa0 libegl1 libgles2
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:37.9773994Z   libxcb-xkb1 libxkbcommon-x11-0 mesa-utils mesa-utils-bin
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:37.9970036Z 0 upgraded, 9 newly installed, 0 to remove and 12 not upgraded.
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:37.9970586Z Need to get 1464 kB of archives.
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:37.9971242Z After this operation, 4054 kB of additional disk space will be used.
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:37.9971864Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.0438360Z Get:2 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libdecor-0-0 amd64 0.2.2-1build2 [16.5 kB]
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.0592135Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libdecor-0-plugin-1-gtk amd64 0.2.2-1build2 [22.2 kB]
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.0745953Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libegl-mesa0 amd64 25.2.8-0ubuntu0.24.04.5 [117 kB]
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.0907679Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libxcb-xkb1 amd64 1.15-1ubuntu2 [32.3 kB]
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.1075071Z Get:6 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libxkbcommon-x11-0 amd64 1.6.0-1build1 [14.5 kB]
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.1225605Z Get:7 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libegl1 amd64 1.7.0-1build1 [28.7 kB]
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.1374838Z Get:8 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libgles2 amd64 1.7.0-1build1 [17.1 kB]
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.1520805Z Get:9 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 mesa-utils-bin amd64 9.0.0-2 [164 kB]
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.1689550Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 mesa-utils amd64 9.0.0-2 [1051 kB]
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.4223011Z Fetched 1464 kB in 0s (7771 kB/s)
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.4784905Z Selecting previously unselected package libdecor-0-0:amd64.
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.4829783Z (Reading database ... 
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.4830739Z (Reading database ... 5%
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.4831616Z (Reading database ... 10%
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.4832564Z (Reading database ... 15%
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.4832923Z (Reading database ... 20%
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.4833372Z (Reading database ... 25%
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.4833704Z (Reading database ... 30%
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.4846374Z (Reading database ... 35%
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.4846698Z (Reading database ... 40%
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.4846989Z (Reading database ... 45%
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.4847306Z (Reading database ... 50%
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.4847656Z (Reading database ... 55%
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.4888005Z (Reading database ... 60%
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.4907127Z (Reading database ... 65%
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.4934504Z (Reading database ... 70%
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.4953706Z (Reading database ... 75%
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.5088611Z (Reading database ... 80%
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.5227131Z (Reading database ... 85%
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.5277549Z (Reading database ... 90%
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.5568787Z (Reading database ... 95%
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.5569207Z (Reading database ... 100%
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.5569570Z (Reading database ... 217359 files and directories currently installed.)
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.5613970Z Preparing to unpack .../0-libdecor-0-0_0.2.2-1build2_amd64.deb ...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.7013176Z Unpacking libdecor-0-0:amd64 (0.2.2-1build2) ...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.8683106Z Selecting previously unselected package libdecor-0-plugin-1-gtk:amd64.
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.8811517Z Preparing to unpack .../1-libdecor-0-plugin-1-gtk_0.2.2-1build2_amd64.deb ...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.8818633Z Unpacking libdecor-0-plugin-1-gtk:amd64 (0.2.2-1build2) ...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.9032553Z Selecting previously unselected package libegl-mesa0:amd64.
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.9159496Z Preparing to unpack .../2-libegl-mesa0_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.9167888Z Unpacking libegl-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.9413275Z Selecting previously unselected package libxcb-xkb1:amd64.
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.9550775Z Preparing to unpack .../3-libxcb-xkb1_1.15-1ubuntu2_amd64.deb ...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:38.9563553Z Unpacking libxcb-xkb1:amd64 (1.15-1ubuntu2) ...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:39.1820798Z Selecting previously unselected package libxkbcommon-x11-0:amd64.
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:39.1949895Z Preparing to unpack .../4-libxkbcommon-x11-0_1.6.0-1build1_amd64.deb ...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:39.2875534Z Unpacking libxkbcommon-x11-0:amd64 (1.6.0-1build1) ...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:39.3138647Z Selecting previously unselected package libegl1:amd64.
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:39.3266875Z Preparing to unpack .../5-libegl1_1.7.0-1build1_amd64.deb ...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:39.3352720Z Unpacking libegl1:amd64 (1.7.0-1build1) ...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:39.3592616Z Selecting previously unselected package libgles2:amd64.
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:39.3718551Z Preparing to unpack .../6-libgles2_1.7.0-1build1_amd64.deb ...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:39.3726637Z Unpacking libgles2:amd64 (1.7.0-1build1) ...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:39.4526773Z Selecting previously unselected package mesa-utils-bin:amd64.
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:39.4653927Z Preparing to unpack .../7-mesa-utils-bin_9.0.0-2_amd64.deb ...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:39.4660711Z Unpacking mesa-utils-bin:amd64 (9.0.0-2) ...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:39.5166110Z Selecting previously unselected package mesa-utils.
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:39.5294841Z Preparing to unpack .../8-mesa-utils_9.0.0-2_amd64.deb ...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:39.5310612Z Unpacking mesa-utils (9.0.0-2) ...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:39.5917884Z Setting up libxcb-xkb1:amd64 (1.15-1ubuntu2) ...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:39.6921991Z Setting up libegl-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:39.6950165Z Setting up libgles2:amd64 (1.7.0-1build1) ...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:39.6968937Z Setting up libxkbcommon-x11-0:amd64 (1.6.0-1build1) ...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:39.6995903Z Setting up libegl1:amd64 (1.7.0-1build1) ...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:39.7013950Z Setting up libdecor-0-0:amd64 (0.2.2-1build2) ...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:39.7031834Z Setting up libdecor-0-plugin-1-gtk:amd64 (0.2.2-1build2) ...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:39.7050567Z Setting up mesa-utils-bin:amd64 (9.0.0-2) ...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:39.7069065Z Setting up mesa-utils (9.0.0-2) ...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:39.7092019Z Processing triggers for man-db (2.12.0-4build2) ...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:39.7110805Z Not building database; man-db/auto-update is not 'true'.
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:39.7124177Z Processing triggers for libc-bin (2.39-0ubuntu8.12) ...
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:40.2089692Z 
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:40.2091412Z Running kernel seems to be up-to-date.
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:40.2091731Z 
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:40.2091930Z No services need to be restarted.
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:40.2092146Z 
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:40.2092313Z No containers need to be restarted.
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:40.2092544Z 
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:40.2092758Z No user sessions are running outdated binaries.
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:40.2093408Z 
-browser (2)	Install Mesa software graphics and virtual display	2026-11-19T08:48:40.2093744Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	﻿2026-11-19T08:48:41.5416756Z ##[group]Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:48:41.5417394Z ^[[36;1mxvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12^[[0m
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:48:41.5436057Z shell: /usr/bin/bash -e {0}
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:48:41.5436276Z env:
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:48:41.5436452Z   APEX_BROWSER_BACKEND: mesa
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:48:41.5436668Z   LIBGL_ALWAYS_SOFTWARE: true
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:48:41.5436878Z   GALLIUM_DRIVER: llvmpipe
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:48:41.5437070Z ##[endgroup]
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:48:44.1157241Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:48:44.1157895Z > apex-formula-laboratory@0.1.0 test:e2e:shard
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:48:44.1158368Z > node --experimental-strip-types scripts/run-browser-shard.ts 2/12
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:48:44.1158617Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:48:52.5268387Z Verified 29 of 353 cases for shard 2/12; no omissions or duplicate assignments.
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:48:58.4457520Z Observed mesa test backend: ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:49:00.0859045Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:49:00.0860000Z Running 29 tests using 1 worker
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:49:00.0860412Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:49:00.6731842Z [browser-progress] START  >  > 04-reference-visual.spec.ts > reference review: production high-quality clear car and cockpit
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:49:30.0886927Z [browser-progress] 29s  >  > 04-reference-visual.spec.ts > reference review: production high-quality clear car and cockpit / Evaluate
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:50:00.1038395Z [browser-progress] 59s  >  > 04-reference-visual.spec.ts > reference review: production high-quality clear car and cockpit / Evaluate
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:50:30.1344848Z [browser-progress] 89s  >  > 04-reference-visual.spec.ts > reference review: production high-quality clear car and cockpit / Evaluate
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:51:00.1645048Z [browser-progress] 119s  >  > 04-reference-visual.spec.ts > reference review: production high-quality clear car and cockpit / Evaluate
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:51:30.1945110Z [browser-progress] 150s  >  > 04-reference-visual.spec.ts > reference review: production high-quality clear car and cockpit / Evaluate
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:52:00.2245240Z [browser-progress] 180s  >  > 04-reference-visual.spec.ts > reference review: production high-quality clear car and cockpit / Evaluate
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:52:30.2632711Z [browser-progress] 210s  >  > 04-reference-visual.spec.ts > reference review: production high-quality clear car and cockpit / Evaluate
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:52:37.0698253Z   ✓   1 e2e/04-reference-visual.spec.ts:8:3 › reference review: production high-quality clear car and cockpit (3.6m)
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:52:37.1421978Z [browser-progress] START  >  > 05-cockpit-detail.spec.ts > detailed cockpit retains physical steering, recorded selectors, pause and rewind
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:53:00.2723705Z [browser-progress] 23s  >  > 05-cockpit-detail.spec.ts > detailed cockpit retains physical steering, recorded selectors, pause and rewind / Evaluate
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:53:30.2972167Z [browser-progress] 53s  >  > 05-cockpit-detail.spec.ts > detailed cockpit retains physical steering, recorded selectors, pause and rewind / Evaluate
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:54:00.3292860Z [browser-progress] 83s  >  > 05-cockpit-detail.spec.ts > detailed cockpit retains physical steering, recorded selectors, pause and rewind / Evaluate
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:54:30.3580605Z [browser-progress] 113s  >  > 05-cockpit-detail.spec.ts > detailed cockpit retains physical steering, recorded selectors, pause and rewind / Evaluate
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:54:43.0817846Z   ✓   2 e2e/05-cockpit-detail.spec.ts:8:1 › detailed cockpit retains physical steering, recorded selectors, pause and rewind (2.1m)
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:54:43.0912980Z [browser-progress] START  >  > 11-phase27c.spec.ts > Phase 27C: actual crowd colour/depth shaders freeze and rewind exactly
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:54:46.8507544Z   ✓   3 e2e/11-phase27c.spec.ts:40:1 › Phase 27C: actual crowd colour/depth shaders freeze and rewind exactly (3.8s)
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:54:46.8625934Z [browser-progress] START  >  > 14-phase27e.spec.ts > optional review video uses the real browser encoder and reports unsupported encoders explicitly
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:54:58.0725706Z   ✓   4 e2e/14-phase27e.spec.ts:113:1 › optional review video uses the real browser encoder and reports unsupported encoders explicitly (11.2s)
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:54:58.0808097Z [browser-progress] START  >  > 20-phase27h.spec.ts > 27H: actual application loads the authored GLB and retains frozen native views and live paint
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:55:00.3583014Z [browser-progress] 2s  >  > 20-phase27h.spec.ts > 27H: actual application loads the authored GLB and retains frozen native views and live paint / Expect "toBeVisible"
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:55:30.3682143Z [browser-progress] 32s  >  > 20-phase27h.spec.ts > 27H: actual application loads the authored GLB and retains frozen native views and live paint / Expect "toBeVisible"
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:56:00.3975357Z [browser-progress] 62s  >  > 20-phase27h.spec.ts > 27H: actual application loads the authored GLB and retains frozen native views and live paint / Expect "toBeVisible"
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:56:30.4302865Z [browser-progress] 92s  >  > 20-phase27h.spec.ts > 27H: actual application loads the authored GLB and retains frozen native views and live paint / Expect "toBeVisible"
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:57:00.4585744Z [browser-progress] 122s  >  > 20-phase27h.spec.ts > 27H: actual application loads the authored GLB and retains frozen native views and live paint / Expect "toBeVisible"
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:57:30.4592754Z [browser-progress] 152s  >  > 20-phase27h.spec.ts > 27H: actual application loads the authored GLB and retains frozen native views and live paint / After Hooks
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:58:00.4812884Z [browser-progress] 182s  >  > 20-phase27h.spec.ts > 27H: actual application loads the authored GLB and retains frozen native views and live paint / Close context
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:58:07.3613395Z   ✘   5 e2e/20-phase27h.spec.ts:9:1 › 27H: actual application loads the authored GLB and retains frozen native views and live paint (3.1m)
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:58:07.3614363Z [browser-failure]  >  > 20-phase27h.spec.ts > 27H: actual application loads the authored GLB and retains frozen native views and live paint
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:58:07.3615104Z Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoBeVisible^[[2m()^[[22m failed
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:58:07.3615412Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:58:07.3615552Z Locator:  locator('#photoStudio')
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:58:07.3615817Z Expected: visible
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:58:07.3616023Z Received: hidden
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:58:07.3616233Z Timeout:  120000ms
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:58:07.3616347Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:58:07.3616432Z Call log:
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:58:07.3616755Z ^[[2m  - Expect "toBeVisible" with timeout 120000ms^[[22m
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:58:07.3617148Z ^[[2m  - waiting for locator('#photoStudio')^[[22m
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:58:07.3617725Z ^[[2m    17 × locator resolved to <section hidden="" id="photoStudio" class="photo-studio"></section>^[[22m
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:58:07.3618220Z ^[[2m       - unexpected value "hidden"^[[22m
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:58:07.3618399Z 
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:58:07.3618625Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/20-phase27h.spec.ts:27:46
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:58:07.8789348Z [browser-progress] START  >  > 23-apx01-views.spec.ts > 27H.1 normal application: deterministic opposite-side whole-car inspection
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:58:30.4905041Z [browser-progress] 23s  >  > 23-apx01-views.spec.ts > 27H.1 normal application: deterministic opposite-side whole-car inspection / Expect "toBeVisible"
-browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T08:58:44.3228326Z ##[error]The operation was canceled.
-browser (2)	Browser screenshots and diagnostics	﻿2026-11-19T08:58:44.3360063Z ##[group]Run actions/upload-artifact@v4
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:44.3360449Z with:
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:44.3360720Z   name: browser-validation-2-of-12
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:44.3361550Z   path: test-results/
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:25.5778762Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 173.8 MiB
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:25.6791199Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 173.8 MiB
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:25.7720082Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 173.8 MiB
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:25.8949709Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 173.8 MiB
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:26.0243930Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 173.8 MiB
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:26.1378576Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 173.8 MiB
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:26.2345427Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 173.8 MiB
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:26.3312440Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 173.8 MiB
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:29.9570309Z Chromium 140.0.7339.186 (playwright build v1193) downloaded to /home/runner/.cache/ms-playwright/chromium-1193
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:29.9595074Z Downloading FFMPEG playwright build v1011 from https://cdn.playwright.dev/dbazure/download/playwright/builds/ffmpeg/1011/ffmpeg-linux.zip
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:30.1487766Z |                                                                                |   0% of 2.3 MiB
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:30.1817818Z |■■■■■■■■                                                                        |  10% of 2.3 MiB
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:30.1974127Z |■■■■■■■■■■■■■■■■                                                                |  20% of 2.3 MiB
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:30.2065054Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 2.3 MiB
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:30.2126896Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 2.3 MiB
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:30.2182277Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 2.3 MiB
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:30.2223909Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 2.3 MiB
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:30.2260246Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 2.3 MiB
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:30.2286991Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 2.3 MiB
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:30.2316853Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 2.3 MiB
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:30.2336967Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 2.3 MiB
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:30.2842329Z FFMPEG playwright build v1011 downloaded to /home/runner/.cache/ms-playwright/ffmpeg-1011
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:30.2845872Z Downloading Chromium Headless Shell 140.0.7339.186 (playwright build v1193) from https://cdn.playwright.dev/dbazure/download/playwright/builds/chromium/1193/chromium-headless-shell-linux.zip
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:30.4424848Z |                                                                                |   0% of 104.3 MiB
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:30.5781863Z |■■■■■■■■                                                                        |  10% of 104.3 MiB
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:30.6263925Z |■■■■■■■■■■■■■■■■                                                                |  20% of 104.3 MiB
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:30.6755001Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 104.3 MiB
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:30.7252749Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 104.3 MiB
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:30.7755445Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 104.3 MiB
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:30.8182356Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 104.3 MiB
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:30.8715542Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 104.3 MiB
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:30.9228757Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 104.3 MiB
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:30.9769369Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 104.3 MiB
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:31.0207461Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 104.3 MiB
+browser (2)	Run npx playwright install --with-deps chromium	2026-11-19T09:09:32.9820882Z Chromium Headless Shell 140.0.7339.186 (playwright build v1193) downloaded to /home/runner/.cache/ms-playwright/chromium_headless_shell-1193
+browser (2)	Install Mesa software graphics and virtual display	﻿2026-11-19T09:09:33.0581646Z ##[group]Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:33.0582560Z ^[[36;1msudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb^[[0m
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:33.0596828Z shell: /usr/bin/bash -e {0}
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:33.0597195Z env:
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:33.0597539Z   APEX_BROWSER_BACKEND: mesa
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:33.0597910Z   LIBGL_ALWAYS_SOFTWARE: true
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:33.0598247Z   GALLIUM_DRIVER: llvmpipe
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:33.0598619Z ##[endgroup]
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:33.0822929Z Reading package lists...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:33.3231127Z Building dependency tree...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:33.3238417Z Reading state information...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:33.4934812Z libgl1-mesa-dri is already the newest version (25.2.8-0ubuntu0.24.04.5).
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:33.4936520Z libgl1-mesa-dri set to manually installed.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:33.4937644Z libglx-mesa0 is already the newest version (25.2.8-0ubuntu0.24.04.5).
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:33.4938644Z libglx-mesa0 set to manually installed.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:33.4939645Z xvfb is already the newest version (2:21.1.12-1ubuntu1.9).
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:33.4940611Z The following additional packages will be installed:
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:33.4941540Z   libdecor-0-0 libdecor-0-plugin-1-gtk libegl-mesa0 libgles2 libxcb-xkb1
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:33.4944546Z   libxkbcommon-x11-0 mesa-utils-bin
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:33.5108850Z The following NEW packages will be installed:
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:33.5112589Z   libdecor-0-0 libdecor-0-plugin-1-gtk libegl-mesa0 libegl1 libgles2
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:33.5115662Z   libxcb-xkb1 libxkbcommon-x11-0 mesa-utils mesa-utils-bin
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:33.5296094Z 0 upgraded, 9 newly installed, 0 to remove and 12 not upgraded.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:33.5296990Z Need to get 1464 kB of archives.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:33.5298055Z After this operation, 4054 kB of additional disk space will be used.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:33.5298969Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:33.6951753Z Get:2 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libdecor-0-0 amd64 0.2.2-1build2 [16.5 kB]
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:33.8688142Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libdecor-0-plugin-1-gtk amd64 0.2.2-1build2 [22.2 kB]
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:34.2863510Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libegl-mesa0 amd64 25.2.8-0ubuntu0.24.04.5 [117 kB]
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:34.4863605Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libxcb-xkb1 amd64 1.15-1ubuntu2 [32.3 kB]
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:34.8157696Z Get:6 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libxkbcommon-x11-0 amd64 1.6.0-1build1 [14.5 kB]
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:35.0168673Z Get:7 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libegl1 amd64 1.7.0-1build1 [28.7 kB]
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:36.0703265Z Get:8 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libgles2 amd64 1.7.0-1build1 [17.1 kB]
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:36.6817088Z Get:9 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 mesa-utils-bin amd64 9.0.0-2 [164 kB]
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:37.5881104Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 mesa-utils amd64 9.0.0-2 [1051 kB]
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:41.9245449Z Fetched 1464 kB in 8s (180 kB/s)
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:41.9435868Z Selecting previously unselected package libdecor-0-0:amd64.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:41.9465337Z (Reading database ... 
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:41.9466596Z (Reading database ... 5%
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:41.9467284Z (Reading database ... 10%
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:41.9468009Z (Reading database ... 15%
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:41.9468555Z (Reading database ... 20%
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:41.9469178Z (Reading database ... 25%
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:41.9469701Z (Reading database ... 30%
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:41.9470260Z (Reading database ... 35%
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:41.9470802Z (Reading database ... 40%
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:41.9471442Z (Reading database ... 45%
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:41.9472225Z (Reading database ... 50%
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:41.9481292Z (Reading database ... 55%
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:41.9523611Z (Reading database ... 60%
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:41.9538975Z (Reading database ... 65%
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:41.9564052Z (Reading database ... 70%
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:41.9579443Z (Reading database ... 75%
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:41.9709406Z (Reading database ... 80%
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:41.9839633Z (Reading database ... 85%
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:41.9886648Z (Reading database ... 90%
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.0176504Z (Reading database ... 95%
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.0177028Z (Reading database ... 100%
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.0177650Z (Reading database ... 217359 files and directories currently installed.)
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.0219405Z Preparing to unpack .../0-libdecor-0-0_0.2.2-1build2_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.0239518Z Unpacking libdecor-0-0:amd64 (0.2.2-1build2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.0436097Z Selecting previously unselected package libdecor-0-plugin-1-gtk:amd64.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.0557262Z Preparing to unpack .../1-libdecor-0-plugin-1-gtk_0.2.2-1build2_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.0570435Z Unpacking libdecor-0-plugin-1-gtk:amd64 (0.2.2-1build2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.0765748Z Selecting previously unselected package libegl-mesa0:amd64.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.0889770Z Preparing to unpack .../2-libegl-mesa0_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.0901270Z Unpacking libegl-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.1110935Z Selecting previously unselected package libxcb-xkb1:amd64.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.1236585Z Preparing to unpack .../3-libxcb-xkb1_1.15-1ubuntu2_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.1246902Z Unpacking libxcb-xkb1:amd64 (1.15-1ubuntu2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.1470587Z Selecting previously unselected package libxkbcommon-x11-0:amd64.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.1596068Z Preparing to unpack .../4-libxkbcommon-x11-0_1.6.0-1build1_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.1606926Z Unpacking libxkbcommon-x11-0:amd64 (1.6.0-1build1) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.1797629Z Selecting previously unselected package libegl1:amd64.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.1925529Z Preparing to unpack .../5-libegl1_1.7.0-1build1_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.1936200Z Unpacking libegl1:amd64 (1.7.0-1build1) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.2135790Z Selecting previously unselected package libgles2:amd64.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.2264206Z Preparing to unpack .../6-libgles2_1.7.0-1build1_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.2274694Z Unpacking libgles2:amd64 (1.7.0-1build1) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.2457017Z Selecting previously unselected package mesa-utils-bin:amd64.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.2586423Z Preparing to unpack .../7-mesa-utils-bin_9.0.0-2_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.2598124Z Unpacking mesa-utils-bin:amd64 (9.0.0-2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.2820282Z Selecting previously unselected package mesa-utils.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.2948940Z Preparing to unpack .../8-mesa-utils_9.0.0-2_amd64.deb ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.2960687Z Unpacking mesa-utils (9.0.0-2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.3463097Z Setting up libxcb-xkb1:amd64 (1.15-1ubuntu2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.3488970Z Setting up libegl-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.3512763Z Setting up libgles2:amd64 (1.7.0-1build1) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.3538220Z Setting up libxkbcommon-x11-0:amd64 (1.6.0-1build1) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.3561225Z Setting up libegl1:amd64 (1.7.0-1build1) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.3584733Z Setting up libdecor-0-0:amd64 (0.2.2-1build2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.3609671Z Setting up libdecor-0-plugin-1-gtk:amd64 (0.2.2-1build2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.3632157Z Setting up mesa-utils-bin:amd64 (9.0.0-2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.3654556Z Setting up mesa-utils (9.0.0-2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.3680001Z Processing triggers for man-db (2.12.0-4build2) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.3698043Z Not building database; man-db/auto-update is not 'true'.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.3711317Z Processing triggers for libc-bin (2.39-0ubuntu8.12) ...
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.8681020Z 
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.8682140Z Running kernel seems to be up-to-date.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.8682700Z 
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.8683043Z No services need to be restarted.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.8683656Z 
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.8683902Z No containers need to be restarted.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.8684193Z 
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.8684526Z No user sessions are running outdated binaries.
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.8685111Z 
+browser (2)	Install Mesa software graphics and virtual display	2026-11-19T09:09:42.8685546Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	﻿2026-11-19T09:09:43.8507662Z ##[group]Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:09:43.8508754Z ^[[36;1mxvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12^[[0m
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:09:43.8527841Z shell: /usr/bin/bash -e {0}
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:09:43.8528313Z env:
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:09:43.8528711Z   APEX_BROWSER_BACKEND: mesa
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:09:43.8529063Z   LIBGL_ALWAYS_SOFTWARE: true
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:09:43.8529413Z   GALLIUM_DRIVER: llvmpipe
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:09:43.8529784Z ##[endgroup]
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:09:44.1946350Z 
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:09:44.1947541Z > apex-formula-laboratory@0.1.0 test:e2e:shard
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:09:44.1948456Z > node --experimental-strip-types scripts/run-browser-shard.ts 2/12
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:09:44.1949013Z 
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:09:53.8012405Z Verified 29 of 353 cases for shard 2/12; no omissions or duplicate assignments.
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:09:56.2204338Z Observed mesa test backend: ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:09:58.0181850Z 
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:09:58.0183277Z Running 29 tests using 1 worker
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:09:58.0183809Z 
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:09:58.6569204Z [browser-progress] START  >  > 04-reference-visual.spec.ts > reference review: production high-quality clear car and cockpit
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:10:28.0338335Z [browser-progress] 29s  >  > 04-reference-visual.spec.ts > reference review: production high-quality clear car and cockpit / Evaluate
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:10:58.0482953Z [browser-progress] 59s  >  > 04-reference-visual.spec.ts > reference review: production high-quality clear car and cockpit / Evaluate
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:11:28.0748208Z [browser-progress] 89s  >  > 04-reference-visual.spec.ts > reference review: production high-quality clear car and cockpit / Evaluate
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:11:58.1046292Z [browser-progress] 119s  >  > 04-reference-visual.spec.ts > reference review: production high-quality clear car and cockpit / Evaluate
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:12:28.1276167Z [browser-progress] 149s  >  > 04-reference-visual.spec.ts > reference review: production high-quality clear car and cockpit / Evaluate
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:12:58.1594699Z [browser-progress] 180s  >  > 04-reference-visual.spec.ts > reference review: production high-quality clear car and cockpit / Evaluate
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:13:28.1701681Z [browser-progress] 210s  >  > 04-reference-visual.spec.ts > reference review: production high-quality clear car and cockpit / Evaluate
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:13:55.5005524Z   ✓   1 e2e/04-reference-visual.spec.ts:8:3 › reference review: production high-quality clear car and cockpit (3.9m)
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:13:55.5805770Z [browser-progress] START  >  > 05-cockpit-detail.spec.ts > detailed cockpit retains physical steering, recorded selectors, pause and rewind
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:13:58.1727776Z [browser-progress] 3s  >  > 05-cockpit-detail.spec.ts > detailed cockpit retains physical steering, recorded selectors, pause and rewind / Create page
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:14:28.1902662Z [browser-progress] 33s  >  > 05-cockpit-detail.spec.ts > detailed cockpit retains physical steering, recorded selectors, pause and rewind / Evaluate
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:14:58.2052465Z [browser-progress] 63s  >  > 05-cockpit-detail.spec.ts > detailed cockpit retains physical steering, recorded selectors, pause and rewind / Evaluate
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:15:28.2350285Z [browser-progress] 93s  >  > 05-cockpit-detail.spec.ts > detailed cockpit retains physical steering, recorded selectors, pause and rewind / Evaluate
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:15:58.2674342Z [browser-progress] 123s  >  > 05-cockpit-detail.spec.ts > detailed cockpit retains physical steering, recorded selectors, pause and rewind / Evaluate
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:16:11.1985521Z   ✓   2 e2e/05-cockpit-detail.spec.ts:8:1 › detailed cockpit retains physical steering, recorded selectors, pause and rewind (2.3m)
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:16:11.2084654Z [browser-progress] START  >  > 11-phase27c.spec.ts > Phase 27C: actual crowd colour/depth shaders freeze and rewind exactly
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:16:15.3498787Z   ✓   3 e2e/11-phase27c.spec.ts:40:1 › Phase 27C: actual crowd colour/depth shaders freeze and rewind exactly (4.1s)
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:16:15.3607309Z [browser-progress] START  >  > 14-phase27e.spec.ts > optional review video uses the real browser encoder and reports unsupported encoders explicitly
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:16:27.2186541Z   ✓   4 e2e/14-phase27e.spec.ts:113:1 › optional review video uses the real browser encoder and reports unsupported encoders explicitly (11.8s)
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:16:27.2267363Z [browser-progress] START  >  > 20-phase27h.spec.ts > 27H: actual application loads the authored GLB and retains frozen native views and live paint
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:16:28.2686302Z [browser-progress] 1s  >  > 20-phase27h.spec.ts > 27H: actual application loads the authored GLB and retains frozen native views and live paint / Expect "toBeVisible"
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:16:58.2674719Z [browser-progress] 31s  >  > 20-phase27h.spec.ts > 27H: actual application loads the authored GLB and retains frozen native views and live paint / Expect "toBeVisible"
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:17:28.2966486Z [browser-progress] 61s  >  > 20-phase27h.spec.ts > 27H: actual application loads the authored GLB and retains frozen native views and live paint / Expect "toBeVisible"
+browser (2)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/12	2026-11-19T09:17:31.2612765Z ##[error]The operation was canceled.
+browser (2)	Browser screenshots and diagnostics	﻿2026-11-19T09:17:31.2716518Z ##[group]Run actions/upload-artifact@v4
+browser (2)	Browser screenshots and diagnostics	2026-11-19T09:17:31.2717067Z with:
+browser (2)	Browser screenshots and diagnostics	2026-11-19T09:17:31.2717599Z   name: browser-validation-2-of-12
+browser (2)	Browser screenshots and diagnostics	2026-11-19T09:17:31.2718605Z   path: test-results/
 browser (2)	Browser screenshots and diagnostics	playwright-report/
 browser (2)	Browser screenshots and diagnostics	browser-shard-plan.json
 browser (2)	Browser screenshots and diagnostics	browser-backend.json
 browser (2)	Browser screenshots and diagnostics	browser-progress.json
 browser (2)	Browser screenshots and diagnostics	
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:44.3362229Z   retention-days: 7
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:44.3362504Z   if-no-files-found: warn
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:44.3362799Z   compression-level: 6
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:44.3363081Z   overwrite: false
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:44.3363355Z   include-hidden-files: false
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:44.3363656Z env:
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:44.3363914Z   APEX_BROWSER_BACKEND: mesa
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:44.3364225Z   LIBGL_ALWAYS_SOFTWARE: true
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:44.3364545Z   GALLIUM_DRIVER: llvmpipe
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:44.3365039Z ##[endgroup]
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:44.7802196Z (node:3976) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:44.7831698Z (Use `node --trace-deprecation ...` to show where the warning was created)
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:44.8445391Z Multiple search paths detected. Calculating the least common ancestor of all paths
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:44.9562380Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:45.0014154Z With the provided path, there will be 5 files uploaded
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:45.0016862Z Artifact name is valid!
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:45.0017255Z Root directory input is valid!
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:45.1763623Z Beginning upload of artifact content to blob storage
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:45.6996381Z (node:3976) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:45.9402656Z Uploaded bytes 8388608
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:46.1802311Z Uploaded bytes 16777216
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:46.5734866Z Uploaded bytes 25165824
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:46.7355313Z Uploaded bytes 29795610
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:46.7612168Z Finished uploading artifact content to blob storage!
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:46.7652148Z SHA256 digest of uploaded artifact zip is 9e44a5c3e9403cd8e69252d97c417978f2c2c50dd30dd0af2dc433930468fe6f
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:46.7701516Z Finalizing artifact upload
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:47.1361920Z Artifact browser-validation-2-of-12.zip successfully finalized. Artifact ID 14513616492
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:47.1392027Z Artifact browser-validation-2-of-12 has been successfully uploaded! Final size is 29795610 bytes. Artifact ID is 14513616492
-browser (2)	Browser screenshots and diagnostics	2026-11-19T08:58:47.1393382Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44488934042/artifacts/14513616492
-browser (2)	Post Run actions/checkout@v4	﻿2026-11-19T08:58:47.1934015Z Post job cleanup.
-browser (2)	Post Run actions/checkout@v4	2026-11-19T08:58:47.4181721Z [command]/usr/bin/git version
-browser (2)	Post Run actions/checkout@v4	2026-11-19T08:58:47.4301870Z git version 2.56.1
-browser (2)	Post Run actions/checkout@v4	2026-11-19T08:58:47.4613279Z Temporarily overriding HOME='/home/runner/work/_temp/ac3aa32d-c41b-42e3-bba4-0fdd33f4a9fd' before making global git config changes
-browser (2)	Post Run actions/checkout@v4	2026-11-19T08:58:47.4651254Z Adding repository directory to the temporary git global config as a safe directory
-browser (2)	Post Run actions/checkout@v4	2026-11-19T08:58:47.4691831Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
-browser (2)	Post Run actions/checkout@v4	2026-11-19T08:58:47.4811818Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-browser (2)	Post Run actions/checkout@v4	2026-11-19T08:58:47.4897325Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-browser (2)	Post Run actions/checkout@v4	2026-11-19T08:58:47.5702178Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-browser (2)	Post Run actions/checkout@v4	2026-11-19T08:58:47.5737389Z http.https://github.com/.extraheader
-browser (2)	Post Run actions/checkout@v4	2026-11-19T08:58:47.5851964Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-browser (2)	Post Run actions/checkout@v4	2026-11-19T08:58:47.5912672Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-browser (2)	Post Run actions/checkout@v4	2026-11-19T08:58:47.6691839Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-browser (2)	Post Run actions/checkout@v4	2026-11-19T08:58:47.6842098Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-browser (2)	Complete job	﻿2026-11-19T08:58:47.7971702Z Cleaning up orphan processes
-browser (2)	Complete job	2026-11-19T08:58:47.8546342Z Terminate orphan process: pid (3261) (xvfb-run)
-browser (2)	Complete job	2026-11-19T08:58:47.8605519Z Terminate orphan process: pid (3271) (Xvfb)
-browser (2)	Complete job	2026-11-19T08:58:47.8699148Z Terminate orphan process: pid (3274) (npm run test:e2)
-browser (2)	Complete job	2026-11-19T08:58:47.8914074Z Terminate orphan process: pid (3285) (sh)
-browser (2)	Complete job	2026-11-19T08:58:48.0055396Z Terminate orphan process: pid (3286) (node)
-browser (2)	Complete job	2026-11-19T08:58:48.0179398Z Terminate orphan process: pid (3322) (node)
-browser (2)	Complete job	2026-11-19T08:58:48.0263284Z Terminate orphan process: pid (3338) (sh)
-browser (2)	Complete job	2026-11-19T08:58:48.0327389Z Terminate orphan process: pid (3339) (npm run preview --port 4173)
-browser (2)	Complete job	2026-11-19T08:58:48.0392230Z Terminate orphan process: pid (3350) (sh)
-browser (2)	Complete job	2026-11-19T08:58:48.0457801Z Terminate orphan process: pid (3351) (node)
-browser (2)	Complete job	2026-11-19T08:58:48.0547555Z Terminate orphan process: pid (3359) (esbuild)
-browser (2)	Complete job	2026-11-19T08:58:48.0654741Z Terminate orphan process: pid (3845) (node)
-browser (2)	Complete job	2026-11-19T08:58:48.0683245Z Terminate orphan process: pid (3861) (chrome_crashpad_handler)
-browser (2)	Complete job	2026-11-19T08:58:48.0704625Z Terminate orphan process: pid (3863) (chrome_crashpad_handler)
-browser (2)	Complete job	2026-11-19T08:58:48.0816122Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/download-artifact@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+browser (2)	Browser screenshots and diagnostics	2026-11-19T09:17:31.2719541Z   retention-days: 7
+browser (2)	Browser screenshots and diagnostics	2026-11-19T09:17:31.2720059Z   if-no-files-found: warn
+browser (2)	Browser screenshots and diagnostics	2026-11-19T09:17:31.2720552Z   compression-level: 6
+browser (2)	Browser screenshots and diagnostics	2026-11-19T09:17:31.2721098Z   overwrite: false
+browser (2)	Browser screenshots and diagnostics	2026-11-19T09:17:31.2721536Z   include-hidden-files: false
+browser (2)	Browser screenshots and diagnostics	2026-11-19T09:17:31.2722217Z env:
+browser (2)	Browser screenshots and diagnostics	2026-11-19T09:17:31.2722693Z   APEX_BROWSER_BACKEND: mesa
+browser (2)	Browser screenshots and diagnostics	2026-11-19T09:17:31.2723248Z   LIBGL_ALWAYS_SOFTWARE: true
+browser (2)	Browser screenshots and diagnostics	2026-11-19T09:17:31.2723744Z   GALLIUM_DRIVER: llvmpipe
+browser (2)	Browser screenshots and diagnostics	2026-11-19T09:17:31.2724251Z ##[endgroup]
+browser (2)	Browser screenshots and diagnostics	2026-11-19T09:17:31.4417195Z (node:4126) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+browser (2)	Browser screenshots and diagnostics	2026-11-19T09:17:31.4419433Z (Use `node --trace-deprecation ...` to show where the warning was created)
+browser (2)	Browser screenshots and diagnostics	2026-11-19T09:17:31.4626904Z Multiple search paths detected. Calculating the least common ancestor of all paths
+browser (2)	Browser screenshots and diagnostics	2026-11-19T09:17:31.4631850Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
+browser (2)	Browser screenshots and diagnostics	2026-11-19T09:17:31.4640802Z With the provided path, there will be 3 files uploaded
+browser (2)	Browser screenshots and diagnostics	2026-11-19T09:17:31.4642628Z Artifact name is valid!
+browser (2)	Browser screenshots and diagnostics	2026-11-19T09:17:31.4643564Z Root directory input is valid!
+browser (2)	Browser screenshots and diagnostics	2026-11-19T09:17:31.7610779Z Beginning upload of artifact content to blob storage
+browser (2)	Browser screenshots and diagnostics	2026-11-19T09:17:31.7856617Z (node:4126) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+browser (2)	Browser screenshots and diagnostics	2026-11-19T09:17:31.8731617Z Uploaded bytes 10542
+browser (2)	Browser screenshots and diagnostics	2026-11-19T09:17:31.9002883Z Finished uploading artifact content to blob storage!
+browser (2)	Browser screenshots and diagnostics	2026-11-19T09:17:31.9004340Z SHA256 digest of uploaded artifact zip is be453725084c5ee18e2212c6ce08f186505a400dd4c7c4163962f474ef2cba4d
+browser (2)	Browser screenshots and diagnostics	2026-11-19T09:17:31.9005461Z Finalizing artifact upload
+browser (2)	Browser screenshots and diagnostics	2026-11-19T09:17:32.2771835Z Artifact browser-validation-2-of-12.zip successfully finalized. Artifact ID 14514168346
+browser (2)	Browser screenshots and diagnostics	2026-11-19T09:17:32.2773668Z Artifact browser-validation-2-of-12 has been successfully uploaded! Final size is 10542 bytes. Artifact ID is 14514168346
+browser (2)	Browser screenshots and diagnostics	2026-11-19T09:17:32.2775385Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44492180743/artifacts/14514168346
+browser (2)	Post Run actions/checkout@v4	﻿2026-11-19T09:17:32.2890640Z Post job cleanup.
+browser (2)	Post Run actions/checkout@v4	2026-11-19T09:17:32.3803633Z [command]/usr/bin/git version
+browser (2)	Post Run actions/checkout@v4	2026-11-19T09:17:32.3849846Z git version 2.56.1
+browser (2)	Post Run actions/checkout@v4	2026-11-19T09:17:32.3891514Z Temporarily overriding HOME='/home/runner/work/_temp/1a857f3f-1611-43fb-87be-48731ec09e0b' before making global git config changes
+browser (2)	Post Run actions/checkout@v4	2026-11-19T09:17:32.3895324Z Adding repository directory to the temporary git global config as a safe directory
+browser (2)	Post Run actions/checkout@v4	2026-11-19T09:17:32.3898282Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+browser (2)	Post Run actions/checkout@v4	2026-11-19T09:17:32.3966172Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+browser (2)	Post Run actions/checkout@v4	2026-11-19T09:17:32.4006117Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+browser (2)	Post Run actions/checkout@v4	2026-11-19T09:17:32.4389826Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+browser (2)	Post Run actions/checkout@v4	2026-11-19T09:17:32.4391306Z http.https://github.com/.extraheader
+browser (2)	Post Run actions/checkout@v4	2026-11-19T09:17:32.4407919Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+browser (2)	Post Run actions/checkout@v4	2026-11-19T09:17:32.4461925Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+browser (2)	Post Run actions/checkout@v4	2026-11-19T09:17:32.4816492Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+browser (2)	Post Run actions/checkout@v4	2026-11-19T09:17:32.4825236Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+browser (2)	Complete job	﻿2026-11-19T09:17:32.5196509Z Cleaning up orphan processes
+browser (2)	Complete job	2026-11-19T09:17:32.5393111Z Terminate orphan process: pid (3558) (xvfb-run)
+browser (2)	Complete job	2026-11-19T09:17:32.5413983Z Terminate orphan process: pid (3568) (Xvfb)
+browser (2)	Complete job	2026-11-19T09:17:32.5433580Z Terminate orphan process: pid (3571) (npm run test:e2)
+browser (2)	Complete job	2026-11-19T09:17:32.5459073Z Terminate orphan process: pid (3582) (sh)
+browser (2)	Complete job	2026-11-19T09:17:32.5484570Z Terminate orphan process: pid (3583) (node)
+browser (2)	Complete job	2026-11-19T09:17:32.5513676Z Terminate orphan process: pid (3616) (node)
+browser (2)	Complete job	2026-11-19T09:17:32.5567738Z Terminate orphan process: pid (3632) (sh)
+browser (2)	Complete job	2026-11-19T09:17:32.5594079Z Terminate orphan process: pid (3633) (npm run preview --port 4173)
+browser (2)	Complete job	2026-11-19T09:17:32.5630051Z Terminate orphan process: pid (3644) (sh)
+browser (2)	Complete job	2026-11-19T09:17:32.5664276Z Terminate orphan process: pid (3645) (node)
+browser (2)	Complete job	2026-11-19T09:17:32.5730835Z Terminate orphan process: pid (3653) (esbuild)
+browser (2)	Complete job	2026-11-19T09:17:32.5792774Z Terminate orphan process: pid (3776) (node)
+browser (2)	Complete job	2026-11-19T09:17:32.5868507Z Terminate orphan process: pid (3791) (chrome_crashpad_handler)
+browser (2)	Complete job	2026-11-19T09:17:32.5902455Z Terminate orphan process: pid (3793) (chrome_crashpad_handler)
+browser (2)	Complete job	2026-11-19T09:17:32.5976652Z Terminate orphan process: pid (3887) (esbuild)
+browser (2)	Complete job	2026-11-19T09:17:32.6119050Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/download-artifact@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
