@@ -1,28 +1,17 @@
 # Build and validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44471671482
-- commit: `e9683c8689` · Preserve shared texture pixels across scene lifecycles
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44472167362
+- commit: `bd7f66c7ef` · Prepare actual venue lighting before compiling scene materials
 - event: push · status: completed · conclusion: **cancelled**
-- started: 2026-11-19T06:22:22Z · updated: 2026-11-19T06:26:26Z
+- started: 2026-11-19T06:26:24Z · updated: 2026-11-19T06:30:54Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| unit-tests | cancelled | 3 |  |
-| scenarios | cancelled | 3 |  |
-| validate | success | 2 |  |
-| offroad-scenarios | cancelled | 3 |  |
-| wet-presentation | cancelled | 0 |  |
-| browser (5) | cancelled | 0 |  |
-| browser (4) | cancelled | 0 |  |
-| browser (6) | cancelled | 0 |  |
-| browser (2) | cancelled | 0 |  |
-| browser (7) | cancelled | 0 |  |
+| validate | cancelled | 2 | Steam demo build and IP guard |
+| unit-tests | cancelled | 0 | Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund |
+| offroad-scenarios | cancelled | 4 |  |
+| scenarios | cancelled | 4 |  |
 | owner-qa | cancelled | 0 |  |
-| browser (8) | cancelled | 0 |  |
-| browser (11) | cancelled | 0 |  |
-| browser (3) | cancelled | 0 |  |
-| browser (12) | cancelled | 0 |  |
-| browser (10) | cancelled | 0 |  |
-| browser (1) | cancelled | 0 |  |
-| browser (9) | cancelled | 0 |  |
-| publish | cancelled | -1 |  |
+| browser | cancelled | 0 |  |
+| wet-presentation | cancelled | 0 |  |
+| publish | cancelled | 0 |  |

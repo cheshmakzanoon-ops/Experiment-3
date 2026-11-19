@@ -1,1 +1,205 @@
-logs unavailable (expired or not accessible)
+### unit-tests (job 135384029540)
+--- error digest (first 120 matching lines) ---
+184:unit-tests	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-19T06:30:43.5057844Z ##[error]The operation was canceled.
+
+--- last 250 lines ---
+unit-tests	Set up job	﻿2026-11-19T06:30:06.0255991Z Current runner version: '2.338.2'
+unit-tests	Set up job	2026-11-19T06:30:06.0273939Z ##[group]Runner Image Provisioner
+unit-tests	Set up job	2026-11-19T06:30:06.0274600Z Hosted Compute Agent
+unit-tests	Set up job	2026-11-19T06:30:06.0275139Z Version: 20261103.629
+unit-tests	Set up job	2026-11-19T06:30:06.0275595Z Commit: 15dbd9ccb5dbf34fae002b6ed1a2670f52df37bc
+unit-tests	Set up job	2026-11-19T06:30:06.0276108Z Build Date: 2026-11-03T17:26:59Z
+unit-tests	Set up job	2026-11-19T06:30:06.0276648Z Worker ID: {0e0b3a34-2989-456a-9b70-cfa8ee3db08b}
+unit-tests	Set up job	2026-11-19T06:30:06.0277202Z Region: us-west-2
+unit-tests	Set up job	2026-11-19T06:30:06.0277604Z Cloud: AWS
+unit-tests	Set up job	2026-11-19T06:30:06.0277989Z ##[endgroup]
+unit-tests	Set up job	2026-11-19T06:30:06.0278896Z ##[group]Operating System
+unit-tests	Set up job	2026-11-19T06:30:06.0279361Z Ubuntu
+unit-tests	Set up job	2026-11-19T06:30:06.0279734Z 24.04.5
+unit-tests	Set up job	2026-11-19T06:30:06.0280131Z LTS
+unit-tests	Set up job	2026-11-19T06:30:06.0280507Z ##[endgroup]
+unit-tests	Set up job	2026-11-19T06:30:06.0280896Z ##[group]Runner Image
+unit-tests	Set up job	2026-11-19T06:30:06.0281350Z Image: ubuntu-24.04
+unit-tests	Set up job	2026-11-19T06:30:06.0281753Z Version: 20261111.127.1
+unit-tests	Set up job	2026-11-19T06:30:06.0282717Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261111.127/images/ubuntu/Ubuntu2404-Readme.md
+unit-tests	Set up job	2026-11-19T06:30:06.0284075Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261111.127
+unit-tests	Set up job	2026-11-19T06:30:06.0284766Z ##[endgroup]
+unit-tests	Set up job	2026-11-19T06:30:06.0285591Z ##[group]GITHUB_TOKEN Permissions
+unit-tests	Set up job	2026-11-19T06:30:06.0287431Z Contents: read
+unit-tests	Set up job	2026-11-19T06:30:06.0287855Z Metadata: read
+unit-tests	Set up job	2026-11-19T06:30:06.0288478Z ##[endgroup]
+unit-tests	Set up job	2026-11-19T06:30:06.0290067Z Secret source: Actions
+unit-tests	Set up job	2026-11-19T06:30:06.0290714Z Cache mode: write
+unit-tests	Set up job	2026-11-19T06:30:06.0291229Z Prepare workflow directory
+unit-tests	Set up job	2026-11-19T06:30:06.0515528Z Prepare all required actions
+unit-tests	Set up job	2026-11-19T06:30:06.0550712Z Getting action download info
+unit-tests	Set up job	2026-11-19T06:30:06.4343637Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+unit-tests	Set up job	2026-11-19T06:30:08.7497898Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+unit-tests	Set up job	2026-11-19T06:30:09.0892012Z Complete job name: unit-tests
+unit-tests	Run actions/checkout@v4	﻿2026-11-19T06:30:09.1569693Z ##[group]Run actions/checkout@v4
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:09.1570793Z with:
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:09.1571616Z   repository: cheshmakzanoon-ops/Experiment-3
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:09.1577567Z   token: ***
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:09.1578320Z   ssh-strict: true
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:09.1579057Z   ssh-user: git
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:09.1579810Z   persist-credentials: true
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:09.1580620Z   clean: true
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:09.1581377Z   sparse-checkout-cone-mode: true
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:09.1582211Z   fetch-depth: 1
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:09.1583118Z   fetch-tags: false
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:09.1583868Z   show-progress: true
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:09.1584627Z   lfs: false
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:09.1585343Z   submodules: false
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:09.1586082Z   set-safe-directory: true
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:09.1586935Z   allow-unsafe-pr-checkout: false
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:09.1587969Z ##[endgroup]
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:12.7829305Z Syncing repository: cheshmakzanoon-ops/Experiment-3
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:12.7830654Z ##[group]Getting Git version info
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:12.7831094Z Working directory is '/home/runner/work/Experiment-3/Experiment-3'
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:12.7831941Z [command]/usr/bin/git version
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.0885931Z git version 2.56.1
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.0899574Z ##[endgroup]
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.0910535Z Temporarily overriding HOME='/home/runner/work/_temp/19dd4de5-8e45-44ad-887c-403eaec786b7' before making global git config changes
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.0911609Z Adding repository directory to the temporary git global config as a safe directory
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.0915014Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.1412173Z Deleting the contents of '/home/runner/work/Experiment-3/Experiment-3'
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.1414931Z ##[group]Initializing the repository
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.1418321Z [command]/usr/bin/git init /home/runner/work/Experiment-3/Experiment-3
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.2855648Z hint: Using 'master' as the name for the initial branch. This default branch name
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.2856263Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.2857114Z hint: to use in all of your new repositories, which will suppress this warning,
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.2857525Z hint: call:
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.2857741Z hint:
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.2858100Z hint: 	git config --global init.defaultBranch <name>
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.2858381Z hint:
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.2858724Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.2859156Z hint: 'development'. The just-created branch can be renamed via this command:
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.2859566Z hint:
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.2859877Z hint: 	git branch -m <name>
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.2860160Z hint:
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.2860465Z hint: Disable this message with "git config set advice.defaultBranchName false"
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.2861150Z Initialized empty Git repository in /home/runner/work/Experiment-3/Experiment-3/.git/
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.2868257Z [command]/usr/bin/git remote add origin https://github.com/cheshmakzanoon-ops/Experiment-3
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.2907032Z ##[endgroup]
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.2907505Z ##[group]Disabling automatic garbage collection
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.2909549Z [command]/usr/bin/git config --local gc.auto 0
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.2932111Z ##[endgroup]
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.2932776Z ##[group]Setting up auth
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.2937413Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.2963152Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.9614162Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.9636581Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.9785183Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.9808614Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.9954149Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.9978931Z ##[endgroup]
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.9979428Z ##[group]Fetching the repository
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:13.9988554Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +bd7f66c7effe939363ddf4e864826487d3ce5d28:refs/remotes/origin/main
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:29.0973349Z From https://github.com/cheshmakzanoon-ops/Experiment-3
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:29.0974254Z  * [new ref]         bd7f66c7effe939363ddf4e864826487d3ce5d28 -> origin/main
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:29.0986910Z ##[endgroup]
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:29.0987674Z ##[group]Determining the checkout info
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:29.0988336Z ##[endgroup]
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:29.0988720Z [command]/usr/bin/git sparse-checkout disable
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:29.1039118Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:29.1061340Z ##[group]Checking out the ref
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:29.1073996Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.1203577Z Updating files:  60% (4000/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.1460695Z Updating files:  61% (4030/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.1663786Z Updating files:  62% (4096/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.1689239Z Updating files:  63% (4162/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.1719949Z Updating files:  64% (4228/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.1746352Z Updating files:  65% (4294/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.1774853Z Updating files:  66% (4360/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.2168179Z Updating files:  67% (4427/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.2584385Z Updating files:  68% (4493/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.3034312Z Updating files:  69% (4559/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.5687777Z Updating files:  70% (4625/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.6853909Z Updating files:  71% (4691/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.6924364Z Updating files:  72% (4757/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.6979912Z Updating files:  73% (4823/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.7012711Z Updating files:  74% (4889/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.7041645Z Updating files:  75% (4955/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.7194151Z Updating files:  76% (5021/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.7367915Z Updating files:  77% (5087/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.7502374Z Updating files:  78% (5153/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.7647004Z Updating files:  79% (5219/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.7679489Z Updating files:  80% (5285/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.7713898Z Updating files:  81% (5351/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.7837900Z Updating files:  82% (5417/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.7871849Z Updating files:  83% (5483/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.7907555Z Updating files:  84% (5550/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.7940188Z Updating files:  85% (5616/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.7974467Z Updating files:  86% (5682/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.8005323Z Updating files:  87% (5748/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.8040075Z Updating files:  88% (5814/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.8070662Z Updating files:  89% (5880/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.8097472Z Updating files:  90% (5946/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.8131485Z Updating files:  91% (6012/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.8161189Z Updating files:  92% (6078/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.8186160Z Updating files:  93% (6144/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.8213849Z Updating files:  94% (6210/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.8242821Z Updating files:  95% (6276/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.8271029Z Updating files:  96% (6342/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.8297869Z Updating files:  97% (6408/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.8326761Z Updating files:  98% (6474/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.8354494Z Updating files:  99% (6540/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.8354941Z Updating files: 100% (6606/6606)
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.8355278Z Updating files: 100% (6606/6606), done.
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.8417563Z Switched to a new branch 'main'
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.8427649Z branch 'main' set up to track 'origin/main'.
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.8481876Z ##[endgroup]
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.8521517Z [command]/usr/bin/git log -1 --format=%H
+unit-tests	Run actions/checkout@v4	2026-11-19T06:30:30.8541808Z bd7f66c7effe939363ddf4e864826487d3ce5d28
+unit-tests	Run actions/setup-node@v4	﻿2026-11-19T06:30:30.8738465Z ##[group]Run actions/setup-node@v4
+unit-tests	Run actions/setup-node@v4	2026-11-19T06:30:30.8738749Z with:
+unit-tests	Run actions/setup-node@v4	2026-11-19T06:30:30.8738950Z   node-version: 22
+unit-tests	Run actions/setup-node@v4	2026-11-19T06:30:30.8739193Z   cache: npm
+unit-tests	Run actions/setup-node@v4	2026-11-19T06:30:30.8739398Z   always-auth: false
+unit-tests	Run actions/setup-node@v4	2026-11-19T06:30:30.8739620Z   check-latest: false
+unit-tests	Run actions/setup-node@v4	2026-11-19T06:30:30.8741329Z   token: ***
+unit-tests	Run actions/setup-node@v4	2026-11-19T06:30:30.8741520Z ##[endgroup]
+unit-tests	Run actions/setup-node@v4	2026-11-19T06:30:31.1933066Z Found in cache @ /opt/hostedtoolcache/node/22.23.4/x64
+unit-tests	Run actions/setup-node@v4	2026-11-19T06:30:31.1934874Z (node:2168) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+unit-tests	Run actions/setup-node@v4	2026-11-19T06:30:31.1935740Z (Use `node --trace-deprecation ...` to show where the warning was created)
+unit-tests	Run actions/setup-node@v4	2026-11-19T06:30:31.1937595Z ##[group]Environment details
+unit-tests	Run actions/setup-node@v4	2026-11-19T06:30:35.8705555Z node: v22.23.4
+unit-tests	Run actions/setup-node@v4	2026-11-19T06:30:35.8706189Z npm: 10.9.9
+unit-tests	Run actions/setup-node@v4	2026-11-19T06:30:35.8706496Z yarn: 1.22.22
+unit-tests	Run actions/setup-node@v4	2026-11-19T06:30:35.8707501Z ##[endgroup]
+unit-tests	Run actions/setup-node@v4	2026-11-19T06:30:35.8721029Z [command]/opt/hostedtoolcache/node/22.23.4/x64/bin/npm config get cache
+unit-tests	Run actions/setup-node@v4	2026-11-19T06:30:36.2015504Z /home/runner/.npm
+unit-tests	Run actions/setup-node@v4	2026-11-19T06:30:36.5721077Z Cache hit for: node-cache-Linux-x64-npm-657bc73b366f255a93213f276ae080d9eddde8f700d70f4591de709ad7d575b4
+unit-tests	Run actions/setup-node@v4	2026-11-19T06:30:36.5796349Z (node:2168) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+unit-tests	Run actions/setup-node@v4	2026-11-19T06:30:37.9133268Z Received 0 of 34267551 (0.0%), 0.0 MBs/sec
+unit-tests	Run actions/setup-node@v4	2026-11-19T06:30:38.6231833Z Received 34267551 of 34267551 (100.0%), 19.1 MBs/sec
+unit-tests	Run actions/setup-node@v4	2026-11-19T06:30:38.6232373Z Cache Size: ~33 MB (34267551 B)
+unit-tests	Run actions/setup-node@v4	2026-11-19T06:30:38.6575151Z [command]/usr/bin/tar -xf /home/runner/work/_temp/28df859d-bace-4430-8d50-04ce0b85caca/cache.tzst -P -C /home/runner/work/Experiment-3/Experiment-3 --use-compress-program unzstd
+unit-tests	Run actions/setup-node@v4	2026-11-19T06:30:38.6894114Z Cache restored successfully
+unit-tests	Run actions/setup-node@v4	2026-11-19T06:30:38.6907010Z Cache restored from key: node-cache-Linux-x64-npm-657bc73b366f255a93213f276ae080d9eddde8f700d70f4591de709ad7d575b4
+unit-tests	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	﻿2026-11-19T06:30:38.7014517Z ##[group]Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+unit-tests	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-19T06:30:38.7015240Z ^[[36;1mnode --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund^[[0m
+unit-tests	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-19T06:30:39.1705705Z shell: /usr/bin/bash -e {0}
+unit-tests	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-19T06:30:39.1706132Z ##[endgroup]
+unit-tests	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-19T06:30:42.6502307Z npm warn deprecated eslint@9.36.0: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+unit-tests	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-19T06:30:42.9403761Z 
+unit-tests	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-19T06:30:42.9404888Z added 192 packages in 3s
+unit-tests	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-19T06:30:43.4918471Z (node:2219) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+unit-tests	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-19T06:30:43.4919359Z (Use `node --trace-warnings ...` to show where the warning was created)
+unit-tests	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-19T06:30:43.5057844Z ##[error]The operation was canceled.
+unit-tests	Post Run actions/checkout@v4	﻿2026-11-19T06:30:43.5169593Z Post job cleanup.
+unit-tests	Post Run actions/checkout@v4	2026-11-19T06:30:43.5783041Z [command]/usr/bin/git version
+unit-tests	Post Run actions/checkout@v4	2026-11-19T06:30:43.5810973Z git version 2.56.1
+unit-tests	Post Run actions/checkout@v4	2026-11-19T06:30:43.5835190Z Temporarily overriding HOME='/home/runner/work/_temp/ce31ed01-98f6-4241-b08c-a717ac86d86e' before making global git config changes
+unit-tests	Post Run actions/checkout@v4	2026-11-19T06:30:43.5836426Z Adding repository directory to the temporary git global config as a safe directory
+unit-tests	Post Run actions/checkout@v4	2026-11-19T06:30:43.5840246Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+unit-tests	Post Run actions/checkout@v4	2026-11-19T06:30:43.5867031Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+unit-tests	Post Run actions/checkout@v4	2026-11-19T06:30:43.5889591Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+unit-tests	Post Run actions/checkout@v4	2026-11-19T06:30:43.6063622Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+unit-tests	Post Run actions/checkout@v4	2026-11-19T06:30:43.6082247Z http.https://github.com/.extraheader
+unit-tests	Post Run actions/checkout@v4	2026-11-19T06:30:43.6090193Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+unit-tests	Post Run actions/checkout@v4	2026-11-19T06:30:43.6110969Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+unit-tests	Post Run actions/checkout@v4	2026-11-19T06:30:43.6270823Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+unit-tests	Post Run actions/checkout@v4	2026-11-19T06:30:43.6292820Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+unit-tests	Complete job	﻿2026-11-19T06:30:43.6556247Z Cleaning up orphan processes
+unit-tests	Complete job	2026-11-19T06:30:43.6756547Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
