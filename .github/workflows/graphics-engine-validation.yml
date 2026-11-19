@@ -10,6 +10,8 @@ on:
       - 'e2e/fixtures/graphics-engine-advancement.ts'
       - 'e2e/temporal-depth-rejection.spec.ts'
       - 'e2e/fixtures/temporal-depth-rejection.ts'
+      - 'e2e/terrain-morph-contract.spec.ts'
+      - 'e2e/fixtures/terrain-morph-contract.ts'
       - '.github/workflows/graphics-engine-validation.yml'
 permissions:
   contents: read
@@ -36,8 +38,8 @@ jobs:
       - run: node --experimental-transform-types scripts/source-stability.ts -- npm run build
       - run: npx playwright install --with-deps chromium
       - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
-      - name: Production morphs, occlusion, temporal depth and Festival pipeline
-        run: xvfb-run -a -s '-screen 0 1920x1080x24' npx playwright test e2e/graphics-engine-advancement.spec.ts e2e/temporal-depth-rejection.spec.ts e2e/festival-rendering.spec.ts
+      - name: Production morphs, terrain, occlusion, temporal depth and Festival pipeline
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' npx playwright test e2e/graphics-engine-advancement.spec.ts e2e/terrain-morph-contract.spec.ts e2e/temporal-depth-rejection.spec.ts e2e/festival-rendering.spec.ts
       - uses: actions/upload-artifact@v4
         if: always()
         with:
