@@ -1,0 +1,377 @@
+{
+  "createdAt": "2026-11-19T15:37:09.033489+00:00",
+  "baseCommit": "d8d87c73a8f3e921e865acdc02c61e84b8c877a7",
+  "baseTree": "51077ee3c9103d7faf139b622aa806bf8652d1f6",
+  "worktree": "/workspace/scratch/0ab62d15db18/graphics-late-trace-d8d87c7",
+  "changedFiles": [
+    "e2e/graphics-high-journey.spec.ts"
+  ],
+  "candidateSpecSha256": "8145efd6bf378e614ea605d69da12984b232ab5311a2981e895cf6c017dc3497",
+  "baselineSpecSha256": "9c186c20710dffceb46859cb84b4d0ba982847d3e776ed756ff3eb01cea388de",
+  "patchSha256": "645bfa868cba0d07018d00cdf9f721db93522c241b87afafd7452f631c5dc148",
+  "extendedProofSha256": "f7177dbf33511548a67b30f8ffab58ae39e86499b736e71e1831eaf8a7e0ac53",
+  "baseProofSha256": "4414784621d0387c24d58df1d5f624f3aae2a966ac51eed73ad1a3d5b024d39e",
+  "protectedInputs": 7458,
+  "protectedInputsManifestSha256": "3dd020187cf10377be1f9de9c00267ab06bd3961e22ee0112d8e36ad2b7e87c0",
+  "independentReviewer": "/root/ci_audit",
+  "independentlyReviewedCandidateSha256": "8145efd6bf378e614ea605d69da12984b232ab5311a2981e895cf6c017dc3497",
+  "runs": {
+    "native-positive": {
+      "source": "/workspace/scratch/0ab62d15db18/graphics-late-trace-d8d87c7",
+      "command": [
+        "node",
+        "/workspace/scratch/0ab62d15db18/graphics-late-trace-proof/composed-late-monitor-proof.mjs",
+        "/workspace/scratch/0ab62d15db18/graphics-late-trace-d8d87c7/e2e/graphics-high-journey.spec.ts",
+        "/workspace/scratch/0ab62d15db18/graphics-late-trace-d8d87c7"
+      ],
+      "cwd": "/workspace/scratch/0ab62d15db18/graphics-late-trace-d8d87c7",
+      "started": "2026-11-19T15:33:19.080Z",
+      "phase": "complete",
+      "protectedInputs": 7458,
+      "sourceManifestSha256": "3dd020187cf10377be1f9de9c00267ab06bd3961e22ee0112d8e36ad2b7e87c0",
+      "finished": "2026-11-19T15:33:20.935Z",
+      "wallSeconds": 1.85363683,
+      "childExit": 0,
+      "signal": null,
+      "sourceStable": true,
+      "changed": [],
+      "logBytes": 1365,
+      "logSha256": "b3f3bbebb8ec1aff49f303d0fc90dad1c19b7f8af5c4c8c5e873f83217d25ff8",
+      "passed": true
+    },
+    "native-negative": {
+      "source": "/workspace/scratch/0ab62d15db18/graphics-late-trace-d8d87c7",
+      "command": [
+        "node",
+        "/workspace/scratch/0ab62d15db18/graphics-late-trace-proof/composed-late-monitor-proof.mjs",
+        "/workspace/scratch/0ab62d15db18/graphics-late-trace-proof/baseline-graphics-high-journey.spec.ts",
+        "/workspace/scratch/0ab62d15db18/graphics-late-trace-d8d87c7"
+      ],
+      "cwd": "/workspace/scratch/0ab62d15db18/graphics-late-trace-d8d87c7",
+      "started": "2026-11-19T15:33:58.983Z",
+      "phase": "complete",
+      "protectedInputs": 7458,
+      "sourceManifestSha256": "3dd020187cf10377be1f9de9c00267ab06bd3961e22ee0112d8e36ad2b7e87c0",
+      "finished": "2026-11-19T15:34:00.611Z",
+      "wallSeconds": 1.6264698190000002,
+      "childExit": 1,
+      "signal": null,
+      "sourceStable": true,
+      "changed": [],
+      "logBytes": 941,
+      "logSha256": "db334f692245bed21a37873a6f1522eb850b6d822a6eead1ef6fffce70632199",
+      "passed": false
+    },
+    "typecheck": {
+      "source": "/workspace/scratch/0ab62d15db18/graphics-late-trace-d8d87c7",
+      "command": [
+        "nice",
+        "-n",
+        "10",
+        "npx",
+        "tsc",
+        "--noEmit"
+      ],
+      "cwd": "/workspace/scratch/0ab62d15db18/graphics-late-trace-d8d87c7",
+      "started": "2026-11-19T15:33:58.834Z",
+      "phase": "complete",
+      "protectedInputs": 7458,
+      "sourceManifestSha256": "3dd020187cf10377be1f9de9c00267ab06bd3961e22ee0112d8e36ad2b7e87c0",
+      "finished": "2026-11-19T15:34:42.429Z",
+      "wallSeconds": 43.592401977,
+      "childExit": 0,
+      "signal": null,
+      "sourceStable": true,
+      "changed": [],
+      "logBytes": 99,
+      "logSha256": "7125f194612fcff2f454c05d848e7cb71facc1967b4d5017e25b34fdee3ba74f",
+      "passed": true
+    },
+    "lint": {
+      "source": "/workspace/scratch/0ab62d15db18/graphics-late-trace-d8d87c7",
+      "command": [
+        "nice",
+        "-n",
+        "10",
+        "npx",
+        "eslint",
+        "e2e/graphics-high-journey.spec.ts"
+      ],
+      "cwd": "/workspace/scratch/0ab62d15db18/graphics-late-trace-d8d87c7",
+      "started": "2026-11-19T15:33:58.713Z",
+      "phase": "complete",
+      "protectedInputs": 7458,
+      "sourceManifestSha256": "3dd020187cf10377be1f9de9c00267ab06bd3961e22ee0112d8e36ad2b7e87c0",
+      "finished": "2026-11-19T15:34:03.378Z",
+      "wallSeconds": 4.6625948589999995,
+      "childExit": 0,
+      "signal": null,
+      "sourceStable": true,
+      "changed": [],
+      "logBytes": 99,
+      "logSha256": "7125f194612fcff2f454c05d848e7cb71facc1967b4d5017e25b34fdee3ba74f",
+      "passed": true
+    },
+    "native-positive-initial": {
+      "source": "/workspace/scratch/0ab62d15db18/graphics-late-trace-d8d87c7",
+      "command": [
+        "node",
+        "/workspace/scratch/0ab62d15db18/graphics-late-trace-proof/composed-late-monitor-proof.mjs",
+        "/workspace/scratch/0ab62d15db18/graphics-late-trace-d8d87c7/e2e/graphics-high-journey.spec.ts",
+        "/workspace/scratch/0ab62d15db18/graphics-late-trace-d8d87c7"
+      ],
+      "cwd": "/workspace/scratch/0ab62d15db18/graphics-late-trace-d8d87c7",
+      "started": "2026-11-19T15:33:00.230Z",
+      "phase": "complete",
+      "protectedInputs": 7458,
+      "sourceManifestSha256": "3dd020187cf10377be1f9de9c00267ab06bd3961e22ee0112d8e36ad2b7e87c0",
+      "finished": "2026-11-19T15:33:01.513Z",
+      "wallSeconds": 1.2810510350000004,
+      "childExit": 1,
+      "signal": null,
+      "sourceStable": true,
+      "changed": [],
+      "logBytes": 937,
+      "logSha256": "834ecf32d0631a297341b7e0690c1f5c973ed03ceea7cd5c491a866548429407",
+      "passed": false
+    }
+  },
+  "scope": "Diagnostic-only High test patch; no production source, acceptance, quality, deadline, GL query, draw, flush or finish change. No browser run, CI rerun or publication performed by this child. Root authorized a local commit after validation.",
+  "nativeNegativeExpectedFailure": "Old source exits 1 at 'late metadata must survive exhaustion of both early caps'. Raw receipt stays passed=false.",
+  "initialPositiveFailure": "Initial external harness incorrectly compared the retained first metadata serial with a repeated call serial (150 vs 149). Corrected harness assertion to compare on first call only; candidate source stayed unchanged. Initial failing log and receipt retained. The initial harness source snapshot was not retained; the package contains the final proof harness.",
+  "coverage": {
+    "sourceCommit": "d8d87c73a8f3e921e865acdc02c61e84b8c877a7",
+    "graphicsWorkflowRunId": 44553045749,
+    "highJobId": 135661597584,
+    "rawArtifactFile": "/workspace/scratch/0ab62d15db18/ci-graphics-d8d87c7/high/high-gp-startup-commands.json",
+    "rawArtifactFileSha256": "e95e175594083d9e10a67b7da407f10876b7611b59551ee181e4a7db6ef527de",
+    "firstChaseMetadataCount": 137,
+    "lastObservedMetadataCount": 140,
+    "observedLateProgramOrder": [
+      419,
+      424,
+      436
+    ],
+    "lateProgramBudget": 8,
+    "observedLateProgramCoverage": true,
+    "transitions": [
+      {
+        "metadataCalls": 137,
+        "metadataCpuMs": 227.50000000020373,
+        "lastStarted": {
+          "sequence": 17148,
+          "atMs": 105563.4,
+          "method": "bufferData",
+          "program": 20,
+          "fragmentHash": "b626d93f",
+          "framebuffer": 416,
+          "cubeFace": 3553,
+          "mip": 0,
+          "viewport": [
+            0,
+            0,
+            256,
+            256
+          ],
+          "count": 0,
+          "instances": 1,
+          "numericArguments": [
+            34962,
+            -1,
+            35044,
+            -1
+          ],
+          "sourceBufferBytes": 192,
+          "shader": 0,
+          "shaderType": 0,
+          "shaderHash": "00000000"
+        },
+        "lastCompleted": {
+          "sequence": 17148,
+          "atMs": 105563.4,
+          "method": "bufferData",
+          "cpuCallMs": 0,
+          "returned": true
+        },
+        "drawElements": 0,
+        "drawInstanced": 0,
+        "bufferUploads": 3,
+        "textureUploads": 0,
+        "compiled": 4,
+        "linked": 2
+      },
+      {
+        "metadataCalls": 138,
+        "metadataCpuMs": 227.50000000020373,
+        "lastStarted": {
+          "sequence": 17152,
+          "atMs": 105610.19999999998,
+          "method": "getProgramInfoLog",
+          "program": 419,
+          "fragmentHash": "85df42ca",
+          "framebuffer": 416,
+          "cubeFace": 3553,
+          "mip": 0,
+          "viewport": [
+            0,
+            0,
+            256,
+            256
+          ],
+          "count": 0,
+          "instances": 1,
+          "numericArguments": [
+            -1,
+            -1,
+            -1,
+            -1
+          ],
+          "sourceBufferBytes": null,
+          "shader": 0,
+          "shaderType": 0,
+          "shaderHash": "00000000"
+        },
+        "lastCompleted": {
+          "sequence": 17151,
+          "atMs": 105610.09999999998,
+          "method": "linkProgram",
+          "cpuCallMs": 0.09999999997671694,
+          "returned": true
+        },
+        "drawElements": 0,
+        "drawInstanced": 0,
+        "bufferUploads": 3,
+        "textureUploads": 0,
+        "compiled": 6,
+        "linked": 3
+      },
+      {
+        "metadataCalls": 139,
+        "metadataCpuMs": 1371.6000000002095,
+        "lastStarted": {
+          "sequence": 17267,
+          "atMs": 106829.39999999997,
+          "method": "getProgramInfoLog",
+          "program": 424,
+          "fragmentHash": "85df42ca",
+          "framebuffer": 421,
+          "cubeFace": 3553,
+          "mip": 0,
+          "viewport": [
+            0,
+            0,
+            256,
+            256
+          ],
+          "count": 0,
+          "instances": 1,
+          "numericArguments": [
+            -1,
+            -1,
+            -1,
+            -1
+          ],
+          "sourceBufferBytes": null,
+          "shader": 0,
+          "shaderType": 0,
+          "shaderHash": "00000000"
+        },
+        "lastCompleted": {
+          "sequence": 17266,
+          "atMs": 106829.29999999999,
+          "method": "linkProgram",
+          "cpuCallMs": 0,
+          "returned": true
+        },
+        "drawElements": 12,
+        "drawInstanced": 0,
+        "bufferUploads": 40,
+        "textureUploads": 2,
+        "compiled": 8,
+        "linked": 4
+      },
+      {
+        "metadataCalls": 140,
+        "metadataCpuMs": 2135.300000000221,
+        "lastStarted": {
+          "sequence": 19695,
+          "atMs": 118831,
+          "method": "getProgramInfoLog",
+          "program": 436,
+          "fragmentHash": "4a8ffded",
+          "framebuffer": 428,
+          "cubeFace": 34069,
+          "mip": 0,
+          "viewport": [
+            0,
+            0,
+            256,
+            256
+          ],
+          "count": 0,
+          "instances": 1,
+          "numericArguments": [
+            -1,
+            -1,
+            -1,
+            -1
+          ],
+          "sourceBufferBytes": null,
+          "shader": 0,
+          "shaderType": 0,
+          "shaderHash": "00000000"
+        },
+        "lastCompleted": {
+          "sequence": 19694,
+          "atMs": 118830.89999999997,
+          "method": "linkProgram",
+          "cpuCallMs": 0,
+          "returned": true
+        },
+        "drawElements": 63,
+        "drawInstanced": 24,
+        "bufferUploads": 1883,
+        "textureUploads": 90,
+        "compiled": 10,
+        "linked": 5
+      }
+    ],
+    "lastObservedNativeCall": {
+      "sequence": 23686,
+      "atMs": 145578.2,
+      "method": "texSubImage2D",
+      "program": 260,
+      "fragmentHash": "191a251a",
+      "framebuffer": 432,
+      "cubeFace": 34073,
+      "mip": 0,
+      "viewport": [
+        0,
+        0,
+        256,
+        256
+      ],
+      "count": 0,
+      "instances": 1,
+      "numericArguments": [
+        3553,
+        0,
+        0,
+        0
+      ],
+      "sourceBufferBytes": null,
+      "shader": 0,
+      "shaderType": 0,
+      "shaderHash": "00000000"
+    },
+    "lastObservedInFlightMs": 3516.2999999999884,
+    "limits": [
+      "This is counter-based coverage of the observed d8 run only, not a promise for a future run.",
+      "The first sixteen returned slow uploads may be consumed before a later upload of interest.",
+      "A blocked upload has no post-return stack until it returns; the existing independent worker continues to identify in-flight native calls.",
+      "Upload program identity is the currently bound context, not proof of resource ownership."
+    ]
+  },
+  "independentSourceReview": "graphics-late-trace-source-review.json",
+  "independentObservedCoverageReview": "graphics-late-trace-coverage-review.json"
+}

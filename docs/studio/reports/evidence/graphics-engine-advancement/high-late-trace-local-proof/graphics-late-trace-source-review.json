@@ -1,0 +1,22 @@
+{
+  "reviewedUTC": "2026-11-19T15:34:59.137Z",
+  "base": "d8d87c73a8f3e921e865acdc02c61e84b8c877a7",
+  "file": "e2e/graphics-high-journey.spec.ts",
+  "fileSha256": "8145efd6bf378e614ea605d69da12984b232ab5311a2981e895cf6c017dc3497",
+  "scope": "Independent read-only source review; no edits or test execution by reviewer",
+  "blockingFunctionalFindings": [],
+  "checked": [
+    "One original native call with original receiver and arguments; return propagates through existing finally block",
+    "Native upload throws do not trigger the new successful-slow-upload report",
+    "Late metadata identifies the queried getProgramInfoLog program argument rather than the currently bound program",
+    "Shader text comes only from previously observed shaderSource calls; no added GL query",
+    "Late viewport/source summaries and Node retention use copied values bounded independently of the existing activity ring",
+    "Original deadlines, scene, quality, GPU-completion gates, test assertions and early caps remain unchanged"
+  ],
+  "interpretationLimits": [
+    "Bound program on an upload is context, not proof of resource ownership",
+    "First eight late metadata requests and first sixteen slow returned uploads may still exhaust before a later culprit; actual observed-target coverage needs confirmation",
+    "Additional bounded serialization changes diagnostic wall-clock overhead; no performance acceptance follows"
+  ],
+  "nativeProof": "Not executed by this reviewer; implementation owner supplies its own source-specific proof"
+}

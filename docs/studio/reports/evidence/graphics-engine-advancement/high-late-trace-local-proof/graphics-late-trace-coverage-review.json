@@ -1,0 +1,39 @@
+{
+  "reviewedUTC": "2026-11-19T15:37:04.391904+00:00",
+  "sourceArtifact": "/workspace/scratch/0ab62d15db18/ci-graphics-d8d87c7/high/high-gp-startup-commands.json",
+  "sourceArtifactSha256": "e95e175594083d9e10a67b7da407f10876b7611b59551ee181e4a7db6ef527de",
+  "reviewedSpecSha256": "8145efd6bf378e614ea605d69da12984b232ab5311a2981e895cf6c017dc3497",
+  "method": "Independent JSON reconstruction from retained source-matched worker activity; no replay/test execution",
+  "firstChaseInitialMetadataCalls": 137,
+  "lastObservedMetadataCalls": 140,
+  "transitions": [
+    {
+      "count": 138,
+      "method": "getProgramInfoLog",
+      "program": 419,
+      "sequence": 17152
+    },
+    {
+      "count": 139,
+      "method": "getProgramInfoLog",
+      "program": 424,
+      "sequence": 17267
+    },
+    {
+      "count": 140,
+      "method": "getProgramInfoLog",
+      "program": 436,
+      "sequence": 19695
+    }
+  ],
+  "observedTargetProgram": 436,
+  "observedTargetPosition": 3,
+  "lateRecordBudget": 8,
+  "observedRunTargetFitsBudget": true,
+  "finalInFlightMethod": "texSubImage2D",
+  "remainingLimits": [
+    "Future runs can have different late owners and exceed the first-eight sample budget",
+    "A new slow-upload stack requires native return; the unchanged activity worker still identifies an in-flight call",
+    "Bound program is context, not proof of resource ownership"
+  ]
+}

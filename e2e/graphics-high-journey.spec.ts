@@ -242,6 +242,7 @@ function installFirstChaseStartup() {
   const attachments = new WeakMap<WebGLFramebuffer, { face: number; mip: number }>();
   const shaderTypes = new WeakMap<WebGLShader, number>(),
     shaderSources = new WeakMap<WebGLShader, string>(),
+    vertices = new WeakMap<WebGLProgram, WebGLShader>(),
     fragments = new WeakMap<WebGLProgram, WebGLShader>(),
     hashes = new WeakMap<WebGLProgram, number>(),
     shaderHashes = new WeakMap<WebGLShader, number>();
@@ -269,6 +270,7 @@ function installFirstChaseStartup() {
     originalShaderSource.call(this, shader, source);
   };
   prototype.attachShader = function (program, shader) {
+    if (shaderTypes.get(shader) === this.VERTEX_SHADER) vertices.set(program, shader);
     if (shaderTypes.get(shader) === this.FRAGMENT_SHADER) {
       fragments.set(program, shader);
       hashes.delete(program);
@@ -307,8 +309,33 @@ function installFirstChaseStartup() {
     stage = '',
     stageReports = 0;
   const firstUses = new Set<string>(),
-    summaries = new WeakSet<WebGLProgram>();
-  let summaryReports = 0;
+    summaries = new WeakSet<WebGLProgram>(),
+    latePrograms = new WeakSet<WebGLProgram>(),
+    uploadMethods = new Set([
+      'bufferData',
+      'bufferSubData',
+      'texImage2D',
+      'texSubImage2D',
+      'compressedTexImage2D',
+      'compressedTexSubImage2D',
+    ]);
+  let summaryReports = 0,
+    lateProgramReports = 0,
+    slowUploadReports = 0;
+  const boundedStack = () => new Error().stack?.split('\n').slice(1, 10).join('\n').slice(0, 4096);
+  const shaderSummary = (shader: WebGLShader | undefined) => {
+    if (!shader) return null;
+    const source = shaderSources.get(shader) ?? '';
+    return {
+      shader: id(shader),
+      hash: sourceHash(source).toString(16).padStart(8, '0'),
+      shaderName:
+        /^[ \t]*#define SHADER_NAME[ \t]+([^\r\n]+)/m.exec(source)?.[1].slice(0, 512) ?? null,
+      sourceLength: source.length,
+      source: source.slice(0, 32768),
+      truncated: source.length > 32768,
+    };
+  };
   const begin = new Float64Array(23),
     end = new Float64Array(6);
   const callable = prototype as unknown as Record<string, (...args: unknown[]) => unknown>;
@@ -316,7 +343,10 @@ function installFirstChaseStartup() {
     const original = callable[method];
     callable[method] = function (this: WebGL2RenderingContext, ...args: unknown[]) {
       if (!active) return Reflect.apply(original, this, args);
-      if (method === 'linkProgram') hashes.delete(args[0] as WebGLProgram);
+      if (method === 'linkProgram') {
+        hashes.delete(args[0] as WebGLProgram);
+        latePrograms.delete(args[0] as WebGLProgram);
+      }
       const state = context(this),
         program = programArguments.has(method) ? (args[0] as WebGLProgram | null) : state.program,
         shader =
@@ -371,6 +401,31 @@ function installFirstChaseStartup() {
           });
         }
       }
+      // Initial scene setup can exhaust both early caps before the first chase.
+      // Keep a separate small budget for metadata actually requested later,
+      // using only shader text already observed at its native source call.
+      if (
+        chaseStarted &&
+        method === 'getProgramInfoLog' &&
+        program &&
+        !latePrograms.has(program) &&
+        lateProgramReports < 8
+      ) {
+        latePrograms.add(program);
+        lateProgramReports++;
+        report({
+          kind: 'late-program',
+          stage,
+          sequence: sequence + 1,
+          program: id(program),
+          framebuffer: id(framebuffer),
+          cubeFace: attachment?.face ?? 0,
+          viewport: [...state.viewport],
+          vertex: shaderSummary(vertices.get(program)),
+          fragment: shaderSummary(fragment ?? undefined),
+          stack: boundedStack(),
+        });
+      }
       const serial = ++sequence,
         startedAt = performance.now();
       begin[0] = 1;
@@ -423,6 +478,33 @@ function installFirstChaseStartup() {
         end[4] = completedAt - startedAt;
         end[5] = returned ? 1 : 0;
         post(end);
+        // Capture call sites only after an already-observed slow upload returns.
+        // No stack work or extra native query is added to ordinary fast uploads,
+        // and the completion timestamp excludes this bounded report.
+        if (
+          returned &&
+          chaseStarted &&
+          uploadMethods.has(method) &&
+          completedAt - startedAt >= 100 &&
+          slowUploadReports < 16
+        ) {
+          slowUploadReports++;
+          report({
+            kind: 'slow-upload',
+            stage,
+            sequence: serial,
+            method,
+            cpuCallMs: completedAt - startedAt,
+            program: id(program),
+            fragmentHash: (hash ?? 0).toString(16).padStart(8, '0'),
+            framebuffer: id(framebuffer),
+            cubeFace: attachment?.face ?? 0,
+            viewport: [...state.viewport],
+            numericArguments: Array.from(begin.slice(15, 19)),
+            sourceBufferBytes: begin[19] < 0 ? null : begin[19],
+            stack: boundedStack(),
+          });
+        }
       }
     };
   }
@@ -631,7 +713,9 @@ test('High production scene presents an active GP chassis and two completed phot
   const errors: string[] = [],
     observations = [],
     startupRecords: Record<string, unknown>[] = [],
-    startupPrograms: Record<string, unknown>[] = [];
+    startupPrograms: Record<string, unknown>[] = [],
+    startupLatePrograms: Record<string, unknown>[] = [],
+    startupSlowUploads: Record<string, unknown>[] = [];
   let startupWorkerUrl: string | null = null,
     startupLastStarted: unknown = null,
     startupLastCompleted: unknown = null;
@@ -647,6 +731,10 @@ test('High production scene presents an active GP chassis and two completed phot
         startupRecords.push(record);
         if (startupRecords.length > 256) startupRecords.shift();
         if (record.kind === 'program' && startupPrograms.length < 32) startupPrograms.push(record);
+        if (record.kind === 'late-program' && startupLatePrograms.length < 8)
+          startupLatePrograms.push(record);
+        if (record.kind === 'slow-upload' && startupSlowUploads.length < 16)
+          startupSlowUploads.push(record);
         if (record.kind === 'worker-ready' && typeof record.workerUrl === 'string')
           startupWorkerUrl = record.workerUrl;
         if (record.lastStarted) startupLastStarted = record.lastStarted;
@@ -791,6 +879,8 @@ test('High production scene presents an active GP chassis and two completed phot
           lastStarted: startupLastStarted,
           lastCompleted: startupLastCompleted,
           programs: startupPrograms,
+          latePrograms: startupLatePrograms,
+          slowUploads: startupSlowUploads,
           records: startupRecords,
         },
         null,

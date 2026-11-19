@@ -1,0 +1,46 @@
+name: Isolated High startup diagnostics
+on:
+  push:
+    branches: ['ci/high-late-startup-20261119']
+    paths:
+      - '.github/workflows/graphics-high-diagnostic.yml'
+      - 'e2e/graphics-high-journey.spec.ts'
+permissions:
+  contents: read
+concurrency:
+  group: isolated-high-startup-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  high:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
+      - name: High preset through the full application with completed GPU submissions
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' npx playwright test e2e/graphics-high-journey.spec.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: graphics-advancement-high
+          path: |
+            test-results/
+            playwright-report/
+            browser-backend.json
+            browser-progress.json
+          retention-days: 14
+# Diagnostic evidence only. All existing full CI and publication gates remain
+# required; this workflow cannot publish or substitute for those gates.
