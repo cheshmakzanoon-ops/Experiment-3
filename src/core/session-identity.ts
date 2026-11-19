@@ -65,8 +65,14 @@ import {
  * seeded motocross, supercross and supermoto sessions whose AI riders trail a corner by
  * more than 0.5 rad move differently (rider physics, cars, road bikes and rally cars
  * unchanged);
+ * v25: player non-GP motorcycles use feet-up low-speed lean balance on road
+ * and dirt, fixing sustained turns opposite a held stick around 3 m/s. Separates the
+ * player MX leaned-contact, carried-load roll and grip-loss allowance changes
+ * landed after v24 without a version bump. Their solver code is not part of
+ * a vehicle-definition hash, so v24 results cannot certify the current model.
+ * Calibrated AI and the GP controller retain their existing handling;
  * prior records remain in their original physics category. */
-export const SIMULATION_VERSION = 24;
+export const SIMULATION_VERSION = 25;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 

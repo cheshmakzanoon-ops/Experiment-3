@@ -11,6 +11,16 @@ export interface BrowserShard {
   weight: number;
 }
 export function browserWeight(test: BrowserCase) {
+  // The November 16 main run treated these complete production surveys as
+  // forty-unit cases although A31/A33 occupied ~12 minutes and A32 ~15 minutes
+  // before failing. Use their existing watchdog workload bounds for scheduling
+  // until completed runs supply better estimates. This does not extend a test
+  // deadline, alter coverage, or make a render failure pass.
+  if (/secondary-grandstands/.test(test.file)) return 1800;
+  if (/aurel-vegetation|aurel-quarry/.test(test.file)) return 1200;
+  if (/a32-pit-jacks|a36-workshop-equipment/.test(test.file)) return 900;
+  if (/a31-wheel-gun|a33-spare-wheel-set/.test(test.file)) return 720;
+  if (/55-start-finish/.test(test.file)) return 420;
   // Whole weekends contain qualifying and racing; treating them as a generic
   // forty-unit test concentrates substantial work on one runner.
   if (/Championship weekend:|normal entry, immutable briefing/.test(test.title)) return 750;

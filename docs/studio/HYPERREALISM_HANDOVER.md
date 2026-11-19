@@ -3,6 +3,24 @@
 Written 2026-11-05 when the second round was wound down. Audience: the next four section agents (F1, MotoGP,
 motocross, open world) and any human reviewer. Read this before touching rendering code.
 
+## Current status correction — 2026-11-18
+
+The per-round notes and remaining-work lists below are the November 5 archive, not a
+current instruction to reapply code. GP Round 3 landed on November 11 in
+`25c3f306bfe231aef448a98fbc2cdc59e6499914`; MX Round 3 landed in
+`1bffdae9af25ede0c155a2b68dc13a260c411e86`. Their archived patches must not be reapplied.
+The broad open-world Round 3 grass/terrain/art patch remains unapplied and includes
+temporary capture hooks that must not ship. Focused Festival pipeline fixes do not mean
+that art patch has landed. See [the patch archive](hyperrealism-wip/README.md).
+
+The main audit repairs confirmed material/resource ownership, missing Medium MX atmosphere,
+Festival pipeline wiring, low-speed player steering and publication defects. It does not
+establish that recent MX/SX color/camera choices are objectively worse or that the
+owner-only Formula asset should return to product builds. New browser and hardware visual
+approval remain outstanding; local Chromium launch was blocked by socket `EPERM`.
+Use [CURRENT_STATUS.md](../CURRENT_STATUS.md) and [EXECUTION_PLAN.md](EXECUTION_PLAN.md)
+for current verification and next steps rather than the historical counts below.
+
 ## 1. What happened
 
 **Goal (from the user):** raise the realism of every 3D subject in the four disciplines (cars, motorcycles, riders,

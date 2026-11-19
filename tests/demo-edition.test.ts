@@ -455,7 +455,10 @@ describe('the demo build is wired the way the release process needs', () => {
     expect(read('.gitignore')).toMatch(/^dist-demo\/$/m);
   });
   it('never lets the demo be published as the game', () => {
-    expect(read('scripts/publish-validated-release.sh')).toMatch(
+    expect(read('scripts/publish-validated-release.sh')).toContain(
+      '/verify-release-artifact.mjs" "$release" "$VALIDATED_SHA"',
+    );
+    expect(read('scripts/verify-release-artifact.mjs')).toMatch(
       /identity\.edition \?\? 'full'\) !== 'full'/,
     );
   });

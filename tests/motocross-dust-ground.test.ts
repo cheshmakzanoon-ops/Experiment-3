@@ -23,26 +23,26 @@ import { vehicleIndex } from '../src/simulation/vehicles.ts';
 afterEach(() => setMxQuality('high'));
 
 describe('MX dust fades into the soil it was thrown from', () => {
-  it('reads each puff birth floor and fades its lower part only on High and Ultra', () => {
+  it('keeps the dust silhouette and soft ground contact on Medium, High and Ultra', () => {
+    setMxQuality('medium');
     const dust = new MxDustMaterial();
     expect(dust.vertexShader).toContain('attribute float mxParticleFloor;');
     expect(dust.vertexShader).toContain(
       'vMxDustHeight = ( modelMatrix * vec4( position, 1.0 ) ).y - mxParticleFloor;',
     );
     const fragment = dust.fragmentShader;
-    const gate = fragment.indexOf('#ifdef MX_HIGH_DETAIL', fragment.indexOf('float opacity'));
+    const gate = fragment.indexOf('#ifdef MX_ATMOSPHERE_DETAIL', fragment.indexOf('float opacity'));
     const fade = fragment.indexOf('vMxDustHeight - p.y * vMxDustRadius');
     expect(gate).toBeGreaterThan(0);
-    // The ground fade sits inside the High/Ultra gate, ahead of the discard.
+    // The ground fade sits inside the Medium-and-up gate, ahead of the discard.
     expect(fade).toBeGreaterThan(gate);
     expect(fade).toBeLessThan(fragment.indexOf('if ( opacity < 0.008 ) discard;'));
-    expect((dust as T.Material & { defines: Record<string, string> }).defines).toHaveProperty(
-      'MX_HIGH_DETAIL',
-    );
+    for (const quality of ['medium', 'high', 'ultra'] as const) {
+      setMxQuality(quality);
+      expect(dust.defines).toHaveProperty('MX_ATMOSPHERE_DETAIL');
+    }
     setMxQuality('low');
-    expect((dust as T.Material & { defines: Record<string, string> }).defines).not.toHaveProperty(
-      'MX_HIGH_DETAIL',
-    );
+    expect(dust.defines).not.toHaveProperty('MX_ATMOSPHERE_DETAIL');
     dust.dispose();
   });
 

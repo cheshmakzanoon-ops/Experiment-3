@@ -7,7 +7,7 @@ import { installCrowdImpostorShader, spectatorImpostorGeometry } from '../crowd-
 import { installScannedMaps, libraryAlbedo } from '../ground/scanned-ground.ts';
 import { materials } from '../materials/index.ts';
 import { mxAtlasRow, mxEventAtlas } from './mx-course-dressing.ts';
-import { onMxDetail } from './mx-quality.ts';
+import { onMxAtmosphere } from './mx-quality.ts';
 import { STADIUM } from './stadium-dimensions.ts';
 export { STADIUM } from './stadium-dimensions.ts';
 
@@ -567,9 +567,9 @@ export class Stadium {
       // Additive light drawn after the bowl; it never casts or receives.
       haze.renderOrder = 2;
       this.root.add(haze);
-      // Additive fill over much of the frame: High/Ultra presentation only.
-      this.stopHaze = onMxDetail((high) => {
-        haze.visible = high;
+      // One merged draw on Medium and up; Low avoids the additive overdraw.
+      this.stopHaze = onMxAtmosphere((enabled) => {
+        haze.visible = enabled;
       });
     }
     // Opposite the main event board: a big video wall over the far end,

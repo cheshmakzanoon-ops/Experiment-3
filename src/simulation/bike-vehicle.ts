@@ -334,8 +334,16 @@ export class BikeVehicle extends Vehicle {
       gpPrototype = this.definition.id === 'gpr1' || this.definition.id === 'gpr2';
     this.debris.step(dt, track);
     this.absorbExternal(dt);
-    d.assists = this.aiSteps > 0 ? NOVICE : this.riderAids;
+    const ai = this.aiSteps > 0;
+    d.assists = ai ? NOVICE : this.riderAids;
     if (this.aiSteps > 0) this.aiSteps--;
+    // A player's lean-intent control must turn toward a held stick below
+    // 5 m/s as well as above it. The original counter-steer/upright-support
+    // blend held ordinary road bikes in a sustained turn the wrong way.
+    // GP prototypes have their own contact/roll controller. AI keeps its
+    // surveyed low-speed path, including during pits and autopilot; update
+    // this flag every substep so handing control back restores player balance.
+    d.p.lowSpeedBalance = !ai && !gpPrototype;
     b.mass = this.definition.spec.dryMass + this.fuel - this.lostMass;
     d.mass = b.mass;
     let throttle = clamp(this.input.throttle, 0, 1);
@@ -458,7 +466,8 @@ export class BikeVehicle extends Vehicle {
       along = track.windX * sh + track.windZ * ch,
       airspeed = Math.hypot(d.speed - along, across),
       he = this.definition.halfExtents,
-      accel = crosswindForce(airspeed, across, he[1], he[2], windLoad) / Math.max(1, this.body.mass);
+      accel =
+        crosswindForce(airspeed, across, he[1], he[2], windLoad) / Math.max(1, this.body.mass);
     if (!Number.isFinite(accel)) return;
     this.slide += accel * dt;
     // z_cp / k^2 for a bike (0.05 * wheelbase over a ~0.45 m radius of gyration).

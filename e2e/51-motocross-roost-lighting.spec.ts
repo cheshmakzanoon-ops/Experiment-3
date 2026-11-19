@@ -143,6 +143,17 @@ test('motocross dust scatters actual sun and lamp light without glowing in the d
     expect(sample.resources).toEqual(samples.dark.resources);
     expect(sample.glError).toBe(0);
   }
+  const [medium, low, highRestored] = result.qualitySamples;
+  expect(medium.hash).toBe(samples['sky-lit'].hash);
+  expect(low.hash).not.toBe(medium.hash);
+  expect(highRestored.hash).toBe(medium.hash);
+  for (const sample of result.qualitySamples) {
+    expect(sample.calls).toBe(1);
+    expect(sample.glError).toBe(0);
+    expect(sample.resources.geometries).toBe(medium.resources.geometries);
+    expect(sample.resources.textures).toBe(medium.resources.textures);
+    expect(sample.resources.programs).toBeLessThanOrEqual(medium.resources.programs + 1);
+  }
   const atmosphere = Object.fromEntries(
     result.atmosphere.samples.map((sample) => [sample.label, sample]),
   );

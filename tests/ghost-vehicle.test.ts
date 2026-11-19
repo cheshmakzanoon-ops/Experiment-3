@@ -35,6 +35,7 @@ import {
 } from '../src/rendering/ghost-car.ts';
 import { TimeTrialRecords } from '../src/session/time-trial-records.ts';
 import { Track } from '../src/simulation/track.ts';
+import { gpOcclusionCacheSize } from '../src/rendering/gp-occlusion.ts';
 
 // Geometry/state-only tests. This no-op canvas is NOT rendered-image evidence.
 function stubCanvas() {
@@ -121,8 +122,9 @@ describe('Time Trial ghost by recorded vehicle', () => {
     expect(frame[o + BIKE_BASE + B.LEAN]).toBe(0);
     expect(frame[o + WHEEL_BASE + W.STEER]).toBeCloseTo(0.05 * tc1.spec.maxSteer, 6);
   });
-  it('replaces the Formula car with the recorded bike or body, all in the ghost material', () => {
+  it('builds GP ghosts from a cold cache, switches vehicle bodies and releases their volumes', () => {
     stubCanvas();
+    const before = gpOcclusionCacheSize();
     const ghost = new GhostCar();
     const camera = new T.PerspectiveCamera(58, 16 / 9, 0.1, 1000);
     camera.position.set(0, 2, -20);
@@ -131,6 +133,7 @@ describe('Time Trial ghost by recorded vehicle', () => {
       pose.y = 0.6;
       for (const [vehicle, kind] of [
         ['gpr1', 'bike'],
+        ['gpr2', 'bike'],
         ['tc1', 'body'],
         ['apx01', 'formula'],
         [undefined, 'formula'],
@@ -159,6 +162,7 @@ describe('Time Trial ghost by recorded vehicle', () => {
     } finally {
       ghost.dispose();
     }
+    expect(gpOcclusionCacheSize()).toBe(before);
   });
   it('keys personal bests by vehicle: a bike lap never loads as a car ghost', async () => {
     const options = { ...DEFAULT_OPTIONS, mode: 'time-trial' as const, opponents: 0 };

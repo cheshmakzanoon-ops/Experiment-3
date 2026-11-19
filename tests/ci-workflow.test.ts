@@ -74,6 +74,70 @@ describe('independent CI diagnostics with strict release gates', () => {
     expect(publish).toContain('success() &&');
     expect(publish.split('    steps:')[0]).not.toContain('continue-on-error');
   });
+
+  it('Pages and release publication consume only the successful main run artifact without rebuilding', () => {
+    for (const file of ['deploy-playable-pages.yml', 'publish-playable-cdn.yml']) {
+      const text = readFileSync(new URL(`../.github/workflows/${file}`, import.meta.url), 'utf8');
+      const doc = yaml.load(text) as {
+        on: Record<string, unknown>;
+        jobs: Record<
+          string,
+          {
+            if: string;
+            steps: { uses?: string; run?: string; with?: Record<string, string> }[];
+          }
+        >;
+      };
+      expect(Object.keys(doc.on), file).toEqual(['workflow_run']);
+      expect(doc.on.workflow_run).toEqual({
+        workflows: ['Build and validation'],
+        types: ['completed'],
+        branches: ['main'],
+      });
+      const job = Object.values(doc.jobs)[0];
+      for (const guard of [
+        "github.event.workflow_run.conclusion == 'success'",
+        "github.event.workflow_run.head_branch == 'main'",
+        'github.event.workflow_run.head_repository.full_name == github.repository',
+        "github.event.workflow_run.event == 'push'",
+        "github.event.workflow_run.event == 'workflow_dispatch'",
+      ])
+        expect(job.if, file).toContain(guard);
+      const download = job.steps.find((step) => step.uses?.startsWith('actions/download-artifact'));
+      expect(download?.with, file).toMatchObject({
+        name: 'apex-formula-release',
+        'run-id': '${{ github.event.workflow_run.id }}',
+        repository: '${{ github.repository }}',
+      });
+      const commands = job.steps.map((step) => step.run ?? '').join('\n');
+      expect(commands, file).not.toMatch(/npm (?:ci|install|run build)|vite build/);
+      expect(commands, file).toContain('scripts/release-source.mjs');
+    }
+    const pages = readFileSync(
+      new URL('../.github/workflows/deploy-playable-pages.yml', import.meta.url),
+      'utf8',
+    );
+    expect(pages).toContain('scripts/verify-release-artifact.mjs');
+    expect(pages).toContain('scripts/ip-guard.mjs');
+    expect(pages).toContain("if: steps.current.outputs.ready == 'true'");
+    expect(job('publish')).toContain('scripts/release-source.mjs');
+    expect(job('publish')).toContain('scripts/verify-release-artifact.mjs');
+    // Markdown under src/, public/ or test fixtures can be a real input. The
+    // trigger exemption must match the publication source-equivalence policy.
+    expect(
+      (yaml.load(workflow) as { on: { push: { 'paths-ignore': string[] } } }).on.push[
+        'paths-ignore'
+      ],
+    ).toEqual([
+      'ci-reports/**',
+      'README.md',
+      'docs/CURRENT_STATUS.md',
+      'docs/studio/ROADMAP.md',
+      'docs/studio/EXECUTION_PLAN.md',
+      'docs/studio/HYPERREALISM_HANDOVER.md',
+      'docs/studio/hyperrealism-wip/README.md',
+    ]);
+  });
 });
 
 /** The steps of a job, without its explanatory comments (which name the commands they forbid). */

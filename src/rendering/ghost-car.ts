@@ -205,8 +205,12 @@ export class GhostCar {
       this.material.color.setHex(GHOST_LOOK.color);
     } else if (this.bikes) this.bikes.root.visible = false;
   }
-  /** Car geometry is shared with the field and released with the renderer. */
+  /** The Formula geometry is shared with the field. Catalogue bodies and
+   * motorcycles, including their references to GP occlusion volumes, are ours. */
   dispose() {
+    this.hide();
+    this.bikes?.disposeAll();
+    this.bodies?.clear();
     this.material.dispose();
   }
 }

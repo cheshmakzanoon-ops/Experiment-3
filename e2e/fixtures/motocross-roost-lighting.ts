@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { LocalAtmosphere } from '../../src/rendering/local-atmosphere.ts';
 import { Roost } from '../../src/rendering/offroad/roost.ts';
+import { setMxQuality } from '../../src/rendering/offroad/mx-quality.ts';
 import { TrackTerrainSurface } from '../../src/simulation/offroad/course-terrain.ts';
 import { rigTrack } from '../../src/simulation/offroad/jump-rig.ts';
 import {
@@ -133,6 +134,7 @@ export function captureMotocrossRoostLighting(wet: boolean) {
  * real scene lights. A black background isolates scattered light from clods,
  * ground colour, atmosphere and post-processing. */
 export function captureMotocrossDustLighting() {
+  setMxQuality('high');
   const { track, roost, frame, source } = emittedRoost(false);
   const renderer = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
   renderer.setPixelRatio(1);
@@ -248,6 +250,17 @@ export function captureMotocrossDustLighting() {
   renderer.setSize(800, 500);
   capture('sky-resized-back');
 
+  // The default Medium preset must retain the same dust silhouette/contact
+  // shading as High. Switching Low and back must not grow geometry or pools.
+  const qualityStart = samples.length;
+  setMxQuality('medium');
+  capture('medium');
+  setMxQuality('low');
+  capture('low');
+  setMxQuality('high');
+  capture('high-restored');
+  const qualitySamples = samples.splice(qualityStart);
+
   // Exercise the production hook after the primary lighting comparisons.
   // Translate the intact cloud and camera together into an actual authored
   // pocket; the simulation snapshot and particle buffers remain unchanged.
@@ -278,6 +291,7 @@ export function captureMotocrossDustLighting() {
     capacity: positions.count,
     sourceUnchanged: frame.every((value, i) => value === source[i]),
     samples,
+    qualitySamples,
     atmosphere: { materialCount: atmosphere.materialCount, samples: atmosphereSamples },
   };
   roost.dispose();

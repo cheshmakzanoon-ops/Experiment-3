@@ -1,5 +1,5 @@
 import * as T from 'three';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import {
   installMxArenaLighting,
   MX_ARENA_LIGHT,
@@ -10,10 +10,33 @@ import { STADIUM } from '../src/rendering/offroad/stadium-dimensions.ts';
 import { TerrainView } from '../src/rendering/offroad/terrain-view.ts';
 import { studioHookKeys, type StudioShader } from '../src/rendering/studio/shader-hooks.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
+import { mxHighDetail, setMxQuality } from '../src/rendering/offroad/mx-quality.ts';
 
 const count = (text: string, token: string) => text.split(token).length - 1;
+afterEach(() => setMxQuality('high'));
 
 describe('supercross roof floodlight grid', () => {
+  it('retains its single haze draw on Medium without enabling High surface detail', () => {
+    setMxQuality('medium');
+    const stadium = new Stadium(rigTrack('arena-nord-sx'));
+    try {
+      const haze = stadium.root.getObjectByName('Arena floodlight haze beams') as T.Mesh;
+      expect(haze).toBeInstanceOf(T.Mesh);
+      expect(haze.visible).toBe(true);
+      expect(mxHighDetail()).toBe(false);
+      const geometry = haze.geometry;
+      setMxQuality('low');
+      expect(haze.visible).toBe(false);
+      for (const preset of ['medium', 'high', 'ultra'] as const) {
+        setMxQuality(preset);
+        expect(haze.visible).toBe(true);
+        expect(haze.geometry).toBe(geometry);
+      }
+    } finally {
+      stadium.dispose();
+    }
+  });
+
   it('exposes the 8 x 5 lamp grid the trusses hang, over the floor and inside the bowl', () => {
     const track = rigTrack('arena-nord-sx'),
       stadium = new Stadium(track),

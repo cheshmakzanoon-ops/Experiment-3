@@ -1,10 +1,38 @@
 # MOTOBOUND — handover and roadmap
 
-Written when development was wound down on 2026-11-05. Everything is merged to `main`; no agent branch remains.
+Current update: 2026-11-18. The November 5 studio wind-down is retained below as a dated
+historical record; its test totals, CI failures and task lists are not current release approval.
 What the game is and where it lives: [GAME_OVERVIEW.md](GAME_OVERVIEW.md). Gates: [RELEASE_GATES.md](RELEASE_GATES.md).
 Studio record: [BOARD.md](BOARD.md), [reports/](reports/), store kit [store/](store/).
 Rendering realism pass (F1, MotoGP, motocross, open world): status, remaining work and capture tooling are in
 [HYPERREALISM_HANDOVER.md](HYPERREALISM_HANDOVER.md).
+
+## Current priorities after the main-branch audit
+
+Use [CURRENT_STATUS.md](../CURRENT_STATUS.md) for the repair scope and verification limits.
+The latest committed pre-repair CI run, [43839758878](../../ci-reports/build-and-validation.md),
+has 6,307 unit tests passing and one failing, successful build/scenario/offroad/wet jobs,
+and all eight browser shards plus owner QA canceled at 90 minutes. Publication was skipped.
+The branch cannot be described as green on that evidence.
+
+The current repair addresses ghost material/resource ownership, Medium MX atmosphere,
+Festival's actual graphics pipeline, player road-bike low-speed steering and simulation
+identity, and publication of the exact fully validated artifact. Browser survey scheduling
+and failure diagnostics are repaired without dropping coverage or weakening gates.
+The full new CI run, settings/held-preview behavior and scenery timeouts still require
+fresh results. Local browser launch was blocked by a socket `EPERM`; no new local images
+or real-GPU performance measurement are claimed.
+
+GP Round 3 (`25c3f306bfe231aef448a98fbc2cdc59e6499914`) and MX Round 3
+(`1bffdae9af25ede0c155a2b68dc13a260c411e86`) already landed on November 11.
+The open-world Round 3 art patch remains unapplied. Recent MX/SX art direction and the
+licensed Formula asset substitution require visual/product judgment; they are not
+automatically defects to revert.
+
+The next milestone is one complete green main run followed by equal-setting gameplay
+comparisons and real-hardware measurements. Keep every required release gate while
+triaging browser stalls. The [execution plan](EXECUTION_PLAN.md) replaces the old next-step
+instructions. Sections 1–7 below describe the November 5 state and decisions at that time.
 
 ## 1. Honest status
 
@@ -19,7 +47,7 @@ strong first impression (refund window is 2 h of play), a demo/Next Fest wishlis
 ([store/LAUNCH_PLAN.md](store/LAUNCH_PLAN.md)). Racing is a crowded space between AAA sims and cheap arcade racers; a
 browser-born codebase must clear the "feels like a real game" bar on a real GPU on first launch.
 
-### What is verified (evidence in the repository or on GitHub Actions)
+### What was verified on November 5 (historical evidence)
 
 | Area | Evidence |
 | --- | --- |
@@ -53,7 +81,7 @@ karts/trucks; GP/dirt physics fixes, GP passing in mixed fields, handling calibr
 store kit (page copy, art/capsules 16/16 sizes, teaser animatic, storyboard, launch plan, 8-language store drafts).
 Per-department reports: `docs/studio/reports/*.md`.
 
-## 3. Known problems (ranked)
+## 3. November 5 known problems (historical, ranked)
 
 **Release blockers or near-blockers**
 
@@ -74,7 +102,8 @@ Per-department reports: `docs/studio/reports/*.md`.
    rear view of a rider on an empty road). Retake on a GPU before any Steam upload.
 5. **Legal items needing the owner/counsel** (not resolvable in code): purge the removed real-brand player asset from git
    history (it is still in history and in the repo's `supplied-*` files, owner-only); check whether the public GitHub Pages
-   site and past release artifacts already published it (the Pages workflow redeploys on every push to `main`); trademark /
+   site and past release artifacts already published it (Pages then redeployed on every push to `main`; the current
+   workflow now consumes only the fully gated product artifact); trademark /
    domain clearance of "MOTOBOUND" and the fictional sponsor/tyre/driver names; Steam's AI-content disclosure (docs say
    "hand-drawn" for logo art that an agent wrote as code — reword or get sign-off); Laubwerk vegetation licence version.
 
@@ -167,7 +196,7 @@ Each phase has an exit test so progress is checkable. Commands are in [GAME_OVER
 - Container restarts killed background agents several times; committed WIP survives on disk, uncommitted does not.
 - Agent tooling lives in the session, not the repo: prompts are summarised in the department reports.
 
-## 7. Final verification record
+## 7. November 5 verification record (historical)
 
 Run on `main` at the wind-down (commit e91a744 plus this record), local 4-CPU container, 2026-11-05:
 

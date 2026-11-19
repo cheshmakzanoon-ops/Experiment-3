@@ -81,6 +81,9 @@ test('reference continuation: night and guide controls are real, reversible and 
   const original = await diag(page);
   await inspect(page, 79);
   await expect(page.locator('.driving-academy')).toBeVisible();
+  // A night preview must upgrade the daylight-only menu showroom to the
+  // actual venue, without replacing the held simulation snapshot.
+  expect((await diag(page)).renderer!.presentationPurpose).toBe('circuit');
   await expect.poll(async () => (await diag(page)).renderer!.venueLighting.nearbyLights).toBe(4);
   expect((await diag(page)).renderer!.night).toBe(true);
   const night = await heldAcademy(page);

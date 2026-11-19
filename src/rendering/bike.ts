@@ -2256,16 +2256,19 @@ export class BikeShells {
       this.root.add(level.root);
       level.root.visible = false;
     }
+    // One spring-damped rider body per GP entrant, shared by its LODs.
+    const gp = definition.id === 'gpr1' || definition.id === 'gpr2';
+    const riderBody = gp ? new GpRiderBody() : undefined;
+    // Capture the opaque rest pose before a presentation hook can replace its
+    // materials (the Time Trial ghost installs a translucent material). A cold
+    // cache must bake the same volume regardless of which entrant builds first.
+    const occlusion = gp
+      ? this.occlude(definition.id, levels as BikeModel[], materials)
+      : undefined;
     for (const level of levels) this.install(level.root);
     const rig = new BikeServiceRig(bikeServiceGeometry(definition));
     this.root.add(rig.root);
     this.install(rig.root);
-    // One spring-damped rider body per GP entrant, shared by its LODs.
-    const gp = definition.id === 'gpr1' || definition.id === 'gpr2';
-    const riderBody = gp ? new GpRiderBody() : undefined;
-    const occlusion = gp
-      ? this.occlude(definition.id, levels as BikeModel[], materials)
-      : undefined;
     return { definition, materials, levels, level: -1, rig, riderBody, occlusion };
   }
   /** GP: bake (or share) the definition's rest-pose occupancy from the high

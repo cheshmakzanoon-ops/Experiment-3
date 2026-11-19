@@ -58,6 +58,10 @@ export class TerrainStreamer {
   private frame = 0;
   private inFlight = 0;
   private readonly indices = new Map<number, T.BufferAttribute>();
+  private drawnTiles = new Set<number>();
+  /** Changes only when the displayed covering set changes, including swaps
+   * with the same tile count. Far shadows coalesce these streaming updates. */
+  shadowRevision = 0;
   /** Diagnostics. */
   stats = { resident: 0, drawn: 0, requested: 0, built: 0, evicted: 0, workerMs: 0 };
   /** Tree data of drawn near tiles changed (vegetation rebuilds instances). */
@@ -229,6 +233,7 @@ export class TerrainStreamer {
     this.frame++;
     for (const t of this.tiles.values()) if (t.mesh) t.mesh.visible = false;
     let drawn = 0;
+    const drawnTiles = new Set<number>();
     const wanted: { t: Tile; d: number }[] = [];
     const visit = (level: number, ix: number, iz: number) => {
       const t = this.tile(level, ix, iz);
@@ -247,6 +252,7 @@ export class TerrainStreamer {
       }
       if (t.mesh) {
         t.mesh.visible = true;
+        drawnTiles.add(t.key);
         drawn++;
       } else wanted.push({ t, d: this.distance(t) - 1e6 * (level === TERRAIN_LEVELS ? 1 : 0) });
     };
@@ -254,6 +260,11 @@ export class TerrainStreamer {
     wanted.sort((a, b) => a.d - b.d);
     for (const w of wanted) if (!this.request(w.t, w.t.level === TERRAIN_LEVELS ? 0 : 1)) break;
     this.stats.drawn = drawn;
+    if (
+      drawnTiles.size !== this.drawnTiles.size ||
+      [...drawnTiles].some((key) => !this.drawnTiles.has(key))
+    ) this.shadowRevision++;
+    this.drawnTiles = drawnTiles;
     // Trees of the drawn near tiles.
     let changed = false;
     for (const t of this.tiles.values()) {

@@ -25,7 +25,12 @@ it('publishes exact validated bytes, recovers reruns, and rejects altered or sta
     for (const path of [bin, models, manifests]) mkdirSync(path, { recursive: true });
     copyFileSync(script, join(root, 'publish.sh'));
     // G15: the script certifies the artifact with the IP guard that sits next to it.
-    for (const guard of ['ip-guard.mjs', 'ip-denylist.mjs'])
+    for (const guard of [
+      'ip-guard.mjs',
+      'ip-denylist.mjs',
+      'verify-release-artifact.mjs',
+      'release-source.mjs',
+    ])
       copyFileSync(new URL(`../scripts/${guard}`, import.meta.url), join(root, guard));
     const sha = 'a'.repeat(40);
     writeFileSync(join(release, 'SOURCE_COMMIT.txt'), sha + '\n');
@@ -58,7 +63,7 @@ it('publishes exact validated bytes, recovers reruns, and rejects altered or sta
     }
     writeFileSync(
       join(bin, 'git'),
-      '#!/usr/bin/env bash\nset -euo pipefail\ntest "$1" = ls-remote\nprintf "%s\\trefs/heads/main\\n" "$TEST_CURRENT"\n',
+      '#!/usr/bin/env bash\nset -euo pipefail\ncase "$1" in\nls-remote) printf "%s\\trefs/heads/main\\n" "$TEST_CURRENT";;\ncat-file) exit 0;;\nmerge-base) exit 1;;\n*) exit 2;;\nesac\n',
       { mode: 0o755 },
     );
     writeFileSync(
@@ -145,6 +150,15 @@ else: raise ValueError(cmd)
       writeFileSync(join(release, 'BUILD_IDENTITY.json'), JSON.stringify(invalid));
       expect(run().status).not.toBe(0);
     }
+    // A demo is product-class and may pass the IP guard, but can never replace
+    // the full playable game. Exercise the shared verifier through publication.
+    writeFileSync(
+      join(release, 'BUILD_IDENTITY.json'),
+      JSON.stringify({ ...identity, edition: 'demo' }),
+    );
+    const demo = run();
+    expect(demo.status).not.toBe(0);
+    expect(demo.stderr).toContain('Refusing to publish a "demo" edition as the game');
     writeFileSync(join(release, 'BUILD_IDENTITY.json'), JSON.stringify(identity));
     expect(readFileSync(join(root, 'gh-calls'), 'utf8')).toBe(callsBeforeNegativeCases);
     // G15: the owner-supplied real-brand model must never be in a published release. The

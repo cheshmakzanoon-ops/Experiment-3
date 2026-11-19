@@ -16,48 +16,9 @@ fi
 # real-brand identifier in any shipped file (scripts/ip-guard.mjs, which also refuses owner and
 # review builds with no way to switch that off). A QA build is NOT_FOR_RELEASE.
 node "$(dirname "${BASH_SOURCE[0]}")/ip-guard.mjs" --dist "$release"
-node --input-type=module - "$release" <<'NODE'
-import { readFileSync } from 'node:fs';
-import { createHash } from 'node:crypto';
-const identity = JSON.parse(readFileSync(`${process.argv[2]}/BUILD_IDENTITY.json`, 'utf8'));
-if (identity.version !== 1 || identity.commit !== process.env.VALIDATED_SHA ||
-    !/^[0-9a-f]{64}$/.test(identity.fingerprint) || identity.variant !== 'product') {
-  throw new Error('Validated build identity differs from the gated source commit');
-}
-// The Steam demo (npm run build:demo) is a product-class build with a content slice: it ships
-// as its own Steam app, never as the game on Pages or as the release artifact.
-if ((identity.edition ?? 'full') !== 'full') {
-  throw new Error(`Refusing to publish a "${identity.edition}" edition as the game`);
-}
-for (const [family, filename] of [
-  ['track-signal-hardware', 'aurel-track-signal-hardware.glb'],
-  ['track-boards', 'aurel-track-boards.glb'],
-  ['broadcast-cameras', 'aurel-broadcast-cameras.glb'],
-  ['aurel-vegetation', 'aurel-vegetation.glb'],
-  ['aurel-quarry', 'aurel-quarry.glb'],
-  ['event-hall', 'aurel-event-hall.glb'],
-  ['secondary-grandstands', 'aurel-secondary-grandstands.glb'],
-]) {
-  const source = JSON.parse(readFileSync(`src/rendering/${family}.manifest.json`, 'utf8'));
-  // A71/A12 bundle accessors while retaining their matched exchange assets.
-  const bundled = family === 'event-hall' || family === 'secondary-grandstands';
-  if (bundled && source.exchange !== `public/models/${filename}`) {
-    throw new Error(`Unexpected authored exchange path: ${family}`);
-  }
-  const manifest = bundled
-    ? { url: source.exchange.slice(7), bytes: source.exchangeBytes, sha256: source.exchangeSHA256 }
-    : source;
-  const asset = `models/${filename}`;
-  if (manifest.url !== asset) throw new Error(`Unexpected trackside asset path: ${family}`);
-  const bytes = readFileSync(`${process.argv[2]}/${asset}`);
-  if (bytes.length !== manifest.bytes ||
-      createHash('sha256').update(bytes).digest('hex') !== manifest.sha256) {
-    throw new Error(`Validated asset differs from its source manifest: ${asset}`);
-  }
-}
-NODE
-current=$(git ls-remote origin refs/heads/main | cut -f1)
-if test "$current" != "$VALIDATED_SHA"; then
+node "$(dirname "${BASH_SOURCE[0]}")/verify-release-artifact.mjs" "$release" "$VALIDATED_SHA"
+current=$(node "$(dirname "${BASH_SOURCE[0]}")/release-source.mjs" "$VALIDATED_SHA")
+if test "$current" != true; then
   echo 'Source advanced; no release published.' >> "$GITHUB_STEP_SUMMARY"
   exit 0
 fi
@@ -94,8 +55,8 @@ for name in apex-formula-playable.zip SHA256SUMS; do
     gh release upload "$tag" "$out/$name"
   fi
 done
-current=$(git ls-remote origin refs/heads/main | cut -f1)
-if test "$current" != "$VALIDATED_SHA"; then
+current=$(node "$(dirname "${BASH_SOURCE[0]}")/release-source.mjs" "$VALIDATED_SHA")
+if test "$current" != true; then
   echo 'Source advanced during upload; retaining the source-addressed draft.' >> "$GITHUB_STEP_SUMMARY"
   exit 0
 fi

@@ -4,6 +4,26 @@
 
 GP-R1 and GP-R2 explicitly opt into MotoGPChassis in src/simulation/bike-vehicle.ts. Cars retain vehicle.ts and the motocross terrain/suspension subsystem remains in offroad/. Other motorcycles keep the established reduced-order Bike model. A plain research new Bike() does not enable GP physics.
 
+## Ordinary road-bike control and physics v25
+
+Player-controlled SBK-1000, SS-600, NR-900 and CR-750 use the shared core's
+feet-up low-speed balance from v25. MX250, MX450 and SM450 use the same
+correction on ordinary roads, as does SM450 in the festival. Before the
+correction, the lean-intent counter-steer law opposed its upright support spring: holding left input at
+about 11 km/h produced a sustained right turn. The corrected support target
+leans into the intended turn and blends back to the existing controller by
+5 m/s. Both `sport` and `raw` session settings keep the documented lean-intent
+steering contract; `raw` still disables the braking/traction aids.
+
+GP-R1/R2 keep their dedicated controller. AI-controlled road bikes keep their
+surveyed low-speed behavior, including autopilot and pit control; handing
+control back enables the player's balance on the next physics substep.
+Standalone `Bike(EXPERT)` still means direct steering and bypasses the aid.
+`tests/road-bike-low-speed.test.ts` exercises ordinary player inputs in both
+directions, both session assist settings, the low-speed transition and AI
+handover. The physics-version change also separates previously unversioned
+MX handling changes from v24 records; see `motocross-physics-model.md`.
+
 ## Model: original calibration, not proprietary MotoGP physics
 
 At each fixed physics substep the GP chassis integrates measured body-frame lateral velocity v_y and yaw rate r. Each front/rear tyre gets load-scaled nonlinear camber and combined-slip forces through the shared tyre-force.ts Magic-Formula-shaped law:
@@ -27,7 +47,15 @@ This is a deterministic, reduced-order single-track motorcycle model, not full s
 
 The model cannot claim motorcycle manufacturer accuracy, tire finite element fidelity, verified gyroscopic steer-head torque, official MotoGP game-engine source, or track-data validation. Further engineering should calibrate inertia, load sensitivity, camber curves, and controller stability to measured telemetry, and simulate race-length tests on GP circuits with wet grip and variable kerbs before describing the simulation as quantitatively hyperrealistic.
 
-## Calibration (MotoGP hyperrealism programme)
+## Historical calibration (MotoGP hyperrealism programme)
+
+The figures and findings below describe the named historical checkpoints.
+They are retained as investigation evidence, not as a current release status.
+Later GP braking and passing changes have dedicated regressions in
+`tests/gp-braking-approach.test.ts`, `tests/gp-ai-braking-plan.test.ts`,
+`tests/bike-mixed-passing.test.ts` and `tests/bike-session.test.ts`. Their
+present results must be checked on the release commit; a historical failure
+below is not evidence that the current implementation still fails it.
 
 Measured with `node --experimental-transform-types scripts/gp-calibration.ts --lap --json`. The production `BikeVehicle`, `Bike` core and MotoGP chassis run unchanged; only the rider's inputs are scripted, on the vehicle laboratory's analytic runway (straight-line and steady-state tests) and at Poggio Alto (AI flying laps, practice, dry, seed 5245). Tyres start at operating temperature and the rider aids are the default `sport` set the AI also uses. The step is fixed at 1/120 s and every figure is deterministic. "Base" is the programme's base commit `261ebe8`; "now" is the tree after the GP calibration WIP was reverted and the ride-by-wire roll-off added (`6738f02`).
 
@@ -73,7 +101,7 @@ Targets and public sources. The figures come from web search results on 2026-10-
 
 AI races complete deterministically. The 8-rider, 2-lap Poggio Alto race (seed 30101) gives an identical frame-hash sequence on two runs, both dry and wet. In the dry it classifies all 8 riders with no crash. It still has one 3 J touch between two riders running side by side, which `gp-tyre-contact` rejects. In the wet it completes, but is not clean (see below).
 
-Not solved, measured:
+Unresolved findings at that historical checkpoint:
 
 - **Corner entry.** The GP AI's approach plan assumes the full straight-line braking envelope right up to the apex. On the leaned entry ramp it realises about half of that (3.6 m/s² against a planned 7.1 m/s², Poggio Alto hairpin), so both bikes reach the apex at 1.5 g and run 5–6 m wide of the racing line on exit. GP-R2 carries 24.24 m/s at the hairpin "apex" sample against the `gp-braking-approach` bound of < 24. Planning each corner speed 12 m earlier fixes the line, but costs 2.2–2.8 % of lap time everywhere, so it was not adopted.
 - **Wet pace.** On standing water the slick-to-wet contact grip is 0.40 of dry. Wet AI laps take 188–227 s against 114–121 s dry, where real wet races are roughly 10–15 % slower. One rider runs 7.7 m off the track into a 28 m-radius bend at 16.8 m/s (about 1 g needed, 0.55 g available).

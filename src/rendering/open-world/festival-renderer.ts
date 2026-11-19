@@ -35,7 +35,6 @@ import {
   SkyEnvironment,
   type LightingMode,
 } from '../daylight.ts';
-import { FarShadow } from '../far-shadow.ts';
 import { PresentedFrame } from '../frame-state.ts';
 import { LensBloomPass } from '../lens-bloom.ts';
 import { applyCircuitLightPalette } from '../lighting-coherence.ts';
@@ -47,13 +46,12 @@ import {
   type GraphicsOptions,
   type QualityPreset,
 } from '../options.ts';
-import { SceneAmbientPass } from '../scene-ambient-pass.ts';
+import type { SceneAmbientPass } from '../scene-ambient-pass.ts';
 import { prewarmSky } from '../sky-light.ts';
 import { compileSceneTarget } from '../preparation.ts';
 import { prepareMaterials } from '../materials/library.ts';
 import { postLensFrame } from '../studio/lens-effects.ts';
 import { SKY_CLOUDS, SkyClouds } from '../studio/sky-clouds.ts';
-import { studioUniforms } from '../studio/studio-frame.ts';
 import { UltraPipeline } from '../ultra/pipeline.ts';
 import { PhotoSky } from '../assets/photo-sky.ts';
 import { scannedGround } from '../ground/scan-store.ts';
@@ -99,6 +97,8 @@ import {
   weatherAtmosphere,
 } from '../weather-atmosphere.ts';
 import { FestivalAtmosphere } from './festival-atmosphere.ts';
+import { FestivalFramePipeline } from './festival-frame-pipeline.ts';
+import { FestivalShadows } from './festival-shadows.ts';
 import {
   createFestivalContactOffset,
   festivalContactEnabled,
@@ -174,16 +174,18 @@ export class FestivalRenderer {
   readonly photoSky = new PhotoSky(FESTIVAL_PALETTE, true);
   private readonly composer: EffectComposer;
   private readonly scenePass: SceneAmbientPass;
+  private readonly imagePipeline: FestivalFramePipeline;
   private readonly bloom = new LensBloomPass();
   private readonly grade = new BroadcastGradePass();
   private readonly fxaa = new ShaderPass(FXAAShader);
   readonly ultra: UltraPipeline;
-  private readonly farShadow = new FarShadow(1024);
+  private readonly shadows: FestivalShadows;
   private readonly wet = new WetRoadReflection();
   graphics: GraphicsOptions = graphicsPreset('medium');
   preset: QualityPreset = 'medium';
   lighting: LightingMode = 'day';
   mode: FestivalCamera = 'chase';
+  reducedMotion = false;
   lookX = 0;
   private readonly target = new T.Vector3();
   private readonly desired = new T.Vector3();
@@ -251,6 +253,7 @@ export class FestivalRenderer {
     scene.environmentIntensity = 0.7;
     scene.fog = new T.FogExp2(0xb9c7c1, 0.00012);
     scene.add(this.hemisphere, this.sun, this.sun.target);
+    this.shadows = new FestivalShadows(renderer, scene, this.sun);
     this.sun.castShadow = true;
     this.sun.shadow.mapSize.set(2048, 2048);
     Object.assign(this.sun.shadow.camera, {
@@ -263,6 +266,7 @@ export class FestivalRenderer {
     });
     this.sun.shadow.bias = -0.00003;
     this.sun.shadow.normalBias = 0.02;
+    this.sun.shadow.camera.updateProjectionMatrix();
     this.terrain = new TerrainStreamer(tileWorker, TERRAIN_BUDGETS.medium);
     this.roads = new RoadMeshes(world.network, world.field);
     this.streetLights = new StreetLightPools(this.roads.lampSockets);
@@ -300,8 +304,15 @@ export class FestivalRenderer {
     this.atmosphere.watch(this.dressing.root);
     this.atmosphere.watch(this.vegetation.root);
     this.composer = new EffectComposer(renderer);
-    this.scenePass = new SceneAmbientPass(scene, this.camera, this.graphics.msaa);
-    this.composer.addPass(this.scenePass);
+    this.imagePipeline = new FestivalFramePipeline(
+      renderer,
+      this.camera,
+      this.sun,
+      scene,
+      this.composer,
+      this.graphics,
+    );
+    this.scenePass = this.imagePipeline.scenePass;
     this.composer.addPass(this.bloom);
     this.composer.addPass(new OutputPass());
     this.composer.addPass(this.fxaa);
@@ -315,7 +326,7 @@ export class FestivalRenderer {
       bloom: this.bloom,
       grade: this.grade,
       sun: this.sun,
-      farShadow: this.farShadow,
+      farShadow: this.shadows.far,
       wetReflection: this.wet,
       roadMaterial: this.roads.materials.asphalt,
     });
@@ -390,6 +401,7 @@ export class FestivalRenderer {
       this.dressing.usePhotoVegetation(library);
       // Trees never stand on roads: the natural ground alone (cheap per tile).
       this.vegetation.setPhotoLibrary(library, (x, z) => this.world.field.height(x, z));
+      this.shadows.invalidate();
       return true;
     } catch (error) {
       console.warn('Festival photographic vegetation unavailable:', error);
@@ -404,6 +416,7 @@ export class FestivalRenderer {
         this.details = kit;
         this.atmosphere.install(kit.root);
         this.scene.add(kit.root);
+        this.shadows.invalidate();
         this.reflection.probeExclusions.push(kit.aero);
         this.guidance.useFlagTemplate(kit.flagTemplate(this.preset === 'low'));
         if (kit.stats.boats === this.dressing.stats.boats) this.dressing.useAuthoredBoats();
@@ -432,6 +445,7 @@ export class FestivalRenderer {
         this.streetDetails = kit;
         this.atmosphere.install(kit.root);
         this.scene.add(kit.root);
+        this.shadows.invalidate();
         return true;
       })
       .catch((error: unknown) => {
@@ -458,11 +472,10 @@ export class FestivalRenderer {
       this.sun.shadow.mapSize.set(g.shadowSize, g.shadowSize);
     }
     this.sun.castShadow = g.shadowSize > 0;
+    this.shadows.configure(g.shadowSize);
     this.bloom.enabled = g.bloom;
-    this.scenePass.setSamples(Math.min(g.msaa, this.renderer.capabilities.maxSamples));
+    this.imagePipeline.configure(g);
     this.fxaa.enabled = g.antialias && this.scenePass.samples === 0;
-    this.scenePass.ambientOcclusion = g.ambientOcclusion;
-    this.scenePass.temporal.enabled = g.temporalAA;
     this.grade.enabled = g.filmGrade;
     this.effects.enabled = g.particleDensity > 0;
     this.effects.density = g.particleDensity;
@@ -497,14 +510,17 @@ export class FestivalRenderer {
     this.composer.setSize(w, h);
     const actual = this.renderer.getDrawingBufferSize(new T.Vector2());
     this.fxaa.uniforms.resolution.value.set(1 / actual.x, 1 / actual.y);
+    this.imagePipeline.reset();
   }
   changeCamera(mode?: FestivalCamera) {
     this.mode = mode ?? CAMERAS[(CAMERAS.indexOf(this.mode) + 1) % CAMERAS.length];
     this.initialized = false;
     this.audioView.reset();
+    this.imagePipeline.reset();
   }
   /** Pause is owned by FestivalSession. This only changes the presentation. */
   setPhoto(active: boolean) {
+    if (active !== this.photo) this.imagePipeline.reset();
     this.photo = active;
     this.orbit.enabled = active;
     if (active) {
@@ -787,7 +803,6 @@ export class FestivalRenderer {
       iblUniforms.apexSkyIrradianceSaturation.value,
     );
     if (saturation !== null) iblUniforms.apexSkyIrradianceSaturation.value = saturation;
-    this.renderer.toneMappingExposure = daylight.exposure;
     const fog = this.scene.fog as T.FogExp2;
     // Stock fog remains the fallback for unlit signs/particles. World-owned
     // materials use the sky's extinction with the region's valley falloff.
@@ -828,15 +843,33 @@ export class FestivalRenderer {
       .copy(this.sun.target.position)
       .add(this.temp.copy(lightingDirection(mode)).normalize().multiplyScalar(400));
     this.sun.target.updateMatrixWorld();
+    this.sun.updateMatrixWorld();
     const wet = clamp(presented[H.WATER] / 0.8, 0, 1);
     this.roads.setWet(wet);
     this.terrain.material.userData.ow.owWet.value = wet;
-    studioUniforms.studioTime.value = time;
-    // A light onshore breeze for the planting (no weather wind in free roam).
-    studioUniforms.studioWind.value.set(2.6, 1.4, time, 0.5);
+    this.imagePipeline.prepare(
+      presented,
+      this.graphics,
+      mode,
+      this.mode,
+      vehicle,
+      this.photo,
+      cut,
+      daylight.exposure,
+      this.reducedMotion,
+    );
     // --- Render ---------------------------------------------------------------
     this.renderer.info.reset();
     this.renderer.info.autoReset = false;
+    this.shadows.update({
+      subject: this.target,
+      lighting: mode,
+      terrainRevision: this.terrain.shadowRevision,
+      dt,
+      terrain: this.terrain.root,
+      planting: [this.vegetation.root],
+      hidden: this.reflection.probeExclusions,
+    });
     this.environment.update(this.renderer, this.scene, daylight.cover, mode);
     if (
       this.reflectionVersion !== this.cars.paintVersion ||
@@ -883,7 +916,7 @@ export class FestivalRenderer {
       this.bloom,
       presented,
       mode,
-      this.graphics.lensEffects,
+      this.graphics.lensEffects && !this.photo,
       this.camera,
       this.mode === 'hood' ? 'cockpit' : 'chase',
       speed,
@@ -895,7 +928,7 @@ export class FestivalRenderer {
         { reflectivePaint: this.vehiclePaint },
       ],
       subject: this.target,
-      cameraMode: 'chase',
+      cameraMode: this.mode === 'hood' ? 'cockpit' : 'chase',
       lighting: mode,
       studio: false,
       menu: false,
@@ -913,6 +946,13 @@ export class FestivalRenderer {
   /** Snapshot length check for the session controller. */
   static frameLength(cars: number) {
     return HEADER + cars * CAR_STRIDE;
+  }
+  diagnostics() {
+    return {
+      ...this.imagePipeline.diagnostics(),
+      shadows: this.shadows.diagnostics(),
+      ultra: this.ultra.diagnostics(),
+    };
   }
   dispose() {
     if (this.disposed) return;
@@ -944,7 +984,7 @@ export class FestivalRenderer {
     this.vehicleRoots.length = 0;
     this.environment.dispose();
     this.wet.dispose();
-    this.farShadow.dispose();
+    this.shadows.dispose();
     this.effectPlayback.reset();
     this.effects.group.traverse((node) => {
       if (node instanceof T.Mesh || node instanceof T.Points) {
@@ -956,7 +996,7 @@ export class FestivalRenderer {
     this.bloom.dispose();
     this.grade.dispose();
     this.fxaa.dispose();
-    this.scenePass.dispose();
+    this.imagePipeline.dispose();
     this.ultra.dispose();
     this.photoSky.dispose();
     this.composer.dispose();

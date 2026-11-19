@@ -5,7 +5,12 @@ on:
     # Report-only and prose-only pushes cannot change the build; do not spend ~10 runner-hours on them.
     paths-ignore:
       - 'ci-reports/**'
-      - '**/*.md'
+      - 'README.md'
+      - 'docs/CURRENT_STATUS.md'
+      - 'docs/studio/ROADMAP.md'
+      - 'docs/studio/EXECUTION_PLAN.md'
+      - 'docs/studio/HYPERREALISM_HANDOVER.md'
+      - 'docs/studio/hyperrealism-wip/README.md'
   pull_request:
   workflow_dispatch:
 concurrency:
@@ -163,13 +168,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4, 5, 6, 7, 8]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     needs: validate
     runs-on: ubuntu-24.04
     # Enumerate the full suite, balance long race cases, then verify the selected
     # IDs against Playwright itself. Every case belongs to exactly one partition;
-    # serial groups remain intact. Long Mesa shards previously reached the 45
-    # minute job cap mid-suite; retain all tests and per-test assertions.
+    # serial groups remain intact. The 347-case inventory with the complete
+    # scenery/pit surveys assigned 6,410-6,430 scheduling units to each of eight
+    # runners. Twelve assign 4,260-4,290, leaving headroom under the unchanged
+    # 90-minute cap. These are estimates, not proof that a GPU stall is fixed.
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
@@ -370,7 +377,8 @@ jobs:
 
   publish:
     # Ship exactly the build tested above, never a parallel unvalidated rebuild.
-    # The CDN workflow consumes this gated artifact, not an independent build.
+    # Pages and the downloadable release consume this artifact. Neither rebuilds.
+    # Report/prose-only descendant commits do not invalidate tested application bytes.
     needs: [validate, unit-tests, scenarios, offroad-scenarios, browser, wet-presentation, owner-qa]
     # Manual validation of the current main must produce the SAME gated artifact.
     # Keep success() and all needs: a dispatch never bypasses a failed test.
@@ -449,8 +457,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git fetch origin main
-          if test "$(git rev-parse origin/main)" != "$GITHUB_SHA"; then
+          current=$(node scripts/release-source.mjs "$GITHUB_SHA")
+          if test "$current" != true; then
             echo 'A newer source commit exists; skipping stale release publication.' >> "$GITHUB_STEP_SUMMARY"
             echo 'ready=false' >> "$GITHUB_OUTPUT"
             exit 0
@@ -458,6 +466,7 @@ jobs:
           find dist -type f -name '*.map' -delete
           printf '%s\n' "$GITHUB_SHA" > dist/SOURCE_COMMIT.txt
           touch dist/.nojekyll
+          node scripts/verify-release-artifact.mjs dist "$GITHUB_SHA"
           echo 'ready=true' >> "$GITHUB_OUTPUT"
           echo "Tested release source on main: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
       - name: Preserve tested release without creating another branch

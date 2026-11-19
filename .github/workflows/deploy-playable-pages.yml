@@ -1,56 +1,97 @@
 name: Deploy MOTOBOUND playable website
 
 on:
-  push:
+  workflow_run:
+    workflows: [Build and validation]
+    types: [completed]
     branches: [main]
-  workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
+  actions: read
 
 concurrency:
   group: motobound-github-pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
-  build:
+  deploy:
+    # The producer's publish job requires every original test gate. A green
+    # validate/build job alone never authorizes deployment, and we never rebuild.
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      (github.event.workflow_run.event == 'push' ||
+       github.event.workflow_run.event == 'workflow_dispatch')
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    env:
+      VALIDATED_SHA: ${{ github.event.workflow_run.head_sha }}
     steps:
-      - name: Checkout exact source revision
+      - name: Checkout the validated source for independent identity checks
         uses: actions/checkout@v4
         with:
-          persist-credentials: false
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: npm
-      - name: Install pinned dependencies
-        run: npm ci --no-audit --no-fund
-      - name: Build production Three.js game
-        run: npm run build
-      - name: Disable Jekyll processing
-        run: touch dist/.nojekyll
-      - name: Upload playable web build
+      - name: Reject superseded application source
+        id: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          ready=$(node scripts/release-source.mjs "$VALIDATED_SHA")
+          echo "ready=$ready" >> "$GITHUB_OUTPUT"
+          if test "$ready" != true; then
+            echo 'Source advanced; keeping the previously validated website.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Download the exact release that passed every validation job
+        if: steps.source.outputs.ready == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: apex-formula-release
+          path: ${{ runner.temp }}/validated-playable
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+      - name: Verify the downloaded product identity and asset bytes
+        if: steps.source.outputs.ready == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/ip-guard.mjs --dist "$RUNNER_TEMP/validated-playable"
+          node scripts/verify-release-artifact.mjs "$RUNNER_TEMP/validated-playable" "$VALIDATED_SHA"
+      - name: Upload the validated Pages artifact
+        if: steps.source.outputs.ready == 'true'
         uses: actions/upload-pages-artifact@v4
         with:
-          path: dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Enable GitHub Pages if needed
+          path: ${{ runner.temp }}/validated-playable
+      - name: Configure GitHub Pages
+        if: steps.source.outputs.ready == 'true'
         uses: actions/configure-pages@v5
-        with:
-          enablement: true
-      - name: Publish latest main build
+      - name: Recheck main immediately before deployment
+        if: steps.source.outputs.ready == 'true'
+        id: current
+        shell: bash
+        run: |
+          set -euo pipefail
+          ready=$(node scripts/release-source.mjs "$VALIDATED_SHA")
+          echo "ready=$ready" >> "$GITHUB_OUTPUT"
+          if test "$ready" != true; then
+            echo 'Source advanced during upload; website retained.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Publish validated main build
+        if: steps.current.outputs.ready == 'true'
         id: deployment
         uses: actions/deploy-pages@v4

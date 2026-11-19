@@ -675,6 +675,7 @@ export class GameApp {
     const reduced = settings.reducedMotion || systemReducedMotion();
     renderer.shake = reduced ? 0 : settings.shake;
     renderer.reducedMotion = reduced;
+    this.festival?.setReducedMotion(reduced);
     document.documentElement.dataset.reducedMotion = String(reduced);
   }
   /** Master volume, the per-class sliders and the (off by default) music switch. */
@@ -955,6 +956,7 @@ export class GameApp {
           element: document.getElementById('app')!,
           quality: this.settings.quality,
           graphics: this.settings.graphics,
+          reducedMotion: this.settings.reducedMotion || systemReducedMotion(),
           lighting: renderer.lighting,
           loading: (text) => this.ui.loading(text),
           loaded: () => {
@@ -2339,8 +2341,35 @@ export class GameApp {
     if (this.state === 'results') this.showResults();
     else this.ui.pause();
   }
-  private openAcademy() {
+  private openAcademy(night?: boolean) {
+    return this.prepareAcademy(night).catch((error) => this.fail(error));
+  }
+  private async prepareAcademy(night?: boolean) {
+    if (!this.renderer || this.state === 'loading') return;
     this.suspendPlayback();
+    if (this.renderer.showroomOnly) {
+      // The Academy previews the actual guide and circuit lighting. The cheap
+      // menu showroom deliberately forces studio daylight and has no venue,
+      // so it cannot fulfil that preview even when its night flag is set.
+      const lighting = this.renderer.lighting;
+      this.state = 'loading';
+      this.ui.closeModal();
+      this.ui.showMode('loading');
+      if (!(await this.switchCircuit(this.track.circuit.id))) return;
+      this.renderer.lighting = lighting;
+      this.state = 'menu';
+      this.renderedState = null;
+      // Keep the held simulation and selected-machine snapshot exactly as
+      // they were. This operation upgrades presentation, never the session.
+      this.ui.ready();
+    }
+    if (night !== undefined) {
+      // A reference preview owns its fixed light, even for a player whose
+      // standing choice is LIVE. Session entry reapplies that saved choice.
+      this.liveSky.stop();
+      this.renderer.night = night;
+      this.renderer.reset();
+    }
     this.ui.closeModal();
     this.ui.modalContent(
       drivingAcademy(
@@ -2358,7 +2387,10 @@ export class GameApp {
     const route = referenceRoute(entry);
     if (!route) return;
     this.inspectedReference = id;
-    if (route.night !== undefined && this.renderer) this.renderer.night = route.night;
+    if (route.night !== undefined && route.destination !== 'academy' && this.renderer) {
+      this.liveSky.stop();
+      this.renderer.night = route.night;
+    }
     if (route.destination === 'media') this.openMedia();
     else if (route.destination === 'event') {
       this.suspendPlayback();
@@ -2378,7 +2410,7 @@ export class GameApp {
           `REFERENCE ${String(id).padStart(3, '0')} · ${entry.title}. ${route.instruction}`,
         );
       }
-    } else if (route.destination === 'academy') this.openAcademy();
+    } else if (route.destination === 'academy') await this.openAcademy(route.night);
     else if (route.destination === 'team') this.openTeam(route.hub);
     else {
       this.suspendPlayback();
@@ -3281,7 +3313,11 @@ export class GameApp {
     return {
       buildIdentity: { commit: __APEX_SOURCE_COMMIT__, fingerprint: __APEX_SOURCE_FINGERPRINT__ },
       state: this.state,
-      festival: { starting: this.festivalStarting, active: !!this.festival },
+      festival: {
+        starting: this.festivalStarting,
+        active: !!this.festival,
+        renderer: this.festival?.diagnostics() ?? null,
+      },
       gridPresentation: {
         time: this.gridClock.time,
         playing: this.gridClock.playing,

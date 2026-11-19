@@ -197,6 +197,7 @@ describe('festival carved-ground presentation queries', () => {
       preset: 'medium',
       photo: false,
       orbit: { enabled: false, target: new T.Vector3(), update: vi.fn() },
+      imagePipeline: { reset: vi.fn() },
       gaze: new T.Vector3(),
       forward: new T.Vector3(),
       lastSubject: target.clone(),

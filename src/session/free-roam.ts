@@ -51,6 +51,7 @@ export interface FestivalHost {
   element: HTMLElement;
   quality: QualityPreset;
   graphics: GraphicsOptions;
+  reducedMotion?: boolean;
   lighting: LightingMode;
   loading(text: string): void;
   loaded(): void;
@@ -191,6 +192,7 @@ export class FestivalSession {
       this.tiles,
     );
     this.renderer = renderer;
+    renderer.reducedMotion = host.reducedMotion ?? false;
     renderer.setQuality(host.quality, host.graphics);
     renderer.lighting = host.lighting;
     renderer.cars.bodies.setPlayerLivery(host.livery?.() ?? null);
@@ -205,6 +207,7 @@ export class FestivalSession {
     this.riders = new FestivalRiders();
     renderer.scene.add(this.traffic.root, this.riders.root);
     renderer.registerVehicleRoot(this.riders.root);
+    renderer.registerVehicleRoot(this.traffic.root);
     this.riders.shells.install = () => renderer.refreshVehicleMaterials();
     const vehicles = festivalVehicles();
     const machine = festivalMachineChoice(options, this.save.vehicle);
@@ -574,6 +577,13 @@ export class FestivalSession {
   }
   resize() {
     this.renderer?.resize();
+  }
+  setReducedMotion(value: boolean) {
+    this.host.reducedMotion = value;
+    if (this.renderer) this.renderer.reducedMotion = value;
+  }
+  diagnostics() {
+    return this.renderer?.diagnostics() ?? null;
   }
   dispose() {
     if (this.disposed) return;

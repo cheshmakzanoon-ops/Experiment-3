@@ -126,8 +126,9 @@ export interface BikeParameters {
    * the wrong way and never leans it. With this set, the bars take the steady
    * steer of the lean the rider intends (bounded by what the lock can balance
    * at that speed) and the support spring tips the bike to that lean instead
-   * of to vertical. Set by the motocross adapter; other motorcycles keep the
-   * original blend (undefined). */
+   * of to vertical. Enabled by the ordinary road-bike and motocross adapters
+   * for player lean-intent control. GP's own controller, calibrated AI and
+   * unassisted direct-steer research mode retain their existing behavior. */
   lowSpeedBalance?: boolean;
 }
 export const BIKE: BikeParameters = Object.freeze({

@@ -172,8 +172,15 @@ export class UltraPipeline {
     );
   }
   private shadowsReady() {
+    const { renderer, scene, sun, farShadow } = this.host;
     return (
-      this.host.renderer.shadowMap.enabled && this.host.sun.castShadow && this.host.farShadow.baked
+      renderer.shadowMap.enabled &&
+      sun.castShadow &&
+      sun.visible &&
+      farShadow.enabled &&
+      farShadow.baked &&
+      farShadow.light.visible &&
+      farShadow.light.parent === scene
     );
   }
   private patch(material: T.Material) {
@@ -268,6 +275,18 @@ export class UltraPipeline {
   }
   diagnostics() {
     const g = this.graphics;
+    const { renderer, scene, sun, farShadow } = this.host;
+    // Count usable maps, not the requested preset. A renderer can have only
+    // its near map while streaming, no maps with shadows off, or an unbaked
+    // far light that must not be reported as a second cascade.
+    const nearActive =
+      renderer.shadowMap.enabled &&
+      sun.castShadow &&
+      sun.visible &&
+      sun.parent === scene &&
+      !!sun.shadow.map;
+    const farActive = nearActive && this.shadowsReady() && !!farShadow.light.shadow.map;
+    const midActive = farActive && this.mid.active && !!this.mid.light.shadow.map;
     return {
       preset: this.preset,
       tier: detailTier(this.preset),
@@ -289,13 +308,14 @@ export class UltraPipeline {
       lightShafts: this.shafts.diagnostics(),
       replayDof: this.replayLens.diagnostics(),
       shadowCascades: {
-        count: this.mid.active ? 3 : 2,
+        count: Number(nearActive) + Number(farActive) + Number(midActive),
         near: {
+          active: nearActive,
           mapSize: this.host.sun.shadow.mapSize.x,
           halfExtent: this.host.sun.shadow.camera.right,
         },
-        mid: this.mid.diagnostics(),
-        far: this.host.farShadow.diagnostics(),
+        mid: { ...this.mid.diagnostics(), active: midActive },
+        far: { ...farShadow.diagnostics(), active: farActive },
       },
       materials: materialDiagnostics(),
     };

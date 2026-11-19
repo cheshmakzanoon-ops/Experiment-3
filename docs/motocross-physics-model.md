@@ -8,6 +8,13 @@ MX250/MX450 on motocross and supercross venues. This is a deliberate
 incremental rollout, not a replacement of the road-bike or MotoGP engine.
 AI opponents and supermoto continue using the calibrated shared motorcycle
 core while race/test validation and migration remain outstanding.
+Festival/open-world sessions also use that shared path, including SM450;
+MX250/MX450 are not currently admitted to that mode. The dedicated soil
+solver is selected by the motocross/supercross course as well as the machine
+and player-control state. Autopilot changes the controller
+and solver path; switching it off restores the player path on the next
+physics substep. A successful AI race therefore needs a separate player-path
+test before it certifies ridden MX handling.
 
 The existing terrain, material table, suspension heave/pitch/normal forces,
 rider pitch, landing/crash rules, world collisions, remount, race telemetry,
@@ -31,9 +38,37 @@ dx/dt = u*sin(psi) + v*cos(psi)
 dz/dt = u*cos(psi) - v*sin(psi)
 ```
 
-The front tyre-frame shear is rotated by the physical front-steer angle
-before its force and yaw moment are applied to the chassis. Lateral patch
-slip includes yaw sweep (`v+a*r` ahead and `v-b*r` behind the CG).
+These equations describe the solver's **uncoupled planar path**, when its
+optional `lean` input is absent. On that path, the front tyre-frame shear is
+rotated by the physical front-steer angle before its force and yaw moment
+are applied to the chassis. Lateral patch slip includes yaw sweep (`v+a*r`
+ahead and `v-b*r` behind the CG).
+
+The **live player path supplies `lean`** and uses a reduced combination of
+geometric cornering and force-driven sideslip. Its `yawRate` state is the
+residual yaw from brush slip, rather than the entire heading derivative:
+
+- Front and rear brush slip are measured from `v+a*r` and `v-b*r` without
+  rotating the front frame a second time.
+- The bars and lean request curvature `kappa = tan(steer)/wheelbase * cos(lean)`.
+  The associated lateral demand `m*u*u*kappa` is shared by current axle load.
+  Each tyre's total lateral force is clipped to the friction capacity left
+  by its longitudinal force, `sqrt(max(0, (mu*N)^2 - Fx^2))`.
+- The difference between those final forces and the original brush lateral
+  forces supplies an additional turn rate
+  `r_corner = delta_Fy / (m * max(2, u))`.
+- The residual `r` and lateral velocity integrate the brush forces, while
+  heading advances with `dpsi/dt = r + r_corner`.
+- The adapter corrects the shared lean controller with the resulting total
+  lateral acceleration. Soil heating uses the brush-slip work before the
+  geometric contribution, so pure rolling cornering does not create slip heat.
+
+This preserves the surveyed lean-control behavior while allowing wheelspin,
+brake locking and slides. It is an authored reduced model; it does not claim
+that a single multibody yaw equation produces every part of the turn. A
+future unified contact/roll/yaw model must be calibrated on player inputs and
+AI races before replacing this split.
+
 The wheel rotors carry their own angular momenta:
 
 ```text
@@ -101,8 +136,26 @@ Three corrections make the ridden bike forgiving without changing its limits
   proportion to the excess (a gross overload falls in a few hundredths of a
   second) and recovers at twice real time once both tyres hold again.
 
-Both `BikeParameters` flags are undefined for road, GP and research bikes,
-which keep the immediate fall rule and the original walking-pace blend.
+The grip-loss allowance remains specific to ridden motocross. From physics
+v25, `lowSpeedBalance` applies to every player-controlled dirt/supermoto bike,
+including on ordinary roads and to SM450 in the festival, and to ordinary
+player road bikes. It fixes the same wrong-way walking-speed response without changing
+their grip/fall limits or enabling the dedicated MX soil solver on roads.
+GP prototypes retain their own controller, and AI retains its
+surveyed walking-pace blend. The standalone research model defaults remain
+unchanged; direct-steer expert control does not enter the lean-balance aid.
+
+## Physics and record compatibility
+
+Physics v25 includes the player road/festival low-speed balance correction
+and separates the leaned MX contact, carried-load roll and grip-loss
+allowance changes from v24. Those earlier edits changed the solver without
+changing the vehicle-definition hashes or incrementing the physics version.
+The audit reproduced different positions and speeds for the same MX450
+inputs while the complete old and new session identities still matched.
+Current leaderboards, ghosts and network identities now reject v24 as the
+current physics category. Existing records retain their original metadata;
+they are not relabelled as runs made with the new solver.
 
 ## Current test coverage
 
@@ -115,6 +168,9 @@ which keep the immediate fall rule and the original walking-pace blend.
 - Thermodynamically nonnegative slip work
 - Exact equivalence of reported average force and integrated impulse
 - AI front-load throttle reserve and corrective slide-steer symmetry
+- Player-controlled MX laps on both courses and explicit player/AI handover
+  of the low-speed balance and grip-loss allowance
+- Physics-version separation from v24 for MX records, ghosts and network identity
 
 **Running locally after cloning:**
 

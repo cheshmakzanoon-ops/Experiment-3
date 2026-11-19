@@ -8,7 +8,7 @@ import {
   sessionIdentity,
 } from '../src/core/session-identity.ts';
 import { AUREL, VELLAMAR } from '../src/simulation/circuits.ts';
-import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
+import { DEFAULT_OPTIONS, type SessionOptions } from '../src/simulation/config.ts';
 import {
   CAR_STRIDE,
   HEADER,
@@ -17,6 +17,7 @@ import {
   snapshotIncompatibility,
 } from '../src/simulation/protocol.ts';
 import { leaderboardKey } from '../src/storage/leaderboard.ts';
+import { identityMismatch } from '../src/net/identity.ts';
 
 const legacyGhost = () => {
   const samples = new Float32Array(GHOST_FIELDS * 40);
@@ -38,10 +39,10 @@ const legacyGhost = () => {
   };
 };
 describe('WP12 recorded identity and schema policy', () => {
-  it.each([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23])(
+  it.each([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24])(
     'keeps physics v%i records out of the current physics category',
     (physics) => {
-      expect(SIMULATION_VERSION).toBe(24);
+      expect(SIMULATION_VERSION).toBe(25);
       expect(
         recordIncompatibility(
           { circuit: 'aurel', vehicle: 'apx01', physics },
@@ -51,6 +52,37 @@ describe('WP12 recorded identity and schema policy', () => {
       expect(leaderboardKey('aurel', 'apx01', physics)).not.toBe(
         leaderboardKey('aurel', 'apx01', SIMULATION_VERSION),
       );
+    },
+  );
+  it.each(['mx250', 'mx450', 'sm450', 'sbk1000', 'ss600', 'nr900', 'cr750'])(
+    'separates %s v24 records, ghosts and network identities despite unchanged definition hashes',
+    (vehicle) => {
+      const circuit = vehicle.startsWith('mx') ? 'valley-ridge-mx' : 'aurel';
+      const options: SessionOptions = {
+        ...DEFAULT_OPTIONS,
+        circuit,
+        opponents: 0,
+        vehicles: [vehicle],
+      };
+      const current = sessionIdentity(options);
+      // The preceding build has the same content but a different solver.
+      const previous = { ...current, simulationVersion: 24 };
+      const category = recordCategory(options);
+      expect(identityMismatch(current, previous)).toBe(
+        "simulation version 24 does not match the server's version 25",
+      );
+      expect(recordIncompatibility({ ...category, physics: 24 }, category)).toBe(
+        'recorded with physics v24; current physics is v25',
+      );
+      expect(leaderboardKey(category.circuit, vehicle, 24)).not.toBe(
+        leaderboardKey(category.circuit, vehicle, category.physics),
+      );
+      expect(
+        validateGhost({ ...legacyGhost(), circuit, vehicle, physics: 24 }, circuit, 3000, category),
+      ).toBeNull();
+      expect(
+        validateGhost({ ...legacyGhost(), circuit, vehicle, physics: 25 }, circuit, 3000, category),
+      ).toMatchObject({ vehicle, physics: 25 });
     },
   );
   it.each(['gpr1', 'gpr2'])('separates %s records after GP contact model updates', (vehicle) => {

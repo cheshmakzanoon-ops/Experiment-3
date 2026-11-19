@@ -64,6 +64,19 @@ describe('motocross low-speed balance', () => {
     player.step(DT, track);
     expect(player.dynamics.p.lowSpeedBalance).toBe(true);
     expect(player.dynamics.p.gripFallGrace).toBeGreaterThan(0);
+    // Autopilot uses the surveyed AI path only for its marked substeps;
+    // handing the same machine back restores the ridden contact contract.
+    player.aiControlled(2);
+    for (let substep = 0; substep < 2; substep++) {
+      player.step(DT, track);
+      expect(player.dynamics.p.lowSpeedBalance).toBe(false);
+      expect(player.dynamics.p.gripFallGrace).toBeUndefined();
+      expect(player.dynamics.frontGrip).toBeUndefined();
+    }
+    player.step(DT, track);
+    expect(player.dynamics.p.lowSpeedBalance).toBe(true);
+    expect(player.dynamics.p.gripFallGrace).toBeGreaterThan(0);
+    expect(player.dynamics.frontGrip).toBeGreaterThan(0);
   });
 
   it('holds a tight feet-up turn at walking pace without falling or running wide', () => {
@@ -74,7 +87,7 @@ describe('motocross low-speed balance', () => {
     expect(Math.abs(bike.dynamics.lean)).toBeLessThan(0.7);
   });
 
-  it('is opt-in: the shared road core keeps its original walking-pace blend', () => {
+  it('is opt-in: the standalone research core keeps its original walking-pace blend', () => {
     expect(BIKE.lowSpeedBalance).toBeUndefined();
     expect(BIKE.gripFallGrace).toBeUndefined();
     const plain = new Bike(NOVICE),

@@ -33,6 +33,10 @@ import {
 import { GpuPassTimer, PassLedger } from '../src/rendering/ultra/pass-ledger.ts';
 import { H, HEADER } from '../src/simulation/protocol.ts';
 
+// The first enabled mid cascade patches Three's global chunk. Keep the
+// retained two-map source for the guard test regardless of test order.
+const retainedLightsChunk = T.ShaderChunk.lights_fragment_begin;
+
 interface MockRenderer {
   renderer: T.WebGLRenderer;
   draws: unknown[];
@@ -189,7 +193,8 @@ describe('ULTRA pipeline wiring', () => {
       expect(h.wetReflection.enabled).toBe(true);
       expect(studioHookKeys(h.roadMaterial)).not.toContain(SSR_MASK_HOOK);
       const d = h.ultra.diagnostics();
-      expect(d.shadowCascades.count).toBe(2);
+      // No scene draw has allocated even the near map in this fixture yet.
+      expect(d.shadowCascades.count).toBe(0);
       expect(d.unsupported).toEqual([]);
     });
   }
@@ -213,6 +218,43 @@ describe('ULTRA pipeline wiring', () => {
     // The mid cascade waits for the far map (it must be directional shadow 2).
     expect(h.ultra.mid.enabled).toBe(true);
     expect(h.ultra.mid.light.visible).toBe(false);
+  });
+  it('reports only usable cascades, including an unbaked far map, shadows off and a detached light', () => {
+    const h = host();
+    h.configure('ultra');
+    expect(h.ultra.diagnostics().shadowCascades.count).toBe(0);
+    h.sun.shadow.map = new T.WebGLRenderTarget(1, 1);
+    expect(h.ultra.diagnostics().shadowCascades.count).toBe(1);
+    h.frame();
+    expect(h.ultra.mid.light.visible).toBe(false);
+    h.farShadow.bake(h.renderer, h.scene, {
+      direction: lightingDirection('day'),
+      bounds: new T.Box3(new T.Vector3(-600, -100, -600), new T.Vector3(600, 200, 600)),
+      sun: h.sun,
+      hidden: [],
+      farCasters: [],
+    });
+    h.farShadow.light.shadow.map = new T.WebGLRenderTarget(1, 1);
+    expect(h.ultra.diagnostics().shadowCascades.count).toBe(2);
+    h.frame();
+    expect(h.ultra.mid.light.visible).toBe(true);
+    expect(h.ultra.diagnostics().shadowCascades.count).toBe(2);
+    h.ultra.mid.light.shadow.map = new T.WebGLRenderTarget(1, 1);
+    h.ultra.mid.light.shadow.needsUpdate = false;
+    h.ultra.afterFrame();
+    expect(h.ultra.diagnostics().shadowCascades.count).toBe(3);
+    h.renderer.shadowMap.enabled = false;
+    expect(h.ultra.diagnostics().shadowCascades).toMatchObject({
+      count: 0,
+      near: { active: false },
+      mid: { active: false },
+      far: { active: false },
+    });
+    h.renderer.shadowMap.enabled = true;
+    h.scene.remove(h.farShadow.light);
+    h.frame();
+    expect(h.ultra.mid.light.visible).toBe(false);
+    expect(h.ultra.diagnostics().shadowCascades.count).toBe(1);
   });
   it('replaces the local probe while it owns the road, else the sky at its specular scale', () => {
     const h = host();
@@ -376,7 +418,7 @@ describe('mid shadow cascade', () => {
         '',
       )
       .replace('APEX_FAR_HANDOVER', 'vDirectionalShadowCoord[ 0 ]');
-    expect(stripped).toBe(T.ShaderChunk.lights_fragment_begin);
+    expect(stripped).toBe(retainedLightsChunk);
     expect(midCascadeChunks(lightsBegin, shadowPars).lightsBegin).toBe(lightsBegin);
     expect(() => midCascadeChunks('void main() {}', shadowPars)).toThrow('far-shadow');
   });

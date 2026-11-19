@@ -3,6 +3,7 @@ import {
   planBrowserShards,
   casePattern,
   verifySelection,
+  browserWeight,
   type BrowserCase,
 } from '../scripts/browser-shard-plan.ts';
 const example = (
@@ -16,6 +17,30 @@ const example = (
   serialGroup,
 });
 describe('complete duration-weighted browser sharding', () => {
+  it('accounts for complete scenery and pit surveys instead of packing them as short cases', () => {
+    const files = [
+      'secondary-grandstands.spec.ts',
+      'aurel-vegetation.spec.ts',
+      'aurel-quarry.spec.ts',
+      'a32-pit-jacks.spec.ts',
+      'a36-workshop-equipment.spec.ts',
+      'a31-wheel-gun.spec.ts',
+      'a33-spare-wheel-set.spec.ts',
+      '55-start-finish.spec.ts',
+    ];
+    const surveys = files.map((file, i) => example(`survey-${i}`, file));
+    for (const survey of surveys)
+      expect(browserWeight(survey)).toBeGreaterThanOrEqual(10 * browserWeight(example('short')));
+    const plan = planBrowserShards(surveys, 8);
+    // Long surveys are considered first, so one short default weight cannot
+    // cause two of these expensive independent cases to share an empty runner.
+    expect(plan.every((shard) => shard.tests.length === 1)).toBe(true);
+    expect(plan).toEqual(planBrowserShards([...surveys].reverse(), 8));
+    verifySelection(
+      surveys,
+      plan.flatMap((shard) => shard.tests),
+    );
+  });
   it('assigns every case once, deterministically, and spreads long race cases across all workers', () => {
     const tests = [
       ...Array.from({ length: 8 }, (_, i) =>
