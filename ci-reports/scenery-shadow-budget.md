@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44451570674
-- commit: `39fdc61814` · Fix rendering paths and low-speed motorcycle handling
-- event: push · status: completed · conclusion: **success**
-- started: 2026-11-19T03:27:35Z · updated: 2026-11-19T03:42:02Z
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44452269798
+- commit: `4934e4ee93` · Cast open Festival terrain correctly into sun shadow maps
+- event: push · status: completed · conclusion: **failure**
+- started: 2026-11-19T03:33:32Z · updated: 2026-11-19T03:48:39Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (sunset) | success | 11 |  |
-| browser (day) | success | 8 |  |
-| browser (night) | success | 14 |  |
+| browser (day) | success | 7 |  |
+| browser (sunset) | success | 14 |  |
+| browser (night) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
