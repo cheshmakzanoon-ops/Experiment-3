@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { Pass, FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { ExposureAdaptation, METER_KEY, readExposureMeter } from './exposure-meter.ts';
+import { compileFullscreenTarget } from './preparation.ts';
 
 /** Measures the actual linear scene before bloom/output conversion. One 16x12
  * draw, at most four times per simulated second, with one async read in flight.
@@ -48,6 +49,14 @@ export class AdaptiveExposurePass extends Pass {
     this.needsSwap = false;
     this.target.texture.colorSpace = T.NoColorSpace;
     this.target.texture.generateMipmaps = false;
+  }
+  /** Compile the retained meter owner before scene submissions can queue
+   * behind its first-use metadata. This does not sample, read pixels, advance
+   * adaptation or touch an outstanding readback's target ownership. */
+  async prepareMaterial(renderer: T.WebGLRenderer, cancelled: () => boolean): Promise<void> {
+    const stopped = () => this.disposed || cancelled();
+    if (!this.enabled || stopped()) return;
+    await compileFullscreenTarget(renderer, this.quad, this.target, stopped);
   }
   /** `key`: the lighting's authored exposure key (METER_KEY). */
   prepare(

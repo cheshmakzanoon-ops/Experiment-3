@@ -30,7 +30,7 @@ import {
 import { loadPitWallStation } from './pit-wall-station.ts';
 import { loadHeroGarage } from './hero-garage.ts';
 import { loadTyreBlankets } from './tyre-blankets.ts';
-import { compileSceneTarget, PreparationTrace } from './preparation.ts';
+import { compilePassTarget, compileSceneTarget, PreparationTrace } from './preparation.ts';
 import { warmPitMaterials } from './pit-material-warmup.ts';
 import { frontToBackOpaque } from './opaque-order.ts';
 import type { SuppliedPlayerAsset } from './supplied-player.ts';
@@ -279,6 +279,21 @@ export const PROBE_FACES_PER_FRAME = 1;
 export type { Quality } from './options.ts';
 /** G15: true only in an owner build (MOTOBOUND_SUPPLIED_PLAYER=1); see src/build-flags.d.ts. */
 const OWNER_BUILD = typeof __SUPPLIED_PLAYER__ !== 'undefined' && __SUPPLIED_PLAYER__ === true;
+function photographicLook(
+  classId: string | undefined,
+  studio: boolean,
+  illumination: LightingMode,
+  circuit: CircuitScene,
+  gpLook: Readonly<GpPhotographicLook>,
+) {
+  return gpPhotographicActive(classId, studio, illumination)
+    ? gpLook
+    : mxPhotographicActive(classId, studio, illumination, !!circuit.offroad)
+      ? MX_PHOTOGRAPHIC
+      : mxArenaActive(classId, studio, illumination, !!circuit.offroad?.stadium)
+        ? MX_ARENA_PHOTOGRAPHIC
+        : null;
+}
 export class RacingRenderer {
   readonly renderer: T.WebGLRenderer;
   readonly scene = new T.Scene();
@@ -483,6 +498,7 @@ export class RacingRenderer {
     /** The menu owns a full-detail vehicle and its studio. Circuit geometry
      * stays deferred until a race or circuit inspection is requested. */
     readonly showroomOnly = false,
+    initialSky: 'menu' | 'snapshot' = 'menu',
   ) {
     // Before any material program compiles (idempotent, shared chunk).
     installSpecularAntialiasing();
@@ -594,10 +610,13 @@ export class RacingRenderer {
       this.venueLighting.registerSightlines(this.circuit.sightlines),
     );
     this.circuit.construction.add('Environment lighting', 1, () => {
-      // Bake the atmosphere and the exact showroom cloud/PMREM bins here;
-      // warming a cloudless sky leaves cold captures for the first menu draw.
+      // A circuit inspection needs its menu sky immediately. A new session
+      // instead captures the actual paused snapshot in prepare(), before
+      // material compilation: its vehicle sky and weather may differ from the
+      // menu, so the generic capture would be discarded without being shown.
       prewarmSky(this.lighting);
-      this.environment.update(this.renderer, this.scene, MENU_CLOUD_COVER, this.lighting);
+      if (initialSky === 'menu')
+        this.environment.update(this.renderer, this.scene, MENU_CLOUD_COVER, this.lighting);
     });
     // Bind after every static venue task and spatial batching; early binding
     // misses the district, grandstand, foliage and infrastructure materials.
@@ -654,7 +673,11 @@ export class RacingRenderer {
     track: Track,
     progress: (value: BuildProgress) => void,
     cancelled: () => boolean,
-    initial?: { quality: QualityPreset; graphics?: GraphicsOptions },
+    initial?: {
+      quality: QualityPreset;
+      graphics?: GraphicsOptions;
+      sky?: 'menu' | 'snapshot';
+    },
     showroomOnly = false,
   ): Promise<RacingRenderer | null> {
     // The showroom builds the pit and grid crew; a circuit also reads crowd,
@@ -674,7 +697,7 @@ export class RacingRenderer {
     // the first ground sample into one large synchronous raster task.
     if (!showroomOnly && !(await prepareVenueGround(track, progress, cancelled))) return null;
     if (cancelled()) return null;
-    const renderer = new RacingRenderer(canvas, track, true, showroomOnly);
+    const renderer = new RacingRenderer(canvas, track, true, showroomOnly, initial?.sky);
     // Night venues open floodlit (a live sky, if enabled, still overrides).
     if (track.circuit.catalogue?.night) renderer.lighting = 'night';
     // The initial studio preview uses daylight even when its selected venue is night.
@@ -986,6 +1009,40 @@ export class RacingRenderer {
       yieldFrame,
     });
   }
+  /** Use the composer's actual enabled-pass swaps and final screen owner.
+   * Borrow renderToScreen only during synchronous compilation; no frame,
+   * composer buffer swap, rasterization or readback advances here. */
+  async preparePostProcessing(cancelled: () => boolean) {
+    const stopped = () => this.disposed || cancelled();
+    let read = this.composer.readBuffer,
+      write = this.composer.writeBuffer;
+    for (let i = 0; i < this.composer.passes.length; i++) {
+      if (stopped()) return;
+      const pass = this.composer.passes[i];
+      if (!pass.enabled) continue;
+      const screen = pass.renderToScreen;
+      let compiling: Promise<void> = Promise.resolve();
+      try {
+        pass.renderToScreen = this.composer.renderToScreen && this.composer.isLastEnabledPass(i);
+        if (pass === this.scenePass)
+          compiling = this.scenePass.prepare(this.renderer, write, stopped);
+        else if (pass === this.exposure) {
+          if (this.graphics.autoExposure && !this.photo)
+            compiling = this.exposure.prepareMaterial(this.renderer, stopped);
+        } else if (pass === this.bloom)
+          compiling = this.bloom.prepare(this.renderer, read, stopped);
+        else if (pass instanceof OutputPass)
+          compiling = compilePassTarget(this.renderer, pass, write, read, stopped);
+        else if (pass === this.fxaa)
+          compiling = compilePassTarget(this.renderer, this.fxaa, write, read, stopped);
+        else if (pass === this.grade) compiling = this.grade.prepare(this.renderer, write, stopped);
+      } finally {
+        pass.renderToScreen = screen;
+      }
+      await compiling;
+      if (pass.needsSwap) [read, write] = [write, read];
+    }
+  }
   /** Build the grid and warm real GPU paths while the physics worker is paused.
    * Yield between car construction and shader stages so progress can repaint.
    * No recording sample or race time is invented during loading. */
@@ -1034,22 +1091,32 @@ export class RacingRenderer {
         .filter((_, id) => id < total && BikeShells.isBike(frame, id))
         .map((car) => car.root);
       const hiddenHosts = motorcycleHosts.length ? motorcycleHosts : undefined;
+      const followedDefinition = vehicleAt(
+        Math.round(frame[carBase(this.follow) + RACE_BASE + R.VEHICLE]),
+      );
       this.circuit.setMotorcyclePresentation(
         BikeShells.isBike(frame, this.follow),
-        vehicleAt(Math.round(frame[carBase(this.follow) + RACE_BASE + R.VEHICLE])).classId ===
-          'gp-bike',
+        followedDefinition.classId === 'gp-bike',
       );
       // The first draw selects these recorded LED materials. Bind the same
       // paused snapshot now so compilation owns the material actually drawn,
       // instead of discovering it after reflection work has already queued.
       this.circuit.signalHardware?.displays.update(frame);
-      // A GP grid's clear day sky is loaded with the venue's own.
-      if (this.photoSky)
-        this.photoSky.clearDay =
-          gpGrid && this.lighting === 'day' ? (this.gpLook.clearSky ?? null) : null;
+      // Match draw()'s followed vehicle, backdrop and light, including mixed
+      // fields. A grid-wide GP test can prepare a different photo key.
+      const studio = !!this.photo && this.photo.backdrop !== 'circuit',
+        illumination: LightingMode = studio ? 'day' : this.lighting;
+      const gpLook = photographicLook(
+        followedDefinition.classId,
+        studio,
+        illumination,
+        this.circuit,
+        this.gpLook,
+      );
+      if (this.photoSky) this.photoSky.clearDay = gpLook?.clearSky ?? null;
       if (this.photoSky?.enabled) {
         progress('Loading the photographed sky…');
-        await this.photoSky.ready(frame[H.CLOUD], this.lighting);
+        await this.photoSky.ready(frame[H.CLOUD], illumination);
         if (cancelled()) return false;
       }
       if (scannedGround.enabled) {
@@ -1057,11 +1124,15 @@ export class RacingRenderer {
         await scannedGround.ready();
         if (cancelled()) return false;
       }
+      progress('Preparing recorded sky lighting…');
+      await yieldFrame();
+      if (this.disposed || cancelled()) return false;
+      this.environment.update(this.renderer, this.scene, frame[H.CLOUD], illumination);
+      if (this.disposed || cancelled()) return false;
       // Three keys lit programs by the visible light count, even when their
       // intensity is zero. Bind the same venue slots as the first draw before
       // compiling: a new daylight venue otherwise warms four-point-light
       // variants and immediately replaces them with zero-point-light ones.
-      const illumination = this.photo && this.photo.backdrop !== 'circuit' ? 'day' : this.lighting;
       this.venueLighting.update(
         illumination !== 'day',
         this.cars[this.follow].root.position,
@@ -1083,11 +1154,10 @@ export class RacingRenderer {
       );
       if (cancelled()) return false;
       progress('Preparing post-processing materials…');
-      await this.scenePass.prepare(
-        this.renderer,
-        this.composer.writeBuffer,
-        () => this.disposed || cancelled(),
-      );
+      const toneMapper = gpLook?.toneMapper ?? this.graphics.toneMapper;
+      this.renderer.toneMapping = TONE_MAPPING[toneMapper];
+      this.grade.filmic = toneMapper !== 'aces';
+      await this.preparePostProcessing(cancelled);
       if (this.disposed || cancelled()) return false;
       progress('Compiling shadow casters around the circuit…');
       await yieldFrame();
@@ -1527,24 +1597,13 @@ export class RacingRenderer {
     // (gp-photographic-light.ts); every other session keeps the shared light.
     // Motocross on a terrain venue has its own daylight balance and grade
     // through the same terms (offroad/mx-photographic-light.ts).
-    const gpLook = gpPhotographicActive(followedDefinition.classId, studio, illumination)
-      ? this.gpLook
-      : mxPhotographicActive(
-            followedDefinition.classId,
-            studio,
-            illumination,
-            !!this.circuit.offroad,
-          )
-        ? MX_PHOTOGRAPHIC
-        : mxArenaActive(
-              followedDefinition.classId,
-              studio,
-              illumination,
-              // Only a supercross venue builds the stadium bowl.
-              !!this.circuit.offroad?.stadium,
-            )
-          ? MX_ARENA_PHOTOGRAPHIC
-          : null;
+    const gpLook = photographicLook(
+      followedDefinition.classId,
+      studio,
+      illumination,
+      this.circuit,
+      this.gpLook,
+    );
     if (this.photoSky) this.photoSky.clearDay = gpLook?.clearSky ?? null;
     const liquidRain = frameLiquidRain(presented);
     const daylight = circuitLightState(presented[H.CLOUD], liquidRain, illumination);

@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { compileFullscreenTarget } from './preparation.ts';
 import { Pass, FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import type { LightingMode } from './daylight.ts';
 import { gradeLut } from './studio/grade-lut.ts';
@@ -194,6 +195,7 @@ const fragmentShader = /* glsl */ `
 /** Final display-space grade after tone mapping (and FXAA when MSAA is off).
  * The HTML HUD is not part of the canvas and never receives any grading. */
 export class BroadcastGradePass extends Pass {
+  private disposed = false;
   private material: T.ShaderMaterial;
   private quad: FullScreenQuad;
   profile: LightingMode | 'studio' = 'day';
@@ -285,6 +287,22 @@ export class BroadcastGradePass extends Pass {
   override setSize(width: number, height: number) {
     this.material.uniforms.resolution.value.set(Math.max(1, width), Math.max(1, height));
   }
+  /** Prepare the selected display-black variant against its actual output
+   * target without applying a grade or advancing its held grain seed. */
+  async prepare(
+    renderer: T.WebGLRenderer,
+    writeBuffer: T.WebGLRenderTarget,
+    cancelled: () => boolean,
+  ) {
+    const stopped = () => this.disposed || cancelled();
+    if (!this.enabled || stopped()) return;
+    await compileFullscreenTarget(
+      renderer,
+      this.quad,
+      this.renderToScreen ? null : writeBuffer,
+      stopped,
+    );
+  }
   override render(
     renderer: T.WebGLRenderer,
     writeBuffer: T.WebGLRenderTarget,
@@ -295,6 +313,8 @@ export class BroadcastGradePass extends Pass {
     this.quad.render(renderer);
   }
   override dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
     this.material.dispose();
     this.quad.dispose();
   }

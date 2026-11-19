@@ -1,4 +1,5 @@
 import * as T from 'three';
+import type { Pass } from 'three/addons/postprocessing/Pass.js';
 import { PreparationTrace } from '../src/rendering/preparation.ts';
 import { expect, it, vi } from 'vitest';
 import { RacingRenderer } from '../src/rendering/renderer.ts';
@@ -11,6 +12,7 @@ import { Track } from '../src/simulation/track.ts';
 import type { LightingMode } from '../src/rendering/daylight.ts';
 import { DEFAULT_PHOTO, type PhotoSettings } from '../src/rendering/photo-camera.ts';
 import { RecordedSignalDisplays } from '../src/rendering/recorded-signal-displays.ts';
+import { GP_PHOTOGRAPHIC } from '../src/rendering/gp-photographic-light.ts';
 
 function fixture(vehicle = 'apx01', entrants = 3) {
   const calls: string[] = [];
@@ -28,6 +30,9 @@ function fixture(vehicle = 'apx01', entrants = 3) {
     cars: [] as { root: T.Group; update: ReturnType<typeof vi.fn> }[],
     follow,
     quality: 'high',
+    graphics: { autoExposure: true, toneMapper: 'aces' },
+    gpLook: GP_PHOTOGRAPHIC,
+    grade: { filmic: false },
     bikeShells: {
       update: vi.fn(() => {
         calls.push('bike-materials');
@@ -43,6 +48,11 @@ function fixture(vehicle = 'apx01', entrants = 3) {
     camera: new T.PerspectiveCamera(),
     lighting: 'day' as LightingMode,
     photo: null as PhotoSettings | null,
+    environment: {
+      update: vi.fn(() => {
+        calls.push('snapshot-sky');
+      }),
+    },
     venueLighting: {
       update: vi.fn((_night: boolean, _anchor: T.Vector3, _strength: number) => {
         calls.push('venue-lighting');
@@ -51,10 +61,18 @@ function fixture(vehicle = 'apx01', entrants = 3) {
     mode: 'pod',
     preparation: new PreparationTrace(),
     composer: {
+      renderToScreen: true,
+      passes: [] as Pass[],
+      isLastEnabledPass(index: number) {
+        return !this.passes.slice(index + 1).some((pass) => pass.enabled);
+      },
       readBuffer: new T.WebGLRenderTarget(8, 8, { type: T.HalfFloatType }),
       writeBuffer: new T.WebGLRenderTarget(8, 8, { type: T.HalfFloatType }),
     },
     scenePass: {
+      enabled: true,
+      needsSwap: true,
+      renderToScreen: false,
       prepare: vi.fn(
         async (
           _renderer: T.WebGLRenderer,
@@ -65,7 +83,16 @@ function fixture(vehicle = 'apx01', entrants = 3) {
         },
       ),
     },
+    exposure: {
+      enabled: true,
+      needsSwap: false,
+      renderToScreen: false,
+      prepareMaterial: vi.fn(async () => {
+        calls.push('exposure-material');
+      }),
+    },
     warmupFrames: 0,
+    preparePostProcessing: RacingRenderer.prototype.preparePostProcessing,
     waitForPreparedFrame: vi.fn(async () => {
       calls.push('gpu-ready');
     }),
@@ -134,6 +161,7 @@ function fixture(vehicle = 'apx01', entrants = 3) {
       },
     ),
   };
+  target.composer.passes = [target.scenePass, target.exposure] as unknown as Pass[];
   return { target, calls, sample, typed: target as unknown as RacingRenderer };
 }
 
@@ -184,6 +212,8 @@ it('prepares retained scene metadata before drawing and still waits for both GPU
     expect(getUniforms).toHaveBeenCalledTimes(3);
     expect(calls.indexOf('program-metadata')).toBeGreaterThan(calls.indexOf('compile'));
     expect(calls.indexOf('program-metadata')).toBeLessThan(calls.indexOf('draw'));
+    expect(calls.indexOf('exposure-material')).toBeGreaterThan(calls.indexOf('post-materials'));
+    expect(calls.indexOf('exposure-material')).toBeLessThan(calls.indexOf('draw'));
     expect(target.draw).toHaveBeenCalledTimes(2);
     expect(target.waitForPreparedFrame).toHaveBeenCalledTimes(2);
     expect(target.preparation.snapshot()?.status).toBe('complete');
@@ -192,6 +222,27 @@ it('prepares retained scene metadata before drawing and still waits for both GPU
     dispose();
   }
 });
+
+it.each(['disabled', 'photo'] as const)(
+  'does not prepare an inactive exposure meter when %s',
+  async (state) => {
+    const { target, typed, sample } = fixture();
+    if (state === 'disabled') target.graphics.autoExposure = false;
+    else target.photo = { ...DEFAULT_PHOTO };
+    expect(
+      await RacingRenderer.prototype.prepare.call(
+        typed,
+        sample,
+        vi.fn(),
+        () => false,
+        async () => {},
+      ),
+    ).toBe(true);
+    expect(target.exposure.prepareMaterial).not.toHaveBeenCalled();
+    expect(target.draw).toHaveBeenCalledTimes(2);
+    expect(target.waitForPreparedFrame).toHaveBeenCalledTimes(2);
+  },
+);
 
 it('rejects retained program metadata failure before any startup draw', async () => {
   const { target, typed, sample, getUniforms, dispose } = linkedProgramFixture();
@@ -216,6 +267,110 @@ it('rejects retained program metadata failure before any startup draw', async ()
   } finally {
     dispose();
   }
+});
+
+it.each([
+  { vehicle: 'gpr1', lighting: 'day', studio: false, clearDay: GP_PHOTOGRAPHIC.clearSky },
+  { vehicle: 'gpr1', lighting: 'sunset', studio: false, clearDay: GP_PHOTOGRAPHIC.clearSky },
+  { vehicle: 'gpr1', lighting: 'night', studio: false, clearDay: null },
+  { vehicle: 'gpr1', lighting: 'night', studio: true, clearDay: null },
+  { vehicle: 'apx01', lighting: 'day', studio: false, clearDay: null },
+  { vehicle: 'mx450', lighting: 'day', studio: false, clearDay: null },
+] as const)(
+  'prepares the followed $vehicle sky at $lighting / studio=$studio before compiling the scene',
+  async ({ vehicle, lighting, studio, clearDay }) => {
+    // The other two entrants retain their Formula identities: selection must
+    // follow the actual rendered subject, not require a homogeneous GP grid.
+    const { target, typed, sample, calls } = fixture(vehicle);
+    sample[H.CLOUD] = 0.37;
+    target.lighting = lighting;
+    if (studio) target.photo = { ...DEFAULT_PHOTO, backdrop: 'studio' };
+    const illumination = studio ? 'day' : lighting;
+    const photoSky = {
+      enabled: true,
+      clearDay: 'previous sky' as string | null,
+      ready: vi.fn(async (cover: number, mode: LightingMode) => {
+        expect(photoSky.clearDay).toBe(clearDay);
+        expect([cover, mode]).toEqual([sample[H.CLOUD], illumination]);
+        calls.push('photo-ready');
+      }),
+    };
+    Object.assign(target, { photoSky, gpLook: GP_PHOTOGRAPHIC });
+    const before = new Float32Array(sample);
+    expect(
+      await RacingRenderer.prototype.prepare.call(
+        typed,
+        sample,
+        vi.fn(),
+        () => false,
+        async () => {},
+      ),
+    ).toBe(true);
+    expect(target.environment.update).toHaveBeenCalledExactlyOnceWith(
+      target.renderer,
+      target.scene,
+      sample[H.CLOUD],
+      illumination,
+    );
+    expect(calls.indexOf('snapshot-sky')).toBeGreaterThan(calls.indexOf('photo-ready'));
+    expect(calls.indexOf('snapshot-sky')).toBeLessThan(calls.indexOf('compile'));
+    const filmic = vehicle === 'gpr1' && !studio && lighting !== 'night';
+    expect(typed.renderer.toneMapping).toBe(filmic ? T.AgXToneMapping : T.ACESFilmicToneMapping);
+    expect(target.grade.filmic).toBe(filmic);
+    expect(target.draw).toHaveBeenCalledTimes(2);
+    expect(target.waitForPreparedFrame).toHaveBeenCalledTimes(2);
+    expect(sample).toEqual(before);
+  },
+);
+
+it.each(['cancelled', 'disposed'] as const)(
+  'does no sky capture or native scene work if %s at the recorded-sky yield',
+  async (state) => {
+    const { target, typed, sample } = fixture();
+    let cancelled = false;
+    expect(
+      await RacingRenderer.prototype.prepare.call(
+        typed,
+        sample,
+        (label) => {
+          if (label === 'Preparing recorded sky lighting…') {
+            if (state === 'cancelled') cancelled = true;
+            else target.disposed = true;
+          }
+        },
+        () => cancelled,
+        async () => {},
+      ),
+    ).toBe(false);
+    expect(target.environment.update).not.toHaveBeenCalled();
+    expect(target.renderer.compileAsync).not.toHaveBeenCalled();
+    expect(target.draw).not.toHaveBeenCalled();
+    expect(target.waitForPreparedFrame).not.toHaveBeenCalled();
+    expect(target.preparation.snapshot()?.status).toBe('cancelled');
+  },
+);
+
+it('reports an actual sky-capture failure before scene compilation or readiness', async () => {
+  const { target, typed, sample } = fixture();
+  target.environment.update.mockImplementationOnce(() => {
+    throw new Error('Recorded sky capture failed');
+  });
+  await expect(
+    RacingRenderer.prototype.prepare.call(
+      typed,
+      sample,
+      vi.fn(),
+      () => false,
+      async () => {},
+    ),
+  ).rejects.toThrow('Recorded sky capture failed');
+  expect(target.renderer.compileAsync).not.toHaveBeenCalled();
+  expect(target.draw).not.toHaveBeenCalled();
+  expect(target.waitForPreparedFrame).not.toHaveBeenCalled();
+  expect(target.preparation.snapshot()).toMatchObject({
+    status: 'failed',
+    error: 'Recorded sky capture failed',
+  });
 });
 
 it('selects the recorded marshal display material before the first scene compile', async () => {

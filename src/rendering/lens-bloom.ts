@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { FullScreenQuad, Pass } from 'three/addons/postprocessing/Pass.js';
 import { LENS_BLOOM_GLSL, lensUniforms, type LensUniforms } from './studio/lens-effects.ts';
+import { compileFullscreenTarget } from './preparation.ts';
 
 /** Lens bloom from the linear HDR scene, before exposure and tone mapping.
  *
@@ -246,6 +247,7 @@ function material(fragmentShader: string, uniforms: Record<string, T.IUniform>, 
 }
 
 export class LensBloomPass extends Pass {
+  private disposed = false;
   /** levels[0] is half resolution; each later level halves again. */
   readonly levels: T.WebGLRenderTarget[];
   strength: number = LENS_BLOOM.strength;
@@ -328,6 +330,37 @@ export class LensBloomPass extends Pass {
       h = Math.max(1, Math.round(h / 2));
     }
   }
+  /** Compile one instance of each active native owner. All pyramid levels
+   * retain their own draws; their dimensions do not change the program key. */
+  async prepare(
+    renderer: T.WebGLRenderer,
+    readBuffer: T.WebGLRenderTarget,
+    cancelled: () => boolean,
+  ) {
+    const stopped = () => this.disposed || cancelled();
+    if (!this.enabled || stopped()) return;
+    const passes: [T.ShaderMaterial, T.WebGLRenderTarget | null][] = [
+      [this.energyConserving ? this.energyPrefilter : this.prefilter, this.levels[0]],
+    ];
+    if (this.levels.length > 1)
+      passes.push(
+        [this.downsample, this.levels[1]],
+        [this.upsample, this.levels[this.levels.length - 2]],
+      );
+    passes.push([this.composite, this.renderToScreen ? null : readBuffer]);
+    for (const [material, target] of passes) {
+      if (!this.enabled || stopped()) return;
+      const previous = this.quad.material;
+      let compiling: Promise<void>;
+      try {
+        this.quad.material = material;
+        compiling = compileFullscreenTarget(renderer, this.quad, target, stopped);
+      } finally {
+        this.quad.material = previous;
+      }
+      await compiling;
+    }
+  }
   override render(
     renderer: T.WebGLRenderer,
     _writeBuffer: T.WebGLRenderTarget,
@@ -366,6 +399,8 @@ export class LensBloomPass extends Pass {
     renderer.autoClear = autoClear;
   }
   override dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
     this.levels.forEach((level) => level.dispose());
     this.prefilter.dispose();
     this.energyPrefilter.dispose();

@@ -1,5 +1,7 @@
 import * as T from 'three';
 import type { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
+import type { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import type { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
 /** Borrow renderables without reparenting them. Three's compilation traverses
  * invisible objects too, so keep inactive bike LODs and service parts. Only
@@ -73,6 +75,51 @@ export function compileFullscreenTarget(
     },
   } as unknown as T.WebGLRenderer);
   if (!compiling) throw new Error('Fullscreen preparation did not receive its native draw owner');
+  return compiling.then(() => {});
+}
+
+/** Use the installed OutputPass/ShaderPass draw entry point to select its
+ * actual material, quad, target and (for OutputPass) native display defines.
+ * The adapter submits compilation only. Restore borrowed sampler/exposure
+ * uniforms before awaiting; no pixels are cleared, drawn or read. */
+export function compilePassTarget(
+  renderer: T.WebGLRenderer,
+  pass: OutputPass | ShaderPass,
+  writeBuffer: T.WebGLRenderTarget,
+  readBuffer: T.WebGLRenderTarget,
+  cancelled: () => boolean,
+): Promise<void> {
+  if (!pass.enabled || cancelled()) return Promise.resolve();
+  let target: T.WebGLRenderTarget | null = null;
+  let compiling: Promise<T.Object3D> | undefined;
+  const uniforms = Object.values(pass.uniforms).map((uniform) => [uniform, uniform.value] as const);
+  try {
+    pass.render(
+      {
+        outputColorSpace: renderer.outputColorSpace,
+        toneMapping: renderer.toneMapping,
+        toneMappingExposure: renderer.toneMappingExposure,
+        autoClearColor: renderer.autoClearColor,
+        autoClearDepth: renderer.autoClearDepth,
+        autoClearStencil: renderer.autoClearStencil,
+        setRenderTarget(value: T.WebGLRenderTarget | null) {
+          target = value;
+        },
+        clear() {},
+        render(object: T.Object3D, camera: T.Camera) {
+          if (compiling) throw new Error('Expected one native fullscreen pass owner');
+          compiling = compileTarget(renderer, object, camera, target, { cancelled });
+        },
+      } as unknown as T.WebGLRenderer,
+      writeBuffer,
+      readBuffer,
+      0,
+      false,
+    );
+  } finally {
+    for (const [uniform, value] of uniforms) uniform.value = value;
+  }
+  if (!compiling) throw new Error('Fullscreen pass did not provide its native draw owner');
   return compiling.then(() => {});
 }
 
