@@ -132,7 +132,11 @@ function fixture(id: 'vellamar' | 'aurel' | 'alpine-pass' | 'valley-ridge-mx' = 
     preset: 'medium' as QualityPreset,
     graphics: graphicsPreset('medium'),
     quality: 'medium',
-    reflection: { invalidate: vi.fn() },
+    reflection: {
+      invalidate: vi.fn(),
+      beginProbePreparation: vi.fn(),
+      completeProbePreparation: vi.fn(),
+    },
     scenePass: { temporal: { reset: vi.fn() } },
     weatherPresentation: { install: vi.fn() },
     atmosphere: { install: vi.fn() },
@@ -298,8 +302,8 @@ describe('live circuit vegetation quality', () => {
     circuit.disposePlanting();
   });
 
-  it('cancels during image loading without installing or leaking the late result', async () => {
-    const { circuit, initial, change, backend } = fixture();
+  it('keeps cancelled High metadata dormant through Low and resumes it only on live High entry', async () => {
+    const { circuit, initial, change, backend, state } = fixture();
     let stopped = false;
     const photos = library();
     vi.mocked(loadVenueVegetation).mockImplementation(async () => {
@@ -311,7 +315,22 @@ describe('live circuit vegetation quality', () => {
     expect(initial.disposed).toBe(false);
     expect(photos.dispose).toHaveBeenCalledOnce();
     expect(backend.compileAsync).not.toHaveBeenCalled();
+    expect(state.reflection.beginProbePreparation).toHaveBeenCalledOnce();
+    expect(state.reflection.completeProbePreparation).not.toHaveBeenCalled();
+    expect(await change('low')).toBe(true);
+    expect(state.reflection.beginProbePreparation).toHaveBeenCalledOnce();
+    expect(state.reflection.completeProbePreparation).not.toHaveBeenCalled();
+    stopped = false;
+    const nextPhotos = library();
+    vi.mocked(loadVenueVegetation).mockResolvedValue(nextPhotos);
+    expect(await change('high', () => stopped)).toBe(true);
+    expect(state.reflection.beginProbePreparation).toHaveBeenCalledTimes(2);
+    expect(state.reflection.beginProbePreparation.mock.calls[1]).toEqual(
+      state.reflection.beginProbePreparation.mock.calls[0],
+    );
+    expect(state.reflection.completeProbePreparation).toHaveBeenCalledOnce();
     circuit.disposePlanting();
+    expect(nextPhotos.dispose).toHaveBeenCalledOnce();
   });
 
   it.each(['cancel', 'compile error', 'teardown'] as const)(

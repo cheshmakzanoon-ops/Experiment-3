@@ -1,0 +1,528 @@
+{
+  "schema": 1,
+  "reviewedUTC": "2026-11-19T10:11:54.091816+00:00",
+  "status": "phase mechanism/source ownership reviewed; wrapper is not production-equivalent; typed original race gate failed and final combined candidate remains pending",
+  "baselineCommit": "b7540527d9abdfba406aa442bfe9b0a9e372447d",
+  "sourceIdentity": {
+    "commit": "b7540527d9abdfba406aa442bfe9b0a9e372447d",
+    "checks": {
+      "w27-gp-phase-baseline": {
+        "fileCount": 173,
+        "aggregateSha256": "1320fbc5c055ab40e1ac4e40330b22c78f46b5ce4138c23e03d9ce33c2663608",
+        "differences": []
+      },
+      "w27-gp-phase-candidate": {
+        "fileCount": 173,
+        "aggregateSha256": "2b68a1bcb992580596f7991f7f623549877ae2eba057a7c03013399dd1c41c49",
+        "differences": [
+          {
+            "path": "src/simulation/bike.ts",
+            "baselineSha256": "5bf7c5903f4b33ae306eedffc72e23f58ef85c4b5841f2a86153d80918102d9a",
+            "actualSha256": "75df98c5f9b52f370b52c5d107430bff0bb5236e2f26b8fcb263f3457d9834d7"
+          }
+        ]
+      }
+    }
+  },
+  "currentCandidateSource": {
+    "path": "/workspace/scratch/d611aefdb08c/w27-gp-phase-candidate/src/simulation/bike.ts",
+    "sha256": "75df98c5f9b52f370b52c5d107430bff0bb5236e2f26b8fcb263f3457d9834d7",
+    "bytes": 59996
+  },
+  "currentCandidateRegression": {
+    "path": "/workspace/scratch/d611aefdb08c/w27-gp-phase-candidate/tests/gp-force-phase.test.ts",
+    "sha256": "d711d1aa7384e8eea4c93f057ec7b04f48ff9cea5dedaa8a0b28bbd330c19d63",
+    "bytes": 5017
+  },
+  "phaseProbe": {
+    "source": {
+      "path": "/workspace/scratch/d611aefdb08c/w27-gp-force-phase-probe.json",
+      "sha256": "ed8f5ab3f10cb6ed6285d3abf0c79d5015efcc95caff9ff3e72a455ce3e8de0c",
+      "bytes": 4867
+    },
+    "cases": [
+      {
+        "sign": -1,
+        "prior": 0,
+        "lever": 0,
+        "request": {
+          "force": -180.10943759146525,
+          "lean": -0.25,
+          "speed": 30,
+          "fx": 0,
+          "load": 1600,
+          "mu": 1.75,
+          "ground": 0.004395586280403813
+        },
+        "rearPreviewFx": 0,
+        "actualFrontFx": 0,
+        "actualRearFx": 0,
+        "stale": {
+          "ground": -0.0036629002749650895,
+          "steadyBodyForce": -500.00026946401874
+        },
+        "current": {
+          "ground": -0.0036629002749650895,
+          "steadyBodyForce": -500.00026946401874
+        }
+      },
+      {
+        "sign": -1,
+        "prior": 0,
+        "lever": 0.6,
+        "request": {
+          "force": -180.10943759146525,
+          "lean": -0.25,
+          "speed": 30,
+          "fx": 0,
+          "load": 1600,
+          "mu": 1.75,
+          "ground": 0.004395586280403813
+        },
+        "rearPreviewFx": 0,
+        "actualFrontFx": -1797.174206643358,
+        "actualRearFx": -279.61281137283225,
+        "stale": {
+          "ground": -0.003672960440420828,
+          "steadyBodyForce": -449.55837312657695
+        },
+        "current": {
+          "ground": -0.00516227741582868,
+          "steadyBodyForce": -499.9998534577137
+        }
+      },
+      {
+        "sign": -1,
+        "prior": 700,
+        "lever": 0,
+        "request": {
+          "force": -180.16892274552742,
+          "lean": -0.25,
+          "speed": 30,
+          "fx": -700,
+          "load": 1600,
+          "mu": 1.75,
+          "ground": 0.00440388979117114
+        },
+        "rearPreviewFx": -70,
+        "actualFrontFx": 0,
+        "actualRearFx": 0,
+        "stale": {
+          "ground": -0.00392766415816035,
+          "steadyBodyForce": -510.3733243991027
+        },
+        "current": {
+          "ground": -0.0036629002749650895,
+          "steadyBodyForce": -500.00026946401874
+        }
+      },
+      {
+        "sign": -1,
+        "prior": 700,
+        "lever": 0.6,
+        "request": {
+          "force": -180.16892274552742,
+          "lean": -0.25,
+          "speed": 30,
+          "fx": -700,
+          "load": 1600,
+          "mu": 1.75,
+          "ground": 0.00440388979117114
+        },
+        "rearPreviewFx": -70,
+        "actualFrontFx": -1797.174206643358,
+        "actualRearFx": -279.61281137283225,
+        "stale": {
+          "ground": -0.003937921174086865,
+          "steadyBodyForce": -458.5561388031663
+        },
+        "current": {
+          "ground": -0.00516227741582868,
+          "steadyBodyForce": -499.9998534577137
+        }
+      },
+      {
+        "sign": 1,
+        "prior": 0,
+        "lever": 0,
+        "request": {
+          "force": 180.10943759146525,
+          "lean": 0.25,
+          "speed": 30,
+          "fx": 0,
+          "load": 1600,
+          "mu": 1.75,
+          "ground": -0.004395586280403806
+        },
+        "rearPreviewFx": 0,
+        "actualFrontFx": 0,
+        "actualRearFx": 0,
+        "stale": {
+          "ground": 0.0036629002749650964,
+          "steadyBodyForce": 500.0002694640191
+        },
+        "current": {
+          "ground": 0.0036629002749650964,
+          "steadyBodyForce": 500.0002694640191
+        }
+      },
+      {
+        "sign": 1,
+        "prior": 0,
+        "lever": 0.6,
+        "request": {
+          "force": 180.10943759146525,
+          "lean": 0.25,
+          "speed": 30,
+          "fx": 0,
+          "load": 1600,
+          "mu": 1.75,
+          "ground": -0.004395586280403806
+        },
+        "rearPreviewFx": 0,
+        "actualFrontFx": -1797.174206643358,
+        "actualRearFx": -279.61281137283225,
+        "stale": {
+          "ground": 0.003672960440420835,
+          "steadyBodyForce": 449.5583731265772
+        },
+        "current": {
+          "ground": 0.005162277415828687,
+          "steadyBodyForce": 499.99985345771404
+        }
+      },
+      {
+        "sign": 1,
+        "prior": 700,
+        "lever": 0,
+        "request": {
+          "force": 180.16892274552742,
+          "lean": 0.25,
+          "speed": 30,
+          "fx": -700,
+          "load": 1600,
+          "mu": 1.75,
+          "ground": -0.004403889791171133
+        },
+        "rearPreviewFx": -70,
+        "actualFrontFx": 0,
+        "actualRearFx": 0,
+        "stale": {
+          "ground": 0.003927664158160357,
+          "steadyBodyForce": 510.373324399103
+        },
+        "current": {
+          "ground": 0.0036629002749650964,
+          "steadyBodyForce": 500.0002694640191
+        }
+      },
+      {
+        "sign": 1,
+        "prior": 700,
+        "lever": 0.6,
+        "request": {
+          "force": 180.16892274552742,
+          "lean": 0.25,
+          "speed": 30,
+          "fx": -700,
+          "load": 1600,
+          "mu": 1.75,
+          "ground": -0.004403889791171133
+        },
+        "rearPreviewFx": -70,
+        "actualFrontFx": -1797.174206643358,
+        "actualRearFx": -279.61281137283225,
+        "stale": {
+          "ground": 0.003937921174086872,
+          "steadyBodyForce": 458.55613880316645
+        },
+        "current": {
+          "ground": 0.005162277415828687,
+          "steadyBodyForce": 499.99985345771404
+        }
+      }
+    ],
+    "interpretation": "Steady inverse mismatch under changed same-step Fx, with fresh-carcass relaxation separated; not an instantaneous force-tracking assertion."
+  },
+  "runtimeObserver": {
+    "path": "/workspace/scratch/d611aefdb08c/w27-gp-force-phase-run.mjs",
+    "sha256": "f3763ae85c4f73ca42afd7dd52ac265e9be9485b49e00034b33020dc76b3282c",
+    "bytes": 4460
+  },
+  "runtimeMixed": {
+    "source": {
+      "path": "/workspace/scratch/d611aefdb08c/w27-gp-force-phase-mixed-current.json",
+      "sha256": "f1c8dfe8e3fe3d560a44e6a40a5439909b31602d4877b4c8ab110ece0c251839",
+      "bytes": 101182
+    },
+    "finished": true,
+    "seconds": 203.6325327158722,
+    "longestStop": 6.950000000000135,
+    "crashes": [
+      0,
+      0,
+      1,
+      0,
+      1,
+      0
+    ],
+    "best": [
+      90.40958805404804,
+      90.54213288338973,
+      88.28432514771964,
+      90.6157378719793,
+      87.42770612293677,
+      91.31991314262054
+    ],
+    "gp": 87.42770612293677,
+    "sbk": 90.54213288338973,
+    "margin": 3.1144267604529574,
+    "revised": 140309,
+    "maxFxDifference": 975.4056484709574,
+    "maxRearDifference": 507.018552707932,
+    "classified": [
+      {
+        "id": 0,
+        "finish": 186.39282224571429,
+        "laps": 2,
+        "retired": false,
+        "penalty": 0
+      },
+      {
+        "id": 1,
+        "finish": 185.4361205474697,
+        "laps": 2,
+        "retired": false,
+        "penalty": 0
+      },
+      {
+        "id": 2,
+        "finish": 203.62990020851026,
+        "laps": 2,
+        "retired": false,
+        "penalty": 0
+      },
+      {
+        "id": 3,
+        "finish": 188.2089675494023,
+        "laps": 2,
+        "retired": false,
+        "penalty": 0
+      },
+      {
+        "id": 4,
+        "finish": 200.82354163069766,
+        "laps": 2,
+        "retired": false,
+        "penalty": 0
+      },
+      {
+        "id": 5,
+        "finish": 190.70401410901295,
+        "laps": 2,
+        "retired": false,
+        "penalty": 0
+      }
+    ],
+    "status": "diagnostic runtime outcome only; not production-equivalent because of observed arithmetic and null-inverse fallback differences"
+  },
+  "runtimeWet": {
+    "source": {
+      "path": "/workspace/scratch/d611aefdb08c/w27-gp-force-phase-wet-current.json",
+      "sha256": "0222f9113a8238ef65eb0dafb05e94ecfb1acfe6cd9b36fbf619849b5f0c3b7d",
+      "bytes": 52149
+    },
+    "finished": true,
+    "seconds": 585.4374314920033,
+    "longestStop": 8.683333333333481,
+    "crashes": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0
+    ],
+    "revised": 1055506,
+    "maxFxDifference": 1532.411468134896,
+    "maxRearDifference": 142.68067904557728,
+    "classified": [
+      {
+        "id": 0,
+        "finish": 542.8027529334873,
+        "laps": 2,
+        "retired": false,
+        "penalty": 0
+      },
+      {
+        "id": 1,
+        "finish": 510.5548441237851,
+        "laps": 2,
+        "retired": false,
+        "penalty": 0
+      },
+      {
+        "id": 2,
+        "finish": 522.1464878456193,
+        "laps": 2,
+        "retired": false,
+        "penalty": 0
+      },
+      {
+        "id": 3,
+        "finish": 536.7128776266484,
+        "laps": 2,
+        "retired": false,
+        "penalty": 0
+      },
+      {
+        "id": 4,
+        "finish": 554.4332609488155,
+        "laps": 2,
+        "retired": false,
+        "penalty": 0
+      },
+      {
+        "id": 5,
+        "finish": 572.8738271913709,
+        "laps": 2,
+        "retired": false,
+        "penalty": 0
+      },
+      {
+        "id": 6,
+        "finish": 580.1245222367942,
+        "laps": 2,
+        "retired": false,
+        "penalty": 0
+      },
+      {
+        "id": 7,
+        "finish": 585.4309717213858,
+        "laps": 2,
+        "retired": false,
+        "penalty": 0
+      }
+    ],
+    "falls": [
+      {
+        "id": 6,
+        "t": 414.19576482549223,
+        "s": 523.7948190863444,
+        "kind": "lowside",
+        "lean": -1.2585787689972543,
+        "rate": -4.666365562751556,
+        "front": 1261.972289125956,
+        "rear": 1161.381883372442,
+        "lateral": -1.8531108223567117,
+        "speed": 13.382287772894944
+      }
+    ],
+    "status": "fails unchanged zero-impact/zero-crash gate"
+  },
+  "nativeRegression": {
+    "log": {
+      "path": "/workspace/scratch/d611aefdb08c/w27-gp-phase-native-final.log",
+      "sha256": "814e154633b360a0cd1f6481de30c399f8e9a9379e09d7636a48d321b386e3ab",
+      "bytes": 526
+    },
+    "filesPassed": 5,
+    "testsPassed": 44,
+    "newForcePhaseTests": 13,
+    "originalRelatedTests": 31,
+    "status": "recorded complete Vitest pass reviewed; no duplicate invocation by assignment29"
+  },
+  "review": {
+    "inverseAlgebra": "K=yawDamping*I/frontArm; a=(Ffront+Frear+K*yawRate)/(mass+K/max(priorSpeed,3)); replacement uses final speed and final signed front/rear Fx.",
+    "integrationOwnership": "Roll request/trim once before TC/ABS; final force resolution once; steering actuator advances once from prior bar angle; tyre/history/yaw integration once. No second roll controller, force-budget iteration or new tuning.",
+    "rearHistory": "rearForceFor previews the existing physical elastic strain and relaxation without committing state; final MotoGP.step owns its one integration.",
+    "frontHistory": "frontSteerFor remains a steady-state inverse. Transient discrepancy exists even at constant load: (1-mix)*(oldElasticFront-steadyTarget)*cos(groundSteer). A load restoration can amplify it; it is not a newly proven inverse defect. No relaxation inversion is part of phase correction.",
+    "partialSupportFinding": "Initially gpForceSteer recomputed front attenuation using post-step speed while plant used the original staticFront coefficient. Assignment27 now computes one final multiplier, passes it into helper, and reuses it in plant; new partial-support regression verifies exact effective-load equality.",
+    "unchangedPaths": "Standalone GP ordering retained; ordinary road/non-GP branches retained. Physics gain, friction, force caps, original assertions and incident limits unchanged."
+  },
+  "limitations": [
+    "Runtime outcome receipts do not replace original test-file acceptance on integrated production source.",
+    "Wet Poggio rider6 still falls; no full-engine pass claimed.",
+    "Candidate remains isolated and may receive a separate proven steady-request correction.",
+    "Assignment29 did not run a heavy race or change shared application source.",
+    "Typed phase-only mixed original gate fails despite diagnostic wrapper passing; paired observer proves wrapper non-equivalence."
+  ],
+  "wrapperTypedComparison": {
+    "script": "/workspace/scratch/d611aefdb08c/w10-acceptance-tools/gp-phase-paired-observer.mjs",
+    "scriptSha256": "ad159c72a103dd15ee7577a8cb5756e426e28989a34d204696fd9bddf86874d9",
+    "outputs": [
+      {
+        "file": "docs/studio/reports/evidence/engine-final-acceptance/gp-force-phase-paired.json",
+        "sha256": "4e9951d06ed2b1e987f529b1dfda52fbf5b8d167444490b52c28018bd3f87036",
+        "bytes": 54819,
+        "variant": "original",
+        "sourceStable": true,
+        "raceSeconds": 12.00753271589795,
+        "pairedGpSubsteps": 12804,
+        "processExitCode": 0
+      },
+      {
+        "file": "docs/studio/reports/evidence/engine-final-acceptance/gp-force-phase-paired-canonical-yaw.json",
+        "sha256": "014f56ddc3fd8301d9464c740b5b319aab8c4fac372d3b20b659e9d70fdf9bc5",
+        "bytes": 83426,
+        "variant": "canonical-yaw",
+        "sourceStable": true,
+        "raceSeconds": 12.00753271589795,
+        "pairedGpSubsteps": 12804,
+        "processExitCode": 0
+      },
+      {
+        "file": "docs/studio/reports/evidence/engine-final-acceptance/gp-force-phase-paired-canonical-yaw-blend.json",
+        "sha256": "9d7d530b4c738bd20ed6f875ca95bf6cedce4e75c86829990025068ecbeeb5d6",
+        "bytes": 82756,
+        "variant": "canonical-yaw-blend",
+        "sourceStable": true,
+        "raceSeconds": 12.00753271589795,
+        "pairedGpSubsteps": 12804,
+        "processExitCode": 0
+      }
+    ],
+    "firstExactDifference": {
+      "raceSeconds": 0.6825327158984287,
+      "rider": 2,
+      "field": "front inverse requested force",
+      "wrapper": 426.35364957177416,
+      "typed": 426.3536495717742,
+      "deltaN": 5.684341886080802e-14,
+      "cause": "Wrapper factors K=damping*I/arm before multiplication; typed retains original multiplication before division."
+    },
+    "secondArithmeticDifference": {
+      "raceSeconds": 0.6908660492317624,
+      "rider": 2,
+      "field": "plant steer",
+      "deltaRadians": 5.204170427930421e-18,
+      "cause": "Wrapper uses (1-a)*slow+a*target; typed uses original lerp slow+(target-slow)*a."
+    },
+    "canonicalArithmeticControl": {
+      "changes": "Only scratch wrapper yaw coefficient grouping and slow/fast blend aligned to original typed operations; production untouched.",
+      "trackedPhysicalStateIdenticalUntilRaceSeconds": 6.857532715898241,
+      "rider": 0,
+      "frontLoad": 0,
+      "frontContact": 0,
+      "bothInverseResults": null,
+      "priorStateAndOtherPlantInputsIdentical": true,
+      "wrapperSteer": -0.016244323229200712,
+      "typedSteer": -0.016244294397440764,
+      "deltaRadians": 2.8831759948250157e-08,
+      "cause": "Wrapper refuses to replace steering when final inverse returns null, retaining the pre-force fallback. Typed helper resolves its existing fallback using current plant speed.",
+      "rawRequestRoundoff": "Before this event the reconstructed request differs by up to machine-rounding bits, but the recorded physical state and plant inputs remain identical."
+    },
+    "scope": "Three bounded comparisons each stop after12.0075 racing seconds. All three GP riders have zero crashes in those windows. No full race run or acceptance threshold modified.",
+    "conclusion": "Runtime race outcome cannot substitute for production-file original assertions. Preserve original typed arithmetic and current-phase fallback; do not choose a floating-point grouping because it gives a favorable race."
+  },
+  "typedPhaseOnlyMixed": {
+    "log": "/workspace/scratch/d611aefdb08c/w27-gp-phase-production-mixed.log",
+    "logSha256": "4d006b534ac124460994e191e9044f01f1cc7a7209ba0b5e145db61ad55efb18",
+    "status": "original production test fails; authoritative over runtime intervention outcome",
+    "gpBestSeconds": 90.45837107496023,
+    "sbkBestSeconds": 89.97954756590714,
+    "valuesSource": "Exact values parsed from the retained original production-test failure log."
+  }
+}

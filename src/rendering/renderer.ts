@@ -687,10 +687,23 @@ export class RacingRenderer {
     renderer.circuit.construction.add('Player car and live instruments', 1, () =>
       renderer.setCars(1),
     );
+    const prepareReflections = !showroomOnly && renderer.graphics.reflections === 'local';
     try {
+      if (prepareReflections) {
+        progress({ completed: 0, total: 1, fraction: 0, label: 'Preparing reflections' });
+        renderer.reflection.beginProbePreparation(renderer.renderer, renderer.composer.readBuffer);
+      }
       // Load the photographs sampled by the same weather used in the showroom.
       progress({ completed: 0, total: 1, fraction: 0, label: 'Loading photographed sky' });
       await renderer.photoSky.ready(MENU_CLOUD_COVER, initialSkyLighting, 15000);
+      if (cancelled()) {
+        renderer.dispose();
+        return null;
+      }
+      if (prepareReflections) {
+        progress({ completed: 0, total: 1, fraction: 0, label: 'Preparing reflections' });
+        renderer.reflection.completeProbePreparation();
+      }
       // Photographed track, verge and terrain surfaces (Medium and above).
       progress({ completed: 0, total: 1, fraction: 0, label: 'Loading photographed ground' });
       if (!showroomOnly) await scannedGround.ready(20000);
@@ -1127,9 +1140,13 @@ export class RacingRenderer {
     let installed = false,
       applied = false,
       complete = false;
+    const prepareReflections = !this.showroomOnly && graphics.reflections === 'local';
     try {
+      if (prepareReflections)
+        this.reflection.beginProbePreparation(this.renderer, this.composer.readBuffer);
       next = await this.preparePlanting(quality, stopped);
       if (stopped()) return false;
+      if (prepareReflections) this.reflection.completeProbePreparation();
       meadowChange =
         (await this.circuit.offroad?.prepareQuality(quality, stopped, yieldControl)) ?? null;
       if (meadowChange === false || stopped()) return false;

@@ -22,6 +22,67 @@ type ProbeRefreshReason = 'immediate' | 'motion' | 'scenery' | 'cadence';
 export class ReflectionSystem {
   private views = new MirrorViews();
   private surfaces: T.Mesh[] = [];
+  private preparationRenderer: T.WebGLRenderer | null = null;
+  private prefilterPreparation: T.PMREMGenerator | null = null;
+  private prefilterProgram: T.WebGLProgram | null = null;
+  private disposed = false;
+  /** Link the same cube-to-CubeUV program used by Three's local-map cache
+   * before asset/scenery preparation. A linear target matters: this is a
+   * ShaderMaterial, so compiling against the tone-mapped canvas uses another
+   * program key. This owner never captures or allocates a PMREM atlas. */
+  beginProbePreparation(renderer: T.WebGLRenderer, target: T.WebGLRenderTarget) {
+    if (this.disposed) return;
+    if (this.preparationRenderer) {
+      if (this.preparationRenderer !== renderer)
+        throw new Error('Reflection preparation belongs to another renderer');
+      return;
+    }
+    const previous = renderer.getRenderTarget(),
+      face = renderer.getActiveCubeFace(),
+      mip = renderer.getActiveMipmapLevel(),
+      viewport = renderer.getViewport(new T.Vector4()),
+      scissor = renderer.getScissor(new T.Vector4()),
+      scissorTest = renderer.getScissorTest();
+    // r180 retains programs by reference count. Identify this material's
+    // acquired reference, including when the exact program already exists.
+    const references = new Map(
+      (renderer.info.programs ?? []).map((program) => [program, program.usedTimes]),
+    );
+    let preparation: T.PMREMGenerator | null = null;
+    try {
+      renderer.setRenderTarget(target);
+      preparation = new T.PMREMGenerator(renderer);
+      preparation.compileCubemapShader();
+      const acquired = (renderer.info.programs ?? []).filter(
+        (program) =>
+          program.name === 'CubemapToCubeUV' && program.usedTimes > (references.get(program) ?? 0),
+      );
+      if (acquired.length !== 1)
+        throw new Error('Reflection prefilter program was not retained by the renderer');
+      this.preparationRenderer = renderer;
+      this.prefilterPreparation = preparation;
+      this.prefilterProgram = acquired[0];
+      preparation = null;
+    } finally {
+      try {
+        preparation?.dispose();
+      } finally {
+        renderer.setRenderTarget(previous, face, mip);
+        renderer.setViewport(viewport);
+        renderer.setScissor(scissor);
+        renderer.setScissorTest(scissorTest);
+      }
+    }
+  }
+  /** Called after the existing asset wait, before scene draws. Three defers
+   * its error diagnostics and uniform/attribute queries until getUniforms().
+   * Resolve them once here, rather than synchronizing behind six cube faces.
+   * Disposal clears the pending program before an awaited owner can resume. */
+  completeProbePreparation() {
+    if (this.disposed || !this.prefilterProgram) return;
+    this.prefilterProgram.getUniforms();
+    this.prefilterProgram = null;
+  }
   get mirrorUpdates() {
     return this.views.updates;
   }
@@ -546,6 +607,11 @@ export class ReflectionSystem {
     });
   }
   dispose() {
+    this.disposed = true;
+    this.prefilterProgram = null;
+    this.preparationRenderer = null;
+    this.prefilterPreparation?.dispose();
+    this.prefilterPreparation = null;
     this.views.dispose();
     this.surfaces.length = 0;
     this.restoreEnvironment();

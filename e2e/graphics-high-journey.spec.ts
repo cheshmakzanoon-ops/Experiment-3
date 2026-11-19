@@ -168,6 +168,12 @@ function installFirstChaseStartup() {
     'linkProgram',
     'getProgramParameter',
     'getShaderParameter',
+    'getProgramInfoLog',
+    'getShaderInfoLog',
+    'getActiveUniform',
+    'getUniformLocation',
+    'getActiveAttrib',
+    'getAttribLocation',
     'getFragDataLocation',
     'useProgram',
     'checkFramebufferStatus',
@@ -189,6 +195,17 @@ function installFirstChaseStartup() {
     'clientWaitSync',
     'flush',
   ];
+  const programArguments = new Set([
+    'linkProgram',
+    'getProgramParameter',
+    'getProgramInfoLog',
+    'getActiveUniform',
+    'getUniformLocation',
+    'getActiveAttrib',
+    'getAttribLocation',
+    'getFragDataLocation',
+    'useProgram',
+  ]);
   post({ kind: 'configure', methods });
   const prototype = WebGL2RenderingContext.prototype;
   const ids = new WeakMap<object, number>();
@@ -284,6 +301,7 @@ function installFirstChaseStartup() {
     originalUseProgram.call(this, program);
   };
   let active = false,
+    chaseStarted = false,
     finished = false,
     sequence = 0,
     stage = '',
@@ -300,12 +318,11 @@ function installFirstChaseStartup() {
       if (!active) return Reflect.apply(original, this, args);
       if (method === 'linkProgram') hashes.delete(args[0] as WebGLProgram);
       const state = context(this),
-        program =
-          method === 'linkProgram' || method === 'getProgramParameter' || method === 'useProgram'
-            ? (args[0] as WebGLProgram | null)
-            : state.program,
+        program = programArguments.has(method) ? (args[0] as WebGLProgram | null) : state.program,
         shader =
-          method === 'compileShader' || method === 'getShaderParameter'
+          method === 'compileShader' ||
+          method === 'getShaderParameter' ||
+          method === 'getShaderInfoLog'
             ? (args[0] as WebGLShader)
             : null,
         fragment = program && fragments.get(program),
@@ -411,22 +428,46 @@ function installFirstChaseStartup() {
   }
   let loadingText: HTMLElement | null = null;
   const observe = () => {
+    if (finished) return;
     if (!loadingText) {
       loadingText = document.getElementById('loadingText');
       if (!loadingText) return;
       observer.disconnect();
       observer.observe(loadingText, { childList: true, characterData: true, subtree: true });
+      // This existing loading label is assigned immediately before native
+      // preparation. MutationObserver alone runs too late if that query blocks.
+      // Preserve its own native accessor and observe only this one element.
+      try {
+        const descriptor = Object.getOwnPropertyDescriptor(Node.prototype, 'textContent');
+        if (!descriptor?.get || !descriptor.set) throw new Error('Missing textContent accessor');
+        const { get, set } = descriptor;
+        Object.defineProperty(loadingText, 'textContent', {
+          configurable: true,
+          get() {
+            return get.call(this);
+          },
+          set(value: string | null) {
+            set.call(this, value);
+            observe();
+          },
+        });
+      } catch (error) {
+        report({ kind: 'unavailable', message: `Synchronous loading-stage observer: ${error}` });
+      }
     }
     const next = loadingText.textContent ?? '';
     if (next === stage) return;
     stage = next;
-    if (/Warming shadows and scene reflections/.test(stage) && !finished) active = true;
-    if (active && /Warming cockpit|completed cockpit/.test(stage)) {
+    if (/Warming shadows and scene reflections/.test(stage)) chaseStarted = true;
+    active = chaseStarted || /Preparing reflections/.test(stage);
+    if (chaseStarted && /Warming cockpit|completed cockpit/.test(stage)) {
       active = false;
       finished = true;
     }
     if (
-      /Building GP|photographed (sky|ground)|Compiling|Warming|Waiting for completed/.test(stage) &&
+      /Preparing reflections|Building GP|photographed (sky|ground)|Compiling|Warming|Waiting for completed/.test(
+        stage,
+      ) &&
       stageReports++ < 32
     )
       report({ kind: 'stage', atMs: performance.now(), stage, active });

@@ -233,3 +233,30 @@ platform-height change still fails. Production camera placement is unchanged.
 The focused camera-control, actual hardware-placement and trackside command
 passes all 61 tests across three files in 12.51 seconds; scoped ESLint passes.
 The retained validation log and test source hash accompany the comparison.
+
+## Reflection conversion prepared before scene draws
+
+The `152643b1` High run still fails its unchanged readiness gate with zero GL
+errors. The independent worker's final tracked command is a returned
+`linkProgram`, program 144, fragment hash `8a7c27ed`, at a 768×512 viewport.
+Exact reconstruction with installed Three r180 identifies `CubemapToCubeUV`.
+Three defers this program's normal error-log and uniform/attribute queries to
+its first use after the initial local capture. Those queries were not wrapped
+in this run, so their elapsed wait is not claimed as directly measured.
+
+The correction retains a shader-only PMREM owner, compiles against the existing
+linear composer target before the asset wait, and initializes that same
+program's metadata before scene draws. The actual conversion reuses the native
+handle and its independent reference. The first local capture still submits
+all six faces with the same resolution, format and filtering. There is no
+additional capture or PMREM atlas, and shader error diagnostics remain active.
+
+Five installed-Three native-cache tests protect the exact consumer, target/key
+compatibility, one initialization, reference lifetime, failed-call state
+restoration and retirement. The broader initial scoped command passes 86
+cases; after review corrected pending High→Low→High ownership, all 20 affected
+native/quality cases pass again. Full TypeScript, scoped lint and formatting
+pass. Immutable source `2015839e4cde18eeb351cb357726274fbef56399` also passes the
+complete guarded lint/content/build/bundle/IP command. These results do not
+establish a new High startup pass. The actual rerun retains its original
+960×600 High settings, 90/300-second deadlines and real GPU-completion gates.

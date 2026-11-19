@@ -1,0 +1,325 @@
+{
+  "schema": 1,
+  "updatedUTC": "2026-11-19T08:58:40.942573+00:00",
+  "source": {
+    "localCommit": "e1c34e2500980129b5edbf4f9a39f880b7f2ad10",
+    "engineAggregate": "977cec4cf15dcebc94c8c9f2d14bf15b45a5a6093dd1ef17b950cf6f09bfdcea",
+    "historicalBaselineCommit": "39fdc61"
+  },
+  "correction": {
+    "path": "tests/motocross-forgiving-handling.test.ts",
+    "sha256": "495119af76deed9cbf3cb4f8f8c889bab2aeb1d5e15c510f64e424adafab29d1",
+    "scope": "Fixture input adapter releases ground steer/front brake while already airborne; player physical solver remains unmarked.",
+    "productionSourceChanged": false,
+    "originalOptionsAndAssertionsChanged": false,
+    "extraAssertions": [
+      "player lowSpeedBalance and gripFallGrace stay active",
+      "actual airborne steps occur"
+    ]
+  },
+  "before": {
+    "tests": 18,
+    "passed": 17,
+    "failed": 1,
+    "exitCode": 1,
+    "crashTime": 56.40833333335126,
+    "station": 561.3679002107222,
+    "causeLabel": "grip-lowside",
+    "actualExit": "gross roll limit after wall impacts",
+    "firstWallImpact": {
+      "time": 55.1,
+      "s": 542.5541132084675,
+      "lateral": -7.273399317569343,
+      "energy": 709.7996298058482,
+      "point": {
+        "x": 29.47562324585072,
+        "y": 7.483206132221315,
+        "z": 81.98839259485095
+      },
+      "lean": 0.04121167805953656,
+      "leanRate": 0.012931505109763694
+    }
+  },
+  "historicalBaseline": {
+    "tests": 18,
+    "passed": 18,
+    "failed": 0,
+    "exitCode": 0
+  },
+  "neutralAirProductionCounterfactual": {
+    "tests": 18,
+    "passed": 18,
+    "failed": 0,
+    "exitCode": 0,
+    "integrated": false,
+    "reason": "The correct boundary is the intentionally unmarked test driver, not a global production AI change."
+  },
+  "after": {
+    "tests": 45,
+    "passed": 45,
+    "failed": 0,
+    "files": 3,
+    "exitCode": 0,
+    "sourceGuardExitCode": 0,
+    "totalSeconds": 20.21,
+    "command": "node --experimental-transform-types scripts/source-stability.ts -- ./node_modules/.bin/vitest run tests/motocross-forgiving-handling.test.ts tests/motocross-riding.test.ts tests/motocross-tyre-contact.test.ts",
+    "typecheckExitCode": 0,
+    "eslintExitCode": 0,
+    "prettierExitCode": 0
+  },
+  "negativeControls": [
+    "front brake tap still slows front wheel and lowers nose without bending trajectory",
+    "intentional left/right player input still banks the chassis",
+    "held and recovered whips retain their independent landing assertions",
+    "independently sampled tyre-grip entry/exit remains tested"
+  ],
+  "firstFlight": {
+    "originalTakeoff": {
+      "time": 23.933333333333334,
+      "s": 203.5911899558157,
+      "lateral": -2.2263010345575722,
+      "speed": 9.8751088188076,
+      "heading": -1.3272490262640735,
+      "lean": -0.26536135827528023,
+      "leanRate": -0.2871801674084554,
+      "pitch": -0.006117222347889357,
+      "pitchRate": -0.3975197184006683,
+      "frontSpin": 24.762776870509413,
+      "rearSpin": 37.43451352465771,
+      "airYaw": 0,
+      "input": {
+        "throttle": 0.09302073297272442,
+        "brake": 0,
+        "clutch": 0,
+        "manualClutch": false,
+        "steer": -0.7203504171587363,
+        "riderLean": 0,
+        "shift": 0,
+        "ers": 0,
+        "pit": false,
+        "reverse": false
+      }
+    },
+    "adaptedTakeoff": {
+      "time": 23.933333333333334,
+      "s": 203.5911899558157,
+      "lateral": -2.2263010345575722,
+      "speed": 9.8751088188076,
+      "heading": -1.3272490262640735,
+      "lean": -0.26536135827528023,
+      "leanRate": -0.2871801674084554,
+      "pitch": -0.006117222347889357,
+      "pitchRate": -0.3975197184006683,
+      "frontSpin": 24.762776870509413,
+      "rearSpin": 37.43451352465771,
+      "airYaw": 0,
+      "input": {
+        "throttle": 0.09302073297272442,
+        "brake": 0,
+        "clutch": 0,
+        "manualClutch": false,
+        "steer": -0.7203504171587363,
+        "riderLean": 0,
+        "shift": 0,
+        "ers": 0,
+        "pit": false,
+        "reverse": false
+      }
+    },
+    "originalLanding": {
+      "time": 24.291666666666668,
+      "s": 207.00476535093867,
+      "lateral": -1.3780967754229039,
+      "speed": 10.596805825250984,
+      "heading": -1.3477009544915164,
+      "lean": -0.05745273810861756,
+      "leanRate": 0.3535553114376465,
+      "pitch": -0.14292480745746752,
+      "pitchRate": -0.4391883603897506,
+      "frontSpin": 21.456084389398253,
+      "rearSpin": 40.27682889217684,
+      "airYaw": 0,
+      "input": {
+        "throttle": 1,
+        "brake": 0,
+        "clutch": 0,
+        "manualClutch": false,
+        "steer": -0.9143703346452636,
+        "riderLean": 0,
+        "shift": 0,
+        "ers": 0,
+        "pit": false,
+        "reverse": false
+      }
+    },
+    "adaptedLanding": {
+      "time": 24.291666666666668,
+      "s": 207.00476535093867,
+      "lateral": -1.3780967754229039,
+      "speed": 10.59900906864581,
+      "heading": -1.3272490262640735,
+      "lean": -0.04387113470357125,
+      "leanRate": 0.26997621356043844,
+      "pitch": -0.1426616601003314,
+      "pitchRate": -0.43788451978523535,
+      "frontSpin": 21.456084389398253,
+      "rearSpin": 40.27682889217684,
+      "airYaw": 0,
+      "input": {
+        "throttle": 1,
+        "brake": 0,
+        "clutch": 0,
+        "manualClutch": false,
+        "steer": 0,
+        "riderLean": 0,
+        "shift": 0,
+        "ers": 0,
+        "pit": false,
+        "reverse": false
+      }
+    },
+    "takeoffExactlyEqual": true
+  },
+  "completeValleyObserver": {
+    "completed": 2,
+    "seconds": 162.79166666666666,
+    "crashes": 0,
+    "crashCauses": []
+  },
+  "limitation": {
+    "roughCorridorWallContactsPersist": true,
+    "count": 213,
+    "first": {
+      "time": 54.541666666666664,
+      "s": 537.0146334671329,
+      "lateral": -7.181903020245144,
+      "energy": 1228.3600172484018,
+      "point": {
+        "x": 35.11362899378048,
+        "y": 8.269860816007684,
+        "z": 81.97578914622406
+      },
+      "lean": 0.09418587565804584,
+      "leanRate": -0.5796053886648975
+    },
+    "productionPlannerImprovementClaimed": false
+  },
+  "logs": {
+    "motocross-forgiving-before.log": {
+      "sha256": "5203c5d132170ee8e9a7af150654996f43b3f095a3364a24c3566fbee09dbf7f",
+      "bytes": 3336
+    },
+    "motocross-forgiving-baseline39.log": {
+      "sha256": "a721536451afd707aa8a87369d64b91f78ad191212d25f8f2e14fce64c0fb8b4",
+      "bytes": 733
+    },
+    "motocross-neutral-air-experiment.log": {
+      "sha256": "e047c12d21dc60f623026165590845ed789531ba24562f9ab6c0c501b7c22385",
+      "bytes": 734
+    },
+    "motocross-player-input-fixture.log": {
+      "sha256": "32033f6dc501afc3d8a9ca26052bd2f379792135a1332512fee478d8859768ea",
+      "bytes": 999
+    }
+  },
+  "rejectedCandidates": [
+    {
+      "log": "motocross-rough-corridor-experiment.log",
+      "sha256": "a639adc7e87434ccbfb30303e9954cc806c9b38699c0942a0bf18deaf75d5f6c",
+      "exitCode": 1,
+      "summary": [
+        "Test Files  1 failed (1)",
+        "Tests  1 failed | 17 passed (18)"
+      ],
+      "integrated": false
+    },
+    {
+      "log": "motocross-straight-corridor-experiment.log",
+      "sha256": "e4e7eba9f124e13dfb05ecfb1e43b95584867851687e090d3eade8c79fef1224",
+      "exitCode": 1,
+      "summary": [
+        "Test Files  1 failed (1)",
+        "Tests  1 failed | 17 passed (18)"
+      ],
+      "integrated": false
+    },
+    {
+      "log": "motocross-approach-only-experiment.log",
+      "sha256": "b105648434275de78b845c3bea21c8e3bd652ec265e32b6708d94f61b5a07119",
+      "exitCode": 1,
+      "summary": [
+        "Test Files  1 failed (1)",
+        "Tests  1 failed | 17 passed (18)"
+      ],
+      "integrated": false
+    },
+    {
+      "log": "motocross-physical-corridor-experiment.log",
+      "sha256": "05fc83c934fad1d0ba5e1453b3e4acf133cc25320d1c0aa7f9dcff8636ca7669",
+      "exitCode": 1,
+      "summary": [
+        "Test Files  1 failed (1)",
+        "Tests  1 failed | 17 passed (18)"
+      ],
+      "integrated": false
+    },
+    {
+      "log": "motocross-crest-admission-experiment.log",
+      "sha256": "af05b5958b7c2d4ac1efa8e0dfa15ab55d87b63c390d2b101e1704083867a934",
+      "exitCode": 1,
+      "summary": [
+        "Test Files  1 failed (1)",
+        "Tests  2 failed | 16 passed (18)"
+      ],
+      "integrated": false
+    },
+    {
+      "log": "motocross-contact-speed-experiment.log",
+      "sha256": "78697be17b61306711cdaaab8c0a26845a79d0c5b2c8c0bd24ad863fa1594f2a",
+      "exitCode": 1,
+      "summary": [
+        "Test Files  1 failed (1)",
+        "Tests  2 failed | 16 passed (18)"
+      ],
+      "integrated": false
+    },
+    {
+      "log": "motocross-square-rough-experiment.log",
+      "sha256": "e116f5a0905a4e244b5609e5b45b48897e6c28bb32f803cd7f875c7888ff3e6d",
+      "exitCode": 1,
+      "summary": [
+        "Test Files  1 failed (1)",
+        "Tests  1 failed | 17 passed (18)"
+      ],
+      "integrated": false
+    },
+    {
+      "log": "motocross-continuous-square-experiment.log",
+      "sha256": "a24d394b233889c2b1343abc93a5d8d2c941c5e9bf670fc89900ce8c38cc1779",
+      "exitCode": 1,
+      "summary": [
+        "Test Files  1 failed (1)",
+        "Tests  2 failed | 16 passed (18)"
+      ],
+      "integrated": false
+    },
+    {
+      "log": "motocross-coast-admission-experiment.log",
+      "sha256": "6f02231b8963b04bb8ff3608fd059339766daf99c228f36e2983ae2d4de01173",
+      "exitCode": 1,
+      "summary": [
+        "Test Files  1 failed (1)",
+        "Tests  2 failed | 16 passed (18)"
+      ],
+      "integrated": false
+    }
+  ],
+  "diagnosticSourceSha256": "141290ec7b02d4364c3462fcdd86a69066d818203d79d6adb279ed1c0e475a25",
+  "diagnosticResultSha256": {
+    "mx-original.json": "97d03b0778cabe2cc633edb749b9ff015d25a07d564e938604465cd51f8f34e8",
+    "mx-mx-contact-origin.json": "ab0e0a445c7c92b81a315f69b38f28f684d267cad02eee988278a05ec92575c9",
+    "mx-player-input-adapter.json": "e6aa89dce155d3f31c458f8097e823ceec3fdd6ad7bac0b1b1691fe3cd4ce2c8",
+    "mx-air-contract-original.json": "45d14d147ae4930de64326fba2c38117d67daced46a3feba08da2e54490397b3",
+    "mx-air-contract-player-input-adapter.json": "dce339d62b194e656088e052d35a984cdbf740a64d8dfb446441e347178b6795"
+  }
+}

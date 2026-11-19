@@ -1,0 +1,2719 @@
+{
+  "variant": "canonical-yaw",
+  "options": {
+    "mode": "race",
+    "laps": 2,
+    "opponents": 5,
+    "weather": "clear",
+    "assist": "sport",
+    "compound": "medium",
+    "setup": {
+      "frontWing": 0.55,
+      "rearWing": 0.58,
+      "brakeBias": 0.56,
+      "diffPower": 0.5,
+      "diffCoast": 0.25,
+      "frontSpring": 115000,
+      "rearSpring": 125000,
+      "frontARB": 26000,
+      "rearARB": 21000,
+      "frontRide": 0.065,
+      "rearRide": 0.075,
+      "frontPressure": 155,
+      "rearPressure": 148,
+      "frontCamber": -0.044,
+      "rearCamber": -0.023,
+      "frontToe": -0.001,
+      "rearToe": 0.002,
+      "frontPreload": 0,
+      "rearPreload": 0,
+      "frontDamping": 0.5,
+      "rearDamping": 0.5,
+      "steeringDamper": 0.5,
+      "gearing": 1,
+      "tractionMap": 3,
+      "wheelieMap": 3,
+      "engineBrakeMap": 0
+    },
+    "seed": 3303,
+    "circuit": "vellamar",
+    "ruleset": "gp-motorcycle",
+    "vehicles": [
+      "gpr1",
+      "sbk1000",
+      "gpr1",
+      "sbk1000",
+      "gpr1",
+      "sbk1000"
+    ]
+  },
+  "sourceHashes": {
+    "/workspace/scratch/d611aefdb08c/w27-gp-force-phase-run.mjs": "f3763ae85c4f73ca42afd7dd52ac265e9be9485b49e00034b33020dc76b3282c",
+    "/workspace/scratch/d611aefdb08c/w27-gp-phase-baseline/src/simulation/bike.ts": "5bf7c5903f4b33ae306eedffc72e23f58ef85c4b5841f2a86153d80918102d9a",
+    "/workspace/scratch/d611aefdb08c/w27-gp-phase-candidate/src/simulation/bike.ts": "75df98c5f9b52f370b52c5d107430bff0bb5236e2f26b8fcb263f3457d9834d7",
+    "/workspace/scratch/d611aefdb08c/w27-gp-phase-candidate/src/simulation/motogp-physics.ts": "f43236152c81328f6bb0e0db6573235c492fcf2c8f5c2a84c3ca3976aa844e5b"
+  },
+  "sourceStable": true,
+  "originalWrapperPrefixSha256": "34cea2b59697c9478fe8d57d4a2fb77923cd608d3e1df56b7a7727a6889ce2be",
+  "instrumentation": "Exact original wrapper initializer/intervention prefix, one passive pre-bind observer hook; no full-race loop. Typed candidate gets identical passive observers.",
+  "observationMaterialTolerance": "relative absolute delta/max(1,|a|,|b|) > 1e-9 is a diagnostic grouping only, not an acceptance limit",
+  "raceSeconds": 12.00753271589795,
+  "outerSteps": 2134,
+  "pairedGpSubsteps": 12804,
+  "wallSeconds": 4.06959624,
+  "firstExact": {
+    "outerStep": 776,
+    "index": 1,
+    "differences": [
+      {
+        "path": "plant.steer",
+        "wrapper": 0.014567089988760483,
+        "typed": 0.014567089988760488,
+        "delta": 5.204170427930421e-18,
+        "relative": 5.204170427930421e-18
+      },
+      {
+        "path": "beforePlant.steer",
+        "wrapper": 0.014567089988760483,
+        "typed": 0.014567089988760488,
+        "delta": 5.204170427930421e-18,
+        "relative": 5.204170427930421e-18
+      },
+      {
+        "path": "after.steer",
+        "wrapper": 0.014567089988760483,
+        "typed": 0.014567089988760488,
+        "delta": 5.204170427930421e-18,
+        "relative": 5.204170427930421e-18
+      },
+      {
+        "path": "after.gp.longitudinalCorrection",
+        "wrapper": -0.006582694597308455,
+        "typed": -0.006582694597308457,
+        "delta": -1.734723475976807e-18,
+        "relative": 1.734723475976807e-18
+      },
+      {
+        "path": "after.gp.groundSteer",
+        "wrapper": 0.013301223195203684,
+        "typed": 0.01330122319520369,
+        "delta": 5.204170427930421e-18,
+        "relative": 5.204170427930421e-18
+      }
+    ],
+    "wrapper": {
+      "id": 2,
+      "t": 0.6908660492317624,
+      "s": 3955.8220983721385,
+      "input": {
+        "lean": -0.06286253020447059,
+        "throttle": 0.5871422915099408,
+        "frontBrake": 0,
+        "rearBrake": 0,
+        "rider": 0,
+        "drive": 1725.6250122632393,
+        "engineBrake": 0
+      },
+      "dt": 0.004166666666666667,
+      "prior": {
+        "speed": 3.087604459157546,
+        "lean": -0.001645572253296274,
+        "leanRate": -0.04006166613955557,
+        "steer": 0.016603940214674665,
+        "riderOffset": 0,
+        "frontLoad": 380.07368151141713,
+        "rearLoad": 2012.3765438986172,
+        "driveForce": 1781.9048593834423,
+        "frontBrakeForce": 0,
+        "rearBrakeForce": 0,
+        "longitudinal": 7.10342624879466,
+        "heading": -1.9073666294815739,
+        "x": 290.574779354642,
+        "z": -410.7347341434856,
+        "frontGrip": 0.993636640190718,
+        "rearGrip": 0.9883672003518036,
+        "grip": 0.9883672003518036,
+        "state": "riding",
+        "pitch": 0,
+        "gp": {
+          "frontFy": 127.65263591055603,
+          "rearFy": -18.15801087197113,
+          "frontElasticStiffness": 11302.87883539473,
+          "rearElasticStiffness": 48840.93316248182,
+          "lateralAcceleration": 0.44686271054854554,
+          "lateralSpeed": 0.03379127477203993,
+          "yawRate": 0.03858218038299976,
+          "steerTrim": 0.0037245468509014383,
+          "leanTarget": -0.0614105188937244,
+          "lateralDemand": 1.2143054003134865,
+          "forwardSpeed": 3.087604459157546,
+          "longitudinalCorrection": -0.007899216393290075,
+          "groundSteer": 0.01516112239254771,
+          "frontOmega": 10.045321589545779,
+          "rearOmega": 9.73467565667788
+        }
+      },
+      "frontQueries": [
+        {
+          "args": [
+            433.1391380992924,
+            -0.001645572253296274,
+            3.087604459157546,
+            0,
+            396.78213520906934,
+            1.7388641203337565
+          ],
+          "value": 0.061621424485798215,
+          "yaw": 0.03858218038299976,
+          "side": 0.03379127477203993,
+          "trim": 0.005691385162641113,
+          "bikeSpeed": 3.087604459157546
+        },
+        {
+          "args": [
+            432.0019210644943,
+            -0.001645572253296274,
+            3.1162771766642625,
+            0,
+            396.78213520906934,
+            1.7388641203337565
+          ],
+          "value": 0.06129608399988139,
+          "yaw": 0.03858218038299976,
+          "side": 0.03379127477203993,
+          "trim": 0.005691385162641113,
+          "bikeSpeed": 3.1162771766642625
+        }
+      ],
+      "rearQueries": [
+        {
+          "args": [
+            1995.2389748280978,
+            1.7296426006156562,
+            -0.001645572253296274,
+            3.087604459157546,
+            1781.9048593834423,
+            0.004166666666666667
+          ],
+          "value": -21.234091972710928,
+          "yaw": 0.03858218038299976,
+          "side": 0.03379127477203993,
+          "trim": 0.005691385162641113,
+          "bikeSpeed": 3.087604459157546
+        },
+        {
+          "args": [
+            1995.2389748280978,
+            1.7296426006156562,
+            -0.001645572253296274,
+            3.1162771766642625,
+            1725.6250122632393,
+            0.004166666666666667
+          ],
+          "value": -21.24204837394247,
+          "yaw": 0.03858218038299976,
+          "side": 0.03379127477203993,
+          "trim": 0.005691385162641113,
+          "bikeSpeed": 3.1162771766642625
+        }
+      ],
+      "plant": {
+        "dt": 0.004166666666666667,
+        "speed": 3.1162771766642625,
+        "mass": 244.9968319891073,
+        "lean": -0.001645572253296274,
+        "steer": 0.014567089988760483,
+        "frontLoad": 396.78213520906934,
+        "rearLoad": 1995.2389748280978,
+        "frontMu": 1.7388641203337565,
+        "rearMu": 1.7296426006156562,
+        "frontFx": 0,
+        "rearFx": 1725.6250122632393,
+        "frontContact": 1,
+        "frontBrakeExcess": 0,
+        "rearDriveExcess": 0,
+        "rearBrakeExcess": 0,
+        "inertialContacts": true
+      },
+      "beforePlant": {
+        "speed": 3.1162771766642625,
+        "lean": -0.001645572253296274,
+        "leanRate": -0.04006166613955557,
+        "steer": 0.014567089988760483,
+        "riderOffset": 0,
+        "frontLoad": 396.78213520906934,
+        "rearLoad": 1995.2389748280978,
+        "driveForce": 1725.6250122632393,
+        "frontBrakeForce": 0,
+        "rearBrakeForce": 0,
+        "longitudinal": 6.88145220161193,
+        "heading": -1.9073666294815739,
+        "x": 290.574779354642,
+        "z": -410.7347341434856,
+        "frontGrip": 0.993636640190718,
+        "rearGrip": 0.9883672003518036,
+        "grip": 0.9883672003518036,
+        "state": "riding",
+        "pitch": 0,
+        "gp": {
+          "frontFy": 127.65263591055603,
+          "rearFy": -18.15801087197113,
+          "frontElasticStiffness": 11302.87883539473,
+          "rearElasticStiffness": 48840.93316248182,
+          "lateralAcceleration": 0.44686271054854554,
+          "lateralSpeed": 0.03379127477203993,
+          "yawRate": 0.03858218038299976,
+          "steerTrim": 0.005691385162641113,
+          "leanTarget": -0.061465739949362795,
+          "lateralDemand": 1.222743906137889,
+          "forwardSpeed": 3.087604459157546,
+          "longitudinalCorrection": -0.007899216393290075,
+          "groundSteer": 0.01516112239254771,
+          "frontOmega": 10.045321589545779,
+          "rearOmega": 9.73467565667788
+        }
+      },
+      "after": {
+        "speed": 3.1162565259247827,
+        "lean": -0.0018169918877937964,
+        "leanRate": -0.04114071227940538,
+        "steer": 0.014567089988760483,
+        "riderOffset": 0,
+        "frontLoad": 396.78213520906934,
+        "rearLoad": 1995.2389748280978,
+        "driveForce": 1725.6250122632393,
+        "frontBrakeForce": 0,
+        "rearBrakeForce": 0,
+        "longitudinal": 6.874869507014622,
+        "heading": -1.907174052296233,
+        "x": 290.5624746578772,
+        "z": -410.7388826701999,
+        "frontGrip": 0.993636640190718,
+        "rearGrip": 0.9883672003518036,
+        "grip": 0.9883672003518036,
+        "state": "riding",
+        "pitch": 0,
+        "gp": {
+          "frontFy": 121.25101989452203,
+          "rearFy": -21.24204837394247,
+          "frontElasticStiffness": 11738.999780750479,
+          "rearElasticStiffness": 48474.70815378386,
+          "lateralAcceleration": 0.4081613825277835,
+          "lateralSpeed": 0.03489182793938467,
+          "yawRate": 0.046218524481782895,
+          "steerTrim": 0.005691385162641113,
+          "leanTarget": -0.061465739949362795,
+          "lateralDemand": 1.222743906137889,
+          "forwardSpeed": 3.1162565259247827,
+          "longitudinalCorrection": -0.006582694597308455,
+          "groundSteer": 0.013301223195203684,
+          "frontOmega": 10.145726789936646,
+          "rearOmega": 9.828608560558278
+        }
+      }
+    },
+    "typed": {
+      "id": 2,
+      "t": 0.6908660492317624,
+      "s": 3955.8220983721385,
+      "input": {
+        "lean": -0.06286253020447059,
+        "throttle": 0.5871422915099408,
+        "frontBrake": 0,
+        "rearBrake": 0,
+        "rider": 0,
+        "drive": 1725.6250122632393,
+        "engineBrake": 0
+      },
+      "dt": 0.004166666666666667,
+      "prior": {
+        "speed": 3.087604459157546,
+        "lean": -0.001645572253296274,
+        "leanRate": -0.04006166613955557,
+        "steer": 0.016603940214674665,
+        "riderOffset": 0,
+        "frontLoad": 380.07368151141713,
+        "rearLoad": 2012.3765438986172,
+        "driveForce": 1781.9048593834423,
+        "frontBrakeForce": 0,
+        "rearBrakeForce": 0,
+        "longitudinal": 7.10342624879466,
+        "heading": -1.9073666294815739,
+        "x": 290.574779354642,
+        "z": -410.7347341434856,
+        "frontGrip": 0.993636640190718,
+        "rearGrip": 0.9883672003518036,
+        "grip": 0.9883672003518036,
+        "state": "riding",
+        "pitch": 0,
+        "gp": {
+          "frontFy": 127.65263591055603,
+          "rearFy": -18.15801087197113,
+          "frontElasticStiffness": 11302.87883539473,
+          "rearElasticStiffness": 48840.93316248182,
+          "lateralAcceleration": 0.44686271054854554,
+          "lateralSpeed": 0.03379127477203993,
+          "yawRate": 0.03858218038299976,
+          "steerTrim": 0.0037245468509014383,
+          "leanTarget": -0.0614105188937244,
+          "lateralDemand": 1.2143054003134865,
+          "forwardSpeed": 3.087604459157546,
+          "longitudinalCorrection": -0.007899216393290075,
+          "groundSteer": 0.01516112239254771,
+          "frontOmega": 10.045321589545779,
+          "rearOmega": 9.73467565667788
+        }
+      },
+      "frontQueries": [
+        {
+          "args": [
+            432.0019210644943,
+            -0.001645572253296274,
+            3.1162771766642625,
+            0,
+            396.78213520906934,
+            1.7388641203337565
+          ],
+          "value": 0.06129608399988139,
+          "yaw": 0.03858218038299976,
+          "side": 0.03379127477203993,
+          "trim": 0.005691385162641113,
+          "bikeSpeed": 3.1162771766642625
+        }
+      ],
+      "rearQueries": [
+        {
+          "args": [
+            1995.2389748280978,
+            1.7296426006156562,
+            -0.001645572253296274,
+            3.1162771766642625,
+            1725.6250122632393,
+            0.004166666666666667
+          ],
+          "value": -21.24204837394247,
+          "yaw": 0.03858218038299976,
+          "side": 0.03379127477203993,
+          "trim": 0.005691385162641113,
+          "bikeSpeed": 3.1162771766642625
+        }
+      ],
+      "planned": 1.222743906137889,
+      "plant": {
+        "dt": 0.004166666666666667,
+        "speed": 3.1162771766642625,
+        "mass": 244.9968319891073,
+        "lean": -0.001645572253296274,
+        "steer": 0.014567089988760488,
+        "frontLoad": 396.78213520906934,
+        "rearLoad": 1995.2389748280978,
+        "frontMu": 1.7388641203337565,
+        "rearMu": 1.7296426006156562,
+        "frontFx": 0,
+        "rearFx": 1725.6250122632393,
+        "frontContact": 1,
+        "frontBrakeExcess": 0,
+        "rearDriveExcess": 0,
+        "rearBrakeExcess": 0,
+        "inertialContacts": true
+      },
+      "beforePlant": {
+        "speed": 3.1162771766642625,
+        "lean": -0.001645572253296274,
+        "leanRate": -0.04006166613955557,
+        "steer": 0.014567089988760488,
+        "riderOffset": 0,
+        "frontLoad": 396.78213520906934,
+        "rearLoad": 1995.2389748280978,
+        "driveForce": 1725.6250122632393,
+        "frontBrakeForce": 0,
+        "rearBrakeForce": 0,
+        "longitudinal": 6.88145220161193,
+        "heading": -1.9073666294815739,
+        "x": 290.574779354642,
+        "z": -410.7347341434856,
+        "frontGrip": 0.993636640190718,
+        "rearGrip": 0.9883672003518036,
+        "grip": 0.9883672003518036,
+        "state": "riding",
+        "pitch": 0,
+        "gp": {
+          "frontFy": 127.65263591055603,
+          "rearFy": -18.15801087197113,
+          "frontElasticStiffness": 11302.87883539473,
+          "rearElasticStiffness": 48840.93316248182,
+          "lateralAcceleration": 0.44686271054854554,
+          "lateralSpeed": 0.03379127477203993,
+          "yawRate": 0.03858218038299976,
+          "steerTrim": 0.005691385162641113,
+          "leanTarget": -0.061465739949362795,
+          "lateralDemand": 1.222743906137889,
+          "forwardSpeed": 3.087604459157546,
+          "longitudinalCorrection": -0.007899216393290075,
+          "groundSteer": 0.01516112239254771,
+          "frontOmega": 10.045321589545779,
+          "rearOmega": 9.73467565667788
+        }
+      },
+      "after": {
+        "speed": 3.1162565259247827,
+        "lean": -0.0018169918877937964,
+        "leanRate": -0.04114071227940538,
+        "steer": 0.014567089988760488,
+        "riderOffset": 0,
+        "frontLoad": 396.78213520906934,
+        "rearLoad": 1995.2389748280978,
+        "driveForce": 1725.6250122632393,
+        "frontBrakeForce": 0,
+        "rearBrakeForce": 0,
+        "longitudinal": 6.874869507014622,
+        "heading": -1.907174052296233,
+        "x": 290.5624746578772,
+        "z": -410.7388826701999,
+        "frontGrip": 0.993636640190718,
+        "rearGrip": 0.9883672003518036,
+        "grip": 0.9883672003518036,
+        "state": "riding",
+        "pitch": 0,
+        "gp": {
+          "frontFy": 121.25101989452203,
+          "rearFy": -21.24204837394247,
+          "frontElasticStiffness": 11738.999780750479,
+          "rearElasticStiffness": 48474.70815378386,
+          "lateralAcceleration": 0.4081613825277835,
+          "lateralSpeed": 0.03489182793938467,
+          "yawRate": 0.046218524481782895,
+          "steerTrim": 0.005691385162641113,
+          "leanTarget": -0.061465739949362795,
+          "lateralDemand": 1.222743906137889,
+          "forwardSpeed": 3.1162565259247827,
+          "longitudinalCorrection": -0.006582694597308457,
+          "groundSteer": 0.01330122319520369,
+          "frontOmega": 10.145726789936646,
+          "rearOmega": 9.828608560558278
+        }
+      }
+    }
+  },
+  "firstMaterial": {
+    "outerStep": 1352,
+    "index": 4,
+    "differences": [
+      {
+        "path": "inverse.args.0",
+        "wrapper": -0.6165214034401005,
+        "typed": -0.6165213987456211,
+        "delta": 4.694479471822888e-9,
+        "relative": 4.694479471822888e-9
+      }
+    ],
+    "wrapper": {
+      "id": 2,
+      "t": 5.490866049231652,
+      "s": 39.53123034585042,
+      "input": {
+        "lean": 0.009427968403350428,
+        "throttle": 0.6134790481391499,
+        "frontBrake": 0,
+        "rearBrake": 0,
+        "rider": 0.11741242955394843,
+        "drive": 2486.055918436866,
+        "engineBrake": 0
+      },
+      "dt": 0.004166666666666667,
+      "prior": {
+        "speed": 31.62682087755209,
+        "lean": 0.11084479531962318,
+        "leanRate": -0.5995166773913931,
+        "steer": 0.0007502181794275535,
+        "riderOffset": 0.03641433661597847,
+        "frontLoad": 192.5890983638673,
+        "rearLoad": 2221.2127555325005,
+        "driveForce": 2375.356499043396,
+        "frontBrakeForce": 0,
+        "rearBrakeForce": 0,
+        "longitudinal": 8.689002093618868,
+        "heading": -1.6523066396387636,
+        "x": 211.2303816357315,
+        "z": -430.2748150740431,
+        "frontGrip": 0.9930607116327236,
+        "rearGrip": 0.9881034924635196,
+        "grip": 0.9881034924635196,
+        "state": "riding",
+        "pitch": 0,
+        "gp": {
+          "frontFy": 4.263924667947954,
+          "rearFy": 41.394762543803296,
+          "frontElasticStiffness": 6211.983762455736,
+          "rearElasticStiffness": 53265.91049435206,
+          "lateralAcceleration": 0.18637656727570637,
+          "lateralSpeed": 0.25825030587031256,
+          "yawRate": 0.025504659688713967,
+          "steerTrim": -0.00007095835246460123,
+          "leanTarget": 0.009297179516122793,
+          "lateralDemand": 0.14916415591110088,
+          "forwardSpeed": 31.62682087755209,
+          "longitudinalCorrection": -0.000011999984034707924,
+          "groundSteer": 0.0006894508027596285,
+          "frontOmega": 103.98366410323338,
+          "rearOmega": 100.92562092538493
+        }
+      },
+      "frontQueries": [
+        {
+          "args": [
+            -0.43433865551449635,
+            0.11084479531962318,
+            31.62682087755209,
+            0,
+            201.34857218100353,
+            1.7378562453572663
+          ],
+          "value": 0.002616520231829929,
+          "yaw": 0.025504659688713967,
+          "side": 0.25825030587031256,
+          "trim": -0.00007142144353584991,
+          "bikeSpeed": 31.62682087755209
+        },
+        {
+          "args": [
+            -0.6165214034401005,
+            0.11084479531962318,
+            31.663022222111465,
+            0,
+            201.34857218100353,
+            1.7378562453572663
+          ],
+          "value": 0.0025783319787900084,
+          "yaw": 0.025504659688713967,
+          "side": 0.25825030587031256,
+          "trim": -0.00007142144353584991,
+          "bikeSpeed": 31.663022222111465
+        }
+      ],
+      "rearQueries": [
+        {
+          "args": [
+            2239.541152468538,
+            1.7291811118111593,
+            0.11084479531962318,
+            31.62682087755209,
+            2375.356499043396,
+            0.004166666666666667
+          ],
+          "value": 35.04326251017032,
+          "yaw": 0.025504659688713967,
+          "side": 0.25825030587031256,
+          "trim": -0.00007142144353584991,
+          "bikeSpeed": 31.62682087755209
+        },
+        {
+          "args": [
+            2239.541152468538,
+            1.7291811118111593,
+            0.11084479531962318,
+            31.663022222111465,
+            2375.471935798086,
+            0.004166666666666667
+          ],
+          "value": 35.22354548468655,
+          "yaw": 0.025504659688713967,
+          "side": 0.25825030587031256,
+          "trim": -0.00007142144353584991,
+          "bikeSpeed": 31.663022222111465
+        }
+      ],
+      "plant": {
+        "dt": 0.004166666666666667,
+        "speed": 31.663022222111465,
+        "mass": 244.98080190070803,
+        "lean": 0.11084479531962318,
+        "steer": 0.0027286768667973854,
+        "frontLoad": 201.34857218100353,
+        "rearLoad": 2239.541152468538,
+        "frontMu": 1.7378562453572663,
+        "rearMu": 1.7291811118111593,
+        "frontFx": 0,
+        "rearFx": 2375.471935798086,
+        "frontContact": 1,
+        "frontBrakeExcess": 0,
+        "rearDriveExcess": 0,
+        "rearBrakeExcess": 0,
+        "inertialContacts": true
+      },
+      "beforePlant": {
+        "speed": 31.663022222111465,
+        "lean": 0.11084479531962318,
+        "leanRate": -0.5995166773913931,
+        "steer": 0.0027286768667973854,
+        "riderOffset": 0.03522372886618453,
+        "frontLoad": 201.34857218100353,
+        "rearLoad": 2239.541152468538,
+        "driveForce": 2375.471935798086,
+        "frontBrakeForce": 0,
+        "rearBrakeForce": 0,
+        "longitudinal": 8.688322694250223,
+        "heading": -1.6523066396387636,
+        "x": 211.2303816357315,
+        "z": -430.2748150740431,
+        "frontGrip": 0.9930607116327236,
+        "rearGrip": 0.9881034924635196,
+        "grip": 0.9881034924635196,
+        "state": "riding",
+        "pitch": 0,
+        "gp": {
+          "frontFy": 4.263924667947954,
+          "rearFy": 41.394762543803296,
+          "frontElasticStiffness": 6211.983762455736,
+          "rearElasticStiffness": 53265.91049435206,
+          "lateralAcceleration": 0.18637656727570637,
+          "lateralSpeed": 0.25825030587031256,
+          "yawRate": 0.025504659688713967,
+          "steerTrim": -0.00007142144353584991,
+          "leanTarget": 0.0092973643304859,
+          "lateralDemand": 0.16720927640403918,
+          "forwardSpeed": 31.62682087755209,
+          "longitudinalCorrection": -0.000011999984034707924,
+          "groundSteer": 0.0006894508027596285,
+          "frontOmega": 103.98366410323338,
+          "rearOmega": 100.92562092538493
+        }
+      },
+      "after": {
+        "speed": 31.66304745105731,
+        "lean": 0.10885911389174575,
+        "leanRate": -0.59175961484236,
+        "steer": 0.0027286768667973854,
+        "riderOffset": 0.03522372886618453,
+        "frontLoad": 201.34857218100353,
+        "rearLoad": 2239.541152468538,
+        "driveForce": 2375.471935798086,
+        "frontBrakeForce": 0,
+        "rearBrakeForce": 0,
+        "longitudinal": 8.688301940959903,
+        "heading": -1.6522082610132043,
+        "x": 211.09880257224023,
+        "z": -430.28448166397834,
+        "frontGrip": 0.9930607116327236,
+        "rearGrip": 0.9881034924635196,
+        "grip": 0.9881034924635196,
+        "state": "riding",
+        "pitch": 0,
+        "gp": {
+          "frontFy": 2.028059222044011,
+          "rearFy": 35.22354548468655,
+          "frontElasticStiffness": 6459.945988310616,
+          "rearElasticStiffness": 53652.51703021776,
+          "lateralAcceleration": 0.15205925543937615,
+          "lateralSpeed": 0.25576892025479037,
+          "yawRate": 0.023610870134242647,
+          "steerTrim": -0.00007142144353584991,
+          "leanTarget": 0.0092973643304859,
+          "lateralDemand": 0.16720927640403918,
+          "forwardSpeed": 31.66304745105731,
+          "longitudinalCorrection": -0.00002075329031946592,
+          "groundSteer": 0.0025069105352541585,
+          "frontOmega": 104.10207956167172,
+          "rearOmega": 101.03993695024194
+        }
+      }
+    },
+    "typed": {
+      "id": 2,
+      "t": 5.490866049231652,
+      "s": 39.53123034585178,
+      "input": {
+        "lean": 0.009427968403849837,
+        "throttle": 0.6134790481392085,
+        "frontBrake": 0,
+        "rearBrake": 0,
+        "rider": 0.11741242955483086,
+        "drive": 2486.055918437141,
+        "engineBrake": 0
+      },
+      "dt": 0.004166666666666667,
+      "prior": {
+        "speed": 31.626820877553186,
+        "lean": 0.1108447953199498,
+        "leanRate": -0.5995166773898672,
+        "steer": 0.0007502181794396337,
+        "riderOffset": 0.03641433661624444,
+        "frontLoad": 192.5890983639913,
+        "rearLoad": 2221.212755532635,
+        "driveForce": 2375.3564990434,
+        "frontBrakeForce": 0,
+        "rearBrakeForce": 0,
+        "longitudinal": 8.689002093618637,
+        "heading": -1.6523066396388366,
+        "x": 211.23038163573025,
+        "z": -430.274815074044,
+        "frontGrip": 0.9930607116327235,
+        "rearGrip": 0.9881034924635198,
+        "grip": 0.9881034924635198,
+        "state": "riding",
+        "pitch": 0,
+        "gp": {
+          "frontFy": 4.263924668006133,
+          "rearFy": 41.39476254391253,
+          "frontElasticStiffness": 6211.9837624592565,
+          "rearElasticStiffness": 53265.91049435491,
+          "lateralAcceleration": 0.1863765672763897,
+          "lateralSpeed": 0.258250305870965,
+          "yawRate": 0.025504659688681992,
+          "steerTrim": -0.0000709583524549433,
+          "leanTarget": 0.009297179516615281,
+          "lateralDemand": 0.14916415592938145,
+          "forwardSpeed": 31.626820877553186,
+          "longitudinalCorrection": -0.000011999984035065322,
+          "groundSteer": 0.0006894508027707553,
+          "frontOmega": 103.98366410323699,
+          "rearOmega": 100.92562092538854
+        }
+      },
+      "frontQueries": [
+        {
+          "args": [
+            -0.6165213987456211,
+            0.1108447953199498,
+            31.66302222211256,
+            0,
+            201.3485721814078,
+            1.7378562453572661
+          ],
+          "value": 0.002578331978790313,
+          "yaw": 0.025504659688681992,
+          "side": 0.258250305870965,
+          "trim": -0.00007142144352575278,
+          "bikeSpeed": 31.66302222211256
+        }
+      ],
+      "rearQueries": [
+        {
+          "args": [
+            2239.54115246868,
+            1.7291811118111597,
+            0.1108447953199498,
+            31.66302222211256,
+            2375.4719357980894,
+            0.004166666666666667
+          ],
+          "value": 35.223545484809875,
+          "yaw": 0.025504659688681992,
+          "side": 0.258250305870965,
+          "trim": -0.00007142144352575278,
+          "bikeSpeed": 31.66302222211256
+        }
+      ],
+      "planned": 0.16720927642290026,
+      "plant": {
+        "dt": 0.004166666666666667,
+        "speed": 31.66302222211256,
+        "mass": 244.98080190070803,
+        "lean": 0.1108447953199498,
+        "steer": 0.0027286768668086077,
+        "frontLoad": 201.3485721814078,
+        "rearLoad": 2239.54115246868,
+        "frontMu": 1.7378562453572661,
+        "rearMu": 1.7291811118111597,
+        "frontFx": 0,
+        "rearFx": 2375.4719357980894,
+        "frontContact": 1,
+        "frontBrakeExcess": 0,
+        "rearDriveExcess": 0,
+        "rearBrakeExcess": 0,
+        "inertialContacts": true
+      },
+      "beforePlant": {
+        "speed": 31.66302222211256,
+        "lean": 0.1108447953199498,
+        "leanRate": -0.5995166773898672,
+        "steer": 0.0027286768668086077,
+        "riderOffset": 0.035223728866449255,
+        "frontLoad": 201.3485721814078,
+        "rearLoad": 2239.54115246868,
+        "driveForce": 2375.4719357980894,
+        "frontBrakeForce": 0,
+        "rearBrakeForce": 0,
+        "longitudinal": 8.688322694249987,
+        "heading": -1.6523066396388366,
+        "x": 211.23038163573025,
+        "z": -430.274815074044,
+        "frontGrip": 0.9930607116327235,
+        "rearGrip": 0.9881034924635198,
+        "grip": 0.9881034924635198,
+        "state": "riding",
+        "pitch": 0,
+        "gp": {
+          "frontFy": 4.263924668006133,
+          "rearFy": 41.39476254391253,
+          "frontElasticStiffness": 6211.9837624592565,
+          "rearElasticStiffness": 53265.91049435491,
+          "lateralAcceleration": 0.1863765672763897,
+          "lateralSpeed": 0.258250305870965,
+          "yawRate": 0.025504659688681992,
+          "steerTrim": -0.00007142144352575278,
+          "leanTarget": 0.009297364330978396,
+          "lateralDemand": 0.16720927642290026,
+          "forwardSpeed": 31.626820877553186,
+          "longitudinalCorrection": -0.000011999984035065322,
+          "groundSteer": 0.0006894508027707553,
+          "frontOmega": 103.98366410323699,
+          "rearOmega": 100.92562092538854
+        }
+      },
+      "after": {
+        "speed": 31.663047451058404,
+        "lean": 0.10885911389207929,
+        "leanRate": -0.5917596148408207,
+        "steer": 0.0027286768668086077,
+        "riderOffset": 0.035223728866449255,
+        "frontLoad": 201.3485721814078,
+        "rearLoad": 2239.54115246868,
+        "driveForce": 2375.4719357980894,
+        "frontBrakeForce": 0,
+        "rearBrakeForce": 0,
+        "longitudinal": 8.688301940959667,
+        "heading": -1.6522082610132773,
+        "x": 211.09880257223898,
+        "z": -430.2844816639793,
+        "frontGrip": 0.9930607116327235,
+        "rearGrip": 0.9881034924635198,
+        "grip": 0.9881034924635198,
+        "state": "riding",
+        "pitch": 0,
+        "gp": {
+          "frontFy": 2.0280592221086335,
+          "rearFy": 35.223545484809875,
+          "frontElasticStiffness": 6459.945988322028,
+          "rearElasticStiffness": 53652.51703022076,
+          "lateralAcceleration": 0.15205925544014331,
+          "lateralSpeed": 0.2557689202554505,
+          "yawRate": 0.023610870134207092,
+          "steerTrim": -0.00007142144352575278,
+          "leanTarget": 0.009297364330978396,
+          "lateralDemand": 0.16720927642290026,
+          "forwardSpeed": 31.663047451058404,
+          "longitudinalCorrection": -0.000020753290320213314,
+          "groundSteer": 0.00250691053526456,
+          "frontOmega": 104.10207956167532,
+          "rearOmega": 101.03993695024552
+        }
+      }
+    }
+  },
+  "firstPlant": {
+    "outerStep": 776,
+    "index": 1,
+    "differences": [
+      {
+        "path": "plant.steer",
+        "wrapper": 0.014567089988760483,
+        "typed": 0.014567089988760488,
+        "delta": 5.204170427930421e-18,
+        "relative": 5.204170427930421e-18
+      }
+    ],
+    "wrapper": {
+      "id": 2,
+      "t": 0.6908660492317624,
+      "s": 3955.8220983721385,
+      "input": {
+        "lean": -0.06286253020447059,
+        "throttle": 0.5871422915099408,
+        "frontBrake": 0,
+        "rearBrake": 0,
+        "rider": 0,
+        "drive": 1725.6250122632393,
+        "engineBrake": 0
+      },
+      "dt": 0.004166666666666667,
+      "prior": {
+        "speed": 3.087604459157546,
+        "lean": -0.001645572253296274,
+        "leanRate": -0.04006166613955557,
+        "steer": 0.016603940214674665,
+        "riderOffset": 0,
+        "frontLoad": 380.07368151141713,
+        "rearLoad": 2012.3765438986172,
+        "driveForce": 1781.9048593834423,
+        "frontBrakeForce": 0,
+        "rearBrakeForce": 0,
+        "longitudinal": 7.10342624879466,
+        "heading": -1.9073666294815739,
+        "x": 290.574779354642,
+        "z": -410.7347341434856,
+        "frontGrip": 0.993636640190718,
+        "rearGrip": 0.9883672003518036,
+        "grip": 0.9883672003518036,
+        "state": "riding",
+        "pitch": 0,
+        "gp": {
+          "frontFy": 127.65263591055603,
+          "rearFy": -18.15801087197113,
+          "frontElasticStiffness": 11302.87883539473,
+          "rearElasticStiffness": 48840.93316248182,
+          "lateralAcceleration": 0.44686271054854554,
+          "lateralSpeed": 0.03379127477203993,
+          "yawRate": 0.03858218038299976,
+          "steerTrim": 0.0037245468509014383,
+          "leanTarget": -0.0614105188937244,
+          "lateralDemand": 1.2143054003134865,
+          "forwardSpeed": 3.087604459157546,
+          "longitudinalCorrection": -0.007899216393290075,
+          "groundSteer": 0.01516112239254771,
+          "frontOmega": 10.045321589545779,
+          "rearOmega": 9.73467565667788
+        }
+      },
+      "frontQueries": [
+        {
+          "args": [
+            433.1391380992924,
+            -0.001645572253296274,
+            3.087604459157546,
+            0,
+            396.78213520906934,
+            1.7388641203337565
+          ],
+          "value": 0.061621424485798215,
+          "yaw": 0.03858218038299976,
+          "side": 0.03379127477203993,
+          "trim": 0.005691385162641113,
+          "bikeSpeed": 3.087604459157546
+        },
+        {
+          "args": [
+            432.0019210644943,
+            -0.001645572253296274,
+            3.1162771766642625,
+            0,
+            396.78213520906934,
+            1.7388641203337565
+          ],
+          "value": 0.06129608399988139,
+          "yaw": 0.03858218038299976,
+          "side": 0.03379127477203993,
+          "trim": 0.005691385162641113,
+          "bikeSpeed": 3.1162771766642625
+        }
+      ],
+      "rearQueries": [
+        {
+          "args": [
+            1995.2389748280978,
+            1.7296426006156562,
+            -0.001645572253296274,
+            3.087604459157546,
+            1781.9048593834423,
+            0.004166666666666667
+          ],
+          "value": -21.234091972710928,
+          "yaw": 0.03858218038299976,
+          "side": 0.03379127477203993,
+          "trim": 0.005691385162641113,
+          "bikeSpeed": 3.087604459157546
+        },
+        {
+          "args": [
+            1995.2389748280978,
+            1.7296426006156562,
+            -0.001645572253296274,
+            3.1162771766642625,
+            1725.6250122632393,
+            0.004166666666666667
+          ],
+          "value": -21.24204837394247,
+          "yaw": 0.03858218038299976,
+          "side": 0.03379127477203993,
+          "trim": 0.005691385162641113,
+          "bikeSpeed": 3.1162771766642625
+        }
+      ],
+      "plant": {
+        "dt": 0.004166666666666667,
+        "speed": 3.1162771766642625,
+        "mass": 244.9968319891073,
+        "lean": -0.001645572253296274,
+        "steer": 0.014567089988760483,
+        "frontLoad": 396.78213520906934,
+        "rearLoad": 1995.2389748280978,
+        "frontMu": 1.7388641203337565,
+        "rearMu": 1.7296426006156562,
+        "frontFx": 0,
+        "rearFx": 1725.6250122632393,
+        "frontContact": 1,
+        "frontBrakeExcess": 0,
+        "rearDriveExcess": 0,
+        "rearBrakeExcess": 0,
+        "inertialContacts": true
+      },
+      "beforePlant": {
+        "speed": 3.1162771766642625,
+        "lean": -0.001645572253296274,
+        "leanRate": -0.04006166613955557,
+        "steer": 0.014567089988760483,
+        "riderOffset": 0,
+        "frontLoad": 396.78213520906934,
+        "rearLoad": 1995.2389748280978,
+        "driveForce": 1725.6250122632393,
+        "frontBrakeForce": 0,
+        "rearBrakeForce": 0,
+        "longitudinal": 6.88145220161193,
+        "heading": -1.9073666294815739,
+        "x": 290.574779354642,
+        "z": -410.7347341434856,
+        "frontGrip": 0.993636640190718,
+        "rearGrip": 0.9883672003518036,
+        "grip": 0.9883672003518036,
+        "state": "riding",
+        "pitch": 0,
+        "gp": {
+          "frontFy": 127.65263591055603,
+          "rearFy": -18.15801087197113,
+          "frontElasticStiffness": 11302.87883539473,
+          "rearElasticStiffness": 48840.93316248182,
+          "lateralAcceleration": 0.44686271054854554,
+          "lateralSpeed": 0.03379127477203993,
+          "yawRate": 0.03858218038299976,
+          "steerTrim": 0.005691385162641113,
+          "leanTarget": -0.061465739949362795,
+          "lateralDemand": 1.222743906137889,
+          "forwardSpeed": 3.087604459157546,
+          "longitudinalCorrection": -0.007899216393290075,
+          "groundSteer": 0.01516112239254771,
+          "frontOmega": 10.045321589545779,
+          "rearOmega": 9.73467565667788
+        }
+      },
+      "after": {
+        "speed": 3.1162565259247827,
+        "lean": -0.0018169918877937964,
+        "leanRate": -0.04114071227940538,
+        "steer": 0.014567089988760483,
+        "riderOffset": 0,
+        "frontLoad": 396.78213520906934,
+        "rearLoad": 1995.2389748280978,
+        "driveForce": 1725.6250122632393,
+        "frontBrakeForce": 0,
+        "rearBrakeForce": 0,
+        "longitudinal": 6.874869507014622,
+        "heading": -1.907174052296233,
+        "x": 290.5624746578772,
+        "z": -410.7388826701999,
+        "frontGrip": 0.993636640190718,
+        "rearGrip": 0.9883672003518036,
+        "grip": 0.9883672003518036,
+        "state": "riding",
+        "pitch": 0,
+        "gp": {
+          "frontFy": 121.25101989452203,
+          "rearFy": -21.24204837394247,
+          "frontElasticStiffness": 11738.999780750479,
+          "rearElasticStiffness": 48474.70815378386,
+          "lateralAcceleration": 0.4081613825277835,
+          "lateralSpeed": 0.03489182793938467,
+          "yawRate": 0.046218524481782895,
+          "steerTrim": 0.005691385162641113,
+          "leanTarget": -0.061465739949362795,
+          "lateralDemand": 1.222743906137889,
+          "forwardSpeed": 3.1162565259247827,
+          "longitudinalCorrection": -0.006582694597308455,
+          "groundSteer": 0.013301223195203684,
+          "frontOmega": 10.145726789936646,
+          "rearOmega": 9.828608560558278
+        }
+      }
+    },
+    "typed": {
+      "id": 2,
+      "t": 0.6908660492317624,
+      "s": 3955.8220983721385,
+      "input": {
+        "lean": -0.06286253020447059,
+        "throttle": 0.5871422915099408,
+        "frontBrake": 0,
+        "rearBrake": 0,
+        "rider": 0,
+        "drive": 1725.6250122632393,
+        "engineBrake": 0
+      },
+      "dt": 0.004166666666666667,
+      "prior": {
+        "speed": 3.087604459157546,
+        "lean": -0.001645572253296274,
+        "leanRate": -0.04006166613955557,
+        "steer": 0.016603940214674665,
+        "riderOffset": 0,
+        "frontLoad": 380.07368151141713,
+        "rearLoad": 2012.3765438986172,
+        "driveForce": 1781.9048593834423,
+        "frontBrakeForce": 0,
+        "rearBrakeForce": 0,
+        "longitudinal": 7.10342624879466,
+        "heading": -1.9073666294815739,
+        "x": 290.574779354642,
+        "z": -410.7347341434856,
+        "frontGrip": 0.993636640190718,
+        "rearGrip": 0.9883672003518036,
+        "grip": 0.9883672003518036,
+        "state": "riding",
+        "pitch": 0,
+        "gp": {
+          "frontFy": 127.65263591055603,
+          "rearFy": -18.15801087197113,
+          "frontElasticStiffness": 11302.87883539473,
+          "rearElasticStiffness": 48840.93316248182,
+          "lateralAcceleration": 0.44686271054854554,
+          "lateralSpeed": 0.03379127477203993,
+          "yawRate": 0.03858218038299976,
+          "steerTrim": 0.0037245468509014383,
+          "leanTarget": -0.0614105188937244,
+          "lateralDemand": 1.2143054003134865,
+          "forwardSpeed": 3.087604459157546,
+          "longitudinalCorrection": -0.007899216393290075,
+          "groundSteer": 0.01516112239254771,
+          "frontOmega": 10.045321589545779,
+          "rearOmega": 9.73467565667788
+        }
+      },
+      "frontQueries": [
+        {
+          "args": [
+            432.0019210644943,
+            -0.001645572253296274,
+            3.1162771766642625,
+            0,
+            396.78213520906934,
+            1.7388641203337565
+          ],
+          "value": 0.06129608399988139,
+          "yaw": 0.03858218038299976,
+          "side": 0.03379127477203993,
+          "trim": 0.005691385162641113,
+          "bikeSpeed": 3.1162771766642625
+        }
+      ],
+      "rearQueries": [
+        {
+          "args": [
+            1995.2389748280978,
+            1.7296426006156562,
+            -0.001645572253296274,
+            3.1162771766642625,
+            1725.6250122632393,
+            0.004166666666666667
+          ],
+          "value": -21.24204837394247,
+          "yaw": 0.03858218038299976,
+          "side": 0.03379127477203993,
+          "trim": 0.005691385162641113,
+          "bikeSpeed": 3.1162771766642625
+        }
+      ],
+      "planned": 1.222743906137889,
+      "plant": {
+        "dt": 0.004166666666666667,
+        "speed": 3.1162771766642625,
+        "mass": 244.9968319891073,
+        "lean": -0.001645572253296274,
+        "steer": 0.014567089988760488,
+        "frontLoad": 396.78213520906934,
+        "rearLoad": 1995.2389748280978,
+        "frontMu": 1.7388641203337565,
+        "rearMu": 1.7296426006156562,
+        "frontFx": 0,
+        "rearFx": 1725.6250122632393,
+        "frontContact": 1,
+        "frontBrakeExcess": 0,
+        "rearDriveExcess": 0,
+        "rearBrakeExcess": 0,
+        "inertialContacts": true
+      },
+      "beforePlant": {
+        "speed": 3.1162771766642625,
+        "lean": -0.001645572253296274,
+        "leanRate": -0.04006166613955557,
+        "steer": 0.014567089988760488,
+        "riderOffset": 0,
+        "frontLoad": 396.78213520906934,
+        "rearLoad": 1995.2389748280978,
+        "driveForce": 1725.6250122632393,
+        "frontBrakeForce": 0,
+        "rearBrakeForce": 0,
+        "longitudinal": 6.88145220161193,
+        "heading": -1.9073666294815739,
+        "x": 290.574779354642,
+        "z": -410.7347341434856,
+        "frontGrip": 0.993636640190718,
+        "rearGrip": 0.9883672003518036,
+        "grip": 0.9883672003518036,
+        "state": "riding",
+        "pitch": 0,
+        "gp": {
+          "frontFy": 127.65263591055603,
+          "rearFy": -18.15801087197113,
+          "frontElasticStiffness": 11302.87883539473,
+          "rearElasticStiffness": 48840.93316248182,
+          "lateralAcceleration": 0.44686271054854554,
+          "lateralSpeed": 0.03379127477203993,
+          "yawRate": 0.03858218038299976,
+          "steerTrim": 0.005691385162641113,
+          "leanTarget": -0.061465739949362795,
+          "lateralDemand": 1.222743906137889,
+          "forwardSpeed": 3.087604459157546,
+          "longitudinalCorrection": -0.007899216393290075,
+          "groundSteer": 0.01516112239254771,
+          "frontOmega": 10.045321589545779,
+          "rearOmega": 9.73467565667788
+        }
+      },
+      "after": {
+        "speed": 3.1162565259247827,
+        "lean": -0.0018169918877937964,
+        "leanRate": -0.04114071227940538,
+        "steer": 0.014567089988760488,
+        "riderOffset": 0,
+        "frontLoad": 396.78213520906934,
+        "rearLoad": 1995.2389748280978,
+        "driveForce": 1725.6250122632393,
+        "frontBrakeForce": 0,
+        "rearBrakeForce": 0,
+        "longitudinal": 6.874869507014622,
+        "heading": -1.907174052296233,
+        "x": 290.5624746578772,
+        "z": -410.7388826701999,
+        "frontGrip": 0.993636640190718,
+        "rearGrip": 0.9883672003518036,
+        "grip": 0.9883672003518036,
+        "state": "riding",
+        "pitch": 0,
+        "gp": {
+          "frontFy": 121.25101989452203,
+          "rearFy": -21.24204837394247,
+          "frontElasticStiffness": 11738.999780750479,
+          "rearElasticStiffness": 48474.70815378386,
+          "lateralAcceleration": 0.4081613825277835,
+          "lateralSpeed": 0.03489182793938467,
+          "yawRate": 0.046218524481782895,
+          "steerTrim": 0.005691385162641113,
+          "leanTarget": -0.061465739949362795,
+          "lateralDemand": 1.222743906137889,
+          "forwardSpeed": 3.1162565259247827,
+          "longitudinalCorrection": -0.006582694597308457,
+          "groundSteer": 0.01330122319520369,
+          "frontOmega": 10.145726789936646,
+          "rearOmega": 9.828608560558278
+        }
+      }
+    }
+  },
+  "firstPhysical": {
+    "outerStep": 776,
+    "index": 1,
+    "differences": [
+      {
+        "path": "after.steer",
+        "wrapper": 0.014567089988760483,
+        "typed": 0.014567089988760488,
+        "delta": 5.204170427930421e-18,
+        "relative": 5.204170427930421e-18
+      },
+      {
+        "path": "after.gp.longitudinalCorrection",
+        "wrapper": -0.006582694597308455,
+        "typed": -0.006582694597308457,
+        "delta": -1.734723475976807e-18,
+        "relative": 1.734723475976807e-18
+      },
+      {
+        "path": "after.gp.groundSteer",
+        "wrapper": 0.013301223195203684,
+        "typed": 0.01330122319520369,
+        "delta": 5.204170427930421e-18,
+        "relative": 5.204170427930421e-18
+      }
+    ],
+    "wrapper": {
+      "id": 2,
+      "t": 0.6908660492317624,
+      "s": 3955.8220983721385,
+      "input": {
+        "lean": -0.06286253020447059,
+        "throttle": 0.5871422915099408,
+        "frontBrake": 0,
+        "rearBrake": 0,
+        "rider": 0,
+        "drive": 1725.6250122632393,
+        "engineBrake": 0
+      },
+      "dt": 0.004166666666666667,
+      "prior": {
+        "speed": 3.087604459157546,
+        "lean": -0.001645572253296274,
+        "leanRate": -0.04006166613955557,
+        "steer": 0.016603940214674665,
+        "riderOffset": 0,
+        "frontLoad": 380.07368151141713,
+        "rearLoad": 2012.3765438986172,
+        "driveForce": 1781.9048593834423,
+        "frontBrakeForce": 0,
+        "rearBrakeForce": 0,
+        "longitudinal": 7.10342624879466,
+        "heading": -1.9073666294815739,
+        "x": 290.574779354642,
+        "z": -410.7347341434856,
+        "frontGrip": 0.993636640190718,
+        "rearGrip": 0.9883672003518036,
+        "grip": 0.9883672003518036,
+        "state": "riding",
+        "pitch": 0,
+        "gp": {
+          "frontFy": 127.65263591055603,
+          "rearFy": -18.15801087197113,
+          "frontElasticStiffness": 11302.87883539473,
+          "rearElasticStiffness": 48840.93316248182,
+          "lateralAcceleration": 0.44686271054854554,
+          "lateralSpeed": 0.03379127477203993,
+          "yawRate": 0.03858218038299976,
+          "steerTrim": 0.0037245468509014383,
+          "leanTarget": -0.0614105188937244,
+          "lateralDemand": 1.2143054003134865,
+          "forwardSpeed": 3.087604459157546,
+          "longitudinalCorrection": -0.007899216393290075,
+          "groundSteer": 0.01516112239254771,
+          "frontOmega": 10.045321589545779,
+          "rearOmega": 9.73467565667788
+        }
+      },
+      "frontQueries": [
+        {
+          "args": [
+            433.1391380992924,
+            -0.001645572253296274,
+            3.087604459157546,
+            0,
+            396.78213520906934,
+            1.7388641203337565
+          ],
+          "value": 0.061621424485798215,
+          "yaw": 0.03858218038299976,
+          "side": 0.03379127477203993,
+          "trim": 0.005691385162641113,
+          "bikeSpeed": 3.087604459157546
+        },
+        {
+          "args": [
+            432.0019210644943,
+            -0.001645572253296274,
+            3.1162771766642625,
+            0,
+            396.78213520906934,
+            1.7388641203337565
+          ],
+          "value": 0.06129608399988139,
+          "yaw": 0.03858218038299976,
+          "side": 0.03379127477203993,
+          "trim": 0.005691385162641113,
+          "bikeSpeed": 3.1162771766642625
+        }
+      ],
+      "rearQueries": [
+        {
+          "args": [
+            1995.2389748280978,
+            1.7296426006156562,
+            -0.001645572253296274,
+            3.087604459157546,
+            1781.9048593834423,
+            0.004166666666666667
+          ],
+          "value": -21.234091972710928,
+          "yaw": 0.03858218038299976,
+          "side": 0.03379127477203993,
+          "trim": 0.005691385162641113,
+          "bikeSpeed": 3.087604459157546
+        },
+        {
+          "args": [
+            1995.2389748280978,
+            1.7296426006156562,
+            -0.001645572253296274,
+            3.1162771766642625,
+            1725.6250122632393,
+            0.004166666666666667
+          ],
+          "value": -21.24204837394247,
+          "yaw": 0.03858218038299976,
+          "side": 0.03379127477203993,
+          "trim": 0.005691385162641113,
+          "bikeSpeed": 3.1162771766642625
+        }
+      ],
+      "plant": {
+        "dt": 0.004166666666666667,
+        "speed": 3.1162771766642625,
+        "mass": 244.9968319891073,
+        "lean": -0.001645572253296274,
+        "steer": 0.014567089988760483,
+        "frontLoad": 396.78213520906934,
+        "rearLoad": 1995.2389748280978,
+        "frontMu": 1.7388641203337565,
+        "rearMu": 1.7296426006156562,
+        "frontFx": 0,
+        "rearFx": 1725.6250122632393,
+        "frontContact": 1,
+        "frontBrakeExcess": 0,
+        "rearDriveExcess": 0,
+        "rearBrakeExcess": 0,
+        "inertialContacts": true
+      },
+      "beforePlant": {
+        "speed": 3.1162771766642625,
+        "lean": -0.001645572253296274,
+        "leanRate": -0.04006166613955557,
+        "steer": 0.014567089988760483,
+        "riderOffset": 0,
+        "frontLoad": 396.78213520906934,
+        "rearLoad": 1995.2389748280978,
+        "driveForce": 1725.6250122632393,
+        "frontBrakeForce": 0,
+        "rearBrakeForce": 0,
+        "longitudinal": 6.88145220161193,
+        "heading": -1.9073666294815739,
+        "x": 290.574779354642,
+        "z": -410.7347341434856,
+        "frontGrip": 0.993636640190718,
+        "rearGrip": 0.9883672003518036,
+        "grip": 0.9883672003518036,
+        "state": "riding",
+        "pitch": 0,
+        "gp": {
+          "frontFy": 127.65263591055603,
+          "rearFy": -18.15801087197113,
+          "frontElasticStiffness": 11302.87883539473,
+          "rearElasticStiffness": 48840.93316248182,
+          "lateralAcceleration": 0.44686271054854554,
+          "lateralSpeed": 0.03379127477203993,
+          "yawRate": 0.03858218038299976,
+          "steerTrim": 0.005691385162641113,
+          "leanTarget": -0.061465739949362795,
+          "lateralDemand": 1.222743906137889,
+          "forwardSpeed": 3.087604459157546,
+          "longitudinalCorrection": -0.007899216393290075,
+          "groundSteer": 0.01516112239254771,
+          "frontOmega": 10.045321589545779,
+          "rearOmega": 9.73467565667788
+        }
+      },
+      "after": {
+        "speed": 3.1162565259247827,
+        "lean": -0.0018169918877937964,
+        "leanRate": -0.04114071227940538,
+        "steer": 0.014567089988760483,
+        "riderOffset": 0,
+        "frontLoad": 396.78213520906934,
+        "rearLoad": 1995.2389748280978,
+        "driveForce": 1725.6250122632393,
+        "frontBrakeForce": 0,
+        "rearBrakeForce": 0,
+        "longitudinal": 6.874869507014622,
+        "heading": -1.907174052296233,
+        "x": 290.5624746578772,
+        "z": -410.7388826701999,
+        "frontGrip": 0.993636640190718,
+        "rearGrip": 0.9883672003518036,
+        "grip": 0.9883672003518036,
+        "state": "riding",
+        "pitch": 0,
+        "gp": {
+          "frontFy": 121.25101989452203,
+          "rearFy": -21.24204837394247,
+          "frontElasticStiffness": 11738.999780750479,
+          "rearElasticStiffness": 48474.70815378386,
+          "lateralAcceleration": 0.4081613825277835,
+          "lateralSpeed": 0.03489182793938467,
+          "yawRate": 0.046218524481782895,
+          "steerTrim": 0.005691385162641113,
+          "leanTarget": -0.061465739949362795,
+          "lateralDemand": 1.222743906137889,
+          "forwardSpeed": 3.1162565259247827,
+          "longitudinalCorrection": -0.006582694597308455,
+          "groundSteer": 0.013301223195203684,
+          "frontOmega": 10.145726789936646,
+          "rearOmega": 9.828608560558278
+        }
+      }
+    },
+    "typed": {
+      "id": 2,
+      "t": 0.6908660492317624,
+      "s": 3955.8220983721385,
+      "input": {
+        "lean": -0.06286253020447059,
+        "throttle": 0.5871422915099408,
+        "frontBrake": 0,
+        "rearBrake": 0,
+        "rider": 0,
+        "drive": 1725.6250122632393,
+        "engineBrake": 0
+      },
+      "dt": 0.004166666666666667,
+      "prior": {
+        "speed": 3.087604459157546,
+        "lean": -0.001645572253296274,
+        "leanRate": -0.04006166613955557,
+        "steer": 0.016603940214674665,
+        "riderOffset": 0,
+        "frontLoad": 380.07368151141713,
+        "rearLoad": 2012.3765438986172,
+        "driveForce": 1781.9048593834423,
+        "frontBrakeForce": 0,
+        "rearBrakeForce": 0,
+        "longitudinal": 7.10342624879466,
+        "heading": -1.9073666294815739,
+        "x": 290.574779354642,
+        "z": -410.7347341434856,
+        "frontGrip": 0.993636640190718,
+        "rearGrip": 0.9883672003518036,
+        "grip": 0.9883672003518036,
+        "state": "riding",
+        "pitch": 0,
+        "gp": {
+          "frontFy": 127.65263591055603,
+          "rearFy": -18.15801087197113,
+          "frontElasticStiffness": 11302.87883539473,
+          "rearElasticStiffness": 48840.93316248182,
+          "lateralAcceleration": 0.44686271054854554,
+          "lateralSpeed": 0.03379127477203993,
+          "yawRate": 0.03858218038299976,
+          "steerTrim": 0.0037245468509014383,
+          "leanTarget": -0.0614105188937244,
+          "lateralDemand": 1.2143054003134865,
+          "forwardSpeed": 3.087604459157546,
+          "longitudinalCorrection": -0.007899216393290075,
+          "groundSteer": 0.01516112239254771,
+          "frontOmega": 10.045321589545779,
+          "rearOmega": 9.73467565667788
+        }
+      },
+      "frontQueries": [
+        {
+          "args": [
+            432.0019210644943,
+            -0.001645572253296274,
+            3.1162771766642625,
+            0,
+            396.78213520906934,
+            1.7388641203337565
+          ],
+          "value": 0.06129608399988139,
+          "yaw": 0.03858218038299976,
+          "side": 0.03379127477203993,
+          "trim": 0.005691385162641113,
+          "bikeSpeed": 3.1162771766642625
+        }
+      ],
+      "rearQueries": [
+        {
+          "args": [
+            1995.2389748280978,
+            1.7296426006156562,
+            -0.001645572253296274,
+            3.1162771766642625,
+            1725.6250122632393,
+            0.004166666666666667
+          ],
+          "value": -21.24204837394247,
+          "yaw": 0.03858218038299976,
+          "side": 0.03379127477203993,
+          "trim": 0.005691385162641113,
+          "bikeSpeed": 3.1162771766642625
+        }
+      ],
+      "planned": 1.222743906137889,
+      "plant": {
+        "dt": 0.004166666666666667,
+        "speed": 3.1162771766642625,
+        "mass": 244.9968319891073,
+        "lean": -0.001645572253296274,
+        "steer": 0.014567089988760488,
+        "frontLoad": 396.78213520906934,
+        "rearLoad": 1995.2389748280978,
+        "frontMu": 1.7388641203337565,
+        "rearMu": 1.7296426006156562,
+        "frontFx": 0,
+        "rearFx": 1725.6250122632393,
+        "frontContact": 1,
+        "frontBrakeExcess": 0,
+        "rearDriveExcess": 0,
+        "rearBrakeExcess": 0,
+        "inertialContacts": true
+      },
+      "beforePlant": {
+        "speed": 3.1162771766642625,
+        "lean": -0.001645572253296274,
+        "leanRate": -0.04006166613955557,
+        "steer": 0.014567089988760488,
+        "riderOffset": 0,
+        "frontLoad": 396.78213520906934,
+        "rearLoad": 1995.2389748280978,
+        "driveForce": 1725.6250122632393,
+        "frontBrakeForce": 0,
+        "rearBrakeForce": 0,
+        "longitudinal": 6.88145220161193,
+        "heading": -1.9073666294815739,
+        "x": 290.574779354642,
+        "z": -410.7347341434856,
+        "frontGrip": 0.993636640190718,
+        "rearGrip": 0.9883672003518036,
+        "grip": 0.9883672003518036,
+        "state": "riding",
+        "pitch": 0,
+        "gp": {
+          "frontFy": 127.65263591055603,
+          "rearFy": -18.15801087197113,
+          "frontElasticStiffness": 11302.87883539473,
+          "rearElasticStiffness": 48840.93316248182,
+          "lateralAcceleration": 0.44686271054854554,
+          "lateralSpeed": 0.03379127477203993,
+          "yawRate": 0.03858218038299976,
+          "steerTrim": 0.005691385162641113,
+          "leanTarget": -0.061465739949362795,
+          "lateralDemand": 1.222743906137889,
+          "forwardSpeed": 3.087604459157546,
+          "longitudinalCorrection": -0.007899216393290075,
+          "groundSteer": 0.01516112239254771,
+          "frontOmega": 10.045321589545779,
+          "rearOmega": 9.73467565667788
+        }
+      },
+      "after": {
+        "speed": 3.1162565259247827,
+        "lean": -0.0018169918877937964,
+        "leanRate": -0.04114071227940538,
+        "steer": 0.014567089988760488,
+        "riderOffset": 0,
+        "frontLoad": 396.78213520906934,
+        "rearLoad": 1995.2389748280978,
+        "driveForce": 1725.6250122632393,
+        "frontBrakeForce": 0,
+        "rearBrakeForce": 0,
+        "longitudinal": 6.874869507014622,
+        "heading": -1.907174052296233,
+        "x": 290.5624746578772,
+        "z": -410.7388826701999,
+        "frontGrip": 0.993636640190718,
+        "rearGrip": 0.9883672003518036,
+        "grip": 0.9883672003518036,
+        "state": "riding",
+        "pitch": 0,
+        "gp": {
+          "frontFy": 121.25101989452203,
+          "rearFy": -21.24204837394247,
+          "frontElasticStiffness": 11738.999780750479,
+          "rearElasticStiffness": 48474.70815378386,
+          "lateralAcceleration": 0.4081613825277835,
+          "lateralSpeed": 0.03489182793938467,
+          "yawRate": 0.046218524481782895,
+          "steerTrim": 0.005691385162641113,
+          "leanTarget": -0.061465739949362795,
+          "lateralDemand": 1.222743906137889,
+          "forwardSpeed": 3.1162565259247827,
+          "longitudinalCorrection": -0.006582694597308457,
+          "groundSteer": 0.01330122319520369,
+          "frontOmega": 10.145726789936646,
+          "rearOmega": 9.828608560558278
+        }
+      }
+    }
+  },
+  "largestDifferences": [
+    {
+      "path": "inverse.args.0",
+      "wrapper": -0.6897608021938919,
+      "typed": -0.6974275191556094,
+      "delta": -0.007666716961717501,
+      "relative": 0.007666716961717501,
+      "t": 9.490866049231425,
+      "id": 0
+    },
+    {
+      "path": "rearPreview.value",
+      "wrapper": -0.02784821863611686,
+      "typed": -0.03501871820466018,
+      "delta": -0.00717049956854332,
+      "relative": 0.00717049956854332,
+      "t": 9.524199382564756,
+      "id": 0
+    },
+    {
+      "path": "after.gp.rearFy",
+      "wrapper": -0.02784821863611686,
+      "typed": -0.03501871820466018,
+      "delta": -0.00717049956854332,
+      "relative": 0.00717049956854332,
+      "t": 9.524199382564756,
+      "id": 0
+    },
+    {
+      "path": "prior.gp.rearFy",
+      "wrapper": -0.02784821863611686,
+      "typed": -0.03501871820466018,
+      "delta": -0.00717049956854332,
+      "relative": 0.00717049956854332,
+      "t": 9.532532715898089,
+      "id": 0
+    },
+    {
+      "path": "beforePlant.gp.rearFy",
+      "wrapper": -0.02784821863611686,
+      "typed": -0.03501871820466018,
+      "delta": -0.00717049956854332,
+      "relative": 0.00717049956854332,
+      "t": 9.532532715898089,
+      "id": 0
+    },
+    {
+      "path": "after.gp.frontFy",
+      "wrapper": 0.3054713658970487,
+      "typed": 0.3120844498346542,
+      "delta": 0.006613083937605513,
+      "relative": 0.006613083937605513,
+      "t": 10.390866049231375,
+      "id": 0
+    },
+    {
+      "path": "prior.gp.frontFy",
+      "wrapper": 0.3054713658970487,
+      "typed": 0.3120844498346542,
+      "delta": 0.006613083937605513,
+      "relative": 0.006613083937605513,
+      "t": 10.399199382564708,
+      "id": 0
+    },
+    {
+      "path": "beforePlant.gp.frontFy",
+      "wrapper": 0.3054713658970487,
+      "typed": 0.3120844498346542,
+      "delta": 0.006613083937605513,
+      "relative": 0.006613083937605513,
+      "t": 10.399199382564708,
+      "id": 0
+    },
+    {
+      "path": "planned",
+      "wrapper": -2.624380206425866,
+      "typed": -2.630960552106408,
+      "delta": -0.006580345680541999,
+      "relative": 0.0025011190970817185,
+      "t": 8.482532715898149,
+      "id": 0
+    },
+    {
+      "path": "beforePlant.gp.lateralDemand",
+      "wrapper": 2.624380206425866,
+      "typed": 2.630960552106408,
+      "delta": 0.006580345680541999,
+      "relative": 0.0025011190970817185,
+      "t": 8.482532715898149,
+      "id": 0
+    },
+    {
+      "path": "after.gp.lateralDemand",
+      "wrapper": 2.624380206425866,
+      "typed": 2.630960552106408,
+      "delta": 0.006580345680541999,
+      "relative": 0.0025011190970817185,
+      "t": 8.482532715898149,
+      "id": 0
+    },
+    {
+      "path": "prior.gp.lateralDemand",
+      "wrapper": 2.624380206425866,
+      "typed": 2.630960552106408,
+      "delta": 0.006580345680541999,
+      "relative": 0.0025011190970817185,
+      "t": 8.482532715898149,
+      "id": 0
+    },
+    {
+      "path": "after.gp.lateralAcceleration",
+      "wrapper": -2.527473447316943,
+      "typed": -2.522786754100843,
+      "delta": 0.004686693216100046,
+      "relative": 0.001854299684562557,
+      "t": 8.474199382564816,
+      "id": 0
+    },
+    {
+      "path": "prior.gp.lateralAcceleration",
+      "wrapper": -2.527473447316943,
+      "typed": -2.522786754100843,
+      "delta": 0.004686693216100046,
+      "relative": 0.001854299684562557,
+      "t": 8.482532715898149,
+      "id": 0
+    },
+    {
+      "path": "beforePlant.gp.lateralAcceleration",
+      "wrapper": -2.527473447316943,
+      "typed": -2.522786754100843,
+      "delta": 0.004686693216100046,
+      "relative": 0.001854299684562557,
+      "t": 8.482532715898149,
+      "id": 0
+    },
+    {
+      "path": "after.gp.longitudinalCorrection",
+      "wrapper": -0.066331010254894,
+      "typed": -0.06548231613954465,
+      "delta": 0.0008486941153493521,
+      "relative": 0.0008486941153493521,
+      "t": 8.474199382564816,
+      "id": 0
+    },
+    {
+      "path": "prior.gp.longitudinalCorrection",
+      "wrapper": -0.066331010254894,
+      "typed": -0.06548231613954465,
+      "delta": 0.0008486941153493521,
+      "relative": 0.0008486941153493521,
+      "t": 8.482532715898149,
+      "id": 0
+    },
+    {
+      "path": "beforePlant.gp.longitudinalCorrection",
+      "wrapper": -0.066331010254894,
+      "typed": -0.06548231613954465,
+      "delta": 0.0008486941153493521,
+      "relative": 0.0008486941153493521,
+      "t": 8.482532715898149,
+      "id": 0
+    },
+    {
+      "path": "inverse.value",
+      "wrapper": -0.08657777897282277,
+      "typed": -0.0857778010039959,
+      "delta": 0.0007999779688268732,
+      "relative": 0.0007999779688268732,
+      "t": 8.45753271589815,
+      "id": 0
+    },
+    {
+      "path": "plant.steer",
+      "wrapper": -0.058740939413063284,
+      "typed": -0.059248073262704024,
+      "delta": -0.0005071338496407396,
+      "relative": 0.0005071338496407396,
+      "t": 8.482532715898149,
+      "id": 0
+    },
+    {
+      "path": "beforePlant.steer",
+      "wrapper": -0.058740939413063284,
+      "typed": -0.059248073262704024,
+      "delta": -0.0005071338496407396,
+      "relative": 0.0005071338496407396,
+      "t": 8.482532715898149,
+      "id": 0
+    },
+    {
+      "path": "after.steer",
+      "wrapper": -0.058740939413063284,
+      "typed": -0.059248073262704024,
+      "delta": -0.0005071338496407396,
+      "relative": 0.0005071338496407396,
+      "t": 8.482532715898149,
+      "id": 0
+    },
+    {
+      "path": "prior.steer",
+      "wrapper": -0.058740939413063284,
+      "typed": -0.059248073262704024,
+      "delta": -0.0005071338496407396,
+      "relative": 0.0005071338496407396,
+      "t": 8.482532715898149,
+      "id": 0
+    },
+    {
+      "path": "after.gp.groundSteer",
+      "wrapper": -0.05436592897124014,
+      "typed": -0.05483544897369134,
+      "delta": -0.0004695200024512,
+      "relative": 0.0004695200024512,
+      "t": 8.482532715898149,
+      "id": 0
+    },
+    {
+      "path": "prior.gp.groundSteer",
+      "wrapper": -0.05436592897124014,
+      "typed": -0.05483544897369134,
+      "delta": -0.0004695200024512,
+      "relative": 0.0004695200024512,
+      "t": 8.482532715898149,
+      "id": 0
+    },
+    {
+      "path": "beforePlant.gp.groundSteer",
+      "wrapper": -0.05436592897124014,
+      "typed": -0.05483544897369134,
+      "delta": -0.0004695200024512,
+      "relative": 0.0004695200024512,
+      "t": 8.482532715898149,
+      "id": 0
+    },
+    {
+      "path": "after.leanRate",
+      "wrapper": 0.6044839790761575,
+      "typed": 0.6049230969883278,
+      "delta": 0.00043911791217032814,
+      "relative": 0.00043911791217032814,
+      "t": 8.482532715898149,
+      "id": 0
+    },
+    {
+      "path": "prior.leanRate",
+      "wrapper": 0.6044839790761575,
+      "typed": 0.6049230969883278,
+      "delta": 0.00043911791217032814,
+      "relative": 0.00043911791217032814,
+      "t": 8.482532715898149,
+      "id": 0
+    },
+    {
+      "path": "beforePlant.leanRate",
+      "wrapper": 0.6044839790761575,
+      "typed": 0.6049230969883278,
+      "delta": 0.00043911791217032814,
+      "relative": 0.00043911791217032814,
+      "t": 8.482532715898149,
+      "id": 0
+    },
+    {
+      "path": "rearPreview.args.4",
+      "wrapper": 37.25212884258225,
+      "typed": 37.263279865915045,
+      "delta": 0.011151023332793386,
+      "relative": 0.0002992496466472694,
+      "t": 7.240866049231553,
+      "id": 0
+    }
+  ],
+  "checkpoints": [
+    {
+      "t": 0,
+      "wrapper": [
+        {
+          "id": 0,
+          "s": 3965.2786317442087,
+          "lateral": -2.1999569058437842,
+          "speed": 0,
+          "lean": 0,
+          "crashes": 0
+        },
+        {
+          "id": 2,
+          "s": 3955.27497200159,
+          "lateral": -2.199983272144607,
+          "speed": 0,
+          "lean": 0,
+          "crashes": 0
+        },
+        {
+          "id": 4,
+          "s": 3945.2704620734476,
+          "lateral": -2.1999989192066502,
+          "speed": 0,
+          "lean": 0,
+          "crashes": 0
+        }
+      ],
+      "typed": [
+        {
+          "id": 0,
+          "s": 3965.2786317442087,
+          "lateral": -2.1999569058437842,
+          "speed": 0,
+          "lean": 0,
+          "crashes": 0
+        },
+        {
+          "id": 2,
+          "s": 3955.27497200159,
+          "lateral": -2.199983272144607,
+          "speed": 0,
+          "lean": 0,
+          "crashes": 0
+        },
+        {
+          "id": 4,
+          "s": 3945.2704620734476,
+          "lateral": -2.1999989192066502,
+          "speed": 0,
+          "lean": 0,
+          "crashes": 0
+        }
+      ]
+    },
+    {
+      "t": 1.0075327158984448,
+      "wrapper": [
+        {
+          "id": 0,
+          "s": 3966.938949858215,
+          "lateral": -2.180364184843989,
+          "speed": 5.564469806354942,
+          "lean": -0.02686285174098209,
+          "crashes": 0
+        },
+        {
+          "id": 2,
+          "s": 3957.055257577962,
+          "lateral": -2.1696165619613845,
+          "speed": 4.712488416283416,
+          "lean": -0.031118908846089716,
+          "crashes": 0
+        },
+        {
+          "id": 4,
+          "s": 3946.8227082609237,
+          "lateral": -2.1755166231351493,
+          "speed": 4.769579111050099,
+          "lean": -0.024985016135143444,
+          "crashes": 0
+        }
+      ],
+      "typed": [
+        {
+          "id": 0,
+          "s": 3966.938949858215,
+          "lateral": -2.180364184843989,
+          "speed": 5.564469806354942,
+          "lean": -0.02686285174098208,
+          "crashes": 0
+        },
+        {
+          "id": 2,
+          "s": 3957.055257577962,
+          "lateral": -2.1696165619613845,
+          "speed": 4.712488416283417,
+          "lean": -0.031118908846089716,
+          "crashes": 0
+        },
+        {
+          "id": 4,
+          "s": 3946.8227082609237,
+          "lateral": -2.1755166231351493,
+          "speed": 4.769579111050099,
+          "lean": -0.024985016135143444,
+          "crashes": 0
+        }
+      ]
+    },
+    {
+      "t": 2.0075327158984946,
+      "wrapper": [
+        {
+          "id": 0,
+          "s": 3976.8322514764177,
+          "lateral": -2.6989853921290083,
+          "speed": 14.110719622793338,
+          "lean": -0.012954716436923946,
+          "crashes": 0
+        },
+        {
+          "id": 2,
+          "s": 3964.9320896128193,
+          "lateral": -2.494415497051788,
+          "speed": 11.619602106903706,
+          "lean": -0.09002213658598435,
+          "crashes": 0
+        },
+        {
+          "id": 4,
+          "s": 3953.613322374902,
+          "lateral": -2.4425600987892713,
+          "speed": 9.46211725893145,
+          "lean": -0.08986075520077032,
+          "crashes": 0
+        }
+      ],
+      "typed": [
+        {
+          "id": 0,
+          "s": 3976.8322514764177,
+          "lateral": -2.6989853921290083,
+          "speed": 14.110719622793335,
+          "lean": -0.012954716436922586,
+          "crashes": 0
+        },
+        {
+          "id": 2,
+          "s": 3964.9320896128193,
+          "lateral": -2.494415497051788,
+          "speed": 11.619602106903708,
+          "lean": -0.09002213658598414,
+          "crashes": 0
+        },
+        {
+          "id": 4,
+          "s": 3953.613322374902,
+          "lateral": -2.4425600987892713,
+          "speed": 9.462117258931452,
+          "lean": -0.08986075520077035,
+          "crashes": 0
+        }
+      ]
+    },
+    {
+      "t": 3.00753271589846,
+      "wrapper": [
+        {
+          "id": 0,
+          "s": 3993.4302735904494,
+          "lateral": -3.789181889936436,
+          "speed": 20.03650283030728,
+          "lean": 0.2220606286714159,
+          "crashes": 0
+        },
+        {
+          "id": 2,
+          "s": 3978.6937516645194,
+          "lateral": -4.117143341295993,
+          "speed": 15.117048378094049,
+          "lean": 0.30741468736634575,
+          "crashes": 0
+        },
+        {
+          "id": 4,
+          "s": 3965.234943533116,
+          "lateral": -4.095912185599346,
+          "speed": 12.312794087311097,
+          "lean": 0.2930844415203803,
+          "crashes": 0
+        }
+      ],
+      "typed": [
+        {
+          "id": 0,
+          "s": 3993.4302735904494,
+          "lateral": -3.7891818899363803,
+          "speed": 20.036502830307242,
+          "lean": 0.22206062867140366,
+          "crashes": 0
+        },
+        {
+          "id": 2,
+          "s": 3978.6937516645194,
+          "lateral": -4.117143341295993,
+          "speed": 15.117048378094044,
+          "lean": 0.3074146873663414,
+          "crashes": 0
+        },
+        {
+          "id": 4,
+          "s": 3965.234943533116,
+          "lateral": -4.095912185599328,
+          "speed": 12.312794087311097,
+          "lean": 0.29308444152037805,
+          "crashes": 0
+        }
+      ]
+    },
+    {
+      "t": 4.007532715898403,
+      "wrapper": [
+        {
+          "id": 0,
+          "s": 20.106049994544264,
+          "lateral": -3.7521991465801636,
+          "speed": 28.447515710585442,
+          "lean": 0.04999235963384991,
+          "crashes": 0
+        },
+        {
+          "id": 2,
+          "s": 0.03848792332519224,
+          "lateral": -2.984341188288892,
+          "speed": 22.62217028823148,
+          "lean": -0.15701582974513245,
+          "crashes": 0
+        },
+        {
+          "id": 4,
+          "s": 3980.4211869637948,
+          "lateral": -3.6366742379358747,
+          "speed": 18.438410917268936,
+          "lean": 0.06496992318541042,
+          "crashes": 0
+        }
+      ],
+      "typed": [
+        {
+          "id": 0,
+          "s": 20.10604999454381,
+          "lateral": -3.752199146580171,
+          "speed": 28.447515710584224,
+          "lean": 0.04999235963389693,
+          "crashes": 0
+        },
+        {
+          "id": 2,
+          "s": 0.03848792332519224,
+          "lateral": -2.984341188288886,
+          "speed": 22.622170288231683,
+          "lean": -0.1570158297451204,
+          "crashes": 0
+        },
+        {
+          "id": 4,
+          "s": 3980.4211869637948,
+          "lateral": -3.6366742379359693,
+          "speed": 18.438410917268886,
+          "lean": 0.06496992318542578,
+          "crashes": 0
+        }
+      ]
+    },
+    {
+      "t": 5.007532715898346,
+      "wrapper": [
+        {
+          "id": 0,
+          "s": 50.8461518237923,
+          "lateral": -6.122840285845462,
+          "speed": 34.32865930564211,
+          "lean": 0.3228149549158801,
+          "crashes": 0
+        },
+        {
+          "id": 2,
+          "s": 25.26835765691203,
+          "lateral": -4.767703181634413,
+          "speed": 28.113281960563192,
+          "lean": 0.38697513718219095,
+          "crashes": 0
+        },
+        {
+          "id": 4,
+          "s": 3.264948126600302,
+          "lateral": -2.5545621930223517,
+          "speed": 23.128824768935672,
+          "lean": 0.17847534091314077,
+          "crashes": 0
+        }
+      ],
+      "typed": [
+        {
+          "id": 0,
+          "s": 50.846151823789114,
+          "lateral": -6.122840285844489,
+          "speed": 34.32865930563398,
+          "lean": 0.32281495491649925,
+          "crashes": 0
+        },
+        {
+          "id": 2,
+          "s": 25.268357656912485,
+          "lateral": -4.767703181634337,
+          "speed": 28.113281960564144,
+          "lean": 0.3869751371821284,
+          "crashes": 0
+        },
+        {
+          "id": 4,
+          "s": 3.264948126600302,
+          "lateral": -2.554562193022068,
+          "speed": 23.128824768935612,
+          "lean": 0.17847534091308975,
+          "crashes": 0
+        }
+      ]
+    },
+    {
+      "t": 6.007532715898289,
+      "wrapper": [
+        {
+          "id": 0,
+          "s": 88.62824544645446,
+          "lateral": -7.368666418533297,
+          "speed": 42.01105558894475,
+          "lean": 0.20720074369256347,
+          "crashes": 0
+        },
+        {
+          "id": 2,
+          "s": 56.07222313092143,
+          "lateral": -5.364646387183391,
+          "speed": 32.603608210123745,
+          "lean": 0.08501830797733663,
+          "crashes": 0
+        },
+        {
+          "id": 4,
+          "s": 29.57359941544837,
+          "lateral": -0.518209521752138,
+          "speed": 30.2064483071303,
+          "lean": 0.048461005572635656,
+          "crashes": 0
+        }
+      ],
+      "typed": [
+        {
+          "id": 0,
+          "s": 88.62824544643809,
+          "lateral": -7.368666418641333,
+          "speed": 42.011055588957966,
+          "lean": 0.207200743871496,
+          "crashes": 0
+        },
+        {
+          "id": 2,
+          "s": 56.07222313092507,
+          "lateral": -5.3646463871845285,
+          "speed": 32.60360821012612,
+          "lean": 0.08501830797847208,
+          "crashes": 0
+        },
+        {
+          "id": 4,
+          "s": 29.57359941544746,
+          "lateral": -0.5182095217527457,
+          "speed": 30.206448307127342,
+          "lean": 0.04846100557303221,
+          "crashes": 0
+        }
+      ]
+    },
+    {
+      "t": 7.007532715898233,
+      "wrapper": [
+        {
+          "id": 0,
+          "s": 133.80335246606228,
+          "lateral": -8.133528205395821,
+          "speed": 47.84568561294161,
+          "lean": 0.22193354660018397,
+          "crashes": 0
+        },
+        {
+          "id": 2,
+          "s": 91.07050571940954,
+          "lateral": -6.789224740454996,
+          "speed": 38.74123622710615,
+          "lean": 0.20672357361550742,
+          "crashes": 0
+        },
+        {
+          "id": 4,
+          "s": 62.476962265269776,
+          "lateral": -0.5844701833776855,
+          "speed": 35.8354987556207,
+          "lean": 0.001091211107480547,
+          "crashes": 0
+        }
+      ],
+      "typed": [
+        {
+          "id": 0,
+          "s": 133.80335247950916,
+          "lateral": -8.133528195476902,
+          "speed": 47.845685758514286,
+          "lean": 0.22193353615863592,
+          "crashes": 0
+        },
+        {
+          "id": 2,
+          "s": 91.07050571917489,
+          "lateral": -6.789224740434512,
+          "speed": 38.74123622398832,
+          "lean": 0.20672357361316127,
+          "crashes": 0
+        },
+        {
+          "id": 4,
+          "s": 62.47696226525704,
+          "lateral": -0.5844701833700667,
+          "speed": 35.8354987555907,
+          "lean": 0.0010912111040239786,
+          "crashes": 0
+        }
+      ]
+    },
+    {
+      "t": 8.007532715898176,
+      "wrapper": [
+        {
+          "id": 0,
+          "s": 183.14894258390814,
+          "lateral": -6.740728053792867,
+          "speed": 51.444906289522024,
+          "lean": -0.27052459272428,
+          "crashes": 0
+        },
+        {
+          "id": 2,
+          "s": 133.69998261679848,
+          "lateral": -7.550715037369409,
+          "speed": 46.81541357199953,
+          "lean": 0.11770400067398482,
+          "crashes": 0
+        },
+        {
+          "id": 4,
+          "s": 101.74124532323185,
+          "lateral": -2.5677217777208887,
+          "speed": 42.71388954472014,
+          "lean": 0.1955933644602016,
+          "crashes": 0
+        }
+      ],
+      "typed": [
+        {
+          "id": 0,
+          "s": 183.14894320479107,
+          "lateral": -6.740728154151573,
+          "speed": 51.444907155720756,
+          "lean": -0.2705245678338721,
+          "crashes": 0
+        },
+        {
+          "id": 2,
+          "s": 133.69998261284582,
+          "lateral": -7.550715037384741,
+          "speed": 46.81541356693959,
+          "lean": 0.11770400034244984,
+          "crashes": 0
+        },
+        {
+          "id": 4,
+          "s": 101.74124532301903,
+          "lateral": -2.567721777739392,
+          "speed": 42.71388954362667,
+          "lean": 0.1955933644852177,
+          "crashes": 0
+        }
+      ]
+    },
+    {
+      "t": 9.007532715898119,
+      "wrapper": [
+        {
+          "id": 0,
+          "s": 238.23362383495623,
+          "lateral": -6.209166854440056,
+          "speed": 58.58732850731418,
+          "lean": 0.05121025644214378,
+          "crashes": 0
+        },
+        {
+          "id": 2,
+          "s": 181.97696210449158,
+          "lateral": -7.36476457692644,
+          "speed": 49.159270576240004,
+          "lean": -0.03979744066660593,
+          "crashes": 0
+        },
+        {
+          "id": 4,
+          "s": 147.4340161307273,
+          "lateral": -4.445154377974031,
+          "speed": 48.73620875052538,
+          "lean": -0.008390860750177465,
+          "crashes": 0
+        }
+      ],
+      "typed": [
+        {
+          "id": 0,
+          "s": 238.23362379333776,
+          "lateral": -6.209162729167718,
+          "speed": 58.5873267625895,
+          "lean": 0.05120935926300087,
+          "crashes": 0
+        },
+        {
+          "id": 2,
+          "s": 181.97696242786242,
+          "lateral": -7.36476458061786,
+          "speed": 49.159270953866205,
+          "lean": -0.039797441090469086,
+          "crashes": 0
+        },
+        {
+          "id": 4,
+          "s": 147.43401617650852,
+          "lateral": -4.445154379328703,
+          "speed": 48.736209062364466,
+          "lean": -0.008390860871131549,
+          "crashes": 0
+        }
+      ]
+    },
+    {
+      "t": 10.007532715898062,
+      "wrapper": [
+        {
+          "id": 0,
+          "s": 300.4327030559889,
+          "lateral": -5.499287189362126,
+          "speed": 65.86430224793637,
+          "lean": -0.10752558459404699,
+          "crashes": 0
+        },
+        {
+          "id": 2,
+          "s": 233.23170268977447,
+          "lateral": -6.085959964788169,
+          "speed": 53.365698224345635,
+          "lean": -0.0653475628147016,
+          "crashes": 0
+        },
+        {
+          "id": 4,
+          "s": 197.8970724295532,
+          "lateral": -5.973146862845911,
+          "speed": 52.23001819900773,
+          "lean": 0.09770942997677831,
+          "crashes": 0
+        }
+      ],
+      "typed": [
+        {
+          "id": 0,
+          "s": 300.43270256425603,
+          "lateral": -5.499285166160196,
+          "speed": 65.86430218262855,
+          "lean": -0.10752462067804233,
+          "crashes": 0
+        },
+        {
+          "id": 2,
+          "s": 233.2317025030925,
+          "lateral": -6.085960014475455,
+          "speed": 53.36569691666115,
+          "lean": -0.06534754774899632,
+          "crashes": 0
+        },
+        {
+          "id": 4,
+          "s": 197.8970724088431,
+          "lateral": -5.973146861184108,
+          "speed": 52.230017397358864,
+          "lean": 0.09770942912254993,
+          "crashes": 0
+        }
+      ]
+    },
+    {
+      "t": 11.007532715898007,
+      "wrapper": [
+        {
+          "id": 0,
+          "s": 368.6408854868723,
+          "lateral": -5.728079886169166,
+          "speed": 69.59847881025004,
+          "lean": 0.0009569841422419831,
+          "crashes": 0
+        },
+        {
+          "id": 2,
+          "s": 289.2579128466805,
+          "lateral": -5.251776990005448,
+          "speed": 58.623561478429174,
+          "lean": -0.042389080723167855,
+          "crashes": 0
+        },
+        {
+          "id": 4,
+          "s": 252.70184396362674,
+          "lateral": -5.1153636522018155,
+          "speed": 57.15881990566797,
+          "lean": -0.020442553723913022,
+          "crashes": 0
+        }
+      ],
+      "typed": [
+        {
+          "id": 0,
+          "s": 368.6408852245331,
+          "lateral": -5.728079632158366,
+          "speed": 69.5984790996864,
+          "lean": 0.0009566330269778003,
+          "crashes": 0
+        },
+        {
+          "id": 2,
+          "s": 289.2579116032193,
+          "lateral": -5.251776973871216,
+          "speed": 58.62356094023607,
+          "lean": -0.042389092259959,
+          "crashes": 0
+        },
+        {
+          "id": 4,
+          "s": 252.70184290224915,
+          "lateral": -5.115363658530478,
+          "speed": 57.15881910726191,
+          "lean": -0.020442551844403446,
+          "crashes": 0
+        }
+      ]
+    },
+    {
+      "t": 12.00753271589795,
+      "wrapper": [
+        {
+          "id": 0,
+          "s": 439.2381875231986,
+          "lateral": -5.504925695017258,
+          "speed": 71.3478378174079,
+          "lean": -0.20328000794664355,
+          "crashes": 0
+        },
+        {
+          "id": 2,
+          "s": 349.76247163888,
+          "lateral": -5.254121071985148,
+          "speed": 62.382967021384864,
+          "lean": -0.04341500865504854,
+          "crashes": 0
+        },
+        {
+          "id": 4,
+          "s": 311.79489792948334,
+          "lateral": -4.25576097543551,
+          "speed": 60.866496429454415,
+          "lean": 0.008046214587187885,
+          "crashes": 0
+        }
+      ],
+      "typed": [
+        {
+          "id": 0,
+          "s": 439.2381874394905,
+          "lateral": -5.504927371384668,
+          "speed": 71.34783799882672,
+          "lean": -0.20327942485560685,
+          "crashes": 0
+        },
+        {
+          "id": 2,
+          "s": 349.7624699012558,
+          "lateral": -5.25412101472975,
+          "speed": 62.38296648460149,
+          "lean": -0.04341501862404014,
+          "crashes": 0
+        },
+        {
+          "id": 4,
+          "s": 311.79489632476907,
+          "lateral": -4.25576095449798,
+          "speed": 60.86649594391678,
+          "lean": 0.008046213133777756,
+          "crashes": 0
+        }
+      ]
+    }
+  ]
+}

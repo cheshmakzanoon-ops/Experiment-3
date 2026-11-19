@@ -1,0 +1,130 @@
+{
+  "scope": "Exact shader-source attribution and CPU-only installed-Three cache/ownership proof. Candidate startup performance still requires the next unchanged High WebGL acceptance run.",
+  "observedApplication": {
+    "commit": "152643b15f9b3b591e3477374c6b81f2e8b13bc9",
+    "fingerprint": "a5ced834693f7c3635d4d0228880e2f8b1879dd06b0a16daf7cff42db484f16e",
+    "runId": 44502345446,
+    "jobId": 135485069814,
+    "artifactId": 14519585445,
+    "artifactBytes": 107307170,
+    "artifactSha256": "baa3128098d81a9b4372cf04fdd2cde2b28a81dfe70ea30ba359feb4371c7649",
+    "result": "Original 90000ms paused-readiness predicate failed; no accepted High photo view."
+  },
+  "observation": {
+    "workerObserved": true,
+    "recordCount": 215,
+    "programSummaries": 32,
+    "firstChasePagePerformanceMs": 80819.80000000005,
+    "lastStarted": {
+      "sequence": 9078,
+      "atMs": 125625.70000000007,
+      "method": "linkProgram",
+      "program": 144,
+      "fragmentHash": "8a7c27ed",
+      "framebuffer": 141,
+      "cubeFace": 3553,
+      "mip": 0,
+      "viewport": [
+        0,
+        0,
+        768,
+        512
+      ],
+      "count": 0,
+      "instances": 1,
+      "numericArguments": [
+        -1,
+        -1,
+        -1,
+        -1
+      ],
+      "sourceBufferBytes": null,
+      "shader": 0,
+      "shaderType": 0,
+      "shaderHash": "00000000"
+    },
+    "lastCompleted": {
+      "sequence": 9078,
+      "atMs": 125625.70000000007,
+      "method": "linkProgram",
+      "cpuCallMs": 0,
+      "returned": true
+    },
+    "lastActivityInFlight": false,
+    "errors": [],
+    "limit": "The last linkProgram returned. getProgramInfoLog/getShaderInfoLog/uniform and attribute queries were not wrapped in this run. Their installed-Three first-use placement identifies the next synchronous-query path, but its elapsed duration was not directly measured."
+  },
+  "exactProgramAttribution": {
+    "name": "CubemapToCubeUV",
+    "installedThreeRevision": "180",
+    "observedFragmentHashFNV1a32": "8a7c27ed",
+    "constructedSources": [
+      {
+        "shader": "CubemapToCubeUV",
+        "type": 35633,
+        "hash": "276efedd",
+        "length": 2544
+      },
+      {
+        "shader": "CubemapToCubeUV",
+        "type": 35632,
+        "hash": "8a7c27ed",
+        "length": 2255
+      }
+    ],
+    "conversionViewport": [
+      0,
+      0,
+      768,
+      512
+    ],
+    "sourceFaceSize": 256,
+    "harness": "cubeuv-program-attribution.mjs",
+    "harnessSha256": "f5236dc013801df8f46e1821b02646745ce43015d3652a9c8a78781ea9b24fa2",
+    "threeBuildSha256": "c8211c69345d2e9949dc7a8ac969380497aa0600a5a8ac6a459c8cd02dd9cb8a",
+    "threeCoreSha256": "eb077d2417f61d3e6d9264c317cabc4ea35769ed6b0ab533067292a550784c20",
+    "driverExecuted": false
+  },
+  "candidate": {
+    "frozenSourceSha256": {
+      "src/rendering/reflections.ts": "e010ed76dea4dd6d2e172e1613e6a0933e1efa595ca2f79a6db30d2be75b1a18",
+      "src/rendering/renderer.ts": "703595682f42aefe5bee0721bc8466765dd594a947c49225f8a884badef334b4",
+      "e2e/graphics-high-journey.spec.ts": "1906b0a8e02806c900f9f09183d4a44fefe03f9b27af367581ba51105db00ff6",
+      "tests/reflection-preparation.test.ts": "88e915e18c09ac547cf8bad743153635b6bdf58d29ec07ee771284d328fa19b1",
+      "tests/vegetation-quality-transition.test.ts": "3391d03dbfa372f3601393bcc3ab8ca7e38fed97bf9ec224a4a051fbf57d5449"
+    },
+    "nativeCases": 5,
+    "scopeCases": 86,
+    "finalReentryCases": 20,
+    "scopeLog": "reflection-prewarm-86-tests.log",
+    "scopeLogSha256": "92e18eff29ecabf48d5465fb6bf5288cf1db0f882b0536cfdb8e45370be25f03",
+    "finalLog": "reflection-prewarm-final-20-tests.log",
+    "finalLogSha256": "4621add3b04e59ae295203504354dcf30e9598078bd4f9b225d110dc8f4a77be",
+    "fullTypecheckExitCode": 0,
+    "scopedEslintExitCode": 0,
+    "scopedPrettierExitCode": 0,
+    "playwrightListExitCode": 0,
+    "playwrightListTests": 1,
+    "liveBrowserLaunched": false,
+    "nativeContracts": [
+      "Late first-use metadata negative control on the installed cube-to-CubeUV consumer",
+      "Same native program handle and cache key reused after early metadata initialization",
+      "Independent reference ownership retained until each owner disposes",
+      "Linear target differs from the tone-mapped canvas variant",
+      "Target/face/mip/viewport/scissor restored on successful and interrupted preparation",
+      "Repeated and pending quality entry acquires no extra program reference",
+      "Cancelled High followed by Low performs no pending High metadata query; later High resumes it",
+      "No native query after retirement; replacement renderer owns a distinct live handle"
+    ]
+  },
+  "unchangedAcceptance": {
+    "width": 960,
+    "height": 600,
+    "quality": "high",
+    "pausedReadinessTimeoutMs": 90000,
+    "testTimeoutMs": 300000,
+    "initialProbeFaces": 6,
+    "gpuCompletionRequired": true,
+    "physicalHardwareValidated": false
+  }
+}

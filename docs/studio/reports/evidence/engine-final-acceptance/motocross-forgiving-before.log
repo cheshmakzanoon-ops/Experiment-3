@@ -1,0 +1,59 @@
+(node:5) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ RUN  v3.2.4 /workspace/scratch/d611aefdb08c/engine-final-validation
+
+ ❯ tests/motocross-forgiving-handling.test.ts (18 tests | 1 failed) 14760ms
+   ✓ motocross low-speed balance > player at 2 m/s turns and leans toward a held stick 281ms
+   ✓ motocross low-speed balance > player at 2.6 m/s turns and leans toward a held stick 60ms
+   ✓ motocross low-speed balance > player at 3 m/s turns and leans toward a held stick 41ms
+   ✓ motocross low-speed balance > player at 3.5 m/s turns and leans toward a held stick 37ms
+   ✓ motocross low-speed balance > player at 4 m/s turns and leans toward a held stick 39ms
+   ✓ motocross low-speed balance > player at 4.5 m/s turns and leans toward a held stick 44ms
+   ✓ motocross low-speed balance > player at 5 m/s turns and leans toward a held stick 44ms
+   ✓ motocross low-speed balance > player at 8 m/s turns and leans toward a held stick 46ms
+   ✓ motocross low-speed balance > player at 14 m/s turns and leans toward a held stick 58ms
+   ✓ motocross low-speed balance > leaves calibrated AI on the shared walking-pace blend 2ms
+   ✓ motocross low-speed balance > holds a tight feet-up turn at walking pace without falling or running wide 67ms
+   ✓ motocross low-speed balance > is opt-in: the standalone research core keeps its original walking-pace blend 7ms
+   ✓ motocross grip-loss allowance > without the allowance an overloaded front is an immediate lowside (unchanged) 5ms
+   ✓ motocross grip-loss allowance > rides through a brief patch and recovers the allowance afterwards 6ms
+   ✓ motocross grip-loss allowance > still goes down when the overload is held 5ms
+   ✓ motocross grip-loss allowance > spends the allowance faster the further past the limit the tyre is 7ms
+   × motocross ridden lap > valley-ridge-mx: the player solver completes a flying lap without a fall or a stall 6039ms
+     → expected [ { cause: 'grip-lowside', …(2) } ] to deeply equal []
+   ✓ motocross ridden lap > arena-nord-sx: the player solver completes a flying lap without a fall or a stall  7969ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/motocross-forgiving-handling.test.ts > motocross ridden lap > valley-ridge-mx: the player solver completes a flying lap without a fall or a stall
+AssertionError: expected [ { cause: 'grip-lowside', …(2) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "cause": "grip-lowside",
++     "s": 561.3679002107222,
++     "time": 56.40833333335126,
++   },
++ ]
+
+ ❯ tests/motocross-forgiving-handling.test.ts:196:36
+    194|       const run = lap(circuit);
+    195|       expect(run.completed).toBe(2);
+    196|       expect(run.bike.crashCauses).toEqual([]);
+       |                                    ^
+    197|       expect(run.bike.dynamics.crashes).toBe(0);
+    198|       expect(run.longestStall).toBeLessThan(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 17 passed (18)
+   Start at  00:55:26
+   Duration  17.26s (transform 1.27s, setup 0ms, collect 2.19s, tests 14.76s, environment 0ms, prepare 82ms)
+
