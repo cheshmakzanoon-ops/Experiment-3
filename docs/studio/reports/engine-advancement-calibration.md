@@ -125,3 +125,10 @@ Each engine aggregate hashes all 173 TypeScript files under `src/core` and `src/
 | `src/simulation/motogp-physics.ts`       | `c571841bfa76e9ab1e10d6d8d320df84b840f075f4f1bc6b9369a499945aac48` |
 
 The class hardware, springs, dampers and design bands describe the game's fictional machines. Passing them does not establish measured manufacturer calibration, complete spatial motorcycle physics, or a console rendering quality/performance result. The heave/pitch model remains a reduced model with point support and no unsprung tyre masses.
+
+
+## Reopened assignment 23: Arroyo event acceptance
+
+The later original full-race matrix exposed a transient-support control problem that the stable runway measurements did not exercise. The bounded follow-up corrects only ordinary-road roll-capacity admission: returning support must persist over the existing controller response, while actual contact forces and full arrest authority remain immediate. The original Arroyo Oro five-lap event improves from 29 falls to zero; all eight riders are classified, and every original event limit is unchanged. The four affected road bikes were remeasured at both timesteps: all 16 metric pairs pass, all eight runs have zero crashes, and their 32 values are bit-identical to the earlier table above. Focused checks pass 88/88, including 11 new transient/reset cases.
+
+See [arroyo-road-support-admission.md](arroyo-road-support-admission.md) and its numerical evidence for the causal trace, rejected hypotheses, exact source snapshot and final event result. The original 57-vehicle scope and source attribution in this report remain historical; the full 19-race and complete release gates belong to the independent integration reviewer.

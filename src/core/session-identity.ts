@@ -76,8 +76,10 @@ import {
  * heat; path-distance, grade and recovery-aware motorcycle braking; local road
  * contact ownership; finite-height/footprint Festival static contacts; and
  * catalogue suspension/intake/shift hardware response;
+ * v27: post-integration road-profile continuity and contact-budget control
+ * corrections. A v26 race or ghost cannot certify this corrected simulation;
  * prior records remain in their original physics category. */
-export const SIMULATION_VERSION = 26;
+export const SIMULATION_VERSION = 27;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 

@@ -156,8 +156,11 @@ describe('motocross grip-loss allowance', () => {
 });
 
 describe('motocross ridden lap', () => {
-  /** The course AI's inputs integrated by the player's own solver: the AI
-   * mark is withheld from the machine, nothing else differs from a race. */
+  /** Use the course planner for the ground route, integrated by the player's
+   * own contact and flight solver. Its AI mark stays withheld. In flight a
+   * ground lane correction means player bank/whip, and a ground front-brake
+   * request means pitch control; release those controls as a player riding
+   * a straight jump would. The normal Sport body/pitch aid remains active. */
   function lap(circuit: 'valley-ridge-mx' | 'arena-nord-sx') {
     const sim = new Simulation({
       ...DEFAULT_OPTIONS,
@@ -173,8 +176,19 @@ describe('motocross ridden lap', () => {
     sim.autoPlayer = true;
     const bike = sim.cars[0] as DirtBikeVehicle;
     bike.aiControlled = () => {};
+    const driver = sim.ai[0],
+      groundInputs = driver.update.bind(driver);
+    driver.update = (...args) => {
+      groundInputs(...args);
+      if (bike.airborne) {
+        bike.input.steer = 0;
+        bike.input.brake = 0;
+      }
+    };
     let stalled = 0,
       longestStall = 0,
+      playerSolver = true,
+      flightSteps = 0,
       t = 0;
     for (
       ;
@@ -183,10 +197,20 @@ describe('motocross ridden lap', () => {
     ) {
       sim.step(1 / 120);
       if (sim.race.phase !== PHASE.RACING) continue;
+      playerSolver &&=
+        bike.dynamics.p.lowSpeedBalance === true && (bike.dynamics.p.gripFallGrace ?? 0) > 0;
+      if (bike.airborne) flightSteps++;
       stalled = bike.riding && bike.dynamics.speed < 1 ? stalled + 1 / 120 : 0;
       longestStall = Math.max(longestStall, stalled);
     }
-    return { bike, completed: sim.race.laps[0].completed, longestStall, seconds: t };
+    return {
+      bike,
+      completed: sim.race.laps[0].completed,
+      longestStall,
+      seconds: t,
+      playerSolver,
+      flightSteps,
+    };
   }
 
   for (const circuit of ['valley-ridge-mx', 'arena-nord-sx'] as const)
@@ -196,5 +220,7 @@ describe('motocross ridden lap', () => {
       expect(run.bike.crashCauses).toEqual([]);
       expect(run.bike.dynamics.crashes).toBe(0);
       expect(run.longestStall).toBeLessThan(1);
+      expect(run.playerSolver).toBe(true);
+      expect(run.flightSteps).toBeGreaterThan(0);
     });
 });

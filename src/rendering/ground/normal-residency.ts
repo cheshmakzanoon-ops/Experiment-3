@@ -122,6 +122,11 @@ async function expandMipChain(renderer: T.WebGLRenderer, source: T.Texture, plan
   const mipmaps: { data: Uint8Array; width: number; height: number }[] = [];
   try {
     for (const mip of plan) {
+      // The owner may close while the preceding pixel-pack read is awaiting
+      // its fence. Drain that submitted read and release its target, but never
+      // submit another mip through a renderer whose canvas can now be reused.
+      // A partial decoded chain is unusable; retain the complete source chain.
+      if (disposals.has(renderer)) return source;
       if (renderer.getContext().isContextLost()) throw new Error('Normal preparation lost context');
       const target = new T.WebGLRenderTarget(mip.width, mip.height, {
         format: T.RGBAFormat,

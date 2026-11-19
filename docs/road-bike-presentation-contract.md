@@ -21,7 +21,8 @@ heave, rather than reconstructed from the height it is supposed to constrain.
 
 The road contract uses the otherwise unused motorcycle wheel-contact block,
 with no new frame fields or stride changes. Protocol v17 versions this semantic
-extension; simulation v26 identifies the changed physical model. Versioned
+extension. The initial physical integration used simulation v26; the subsequent
+road-profile and contact-budget corrections use v27 without another layout change. Versioned
 replay pages reject incompatible older or newer protocol versions explicitly.
 
 | Contact block tag | Meaning |

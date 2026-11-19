@@ -31,6 +31,30 @@ now records repeated `texStorage2D` allocations with both call sites, without
 draining GL errors or altering draws. No claim that the crown correction fixes
 texture ownership or completes High startup follows from its CPU tests.
 
+## A closed renderer cannot start another normal-map mip
+
+A separate lifecycle review found that closing the normal-residency owner
+prevented new jobs but allowed an already waiting job to submit every remaining
+mip after its readback completed. The application replaces a circuit renderer
+on the same canvas immediately after disposal. Those later submissions therefore
+used a retired renderer after the canvas could belong to its replacement.
+
+The counterexample starts two complete compressed chains, suspends each first
+pixel-pack read, closes the owner, and then completes the submitted reads. The
+old implementation performed nine draws rather than the two already submitted.
+The correction checks ownership before each further mip: submitted reads drain
+and their temporary targets are released, while an incomplete conversion returns
+the original complete compressed chain. It never publishes a partial chain,
+changes normal texels or cancels an unfinished GPU read. The existing one-mip
+completion case remains valid. The counterexample fails before the correction
+and passes afterward; 27 distinct normal, decoder, texture ownership and renderer
+lifecycle tests across four files pass. Scoped lint, formatting and full
+TypeScript checks pass as well.
+
+This is a reproduced lifecycle defect. It is not yet proof of the cause of the
+five immutable-storage warnings in the High trace; that attribution still
+requires the new GPU allocation diagnostics.
+
 ## Replay reference: cold state on the same visual assets
 
 The corrected road-presentation GPU fixture at 8763bfc passed physical contact,
@@ -107,3 +131,41 @@ road-presentation and rider-motion suites passed 25 tests across three files.
 The three focused command counts above describe disjoint file sets for this
 follow-up. They are not a substitute for the final complete unit suite, original
 19-scenario motorcycle matrix or full application GPU acceptance.
+
+## Ridden MX laps need player flight inputs
+
+The ridden-lap fixture deliberately withholds the AI mark so it exercises the
+player's ground and flight solvers. It nevertheless passed the course AI's
+ground route corrections directly into flight: lateral lane corrections became
+player bank/whip inputs, and planned ground braking became front-wheel pitch
+control. Production marked AI flight neutralizes those axes and uses its own
+rear-wheel pitch controller. The fixture's claim that withholding the mark
+changed nothing else was therefore incorrect.
+
+The fixture now retains the course planner's ground inputs and releases steering
+and the front brake while airborne, as a player making a straight jump would.
+It still withholds the AI mark, retains ordinary Sport assistance, and adds
+checks that the player solver remains active and the lap really enters flight.
+Both courses, seed 61007, two laps, the 260-second deadline, zero-fall assertions
+and one-second stall limit are unchanged. The original fixture fails 17/18;
+the corrected fixture and independent riding/contact suites pass 45/45 under
+the source-stability guard. Production offroad AI and player force code were
+not changed by this correction; rejected route-control experiments were removed.
+
+A separate observer still records rough-corridor wall contacts during the
+corrected Valley lap. This result establishes the specified completion and
+handling contract, not a repaired production AI route or collision-free riding.
+
+## Completed component GPU rerun
+
+Published commit `f1068433d49dc494a3373af99d12d89483308ac8` passes all seven
+component fixtures in run 44488933964. The road-bike replay now has exactly zero
+changed pixels, channel delta and coverage difference on rewind, held and
+restored views. Physical contact, flight and landing checks and their negative
+controls also pass. The complete compact Low driving/replay journey passes.
+
+The same source's full High test still fails the unchanged readiness deadline.
+Its five immutable BC7 allocations are retained with paired call stacks, while
+the missing-fragment-output errors are absent. Thus the crown correction is
+verified, but a completed High application view is still required. The normal
+lifetime correction above was not included in this published checkpoint.

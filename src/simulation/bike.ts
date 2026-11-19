@@ -365,9 +365,12 @@ export class Bike {
     // the CURRENT recovery budget, including the weaker contact and camber.
     // Applying the nominal margin again to every axle-load change needlessly
     // reduced an already arrestable request during a steady powered corner.
-    const capacity = this.roadLateralCapacity(
-        p.mu * (this.frontGrip ?? this.grip),
-        p.mu * (this.rearGrip ?? this.grip),
+    const capacity = Math.min(
+        this.roadAdmittedCapacity,
+        this.roadLateralCapacity(
+          p.mu * (this.frontGrip ?? this.grip),
+          p.mu * (this.rearGrip ?? this.grip),
+        ),
       ),
       lateralRatio = (0.9 * ROAD_ASSIST.recovery * capacity) / reaction,
       gain = (p.riderOffsetMax * 0.25) / p.cgHeight;
@@ -564,6 +567,17 @@ export class Bike {
     return gpBarSteer(ground, this.lean);
   }
   private roadLateralDemand = 0;
+  /** Admission of returning support for a NEW roll manoeuvre, never a
+   * filtered contact load or a limit on arresting an existing roll. A short
+   * landing/load-transfer peak can disappear before the rate tracker answers;
+   * it must not authorize a target whose stopping energy depends on that peak. */
+  private roadAdmittedCapacity = Infinity;
+  /** Placement/remount starts a new supported pose. Flight instead retains
+   * zero admission, so a landing must earn its new roll capacity over time. */
+  resetRoadControl() {
+    this.roadAdmittedCapacity = Infinity;
+    this.roadLateralDemand = 0;
+  }
   private roadLateralCapacity(frontMu: number, rearMu: number) {
     const p = this.p,
       camber = 1 - 0.18 * Math.max(0, Math.abs(this.lean) - 0.8);
@@ -580,6 +594,7 @@ export class Bike {
       cosine = Math.max(0.2, Math.cos(this.lean)),
       capacity = this.roadLateralCapacity(frontMu, rearMu),
       budget = ROAD_ASSIST.recovery * capacity,
+      sustained = ROAD_ASSIST.recovery * Math.min(capacity, this.roadAdmittedCapacity),
       limit = this.supportedRoadLeanLimit,
       target = clamp(clamp(stick, -1, 1) * this.leanLimit, -limit, limit),
       // The rate tracker takes 1/rateGain seconds to answer a new command.
@@ -594,7 +609,7 @@ export class Bike {
       // The rider-offset torque is part of the same road roll plant.
       stoppingEnergy = Math.max(
         0,
-        (budget * Math.sign(error) * (Math.sin(target) - Math.sin(ahead)) +
+        (sustained * Math.sign(error) * (Math.sin(target) - Math.sin(ahead)) +
           reaction * (Math.cos(target) - Math.cos(ahead)) -
           reaction * ((this.riderOffset * 0.25) / p.cgHeight) * error) /
           p.cgHeight,
@@ -626,6 +641,25 @@ export class Bike {
     if (contacts) {
       this.frontLoad = Math.max(0, contacts.front);
       this.rearLoad = Math.max(0, contacts.rear);
+      if (!this.motoGP) {
+        const capacity = this.roadLateralCapacity(frontMu, rearMu);
+        // Lost support restricts admission immediately. Returning support
+        // becomes dependable over the EXISTING 1/rateGain response time;
+        // use the exact fixed-step exponential without another tuned gain.
+        // Physical loads, tyre circles and the full arrest budget above
+        // still use the unfiltered contacts on every step.
+        this.roadAdmittedCapacity = Number.isFinite(this.roadAdmittedCapacity)
+          ? Math.min(
+              capacity,
+              this.roadAdmittedCapacity +
+                (capacity - this.roadAdmittedCapacity) * (1 - Math.exp(-ROAD_ASSIST.rateGain * dt)),
+            )
+          : capacity;
+      }
+    } else {
+      // The optional road-contact boundary can be left by a research/MX
+      // caller. Do not carry a prior road controller's admission into it.
+      this.resetRoadControl();
     }
     const airborne = !!contacts && this.frontLoad + this.rearLoad <= 1e-6;
     // Rider hang-off moves toward its command at a bounded rate. On a GP
@@ -1169,6 +1203,7 @@ export class Bike {
       this.state = 'riding';
       this.lean = this.leanRate = this.steer = this.pitch = this.rearSlip = 0;
       this.riderOffset = 0;
+      this.resetRoadControl();
       this.motoGP?.reset(this.speed);
       this.stateClock = 0;
     }

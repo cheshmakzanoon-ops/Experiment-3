@@ -985,6 +985,7 @@ export class BikeVehicle extends Vehicle {
     if (dt === 0) {
       this.roadSuspensionLive = false;
       this.dynamics.contactLoads = undefined;
+      this.dynamics.resetRoadControl();
     }
     const d = this.dynamics,
       b = this.body,

@@ -145,4 +145,78 @@ describe('normal preparation renderer ownership', () => {
     normal.dispose();
     target.dispose();
   });
+
+  it('drains submitted reads without starting another mip after renderer ownership ends', async () => {
+    const previous = new T.WebGLRenderTarget(8, 8);
+    const viewport = new T.Vector4(1, 2, 3, 4);
+    const scissor = new T.Vector4(2, 3, 4, 5);
+    const state = { target: previous, face: 0, level: 0, scissorTest: true };
+    const finish: (() => void)[] = [];
+    const temporaryTargets: T.WebGLRenderTarget[] = [];
+    const disposedTargets: T.WebGLRenderTarget[] = [];
+    let closed = false;
+    const gpu = {
+      autoClear: true,
+      getContext: () => ({ isContextLost: () => false }),
+      getRenderTarget: () => state.target,
+      getActiveCubeFace: () => state.face,
+      getActiveMipmapLevel: () => state.level,
+      getViewport: (out: T.Vector4) => out.copy(viewport),
+      getScissor: (out: T.Vector4) => out.copy(scissor),
+      getScissorTest: () => state.scissorTest,
+      setRenderTarget: (value: T.WebGLRenderTarget, face = 0, level = 0) => {
+        state.target = value;
+        state.face = face;
+        state.level = level;
+      },
+      setViewport: (...args: [T.Vector4] | [number, number, number, number]) =>
+        args.length === 1 ? viewport.copy(args[0]) : viewport.set(...args),
+      setScissor: (value: T.Vector4) => scissor.copy(value),
+      setScissorTest: (value: boolean) => {
+        state.scissorTest = value;
+      },
+      render: vi.fn(),
+      readRenderTargetPixelsAsync: vi.fn(
+        (target: T.WebGLRenderTarget, _x, _y, _w, _h, data: Uint8Array) => {
+          temporaryTargets.push(target);
+          target.addEventListener('dispose', () => disposedTargets.push(target));
+          // A broken implementation may continue after disposal; resolve those
+          // reads too so the counterexample fails by its work, never a timeout.
+          if (closed) return Promise.resolve(data);
+          return new Promise<Uint8Array>((resolve) => finish.push(() => resolve(data)));
+        },
+      ),
+    };
+    const renderer = gpu as unknown as T.WebGLRenderer;
+    const normals = [source(8), source(16, 4)];
+    const sourceDisposals = normals.map((normal) => vi.spyOn(normal, 'dispose'));
+    const jobs = normals.map((normal) => expandSampledNormal(renderer, normal));
+    expect(gpu.render).toHaveBeenCalledTimes(2);
+    expect(temporaryTargets).toHaveLength(2);
+    expect(state.target).toBe(previous);
+    let drained = false;
+    closed = true;
+    const disposal = disposeTextureLoaders(renderer).then(() => {
+      drained = true;
+    });
+    await Promise.resolve();
+    expect(drained).toBe(false);
+    for (const release of finish) release();
+    const results = await Promise.all(jobs);
+    await disposal;
+    expect(drained).toBe(true);
+    expect(gpu.render).toHaveBeenCalledTimes(2);
+    expect(gpu.readRenderTargetPixelsAsync).toHaveBeenCalledTimes(2);
+    expect(results[0]).toBe(normals[0]);
+    expect(results[1]).toBe(normals[1]);
+    expect(disposedTargets).toEqual(temporaryTargets);
+    for (const spy of sourceDisposals) expect(spy).not.toHaveBeenCalled();
+    expect(state.target).toBe(previous);
+    expect(viewport.toArray()).toEqual([1, 2, 3, 4]);
+    expect(scissor.toArray()).toEqual([2, 3, 4, 5]);
+    expect(state.scissorTest).toBe(true);
+    expect(gpu.autoClear).toBe(true);
+    for (const normal of normals) normal.dispose();
+    previous.dispose();
+  });
 });

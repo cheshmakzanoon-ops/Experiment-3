@@ -67,7 +67,7 @@ Every vehicle case also removes only the tick-180 handback write from a copy of 
 
 Full TypeScript checking, scoped ESLint, new-file/core formatting and diff whitespace checks passed. The worker edit was kept to its import and shared input call; unrelated existing formatting was preserved. No existing acceptance threshold was changed.
 
-At this assignment-21 checkpoint, the pending physics batch used simulation identity v26 and presentation protocol v16. The final combined model retains simulation v26 and advances presentation to v17 for the explicit [road-bike sprung-pose contract](road-bike-presentation-contract.md). Existing tests reject v25 ghosts, competitive categories and network identities. The control-history correction itself does not add a packet or record format; the test results above describe its own checkpoint.
+At this assignment-21 checkpoint, the pending physics batch used simulation identity v26 and presentation protocol v16. The initial combined model retained simulation v26 and advanced presentation to v17 for the explicit [road-bike sprung-pose contract](road-bike-presentation-contract.md). The later road-profile and contact-budget corrections advance simulation identity to v27. Current identity tests reject both v25 and v26 ghosts, competitive categories and network identities. Presentation protocol v17 remains unchanged: these later corrections change simulation behavior without changing the recorded field layout or semantics. The control-history correction itself does not add a packet or record format; the test results above describe its own checkpoint.
 
 ## Motocross model boundaries
 
