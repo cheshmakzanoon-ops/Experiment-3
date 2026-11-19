@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44452269798
-- commit: `4934e4ee93` · Cast open Festival terrain correctly into sun shadow maps
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44466611689
+- commit: `8c2d521cfd` · Advance vegetation, traffic, terrain and bounded night rendering
 - event: push · status: completed · conclusion: **failure**
-- started: 2026-11-19T03:33:32Z · updated: 2026-11-19T03:48:39Z
+- started: 2026-11-19T05:39:01Z · updated: 2026-11-19T05:52:16Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (day) | success | 7 |  |
-| browser (sunset) | success | 14 |  |
-| browser (night) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
+| browser (day) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
+| browser (night) | success | 11 |  |
+| browser (sunset) | success | 7 |  |
