@@ -1,0 +1,256 @@
+### wet-presentation (job 135542271139)
+--- error digest (first 120 matching lines) ---
+403:wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.7931260Z Error: Installation process exited with code: 100
+404:wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.8051860Z ##[error]Process completed with exit code 1.
+
+--- last 250 lines ---
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:31.3035316Z   name: apex-formula-web
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:31.3035573Z   path: dist/
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:31.3035817Z   merge-multiple: false
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:31.3036107Z   repository: cheshmakzanoon-ops/Experiment-3
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:31.3036427Z   run-id: 44516038410
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:31.3036642Z env:
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:31.3036897Z   APEX_BROWSER_BACKEND: swiftshader
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:31.3037137Z ##[endgroup]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:31.4177766Z Downloading single artifact
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:31.4297652Z (node:2246) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:31.4298950Z (Use `node --trace-deprecation ...` to show where the warning was created)
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:31.6838530Z Preparing to download the following artifacts:
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:31.6839830Z - apex-formula-web (ID: 14527745633, Size: 79157373, Expected Digest: sha256:78330f02eb6c89d4b83ec412071f0a04ffd5d2fa556aba5d4521fb963a6eab48)
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:31.9282365Z Redirecting to blob download url: https://productionresultssa15.blob.core.windows.net/actions-results/18ebe7e2-8f98-8ce6-bfcf-1a9ab785a3dd/workflow-job-run-dcc85d67-96c3-5c91-8c26-5dcf23175daf/artifacts/a099db7dccca2bea13cabdb75d09ca0f68509ae9b06d93f8e4352c66fb8393f2.zip
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:31.9283504Z Starting download of artifact to: /home/runner/work/Experiment-3/Experiment-3/dist
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:32.3037798Z (node:2246) [DEP0005] DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:36.9499813Z SHA256 digest of downloaded artifact is 78330f02eb6c89d4b83ec412071f0a04ffd5d2fa556aba5d4521fb963a6eab48
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:36.9502254Z Artifact download completed successfully.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:36.9502674Z Total of 1 artifact(s) downloaded
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:36.9505182Z Download artifact has finished successfully
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:36.9650295Z ##[group]Run set -euo pipefail
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:36.9650866Z ^[[36;1mset -euo pipefail^[[0m
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:36.9651170Z ^[[36;1mtest "$DOWNLOAD_SUCCEEDED" = true^[[0m
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:36.9651459Z ^[[36;1mtest -s dist/index.html^[[0m
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:36.9651784Z ^[[36;1mtest -d dist/assets^[[0m
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:36.9681198Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:36.9681563Z env:
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:36.9681799Z   APEX_BROWSER_BACKEND: swiftshader
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:36.9682130Z   DOWNLOAD_SUCCEEDED: true
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:36.9682353Z ##[endgroup]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:36.9751125Z ##[group]Run npx playwright install --with-deps chromium
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:36.9751533Z ^[[36;1mnpx playwright install --with-deps chromium^[[0m
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:36.9772477Z shell: /usr/bin/bash -e {0}
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:36.9772803Z env:
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:36.9773115Z   APEX_BROWSER_BACKEND: swiftshader
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:36.9773364Z ##[endgroup]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:37.4754359Z Installing dependencies...
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:37.4829986Z Switching to root user to install dependencies...
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:37.6482413Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [152 B]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:37.7474411Z Get:5 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:37.7682488Z Hit:2 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble InRelease
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:37.8071387Z Get:6 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [794 kB]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:37.8312591Z Get:3 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:37.9032306Z Get:7 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [723 kB]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:38.2431539Z Get:4 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:38.5561348Z Get:8 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1456 kB]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:39.9243243Z Get:9 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [317 kB]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:40.1355345Z Get:10 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1716 kB]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:40.3666160Z Get:15 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:40.7491538Z Get:11 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [346 kB]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:40.8694469Z Get:12 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1887 kB]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:41.2825543Z Get:13 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [433 kB]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:41.4042743Z Get:14 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/multiverse Translation-en [14.6 kB]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:47.6025503Z Get:16 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages [1198 kB]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:02:59.2681325Z Get:17 http://security.ubuntu.com/ubuntu noble-security/main Translation-en [239 kB]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:03:01.4929524Z Get:18 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1230 kB]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:03:11.4743322Z Get:19 http://security.ubuntu.com/ubuntu noble-security/universe Translation-en [248 kB]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:03:36.1786063Z Ign:20 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Packages
+wet-presentation	UNKNOWN STEP	2026-11-19T12:03:46.5339691Z Get:21 http://security.ubuntu.com/ubuntu noble-security/restricted Translation-en [414 kB]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:03:55.2107528Z Get:22 http://security.ubuntu.com/ubuntu noble-security/multiverse Translation-en [12.7 kB]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:03:56.0654645Z Get:20 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1792 kB]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:09.6322538Z Fetched 13.2 MB in 1min 23s (159 kB/s)
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.5779441Z Reading package lists...
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.6048909Z Reading package lists...
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.8134693Z Building dependency tree...
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.8140719Z Reading state information...
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9618160Z libasound2t64 is already the newest version (1.2.11-1ubuntu0.3).
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9619367Z libasound2t64 set to manually installed.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9620095Z libatk-bridge2.0-0t64 is already the newest version (2.52.0-1build1).
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9622339Z libatk-bridge2.0-0t64 set to manually installed.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9623066Z libatk1.0-0t64 is already the newest version (2.52.0-1build1).
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9623674Z libatk1.0-0t64 set to manually installed.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9624678Z libatspi2.0-0t64 is already the newest version (2.52.0-1build1).
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9625348Z libatspi2.0-0t64 set to manually installed.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9625912Z libcairo2 is already the newest version (1.18.0-3build1).
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9626475Z libcairo2 set to manually installed.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9627210Z libcups2t64 is already the newest version (2.4.7-1.2ubuntu7.14).
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9627830Z libcups2t64 set to manually installed.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9628489Z libdbus-1-3 is already the newest version (1.14.10-4ubuntu4.1).
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9629082Z libdbus-1-3 set to manually installed.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9629808Z libdrm2 is already the newest version (2.4.125-1ubuntu0.1~24.04.2).
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9630481Z libdrm2 set to manually installed.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9631261Z libglib2.0-0t64 is already the newest version (2.80.0-6ubuntu3.10).
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9631872Z libglib2.0-0t64 set to manually installed.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9632343Z libnspr4 is already the newest version (2:4.35-1.1build1).
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9632866Z libnspr4 set to manually installed.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9633228Z libnss3 is already the newest version (2:3.98-1ubuntu0.3).
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9633616Z libnss3 set to manually installed.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9633988Z libpango-1.0-0 is already the newest version (1.52.1+ds-1build1).
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9634342Z libpango-1.0-0 set to manually installed.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9634795Z libx11-6 is already the newest version (2:1.8.7-1ubuntu0.1).
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9635139Z libx11-6 set to manually installed.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9635637Z libxcb1 is already the newest version (1.15-1ubuntu2).
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9635970Z libxcb1 set to manually installed.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9636399Z libxcomposite1 is already the newest version (1:0.4.5-1build3).
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9636768Z libxcomposite1 set to manually installed.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9637210Z libxdamage1 is already the newest version (1:1.1.6-1build1).
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9637633Z libxdamage1 set to manually installed.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9638094Z libxext6 is already the newest version (2:1.3.4-1build2).
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9638898Z libxext6 set to manually installed.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9639298Z libxfixes3 is already the newest version (1:6.0.0-2build1).
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9639656Z libxfixes3 set to manually installed.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9640058Z libxkbcommon0 is already the newest version (1.6.0-1build1).
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9640481Z libxkbcommon0 set to manually installed.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9641076Z libxrandr2 is already the newest version (2:1.5.2-2build1).
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9641540Z libxrandr2 set to manually installed.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9642072Z xvfb is already the newest version (2:21.1.12-1ubuntu1.9).
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9642712Z fonts-noto-color-emoji is already the newest version (2.047-0ubuntu0.24.04.1).
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9643241Z libfontconfig1 is already the newest version (2.15.0-1.1ubuntu2).
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9643633Z libfontconfig1 set to manually installed.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9644017Z libfreetype6 is already the newest version (2.13.2+dfsg-1ubuntu0.2).
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9644447Z libfreetype6 set to manually installed.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9644824Z fonts-liberation is already the newest version (1:2.1.5-3).
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9645396Z fonts-liberation set to manually installed.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9645875Z The following additional packages will be installed:
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9646411Z   libgl1-mesa-dri libglx-mesa0 mesa-libgallium xfonts-encodings xfonts-utils
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9646820Z Recommended packages:
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:10.9647138Z   fonts-ipafont-mincho fonts-tlwg-loma
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:11.1292080Z The following NEW packages will be installed:
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:11.1293142Z   fonts-freefont-ttf fonts-ipafont-gothic fonts-tlwg-loma-otf fonts-unifont
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:11.1304383Z   fonts-wqy-zenhei xfonts-cyrillic xfonts-encodings xfonts-scalable
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:11.1305151Z   xfonts-utils
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:11.1306332Z The following packages will be upgraded:
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:11.1312333Z   libgbm1 libgl1-mesa-dri libglx-mesa0 mesa-libgallium
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:11.1473451Z 4 upgraded, 9 newly installed, 0 to remove and 29 not upgraded.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:11.1474009Z Need to get 32.1 MB of archives.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:11.1474439Z After this operation, 79.7 MB of additional disk space will be used.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:11.1474906Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [152 B]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:11.2531987Z Ign:2 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:11.3622878Z Ign:3 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:11.4639072Z Ign:4 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:11.5588316Z Ign:5 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:11.6536115Z Ign:6 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:11.7484491Z Ign:7 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 libgl1-mesa-dri amd64 25.2.8-0ubuntu0.24.04.5
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:11.8427802Z Ign:8 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 libglx-mesa0 amd64 25.2.8-0ubuntu0.24.04.5
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:11.9374272Z Ign:9 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 libgbm1 amd64 25.2.8-0ubuntu0.24.04.5
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:12.0318914Z Ign:10 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 mesa-libgallium amd64 25.2.8-0ubuntu0.24.04.5
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:12.1263934Z Ign:11 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:12.2217082Z Ign:12 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:12.3237652Z Ign:13 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:12.4188617Z Ign:14 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:12.5139402Z Ign:2 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:12.6127180Z Ign:3 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:12.7077428Z Ign:4 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:12.8025312Z Ign:5 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:12.9037256Z Ign:6 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:12.9994519Z Ign:7 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 libgl1-mesa-dri amd64 25.2.8-0ubuntu0.24.04.5
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:13.0939287Z Ign:8 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 libglx-mesa0 amd64 25.2.8-0ubuntu0.24.04.5
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:13.1881515Z Ign:9 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 libgbm1 amd64 25.2.8-0ubuntu0.24.04.5
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:13.2827298Z Ign:10 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 mesa-libgallium amd64 25.2.8-0ubuntu0.24.04.5
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:13.3771545Z Ign:11 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:13.4779902Z Ign:12 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:13.5723111Z Ign:13 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:13.6736591Z Ign:14 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:28.1976492Z Ign:2 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:43.3752024Z Ign:3 https://archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:43.6059164Z Err:2 https://security.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:43.6059916Z   503  Service Unavailable [IP: 52.15.158.54 80]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:58.4708443Z Ign:4 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:58.7557603Z Err:3 https://security.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2
+wet-presentation	UNKNOWN STEP	2026-11-19T12:04:58.7558387Z   503  Service Unavailable [IP: 52.15.158.54 80]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:05:13.9185260Z Err:4 https://security.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1
+wet-presentation	UNKNOWN STEP	2026-11-19T12:05:13.9186251Z   503  Service Unavailable [IP: 52.15.158.54 80]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:05:47.0080039Z Ign:5 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1
+wet-presentation	UNKNOWN STEP	2026-11-19T12:06:02.1669604Z Ign:6 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8
+wet-presentation	UNKNOWN STEP	2026-11-19T12:06:02.3441698Z Err:5 https://security.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1
+wet-presentation	UNKNOWN STEP	2026-11-19T12:06:02.3442404Z   503  Service Unavailable [IP: 52.15.158.54 80]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:06:17.3219504Z Ign:7 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 libgl1-mesa-dri amd64 25.2.8-0ubuntu0.24.04.5
+wet-presentation	UNKNOWN STEP	2026-11-19T12:06:17.4214484Z Err:6 https://security.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8
+wet-presentation	UNKNOWN STEP	2026-11-19T12:06:17.4215121Z   503  Service Unavailable [IP: 52.15.158.54 80]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:06:32.4785583Z Ign:8 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 libglx-mesa0 amd64 25.2.8-0ubuntu0.24.04.5
+wet-presentation	UNKNOWN STEP	2026-11-19T12:06:32.5216497Z Err:7 https://security.ubuntu.com/ubuntu noble-updates/main amd64 libgl1-mesa-dri amd64 25.2.8-0ubuntu0.24.04.5
+wet-presentation	UNKNOWN STEP	2026-11-19T12:06:32.5217055Z   503  Service Unavailable [IP: 52.15.158.54 80]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:06:47.6405526Z Ign:9 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 libgbm1 amd64 25.2.8-0ubuntu0.24.04.5
+wet-presentation	UNKNOWN STEP	2026-11-19T12:07:02.7923179Z Ign:10 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 mesa-libgallium amd64 25.2.8-0ubuntu0.24.04.5
+wet-presentation	UNKNOWN STEP	2026-11-19T12:07:17.2438214Z Err:8 https://security.ubuntu.com/ubuntu noble-updates/main amd64 libglx-mesa0 amd64 25.2.8-0ubuntu0.24.04.5
+wet-presentation	UNKNOWN STEP	2026-11-19T12:07:17.2439365Z   503  Service Unavailable [IP: 52.15.158.54 80]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:07:17.9538996Z Ign:11 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2
+wet-presentation	UNKNOWN STEP	2026-11-19T12:07:32.3309711Z Err:9 https://security.ubuntu.com/ubuntu noble-updates/main amd64 libgbm1 amd64 25.2.8-0ubuntu0.24.04.5
+wet-presentation	UNKNOWN STEP	2026-11-19T12:07:32.3310458Z   503  Service Unavailable [IP: 52.15.158.54 80]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:07:33.3071519Z Ign:12 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3
+wet-presentation	UNKNOWN STEP	2026-11-19T12:07:47.4056535Z Err:10 https://security.ubuntu.com/ubuntu noble-updates/main amd64 mesa-libgallium amd64 25.2.8-0ubuntu0.24.04.5
+wet-presentation	UNKNOWN STEP	2026-11-19T12:07:47.4057367Z   503  Service Unavailable [IP: 52.15.158.54 80]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:07:48.3993224Z Ign:13 https://archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:02.4941870Z Err:11 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:02.4942663Z   503  Service Unavailable [IP: 52.15.158.54 80]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:03.4861656Z Ign:14 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:17.5945498Z Err:12 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:17.5946659Z   503  Service Unavailable [IP: 52.15.158.54 80]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:32.6975959Z Err:13 https://security.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:32.6976583Z   503  Service Unavailable [IP: 52.15.158.54 80]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.7834645Z Err:14 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.7835217Z   503  Service Unavailable [IP: 52.15.158.54 80]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.7909004Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/universe/f/fonts-ipafont/fonts-ipafont-gothic_00303-21ubuntu1_all.deb  503  Service Unavailable [IP: 52.15.158.54 80]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.7910661Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/main/f/fonts-freefont/fonts-freefont-ttf_20211204%2bsvn4273-2_all.deb  503  Service Unavailable [IP: 52.15.158.54 80]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.7911696Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/universe/f/fonts-tlwg/fonts-tlwg-loma-otf_0.7.3-1_all.deb  503  Service Unavailable [IP: 52.15.158.54 80]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.7912707Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/universe/u/unifont/fonts-unifont_15.1.01-1build1_all.deb  503  Service Unavailable [IP: 52.15.158.54 80]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.7913701Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/universe/f/fonts-wqy-zenhei/fonts-wqy-zenhei_0.9.45-8_all.deb  503  Service Unavailable [IP: 52.15.158.54 80]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.7914699Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/main/m/mesa/libgl1-mesa-dri_25.2.8-0ubuntu0.24.04.5_amd64.deb  503  Service Unavailable [IP: 52.15.158.54 80]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.7915653Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/main/m/mesa/libglx-mesa0_25.2.8-0ubuntu0.24.04.5_amd64.deb  503  Service Unavailable [IP: 52.15.158.54 80]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.7916614Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/main/m/mesa/libgbm1_25.2.8-0ubuntu0.24.04.5_amd64.deb  503  Service Unavailable [IP: 52.15.158.54 80]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.7917789Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/main/m/mesa/mesa-libgallium_25.2.8-0ubuntu0.24.04.5_amd64.deb  503  Service Unavailable [IP: 52.15.158.54 80]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.7919046Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/main/x/xfonts-encodings/xfonts-encodings_1.0.5-0ubuntu2_all.deb  503  Service Unavailable [IP: 52.15.158.54 80]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.7920405Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/main/x/xfonts-utils/xfonts-utils_7.7%2b6build3_amd64.deb  503  Service Unavailable [IP: 52.15.158.54 80]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.7921905Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/universe/x/xfonts-cyrillic/xfonts-cyrillic_1.0.5%2bnmu1_all.deb  503  Service Unavailable [IP: 52.15.158.54 80]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.7923226Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/main/x/xfonts-scalable/xfonts-scalable_1.0.3-1.3_all.deb  503  Service Unavailable [IP: 52.15.158.54 80]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.7924198Z E: Unable to fetch some archives, maybe run apt-get update or try with --fix-missing?
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.7930359Z Failed to install browsers
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.7931260Z Error: Installation process exited with code: 100
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.8051860Z ##[error]Process completed with exit code 1.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.8113976Z ##[group]Run actions/upload-artifact@v4
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.8114280Z with:
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.8114524Z   name: wet-presentation
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.8114930Z   path: test-results/
+wet-presentation	UNKNOWN STEP	playwright-report/
+wet-presentation	UNKNOWN STEP	browser-backend.json
+wet-presentation	UNKNOWN STEP	browser-progress.json
+wet-presentation	UNKNOWN STEP	
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.8115346Z   retention-days: 7
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.8115606Z   if-no-files-found: warn
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.8115863Z   compression-level: 6
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.8116313Z   overwrite: false
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.8116568Z   include-hidden-files: false
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.8116814Z env:
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.8117068Z   APEX_BROWSER_BACKEND: swiftshader
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.8117328Z ##[endgroup]
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.9325282Z (node:2724) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.9326154Z (Use `node --trace-deprecation ...` to show where the warning was created)
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.9360491Z Multiple search paths detected. Calculating the least common ancestor of all paths
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.9362504Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.9374340Z ##[warning]No files were found with the provided path: test-results/
+wet-presentation	UNKNOWN STEP	playwright-report/
+wet-presentation	UNKNOWN STEP	browser-backend.json
+wet-presentation	UNKNOWN STEP	browser-progress.json. No artifacts will be uploaded.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:47.9515664Z Post job cleanup.
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:48.0171587Z [command]/usr/bin/git version
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:48.0191456Z git version 2.56.1
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:48.0212779Z Temporarily overriding HOME='/home/runner/work/_temp/de2a190c-2572-4f1e-abef-4c68b41e851e' before making global git config changes
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:48.0213851Z Adding repository directory to the temporary git global config as a safe directory
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:48.0216578Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:48.0244171Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:48.0267088Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:48.0430953Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:48.0448085Z http.https://github.com/.extraheader
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:48.0455815Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:48.0478136Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:48.0673837Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:48.0694625Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:48.0952837Z Cleaning up orphan processes
+wet-presentation	UNKNOWN STEP	2026-11-19T12:08:48.1185841Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/download-artifact@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

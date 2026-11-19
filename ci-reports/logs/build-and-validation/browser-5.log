@@ -1,258 +1,256 @@
-### browser (5) (job 135515832396)
+### browser (5) (job 135542271766)
 --- error digest (first 120 matching lines) ---
-636:browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:33:00.9580216Z   ✘   5 e2e/23-apx01-views.spec.ts:13:3 › 27H.1 normal application: deterministic side whole-car inspection (2.9m)
-638:browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:33:00.9583133Z Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoBeVisible^[[2m()^[[22m failed
-643:browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:33:00.9584717Z Timeout:  120000ms
-661:browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:34:42.4517333Z ##[error]The operation was canceled.
+398:browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.6990593Z Error: Installation process exited with code: 100
+399:browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7119325Z ##[error]Process completed with exit code 1.
 
 --- last 250 lines ---
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-19T11:26:11.2537828Z Downloading Chromium Headless Shell 140.0.7339.186 (playwright build v1193) from https://cdn.playwright.dev/dbazure/download/playwright/builds/chromium/1193/chromium-headless-shell-linux.zip
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-19T11:26:11.4130323Z |                                                                                |   0% of 104.3 MiB
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-19T11:26:11.5307416Z |■■■■■■■■                                                                        |  10% of 104.3 MiB
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-19T11:26:11.6924187Z |■■■■■■■■■■■■■■■■                                                                |  20% of 104.3 MiB
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-19T11:26:11.8127591Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 104.3 MiB
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-19T11:26:11.9234976Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 104.3 MiB
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-19T11:26:12.0332352Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 104.3 MiB
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-19T11:26:12.1505035Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 104.3 MiB
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-19T11:26:12.2577905Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 104.3 MiB
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-19T11:26:12.4015344Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 104.3 MiB
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-19T11:26:12.6349284Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 104.3 MiB
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-19T11:26:12.7859911Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 104.3 MiB
-browser (5)	Run npx playwright install --with-deps chromium	2026-11-19T11:26:14.2516160Z Chromium Headless Shell 140.0.7339.186 (playwright build v1193) downloaded to /home/runner/.cache/ms-playwright/chromium_headless_shell-1193
-browser (5)	Install Mesa software graphics and virtual display	﻿2026-11-19T11:26:14.3060254Z ##[group]Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:26:14.3060847Z ^[[36;1msudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb^[[0m
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:26:14.3088561Z shell: /usr/bin/bash -e {0}
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:26:14.3088970Z env:
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:26:14.3089368Z   APEX_BROWSER_BACKEND: mesa
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:26:14.3089648Z   LIBGL_ALWAYS_SOFTWARE: true
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:26:14.3089941Z   GALLIUM_DRIVER: llvmpipe
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:26:14.3090181Z ##[endgroup]
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:26:14.3285555Z Reading package lists...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:26:14.5316030Z Building dependency tree...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:26:14.5320348Z Reading state information...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:26:14.6822692Z libgl1-mesa-dri is already the newest version (25.2.8-0ubuntu0.24.04.5).
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:26:14.6823365Z libgl1-mesa-dri set to manually installed.
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:26:14.6824039Z libglx-mesa0 is already the newest version (25.2.8-0ubuntu0.24.04.5).
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:26:14.6824595Z libglx-mesa0 set to manually installed.
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:26:14.6825109Z xvfb is already the newest version (2:21.1.12-1ubuntu1.9).
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:26:14.6825500Z The following additional packages will be installed:
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:26:14.6825957Z   libdecor-0-0 libdecor-0-plugin-1-gtk libegl-mesa0 libgles2 libxcb-xkb1
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:26:14.6827633Z   libxkbcommon-x11-0 mesa-utils-bin
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:26:14.6967709Z The following NEW packages will be installed:
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:26:14.6970479Z   libdecor-0-0 libdecor-0-plugin-1-gtk libegl-mesa0 libegl1 libgles2
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:26:14.6972684Z   libxcb-xkb1 libxkbcommon-x11-0 mesa-utils mesa-utils-bin
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:26:14.7131793Z 0 upgraded, 9 newly installed, 0 to remove and 29 not upgraded.
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:26:14.7132506Z Need to get 1464 kB of archives.
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:26:14.7133440Z After this operation, 4054 kB of additional disk space will be used.
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:26:14.7134001Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [152 B]
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:26:37.1875021Z Get:2 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libdecor-0-0 amd64 0.2.2-1build2 [16.5 kB]
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:26:40.6389051Z Get:3 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libdecor-0-plugin-1-gtk amd64 0.2.2-1build2 [22.2 kB]
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:26:46.4777189Z Get:4 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 libegl-mesa0 amd64 25.2.8-0ubuntu0.24.04.5 [117 kB]
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:26:48.2290484Z Get:5 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libxcb-xkb1 amd64 1.15-1ubuntu2 [32.3 kB]
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:26:53.9241122Z Get:6 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libxkbcommon-x11-0 amd64 1.6.0-1build1 [14.5 kB]
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:26:58.6674643Z Get:7 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libegl1 amd64 1.7.0-1build1 [28.7 kB]
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:00.3781747Z Get:8 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libgles2 amd64 1.7.0-1build1 [17.1 kB]
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:07.2044227Z Get:9 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 mesa-utils-bin amd64 9.0.0-2 [164 kB]
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:30.0534943Z Get:10 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 mesa-utils amd64 9.0.0-2 [1051 kB]
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.7577036Z Fetched 1464 kB in 1min 26s (17.1 kB/s)
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.7713910Z Selecting previously unselected package libdecor-0-0:amd64.
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.7739060Z (Reading database ... 
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.7739801Z (Reading database ... 5%
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.7740273Z (Reading database ... 10%
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.7740742Z (Reading database ... 15%
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.7741190Z (Reading database ... 20%
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.7741694Z (Reading database ... 25%
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.7742118Z (Reading database ... 30%
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.7742567Z (Reading database ... 35%
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.7743014Z (Reading database ... 40%
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.7743474Z (Reading database ... 45%
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.7743930Z (Reading database ... 50%
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.7746785Z (Reading database ... 55%
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.7763074Z (Reading database ... 60%
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.7794482Z (Reading database ... 65%
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.7805160Z (Reading database ... 70%
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.7821511Z (Reading database ... 75%
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.7855389Z (Reading database ... 80%
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.7958920Z (Reading database ... 85%
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.8095768Z (Reading database ... 90%
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.8353162Z (Reading database ... 95%
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.8353544Z (Reading database ... 100%
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.8354231Z (Reading database ... 216647 files and directories currently installed.)
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.8393418Z Preparing to unpack .../0-libdecor-0-0_0.2.2-1build2_amd64.deb ...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.8403531Z Unpacking libdecor-0-0:amd64 (0.2.2-1build2) ...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.8560620Z Selecting previously unselected package libdecor-0-plugin-1-gtk:amd64.
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.8657696Z Preparing to unpack .../1-libdecor-0-plugin-1-gtk_0.2.2-1build2_amd64.deb ...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.8662004Z Unpacking libdecor-0-plugin-1-gtk:amd64 (0.2.2-1build2) ...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.8813374Z Selecting previously unselected package libegl-mesa0:amd64.
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.8908619Z Preparing to unpack .../2-libegl-mesa0_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.8912880Z Unpacking libegl-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.9076931Z Selecting previously unselected package libxcb-xkb1:amd64.
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.9173739Z Preparing to unpack .../3-libxcb-xkb1_1.15-1ubuntu2_amd64.deb ...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.9178627Z Unpacking libxcb-xkb1:amd64 (1.15-1ubuntu2) ...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.9335490Z Selecting previously unselected package libxkbcommon-x11-0:amd64.
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.9432109Z Preparing to unpack .../4-libxkbcommon-x11-0_1.6.0-1build1_amd64.deb ...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.9438100Z Unpacking libxkbcommon-x11-0:amd64 (1.6.0-1build1) ...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.9588871Z Selecting previously unselected package libegl1:amd64.
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.9684981Z Preparing to unpack .../5-libegl1_1.7.0-1build1_amd64.deb ...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.9689460Z Unpacking libegl1:amd64 (1.7.0-1build1) ...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.9841231Z Selecting previously unselected package libgles2:amd64.
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.9939190Z Preparing to unpack .../6-libgles2_1.7.0-1build1_amd64.deb ...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:40.9944325Z Unpacking libgles2:amd64 (1.7.0-1build1) ...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:41.0095216Z Selecting previously unselected package mesa-utils-bin:amd64.
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:41.0192401Z Preparing to unpack .../7-mesa-utils-bin_9.0.0-2_amd64.deb ...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:41.0197603Z Unpacking mesa-utils-bin:amd64 (9.0.0-2) ...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:41.0372680Z Selecting previously unselected package mesa-utils.
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:41.0473089Z Preparing to unpack .../8-mesa-utils_9.0.0-2_amd64.deb ...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:41.0477001Z Unpacking mesa-utils (9.0.0-2) ...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:41.0871575Z Setting up libxcb-xkb1:amd64 (1.15-1ubuntu2) ...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:41.0890303Z Setting up libegl-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) ...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:41.0899986Z Setting up libgles2:amd64 (1.7.0-1build1) ...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:41.0910555Z Setting up libxkbcommon-x11-0:amd64 (1.6.0-1build1) ...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:41.0921680Z Setting up libegl1:amd64 (1.7.0-1build1) ...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:41.0932457Z Setting up libdecor-0-0:amd64 (0.2.2-1build2) ...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:41.0943658Z Setting up libdecor-0-plugin-1-gtk:amd64 (0.2.2-1build2) ...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:41.0953069Z Setting up mesa-utils-bin:amd64 (9.0.0-2) ...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:41.0964602Z Setting up mesa-utils (9.0.0-2) ...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:41.0978709Z Processing triggers for man-db (2.12.0-4build2) ...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:41.0992015Z Not building database; man-db/auto-update is not 'true'.
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:41.1000246Z Processing triggers for libc-bin (2.39-0ubuntu8.9) ...
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:41.4242268Z 
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:41.4243305Z Running kernel seems to be up-to-date.
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:41.4243645Z 
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:41.4243851Z No services need to be restarted.
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:41.4244067Z 
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:41.4244253Z No containers need to be restarted.
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:41.4244918Z 
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:41.4245166Z No user sessions are running outdated binaries.
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:41.4245417Z 
-browser (5)	Install Mesa software graphics and virtual display	2026-11-19T11:27:41.4245823Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	﻿2026-11-19T11:27:42.2790199Z ##[group]Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:27:42.2790852Z ^[[36;1mxvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12^[[0m
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:27:42.2817657Z shell: /usr/bin/bash -e {0}
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:27:42.2818075Z env:
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:27:42.2818303Z   APEX_BROWSER_BACKEND: mesa
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:27:42.2818557Z   LIBGL_ALWAYS_SOFTWARE: true
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:27:42.2818837Z   GALLIUM_DRIVER: llvmpipe
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:27:42.2819071Z ##[endgroup]
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:27:48.2699025Z 
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:27:48.2700094Z > apex-formula-laboratory@0.1.0 test:e2e:shard
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:27:48.2700861Z > node --experimental-strip-types scripts/run-browser-shard.ts 5/12
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:27:48.2701177Z 
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:27:55.6307491Z Verified 30 of 353 cases for shard 5/12; no omissions or duplicate assignments.
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:28:03.0534165Z Observed mesa test backend: ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:28:04.6171314Z 
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:28:04.6172660Z Running 30 tests using 1 worker
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:28:04.6173200Z 
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:28:05.1129168Z [browser-progress] START  >  > 06-circuit-survey.spec.ts > circuit survey: clear architecture, catch fence and kerb
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:28:34.6377200Z [browser-progress] 30s  >  > 06-circuit-survey.spec.ts > circuit survey: clear architecture, catch fence and kerb / Evaluate
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:29:04.6679562Z [browser-progress] 60s  >  > 06-circuit-survey.spec.ts > circuit survey: clear architecture, catch fence and kerb / Evaluate
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:29:34.6988714Z [browser-progress] 90s  >  > 06-circuit-survey.spec.ts > circuit survey: clear architecture, catch fence and kerb / Evaluate
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:29:51.6078884Z   ✓   1 e2e/06-circuit-survey.spec.ts:8:3 › circuit survey: clear architecture, catch fence and kerb (1.8m)
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:29:51.6198466Z [browser-progress] START  >  > 11-phase27c.spec.ts > Phase 27C: production hero geometry and material close views
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:30:01.8994465Z   ✓   2 e2e/11-phase27c.spec.ts:28:1 › Phase 27C: production hero geometry and material close views (10.3s)
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:30:01.9148677Z [browser-progress] START  >  > 14-phase27e.spec.ts > reference comparison UI requires a real capture and explicit reviewer without hiding original routes
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:30:02.0735280Z   -   3 e2e/14-phase27e.spec.ts:60:1 › reference comparison UI requires a real capture and explicit reviewer without hiding original routes
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:30:02.1030451Z [browser-progress] START  >  > 20-phase27h.spec.ts > 27H: a missing authored asset fails explicitly rather than claiming a procedural fallback is authored
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:30:04.6998837Z [browser-progress] 3s  >  > 20-phase27h.spec.ts > 27H: a missing authored asset fails explicitly rather than claiming a procedural fallback is authored / Expect "toContainText"
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:30:05.1476495Z   ✓   4 e2e/20-phase27h.spec.ts:62:1 › 27H: a missing authored asset fails explicitly rather than claiming a procedural fallback is authored (3.0s)
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:30:05.1596461Z [browser-progress] START  >  > 23-apx01-views.spec.ts > 27H.1 normal application: deterministic side whole-car inspection
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:30:34.7090357Z [browser-progress] 30s  >  > 23-apx01-views.spec.ts > 27H.1 normal application: deterministic side whole-car inspection / Expect "toBeVisible"
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:31:04.7428883Z [browser-progress] 60s  >  > 23-apx01-views.spec.ts > 27H.1 normal application: deterministic side whole-car inspection / Expect "toBeVisible"
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:31:34.7708761Z [browser-progress] 90s  >  > 23-apx01-views.spec.ts > 27H.1 normal application: deterministic side whole-car inspection / Expect "toBeVisible"
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:32:04.8009641Z [browser-progress] 120s  >  > 23-apx01-views.spec.ts > 27H.1 normal application: deterministic side whole-car inspection / Expect "toBeVisible"
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:32:34.8068514Z [browser-progress] 150s  >  > 23-apx01-views.spec.ts > 27H.1 normal application: deterministic side whole-car inspection / Fixture "context"
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:33:00.9580216Z   ✘   5 e2e/23-apx01-views.spec.ts:13:3 › 27H.1 normal application: deterministic side whole-car inspection (2.9m)
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:33:00.9581876Z [browser-failure]  >  > 23-apx01-views.spec.ts > 27H.1 normal application: deterministic side whole-car inspection
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:33:00.9583133Z Error: ^[[2mexpect(^[[22m^[[31mlocator^[[39m^[[2m).^[[22mtoBeVisible^[[2m()^[[22m failed
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:33:00.9583457Z 
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:33:00.9583682Z Locator:  locator('#photoStudio')
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:33:00.9584145Z Expected: visible
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:33:00.9584434Z Received: hidden
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:33:00.9584717Z Timeout:  120000ms
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:33:00.9584971Z 
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:33:00.9585110Z Call log:
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:33:00.9585609Z ^[[2m  - Expect "toBeVisible" with timeout 120000ms^[[22m
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:33:00.9586106Z ^[[2m  - waiting for locator('#photoStudio')^[[22m
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:33:00.9586927Z ^[[2m    16 × locator resolved to <section hidden="" id="photoStudio" class="photo-studio"></section>^[[22m
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:33:00.9587450Z ^[[2m       - unexpected value "hidden"^[[22m
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:33:00.9587664Z 
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:33:00.9587894Z     at /home/runner/work/Experiment-3/Experiment-3/e2e/23-apx01-views.spec.ts:30:48
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:33:01.4907108Z [browser-progress] START  >  > 28-race-hud-layout.spec.ts > 27H.6 DOM-only: menu controls are reachable at 1440x900
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:33:04.8036207Z [browser-progress] 3s  >  > 28-race-hud-layout.spec.ts > 27H.6 DOM-only: menu controls are reachable at 1440x900 / Press "Tab"
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:33:08.1113254Z   ✓   6 e2e/28-race-hud-layout.spec.ts:202:3 › 27H.6 DOM-only: menu controls are reachable at 1440x900 (6.4s)
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:33:08.1244660Z [browser-progress] START  >  > 33-character-quality.spec.ts > character quality: helmet production GPU construction and held-frame integrity
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:33:12.8175592Z   ✓   7 e2e/33-character-quality.spec.ts:31:3 › character quality: helmet production GPU construction and held-frame integrity (1.8s)
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:33:12.8262415Z [browser-progress] START  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU long-district preserves production resources and negative controls
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:33:34.8133161Z [browser-progress] 22s  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU long-district preserves production resources and negative controls / Evaluate
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:34:04.8338227Z [browser-progress] 52s  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU long-district preserves production resources and negative controls / Evaluate
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:34:34.8644889Z [browser-progress] 82s  >  > 37-race-surface-atmosphere.spec.ts > race surface and atmosphere: fullSceneFogGPU long-district preserves production resources and negative controls / Evaluate
-browser (5)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/12	2026-11-19T11:34:42.4517333Z ##[error]The operation was canceled.
-browser (5)	Browser screenshots and diagnostics	﻿2026-11-19T11:34:42.4587898Z ##[group]Run actions/upload-artifact@v4
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:42.4588335Z with:
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:42.4588672Z   name: browser-validation-5-of-12
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:42.4589329Z   path: test-results/
-browser (5)	Browser screenshots and diagnostics	playwright-report/
-browser (5)	Browser screenshots and diagnostics	browser-shard-plan.json
-browser (5)	Browser screenshots and diagnostics	browser-backend.json
-browser (5)	Browser screenshots and diagnostics	browser-progress.json
-browser (5)	Browser screenshots and diagnostics	
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:42.4754605Z   retention-days: 7
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:42.4754984Z   if-no-files-found: warn
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:42.4755286Z   compression-level: 6
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:42.4755529Z   overwrite: false
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:42.4755789Z   include-hidden-files: false
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:42.4756063Z env:
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:42.4756289Z   APEX_BROWSER_BACKEND: mesa
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:42.4756815Z   LIBGL_ALWAYS_SOFTWARE: true
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:42.4757110Z   GALLIUM_DRIVER: llvmpipe
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:42.4757380Z ##[endgroup]
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:42.7967650Z (node:4051) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:42.8035202Z (Use `node --trace-deprecation ...` to show where the warning was created)
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:42.8717527Z Multiple search paths detected. Calculating the least common ancestor of all paths
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:42.8719608Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:42.8720806Z With the provided path, there will be 5 files uploaded
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:42.8721387Z Artifact name is valid!
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:42.8721711Z Root directory input is valid!
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:43.4917098Z Beginning upload of artifact content to blob storage
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:43.8594479Z (node:4051) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:45.0467944Z Uploaded bytes 8388608
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:45.2560439Z Uploaded bytes 16777216
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:45.5648485Z Uploaded bytes 25165824
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:45.8700246Z Uploaded bytes 29748122
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:45.9500336Z Finished uploading artifact content to blob storage!
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:45.9501172Z SHA256 digest of uploaded artifact zip is 127c437c14f7cd73f6a4d2227ec6c0d3cb77e84b97cd02fe61c9126fdf09e389
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:45.9501809Z Finalizing artifact upload
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:46.6548087Z Artifact browser-validation-5-of-12.zip successfully finalized. Artifact ID 14526490170
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:46.6549126Z Artifact browser-validation-5-of-12 has been successfully uploaded! Final size is 29748122 bytes. Artifact ID is 14526490170
-browser (5)	Browser screenshots and diagnostics	2026-11-19T11:34:46.6550284Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44509609076/artifacts/14526490170
-browser (5)	Post Run actions/checkout@v4	﻿2026-11-19T11:34:46.6729746Z Post job cleanup.
-browser (5)	Post Run actions/checkout@v4	2026-11-19T11:34:46.7497267Z [command]/usr/bin/git version
-browser (5)	Post Run actions/checkout@v4	2026-11-19T11:34:46.7527216Z git version 2.56.1
-browser (5)	Post Run actions/checkout@v4	2026-11-19T11:34:46.7594758Z Temporarily overriding HOME='/home/runner/work/_temp/4943657d-7572-440c-8c83-e4c345b79743' before making global git config changes
-browser (5)	Post Run actions/checkout@v4	2026-11-19T11:34:46.7595752Z Adding repository directory to the temporary git global config as a safe directory
-browser (5)	Post Run actions/checkout@v4	2026-11-19T11:34:46.7596775Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
-browser (5)	Post Run actions/checkout@v4	2026-11-19T11:34:46.7610241Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-browser (5)	Post Run actions/checkout@v4	2026-11-19T11:34:46.7611423Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-browser (5)	Post Run actions/checkout@v4	2026-11-19T11:34:46.8048117Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-browser (5)	Post Run actions/checkout@v4	2026-11-19T11:34:46.8167427Z http.https://github.com/.extraheader
-browser (5)	Post Run actions/checkout@v4	2026-11-19T11:34:46.8251131Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-browser (5)	Post Run actions/checkout@v4	2026-11-19T11:34:46.8252978Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-browser (5)	Post Run actions/checkout@v4	2026-11-19T11:34:46.8369201Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-browser (5)	Post Run actions/checkout@v4	2026-11-19T11:34:46.8396514Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-browser (5)	Complete job	﻿2026-11-19T11:34:46.8665703Z Cleaning up orphan processes
-browser (5)	Complete job	2026-11-19T11:34:46.8841537Z Terminate orphan process: pid (3343) (xvfb-run)
-browser (5)	Complete job	2026-11-19T11:34:46.8857992Z Terminate orphan process: pid (3353) (Xvfb)
-browser (5)	Complete job	2026-11-19T11:34:46.8872975Z Terminate orphan process: pid (3356) (npm run test:e2)
-browser (5)	Complete job	2026-11-19T11:34:46.8894758Z Terminate orphan process: pid (3367) (sh)
-browser (5)	Complete job	2026-11-19T11:34:46.8919207Z Terminate orphan process: pid (3368) (node)
-browser (5)	Complete job	2026-11-19T11:34:46.8943698Z Terminate orphan process: pid (3404) (node)
-browser (5)	Complete job	2026-11-19T11:34:46.8971246Z Terminate orphan process: pid (3420) (sh)
-browser (5)	Complete job	2026-11-19T11:34:46.8997551Z Terminate orphan process: pid (3421) (npm run preview --port 4173)
-browser (5)	Complete job	2026-11-19T11:34:46.9024863Z Terminate orphan process: pid (3432) (sh)
-browser (5)	Complete job	2026-11-19T11:34:46.9057988Z Terminate orphan process: pid (3433) (node)
-browser (5)	Complete job	2026-11-19T11:34:46.9085478Z Terminate orphan process: pid (3441) (esbuild)
-browser (5)	Complete job	2026-11-19T11:34:46.9119830Z Terminate orphan process: pid (3861) (node)
-browser (5)	Complete job	2026-11-19T11:34:46.9153317Z Terminate orphan process: pid (3877) (chrome_crashpad_handler)
-browser (5)	Complete job	2026-11-19T11:34:46.9185643Z Terminate orphan process: pid (3879) (chrome_crashpad_handler)
-browser (5)	Complete job	2026-11-19T11:34:46.9270035Z Terminate orphan process: pid (3974) (esbuild)
-browser (5)	Complete job	2026-11-19T11:34:46.9393850Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/download-artifact@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:20.5389244Z ##[endgroup]
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:24.1380755Z npm warn deprecated eslint@9.36.0: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:24.4005007Z 
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:24.4005707Z added 192 packages in 3s
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.0141206Z (node:2286) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.0142297Z (Use `node --trace-warnings ...` to show where the warning was created)
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.0262177Z ##[group]Run actions/download-artifact@v4
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.0262498Z with:
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.0262730Z   name: apex-formula-web
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.0263007Z   path: dist/
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.0263218Z   merge-multiple: false
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.0263502Z   repository: cheshmakzanoon-ops/Experiment-3
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.0263794Z   run-id: 44516038410
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.0264402Z env:
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.0264692Z   APEX_BROWSER_BACKEND: mesa
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.0264938Z   LIBGL_ALWAYS_SOFTWARE: true
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.0265262Z   GALLIUM_DRIVER: llvmpipe
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.0265531Z ##[endgroup]
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.1455109Z Downloading single artifact
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.1566475Z (node:2320) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.1567212Z (Use `node --trace-deprecation ...` to show where the warning was created)
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.2239909Z Preparing to download the following artifacts:
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.2241415Z - apex-formula-web (ID: 14527745633, Size: 79157373, Expected Digest: sha256:78330f02eb6c89d4b83ec412071f0a04ffd5d2fa556aba5d4521fb963a6eab48)
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.3237445Z Redirecting to blob download url: https://productionresultssa15.blob.core.windows.net/actions-results/18ebe7e2-8f98-8ce6-bfcf-1a9ab785a3dd/workflow-job-run-dcc85d67-96c3-5c91-8c26-5dcf23175daf/artifacts/a099db7dccca2bea13cabdb75d09ca0f68509ae9b06d93f8e4352c66fb8393f2.zip
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.3239138Z Starting download of artifact to: /home/runner/work/Experiment-3/Experiment-3/dist
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:25.4243791Z (node:2320) [DEP0005] DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead.
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.3957273Z SHA256 digest of downloaded artifact is 78330f02eb6c89d4b83ec412071f0a04ffd5d2fa556aba5d4521fb963a6eab48
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.3958000Z Artifact download completed successfully.
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.3958576Z Total of 1 artifact(s) downloaded
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.3961807Z Download artifact has finished successfully
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4104371Z ##[group]Run set -euo pipefail
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4104749Z ^[[36;1mset -euo pipefail^[[0m
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4105048Z ^[[36;1mtest "$DOWNLOAD_SUCCEEDED" = true^[[0m
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4105335Z ^[[36;1mtest -s dist/index.html^[[0m
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4105606Z ^[[36;1mtest -d dist/assets^[[0m
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4133542Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4133964Z env:
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4134440Z   APEX_BROWSER_BACKEND: mesa
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4134706Z   LIBGL_ALWAYS_SOFTWARE: true
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4135027Z   GALLIUM_DRIVER: llvmpipe
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4135278Z   DOWNLOAD_SUCCEEDED: true
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4135501Z ##[endgroup]
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4205403Z ##[group]Run npx playwright install --with-deps chromium
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4205806Z ^[[36;1mnpx playwright install --with-deps chromium^[[0m
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4225875Z shell: /usr/bin/bash -e {0}
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4226206Z env:
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4226489Z   APEX_BROWSER_BACKEND: mesa
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4226752Z   LIBGL_ALWAYS_SOFTWARE: true
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4227017Z   GALLIUM_DRIVER: llvmpipe
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.4227271Z ##[endgroup]
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.9325903Z Installing dependencies...
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:26.9411203Z Switching to root user to install dependencies...
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:27.1679902Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [152 B]
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:27.1970205Z Get:6 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:27.2110787Z Ign:2 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble InRelease
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:27.2385211Z Ign:3 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates InRelease
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:27.2655994Z Ign:4 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-backports InRelease
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:27.2927587Z Ign:5 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-security InRelease
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:27.3104910Z Get:7 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [794 kB]
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:27.3318950Z Get:8 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [723 kB]
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:28.2405005Z Ign:2 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble InRelease
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:28.2710117Z Ign:3 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates InRelease
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:28.2996442Z Ign:4 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-backports InRelease
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:28.3274992Z Ign:5 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-security InRelease
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:43.2792542Z Ign:2 https://archive.ubuntu.com/ubuntu noble InRelease
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:58.3180143Z Ign:3 https://archive.ubuntu.com/ubuntu noble-updates InRelease
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:58.3183697Z Err:2 https://security.ubuntu.com/ubuntu noble InRelease
+browser (5)	UNKNOWN STEP	2026-11-19T12:09:58.3184639Z   503  Service Unavailable [IP: 52.15.102.108 80]
+browser (5)	UNKNOWN STEP	2026-11-19T12:10:13.3390582Z Err:3 https://security.ubuntu.com/ubuntu noble-updates InRelease
+browser (5)	UNKNOWN STEP	2026-11-19T12:10:13.3391122Z   503  Service Unavailable [IP: 52.15.102.108 80]
+browser (5)	UNKNOWN STEP	2026-11-19T12:10:13.3511520Z Ign:4 https://archive.ubuntu.com/ubuntu noble-backports InRelease
+browser (5)	UNKNOWN STEP	2026-11-19T12:10:28.3841626Z Ign:5 https://archive.ubuntu.com/ubuntu noble-security InRelease
+browser (5)	UNKNOWN STEP	2026-11-19T12:10:28.3856340Z Err:4 https://security.ubuntu.com/ubuntu noble-backports InRelease
+browser (5)	UNKNOWN STEP	2026-11-19T12:10:28.3857183Z   503  Service Unavailable [IP: 52.15.102.108 80]
+browser (5)	UNKNOWN STEP	2026-11-19T12:10:43.4183804Z Err:5 https://security.ubuntu.com/ubuntu noble-security InRelease
+browser (5)	UNKNOWN STEP	2026-11-19T12:10:43.4184580Z   503  Service Unavailable [IP: 52.15.102.108 80]
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:03.7849077Z Fetched 1521 kB in 1min 16s (19.9 kB/s)
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:04.6866561Z Reading package lists...
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:04.6983201Z W: Failed to fetch mirror+file:/etc/apt/apt-mirrors.txt/dists/noble/InRelease  503  Service Unavailable [IP: 52.15.102.108 80]
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:04.6984863Z W: Failed to fetch mirror+file:/etc/apt/apt-mirrors.txt/dists/noble-updates/InRelease  503  Service Unavailable [IP: 52.15.102.108 80]
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:04.6985992Z W: Failed to fetch mirror+file:/etc/apt/apt-mirrors.txt/dists/noble-backports/InRelease  503  Service Unavailable [IP: 52.15.102.108 80]
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:04.6987080Z W: Failed to fetch mirror+file:/etc/apt/apt-mirrors.txt/dists/noble-security/InRelease  503  Service Unavailable [IP: 52.15.102.108 80]
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:04.6987756Z W: Some index files failed to download. They have been ignored, or old ones used instead.
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:04.7104175Z Reading package lists...
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:04.8832480Z Building dependency tree...
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:04.8838726Z Reading state information...
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0213419Z libasound2t64 is already the newest version (1.2.11-1ubuntu0.3).
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0215051Z libasound2t64 set to manually installed.
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0215691Z libatk-bridge2.0-0t64 is already the newest version (2.52.0-1build1).
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0216212Z libatk-bridge2.0-0t64 set to manually installed.
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0216701Z libatk1.0-0t64 is already the newest version (2.52.0-1build1).
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0217148Z libatk1.0-0t64 set to manually installed.
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0217608Z libatspi2.0-0t64 is already the newest version (2.52.0-1build1).
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0218116Z libatspi2.0-0t64 set to manually installed.
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0218604Z libcairo2 is already the newest version (1.18.0-3build1).
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0219042Z libcairo2 set to manually installed.
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0219490Z libcups2t64 is already the newest version (2.4.7-1.2ubuntu7.14).
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0219953Z libcups2t64 set to manually installed.
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0220393Z libdbus-1-3 is already the newest version (1.14.10-4ubuntu4.1).
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0220834Z libdbus-1-3 set to manually installed.
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0221332Z libdrm2 is already the newest version (2.4.125-1ubuntu0.1~24.04.2).
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0221836Z libdrm2 set to manually installed.
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0222330Z libgbm1 is already the newest version (25.2.8-0ubuntu0.24.04.4).
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0222817Z libgbm1 set to manually installed.
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0223806Z libglib2.0-0t64 is already the newest version (2.80.0-6ubuntu3.10).
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0224662Z libglib2.0-0t64 set to manually installed.
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0225190Z libnspr4 is already the newest version (2:4.35-1.1build1).
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0225705Z libnspr4 set to manually installed.
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0226169Z libnss3 is already the newest version (2:3.98-1ubuntu0.3).
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0226634Z libnss3 set to manually installed.
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0227210Z libpango-1.0-0 is already the newest version (1.52.1+ds-1build1).
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0227702Z libpango-1.0-0 set to manually installed.
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0228294Z libx11-6 is already the newest version (2:1.8.7-1ubuntu0.1).
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0228787Z libx11-6 set to manually installed.
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0229362Z libxcb1 is already the newest version (1.15-1ubuntu2).
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0229850Z libxcb1 set to manually installed.
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0230421Z libxcomposite1 is already the newest version (1:0.4.5-1build3).
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0230929Z libxcomposite1 set to manually installed.
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0231505Z libxdamage1 is already the newest version (1:1.1.6-1build1).
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0232028Z libxdamage1 set to manually installed.
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0232538Z libxext6 is already the newest version (2:1.3.4-1build2).
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0233057Z libxext6 set to manually installed.
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0233551Z libxfixes3 is already the newest version (1:6.0.0-2build1).
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0234349Z libxfixes3 set to manually installed.
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0234851Z libxkbcommon0 is already the newest version (1.6.0-1build1).
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0235368Z libxkbcommon0 set to manually installed.
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0235856Z libxrandr2 is already the newest version (2:1.5.2-2build1).
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0236550Z libxrandr2 set to manually installed.
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0237099Z xvfb is already the newest version (2:21.1.12-1ubuntu1.9).
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0237750Z fonts-noto-color-emoji is already the newest version (2.047-0ubuntu0.24.04.1).
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0238398Z libfontconfig1 is already the newest version (2.15.0-1.1ubuntu2).
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0238924Z libfontconfig1 set to manually installed.
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0239431Z libfreetype6 is already the newest version (2.13.2+dfsg-1ubuntu0.2).
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0240012Z libfreetype6 set to manually installed.
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0240494Z fonts-liberation is already the newest version (1:2.1.5-3).
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0241078Z fonts-liberation set to manually installed.
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0241612Z The following additional packages will be installed:
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0242185Z   xfonts-encodings xfonts-utils
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0242773Z Recommended packages:
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.0243237Z   fonts-ipafont-mincho fonts-tlwg-loma
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.1954755Z The following NEW packages will be installed:
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.1955434Z   fonts-freefont-ttf fonts-ipafont-gothic fonts-tlwg-loma-otf fonts-unifont
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.1963438Z   fonts-wqy-zenhei xfonts-cyrillic xfonts-encodings xfonts-scalable
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.1964356Z   xfonts-utils
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.2123817Z 0 upgraded, 9 newly installed, 0 to remove and 6 not upgraded.
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.2124453Z Need to get 21.1 MB of archives.
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.2124961Z After this operation, 79.5 MB of additional disk space will be used.
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.2125395Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [152 B]
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.2498235Z Ign:2 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.2766059Z Ign:3 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.3030226Z Ign:4 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.3295004Z Ign:5 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.3571650Z Ign:6 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.3837738Z Ign:7 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.4105955Z Ign:8 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.4378514Z Ign:9 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:05.4646479Z Ign:10 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:06.2779058Z Ign:2 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:06.3136111Z Ign:3 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:06.3399031Z Ign:4 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:06.3672606Z Ign:5 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:06.3941702Z Ign:6 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:06.4213912Z Ign:7 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:06.4491982Z Ign:8 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:06.4760073Z Ign:9 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:06.5030926Z Ign:10 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:21.3215708Z Ign:2 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:36.3598121Z Ign:3 https://archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:36.6731021Z Err:2 https://security.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:36.6731587Z   503  Service Unavailable [IP: 52.15.107.13 80]
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:51.3930869Z Ign:4 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:52.4582688Z Err:3 https://security.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2
+browser (5)	UNKNOWN STEP	2026-11-19T12:11:52.4583250Z   503  Service Unavailable [IP: 52.15.107.13 80]
+browser (5)	UNKNOWN STEP	2026-11-19T12:12:06.4202872Z Ign:5 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1
+browser (5)	UNKNOWN STEP	2026-11-19T12:12:07.4919852Z Err:4 https://security.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1
+browser (5)	UNKNOWN STEP	2026-11-19T12:12:07.4920432Z   503  Service Unavailable [IP: 52.15.107.13 80]
+browser (5)	UNKNOWN STEP	2026-11-19T12:12:21.4408778Z Ign:6 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8
+browser (5)	UNKNOWN STEP	2026-11-19T12:12:22.5259929Z Err:5 https://security.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1
+browser (5)	UNKNOWN STEP	2026-11-19T12:12:22.5260457Z   503  Service Unavailable [IP: 52.15.107.13 80]
+browser (5)	UNKNOWN STEP	2026-11-19T12:12:36.4742232Z Ign:7 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2
+browser (5)	UNKNOWN STEP	2026-11-19T12:12:37.5568419Z Err:6 https://security.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8
+browser (5)	UNKNOWN STEP	2026-11-19T12:12:37.5568943Z   503  Service Unavailable [IP: 52.15.107.13 80]
+browser (5)	UNKNOWN STEP	2026-11-19T12:12:51.5094500Z Ign:8 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3
+browser (5)	UNKNOWN STEP	2026-11-19T12:12:52.5899472Z Err:7 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2
+browser (5)	UNKNOWN STEP	2026-11-19T12:12:52.5900258Z   503  Service Unavailable [IP: 52.15.107.13 80]
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:06.5428996Z Ign:9 https://archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:07.6236848Z Err:8 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:07.6237546Z   503  Service Unavailable [IP: 52.15.107.13 80]
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:21.5760695Z Ign:10 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:22.6570446Z Err:9 https://security.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:22.6571204Z   503  Service Unavailable [IP: 52.15.107.13 80]
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.6902230Z Err:10 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.6903061Z   503  Service Unavailable [IP: 52.15.107.13 80]
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.6971923Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/universe/f/fonts-ipafont/fonts-ipafont-gothic_00303-21ubuntu1_all.deb  503  Service Unavailable [IP: 52.15.107.13 80]
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.6973136Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/main/f/fonts-freefont/fonts-freefont-ttf_20211204%2bsvn4273-2_all.deb  503  Service Unavailable [IP: 52.15.107.13 80]
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.6974359Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/universe/f/fonts-tlwg/fonts-tlwg-loma-otf_0.7.3-1_all.deb  503  Service Unavailable [IP: 52.15.107.13 80]
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.6975628Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/universe/u/unifont/fonts-unifont_15.1.01-1build1_all.deb  503  Service Unavailable [IP: 52.15.107.13 80]
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.6976574Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/universe/f/fonts-wqy-zenhei/fonts-wqy-zenhei_0.9.45-8_all.deb  503  Service Unavailable [IP: 52.15.107.13 80]
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.6977544Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/main/x/xfonts-encodings/xfonts-encodings_1.0.5-0ubuntu2_all.deb  503  Service Unavailable [IP: 52.15.107.13 80]
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.6978759Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/main/x/xfonts-utils/xfonts-utils_7.7%2b6build3_amd64.deb  503  Service Unavailable [IP: 52.15.107.13 80]
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.6979862Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/universe/x/xfonts-cyrillic/xfonts-cyrillic_1.0.5%2bnmu1_all.deb  503  Service Unavailable [IP: 52.15.107.13 80]
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.6980833Z E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/main/x/xfonts-scalable/xfonts-scalable_1.0.3-1.3_all.deb  503  Service Unavailable [IP: 52.15.107.13 80]
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.6981679Z E: Unable to fetch some archives, maybe run apt-get update or try with --fix-missing?
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.6989998Z Failed to install browsers
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.6990593Z Error: Installation process exited with code: 100
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7119325Z ##[error]Process completed with exit code 1.
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7182098Z ##[group]Run actions/upload-artifact@v4
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7182442Z with:
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7182693Z   name: browser-validation-5-of-12
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7183174Z   path: test-results/
+browser (5)	UNKNOWN STEP	playwright-report/
+browser (5)	UNKNOWN STEP	browser-shard-plan.json
+browser (5)	UNKNOWN STEP	browser-backend.json
+browser (5)	UNKNOWN STEP	browser-progress.json
+browser (5)	UNKNOWN STEP	
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7183622Z   retention-days: 7
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7183854Z   if-no-files-found: warn
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7184329Z   compression-level: 6
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7184579Z   overwrite: false
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7184858Z   include-hidden-files: false
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7185103Z env:
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7185358Z   APEX_BROWSER_BACKEND: mesa
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7185676Z   LIBGL_ALWAYS_SOFTWARE: true
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7185929Z   GALLIUM_DRIVER: llvmpipe
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.7186208Z ##[endgroup]
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.8395862Z (node:2632) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.8397195Z (Use `node --trace-deprecation ...` to show where the warning was created)
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.8477069Z Multiple search paths detected. Calculating the least common ancestor of all paths
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.8479650Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.8494345Z ##[warning]No files were found with the provided path: test-results/
+browser (5)	UNKNOWN STEP	playwright-report/
+browser (5)	UNKNOWN STEP	browser-shard-plan.json
+browser (5)	UNKNOWN STEP	browser-backend.json
+browser (5)	UNKNOWN STEP	browser-progress.json. No artifacts will be uploaded.
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.8593699Z Post job cleanup.
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.9266389Z [command]/usr/bin/git version
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.9293583Z git version 2.56.1
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.9317495Z Temporarily overriding HOME='/home/runner/work/_temp/2ee3fadc-bd33-4029-82ce-053981756148' before making global git config changes
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.9318619Z Adding repository directory to the temporary git global config as a safe directory
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.9320971Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.9350109Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.9372767Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.9568410Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.9599304Z http.https://github.com/.extraheader
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.9620750Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.9655908Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.9794477Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:37.9813489Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:38.0107473Z Cleaning up orphan processes
+browser (5)	UNKNOWN STEP	2026-11-19T12:13:38.0345855Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/download-artifact@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
