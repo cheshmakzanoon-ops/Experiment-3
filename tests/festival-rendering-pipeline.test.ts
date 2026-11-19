@@ -365,6 +365,17 @@ describe('Festival streamed static shadows', () => {
   });
 });
 
+it('casts the open streamed heightfield from either side while preserving visible-face culling', () => {
+  const worker = {
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  } as unknown as Worker;
+  const terrain = new TerrainStreamer(worker);
+  expect(terrain.material.side).toBe(T.FrontSide);
+  expect(terrain.material.shadowSide).toBe(T.DoubleSide);
+  terrain.dispose();
+});
+
 it('invalidates streamed shadows when displayed terrain changes, not merely when an unused child arrives', () => {
   let receive: (event: MessageEvent<TileMeshData>) => void = () => {};
   const pending: TileRequest[] = [];
@@ -404,6 +415,9 @@ it('invalidates streamed shadows when displayed terrain changes, not merely when
   terrain.update(camera);
   expect(terrain.shadowRevision).toBe(1);
   expect(terrain.stats.drawn).toBe(1);
+  const coarse = terrain.root.children[0] as T.Mesh;
+  expect(coarse.material).toBe(terrain.material);
+  expect(coarse.customDepthMaterial).toBeUndefined();
   deliver(pending.shift()!); // One of four children cannot replace its parent.
   terrain.update(camera);
   expect(terrain.shadowRevision).toBe(1);

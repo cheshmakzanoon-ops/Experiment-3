@@ -73,6 +73,10 @@ export class TerrainStreamer {
     public budget: TerrainBudget = TERRAIN_BUDGETS.medium,
   ) {
     this.root.name = 'Festival terrain';
+    // A heightfield has no closed underside. Three's PCF default flips a
+    // FrontSide material to BackSide in the shadow pass, dropping sun-facing
+    // slopes. Cast both faces into the far map; visible terrain stays FrontSide.
+    this.material.shadowSide = T.DoubleSide;
     worker.addEventListener('message', this.receive);
   }
   private receive = (event: MessageEvent<FromTileWorker>) => {
