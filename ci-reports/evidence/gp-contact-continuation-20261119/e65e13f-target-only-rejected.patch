@@ -1,0 +1,989 @@
+From e65e13f3ff14ae3c02ce81feb6124755781c6e26 Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Thu, 19 Nov 2026 15:43:02 -0700
+Subject: [PATCH] Retain rejected GP target-only support admission trial
+
+---
+ src/simulation/bike.ts                        |  49 +-
+ tests/fixtures/gp-target-admission-onset.json | 626 ++++++++++++++++++
+ tests/gp-target-admission.test.ts             | 244 +++++++
+ 3 files changed, 910 insertions(+), 9 deletions(-)
+ create mode 100644 tests/fixtures/gp-target-admission-onset.json
+ create mode 100644 tests/gp-target-admission.test.ts
+
+diff --git a/src/simulation/bike.ts b/src/simulation/bike.ts
+index 721d56a..e29d3e8 100644
+--- a/src/simulation/bike.ts
++++ b/src/simulation/bike.ts
+@@ -418,6 +418,21 @@ export class Bike {
+       Math.min(front / ((m * p.cgToRear) / p.wheelbase), rear / ((m * p.cgToFront) / p.wheelbase)),
+     );
+   }
++  /** Only admission of a new lean uses this history. The dimensionless
++   * force/reaction ratio preserves common-mode changes of normal support. */
++  private gpAdmittedSupportRatio = Infinity;
++  /** Current supported intent before admission. A more cautious new lean
++   * must not give its existing nominal cornering reserve back to the pedals. */
++  private gpReserveTarget = 0;
++  private gpSupportCapacity(frontMu: number, rearMu: number) {
++    const p = this.p;
++    return (
++      Math.min(
++        (frontMu * this.frontLoad * p.wheelbase) / (this.mass * p.cgToRear),
++        (rearMu * this.rearLoad * p.wheelbase) / (this.mass * p.cgToFront),
++      ) * gpCamberFriction(this.lean)
++    );
++  }
+   /** GP lean-intent assist: handlebar angle that brings the combined CG lean
+    * ψ to the rider's target. A roll-rate reference stays inside both the
+    * rider's steering effort (gpRollRateLimit) and the energy the tyres can
+@@ -447,16 +462,20 @@ export class Bike {
+     // for this exact front/rear load pair; otherwise the rider asks for a
+     // lean the saturated tyres cannot arrest. The standalone model retains
+     // its original nominal-weight target.
+-    const supportCapacity = this.contactLoads
+-      ? Math.min(
+-          (frontMu * this.frontLoad * p.wheelbase) / (m * p.cgToRear),
+-          (rearMu * this.rearLoad * p.wheelbase) / (m * p.cgToFront),
+-        ) * gpCamberFriction(this.lean)
+-      : Infinity;
++    const supportCapacity = this.contactLoads ? this.gpSupportCapacity(frontMu, rearMu) : Infinity;
+     const supportedLimit = this.contactLoads
+       ? Math.atan2(GP_ASSIST.leanMargin * supportCapacity, reaction)
+       : this.leanLimit;
+-    const target = (gp.leanTarget = clamp(requestedTarget, -supportedLimit, supportedLimit));
++    this.gpReserveTarget = clamp(requestedTarget, -supportedLimit, supportedLimit);
++    // A returning contact ratio can disappear before the existing roll-rate
++    // response answers. Admit that increase over its response time, while
++    // retaining current reaction, stopping work and full arrest capacity.
++    // Preserve the original atan2 arithmetic when admission is nonbinding.
++    const admittedLimit =
++      this.contactLoads && this.gpAdmittedSupportRatio < supportCapacity / reaction
++        ? Math.atan2(GP_ASSIST.leanMargin * this.gpAdmittedSupportRatio * reaction, reaction)
++        : supportedLimit;
++    const target = (gp.leanTarget = clamp(requestedTarget, -admittedLimit, admittedLimit));
+     // The lateral force answers a steer change within a fraction of a second
+     // (sideslip and yaw modes); plan from where the roll will be by then.
+     // The present roll acceleration (from the measured tyre force) carries
+@@ -606,6 +625,8 @@ export class Bike {
+   resetRoadControl() {
+     this.roadAdmittedCapacity = Infinity;
+     this.roadLateralDemand = 0;
++    this.gpAdmittedSupportRatio = Infinity;
++    this.gpReserveTarget = 0;
+   }
+   private roadLateralCapacity(frontMu: number, rearMu: number) {
+     const p = this.p,
+@@ -670,7 +691,17 @@ export class Bike {
+     if (contacts) {
+       this.frontLoad = Math.max(0, contacts.front);
+       this.rearLoad = Math.max(0, contacts.rear);
+-      if (!this.motoGP) {
++      if (this.motoGP) {
++        const reaction = (this.frontLoad + this.rearLoad) / m,
++          ratio = reaction > 1e-6 ? this.gpSupportCapacity(frontMu, rearMu) / reaction : 0;
++        this.gpAdmittedSupportRatio = Number.isFinite(this.gpAdmittedSupportRatio)
++          ? Math.min(
++              ratio,
++              this.gpAdmittedSupportRatio +
++                (ratio - this.gpAdmittedSupportRatio) * (1 - Math.exp(-GP_ASSIST.rateGain * dt)),
++            )
++          : ratio;
++      } else {
+         const capacity = this.roadLateralCapacity(frontMu, rearMu);
+         // Lost support restricts admission immediately. Returning support
+         // becomes dependable over the EXISTING 1/rateGain response time;
+@@ -823,7 +854,7 @@ export class Bike {
+                   1.3,
+                   Math.max(
+                     Math.abs(this.lean + gpHangOffAngle(this.riderOffset, p.cgHeight)),
+-                    gpAssistLive ? Math.abs(this.motoGP.leanTarget) : 0,
++                    gpAssistLive ? Math.abs(this.gpReserveTarget) : 0,
+                   ),
+                 ),
+               ),
+diff --git a/tests/fixtures/gp-target-admission-onset.json b/tests/fixtures/gp-target-admission-onset.json
+new file mode 100644
+index 0000000..f541343
+--- /dev/null
++++ b/tests/fixtures/gp-target-admission-onset.json
+@@ -0,0 +1,626 @@
++{
++  "sourceCommit": "0594a2b43b9a2769085efa1e1835243927fbb705",
++  "sourceHashes": {
++    "src/simulation/bike-ai.ts": "00edaab26b930d1641cd27c8f2f1e34d5ff8db16089e5b59ccd3b4f8807edd92",
++    "src/simulation/bike-vehicle.ts": "2bb00ab2023c212b67767a8fd97994f2f9e1e933012b092d520615fd30018e8c",
++    "src/simulation/bike.ts": "6aed5f2a0b70df5d7b3b66c30f9c09a56a95f9b055d8da864302a05cb9afedaa",
++    "src/simulation/motogp-physics.ts": "2a3bac376e45e7de10fdb06674cf4fbf145bbafc8058d62af7e0472d5881e22a"
++  },
++  "recordingSha256": "70b9d24460d1086b7bf29dc495b41a67631a328a59d745a02cbe11ced62588e1",
++  "purpose": "Exact early Vellamar rising-roll states; target-only admission must preserve the pre-admission nominal pedal reserve. Incoming ratio is computed from the saved native contact history; zero/Infinity initial bounds already converged at 80.300 seconds.",
++  "cases": [
++    {
++      "tick": 9829,
++      "substep": 1,
++      "station": 2990.3726534832413,
++      "dt": 0.004166666666666667,
++      "state": {
++        "bike": {
++          "assists": {
++            "lean": true,
++            "wheelie": true,
++            "traction": true,
++            "combinedBrakes": true,
++            "abs": true
++          },
++          "p": {
++            "mass": 245,
++            "wheelbase": 1.45,
++            "cgHeight": 0.62,
++            "cgToFront": 0.7,
++            "cgToRear": 0.75,
++            "maxSteer": 0.6,
++            "steerRate": 2.4,
++            "maxLean": 1.0036671374806159,
++            "mu": 1.75,
++            "power": 224000,
++            "maxDrive": 0,
++            "frontBrake": 7600,
++            "rearBrake": 1900,
++            "drag": 0.215,
++            "riderOffsetMax": 0.3,
++            "downforce": 0.045,
++            "downforceFront": 0.6,
++            "rolling": 0.015,
++            "wheelieLimit": 0.1,
++            "stoppieMargin": 0.92,
++            "wheelieKeep": 0.2,
++            "tractionMargin": 0.92,
++            "rollDamping": 1.2,
++            "engineBrakeReleaseThrottle": 0.12,
++            "independentRearBrake": true,
++            "currentDriveTraction": true,
++            "frontContactSteering": true,
++            "lowSpeedBalance": false
++          },
++          "x": 532.2388996194283,
++          "z": 413.9401721194071,
++          "heading": 2.703939491107865,
++          "speed": 17.26024072125803,
++          "lean": 0.4513190366475425,
++          "leanRate": 0.5069060919220628,
++          "steer": 0.023498549177127293,
++          "pitch": 0,
++          "mass": 244.70852982008904,
++          "frontLoad": 1623.0537085732592,
++          "rearLoad": 800.6953970026382,
++          "riderOffset": 0.3,
++          "rearSlip": 0,
++          "state": "riding",
++          "stateClock": 0,
++          "crashes": 0,
++          "penaltySeconds": 0,
++          "longitudinal": -2.9833711396155893,
++          "lateralUse": 0.2772568825279901,
++          "frontUse": 0.2772568825279901,
++          "rearUse": 0.1890653715590877,
++          "gripOver": 0,
++          "grip": 1.0002997061272096,
++          "frontGrip": 1.0056984805963698,
++          "rearGrip": 1.0002997061272096,
++          "contactLoads": {
++            "front": 1374.3359534030194,
++            "rear": 789.8934252767056,
++            "rearLiftForce": 3033.8289799932113
++          },
++          "slope": -0.03228858905230901,
++          "dragScale": 1,
++          "riderReady": true,
++          "driveForce": 0,
++          "frontBrakeForce": 563.8614981335888,
++          "rearBrakeForce": 130.72974917779015,
++          "engineBrakeForce": 0,
++          "intervention": 0,
++          "roadLateralDemand": 0,
++          "roadAdmittedCapacity": "Infinity"
++        },
++        "gp": {
++          "geometry": {
++            "frontArm": 0.7,
++            "rearArm": 0.75,
++            "yawInertia": 55,
++            "frontRadius": 0.3,
++            "rearRadius": 0.32,
++            "frontWheelInertia": 0.6,
++            "rearWheelInertia": 0.9
++          },
++          "forwardSpeed": 17.26024072125803,
++          "longitudinalCorrection": -0.05347615992227319,
++          "lateralSpeed": 0.4258887941912535,
++          "yawRate": 0.19489479096969806,
++          "lateralAcceleration": 3.159198298074125,
++          "frontFy": 556.1589714291856,
++          "rearFy": 230.511035177737,
++          "frontSlipAngle": -0.023074974172285694,
++          "rearSlipAngle": -0.011855835820833816,
++          "frontSlip": -0.009104172150709843,
++          "rearSlip": 0.00396837759787055,
++          "frontOmega": 57.00990989538205,
++          "rearOmega": 54.15189575436077,
++          "frontSlidingPower": 9.44968509611735,
++          "rearSlidingPower": 0,
++          "groundSteer": 0.023819219199999124,
++          "frontStiffness": 40845.32885159357,
++          "steerTrim": -0.0001139956540668637,
++          "leanTarget": 0.7939794924588965,
++          "lateralDemand": 5.315892151829328,
++          "frontLoadUsed": 1623.0537085732592,
++          "frontMuUsed": 1.7599729978579541,
++          "frontLimit": 2800.3263841210482,
++          "rearLimit": 1395.5277860306412,
++          "frontElasticStiffness": 40845.32885159357,
++          "rearElasticStiffness": 21862.415974623178,
++          "sideLimit": 1395.5277860306412,
++          "lastSpeed": 17.260111999599502,
++          "front": {
++            "dx": 2856.5307011621494,
++            "dy": 2856.5307011621494,
++            "cx": 1.3,
++            "ex": 0.15,
++            "cy": 1.6,
++            "ey": -0.3,
++            "x0x": 2.6367832955817585,
++            "x0y": 1.496605762665489,
++            "kappaRef": 0.24669503692954173,
++            "alphaRef": 0.16746493873502977,
++            "alpha": -0.023074974172285694,
++            "corneringStiffness": 40845.32885159357,
++            "slipStiffness": 39691.386940141936,
++            "by1": 0.7,
++            "by2": 0.6,
++            "bx1": 0.7,
++            "bx2": 0.6,
++            "cache": {
++              "stamp": 17991,
++              "alpha": -0.023074974172285694,
++              "dy": 2856.5307011621494,
++              "alphaRef": 0.16746493873502977,
++              "sy": -0.1377898821483816,
++              "fy0": -916.7118836113182,
++              "by": 0.6976199512565743
++            },
++            "stamp": 17991
++          },
++          "rear": {
++            "dx": 1401.6376382302492,
++            "dy": 1401.6376382302492,
++            "cx": 1.3,
++            "ex": 0.15,
++            "cy": 1.6,
++            "ey": -0.3,
++            "x0x": 2.6367832955817585,
++            "x0y": 1.496605762665489,
++            "kappaRef": 0.24616447489811524,
++            "alphaRef": 0.15352001125432016,
++            "alpha": -0.011855835820833816,
++            "corneringStiffness": 21862.415974623178,
++            "slipStiffness": 19517.678682986243,
++            "by1": 0.7,
++            "by2": 0.6,
++            "bx1": 0.7,
++            "bx2": 0.6,
++            "cache": {
++              "stamp": 18083,
++              "alpha": -0.011855835820833816,
++              "dy": 1401.6376382302492,
++              "alphaRef": 0.15352001125432016,
++              "sy": -0.07722664767913234,
++              "fy0": -256.93012246909154,
++              "by": 0.699249749544209
++            },
++            "stamp": 18083
++          },
++          "force": {
++            "fx": -430.4359050768003,
++            "fy": 256.385438899462
++          },
++          "inverseFront": {
++            "dx": 2856.5307011621494,
++            "dy": 2856.5307011621494,
++            "cx": 1.3,
++            "ex": 0.15,
++            "cy": 1.6,
++            "ey": -0.3,
++            "x0x": 2.6367832955817585,
++            "x0y": 1.496605762665489,
++            "kappaRef": 0.24669503692954173,
++            "alphaRef": 0.16746493873502977,
++            "alpha": -0.02880358864105747,
++            "corneringStiffness": 40845.32885159357,
++            "slipStiffness": 39691.386940141936,
++            "by1": 0.7,
++            "by2": 0.6,
++            "bx1": 0.7,
++            "bx2": 0.6,
++            "cache": {
++              "stamp": 17978,
++              "alpha": -0.02880358864105747,
++              "dy": 2856.5307011621494,
++              "alphaRef": 0.16746493873502977,
++              "sy": -0.17199772596359258,
++              "fy0": -1127.0238706299413,
++              "by": 0.6963020259418364
++            },
++            "stamp": 17978
++          },
++          "previewFront": {
++            "dx": 2856.5307011621494,
++            "dy": 2856.5307011621494,
++            "cx": 1.3,
++            "ex": 0.15,
++            "cy": 1.6,
++            "ey": -0.3,
++            "x0x": 2.6367832955817585,
++            "x0y": 1.496605762665489,
++            "kappaRef": 0.24669503692954173,
++            "alphaRef": 0.16746493873502977,
++            "alpha": 0,
++            "corneringStiffness": 40845.32885159357,
++            "slipStiffness": 39691.386940141936,
++            "by1": 0.7,
++            "by2": 0.6,
++            "bx1": 0.7,
++            "bx2": 0.6,
++            "cache": {
++              "stamp": -1,
++              "alpha": "NaN",
++              "dy": "NaN",
++              "alphaRef": "NaN",
++              "sy": 0,
++              "fy0": 0,
++              "by": 0
++            },
++            "stamp": 17978
++          },
++          "previewRear": {
++            "dx": 1401.6376382302492,
++            "dy": 1401.6376382302492,
++            "cx": 1.3,
++            "ex": 0.15,
++            "cy": 1.6,
++            "ey": -0.3,
++            "x0x": 2.6367832955817585,
++            "x0y": 1.496605762665489,
++            "kappaRef": 0.24616447489811524,
++            "alphaRef": 0.15352001125432016,
++            "alpha": -0.011867802988326993,
++            "corneringStiffness": 21862.415974623178,
++            "slipStiffness": 19517.678682986243,
++            "by1": 0.7,
++            "by2": 0.6,
++            "bx1": 0.7,
++            "bx2": 0.6,
++            "cache": {
++              "stamp": 36140,
++              "alpha": -0.011867802988326993,
++              "dy": 1401.6376382302492,
++              "alphaRef": 0.15352001125432016,
++              "sy": -0.0773045995200383,
++              "fy0": -257.18491808973505,
++              "by": 0.6992482366287529
++            },
++            "stamp": 36140
++          },
++          "inverseForces": {
++            "typedArray": "Float64Array",
++            "values": [
++              -2603.792133433008, -2604.8134784269096, -2598.56466630593, -2560.772101120526,
++              -2319.8149729526735, -1941.1249684259074, -1410.4308185861835, -745.2090760079523,
++              -0.27227479000268434, 744.6441715347635, 1409.8091587063516, 1940.4210602149415,
++              2319.0161191513234, 2559.8759951170136, 2597.59092702976, 2603.7655590832596,
++              2602.6707216074087
++            ]
++          }
++        }
++      },
++      "input": {
++        "lean": 0.8688339660894729,
++        "throttle": 0,
++        "frontBrake": 0.2491004440220453,
++        "rearBrake": 0,
++        "rider": 1,
++        "drive": 0,
++        "engineBrake": 0
++      },
++      "admittedRatioBefore": 1.1978930673725567,
++      "expected": {
++        "originalTarget": 0.8565026052118568,
++        "admittedTarget": 0.8248838968500818,
++        "nominalReserve": 11.310724789776943,
++        "allocationReserve": 12.378959908811431,
++        "frontFx": -281.43051517780793,
++        "rearFx": -141.9872530925658,
++        "lateralBefore": 1.9417223209163963,
++        "lateralAdmitted": 3.1266631640176756,
++        "frontLoad": 1374.3359534030194,
++        "rearLoad": 789.8934252767056
++      }
++    },
++    {
++      "tick": 9864,
++      "substep": 2,
++      "station": 2996.240793970155,
++      "dt": 0.004166666666666667,
++      "state": {
++        "bike": {
++          "assists": {
++            "lean": true,
++            "wheelie": true,
++            "traction": true,
++            "combinedBrakes": true,
++            "abs": true
++          },
++          "p": {
++            "mass": 245,
++            "wheelbase": 1.45,
++            "cgHeight": 0.62,
++            "cgToFront": 0.7,
++            "cgToRear": 0.75,
++            "maxSteer": 0.6,
++            "steerRate": 2.4,
++            "maxLean": 1.0036671374806159,
++            "mu": 1.75,
++            "power": 224000,
++            "maxDrive": 0,
++            "frontBrake": 7600,
++            "rearBrake": 1900,
++            "drag": 0.215,
++            "riderOffsetMax": 0.3,
++            "downforce": 0.045,
++            "downforceFront": 0.6,
++            "rolling": 0.015,
++            "wheelieLimit": 0.1,
++            "stoppieMargin": 0.92,
++            "wheelieKeep": 0.2,
++            "tractionMargin": 0.92,
++            "rollDamping": 1.2,
++            "engineBrakeReleaseThrottle": 0.12,
++            "independentRearBrake": true,
++            "currentDriveTraction": true,
++            "frontContactSteering": true,
++            "lowSpeedBalance": false
++          },
++          "x": 534.0630002734279,
++          "z": 409.23236992177294,
++          "heading": 2.808546748745552,
++          "speed": 16.955448791013417,
++          "lean": 0.6513309977975353,
++          "leanRate": 0.6653748419203739,
++          "steer": 0.03407729212621981,
++          "pitch": 0,
++          "mass": 244.7084706534224,
++          "frontLoad": 1254.2479924787935,
++          "rearLoad": 938.9772157428762,
++          "riderOffset": 0.3,
++          "rearSlip": 0,
++          "state": "riding",
++          "stateClock": 0,
++          "crashes": 0,
++          "penaltySeconds": 0,
++          "longitudinal": -0.9007834873339774,
++          "lateralUse": 0.5955875054568487,
++          "frontUse": 0.5108744917094767,
++          "rearUse": 0.5955875054568487,
++          "gripOver": 0,
++          "grip": 1.002993650183972,
++          "frontGrip": 1.0056681916337484,
++          "rearGrip": 1.002993650183972,
++          "contactLoads": {
++            "front": 1048.433061389496,
++            "rear": 942.0608239287719,
++            "rearLiftForce": 3537.2870563453175
++          },
++          "slope": -0.04260218364846396,
++          "dragScale": 1,
++          "riderReady": true,
++          "driveForce": 0,
++          "frontBrakeForce": 0,
++          "rearBrakeForce": 180.5626773081429,
++          "engineBrakeForce": 0,
++          "intervention": 0,
++          "roadLateralDemand": 0,
++          "roadAdmittedCapacity": "Infinity"
++        },
++        "gp": {
++          "geometry": {
++            "frontArm": 0.7,
++            "rearArm": 0.75,
++            "yawInertia": 55,
++            "frontRadius": 0.3,
++            "rearRadius": 0.32,
++            "frontWheelInertia": 0.6,
++            "rearWheelInertia": 0.9
++          },
++          "forwardSpeed": 16.955448791013417,
++          "longitudinalCorrection": -0.1798551701060915,
++          "lateralSpeed": 0.38674080381120185,
++          "yawRate": 0.5615949402334824,
++          "lateralAcceleration": 8.547676767865449,
++          "frontFy": 1127.6922249226263,
++          "rearFy": 964.8558807991174,
++          "frontSlipAngle": -0.03676734267132995,
++          "rearSlipAngle": -0.04387618408780544,
++          "frontSlip": 0.0008908875586259178,
++          "rearSlip": -0.004728247823104695,
++          "frontOmega": 56.567840072380946,
++          "rearOmega": 52.73461935779993,
++          "frontSlidingPower": 0,
++          "rearSlidingPower": 47.75642671530395,
++          "groundSteer": 0.0390383686324821,
++          "frontStiffness": 32555.099446551307,
++          "steerTrim": 0.0005363438878757423,
++          "leanTarget": 0.9508655745887793,
++          "lateralDemand": 8.499486894098954,
++          "frontLoadUsed": 1254.2479924787935,
++          "frontMuUsed": 1.759920106231213,
++          "frontLimit": 2207.376260163564,
++          "rearLimit": 1638.2093811951029,
++          "frontElasticStiffness": 32555.099446551307,
++          "rearElasticStiffness": 25193.247952284106,
++          "sideLimit": 1638.2093811951029,
++          "lastSpeed": 16.955246803283806,
++          "front": {
++            "dx": 2207.376260163564,
++            "dy": 2207.376260163564,
++            "cx": 1.3,
++            "ex": 0.15,
++            "cy": 1.6,
++            "ey": -0.3,
++            "x0x": 2.6367832955817585,
++            "x0y": 1.496605762665489,
++            "kappaRef": 0.24669207137962287,
++            "alphaRef": 0.16236212882128961,
++            "alpha": -0.03676734267132995,
++            "corneringStiffness": 32555.099446551307,
++            "slipStiffness": 30671.7790422142,
++            "by1": 0.7,
++            "by2": 0.6,
++            "bx1": 0.7,
++            "bx2": 0.6,
++            "cache": {
++              "stamp": 18062,
++              "alpha": -0.03676734267132995,
++              "dy": 2207.376260163564,
++              "alphaRef": 0.16236212882128961,
++              "sy": -0.2264527013673207,
++              "fy0": -1112.173512205363,
++              "by": 0.6936267246551158
++            },
++            "stamp": 18062
++          },
++          "rear": {
++            "dx": 1648.1301092669614,
++            "dy": 1648.1301092669614,
++            "cx": 1.3,
++            "ex": 0.15,
++            "cy": 1.6,
++            "ey": -0.3,
++            "x0x": 2.6367832955817585,
++            "x0y": 1.496605762665489,
++            "kappaRef": 0.24642943772797632,
++            "alphaRef": 0.15665156148651688,
++            "alpha": -0.04387618408780544,
++            "corneringStiffness": 25193.247952284106,
++            "slipStiffness": 22925.3881982024,
++            "by1": 0.7,
++            "by2": 0.6,
++            "bx1": 0.7,
++            "bx2": 0.6,
++            "cache": {
++              "stamp": 18154,
++              "alpha": -0.04387618408780544,
++              "dy": 1648.1301092669614,
++              "alphaRef": 0.15665156148651688,
++              "sy": -0.2800877544497499,
++              "fy0": -989.7366189978878,
++              "by": 0.6903199666318502
++            },
++            "stamp": 18154
++          },
++          "force": {
++            "fx": -576.1563000395028,
++            "fy": 986.9182014401852
++          },
++          "inverseFront": {
++            "dx": 2207.376260163564,
++            "dy": 2207.376260163564,
++            "cx": 1.3,
++            "ex": 0.15,
++            "cy": 1.6,
++            "ey": -0.3,
++            "x0x": 2.6367832955817585,
++            "x0y": 1.496605762665489,
++            "kappaRef": 0.24669207137962287,
++            "alphaRef": 0.16236212882128961,
++            "alpha": -0.03623912639813849,
++            "corneringStiffness": 32555.099446551307,
++            "slipStiffness": 30671.7790422142,
++            "by1": 0.7,
++            "by2": 0.6,
++            "bx1": 0.7,
++            "bx2": 0.6,
++            "cache": {
++              "stamp": 18049,
++              "alpha": -0.03623912639813849,
++              "dy": 2207.376260163564,
++              "alphaRef": 0.16236212882128961,
++              "sy": -0.22319937944412233,
++              "fy0": -1098.4242520405523,
++              "by": 0.6938061261223353
++            },
++            "stamp": 18049
++          },
++          "previewFront": {
++            "dx": 2207.376260163564,
++            "dy": 2207.376260163564,
++            "cx": 1.3,
++            "ex": 0.15,
++            "cy": 1.6,
++            "ey": -0.3,
++            "x0x": 2.6367832955817585,
++            "x0y": 1.496605762665489,
++            "kappaRef": 0.24669207137962287,
++            "alphaRef": 0.16236212882128961,
++            "alpha": 0,
++            "corneringStiffness": 32555.099446551307,
++            "slipStiffness": 30671.7790422142,
++            "by1": 0.7,
++            "by2": 0.6,
++            "bx1": 0.7,
++            "bx2": 0.6,
++            "cache": {
++              "stamp": -1,
++              "alpha": "NaN",
++              "dy": "NaN",
++              "alphaRef": "NaN",
++              "sy": 0,
++              "fy0": 0,
++              "by": 0
++            },
++            "stamp": 18049
++          },
++          "previewRear": {
++            "dx": 1648.1301092669614,
++            "dy": 1648.1301092669614,
++            "cx": 1.3,
++            "ex": 0.15,
++            "cy": 1.6,
++            "ey": -0.3,
++            "x0x": 2.6367832955817585,
++            "x0y": 1.496605762665489,
++            "kappaRef": 0.24642943772797632,
++            "alphaRef": 0.15665156148651688,
++            "alpha": -0.0438759052009315,
++            "corneringStiffness": 25193.247952284106,
++            "slipStiffness": 22925.3881982024,
++            "by1": 0.7,
++            "by2": 0.6,
++            "bx1": 0.7,
++            "bx2": 0.6,
++            "cache": {
++              "stamp": 36282,
++              "alpha": -0.0438759052009315,
++              "dy": 1648.1301092669614,
++              "alphaRef": 0.15665156148651688,
++              "sy": -0.2800859741491178,
++              "fy0": -989.7316501109943,
++              "by": 0.6903200871476333
++            },
++            "stamp": 36282
++          },
++          "inverseForces": {
++            "typedArray": "Float64Array",
++            "values": [
++              -2184.399534546427, -2173.3033522062938, -2123.419499587468, -2014.5391372882286,
++              -1822.093932864729, -1522.7404642448687, -1105.3956660319363, -583.6287457936559, 0,
++              583.5804956740359, 1105.2128406612212, 1522.3624922653723, 1821.4904513876515,
++              2013.7043094613234, 2122.3623073938634, 2172.0392006310726, 2182.9450287900054
++            ]
++          }
++        }
++      },
++      "input": {
++        "lean": 1,
++        "throttle": 0,
++        "frontBrake": 0.3167766268563911,
++        "rearBrake": 0,
++        "rider": 1,
++        "drive": 0,
++        "engineBrake": 0
++      },
++      "admittedRatioBefore": 1.3243143801841752,
++      "expected": {
++        "originalTarget": 0.9869550776978034,
++        "admittedTarget": 0.8781086191092004,
++        "nominalReserve": 14.843437926724462,
++        "allocationReserve": 16.24531817535955,
++        "frontFx": 0,
++        "rearFx": -29.52006109863915,
++        "lateralBefore": 6.183335392828421,
++        "lateralAdmitted": 10.969700306539488,
++        "frontLoad": 1048.433061389496,
++        "rearLoad": 942.0608239287719
++      }
++    }
++  ]
++}
+diff --git a/tests/gp-target-admission.test.ts b/tests/gp-target-admission.test.ts
+new file mode 100644
+index 0000000..d3ce52e
+--- /dev/null
++++ b/tests/gp-target-admission.test.ts
+@@ -0,0 +1,244 @@
++import { describe, expect, it, vi } from 'vitest';
++import { DynamicsTrack } from '../scripts/dynamics-fixtures.ts';
++import { G } from '../src/core/math.ts';
++import { BIKE, Bike, EXPERT, GP_ASSIST, NOVICE, type BikeInput } from '../src/simulation/bike.ts';
++import { GP_R1 } from '../src/simulation/bike-definitions.ts';
++import { BikeVehicle } from '../src/simulation/bike-vehicle.ts';
++import { DEFAULT_SETUP } from '../src/simulation/config.ts';
++import { gpHangOffAngle, MotoGPChassis } from '../src/simulation/motogp-physics.ts';
++import recorded from './fixtures/gp-target-admission-onset.json';
++
++const neutral: BikeInput = {
++  lean: 0,
++  throttle: 0,
++  frontBrake: 0,
++  rearBrake: 0,
++  rider: 0,
++  drive: 0,
++};
++const admitted = (bike: Bike): number => Reflect.get(bike, 'gpAdmittedSupportRatio');
++const reserveTarget = (bike: Bike): number => Reflect.get(bike, 'gpReserveTarget');
++
++function machine() {
++  const bike = new BikeVehicle(0, 'medium', DEFAULT_SETUP, 'sport', GP_R1).dynamics;
++  bike.assists = NOVICE;
++  bike.speed = 30;
++  bike.p.drag = bike.p.rolling = 0;
++  return bike;
++}
++
++describe('GP target admission keeps the current recovery budget', () => {
++  it.each([1 / 240, 1 / 120].flatMap((dt) => [0.1, 0.2, 0.3].map((period) => ({ dt, period }))))(
++    'keeps a new roll inside recurring support at period $period and dt $dt',
++    ({ dt, period }) => {
++      const bike = machine(),
++        front = bike.frontLoad,
++        rear = bike.rearLoad,
++        turning = { ...neutral, lean: 1, rider: 1 };
++      // Retain the previous native transient-support counterexamples. This
++      // trial restricts only the target, with no admitted-reaction/work filter.
++      for (let i = 0; i < 8 / dt; i++) {
++        const load = (i * dt) % period < period / 5 ? 0 : 1.5 * front;
++        bike.contactLoads = { front: load, rear };
++        bike.step(turning, dt);
++        expect(bike.state).toBe('riding');
++        expect(bike.frontLoad).toBe(load);
++        expect(bike.rearLoad).toBe(rear);
++        expect(Math.abs(bike.motoGP!.frontFy)).toBeLessThanOrEqual(bike.p.mu * load + 1e-9);
++        expect(Math.abs(bike.motoGP!.rearFy)).toBeLessThanOrEqual(bike.p.mu * rear + 1e-9);
++        if (load === 0) expect(admitted(bike)).toBe(0);
++      }
++      bike.contactLoads = { front, rear };
++      for (let i = 0; i < 4 / dt; i++) bike.step(turning, dt);
++      expect(bike.state).toBe('riding');
++      expect(bike.motoGP!.leanTarget).toBeCloseTo(reserveTarget(bike), 3);
++    },
++  );
++
++  it('preserves supported lean when both axle reactions change proportionally', () => {
++    const bike = machine(),
++      front = bike.frontLoad,
++      rear = bike.rearLoad;
++    let reference = 0;
++    for (let i = 0; i < 480; i++) {
++      const scale = i < 120 ? 1 : i < 240 ? 0.5 : i < 360 ? 1.5 : 2;
++      // Hold pose and physical intent fixed while only prescribed support
++      // changes; native controller history still advances on every step.
++      bike.speed = 30;
++      bike.lean = 0.35;
++      bike.leanRate = 0;
++      bike.riderOffset = 0.08;
++      bike.frontBrakeForce = bike.rearBrakeForce = bike.driveForce = 0;
++      bike.motoGP!.reset(bike.speed);
++      bike.contactLoads = { front: front * scale, rear: rear * scale };
++      bike.step({ ...neutral, lean: 1, rider: 0.08 / bike.p.riderOffsetMax }, 1 / 240);
++      if (i === 0) reference = bike.motoGP!.leanTarget;
++      expect(bike.motoGP!.leanTarget).toBeCloseTo(reference, 12);
++      expect(reserveTarget(bike)).toBeCloseTo(reference, 12);
++      expect(bike.frontLoad).toBe(front * scale);
++      expect(bike.rearLoad).toBe(rear * scale);
++    }
++  });
++
++  it.each(recorded.cases.flatMap((state) => [-1, 1].map((sign) => ({ sign, ...state }))))(
++    'arrests the saved onset earlier without releasing its pedal reserve at $tick/$substep, sign $sign',
++    (saved) => {
++      const state = JSON.parse(JSON.stringify(saved.state), (_, value) => {
++        if (value && typeof value === 'object' && value.typedArray === 'Float64Array')
++          return new Float64Array(value.values);
++        if (value === 'Infinity') return Infinity;
++        if (value === '-Infinity') return -Infinity;
++        if (value === 'NaN') return NaN;
++        return value;
++      });
++      const bike = Object.assign(new Bike(state.bike.assists, state.bike.p), state.bike),
++        gp = Object.assign(new MotoGPChassis(state.gp.geometry), state.gp);
++      bike.motoGP = gp;
++      for (const key of ['lean', 'leanRate', 'steer', 'riderOffset', 'heading'] as const)
++        bike[key] *= saved.sign;
++      for (const key of [
++        'lateralSpeed',
++        'yawRate',
++        'lateralAcceleration',
++        'frontFy',
++        'rearFy',
++        'steerTrim',
++        'groundSteer',
++        'leanTarget',
++      ] as const)
++        gp[key] *= saved.sign;
++      Reflect.set(bike, 'gpAdmittedSupportRatio', saved.admittedRatioBefore);
++      Reflect.set(bike, 'gpReserveTarget', -123); // Must be overwritten before allocation.
++      const plant = vi.spyOn(gp, 'step'),
++        inverse = vi.spyOn(gp, 'frontSteerFor'),
++        rearPreview = vi.spyOn(gp, 'rearForceFor'),
++        input = {
++          ...saved.input,
++          lean: saved.sign * saved.input.lean,
++          rider: saved.sign * saved.input.rider,
++        };
++      bike.step(input, saved.dt);
++      expect(plant).toHaveBeenCalledTimes(1);
++      expect(inverse).toHaveBeenCalledTimes(1);
++      expect(rearPreview).toHaveBeenCalledTimes(1);
++      expect(gp.leanTarget).toBeCloseTo(saved.sign * saved.expected.admittedTarget, 12);
++      expect(reserveTarget(bike)).toBe(saved.sign * saved.expected.originalTarget);
++      expect(Math.abs(gp.leanTarget)).toBeLessThan(Math.abs(reserveTarget(bike)));
++      const psi = state.bike.lean * saved.sign + gpHangOffAngle(bike.riderOffset, bike.p.cgHeight),
++        nominal =
++          G * Math.tan(Math.min(1.3, Math.max(Math.abs(psi), Math.abs(reserveTarget(bike))))),
++        q = plant.mock.calls[0][0];
++      expect(nominal).toBe(saved.expected.nominalReserve);
++      const frontRequest = (lateral: number) =>
++        bike.mass * saved.sign * lateral -
++        rearPreview.mock.results[0].value -
++        (GP_ASSIST.yawDamping *
++          gp.geometry.yawInertia *
++          saved.sign *
++          (state.gp.yawRate - lateral / Math.max(state.bike.speed, 3))) /
++          gp.geometry.frontArm;
++      expect(inverse.mock.calls[0][0]).toBeCloseTo(frontRequest(saved.expected.lateralAdmitted), 9);
++      expect(
++        saved.sign * (inverse.mock.calls[0][0] - frontRequest(saved.expected.lateralBefore)),
++      ).toBeGreaterThan(0.01);
++      // The preserved floor owns these two native allocations. Reducing it
++      // along with the target would give the pedals up to 3.312 m/s² back.
++      // JSON serializes the recorded zero front-brake force without its sign.
++      expect(q.frontFx).toBe(saved.expected.frontFx === 0 ? -0 : saved.expected.frontFx);
++      expect(q.rearFx).toBe(saved.expected.rearFx);
++      expect(q.frontLoad).toBe(saved.expected.frontLoad);
++      expect(q.rearLoad).toBe(saved.expected.rearLoad);
++      expect(bike.state).toBe('riding');
++    },
++  );
++
++  it('drops admission at lost support while allowing the full native landing force', () => {
++    const bike = machine(),
++      front = bike.frontLoad,
++      rear = bike.rearLoad,
++      dt = 1 / 240;
++    bike.contactLoads = { front, rear };
++    bike.step(neutral, dt);
++    const ratio = admitted(bike);
++    bike.contactLoads = { front: 0, rear: 0 };
++    bike.step({ ...neutral, throttle: 1, drive: 5000, frontBrake: 1, rearBrake: 1 }, dt);
++    expect(admitted(bike)).toBe(0);
++    expect(bike.driveForce + bike.frontBrakeForce + bike.rearBrakeForce).toBe(0);
++    expect(bike.motoGP!.frontFy).toBe(0);
++    expect(bike.motoGP!.rearFy).toBe(0);
++    bike.lean = 0.4;
++    bike.leanRate = 0.6;
++    bike.contactLoads = { front, rear };
++    bike.step(neutral, dt);
++    expect(admitted(bike)).toBeGreaterThan(0);
++    expect(admitted(bike)).toBeLessThan(ratio / 10);
++    const transmitted = Math.abs(bike.motoGP!.frontFy + bike.motoGP!.rearFy),
++      admittedForce = admitted(bike) * (front + rear);
++    expect(transmitted).toBeGreaterThan(admittedForce);
++    expect(bike.frontLoad).toBe(front);
++    expect(bike.rearLoad).toBe(rear);
++  });
++
++  it.each(['place', 'placeFree'] as const)('clears admission on explicit %s', (placement) => {
++    const track = new DynamicsTrack(),
++      used = new BikeVehicle(0, 'medium', DEFAULT_SETUP, 'sport', GP_R1),
++      fresh = new BikeVehicle(0, 'medium', DEFAULT_SETUP, 'sport', GP_R1);
++    used.dynamics.contactLoads = { front: 0, rear: 0 };
++    used.dynamics.step(neutral, 1 / 240);
++    expect(admitted(used.dynamics)).toBe(0);
++    for (const bike of [used, fresh]) {
++      if (placement === 'place') bike.place(track, 0);
++      else bike.placeFree(track, 0, 0, 0, 0);
++    }
++    expect(admitted(used.dynamics)).toBe(Infinity);
++    expect(reserveTarget(used.dynamics)).toBe(0);
++    used.step(1 / 240, track);
++    fresh.step(1 / 240, track);
++    expect(used.dynamics).toEqual(fresh.dynamics);
++  });
++
++  it('resets admission on remount and leaving optional road contact', () => {
++    const bike = machine();
++    bike.contactLoads = { front: 0, rear: 0 };
++    bike.step(neutral, 1 / 240);
++    bike.state = 'remount';
++    bike.stateClock = 1.5;
++    bike.speed = 0;
++    bike.riderReady = true;
++    bike.step(neutral, 1 / 240);
++    expect(bike.state).toBe('riding');
++    expect(admitted(bike)).toBe(Infinity);
++    expect(reserveTarget(bike)).toBe(0);
++    bike.step(neutral, 1 / 240);
++    expect(admitted(bike)).toBe(0);
++    bike.contactLoads = undefined;
++    bike.step(neutral, 1 / 240);
++    expect(admitted(bike)).toBe(Infinity);
++  });
++
++  it('does not consume stale target reserves when the GP assist is inactive', () => {
++    for (const mode of ['manual', 'walking', 'airborne'] as const) {
++      const a = machine(),
++        b = machine();
++      if (mode === 'manual') a.assists = b.assists = EXPERT;
++      if (mode === 'walking') a.speed = b.speed = 2;
++      a.contactLoads = b.contactLoads =
++        mode === 'airborne' ? { front: 0, rear: 0 } : { front: a.frontLoad, rear: a.rearLoad };
++      Reflect.set(a, 'gpReserveTarget', 1.2);
++      Reflect.set(b, 'gpReserveTarget', 0);
++      const input = { ...neutral, throttle: 1, drive: 2000, frontBrake: 0.3 };
++      a.step(input, 1 / 240);
++      b.step(input, 1 / 240);
++      expect(a.driveForce).toBe(b.driveForce);
++      expect(a.frontBrakeForce).toBe(b.frontBrakeForce);
++      expect(a.rearBrakeForce).toBe(b.rearBrakeForce);
++      expect(a.speed).toBe(b.speed);
++      expect(a.lean).toBe(b.lean);
++    }
++    const road = new Bike(NOVICE, BIKE);
++    road.speed = 30;
++    road.contactLoads = { front: road.frontLoad, rear: road.rearLoad };
++    road.step(neutral, 1 / 240);
++    expect(admitted(road)).toBe(Infinity);
++  });
++});
+-- 
+2.52.0
+

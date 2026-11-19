@@ -17,7 +17,20 @@ The mixed test fails its first pace assertion; the subsequent margin assertion d
 
 The [complete immutable audit](evidence/continuation-followup-20261119/main-unit-complete/README.md) retains all four full job logs, all native structured test reports, individual file outcomes, original Git blob identities, exact failure messages, verified artifact digests and a reproducible reconciliation script. The partitioning correction has achieved complete evidence; it has not corrected the two race failures.
 
-At the retained snapshot, build/lint/content/typecheck/IP validation, road scenarios, offroad scenarios and wet presentation passed. All sixteen ordinary-browser partitions and all four owner-QA partitions were still running. This checkpoint does not represent a green workflow or completed browser acceptance.
+Build/lint/content/typecheck/IP validation, road scenarios, offroad scenarios and wet presentation passed. The original workflow subsequently completed with a failure conclusion, with every unit and browser partition accounted for. It is not a green workflow.
+
+## The complete original browser suite has finished
+
+The same source-specific [run 44617126580](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44617126580) reached its terminal conclusion on 19 November 2026. All sixteen ordinary-browser jobs and all four separate owner-QA jobs retained complete original logs and terminal case summaries.
+
+| Original suite | Cases | Passed | Failed | Original conditional skips |
+| --- | ---: | ---: | ---: | ---: |
+| Ordinary browser | 353 | 268 | 73 | 12 |
+| Owner QA, separate build | 42 | 29 | 13 | 0 |
+
+Every case matches its exact committed file/title inventory. There are no missing, extra or duplicate cases and no cancelled browser jobs. The [complete browser audit](evidence/continuation-followup-20261119/main-browser-complete/README.md) retains all twenty lossless job logs, individual original failures, artifact descriptors, source identities and a reproducible reconciliation script. Independent reproduction yielded the identical summary bytes, and all 75 manifest entries were verified before the 76-file bundle was copied here.
+
+Of the 86 failed browser cases, 85 fail an original readiness, page-evaluation, input, visibility, screenshot or other execution/predicate deadline. Those boundaries do not establish a common cause. The remaining failure is the strict final fresh-instance GP render hash in `e2e/41-motogp-reference.spec.ts:230`. Its earlier same-instance wet, held and rewind assertions passed. The final comparison between separately constructed dry high-detail GP models differs at four of 1,024,000 pixels, by at most one colour-channel level; its six original metrics and two dry PNGs are retained. That small difference neither clears the exact-hash gate nor identifies its graphics cause. No acceptance assertion or tolerance has changed.
 
 ## Isolated retained-texture candidate
 
@@ -41,10 +54,32 @@ The [complete source-specific browser evidence](evidence/texture-order-browser-2
 
 A separate prospective integration onto this report's main-line base also passed its product build, 154 focused tests, the unchanged 4 MiB initial-bundle gate (3.57 MiB gzip), and the IP guard. Those local composition checks do not replace the failed original High journey. [The publication and supersession receipt](evidence/continuation-followup-20261119/texture-order-publication.json) records exact source equality and the previous run's zero-step cancellation. No experimental rendering source has been integrated into main.
 
+## First-capture geometry preparation advances the observed boundary
+
+The next rendering source `619ffceb23ed4351ddfcdf6a3fc232d15e5b5e12` was published as `b8f1445cb07d57b35ac1c5dd45e54b01d6aaec92`, with identical tree `8d33f4ce7255a56398689914b1a78fe4a74833ba`. It prepares eligible static geometry through the installed renderer's retained buffer cache before the first reflection capture. Original geometry, indices, payloads and disposal owners remain shared with the real capture. Temporary meshes use zero-count draws; dynamic, skinned, morph, instance-attribute and other excluded owners retain normal first use. The [source report](../docs/studio/reports/retained-geometry-preparation-2026-11-19.md) preserves its historical pre-run receipt and native ownership proofs.
+
+The candidate passed 128 focused tests, including 15 native geometry cases, TypeScript and scoped lint. Its separate [prospective main composition](../docs/studio/reports/graphics-geometry-main-integration-2026-11-19.md), frozen at `3e82ea840fa0d12c6b9703831760b714cd11b146`, passed its guarded product build, 169 focused cases across nine files, the unchanged 4 MiB bundle gate (3.57 MiB gzip) and the IP guard. All original main CI partitioning and fixture corrections remain exact in that composition. These local checks do not accept the candidate.
+
+[Hosted run 44630631215](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44630631215) again passed the build and all fifteen component, gameplay/replay and menu/settings companion cases. High still failed the original 90-second readiness assertion at line 786 with `loading` rather than `paused`; the subsequent active-GP, driving and two-photo-view assertions did not execute. The [complete source-specific browser bundle](evidence/geometry-browser-20261119/README.md) retains all sixteen case outcomes, five full job logs, four digest-verified browser-artifact receipts, original diagnostics, native trace records and protected-input identity. There are zero skips and zero retries.
+
+This source's trace reaches shadow/reflection warming 35.634 seconds after the readiness window begins, completes that stage after another 42.187 seconds, and reaches the first small pit-service warmup at 77.822 seconds. The preceding source had not completed its first reflection stage before failure. The earlier stages also vary between runs, so this is an observed advancement, not a controlled estimate of time saved by geometry preparation.
+
+At failure, the first pit pass is waiting on a fence that also covers the whole chase submission. It has not reached the second pit layout or cockpit warmup. The stage label does not attribute the remaining GPU work to pit rendering. The last readable diagnostic has no preparation error, no GPU failure and no native call in flight; completion remains pending. A separate native accounting gap remains: repeated finite plateaus follow returned `useProgram` calls, while the existing instrumentation does not time uniform or texture-binding calls. No new production change is justified by assigning those gaps to an unobserved owner.
+
 ## Separate branch-maintenance failure
 
 The [branch-maintenance audit](evidence/continuation-followup-20261119/main-unit-complete/branch-consolidation/README.md) identifies an intentional ancestry-preflight failure at the unmerged `babylon-js` branch. Its 45 unique commits are not present on main. The workflow stopped before any deletion. This is separate from application CI; no branch policy was weakened and no unrelated history was deleted.
 
+## Physics candidates remain rejected
+
+The [frozen GP contact evidence](evidence/gp-contact-continuation-20261119/README.md) retains the complete source patches, original acceptance-file hashes, native proofs, full guarded logs and exact-source negative results for four isolated trials. No candidate is integrated into production.
+
+The current-contact path and throttle-reserve corrections in `7ac509f` passed the original mixed-pace and wet-Poggio gates but failed three of the complete 51 original race/contact cases: Parco 5074, Vellamar 5222 and Ardennes hairpin 1000. Its 25 additive native tests passed. The narrower current-history forecast candidate `0594a2b` passed 67 native tests and cleared two of those three failures, but still failed Vellamar and its own mixed-pace test. The final target-only support-admission candidate `e65e13f` passed 83 native tests but failed both original race checks used to assess it, including a much earlier Vellamar fall. It is rejected.
+
+Exact-source diagnostic races also prevent a misleading pace attribution. Much of the winning-lap change between `7ac509f` and `0594a2b` follows different traffic separation and a new crash-triggered yellow flag. The earlier winner's best lap came after its own first-lap fall. The later winning-lap regression is therefore not evidence of a uniform tyre or pedal-reserve slowdown. A native state observer confirms a lateral excursion, airborne contact and subsequent lean-limit crossing on the later source, but has not established another production mismatch that justifies a new controller change.
+
+The original seeds, deadlines, no-fall and contact assertions, friction, gains and actuator limits are unchanged. Source-stable passes belong only to the tested candidate. Simulation identity remains 27 and snapshot protocol remains 17 because no physics candidate has been accepted; an accepted physics change must advance its simulation identity once.
+
 ## Next acceptance boundary
 
-Continue the existing hosted browser workloads to terminal results. Retain the unchanged wet-contact, mixed-pace and broader race regression requirements for every physics candidate. A physics candidate accepted for integration must also advance the simulation identity once; the snapshot schema changes only if its payload layout changes. Local native checks or selected race passes alone do not authorize an acceptance claim for the complete game.
+The original main run is complete and failed with every case accounted for. Continue rendering diagnosis against the latest exact-source hosted result, and retain the unchanged wet-contact, mixed-pace and broader race regression requirements for every physics candidate. A physics candidate accepted for integration must also advance the simulation identity once; the snapshot schema changes only if its payload layout changes. Local native checks or selected race passes alone do not authorize an acceptance claim for the complete game.

@@ -1,0 +1,993 @@
+{
+  "source": "b8f1445cb07d57b35ac1c5dd45e54b01d6aaec92",
+  "tree": "8d33f4ce7255a56398689914b1a78fe4a74833ba",
+  "runId": 44630631215,
+  "observedAt": "2026-11-19T22:50:19.161Z",
+  "workflow": {
+    "id": 44630631215,
+    "name": "Isolated startup rendering validation",
+    "node_id": "WFR_kwLOUeQL5s8AAAAKZDFjLw",
+    "head_branch": "ci/high-late-startup-20261119",
+    "head_sha": "b8f1445cb07d57b35ac1c5dd45e54b01d6aaec92",
+    "path": ".github/workflows/graphics-high-diagnostic.yml",
+    "display_title": "Prepare retained static geometry before the first cube capture",
+    "run_number": 7,
+    "event": "push",
+    "status": "completed",
+    "conclusion": "failure",
+    "workflow_id": 424032301,
+    "check_suite_id": 120812083226,
+    "check_suite_node_id": "CS_kwDOUeQL5s8AAAAcIPYYGg",
+    "url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/actions/runs/44630631215",
+    "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44630631215",
+    "pull_requests": [],
+    "created_at": "2026-11-19T22:39:14Z",
+    "updated_at": "2026-11-19T22:48:03Z",
+    "actor": {
+      "login": "cheshmakzanoon-ops",
+      "id": 318354914,
+      "node_id": "U_kgDOEvm14g",
+      "avatar_url": "https://avatars.githubusercontent.com/u/318354914?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cheshmakzanoon-ops",
+      "html_url": "https://github.com/cheshmakzanoon-ops",
+      "followers_url": "https://api.github.com/users/cheshmakzanoon-ops/followers",
+      "following_url": "https://api.github.com/users/cheshmakzanoon-ops/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cheshmakzanoon-ops/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cheshmakzanoon-ops/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cheshmakzanoon-ops/subscriptions",
+      "organizations_url": "https://api.github.com/users/cheshmakzanoon-ops/orgs",
+      "repos_url": "https://api.github.com/users/cheshmakzanoon-ops/repos",
+      "events_url": "https://api.github.com/users/cheshmakzanoon-ops/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cheshmakzanoon-ops/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "run_attempt": 1,
+    "referenced_workflows": [],
+    "run_started_at": "2026-11-19T22:39:14Z",
+    "triggering_actor": {
+      "login": "cheshmakzanoon-ops",
+      "id": 318354914,
+      "node_id": "U_kgDOEvm14g",
+      "avatar_url": "https://avatars.githubusercontent.com/u/318354914?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/cheshmakzanoon-ops",
+      "html_url": "https://github.com/cheshmakzanoon-ops",
+      "followers_url": "https://api.github.com/users/cheshmakzanoon-ops/followers",
+      "following_url": "https://api.github.com/users/cheshmakzanoon-ops/following{/other_user}",
+      "gists_url": "https://api.github.com/users/cheshmakzanoon-ops/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/cheshmakzanoon-ops/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/cheshmakzanoon-ops/subscriptions",
+      "organizations_url": "https://api.github.com/users/cheshmakzanoon-ops/orgs",
+      "repos_url": "https://api.github.com/users/cheshmakzanoon-ops/repos",
+      "events_url": "https://api.github.com/users/cheshmakzanoon-ops/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/cheshmakzanoon-ops/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "jobs_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/actions/runs/44630631215/jobs",
+    "logs_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/actions/runs/44630631215/logs",
+    "check_suite_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/check-suites/120812083226",
+    "artifacts_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/actions/runs/44630631215/artifacts",
+    "cancel_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/actions/runs/44630631215/cancel",
+    "rerun_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/actions/runs/44630631215/rerun",
+    "previous_attempt_url": null,
+    "workflow_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/actions/workflows/424032301",
+    "head_commit": {
+      "id": "b8f1445cb07d57b35ac1c5dd45e54b01d6aaec92",
+      "tree_id": "8d33f4ce7255a56398689914b1a78fe4a74833ba",
+      "message": "Prepare retained static geometry before the first cube capture\n\nPopulate the installed renderer's native attribute/index cache using zero-primitive submissions before any first-capture face rasterization. Select current visible face consumers, retain original owners and disposal, and preserve the original offscreen path. Quality, scene draw payloads, original browser assertions and deadlines are unchanged.\n\nLocal native/integration checks: 128 passed; TypeScript and scoped lint passed. The original hosted High journey remains required.",
+      "timestamp": "2026-11-19T22:39:11Z",
+      "author": {
+        "name": "cheshmakzanoon-ops",
+        "email": "cheshmakzanoon@gmail.com"
+      },
+      "committer": {
+        "name": "cheshmakzanoon-ops",
+        "email": "cheshmakzanoon@gmail.com"
+      }
+    },
+    "repository": {
+      "id": 1373899750,
+      "node_id": "R_kgDOUeQL5g",
+      "name": "Experiment-3",
+      "full_name": "cheshmakzanoon-ops/Experiment-3",
+      "private": false,
+      "owner": {
+        "login": "cheshmakzanoon-ops",
+        "id": 318354914,
+        "node_id": "U_kgDOEvm14g",
+        "avatar_url": "https://avatars.githubusercontent.com/u/318354914?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/cheshmakzanoon-ops",
+        "html_url": "https://github.com/cheshmakzanoon-ops",
+        "followers_url": "https://api.github.com/users/cheshmakzanoon-ops/followers",
+        "following_url": "https://api.github.com/users/cheshmakzanoon-ops/following{/other_user}",
+        "gists_url": "https://api.github.com/users/cheshmakzanoon-ops/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/cheshmakzanoon-ops/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/cheshmakzanoon-ops/subscriptions",
+        "organizations_url": "https://api.github.com/users/cheshmakzanoon-ops/orgs",
+        "repos_url": "https://api.github.com/users/cheshmakzanoon-ops/repos",
+        "events_url": "https://api.github.com/users/cheshmakzanoon-ops/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/cheshmakzanoon-ops/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3",
+      "description": null,
+      "fork": false,
+      "url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3",
+      "forks_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/forks",
+      "keys_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/keys{/key_id}",
+      "collaborators_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/collaborators{/collaborator}",
+      "teams_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/teams",
+      "hooks_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/hooks",
+      "issue_events_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/issues/events{/number}",
+      "events_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/events",
+      "assignees_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/assignees{/user}",
+      "branches_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/branches{/branch}",
+      "tags_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/tags",
+      "blobs_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/git/blobs{/sha}",
+      "git_tags_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/git/tags{/sha}",
+      "git_refs_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/git/refs{/sha}",
+      "trees_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/git/trees{/sha}",
+      "statuses_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/statuses/{sha}",
+      "languages_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/languages",
+      "stargazers_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/stargazers",
+      "contributors_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/contributors",
+      "subscribers_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/subscribers",
+      "subscription_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/subscription",
+      "commits_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/commits{/sha}",
+      "git_commits_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/git/commits{/sha}",
+      "comments_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/comments{/number}",
+      "issue_comment_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/issues/comments{/number}",
+      "contents_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/contents/{+path}",
+      "compare_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/compare/{base}...{head}",
+      "merges_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/merges",
+      "archive_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/{archive_format}{/ref}",
+      "downloads_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/downloads",
+      "issues_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/issues{/number}",
+      "pulls_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/pulls{/number}",
+      "milestones_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/milestones{/number}",
+      "notifications_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/notifications{?since,all,participating}",
+      "labels_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/labels{/name}",
+      "releases_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/releases{/id}",
+      "deployments_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/deployments"
+    },
+    "head_repository": {
+      "id": 1373899750,
+      "node_id": "R_kgDOUeQL5g",
+      "name": "Experiment-3",
+      "full_name": "cheshmakzanoon-ops/Experiment-3",
+      "private": false,
+      "owner": {
+        "login": "cheshmakzanoon-ops",
+        "id": 318354914,
+        "node_id": "U_kgDOEvm14g",
+        "avatar_url": "https://avatars.githubusercontent.com/u/318354914?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/cheshmakzanoon-ops",
+        "html_url": "https://github.com/cheshmakzanoon-ops",
+        "followers_url": "https://api.github.com/users/cheshmakzanoon-ops/followers",
+        "following_url": "https://api.github.com/users/cheshmakzanoon-ops/following{/other_user}",
+        "gists_url": "https://api.github.com/users/cheshmakzanoon-ops/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/cheshmakzanoon-ops/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/cheshmakzanoon-ops/subscriptions",
+        "organizations_url": "https://api.github.com/users/cheshmakzanoon-ops/orgs",
+        "repos_url": "https://api.github.com/users/cheshmakzanoon-ops/repos",
+        "events_url": "https://api.github.com/users/cheshmakzanoon-ops/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/cheshmakzanoon-ops/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3",
+      "description": null,
+      "fork": false,
+      "url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3",
+      "forks_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/forks",
+      "keys_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/keys{/key_id}",
+      "collaborators_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/collaborators{/collaborator}",
+      "teams_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/teams",
+      "hooks_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/hooks",
+      "issue_events_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/issues/events{/number}",
+      "events_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/events",
+      "assignees_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/assignees{/user}",
+      "branches_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/branches{/branch}",
+      "tags_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/tags",
+      "blobs_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/git/blobs{/sha}",
+      "git_tags_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/git/tags{/sha}",
+      "git_refs_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/git/refs{/sha}",
+      "trees_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/git/trees{/sha}",
+      "statuses_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/statuses/{sha}",
+      "languages_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/languages",
+      "stargazers_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/stargazers",
+      "contributors_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/contributors",
+      "subscribers_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/subscribers",
+      "subscription_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/subscription",
+      "commits_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/commits{/sha}",
+      "git_commits_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/git/commits{/sha}",
+      "comments_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/comments{/number}",
+      "issue_comment_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/issues/comments{/number}",
+      "contents_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/contents/{+path}",
+      "compare_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/compare/{base}...{head}",
+      "merges_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/merges",
+      "archive_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/{archive_format}{/ref}",
+      "downloads_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/downloads",
+      "issues_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/issues{/number}",
+      "pulls_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/pulls{/number}",
+      "milestones_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/milestones{/number}",
+      "notifications_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/notifications{?since,all,participating}",
+      "labels_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/labels{/name}",
+      "releases_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/releases{/id}",
+      "deployments_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/deployments"
+    }
+  },
+  "jobs": {
+    "total_count": 5,
+    "jobs": [
+      {
+        "id": 135935985715,
+        "run_id": 44630631215,
+        "workflow_name": "Isolated startup rendering validation",
+        "head_branch": "ci/high-late-startup-20261119",
+        "run_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/actions/runs/44630631215",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOUeQL5s8AAAAfpmqIMw",
+        "head_sha": "b8f1445cb07d57b35ac1c5dd45e54b01d6aaec92",
+        "url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/actions/jobs/135935985715",
+        "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44630631215/job/135935985715",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-11-19T22:39:15Z",
+        "started_at": "2026-11-19T22:39:17Z",
+        "completed_at": "2026-11-19T22:47:07Z",
+        "name": "gameplay",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-11-19T22:39:17Z",
+            "completed_at": "2026-11-19T22:39:20Z"
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-11-19T22:39:20Z",
+            "completed_at": "2026-11-19T22:39:36Z"
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-11-19T22:39:36Z",
+            "completed_at": "2026-11-19T22:39:41Z"
+          },
+          {
+            "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-11-19T22:39:41Z",
+            "completed_at": "2026-11-19T22:39:46Z"
+          },
+          {
+            "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm run build",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-11-19T22:39:46Z",
+            "completed_at": "2026-11-19T22:40:26Z"
+          },
+          {
+            "name": "Run npx playwright install --with-deps chromium",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-11-19T22:40:26Z",
+            "completed_at": "2026-11-19T22:44:08Z"
+          },
+          {
+            "name": "Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-11-19T22:44:08Z",
+            "completed_at": "2026-11-19T22:44:11Z"
+          },
+          {
+            "name": "Existing complete application driving and replay journey",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8,
+            "started_at": "2026-11-19T22:44:11Z",
+            "completed_at": "2026-11-19T22:47:05Z"
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9,
+            "started_at": "2026-11-19T22:47:05Z",
+            "completed_at": "2026-11-19T22:47:06Z"
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 17,
+            "started_at": "2026-11-19T22:47:06Z",
+            "completed_at": "2026-11-19T22:47:06Z"
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 18,
+            "started_at": "2026-11-19T22:47:06Z",
+            "completed_at": "2026-11-19T22:47:06Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 19,
+            "started_at": "2026-11-19T22:47:06Z",
+            "completed_at": "2026-11-19T22:47:06Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/check-runs/135935985715",
+        "labels": [
+          "ubuntu-24.04"
+        ],
+        "runner_id": 1000036551,
+        "runner_name": "GitHub Actions 1000036551",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 135935986093,
+        "run_id": 44630631215,
+        "workflow_name": "Isolated startup rendering validation",
+        "head_branch": "ci/high-late-startup-20261119",
+        "run_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/actions/runs/44630631215",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOUeQL5s8AAAAfpmqJrQ",
+        "head_sha": "b8f1445cb07d57b35ac1c5dd45e54b01d6aaec92",
+        "url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/actions/jobs/135935986093",
+        "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44630631215/job/135935986093",
+        "status": "completed",
+        "conclusion": "failure",
+        "created_at": "2026-11-19T22:39:15Z",
+        "started_at": "2026-11-19T22:39:18Z",
+        "completed_at": "2026-11-19T22:46:15Z",
+        "name": "high",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-11-19T22:39:19Z",
+            "completed_at": "2026-11-19T22:39:22Z"
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-11-19T22:39:22Z",
+            "completed_at": "2026-11-19T22:39:40Z"
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-11-19T22:39:40Z",
+            "completed_at": "2026-11-19T22:39:49Z"
+          },
+          {
+            "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-11-19T22:39:49Z",
+            "completed_at": "2026-11-19T22:39:54Z"
+          },
+          {
+            "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm run build",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-11-19T22:39:54Z",
+            "completed_at": "2026-11-19T22:40:28Z"
+          },
+          {
+            "name": "Run npx playwright install --with-deps chromium",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-11-19T22:40:28Z",
+            "completed_at": "2026-11-19T22:43:18Z"
+          },
+          {
+            "name": "Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-11-19T22:43:18Z",
+            "completed_at": "2026-11-19T22:43:24Z"
+          },
+          {
+            "name": "High preset through the full application with completed GPU submissions",
+            "status": "completed",
+            "conclusion": "failure",
+            "number": 8,
+            "started_at": "2026-11-19T22:43:24Z",
+            "completed_at": "2026-11-19T22:46:08Z"
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9,
+            "started_at": "2026-11-19T22:46:08Z",
+            "completed_at": "2026-11-19T22:46:13Z"
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 17,
+            "started_at": "2026-11-19T22:46:13Z",
+            "completed_at": "2026-11-19T22:46:13Z"
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 18,
+            "started_at": "2026-11-19T22:46:13Z",
+            "completed_at": "2026-11-19T22:46:13Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 19,
+            "started_at": "2026-11-19T22:46:13Z",
+            "completed_at": "2026-11-19T22:46:13Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/check-runs/135935986093",
+        "labels": [
+          "ubuntu-24.04"
+        ],
+        "runner_id": 1000036553,
+        "runner_name": "GitHub Actions 1000036553",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 135935986122,
+        "run_id": 44630631215,
+        "workflow_name": "Isolated startup rendering validation",
+        "head_branch": "ci/high-late-startup-20261119",
+        "run_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/actions/runs/44630631215",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOUeQL5s8AAAAfpmqJyg",
+        "head_sha": "b8f1445cb07d57b35ac1c5dd45e54b01d6aaec92",
+        "url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/actions/jobs/135935986122",
+        "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44630631215/job/135935986122",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-11-19T22:39:15Z",
+        "started_at": "2026-11-19T22:39:17Z",
+        "completed_at": "2026-11-19T22:40:28Z",
+        "name": "build",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-11-19T22:39:17Z",
+            "completed_at": "2026-11-19T22:39:18Z"
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-11-19T22:39:18Z",
+            "completed_at": "2026-11-19T22:39:33Z"
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-11-19T22:39:33Z",
+            "completed_at": "2026-11-19T22:39:34Z"
+          },
+          {
+            "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-11-19T22:39:34Z",
+            "completed_at": "2026-11-19T22:39:38Z"
+          },
+          {
+            "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm run build",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-11-19T22:39:38Z",
+            "completed_at": "2026-11-19T22:40:22Z"
+          },
+          {
+            "name": "Identify the reviewed source",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-11-19T22:40:22Z",
+            "completed_at": "2026-11-19T22:40:22Z"
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-11-19T22:40:22Z",
+            "completed_at": "2026-11-19T22:40:26Z"
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13,
+            "started_at": "2026-11-19T22:40:26Z",
+            "completed_at": "2026-11-19T22:40:26Z"
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 14,
+            "started_at": "2026-11-19T22:40:26Z",
+            "completed_at": "2026-11-19T22:40:26Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 15,
+            "started_at": "2026-11-19T22:40:26Z",
+            "completed_at": "2026-11-19T22:40:27Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/check-runs/135935986122",
+        "labels": [
+          "ubuntu-24.04"
+        ],
+        "runner_id": 1000036552,
+        "runner_name": "GitHub Actions 1000036552",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 135935986278,
+        "run_id": 44630631215,
+        "workflow_name": "Isolated startup rendering validation",
+        "head_branch": "ci/high-late-startup-20261119",
+        "run_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/actions/runs/44630631215",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOUeQL5s8AAAAfpmqKZg",
+        "head_sha": "b8f1445cb07d57b35ac1c5dd45e54b01d6aaec92",
+        "url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/actions/jobs/135935986278",
+        "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44630631215/job/135935986278",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-11-19T22:39:15Z",
+        "started_at": "2026-11-19T22:39:17Z",
+        "completed_at": "2026-11-19T22:48:03Z",
+        "name": "gpu",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-11-19T22:39:18Z",
+            "completed_at": "2026-11-19T22:39:21Z"
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-11-19T22:39:21Z",
+            "completed_at": "2026-11-19T22:39:41Z"
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-11-19T22:39:41Z",
+            "completed_at": "2026-11-19T22:39:48Z"
+          },
+          {
+            "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-11-19T22:39:48Z",
+            "completed_at": "2026-11-19T22:39:53Z"
+          },
+          {
+            "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm run build",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-11-19T22:39:53Z",
+            "completed_at": "2026-11-19T22:40:27Z"
+          },
+          {
+            "name": "Run npx playwright install --with-deps chromium",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-11-19T22:40:27Z",
+            "completed_at": "2026-11-19T22:46:49Z"
+          },
+          {
+            "name": "Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-11-19T22:46:49Z",
+            "completed_at": "2026-11-19T22:47:18Z"
+          },
+          {
+            "name": "Production geometry, grounding, occlusion, temporal depth and resource lifetime",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8,
+            "started_at": "2026-11-19T22:47:18Z",
+            "completed_at": "2026-11-19T22:47:58Z"
+          },
+          {
+            "name": "Run actions/upload-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9,
+            "started_at": "2026-11-19T22:47:58Z",
+            "completed_at": "2026-11-19T22:48:00Z"
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 17,
+            "started_at": "2026-11-19T22:48:00Z",
+            "completed_at": "2026-11-19T22:48:00Z"
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 18,
+            "started_at": "2026-11-19T22:48:00Z",
+            "completed_at": "2026-11-19T22:48:00Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 19,
+            "started_at": "2026-11-19T22:48:00Z",
+            "completed_at": "2026-11-19T22:48:00Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/check-runs/135935986278",
+        "labels": [
+          "ubuntu-24.04"
+        ],
+        "runner_id": 1000036554,
+        "runner_name": "GitHub Actions 1000036554",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      },
+      {
+        "id": 135936634792,
+        "run_id": 44630631215,
+        "workflow_name": "Isolated startup rendering validation",
+        "head_branch": "ci/high-late-startup-20261119",
+        "run_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/actions/runs/44630631215",
+        "run_attempt": 1,
+        "node_id": "CR_kwDOUeQL5s8AAAAfpnRvqA",
+        "head_sha": "b8f1445cb07d57b35ac1c5dd45e54b01d6aaec92",
+        "url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/actions/jobs/135936634792",
+        "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44630631215/job/135936634792",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-11-19T22:40:28Z",
+        "started_at": "2026-11-19T22:40:30Z",
+        "completed_at": "2026-11-19T22:43:47Z",
+        "name": "browser (menu-entry, e2e/30-menu-access.spec.ts e2e/settings-transition.spec.ts e2e/gpu-frame-gat...",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-11-19T22:40:31Z",
+            "completed_at": "2026-11-19T22:40:32Z"
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-11-19T22:40:32Z",
+            "completed_at": "2026-11-19T22:40:41Z"
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-11-19T22:40:41Z",
+            "completed_at": "2026-11-19T22:40:43Z"
+          },
+          {
+            "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-11-19T22:40:43Z",
+            "completed_at": "2026-11-19T22:40:46Z"
+          },
+          {
+            "name": "Run actions/download-artifact@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-11-19T22:40:46Z",
+            "completed_at": "2026-11-19T22:40:49Z"
+          },
+          {
+            "name": "Require the exact source build",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-11-19T22:40:49Z",
+            "completed_at": "2026-11-19T22:40:49Z"
+          },
+          {
+            "name": "Run npx playwright install --with-deps chromium",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-11-19T22:40:49Z",
+            "completed_at": "2026-11-19T22:41:09Z"
+          },
+          {
+            "name": "Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8,
+            "started_at": "2026-11-19T22:41:09Z",
+            "completed_at": "2026-11-19T22:41:14Z"
+          },
+          {
+            "name": "Original workloads, viewports, deadlines and assertions",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9,
+            "started_at": "2026-11-19T22:41:14Z",
+            "completed_at": "2026-11-19T22:43:44Z"
+          },
+          {
+            "name": "Screenshots, traces and diagnostics, including failures",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10,
+            "started_at": "2026-11-19T22:43:44Z",
+            "completed_at": "2026-11-19T22:43:45Z"
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 19,
+            "started_at": "2026-11-19T22:43:45Z",
+            "completed_at": "2026-11-19T22:43:45Z"
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 20,
+            "started_at": "2026-11-19T22:43:45Z",
+            "completed_at": "2026-11-19T22:43:45Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 21,
+            "started_at": "2026-11-19T22:43:45Z",
+            "completed_at": "2026-11-19T22:43:45Z"
+          }
+        ],
+        "check_run_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/check-runs/135936634792",
+        "labels": [
+          "ubuntu-24.04"
+        ],
+        "runner_id": 1000036555,
+        "runner_name": "GitHub Actions 1000036555",
+        "runner_group_id": 0,
+        "runner_group_name": "GitHub Actions"
+      }
+    ]
+  },
+  "artifacts": {
+    "total_count": 5,
+    "artifacts": [
+      {
+        "id": 14582960224,
+        "node_id": "MDg6QXJ0aWZhY3QxNDU4Mjk2MDIyNA==",
+        "name": "graphics-advancement-high",
+        "size_in_bytes": 107766805,
+        "url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/actions/artifacts/14582960224",
+        "archive_download_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/actions/artifacts/14582960224/zip",
+        "expired": false,
+        "digest": "sha256:5e7165c6f199fbf384e9442297b4b0a316d5b013bec2a8063d563f4dd791eb54",
+        "created_at": "2026-11-19T22:46:13Z",
+        "updated_at": "2026-11-19T22:46:13Z",
+        "expires_at": "2026-12-03T22:46:08Z",
+        "workflow_run": {
+          "id": 44630631215,
+          "repository_id": 1373899750,
+          "head_repository_id": 1373899750,
+          "head_branch": "ci/high-late-startup-20261119",
+          "head_sha": "b8f1445cb07d57b35ac1c5dd45e54b01d6aaec92"
+        }
+      },
+      {
+        "id": 14582670798,
+        "node_id": "MDg6QXJ0aWZhY3QxNDU4MjY3MDc5OA==",
+        "name": "graphics-advancement-gameplay",
+        "size_in_bytes": 13257896,
+        "url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/actions/artifacts/14582670798",
+        "archive_download_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/actions/artifacts/14582670798/zip",
+        "expired": false,
+        "digest": "sha256:0ae98f42dd0599e1b75cf1dcc20decf53ffd33fe18deb00cb9fe4903531905fd",
+        "created_at": "2026-11-19T22:47:06Z",
+        "updated_at": "2026-11-19T22:47:06Z",
+        "expires_at": "2026-12-03T22:47:05Z",
+        "workflow_run": {
+          "id": 44630631215,
+          "repository_id": 1373899750,
+          "head_repository_id": 1373899750,
+          "head_branch": "ci/high-late-startup-20261119",
+          "head_sha": "b8f1445cb07d57b35ac1c5dd45e54b01d6aaec92"
+        }
+      },
+      {
+        "id": 14582500685,
+        "node_id": "MDg6QXJ0aWZhY3QxNDU4MjUwMDY4NQ==",
+        "name": "motogp-menu-entry",
+        "size_in_bytes": 698364,
+        "url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/actions/artifacts/14582500685",
+        "archive_download_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/actions/artifacts/14582500685/zip",
+        "expired": false,
+        "digest": "sha256:98d779cad38e7f1ffcc6755e37cff8e075096657c79de2733f7ee5e179045ea3",
+        "created_at": "2026-11-19T22:43:45Z",
+        "updated_at": "2026-11-19T22:43:45Z",
+        "expires_at": "2026-11-26T22:43:44Z",
+        "workflow_run": {
+          "id": 44630631215,
+          "repository_id": 1373899750,
+          "head_repository_id": 1373899750,
+          "head_branch": "ci/high-late-startup-20261119",
+          "head_sha": "b8f1445cb07d57b35ac1c5dd45e54b01d6aaec92"
+        }
+      },
+      {
+        "id": 14582007642,
+        "node_id": "MDg6QXJ0aWZhY3QxNDU4MjAwNzY0Mg==",
+        "name": "graphics-advancement-gpu",
+        "size_in_bytes": 791272,
+        "url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/actions/artifacts/14582007642",
+        "archive_download_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/actions/artifacts/14582007642/zip",
+        "expired": false,
+        "digest": "sha256:f9bcdc00a8a7d6b20c93a6a4627795f964e771cf15f2c0a3430f9d4c6d7884e8",
+        "created_at": "2026-11-19T22:48:00Z",
+        "updated_at": "2026-11-19T22:48:00Z",
+        "expires_at": "2026-12-03T22:47:58Z",
+        "workflow_run": {
+          "id": 44630631215,
+          "repository_id": 1373899750,
+          "head_repository_id": 1373899750,
+          "head_branch": "ci/high-late-startup-20261119",
+          "head_sha": "b8f1445cb07d57b35ac1c5dd45e54b01d6aaec92"
+        }
+      },
+      {
+        "id": 14580714146,
+        "node_id": "MDg6QXJ0aWZhY3QxNDU4MDcxNDE0Ng==",
+        "name": "motogp-reviewed-build",
+        "size_in_bytes": 79160506,
+        "url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/actions/artifacts/14580714146",
+        "archive_download_url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/actions/artifacts/14580714146/zip",
+        "expired": false,
+        "digest": "sha256:b7525a02d28f2d8abadc72e556609d36fa9325372f0b0ef7e1fb321235c119b5",
+        "created_at": "2026-11-19T22:40:26Z",
+        "updated_at": "2026-11-19T22:40:26Z",
+        "expires_at": "2026-11-26T22:40:22Z",
+        "workflow_run": {
+          "id": 44630631215,
+          "repository_id": 1373899750,
+          "head_repository_id": 1373899750,
+          "head_branch": "ci/high-late-startup-20261119",
+          "head_sha": "b8f1445cb07d57b35ac1c5dd45e54b01d6aaec92"
+        }
+      }
+    ]
+  },
+  "commit": {
+    "sha": "b8f1445cb07d57b35ac1c5dd45e54b01d6aaec92",
+    "node_id": "C_kwDOUeQL5toAKGI4ZjE0NDVjYjA3ZDU3YjM1YWMxYzVkZDQ1ZTU0YjAxZDZhYWVjOTI",
+    "url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/git/commits/b8f1445cb07d57b35ac1c5dd45e54b01d6aaec92",
+    "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/commit/b8f1445cb07d57b35ac1c5dd45e54b01d6aaec92",
+    "author": {
+      "name": "cheshmakzanoon-ops",
+      "email": "cheshmakzanoon@gmail.com",
+      "date": "2026-11-19T22:39:11Z"
+    },
+    "committer": {
+      "name": "cheshmakzanoon-ops",
+      "email": "cheshmakzanoon@gmail.com",
+      "date": "2026-11-19T22:39:11Z"
+    },
+    "tree": {
+      "sha": "8d33f4ce7255a56398689914b1a78fe4a74833ba",
+      "url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/git/trees/8d33f4ce7255a56398689914b1a78fe4a74833ba"
+    },
+    "message": "Prepare retained static geometry before the first cube capture\n\nPopulate the installed renderer's native attribute/index cache using zero-primitive submissions before any first-capture face rasterization. Select current visible face consumers, retain original owners and disposal, and preserve the original offscreen path. Quality, scene draw payloads, original browser assertions and deadlines are unchanged.\n\nLocal native/integration checks: 128 passed; TypeScript and scoped lint passed. The original hosted High journey remains required.",
+    "parents": [
+      {
+        "sha": "f22622e3302ed6147c5aae6f8eb6f6bc4057a242",
+        "url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/git/commits/f22622e3302ed6147c5aae6f8eb6f6bc4057a242",
+        "html_url": "https://github.com/cheshmakzanoon-ops/Experiment-3/commit/f22622e3302ed6147c5aae6f8eb6f6bc4057a242"
+      }
+    ],
+    "verification": {
+      "verified": false,
+      "reason": "unsigned",
+      "signature": null,
+      "payload": null,
+      "verified_at": null
+    }
+  },
+  "deliveryFileIds": {
+    "14582960224": "file_00000000cadc822fbac24d9e5e55970b",
+    "14582670798": "file_00000000f4d4822f96574293cb5dc4e3",
+    "14582500685": "file_00000000f8c4822fb9e65e7af27ebb39",
+    "14582007642": "file_000000001b30822f8fac602946d387f5"
+  }
+}

@@ -1,0 +1,31 @@
+
+ RUN  v3.2.4 /workspace/scratch/dac6891506fb/gp-runway
+
+ ↓ tests/gp-tyre-contact.test.ts > GP front and rear contact grip > gpr1 retains useful drive from a clean rear contact when the front crosses a low-grip patch
+ ↓ tests/gp-tyre-contact.test.ts > GP front and rear contact grip > gpr2 retains useful drive from a clean rear contact when the front crosses a low-grip patch
+ ↓ tests/gp-tyre-contact.test.ts > GP front and rear contact grip > gpr1 keeps front braking available with a low-grip rear while respecting rear unloading
+ ↓ tests/gp-tyre-contact.test.ts > GP front and rear contact grip > gpr2 keeps front braking available with a low-grip rear while respecting rear unloading
+ ↓ tests/gp-tyre-contact.test.ts > GP front and rear contact grip > uses separately sampled real kerb and asphalt contacts and refreshes them after repositioning
+ ↓ tests/gp-tyre-contact.test.ts > GP front and rear contact grip > lets rear tyre wear reduce rear drive without assigning that wear to the front tyre
+ ↓ tests/gp-tyre-contact.test.ts > GP front and rear contact grip > retains shared contact grip for sbk1000
+ ↓ tests/gp-tyre-contact.test.ts > GP front and rear contact grip > retains shared contact grip for ss600
+ ↓ tests/gp-tyre-contact.test.ts > GP front and rear contact grip > retains shared contact grip for nr900
+ ↓ tests/gp-tyre-contact.test.ts > GP front and rear contact grip > retains shared contact grip for cr750
+ ↓ tests/gp-tyre-contact.test.ts > GP front and rear contact grip > retains shared contact grip for mx450
+ ↓ tests/gp-tyre-contact.test.ts > GP contact force and integration invariants > preserves the exact shared-grip trajectory when both contact coefficients are equal
+ ↓ tests/gp-tyre-contact.test.ts > GP contact force and integration invariants > keeps trail braking and coast torque inside each circle at front 1 / rear 0.35
+ ↓ tests/gp-tyre-contact.test.ts > GP contact force and integration invariants > keeps trail braking and coast torque inside each circle at front 0.35 / rear 1
+ ↓ tests/gp-tyre-contact.test.ts > GP contact force and integration invariants > keeps trail braking and coast torque inside each circle at front 0.65 / rear 0.4
+ ↓ tests/gp-tyre-contact.test.ts > GP contact force and integration invariants > keeps trail braking and coast torque inside each circle at front 0.4 / rear 0.65
+ ↓ tests/gp-tyre-contact.test.ts > GP contact force and integration invariants > does not hide a raw rider locking the rear wheel on its own low-grip patch
+ ↓ tests/gp-tyre-contact.test.ts > GP contact force and integration invariants > rolls on the throttle while picking up from a corner at front 1 / rear 0.35
+ ↓ tests/gp-tyre-contact.test.ts > GP contact force and integration invariants > rolls on the throttle while picking up from a corner at front 0.35 / rear 1
+ ↓ tests/gp-tyre-contact.test.ts > GP contact grip in production races > classifies all eight GP riders at 'aurel' in 'clear' without a contact or crash
+ ↓ tests/gp-tyre-contact.test.ts > GP contact grip in production races > classifies all eight GP riders at 'poggio-alto' in 'clear' without a contact or crash
+ ✓ tests/gp-tyre-contact.test.ts > GP contact grip in production races > classifies all eight GP riders at 'poggio-alto' in 'rain' without a contact or crash 80252ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 21 skipped (22)
+   Start at  14:37:55
+   Duration  82.94s (transform 1.44s, setup 0ms, collect 2.43s, tests 80.25s, environment 0ms, prepare 73ms)
+

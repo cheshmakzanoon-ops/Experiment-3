@@ -1,0 +1,65 @@
+
+ RUN  v3.2.4 /workspace/scratch/dac6891506fb/gp-runway
+
+ ↓ tests/bike-mixed-passing.test.ts > a mixed GP/superbike race at parco-reale (seed 5259) has no fall
+ ↓ tests/bike-mixed-passing.test.ts > a mixed GP/superbike race at parco-reale (seed 5074) has no fall
+ ↓ tests/bike-mixed-passing.test.ts > a mixed GP/superbike race at haarveld (seed 5000) has no fall
+ × tests/bike-mixed-passing.test.ts > a mixed GP/superbike race at vellamar (seed 5222) has no fall 21634ms
+   → expected 1 to be +0 // Object.is equality
+ ↓ tests/bike-mixed-passing.test.ts > a mixed GP/superbike race at montejaral (seed 5111) has no fall
+ ↓ tests/bike-mixed-passing.test.ts > a field of one class is not touched by the mixed-class passing rules
+ ↓ tests/bike-session.test.ts > WP34 motorcycles in real sessions > builds the bike adapter and bike AI for bike definitions only
+ ↓ tests/bike-session.test.ts > WP34 motorcycles in real sessions > laps a circuit under AI with lean, gears, tyre wear and valid timing
+ ↓ tests/bike-session.test.ts > WP34 motorcycles in real sessions > crash flows through race control: rider down, separation, remount, back on track
+ ↓ tests/bike-session.test.ts > WP34 motorcycles in real sessions > a hard contact between bikes unseats a rider without non-finite state
+ ↓ tests/bike-session.test.ts > WP34 motorcycles in real sessions > race control penalises a bike jump start like any entrant
+ ↓ tests/bike-session.test.ts > WP34 motorcycles in real sessions > rear brake is the secondary (clutch) input and decelerates on its own
+ ↓ tests/bike-session.test.ts > WP34 motorcycles in real sessions > services a bike in the pit lane and releases it
+ ↓ tests/bike-session.test.ts > WP34 snapshot v12 bike block > round-trips lean, steer, rider pose and loads; cars carry zeros
+ ↓ tests/bike-session.test.ts > WP34 snapshot v12 bike block > rejects unknown vehicle indices and old layouts
+ ↓ tests/bike-session.test.ts > WP34 snapshot v12 bike block > chassis lean inverts to the dynamics lean (tyre crown geometry)
+ ↓ tests/bike-session.test.ts > WP36 bike identity, rules and content > gives every bike its own identity hash and record category
+ ↓ tests/bike-session.test.ts > WP36 bike identity, rules and content > rejects mixed car and bike grids, admits all-bike grids
+ ↓ tests/bike-session.test.ts > WP36 bike identity, rules and content > validates bike content and names what is wrong
+ × tests/bike-session.test.ts > WP35 seeded AI bike race > finishes a mixed GP/superbike race with bounded incidents and no stuck rider 24618ms
+   → expected 94.4633581453375 to be less than 89.66628928421538
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/bike-mixed-passing.test.ts > a mixed GP/superbike race at vellamar (seed 5222) has no fall
+AssertionError: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ tests/bike-mixed-passing.test.ts:46:83
+     44|     await run(sim, 400);
+     45|     expect(sim.race.phase).toBe(PHASE.FINISHED);
+     46|     expect(sim.cars.reduce((n, c) => n + (c as BikeVehicle).dynamics.c…
+       |                                                                                   ^
+     47|   },
+     48|   120000,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/bike-session.test.ts > WP35 seeded AI bike race > finishes a mixed GP/superbike race with bounded incidents and no stuck rider
+AssertionError: expected 94.4633581453375 to be less than 89.66628928421538
+ ❯ tests/bike-session.test.ts:367:16
+    365|     const gp = Math.min(best(0), best(2), best(4)),
+    366|       sbk = Math.min(best(1), best(3), best(5));
+    367|     expect(gp).toBeLessThan(sbk);
+       |                ^
+    368|     // ...by a margin that is more than the noise of one seeded lap (0…
+    369|     expect(sbk - gp).toBeGreaterThan(0.15);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  2 failed | 18 skipped (20)
+   Start at  15:36:13
+   Duration  48.89s (transform 995ms, setup 0ms, collect 2.24s, tests 46.25s, environment 0ms, prepare 108ms)
+

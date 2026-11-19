@@ -1,0 +1,160 @@
+{
+  "recordedAt": "2026-11-19T22:52:12.752687+00:00",
+  "source": "b8f1445cb07d57b35ac1c5dd45e54b01d6aaec92",
+  "runId": 44630631215,
+  "jobId": 135935986093,
+  "artifact": {
+    "id": 14582960224,
+    "sha256": "5e7165c6f199fbf384e9442297b4b0a316d5b013bec2a8063d563f4dd791eb54",
+    "shaVerificationProvenance": "Verified by checkpoint agent and relayed by parent; this task read its extracted source-specific summaries."
+  },
+  "readinessPredicate": {
+    "configuredTimeoutMs": 90000,
+    "before": {
+      "type": "before",
+      "callId": "test.step@58",
+      "stepId": "test.step@58",
+      "startTime": 52625.151,
+      "class": "Test",
+      "method": "test.step",
+      "title": "Expect \"poll toBe\"",
+      "params": {
+        "expected": "paused"
+      },
+      "stack": [
+        {
+          "file": "/home/runner/work/Experiment-3/Experiment-3/e2e/graphics-high-journey.spec.ts",
+          "line": 786,
+          "column": 77
+        }
+      ]
+    },
+    "after": {
+      "type": "after",
+      "callId": "test.step@58",
+      "endTime": 142595.497,
+      "annotations": [],
+      "error": {
+        "name": "",
+        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"paused\"\u001b[39m\nReceived: \u001b[31m\"loading\"\u001b[39m\n\nCall Log:\n- Timeout 90000ms exceeded while waiting on the predicate",
+        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"paused\"\u001b[39m\nReceived: \u001b[31m\"loading\"\u001b[39m\n\nCall Log:\n- Timeout 90000ms exceeded while waiting on the predicate\n    at /home/runner/work/Experiment-3/Experiment-3/e2e/graphics-high-journey.spec.ts:786:5"
+      }
+    }
+  },
+  "warmingStages": [
+    {
+      "traceTime": 88259.618,
+      "atMs": 81628.90000000002,
+      "stage": "Warming shadows and scene reflections\u2026",
+      "active": true,
+      "relativeToReadinessMs": 35634.467000000004
+    },
+    {
+      "traceTime": 130446.718,
+      "atMs": 123816.09999999998,
+      "stage": "Warming offscreen pit-service materials\u2026",
+      "active": true,
+      "relativeToReadinessMs": 77821.567
+    }
+  ],
+  "lastTraceDiagnostic": {
+    "callId": "call@93",
+    "endTime": 142574.044,
+    "state": "loading",
+    "renderer": {
+      "preparation": {
+        "status": "preparing",
+        "elapsedMs": 71681.29999999993,
+        "error": null,
+        "stages": [
+          {
+            "label": "Building GP motorcycles and riders\u2026",
+            "elapsedMs": 259.4000000000233,
+            "complete": true
+          },
+          {
+            "label": "Loading the photographed sky\u2026",
+            "elapsedMs": 74,
+            "complete": true
+          },
+          {
+            "label": "Loading photographed ground\u2026",
+            "elapsedMs": 4.699999999953434,
+            "complete": true
+          },
+          {
+            "label": "Preparing recorded sky lighting\u2026",
+            "elapsedMs": 5476.5,
+            "complete": true
+          },
+          {
+            "label": "Compiling circuit and vehicle materials\u2026",
+            "elapsedMs": 9561.599999999977,
+            "complete": true
+          },
+          {
+            "label": "Preparing circuit and vehicle materials\u2026",
+            "elapsedMs": 222.60000000009313,
+            "complete": true
+          },
+          {
+            "label": "Preparing post-processing materials\u2026",
+            "elapsedMs": 1145.3999999999069,
+            "complete": true
+          },
+          {
+            "label": "Preparing retained scene textures\u2026",
+            "elapsedMs": 208.90000000002328,
+            "complete": true
+          },
+          {
+            "label": "Compiling shadow casters around the circuit\u2026",
+            "elapsedMs": 418.70000000006985,
+            "complete": true
+          },
+          {
+            "label": "Warming shadows and scene reflections\u2026",
+            "elapsedMs": 42187.09999999998,
+            "complete": true
+          },
+          {
+            "label": "Warming offscreen pit-service materials\u2026",
+            "elapsedMs": 12110.699999999953,
+            "complete": false
+          }
+        ]
+      },
+      "construction": {
+        "tasks": 446,
+        "yields": 120,
+        "workMilliseconds": 11735.800000000396,
+        "maximumTaskMilliseconds": 4811.699999999953,
+        "cancelled": false
+      },
+      "presentationPurpose": "circuit",
+      "gpuFrameQueue": {
+        "pending": true,
+        "submitted": 2,
+        "completed": 0,
+        "deferredCallbacks": 703,
+        "flushRefreshes": 11,
+        "pendingMs": 11733.100000000093,
+        "activeWaitMs": 11731.900000000023,
+        "failure": null,
+        "latencyMs": 0
+      }
+    }
+  },
+  "consoleErrorsAndWarnings": [],
+  "limitations": [
+    "Native CPU call time may include queued earlier driver work; it is not isolated GPU execution time.",
+    "Bounded records may omit earlier completions or late resource owners.",
+    "The current program during an upload does not prove the uploaded resource owner.",
+    "A readiness deadline failure is not proof of an infinite stall."
+  ],
+  "sourceSummaryHashes": {
+    "report-metadata.json": "175fffb3ff1da65a9d8bf7c26671391139d65b5c5f83301661d9aa9eef5e09ea",
+    "native-analysis.json": "228a020db794ac1fd7df7944c190222f5b87e60787d44cabafe9272df66fc607",
+    "diagnostic-timeline.json": "6a3630e6b27bfa54ef817461541f2ae6ae68d327fb943f97b1e0a97786dcd460"
+  }
+}

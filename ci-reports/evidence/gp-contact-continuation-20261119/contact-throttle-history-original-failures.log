@@ -1,0 +1,47 @@
+
+ RUN  v3.2.4 /workspace/scratch/dac6891506fb/gp-runway
+
+ ↓ tests/bike-mixed-passing.test.ts > a mixed GP/superbike race at parco-reale (seed 5259) has no fall
+ ✓ tests/bike-mixed-passing.test.ts > a mixed GP/superbike race at parco-reale (seed 5074) has no fall 24380ms
+ ↓ tests/bike-mixed-passing.test.ts > a mixed GP/superbike race at haarveld (seed 5000) has no fall
+ × tests/bike-mixed-passing.test.ts > a mixed GP/superbike race at vellamar (seed 5222) has no fall 23151ms
+   → expected 1 to be +0 // Object.is equality
+ ↓ tests/bike-mixed-passing.test.ts > a mixed GP/superbike race at montejaral (seed 5111) has no fall
+ ↓ tests/bike-mixed-passing.test.ts > a field of one class is not touched by the mixed-class passing rules
+ ↓ tests/gp-ai-braking-plan.test.ts > GP rider follows its braking plan > reports the plan speed at every active sample without touching the tail
+ ↓ tests/gp-ai-braking-plan.test.ts > GP rider follows its braking plan > feeds the planned deceleration forward instead of waiting for a speed error
+ ↓ tests/gp-ai-braking-plan.test.ts > GP rider follows its braking plan > brakes gently once the flag has fallen
+ ✓ tests/gp-ai-braking-plan.test.ts > GP rider follows its braking plan > no rider falls at the ardennes hairpin (seed 1000) 14310ms
+ ↓ tests/gp-ai-braking-plan.test.ts > GP rider follows its braking plan > no rider falls at the ardennes hairpin (seed 1037)
+ ↓ tests/gp-ai-braking-plan.test.ts > GP rider follows its braking plan > no rider falls at the montejaral hairpin (seed 1000)
+ ↓ tests/gp-ai-braking-plan.test.ts > GP rider follows its braking plan > no rider falls after taking the flag at montejaral (seed 1000)
+ ↓ tests/gp-ai-braking-plan.test.ts > GP rider follows its braking plan > no rider falls after taking the flag at ardennes (seed 1000)
+ ↓ tests/gp-ai-braking-plan.test.ts > GP rider follows its braking plan > no rider falls after taking the flag at ardennes (seed 1037)
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/bike-mixed-passing.test.ts > a mixed GP/superbike race at vellamar (seed 5222) has no fall
+AssertionError: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ tests/bike-mixed-passing.test.ts:46:83
+     44|     await run(sim, 400);
+     45|     expect(sim.race.phase).toBe(PHASE.FINISHED);
+     46|     expect(sim.cars.reduce((n, c) => n + (c as BikeVehicle).dynamics.c…
+       |                                                                                   ^
+     47|   },
+     48|   120000,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 2 passed | 12 skipped (15)
+   Start at  15:05:24
+   Duration  64.86s (transform 966ms, setup 0ms, collect 2.43s, tests 61.84s, environment 0ms, prepare 163ms)
+

@@ -1,0 +1,1194 @@
+diff --git a/src/simulation/bike-ai.ts b/src/simulation/bike-ai.ts
+index 97c5d3e..a6c9341 100644
+--- a/src/simulation/bike-ai.ts
++++ b/src/simulation/bike-ai.ts
+@@ -62,6 +62,9 @@ export class BikeAIDriver extends AIDriver {
+   private planRunway = Infinity;
+   private readonly pace: PassPace = { topSpeed: 0, freeSpeed: 0, runway: 0, laneRate: 0 };
+   private planBrake = 0;
++  /** Signed path acceleration before conversion to a contact-dependent lean.
++   * NaN leaves the ordinary stick path active (including walking pace). */
++  private gpPathAcceleration = NaN;
+   protected override readonly reverseRecovery = false;
+   constructor(
+     readonly bike: BikeVehicle,
+@@ -136,7 +139,7 @@ export class BikeAIDriver extends AIDriver {
+         );
+       this.gpPedals(dt);
+     } else if (d.contactLoads) this.roadPedals(track);
+-    c.aiControlled();
++    c.aiControlled(2, this.gpPathAcceleration);
+   }
+   /** Ordinary road bikes retain their own steering and pedal controller.
+    * Their sprung chassis still needs a motorcycle stopping profile: the
+@@ -294,11 +297,14 @@ export class BikeAIDriver extends AIDriver {
+     if (!d.contactLoads || d.speed < 3) return 1;
+     const lean = Math.max(Math.abs(c.input.steer) * d.leanLimit, Math.abs(d.lean));
+     if (lean < 0.05 && Math.abs(d.leanRate) < 0.1) return 1;
+-    const frontMass = (d.mass * p.cgToRear) / p.wheelbase,
++    // steerIntent already contains the signed path correction. Decode the
++    // combined demand once with the same reaction that encoded its lean.
++    const reaction = (d.frontLoad + d.rearLoad) / d.mass,
++      frontMass = (d.mass * p.cgToRear) / p.wheelbase,
+       staticFront =
+         frontMass * G + (p.downforce ?? 0) * d.speed * d.speed * (p.downforceFront ?? 0.6),
+       requiredFront =
+-        (frontMass * (G * Math.tan(Math.min(lean, 1.2)) + Math.abs(this.steeringCorrection))) /
++        (frontMass * reaction * Math.tan(Math.min(lean, 1.2))) /
+         Math.max(0.1, p.mu * (d.frontGrip ?? d.grip)),
+       drive = Math.max(0, ((staticFront - requiredFront) * p.wheelbase) / p.cgHeight),
+       ratio = c.spec.gearRatios[c.gear + 1] * c.spec.finalDrive * c.gearing,
+@@ -332,6 +338,7 @@ export class BikeAIDriver extends AIDriver {
+     const c = this.bike,
+       d = c.dynamics;
+     this.steeringCorrection = 0;
++    this.gpPathAcceleration = NaN;
+     if (d.speed < 6) return leanIntent(c, steer);
+     // Mirror the line follower's pit-approach latch (same inputs, same rule).
+     const entryGap = mod(track.pitEntryS() - c.s, track.length);
+@@ -350,6 +357,11 @@ export class BikeAIDriver extends AIDriver {
+       : this.steeringLineCurvature(track, ahead);
+     const feedForward = k / Math.max(0.5, 1 - k * (absolute ? this.steeringTarget : tactical));
+     this.steeringCorrection = correction * v * v;
++    // Keep the raw path request, not an acceleration reconstructed from a
++    // lean already clipped using the previous contact reaction. The adapter
++    // converts it after this substep's suspension solve; the current lean,
++    // contact-support and raw-request reserve bounds still belong to Bike.
++    if (this.isGp) this.gpPathAcceleration = v * v * (feedForward + correction);
+     return leanFromCurvature(c, feedForward + correction, steer);
+   }
+   /** One current path-error law for steering and the brake/corner budget.
+diff --git a/src/simulation/bike-vehicle.ts b/src/simulation/bike-vehicle.ts
+index 1aa5a47..b547d7d 100644
+--- a/src/simulation/bike-vehicle.ts
++++ b/src/simulation/bike-vehicle.ts
+@@ -105,6 +105,7 @@ export class BikeVehicle extends Vehicle {
+   protected incident: string | null = null;
+   protected contactCrash = false;
+   protected aiSteps = 0;
++  private aiPathAcceleration = NaN;
+   protected readonly riderAids: BikeAssists;
+   protected stuckClock = 0;
+   /** GP ride-by-wire opening delivered last step (0..1). */
+@@ -232,9 +233,12 @@ export class BikeVehicle extends Vehicle {
+     );
+   }
+   /** The AI rides with the aids whatever the player's assist setting; the
+-   * mark lasts the physics substeps of the tick it was given in. */
+-  aiControlled(substeps = 2) {
++   * mark lasts the physics substeps of the tick it was given in. A GP path
++   * request is signed acceleration (m/s²), before the current lean/contact
++   * clamps. Omitting it restores the existing stick contract immediately. */
++  aiControlled(substeps = 2, pathAcceleration = NaN) {
+     this.aiSteps = substeps;
++    this.aiPathAcceleration = substeps > 0 ? pathAcceleration : NaN;
+   }
+   protected fitFrontRadius() {
+     for (const t of [this.tires[0], this.tires[1]]) {
+@@ -390,9 +394,11 @@ export class BikeVehicle extends Vehicle {
+       gpPrototype = this.definition.id === 'gpr1' || this.definition.id === 'gpr2';
+     this.debris.step(dt, track);
+     this.absorbExternal(dt);
+-    const ai = this.aiSteps > 0;
++    const ai = this.aiSteps > 0,
++      pathAcceleration = ai && this.riding ? this.aiPathAcceleration : NaN;
+     d.assists = ai ? NOVICE : this.riderAids;
+     if (this.aiSteps > 0) this.aiSteps--;
++    if (!this.riding || this.aiSteps === 0) this.aiPathAcceleration = NaN;
+     // A player's lean-intent control must turn toward a held stick below
+     // 5 m/s as well as above it. The original counter-steer/upright-support
+     // blend held ordinary road bikes in a sustained turn the wrong way.
+@@ -438,8 +444,6 @@ export class BikeVehicle extends Vehicle {
+     // and heading. Apply the tow to the actual motorcycle dynamics core, not
+     // just the presentation aero readout, so overtakes gain real acceleration.
+     d.dragScale = bikeSlipstreamDragScale(this.tuck, spec.tuckDrag, this.slipstream);
+-    const hang =
+-      d.speed > 10 ? clamp(1.3 * this.input.steer + 1.1 * d.lean, -1, 1) * (1 - this.tuck) : 0;
+     const force = this.drive(dt, throttle);
+     const was = this.lastState;
+     d.riderReady = this.riderReady();
+@@ -457,9 +461,31 @@ export class BikeVehicle extends Vehicle {
+       : 1;
+     this.applyCrosswind(dt, track);
+     this.advanceRoadSuspension(dt, track);
++    // A GP path request is acceleration, while a player's stick is lean.
++    // Suspension has just changed the reaction: carrying an old lean angle
++    // across it would multiply the AI's requested acceleration by the load
++    // change. Decode with the exact contacts Bike.step is about to consume,
++    // retaining its current lean/support clamps and raw-request reserves.
++    const contacts = d.contactLoads,
++      support = contacts ? Math.max(0, contacts.front) + Math.max(0, contacts.rear) : 0,
++      lean =
++        ai &&
++        gpPrototype &&
++        this.riding &&
++        d.speed >= 6 &&
++        Number.isFinite(pathAcceleration) &&
++        Number.isFinite(support) &&
++        support > 1e-6
++          ? clamp(
++              Math.atan2(pathAcceleration, support / d.mass) / Math.max(0.1, d.leanLimit),
++              -1,
++              1,
++            )
++          : this.input.steer,
++      hang = d.speed > 10 ? clamp(1.3 * lean + 1.1 * d.lean, -1, 1) * (1 - this.tuck) : 0;
+     d.step(
+       {
+-        lean: this.input.steer,
++        lean,
+         throttle,
+         frontBrake: brake * frontBrakeGain,
+         rearBrake: rear * rearBrakeGain,
+@@ -983,6 +1009,7 @@ export class BikeVehicle extends Vehicle {
+    * and pitches about the contact that stays on the road. */
+   protected writeBody(track: Track, dt: number) {
+     if (dt === 0) {
++      this.aiPathAcceleration = NaN;
+       this.roadSuspensionLive = false;
+       this.dynamics.contactLoads = undefined;
+       this.dynamics.resetRoadControl();
+diff --git a/src/simulation/bike.ts b/src/simulation/bike.ts
+index 6a78eaa..721d56a 100644
+--- a/src/simulation/bike.ts
++++ b/src/simulation/bike.ts
+@@ -462,12 +462,41 @@ export class Bike {
+     // The present roll acceleration (from the measured tyre force) carries
+     // the roll rate on for that lag too.
+     const measured = gp.lateralAcceleration,
++      // Suspension has already supplied this step's contact loads. Observe
++      // the stored tyre strain under that same preparation, without taking
++      // another relaxation step or changing the pedal/steering state.
++      currentLateral = this.contactLoads
++        ? gp.currentLateralAcceleration({
++            speed: this.speed,
++            mass: m,
++            lean: this.lean,
++            steer: this.steer,
++            frontLoad: this.frontLoad,
++            rearLoad: this.rearLoad,
++            frontMu,
++            rearMu,
++            frontFx: -this.frontBrakeForce,
++            rearFx: this.driveForce - this.rearBrakeForce,
++            frontContact: clamp(
++              this.frontLoad /
++                Math.max(
++                  1,
++                  0.05 *
++                    ((m * G * p.cgToRear) / p.wheelbase +
++                      (p.downforce ?? 0) * this.speed * this.speed * (p.downforceFront ?? 0.6)),
++                ),
++              0,
++              1,
++            ),
++          })
++        : measured,
+       cornering = Math.max(4000, gp.frontStiffness),
+       // The front-force steering answers within a relaxation length, so the
+       // look-ahead is short; rateGain·lead < 1 keeps the measured-force
+       // prediction from feeding a step-to-step oscillation.
+       lag = GP_ASSIST.lead,
+-      rolling = (m * h * (reaction * Math.sin(psi) - measured * Math.cos(psi)) - gyro) / inertia,
++      rolling =
++        (m * h * (reaction * Math.sin(psi) - currentLateral * Math.cos(psi)) - gyro) / inertia,
+       rateAhead = this.leanRate + lag * rolling,
+       ahead = psi + lag * this.leanRate + 0.5 * lag * lag * rolling,
+       error = target - ahead,
+diff --git a/src/simulation/motogp-physics.ts b/src/simulation/motogp-physics.ts
+index db3adc5..09b74a3 100644
+--- a/src/simulation/motogp-physics.ts
++++ b/src/simulation/motogp-physics.ts
+@@ -185,6 +185,7 @@ export class MotoGPChassis {
+   /** Independent inverse scratch: trial steering must not rewrite the
+    * actual contact's slip/force/thermal reporting state. */
+   private readonly inverseFront = slipState();
++  private readonly previewFront = slipState();
+   private readonly previewRear = slipState();
+   private readonly inverseForces = new Float64Array(17);
+ 
+@@ -391,6 +392,76 @@ export class MotoGPChassis {
+     return 0.5 * (lo + hi);
+   }
+ 
++  /** Observe stored contact strain under the CURRENT load/friction and bar
++   * pose, with no time or relaxation advance. This road-contact observation
++   * is the zero-time preparation state used by step(), not its future force
++   * after the rider has chosen new bars or TC/ABS has allocated new pedals. */
++  currentLateralAcceleration(
++    q: Pick<
++      MotoGPContactStep,
++      | 'speed'
++      | 'mass'
++      | 'lean'
++      | 'steer'
++      | 'frontLoad'
++      | 'rearLoad'
++      | 'frontMu'
++      | 'rearMu'
++      | 'frontFx'
++      | 'rearFx'
++      | 'frontContact'
++    >,
++  ) {
++    if (q.speed < 2.5) return 0;
++    const ground = gpGroundSteer(q.steer, q.lean),
++      front = this.preparedHistoryForce(
++        this.previewFront,
++        q.frontLoad * clamp(q.frontContact, 0, 1),
++        q.frontMu,
++        q.lean,
++        q.frontFx,
++        this.frontFy,
++        this.frontElasticStiffness,
++        ground,
++      ),
++      rear = this.preparedHistoryForce(
++        this.previewRear,
++        q.rearLoad,
++        q.rearMu,
++        q.lean,
++        q.rearFx,
++        this.rearFy,
++        this.rearElasticStiffness,
++        0,
++      );
++    return (front + rear) / Math.max(1, q.mass);
++  }
++
++  private preparedHistoryForce(
++    state: ReturnType<typeof slipState>,
++    load: number,
++    mu: number,
++    lean: number,
++    longitudinal: number,
++    force: number,
++    stiffness: number,
++    steer: number,
++  ) {
++    if (!(load > 1 && mu > 0)) return 0;
++    prepareSlip(MOTOGP_SLICK, load, Math.max(0.05, mu) * gpCamberFriction(lean), 1, 1, 1, state);
++    // This early observer receives the prior force pair, before current
++    // TC/ABS allocation. Unlike step(), it cannot assume that old Fx is
++    // still transmissible after unloading or a grip change. Reinterpret it
++    // inside the current circle without modifying the actual pedal forces.
++    const transmitted = clamp(longitudinal, -state.dy, state.dy),
++      carried =
++        stiffness > 0 && state.corneringStiffness !== stiffness
++          ? (force * state.corneringStiffness) / stiffness
++          : force,
++      limit = Math.sqrt(Math.max(0, state.dy ** 2 - transmitted ** 2));
++    return clamp(carried, -limit, limit) * Math.cos(steer) + transmitted * Math.sin(steer);
++  }
++
+   /** Predict the rear force the next contact evaluation will actually apply,
+    * including current support, combined slip, carcass relaxation and the
+    * immediate friction clamp. This does not advance any physical state. */
+diff --git a/tests/fixtures/gp-ardennes-load-phase.json b/tests/fixtures/gp-ardennes-load-phase.json
+new file mode 100644
+index 0000000..ca53f24
+--- /dev/null
++++ b/tests/fixtures/gp-ardennes-load-phase.json
+@@ -0,0 +1,287 @@
++{
++  "schema": 1,
++  "scope": "Exact saved-state native load-phase isolation. No new race, future bar-rate hold, controller mutation or assertion relaxation.",
++  "qualification": "All variants retain the same current speed, Fx, prior elastic/velocity/spin state and held bar angle. The proportional variant changes ONLY both normal loads by the observed common total-load factor. This is an immediate plant comparison; a full pedal/controller rerun or closed-loop improvement is not claimed.",
++  "provenance": {
++    "input": "/workspace/scratch/d611aefdb08c/w10-engine-final-results/gp-capacity-ardennes1000-onset.json",
++    "inputSha256": "b00bf9c5c597ca87b8cd555cd2a04e121b586f872493ed4ab10be66e43429438",
++    "sourceHashes": {
++      "src/simulation/bike.ts": "52b090530d8db770d023dd65c72fff2e64ff84e10feb3e3d5c27c869c542eafd",
++      "src/simulation/bike-ai.ts": "ffc70ab74e818298535eea6c48375df8cd3a5b30ba4ad776370a358eb3358c7d",
++      "src/simulation/motogp-physics.ts": "f43236152c81328f6bb0e0db6573235c492fcf2c8f5c2a84c3ca3976aa844e5b",
++      "src/simulation/bike-vehicle.ts": "e9c829ad70fa04396f14b065f39366bbc008c787493672619342967a8b8aa2b5",
++      "tests/gp-ai-braking-plan.test.ts": "f0124f304bbdc5311ace3a2624d9ae3e6656be61fcdc87a314e0874e2ff51b9a"
++    },
++    "index": 2047,
++    "time": 84.62755748965085,
++    "station": 3131.6782078395145
++  },
++  "geometry": {
++    "frontArm": 0.7,
++    "rearArm": 0.75,
++    "yawInertia": 55,
++    "frontRadius": 0.3,
++    "rearRadius": 0.32,
++    "frontWheelInertia": 0.6,
++    "rearWheelInertia": 0.9
++  },
++  "cgHeight": 0.62,
++  "state": {
++    "lateralSpeed": 0.4966346840157391,
++    "yawRate": 0.7380494592275002,
++    "lateralAcceleration": 6.359712524298852,
++    "frontFy": 1021.7501592296894,
++    "rearFy": 566.0089134915164,
++    "frontOmega": 45.04670357075631,
++    "rearOmega": 42.12246538159639,
++    "frontElasticStiffness": 25330.005478963103,
++    "rearElasticStiffness": 13650.397143762875,
++    "lastSpeed": 13.580106209184716
++  },
++  "q": {
++    "dt": 0.004166666666666667,
++    "speed": 13.579611403536585,
++    "mass": 244.6151617140294,
++    "lean": 0.7463773417964156,
++    "steer": 0.05576671085993583,
++    "frontLoad": 1068.0769247407459,
++    "rearLoad": 500.26899147372956,
++    "frontMu": 1.7686571896809604,
++    "rearMu": 1.7646985650958402,
++    "frontFx": 0,
++    "rearFx": -180.20602763672034,
++    "frontContact": 1,
++    "frontBrakeExcess": 0,
++    "rearDriveExcess": 0,
++    "rearBrakeExcess": 0,
++    "inertialContacts": true
++  },
++  "beforeBikeStep": {
++    "speed": 13.580427657322582,
++    "lean": 0.7463773417964156,
++    "rollRate": 0.15187959002636206,
++    "riderOffset": 0.3,
++    "bar": 0.05965408965820811,
++    "frontLoad": 942.2309482709325,
++    "rearLoad": 467.43214498145596,
++    "frontBrake": 395.39562096340995,
++    "rearBrake": 180.20709086531502,
++    "drive": 0,
++    "mass": 244.6151617140294,
++    "frontGrip": 1.0106612512462632,
++    "rearGrip": 1.0083991800547658,
++    "side": 0.4966346840157391,
++    "yaw": 0.7380494592275002,
++    "ay": 6.359712524298852,
++    "frontFy": 1021.7501592296894,
++    "rearFy": 566.0089134915164,
++    "frontOmega": 45.04670357075631,
++    "rearOmega": 42.12246538159639,
++    "frontSlip": -0.04809596306764234,
++    "rearSlip": -0.04663300136734294,
++    "frontElasticStiffness": 25330.005478963103,
++    "rearElasticStiffness": 13650.397143762875,
++    "trim": 0.0014281730742539862,
++    "target": 0.8270201250262278,
++    "demand": 10.62264021002485,
++    "frontUse": 0.6574242401635008,
++    "rearUse": 0.7201119638303038,
++    "groundSteer": 0.0741023717916041,
++    "state": "riding"
++  },
++  "plan": {
++    "early": {
++      "deferred": true,
++      "target": 0.8076457881877784,
++      "demand": 12.66322404418192,
++      "trim": 0.0014281730742539862
++    },
++    "capacity": {
++      "value": 7.290111955501515,
++      "frontFx": 0,
++      "rearFx": -180.20602763672034,
++      "speed": 13.579611403536585
++    },
++    "lateral": 7.180760276168992,
++    "frontRequest": {
++      "force": 1089.3015368211577,
++      "lean": 0.7463773417964156,
++      "speed": 13.579611403536585,
++      "fx": 0,
++      "load": 1068.0769247407459,
++      "mu": 1.7686571896809604,
++      "ground": 0.06789132756888624
++    },
++    "rearPreview": {
++      "force": 601.4539843264649,
++      "load": 500.26899147372956,
++      "mu": 1.7646985650958402,
++      "lean": 0.7463773417964156,
++      "speed": 13.579611403536585,
++      "fx": -180.20602763672034,
++      "dt": 0.004166666666666667
++    }
++  },
++  "originalReplayDeltas": {
++    "frontFy": 0,
++    "rearFy": 0,
++    "yawRate": 0,
++    "lateralSpeed": 0,
++    "lateralAcceleration": 0,
++    "frontOmega": 0,
++    "rearOmega": 0,
++    "groundSteer": 0
++  },
++  "observedTotalLoadRatio": 1.112567906276082,
++  "variants": [
++    {
++      "name": "previous-load-held-bar",
++      "q": {
++        "dt": 0.004166666666666667,
++        "speed": 13.579611403536585,
++        "mass": 244.6151617140294,
++        "lean": 0.7463773417964156,
++        "steer": 0.05965408965820811,
++        "frontLoad": 942.2309482709325,
++        "rearLoad": 467.43214498145596,
++        "frontMu": 1.7686571896809604,
++        "rearMu": 1.7646985650958402,
++        "frontFx": 0,
++        "rearFx": -180.20602763672034,
++        "frontContact": 1,
++        "frontBrakeExcess": 0,
++        "rearDriveExcess": 0,
++        "rearBrakeExcess": 0,
++        "inertialContacts": true
++      },
++      "reaction": 5.7627789028889955,
++      "frontShare": 0.66840860967496,
++      "native": {
++        "frontFy": 1032.5371933353392,
++        "rearFy": 565.4539013217197,
++        "ay": 6.52107646628053,
++        "yaw": 0.7605267141614124,
++        "side": 0.4807755014465758,
++        "frontOmega": 45.083471898805804,
++        "rearOmega": 42.08482802818264
++      },
++      "mixedCurrentNPreviousAyRolling": 0.05455955462271334,
++      "heldNativeRolling": -0.08675949945538317,
++      "heldNativeForceSameNominalGyroRolling": -0.07965330910690983,
++      "plannerLoadOnlyChange": 0,
++      "nativeLoadOnlyChange": 0
++    },
++    {
++      "name": "recorded-current-load-held-bar",
++      "q": {
++        "dt": 0.004166666666666667,
++        "speed": 13.579611403536585,
++        "mass": 244.6151617140294,
++        "lean": 0.7463773417964156,
++        "steer": 0.05965408965820811,
++        "frontLoad": 1068.0769247407459,
++        "rearLoad": 500.26899147372956,
++        "frontMu": 1.7686571896809604,
++        "rearMu": 1.7646985650958402,
++        "frontFx": 0,
++        "rearFx": -180.20602763672034,
++        "frontContact": 1,
++        "frontBrakeExcess": 0,
++        "rearDriveExcess": 0,
++        "rearBrakeExcess": 0,
++        "inertialContacts": true
++      },
++      "reaction": 6.411482858319188,
++      "frontShare": 0.6810212681388355,
++      "native": {
++        "frontFy": 1156.9434942716791,
++        "rearFy": 601.4539843264649,
++        "ay": 7.175429097456316,
++        "yaw": 0.7650604324893112,
++        "side": 0.48324592619543105,
++        "frontOmega": 45.083471898805804,
++        "rearOmega": 42.08998313155416
++      },
++      "mixedCurrentNPreviousAyRolling": 0.6899172432080488,
++      "heldNativeRolling": 0.002493854096845591,
++      "heldNativeForceSameNominalGyroRolling": 0.011453046494205183,
++      "plannerLoadOnlyChange": 0.6353576885853355,
++      "nativeLoadOnlyChange": 0.08925335355222876
++    },
++    {
++      "name": "exact-proportional-current-total-held-bar",
++      "q": {
++        "dt": 0.004166666666666667,
++        "speed": 13.579611403536585,
++        "mass": 244.6151617140294,
++        "lean": 0.7463773417964156,
++        "steer": 0.05965408965820811,
++        "frontLoad": 1048.2959133463187,
++        "rearLoad": 520.0500028681565,
++        "frontMu": 1.7686571896809604,
++        "rearMu": 1.7646985650958402,
++        "frontFx": 0,
++        "rearFx": -180.20602763672034,
++        "frontContact": 1,
++        "frontBrakeExcess": 0,
++        "rearDriveExcess": 0,
++        "rearBrakeExcess": 0,
++        "inertialContacts": true
++      },
++      "reaction": 6.411482858319187,
++      "frontShare": 0.66840860967496,
++      "native": {
++        "frontFy": 1137.4799788103808,
++        "rearFy": 623.0293232421831,
++        "ay": 7.1842809605515905,
++        "yaw": 0.7628052407103698,
++        "side": 0.483410334715656,
++        "frontOmega": 45.083471898805804,
++        "rearOmega": 42.09277437618586
++      },
++      "mixedCurrentNPreviousAyRolling": 0.6899172432080488,
++      "heldNativeRolling": -0.003969699742154769,
++      "heldNativeForceSameNominalGyroRolling": 0.00409059686159557,
++      "plannerLoadOnlyChange": 0.6353576885853355,
++      "nativeLoadOnlyChange": 0.08278979971322839
++    },
++    {
++      "name": "no-load-change-negative-control",
++      "q": {
++        "dt": 0.004166666666666667,
++        "speed": 13.579611403536585,
++        "mass": 244.6151617140294,
++        "lean": 0.7463773417964156,
++        "steer": 0.05965408965820811,
++        "frontLoad": 942.2309482709325,
++        "rearLoad": 467.43214498145596,
++        "frontMu": 1.7686571896809604,
++        "rearMu": 1.7646985650958402,
++        "frontFx": 0,
++        "rearFx": -180.20602763672034,
++        "frontContact": 1,
++        "frontBrakeExcess": 0,
++        "rearDriveExcess": 0,
++        "rearBrakeExcess": 0,
++        "inertialContacts": true
++      },
++      "reaction": 5.7627789028889955,
++      "frontShare": 0.66840860967496,
++      "native": {
++        "frontFy": 1032.5371933353392,
++        "rearFy": 565.4539013217197,
++        "ay": 6.52107646628053,
++        "yaw": 0.7605267141614124,
++        "side": 0.4807755014465758,
++        "frontOmega": 45.083471898805804,
++        "rearOmega": 42.08482802818264
++      },
++      "mixedCurrentNPreviousAyRolling": 0.05455955462271334,
++      "heldNativeRolling": -0.08675949945538317,
++      "heldNativeForceSameNominalGyroRolling": -0.07965330910690983,
++      "plannerLoadOnlyChange": 0,
++      "nativeLoadOnlyChange": 0
++    }
++  ],
++  "noChangeIdentical": true
++}
+diff --git a/tests/gp-ai-contact-phase.test.ts b/tests/gp-ai-contact-phase.test.ts
+new file mode 100644
+index 0000000..1a380d8
+--- /dev/null
++++ b/tests/gp-ai-contact-phase.test.ts
+@@ -0,0 +1,157 @@
++import { describe, expect, it, vi } from 'vitest';
++import { clamp, G } from '../src/core/math.ts';
++import { BikeAIDriver } from '../src/simulation/bike-ai.ts';
++import { GP_R1, SBK_1000 } from '../src/simulation/bike-definitions.ts';
++import { BikeVehicle } from '../src/simulation/bike-vehicle.ts';
++import { DEFAULT_OPTIONS, DEFAULT_SETUP } from '../src/simulation/config.ts';
++import { RaceDirector } from '../src/simulation/race.ts';
++import { Track } from '../src/simulation/track.ts';
++
++const DT = 1 / 240;
++
++/** Prescribe the signed path correction; the AI, suspension, physical
++ * controller, allocation, tyre contacts and roll plant remain native. */
++class DemandDriver extends BikeAIDriver {
++  constructor(
++    bike: BikeVehicle,
++    private readonly acceleration: number,
++  ) {
++    super(bike);
++  }
++  protected override steeringLineCurvature() {
++    return 0;
++  }
++  protected override pathCorrection() {
++    return this.acceleration / this.bike.dynamics.speed ** 2;
++  }
++}
++
++function fixture(ordinary = false) {
++  const track = new Track('clear', true),
++    bike = new BikeVehicle(0, 'medium', DEFAULT_SETUP, 'sport', ordinary ? SBK_1000 : GP_R1);
++  bike.place(track, 120);
++  bike.speed = bike.dynamics.speed = 30;
++  bike.input.steer = -0.15;
++  bike.input.throttle = 0;
++  bike.dynamics.motoGP?.reset(30);
++  return { bike, track, d: bike.dynamics };
++}
++
++describe('GP AI path acceleration belongs to the current contact step', () => {
++  it.each([-1, 1].flatMap((sign) => [0.4, 1.5].map((support) => ({ sign, support }))))(
++    'preserves signed demand $sign across a prior $support support fraction',
++    ({ sign, support }) => {
++      const { bike, track, d } = fixture(),
++        acceleration = sign * 6,
++        priorReaction = support * G;
++      d.frontLoad = (priorReaction * d.mass * d.p.cgToRear) / d.p.wheelbase;
++      d.rearLoad = (priorReaction * d.mass * d.p.cgToFront) / d.p.wheelbase;
++      d.contactLoads = { front: d.frontLoad, rear: d.rearLoad };
++      const driver = new DemandDriver(bike, acceleration),
++        race = new RaceDirector([bike], track, { ...DEFAULT_OPTIONS, mode: 'practice' });
++      driver.update(2 * DT, track, [bike], race);
++      bike.input.throttle = 0;
++      const authoredIntent = bike.input.steer,
++        step = vi.spyOn(d, 'step'),
++        plant = vi.spyOn(d.motoGP!, 'step');
++      bike.step(DT, track);
++      const delivered = step.mock.calls[0][0],
++        reaction = (d.frontLoad + d.rearLoad) / d.mass;
++      expect(Math.abs(reaction - priorReaction)).toBeGreaterThan(1);
++      expect(reaction * Math.tan(delivered.lean * d.leanLimit)).toBeCloseTo(acceleration, 3);
++      expect(reaction * Math.tan(d.motoGP!.leanTarget)).toBeCloseTo(acceleration, 10);
++      // The rider and the roll assist consume one selected request; the
++      // authored AI input remains available to telemetry without mutation.
++      expect(delivered.rider).toBeCloseTo(clamp(1.3 * delivered.lean, -1, 1), 12);
++      expect(bike.input.steer).toBe(authoredIntent);
++      expect(plant).toHaveBeenCalledTimes(1);
++      expect(d.state).toBe('riding');
++    },
++  );
++
++  it.each([-1, 1])('retains the current core lean and contact clamps for sign %s', (sign) => {
++    const { bike, track, d } = fixture();
++    bike.aiControlled(2, sign * 100);
++    const step = vi.spyOn(d, 'step');
++    bike.step(DT, track);
++    expect(step.mock.calls[0][0].lean).toBe(sign);
++    expect(Math.abs(d.motoGP!.leanTarget)).toBeLessThanOrEqual(d.leanLimit + 1e-5);
++    expect(Math.hypot(d.motoGP!.frontFy, d.frontBrakeForce)).toBeLessThanOrEqual(
++      d.p.mu * d.frontGrip! * d.frontLoad + 1e-9,
++    );
++    expect(Math.hypot(d.motoGP!.rearFy, d.driveForce - d.rearBrakeForce)).toBeLessThanOrEqual(
++      d.p.mu * d.rearGrip! * d.rearLoad + 1e-9,
++    );
++  });
++
++  it('re-encodes both actual contact substeps and expires at their boundary', () => {
++    const { bike, track, d } = fixture(),
++      acceleration = 6,
++      observed: { reaction: number; lean: number; limit: number }[] = [],
++      native = d.step.bind(d);
++    vi.spyOn(d, 'step').mockImplementation((input, dt) => {
++      observed.push({
++        reaction: (d.contactLoads!.front + d.contactLoads!.rear) / d.mass,
++        lean: input.lean,
++        limit: d.leanLimit,
++      });
++      return native(input, dt);
++    });
++    bike.aiControlled(2, acceleration);
++    bike.step(DT, track);
++    bike.step(DT, track);
++    bike.step(DT, track);
++    expect(observed[1].reaction).not.toBe(observed[0].reaction);
++    for (const row of observed.slice(0, 2))
++      expect(row.reaction * Math.tan(row.lean * row.limit)).toBeCloseTo(acceleration, 12);
++    expect(observed[2].lean).toBe(bike.input.steer);
++  });
++
++  it.each(['default mark', 'zero mark', 'placement', 'free placement', 'recovery'])(
++    'clears a pending path request at %s',
++    (boundary) => {
++      const { bike, track, d } = fixture();
++      bike.aiControlled(2, 6);
++      if (boundary === 'default mark') bike.aiControlled();
++      else if (boundary === 'zero mark') bike.aiControlled(0);
++      else if (boundary === 'placement') bike.place(track, 120);
++      else if (boundary === 'free placement')
++        bike.placeFree(track, d.x, d.z, d.heading, bike.body.position.y - d.p.cgHeight);
++      else {
++        d.fall('lowside');
++        bike.step(DT, track);
++        d.state = 'riding';
++      }
++      bike.speed = d.speed = 30;
++      const step = vi.spyOn(d, 'step');
++      bike.step(DT, track);
++      expect(step.mock.calls[0][0].lean).toBe(bike.input.steer);
++    },
++  );
++
++  it.each(['ordinary motorcycle', 'current low speed', 'manual'])(
++    'preserves the authored stick for %s',
++    (mode) => {
++      const { bike, track, d } = fixture(mode === 'ordinary motorcycle');
++      if (mode !== 'manual') bike.aiControlled(2, 6);
++      if (mode === 'current low speed') bike.speed = d.speed = 5.9;
++      const step = vi.spyOn(d, 'step');
++      bike.step(DT, track);
++      expect(step.mock.calls[0][0].lean).toBe(bike.input.steer);
++    },
++  );
++
++  it.each([0, NaN, Infinity])('does not re-encode with invalid support %s', (support) => {
++    const { bike, track, d } = fixture();
++    bike.aiControlled(2, 6);
++    // This boundary-only negative supplies invalid road data and intercepts
++    // the core input. Native positive controls above exercise real contacts.
++    const adapter = bike as unknown as { advanceRoadSuspension(dt: number, track: Track): void };
++    vi.spyOn(adapter, 'advanceRoadSuspension').mockImplementation(() => {
++      d.contactLoads = { front: support, rear: support };
++    });
++    const step = vi.spyOn(d, 'step').mockImplementation(() => d.state);
++    bike.step(DT, track);
++    expect(step.mock.calls[0][0].lean).toBe(bike.input.steer);
++  });
++});
+diff --git a/tests/gp-current-contact-control.test.ts b/tests/gp-current-contact-control.test.ts
+index b757576..f732745 100644
+--- a/tests/gp-current-contact-control.test.ts
++++ b/tests/gp-current-contact-control.test.ts
+@@ -51,14 +51,46 @@ describe('GP rider previews the current rear contact', () => {
+     // The rear now unloads: its old 400 N is no longer an applied road force.
+     gp.frontFy = -400;
+     gp.rearFy = 400;
+-    const inverse = vi.spyOn(gp, 'frontSteerFor');
++    // Isolate rear-force allocation from the roll forecast. The residual
++    // front strain has its own physical response, covered unmocked below.
++    const preview = vi.spyOn(gp, 'currentLateralAcceleration').mockReturnValue(0),
++      inverse = vi.spyOn(gp, 'frontSteerFor');
+     bike.step({ lean: 0, rider: 0, throttle: 0, frontBrake: 0, rearBrake: 0, drive: 0 }, 1 / 240);
+     expect(inverse).toHaveBeenCalled();
+     expect(inverse.mock.calls.at(-1)![0]).toBeCloseTo(0, 12);
+     expect(gp.rearFy).toBe(0);
+     expect(bike.state).toBe('riding');
++    preview.mockRestore();
+   });
+ 
++  it.each([-1, 1])(
++    'responds to residual front strain identically with or without unsupported rear history, sign %s',
++    (sign) => {
++      const run = (rearHistory: number) => {
++        const bike = new Bike(NOVICE, { ...BIKE, drag: 0, rolling: 0 });
++        bike.speed = 30;
++        bike.enableMotoGPPhysics(geometry);
++        bike.contactLoads = { front: 1400, rear: 0 };
++        const gp = bike.motoGP!;
++        gp.frontFy = -sign * 400;
++        gp.rearFy = rearHistory;
++        const inverse = vi.spyOn(gp, 'frontSteerFor');
++        bike.step(
++          { lean: 0, rider: 0, throttle: 0, frontBrake: 0, rearBrake: 0, drive: 0 },
++          1 / 240,
++        );
++        return { request: inverse.mock.calls.at(-1)![0], steer: bike.steer, state: bike.state };
++      };
++      const withoutHistory = run(0),
++        withHistory = run(sign * 400);
++      expect(withHistory).toEqual(withoutHistory);
++      // The front still carries strain after the rear lifts. Correcting
++      // its roll moment is necessary; it is not cancellation of stale rear Fy.
++      expect(sign * withHistory.request).toBeGreaterThan(0);
++      expect(withHistory.state).toBe('riding');
++    },
++  );
++
+   it.each([
+     [0, 1.5, 0],
+     [500, 1.5, 0],
+diff --git a/tests/gp-current-history.test.ts b/tests/gp-current-history.test.ts
+new file mode 100644
+index 0000000..750df19
+--- /dev/null
++++ b/tests/gp-current-history.test.ts
+@@ -0,0 +1,312 @@
++import { describe, expect, it, vi } from 'vitest';
++import { GP_R1 } from '../src/simulation/bike-definitions.ts';
++import { BikeVehicle } from '../src/simulation/bike-vehicle.ts';
++import { BIKE, Bike, NOVICE } from '../src/simulation/bike.ts';
++import { DEFAULT_SETUP } from '../src/simulation/config.ts';
++import {
++  gpGroundSteer,
++  gpCamberFriction,
++  gpHangOffAngle,
++  gpRollInertia,
++  gpSpinPerSpeed,
++  MOTOGP_SLICK,
++  MotoGPChassis,
++  type MotoGPContactStep,
++} from '../src/simulation/motogp-physics.ts';
++import recorded from './fixtures/gp-ardennes-load-phase.json';
++import { prepareSlip, slipState } from '../src/simulation/tyre-force.ts';
++
++const scratch = new Set(['force', 'inverseFront', 'previewFront', 'previewRear', 'inverseForces']);
++function physical(gp: MotoGPChassis) {
++  return JSON.parse(
++    JSON.stringify(
++      Object.fromEntries(
++        Object.entries(gp).filter(
++          ([key, value]) => !scratch.has(key) && typeof value !== 'function',
++        ),
++      ),
++    ),
++  );
++}
++function clone(gp: MotoGPChassis) {
++  return Object.assign(new MotoGPChassis(gp.geometry), structuredClone(gp));
++}
++function fixture(sign = 1) {
++  const gp = new MotoGPChassis(recorded.geometry),
++    q: MotoGPContactStep = {
++      ...recorded.q,
++      lean: sign * recorded.q.lean,
++      steer: sign * recorded.beforeBikeStep.bar,
++    };
++  Object.assign(gp, recorded.state);
++  for (const key of [
++    'lateralSpeed',
++    'yawRate',
++    'lateralAcceleration',
++    'frontFy',
++    'rearFy',
++  ] as const)
++    gp[key] *= sign;
++  return { gp, q };
++}
++
++/** Exercise the REAL plant's preparation and force projection while its
++ * exponential relaxation increment is exactly zero. This positive timestep
++ * is valid for the native solver; no contact or math function is mocked.
++ * The normal120/240Hz step is tested separately and need not give this force. */
++function nativePreparation(gp: MotoGPChassis, q: MotoGPContactStep) {
++  const dt = 1e-20,
++    plant = clone(gp);
++  expect(1 - Math.exp((-dt * Math.max(q.speed, 3)) / MOTOGP_SLICK.relaxationLength)).toBe(0);
++  plant.step({ ...q, dt });
++  return plant;
++}
++
++describe('GP current strain observation has no contact-time advance', () => {
++  it.each([-1, 1].flatMap((sign) => recorded.variants.map((v) => ({ sign, ...v }))))(
++    'matches native zero-time preparation for $name, sign $sign',
++    ({ sign, q: saved }) => {
++      const { gp } = fixture(sign),
++        q = { ...saved, lean: sign * saved.lean, steer: sign * saved.steer },
++        before = physical(gp),
++        observed = gp.currentLateralAcceleration(q),
++        prepared = nativePreparation(gp, q),
++        advanced = clone(gp);
++      expect(physical(gp)).toEqual(before);
++      expect(observed).toBe(prepared.lateralAcceleration);
++      advanced.step(q);
++      // The previous full-step predictor answers a different question: it
++      // relaxes the force toward this held bar before choosing the new bar.
++      expect(Math.abs(observed - advanced.lateralAcceleration)).toBeGreaterThan(0.01);
++    },
++  );
++
++  const transitions = [
++    { name: 'reload', front: 1.5, rear: 1.5, contact: 1, frontFx: 0, rearFx: -180, mu: 1 },
++    {
++      name: 'unequal unload',
++      front: 0.4,
++      rear: 1.2,
++      contact: 0.4,
++      frontFx: -100,
++      rearFx: 400,
++      mu: 1,
++    },
++    { name: 'front lift', front: 0, rear: 1, contact: 0, frontFx: 0, rearFx: -180, mu: 1 },
++    { name: 'rear lift', front: 1, rear: 0, contact: 1, frontFx: -300, rearFx: 0, mu: 1 },
++    {
++      name: 'low grip braking',
++      front: 1,
++      rear: 1,
++      contact: 1,
++      frontFx: -350,
++      rearFx: -300,
++      mu: 0.25,
++    },
++    { name: 'brake release', front: 1, rear: 1, contact: 1, frontFx: 0, rearFx: 0, mu: 1 },
++  ];
++  it.each([-1, 1].flatMap((sign) => transitions.map((v) => ({ sign, ...v }))))(
++    'observes native prepared strain for $name, sign $sign',
++    ({ sign, front, rear, contact, frontFx, rearFx, mu }) => {
++      const { gp, q } = fixture(sign);
++      Object.assign(q, {
++        frontLoad: q.frontLoad * front,
++        rearLoad: q.rearLoad * rear,
++        frontMu: q.frontMu * mu,
++        rearMu: q.rearMu * mu,
++        frontContact: contact,
++        frontFx,
++        rearFx,
++      });
++      const before = physical(gp),
++        observed = gp.currentLateralAcceleration(q),
++        plant = nativePreparation(gp, q);
++      expect(observed).toBe(plant.lateralAcceleration);
++      expect(gp.currentLateralAcceleration(q)).toBe(observed);
++      expect(physical(gp)).toEqual(before);
++    },
++  );
++
++  it.each([-1, 1])(
++    'pairs current reaction and current strain in the native roll equation, sign %s',
++    (sign) => {
++      const { gp } = fixture(sign),
++        saved = recorded.variants.find(
++          (v) => v.name === 'exact-proportional-current-total-held-bar',
++        )!,
++        q = { ...saved.q, lean: sign * saved.q.lean, steer: sign * saved.q.steer },
++        reaction = (q.frontLoad + q.rearLoad) / q.mass,
++        psi =
++          q.lean + gpHangOffAngle(sign * recorded.beforeBikeStep.riderOffset, recorded.cgHeight),
++        inertia = gpRollInertia(gp.geometry, q.mass, recorded.cgHeight),
++        gyro =
++          gpSpinPerSpeed(gp.geometry) *
++          recorded.beforeBikeStep.speed *
++          gp.yawRate *
++          Math.cos(q.lean),
++        rolling = (lateral: number) =>
++          (q.mass * recorded.cgHeight * (reaction * Math.sin(psi) - lateral * Math.cos(psi)) -
++            gyro) /
++          inertia,
++        old = rolling(gp.lateralAcceleration),
++        observed = rolling(gp.currentLateralAcceleration(q)),
++        native = rolling(nativePreparation(gp, q).lateralAcceleration);
++      expect(observed).toBe(native);
++      expect(Math.abs(old)).toBeGreaterThan(0.68);
++      expect(Math.abs(observed)).toBeLessThan(0.08);
++      expect(Math.abs(old - observed)).toBeGreaterThan(0.6);
++    },
++  );
++
++  it('is independent of120/240Hz step duration and differs from both full future steps', () => {
++    const { gp, q } = fixture(),
++      observed = gp.currentLateralAcceleration(q),
++      future: number[] = [];
++    for (const dt of [1 / 120, 1 / 240]) {
++      const request = { ...q, dt },
++        plant = clone(gp);
++      expect(gp.currentLateralAcceleration(request)).toBe(observed);
++      plant.step(request);
++      future.push(plant.lateralAcceleration);
++      expect(Math.abs(plant.lateralAcceleration - observed)).toBeGreaterThan(0.01);
++    }
++    expect(future[0]).not.toBe(future[1]);
++  });
++
++  it('preserves the exact measured force when contact preparation and bar pose have not changed', () => {
++    const { gp, q } = fixture();
++    gp.step(q);
++    const actual = gp.lateralAcceleration;
++    expect(gp.currentLateralAcceleration(q)).toBe(actual);
++    const ground = gpGroundSteer(q.steer, q.lean);
++    expect(actual).toBe(
++      (gp.frontFy * Math.cos(ground) + q.frontFx * Math.sin(ground) + gp.rearFy) / q.mass,
++    );
++  });
++
++  it('leaves all physical history and the next full step unchanged by repeated mixed queries', () => {
++    const { gp, q } = fixture(),
++      untouched = clone(gp),
++      before = physical(gp),
++      observed = gp.currentLateralAcceleration(q);
++    for (let i = 0; i < 8; i++) {
++      gp.frontSteerFor(400, q.lean, q.speed, q.frontFx, q.frontLoad, q.frontMu);
++      gp.rearForceFor(q.rearLoad, q.rearMu, q.lean, q.speed, q.rearFx, q.dt);
++      expect(gp.currentLateralAcceleration(q)).toBe(observed);
++      expect(physical(gp)).toEqual(before);
++    }
++    gp.step(q);
++    untouched.step(q);
++    expect(physical(gp)).toEqual(physical(untouched));
++  });
++
++  it('keeps force and heat zero through flight and a fresh zero-slip landing', () => {
++    const { gp, q } = fixture();
++    gp.reset(q.speed);
++    q.lean = q.steer = q.frontFx = q.rearFx = 0;
++    for (const load of [500, 1900, 0, 1900, 1200]) {
++      q.frontLoad = q.rearLoad = load;
++      q.frontContact = load ? 1 : 0;
++      expect(gp.currentLateralAcceleration(q)).toBe(0);
++      gp.step(q);
++      expect(gp.lateralAcceleration).toBe(0);
++      expect(gp.frontSlidingPower).toBe(0);
++      expect(gp.rearSlidingPower).toBe(0);
++    }
++  });
++
++  it.each([-1, 1])(
++    'does not transmit obsolete front Fx through a lost contact, bar sign %s',
++    (sign) => {
++      const { gp, q } = fixture(sign);
++      q.frontLoad = q.rearLoad = 0;
++      q.frontContact = 0;
++      q.frontFx = -1500;
++      q.rearFx = 1800;
++      q.steer = sign * 0.2;
++      const before = physical(gp);
++      expect(Math.abs(q.frontFx * Math.sin(gpGroundSteer(q.steer, q.lean)))).toBeGreaterThan(300);
++      expect(gp.currentLateralAcceleration(q)).toBe(0);
++      expect(physical(gp)).toEqual(before);
++      // A valid physical plant receives the zero force pair after allocation;
++      // the observer must reach that force-free result before allocation too.
++      expect(nativePreparation(gp, { ...q, frontFx: 0, rearFx: 0 }).lateralAcceleration).toBe(0);
++    },
++  );
++
++  it.each([-1, 1])(
++    'projects prior braking only inside a newly smaller front circle, sign %s',
++    (sign) => {
++      const { gp, q } = fixture(sign);
++      q.frontLoad = 150;
++      q.frontMu = 0.4;
++      q.frontContact = 0.5;
++      q.frontFx = -1500;
++      q.rearLoad = 0;
++      q.rearFx = 0;
++      const prepared = slipState();
++      prepareSlip(
++        MOTOGP_SLICK,
++        q.frontLoad * q.frontContact,
++        q.frontMu * gpCamberFriction(q.lean),
++        1,
++        1,
++        1,
++        prepared,
++      );
++      const bound = prepared.dy,
++        before = physical(gp),
++        observed = gp.currentLateralAcceleration(q),
++        ground = gpGroundSteer(q.steer, q.lean),
++        feasible = { ...q, frontFx: -bound };
++      expect(observed).toBe((-bound * Math.sin(ground)) / q.mass);
++      expect(observed).toBe(nativePreparation(gp, feasible).lateralAcceleration);
++      expect(Math.abs(observed * q.mass)).toBeLessThanOrEqual(bound);
++      expect(physical(gp)).toEqual(before);
++      expect(q.frontFx).toBe(-1500);
++    },
++  );
++
++  it('stages known pedal history and current loads without integrating an extra actuator/contact step', () => {
++    const bike = new BikeVehicle(0, 'medium', DEFAULT_SETUP, 'sport', GP_R1).dynamics,
++      gp = bike.motoGP!,
++      dt = 1 / 240,
++      oldSpeed = (bike.speed = 30),
++      oldBar = (bike.steer = -0.1),
++      priorFront = (bike.frontBrakeForce = 700),
++      priorRear = (bike.driveForce = 1500);
++    gp.reset(oldSpeed);
++    bike.contactLoads = { front: 30, rear: 2400 };
++    const observation = vi.spyOn(gp, 'currentLateralAcceleration'),
++      inverse = vi.spyOn(gp, 'frontSteerFor').mockReturnValue(0.6),
++      plant = vi.spyOn(gp, 'step');
++    bike.step({ lean: 0.3, rider: 0, throttle: 0, frontBrake: 0.5, rearBrake: 0, drive: 0 }, dt);
++    expect(observation).toHaveBeenCalledTimes(1);
++    expect(plant).toHaveBeenCalledTimes(1);
++    const p = observation.mock.calls[0][0],
++      q = plant.mock.calls[0][0];
++    expect('dt' in p).toBe(false);
++    expect(p.speed).toBe(oldSpeed);
++    expect(p.steer).toBe(oldBar);
++    expect(p.frontFx).toBe(-priorFront);
++    expect(p.rearFx).toBe(priorRear);
++    expect(p.frontLoad).toBe(q.frontLoad);
++    expect(p.rearLoad).toBe(q.rearLoad);
++    expect(p.frontContact).toBe(q.frontContact);
++    expect(q.frontFx).not.toBe(p.frontFx);
++    expect(q.rearFx).not.toBe(p.rearFx);
++    // This isolated candidate leaves the existing force-inverse phase unchanged.
++    expect(inverse.mock.calls[0][3]).toBe(p.frontFx);
++    expect(q.steer - oldBar).toBeCloseTo(bike.p.steerRate * dt, 12);
++  });
++
++  it.each(['standalone', 'flight'])('does not invoke the road observation for %s', (mode) => {
++    const bike = new Bike(NOVICE, BIKE);
++    bike.speed = 30;
++    bike.enableMotoGPPhysics(recorded.geometry);
++    if (mode === 'flight') bike.contactLoads = { front: 0, rear: 0 };
++    const observe = vi.spyOn(bike.motoGP!, 'currentLateralAcceleration');
++    bike.step({ lean: 0.3, rider: 0, throttle: 0, frontBrake: 0, rearBrake: 0, drive: 0 }, 1 / 240);
++    expect(observe).not.toHaveBeenCalled();
++  });
++});
+diff --git a/tests/gp-steering-throttle-ownership.test.ts b/tests/gp-steering-throttle-ownership.test.ts
+new file mode 100644
+index 0000000..36ce2d4
+--- /dev/null
++++ b/tests/gp-steering-throttle-ownership.test.ts
+@@ -0,0 +1,76 @@
++import { describe, expect, it } from 'vitest';
++import { G } from '../src/core/math.ts';
++import { BikeAIDriver } from '../src/simulation/bike-ai.ts';
++import { GP_R1 } from '../src/simulation/bike-definitions.ts';
++import { BikeVehicle } from '../src/simulation/bike-vehicle.ts';
++import { DEFAULT_SETUP } from '../src/simulation/config.ts';
++import { Track } from '../src/simulation/track.ts';
++
++class DemandDriver extends BikeAIDriver {
++  constructor(
++    bike: BikeVehicle,
++    private readonly pathAcceleration: number,
++    private readonly correctionAcceleration: number,
++  ) {
++    super(bike);
++  }
++  protected override steeringLineOffset() {
++    return 0;
++  }
++  protected override steeringLineCurvature() {
++    return this.pathAcceleration / this.bike.dynamics.speed ** 2;
++  }
++  protected override pathCorrection() {
++    return this.correctionAcceleration / this.bike.dynamics.speed ** 2;
++  }
++}
++
++/** Exercise the actual intent conversion followed by the actual throttle
++ * budget, with controlled path/feedback inputs instead of duplicating either
++ * controller formula. The final physical contact controls still run in Bike. */
++function plannedThrottle(track: Track, path: number, correction: number, support = 1) {
++  const bike = new BikeVehicle(0, 'medium', DEFAULT_SETUP, 'sport', GP_R1);
++  bike.place(track, 120, 0);
++  const d = bike.dynamics;
++  d.speed = 30;
++  d.frontLoad = (support * d.mass * G * d.p.cgToRear) / d.p.wheelbase;
++  d.rearLoad = (support * d.mass * G * d.p.cgToFront) / d.p.wheelbase;
++  d.contactLoads = { front: d.frontLoad, rear: d.rearLoad };
++  bike.gear = 1;
++  bike.rpm = 12000;
++  bike.aiOffset = 0;
++  const driver = new DemandDriver(bike, path, correction) as unknown as {
++    steerIntent(track: Track, steer: number): number;
++    steeringThrottle(): number;
++  };
++  bike.input.steer = driver.steerIntent(track, 0);
++  return { intent: bike.input.steer, throttle: driver.steeringThrottle() };
++}
++
++describe('GP AI charges the total requested lateral acceleration once', () => {
++  const track = new Track('clear', true);
++
++  it.each([-1, 1])(
++    'keeps the same %s turn budget when path correction agrees with or opposes its curve',
++    (sign) => {
++      const total = sign * 6;
++      const plain = plannedThrottle(track, total, 0);
++      expect(plain.throttle).toBeGreaterThan(0);
++      expect(plain.throttle).toBeLessThan(1);
++      for (const correction of [sign * 2, -sign * 2]) {
++        const result = plannedThrottle(track, total - correction, correction);
++        expect(result.intent).toBeCloseTo(plain.intent, 12);
++        expect(result.throttle).toBeCloseTo(plain.throttle, 12);
++      }
++    },
++  );
++
++  it('inverts intent with the same normal reaction used to encode its path demand', () => {
++    const nominal = plannedThrottle(track, 6, 0);
++    for (const support of [0.7, 1.3]) {
++      const result = plannedThrottle(track, 6, 0, support);
++      expect(result.intent).not.toBeCloseTo(nominal.intent, 3);
++      expect(result.throttle).toBeCloseTo(nominal.throttle, 12);
++    }
++  });
++});

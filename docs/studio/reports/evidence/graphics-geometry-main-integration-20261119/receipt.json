@@ -1,0 +1,160 @@
+{
+  "recordedAt": "2026-11-19T22:52:12.753739+00:00",
+  "status": "local composition verified; hosted High acceptance failed; frozen prospective integration only",
+  "branch": "studio/graphics-geometry-main-integration-20261119",
+  "baseIntegration": "bd3f98655c96f4bad0be202c4cb568567b84b305",
+  "frozenGraphicsSource": "619ffceb23ed4351ddfcdf6a3fc232d15e5b5e12",
+  "graphicsReceiptSource": "eb691e3c8abccc6cd7a0cee10aedfc207540fddd",
+  "sourceCherryPick": "f95c84e92e97a86620a2de5e0b24185620d6bbf9",
+  "testedIntegrationSource": "c428219c1e80c1404b169e85d8fcdca931147c99",
+  "testedIntegrationTree": "a6914907eb7dd653856c233c1428a30926e04f3e",
+  "sourcePaths": [
+    "src/rendering/geometry-preparation.ts",
+    "src/rendering/reflections.ts",
+    "tests/geometry-preparation.test.ts",
+    "tests/helpers/native-geometry-proof.d.mts",
+    "tests/helpers/native-geometry-proof.mjs",
+    "tests/helpers/native-renderer-harness.mjs"
+  ],
+  "checks": {
+    "build": {
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npm",
+        "run",
+        "build"
+      ],
+      "startedAt": "2026-11-19T22:46:53.409206+00:00",
+      "durationSeconds": 63.856,
+      "exitCode": 0,
+      "log": "build.log"
+    },
+    "cross-integration": {
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npx",
+        "vitest",
+        "run",
+        "tests/release-source.test.ts",
+        "tests/branchless-release.test.ts",
+        "tests/ci-workflow.test.ts",
+        "tests/browser-shard-plan.test.ts",
+        "tests/startup.test.ts",
+        "tests/session-sky-preparation.test.ts",
+        "tests/scene-texture-preparation.test.ts",
+        "tests/static-scene-texture-order.test.ts",
+        "tests/geometry-preparation.test.ts"
+      ],
+      "startedAt": "2026-11-19T22:46:53.411355+00:00",
+      "durationSeconds": 38.156,
+      "exitCode": 0,
+      "log": "cross-integration-tests.log"
+    },
+    "bundle": {
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "node",
+        "scripts/bundle-budget.mjs",
+        "--json"
+      ],
+      "startedAt": "2026-11-19T22:49:38.232167+00:00",
+      "durationSeconds": 3.142,
+      "exitCode": 0,
+      "log": "bundle-budget.log"
+    },
+    "ip": {
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npm",
+        "run",
+        "check:ip"
+      ],
+      "startedAt": "2026-11-19T22:49:38.223450+00:00",
+      "durationSeconds": 5.664,
+      "exitCode": 0,
+      "log": "ip-check.log"
+    }
+  },
+  "focusedSuite": {
+    "filesPassed": 9,
+    "testsPassed": 169,
+    "vitestDurationSeconds": 31.01,
+    "nativeGeometryCasesPassed": 15
+  },
+  "buildIdentity": {
+    "version": 1,
+    "commit": "c428219c1e80c1404b169e85d8fcdca931147c99",
+    "fingerprint": "dc42ee366d537c598fd71cd142dbb7c9f57390ef8a44629dcae3cff3765c431f",
+    "variant": "product",
+    "edition": "full"
+  },
+  "protectedInputsVerified": true,
+  "allProductionInputsEqualFrozenGraphicsSource": true,
+  "priorIntegrationBranchPreserved": true,
+  "frozenGraphicsSourceBranchPreserved": true,
+  "isolatedWorkflowExcluded": true,
+  "hostedStatus": {
+    "provenance": "Parent reviewed the complete High log and terminal job results. Checkpoint agent verified the original artifact. This integration task then read the extracted source-specific metadata, assertion, stage, and last-diagnostic summaries; detailed resource diagnosis remains pending.",
+    "source": "b8f1445cb07d57b35ac1c5dd45e54b01d6aaec92",
+    "tree": "8d33f4ce7255a56398689914b1a78fe4a74833ba",
+    "runId": 44630631215,
+    "runUrl": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44630631215",
+    "build": "success",
+    "gameplay": "success",
+    "componentGpu": "success",
+    "menu": "success",
+    "high": "failure",
+    "highJobId": 135935986093,
+    "failure": {
+      "path": "e2e/graphics-high-journey.spec.ts",
+      "line": 786,
+      "timeoutMs": 90000,
+      "expected": "paused",
+      "observed": "loading",
+      "laterGpDrivingPhotoAssertionsReached": false
+    },
+    "artifactId": 14582960224,
+    "parentReportedArtifactSizeBytes": 107766805,
+    "parentReportedArtifactSha256": "5e7165c6f199fbf384e9442297b4b0a316d5b013bec2a8063d563f4dd791eb54",
+    "artifactTraceSummaryInspectedHere": true,
+    "boundarySummary": "hosted-high-boundary.json"
+  },
+  "boundaries": {
+    "remoteWrites": false,
+    "localBrowserRun": false,
+    "fullUnitSuiteRun": false,
+    "acceptanceClaimed": false,
+    "qualityOrDeadlineChanges": false,
+    "historicalEvidenceModified": false,
+    "nativeEndpointIsGpuDriver": false,
+    "previousFullRenderingSuiteOrNegativeControlRerunHere": false
+  },
+  "evidenceSha256": {
+    "composition-manifest.json": "b0611acedef444adad5ffe0ec3c88b6fde2dda1e8dab1951d2bef45db0490835",
+    "build-command.json": "230b53dc776461b6a7e2a357f2c60efac48547d81a409b87d6f86a0587778070",
+    "build.log": "ebaa0281be3122addd363fa1ab475d1bb9c1444ca299a9e75da65a324696d783",
+    "cross-integration-command.json": "294ad3b0952b87c3853e855ac3cf96cb673976739662f6d8b4998e13be194c9f",
+    "cross-integration-tests.log": "2b452dfeb64e655a6db4614240fceeadf72ae77e662e97f352b3327a62795aa3",
+    "bundle-command.json": "39dd76cf51bdb5390bcc7be1ebe2dd6202cedf8d790db4d3c2db0e9ab94e2313",
+    "bundle-budget.log": "f1e5268cea545d549d1086aa1cbd8b06bf079b0fbc6c6372451b0604bf385df9",
+    "bundle-budget.json": "32d54adee217f08f70fdb28194f84eae35f10817551835e4d2426ac219f3c0ab",
+    "ip-command.json": "127584eec8db05d1b40b20150b9dd4a0c09ea28f15a157b7d083da74026d2eba",
+    "ip-check.log": "5c0b33b1af2c600ec7e37239574a92218330f0582ecbf6b4718d6c131ce0cac4",
+    "BUILD_IDENTITY.json": "8d78ee88c7ec4aee24ca298b385606437ac74613e3a37ff2e2802b4ae5cf60a5",
+    "native-proof-results.json": "79429d628effdc4fafefce9bf5385b330fce3a24480df7f9df8e094b94f6137b",
+    "post-validation-verification.json": "47e3b3b09c9fa6b6af2a4bd71cb1e69539b274832a92cf3d9eb2fc41c05bfbcd",
+    "hosted-high-boundary.json": "06f0bb0ca678347821ef9fc06b0fdc1530e87f8d61989d1eaf002c6e1deb7066"
+  }
+}

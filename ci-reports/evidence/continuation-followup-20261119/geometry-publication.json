@@ -1,0 +1,68 @@
+{
+  "branch": "ci/high-late-startup-20261119",
+  "before": "f22622e3302ed6147c5aae6f8eb6f6bc4057a242",
+  "after": "b8f1445cb07d57b35ac1c5dd45e54b01d6aaec92",
+  "remoteTree": "8d33f4ce7255a56398689914b1a78fe4a74833ba",
+  "localCommit": "619ffceb23ed4351ddfcdf6a3fc232d15e5b5e12",
+  "localTree": "8d33f4ce7255a56398689914b1a78fe4a74833ba",
+  "exactTreeMatch": true,
+  "force": false,
+  "expectedHeadChecked": true,
+  "sourcePaths": [
+    {
+      "path": "src/rendering/geometry-preparation.ts",
+      "gitBlob": "79d9b724bc6af7a7fbd135a26007c3c56fe53ad1",
+      "sha256": "c04991b9a84c8f90b610eb7d68740fe66990f14f3bc5c8f4db657a048808a7c1"
+    },
+    {
+      "path": "src/rendering/reflections.ts",
+      "gitBlob": "0546aee5c08a19e58fcf7ee89730488d8edcc5c3",
+      "sha256": "57c0eaa2a435797d04917bb09a2343e9a911d001208c17ba2556966e850ddbbc"
+    },
+    {
+      "path": "tests/geometry-preparation.test.ts",
+      "gitBlob": "ca0c305b7c19324f5b90e488d0dbca3aa6f2b5fc",
+      "sha256": "c9c918b76b4f4456f3711070dd339f82f36815389267c6fd2d687e76863114ed"
+    },
+    {
+      "path": "tests/helpers/native-geometry-proof.d.mts",
+      "gitBlob": "d924f63c0a5eafe52f7473b0810d1ff19b3ee530",
+      "sha256": "e133bc4219d493df829bfc8f067b53771011acb32171029e1e65a98c2263a3fd"
+    },
+    {
+      "path": "tests/helpers/native-geometry-proof.mjs",
+      "gitBlob": "b41ecb585053e3fc7bda880edb53e2bf7ea50d0e",
+      "sha256": "7df1e09ddc769de7c76b74fc9b135d8e3709988c31f188f049328ec996b6dcb8"
+    },
+    {
+      "path": "tests/helpers/native-renderer-harness.mjs",
+      "gitBlob": "94754ec987a1afcab63b7162d21819d6a1db7b1e",
+      "sha256": "ad6be58f2f95d75481cfeb54562fccd93474aa6120c89e0e464fd9ec3071a64b"
+    }
+  ],
+  "originalWorkflowAndTestsUnchanged": true,
+  "independentNativeCheck": {
+    "command": [
+      "node",
+      "--experimental-transform-types",
+      "scripts/source-stability.ts",
+      "--",
+      "npx",
+      "vitest",
+      "run",
+      "tests/geometry-preparation.test.ts"
+    ],
+    "exitCode": 0,
+    "filesPassed": 1,
+    "testsPassed": 15,
+    "reportedDurationSeconds": 0.746,
+    "scope": "Installed native renderer with recorded GL endpoint; no raster-driver pixels or timing measured"
+  },
+  "hostedRun": {
+    "id": 44630631215,
+    "source": "b8f1445cb07d57b35ac1c5dd45e54b01d6aaec92",
+    "statusAtPublication": "in_progress",
+    "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44630631215"
+  },
+  "verifiedAt": "2026-11-19 22:40:07 UTC"
+}

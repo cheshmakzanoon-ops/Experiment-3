@@ -1,0 +1,127 @@
+{
+  "status": "native-verified source frozen for isolated hosted acceptance; no hosted result for this source yet",
+  "recordedAt": "2026-11-19T22:39:56.991978+00:00",
+  "branch": "studio/retained-geometry-preparation-20261119",
+  "sourceCommit": "619ffceb23ed4351ddfcdf6a3fc232d15e5b5e12",
+  "sourceTree": "8d33f4ce7255a56398689914b1a78fe4a74833ba",
+  "parentSource": "62f18b868163a9c86857ac3222414484b92bffc9",
+  "diagnosedHostedSource": "f22622e3302ed6147c5aae6f8eb6f6bc4057a242",
+  "diagnosedRunId": 44623276067,
+  "diagnosedJobId": 135910316834,
+  "diagnosedArtifactSha256": "beb9d52d0de973aa5f77654e15e899b433d10fa3c41f2576d9fff66a085273d9",
+  "sourceFileHashes": {
+    "src/rendering/geometry-preparation.ts": "c04991b9a84c8f90b610eb7d68740fe66990f14f3bc5c8f4db657a048808a7c1",
+    "src/rendering/reflections.ts": "57c0eaa2a435797d04917bb09a2343e9a911d001208c17ba2556966e850ddbbc",
+    "tests/geometry-preparation.test.ts": "c9c918b76b4f4456f3711070dd339f82f36815389267c6fd2d687e76863114ed",
+    "tests/helpers/native-renderer-harness.mjs": "ad6be58f2f95d75481cfeb54562fccd93474aa6120c89e0e464fd9ec3071a64b",
+    "tests/helpers/native-geometry-proof.mjs": "7df1e09ddc769de7c76b74fc9b135d8e3709988c31f188f049328ec996b6dcb8",
+    "tests/helpers/native-geometry-proof.d.mts": "e133bc4219d493df829bfc8f067b53771011acb32171029e1e65a98c2263a3fd"
+  },
+  "nativeThreeVersion": "0.180.0",
+  "nativeModuleHashes": {
+    "build/three.module.js": "c8211c69345d2e9949dc7a8ac969380497aa0600a5a8ac6a459c8cd02dd9cb8a",
+    "build/three.core.js": "eb077d2417f61d3e6d9264c317cabc4ea35769ed6b0ab533067292a550784c20",
+    "src/renderers/WebGLRenderer.js": "35cea4871231c3fddc3517dcd03fc876bdb8f9e73f1a77042b35e3de0498c4cd",
+    "src/renderers/webgl/WebGLAttributes.js": "9132425f2359093927d6208ceedf7447e8157c1a3325cda45f941428b166fbf2",
+    "src/renderers/webgl/WebGLGeometries.js": "eccc56454c15928169c19dde94c13ae4ea2db8711d2f074a14b0fa41ddcd8992",
+    "src/renderers/webgl/WebGLObjects.js": "6cc2fd61bc05896e420facedc2736dc96625010973c2b5ae3d42ae8d8fa0f336",
+    "src/renderers/webgl/WebGLBindingStates.js": "4545d5cca0fd43d77a41a73eda63f8312cc753f446831e7f981286edba8bda17",
+    "src/renderers/webgl/WebGLIndexedBufferRenderer.js": "35667f433fdeb02106ad4474489e59819ab14dff91f43eeabc42e7ed52a89776",
+    "src/cameras/CubeCamera.js": "5461814e6f6dfe0f784b0c722ac0a21ca8edb8ccd591c6a9378e48eb64bf5c2c",
+    "src/math/Frustum.js": "2332e8d732aace16957af57f82733969416827a4cfad8d5bea338fee9f082077"
+  },
+  "protectedInputHashes": {
+    "e2e/graphics-high-journey.spec.ts": "8145efd6bf378e614ea605d69da12984b232ab5311a2981e895cf6c017dc3497",
+    ".github/workflows/graphics-high-diagnostic.yml": "9ee2fdb2e0414afec25b6d3775835bc29c5ae6c82b7dacbfc408131a14b7cdfa",
+    "src/rendering/renderer.ts": "6017c26a41a7e618d1c661fb544f701e034c88aeff419667fda0d02389fc0b61",
+    "src/rendering/preparation.ts": "a984673fe78acf5c64b7845ce165384ed0c9058e04fce2a98af79dfbeea1a337",
+    "src/rendering/far-shadow.ts": "9d7d2f48cee396a39e9223fa47f81dc9c2625442436aa607e8c25ad5f95cccaf",
+    "src/rendering/texture-budget.ts": "960359fece98f727bd6078d50c17f47c6849a106e030241aa0c82a20fb58406f",
+    "package.json": "9f6a7789a1676b0e56188e15e9c6a0d47ce73810ec5f0bd78594c6d969e2d6ad",
+    "package-lock.json": "d85b97d2e51497b62414087966db13b740b174fe4b96663d29447644948d2969"
+  },
+  "sourceValidationNote": "Checks ran before the source commit, against precisely the source/test bytes recorded by sourceFileHashes and then committed as sourceCommit. Source stability guards passed; final restored hashes were checked after commit.",
+  "checks": [
+    {
+      "name": "focused native and cross-rendering tests",
+      "command": "node --experimental-transform-types scripts/source-stability.ts -- npx vitest run tests/geometry-preparation.test.ts tests/reflections.test.ts tests/reflection-preparation.test.ts tests/probe-detail.test.ts tests/startup.test.ts tests/scene-texture-preparation.test.ts tests/static-scene-texture-order.test.ts tests/far-shadow.test.ts",
+      "exitCode": 0,
+      "testsPassed": 128,
+      "filesPassed": 8,
+      "nativeGeometryCases": 15,
+      "vitestDurationSeconds": 26.6,
+      "log": "production-targeted-tests.log"
+    },
+    {
+      "name": "TypeScript noEmit",
+      "command": "node --experimental-transform-types scripts/source-stability.ts -- npx tsc --noEmit",
+      "exitCode": 0,
+      "log": "production-typecheck.log"
+    },
+    {
+      "name": "scoped ESLint",
+      "command": "node --experimental-transform-types scripts/source-stability.ts -- npx eslint src/rendering/geometry-preparation.ts src/rendering/reflections.ts tests/geometry-preparation.test.ts tests/helpers/native-renderer-harness.mjs tests/helpers/native-geometry-proof.mjs tests/helpers/native-geometry-proof.d.mts",
+      "exitCode": 0,
+      "log": "production-lint.log"
+    },
+    {
+      "name": "ordering mutation-negative control",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npx",
+        "vitest",
+        "run",
+        "tests/geometry-preparation.test.ts",
+        "-t",
+        "First real reflection capture"
+      ],
+      "startedAt": "2026-11-19T22:37:15.225532+00:00",
+      "durationSeconds": 3.742,
+      "exitCode": 1,
+      "intendedMutation": "Move retained geometry preparation after the original six native cube face renders, keeping the same preparations and all quality settings.",
+      "positiveSourceSha256": "57c0eaa2a435797d04917bb09a2343e9a911d001208c17ba2556966e850ddbbc",
+      "negativeSourceSha256": "7176bf5405b2e1c385edb267fad7c7bbf854b71077bd153278f9339effdebe2f",
+      "originalSourceRestored": true,
+      "failedTests": 1,
+      "filteredOutTests": 14,
+      "expectedExitCode": 1,
+      "log": "ordering-negative.log"
+    }
+  ],
+  "scopeLimits": [
+    "Only the first canvas-entry probe capture is prepared. Existing offscreen captures retain their original path without new preparation or driver queries.",
+    "The native endpoint records GL calls without executing a driver. Buffer owner/handle reuse and ordering are proven; browser pixels and timing are not.",
+    "Native zero-count draw calls are real API calls and remain visible in normal native info counters; they submit zero primitives.",
+    "Instance matrices/colors, dynamic, external, skinned/morph, batched and automatic-LOD owners retain normal native first-use paths.",
+    "Generic GL-driver failures can leave Three internal state incomplete; a failed renderer must still be retired.",
+    "No new full unit suite, local browser, or product build was run for this source. The parent is submitting the original isolated hosted build and browser gates.",
+    "The original High test, its 90-second readiness assertion, other deadlines, GPU completion checks, quality and workflow are unchanged."
+  ],
+  "frozenIntegrationPreserved": {
+    "head": "bd3f98655c96f4bad0be202c4cb568567b84b305",
+    "clean": true
+  },
+  "remoteWritesByThisAgent": false,
+  "evidenceHashes": {
+    "production-targeted-tests.log": "08338d497de9c93aad65a6ceb7814fa4f0f0344e34bfaa56b49d2ce63896fd9a",
+    "production-typecheck.log": "9d3c522dc63d469779a7ee38f55b22fc0473f88e04848cbd92c319671e8f5097",
+    "production-lint.log": "9d3c522dc63d469779a7ee38f55b22fc0473f88e04848cbd92c319671e8f5097",
+    "ordering-negative.patch": "11f6034f37556db05198311691eb94faf9e4f0a0bf12546a0b2d3f5acaecf68b",
+    "ordering-negative.log": "7b76f58b6d1594ba5a5011fea7c5a89a7a2a00572f6b6b928d836a48c689cec6",
+    "ordering-negative.json": "9b1677d4cc1cf928283596123012f337badc71472989613d678a8b7c57acba54",
+    "native-proof-results.json": "3ba417fd842e88c01c710c5dc2321a06711a8972672477c844f8d49a4c19f4da",
+    "source-specific-diagnosis.json": "43feb6a58728e3725ac9abcb0edaf5391a29d0398187116d52445a849a55f039",
+    "validated-source-hashes.json": "8337847de22359a484e210f7f9b1df7cd4a8b6fda13ab537f2aa18099aca564b"
+  },
+  "hostedCandidate": {
+    "remoteSource": "b8f1445cb07d57b35ac1c5dd45e54b01d6aaec92",
+    "tree": "8d33f4ce7255a56398689914b1a78fe4a74833ba",
+    "runId": 44630631215,
+    "statusAtReceipt": "in progress",
+    "verification": "Parent independently verified exact tree parity and reran all 15 native cases under source guard, exit 0."
+  },
+  "documentationBranch": "studio/retained-geometry-receipt-20261119"
+}

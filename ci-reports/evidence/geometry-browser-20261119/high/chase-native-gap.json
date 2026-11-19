@@ -1,0 +1,148 @@
+{
+  "scope": "Bounded native API accounting during the labelled chase/shadow/reflection warmup; not isolated GPU execution timing.",
+  "chaseStageElapsedMs": 42187.09999999998,
+  "activitySamples": 84,
+  "firstTraceTime": 88665.203,
+  "lastTraceTime": 130165.182,
+  "sampleSpanMs": 41499.97900000001,
+  "firstInstrumentedCpuMs": 210.69999999995343,
+  "lastInstrumentedCpuMs": 2072.899999999907,
+  "instrumentedCpuDeltaMs": 1862.1999999999534,
+  "returnedUseProgramPlateaus": [
+    {
+      "sequence": 24385,
+      "from": 90665.062,
+      "to": 92165.235,
+      "method": "useProgram",
+      "returned": true,
+      "lastCpuMs": 0,
+      "inFlight": false,
+      "observedPlateauMs": 1500.1729999999952
+    },
+    {
+      "sequence": 24390,
+      "from": 92665.134,
+      "to": 93665.227,
+      "method": "useProgram",
+      "returned": true,
+      "lastCpuMs": 0,
+      "inFlight": false,
+      "observedPlateauMs": 1000.0929999999935
+    },
+    {
+      "sequence": 24416,
+      "from": 94165.142,
+      "to": 95165.056,
+      "method": "useProgram",
+      "returned": true,
+      "lastCpuMs": 0,
+      "inFlight": false,
+      "observedPlateauMs": 999.9139999999898
+    },
+    {
+      "sequence": 24438,
+      "from": 95665.11,
+      "to": 97165.173,
+      "method": "useProgram",
+      "returned": true,
+      "lastCpuMs": 0,
+      "inFlight": false,
+      "observedPlateauMs": 1500.0629999999946
+    },
+    {
+      "sequence": 24459,
+      "from": 97665.107,
+      "to": 98665.203,
+      "method": "useProgram",
+      "returned": true,
+      "lastCpuMs": 0,
+      "inFlight": false,
+      "observedPlateauMs": 1000.0959999999905
+    },
+    {
+      "sequence": 24653,
+      "from": 103167.12,
+      "to": 104165.159,
+      "method": "useProgram",
+      "returned": true,
+      "lastCpuMs": 0,
+      "inFlight": false,
+      "observedPlateauMs": 998.0390000000043
+    },
+    {
+      "sequence": 24860,
+      "from": 106665.106,
+      "to": 107165.199,
+      "method": "useProgram",
+      "returned": true,
+      "lastCpuMs": 0,
+      "inFlight": false,
+      "observedPlateauMs": 500.0929999999935
+    },
+    {
+      "sequence": 25225,
+      "from": 109165.051,
+      "to": 109665.134,
+      "method": "useProgram",
+      "returned": true,
+      "lastCpuMs": 0.10000000009313226,
+      "inFlight": false,
+      "observedPlateauMs": 500.0829999999987
+    },
+    {
+      "sequence": 26850,
+      "from": 113665.4,
+      "to": 115165.178,
+      "method": "useProgram",
+      "returned": true,
+      "lastCpuMs": 0,
+      "inFlight": false,
+      "observedPlateauMs": 1499.7780000000057
+    },
+    {
+      "sequence": 26901,
+      "from": 116665.241,
+      "to": 118165.108,
+      "method": "useProgram",
+      "returned": true,
+      "lastCpuMs": 0,
+      "inFlight": false,
+      "observedPlateauMs": 1499.8669999999984
+    },
+    {
+      "sequence": 26948,
+      "from": 119165.16,
+      "to": 120165.601,
+      "method": "useProgram",
+      "returned": true,
+      "lastCpuMs": 0,
+      "inFlight": false,
+      "observedPlateauMs": 1000.4409999999916
+    },
+    {
+      "sequence": 27355,
+      "from": 125166.258,
+      "to": 126665.386,
+      "method": "useProgram",
+      "returned": true,
+      "lastCpuMs": 0,
+      "inFlight": false,
+      "observedPlateauMs": 1499.127999999997
+    },
+    {
+      "sequence": 27422,
+      "from": 128165.3,
+      "to": 129165.126,
+      "method": "useProgram",
+      "returned": true,
+      "lastCpuMs": 0,
+      "inFlight": false,
+      "observedPlateauMs": 999.8260000000009
+    }
+  ],
+  "interpretation": [
+    "Large elapsed gaps after returned useProgram calls are outside the wrapped API accounting; the trace does not identify their CPU/driver/GPU ownership.",
+    "The stage label changes before the first pit-service fence; production order confirms that this fence also covers the preceding whole chase submission. Its pending time cannot be attributed solely to pit-service work.",
+    "The sum uses the first and last observed activity samples within the stage, not an exact CPU profile of the entire stage."
+  ]
+}

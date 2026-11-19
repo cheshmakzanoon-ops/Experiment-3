@@ -1,0 +1,37 @@
+{
+  "baseCommit": "0594a2b43b9a2769085efa1e1835243927fbb705",
+  "sourceHashes": {
+    "src/simulation/bike.ts": "47b7a0aefb36ac914127857f9c426d323ed7d601185ab90f48fc57f0f744dbd4",
+    "tests/gp-target-admission.test.ts": "f46a9d7c890aeff9a4e67431a7a5282ddc74688385230992b6d0ec5f18d1db51",
+    "tests/fixtures/gp-target-admission-onset.json": "c88b6879250ad77aadecaa5091682df460fbada9b66a1075d181e88c96d7e5bc"
+  },
+  "sourceDiffSha256": "aa70784321384a5598b7570edd74fe76e3bc001cecb99328c612255771540db6",
+  "reviewScope": "Read-only source/lifetime and fixture provenance review; no native tests or races run by reviewer.",
+  "fixtureNativeEquality": {
+    "tick9829Substep1": {
+      "incomingState": true,
+      "input": true,
+      "dt": true,
+      "finalSignedFx": true
+    },
+    "tick9864Substep2": {
+      "incomingState": true,
+      "input": true,
+      "dt": true,
+      "finalSignedFx": true
+    }
+  },
+  "targetFormulaComparison": {
+    "observations": 959,
+    "changedOnlyByRounding": 1,
+    "maximumDifference": 1.1102230246251565e-16,
+    "limitsExceedingOriginal": 0
+  },
+  "sourceBlockers": [],
+  "followupTestReview": {
+    "sha256": "7c8eacb436a344658e90c04493d1bf052b825d13653b7a5ceb9166a0cd5358d2",
+    "addedNativeInverseRequestCheck": true,
+    "signedZeroHandling": "Explicit native front brake zero expected as -0 because JSON cannot retain signed zero.",
+    "productionSourceUnchanged": true
+  }
+}

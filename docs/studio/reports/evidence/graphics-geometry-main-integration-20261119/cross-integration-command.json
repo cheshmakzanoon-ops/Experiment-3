@@ -1,0 +1,24 @@
+{
+  "command": [
+    "node",
+    "--experimental-transform-types",
+    "scripts/source-stability.ts",
+    "--",
+    "npx",
+    "vitest",
+    "run",
+    "tests/release-source.test.ts",
+    "tests/branchless-release.test.ts",
+    "tests/ci-workflow.test.ts",
+    "tests/browser-shard-plan.test.ts",
+    "tests/startup.test.ts",
+    "tests/session-sky-preparation.test.ts",
+    "tests/scene-texture-preparation.test.ts",
+    "tests/static-scene-texture-order.test.ts",
+    "tests/geometry-preparation.test.ts"
+  ],
+  "startedAt": "2026-11-19T22:46:53.411355+00:00",
+  "durationSeconds": 38.156,
+  "exitCode": 0,
+  "log": "cross-integration-tests.log"
+}

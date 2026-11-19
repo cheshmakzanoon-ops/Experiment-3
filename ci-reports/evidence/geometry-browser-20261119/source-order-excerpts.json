@@ -1,0 +1,37 @@
+{
+  "source": "b8f1445cb07d57b35ac1c5dd45e54b01d6aaec92",
+  "base": "f22622e3302ed6147c5aae6f8eb6f6bc4057a242",
+  "reviewedLocalCommit": "62f18b868163a9c86857ac3222414484b92bffc9",
+  "baseTree": "c413cd5062b6555d1e607297e99ad93db123de77",
+  "treeMatchesGitHubBase": true,
+  "proof": "The GitHub candidate is exactly one commit ahead of this base, whose complete six-path comparison does not touch these files. A later explicit preparation fence covers all preceding submitted commands.",
+  "files": [
+    {
+      "path": "src/rendering/renderer.ts",
+      "baseBlobSha": "bc8b07c3ad032327cdeaa04486b596b63f994617",
+      "wholeFileSha256": "6017c26a41a7e618d1c661fb544f701e034c88aeff419667fda0d02389fc0b61",
+      "unchangedInCandidate": true,
+      "lineStart": 1175,
+      "lineEnd": 1208,
+      "excerpt": "      const camera = this.mode;\n      try {\n        for (const mode of ['chase', 'cockpit'] as const) {\n          progress(\n            mode === 'chase'\n              ? 'Warming shadows and scene reflections\u2026'\n              : 'Warming cockpit, mirrors and post-processing\u2026',\n          );\n          await yieldFrame();\n          if (cancelled()) return false;\n          this.changeCamera(mode);\n          this.draw(frame, frame, 1, 1 / 120, false, true);\n          this.warmupFrames++;\n          if (mode === 'chase' && pitService) {\n            progress('Warming offscreen pit-service materials\u2026');\n            await this.warmPitPresentation(frame, cancelled, yieldFrame);\n            if (cancelled()) return false;\n          }\n          await compileSceneTarget(\n            this.renderer,\n            this.scene,\n            this.camera,\n            this.composer.readBuffer,\n            hiddenHosts,\n            { cancelled: () => this.disposed || cancelled() },\n          );\n          // Shader linking alone does not finish GPU uploads or the warmup draw.\n          // Keep the worker paused until its actual submission has completed.\n          progress(`Waiting for completed ${mode} GPU work\u2026`);\n          await this.waitForPreparedFrame(cancelled, yieldFrame);\n          if (cancelled()) return false;\n        }\n      } finally {\n        if (!cancelled()) {"
+    },
+    {
+      "path": "src/rendering/pit-material-warmup.ts",
+      "baseBlobSha": "ff56bcf684e6bb9d00c016a247cde27cfb20e991",
+      "wholeFileSha256": "897a8b47764132c3f2aca263f116e88436932d7b53899f67dbd01764d1f66a9b",
+      "unchangedInCandidate": true,
+      "lineStart": 104,
+      "lineEnd": 137,
+      "excerpt": "              object instanceof T.Points ||\n              object instanceof T.Sprite)\n          ) {\n            excluded.set(object, object.layers.mask);\n            object.layers.mask = 0;\n          }\n        });\n        renderer.render(scene, camera);\n        submitted();\n        passes++;\n      } finally {\n        for (const [object, mask] of excluded) object.layers.mask = mask;\n        excluded.clear();\n        try {\n          crew.update(frame, camera.position, visibility, camera.fov, camera.aspect);\n        } finally {\n          crew.root.visible = visibility;\n          renderer.xr.enabled = xr;\n          renderer.autoClear = autoClear;\n          renderer.shadowMap.autoUpdate = shadowAuto;\n          renderer.shadowMap.needsUpdate = shadowNeeds;\n          renderer.setRenderTarget(previousTarget, face, mip);\n          renderer.setViewport(viewport);\n          renderer.setScissor(scissor);\n          renderer.setScissorTest(scissorTest);\n        }\n      }\n      const deadline = performance.now() + 45000;\n      while (!cancelled() && !ready()) {\n        // Warmup only moves shader/upload cost off the race. A slow GPU\n        // continues into the session rather than failing it.\n        if (performance.now() >= deadline) break;\n        await yieldFrame();\n      }"
+    },
+    {
+      "path": "src/rendering/gpu-frame-gate.ts",
+      "baseBlobSha": "c5cb4ab8777ba41f9f30eb4215c77c8ce6504c38",
+      "wholeFileSha256": "0481f7a5a27170153e5419b41e8cd859be4cab3d2970a489da03086c6515dd06",
+      "unchangedInCandidate": true,
+      "lineStart": 80,
+      "lineEnd": 104,
+      "excerpt": "  /** Explicit preparation draws may supersede a fence: the later fence covers\n   * all preceding commands. The normal frame loop always calls ready() first. */\n  submittedFrame(): void {\n    const gl = this.gl;\n    if (this.disposed) throw new Error('GPU frame gate is disposed');\n    if (this.failure) throw new Error(this.failure);\n    if (gl.isContextLost()) {\n      this.fence = null;\n      return;\n    }\n    this.release();\n    this.fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);\n    if (!this.fence) this.fail('Unable to allocate GPU frame fence');\n    this.fencedAt = this.polledAt = this.refreshedAt = this.now();\n    this.activeWaitMs = 0;\n    this.submitted++;\n    gl.flush();\n  }\n\n  private fail(message: string): never {\n    this.failure = message;\n    this.release();\n    throw new Error(message);\n  }\n"
+    }
+  ]
+}

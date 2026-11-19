@@ -1,0 +1,144 @@
+[
+  {
+    "name": "Native compileAsync leaves retained vertex/index buffers cold",
+    "nativeBufferUploadsAfterCompile": 0,
+    "nativeGeometryRegistrationsAfterCompile": 0
+  },
+  {
+    "name": "Exact native geometry owners move before all six cube draws without extra payload uploads",
+    "coldUploads": 12,
+    "preparedTotalUploads": 12,
+    "coldUploadsAfterFirstRaster": 8,
+    "preparedCaptureUploads": 0,
+    "preparationZeroCountDraws": 3,
+    "preparationRasterDraws": 0,
+    "retainedRasterDraws": [
+      {
+        "method": "drawElements",
+        "face": 0,
+        "count": 9,
+        "offset": 6,
+        "indexOwner": "retained-0:index"
+      },
+      {
+        "method": "drawElements",
+        "face": 1,
+        "count": 9,
+        "offset": 6,
+        "indexOwner": "retained-1:index"
+      },
+      {
+        "method": "drawElements",
+        "face": 4,
+        "count": 9,
+        "offset": 6,
+        "indexOwner": "retained-2:index"
+      }
+    ],
+    "originalCallbacksPreserved": true,
+    "originalRangeObjectsAndTransformsPreserved": true,
+    "nativeIndexBufferHandlesRetained": true
+  },
+  {
+    "name": "Prepared but never rendered original geometries own native deletion",
+    "preparedBufferCount": 12,
+    "deletedExactlyOnceByOriginalGeometries": 12,
+    "nativeGeometriesRemaining": 0
+  },
+  {
+    "name": "Cancellation stops between geometry owners and restores original ranges/state",
+    "preparationStoppedAfterFirstOwner": true,
+    "cancelledBeforeStartNativeCalls": 0,
+    "rendererAndRangeStateRestored": true
+  },
+  {
+    "name": "Public render failure restores the active geometry and canvas renderer state",
+    "publicRenderErrorObserved": true,
+    "originalRangeObjectsAndRendererStateRestored": true,
+    "limitation": "A failure thrown inside the GL driver can leave Three native render-stack state incomplete; the production owner must retire that renderer, as with any failed real render."
+  },
+  {
+    "name": "Offscreen entry keeps original native framebuffer viewport and scissor state without preparation",
+    "nativePreparationCalls": 0,
+    "nativeFramebufferAndViewportScissorPreserved": true,
+    "pixelRatio": 2,
+    "checkedTargetDefaultAndExplicitOverrides": true,
+    "offscreenCaptureRemainsOnOriginalNativePath": true
+  },
+  {
+    "name": "InstancedMesh geometry uses native geometry ownership without borrowing instance attributes",
+    "retainedGeometryUploadsInPreparation": 4,
+    "originalInstanceOwnerUploadsOnFirstRealDraw": 2,
+    "exactInstancePayloadsPreserved": true,
+    "originalOwnerDisposals": 6,
+    "limitation": "Instance matrices and colors remain cold; this narrow prototype does not claim to prepare every first-draw buffer."
+  },
+  {
+    "name": "Shared retained BufferAttribute identities use one native payload and native disposal rules",
+    "geometries": 2,
+    "sharedVertexAttributeOwners": 3,
+    "distinctIndexOwners": 2,
+    "nativeUploads": 5,
+    "originalOwnerDeletes": 5
+  },
+  {
+    "name": "Unprepared dynamic/morph/instanced-buffer/skinned/batched/external owners are excluded",
+    "skippedCategories": 6,
+    "nativeCalls": 0
+  },
+  {
+    "name": "First real reflection capture prepares only visible native face consumers before raster and skips later refreshes",
+    "selectedGeometryOwners": 6,
+    "omittedGeometryOwners": 8,
+    "selectedNames": [
+      "retained-0",
+      "retained-1",
+      "retained-2",
+      "visible-child-of-wrong-layer-parent",
+      "selected-manual-lod",
+      "unculled-outside-frustum"
+    ],
+    "firstCaptureNativeUploads": 24,
+    "firstCaptureUploadsAfterRaster": 0,
+    "firstCaptureZeroCountDraws": 6,
+    "laterRefreshZeroCountDraws": 0,
+    "laterRefreshPayloadUploads": 0,
+    "nativeCubeFaces": 6,
+    "originalVisibilityRangesAndRendererStateRestored": true
+  },
+  {
+    "name": "Automatic LOD branches keep native selection and do not upload inactive levels early",
+    "preparationNativeCalls": 0,
+    "nativeSelectedLevelUploads": 4,
+    "inactiveLevelUploads": 0
+  },
+  {
+    "name": "A failed first preparation restores capture exclusions and publishes no incomplete cubemap",
+    "failedCaptureRasterDraws": 0,
+    "failedCapturePublished": false,
+    "sameRequestImmediateRetryWork": 0,
+    "boundedRetryReusedAlreadyPreparedOwners": true
+  },
+  {
+    "name": "Disposal during one original upload stops remaining preparation and cube work",
+    "preparedOwnerUploads": 4,
+    "laterOwnerUploads": 0,
+    "cubeRasterDraws": 0,
+    "originalOwnerDeletes": 4
+  },
+  {
+    "name": "Interleaved static owners retain one native allocation and later versioned updates",
+    "interleavedNativeBuffers": 1,
+    "nativeIndexBuffers": 1,
+    "firstCaptureNewUploads": 0,
+    "laterVersionedUpdates": 1,
+    "laterReallocations": 0
+  },
+  {
+    "name": "Probe selection follows native automatic world-matrix updates and preserves explicit matrix ownership",
+    "movedOutsideBeforePreparationUploads": 0,
+    "movedInsideRetainedUploads": 4,
+    "subsequentCaptureUploads": 0,
+    "explicitOwnerForcedWorldUpdates": 0
+  }
+]

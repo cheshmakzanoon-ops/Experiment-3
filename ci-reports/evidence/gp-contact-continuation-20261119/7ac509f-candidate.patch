@@ -1,0 +1,117 @@
+From 7ac509f9198ae5d5b06c9a17edd2177caa799115 Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Thu, 19 Nov 2026 14:39:34 -0700
+Subject: [PATCH] Decode GP steering throttle reserve with its contact reaction
+
+---
+ src/simulation/bike-ai.ts                    |  7 +-
+ tests/gp-steering-throttle-ownership.test.ts | 76 ++++++++++++++++++++
+ 2 files changed, 81 insertions(+), 2 deletions(-)
+ create mode 100644 tests/gp-steering-throttle-ownership.test.ts
+
+diff --git a/src/simulation/bike-ai.ts b/src/simulation/bike-ai.ts
+index db4737d..a6c9341 100644
+--- a/src/simulation/bike-ai.ts
++++ b/src/simulation/bike-ai.ts
+@@ -297,11 +297,14 @@ export class BikeAIDriver extends AIDriver {
+     if (!d.contactLoads || d.speed < 3) return 1;
+     const lean = Math.max(Math.abs(c.input.steer) * d.leanLimit, Math.abs(d.lean));
+     if (lean < 0.05 && Math.abs(d.leanRate) < 0.1) return 1;
+-    const frontMass = (d.mass * p.cgToRear) / p.wheelbase,
++    // steerIntent already contains the signed path correction. Decode the
++    // combined demand once with the same reaction that encoded its lean.
++    const reaction = (d.frontLoad + d.rearLoad) / d.mass,
++      frontMass = (d.mass * p.cgToRear) / p.wheelbase,
+       staticFront =
+         frontMass * G + (p.downforce ?? 0) * d.speed * d.speed * (p.downforceFront ?? 0.6),
+       requiredFront =
+-        (frontMass * (G * Math.tan(Math.min(lean, 1.2)) + Math.abs(this.steeringCorrection))) /
++        (frontMass * reaction * Math.tan(Math.min(lean, 1.2))) /
+         Math.max(0.1, p.mu * (d.frontGrip ?? d.grip)),
+       drive = Math.max(0, ((staticFront - requiredFront) * p.wheelbase) / p.cgHeight),
+       ratio = c.spec.gearRatios[c.gear + 1] * c.spec.finalDrive * c.gearing,
+diff --git a/tests/gp-steering-throttle-ownership.test.ts b/tests/gp-steering-throttle-ownership.test.ts
+new file mode 100644
+index 0000000..36ce2d4
+--- /dev/null
++++ b/tests/gp-steering-throttle-ownership.test.ts
+@@ -0,0 +1,76 @@
++import { describe, expect, it } from 'vitest';
++import { G } from '../src/core/math.ts';
++import { BikeAIDriver } from '../src/simulation/bike-ai.ts';
++import { GP_R1 } from '../src/simulation/bike-definitions.ts';
++import { BikeVehicle } from '../src/simulation/bike-vehicle.ts';
++import { DEFAULT_SETUP } from '../src/simulation/config.ts';
++import { Track } from '../src/simulation/track.ts';
++
++class DemandDriver extends BikeAIDriver {
++  constructor(
++    bike: BikeVehicle,
++    private readonly pathAcceleration: number,
++    private readonly correctionAcceleration: number,
++  ) {
++    super(bike);
++  }
++  protected override steeringLineOffset() {
++    return 0;
++  }
++  protected override steeringLineCurvature() {
++    return this.pathAcceleration / this.bike.dynamics.speed ** 2;
++  }
++  protected override pathCorrection() {
++    return this.correctionAcceleration / this.bike.dynamics.speed ** 2;
++  }
++}
++
++/** Exercise the actual intent conversion followed by the actual throttle
++ * budget, with controlled path/feedback inputs instead of duplicating either
++ * controller formula. The final physical contact controls still run in Bike. */
++function plannedThrottle(track: Track, path: number, correction: number, support = 1) {
++  const bike = new BikeVehicle(0, 'medium', DEFAULT_SETUP, 'sport', GP_R1);
++  bike.place(track, 120, 0);
++  const d = bike.dynamics;
++  d.speed = 30;
++  d.frontLoad = (support * d.mass * G * d.p.cgToRear) / d.p.wheelbase;
++  d.rearLoad = (support * d.mass * G * d.p.cgToFront) / d.p.wheelbase;
++  d.contactLoads = { front: d.frontLoad, rear: d.rearLoad };
++  bike.gear = 1;
++  bike.rpm = 12000;
++  bike.aiOffset = 0;
++  const driver = new DemandDriver(bike, path, correction) as unknown as {
++    steerIntent(track: Track, steer: number): number;
++    steeringThrottle(): number;
++  };
++  bike.input.steer = driver.steerIntent(track, 0);
++  return { intent: bike.input.steer, throttle: driver.steeringThrottle() };
++}
++
++describe('GP AI charges the total requested lateral acceleration once', () => {
++  const track = new Track('clear', true);
++
++  it.each([-1, 1])(
++    'keeps the same %s turn budget when path correction agrees with or opposes its curve',
++    (sign) => {
++      const total = sign * 6;
++      const plain = plannedThrottle(track, total, 0);
++      expect(plain.throttle).toBeGreaterThan(0);
++      expect(plain.throttle).toBeLessThan(1);
++      for (const correction of [sign * 2, -sign * 2]) {
++        const result = plannedThrottle(track, total - correction, correction);
++        expect(result.intent).toBeCloseTo(plain.intent, 12);
++        expect(result.throttle).toBeCloseTo(plain.throttle, 12);
++      }
++    },
++  );
++
++  it('inverts intent with the same normal reaction used to encode its path demand', () => {
++    const nominal = plannedThrottle(track, 6, 0);
++    for (const support of [0.7, 1.3]) {
++      const result = plannedThrottle(track, 6, 0, support);
++      expect(result.intent).not.toBeCloseTo(nominal.intent, 3);
++      expect(result.throttle).toBeCloseTo(nominal.throttle, 12);
++    }
++  });
++});
+-- 
+2.52.0
+

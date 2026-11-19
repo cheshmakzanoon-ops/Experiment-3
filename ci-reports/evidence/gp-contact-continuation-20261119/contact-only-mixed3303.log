@@ -1,0 +1,39 @@
+
+ RUN  v3.2.4 /workspace/scratch/dac6891506fb/gp-runway
+
+ ↓ tests/bike-session.test.ts > WP34 motorcycles in real sessions > builds the bike adapter and bike AI for bike definitions only
+ ↓ tests/bike-session.test.ts > WP34 motorcycles in real sessions > laps a circuit under AI with lean, gears, tyre wear and valid timing
+ ↓ tests/bike-session.test.ts > WP34 motorcycles in real sessions > crash flows through race control: rider down, separation, remount, back on track
+ ↓ tests/bike-session.test.ts > WP34 motorcycles in real sessions > a hard contact between bikes unseats a rider without non-finite state
+ ↓ tests/bike-session.test.ts > WP34 motorcycles in real sessions > race control penalises a bike jump start like any entrant
+ ↓ tests/bike-session.test.ts > WP34 motorcycles in real sessions > rear brake is the secondary (clutch) input and decelerates on its own
+ ↓ tests/bike-session.test.ts > WP34 motorcycles in real sessions > services a bike in the pit lane and releases it
+ ↓ tests/bike-session.test.ts > WP34 snapshot v12 bike block > round-trips lean, steer, rider pose and loads; cars carry zeros
+ ↓ tests/bike-session.test.ts > WP34 snapshot v12 bike block > rejects unknown vehicle indices and old layouts
+ ↓ tests/bike-session.test.ts > WP34 snapshot v12 bike block > chassis lean inverts to the dynamics lean (tyre crown geometry)
+ ↓ tests/bike-session.test.ts > WP36 bike identity, rules and content > gives every bike its own identity hash and record category
+ ↓ tests/bike-session.test.ts > WP36 bike identity, rules and content > rejects mixed car and bike grids, admits all-bike grids
+ ↓ tests/bike-session.test.ts > WP36 bike identity, rules and content > validates bike content and names what is wrong
+ × tests/bike-session.test.ts > WP35 seeded AI bike race > finishes a mixed GP/superbike race with bounded incidents and no stuck rider 24113ms
+   → expected 90.41079570705689 to be less than 89.87650940697701
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/bike-session.test.ts > WP35 seeded AI bike race > finishes a mixed GP/superbike race with bounded incidents and no stuck rider
+AssertionError: expected 90.41079570705689 to be less than 89.87650940697701
+ ❯ tests/bike-session.test.ts:367:16
+    365|     const gp = Math.min(best(0), best(2), best(4)),
+    366|       sbk = Math.min(best(1), best(3), best(5));
+    367|     expect(gp).toBeLessThan(sbk);
+       |                ^
+    368|     // ...by a margin that is more than the noise of one seeded lap (0…
+    369|     expect(sbk - gp).toBeGreaterThan(0.15);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 13 skipped (14)
+   Start at  14:35:48
+   Duration  26.30s (transform 1.12s, setup 0ms, collect 1.96s, tests 24.11s, environment 0ms, prepare 63ms)
+

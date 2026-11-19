@@ -1,0 +1,61 @@
+(node:6) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+ RUN  v3.2.4 /workspace/scratch/1c4b13d5bcb1/retained-geometry-preparation
+
+stderr | tests/geometry-preparation.test.ts > First real reflection capture prepares only visible native face consumers before raster and skips later refreshes
+THREE.WebGLRenderer: EXT_color_buffer_float extension not supported.
+
+ ❯ tests/geometry-preparation.test.ts (15 tests | 1 failed | 14 skipped) 68ms
+   ↓ Native compileAsync leaves retained vertex/index buffers cold
+   ↓ Exact native geometry owners move before all six cube draws without extra payload uploads
+   ↓ Prepared but never rendered original geometries own native deletion
+   ↓ Cancellation stops between geometry owners and restores original ranges/state
+   ↓ Public render failure restores the active geometry and canvas renderer state
+   ↓ Offscreen entry keeps original native framebuffer viewport and scissor state without preparation
+   ↓ InstancedMesh geometry uses native geometry ownership without borrowing instance attributes
+   ↓ Shared retained BufferAttribute identities use one native payload and native disposal rules
+   ↓ Unprepared dynamic/morph/instanced-buffer/skinned/batched/external owners are excluded
+   × First real reflection capture prepares only visible native face consumers before raster and skips later refreshes 67ms
+     → The expression evaluated to a falsy value:
+
+  (uploads.every((e) => e.cubeFace === null))
+
+   ↓ Automatic LOD branches keep native selection and do not upload inactive levels early
+   ↓ A failed first preparation restores capture exclusions and publishes no incomplete cubemap
+   ↓ Disposal during one original upload stops remaining preparation and cube work
+   ↓ Interleaved static owners retain one native allocation and later versioned updates
+   ↓ Probe selection follows native automatic world-matrix updates and preserves explicit matrix ownership
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/geometry-preparation.test.ts > First real reflection capture prepares only visible native face consumers before raster and skips later refreshes
+AssertionError: The expression evaluated to a falsy value:
+
+  (uploads.every((e) => e.cubeFace === null))
+
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/helpers/native-geometry-proof.mjs:538:11
+    536|     const uploads = h.events.filter((e) => e.method === 'bufferData');
+    537|     assert.equal(uploads.length, h.selected.length * 4);
+    538|     assert(uploads.every((e) => e.cubeFace === null));
+       |           ^
+    539|     assert(h.events.slice(firstRaster).every((e) => e.method !== 'buff…
+    540|     const selectedNames = new Set(h.selected.map((o) => o.geometry.nam…
+ ❯ tests/geometry-preparation.test.ts:6:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 14 skipped (15)
+   Start at  15:37:17
+   Duration  673ms (transform 168ms, setup 0ms, collect 286ms, tests 68ms, environment 0ms, prepare 79ms)
+

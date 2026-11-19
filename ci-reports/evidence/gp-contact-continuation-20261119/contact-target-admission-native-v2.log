@@ -1,0 +1,92 @@
+
+ RUN  v3.2.4 /workspace/scratch/dac6891506fb/gp-runway
+
+ ✓ tests/gp-target-admission.test.ts > GP target admission keeps the current recovery budget > keeps a new roll inside recurring support at period 0.1 and dt 0.004166666666666667 149ms
+ ✓ tests/gp-target-admission.test.ts > GP target admission keeps the current recovery budget > keeps a new roll inside recurring support at period 0.2 and dt 0.004166666666666667 128ms
+ ✓ tests/gp-target-admission.test.ts > GP target admission keeps the current recovery budget > keeps a new roll inside recurring support at period 0.3 and dt 0.004166666666666667 111ms
+ ✓ tests/gp-target-admission.test.ts > GP target admission keeps the current recovery budget > keeps a new roll inside recurring support at period 0.1 and dt 0.008333333333333333 52ms
+ ✓ tests/gp-target-admission.test.ts > GP target admission keeps the current recovery budget > keeps a new roll inside recurring support at period 0.2 and dt 0.008333333333333333 50ms
+ ✓ tests/gp-target-admission.test.ts > GP target admission keeps the current recovery budget > keeps a new roll inside recurring support at period 0.3 and dt 0.008333333333333333 49ms
+ ✓ tests/gp-target-admission.test.ts > GP target admission keeps the current recovery budget > preserves supported lean when both axle reactions change proportionally 23ms
+ ✓ tests/gp-target-admission.test.ts > GP target admission keeps the current recovery budget > arrests the saved onset earlier without releasing its pedal reserve at 9829/1, sign -1 3ms
+ ✓ tests/gp-target-admission.test.ts > GP target admission keeps the current recovery budget > arrests the saved onset earlier without releasing its pedal reserve at 9829/1, sign 1 1ms
+ ✓ tests/gp-target-admission.test.ts > GP target admission keeps the current recovery budget > arrests the saved onset earlier without releasing its pedal reserve at 9864/2, sign -1 1ms
+ ✓ tests/gp-target-admission.test.ts > GP target admission keeps the current recovery budget > arrests the saved onset earlier without releasing its pedal reserve at 9864/2, sign 1 1ms
+ ✓ tests/gp-target-admission.test.ts > GP target admission keeps the current recovery budget > drops admission at lost support while allowing the full native landing force 1ms
+ ✓ tests/gp-target-admission.test.ts > GP target admission keeps the current recovery budget > clears admission on explicit place 49ms
+ ✓ tests/gp-target-admission.test.ts > GP target admission keeps the current recovery budget > clears admission on explicit placeFree 7ms
+ ✓ tests/gp-target-admission.test.ts > GP target admission keeps the current recovery budget > resets admission on remount and leaving optional road contact 1ms
+ ✓ tests/gp-target-admission.test.ts > GP target admission keeps the current recovery budget > does not consume stale target reserves when the GP assist is inactive 2ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > preserves signed demand -1 across a prior 0.4 support fraction 933ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > preserves signed demand -1 across a prior 1.5 support fraction 1282ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > preserves signed demand 1 across a prior 0.4 support fraction 877ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > preserves signed demand 1 across a prior 1.5 support fraction 751ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > retains the current core lean and contact clamps for sign -1 1374ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > retains the current core lean and contact clamps for sign 1 718ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > re-encodes both actual contact substeps and expires at their boundary 759ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > clears a pending path request at default mark 987ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > clears a pending path request at zero mark 719ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > clears a pending path request at placement 1144ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > clears a pending path request at free placement 727ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > clears a pending path request at recovery 803ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > preserves the authored stick for ordinary motorcycle 1108ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > preserves the authored stick for current low speed 737ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > preserves the authored stick for manual 713ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > does not re-encode with invalid support 0 1188ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > does not re-encode with invalid support NaN 782ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > does not re-encode with invalid support Infinity 1295ms
+ ✓ tests/gp-steering-throttle-ownership.test.ts > GP AI charges the total requested lateral acceleration once > keeps the same -1 turn budget when path correction agrees with or opposes its curve 792ms
+ ✓ tests/gp-steering-throttle-ownership.test.ts > GP AI charges the total requested lateral acceleration once > keeps the same 1 turn budget when path correction agrees with or opposes its curve 2ms
+ ✓ tests/gp-steering-throttle-ownership.test.ts > GP AI charges the total requested lateral acceleration once > inverts intent with the same normal reaction used to encode its path demand 1ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > matches native zero-time preparation for 'previous-load-held-bar', sign -1 4ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > matches native zero-time preparation for 'recorded-current-load-held-bar', sign -1 1ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > matches native zero-time preparation for 'exact-proportional-current-total-held…', sign -1 1ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > matches native zero-time preparation for 'no-load-change-negative-control', sign -1 0ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > matches native zero-time preparation for 'previous-load-held-bar', sign 1 1ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > matches native zero-time preparation for 'recorded-current-load-held-bar', sign 1 1ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > matches native zero-time preparation for 'exact-proportional-current-total-held…', sign 1 0ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > matches native zero-time preparation for 'no-load-change-negative-control', sign 1 1ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > observes native prepared strain for 'reload', sign -1 0ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > observes native prepared strain for 'unequal unload', sign -1 0ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > observes native prepared strain for 'front lift', sign -1 0ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > observes native prepared strain for 'rear lift', sign -1 0ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > observes native prepared strain for 'low grip braking', sign -1 0ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > observes native prepared strain for 'brake release', sign -1 0ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > observes native prepared strain for 'reload', sign 1 0ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > observes native prepared strain for 'unequal unload', sign 1 0ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > observes native prepared strain for 'front lift', sign 1 0ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > observes native prepared strain for 'rear lift', sign 1 0ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > observes native prepared strain for 'low grip braking', sign 1 0ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > observes native prepared strain for 'brake release', sign 1 0ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > pairs current reaction and current strain in the native roll equation, sign -1 0ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > pairs current reaction and current strain in the native roll equation, sign 1 0ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > is independent of120/240Hz step duration and differs from both full future steps 0ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > preserves the exact measured force when contact preparation and bar pose have not changed 0ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > leaves all physical history and the next full step unchanged by repeated mixed queries 2ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > keeps force and heat zero through flight and a fresh zero-slip landing 0ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > does not transmit obsolete front Fx through a lost contact, bar sign -1 0ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > does not transmit obsolete front Fx through a lost contact, bar sign 1 0ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > projects prior braking only inside a newly smaller front circle, sign -1 0ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > projects prior braking only inside a newly smaller front circle, sign 1 0ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > stages known pedal history and current loads without integrating an extra actuator/contact step 5ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > does not invoke the road observation for standalone 1ms
+ ✓ tests/gp-current-history.test.ts > GP current strain observation has no contact-time advance > does not invoke the road observation for flight 0ms
+ ✓ tests/gp-current-contact-control.test.ts > GP rider previews the current rear contact > does not countersteer against a rear force that disappeared on unloading 5ms
+ ✓ tests/gp-current-contact-control.test.ts > GP rider previews the current rear contact > responds to residual front strain identically with or without unsupported rear history, sign -1 4ms
+ ✓ tests/gp-current-contact-control.test.ts > GP rider previews the current rear contact > responds to residual front strain identically with or without unsupported rear history, sign 1 1ms
+ ✓ tests/gp-current-contact-control.test.ts > GP rider previews the current rear contact > predicts the actual relaxed rear force at load 0, friction 1.5, Fx 0 1ms
+ ✓ tests/gp-current-contact-control.test.ts > GP rider previews the current rear contact > predicts the actual relaxed rear force at load 500, friction 1.5, Fx 0 0ms
+ ✓ tests/gp-current-contact-control.test.ts > GP rider previews the current rear contact > predicts the actual relaxed rear force at load 1800, friction 1.5, Fx 0 0ms
+ ✓ tests/gp-current-contact-control.test.ts > GP rider previews the current rear contact > predicts the actual relaxed rear force at load 1050, friction 0.7, Fx -300 0ms
+ ✓ tests/gp-current-contact-control.test.ts > GP rider previews the current rear contact > predicts the actual relaxed rear force at load 1050, friction 1.5, Fx 300 0ms
+ ✓ tests/gp-current-contact-control.test.ts > GP rider previews the current rear contact > predicts the actual relaxed rear force at load 1050, friction 1.5, Fx -2000 0ms
+ ✓ tests/gp-path-reaction.test.ts > GP path curvature under changing normal support > requests the balanced contact lean at 0.1 static load 3ms
+ ✓ tests/gp-path-reaction.test.ts > GP path curvature under changing normal support > requests the balanced contact lean at 0.4 static load 0ms
+ ✓ tests/gp-path-reaction.test.ts > GP path curvature under changing normal support > requests the balanced contact lean at 1 static load 0ms
+ ✓ tests/gp-path-reaction.test.ts > GP path curvature under changing normal support > requests the balanced contact lean at 1.5 static load 0ms
+
+ Test Files  6 passed (6)
+      Tests  83 passed (83)
+   Start at  15:35:35
+   Duration  24.96s (transform 1.01s, setup 0ms, collect 4.69s, tests 18.37s, environment 1ms, prepare 392ms)
+

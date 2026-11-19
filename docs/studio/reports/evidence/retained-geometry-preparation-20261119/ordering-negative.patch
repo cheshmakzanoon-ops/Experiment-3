@@ -1,0 +1,20 @@
+--- a/src/rendering/reflections.ts
++++ b/src/rendering/reflections.ts
+@@ -489,6 +489,8 @@
+       // The ordinary visible sky is restored even if a cube face throws.
+       if (skyScale) skyScale.value = scene.environmentIntensity * this.specularGain;
+       cube.position.copy(this.probeEye);
++      if (from === 0 && to === 6) cube.update(renderer, scene);
++      else this.renderFaces(renderer, scene, cube, from, to);
+       // Prepare the same first-capture geometry before any face queues real
+       // draws. Native per-face traversal otherwise interleaves cold vertex
+       // arrays and deferred index uploads with already submitted cube work.
+@@ -497,8 +499,6 @@
+         !prepareProbeGeometry(renderer, scene, cube, () => this.disposed)
+       )
+         return;
+-      if (from === 0 && to === 6) cube.update(renderer, scene);
+-      else this.renderFaces(renderer, scene, cube, from, to);
+       if (to === 6) {
+         this.sceneryResident = true;
+         this.probeUpdates++;

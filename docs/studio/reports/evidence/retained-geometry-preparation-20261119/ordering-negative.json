@@ -1,0 +1,23 @@
+{
+  "command": [
+    "node",
+    "--experimental-transform-types",
+    "scripts/source-stability.ts",
+    "--",
+    "npx",
+    "vitest",
+    "run",
+    "tests/geometry-preparation.test.ts",
+    "-t",
+    "First real reflection capture"
+  ],
+  "startedAt": "2026-11-19T22:37:15.225532+00:00",
+  "durationSeconds": 3.742,
+  "exitCode": 1,
+  "intendedMutation": "Move retained geometry preparation after the original six native cube face renders, keeping the same preparations and all quality settings.",
+  "positiveSourceSha256": "57c0eaa2a435797d04917bb09a2343e9a911d001208c17ba2556966e850ddbbc",
+  "negativeSourceSha256": "7176bf5405b2e1c385edb267fad7c7bbf854b71077bd153278f9339effdebe2f",
+  "originalSourceRestored": true,
+  "failedTests": 1,
+  "filteredOutTests": 14
+}

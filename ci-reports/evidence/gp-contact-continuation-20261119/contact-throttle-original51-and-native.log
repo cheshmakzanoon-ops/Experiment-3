@@ -1,0 +1,154 @@
+
+ RUN  v3.2.4 /workspace/scratch/dac6891506fb/gp-runway
+
+ ✓ tests/bike-session.test.ts > WP34 motorcycles in real sessions > builds the bike adapter and bike AI for bike definitions only 1027ms
+ ✓ tests/bike-session.test.ts > WP34 motorcycles in real sessions > laps a circuit under AI with lean, gears, tyre wear and valid timing 4285ms
+ ✓ tests/bike-session.test.ts > WP34 motorcycles in real sessions > crash flows through race control: rider down, separation, remount, back on track 1592ms
+ ✓ tests/bike-session.test.ts > WP34 motorcycles in real sessions > a hard contact between bikes unseats a rider without non-finite state 859ms
+ ✓ tests/bike-session.test.ts > WP34 motorcycles in real sessions > race control penalises a bike jump start like any entrant 1079ms
+ ✓ tests/bike-session.test.ts > WP34 motorcycles in real sessions > rear brake is the secondary (clutch) input and decelerates on its own 1468ms
+ ✓ tests/bike-session.test.ts > WP34 motorcycles in real sessions > services a bike in the pit lane and releases it 3572ms
+ ✓ tests/bike-session.test.ts > WP34 snapshot v12 bike block > round-trips lean, steer, rider pose and loads; cars carry zeros 1355ms
+ ✓ tests/bike-session.test.ts > WP34 snapshot v12 bike block > rejects unknown vehicle indices and old layouts 0ms
+ ✓ tests/bike-session.test.ts > WP34 snapshot v12 bike block > chassis lean inverts to the dynamics lean (tyre crown geometry) 0ms
+ ✓ tests/bike-session.test.ts > WP36 bike identity, rules and content > gives every bike its own identity hash and record category 1ms
+ ✓ tests/bike-session.test.ts > WP36 bike identity, rules and content > rejects mixed car and bike grids, admits all-bike grids 1ms
+ ✓ tests/bike-session.test.ts > WP36 bike identity, rules and content > validates bike content and names what is wrong 3468ms
+ ✓ tests/bike-session.test.ts > WP35 seeded AI bike race > finishes a mixed GP/superbike race with bounded incidents and no stuck rider 21996ms
+ ✓ tests/bike-mixed-passing.test.ts > a mixed GP/superbike race at parco-reale (seed 5259) has no fall 25327ms
+ × tests/bike-mixed-passing.test.ts > a mixed GP/superbike race at parco-reale (seed 5074) has no fall 25896ms
+   → expected 1 to be +0 // Object.is equality
+ ✓ tests/bike-mixed-passing.test.ts > a mixed GP/superbike race at haarveld (seed 5000) has no fall 25224ms
+ × tests/bike-mixed-passing.test.ts > a mixed GP/superbike race at vellamar (seed 5222) has no fall 21601ms
+   → expected 2 to be +0 // Object.is equality
+ ✓ tests/bike-mixed-passing.test.ts > a mixed GP/superbike race at montejaral (seed 5111) has no fall 26127ms
+ ✓ tests/bike-mixed-passing.test.ts > a field of one class is not touched by the mixed-class passing rules 9133ms
+ ✓ tests/gp-tyre-contact.test.ts > GP front and rear contact grip > gpr1 retains useful drive from a clean rear contact when the front crosses a low-grip patch 2668ms
+ ✓ tests/gp-tyre-contact.test.ts > GP front and rear contact grip > gpr2 retains useful drive from a clean rear contact when the front crosses a low-grip patch 2522ms
+ ✓ tests/gp-tyre-contact.test.ts > GP front and rear contact grip > gpr1 keeps front braking available with a low-grip rear while respecting rear unloading 1426ms
+ ✓ tests/gp-tyre-contact.test.ts > GP front and rear contact grip > gpr2 keeps front braking available with a low-grip rear while respecting rear unloading 1624ms
+ ✓ tests/gp-tyre-contact.test.ts > GP front and rear contact grip > uses separately sampled real kerb and asphalt contacts and refreshes them after repositioning 746ms
+ ✓ tests/gp-tyre-contact.test.ts > GP front and rear contact grip > lets rear tyre wear reduce rear drive without assigning that wear to the front tyre 1405ms
+ ✓ tests/gp-tyre-contact.test.ts > GP front and rear contact grip > retains shared contact grip for sbk1000 761ms
+ ✓ tests/gp-tyre-contact.test.ts > GP front and rear contact grip > retains shared contact grip for ss600 789ms
+ ✓ tests/gp-tyre-contact.test.ts > GP front and rear contact grip > retains shared contact grip for nr900 691ms
+ ✓ tests/gp-tyre-contact.test.ts > GP front and rear contact grip > retains shared contact grip for cr750 812ms
+ ✓ tests/gp-tyre-contact.test.ts > GP front and rear contact grip > retains shared contact grip for mx450 710ms
+ ✓ tests/gp-tyre-contact.test.ts > GP contact force and integration invariants > preserves the exact shared-grip trajectory when both contact coefficients are equal 15ms
+ ✓ tests/gp-tyre-contact.test.ts > GP contact force and integration invariants > keeps trail braking and coast torque inside each circle at front 1 / rear 0.35 68ms
+ ✓ tests/gp-tyre-contact.test.ts > GP contact force and integration invariants > keeps trail braking and coast torque inside each circle at front 0.35 / rear 1 51ms
+ ✓ tests/gp-tyre-contact.test.ts > GP contact force and integration invariants > keeps trail braking and coast torque inside each circle at front 0.65 / rear 0.4 63ms
+ ✓ tests/gp-tyre-contact.test.ts > GP contact force and integration invariants > keeps trail braking and coast torque inside each circle at front 0.4 / rear 0.65 42ms
+ ✓ tests/gp-tyre-contact.test.ts > GP contact force and integration invariants > does not hide a raw rider locking the rear wheel on its own low-grip patch 0ms
+ ✓ tests/gp-tyre-contact.test.ts > GP contact force and integration invariants > rolls on the throttle while picking up from a corner at front 1 / rear 0.35 23ms
+ ✓ tests/gp-tyre-contact.test.ts > GP contact force and integration invariants > rolls on the throttle while picking up from a corner at front 0.35 / rear 1 17ms
+ ✓ tests/gp-tyre-contact.test.ts > GP contact grip in production races > classifies all eight GP riders at 'aurel' in 'clear' without a contact or crash 28890ms
+ ✓ tests/gp-tyre-contact.test.ts > GP contact grip in production races > classifies all eight GP riders at 'poggio-alto' in 'clear' without a contact or crash 40681ms
+ ✓ tests/gp-tyre-contact.test.ts > GP contact grip in production races > classifies all eight GP riders at 'poggio-alto' in 'rain' without a contact or crash 82144ms
+ ✓ tests/gp-ai-braking-plan.test.ts > GP rider follows its braking plan > reports the plan speed at every active sample without touching the tail 3ms
+ ✓ tests/gp-ai-braking-plan.test.ts > GP rider follows its braking plan > feeds the planned deceleration forward instead of waiting for a speed error 794ms
+ ✓ tests/gp-ai-braking-plan.test.ts > GP rider follows its braking plan > brakes gently once the flag has fallen 693ms
+ × tests/gp-ai-braking-plan.test.ts > GP rider follows its braking plan > no rider falls at the ardennes hairpin (seed 1000) 17561ms
+   → expected [ { car: 1, …(2) } ] to deeply equal []
+ ✓ tests/gp-ai-braking-plan.test.ts > GP rider follows its braking plan > no rider falls at the ardennes hairpin (seed 1037) 16020ms
+ ✓ tests/gp-ai-braking-plan.test.ts > GP rider follows its braking plan > no rider falls at the montejaral hairpin (seed 1000) 11786ms
+ ✓ tests/gp-ai-braking-plan.test.ts > GP rider follows its braking plan > no rider falls after taking the flag at montejaral (seed 1000) 10629ms
+ ✓ tests/gp-ai-braking-plan.test.ts > GP rider follows its braking plan > no rider falls after taking the flag at ardennes (seed 1000) 15474ms
+ ✓ tests/gp-ai-braking-plan.test.ts > GP rider follows its braking plan > no rider falls after taking the flag at ardennes (seed 1037) 15412ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > preserves signed demand -1 across a prior 0.4 support fraction 972ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > preserves signed demand -1 across a prior 1.5 support fraction 812ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > preserves signed demand 1 across a prior 0.4 support fraction 1156ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > preserves signed demand 1 across a prior 1.5 support fraction 929ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > retains the current core lean and contact clamps for sign -1 837ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > retains the current core lean and contact clamps for sign 1 892ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > re-encodes both actual contact substeps and expires at their boundary 763ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > clears a pending path request at default mark 846ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > clears a pending path request at zero mark 975ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > clears a pending path request at placement 777ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > clears a pending path request at free placement 786ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > clears a pending path request at recovery 1025ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > preserves the authored stick for ordinary motorcycle 835ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > preserves the authored stick for current low speed 965ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > preserves the authored stick for manual 778ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > does not re-encode with invalid support 0 760ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > does not re-encode with invalid support NaN 857ms
+ ✓ tests/gp-ai-contact-phase.test.ts > GP AI path acceleration belongs to the current contact step > does not re-encode with invalid support Infinity 837ms
+ ✓ tests/gp-steering-throttle-ownership.test.ts > GP AI charges the total requested lateral acceleration once > keeps the same -1 turn budget when path correction agrees with or opposes its curve 802ms
+ ✓ tests/gp-steering-throttle-ownership.test.ts > GP AI charges the total requested lateral acceleration once > keeps the same 1 turn budget when path correction agrees with or opposes its curve 1ms
+ ✓ tests/gp-steering-throttle-ownership.test.ts > GP AI charges the total requested lateral acceleration once > inverts intent with the same normal reaction used to encode its path demand 1ms
+ ✓ tests/gp-path-reaction.test.ts > GP path curvature under changing normal support > requests the balanced contact lean at 0.1 static load 4ms
+ ✓ tests/gp-path-reaction.test.ts > GP path curvature under changing normal support > requests the balanced contact lean at 0.4 static load 0ms
+ ✓ tests/gp-path-reaction.test.ts > GP path curvature under changing normal support > requests the balanced contact lean at 1 static load 0ms
+ ✓ tests/gp-path-reaction.test.ts > GP path curvature under changing normal support > requests the balanced contact lean at 1.5 static load 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/bike-mixed-passing.test.ts > a mixed GP/superbike race at parco-reale (seed 5074) has no fall
+AssertionError: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ tests/bike-mixed-passing.test.ts:46:83
+     44|     await run(sim, 400);
+     45|     expect(sim.race.phase).toBe(PHASE.FINISHED);
+     46|     expect(sim.cars.reduce((n, c) => n + (c as BikeVehicle).dynamics.c…
+       |                                                                                   ^
+     47|   },
+     48|   120000,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tests/bike-mixed-passing.test.ts > a mixed GP/superbike race at vellamar (seed 5222) has no fall
+AssertionError: expected 2 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 2
+
+ ❯ tests/bike-mixed-passing.test.ts:46:83
+     44|     await run(sim, 400);
+     45|     expect(sim.race.phase).toBe(PHASE.FINISHED);
+     46|     expect(sim.cars.reduce((n, c) => n + (c as BikeVehicle).dynamics.c…
+       |                                                                                   ^
+     47|   },
+     48|   120000,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  tests/gp-ai-braking-plan.test.ts > GP rider follows its braking plan > no rider falls at the ardennes hairpin (seed 1000)
+AssertionError: expected [ { car: 1, …(2) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "afterFlag": false,
++     "car": 1,
++     "s": 3148.429820123317,
++   },
++ ]
+
+ ❯ tests/gp-ai-braking-plan.test.ts:148:61
+    146|       const { finished, falls } = aiRace(circuit, seed, 1, Array(4).fi…
+    147|       expect(finished).toBe(true);
+    148|       expect(falls.filter((f) => f.s >= from && f.s <= to)).toEqual([]…
+       |                                                             ^
+    149|     },
+    150|     60000,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  2 failed | 5 passed (7)
+      Tests  3 failed | 73 passed (76)
+   Start at  14:39:36
+   Duration  452.40s (transform 1.12s, setup 0ms, collect 5.63s, tests 445.17s, environment 1ms, prepare 432ms)
+
