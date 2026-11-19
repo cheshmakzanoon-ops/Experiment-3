@@ -1,0 +1,511 @@
+name: Build and validation
+on:
+  push:
+    branches: [main]
+    # Report-only and prose-only pushes cannot change the build; do not spend ~10 runner-hours on them.
+    paths-ignore:
+      - 'ci-reports/**'
+      - 'README.md'
+      - 'docs/CURRENT_STATUS.md'
+      - 'docs/studio/ROADMAP.md'
+      - 'docs/studio/EXECUTION_PLAN.md'
+      - 'docs/studio/HYPERREALISM_HANDOVER.md'
+      - 'docs/studio/hyperrealism-wip/README.md'
+  pull_request:
+  workflow_dispatch:
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      # Produce the exact build independently of the unit-test job. A unit
+      # regression must not suppress browser diagnostics for a valid build;
+      # publication still requires both jobs and every existing browser gate.
+      - name: Lint, validate content, typecheck and build without source changes
+        run: node --experimental-transform-types scripts/source-stability.ts -- bash -c 'npm run lint && npm run validate:content && npm run build'
+      # Release gate G15 (docs/studio/reports/ip-audit.md). The same guard already ran inside
+      # `vite build` (a brand name or an owner-only asset in dist/ fails the build itself); this is
+      # the separate, visible step on the exact directory uploaded below, which publication
+      # downloads. It refuses an owner or review build and has no switch that turns that off.
+      - name: IP guard on the built output
+        run: node scripts/ip-guard.mjs --dist dist
+      # The Steam demo edition (src/release/demo.ts) is a product-class build in its OWN directory:
+      # the same guard certifies it (inside `vite build` and again here), and it is neither uploaded
+      # as `apex-formula-web` nor ever published (scripts/publish-validated-release.sh refuses any
+      # edition but "full"). Its desktop packages come from desktop-packages.yml.
+      - name: Steam demo build and IP guard
+        run: npm run build:demo && node scripts/ip-guard.mjs --dist dist-demo
+      - name: Static application build
+        uses: actions/upload-artifact@v4
+        with:
+          name: apex-formula-web
+          path: dist/
+          retention-days: 7
+      - name: Preserve exact committed source
+        shell: bash
+        run: |
+          git archive --format=tar.gz HEAD > "$RUNNER_TEMP/apex-source.tar.gz"
+          git rev-parse HEAD > "$RUNNER_TEMP/source-commit.txt"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apex-source
+          path: |
+            ${{ runner.temp }}/apex-source.tar.gz
+            ${{ runner.temp }}/source-commit.txt
+          retention-days: 7
+  unit-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    # The single-worker suite stopped near this cap in run 44553045707 before
+    # 166 files produced a result. Native Vitest sharding partitions the whole
+    # inventory across runners; a failed shard must not cancel the others.
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      # npm test retains pretest asset generation. The union of the native
+      # shards is the unfiltered suite; every shard still blocks publication.
+      - name: Complete unit-suite partition without source changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --experimental-transform-types scripts/source-stability.ts -- npm test -- \
+            --shard=${{ matrix.shard }}/${{ strategy.job-total }} \
+            --reporter=default --reporter=json \
+            --outputFile.json="$RUNNER_TEMP/unit-${{ matrix.shard }}.json" \
+            2>&1 | tee "$RUNNER_TEMP/unit-${{ matrix.shard }}.log"
+      - name: Unit results, including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-validation-${{ matrix.shard }}-of-${{ strategy.job-total }}
+          path: |
+            ${{ runner.temp }}/unit-${{ matrix.shard }}.json
+            ${{ runner.temp }}/unit-${{ matrix.shard }}.log
+          retention-days: 7
+          if-no-files-found: error
+  scenarios:
+    runs-on: ubuntu-24.04
+    # Run 41879845721 (0b8ec67): the steps before `npm run test:vehicles` took
+    # 12 min 40 s of the 15 min cap (physics 6:14, race classification 2:45,
+    # vellamar 2:49, pit integration 0:48), and the vehicle calibration of all
+    # 57 machines needs about 2 min 15 s more (3 min 50 s on a loaded 4-CPU
+    # workstation). The runner cancelled the step at the cap (17:58:33Z, 15 min
+    # 15 s after the job started) and the job ended `cancelled`: a timeout, not
+    # a failure, and nothing cancelled it from outside (no concurrency group,
+    # no matrix fail-fast, no `needs` on this job).
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - run: npm run test:physics
+      - run: node --experimental-transform-types scripts/rotation-benchmark.ts
+      - run: node --experimental-transform-types scripts/pit-integration.ts
+      - run: node --experimental-transform-types scripts/race-classification.ts
+      - run: node --experimental-transform-types scripts/vellamar-race.ts clear,changeable
+      - run: node --experimental-transform-types scripts/reference-targets.ts
+      - run: npm run test:vehicles
+      - name: Scenario evidence, including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: physics-scenarios
+          path: |
+            docs/scenario-results.json
+            docs/dynamics-benchmark.json
+            docs/marshal-integration.json
+            docs/pit-integration.json
+            docs/wet-pit-results.json
+            docs/integrated-driving.json
+            docs/rotation-benchmark.json
+            docs/race-classification.json
+            docs/vellamar-race.json
+            docs/reference-targets.json
+          retention-days: 7
+  offroad-scenarios:
+    runs-on: ubuntu-24.04
+    # The full original gate took about 14 minutes locally. Give it a separate
+    # bounded job so it cannot exhaust the existing 15-minute scenario job.
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - name: Full offroad calibrations and races without source changes
+        # Leave time to upload partial reports and the log if the gate times out.
+        timeout-minutes: 30
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/offroad-gate/docs"
+          # Guard the repository while the unchanged validators write their
+          # relative docs/ reports outside the committed application inputs.
+          node --experimental-transform-types scripts/source-stability.ts -- bash -c '
+            set -euo pipefail
+            unset OFFROAD_RACE
+            cd "$RUNNER_TEMP/offroad-gate"
+            node --experimental-transform-types "$GITHUB_WORKSPACE/scripts/offroad-calibration.ts"
+            node --experimental-transform-types "$GITHUB_WORKSPACE/scripts/offroad-races.ts"
+          ' 2>&1 | tee "$RUNNER_TEMP/offroad-gate/offroad-gate.log"
+      - name: Offroad evidence, including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: offroad-scenarios
+          path: |
+            ${{ runner.temp }}/offroad-gate/docs/offroad-calibration.json
+            ${{ runner.temp }}/offroad-gate/docs/offroad-races.json
+            ${{ runner.temp }}/offroad-gate/offroad-gate.log
+          retention-days: 7
+  browser:
+    # Run every original case on a verified software renderer capable of
+    # continuous observation. The separate SwiftShader GPU gate is retained.
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    needs: validate
+    runs-on: ubuntu-24.04
+    # Enumerate the full suite, balance long race cases, then verify the selected
+    # IDs against Playwright itself. Every case belongs to exactly one partition;
+    # serial groups remain intact. Run 44553045707 still lost two results in
+    # partition 2 near the 90-minute limit with twelve runners. Sixteen reduce
+    # each job's workload while keeping every case and its original deadline.
+    # This scheduling change does not fix or accept any GPU/readiness failure.
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      # Retry only artifact transport. A third failure remains a hard failure;
+      # no build is regenerated and no browser assertion is retried or skipped.
+      - name: Download tested build (attempt 1 of 3)
+        id: download_web_1
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: apex-formula-web
+          path: dist/
+      - name: Clear partial download and back off before retry 2
+        if: steps.download_web_1.outcome == 'failure'
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '::warning::Build artifact download failed; retrying the same run artifact.'
+          rm -rf -- dist/
+          sleep 5
+      - name: Download tested build (attempt 2 of 3)
+        id: download_web_2
+        if: steps.download_web_1.outcome == 'failure'
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: apex-formula-web
+          path: dist/
+      - name: Clear partial download and back off before retry 3
+        if: steps.download_web_2.outcome == 'failure'
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '::warning::Build artifact download failed twice; making the final attempt.'
+          rm -rf -- dist/
+          sleep 15
+      - name: Download tested build (final attempt)
+        id: download_web_3
+        if: steps.download_web_2.outcome == 'failure'
+        uses: actions/download-artifact@v4
+        with:
+          name: apex-formula-web
+          path: dist/
+      - name: Require downloaded build before continuing
+        shell: bash
+        env:
+          DOWNLOAD_SUCCEEDED: ${{ steps.download_web_1.outcome == 'success' || steps.download_web_2.outcome == 'success' || steps.download_web_3.outcome == 'success' }}
+        run: |
+          set -euo pipefail
+          test "$DOWNLOAD_SUCCEEDED" = true
+          test -s dist/index.html
+          test -d dist/assets
+      - run: npx playwright install --with-deps chromium
+      - name: Install Mesa software graphics and virtual display
+        run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
+      - run: xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- ${{ matrix.shard }}/${{ strategy.job-total }}
+      - name: Browser screenshots and diagnostics
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-validation-${{ matrix.shard }}-of-${{ strategy.job-total }}
+          path: |
+            test-results/
+            playwright-report/
+            browser-shard-plan.json
+            browser-backend.json
+            browser-progress.json
+          retention-days: 7
+
+  wet-presentation:
+    env:
+      APEX_BROWSER_BACKEND: swiftshader
+    # Early GPU evidence for wet presentation and source-preserving player passes.
+    # The complete browser suite above still runs unchanged, including these cases.
+    needs: validate
+    runs-on: ubuntu-24.04
+    # The five specs take 6.6-7.3 min of an 8-9 min job on a typical runner and
+    # 9.0-9.4 min on a slower one (unrelated specs 15-35% slower in the same
+    # run), so 10 min cancelled passing runs. Installing Playwright's system
+    # packages usually takes under a minute but took 6 min on runs for 2383805
+    # and 8cf27c2, which were cancelled at 15 min with the specs still running.
+    # A full software-GPU wet review can exceed the former 20-minute job cap
+    # even when every scene and rendering assertion remains unchanged.
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      # Retry only artifact transport. A third failure remains a hard failure;
+      # no build is regenerated and no browser assertion is retried or skipped.
+      - name: Download tested build (attempt 1 of 3)
+        id: download_web_1
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: apex-formula-web
+          path: dist/
+      - name: Clear partial download and back off before retry 2
+        if: steps.download_web_1.outcome == 'failure'
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '::warning::Build artifact download failed; retrying the same run artifact.'
+          rm -rf -- dist/
+          sleep 5
+      - name: Download tested build (attempt 2 of 3)
+        id: download_web_2
+        if: steps.download_web_1.outcome == 'failure'
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: apex-formula-web
+          path: dist/
+      - name: Clear partial download and back off before retry 3
+        if: steps.download_web_2.outcome == 'failure'
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '::warning::Build artifact download failed twice; making the final attempt.'
+          rm -rf -- dist/
+          sleep 15
+      - name: Download tested build (final attempt)
+        id: download_web_3
+        if: steps.download_web_2.outcome == 'failure'
+        uses: actions/download-artifact@v4
+        with:
+          name: apex-formula-web
+          path: dist/
+      - name: Require downloaded build before continuing
+        shell: bash
+        env:
+          DOWNLOAD_SUCCEEDED: ${{ steps.download_web_1.outcome == 'success' || steps.download_web_2.outcome == 'success' || steps.download_web_3.outcome == 'success' }}
+        run: |
+          set -euo pipefail
+          test "$DOWNLOAD_SUCCEEDED" = true
+          test -s dist/index.html
+          test -d dist/assets
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts
+      - name: Wet presentation and original-player-car screenshots and GPU measurements
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wet-presentation
+          path: |
+            test-results/
+            playwright-report/
+            browser-backend.json
+            browser-progress.json
+          retention-days: 7
+
+  owner-qa:
+    # Release gate G15. The player's car is the original authored APX-01 in the product build
+    # tested above, so the specs that need the owner-supplied real-brand model, or the internal
+    # review tooling (the reference catalogue), cannot run against it and skip there with a stated
+    # reason. They run HERE, against a separate QA build made by `npm run build:qa`
+    # (MOTOBOUND_SUPPLIED_PLAYER=1, MOTOBOUND_REVIEW_TOOLS=1). That build stays inside this job: it
+    # is never uploaded, `publish` never downloads it, and scripts/ip-guard.mjs and the release
+    # script refuse it. It never goes through `npm run build` or `npm run check:ip`.
+    env:
+      APEX_BROWSER_BACKEND: swiftshader
+      MOTOBOUND_SUPPLIED_PLAYER: '1'
+      MOTOBOUND_REVIEW_TOOLS: '1'
+    needs: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    # Run 44553045707 ended near this cap with only 24 of 42 case results.
+    # Keep the complete original file selection and native serial groups;
+    # distribute it without cancelling other partitions after a failure.
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - name: QA build (owner model and review tooling, not for release)
+        run: npm run build:qa
+      - run: npx playwright install --with-deps chromium
+      - name: Owner-only and review-tool specs, plus the owner half of the dual-mode specs
+        run: npm run test:e2e -- e2e/39-supplied-player.spec.ts e2e/41-player-render-budget.spec.ts e2e/p0-cockpit-framing.spec.ts e2e/24-coupled-driver.spec.ts e2e/53-a61-rival.spec.ts e2e/application.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/a31-wheel-gun.spec.ts e2e/07-reference-tools.spec.ts e2e/08-reference-implementation.spec.ts e2e/09-reference-depth.spec.ts e2e/14-phase27e.spec.ts e2e/15-review-journey.spec.ts --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+      - name: Owner QA screenshots and measurements (test results only, never the build)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: owner-qa-${{ matrix.shard }}-of-${{ strategy.job-total }}
+          path: |
+            test-results/
+            playwright-report/
+            browser-backend.json
+            browser-progress.json
+          retention-days: 7
+
+  publish:
+    # Ship exactly the build tested above, never a parallel unvalidated rebuild.
+    # Pages and the downloadable release consume this artifact. Neither rebuilds.
+    # Report/prose-only descendant commits do not invalidate tested application bytes.
+    needs: [validate, unit-tests, scenarios, offroad-scenarios, browser, wet-presentation, owner-qa]
+    # Manual validation of the current main must produce the SAME gated artifact.
+    # Keep success() and all needs: a dispatch never bypasses a failed test.
+    if: >-
+      success() &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      github.ref == 'refs/heads/main' &&
+      github.repository == 'cheshmakzanoon-ops/Experiment-3'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    concurrency:
+      group: apex-playable-publication
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # Retry only artifact transport. A third failure remains a hard failure;
+      # no build is regenerated and no browser assertion is retried or skipped.
+      - name: Download tested build (attempt 1 of 3)
+        id: download_web_1
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: apex-formula-web
+          path: dist/
+      - name: Clear partial download and back off before retry 2
+        if: steps.download_web_1.outcome == 'failure'
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '::warning::Build artifact download failed; retrying the same run artifact.'
+          rm -rf -- dist/
+          sleep 5
+      - name: Download tested build (attempt 2 of 3)
+        id: download_web_2
+        if: steps.download_web_1.outcome == 'failure'
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: apex-formula-web
+          path: dist/
+      - name: Clear partial download and back off before retry 3
+        if: steps.download_web_2.outcome == 'failure'
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '::warning::Build artifact download failed twice; making the final attempt.'
+          rm -rf -- dist/
+          sleep 15
+      - name: Download tested build (final attempt)
+        id: download_web_3
+        if: steps.download_web_2.outcome == 'failure'
+        uses: actions/download-artifact@v4
+        with:
+          name: apex-formula-web
+          path: dist/
+      - name: Require downloaded build before continuing
+        shell: bash
+        env:
+          DOWNLOAD_SUCCEEDED: ${{ steps.download_web_1.outcome == 'success' || steps.download_web_2.outcome == 'success' || steps.download_web_3.outcome == 'success' }}
+        run: |
+          set -euo pipefail
+          test "$DOWNLOAD_SUCCEEDED" = true
+          test -s dist/index.html
+          test -d dist/assets
+      # Release gate G15: certify the downloaded artifact itself (product variant, no owner asset,
+      # no real-brand identifier) before anything is prepared from it. The release script runs the
+      # same guard again on the bytes it zips.
+      - name: IP guard on the artifact to release
+        run: node scripts/ip-guard.mjs --dist dist
+      - name: Prepare tested main-branch release artifact
+        id: release
+        shell: bash
+        run: |
+          set -euo pipefail
+          current=$(node scripts/release-source.mjs "$GITHUB_SHA")
+          if test "$current" != true; then
+            echo 'A newer source commit exists; skipping stale release publication.' >> "$GITHUB_STEP_SUMMARY"
+            echo 'ready=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          find dist -type f -name '*.map' -delete
+          printf '%s\n' "$GITHUB_SHA" > dist/SOURCE_COMMIT.txt
+          touch dist/.nojekyll
+          node scripts/verify-release-artifact.mjs dist "$GITHUB_SHA"
+          echo 'ready=true' >> "$GITHUB_OUTPUT"
+          echo "Tested release source on main: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: Preserve tested release without creating another branch
+        if: steps.release.outputs.ready == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: apex-formula-release
+          path: dist/
+          include-hidden-files: true
+          retention-days: 30
+          if-no-files-found: error

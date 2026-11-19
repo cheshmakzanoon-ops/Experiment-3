@@ -39,6 +39,22 @@ The retained High trace progressed past the earlier PMREM background-program sto
 
 The [compact exact-source audit](evidence/continuation-final-20261119/graphics-background-cc72bfd/README.md) preserves all five complete job logs, all passing case results, the original High assertion and diagnostic attachments, source identities, and verified archive digests. Its separate fullscreen source audit identifies other active owners that also lack preparation; those findings are not additional observed test failures. Software-renderer evidence does not establish physical-hardware performance, and Low acceptance does not establish High acceptance.
 
+## Published fixture and CI corrections
+
+The accepted fixture and partition changes were published to [main at ffd2259](https://github.com/cheshmakzanoon-ops/Experiment-3/commit/ffd22598335dfa2a074ebd466e1d53830bb8bb41). The remote tree is exactly `cc67121b209279498206e4d575251ff866683ba9`, matching local reviewed source `a00f756397bd0db068f30d171dea31b621161614`. Publication used a non-force expected-head update from `57d1a982c8ed814df29592d49138e9908c651fef`; the resulting branch ref was independently fetched and verified. [The publication receipt](evidence/continuation-final-20261119/publication/accepted-main-publication.json) records this boundary.
+
+[Build and validation run 44617126580](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44617126580) is the new exact-source run. All four native unit partitions began executing. Final hosted outcomes remain pending at this checkpoint. No experimental rendering or physics change was included in this main publication.
+
+## Fullscreen graphics follow-up
+
+The next isolated rendering source, `991cf4fc17f46e102318f25b643bc160789203a2` (tree `e40d41dd4894f2975e0e78cbbd9557daa43c0957`), prepares the actual session sky and the retained exposure, bloom, output, grade and conditional FXAA owners. The native owner/cache/submission checks passed 174/174 across fifteen files, and independent review verified all recorded source and log hashes. The composed local source also built successfully and passed 93 release/workflow checks; those local results did not establish browser acceptance.
+
+[Its isolated run 44615583958](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44615583958) passed the production build, all seven GPU component cases, all seven menu/settings cases, and the original driving/replay journey. High again failed the original 90,000 ms paused-readiness assertion. All sixteen browser cases executed without skips, retries or flaky results.
+
+The observed first-chase native delta contains no new shader compilation, linking or metadata queries. The chase draw begins at readiness +39,843.517 ms and returns at +90,983.346 ms, after the readiness assertion has already failed. The newer trace diagnostic then shows offscreen pit-service preparation, one scene-pass frame, two GPU submissions and zero GPU completions. This is distinct from the older diagnostic attachment; a returned draw call is not a completed GPU frame. No later original paused, driving, photo or final High acceptance assertion ran.
+
+The trace records substantial texture and geometry transfer call time and identifies an approximately 5.37-second Far sun shadow construction interval. Those CPU-call durations can include earlier queued work. The retained records do not establish duplicate native resource transfers or their owners. [The complete compact audit](evidence/continuation-final-20261119/graphics-fullscreen-991cf4fc/README.md) preserves both diagnostic timelines, full logs, every case result, the exact original test/workflow, and all verified artifact digests. This rendering candidate remains isolated while the remaining scene/resource cost is investigated.
+
 ## Acceptance boundary
 
 The three demonstrated fixture defects are corrected in the continuation source. The GP flat-road fixture now supplies its real bounded plane-contact cast and normal. The APX fixture writes its authored travel into both the legacy field and the authoritative measured hub field; the independent socket calculation and original 2e-6 tolerance are unchanged. The reference-depth poll waits through an unpublished renderer while keeping its original strictly positive count assertion and deadline.

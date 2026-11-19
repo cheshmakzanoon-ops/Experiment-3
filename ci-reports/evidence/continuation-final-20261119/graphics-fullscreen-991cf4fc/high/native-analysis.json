@@ -1,0 +1,364 @@
+{
+  "source": "991cf4fc17f46e102318f25b643bc160789203a2",
+  "run": 44615583958,
+  "job": 135883244796,
+  "title": "High production scene presents an active GP chassis and two completed photo views",
+  "outcome": "unexpected",
+  "durationMs": 156619,
+  "results": [
+    {
+      "status": "failed",
+      "duration": 156619,
+      "retry": 0,
+      "errors": [
+        {
+          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"paused\"\u001b[39m\nReceived: \u001b[31m\"loading\"\u001b[39m\n\nCall Log:\n- Timeout 90000ms exceeded while waiting on the predicate\n\n  784 |     await page.selectOption('#weather', 'clear');\n  785 |     await page.getByRole('button', { name: 'PREPARE GRID START PAUSED', exact: true }).click();\n> 786 |     await expect.poll(async () => (await read()).state, { timeout: 90000 }).toBe('paused');\n      |     ^\n  787 |     const prepared = await read();\n  788 |     expect(prepared.renderer?.presentationPurpose).toBe('circuit');\n  789 |     expect(prepared.renderer?.preparation?.status).toBe('complete');\n    at /home/runner/work/Experiment-3/Experiment-3/e2e/graphics-high-journey.spec.ts:786:5",
+          "codeframe": "  686 |     if (outputs.some((output) => output.location >= 0)) return;\n  687 |     const drawBuffers = Array.from(\n  688 |       { length: gl.getParameter(gl.MAX_DRAW_BUFFERS) as number },\n  689 |       (_, i) => gl.getParameter(gl.DRAW_BUFFER0 + i) as number,\n  690 |     );\n  691 |     if (drawBuffers.every((buffer) => buffer === gl.NONE)) return;\n  692 |     reports++;\n  693 |     console.warn(\n  694 |       'APEX_HIGH_MISSING_FRAGMENT_OUTPUT ' +\n  695 |         JSON.stringify({ atMs: performance.now(), outputs, drawBuffers, source }),\n  696 |     );\n  697 |   };\n  698 |   const elements = prototype.drawElementsInstanced,\n  699 |     arrays = prototype.drawArraysInstanced;\n  700 |   prototype.drawElementsInstanced = function (...args) {\n  701 |     inspect(this);\n  702 |     elements.apply(this, args);\n  703 |   };\n  704 |   prototype.drawArraysInstanced = function (...args) {\n  705 |     inspect(this);\n  706 |     arrays.apply(this, args);\n  707 |   };\n  708 | }\n  709 |\n  710 | test('High production scene presents an active GP chassis and two completed photo views', async ({\n  711 |   page,\n  712 | }, info) => {\n  713 |   const errors: string[] = [],\n  714 |     observations = [],\n  715 |     startupRecords: Record<string, unknown>[] = [],\n  716 |     startupPrograms: Record<string, unknown>[] = [],\n  717 |     startupLatePrograms: Record<string, unknown>[] = [],\n  718 |     startupSlowUploads: Record<string, unknown>[] = [];\n  719 |   let startupWorkerUrl: string | null = null,\n  720 |     startupLastStarted: unknown = null,\n  721 |     startupLastCompleted: unknown = null;\n  722 |   page.on('pageerror', (error) => errors.push(error.message));\n  723 |   page.on('console', (message) => {\n  724 |     const text = message.text();\n  725 |     if (text.startsWith('APEX_HIGH_STARTUP ')) {\n  726 |       try {\n  727 |         const record = JSON.parse(text.slice('APEX_HIGH_STARTUP '.length)) as Record<\n  728 |           string,\n  729 |           unknown\n  730 |         >;\n  731 |         startupRecords.push(record);\n  732 |         if (startupRecords.length > 256) startupRecords.shift();\n  733 |         if (record.kind === 'program' && startupPrograms.length < 32) startupPrograms.push(record);\n  734 |         if (record.kind === 'late-program' && startupLatePrograms.length < 8)\n  735 |           startupLatePrograms.push(record);\n  736 |         if (record.kind === 'slow-upload' && startupSlowUploads.length < 16)\n  737 |           startupSlowUploads.push(record);\n  738 |         if (record.kind === 'worker-ready' && typeof record.workerUrl === 'string')\n  739 |           startupWorkerUrl = record.workerUrl;\n  740 |         if (record.lastStarted) startupLastStarted = record.lastStarted;\n  741 |         if (record.lastCompleted) startupLastCompleted = record.lastCompleted;\n  742 |       } catch {\n  743 |         errors.push('Malformed High startup diagnostic');\n  744 |       }\n  745 |     }\n  746 |     if (\n  747 |       message.type() === 'error' ||\n  748 |       /\\bGL_(?:INVALID_\\w+|OUT_OF_MEMORY|CONTEXT_LOST)\\b|APEX_HIGH_(?:MISSING_FRAGMENT_OUTPUT|TEXTURE_REALLOCATION)/.test(\n  749 |         message.text(),\n  750 |       )\n  751 |     )\n  752 |       errors.push(message.text());\n  753 |   });\n  754 |   let lastDiagnostic: ReturnType<Window['apexDiagnostics']> | null = null,\n  755 |     lastObservedAt: string | null = null;\n  756 |   const read = async () => {\n  757 |     const diagnostic = await page.evaluate(() => window.apexDiagnostics());\n  758 |     lastDiagnostic = diagnostic;\n  759 |     lastObservedAt = new Date().toISOString();\n  760 |     return diagnostic;\n  761 |   };\n  762 |   // One init script fixes wrapper order: missing-output inspection remains\n  763 |   // outside the native-command wrappers, so its own queries are not mistaken\n  764 |   // for the duration of an instanced draw.\n  765 |   await page.addInitScript({\n  766 |     content: `(${installFirstChaseStartup.toString()})();(${installInstancedFragmentOutputs.toString()})();`,\n  767 |   });\n  768 |   try {\n  769 |     await page.goto('/');\n  770 |     await expect(page.locator('#menu')).toBeVisible({ timeout: MENU_STARTUP_TIMEOUT_MS });\n  771 |     expect((await read()).renderer?.gpuFrameQueue.completed).toBeGreaterThan(0);\n  772 |     await page.selectOption('#vehicle', 'gpr1');\n  773 |     await page.getByRole('button', { name: 'GARAGE & SETTINGS', exact: true }).click();\n  774 |     await page.locator('[name=quality]').selectOption('high');\n  775 |     await page.getByRole('button', { name: 'APPLY & SAVE', exact: true }).click();\n  776 |     await expect(page.locator('#modal')).toBeHidden();\n  777 |     await expect.poll(async () => (await read()).settingsTransition.busy).toBe(false);\n  778 |     await expect\n  779 |       .poll(async () => (await read()).renderer?.graphics)\n  780 |       .toEqual(graphicsPreset('high'));\n  781 |     await page.selectOption('#circuit', 'aurel');\n  782 |     await page.selectOption('#mode', 'practice');\n  783 |     await page.selectOption('#opponents', '0');\n  784 |     await page.selectOption('#weather', 'clear');\n  785 |     await page.getByRole('button', { name: 'PREPARE GRID START PAUSED', exact: true }).click();\n> 786 |     await expect.poll(async () => (await read()).state, { timeout: 90000 }).toBe('paused');\n      |     ^ Error: expect(received).toBe(expected) // Object.is equality\n  787 |     const prepared = await read();\n  788 |     expect(prepared.renderer?.presentationPurpose).toBe('circuit');\n  789 |     expect(prepared.renderer?.preparation?.status).toBe('complete');\n  790 |     expect(prepared.renderer?.construction.cancelled).toBe(false);\n  791 |     expect(prepared.renderer?.gpuFrameQueue.completed).toBeGreaterThan(0);\n  792 |     expect(prepared.frame?.[H.CARS]).toBe(1);\n  793 |     await page.getByRole('button', { name: 'RESUME SESSION', exact: true }).click();\n  794 |     await expect.poll(async () => (await read()).frame?.[H.TICK] ?? 0).toBeGreaterThan(4);\n  795 |     await page.keyboard.press('Escape');\n  796 |     await expect\n  797 |       .poll(async () => (await read()).workerPause)\n  798 |       .toMatchObject({ paused: true, pending: false });\n  799 |     const held = await read();\n  800 |     expect(held.frame?.every(Number.isFinite)).toBe(true);\n  801 |     expect(hasRoadBikeContact(new Float32Array(held.frame!), carBase(0))).toBe(true);\n  802 |     await page.getByRole('button', { name: 'PHOTO STUDIO', exact: true }).click();\n  803 |     await slide(page, 'distance', 5.5);\n  804 |     await slide(page, 'focalLength', 38);\n  805 |     await slide(page, 'elevation', 10);\n  806 |     for (const [view, azimuth] of [\n  807 |       ['three-quarter', 38],\n  808 |       ['side', 90],\n  809 |     ] as const) {\n  810 |       await slide(page, 'azimuth', azimuth);\n  811 |       await expect\n  812 |         .poll(async () => (await read()).renderer?.photo)\n  813 |         .toMatchObject({ target: 0, azimuth, distance: 5.5 });\n  814 |       const submitted = (await read()).renderer!.gpuFrameQueue.submitted;\n  815 |       // At least one later submission must actually complete after this view\n  816 |       // was requested. Two animation callbacks alone cannot establish that.\n  817 |       await expect\n  818 |         .poll(async () => (await read()).renderer?.gpuFrameQueue.completed ?? 0)\n  819 |         .toBeGreaterThan(submitted);\n  820 |       await page.getByRole('button', { name: 'CLEAN FRAME', exact: true }).click();\n  821 |       await capture(page, info, `high-gp-${view}.png`);\n  822 |       const observed = await read();\n  823 |       expect(observed.frame).toEqual(held.frame);\n  824 |       expect(observed.renderer?.graphics).toEqual(graphicsPreset('high'));\n  825 |       expect(observed.renderer?.gpuFrameQueue.failure).toBeNull();\n  826 |       expect(observed.renderer?.renderWidth).toBe(960);\n  827 |       expect(observed.renderer?.renderHeight).toBe(600);\n  828 |       expect(observed.renderer?.drawCalls).toBeGreaterThan(0);\n  829 |       expect(observed.renderer?.triangles).toBeGreaterThan(0);\n  830 |       observations.push({ view, renderer: observed.renderer, presented: observed.presentation });\n  831 |       await page.getByRole('button', { name: 'SHOW CONTROLS', exact: true }).click();\n  832 |     }\n  833 |     const backend = await page.evaluate(() => {\n  834 |       const canvas = document.querySelector<HTMLCanvasElement>('#world');\n  835 |       const gl = canvas?.getContext('webgl2');\n  836 |       if (!gl) throw new Error('Production WebGL2 canvas unavailable');\n  837 |       const debug = gl.getExtension('WEBGL_debug_renderer_info');\n  838 |       return {\n  839 |         vendor: String(gl.getParameter(debug?.UNMASKED_VENDOR_WEBGL ?? gl.VENDOR)),\n  840 |         renderer: String(gl.getParameter(debug?.UNMASKED_RENDERER_WEBGL ?? gl.RENDERER)),\n  841 |         contextAlive: !gl.isContextLost(),\n  842 |       };\n  843 |     });\n  844 |     expect(backend.contextAlive).toBe(true);\n  845 |     expect(held.buildIdentity.fingerprint).toMatch(/^[0-9a-f]{64}$/);\n  846 |     await info.attach('high-gp-application.json', {\n  847 |       body: JSON.stringify(\n  848 |         {\n  849 |           scope: 'Full application at 960x600 High; paused appearance, not FPS certification',\n  850 |           physicalHardwareValidated: false,\n  851 |           buildIdentity: held.buildIdentity,\n  852 |           backend,\n  853 |           options: held.options,\n  854 |           frame: held.frame,\n  855 |           observations,\n  856 |         },\n  857 |         null,\n  858 |         2,\n  859 |       ),\n  860 |       contentType: 'application/json',\n  861 |     });\n  862 |     expect(errors).toEqual([]);\n  863 |   } finally {\n  864 |     // A blocked render thread cannot answer another evaluate call. Preserve the\n  865 |     // last successful poll and console errors entirely from the Node process.\n  866 |     await info.attach('high-gp-last-diagnostic.json', {\n  867 |       body: JSON.stringify({ lastObservedAt, lastDiagnostic, errors }, null, 2),\n  868 |       contentType: 'application/json',\n  869 |     });\n  870 |     await info.attach('high-gp-startup-commands.json', {\n  871 |       body: JSON.stringify(\n  872 |         {\n  873 |           scope:\n  874 |             'Test-only first-chase command tracing; CPU call duration includes instrumentation and is not GPU execution time.',\n  875 |           workerObserved: startupWorkerUrl !== null,\n  876 |           limitation: startupWorkerUrl\n  877 |             ? null\n  878 |             : 'The independent worker was unavailable or its console was not observed; only bounded main-thread records may be present.',\n  879 |           lastStarted: startupLastStarted,\n  880 |           lastCompleted: startupLastCompleted,\n  881 |           programs: startupPrograms,\n  882 |           latePrograms: startupLatePrograms,\n  883 |           slowUploads: startupSlowUploads,\n  884 |           records: startupRecords,\n  885 |         },\n  886 |         null,"
+        }
+      ]
+    }
+  ],
+  "traceAvailable": true,
+  "readinessPredicate": {
+    "configuredTimeoutMs": 90000,
+    "before": {
+      "type": "before",
+      "callId": "test.step@58",
+      "stepId": "test.step@58",
+      "startTime": 54683.166,
+      "class": "Test",
+      "method": "test.step",
+      "title": "Expect \"poll toBe\"",
+      "params": {
+        "expected": "paused"
+      },
+      "stack": [
+        {
+          "file": "/home/runner/work/Experiment-3/Experiment-3/e2e/graphics-high-journey.spec.ts",
+          "line": 786,
+          "column": 77
+        }
+      ]
+    },
+    "after": {
+      "type": "after",
+      "callId": "test.step@58",
+      "endTime": 144683.38,
+      "annotations": [],
+      "error": {
+        "name": "",
+        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"paused\"\u001b[39m\nReceived: \u001b[31m\"loading\"\u001b[39m\n\nCall Log:\n- Timeout 90000ms exceeded while waiting on the predicate",
+        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"paused\"\u001b[39m\nReceived: \u001b[31m\"loading\"\u001b[39m\n\nCall Log:\n- Timeout 90000ms exceeded while waiting on the predicate\n    at /home/runner/work/Experiment-3/Experiment-3/e2e/graphics-high-journey.spec.ts:786:5"
+      }
+    }
+  },
+  "stages": [
+    {
+      "traceTime": 5753.803,
+      "atMs": 2210.199999999997,
+      "stage": "0% \u00b7 Loading photographed sky\u2026",
+      "active": false,
+      "relativeToReadinessMs": -48929.363
+    },
+    {
+      "traceTime": 5945.268,
+      "atMs": 2403.2999999999884,
+      "stage": "0% \u00b7 Loading photographed ground\u2026",
+      "active": false,
+      "relativeToReadinessMs": -48737.898
+    },
+    {
+      "traceTime": 56304.911,
+      "atMs": 52762.899999999994,
+      "stage": "0% \u00b7 Preparing reflections\u2026",
+      "active": true,
+      "relativeToReadinessMs": 1621.7450000000026
+    },
+    {
+      "traceTime": 56312.6,
+      "atMs": 52770.600000000006,
+      "stage": "0% \u00b7 Loading photographed sky\u2026",
+      "active": false,
+      "relativeToReadinessMs": 1629.434000000001
+    },
+    {
+      "traceTime": 56521.513,
+      "atMs": 52975.5,
+      "stage": "0% \u00b7 Preparing reflections\u2026",
+      "active": true,
+      "relativeToReadinessMs": 1838.3470000000016
+    },
+    {
+      "traceTime": 56672.887,
+      "atMs": 53128.69999999998,
+      "stage": "0% \u00b7 Loading photographed ground\u2026",
+      "active": false,
+      "relativeToReadinessMs": 1989.721000000005
+    },
+    {
+      "traceTime": 75875.779,
+      "atMs": 72333.69999999998,
+      "stage": "Building GP motorcycles and riders\u2026",
+      "active": false,
+      "relativeToReadinessMs": 21192.612999999998
+    },
+    {
+      "traceTime": 76178.817,
+      "atMs": 72636.79999999999,
+      "stage": "Loading the photographed sky\u2026",
+      "active": false,
+      "relativeToReadinessMs": 21495.650999999998
+    },
+    {
+      "traceTime": 76259.721,
+      "atMs": 72712.29999999999,
+      "stage": "Loading photographed ground\u2026",
+      "active": false,
+      "relativeToReadinessMs": 21576.555000000008
+    },
+    {
+      "traceTime": 81688.162,
+      "atMs": 78146.4,
+      "stage": "Compiling circuit and vehicle materials\u2026",
+      "active": false,
+      "relativeToReadinessMs": 27004.996
+    },
+    {
+      "traceTime": 92653.756,
+      "atMs": 89111.9,
+      "stage": "Preparing circuit and vehicle materials\u2026",
+      "active": true,
+      "relativeToReadinessMs": 37970.59
+    },
+    {
+      "traceTime": 94051.476,
+      "atMs": 90509.6,
+      "stage": "Compiling shadow casters around the circuit\u2026",
+      "active": false,
+      "relativeToReadinessMs": 39368.31
+    },
+    {
+      "traceTime": 94526.683,
+      "atMs": 90984.79999999999,
+      "stage": "Warming shadows and scene reflections\u2026",
+      "active": true,
+      "relativeToReadinessMs": 39843.51700000001
+    },
+    {
+      "traceTime": 145666.512,
+      "atMs": 142123.1,
+      "stage": "Warming offscreen pit-service materials\u2026",
+      "active": true,
+      "relativeToReadinessMs": 90983.34599999999
+    }
+  ],
+  "firstChase": {
+    "traceTime": 94526.683,
+    "atMs": 90984.79999999999,
+    "stage": "Warming shadows and scene reflections\u2026",
+    "active": true,
+    "relativeToReadinessMs": 39843.51700000001
+  },
+  "nativeConsoleRecords": 396,
+  "activityRecords": 269,
+  "lastActivity": {
+    "traceTime": 144612.113,
+    "pageId": "page@49f250f285dfc0c3e61c02e61fd39560",
+    "kind": "activity",
+    "stage": "Warming shadows and scene reflections\u2026",
+    "inFlight": false,
+    "observedInFlightMs": 0,
+    "lastStarted": {
+      "sequence": 26995,
+      "atMs": 140576.30000000002,
+      "method": "drawElementsInstanced",
+      "program": 344,
+      "fragmentHash": "bbf269fb",
+      "framebuffer": 428,
+      "cubeFace": 0,
+      "mip": 0,
+      "viewport": [
+        0,
+        0,
+        960,
+        600
+      ],
+      "count": 6,
+      "instances": 2,
+      "numericArguments": [
+        4,
+        6,
+        5123,
+        0
+      ],
+      "sourceBufferBytes": null,
+      "shader": 0,
+      "shaderType": 0,
+      "shaderHash": "00000000"
+    },
+    "lastCompleted": {
+      "sequence": 26995,
+      "atMs": 140576.30000000002,
+      "method": "drawElementsInstanced",
+      "cpuCallMs": 0,
+      "returned": true
+    },
+    "counts": {
+      "drawElements": 1872,
+      "drawArrays": 60,
+      "drawElementsInstanced": 1065,
+      "drawArraysInstanced": 3,
+      "compileShader": 6,
+      "linkProgram": 3,
+      "getProgramParameter": 417,
+      "getShaderParameter": 0,
+      "getProgramInfoLog": 139,
+      "getShaderInfoLog": 278,
+      "getActiveUniform": 7618,
+      "getUniformLocation": 7618,
+      "getActiveAttrib": 514,
+      "getAttribLocation": 514,
+      "getFragDataLocation": 139,
+      "useProgram": 2055,
+      "checkFramebufferStatus": 0,
+      "clear": 9,
+      "blitFramebuffer": 0,
+      "generateMipmap": 109,
+      "texStorage2D": 141,
+      "texImage2D": 10,
+      "texSubImage2D": 209,
+      "compressedTexImage2D": 0,
+      "compressedTexSubImage2D": 262,
+      "bufferData": 3850,
+      "bufferSubData": 95,
+      "renderbufferStorage": 7,
+      "renderbufferStorageMultisample": 2,
+      "readPixels": 0,
+      "getBufferSubData": 0,
+      "fenceSync": 0,
+      "clientWaitSync": 0,
+      "flush": 0
+    },
+    "cpuMs": {
+      "drawElements": 2319.199999999779,
+      "drawArrays": 1.1000000000058208,
+      "drawElementsInstanced": 6.300000000104774,
+      "drawArraysInstanced": 0,
+      "compileShader": 0,
+      "linkProgram": 0,
+      "getProgramParameter": 26.700000000040745,
+      "getShaderParameter": 0,
+      "getProgramInfoLog": 157.69999999986612,
+      "getShaderInfoLog": 30.100000000209548,
+      "getActiveUniform": 20.59999999991851,
+      "getUniformLocation": 23.399999999877764,
+      "getActiveAttrib": 0.8999999999941792,
+      "getAttribLocation": 1.8999999999941792,
+      "getFragDataLocation": 18.00000000008731,
+      "useProgram": 12.200000000098953,
+      "checkFramebufferStatus": 0,
+      "clear": 0.10000000000582077,
+      "blitFramebuffer": 0,
+      "generateMipmap": 0.7000000000116415,
+      "texStorage2D": 1.599999999976717,
+      "texImage2D": 0.10000000000582077,
+      "texSubImage2D": 27102.100000000064,
+      "compressedTexImage2D": 0,
+      "compressedTexSubImage2D": 11.699999999982538,
+      "bufferData": 16387.699999999924,
+      "bufferSubData": 0.29999999998835847,
+      "renderbufferStorage": 0,
+      "renderbufferStorageMultisample": 0,
+      "readPixels": 0,
+      "getBufferSubData": 0,
+      "fenceSync": 0,
+      "clientWaitSync": 0,
+      "flush": 0
+    },
+    "slowCalls": [
+      {
+        "sequence": 23470,
+        "method": "texSubImage2D",
+        "cpuCallMs": 8849.300000000017,
+        "program": 263,
+        "fragmentHash": "191a251a",
+        "framebuffer": 426,
+        "cubeFace": 34073,
+        "viewport": [
+          0,
+          0,
+          256,
+          256
+        ],
+        "shader": 0,
+        "shaderType": 0,
+        "shaderHash": "00000000"
+      },
+      {
+        "sequence": 23353,
+        "method": "bufferData",
+        "cpuCallMs": 3865,
+        "program": 152,
+        "fragmentHash": "c3962c67",
+        "framebuffer": 426,
+        "cubeFace": 34073,
+        "viewport": [
+          0,
+          0,
+          256,
+          256
+        ],
+        "shader": 0,
+        "shaderType": 0,
+        "shaderHash": "00000000"
+      },
+      {
+        "sequence": 26751,
+        "method": "drawElements",
+        "cpuCallMs": 2293.7999999999884,
+        "program": 368,
+        "fragmentHash": "873da173",
+        "framebuffer": 428,
+        "cubeFace": 0,
+        "viewport": [
+          0,
+          0,
+          960,
+          600
+        ],
+        "shader": 0,
+        "shaderType": 0,
+        "shaderHash": "00000000"
+      },
+      {
+        "sequence": 12,
+        "method": "getProgramInfoLog",
+        "cpuCallMs": 136.69999999998254,
+        "program": 5,
+        "fragmentHash": "8a7c27ed",
+        "framebuffer": 0,
+        "cubeFace": 0,
+        "viewport": [
+          0,
+          0,
+          960,
+          600
+        ],
+        "shader": 0,
+        "shaderType": 0,
+        "shaderHash": "00000000"
+      }
+    ]
+  },
+  "latePrograms": [],
+  "retainedSlowUploads": 16,
+  "lastTraceDiagnosticEndTime": 145727.438,
+  "lastTraceDiagnosticState": "loading",
+  "consoleErrorsAndWarnings": [],
+  "limitations": [
+    "Native CPU call time may include queued earlier driver work; it is not isolated GPU execution time.",
+    "Bounded records may omit earlier completions or late resource owners.",
+    "The current program during an upload does not prove the uploaded resource owner.",
+    "A readiness deadline failure is not proof of an infinite stall."
+  ]
+}

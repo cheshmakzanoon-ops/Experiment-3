@@ -1,0 +1,139 @@
+{
+  "status": "local prospective integration verified; acceptance blocked on reported hosted High failure",
+  "recordedAt": "2026-11-19T22:02:40.161489+00:00",
+  "branch": "studio/graphics-main-integration-20261119",
+  "testedSourceCommit": "023be1cab35df4ea2af9b4ff80bbeaa4dee8a4e3",
+  "testedSourceTree": "3938e0f55f8fe9ee802d45b86635bc7263a73b79",
+  "mainLineBase": "0e8d6e3a07f2fd2e39afb7d973fa54d86d7809bf",
+  "reviewedGraphicsSource": "62f18b868163a9c86857ac3222414484b92bffc9",
+  "reviewedGraphicsTree": "c413cd5062b6555d1e607297e99ad93db123de77",
+  "buildIdentity": {
+    "version": 1,
+    "commit": "023be1cab35df4ea2af9b4ff80bbeaa4dee8a4e3",
+    "fingerprint": "9654582fc293da474310e3a5a19db6be2fadc6c0e780b7b1348d9fc6c019837c",
+    "variant": "product",
+    "edition": "full"
+  },
+  "runtime": {
+    "node": "v24.22.3",
+    "three": "0.180.0"
+  },
+  "checks": [
+    {
+      "name": "focused cross-integration tests",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npx",
+        "vitest",
+        "run",
+        "tests/release-source.test.ts",
+        "tests/branchless-release.test.ts",
+        "tests/ci-workflow.test.ts",
+        "tests/browser-shard-plan.test.ts",
+        "tests/startup.test.ts",
+        "tests/session-sky-preparation.test.ts",
+        "tests/scene-texture-preparation.test.ts",
+        "tests/static-scene-texture-order.test.ts"
+      ],
+      "exitCode": 0,
+      "filesPassed": 8,
+      "testsPassed": 154,
+      "vitestReportedDurationSeconds": 21.68,
+      "log": "cross-integration-tests.log",
+      "exitCodeEvidence": "Observed completed exec session before this report; source guard exited 0."
+    },
+    {
+      "name": "product build",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npm",
+        "run",
+        "build"
+      ],
+      "exitCode": 0,
+      "typescriptNoEmit": "pass",
+      "viteModulesTransformed": 916,
+      "vitePhaseDurationSeconds": 12.08,
+      "log": "build.log",
+      "exitCodeEvidence": "Observed completed exec session before this report; source guard exited 0."
+    },
+    {
+      "name": "bundle budget",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "node",
+        "scripts/bundle-budget.mjs",
+        "--json"
+      ],
+      "startedAt": "2026-11-19T22:01:44.935205+00:00",
+      "durationSeconds": 3.179,
+      "exitCode": 0,
+      "log": "bundle-budget.log",
+      "note": "Final exit receipt recorded after the initial tool result was unavailable in compacted history; same unchanged build.",
+      "initialGzipMiB": 3.57,
+      "budgetGzipMiB": 4
+    },
+    {
+      "name": "product IP guard",
+      "command": [
+        "node",
+        "--experimental-transform-types",
+        "scripts/source-stability.ts",
+        "--",
+        "npm",
+        "run",
+        "check:ip"
+      ],
+      "startedAt": "2026-11-19T22:01:44.935206+00:00",
+      "durationSeconds": 5.456,
+      "exitCode": 0,
+      "log": "ip-guard.log",
+      "note": "Final exit receipt recorded after the initial tool result was unavailable in compacted history; same unchanged build.",
+      "scannedFiles": 75,
+      "toleratedInternalIdentifierMentions": 90
+    }
+  ],
+  "reuseOfPriorEvidence": "Unchanged source-specific native/rendering evidence from commits through 62f18b8 retained with original hashes and scope; not represented as rerun here.",
+  "acceptanceLimits": [
+    "Parent reported isolated run 44623276067 High failure before freeze; build/gameplay/component-GPU jobs passed, menu still running, High diagnostic artifact under collection.",
+    "No new browser or full unit suite run for this prospective integration.",
+    "The texture ordering correction intentionally aligns far-shadow maps with the final policy; historical far-shadow pixel identity is not claimed.",
+    "Native texture upload counts are small deterministic fixture evidence, not measurements for the full High scene.",
+    "Vite retains its standard larger-than-500-kB chunk warning; unchanged 4-MiB initial gzip gate passes.",
+    "Raw historical evidence logs include five pre-existing trailing blank-line whitespace warnings; source-only diff check passes."
+  ],
+  "remoteWrites": false,
+  "evidenceHashes": {
+    "BUILD_IDENTITY.json": "51f497a066d3d24106d615822b200999f8afc909cbb4393de251bfd844a1e9b6",
+    "application-parity.json": "429085c2f1b7d28b94992b50423828301c2350b37c4f2e0ac36c568149dd17ec",
+    "build.log": "f6eb8fcb2d191b40ba44d401667d13a5b4f73a295ce35e3082d16f91f372fdc1",
+    "bundle-budget-command.json": "1cdab9dfb08fcecd67df44444b09f756794c529e1f58fd5257f85f1435675aef",
+    "bundle-budget.log": "c7430c0b122dc548f60e276450d461fe682286c2508c5f6db849a0758486273e",
+    "bundle-report.json": "a2166aa8e100b6a4b6f5012726da10b175a4a603ff5c7b31f1ee27d543248426",
+    "composition-manifest.json": "3ba25c287cbcf3be7c39860219b65b4f621ae49522e8de9cb5ce1b298f92dba7",
+    "cross-integration-tests.log": "2c730b0c0cb18d5aa8db0439bcab24cb6ac0b4239283b346672eff399ea7005f",
+    "final-source-verification.json": "9c5437fbf9765366c6d904063d5ff483f2e6dfcc8cfd2156db2e923f394d0c65",
+    "ip-guard-command.json": "c6ab38ff6a133b096800db5094583abdb42120c89c3c117bf8f2283186d221b6",
+    "ip-guard.log": "5c0b33b1af2c600ec7e37239574a92218330f0582ecbf6b4718d6c131ce0cac4"
+  },
+  "hostedStatusAtFreeze": {
+    "runId": 44623276067,
+    "isolatedCommitPrefix": "f22622e",
+    "source": "Parent agent status message before documentation freeze; root collecting exact High logs/artifact",
+    "build": "success",
+    "gameplay": "success",
+    "componentGpu": "success",
+    "high": "failure",
+    "menu": "running",
+    "highFailureCause": "not yet diagnosed"
+  }
+}

@@ -1,0 +1,112 @@
+{
+  "metadata": {
+    "ci": {
+      "commitHref": "https://github.com/cheshmakzanoon-ops/Experiment-3/commit/f22622e3302ed6147c5aae6f8eb6f6bc4057a242",
+      "commitHash": "f22622e3302ed6147c5aae6f8eb6f6bc4057a242",
+      "buildHref": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44623276067"
+    },
+    "gitCommit": {
+      "shortHash": "f22622e",
+      "hash": "f22622e3302ed6147c5aae6f8eb6f6bc4057a242",
+      "subject": "Apply final scene texture policy before the far-shadow bake",
+      "body": "Apply final scene texture policy before the far-shadow bake\n\nRegister completed static scene textures before the existing far-shadow bake in both construction paths, preserving the final texture budget while retaining the same sampled owners for far shadows, near shadows, and colour.\n\nExact reviewed local tree of 62f18b868163a9c86857ac3222414484b92bffc9. Native owner/payload/lifecycle checks 107/107, TypeScript, and lint passed; priority-only negative reproduces both owner-consistency failures. Original High/component/gameplay/menu gates unchanged.\n\nSupersedes queued c9d3ff0 validation before any job step executed. Isolated candidate only; no main integration or full-game timing/appearance acceptance claimed.",
+      "author": {
+        "name": "cheshmakzanoon-ops",
+        "email": "cheshmakzanoon@gmail.com",
+        "time": 1795125204000
+      },
+      "committer": {
+        "name": "cheshmakzanoon-ops",
+        "email": "cheshmakzanoon@gmail.com",
+        "time": 1795125204000
+      },
+      "branch": "ci/high-late-startup-20261119"
+    },
+    "actualWorkers": 1
+  },
+  "startTime": 1795125409211,
+  "duration": 177427.598,
+  "files": [
+    {
+      "fileId": "abfbd66f6c59ff7421d1",
+      "fileName": "36-compact-race-journey.spec.ts",
+      "tests": [
+        {
+          "testId": "abfbd66f6c59ff7421d1-6133b4c301c43959855e",
+          "title": "compact race information stays live through a populated dusk drive, measured capture and recorded replay",
+          "projectName": "",
+          "location": {
+            "file": "36-compact-race-journey.spec.ts",
+            "line": 12,
+            "column": 1
+          },
+          "duration": 173470,
+          "annotations": [],
+          "tags": [],
+          "outcome": "expected",
+          "path": [],
+          "ok": true,
+          "results": [
+            {
+              "attachments": [
+                {
+                  "name": "compact-dusk-live-information.png",
+                  "contentType": "image/png",
+                  "path": "data/e6753ab3949a1da2c9c03b3944ffcd510f53989a.png"
+                },
+                {
+                  "name": "compact-dusk-driving-view.png",
+                  "contentType": "image/png",
+                  "path": "data/846af5be558d79cc88f68f960ba68aa7a30d7658.png"
+                },
+                {
+                  "name": "compact-dusk-whole-application-performance.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "compact-recorded-replay-information.png",
+                  "contentType": "image/png",
+                  "path": "data/b5d2263b70fcda97d370480e3aa9efb1d1fc5cd6.png"
+                },
+                {
+                  "name": "compact-recorded-replay-camera.png",
+                  "contentType": "image/png",
+                  "path": "data/20c4f158b86baa0f61532e31c923f6a94bef8f33.png"
+                },
+                {
+                  "name": "compact-race-journey-diagnostics.json",
+                  "contentType": "application/json"
+                },
+                {
+                  "name": "video",
+                  "contentType": "video/webm",
+                  "path": "data/b114c9282a2dbe2bb762ef8fb47ed3979c6da63f.webm"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "stats": {
+        "total": 1,
+        "expected": 1,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      }
+    }
+  ],
+  "projectNames": [
+    ""
+  ],
+  "stats": {
+    "total": 1,
+    "expected": 1,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "errors": []
+}
