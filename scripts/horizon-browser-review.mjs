@@ -181,6 +181,9 @@ try {
       current.status.discovered.includes('coast-to-summit');
   });
   assert.equal((await state()).results.length, 0, 'Travel alone must not create a race result.');
+  // The still-capture fixture submits frames manually. Apply the newly arrived
+  // worker status to the HUD before exercising the real card control.
+  await draw();
   await page.locator('#festCard [data-fest="cancel"]').click();
   await page.waitForFunction(() => window.horizonReview.state().status.mode === 'free');
   await page.keyboard.press('Escape');
