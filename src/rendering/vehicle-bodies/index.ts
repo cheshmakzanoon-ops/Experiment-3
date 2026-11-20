@@ -144,6 +144,7 @@ export function buildVehicleBody(
     else if (sheet.kind === 'kart') buildKart(frame, sheet, materials, detail, lod, cabin);
     else if (sheet.kind === 'buggy')
       lodLinks = buildBuggy(frame, sheet, materials, detail, lod, cabin);
+    const wheelGeometry = new Map<string, T.BufferGeometry>();
     const corners = definition.wheelPositions.map((p, i) => {
       const assembly = new WheelAssembly(
         frame.radius,
@@ -152,6 +153,7 @@ export function buildVehicleBody(
         sheet.wheels,
         detail,
         !!closed && festivalDetailFor(definition, closed),
+        wheelGeometry,
       );
       assembly.pivot.position.set(p[0], i < 2 ? frame.hubFront : frame.hubRear, p[2]);
       lod.group.add(assembly.pivot);

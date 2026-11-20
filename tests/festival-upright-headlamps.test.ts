@@ -3,7 +3,7 @@ import { expect, it } from 'vitest';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
 import { bodySheetFor, type ClosedSheet } from '../src/rendering/vehicle-bodies/body-sheet.ts';
 import { bodyFrame } from '../src/rendering/vehicle-bodies/frame.ts';
-import { ClosedBodyModel } from '../src/rendering/vehicle-bodies/closed-body.ts';
+import { ClosedBodyModel, Greenhouse } from '../src/rendering/vehicle-bodies/closed-body.ts';
 import { buildVehicleBody } from '../src/rendering/vehicle-bodies/index.ts';
 import { festivalFaceLamps } from '../src/rendering/vehicle-bodies/festival-face-lamps.ts';
 import { festivalNoseZ } from '../src/rendering/vehicle-bodies/festival-nose.ts';
@@ -70,3 +70,34 @@ it('separates the upright headlamps from the grille and keeps active optics visi
     });
   }
 }, 120000);
+
+it('shows individually forward-facing RP-6 roof projectors and a solid unlit housing from behind', () => {
+  const def = VEHICLES.rp6,
+    s = bodySheetFor(def) as ClosedSheet;
+  const m = new ClosedBodyModel(bodyFrame(def), s, [s.wheels.width[0] / 2, s.wheels.width[1] / 2]);
+  const gh = new Greenhouse(m),
+    z = gh.zRF - 0.09;
+  const y = gh.control(z)[3][1] + 0.093;
+  const body = buildVehicleBody(0, def, s);
+  for (const detail of [0, 1, 2] as const) {
+    const group = body.lods[detail].group;
+    group.updateMatrixWorld(true);
+    const cells = detail === 2 ? 8 : 16;
+    const pitch = (s.width * 0.58 - 0.078) / cells;
+    const at = (x: number, forward: boolean) => {
+      const ray = new T.Raycaster(
+        new T.Vector3(x, y, z + (forward ? 0.19 : -0.19)),
+        new T.Vector3(0, 0, forward ? -1 : 1),
+        0,
+        0.4,
+      );
+      const hit = ray.intersectObject(group, true)[0];
+      expect(hit).toBeDefined();
+      const mat = (hit.object as T.Mesh).material;
+      return Array.isArray(mat) ? mat[hit.face!.materialIndex] : mat;
+    };
+    expect(at(pitch / 2, true)).toBe(body.materials.head);
+    expect(at(0, true)).not.toBe(body.materials.head);
+    expect(at(pitch / 2, false)).not.toBe(body.materials.head);
+  }
+}, 30000);

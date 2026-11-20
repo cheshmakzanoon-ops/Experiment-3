@@ -1,3 +1,4 @@
+import { addPickupRoofLamp } from './festival-face-lamps.ts';
 import { FestivalWipers } from './festival-wipers.ts';
 import * as T from 'three';
 import { clamp } from '../../core/math.ts';
@@ -68,7 +69,11 @@ export class ClosedBodyModel {
   private readonly taper: Track;
   // Queries for lamps, panel lips and greenhouse fittings repeatedly evaluate
   // identical cross-sections. Keep exact station keys separate at each LOD.
-  private readonly surfaceProfiles: Map<number, readonly Pt[]>[] = [new Map(), new Map(), new Map()];
+  private readonly surfaceProfiles: Map<number, readonly Pt[]>[] = [
+    new Map(),
+    new Map(),
+    new Map(),
+  ];
   private readonly arches: { z: number; hub: number; r: number; tub: number; flare: number }[];
   /** The wheel arches (car frame): axle station, hub height, arch radius, flare. */
   archList() {
@@ -1003,7 +1008,9 @@ export function buildClosedBody(
           sharedMaterials.plastic(),
           placed(side * (hw(a) - 0.12), f.y(s.floor + 0.14), a - f.radius - 0.08),
         );
-  if (s.extras.includes('lightbar'))
+  if (s.extras.includes('lightbar') && s.loadFloor !== undefined && gh)
+    addPickupRoofLamp(parts, gh, mats, detail);
+  else if (s.extras.includes('lightbar'))
     parts.add(
       roundedBox(s.width * 0.6, 0.07, 0.08, 0.02, 2),
       mats.head,

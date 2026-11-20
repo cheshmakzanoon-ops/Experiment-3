@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { afterEach, describe, expect, it } from 'vitest';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
+import { buildVehicleBody } from '../src/rendering/vehicle-bodies/index.ts';
 import { bodySheetFor } from '../src/rendering/vehicle-bodies/body-sheet.ts';
 import {
   WheelAssembly,
@@ -209,3 +210,29 @@ describe('Festival road wheel construction', () => {
     }
   });
 });
+
+it('retains separate tyre contact and brake heat while sharing only equal rigid wheel buffers', () => {
+  for (const id of ['rh3', 'eh3']) {
+    const def = VEHICLES[id],
+      body = buildVehicleBody(0, def, bodySheetFor(def)!);
+    const [a, b, c, d] = body.wheels[0];
+    expect(a.tyre.geometry).toBe(b.tyre.geometry);
+    expect(a.tyre.material).not.toBe(b.tyre.material);
+    expect(a.contact).not.toBe(b.contact);
+    expect(a.disc).not.toBe(c.disc);
+    expect(mesh(a, 'Rim').geometry).not.toBe(mesh(b, 'Rim').geometry);
+    const sameWidth = id === 'rh3';
+    expect(a.tyre.geometry === c.tyre.geometry).toBe(sameWidth);
+    expect(mesh(a, 'Rim').geometry === mesh(c, 'Rim').geometry).toBe(sameWidth);
+    expect(mesh(b, 'Brake caliper').geometry === mesh(d, 'Brake caliper').geometry).toBe(sameWidth);
+    expect(a.tyre.geometry).not.toBe(body.wheels[1][0].tyre.geometry);
+    a.update(0, 0.1, 0.01, 2, 2500, 155, 950);
+    expect(a.disc!.emissiveIntensity).toBeGreaterThan(c.disc!.emissiveIntensity);
+    expect(b.pose.value.x).toBe(0);
+    const ownedGeometry = new Set<T.BufferGeometry>();
+    body.root.traverse((n) => {
+      if (n instanceof T.Mesh) ownedGeometry.add(n.geometry);
+    });
+    for (const g of ownedGeometry) g.dispose();
+  }
+}, 30000);

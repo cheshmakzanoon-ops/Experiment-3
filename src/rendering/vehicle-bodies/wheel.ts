@@ -477,6 +477,9 @@ export class WheelAssembly {
     sheet: WheelSheet,
     detail: Detail,
     festivalDetail = false,
+    // Scoped to this body, wheel sheet and LOD. Live material uniforms stay
+    // independent at every corner, even when two rims have the same shape.
+    geometryCache?: Map<string, T.BufferGeometry>,
   ) {
     this.radius = radius;
     const half = sheet.width[front ? 0 : 1] / 2;
@@ -485,23 +488,35 @@ export class WheelAssembly {
       festivalDetail &&
       detail < 2 &&
       ['split', 'straight', 'mesh', 'slotted'].includes(sheet.style);
+    const geometry = (part: string, sideKey: number, build: () => T.BufferGeometry) => {
+      if (!geometryCache) return build();
+      const key = `${part}/${half}/${sideKey}`;
+      const existing = geometryCache.get(key);
+      if (existing) return existing;
+      const created = build();
+      geometryCache.set(key, created);
+      return created;
+    };
     const rubber = tyreMaterial(sheet.tread);
     this.pose = rubber.pose;
     this.pose.value.set(0, 0, radius, 0);
-    this.tyre = new T.Mesh(tyreGeometry(radius, sheet.rimRadius, half, detail), rubber.material);
+    this.tyre = new T.Mesh(
+      geometry('rubber', 0, () => tyreGeometry(radius, sheet.rimRadius, half, detail)),
+      rubber.material,
+    );
     this.tyre.name = 'Tyre (non-spinning, loaded)';
     this.contact = new RecordedTire(radius, sheet.rimRadius);
     this.contact.bind(this.tyre);
     this.pivot.add(this.tyre, this.spin);
     const rim = new T.Mesh(
-      rimGeometry(sheet, half, side, detail, festival),
+      geometry('rim', side, () => rimGeometry(sheet, half, side, detail, festival)),
       sharedMaterials.rim(sheet.rimColor),
     );
     rim.name = 'Rim';
     this.spin.add(rim);
     if (festival) {
       const metal = new T.Mesh(
-        festivalWheelMetal(sheet, half, side, detail),
+        geometry('lip', side, () => festivalWheelMetal(sheet, half, side, detail)),
         sharedMaterials.rim(0x9ba1a7),
       );
       metal.name = 'Machined rim lip and brake bell';
@@ -513,11 +528,14 @@ export class WheelAssembly {
     }
     if (sheet.disc > 0 && detail < 2) {
       this.disc = discMaterial();
-      const disc = new T.Mesh(discGeometry(sheet, half, side, detail, festival), this.disc);
+      const disc = new T.Mesh(
+        geometry('disc', side, () => discGeometry(sheet, half, side, detail, festival)),
+        this.disc,
+      );
       disc.name = 'Brake disc';
       this.spin.add(disc);
       const caliper = new T.Mesh(
-        caliperGeometry(sheet, half, side, festival, detail),
+        geometry('caliper', side, () => caliperGeometry(sheet, half, side, festival, detail)),
         sharedMaterials.caliper(sheet.caliperColor),
       );
       caliper.name = 'Brake caliper';

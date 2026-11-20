@@ -1,5 +1,5 @@
 import * as T from 'three';
-import type { ClosedBodyModel } from './closed-body.ts';
+import type { ClosedBodyModel, Greenhouse } from './closed-body.ts';
 import type { CarMaterials } from './common.ts';
 import { roundedBox, type Pt } from './loft.ts';
 import { sharedMaterials } from './materials.ts';
@@ -195,5 +195,59 @@ export function addFestivalFaceLamps(
         );
     }
     if (!far) parts.add(pane(0.965, -0.002), optics.clear);
+  }
+}
+
+/** The RP-6 roof light is an auxiliary forward projector array. A sealed
+ * alloy extrusion carries heat fins behind it and bolts to two roof feet. */
+export function addPickupRoofLamp(
+  parts: Parts,
+  greenhouse: Greenhouse,
+  mats: CarMaterials,
+  detail: Detail,
+) {
+  const width = greenhouse.model.s.width * 0.58,
+    z = greenhouse.zRF - 0.09;
+  const section = greenhouse.control(z),
+    [footX, roofY] = section[3];
+  const y = roofY + 0.093,
+    casing = sharedMaterials.trim(),
+    metal = sharedMaterials.steel();
+  parts.add(roundedBox(width, 0.087, 0.104, 0.012, detail === 0 ? 2 : 1), casing, placed(0, y, z));
+  for (const side of [-1, 1]) {
+    parts.add(
+      roundedBox(0.085, 0.026, 0.14, 0.009, 1),
+      casing,
+      placed(side * footX, roofY + 0.008, z),
+    );
+    parts.add(
+      roundedBox(0.034, 0.065, 0.072, 0.008, 1),
+      metal,
+      placed(side * footX, roofY + 0.044, z),
+    );
+  }
+  if (detail !== 2)
+    for (const offset of [-0.022, 0, 0.022])
+      parts.add(
+        new T.BoxGeometry(width - 0.034, 0.007, 0.013),
+        metal,
+        placed(0, y + offset, z - 0.056),
+      );
+  const cells = detail === 2 ? 8 : 16,
+    pitch = (width - 0.078) / cells;
+  for (let i = 0; i < cells; i++) {
+    const x = (i - (cells - 1) / 2) * pitch;
+    if (detail !== 2) {
+      const bowl = new T.LatheGeometry(
+        [new T.Vector2(0.012, 0.001), new T.Vector2(0.024, 0.005), new T.Vector2(0.03, 0.012)],
+        detail === 0 ? 12 : 8,
+      ).rotateX(Math.PI / 2);
+      parts.add(bowl, sharedMaterials.chrome(), placed(x, y, z + 0.053));
+    }
+    const lens =
+      detail === 2
+        ? new T.PlaneGeometry(0.063, 0.032)
+        : new T.CircleGeometry(0.014, detail === 0 ? 12 : 8);
+    parts.add(lens, mats.head, placed(x, y, z + 0.057));
   }
 }
