@@ -3,6 +3,7 @@ import type { TrackPoint } from '../track.ts';
 import { hash01, hash2, subSeed } from './noise.ts';
 import type { LandmarkSpec } from './region-data.ts';
 import { BIOME } from './terrain-field.ts';
+import { carvedGroundHeight } from './ground-height.ts';
 import { TILE_SIZE } from './terrain-tiles.ts';
 import type { OpenWorld } from './world.ts';
 
@@ -19,9 +20,27 @@ export interface Structure {
   height: number;
   /** Ground under the footprint (m): the base sits a little below it. */
   base: number;
+  /** Street-facing local Z side of a generated commercial frontage. */
+  frontSide?: -1 | 1;
+  /** Footing below a street-level shop on falling ground. */
+  foundationBase?: number;
   floors: number;
   /** Style seed (facade, roof, colour). */
   style: number;
+}
+export function frontageBays(length: number, house = false) {
+  return Math.min(24, Math.max(1, Math.floor(length / (house ? 2.9 : 3.3))));
+}
+export function entranceBay(bays: number) {
+  return Math.floor((bays - 1) / 2);
+}
+/** World position of the entrance at the facade plane, including the
+ * half-bay offset of even-width shop fronts. */
+export function streetDoorPosition(s: Structure, side: -1 | 1) {
+  const bays=frontageBays(2*s.hx);
+  const x=side*((entranceBay(bays)+0.5)*2*s.hx/bays-s.hx), z=side*s.hz;
+  const c=Math.cos(s.heading), n=Math.sin(s.heading);
+  return {x:s.x+x*c-z*n,z:s.z+x*n+z*c};
 }
 const scratchPoint = (): TrackPoint => ({
   s: 0,
@@ -174,7 +193,7 @@ export function regionStructures(world: OpenWorld): Structure[] {
     for (const e of net.edges) {
       if (e.roadClass !== 'town' && e.roadClass !== 'country' && e.roadClass !== 'highway') continue;
       const setback = e.spec.halfWidth + e.spec.shoulder + (e.roadClass === 'town' ? 1.2 : 6);
-      for (const side of [-1, 1]) {
+      for (const side of [-1, 1] as const) {
         let s = 6 + hash01(e.index, side, seed) * 8;
         while (s < e.length - 6) {
           const r = hash2(e.index * 31 + (side > 0 ? 7 : 3), Math.round(s * 10), seed);
@@ -207,6 +226,15 @@ export function regionStructures(world: OpenWorld): Structure[] {
           const v = field.valleyAt(cx, cz);
           if (b.base < region.seaLevel + 0.6 || v.distance < region.valley.channel + 6) continue;
           if (overlaps(b)) continue;
+          if (e.roadClass === 'town' && (b.kind === 'block' || b.kind === 'shop')) {
+            b.frontSide = side;
+            const door = streetDoorPosition(b, side);
+            const footing = b.base;
+            // The threshold is 0.515 m up the wall. Seat it 18 mm above the
+            // actual 4 m ground triangles outside the door, even at the quay.
+            b.base = carvedGroundHeight(world.carver, door.x, door.z) + 0.018 - 0.515;
+            if (footing < b.base) b.foundationBase = footing;
+          }
           out.push(b);
         }
       }

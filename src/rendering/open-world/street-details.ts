@@ -246,10 +246,10 @@ export class StreetDetails {
     };
     for (const s of structures) {
       if (!['shop', 'block', 'house'].includes(s.kind) || s.hx < 3 || s.height < 3.5) continue;
-      world.network.nearest(s.x, s.z, p);
+      if (s.frontSide === undefined) world.network.nearest(s.x, s.z, p);
       const c = Math.cos(s.heading),
         n = Math.sin(s.heading);
-      const side = (p.x - s.x) * -n + (p.z - s.z) * c >= 0 ? 1 : -1;
+      const side = s.frontSide ?? ((p.x - s.x) * -n + (p.z - s.z) * c >= 0 ? 1 : -1);
       if (s.kind !== 'house' && s.style % 5 !== 0) {
         const width = Math.min(s.hx * 1.48, 10.5);
         const bays = Math.max(1, Math.floor(width / 3.8));

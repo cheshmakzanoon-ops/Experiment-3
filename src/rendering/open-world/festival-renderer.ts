@@ -274,7 +274,7 @@ export class FestivalRenderer {
     this.roads = new RoadMeshes(world.network, world.field);
     this.streetLights = new StreetLightPools(this.roads.lampSockets);
     scene.add(this.streetLights.root);
-    this.buildings = new Buildings(structures);
+    this.buildings = new Buildings(structures, world.network);
     this.dressing = new HorizonDressing(world, structures);
     this.practicalLights = new FestivalPracticalLights(this.dressing.lightSockets);
     scene.add(this.practicalLights.root);

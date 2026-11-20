@@ -1187,7 +1187,7 @@ export class OpenWorldSimulation {
         contact = this.staticFootprint;
       if (
         bottom > s.base + s.height ||
-        top < s.base ||
+        top < (s.foundationBase ?? s.base) ||
         !contact.intersect(b.position.x, b.position.z, ux, uz, hx, hz, s) ||
         contact.depth <= deepest
       )

@@ -15,7 +15,7 @@ export class FacadeAtlas {
       const col = Math.round(o.cell0 / bayWidth),
         row = Math.round(o.row0 / floorHeight);
       const at = 4 * (id + 1 + row * bays + col);
-      this.values[at] = o.room + (o.kind === 'shop' ? 2 : 0);
+      this.values[at] = o.room + (o.entrance ? 4 : o.kind === 'shop' ? 2 : 0);
       this.values[at + 1] = (o.u1 - o.u0) / 2;
       this.values[at + 2] = o.v0 - o.row0;
       this.values[at + 3] = o.v1 - o.row0;
@@ -65,6 +65,7 @@ void owResolveFacade(inout vec4 facade,inout vec2 q,inout vec2 footprint,out flo
   vec2 size=vec2(2.0*bay.y,bay.w-bay.z);
   q=clamp(vec2(side+bay.y,local.y-bay.z)/size,0.0,1.0);
   footprint=extent/size;
-  bool shop=bay.x>=2.0;
-  facade=vec4(bay.x-(shop?2.0:0.0),facade.y,-4.0,shop?1.0:0.0);
+  bool entrance=bay.x>=4.0, shop=bay.x>=2.0;
+  float flag=entrance ? 2.0+min(1.08,size.x*0.58)/size.x : shop ? 1.0 : 0.0;
+  facade=vec4(bay.x-(entrance?4.0:shop?2.0:0.0),facade.y,-4.0,flag);
 }`;

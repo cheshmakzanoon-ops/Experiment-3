@@ -68,7 +68,7 @@ export function clearCameraBoom(
       vz = -dx * n + dz * c;
     const hx = s.hx + padding,
       hz = s.hz + padding;
-    const low = s.base - padding,
+    const low = (s.foundationBase ?? s.base) - padding,
       high = s.base + s.height + padding;
     // Recovery from an already penetrated structure cannot be solved by a
     // zero-length boom; do not pin the camera to the centre of the car.

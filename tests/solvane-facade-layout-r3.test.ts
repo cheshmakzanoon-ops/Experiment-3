@@ -7,7 +7,8 @@ import {
   type FacadePlacement,
 } from '../src/rendering/open-world/facade-layout.ts';
 import type { Structure } from '../src/simulation/open-world/placement.ts';
-import { regionStructures } from '../src/simulation/open-world/placement.ts';
+import { carvedGroundHeight } from '../src/simulation/open-world/ground-height.ts';
+import { regionStructures, streetDoorPosition } from '../src/simulation/open-world/placement.ts';
 import { openWorld } from '../src/simulation/open-world/world.ts';
 const sample: Structure = {
   kind: 'shop',
@@ -29,10 +30,26 @@ describe('Real recessed facade partition', () => {
     for (const color of [0xd8d2c4, 0xa9b7bf, 0xc9a66b, 0xb86a4b])
       expect(facadeFinish(color)).toBe(0);
   });
-  it('covers the facade exactly once outside its openings', () => {
+  it('seats Port Ilse doors above the graded frontage and keeps a buried foundation on the downslope', () => {
+    const world = openWorld(),
+      shops = regionStructures(world).filter((s) => s.frontSide);
+    expect(shops.length).toBeGreaterThan(30);
+    let deeper = 0;
+    for (const s of shops) {
+      const p = streetDoorPosition(s, s.frontSide!);
+      const street = carvedGroundHeight(world.carver, p.x, p.z);
+      expect(s.base + 0.515 - street).toBeCloseTo(0.018, 5);
+      if (s.foundationBase !== undefined) {
+        expect(s.foundationBase).toBeLessThan(s.base);
+        deeper++;
+      }
+    }
+    expect(deeper).toBeGreaterThan(10);
+  });
+  it.each([false, true])('covers the facade exactly once with street frontage %s', (front) => {
     for (const kind of ['house', 'shop', 'block', 'farm', 'terminal'] as const) {
       const s = { ...sample, kind },
-        layout = facadeLayout(s, 16)!;
+        layout = facadeLayout(s, 16, 0, front)!;
       const holes = layout.openings.map((o) => [o.u0, o.v0, o.u1, o.v1]);
       const all = [...layout.wall, ...holes];
       expect(all.reduce((sum, r) => sum + area(r), 0)).toBeCloseTo(16 * s.height, 8);
@@ -46,6 +63,50 @@ describe('Real recessed facade partition', () => {
         }
       }
     }
+  });
+  it('seats the commercial pull, threshold and central door in the actual recessed opening', () => {
+    const layout = facadeLayout(sample, 16, 2, true)!;
+    const doors = layout.openings.filter((o) => o.entrance);
+    expect(doors).toHaveLength(1);
+    const door = doors[0],
+      centre = (door.u0 + door.u1) / 2;
+    expect(door.v0).toBeCloseTo(0.515, 5);
+    const vertices: number[] = [],
+      indices: number[] = [];
+    const placements: FacadePlacement[] = [];
+    addRecessedFacade(
+      {
+        quad(p, n, uv, color, tag) {
+          if (tag[2] !== -6) return;
+          const a = vertices.length / 3;
+          for (const q of p) vertices.push(...q);
+          indices.push(a, a + 1, a + 2, a, a + 2, a + 3);
+        },
+      },
+      layout,
+      [0, 0, 0],
+      [1, 0, 0],
+      [0, 0, 1],
+      0xffffff,
+      0.2,
+      1,
+      placements,
+    );
+    expect(placements).toHaveLength(layout.openings.length - 1);
+    const g = new T.BufferGeometry().setAttribute(
+      'position',
+      new T.Float32BufferAttribute(vertices, 3),
+    );
+    g.setIndex(indices);
+    const m = new T.Mesh(g, new T.MeshBasicMaterial());
+    const probe = (x: number, y: number) =>
+      new T.Raycaster(new T.Vector3(x, y, 1), new T.Vector3(0, 0, -1)).intersectObject(m)[0]?.point
+        .z;
+    expect(probe(centre, door.v0 + 0.026)).toBeCloseTo(0.014, 3);
+    expect(probe(centre + 0.54 - 0.105, door.v0 + 1.075)).toBeCloseTo(-0.0705, 3);
+    expect(probe(centre, door.v0 + 1.12)).toBeUndefined();
+    g.dispose();
+    m.material.dispose();
   });
   it('keeps every actual regional opening clear of corners, floor bands and parapets', () => {
     let openings = 0;

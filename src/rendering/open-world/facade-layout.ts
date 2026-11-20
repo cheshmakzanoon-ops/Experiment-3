@@ -1,4 +1,5 @@
-import type { Structure } from '../../simulation/open-world/placement.ts';
+import { addShopEntrance, entranceLeafWidth } from './shop-entrance.ts';
+import { frontageBays, entranceBay, type Structure } from '../../simulation/open-world/placement.ts';
 
 /** Measured distance between the exterior wall and the glazing plane. */
 export const FACADE_RECESS = 0.21;
@@ -14,6 +15,7 @@ export interface FacadeOpening {
   row1: number;
   kind: JoineryKind;
   room: number;
+  entrance?: boolean;
 }
 export interface FacadeLayout {
   bays: number;
@@ -32,7 +34,12 @@ function noise(seed: number, row: number, bay: number, side: number) {
 }
 /** Dimensions follow the actual footprint. Centred complete bays never cut a
  * window through a corner pilaster or a floor band. There is no random state. */
-export function facadeLayout(s: Structure, length: number, side = 0): FacadeLayout | null {
+export function facadeLayout(
+  s: Structure,
+  length: number,
+  side = 0,
+  streetFront = false,
+): FacadeLayout | null {
   if (
     !SUPPORTED.has(s.kind) ||
     !Number.isFinite(length) ||
@@ -45,7 +52,7 @@ export function facadeLayout(s: Structure, length: number, side = 0): FacadeLayo
   const floors = Math.min(16, Math.max(1, Math.floor(s.floors)));
   const floorH = (s.height - 0.6) / floors;
   if (floorH < 2.2) return null;
-  const bays = Math.min(24, Math.max(1, Math.floor(length / (s.kind === 'house' ? 2.9 : 3.3))));
+  const bays = frontageBays(length,s.kind==='house');
   const span = length / bays;
   const openings: FacadeOpening[] = [],
     wall: FacadeLayout['wall'] = [];
@@ -79,10 +86,11 @@ export function facadeLayout(s: Structure, length: number, side = 0): FacadeLayo
         u1 = u0 + width;
       // Foundations are recessed by placement.ts. The shop threshold remains
       // above the stone plinth, not below the ground like the old shader grid.
-      const v0 = row0 + (shop ? 0.66 : floorH * 0.3);
+      const entrance = shop && streetFront && bay === entranceBay(bays) && width >= 1.5;
+      const v0 = row0 + (entrance ? 0.515 : shop ? 0.66 : floorH * 0.3);
       const v1 = row0 + floorH * (shop ? 0.86 : 0.84);
       const kind = shop ? 'shop' : shuttered ? 'shuttered' : 'casement';
-      openings.push({ u0, u1, v0, v1, cell0, cell1, row0, row1, kind, room });
+      openings.push({ u0, u1, v0, v1, cell0, cell1, row0, row1, kind, room, entrance });
     }
     // Each storey shares one sill and head height. Two continuous strips
     // replace per-bay coplanar rectangles, with a pier between actual holes.
@@ -91,12 +99,14 @@ export function facadeLayout(s: Structure, length: number, side = 0): FacadeLayo
       rect(0, row0, length, row1);
       continue;
     }
-    const { v0, v1 } = openings[first];
+    const v0 = Math.min(...openings.slice(first).map((opening) => opening.v0)),
+      v1 = openings[first].v1;
     rect(0, row0, length, v0);
     rect(0, v1, length, row1);
     let edge = 0;
     for (let i = first; i < openings.length; i++) {
       rect(edge, v0, openings[i].u0, v1);
+      rect(openings[i].u0, v0, openings[i].u1, openings[i].v0);
       edge = openings[i].u1;
     }
     rect(edge, v0, length, v1);
@@ -212,7 +222,15 @@ export function addRecessedFacade(
       [1, 1],
       [0, 1],
     ] as const;
-    const pane = [room, kind, -4, hole.kind === 'shop' ? 1 : 0] as const;
+    const door = hole.entrance;
+    const width = u1 - u0,
+      height = v1 - v0;
+    const pane = [
+      room,
+      kind,
+      -4,
+      door ? 2 + entranceLeafWidth(width) / width : hole.kind === 'shop' ? 1 : 0,
+    ] as const;
     sink.quad(
       [at(u0, v0, depth), at(u1, v0, depth), at(u1, v1, depth), at(u0, v1, depth)],
       normal,
@@ -229,6 +247,10 @@ export function addRecessedFacade(
       0xffffff,
       pane,
     );
+    if (door) {
+      addShopEntrance(sink, at, tangent, normal, (u0 + u1) / 2, v0, width, height, style, kind);
+      continue;
+    }
     placements.push({
       kind: hole.kind,
       centre: at((u0 + u1) / 2, (v0 + v1) / 2),

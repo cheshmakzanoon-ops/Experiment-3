@@ -387,10 +387,10 @@ export class HorizonDressing {
     const p = trackPoint();
     for (const s of this.structures) {
       if (s.kind !== 'shop' && s.kind !== 'block' && s.kind !== 'terminal') continue;
-      this.world.network.nearest(s.x, s.z, p);
+      if (s.frontSide === undefined) this.world.network.nearest(s.x, s.z, p);
       const c = Math.cos(s.heading),
         n = Math.sin(s.heading);
-      const side = (p.x - s.x) * -n + (p.z - s.z) * c >= 0 ? 1 : -1;
+      const side = s.frontSide ?? ((p.x - s.x) * -n + (p.z - s.z) * c >= 0 ? 1 : -1);
       const at = (lx: number, y: number, lz: number) =>
         new T.Vector3(s.x + lx * c - lz * n, y, s.z + lx * n + lz * c);
       const frontage = Math.min(s.hx * 1.62, 9.2),

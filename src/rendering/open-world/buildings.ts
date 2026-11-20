@@ -1,4 +1,6 @@
 import * as T from 'three';
+import { trackPoint } from '../../simulation/track.ts';
+import type { RoadNetwork } from '../../simulation/open-world/road-network.ts';
 import type { Structure } from '../../simulation/open-world/placement.ts';
 import { OW_NOISE_GLSL } from './terrain-material.ts';
 import {
@@ -53,21 +55,13 @@ class Mesher {
     uvs: readonly (readonly [number, number])[],
     color: number,
     facade: readonly [number, number, number, number],
-    target = facade[2] === -4 || facade[2] === -5
+    target = facade[2] === -4 || facade[2] === -5 || facade[2] === -6
       ? this.recessed
       : facade[2] === -3
         ? this.piers
         : this.index,
   ) {
-    const base = this.position.length / 3;
-    this.c.setHex(color);
-    corners.forEach((p, k) => {
-      this.position.push(p[0], p[1], p[2]);
-      this.normal.push(n[0], n[1], n[2]);
-      this.uv.push(uvs[k][0], uvs[k][1]);
-      this.color.push(this.c.r, this.c.g, this.c.b);
-      this.facade.push(...facade);
-    });
+    const base = this.faceVertices(corners, n, uvs, color, facade);
     target.push(base, base + 1, base + 2, base, base + 2, base + 3);
   }
   projectedPane(
@@ -81,24 +75,42 @@ class Mesher {
     color: number,
     facade: readonly [number, number, number, number],
   ) {
+    const base = this.faceVertices(corners, n, undefined, color, facade);
+    this.index.push(base, base + 1, base + 2);
+  }
+  private faceVertices(
+    corners: readonly (readonly [number, number, number])[],
+    n: readonly [number, number, number],
+    uvs: readonly (readonly [number, number])[] | undefined,
+    color: number,
+    facade: readonly [number, number, number, number],
+  ) {
     const base = this.position.length / 3;
     this.c.setHex(color);
-    corners.forEach((p) => {
+    const r = Math.round(this.c.r * 65535),
+      g = Math.round(this.c.g * 65535),
+      b = Math.round(this.c.b * 65535);
+    const nx = Math.round(n[0] * 32767),
+      ny = Math.round(n[1] * 32767),
+      nz = Math.round(n[2] * 32767);
+    corners.forEach((p, k) => {
       this.position.push(p[0], p[1], p[2]);
-      this.normal.push(n[0], n[1], n[2]);
-      this.uv.push(p[0], p[2]);
-      this.color.push(this.c.r, this.c.g, this.c.b);
+      this.normal.push(nx, ny, nz);
+      this.uv.push(uvs ? uvs[k][0] : p[0], uvs ? uvs[k][1] : p[2]);
+      this.color.push(r, g, b);
       this.facade.push(...facade);
     });
-    this.index.push(base, base + 1, base + 2);
+    return base;
   }
   geometry() {
     if (!this.index.length) return null;
     const g = new T.BufferGeometry();
     g.setAttribute('position', new T.Float32BufferAttribute(this.position, 3));
-    g.setAttribute('normal', new T.Float32BufferAttribute(this.normal, 3));
+    // A normalized 16-bit normal and linear albedo retain well below a display step
+    // of error while saving 12 bytes per vertex across every regional building.
+    g.setAttribute('normal', new T.Int16BufferAttribute(this.normal, 3, true));
     g.setAttribute('uv', new T.Float32BufferAttribute(this.uv, 2));
-    g.setAttribute('color', new T.Float32BufferAttribute(this.color, 3));
+    g.setAttribute('color', new T.Uint16BufferAttribute(this.color, 3, true));
     g.setAttribute('facade', new T.Float32BufferAttribute(this.facade, 4));
     // Near and intermediate share piers, roof and trim. The skyline
     // range references the same structural vertices plus one face per
@@ -202,8 +214,9 @@ vec2 owPaneTilt;`,
     // bounded interior illustration, not a ray-traced or enterable room.
     float room = facade.x;
     vec2 aa = max(footprint, vec2(0.001));
-    float upright = facade.w > 0.5 ? min(abs(q.x-0.3333),abs(q.x-0.6667)) : abs(q.x-0.5);
-    float transom = abs(q.y - (facade.w > 0.5 ? 0.78 : 0.63));
+    bool entrance=facade.w>2.0;
+    float upright = entrance ? abs(abs(q.x-0.5)-(facade.w-2.0)*0.5) : facade.w > 0.5 ? min(abs(q.x-0.3333),abs(q.x-0.6667)) : abs(q.x-0.5);
+    float transom = abs(q.y - (entrance ? 0.84 : facade.w > 0.5 ? 0.78 : 0.63));
     float perimeter = min(min(q.x,1.0-q.x),min(q.y,1.0-q.y));
     float frame = max(1.0-smoothstep(0.012,0.012+aa.x,upright),
                       1.0-smoothstep(0.012,0.012+aa.y,transom));
@@ -353,6 +366,11 @@ roughnessFactor = mix(roughnessFactor, mix(0.1, 0.18, owNight), owGlass);
 roughnessFactor = mix(roughnessFactor, 0.5, step(0.001, abs(owRib)));`,
       )
       .replace(
+        '#include <metalnessmap_fragment>',
+        `#include <metalnessmap_fragment>
+if (abs(vFacade.z+6.0)<0.1 && vFacade.w>0.5) {metalnessFactor=0.76; roughnessFactor=0.36;}`,
+      )
+      .replace(
         '#include <normal_fragment_maps>',
         `#include <normal_fragment_maps>
 if (owWallRoughness >= 0.0) {
@@ -406,7 +424,7 @@ if (owGlass > 0.001) {
 }`,
       );
   };
-  material.customProgramCacheKey = () => 'festival-facades-v11-distant-bays';
+  material.customProgramCacheKey = () => 'festival-facades-v12-shop-entrances';
   return material;
 }
 
@@ -440,7 +458,11 @@ export class Buildings {
   }[] = [];
   private readonly cameraPosition = new T.Vector3();
   stats = { buildings: 0, triangles: 0, openings: 0 };
-  constructor(structures: readonly Structure[]) {
+  private readonly nearestRoad = trackPoint();
+  constructor(
+    structures: readonly Structure[],
+    private readonly roads?: RoadNetwork,
+  ) {
     this.root.name = 'Festival buildings';
     this.material = facadeMaterial(this.night, this.interiorDepth, this.atlasMap);
     this.lantern = new T.MeshStandardMaterial({
@@ -493,7 +515,8 @@ export class Buildings {
     this.atlasMap.value = this.atlas.texture();
     this.joinery = new FacadeJoinery(this.openings);
     this.root.add(this.joinery.root);
-    this.stats = { buildings: structures.length, triangles, openings: this.openings.length };
+    this.stats.buildings = structures.length;
+    this.stats.triangles = triangles;
   }
   private add(m: Mesher, s: Structure) {
     const c = Math.cos(s.heading),
@@ -708,14 +731,24 @@ export class Buildings {
       [-hx, hz, -hx, -hz, -1, 0],
     ];
     const eave = s.kind === 'hangar' ? top - s.hz * 0.45 : top;
+    let streetSide = s.frontSide === -1 ? 0 : 2;
+    if (
+      !s.frontSide &&
+      this.roads &&
+      (s.kind === 'shop' || s.kind === 'block' || s.kind === 'terminal')
+    ) {
+      this.roads.nearest(s.x, s.z, this.nearestRoad);
+      streetSide = (this.nearestRoad.x - s.x) * -n + (this.nearestRoad.z - s.z) * c >= 0 ? 2 : 0;
+    }
     for (const [sideIndex, [x0, z0, x1, z1, nx, nz]] of sides.entries()) {
       const len = Math.hypot(x1 - x0, z1 - z0);
       const a = local(x0, base, z0),
         b = local(x1, base, z1),
         d = local(x1, eave, z1),
         e = local(x0, eave, z0);
-      const layout = facadeLayout(s, len, sideIndex);
+      const layout = facadeLayout(s, len, sideIndex, sideIndex === streetSide);
       if (layout) {
+        this.stats.openings += layout.openings.length;
         addRecessedFacade(
           m,
           layout,
@@ -906,7 +939,16 @@ export class Buildings {
       // A stone base course, shallow corner pilasters and a real projecting
       // cornice anchor each building. Maximum frontage projection is 0.30 m,
       // within the existing >=1 m clearance beyond all road shoulders.
-      box(0, base + 0.25, 0, hx * 2 + 0.12, 0.5, hz * 2 + 0.12, 0x736f66);
+      const footing = s.foundationBase ?? base;
+      box(
+        0,
+        (footing + base + 0.5) / 2,
+        0,
+        hx * 2 + 0.12,
+        base + 0.5 - footing,
+        hz * 2 + 0.12,
+        0x736f66,
+      );
       box(0, top - 0.08, 0, hx * 2 + 0.5, 0.25, hz * 2 + 0.5, trim);
       for (const side of [-1, 1]) {
         box(side * (hx - 0.1), base + s.height / 2, -hz - 0.035, 0.32, s.height, 0.13, trim);

@@ -27,11 +27,19 @@ describe('Festival building distance geometry', () => {
     const g = mesh.geometry,
       index = g.index!,
       vertices = g.getAttribute('position');
+    const normals = g.getAttribute('normal'),
+      albedos = g.getAttribute('color');
+    expect(normals.array).toBeInstanceOf(Int16Array);
+    expect(albedos.array).toBeInstanceOf(Uint16Array);
+    for (let i = 0; i < normals.count; i++) {
+      expect(Math.hypot(normals.getX(i), normals.getY(i), normals.getZ(i))).toBeCloseTo(1, 4);
+    }
     const tags = g.getAttribute('facade');
     const surfaces = () => {
       const panes: number[][] = [],
         base: number[] = [],
-        reveals: number[] = [];
+        reveals: number[] = [],
+        hardware: number[] = [];
       for (let j = g.drawRange.start; j < g.drawRange.start + g.drawRange.count; j += 6) {
         const i = index.getX(j),
           tag = tags.getZ(i);
@@ -44,9 +52,10 @@ describe('Festival building distance geometry', () => {
             vertices.getZ(i),
           ]);
         else if (tag === -5) reveals.push(i);
+        else if (tag === -6) hardware.push(i);
         else base.push(i);
       }
-      return { panes, base, reveals, count: g.drawRange.count };
+      return { panes, base, reveals, hardware, count: g.drawRange.count };
     };
     const view = (distance: number, zoom = 1) => {
       camera.position.set(0, 3, distance);
@@ -73,6 +82,9 @@ describe('Festival building distance geometry', () => {
       expect(skyline.panes).toHaveLength(0);
       expect(near.reveals.length).toBe(near.panes.length * 4);
       expect(far.reveals).toHaveLength(0);
+      expect(near.hardware.length).toBeGreaterThan(30);
+      expect(far.hardware).toHaveLength(0);
+      expect(near.panes.filter((p) => p[1] > 2)).toHaveLength(1);
       expect(far.base).toEqual(near.base);
       expect(far.panes.length).toBeGreaterThan(25);
       expect(far.panes.length).toBe(near.panes.length);
@@ -107,7 +119,7 @@ describe('Festival building distance geometry', () => {
       style: 41711,
     };
     const walls = Array.from({ length: 16 }, (_, i) => {
-      const layout = facadeLayout({ ...fixture, kind: i % 2 ? 'shop' : 'house' }, 32, i % 4)!;
+      const layout = facadeLayout({ ...fixture, kind: i % 2 ? 'shop' : 'house' }, 32, i % 4, true)!;
       return { layout, id: atlas.add(layout) };
     });
     const texture = atlas.texture();
@@ -134,7 +146,7 @@ describe('Festival building distance geometry', () => {
               continue;
             }
             const shop = hole.kind === 'shop';
-            expect(data[at] - (shop ? 2 : 0)).toBeCloseTo(hole.room, 6);
+            expect(data[at] - (hole.entrance ? 4 : shop ? 2 : 0)).toBeCloseTo(hole.room, 6);
             expect(data[at + 1]).toBeCloseTo((hole.u1 - hole.u0) / 2, 5);
             expect(data[at + 2]).toBeCloseTo(hole.v0 - hole.row0, 5);
             expect(data[at + 3]).toBeCloseTo(hole.v1 - hole.row0, 5);
