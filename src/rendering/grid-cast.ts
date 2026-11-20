@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { GRID_PRESENTATION_SECONDS } from '../core/grid-presentation.ts';
 import { F, H, R, RACE_BASE, carBase } from '../simulation/protocol.ts';
 import { vehicleAt } from '../simulation/vehicles.ts';
+import { isDirtBike } from '../simulation/offroad/dirt-bikes.ts';
 import type { Track } from '../simulation/track.ts';
 import { MX_GRID_MARKS, MxGridGround } from './offroad/mx-grid-staff.ts';
 import { crewTeamColour } from './crew-geometry.ts';
@@ -262,7 +263,7 @@ export class GridCastView {
         this.car.quaternion.fromArray(frame, base + F.QX);
         const definition = vehicleAt(Math.round(frame[base + RACE_BASE + R.VEHICLE]));
         const gateHeight =
-          definition.classId === 'motocross' ? definition.bike!.cgHeight : undefined;
+          isDirtBike(definition) ? definition.bike!.cgHeight : undefined;
         if (gateHeight !== undefined) this.gate.level(this.car);
         this.car.updateMatrix();
         const exit = (Math.sign(frame[base + F.LATERAL]) || -1) * 10 - frame[base + F.LATERAL];

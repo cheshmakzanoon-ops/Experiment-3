@@ -19,6 +19,7 @@ import {
 } from '../simulation/protocol.ts';
 import { WHEEL_POSITIONS } from '../simulation/vehicle.ts';
 import { vehicleAt } from '../simulation/vehicles.ts';
+import { isDirtBike } from '../simulation/offroad/dirt-bikes.ts';
 
 /** Staff stand at the cars only while the grid is held (race clock at zero):
  * as in real racing, nobody is on the grid once the start sequence runs.
@@ -299,7 +300,7 @@ export class GridPreparationView {
       if (this.car.position.distanceToSquared(camera) > 120 ** 2) continue;
       this.car.quaternion.fromArray(frame, o + F.QX);
       const definition = vehicleAt(Math.round(frame[o + RACE_BASE + R.VEHICLE]));
-      const dirt = definition.classId === 'motocross';
+      const dirt = isDirtBike(definition);
       if (dirt) this.gate.level(this.car);
       this.car.updateMatrix();
       if (state.blankets && !dirt)

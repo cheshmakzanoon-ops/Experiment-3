@@ -4,14 +4,24 @@ import { MOTOCROSS_CHASE } from '../src/rendering/offroad/chase-camera.ts';
 import { GridPreparationView } from '../src/rendering/grid-preparation.ts';
 import { GridPresentationView } from '../src/rendering/grid-presentation-view.ts';
 import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
-import { F, H, carBase } from '../src/simulation/protocol.ts';
+import { F, H, R, RACE_BASE, carBase } from '../src/simulation/protocol.ts';
+import { vehicleIndex } from '../src/simulation/vehicles.ts';
 import { surfaceSample } from '../src/simulation/track.ts';
 import { Simulation } from '../src/simulation/world.ts';
 
-const heldGrid = (machine: 'mx250' | 'mx450' | 'apx01') =>
+const gates = [
+  ['valley-ridge-mx', 'mx450', 'motocross-moto'],
+  ['arena-nord-sx', 'mx450', 'motocross-moto'],
+  ['valley-ridge-mx', 'mx250', 'motocross-moto'],
+  ['arena-nord-sx', 'mx250', 'motocross-moto'],
+  ['valley-ridge-mx', 'sm450', 'supermoto-moto'],
+] as const;
+
+const heldGrid = (machine: 'mx250' | 'mx450' | 'sm450' | 'apx01') =>
   new Simulation({
     ...DEFAULT_OPTIONS,
     opponents: 1,
+    ruleset: gates.find(([, bike]) => bike === machine)?.[2] ?? DEFAULT_OPTIONS.ruleset,
     circuit: machine === 'apx01' ? 'aurel' : 'valley-ridge-mx',
     vehicles: [machine, machine],
   }).makeFrame();
@@ -28,16 +38,16 @@ function dispose(root: T.Object3D) {
 }
 
 describe('motocross gates keep staff without Formula tyre blankets', () => {
-  it.each(['valley-ridge-mx', 'arena-nord-sx'] as const)(
-    'plants eight teams on %s behind their own rear wheels',
-    (circuit) => {
+  it.each(gates)(
+    'plants eight teams on %s behind their own %s rear wheels',
+    (circuit, machine, ruleset) => {
       const sim = new Simulation({
         ...DEFAULT_OPTIONS,
         circuit,
         mode: 'race',
-        ruleset: 'motocross-moto',
+        ruleset,
         opponents: 7,
-        vehicles: Array(8).fill('mx450'),
+        vehicles: Array(8).fill(machine),
       });
       const frame = sim.makeFrame(),
         view = new GridPreparationView(),
@@ -46,7 +56,11 @@ describe('motocross gates keep staff without Formula tyre blankets', () => {
         soil = surfaceSample();
       const camera = new T.Vector3().fromArray(frame, carBase(0) + F.X);
       try {
+        for (let id = 0; id < 8; id++)
+          expect(frame[carBase(id) + RACE_BASE + R.VEHICLE]).toBe(vehicleIndex(machine));
         view.update(frame, camera, true, sim.track);
+        expect(view.diagnostics()).toEqual({ blankets: 0, staff: 16 });
+        expect(view.straps.count).toBe(0);
         const bodies = view.root.getObjectByName(
           'Grid preparation staff bodies',
         ) as T.InstancedMesh;
@@ -73,16 +87,16 @@ describe('motocross gates keep staff without Formula tyre blankets', () => {
       }
     },
   );
-  it.each(['valley-ridge-mx', 'arena-nord-sx'] as const)(
-    'keeps the radio crew on their gate apron at %s through walk-off and replay',
-    (circuit) => {
+  it.each(gates)(
+    'keeps the %s radio crew on their %s gate apron through walk-off and replay',
+    (circuit, machine, ruleset) => {
       const sim = new Simulation({
         ...DEFAULT_OPTIONS,
         circuit,
         mode: 'race',
-        ruleset: 'motocross-moto',
+        ruleset,
         opponents: 7,
-        vehicles: Array(8).fill('mx250'),
+        vehicles: Array(8).fill(machine),
       });
       const view = new GridPresentationView(),
         frame = sim.makeFrame(),
@@ -104,7 +118,9 @@ describe('motocross gates keep staff without Formula tyre blankets', () => {
         let held: number[][] = [];
         for (const t of [0, 26, 0]) {
           view.update(frame, camera, t, sim.track);
-          expect(view.diagnostics().cast).toEqual({ actors: 16, umbrellas: 0, tablets: 8 });
+          expect(view.diagnostics()).toMatchObject({
+            blankets: 0, actors: 0, cast: { actors: 16, umbrellas: 0, tablets: 8 },
+          });
           expect(radios.count).toBe(8);
           const poses: number[][] = [];
           for (let batch = 0; batch < 4; batch++) {
@@ -141,14 +157,15 @@ describe('motocross gates keep staff without Formula tyre blankets', () => {
     },
   );
 
-  it('clears blankets and straps on both real MX grids and restores Formula on the same view', () => {
+  it('clears car blankets and straps on all three dirt bikes and restores Formula on the same view', () => {
     const formula = heldGrid('apx01'),
       mx250 = heldGrid('mx250'),
       mx450 = heldGrid('mx450'),
+      sm450 = heldGrid('sm450'),
       view = new GridPreparationView();
     let formulaMatrices: Float32Array | undefined;
     try {
-      for (const frame of [formula, mx250, formula, mx450, formula]) {
+      for (const frame of [formula, mx250, formula, mx450, sm450, formula]) {
         const before = frame.slice(),
           isFormula = frame === formula,
           camera = new T.Vector3().fromArray(frame, carBase(0) + F.X);
@@ -163,15 +180,16 @@ describe('motocross gates keep staff without Formula tyre blankets', () => {
         }
         expect(frame).toEqual(before);
       }
-      // Withdrawing props and backward seeks must not resurrect MX warmers.
-      mx450[H.TIME] = 0.4;
-      const camera = new T.Vector3().fromArray(mx450, carBase(0) + F.X);
-      view.update(mx450, camera);
-      expect(view.diagnostics()).toEqual({ blankets: 0, staff: 0 });
-      expect(view.straps.count).toBe(0);
-      mx450[H.TIME] = 0;
-      view.update(mx450, camera);
-      expect(view.diagnostics()).toEqual({ blankets: 0, staff: 4 });
+      for (const frame of [mx250, mx450, sm450]) {
+        const camera = new T.Vector3().fromArray(frame, carBase(0) + F.X);
+        frame[H.TIME] = 0.4;
+        view.update(frame, camera);
+        expect(view.diagnostics()).toEqual({ blankets: 0, staff: 0 });
+        expect(view.straps.count).toBe(0);
+        frame[H.TIME] = 0;
+        view.update(frame, camera);
+        expect(view.diagnostics()).toEqual({ blankets: 0, staff: 4 });
+      }
     } finally {
       dispose(view.root);
     }
@@ -181,10 +199,11 @@ describe('motocross gates keep staff without Formula tyre blankets', () => {
     const formula = heldGrid('apx01'),
       mx250 = heldGrid('mx250'),
       mx450 = heldGrid('mx450'),
+      sm450 = heldGrid('sm450'),
       view = new GridPresentationView();
     let formulaDiagnostics: ReturnType<GridPresentationView['diagnostics']> | undefined;
     try {
-      for (const frame of [formula, mx250, formula, mx450, formula]) {
+      for (const frame of [formula, mx250, formula, mx450, sm450, formula]) {
         const before = frame.slice(),
           isFormula = frame === formula,
           camera = new T.Vector3().fromArray(frame, carBase(0) + F.X);
