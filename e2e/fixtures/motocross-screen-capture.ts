@@ -57,8 +57,9 @@ export async function motocrossScreenCapture(page: Page) {
   // One channel follows the tab across both venues. Per-image detach can
   // stall after Chromium has already delivered a complete riding screenshot.
   // The browser releases this session when the page target closes.
-  const chrome = await page.context().newCDPSession(page);
-  const readView = (path: string) => captureView(page, chrome, path);
+  let channel: Promise<CDPSession> | undefined;
+  const session = () => (channel ??= page.context().newCDPSession(page));
+  const readView = async (path: string) => captureView(page, await session(), path);
   if (process.env.APEX_MOTOCROSS_XVFB_CAPTURE !== '1') {
     // A normal Playwright screenshot can request another compositor frame
     // while the ride is already GPU-bound. Read the last presented view on
@@ -68,6 +69,7 @@ export async function motocrossScreenCapture(page: Page) {
   const viewport = page.viewportSize();
   if (!viewport) throw new Error('The motocross capture requires a fixed viewport');
   await page.bringToFront();
+  const chrome = await session();
   const { windowId } = await chrome.send('Browser.getWindowForTarget');
   // Xvfb has no window manager. Leave room for Chromium's toolbar and
   // native frame while Playwright keeps the game viewport at its set size.
