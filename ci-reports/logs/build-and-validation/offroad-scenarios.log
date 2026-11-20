@@ -1,255 +1,255 @@
-### offroad-scenarios (job 136166815761)
+### offroad-scenarios (job 136169025776)
 --- error digest (first 120 matching lines) ---
-222:offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:14:34.6003762Z ##[error]The operation was canceled.
+206:offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:21:54.8494548Z ##[error]The operation was canceled.
 
 --- last 250 lines ---
-offroad-scenarios	Set up job	2026-11-20T08:09:35.2471722Z ##[endgroup]
-offroad-scenarios	Set up job	2026-11-20T08:09:35.2473092Z ##[group]GITHUB_TOKEN Permissions
-offroad-scenarios	Set up job	2026-11-20T08:09:35.2475474Z Contents: read
-offroad-scenarios	Set up job	2026-11-20T08:09:35.2476119Z Metadata: read
-offroad-scenarios	Set up job	2026-11-20T08:09:35.2476812Z ##[endgroup]
-offroad-scenarios	Set up job	2026-11-20T08:09:35.2479293Z Secret source: Actions
-offroad-scenarios	Set up job	2026-11-20T08:09:35.2480384Z Cache mode: write
-offroad-scenarios	Set up job	2026-11-20T08:09:35.2481193Z Prepare workflow directory
-offroad-scenarios	Set up job	2026-11-20T08:09:35.2827464Z Prepare all required actions
-offroad-scenarios	Set up job	2026-11-20T08:09:35.2878043Z Getting action download info
-offroad-scenarios	Set up job	2026-11-20T08:09:35.6985428Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
-offroad-scenarios	Set up job	2026-11-20T08:09:35.8131351Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
-offroad-scenarios	Set up job	2026-11-20T08:09:35.9053162Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
-offroad-scenarios	Set up job	2026-11-20T08:09:36.1295686Z Complete job name: offroad-scenarios
-offroad-scenarios	Run actions/checkout@v4	﻿2026-11-20T08:09:36.2251986Z ##[group]Run actions/checkout@v4
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.2253145Z with:
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.2253665Z   repository: cheshmakzanoon-ops/Experiment-3
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.2257868Z   token: ***
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.2258306Z   ssh-strict: true
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.2258740Z   ssh-user: git
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.2259187Z   persist-credentials: true
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.2259676Z   clean: true
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.2260115Z   sparse-checkout-cone-mode: true
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.2260630Z   fetch-depth: 1
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.2261046Z   fetch-tags: false
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.2261474Z   show-progress: true
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.2261907Z   lfs: false
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.2262311Z   submodules: false
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.2262908Z   set-safe-directory: true
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.2263426Z   allow-unsafe-pr-checkout: false
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.2264214Z ##[endgroup]
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5413278Z Syncing repository: cheshmakzanoon-ops/Experiment-3
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5416130Z ##[group]Getting Git version info
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5417349Z Working directory is '/home/runner/work/Experiment-3/Experiment-3'
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5419157Z [command]/usr/bin/git version
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5517754Z git version 2.56.1
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5543859Z ##[endgroup]
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5560035Z Temporarily overriding HOME='/home/runner/work/_temp/b6ffcb74-adaa-43a9-a456-564694dff2dd' before making global git config changes
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5561842Z Adding repository directory to the temporary git global config as a safe directory
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5566117Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5648862Z Deleting the contents of '/home/runner/work/Experiment-3/Experiment-3'
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5660674Z ##[group]Initializing the repository
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5662172Z [command]/usr/bin/git init /home/runner/work/Experiment-3/Experiment-3
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5768128Z hint: Using 'master' as the name for the initial branch. This default branch name
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5769971Z hint: will change to "main" in Git 3.0. To configure the initial branch name
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5770972Z hint: to use in all of your new repositories, which will suppress this warning,
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5771784Z hint: call:
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5772476Z hint:
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5773524Z hint: 	git config --global init.defaultBranch <name>
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5774465Z hint:
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5775467Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5777036Z hint: 'development'. The just-created branch can be renamed via this command:
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5778282Z hint:
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5778969Z hint: 	git branch -m <name>
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5779750Z hint:
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5781035Z hint: Disable this message with "git config set advice.defaultBranchName false"
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5785038Z Initialized empty Git repository in /home/runner/work/Experiment-3/Experiment-3/.git/
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5805915Z [command]/usr/bin/git remote add origin https://github.com/cheshmakzanoon-ops/Experiment-3
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5911187Z ##[endgroup]
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5912328Z ##[group]Disabling automatic garbage collection
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5913462Z [command]/usr/bin/git config --local gc.auto 0
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5922354Z ##[endgroup]
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5923410Z ##[group]Setting up auth
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5931698Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.5981409Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.6456852Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.6510963Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.6789642Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.6843230Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.7106143Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.7160924Z ##[endgroup]
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.7162482Z ##[group]Fetching the repository
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:36.7177059Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +c00e20e0de3af78e53a103db2865b14159c843ac:refs/remotes/origin/main
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:46.9848200Z From https://github.com/cheshmakzanoon-ops/Experiment-3
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:46.9854051Z  * [new ref]         c00e20e0de3af78e53a103db2865b14159c843ac -> origin/main
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:46.9855620Z ##[endgroup]
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:46.9856393Z ##[group]Determining the checkout info
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:46.9857364Z ##[endgroup]
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:46.9862480Z [command]/usr/bin/git sparse-checkout disable
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:47.0185293Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:47.0228675Z ##[group]Checking out the ref
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:47.0235645Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.0617980Z Updating files:  48% (4374/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.0756617Z Updating files:  49% (4448/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.0806008Z Updating files:  50% (4538/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.0900455Z Updating files:  51% (4629/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.1108850Z Updating files:  52% (4720/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.1207517Z Updating files:  53% (4811/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.1327474Z Updating files:  54% (4902/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.1396535Z Updating files:  55% (4992/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.1462748Z Updating files:  56% (5083/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.1531639Z Updating files:  57% (5174/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.1607057Z Updating files:  58% (5265/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.1678224Z Updating files:  59% (5355/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.1814433Z Updating files:  60% (5446/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.1974708Z Updating files:  61% (5537/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.2053995Z Updating files:  62% (5628/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.2163503Z Updating files:  63% (5718/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.2354685Z Updating files:  64% (5809/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.2543834Z Updating files:  65% (5900/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.2784067Z Updating files:  66% (5991/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.3153131Z Updating files:  67% (6081/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.3350539Z Updating files:  68% (6172/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.3564699Z Updating files:  69% (6263/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.3743840Z Updating files:  70% (6354/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.4213025Z Updating files:  71% (6444/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.4276438Z Updating files:  72% (6535/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.4341192Z Updating files:  73% (6626/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.4403535Z Updating files:  74% (6717/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.4861072Z Updating files:  75% (6807/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.5409559Z Updating files:  76% (6898/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.8667244Z Updating files:  77% (6989/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.9827687Z Updating files:  78% (7080/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:48.9929549Z Updating files:  79% (7171/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:49.0022101Z Updating files:  80% (7261/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:49.0094241Z Updating files:  81% (7352/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:49.0394578Z Updating files:  82% (7443/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:49.0414697Z Updating files:  82% (7521/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:49.0593627Z Updating files:  83% (7534/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:49.0781132Z Updating files:  84% (7624/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:49.0852922Z Updating files:  85% (7715/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:49.1018352Z Updating files:  86% (7806/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:49.1095205Z Updating files:  87% (7897/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:49.1167486Z Updating files:  88% (7987/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:49.1239354Z Updating files:  89% (8078/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:49.1308485Z Updating files:  90% (8169/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:49.1378657Z Updating files:  91% (8260/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:49.1438922Z Updating files:  92% (8350/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:49.1506996Z Updating files:  93% (8441/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:49.1571438Z Updating files:  94% (8532/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:49.1633473Z Updating files:  95% (8623/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:49.1697631Z Updating files:  96% (8713/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:49.1761488Z Updating files:  97% (8804/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:49.1824005Z Updating files:  98% (8895/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:49.1888107Z Updating files:  99% (8986/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:49.1888813Z Updating files: 100% (9076/9076)
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:49.1889441Z Updating files: 100% (9076/9076), done.
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:49.1989609Z Switched to a new branch 'main'
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:49.1995844Z branch 'main' set up to track 'origin/main'.
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:49.2119026Z ##[endgroup]
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:49.2180300Z [command]/usr/bin/git log -1 --format=%H
-offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:09:49.2217545Z c00e20e0de3af78e53a103db2865b14159c843ac
-offroad-scenarios	Run actions/setup-node@v4	﻿2026-11-20T08:09:49.2613196Z ##[group]Run actions/setup-node@v4
-offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:09:49.2613544Z with:
-offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:09:49.2613766Z   node-version: 22
-offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:09:49.2613983Z   cache: npm
-offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:09:49.2614185Z   always-auth: false
-offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:09:49.2614413Z   check-latest: false
-offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:09:49.2617177Z   token: ***
-offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:09:49.2617387Z ##[endgroup]
-offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:09:49.4160084Z (node:2416) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:09:49.4161207Z (Use `node --trace-deprecation ...` to show where the warning was created)
-offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:09:49.4163916Z Found in cache @ /opt/hostedtoolcache/node/22.23.5/x64
-offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:09:49.4164955Z ##[group]Environment details
-offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:09:49.8473617Z node: v22.23.5
-offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:09:49.8474110Z npm: 10.9.9
-offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:09:49.8474451Z yarn: 1.22.22
-offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:09:49.8476765Z ##[endgroup]
-offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:09:49.8499463Z [command]/opt/hostedtoolcache/node/22.23.5/x64/bin/npm config get cache
-offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:09:49.9657973Z /home/runner/.npm
-offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:09:50.2366841Z Cache hit for: node-cache-Linux-x64-npm-657bc73b366f255a93213f276ae080d9eddde8f700d70f4591de709ad7d575b4
-offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:09:50.2484392Z (node:2416) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
-offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:09:51.5230273Z Received 17490335 of 34267551 (51.0%), 16.7 MBs/sec
-offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:09:51.6090124Z Received 34267551 of 34267551 (100.0%), 30.1 MBs/sec
-offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:09:51.6091454Z Cache Size: ~33 MB (34267551 B)
-offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:09:51.6122532Z [command]/usr/bin/tar -xf /home/runner/work/_temp/d4efb390-9428-48ad-88f7-ef317df23cb7/cache.tzst -P -C /home/runner/work/Experiment-3/Experiment-3 --use-compress-program unzstd
-offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:09:51.7009776Z Cache restored successfully
-offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:09:51.7030160Z Cache restored from key: node-cache-Linux-x64-npm-657bc73b366f255a93213f276ae080d9eddde8f700d70f4591de709ad7d575b4
-offroad-scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	﻿2026-11-20T08:09:51.7262459Z ##[group]Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
-offroad-scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-20T08:09:51.7263778Z ^[[36;1mnode --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund^[[0m
-offroad-scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-20T08:09:51.7296047Z shell: /usr/bin/bash -e {0}
-offroad-scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-20T08:09:51.7296342Z ##[endgroup]
-offroad-scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-20T08:09:55.1813017Z npm warn deprecated eslint@9.36.0: This version is no longer supported. Please see https://eslint.org/version-support for other options.
-offroad-scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-20T08:09:55.7117045Z 
-offroad-scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-20T08:09:55.7117743Z added 192 packages in 3s
-offroad-scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-20T08:09:56.5647783Z (node:2464) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
-offroad-scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-20T08:09:56.5649157Z (Use `node --trace-warnings ...` to show where the warning was created)
-offroad-scenarios	Full offroad calibrations and races without source changes	﻿2026-11-20T08:09:56.5865518Z ##[group]Run set -euo pipefail
-offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:09:56.5865886Z ^[[36;1mset -euo pipefail^[[0m
-offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:09:56.5866185Z ^[[36;1mmkdir -p "$RUNNER_TEMP/offroad-gate/docs"^[[0m
-offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:09:56.5866621Z ^[[36;1m# Guard the repository while the unchanged validators write their^[[0m
-offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:09:56.5867112Z ^[[36;1m# relative docs/ reports outside the committed application inputs.^[[0m
-offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:09:56.5867691Z ^[[36;1mnode --experimental-transform-types scripts/source-stability.ts -- bash -c '^[[0m
-offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:09:56.5868160Z ^[[36;1m  set -euo pipefail^[[0m
-offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:09:56.5868413Z ^[[36;1m  unset OFFROAD_RACE^[[0m
-offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:09:56.5868673Z ^[[36;1m  cd "$RUNNER_TEMP/offroad-gate"^[[0m
-offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:09:56.5869162Z ^[[36;1m  node --experimental-transform-types "$GITHUB_WORKSPACE/scripts/offroad-calibration.ts"^[[0m
-offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:09:56.5869821Z ^[[36;1m  node --experimental-transform-types "$GITHUB_WORKSPACE/scripts/offroad-races.ts"^[[0m
-offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:09:56.5870354Z ^[[36;1m' 2>&1 | tee "$RUNNER_TEMP/offroad-gate/offroad-gate.log"^[[0m
-offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:09:56.5893386Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:09:56.5893754Z ##[endgroup]
-offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:10:03.5339158Z 0-60 m mx450: 4.53 s
-offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:10:03.5340143Z 0-60 m mx250: 4.50 s
-offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:10:03.5340625Z 0-60 m sm450: 4.43 s
-offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:10:03.5341154Z 20 jump runs; 0 band failure(s)
-offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:10:03.5343314Z (node:2509) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
-offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:10:03.5344833Z (Use `node --trace-warnings ...` to show where the warning was created)
-offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:10:49.9718665Z Valley Ridge motocross moto: 281.04 s race, 45.2 s wall, crashes [0,1,0,0,0,0,0,0] (0.04/rider-lap), longest stop 12.5 s, terrain 39001 cells / 3.9 cm, holeshot car 7
-offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:11:57.7996878Z Arena Nord supercross main: 291.1 s race, 67.8 s wall, crashes [0,1,0,0,0,2,0,1] (0.17/rider-lap), longest stop 9.9 s, terrain 29536 cells / 1.1 cm, holeshot car 7
-offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:13:25.9101566Z Kestrel rallycross heat: 248.12 s race, 88 s wall, crashes [], longest stop 0.0 s, terrain 34419 cells / 3.1 cm, jokers [1,1,1,1,1]
-offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:13:58.5689678Z Pinewood special stage: 178.85 s race, 32.5 s wall, crashes [], longest stop 0.4 s, terrain 35432 cells / 10.8 cm
-offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:14:34.6003762Z ##[error]The operation was canceled.
-offroad-scenarios	Offroad evidence, including failures	﻿2026-11-20T08:14:34.6103193Z ##[group]Run actions/upload-artifact@v4
-offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:14:34.6103542Z with:
-offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:14:34.6103754Z   name: offroad-scenarios
-offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:14:34.6104527Z   path: /home/runner/work/_temp/offroad-gate/docs/offroad-calibration.json
+offroad-scenarios	Set up job	2026-11-20T08:19:05.1582760Z Commit: 15dbd9ccb5dbf34fae002b6ed1a2670f52df37bc
+offroad-scenarios	Set up job	2026-11-20T08:19:05.1583298Z Build Date: 2026-11-03T17:26:59Z
+offroad-scenarios	Set up job	2026-11-20T08:19:05.1583777Z Worker ID: {26d38149-cc49-49f7-9f39-87d1c4fff3b2}
+offroad-scenarios	Set up job	2026-11-20T08:19:05.1584314Z Region: us-east-1
+offroad-scenarios	Set up job	2026-11-20T08:19:05.1584709Z Cloud: AWS
+offroad-scenarios	Set up job	2026-11-20T08:19:05.1585106Z ##[endgroup]
+offroad-scenarios	Set up job	2026-11-20T08:19:05.1586209Z ##[group]Operating System
+offroad-scenarios	Set up job	2026-11-20T08:19:05.1586667Z Ubuntu
+offroad-scenarios	Set up job	2026-11-20T08:19:05.1587093Z 24.04.5
+offroad-scenarios	Set up job	2026-11-20T08:19:05.1587715Z LTS
+offroad-scenarios	Set up job	2026-11-20T08:19:05.1588433Z ##[endgroup]
+offroad-scenarios	Set up job	2026-11-20T08:19:05.1588852Z ##[group]Runner Image
+offroad-scenarios	Set up job	2026-11-20T08:19:05.1589299Z Image: ubuntu-24.04
+offroad-scenarios	Set up job	2026-11-20T08:19:05.1589724Z Version: 20261111.127.1
+offroad-scenarios	Set up job	2026-11-20T08:19:05.1590503Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261111.127/images/ubuntu/Ubuntu2404-Readme.md
+offroad-scenarios	Set up job	2026-11-20T08:19:05.1591801Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261111.127
+offroad-scenarios	Set up job	2026-11-20T08:19:05.1592490Z ##[endgroup]
+offroad-scenarios	Set up job	2026-11-20T08:19:05.1593304Z ##[group]GITHUB_TOKEN Permissions
+offroad-scenarios	Set up job	2026-11-20T08:19:05.1595113Z Contents: read
+offroad-scenarios	Set up job	2026-11-20T08:19:05.1595547Z Metadata: read
+offroad-scenarios	Set up job	2026-11-20T08:19:05.1595973Z ##[endgroup]
+offroad-scenarios	Set up job	2026-11-20T08:19:05.1597890Z Secret source: Actions
+offroad-scenarios	Set up job	2026-11-20T08:19:05.1598740Z Cache mode: write
+offroad-scenarios	Set up job	2026-11-20T08:19:05.1599421Z Prepare workflow directory
+offroad-scenarios	Set up job	2026-11-20T08:19:05.1833431Z Prepare all required actions
+offroad-scenarios	Set up job	2026-11-20T08:19:05.1871185Z Getting action download info
+offroad-scenarios	Set up job	2026-11-20T08:19:05.3639707Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+offroad-scenarios	Set up job	2026-11-20T08:19:07.3084831Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+offroad-scenarios	Set up job	2026-11-20T08:19:07.4853290Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+offroad-scenarios	Set up job	2026-11-20T08:19:07.8431320Z Complete job name: offroad-scenarios
+offroad-scenarios	Run actions/checkout@v4	﻿2026-11-20T08:19:07.9295246Z ##[group]Run actions/checkout@v4
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:07.9296365Z with:
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:07.9297291Z   repository: cheshmakzanoon-ops/Experiment-3
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:07.9304087Z   token: ***
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:07.9304858Z   ssh-strict: true
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:07.9305594Z   ssh-user: git
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:07.9306335Z   persist-credentials: true
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:07.9307172Z   clean: true
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:07.9308091Z   sparse-checkout-cone-mode: true
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:07.9308995Z   fetch-depth: 1
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:07.9309713Z   fetch-tags: false
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:07.9310460Z   show-progress: true
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:07.9311573Z   lfs: false
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:07.9312283Z   submodules: false
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:07.9313066Z   set-safe-directory: true
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:07.9313932Z   allow-unsafe-pr-checkout: false
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:07.9315055Z ##[endgroup]
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.0653055Z Syncing repository: cheshmakzanoon-ops/Experiment-3
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.0654402Z ##[group]Getting Git version info
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.0654870Z Working directory is '/home/runner/work/Experiment-3/Experiment-3'
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.0655594Z [command]/usr/bin/git version
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.3441515Z git version 2.56.1
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.3456252Z ##[endgroup]
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.3468740Z Temporarily overriding HOME='/home/runner/work/_temp/c3a78ed7-3f7c-489e-931e-3e63ea5abccf' before making global git config changes
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.3470594Z Adding repository directory to the temporary git global config as a safe directory
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.3473243Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.3521799Z Deleting the contents of '/home/runner/work/Experiment-3/Experiment-3'
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.3527983Z ##[group]Initializing the repository
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.3531415Z [command]/usr/bin/git init /home/runner/work/Experiment-3/Experiment-3
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.4085650Z hint: Using 'master' as the name for the initial branch. This default branch name
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.4086621Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.4087062Z hint: to use in all of your new repositories, which will suppress this warning,
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.4087502Z hint: call:
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.4087914Z hint:
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.4088309Z hint: 	git config --global init.defaultBranch <name>
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.4088688Z hint:
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.4088989Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.4089426Z hint: 'development'. The just-created branch can be renamed via this command:
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.4089789Z hint:
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.4090086Z hint: 	git branch -m <name>
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.4090395Z hint:
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.4090792Z hint: Disable this message with "git config set advice.defaultBranchName false"
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.4091338Z Initialized empty Git repository in /home/runner/work/Experiment-3/Experiment-3/.git/
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.4101481Z [command]/usr/bin/git remote add origin https://github.com/cheshmakzanoon-ops/Experiment-3
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.4149652Z ##[endgroup]
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.4150224Z ##[group]Disabling automatic garbage collection
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.4152744Z [command]/usr/bin/git config --local gc.auto 0
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.4174910Z ##[endgroup]
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.4175361Z ##[group]Setting up auth
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.4180559Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.4207287Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.8159833Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.8186037Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.8340393Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.8364351Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.8514159Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.8541552Z ##[endgroup]
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.8542142Z ##[group]Fetching the repository
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:11.8553957Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +d769fff43b44c01efe558a6893b0548c6c2efc47:refs/remotes/origin/main
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:22.2211505Z From https://github.com/cheshmakzanoon-ops/Experiment-3
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:22.2212216Z  * [new ref]         d769fff43b44c01efe558a6893b0548c6c2efc47 -> origin/main
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:22.2214919Z ##[endgroup]
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:22.2215494Z ##[group]Determining the checkout info
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:22.2216966Z ##[endgroup]
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:22.2221791Z [command]/usr/bin/git sparse-checkout disable
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:22.2292997Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:22.2315302Z ##[group]Checking out the ref
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:22.2318981Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:23.2515519Z Updating files:  61% (5553/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:23.2582138Z Updating files:  62% (5615/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:23.2680183Z Updating files:  63% (5706/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:23.2835712Z Updating files:  64% (5796/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:23.3007503Z Updating files:  65% (5887/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:23.3236314Z Updating files:  66% (5977/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:23.3592309Z Updating files:  67% (6068/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:23.3774115Z Updating files:  68% (6159/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:23.3946808Z Updating files:  69% (6249/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:23.4104123Z Updating files:  70% (6340/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:23.4534078Z Updating files:  71% (6430/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:23.4567371Z Updating files:  72% (6521/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:23.4608337Z Updating files:  73% (6611/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:23.4645359Z Updating files:  74% (6702/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:23.5093360Z Updating files:  75% (6792/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:23.5586778Z Updating files:  76% (6883/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:23.8662657Z Updating files:  77% (6974/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:23.9889094Z Updating files:  78% (7064/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:23.9971215Z Updating files:  79% (7155/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:24.0042646Z Updating files:  80% (7245/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:24.0096273Z Updating files:  81% (7336/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:24.0389962Z Updating files:  82% (7426/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:24.0535285Z Updating files:  83% (7517/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:24.0696335Z Updating files:  84% (7608/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:24.0744590Z Updating files:  85% (7698/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:24.0876928Z Updating files:  86% (7789/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:24.0928476Z Updating files:  87% (7879/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:24.0973965Z Updating files:  88% (7970/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:24.1021907Z Updating files:  89% (8060/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:24.1065172Z Updating files:  90% (8151/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:24.1112872Z Updating files:  91% (8241/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:24.1150440Z Updating files:  92% (8332/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:24.1193294Z Updating files:  93% (8423/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:24.1232894Z Updating files:  94% (8513/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:24.1270753Z Updating files:  95% (8604/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:24.1308379Z Updating files:  96% (8694/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:24.1346374Z Updating files:  97% (8785/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:24.1386208Z Updating files:  98% (8875/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:24.1425533Z Updating files:  99% (8966/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:24.1425972Z Updating files: 100% (9056/9056)
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:24.1426333Z Updating files: 100% (9056/9056), done.
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:24.1503835Z Switched to a new branch 'main'
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:24.1512572Z branch 'main' set up to track 'origin/main'.
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:24.1572006Z ##[endgroup]
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:24.1613061Z [command]/usr/bin/git log -1 --format=%H
+offroad-scenarios	Run actions/checkout@v4	2026-11-20T08:19:24.1633813Z d769fff43b44c01efe558a6893b0548c6c2efc47
+offroad-scenarios	Run actions/setup-node@v4	﻿2026-11-20T08:19:24.1846055Z ##[group]Run actions/setup-node@v4
+offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:19:24.1846355Z with:
+offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:19:24.1846583Z   node-version: 22
+offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:19:24.1846801Z   cache: npm
+offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:19:24.1847044Z   always-auth: false
+offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:19:24.1847305Z   check-latest: false
+offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:19:24.1849259Z   token: ***
+offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:19:24.1849488Z ##[endgroup]
+offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:19:24.3807459Z (node:2167) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:19:24.3808761Z (Use `node --trace-deprecation ...` to show where the warning was created)
+offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:19:24.3810081Z Found in cache @ /opt/hostedtoolcache/node/22.23.4/x64
+offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:19:24.3814385Z ##[group]Environment details
+offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:19:29.0380123Z node: v22.23.4
+offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:19:29.0380711Z npm: 10.9.9
+offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:19:29.0380936Z yarn: 1.22.22
+offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:19:29.0381979Z ##[endgroup]
+offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:19:29.0392701Z [command]/opt/hostedtoolcache/node/22.23.4/x64/bin/npm config get cache
+offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:19:29.3674004Z /home/runner/.npm
+offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:19:29.5128623Z Cache hit for: node-cache-Linux-x64-npm-657bc73b366f255a93213f276ae080d9eddde8f700d70f4591de709ad7d575b4
+offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:19:29.5208846Z (node:2167) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:19:29.9307335Z Received 34267551 of 34267551 (100.0%), 89.3 MBs/sec
+offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:19:29.9308090Z Cache Size: ~33 MB (34267551 B)
+offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:19:29.9707332Z [command]/usr/bin/tar -xf /home/runner/work/_temp/d787a5f6-8f80-4fd4-a58c-f1f966e80271/cache.tzst -P -C /home/runner/work/Experiment-3/Experiment-3 --use-compress-program unzstd
+offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:19:30.0132873Z Cache restored successfully
+offroad-scenarios	Run actions/setup-node@v4	2026-11-20T08:19:30.0148750Z Cache restored from key: node-cache-Linux-x64-npm-657bc73b366f255a93213f276ae080d9eddde8f700d70f4591de709ad7d575b4
+offroad-scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	﻿2026-11-20T08:19:30.0390460Z ##[group]Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+offroad-scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-20T08:19:30.0391247Z ^[[36;1mnode --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund^[[0m
+offroad-scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-20T08:19:30.3695551Z shell: /usr/bin/bash -e {0}
+offroad-scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-20T08:19:30.3695998Z ##[endgroup]
+offroad-scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-20T08:19:34.3347439Z npm warn deprecated eslint@9.36.0: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+offroad-scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-20T08:19:34.5995890Z 
+offroad-scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-20T08:19:34.5997184Z added 192 packages in 3s
+offroad-scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-20T08:19:35.2271811Z (node:2217) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+offroad-scenarios	Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund	2026-11-20T08:19:35.2272699Z (Use `node --trace-warnings ...` to show where the warning was created)
+offroad-scenarios	Full offroad calibrations and races without source changes	﻿2026-11-20T08:19:35.2397396Z ##[group]Run set -euo pipefail
+offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:19:35.2398206Z ^[[36;1mset -euo pipefail^[[0m
+offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:19:35.2398520Z ^[[36;1mmkdir -p "$RUNNER_TEMP/offroad-gate/docs"^[[0m
+offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:19:35.2398927Z ^[[36;1m# Guard the repository while the unchanged validators write their^[[0m
+offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:19:35.2399381Z ^[[36;1m# relative docs/ reports outside the committed application inputs.^[[0m
+offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:19:35.2399875Z ^[[36;1mnode --experimental-transform-types scripts/source-stability.ts -- bash -c '^[[0m
+offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:19:35.2400293Z ^[[36;1m  set -euo pipefail^[[0m
+offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:19:35.2400543Z ^[[36;1m  unset OFFROAD_RACE^[[0m
+offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:19:35.2400860Z ^[[36;1m  cd "$RUNNER_TEMP/offroad-gate"^[[0m
+offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:19:35.2401282Z ^[[36;1m  node --experimental-transform-types "$GITHUB_WORKSPACE/scripts/offroad-calibration.ts"^[[0m
+offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:19:35.2401842Z ^[[36;1m  node --experimental-transform-types "$GITHUB_WORKSPACE/scripts/offroad-races.ts"^[[0m
+offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:19:35.2402308Z ^[[36;1m' 2>&1 | tee "$RUNNER_TEMP/offroad-gate/offroad-gate.log"^[[0m
+offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:19:35.2432293Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:19:35.2432728Z ##[endgroup]
+offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:19:40.0194016Z 0-60 m mx450: 4.53 s
+offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:19:40.0194556Z 0-60 m mx250: 4.50 s
+offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:19:40.0195080Z 0-60 m sm450: 4.43 s
+offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:19:40.0195390Z 20 jump runs; 0 band failure(s)
+offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:19:40.0196045Z (node:2261) ExperimentalWarning: Transform Types is an experimental feature and might change at any time
+offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:19:40.0196712Z (Use `node --trace-warnings ...` to show where the warning was created)
+offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:20:12.0117965Z Valley Ridge motocross moto: 281.04 s race, 31.1 s wall, crashes [0,1,0,0,0,0,0,0] (0.04/rider-lap), longest stop 12.5 s, terrain 39001 cells / 3.9 cm, holeshot car 7
+offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:20:57.3667918Z Arena Nord supercross main: 291.1 s race, 45.3 s wall, crashes [0,1,0,0,0,2,0,1] (0.17/rider-lap), longest stop 9.9 s, terrain 29536 cells / 1.1 cm, holeshot car 7
+offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:21:54.7546355Z Kestrel rallycross heat: 248.12 s race, 57.3 s wall, crashes [], longest stop 0.0 s, terrain 34419 cells / 3.1 cm, jokers [1,1,1,1,1]
+offroad-scenarios	Full offroad calibrations and races without source changes	2026-11-20T08:21:54.8494548Z ##[error]The operation was canceled.
+offroad-scenarios	Offroad evidence, including failures	﻿2026-11-20T08:21:54.8608000Z ##[group]Run actions/upload-artifact@v4
+offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:21:54.8608533Z with:
+offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:21:54.8608875Z   name: offroad-scenarios
+offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:21:54.8609822Z   path: /home/runner/work/_temp/offroad-gate/docs/offroad-calibration.json
 offroad-scenarios	Offroad evidence, including failures	/home/runner/work/_temp/offroad-gate/docs/offroad-races.json
 offroad-scenarios	Offroad evidence, including failures	/home/runner/work/_temp/offroad-gate/offroad-gate.log
 offroad-scenarios	Offroad evidence, including failures	
-offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:14:34.6105327Z   retention-days: 7
-offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:14:34.6105545Z   if-no-files-found: warn
-offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:14:34.6105777Z   compression-level: 6
-offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:14:34.6106001Z   overwrite: false
-offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:14:34.6106223Z   include-hidden-files: false
-offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:14:34.6106493Z ##[endgroup]
-offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:14:34.7934500Z (node:2624) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:14:34.7936451Z (Use `node --trace-deprecation ...` to show where the warning was created)
-offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:14:34.8085520Z Multiple search paths detected. Calculating the least common ancestor of all paths
-offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:14:34.8155299Z The least common ancestor is /home/runner/work/_temp/offroad-gate. This will be the root directory of the artifact
-offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:14:34.8156724Z With the provided path, there will be 2 files uploaded
-offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:14:34.8158813Z Artifact name is valid!
-offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:14:34.8159510Z Root directory input is valid!
-offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:14:35.9447570Z Beginning upload of artifact content to blob storage
-offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:14:35.9686387Z (node:2624) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
-offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:14:36.3814006Z Uploaded bytes 2228
-offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:14:36.3818364Z Finished uploading artifact content to blob storage!
-offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:14:36.3819516Z SHA256 digest of uploaded artifact zip is f48bbf319bfe9db59f23db14cb29845944aa7bcbcc81389bf652412d52a4c728
-offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:14:36.3820354Z Finalizing artifact upload
-offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:14:36.7720543Z Artifact offroad-scenarios.zip successfully finalized. Artifact ID 14612034899
-offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:14:36.7722183Z Artifact offroad-scenarios has been successfully uploaded! Final size is 2228 bytes. Artifact ID is 14612034899
-offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:14:36.7724223Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44700278806/artifacts/14612034899
-offroad-scenarios	Post Run actions/checkout@v4	﻿2026-11-20T08:14:36.7923060Z Post job cleanup.
-offroad-scenarios	Post Run actions/checkout@v4	2026-11-20T08:14:36.9080591Z [command]/usr/bin/git version
-offroad-scenarios	Post Run actions/checkout@v4	2026-11-20T08:14:36.9082128Z git version 2.56.1
-offroad-scenarios	Post Run actions/checkout@v4	2026-11-20T08:14:36.9088363Z Temporarily overriding HOME='/home/runner/work/_temp/0cd6092e-d6d4-4a2b-b796-9acbdfde109a' before making global git config changes
-offroad-scenarios	Post Run actions/checkout@v4	2026-11-20T08:14:36.9090701Z Adding repository directory to the temporary git global config as a safe directory
-offroad-scenarios	Post Run actions/checkout@v4	2026-11-20T08:14:36.9092539Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
-offroad-scenarios	Post Run actions/checkout@v4	2026-11-20T08:14:36.9102306Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-offroad-scenarios	Post Run actions/checkout@v4	2026-11-20T08:14:36.9157099Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-offroad-scenarios	Post Run actions/checkout@v4	2026-11-20T08:14:36.9544537Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-offroad-scenarios	Post Run actions/checkout@v4	2026-11-20T08:14:36.9630911Z http.https://github.com/.extraheader
-offroad-scenarios	Post Run actions/checkout@v4	2026-11-20T08:14:36.9675662Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-offroad-scenarios	Post Run actions/checkout@v4	2026-11-20T08:14:36.9793979Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-offroad-scenarios	Post Run actions/checkout@v4	2026-11-20T08:14:37.0209029Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-offroad-scenarios	Post Run actions/checkout@v4	2026-11-20T08:14:37.0246661Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-offroad-scenarios	Complete job	﻿2026-11-20T08:14:37.0956249Z Cleaning up orphan processes
-offroad-scenarios	Complete job	2026-11-20T08:14:37.1242210Z Terminate orphan process: pid (2500) (node)
-offroad-scenarios	Complete job	2026-11-20T08:14:37.1270185Z Terminate orphan process: pid (2501) (tee)
-offroad-scenarios	Complete job	2026-11-20T08:14:37.1311721Z Terminate orphan process: pid (2508) (node)
-offroad-scenarios	Complete job	2026-11-20T08:14:37.1410236Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:21:54.8610818Z   retention-days: 7
+offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:21:54.8611127Z   if-no-files-found: warn
+offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:21:54.8611487Z   compression-level: 6
+offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:21:54.8611815Z   overwrite: false
+offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:21:54.8612179Z   include-hidden-files: false
+offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:21:54.8612532Z ##[endgroup]
+offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:21:55.0149276Z (node:2302) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:21:55.0150912Z (Use `node --trace-deprecation ...` to show where the warning was created)
+offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:21:55.0208100Z Multiple search paths detected. Calculating the least common ancestor of all paths
+offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:21:55.0235850Z The least common ancestor is /home/runner/work/_temp/offroad-gate. This will be the root directory of the artifact
+offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:21:55.0236951Z With the provided path, there will be 2 files uploaded
+offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:21:55.0237977Z Artifact name is valid!
+offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:21:55.0238447Z Root directory input is valid!
+offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:21:55.3108270Z Beginning upload of artifact content to blob storage
+offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:21:55.3250552Z (node:2302) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:21:55.3766021Z Uploaded bytes 2187
+offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:21:55.3936236Z Finished uploading artifact content to blob storage!
+offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:21:55.3937405Z SHA256 digest of uploaded artifact zip is f3fb5aa0c7c3dc05855ff8fbd5016012e50b0cd1d8ede369819d4728b3666a95
+offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:21:55.3938503Z Finalizing artifact upload
+offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:21:55.7462267Z Artifact offroad-scenarios.zip successfully finalized. Artifact ID 14613875346
+offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:21:55.7463457Z Artifact offroad-scenarios has been successfully uploaded! Final size is 2187 bytes. Artifact ID is 14613875346
+offroad-scenarios	Offroad evidence, including failures	2026-11-20T08:21:55.7464794Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44700944577/artifacts/14613875346
+offroad-scenarios	Post Run actions/checkout@v4	﻿2026-11-20T08:21:55.7635580Z Post job cleanup.
+offroad-scenarios	Post Run actions/checkout@v4	2026-11-20T08:21:55.8377435Z [command]/usr/bin/git version
+offroad-scenarios	Post Run actions/checkout@v4	2026-11-20T08:21:55.8398491Z git version 2.56.1
+offroad-scenarios	Post Run actions/checkout@v4	2026-11-20T08:21:55.8440462Z Temporarily overriding HOME='/home/runner/work/_temp/f108f562-6f6e-4d1d-88ed-425ac9d2f17a' before making global git config changes
+offroad-scenarios	Post Run actions/checkout@v4	2026-11-20T08:21:55.8442236Z Adding repository directory to the temporary git global config as a safe directory
+offroad-scenarios	Post Run actions/checkout@v4	2026-11-20T08:21:55.8445859Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+offroad-scenarios	Post Run actions/checkout@v4	2026-11-20T08:21:55.8481957Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+offroad-scenarios	Post Run actions/checkout@v4	2026-11-20T08:21:55.8531163Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+offroad-scenarios	Post Run actions/checkout@v4	2026-11-20T08:21:55.8818671Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+offroad-scenarios	Post Run actions/checkout@v4	2026-11-20T08:21:55.8821402Z http.https://github.com/.extraheader
+offroad-scenarios	Post Run actions/checkout@v4	2026-11-20T08:21:55.8849953Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+offroad-scenarios	Post Run actions/checkout@v4	2026-11-20T08:21:55.8884063Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+offroad-scenarios	Post Run actions/checkout@v4	2026-11-20T08:21:55.9165829Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+offroad-scenarios	Post Run actions/checkout@v4	2026-11-20T08:21:55.9210010Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+offroad-scenarios	Complete job	﻿2026-11-20T08:21:55.9518741Z Cleaning up orphan processes
+offroad-scenarios	Complete job	2026-11-20T08:21:55.9684105Z Terminate orphan process: pid (2252) (node)
+offroad-scenarios	Complete job	2026-11-20T08:21:55.9712228Z Terminate orphan process: pid (2253) (tee)
+offroad-scenarios	Complete job	2026-11-20T08:21:55.9738227Z Terminate orphan process: pid (2260) (node)
+offroad-scenarios	Complete job	2026-11-20T08:21:55.9807211Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
