@@ -1036,6 +1036,7 @@ export class RacingRenderer {
   warmupFrames = 0;
   warmupPitPasses = 0;
   private warmupRoadColour: ReturnType<typeof warmRoadGridColour> | null = null;
+  private warmupDirtCockpitColour: ReturnType<typeof warmRoadGridColour> | null = null;
   private preparedDirtProbeStarts: number | null = null;
   preparationTimeoutMs = 90000;
   async waitForPreparedFrame(cancelled: () => boolean, yieldFrame: () => Promise<void>) {
@@ -1081,6 +1082,8 @@ export class RacingRenderer {
   ) {
     return this.preparation.run(progress, async (progress) => {
       this.preparedDirtProbeStarts = null;
+      this.warmupRoadColour = null;
+      this.warmupDirtCockpitColour = null;
       if (this.showroomOnly) throw new Error('Build the selected circuit before preparing a race');
       const total = frame[H.CARS];
       if (!Number.isInteger(total) || total < 1 || total > 12)
@@ -1207,7 +1210,6 @@ export class RacingRenderer {
         if (cancelled()) return false;
       }
       const camera = this.mode;
-      this.warmupRoadColour = null;
       const splitMotorcycleViews = boundedDepth && this.graphics?.reflections === 'local';
       const splitShadows = splitMotorcycleViews && this.renderer.shadowMap?.enabled;
       let retainDirtProbe = false;
@@ -1241,11 +1243,13 @@ export class RacingRenderer {
             frame, frame, 1, 1 / 120, false, true, 1 / 120,
             splitShadows ? 'held-colour' : 'scene',
           );
-          // Both motorcycle grids already paid for their complete venue probe and
-          // shadow maps. A tile warms the hidden chase colour pass before the
-          // full cockpit image and the first visible race frame.
-          if (splitShadows && mode === 'chase') {
-            this.warmupRoadColour = warmRoadGridColour(this.scenePass.target, drawGrid);
+          // These offscreen views link the real materials against the production
+          // colour and MSAA attachments. The first visible dirt grid is drawn
+          // after preparation restores the camera and the full target scissor.
+          if (splitShadows && (mode === 'chase' || !roadField)) {
+            const tile = warmRoadGridColour(this.scenePass.target, drawGrid);
+            if (mode === 'chase') this.warmupRoadColour = tile;
+            else this.warmupDirtCockpitColour = tile;
           } else {
             drawGrid();
           }
@@ -1544,9 +1548,31 @@ export class RacingRenderer {
     this.audioView.reset();
     this.reflection.invalidate();
   }
+  /** The first advancing worker packet can arrive after the live gate has
+   * finished. A slow GPU can keep that exact gate image on screen in the gap.
+   * An equal-time control packet or a camera change still owns a fresh draw. */
+  canReuseDirtGate(a: Float32Array, b: Float32Array, alpha: number): boolean {
+    const shown = this.presented.value;
+    if (shown[H.TIME] !== 0 || this.gpuFrames.completionLatencyMs < 250) return false;
+    if (
+      this.follow !== 0 || this.mode !== this.renderedMode || this.presentedBackdrop !== 'circuit' ||
+      this.lookX !== 0 || this.lookY !== 0 || !isMotocrossVenue(this.circuit.track)
+    ) return false;
+    if (!(alpha >= 0 && alpha <= 1) || a.length !== b.length || a[H.CARS] !== b[H.CARS]) return false;
+    const gate = alpha === 1 ? b : a;
+    if (gate[H.TICK] !== 0 || gate[H.TIME] !== 0 || gate.length !== shown.length) return false;
+    if (alpha > 0 && alpha < 1) {
+      // A Float32 packet stamped 1/30 s exceeds the double-precision display
+      // delay by 1.7 ns. Resolve that round-off to the held endpoint.
+      const span = b[H.TIME] - a[H.TIME];
+      if (!(span > 0 && span * alpha <= 1e-8)) return false;
+    }
+    for (let i = 0; i < gate.length; i++) if (!Object.is(gate[i], shown[i])) return false;
+    return true;
+  }
   /** Called by the application's RAF loop before mutating presentation state. */
-  canSubmitFrame(reserveSlowDirtPaint = false): boolean {
-    return this.gpuFrames.ready(reserveSlowDirtPaint && isMotocrossVenue(this.circuit.track));
+  canSubmitFrame(): boolean {
+    return this.gpuFrames.ready();
   }
   /** Draw a transparent layer (dust, spray, smoke) after the scene draw, into the
    * scene target, with this frame's resolved depth sampleable through
@@ -3067,6 +3093,7 @@ export class RacingRenderer {
         : null,
       warmupFrames: this.warmupFrames,
       warmupRoadColour: this.warmupRoadColour,
+      warmupDirtCockpitColour: this.warmupDirtCockpitColour,
       preparedDirtProbeStarts: this.preparedDirtProbeStarts,
       warmupPitPasses: this.warmupPitPasses,
       preparation: this.preparation.snapshot(),

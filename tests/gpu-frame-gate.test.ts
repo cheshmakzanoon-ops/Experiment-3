@@ -58,47 +58,6 @@ describe('bounded asynchronous GPU frame submissions', () => {
     expect(gate.diagnostics().completed).toBe(1);
   });
 
-  it('keeps a paint opportunity after a slow racing frame and admits the next normal frame immediately', () => {
-    const { gate, gl, state, clock } = fixture();
-    gate.submittedFrame();
-    clock.now = 200;
-    expect(gate.ready(true)).toBe(false);
-    clock.now = 400;
-    state.wait = gl.CONDITION_SATISFIED;
-    expect(gate.ready(true)).toBe(false);
-    expect(gate.diagnostics()).toMatchObject({ pending: false, completed: 1, paintHandoffs: 1 });
-    clock.now += 16;
-    expect(gate.ready(true)).toBe(false);
-    clock.now += 16;
-    expect(gate.ready(true)).toBe(true);
-    gate.submittedFrame();
-    clock.now += 16;
-    expect(gate.ready(true)).toBe(true);
-    expect(gate.diagnostics().paintHandoffs).toBe(1);
-    expect(state.deleted).toHaveLength(2);
-    expect(state.finishes).toBe(0);
-  });
-
-  it('does not carry a live paint handoff into explicit preparation or another presentation', () => {
-    const { gate, gl, state, clock } = fixture();
-    state.wait = gl.ALREADY_SIGNALED;
-    gate.submittedFrame();
-    clock.now += 450;
-    expect(gate.ready()).toBe(true);
-    gate.submittedFrame();
-    clock.now += 450;
-    expect(gate.ready(true)).toBe(false);
-    expect(gate.ready()).toBe(true);
-    expect(gate.ready(true)).toBe(true);
-    gate.submittedFrame();
-    clock.now += 450;
-    expect(gate.ready(true)).toBe(false);
-    gate.submittedFrame();
-    clock.now += 16;
-    expect(gate.ready(true)).toBe(true);
-    expect(gate.diagnostics()).toMatchObject({ pending: false, completed: 4, paintHandoffs: 2 });
-  });
-
   it('keeps input callbacks live throughout a 30-second GPU workload', () => {
     const { gate, gl, state, clock } = fixture();
     state.finishCost = 30000;
@@ -173,7 +132,6 @@ describe('bounded asynchronous GPU frame submissions', () => {
       completed: 0,
       deferredCallbacks: 0,
       flushRefreshes: 0,
-      paintHandoffs: 0,
       pendingMs: 0,
       activeWaitMs: 0,
       failure: null,

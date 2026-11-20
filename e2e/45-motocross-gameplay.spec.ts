@@ -78,6 +78,7 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
           image: name, state: d?.state, workerTime: d?.frame?.[H.TIME],
           presentedTime: d?.presentation?.time, presentedFrames: d?.presentation?.frames,
           presentedState: d?.presentation?.renderedState, queue: d?.renderer?.gpuFrameQueue,
+          reusedGateFrames: d?.gridPresentation.reusedDirtGateFrames,
           draws: d?.renderer?.drawBreakdown, probe: d?.renderer?.reflectionProbe,
           mainView: d?.visual?.census.main.slice(0, 8),
         }));
@@ -176,10 +177,12 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
     expect(initialized.renderer?.preparation?.status).toBe('complete');
     const graphics = initialized.renderer!.graphics;
     if (graphics.reflections === 'local' && graphics.shadowSize > 0) {
-      const tile = initialized.renderer!.warmupRoadColour;
-      expect(tile, `${circuit}: the hidden chase view used a bounded colour pass`).not.toBeNull();
-      expect(tile!.width).toBe(Math.min(320, tile!.targetWidth));
-      expect(tile!.height).toBe(Math.min(200, tile!.targetHeight));
+      const { warmupRoadColour, warmupDirtCockpitColour } = initialized.renderer!;
+      for (const [eye, tile] of [['chase', warmupRoadColour], ['cockpit', warmupDirtCockpitColour]] as const) {
+        expect(tile, `${circuit}: the hidden ${eye} view used a bounded colour pass`).not.toBeNull();
+        expect(tile!.width).toBe(Math.min(320, tile!.targetWidth));
+        expect(tile!.height).toBe(Math.min(200, tile!.targetHeight));
+      }
     }
     expect(initialized.renderer?.pitPersonnel.wheelGuns).toBeNull();
     expect(initialized.renderer?.pitPersonnel.pitJacks).toBeNull();
@@ -274,6 +277,7 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
       .poll(async () => (await diag()).frame?.[o + OFFROAD_BASE + O.BODY] ?? 0, { timeout: 30000 })
       .toBeLessThan(-0.55);
     const bodyBack = await diag();
+    console.info(`[MX journey] ${circuit} reused its completed gate for ${bodyBack.gridPresentation.reusedDirtGateFrames} display callbacks`);
     expect(bodyBack.frame![o + F.SPEED]).toBeLessThan(1);
     await capture(`${circuit}-actual-weight-back.png`);
     await page.keyboard.up('z');

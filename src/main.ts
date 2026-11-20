@@ -185,6 +185,7 @@ export class GameApp {
   private gridAutomatic = false;
   private gridBriefingOpen = false;
   private dirtGateRelease: 'draw' | 'gpu' | 'paint' | 'released' | null = null;
+  private reusedDirtGateFrames = 0;
   private track = new Track();
   private ui: Interface;
   private photoStudio: PhotoStudio;
@@ -1562,7 +1563,7 @@ export class GameApp {
           if (readiness === 'busy') this.previousTime = previousTime;
           return;
         }
-      } else if (!this.renderer.canSubmitFrame(this.state === 'driving' && this.dirtGateRelease === 'released')) {
+      } else if (!this.renderer.canSubmitFrame()) {
         if (this.state === 'replay') this.replayStall.gpuDeferred++;
         this.previousTime = previousTime;
         return;
@@ -1607,12 +1608,21 @@ export class GameApp {
       this.state === 'photo' ||
       this.ui.telemetryModal.open;
     if (idle && this.renderedState === this.state && time - this.renderedAt < 1000 / 15) return;
-    this.renderedAt = time;
-    this.renderedState = this.state;
     const live = this.liveFrames.sample(performance.now());
     let a = live?.a ?? this.current,
       b = live?.b ?? this.current,
       alpha = live?.alpha ?? 1;
+    if (
+      this.state === 'driving' && this.dirtGateRelease === 'released' &&
+      this.renderedState === 'driving' && !this.viewportRedrawPending &&
+      this.renderer.canReuseDirtGate(a, b, alpha)
+    ) {
+      this.reusedDirtGateFrames++;
+      this.previousTime = previousTime;
+      return;
+    }
+    this.renderedAt = time;
+    this.renderedState = this.state;
     if (this.state === 'menu' && this.menuMachineFrame) {
       a = b = this.menuMachineFrame;
       alpha = 0;
@@ -2203,6 +2213,7 @@ export class GameApp {
     this.observeSession();
     this.input.setEnabled(true);
     this.post({ type: 'input', input: controls() });
+    this.reusedDirtGateFrames = 0;
     this.dirtGateRelease =
       this.renderer?.circuit.offroad &&
       this.current?.[H.TICK] === 0 &&
@@ -3369,6 +3380,7 @@ export class GameApp {
         automatic: this.gridAutomatic,
         briefing: this.gridBriefingOpen,
         dirtGateRelease: this.dirtGateRelease,
+        reusedDirtGateFrames: this.reusedDirtGateFrames,
       },
       workerPause: this.workerPause.status(),
       team: structuredClone(this.team),

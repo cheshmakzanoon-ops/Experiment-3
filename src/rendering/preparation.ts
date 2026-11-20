@@ -1,8 +1,8 @@
 import * as T from 'three';
 
-/** The first hidden motorcycle chase pass needs the scene materials, vertex uploads
- * and multisampled attachments. A central tile exercises their fragment paths.
- * The following full cockpit image replaces it before the grid is revealed. */
+/** Warm hidden motorcycle views against their normal materials, vertex buffers
+ * and multisampled attachments. Restore the caller's scissor before the next
+ * submission, including when a material fails during preparation. */
 export function warmRoadGridColour(target: T.WebGLRenderTarget, draw: () => void) {
   const saved = target.scissor.clone();
   const enabled = target.scissorTest;

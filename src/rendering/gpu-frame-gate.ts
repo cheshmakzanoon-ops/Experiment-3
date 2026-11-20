@@ -16,8 +16,6 @@ export class GpuFrameGate {
   private completed = 0;
   private deferred = 0;
   private refreshes = 0;
-  private paintPending = false;
-  private paintHandoffs = 0;
   private fencedAt = 0;
   private refreshedAt = 0;
   private latency = 0;
@@ -50,19 +48,14 @@ export class GpuFrameGate {
     return Math.min(this.maxWaitMs, Math.max(this.minWaitMs, 4 * this.latency));
   }
 
-  ready(reserveSlowPaint = false): boolean {
+  ready(): boolean {
     const gl = this.gl;
     if (this.disposed || this.failure) return false;
     if (gl.isContextLost()) {
       this.fence = null;
-      this.paintPending = false;
       return false;
     }
-    if (!this.fence) {
-      const handoff = reserveSlowPaint && this.paintPending;
-      this.paintPending = false;
-      return !handoff;
-    }
+    if (!this.fence) return true;
     const result = gl.clientWaitSync(this.fence, 0, 0);
     const now = this.now();
     const gap = Math.max(0, now - this.polledAt);
@@ -83,18 +76,9 @@ export class GpuFrameGate {
     }
     if (result !== gl.ALREADY_SIGNALED && result !== gl.CONDITION_SATISFIED)
       return this.fail('Unable to check GPU frame completion');
-    const elapsed = now - this.fencedAt;
-    if (continuous) this.sample(elapsed);
+    if (continuous) this.sample(now - this.fencedAt);
     this.release();
     this.completed = this.submitted;
-    // On a GPU taking a quarter-second or more per frame, let Chromium
-    // composite the completed ride before another long WebGL submission.
-    // Leave the completion callback and the following RAF free of draws.
-    if (reserveSlowPaint && elapsed >= 250) {
-      this.paintPending = true;
-      this.paintHandoffs++;
-      return false;
-    }
     return true;
   }
 
@@ -104,7 +88,6 @@ export class GpuFrameGate {
     const gl = this.gl;
     if (this.disposed) throw new Error('GPU frame gate is disposed');
     if (this.failure) throw new Error(this.failure);
-    this.paintPending = false;
     if (gl.isContextLost()) {
       this.fence = null;
       return;
@@ -135,7 +118,6 @@ export class GpuFrameGate {
       completed: this.completed,
       deferredCallbacks: this.deferred,
       flushRefreshes: this.refreshes,
-      paintHandoffs: this.paintHandoffs,
       pendingMs: this.fence ? Math.max(0, this.now() - this.fencedAt) : 0,
       activeWaitMs: this.fence ? this.activeWaitMs : 0,
       failure: this.failure,

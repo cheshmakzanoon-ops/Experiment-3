@@ -2,7 +2,7 @@ import * as T from 'three';
 import { PreparationTrace } from '../src/rendering/preparation.ts';
 import { expect, it, vi } from 'vitest';
 import { RacingRenderer } from '../src/rendering/renderer.ts';
-import { CAR_STRIDE, HEADER, H, R, RACE_BASE, carBase } from '../src/simulation/protocol.ts';
+import { CAR_STRIDE, HEADER, H, O, OFFROAD_BASE, R, RACE_BASE, carBase } from '../src/simulation/protocol.ts';
 import { vehicleIndex } from '../src/simulation/vehicles.ts';
 import { rulesetFor } from '../src/simulation/events.ts';
 import type { SessionOptions } from '../src/simulation/config.ts';
@@ -578,7 +578,43 @@ it.each([false, true])('keeps the opening MX cubemap on its own GPU fence, cance
     ['venue-probe', 'shadow-fence', 'gpu-ready', 'draw', 'gpu-ready', 'draw', 'gpu-ready']);
   expect(target.warmupFrames).toBe(stop ? 0 : 2);
 });
-it('retires the MX shadow maps and retains the finished venue probe for the held view', async () => {
+it('reuses only the identical live gate on a slow GPU while waiting for an advancing worker sample', () => {
+  const { sample, target, typed } = fixture('mx450');
+  const shown = sample.slice(), next = sample.slice(), input = sample.slice();
+  next[H.TICK] = 4;
+  next[H.TIME] = 1 / 30;
+  input[carBase(0) + OFFROAD_BASE + O.BODY] = -0.7;
+  const rig = Object.assign(target, {
+    follow: 0, mode: 'chase', renderedMode: 'chase', presentedBackdrop: 'circuit',
+    lookX: 0, lookY: 0, presented: { value: shown }, gpuFrames: { completionLatencyMs: 11000 },
+  });
+  Object.assign(target.circuit, { track: { circuit: { offroad: { kind: 'motocross' } } } });
+  const held = (a: Float32Array, b: Float32Array, alpha: number) =>
+    RacingRenderer.prototype.canReuseDirtGate.call(typed, a, b, alpha);
+  expect(held(sample, sample, 1)).toBe(true);
+  expect(held(sample, next, 0)).toBe(true);
+  expect(held(sample, next, 0.00000006)).toBe(true);
+  expect(held(sample, next, 0.01)).toBe(false);
+  expect(held(sample, next, 1)).toBe(false);
+  expect(held(sample, input, 1)).toBe(false);
+  expect(held(sample, next, NaN)).toBe(false);
+  rig.mode = 'cockpit';
+  expect(held(sample, sample, 1)).toBe(false);
+  rig.mode = 'chase';
+  rig.lookX = 0.02;
+  expect(held(sample, sample, 1)).toBe(false);
+  rig.lookX = 0;
+  rig.gpuFrames.completionLatencyMs = 16;
+  expect(held(sample, sample, 1)).toBe(false);
+  rig.gpuFrames.completionLatencyMs = 11000;
+  rig.follow = 1;
+  expect(held(sample, sample, 1)).toBe(false);
+  rig.follow = 0;
+  Object.assign(target.circuit, { track: { circuit: {} } });
+  expect(held(sample, sample, 1)).toBe(false);
+});
+
+it('warms both hidden MX views on the full target and retains the finished probe for the visible gate', async () => {
   const { calls, sample, target, typed } = fixture('mx450');
   const colour = new T.WebGLRenderTarget(1280, 800, { samples: 4 });
   const mx = Object.assign(target, {
@@ -606,8 +642,12 @@ it('retires the MX shadow maps and retains the finished venue probe for the held
       'venue-probe', 'gpu-ready', 'venue-shadows', 'gpu-ready', 'held-colour', 'gpu-ready',
       'venue-shadows', 'gpu-ready', 'held-colour', 'gpu-ready',
     ]);
-    expect(views).toEqual([['chase', true, 320, 200], ['cockpit', false, 1280, 800]]);
+    expect(views).toEqual([['chase', true, 320, 200], ['cockpit', true, 320, 200]]);
+    expect(mx).toMatchObject({
+      warmupDirtCockpitColour: { width: 320, height: 200, targetWidth: 1280, targetHeight: 800 },
+    });
     expect(colour.scissorTest).toBe(false);
+    expect(colour.scissor.toArray()).toEqual([0, 0, 1280, 800]);
     expect(mx.preparedDirtProbeStarts).toBe(1);
     expect(mx.resetPresentationState).toHaveBeenCalledOnce();
     expect(mx.reset).not.toHaveBeenCalled();
