@@ -1,11 +1,11 @@
 # Settings interaction validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44789716055
-- commit: `8a68c52c9d` · Bound hidden GP chase shading on the native MSAA target and preserve the full cockpit and race views
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44792108257
+- commit: `50e8ab0b52` · Keep motocross reflection refreshes within one face per late live frame and publish both High grids
 - event: push · status: completed · conclusion: **failure**
-- started: 2026-11-20T18:07:05Z · updated: 2026-11-20T18:13:10Z
+- started: 2026-11-20T18:22:15Z · updated: 2026-11-20T18:46:35Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| settings | failure | 6 | Original menu regression and transition ownership, without forced clicks or retries |
-| qa | skipped | 0 |  |
+| settings | success | 4 |  |
+| qa | failure | 14 | Review-tool specs of the settings and menu regression, on the QA build |
