@@ -134,6 +134,7 @@ describe('motocross stadium audience', () => {
     const cardColour = new T.Color(),
       sculptColour = new T.Color();
     const seatIds = () => Array.from(mask.array).flatMap((v, i) => (v === 1 ? [i] : []));
+    const candidates = seatIds();
     const verify = () => {
       const seats = seatIds();
       expect(seats).toHaveLength(people.count);
@@ -159,6 +160,8 @@ describe('motocross stadium audience', () => {
       const gate = track.at(track.length - 8, trackPoint());
       const eye = new T.Vector3(gate.x, gate.y + 2.5, gate.z);
       camera.position.copy(eye);
+      camera.lookAt(eye.x + gate.tx, eye.y - 0.03, eye.z + gate.tz);
+      const forward = camera.quaternion.clone();
       arena.audience.update(camera);
       const gateSeats = verify();
       expect(gateSeats.length).toBeLessThan(possible * 0.45);
@@ -170,6 +173,14 @@ describe('motocross stadium audience', () => {
       arena.audience.update(camera);
       expect(verify()).toHaveLength(0);
       camera.position.copy(eye);
+      arena.audience.update(camera);
+      expect(verify()).toEqual(gateSeats);
+      camera.rotateY(Math.PI);
+      arena.audience.update(camera);
+      const reverse = verify();
+      expect(reverse).not.toEqual(gateSeats);
+      expect(reverse.filter((seat) => gateSeats.includes(seat)).length).toBeLessThan(gateSeats.length / 3);
+      camera.quaternion.copy(forward);
       arena.audience.update(camera);
       expect(verify()).toEqual(gateSeats);
       camera.fov = 20;
@@ -185,6 +196,40 @@ describe('motocross stadium audience', () => {
           trianglesPerSculpt: people.geometry.index!.count / 3,
         }),
       );
+      const frustum = new T.Frustum(), sphere = new T.Sphere(new T.Vector3(), 1.8);
+      const cell = new T.Vector3(), matrix = new T.Matrix4();
+      const phases = cards.geometry.getAttribute('spectatorPhase');
+      let tested = 0;
+      // A banked camera, a portrait lens, an off-centre crop and motion near
+      // bucket boundaries must retain every potentially visible resolved seat.
+      for (const fov of [20, 55, 85]) {
+        for (const aspect of [0.65, 1.6]) {
+          camera.aspect = aspect;
+          camera.fov = fov;
+          camera.setViewOffset(1200, 740, 168, 32, 958, 673);
+          camera.aspect = aspect;
+          camera.updateProjectionMatrix();
+          camera.position.copy(eye).addScalar(0.92);
+          camera.quaternion.copy(forward);
+          camera.rotateY(0.04);
+          camera.rotateZ(0.47);
+          camera.updateMatrixWorld(true);
+          arena.audience.update(camera);
+          frustum.setFromProjectionMatrix(matrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+          cell.copy(camera.position).multiplyScalar(0.5).round().multiplyScalar(2);
+          const focal = Math.tan(25 * Math.PI / 180) / Math.tan(fov * Math.PI / 360);
+          const radius = Math.round(T.MathUtils.clamp(62 * focal, 48, 180));
+          for (const i of candidates) {
+            cards.getMatrixAt(i, matrix);
+            sphere.center.setFromMatrixPosition(matrix);
+            const reach = radius * (0.87 + 0.26 * phases.getX(i) / (0.4 * Math.PI));
+            if (sphere.center.distanceToSquared(cell) > reach * reach || !frustum.intersectsSphere(sphere)) continue;
+            expect(mask.getX(i)).toBe(1);
+            tested++;
+          }
+        }
+      }
+      expect(tested).toBeGreaterThan(500);
       const shader = compile(cards.material as T.Material);
       expect(shader.vertexShader).toContain('sculptedSeat > .5');
       expect(shader.fragmentShader).not.toContain('vCrowdRank < crowdLodRange.x');
