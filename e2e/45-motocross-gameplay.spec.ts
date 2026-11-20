@@ -51,12 +51,27 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
   const images = new Set<string>();
   const capture = async (name: string) => {
     const path = info.outputPath(name);
-    await screenshot(path);
-    const pixels = await readFile(path);
-    expect(pixels.readUInt32BE(16)).toBe(page.viewportSize()!.width);
-    expect(pixels.readUInt32BE(20)).toBe(page.viewportSize()!.height);
-    const digest = createHash('sha256').update(pixels).digest('hex');
-    expect(images.has(digest), `${name} presents a new game image`).toBe(false);
+    let digest = '';
+    // The worker can acknowledge pause while X11 still displays the last
+    // onboard frame. Read the presented screen until the new pixels arrive.
+    // A frozen or repeated view must still fail this transition.
+    await expect
+      .poll(
+        async () => {
+          await screenshot(path);
+          const pixels = await readFile(path);
+          expect(pixels.readUInt32BE(16)).toBe(page.viewportSize()!.width);
+          expect(pixels.readUInt32BE(20)).toBe(page.viewportSize()!.height);
+          digest = createHash('sha256').update(pixels).digest('hex');
+          return !images.has(digest);
+        },
+        {
+          timeout: 45000,
+          intervals: [250, 750, 1500],
+          message: `${name} presents a new game image`,
+        },
+      )
+      .toBe(true);
     images.add(digest);
     await info.attach(name, { path, contentType: 'image/png' });
     const snapshot = await diag();
