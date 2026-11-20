@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44786515690
-- commit: `371ee97c0e` · Animate the motocross starting gate at the displayed instant between recorded snapshots
-- event: push · status: completed · conclusion: **failure**
-- started: 2026-11-20T17:46:39Z · updated: 2026-11-20T17:57:54Z
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44787234832
+- commit: `a963fb376e` · Finish the GP starting-grid reflections, shadows and chase view in separate GPU submissions
+- event: push · status: completed · conclusion: **cancelled**
+- started: 2026-11-20T17:51:13Z · updated: 2026-11-20T18:18:54Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (night) | failure | 8 | First complete cockpit frame, all shadow submissions, unchanged budget |
 | browser (day) | success | 7 |  |
-| browser (sunset) | failure | 8 | First complete cockpit frame, all shadow submissions, unchanged budget |
+| browser (sunset) | success | 7 |  |
+| browser (night) | cancelled | 15 | First complete cockpit frame, all shadow submissions, unchanged budget |
