@@ -389,3 +389,34 @@ test('shared motocross GPU buffers preserve the surviving rider and release the 
   expect(empty.foreground).toBe(0);
   expect(empty.geometries).toBe(0);
 });
+
+test('restores the photographed recovery pose after a running stride', async ({ review }) => {
+  const sample = (standing: number, tumble: number, z: number) => ({
+    standing,
+    time: 2 + z,
+    recovery: {
+      pelvis: [0, 0.14 + 0.81 * standing, z] as const,
+      normal: [0, 1, 0] as const,
+      planeConstant: 0,
+      heading: 0,
+      tumble,
+      clock: 2 + z,
+    },
+  });
+  const crouch = sample(0.53, 0.3, 0.05);
+  const stride = sample(1, 1.21, 1.82);
+  const shots = await review.capture({
+    id: 'mx250',
+    detail: 'high',
+    view: 'recovery',
+    samples: [crouch, stride, stride, crouch],
+  });
+  expect(shots[0].hash).not.toBe(shots[1].hash);
+  expect(shots[0].hash).toBe(shots[3].hash);
+  expect(shots[1].hash).toBe(shots[2].hash);
+  for (const shot of shots) {
+    expect(shot.glError).toBe(0);
+    expect(shot.resources).toEqual(shots[0].resources);
+  }
+  await review.attach('motocross-rider-running', shots[1]);
+});

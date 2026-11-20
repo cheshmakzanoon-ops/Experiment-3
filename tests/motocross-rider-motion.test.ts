@@ -86,6 +86,35 @@ describe('motocross suspension-driven rider motion', () => {
     }
   });
 
+  it('keeps the running sole planted, then articulates the boot through the free swing', () => {
+    const rider = new Rider(colours, 'mid', 'motocross');
+    const floor = new T.Plane(new T.Vector3(-0.12, 1, 0.04).normalize(), 0);
+    const direction = new T.Vector3(), foot = new T.Vector3(), frame = new T.Quaternion();
+    const step = { y: 0, z: 0 };
+    try {
+      for (const side of ['left', 'right']) {
+        const boot = rider.root.getObjectByName(`Motocross ${side} boot`)!;
+        let lowest = Infinity, highest = -Infinity;
+        for (let i = 0; i < 120; i++) {
+          const phase = i * Math.PI / 60;
+          motocrossRecoveryStep(phase, side === 'right', step);
+          rider.separated(1, phase, 0, 1, floor);
+          rider.root.updateMatrixWorld(true);
+          const slope = direction.set(0, 0, 1).applyQuaternion(boot.getWorldQuaternion(frame)).dot(floor.normal);
+          foot.fromArray(MX_BOOT_PEG).applyMatrix4(boot.matrixWorld);
+          expect(floor.distanceToPoint(foot)).toBeGreaterThan(-0.001);
+          if (step.y === 0) expect(slope).toBeCloseTo(-Math.sin(0.06), 6);
+          lowest = Math.min(lowest, slope);
+          highest = Math.max(highest, slope);
+        }
+        expect(lowest).toBeLessThan(-0.20);
+        expect(highest).toBeGreaterThan(0.10);
+      }
+    } finally {
+      rider.dispose();
+    }
+  });
+
   it('braces on the rider’s own berm and reproduces the same stride through a replay seek', () => {
     const rider = new Rider(colours, 'mid', 'motocross');
     const recovery = new MxRecoveryPose();

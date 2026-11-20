@@ -75,7 +75,8 @@ export function sampleMotocrossRiderMotion(
 
 /** Fore-aft contact in rider metres. During stance the relative foot travels
  * back exactly as far as the pelvis moves ahead. The return swing has
- * matching endpoint velocities and zero lift speed at heel strike/toe-off. */
+ * matching endpoint velocities and zero lift speed at heel strike/toe-off.
+ * Returns boot pitch in radians, relative to its planted sole. */
 export function motocrossRecoveryStep(angle: number, right: boolean, out: { z: number; y: number }) {
   const cycles = angle / (2 * Math.PI) + (right ? 0.5 : 0);
   const u = cycles - Math.floor(cycles);
@@ -83,10 +84,14 @@ export function motocrossRecoveryStep(angle: number, right: boolean, out: { z: n
   if (u < stance) {
     out.z = (stance / 2 - u) * length;
     out.y = 0;
-    return;
+    return 0;
   }
   const t = (u - stance) / (1 - stance);
   const smooth = t * t * (3 - 2 * t);
   out.z = length * (stance * (smooth - 0.5) - (1 - stance) * (2 * t * t * t - 3 * t * t + t));
-  out.y = 0.14 * Math.sin(t * Math.PI) ** 2;
+  const lift = Math.sin(t * Math.PI) ** 2;
+  out.y = 0.14 * lift;
+  // The stiff MX boot trails toe-down, then lifts its toe for the next plant.
+  // Using the lift envelope keeps both angle and angular speed zero at contact.
+  return 0.31 * lift * Math.sin(2 * Math.PI * t);
 }

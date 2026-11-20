@@ -142,15 +142,30 @@ describe('full motocross venue construction', () => {
       for (const object of boundary.children) {
         expect(object).toBeInstanceOf(T.InstancedMesh);
         const mesh = object as T.InstancedMesh;
-        mesh.geometry.computeBoundingBox();
-        expect(mesh.geometry.boundingBox!.getSize(new T.Vector3()).y).toBeCloseTo(
-          MX_BOUNDARY.height,
-          5,
-        );
+        const shape = new T.Mesh(mesh.geometry, mesh.material);
+        const point = new T.Vector3();
+        const base = new T.Box3();
+        const vertices = mesh.geometry.getAttribute('position');
+        for (let v = 0; v < vertices.count; v++)
+          base.expandByPoint(point.fromBufferAttribute(vertices, v));
+        expect(base.max.y - base.min.y).toBeCloseTo(MX_BOUNDARY.height, 5);
+
+        const fitted = new T.Box3();
+        let crownError = 0;
         for (let i = 0; i < mesh.count; i++) {
           mesh.getMatrixAt(i, matrix);
           expect(matrix.elements.every(Number.isFinite)).toBe(true);
+          mesh.getMorphAt(i, shape);
+          let crown = -Infinity;
+          for (let v = 0; v < vertices.count; v++) {
+            shape.getVertexPosition(v, point);
+            fitted.expandByPoint(point);
+            crown = Math.max(crown, point.y);
+          }
+          crownError = Math.max(crownError, Math.abs(crown - base.max.y));
         }
+        expect(crownError).toBeLessThan(1e-6);
+        expect(mesh.geometry.boundingBox!.containsBox(fitted)).toBe(true);
       }
       // Updating a real frame remains safe after the Formula lamp gantry is
       // removed: the off-road drop gate and race-control signals still run.

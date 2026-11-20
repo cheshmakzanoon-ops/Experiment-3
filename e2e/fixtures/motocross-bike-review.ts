@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { BikeMaterials, BikeShells, bikeOnboardFov, staticSag } from '../../src/rendering/bike.ts';
+import { MxRecoveryPose } from '../../src/rendering/offroad/motocross-recovery.ts';
 import { MxArenaBikeLight } from '../../src/rendering/offroad/mx-arena-bike-light.ts';
 import { DirtBikeModel } from '../../src/rendering/offroad/dirt-bike-model.ts';
 import { mudUniforms } from '../../src/rendering/offroad/mud.ts';
@@ -38,6 +39,15 @@ export interface MotocrossPoseSample {
   rearWear?: number;
   frontWater?: number;
   rearWater?: number;
+  /** Separated rider channels and their own world-space support triangle. */
+  recovery?: {
+    pelvis: readonly [number, number, number];
+    normal: readonly [number, number, number];
+    planeConstant: number;
+    heading: number;
+    tumble: number;
+    clock: number;
+  };
   /** Sample roof irradiance at a controlled entrant position for the indoor review. */
   arenaPosition?: readonly [number, number, number];
 }
@@ -76,6 +86,7 @@ export function captureMotocrossBike(
   detail: RiderDetail = 'high',
   view = 'three-quarter',
   samples: readonly MotocrossPoseSample[] = [{}],
+  groundSurvey?: { vertices: number[]; indices: number[] },
 ) {
   const renderer = new T.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
   renderer.setSize(1280, 800);
@@ -100,11 +111,17 @@ export function captureMotocrossBike(
   sun.shadow.bias = -0.00015;
   sun.shadow.normalBias = 0.008;
   scene.add(sun, new T.HemisphereLight(0xc4def3, 0x635345, 1.1));
+  const groundGeometry = groundSurvey ? new T.BufferGeometry() : new T.PlaneGeometry(150, 150);
+  if (groundSurvey) {
+    groundGeometry.setAttribute('position', new T.Float32BufferAttribute(groundSurvey.vertices, 3));
+    groundGeometry.setIndex(groundSurvey.indices);
+    groundGeometry.computeVertexNormals();
+  }
   const ground = new T.Mesh(
-    new T.PlaneGeometry(150, 150),
+    groundGeometry,
     new T.MeshStandardMaterial({ color: 0x76604a, roughness: 0.97 }),
   );
-  ground.rotation.x = -Math.PI / 2;
+  if (!groundSurvey) ground.rotation.x = -Math.PI / 2;
   ground.receiveShadow = true;
   scene.add(ground);
   const def = VEHICLES[id],
@@ -133,6 +150,20 @@ export function captureMotocrossBike(
   if (view === 'rear-tyre') camera.lookAt(0, 0.36, -0.68);
   if (view === 'front-tyre') camera.lookAt(0, 0.36, 0.72);
   if (view === 'bodywork') model.rider.root.visible = false;
+  const recovery = new MxRecoveryPose();
+  const floor = new T.Plane();
+  const floorAxis = new T.Vector3(0, 0, 1);
+  const support = {
+    planeAtWorld(_point: T.Vector3, result: T.Plane) {
+      result.copy(floor);
+      return true;
+    },
+  };
+  if (view === 'recovery') {
+    camera.position.set(4.6, 1.4, 0.6);
+    camera.lookAt(0, 0.79, 0.6);
+    model.root.visible = false;
+  }
   let triangles = 0,
     finiteGeometry = true;
   const materialsUsed = new Set<string>();
@@ -171,6 +202,15 @@ export function captureMotocrossBike(
   };
   try {
     return samples.map((sample, sampleIndex) => {
+      if (!sample.recovery && model.rider.root.parent !== model.sprung) {
+        model.sprung.add(model.rider.root);
+        model.rider.root.position.set(0, 0, 0);
+        model.rider.root.quaternion.identity();
+        if (!groundSurvey) {
+          ground.position.set(0, 0, 0);
+          ground.rotation.set(-Math.PI / 2, 0, 0);
+        }
+      }
       arenaLight?.update(
         sample.arenaPosition ? grid : undefined,
         sample.arenaPosition ? location.fromArray(sample.arenaPosition) : location,
@@ -204,7 +244,7 @@ export function captureMotocrossBike(
         rearBrake: sample.rearBrake ?? 0,
         discTemp: 0,
         compoundColour: 0xffffff,
-        riding: true,
+        riding: !sample.recovery,
         standing: sample.standing ?? 0,
         startBrace: sample.startBrace,
         time: sample.time,
@@ -224,6 +264,32 @@ export function captureMotocrossBike(
         0.045 * Math.sin(Math.abs(sample.lean ?? 0)) +
         (sample.elevation ?? 0);
       model.rider.setFirstPerson(view === 'onboard', true);
+      if (sample.recovery) {
+        const state = sample.recovery;
+        scene.add(model.rider.root);
+        model.rider.root.visible = true;
+        floor.normal.fromArray(state.normal);
+        floor.constant = state.planeConstant;
+        if (!groundSurvey) {
+          ground.position.copy(floor.normal).multiplyScalar(-floor.constant);
+          ground.quaternion.setFromUnitVectors(floorAxis, floor.normal);
+        }
+        if (view === 'recovery') {
+          camera.position.z = 0.6 + state.pelvis[2] * 0.72;
+          camera.lookAt(0, 0.79, camera.position.z);
+        }
+        recovery.place(
+          model.rider,
+          location.fromArray(state.pelvis),
+          state.heading,
+          'separated',
+          state.clock,
+          sample.standing ?? 0,
+          state.tumble,
+          sample.time ?? 0,
+          support,
+        );
+      }
       if (view === 'onboard') {
         const direction = new T.Vector3();
         new BikeShells().onboard(model.root, camera.position, direction, false, def, camera.up);
@@ -233,7 +299,7 @@ export function captureMotocrossBike(
       }
       scene.updateMatrixWorld(true);
       const cockpit = view === 'onboard' ? inspectMotocrossCockpit(model, camera) : null;
-      const contacts = inspectMotocrossRiderContacts(model, sample.dab ?? 0);
+      const contacts = sample.recovery ? [] : inspectMotocrossRiderContacts(model, sample.dab ?? 0);
       // Three r180 builds shadow programs before the first render's light
       // setup. Compile the actual posed scene once to initialize that light
       // state, as the production loader does. Otherwise frame two adds two
@@ -289,6 +355,7 @@ export function captureMotocrossBike(
       };
     });
   } finally {
+    model.sprung.add(model.rider.root);
     model.dispose();
     materials.dispose();
     ground.geometry.dispose();

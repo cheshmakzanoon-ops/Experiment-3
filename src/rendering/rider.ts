@@ -141,6 +141,7 @@ export type RiderDetail = 'high' | 'mid' | 'far';
 /** Road leathers, or an off-road kit (textile jersey and pants, peaked
  * helmet with goggles, tall boots). */
 export type RiderKit = 'leathers' | 'motocross';
+const X = new T.Vector3(1, 0, 0);
 const Y = new T.Vector3(0, 1, 0);
 /** GP neck: seventh vertebra on the upper-chest frame and its length to the
  * atlas, where the race helmet pivots (gp-rider-helmet.ts GP_HELMET_CENTRE). */
@@ -1828,10 +1829,11 @@ export class Rider {
       // Hands: spread when sliding, swinging when jogging, on the bars at the bike.
       c.set(side * (0.38 - 0.07 * bracing), -0.25 * rise - 0.18 * bracing,
         T.MathUtils.lerp(0.35, 0.15 + side * stride * 0.4, rise));
+      let swingPitch = 0;
       if (running > 0) {
         // The wrist advances as its own boot drives back. Read the actual
         // recorded stance/swing curve so a held or rewound step stays paired.
-        motocrossRecoveryStep(tumble, i === 1, this.recoveryStep);
+        swingPitch = motocrossRecoveryStep(tumble, i === 1, this.recoveryStep) * running;
         const counter = T.MathUtils.clamp(-this.recoveryStep.z / 0.38, -1, 1);
         c.x = T.MathUtils.lerp(c.x, side * 0.09, running);
         c.y = T.MathUtils.lerp(c.y, -0.32 + 0.09 * Math.max(0, counter), running);
@@ -1853,9 +1855,10 @@ export class Rider {
         b.set(side * 0.11, this.recoveryStep.y * running, this.recoveryStep.z * running);
         if (floor && floor.normal.y > 0.1)
           b.y -= (floor.normal.x * b.x + floor.normal.z * b.z + floor.constant) / floor.normal.y;
-        motocrossBootFrame(this.q);
-        if (floor) this.q.premultiply(this.recoveryBoot.setFromUnitVectors(Y, floor.normal));
-        gpContactJoint(b, this.q, MX_BOOT_PEG, MX_BOOT_ANKLE, pole);
+        motocrossBootFrame(this.recoveryBoot);
+        this.recoveryBoot.premultiply(this.recoveryTilt.setFromAxisAngle(X, swingPitch));
+        if (floor) this.recoveryBoot.premultiply(this.recoveryTilt.setFromUnitVectors(Y, floor.normal));
+        gpContactJoint(b, this.recoveryBoot, MX_BOOT_PEG, MX_BOOT_ANKLE, pole);
         c.lerp(pole, rise);
       }
       pole.copy(a).add(b.set(side * 0.1, 0, 0.6).applyQuaternion(this.torso.quaternion));
@@ -1867,11 +1870,7 @@ export class Rider {
         this.hands[i].position.set(0, RIDER.forearm + 0.02, 0);
         this.hands[i].rotation.set(0.2, 0, 0);
         motocrossBootFrame(this.q).premultiply(this.torso.quaternion);
-        if (mxRise !== undefined && rise > 0) {
-          motocrossBootFrame(this.recoveryBoot);
-          if (floor) this.recoveryBoot.premultiply(this.recoveryTilt.setFromUnitVectors(Y, floor.normal));
-          this.q.slerp(this.recoveryBoot, rise);
-        }
+        if (mxRise !== undefined && rise > 0) this.q.slerp(this.recoveryBoot, rise);
         gpAttachAtJoint(
           this.feet[i],
           this.shins[i].group.quaternion,

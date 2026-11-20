@@ -44,10 +44,21 @@ export function prepareMxPadContact(geometry: T.BufferGeometry) {
       geometry.morphAttributes.normal.push(new T.BufferAttribute(normals, 3));
     }
   }
-  // The interpolation can overshoot the six contact heights between samples.
-  // Keep the frozen broad-phase bounds conservative for both signs of stroke.
-  geometry.boundingBox!.min.y -= MAX_STROKE * 1.35;
-  geometry.boundingSphere = geometry.boundingBox!.getBoundingSphere(new T.Sphere());
+  // Each weight can be negative as well as positive. Bound the actual
+  // quadratic basis at each vertex; the top of the pad stays at its moulded height.
+  const bounds = new T.Box3();
+  const point = new T.Vector3();
+  for (let i = 0; i < position.count; i++) {
+    point.fromBufferAttribute(position, i);
+    let stroke = 0;
+    for (const target of geometry.morphAttributes.position) stroke += Math.abs(target.getY(i));
+    point.y -= stroke;
+    bounds.expandByPoint(point);
+    point.y += 2 * stroke;
+    bounds.expandByPoint(point);
+  }
+  geometry.boundingBox = bounds;
+  geometry.boundingSphere = bounds.getBoundingSphere(new T.Sphere());
 }
 
 /** Fit the lower seam to the same dirt displayed below the rigid placement.
