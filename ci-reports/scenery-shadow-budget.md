@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44668588174
-- commit: `6f49c23e88` · Load motocross riders at camera detail and finish cockpit and rotor response
-- event: push · status: completed · conclusion: **failure**
-- started: 2026-11-20T03:33:57Z · updated: 2026-11-20T03:46:26Z
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44668935525
+- commit: `3415358e44` · Ground motocross crew in their gate slots and animate the walk-off
+- event: push · status: completed · conclusion: **success**
+- started: 2026-11-20T03:37:01Z · updated: 2026-11-20T03:53:39Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (night) | success | 12 |  |
-| browser (sunset) | success | 10 |  |
-| browser (day) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
+| browser (night) | success | 5 |  |
+| browser (sunset) | success | 7 |  |
+| browser (day) | success | 7 |  |
