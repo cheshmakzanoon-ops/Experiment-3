@@ -16,6 +16,7 @@ import { TerrainView } from './terrain-view.ts';
 import { MxCourseDressing } from './mx-course-dressing.ts';
 import { MxCourseLandmarks } from './mx-course-landmarks.ts';
 import { installMxArenaLighting } from './mx-arena-lighting.ts';
+import { MxTyreTraces } from './mx-tyre-traces.ts';
 import { MxLooseSoil } from './mx-loose-soil.ts';
 import { MxMeadow } from './mx-meadow.ts';
 import { MxSpectators } from './mx-spectators.ts';
@@ -34,6 +35,7 @@ export { DirtBikeModel } from './dirt-bike-model.ts';
 export class OffroadScene {
   readonly group = new T.Group();
   terrain: TerrainView | null = null;
+  tyreTraces: MxTyreTraces | null = null;
   gate: StartGate | null = null;
   stadium: Stadium | null = null;
   dressing: MxCourseDressing | null = null;
@@ -70,6 +72,10 @@ export class OffroadScene {
         installLightPools(this.terrain.material);
         if (this.stadium) installMxArenaLighting(this.terrain.material, this.stadium.lampGrid);
         this.group.add(this.terrain.group);
+        if (course.kind === 'motocross' || course.kind === 'supercross') {
+          this.tyreTraces = new MxTyreTraces(track);
+          this.group.add(this.tyreTraces.mesh);
+        }
         for (const p of this.pending.splice(0)) this.terrain.record(p.delta, p.time, p.live);
       });
       if (course.spec.gate)
@@ -141,6 +147,9 @@ export class OffroadScene {
       ? this.meadow.prepareQuality(quality, () => this.disposed || cancelled(), yieldControl)
       : null;
   }
+  recordWheelPassage(frame: Float32Array) {
+    if (!this.disposed) this.tyreTraces?.record(frame, this.roost);
+  }
   /** A worker surface keyframe's terrain export. */
   record(delta: TerrainRenderDelta | undefined, time: number, live: boolean) {
     if (this.disposed || !delta) return;
@@ -168,6 +177,7 @@ export class OffroadScene {
     if (time < this.lastTime) this.roost.clear();
     this.lastTime = time;
     this.roost.update(frame, dt);
+    if (this.terrain) this.tyreTraces?.show(time, this.terrain);
   }
   dispose() {
     if (this.disposed) return;
@@ -178,6 +188,7 @@ export class OffroadScene {
     this.group.visible = false;
     this.pending.length = 0;
     this.roost.groundHeight = null;
+    this.tyreTraces?.dispose();
     this.terrain?.dispose();
     this.gate?.dispose();
     this.stadium?.dispose();

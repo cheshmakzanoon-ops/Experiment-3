@@ -61,6 +61,8 @@ interface Keyframe {
  */
 export class TerrainView {
   readonly group = new T.Group();
+  /** Increments when the actual triangulated receiving surface moves. */
+  geometryRevision = 0;
   readonly material: T.MeshPhysicalMaterial;
   private readonly terrain: CourseTerrain;
   private readonly depth: Float32Array;
@@ -401,6 +403,7 @@ export class TerrainView {
     const t = this.terrain,
       cols = t.renderColumns,
       rowsTotal = t.renderRows;
+    if (this.chunks.some((chunk) => chunk.dirty)) this.geometryRevision++;
     for (const chunk of this.chunks) {
       if (!chunk.dirty) continue;
       const g = chunk.mesh.geometry,

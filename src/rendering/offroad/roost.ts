@@ -28,6 +28,18 @@ export interface MxWheelPatch {
   position: T.Vector3;
   normal: T.Vector3;
   forward: T.Vector3;
+  station: number;
+  lateral: number;
+}
+
+export function mxWheelPatch(): MxWheelPatch {
+  return {
+    position: new T.Vector3(),
+    normal: new T.Vector3(),
+    forward: new T.Vector3(),
+    station: 0,
+    lateral: 0,
+  };
 }
 
 /** Loose ground a spinning tyre throws (WP41). */
@@ -414,6 +426,19 @@ export class Roost {
     return this.loaded[slot] ? this.patches[slot] : undefined;
   }
 
+  /** Use a raw worker sample to record the trace independently of camera
+   * cadence. The supplied result is private to the caller. */
+  recordedWheel(
+    frame: Float32Array,
+    o: number,
+    front: boolean,
+    def: VehicleDefinition,
+    patch: MxWheelPatch,
+  ) {
+    this.q.set(frame[o + F.QX], frame[o + F.QY], frame[o + F.QZ], frame[o + F.QW]);
+    this.sampleWheel(frame, o, front, def, patch);
+  }
+
   private sampleWheel(
     frame: Float32Array,
     o: number,
@@ -453,6 +478,8 @@ export class Roost {
       // The contact moves sideways under lean and rearward under fork travel.
       // Re-sample the displayed height at that point, including deformed ruts.
       const lateral = this.track.nearest(patch.position.x, patch.position.z, this.point);
+      patch.station = this.point.s;
+      patch.lateral = lateral;
       patch.position.y = this.groundHeight
         ? this.groundHeight(this.point.s, lateral)
         : this.terrain.terrain.baseHeight(this.point.s, lateral) - clamp(rut, 0, 0.3);
@@ -473,11 +500,7 @@ export class Roost {
         const w = o + WHEEL_BASE + wheel * WHEEL_STRIDE;
         if (frame[w + W.LOAD] < 45) continue;
         const slot = id * 2 + (wheel === 0 ? 0 : 1);
-        const patch = (this.patches[slot] ??= {
-          position: new T.Vector3(),
-          normal: new T.Vector3(),
-          forward: new T.Vector3(),
-        });
+        const patch = (this.patches[slot] ??= mxWheelPatch());
         this.sampleWheel(frame, o, wheel === 0, def, patch);
         this.loaded[slot] = 1;
         const pose = this.shadowPose;

@@ -2,6 +2,9 @@ import * as T from 'three';
 import type { VehicleDefinition } from '../../simulation/vehicles.ts';
 import { factoryBikeSag } from '../../simulation/offroad/suspension-geometry.ts';
 
+/** Alternating centre and paired intermediate lug rows on the full-size knobby. */
+export const MX_TREAD_PAIRS = 22;
+
 export const MX_RAKE = 0.47,
   MX_AXLE_OFFSET = 0.022;
 const FORK_LENGTH = 0.92,

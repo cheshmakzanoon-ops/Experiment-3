@@ -326,6 +326,7 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
     ).toBe(0);
     expect(ridden.frame![H.SC_PHASE]).toBe(0);
     expect(ridden.frame!.every(Number.isFinite)).toBe(true);
+    expect(ridden.renderer?.environmentAssets.freshMxTyreSegments).toBeGreaterThan(0);
     expect(ridden.options.vehicles?.every((id) => id === machine)).toBe(true);
     expect(ridden.presentation!.frames).toBeGreaterThan(initialized.presentation!.frames);
     console.info(`[MX journey] ${circuit} has real course progress, flight and touchdown`);

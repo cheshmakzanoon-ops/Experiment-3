@@ -13,7 +13,12 @@ import { liveryScheme } from '../car-livery.ts';
 import { tagWeatherSurface } from '../weather-presentation.ts';
 import { Rider, type RiderDetail } from '../rider.ts';
 import { installMudOn, tagMudExposure, type MudUniforms } from './mud.ts';
-import { MotocrossAxles, MX_AXLE_OFFSET as OFFSET, MX_RAKE as RAKE } from './motocross-axles.ts';
+import {
+  MotocrossAxles,
+  MX_AXLE_OFFSET as OFFSET,
+  MX_RAKE as RAKE,
+  MX_TREAD_PAIRS,
+} from './motocross-axles.ts';
 import { forkLocalOffset } from '../bike-pit-service.ts';
 import { batchBikeRigidMeshes } from '../bike-rigid-batch.ts';
 import { MotocrossChainDrive, distantMotocrossChain } from './motocross-chain-drive.ts';
@@ -306,7 +311,7 @@ export class DirtBikeModel {
               radius,
               halfWidth,
               knob,
-              detail === 'high' ? 44 : detail === 'mid' ? 24 : 20,
+              detail === 'high' ? MX_TREAD_PAIRS * 2 : detail === 'mid' ? 24 : 20,
               front ? 'front' : 'rear',
               detail === 'far',
             ),
@@ -451,10 +456,22 @@ export class DirtBikeModel {
     if (detail !== 'far') addMotocrossControlMounts(this.steer, detail, this.m, barY, barZ);
     for (const side of [1, -1]) {
       if (detail === 'far') {
-        add(this.steer, new T.CylinderGeometry(0.012, 0.012, 0.048, 8),
-          this.m.steel, side * 0.07, CLAMPS + 0.024, barZ + 0.032);
-        add(this.steer, new T.CylinderGeometry(0.018, 0.018, 0.12, 10),
-          this.m.dark, side * 0.36, barY, barZ).rotation.z = Math.PI / 2;
+        add(
+          this.steer,
+          new T.CylinderGeometry(0.012, 0.012, 0.048, 8),
+          this.m.steel,
+          side * 0.07,
+          CLAMPS + 0.024,
+          barZ + 0.032,
+        );
+        add(
+          this.steer,
+          new T.CylinderGeometry(0.018, 0.018, 0.12, 10),
+          this.m.dark,
+          side * 0.36,
+          barY,
+          barZ,
+        ).rotation.z = Math.PI / 2;
       } else if (side < 0) {
         this.throttleTube.name = 'Motocross rotating throttle tube';
         this.throttleTube.position.set(side * 0.36, barY, barZ);

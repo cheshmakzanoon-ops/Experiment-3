@@ -1422,6 +1422,7 @@ export class GameApp {
     this.ui.observePractice(next, this.auto);
     this.liveFrames.observe(next, performance.now());
     if (this.state === 'driving') {
+      this.renderer?.circuit.offroad?.recordWheelPassage(next);
       this.radioCaption.show(this.radio.observe(next, this.options.laps));
       this.rumble.update(
         this.input.activePad(),
