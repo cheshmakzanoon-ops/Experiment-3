@@ -11,6 +11,13 @@ import {
 } from './region-data.ts';
 import type { TerrainField } from './terrain-field.ts';
 
+/** Traffic-facing surface of a barrier, measured from the road centre.
+ * Bridge parapets sit on the supported deck. A roadside metal rail stands
+ * just outside the verge. */
+export function roadBarrierFace(spec: RoadClassSpec, bridge: boolean) {
+  return spec.halfWidth + spec.shoulder + (bridge ? -0.32 : 0.35);
+}
+
 /** Sample flags. */
 export const ROAD_FLAG = Object.freeze({
   BRIDGE: 1,

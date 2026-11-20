@@ -8,6 +8,7 @@ import {
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import {
   ROAD_FLAG,
+  roadCandidates,
   type RoadEdge,
   type RoadNetwork,
 } from '../../simulation/open-world/road-network.ts';
@@ -26,6 +27,7 @@ import {
   festivalSurfaceContext,
   installFestivalRoadSurface,
 } from './festival-road-surface.ts';
+import { festivalBridgePier, festivalBridgeSection } from './festival-bridges.ts';
 import { buildFestivalGuardrails } from './festival-guardrails.ts';
 import { buildFestivalCircuitCues } from './festival-circuit-cues.ts';
 
@@ -75,6 +77,9 @@ class Builder {
     if (road) this.roadData.push(...road);
     if (surface) this.surfaceData.push(...surface);
     return this.count - 1;
+  }
+  triangle(a: number, b: number, c: number) {
+    this.indices.push(a, b, c);
   }
   quad(a: number, b: number, c: number, d: number) {
     this.indices.push(a, c, b, b, c, d);
@@ -523,10 +528,10 @@ export class RoadMeshes {
         const r0 = row(p, v0),
           r1 = row(q, v1);
         for (let k = 0; k < across.length - 1; k++) b.quad(r0[k], r0[k + 1], r1[k], r1[k + 1]);
-        // Verges (gravel, falling slightly away), not on bridges.
+        // Carry the supported shoulder through bridge spans to the parapet face.
         const bridge =
           (net.flags[i] & ROAD_FLAG.BRIDGE) !== 0 && (net.flags[i + 1] & ROAD_FLAG.BRIDGE) !== 0;
-        if (spec.shoulder > 0.2 && !bridge) {
+        if (spec.shoulder > 0.2) {
           const shoulderLayer =
             e.roadClass === 'town'
               ? 'paving'
@@ -583,8 +588,23 @@ export class RoadMeshes {
             else vb.quad(a1, a0, c1, c0);
           }
         }
-        if (bridge)
-          this.bridgeSegment(builder(mx, mz, 'concrete'), p, q, hw + spec.shoulder, height);
+        if (bridge) {
+          const rails = net.flags[i] & net.flags[i + 1];
+          const adjacent = (j: number) =>
+            j >= e.first && j < e.last && net.flags[j] & net.flags[j + 1] & ROAD_FLAG.BRIDGE
+              ? net.flags[j] & net.flags[j + 1]
+              : 0;
+          festivalBridgeSection(
+            builder(mx, mz, 'concrete'),
+            e,
+            p,
+            q,
+            height,
+            rails,
+            rails & ~adjacent(i - 1),
+            rails & ~adjacent(i + 1),
+          );
+        }
       }
       this.markings(e, builder, frame);
       if (e.roadClass === 'town') this.townLamps(e, lamps);
@@ -808,53 +828,11 @@ export class RoadMeshes {
       else batch.quad(a[1], a[0], b[1], b[0]);
     }
   }
-  /** Bridge deck beam and parapets for one segment. */
-  private bridgeSegment(b: Builder, p: TrackPoint, q: TrackPoint, half: number, h: SurfaceHeight) {
-    for (const side of [-1, 1]) {
-      const pa = [p.x + p.nx * side * half, h(p, side * half), p.z + p.nz * side * half],
-        qa = [q.x + q.nx * side * half, h(q, side * half), q.z + q.nz * side * half];
-      const nx = p.nx * side,
-        nz = p.nz * side;
-      // Parapet: inner face, top, outer face down to the beam soffit.
-      const top = 1.0,
-        depth = 1.5,
-        t = 0.32;
-      const inner = [pa[0] - nx * t, pa[2] - nz * t],
-        innerQ = [qa[0] - nx * t, qa[2] - nz * t];
-      const i0 = b.vertex(inner[0], pa[1], inner[1], p.s, 0, -nx, 0, -nz),
-        i1 = b.vertex(inner[0], pa[1] + top, inner[1], p.s, top, -nx, 0, -nz),
-        j0 = b.vertex(innerQ[0], qa[1], innerQ[1], q.s, 0, -nx, 0, -nz),
-        j1 = b.vertex(innerQ[0], qa[1] + top, innerQ[1], q.s, top, -nx, 0, -nz);
-      if (side > 0) b.quad(i1, i0, j1, j0);
-      else b.quad(i0, i1, j0, j1);
-      const t0 = b.vertex(inner[0], pa[1] + top, inner[1], p.s, 0),
-        t1 = b.vertex(pa[0], pa[1] + top, pa[2], p.s, t),
-        u0 = b.vertex(innerQ[0], qa[1] + top, innerQ[1], q.s, 0),
-        u1 = b.vertex(qa[0], qa[1] + top, qa[2], q.s, t);
-      if (side > 0) b.quad(t0, t1, u0, u1);
-      else b.quad(t1, t0, u1, u0);
-      const o0 = b.vertex(pa[0], pa[1] + top, pa[2], p.s, 0, nx, 0, nz),
-        o1 = b.vertex(pa[0], pa[1] - depth, pa[2], p.s, top + depth, nx, 0, nz),
-        k0 = b.vertex(qa[0], qa[1] + top, qa[2], q.s, 0, nx, 0, nz),
-        k1 = b.vertex(qa[0], qa[1] - depth, qa[2], q.s, top + depth, nx, 0, nz);
-      if (side > 0) b.quad(o0, o1, k0, k1);
-      else b.quad(o1, o0, k1, k0);
-    }
-    // Soffit.
-    const l = [p.x - p.nx * half, h(p, -half) - 1.5, p.z - p.nz * half],
-      r = [p.x + p.nx * half, h(p, half) - 1.5, p.z + p.nz * half],
-      l2 = [q.x - q.nx * half, h(q, -half) - 1.5, q.z - q.nz * half],
-      r2 = [q.x + q.nx * half, h(q, half) - 1.5, q.z + q.nz * half];
-    const a = b.vertex(l[0], l[1], l[2], -half, p.s, 0, -1, 0),
-      c = b.vertex(r[0], r[1], r[2], half, p.s, 0, -1, 0),
-      d = b.vertex(l2[0], l2[1], l2[2], -half, q.s, 0, -1, 0),
-      e = b.vertex(r2[0], r2[1], r2[2], half, q.s, 0, -1, 0);
-    b.quad(c, a, e, d);
-  }
   /** Bridge piers down to the natural ground every ~32 m of span. */
   private piers(e: RoadEdge, builder: (x: number, z: number, layer: Layer) => Builder) {
     const net = this.network,
       p = roadPoint();
+    const lower = roadCandidates();
     let run = -1;
     for (let i = e.first; i <= e.last; i++) {
       const bridge = (net.flags[i] & ROAD_FLAG.BRIDGE) !== 0;
@@ -871,35 +849,19 @@ export class RoadMeshes {
       )
         continue;
       net.at(net.s[i], p);
-      const top = p.y - 1.5,
-        ground = this.field.height(p.x, p.z) - 1;
-      if (top - ground < 2) continue;
-      const b = builder(p.x, p.z, 'concrete');
-      for (const side of [-1, 1]) {
-        const off = side * Math.max(1.2, e.spec.halfWidth * 0.45);
-        const cx = p.x + p.nx * off,
-          cz = p.z + p.nz * off;
-        // A square column (0.9 m) as four faces.
-        const w = 0.45;
-        const corners = [
-          [cx - p.tx * w - p.nx * w, cz - p.tz * w - p.nz * w],
-          [cx + p.tx * w - p.nx * w, cz + p.tz * w - p.nz * w],
-          [cx + p.tx * w + p.nx * w, cz + p.tz * w + p.nz * w],
-          [cx - p.tx * w + p.nx * w, cz - p.tz * w + p.nz * w],
-        ];
-        for (let k = 0; k < 4; k++) {
-          const [ax, az] = corners[k],
-            [bx, bz] = corners[(k + 1) % 4];
-          const mx = (ax + bx) / 2 - cx,
-            mz = (az + bz) / 2 - cz,
-            len = Math.hypot(mx, mz) || 1;
-          const a0 = b.vertex(ax, ground, az, 0, ground, mx / len, 0, mz / len),
-            a1 = b.vertex(ax, top, az, 0, top, mx / len, 0, mz / len),
-            b0 = b.vertex(bx, ground, bz, 0.9, ground, mx / len, 0, mz / len),
-            b1 = b.vertex(bx, top, bz, 0.9, top, mx / len, 0, mz / len);
-          b.quad(a0, b0, a1, b1);
-        }
-      }
+      const ground = this.field.height(p.x, p.z);
+      if (p.y - ground < 4) continue;
+      // Leave the travelled width of every lower road open. The footprint
+      // includes both column footings even at a skew crossing.
+      const reach = (e.spec.halfWidth + e.spec.shoulder) * 0.32 + 1.25;
+      if (net.covering(p.x, p.z, ground, reach, lower) > 0) continue;
+      festivalBridgePier(
+        builder(p.x, p.z, 'concrete'),
+        e,
+        p,
+        (at, lateral) => net.surfaceHeight(at, lateral, e.spec.halfWidth, e.spec.crown),
+        (x, z) => this.field.height(x, z),
+      );
     }
   }
   private townLamps(e: RoadEdge, lamps: T.Matrix4[]) {

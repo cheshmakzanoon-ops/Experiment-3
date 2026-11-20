@@ -18,7 +18,7 @@ import {
   type PhaseCell,
   type WeatherKeyframe,
 } from '../weather.ts';
-import { MAX_ROAD_CANDIDATES, ROAD_FLAG, roadCandidates } from './road-network.ts';
+import { MAX_ROAD_CANDIDATES, ROAD_FLAG, roadBarrierFace, roadCandidates } from './road-network.ts';
 import { festivalMarkings, type FestivalMarkings } from './festival-markings.ts';
 import { smoothstep } from './noise.ts';
 import { TILE_STEP } from './terrain-tiles.ts';
@@ -260,7 +260,8 @@ export class OpenWorldTrack {
       i = this.lastSegment,
       e = net.edges[net.edgeOf[i]],
       bit = side < 0 ? ROAD_FLAG.BARRIER_LEFT : ROAD_FLAG.BARRIER_RIGHT,
-      face = e.spec.halfWidth + e.spec.shoulder + 0.35;
+      bridge = (net.flags[i] & net.flags[i + 1] & ROAD_FLAG.BRIDGE) !== 0,
+      face = roadBarrierFace(e.spec, bridge);
     const railed = (net.flags[i] & bit) !== 0 && (net.flags[i + 1] & bit) !== 0;
     if (!railed || !this.lastLayer || Math.abs(this.lastLateral) > face + 1.6) return 1e6;
     return face;
