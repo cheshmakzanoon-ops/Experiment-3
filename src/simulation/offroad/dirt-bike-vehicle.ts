@@ -1694,7 +1694,7 @@ export class DirtBikeVehicle extends BikeVehicle {
     const course = offroadCourse(track.circuit),
       p = this.remountPoint;
     if (!course || this.inPit) return;
-    const s = course.restartS(p.s);
+    const s = course.restartS(p.s, this.bikeSpec.cgToFront + this.bikeSpec.frontWheelRadius);
     if (s === mod(p.s, track.length)) return;
     const lateral = (this.remount.x - p.x) * p.nx + (this.remount.z - p.z) * p.nz;
     track.at(s, p);

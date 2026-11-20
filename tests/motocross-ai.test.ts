@@ -255,6 +255,36 @@ describe('motocross AI rejoining', () => {
     expect(bike.airborne).toBe(true);
   });
 
+  it.each(['BARN DOUBLE', 'SUMMIT TABLE'])('pushes a beached front tyre off the %s approach', (name) => {
+    const { sim, bike: other, traffic: bike } = wetBeachedRider();
+    other.place(sim.track, 50);
+    sim.autoPlayer = false;
+    const jump = offroadCourse(sim.track.circuit)!.jumps.find((feature) => feature.name === name)!;
+    const reach = bike.bikeSpec.cgToFront + bike.bikeSpec.frontWheelRadius;
+    // The frame is just outside the survey's one-metre lead, but the rim
+    // already overlaps the takeoff. A normal reset here used to repeat.
+    bike.place(sim.track, jump.start - reach + 0.035, -1.5);
+    const before = bike.s;
+    bike.restart(sim.track);
+    expect(bike.dynamics.state).toBe('remount');
+    let previous = before, largestStep = 0;
+    for (let i = 0; i < 6 * 120; i++) {
+      sim.step(1 / 120);
+      largestStep = Math.max(largestStep, Math.abs(bike.s - previous));
+      previous = bike.s;
+      if (bike.riding && bike.s >= jump.end) break;
+    }
+    expect(bike.s).toBeGreaterThan(jump.end);
+    expect(largestStep).toBeLessThan(0.12);
+    expect(bike.dynamics.crashes).toBe(0);
+    // A tyre still fully on the approach restarts where the rider stopped.
+    bike.place(sim.track, jump.start - reach - 0.25, -1.5);
+    const approach = bike.s;
+    bike.restart(sim.track);
+    expect(bike.dynamics.state).toBe('riding');
+    expect(Math.abs(bike.s - approach)).toBeLessThan(0.02);
+  });
+
   it.each([145.4, 448])('physically crosses timing gates during a long marshal recovery at %s m', (start) => {
     const track = rigTrack('arena-nord-sx'),
       bike = new DirtBikeVehicle(0, 'medium', DEFAULT_SETUP, 'sport', MX_450),

@@ -342,10 +342,13 @@ export class OffroadCourse {
    * gap) — from a standstill on 30° of loose soil the drive the knobby tyre
    * and the wheelie balance allow barely carries the grade — then the flat
    * ground just past the feature's end. */
-  restartS(s: number) {
-    const j = this.jumpAt(s),
-      L = this.length,
-      at = mod(s, L);
+  restartS(s: number, frontReach = 0) {
+    const L = this.length, at = mod(s, L);
+    // The front tyre can already meet a face while the frame is still on
+    // its approach. A remount at that same spot cannot build any momentum.
+    const j = this.jumpAt(at) ?? (frontReach > 0
+      ? this.jumps.find((jump) => mod(jump.start - at, L) <= frontReach)
+      : undefined);
     if (!j) return at;
     const span = mod(j.end - at + L / 2, L) - L / 2;
     for (let x = 0; x <= span; x += 0.5)
