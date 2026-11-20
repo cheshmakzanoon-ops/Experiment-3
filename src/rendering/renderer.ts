@@ -2199,10 +2199,13 @@ export class RacingRenderer {
       camera: this.camera.position,
       detailDistance: cabinDetailDistance(this.quality),
     });
-    // A catalogue body's door/pod mirrors carry the rear-view feeds; back to
-    // the Formula car's own when the followed entrant has none.
+    // Select the followed model's real glass. Racing motorcycles have no
+    // road mirrors. The showroom host can still carry Formula glass underneath.
     const bodyMirrors = this.vehicleBodies?.mirrorsFor(this.follow) ?? null;
-    const surfaces = roadBikeSubject ? this.noMirrorSurfaces : (bodyMirrors?.surfaces ?? car.mirrors);
+    const bikeMirrors = followedBike?.rearViews;
+    const surfaces = roadBikeSubject
+      ? (bikeMirrors?.length === 2 ? bikeMirrors : this.noMirrorSurfaces)
+      : (bodyMirrors?.surfaces ?? car.mirrors);
     if (surfaces !== this.mirrorSurfaces) {
       this.reflection.attachMirrors(surfaces);
       this.reflection.invalidate();

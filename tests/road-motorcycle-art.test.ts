@@ -1,3 +1,4 @@
+import { MirrorViews } from '../src/rendering/mirrors.ts';
 import * as T from 'three';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { BikeMaterials, BikeModel, staticSag } from '../src/rendering/bike.ts';
@@ -229,6 +230,69 @@ describe('road motorcycles in the GP selector', () => {
     },
   );
 
+  it.each(['nr900', 'ss600'] as const)(
+    '%s gives the onboard feeds real left and right glass on its own mounting frame',
+    (id) => {
+      const def = VEHICLES[id],
+        materials = new BikeMaterials(0),
+        views = new MirrorViews();
+      const model = new BikeModel(def, 0, 'high', materials, true);
+      try {
+        expect(model.rearViews).toHaveLength(2);
+        const pose = {
+          ...staticSag(def),
+          steer: 0,
+          frontRotation: 0,
+          rearRotation: 0,
+          chassisLean: 0,
+          riderOffset: 0,
+          tuck: 0.4,
+          brake: 0,
+          rearBrake: 0,
+          discTemp: 180,
+          compoundColour: 0xffffff,
+          riding: true,
+          speed: 24,
+        };
+        const coordinates = () =>
+          model.rearViews.map((face) => face.getWorldPosition(new T.Vector3()));
+        model.pose(pose);
+        const straight = coordinates();
+        expect(straight[0].x).toBeLessThan(-0.3);
+        expect(straight[1].x).toBeGreaterThan(0.3);
+        expect(straight[0].y).toBeCloseTo(straight[1].y, 6);
+        for (const face of model.rearViews) {
+          expect(face.geometry.getAttribute('uv').count).toBeGreaterThan(20);
+          expect(face.visible).toBe(false);
+        }
+        model.pose({ ...pose, steer: 0.26 });
+        const turned = coordinates();
+        for (let i = 0; i < 2; i++) {
+          const difference = turned[i].distanceTo(straight[i]);
+          if (id === 'nr900') expect(difference).toBeGreaterThan(0.05);
+          else expect(difference).toBeLessThan(1e-7);
+        }
+        const original = model.rearViews[0].material;
+        views.bind(model.rearViews);
+        views.orient(model.root);
+        for (let i = 0; i < 2; i++) {
+          const camera = views.cameras[i],
+            direction = camera.getWorldDirection(new T.Vector3());
+          expect(camera.position.distanceTo(turned[i])).toBeLessThan(1e-6);
+          expect(direction.z).toBeLessThan(-0.9);
+          expect(Math.sign(direction.x)).toBe(i === 0 ? -1 : 1);
+        }
+        views.unbind();
+        expect(model.rearViews[0].material).toBe(original);
+        model.pose(pose);
+        expect(coordinates()).toEqual(straight);
+      } finally {
+        views.dispose();
+        model.dispose();
+        materials.dispose();
+      }
+    },
+  );
   it.each(catalogue)(
     '%s restores its lever and throttle independently and preserves its rear arm length',
     (id) => {

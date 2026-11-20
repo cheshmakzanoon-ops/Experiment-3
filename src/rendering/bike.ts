@@ -1,3 +1,4 @@
+import { buildRoadBikeMirrors, sportMirrorFoot } from './road-bike-mirrors.ts';
 import { gpReservoirBody, gpReservoirCap } from './gp-brake-reservoir.ts';
 import { gpRiderPrints, type GpRiderPrints } from './bike-livery.ts';
 import { gpGripGeometry, gpLeverGuard } from './gp-handlebar-controls.ts';
@@ -521,6 +522,7 @@ export class BikeMaterials {
   readonly wheelExposure = new RoadWheelExposure();
   private readonly prints = new Map<string, GpRiderPrints>();
   private headlight?: T.MeshStandardMaterial;
+  private roadGlass?: T.MeshStandardMaterial;
   readonly paint: T.MeshPhysicalMaterial;
   readonly secondary: T.MeshPhysicalMaterial;
   readonly accent: T.MeshPhysicalMaterial;
@@ -744,6 +746,18 @@ export class BikeMaterials {
     tagWeatherSurface(this.seat, 'leather', 0.7);
     tagWeatherSurface(this.reservoir, 'paint', 0.7);
   }
+  roadMirrorGlass() {
+    if (!this.roadGlass) {
+      this.roadGlass = new T.MeshStandardMaterial({
+        color: 0xc0ced0,
+        metalness: 1,
+        roughness: 0.1,
+        name: 'Road mirror silvering',
+      });
+      this.list.push(this.roadGlass);
+    }
+    return this.roadGlass;
+  }
   roadLampEmitter() {
     if (!this.headlight) {
       this.headlight = new T.MeshStandardMaterial({color:0xfff5dc, emissive:0xffe9c9, emissiveIntensity:1.05,
@@ -840,6 +854,7 @@ export class BikeModel {
   private readonly steerMount = new T.Group();
   private readonly steer = new T.Group();
   private readonly forkLower = new T.Group();
+  readonly rearViews: T.Mesh[] = [];
   private readonly frontSpin = new T.Group();
   private readonly rearWheel = new T.Group();
   private readonly rearSpin = new T.Group();
@@ -1444,7 +1459,14 @@ export class BikeModel {
         plate.rotation.x = -1.2;
       }
     }
-    if (look.headlamp === 'round') installRoadsterLamp(this.steer, m, detail, RAKE, FORK_OFFSET);
+    if (look.headlamp === 'round') {
+      installRoadsterLamp(this.steer, m, detail, RAKE, FORK_OFFSET);
+      const mirrors = buildRoadBikeMirrors(
+        'roadster', detail, m, new T.Vector3(0.23 + barX, -0.048 + barY, -0.03),
+      );
+      this.steer.add(mirrors.root);
+      this.rearViews.push(...mirrors.faces);
+    }
     // Box wing (biplane with joined end plates) low on the fairing flanks.
     if (look.wings === 'box' && detail !== 'far' && !gp)
       for (const side of [1, -1]) {
@@ -1643,7 +1665,15 @@ export class BikeModel {
         { screen: sport ? look.screen : 1 },
       );
       this.sprung.add(moulding.root);
-      if (look.headlamp === 'twin-slit') installSportHeadlights(this.sprung, moulding.body, m, detail);
+      if (look.headlamp === 'twin-slit') {
+        installSportHeadlights(this.sprung, moulding.body, m, detail);
+        const foot = sportMirrorFoot(moulding.body, detail);
+        if (foot) {
+          const mirrors = buildRoadBikeMirrors('sport', detail, m, foot);
+          this.sprung.add(mirrors.root);
+          this.rearViews.push(...mirrors.faces);
+        }
+      }
       const r2 = definition.id === 'gpr2';
       const lampY = r2 ? 0.318 : 0.33;
       const nearRainLamp = gpPrototype && detail !== 'far';
