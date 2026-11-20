@@ -93,7 +93,12 @@ class Mesher {
     g.setAttribute('facade', new T.Float32BufferAttribute(this.facade, 4));
     // Both levels share the whole permanent shell and one GPU allocation.
     // Overlapping contiguous draw ranges avoid duplicate walls or extra draws.
-    g.setIndex([...this.recessed, ...this.index, ...this.projected]);
+    const Index = this.position.length / 3 > 65535 ? Uint32Array : Uint16Array;
+    const index = new Index(this.recessed.length + this.index.length + this.projected.length);
+    index.set(this.recessed);
+    index.set(this.index, this.recessed.length);
+    index.set(this.projected, this.recessed.length + this.index.length);
+    g.setIndex(new T.BufferAttribute(index, 1));
     g.setDrawRange(0, this.recessed.length + this.index.length);
     g.computeBoundingBox();
     g.computeBoundingSphere();
@@ -411,17 +416,21 @@ export class Buildings {
       emissiveIntensity: 0.2,
       roughness: 0.2,
     });
-    const chunks = new Map<string, Mesher>();
+    // Bucket compact structure references first. Finalise one block at a time
+    // so city-wide JS vertex arrays never coexist with all the GPU buffers.
+    const chunks = new Map<string, Structure[]>();
     const lanterns: T.Vector3[] = [];
     for (const s of structures) {
       const key = `${Math.floor(s.x / BUILDING_BLOCK)},${Math.floor(s.z / BUILDING_BLOCK)}`;
-      let m = chunks.get(key);
-      if (!m) chunks.set(key, (m = new Mesher()));
-      this.add(m, s);
+      let block = chunks.get(key);
+      if (!block) chunks.set(key, (block = []));
+      block.push(s);
       if (s.kind === 'lighthouse') lanterns.push(new T.Vector3(s.x, s.base + s.height + 1.6, s.z));
     }
     let triangles = 0;
-    for (const [key, m] of chunks) {
+    for (const [key, block] of chunks) {
+      const m = new Mesher();
+      for (const s of block) this.add(m, s);
       const g = m.geometry();
       if (!g) continue;
       triangles += (m.index.length + m.recessed.length) / 3;
