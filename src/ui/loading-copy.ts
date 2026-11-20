@@ -71,9 +71,13 @@ export function loadingStage(raw: string, previous = 0): LoadingStage {
     [/compiling circuit and vehicle/i, N_('Preparing graphics'), 0.45],
     [/shadow casters/i, N_('Preparing graphics'), 0.55],
     [/shadows and scene reflections/i, N_('Setting up cameras'), 0.62],
+    [/capturing (GP|motocross) venue reflections/i, N_('Setting up cameras'), 0.64],
+    [/rendering (GP|motocross) chase shadow maps/i, N_('Setting up cameras'), 0.65],
+    [/finishing the GP starting-grid view/i, N_('Setting up cameras'), 0.67],
     [/pit-service|pit service/i, N_('Readying the pit crew'), 0.7],
     [/completed chase/i, N_('Setting up cameras'), 0.8],
     [/cockpit, mirrors/i, N_('Setting up the cockpit'), 0.86],
+    [/rendering (GP|motocross) cockpit shadow maps/i, N_('Setting up the cockpit'), 0.88],
     [/completed cockpit/i, N_('Warming up tyres'), 0.94],
   ];
   for (const [pattern, title, fraction] of stages) {

@@ -594,6 +594,33 @@ it('retires each real MX shadow map before shading the held view', async () => {
   ]);
   expect(target.warmupFrames).toBe(2);
 });
+it.each([null, 'venue-probe', 'venue-shadows', 'held-colour'] as const)(
+  'finishes the GP environment and chase submissions before pit service, stopped at %s',
+  async (stopAt) => {
+    const { calls, sample, target, typed } = fixture('gpr2');
+    for (const [i, id] of ['gpr1', 'gpr2', 'ss600'].entries())
+      sample[carBase(i) + RACE_BASE + R.VEHICLE] = vehicleIndex(id);
+    Object.assign(target, { graphics: { reflections: 'local' } });
+    Object.assign(target.renderer, { shadowMap: { enabled: true } });
+    const initial = sample.slice();
+    let cancelled = false;
+    target.waitForPreparedFrame.mockImplementation(async () => {
+      if (stopAt && calls.includes(stopAt)) cancelled = true;
+      calls.push('gpu-ready');
+    });
+    const complete = await RacingRenderer.prototype.prepare.call(
+      typed, sample, vi.fn(), () => cancelled, async () => {}, true,
+    );
+    const expected = [
+      'venue-probe', 'gpu-ready', 'venue-shadows', 'gpu-ready', 'held-colour', 'gpu-ready',
+      'pit-materials', 'gpu-ready', 'venue-shadows', 'gpu-ready', 'held-colour', 'gpu-ready',
+    ];
+    const end = stopAt ? expected.indexOf(stopAt) + 2 : expected.length;
+    expect(calls.filter((step) => expected.includes(step))).toEqual(expected.slice(0, end));
+    expect(complete).toBe(stopAt === null);
+    expect(sample).toEqual(initial);
+  },
+);
 it('stops cancelled construction before touching any further GPU resources', async () => {
   const { target, typed, sample } = fixture();
   let cancelled = false;

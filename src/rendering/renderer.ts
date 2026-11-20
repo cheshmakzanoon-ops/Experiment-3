@@ -1204,6 +1204,8 @@ export class RacingRenderer {
         if (cancelled()) return false;
       }
       const camera = this.mode;
+      const splitMotorcycleViews = boundedDepth && this.graphics?.reflections === 'local';
+      const splitShadows = splitMotorcycleViews && this.renderer.shadowMap?.enabled;
       try {
         for (const mode of ['chase', 'cockpit'] as const) {
           progress(
@@ -1214,22 +1216,17 @@ export class RacingRenderer {
           await yieldFrame();
           if (cancelled()) return false;
           this.changeCamera(mode);
-          if (mode === 'chase' && isMotocrossVenue(this.circuit.track) &&
-              this.graphics?.reflections === 'local') {
+          if (mode === 'chase' && splitMotorcycleViews) {
             // The held starting grid needs one complete cubemap. Retire its six
             // scenery views before submitting near shadows and the colour image.
-            progress('Capturing motocross venue reflections…');
+            progress(roadField ? 'Capturing GP venue reflections…' : 'Capturing motocross venue reflections…');
             this.draw(frame, frame, 1, 1 / 120, false, true, 1 / 120, 'venue-probe');
             this.gpuFrames.submittedFrame();
             await this.waitForPreparedFrame(cancelled, yieldFrame);
             if (cancelled()) return false;
           }
-          const splitShadows =
-            isMotocrossVenue(this.circuit.track) &&
-            this.graphics?.reflections === 'local' &&
-            this.renderer.shadowMap?.enabled;
           if (splitShadows) {
-            progress(`Rendering motocross ${mode} shadow maps…`);
+            progress(`Rendering ${roadField ? 'GP' : 'motocross'} ${mode} shadow maps…`);
             this.draw(frame, frame, 1, 1 / 120, false, true, 1 / 120, 'venue-shadows');
             this.gpuFrames.submittedFrame();
             await this.waitForPreparedFrame(cancelled, yieldFrame);
@@ -1241,6 +1238,13 @@ export class RacingRenderer {
           );
           this.warmupFrames++;
           if (mode === 'chase' && pitService) {
+            if (roadField && splitMotorcycleViews) {
+              // The crew upload owns its own fence. Finish the full-resolution
+              // starting-grid image before the first service pass replaces it.
+              progress('Finishing the GP starting-grid view…');
+              await this.waitForPreparedFrame(cancelled, yieldFrame);
+              if (cancelled()) return false;
+            }
             progress('Warming offscreen pit-service materials…');
             await this.warmPitPresentation(frame, cancelled, yieldFrame);
             if (cancelled()) return false;
@@ -2657,7 +2661,6 @@ export class RacingRenderer {
     });
     const movingMx: T.Object3D[] = [];
     if (this.circuit.offroad && isMotocrossVenue(this.circuit.track)) {
-      if (this.bikeShells) movingMx.push(this.bikeShells.root);
       this.circuit.offroad.appendCaptureExclusions(movingMx, 'static-shadow');
     }
     this.farShadow.bake(this.renderer, this.scene, {
@@ -2665,6 +2668,9 @@ export class RacingRenderer {
       bounds: this.farShadowBounds,
       hidden: [
         ...movingMx,
+        // Road motorcycles and their riders also live outside the car hosts.
+        // Only the moving near map should project them as they leave the grid.
+        this.bikeShells?.root,
         ...this.cars.map((car) => car.root),
         this.ghost?.root,
         this.pitCrew.root,

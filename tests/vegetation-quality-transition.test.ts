@@ -165,9 +165,12 @@ beforeEach(() => {
   vi.mocked(loadVenueVegetation).mockReset();
   vi.mocked(loadAurelVegetation).mockReset();
 });
-afterEach(() => {
+afterEach(async () => {
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
+  // Full circuit builds are synchronous. Let the test worker report each
+  // completed case before starting another venue on a single CPU.
+  await new Promise<void>((resolve) => setTimeout(resolve, 0));
 });
 
 describe('live circuit vegetation quality', () => {
@@ -430,8 +433,10 @@ describe('live circuit vegetation quality', () => {
       ground: () => 0,
     });
     circuit.vegetationGroup.add(forest.root);
+    const roadMotorcycles = new T.Group();
     Object.assign(renderer, {
       cars: [],
+      bikeShells: { root: roadMotorcycles },
       farShadow: { bake },
       farShadowBounds: new T.Box3(),
       sun: new T.DirectionalLight(),
@@ -449,6 +454,10 @@ describe('live circuit vegetation quality', () => {
         (o) => o.userData.photoVegetation === 'contact',
       ) as T.InstancedMesh;
       const casters = bake.mock.calls[0][2].farCasters as T.Object3D[];
+      // The road bike and rider remain dynamic even if a new sky or planting
+      // configuration forces a static bake after the grid has appeared.
+      expect(bake.mock.calls[0][2].hidden).toContain(roadMotorcycles);
+      expect(roadMotorcycles.visible).toBe(true);
       expect(casters.map((o) => o.userData.photoVegetation)).toEqual([
         'cards',
         'trunk',

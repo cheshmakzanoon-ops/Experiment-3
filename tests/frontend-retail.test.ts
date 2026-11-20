@@ -27,9 +27,13 @@ describe('retail front end', () => {
       'Compiling circuit and vehicle materials…',
       'Compiling shadow casters around the circuit…',
       'Warming shadows and scene reflections…',
+      'Capturing GP venue reflections…',
+      'Rendering GP chase shadow maps…',
+      'Finishing the GP starting-grid view…',
       'Warming offscreen pit-service materials…',
       'Waiting for completed chase GPU work…',
       'Warming cockpit, mirrors and post-processing…',
+      'Rendering GP cockpit shadow maps…',
       'Waiting for completed cockpit GPU work…',
     ];
     const stages = raw.map((text) => loadingStage(text));
