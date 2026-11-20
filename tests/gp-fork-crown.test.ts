@@ -226,7 +226,9 @@ describe('GP fork crowns above the real opaque fork tubes', () => {
         spin.traverse((object) => {
           if (object instanceof T.Mesh) wheelMeshes.push(object);
         });
-        expect(wheelMeshes).toHaveLength(6);
+        const exposure = spin.getObjectByName('Rotational exposure of front spokes');
+        expect(exposure).toBeInstanceOf(T.Mesh);
+        expect(wheelMeshes.filter((mesh) => mesh !== exposure)).toHaveLength(6);
         for (const material of [
           materials.rubber,
           materials.band,

@@ -96,6 +96,12 @@ describe('road motorcycle spoke exposure', () => {
     b.update(89, 0);
     expect(ua.roadShutter.value.toArray()).toEqual([0, wheelExposureTurns(124), 0.0775]);
     expect(ub.roadShutter.value.toArray()).toEqual([wheelExposureTurns(89), 0, 0.0775]);
+    expect(one.visible).toBe(true);
+    expect(two.visible).toBe(false);
+    a.update(124,0);
+    expect(one.visible).toBe(false);
+    a.update(0,124);
+    expect(one.visible).toBe(true);
     expect(wheelExposureTurns(NaN)).toBe(0);
     a.dispose();
     expect(disposals).toBe(0);

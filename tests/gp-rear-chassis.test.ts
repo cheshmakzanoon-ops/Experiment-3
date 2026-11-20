@@ -260,7 +260,11 @@ describe('GP rear structure on the production motorcycle', () => {
         // +1: satin carbon of the inner upper fairing (gp-race-bodywork.ts).
         // +1: the box wings' clear-coated body colour (gpWingPaint); the
         // wings were already their own mesh, so no draw is added.
-        expect(original.materials.size).toBeLessThanOrEqual(36);
+        // The two independently turning wheels each have one shutter surface.
+        // Keep every rigid and articulated material inside its original budget.
+        const exposed = [...original.materials].filter((m) => m.name.startsWith('Exposed '));
+        expect(exposed).toHaveLength(detail === 'far' ? 0 : 2);
+        expect(original.materials.size - exposed.length).toBeLessThanOrEqual(36);
         // +2: the GP screen's printed-border alpha map (gp-appearance.ts) and
         // the livery's clear-coat orange-peel normal map (gp-race-bodywork.ts).
         // +1: the tail rain-light 8x2 LED emissive map (gp-appearance.ts).

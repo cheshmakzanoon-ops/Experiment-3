@@ -205,10 +205,17 @@ function exposureSurface(outer: number, halfWidth: number, detail: RiderDetail) 
 export class RoadWheelExposure {
   private readonly shutter = { value: new T.Vector3(0, 0, 0.08) };
   private readonly masks = new Set<T.Material>();
+  private readonly frontLayers: T.Mesh[] = [];
+  private readonly rearLayers: T.Mesh[] = [];
   private readonly surfaces = new Map<string, T.MeshStandardMaterial>();
   update(front: number | undefined, rear: number | undefined) {
-    this.shutter.value.x = wheelExposureTurns(front);
-    this.shutter.value.y = wheelExposureTurns(rear);
+    const nextFront = wheelExposureTurns(front), nextRear = wheelExposureTurns(rear);
+    if ((this.shutter.value.x > startSweep) !== (nextFront > startSweep))
+      for (const layer of this.frontLayers) layer.visible = nextFront > startSweep;
+    if ((this.shutter.value.y > startSweep) !== (nextRear > startSweep))
+      for (const layer of this.rearLayers) layer.visible = nextRear > startSweep;
+    this.shutter.value.x = nextFront;
+    this.shutter.value.y = nextRear;
   }
   layer(
     geometry: T.BufferGeometry,
@@ -297,10 +304,13 @@ export class RoadWheelExposure {
     const mesh = new T.Mesh(exposureSurface(outer, halfWidth, detail), surface);
     mesh.name = 'Rotational exposure of ' + (front ? 'front' : 'rear') + ' spokes';
     mesh.raycast = () => {};
+    (front ? this.frontLayers : this.rearLayers).push(mesh);
+    mesh.visible = (front ? this.shutter.value.x : this.shutter.value.y) > startSweep;
     return mesh;
   }
   dispose() {
     for (const surface of this.surfaces.values()) surface.dispose();
+    this.frontLayers.length = this.rearLayers.length = 0;
     this.surfaces.clear();
     this.masks.clear();
   }
