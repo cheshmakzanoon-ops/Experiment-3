@@ -18,6 +18,8 @@ on:
       - src/rendering/crowd-impostor.ts
       - src/rendering/wheel-pose.ts
       - src/rendering/renderer.ts
+      - src/rendering/gpu-frame-gate.ts
+      - src/rendering/preparation.ts
       - src/rendering/ground/normal-residency.ts
       - src/rendering/ground/scan-store.ts
       - src/rendering/assets/texture-loader.ts
@@ -27,6 +29,9 @@ on:
       - tests/motocross-*.test.ts
       - tests/mx-trackside-models.test.ts
       - tests/normal-residency.test.ts
+      - tests/startup.test.ts
+      - tests/studio-frame.test.ts
+      - tests/gpu-frame-gate.test.ts
       - e2e/*motocross*.spec.ts
       - e2e/fixtures/motocross-*
       - package.json
@@ -88,7 +93,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/mx-proof"
-          node --experimental-transform-types scripts/source-stability.ts -- bash -c 'npm run lint && npm run validate:content && npx vitest run tests/motocross-*.test.ts tests/mx-trackside-models.test.ts tests/normal-residency.test.ts tests/texture-loader-lifecycle.test.ts tests/gp-r5-materials.test.ts tests/gp-engine-braking.test.ts && npm run build' 2>&1 | tee "$RUNNER_TEMP/mx-proof/build.log"
+          node --experimental-transform-types scripts/source-stability.ts -- bash -c 'npm run lint && npm run validate:content && npx vitest run tests/motocross-*.test.ts tests/mx-trackside-models.test.ts tests/startup.test.ts tests/studio-frame.test.ts tests/gpu-frame-gate.test.ts tests/normal-residency.test.ts tests/texture-loader-lifecycle.test.ts tests/gp-r5-materials.test.ts tests/gp-engine-braking.test.ts && npm run build' 2>&1 | tee "$RUNNER_TEMP/mx-proof/build.log"
           git diff --exit-code
           cp dist/BUILD_IDENTITY.json "$RUNNER_TEMP/mx-proof/BUILD_IDENTITY.json"
           git rev-parse HEAD > "$RUNNER_TEMP/mx-proof/source-commit.txt"

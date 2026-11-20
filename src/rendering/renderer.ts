@@ -1545,8 +1545,8 @@ export class RacingRenderer {
     this.reflection.invalidate();
   }
   /** Called by the application's RAF loop before mutating presentation state. */
-  canSubmitFrame(): boolean {
-    return this.gpuFrames.ready();
+  canSubmitFrame(reserveSlowDirtPaint = false): boolean {
+    return this.gpuFrames.ready(reserveSlowDirtPaint && isMotocrossVenue(this.circuit.track));
   }
   /** Draw a transparent layer (dust, spray, smoke) after the scene draw, into the
    * scene target, with this frame's resolved depth sampleable through

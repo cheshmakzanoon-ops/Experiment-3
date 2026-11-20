@@ -434,7 +434,8 @@ describe('renderer integration contract', () => {
   });
 
   it('resets the motion history on race reset and resize', () => {
-    expect(body('reset')).toContain('this.studioFrame.reset();');
+    expect(body('reset')).toContain('this.resetPresentationState();');
+    expect(body('private resetPresentationState')).toContain('this.studioFrame.reset();');
     expect(body('resize')).toContain('this.studioFrame.reset();');
   });
 });

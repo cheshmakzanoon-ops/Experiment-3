@@ -1562,7 +1562,7 @@ export class GameApp {
           if (readiness === 'busy') this.previousTime = previousTime;
           return;
         }
-      } else if (!this.renderer.canSubmitFrame()) {
+      } else if (!this.renderer.canSubmitFrame(this.state === 'driving' && this.dirtGateRelease === 'released')) {
         if (this.state === 'replay') this.replayStall.gpuDeferred++;
         this.previousTime = previousTime;
         return;
