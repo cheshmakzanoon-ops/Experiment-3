@@ -1587,6 +1587,7 @@ export class RacingRenderer {
     this.circuit.setMotorcyclePresentation(bikeFollow, followedDefinition.classId === 'gp-bike');
     const gpGrid = gpGridForFrame(presented);
     this.circuit.setGrandPrixGrid(gpGrid);
+    this.circuit.gpPitBoards?.update(presented);
     if (this.tyreEquipment && isGpCourse(this.circuit.track))
       this.tyreEquipment.root.visible = !gpGrid;
     // W1: a followed GP prototype gets the GP chase rig, lens and shutter.

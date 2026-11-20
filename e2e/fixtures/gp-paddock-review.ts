@@ -1,3 +1,4 @@
+import { PHASE } from '../../src/simulation/race.ts';
 import * as T from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { clamp } from '../../src/core/math.ts';
@@ -20,6 +21,7 @@ import { surfaceMaterial } from '../../src/rendering/surface-detail.ts';
 import { WeatherPresentation } from '../../src/rendering/weather-presentation.ts';
 import { VenueKitContext } from '../../src/rendering/venue-kit/context.ts';
 import { buildPaddock } from '../../src/rendering/venue-kit/structures.ts';
+import { GpPitBoards } from '../../src/rendering/venue-kit/gp-pit-boards.ts';
 import { buildGpGarageEquipment } from '../../src/rendering/venue-kit/gp-garage-equipment.ts';
 import { gpPaddockPlan } from '../../src/rendering/venue-kit/gp-paddock-architecture.ts';
 import { gpRaceControlSite } from '../../src/rendering/venue-kit/gp-race-control.ts';
@@ -53,6 +55,7 @@ export async function captureGpPaddocks(
   options: {
     controlOnly?: boolean;
     equipmentOnly?: boolean;
+    pitBoardOnly?: boolean;
     raceView?: 'trackside' | 'trailing';
     /** Advance the same race by a fixed number of physics ticks between captures. */
     raceSequence?: { firstTick: number; ticksPerFrame: number; frames: number; subject: number };
@@ -104,6 +107,8 @@ export async function captureGpPaddocks(
       const equipment =
         options.equipmentOnly || options.raceView ? buildGpGarageEquipment(track) : null;
       if (equipment) kit.root.add(equipment);
+      const boards = options.raceView || options.pitBoardOnly ? new GpPitBoards(track) : null;
+      if (boards) kit.root.add(boards.root);
       const subject = sequence?.subject ?? 0;
       const raceFrames: {
         a: Float32Array;
@@ -115,7 +120,7 @@ export async function captureGpPaddocks(
       const hosts: { root: T.Group }[] = [];
       let firstStation = Infinity,
         lastStation = -Infinity;
-      if (options.raceView) {
+      if (options.raceView || options.pitBoardOnly) {
         const simulation = new Simulation({
           ...DEFAULT_OPTIONS,
           mode: 'race',
@@ -134,10 +139,18 @@ export async function captureGpPaddocks(
         let tick = 0;
         for (let frame = 0; frame < (sequence?.frames ?? 1); frame++) {
           const target = first + frame * (sequence?.ticksPerFrame ?? 1);
-          while (tick < target - 1) {
+          while (
+            options.pitBoardOnly
+              ? tick < 120 * 90 &&
+                (simulation.race.phase !== PHASE.RACING ||
+                  Math.abs(boards!.boards[0].station - simulation.cars[0].s - 44) > 1)
+              : tick < target - 1
+          ) {
             simulation.step(1 / 120);
             tick++;
           }
+          if (options.pitBoardOnly && tick >= 120 * 90)
+            throw new Error('The seeded rider did not reach the team board');
           const a = simulation.makeFrame();
           simulation.step(1 / 120);
           tick++;
@@ -271,11 +284,25 @@ export async function captureGpPaddocks(
       };
       let riders: BikeShells | undefined;
       const draw = (
-        view: 'approach' | 'pit' | 'control' | 'equipment' | 'trackside' | 'trailing',
+        view:
+          | 'approach'
+          | 'pit'
+          | 'control'
+          | 'equipment'
+          | 'trackside'
+          | 'trailing'
+          | 'team-board',
         wet: boolean,
         raceIndex = 0,
       ) => {
-        if (view === 'trackside' || view === 'trailing') {
+        if (boards && raceFrames[raceIndex]) boards.update(raceFrames[raceIndex].b);
+        if (view === 'team-board') {
+          const station = boards!.boards[0].station,
+            side = track.pit.side;
+          camera.fov = 37;
+          camera.position.copy(place(station - 3.8, side * (track.pit.offset - 6.7), 1.75));
+          camera.lookAt(place(station, side * (track.pit.offset - 5), 1.64));
+        } else if (view === 'trackside' || view === 'trailing') {
           const { a, b, s, side } = raceFrames[raceIndex];
           hosts.forEach(({ root }, index) => {
             sampleChassisPose(a, b, carBase(index), 1, root.position, root.quaternion);
@@ -361,13 +388,23 @@ export async function captureGpPaddocks(
         };
       };
       try {
-        if (options.controlOnly || options.equipmentOnly || options.raceView) {
+        if (
+          options.controlOnly ||
+          options.equipmentOnly ||
+          options.pitBoardOnly ||
+          options.raceView
+        ) {
           // A focused art review needs one fully rendered production frame
           // per venue. Yield it immediately so a slow software backend does
           // not hold all completed evidence until the final venue finishes.
           for (let index = 0; index < (sequence?.frames ?? 1); index++) {
             const capture = draw(
-              options.raceView ?? (options.equipmentOnly ? 'equipment' : 'control'),
+              options.raceView ??
+                (options.pitBoardOnly
+                  ? 'team-board'
+                  : options.equipmentOnly
+                    ? 'equipment'
+                    : 'control'),
               false,
               index,
             );

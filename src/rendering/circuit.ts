@@ -1,3 +1,4 @@
+import { GpPitBoards } from './venue-kit/gp-pit-boards.ts';
 import { buildGpGarageEquipment } from './venue-kit/gp-garage-equipment.ts';
 import { SecondaryGrandstands } from './secondary-grandstands.ts';
 import type { AurelQuarryKit } from './aurel-quarry.ts';
@@ -157,6 +158,7 @@ export class CircuitScene {
   readonly wetReflection = new WetRoadReflection();
   readonly roadMaterial: T.MeshStandardMaterial;
   private readonly motorcycleSurface = { value: 0 };
+  gpPitBoards: GpPitBoards | null = null;
   private gpGarageEquipment: T.Group | null = null;
   private readonly gpSurface = { value: 0 };
   private readonly tyreRubber: TyreMarkPresentation;
@@ -195,6 +197,10 @@ export class CircuitScene {
     this.districts = districtPlan(track, this.serviceSites);
     this.venueKit = venueKitFor(track);
     if (isGpCourse(track)) {
+      this.construction.add('GP pit wall team boards', 1, () => {
+        this.gpPitBoards = new GpPitBoards(track);
+        this.group.add(this.gpPitBoards.root);
+      });
       this.construction.add('GP garage stands and spare wheels', 1, () => {
         this.gpGarageEquipment = buildGpGarageEquipment(track);
         if (this.gpGarageEquipment) {
