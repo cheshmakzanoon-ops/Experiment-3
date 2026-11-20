@@ -40,9 +40,9 @@ const legacyGhost = () => {
 };
 describe('WP12 recorded identity and schema policy', () => {
   it.each([
-    2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
+    2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27,
   ])('keeps physics v%i records out of the current physics category', (physics) => {
-    expect(SIMULATION_VERSION).toBe(27);
+    expect(SIMULATION_VERSION).toBe(28);
     expect(
       recordIncompatibility(
         { circuit: 'aurel', vehicle: 'apx01', physics },
@@ -66,7 +66,7 @@ describe('WP12 recorded identity and schema policy', () => {
       'ss600',
       'nr900',
       'cr750',
-    ].flatMap((vehicle) => [25, 26].map((physics) => ({ vehicle, physics }))),
+    ].flatMap((vehicle) => [25, 26, 27].map((physics) => ({ vehicle, physics }))),
   )(
     'separates $vehicle v$physics records, ghosts and network identities despite unchanged definition hashes',
     ({ vehicle, physics }) => {
