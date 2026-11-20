@@ -71,7 +71,18 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
           message: `${name} presents a new game image`,
         },
       )
-      .toBe(true);
+      .toBe(true)
+      .catch(async (error: unknown) => {
+        const d = await page.evaluate(() => window.apexDiagnostics(true)).catch(() => null);
+        console.info('[MX presentation] ' + JSON.stringify({
+          image: name, state: d?.state, workerTime: d?.frame?.[H.TIME],
+          presentedTime: d?.presentation?.time, presentedFrames: d?.presentation?.frames,
+          presentedState: d?.presentation?.renderedState, queue: d?.renderer?.gpuFrameQueue,
+          draws: d?.renderer?.drawBreakdown, probe: d?.renderer?.reflectionProbe,
+          mainView: d?.visual?.census.main.slice(0, 8),
+        }));
+        throw error;
+      });
     images.add(digest);
     await info.attach(name, { path, contentType: 'image/png' });
     const snapshot = await diag();
@@ -213,9 +224,18 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
           now - start >= 220 ? resolve() : requestAnimationFrame(check);
         requestAnimationFrame(check);
       });
-      return { before, after: window.apexDiagnostics().presentation?.frames };
+      const held = window.apexDiagnostics();
+      return {
+        before, after: held.presentation?.frames,
+        preparedProbe: held.renderer?.preparedDirtProbeStarts,
+        visibleProbe: held.renderer?.reflectionProbe.starts.immediate,
+      };
     });
     expect(gateFrame.after).toBe(gateFrame.before);
+    if (graphics.reflections === 'local') {
+      expect(gateFrame.preparedProbe).toBeGreaterThan(0);
+      expect(gateFrame.visibleProbe).toBe(gateFrame.preparedProbe);
+    }
     await page.getByRole('button', { name: 'GO TO THE GATE', exact: true }).click();
     await expect.poll(async () => (await diag()).state).toBe('driving');
     await expect(page.locator('.mx-ride-hud')).toBeVisible();

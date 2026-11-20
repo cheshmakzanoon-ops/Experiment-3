@@ -1036,6 +1036,7 @@ export class RacingRenderer {
   warmupFrames = 0;
   warmupPitPasses = 0;
   private warmupRoadColour: ReturnType<typeof warmRoadGridColour> | null = null;
+  private preparedDirtProbeStarts: number | null = null;
   preparationTimeoutMs = 90000;
   async waitForPreparedFrame(cancelled: () => boolean, yieldFrame: () => Promise<void>) {
     const timeoutMs = this.preparationTimeoutMs ?? 45000;
@@ -1079,6 +1080,7 @@ export class RacingRenderer {
     pitService = true,
   ) {
     return this.preparation.run(progress, async (progress) => {
+      this.preparedDirtProbeStarts = null;
       if (this.showroomOnly) throw new Error('Build the selected circuit before preparing a race');
       const total = frame[H.CARS];
       if (!Number.isInteger(total) || total < 1 || total > 12)
@@ -1208,6 +1210,7 @@ export class RacingRenderer {
       this.warmupRoadColour = null;
       const splitMotorcycleViews = boundedDepth && this.graphics?.reflections === 'local';
       const splitShadows = splitMotorcycleViews && this.renderer.shadowMap?.enabled;
+      let retainDirtProbe = false;
       try {
         for (const mode of ['chase', 'cockpit'] as const) {
           progress(
@@ -1273,10 +1276,19 @@ export class RacingRenderer {
           await this.waitForPreparedFrame(cancelled, yieldFrame);
           if (cancelled()) return false;
         }
+        // The six venue faces have completed at this same rider, time and
+        // weather. The dirt probe excludes the bikes, crew and chase camera.
+        if (splitMotorcycleViews && !roadField && frame[H.TICK] === 0 && this.follow === 0 &&
+            this.reflection.localProbeActive && this.bikeShells.motocrossPresentation(0)) {
+          const probe = this.reflection.probeDiagnostics;
+          retainDirtProbe = probe.capturedAt === frame[H.TIME];
+          if (retainDirtProbe) this.preparedDirtProbeStarts = probe.starts.immediate;
+        }
       } finally {
         if (!cancelled()) {
           this.changeCamera(camera);
-          this.reset();
+          if (retainDirtProbe) this.resetPresentationState();
+          else this.reset();
         }
       }
       return true;
@@ -1490,7 +1502,9 @@ export class RacingRenderer {
     car.setLivery(livery);
     for (const material of car.reflectivePaint)
       if (material.map) this.textures.refresh(material.map);
-    this.reflection.invalidate();
+    // Retain the car paint for a later vehicle change. Its hidden Formula
+    // body cannot change the scenery captured for the player's dirt bike.
+    if (!this.bikeShells.motocrossPresentation(0)) this.reflection.invalidate();
   }
   setPhoto(value: PhotoSettings | null, cars = this.cars.length) {
     const previous = this.photo;
@@ -1566,11 +1580,14 @@ export class RacingRenderer {
     return this.mode;
   }
   reset() {
+    this.reflection.invalidate();
+    this.resetPresentationState();
+  }
+  private resetPresentationState() {
     this.circuit.startFinish.reset();
     this.exposure.reset();
     this.studioFrame.reset();
     this.composition.reset();
-    this.reflection.invalidate();
     this.motionBlur.reset();
     this.audioView.reset();
     this.cameraClock.reset();
@@ -3046,6 +3063,7 @@ export class RacingRenderer {
         : null,
       warmupFrames: this.warmupFrames,
       warmupRoadColour: this.warmupRoadColour,
+      preparedDirtProbeStarts: this.preparedDirtProbeStarts,
       warmupPitPasses: this.warmupPitPasses,
       preparation: this.preparation.snapshot(),
       graphics: { ...this.graphics },
