@@ -7,6 +7,22 @@ import { driftFeedback } from '../src/simulation/open-world/drift-feedback.ts';
 import { FESTIVAL_SKILLS } from '../src/simulation/open-world/skill-chain.ts';
 const motion = { speed: 40, forward: 35, lateral: 12, yawRate: 0.4, longitudinalG: 0.3 };
 describe('Motion-informed Festival camera', () => {
+  it('keeps the car in frame at motorway speed on all display cadences', () => {
+    for (const hz of [30, 60, 144]) {
+      const camera = { x: 0, y: 2, z: -7 };
+      const velocity = { x: 0, y: 0, z: 0 };
+      const step = 1 / hz;
+      const travel = { x: 8 * step, z: 70 * step };
+      for (let i = 1; i <= hz * 3; i++) {
+        const target = { x: travel.x * i, y: i % 2 ? 2.05 : 1.95, z: travel.z * i - 7 };
+        advanceChaseSpring(camera, velocity, target, 9, step, travel);
+        expect(camera.x).toBeCloseTo(target.x, 8);
+        expect(camera.z).toBeCloseTo(target.z, 8);
+        expect(Math.abs(camera.y - 2)).toBeLessThan(0.02);
+      }
+    }
+  });
+
   it('has frame-rate independent filtering and critically damped tracking', () => {
     const outputs = [];
     for (const fps of [30, 60, 120, 144]) {

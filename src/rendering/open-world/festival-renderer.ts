@@ -640,7 +640,6 @@ export class FestivalRenderer {
       this.lastSubject.distanceTo(this.target) >
         Math.max(24, Math.abs(speed) * Math.max(0, elapsed) * 1.8 + 10);
     const cut = !this.initialized || discontinuity || elapsed > 1;
-    this.lastSubject.copy(this.target);
     this.lastVehicle = vehicle;
     this.lastTime = time;
     if (subject) this.forward.set(0, 0, 1).applyQuaternion(subject.quaternion);
@@ -664,13 +663,17 @@ export class FestivalRenderer {
       );
       this.gaze.copy(this.orbit.target);
     } else if (this.mode === 'hood' && subject) {
-      this.desired.set(0, 1.18, 0.35).applyQuaternion(subject.quaternion).add(this.target);
+      const mount = this.cars.bodies.cabinOf(0)?.layout.mount;
+      if (mount) this.desired.fromArray(mount.eye);
+      else this.desired.set(0, 1.18, 0.35);
+      this.desired.applyQuaternion(subject.quaternion).add(this.target);
+      const pitch = mount?.pitch ?? Math.atan2(0.6, 30);
       this.temp
-        .set(Math.sin(this.lookX) * 30, 0.6, Math.cos(this.lookX) * 30)
+        .set(Math.sin(this.lookX), Math.tan(pitch), Math.cos(this.lookX))
         .applyQuaternion(subject.quaternion);
       this.gaze.copy(this.desired).add(this.temp);
       this.camera.position.copy(this.desired);
-      this.camera.fov = 66;
+      this.camera.fov = mount?.fov ?? 66;
       this.velocity.set(0, 0, 0);
     } else {
       const rig = RIGS[this.mode === 'far' ? 'far' : 'chase'];
@@ -713,7 +716,14 @@ export class FestivalRenderer {
         this.camera.position.copy(this.desired);
         this.velocity.set(0, 0, 0);
       } else {
-        advanceChaseSpring(this.camera.position, this.velocity, this.desired, 9, dt);
+        this.temp.subVectors(this.target, this.lastSubject);
+        advanceChaseSpring(this.camera.position, this.velocity, this.desired, 9, dt, this.temp);
+        const floor =
+          this.groundHeight(this.camera.position.x, this.camera.position.z, this.target.y) + 0.8;
+        if (this.camera.position.y < floor) {
+          this.camera.position.y = floor;
+          this.velocity.y = Math.max(0, this.velocity.y);
+        }
       }
     }
     if (!this.photo && this.mode !== 'hood') {
@@ -727,6 +737,7 @@ export class FestivalRenderer {
       )
         this.velocity.set(0, 0, 0);
     }
+    this.lastSubject.copy(this.target);
     this.initialized = true;
     this.camera.up.set(0, 1, 0);
     this.camera.lookAt(this.gaze);

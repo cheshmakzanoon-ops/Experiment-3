@@ -180,6 +180,7 @@ describe('festival garage presentation', () => {
       cars.update(back, back, back, 1, 1 / 60, 0);
       expect(cars.root.getObjectByName('Formula 1')).toBe(formula);
       expect(formula.visible).toBe(true);
+      expect(cars.bodies.cabinOf(0)).toBeNull();
       expect(road.visible).toBe(false);
       expectPose(formula, back);
 
@@ -188,6 +189,34 @@ describe('festival garage presentation', () => {
       expect(formula.visible).toBe(false);
       expect(road.visible).toBe(true);
       expectPose(road, again);
+    } finally {
+      cars.dispose();
+    }
+  });
+
+  it('shows close road rivals in full detail and retires their cabin at distance', () => {
+    stubCanvas();
+    const cars = new FestivalCars(),
+      camera = new T.PerspectiveCamera();
+    const frame = new Float32Array(HEADER + 2 * CAR_STRIDE);
+    frame.set(snapshot('rh3', 1, [0, 1, 0], 0));
+    frame[H.CARS] = 2;
+    frame.set(snapshot('rs5', 1, [0, 1, 12], 0).subarray(HEADER), carBase(1));
+    const pose = (z: number) => {
+      camera.position.set(0, 1, z);
+      cars.update(frame, frame, frame, 1, 1 / 60, 0, camera, false, 'medium');
+      return cars.bodies.root.children[1]
+        .getObjectByName('Body LODs')!
+        .children.map((lod) => lod.visible);
+    };
+    try {
+      expect(pose(0)).toEqual([true, false, false]);
+      expect(cars.bodies.cabinOf(1)!.detail.visible).toBe(true);
+      expect(pose(90)).toEqual([false, true, false]);
+      expect(pose(65)).toEqual([false, true, false]); // 53 m, inside the hysteresis band
+      expect(pose(220)).toEqual([false, false, true]);
+      expect(cars.bodies.cabinOf(1)!.detail.visible).toBe(false);
+      expect(pose(18)).toEqual([true, false, false]);
     } finally {
       cars.dispose();
     }

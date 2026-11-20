@@ -4,6 +4,7 @@ import { vehicleAt } from '../../simulation/vehicles.ts';
 import { bodyFrame } from '../vehicle-bodies/frame.ts';
 import { bodySheetFor } from '../vehicle-bodies/body-sheet.ts';
 import { FormulaCar } from '../car.ts';
+import { carLod } from '../lod.ts';
 import { VehicleBodies } from '../vehicle-bodies/index.ts';
 import { installSpecularIBL } from '../studio/ibl-energy.ts';
 import type { Quality } from '../options.ts';
@@ -129,6 +130,7 @@ export class FestivalCars {
         presented[o + F.QZ],
         presented[o + F.QW],
       );
+      const distance = camera ? holder.position.distanceTo(camera.position) : id === 0 ? 0 : 80;
       if (definition.classId === 'formula') {
         let car = formula;
         if (!car) {
@@ -139,13 +141,14 @@ export class FestivalCars {
           this.refreshPaint();
         }
         car.root.visible = true;
-        const distance = camera ? holder.position.distanceTo(camera.position) : id === 0 ? 0 : 80;
         car.setLod(distance, quality, id === 0);
         car.update(a, b, o, alpha, dt, presented[H.TIME], false);
         holder.position.copy(car.root.position);
         holder.quaternion.copy(car.root.quaternion);
       } else {
         if (formula) formula.root.visible = false;
+        const host = this.holders[id];
+        host.lodLevel = carLod(distance, host.lodLevel, quality, id === 0);
       }
     }
     // The body library reads the snapshots and the posed holders; Formula

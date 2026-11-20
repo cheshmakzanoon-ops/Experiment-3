@@ -535,7 +535,8 @@ export class VehicleBodies {
   }
   /** The cabin layout of the body drawn for an entrant (diagnostics). */
   cabinOf(id: number) {
-    return this.bodies.get(id)?.lods[0].cabin ?? null;
+    const body = this.bodies.get(id);
+    return body?.root.visible ? (body.lods[0].cabin ?? null) : null;
   }
   /** Shadow-pass substitution pairs (renderer ShadowProxies). */
   shadowSubstitutes(): ShadowSubstitute[] {

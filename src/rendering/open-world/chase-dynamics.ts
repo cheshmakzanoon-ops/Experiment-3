@@ -58,15 +58,22 @@ interface VectorLike {
 }
 /** Exact critically damped spring for a held target. Unlike the former Euler
  * substeps this gives the same pose at 30/60/144 Hz and cannot overshoot after
- * a slow frame solely because the integrator changed step count. */
+ * a slow frame solely because the integrator changed step count. Horizontal
+ * chassis travel carries the boom with the car. Its spring only trails changes
+ * in heading and boom length. Vertical suspension motion stays damped. */
 export function advanceChaseSpring(
   position: VectorLike,
   velocity: VectorLike,
   target: VectorLike,
   omega: number,
   dt: number,
+  travel?: Pick<VectorLike, 'x' | 'z'>,
 ) {
   if (!Number.isFinite(dt) || dt <= 0 || !Number.isFinite(omega) || omega <= 0) return;
+  if (travel) {
+    position.x += travel.x;
+    position.z += travel.z;
+  }
   const t = Math.min(dt, 0.25),
     e = Math.exp(-omega * t);
   for (const key of ['x', 'y', 'z'] as const) {
