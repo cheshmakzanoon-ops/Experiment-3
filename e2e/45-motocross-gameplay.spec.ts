@@ -22,7 +22,25 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('console', (message) => {
     if (message.type() === 'error') errors.push(message.text());
+    if (message.text().startsWith('[MX loading]')) console.info(message.text());
   });
+  if (process.env.APEX_MOTOCROSS_JOURNEY_PROGRESS === '1') {
+    await page.addInitScript(() => {
+      let lastStage = '';
+      window.setInterval(() => {
+        const label = document.getElementById('loadingText');
+        if (!label?.getClientRects().length) {
+          lastStage = '';
+          return;
+        }
+        const stage = label.textContent?.trim() || '';
+        if (stage && stage !== lastStage) {
+          lastStage = stage;
+          console.info(`[MX loading] ${stage}`);
+        }
+      }, 5000);
+    });
+  }
   const diag = () => page.evaluate(() => window.apexDiagnostics());
   const capture = async (name: string) => {
     const path = info.outputPath(name);
