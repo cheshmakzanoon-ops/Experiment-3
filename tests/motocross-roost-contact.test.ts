@@ -4,6 +4,8 @@ import { Roost, ROOST_CAPACITY, ROOST_GROUND_SAMPLES } from '../src/rendering/of
 import { TrackTerrainSurface } from '../src/simulation/offroad/course-terrain.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
 import {
+  B,
+  BIKE_BASE,
   CAR_STRIDE,
   F,
   H,
@@ -172,6 +174,36 @@ describe('lit motocross soil and independent touchdown contacts', () => {
       }
     }
     expect(travelledBelowOldFloor).toBe(true);
+  });
+
+  it('moves loaded shadows with the steered contact across a bank and clears old contacts on release', () => {
+    const h = harness(), b = h.b + BIKE_BASE;
+    h.roost.groundHeight = (_s, l) => 0.28 * l;
+    h.frame[b + B.FORK] = 0.02;
+    h.frame[b + B.SHOCK] = 0.15;
+    h.frame[b + B.STEER] = -0.4;
+    h.roost.update(h.frame, 0);
+    const first = h.roost.wheelPatch(0, true)!.position.clone();
+    const rear = h.roost.wheelPatch(0, false)!.position.clone();
+    h.frame[b + B.FORK] = 0.29;
+    h.frame[b + B.STEER] = 0.4;
+    h.roost.update(h.frame, 0);
+    const frontPatch = h.roost.wheelPatch(0, true)!;
+    expect(frontPatch.position.distanceTo(first)).toBeGreaterThan(0.11);
+    expect(h.roost.wheelPatch(0, false)!.position.distanceTo(rear)).toBeLessThan(1e-8);
+    const l = h.track.nearest(frontPatch.position.x, frontPatch.position.z, trackPoint());
+    expect(frontPatch.position.y).toBeCloseTo(0.28 * l, 6);
+    expect(Math.abs(frontPatch.forward.dot(frontPatch.normal))).toBeLessThan(1e-6);
+    const m = new T.Matrix4();
+    h.roost.contactShadows!.getMatrixAt(0, m);
+    const shadowAxis = new T.Vector3(0, 0, 1).transformDirection(m);
+    expect(shadowAxis.dot(frontPatch.forward)).toBeGreaterThan(0.9999);
+    h.load(0, 800);
+    h.roost.update(h.frame, 0);
+    expect(h.roost.wheelPatch(0, true)).toBeUndefined();
+    h.frame[h.o + O.AIRBORNE] = 1;
+    h.roost.update(h.frame, 0);
+    expect(h.roost.wheelPatch(0, false)).toBeUndefined();
   });
 
   it('bounds terrain sampling even with many riders and releases both render resources', () => {

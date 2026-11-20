@@ -102,7 +102,7 @@ import { EVENTS, eventSession, rulesetFor } from './simulation/events.ts';
 import { eventHub } from './ui/event-cards.ts';
 import { RadioCaption } from './ui/radio-caption.ts';
 import { TelemetryRecorder } from './storage/recorders.ts';
-import { clamp } from './core/math.ts';
+import { clamp, lerp } from './core/math.ts';
 import {
   changeTeam,
   driverProfile,
@@ -1642,7 +1642,7 @@ export class GameApp {
         );
         this.appliedReplaySurfaceTime = surface.time;
       }
-      this.renderer.circuit.offroad?.showAt(this.replayB[H.TIME]);
+      this.renderer.circuit.offroad?.showAt(lerp(this.replayA[H.TIME], this.replayB[H.TIME], fraction));
       a = this.replayA;
       b = this.replayB;
       // Attribute writes mutate the DOM even when unchanged; write only changes.

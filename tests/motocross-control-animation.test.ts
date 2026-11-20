@@ -7,6 +7,7 @@ import {
   type BikePoseValues,
 } from '../src/rendering/bike.ts';
 import { DirtBikeModel } from '../src/rendering/offroad/dirt-bike-model.ts';
+import { MotocrossAxles } from '../src/rendering/offroad/motocross-axles.ts';
 import { MxGeometryPool } from '../src/rendering/offroad/mx-geometry-pool.ts';
 import { mudUniforms } from '../src/rendering/offroad/mud.ts';
 import { MX_GLOVE_GRIP } from '../src/rendering/offroad/motocross-rider-contact.ts';
@@ -96,6 +97,45 @@ describe('motocross chassis-to-rider gaze integration', () => {
       }
     },
   );
+});
+
+it.each(['mx250', 'mx450', 'sm450'])('%s projects both displayed wheel hubs and the actual tyre envelope onto banked ground', (id) => {
+  const def = VEHICLES[id], axles = MotocrossAxles.of(def), materials = new BikeMaterials(0);
+  const model = new DirtBikeModel(def, 0, 'mid', materials, mudUniforms());
+  const up = new T.Vector3(-0.16, 1, 0.21).normalize();
+  const centre = new T.Vector3(), axis = new T.Vector3(), rendered = new T.Vector3();
+  const q = new T.Quaternion(), foot = new T.Vector3(), forward = new T.Vector3();
+  try {
+    model.root.position.set(14, 1.3, -29);
+    for (const [stroke, steer, lean] of [[0, -0.35, 0.43], [0.54, 0.28, -0.53], [1, 0, 0.2]]) {
+      const fork = stroke * def.bike!.forkTravel, shock = (1 - stroke) * def.bike!.shockTravel;
+      model.root.rotation.set(0.16, 0.89, lean, 'YXZ');
+      model.pose({fork, shock, steer, frontRotation: 0.65, rearRotation: -0.9, chassisLean: lean,
+        riderOffset: 0, tuck: 0, brake: 0, rearBrake: 0, discTemp: 0, compoundColour: 0xffffff, riding: true});
+      model.root.updateMatrixWorld(true);
+      for (const front of [true, false]) {
+        const wheel = model.root.getObjectByName(front ? 'Motocross front spinning wheel' : 'Motocross rear suspension hub')!;
+        axles.hub(front, front ? fork : shock, steer, centre, axis);
+        centre.applyMatrix4(model.root.matrixWorld);
+        axis.applyQuaternion(model.root.quaternion);
+        expect(centre.distanceTo(wheel.getWorldPosition(rendered))).toBeLessThan(1e-8);
+        rendered.set(1, 0, 0).applyQuaternion(wheel.getWorldQuaternion(q));
+        expect(axis.distanceTo(rendered)).toBeLessThan(1e-8);
+        axles.groundPoint(front, centre, axis, up, foot, forward);
+        expect(Math.abs(forward.dot(axis)) + Math.abs(forward.dot(up))).toBeLessThan(1e-8);
+        let lowest = Infinity;
+        wheel.traverse((o) => {
+          if (!(o instanceof T.Mesh) || !o.geometry.hasAttribute('mxTyreBind')) return;
+          const pos = o.geometry.getAttribute('position');
+          for (let i = 0; i < pos.count; i++)
+            lowest = Math.min(lowest, rendered.fromBufferAttribute(pos, i).applyMatrix4(o.matrixWorld).dot(up));
+        });
+        // The smooth contact lies within the physically modelled lug and
+        // angular tessellation envelope, including a tilted and turned front.
+        expect(Math.abs(lowest - foot.dot(up))).toBeLessThan(0.018);
+      }
+    }
+  } finally { model.dispose(); materials.dispose(); }
 });
 
 describe('motocross front brake articulation', () => {

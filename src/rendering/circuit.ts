@@ -1153,8 +1153,8 @@ export class CircuitScene {
     line.position.copy(this.at(0, 0, 0.015));
     line.rotation.set(-Math.PI / 2, 0, -Math.atan2(p.tx, p.tz));
   }
-  update(frame: Float32Array) {
-    this.offroad?.update(frame);
+  update(frame: Float32Array, presented = frame) {
+    this.offroad?.update(presented);
     for (let i = 0; i < this.startLamps.length; i++)
       this.startLamps[i].emissiveIntensity = i < frame[H.LIGHTS] ? START_LAMP_EMISSIVE : 0;
     updateSafetyPanel(this.safetyPanel, frame);

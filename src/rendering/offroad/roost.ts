@@ -4,6 +4,8 @@ import { clamp, Random } from '../../core/math.ts';
 import { MATERIAL } from '../../simulation/surface-material.ts';
 import {
   carBase,
+  B,
+  BIKE_BASE,
   F,
   H,
   O,
@@ -14,12 +16,19 @@ import {
   WHEEL_BASE,
   WHEEL_STRIDE,
 } from '../../simulation/protocol.ts';
-import { vehicleAt } from '../../simulation/vehicles.ts';
+import { vehicleAt, type VehicleDefinition } from '../../simulation/vehicles.ts';
+import { MotocrossAxles } from './motocross-axles.ts';
 import { TrackTerrainSurface } from '../../simulation/offroad/course-terrain.ts';
 import { Track, trackPoint } from '../../simulation/track.ts';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { MxDustMaterial } from './mx-dust-material.ts';
 import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
+
+export interface MxWheelPatch {
+  position: T.Vector3;
+  normal: T.Vector3;
+  forward: T.Vector3;
+}
 
 /** Loose ground a spinning tyre throws (WP41). */
 const LOOSE = new Set<number>([
@@ -218,9 +227,14 @@ export class Roost {
   private readonly contactNormal = new T.Vector3(0, 1, 0);
   private readonly point = trackPoint();
   private readonly shadowPose = new T.Object3D();
+  private readonly hub = new T.Vector3();
+  private readonly axle = new T.Vector3();
+  private readonly side = new T.Vector3();
+  private readonly basis = new T.Matrix4();
+  private readonly patches: (MxWheelPatch | undefined)[] = [];
+  private readonly loaded = new Uint8Array(128);
   private readonly clodPose = new T.Object3D();
   private readonly clodColour = new T.Color();
-  private readonly up = new T.Vector3(0, 1, 0);
   private readonly terrain: TrackTerrainSurface | null;
   private readonly motocross: boolean;
   private cursor = 0;
@@ -393,33 +407,86 @@ export class Roost {
       .normalize();
     return height ? height(s, lateral) : t.baseHeight(s, lateral) - clamp(rut, 0, 0.3);
   }
+  /** Last independently loaded tyre on the displayed frame. The renderer
+   * owns these vectors; callers may read them until the next update. */
+  wheelPatch(id: number, front: boolean): Readonly<MxWheelPatch> | undefined {
+    const slot = id * 2 + (front ? 0 : 1);
+    return this.loaded[slot] ? this.patches[slot] : undefined;
+  }
+
+  private sampleWheel(
+    frame: Float32Array,
+    o: number,
+    front: boolean,
+    def: VehicleDefinition,
+    patch: MxWheelPatch,
+  ) {
+    const rut = frame[o + OFFROAD_BASE + (front ? O.RUT_FRONT : O.RUT_REAR)];
+    const axles = def.bike?.offroad ? MotocrossAxles.of(def) : undefined;
+    if (axles) {
+      const b = o + BIKE_BASE;
+      axles.hub(
+        front,
+        frame[b + (front ? B.FORK : B.SHOCK)],
+        frame[b + B.STEER],
+        this.hub,
+        this.axle,
+      );
+    } else {
+      this.hub.fromArray(def.wheelPositions[front ? 0 : 2]);
+      this.axle.set(1, 0, 0);
+    }
+    this.hub.applyQuaternion(this.q);
+    this.hub.x += frame[o + F.X];
+    this.hub.y += frame[o + F.Y];
+    this.hub.z += frame[o + F.Z];
+    this.axle.applyQuaternion(this.q);
+    const height = this.contact(this.hub.x, this.hub.z, rut, this.hub.y - def.spec.wheelRadius);
+    patch.normal.copy(this.contactNormal);
+    if (!axles) {
+      patch.position.set(this.hub.x, height, this.hub.z);
+      patch.forward.crossVectors(this.axle, patch.normal).normalize();
+      return;
+    }
+    axles.groundPoint(front, this.hub, this.axle, patch.normal, patch.position, patch.forward);
+    if (this.track && this.terrain) {
+      // The contact moves sideways under lean and rearward under fork travel.
+      // Re-sample the displayed height at that point, including deformed ruts.
+      const lateral = this.track.nearest(patch.position.x, patch.position.z, this.point);
+      patch.position.y = this.groundHeight
+        ? this.groundHeight(this.point.s, lateral)
+        : this.terrain.terrain.baseHeight(this.point.s, lateral) - clamp(rut, 0, 0.3);
+    }
+  }
+
   private shadows(frame: Float32Array) {
     const mesh = this.contactShadows;
     if (!mesh) return;
     let count = 0;
+    this.loaded.fill(0);
     for (let id = 0; id < Math.min(64, frame[H.CARS]); id++) {
       const o = carBase(id),
         def = vehicleAt(Math.round(frame[o + RACE_BASE + R.VEHICLE]));
       if (def.dynamicsKind !== 'bike' || frame[o + OFFROAD_BASE + O.AIRBORNE] > 0.5) continue;
       this.q.set(frame[o + F.QX], frame[o + F.QY], frame[o + F.QZ], frame[o + F.QW]);
-      this.back.set(0, 0, 1).applyQuaternion(this.q);
       for (const wheel of [0, 2]) {
         const w = o + WHEEL_BASE + wheel * WHEEL_STRIDE;
         if (frame[w + W.LOAD] < 45) continue;
-        const local = def.wheelPositions[wheel];
-        this.v.set(local[0], local[1], local[2]).applyQuaternion(this.q);
-        const x = frame[o + F.X] + this.v.x,
-          z = frame[o + F.Z] + this.v.z;
-        const y = this.contact(
-          x,
-          z,
-          frame[o + OFFROAD_BASE + (wheel === 0 ? O.RUT_FRONT : O.RUT_REAR)],
-          frame[o + F.Y] + this.v.y - def.spec.wheelRadius,
-        );
+        const slot = id * 2 + (wheel === 0 ? 0 : 1);
+        const patch = (this.patches[slot] ??= {
+          position: new T.Vector3(),
+          normal: new T.Vector3(),
+          forward: new T.Vector3(),
+        });
+        this.sampleWheel(frame, o, wheel === 0, def, patch);
+        this.loaded[slot] = 1;
         const pose = this.shadowPose;
-        pose.position.set(x, y + 0.022, z);
-        pose.quaternion.setFromUnitVectors(this.up, this.contactNormal);
-        pose.rotateY(Math.atan2(this.back.x, this.back.z));
+        pose.position.copy(patch.position);
+        pose.position.y += 0.022;
+        this.side.crossVectors(patch.normal, patch.forward).normalize();
+        pose.quaternion.setFromRotationMatrix(
+          this.basis.makeBasis(this.side, patch.normal, patch.forward),
+        );
         const load = clamp(frame[w + W.LOAD] / 650, 0.25, 1);
         pose.scale.set(0.38 + load * 0.12, 1, 0.6 + load * 0.2);
         pose.updateMatrix();
@@ -625,19 +692,29 @@ export class Roost {
         const loose = LOOSE.has(Math.round(frame[p + W.SURFACE])),
           load = frame[p + W.LOAD],
           slip = Math.abs(frame[p + W.SLIP]);
-        const local = def.wheelPositions[wheel];
-        this.v.set(local[0], local[1] - 0.25, local[2]).applyQuaternion(this.q);
-        const x = frame[o + F.X] + this.v.x,
+        const patch = this.motocross && bike ? this.wheelPatch(id, wheel === 0) : undefined;
+        let x: number, y: number, z: number;
+        if (patch) {
+          x = patch.position.x;
+          y = patch.position.y + 0.045;
+          z = patch.position.z;
+          this.contactNormal.copy(patch.normal);
+          this.back.copy(patch.forward).negate();
+        } else {
+          const local = def.wheelPositions[wheel];
+          this.v.set(local[0], local[1] - 0.25, local[2]).applyQuaternion(this.q);
+          x = frame[o + F.X] + this.v.x;
           z = frame[o + F.Z] + this.v.z;
-        const y =
-          this.motocross && loose && load >= 50
-            ? this.contact(
-                x,
-                z,
-                frame[o + OFFROAD_BASE + (wheel === 0 ? O.RUT_FRONT : O.RUT_REAR)],
-                frame[o + F.Y] + this.v.y,
-              ) + 0.045
-            : frame[o + F.Y] + this.v.y;
+          y =
+            this.motocross && loose && load >= 50
+              ? this.contact(
+                  x,
+                  z,
+                  frame[o + OFFROAD_BASE + (wheel === 0 ? O.RUT_FRONT : O.RUT_REAR)],
+                  frame[o + F.Y] + this.v.y,
+                ) + 0.045
+              : frame[o + F.Y] + this.v.y;
+        }
         const impactBit = wheel === 0 ? 1 : 2;
         if (
           this.motocross &&
@@ -711,6 +788,7 @@ export class Roost {
     this.emission.fill(0);
     this.opacity.fill(0);
     this.wasAirborne.fill(0);
+    this.loaded.fill(0);
     this.pendingImpact.fill(0);
     this.impactAge.fill(0);
     this.impactSpeed.fill(0);

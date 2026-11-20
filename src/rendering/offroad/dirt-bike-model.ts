@@ -4,7 +4,6 @@ import type { VehicleDefinition } from '../../simulation/vehicles.ts';
 import {
   add,
   exhaustGeometry,
-  staticSag,
   tube,
   tyreGeometry,
   type BikeMaterials,
@@ -14,6 +13,7 @@ import { liveryScheme } from '../car-livery.ts';
 import { tagWeatherSurface } from '../weather-presentation.ts';
 import { Rider, type RiderDetail } from '../rider.ts';
 import { installMudOn, tagMudExposure, type MudUniforms } from './mud.ts';
+import { MotocrossAxles, MX_AXLE_OFFSET as OFFSET, MX_RAKE as RAKE } from './motocross-axles.ts';
 import { forkLocalOffset } from '../bike-pit-service.ts';
 import { batchBikeRigidMeshes } from '../bike-rigid-batch.ts';
 import { MotocrossChainDrive, distantMotocrossChain } from './motocross-chain-drive.ts';
@@ -78,10 +78,7 @@ function mxRotorEmission(temperature: number | undefined) {
 /** Off-road motorcycle geometry (m): a 27 degree rake, a long fork with
  * ~300 mm of travel between the axle and the lower clamp, and the rider's
  * contact points for a standing-friendly riding position. */
-const RAKE = 0.47,
-  OFFSET = 0.022,
-  FORK = 0.92,
-  CLAMPS = 0.2;
+const CLAMPS = 0.2;
 /**
  * Procedural motocross / supercross / supermoto bike (WP41 presentation).
  * Original design, no real manufacturer: a steel perimeter frame and
@@ -120,10 +117,7 @@ export class DirtBikeModel {
   private readonly shockLower = new T.Vector3();
   private readonly upperEye = new T.Vector3();
   private readonly lowerEye = new T.Vector3();
-  private readonly pivot: T.Vector3;
-  private readonly rearAxle: T.Vector3;
-  private readonly armLength: number;
-  private readonly sag: { fork: number; shock: number };
+  private readonly axles: MotocrossAxles;
   private readonly gripLocal = [new T.Vector3(), new T.Vector3()];
   private readonly scratch = new T.Vector3();
   private readonly matrix = new T.Matrix4();
@@ -139,7 +133,6 @@ export class DirtBikeModel {
     private readonly mud: MudUniforms,
   ) {
     const b = definition.bike!,
-      h = b.cgHeight,
       sides = detail === 'high' ? 36 : detail === 'mid' ? 18 : 10,
       supermoto = definition.tireFamily === 'supermoto',
       scheme = liveryScheme(id);
@@ -148,7 +141,7 @@ export class DirtBikeModel {
       secondary: new T.Color(scheme.secondary).getHex(),
       accent: new T.Color(scheme.accent).getHex(),
     };
-    this.sag = staticSag(definition);
+    this.axles = MotocrossAxles.of(definition);
     this.root.name = `${definition.name} ${id + 1} (${detail})`;
     this.root.add(this.sprung);
     // Moulded polypropylene with its glossy in-mould skin: a soft primary
@@ -367,10 +360,7 @@ export class DirtBikeModel {
         }
     };
     // ---- Steering: a long fork on a 27 degree head.
-    const front = new T.Vector3(0, frontR - h, b.cgToFront);
-    const up = new T.Vector3(0, Math.cos(RAKE), -Math.sin(RAKE)),
-      forward = new T.Vector3(0, Math.sin(RAKE), Math.cos(RAKE));
-    const head = front.clone().addScaledVector(up, FORK).addScaledVector(forward, -OFFSET);
+    const head = this.axles.head;
     this.steerMount.position.copy(head);
     this.steerMount.rotation.x = -RAKE;
     this.sprung.add(this.steerMount);
@@ -651,7 +641,7 @@ export class DirtBikeModel {
     this.forkLower.add(this.frontSpin);
     this.frontSpin.name = 'Motocross front spinning wheel';
     this.frontSpin.position.set(0, 0, OFFSET);
-    wheel(this.frontSpin, frontR, frontRim, supermoto ? 0.06 : 0.042, true);
+    wheel(this.frontSpin, frontR, frontRim, this.axles.frontWidth, true);
     if (detail !== 'far') {
       add(
         this.forkLower,
@@ -918,9 +908,7 @@ export class DirtBikeModel {
     if (detail !== 'far')
       this.footControls = new MotocrossFootControls(this.sprung, this.m, detail === 'high');
     // ---- Swingarm from the pivot to the rear axle on the ground.
-    this.pivot = new T.Vector3(0, -0.36, -0.15);
-    this.rearAxle = new T.Vector3(0, rearR - h, -b.cgToRear);
-    const arm = (this.armLength = this.rearAxle.clone().sub(this.pivot).length());
+    const arm = this.axles.armLength;
     this.swingarm.name = 'Motocross articulated swingarm';
     for (const side of [1, -1])
       add(this.swingarm, motocrossSwingarmRail(arm, side, detail), brushedAlloy);
@@ -978,7 +966,7 @@ export class DirtBikeModel {
           anchor.z,
         ).rotation.z = Math.PI / 2;
       this.rearBrake.name = 'Motocross axle-mounted non-spinning rear brake';
-      this.rearBrake.position.copy(this.rearAxle);
+      this.rearBrake.position.copy(this.axles.rearRest);
       this.root.add(this.rearBrake);
       const rearBanjo = addMotocrossBrakeCaliper(this.rearBrake, false, detail, this.m, 0);
       add(
@@ -1016,10 +1004,10 @@ export class DirtBikeModel {
     }
     this.root.add(this.swingarm);
     this.rearWheel.name = 'Motocross rear suspension hub';
-    this.rearWheel.position.copy(this.rearAxle);
+    this.rearWheel.position.copy(this.axles.rearRest);
     this.rearWheel.add(this.rearSpin);
     this.root.add(this.rearWheel);
-    wheel(this.rearSpin, rearR, rearRim, supermoto ? 0.085 : 0.06, false);
+    wheel(this.rearSpin, rearR, rearRim, this.axles.rearWidth, false);
     // ---- Off-road rider.
     this.rider = new Rider(colours, detail, 'motocross', (id % 98) + 2);
     if (detail !== 'far') this.rider.brakeFingerTargets = [new T.Vector3(), new T.Vector3()];
@@ -1063,16 +1051,16 @@ export class DirtBikeModel {
     // The off-road adapter records vertical wheel travel, not piston travel.
     // Convert it to the raked telescope's stroke; steering around that axis
     // must not change its extension or produce another chassis displacement.
-    this.forkLower.position.y = -FORK + (fork - this.sag.fork) / Math.cos(RAKE);
+    this.forkLower.position.y = this.axles.lowerY(fork);
     this.frontSpin.rotation.x = v.frontRotation;
     this.rearSpin.rotation.x = v.rearRotation;
     // Pit service wheel exchange (see BikeModel.pose).
     // The rigid swingarm pivots on a circular arc. Its axle's vertical travel
     // follows the recorded rear compression; neither the arm nor its chain
     // stretches to reach a hub pinned to the old ground-reference frame.
-    const dy = this.rearAxle.y + shock - this.sag.shock - this.pivot.y,
-      dz = -Math.sqrt(Math.max(0, this.armLength ** 2 - dy ** 2));
-    this.rearWheel.position.set(this.pivot.x, this.pivot.y + dy, this.pivot.z + dz);
+    this.axles.rearHub(shock, this.rearWheel.position);
+    const dy = this.rearWheel.position.y - this.axles.pivot.y,
+      dz = this.rearWheel.position.z - this.axles.pivot.z;
     this.rearBrake.position.copy(this.rearWheel.position);
     this.rearWheel.position.z -= v.rearWheelOut ?? 0;
     forkLocalOffset(
@@ -1083,7 +1071,7 @@ export class DirtBikeModel {
     ).z += OFFSET;
     this.brakeHose?.update(this.forkLower.position.y);
     this.sprung.updateMatrix();
-    const p = this.scratch.copy(this.pivot).applyMatrix4(this.sprung.matrix);
+    const p = this.scratch.copy(this.axles.pivot).applyMatrix4(this.sprung.matrix);
     this.swingarm.position.copy(p);
     this.swingarm.rotation.x = Math.atan2(dy, -dz);
     this.swingarm.scale.z = 1;
@@ -1128,12 +1116,12 @@ export class DirtBikeModel {
       this.scratch.set(0, 0, 1).applyQuaternion(this.root.quaternion);
       const chassisPitch = -Math.asin(T.MathUtils.clamp(this.scratch.y, -1, 1));
       const forkStroke = T.MathUtils.clamp(
-        (fork - this.sag.fork) / (b.forkTravel - this.sag.fork),
+        (fork - this.axles.sag.fork) / (b.forkTravel - this.axles.sag.fork),
         0,
         1,
       );
       const rearStroke = T.MathUtils.clamp(
-        (shock - this.sag.shock) / (b.shockTravel - this.sag.shock),
+        (shock - this.axles.sag.shock) / (b.shockTravel - this.axles.sag.shock),
         0,
         1,
       );
