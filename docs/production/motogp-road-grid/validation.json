@@ -1092,5 +1092,111 @@
       ],
       "route": "Resize during High practice"
     }
+  },
+  "openingGrid": {
+    "sourceCommit": "a963fb376ea17c8464a90257b9a6ce51dbd5e76a",
+    "sourceFingerprintSha256": "f5f1a3f274925fc1f9d51e490b8c8a367c7d6e4579991251d86f98a9eb433436",
+    "productionBuild": "passed",
+    "typecheck": "passed",
+    "contentValidation": "passed",
+    "authoredSourceLint": "passed",
+    "review": {
+      "tests": 192,
+      "files": 16,
+      "passed": true
+    },
+    "openingReflection": "Complete the six venue faces, then finish the chase and cockpit shadow maps before their respective colour passes. A road grid with pit service finishes the chase colour submission before the crew upload takes its fence.",
+    "staticSunShadow": "The static venue map excludes the separate motorcycle and rider group. Moving motorcycles remain eligible for the near sun shadow.",
+    "cold1280": {
+      "viewport": [
+        1280,
+        800
+      ],
+      "adapter": "Chromium SwiftShader",
+      "result": "The chase colour submission hit its 90-second GPU preparation deadline."
+    },
+    "cold960": {
+      "viewport": [
+        960,
+        600
+      ],
+      "state": "driving",
+      "vehicle": "gpr2",
+      "opponents": 3,
+      "backend": "Chromium SwiftShader",
+      "preparation": "complete",
+      "stageSeconds": {
+        "venueReflection": 41.6,
+        "chaseShadowMaps": 4.9,
+        "chaseColourCompletion": 83.1,
+        "pitService": 2.5,
+        "cockpitShadowMaps": 11.3,
+        "cockpitCompletion": 47
+      }
+    },
+    "resizeAttempt": {
+      "viewport": [
+        1280,
+        800
+      ],
+      "result": "A moving, banked frame was not confirmed within the four-minute observation window on this source."
+    }
+  },
+  "hiddenChaseShading": {
+    "sourceCommit": "8a68c52c9d97f294f6fa4d110bc5fec2fa138510",
+    "sourceFingerprintSha256": "2338303034ba1231941cde86462080efb6136807a1c895045b14b76ac1bd862e",
+    "productionBuild": "passed",
+    "typecheck": "passed",
+    "contentValidation": "passed",
+    "authoredSourceLint": "passed",
+    "review": {
+      "tests": 194,
+      "files": 16,
+      "passed": true
+    },
+    "coldHighGrid": {
+      "vehicle": "gpr2",
+      "opponents": 3,
+      "track": "poggio-alto",
+      "weather": "clear",
+      "preset": "High",
+      "backend": "Chromium SwiftShader",
+      "viewport": [
+        1280,
+        800
+      ],
+      "renderSize": [
+        1280,
+        800
+      ],
+      "nativeSceneSamples": 4,
+      "shadowMapPixels": 2048,
+      "reflections": "local",
+      "scissor": {
+        "width": 320,
+        "height": 200,
+        "targetWidth": 1280,
+        "targetHeight": 800,
+        "hiddenChaseFraction": 0.0625
+      },
+      "fullCockpitCompleted": true,
+      "preparation": "complete",
+      "state": "driving",
+      "liveChasePresented": true,
+      "aiRidingEnabled": true,
+      "stageSeconds": {
+        "venueReflection": 29.9,
+        "chaseShadowMaps": 4,
+        "chaseColourCompletion": 52.3,
+        "pitService": 4.3,
+        "chaseFenceAfterCrew": 0,
+        "cockpitShadowMaps": 15,
+        "cockpitCompletion": 58.9
+      }
+    },
+    "previousColdSource": "a963fb376ea17c8464a90257b9a6ce51dbd5e76a",
+    "previousChaseDeadlineSeconds": 90,
+    "observationLimit": "The local graphics machine became unavailable after the first full-resolution chase presentation and AI handover. A subsequent corner or 1920 × 1080 screenshot from this revision was not recovered. The verified 1280 × 800 moving photograph in the gallery is from 717b2f83.",
+    "hardwareQualification": "Native console frame pacing and controller-to-display latency require physical target hardware."
   }
 }
