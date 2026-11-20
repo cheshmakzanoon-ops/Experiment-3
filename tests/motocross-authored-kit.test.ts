@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import kit from '../src/rendering/assets/mx-authored-kit.mesh.json';
 import { mxAuthoredGeometry, type MxAuthoredPart } from '../src/rendering/offroad/authored-kit.ts';
 import { buildMotocrossBoundary, MX_BOUNDARY } from '../src/rendering/offroad/mx-boundary.ts';
+import { mxPaddingGeometry } from '../src/rendering/offroad/mx-padding.ts';
 import { mxFurnitureGround } from '../src/rendering/offroad/mx-ground-pose.ts';
 import { Stadium } from '../src/rendering/offroad/stadium.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
@@ -63,7 +64,7 @@ describe('original Blender-authored motocross kit', () => {
   );
 
   it('keeps readable, non-mirrored UV orientation on every exterior pad face', () => {
-    const pad = mxAuthoredGeometry('safety-pad', 'mid');
+    const pad = mxPaddingGeometry();
     const uv = pad.getAttribute('uv'),
       indices = pad.index!;
     for (let i = 0; i < indices.count; i += 3) {
@@ -78,8 +79,39 @@ describe('original Blender-authored motocross kit', () => {
     pad.dispose();
   });
 
+  it('maps the long sides, gussets and top to separate stitched panels on the race mesh', () => {
+    const pad = mxPaddingGeometry();
+    const pos = pad.getAttribute('position'),
+      uv = pad.getAttribute('uv'),
+      idx = pad.index!;
+    const a = new T.Vector3(),
+      b = new T.Vector3(),
+      c = new T.Vector3();
+    const seen = new Set<string>();
+    for (let i = 0; i < idx.count; i += 3) {
+      const face = [idx.getX(i), idx.getX(i + 1), idx.getX(i + 2)];
+      a.fromBufferAttribute(pos, face[0]);
+      b.fromBufferAttribute(pos, face[1]).sub(a);
+      c.fromBufferAttribute(pos, face[2]).sub(a);
+      b.cross(c);
+      const long = Math.abs(b.x) > Math.max(Math.abs(b.y), Math.abs(b.z));
+      const crown = !long && Math.abs(b.y) > Math.abs(b.z);
+      seen.add(long ? 'side' : crown ? 'crown' : 'end');
+      for (const v of face) {
+        if (long) expect(uv.getY(v)).toBeGreaterThan(0.5);
+        else {
+          expect(uv.getY(v)).toBeLessThan(0.5);
+          if (crown) expect(uv.getX(v)).toBeLessThan(0.75);
+          else expect(uv.getX(v)).toBeGreaterThan(0.75);
+        }
+      }
+    }
+    expect(seen.size).toBe(3);
+    pad.dispose();
+  });
+
   it('keeps the collision envelope and bounds the repeated pad cost', () => {
-    const pad = mxAuthoredGeometry('safety-pad', 'mid');
+    const pad = mxPaddingGeometry();
     expect(pad.index!.count / 3).toBeLessThanOrEqual(256);
     const size = pad.boundingBox!.getSize(new T.Vector3());
     for (const [observed, expected] of [

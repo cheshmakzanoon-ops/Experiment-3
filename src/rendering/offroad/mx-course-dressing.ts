@@ -3,12 +3,11 @@ import { disposeOffroadResources } from './owned-resources.ts';
 import { MxTracksideFurniture } from './mx-trackside-furniture.ts';
 import { mxFootprintMatrix, mxFurnitureGround } from './mx-ground-pose.ts';
 import { mxFieldstoneGeometry } from './mx-fieldstone.ts';
-import { mxAuthoredGeometry } from './authored-kit.ts';
 import { planMxCourseSites } from './mx-course-sites.ts';
 import { attachMxClothShadows, installMxClothWind } from './mx-event-cloth.ts';
 import { mxStrawBale } from './mx-straw-bale.ts';
 import { mxTeamVanGeometry, mxTeamVanMaterial } from './mx-paddock-models.ts';
-import { mxPaddingMaterial } from './mx-padding.ts';
+import { mxPaddingGeometry, mxPaddingMaterial } from './mx-padding.ts';
 import { onMxDetail } from './mx-quality.ts';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { mod, Random } from '../../core/math.ts';
@@ -201,18 +200,12 @@ export class MxCourseDressing {
       roughness: 0.49,
       name: 'MX galvanised event frames',
     });
-    const pad = mxPaddingMaterial(false);
-    for (const texture of [pad.map, pad.normalMap, pad.roughnessMap])
-      if (texture) this.ownedTextures.add(texture);
     const r = new Random(36072);
     const stakes: T.Matrix4[] = [],
       blocks: T.Matrix4[] = [],
       markers: T.Matrix4[] = [];
     const pole = mxCourseStakeGeometry();
     const staked: Record<'-1' | '1', number[]> = { '-1': [], '1': [] };
-    const block = mxAuthoredGeometry('safety-pad', 'mid')
-      .scale(0.55 / 0.68, 0.38 / 0.58, 1.6 / 2.1)
-      .translate(0, 0.19, 0);
     for (let s = 4; s < track.length - 3; s += indoor ? 7 : 8) {
       track.at(s, this.point);
       for (const side of [-1, 1] as const) {
@@ -234,7 +227,15 @@ export class MxCourseDressing {
     this.stats.blocks = blocks.length;
     this.instances('MX course-edge stakes', pole, yellow, stakes);
     if (!indoor) this.boundaryTape(staked);
-    this.instances('SX padded lane dividers', block, pad, blocks);
+    if (blocks.length) {
+      const pad = mxPaddingMaterial(false);
+      for (const texture of [pad.map, pad.normalMap, pad.roughnessMap])
+        if (texture) this.ownedTextures.add(texture);
+      const block = mxPaddingGeometry()
+        .scale(0.55 / 0.68, 0.38 / 0.58, 1.6 / 2.1)
+        .translate(0, 0.19, 0);
+      this.instances('SX padded lane dividers', block, pad, blocks);
+    }
     // Paired tall, warm markers mark the actual take-off. Short pale stakes
     // at the surveyed landing distinguish front and back faces at speed.
     for (const jump of course.jumps) {
