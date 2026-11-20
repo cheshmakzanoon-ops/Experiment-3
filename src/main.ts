@@ -184,6 +184,7 @@ export class GameApp {
   private gridPanel: GridPresentationPanel | null = null;
   private gridAutomatic = false;
   private gridBriefingOpen = false;
+  private dirtGateRelease: 'draw' | 'gpu' | 'paint' | 'released' | null = null;
   private track = new Track();
   private ui: Interface;
   private photoStudio: PhotoStudio;
@@ -1121,6 +1122,7 @@ export class GameApp {
     this.gridClock.reset();
     this.gridAutomatic = false;
     this.gridBriefingOpen = false;
+    this.dirtGateRelease = null;
     this.gridPanel?.hide();
     this.renderer?.gridPerformance.reset();
     this.ui.gridPresentationAvailable = false;
@@ -1568,6 +1570,21 @@ export class GameApp {
       this.fail(error);
       return;
     }
+    // Keep the race clock at zero until the first unobscured riding frame is
+    // finished and the browser has had a paint opportunity. Inputs can already
+    // be held at the gate. A slow first submission cannot cost the player a start.
+    if (this.state === 'driving' && this.dirtGateRelease && this.dirtGateRelease !== 'released') {
+      if (document.hidden) return;
+      if (this.dirtGateRelease === 'gpu') {
+        this.dirtGateRelease = 'paint';
+        return;
+      }
+      if (this.dirtGateRelease === 'paint') {
+        this.dirtGateRelease = 'released';
+        this.post({ type: 'pause', value: false });
+        return;
+      }
+    }
     // A motocross briefing holds the worker at the start gate. Poll its real
     // GPU fence above, then leave the completed chase image with the compositor
     // until the rider starts, the viewport changes or the briefing closes.
@@ -1682,6 +1699,7 @@ export class GameApp {
         this.menuPreviewView,
       );
     }
+    if (this.state === 'driving' && this.dirtGateRelease === 'draw') this.dirtGateRelease = 'gpu';
     // Consume only after a real submission; busy graphics and covered replay
     // keep the latest viewport request pending without creating extra frames.
     this.viewportRedrawPending = false;
@@ -2073,6 +2091,7 @@ export class GameApp {
   }
   private pause() {
     if (this.state !== 'driving') return;
+    this.dirtGateRelease = null;
     this.referenceSession.interrupt('Session paused or focus lost.');
     this.performanceCapture.interrupt('Session paused or focus lost');
     this.interruptReview('Session paused or focus lost');
@@ -2178,7 +2197,13 @@ export class GameApp {
     this.observeSession();
     this.input.setEnabled(true);
     this.post({ type: 'input', input: controls() });
-    this.post({ type: 'pause', value: false });
+    this.dirtGateRelease =
+      this.renderer?.circuit.offroad &&
+      this.current?.[H.TICK] === 0 &&
+      racingSession(this.options.mode)
+        ? 'draw'
+        : null;
+    if (!this.dirtGateRelease) this.post({ type: 'pause', value: false });
     (document.activeElement as HTMLElement)?.blur();
   }
   private finish(frame: Float32Array) {
@@ -3337,6 +3362,7 @@ export class GameApp {
         complete: this.gridClock.complete,
         automatic: this.gridAutomatic,
         briefing: this.gridBriefingOpen,
+        dirtGateRelease: this.dirtGateRelease,
       },
       workerPause: this.workerPause.status(),
       team: structuredClone(this.team),

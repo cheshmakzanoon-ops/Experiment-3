@@ -137,6 +137,22 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
     await page.getByRole('button', { name: 'GO TO THE GATE', exact: true }).click();
     await expect.poll(async () => (await diag()).state).toBe('driving');
     await expect(page.locator('.mx-ride-hud')).toBeVisible();
+    const ticksBeforeRelease: number[] = [];
+    await expect
+      .poll(
+        async () => {
+          const gate = await diag();
+          const phase = gate.gridPresentation.dirtGateRelease;
+          if (phase && phase !== 'released') ticksBeforeRelease.push(gate.frame![H.TICK]);
+          return phase;
+        },
+        {
+          timeout: 60000,
+          message: `${circuit}: the first live gate frame reached the screen before the worker started`,
+        },
+      )
+      .toBe('released');
+    expect(ticksBeforeRelease.every((tick) => tick === 0)).toBe(true);
     await capture(`${circuit}-actual-gate.png`);
     await expect.poll(async () => (await diag()).frame?.[H.PHASE] ?? 0).toBe(2);
     // Keep the bike stationary with the ordinary front brake and exercise
@@ -284,6 +300,7 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
       machine,
       mode: 'normal application, player throttle followed by explicitly enabled AI demonstration',
       requestedQuality: quality ?? 'saved/default',
+      ticksBeforeRelease,
       human: {
         time: human.frame![H.TIME],
         speed: human.frame![o + F.SPEED],
