@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44703712050
-- commit: `a1280ac390` · Warm motocross shadow programs with a representative triangle per material group
-- event: push · status: completed · conclusion: **failure**
-- started: 2026-11-20T08:35:06Z · updated: 2026-11-20T08:44:02Z
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44704255443
+- commit: `9bf89a6c44` · Press axle-specific motocross tread into the live and replayed soil
+- event: push · status: completed · conclusion: **success**
+- started: 2026-11-20T08:39:08Z · updated: 2026-11-20T08:47:15Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (day) | success | 6 |  |
-| browser (night) | failure | 8 | First complete cockpit frame, all shadow submissions, unchanged budget |
+| browser (night) | success | 7 |  |
 | browser (sunset) | success | 7 |  |
+| browser (day) | success | 6 |  |
