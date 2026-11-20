@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44661778094
-- commit: `34c8e0a694` · Carry motocross race graphics, controls and wheel silhouettes across LODs
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44664177921
+- commit: `0873934c23` · Build instanced starting hardware, formed service vans and wound straw bales
 - event: push · status: completed · conclusion: **failure**
-- started: 2026-11-20T02:34:35Z · updated: 2026-11-20T02:48:47Z
+- started: 2026-11-20T02:55:33Z · updated: 2026-11-20T02:56:58Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (night) | failure | 9 | First complete cockpit frame, all shadow submissions, unchanged budget |
-| browser (day) | success | 14 |  |
-| browser (sunset) | success | 12 |  |
+| browser (day) | failure | 1 | Run node --experimental-transform-types scripts/source-stability.ts -- npm run build |
+| browser (sunset) | failure | 1 | Run node --experimental-transform-types scripts/source-stability.ts -- npm run build |
+| browser (night) | failure | 0 | Run node --experimental-transform-types scripts/source-stability.ts -- npm run build |
