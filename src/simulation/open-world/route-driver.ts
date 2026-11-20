@@ -783,7 +783,20 @@ export class RouteDriver {
       // If a third car prevents continuing, keep space beside the target.
       // Never reverse passing side while the two footprints overlap.
       lane = clamp(target, -reach, reach);
-      if (!this.laneClear(lane)) {
+      // A rival can move into the passing lane after the pass is committed.
+      // A road edge clamps the requested offset, so the unclamped clearance
+      // no longer guarantees that both cars will fit through the next bend.
+      const lateralRoom = this.passSide * (lane - prior.lateral);
+      if (
+        !(c instanceof BikeVehicle) &&
+        lateralRoom < ownWidth + prior.width + 0.45 &&
+        prior.gap > ownLength + prior.length + 1.7
+      ) {
+        this.passTarget = null;
+        this.passSide = 0;
+        this.passLane = 0;
+        lane = clamp(baseline, -reach, reach);
+      } else if (!this.laneClear(lane)) {
         lane = clamp(this.lateral, -reach, reach);
         this.holdingLine = true;
       } else this.passLane = lane;

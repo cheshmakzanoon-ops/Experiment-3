@@ -128,6 +128,17 @@ describe('festival rivals leave room for real cars', () => {
     expect(s.car.aiOffset).toBeLessThan(-2.5);
   });
 
+  it('releases a pass from behind when the lead takes the remaining road beside a verge', () => {
+    const s = scenario(4.6);
+    s.plan();
+    expect(s.driver.decision).toBe('PASS LEFT');
+    s.place(s.car, 220, 2.9, 14);
+    s.place(s.lead, 229, 2.85, 6);
+    s.plan([s.car, s.lead], 1);
+    expect(s.driver.decision).not.toBe('PASS LEFT');
+    expect(s.car.aiTarget).toBeLessThan(s.car.speed);
+  });
+
   it('keeps its passing corridor when the lead weaves away, while leaving room if it moves closer', () => {
     const s = scenario();
     s.plan();
