@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { bindMxKitFinish, installMxKitFinish } from './mx-trackside-finish.ts';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
@@ -24,8 +25,8 @@ type V3 = readonly [number, number, number];
 /** Original, metre-scale asset sources. The same evaluated part buffers are
  * exported to Blender; no commercial image, logo, mesh or network asset is used. */
 export function mxTracksidePalette(): MxTracksidePalette {
-  const make = (name: MxTracksideMaterial, roughness: number, metalness = 0) =>
-    new T.MeshStandardMaterial({
+  const make = (name: MxTracksideMaterial, roughness: number, metalness = 0) => {
+    const material = new T.MeshStandardMaterial({
       name: `MX trackside ${name}`,
       color: 0xffffff,
       vertexColors: true,
@@ -33,6 +34,9 @@ export function mxTracksidePalette(): MxTracksidePalette {
       metalness,
       side: name === 'fabric' ? T.DoubleSide : T.FrontSide,
     });
+    installMxKitFinish(material, name);
+    return material;
+  };
   return {
     metal: make('metal', 0.46, 0.76),
     coated: make('coated', 0.53),
@@ -71,8 +75,8 @@ class Builder {
       color.set([base.r * shade, base.g * shade, base.b * shade], i * 3);
     }
     g.setAttribute('color', new T.BufferAttribute(color, 3));
+    bindMxKitFinish(g, material === 'timber');
     g.name = name;
-    g.computeBoundingBox();
     g.computeBoundingSphere();
     this.parts.push({ name, material, geometry: g });
   }

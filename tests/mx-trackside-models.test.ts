@@ -15,11 +15,12 @@ import {
   MX_TRACKSIDE_MODELS,
   buildMxTracksideModel,
   mxTracksideParts,
+  mxTracksidePalette,
 } from '../src/rendering/offroad/mx-trackside-models.ts';
 
 const fingerprint = (g: T.BufferGeometry) => {
   const hash = createHash('sha256');
-  for (const name of ['position', 'normal', 'uv', 'color']) {
+  for (const name of ['position', 'normal', 'uv', 'color', 'mxKitMeters']) {
     const array = g.getAttribute(name).array;
     hash.update(Buffer.from(array.buffer, array.byteOffset, array.byteLength));
   }
@@ -51,7 +52,7 @@ describe('original MX trackside model kit', () => {
             p = geometry.getAttribute('position');
           expect(geometry).not.toBe(second[i].geometry);
           expect(fingerprint(geometry)).toBe(fingerprint(second[i].geometry));
-          for (const name of ['position', 'normal', 'uv', 'color']) {
+          for (const name of ['position', 'normal', 'uv', 'color', 'mxKitMeters']) {
             const attribute = geometry.getAttribute(name);
             expect(attribute.count).toBe(p.count);
             expect(Array.from(attribute.array).every(Number.isFinite)).toBe(true);
@@ -81,6 +82,35 @@ describe('original MX trackside model kit', () => {
       expect(counts[1]).toBeLessThan(counts[0] * 0.6);
     },
   );
+
+  it('preserves metre-scale timber grain and material programs across venue placements', () => {
+    const parts = mxTracksideParts('water-tank', 'course');
+    const board = parts.find((part) => part.name === 'Pallet deck plank')!.geometry;
+    const p = board.getAttribute('position'),
+      n = board.getAttribute('normal');
+    const metres = board.getAttribute('mxKitMeters');
+    const size = board.boundingBox!.getSize(new T.Vector3());
+    const grainAxis = size.x > size.z ? 0 : 2;
+    const transverseAxis = grainAxis === 0 ? 2 : 0;
+    let top = 0;
+    for (let i = 0; i < p.count; i++) {
+      if (n.getY(i) < 0.99) continue;
+      expect(metres.getX(i)).toBeCloseTo(p.getComponent(i, grainAxis), 5);
+      expect(metres.getY(i)).toBeCloseTo(p.getComponent(i, transverseAxis), 5);
+      top++;
+    }
+    expect(top).toBeGreaterThanOrEqual(6);
+    const placed = board.clone().rotateY(0.83).translate(125, 3, -202);
+    expect(placed.getAttribute('mxKitMeters').array).toEqual(metres.array);
+    expect(placed.getAttribute('uv').array).toEqual(board.getAttribute('uv').array);
+    placed.dispose();
+    parts.forEach((part) => part.geometry.dispose());
+    const palette = mxTracksidePalette();
+    expect(
+      new Set(Object.values(palette).map((material) => material.customProgramCacheKey())).size,
+    ).toBe(5);
+    Object.values(palette).forEach((material) => material.dispose());
+  });
 
   it('keeps upward roof panels and scissor links below the canopy hem', () => {
     const parts = mxTracksideParts('canopy');
