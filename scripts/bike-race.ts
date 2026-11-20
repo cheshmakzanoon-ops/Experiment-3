@@ -16,7 +16,7 @@ import { Simulation } from '../src/simulation/world.ts';
 
 const DT = 1 / 120;
 type BikeRace = Partial<SessionOptions> & { event?: string };
-const races: BikeRace[] = [
+const catalogue: BikeRace[] = [
   { circuit: 'aurel', vehicles: Array(8).fill('gpr1'), seed: 3303 },
   { circuit: 'vellamar', vehicles: Array(8).fill('sbk1000'), seed: 77 },
   {
@@ -66,6 +66,24 @@ const races: BikeRace[] = [
       [e.vehicles].flat().some((id) => vehicleFamily(VEHICLES[id]) === 'bike'),
   ).map((e): BikeRace => ({ ...eventSession(e, DEFAULT_OPTIONS), event: e.id })),
 ];
+// Run the GP handling audit independently from the career catalogue. Keep
+// the two rosters identical across weather so tyres and track grip are
+// observable in a complete race, including recovery and classification.
+const weatherGrid = process.argv.includes('--gp-weather-grid');
+const gpTracks = ['poggio-alto', 'cape-wrenna', 'haarveld', 'montejaral'] as const;
+const races = weatherGrid
+  ? gpTracks.flatMap((circuit, index) =>
+      (['clear', 'rain'] as const).map(
+        (weather): BikeRace => ({
+          circuit,
+          weather,
+          seed: (weather === 'rain' ? 10001 : 18001) + index,
+          compound: weather === 'rain' ? 'wet' : 'medium',
+          vehicles: Array.from({ length: 8 }, (_, i) => (i % 2 ? 'gpr2' : 'gpr1')),
+        }),
+      ),
+    )
+  : catalogue;
 const failures: string[] = [];
 const results = races.map((race) => {
   const { event: _event, ...session } = race;
@@ -79,7 +97,9 @@ const results = races.map((race) => {
   });
   sim.autoPlayer = true;
   const stopped = new Float64Array(sim.cars.length);
-  let longestStop = 0,
+  let finite = true,
+    maxSpeed = 0,
+    longestStop = 0,
     t = 0;
   const start = performance.now();
   for (; t < 1200 && sim.race.phase !== PHASE.FINISHED; t += DT) {
@@ -88,10 +108,18 @@ const results = races.map((race) => {
     sim.cars.forEach((c, id) => {
       stopped[id] = c.speed < 1 && !c.finishTime && !c.inPit ? stopped[id] + DT : 0;
       longestStop = Math.max(longestStop, stopped[id]);
+      if (weatherGrid) {
+        const dynamics = (c as BikeVehicle).dynamics;
+        finite &&= Number.isFinite(
+          c.speed + dynamics.lean + dynamics.steer + c.body.position.x + c.body.position.z,
+        );
+        maxSpeed = Math.max(maxSpeed, c.speed);
+      }
     });
   }
   const crashes = sim.cars.map((c) => (c as BikeVehicle).dynamics.crashes);
   const label = `${race.event ? `event ${race.event} ` : ''}${race.circuit} ${race.weather ?? 'clear'} seed ${race.seed}`;
+  if (!finite) failures.push(`${label}: non-finite road contact or chassis motion`);
   if (sim.race.phase !== PHASE.FINISHED) failures.push(`${label}: race did not finish`);
   if (sim.cars.some((c) => !(c.finishTime > 0) || c.retired))
     failures.push(`${label}: a rider was not classified`);
@@ -113,16 +141,24 @@ const results = races.map((race) => {
     incidents: sim.race.control.events.filter((e) => e.kind === 'incident').length,
     safetyCarDeployments: sim.race.safetyCar.deployments,
     longestStopSeconds: longestStop,
+    ...(weatherGrid
+      ? {
+          finite,
+          finished: sim.race.phase === PHASE.FINISHED,
+          laps: race.laps ?? 3,
+          maxKph: Number((maxSpeed * 3.6).toFixed(1)),
+          classified: sim.cars.filter((c) => c.finishTime > 0 && !c.retired).length,
+        }
+      : {}),
   };
   console.log(
     `${label}: finished ${sim.race.phase === PHASE.FINISHED} in ${sim.race.raceTime.toFixed(1)} s, crashes ${crashes.join(',')}, best ${Math.min(...result.bestLaps.filter((b) => b > 0)).toFixed(2)} s`,
   );
   return result;
 });
-writeFileSync(
-  'docs/bike-race.json',
-  JSON.stringify({ passed: failures.length === 0, failures, races: results }, null, 2) + '\n',
-);
+const report = JSON.stringify({ passed: failures.length === 0, failures, races: results }, null, 2);
+if (weatherGrid) console.log(report);
+else writeFileSync('docs/bike-race.json', report + '\n');
 if (failures.length) {
   console.error(failures.join('\n'));
   process.exitCode = 1;
