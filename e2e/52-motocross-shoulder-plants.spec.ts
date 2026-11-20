@@ -78,6 +78,12 @@ test('production MX shoulder plants compile and reproduce held and rewound wind 
   expect(result.foliage.reduce((sum, p) => sum + p.attributeBytes, 0)).toBeLessThan(32000);
   expect(result.foliage.reduce((sum, p) => sum + p.instanceBytes, 0)).toBeLessThan(340000);
   const samples = result.samples;
+  const { full, culled } = result.cameraPlants;
+  expect(full.error).toBe(0);
+  expect(culled.error).toBe(0);
+  expect(culled.hash).toBe(full.hash);
+  expect(culled.calls).toBeLessThanOrEqual(full.calls);
+  expect(culled.triangles).toBeLessThan(full.triangles - 45000);
   for (const sample of samples) {
     expect(sample.glError, sample.label).toBe(0);
     expect(sample.hash).not.toBe(0);

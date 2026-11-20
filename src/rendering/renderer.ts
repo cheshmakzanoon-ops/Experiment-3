@@ -2610,7 +2610,9 @@ export class RacingRenderer {
       // The camera and every rider are still at the identical gate snapshot.
       // Its preceding, completed depth submission owns this colour frame's maps.
       if (pass === 'held-colour') this.renderer.shadowMap.autoUpdate = false;
-      this.composer.render();
+      const dressing = this.circuit.offroad?.dressing;
+      if (dressing) dressing.inCameraView(this.camera, () => this.composer.render());
+      else this.composer.render();
       this.ultra.afterFrame();
       this.drawLedger.mark('other');
       if (this.photo && this.photo.survey !== 'off' && this.geometrySurvey) {

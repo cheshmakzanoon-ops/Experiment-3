@@ -211,6 +211,63 @@ describe('formed, rooted motocross shoulder vegetation', () => {
     expect(instanceDisposals).toBe(3);
   });
 
+  it('retains every in-frame wind envelope and tint across camera cuts and density changes', () => {
+    const track = rigTrack('valley-ridge-mx'), dressing = new MxCourseDressing(track);
+    const sources = [...dressing.root.children, ...dressing.turf.children].filter(
+      (o): o is T.InstancedMesh => o instanceof T.InstancedMesh && o.material instanceof T.MeshStandardMaterial &&
+        o.material.name === 'MX living shoulder foliage',
+    );
+    const camera = new T.PerspectiveCamera(55, 1.6, 0.1, 1500);
+    const matrix = new T.Matrix4(), sphere = new T.Sphere(), frustum = new T.Frustum();
+    const signature = (mesh: T.InstancedMesh, i: number) => {
+      mesh.getMatrixAt(i, matrix);
+      return matrix.elements.join(',') + '/' + new T.Color().fromBufferAttribute(mesh.instanceColor!, i).toArray().join(',');
+    };
+    let checked = 0, submitted = 0, authored = 0;
+    try {
+      expect(sources).toHaveLength(4);
+      for (const [s, offset, quality] of [[4, 15, 'high'], [170, -15, 'high'], [710, 15, 'low'],
+          [170, -15, 'high'], [4, 15, 'high']] as const) {
+        setMxQuality(quality);
+        const eye = track.at(s, trackPoint()), target = track.at(s + offset, trackPoint());
+        camera.position.set(eye.x, eye.y + 1.65, eye.z);
+        camera.lookAt(target.x, target.y + 1.3, target.z);
+        camera.updateMatrixWorld(true);
+        frustum.setFromProjectionMatrix(matrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+        dressing.inCameraView(camera, () => {
+          for (const source of sources) {
+            const batch = source.parent!.getObjectByName(source.name + ' in camera') as T.InstancedMesh;
+            expect(source.visible).toBe(false);
+            expect(batch.geometry).toBe(source.geometry);
+            expect(batch.material).toBe(source.material);
+            const retained = new Set(Array.from({ length: batch.count }, (_, i) => signature(batch, i)));
+            for (let i = 0; i < source.count; i++) {
+              source.getMatrixAt(i, matrix);
+              sphere.copy(source.geometry.boundingSphere!).applyMatrix4(matrix);
+              if (frustum.intersectsSphere(sphere)) {
+                checked++;
+                if (!retained.has(signature(source, i))) throw new Error(source.name + ' clipped a visible plant');
+              }
+            }
+            submitted += batch.count;
+            authored += source.count;
+          }
+        });
+        expect(sources.every((mesh) => mesh.visible && !mesh.parent!.getObjectByName(mesh.name + ' in camera'))).toBe(true);
+      }
+      expect(checked).toBeGreaterThan(1000);
+      expect(submitted).toBeLessThan(authored / 2);
+      const last = sources[0];
+      last.visible = false;
+      expect(() => dressing.inCameraView(camera, () => { throw new Error('interrupted colour pass'); })).toThrow();
+      expect(last.visible).toBe(false);
+      expect(sources.slice(1).every((m) => m.visible)).toBe(true);
+    } finally {
+      setMxQuality('high');
+      dressing.dispose();
+    }
+  });
+
   it('keeps the indoor supercross venue clear of outdoor plants', () => {
     const dressing = new MxCourseDressing(rigTrack('arena-nord-sx'));
     expect(dressing.stats.grassClumps + dressing.stats.fernClumps + dressing.stats.shrubs).toBe(0);

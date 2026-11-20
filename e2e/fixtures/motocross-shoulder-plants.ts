@@ -103,9 +103,10 @@ export async function captureMotocrossShoulderPlants() {
           mesh.instanceMatrix.array.byteLength + (mesh.instanceColor?.array.byteLength ?? 0),
       };
     });
-  const capture = (label: string, time: number) => {
+  const capture = (label: string, time: number, view: 'review' | 'full' | 'culled' = 'review') => {
     dressing.update(time);
-    renderer.render(scene, camera);
+    if (view === 'culled') dressing.inCameraView(camera, () => renderer.render(scene, camera));
+    else renderer.render(scene, camera);
     const gl = renderer.getContext(),
       pixels = new Uint8Array(WIDTH * HEIGHT * 4);
     gl.readPixels(0, 0, WIDTH, HEIGHT, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
@@ -115,7 +116,7 @@ export async function captureMotocrossShoulderPlants() {
       label,
       time,
       hash,
-      image: renderer.domElement.toDataURL('image/png'),
+      image: view === 'review' ? renderer.domElement.toDataURL('image/png') : '',
       glError: gl.getError(),
       calls: renderer.info.render.calls,
       triangles: renderer.info.render.triangles,
@@ -148,7 +149,14 @@ export async function captureMotocrossShoulderPlants() {
       capture('wind-11-held', 11),
       capture('wind-10-seek', 10),
     ];
+    scene.add(dressing.turf);
+    const full = capture('all-plants', 10, 'full');
+    const compact = capture('all-camera-plants', 10, 'culled');
     return {
+      cameraPlants: {
+        full: { hash: full.hash, triangles: full.triangles, calls: full.calls, error: full.glError },
+        culled: { hash: compact.hash, triangles: compact.triangles, calls: compact.calls, error: compact.glError },
+      },
       scope:
         'Isolated production TerrainView and MxCourseDressing; fixed component-review lighting.',
       circuit: 'valley-ridge-mx',

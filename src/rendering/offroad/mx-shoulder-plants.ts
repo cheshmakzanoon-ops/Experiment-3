@@ -245,3 +245,102 @@ export function mxShoulderPlantMaterial(time: { value: number }) {
   });
   return material;
 }
+
+// Leave room at the image edge for the compositor’s subpixel projection jitter.
+const shoulderCullMargin = new T.Matrix4().makeScale(0.97, 0.97, 1);
+
+/** The source batch holds the authored quality prefix for every camera. The
+ * colour view can skip whole cells outside its frustum without adding draws
+ * or changing which instance supplies a leaf's colour and wind phase. */
+export class MxShoulderView {
+  private readonly view: T.InstancedMesh;
+  private readonly cells: T.Box3[] = [];
+  private readonly cellFor: Uint32Array;
+  private readonly visible: Uint8Array;
+  private readonly clip = new T.Matrix4();
+  private readonly frustum = new T.Frustum();
+  private previousCount = -1;
+
+  constructor(private readonly source: T.InstancedMesh) {
+    const capacity = source.instanceMatrix.count;
+    this.view = new T.InstancedMesh(source.geometry, source.material, capacity);
+    this.view.name = source.name + ' in camera';
+    this.view.matrixAutoUpdate = false;
+    this.view.boundingSphere = source.boundingSphere;
+    this.view.instanceMatrix.setUsage(T.DynamicDrawUsage);
+    // All four painted plant families have a per-instance tint.
+    this.view.setColorAt(0, new T.Color());
+    this.view.instanceColor!.setUsage(T.DynamicDrawUsage);
+    this.cellFor = new Uint32Array(capacity);
+    const index = new Map<string, number>(), pose = new T.Matrix4(), sphere = new T.Sphere(),
+      bounds = new T.Box3();
+    for (let i = 0; i < capacity; i++) {
+      source.getMatrixAt(i, pose);
+      // The source sphere already includes both extremes of blade animation.
+      sphere.copy(source.geometry.boundingSphere!).applyMatrix4(pose);
+      const key = Math.floor(sphere.center.x / 16) + ',' + Math.floor(sphere.center.z / 16);
+      let cell = index.get(key);
+      if (cell === undefined) {
+        cell = this.cells.length;
+        this.cells.push(new T.Box3());
+        index.set(key, cell);
+      }
+      this.cells[cell].union(sphere.getBoundingBox(bounds));
+      this.cellFor[i] = cell;
+    }
+    this.visible = new Uint8Array(this.cells.length);
+  }
+
+  begin(camera: T.Camera) {
+    const source = this.source, view = this.view;
+    if (!source.visible || !source.parent || !source.layers.test(camera.layers)) return;
+    source.updateWorldMatrix(true, false);
+    this.clip.multiplyMatrices(shoulderCullMargin, camera.projectionMatrix)
+      .multiply(camera.matrixWorldInverse).multiply(source.matrixWorld);
+    this.frustum.setFromProjectionMatrix(this.clip, camera.coordinateSystem, camera.reversedDepth);
+    let changed = source.count !== this.previousCount;
+    for (let i = 0; i < this.cells.length; i++) {
+      const visible = this.frustum.intersectsBox(this.cells[i]) ? 1 : 0;
+      if (visible !== this.visible[i]) changed = true;
+      this.visible[i] = visible;
+    }
+    if (changed) {
+      let count = 0;
+      for (let i = 0; i < source.count; i++) {
+        if (!this.visible[this.cellFor[i]]) continue;
+        view.instanceMatrix.copyAt(count, source.instanceMatrix, i);
+        view.instanceColor!.copyAt(count, source.instanceColor!, i);
+        count++;
+      }
+      view.count = count;
+      for (const attribute of [view.instanceMatrix, view.instanceColor!]) {
+        attribute.clearUpdateRanges();
+        if (count > 0) {
+          attribute.addUpdateRange(0, count * attribute.itemSize);
+          attribute.needsUpdate = true;
+        }
+      }
+      this.previousCount = source.count;
+    }
+    view.visible = view.count > 0;
+    view.matrix.copy(source.matrix);
+    view.matrixWorldNeedsUpdate = true;
+    view.layers.mask = source.layers.mask;
+    view.material = source.material;
+    view.renderOrder = source.renderOrder;
+    view.receiveShadow = source.receiveShadow;
+    source.parent.add(view);
+    source.visible = false;
+  }
+
+  end() {
+    if (!this.view.parent) return;
+    this.view.removeFromParent();
+    this.source.visible = true;
+  }
+
+  dispose() {
+    this.end();
+    this.view.dispose();
+  }
+}

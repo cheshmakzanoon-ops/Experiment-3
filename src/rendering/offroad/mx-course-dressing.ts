@@ -17,6 +17,7 @@ import { inStandFootprint } from '../grandstand.ts';
 import { installScannedMaps, libraryAlbedo } from '../ground/scanned-ground.ts';
 import { valueNoise } from '../terrain-profile.ts';
 import {
+  MxShoulderView,
   mxShoulderPlantGeometry,
   mxShoulderPlantMaterial,
   MX_SHOULDER_WIND_RADIUS,
@@ -162,6 +163,7 @@ export class MxCourseDressing {
   private readonly object = new T.Object3D();
   private readonly surface: TrackTerrainSurface;
   private readonly venueTime = { value: 0 };
+  private readonly shoulderViews: MxShoulderView[] = [];
   private stopTufts: (() => void) | null = null;
   private disposed = false;
   constructor(private readonly track: Track) {
@@ -965,6 +967,8 @@ export class MxCourseDressing {
       .map((name) => this.root.children.find((o) => o.name === name))
       .filter((o): o is T.InstancedMesh => o instanceof T.InstancedMesh)
       .map((mesh) => ({ mesh, full: mesh.count }));
+    for (const { mesh } of verge) this.shoulderViews.push(new MxShoulderView(mesh));
+    if (tufts) this.shoulderViews.push(new MxShoulderView(tufts));
     if (tufts || verge.length)
       this.stopTufts = onMxDetail((high) => {
         if (tufts) tufts.count = high ? tuftPoses.length : Math.floor(tuftPoses.length * 0.3);
@@ -980,12 +984,24 @@ export class MxCourseDressing {
     this.stats.shrubs = shrubPoses.length;
     this.stats.stones = stonePoses.length;
   }
+  /** Other eyes, reflections and survey tools see the complete original plants. */
+  inCameraView(camera: T.Camera, draw: () => void) {
+    if (this.shoulderViews.length === 0) return draw();
+    camera.updateWorldMatrix(true, false);
+    try {
+      for (const family of this.shoulderViews) family.begin(camera);
+      draw();
+    } finally {
+      for (const family of this.shoulderViews) family.end();
+    }
+  }
   update(time: number) {
     if (!this.disposed && Number.isFinite(time)) this.venueTime.value = Math.max(0, time);
   }
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
+    for (const family of this.shoulderViews) family.dispose();
     this.stopTufts?.();
     this.stopTufts = null;
     this.root.remove(this.trackside.root);
