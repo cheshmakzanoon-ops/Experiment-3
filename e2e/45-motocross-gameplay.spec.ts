@@ -1,4 +1,7 @@
 import { expect, test } from '@playwright/test';
+import { createHash } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+import { motocrossScreenCapture } from './fixtures/motocross-screen-capture.ts';
 import { mod } from '../src/core/math.ts';
 import { F, H, O, R, OFFROAD_BASE, RACE_BASE, carBase } from '../src/simulation/protocol.ts';
 import { vehicleIndex } from '../src/simulation/vehicles.ts';
@@ -42,11 +45,17 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
     });
   }
   const diag = () => page.evaluate(() => window.apexDiagnostics());
+  const screenshot = await motocrossScreenCapture(page);
+  const images = new Set<string>();
   const capture = async (name: string) => {
     const path = info.outputPath(name);
-    // A lost/stalled software graphics readback must fail with an attached
-    // trace instead of consuming the entire two-venue journey budget.
-    await page.screenshot({ path, timeout: 60000 });
+    await screenshot(path);
+    const pixels = await readFile(path);
+    expect(pixels.readUInt32BE(16)).toBe(page.viewportSize()!.width);
+    expect(pixels.readUInt32BE(20)).toBe(page.viewportSize()!.height);
+    const digest = createHash('sha256').update(pixels).digest('hex');
+    expect(images.has(digest), `${name} presents a new game image`).toBe(false);
+    images.add(digest);
     await info.attach(name, { path, contentType: 'image/png' });
     console.info(`[MX journey] Captured ${name}`);
   };
