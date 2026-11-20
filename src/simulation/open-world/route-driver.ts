@@ -90,6 +90,8 @@ export class RouteDriver {
    * (default) plans for the whole route as a race does. */
   horizon = Infinity;
   private tactical = 0;
+  private laneTarget = 0;
+  private laneRate = 0;
   /** Take a lane beside a slower car ahead (racing); off, it only follows
    * (the free-roam cruise among ambient traffic). */
   overtake = true;
@@ -196,11 +198,48 @@ export class RouteDriver {
       this.trafficClock = 0;
       this.planTraffic(cars);
     }
+    // An outside rear tyre can reach paint or the shoulder before the
+    // front-left tyre. Reserve capability for the least grippy contact;
+    // otherwise the driver keeps its asphalt speed while the rear slides.
+    let contactGrip = peakGrip(c.tires[0], 2500, c.contacts[0], Math.max(c.speed, 38));
+    if (!bike)
+      for (let i = 1; i < c.tires.length; i++)
+        contactGrip = Math.min(
+          contactGrip,
+          peakGrip(c.tires[i], 2500, c.contacts[i], Math.max(c.speed, 38)),
+        );
+    const grip = clamp(contactGrip / env.referenceMu, 0.1, 1);
+    if (!bike) {
+      // The decision runs at 12 Hz, while the lateral trajectory follows
+      // the actual physics clock. A change of passing side first takes the
+      // speed out of the old lane change, especially under wet braking.
+      const error = this.laneTarget - this.tactical;
+      const acceleration = clamp(4.5 * grip - 0.85 * Math.abs(c.gLong), 1.15, 4.5);
+      const rate =
+        Math.sign(error) *
+        Math.min(3.2, Math.abs(error) * 4.5, Math.sqrt(2 * acceleration * Math.abs(error)));
+      const previous = this.laneRate;
+      this.laneRate = approach(previous, rate, acceleration * dt);
+      this.tactical += (previous + this.laneRate) * 0.5 * dt;
+      if (Math.abs(error) < 0.004 && Math.abs(this.laneRate) < 0.02) {
+        this.tactical = this.laneTarget;
+        this.laneRate = 0;
+      }
+    }
     // Pure pursuit of a point on the race line (or lane) ahead. Lateral
     // offsets are positive to the left of travel (Track convention), the
     // car's local +X is its left, and positive steer turns left.
-    const lookahead = clamp(6 + c.speed * 0.5, 8, 48);
-    path.at(this.d + lookahead, this.target);
+    // On a slow uphill split-grip launch the verge pulls a front-drive car
+    // along the outside edge. A normal eight-metre pursuit chord barely
+    // steers it back onto asphalt; shorten the chord as the footprint leaves.
+    const roadHalf = path.halfWidth[path.index(this.d)];
+    const overhang = Math.abs(this.lateral) + c.definition.halfExtents[0] - roadHalf;
+    const edgeRecovery = bike ? 0 : clamp(overhang / 0.65, 0, 1) * clamp((10 - c.speed) / 6, 0, 1);
+    const cruiseLook = clamp(6 + c.speed * 0.5, 8, 48);
+    const lookahead = cruiseLook + (3.6 - cruiseLook) * edgeRecovery;
+    const anticipation = bike ? 0 : 0.16 * clamp((c.speed - 6) / 12, 0, 1);
+    const previewStation = this.d + lookahead + c.speed * anticipation;
+    path.at(previewStation, this.target);
     const passing = this.passTarget !== null || this.holdingLine || Math.abs(this.tactical) > 0.1;
     const reach = Math.max(
       0.25,
@@ -210,9 +249,7 @@ export class RouteDriver {
     const offset = finished
       ? -reach
       : clamp(
-          path.lineAt(this.d + lookahead) * (this.laneOffset ? 0 : 1) +
-            this.laneOffset +
-            this.tactical,
+          path.lineAt(previewStation) * (this.laneOffset ? 0 : 1) + this.laneOffset + this.tactical,
           -reach,
           reach,
         );
@@ -231,7 +268,20 @@ export class RouteDriver {
         0,
         this.delta.x * sh + this.delta.z * ch,
       );
-    } else c.body.orientation.inverseRotate(this.delta, this.local);
+    } else {
+      // Pursue from the pose the chassis will reach during steering and
+      // tyre response. Heading and travel can differ when a wet rear slides.
+      this.delta.x -= c.body.velocity.x * anticipation;
+      this.delta.z -= c.body.velocity.z * anticipation;
+      c.body.orientation.inverseRotate(this.delta, this.local);
+      const angle = c.body.omega.dot(c.up) * anticipation,
+        cs = Math.cos(angle),
+        sn = Math.sin(angle);
+      const x = this.local.x,
+        z = this.local.z;
+      this.local.x = x * cs - z * sn;
+      this.local.z = z * cs + x * sn;
+    }
     const purePursuit = Math.atan2(
         2 * c.spec.wheelbase * this.local.x,
         Math.max(10, this.local.x * this.local.x + this.local.z * this.local.z),
@@ -273,17 +323,6 @@ export class RouteDriver {
     }
     // Envelope speed profile along the route ahead (the race line's own
     // curvature, or the centreline's for a lane-keeping driver).
-    // An outside rear tyre can reach paint or the shoulder before the
-    // front-left tyre. Reserve capability for the least grippy contact;
-    // otherwise the driver keeps its asphalt speed while the rear slides.
-    let contactGrip = peakGrip(c.tires[0], 2500, c.contacts[0], Math.max(c.speed, 38));
-    if (!bike)
-      for (let i = 1; i < c.tires.length; i++)
-        contactGrip = Math.min(
-          contactGrip,
-          peakGrip(c.tires[i], 2500, c.contacts[i], Math.max(c.speed, 38)),
-        );
-    const grip = clamp(contactGrip / env.referenceMu, 0.1, 1);
     const aero =
       (env.downforceReference * (0.45 + 0.55 * Math.min(c.frontHealth, c.floorHealth))) /
       (c.spec.dryMass + c.fuel);
@@ -441,7 +480,12 @@ export class RouteDriver {
               ? 'FOLLOW'
               : 'RACE LINE';
     // Stuck against something: reverse out with opposite lock.
-    if (!finished && c.speed < 0.8 && desired > 5) this.stuck += dt;
+    const tryingToTurn =
+      !bike &&
+      desired > 1.3 &&
+      (this.carTurn !== 0 ||
+        Math.abs(this.lateral) > this.target.halfWidth - c.definition.halfExtents[0]);
+    if (!finished && c.speed < 0.8 && (desired > 5 || tryingToTurn)) this.stuck += dt;
     else if (this.recovery <= 0) this.stuck = 0;
     // (A motorcycle has no reverse: its own stuck help puts it back on the road.)
     if (this.stuck > 3 && this.recovery <= 0 && !bike) this.recovery = 2.2;
@@ -523,7 +567,7 @@ export class RouteDriver {
     this.passTarget = null;
     this.passSide = 0;
     this.passLane = 0;
-    this.tactical = 0;
+    this.tactical = this.laneTarget = this.laneRate = 0;
     this.trafficSpeed = Infinity;
     this.holdingLine = false;
     this.observedCount = 0;
@@ -706,6 +750,7 @@ export class RouteDriver {
       this.passTarget !== null || this.holdingLine || Math.abs(this.tactical) > 0.1;
     let reach = manoeuvring ? passReach : ordinaryReach;
     let lane = clamp(baseline, -reach, reach);
+    const wasHolding = this.holdingLine;
     this.holdingLine = false;
     if (this.passTarget && prior) {
       const clearance = prior.lateral + this.passSide * (ownWidth + prior.width + 0.85),
@@ -742,7 +787,19 @@ export class RouteDriver {
     }
     if (this.passTarget && !this.holdingLine && blocked?.car === this.passTarget)
       follow = Math.max(follow, Math.max(0, blocked.speed) + 2);
-    this.tactical = approach(this.tactical, lane - baseline, 0.35);
+    this.laneTarget = lane - baseline;
+    if (
+      this.holdingLine &&
+      !wasHolding &&
+      Math.abs(this.tactical - this.laneTarget) > c.definition.halfExtents[0] &&
+      !(c instanceof BikeVehicle)
+    ) {
+      // The car already occupies this corridor. Cancelling an unsafe merge
+      // must hold it here even after a spawn, seek or instantaneous obstruction.
+      this.tactical = this.laneTarget;
+      this.laneRate = 0;
+    }
+    if (c instanceof BikeVehicle) this.tactical = approach(this.tactical, this.laneTarget, 0.35);
     this.trafficSpeed = follow;
   }
 }

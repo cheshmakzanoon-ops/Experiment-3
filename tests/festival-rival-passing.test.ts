@@ -43,13 +43,40 @@ function scenario(width = 7.6, edgeId = 24) {
   place(lead, 225, 0, 18);
   place(neighbour, 200, 3.3, 24);
   const driver = new RouteDriver(car, path, 0.9);
-  const plan = (cars = [car, lead], frames = 15) => {
+  // Give the acceleration-limited reference enough physical time to settle.
+  const plan = (cars = [car, lead], frames = 42) => {
     for (let i = 0; i < frames; i++) driver.update(1 / 12 + 1e-6, cars);
   };
   return { sim, path, car, lead, neighbour, driver, place, plan };
 }
 
 describe('festival rivals leave room for real cars', () => {
+  it('turns back onto the road when a slow uphill launch straddles a loose shoulder', () => {
+    const s=scenario(3.5);
+    for(const side of [-1,1]) {
+      s.place(s.car,210,side*3.18,1.5);
+      s.driver.relocate(210);
+      s.driver.update(1/120,[s.car]);
+      expect(s.car.input.steer*side).toBeLessThan(-0.60);
+      expect(s.car.input.reverse).toBe(false);
+    }
+  });
+  it('feeds a new passing lane into the steering without an instantaneous lateral velocity step', () => {
+    const s = scenario();
+    let previous = 0,
+      speed = 0;
+    const dt = 1 / 120;
+    for (let i = 0; i < 150; i++) {
+      s.driver.update(dt, [s.car, s.lead]);
+      const rate = (s.car.aiOffset - previous) / dt;
+      expect(Math.abs(rate)).toBeLessThan(3.21);
+      expect(Math.abs(rate - speed) / dt).toBeLessThan(4.55);
+      previous = s.car.aiOffset;
+      speed = rate;
+    }
+    expect(previous).toBeGreaterThan(1);
+  });
+
   it('holds its chosen passing side while alongside and until the rear bumper clears', () => {
     const s = scenario();
     s.plan();
@@ -99,7 +126,7 @@ describe('festival rivals leave room for real cars', () => {
     expect(s.car.aiOffset).toBeGreaterThan(lane + 1.2);
     // Once safely passed, ordinary return to the race line still works.
     s.place(s.lead, 210, 0, 22);
-    s.plan([s.car, s.lead], 20);
+    s.plan([s.car, s.lead], 42);
     expect(s.driver.decision).toBe('RACE LINE');
     expect(s.car.aiOffset).toBeCloseTo(0, 2);
   });
