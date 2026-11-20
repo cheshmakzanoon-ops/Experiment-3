@@ -1,12 +1,12 @@
 import * as T from 'three';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { CabinLayout } from './cabin.ts';
 import { roundedBox } from './loft.ts';
 
 /** All original wheel components turn in one draw. The surface attribute
  * keeps leather, cast alloy and switch plastic physically distinct. */
 const wheelMaterial = new T.MeshStandardMaterial({
-  name: 'Festival steering leather, alloy and switches',
+  name: 'Cabin steering leather, alloy and switches',
   vertexColors: true,
 });
 wheelMaterial.onBeforeCompile = (shader) => {
@@ -42,19 +42,19 @@ const satin = { color: 0x676d70, roughness: 0.41, metalness: 0.61 };
 const key = { color: 0x474b4d, roughness: 0.56, metalness: 0 };
 const marking = { color: 0xb8c1bb, roughness: 0.48, metalness: 0.04 };
 
-function plate(shape: T.Shape, depth: number, bevel: number) {
+function plate(shape: T.Shape, depth: number, bevel: number, compact = false) {
   return new T.ExtrudeGeometry(shape, {
     depth,
-    bevelEnabled: true,
+    bevelEnabled: !compact,
     bevelSegments: 2,
     steps: 1,
     bevelThickness: bevel,
     bevelSize: bevel,
-    curveSegments: 8,
+    curveSegments: compact ? 2 : 8,
   });
 }
 
-function spoke(radius: number, classic: boolean, lower: boolean) {
+function spoke(radius: number, classic: boolean, lower: boolean, compact = false) {
   const shape = new T.Shape(),
     w = classic ? 0.012 : lower ? 0.016 : 0.021;
   shape.moveTo(0.025, -w);
@@ -62,7 +62,7 @@ function spoke(radius: number, classic: boolean, lower: boolean) {
   shape.quadraticCurveTo(radius * 1.02, 0, radius * 0.92, w * 0.8);
   shape.quadraticCurveTo(radius * 0.65, w * 0.75, 0.031, w * 1.25);
   shape.lineTo(0.025, -w);
-  if (classic) {
+  if (classic && !compact) {
     for (const [fraction, size] of [
       [0.47, 0.005],
       [0.64, 0.0045],
@@ -72,12 +72,12 @@ function spoke(radius: number, classic: boolean, lower: boolean) {
       hole.absellipse(fraction * radius, 0, size * 1.55, size, 0, Math.PI * 2, true, 0);
       shape.holes.push(hole);
     }
-  } else if (lower) {
+  } else if (!classic && lower && !compact) {
     const hole = new T.Path();
     hole.absellipse(radius * 0.63, 0, radius * 0.16, 0.005, 0, Math.PI * 2, true, 0);
     shape.holes.push(hole);
   }
-  return plate(shape, classic ? 0.003 : 0.006, classic ? 0.0006 : 0.0014);
+  return plate(shape, classic ? 0.003 : 0.006, classic ? 0.0006 : 0.0014, compact);
 }
 
 function airbag(radius: number, wide: boolean) {
@@ -95,11 +95,11 @@ function airbag(radius: number, wide: boolean) {
   return s;
 }
 
-function rim(radius: number, classic: boolean, sport: boolean) {
+function rim(radius: number, classic: boolean, sport: boolean, compact = false) {
   const points: number[] = [],
     index: number[] = [],
-    segments = 80,
-    section = 12;
+    segments = compact ? 28 : 80,
+    section = compact ? 6 : 12;
   for (let i = 0; i <= segments; i++) {
     const a = (i / segments) * Math.PI * 2,
       x = Math.cos(a),
@@ -214,10 +214,48 @@ export function roadSteeringWheel(layout: CabinLayout) {
         );
     }
   }
-  const geometry = mergeGeometries(pieces)!;
+  const closeCount = pieces.reduce((sum, piece) => sum + piece.getAttribute('position').count, 0);
+  // Below 42 pixels the switch legends and spoke drillings are subpixel.
+  // Keep the same rim profile, spoke directions and centre-pad outline.
+  add(rim(r, classic, sport, true), classic && layout.id === 'rg63' ? wood : leather);
+  for (const angle of [0.06, Math.PI - 0.06, -Math.PI / 2])
+    add(
+      spoke(r, classic, angle < 0, true)
+        .rotateZ(angle)
+        .translate(0, 0, classic ? 0.004 : 0.006),
+      classic ? metal : satin,
+    );
+  if (classic) add(new T.CylinderGeometry(0.04, 0.037, 0.027, 10).rotateX(Math.PI / 2), satin);
+  else
+    add(
+      plate(
+        airbag(r, layout.style === 'truck' || layout.style === 'saloon'),
+        0.031,
+        0,
+        true,
+      ).translate(0, 0, -0.027),
+      leather,
+    );
+  const merged = mergeGeometries(pieces)!;
+  // Weld precisely coincident position, normal AND finish. Both index ranges
+  // share the buffer and are selected inside the actual camera pass.
+  const geometry = mergeVertices(merged, 1e-6);
+  merged.dispose();
+  const smallCount = geometry.index!.count - closeCount;
+  geometry.setDrawRange(0, closeCount);
   for (const piece of pieces) piece.dispose();
   const mesh = new T.Mesh(geometry, wheelMaterial);
   mesh.name = classic ? 'Drilled three-spoke road wheel' : 'Padded multifunction road wheel';
   mesh.castShadow = mesh.receiveShadow = true;
+  const viewport = new T.Vector4(),
+    centre = new T.Vector3();
+  mesh.onBeforeRender = (renderer, _scene, camera) => {
+    renderer.getCurrentViewport(viewport);
+    centre.setFromMatrixPosition(mesh.matrixWorld).applyMatrix4(camera.matrixWorldInverse);
+    const depth = camera.projectionMatrix.elements[15] === 0 ? Math.max(0.02, -centre.z) : 1;
+    const diameter = (r * viewport.w * camera.projectionMatrix.elements[5]) / depth;
+    if (diameter < 42) geometry.setDrawRange(closeCount, smallCount);
+    else geometry.setDrawRange(0, closeCount);
+  };
   return mesh;
 }

@@ -2,7 +2,7 @@ import * as T from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 export const drivingGloveMaterial = new T.MeshStandardMaterial({
-  name: 'Festival stitched driving leather',
+  name: 'Cabin stitched driving leather',
   vertexColors: true,
   roughness: 0.78,
   metalness: 0,
