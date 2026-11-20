@@ -7,6 +7,9 @@ import {
   RACE_BASE,
   W,
   WHEEL_BASE,
+  WHEEL_CONTACT_BASE,
+  WHEEL_CONTACT_STRIDE,
+  wheelContactBase,
   WHEEL_STRIDE,
   carBase,
 } from '../simulation/protocol.ts';
@@ -33,19 +36,26 @@ const POSE_FIELDS = [
   F.QW,
   F.IN_PIT,
   F.JACK_HEIGHT,
+  F.PIT_PHASE,
+  F.SPEED,
   RACE_BASE + R.VEHICLE,
   BIKE_BASE + B.LEAN,
   BIKE_BASE + B.PITCH,
   BIKE_BASE + B.STATE,
   BIKE_BASE + B.RIDER_OFFSET,
+  BIKE_BASE + B.STEER,
+  WHEEL_CONTACT_BASE,
+  ...[0, 2].flatMap((wheel) =>
+    Array.from({ length: WHEEL_CONTACT_STRIDE }, (_, field) => wheelContactBase(0, wheel) + field),
+  ),
 ] as const;
 
-/** GP-only adapter for the circuit's existing bounded Effects pool. A snapshot
+/** Road motorcycle adapter for the circuit's existing bounded Effects pool. A snapshot
  * duplicates the front/rear wheel channels into 0/1 and 2/3 for car consumers;
  * that must not create four tyre plumes. The same crown projection drives the
  * indirect ground contact, so spray stays with the visible tyre through lean.
  * No model traversal, ground query, random draws or GPU resources are added.
- * Non-GP entrants retain the circuit's existing emitters byte for byte. */
+ * Dirt motorcycles and four-wheel vehicles use their own emitters. */
 export class GpContactEffects {
   private readonly projector = new GpTyreContactProjector();
   private readonly position = new T.Vector3();
@@ -61,7 +71,7 @@ export class GpContactEffects {
   private project(frame: Float32Array, id: number) {
     const o = carBase(id),
       definition = vehicleAt(Math.round(frame[o + RACE_BASE + R.VEHICLE]));
-    if (definition.classId !== 'gp-bike' || !definition.bike) return false;
+    if (!definition.bike || !!definition.bike.offroad) return false;
     let changed = this.car !== id;
     for (let i = 0; i < POSE_FIELDS.length; i++) {
       const value = frame[o + POSE_FIELDS[i]];
@@ -105,14 +115,12 @@ export class GpContactEffects {
 
   readonly diffuserEnabled = (frame: Float32Array, id: number) => {
     const definition = vehicleAt(Math.round(frame[carBase(id) + RACE_BASE + R.VEHICLE]));
-    return definition.classId !== 'gp-bike' || !definition.bike;
+    return !definition.bike || !!definition.bike.offroad;
   };
 
   readonly sprayProfile = (frame: Float32Array, id: number) => {
     const definition = vehicleAt(Math.round(frame[carBase(id) + RACE_BASE + R.VEHICLE]));
-    return definition.classId === 'gp-bike' && definition.bike
-      ? SPRAY_PROFILE.GP
-      : SPRAY_PROFILE.DEFAULT;
+    return definition.bike && !definition.bike.offroad ? SPRAY_PROFILE.GP : SPRAY_PROFILE.DEFAULT;
   };
 
   readonly smokeSliding = (frame: Float32Array, id: number, wheel: number) => {
@@ -120,12 +128,12 @@ export class GpContactEffects {
       p = o + WHEEL_BASE + wheel * WHEEL_STRIDE,
       definition = vehicleAt(Math.round(frame[o + RACE_BASE + R.VEHICLE]));
     // BikeVehicle writes handlebar steer into the old front W.ANGLE slot.
-    // It is not tyre sideslip. The rear W.SLIP channel is a clipped demand/
-    // slip proxy, not measured angular wheelspin; keep that existing signal
-    // and its work threshold, but never treat front steering as sliding.
+    // It is not tyre sideslip. GP prototypes publish measured longitudinal slip and the
+    // other road motorcycles publish their slip estimate. The independent
+    // work threshold gates smoke from both.
     return tireSmokeSliding(
       frame[p + W.SLIP],
-      definition.classId === 'gp-bike' && definition.bike ? 0 : frame[p + W.ANGLE],
+      definition.bike && !definition.bike.offroad ? 0 : frame[p + W.ANGLE],
     );
   };
 

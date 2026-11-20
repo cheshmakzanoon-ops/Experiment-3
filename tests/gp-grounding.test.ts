@@ -262,22 +262,25 @@ describe('GP tyre grounding from the presented physics pose', () => {
     expect(occlusion(p, p.pose.x, 3, p.pose.y)).toBeLessThan(0.42);
   });
 
-  it('reuses and clears fixed GP slots for removed or non-GP entrants', () => {
+  it('reuses and clears fixed GP slots for removed entrants and other vehicle families', () => {
     const { bike } = bikeOnPlane();
     const frame = snapshot(bike),
       p = presentation(frame);
     const arrays = [p.u.studioGpFront.value, p.u.studioGpRear.value, p.u.studioGpShape.value];
     const slots = arrays.map((a) => [...a]);
     expect(arrays.every((a) => a.length === STUDIO_MAX_CARS)).toBe(true);
-    for (const vehicle of ['apx01', 'tc1', 'sbk1000', 'mx450']) {
+    for (const vehicle of ['apx01', 'tc1', 'mx450']) {
       frame[carBase(0) + RACE_BASE + R.VEHICLE] = vehicleIndex(vehicle);
       p.update(frame);
       for (const array of arrays)
         for (const slot of array) expect(slot.toArray()).toEqual([0, 0, 0, 0]);
     }
-    frame[carBase(0) + RACE_BASE + R.VEHICLE] = vehicleIndex('gpr1');
-    p.update(frame);
-    expect(p.shape.x).toBe(1);
+    for (const vehicle of ['gpr1', 'gpr2', 'sbk1000', 'ss600', 'nr900', 'cr750']) {
+      frame[carBase(0) + RACE_BASE + R.VEHICLE] = vehicleIndex(vehicle);
+      p.update(frame);
+      expect(p.shape.x).toBe(1);
+      expect(Math.hypot(p.front.x - p.rear.x, p.front.y - p.rear.y)).toBeGreaterThan(1);
+    }
     frame[H.CARS] = 0;
     p.update(frame);
     for (let i = 0; i < arrays.length; i++)

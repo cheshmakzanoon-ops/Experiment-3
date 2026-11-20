@@ -16,6 +16,10 @@ import {
   RACE_BASE,
   W,
   WHEEL_BASE,
+  BC,
+  ROAD_BIKE_CONTACT,
+  WHEEL_CONTACT_BASE,
+  wheelContactBase,
   WHEEL_STRIDE,
   carBase,
 } from '../src/simulation/protocol.ts';
@@ -262,6 +266,36 @@ describe('GP contact effect geometry', () => {
 });
 
 describe('GP contact effects in the bounded production particle pool', () => {
+  it.each(['gpr1', 'gpr2', 'sbk1000', 'ss600', 'nr900', 'cr750'])(
+    '%s emits from two supported tyres, following changed planes in a held snapshot',
+    (id) => {
+      const { frame } = onRoad();
+      const adapter = new GpContactEffects(),
+        o = carBase(0);
+      frame[o + RACE_BASE + R.VEHICLE] = vehicleIndex(id);
+      frame[o + WHEEL_CONTACT_BASE] = ROAD_BIKE_CONTACT;
+      for (const wheel of [0, 2]) {
+        const p = wheelContactBase(o, wheel);
+        frame[p + BC.Y] = frame[o + F.Y] - 0.6;
+        frame[p + BC.NORMAL_Y] = 1;
+        frame[p + BC.LOAD] = 1000;
+      }
+      const before = worldContact(adapter, frame, 0);
+      expect(adapter.sprayProfile(frame, 0)).toBe(SPRAY_PROFILE.GP);
+      expect(adapter.diffuserEnabled(frame, 0)).toBe(false);
+      expect([0, 1, 2, 3].map((w) => adapter.contactEnabled(frame, 0, w))).toEqual([
+        true,
+        false,
+        true,
+        false,
+      ]);
+      frame[wheelContactBase(o, 0) + BC.Y] += 0.036;
+      expect(worldContact(adapter, frame, 0).floor - before.floor).toBeCloseTo(0.036, 5);
+      frame[wheelContactBase(o, 0) + BC.GAP] = 0.09;
+      expect(adapter.contactEnabled(frame, 0, 0)).toBe(false);
+      expect(adapter.contactEnabled(frame, 0, 2)).toBe(true);
+    },
+  );
   it('does not mistake GP handlebar steering for front-tyre sideslip smoke', () => {
     const { effects, adapter } = configuredEffects();
     try {
@@ -338,7 +372,7 @@ describe('GP contact effects in the bounded production particle pool', () => {
     }
   });
 
-  it.each(['apx01', 'tc1', 'sbk1000', 'mx450'])(
+  it.each(['apx01', 'tc1', 'mx450'])(
     'preserves every %s particle attribute and birth count',
     (vehicle) => {
       const legacy = new Effects(),

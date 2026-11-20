@@ -311,7 +311,7 @@ export class StudioFrame {
       const heading = Math.atan2(this.point.x, this.point.z);
       const definition = vehicleAt(Math.round(presented[o + RACE_BASE + R.VEHICLE]));
       const ground =
-        definition.classId === 'gp-bike' && definition.bike
+        definition.bike && !definition.bike.offroad
           ? this.gpContacts.project(
               presented,
               o,
