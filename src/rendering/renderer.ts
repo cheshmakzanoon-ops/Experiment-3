@@ -115,6 +115,7 @@ import { disposeTextureLoaders } from './assets/texture-loader.ts';
 import { disposeSceneTexture } from './assets/texture-source-ownership.ts';
 import { scannedGround } from './ground/scan-store.ts';
 import { setMxQuality } from './offroad/mx-quality.ts';
+import { isMotocrossVenue } from './offroad/mx-boundary.ts';
 import type { MxMeadowTransition } from './offroad/mx-meadow.ts';
 import {
   MX_ARENA_GRADE,
@@ -514,6 +515,7 @@ export class RacingRenderer {
       this.atmosphere.install(root);
       installSpecularIBL(root);
     };
+    this.bikeShells.uninstall = (root) => this.textures.unregister(root);
     this.textures.register(this.pitCrew.root);
     this.renderer.info.autoReset = false;
     this.renderer.setOpaqueSort(frontToBackOpaque);
@@ -746,48 +748,54 @@ export class RacingRenderer {
         );
         return renderer;
       }
-      progress({
-        completed: 0,
-        total: 1,
-        fraction: 0,
-        label: 'Loading authored Aurel working garage',
-      });
-      renderer.circuit.heroGarage = await loadHeroGarage(cancelled);
-      progress({
-        completed: 0,
-        total: 1,
-        fraction: 0,
-        label: 'Loading A34 tyre blankets and controllers',
-      });
-      renderer.circuit.tyreBlankets = await loadTyreBlankets(cancelled);
-      progress({
-        completed: 0,
-        total: 1,
-        fraction: 0,
-        label: 'Loading Aurel pit-wall command station',
-      });
-      renderer.circuit.pitWallStation = await loadPitWallStation(cancelled);
-      // A35 owns its instancing/LODs outside destructive static prop batching.
-      progress({ completed: 0, total: 1, fraction: 0, label: 'Loading Aurel tyre logistics' });
-      renderer.tyreEquipment = await loadTyreEquipment(cancelled);
-      installTyreEquipment(renderer.tyreEquipment, track);
-      renderer.circuit.group.add(renderer.tyreEquipment.root);
+      // MX and SX have their own mechanics area, service vans and gate.
+      // Loading Aurel's detached garages here retains the decoded models;
+      // installing the tyre trolleys also draws them against a dirt layout.
+      if (!isMotocrossVenue(track)) {
+        progress({
+          completed: 0,
+          total: 1,
+          fraction: 0,
+          label: 'Loading authored Aurel working garage',
+        });
+        renderer.circuit.heroGarage = await loadHeroGarage(cancelled);
+        progress({
+          completed: 0,
+          total: 1,
+          fraction: 0,
+          label: 'Loading A34 tyre blankets and controllers',
+        });
+        renderer.circuit.tyreBlankets = await loadTyreBlankets(cancelled);
+        progress({
+          completed: 0,
+          total: 1,
+          fraction: 0,
+          label: 'Loading Aurel pit-wall command station',
+        });
+        renderer.circuit.pitWallStation = await loadPitWallStation(cancelled);
+        // A35 owns its instancing/LODs outside destructive static prop batching.
+        progress({ completed: 0, total: 1, fraction: 0, label: 'Loading Aurel tyre logistics' });
+        renderer.tyreEquipment = await loadTyreEquipment(cancelled);
+        installTyreEquipment(renderer.tyreEquipment, track);
+        renderer.circuit.group.add(renderer.tyreEquipment.root);
+        progress({
+          completed: 0,
+          total: 1,
+          fraction: 0,
+          label: 'Loading Aurel pit-building frontage',
+        });
+        renderer.circuit.pitBuildingFrontage = await loadPitBuildingFrontage(cancelled);
+      }
       progress({ completed: 0, total: 1, fraction: 0, label: 'Loading A31 authored wheel guns' });
       renderer.pitCrew.installWheelGuns(await loadWheelGuns(cancelled));
       progress({ completed: 0, total: 1, fraction: 0, label: 'Loading A32 front and rear jacks' });
       renderer.pitCrew.installPitJacks(await loadPitJacks(cancelled));
       renderer.textures.register(renderer.pitCrew.root);
-      renderer.wheelGunStorage = new WheelGunStorage(
-        renderer.pitCrew.wheelGuns!.prototype,
-        renderer.circuit.heroGarage.root,
-      );
-      progress({
-        completed: 0,
-        total: 1,
-        fraction: 0,
-        label: 'Loading Aurel pit-building frontage',
-      });
-      renderer.circuit.pitBuildingFrontage = await loadPitBuildingFrontage(cancelled);
+      if (renderer.circuit.heroGarage)
+        renderer.wheelGunStorage = new WheelGunStorage(
+          renderer.pitCrew.wheelGuns!.prototype,
+          renderer.circuit.heroGarage.root,
+        );
       // Photographic trees, shrubs and grass for HIGH/ULTRA.
       progress({
         completed: 0,
@@ -2868,6 +2876,8 @@ export class RacingRenderer {
     void disposeTextureLoaders(this.renderer);
     // Restore immutable source images before any asset owner closes its bitmap.
     this.textures.dispose();
+    this.bikeShells.disposeAll();
+    this.gridPreparation.dispose();
     // Each kit removes its owned root before the generic scene disposer, so
     // source, cloned templates, atlas maps and all LODs are released once.
     this.circuit.concreteBarriers?.dispose();

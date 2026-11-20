@@ -51,6 +51,7 @@ import {
 } from './motocross-bodywork.ts';
 import {
   motocrossGraphics,
+  MX_PRINT_SCALE,
   motocrossRadiatorShroud,
   motocrossRotor,
   motocrossSidePanel,
@@ -160,7 +161,7 @@ export class DirtBikeModel {
     const primary = plastic(scheme.primary, 'Off-road plastics'),
       dark = plastic(0x1c1d20, 'Off-road black plastics'),
       board = new T.MeshPhysicalMaterial({
-        map: motocrossGraphics(colours, 'number', (id % 98) + 2),
+        map: motocrossGraphics(colours, 'number', (id % 98) + 2, MX_PRINT_SCALE[detail]),
         roughness: 0.4,
         clearcoat: 0.28,
         clearcoatRoughness: 0.3,
@@ -284,9 +285,9 @@ export class DirtBikeModel {
       halfWidth: number,
       front: boolean,
     ) => {
-      // When distant tread blocks disappear, their envelope stays in the
-      // carcass so a LOD switch cannot make the wheel shrink off the ground.
-      const knob = supermoto || detail === 'far' ? 0 : 0.016;
+      // Retain the crest radius through each LOD. Distant knobbies have
+      // depth but a shallower relief to limit sparkle on a moving opponent.
+      const knob = supermoto ? 0 : detail === 'far' ? 0.009 : 0.016;
       const wheelSides = detail === 'far' ? 24 : sides;
       const carcass = tyreGeometry(
         radius - knob,
@@ -296,7 +297,7 @@ export class DirtBikeModel {
         wheelSides,
       );
       add(spin, supermoto ? carcass : bindMotocrossTyre(carcass, front), tyreMaterial);
-      if (knob > 0 && detail !== 'far')
+      if (knob > 0)
         add(
           spin,
           bindMotocrossTyre(
@@ -304,8 +305,9 @@ export class DirtBikeModel {
               radius,
               halfWidth,
               knob,
-              detail === 'high' ? 44 : 24,
+              detail === 'high' ? 44 : detail === 'mid' ? 24 : 20,
               front ? 'front' : 'rear',
+              detail === 'far',
             ),
             front,
           ),

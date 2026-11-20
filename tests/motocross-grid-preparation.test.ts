@@ -1,5 +1,6 @@
 import * as T from 'three';
 import { describe, expect, it } from 'vitest';
+import { MOTOCROSS_CHASE } from '../src/rendering/offroad/chase-camera.ts';
 import { GridPreparationView } from '../src/rendering/grid-preparation.ts';
 import { GridPresentationView } from '../src/rendering/grid-presentation-view.ts';
 import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
@@ -63,7 +64,7 @@ describe('motocross gates keep staff without Formula tyre blankets', () => {
           heading.y = 0;
           heading.normalize();
           const offset = foot.clone().sub(bike);
-          expect(offset.dot(heading)).toBeLessThan(-1.3);
+          expect(offset.dot(heading)).toBeLessThan(-MOTOCROSS_CHASE.distance - 0.5);
           expect(Math.abs(offset.x * heading.z - offset.z * heading.x)).toBeLessThan(0.31);
           expect(new T.Vector3(0, 1, 0).transformDirection(m).y).toBeCloseTo(1, 6);
         }

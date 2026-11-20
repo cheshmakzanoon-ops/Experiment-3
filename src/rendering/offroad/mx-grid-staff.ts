@@ -8,6 +8,10 @@ export const MX_GRID_MARKS = [
   { x: 0.28, z: -2.15, yaw: -0.18 },
 ] as const;
 
+/** Once the rider takes control the team waits on the rear apron. This
+ * clears the static launch camera as well as the lanes in front of it. */
+export const MX_GRID_READY_SETBACK = 5.1;
+
 export class MxGridGround {
   private readonly foot = new T.Vector3();
   private readonly soil = surfaceSample();

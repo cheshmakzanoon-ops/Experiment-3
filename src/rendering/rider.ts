@@ -46,6 +46,7 @@ import {
 import {
   installMotocrossFabricFinish,
   motocrossFabricMaps,
+  MX_PRINT_SCALE,
   motocrossGraphics,
 } from './offroad/motocross-detail.ts';
 import type { MotocrossBootSkin } from './offroad/motocross-boot-skin.ts';
@@ -735,7 +736,7 @@ export class Rider {
     }
     if (mx && detail !== 'far') {
       const weave = motocrossFabricMaps();
-      const sleeve = motocrossGraphics(colours, 'sleeve', raceNumber);
+      const sleeve = motocrossGraphics(colours, 'sleeve', raceNumber, MX_PRINT_SCALE[detail]);
       for (const material of [leather, panel, torsoLeather]) {
         Object.assign(material, weave);
         material.normalScale.set(0.22, 0.22);
@@ -755,7 +756,7 @@ export class Rider {
     if (mx) {
       // Race number, upper chest, sleeve panels and helmet colour blocking
       // remain identifiable when an opponent changes to the distant model.
-      const printScale = detail === 'far' ? 0.125 : detail === 'mid' ? 0.5 : 1;
+      const printScale = MX_PRINT_SCALE[detail];
       torsoLeather.color.setHex(0xffffff);
       torsoLeather.map = motocrossGraphics(colours, 'jersey', raceNumber, printScale);
       helmet.color.setHex(0xffffff);

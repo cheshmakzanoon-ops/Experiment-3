@@ -66,8 +66,9 @@ import { carbonMaterial, treadMaterial } from './materials.ts';
 import { ReducedCar, carLod } from './lod.ts';
 import { box, canvasTexture, cockpitShell, mergeStatic, mesh, rod } from './geometry.ts';
 import { COMPOUNDS, LIVERIES } from '../simulation/config.ts';
-import { F, H, W, WHEEL_BASE, WHEEL_STRIDE } from '../simulation/protocol.ts';
+import { F, H, R, RACE_BASE, W, WHEEL_BASE, WHEEL_STRIDE } from '../simulation/protocol.ts';
 import { frameLiquidRain } from '../simulation/weather.ts';
+import { vehicleAt } from '../simulation/vehicles.ts';
 import { WHEEL_POSITIONS } from '../simulation/vehicle.ts';
 import { clamp, lerp } from '../core/math.ts';
 /** G15: true only in an owner build (MOTOBOUND_SUPPLIED_PLAYER=1); see src/build-flags.d.ts. */
@@ -730,6 +731,9 @@ export class FormulaCar {
   ) {
     t = sampleChassisPose(a, b, o, t, this.root.position, this.root.quaternion);
     const source = snapshotSource(a, b, t);
+    // On dirt bikes the Formula slot supplies only this interpolated chassis
+    // transform. The active bike solves its own arms, wheels and suspension.
+    if (vehicleAt(Math.round(source[o + RACE_BASE + R.VEHICLE])).classId === 'motocross') return;
     time = sampleValue(a, b, H.TIME, t);
     if (this.suppliedPlayer) {
       if (this.displayClock.due(time, source[o + F.GEAR])) {

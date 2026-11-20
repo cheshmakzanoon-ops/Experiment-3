@@ -2,6 +2,7 @@ import * as T from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CircuitScene } from '../src/rendering/circuit.ts';
 import { RacingRenderer } from '../src/rendering/renderer.ts';
+import { BikeShells } from '../src/rendering/bike.ts';
 import { scannedGround } from '../src/rendering/ground/scan-store.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
 import { setMxQuality } from '../src/rendering/offroad/mx-quality.ts';
@@ -81,6 +82,7 @@ function rendererOwner(circuit: CircuitScene) {
       'textures',
       'pitCrew',
       'gridPerformance',
+      'gridPreparation',
       'reflection',
       'shadowProxies',
       'farShadow',
@@ -106,6 +108,7 @@ function rendererOwner(circuit: CircuitScene) {
     scene: new T.Scene().add(circuit.group, sun),
     sun,
     cars: [],
+    bikeShells: new BikeShells(),
   });
   return { renderer, sun };
 }

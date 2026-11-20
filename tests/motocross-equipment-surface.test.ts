@@ -94,8 +94,19 @@ describe('motocross equipment surface and ownership', () => {
     [0.338, 0.06, 44],
     [0.352, 0.042, 24],
     [0.338, 0.06, 24],
-  ])('chamfered lugs preserve the %f m physical tyre contact envelope', (radius, width, count) => {
-    const g = motocrossTread(radius, width, 0.016, count);
+    [0.352, 0.042, 20],
+    [0.338, 0.06, 20],
+  ])('the tread preserves the %f m physical tyre contact envelope', (radius, width, count) => {
+    const distant = count === 20;
+    const g = motocrossTread(
+      radius,
+      width,
+      distant ? 0.009 : 0.016,
+      count,
+      width < 0.05 ? 'front' : 'rear',
+      distant,
+    );
+    if (distant) expect(g.index!.count / 3).toBeLessThanOrEqual(600);
     try {
       const p = g.getAttribute('position');
       let outer = 0;

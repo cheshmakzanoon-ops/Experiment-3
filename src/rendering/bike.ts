@@ -2238,6 +2238,8 @@ export class BikeShells {
   readonly root = new T.Group();
   /** Renderer hook: install weather/atmosphere/IBL on newly built bikes. */
   install: (root: T.Object3D) => void = () => undefined;
+  /** Release this entrant’s registrations before its uniquely owned maps go away. */
+  uninstall: (root: T.Object3D) => void = () => undefined;
   private readonly entries = new Map<number, Entry>();
   private readonly values: BikePoseValues = {
     fork: 0,
@@ -2322,10 +2324,14 @@ export class BikeShells {
   private dispose(entry: Entry) {
     for (const level of entry.levels) {
       if (!level) continue;
+      // The rider may have separated from the bike. Include its maps when
+      // returning this complete LOD to the texture budget.
+      level.root.add(level.rider.root);
+      this.uninstall(level.root);
       this.root.remove(level.root);
-      if (level.rider.root.parent) level.rider.root.parent.remove(level.rider.root);
       level.dispose();
     }
+    this.uninstall(entry.rig.root);
     this.root.remove(entry.rig.root);
     entry.rig.dispose();
     entry.materials.dispose();

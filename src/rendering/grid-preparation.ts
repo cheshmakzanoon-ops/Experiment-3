@@ -6,7 +6,7 @@ import { CUFF } from './pit-crew.ts';
 import * as T from 'three';
 import { clamp } from '../core/math.ts';
 import type { Track } from '../simulation/track.ts';
-import { MX_GRID_MARKS, MxGridGround } from './offroad/mx-grid-staff.ts';
+import { MX_GRID_MARKS, MX_GRID_READY_SETBACK, MxGridGround } from './offroad/mx-grid-staff.ts';
 import {
   F,
   H,
@@ -319,14 +319,9 @@ export class GridPreparationView {
           this.bodies.setColorAt(this.bodies.count, crewTeamColour(id));
           if (dirt) {
             const mark = MX_GRID_MARKS[side < 0 ? 0 : 1];
-            const floor = this.gate.floor(
-              this.car,
-              mark.x,
-              mark.z,
-              definition.bike!.cgHeight,
-              track,
-            );
-            this.person(person, mark.x, mark.yaw, frame[H.TIME], floor, mark.z);
+            const z = mark.z - MX_GRID_READY_SETBACK;
+            const floor = this.gate.floor(this.car, mark.x, z, definition.bike!.cgHeight, track);
+            this.person(person, mark.x, mark.yaw, frame[H.TIME], floor, z);
           } else {
             this.person(
               person,
@@ -344,6 +339,10 @@ export class GridPreparationView {
       this.slots.needsUpdate = true;
       this.bones.needsUpdate = true;
     }
+  }
+  /** The skin palette lives in shader uniforms outside the material map slots. */
+  dispose() {
+    this.bones.dispose();
   }
   diagnostics() {
     return { blankets: this.blankets.count, staff: this.bodies.count };

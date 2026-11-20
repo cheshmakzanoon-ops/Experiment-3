@@ -415,8 +415,14 @@ float mxFabricLine(float d, float w) { return 1. - smoothstep(w * .5, w, abs(d))
   return material;
 }
 
-/** Original race graphics authored for MOTObound. Reference photographs inform
- * the hierarchy and placement; no photographed manufacturer artwork is used. */
+/** Preserve the same graphics layout while matching texel density to each rig. */
+export const MX_PRINT_SCALE: Readonly<Record<RiderDetail, number>> = {
+  high: 1,
+  mid: 0.5,
+  far: 0.125,
+};
+
+/** Original race graphics authored for MOTObound. */
 export function motocrossGraphics(
   colours: RiderColours,
   kind: 'number' | 'jersey' | 'sleeve' | 'helmet',
@@ -737,22 +743,26 @@ export function motocrossTread(
   height: number,
   count: number,
   axle: 'front' | 'rear' = 'rear',
+  distant = false,
 ) {
   const parts: T.BufferGeometry[] = [];
   for (let k = 0; k < count; k++) {
     const a = (k / count) * Math.PI * 2;
-    const rows = k % 2 === 0 ? [0, -0.9, 0.9] : [-0.43, 0.43, -0.94, 0.94];
+    const rows =
+      k % 2 === 0 ? [0, -0.9, 0.9] : distant ? [-0.43, 0.43] : [-0.43, 0.43, -0.94, 0.94];
     for (const row of rows) {
       const shoulder = Math.abs(row) > 0.8;
       // The narrow front has longitudinal steering blocks and clear channels.
       // The rear exposes broader transverse driving faces with open shoulders.
       // References 005/009/014 supply the visual distinction, not tyre tuning.
       const front = axle === 'front';
-      const g = motocrossLug(
-        halfWidth * (shoulder ? 0.5 : front ? 0.46 : 0.74),
-        height,
-        shoulder ? 0.026 : front ? 0.037 : 0.025,
-      );
+      const width = halfWidth * (shoulder ? 0.5 : front ? 0.46 : 0.74);
+      const length = shoulder ? 0.026 : front ? 0.037 : 0.025;
+      // The distant camera still sees the gaps along the tyre silhouette.
+      // Angular blocks read there without the close range crown chamfers.
+      const g = distant
+        ? new T.BoxGeometry(width, height, length)
+        : motocrossLug(width, height, length);
       const p = g.getAttribute('position');
       // Offset the leading/trailing edges into a shallow chevron. The existing
       // closed chamfered topology is retained, without extra triangles.

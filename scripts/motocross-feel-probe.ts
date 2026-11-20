@@ -75,6 +75,7 @@ function probe({ venue, machine, path, laps, seconds }: Run) {
     stalled = 0,
     stalls = 0,
     falls = 0,
+    assistedRemounts = 0,
     wasRiding = true,
     wasAirborne = false,
     landingClock = 1,
@@ -86,7 +87,9 @@ function probe({ venue, machine, path, laps, seconds }: Run) {
     flights = 0;
   for (; t < seconds && sim.race.phase !== PHASE.FINISHED; t += DT) {
     sim.step(DT);
-    if (sim.race.phase !== PHASE.RACING) {
+    // The finish-line crossing increments completed and ends the race in the
+    // same tick. It still belongs to the last timed lap.
+    if (sim.race.phase < PHASE.RACING) {
       vy = bike.vy;
       pitchRate = bike.pitchRate;
       heading = bike.dynamics.heading;
@@ -97,7 +100,11 @@ function probe({ venue, machine, path, laps, seconds }: Run) {
       continue;
     }
     const riding = bike.riding;
-    if (wasRiding && !riding) falls++;
+    if (wasRiding && !riding) {
+      // A beached rider can enter remount directly under marshal assistance.
+      if (bike.dynamics.state === 'remount') assistedRemounts++;
+      else falls++;
+    }
     wasRiding = riding;
     const nextAccel = (bike.vy - vy) / DT,
       nextYawRate =
@@ -167,6 +174,7 @@ function probe({ venue, machine, path, laps, seconds }: Run) {
     lapSpread: lapTimes.length > 1 ? round(Math.max(...lapTimes) - Math.min(...lapTimes)) : 0,
     lapMean: round(mean),
     falls,
+    assistedRemounts,
     fallCauses: bike.crashCauses.map((c) => `${c.cause}@${Math.round(c.s)}`),
     stalls,
     flights,
@@ -214,7 +222,7 @@ const results = runs
     console.info(
       `${result.venue} ${result.machine} ${result.path}: laps ${result.lapsCompleted}/${run.laps} ` +
         `[${result.lapTimes.join(', ')}] spread ${result.lapSpread} s, falls ${result.falls} ` +
-        `(${result.fallCauses.join(', ')}), stalls ${result.stalls}, flights ${result.flights}`,
+        `(${result.fallCauses.join(', ')}), assisted remounts ${result.assistedRemounts}, stalls ${result.stalls}, flights ${result.flights}`,
     );
     console.info(`  ground ${JSON.stringify(result.ground)}`);
     console.info(`  landings ${JSON.stringify(result.landings)}`);

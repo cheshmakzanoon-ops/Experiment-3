@@ -1,13 +1,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as T from 'three';
 import { FormulaCar } from '../src/rendering/car.ts';
+import { vehicleIndex } from '../src/simulation/vehicles.ts';
 import { installFoliageAtlas } from '../src/rendering/landscape.ts';
 import { installCanopyNormals } from '../src/rendering/canopy-normals.ts';
 import { installCrewSkin, CrewPose } from '../src/rendering/crew-pose.ts';
 import { crewSuitFragment } from '../src/rendering/crew-suit.ts';
 import { CREW_BONES, peopleGeometry } from '../src/rendering/people-asset.ts';
 import { rearSignalIntensity, RearSignalField } from '../src/rendering/rear-signal.ts';
-import { F, H, HEADER, CAR_STRIDE, carBase } from '../src/simulation/protocol.ts';
+import { F, H, R, RACE_BASE, HEADER, CAR_STRIDE, carBase } from '../src/simulation/protocol.ts';
 import { disposePhase27Scene } from '../e2e/fixtures/phase27c-resources.ts';
 
 function shaderFor(material: T.Material, kind: 'standard' | 'depth' | 'distanceRGBA') {
@@ -45,6 +46,35 @@ function stubCanvas() {
   vi.stubGlobal('HTMLCanvasElement', Canvas);
 }
 afterEach(() => vi.unstubAllGlobals());
+
+it('updates only the chassis anchor on a motocross slot and resumes full posing on returning to Formula', () => {
+  stubCanvas();
+  const frame = new Float32Array(HEADER + CAR_STRIDE),
+    base = carBase(0);
+  const car = new FormulaCar(1),
+    flag = car.rainLight;
+  try {
+    frame[H.CARS] = 1;
+    frame[base + F.QW] = 1;
+    frame[base + F.FRONT_HEALTH] = frame[base + F.REAR_HEALTH] = 1;
+    frame[base + F.BRAKE] = 1;
+    flag.emissiveIntensity = 5.25;
+    for (const id of ['mx250', 'mx450'] as const) {
+      frame[base + RACE_BASE + R.VEHICLE] = vehicleIndex(id);
+      frame[base + F.X] += 9;
+      frame[base + F.Y] = 2;
+      frame[base + F.Z] = -4;
+      car.update(frame, frame, base, 1, 1 / 120, 2, false);
+      expect(car.root.position.toArray()).toEqual([frame[base + F.X], 2, -4]);
+      expect(flag.emissiveIntensity).toBe(5.25);
+    }
+    frame[base + RACE_BASE + R.VEHICLE] = vehicleIndex('apx01');
+    car.update(frame, frame, base, 1, 1 / 120, 2, false);
+    expect(flag.emissiveIntensity).not.toBe(5.25);
+  } finally {
+    disposePhase27Scene(car.root);
+  }
+});
 
 describe('recorded rear signal across the production car LODs', () => {
   it('keeps one visible lamp, matches the spray field and rewinds without stale emission', () => {

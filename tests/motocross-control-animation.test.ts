@@ -360,9 +360,15 @@ it('loads only the requested motocross rig, reuses it across camera cuts and rel
   cars[1].root.position.z = 220;
   const shells = new BikeShells(),
     camera = new T.PerspectiveCamera(60, 16 / 9),
-    installed: T.Object3D[] = [];
+    installed: T.Object3D[] = [],
+    removed: T.Object3D[] = [];
   shells.install = (root) => {
     if (/\((high|mid|far)\)$/.test(root.name)) installed.push(root);
+  };
+  shells.uninstall = (root) => {
+    if (!/\((high|mid|far)\)$/.test(root.name)) return;
+    expect(root.getObjectByName('Rider')).toBeDefined();
+    removed.push(root);
   };
   const present = () => shells.update(frame, frame, 1, cars, camera, 'medium', 0);
   try {
@@ -383,11 +389,46 @@ it('loads only the requested motocross rig, reuses it across camera cuts and rel
     expect(installed.length).toBe(4);
     expect(shells.drawnRoot(1)).toBe(remote);
     expect(installed.filter((root) => root.visible)).toHaveLength(2);
+    // Reproduce the separated-rider ownership encountered after a crash.
+    const detached = remote!.getObjectByName('Rider')!;
+    new T.Group().attach(detached);
     frame[H.CARS] = 1;
     present();
     expect(installed.filter((m) => m.parent === shells.root)).toHaveLength(1);
     expect(shells.drawnRoot(1)).toBe(null);
+    expect(removed).toHaveLength(3);
+    expect(detached.parent).toBe(null);
   } finally {
     shells.disposeAll();
+  }
+});
+
+it('sizes distant number graphics and sleeves for the model selected by the camera', () => {
+  const materials = new BikeMaterials(0);
+  try {
+    for (const [detail, size] of [
+      ['high', 512],
+      ['mid', 256],
+      ['far', 64],
+    ] as const) {
+      const bike = new DirtBikeModel(VEHICLES.mx450, 0, detail, materials, mudUniforms());
+      try {
+        const maps = new Map<string, number>();
+        bike.root.traverse((o) => {
+          if (!(o instanceof T.Mesh)) return;
+          for (const mat of Array.isArray(o.material) ? o.material : [o.material]) {
+            const texture = (mat as T.MeshStandardMaterial).map;
+            if (texture?.name.startsWith('Motocross original'))
+              maps.set(texture.name, texture.image.width);
+          }
+        });
+        expect(maps.get('Motocross original number graphics 2')).toBe(size);
+        expect(maps.get('Motocross original sleeve graphics 2')).toBe(size);
+      } finally {
+        bike.dispose();
+      }
+    }
+  } finally {
+    materials.dispose();
   }
 });
