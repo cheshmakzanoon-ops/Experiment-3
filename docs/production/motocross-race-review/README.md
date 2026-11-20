@@ -1,16 +1,16 @@
 # Motocross race review
 
-Valley Ridge and Arena Nord use the same articulated MX250 and MX450 models in racing, onboard views and replay.
+Valley Ridge and Arena Nord use the same articulated MX250 and MX450 models in racing, onboard views and replay. The SM450 supermoto shares the motocross frame and rider controls and uses its own road wheels.
 
 ![Valley Ridge’s eight-rider field holding at the starting gate in the production game](starting-grid.webp)
 
-The High screenshots come from production races entered through the paddock at `32865ee`. The player accelerated and used the fore/aft weight controls before enabling the race AI. These are chase and onboard views from those runs.
+These High screenshots come from production races entered through the paddock at `1a5fb40`. The player accelerated and shifted weight in both directions before enabling the race AI. The outdoor run covered 282 m and recorded 1.10 s of flight. The stadium run covered 187 m and recorded 0.79 s. Both sessions paused and returned to the paddock after the chase and onboard captures.
 
 ![Chase and onboard gameplay at Valley Ridge on the MX450 and Arena Nord on the MX250](racing-views.webp)
 
 The comparisons below use the production Three.js geometry on a neutral floor. Each pair uses the same pose, camera, lighting and scale. The earlier images come from main at `7423a49`.
 
-![MX450 at close and distant range, an MX250 rider standing on the pegs, and an onboard view, before and after the changes](bike-and-rider.webp)
+![MX450 at close and distant range, an MX250 rider standing on the pegs, the road-wheel SM450, and an onboard view, before and after the changes](bike-and-rider.webp)
 
 ![The service van, straw bale, gate and stadium seat geometry under matched lighting](course-models.webp)
 
@@ -65,4 +65,6 @@ npm run test:offroad
 node --experimental-transform-types scripts/motocross-feel-probe.ts
 ```
 
-These WebGL2 inspections use Chromium with SwiftShader. For a physical desktop GPU, the existing benchmark records the adapter, frame pacing and driving stalls with `npm run bench:gpu -- --journeys motocross --qualities low,medium,high`. Console performance and competitive input latency still require measurements on the target hardware.
+The WebGL2 model inspections ran on Chromium with SwiftShader and Mesa llvmpipe. Both adapters passed the two-rider GPU lifetime test. The terrain checks covered six states in both camera views on both venues. On Mesa, 22 of 23 browser checks passed in one run. The Arena Nord terrain check timed out there and passed on its own in 3.1 minutes, with the same 472 geometries, 428 textures and 62 shader programs throughout.
+
+For a physical desktop GPU, the existing benchmark records the adapter, frame pacing and driving stalls with `npm run bench:gpu -- --journeys motocross --qualities low,medium,high`. Console performance and competitive input latency still require measurements on the target hardware.
