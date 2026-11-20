@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import ts from 'typescript';
 
 /**
  * Release gate G15 (docs/studio/reports/ip-audit.md): the player's car is the ORIGINAL authored
@@ -30,10 +31,23 @@ describe('ad-hoc fixture bundles are the same kind of build as the page under te
   });
   it.each(adHoc.map((file) => [file.name, file.text]))(
     '%s defines __SUPPLIED_PLAYER__ in every ad-hoc bundle',
-    (_name, text) => {
-      const builds = text.match(/configFile: false/g)!.length;
-      const defined = text.match(/configFile: false,\s*define: fixtureDefine\(\)/g)?.length ?? 0;
-      expect(defined).toBe(builds);
+    (name, text) => {
+      const source = ts.createSourceFile(name, text, ts.ScriptTarget.Latest, false);
+      let builds = 0;
+      function visit(node: ts.Node) {
+        if (ts.isObjectLiteralExpression(node)) {
+          const properties = node.properties.filter(ts.isPropertyAssignment);
+          const config = properties.find((p) => p.name.getText(source) === 'configFile');
+          if (config?.initializer.kind === ts.SyntaxKind.FalseKeyword) {
+            builds++;
+            const define = properties.find((p) => p.name.getText(source) === 'define');
+            expect(define?.initializer.getText(source)).toBe('fixtureDefine()');
+          }
+        }
+        ts.forEachChild(node, visit);
+      }
+      visit(source);
+      expect(builds).toBeGreaterThan(0);
       expect(text).toMatch(
         /import \{[^}]*\bfixtureDefine\b[^}]*\} from '\.\/fixtures\/owner-build\.ts';/,
       );
