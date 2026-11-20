@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { mod } from '../src/core/math.ts';
 import { DEFAULT_OPTIONS, DEFAULT_SETUP } from '../src/simulation/config.ts';
+import { FLAG } from '../src/simulation/marshal.ts';
 import { DirtBikeAIDriver, jumpHoldSpeed, motocrossJumpApproachSteer } from '../src/simulation/offroad/ai.ts';
 import { MX_450 } from '../src/simulation/offroad/dirt-bikes.ts';
 import { DirtBikeVehicle } from '../src/simulation/offroad/dirt-bike-vehicle.ts';
@@ -59,6 +60,44 @@ describe('motocross committed jump handoff', () => {
       expect(motocrossJumpApproachSteer(lane, lip, 0, speed, true)).toBe(lip);
       expect(motocrossJumpApproachSteer(lane, lip, 0, speed, false)).toBe(lane);
     }
+  });
+
+  it.each([
+    { lateral: 3.5, occupied: true }, { lateral: 11, occupied: false },
+  ])('surveys a stationary rider $lateral m from the centre before committing', ({ lateral, occupied }) => {
+    const dt = 1 / 120;
+    const sim = new Simulation({ ...DEFAULT_OPTIONS, mode: 'practice', weather: 'clear',
+      circuit: 'valley-ridge-mx', opponents: 1, vehicles: ['mx450', 'mx250'], seed: 41003 });
+    for (let i = 0; i < 6 / dt; i++) sim.step(dt);
+    const jump = offroadCourse(sim.track.circuit)!.jumps.find((j) => j.name === 'BARN DOUBLE')!;
+    const parked = sim.cars[0] as DirtBikeVehicle, rider = sim.cars[1] as DirtBikeVehicle;
+    const driver = sim.ai[1] as DirtBikeAIDriver, hold = jumpHoldSpeed(jump);
+    parked.place(sim.track, jump.takeoff + 4, lateral);
+    parked.input.brake = 1;
+    rider.place(sim.track, jump.start - 40);
+    rider.dynamics.speed = hold;
+    for (let gear = 1; gear < rider.spec.gearRatios.length - 1; gear++) {
+      rider.gear = gear;
+      const rpm = hold / rider.spec.wheelRadius * rider.spec.gearRatios[gear + 1] *
+        rider.spec.finalDrive * 30 / Math.PI;
+      if (rpm < rider.spec.shiftRPM * 0.85) break;
+    }
+    const initial = driver.decisions.rolls + driver.decisions.aborts;
+    let beforeFlag: number | undefined, longestFlight = 0;
+    for (let i = 0; i < 14 / dt && rider.s < jump.end + 4; i++) {
+      sim.step(dt);
+      if (beforeFlag === undefined && rider.s >= jump.start - 26) {
+        expect(sim.race.control.flags[rider.id]).toBe(FLAG.GREEN);
+        beforeFlag = driver.decisions.rolls + driver.decisions.aborts - initial;
+      }
+      if (rider.lastLanding && rider.lastLanding.s > jump.takeoff)
+        longestFlight = Math.max(longestFlight, rider.lastLanding.distance);
+    }
+    expect(beforeFlag).toBe(occupied ? 1 : 0);
+    expect(rider.s).toBeGreaterThan(jump.end);
+    expect(rider.dynamics.crashes).toBe(0);
+    if (occupied) expect(longestFlight).toBeLessThan(4);
+    else expect(longestFlight).toBeGreaterThan(12);
   });
 
   it.each(['mx250', 'mx450'] as const)(

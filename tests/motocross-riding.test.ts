@@ -22,10 +22,10 @@ const DT = 1 / 240;
 /** Reach a real surveyed takeoff using production controls/terrain, then
  * hand the already airborne bike to the player. No internal flight state
  * is fabricated and no private solver method is called. */
-function launch(assist: Assist = 'raw', keepAI = false, definition = MX_450) {
+function launch(assist: Assist = 'raw', keepAI = false, definition = MX_450, speedOffset = 0) {
   const track = rigTrack('valley-ridge-mx'),
     jump = offroadCourse(track.circuit)!.jumps.find((j) => j.name === 'RIDGE TABLE')!,
-    speed = jumpHoldSpeed(jump),
+    speed = jumpHoldSpeed(jump) + speedOffset,
     bike = new DirtBikeVehicle(0, 'medium', DEFAULT_SETUP, assist, definition);
   bike.place(track, jump.start - 12);
   bike.dynamics.speed = speed;
@@ -149,7 +149,9 @@ describe('motocross player air control', () => {
   it.each([MX_450, MX_250])(
     '$id keeps air-pitch brake corrections out of the next grounded substep',
     (definition) => {
-      const { bike, track } = launch('sport', true, definition),
+      // A modestly fast approach calls for a real rear-pedal correction on both
+      // displacements, including when the touchdown forecast is already accurate.
+      const { bike, track } = launch('sport', true, definition, 0.5),
         requested = { ...controls(), throttle: 0.35 };
       Object.assign(bike.input, requested);
       let largestAirBrake = 0,

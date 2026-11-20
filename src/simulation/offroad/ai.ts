@@ -120,6 +120,7 @@ export class DirtBikeAIDriver extends BikeAIDriver {
   private lineTrack: Track | null = null;
   private rhythmRunups: Array<{ start: number; whoops: number; length: number }> = [];
   private followingWhoops = false;
+  private field: readonly Vehicle[] = [];
   private featureLines: Array<{ from: number; to: number; lateral: number }> = [];
   readonly decisions = { clears: 0, rolls: 0, aborts: 0, pushes: 0 };
   constructor(
@@ -130,6 +131,7 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     super(rider, skill, seed);
   }
   override update(dt: number, track: Track, cars: Vehicle[], race: RaceDirector) {
+    this.field = cars;
     this.lineClock -= dt;
     if (this.lineClock <= 0) {
       this.lineClock = 0.25;
@@ -538,9 +540,23 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     const rollFoot = rollSpeed(j.lipHeight),
       brakeToRoll = (c.speed * c.speed - rollFoot * rollFoot) / (2 * 0.45 * G) + 4;
     const same = this.plan?.jump === j;
-    if (!same || !this.plan!.locked || (yellow && this.plan!.clear && toFace > brakeToRoll - 2)) {
+    const canBrake = !same || !this.plan!.locked || toFace > brakeToRoll - 2;
+    // A walking or fallen bike can occupy the landing before race control
+    // raises a flag. Survey it while there is still room to choose a roll.
+    // A rider outside the landing or clear by our arrival leaves the
+    // normal clear available.
+    const sightDistance = Math.max(0, brakeToRoll) + faceLength + JUMP_LINE_LEAD;
+    const blocked = canBrake && run <= sightDistance && this.field.some((other) => {
+      if (other === c || other.inPit || other.speed > ROLL_SPEED + 0.5) return false;
+      const into = mod(other.s - j.takeoff, L);
+      if (into > j.end - j.takeoff || Math.abs(other.lateral) > other.trackPosition.width) return false;
+      const clearance = j.end - j.takeoff - into + 2;
+      return clearance / Math.max(0.1, other.speed) >= run / Math.max(hold, c.speed);
+    });
+    if (!same || !this.plan!.locked || ((yellow || blocked) && this.plan!.clear && canBrake)) {
       const reachable = this.reach(c.speed, Math.max(0, toFace - 1), c.definition.ai.topSpeed);
-      const clear = !yellow && reachable >= hold - (j.forgiving ? 0.8 : 0.25);
+      const clear = !yellow && !blocked && reachable >= hold - (j.forgiving ? 0.8 : 0.25);
+      if (blocked && same && this.plan!.clear && !clear) this.decisions.aborts++;
       if (!same) {
         if (clear) this.decisions.clears++;
         else this.decisions.rolls++;
