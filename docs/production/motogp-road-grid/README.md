@@ -20,6 +20,12 @@ Tyre width, crown and rolling radius follow the machine. The fixed-step simulati
 
 The 2.5-second film follows one motorcycle in an eight-rider simulation using a controlled trailing camera and lighting. Each of its 60 frames advances the production simulation by five ticks at 120 Hz. The dry and wet chase and cockpit stills above come from four-rider practice in the production application at 1280 × 800. Both runs started from the Low preset. The wet run set particle density to 100% in the garage to exercise spray from both tyres.
 
+### High-preset practice
+
+![GP-R2 banking into Poggiolo in four-rider High-preset practice](evidence/high-practice.webp)
+
+The production application entered Poggio Alto practice with the GP-R2 and three rivals at 960 × 600 on Chromium SwiftShader. The AI rider reached Poggiolo on lap two with the HUD showing 82 km/h. Immediately before the screenshot, the live renderer recorded 81.7 km/h and 33.1° of lean. This run used local reflections, 2,048-pixel shadows, 1,024-pixel textures and 4× MSAA. [See the same bike at the green flag](evidence/high-grid.webp).
+
 ## Wheel motion and field cost
 
 ![Instantaneous spoke geometry, sixteen-sample reference and the real-time shutter](evidence/wheel-exposure.webp)
@@ -40,4 +46,4 @@ A separate two-lap Aurel regression previously lost a prototype under braking at
 
 Two independent production builds produced the same SHA-256 source fingerprint, recorded in the validation file. Four-rider dry and wet browser journeys passed against the build from the reviewed commit. The dry journey exercised manual control, cockpit, pause and recorded replay. The wet journey verified live tyre spray, moving chase and cockpit views, and a stationary simulation clock during pause.
 
-The studio images and circuit film used Chromium and Mesa software rendering. A separate four-bike High-preset run at 1120 × 700 reached the cockpit warmup and then lost its WebGL context on Mesa llvmpipe. Native console frame pacing, controller-to-display latency and sustained performance on physical target GPUs still need hardware measurements.
+The studio images and circuit film used Chromium and Mesa software rendering. A separate four-bike High-preset run at 1120 × 700 reached the cockpit warmup and then lost its WebGL context on Mesa llvmpipe. Native console frame pacing, controller-to-display latency and sustained performance on physical target GPUs still need [hardware measurements](../../PERFORMANCE_VALIDATION.md).

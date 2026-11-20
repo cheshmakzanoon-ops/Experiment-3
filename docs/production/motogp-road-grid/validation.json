@@ -703,6 +703,87 @@
       "drawCalls": 116
     }
   },
+  "highOnTrack": {
+    "state": "driving",
+    "vehicle": "gpr2",
+    "opponents": 3,
+    "track": "poggio-alto",
+    "weather": "clear",
+    "requestedPreset": "high",
+    "backend": "Chromium SwiftShader",
+    "viewport": [
+      960,
+      600
+    ],
+    "sourceFingerprint": "a7235e74539b6f961a66245e7abf6a5a912f67cdee3eb20b11f5836b0f6df09d",
+    "camera": "chase",
+    "renderWidth": 960,
+    "renderHeight": 600,
+    "drawCalls": 3737,
+    "submittedTriangles": 3091658,
+    "casterWarmup": {
+      "groups": 2281,
+      "availableTriangles": 1653547,
+      "submittedTriangles": 2281
+    },
+    "graphics": {
+      "resolutionScale": 1,
+      "textureSize": 1024,
+      "shadowSize": 2048,
+      "reflections": "local",
+      "mirrorQuality": "high",
+      "particleDensity": 1,
+      "vegetationDensity": 1,
+      "crowd": true,
+      "bloom": true,
+      "autoExposure": true,
+      "localFog": true,
+      "motionBlur": 0.5,
+      "antialias": true,
+      "anisotropy": 16,
+      "msaa": 4,
+      "ambientOcclusion": true,
+      "filmGrade": true,
+      "temporalAA": false,
+      "lensEffects": true,
+      "cockpitFov": 54,
+      "ssr": false,
+      "taaSharpen": 0,
+      "aoTemporal": false,
+      "toneMapper": "aces",
+      "physicalBloom": false,
+      "chromaticAberration": false,
+      "lightShafts": false,
+      "shadowCascades": 2,
+      "replayDof": false
+    },
+    "replaySamples": 3705,
+    "simulationSeconds": 251.9490966796875,
+    "speedMetresPerSecond": 22.688583374023438,
+    "leanRadians": 0.5771417021751404,
+    "adapter": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+  },
+  "coldHighGrid": {
+    "adapter": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "state": "driving",
+    "vehicle": "gpr2",
+    "opponents": 3,
+    "track": "poggio-alto",
+    "weather": "clear",
+    "sourceFingerprint": "a7235e74539b6f961a66245e7abf6a5a912f67cdee3eb20b11f5836b0f6df09d",
+    "camera": "chase",
+    "renderSize": [
+      960,
+      600
+    ],
+    "observedGraphics": {
+      "textureSize": 1024,
+      "shadowSize": 2048,
+      "reflections": "local",
+      "msaa": 4,
+      "mirrorQuality": "high"
+    }
+  },
   "mesaHighPractice": {
     "viewport": [
       1120,
@@ -734,5 +815,17 @@
     "variant": "product",
     "edition": "full",
     "contentValidation": "passed"
-  }
+  },
+  "additionalHighPractice": [
+    {
+      "adapter": "Chromium SwiftShader",
+      "viewport": [
+        960,
+        600
+      ],
+      "entryRoute": "Cold circuit entry",
+      "result": "Validated a moving on-track High frame",
+      "lastCircuitStage": "Waiting for completed cockpit GPU work\u2026"
+    }
+  ]
 }
