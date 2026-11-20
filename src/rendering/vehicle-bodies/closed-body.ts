@@ -65,7 +65,7 @@ export class ClosedBodyModel {
   private readonly taper: Track;
   // Queries for lamps, panel lips and greenhouse fittings repeatedly evaluate
   // identical cross-sections. Keep exact station keys separate at each LOD.
-  private readonly surfaceProfiles: Map<number, Pt[]>[] = [new Map(), new Map(), new Map()];
+  private readonly surfaceProfiles: Map<number, readonly Pt[]>[] = [new Map(), new Map(), new Map()];
   private readonly arches: { z: number; hub: number; r: number; tub: number; flare: number }[];
   /** The wheel arches (car frame): axle station, hub height, arch radius, flare. */
   archList() {
