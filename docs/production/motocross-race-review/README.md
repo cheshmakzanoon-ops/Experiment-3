@@ -8,6 +8,10 @@ These High screenshots come from production races entered through the paddock at
 
 ![Chase and onboard gameplay at Valley Ridge on the MX450 and Arena Nord on the MX250](racing-views.webp)
 
+The Valley Ridge onboard frame above captured a spectator terrace extending over the approach to the last turn. The corrected layout at `282d233` moves that 64 m terrace 30 m along the straight. A quarter-metre survey found 15.75 m of rideable dirt under the earlier terrace and zero after the move. An independent half-metre survey of all three roofs and footings measured a minimum of 4.65 m beyond the physical track boundary. The venue still has 154 m of spectator terraces.
+
+![Matched overhead plans of the final turn, showing the old overlap and the cleared racing lane](grandstand-clearance.svg)
+
 The comparisons below use the production Three.js geometry on a neutral floor. Each pair uses the same pose, camera, lighting and scale. The earlier images come from main at `7423a49`.
 
 ![MX450 at close and distant range, an MX250 rider standing on the pegs, the road-wheel SM450, and an onboard view, before and after the changes](bike-and-rider.webp)
@@ -27,6 +31,8 @@ This MX450 jump was recorded at 120 Hz on Valley Ridge. The inspection camera fo
 - Each safety pad is fitted to the soil under its four corners. The 90th-percentile difference in corner clearance fell from 14.9 to 1.4 cm across 736 Valley Ridge pads and from 50.8 to 8.7 cm across 482 Arena Nord pads.
 - Two instanced meshes carry the moving gate leaves. The anchors, shaft and slab bring the entire gate to five structural meshes. The outdoor fabric retains its pinned edges in the colour and shadow passes. The stadium uses seated spectator meshes on High and Ultra and camera-facing crowd images on Low and Medium.
 - Each race marshal stands beside an approved platform with both feet fitted to the terrain. Officials show the local caution or passing flag recorded near their post. Clear running leaves the flag lowered. Crowd density changes preserve the officials.
+
+At the starting gate, the race worker holds at tick zero until the first unobscured driving HUD and circuit frame complete and the browser has had a paint opportunity. In the Low production journey, all eleven observations across the two starts were still at tick zero before release. The riders then covered 242 m outdoors and 147 m in the stadium.
 
 A separate four-lap stress test drove the player’s tyre solver with the game’s AI controls. The MX450 fell twice outdoors near the same turn. In the final samples before those falls it was 7.8 m from the centre of a 5 m half-width lane and leaned 69–72 degrees. The MX250 fell once after a flat landing. Both completed Arena Nord without a fall. The MX250 needed three marshal recoveries there.
 
@@ -64,6 +70,8 @@ APEX_MOTOCROSS_JOURNEY_QUALITY=low npx playwright test -c playwright.motocross.c
 npm run test:offroad
 node --experimental-transform-types scripts/motocross-feel-probe.ts
 ```
+
+The focused GitHub workflow runs the two-venue journey through the Low, Medium, High and Ultra settings and retains the full-resolution shots from each preset. Its separate headed Mesa run captures the actual X11 viewport, calibrated at both corners before opening the game. It also retains the rendered model, lighting and terrain checks.
 
 The WebGL2 model inspections ran on Chromium with SwiftShader and Mesa llvmpipe. Both adapters passed the two-rider GPU lifetime test. The terrain checks covered six states in both camera views on both venues. On Mesa, 22 of 23 browser checks passed in one run. The Arena Nord terrain check timed out there and passed on its own in 3.1 minutes, with the same 472 geometries, 428 textures and 62 shader programs throughout.
 
