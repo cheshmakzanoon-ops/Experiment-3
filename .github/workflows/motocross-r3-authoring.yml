@@ -6,6 +6,7 @@ on:
     paths:
       - .github/workflows/motocross-r3-authoring.yml
       - authoring/motocross/build_helmet.py
+      - authoring/motocross/install_blender.sh
 permissions:
   contents: read
 jobs:
@@ -24,9 +25,7 @@ jobs:
           set -euo pipefail
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends libx11-6 libxxf86vm1 libxfixes3 libxi6 libxrender1 libgl1 libxkbcommon0 libsm6 libice6
-          curl --fail --location --retry 2 --max-time 240 https://download.blender.org/release/Blender5.2/blender-5.2.2-linux-x64.tar.xz -o "$RUNNER_TEMP/blender.tar.xz"
-          echo "84098912789dc450e95697c4184fb8a90acbe5111c2ba4aede3fecb57806a168  $RUNNER_TEMP/blender.tar.xz" | sha256sum --check
-          tar -xJf "$RUNNER_TEMP/blender.tar.xz" -C "$RUNNER_TEMP"
+          bash authoring/motocross/install_blender.sh "$RUNNER_TEMP"
       - name: Rebuild original native source and verify tested runtime bytes
         shell: bash
         run: |
