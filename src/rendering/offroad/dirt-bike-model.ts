@@ -39,6 +39,7 @@ import {
   MotocrossBrakeHose,
   MotocrossRearShock,
 } from './motocross-mechanics.ts';
+import { MotocrossFootControls, MX_PEG } from './motocross-foot-controls.ts';
 import { mapMxKitPanel, mxKitTexture } from './motocross-graphics-kit.ts';
 import { mapUnprintedPlateBack } from './number-plate-uv.ts';
 import {
@@ -97,6 +98,7 @@ export class DirtBikeModel {
   private readonly swingarm = new T.Group();
   private readonly rearBrake = new T.Group();
   private readonly shock?: MotocrossRearShock;
+  private readonly footControls?: MotocrossFootControls;
   private readonly brakeHose?: MotocrossBrakeHose;
   private readonly shockUpper = new T.Vector3(0, -0.02, -0.29);
   private readonly shockLower = new T.Vector3();
@@ -872,6 +874,8 @@ export class DirtBikeModel {
               z,
             );
     }
+    if (detail !== 'far')
+      this.footControls = new MotocrossFootControls(this.sprung, this.m, detail === 'high');
     // ---- Swingarm from the pivot to the rear axle on the ground.
     this.pivot = new T.Vector3(0, -0.36, -0.15);
     this.rearAxle = new T.Vector3(0, rearR - h, -b.cgToRear);
@@ -975,8 +979,8 @@ export class DirtBikeModel {
     // ---- Off-road rider.
     this.rider = new Rider(colours, detail, 'motocross', (id % 98) + 2);
     this.rider.seat.set(0, 0.2, -0.24);
-    this.rider.pegs[0].set(0.17, -0.44, -0.1);
-    this.rider.pegs[1].set(-0.17, -0.44, -0.1);
+    this.rider.pegs[0].fromArray(MX_PEG);
+    this.rider.pegs[1].set(-MX_PEG[0], MX_PEG[1], MX_PEG[2]);
     this.sprung.add(this.rider.root);
     // Repeated lugs, fins, fasteners and mechanical pieces are merged per
     // material inside each articulation boundary, including distant LODs.
@@ -1008,6 +1012,7 @@ export class DirtBikeModel {
     // The rear pedal has its own input; it must not squeeze the front lever.
     // This direct snapshot mapping also holds still on pause and rewinds
     // exactly without a presentation-only animation clock.
+    this.footControls?.update(v.rearBrake);
     this.frontBrakeLever.rotation.y = -0.25 - T.MathUtils.clamp(v.brake, 0, 1) * 0.2;
     // The off-road adapter records vertical wheel travel, not piston travel.
     // Convert it to the raked telescope's stroke; steering around that axis
@@ -1079,6 +1084,7 @@ export class DirtBikeModel {
         offset: v.riderOffset * 0.4,
         tuck: 0,
         braking: v.brake,
+        rearBraking: v.rearBrake,
         steer: v.steer,
         speed: v.speed,
         standing: v.standing ?? 0,

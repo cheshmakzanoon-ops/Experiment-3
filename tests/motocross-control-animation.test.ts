@@ -173,3 +173,68 @@ describe('motocross front brake articulation', () => {
     },
   );
 });
+
+it.each(['high', 'mid'] as const)(
+  'the %s boot presses the rendered rear pedal and returns to its peg on a seek',
+  (detail) => {
+    const materials = new BikeMaterials(0),
+      definition = VEHICLES.mx450;
+    const model = new DirtBikeModel(definition, 0, detail, materials, mudUniforms());
+    const pedal = model.root.getObjectByName('Motocross rear brake pedal')!;
+    const boot = model.root.getObjectByName('Motocross right boot')!;
+    const pose: BikePoseValues = {
+      ...staticSag(definition),
+      steer: 0.23,
+      frontRotation: 0.3,
+      rearRotation: 0.5,
+      chassisLean: 0.3,
+      riderOffset: 0,
+      tuck: 0,
+      brake: 0,
+      rearBrake: 0,
+      discTemp: 20,
+      compoundColour: 0xffffff,
+      riding: true,
+      standing: 0.65,
+    };
+    const sample = (rearBrake: number) => {
+      pose.rearBrake = rearBrake;
+      model.pose(pose);
+      model.root.updateMatrixWorld(true);
+      // Shoot from shoe height through the outer rail rather than comparing two
+      // assigned pivots. Both hits must be on the submitted production triangles.
+      const up = new T.Vector3(0, 1, 0).transformDirection(pedal.matrixWorld);
+      const toe = pedal.localToWorld(new T.Vector3(-0.035, 0, 0.128));
+      const ray = new T.Raycaster(
+        toe.clone().addScaledVector(up, 0.06),
+        up.clone().negate(),
+        0,
+        0.12,
+      );
+      const pedalHit = ray.intersectObject(pedal, true)[0];
+      expect(pedalHit).toBeDefined();
+      ray.set(pedalHit.point.clone().addScaledVector(up, -0.025), up);
+      const soleHit = ray.intersectObject(boot, true)[0];
+      expect(soleHit).toBeDefined();
+      expect(Math.abs(soleHit.distance - 0.025)).toBeLessThan(0.008);
+      return { toe: pedalHit.point.clone(), boot: soleHit.point.clone() };
+    };
+    try {
+      const neutral = sample(0);
+      for (const input of [0.35, 1, 0.7]) {
+        const pressed = sample(input);
+        expect(neutral.toe.y - pressed.toe.y).toBeGreaterThan(input * 0.016);
+        expect(neutral.boot.y - pressed.boot.y).toBeGreaterThan(input * 0.015);
+      }
+      pose.brake = 1;
+      const frontOnly = sample(0);
+      expect(frontOnly.toe).toEqual(neutral.toe);
+      expect(frontOnly.boot.distanceTo(neutral.boot)).toBeLessThan(1e-9);
+      pose.brake = 0;
+      expect(sample(0)).toEqual(neutral);
+    } finally {
+      model.dispose();
+      materials.dispose();
+    }
+  },
+);

@@ -1545,7 +1545,7 @@ export class Rider {
         // the serrations while its calf follows this independently solved
         // shin, including standing absorption and a continuous foot dab.
         motocrossSoleContact(this.pegs[i], side, dab, this.motocrossContact);
-        motocrossBootFrame(this.q, down);
+        motocrossBootFrame(this.q, down, side < 0 ? pose.rearBraking : 0);
         gpContactJoint(this.motocrossContact, this.q, MX_BOOT_PEG, MX_BOOT_ANKLE, target);
         twoBone(this.thighs[i], this.shins[i], hip, target, pole, joint);
         gpAttachAtJoint(
