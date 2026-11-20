@@ -90,10 +90,11 @@ describe('GP layered pit architecture', () => {
     const bays = gpPaddockPlan(track).filter((bay) => bay.index % 2 === 0);
     const root = buildGpGarageEquipment(track)!;
     expect(bays).toHaveLength(6);
-    expect(root.children.length).toBeLessThanOrEqual(5);
+    expect(root.children).toHaveLength(6);
     const part = (name: string) => root.getObjectByName(name) as T.InstancedMesh;
     const spares = part('Rounded front and rear GP spares'),
       rims = part('Forged spare wheel rims'),
+      warmers = part('Quilted tyre warmers with power leads'),
       rollers = part('Load-bearing trolley and stand rollers');
     expect(rollers.count).toBe(6 * bays.length);
     expect(spares.count).toBe(14);
@@ -144,6 +145,17 @@ describe('GP layered pit architecture', () => {
         expect(Math.abs(centre.z)).toBeLessThan(3.4);
       }
     }
+    expect(warmers.count).toBe(bays.length);
+    const spareFrames = Array.from({ length: spares.count }, (_, i) => {
+      const m = new T.Matrix4();
+      spares.getMatrixAt(i, m);
+      return m;
+    });
+    for (let i = 0; i < warmers.count; i++) {
+      warmers.getMatrixAt(i, matrix);
+      expect(spareFrames.some((m) => m.equals(matrix))).toBe(true);
+    }
+    expect(warmers.geometry.index!.count / 3).toBeLessThan(1800);
     expect(halfWidths).toEqual(new Set([60, 102]));
     const materials = new Set<T.Material>();
     for (const child of root.children as T.InstancedMesh[]) {

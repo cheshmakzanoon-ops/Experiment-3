@@ -1,7 +1,84 @@
 import * as T from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { Track } from '../../simulation/track.ts';
 import { gpForgedWheel } from '../gp-forged-wheel.ts';
 import { gpPaddockPlan } from './gp-paddock-architecture.ts';
+
+/** A removable heated blanket around a 640 mm slick. The elastic skirts
+ * leave the hub open. Quilting, a closure tab and the coiled supply lead
+ * share one indexed stream and one fabric material across all garages. */
+function tyreWarmer() {
+  const positions: number[] = [],
+    colours: number[] = [],
+    uv: number[] = [],
+    index: number[] = [];
+  const segments = 64;
+  const profile = [
+    [-0.079, 0.237],
+    [-0.09, 0.248],
+    [-0.092, 0.285],
+    [-0.085, 0.303],
+    [-0.061, 0.324],
+    [-0.025, 0.329],
+    [0.025, 0.329],
+    [0.061, 0.324],
+    [0.085, 0.303],
+    [0.092, 0.285],
+    [0.09, 0.248],
+    [0.079, 0.237],
+  ];
+  const canvas = new T.Color(0x53606a),
+    piping = new T.Color(0xd59855),
+    binding = new T.Color(0x272c31),
+    panel = new T.Color();
+  for (const [row, [x, radius]] of profile.entries()) {
+    for (let j = 0; j <= segments; j++) {
+      const theta = (j / segments) * Math.PI * 2;
+      const seam = (0.5 + 0.5 * Math.cos(theta * 16)) ** 6;
+      const crown = Math.max(0, 1 - Math.abs(x / 0.096) ** 3);
+      const r = radius + crown * (0.004 - 0.006 * seam);
+      positions.push(x, r * Math.cos(theta), r * Math.sin(theta));
+      uv.push(j / segments, row / (profile.length - 1));
+      const colour = row === 1 || row === 10 ? piping : row === 0 || row === 11 ? binding : canvas;
+      panel.copy(colour).multiplyScalar(1 - 0.33 * seam);
+      colours.push(panel.r, panel.g, panel.b);
+      if (row < profile.length - 1 && j < segments) {
+        const a = row * (segments + 1) + j,
+          b = a + segments + 1;
+        index.push(a, a + 1, b, a + 1, b + 1, b);
+      }
+    }
+  }
+  const jacket = new T.BufferGeometry();
+  jacket.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
+  jacket.setAttribute('color', new T.Float32BufferAttribute(colours, 3));
+  jacket.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
+  jacket.setIndex(index);
+  jacket.computeVertexNormals();
+  const shade = (geometry: T.BufferGeometry, colour: number) => {
+    const rgb = new T.Color(colour),
+      count = geometry.getAttribute('position').count;
+    const attribute = new T.Float32BufferAttribute(new Float32Array(count * 3), 3);
+    for (let i = 0; i < count; i++) attribute.setXYZ(i, rgb.r, rgb.g, rgb.b);
+    return geometry.setAttribute('color', attribute);
+  };
+  const tab = shade(new T.BoxGeometry(0.092, 0.012, 0.069), 0xc8894e);
+  tab.rotateX(0.3).translate(-0.016, 0.319, 0.099);
+  const lead = new T.CatmullRomCurve3([
+    new T.Vector3(-0.083, -0.102, 0.264),
+    new T.Vector3(-0.121, -0.21, 0.273),
+    new T.Vector3(-0.13, -0.345, 0.196),
+    new T.Vector3(-0.12, -0.318, 0.119),
+    new T.Vector3(-0.115, -0.203, 0.12),
+  ]);
+  const cable = shade(new T.TubeGeometry(lead, 16, 0.0045, 5, false), 0x292c30);
+  const plug = shade(new T.CylinderGeometry(0.011, 0.012, 0.041, 8), 0x3c4145);
+  plug.translate(-0.115, -0.188, 0.12);
+  const parts = [jacket, tab, cable, plug];
+  const result = mergeGeometries(parts)!;
+  for (const part of parts) part.dispose();
+  return result;
+}
 
 /** A set of spare wheels on a low axle trolley, and a separate rolled-tube
  * paddock stand. All coordinates below are relative to the actual bay floor.
@@ -40,6 +117,7 @@ export function buildGpGarageEquipment(track: Track) {
     barColours: T.Color[] = [],
     tyres: T.Matrix4[] = [],
     rims: T.Matrix4[] = [],
+    warmers: T.Matrix4[] = [],
     rollers: T.Matrix4[] = [];
   const palettes = [0x894239, 0x4d616e, 0xbb9a50, 0x545a62];
   const site = new T.Object3D(),
@@ -66,11 +144,20 @@ export function buildGpGarageEquipment(track: Track) {
       barColours.push(new T.Color(colour));
     }
   }
-  function wheel(x: number, y: number, z: number, halfWidth: number, radius: number) {
+  function wheel(
+    x: number,
+    y: number,
+    z: number,
+    halfWidth: number,
+    radius: number,
+    covered: boolean,
+  ) {
     shape.position.set(x, y, z);
     shape.rotation.set(0, 0, 0);
     shape.scale.set(halfWidth / 0.0825, radius / 0.32, radius / 0.32);
-    tyres.push(transform());
+    const frame = transform();
+    tyres.push(frame);
+    if (covered) warmers.push(frame);
     shape.scale.set(halfWidth / 0.0825, 1, 1);
     rims.push(transform());
   }
@@ -107,7 +194,14 @@ export function buildGpGarageEquipment(track: Track) {
     tube([-0.586, 0.545, 0], [0.586, 0.545, 0], 0.015);
     const slots = bay.index % 3 === 0 ? 3 : 2;
     for (let i = 0; i < slots; i++)
-      wheel(-0.32 + i * 0.28, 0.545, 0, i === 1 ? 0.06 : 0.102, i === 1 ? 0.302 : 0.322);
+      wheel(
+        -0.32 + i * 0.28,
+        0.545,
+        0,
+        i === 1 ? 0.06 : 0.102,
+        i === 1 ? 0.302 : 0.322,
+        i === (bay.index % 4 === 0 ? 0 : 1),
+      );
     // A wheeled rear paddock stand parked beside the trolley. Its two
     // forked pickups are open at the top so a bobbin can enter vertically.
     cart.position.set(-5.34, 0.05, hand * 2.65);
@@ -171,5 +265,11 @@ export function buildGpGarageEquipment(track: Track) {
   batch('Rounded front and rear GP spares', slick, rubber, tyres);
   batch('Forged spare wheel rims', gpForgedWheel(0.216, 0.0825, 'far'), alloy, rims);
   batch('Load-bearing trolley and stand rollers', casterGeometry, rubber, rollers);
+  const textile = new T.MeshStandardMaterial({
+    name: 'GP quilted warmer fabric',
+    vertexColors: true,
+    roughness: 0.91,
+  });
+  batch('Quilted tyre warmers with power leads', tyreWarmer(), textile, warmers);
   return root;
 }

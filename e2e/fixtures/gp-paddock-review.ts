@@ -1,6 +1,11 @@
 import * as T from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { clamp } from '../../src/core/math.ts';
+import { BikeShells } from '../../src/rendering/bike.ts';
+import { sampleChassisPose } from '../../src/rendering/snapshot-interpolation.ts';
+import { DEFAULT_OPTIONS } from '../../src/simulation/config.ts';
+import { carBase } from '../../src/simulation/protocol.ts';
+import { Simulation } from '../../src/simulation/world.ts';
 import { CIRCUITS } from '../../src/simulation/circuits.ts';
 import { Track, trackPoint } from '../../src/simulation/track.ts';
 import { CircuitScene } from '../../src/rendering/circuit.ts';
@@ -10,6 +15,7 @@ import { surfaceMaterial } from '../../src/rendering/surface-detail.ts';
 import { WeatherPresentation } from '../../src/rendering/weather-presentation.ts';
 import { VenueKitContext } from '../../src/rendering/venue-kit/context.ts';
 import { buildPaddock } from '../../src/rendering/venue-kit/structures.ts';
+import { buildGpGarageEquipment } from '../../src/rendering/venue-kit/gp-garage-equipment.ts';
 import { gpPaddockPlan } from '../../src/rendering/venue-kit/gp-paddock-architecture.ts';
 import { gpRaceControlSite } from '../../src/rendering/venue-kit/gp-race-control.ts';
 
@@ -26,9 +32,9 @@ export interface GpPaddockCapture {
 }
 
 /** Actual production garages, upper architecture and pit wall in one view.
- * The road datum is production ribbon geometry. Surrounding scenery/actors
- * are deliberately absent; this is a construction/render check, not an FPS
- * result for the complete game. One renderer is reused across all four sites. */
+ * The road uses production ribbon geometry. Optional race views pose the
+ * production motorcycles from eight entrants in a fixed-step race. The
+ * fixture supplies the light, environment map and camera for repeatability. */
 export async function captureGpPaddocks(
   venues: readonly ('poggio-alto' | 'cape-wrenna' | 'haarveld' | 'montejaral')[] = [
     'poggio-alto',
@@ -38,6 +44,8 @@ export async function captureGpPaddocks(
   ],
   options: {
     controlOnly?: boolean;
+    equipmentOnly?: boolean;
+    raceView?: 'trackside' | 'trailing';
     onCapture?: (capture: GpPaddockCapture) => Promise<void>;
   } = {},
 ) {
@@ -67,9 +75,12 @@ export async function captureGpPaddocks(
       Object.assign(ribbon, { track, surfaces });
       buildPaddock(kit);
       batchScene(kit.root, new Set());
+      const equipment =
+        options.equipmentOnly || options.raceView ? buildGpGarageEquipment(track) : null;
+      if (equipment) kit.root.add(equipment);
       const road = surfaceMaterial('asphalt'),
         white = new T.MeshStandardMaterial({ color: 0xdcded5, roughness: 0.7 }),
-        from = plan[0].s - 70,
+        from = options.raceView ? -110 : plan[0].s - 70,
         to = plan[11].s + 90;
       ribbon.ribbon(kit.materials.ground, {
         start: from,
@@ -138,8 +149,59 @@ export async function captureGpPaddocks(
           at.z + at.nz * lateral,
         );
       };
-      const draw = (view: 'approach' | 'pit' | 'control', wet: boolean) => {
-        if (view === 'approach') {
+      let riders: BikeShells | undefined;
+      const draw = (
+        view: 'approach' | 'pit' | 'control' | 'equipment' | 'trackside' | 'trailing',
+        wet: boolean,
+      ) => {
+        if (view === 'trackside' || view === 'trailing') {
+          const simulation = new Simulation({
+            ...DEFAULT_OPTIONS,
+            mode: 'race',
+            ruleset: 'gp-motorcycle',
+            circuit: id,
+            opponents: 7,
+            laps: 3,
+            seed: 30101,
+            weather: 'clear',
+            vehicles: ['gpr1', 'gpr2', 'gpr1', 'gpr2', 'gpr1', 'gpr2', 'gpr1', 'gpr2'],
+          });
+          simulation.autoPlayer = true;
+          const instant = view === 'trackside' ? 13.3 : 10.3;
+          for (let tick = 1; tick < Math.round(instant * 120); tick++) simulation.step(1 / 120);
+          const a = simulation.makeFrame();
+          simulation.step(1 / 120);
+          const b = simulation.makeFrame();
+          const hosts = simulation.cars.map((_, index) => {
+            const root = new T.Group();
+            sampleChassisPose(a, b, carBase(index), 1, root.position, root.quaternion);
+            return { root };
+          });
+          const rider = simulation.cars[0],
+            s = rider.s,
+            side = rider.lateral;
+          camera.fov = view === 'trackside' ? 40 : 52;
+          camera.updateProjectionMatrix();
+          camera.position.copy(
+            view === 'trackside'
+              ? place(s + 3.9, side - track.pit.side * 4.7, 1.12)
+              : place(s - 5.4, side - track.pit.side * 1.45, 1.64),
+          );
+          camera.lookAt(
+            view === 'trackside' ? place(s + 0.2, side, 0.83) : place(s + 4.5, side, 0.78),
+          );
+          camera.updateMatrixWorld(true);
+          riders = new BikeShells();
+          scene.add(riders.root);
+          riders.update(a, b, 1, hosts, camera, 'high', 0);
+          weather.install(riders.root);
+        } else if (view === 'equipment') {
+          const bay = plan[4],
+            basis = new T.Matrix4().makeRotationY(bay.yaw);
+          basis.setPosition(bay.x, bay.y, bay.z);
+          camera.position.set(-8.15, 1.45, 0.75).applyMatrix4(basis);
+          camera.lookAt(new T.Vector3(-4.3, 0.54, 2.65).applyMatrix4(basis));
+        } else if (view === 'approach') {
           camera.position.copy(place(centre - 76, -track.pit.side * 20, 5));
           camera.lookAt(place(centre + 7, track.pit.side * (track.pit.offset + 10), 6.5));
         } else if (view === 'pit') {
@@ -171,11 +233,14 @@ export async function captureGpPaddocks(
         };
       };
       try {
-        if (options.controlOnly) {
+        if (options.controlOnly || options.equipmentOnly || options.raceView) {
           // A focused art review needs one fully rendered production frame
           // per venue. Yield it immediately so a slow software backend does
           // not hold all completed evidence until the final venue finishes.
-          const capture = draw('control', false);
+          const capture = draw(
+            options.raceView ?? (options.equipmentOnly ? 'equipment' : 'control'),
+            false,
+          );
           captures.push(capture);
           await options.onCapture?.(capture);
         } else {
@@ -185,6 +250,8 @@ export async function captureGpPaddocks(
             captures.push(draw('pit', false), draw('pit', true), draw('pit', false));
         }
       } finally {
+        riders?.root.removeFromParent();
+        riders?.disposeAll();
         const geometries = new Set<T.BufferGeometry>(),
           materials = new Set<T.Material>(),
           textures = new Set<T.Texture>();
