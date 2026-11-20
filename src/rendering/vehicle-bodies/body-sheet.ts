@@ -55,6 +55,8 @@ export interface ClosedSheet {
   noseWidth?: number;
   /** Section heights above the road (m). */
   floor: number;
+  /** Outboard housing and glass proportions for this original road car. */
+  mirrorForm?: 'sport' | 'touring' | 'work' | 'bullet';
   /** Stamped bonnet centre relief in metres (a depression on the mid-engine
    * cars), then shoulder positions at cowl and nose as shares of deck width. */
   bonnetPress?: readonly [relief: number, cowlShoulder: number, noseShoulder: number];
@@ -89,6 +91,9 @@ export interface ClosedSheet {
   /** Original rear shoulder sweep, applied only behind the rear tyre envelope.
    * Rear fascia, lamps and trim use the same curved surface. */
   rearSweep?: number;
+  /** Construction of the recessed rear optical assemblies. The default is
+   * the original tapered light-guide pod on the hatchback and the hypercars. */
+  tailHousing?: 'circle' | 'blade' | 'bridge' | 'triple' | 'split';
   /** Maximum pressed-in lower-flank depth, fading before the wheel openings. */
   sideSculpt?: number;
   /** Electric signature lighting (emissive colour): a continuous front light
@@ -583,6 +588,7 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     overhang: [1.06, 0.95],
     width: 2.04,
     noseWidth: 0.88,
+    mirrorForm: 'sport',
     bonnetPress: [-0.051, 0.71, 0.49],
     floor: 0.1,
     nose: 0.5,
@@ -633,6 +639,7 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     overhang: [1.04, 0.86],
     width: 1.98,
     noseWidth: 0.78,
+    mirrorForm: 'sport',
     bonnetPress: [-0.045, 0.65, 0.47],
     floor: 0.1,
     nose: 0.44,
@@ -1502,6 +1509,7 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     overhang: [0.92, 0.76],
     width: 1.82,
     noseWidth: 0.88,
+    mirrorForm: 'touring',
     bonnetPress: [0.036, 0.65, 0.48],
     floor: 0.12,
     nose: 0.65,
@@ -1547,6 +1555,9 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     overhang: [0.95, 1.0],
     width: 1.9,
     noseWidth: 0.85,
+    rearSweep: 0.18,
+    tailHousing: 'bridge',
+    mirrorForm: 'touring',
     bonnetPress: [0.052, 0.68, 0.5],
     floor: 0.12,
     nose: 0.65,
@@ -1589,6 +1600,9 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     overhang: [1.05, 1.05],
     width: 1.92,
     noseWidth: 0.87,
+    rearSweep: 0.19,
+    tailHousing: 'triple',
+    mirrorForm: 'sport',
     bonnetPress: [0.092, 0.58, 0.43],
     floor: 0.12,
     nose: 0.68,
@@ -1631,6 +1645,9 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     overhang: [0.95, 0.95],
     width: 1.7,
     noseWidth: 0.76,
+    rearSweep: 0.145,
+    tailHousing: 'circle',
+    mirrorForm: 'bullet',
     bonnetPress: [0.079, 0.51, 0.39],
     floor: 0.13,
     nose: 0.53,
@@ -1673,6 +1690,7 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     overhang: [1.0, 1.35],
     width: 2.2,
     noseWidth: 0.9,
+    mirrorForm: 'work',
     bonnetPress: [0.084, 0.72, 0.63],
     floor: 0.3,
     loadFloor: 0.79,
@@ -1717,6 +1735,9 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     overhang: [0.95, 0.86],
     width: 1.82,
     noseWidth: 0.87,
+    rearSweep: 0.15,
+    tailHousing: 'split',
+    mirrorForm: 'touring',
     bonnetPress: [0.044, 0.71, 0.56],
     floor: 0.14,
     nose: 0.64,
@@ -1758,6 +1779,9 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     overhang: [1.0, 1.05],
     width: 1.98,
     noseWidth: 0.8,
+    rearSweep: 0.23,
+    tailHousing: 'blade',
+    mirrorForm: 'sport',
     bonnetPress: [0.063, 0.64, 0.47],
     floor: 0.12,
     nose: 0.58,
@@ -1800,6 +1824,9 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     overhang: [0.8, 0.8],
     width: 1.73,
     noseWidth: 0.8,
+    rearSweep: 0.17,
+    tailHousing: 'blade',
+    mirrorForm: 'sport',
     bonnetPress: [0.053, 0.58, 0.42],
     floor: 0.13,
     nose: 0.58,

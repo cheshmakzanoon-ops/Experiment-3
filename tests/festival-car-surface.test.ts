@@ -4,6 +4,8 @@ import { VEHICLES } from '../src/simulation/vehicles.ts';
 import { bodySheetFor, type ClosedSheet } from '../src/rendering/vehicle-bodies/body-sheet.ts';
 import { ClosedBodyModel } from '../src/rendering/vehicle-bodies/closed-body.ts';
 import { bodyFrame } from '../src/rendering/vehicle-bodies/frame.ts';
+import { roadMirrorLayout } from '../src/rendering/vehicle-bodies/road-mirrors.ts';
+import { sharedMaterials } from '../src/rendering/vehicle-bodies/materials.ts';
 import { buildVehicleBody } from '../src/rendering/vehicle-bodies/index.ts';
 import {
   festivalBonnetPockets,
@@ -48,6 +50,35 @@ describe('Festival car surface construction', () => {
         expect(x, id).toBeGreaterThanOrEqual(sideSeam.min[0]);
         expect(x, id).toBeLessThanOrEqual(sideSeam.max[0]);
         expect(model.surfaceY(z, x), id).toBeGreaterThan(sideSeam.min[1]);
+      }
+    }
+  });
+
+  it('keeps the reflective panes outboard, aft-facing and attached at each racing distance', () => {
+    for (const id of ['eh3', 'rh3', 'rp6', 'rg63']) {
+      const model = modelFor(id),
+        body = buildVehicleBody(0, VEHICLES[id], model.s);
+      const layout = roadMirrorLayout(model);
+      for (const lod of body.lods) {
+        const root = lod.group;
+        root.updateMatrixWorld(true);
+        for (const side of [-1, 1]) {
+          const ray = new T.Raycaster(
+            new T.Vector3(side * layout.x, layout.y, layout.z - 0.34),
+            new T.Vector3(0, 0, 1),
+            0,
+            0.48,
+          );
+          const hit = ray.intersectObject(root, true)[0];
+          expect(hit, `${id} pane`).toBeDefined();
+          const mat = (hit.object as T.Mesh).material;
+          expect(Array.isArray(mat) ? mat[hit.face!.materialIndex] : mat).toBe(
+            sharedMaterials.chrome(),
+          );
+          expect(hit.face!.normal.z).toBeLessThan(-0.85);
+          expect(hit.face!.normal.x * side).toBeLessThan(0);
+          expect(Math.abs(hit.point.x)).toBeGreaterThan(model.halfWidth(layout.z));
+        }
       }
     }
   });

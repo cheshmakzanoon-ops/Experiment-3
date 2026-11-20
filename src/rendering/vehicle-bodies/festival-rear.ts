@@ -148,6 +148,74 @@ export function festivalTailPockets(model: ClosedBodyModel): FestivalTailPocket[
       model.sideX(model.zRear, y + height * 0.5),
     ),
     width = available * 0.63;
+  const housing = model.s.tailHousing;
+  if (housing === 'circle') {
+    const pockets: FestivalTailPocket[] = [];
+    for (const side of [-1, 1])
+      for (const [offset, radius] of [
+        [0.76, 0.066],
+        [0.51, 0.053],
+      ]) {
+        const x = side * available * offset;
+        const outline: Pt[] = Array.from({ length: 20 }, (_, i) => {
+          const a = (i * 2 * Math.PI) / 20;
+          return [x + radius * Math.cos(a), y + radius * Math.sin(a)];
+        });
+        pockets.push({ side, x, y, width: 2 * radius, height: 2 * radius, outline });
+      }
+    return pockets;
+  }
+  if (housing) {
+    const bridge = housing === 'bridge';
+    const w =
+      available * (bridge ? 1.76 : housing === 'triple' ? 0.68 : housing === 'split' ? 0.55 : 0.83);
+    const h =
+      housing === 'triple'
+        ? 0.134
+        : housing === 'split'
+          ? 0.128
+          : housing === 'bridge'
+            ? 0.075
+            : 0.084;
+    return (bridge ? [0] : [-1, 1]).map((side) => {
+      const x = side * available * (housing === 'split' ? 0.62 : 0.51);
+      const points: Pt[] = [
+        [-0.5, -0.14],
+        [-0.46, -0.44],
+        [-0.28, -0.5],
+        [0.39, -0.41],
+        [0.5, -0.13],
+        [0.49, 0.24],
+        [0.39, 0.5],
+        [-0.32, 0.43],
+        [-0.48, 0.32],
+      ];
+      // Mirror the optic towards its shoulder. The sedan's single bridge
+      // has symmetric radiused ends at the same shutter height.
+      if (bridge) {
+        points.splice(
+          0,
+          points.length,
+          [-0.5, -0.15],
+          [-0.47, -0.5],
+          [0.47, -0.5],
+          [0.5, -0.15],
+          [0.5, 0.15],
+          [0.47, 0.5],
+          [-0.47, 0.5],
+          [-0.5, 0.15],
+        );
+      }
+      return {
+        side,
+        x,
+        y,
+        width: w,
+        height: h,
+        outline: counterClockwise(points.map(([u, v]) => [x + (side || 1) * u * w, y + v * h])),
+      };
+    });
+  }
   return [-1, 1].map((side) => {
     const x = side * available * 0.6;
     const outline = counterClockwise(
@@ -217,6 +285,82 @@ function rearPane(pocket: FestivalTailPocket, z: number, scale: number) {
   return geometry;
 }
 
+/** Lenses, internal light guides and reflector partitions sit at separate
+ * depths within the cap. All emitters follow the existing per-car brake state. */
+function addRoadLightElements(
+  parts: Parts,
+  p: FestivalTailPocket,
+  housing: NonNullable<ClosedBodyModel['s']['tailHousing']>,
+  z: number,
+  mats: CarMaterials,
+  detail: Detail,
+) {
+  if (housing === 'circle') {
+    const count = detail === 0 ? 24 : 14;
+    parts.add(
+      new T.TorusGeometry(p.width * 0.432, 0.0035, 5, count),
+      sharedMaterials.chrome(),
+      placed(p.x, p.y, z + 0.01),
+    );
+    parts.add(
+      new T.TorusGeometry(p.width * 0.325, 0.007, 6, count),
+      mats.tail,
+      placed(p.x, p.y, z + 0.017),
+    );
+    parts.add(
+      new T.SphereGeometry(p.width * 0.235, count, 6).scale(1, 1, 0.26),
+      mats.tail,
+      placed(p.x, p.y, z + 0.028),
+    );
+    return;
+  }
+  const side = p.side || 1;
+  if (housing === 'triple' || housing === 'split') {
+    const count = housing === 'triple' ? 3 : 2;
+    for (let i = 0; i < count; i++) {
+      const cx = p.x + side * ((i + 0.5) / count - 0.5) * p.width * 0.76;
+      const w = (p.width * 0.68) / count;
+      const trace: [number, number, number][] = [
+        [cx - side * w * 0.39, p.y + p.height * 0.22, z + 0.019],
+        [cx - side * w * 0.3, p.y - p.height * 0.23, z + 0.02],
+        [cx + side * w * 0.28, p.y - p.height * 0.21, z + 0.02],
+        [cx + side * w * 0.39, p.y + p.height * 0.23, z + 0.019],
+      ];
+      parts.add(
+        tubeGeometry(trace, housing === 'triple' ? 0.007 : 0.005, detail === 0 ? 13 : 8, 5),
+        mats.tail,
+      );
+      parts.add(
+        roundedBox(w * 0.62, 0.012, 0.009, 0.003, 1),
+        mats.tail,
+        placed(cx, p.y + p.height * 0.1, z + 0.031),
+      );
+    }
+    return;
+  }
+  const half = p.width / 2;
+  for (const row of [-1, 1]) {
+    const trace: [number, number, number][] = [];
+    for (let i = 0; i <= 8; i++) {
+      const u = (i / 8) * 2 - 1;
+      const kick = housing === 'bridge' ? Math.abs(u) ** 3 : Math.max(0, side * u) ** 3;
+      trace.push([p.x + u * half * 0.86, p.y + row * p.height * 0.165 + kick * 0.005, z + 0.018]);
+    }
+    parts.add(
+      tubeGeometry(trace, row === 1 ? 0.005 : 0.0038, detail === 0 ? 22 : 12, 5),
+      mats.tail,
+    );
+  }
+  const cells = housing === 'bridge' ? 8 : 4;
+  for (let i = 0; i < cells; i++) {
+    const u = ((i + 0.5) / cells) * 2 - 1;
+    parts.add(
+      roundedBox((half * 1.5) / cells, 0.008, 0.007, 0.002, 1),
+      mats.tail,
+      placed(p.x + u * half * 0.81, p.y - 0.001, z + 0.032),
+    );
+  }
+}
 export function addFestivalTailLights(
   parts: Parts,
   model: ClosedBodyModel,
@@ -230,6 +374,12 @@ export function addFestivalTailLights(
     parts.add(rearRing(pocket, z, 1.015, 0.95, -0.0005, 0.008), sharedMaterials.trim());
     parts.add(rearRing(pocket, z, 0.95, 0.87, 0.008, 0.05), optics);
     parts.add(rearPane(pocket, z + 0.051, 0.9), optics);
+    const housing = model.s.tailHousing;
+    if (housing) {
+      addRoadLightElements(parts, pocket, housing, z, mats, detail);
+      parts.add(rearPane(pocket, z + 0.003, 0.96), cover);
+      continue;
+    }
     const guide: [number, number, number][] = [
       [-0.39, 0.26],
       [0.23, 0.27],
@@ -271,7 +421,9 @@ export function festivalRegistrationPocket(model: ClosedBodyModel): FestivalTail
   const supercar = model.s.style === 'supercar',
     width = supercar ? 0.6 : 0.64,
     height = supercar ? 0.16 : 0.19,
-    y = model.f.y(supercar ? 0.49 : 0.73),
+    y = model.f.y(
+      model.s.tailHousing ? Math.min(0.7, model.s.tail - 0.34) : supercar ? 0.49 : 0.73,
+    ),
     outline = counterClockwise(
       [
         [-0.5, -0.3],

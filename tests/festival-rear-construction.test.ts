@@ -99,6 +99,48 @@ describe('Festival rear shoulder, lamps and side intakes', () => {
       }
   });
 
+  it('cuts the six road-car tail designs and registration wells through both close meshes', () => {
+    for (const [id, count] of [
+      ['rg63', 4],
+      ['rm8', 2],
+      ['rr4', 2],
+      ['rs5', 1],
+      ['rd2', 2],
+      ['lx12', 2],
+    ] as const) {
+      const { model, body } = build(id);
+      const lights = festivalTailPockets(model),
+        registration = festivalRegistrationPocket(model)!;
+      expect(lights, id).toHaveLength(count);
+      expect(registration.y + registration.height / 2, id).toBeLessThan(
+        Math.min(...lights.map((lamp) => lamp.y - lamp.height / 2)),
+      );
+      for (const detail of [0, 1]) {
+        const root = body.lods[detail].group,
+          cap = mesh(root, 'Sculpted rear fascia');
+        for (const pocket of [...lights, registration]) {
+          const x = pocket.x + pocket.width * 0.07,
+            y = pocket.y;
+          const z = festivalRearZ(model, x, model.zRear, y);
+          const ray = new T.Raycaster(
+            new T.Vector3(x, y, z - 0.12),
+            new T.Vector3(0, 0, 1),
+            0,
+            0.24,
+          );
+          expect(ray.intersectObject(cap), `${id}/LOD${detail} opening`).toHaveLength(0);
+          const hits = ray.intersectObject(root, true);
+          const backing = hits.find((hit) => !materialFor(hit).transparent);
+          expect(backing, `${id}/LOD${detail} closed backing`).toBeDefined();
+          expect(backing!.point.z - z).toBeGreaterThan(0.001);
+          expect(backing!.point.z - z).toBeLessThan(0.07);
+          if (pocket !== registration)
+            expect(hits.some((hit) => materialFor(hit).userData.vehicleLampLens)).toBe(true);
+        }
+      }
+    }
+  });
+
   it('cuts both SC7 side intakes into the curved skin and places their closed throat inside the body', () => {
     const { model, body } = revised.get('sc7')!;
     for (const detail of [0, 1]) {

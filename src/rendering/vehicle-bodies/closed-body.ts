@@ -19,6 +19,7 @@ import { sharedMaterials, type PanelGap } from './materials.ts';
 import { Parts, placed } from './parts.ts';
 import type { Detail } from './wheel.ts';
 import { addPickupBed, pickupBedBounds } from './pickup-bed.ts';
+import { addRoadMirrors } from './road-mirrors.ts';
 import type { CarMaterials, BuiltLod } from './common.ts';
 import type { CabinLayout } from './cabin.ts';
 import { buildClosedCabin, type CabinOpening } from './interior.ts';
@@ -917,7 +918,8 @@ export function buildClosedBody(
     );
   }
   // Mirrors on short stalks at the A-pillar base.
-  if (s.mirrors && detail < 2)
+  if (s.mirrors && s.mirrorForm) addRoadMirrors(parts, model, mats, detail);
+  else if (s.mirrors && detail < 2)
     for (const side of [-1, 1]) {
       const zm = zWs - 0.14,
         ym = model.topY(zm) + 0.08,
