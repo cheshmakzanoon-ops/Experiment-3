@@ -80,7 +80,10 @@ try {
   );
   console.log('LOAD', 'document ready; waiting for the real session and first rendered frame');
   await page.locator('#loading').waitFor({ state: 'hidden' });
-  await page.waitForFunction(() => window.horizonReview?.state().draws >= 1);
+  await page.waitForFunction(() => {
+    const current = window.horizonReview?.state();
+    return current?.draws >= 1 && current.status?.discovered.includes('harbour-welcome');
+  });
   const initial = await state();
   if (!sourceIdentity) sourceIdentity = initial.sourceIdentity ?? null;
   if (sourceIdentityPath) {

@@ -83,7 +83,7 @@ import { surfaceDampness } from '../weather-presentation.ts';
 import { SolvaneDetails } from './solvane-details.ts';
 import { StreetDetails } from './street-details.ts';
 import { FestivalContactShadows } from './contact-shadows.ts';
-import { clearCameraBoom } from './camera-clearance.ts';
+import { FestivalCameraClearance } from './camera-clearance.ts';
 import { FestivalChaseDynamics, advanceChaseSpring } from './chase-dynamics.ts';
 import { driftFeedback, type DriftCue } from '../../simulation/open-world/drift-feedback.ts';
 import { HorizonGuidance } from './horizon-guidance.ts';
@@ -141,6 +141,7 @@ export class FestivalRenderer {
   private streetLoading: Promise<boolean> | null = null;
   readonly contacts = new FestivalContactShadows();
   private readonly cameraAnchor = new T.Vector3();
+  private readonly cameraClearance: FestivalCameraClearance;
   private readonly weatherAir = newWeatherAtmosphere();
   readonly chaseDynamics = new FestivalChaseDynamics();
   driftCue: DriftCue | null = null;
@@ -214,6 +215,7 @@ export class FestivalRenderer {
     tileWorker: Worker,
   ) {
     const scene = this.scene;
+    this.cameraClearance = new FestivalCameraClearance(structures);
     this.events = new Map(events.map((event) => [event.spec.id, event]));
     this.orbit = new OrbitControls(this.camera, canvas);
     this.orbit.enabled = false;
@@ -704,7 +706,7 @@ export class FestivalRenderer {
       // Never below the ground (hills behind the car).
       const ground = this.groundHeight(this.desired.x, this.desired.z, this.target.y) + 0.8;
       if (this.desired.y < ground) this.desired.y = ground;
-      clearCameraBoom(this.cameraAnchor, this.desired, this.structures, this.desired);
+      this.cameraClearance.constrain(this.cameraAnchor, this.desired, this.desired);
       this.temp
         .set(Math.sin(motion.lookYaw), 0, Math.cos(motion.lookYaw))
         .applyQuaternion(this.basis);
@@ -728,10 +730,9 @@ export class FestivalRenderer {
     }
     if (!this.photo && this.mode !== 'hood') {
       if (
-        clearCameraBoom(
+        this.cameraClearance.constrain(
           this.cameraAnchor,
           this.camera.position,
-          this.structures,
           this.camera.position,
         )
       )

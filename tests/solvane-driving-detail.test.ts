@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { clearCameraBoom } from '../src/rendering/open-world/camera-clearance.ts';
+import {
+  clearCameraBoom,
+  FestivalCameraClearance,
+} from '../src/rendering/open-world/camera-clearance.ts';
 import { brakingEnvelope } from '../src/rendering/open-world/braking-envelope.ts';
 import {
   NearMissDetector,
@@ -65,6 +68,35 @@ describe('camera boom against existing oriented collision footprints', () => {
     expect(clearCameraBoom(start, start, [building], out)).toBe(false);
     expect(clearCameraBoom(start, end, [{ ...building, z: 0, hz: 2 }], out)).toBe(false);
     expect(out).toEqual(end);
+  });
+  it('matches all-footprint collision across +/- cell boundaries, padded corners and camera cuts', () => {
+    const structures = Array.from({ length: 51 }, (_, i) => ({
+      ...building,
+      x: ((i % 3) - 1) * 48 + 1,
+      z: (Math.floor(i / 3) - 8) * 7,
+      heading: i * 0.39,
+      hx: 1.5 + (i % 5),
+      base: (i % 4) - 2,
+    }));
+    const clearance = new FestivalCameraClearance(structures);
+    let collisions = 0;
+    for (let i = 0; i < 600; i++) {
+      const origin = { x: ((i % 3) - 1) * 48 + 7 * Math.cos(i), y: i % 13, z: (i % 110) - 55 };
+      const goal = {
+        x: origin.x + 9 * Math.sin(i),
+        y: origin.y + 2,
+        z: origin.z + 10 * Math.cos(i),
+      };
+      if (i % 97 === 0) goal.x += 300;
+      const expected = { ...goal },
+        actual = { ...goal };
+      const hit = clearCameraBoom(origin, goal, structures, expected);
+      expect(clearance.constrain(origin, actual, actual)).toBe(hit);
+      expect(actual).toEqual(expected);
+      if (hit) collisions++;
+    }
+    expect(collisions).toBeGreaterThan(60);
+    expect(collisions).toBeLessThan(540);
   });
 });
 

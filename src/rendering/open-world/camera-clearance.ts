@@ -1,9 +1,38 @@
-import type { Structure } from '../../simulation/open-world/placement.ts';
+import { StructureGrid, type Structure } from '../../simulation/open-world/placement.ts';
 
 export interface CameraPoint {
   x: number;
   y: number;
   z: number;
+}
+
+/** Both the sprung pose and its desired pose are checked every chase frame.
+ * Restrict their slab tests to buildings touched by the padded boom. */
+export class FestivalCameraClearance {
+  private readonly grid: StructureGrid;
+  private readonly candidates: number[] = [];
+
+  constructor(structures: readonly Structure[]) {
+    this.grid = new StructureGrid(structures);
+  }
+
+  constrain(start: CameraPoint, end: CameraPoint, out: CameraPoint, padding = 0.38) {
+    // A discontinuity can span the region. Bound grid traversal on a bad or
+    // unexpectedly long boom; the catalogue scan also handles nonfinite ends.
+    const limit = 2 * this.grid.cell;
+    if (!(Math.abs(end.x - start.x) <= limit && Math.abs(end.z - start.z) <= limit))
+      return clearCameraBoom(start, end, this.grid.items, out, padding);
+    // A rotated footprint can grow by sqrt(2) * padding on a world axis.
+    const margin = Math.SQRT2 * padding;
+    this.grid.queryBounds(
+      Math.min(start.x, end.x) - margin,
+      Math.min(start.z, end.z) - margin,
+      Math.max(start.x, end.x) + margin,
+      Math.max(start.z, end.z) + margin,
+      this.candidates,
+    );
+    return clearCameraBoom(start, end, this.grid.items, out, padding, this.candidates);
+  }
 }
 
 /** Shorten a camera boom against the same oriented footprints as driving.
@@ -15,6 +44,7 @@ export function clearCameraBoom(
   structures: readonly Structure[],
   out: CameraPoint,
   padding = 0.38,
+  candidates?: readonly number[],
 ): boolean {
   const dx = end.x - start.x,
     dy = end.y - start.y,
@@ -27,9 +57,9 @@ export function clearCameraBoom(
     return false;
   }
   let fraction = 1;
-  for (const s of structures) {
-    if (Math.hypot(s.x - start.x, s.z - start.z) > length + Math.hypot(s.hx, s.hz) + padding)
-      continue;
+  const count = candidates?.length ?? structures.length;
+  for (let i = 0; i < count; i++) {
+    const s = structures[candidates ? candidates[i] : i];
     const c = Math.cos(s.heading),
       n = Math.sin(s.heading);
     const x = (start.x - s.x) * c + (start.z - s.z) * n;
