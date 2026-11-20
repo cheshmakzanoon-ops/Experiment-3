@@ -200,6 +200,9 @@ export class MxCourseDressing {
       roughness: 0.49,
       name: 'MX galvanised event frames',
     });
+    const pad = mxPaddingMaterial(false);
+    for (const texture of [pad.map, pad.normalMap, pad.roughnessMap])
+      if (texture) this.ownedTextures.add(texture);
     const r = new Random(36072);
     const stakes: T.Matrix4[] = [],
       blocks: T.Matrix4[] = [],
@@ -228,9 +231,6 @@ export class MxCourseDressing {
     this.instances('MX course-edge stakes', pole, yellow, stakes);
     if (!indoor) this.boundaryTape(staked);
     if (blocks.length) {
-      const pad = mxPaddingMaterial(false);
-      for (const texture of [pad.map, pad.normalMap, pad.roughnessMap])
-        if (texture) this.ownedTextures.add(texture);
       const block = mxPaddingGeometry()
         .scale(0.55 / 0.68, 0.38 / 0.58, 1.6 / 2.1)
         .translate(0, 0.19, 0);
@@ -315,7 +315,12 @@ export class MxCourseDressing {
                 steel,
               );
           }
-          this.part(new T.BoxGeometry(0.78, 1.65, 0.78).translate(side * span, 0.825, 0), pad);
+          // These upright column covers are unprinted. Two webbing bands
+          // wrap around the shaft, with the base seated at the timing line.
+          const cover = mxPaddingGeometry('post').rotateX(Math.PI / 2)
+            .scale(0.78 / 0.68, 1.65 / 2.1, 0.78 / 0.58)
+            .translate(side * span, 0.825, 0);
+          this.part(cover, pad);
           // Scrim on the approach and exit faces of each leg: the atlas row's
           // plain leading field, without lettering turned on its side.
           for (const face of [-1, 1]) {

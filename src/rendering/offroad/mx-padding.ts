@@ -14,7 +14,7 @@ const PANELS = [
 /** Keep the Blender cage and its normals. Its six UV islands each use the
  * full square. Give the two long sides, crown/base and end gussets their own
  * cut of cloth. Split a UV vertex only when two panels actually share it. */
-export function mxPaddingGeometry() {
+export function mxPaddingGeometry(finish: 'race' | 'post' = 'race') {
   const g = mxAuthoredGeometry('safety-pad', 'mid');
   const position = g.getAttribute('position'),
     normal = g.getAttribute('normal'),
@@ -39,7 +39,7 @@ export function mxPaddingGeometry() {
     const x = Math.abs(b.x),
       y = Math.abs(b.y),
       z = Math.abs(b.z);
-    const panel = x > y && x > z ? 0 : y > z ? 1 : 2,
+    const panel = finish === 'post' ? 1 : x > y && x > z ? 0 : y > z ? 1 : 2,
       tile = PANELS[panel];
     for (const i of [ia, ib, ic]) {
       const key = i * 3 + panel;
