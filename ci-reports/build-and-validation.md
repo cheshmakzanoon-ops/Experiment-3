@@ -1,20 +1,20 @@
 # Build and validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44670613020
-- commit: `9f50659ac6` · Release unused motocross assets and keep launch views and distant tyres clear
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44671461720
+- commit: `32252c2546` · Keep the brake carriers, spindles and chain connected on distant bikes
 - event: push · status: completed · conclusion: **cancelled**
-- started: 2026-11-20T03:52:21Z · updated: 2026-11-20T04:00:31Z
+- started: 2026-11-20T04:00:19Z · updated: 2026-11-20T04:16:24Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| validate | cancelled | 2 | Steam demo build and IP guard |
-| unit-tests (4) | cancelled | 7 |  |
-| unit-tests (2) | cancelled | 7 |  |
-| unit-tests (1) | cancelled | 7 |  |
-| scenarios | cancelled | 7 |  |
-| unit-tests (3) | cancelled | 7 |  |
-| offroad-scenarios | cancelled | 7 |  |
-| browser | cancelled | 0 |  |
+| scenarios | cancelled | 8 | Run node --experimental-transform-types scripts/race-classification.ts |
+| validate | cancelled | 15 |  |
+| unit-tests (2) | cancelled | 15 |  |
+| unit-tests (4) | cancelled | 3 | Complete unit-suite partition without source changes |
+| unit-tests (1) | cancelled | 15 |  |
+| offroad-scenarios | cancelled | 15 |  |
+| unit-tests (3) | cancelled | 15 |  |
+| owner-qa | cancelled | -1 |  |
+| wet-presentation | cancelled | -1 |  |
+| browser | cancelled | -1 |  |
 | publish | cancelled | 0 |  |
-| owner-qa | cancelled | 0 |  |
-| wet-presentation | cancelled | 0 |  |
