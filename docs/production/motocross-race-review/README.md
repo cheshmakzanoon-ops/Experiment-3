@@ -46,6 +46,17 @@ A loaded wheel with a small speed error used to cross rolling speed back and for
 
 The 120 Hz four-lap probe completed all 32 laps across the outdoor and stadium venues, both bike classes and both physics paths. On the dedicated AI path the Valley Ridge MX450 and MX250 completed all eight laps without a stall or fall. Their lap-time spreads were 2.03 and 1.87 seconds. Driving the player’s solver with the same controls still produced one outdoor MX250 lowside. Arena Nord recorded two assisted restarts across its 16 laps. The separate full-field race suite passed all ten events, including both Valley Ridge motos, the six-lap Arena Nord main and changeable weather.
 
+### Production preset checks
+
+| Preset and viewport | Observed result |
+| --- | --- |
+| Low, 800 × 500, local SwiftShader | Both courses completed the eight-rider gate, manual throttle and body inputs, jumps, landings, chase and onboard views, pause and return to the paddock in one 8.7-minute run. |
+| Medium, 1280 × 800, hosted SwiftShader | Valley Ridge completed the journey. Arena Nord recorded course progress, flight, touchdown and its chase view before CI cancelled the run. [Hosted Medium job](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44795656376/job/136500840634) |
+| High, 800 × 500, local SwiftShader | Both starting grids were photographed. The stadium worker accepted both rider-weight inputs. The subsequent live screenshot timed out. |
+| High, 1280 × 800, hosted SwiftShader | Chromium lost the WebGL context while preparing Valley Ridge's first chase view. The two-venue High journey remains unverified. [Hosted High job](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44795656376/job/136500840782) |
+
+On the reflection-fix commit, CI passed 813 focused tests, built the production game and verified the editable assets in Blender. Mesa passed all 24 bike and trackside browser checks. Physical-GPU frame pacing and input latency still need a hardware run. [Committed-source review](https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44792108088)
+
 ## Earlier track and rider captures
 
 ![Valley Ridge’s eight-rider field holding at the starting gate in the production game](starting-grid.webp)
