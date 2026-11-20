@@ -557,9 +557,16 @@
       800
     ],
     "graphics": "Low",
+    "wetGraphicsOverride": {
+      "particleDensity": 1
+    },
     "renderer": "ANGLE (Mesa, llvmpipe (LLVM 19.1.7 256 bits), OpenGL ES 3.2)",
     "dry": "Practice, manual controls, cockpit, pause, recorded replay and return",
-    "wet": "Practice, two-tyre spray, cockpit and held pause"
+    "wet": "Practice, two-tyre spray, cockpit and held pause",
+    "checkedOnCommit": "3963037a674b356eecb2ff45e4ff3fa32449431b",
+    "acceptedJourneys": 2,
+    "fieldSize": 4,
+    "sourceFingerprintSha256": "a7235e74539b6f961a66245e7abf6a5a912f67cdee3eb20b11f5836b0f6df09d"
   },
   "supportCockpitFit": {
     "aspectRatios": [
@@ -696,9 +703,36 @@
       "drawCalls": 116
     }
   },
+  "mesaHighPractice": {
+    "viewport": [
+      1120,
+      700
+    ],
+    "preset": "High",
+    "entrants": 4,
+    "venue": "poggio-alto",
+    "adapter": "ANGLE (Mesa, llvmpipe (LLVM 19.1.7 256 bits), OpenGL ES 3.2)",
+    "lastCompletedObservation": "Waiting for completed cockpit GPU work",
+    "result": "WebGL context lost during preparation"
+  },
+  "discardedCasterPass": {
+    "sourceCommit": "3963037a674b356eecb2ff45e4ff3fa32449431b",
+    "venue": "poggio-alto",
+    "preset": "High",
+    "entrants": 4,
+    "adapter": "ANGLE (Mesa, llvmpipe (LLVM 19.1.7 256 bits), OpenGL ES 3.2)",
+    "method": "Native Three.js draw ranges for eligible mesh material groups during shader warmup. Both counts allow one instance per instanced batch. BatchedMesh and visible race shadow draws are outside this count.",
+    "groups": 2281,
+    "availableTriangles": 1653547,
+    "submittedTriangles": 2281
+  },
   "productionBuild": {
     "passed": true,
     "command": "npm run build",
-    "sourceCommit": "3963037a674b356eecb2ff45e4ff3fa32449431b"
+    "sourceCommit": "3963037a674b356eecb2ff45e4ff3fa32449431b",
+    "sourceFingerprintSha256": "a7235e74539b6f961a66245e7abf6a5a912f67cdee3eb20b11f5836b0f6df09d",
+    "variant": "product",
+    "edition": "full",
+    "contentValidation": "passed"
   }
 }

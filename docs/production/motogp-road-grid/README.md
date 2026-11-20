@@ -2,9 +2,13 @@
 
 ![Six motorcycles rendered by the game's high-detail Three.js models](evidence/six-motorcycles.webp)
 
-The studio photographs use each motorcycle's high-detail geometry. The two prototypes carry distinct V4 and inline-four engines. The classic has three hollow carburettor bellmouths, ribbed spark plugs, a bolted split crankcase and three expansion chambers. Its oil reservoir sits between the twin shock braces. Across 91 positions covering 90 mm of rear travel, the reservoir cleared the tyre by at least 74 mm at every detail level. A mechanical linkage operates the rear drum. The roadster has a round lamp and handlebar-mounted mirrors. The supersport carries its mirrors on the fairing. The street-equipped bikes reflect the helmet camera's sightline from the mounted glass. The roadster's rearward view sweeps with the bars. The four support-class cockpit cameras use eye positions measured against the rider and instruments. Both equipped bikes keep the mirror centres in view at 4:3, 16:10 and 16:9 through the tested steering and banking angles.
+The studio photographs use the high-detail models from the game. The GP-R1 carries a V4 and the GP-R2 an inline four. The CR750 has three hollow carburettor bellmouths, ribbed spark plugs, a bolted split crankcase and three expansion chambers. A mechanical linkage operates its rear drum. Its oil reservoir sits between the twin shock braces and clears the tyre by at least 74 mm at 91 sampled positions across 90 mm of travel.
 
-[Compare the classic and roadster bodywork](evidence/roadster-and-classic.webp) · [Inspect the CR750 engine bay](evidence/classic-engine.webp) · [Compare the roadster cockpit before and after](evidence/roadster-cockpit.webp) · [Ride onboard the SS600](evidence/supersport-cockpit.webp)
+[Compare the classic and roadster bodywork](evidence/roadster-and-classic.webp) · [Inspect the CR750 engine bay](evidence/classic-engine.webp)
+
+The four support-class cockpit cameras sit at the rider's eye line, with their view checked against the instruments. The NR900 has a round headlamp and handlebar-mounted mirrors. Its view of the track behind sweeps with its bars. The SS600 mounts its mirrors on the fairing. Both bikes reflect the sightline from the rider's eye through each mirror and keep the mirror centres in frame through the tested steering and banking angles at 4:3, 16:10 and 16:9.
+
+[Compare the NR900 cockpit before and after](evidence/roadster-cockpit.webp) · [Ride onboard the SS600](evidence/supersport-cockpit.webp)
 
 ## On the circuit
 
@@ -14,7 +18,7 @@ Tyre width, crown and rolling radius follow the machine. The fixed-step simulati
 
 [Watch a GP-R2 turn in at Poggio Alto](evidence/poggio-corner.mp4) · [See the live race number, position and lap on the pit wall](evidence/pit-wall.webp)
 
-The 2.5-second film follows one motorcycle in an eight-rider simulation using a controlled trailing camera and lighting. Each of its 60 frames advances the production simulation by five ticks at 120 Hz. The dry and wet chase and cockpit stills above were captured in the production application at 1280 × 800 using its Low preset.
+The 2.5-second film follows one motorcycle in an eight-rider simulation using a controlled trailing camera and lighting. Each of its 60 frames advances the production simulation by five ticks at 120 Hz. The dry and wet chase and cockpit stills above come from four-rider practice in the production application at 1280 × 800. Both runs started from the Low preset. The wet run set particle density to 100% in the garage to exercise spray from both tyres.
 
 ## Wheel motion and field cost
 
@@ -24,7 +28,9 @@ At 112 radians per second and a 1/180-second exposure, the real-time spokes redu
 
 A distant prototype now keeps its helmet on the same physical path as the closer rider. Across five poses the old model switch displaced the helmet by up to 58.7 mm. The two levels now agree within 0.1 mm. The change keeps the same 18 mesh batches and 2,268 triangles on each distant prototype rider. The distant support-class suits retain the outline of the back protector with 60 additional triangles apiece in their existing batches.
 
-Seven rival motorcycles now require seven empty transform nodes to host their animated models. In the same browser the previous hosts constructed 959 unused meshes and allocated 40.45 MiB of geometry arrays before drawing the motorcycles. The counted bytes exclude GPU allocations. During startup, the discarded shadow pass submits one triangle from each eligible material group and waits for the GPU before drawing the chase camera. The actual race uses the complete caster geometry.
+Seven rival motorcycles now require seven empty transform nodes to host their animated models. In the same browser the previous hosts constructed 959 unused meshes and allocated 40.45 MiB of geometry arrays before drawing the motorcycles. These measurements cover CPU geometry arrays.
+
+During startup, the discarded shadow pass submits one triangle from each eligible material group and waits for the GPU before drawing the chase camera. At Poggio Alto, the four-bike High-preset warmup submitted 2,281 triangles across 2,281 eligible material groups. Their original draw ranges contained 1,653,547 triangles. The race uses the complete caster geometry.
 
 ## Verification
 
@@ -32,4 +38,6 @@ Eight seeded three-lap races covered Poggio Alto, Montejaral, Cape Wrenna and Ha
 
 A separate two-lap Aurel regression previously lost a prototype under braking at tick 2,365. After the yaw correction, all eight riders finished that race without a fall, collision or penalty. Two further Poggio Alto runs met the same checks in dry and wet conditions. One 24-second sequence of recorded steering, braking and throttle produced byte-identical wheel, rider and race snapshots at all 2,880 physics ticks when driven by 30 Hz, 60 Hz, 144 Hz and irregular frame clocks.
 
-The render captures used Chromium and Mesa software rendering. Native console frame pacing, controller-to-display latency and sustained performance on physical target GPUs still need hardware measurements.
+Two independent production builds produced the same SHA-256 source fingerprint, recorded in the validation file. Four-rider dry and wet browser journeys passed against the build from the reviewed commit. The dry journey exercised manual control, cockpit, pause and recorded replay. The wet journey verified live tyre spray, moving chase and cockpit views, and a stationary simulation clock during pause.
+
+The studio images and circuit film used Chromium and Mesa software rendering. A separate four-bike High-preset run at 1120 × 700 reached the cockpit warmup and then lost its WebGL context on Mesa llvmpipe. Native console frame pacing, controller-to-display latency and sustained performance on physical target GPUs still need hardware measurements.
