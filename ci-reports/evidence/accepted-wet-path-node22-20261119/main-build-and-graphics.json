@@ -1,0 +1,565 @@
+{
+  "source_sha": "93c4c55469ecc2fe44157e74d4e81f3d6c9055c4",
+  "source_tree": "183094280b5c0f3ec40ef5c29537477c7150c204",
+  "checked_at": "2026-11-20T01:11:34.940Z",
+  "api": "Raw GitHub run jobs GET with per_page=100",
+  "scope": "Main validate/build and Graphics component/gameplay/High only; full CI is not represented.",
+  "runs": [
+    {
+      "run_id": 44650977053,
+      "jobs": [
+        {
+          "id": 136005637021,
+          "name": "validate",
+          "head_sha": "93c4c55469ecc2fe44157e74d4e81f3d6c9055c4",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-20T01:05:53Z",
+          "completed_at": "2026-11-20T01:08:46Z",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "started_at": "2026-11-20T01:05:54Z",
+              "completed_at": "2026-11-20T01:05:54Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "started_at": "2026-11-20T01:05:54Z",
+              "completed_at": "2026-11-20T01:06:11Z"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "started_at": "2026-11-20T01:06:11Z",
+              "completed_at": "2026-11-20T01:06:12Z"
+            },
+            {
+              "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4,
+              "started_at": "2026-11-20T01:06:12Z",
+              "completed_at": "2026-11-20T01:06:16Z"
+            },
+            {
+              "name": "Lint, validate content, typecheck and build without source changes",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5,
+              "started_at": "2026-11-20T01:06:16Z",
+              "completed_at": "2026-11-20T01:07:21Z"
+            },
+            {
+              "name": "IP guard on the built output",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6,
+              "started_at": "2026-11-20T01:07:21Z",
+              "completed_at": "2026-11-20T01:07:24Z"
+            },
+            {
+              "name": "Steam demo build and IP guard",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7,
+              "started_at": "2026-11-20T01:07:24Z",
+              "completed_at": "2026-11-20T01:08:05Z"
+            },
+            {
+              "name": "Static application build",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8,
+              "started_at": "2026-11-20T01:08:05Z",
+              "completed_at": "2026-11-20T01:08:09Z"
+            },
+            {
+              "name": "Preserve exact committed source",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9,
+              "started_at": "2026-11-20T01:08:09Z",
+              "completed_at": "2026-11-20T01:08:27Z"
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10,
+              "started_at": "2026-11-20T01:08:27Z",
+              "completed_at": "2026-11-20T01:08:43Z"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 19,
+              "started_at": "2026-11-20T01:08:43Z",
+              "completed_at": "2026-11-20T01:08:43Z"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 20,
+              "started_at": "2026-11-20T01:08:43Z",
+              "completed_at": "2026-11-20T01:08:44Z"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 21,
+              "started_at": "2026-11-20T01:08:44Z",
+              "completed_at": "2026-11-20T01:08:44Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "run_id": 44650976953,
+      "jobs": [
+        {
+          "id": 136005468623,
+          "name": "gameplay",
+          "head_sha": "93c4c55469ecc2fe44157e74d4e81f3d6c9055c4",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-20T01:05:47Z",
+          "completed_at": "2026-11-20T01:10:39Z",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "started_at": "2026-11-20T01:05:48Z",
+              "completed_at": "2026-11-20T01:05:51Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "started_at": "2026-11-20T01:05:51Z",
+              "completed_at": "2026-11-20T01:06:10Z"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "started_at": "2026-11-20T01:06:10Z",
+              "completed_at": "2026-11-20T01:06:19Z"
+            },
+            {
+              "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4,
+              "started_at": "2026-11-20T01:06:19Z",
+              "completed_at": "2026-11-20T01:06:24Z"
+            },
+            {
+              "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm run build",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5,
+              "started_at": "2026-11-20T01:06:24Z",
+              "completed_at": "2026-11-20T01:07:00Z"
+            },
+            {
+              "name": "Use HTTPS for Ubuntu packages",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6,
+              "started_at": "2026-11-20T01:07:00Z",
+              "completed_at": "2026-11-20T01:07:00Z"
+            },
+            {
+              "name": "Run npx playwright install --with-deps chromium",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7,
+              "started_at": "2026-11-20T01:07:00Z",
+              "completed_at": "2026-11-20T01:07:49Z"
+            },
+            {
+              "name": "Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8,
+              "started_at": "2026-11-20T01:07:49Z",
+              "completed_at": "2026-11-20T01:07:52Z"
+            },
+            {
+              "name": "Existing complete application driving and replay journey",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9,
+              "started_at": "2026-11-20T01:07:52Z",
+              "completed_at": "2026-11-20T01:10:33Z"
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10,
+              "started_at": "2026-11-20T01:10:33Z",
+              "completed_at": "2026-11-20T01:10:36Z"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 19,
+              "started_at": "2026-11-20T01:10:36Z",
+              "completed_at": "2026-11-20T01:10:36Z"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 20,
+              "started_at": "2026-11-20T01:10:36Z",
+              "completed_at": "2026-11-20T01:10:36Z"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 21,
+              "started_at": "2026-11-20T01:10:36Z",
+              "completed_at": "2026-11-20T01:10:36Z"
+            }
+          ]
+        },
+        {
+          "id": 136005469028,
+          "name": "high",
+          "head_sha": "93c4c55469ecc2fe44157e74d4e81f3d6c9055c4",
+          "status": "completed",
+          "conclusion": "failure",
+          "started_at": "2026-11-20T01:05:48Z",
+          "completed_at": "2026-11-20T01:10:00Z",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "started_at": "2026-11-20T01:05:48Z",
+              "completed_at": "2026-11-20T01:05:49Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "started_at": "2026-11-20T01:05:49Z",
+              "completed_at": "2026-11-20T01:06:04Z"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "started_at": "2026-11-20T01:06:04Z",
+              "completed_at": "2026-11-20T01:06:06Z"
+            },
+            {
+              "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4,
+              "started_at": "2026-11-20T01:06:06Z",
+              "completed_at": "2026-11-20T01:06:09Z"
+            },
+            {
+              "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm run build",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5,
+              "started_at": "2026-11-20T01:06:09Z",
+              "completed_at": "2026-11-20T01:06:47Z"
+            },
+            {
+              "name": "Use HTTPS for Ubuntu packages",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6,
+              "started_at": "2026-11-20T01:06:47Z",
+              "completed_at": "2026-11-20T01:06:47Z"
+            },
+            {
+              "name": "Run npx playwright install --with-deps chromium",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7,
+              "started_at": "2026-11-20T01:06:47Z",
+              "completed_at": "2026-11-20T01:07:11Z"
+            },
+            {
+              "name": "Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8,
+              "started_at": "2026-11-20T01:07:11Z",
+              "completed_at": "2026-11-20T01:07:14Z"
+            },
+            {
+              "name": "High preset through the full application with completed GPU submissions",
+              "status": "completed",
+              "conclusion": "failure",
+              "number": 9,
+              "started_at": "2026-11-20T01:07:14Z",
+              "completed_at": "2026-11-20T01:09:55Z"
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10,
+              "started_at": "2026-11-20T01:09:55Z",
+              "completed_at": "2026-11-20T01:09:59Z"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 19,
+              "started_at": "2026-11-20T01:09:59Z",
+              "completed_at": "2026-11-20T01:09:59Z"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 20,
+              "started_at": "2026-11-20T01:09:59Z",
+              "completed_at": "2026-11-20T01:09:59Z"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 21,
+              "started_at": "2026-11-20T01:09:59Z",
+              "completed_at": "2026-11-20T01:09:59Z"
+            }
+          ]
+        },
+        {
+          "id": 136005469146,
+          "name": "gpu",
+          "head_sha": "93c4c55469ecc2fe44157e74d4e81f3d6c9055c4",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-20T01:05:46Z",
+          "completed_at": "2026-11-20T01:08:16Z",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "started_at": "2026-11-20T01:05:47Z",
+              "completed_at": "2026-11-20T01:05:48Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "started_at": "2026-11-20T01:05:48Z",
+              "completed_at": "2026-11-20T01:06:03Z"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "started_at": "2026-11-20T01:06:03Z",
+              "completed_at": "2026-11-20T01:06:08Z"
+            },
+            {
+              "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4,
+              "started_at": "2026-11-20T01:06:08Z",
+              "completed_at": "2026-11-20T01:06:12Z"
+            },
+            {
+              "name": "Run node --experimental-transform-types scripts/source-stability.ts -- npm run build",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5,
+              "started_at": "2026-11-20T01:06:12Z",
+              "completed_at": "2026-11-20T01:06:53Z"
+            },
+            {
+              "name": "Use HTTPS for Ubuntu packages",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6,
+              "started_at": "2026-11-20T01:06:53Z",
+              "completed_at": "2026-11-20T01:06:53Z"
+            },
+            {
+              "name": "Run npx playwright install --with-deps chromium",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7,
+              "started_at": "2026-11-20T01:06:53Z",
+              "completed_at": "2026-11-20T01:07:26Z"
+            },
+            {
+              "name": "Run sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8,
+              "started_at": "2026-11-20T01:07:26Z",
+              "completed_at": "2026-11-20T01:07:29Z"
+            },
+            {
+              "name": "Production geometry, grounding, occlusion, temporal depth and resource lifetime",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9,
+              "started_at": "2026-11-20T01:07:29Z",
+              "completed_at": "2026-11-20T01:08:13Z"
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10,
+              "started_at": "2026-11-20T01:08:13Z",
+              "completed_at": "2026-11-20T01:08:14Z"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 19,
+              "started_at": "2026-11-20T01:08:14Z",
+              "completed_at": "2026-11-20T01:08:14Z"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 20,
+              "started_at": "2026-11-20T01:08:14Z",
+              "completed_at": "2026-11-20T01:08:15Z"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 21,
+              "started_at": "2026-11-20T01:08:15Z",
+              "completed_at": "2026-11-20T01:08:15Z"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "completed_evidence": [
+    {
+      "id": 136005637021,
+      "name": "validate",
+      "run_id": 44650977053,
+      "source_sha_in_checkout_log": true,
+      "observed_backend": null,
+      "results": [],
+      "errors": [],
+      "log_file": "validate-136005637021.log",
+      "https_setup": null
+    },
+    {
+      "id": 136005469028,
+      "name": "graphics-high",
+      "run_id": 44650976953,
+      "source_sha_in_checkout_log": true,
+      "observed_backend": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+      "results": [
+        "✘  1 e2e/graphics-high-journey.spec.ts:628:1 › High production scene presents an active GP chassis and two completed photo views (2.6m)",
+        "1 failed"
+      ],
+      "errors": [
+        "Error: expect(received).toBe(expected) // Object.is equality",
+        "Expected: \"paused\"",
+        "Received: \"loading\"",
+        "- Timeout 90000ms exceeded while waiting on the predicate",
+        "at /home/runner/work/Experiment-3/Experiment-3/e2e/graphics-high-journey.spec.ts:698:5",
+        "Error: expect(received).toBe(expected) // Object.is equality",
+        "Expected: \"paused\"",
+        "Received: \"loading\"",
+        "- Timeout 90000ms exceeded while waiting on the predicate",
+        "at /home/runner/work/Experiment-3/Experiment-3/e2e/graphics-high-journey.spec.ts:698:5"
+      ],
+      "log_file": "graphics-high-136005469028.log",
+      "https_setup": {
+        "playwright_and_dependencies_seconds": 23.763,
+        "mesa_seconds": 3.313,
+        "apt_retry_or_error_lines": 0
+      }
+    },
+    {
+      "id": 136005469146,
+      "name": "graphics-gpu",
+      "run_id": 44650976953,
+      "source_sha_in_checkout_log": true,
+      "observed_backend": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+      "results": [
+        "✓  1 e2e/festival-rendering.spec.ts:7:1 › Festival renders streamed cascade maps, exposure and motion through quality and photo transitions (7.9s)",
+        "✓  2 e2e/gp-grounding.spec.ts:13:1 › GP grounding: real WebGL2 receivers, two tyre footprints and deterministic family changes (2.5s)",
+        "✓  3 e2e/graphics-engine-advancement.spec.ts:7:1 › traffic native morphs cast bounded local shadows and release their maps (5.7s)",
+        "✓  4 e2e/road-bike-presentation.spec.ts:7:1 › active road-bike snapshots render supported, airborne and landed poses with measured grounding (12.7s)",
+        "✓  5 e2e/temporal-depth-rejection.spec.ts:7:1 › temporal AA rejects revealed surfaces while retaining valid static and rigid history (2.4s)",
+        "✓  6 e2e/terrain-morph-contract.spec.ts:7:1 › Festival native geomorph agrees across material, normal, depth and far-shadow passes (2.0s)",
+        "✓  7 e2e/texture-source-ownership.spec.ts:7:1 › retained bitmap pixels survive three scene closures and independent GPU uploads (1.2s)",
+        "7 passed (40.5s)"
+      ],
+      "errors": [],
+      "log_file": "graphics-gpu-136005469146.log",
+      "https_setup": {
+        "playwright_and_dependencies_seconds": 32.172,
+        "mesa_seconds": 3.151,
+        "apt_retry_or_error_lines": 0
+      }
+    },
+    {
+      "id": 136005468623,
+      "name": "graphics-gameplay",
+      "run_id": 44650976953,
+      "source_sha_in_checkout_log": true,
+      "observed_backend": "ANGLE (Mesa, llvmpipe (LLVM 20.1.2 256 bits), OpenGL 4.5)",
+      "results": [
+        "✓  1 e2e/36-compact-race-journey.spec.ts:12:1 › compact race information stays live through a populated dusk drive, measured capture and recorded replay (2.5m)",
+        "1 passed (2.6m)"
+      ],
+      "errors": [],
+      "log_file": "graphics-gameplay-136005468623.log",
+      "https_setup": {
+        "playwright_and_dependencies_seconds": 48.626,
+        "mesa_seconds": 3.039,
+        "apt_retry_or_error_lines": 0
+      }
+    }
+  ],
+  "conclusion": "Main validate/build and Graphics component/gameplay passed; High retains the original 90,000 ms paused-grid readiness failure. These scoped results do not establish full CI acceptance.",
+  "all_assigned_jobs_terminal": true
+}

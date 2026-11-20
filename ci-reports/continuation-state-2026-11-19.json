@@ -1,37 +1,67 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-20T00:52:55.310028+00:00",
+  "updatedAt": "2026-11-20T01:22:48.588639+00:00",
   "repository": "cheshmakzanoon-ops/Experiment-3",
   "report": "ci-reports/shader-ci-continuation-2026-11-19.md",
-  "acceptedApplicationSource": "f80309fce06e97ada17cde1ef330971d9af6ffd9",
-  "acceptedApplicationTree": "48ec011f2caaf5a68137dd3e02f8b14f26ee427b",
-  "incorporatedRemoteReportHead": "4193fbc5a8e5d94d4c88fff1b4d1c120f813707d",
-  "simulationVersion": 27,
+  "acceptedApplicationSource": "93c4c55469ecc2fe44157e74d4e81f3d6c9055c4",
+  "acceptedApplicationTree": "183094280b5c0f3ec40ef5c29537477c7150c204",
+  "incorporatedRemoteReportHead": "527721973b06333858cbd99f72206751f3261607",
+  "simulationVersion": 28,
   "protocolVersion": 17,
-  "physicsCandidatePublishedToMain": false,
+  "physicsCandidatePublishedToMain": true,
   "publication": {
     "codeCommit": "f80309fce06e97ada17cde1ef330971d9af6ffd9",
     "shaderParent": "669a44de6d542abb5010bcc880b08c0b00efe444",
     "previousMain": "54a09a088acc008b23bb2a576ad998da164e3128",
     "method": "non-force expected-head update, remote head/tree independently verified",
-    "releaseGateBypassed": false
+    "releaseGateBypassed": false,
+    "wetMergeCommit": "93c4c55469ecc2fe44157e74d4e81f3d6c9055c4",
+    "wetMergeParents": [
+      "689a2eb6cbe3a7a1b4f809e8da47a8bf4ced6559",
+      "5f23cf60923638bd03b29df9c7b533c536e8624f"
+    ],
+    "wetMergeTree": "183094280b5c0f3ec40ef5c29537477c7150c204",
+    "mergeSourceEquivalentToTestedCandidateExceptReports": true
   },
   "mainCI": {
-    "run": 44646348452,
-    "head": "f80309fce06e97ada17cde1ef330971d9af6ffd9",
-    "status": "pending remaining jobs",
+    "run": 44650977053,
+    "head": "93c4c55469ecc2fe44157e74d4e81f3d6c9055c4",
+    "status": "in progress",
     "complete": false,
-    "validate": "success",
-    "roadScenarios": "success",
-    "unit": "four original native shards pending final reconciliation",
-    "browser": "sixteen original partitions pending",
-    "ownerQA": "four original native partitions pending",
+    "validate": "success: lint/content/typecheck/product/demo/IP/source preservation",
+    "validateJob": 136005637021,
+    "unit": {
+      "complete": true,
+      "files": 697,
+      "tests": 6801,
+      "passed": 6800,
+      "failed": 1,
+      "originalGpContact": "22/22 passed",
+      "onlyFailure": "unchanged mixed GP/superbike pace",
+      "evidence": "ci-reports/evidence/complete-main-units-93c4c55-20261119",
+      "missingFiles": 0,
+      "extraFiles": 0,
+      "duplicatedFiles": 0,
+      "pendingCases": 0,
+      "newFailedCaseIdentities": 0,
+      "allBaselineCasesRetained": true,
+      "addedPassingCases": 21
+    },
+    "browser": "original full matrix pending final results",
+    "ownerQA": "original full matrix pending final results",
     "release": "not certified",
-    "unitExpectedInventory": {
-      "files": 696,
-      "cases": 6779,
-      "scope": "predicted from complete baseline plus21new shadercases and1dynamicworkflowcase; terminalreportsdecisive"
-    }
+    "snapshotAt": "2026-11-20T01:20:43Z",
+    "jobCounts": {
+      "success": 7,
+      "failure": 1,
+      "in_progress": 18,
+      "queued": 2
+    },
+    "snapshotEvidence": "ci-reports/evidence/current-validation-93c4c55-20261119",
+    "browserAndOwnerQA": "20 jobs unfinished at snapshot; eventual results not represented",
+    "roadScenarios": "success",
+    "offroadScenarios": "success",
+    "wetPresentation": "success"
   },
   "graphics": {
     "acceptedShaderCommit": "669a44de6d542abb5010bcc880b08c0b00efe444",
@@ -74,11 +104,21 @@
         2.368
       ]
     },
-    "evidence": "ci-reports/evidence/inactive-shader-work-20261119"
+    "evidence": "ci-reports/evidence/inactive-shader-work-20261119",
+    "latestMainGraphics": {
+      "run": 44650976953,
+      "source": "93c4c55469ecc2fe44157e74d4e81f3d6c9055c4",
+      "components": "7/7 passed",
+      "drivingCaptureReplay": "1/1 passed",
+      "high": "0/1 passed; same original 90-second readiness failure",
+      "observedBackend": "Mesa llvmpipe",
+      "ubuntuMirrorRetryOrErrorLines": 0,
+      "evidence": "ci-reports/evidence/accepted-wet-path-node22-20261119/main-build-and-graphics.json"
+    }
   },
   "physics": {
-    "accepted": false,
-    "status": "isolated candidate; awaiting complete hosted Node22 comparison",
+    "accepted": true,
+    "status": "narrow wet-path correction published to main after paired hosted comparison",
     "localNarrowCommit": "756f587e29f25e5f1ea0023ac2660759f027799d",
     "localIntegratedCommit": "42f1566a64b60941ee987e80306f2223f076c5f9",
     "remoteCandidate": "5f23cf60923638bd03b29df9c7b533c536e8624f",
@@ -86,7 +126,7 @@
     "branch": "ci/wet-path-width-20261119",
     "baseline": "f80309fce06e97ada17cde1ef330971d9af6ffd9",
     "hostedRun": 44647781041,
-    "hostedStatus": "candidate complete; fresh paired baseline still pending",
+    "hostedStatus": "completed; workflow failure is the separate unchanged mixed pace assertion",
     "candidateSimulationVersion": 28,
     "focusedLocal": "64/64 in9files",
     "node24ContactSuite": "21/22; original Poggio rain passes, clear fails",
@@ -98,7 +138,7 @@
       "width": 1,
       "firstEvent": "GP-R2 rider5 lowside at60.600simulatedseconds"
     },
-    "originalMixed": "not yet accepted; hosted paired full-file result pending",
+    "originalMixed": "still fails unchanged; GP 91.13427179346363 s versus superbike 90.36337145755091 s",
     "fullOriginalRaceAssertionsAndDeadlinesUnchanged": true,
     "hostedCandidate": {
       "job": 135994666000,
@@ -125,9 +165,19 @@
     },
     "hostedBaseline": {
       "job": 135994666463,
-      "status": "queued"
+      "status": "completed",
+      "originalPassed": 34,
+      "originalFailed": 2,
+      "node": "v22.23.4"
     },
-    "runtimeEvidence": "ci-reports/evidence/wet-path-runtime-20261119"
+    "runtimeEvidence": "ci-reports/evidence/wet-path-runtime-20261119",
+    "acceptedMerge": "93c4c55469ecc2fe44157e74d4e81f3d6c9055c4",
+    "acceptedSimulationVersion": 28,
+    "allOriginalCaseIdentitiesMatch": true,
+    "originalCasesCompared": 36,
+    "changedOutcome": "only original Poggio Alto rain: failure to pass",
+    "newCandidateOriginalFailures": [],
+    "hostedEvidence": "ci-reports/evidence/accepted-wet-path-node22-20261119"
   },
   "previousCompleteMainCI": {
     "run": 44617126580,
@@ -151,11 +201,11 @@
     }
   },
   "remainingBlockers": [
-    "High original90-second paused readiness",
-    "Low original60-second paused readiness remains intermittent in separate settings workflows",
-    "original mixed GP/superbike pace failure",
-    "wet candidate still requires complete hosted same-runtime comparison",
-    "previous tiny fresh-context GP image-hash mismatch has no accepted fix"
+    "Original mixed GP/superbike pace requirement",
+    "High original 90-second paused readiness",
+    "Low original 60-second paused readiness remains intermittent in separate settings workflows",
+    "Current-source fresh-context GP image-hash equality assertion; expected 4193071955, received 3908797941; pixel magnitude not established by hashes",
+    "Complete current-source CI is not certified; remaining jobs are running"
   ],
   "retainedUnmergedExperiments": {
     "retainedUniforms": "9ad1a1e52f1d7f6efe2482169a625d0d6af18a28",
@@ -163,8 +213,50 @@
   },
   "priorCheckpoint": "https://github.com/cheshmakzanoon-ops/Experiment-3/blob/54a09a088acc008b23bb2a576ad998da164e3128/ci-reports/continuation-state-2026-11-19.json",
   "nextActions": [
-    "Collect and compare every original case in both hosted wet-path jobs before deciding on physics integration.",
-    "Reconcile main unit partitions and remaining browser/scenario outcomes without weakening existing assertions.",
-    "Keep accepted application source separate from report-only descendant commits."
-  ]
+    "Collect final browser and owner-QA results from current-source main run 44650977053 without weakening original gates.",
+    "Investigate High/Low startup readiness, the mixed-class pace failure and the current fresh-context image-hash assertion from retained exact-source evidence.",
+    "Keep older broad steering/admission and retained-uniform experiments isolated."
+  ],
+  "previousMainCI": {
+    "run": 44646348452,
+    "head": "f80309fce06e97ada17cde1ef330971d9af6ffd9",
+    "status": "completed",
+    "complete": false,
+    "validate": "success",
+    "roadScenarios": "success",
+    "unit": {
+      "complete": true,
+      "files": 696,
+      "tests": 6780,
+      "passed": 6778,
+      "failed": 2,
+      "missingFiles": 0,
+      "newFailedCaseIdentities": 0,
+      "evidence": "ci-reports/evidence/complete-main-units-f80309f-20261119"
+    },
+    "browser": "cancelled by source supersession; unobserved cases not counted",
+    "ownerQA": "cancelled by source supersession; unobserved cases not counted",
+    "release": "not certified",
+    "conclusion": "cancelled",
+    "reason": "superseded by the validated physics merge through existing push concurrency",
+    "offroadScenarios": "success",
+    "wetPresentation": "7 passed",
+    "browserAndOwnerQA": "20 jobs cancelled by supersession; unobserved cases not counted"
+  },
+  "motogpCurrent": {
+    "run": 44650976917,
+    "source": "93c4c55469ecc2fe44157e74d4e81f3d6c9055c4",
+    "conclusion": "failure",
+    "presentationJob": 136006338580,
+    "presentation": {
+      "passed": 8,
+      "failed": 1,
+      "assertion": "41-motogp-reference.spec.ts:230: expect(hashes[0]).toBe(hashes[5])",
+      "expected": 4193071955,
+      "received": 3908797941,
+      "pixelDifferenceMagnitude": "not established by hash values"
+    },
+    "scope": "Separate auxiliary suite; counts not added to overlapping browser coverage",
+    "evidence": "ci-reports/evidence/current-validation-93c4c55-20261119"
+  }
 }

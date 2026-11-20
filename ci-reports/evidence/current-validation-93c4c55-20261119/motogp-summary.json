@@ -1,0 +1,167 @@
+{
+  "run_id": 44650976917,
+  "source_sha": "93c4c55469ecc2fe44157e74d4e81f3d6c9055c4",
+  "conclusion": "failure",
+  "checked_at": "2026-11-20T01:18:50.354Z",
+  "jobs": [
+    {
+      "id": 136005469822,
+      "name": "unit",
+      "head_sha": "93c4c55469ecc2fe44157e74d4e81f3d6c9055c4",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-20T01:05:47Z",
+      "completed_at": "2026-11-20T01:08:31Z",
+      "failed_steps": []
+    },
+    {
+      "id": 136005470164,
+      "name": "build",
+      "head_sha": "93c4c55469ecc2fe44157e74d4e81f3d6c9055c4",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-20T01:05:48Z",
+      "completed_at": "2026-11-20T01:07:28Z",
+      "failed_steps": []
+    },
+    {
+      "id": 136006338580,
+      "name": "browser (presentation, e2e/41-motogp-reference.spec.ts e2e/motorcycle-presentation.spec.ts e2e/gp...",
+      "head_sha": "93c4c55469ecc2fe44157e74d4e81f3d6c9055c4",
+      "status": "completed",
+      "conclusion": "failure",
+      "started_at": "2026-11-20T01:08:17Z",
+      "completed_at": "2026-11-20T01:10:30Z",
+      "failed_steps": [
+        "Original workloads, viewports, deadlines and assertions"
+      ]
+    },
+    {
+      "id": 136006338581,
+      "name": "browser (course-construction, e2e/gp-course-boards.spec.ts e2e/gp-paddock-architecture.spec.ts)",
+      "head_sha": "93c4c55469ecc2fe44157e74d4e81f3d6c9055c4",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-20T01:07:30Z",
+      "completed_at": "2026-11-20T01:09:03Z",
+      "failed_steps": []
+    },
+    {
+      "id": 136006338611,
+      "name": "browser (dry-riding, e2e/motogp-riding-flow.spec.ts)",
+      "head_sha": "93c4c55469ecc2fe44157e74d4e81f3d6c9055c4",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-20T01:07:30Z",
+      "completed_at": "2026-11-20T01:10:22Z",
+      "failed_steps": []
+    },
+    {
+      "id": 136006338672,
+      "name": "browser (rider-contact, e2e/gp-rider-contact.spec.ts)",
+      "head_sha": "93c4c55469ecc2fe44157e74d4e81f3d6c9055c4",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-20T01:08:33Z",
+      "completed_at": "2026-11-20T01:16:12Z",
+      "failed_steps": []
+    },
+    {
+      "id": 136006338681,
+      "name": "browser (wet-riding, e2e/motogp-wet-riding.spec.ts)",
+      "head_sha": "93c4c55469ecc2fe44157e74d4e81f3d6c9055c4",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-20T01:08:47Z",
+      "completed_at": "2026-11-20T01:11:40Z",
+      "failed_steps": []
+    },
+    {
+      "id": 136006338687,
+      "name": "browser (menu-entry, e2e/30-menu-access.spec.ts e2e/settings-transition.spec.ts e2e/gpu-frame-gat...",
+      "head_sha": "93c4c55469ecc2fe44157e74d4e81f3d6c9055c4",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-20T01:07:31Z",
+      "completed_at": "2026-11-20T01:13:53Z",
+      "failed_steps": []
+    }
+  ],
+  "browser_job_evidence": [
+    {
+      "job_id": 136006338580,
+      "group": "presentation",
+      "conclusion": "failure",
+      "passed": 8,
+      "failed": 1,
+      "source_sha_verified": true,
+      "log_file": "motogp-presentation-136006338580.log",
+      "failure": {
+        "location": "e2e/41-motogp-reference.spec.ts:230:21",
+        "assertion": "expect(hashes[0]).toBe(hashes[5]);",
+        "expected": 4193071955,
+        "received": 3908797941
+      },
+      "full_log_sha256": "3d29b5025683671bdc6e50918ab931773bcabccf2afb8f5d4f9450d1c29c5d66",
+      "full_log_bytes": 63332,
+      "failure_excerpt_file": "motogp-presentation-failure-excerpt.txt",
+      "failure_excerpt": [
+        "Expected: 4193071955",
+        "Received: 3908797941",
+        "at /home/runner/work/Experiment-3/Experiment-3/e2e/41-motogp-reference.spec.ts:230:21",
+        "> 230 |   expect(hashes[0]).toBe(hashes[5]);"
+      ]
+    },
+    {
+      "job_id": 136006338581,
+      "group": "course-construction",
+      "conclusion": "success",
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "source_sha_verified": true,
+      "log_file": "motogp-course-construction-136006338581.log"
+    },
+    {
+      "job_id": 136006338611,
+      "group": "dry-riding",
+      "conclusion": "success",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "source_sha_verified": true,
+      "log_file": "motogp-dry-riding-136006338611.log"
+    },
+    {
+      "job_id": 136006338672,
+      "group": "rider-contact",
+      "conclusion": "success",
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "source_sha_verified": true,
+      "log_file": "motogp-rider-contact-136006338672.log"
+    },
+    {
+      "job_id": 136006338681,
+      "group": "wet-riding",
+      "conclusion": "success",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "source_sha_verified": true,
+      "log_file": "motogp-wet-riding-136006338681.log"
+    },
+    {
+      "job_id": 136006338687,
+      "group": "menu-entry",
+      "conclusion": "success",
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "source_sha_verified": true,
+      "log_file": "motogp-menu-entry-136006338687.log"
+    }
+  ],
+  "note": "Counts are individual auxiliary job outcomes. No unique-case total across overlapping main/Graphics/MotoGP workflows is inferred."
+}

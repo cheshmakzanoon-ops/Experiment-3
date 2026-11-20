@@ -1,0 +1,204 @@
+{
+  "commit": "f80309fce06e97ada17cde1ef330971d9af6ffd9",
+  "tree": "48ec011f2caaf5a68137dd3e02f8b14f26ee427b",
+  "workflowRun": 44646348452,
+  "scope": "Complete original unit suite plus added shader unit cases only; browser, owner QA, physics scenarios, graphics pixels and application startup require their own results.",
+  "simulationTree": "9daebdee03486217bf2b930b7ea940d10287daee",
+  "simulationUnchangedFromBaseline": true,
+  "files": 696,
+  "passedFiles": 694,
+  "failedFiles": 2,
+  "tests": 6780,
+  "passedTests": 6778,
+  "failedTests": 2,
+  "pendingTests": 0,
+  "todoTests": 0,
+  "partitions": [
+    {
+      "partition": 1,
+      "jobId": 135989810947,
+      "jobConclusion": "success",
+      "artifactId": 14589109179,
+      "fileCount": 174,
+      "passedFiles": 174,
+      "failedFiles": 0,
+      "tests": 1657,
+      "caseCounts": {
+        "passed": 1657
+      },
+      "vitestDurationSeconds": 593.39,
+      "success": true,
+      "node": "v22.23.5",
+      "npm": "10.9.9",
+      "sourceGuardCommandPresent": true,
+      "exactSourceInCheckoutLog": true,
+      "reportSHA256": "e2264d528fbecaff5214fb211f1246fcbc035b0bfcf564b04e4481b3b4ae08d4",
+      "consoleAndReportAgree": true
+    },
+    {
+      "partition": 2,
+      "jobId": 135989810950,
+      "jobConclusion": "failure",
+      "artifactId": 14590520398,
+      "fileCount": 174,
+      "passedFiles": 173,
+      "failedFiles": 1,
+      "tests": 1813,
+      "caseCounts": {
+        "passed": 1812,
+        "failed": 1
+      },
+      "vitestDurationSeconds": 668.41,
+      "success": false,
+      "node": "v22.23.4",
+      "npm": "10.9.9",
+      "sourceGuardCommandPresent": true,
+      "exactSourceInCheckoutLog": true,
+      "reportSHA256": "53fd38462206cb152ede84fba0bfbd20e11a7b1577a41cba83e3cfac2c868a72",
+      "consoleAndReportAgree": true
+    },
+    {
+      "partition": 3,
+      "jobId": 135989810741,
+      "jobConclusion": "failure",
+      "artifactId": 14589887517,
+      "fileCount": 174,
+      "passedFiles": 173,
+      "failedFiles": 1,
+      "tests": 1767,
+      "caseCounts": {
+        "passed": 1766,
+        "failed": 1
+      },
+      "vitestDurationSeconds": 416.38,
+      "success": false,
+      "node": "v22.23.4",
+      "npm": "10.9.9",
+      "sourceGuardCommandPresent": true,
+      "exactSourceInCheckoutLog": true,
+      "reportSHA256": "0917f48b5cce1f1f69b631371af196b8f9c83fdbc8dab91b31fa174246536eb0",
+      "consoleAndReportAgree": true
+    },
+    {
+      "partition": 4,
+      "jobId": 135989810664,
+      "jobConclusion": "success",
+      "artifactId": 14589083618,
+      "fileCount": 174,
+      "passedFiles": 174,
+      "failedFiles": 0,
+      "tests": 1543,
+      "caseCounts": {
+        "passed": 1543
+      },
+      "vitestDurationSeconds": 595.75,
+      "success": true,
+      "node": "v22.23.4",
+      "npm": "10.9.9",
+      "sourceGuardCommandPresent": true,
+      "exactSourceInCheckoutLog": true,
+      "reportSHA256": "df2925af841430a9edf8e99a13c8aa5ce241ec0103b81cfbadef7286dcd9d4f3",
+      "consoleAndReportAgree": true
+    }
+  ],
+  "missingFiles": [],
+  "extraFiles": [],
+  "duplicatedFiles": [],
+  "failedCases": [
+    {
+      "partition": 2,
+      "path": "tests/gp-tyre-contact.test.ts",
+      "ancestorTitles": [
+        "GP contact grip in production races"
+      ],
+      "fullName": "GP contact grip in production races classifies all eight GP riders at 'poggio-alto' in 'rain' without a contact or crash",
+      "status": "failed",
+      "title": "classifies all eight GP riders at 'poggio-alto' in 'rain' without a contact or crash",
+      "duration": 55731.83634300001,
+      "failureMessages": [
+        "AssertionError: expected 0.9916666666666667 to be +0 // Object.is equality\n    at /home/runner/work/Experiment-3/Experiment-3/tests/gp-tyre-contact.test.ts:294:22\n    at file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20"
+      ],
+      "meta": {}
+    },
+    {
+      "partition": 3,
+      "path": "tests/bike-session.test.ts",
+      "ancestorTitles": [
+        "WP35 seeded AI bike race"
+      ],
+      "fullName": "WP35 seeded AI bike race finishes a mixed GP/superbike race with bounded incidents and no stuck rider",
+      "status": "failed",
+      "title": "finishes a mixed GP/superbike race with bounded incidents and no stuck rider",
+      "duration": 14634.633974999999,
+      "failureMessages": [
+        "AssertionError: expected 91.13427179346363 to be less than 90.36337145755091\n    at /home/runner/work/Experiment-3/Experiment-3/tests/bike-session.test.ts:367:16\n    at file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26\n    at file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runTest (file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1574:12)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at runSuite (file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1729:8)\n    at runSuite (file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1729:8)"
+      ],
+      "meta": {}
+    }
+  ],
+  "allPartitionsComplete": true,
+  "consoleAndReportsAgree": true,
+  "baselineComparison": {
+    "baselineCommit": "ffd22598335dfa2a074ebd466e1d53830bb8bb41",
+    "baselineWorkflowRun": 44617126580,
+    "baselineFiles": 694,
+    "baselineTests": 6757,
+    "baselinePassedTests": 6755,
+    "baselineFailedTests": 2,
+    "originalCaseIdentityMultisetUnchanged": false,
+    "allBaselineCaseIdentitiesRetained": true,
+    "addedCasesInOriginalFiles": [
+      {
+        "path": "tests/ci-workflow.test.ts",
+        "fullName": "every workflow is well-formed YAML (the dry parse: they cannot run outside GitHub) shader-work-validation.yml parses, and its jobs, steps and needs are consistent",
+        "occurrences": 1
+      },
+      {
+        "path": "tests/e2e-fixture-bundles.test.ts",
+        "fullName": "ad-hoc fixture bundles are the same kind of build as the page under test shader-work-proof.spec.ts defines __SUPPLIED_PLAYER__ in every ad-hoc bundle",
+        "occurrences": 1
+      }
+    ],
+    "removedCasesInOriginalFiles": [],
+    "addedFiles": [
+      {
+        "partition": 1,
+        "path": "tests/local-fog-quality.test.ts",
+        "gitBlob": "13f15e10fe35a66cdde50098f4345b9003591225",
+        "status": "passed",
+        "cases": 5,
+        "caseCounts": {
+          "passed": 5
+        }
+      },
+      {
+        "partition": 4,
+        "path": "tests/weather-zero-work.test.ts",
+        "gitBlob": "2a270204fd6b1538f491ee09eee7bf6825f70722",
+        "status": "passed",
+        "cases": 16,
+        "caseCounts": {
+          "passed": 16
+        }
+      }
+    ],
+    "addedCases": 21,
+    "totalAddedCasesIncludingDynamicCases": 23,
+    "removedFiles": [],
+    "changedOriginalTestFiles": [],
+    "sameFailedCaseIdentities": [
+      [
+        "tests/bike-session.test.ts",
+        "WP35 seeded AI bike race finishes a mixed GP/superbike race with bounded incidents and no stuck rider"
+      ],
+      [
+        "tests/gp-tyre-contact.test.ts",
+        "GP contact grip in production races classifies all eight GP riders at 'poggio-alto' in 'rain' without a contact or crash"
+      ]
+    ],
+    "newFailedCaseIdentities": [],
+    "baselineFailuresNowPassing": []
+  },
+  "dynamicCaseExplanation": "Unchanged test modules generate one additional YAML validation case for shader-work-validation.yml and one additional fixture-bundle case for shader-work-proof.spec.ts. Thus two new test files add 21 cases and unchanged modules add two more cases.",
+  "jsonSuiteCountNote": "Vitest numTotalTestSuites includes nested describe suites; file counts use one testResults entry per source file and are independently matched to complete console summaries."
+}

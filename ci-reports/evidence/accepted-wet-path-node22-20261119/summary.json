@@ -1,0 +1,143 @@
+{
+  "recordedAt": "2026-11-20T01:03:42.387047+00:00",
+  "runId": 44647781041,
+  "runUrl": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44647781041",
+  "candidate": "5f23cf60923638bd03b29df9c7b533c536e8624f",
+  "candidateTree": "97674f9a9e89ecb7a00427a11310cd5743daf121",
+  "baseline": "f80309fce06e97ada17cde1ef330971d9af6ffd9",
+  "sourceVerification": {
+    "baseline": {
+      "checks": {
+        "checkoutMatches": true,
+        "expectedCommitMatches": true,
+        "treeMatches": true,
+        "simulationTreeMatches": true,
+        "allInputHashesMatch": true,
+        "runtimeMatchesVerifiedLocalNode22": true,
+        "nodeVersion22": true,
+        "cleanBefore": true,
+        "cleanAfter": true,
+        "sameCommitAfter": true,
+        "guardLogHasNoInputRewrite": true,
+        "guardedInstallPassed": true
+      },
+      "node": "v22.23.4",
+      "npm": "10.9.9",
+      "commit": "f80309fce06e97ada17cde1ef330971d9af6ffd9",
+      "tree": "48ec011f2caaf5a68137dd3e02f8b14f26ee427b",
+      "simulationTree": "9daebdee03486217bf2b930b7ea940d10287daee",
+      "outcomes": {
+        "install": "success",
+        "original": "failure",
+        "focused": "skipped",
+        "lint": "skipped",
+        "typecheck": "skipped"
+      }
+    },
+    "candidate": {
+      "checks": {
+        "checkoutMatches": true,
+        "expectedCommitMatches": true,
+        "treeMatches": true,
+        "simulationTreeMatches": true,
+        "allInputHashesMatch": true,
+        "runtimeMatchesVerifiedLocalNode22": true,
+        "nodeVersion22": true,
+        "cleanBefore": true,
+        "cleanAfter": true,
+        "sameCommitAfter": true,
+        "guardLogHasNoInputRewrite": true,
+        "guardedInstallPassed": true
+      },
+      "node": "v22.23.4",
+      "npm": "10.9.9",
+      "commit": "5f23cf60923638bd03b29df9c7b533c536e8624f",
+      "tree": "97674f9a9e89ecb7a00427a11310cd5743daf121",
+      "simulationTree": "50ac6526b5049b5dbcfd170d2cd78c8dddbd5338",
+      "outcomes": {
+        "install": "success",
+        "original": "failure",
+        "focused": "success",
+        "lint": "success",
+        "typecheck": "success"
+      }
+    }
+  },
+  "originalCounts": {
+    "baseline": {
+      "tests": 36,
+      "passed": 34,
+      "failed": 2,
+      "pending": 0,
+      "todo": 0,
+      "files": [
+        {
+          "file": "tests/bike-session.test.ts",
+          "passed": 13,
+          "failed": 1
+        },
+        {
+          "file": "tests/gp-tyre-contact.test.ts",
+          "passed": 21,
+          "failed": 1
+        }
+      ]
+    },
+    "candidate": {
+      "tests": 36,
+      "passed": 35,
+      "failed": 1,
+      "pending": 0,
+      "todo": 0,
+      "files": [
+        {
+          "file": "tests/bike-session.test.ts",
+          "passed": 13,
+          "failed": 1
+        },
+        {
+          "file": "tests/gp-tyre-contact.test.ts",
+          "passed": 22,
+          "failed": 0
+        }
+      ]
+    }
+  },
+  "all36OriginalCaseIdentitiesMatch": true,
+  "missingOrExtraOriginalCases": [],
+  "changedOriginalOutcomes": [
+    {
+      "identity": "tests/gp-tyre-contact.test.ts :: GP contact grip in production races classifies all eight GP riders at 'poggio-alto' in 'rain' without a contact or crash",
+      "baseline": {
+        "file": "tests/gp-tyre-contact.test.ts",
+        "fullName": "GP contact grip in production races classifies all eight GP riders at 'poggio-alto' in 'rain' without a contact or crash",
+        "status": "failed",
+        "durationMs": 58352.419368,
+        "failureMessages": [
+          "AssertionError: expected 0.9916666666666667 to be +0 // Object.is equality\n    at /home/runner/work/Experiment-3/Experiment-3/tests/gp-tyre-contact.test.ts:294:22\n    at file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20"
+        ]
+      },
+      "candidate": {
+        "file": "tests/gp-tyre-contact.test.ts",
+        "fullName": "GP contact grip in production races classifies all eight GP riders at 'poggio-alto' in 'rain' without a contact or crash",
+        "status": "passed",
+        "durationMs": 57146.910531,
+        "failureMessages": []
+      },
+      "statusChanged": true
+    }
+  ],
+  "newCandidateOriginalFailures": [],
+  "mixedFailureUnchanged": true,
+  "mixedFailureFirstLine": "AssertionError: expected 91.13427179346363 to be less than 90.36337145755091",
+  "candidateFocused": {
+    "files": 10,
+    "tests": 128,
+    "passed": 128,
+    "failed": 0,
+    "pending": 0
+  },
+  "artifactDigestsVerified": true,
+  "acceptanceFinding": "The exact hosted candidate fixes the original Poggio Alto rain failure against the pinned baseline on Node22.23.4, with no other original outcome changed across both complete files. The exact pre-existing mixed GP/SBK pace failure remains. This supports the narrow wet-path correction, not complete unit-suite or whole-game acceptance.",
+  "pollingCaveat": "Convenience job snapshots returned stale states after completion. Direct terminal logs and artifacts are authoritative. Root fresh raw jobs GET confirmed candidate completion at00:46:46 UTC and baseline completion at00:52:14 UTC."
+}

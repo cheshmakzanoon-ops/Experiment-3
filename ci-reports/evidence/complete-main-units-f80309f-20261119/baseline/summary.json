@@ -1,0 +1,112 @@
+{
+  "commit": "ffd22598335dfa2a074ebd466e1d53830bb8bb41",
+  "tree": "cc67121b209279498206e4d575251ff866683ba9",
+  "workflowRun": 44617126580,
+  "scope": "Complete original unit suite only; browser/owner-QA and separate graphics workflows are not accepted by these results.",
+  "files": 694,
+  "passedFiles": 692,
+  "failedFiles": 2,
+  "tests": 6757,
+  "passedTests": 6755,
+  "failedTests": 2,
+  "pendingTests": 0,
+  "todoTests": 0,
+  "partitions": [
+    {
+      "partition": 1,
+      "fileCount": 174,
+      "passedFiles": 174,
+      "failedFiles": 0,
+      "tests": 1662,
+      "caseCounts": {
+        "passed": 1662
+      },
+      "vitestDurationSeconds": 592.62,
+      "success": true,
+      "reportSHA256": "1eff7ca9f480d7ea5bcbb70b77caaf2e4ff83ae50a212e7f823c92778eb2b21c",
+      "consoleAndReportAgree": true
+    },
+    {
+      "partition": 2,
+      "fileCount": 174,
+      "passedFiles": 173,
+      "failedFiles": 1,
+      "tests": 1811,
+      "caseCounts": {
+        "passed": 1810,
+        "failed": 1
+      },
+      "vitestDurationSeconds": 976.17,
+      "success": false,
+      "reportSHA256": "649e1f5eb4f2b76770fa3b255c4b62d76b9ad01b2bd4b9008d333a7b0a84d1b8",
+      "consoleAndReportAgree": true
+    },
+    {
+      "partition": 3,
+      "fileCount": 174,
+      "passedFiles": 173,
+      "failedFiles": 1,
+      "tests": 1768,
+      "caseCounts": {
+        "passed": 1767,
+        "failed": 1
+      },
+      "vitestDurationSeconds": 410.93,
+      "success": false,
+      "reportSHA256": "e55777ecdde5ad542a0f69ba9d0675767996f0ba0e8a0a3c591c8f28ea319ed5",
+      "consoleAndReportAgree": true
+    },
+    {
+      "partition": 4,
+      "fileCount": 172,
+      "passedFiles": 172,
+      "failedFiles": 0,
+      "tests": 1516,
+      "caseCounts": {
+        "passed": 1516
+      },
+      "vitestDurationSeconds": 512.04,
+      "success": true,
+      "reportSHA256": "662e4b471bcf95ef66a310f5c506ce47021c2ab6eb68594094abbe819f0cb836",
+      "consoleAndReportAgree": true
+    }
+  ],
+  "missingFiles": [],
+  "extraFiles": [],
+  "duplicatedFiles": [],
+  "failedCases": [
+    {
+      "partition": 2,
+      "path": "tests/gp-tyre-contact.test.ts",
+      "ancestorTitles": [
+        "GP contact grip in production races"
+      ],
+      "fullName": "GP contact grip in production races classifies all eight GP riders at 'poggio-alto' in 'rain' without a contact or crash",
+      "status": "failed",
+      "title": "classifies all eight GP riders at 'poggio-alto' in 'rain' without a contact or crash",
+      "duration": 84448.03291300002,
+      "failureMessages": [
+        "AssertionError: expected 0.9916666666666667 to be +0 // Object.is equality\n    at /home/runner/work/Experiment-3/Experiment-3/tests/gp-tyre-contact.test.ts:294:22\n    at file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20"
+      ],
+      "meta": {}
+    },
+    {
+      "partition": 3,
+      "path": "tests/bike-session.test.ts",
+      "ancestorTitles": [
+        "WP35 seeded AI bike race"
+      ],
+      "fullName": "WP35 seeded AI bike race finishes a mixed GP/superbike race with bounded incidents and no stuck rider",
+      "status": "failed",
+      "title": "finishes a mixed GP/superbike race with bounded incidents and no stuck rider",
+      "duration": 14593.66429,
+      "failureMessages": [
+        "AssertionError: expected 91.13427179346363 to be less than 90.36337145755091\n    at /home/runner/work/Experiment-3/Experiment-3/tests/bike-session.test.ts:367:16\n    at file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26\n    at file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runTest (file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1574:12)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at runSuite (file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1729:8)\n    at runSuite (file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1729:8)"
+      ],
+      "meta": {}
+    }
+  ],
+  "allPartitionsComplete": true,
+  "consoleAndReportsAgree": true,
+  "jsonSuiteCountNote": "Vitest numTotalTestSuites includes nested describe suites; file counts use one testResults entry per source file and are independently matched to complete console summaries."
+}

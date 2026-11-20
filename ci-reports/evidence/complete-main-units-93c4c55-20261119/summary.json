@@ -1,0 +1,236 @@
+{
+  "commit": "93c4c55469ecc2fe44157e74d4e81f3d6c9055c4",
+  "tree": "183094280b5c0f3ec40ef5c29537477c7150c204",
+  "workflowRun": 44650977053,
+  "scope": "Complete current-source native unit suite; browser, owner QA, physics scenarios, graphics pixels and application startup require their own results.",
+  "simulationTree": "50ac6526b5049b5dbcfd170d2cd78c8dddbd5338",
+  "simulationUnchangedFromBaseline": false,
+  "files": 697,
+  "passedFiles": 696,
+  "failedFiles": 1,
+  "tests": 6801,
+  "passedTests": 6800,
+  "failedTests": 1,
+  "pendingTests": 0,
+  "todoTests": 0,
+  "partitions": [
+    {
+      "partition": 1,
+      "jobId": 136005637231,
+      "jobConclusion": "success",
+      "artifactId": 14590473795,
+      "fileCount": 175,
+      "passedFiles": 175,
+      "failedFiles": 0,
+      "tests": 1665,
+      "caseCounts": {
+        "passed": 1665
+      },
+      "vitestDurationSeconds": 593.29,
+      "success": true,
+      "node": "v22.23.4",
+      "npm": "10.9.9",
+      "sourceGuardCommandPresent": true,
+      "exactSourceInCheckoutLog": true,
+      "reportSHA256": "45243a13fefb0d0b6b92ca69cb54b97217d28b341e726a91d72af55b9032655e",
+      "consoleAndReportAgree": true
+    },
+    {
+      "partition": 2,
+      "jobId": 136005637320,
+      "jobConclusion": "success",
+      "artifactId": 14590244416,
+      "fileCount": 175,
+      "passedFiles": 175,
+      "failedFiles": 0,
+      "tests": 1833,
+      "caseCounts": {
+        "passed": 1833
+      },
+      "vitestDurationSeconds": 668.58,
+      "success": true,
+      "node": "v22.23.5",
+      "npm": "10.9.9",
+      "sourceGuardCommandPresent": true,
+      "exactSourceInCheckoutLog": true,
+      "reportSHA256": "fb13458a507435c243e96f263a02e574de5a6c1117a8ada64c2b44d5fba425b3",
+      "consoleAndReportAgree": true
+    },
+    {
+      "partition": 3,
+      "jobId": 136005636705,
+      "jobConclusion": "failure",
+      "artifactId": 14591542056,
+      "fileCount": 175,
+      "passedFiles": 174,
+      "failedFiles": 1,
+      "tests": 1785,
+      "caseCounts": {
+        "passed": 1784,
+        "failed": 1
+      },
+      "vitestDurationSeconds": 409.87,
+      "success": false,
+      "node": "v22.23.5",
+      "npm": "10.9.9",
+      "sourceGuardCommandPresent": true,
+      "exactSourceInCheckoutLog": true,
+      "reportSHA256": "821c7181ac136ce1e49a5fec76c1a167195a99ac25b6dedd32495e03373e06d7",
+      "consoleAndReportAgree": true
+    },
+    {
+      "partition": 4,
+      "jobId": 136005637089,
+      "jobConclusion": "success",
+      "artifactId": 14591199514,
+      "fileCount": 172,
+      "passedFiles": 172,
+      "failedFiles": 0,
+      "tests": 1518,
+      "caseCounts": {
+        "passed": 1518
+      },
+      "vitestDurationSeconds": 797.18,
+      "success": true,
+      "node": "v22.23.5",
+      "npm": "10.9.9",
+      "sourceGuardCommandPresent": true,
+      "exactSourceInCheckoutLog": true,
+      "reportSHA256": "630e7e4b97fae5b926ba7b8f3a339cdbb281682b7a6e07f9ae11c93a62bd0c71",
+      "consoleAndReportAgree": true
+    }
+  ],
+  "missingFiles": [],
+  "extraFiles": [],
+  "duplicatedFiles": [],
+  "failedCases": [
+    {
+      "partition": 3,
+      "path": "tests/bike-session.test.ts",
+      "ancestorTitles": [
+        "WP35 seeded AI bike race"
+      ],
+      "fullName": "WP35 seeded AI bike race finishes a mixed GP/superbike race with bounded incidents and no stuck rider",
+      "status": "failed",
+      "title": "finishes a mixed GP/superbike race with bounded incidents and no stuck rider",
+      "duration": 15029.766070000001,
+      "failureMessages": [
+        "AssertionError: expected 91.13427179346363 to be less than 90.36337145755091\n    at /home/runner/work/Experiment-3/Experiment-3/tests/bike-session.test.ts:367:16\n    at file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11\n    at file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26\n    at file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)\n    at runTest (file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1574:12)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at runSuite (file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1729:8)\n    at runSuite (file:///home/runner/work/Experiment-3/Experiment-3/node_modules/@vitest/runner/dist/chunk-hooks.js:1729:8)"
+      ],
+      "meta": {}
+    }
+  ],
+  "allPartitionsComplete": true,
+  "consoleAndReportsAgree": true,
+  "baselineComparison": {
+    "baselineCommit": "f80309fce06e97ada17cde1ef330971d9af6ffd9",
+    "baselineWorkflowRun": 44646348452,
+    "baselineFiles": 696,
+    "baselineTests": 6780,
+    "baselinePassedTests": 6778,
+    "baselineFailedTests": 2,
+    "originalCaseIdentityMultisetUnchanged": false,
+    "allBaselineCaseIdentitiesRetained": true,
+    "addedCasesInOriginalFiles": [
+      {
+        "path": "tests/ci-workflow.test.ts",
+        "fullName": "every workflow is well-formed YAML (the dry parse: they cannot run outside GitHub) wet-path-validation.yml parses, and its jobs, steps and needs are consistent",
+        "occurrences": 1
+      },
+      {
+        "path": "tests/session-identity.test.ts",
+        "fullName": "WP12 recorded identity and schema policy keeps physics v27 records out of the current physics category",
+        "occurrences": 1
+      },
+      {
+        "path": "tests/session-identity.test.ts",
+        "fullName": "WP12 recorded identity and schema policy separates 'apx01' v27 records, ghosts and network identities despite unchanged definition hashes",
+        "occurrences": 1
+      },
+      {
+        "path": "tests/session-identity.test.ts",
+        "fullName": "WP12 recorded identity and schema policy separates 'cr750' v27 records, ghosts and network identities despite unchanged definition hashes",
+        "occurrences": 1
+      },
+      {
+        "path": "tests/session-identity.test.ts",
+        "fullName": "WP12 recorded identity and schema policy separates 'gpr1' v27 records, ghosts and network identities despite unchanged definition hashes",
+        "occurrences": 1
+      },
+      {
+        "path": "tests/session-identity.test.ts",
+        "fullName": "WP12 recorded identity and schema policy separates 'gpr2' v27 records, ghosts and network identities despite unchanged definition hashes",
+        "occurrences": 1
+      },
+      {
+        "path": "tests/session-identity.test.ts",
+        "fullName": "WP12 recorded identity and schema policy separates 'mx250' v27 records, ghosts and network identities despite unchanged definition hashes",
+        "occurrences": 1
+      },
+      {
+        "path": "tests/session-identity.test.ts",
+        "fullName": "WP12 recorded identity and schema policy separates 'mx450' v27 records, ghosts and network identities despite unchanged definition hashes",
+        "occurrences": 1
+      },
+      {
+        "path": "tests/session-identity.test.ts",
+        "fullName": "WP12 recorded identity and schema policy separates 'nr900' v27 records, ghosts and network identities despite unchanged definition hashes",
+        "occurrences": 1
+      },
+      {
+        "path": "tests/session-identity.test.ts",
+        "fullName": "WP12 recorded identity and schema policy separates 'sbk1000' v27 records, ghosts and network identities despite unchanged definition hashes",
+        "occurrences": 1
+      },
+      {
+        "path": "tests/session-identity.test.ts",
+        "fullName": "WP12 recorded identity and schema policy separates 'sm450' v27 records, ghosts and network identities despite unchanged definition hashes",
+        "occurrences": 1
+      },
+      {
+        "path": "tests/session-identity.test.ts",
+        "fullName": "WP12 recorded identity and schema policy separates 'ss600' v27 records, ghosts and network identities despite unchanged definition hashes",
+        "occurrences": 1
+      },
+      {
+        "path": "tests/session-identity.test.ts",
+        "fullName": "WP12 recorded identity and schema policy separates 'tc1' v27 records, ghosts and network identities despite unchanged definition hashes",
+        "occurrences": 1
+      }
+    ],
+    "removedCasesInOriginalFiles": [],
+    "addedFiles": [
+      {
+        "partition": 1,
+        "path": "tests/bike-scaled-path.test.ts",
+        "gitBlob": "3b939efffce521ea04d5f6a00720c57d5ddcff8a",
+        "status": "passed",
+        "cases": 8,
+        "caseCounts": {
+          "passed": 8
+        }
+      }
+    ],
+    "addedCases": 8,
+    "totalAddedCasesIncludingDynamicCases": 21,
+    "removedFiles": [],
+    "changedOriginalTestFiles": [
+      "tests/session-identity.test.ts"
+    ],
+    "sameFailedCaseIdentities": [
+      [
+        "tests/bike-session.test.ts",
+        "WP35 seeded AI bike race finishes a mixed GP/superbike race with bounded incidents and no stuck rider"
+      ]
+    ],
+    "newFailedCaseIdentities": [],
+    "baselineFailuresNowPassing": [
+      [
+        "tests/gp-tyre-contact.test.ts",
+        "GP contact grip in production races classifies all eight GP riders at 'poggio-alto' in 'rain' without a contact or crash"
+      ]
+    ]
+  },
+  "dynamicCaseExplanation": "The accepted wet-path source adds a bike-path test file, twelve session identity rows, and a generated YAML case for wet-path-validation.yml; this report derives the complete identities and counts from native JSON results.",
+  "jsonSuiteCountNote": "Vitest numTotalTestSuites includes nested describe suites; file counts use one testResults entry per source file and are independently matched to complete console summaries."
+}
