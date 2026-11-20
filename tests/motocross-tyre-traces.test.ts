@@ -80,6 +80,37 @@ function field() {
 }
 
 describe('fresh motocross tyre impressions', () => {
+  it('submits only unexpired quads in one indexed draw when their GPU slots wrap', () => {
+    const h = field();
+    const geometry = h.marks.mesh.geometry,
+      index = geometry.index!;
+    const capacity = geometry.getAttribute('position').count / 4;
+    const arrivals: number[] = [];
+    try {
+      for (let i = 0; i < 10000 && arrivals.length < capacity + 75; i++) {
+        h.drive(40 + (i % 145) * 0.74, i / 30);
+        while (arrivals.length < h.marks.recordedSegments) arrivals.push(h.frame[H.TIME]);
+      }
+      expect(arrivals.length).toBeGreaterThan(capacity);
+      const now = h.frame[H.TIME],
+        first = arrivals.findIndex((t) => t > now - 12);
+      const count = arrivals.length - first;
+      h.marks.show(now, h.surface);
+      expect(first).toBeLessThan(capacity);
+      expect(h.marks.visibleSegments).toBe(count);
+      expect(geometry.drawRange).toEqual({ start: first * 6, count: count * 6 });
+      for (let i = 0; i < count; i++)
+        expect(index.getX(geometry.drawRange.start + i * 6)).toBe(((first + i) % capacity) * 4);
+      h.marks.show(now + 13, h.surface);
+      expect(h.marks.visibleSegments).toBe(0);
+      expect(h.marks.mesh.visible).toBe(false);
+      h.marks.show(now, h.surface);
+      expect(geometry.drawRange).toEqual({ start: first * 6, count: count * 6 });
+    } finally {
+      h.dispose();
+    }
+  });
+
   it('updates only the actual ground cells beneath a print across sparse ruts, compaction and rewinds', () => {
     const lap = field(),
       view = new TerrainView(rigTrack('valley-ridge-mx'));

@@ -125,15 +125,17 @@ export class MxTyreTraces {
   private revision = -1;
   private shown = -Infinity;
   private lastTime = -Infinity;
-  private maxSlot = -1;
 
   constructor(private readonly track: Track) {
     const g = new T.BufferGeometry(),
-      indices = new Uint16Array(ACTIVE * 6);
+      // A second copy of the immutable element ring lets one indexed draw
+      // span its wrap. Only the live quads reach the vertex stage.
+      indices = new Uint16Array(ACTIVE * 6 * 2);
     for (let i = 0; i < ACTIVE; i++) {
       const p = i * 4;
       indices.set([p, p + 2, p + 1, p + 1, p + 2, p + 3], i * 6);
     }
+    indices.copyWithin(ACTIVE * 6, 0, ACTIVE * 6);
     g.setAttribute('position', this.position);
     g.setAttribute('uv', this.uv);
     g.setAttribute('mxTrace', this.print);
@@ -296,12 +298,7 @@ export class MxTyreTraces {
 
   private resetDraw() {
     this.mesh.geometry.setDrawRange(0, 0);
-    this.maxSlot = -1;
     this.drawnEnd = 0;
-    this.position.array.fill(0);
-    this.position.clearUpdateRanges();
-    this.position.addUpdateRange(0, this.position.array.length);
-    this.position.needsUpdate = true;
   }
 
   private write(serial: number, surface: Surface, fresh: boolean) {
@@ -312,7 +309,7 @@ export class MxTyreTraces {
     let changed = false;
     for (let v = 0; v < 4; v++) {
       const vertex = slot * 4 + v;
-      if (!fresh && surface.heightRevisions) {
+      if (!fresh && surface.heightRevisions && surface.heightCellAt) {
         const cell = this.heightCells[vertex];
         if (cell < 0 || surface.heightRevisions[cell] <= this.revision) continue;
       }
@@ -340,7 +337,6 @@ export class MxTyreTraces {
         surface.heightAt(this.terrainUV[vertex * 2], this.terrainUV[vertex * 2 + 1]) + 0.0035,
       );
     }
-    this.maxSlot = Math.max(this.maxSlot, slot);
     return changed;
   }
 
@@ -381,12 +377,15 @@ export class MxTyreTraces {
     this.upload(this.position, changedFrom, changedTo);
     this.upload(this.uv, insert, end);
     this.upload(this.print, insert, end);
-    this.mesh.geometry.setDrawRange(0, (this.maxSlot + 1) * 6);
+    this.mesh.geometry.setDrawRange((first % ACTIVE) * 6, (end - first) * 6);
     this.drawnEnd = end;
     this.shown = time;
     this.revision = surface.geometryRevision;
   }
 
+  get visibleSegments() {
+    return this.mesh.geometry.drawRange.count / 6;
+  }
   get recordedSegments() {
     return this.end - this.first;
   }

@@ -689,7 +689,8 @@ export class CircuitScene {
     return {
       source: 'constructed-runtime-groups',
       tyreRubber: this.tyreRubber.diagnostics(),
-      freshMxTyreSegments: this.offroad?.tyreTraces?.recordedSegments ?? 0,
+      freshMxTyreSegments: this.offroad?.tyreTraces?.visibleSegments ?? 0,
+      recordedMxTyreSegments: this.offroad?.tyreTraces?.recordedSegments ?? 0,
       gridPaint: this.gridPaint?.diagnostics() ?? null,
       quarry: this.quarry?.diagnostics() ?? null,
       startFinish: this.startFinish.diagnostics(),
