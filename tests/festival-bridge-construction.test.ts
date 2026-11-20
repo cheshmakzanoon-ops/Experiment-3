@@ -44,6 +44,34 @@ function roadSample(junction = false) {
   return net.pointOnSegment(best, 0.5, trackPoint());
 }
 describe('Festival bridge carriageway and substructure', () => {
+  it('keeps the Ashvale roadway and its shoulders above the river along the valley crossing', () => {
+    let riverSamples = 0,
+      coreSamples = 0;
+    for (const road of net.edges.filter((edge) => edge.road.id === 'valley')) {
+      for (let i = road.first; i < road.last; i++) {
+        const p = net.pointOnSegment(i, 0, trackPoint());
+        const { water, channel } = world.field.valleyAt(p.x, p.z);
+        if (!channel) continue;
+        riverSamples++;
+        expect(net.flags[i] & ROAD_FLAG.BRIDGE).toBeTruthy();
+        expect(p.y - water).toBeGreaterThan(1.5);
+        if (p.z < -160 || p.z > 60) continue;
+        coreSamples++;
+        expect(p.y - water).toBeGreaterThan(2);
+        expect(Math.abs(p.gradient)).toBeLessThan(0.04);
+        const shoulder = roadBarrierFace(road.spec, true) - 0.08;
+        for (const side of [-1, 1]) {
+          const x = p.x + p.nx * side * shoulder,
+            z = p.z + p.nz * side * shoulder;
+          const sample = track.sample(x, z, surfaceSample(), p.y + 0.65);
+          expect(sample.height - water).toBeGreaterThan(1.5);
+          expect(track.query.waterDepth).toBe(0);
+        }
+      }
+    }
+    expect(riverSamples).toBeGreaterThan(100);
+    expect(coreSamples).toBeGreaterThan(20);
+  });
   it('carries all three Port Ilse streets level across the excavated canal with road and river on their own layers', () => {
     const p = trackPoint();
     for (const z of [-2600, -2400, -2200]) {

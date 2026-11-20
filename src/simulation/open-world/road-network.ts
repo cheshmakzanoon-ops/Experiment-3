@@ -1,6 +1,7 @@
 import { clamp, G } from '../../core/math.ts';
 import type { RouteEdgeSpec, RouteSpec } from '../route-graph.ts';
 import type { TrackPoint } from '../track.ts';
+import { smoothstep } from './noise.ts';
 import {
   ROAD_CLASSES,
   type RegionDefinition,
@@ -658,12 +659,21 @@ export class RoadNetwork {
     // Roads across the Port Ilse canal run from bank to bank. Filtering the
     // excavated channel as ordinary ground made Harbour Front dive into the
     // river and kick the tyres off the far lip at racing speed.
-    const formation = line.road.roadClass === 'town' ? ground.slice() : ground;
+    const town = line.road.roadClass === 'town';
+    const freeboard = line.road.riverFreeboard ?? 0;
+    const formation = town || freeboard > 0 ? ground.slice() : ground;
     if (formation !== ground)
       for (let i = 0; i < n; i++) {
-        const x = line.xs[i], z = line.zs[i];
-        if (this.terrain.valleyAt(x,z).distance < this.region.valley.channel * 1.8)
+        const x = line.xs[i], z = line.zs[i], channel = this.region.valley.channel;
+        const { distance, water } = this.terrain.valleyAt(x, z);
+        if (town && distance < channel * 1.8)
           formation[i] = this.terrain.height(x, z, 0, true);
+        if (freeboard > 0 && distance < channel * 2.8) {
+          // Ashvale runs along the river for hundreds of metres. Blend its
+          // dry deck back into each bank before the normal grade filter.
+          const weight = 1 - smoothstep(channel * 1.25, channel * 2.8, distance);
+          formation[i] += Math.max(0, water + freeboard - formation[i]) * weight;
+        }
       }
     // Moving average of the formation over the class window.
     const half = Math.max(1, Math.round(spec.smoothing / 2 / spec.step)),
@@ -1020,7 +1030,9 @@ export class RoadNetwork {
         (this.ground[o] < this.region.seaLevel - 0.3 && this.y[o] > this.region.seaLevel + 1.5);
       const canalBank = e.roadClass === 'town' && clearance > 0.35 &&
         valley.distance < this.region.valley.channel * 1.6 && this.terrain.flatWeight('town', x, z) > 0.55;
-      bridge[c] = Number(clearance > 5.5 || overWater || canalBank);
+      const viaductBank = !!e.road.riverFreeboard && clearance > 0.55 &&
+        valley.distance < this.region.valley.channel + spec.halfWidth + spec.shoulder;
+      bridge[c] = Number(clearance > 5.5 || overWater || canalBank || viaductBank);
     }
     // Over-road of an authored grade separation spans the under-road's cut.
     for (const pin of pins) {

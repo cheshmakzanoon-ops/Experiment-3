@@ -175,6 +175,8 @@ export interface RoadSpec {
   points: readonly XZ[];
   /** A closed loop (runway/taxiway circuits). */
   closed?: boolean;
+  /** Deck surface above river level on an authored valley viaduct (m). */
+  riverFreeboard?: number;
 }
 export interface PeakSpec {
   name: string;
@@ -492,6 +494,7 @@ export const SOLVANE: RegionDefinition = Object.freeze({
       id: 'valley',
       name: 'Ashvale Valley Road',
       roadClass: 'country',
+      riverFreeboard: 3.5,
       points: [
         [1000, -1860],
         [870, -1450],
