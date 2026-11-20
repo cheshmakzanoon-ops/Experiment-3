@@ -65,6 +65,6 @@ export class MxRecoveryPose {
       rider.root.updateWorldMatrix(true, false);
       floor.applyMatrix4(this.local.copy(rider.root.matrixWorld).invert());
     }
-    rider.separated(remount ? 2 : rise > 0 ? 1 : 0, tumble, time, rise, floor);
+    rider.separated(remount ? 2 : rise > 0 ? 1 : 0, tumble, time, rise, floor, surface);
   }
 }

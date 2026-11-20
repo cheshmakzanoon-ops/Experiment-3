@@ -1224,7 +1224,21 @@ export class RacingRenderer {
             await this.waitForPreparedFrame(cancelled, yieldFrame);
             if (cancelled()) return false;
           }
-          this.draw(frame, frame, 1, 1 / 120, false, true);
+          const splitShadows =
+            isMotocrossVenue(this.circuit.track) &&
+            this.graphics?.reflections === 'local' &&
+            this.renderer.shadowMap?.enabled;
+          if (splitShadows) {
+            progress(`Rendering motocross ${mode} shadow maps…`);
+            this.draw(frame, frame, 1, 1 / 120, false, true, 1 / 120, 'venue-shadows');
+            this.gpuFrames.submittedFrame();
+            await this.waitForPreparedFrame(cancelled, yieldFrame);
+            if (cancelled()) return false;
+          }
+          this.draw(
+            frame, frame, 1, 1 / 120, false, true, 1 / 120,
+            splitShadows ? 'held-colour' : 'scene',
+          );
           this.warmupFrames++;
           if (mode === 'chase' && pitService) {
             progress('Warming offscreen pit-service materials…');
@@ -1565,7 +1579,7 @@ export class RacingRenderer {
     menu = false,
     replay = false,
     wallDelta = dt,
-    pass: 'scene' | 'venue-probe' = 'scene',
+    pass: 'scene' | 'venue-probe' | 'venue-shadows' | 'held-colour' = 'scene',
   ) {
     const pregame = this.gridPresentationTime !== null && this.gridPresentationTime !== undefined;
     const cameraMode: CameraMode = pregame
@@ -2350,6 +2364,7 @@ export class RacingRenderer {
     this.drawLedger.begin();
     this.gpuTimer.begin();
     const originalOverride = this.scene.overrideMaterial;
+    const updateShadows = this.renderer.shadowMap.autoUpdate;
     // World matrices were solved once above for this frame. Every pass below
     // (shadow, mirror, probe, wet plane, scene) would otherwise re-walk and
     // recompose the entire graph inside renderer.render(). Passes that move
@@ -2415,6 +2430,10 @@ export class RacingRenderer {
         this.sky.material.uniforms.probeSkyIntensity,
       );
       if (pass === 'venue-probe') return;
+      if (pass === 'venue-shadows') {
+        this.farShadow.renderHeldShadows(this.renderer, this.scene, this.camera);
+        return;
+      }
       this.drawLedger.mark('mirrors');
       this.reflection.renderMirrors(
         this.renderer,
@@ -2554,6 +2573,9 @@ export class RacingRenderer {
         cut: this.cameraClock.discontinuous,
       });
       this.drawLedger.mark('composer');
+      // The camera and every rider are still at the identical gate snapshot.
+      // Its preceding, completed depth submission owns this colour frame's maps.
+      if (pass === 'held-colour') this.renderer.shadowMap.autoUpdate = false;
       this.composer.render();
       this.ultra.afterFrame();
       this.drawLedger.mark('other');
@@ -2572,6 +2594,7 @@ export class RacingRenderer {
     } finally {
       // BokehPass temporarily installs a depth override; restore even on GPU failure.
       this.scene.overrideMaterial = originalOverride;
+      this.renderer.shadowMap.autoUpdate = updateShadows;
       this.scene.matrixWorldAutoUpdate = true;
       this.scenePresentation.restore();
       this.gpuTimer.end();

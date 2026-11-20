@@ -114,13 +114,13 @@ function fixture(vehicle = 'apx01', entrants = 3) {
         menu: boolean,
         replay: boolean,
         _wallDelta?: number,
-        pass?: 'scene' | 'venue-probe',
+        pass?: 'scene' | 'venue-probe' | 'venue-shadows' | 'held-colour',
       ) => {
         expect(a).toBe(sample);
         expect(b[H.TIME]).toBe(0);
         expect(menu).toBe(false);
         expect(replay).toBe(true);
-        calls.push(pass === 'venue-probe' ? 'venue-probe' : 'draw');
+        calls.push(!pass || pass === 'scene' ? 'draw' : pass);
       },
     ),
   };
@@ -577,6 +577,22 @@ it.each([false, true])('keeps the opening MX cubemap on its own GPU fence, cance
   expect(passes).toEqual(stop ? ['venue-probe', 'shadow-fence', 'gpu-ready'] :
     ['venue-probe', 'shadow-fence', 'gpu-ready', 'draw', 'gpu-ready', 'draw', 'gpu-ready']);
   expect(target.warmupFrames).toBe(stop ? 0 : 2);
+});
+it('retires each real MX shadow map before shading the held view', async () => {
+  const { calls, sample, target, typed } = fixture('mx450');
+  Object.assign(target.circuit, { offroad: {}, track: { circuit: { offroad: { kind: 'motocross' } } } });
+  Object.assign(target, { graphics: { reflections: 'local' } });
+  Object.assign(target.renderer, { shadowMap: { enabled: true } });
+  Object.assign(target.bikeShells, { prepareDirtField: vi.fn(async () => true) });
+  for (let i = 0; i < sample[H.CARS]; i++)
+    sample[carBase(i) + RACE_BASE + R.VEHICLE] = vehicleIndex('mx450');
+  await RacingRenderer.prototype.prepare.call(typed, sample, vi.fn(), () => false, async () => {}, false);
+  const passes = calls.filter((name) => ['venue-probe', 'venue-shadows', 'held-colour', 'gpu-ready'].includes(name));
+  expect(passes).toEqual([
+    'venue-probe', 'gpu-ready', 'venue-shadows', 'gpu-ready', 'held-colour', 'gpu-ready',
+    'venue-shadows', 'gpu-ready', 'held-colour', 'gpu-ready',
+  ]);
+  expect(target.warmupFrames).toBe(2);
 });
 it('stops cancelled construction before touching any further GPU resources', async () => {
   const { target, typed, sample } = fixture();

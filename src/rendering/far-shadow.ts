@@ -310,6 +310,23 @@ export class FarShadow {
     }
     return true;
   }
+  /** Submit the real camera's shadow casters into the existing light maps.
+   * The remote one-pixel view omits colour geometry; its layer mask still
+   * selects exactly the race view's casters in Three's shadow traversal. */
+  renderHeldShadows(renderer: T.WebGLRenderer, scene: T.Scene, view: T.Camera) {
+    const target = renderer.getRenderTarget();
+    const face = renderer.getActiveCubeFace();
+    const mip = renderer.getActiveMipmapLevel();
+    const layers = this.camera.layers.mask;
+    try {
+      this.camera.layers.mask = view.layers.mask;
+      renderer.setRenderTarget(this.target);
+      renderer.render(scene, this.camera);
+    } finally {
+      this.camera.layers.mask = layers;
+      renderer.setRenderTarget(target, face, mip);
+    }
+  }
   /** Render the far map now (shadow maps only), leaving every other pass,
    * visibility and caster flag as it was. */
   bake(renderer: T.WebGLRenderer, scene: T.Scene, options: FarShadowBake) {

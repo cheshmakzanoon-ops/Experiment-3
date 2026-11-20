@@ -420,3 +420,27 @@ test('restores the photographed recovery pose after a running stride', async ({ 
   }
   await review.attach('motocross-rider-running', shots[1]);
 });
+
+test('held gate shadows match a normal motocross colour frame pixel for pixel', async ({
+  review,
+}) => {
+  const a = { standing: 0.2, elevation: 0.02, pitch: -0.03 };
+  const b = { standing: 0.8, elevation: 0.43, pitch: 0.14 };
+  const shots = await review.capture({
+    id: 'mx450',
+    detail: 'high',
+    view: 'three-quarter',
+    samples: [
+      a,
+      { ...a, heldShadow: true },
+      b,
+      { ...b, heldShadow: true },
+      { ...a, heldShadow: true },
+    ],
+  });
+  expect(shots[0].hash).not.toBe(shots[2].hash);
+  expect(shots[0].hash).toBe(shots[1].hash);
+  expect(shots[2].hash).toBe(shots[3].hash);
+  expect(shots[0].hash).toBe(shots[4].hash);
+  expect(shots.map((s) => s.glError)).toEqual([0, 0, 0, 0, 0]);
+});

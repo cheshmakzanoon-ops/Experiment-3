@@ -147,6 +147,36 @@ it('does not leave a temporary count inside a shadow owner interrupted before it
   far.dispose();
 });
 
+it('renders held shadows on the race layers and restores the target face and mip after failure', () => {
+  const far = new FarShadow(512);
+  const scene = new T.Scene();
+  const view = new T.PerspectiveCamera();
+  const previous = new T.WebGLCubeRenderTarget(16);
+  const targets: unknown[][] = [];
+  view.layers.enable(4);
+  let cameraUsed: T.Camera | undefined;
+  const backend = {
+    getRenderTarget: () => previous,
+    getActiveCubeFace: () => 4,
+    getActiveMipmapLevel: () => 2,
+    setRenderTarget: (...args: unknown[]) => targets.push(args),
+    render: (_scene: T.Scene, camera: T.Camera) => {
+      cameraUsed = camera;
+      expect(camera.layers.mask).toBe(view.layers.mask);
+      throw new Error('GPU context lost');
+    },
+  };
+  try {
+    expect(() => far.renderHeldShadows(backend as unknown as T.WebGLRenderer, scene, view))
+      .toThrow('GPU context lost');
+    expect(targets.at(-1)).toEqual([previous, 4, 2]);
+    expect(cameraUsed!.layers.mask).toBe(1);
+  } finally {
+    far.dispose();
+    previous.dispose();
+  }
+});
+
 it('bakes shadow maps only, without cars or people, with far-only planting casting, and restores everything', () => {
   const far = new FarShadow(1024);
   const scene = new T.Scene();

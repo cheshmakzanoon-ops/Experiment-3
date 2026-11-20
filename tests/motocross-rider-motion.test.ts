@@ -115,6 +115,34 @@ describe('motocross suspension-driven rider motion', () => {
     }
   });
 
+  it('plants each recovering boot on its own side of a rut', () => {
+    const rider = new Rider(colours, 'mid', 'motocross');
+    const recovery = new MxRecoveryPose();
+    const point = new T.Vector3();
+    const surface = {
+      planeAtWorld(p: T.Vector3, out: T.Plane) {
+        const height = p.x > 0.05 ? 0.045 : p.x < -0.05 ? -0.035 : 0;
+        out.setComponents(0, 1, 0, -height);
+        return true;
+      },
+    };
+    try {
+      const footfalls = [
+        ['left', 0.5, 0.045],
+        ['right', Math.PI + 0.5, -0.035],
+      ] as const;
+      for (const [side, angle, height] of footfalls) {
+        recovery.place(rider, point.set(0, 0.95, 0), 0, 'separated', 2.4, 1, angle, 4, surface);
+        rider.root.updateMatrixWorld(true);
+        const boot = rider.root.getObjectByName(`Motocross ${side} boot`)!;
+        point.fromArray(MX_BOOT_PEG).applyMatrix4(boot.matrixWorld);
+        expect(point.y).toBeCloseTo(height, 5);
+      }
+    } finally {
+      rider.dispose();
+    }
+  });
+
   it('braces on the rider’s own berm and reproduces the same stride through a replay seek', () => {
     const rider = new Rider(colours, 'mid', 'motocross');
     const recovery = new MxRecoveryPose();

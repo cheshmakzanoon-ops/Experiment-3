@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { BikeMaterials, BikeShells, bikeOnboardFov, staticSag } from '../../src/rendering/bike.ts';
+import { FarShadow } from '../../src/rendering/far-shadow.ts';
 import { MxRecoveryPose } from '../../src/rendering/offroad/motocross-recovery.ts';
 import { MxArenaBikeLight } from '../../src/rendering/offroad/mx-arena-bike-light.ts';
 import { DirtBikeModel } from '../../src/rendering/offroad/dirt-bike-model.ts';
@@ -22,6 +23,7 @@ export interface MotocrossPoseSample {
   pitch?: number;
   /** Height above the fixture floor for controlled airborne-pose inspection. */
   elevation?: number;
+  heldShadow?: boolean;
   steer?: number;
   mud?: number;
   wet?: number;
@@ -150,11 +152,23 @@ export function captureMotocrossBike(
   if (view === 'rear-tyre') camera.lookAt(0, 0.36, -0.68);
   if (view === 'front-tyre') camera.lookAt(0, 0.36, 0.72);
   if (view === 'bodywork') model.rider.root.visible = false;
+  const heldShadows = samples.some((s) => s.heldShadow) ? new FarShadow() : undefined;
   const recovery = new MxRecoveryPose();
   const floor = new T.Plane();
   const floorAxis = new T.Vector3(0, 0, 1);
+  const groundRay = new T.Raycaster();
+  groundRay.ray.direction.set(0, -1, 0);
   const support = {
-    planeAtWorld(_point: T.Vector3, result: T.Plane) {
+    planeAtWorld(point: T.Vector3, result: T.Plane) {
+      if (groundSurvey) {
+        groundRay.ray.origin.copy(point);
+        groundRay.ray.origin.y += 4;
+        const hit = groundRay.intersectObject(ground, false)[0];
+        if (hit?.face) {
+          result.setFromNormalAndCoplanarPoint(hit.face.normal, hit.point);
+          return true;
+        }
+      }
       result.copy(floor);
       return true;
     },
@@ -307,7 +321,15 @@ export function captureMotocrossBike(
       // renderer initialization rather than a mud/chain resource allocation.
       // Keep the first measured pixels, all poses and every resource invariant.
       if (sampleIndex === 0) renderer.compile(scene, camera);
-      renderer.render(scene, camera);
+      if (sample.heldShadow) {
+        heldShadows!.renderHeldShadows(renderer, scene, camera);
+        renderer.shadowMap.autoUpdate = false;
+      }
+      try {
+        renderer.render(scene, camera);
+      } finally {
+        renderer.shadowMap.autoUpdate = true;
+      }
       const gl = renderer.getContext(),
         pixels = new Uint8Array(1280 * 800 * 4);
       gl.readPixels(0, 0, 1280, 800, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
@@ -356,6 +378,7 @@ export function captureMotocrossBike(
     });
   } finally {
     model.sprung.add(model.rider.root);
+    heldShadows?.dispose();
     model.dispose();
     materials.dispose();
     ground.geometry.dispose();

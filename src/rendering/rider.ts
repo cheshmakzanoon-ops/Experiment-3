@@ -503,6 +503,9 @@ export class Rider {
   private readonly materials: T.Material[] = [];
   private readonly q = new T.Quaternion();
   private readonly recoveryStep = new T.Vector3();
+  private readonly recoverySample = new T.Vector3();
+  private readonly recoveryFootPlane = new T.Plane();
+  private readonly recoveryInverse = new T.Matrix4();
   private readonly recoveryBoot = new T.Quaternion();
   private readonly recoveryTilt = new T.Quaternion();
   private readonly euler = new T.Euler();
@@ -1797,11 +1800,19 @@ export class Rider {
     return gpContactJoint(contact, frame, GP_BOOT_PEDAL, GP_BOOT_ANKLE, ankle);
   }
   /** Separated rider: `phase` 0 sliding/tumbling, 1 standing/jogging, 2 at the bike. */
-  separated(phase: number, tumble: number, time: number, mxRise?: number, floor?: T.Plane) {
+  separated(
+    phase: number,
+    tumble: number,
+    time: number,
+    mxRise?: number,
+    floor?: T.Plane,
+    dirt?: MxDabSurface,
+  ) {
     this.riding = false;
     this.brakeFingers?.update(0);
     const [pelvis, a, b, joint, pole, c] = this.v;
     const rise = mxRise ?? (phase === 0 ? 0 : 1);
+    if (floor && dirt && rise > 0) this.recoveryInverse.copy(this.root.matrixWorld).invert();
     const bracing = mxRise === undefined ? 0 : Math.sin(Math.PI * rise);
     const running = mxRise !== undefined && phase === 1 ? T.MathUtils.smoothstep(rise, 0.82, 1) : 0;
     const bob = running * (0.028 + 0.012 * Math.cos(tumble * 2));
@@ -1853,11 +1864,27 @@ export class Rider {
         // Resolve the foot against the ground under the rider, including on
         // a sloping landing several metres away from the fallen motorcycle.
         b.set(side * 0.11, this.recoveryStep.y * running, this.recoveryStep.z * running);
-        if (floor && floor.normal.y > 0.1)
-          b.y -= (floor.normal.x * b.x + floor.normal.z * b.z + floor.constant) / floor.normal.y;
+        let support = floor;
+        if (floor && dirt && floor.normal.y > 0.1) {
+          // Straddling a rut or a crest can put each sole on a different
+          // triangle from the pelvis. Query near its expected surface height.
+          this.recoverySample
+            .set(
+              b.x,
+              -(floor.normal.x * b.x + floor.normal.z * b.z + floor.constant) / floor.normal.y,
+              b.z,
+            )
+            .applyMatrix4(this.root.matrixWorld);
+          if (dirt.planeAtWorld(this.recoverySample, this.recoveryFootPlane))
+            support = this.recoveryFootPlane.applyMatrix4(this.recoveryInverse);
+        }
+        if (support && support.normal.y > 0.1)
+          b.y -=
+            (support.normal.x * b.x + support.normal.z * b.z + support.constant) / support.normal.y;
         motocrossBootFrame(this.recoveryBoot);
         this.recoveryBoot.premultiply(this.recoveryTilt.setFromAxisAngle(X, swingPitch));
-        if (floor) this.recoveryBoot.premultiply(this.recoveryTilt.setFromUnitVectors(Y, floor.normal));
+        if (support)
+          this.recoveryBoot.premultiply(this.recoveryTilt.setFromUnitVectors(Y, support.normal));
         gpContactJoint(b, this.recoveryBoot, MX_BOOT_PEG, MX_BOOT_ANKLE, pole);
         c.lerp(pole, rise);
       }

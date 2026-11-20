@@ -28,11 +28,13 @@ The four frames below come from eight-rider races entered through the production
 
 The pad survey samples the hems between the corners as well as the corners themselves. Each venue still draws the pads in two batches. The stadium test covered 18 trackside, gate and telephoto views. Every spectator within those camera frames retained the same seat, model and clothing.
 
+While the starting grid is held on High, the renderer finishes the local reflection and near shadow maps separately before shading the riders. In the 1280 × 800 WebGL inspection, moving the MX450 and returning it to its earlier pose produced identical pixels with separate and combined shadow rendering.
+
 The Arena Nord pad photographed below had the largest original gap. Both frames use its actual placement, the same surveyed ground, material, camera and lighting. The visible gap under this pad fell from 17.30 cm to 0.95 cm.
 
 ![The same Arena Nord pad before and after, showing the underside and the contact shadow on the slope](arena-pad-contact.webp)
 
-The recovery sequence below starts with the separated MX450 rider resting on a Valley Ridge slope. The 120 Hz simulation supplies the pelvis, heading, rise and distance travelled. The inspection camera follows 39 samples over 1.58 seconds at 24 fps on the surveyed surface. The rider rises over 0.72 seconds, the arms swing against the planted foot, and the boot tilts through its free swing before it lands. Rewinding to a recorded pose reproduces the same image.
+The recovery sequence below starts with the separated MX450 rider resting on a Valley Ridge slope. The 120 Hz simulation supplies the pelvis, heading, rise and distance travelled. The inspection camera follows 39 samples over 1.58 seconds at 24 fps on the surveyed surface. The rider rises over 0.72 seconds, the arms swing against the planted foot, and the boot tilts through its free swing before it lands. Each boot samples the triangle under its sole. Across the 16 planted-foot observations in this sequence, the deepest sole penetration fell from 31.2 mm to zero and the mean absolute placement error fell from 7.9 mm to 0.28 mm. Rewinding to a recorded pose reproduces the same image.
 
 ![MX450 rider bracing on Valley Ridge dirt, rising and running back towards the motorcycle](mx450-slope-recovery.webp)
 
