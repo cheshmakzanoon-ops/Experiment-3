@@ -1193,7 +1193,14 @@ export class RacingRenderer {
       progress('Compiling shadow casters around the circuit…');
       await yieldFrame();
       if (cancelled()) return false;
-      this.warmShadowCasters();
+      const shadowPass = this.warmShadowCasters(roadField);
+      if (roadField && shadowPass) {
+        // The whole-circuit map exists only to link depth variants. Let its
+        // submission retire before the first real shadows and reflections.
+        this.gpuFrames.submittedFrame();
+        await this.waitForPreparedFrame(cancelled, yieldFrame);
+        if (cancelled()) return false;
+      }
       const camera = this.mode;
       try {
         for (const mode of ['chase', 'cockpit'] as const) {
@@ -2569,14 +2576,14 @@ export class RacingRenderer {
   }
   /** Compile every shadow caster's depth program while loading (see
    * FarShadow.warmCasters). */
-  private warmShadowCasters() {
-    this.farShadow.warmCasters(
+  private warmShadowCasters(roadField: boolean) {
+    return this.farShadow.warmCasters(
       this.renderer,
       this.scene,
       this.sun,
       lightingDirection(this.lighting),
       this.farShadowBounds,
-      isMotocrossVenue(this.circuit.track),
+      roadField || isMotocrossVenue(this.circuit.track),
     );
   }
   /** Bake the static far sun shadow for this lighting: no cars, people,

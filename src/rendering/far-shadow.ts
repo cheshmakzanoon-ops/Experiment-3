@@ -105,6 +105,7 @@ export interface FarShadowBake {
  * car-following map. It is rendered once per lighting direction, quality
  * or scenery change; three's shadow pass then reuses it every frame. */
 export class FarShadow {
+  private readonly warmup = { groups: 0, availableTriangles: 0, submittedTriangles: 0 };
   readonly light = new T.DirectionalLight(0xffffff, 0);
   bakes = 0;
   /** CPU wall time of the last bake's submission, milliseconds. */
@@ -217,6 +218,7 @@ export class FarShadow {
     bounds: T.Box3,
     representativeTriangles = false,
   ) {
+    this.warmup.groups = this.warmup.availableTriangles = this.warmup.submittedTriangles = 0;
     if (!renderer.shadowMap.enabled || !sun.castShadow) return false;
     const shadow = sun.shadow,
       camera = shadow.camera;
@@ -257,8 +259,21 @@ export class FarShadow {
           // currently type that argument as an Object3D Group.
           const group = args[5] as unknown as T.BufferGeometry['groups'][number] | null;
           const first = Math.max(start, group?.start ?? 0);
-          const end = Math.min(start + length, group ? group.start + group.count : Infinity);
-          geometry.setDrawRange(first, Math.max(0, Math.min(3, end - first)));
+          const elements = geometry.index?.count ?? geometry.getAttribute('position')?.count ?? 0;
+          const end = Math.min(
+            start + length,
+            group ? group.start + group.count : Infinity,
+            elements,
+          );
+          const available = Math.max(0, end - first);
+          if (available >= 3 && (!instanced || count > 0)) {
+            this.warmup.groups++;
+            // Both counts use the one representative instance that the loader
+            // submits. Full live geometry and BatchedMesh ranges are excluded.
+            this.warmup.availableTriangles += Math.floor(available / 3);
+            this.warmup.submittedTriangles++;
+          }
+          geometry.setDrawRange(first, Math.min(3, available));
         }
         if (instanced) instanced.count = Math.min(count, 1);
         try {
@@ -343,6 +358,7 @@ export class FarShadow {
       mapSize: this.light.shadow.mapSize.x,
       bakes: this.bakes,
       lastBakeMs: this.lastBakeMs,
+      warmup: { ...this.warmup },
       metresPerTexel:
         Math.max(camera.right - camera.left, camera.top - camera.bottom) /
         this.light.shadow.mapSize.x,

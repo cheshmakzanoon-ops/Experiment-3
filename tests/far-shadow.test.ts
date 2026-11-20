@@ -364,7 +364,7 @@ it('warms instanced shader variants with one representative, then restores full 
   far.dispose();
 });
 
-it('submits each MX warmup material group with one triangle and restores the full race draw', () => {
+it('submits one triangle per representative warmup material group and restores the full race draw', () => {
   const far = new FarShadow(1024),
     scene = new T.Scene(),
     sun = new T.DirectionalLight();
@@ -406,6 +406,11 @@ it('submits each MX warmup material group with one triangle and restores the ful
       [24, 3],
       [30, 0],
     ]);
+    expect(far.diagnostics().warmup).toEqual({
+      groups: 4,
+      availableTriangles: 8,
+      submittedTriangles: 4,
+    });
     expect(g.drawRange).toEqual({ start: 6, count: 24 });
     expect(gl.renderBufferDirect).toBe(draw);
     expect(sun.shadow.needsUpdate).toBe(true);

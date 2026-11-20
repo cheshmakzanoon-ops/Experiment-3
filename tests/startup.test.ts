@@ -57,8 +57,10 @@ function fixture(vehicle = 'apx01', entrants = 3) {
     warmPitPresentation: vi.fn(async () => {
       calls.push('pit-materials');
     }),
-    warmShadowCasters: vi.fn(() => {
+    gpuFrames: { submittedFrame: vi.fn(() => calls.push('shadow-fence')) },
+    warmShadowCasters: vi.fn((_roadField: boolean) => {
       calls.push('shadow-casters');
+      return false;
     }),
     setCars(n: number) {
       while (this.cars.length < n) {
@@ -511,6 +513,31 @@ it.each([
     expect(target.draw).not.toHaveBeenCalled();
     expect(target.preparation.snapshot()?.status).toBe('cancelled');
     expect(sample).toEqual(before);
+  },
+);
+it.each([false, true])(
+  'retires the discarded road-grid shadow pass before chase when shadows are %s',
+  async (enabled) => {
+    const { calls, sample, target, typed } = fixture('gpr1');
+    ['gpr1', 'gpr2', 'ss600'].forEach((id, i) => {
+      sample[carBase(i) + RACE_BASE + R.VEHICLE] = vehicleIndex(id);
+    });
+    target.warmShadowCasters.mockImplementation(() => {
+      calls.push('shadow-casters');
+      return enabled;
+    });
+    await RacingRenderer.prototype.prepare.call(
+      typed,
+      sample,
+      vi.fn(),
+      () => false,
+      async () => {},
+      false,
+    );
+    expect(target.warmShadowCasters).toHaveBeenCalledWith(true);
+    expect(target.gpuFrames.submittedFrame).toHaveBeenCalledTimes(enabled ? 1 : 0);
+    const between = calls.slice(calls.indexOf('shadow-casters') + 1, calls.indexOf('draw'));
+    expect(between).toEqual(enabled ? ['shadow-fence', 'gpu-ready', 'chase'] : ['chase']);
   },
 );
 it('stops cancelled construction before touching any further GPU resources', async () => {
