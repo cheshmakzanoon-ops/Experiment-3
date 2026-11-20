@@ -40,8 +40,8 @@
     },
     "cr750": {
       "view": "side",
-      "modelTriangles": 88826,
-      "submittedTriangles": 89392,
+      "modelTriangles": 95250,
+      "submittedTriangles": 95496,
       "drawCalls": 116,
       "glError": 0
     }
@@ -87,6 +87,19 @@
     "frames": 60,
     "framesPerSecond": 24,
     "ticksPerFrame": 5,
+    "drawCalls": [
+      114,
+      118
+    ],
+    "submittedTriangles": [
+      121182,
+      126686
+    ],
+    "speedKph": [
+      57.4,
+      75.11
+    ],
+    "maxAbsoluteLeanDegrees": 35.32,
     "glErrors": 0,
     "runtimeErrors": []
   },
@@ -304,18 +317,18 @@
         "views": [
           {
             "view": "side",
-            "nearToMiddlePct": 98.36,
-            "middleToFarPct": 95.01
+            "nearToMiddlePct": 98.14,
+            "middleToFarPct": 95.77
           },
           {
             "view": "front-quarter",
-            "nearToMiddlePct": 98.86,
-            "middleToFarPct": 96.61
+            "nearToMiddlePct": 98.63,
+            "middleToFarPct": 97.64
           },
           {
             "view": "rear",
-            "nearToMiddlePct": 98.43,
-            "middleToFarPct": 93.97
+            "nearToMiddlePct": 98.45,
+            "middleToFarPct": 94.19
           }
         ]
       }
@@ -637,5 +650,55 @@
       "mirrorUpdates": 11,
       "replaySamples": 585
     }
+  },
+  "catalogueRaceSuite": {
+    "scenarios": 19,
+    "entrants": 158,
+    "classified": 158,
+    "falls": 7,
+    "vehicles": [
+      "cr750",
+      "gpr1",
+      "gpr2",
+      "sbk1000",
+      "ss600"
+    ],
+    "passed": true,
+    "failures": []
+  },
+  "classicInduction": {
+    "clearanceMethod": "Minimum distance from the circular rear tyre to the projected reservoir triangles, including their edges and interiors, at 91 positions on the physical swingarm arc. The side projection includes all reservoir widths.",
+    "levels": [
+      {
+        "detail": "high",
+        "inductionAndRearFrameTriangles": 5236,
+        "rearTyreClearanceMillimetres": 74.2,
+        "suspensionTravelMillimetres": 90,
+        "sampledPositions": 91
+      },
+      {
+        "detail": "mid",
+        "inductionAndRearFrameTriangles": 2252,
+        "rearTyreClearanceMillimetres": 74.1,
+        "suspensionTravelMillimetres": 90,
+        "sampledPositions": 91
+      },
+      {
+        "detail": "far",
+        "inductionAndRearFrameTriangles": 520,
+        "rearTyreClearanceMillimetres": 74.1,
+        "suspensionTravelMillimetres": 90,
+        "sampledPositions": 91
+      }
+    ],
+    "sameViewBeforeInstallation": {
+      "triangles": 88826,
+      "drawCalls": 116
+    }
+  },
+  "productionBuild": {
+    "passed": true,
+    "command": "npm run build",
+    "sourceCommit": "3963037a674b356eecb2ff45e4ff3fa32449431b"
   }
 }
