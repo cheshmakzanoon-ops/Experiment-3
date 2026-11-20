@@ -158,6 +158,7 @@ export function buildVehicleBody(
         detail,
         !!closed && festivalDetailFor(definition, closed),
         wheelGeometry,
+        definition.classId === 'road',
       );
       assembly.pivot.position.set(p[0], i < 2 ? frame.hubFront : frame.hubRear, p[2]);
       lod.group.add(assembly.pivot);
@@ -458,6 +459,7 @@ export class VehicleBodies {
             wheelValue(a, b, o, p, W.DISC_TEMP, t),
             contact,
             wheelValue(a, b, o, p, W.RADIUS, t),
+            wheelValue(a, b, o, p, W.OMEGA, t),
           );
         });
         for (const { mesh, link } of body.links[shown]) {

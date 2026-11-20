@@ -1,5 +1,7 @@
 import * as T from 'three';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { acquireTyreStamp, tyreSizeMark } from '../src/rendering/vehicle-bodies/road-tyre-mould.ts';
+import { wheelExposureTurns } from '../src/rendering/road-wheel-exposure.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
 import { buildVehicleBody } from '../src/rendering/vehicle-bodies/index.ts';
 import { bodySheetFor } from '../src/rendering/vehicle-bodies/body-sheet.ts';
@@ -236,3 +238,79 @@ it('retains separate tyre contact and brake heat while sharing only equal rigid 
     for (const g of ownedGeometry) g.dispose();
   }
 }, 30000);
+
+it('keeps the rubber phase with its rim and exposes each road tyre from its own angular speed', () => {
+  const def = VEHICLES.rd2,
+    sheet = bodySheetFor(def)!.wheels;
+  const wheels = [-1, 1].map(
+    (side) => new WheelAssembly(def.spec.wheelRadius, side, true, sheet, 2, true, undefined, true),
+  );
+  owned.push(...wheels);
+  const axis = new T.Vector3(1, 0, 0);
+  for (const [i, phase] of [-Math.PI - 0.02, Math.PI + 0.02].entries()) {
+    const w = wheels[i],
+      omega = i ? -46 : 0;
+    w.update(0, 0, 0, phase, 3100, 160, 90, undefined, w.radius, omega);
+    expect(w.mould!.value.x).toBeCloseTo(sheet.rimRadius / def.spec.wheelRadius);
+    expect(w.mould!.value.y).toBe(wheelExposureTurns(omega));
+    const mounted = new T.Vector3(0, 0.23, -0.08);
+    const rolled = mounted.clone().applyAxisAngle(axis, w.spin.rotation.x);
+    const sampled = Math.atan2(rolled.z, -rolled.y) + w.pose.value.x;
+    const original = Math.atan2(mounted.z, -mounted.y);
+    expect(Math.cos(sampled - original)).toBeCloseTo(1, 12);
+  }
+  expect(wheels[0].mould!.value.y).toBe(0);
+  expect(wheels[1].mould!.value.y).toBeGreaterThan(0);
+});
+
+it('prints the geometric tyre dimensions and releases shared mould textures exactly once', () => {
+  const size = { rim: 0.2286, radius: 0.2286 + 0.225 * 0.45, width: 0.225 };
+  const ctx = new Proxy({}, { get: () => () => {} });
+  vi.stubGlobal('document', { createElement: () => ({ getContext: () => ctx }) });
+  try {
+    expect(tyreSizeMark(size)).toBe('225/45 R18');
+    const a = acquireTyreStamp(size, 'road')!,
+      b = acquireTyreStamp(size, 'road')!;
+    expect(b.texture).toBe(a.texture);
+    const free = vi.fn();
+    a.texture.addEventListener('dispose', free);
+    a.release();
+    a.release();
+    expect(free).not.toHaveBeenCalled();
+    b.release();
+    expect(free).toHaveBeenCalledTimes(1);
+    const fresh = acquireTyreStamp(size, 'road')!;
+    expect(fresh.texture).not.toBe(a.texture);
+    fresh.release();
+  } finally {
+    vi.unstubAllGlobals();
+  }
+});
+
+it('keeps cast paint, steel pad retention and axle-specific rotor uniforms on their original draws', () => {
+  const sheet = bodySheetFor(VEHICLES.sc7)!.wheels;
+  for (const side of [-1, 1]) {
+    const wheel = new WheelAssembly(
+      VEHICLES.sc7.spec.wheelRadius,
+      side,
+      true,
+      sheet,
+      0,
+      true,
+      undefined,
+      true,
+    );
+    owned.push(wheel);
+    const caliper = mesh(wheel, 'Brake caliper'),
+      rotor = mesh(wheel, 'Brake disc');
+    expect(caliper.parent).toBe(wheel.pivot);
+    expect(rotor.parent).toBe(wheel.spin);
+    expect(caliper.geometry.groups).toHaveLength(0);
+    const colors = caliper.geometry.getAttribute('color'),
+      unique = new Set<number>();
+    for (let i = 0; i < colors.count; i++) unique.add(Math.round(colors.getY(i) * 65535));
+    expect(unique.size).toBeGreaterThanOrEqual(4);
+    expect((caliper.material as T.MeshStandardMaterial).vertexColors).toBe(true);
+    expect(wheel.disc!.customProgramCacheKey()).toContain('road-brake-slotted');
+  }
+});

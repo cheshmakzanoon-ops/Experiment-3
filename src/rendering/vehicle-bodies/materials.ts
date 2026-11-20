@@ -10,6 +10,7 @@ import {
 } from '../paint-finish.ts';
 import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
 import { installGrazingCap } from '../studio/grazing-cap.ts';
+import { acquireTyreStamp, roadTyreFunctions, type RoadTyreSize } from './road-tyre-mould.ts';
 import { installBodyLayers, type LayerFrame } from './body-livery.ts';
 
 /** Material kit for procedural vehicle bodies (WP30). Paint is the house
@@ -218,12 +219,13 @@ export const sharedMaterials = {
       `rim-${color}`,
       () => new T.MeshStandardMaterial({ color, roughness: 0.3, metalness: 0.88 }),
     ),
-  caliper: (color: number) =>
+  caliper: (color: number, vertexColors = false) =>
     shared(
-      `caliper-${color}`,
+      `caliper-${vertexColors ? 'cast' : color}`,
       () =>
         new T.MeshPhysicalMaterial({
-          color,
+          color: vertexColors ? 0xffffff : color,
+          vertexColors,
           roughness: 0.35,
           metalness: 0.2,
           clearcoat: 0.8,
@@ -300,32 +302,46 @@ export type TreadPattern = 'slick' | 'road' | 'block' | 'rib';
  * The tyre mesh does not spin (its bulge stays at the road); the tread and
  * sidewall marks roll with `pose.x` (wheel phase). pose = (phase, deflection
  * m, tyre radius m, sidewall bulge m). */
-export function tyreMaterial(pattern: TreadPattern) {
+export function tyreMaterial(pattern: TreadPattern, size?: RoadTyreSize) {
   const material = new T.MeshStandardMaterial({ color: 0x1c1d1f, roughness: 0.86, metalness: 0 });
   const pose = { value: new T.Vector4(0, 0, 0.33, 0) };
   material.userData.weatherExposure = 1;
+  const mould = { value: new T.Vector2(size ? size.rim / size.radius : 0, 0) };
+  const stamp = size && acquireTyreStamp(size, pattern);
+  if (stamp) material.addEventListener('dispose', stamp.release);
+  const roadSipes = size
+    ? 'roadSipe(around * 64.0 + across * 3.0, 0.08, max(tyreSpan*64.0, 3.0*fwidth(across)))'
+    : 'sipe(around * 64.0 + across * 3.0, 0.08)';
+  const blocks = size
+    ? 'roadSipe(around * 40.0 + step(0.0, across) * 0.5, 0.22, tyreSpan*40.0)'
+    : 'sipe(around * 40.0 + step(0.0, across) * 0.5, 0.22)';
   const grooves =
     pattern === 'slick'
       ? '0.0'
       : pattern === 'road'
         ? `max(max(groove(across, 0.34, 0.035), groove(across, -0.34, 0.035)),
-              max(groove(across, 0.0, 0.03) , sipe(around * 64.0 + across * 3.0, 0.08) * step(0.42, abs(across))))`
+              max(groove(across, 0.0, 0.03) , ${roadSipes} * step(0.42, abs(across))))`
         : pattern === 'block'
-          ? `max(sipe(around * 40.0 + step(0.0, across) * 0.5, 0.22) * step(0.12, abs(across)),
+          ? `max(${blocks} * step(0.12, abs(across)),
               max(groove(across, 0.0, 0.06), max(groove(across, 0.45, 0.05), groove(across, -0.45, 0.05))))`
           : `max(groove(across, 0.25, 0.02), max(groove(across, -0.25, 0.02), groove(across, 0.0, 0.02)))`;
-  chainShaderHook(material, `vehicle-tyre-${pattern}-v1`, (shader) => {
-    shader.uniforms.tyrePose = pose;
-    injectDeclarations(
-      shader,
-      'common',
-      'uniform vec4 tyrePose; attribute vec3 tyreBind; varying vec3 vTyreBind;',
-      'vertex',
-    );
-    injectAfter(
-      shader,
-      'begin_vertex',
-      `vTyreBind = tyreBind;
+  chainShaderHook(
+    material,
+    `vehicle-tyre-${pattern}${size ? '-road' : ''}${stamp ? '-stamp' : ''}-v2`,
+    (shader) => {
+      if (size) shader.uniforms.tyreMould = mould;
+      if (stamp) shader.uniforms.tyreStamp = { value: stamp.texture };
+      shader.uniforms.tyrePose = pose;
+      injectDeclarations(
+        shader,
+        'common',
+        `uniform vec4 tyrePose; attribute vec3 tyreBind; varying vec3 vTyreBind; ${size ? 'varying vec2 tyreRadial;' : ''}`,
+        'vertex',
+      );
+      injectAfter(
+        shader,
+        'begin_vertex',
+        `vTyreBind = tyreBind; ${size ? 'tyreRadial = position.yz;' : ''}
       {
         // Loaded contact: flatten the crown below the hub to the deflected
         // radius and bulge the lower sidewalls; the hub frame is upright.
@@ -336,49 +352,81 @@ export function tyreMaterial(pattern: TreadPattern) {
         if (transformed.y < -flatRadius) transformed.y = mix(transformed.y, -flatRadius, crown);
         transformed.x += sign(transformed.x) * tyrePose.w * pow(low, 6.0) * (1.0 - crown) * smoothstep(0.2, 0.6, tyreBind.y);
       }`,
-      'vertex',
-    );
-    injectDeclarations(
-      shader,
-      'common',
-      `uniform vec4 tyrePose; varying vec3 vTyreBind;
+        'vertex',
+      );
+      injectDeclarations(
+        shader,
+        'common',
+        `uniform vec4 tyrePose; varying vec3 vTyreBind;
+      ${size ? roadTyreFunctions : ''}
+      ${stamp ? 'uniform sampler2D tyreStamp;' : ''}
       float groove(float a, float c, float w) { float fw = max(fwidth(a), 1e-4); return 1.0 - smoothstep(w - fw, w + fw, abs(a - c)); }
       float sipe(float s, float w) { float f = abs(fract(s) - 0.5); float fw = max(fwidth(s), 1e-4); return (1.0 - smoothstep(w - fw, w + fw, f)) * (1.0 - smoothstep(0.2, 0.5, fw)); }`,
-      'fragment',
-    );
-    injectAfter(
-      shader,
-      'color_fragment',
-      `float across = vTyreBind.x;
-      float around = (vTyreBind.z - tyrePose.x) / 6.2831853;
+        'fragment',
+      );
+      injectAfter(
+        shader,
+        'color_fragment',
+        `float across = vTyreBind.x;
+      ${
+        size
+          ? `float around = (atan(tyreRadial.y,-tyreRadial.x) + tyrePose.x) / 6.2831853;
+      vec2 angularPixel=aroundGradient(tyreRadial);
+      float tyreSpan=max(tyreMould.y,abs(angularPixel.x)+abs(angularPixel.y));`
+          : 'float around = (vTyreBind.z - tyrePose.x) / 6.2831853;'
+      }
       float tyreCrown = smoothstep(0.86, 0.93, vTyreBind.y);
       float tyreGroove = (${grooves}) * tyreCrown;
       float sideRing = (1.0 - smoothstep(0.004, 0.012, abs(vTyreBind.y - 0.78))) * (1.0 - tyreCrown);
       diffuseColor.rgb *= (1.0 - 0.55 * tyreGroove) * mix(1.05, 0.92, tyreCrown);
-      diffuseColor.rgb += vec3(0.05) * sideRing;`,
-      'fragment',
-    );
-    injectAfter(
-      shader,
-      'roughnessmap_fragment',
-      'roughnessFactor = clamp(mix(0.62, roughnessFactor, tyreCrown) + 0.08 * tyreGroove, 0.4, 1.0);',
-      'fragment',
-    );
-    injectAfter(
-      shader,
-      'normal_fragment_maps',
-      `{
-        float h = -0.003 * tyreGroove;
+      ${
+        size
+          ? `float wallHeight=(vTyreBind.y-tyreMould.x)/max(1.-tyreMould.x,.01);
+      float beadRibbon=groove(wallHeight,.13,.015)+groove(wallHeight,.82,.008);
+      float tyreRelief=0.;
+      ${
+        stamp
+          ? `vec2 stampUv=vec2(around*sign(across),wallHeight);
+      // Explicit unwrapped gradients keep filtering continuous across a revolution.
+      // A half-pixel lower bound also averages fine stamps on distant wheels.
+      vec2 uvDx=vec2(angularPixel.x*sign(across),dFdx(wallHeight));
+      vec2 uvDy=vec2(angularPixel.y*sign(across),dFdy(wallHeight));
+      float blur=tyreMould.y*.5;
+      vec2 major=dot(uvDx,uvDx)>dot(uvDy,uvDy)?uvDx:uvDy;
+      if (blur>abs(major.x)) major.x=major.x<0.?-blur:blur;
+      vec2 minor=dot(uvDx,uvDx)>dot(uvDy,uvDy)?uvDy:uvDx;
+      tyreRelief=.5*(textureGrad(tyreStamp,stampUv+vec2(blur*.5,0.),major,minor).r+
+                     textureGrad(tyreStamp,stampUv-vec2(blur*.5,0.),major,minor).r);
+      tyreRelief*=smoothstep(.06,.18,wallHeight)*(1.-smoothstep(.76,.91,wallHeight));`
+          : ''
+      }
+      diffuseColor.rgb*=1.+.11*beadRibbon+.48*tyreRelief;`
+          : 'diffuseColor.rgb += vec3(0.05) * sideRing;'
+      }`,
+        'fragment',
+      );
+      injectAfter(
+        shader,
+        'roughnessmap_fragment',
+        `roughnessFactor = clamp(mix(0.62, roughnessFactor, tyreCrown) + 0.08 * tyreGroove ${size ? '- .12*tyreRelief' : ''}, 0.4, 1.0);`,
+        'fragment',
+      );
+      injectAfter(
+        shader,
+        'normal_fragment_maps',
+        `{
+        float h = -0.003 * tyreGroove ${size ? '+ .00048*tyreRelief + .00019*beadRibbon' : ''};
         vec3 sx = dFdx(-vViewPosition), sy = dFdy(-vViewPosition);
         vec3 r1 = cross(sy, normal), r2 = cross(normal, sx);
         float det = dot(sx, r1);
         vec3 grad = sign(det) * (dFdx(h) * r1 + dFdy(h) * r2);
         normal = normalize(max(abs(det), 1e-10) * normal - grad);
       }`,
-      'fragment',
-    );
-  });
-  return { material, pose };
+        'fragment',
+      );
+    },
+  );
+  return { material, pose, mould };
 }
 /** The numeral on a board canvas (128 px square). */
 export function paintNumber(ctx: CanvasRenderingContext2D, num: number) {

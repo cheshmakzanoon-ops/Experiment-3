@@ -3,6 +3,8 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { clamp } from '../../core/math.ts';
 import { revolveX, roundedBox, type Pt } from './loft.ts';
 import { discMaterial, sharedMaterials, tyreMaterial, type TreadPattern } from './materials.ts';
+import { caliperTint, finishRoadRotor } from './road-brakes.ts';
+import { wheelExposureTurns } from '../road-wheel-exposure.ts';
 import { RecordedTire } from '../recorded-tire.ts';
 import type { WheelContactPose } from '../wheel-contact.ts';
 
@@ -337,11 +339,12 @@ function festivalWheelMetal(sheet: WheelSheet, half: number, side: number, detai
 }
 /** Merge non-indexed copies and release each temporary geometry once. Keep
  * the forged spoke's authored curved normals; legacy wheels retain theirs. */
-function mergeParts(parts: T.BufferGeometry[], preserveNormals = false) {
+function mergeParts(parts: T.BufferGeometry[], preserveNormals = false, keepColor = false) {
   const flat = parts.map((g) => {
     const f = g.index ? g.toNonIndexed() : g;
     for (const name of Object.keys(f.attributes))
-      if (name !== 'position' && name !== 'normal') f.deleteAttribute(name);
+      if (name !== 'position' && name !== 'normal' && !(keepColor && name === 'color'))
+        f.deleteAttribute(name);
     return f;
   });
   const merged = mergeGeometries(flat, false);
@@ -422,6 +425,7 @@ function caliperGeometry(
   side: number,
   festival = false,
   detail: Detail = 0,
+  roadHardware = false,
 ) {
   const R = sheet.rimRadius * sheet.disc;
   if (festival) {
@@ -447,6 +451,50 @@ function caliperGeometry(
           .translate(x, R + bridgeHeight * 0.55, 0)
           .rotateX(angle + offset),
       );
+    if (roadHardware) {
+      for (const piece of parts) caliperTint(piece, sheet.caliperColor);
+      // A painted yoke joins the opposed housings. The pad back is visible
+      // inside it, with two keeper pins and a captive leaf spring.
+      const part = (
+        g: T.BufferGeometry,
+        axial: number,
+        radial: number,
+        tangential: number,
+        hex: number,
+      ) =>
+        parts.push(
+          caliperTint(g.translate(x + side * axial, radial, tangential).rotateX(angle), hex),
+        );
+      part(roundedBox(0.012, 0.033, R * 0.63, 0.005, 1), 0.038, R * 0.86, 0, sheet.caliperColor);
+      part(new T.BoxGeometry(0.003, R * 0.16, R * 0.56), 0.018, R * 0.82, 0, 0x484c4c);
+      if (detail === 0) {
+        for (const offset of [-0.2, 0.2]) {
+          part(
+            new T.CylinderGeometry(0.006, 0.007, 0.007, 6).rotateZ(Math.PI / 2),
+            0.047,
+            R * 0.86,
+            R * offset,
+            0x979b97,
+          );
+          part(
+            new T.CylinderGeometry(0.0024, 0.0024, 0.002, 6).rotateZ(Math.PI / 2),
+            0.051,
+            R * 0.86,
+            R * offset,
+            0x393d3a,
+          );
+        }
+        for (const hand of [-1, 1])
+          part(
+            new T.BoxGeometry(0.003, 0.004, R * 0.21).rotateX(hand * 0.26),
+            0.047,
+            R * 0.88,
+            hand * R * 0.1,
+            0x858984,
+          );
+      }
+      return mergeParts(parts, true, true);
+    }
     return mergeParts(parts);
   }
   // Axial x radial x tangential; straddles the disc edge at the rear-upper
@@ -468,6 +516,7 @@ export class WheelAssembly {
   readonly tyre: T.Mesh;
   readonly pose: { value: T.Vector4 };
   readonly disc: T.MeshStandardMaterial | null;
+  readonly mould?: { value: T.Vector2 };
   readonly radius: number;
   readonly halfWidth: number;
   readonly contact: RecordedTire;
@@ -481,6 +530,7 @@ export class WheelAssembly {
     // Scoped to this body, wheel sheet and LOD. Live material uniforms stay
     // independent at every corner, even when two rims have the same shape.
     geometryCache?: Map<string, T.BufferGeometry>,
+    roadRubber = false,
   ) {
     this.radius = radius;
     const half = sheet.width[front ? 0 : 1] / 2;
@@ -499,7 +549,11 @@ export class WheelAssembly {
       geometryCache.set(key, created);
       return created;
     };
-    const rubber = tyreMaterial(sheet.tread);
+    const rubber = tyreMaterial(
+      sheet.tread,
+      roadRubber ? { radius, rim: sheet.rimRadius, width: half * 2 } : undefined,
+    );
+    if (roadRubber) this.mould = rubber.mould;
     this.pose = rubber.pose;
     this.pose.value.set(0, 0, radius, 0);
     this.tyre = new T.Mesh(
@@ -530,6 +584,13 @@ export class WheelAssembly {
     }
     if (sheet.disc > 0 && detail < 2) {
       this.disc = discMaterial();
+      if (roadRubber)
+        finishRoadRotor(
+          this.disc,
+          sheet.rimRadius * sheet.disc,
+          sheet.style === 'split' || sheet.style === 'mesh',
+          rubber.mould,
+        );
       const disc = new T.Mesh(
         geometry('disc', side, () => discGeometry(sheet, half, side, detail, festival)),
         this.disc,
@@ -537,8 +598,10 @@ export class WheelAssembly {
       disc.name = 'Brake disc';
       this.spin.add(disc);
       const caliper = new T.Mesh(
-        geometry('caliper', side, () => caliperGeometry(sheet, half, side, festival, detail)),
-        sharedMaterials.caliper(sheet.caliperColor),
+        geometry('caliper', side, () =>
+          caliperGeometry(sheet, half, side, festival, detail, roadRubber),
+        ),
+        sharedMaterials.caliper(sheet.caliperColor, roadRubber && festival),
       );
       caliper.name = 'Brake caliper';
       this.pivot.add(caliper);
@@ -561,10 +624,12 @@ export class WheelAssembly {
     discTemp: number,
     contact?: WheelContactPose,
     recordedRadius = this.radius,
+    omega = 0,
   ) {
     this.pivot.position.y = hubY;
     this.pivot.rotation.set(0, steer, -camber);
     this.spin.rotation.x = phase;
+    if (this.mould) this.mould.value.y = wheelExposureTurns(omega);
     // Presentation-only deflection from the recorded load (bounded).
     const stiffness = 260000 * clamp((pressure || 155) / 155, 0.3, 2) * (this.radius / 0.335);
     const deflection = clamp(Math.max(0, load) / stiffness, 0, this.radius * 0.06);
