@@ -1,4 +1,4 @@
-import { clamp } from '../core/math.ts';
+import { clamp, Vec3, type Quat } from '../core/math.ts';
 import { motorcycleWheelSlipPower } from './motorcycle-thermal.ts';
 import {
   FORMULA_SLICK,
@@ -49,6 +49,8 @@ export interface MotoGPContactStep {
    * resolve the steered front force, and rotate both body-frame velocity
    * components. The adapter consumes forwardSpeed as well as lateralSpeed. */
   inertialContacts?: boolean;
+  /** Front wheel plane measured against the current road normal. */
+  steeringPlane?: GpSteeringPlane;
   /** Rolling radii at the road support points, including camber and bank. */
   frontRadius?: number;
   rearRadius?: number;
@@ -97,14 +99,80 @@ export function gpSpinPerSpeed(geometry: MotoGPGeometry) {
   );
 }
 
-/** Kinematic ground-plane steer of handlebars turned δ about a head raked ε
- * on a bike leaned φ: tan Δ = tan δ · cos ε / cos φ (small-angle form of
- * Cossalter's relation). A leaned bike turns more for the same bar angle. */
-export function gpGroundSteer(steer: number, lean: number) {
-  return Math.atan((Math.tan(steer) * Math.cos(GP_RAKE)) / Math.max(0.35, Math.cos(lean)));
+const RAKE_SIN = Math.sin(GP_RAKE),
+  RAKE_COS = Math.cos(GP_RAKE);
+
+/** The tyre rolls along the intersection of its wheel plane and the road.
+ * In yaw coordinates the horizontal direction is A cos(delta) + B sin(delta).
+ * Keeping these two basis vectors gives the rider controller the exact inverse
+ * used by the tyre, also on a cambered road or with a pitching chassis. */
+export class GpSteeringPlane {
+  private lateral0 = 0;
+  private forward0 = 1;
+  private lateral90 = RAKE_COS;
+  private forward90 = 0;
+  private normal0 = 0;
+  private normal90 = -RAKE_SIN;
+  private readonly axis = new Vec3();
+  private readonly tangent = new Vec3();
+  private readonly local = new Vec3();
+  valid = true;
+
+  measure(chassis: Quat, normal: Vec3, sinHeading: number, cosHeading: number) {
+    const { axis, tangent, local } = this;
+    chassis.rotate(local.set(1, 0, 0), axis);
+    tangent.cross(axis, normal);
+    this.lateral0 = tangent.x * cosHeading - tangent.z * sinHeading;
+    this.forward0 = tangent.z * cosHeading + tangent.x * sinHeading;
+    this.normal0 = axis.dot(normal);
+    chassis.rotate(local.set(0, -RAKE_SIN, -RAKE_COS), axis);
+    tangent.cross(axis, normal);
+    this.lateral90 = tangent.x * cosHeading - tangent.z * sinHeading;
+    this.forward90 = tangent.z * cosHeading + tangent.x * sinHeading;
+    this.normal90 = axis.dot(normal);
+    // A wheel laid flat against the surface has no unique rolling heading.
+    this.valid =
+      this.forward0 > 0.08 &&
+      this.forward0 * this.lateral90 - this.lateral0 * this.forward90 > 0.035;
+  }
+
+  axleNormal(delta: number) {
+    return this.normal0 * Math.cos(delta) + this.normal90 * Math.sin(delta);
+  }
+
+  groundAngle(bar: number) {
+    const c = Math.cos(bar),
+      s = Math.sin(bar);
+    return Math.atan2(
+      this.lateral0 * c + this.lateral90 * s,
+      this.forward0 * c + this.forward90 * s,
+    );
+  }
+
+  barAngle(ground: number) {
+    const c = Math.cos(ground),
+      s = Math.sin(ground);
+    return Math.atan2(
+      this.forward0 * s - this.lateral0 * c,
+      this.lateral90 * c - this.forward90 * s,
+    );
+  }
 }
-export function gpBarSteer(ground: number, lean: number) {
-  return Math.atan((Math.tan(ground) * Math.max(0.35, Math.cos(lean))) / Math.cos(GP_RAKE));
+
+/** Standalone chassis uses a level road. The same raked-wheel projection can
+ * be written directly in terms of lean where a contact plane is unavailable. */
+export function gpGroundSteer(steer: number, lean: number, plane?: GpSteeringPlane) {
+  if (plane?.valid) return plane.groundAngle(steer);
+  const s = Math.sin(steer);
+  return Math.atan2(RAKE_COS * s, Math.cos(lean) * Math.cos(steer) - Math.sin(lean) * RAKE_SIN * s);
+}
+export function gpBarSteer(ground: number, lean: number, plane?: GpSteeringPlane) {
+  if (plane?.valid) return plane.barAngle(ground);
+  const s = Math.sin(ground);
+  return Math.atan2(
+    Math.cos(lean) * s,
+    RAKE_COS * Math.cos(ground) + Math.sin(lean) * RAKE_SIN * s,
+  );
 }
 
 /** Peak-friction factor of the slick's shoulder at a lean (rad): full grip
@@ -227,14 +295,12 @@ export class MotoGPChassis {
     }
     this.lastSpeed = v;
     const contact = clamp(q.frontContact, 0, 1);
-    const steer = (this.groundSteer = gpGroundSteer(q.steer, q.lean));
+    const steer = (this.groundSteer = gpGroundSteer(q.steer, q.lean, q.steeringPlane));
     if ((contact <= 1e-6 && !q.inertialContacts) || v < 2.5) {
       // No fictitious front road steering while raised. Below walking speed
       // retain the geometric pit-box steering model instead of freezing turn.
       this.yawRate =
-        contact > 1e-6 && v < 2.5
-          ? (v * Math.tan(q.steer) * Math.cos(q.lean) * contact) / (g.frontArm + g.rearArm)
-          : 0;
+        contact > 1e-6 && v < 2.5 ? (v * Math.tan(steer) * contact) / (g.frontArm + g.rearArm) : 0;
       this.lateralSpeed = 0;
       this.frontFy = this.rearFy = this.lateralAcceleration = 0;
       this.frontSlipAngle = this.rearSlipAngle = this.frontLoadUsed = this.frontMuUsed = 0;

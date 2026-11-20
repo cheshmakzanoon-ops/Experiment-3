@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Bike, NOVICE } from '../src/simulation/bike.ts';
-import { BikeVehicle } from '../src/simulation/bike-vehicle.ts';
+import { Quat, Vec3 } from '../src/core/math.ts';
+import { BikeVehicle, bikeOrientation } from '../src/simulation/bike-vehicle.ts';
 import { GP_R1, GP_R2 } from '../src/simulation/bike-definitions.ts';
 import { DEFAULT_SETUP } from '../src/simulation/config.ts';
 import {
@@ -8,8 +9,52 @@ import {
   tyreShoulderSine,
   tyreRollingRadius,
 } from '../src/simulation/bike-tyre-profile.ts';
-import { MotoGPChassis, gpGroundSteer } from '../src/simulation/motogp-physics.ts';
+import {
+  MotoGPChassis,
+  GP_RAKE,
+  GpSteeringPlane,
+  gpBarSteer,
+  gpGroundSteer,
+} from '../src/simulation/motogp-physics.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
+
+it('tracks the wheel-plane intersection and inverts the bar angle across bank, pitch and countersteer', () => {
+  const plane = new GpSteeringPlane(),
+    axis = new Vec3(),
+    rotated = new Vec3(),
+    rolling = new Vec3();
+  for (const heading of [-1.42, 0, 2.1])
+    for (const pitch of [-0.14, 0, 0.23])
+      for (const roll of [-1.06, 0, 1.06]) {
+        const q = new Quat();
+        bikeOrientation(q, heading, pitch, roll);
+        const sh = Math.sin(heading),
+          ch = Math.cos(heading);
+        for (const bank of [-0.18, 0, 0.18]) {
+          const n = new Vec3(ch * Math.sin(bank), Math.cos(bank), -sh * Math.sin(bank));
+          plane.measure(q, n, sh, ch);
+          expect(plane.valid).toBe(true);
+          for (const delta of [-0.31, -0.08, 0, 0.08, 0.31]) {
+            q.rotate(
+              axis.set(
+                Math.cos(delta),
+                -Math.sin(GP_RAKE) * Math.sin(delta),
+                -Math.cos(GP_RAKE) * Math.sin(delta),
+              ),
+              rotated,
+            );
+            rolling.cross(rotated, n);
+            const expected = Math.atan2(
+              rolling.x * ch - rolling.z * sh,
+              rolling.z * ch + rolling.x * sh,
+            );
+            expect(gpGroundSteer(delta, roll, plane)).toBeCloseTo(expected, 12);
+            expect(gpBarSteer(expected, roll, plane)).toBeCloseTo(delta, 12);
+            expect(plane.axleNormal(delta)).toBeCloseTo(rotated.dot(n), 12);
+          }
+        }
+      }
+});
 
 const DT = 1 / 240;
 const geometry = Object.freeze({

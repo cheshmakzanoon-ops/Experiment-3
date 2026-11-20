@@ -82,8 +82,9 @@ import {
  * v28: road motorcycle AI tracks the planner's narrowed wet racing line,
  * changing wet race trajectories while retaining the dry full-width path.
  * v29: GP slip follows the steered tyre crowns, suspension sweeps the axle
- * arms through yaw, and GP braking and lane recovery share contact grip. */
-export const SIMULATION_VERSION = 29;
+ * arms through yaw, and GP braking and lane recovery share contact grip.
+ * v30: GP steering follows the raked wheel on its measured road plane. */
+export const SIMULATION_VERSION = 30;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 

@@ -4,6 +4,7 @@ import {
   GP_RAKE,
   MotoGPChassis,
   gpBarSteer,
+  type GpSteeringPlane,
   gpCamberFriction,
   gpHangOffAngle,
   gpRollInertia,
@@ -255,7 +256,7 @@ export class Bike {
   /** Optional unilateral loads from the road adapter's heave/pitch solver.
    * Undefined keeps the standalone research and MX load-transfer model.
    * These contacts already contain dynamic transfer; do not add it twice. */
-  contactLoads?: { front: number; rear: number; rearLiftForce?: number; frontRadius?: number; rearRadius?: number };
+  contactLoads?: { front: number; rear: number; rearLiftForce?: number; frontRadius?: number; rearRadius?: number; steeringPlane?: GpSteeringPlane };
   slope = 0;
   dragScale = 1;
   riderReady = true;
@@ -564,7 +565,7 @@ export class Bike {
         Math.atan((p.wheelbase * lateral) / (v * v)) +
           clamp((GP_ASSIST.feedback * m * (lateral - measured)) / cornering, -0.06, 0.06)) +
       gp.steerTrim;
-    return gpBarSteer(ground, this.lean);
+    return gpBarSteer(ground, this.lean, this.contactLoads?.steeringPlane);
   }
   private roadLateralDemand = 0;
   /** Admission of returning support for a NEW roll manoeuvre, never a
@@ -1039,6 +1040,7 @@ export class Bike {
       rearDriveExcess: a.traction || a.wheelie ? 0 : Math.max(0, requested - drive),
       rearBrakeExcess: a.abs ? 0 : Math.max(0, brakeR - this.rearBrakeForce),
       inertialContacts: !!contacts,
+      steeringPlane: contacts?.steeringPlane,
       frontRadius: contacts?.frontRadius,
       rearRadius: contacts?.rearRadius,
     });

@@ -1,5 +1,5 @@
 import { ROAD_TYRE_HALF_WIDTH, tyreShoulderSine, tyreRollingRadius } from './bike-tyre-profile.ts';
-import { GP_RAKE } from './motogp-physics.ts';
+import { GpSteeringPlane } from './motogp-physics.ts';
 import { gpBrakeEfficiency } from './gp-brake-fade.ts';
 import { advanceWheelRotation } from './wheel-rotation.ts';
 import { OrientationKinematics } from './pose-kinematics.ts';
@@ -133,7 +133,7 @@ export class BikeVehicle extends Vehicle {
   private roadSuspensionLive = false;
   private roadRideHeight = 0;
   private roadRollVelocity = 0;
-  private readonly roadLoads = { front: 0, rear: 0, rearLiftForce: 0, frontRadius: 0, rearRadius: 0 };
+  private readonly roadLoads = { front: 0, rear: 0, rearLiftForce: 0, frontRadius: 0, rearRadius: 0, steeringPlane: new GpSteeringPlane() };
   private readonly frontShoulder: number;
   private readonly rearShoulder: number;
   private readonly nextFrontSurface = surfaceSample();
@@ -632,18 +632,13 @@ export class BikeVehicle extends Vehicle {
     if (d.motoGP) {
       // Both banking and the rake of the steered front axle change where the
       // tyre rolls on its crown. Use the actual surface under each contact.
-      const steered = Math.sin(d.steer);
-      this.offset.set(
-        Math.cos(d.steer),
-        -Math.sin(GP_RAKE) * steered,
-        -Math.cos(GP_RAKE) * steered,
-      );
-      this.body.orientation.rotate(this.offset, this.scratch);
+      const steeringPlane = this.roadLoads.steeringPlane;
+      steeringPlane.measure(this.body.orientation, this.contacts[0].normal, sh, ch);
       this.roadLoads.frontRadius = tyreRollingRadius(
         s.frontWheelRadius,
         s.crownRadius,
         this.frontShoulder,
-        this.scratch.dot(this.contacts[0].normal),
+        steeringPlane.axleNormal(d.steer),
       );
       this.offset.set(1, 0, 0);
       this.body.orientation.rotate(this.offset, this.scratch);
