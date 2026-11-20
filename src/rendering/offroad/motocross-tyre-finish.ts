@@ -1,6 +1,7 @@
 import * as T from 'three';
 import type { GpTyreAppearance } from '../gp-tyre-finish.ts';
 import type { MudUniforms } from './mud.ts';
+import { SM_ROAD_GROOVE_GLSL, SM_TREAD_CHANNELS } from './motocross-road-tread.ts';
 import {
   chainShaderHook,
   injectAfter,
@@ -90,14 +91,10 @@ const SAMPLE = /* glsl */ `
 #ifdef MX_SUPERMOTO_TYRE
   // Staggered channels sweep outwards from the uncut centre strip. Keep
   // integer repeats at the angular seam and fade sub-pixel rubber relief.
-  float repeats = mix(20., 24., axle);
-  float phase = angle * (repeats / 6.2831853) + across * (.24 + .40 * across) +
-    .5 * step(0., p.x);
+  float repeats = mix(${SM_TREAD_CHANNELS.front.toFixed(1)}, ${SM_TREAD_CHANNELS.rear.toFixed(1)}, axle);
   float pitch = dimensions.x * (6.2831853 / repeats);
-  float distanceToSlot = abs(fract(phase + .5) - .5) * pitch;
   float antialias = clamp(pixel * .7, .00025, .003);
-  float channel = (1. - smoothstep(.0022 - antialias, .0022 + antialias, distanceToSlot)) *
-    smoothstep(.10, .24, across) * (1. - smoothstep(.85, .99, across)) *
+  float channel = mxRoadGroove(angle * (repeats / 6.2831853), p.x / halfWidth, pitch, antialias) *
     smoothstep(dimensions.x - halfWidth * .7, dimensions.x - halfWidth * .48, radial) * detail;
   mxTyreHeight -= .0018 * channel * (1. - .58 * wear);
   diffuseColor.rgb *= 1. - .24 * channel;
@@ -192,7 +189,7 @@ export function installMotocrossTyreFinish(
       injectDeclarations(
         shader,
         'common',
-        (road ? '#define MX_SUPERMOTO_TYRE\n' : '') + DECLARATIONS,
+        (road ? '#define MX_SUPERMOTO_TYRE\n' + SM_ROAD_GROOVE_GLSL : '') + DECLARATIONS,
         'fragment',
       );
       injectBefore(shader, 'color_fragment', SAMPLE, 'fragment');

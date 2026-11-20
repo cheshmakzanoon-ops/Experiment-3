@@ -37,22 +37,27 @@ test('grounded MX and SX tyres leave reversible prints in photographed dirt on W
   );
   await page.goto('/mx-tyre-passage.html');
   await page.addScriptTag({ content: script.code });
-  for (const circuit of ['valley-ridge-mx', 'arena-nord-sx'] as const) {
+  for (const [circuit, machine] of [
+    ['valley-ridge-mx', 'mx450'],
+    ['arena-nord-sx', 'mx250'],
+    ['valley-ridge-mx', 'sm450'],
+  ] as const) {
+    const label = machine === 'sm450' ? circuit + '-sm450' : circuit;
     const result = await page.evaluate(
-      (circuit) =>
+      ({ circuit, machine }) =>
         (
           window as unknown as {
             MxTyrePassage: { captureMxTyrePassage: typeof captureMxTyrePassage };
           }
-        ).MxTyrePassage.captureMxTyrePassage(circuit),
-      circuit,
+        ).MxTyrePassage.captureMxTyrePassage(circuit, machine),
+      { circuit, machine },
     );
     for (const state of ['before', 'after'] as const)
-      await info.attach(circuit + '-tyre-trace-' + state + '.png', {
+      await info.attach(label + '-tyre-trace-' + state + '.png', {
         body: Buffer.from(result[state].split(',')[1], 'base64'),
         contentType: 'image/png',
       });
-    await info.attach(circuit + '-tyre-trace-metrics.json', {
+    await info.attach(label + '-tyre-trace-metrics.json', {
       body: JSON.stringify({ ...result, before: undefined, after: undefined }),
       contentType: 'application/json',
     });
@@ -61,6 +66,14 @@ test('grounded MX and SX tyres leave reversible prints in photographed dirt on W
     expect(result.changed).toBeGreaterThan(100);
     expect(result.changed).toBeLessThan(result.width * result.height * 0.35);
     expect(result.calls[1] - result.calls[0]).toBe(1);
+    expect(result.byteExactRewind).toBe(true);
+    expect(result.byteExactRestore).toBe(true);
+    if (machine === 'sm450') {
+      expect(result.saturatedSlipControl?.changed).toBeGreaterThan(100);
+      expect(result.saturatedSlipControl?.segments).toBe(result.segments);
+      expect(result.saturatedSlipControl?.calls).toBe(result.calls[1]);
+      expect(result.saturatedSlipControl?.error).toBe(0);
+    }
     expect(result.hashes[0]).toBe(result.hashes[2]);
     expect(result.hashes[1]).toBe(result.hashes[3]);
   }

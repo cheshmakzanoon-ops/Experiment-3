@@ -1,5 +1,7 @@
 import * as T from 'three';
 import { describe, expect, it } from 'vitest';
+import { MX_RAKE } from '../src/rendering/offroad/motocross-axles.ts';
+import { smRoadContactAngle } from '../src/rendering/offroad/motocross-road-tread.ts';
 import { MxTyreTraces } from '../src/rendering/offroad/mx-tyre-traces.ts';
 import { TerrainView } from '../src/rendering/offroad/terrain-view.ts';
 import { Roost } from '../src/rendering/offroad/roost.ts';
@@ -27,7 +29,7 @@ import { MATERIAL } from '../src/simulation/surface-material.ts';
 import { trackPoint } from '../src/simulation/track.ts';
 import { VEHICLES, vehicleIndex } from '../src/simulation/vehicles.ts';
 
-function field() {
+function field(machine: 'mx450' | 'sm450' = 'mx450') {
   const track = rigTrack('valley-ridge-mx'),
     marks = new MxTyreTraces(track),
     roost = new Roost(track);
@@ -37,13 +39,13 @@ function field() {
     heightAt: (s: number, l: number) => 2 + s * 0.003 + l * 0.14 - rut,
   };
   roost.groundHeight = surface.heightAt;
-  const def = VEHICLES.mx450,
+  const def = VEHICLES[machine],
     p = trackPoint(),
     sag = factoryBikeSag(def),
     o = carBase(0);
   const frame = new Float32Array(HEADER + CAR_STRIDE);
   frame[H.CARS] = 1;
-  frame[o + RACE_BASE + R.VEHICLE] = vehicleIndex('mx450');
+  frame[o + RACE_BASE + R.VEHICLE] = vehicleIndex(machine);
   frame[o + F.SPEED] = 14;
   frame[o + BIKE_BASE + B.FORK] = sag.fork;
   frame[o + BIKE_BASE + B.SHOCK] = sag.shock;
@@ -126,6 +128,53 @@ describe('fresh motocross tyre impressions', () => {
       h.drive(63.2, 0.2);
       h.marks.show(h.frame[H.TIME], h.surface);
       expect(phases(previous, true)).toBeCloseTo(22, 3);
+    } finally {
+      h.dispose();
+    }
+  });
+  it('matches the SM450 groove phase against the displayed axle as the track banks and bars turn', () => {
+    const rake = new T.Quaternion().setFromAxisAngle(new T.Vector3(1, 0, 0), -MX_RAKE);
+    const ground = new T.Vector3(-0.35, 0.88, 0.23).normalize();
+    for (const steer of [-0.37, 0, 0.44]) {
+      const bar = new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 1, 0), steer);
+      const normal = ground.clone().applyQuaternion(rake.clone().multiply(bar).invert());
+      expect(smRoadContactAngle(ground, true, steer)).toBeCloseTo(
+        Math.atan2(normal.z, normal.y),
+        12,
+      );
+      expect(smRoadContactAngle(ground, false, steer)).toBeCloseTo(
+        Math.atan2(ground.z, ground.y),
+        12,
+      );
+    }
+  });
+  it('presses the distinct SM450 front and rear moulds while letting real slip erase their channels', () => {
+    const h = field('sm450');
+    try {
+      const motion = h.o + WHEEL_MOTION_BASE;
+      const front = h.o + WHEEL_BASE;
+      const rear = front + 2 * WHEEL_STRIDE;
+      h.frame[motion + M.VALID] = 5;
+      h.frame[front + W.SLIP] = 0;
+      h.frame[rear + W.SLIP] = 0.8;
+      h.drive(60, 0);
+      h.frame[motion + M.TURNS_FR] = 1;
+      h.frame[motion + M.TURNS_RR] = 1;
+      h.drive(60.8, 0.05);
+      h.marks.show(h.frame[H.TIME], h.surface);
+      const print = h.marks.mesh.geometry.getAttribute('mxTrace');
+      const uv = h.marks.mesh.geometry.getAttribute('uv');
+      const winding = [0, 0];
+      for (let segment = 0; segment < h.marks.recordedSegments; segment++) {
+        const vertex = segment * 4;
+        const pitch = -print.getW(vertex);
+        const axle = print.getZ(vertex) === 0 ? 0 : 1;
+        expect(print.getZ(vertex)).toBe(axle);
+        expect(pitch).toBeCloseTo(2 * Math.PI * (axle === 0 ? 0.3 / 20 : 0.31 / 24), 6);
+        winding[axle] += uv.getY(vertex + 2) - uv.getY(vertex);
+      }
+      expect(winding[0]).toBeCloseTo(20, 2);
+      expect(winding[1]).toBeCloseTo(24, 2);
     } finally {
       h.dispose();
     }

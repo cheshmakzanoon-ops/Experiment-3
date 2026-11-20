@@ -19,6 +19,11 @@ import { trackPoint, type Track } from '../../simulation/track.ts';
 import { vehicleAt } from '../../simulation/vehicles.ts';
 import { recordedWheelTurns } from '../../simulation/wheel-rotation.ts';
 import { MotocrossAxles, MX_TREAD_PAIRS } from './motocross-axles.ts';
+import {
+  SM_ROAD_GROOVE_GLSL,
+  SM_TREAD_CHANNELS,
+  smRoadContactAngle,
+} from './motocross-road-tread.ts';
 import { mxWheelPatch, type Roost } from './roost.ts';
 import type { TerrainView } from './terrain-view.ts';
 
@@ -46,6 +51,7 @@ interface Sample {
   phase: number;
   omega: number;
   rotation: number;
+  contactAngle: number;
   turns?: number;
 }
 type Surface = Pick<TerrainView, 'heightAt' | 'geometryRevision'> &
@@ -80,10 +86,11 @@ function traceMaterial() {
     fragmentShader: /* glsl */ `
       varying vec2 vTread;
       varying vec3 vPrint;
+      ${SM_ROAD_GROOVE_GLSL}
       void main() {
         float u = abs(vTread.x);
         float footprint = 1.0 - smoothstep(0.78, 1.0, u);
-        float front = vPrint.z;
+        float front = max(vPrint.z, 0.0);
         float mid = smoothstep(0.18, 0.38, u);
         float shoulder = smoothstep(0.58, 0.8, u);
         // A narrow longitudinal front block and a broader rear drive block.
@@ -96,6 +103,16 @@ function traceMaterial() {
           min(abs(u - 0.26), abs(u - 0.69))));
         float resolved = (1.0 - smoothstep(0.17, 0.75, edge)) * (1.0 - vPrint.y);
         float press = mix(mix(0.12, 0.6, vPrint.y), 0.14 + block * channels * 0.86, resolved);
+        // A negative pitch identifies a road tyre in the same draw as the knobs.
+        float phaseFootprint = fwidth(vTread.y);
+        if (vPrint.z < 0.0) {
+          float pitch = -vPrint.z;
+          float pixel = phaseFootprint * pitch;
+          // The local angle at contact runs backwards as the tyre rotates.
+          float groove = mxRoadGroove(-vTread.y, vTread.x, pitch, clamp(pixel * .7, .00025, .003));
+          float visibleGroove = groove * (1. - smoothstep(.003, .012, pixel));
+          press = mix(.56 * (1. - .82 * visibleGroove), .64, vPrint.y);
+        }
         float coverage = footprint * press * vPrint.x * (1.0 - smoothstep(0.5, 2.0, fwidth(vTread.x)));
         // Modulate the already lit dirt, retaining its colour, shadows, wet
         // highlights and photographic detail underneath each cut in the soil.
@@ -111,6 +128,7 @@ export class MxTyreTraces {
   private readonly patch = mxWheelPatch();
   private readonly road = trackPoint();
   private readonly side = new T.Vector3();
+  private readonly bodyInverse = new T.Quaternion();
   private readonly heightCells = new Int32Array(ACTIVE * 4);
   private readonly terrainUV = new Float32Array(ACTIVE * 8);
   private readonly position = new T.BufferAttribute(new Float32Array(ACTIVE * 12), 3).setUsage(
@@ -230,7 +248,27 @@ export class MxTyreTraces {
         const omega = frame[w + W.OMEGA],
           rotation = frame[w + W.ROTATION],
           turns = recordedWheelTurns(frame, o, tire * 2);
-        let phase = turns !== undefined ? mod((rotation / TAU) * MX_TREAD_PAIRS, 1) : 0;
+        const roadTyre = def.tireFamily === 'supermoto';
+        const repeats = roadTyre ? SM_TREAD_CHANNELS[front ? 'front' : 'rear'] : MX_TREAD_PAIRS;
+        // Knobbies carry the axle flag. Road tyres use this channel for their slot pitch in metres.
+        const pattern = roadTyre
+          ? -(TAU * (front ? def.bike.frontWheelRadius : def.bike.rearWheelRadius)) / repeats
+          : Number(front);
+        let contactAngle = 0;
+        if (roadTyre) {
+          this.bodyInverse
+            .set(frame[o + F.QX], frame[o + F.QY], frame[o + F.QZ], frame[o + F.QW])
+            .conjugate();
+          contactAngle = smRoadContactAngle(
+            this.side.copy(p.normal).applyQuaternion(this.bodyInverse),
+            front,
+            steer,
+          );
+        }
+        // Wrapped rotation also aligns the first contact in a legacy replay.
+        let phase = Number.isFinite(rotation)
+          ? mod(((rotation - contactAngle) * repeats) / TAU, 1)
+          : 0;
         if (old) {
           const dt = time - old.time,
             distance = Math.hypot(p.position.x - old.x, p.position.z - old.z);
@@ -248,15 +286,15 @@ export class MxTyreTraces {
               turns !== undefined && old.turns !== undefined
                 ? turns - old.turns + (rotation - old.rotation) / TAU
                 : (0.5 * (omega + old.omega) * dt) / TAU;
-            const spin = revolutions * MX_TREAD_PAIRS;
-            const roadTyre = def.tireFamily === 'supermoto';
-            const slip = roadTyre
-              ? 1
-              : clamp(
-                  Math.max(Math.abs(frame[w + W.SLIP]) * 1.7, Math.abs(frame[w + W.ANGLE]) * 1.9),
-                  0,
-                  1,
-                );
+            const contactShift = roadTyre
+              ? mod(contactAngle - old.contactAngle + Math.PI, TAU) - Math.PI
+              : 0;
+            const spin = (revolutions - contactShift / TAU) * repeats;
+            const slip = clamp(
+              Math.max(Math.abs(frame[w + W.SLIP]) * 1.7, Math.abs(frame[w + W.ANGLE]) * 1.9),
+              0,
+              1,
+            );
             const strength =
               clamp(0.23 + load / 1350 + frame[o + OFFROAD_BASE + O.MOISTURE] * 0.28, 0.23, 0.93) *
               (roadTyre ? 0.55 : 1);
@@ -280,7 +318,7 @@ export class MxTyreTraces {
               page[off + 10] = old.phase + spin * b;
               page[off + 11] = strength;
               page[off + 12] = slip;
-              page[off + 13] = front ? 1 : 0;
+              page[off + 13] = pattern;
               this.end++;
               this.first = Math.max(this.first, this.end - ARCHIVE);
             }
@@ -303,6 +341,7 @@ export class MxTyreTraces {
         next.phase = phase;
         next.omega = omega;
         next.rotation = rotation;
+        next.contactAngle = contactAngle;
         next.turns = turns;
         this.previous[slot] = next;
       }

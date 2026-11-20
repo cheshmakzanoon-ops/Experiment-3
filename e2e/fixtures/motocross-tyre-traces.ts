@@ -1,6 +1,15 @@
 import * as T from 'three';
 import { DEFAULT_OPTIONS } from '../../src/simulation/config.ts';
-import { CAR_STRIDE, F, H, HEADER, carBase } from '../../src/simulation/protocol.ts';
+import {
+  CAR_STRIDE,
+  F,
+  H,
+  HEADER,
+  W,
+  WHEEL_BASE,
+  WHEEL_STRIDE,
+  carBase,
+} from '../../src/simulation/protocol.ts';
 import { Simulation } from '../../src/simulation/world.ts';
 import { trackPoint } from '../../src/simulation/track.ts';
 import { disposeTextureLoaders } from '../../src/rendering/assets/texture-loader.ts';
@@ -10,18 +19,34 @@ import { MxTyreTraces } from '../../src/rendering/offroad/mx-tyre-traces.ts';
 import { Roost } from '../../src/rendering/offroad/roost.ts';
 import { TerrainView } from '../../src/rendering/offroad/terrain-view.ts';
 
+function changedPixels(a: Uint8Array, b: Uint8Array) {
+  let changed = 0;
+  for (let i = 0; i < a.length; i += 4)
+    if (
+      Math.max(
+        Math.abs(a[i] - b[i]),
+        Math.abs(a[i + 1] - b[i + 1]),
+        Math.abs(a[i + 2] - b[i + 2]),
+      ) >= 3
+    )
+      changed++;
+  return changed;
+}
+
 /** A loaded production motorcycle starts and rides on its real terrain. Use a
  * fixed camera over the travelled strip so a rewind can be compared pixel for
  * pixel with the same photographed soil before the wheel went over it. */
-export async function captureMxTyrePassage(circuit: 'valley-ridge-mx' | 'arena-nord-sx') {
-  const machine = circuit === 'arena-nord-sx' ? 'mx250' : 'mx450';
+export async function captureMxTyrePassage(
+  circuit: 'valley-ridge-mx' | 'arena-nord-sx',
+  machine: 'sm450' | 'mx250' | 'mx450',
+) {
   const sim = new Simulation({
     ...DEFAULT_OPTIONS,
     circuit,
     opponents: 0,
     laps: 1,
     mode: 'race',
-    ruleset: 'motocross-moto',
+    ruleset: machine === 'sm450' ? 'supermoto-moto' : 'motocross-moto',
     vehicles: [machine],
   });
   sim.autoPlayer = true;
@@ -48,6 +73,9 @@ export async function captureMxTyrePassage(circuit: 'valley-ridge-mx' | 'arena-n
     new T.HemisphereLight(0xcddbe3, 0x665544, 1.8),
   );
   const frame = new Float32Array(HEADER + CAR_STRIDE * sim.cars.length);
+  const sliding = machine === 'sm450' ? new MxTyreTraces(sim.track) : null;
+  const slideFrame = sliding ? new Float32Array(frame.length) : null;
+  if (sliding) scene.add(sliding.mesh);
   try {
     materials.prepare(renderer);
     scannedGround.attach(renderer, 'high');
@@ -59,6 +87,14 @@ export async function captureMxTyrePassage(circuit: 'valley-ridge-mx' | 'arena-n
       if (i % 120 === 0)
         view.record(sim.offroad!.terrain.renderDelta(i === 0), frame[H.TIME], true);
       marks.record(frame, roost);
+      if (sliding && slideFrame) {
+        // Identical measured wheel path, load and winding. Change only the slip
+        // channel to see whether swept grooves disappear in a saturated slide.
+        slideFrame.set(frame);
+        const wheel = carBase(0) + WHEEL_BASE;
+        slideFrame[wheel + W.SLIP] = slideFrame[wheel + 2 * WHEEL_STRIDE + W.SLIP] = 1;
+        sliding.record(slideFrame, roost);
+      }
     }
     const time = frame[H.TIME];
     const o = carBase(0),
@@ -73,8 +109,10 @@ export async function captureMxTyrePassage(circuit: 'valley-ridge-mx' | 'arena-n
     camera.lookAt(target);
     key.position.add(target);
     key.target.position.copy(target);
-    const capture = (at: number) => {
-      marks.show(at, view);
+    const capture = (at: number, trail = marks) => {
+      marks.mesh.visible = trail === marks;
+      if (sliding) sliding.mesh.visible = trail === sliding;
+      trail.show(at, view);
       renderer.render(scene, camera);
       const gl = renderer.getContext(),
         pixels = new Uint8Array(width * height * 4);
@@ -93,22 +131,24 @@ export async function captureMxTyrePassage(circuit: 'valley-ridge-mx' | 'arena-n
       after = capture(time),
       rewind = capture(-1),
       restored = capture(time);
-    let changed = 0;
-    for (let i = 0; i < after.pixels.length; i += 4)
-      if (
-        Math.max(
-          Math.abs(before.pixels[i] - after.pixels[i]),
-          Math.abs(before.pixels[i + 1] - after.pixels[i + 1]),
-          Math.abs(before.pixels[i + 2] - after.pixels[i + 2]),
-        ) >= 3
-      )
-        changed++;
+    const slide = sliding && capture(time, sliding);
     return {
       circuit,
       machine,
       time,
       segments: marks.recordedSegments,
-      changed,
+      changed: changedPixels(before.pixels, after.pixels),
+      byteExactRewind: before.pixels.every((value, i) => value === rewind.pixels[i]),
+      byteExactRestore: after.pixels.every((value, i) => value === restored.pixels[i]),
+      saturatedSlipControl:
+        slide && sliding
+          ? {
+              changed: changedPixels(after.pixels, slide.pixels),
+              segments: sliding.recordedSegments,
+              calls: slide.calls,
+              error: slide.glError,
+            }
+          : null,
       width,
       height,
       calls: [before.calls, after.calls],
@@ -118,6 +158,7 @@ export async function captureMxTyrePassage(circuit: 'valley-ridge-mx' | 'arena-n
       after: after.image,
     };
   } finally {
+    sliding?.dispose();
     marks.dispose();
     roost.dispose();
     view.dispose();
