@@ -11,6 +11,9 @@ on:
       - 'src/rendering/webgl-renderer.ts'
       - 'src/rendering/menu-preview.ts'
       - 'src/rendering/gp-*'
+      - 'src/rendering/road-bike-*'
+      - 'src/rendering/road-wheel-exposure.ts'
+      - 'src/rendering/mirrors.ts'
       - 'src/rendering/venue-kit/gp-*'
       - 'src/rendering/venue-kit/barriers.ts'
       - 'src/rendering/venue-kit/structures.ts'
@@ -43,6 +46,9 @@ on:
       - 'e2e/gpu-context-reuse.spec.ts'
       - 'e2e/fixtures/webgl-renderer-reuse.ts'
       - 'tests/gp-*'
+      - 'tests/road-bike-host.test.ts'
+      - 'tests/road-motorcycle-art.test.ts'
+      - 'tests/road-wheel-exposure.test.ts'
       - 'tests/preparation.test.ts'
       - 'tests/bike*'
       - 'tests/replay-*'
@@ -142,6 +148,11 @@ jobs:
           tests/gp-safety-padding.test.ts
           tests/gp-fork-crown.test.ts tests/bike-cockpit-view.test.ts
           tests/gp-front-contact-steering.test.ts
+          tests/gp-steering-inverse.test.ts tests/gp-input-cadence.test.ts
+          tests/gp-contact-effects.test.ts tests/gp-pit-boards.test.ts
+          tests/gp-rider-posture.test.ts tests/gp-rider-spine.test.ts
+          tests/road-bike-host.test.ts tests/road-motorcycle-art.test.ts
+          tests/road-wheel-exposure.test.ts tests/mirrors.test.ts
           tests/gp-chain-integrity.test.ts tests/bike-bodies.test.ts
           tests/gp-drive-traction.test.ts tests/gp-rear-pedal.test.ts
           tests/gp-engine-braking.test.ts tests/gp-seamless-braking.test.ts
