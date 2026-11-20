@@ -479,7 +479,7 @@ export function buildClosedCabin(input: {
   addInstruments(detailParts, layout, display, detail, dash.rear, dash.top);
   const steering = buildSteering(layout, wheelDetail, display);
   input.lod.group.add(steering);
-  const arms = new DriverArms(anchors, steering, mats);
+  const arms = new DriverArms(anchors, steering, mats, input.def.classId === 'road');
   input.lod.group.add(arms.group);
   // Centre furniture.
   const consoleTop = layout.seat[1] + 0.05;

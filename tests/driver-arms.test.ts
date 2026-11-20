@@ -49,38 +49,90 @@ describe('driver arms follow the steering wheel', () => {
     }
   });
 
-  it.each(MACHINES)('%s: the gloves move with the wheel, up to the travel limit', (id) => {
-    const { cabin, rig, column } = arms(id);
-    const at = (turn: number) => {
-      cabin.steering.rotation.z = turn;
-      rig.update(turn);
-      return rig.gloves();
-    };
-    const rest = at(0),
-      quarter = at(0.5),
-      wide = at(HAND_TRAVEL),
-      beyond = at(HAND_TRAVEL + 3),
-      back = at(-0.5);
-    rest.forEach((glove, i) => {
-      // A half-radian of steering moves each hand by a clear fraction of the radius.
-      expect(glove.distanceTo(quarter[i]), `${id} +0.5`).toBeGreaterThan(
-        cabin.layout.wheel.radius * 0.35,
-      );
-      expect(glove.distanceTo(back[i]), `${id} -0.5`).toBeGreaterThan(
-        cabin.layout.wheel.radius * 0.35,
-      );
-      // Past the travel limit the hand holds its place and the rim slides through it.
-      expect(wide[i].distanceTo(beyond[i]), `${id} hold`).toBeLessThan(1e-6);
-    });
-    // Rest pose is exactly where the former static arms put the hands, on the rim.
-    column.updateMatrix();
-    rest.forEach((glove, i) => {
-      const local = glove.clone().applyMatrix4(column.matrix.clone().invert());
-      expect(Math.abs(Math.atan2(local.y, local.x)), `${id} rest ${i}`).toSatisfy(
-        (a: number) => a < 0.35 || Math.abs(a - Math.PI) < 0.35,
-      );
-    });
-  });
+  it.each(MACHINES.filter((id) => id !== 'eh3'))(
+    '%s: the gloves move with the wheel, up to the travel limit',
+    (id) => {
+      const { cabin, rig, column } = arms(id);
+      const at = (turn: number) => {
+        cabin.steering.rotation.z = turn;
+        rig.update(turn);
+        return rig.gloves();
+      };
+      const rest = at(0),
+        quarter = at(0.5),
+        wide = at(HAND_TRAVEL),
+        beyond = at(HAND_TRAVEL + 3),
+        back = at(-0.5);
+      rest.forEach((glove, i) => {
+        // A half-radian of steering moves each hand by a clear fraction of the radius.
+        expect(glove.distanceTo(quarter[i]), `${id} +0.5`).toBeGreaterThan(
+          cabin.layout.wheel.radius * 0.35,
+        );
+        expect(glove.distanceTo(back[i]), `${id} -0.5`).toBeGreaterThan(
+          cabin.layout.wheel.radius * 0.35,
+        );
+        // Past the travel limit the hand holds its place and the rim slides through it.
+        expect(wide[i].distanceTo(beyond[i]), `${id} hold`).toBeLessThan(1e-6);
+      });
+      // Rest pose is exactly where the former static arms put the hands, on the rim.
+      column.updateMatrix();
+      rest.forEach((glove, i) => {
+        const local = glove.clone().applyMatrix4(column.matrix.clone().invert());
+        expect(Math.abs(Math.atan2(local.y, local.x)), `${id} rest ${i}`).toSatisfy(
+          (a: number) => a < 0.35 || Math.abs(a - Math.PI) < 0.35,
+        );
+      });
+    },
+  );
+
+  it.each(['eh3', 'rh3', 'rd2', 'rp6'])(
+    '%s: road hands alternate rim contact, including retracing a replay seek',
+    (id) => {
+      const { rig, column, cabin } = arms(id);
+      column.updateMatrix();
+      const inverse = column.matrix.clone().invert();
+      const pose = (turn: number) => {
+        rig.update(turn);
+        return rig.gloves().map((p) => p.applyMatrix4(inverse));
+      };
+      const grip = pose(0);
+      const gloves = rig.group.children.filter((n) => n.name === 'Glove') as T.Mesh[];
+      expect(gloves).toHaveLength(2);
+      for (const glove of gloves) {
+        expect(glove.geometry.getAttribute('color').count).toBeGreaterThan(1000);
+        expect(glove.geometry.groups).toHaveLength(0);
+      }
+      for (const sign of [-1, 1]) {
+        let prior = grip,
+          swaps = 0,
+          lastSliding = -1;
+        for (let i = 1; i <= 360; i++) {
+          const step = sign * 0.02,
+            angle = i * step,
+            now = pose(angle);
+          const delta = now.map((v, j) =>
+            Math.atan2(prior[j].x * v.y - prior[j].y * v.x, prior[j].x * v.x + prior[j].y * v.y),
+          );
+          // One hand remains locked to the material point on the rim during each exchange.
+          expect(Math.min(...delta.map((a) => Math.abs(a - step)))).toBeLessThan(0.001);
+          now.forEach((v, j) => {
+            expect(v.distanceTo(prior[j])).toBeLessThan(cabin.layout.wheel.radius * 0.075);
+            expect(Math.hypot(v.x, v.y)).toBeCloseTo(cabin.layout.wheel.radius, 1);
+          });
+          const sliding = delta.findIndex((a) => Math.abs(a - step) > 0.025);
+          if (sliding >= 0 && sliding !== lastSliding) {
+            swaps++;
+            lastSliding = sliding;
+          }
+          prior = now;
+        }
+        expect(swaps).toBeGreaterThan(6);
+      }
+      const sought = pose(3.2);
+      pose(-2.9);
+      pose(3.2).forEach((p, i) => expect(p.distanceTo(sought[i])).toBeLessThan(1e-9));
+    },
+  );
 
   it('keeps the arm and glove meshes finite while the wheel is thrown through its range', () => {
     const { cabin, rig } = arms('eh3');

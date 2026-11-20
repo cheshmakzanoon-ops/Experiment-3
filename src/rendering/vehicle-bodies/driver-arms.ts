@@ -1,27 +1,21 @@
 import * as T from 'three';
 import type { CarMaterials, DriverArmAnchor } from './common.ts';
+import { drivingGloveMaterial, steeringGlove } from './steering-glove.ts';
 import { sharedMaterials } from './materials.ts';
 
-/** Animated arms for the catalogue drivers (cars, single-seaters, karts, buggies).
- *
- * The driver torso, helmet and legs are merged static geometry, but the steering
- * wheel turns with the recorded steering (`BuiltCabin.steering`, up to ~2.3 turns
- * lock to lock on a road car). Static arms ended at 3 and 9 o'clock while the rim
- * rotated away from them, so the hands left the wheel whenever the player steered.
- *
- * Each arm is two cylinders and three spheres posed every frame by a two-bone
- * solve from the fixed shoulder to a glove that stays on the rim. The glove
- * follows the wheel's rotation up to `HAND_TRAVEL` radians either way, then holds
- * that point and lets the rim slide through it (a driver feeds the wheel rather
- * than winding up his wrists). Bone lengths come from the old static arm, so the
- * rest pose matches the previous look; the pole direction (elbows down and out)
- * is also the rest elbow's. */
+/** Two-bone driver arms share the steering wheel's presented angle, including
+ * replay seeks. Road-car hands alternate a pull and a regrip at parking lock.
+ * Short-throw cockpits retain their bounded rim travel. */
 export const HAND_TRAVEL = (60 * Math.PI) / 180;
 /** Bone length margin over the rest pose so the glove can travel along the rim. */
 const REACH = 1.12;
+const REGRIP_START = 0.63;
+const REGRIP_SPAN = 0.78;
+const COLUMN_AXIS = new T.Vector3(0, 0, 1);
 const UP = new T.Vector3(0, 1, 0);
 
 interface Arm {
+  side: -1 | 1;
   shoulder: T.Vector3;
   pole: T.Vector3;
   upper: number;
@@ -40,6 +34,7 @@ interface Arm {
 export class DriverArms {
   readonly group = new T.Group();
   private readonly arms: Arm[] = [];
+  private readonly wrist = new T.Quaternion();
   private readonly elbow = new T.Vector3();
   private readonly hand = new T.Vector3();
   private readonly direction = new T.Vector3();
@@ -50,9 +45,15 @@ export class DriverArms {
     anchors: readonly DriverArmAnchor[],
     private readonly column: T.Group,
     mats: CarMaterials,
+    private readonly roadGrip = false,
   ) {
     this.group.name = 'Driver arms (follow the steering wheel)';
-    const tube = new T.CylinderGeometry(1, 1, 1, 10, 1),
+    const tube = new T.CylinderGeometry(
+        roadGrip ? 0.88 : 1,
+        roadGrip ? 1.08 : 1,
+        1,
+        roadGrip ? 14 : 10,
+      ),
       ball = new T.SphereGeometry(1, 10, 8);
     column.updateMatrix();
     const inverse = column.matrix.clone().invert();
@@ -71,6 +72,7 @@ export class DriverArms {
         return mesh;
       };
       this.arms.push({
+        side: a.side,
         shoulder: a.shoulder.clone(),
         pole,
         upper,
@@ -81,7 +83,9 @@ export class DriverArms {
         upperMesh: make(tube, mats.suit, 'Upper arm'),
         foreMesh: make(tube, mats.suit, 'Forearm'),
         elbowMesh: make(ball, mats.suit, 'Elbow'),
-        gloveMesh: make(ball, sharedMaterials.trim(), 'Glove'),
+        gloveMesh: roadGrip
+          ? make(steeringGlove(a.side), drivingGloveMaterial, 'Glove')
+          : make(ball, sharedMaterials.trim(), 'Glove'),
         thickness: a.radius,
       });
     }
@@ -92,12 +96,39 @@ export class DriverArms {
     const turn = Math.max(-HAND_TRAVEL, Math.min(HAND_TRAVEL, wheel));
     this.column.updateMatrix();
     for (const arm of this.arms) {
-      const angle = arm.angle + turn;
+      let travel = turn,
+        release = 0;
+      if (this.roadGrip) {
+        const sign = Math.sign(wheel);
+        const magnitude = Math.abs(wheel);
+        // The descending hand feeds first. Bands alternate, so one hand
+        // always carries wheel torque while its partner slides round the rim.
+        const start = REGRIP_START + (arm.side === sign ? REGRIP_SPAN : 0);
+        travel = wheel;
+        if (magnitude > start) {
+          const cycles = (magnitude - start) / (2 * REGRIP_SPAN);
+          const laps = Math.floor(cycles);
+          const t = Math.min(1, (cycles - laps) * 2);
+          const ease = t * t * t * (t * (6 * t - 15) + 10);
+          travel = sign * (magnitude - 2 * REGRIP_SPAN * (laps + ease));
+          release = 16 * t * t * (1 - t) * (1 - t);
+        }
+      }
+      const angle = arm.angle + travel;
+      const radius = arm.radius + release * arm.thickness * 0.14;
       this.hand
-        .set(Math.cos(angle) * arm.radius, Math.sin(angle) * arm.radius, arm.z)
+        .set(
+          Math.cos(angle) * radius,
+          Math.sin(angle) * radius,
+          arm.z - release * arm.thickness * 0.22,
+        )
         .applyMatrix4(this.column.matrix);
       this.solve(arm);
       arm.gloveMesh.position.copy(this.hand);
+      if (this.roadGrip) {
+        this.wrist.setFromAxisAngle(COLUMN_AXIS, angle);
+        arm.gloveMesh.quaternion.copy(this.column.quaternion).multiply(this.wrist);
+      }
       arm.gloveMesh.scale.setScalar(arm.thickness);
       arm.elbowMesh.position.copy(this.elbow);
       arm.elbowMesh.scale.setScalar(arm.thickness * 1.02);
