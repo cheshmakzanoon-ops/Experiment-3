@@ -107,7 +107,7 @@ Object.assign(window, {
       if (!session) throw new Error('Session is not loaded');
       if (!session.isPaused) session.action('pause');
       const renderer = (session as unknown as { renderer: FestivalRenderer }).renderer;
-      renderer.setPhoto(true);
+      renderer.setPhoto(true, 'world');
       const orbit = (renderer as unknown as { orbit: OrbitControls }).orbit;
       orbit.enableDamping = false;
       orbit.maxDistance = 20000;

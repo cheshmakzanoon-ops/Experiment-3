@@ -227,6 +227,26 @@ describe('festival carved-ground presentation queries', () => {
     expect(sampledGround).toHaveBeenCalledExactlyOnceWith(x, z, frame[carBase(0) + F.Y]);
     expect(camera.position.y).toBeCloseTo(originalEyeHeight, 6);
     expect(sampledGround.mock.results[0].value).toBeCloseTo(layer, 5);
+
+    // Physics can advance after the last paint but before pause takes
+    // effect. Preserve the chosen framing when that snapshot is presented.
+    const moved = frame.slice();
+    const o = carBase(0);
+    moved[o + F.X] += 12;
+    moved[o + F.Z] -= 7;
+    const eye = camera.position.clone();
+    const draw = (f: Float32Array) =>
+      FestivalRenderer.prototype.draw.call(fixture as unknown as FestivalRenderer, f, f, 1, 1 / 60);
+    expect(() => draw(moved)).toThrow(stop);
+    expect(fixture.orbit.target.x).toBe(moved[o + F.X]);
+    expect(fixture.orbit.target.z).toBe(moved[o + F.Z]);
+    expect(camera.position.x - eye.x).toBeCloseTo(12);
+    expect(camera.position.z - eye.z).toBeCloseTo(-7);
+
+    FestivalRenderer.prototype.setPhoto.call(fixture as unknown as FestivalRenderer, true, 'world');
+    const landmark = fixture.orbit.target.clone();
+    expect(() => draw(frame)).toThrow(stop);
+    expect(fixture.orbit.target.toArray()).toEqual(landmark.toArray());
   });
 
   it('rejects a distant height-matching road endpoint above the actual carved ground', () => {

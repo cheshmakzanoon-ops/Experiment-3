@@ -165,6 +165,7 @@ export class FestivalRenderer {
   private reflectedVehicleVersion = -1;
   private readonly events: ReadonlyMap<string, FestivalEvent>;
   private readonly orbit: OrbitControls;
+  private photoAnchor: 'car' | 'world' = 'car';
   photo = false;
   readonly audioView = new AudioViewTracker();
   readonly presented = new PresentedFrame();
@@ -540,9 +541,10 @@ export class FestivalRenderer {
     this.imagePipeline.reset();
   }
   /** Pause is owned by FestivalSession. This only changes the presentation. */
-  setPhoto(active: boolean) {
+  setPhoto(active: boolean, anchor: 'car' | 'world' = 'car') {
     if (active !== this.photo) this.imagePipeline.reset();
     this.photo = active;
+    this.photoAnchor = anchor;
     this.orbit.enabled = active;
     if (active) {
       this.orbit.target.copy(this.target).add(new T.Vector3(0, 0.6, 0));
@@ -664,6 +666,18 @@ export class FestivalRenderer {
     this.driftCue = driftFeedback(localLateral, localForward, grounded);
 
     if (this.photo) {
+      // The pause acknowledgement can arrive one or more snapshots after
+      // the last painted car. Carry the eye and pivot over that same delta
+      // before applying orbit input to keep the car framed at any draw rate.
+      if (
+        this.photoAnchor === 'car' &&
+        Number.isFinite(this.lastSubject.x) &&
+        !this.target.equals(this.lastSubject)
+      ) {
+        this.camera.position.sub(this.lastSubject).add(this.target);
+        this.orbit.target.copy(this.target);
+        this.orbit.target.y += 0.6;
+      }
       this.orbit.update();
       // This orbit stays attached to the subject. Raising the camera under
       // a bridge must not switch its clearance surface to the upper deck.

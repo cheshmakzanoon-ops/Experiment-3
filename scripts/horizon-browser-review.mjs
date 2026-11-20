@@ -201,12 +201,18 @@ try {
   phase = 'photo';
   await page.locator('[data-fest="photo"]').click();
   await page.locator('#festPhoto').waitFor({ state: 'visible' });
+  await draw();
   const photoStart = await state();
   await page.locator('[data-fest="photoRight"]').click();
   await page.locator('[data-fest="photoRight"]').click();
   await capture('journey-photo');
   const photoEnd = await state();
   assert.equal(photoEnd.paused, true);
+  const bearing = ({ position, player }) =>
+    Math.atan2(position[0] - player.x, position[2] - player.z);
+  const turn = bearing(photoEnd) - bearing(photoStart);
+  const orbitDegrees = (Math.atan2(Math.sin(turn), Math.cos(turn)) * 180) / Math.PI;
+  assert(Math.abs(orbitDegrees - 45) < 1, 'Two orbit steps must sweep 45° around the paused car.');
   assert(
     Math.hypot(...photoEnd.position.map((value, index) => value - photoStart.position[index])) > 1,
   );
@@ -216,6 +222,7 @@ try {
     () => !window.horizonReview.state().paused && !window.horizonReview.state().photo,
   );
   pass('paused photo orbit and Escape return', {
+    orbitDegrees,
     cameraTravelM: Math.hypot(
       ...photoEnd.position.map((value, index) => value - photoStart.position[index]),
     ),
