@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44735932245
-- commit: `7c88d0feb6` · Match each road motorcycle’s tyre sections, drainage and sidewall motion to its recorded wheels
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44744091768
+- commit: `0d03b092dc` · Bound Festival street geometry and rolling traffic wheels by visible detail
 - event: push · status: completed · conclusion: **success**
-- started: 2026-11-20T12:27:29Z · updated: 2026-11-20T14:33:55Z
+- started: 2026-11-20T13:24:50Z · updated: 2026-11-20T15:40:40Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
+| browser (day) | success | 7 |  |
+| browser (sunset) | success | 7 |  |
 | browser (night) | success | 7 |  |
-| browser (day) | success | 5 |  |
-| browser (sunset) | success | 5 |  |
