@@ -27,6 +27,8 @@ import {
   festivalSurfaceContext,
   installFestivalRoadSurface,
 } from './festival-road-surface.ts';
+import { townFootways, footwayHeight } from '../../simulation/open-world/town-footways.ts';
+import { addTownFootway, pavingMaterial } from './festival-footway.ts';
 import { festivalBridgePier, festivalBridgeSection } from './festival-bridges.ts';
 import { buildFestivalGuardrails } from './festival-guardrails.ts';
 import { buildFestivalCircuitCues } from './festival-circuit-cues.ts';
@@ -120,51 +122,6 @@ type Layer =
   | 'rail'
   | 'concrete'
   | 'post';
-
-/** Flush stone shoulders retain the existing physical cross-fall. The narrow
- * dark drainage strip and staggered joints give town streets human scale
- * without introducing a raised, non-colliding kerb into the driving surface. */
-function pavingMaterial(wet: { value: number }) {
-  const material = new T.MeshStandardMaterial({ color: 0xffffff, roughness: 0.87 });
-  material.name = 'Port Ilse cut-stone footways';
-  (material as unknown as { defines: Record<string, string> }).defines = { USE_UV: '' };
-  material.polygonOffset = true;
-  material.polygonOffsetFactor = -1;
-  material.polygonOffsetUnits = -2;
-  material.onBeforeCompile = (shader) => {
-    shader.uniforms.owPavingWet = wet;
-    shader.fragmentShader = shader.fragmentShader
-      .replace(
-        '#include <common>',
-        `#include <common>\nuniform float owPavingWet;\n${OW_NOISE_GLSL}\nfloat owPavingJoint;`,
-      )
-      .replace(
-        '#include <color_fragment>',
-        `#include <color_fragment>
-{
-  vec2 p = vec2(abs(vUv.x) - 4.6, vUv.y);
-  float row = floor(p.y / 0.72);
-  vec2 cell = vec2(p.x / 0.48 + mod(row, 2.0) * 0.5, p.y / 0.72);
-  vec2 f = fract(cell), aa = max(fwidth(cell), vec2(0.001));
-  vec2 seam = smoothstep(vec2(0.012), vec2(0.012) + aa, min(f, 1.0 - f));
-  owPavingJoint = 1.0 - seam.x * seam.y;
-  float stone = owHash(floor(cell));
-  vec3 color = mix(vec3(0.23, 0.225, 0.205), vec3(0.36, 0.345, 0.31), stone);
-  color *= 0.94 + 0.1 * owNoise(p * 18.0);
-  color = mix(color, vec3(0.09, 0.095, 0.09), owPavingJoint * 0.67);
-  float gutter = 1.0 - smoothstep(0.14, 0.24, p.x);
-  color = mix(color, vec3(0.115, 0.125, 0.13), gutter * 0.7);
-  diffuseColor.rgb = color * (1.0 - owPavingWet * 0.27);
-}`,
-      )
-      .replace(
-        '#include <roughnessmap_fragment>',
-        `#include <roughnessmap_fragment>\nroughnessFactor = mix(0.87, 0.38, owPavingWet) + owPavingJoint * 0.08;`,
-      );
-  };
-  material.customProgramCacheKey = () => 'solvane-paving-v1';
-  return material;
-}
 
 /** Cross-section metadata lives on the existing batches, independently of
  * the road-metre UVs. Paint and shoulders therefore keep metre-scale wear
@@ -488,6 +445,7 @@ export class RoadMeshes {
     };
     const p = roadPoint(),
       q = roadPoint();
+    const footways = townFootways(net);
     const lamps: T.Matrix4[] = [];
     for (const e of net.edges) {
       const spec = e.spec,
@@ -540,6 +498,20 @@ export class RoadMeshes {
                 : 'verge';
           const vb = builder(mx, mz, shoulderLayer);
           for (const side of [-1, 1]) {
+            if (shoulderLayer === 'paving') {
+              addTownFootway(
+                vb,
+                e,
+                p,
+                q,
+                side,
+                height(p, side * hw),
+                height(q, side * hw),
+                footways.strength(e, i, 0, side),
+                footways.strength(e, i, 1, side),
+              );
+              continue;
+            }
             const edge = (pt: TrackPoint, v: number) => {
               const profile =
                 shoulderLayer === layer && spec.surface === 'asphalt'
@@ -867,15 +839,21 @@ export class RoadMeshes {
   private townLamps(e: RoadEdge, lamps: T.Matrix4[]) {
     const net = this.network,
       p = roadPoint();
+    const footways = townFootways(net);
+    let segment = e.first;
     for (let s = 12; s < e.length - 12; s += 32) {
       if (this.inJunction(e, s)) continue;
       net.at(e.offset + s, p);
       const side = Math.floor(s / 32) % 2 === 0 ? 1 : -1,
         l = side * (e.spec.halfWidth + e.spec.shoulder - 0.4);
+      while (segment < e.last - 1 && net.s[segment + 1] <= p.s) segment++;
+      const t = (p.s - net.s[segment]) / (net.s[segment + 1] - net.s[segment]);
       const m = new T.Matrix4().compose(
         new T.Vector3(
           p.x + p.nx * l,
-          net.surfaceHeight(p, side * e.spec.halfWidth, e.spec.halfWidth, e.spec.crown) - 0.1,
+          net.surfaceHeight(p, side * e.spec.halfWidth, e.spec.halfWidth, e.spec.crown) +
+            footwayHeight(e.spec.shoulder - 0.4, footways.strength(e, segment, t, side)) -
+            0.012,
           p.z + p.nz * l,
         ),
         // The arm reaches over the road (local +x toward the centreline).

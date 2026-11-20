@@ -8,6 +8,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { AudioViewTracker } from '../../audio/spatial.ts';
 import { clamp } from '../../core/math.ts';
 import type { FestivalEvent } from '../../simulation/open-world/festival-events.ts';
+import { footwayHeight, townFootways } from '../../simulation/open-world/town-footways.ts';
 import { carvedGroundHeight } from '../../simulation/open-world/ground-height.ts';
 import type { Structure } from '../../simulation/open-world/placement.ts';
 import type { OpenWorld } from '../../simulation/open-world/world.ts';
@@ -381,8 +382,15 @@ export class FestivalRenderer {
       layered = y !== undefined && Number.isFinite(y);
     // A height-matching segment can end far ahead of this point. Its
     // lateral offset alone does not establish a road footprint here.
-    if (net.lastLayerMatch && Math.abs(l) < reach && (!layered || net.lastDistance < reach))
-      return net.surfaceHeight(p, l, e.spec.halfWidth, e.spec.crown);
+    if (net.lastLayerMatch && Math.abs(l) < reach && (!layered || net.lastDistance < reach)) {
+      const base = net.surfaceHeight(p, l, e.spec.halfWidth, e.spec.crown);
+      const d = net.lastDistance - e.spec.halfWidth;
+      if (e.roadClass === 'town' && d > 0) {
+        const strength = townFootways(net).strength(e, net.lastSegment, net.lastT, l);
+        return base + footwayHeight(d, strength);
+      }
+      return base;
+    }
     return carvedGroundHeight(this.world.carver, x, z);
   }
   /** Load the photographic trees and shrubs (not on LOW); call before the

@@ -1,4 +1,6 @@
 import { clamp, Vec3 } from '../../core/math.ts';
+import { rayHit } from '../bvh.ts';
+import { FootwayContact } from './footway-contact.ts';
 import { AUREL, STANDARD_PIT, type CircuitDefinition } from '../circuits.ts';
 import type { WeatherPreset } from '../config.ts';
 import { SURFACE, trackPoint, type SurfaceSample, type Track, type TrackPoint } from '../track.ts';
@@ -21,6 +23,14 @@ import {
 import { MAX_ROAD_CANDIDATES, ROAD_FLAG, roadBarrierFace, roadCandidates } from './road-network.ts';
 import { festivalMarkings, type FestivalMarkings } from './festival-markings.ts';
 import { smoothstep } from './noise.ts';
+import {
+  footwayBand,
+  footwayHeight,
+  footwayRise,
+  footwaySlope,
+  townFootways,
+  type TownFootways,
+} from './town-footways.ts';
 import { TILE_STEP } from './terrain-tiles.ts';
 import { BIOME, type Biome } from './terrain-field.ts';
 import type { TerrainTileCache } from './terrain-tiles.ts';
@@ -181,6 +191,9 @@ export class OpenWorldTrack {
   private lastLayer = true;
   private readonly point = trackPoint();
   private readonly markings: FestivalMarkings;
+  private readonly footways: TownFootways;
+  private readonly footwayContact: FootwayContact;
+  private readonly treadHit = rayHit();
   private readonly candidatePoint = trackPoint();
   private readonly candidates = roadCandidates();
   private readonly order = new Int32Array(MAX_ROAD_CANDIDATES);
@@ -213,6 +226,8 @@ export class OpenWorldTrack {
   ) {
     this.network = world.network;
     this.markings = festivalMarkings(this.network);
+    this.footways = townFootways(this.network);
+    this.footwayContact = new FootwayContact(this.network);
     this.field = world.field;
     this.tiles = world.tileCache(tileBudget);
     this.length = world.network.totalStation;
@@ -318,6 +333,7 @@ export class OpenWorldTrack {
       spec = e.spec,
       a = Math.abs(lateral),
       hw = spec.halfWidth;
+    if (Math.max(a, distance) > hw && e.roadClass === 'town') return WORLD_SURFACE.PAVEMENT;
     if (Math.max(a, distance) > hw)
       return spec.surface === 'dirt' || e.roadClass !== 'highway'
         ? WORLD_SURFACE.SHOULDER
@@ -335,7 +351,8 @@ export class OpenWorldTrack {
     const net = this.network,
       c = this.candidates,
       p = net.pointOnSegment(c.segment[k], c.t[k], this.candidatePoint),
-      spec = net.edges[net.edgeOf[c.segment[k]]].spec,
+      edge = net.edges[net.edgeOf[c.segment[k]]],
+      spec = edge.spec,
       hw = spec.halfWidth,
       shoulder = Math.max(0.05, spec.shoulder),
       lateral = (x - p.x) * p.nx + (z - p.z) * p.nz,
@@ -353,7 +370,23 @@ export class OpenWorldTrack {
     this.roadH = base;
     this.roadGx = bx;
     this.roadGz = bz;
-    if (d > hw) {
+    if (d > hw && edge.roadClass === 'town') {
+      const i = c.segment[k],
+        t = c.t[k];
+      const from = this.footways.strength(edge, i, 0, lateral);
+      const to = this.footways.strength(edge, i, 1, lateral);
+      const strength = from + (to - from) * t;
+      const out = Math.min(d - hw, shoulder),
+        band = footwayBand(out);
+      this.roadH += footwayHeight(out, strength, band);
+      if (d - hw < shoulder) {
+        const cross = footwaySlope(band, strength);
+        const rise = footwayRise(out, band);
+        const along = (rise * (to - from)) / (net.s[i + 1] - net.s[i]);
+        this.roadGx += cross * c.rx[k] + along * p.tx;
+        this.roadGz += cross * c.rz[k] + along * p.tz;
+      }
+    } else if (d > hw) {
       const f = Math.min(1, (d - hw) / shoulder);
       this.roadH -= 0.005 + fall * f;
       if (f < 1) {
@@ -378,9 +411,12 @@ export class OpenWorldTrack {
    * footprint edge, 1 on its carriageway; a bridge deck is all or nothing). */
   private fade(k: number) {
     const c = this.candidates,
-      spec = this.network.edges[this.network.edgeOf[c.segment[k]]].spec,
+      edge = this.network.edges[this.network.edgeOf[c.segment[k]]],
+      spec = edge.spec,
       margin = spec.halfWidth + spec.shoulder - c.distance[k];
-    return c.bridge[k] ? 1 : smoothstep(0, Math.max(0.05, spec.shoulder), margin);
+    // The stone return meets the same outer terrain elevation exactly.
+    if (c.bridge[k] || edge.roadClass === 'town') return 1;
+    return smoothstep(0, Math.max(0.05, spec.shoulder), margin);
   }
   /**
    * World ground under (x, z): fills a SurfaceSample (Track contract) and
@@ -504,12 +540,13 @@ export class OpenWorldTrack {
       sortBy(order, n, roadH);
       for (let m = 0; m < n; m++) {
         const k = order[m],
-          spec = net.edges[net.edgeOf[c.segment[k]]].spec,
+          edge = net.edges[net.edgeOf[c.segment[k]]],
+          spec = edge.spec,
           ramp = Math.max(0.05, spec.shoulder),
           margin = spec.halfWidth + spec.shoulder - c.distance[k],
           w = this.fade(k),
           // d(w)/d(margin) and margin falls along the radial direction.
-          dw = c.bridge[k] ? 0 : smoothstepSlope(0, ramp, margin),
+          dw = c.bridge[k] || edge.roadClass === 'town' ? 0 : smoothstepSlope(0, ramp, margin),
           dh = roadH[k] - height;
         gx += (this.candG[4 * k] - gx) * w - dh * dw * c.rx[k];
         gz += (this.candG[4 * k + 1] - gz) * w - dh * dw * c.rz[k];
@@ -650,7 +687,35 @@ export class OpenWorldTrack {
     if (!Number.isFinite(distance)) return Infinity;
     point.copy(origin).addScaled(down, distance);
     const q = this.query,
-      edge = this.network.edges[q.edge];
+      net = this.network;
+    let edge = net.edges[q.edge];
+    let wheelLength = distance - radius / Math.max(0.15, -down.dot(out.normal));
+    if (q.onRoad && edge.roadClass === 'town' && halfWidth > 0 && radius > 0) {
+      const outside = Math.abs(out.lateral) - edge.spec.halfWidth;
+      // Within one rolling radius of the kerb toe or cap, a steered tyre
+      // can meet an edge before the suspension centre ray passes over it.
+      if (outside > 0.14 - radius && outside < 0.48 + radius) {
+        const i = this.lastSegment,
+          t = clamp((out.s - net.s[i]) / (net.s[i + 1] - net.s[i]), 0, 1);
+        if (this.footways.strength(edge, i, t, out.lateral) > 0) {
+          const shape = this.footwayContact.section(edge, i, Math.sign(out.lateral));
+          // The bevel is finite. Extending its tangent plane underneath
+          // the hub would invent an extra kick as the centre crosses it.
+          const prior = outside >= 0.14 && outside <= 0.48 ? Infinity : wheelLength;
+          const hit = this.treadHit;
+          if (
+            shape.cast(origin, down, maximum, radius, Math.min(halfWidth, radius), axle, prior, hit)
+          ) {
+            wheelLength = hit.distance;
+            point.copy(hit.point);
+            this.sample(point.x, point.z, out, point.y);
+            out.height = point.y;
+            out.normal.copy(hit.normal);
+            edge = net.edges[q.edge];
+          }
+        }
+      }
+    }
     if (
       halfWidth > 0 &&
       q.onRoad &&
@@ -658,8 +723,7 @@ export class OpenWorldTrack {
       edge.spec.markings !== 'none' &&
       (q.surface === WORLD_SURFACE.ASPHALT || q.surface === WORLD_SURFACE.MARKING)
     ) {
-      const segment = this.lastSegment,
-        net = this.network;
+      const segment = this.lastSegment;
       const span = net.s[segment + 1] - net.s[segment];
       const t = span > 0 ? clamp((out.s - net.s[segment]) / span, 0, 1) : 0;
       const tangent = net.pointOnSegment(segment, t, this.candidatePoint);
@@ -673,7 +737,7 @@ export class OpenWorldTrack {
         out.grip = (asphalt + (paint - asphalt) * fraction) * edge.spec.grip;
       }
     }
-    return distance - radius / Math.max(0.15, -down.dot(out.normal));
+    return wheelLength;
   }
   /** Ground height only (spawning, recovery, scripts). */
   groundHeight(x: number, z: number, y?: number) {
