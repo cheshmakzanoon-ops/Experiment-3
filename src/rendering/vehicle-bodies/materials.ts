@@ -50,7 +50,7 @@ export function installPanelGaps(material: T.MeshPhysicalMaterial, gaps: readonl
   // All plane equations and clipping bounds participate in shader identity.
   let hash = 2166136261;
   for (let i = 0; i < body.length; i++) hash = Math.imul(hash ^ body.charCodeAt(i), 16777619);
-  const key = `vehicle-panel-gaps-v2-${hash >>> 0}`;
+  const key = `vehicle-panel-gaps-${hash >>> 0}-v2`;
   return chainShaderHook(material, key, (shader) => {
     injectAfter(
       shader,
