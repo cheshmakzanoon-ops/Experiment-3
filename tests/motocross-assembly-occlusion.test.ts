@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { describe, expect, it } from 'vitest';
 import { applyMxAssemblyOcclusion } from '../src/rendering/offroad/mx-assembly-occlusion.ts';
+import { WeatherPresentation } from '../src/rendering/weather-presentation.ts';
 
 function recess() {
   const root = new T.Group(),
@@ -23,6 +24,32 @@ function recess() {
 }
 
 describe('motocross rigid-assembly light transport', () => {
+  it('installs one lighting shader when the race loader prepares another detail level after weather registration', () => {
+    const first = recess(),
+      next = recess(),
+      weather = new WeatherPresentation();
+    const spare = next.floor.material;
+    next.floor.material = next.cover.material = first.floor.material;
+    try {
+      applyMxAssemblyOcclusion('test/weather/high', first.root, [], 0.005, 0.1);
+      weather.install(first.root);
+      applyMxAssemblyOcclusion('test/weather/mid', next.root, [], 0.005, 0.1);
+      weather.install(next.root);
+      const shader = { ...T.ShaderLib.standard, uniforms: { ...T.ShaderLib.standard.uniforms } };
+      first.floor.material.onBeforeCompile(
+        shader as T.WebGLProgramParametersWithUniforms,
+        {} as T.WebGLRenderer,
+      );
+      expect(shader.vertexShader.match(/attribute float mxAssemblyCavity;/g)).toHaveLength(1);
+      expect(shader.fragmentShader.match(/varying float vMxCavity;/g)).toHaveLength(1);
+      expect(shader.fragmentShader.match(/float mxEnvVisibility =/g)).toHaveLength(1);
+    } finally {
+      weather.dispose();
+      next.floor.material = next.cover.material = spare;
+      first.dispose();
+      next.dispose();
+    }
+  });
   it('shades a sheltered surface and leaves an open surface and a moving lever exposed', () => {
     const r = recess();
     try {

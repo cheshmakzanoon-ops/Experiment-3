@@ -11,6 +11,9 @@ interface Part {
 // Baked bytes live with their geometries. Disposing the last model also
 // makes its data collectible, including in the showroom and replay.
 const designs = new Map<string, { signature: number; bytes: WeakRef<Uint8Array>[] }>();
+// Weather and local atmosphere wrap onBeforeCompile between the construction
+// of two LODs. The shared alloy still owns the first hook after that wrap.
+const litMaterials = new WeakSet<T.Material>();
 const sampleRing = Array.from({ length: 8 }, (_, i) => {
   const angle = ((i + 0.5) * Math.PI) / 4;
   return [Math.cos(angle) * 0.8, Math.sin(angle) * 0.8] as const;
@@ -110,6 +113,7 @@ function bakePart(part: Part, grid: GpOcclusionGrid, reach: number) {
 }
 
 function install(material: T.MeshStandardMaterial) {
+  if (litMaterials.has(material)) return;
   // Three's binding state uses these constants for meshes without this
   // attribute. A lever or wheel can share an alloy with the static frame.
   const vertexMaterial = material as T.MeshStandardMaterial & {
@@ -143,6 +147,7 @@ function install(material: T.MeshStandardMaterial) {
       'fragment',
     );
   });
+  litMaterials.add(material);
 }
 
 /** A rigid assembly carries its own local sky visibility as it turns. A
