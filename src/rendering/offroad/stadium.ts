@@ -3,6 +3,7 @@ import { MxStadiumAudience } from './mx-stadium-audience.ts';
 import { MX_ARENA_LAMP_LINEAR } from './mx-arena-lighting.ts';
 import { mxFloodlightHead, mxFloodlightMount } from './mx-floodlight.ts';
 import { mxStadiumSeatGeometry } from './mx-stadium-seat.ts';
+import { mxRoofDeck } from './mx-roof-deck.ts';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Random } from '../../core/math.ts';
 import { trackPoint, type Track } from '../../simulation/track.ts';
@@ -515,7 +516,9 @@ export class Stadium {
       y: floor + STADIUM.roof - 2 - 1.36,
     });
     const outer = STADIUM.tiers * STADIUM.depth + STADIUM.concourse;
-    const roof = new T.Mesh(new T.BoxGeometry(span.x + 2 * outer, 0.45, span.z + 2 * outer), deck);
+    const roof = new T.Mesh(mxRoofDeck(span.x + 2 * outer, span.z + 2 * outer, 'arena'),
+      new T.MeshStandardMaterial({ name: 'Arena galvanized structural decking', color: 0x6b7579,
+        metalness: 0.48, roughness: 0.61, vertexColors: true }));
     roof.name = 'Arena roof deck';
     roof.position.set((min.x + max.x) / 2, floor + STADIUM.roof, (min.z + max.z) / 2);
     this.root.add(roof);

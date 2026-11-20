@@ -5,6 +5,7 @@ import { mxAuthoredGeometry, type MxAuthoredPart } from '../src/rendering/offroa
 import { buildMotocrossBoundary, MX_BOUNDARY } from '../src/rendering/offroad/mx-boundary.ts';
 import { mxPaddingGeometry } from '../src/rendering/offroad/mx-padding.ts';
 import { mxFurnitureGround } from '../src/rendering/offroad/mx-ground-pose.ts';
+import { mxRoofDeck } from '../src/rendering/offroad/mx-roof-deck.ts';
 import { Stadium } from '../src/rendering/offroad/stadium.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
 
@@ -220,6 +221,8 @@ describe('original Blender-authored motocross kit', () => {
     expect(chairs.count).toBeGreaterThan(1000);
     expect(stadium.root.userData.concoursePortals).toBeGreaterThan(10);
     expect(stadium.root.getObjectByName('Arena service walls and acoustic cladding')).toBeTruthy();
+    const roof = stadium.root.getObjectByName('Arena roof deck') as T.Mesh;
+    expect(roof.geometry.name).toBe('Deep-fluted arena structural decking');
     let meshes = 0,
       lights = 0;
     stadium.root.traverse((o) => {
@@ -231,4 +234,38 @@ describe('original Blender-authored motocross kit', () => {
     stadium.dispose();
     expect(stadium.root.children).toHaveLength(0);
   });
+
+  it.each(['terrace', 'arena'] as const)(
+    '%s roof has a closed folded eave and open-air clearance',
+    (kind) => {
+      const pitch = kind === 'arena' ? 0.85 : 0.43;
+      const length = pitch * 100,
+        geometry = mxRoofDeck(12.8, length, kind);
+      const material = new T.MeshBasicMaterial(),
+        mesh = new T.Mesh(geometry, material);
+      const ray = new T.Raycaster(),
+        point = new T.Vector3();
+      const cast = (u: number, y: number) => {
+        ray.set(point.set(1, y, pitch * (u + 0.001)), new T.Vector3(0, -Math.sign(y), 0));
+        return ray.intersectObject(mesh)[0];
+      };
+      try {
+        const valley = cast(0.04, -2),
+          crest = cast(0.5, -2);
+        expect(valley.face!.normal.y).toBeLessThan(-0.99);
+        expect(crest.point.y - valley.point.y).toBeCloseTo(kind === 'arena' ? 0.14 : 0.096, 5);
+        expect(cast(0.5, 2).face!.normal.y).toBeGreaterThan(0.99);
+        expect(cast(0.04, 2).point.y - valley.point.y).toBeCloseTo(
+          kind === 'arena' ? 0.585 : 0.019,
+          5,
+        );
+        expect(geometry.boundingBox!.max.x).toBeCloseTo(6.4, 5);
+        expect(geometry.boundingBox!.max.z).toBeCloseTo(length / 2, 5);
+        expect(geometry.index!.count / 3).toBeLessThan(4100);
+      } finally {
+        geometry.dispose();
+        material.dispose();
+      }
+    },
+  );
 });

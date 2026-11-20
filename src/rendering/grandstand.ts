@@ -13,6 +13,7 @@ import type { BroadcastSightlines } from './broadcast-sightlines.ts';
 import { CrowdCluster } from './crowd.ts';
 import { installStadiumSeat, stadiumSeatGeometry } from './stadium-seat.ts';
 import { grassApronOffset } from './ground-profile.ts';
+import { mxRoofDeck } from './offroad/mx-roof-deck.ts';
 import * as T from 'three';
 import { Track, trackPoint } from '../simulation/track.ts';
 import { clamp, Random } from '../core/math.ts';
@@ -69,6 +70,8 @@ export function inStandFootprint(
 }
 export function standMaterials(track?: Track) {
   const gpStyle = track ? gpGrandstandStyle(track.circuit.id) : null;
+  const national = track?.circuit.id === 'valley-ridge-mx';
+  const venueLabel = national ? 'VALLEY RIDGE    /    MX NATIONAL' : gpStyle?.label ?? 'A U R E L    /    GRAND CIRCUIT';
   const materials = {
     concrete: new T.MeshStandardMaterial({ color: 0x878880, roughness: 0.93 }),
     steel: new T.MeshStandardMaterial({
@@ -78,6 +81,7 @@ export function standMaterials(track?: Track) {
     }),
     roof: new T.MeshStandardMaterial({
       color: gpStyle?.roof ?? 0xc6c9c7,
+      vertexColors: national,
       metalness: 0.42,
       roughness: 0.58,
     }),
@@ -87,7 +91,7 @@ export function standMaterials(track?: Track) {
     sign: unprintedBack(
       new T.MeshStandardMaterial({
         map: label(
-          gpStyle?.label ?? 'A U R E L    /    GRAND CIRCUIT',
+          venueLabel,
           gpStyle?.background ?? '#273536',
           '#e5e2d7',
           1024,
@@ -101,7 +105,7 @@ export function standMaterials(track?: Track) {
   installVenueFinish(materials.concrete, 'stone');
   installVenueFinish(materials.steel, 'metal');
   installVenueFinish(materials.roof, 'metal');
-  materials.sign.userData.venueLabel = gpStyle?.label ?? 'A U R E L    /    GRAND CIRCUIT';
+  materials.sign.userData.venueLabel = venueLabel;
   return materials;
 }
 let sharedFlagMaterial: T.MeshStandardMaterial | null = null;
@@ -193,11 +197,16 @@ export function buildGrandstand(
       }
     }
     // One thin pitched roof per stand with a separate shaded soffit.
-    const roof = box(root, m.roof, side * 4.5, 6.58, 0, 12.8, 0.12, L + 1.5);
+    const national = track.circuit.id === 'valley-ridge-mx';
+    const roof = national
+      ? mesh(root, mxRoofDeck(12.8, L + 1.5, 'terrace'), m.roof, side * 4.5, 6.58, 0)
+      : box(root, m.roof, side * 4.5, 6.58, 0, 12.8, 0.12, L + 1.5);
     roof.rotation.z = side * 0.166;
     sightlines?.add(roof);
-    const lining = new T.PlaneGeometry(12.8, L + 1.5).rotateX(Math.PI / 2).rotateZ(side * 0.166);
-    mesh(root, lining, m.underside, side * 4.5, 6.5, 0).name = 'Shaded canopy lining';
+    if (!national) {
+      const lining = new T.PlaneGeometry(12.8, L + 1.5).rotateX(Math.PI / 2).rotateZ(side * 0.166);
+      mesh(root, lining, m.underside, side * 4.5, 6.5, 0).name = 'Shaded canopy lining';
+    }
     for (const u of [-1.75, 10.75])
       box(root, m.steel, side * u, 5.55 + (u + 1.75) * 0.167, 0, 0.12, 0.24, L + 1.5);
     for (let z = -L / 2; z < L / 2; z += 4) {
