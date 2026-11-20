@@ -745,7 +745,7 @@ export class FestivalRenderer {
     this.camera.updateMatrixWorld();
     // --- World streaming and dressing -------------------------------------
     this.terrain.update(this.camera, time);
-    this.buildings.update(this.camera, this.preset);
+    this.buildings.update(this.camera, this.preset, this.renderer.domElement.height);
     if (this.terrain.treesChanged) {
       this.terrain.treesChanged = false;
       this.vegetation.sync(this.terrain.treeTiles);

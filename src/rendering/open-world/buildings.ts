@@ -1,11 +1,19 @@
 import * as T from 'three';
 import type { Structure } from '../../simulation/open-world/placement.ts';
 import { OW_NOISE_GLSL } from './terrain-material.ts';
-import { facadeLayout, addRecessedFacade, type FacadePlacement } from './facade-layout.ts';
+import {
+  facadeLayout,
+  addRecessedFacade,
+  FACADE_RECESS,
+  type FacadePlacement,
+} from './facade-layout.ts';
 import { FacadeJoinery } from './facade-joinery.ts';
 import type { QualityPreset } from '../options.ts';
 import { FACADE_INTERIORS_GLSL } from './facade-interiors.ts';
 
+// A 512 m district could submit the whole port while looking past one shop.
+// Short blocks bound the same original meshes tightly enough for frustum culling.
+const BUILDING_BLOCK = 128;
 const KIND_CODE: Record<Structure['kind'], number> = {
   house: 0,
   shop: 1,
@@ -31,6 +39,8 @@ class Mesher {
   color: number[] = [];
   facade: number[] = [];
   index: number[] = [];
+  readonly recessed: number[] = [];
+  readonly projected: number[] = [];
   private c = new T.Color();
   quad(
     corners: readonly (readonly [number, number, number])[],
@@ -38,6 +48,7 @@ class Mesher {
     uvs: readonly (readonly [number, number])[],
     color: number,
     facade: readonly [number, number, number, number],
+    target = facade[2] === -4 || facade[2] === -5 ? this.recessed : this.index,
   ) {
     const base = this.position.length / 3;
     this.c.setHex(color);
@@ -48,7 +59,12 @@ class Mesher {
       this.color.push(this.c.r, this.c.g, this.c.b);
       this.facade.push(...facade);
     });
-    this.index.push(base, base + 1, base + 2, base, base + 2, base + 3);
+    target.push(base, base + 1, base + 2, base, base + 2, base + 3);
+  }
+  projectedPane(
+    ...args: Parameters<NonNullable<import('./facade-layout.ts').FacadeSink['projectedPane']>>
+  ) {
+    this.quad(...args, this.projected);
   }
   tri(
     corners: readonly (readonly [number, number, number])[],
@@ -75,7 +91,11 @@ class Mesher {
     g.setAttribute('uv', new T.Float32BufferAttribute(this.uv, 2));
     g.setAttribute('color', new T.Float32BufferAttribute(this.color, 3));
     g.setAttribute('facade', new T.Float32BufferAttribute(this.facade, 4));
-    g.setIndex(this.index);
+    // Both levels share the whole permanent shell and one GPU allocation.
+    // Overlapping contiguous draw ranges avoid duplicate walls or extra draws.
+    g.setIndex([...this.recessed, ...this.index, ...this.projected]);
+    g.setDrawRange(0, this.recessed.length + this.index.length);
+    g.computeBoundingBox();
     g.computeBoundingSphere();
     return g;
   }
@@ -360,7 +380,7 @@ if (owGlass > 0.001) {
  * blocks with window grids and shopfronts, farmsteads, the chapel, hangars
  * and warehouses with ribbed cladding and barrel or pitched roofs, the
  * airfield terminal and control tower, and the lighthouse whose lantern
- * shines at night. One merged mesh per 512 m chunk (walls and roofs share
+ * shines at night. One merged mesh per street block (walls and roofs share
  * the facade material through per-vertex style data).
  */
 export class Buildings {
@@ -372,6 +392,15 @@ export class Buildings {
   readonly lantern: T.MeshStandardMaterial;
   readonly joinery: FacadeJoinery;
   private readonly openings: FacadePlacement[] = [];
+  private readonly blocks: {
+    geometry: T.BufferGeometry;
+    bounds: T.Box3;
+    common: number;
+    near: number;
+    far: number;
+    detailed: boolean;
+  }[] = [];
+  private readonly cameraPosition = new T.Vector3();
   stats = { buildings: 0, triangles: 0, openings: 0 };
   constructor(structures: readonly Structure[]) {
     this.root.name = 'Festival buildings';
@@ -385,7 +414,7 @@ export class Buildings {
     const chunks = new Map<string, Mesher>();
     const lanterns: T.Vector3[] = [];
     for (const s of structures) {
-      const key = `${Math.floor(s.x / 512)},${Math.floor(s.z / 512)}`;
+      const key = `${Math.floor(s.x / BUILDING_BLOCK)},${Math.floor(s.z / BUILDING_BLOCK)}`;
       let m = chunks.get(key);
       if (!m) chunks.set(key, (m = new Mesher()));
       this.add(m, s);
@@ -395,7 +424,16 @@ export class Buildings {
     for (const [key, m] of chunks) {
       const g = m.geometry();
       if (!g) continue;
-      triangles += m.index.length / 3;
+      triangles += (m.index.length + m.recessed.length) / 3;
+      if (m.projected.length)
+        this.blocks.push({
+          geometry: g,
+          bounds: g.boundingBox!,
+          common: m.index.length,
+          near: m.recessed.length,
+          far: m.projected.length,
+          detailed: true,
+        });
       const mesh = new T.Mesh(g, this.material);
       mesh.name = `Buildings ${key}`;
       mesh.castShadow = true;
@@ -872,8 +910,24 @@ export class Buildings {
       box(0, eave - 0.35, 0, hx * 2 + 0.2, 0.25, hz * 2 + 0.2, 0x566367);
     }
   }
-  update(camera: T.Camera, quality: QualityPreset) {
+  update(camera: T.Camera, quality: QualityPreset, viewportHeight = 720) {
     this.joinery.update(camera, quality);
+    camera.getWorldPosition(this.cameraPosition);
+    // The projection sets the world distance at which recess parallax becomes
+    // subpixel. A nearer corner of a broad block keeps the entire block detailed.
+    const pixels = { low: 0.95, medium: 0.8, high: 0.65, ultra: 0.55 }[quality];
+    const threshold =
+      (FACADE_RECESS * viewportHeight * camera.projectionMatrix.elements[5] * 0.5) / pixels;
+    for (const block of this.blocks) {
+      const distance = block.bounds.distanceToPoint(this.cameraPosition);
+      const detailed = distance < threshold * (block.detailed ? 1.12 : 0.96);
+      if (detailed === block.detailed) continue;
+      block.detailed = detailed;
+      block.geometry.setDrawRange(
+        detailed ? 0 : block.near,
+        block.common + (detailed ? block.near : block.far),
+      );
+    }
   }
   setNight(night: number) {
     this.night.value = night;

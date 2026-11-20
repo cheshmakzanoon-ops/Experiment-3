@@ -1,5 +1,7 @@
 import type { Structure } from '../../simulation/open-world/placement.ts';
 
+/** Measured distance between the exterior wall and the glazing plane. */
+export const FACADE_RECESS = 0.21;
 export type JoineryKind = 'casement' | 'shop' | 'shuttered';
 export interface FacadeOpening {
   u0: number;
@@ -49,14 +51,12 @@ export function facadeLayout(s: Structure, length: number, side = 0): FacadeLayo
   for (let row = 0; row < floors; row++) {
     const row0 = row * floorH,
       row1 = (row + 1) * floorH;
+    const first = openings.length;
     for (let bay = 0; bay < bays; bay++) {
       const cell0 = bay * span,
         cell1 = (bay + 1) * span;
       const room = noise(s.style, row, bay, side);
-      if ((s.kind === 'house' || s.kind === 'farm') && room > 0.85) {
-        rect(cell0, row0, cell1, row1);
-        continue;
-      }
+      if ((s.kind === 'house' || s.kind === 'farm') && room > 0.85) continue;
       const shop = row === 0 && (s.kind === 'shop' || s.kind === 'block' || s.kind === 'terminal');
       const shuttered =
         !shop &&
@@ -79,11 +79,23 @@ export function facadeLayout(s: Structure, length: number, side = 0): FacadeLayo
       const v1 = row0 + floorH * (shop ? 0.86 : 0.84);
       const kind = shop ? 'shop' : shuttered ? 'shuttered' : 'casement';
       openings.push({ u0, u1, v0, v1, cell0, cell1, row0, row1, kind, room });
-      rect(cell0, row0, u0, row1);
-      rect(u1, row0, cell1, row1);
-      rect(u0, row0, u1, v0);
-      rect(u0, v1, u1, row1);
     }
+    // Each storey shares one sill and head height. Two continuous strips
+    // replace per-bay coplanar rectangles, with a pier between actual holes.
+    // Metre-based wall UVs meet at precisely the same positions.
+    if (openings.length === first) {
+      rect(0, row0, length, row1);
+      continue;
+    }
+    const { v0, v1 } = openings[first];
+    rect(0, row0, length, v0);
+    rect(0, v1, length, row1);
+    let edge = 0;
+    for (let i = first; i < openings.length; i++) {
+      rect(edge, v0, openings[i].u0, v1);
+      edge = openings[i].u1;
+    }
+    rect(edge, v0, length, v1);
   }
   rect(0, floors * floorH, length, s.height);
   return { openings, wall };
@@ -107,6 +119,13 @@ export interface FacadePlacement {
 }
 export interface FacadeSink {
   quad(
+    corners: readonly Point3[],
+    normal: Point3,
+    uv: readonly (readonly [number, number])[],
+    color: number,
+    facade: readonly [number, number, number, number],
+  ): void;
+  projectedPane?(
     corners: readonly Point3[],
     normal: Point3,
     uv: readonly (readonly [number, number])[],
@@ -149,7 +168,7 @@ export function addRecessedFacade(
   for (const r of layout.wall) wallQuad(...r);
   for (const hole of layout.openings) {
     const { u0, u1, v0, v1, room } = hole,
-      depth = -0.21;
+      depth = -FACADE_RECESS;
     const reveal = (corners: Point3[], n: Point3, w: number, h: number) =>
       sink.quad(
         corners,
@@ -183,17 +202,28 @@ export function addRecessedFacade(
       0.21,
       u1 - u0,
     );
+    const paneUV = [
+      [0, 0],
+      [1, 0],
+      [1, 1],
+      [0, 1],
+    ] as const;
+    const pane = [room, kind, -4, hole.kind === 'shop' ? 1 : 0] as const;
     sink.quad(
       [at(u0, v0, depth), at(u1, v0, depth), at(u1, v1, depth), at(u0, v1, depth)],
       normal,
-      [
-        [0, 0],
-        [1, 0],
-        [1, 1],
-        [0, 1],
-      ],
+      paneUV,
       0xffffff,
-      [room, kind, -4, hole.kind === 'shop' ? 1 : 0],
+      pane,
+    );
+    // The distant pane seals the same physical aperture. Its shader, room
+    // identity, aspect, mullions and illumination are identical to the near pane.
+    sink.projectedPane?.(
+      [at(u0, v0), at(u1, v0), at(u1, v1), at(u0, v1)],
+      normal,
+      paneUV,
+      0xffffff,
+      pane,
     );
     placements.push({
       kind: hole.kind,
