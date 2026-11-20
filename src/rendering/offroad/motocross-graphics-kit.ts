@@ -9,7 +9,8 @@ const PANELS = {
   fender: [512, 0, 256, 512],
   guard: [768, 0, 128, 512],
   bar: [896, 0, 128, 384],
-  blank: [896, 384, 128, 128],
+  handguard: [896, 384, 128, 96],
+  blank: [896, 480, 128, 32],
 } as const;
 type Panel = keyof typeof PANELS;
 
@@ -113,6 +114,11 @@ export function mxKitTexture(colours: RiderColours, model: string, detail: Rider
       c.textAlign = 'center';
       c.fillStyle = paper;
       c.fillText('MOTOBOUND', 0, 0, 170);
+    });
+    tile('handguard', () => {
+      polygon(paper, [0, 58, 34, 66, 88, 45, 126, 20, 128, 28, 87, 62, 37, 81, 0, 76]);
+      polygon(dark, [0, 62, 35, 71, 87, 52, 128, 25, 128, 33, 86, 68, 31, 86, 0, 79]);
+      polygon(accent, [16, 75, 38, 77, 67, 68, 54, 76, 34, 82]);
     });
     tile('bar', () => {
       c.fillStyle = charcoal;

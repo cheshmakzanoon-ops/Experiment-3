@@ -45,6 +45,7 @@ import {
   MotocrossBrakeHose,
   MotocrossRearShock,
 } from './motocross-mechanics.ts';
+import { addMotocrossHandguards } from './motocross-handguard.ts';
 import { MotocrossFootControls, MX_PEG } from './motocross-foot-controls.ts';
 import {
   addMotocrossControlMounts,
@@ -537,6 +538,9 @@ export class DirtBikeModel {
           ),
           this.m.dark,
         );
+    if (!supermoto)
+      addMotocrossHandguards(this.steer, detail, definition.id === 'mx250', barY, barZ,
+        shroudMaterial, dark, this.m.aluminium);
     // Front number plate below the bar.
     const plate = add(
       this.steer,

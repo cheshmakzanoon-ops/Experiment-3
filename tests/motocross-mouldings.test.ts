@@ -1,5 +1,6 @@
 import * as T from 'three';
 import { describe, expect, it } from 'vitest';
+import { motocrossHandguard } from '../src/rendering/offroad/motocross-handguard.ts';
 import {
   motocrossFender,
   motocrossForkGuard,
@@ -64,6 +65,39 @@ function inspect(geometry: T.BufferGeometry) {
 }
 
 describe('motocross formed bodywork', () => {
+  it.each(['high', 'mid', 'far'] as const)(
+    '%s handguards have closed skins on both bars and preserve the sightline through the cockpit',
+    (detail) => {
+      const forward = new T.Vector3(0, 0, 1),
+        backward = new T.Vector3(0, 0, -1);
+      for (const side of [-1, 1])
+        for (const compact of [false, true]) {
+          const geometry = motocrossHandguard(detail, side, compact),
+            view = inspect(geometry);
+          try {
+            expect(closedShell(geometry)).toBeGreaterThan(0.00003);
+            const top = compact ? 0.024 : 0.035;
+            // From the front and the cockpit, the blade has distinct outward skins.
+            const front = view.cast(new T.Vector3(side * 0.32, top, 1), backward)[0];
+            const back = view.cast(new T.Vector3(side * 0.32, top, -1), forward)[0];
+            expect(front.point.z - back.point.z).toBeCloseTo(0.0032, 5);
+            expect(front.face!.normal.z).toBeGreaterThan(0.7);
+            expect(back.face!.normal.z).toBeLessThan(-0.7);
+            expect(view.cast(new T.Vector3(side * 0.18, 0, -1), forward)).toHaveLength(0);
+            for (const u of [0.32, 0.72]) {
+              const x = side * (0.214 + 0.232 * u);
+              const y =
+                -0.036 + (top + 0.023 + 0.036) * (0.4 + 0.16 * u) + 0.007 * Math.sin(Math.PI * u);
+              const hits = view.cast(new T.Vector3(x, y, -1), forward);
+              expect(hits.length === 0).toBe(detail !== 'far');
+            }
+          } finally {
+            view.dispose();
+          }
+        }
+    },
+  );
+
   for (const front of [true, false])
     it.each(['high', 'mid', 'far'] as const)(
       `${front ? 'front' : 'rear'} %s fender has outward skins, real wall thickness and closed lips`,

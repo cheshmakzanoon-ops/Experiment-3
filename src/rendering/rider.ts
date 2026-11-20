@@ -1297,7 +1297,7 @@ export class Rider {
       if (mx) hand.name = `Motocross ${i === 0 ? 'left' : 'right'} hand`;
       else hand.name = `${gp ? 'GP' : 'Road'} ${i === 0 ? 'left' : 'right'} hand`;
       if (mx) {
-        const fingers = addMotocrossGlove(hand, detail, side, glove, mxGloveBack!, flex);
+        const fingers = addMotocrossGlove(hand, detail, side, glove, mxGloveBack!, flex, mxTrim!);
         if (fingers) this.brakeFingers = fingers;
       } else if (detail !== 'far') {
         const fingers = addGpRacingGlove(
@@ -1522,6 +1522,9 @@ export class Rider {
     for (let i = 0; i < 2; i++) {
       const side = i === 0 ? 1 : -1;
       const inside = side * Math.sign(offset || lean) > 0;
+      // Continuous through the centre of a chicane. The outside arm supports
+      // more of the bar load while the inside knee opens toward its free boot.
+      const turn = mx ? T.MathUtils.clamp(lean / 0.74 + offset * 1.6, -1, 1) * side : 0;
       shoulder
         .set(side * RIDER.shoulderWidth, RIDER.spine - 0.04, 0.0)
         .applyQuaternion(upperTorso.quaternion)
@@ -1533,15 +1536,14 @@ export class Rider {
         .copy(shoulder)
         .add(
           target.set(
-            side * (mx ? 0.3 + attack * 0.07 : 0.35),
+            side * (mx ? 0.26 + attack * 0.055 : 0.35),
             mx
-              ? -0.24 +
-                  attack * (0.15 - 0.08 * standing) +
-                  standing * 0.12 +
-                  Math.max(0, body) * 0.1 +
-                  motion!.elbowLift
+              ? -0.235 + attack * 0.075 + standing * 0.045 +
+                Math.max(0, body) * 0.035 + motion!.elbowLift * 0.7 - turn * 0.055
               : -0.3,
-            mx ? 0.04 - attack * 0.03 : -0.1,
+            // A rearward bend plane leaves elbow room when the wrist is
+            // almost directly below the shoulder halfway up off the saddle.
+            mx ? -0.245 - standing * 0.045 : -0.1,
           ),
         );
       if (mx) this.motocrossGripFrame(i);
@@ -1566,7 +1568,7 @@ export class Rider {
         .applyQuaternion(this.torso.quaternion)
         .add(pelvis);
       // Feet on the pegs; the inside knee opens toward the road when hung off.
-      const out = mx ? (inside ? 0.18 : 0.12)
+      const out = mx ? 0.14 + 0.038 * turn + 0.018 * Math.max(0, side * dab)
         : this.roadClass ? gpKneeOut(lean, offset, side)
         : inside ? 0.35 + Math.abs(offset) * 1.4 : 0.25;
       pole.copy(hip).add(target.set(side * out, 0.15, 0.55));

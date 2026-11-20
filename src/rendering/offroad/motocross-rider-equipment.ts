@@ -441,6 +441,86 @@ function digit(points: T.Vector3[], radius: number, detail: RiderDetail) {
   return finish(positions, uv, indices, rows, sides, 'Motocross tapered curled glove digit');
 }
 
+/** Four low-profile impact pods bonded directly onto the curved back of the
+ * glove. The small gaps flex independently over each metacarpal. */
+function knucklePods(side: number) {
+  const positions: number[] = [],
+    uv: number[] = [],
+    indices: number[] = [];
+  for (let finger = 0; finger < 4; finger++) {
+    const first = positions.length / 3;
+    const centre = 0.09 + 0.105 * finger;
+    const knuckle = 0.8 - 0.022 * Math.abs(finger - 1);
+    for (const [radius, offset] of [
+      [1, 0.0006],
+      [0.8, 0.0032],
+      [0.32, 0.0046],
+    ]) {
+      for (let i = 0; i < 8; i++) {
+        const angle = (i * Math.PI) / 4;
+        const u = centre + 0.047 * radius * Math.cos(angle);
+        const v = knuckle + 0.135 * radius * Math.sin(angle);
+        const p = palmPoint(u, v, side, offset);
+        positions.push(p.x, p.y, p.z);
+        uv.push(u, v);
+      }
+    }
+    const face = (a: number, b: number, c: number) => {
+      if (side > 0) indices.push(first + a, first + b, first + c);
+      else indices.push(first + a, first + c, first + b);
+    };
+    for (let i = 0; i < 8; i++) {
+      const j = (i + 1) % 8;
+      for (const k of [0, 8]) {
+        face(k + i, k + j, k + j + 8);
+        face(k + i, k + j + 8, k + i + 8);
+      }
+      if (i > 0 && i < 7) face(16, 16 + i, 16 + i + 1);
+    }
+  }
+  const g = new T.BufferGeometry();
+  g.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
+  g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
+  g.setIndex(indices);
+  g.computeVertexNormals();
+  return g;
+}
+
+/** Short elastic wrist opening and its overlapping hook-and-loop tab. The
+ * upper edge follows the heel of the hand; the opening receives the sleeve. */
+function gloveCuff(side: number, detail: RiderDetail, closure: boolean) {
+  const points: number[] = [],
+    uv: number[] = [],
+    index: number[] = [];
+  const cols = detail === 'high' ? 20 : 12;
+  const rows = closure ? [0.15, 0.24, 0.64, 0.72] : [0, 0.07, 0.2, 0.7, 0.93, 1];
+  for (const [i, v] of rows.entries())
+    for (let j = 0; j <= cols; j++) {
+      const u = j / cols;
+      const angle = closure ? T.MathUtils.lerp(-0.48, 2.84 + 0.18 * v, u) : 2 * Math.PI * u;
+      const c = Math.cos(angle),
+        t = Math.sin(angle);
+      const edge = 0.0014 * (1 - Math.abs(2 * v - 1));
+      const thick = closure ? 0.0018 : 0;
+      const width = T.MathUtils.lerp(0.035, 0.03, v) + edge + thick;
+      const height = T.MathUtils.lerp(0.0285, 0.021, v) + edge + thick;
+      const z = -0.039 + 0.051 * v + 0.006 * Math.max(0, -t) * v + 0.002 * c;
+      points.push(side * width * c, height * t, z);
+      uv.push(u, v);
+      if (!i || !j) continue;
+      const d = i * (cols + 1) + j,
+        a = d - cols - 2;
+      if (side > 0) index.push(a, a + 1, d, a, d, d - 1);
+      else index.push(a, d, a + 1, a, d - 1, d);
+    }
+  const g = new T.BufferGeometry();
+  g.setAttribute('position', new T.Float32BufferAttribute(points, 3));
+  g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
+  g.setIndex(index);
+  g.computeVertexNormals();
+  return g;
+}
+
 export function addMotocrossGlove(
   hand: T.Group,
   detail: RiderDetail,
@@ -448,6 +528,7 @@ export function addMotocrossGlove(
   palm: T.Material,
   textile: T.Material,
   flex: T.Material,
+  trim: T.Material = flex,
 ) {
   part(hand, motocrossGlovePalm(detail, side), palm, 'Motocross anatomical glove palm');
   if (detail === 'far') return;
@@ -499,7 +580,7 @@ export function addMotocrossGlove(
     if (detail === 'high') {
       const grip = part(
         hand,
-        new RoundedBoxGeometry(0.009, 0.0025, 0.016, 2, 0.0012),
+        new T.SphereGeometry(1, 8, 4).scale(0.0045, 0.0016, 0.008),
         flex,
         'Motocross flexible finger grip ridge',
       );
@@ -521,24 +602,8 @@ export function addMotocrossGlove(
     palm,
     'Motocross opposing wrapped thumb',
   );
-  // Moulded rubber knuckle guard: a ridged bar across the first knuckles.
-  const knuckle = part(
-    hand,
-    new RoundedBoxGeometry(0.066, 0.009, 0.017, 2, 0.004),
-    flex,
-    'Motocross moulded knuckle guard',
-  );
-  knuckle.position.set(side * -0.0005, 0.016, 0.041);
-  knuckle.rotation.x = -0.12;
-  // Gauntlet cuff pulled over the jersey sleeve's end.
-  const cuff = part(
-    hand,
-    new T.CylinderGeometry(0.035, 0.032, 0.042, detail === 'high' ? 18 : 10, 1, true),
-    textile,
-    'Motocross glove cuff over the sleeve',
-  );
-  cuff.rotation.x = Math.PI / 2;
-  cuff.position.set(0, 0.0, -0.012);
-  (cuff.material as T.Material).side = T.DoubleSide;
+  part(hand, knucklePods(side), trim, 'Motocross articulated knuckle pads');
+  part(hand, gloveCuff(side, detail, false), textile, 'Motocross glove cuff over the sleeve');
+  part(hand, gloveCuff(side, detail, true), flex, 'Motocross adjustable wrist closure');
   if (brakeHand) return new GpBrakeFingers(hand, palm, MX_GLOVE_GRIP, 'Motocross');
 }

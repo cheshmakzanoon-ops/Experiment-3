@@ -47,6 +47,52 @@ const joints = (rider: Rider) => {
 };
 
 describe('motocross suspension-driven rider motion', () => {
+  it('crosses neutral lean continuously and folds the elbows behind the shoulders when rising', () => {
+    const definition = VEHICLES.mx450,
+      materials = new BikeMaterials(0);
+    const model = new DirtBikeModel(definition, 0, 'mid', materials, mudUniforms());
+    const sag = staticSag(definition);
+    const pose = (standing: number, lean: number, body: number) => {
+      model.pose({
+        fork: sag.fork,
+        shock: sag.shock,
+        steer: 0,
+        frontRotation: 0,
+        rearRotation: 0,
+        chassisLean: lean,
+        riderOffset: 0,
+        tuck: 0,
+        brake: 0,
+        discTemp: 20,
+        compoundColour: 0xffffff,
+        riding: true,
+        standing,
+        body,
+        speed: 12,
+      });
+      model.root.updateMatrixWorld(true);
+    };
+    const joint = (side: string, name: string) =>
+      model.rider.root
+        .getObjectByName(`Motocross ${side} ${name}`)!
+        .getWorldPosition(new T.Vector3());
+    try {
+      for (const side of ['left', 'right']) {
+        pose(0.1, -0.00001, 0);
+        const knee = joint(side, 'shin');
+        pose(0.1, 0.00001, 0);
+        expect(knee.distanceTo(joint(side, 'shin'))).toBeLessThan(0.00001);
+        pose(0.5, 0, 0.2);
+        const elbow = joint(side, 'forearm').sub(joint(side, 'upper arm'));
+        expect(elbow.y).toBeLessThan(-0.025);
+        expect(elbow.z).toBeLessThan(-0.1);
+      }
+    } finally {
+      model.dispose();
+      materials.dispose();
+    }
+  });
+
   it('holds a distinct start posture per entrant through every camera detail and replay', () => {
     const riders = [
       new Rider(colours, 'high', 'motocross', 2),
