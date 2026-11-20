@@ -63,6 +63,8 @@ export class TerrainView {
   readonly group = new T.Group();
   /** Increments when the actual triangulated receiving surface moves. */
   geometryRevision = 0;
+  /** Last displayed geometry revision that moved a corner of each soil cell. */
+  readonly heightRevisions: Uint32Array;
   readonly material: T.MeshPhysicalMaterial;
   private readonly terrain: CourseTerrain;
   private readonly footRoad = trackPoint();
@@ -92,6 +94,7 @@ export class TerrainView {
     const t = this.terrain,
       blocks = t.renderColumns * t.renderRows;
     this.depth = new Float32Array(blocks);
+    this.heightRevisions = new Uint32Array(blocks);
     this.compaction = new Float32Array(blocks);
     this.group.name = 'Off-road course terrain (deformable)';
     this.material = materials.soil({ tile: 0.28 });
@@ -369,6 +372,7 @@ export class TerrainView {
     this.upload();
   }
   private markAll() {
+    this.heightRevisions.fill(this.geometryRevision + 1);
     for (const c of this.chunks) c.dirty = true;
   }
   private apply(delta: TerrainRenderDelta) {
@@ -382,6 +386,15 @@ export class TerrainView {
     for (let k = 0; k + 2 < b.length; k += 3) {
       const block = b[k];
       if (!(block >= 0 && block < this.depth.length)) continue;
+      if (this.depth[block] !== b[k + 1]) {
+        // A changed mesh corner belongs to four cells. The previous row
+        // wraps at start/finish. Outer columns stop at the ribbon edge.
+        const previous = (block - cols + this.depth.length) % this.depth.length;
+        const revision = this.geometryRevision + 1;
+        this.heightRevisions[block] = this.heightRevisions[previous] = revision;
+        if (block % cols !== 0)
+          this.heightRevisions[block - 1] = this.heightRevisions[previous - 1] = revision;
+      }
       this.depth[block] = b[k + 1];
       this.compaction[block] = b[k + 2];
       const row = Math.floor(block / cols),
@@ -443,6 +456,14 @@ export class TerrainView {
         next = this.chunks[(i + 1) % this.chunks.length];
       if (all || current.dirty || next.dirty) current.edges!.join(next.edges!);
     }
+  }
+  /** Cacheable cell of a stationary mark in the deforming soil ribbon. */
+  heightCellAt(s: number, lateral: number) {
+    const t = this.terrain;
+    const column = (lateral - t.lateralMin) / (COURSE_CELL.lateral * 2);
+    if (column < 0 || column > t.renderColumns) return -1;
+    const row = Math.min(t.renderRows - 1, Math.floor(mod(s, this.track.length) / (COURSE_CELL.along * 2)));
+    return row * t.renderColumns + Math.min(t.renderColumns - 1, Math.floor(column));
   }
   /** Height of the currently displayed grid at course coordinates. Cosmetic
    * ground contacts can follow live/replayed ruts without reading the later

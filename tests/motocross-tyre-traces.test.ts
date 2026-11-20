@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { describe, expect, it } from 'vitest';
 import { MxTyreTraces } from '../src/rendering/offroad/mx-tyre-traces.ts';
+import { TerrainView } from '../src/rendering/offroad/terrain-view.ts';
 import { Roost } from '../src/rendering/offroad/roost.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
 import { factoryBikeSag } from '../src/simulation/offroad/suspension-geometry.ts';
@@ -79,6 +80,59 @@ function field() {
 }
 
 describe('fresh motocross tyre impressions', () => {
+  it('updates only the actual ground cells beneath a print across sparse ruts, compaction and rewinds', () => {
+    const lap = field(),
+      view = new TerrainView(rigTrack('valley-ridge-mx'));
+    const surface = {
+      get geometryRevision() {
+        return view.geometryRevision;
+      },
+      heightRevisions: view.heightRevisions,
+      heightCellAt: view.heightCellAt.bind(view),
+      heightAt: view.heightAt.bind(view),
+    };
+    let reads = 0;
+    surface.heightAt = (s, l) => {
+      reads++;
+      return view.heightAt(s, l);
+    };
+    try {
+      view.record({ blocks: new Float32Array(), wetness: 0, reset: true }, 0, true);
+      for (let i = 0; i < 18; i++) lap.drive(46 + i * 0.71, i / 20);
+      const time = lap.frame[H.TIME];
+      lap.marks.show(time, surface);
+      const vertices = reads;
+      expect(vertices).toBeGreaterThan(50);
+      const initial = Array.from(lap.marks.mesh.geometry.getAttribute('position').array);
+      const here = view.heightCellAt(52, 0),
+        away = view.heightCellAt(160, 0);
+      const change = (cell: number, depth: number, compaction: number, t: number) => {
+        view.record(
+          { blocks: new Float32Array([cell, depth, compaction]), wetness: 0, reset: false },
+          t,
+          true,
+        );
+        reads = 0;
+        lap.marks.show(time, surface);
+        return reads;
+      };
+      expect(change(away, 0.09, 0.4, 1)).toBe(0);
+      expect(change(here, 0, 0.5, 2)).toBe(0);
+      const affected = change(here, 0.1, 0.5, 3);
+      expect(affected).toBeGreaterThan(0);
+      expect(affected).toBeLessThan(vertices / 2);
+      expect(Array.from(lap.marks.mesh.geometry.getAttribute('position').array)).not.toEqual(
+        initial,
+      );
+      view.showAt(0);
+      lap.marks.show(time, surface);
+      expect(Array.from(lap.marks.mesh.geometry.getAttribute('position').array)).toEqual(initial);
+    } finally {
+      lap.dispose();
+      view.dispose();
+    }
+  });
+
   it('records the same trail independently of display cadence, reprojects into ruts, and restores a replay seek', () => {
     const live = field(),
       sparse = field();

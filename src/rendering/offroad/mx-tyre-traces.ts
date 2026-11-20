@@ -45,7 +45,8 @@ interface Sample {
   phase: number;
   omega: number;
 }
-type Surface = Pick<TerrainView, 'heightAt' | 'geometryRevision'>;
+type Surface = Pick<TerrainView, 'heightAt' | 'geometryRevision'> &
+  Partial<Pick<TerrainView, 'heightCellAt' | 'heightRevisions'>>;
 
 function traceMaterial() {
   return new T.ShaderMaterial({
@@ -107,6 +108,7 @@ export class MxTyreTraces {
   private readonly patch = mxWheelPatch();
   private readonly road = trackPoint();
   private readonly side = new T.Vector3();
+  private readonly heightCells = new Int32Array(ACTIVE * 4);
   private readonly terrainUV = new Float32Array(ACTIVE * 8);
   private readonly position = new T.BufferAttribute(new Float32Array(ACTIVE * 12), 3).setUsage(
     T.DynamicDrawUsage,
@@ -307,13 +309,19 @@ export class MxTyreTraces {
       data = this.pages[Math.floor(record / PAGE)];
     const off = (record % PAGE) * STRIDE,
       slot = serial % ACTIVE;
+    let changed = false;
     for (let v = 0; v < 4; v++) {
       const vertex = slot * 4 + v;
+      if (!fresh && surface.heightRevisions) {
+        const cell = this.heightCells[vertex];
+        if (cell < 0 || surface.heightRevisions[cell] <= this.revision) continue;
+      }
       if (fresh) {
         const at = off + (v < 2 ? 1 : 5),
           side = v % 2 ? 1 : -1;
         const s = data[at] + data[at + 2] * side,
           l = data[at + 1] + data[at + 3] * side;
+        this.heightCells[vertex] = surface.heightCellAt?.(s, l) ?? -1;
         this.terrainUV[vertex * 2] = s;
         this.terrainUV[vertex * 2 + 1] = l;
         this.track.at(s, this.road);
@@ -326,12 +334,14 @@ export class MxTyreTraces {
         this.uv.setXY(vertex, side, data[off + (v < 2 ? 9 : 10)]);
         this.print.setXYZW(vertex, data[off], data[off + 11], data[off + 12], data[off + 13]);
       }
+      changed = true;
       this.position.setY(
         vertex,
         surface.heightAt(this.terrainUV[vertex * 2], this.terrainUV[vertex * 2 + 1]) + 0.0035,
       );
     }
     this.maxSlot = Math.max(this.maxSlot, slot);
+    return changed;
   }
 
   /** Union outstanding uploads if a reflection, hidden tab or camera cut
@@ -360,8 +370,15 @@ export class MxTyreTraces {
     this.mesh.visible = first < end;
     const insert = Math.max(first, this.drawnEnd);
     const refresh = this.revision !== surface.geometryRevision ? first : insert;
-    for (let i = refresh; i < end; i++) this.write(i, surface, i >= insert);
-    this.upload(this.position, refresh, end);
+    let changedFrom = end,
+      changedTo = refresh;
+    for (let i = refresh; i < end; i++) {
+      if (this.write(i, surface, i >= insert)) {
+        changedFrom = Math.min(changedFrom, i);
+        changedTo = i + 1;
+      }
+    }
+    this.upload(this.position, changedFrom, changedTo);
     this.upload(this.uv, insert, end);
     this.upload(this.print, insert, end);
     this.mesh.geometry.setDrawRange(0, (this.maxSlot + 1) * 6);
