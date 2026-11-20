@@ -1,3 +1,4 @@
+import { windscreenBow } from './road-greenhouse.ts';
 import { addFestivalFaceLamps, festivalFaceLamps } from './festival-face-lamps.ts';
 import { FestivalWipers } from './festival-wipers.ts';
 import * as T from 'three';
@@ -1083,9 +1084,12 @@ function addHardware(
     };
     const z = f.z(ws) - Math.max(0.055, (f.z(ws) - f.z(rf)) * 0.12);
     if (s.bonnetPress) {
+      // The sweep lies between the centre and shoulder of a wrapped screen.
+      // The fitter then projects each arm and blade onto the actual triangles.
+      const bow = windscreenBow(s.windowForm) * 0.65;
       lod.wipers = FestivalWipers.fit(glazing, {
-        baseZ: greenhouse.zWs,
-        topZ: greenhouse.zRF,
+        baseZ: greenhouse.zWs + bow,
+        topZ: greenhouse.zRF + bow,
         rise: greenhouse.roofY - greenhouse.base(greenhouse.zWs),
         halfWidth: model.halfWidth(z) * 0.8,
       });

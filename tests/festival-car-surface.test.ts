@@ -2,8 +2,12 @@ import * as T from 'three';
 import { describe, expect, it } from 'vitest';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
 import { bodySheetFor, type ClosedSheet } from '../src/rendering/vehicle-bodies/body-sheet.ts';
-import { ClosedBodyModel } from '../src/rendering/vehicle-bodies/closed-body.ts';
+import { ClosedBodyModel, Greenhouse } from '../src/rendering/vehicle-bodies/closed-body.ts';
 import { bodyFrame } from '../src/rendering/vehicle-bodies/frame.ts';
+import {
+  roadWindowMaterial,
+  roadWindowRings,
+} from '../src/rendering/vehicle-bodies/road-greenhouse.ts';
 import { roadMirrorLayout } from '../src/rendering/vehicle-bodies/road-mirrors.ts';
 import { sharedMaterials } from '../src/rendering/vehicle-bodies/materials.ts';
 import { buildVehicleBody } from '../src/rendering/vehicle-bodies/index.ts';
@@ -23,6 +27,68 @@ function modelFor(id: string) {
 }
 
 describe('Festival car surface construction', () => {
+  it('keeps the SC-7 dashboard inside the windscreen foot and the roof finish on its own shell', () => {
+    const model = modelFor('sc7'),
+      body = buildVehicleBody(0, VEHICLES.sc7, model.s);
+    const z = model.f.z(model.s.cabin[0]) + 0.065;
+    for (const lod of body.lods) {
+      const roof = lod.group.getObjectByName('Greenhouse') as T.Mesh;
+      const lower = lod.group.getObjectByName('Body (lofted)') as T.Mesh;
+      expect(roof.geometry.getAttribute('bodyRoof').getX(0)).toBe(1);
+      expect(lower.geometry.hasAttribute('bodyRoof')).toBe(false);
+    }
+    const near = body.lods[0].group;
+    near.updateMatrixWorld(true);
+    const solids: T.Mesh[] = [];
+    near.traverseVisible((node) => {
+      if (
+        node instanceof T.Mesh &&
+        (node.name === 'Body (lofted)' || node.material === sharedMaterials.plastic())
+      )
+        solids.push(node);
+    });
+    const ray = new T.Raycaster(undefined, new T.Vector3(0, -1, 0));
+    for (const x of [-0.45, -0.2, 0, 0.2, 0.45]) {
+      ray.ray.origin.set(x, model.f.y(model.s.roof + 0.5), z);
+      const hit = ray.intersectObjects(solids, false)[0];
+      expect(hit?.object.name, `front of scuttle at x = ${x}`).toBe('Body (lofted)');
+    }
+    body.root.traverse((node) => {
+      if (node instanceof T.Mesh) node.geometry.dispose();
+    });
+    body.lods[0].cabin?.display?.dispose();
+  });
+
+  it('keeps the side windows open at distance and leaves the single-cab pickup pillar-free', () => {
+    for (const id of ['eh3', 'sc7', 'rh3', 'rs5', 'rm8', 'rg63', 'rp6', 'rr4', 'lx12']) {
+      const model = modelFor(id),
+        house = new Greenhouse(model),
+        form = model.s.windowForm!;
+      for (const level of [0, 1, 2] as const) {
+        const rings = roadWindowRings(house, form, level, 0);
+        const material = roadWindowMaterial(house, form, level);
+        const spans = rings
+          .slice(1)
+          .map((ring, i) => ({
+            z: (ring.z + rings[i].z) / 2,
+            length: ring.z - rings[i].z,
+          }))
+          .filter(({ z }) => z > house.zRR && z < house.zRF);
+        const posts = spans.filter(({ z }) => material(z, 1) === 2);
+        const glass = spans
+          .filter(({ z }) => material(z, 1) === 1)
+          .reduce((sum, s) => sum + s.length, 0);
+        expect(glass, id).toBeGreaterThan((house.zRF - house.zRR) * 0.72);
+        if (id === 'rp6') expect(posts, id).toHaveLength(0);
+        else {
+          const width = posts.reduce((sum, s) => sum + s.length, 0);
+          expect(width, id).toBeGreaterThan(0.03);
+          expect(width, id).toBeLessThan(0.09);
+        }
+      }
+    }
+  });
+
   it('keeps each original road bonnet, its crease and its centre stripe aligned through every detail level', () => {
     for (const id of ['eh3', 'sc7', 'rh3', 'rs5', 'rm8', 'lx12', 'rg63', 'rr4', 'rp6', 'rd2']) {
       const model = modelFor(id);

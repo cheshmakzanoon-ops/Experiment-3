@@ -110,6 +110,8 @@ export interface Ring {
   /** Half profile from the lower centre (x = 0) to the upper centre (x = 0),
    * or, for an open ring, from the left edge to the top centre. */
   half: readonly Pt[];
+  /** Optional longitudinal stations across a swept half-section. */
+  depths?: readonly number[];
 }
 export interface LoftOptions {
   /** Closed rings wrap through the bottom centre; open rings (a greenhouse
@@ -149,7 +151,7 @@ export function loftRings(rings: readonly Ring[], options: LoftOptions = {}) {
       const o = (i * ringLength + k) * 3;
       positions[o] = x * side;
       positions[o + 1] = y;
-      positions[o + 2] = ring.z;
+      positions[o + 2] = ring.depths?.[j] ?? ring.z;
       uvs[(i * ringLength + k) * 2] = k / ringLength;
       uvs[(i * ringLength + k) * 2 + 1] = (ring.z - z0) / (z1 - z0 || 1);
     }

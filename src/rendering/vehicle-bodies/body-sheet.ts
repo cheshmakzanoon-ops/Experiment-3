@@ -1,3 +1,4 @@
+import type { RoadWindowForm } from './road-greenhouse.ts';
 import type { PaintFinish } from '../paint-finish.ts';
 import type { VehicleDefinition } from '../../simulation/vehicles.ts';
 import type { WheelSheet } from './wheel.ts';
@@ -74,6 +75,8 @@ export interface ClosedSheet {
   cabin: readonly [number, number, number, number];
   /** Roof half width as a share of the body half width. */
   roofWidth: number;
+  /** Glazing and pillar construction of the enclosed production-road body. */
+  windowForm?: RoadWindowForm;
   /** Open cockpit on a non-roadster style (an open-top prototype): no
    * greenhouse, a wrap-round screen and roll hoop as on a roadster. */
   open?: boolean;
@@ -601,6 +604,7 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     tail: 0.9,
     belt: 0.68,
     cabin: [0.12, 0.3, 0.6, 0.98],
+    windowForm: 'canopy',
     roofWidth: 0.57,
     flare: [0.06, 0.08],
     wing: { kind: 'ducktail', at: 1.24, height: 1.02, chord: 0.24, span: 0.8, flap: false },
@@ -653,6 +657,7 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     tail: 1.0,
     belt: 0.66,
     cabin: [0.06, 0.24, 0.5, 0.86],
+    windowForm: 'canopy',
     roofWidth: 0.6,
     flare: [0.06, 0.1],
     wing: { kind: 'ducktail', at: 1.22, height: 1.04, chord: 0.22, span: 0.84, flap: false },
@@ -1524,6 +1529,7 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     tail: 1.2,
     belt: 0.8,
     cabin: [0.1, 0.34, 1.0, 1.18],
+    windowForm: 'hatch',
     roofWidth: 0.74,
     flare: [0.03, 0.03],
     wing: { kind: 'roof', at: 1.06, height: 1.44, chord: 0.16, span: 0.86, flap: false },
@@ -1575,6 +1581,7 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     tail: 1.06,
     belt: 0.76,
     cabin: [0.26, 0.46, 0.92, 1.18],
+    windowForm: 'saloon',
     roofWidth: 0.7,
     flare: [0.05, 0.06],
     wing: { kind: 'lip', at: 1.36, height: 1.06, chord: 0.12, span: 0.8, flap: false },
@@ -1622,6 +1629,7 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     tail: 1.04,
     belt: 0.78,
     cabin: [0.46, 0.64, 0.86, 1.12],
+    windowForm: 'fastback',
     roofWidth: 0.66,
     flare: [0.06, 0.08],
     wing: { kind: 'ducktail', at: 1.36, height: 1.06, chord: 0.18, span: 0.82, flap: false },
@@ -1669,6 +1677,7 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     tail: 0.9,
     belt: 0.72,
     cabin: [0.52, 0.68, 0.9, 1.1],
+    windowForm: 'classic',
     roofWidth: 0.66,
     flare: [0.06, 0.08],
     wing: { kind: 'lip', at: 1.36, height: 0.92, chord: 0.12, span: 0.7, flap: false },
@@ -1715,6 +1724,7 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     tail: 1.15,
     belt: 1.22,
     cabin: [0.22, 0.36, 0.66, 0.7],
+    windowForm: 'cab',
     roofWidth: 0.7,
     flare: [0.1, 0.1],
     wing: null,
@@ -1763,6 +1773,7 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     tail: 1.08,
     belt: 0.82,
     cabin: [0.2, 0.4, 0.88, 1.12],
+    windowForm: 'saloon',
     roofWidth: 0.72,
     flare: [0.06, 0.07],
     wing: { kind: 'pedestal', at: 1.26, height: 1.32, chord: 0.24, span: 0.84, flap: false },
@@ -1809,6 +1820,7 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     tail: 1.0,
     belt: 0.72,
     cabin: [0.36, 0.54, 0.92, 1.2],
+    windowForm: 'fastback',
     roofWidth: 0.64,
     flare: [0.05, 0.07],
     wing: { kind: 'ducktail', at: 1.34, height: 1.02, chord: 0.16, span: 0.8, flap: false },

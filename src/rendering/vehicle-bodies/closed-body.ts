@@ -1,5 +1,5 @@
 import { addPickupRoofLamp } from './festival-face-lamps.ts';
-import { FestivalWipers } from './festival-wipers.ts';
+import { addRoadsterScreen } from './roadster-screen.ts';
 import * as T from 'three';
 import { clamp } from '../../core/math.ts';
 import type { ClosedSheet, WingSheet } from './body-sheet.ts';
@@ -22,6 +22,7 @@ import { Parts, placed } from './parts.ts';
 import type { Detail } from './wheel.ts';
 import { addFestivalRegistration } from './festival-registration.ts';
 import { addPickupBed, pickupBedBounds } from './pickup-bed.ts';
+import { fitRoadDeck, roadWindowMaterial, roadWindowRings, windscreenBow } from './road-greenhouse.ts';
 import { addRoadMirrors } from './road-mirrors.ts';
 import type { CarMaterials, BuiltLod } from './common.ts';
 import type { CabinLayout } from './cabin.ts';
@@ -337,14 +338,21 @@ export class ClosedBodyModel {
     for (let i = 0; i <= n; i++) out.push(this.zRear + ((this.zFront - this.zRear) * i) / n);
     for (const a of this.arches)
       for (const e of [a.z - a.r, a.z + a.r]) out.push(e - 0.0015, e + 0.0015);
+    const fixed: number[] = [];
+    if (this.s.windowForm) {
+      const front = this.f.z(this.s.cabin[0]);
+      fixed.push(front, front - windscreenBow(this.s.windowForm) - 0.065, this.f.z(this.s.cabin[3]));
+    }
     if (this.s.loadFloor !== undefined) {
       const { rear, front } = pickupBedBounds(this);
+      fixed.push(rear, front);
+    }
+    if (fixed.length) {
       // Preserve exact shared cut lines even when a uniform station falls
       // within the ordinary duplicate tolerance.
       return [
-        ...out.filter((z) => Math.abs(z - rear) > 0.001 && Math.abs(z - front) > 0.001),
-        rear,
-        front,
+        ...out.filter((z) => fixed.every((station) => Math.abs(z - station) > 0.001)),
+        ...fixed,
       ]
         .sort((p, q) => p - q)
         .filter((z, i, all) => i === 0 || z - all[i - 1] > 0.0008);
@@ -514,6 +522,8 @@ export class Greenhouse {
     return detail === 0 ? [4, 4, 3, 3] : detail === 1 ? [2, 2, 2, 2] : [1, 1, 1, 1];
   }
   rings(detail: Detail, inset = 0): Ring[] {
+    if (this.model.s.windowForm)
+      return roadWindowRings(this, this.model.s.windowForm, detail, inset);
     const { zWs, zRW } = this,
       counts = this.counts(detail);
     const n = Math.max(
@@ -530,6 +540,7 @@ export class Greenhouse {
   }
   /** Face material of the loft between samples j, j+1 at station zMid. */
   material(detail: Detail) {
+    if (this.model.s.windowForm) return roadWindowMaterial(this, this.model.s.windowForm, detail);
     const { zWs, zRF, zRR, zRW } = this,
       s = this.model.s,
       counts = this.counts(detail);
@@ -582,6 +593,11 @@ function greenhouse(gh: Greenhouse, detail: Detail, festivalParts?: Parts) {
       group.count,
       group.materialIndex,
     );
+  // Unmarked bodywork reads the WebGL default generic attribute value of zero.
+  opaque.setAttribute(
+    'bodyRoof',
+    new T.Uint8BufferAttribute(new Uint8Array(opaque.getAttribute('position').count).fill(1), 1),
+  );
   if (festivalParts) addFestivalGlazing(festivalParts, glass);
   return { opaque, glass };
 }
@@ -696,7 +712,9 @@ export function buildClosedBody(
   const { f, s } = model;
   const detailedFestival = detail < 2 && festivalDetailFor(cabin?.def, s);
   const parts = new Parts();
-  const rings = model.stations(detail).map((z) => model.ring(z, detail));
+  const rings = model
+    .stations(detail)
+    .map((z) => fitRoadDeck(model, model.ring(z, detail), detail));
   const openCockpit = s.style === 'roadster' || !!s.open;
   const deck = model.deckSample(detail),
     zLidFront = f.z(s.cabin[0]),
@@ -712,6 +730,9 @@ export function buildClosedBody(
       if (cabin && j >= deck && zMid < zLidFront && zMid > zLidRear) {
         // The near cabin's opening (inside the greenhouse sill); elsewhere
         // under the glass a dark lid (parcel shelf, engine cover, tonneau).
+        // The dark scuttle closes the foot of the swept screen over the
+        // dashboard. Its front edge is the same curve as the painted bonnet.
+        if (s.windowForm && zMid >= zLidFront - windscreenBow(s.windowForm) - 0.065) return M.interior;
         if (cell && zMid > cell.rear) {
           const sill = model.halfWidth(zMid) * 0.8 - 0.01 + 0.02;
           if (Math.max(rings[i].half[j][0], rings[i + 1].half[j][0]) <= sill) return -1;
@@ -1228,7 +1249,9 @@ export function buildClosedBody(
       );
     }
   }
-  if (openCockpit && detail < 2) {
+  if (s.style === 'roadster' && s.bonnetPress) {
+    addRoadsterScreen(parts, model, mats, glassMaterial, lod, detail);
+  } else if (openCockpit && detail < 2) {
     // Low screen and roll hoop (racing); a road roadster without a cage has
     // a taller framed screen and no hoop.
     const racing = s.style !== 'roadster' || s.extras.includes('cage');
@@ -1240,16 +1263,6 @@ export function buildClosedBody(
       glassMaterial,
       placed(0, yw + (racing ? 0.1 : 0.16), zw, racing ? -0.45 : -0.62),
     );
-    if (!racing && s.bonnetPress && detail === 0) {
-      const extent = 0.18 * Math.sin(0.62);
-      lod.wipers = FestivalWipers.fit(screen, {
-        baseZ: zw + extent,
-        topZ: zw - extent,
-        rise: 0.36 * Math.cos(0.62),
-        halfWidth: hw(zw) * 0.75,
-      });
-      if (lod.wipers) lod.group.add(lod.wipers.mesh);
-    }
     if (!racing)
       parts.add(
         roundedBox(hw(zw) * 1.52, 0.03, 0.03, 0.01, 1),

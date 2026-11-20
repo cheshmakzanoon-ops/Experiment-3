@@ -54,6 +54,7 @@ export function bodyLayersOf(material: T.Material): BodyLayers | undefined {
 }
 
 const DECLARATIONS = /* glsl */ `
+varying float vBodyRoof;
 uniform vec4 bodyLayerMask;
 uniform vec4 bodyLayerMask2;
 uniform vec4 bodyLayerA;
@@ -70,14 +71,9 @@ const GLSL = /* glsl */ `{
     float belt = bodyLayerA.x, low = bodyLayerA.y, roofY = bodyLayerA.z;
     float zWs = bodyLayerB.x, zRw = bodyLayerB.y, zFront = bodyLayerB.z, zRear = bodyLayerB.w;
     float hw = bodyLayerC.x;
-    // Over the cabin: above the beltline, between the glass stations.
-    float cabin = smoothstep(zRw - 0.06 - lw.z, zRw - 0.06 + lw.z, lp.z) *
-      (1.0 - smoothstep(zWs + 0.04 - lw.z, zWs + 0.04 + lw.z, lp.z));
-    float roofEdge = belt + 0.04;
-    // The greenhouse stands inside 0.8 of the half width: the side walls and
-    // haunches above the beltline stay body colour.
-    float roof = bodyLayerMask.x * cabin * smoothstep(roofEdge - lw.y, roofEdge + lw.y, lp.y) *
-      (1.0 - smoothstep(hw * 0.84 - lw.x, hw * 0.9 + lw.x, lax));
+    // Only the painted roof and pillars carry this attribute. A coordinate
+    // box also catches the scuttle and the rising rear haunch on low cars.
+    float roof = bodyLayerMask.x * vBodyRoof;
     float lower = bodyLayerMask.y * (1.0 - smoothstep(low - lw.y, low + lw.y, lp.y));
     // Bonnet: the centre panel ahead of the screen, above the intake mouths.
     float bonnet = bodyLayerMask.z *
@@ -105,7 +101,7 @@ const GLSL = /* glsl */ `{
       (1.0 - smoothstep(0.034 - lw.y, 0.034 + lw.y, abs(lp.y - flashY)));
     // Accent pin where the roof and lower bands end.
     float pin = bodyLayerMask2.z * clamp(
-      cabin * (1.0 - smoothstep(0.004, 0.004 + lw.y, abs(lp.y - roofEdge - 0.01))) * bodyLayerMask.x +
+      roof * (1.0 - smoothstep(0.004, 0.004 + lw.y, abs(lp.y - belt - 0.05))) +
       (1.0 - smoothstep(0.004, 0.004 + lw.y, abs(lp.y - low - 0.012))) * bodyLayerMask.y, 0.0, 1.0);
     float second = clamp(roof + lower + bonnet + nose + stripes, 0.0, 1.0);
     diffuseColor.rgb = mix(diffuseColor.rgb, bodyLayerSecondary, second);
@@ -154,8 +150,15 @@ export function installBodyLayers(material: T.MeshPhysicalMaterial, frame: Layer
   handle.setFrame(frame);
   handle.setLook(NONE);
   handles.set(material, handle);
-  chainShaderHook(material, 'body-livery-layers-v1', (shader) => {
+  chainShaderHook(material, 'body-livery-layers-v2', (shader) => {
     Object.assign(shader.uniforms, uniforms);
+    injectDeclarations(
+      shader,
+      'common',
+      'attribute float bodyRoof; varying float vBodyRoof;',
+      'vertex',
+    );
+    injectAfter(shader, 'begin_vertex', 'vBodyRoof = bodyRoof;', 'vertex');
     injectDeclarations(shader, 'common', DECLARATIONS, 'fragment');
     injectAfter(shader, 'color_fragment', GLSL, 'fragment');
   });

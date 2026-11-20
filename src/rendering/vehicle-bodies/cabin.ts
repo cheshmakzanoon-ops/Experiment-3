@@ -417,7 +417,13 @@ function closedCabin(
       CLOSED_HAND_DROP,
     ),
     cell: Object.freeze({ front: zWs + 0.12, rear, floor }),
-    dash: Object.freeze({ front: zWs + 0.1, rear: dashRear, top: dashTop }),
+    // The footwell may reach under the bonnet. The dashboard ends inside
+    // the windscreen foot, before the bonnet starts falling toward the axle.
+    dash: Object.freeze({
+      front: s.bonnetPress ? zWs - 0.012 : zWs + 0.1,
+      rear: dashRear,
+      top: dashTop,
+    }),
     roof: roofed ? f.y(s.roof) - 0.03 : null,
     hoop: cage ? Math.max(rear + 0.04, seatZ - 0.42) : null,
     // Gaze: the scuttle line about 0.08 rad below the view centre (a sports
