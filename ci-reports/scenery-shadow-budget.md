@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44755383945
-- commit: `893dd330d3` · Connect the classic triple’s intake, ignition and split crankcase to its twin-shock frame
-- event: push · status: completed · conclusion: **success**
-- started: 2026-11-20T14:38:21Z · updated: 2026-11-20T16:23:44Z
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44768207139
+- commit: `4da15ac2cc` · Form vented motocross handguards and stabilize the rider’s cornering posture
+- event: push · status: completed · conclusion: **failure**
+- started: 2026-11-20T15:55:55Z · updated: 2026-11-20T16:33:50Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (day) | success | 7 |  |
-| browser (sunset) | success | 7 |  |
-| browser (night) | success | 7 |  |
+| browser (day) | failure | 0 | Run node --experimental-transform-types scripts/source-stability.ts -- npm run build |
+| browser (sunset) | failure | 0 | Run node --experimental-transform-types scripts/source-stability.ts -- npm run build |
+| browser (night) | failure | 0 | Run node --experimental-transform-types scripts/source-stability.ts -- npm run build |
