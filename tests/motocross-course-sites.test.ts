@@ -3,12 +3,13 @@ import {
   MX_COURSE_SITE_HEIGHT,
   planMxCourseSites,
 } from '../src/rendering/offroad/mx-course-sites.ts';
-import { inStandFootprint } from '../src/rendering/grandstand.ts';
+import { inStandFootprint, standFrame } from '../src/rendering/grandstand.ts';
 import {
   mxFurnitureGround,
   planMxTracksideFurniture,
 } from '../src/rendering/offroad/mx-trackside-furniture.ts';
 import { STADIUM } from '../src/rendering/offroad/stadium-dimensions.ts';
+import { venuePlan } from '../src/rendering/venue-plan.ts';
 import { tracksideRigs } from '../src/rendering/trackside.ts';
 import { TrackTerrainSurface } from '../src/simulation/offroad/course-terrain.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
@@ -146,6 +147,37 @@ describe('surveyed motocross landmarks and jump guides', () => {
       );
     },
   );
+
+  it('keeps every Valley Ridge grandstand roof and footing behind the complete course', () => {
+    const track = rigTrack('valley-ridge-mx'),
+      sites = venuePlan(track).grandstands,
+      near = trackPoint();
+    expect(sites.length).toBeGreaterThanOrEqual(3);
+    expect(sites.reduce((sum, site) => sum + site.length, 0)).toBeGreaterThanOrEqual(154);
+    let smallest = Infinity;
+    for (const site of sites) {
+      const frame = standFrame(track, site),
+        sin = Math.sin(frame.yaw),
+        cos = Math.cos(frame.yaw),
+        length = site.length + 1.5,
+        steps = Math.ceil(length * 2);
+      // Survey the built stand in its render frame at half-metre spacing.
+      // The nearest lane may be the return from the last berm.
+      for (let i = 0; i <= steps; i++) {
+        const along = length * (i / steps - 0.5);
+        for (let across = -2; across <= 11; across += 0.5) {
+          const u = across * site.side;
+          const l = track.nearest(
+            frame.x + cos * u + sin * along,
+            frame.z - sin * u + cos * along,
+            near,
+          );
+          smallest = Math.min(smallest, Math.abs(l) - track.boundaryAt(near, l < 0 ? -1 : 1));
+        }
+      }
+    }
+    expect(smallest).toBeGreaterThan(4);
+  });
 
   it('rejects a road circuit without adding any scenery', () => {
     expect(() => planMxCourseSites(new Track())).toThrow(/motocross or supercross/);

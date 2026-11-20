@@ -3,6 +3,7 @@ import { isGpCourse } from '../../simulation/gp-corner-shape.ts';
 import { trackPoint, type Track } from '../../simulation/track.ts';
 import type { CatalogueMeta, VenueSpan } from '../../simulation/circuit-catalogue/venue-data.ts';
 import type { StandSpec, VenuePlan } from '../venue-plan.ts';
+import { fitMxGrandstands } from '../offroad/mx-grandstand-sites.ts';
 import { VENUE_THEMES } from './theme.ts';
 import { VenueField } from './field.ts';
 
@@ -168,7 +169,11 @@ export function catalogueVenuePlan(track: Track): VenuePlan {
     if (stands.length >= style.stands + 2) break;
   }
   const plan: VenuePlan = Object.freeze({
-    grandstands: Object.freeze(stands.filter((site) => standClear(track, site))),
+    grandstands: Object.freeze(
+      track.circuit.offroad?.kind === 'motocross'
+        ? fitMxGrandstands(track, stands)
+        : stands.filter((site) => standClear(track, site)),
+    ),
     serviceZones: Object.freeze([]),
     districts: Object.freeze([]),
     districtRelief: 0.5,
