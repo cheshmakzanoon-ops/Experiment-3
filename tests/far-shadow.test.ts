@@ -363,3 +363,55 @@ it('warms instanced shader variants with one representative, then restores full 
   expect(renderer.render).toHaveBeenCalledTimes(2);
   far.dispose();
 });
+
+it('submits each MX warmup material group with one triangle and restores the full race draw', () => {
+  const far = new FarShadow(1024),
+    scene = new T.Scene(),
+    sun = new T.DirectionalLight();
+  sun.castShadow = true;
+  const g = new T.BoxGeometry(),
+    actor = new T.Mesh(g, new T.MeshStandardMaterial());
+  g.setDrawRange(6, 24);
+  scene.add(actor);
+  const ranges: number[][] = [];
+  const draw = vi.fn(() => {
+    ranges.push([g.drawRange.start, g.drawRange.count]);
+  });
+  const gl = {
+    shadowMap: { enabled: true, autoUpdate: false },
+    setRenderTarget: vi.fn(),
+    getRenderTarget: () => null,
+    renderBufferDirect: draw,
+    render() {
+      for (const group of g.groups)
+        renderer.renderBufferDirect(
+          sun.shadow.camera,
+          scene,
+          g,
+          actor.material,
+          actor,
+          group as unknown as T.Group,
+        );
+    },
+  };
+  const renderer = gl as unknown as T.WebGLRenderer;
+  const bounds = new T.Box3(new T.Vector3(-5, 0, -5), new T.Vector3(5, 8, 5));
+  try {
+    far.warmCasters(renderer, scene, sun, new T.Vector3(1, 2, 1), bounds, true);
+    expect(ranges).toEqual([
+      [6, 0],
+      [6, 3],
+      [12, 3],
+      [18, 3],
+      [24, 3],
+      [30, 0],
+    ]);
+    expect(g.drawRange).toEqual({ start: 6, count: 24 });
+    expect(gl.renderBufferDirect).toBe(draw);
+    expect(sun.shadow.needsUpdate).toBe(true);
+  } finally {
+    g.dispose();
+    actor.material.dispose();
+    far.dispose();
+  }
+});

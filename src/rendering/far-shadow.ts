@@ -215,6 +215,7 @@ export class FarShadow {
     sun: T.DirectionalLight,
     direction: T.Vector3,
     bounds: T.Box3,
+    representativeTriangles = false,
   ) {
     if (!renderer.shadowMap.enabled || !sun.castShadow) return false;
     const shadow = sun.shadow,
@@ -239,17 +240,32 @@ export class FarShadow {
         if (object instanceof T.InstancedMesh) instances.set(object, object.count);
       });
       renderer.renderBufferDirect = (...args) => {
-        const object = args[4];
-        if (!(object instanceof T.InstancedMesh)) return draw.apply(renderer, args);
-        // Clamp only after the original before-hook and frustum checks. An
-        // interrupted owner's deferred reset must retain its real count, not
-        // the temporary one used to submit this shader's representative.
-        const count = object.count;
-        object.count = Math.min(count, 1);
+        const geometry = args[2],
+          object = args[4];
+        const instanced = object instanceof T.InstancedMesh ? object : null;
+        if (!instanced && !representativeTriangles) return draw.apply(renderer, args);
+        const count = instanced?.count ?? 0;
+        // Limit only this discarded warmup submission, after depth owners
+        // have selected their geometry. Each grouped material must still
+        // reach the renderer, even when its first index is far from zero.
+        const start = geometry.drawRange.start,
+          length = geometry.drawRange.count;
+        const cap =
+          representativeTriangles && object instanceof T.Mesh && !(object instanceof T.BatchedMesh);
+        if (cap) {
+          // At runtime Three supplies a geometry group here. Its declarations
+          // currently type that argument as an Object3D Group.
+          const group = args[5] as unknown as T.BufferGeometry['groups'][number] | null;
+          const first = Math.max(start, group?.start ?? 0);
+          const end = Math.min(start + length, group ? group.start + group.count : Infinity);
+          geometry.setDrawRange(first, Math.max(0, Math.min(3, end - first)));
+        }
+        if (instanced) instanced.count = Math.min(count, 1);
         try {
           return draw.apply(renderer, args);
         } finally {
-          object.count = count;
+          if (instanced) instanced.count = count;
+          if (cap) geometry.setDrawRange(start, length);
         }
       };
       this.fitLight(sun, direction, bounds);

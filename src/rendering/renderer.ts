@@ -2440,6 +2440,7 @@ export class RacingRenderer {
       this.sun,
       lightingDirection(this.lighting),
       this.farShadowBounds,
+      isMotocrossVenue(this.circuit.track),
     );
   }
   /** Bake the static far sun shadow for this lighting: no cars, people,
