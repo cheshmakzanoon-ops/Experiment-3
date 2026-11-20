@@ -65,6 +65,38 @@ describe('festival region terrain', () => {
 });
 
 describe('festival road network', () => {
+  it('retains every covering segment, layer, distance and normal when the tyre query radius changes', () => {
+    const tight = roadCandidates();
+    const wide = roadCandidates();
+    const reference = roadCandidates();
+    const fields = ['segment', 't', 'distance', 'outside', 'ox', 'oz', 'rx', 'rz', 'bridge'] as const;
+    let widened = 0;
+    for (const edge of net.edges) {
+      const i = (edge.first + edge.last) >> 1;
+      for (const side of [-1, 1]) {
+        const reach = edge.spec.halfWidth + edge.spec.shoulder + 2;
+        const x = net.x[i] + net.tz[i] * reach * side;
+        const z = net.z[i] - net.tx[i] * reach * side;
+        for (const height of [net.y[i] + 0.4, net.y[i] + 11]) {
+          net.covering(x, z, height, 0.1, tight);
+          net.covering(x, z, height, RUN_OUT, wide);
+          if (tight.count < wide.count) widened++;
+          // An unbounded radius retains the entire original parent grid. Run
+          // the same narrow queries through it, including the opposite deck.
+          net.covering(x, z, height, Infinity, reference);
+          for (const [radius, previous] of [[0.1, tight], [RUN_OUT, wide]] as const) {
+            net.covering(x, z, height, radius, reference);
+            expect(previous.count, edge.id).toBe(reference.count);
+            for (const field of fields) {
+              const expected = reference[field].subarray(0, reference.count);
+              expect(previous[field].subarray(0, previous.count)).toEqual(expected);
+            }
+          }
+        }
+      }
+    }
+    expect(widened).toBeGreaterThan(20);
+  });
   it('has at least 60 km of every road class with junctions and bridges', () => {
     const stats = net.stats();
     expect(stats.totalKm).toBeGreaterThanOrEqual(60);

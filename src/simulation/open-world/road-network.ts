@@ -33,6 +33,10 @@ export const ROAD_FLAG = Object.freeze({
 const EDGE_GAP = 50;
 /** Spatial index cell (m). */
 export const ROAD_CELL = 32;
+// A tyre revisits this eight-metre square many times during a 120 Hz race.
+// Keep only squares in recent use, independent of the size of the region.
+const CONTACT_CELL = ROAD_CELL / 4;
+const CONTACT_CACHE_SIZE = 256;
 /** Vertical separation (m) beyond which a centreline is another road layer;
  * the same value as track.ts ROUTE_LAYER_GAP (asserted by the unit tests),
  * duplicated so this module does not load the circuit catalogue. */
@@ -226,6 +230,8 @@ export class RoadNetwork {
   readonly grid: { x0: number; z0: number; cols: number; rows: number; start: Int32Array; items: Int32Array };
   /** Nearest segment of every grid cell (far-field fallback). */
   private readonly far: Int32Array;
+  private readonly contactCells: ({ key: number; reach: number; segments: number[] } | undefined)[] =
+    new Array(CONTACT_CACHE_SIZE);
   /** Last nearest() result details. */
   lastSegment = 0;
   lastT = 0;
@@ -1317,6 +1323,41 @@ export class RoadNetwork {
     this.pointOnSegment(bestI, bestT, out);
     return (x - out.x) * out.nx + (z - out.z) * out.nz;
   }
+  /** Filter the broad nearest-road grid against the entire contact square.
+   * Each retained entry still undergoes the exact layer, end-cap, distance
+   * and junction tests, in the original segment order. A larger requested
+   * reach replaces the cached bounds before any query can observe them. */
+  private contactSegments(sx: number, sz: number, cell: number, reach: number) {
+    const g = this.grid;
+    const key = sz * (g.cols * 4) + sx;
+    const slot = (key ^ (key >>> 8)) & (CONTACT_CACHE_SIZE - 1);
+    let entry = this.contactCells[slot];
+    if (entry && entry.key === key && entry.reach >= reach) return entry.segments;
+    if (!entry) {
+      entry = { key, reach, segments: [] };
+      this.contactCells[slot] = entry;
+    }
+    entry.key = key;
+    entry.reach = reach;
+    const segments = entry.segments;
+    segments.length = 0;
+    const left = g.x0 + sx * CONTACT_CELL;
+    const right = left + CONTACT_CELL;
+    const bottom = g.z0 + sz * CONTACT_CELL;
+    const top = bottom + CONTACT_CELL;
+    for (let k = g.start[cell]; k < g.start[cell + 1]; k++) {
+      const i = g.items[k];
+      const j = i + 1;
+      const spec = this.edges[this.edgeOf[i]].spec;
+      const pad = spec.halfWidth + spec.shoulder + reach + 1;
+      if (
+        Math.max(this.x[i], this.x[j]) + pad < left || Math.min(this.x[i], this.x[j]) - pad > right ||
+        Math.max(this.z[i], this.z[j]) + pad < bottom || Math.min(this.z[i], this.z[j]) - pad > top
+      ) continue;
+      segments.push(i);
+    }
+    return segments;
+  }
   /** Every road piece whose footprint (carriageway and shoulder) lies
    * within `reach` of (x, z) on the layer of height `y`, by true distance to
    * each segment: a point beyond a road's end or past the outside of a
@@ -1325,14 +1366,15 @@ export class RoadNetwork {
    * one edge count once (the closer). Returns the candidate count. */
   covering(x: number, z: number, y: number, reach: number, out: RoadCandidates) {
     const g = this.grid,
-      cx = Math.floor((x - g.x0) / ROAD_CELL),
-      cz = Math.floor((z - g.z0) / ROAD_CELL);
+      sx = Math.floor((x - g.x0) / CONTACT_CELL),
+      sz = Math.floor((z - g.z0) / CONTACT_CELL);
     out.count = 0;
-    if (cx < 0 || cz < 0 || cx >= g.cols || cz >= g.rows) return 0;
-    const cell = cz * g.cols + cx,
-      layered = Number.isFinite(y);
-    for (let k = g.start[cell]; k < g.start[cell + 1]; k++) {
-      const i = g.items[k],
+    if (!(sx >= 0 && sz >= 0 && sx < g.cols * 4 && sz < g.rows * 4) || reach < 0) return 0;
+    const cell = (sz >> 2) * g.cols + (sx >> 2);
+    const segments = this.contactSegments(sx, sz, cell, Number.isNaN(reach) ? Infinity : reach);
+    const layered = Number.isFinite(y);
+    for (let k = 0; k < segments.length; k++) {
+      const i = segments[k],
         j = i + 1,
         e = this.edges[this.edgeOf[i]],
         spec = e.spec,
