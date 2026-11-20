@@ -66,6 +66,7 @@ const FACE = Object.freeze({
  * snapshot readout changes. It never invents speed or gear from wall time. */
 export class BikeCockpit {
   readonly root = new T.Group();
+  private readonly display: T.Mesh;
   private readonly canvas = document.createElement('canvas');
   private readonly texture: T.CanvasTexture;
   private readonly material: T.MeshBasicMaterial;
@@ -100,6 +101,7 @@ export class BikeCockpit {
     shell.castShadow = shell.receiveShadow = true;
     this.root.add(shell);
     const display = new T.Mesh(new T.PlaneGeometry(face.width, face.height), this.material);
+    this.display = display;
     display.name = 'GP instrument display';
     // The face looks back and up towards the rider, not down into the cowl.
     display.rotation.y = Math.PI;
@@ -111,6 +113,9 @@ export class BikeCockpit {
     else this.root.position.set(0, 0.31, 0.6);
     this.root.rotation.x = 0.72;
     this.update({});
+  }
+  faceCentre(out: T.Vector3) {
+    return this.display.getWorldPosition(out);
   }
   update(values: BikeInstrumentValues) {
     const r = bikeInstrumentReadout(values, this.limiterRPM);

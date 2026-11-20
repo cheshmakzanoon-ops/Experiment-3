@@ -1282,11 +1282,11 @@ export class Rider {
       }
       const hand = new T.Group();
       if (mx) hand.name = `Motocross ${i === 0 ? 'left' : 'right'} hand`;
-      else if (gp) hand.name = `GP ${i === 0 ? 'left' : 'right'} hand`;
+      else hand.name = `${gp ? 'GP' : 'Road'} ${i === 0 ? 'left' : 'right'} hand`;
       if (mx) {
         const fingers = addMotocrossGlove(hand, detail, side, glove, mxGloveBack!, flex);
         if (fingers) this.brakeFingers = fingers;
-      } else if (gp && detail !== 'far') {
+      } else if (detail !== 'far') {
         const fingers = addGpRacingGlove(
           hand,
           detail,
@@ -1301,34 +1301,6 @@ export class Rider {
           new RoundedBoxGeometry(0.069, 0.047, 0.079, detail === 'far' ? 1 : 3, 0.017),
           glove,
         ).position.set(0, 0.0, 0.016);
-      if (detail !== 'far' && !mx && !gp) {
-        for (let finger = 0; finger < 4; finger++) {
-          const x = -0.025 + finger * 0.0165;
-          const points = [
-            new T.Vector3(x, 0.013, 0.042),
-            new T.Vector3(x, 0.013, 0.07),
-            new T.Vector3(x, -0.007, 0.079),
-            new T.Vector3(x, -0.025, 0.061),
-          ];
-          part(hand, new T.TubeGeometry(new T.CatmullRomCurve3(points), 9, 0.007, 6, false), glove);
-        }
-        const thumb = part(hand, limbGeometry(0.01, 0.008, 0.037, 8), glove);
-        thumb.position.set(side * 0.036, -0.01, 0.007);
-        thumb.rotation.set(0.85, 0, side * 0.4);
-      }
-      if (detail === 'high' && !mx && !gp) {
-        const knuckleBacking = part(
-          hand,
-          new RoundedBoxGeometry(0.062, 0.008, 0.027, 2, 0.006),
-          panel,
-        );
-        knuckleBacking.position.set(0, 0.024, 0.025);
-        for (let finger = 0; finger < 4; finger++) {
-          const knuckle = part(hand, new T.SphereGeometry(0.0085, 10, 6), armour);
-          knuckle.scale.set(1, 0.65, 1.15);
-          knuckle.position.set(-0.024 + finger * 0.016, 0.03, 0.025);
-        }
-      }
       this.forearms[i].group.add(hand);
       hand.position.set(0, RIDER.forearm + 0.02, 0);
       this.hands.push(hand);
@@ -1365,7 +1337,7 @@ export class Rider {
       batchBikeRigidMeshes(group);
   }
   helmetCentre(out: T.Vector3) {
-    return this.head.localToWorld(out.fromArray(GP_HELMET_CENTRE));
+    return this.head.localToWorld(this.gp ? out.fromArray(GP_HELMET_CENTRE) : out.set(0, 0.15, 0.02));
   }
   /** Exclude the followed rider's own helmet from the first-person lens.
    * A stable MX eye needs its own arm presentation: sleeves enter from below
@@ -1549,33 +1521,23 @@ export class Rider {
             mx ? 0.04 - attack * 0.03 : -0.1,
           ),
         );
-      if (mx) {
-        this.motocrossGripFrame(i);
-        gpContactJoint(this.grips[i], this.q, MX_GLOVE_GRIP, MX_GLOVE_WRIST, target);
-        // A braking rider can protract the outside shoulder within the suit.
-        // Preserve a little elbow flex at full hang-off rather than letting
-        // the fixed-length IK silently shorten its wrist target off the grip.
-        const reach = shoulder.distanceTo(target),
-          relaxedReach = RIDER.upperArm + RIDER.forearm - 0.01;
-        if (reach > relaxedReach) {
-          joint.subVectors(target, shoulder).multiplyScalar((reach - relaxedReach) / reach);
-          shoulder.add(joint);
-          pole.add(joint);
-        }
-        twoBone(this.upperArms[i], this.forearms[i], shoulder, target, pole, joint);
-        gpAttachAtJoint(
-          this.hands[i],
-          this.forearms[i].group.quaternion,
-          RIDER.forearm,
-          this.q,
-          MX_GLOVE_WRIST,
-        );
-        if (i === 1)
-          this.brakeFingers?.update(braking, this.brakeFingerTargets, this.grips[i], this.q);
-      } else {
-        twoBone(this.upperArms[i], this.forearms[i], shoulder, this.grips[i], pole, joint);
-        this.hands[i].rotation.set(0.2, 0, 0);
+      if (mx) this.motocrossGripFrame(i);
+      else gpGripFrame(this.gripAxes[i], this.q, i === 1 ? gpThrottleAngle(pose.throttle) : 0);
+      const wrist = mx ? MX_GLOVE_WRIST : GP_GLOVE_WRIST;
+      gpContactJoint(this.grips[i], this.q, mx ? MX_GLOVE_GRIP : GP_GLOVE_GRIP, wrist, target);
+      // Move the shoulder inside the suit when the planted wrist would exceed
+      // the physical reach. Keep the forearm, palm and handlebar joined.
+      const reach = shoulder.distanceTo(target),
+        relaxedReach = RIDER.upperArm + RIDER.forearm - 0.01;
+      if (reach > relaxedReach) {
+        joint.subVectors(target, shoulder).multiplyScalar((reach - relaxedReach) / reach);
+        shoulder.add(joint);
+        pole.add(joint);
       }
+      twoBone(this.upperArms[i], this.forearms[i], shoulder, target, pole, joint);
+      gpAttachAtJoint(this.hands[i], this.forearms[i].group.quaternion, RIDER.forearm, this.q, wrist);
+      if (i === 1)
+        this.brakeFingers?.update(braking, this.brakeFingerTargets, this.grips[i], this.q);
       hip
         .set(side * RIDER.hipWidth, 0, 0)
         .applyQuaternion(this.torso.quaternion)

@@ -4,13 +4,14 @@ import { BikeMaterials, BikeModel, staticSag } from '../src/rendering/bike.ts';
 import { bikeEntrantScheme } from '../src/rendering/bike-sheet.ts';
 import { motorcycleWheel } from '../src/rendering/gp-forged-wheel.ts';
 import { gpFrontBrakeAngle } from '../src/rendering/gp-front-brake.ts';
-import { gpThrottleAngle } from '../src/rendering/gp-rider-contact.ts';
+import { GP_GLOVE_GRIP, gpThrottleAngle } from '../src/rendering/gp-rider-contact.ts';
 import {
   ROAD_SWINGARM_PIVOT,
   RoadBikeContactPose,
   RoadBikeWheelPose,
 } from '../src/rendering/road-bike-pose.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
+import { RoadBikeInstruments } from '../src/rendering/road-bike-instruments.ts';
 
 const catalogue = [
   ['sbk1000', 'superbike'],
@@ -39,6 +40,40 @@ beforeAll(() => {
 afterAll(() => vi.unstubAllGlobals());
 
 describe('road motorcycles in the GP selector', () => {
+  it('keeps printed dial artwork alive while a second instrument cluster is using it', () => {
+    const trim = new T.MeshStandardMaterial(),
+      a = new RoadBikeInstruments(true, 10000, trim, trim),
+      b = new RoadBikeInstruments(true, 10000, trim, trim);
+    const faces = (clocks: RoadBikeInstruments) => {
+      const found: T.MeshStandardMaterial[] = [];
+      clocks.root.traverse((o) => {
+        if (o instanceof T.Mesh && o.material.name === 'Printed road rpm dial')
+          found.push(o.material);
+      });
+      return found;
+    };
+    try {
+      const [face] = faces(a);
+      expect(face).toBeDefined();
+      expect(faces(b)[0]).toBe(face);
+      const onDispose = vi.fn();
+      face.map!.addEventListener('dispose', onDispose);
+      a.dispose();
+      a.dispose();
+      expect(onDispose).not.toHaveBeenCalled();
+      b.dispose();
+      expect(onDispose).toHaveBeenCalledTimes(1);
+    } finally {
+      for (const clocks of [a, b]) {
+        clocks.dispose();
+        clocks.root.traverse((o) => {
+          if (o instanceof T.Mesh) o.geometry.dispose();
+        });
+      }
+      trim.dispose();
+    }
+  });
+
   it.each(['high', 'mid', 'far'] as const)(
     '%s preserves a hollow axle and four distinct pierced wheel silhouettes',
     (detail) => {
@@ -113,6 +148,51 @@ describe('road motorcycles in the GP selector', () => {
           model.pose({ ...pose, brake, throttle, rearBrake: 1 });
           expect(lever.rotation.y).toBeCloseTo(gpFrontBrakeAngle(brake), 12);
           expect(sleeve.rotation.y).toBeCloseTo(-gpThrottleAngle(throttle), 12);
+          model.root.updateMatrixWorld(true);
+          const hand = model.root.getObjectByName('Road right hand')!;
+          expect(
+            hand
+              .localToWorld(new T.Vector3(...GP_GLOVE_GRIP))
+              .distanceTo(sleeve.getWorldPosition(new T.Vector3())),
+          ).toBeLessThan(0.001);
+          const fingers = model.root.getObjectByName(
+            'GP continuous brake-finger leather',
+          ) as T.SkinnedMesh;
+          if (brake > 0)
+            for (const finger of [0, 1]) {
+              const tip = fingers.skeleton.bones[finger * 5 + 4].localToWorld(
+                new T.Vector3(0, 0, finger ? 0.019 : 0.018),
+              );
+              const target = model.rider.root.localToWorld(
+                model.rider.brakeFingerTargets![finger].clone(),
+              );
+              expect(tip.distanceTo(target)).toBeLessThan(0.001);
+            }
+        }
+        if (id === 'nr900' || id === 'cr750') {
+          const tach = model.root.getObjectByName('Road tachometer needle')!,
+            speedometer = model.root.getObjectByName('Road speedometer needle')!,
+            instruments = model.root.getObjectByName('Steering-mounted road instruments')!;
+          for (const [rpm, speed] of [
+            [0, 0],
+            [def.spec.limiterRPM / 2, 120 / 3.6],
+            [def.spec.limiterRPM * 1.2, 240 / 3.6],
+            [0, 0],
+          ]) {
+            model.pose({ ...pose, rpm, speed });
+            expect(tach.rotation.z).toBeCloseTo(
+              -T.MathUtils.degToRad(135 + 270 * Math.min(1, rpm / def.spec.limiterRPM)),
+              10,
+            );
+            expect(speedometer.rotation.z).toBeCloseTo(
+              -T.MathUtils.degToRad(135 + (270 * speed * 3.6) / 240),
+              10,
+            );
+          }
+          const centre = model.photoAnchor(2, new T.Vector3());
+          expect(
+            centre.distanceTo(instruments.localToWorld(new T.Vector3(0, 0, 0.005))),
+          ).toBeLessThan(1e-6);
         }
         const road = new RoadBikeContactPose(),
           wheels = new RoadBikeWheelPose(),

@@ -625,6 +625,8 @@ it('does not apply graphics or compile when preparation fails', async () => {
 
 it.each([
   ['gpr1', 'gpr2'],
+  ['sbk1000', 'ss600'],
+  ['nr900', 'cr750'],
   ['mx450', 'mx250'],
   ['sm450', 'mx250'],
 ] as const)(
@@ -640,7 +642,7 @@ it.each([
     const target = {
       cars,
       pendingFormulaPitFits: new Set([0, 1]),
-      deferredFormulaArt: new Set(first === 'gpr1' ? [] : [0, 1]),
+      deferredFormulaArt: new Set([0, 1]),
       circuit: { track: { circuit: {} } },
       installFormulaArt: vi.fn(),
       pitCrew: { setWheelGunFits, pitJacks: null },
@@ -662,8 +664,6 @@ it.each([
     RacingRenderer.prototype.setCars.call(renderer, 2);
     expect(setWheelGunFits).toHaveBeenCalledTimes(2);
     expect(setWheelGunFits.mock.calls[1][0]).toBe(0);
-    expect(target.installFormulaArt.mock.calls.map(([car]) => car.id)).toEqual(
-      first === 'gpr1' ? [] : [1, 0],
-    );
+    expect(target.installFormulaArt.mock.calls.map(([car]) => car.id)).toEqual([1, 0]);
   },
 );

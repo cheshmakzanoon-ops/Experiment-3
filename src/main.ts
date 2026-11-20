@@ -2070,10 +2070,11 @@ export class GameApp {
     if (document.pointerLockElement) document.exitPointerLock();
     this.ui.showMode('photo');
     const photoFrame = this.frozenPhoto;
-    const gpEntrants = Array.from({ length: photoFrame[H.CARS] }, (_, id) =>
-      vehicleAt(Math.round(photoFrame[carBase(id) + RACE_BASE + R.VEHICLE])).classId === 'gp-bike',
-    );
-    this.photoStudio.open(this.team.livery, photoFrame[H.CARS], gpEntrants);
+    const roadBikeEntrants = Array.from({ length: photoFrame[H.CARS] }, (_, id) => {
+      const definition = vehicleAt(Math.round(photoFrame[carBase(id) + RACE_BASE + R.VEHICLE]));
+      return definition.dynamicsKind === 'bike' && !definition.bike?.offroad;
+    });
+    this.photoStudio.open(this.team.livery, photoFrame[H.CARS], roadBikeEntrants);
     this.photoStudio.reference(this.inspectedReference);
   }
   private closePhoto() {

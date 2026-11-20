@@ -466,7 +466,7 @@ export class RacingRenderer {
   /** Rear-view surfaces bound to the mirror feeds, and the root that orients
    * them (the followed catalogue body's own mirrors, else the Formula car's). */
   private mirrorSurfaces: readonly T.Mesh[] = [];
-  private readonly gpProbeMaterials: T.MeshStandardMaterial[] = [];
+  private readonly bikeProbeMaterials: T.MeshStandardMaterial[] = [];
   private readonly noMirrorSurfaces: readonly T.Mesh[] = [];
   private mirrorRoot: T.Object3D | null = null;
   /** The followed machine's cabin (null: the Formula car or a motorcycle). */
@@ -971,7 +971,8 @@ export class RacingRenderer {
       const definition = frame
         ? vehicleAt(Math.round(frame[carBase(car.id) + RACE_BASE + R.VEHICLE]))
         : undefined;
-      if (unassignedDirtSlot || definition?.bike?.offroad) this.deferredFormulaArt.add(car.id);
+      if (unassignedDirtSlot || definition?.dynamicsKind === 'bike')
+        this.deferredFormulaArt.add(car.id);
       else this.installFormulaArt(car);
       this.reflectionMaterials.push([...car.reflectivePaint, this.circuit.roadMaterial]);
       if (car.id === 0) {
@@ -989,12 +990,11 @@ export class RacingRenderer {
       const definition = frame
         ? vehicleAt(Math.round(frame[carBase(id) + RACE_BASE + R.VEHICLE]))
         : undefined;
-      if (unassignedDirtSlot || definition?.bike?.offroad) return;
+      if (unassignedDirtSlot || definition?.dynamicsKind === 'bike') return;
       if (this.deferredFormulaArt.has(id)) {
         this.installFormulaArt(car);
         this.deferredFormulaArt.delete(id);
       }
-      if (definition?.classId === 'gp-bike') return;
       this.pitCrew.setWheelGunFits(id, measureWheelGunFits(car));
       if (this.pitCrew.pitJacks) this.pitCrew.setPitJackFits(id, measurePitJackFits(car));
       this.pendingFormulaPitFits.delete(id);
@@ -1567,9 +1567,8 @@ export class RacingRenderer {
     const chase = bikeView ?? CHASE;
     // The followed car always uses the near mesh. Its articulated subject is
     // needed to solve this frame's camera; every car is posed exactly once.
-    const gpSubject = bikeFollow && followedDefinition.classId === 'gp-bike';
-    if (!gpSubject && !followedDefinition.bike?.offroad)
-      car.setLod(0, this.quality, true, !!this.photo);
+    const roadBikeSubject = bikeFollow && !followedDefinition.bike?.offroad;
+    if (!bikeFollow) car.setLod(0, this.quality, true, !!this.photo);
     car.update(
       a,
       b,
@@ -1583,7 +1582,7 @@ export class RacingRenderer {
     );
     // Pose the subject before solving a first-frame or rewound photo. The
     // followed bike always selects the near LOD, regardless of camera range.
-    if (gpSubject)
+    if (roadBikeSubject)
       this.bikeShells.update(
         a,
         b,
@@ -1594,13 +1593,13 @@ export class RacingRenderer {
         this.follow,
         this.follow,
       );
-    const prototype = gpSubject ? this.bikeShells.gpPresentation(this.follow) : null;
-    const paint = prototype && this.bikeShells.gpProbePaint(this.follow);
+    const followedBike = roadBikeSubject ? this.bikeShells.gpPresentation(this.follow) : null;
+    const paint = followedBike && this.bikeShells.gpProbePaint(this.follow);
     let reflectionMaterials = this.reflectionMaterials[this.follow];
     if (paint) {
-      this.gpProbeMaterials.length = 0;
-      this.gpProbeMaterials.push(...paint, this.circuit.roadMaterial);
-      reflectionMaterials = this.gpProbeMaterials;
+      this.bikeProbeMaterials.length = 0;
+      this.bikeProbeMaterials.push(...paint, this.circuit.roadMaterial);
+      reflectionMaterials = this.bikeProbeMaterials;
     }
     if (this.reflectionFollow !== this.follow) {
       this.reflection.invalidate();
@@ -1749,7 +1748,7 @@ export class RacingRenderer {
       const offset = photoOffset(this.photo);
       // Read actual articulated world transforms after this snapshot's car update.
       // A close helmet photograph must orbit the helmet, not the chassis centre.
-      if (prototype) prototype.photoAnchor(this.photo.focusSubject, this.gaze);
+      if (followedBike) followedBike.photoAnchor(this.photo.focusSubject, this.gaze);
       else photoSubject(car, this.photo.focusSubject, this.gaze);
       this.desired
         .set(offset[0], offset[1] - 0.15, offset[2])
@@ -2141,7 +2140,7 @@ export class RacingRenderer {
         .set(presented[base + F.X], presented[base + F.Y], presented[base + F.Z])
         .distanceTo(this.camera.position);
       const definition = vehicleAt(Math.round(presented[base + RACE_BASE + R.VEHICLE]));
-      if (!definition.bike?.offroad && definition.classId !== 'gp-bike')
+      if (definition.dynamicsKind !== 'bike')
         this.cars[id].setLod(
           detailDistance(distance, this.camera.fov, this.camera.aspect),
           this.quality,
@@ -2163,13 +2162,13 @@ export class RacingRenderer {
     // A catalogue body's door/pod mirrors carry the rear-view feeds; back to
     // the Formula car's own when the followed entrant has none.
     const bodyMirrors = this.vehicleBodies?.mirrorsFor(this.follow) ?? null;
-    const surfaces = gpSubject ? this.noMirrorSurfaces : (bodyMirrors?.surfaces ?? car.mirrors);
+    const surfaces = roadBikeSubject ? this.noMirrorSurfaces : (bodyMirrors?.surfaces ?? car.mirrors);
     if (surfaces !== this.mirrorSurfaces) {
       this.reflection.attachMirrors(surfaces);
       this.reflection.invalidate();
       this.mirrorSurfaces = surfaces;
     }
-    this.mirrorRoot = prototype?.root ?? bodyMirrors?.root ?? car.root;
+    this.mirrorRoot = followedBike?.root ?? bodyMirrors?.root ?? car.root;
     if (this.bikeShells) {
       this.bikeShells.motocrossGround = studio
         ? undefined
@@ -2185,7 +2184,7 @@ export class RacingRenderer {
       this.quality,
       this.follow,
       undefined,
-      gpSubject ? this.follow : undefined,
+      roadBikeSubject ? this.follow : undefined,
     );
     this.bikeShells?.setFirstPerson(
       bikeFirstPersonView(cameraMode, menu, pregame, this.photo?.view) ? this.follow : -1,
@@ -2332,12 +2331,12 @@ export class RacingRenderer {
       for (let wheel = 0; wheel < 4; wheel++)
         wheelWater = Math.max(wheelWater, b[o + WHEEL_BASE + wheel * WHEEL_STRIDE + W.WATER]);
       const wetReflection = wheelWater > 0.04 || frameLiquidRain(b) > 0.01;
-      this.refreshReflectionExclusions(car, !!prototype);
+      this.refreshReflectionExclusions(car, !!followedBike);
       this.drawLedger.mark('probe');
       this.reflection.updateProbe(
         this.renderer,
         this.scene,
-        prototype?.root ?? car.root,
+        followedBike?.root ?? car.root,
         reflectionMaterials,
         this.graphics.reflections === 'local' && !menu && !studio,
         wetReflection ? 0.55 : 1.5,
@@ -2620,7 +2619,7 @@ export class RacingRenderer {
     this.mirrorDetailShown.length = 0;
     this.vehicleBodies?.restoreFeedDetail();
   }
-  private refreshReflectionExclusions(subject: FormulaCar, gpSubject = false) {
+  private refreshReflectionExclusions(subject: FormulaCar, roadBikeSubject = false) {
     const smallDetail = [
       this.pitCrew.root,
       this.gridPreparation.root,
@@ -2645,7 +2644,7 @@ export class RacingRenderer {
     // Mirrors keep rival cars and spray; the probe (paint/wet-road reflection
     // at 128 px) keeps static scenery only. The subject car is hidden by the probe itself.
     probe.push(this.effects.group);
-    if (gpSubject) probe.push(this.bikeShells.root);
+    if (roadBikeSubject) probe.push(this.bikeShells.root);
     for (const other of this.cars) if (other !== subject) probe.push(other.root);
     if (this.ghost) {
       probe.push(this.ghost.root);

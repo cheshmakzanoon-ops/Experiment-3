@@ -39,6 +39,7 @@ export function captureBikeSequence(
         | 'frontRotation'
         | 'rearBrake'
         | 'speed'
+        | 'rpm'
       >
     >;
     recovery?: 0 | 1 | 2;
@@ -89,7 +90,7 @@ export function captureBikeSequence(
     riding: true,
     speed: 42,
     gear: 4,
-    rpm: 12200,
+    rpm: id === 'nr900' || id === 'cr750' ? def.spec.limiterRPM * 0.76 : 12200,
   };
   bike.pose(pose);
   bike.root.position.y = def.bike!.cgHeight;
@@ -170,6 +171,17 @@ export function captureBikeSequence(
     new BikeShells().onboard(bike.root, camera.position, direction, false, def);
     camera.fov = bikeOnboardFov(42, def);
     camera.lookAt(camera.position.clone().add(direction));
+    camera.updateProjectionMatrix();
+  }
+  if (view === 'road-instruments') {
+    bike.rider.setFirstPerson(true);
+    const clocks = bike.root.getObjectByName('Steering-mounted road instruments');
+    if (!clocks) throw new Error('Selected bike has no analogue instrument cluster');
+    const target = bike.photoAnchor(2, new T.Vector3());
+    clocks.localToWorld(camera.position.set(0, -0.015, 0.38));
+    camera.up.set(0, 1, 0).transformDirection(clocks.matrixWorld);
+    camera.lookAt(target);
+    camera.fov = 31;
     camera.updateProjectionMatrix();
   }
   if (view === 'brake-lever') {

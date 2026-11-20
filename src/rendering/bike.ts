@@ -62,6 +62,7 @@ import {
 } from './gp-occlusion.ts';
 import { setGpPanelRelief } from './gp-panel-relief.ts';
 import { BikeCockpit } from './bike-cockpit.ts';
+import { RoadBikeInstruments } from './road-bike-instruments.ts';
 import { tcamFov } from './cockpit-framing.ts';
 import { tagWeatherSurface } from './weather-presentation.ts';
 import { carbonMaterial } from './materials.ts';
@@ -852,6 +853,7 @@ export class BikeModel {
   private readonly gpFrontHydraulics?: GPFrontHydraulics;
   private readonly gpBrakeTargets: [T.Vector3, T.Vector3] = [new T.Vector3(), new T.Vector3()];
   private readonly cockpit?: BikeCockpit;
+  private readonly roadClocks?: RoadBikeInstruments;
   private disposed = false;
   constructor(
     readonly definition: VehicleDefinition,
@@ -1650,6 +1652,12 @@ export class BikeModel {
         0,
         false,
       );
+    if (detail === 'high' && (naked || classic)) {
+      this.roadClocks = new RoadBikeInstruments(
+        classic, definition.spec.limiterRPM, m.dark, classic ? m.aluminium : m.forkUpper,
+      );
+      this.steer.add(this.roadClocks.root);
+    }
     // Instrument display behind the screen.
     if (detail === 'high' && full) {
       this.cockpit = new BikeCockpit(definition.spec.limiterRPM, gpPrototype);
@@ -2092,17 +2100,19 @@ export class BikeModel {
       case 1:
         return this.rider.helmetCentre(out);
       case 2:
+        if (this.roadClocks) return this.roadClocks.root.localToWorld(out.set(0, 0, 0.005));
         return this.cockpit
-          ? this.cockpit.root.localToWorld(out.set(0, 0, -0.0115))
+          ? this.cockpit.faceCentre(out)
           : this.steer.localToWorld(out.set(0, 0.026, 0));
       case 3:
         return this.frontSpin.getWorldPosition(out);
       case 4:
+        if (this.definition.id === 'nr900') return this.steer.localToWorld(out.set(0, -0.22, FORK_OFFSET + 0.18));
         return this.sprung.localToWorld(out.set(0, 0.14, 0.76));
       case 5:
-        return this.sprung.localToWorld(
-          out.set(0, this.definition.id === 'gpr2' ? 0.318 : 0.33, -0.74),
-        );
+        if (this.definition.id === 'nr900') return this.sprung.localToWorld(out.set(0, 0.30, -0.56));
+        if (this.definition.id === 'cr750') return this.sprung.localToWorld(out.set(0, 0.36, -0.62));
+        return this.sprung.localToWorld(out.set(0, this.definition.id === 'gpr2' ? 0.318 : 0.33, -0.74));
       case 6:
         return this.root.localToWorld(out.set(0, 3.1, 8.5));
       case 0:
@@ -2117,6 +2127,7 @@ export class BikeModel {
     const b = this.definition.bike!,
       L = this.definition.spec.wheelbase;
     this.cockpit?.update(v);
+    this.roadClocks?.update(v);
     this.gpRearsets?.update(v.rearBrake);
     this.m.tyreFinish.update(v, this.definition.id === 'gpr1' || this.definition.id === 'gpr2');
     const road = v.roadContact?.valid
@@ -2192,8 +2203,7 @@ export class BikeModel {
       this.matrix.multiplyMatrices(this.steerMount.matrix, this.steer.matrix);
       for (let i = 0; i < 2; i++) {
         this.rider.grips[i].copy(this.gripLocal[i]).applyMatrix4(this.matrix);
-        if (this.rider.gp)
-          this.rider.gripAxes[i].copy(this.gripAxisLocal[i]).transformDirection(this.matrix);
+        this.rider.gripAxes[i].copy(this.gripAxisLocal[i]).transformDirection(this.matrix);
       }
       if (this.gpFrontBrakeLever) {
         this.gpFrontBrakeLever.updateMatrix();
@@ -2246,6 +2256,7 @@ export class BikeModel {
     this.disposed = true;
     this.sliderSparks?.dispose();
     this.cockpit?.dispose();
+    this.roadClocks?.dispose();
     this.rider.root.removeFromParent();
     this.rider.dispose();
     this.root.traverse((o) => {
@@ -2442,13 +2453,18 @@ export class BikeShells {
     const rig = new BikeServiceRig(bikeServiceGeometry(definition));
     this.root.add(rig.root);
     this.install(rig.root);
-    const probePaint = gp
-      ? [
-          gpLiveryMaterial(materials, scheme, definition.id === 'gpr2' ? 'gpr2' : 'gpr1'),
-          gpWingPaint(materials, scheme),
-          materials.carbon,
-        ]
-      : undefined;
+    let probePaint: T.MeshStandardMaterial[] | undefined;
+    if (gp) {
+      probePaint = [
+        gpLiveryMaterial(materials, scheme, definition.id === 'gpr2' ? 'gpr2' : 'gpr1'),
+        gpWingPaint(materials, scheme),
+        materials.carbon,
+      ];
+    } else if (!dirtMud) {
+      probePaint = [materials.paint, materials.secondary, materials.accent, materials.carbon];
+      if (bikeSheetFor(definition).fairing === 'full')
+        probePaint.push(gpLiveryMaterial(materials, scheme, 'sport'));
+    }
     return {
       definition,
       materials,
