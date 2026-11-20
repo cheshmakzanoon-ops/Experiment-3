@@ -8,6 +8,7 @@ import { installSsrMask } from './ultra/ssr-mask.ts';
 import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
 import { sampleProfile } from './profile-sampling.ts';
 import { tagMudExposure } from './offroad/mud.ts';
+import { installMxGoggleFilm } from './offroad/motocross-goggle-film.ts';
 import { gpRacingBoot, installGpLeatherFinish } from './gp-rider-gear.ts';
 import { GpRiderGarment } from './gp-rider-garment.ts';
 import { addGpRacingGlove } from './gp-rider-glove.ts';
@@ -735,6 +736,7 @@ export class Rider {
       visor.iridescenceIOR = 1.32;
       visor.iridescenceThicknessRange = [180, 290];
       visor.name = 'Motocross smoked coated goggle lens';
+      if (detail !== 'far') installMxGoggleFilm(visor);
       helmet.metalness = 0;
       helmet.roughness = 0.31;
       helmet.clearcoat = 0.65;

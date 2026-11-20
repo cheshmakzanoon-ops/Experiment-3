@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { sampleProfile } from '../profile-sampling.ts';
+import { motocrossFilmTab } from './motocross-goggle-film.ts';
 import type { RiderDetail } from '../rider.ts';
 export { addMotocrossBoot, addMotocrossGlove } from './motocross-rider-equipment.ts';
 
@@ -810,7 +811,10 @@ function gogglePoint(u: number, v: number) {
   return new T.Vector3(
     x,
     T.MathUtils.lerp(bottom, top, v),
-    0.204 - edge * edge * 0.041 - (v - 0.5) ** 2 * 0.014,
+    // The shallow vertical crown catches a highlight as the rider looks
+    // through a corner. The seated rim and temple-strap positions stay fixed.
+    0.204 - edge * edge * 0.041 - (v - 0.5) ** 2 * 0.014
+      + 0.0048 * (1 - (2 * v - 1) ** 2) * (1 - edge ** 2),
   );
 }
 
@@ -909,6 +913,8 @@ export function addMotocrossHelmet(
   );
   rim.name = 'Motocross goggle frame';
   if (detail === 'high') {
+    part(head, motocrossFilmTab(gogglePoint(0.985, 0.52)), accent).name =
+      'Motocross folded tear-off pull tab';
     // Tear-off film locates on two small posts that follow the lens normal
     // as it wraps around each temple. The film uses the existing optical coat.
     for (const u of [0.12, 0.88]) {

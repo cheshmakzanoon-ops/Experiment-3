@@ -2,7 +2,10 @@ import * as T from 'three';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { BikeMaterials } from '../src/rendering/bike.ts';
 import { DirtBikeModel } from '../src/rendering/offroad/dirt-bike-model.ts';
-import { motocrossHelmetShell } from '../src/rendering/offroad/motocross-gear.ts';
+import {
+  addMotocrossHelmet,
+  motocrossHelmetShell,
+} from '../src/rendering/offroad/motocross-gear.ts';
 import {
   motocrossRadiatorShroud,
   motocrossTread,
@@ -25,6 +28,37 @@ beforeAll(() => {
 afterAll(() => vi.unstubAllGlobals());
 
 describe('motocross equipment surface and ownership', () => {
+  it('fits the toric lens and folded film tab to the same clutch-side rim', () => {
+    const head = new T.Group(),
+      material = new T.MeshStandardMaterial();
+    try {
+      addMotocrossHelmet(head, 'high', material, material, material, material);
+      const lens = head.getObjectByName('Motocross curved goggle lens') as T.Mesh;
+      const tab = head.getObjectByName('Motocross folded tear-off pull tab') as T.Mesh;
+      const p = lens.geometry.getAttribute('position');
+      const rim = new T.Vector3().fromBufferAttribute(p, 2 * 25 + 24);
+      const top = new T.Vector3().fromBufferAttribute(p, 5 * 25 + 12);
+      const centre = new T.Vector3().fromBufferAttribute(p, 2 * 25 + 12);
+      expect(centre.z - top.z).toBeGreaterThan(0.007);
+      const bounds = new T.Box3().setFromObject(tab),
+        size = bounds.getSize(new T.Vector3());
+      expect(bounds.distanceToPoint(rim)).toBeLessThan(0.009);
+      expect(size.x).toBeLessThan(0.025);
+      expect(size.z).toBeGreaterThan(0.025);
+      expect(bounds.min.x).toBeGreaterThan(0.1);
+      expect(tab.geometry.index!.count / 3).toBe(36);
+      // Both sides of the folded sheet have positive area and a finite unit normal.
+      const n = tab.geometry.getAttribute('normal');
+      for (let i = 0; i < n.count; i++)
+        expect(Math.hypot(n.getX(i), n.getY(i), n.getZ(i))).toBeCloseTo(1, 5);
+    } finally {
+      head.traverse((o) => {
+        if (o instanceof T.Mesh) o.geometry.dispose();
+      });
+      material.dispose();
+    }
+  });
+
   it.each(['high', 'mid', 'far'] as const)(
     '%s helmet has a real open eye port, supported temples and a projected chin',
     (detail) => {
