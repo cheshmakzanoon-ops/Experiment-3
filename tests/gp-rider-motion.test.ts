@@ -210,7 +210,7 @@ describe('GP riding motion on the actual articulated rider', () => {
   });
 
   it.each(['leathers', 'motocross'] as const)(
-    'isolates non-GP %s motion from GP-only suspension and rear-pedal inputs',
+    'keeps GP suspension pitch out of the non-GP %s pose with its rear pedal released or applied',
     (kit) => {
       const rider = new Rider(colours, 'mid', kit);
       try {
@@ -219,9 +219,23 @@ describe('GP riding motion on the actual articulated rider', () => {
         for (const speed of [1, 6, 50]) {
           const value = { ...base, speed, lean: 0.6, offset: 0.12, standing: 0.5, body: 0.2 };
           rider.ride(value);
-          const before = transforms(rider.root);
+          const released = transforms(rider.root);
+          const left = rider.root.getObjectByName('Motocross left boot');
+          const right = rider.root.getObjectByName('Motocross right boot');
+          const leftReleased = left?.matrixWorld.toArray();
+          const rightReleased = right?.matrixWorld.toArray();
+          rider.ride({ ...value, suspensionPitch: 0.12 });
+          expect(transforms(rider.root)).toEqual(released);
+          rider.ride({ ...value, rearBraking: 1 });
+          const applied = transforms(rider.root);
+          if (kit === 'motocross') {
+            expect(left!.matrixWorld.toArray()).toEqual(leftReleased);
+            expect(right!.matrixWorld.toArray()).not.toEqual(rightReleased);
+          } else {
+            expect(applied).toEqual(released);
+          }
           rider.ride({ ...value, suspensionPitch: 0.12, rearBraking: 1 });
-          expect(transforms(rider.root)).toEqual(before);
+          expect(transforms(rider.root)).toEqual(applied);
         }
       } finally {
         rider.dispose();
