@@ -13,10 +13,12 @@ import { DEFAULT_OPTIONS, DEFAULT_SETUP } from '../src/simulation/config.ts';
 import { AUREL } from '../src/simulation/circuits.ts';
 import { DirtBikeVehicle } from '../src/simulation/offroad/dirt-bike-vehicle.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
-import { B, BIKE_BASE, F, carBase } from '../src/simulation/protocol.ts';
+import { B, BIKE_BASE, F, H, O, OFFROAD_BASE, carBase } from '../src/simulation/protocol.ts';
 import type { SurfaceSample, Track, TrackPoint } from '../src/simulation/track.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
 import { Simulation } from '../src/simulation/world.ts';
+import { TerrainView } from '../src/rendering/offroad/terrain-view.ts';
+import { inspectMotocrossRiderContacts } from '../e2e/fixtures/motocross-rider-contact-contract.ts';
 import { motocrossInspectionChassis } from '../e2e/fixtures/motocross-bike-review.ts';
 
 beforeAll(() => {
@@ -360,3 +362,98 @@ describe('motocross authoritative sprung-chassis presentation', () => {
     }
   });
 });
+
+it.each([
+  ['valley-ridge-mx', 'mx450'],
+  ['arena-nord-sx', 'mx250'],
+  ['valley-ridge-mx', 'sm450'],
+] as const)(
+  '%s %s keeps the mounted hands and boots attached through recorded jumps and rewind',
+  (circuit, vehicle) => {
+    const sim = new Simulation({
+      ...DEFAULT_OPTIONS,
+      circuit,
+      vehicles: [vehicle],
+      opponents: 0,
+      laps: 5,
+      mode: 'race',
+      ruleset: 'motocross-moto',
+      seed: 75243,
+    });
+    sim.autoPlayer = true;
+    const terrain = new TerrainView(sim.track);
+    const shells = new BikeShells();
+    shells.motocrossGround = terrain;
+    const host = { root: new T.Object3D() },
+      hosts = [host];
+    const camera = new T.PerspectiveCamera(58, 1.6);
+    const cameraOffset = new T.Vector3(0, 1.5, -4);
+    const view = new PresentedFrame();
+    const calls = vi.spyOn(DirtBikeModel.prototype, 'pose');
+    const o = carBase(0);
+    const pose = (a: Float32Array, b: Float32Array) => {
+      const frame = view.sample(a, b, 0.5);
+      host.root.position.fromArray(frame, o + F.X);
+      host.root.quaternion.fromArray(frame, o + F.QX);
+      camera.position.copy(host.root.position).add(cameraOffset);
+      shells.update(a, b, 0.5, hosts, camera, 'high', 0);
+      return calls.mock.contexts.at(-1) as DirtBikeModel;
+    };
+    const attachmentMatrices = (model: DirtBikeModel) => {
+      model.root.updateMatrixWorld(true);
+      return ['left hand', 'right hand', 'left boot', 'right boot'].flatMap((part) =>
+        model.rider.root.getObjectByName(`Motocross ${part}`)!.matrixWorld.toArray(),
+      );
+    };
+    let previous = sim.makeFrame(),
+      current = sim.makeFrame();
+    const rewind: { a: Float32Array; b: Float32Array; matrices: number[] }[] = [];
+    let flight = 0,
+      onGround = 0,
+      planted = 0;
+    try {
+      for (let tick = 1; tick <= 40 * 120; tick++) {
+        sim.step(1 / 120);
+        if (tick % 4) continue;
+        [previous, current] = [current, previous];
+        sim.writeFrame(current);
+        terrain.record(sim.offroad!.terrain.renderDelta(), current[H.TIME], true);
+        if (tick % 20) continue;
+        const model = pose(previous, current);
+        const v = calls.mock.calls.at(-1)![0];
+        if (!v.riding) continue;
+        const airborne = current[o + OFFROAD_BASE + O.AIRBORNE] >= 0.5;
+        if (airborne) flight++;
+        else onGround++;
+        for (const [side, contact] of inspectMotocrossRiderContacts(model, v.dab).entries()) {
+          expect(contact.handError).toBeLessThan(1e-6);
+          expect(contact.wristJointError).toBeLessThan(1e-6);
+          expect(contact.ankleJointError).toBeLessThan(1e-6);
+          expect(contact.calfAttachmentError).toBeLessThan(1e-6);
+          // A foot planted on the visible berm has deliberately left its peg.
+          if ((v.dab ?? 0) * (side === 0 ? 1 : -1) > 0.01) continue;
+          expect(contact.soleContactFound).toBe(true);
+          expect(contact.ankleError).toBeLessThan(0.009);
+          planted++;
+        }
+        if (airborne || tick % 160 === 0)
+          rewind.push({
+            a: previous.slice(),
+            b: current.slice(),
+            matrices: attachmentMatrices(model),
+          });
+      }
+      expect(flight).toBeGreaterThan(5);
+      expect(onGround).toBeGreaterThan(100);
+      expect(planted).toBeGreaterThan(400);
+      for (const sample of rewind.reverse()) {
+        terrain.showAt(sample.b[H.TIME]);
+        expect(attachmentMatrices(pose(sample.a, sample.b))).toEqual(sample.matrices);
+      }
+    } finally {
+      calls.mockRestore();
+      shells.disposeAll();
+      terrain.dispose();
+    }
+  },
+);

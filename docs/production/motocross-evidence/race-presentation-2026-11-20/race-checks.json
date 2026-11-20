@@ -483,5 +483,73 @@
         }
       }
     ]
+  },
+  "riderMotion": {
+    "seed": 75243,
+    "secondsPerBike": 40,
+    "physicsHz": 120,
+    "snapshotHz": 30,
+    "observedPoseHz": 6,
+    "presentationAlpha": 0.5,
+    "description": "The Three.js race presenter receives normal simulation snapshots and the recorded deforming track. World-space glove and joint points and the skinned boot surfaces are sampled 240 times per machine. Sole-to-peg measurements omit the foot when the rider dabs. Backward seeks compare all 16 world-matrix elements of both hands and both boots.",
+    "results": [
+      {
+        "circuit": "valley-ridge-mx",
+        "vehicle": "mx450",
+        "rewindProbes": 43,
+        "rewindMaxMatrixDifference": 0,
+        "airborne": 16,
+        "ground": 224,
+        "sides": 480,
+        "checkedSoles": 480,
+        "lostSoles": 0,
+        "maxHandM": 2.010208941128915e-14,
+        "maxWristM": 2.0097183471152322e-14,
+        "maxAnkleM": 2.009841006845403e-14,
+        "maxSoleM": 0.0014467944544541977,
+        "maxCalfM": 7.130674770601032e-14,
+        "braking": 1,
+        "throttle": 1,
+        "standing": 1
+      },
+      {
+        "circuit": "arena-nord-sx",
+        "vehicle": "mx250",
+        "rewindProbes": 43,
+        "rewindMaxMatrixDifference": 0,
+        "airborne": 14,
+        "ground": 226,
+        "sides": 480,
+        "checkedSoles": 446,
+        "lostSoles": 0,
+        "maxHandM": 1.4649896587576702e-14,
+        "maxWristM": 1.4323167916492475e-14,
+        "maxAnkleM": 1.464863448147162e-14,
+        "maxSoleM": 0.0014717888496756787,
+        "maxCalfM": 5.884988458016032e-14,
+        "braking": 1,
+        "throttle": 1,
+        "standing": 1
+      },
+      {
+        "circuit": "valley-ridge-mx",
+        "vehicle": "sm450",
+        "rewindProbes": 43,
+        "rewindMaxMatrixDifference": 0,
+        "airborne": 15,
+        "ground": 225,
+        "sides": 480,
+        "checkedSoles": 480,
+        "lostSoles": 0,
+        "maxHandM": 2.010208941128915e-14,
+        "maxWristM": 2.010208941128915e-14,
+        "maxAnkleM": 2.009841006845403e-14,
+        "maxSoleM": 0.0014445327852338763,
+        "maxCalfM": 6.507422410626935e-14,
+        "braking": 1,
+        "throttle": 1,
+        "standing": 1
+      }
+    ]
   }
 }
