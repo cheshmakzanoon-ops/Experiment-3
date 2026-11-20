@@ -234,7 +234,16 @@ export class RouteDriver {
     // steers it back onto asphalt; shorten the chord as the footprint leaves.
     const roadHalf = path.halfWidth[path.index(this.d)];
     const overhang = Math.abs(this.lateral) + c.definition.halfExtents[0] - roadHalf;
-    const edgeRecovery = bike ? 0 : clamp(overhang / 0.65, 0, 1) * clamp((10 - c.speed) / 6, 0, 1);
+    let edgeRecovery = 0;
+    if (!bike && overhang > 0 && c.speed < 10) {
+      // A steep steering demand on a dry shoulder can hook the front tyres
+      // back across the road. Blend the shorter pursuit chord with the water
+      // film on the contact patches; clear asphalt keeps its normal arc.
+      let water = 0;
+      for (const patch of c.contacts) water = Math.max(water, patch.water);
+      edgeRecovery =
+        clamp(water / 0.15, 0, 1) * clamp(overhang / 0.65, 0, 1) * clamp((10 - c.speed) / 6, 0, 1);
+    }
     const cruiseLook = clamp(6 + c.speed * 0.5, 8, 48);
     const lookahead = cruiseLook + (3.6 - cruiseLook) * edgeRecovery;
     const anticipation = bike ? 0 : 0.16 * clamp((c.speed - 6) / 12, 0, 1);
@@ -301,7 +310,17 @@ export class RouteDriver {
       this.recovery <= 0
     )
       this.understeer = approach(this.understeer, clamp(c.steer / geometric, 0.9, 2.5), dt * 0.8);
-    command.steer = clamp((purePursuit * this.understeer) / (c.spec.maxSteer * speedSteer), -1, 1);
+    let steerAngle = purePursuit * this.understeer;
+    if (!bike && c.speed > 18 && c.localVelocity.z > 12) {
+      // At appreciable body slip the front tyres must be steered back toward
+      // their travel direction to catch the rear axle. Path pursuit alone
+      // can amplify the second swing after a bump or a side-by-side pass.
+      const sideslip = Math.atan2(c.localVelocity.x, c.localVelocity.z);
+      const catchWeight =
+        clamp((Math.abs(sideslip) - 0.06) / 0.13, 0, 1) * clamp((c.speed - 18) / 10, 0, 1);
+      steerAngle += clamp(sideslip * 0.85, -0.31, 0.31) * catchWeight;
+    }
+    command.steer = clamp(steerAngle / (c.spec.maxSteer * speedSteer), -1, 1);
     // A motorcycle facing away from its route (a route planned from where it
     // stopped) turns round at walking pace on the bars, then leans.
     let turning = false,

@@ -52,15 +52,38 @@ function scenario(width = 7.6, edgeId = 24) {
 
 describe('festival rivals leave room for real cars', () => {
   it('turns back onto the road when a slow uphill launch straddles a loose shoulder', () => {
-    const s=scenario(3.5);
-    for(const side of [-1,1]) {
-      s.place(s.car,210,side*3.18,1.5);
+    const s = scenario(3.5);
+    for (const side of [-1, 1]) {
+      s.place(s.car, 210, side * 3.18, 1.5);
       s.driver.relocate(210);
-      s.driver.update(1/120,[s.car]);
-      expect(s.car.input.steer*side).toBeLessThan(-0.60);
+      for (const contact of s.car.contacts) contact.water = 0;
+      s.driver.update(1 / 120, [s.car]);
+      const dry = s.car.input.steer * side;
+      for (const contact of s.car.contacts) contact.water = 1.2;
+      s.driver.update(1 / 120, [s.car]);
+      expect(s.car.input.steer * side).toBeLessThan(-0.6);
+      expect(s.car.input.steer * side).toBeLessThan(dry - 0.15);
       expect(s.car.input.reverse).toBe(false);
     }
   });
+  it('catches rear-axle sideslip in either direction at speed without moving the requested lane', () => {
+    const s = scenario();
+    const measure = (slip: number) => {
+      s.place(s.car, 210, 0, 38);
+      s.driver.relocate(210);
+      s.car.localVelocity.x = slip;
+      s.driver.update(1 / 120, [s.car]);
+      return { angle: s.car.input.steer, lane: s.car.aiOffset };
+    };
+    const straight = measure(0),
+      right = measure(-9),
+      left = measure(9);
+    expect(right.angle).toBeLessThan(straight.angle - 0.25);
+    expect(left.angle).toBeGreaterThan(straight.angle + 0.25);
+    expect(left.lane).toBeCloseTo(straight.lane);
+    expect(right.lane).toBeCloseTo(straight.lane);
+  });
+
   it('feeds a new passing lane into the steering without an instantaneous lateral velocity step', () => {
     const s = scenario();
     let previous = 0,
