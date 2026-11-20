@@ -33,6 +33,7 @@ Object.assign(globalThis, {
 });
 
 function countStorage(roots: T.Object3D[]) {
+  const geometries = new Set<T.BufferGeometry>();
   const buffers = new Set<ArrayBufferLike>(),
     images = new Set<T.Source>();
   let baseImageBytes = 0;
@@ -40,6 +41,7 @@ function countStorage(roots: T.Object3D[]) {
     root.traverse((object) => {
       if (!(object instanceof T.Mesh)) return;
       const g = object.geometry as T.BufferGeometry;
+      geometries.add(g);
       const attrs = [...Object.values(g.attributes), ...Object.values(g.morphAttributes).flat()];
       if (g.index) attrs.push(g.index);
       for (const a of attrs) buffers.add(a.array.buffer);
@@ -55,6 +57,7 @@ function countStorage(roots: T.Object3D[]) {
   const bytes = Array.from(buffers).reduce((sum, buffer) => sum + buffer.byteLength, 0);
   return {
     rigs: roots.length,
+    uniqueGeometries: geometries.size,
     visible: roots.filter((root) => root.visible).length,
     geometryMiB: +(bytes / 2 ** 20).toFixed(2),
     baseImageMiB: +(baseImageBytes / 2 ** 20).toFixed(2),
@@ -124,6 +127,11 @@ async function field(mode: 'storage' | 'timing') {
     weather.dispose();
   }
 }
-console.log('CPU rider data at the starting gate', await field('storage'));
-for (let run = 0; run < 3; run++)
-  console.log('Eight-rider CPU camera cut', run + 1, await field('timing'));
+if (process.argv.includes('--cadence')) {
+  const { runMotocrossDisplayCadence } = await import('./motocross-display-cadence.ts');
+  runMotocrossDisplayCadence();
+} else {
+  console.log('CPU rider data at the starting gate', await field('storage'));
+  for (let run = 0; run < 3; run++)
+    console.log('Eight-rider CPU camera cut', run + 1, await field('timing'));
+}

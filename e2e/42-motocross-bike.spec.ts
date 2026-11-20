@@ -2,7 +2,10 @@ import { expect, test as base } from '@playwright/test';
 import { build } from 'vite';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
-import type { captureMotocrossBike } from './fixtures/motocross-bike-review.ts';
+import type {
+  captureMotocrossBike,
+  captureMotocrossFieldSharing,
+} from './fixtures/motocross-bike-review.ts';
 import { fixtureDefine } from './fixtures/owner-build.ts';
 
 type CaptureOptions = {
@@ -13,6 +16,7 @@ type CaptureOptions = {
 };
 type CaptureResult = ReturnType<typeof captureMotocrossBike>[number];
 type Review = {
+  field: () => Promise<ReturnType<typeof captureMotocrossFieldSharing>>;
   capture: (options: CaptureOptions) => Promise<ReturnType<typeof captureMotocrossBike>>;
   attach: (name: string, result: CaptureResult) => Promise<void>;
 };
@@ -100,7 +104,15 @@ const test = base.extend<{ review: Review }>({
         expect(contact.calfSamples).toBeGreaterThan(10);
       }
     };
-    await use({ capture, attach });
+    const field = () =>
+      page.evaluate(() =>
+        (
+          window as unknown as {
+            MotocrossReview: { captureMotocrossFieldSharing: typeof captureMotocrossFieldSharing };
+          }
+        ).MotocrossReview.captureMotocrossFieldSharing(),
+      );
+    await use({ capture, attach, field });
     expect(errors).toEqual([]);
   },
 });
@@ -292,3 +304,22 @@ for (const [id, detail] of [
     expect(drive[1].hash).toBe(drive[2].hash);
     expect(drive[0].hash).toBe(drive[3].hash);
   });
+
+test('shared motocross GPU buffers preserve the surviving rider and release the empty field', async ({
+  review,
+}, info) => {
+  const result = await review.field();
+  await info.attach('field-buffer-lifetime.json', {
+    body: JSON.stringify(result, null, 2),
+    contentType: 'application/json',
+  });
+  const { one, both, survivor, empty } = result;
+  expect([one.glError, both.glError, survivor.glError, empty.glError]).toEqual([0, 0, 0, 0]);
+  expect(one.foreground).toBeGreaterThan(500);
+  expect(both.foreground).toBeGreaterThan(one.foreground);
+  expect(both.hash).not.toBe(one.hash);
+  expect(survivor).toEqual(one);
+  expect(both.geometries).toBeLessThan(one.geometries * 1.7);
+  expect(empty.foreground).toBe(0);
+  expect(empty.geometries).toBe(0);
+});

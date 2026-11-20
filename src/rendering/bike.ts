@@ -2310,13 +2310,13 @@ export class BikeShells {
     this.install(rig.root);
     return { definition, materials, levels, dirtMud, level: -1, rig, riderBody, occlusion };
   }
-  private buildDirtLevel(entry: Entry, id: number, level: number) {
+  private buildDirtLevel(entry: Entry, id: number, level: number, shareGeometry: boolean) {
     const detail = BIKE_DETAILS[level];
     const model = new DirtBikeModel(entry.definition, id, detail, entry.materials, entry.dirtMud!);
-    this.dirtGeometry.share(entry.definition.id + '/' + detail, model.root);
+    entry.levels[level] = model;
+    if (shareGeometry) this.dirtGeometry.share(entry.definition.id + '/' + detail, model.root);
     model.root.visible = false;
     this.install(model.root);
-    entry.levels[level] = model;
     return model;
   }
   /** Construct the other race-camera levels while the worker is paused.
@@ -2329,7 +2329,7 @@ export class BikeShells {
         if (entry.levels[level]) continue;
         await yieldFrame();
         if (cancelled() || this.entries.get(id) !== entry) return false;
-        this.buildDirtLevel(entry, id, level);
+        this.buildDirtLevel(entry, id, level, this.entries.size > 1);
       }
     }
     return !cancelled();
@@ -2354,6 +2354,7 @@ export class BikeShells {
       level.root.add(level.rider.root);
       this.uninstall(level.root);
       this.root.remove(level.root);
+      this.dirtGeometry.release(level.root);
       level.dispose();
     }
     this.uninstall(entry.rig.root);
@@ -2458,7 +2459,7 @@ export class BikeShells {
       if (previous === 0 && level === 1 && distance < 36) level = 0;
       if (previous === 1 && level === 2 && distance < 106) level = 1;
       if (previous === 2 && level === 1 && distance > 94) level = 2;
-      const model = entry.levels[level] ?? this.buildDirtLevel(entry, id, level);
+      const model = entry.levels[level] ?? this.buildDirtLevel(entry, id, level, b[H.CARS] > 1);
       if (!model.root.parent) this.root.add(model.root);
       const old = entry.levels[previous];
       if (old && old !== model) {

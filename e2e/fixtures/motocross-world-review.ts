@@ -37,6 +37,7 @@ export async function captureMotocrossWorld(circuit: 'valley-ridge-mx' | 'arena-
     simulation.step(1 / 120);
     if (step % 4 === 0) world.update(simulation.makeFrame());
   }
+  console.info(`[MX world] ${circuit} grid and recorded terrain ready`);
   const frame = simulation.makeFrame();
   world.update(frame);
   const delta = simulation.offroad!.terrain.renderDelta(true);
@@ -213,6 +214,7 @@ export async function captureMotocrossWorld(circuit: 'valley-ridge-mx' | 'arena-
     // Exercise the actual photographed-soil path used by the production
     // renderer. Previously this component only prepared procedural maps and
     // missed the meadow macro that tinted the full-app dirt pink.
+    console.info(`[MX world] ${circuit} requesting photographed soil`);
     scannedGround.attach(renderer, 'high');
     if (!(await scannedGround.ready(60000)))
       throw new Error(
@@ -224,6 +226,7 @@ export async function captureMotocrossWorld(circuit: 'valley-ridge-mx' | 'arena-
     // All observations of the two camera views share this venue and snapshot.
     const views = ['riding', 'venue'] as const;
     for (const view of views) {
+      console.info(`[MX world] ${circuit} warming ${view} camera`);
       selectView(view);
       renderer.render(scene, camera);
       renderer.render(scene, camera);

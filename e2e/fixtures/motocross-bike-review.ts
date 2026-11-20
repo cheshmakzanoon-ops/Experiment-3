@@ -3,7 +3,8 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { BikeMaterials, BikeShells, bikeOnboardFov, staticSag } from '../../src/rendering/bike.ts';
 import { DirtBikeModel } from '../../src/rendering/offroad/dirt-bike-model.ts';
 import { mudUniforms } from '../../src/rendering/offroad/mud.ts';
-import { VEHICLES, type VehicleDefinition } from '../../src/simulation/vehicles.ts';
+import { VEHICLES, vehicleIndex, type VehicleDefinition } from '../../src/simulation/vehicles.ts';
+import { CAR_STRIDE, HEADER, H, F, R, RACE_BASE, carBase } from '../../src/simulation/protocol.ts';
 import type { RiderDetail } from '../../src/rendering/rider.ts';
 import { inspectMotocrossCockpit } from './motocross-cockpit-contract.ts';
 import { inspectMotocrossRiderContacts } from './motocross-rider-contact-contract.ts';
@@ -275,6 +276,71 @@ export function captureMotocrossBike(
     env.dispose();
     room.dispose();
     pmrem.dispose();
+    renderer.dispose();
+    renderer.forceContextLoss();
+  }
+}
+
+/** Render one rider before and after the other entrant hands back a shared
+ * mesh. This also exercises Three's actual WebGL buffer and VAO disposal. */
+export function captureMotocrossFieldSharing() {
+  const renderer = new T.WebGLRenderer({ antialias: false, preserveDrawingBuffer: true });
+  const width = 480,
+    height = 300;
+  renderer.setSize(width, height);
+  const scene = new T.Scene(),
+    shells = new BikeShells();
+  scene.background = new T.Color(0x727d85);
+  const sun = new T.DirectionalLight(0xffffff, 2.5);
+  sun.position.set(-3, 5, 4);
+  scene.add(shells.root, sun, new T.HemisphereLight(0xffffff, 0x605743, 1.2));
+  const camera = new T.PerspectiveCamera(44, width / height, 0.05, 50);
+  camera.position.set(3.7, 1.8, 3.7);
+  camera.lookAt(0, 0.35, 0);
+  const frame = new Float32Array(HEADER + 2 * CAR_STRIDE);
+  frame[H.CARS] = 2;
+  const cars = [-1.1, 0.8].map((x, i) => {
+    const slot = carBase(i);
+    frame[slot + F.QW] = 1;
+    frame[slot + RACE_BASE + R.VEHICLE] = vehicleIndex('mx450');
+    const root = new T.Object3D();
+    root.position.x = x;
+    return { root };
+  });
+  const present = () => shells.update(frame, frame, 1, cars, camera, 'high', 1);
+  const pixels = new Uint8Array(width * height * 4);
+  const draw = () => {
+    renderer.render(scene, camera);
+    const gl = renderer.getContext();
+    gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+    let hash = 2166136261,
+      foreground = 0;
+    for (let i = 0; i < pixels.length; i += 4) {
+      if (pixels[i] !== pixels[0] || pixels[i + 1] !== pixels[1] || pixels[i + 2] !== pixels[2])
+        foreground++;
+      for (let c = 0; c < 3; c++) hash = Math.imul(hash ^ pixels[i + c], 16777619) >>> 0;
+    }
+    return {
+      hash,
+      foreground,
+      geometries: renderer.info.memory.geometries,
+      glError: gl.getError(),
+    };
+  };
+  try {
+    present();
+    const first = shells.drawnRoot(0)!;
+    first.visible = false;
+    const one = draw();
+    first.visible = true;
+    const both = draw();
+    frame[carBase(0) + RACE_BASE + R.VEHICLE] = vehicleIndex('apx01');
+    present();
+    const survivor = draw();
+    shells.disposeAll();
+    return { one, both, survivor, empty: draw() };
+  } finally {
+    shells.disposeAll();
     renderer.dispose();
     renderer.forceContextLoss();
   }

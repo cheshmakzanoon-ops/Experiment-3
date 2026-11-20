@@ -466,9 +466,8 @@ it('prepares camera cuts during loading, shares rigid vertex data and keeps susp
     present();
     const first = attributes(shells.drawnRoot(0)!),
       second = attributes(shells.drawnRoot(1)!);
-    expect(
-      first.filter((a, i) => a.array === second[i].array && a !== second[i]).length,
-    ).toBeGreaterThan(20);
+    expect(first.filter((a, i) => a === second[i]).length).toBeGreaterThan(20);
+    expect(first.some((a, i) => a !== second[i] && a.array === second[i].array)).toBe(true);
     expect(first.filter((a) => a.usage === T.DynamicDrawUsage).length).toBeGreaterThan(0);
     expect(
       first.every((a, i) => a.usage !== T.DynamicDrawUsage || a.array !== second[i].array),
@@ -535,5 +534,38 @@ it('only shares byte-identical immutable mesh attributes across matching designs
       m.material.dispose();
     }
     pool.clear();
+  }
+});
+
+it('keeps shared rigid GPU buffers alive until their last bike leaves the field', () => {
+  const pool = new MxGeometryPool(),
+    a = new T.BoxGeometry(),
+    b = new T.BoxGeometry();
+  const mat = new T.MeshStandardMaterial(),
+    first = new T.Mesh(a, mat),
+    second = new T.Mesh(b, mat);
+  try {
+    pool.share('mx450/high', first);
+    pool.share('mx450/high', second);
+    const rendered = first.geometry;
+    expect(rendered).toBe(second.geometry);
+    expect(rendered === a || rendered === b).toBe(false);
+    const disposed = vi.fn();
+    rendered.addEventListener('dispose', disposed);
+    pool.release(first);
+    expect(first.geometry).toBe(a);
+    a.dispose();
+    expect(disposed).not.toHaveBeenCalled();
+    expect(second.geometry).toBe(rendered);
+    pool.release(second);
+    expect(second.geometry).toBe(b);
+    expect(disposed).toHaveBeenCalledTimes(1);
+    pool.clear();
+    expect(disposed).toHaveBeenCalledTimes(1);
+  } finally {
+    pool.clear();
+    a.dispose();
+    b.dispose();
+    mat.dispose();
   }
 });
