@@ -610,6 +610,16 @@ export class VehicleBodies {
     board.map?.dispose();
     for (const material of materials) material.dispose();
   }
+  /** Retire one catalogue entry and its owned buffers on a field or garage change. */
+  release(id: number) {
+    const body = this.bodies.get(id);
+    if (!body) return false;
+    body.root.visible = false;
+    this.dispose(body);
+    this.bodies.delete(id);
+    return true;
+  }
+
   /** Release every built car and reset the rear-view feed state. Safe to
    * repeat; subsequent updates build fresh bodies using the same callback. */
   clear(): void {

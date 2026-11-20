@@ -93,6 +93,41 @@ function watchResources(root: T.Object3D) {
 }
 
 describe('festival garage presentation', () => {
+  it('releases alternate Low garage representations and removes retired rivals at every preset', () => {
+    stubCanvas();
+    const cars = new FestivalCars(),
+      camera = new T.PerspectiveCamera();
+    const road = snapshot('rh3', 1, [0, 1, 0], 0);
+    const formula = snapshot('apx01', 2, [10, 1, 10], 0);
+    const show = (frame: Float32Array, quality: 'low' | 'high') =>
+      cars.update(frame, frame, frame, 1, 1 / 60, 0, camera, false, quality);
+    try {
+      show(road, 'low');
+      const first = cars.bodies.root.children[0];
+      const shell = first.getObjectByName('Body (lofted)') as T.Mesh;
+      const disposeGeometry = vi.spyOn(shell.geometry, 'dispose');
+      show(formula, 'low');
+      expect(first.parent).toBeNull();
+      expect(disposeGeometry).toHaveBeenCalledTimes(1);
+      expect(cars.finish.stats.materials).toBe(0);
+      const oldFormula = cars.root.getObjectByName('Formula 1')!;
+      expect(oldFormula).toBeDefined();
+      show(road, 'low');
+      expect(oldFormula.parent).toBeNull();
+      expect(cars.bodies.root.children[0]).not.toBe(first);
+      expectPose(cars.bodies.root.children[0], road);
+      const field = new Float32Array(HEADER + 2 * CAR_STRIDE);
+      field.set(road);
+      field[H.CARS] = 2;
+      field.set(snapshot('sc7', 3, [1, 1, 10], 0).subarray(HEADER), carBase(1));
+      show(field, 'high');
+      expect(cars.bodies.root.children).toHaveLength(2);
+      show(road, 'high');
+      expect(cars.bodies.root.children).toHaveLength(1);
+    } finally {
+      cars.dispose();
+    }
+  });
   it('holds Formula actions and body identity until their recorded sample boundary', () => {
     stubCanvas();
     const cars = new FestivalCars(),

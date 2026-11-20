@@ -105,17 +105,34 @@ export class FestivalCars {
       this.root.add(holder);
       this.holders.push({ root: holder, lodLevel: this.holders.length ? 1 : 0 });
     }
+    let retired = false;
     for (let id = 0; id < this.holders.length; id++) {
       const holder = this.holders[id].root,
-        active = id < cars;
-      holder.visible = active;
-      const formula = this.formula.get(id);
-      if (!active) {
+        o = carBase(id),
+        definition = id < cars ? vehicleAt(Math.round(presented[o + RACE_BASE + R.VEHICLE])) : null;
+      holder.visible = !!definition;
+      let formula = this.formula.get(id);
+      // A Low-preset garage keeps one representation per entrant. Retire the
+      // old one before constructing its replacement to bound the swap peak.
+      // Finished rivals can be retired at every preset once they leave the field.
+      if (
+        (!definition || (quality === 'low' && definition.classId === 'formula')) &&
+        this.bodies.release(id)
+      ) {
+        if (id === 0) this.finish.clear();
+        retired = true;
+      }
+      if (formula && (!definition || (quality === 'low' && definition.classId !== 'formula'))) {
+        this.releaseFormula.get(id)!();
+        this.releaseFormula.delete(id);
+        this.formula.delete(id);
+        formula = undefined;
+        retired = true;
+      }
+      if (!definition) {
         if (formula) formula.root.visible = false;
         continue;
       }
-      const o = carBase(id),
-        definition = vehicleAt(Math.round(presented[o + RACE_BASE + R.VEHICLE]));
       holder.position.set(presented[o + F.X], presented[o + F.Y], presented[o + F.Z]);
       holder.quaternion.set(
         presented[o + F.QX],
@@ -162,6 +179,7 @@ export class FestivalCars {
       lightLevel > 0.05,
       { follow: 0, cockpit, camera: camera?.position ?? null },
     );
+    if (retired) this.refreshPaint();
     const followed = vehicleAt(Math.round(presented[carBase(0) + RACE_BASE + R.VEHICLE]));
     const followedSheet = bodySheetFor(followed);
     let finishActive = false;
