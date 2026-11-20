@@ -77,7 +77,8 @@ const OWNER_BUILD = typeof __SUPPLIED_PLAYER__ !== 'undefined' && __SUPPLIED_PLA
 const COMPOUND_STYLES = Object.values(COMPOUNDS);
 export class FormulaCar {
   private readonly contactPose = wheelContactPose();
-  readonly root = new MxPresentationRoot();
+  private readonly slotRoot = new MxPresentationRoot();
+  readonly root: T.Group = this.slotRoot;
   readonly suppliedPlayer: SuppliedPlayer | null;
   readonly mirrors: T.Mesh[] = [];
   readonly staticBody = new T.Group();
@@ -734,9 +735,9 @@ export class FormulaCar {
     const source = snapshotSource(a, b, t);
     // On dirt bikes the Formula slot supplies only this interpolated chassis
     // transform. The active bike solves its own arms, wheels and suspension.
-    this.root.suspendWhenHidden =
+    this.slotRoot.suspendWhenHidden =
       vehicleAt(Math.round(source[o + RACE_BASE + R.VEHICLE])).classId === 'motocross';
-    if (this.root.suspendWhenHidden) return;
+    if (this.slotRoot.suspendWhenHidden) return;
     time = sampleValue(a, b, H.TIME, t);
     if (this.suppliedPlayer) {
       if (this.displayClock.due(time, source[o + F.GEAR])) {
