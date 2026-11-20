@@ -1,5 +1,28 @@
 import * as T from 'three';
 
+/** The first hidden GP chase pass needs the scene materials, vertex uploads
+ * and multisampled attachments. A central tile exercises their fragment paths.
+ * The following full cockpit image replaces it before the grid is revealed. */
+export function warmRoadGridColour(target: T.WebGLRenderTarget, draw: () => void) {
+  const saved = target.scissor.clone();
+  const enabled = target.scissorTest;
+  const bounds = enabled ? saved : target.viewport;
+  const width = Math.min(320, bounds.z), height = Math.min(200, bounds.w);
+  target.scissor.set(
+    Math.floor(bounds.x + (bounds.z - width) / 2),
+    Math.floor(bounds.y + (bounds.w - height) / 2),
+    width, height,
+  );
+  target.scissorTest = true;
+  try {
+    draw();
+    return { width, height, targetWidth: target.width, targetHeight: target.height };
+  } finally {
+    target.scissor.copy(saved);
+    target.scissorTest = enabled;
+  }
+}
+
 /** Borrow renderables without reparenting them. Three's compilation traverses
  * invisible objects too, so keep inactive bike LODs and service parts. Only
  * explicitly supplied roots that are still hidden may omit their subtrees. */

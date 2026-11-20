@@ -1,6 +1,25 @@
 import { describe, it, expect, vi } from 'vitest';
 import * as T from 'three';
-import { compileSceneTarget, PreparationTrace } from '../src/rendering/preparation.ts';
+import { compileSceneTarget, PreparationTrace, warmRoadGridColour } from '../src/rendering/preparation.ts';
+
+it.each([false, true])('restores the existing GP colour scissor when a held draw throws, enabled %s', (enabled) => {
+  const target = new T.WebGLRenderTarget(1280, 800, { samples: 4 });
+  target.scissor.set(80, 20, 640, 420);
+  target.scissorTest = enabled;
+  const previous = target.scissor.clone();
+  const attachment = target.texture;
+  expect(() => warmRoadGridColour(target, () => {
+    expect(target.viewport.toArray()).toEqual([0, 0, 1280, 800]);
+    expect(target.scissor.toArray()).toEqual(enabled ? [240, 130, 320, 200] : [480, 300, 320, 200]);
+    expect(target.scissorTest).toBe(true);
+    throw new Error('cancelled draw');
+  })).toThrow('cancelled draw');
+  expect(target.scissor).toEqual(previous);
+  expect(target.scissorTest).toBe(enabled);
+  expect(target.samples).toBe(4);
+  expect(target.texture).toBe(attachment);
+  target.dispose();
+});
 
 function compilerHarness(compileAsync: T.WebGLRenderer['compileAsync']) {
   const original = new T.WebGLRenderTarget(),

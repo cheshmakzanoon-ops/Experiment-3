@@ -31,7 +31,7 @@ import {
 import { loadPitWallStation } from './pit-wall-station.ts';
 import { loadHeroGarage } from './hero-garage.ts';
 import { loadTyreBlankets } from './tyre-blankets.ts';
-import { compileSceneTarget, PreparationTrace } from './preparation.ts';
+import { compileSceneTarget, PreparationTrace, warmRoadGridColour } from './preparation.ts';
 import { warmPitMaterials } from './pit-material-warmup.ts';
 import { frontToBackOpaque } from './opaque-order.ts';
 import type { SuppliedPlayerAsset } from './supplied-player.ts';
@@ -1035,6 +1035,7 @@ export class RacingRenderer {
   readonly preparation = new PreparationTrace();
   warmupFrames = 0;
   warmupPitPasses = 0;
+  private warmupRoadColour: ReturnType<typeof warmRoadGridColour> | null = null;
   preparationTimeoutMs = 90000;
   async waitForPreparedFrame(cancelled: () => boolean, yieldFrame: () => Promise<void>) {
     const timeoutMs = this.preparationTimeoutMs ?? 45000;
@@ -1204,6 +1205,7 @@ export class RacingRenderer {
         if (cancelled()) return false;
       }
       const camera = this.mode;
+      this.warmupRoadColour = null;
       const splitMotorcycleViews = boundedDepth && this.graphics?.reflections === 'local';
       const splitShadows = splitMotorcycleViews && this.renderer.shadowMap?.enabled;
       try {
@@ -1232,15 +1234,20 @@ export class RacingRenderer {
             await this.waitForPreparedFrame(cancelled, yieldFrame);
             if (cancelled()) return false;
           }
-          this.draw(
+          const drawGrid = () => this.draw(
             frame, frame, 1, 1 / 120, false, true, 1 / 120,
             splitShadows ? 'held-colour' : 'scene',
           );
+          if (roadField && splitShadows && mode === 'chase') {
+            this.warmupRoadColour = warmRoadGridColour(this.scenePass.target, drawGrid);
+          } else {
+            drawGrid();
+          }
           this.warmupFrames++;
           if (mode === 'chase' && pitService) {
             if (roadField && splitMotorcycleViews) {
-              // The crew upload owns its own fence. Finish the full-resolution
-              // starting-grid image before the first service pass replaces it.
+              // Finish the chase colour submission before the separate crew
+              // upload replaces its fence.
               progress('Finishing the GP starting-grid view…');
               await this.waitForPreparedFrame(cancelled, yieldFrame);
               if (cancelled()) return false;
@@ -3034,6 +3041,7 @@ export class RacingRenderer {
           }
         : null,
       warmupFrames: this.warmupFrames,
+      warmupRoadColour: this.warmupRoadColour,
       warmupPitPasses: this.warmupPitPasses,
       preparation: this.preparation.snapshot(),
       graphics: { ...this.graphics },

@@ -598,6 +598,14 @@ it.each([null, 'venue-probe', 'venue-shadows', 'held-colour'] as const)(
   'finishes the GP environment and chase submissions before pit service, stopped at %s',
   async (stopAt) => {
     const { calls, sample, target, typed } = fixture('gpr2');
+    const colour = new T.WebGLRenderTarget(1280, 800, { samples: 4 });
+    Object.assign(target, { scenePass: { target: colour } });
+    const drawn: [string, boolean][] = [];
+    const draw = target.draw.getMockImplementation()!;
+    target.draw.mockImplementation((...args) => {
+      if (args[7] === 'held-colour') drawn.push([target.mode, colour.scissorTest]);
+      return draw(...args);
+    });
     for (const [i, id] of ['gpr1', 'gpr2', 'ss600'].entries())
       sample[carBase(i) + RACE_BASE + R.VEHICLE] = vehicleIndex(id);
     Object.assign(target, { graphics: { reflections: 'local' } });
@@ -619,6 +627,9 @@ it.each([null, 'venue-probe', 'venue-shadows', 'held-colour'] as const)(
     expect(calls.filter((step) => expected.includes(step))).toEqual(expected.slice(0, end));
     expect(complete).toBe(stopAt === null);
     expect(sample).toEqual(initial);
+    if (complete) expect(drawn).toEqual([['chase', true], ['cockpit', false]]);
+    expect(colour.scissorTest).toBe(false);
+    colour.dispose();
   },
 );
 it('stops cancelled construction before touching any further GPU resources', async () => {
