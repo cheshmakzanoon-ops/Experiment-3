@@ -6,6 +6,7 @@ import { DirtBikeAIDriver, jumpHoldSpeed, motocrossJumpApproachSteer } from '../
 import { MX_450 } from '../src/simulation/offroad/dirt-bikes.ts';
 import { DirtBikeVehicle } from '../src/simulation/offroad/dirt-bike-vehicle.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
+import { rollSpeed, RUNUP_TRACTION_ACCELERATION } from '../src/simulation/offroad/jump-target.ts';
 import { LANDING_RULES } from '../src/simulation/offroad/riding-feedback.ts';
 import { offroadCourse } from '../src/simulation/offroad/venues.ts';
 import { LapTracker } from '../src/simulation/race.ts';
@@ -283,6 +284,34 @@ describe('motocross AI rejoining', () => {
     bike.restart(sim.track);
     expect(bike.dynamics.state).toBe('riding');
     expect(Math.abs(bike.s - approach)).toBeLessThan(0.02);
+  });
+
+  it.each(['BARN DOUBLE', 'SUMMIT TABLE'])('gives a stranded rider a workable restart at the %s', (name) => {
+    const { sim, bike: other, traffic: bike } = wetBeachedRider();
+    other.place(sim.track, 50);
+    sim.autoPlayer = false;
+    const jump = offroadCourse(sim.track.circuit)!.jumps.find((feature) => feature.name === name)!;
+    const rim = bike.bikeSpec.cgToFront + bike.bikeSpec.frontWheelRadius;
+    bike.place(sim.track, jump.start - rim - 0.12, -2.5);
+    bike.restart(sim.track);
+    expect(bike.riding).toBe(true);
+    bike.restart(sim.track, 'stranded');
+    expect(bike.dynamics.state).toBe('remount');
+    let last = bike.s, greatestStep = 0;
+    for (let i = 0; i < 6 * 120 && !bike.riding; i++) {
+      sim.step(1 / 120);
+      greatestStep = Math.max(greatestStep, Math.abs(bike.s - last));
+      last = bike.s;
+    }
+    expect(bike.s).toBeGreaterThan(jump.end);
+    expect(greatestStep).toBeLessThan(0.12);
+    expect(bike.dynamics.crashes).toBe(0);
+    const runup = rollSpeed(jump.lipHeight) ** 2 / (2 * RUNUP_TRACTION_ACCELERATION);
+    bike.place(sim.track, jump.start - runup - 0.5, -2.5);
+    const before = bike.s;
+    bike.restart(sim.track, 'stranded');
+    expect(bike.riding).toBe(true);
+    expect(Math.abs(bike.s - before)).toBeLessThan(0.02);
   });
 
   it.each([145.4, 448])('physically crosses timing gates during a long marshal recovery at %s m', (start) => {

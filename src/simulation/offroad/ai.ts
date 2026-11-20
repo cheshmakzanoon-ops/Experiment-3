@@ -11,7 +11,7 @@ import type { Vehicle } from '../vehicle.ts';
 import { TrackTerrainSurface } from './course-terrain.ts';
 import { DirtBikeVehicle } from './dirt-bike-vehicle.ts';
 import { takeoffSpeed, type JumpSurvey } from './profile.ts';
-import { jumpHoldSpeed, rollSpeed, ROLL_SPEED } from './jump-target.ts';
+import { jumpHoldSpeed, rollSpeed, ROLL_SPEED, RUNUP_TRACTION_ACCELERATION } from './jump-target.ts';
 export { TAKEOFF_GAIN, ROLL_SPEED, rollSpeed, jumpHoldSpeed } from './jump-target.ts';
 import { LANDING_RULES } from './riding-feedback.ts';
 import { offroadSessionFor } from './session.ts';
@@ -284,7 +284,7 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     this.stuck = 0;
     // At the course edge facing the course, never back on a face it could
     // not climb (the adapter's restart point).
-    c.restart(track);
+    c.restart(track, 'stranded');
     this.decisions.pushes++;
   }
   /** Slow up a face a rider holds the drive that carries the grade: the
@@ -473,7 +473,7 @@ export class DirtBikeAIDriver extends BikeAIDriver {
     let speed = Math.max(1, v);
     for (let x = 0; x < run && speed < cap; x += 1) {
       const a =
-        Math.min(0.4 * G, power / (mass * speed)) - (c.dynamics.p.drag * speed * speed) / mass;
+        Math.min(RUNUP_TRACTION_ACCELERATION, power / (mass * speed)) - (c.dynamics.p.drag * speed * speed) / mass;
       speed = Math.sqrt(Math.max(1, speed * speed + 2 * a));
     }
     return Math.min(speed, cap);

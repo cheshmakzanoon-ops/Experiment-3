@@ -14,6 +14,8 @@ export const TAKEOFF_GAIN: Readonly<Record<JumpSurvey['kind'], number>> = Object
   double: 0.5,
   triple: 0.78,
 });
+/** Loose-soil drive ceiling (m/s²) used to estimate acceleration along a run-up. */
+export const RUNUP_TRACTION_ACCELERATION = 0.4 * G;
 /** Lip speed (m/s) a rider rolls a feature at: below it the bike stays on the ground. */
 export const ROLL_SPEED = 2.5;
 /** Speed (m/s) whose energy carries a rolling bike `climb` metres up to a

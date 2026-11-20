@@ -10,6 +10,7 @@ import { surfaceSample, Track } from '../track.ts';
 import type { VehicleDefinition } from '../vehicles.ts';
 import { TrackTerrainSurface } from './course-terrain.ts';
 import { offroadCourse } from './venues.ts';
+import { rollSpeed, RUNUP_TRACTION_ACCELERATION } from './jump-target.ts';
 import type { OffroadBikeSpec } from './types.ts';
 import { LANDING_RULES } from './riding-feedback.ts';
 import { hardStopImpulse, landingNormalSpeed } from './contact-impulse.ts';
@@ -1652,8 +1653,8 @@ export class DirtBikeVehicle extends BikeVehicle {
       this.moisture = t.moistureAt(t.cellIndex(this.contacts[2].lateral, this.contacts[2].s));
     }
   }
-  override restart(track: Track) {
-    this.planRemount(track);
+  override restart(track: Track, reason: 'rider' | 'stranded' = 'rider') {
+    this.planRemount(track, reason === 'stranded');
     const d = this.dynamics;
     if (!this.inPit && Math.hypot(this.remount.x - d.x, this.remount.z - d.z) > 3) {
       // A beached machine is assisted across the feature visibly. An
@@ -1689,12 +1690,18 @@ export class DirtBikeVehicle extends BikeVehicle {
    * is still to be climbed (OffroadCourse.restartS): a machine restarted at
    * a standstill on a take-off face or in a gap cannot climb out of it, so
    * the rider pushes it over to the flat ground beyond the feature. */
-  protected override planRemount(track: Track) {
+  protected override planRemount(track: Track, stranded = false) {
     super.planRemount(track);
     const course = offroadCourse(track.circuit),
       p = this.remountPoint;
     if (!course || this.inPit) return;
-    const s = course.restartS(p.s, this.bikeSpec.cgToFront + this.bikeSpec.frontWheelRadius);
+    const rim = this.bikeSpec.cgToFront + this.bikeSpec.frontWheelRadius;
+    const next = stranded ? course.nextJump(p.s) : null;
+    // After four seconds of grounded drive without progress, restarting
+    // immediately below a face repeats the stall. Even an ideal level
+    // run-up needs v² / (2a) to reach the surveyed rolling entry speed.
+    const runup = next ? rollSpeed(next.jump.lipHeight) ** 2 / (2 * RUNUP_TRACTION_ACCELERATION) : 0;
+    const s = course.restartS(p.s, Math.max(rim, runup));
     if (s === mod(p.s, track.length)) return;
     const lateral = (this.remount.x - p.x) * p.nx + (this.remount.z - p.z) * p.nz;
     track.at(s, p);
