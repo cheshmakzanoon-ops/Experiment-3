@@ -1740,32 +1740,8 @@ export class BikeModel {
       add(this.sprung, new T.BoxGeometry(0.08, 0.04, 0.012), m.lamp, 0, 0.3, -0.73, false);
     }
     if (gp) this.sprung.add(...gpRearBody(detail, m).children);
-    // GP rearsets preserve the planted foot anchors while replacing the
-    // solid brackets with open machined hangers and fitted carbon heel guards.
-    if (gp) {
-      this.gpRearsets = new GPRearsets(detail, m);
-      addGpRigidFinish(this.sprung, this.gpRearsets.root, [m.aluminium, m.steel, m.carbon]);
-    } else {
-      for (const side of [1, -1]) {
-        add(
-          this.sprung,
-          new T.CylinderGeometry(0.012, 0.012, 0.08, 8),
-          m.aluminium,
-          side * 0.17,
-          -0.2,
-          -0.3,
-        ).rotation.z = Math.PI / 2;
-        if (detail === 'high')
-          add(
-            this.sprung,
-            new T.BoxGeometry(0.03, 0.09, 0.07),
-            m.aluminium,
-            side * 0.13,
-            -0.17,
-            -0.28,
-          );
-      }
-    }
+    this.gpRearsets = new GPRearsets(detail, m, gp ? 'prototype' : classic ? 'classic' : 'road');
+    addGpRigidFinish(this.sprung, this.gpRearsets.root, [m.aluminium, m.steel, m.carbon]);
     // The GP damper below joins real hardpoints on the sprung frame and arm.
     // ---- Swingarm (root frame: it pivots to keep the rear tyre on the road).
     this.pivot = new T.Vector3(...ROAD_SWINGARM_PIVOT);
@@ -1919,6 +1895,7 @@ export class BikeModel {
       raceNumber,
       gpPrototype,
       detail !== 'far' ? m.riderPrints(colours, raceNumber, gpPrototype) : undefined,
+      definition.classId,
     );
     this.rider.seat.set(0, 0.3, -0.32);
     this.rider.pegs[0].set(0.17, -0.2, -0.3);

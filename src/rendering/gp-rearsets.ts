@@ -127,8 +127,13 @@ export class GPRearsets {
   readonly root = new T.Group();
   readonly brake = new T.Group();
   readonly spindle = new T.Vector3();
-  constructor(detail: RiderDetail, materials: Materials) {
-    this.root.name = 'GP machined rearsets';
+  constructor(
+    detail: RiderDetail,
+    materials: Materials,
+    finish: 'prototype' | 'road' | 'classic' = 'prototype',
+  ) {
+    this.root.name =
+      finish === 'prototype' ? 'GP machined rearsets' : 'Road rearsets and foot controls';
     this.root.userData.gpRearsets = true;
     const segments = detail === 'high' ? 16 : 10,
       frame = gpBootFrame(new T.Quaternion()),
@@ -165,10 +170,11 @@ export class GPRearsets {
       const guard = add(
         this.root,
         heelGuard(detail),
-        materials.carbon,
-        'GP protective carbon heel guard',
+        finish === 'prototype' ? materials.carbon : materials.aluminium,
+        finish === 'prototype' ? 'GP protective carbon heel guard' : 'Alloy rearset heel guard',
       );
       guard.position.set(side * 0.116, GP_REARSET_PEG[1], GP_REARSET_PEG[2]);
+      if (finish === 'classic') guard.scale.set(1, 0.69, 0.77);
       for (const [z, y] of [
         [0.118, 0.102],
         [0.117, 0.069],
@@ -184,7 +190,7 @@ export class GPRearsets {
       }
       if (detail !== 'high') continue;
       const pedal = side < 0 ? this.brake : new T.Group();
-      pedal.name = side < 0 ? 'GP rear-brake pedal pivot' : 'GP gearshift toe lever';
+      pedal.name = `${finish === 'prototype' ? 'GP' : 'Road'} ${side < 0 ? 'rear-brake pedal pivot' : 'gearshift toe lever'}`;
       pedal.position.set(side * 0.112, GP_REARSET_PEG[1] + GP_FOOTPEG_RADIUS, GP_REARSET_PEG[2]);
       this.root.add(pedal);
       const arm = new T.Shape();

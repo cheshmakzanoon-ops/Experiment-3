@@ -92,6 +92,18 @@ export function captureBikeSequence(
     gear: 4,
     rpm: id === 'nr900' || id === 'cr750' ? def.spec.limiterRPM * 0.76 : 12200,
   };
+  if (view === 'braking-entry') {
+    Object.assign(pose, {
+      speed: 56,
+      tuck: 0.12,
+      brake: 0.94,
+      gLong: -1.1,
+      chassisLean: 0.13,
+      riderOffset: 0.18,
+      fork: sag.fork + 0.045,
+      shock: sag.shock - 0.023,
+    });
+  }
   bike.pose(pose);
   bike.root.position.y = def.bike!.cgHeight;
   if (view === 'corner' || view === 'rider-corner') {
@@ -121,6 +133,13 @@ export function captureBikeSequence(
   camera.lookAt(0, 0.68, 0);
   // Inspect the actual garment skin at a useful reference-photo distance.
   // These views keep the same BikeModel, light, materials and riding pose.
+  if (view === 'braking-entry') {
+    bike.root.rotation.z = -pose.chassisLean;
+    camera.position.set(2.82, 1.01, 2.16);
+    camera.lookAt(0.04, 0.79, 0.02);
+    camera.fov = 29;
+    camera.updateProjectionMatrix();
+  }
   if (view === 'rider-rear' || view === 'rider-side') {
     camera.position.set(
       ...((view === 'rider-rear' ? [-1.45, 1.65, -1.85] : [2.35, 1.45, 0]) as [
@@ -242,7 +261,12 @@ export function captureBikeSequence(
       };
     });
     return samples.map((sample) => {
-      const samplePose = { ...pose, rainVisibility: sample.wet ? 1 : 0, ...sample.pose, brake: sample.frontBrake ?? pose.brake };
+      const samplePose = {
+        ...pose,
+        rainVisibility: sample.wet ? 1 : 0,
+        ...sample.pose,
+        brake: sample.frontBrake ?? pose.brake,
+      };
       bike.pose(samplePose);
       bike.root.rotation.z = -samplePose.chassisLean;
       bike.root.position.y = def.bike!.cgHeight * Math.cos(samplePose.chassisLean);

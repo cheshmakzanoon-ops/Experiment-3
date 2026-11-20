@@ -243,6 +243,84 @@ describe('GP riding motion on the actual articulated rider', () => {
     },
   );
 
+  it('swings only the unloaded inside boot under braking and puts it back before the apex', () => {
+    const rider = new Rider(colours, 'mid', 'leathers', 2, true);
+    const feet = ['left', 'right'].map((side) => rider.root.getObjectByName(`GP ${side} foot`)!);
+    const points = () => {
+      rider.root.updateMatrixWorld(true);
+      return feet.map((foot) => foot.localToWorld(new T.Vector3(...GP_BOOT_PEG)));
+    };
+    try {
+      rider.ride(base);
+      const planted = points();
+      for (const side of [1, -1]) {
+        const i = side > 0 ? 0 : 1,
+          j = 1 - i;
+        const stop = {
+          ...base,
+          tuck: 0.18,
+          braking: 0.96,
+          gLong: -1.12,
+          lean: side * 0.12,
+          offset: side * 0.17,
+        };
+        rider.ride(stop);
+        const out = points();
+        expect((out[i].x - planted[i].x) * side).toBeGreaterThan(0.085);
+        expect(out[i].z - planted[i].z).toBeGreaterThan(0.13);
+        expect(planted[i].y - out[i].y).toBeGreaterThan(0.12);
+        expect(out[j].distanceTo(planted[j])).toBeLessThan(1e-7);
+        for (const pose of [
+          { ...stop, lean: side * 0.85 },
+          { ...stop, gLong: 0.4 },
+          { ...stop, roadAirborne: true },
+        ]) {
+          rider.ride(pose);
+          expect(points()[i].distanceTo(planted[i])).toBeLessThan(1e-7);
+        }
+        if (side < 0) {
+          rider.ride({ ...stop, rearBraking: 0.5 });
+          expect(points()[i].distanceTo(planted[i])).toBeLessThan(1e-7);
+        }
+        rider.ride(stop);
+        expect(points()[i].distanceTo(out[i])).toBeLessThan(1e-10);
+      }
+    } finally {
+      rider.dispose();
+    }
+  });
+
+  it.each(['road-bike', 'classic-bike', 'supersport', 'superbike'] as const)(
+    'keeps %s soles on both pegs, presses the pedal and rests both boots on a sloped grid',
+    (roadClass) => {
+      const rider = new Rider(colours, 'mid', 'leathers', 7, false, undefined, roadClass);
+      const feet = ['left', 'right'].map(
+        (side) => rider.root.getObjectByName(`Road ${side} boot`)!,
+      );
+      const point = (i: number, p: readonly [number, number, number]) =>
+        feet[i].localToWorld(new T.Vector3(...p));
+      const plane = new T.Plane(new T.Vector3(0.05, 1, -0.03).normalize(), 0.62);
+      rider.ground.plane = plane;
+      try {
+        for (const brake of [0, 0.7, 0]) {
+          rider.ride({ ...base, rearBraking: brake, offset: 0.13, lean: 0.62 });
+          rider.root.updateMatrixWorld(true);
+          for (let i = 0; i < 2; i++) {
+            const peg = rider.pegs[i].clone();
+            peg.y += GP_FOOTPEG_RADIUS;
+            expect(point(i, GP_BOOT_PEG).distanceTo(peg)).toBeLessThan(1e-7);
+          }
+        }
+        rider.ride({ ...base, tuck: 0, speed: 0 });
+        rider.root.updateMatrixWorld(true);
+        for (let i = 0; i < 2; i++)
+          expect(Math.abs(plane.distanceToPoint(point(i, GP_BOOT_PEDAL)))).toBeLessThan(0.002);
+      } finally {
+        rider.dispose();
+      }
+    },
+  );
+
   it('retains speed-independent motion for non-GP leathers', () => {
     const rider = new Rider(colours, 'mid', 'leathers');
     try {

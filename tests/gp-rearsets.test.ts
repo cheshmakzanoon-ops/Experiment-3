@@ -205,7 +205,7 @@ describe('GP machined rearsets and independent rear-brake articulation', () => {
     30000,
   );
 
-  it('uses existing shared finishes and limits new articulation to the close GP prototypes', () => {
+  it('uses shared finishes on the close-view pedals and omits their articulation in distant views', () => {
     for (const [id, detail] of [
       ['gpr1', 'high'],
       ['gpr2', 'mid'],
@@ -215,8 +215,10 @@ describe('GP machined rearsets and independent rear-brake articulation', () => {
       const materials = new BikeMaterials(0),
         model = new BikeModel(VEHICLES[id], 0, detail, materials, true);
       try {
-        const pedal = model.root.getObjectByName('GP rear-brake pedal pivot');
-        expect(Boolean(pedal)).toBe(id === 'gpr1' && detail === 'high');
+        const pedal = model.root.getObjectByName(
+          `${id === 'sbk1000' ? 'Road' : 'GP'} rear-brake pedal pivot`,
+        );
+        expect(Boolean(pedal)).toBe(detail === 'high');
         if (pedal) {
           expect(meshes(pedal)).toHaveLength(1);
           expect(meshes(pedal)[0].material).toBe(materials.aluminium);

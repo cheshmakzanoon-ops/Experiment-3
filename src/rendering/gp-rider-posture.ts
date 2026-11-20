@@ -61,6 +61,8 @@ export class GpRiderPosture {
   readonly reach = new T.Vector3();
   /** 0 boot on the peg .. 1 boot planted on the road. */
   readonly plant = [0, 0];
+  /** Inside boot released from the rearset at a hard upright corner entry. */
+  readonly brakeLeg = [0, 0];
   /** Normalised drivers, retained for diagnostics and tests. */
   tuck = 0;
   sitUp = 0;
@@ -95,6 +97,16 @@ export class GpRiderPosture {
         clamp01(0.35 + finite(pose.gLong) * 0.9) *
         (1 - tuck * 0.7),
       surge = T.MathUtils.clamp(body.surge, -0.05, 0.06) * (1 - plant);
+    // A loaded stop and weight already moving to one side distinguish a
+    // corner entry from an upright straight-line stop. Return the boot before
+    // the loaded shoulder reaches the apex and keep the rear-brake foot available.
+    const release = pose.roadAirborne
+      ? 0
+      : sitUp *
+        T.MathUtils.smoothstep(-finite(pose.gLong), 0.58, 0.98) *
+        T.MathUtils.smoothstep(braking, 0.42, 0.78) *
+        T.MathUtils.smoothstep(speed, 11, 23) *
+        (1 - T.MathUtils.smoothstep(bank, 0.21, 0.58));
     this.tuck = tuck;
     this.sitUp = sitUp;
     this.hang = hang;
@@ -151,6 +163,8 @@ export class GpRiderPosture {
         outside = T.MathUtils.smoothstep(-side * (hang + lean * 0.12), 0.03, 0.6);
       this.inside[i] = inside;
       this.plant[i] = plant;
+      const pedal = i === 1 ? 1 - T.MathUtils.smoothstep(finite(pose.rearBraking), 0.015, 0.16) : 1;
+      this.brakeLeg[i] = release * T.MathUtils.smoothstep(side * sway, 0.022, 0.12) * pedal;
       // Elbows: tucked low beside the tank, braced and a little wide under
       // braking, the inside one out and down, the outside one over the tank.
       const elbow = this.elbowPoles[i]

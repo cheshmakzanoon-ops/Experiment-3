@@ -14,7 +14,8 @@ import { gpRacingBoot, installGpLeatherFinish } from './gp-rider-gear.ts';
 import { GpRiderGarment } from './gp-rider-garment.ts';
 import { addGpRacingGlove } from './gp-rider-glove.ts';
 import type { GpBrakeFingers } from './gp-brake-fingers.ts';
-import { gpHeadFrame } from './gp-rider-motion.ts';
+import { gpHeadFrame, gpKneeOut } from './gp-rider-motion.ts';
+import type { VehicleClass } from '../simulation/vehicles.ts';
 import {
   GP_HELMET_CENTRE,
   addGpHelmetDetails,
@@ -507,6 +508,7 @@ export class Rider {
     readonly raceNumber = 2,
     readonly gp = false,
     private readonly sharedPrints?: GpRiderPrints,
+    private readonly roadClass?: VehicleClass,
   ) {
     const sides = detail === 'high' ? 20 : detail === 'mid' ? 12 : 6;
     const mx = kit === 'motocross';
@@ -1306,6 +1308,7 @@ export class Rider {
       this.hands.push(hand);
       const foot = new T.Group();
       if (mx) foot.name = `Motocross ${i === 0 ? 'left' : 'right'} boot`;
+      else if (this.roadClass && !gp) foot.name = `Road ${i === 0 ? 'left' : 'right'} boot`;
       else if (gp) foot.name = `GP ${i === 0 ? 'left' : 'right'} foot`;
       // The planted boot frame has +Y down, +Z forward and +X toward bike
       // right. Mirror its lateral buckles so they remain outside both legs.
@@ -1315,7 +1318,7 @@ export class Rider {
         );
       else
         foot.add(
-          gpRacingBoot(detail, side, { leather: glove, panel, sole: flex, armour, slider }, gp),
+          gpRacingBoot(detail, side, { leather: glove, panel, sole: flex, armour, slider }, gp || !!this.roadClass),
         );
       this.shins[i].group.add(foot);
       foot.position.set(0, RIDER.shin + 0.02, 0);
@@ -1454,6 +1457,8 @@ export class Rider {
     pelvis.y -= tuck * 0.03;
     // Off-road: up on the pegs (knees flexed) and fore/aft over the bike.
     const mx = this.kit === 'motocross';
+    const roadPlant = this.roadClass && !pose.roadAirborne
+      ? 1 - T.MathUtils.smoothstep(Math.abs(pose.speed ?? 25), 0.45, 2.2) : 0;
     if (mx) this.motocrossThrottle = motocrossThrottleAngle(pose.throttle);
     const motion = mx
       ? sampleMotocrossRiderMotion(pose, this.motocrossMotion, this.raceNumber)
@@ -1478,16 +1483,23 @@ export class Rider {
     // Standing, the attack position folds the chest down over the bars
     // (about 45 degrees) with the hips back; seated stays upright.
     if (mx) pitch = 0.36 + braking * 0.12 + body * 0.16 + standing * 0.36 + motion!.torsoPitch;
-    else pitch = T.MathUtils.lerp(pitch, 0.78 + body * 0.25, standing);
+    else if (this.roadClass === 'road-bike') {
+      // The raised, swept roadster bar puts the shoulders above the saddle.
+      // Airflow brings the chest down at speed without folding it onto the tank.
+      pitch = T.MathUtils.lerp(0.43, 0.72, attack) + 0.31 * tuck * attack - 0.12 * braking;
+    } else if (this.roadClass === 'classic-bike') {
+      pitch = T.MathUtils.lerp(0.79, 1.04, attack) + 0.26 * tuck - 0.22 * braking;
+    } else pitch = T.MathUtils.lerp(pitch, 0.78 + body * 0.25, standing);
     const yaw = T.MathUtils.clamp(offset * 0.9, -0.3, 0.3) + pose.steer * 0.3;
     this.euler.set(pitch, yaw, -into, 'ZYX');
     this.torso.position.copy(pelvis);
     this.torso.quaternion.setFromEuler(this.euler);
     this.motocrossSpine?.ride(pose, pelvis, pitch, yaw, -into);
     const upperTorso = this.motocrossSpine?.chest ?? this.torso;
-    // Non-GP kits retain their authored pose, including the MX landing response.
+    // Look through the turn independently of the torso and the suspension.
     if (mx)
       motocrossHeadFrame(pose, upperTorso.quaternion, motion!.gazePitch, this.head.quaternion);
+    else if (this.roadClass) gpHeadFrame(pose, upperTorso.quaternion, this.head.quaternion);
     else
       this.head.rotation.set(
         -pitch + 0.3 + tuck * 0.12 + (motion?.gazePitch ?? 0),
@@ -1543,7 +1555,9 @@ export class Rider {
         .applyQuaternion(this.torso.quaternion)
         .add(pelvis);
       // Feet on the pegs; the inside knee opens toward the road when hung off.
-      const out = mx ? (inside ? 0.18 : 0.12) : inside ? 0.35 + Math.abs(offset) * 1.4 : 0.25;
+      const out = mx ? (inside ? 0.18 : 0.12)
+        : this.roadClass ? gpKneeOut(lean, offset, side)
+        : inside ? 0.35 + Math.abs(offset) * 1.4 : 0.25;
       pole.copy(hip).add(target.set(side * out, 0.15, 0.55));
       // A dabbed foot leaves its peg toward the ground ahead of it.
       const down = side * dab > 0 ? Math.abs(dab) : 0;
@@ -1568,16 +1582,26 @@ export class Rider {
           MX_BOOT_ANKLE,
         );
         this.motocrossBoots[i].updatePose();
+      } else if (this.roadClass) {
+        gpBootFrame(this.q, i === 1 ? pose.rearBraking : 0);
+        gpContactJoint(this.pegs[i], this.q, GP_BOOT_PEG, GP_BOOT_ANKLE, target);
+        target.y += GP_FOOTPEG_RADIUS;
+        if (roadPlant > 0) {
+          this.gpPlantedFoot(i, lean, this.gpPlantFrame, this.gpScratch[1], this.gpScratch[0]);
+          target.lerp(this.gpScratch[0], roadPlant);
+          this.q.slerp(this.gpPlantFrame, roadPlant);
+        }
+        twoBone(this.thighs[i], this.shins[i], hip, target, pole, joint);
+        gpAttachAtJoint(this.feet[i], this.shins[i].group.quaternion, RIDER.shin, this.q, GP_BOOT_ANKLE);
+        this.bootCuffs[i]?.quaternion.copy(this.feet[i].quaternion).invert();
       } else if (down > 0) {
-        // Motocross: project the boot ahead of the peg, heel close to the
-        // surface. The former 86 cm drop put the target far below the track.
-        target.set(side * (mx ? 0.2 : 0.34), mx ? -0.015 : -0.86, 0.32).add(this.pegs[i]);
+        target.set(side * 0.34, -0.86, 0.32).add(this.pegs[i]);
         target.lerpVectors(this.pegs[i], target, down);
         twoBone(this.thighs[i], this.shins[i], hip, target, pole, joint);
       } else twoBone(this.thighs[i], this.shins[i], hip, this.pegs[i], pole, joint);
-      if (!mx) {
+      if (!mx && !this.roadClass) {
         this.feet[i].position.set(0, RIDER.shin + 0.02, 0);
-        this.feet[i].rotation.set(mx ? -0.07 - down * 0.15 : -0.35, 0, 0);
+        this.feet[i].rotation.set(-0.35, 0, 0);
         this.bootCuffs[i]?.quaternion.identity();
       }
     }
@@ -1682,6 +1706,20 @@ export class Rider {
       gpBootFrame(this.q, i === 1 ? pose.rearBraking : 0);
       gpContactJoint(this.pegs[i], this.q, GP_BOOT_PEG, GP_BOOT_ANKLE, target);
       target.y += GP_FOOTPEG_RADIUS;
+      const release = posture.brakeLeg[i];
+      if (release > 0) {
+        // Keep the outside leg clamped to its peg. The inside knee leads and
+        // the unweighted boot swings forward, outward and below the rearset.
+        this.gpPlantFrame.setFromEuler(this.gpPlantEuler.set(0.38, side * 0.2, Math.PI, 'YXZ'));
+        this.q.slerp(this.gpPlantFrame, release);
+        target.x += side * 0.16 * release;
+        target.y -= 0.195 * release;
+        target.z += 0.23 * release;
+        pole.x += side * 0.12 * release;
+        gpContactJoint(target, this.q, GP_BOOT_ANKLE, GP_BOOT_PEDAL, contact);
+        const clearance = gpRoadClearance(contact, lean, height, crown, this.ground.plane);
+        target.y += Math.max(0, 0.055 - clearance) / Math.max(0.25, this.ground.plane?.normal.y ?? Math.cos(lean));
+      }
       if (plant > 0) {
         // Boots leave the rearsets for the road (REF_014/052): the forefoot
         // presses on the asphalt beside the bike, heel raised, toe out.
@@ -1793,7 +1831,7 @@ export class Rider {
         );
         this.motocrossBoots[i].updatePose();
       }
-      if (this.gp && this.kit !== 'motocross') {
+      if ((this.gp || this.roadClass) && this.kit !== 'motocross') {
         // A held recovery frame must not inherit the last riding wrist/ankle
         // transforms, including after a replay jumps directly out of a turn.
         this.hands[i].position.set(0, RIDER.forearm + 0.02, 0);
