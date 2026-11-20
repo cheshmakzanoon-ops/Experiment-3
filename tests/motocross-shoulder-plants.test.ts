@@ -2,6 +2,7 @@ import * as T from 'three';
 import { describe, expect, it } from 'vitest';
 import { MxCourseDressing } from '../src/rendering/offroad/mx-course-dressing.ts';
 import {
+  MxShoulderView,
   mxShoulderPlantGeometry,
   MX_SHOULDER_WIND,
 } from '../src/rendering/offroad/mx-shoulder-plants.ts';
@@ -211,6 +212,43 @@ describe('formed, rooted motocross shoulder vegetation', () => {
     expect(instanceDisposals).toBe(3);
   });
 
+  it('reuses a surveyed colour buffer when the riding camera moves into its edge reserve', () => {
+    const geometry = mxShoulderPlantGeometry('tuft'), material = new T.MeshStandardMaterial();
+    const parent = new T.Group(), plants = new T.InstancedMesh(geometry, material, 3);
+    const pose = new T.Matrix4();
+    for (const [i, x] of [14, 17.5, 46].entries()) {
+      plants.setMatrixAt(i, pose.makeTranslation(x, 0, -10));
+      plants.setColorAt(i, new T.Color(0.3 + 0.1 * i, 0.6, 0.2));
+    }
+    parent.add(plants);
+    plants.computeBoundingSphere();
+    const family = new MxShoulderView(plants), camera = new T.PerspectiveCamera(60, 1, 0.1, 100);
+    const view = () => {
+      camera.updateMatrixWorld(true);
+      family.begin(camera);
+      const batch = parent.getObjectByName(plants.name + ' in camera') as T.InstancedMesh;
+      const result = { count: batch.count, version: batch.instanceMatrix.version };
+      family.end();
+      return result;
+    };
+    try {
+      camera.position.set(10.2, 0.3, 0);
+      const start = view();
+      expect(start.count).toBe(2);
+      camera.position.x += 1.8;
+      expect(view()).toEqual(start);
+      camera.rotation.y = Math.PI;
+      expect(view().count).toBe(0);
+      camera.rotation.y = 0;
+      expect(view().count).toBe(2);
+    } finally {
+      family.dispose();
+      plants.dispose();
+      material.dispose();
+      geometry.dispose();
+    }
+  });
+
   it('retains every in-frame wind envelope and tint across camera cuts and density changes', () => {
     const track = rigTrack('valley-ridge-mx'), dressing = new MxCourseDressing(track);
     const sources = [...dressing.root.children, ...dressing.turf.children].filter(
@@ -223,6 +261,7 @@ describe('formed, rooted motocross shoulder vegetation', () => {
       mesh.getMatrixAt(i, matrix);
       return matrix.elements.join(',') + '/' + new T.Color().fromBufferAttribute(mesh.instanceColor!, i).toArray().join(',');
     };
+    const cameraBatches = new Set<T.InstancedMesh>();
     let checked = 0, submitted = 0, authored = 0;
     try {
       expect(sources).toHaveLength(4);
@@ -237,6 +276,7 @@ describe('formed, rooted motocross shoulder vegetation', () => {
         dressing.inCameraView(camera, () => {
           for (const source of sources) {
             const batch = source.parent!.getObjectByName(source.name + ' in camera') as T.InstancedMesh;
+            cameraBatches.add(batch);
             expect(source.visible).toBe(false);
             expect(batch.geometry).toBe(source.geometry);
             expect(batch.material).toBe(source.material);
@@ -262,6 +302,12 @@ describe('formed, rooted motocross shoulder vegetation', () => {
       expect(() => dressing.inCameraView(camera, () => { throw new Error('interrupted colour pass'); })).toThrow();
       expect(last.visible).toBe(false);
       expect(sources.slice(1).every((m) => m.visible)).toBe(true);
+      expect(cameraBatches.size).toBe(4);
+      let releases = 0;
+      for (const batch of cameraBatches) batch.addEventListener('dispose', () => releases++);
+      dressing.dispose();
+      dressing.dispose();
+      expect(releases).toBe(4);
     } finally {
       setMxQuality('high');
       dressing.dispose();

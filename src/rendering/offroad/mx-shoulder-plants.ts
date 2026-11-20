@@ -248,6 +248,7 @@ export function mxShoulderPlantMaterial(time: { value: number }) {
 
 // Leave room at the image edge for the compositor’s subpixel projection jitter.
 const shoulderCullMargin = new T.Matrix4().makeScale(0.97, 0.97, 1);
+const SHOULDER_VIEW_RESERVE = 2; // metres beyond each surveyed plane
 
 /** The source batch holds the authored quality prefix for every camera. The
  * colour view can skip whole cells outside its frustum without adding draws
@@ -259,6 +260,8 @@ export class MxShoulderView {
   private readonly visible: Uint8Array;
   private readonly clip = new T.Matrix4();
   private readonly frustum = new T.Frustum();
+  private readonly surveyed = new T.Frustum();
+  private readonly lastClip = new T.Matrix4();
   private previousCount = -1;
 
   constructor(private readonly source: T.InstancedMesh) {
@@ -291,19 +294,44 @@ export class MxShoulderView {
     this.visible = new Uint8Array(this.cells.length);
   }
 
-  begin(camera: T.Camera) {
-    const source = this.source, view = this.view;
-    if (!source.visible || !source.parent || !source.layers.test(camera.layers)) return;
-    source.updateWorldMatrix(true, false);
+  private withinSurveyReserve() {
+    const { center, radius } = this.source.boundingSphere!;
+    for (let i = 0; i < this.frustum.planes.length; i++) {
+      const current = this.frustum.planes[i], old = this.surveyed.planes[i];
+      const dx = current.normal.x - old.normal.x, dy = current.normal.y - old.normal.y,
+        dz = current.normal.z - old.normal.z;
+      const centreShift = dx * center.x + dy * center.y + dz * center.z + current.constant - old.constant;
+      // A linear plane distance changes by at most this much anywhere in
+      // the batch sphere, including a blade at the far edge of the course.
+      if (Math.abs(centreShift) + radius * Math.hypot(dx, dy, dz) > SHOULDER_VIEW_RESERVE)
+        return false;
+    }
+    return true;
+  }
+
+  private selectCells(camera: T.Camera) {
     this.clip.multiplyMatrices(shoulderCullMargin, camera.projectionMatrix)
-      .multiply(camera.matrixWorldInverse).multiply(source.matrixWorld);
+      .multiply(camera.matrixWorldInverse).multiply(this.source.matrixWorld);
+    if (this.previousCount >= 0 && this.lastClip.equals(this.clip)) return false;
+    this.lastClip.copy(this.clip);
     this.frustum.setFromProjectionMatrix(this.clip, camera.coordinateSystem, camera.reversedDepth);
-    let changed = source.count !== this.previousCount;
+    if (this.previousCount >= 0 && this.withinSurveyReserve()) return false;
+    this.surveyed.copy(this.frustum);
+    for (const plane of this.frustum.planes) plane.constant += SHOULDER_VIEW_RESERVE;
+    let changed = false;
     for (let i = 0; i < this.cells.length; i++) {
       const visible = this.frustum.intersectsBox(this.cells[i]) ? 1 : 0;
       if (visible !== this.visible[i]) changed = true;
       this.visible[i] = visible;
     }
+    return changed;
+  }
+
+  begin(camera: T.Camera) {
+    const source = this.source, view = this.view;
+    if (!source.visible || !source.parent || !source.layers.test(camera.layers)) return;
+    source.updateWorldMatrix(true, false);
+    const changed = this.selectCells(camera) || source.count !== this.previousCount;
     if (changed) {
       let count = 0;
       for (let i = 0; i < source.count; i++) {

@@ -79,6 +79,7 @@ test('production MX shoulder plants compile and reproduce held and rewound wind 
   expect(result.foliage.reduce((sum, p) => sum + p.instanceBytes, 0)).toBeLessThan(340000);
   const samples = result.samples;
   const { full, culled } = result.cameraPlants;
+  console.log('MX_SHOULDER_VIEW', JSON.stringify(result.cameraPlants));
   expect(full.error).toBe(0);
   expect(culled.error).toBe(0);
   expect(culled.hash).toBe(full.hash);
