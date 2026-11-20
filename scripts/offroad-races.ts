@@ -106,6 +106,8 @@ const results = RACES.filter(
   const session = sim.offroad!;
   const n = sim.cars.length;
   const stopped = new Float64Array(n);
+  const slowSamples: string[][] = Array.from({ length: n }, () => []);
+  let longestSamples: string[] = [];
   let longestStop = 0,
     parked = { car: -1, s: 0, time: 0 },
     t = 0;
@@ -117,8 +119,24 @@ const results = RACES.filter(
       const e = session.entrants[id];
       // Queued or parked stage cars stand still by the rules.
       const waiting = e.start <= 1 || e.parked || c.finishTime > 0 || c.inPit;
-      stopped[id] = c.speed < 1 && !waiting ? stopped[id] + DT : 0;
+      const previous = stopped[id];
+      stopped[id] = c.speed < 1 && !waiting ? previous + DT : 0;
+      if (stopped[id] === 0 && slowSamples[id].length) slowSamples[id] = [];
+      const interval = Math.floor(stopped[id] / 2);
+      if (c instanceof DirtBikeVehicle && interval > Math.floor(previous / 2)) {
+        const near = sim.cars.filter((other) => other !== c &&
+          Math.hypot(other.body.position.x - c.body.position.x, other.body.position.z - c.body.position.z) < 15,
+        ).map((other) => `#${other.id} at ${other.s.toFixed(1)}/${other.lateral.toFixed(1)}m ${other.speed.toFixed(1)}m/s`);
+        const driver = sim.ai[id] as DirtBikeAIDriver;
+        slowSamples[id].push(
+          `${interval * 2}s ${c.s.toFixed(2)}/${c.lateral.toFixed(2)}m ${c.dynamics.state} ${c.speed.toFixed(2)}m/s` +
+          ` target ${c.aiTarget.toFixed(2)} gear ${c.gear} throttle ${c.input.throttle.toFixed(2)} brake ${c.input.brake.toFixed(2)}` +
+          ` slope ${c.groundPitch.toFixed(2)} pushes ${driver.decisions.pushes} ${driver.decision} nearby [${near.join(', ')}]`,
+        );
+        if (slowSamples[id].length > 20) slowSamples[id].shift();
+      }
       if (stopped[id] > longestStop) {
+        longestSamples = slowSamples[id];
         longestStop = stopped[id];
         parked = { car: id, s: +c.s.toFixed(1), time: +sim.race.raceTime.toFixed(1) };
       }
@@ -129,10 +147,12 @@ const results = RACES.filter(
     failures.push(`${label}: did not finish in ${race.limit} s`);
   const unclassified = sim.cars.filter((c) => !(c.finishTime > 0) || c.retired).map((c) => c.id);
   if (unclassified.length) failures.push(`${label}: not classified ${unclassified.join(', ')}`);
-  if (longestStop >= PARKED_LIMIT)
+  if (longestStop >= PARKED_LIMIT) {
     failures.push(
       `${label}: car ${parked.car} was parked ${longestStop.toFixed(1)} s (at ${parked.s} m, ${parked.time} s)`,
     );
+    for (const sample of longestSamples) console.log(`${label}: slow rider ${parked.car}: ${sample}`);
+  }
   const bikes = sim.cars.filter((c): c is DirtBikeVehicle => c instanceof DirtBikeVehicle);
   const crashes = bikes.map((b) => b.dynamics.crashes);
   let crashRate: number | undefined;
