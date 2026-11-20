@@ -2,6 +2,7 @@ import * as T from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import manifest from '../../../public/models/solvane/detail-kit.manifest.json' with { type: 'json' };
 import { downloadAuthoredAsset } from '../authored-download.ts';
+import { sampleLaunchAttitude } from './harbour-swell.ts';
 import { assetUrl } from '../assets/third-party.ts';
 import { installSpecularIBL } from '../studio/ibl-energy.ts';
 import type { QualityPreset } from '../options.ts';
@@ -96,6 +97,7 @@ export class SolvaneDetails {
   private readonly support: T.Object3D;
   private readonly farWing: T.Object3D;
   private readonly eye = new T.Vector3();
+  private readonly launchPose = { heave: 0, pitch: 0, roll: 0 };
   private readonly frustum = new T.Frustum();
   private readonly projection = new T.Matrix4();
   private readonly sphere = new T.Sphere(new T.Vector3(), 4.3);
@@ -266,7 +268,8 @@ export class SolvaneDetails {
       const y = world.region.seaLevel - 0.03,
         yaw = -0.28 + i * 0.31;
       root.position.set(x, y, z);
-      root.rotation.y = yaw;
+      root.rotation.set(0, yaw, 0, 'YXZ');
+      near.visible = false;
       root.add(near, far);
       this.root.add(root);
       this.boats.push({ root, near, far, y, yaw });
@@ -320,14 +323,17 @@ export class SolvaneDetails {
     this.stats.nearInstances = this.stats.farInstances = 0;
     this.populate('frontage', this.fronts, far, near, budget);
     this.populate('balcony', this.balconies, far * 0.85, near, budget);
-    for (let i = 0; i < this.boats.length; i++) {
-      const boat = this.boats[i],
-        d = boat.root.position.distanceTo(this.eye);
+    for (const boat of this.boats) {
+      const d = boat.root.position.distanceTo(this.eye);
       boat.root.visible = d < (low ? 400 : 1100);
-      boat.near.visible = !low && d < (medium ? 100 : 170);
+      if (!boat.root.visible) continue;
+      const nearDistance = medium ? 100 : 170;
+      boat.near.visible = !low && d < nearDistance * (boat.near.visible ? 1.1 : 1);
       boat.far.visible = !boat.near.visible;
-      boat.root.position.y = boat.y + Math.sin(time * 0.75 + i * 1.7) * 0.055;
-      boat.root.rotation.z = Math.sin(time * 0.55 + i * 2.1) * 0.011;
+      const p = boat.root.position;
+      sampleLaunchAttitude(p.x, p.z, boat.yaw, time, this.launchPose);
+      p.y = boat.y + this.launchPose.heave;
+      boat.root.rotation.set(this.launchPose.pitch, boat.yaw, this.launchPose.roll, 'YXZ');
     }
     const wet = Number.isFinite(dampness) ? T.MathUtils.clamp(dampness, 0, 1) : 0;
     // Recorded global wetness cue, not an off-road puddle simulation. Always

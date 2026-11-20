@@ -4,6 +4,7 @@ import { buildSea, installSeaWaves } from '../sea.ts';
 import { chainShaderHook, injectAfter } from '../studio/shader-hooks.ts';
 import { useStudioUniforms } from '../studio/studio-frame.ts';
 import { CoastalWater, FESTIVAL_SEA } from './coastal-water.ts';
+import { installHarbourSwell } from './harbour-swell.ts';
 import { OW_NOISE_GLSL } from './terrain-material.ts';
 
 /** The sea wave shader maps plane UV to world metres at this scale. */
@@ -224,6 +225,8 @@ export class Water {
     );
     // After the river and shore clones, which keep their own hook chains.
     this.seaFinish = installFestivalSeaFinish(this.sea.material as T.MeshPhysicalMaterial);
+    installHarbourSwell(this.sea.material as T.MeshPhysicalMaterial);
+    installHarbourSwell(this.coast.material);
     this.root.add(this.sea, this.river, this.coast.root);
   }
   /** Glitter and whitecaps on High and ULTRA; Low and Medium keep the plain sea. */

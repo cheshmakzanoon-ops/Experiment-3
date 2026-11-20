@@ -6,6 +6,7 @@ import {
   SolvaneDetails,
   SOLVANE_DETAILS,
 } from '../src/rendering/open-world/solvane-details.ts';
+import { harbourWaveHeight } from '../src/rendering/open-world/harbour-swell.ts';
 import { openWorld } from '../src/simulation/open-world/world.ts';
 import { regionStructures } from '../src/simulation/open-world/placement.ts';
 import { HorizonGuidance } from '../src/rendering/open-world/horizon-guidance.ts';
@@ -91,6 +92,53 @@ describe('Blender source to Festival runtime contract', () => {
       });
     }
     kit.dispose();
+  });
+  it('floats all three moored launches on the sampled harbour waterline through replay and distance changes', async () => {
+    const kit = new SolvaneDetails(await parseSolvaneKit(await bytes()), world, structures);
+    const camera = new T.PerspectiveCamera(60, 1, 0.1, 1000);
+    const boats = kit.root.children.filter((node) =>
+      node.name.startsWith('Port Ilse working launch'),
+    );
+    expect(boats).toHaveLength(3);
+    try {
+      for (const boat of boats) {
+        const { x, z } = boat.position;
+        const yaw = boat.rotation.y,
+          c = Math.cos(yaw),
+          s = Math.sin(yaw);
+        const view = (time: number, distance: number) => {
+          camera.position.set(x, world.region.seaLevel + 2, z + distance);
+          camera.updateMatrixWorld();
+          kit.update(time, 0, camera, 'high');
+        };
+        for (const time of [12.5, 43, 12.5]) {
+          view(time, 5);
+          const bow = harbourWaveHeight(x + 3.24 * s, z + 3.24 * c, time),
+            stern = harbourWaveHeight(x - 3.24 * s, z - 3.24 * c, time);
+          const port = harbourWaveHeight(x + 1.32 * c, z - 1.32 * s, time),
+            starboard = harbourWaveHeight(x - 1.32 * c, z + 1.32 * s, time);
+          expect(boat.position.y).toBeCloseTo(
+            world.region.seaLevel - 0.03 + (bow + stern + port + starboard) / 4,
+            10,
+          );
+          const up = new T.Vector3(0, 1, 0).applyQuaternion(boat.quaternion);
+          const direction = new T.Vector3(s, 0, c);
+          expect(-up.dot(direction) / up.y).toBeCloseTo((bow - stern) / 6.48, 4);
+          expect(-up.dot(new T.Vector3(c, 0, -s)) / up.y).toBeCloseTo((port - starboard) / 2.64, 4);
+        }
+        expect(boat.children[0].visible).toBe(true);
+        view(12.5, 178);
+        expect(boat.children[0].visible).toBe(true);
+        view(12.5, 195);
+        expect(boat.children[0].visible).toBe(false);
+        view(12.5, 178);
+        expect(boat.children[0].visible).toBe(false);
+        view(12.5, 165);
+        expect(boat.children[0].visible).toBe(true);
+      }
+    } finally {
+      kit.dispose();
+    }
   });
   it('releases each shared GPU resource once, including instance matrices, even on repeated disposal', async () => {
     const source = await parseSolvaneKit(await bytes());
