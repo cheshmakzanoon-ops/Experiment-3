@@ -1,38 +1,38 @@
 # Build and validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44823270184
-- commit: `31456578fe` · Put the SM450 on its two-wheel race grid
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44828850045
+- commit: `40cfaa4cef` · Warm the hidden motocross cockpit and reuse the completed starting gate
 - event: push · status: completed · conclusion: **cancelled**
-- started: 2026-11-20T21:46:28Z · updated: 2026-11-20T22:26:02Z
+- started: 2026-11-20T22:25:34Z · updated: 2026-11-20T23:47:48Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| validate | success | 3 |  |
-| unit-tests (3) | success | 11 |  |
-| offroad-scenarios | success | 5 |  |
-| unit-tests (4) | failure | 9 | Complete unit-suite partition without source changes |
-| scenarios | success | 17 |  |
-| unit-tests (1) | success | 10 |  |
-| unit-tests (2) | success | 11 |  |
-| owner-qa (1) | cancelled | 31 | Owner-only and review-tool specs, plus the owner half of the dual-mode specs |
-| owner-qa (4) | cancelled | 30 | Owner-only and review-tool specs, plus the owner half of the dual-mode specs |
-| owner-qa (2) | cancelled | 30 | Owner-only and review-tool specs, plus the owner half of the dual-mode specs |
+| offroad-scenarios | success | 4 |  |
+| unit-tests (4) | failure | 7 | Complete unit-suite partition without source changes |
+| unit-tests (1) | success | 11 |  |
+| unit-tests (2) | success | 10 |  |
+| validate | success | 2 |  |
+| unit-tests (3) | success | 8 |  |
+| scenarios | success | 9 |  |
 | wet-presentation | success | 9 |  |
-| browser (10) | cancelled | 13 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 10/16 |
-| browser (3) | cancelled | 27 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 3/16 |
-| browser (7) | cancelled | 29 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16 |
-| browser (1) | cancelled | 13 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 1/16 |
-| browser (5) | cancelled | 27 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/16 |
-| browser (4) | cancelled | 13 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 4/16 |
-| browser (11) | cancelled | 25 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 11/16 |
-| owner-qa (3) | cancelled | 0 | Set up job |
-| browser (6) | cancelled | 14 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 6/16 |
-| browser (8) | cancelled | 23 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16 |
-| browser (13) | cancelled | 23 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 13/16 |
-| browser (12) | cancelled | 29 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/16 |
-| browser (16) | cancelled | 11 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16 |
-| browser (14) | cancelled | 21 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 14/16 |
-| browser (9) | cancelled | 26 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16 |
-| browser (15) | cancelled | 23 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 15/16 |
-| browser (2) | cancelled | 11 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16 |
-| publish | cancelled | -1 |  |
+| owner-qa (2) | failure | 37 | Owner-only and review-tool specs, plus the owner half of the dual-mode specs |
+| owner-qa (4) | failure | 34 | Owner-only and review-tool specs, plus the owner half of the dual-mode specs |
+| owner-qa (3) | failure | 60 | Owner-only and review-tool specs, plus the owner half of the dual-mode specs |
+| owner-qa (1) | failure | 35 | Owner-only and review-tool specs, plus the owner half of the dual-mode specs |
+| browser (1) | cancelled | 63 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 1/16 |
+| browser (3) | cancelled | 40 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 3/16 |
+| browser (5) | cancelled | 65 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/16 |
+| browser (10) | failure | 59 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 10/16 |
+| browser (6) | cancelled | 42 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 6/16 |
+| browser (4) | cancelled | 66 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 4/16 |
+| browser (15) | failure | 53 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 15/16 |
+| browser (9) | cancelled | 61 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16 |
+| browser (8) | failure | 53 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16 |
+| browser (11) | failure | 52 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 11/16 |
+| browser (12) | failure | 64 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/16 |
+| browser (14) | failure | 41 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 14/16 |
+| browser (13) | cancelled | 42 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 13/16 |
+| browser (7) | cancelled | 59 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16 |
+| browser (2) | cancelled | 43 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16 |
+| browser (16) | failure | 43 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16 |
+| publish | cancelled | 0 |  |
