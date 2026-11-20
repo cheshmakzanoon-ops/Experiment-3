@@ -828,7 +828,7 @@ export class Rider {
     this.root.name = 'Rider';
     this.torso.name = 'Rider torso';
     this.root.add(this.torso);
-    if (gpSuit) this.gpSpine = new GpRiderSpine(this.root, this.torso);
+    if (gp && !mx) this.gpSpine = new GpRiderSpine(this.root, this.torso, gpSuit);
     if (mx) this.motocrossSpine = new MotocrossRiderSpine(this.root, this.torso);
     const upperTorso = this.gpSpine?.chest ?? this.motocrossSpine?.chest ?? this.torso;
     // Torso: pelvis at the origin, spine along +Y, chest forward (+Z).
@@ -859,7 +859,12 @@ export class Rider {
         ? gpTorsoGeometry(detail)
         : bodyLoft(torsoSections, sides);
     if (gpSuit) shapeGpSuitGeometry(torsoGeometry, 'torso');
-    const torsoMesh = part(this.torso, distantRoad ? paintDistantGpRider(torsoGeometry, colours, false) : torsoGeometry, torsoLeather);
+    const torsoMount = distantGp ? this.gpSpine!.lumbar : this.torso;
+    const torsoMesh = part(
+      torsoMount,
+      distantRoad ? paintDistantGpRider(torsoGeometry, colours, false) : torsoGeometry,
+      torsoLeather,
+    );
     torsoMesh.name = mx ? 'Motocross sculpted textile torso' : 'Rider leather torso';
     this.motocrossSpine?.bind(torsoMesh);
     if (mx) {
@@ -887,7 +892,7 @@ export class Rider {
       this.motocrossSpine!.bind(neck);
     }
     // Aero hump (spine protector and airbag housing) on the back.
-    if (detail !== 'far' && !mx && !gpSuit) {
+    if (!mx && !gp) {
       const hump = bodyLoft(
         [
           [0.12, -0.075, 0.012, 0.016, 0.018],
@@ -899,7 +904,13 @@ export class Rider {
         ],
         sides,
       );
-      part(this.torso, hump, panel).name = 'Rider aero hump';
+      // Keep the protector in the far silhouette using the suit's existing
+      // vertex-colour batch. At racing distance it needs no separate finish.
+      part(
+        this.torso,
+        distantRoad ? paintDistantGpRider(hump, colours, false) : hump,
+        distantRoad ? torsoLeather : panel,
+      ).name = 'Rider aero hump';
     }
     // Contrast side panels and a shoulder cap per side.
     for (const side of [1, -1]) {

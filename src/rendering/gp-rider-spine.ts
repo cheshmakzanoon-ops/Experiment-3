@@ -16,7 +16,7 @@ const CHEST_HEIGHT = 0.32;
 export class GpRiderSpine {
   readonly lumbar = new T.Group();
   readonly chest = new T.Group();
-  readonly skeleton: T.Skeleton;
+  readonly skeleton?: T.Skeleton;
   readonly meshes: T.SkinnedMesh[] = [];
   private readonly euler = new T.Euler();
   private readonly chestAngles = new T.Euler();
@@ -26,10 +26,14 @@ export class GpRiderSpine {
   constructor(
     parent: T.Group,
     private readonly pelvis: T.Group,
+    skinSuit: boolean,
   ) {
     this.lumbar.name = 'GP lumbar spine';
     this.chest.name = 'GP upper chest';
     parent.add(this.lumbar, this.chest);
+    // Distant riders attach a single rigid shell to the lumbar frame. Their
+    // helmet and contact targets still trace the exact same anatomical pivots.
+    if (!skinSuit) return;
     const bones = [pelvis, this.lumbar, this.chest].map((frame, i) => {
       const bone = new T.Bone();
       bone.name = ['GP pelvis skin', 'GP lumbar skin', 'GP chest skin'][i];
@@ -46,6 +50,7 @@ export class GpRiderSpine {
    * shoulder armour, zip and side panels receive the same skin transform as
    * the underlying suit, so none can float off when the waist bends. */
   bindTorso() {
+    if (!this.skeleton) return;
     const buckets = new Map<T.Material, T.Mesh[]>();
     for (const child of [...this.pelvis.children]) {
       if (!(child instanceof T.Mesh) || Array.isArray(child.material)) continue;
@@ -147,6 +152,6 @@ export class GpRiderSpine {
 
   dispose() {
     // All torso material batches share one small bone texture.
-    this.skeleton.dispose();
+    this.skeleton?.dispose();
   }
 }

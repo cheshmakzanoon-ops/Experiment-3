@@ -178,11 +178,10 @@ describe('GP articulated spine and connected one-piece suit', () => {
     expect(disposed).toBe(1);
   });
 
-  it('leaves road, motocross and distant GP riders on their existing rigid torso path', () => {
+  it('leaves the road and motocross riders on their own torso paths', () => {
     for (const [detail, kit, gp] of [
       ['mid', 'leathers', false],
       ['mid', 'motocross', true],
-      ['far', 'leathers', true],
     ] as const) {
       const rider = new Rider(colours, detail, kit, 2, gp);
       try {
@@ -195,6 +194,52 @@ describe('GP articulated spine and connected one-piece suit', () => {
       } finally {
         rider.dispose();
       }
+    }
+  });
+
+  it('holds the helmet and upper chest on the same path across the mid and rigid far suits', () => {
+    const middle = new Rider(colours, 'mid', 'leathers', 2, true);
+    const distant = new Rider(colours, 'far', 'leathers', 2, true);
+    try {
+      const bones: T.Object3D[] = [];
+      distant.root.traverse((o) => {
+        if (o instanceof T.Bone || o instanceof T.SkinnedMesh) bones.push(o);
+      });
+      expect(bones).toHaveLength(0);
+      for (const pose of [
+        base,
+        { ...base, tuck: 1 },
+        { ...base, braking: 1, lean: 0.7, offset: 0.18 },
+        { ...base, lean: -0.98, offset: -0.23 },
+      ]) {
+        middle.ride(pose);
+        distant.ride(pose);
+        for (const marker of ['GP upper chest', 'Rider head and helmet']) {
+          const near = middle.root.getObjectByName(marker)!,
+            far = distant.root.getObjectByName(marker)!;
+          expect(
+            near
+              .getWorldPosition(new T.Vector3())
+              .distanceTo(far.getWorldPosition(new T.Vector3())),
+          ).toBeLessThan(1e-7);
+          expect(
+            near
+              .getWorldQuaternion(new T.Quaternion())
+              .angleTo(far.getWorldQuaternion(new T.Quaternion())),
+          ).toBeLessThan(1e-6);
+        }
+        expect(
+          middle.helmetCentre(new T.Vector3()).distanceTo(distant.helmetCentre(new T.Vector3())),
+        ).toBeLessThan(1e-7);
+        distant.separated(0, 1.25, 0.45);
+        distant.ride(pose);
+        expect(
+          middle.helmetCentre(new T.Vector3()).distanceTo(distant.helmetCentre(new T.Vector3())),
+        ).toBeLessThan(1e-7);
+      }
+    } finally {
+      middle.dispose();
+      distant.dispose();
     }
   });
 
