@@ -2,6 +2,7 @@ import { chromium, defineConfig } from '@playwright/test';
 import { browserBackend } from './scripts/browser-backend.ts';
 
 const backend = browserBackend(process.env.APEX_BROWSER_BACKEND);
+const useDisplay = process.env.APEX_MOTOCROSS_XVFB_CAPTURE === '1';
 
 /** A separate local port keeps this focused review independent of other
  * running preview servers. The normal CI config also discovers these specs. */
@@ -27,11 +28,11 @@ export default defineConfig({
     viewport: { width: 1280, height: 800 },
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
-    headless: backend.headless,
+    headless: useDisplay ? false : backend.headless,
     launchOptions: {
       executablePath:
         process.env.CHROMIUM_PATH ||
-        (backend.name === 'mesa' ? chromium.executablePath() : undefined),
+        (backend.name === 'mesa' || useDisplay ? chromium.executablePath() : undefined),
       args: backend.args,
     },
   },

@@ -187,6 +187,7 @@ jobs:
     # continuous observation. The separate SwiftShader GPU gate is retained.
     env:
       APEX_BROWSER_BACKEND: mesa
+      APEX_MOTOCROSS_XVFB_CAPTURE: '1'
       LIBGL_ALWAYS_SOFTWARE: 'true'
       GALLIUM_DRIVER: llvmpipe
     strategy:

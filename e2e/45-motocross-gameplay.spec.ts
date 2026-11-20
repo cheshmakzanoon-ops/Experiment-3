@@ -31,12 +31,14 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
     await page.addInitScript(() => {
       let lastStage = '';
       window.setInterval(() => {
-        const label = document.getElementById('loadingText');
-        if (!label?.getClientRects().length) {
+        const board = document.getElementById('loading');
+        if (!board || board.hidden || !board.getClientRects().length) {
           lastStage = '';
           return;
         }
-        const stage = label.textContent?.trim() || '';
+        const percent = document.getElementById('loadingPercent')?.textContent ?? '';
+        const detail = document.getElementById('loadingText')?.textContent?.trim();
+        const stage = detail ? `${percent} ${detail}` : '';
         if (stage && stage !== lastStage) {
           lastStage = stage;
           console.info(`[MX loading] ${stage}`);
@@ -57,12 +59,18 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
     expect(images.has(digest), `${name} presents a new game image`).toBe(false);
     images.add(digest);
     await info.attach(name, { path, contentType: 'image/png' });
-    console.info(`[MX journey] Captured ${name}`);
+    const snapshot = await diag();
+    console.info(
+      `[MX journey] Captured ${name} (${snapshot.state}, ${
+        snapshot.frame?.[H.TIME].toFixed(1) ?? '0'
+      } s)`,
+    );
   };
   await page.goto('/');
   await expect(page.locator('#menu')).toBeVisible({ timeout: MENU_STARTUP_TIMEOUT_MS });
   const entryPresentation = (await diag()).renderer!;
   expect(entryPresentation.presentationPurpose).toBe('showroom');
+  expect(entryPresentation.presentedBackdrop).toBe('studio');
   expect(entryPresentation.construction.tasks).toBe(0);
   expect(entryPresentation.gpuFrameQueue.completed).toBeGreaterThan(0);
   // Software GPUs can spend the whole riding budget on a production frame.
@@ -87,26 +95,36 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
     ['arena-nord-sx', 'STADIUM SX', 'mx250'],
   ] as const) {
     console.info(`[MX journey] Selecting ${circuit} and ${machine}`);
+    const before = (await diag()).presentation!.frames;
     // The dirt shortcuts belong to the DIRT plate (they are hidden under the other plates).
     await page.getByRole('radio', { name: /^DIRT/ }).click();
     await page.getByRole('button', { name: entry, exact: true }).click();
     await page.locator('#vehicle').selectOption(machine);
+    // The worker keeps racing while a software renderer captures the views.
+    // Use the normal ten-lap race distance so the leaders cannot finish the
+    // meeting halfway through the camera and pause observations.
+    await page.locator('#laps').selectOption('10');
+    await expect(page.locator('#vehicle')).toHaveValue(machine);
+    // Observe the completed revision belonging to this selection. A second
+    // orbit frame can be GPU-owned long after the chosen bike is on screen.
     await expect
-      .poll(async () => {
-        const state = await diag();
-        return state.menuPreview?.machine;
-      })
-      .toBe(machine);
-    const before = (await diag()).presentation!.frames;
-    // The preceding showroom frame may still own the software GPU after a
-    // selection. Require the selected-machine redraw to complete,
-    // using the same bounded cold-start budget as the visible menu itself.
-    await expect
-      .poll(async () => (await diag()).presentation?.frames ?? 0, {
-        timeout: MENU_STARTUP_TIMEOUT_MS,
-        message: `${circuit}: selected-machine showroom frame is submitted`,
-      })
-      .toBeGreaterThan(before);
+      .poll(
+        async () => {
+          const d = await diag();
+          return {
+            machine: d.menuPreview?.machine,
+            current: d.menuPreview?.current,
+            time: d.menuPreview?.time,
+            submitted: (d.presentation?.frames ?? 0) > before,
+            backdrop: d.renderer?.presentedBackdrop,
+          };
+        },
+        {
+          timeout: MENU_STARTUP_TIMEOUT_MS,
+          message: `${circuit}: selected motorcycle is on screen`,
+        },
+      )
+      .toEqual({ machine, current: true, time: 0, submitted: true, backdrop: 'studio' });
     await capture(`${circuit}-actual-menu.png`);
     console.info(`[MX journey] Preparing the complete ${circuit} session`);
     await page.getByRole('button', { name: 'ENTER CIRCUIT', exact: true }).click();
@@ -121,6 +139,7 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
     expect(initialized.renderer?.preparation?.status).toBe('complete');
     expect(initialized.renderer?.trackInfrastructure.marshalPosts).toBeGreaterThan(0);
     expect(initialized.options.circuit).toBe(circuit);
+    expect(initialized.options.laps).toBe(10);
     expect(initialized.frame?.[H.CARS]).toBe(8);
     expect(initialized.frame?.[H.TICK]).toBe(0);
     expect(initialized.frame?.[H.SC_PHASE]).toBe(0);
@@ -139,6 +158,7 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
           return (
             held.state === 'paused' &&
             held.presentation?.renderedState === 'paused' &&
+            held.renderer?.presentedBackdrop === 'circuit' &&
             held.frame?.[H.TICK] === 0 &&
             !!queue &&
             queue.completed > 0 &&
@@ -310,8 +330,14 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
     expect(ridden.presentation!.frames).toBeGreaterThan(initialized.presentation!.frames);
     console.info(`[MX journey] ${circuit} has real course progress, flight and touchdown`);
     await capture(`${circuit}-actual-chase.png`);
+    expect((await diag()).state, `${circuit} is live before switching cameras`).toBe('driving');
     await page.keyboard.press('c');
-    await expect.poll(async () => (await diag()).renderer?.camera).toBe('cockpit');
+    await expect
+      .poll(async () => {
+        const state = await diag();
+        return { state: state.state, camera: state.renderer?.camera };
+      })
+      .toEqual({ state: 'driving', camera: 'cockpit' });
     await capture(`${circuit}-actual-onboard.png`);
     await page.keyboard.press('Escape');
     await expect(page.getByRole('button', { name: 'RESUME SESSION', exact: true })).toBeVisible();
@@ -351,8 +377,29 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
     });
     await page.getByRole('button', { name: 'RETURN TO PADDOCK', exact: true }).click();
     await expect(page.locator('#menu')).toBeVisible();
-    await expect.poll(async () => (await diag()).menuPreview?.time).toBe(0);
-    await expect.poll(async () => (await diag()).presentation?.time).toBe(0);
+    await expect
+      .poll(
+        async () => {
+          const d = await diag();
+          return {
+            purpose: d.renderer?.presentationPurpose,
+            backdrop: d.renderer?.presentedBackdrop,
+            machine: d.menuPreview?.machine,
+            current: d.menuPreview?.current,
+            time: d.menuPreview?.time,
+            presented: d.presentation?.time,
+          };
+        },
+        { timeout: MENU_STARTUP_TIMEOUT_MS },
+      )
+      .toEqual({
+        purpose: 'circuit',
+        backdrop: 'studio',
+        machine,
+        current: true,
+        time: 0,
+        presented: 0,
+      });
     console.info(`[MX journey] ${circuit} returned to its selected-machine paddock`);
   }
   expect(errors).toEqual([]);

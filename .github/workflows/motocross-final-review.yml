@@ -12,6 +12,8 @@ on:
       - src/rendering/offroad/**
       - src/rendering/assets/mx-authored-kit.mesh.json
       - src/rendering/rider.ts
+      - src/rendering/bike.ts
+      - src/rendering/renderer.ts
       - src/rendering/ground/normal-residency.ts
       - src/rendering/ground/scan-store.ts
       - src/rendering/assets/texture-loader.ts
@@ -25,7 +27,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: motocross-final-review
+  group: motocross-final-review-${{ github.ref }}
   cancel-in-progress: true
 # This is an additional focused review, not a publication path. The full unit,
 # physics, offroad, browser and wet-presentation release gates remain in ci.yml.
@@ -93,6 +95,8 @@ jobs:
       matrix:
         include:
           - { suite: models-world, backend: mesa }
+          - { suite: terrain, backend: mesa }
+          - { suite: course, backend: mesa }
           - { suite: journey, backend: mesa }
           - { suite: journey-low, backend: swiftshader, quality: low }
           - { suite: journey-medium, backend: swiftshader, quality: medium }
@@ -102,6 +106,7 @@ jobs:
       APEX_BROWSER_BACKEND: ${{ matrix.backend }}
       APEX_MOTOCROSS_JOURNEY_QUALITY: ${{ matrix.quality || '' }}
       APEX_MOTOCROSS_JOURNEY_PROGRESS: '1'
+      APEX_MOTOCROSS_XVFB_CAPTURE: '1'
       LIBGL_ALWAYS_SOFTWARE: 'true'
       GALLIUM_DRIVER: llvmpipe
       LP_NUM_THREADS: '4'
@@ -133,11 +138,16 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/mx-qa"
-          if [ '${{ matrix.suite }}' != models-world ]; then
-            specs=(e2e/45-motocross-gameplay.spec.ts)
-          else
-            specs=(e2e/42-motocross-bike.spec.ts e2e/43-motocross-world.spec.ts e2e/44-motocross-interface.spec.ts e2e/46-motocross-normal-residency.spec.ts e2e/47-motocross-trackside-models.spec.ts e2e/48-motocross-practice.spec.ts e2e/51-motocross-roost-lighting.spec.ts e2e/52-motocross-shoulder-plants.spec.ts e2e/53-motocross-course-landmarks.spec.ts e2e/54-motocross-berm-practice.spec.ts)
-          fi
+          case '${{ matrix.suite }}' in
+            models-world)
+              specs=(e2e/42-motocross-bike.spec.ts e2e/47-motocross-trackside-models.spec.ts) ;;
+            terrain)
+              specs=(e2e/43-motocross-world.spec.ts e2e/46-motocross-normal-residency.spec.ts e2e/49-motocross-worked-soil.spec.ts e2e/50-motocross-terrain-continuity.spec.ts) ;;
+            course)
+              specs=(e2e/44-motocross-interface.spec.ts e2e/48-motocross-practice.spec.ts e2e/51-motocross-roost-lighting.spec.ts e2e/52-motocross-shoulder-plants.spec.ts e2e/53-motocross-course-landmarks.spec.ts e2e/54-motocross-berm-practice.spec.ts e2e/55-motocross-flow-practice.spec.ts) ;;
+            journey*) specs=(e2e/45-motocross-gameplay.spec.ts) ;;
+            *) exit 1 ;;
+          esac
           node --experimental-transform-types scripts/source-stability.ts -- xvfb-run -a -s '-screen 0 1920x1080x24' npx playwright test "${specs[@]}" --config playwright.motocross.config.ts 2>&1 | tee "$RUNNER_TEMP/mx-qa/browser.log"
           git diff --exit-code
       - uses: actions/upload-artifact@v4

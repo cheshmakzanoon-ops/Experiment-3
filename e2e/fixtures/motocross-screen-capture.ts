@@ -1,57 +1,158 @@
-import { expect, type Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { writeFile } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
 const run = promisify(execFile);
-const marker = Buffer.from([217, 25, 143, 217, 25, 143, 217, 25, 143]);
+const inset = 32;
+const size = 12;
 
-/** The headed Mesa renderer is already on an X11 display. Read the presented
- * pixels there so capturing evidence cannot queue another full WebGL draw.
- * Calibrate the viewport once on about:blank before loading the real game. */
+function findMarker(pixels: Buffer, width: number, height: number, green: boolean) {
+  const matches = (i: number) => {
+    const r = pixels[i],
+      g = pixels[i + 1],
+      b = pixels[i + 2];
+    return green ? g > r + 70 && g > b + 25 && b > r + 25 : r > g + 70 && b > g + 45 && r > b + 20;
+  };
+  for (let y = 1; y <= height - size; y++)
+    for (let x = 1; x <= width - size; x++) {
+      const i = (y * width + x) * 3;
+      if (!matches(i) || matches(i - 3) || matches(i - width * 3)) continue;
+      if (
+        matches(i + (size - 1) * 3) &&
+        matches(i + (size - 1) * width * 3) &&
+        matches(i + (size - 1) * (width + 1) * 3)
+      )
+        return { x, y };
+    }
+  return null;
+}
+
+/** Copy the visible Chromium view when the window system cannot supply a
+ * calibrated crop. The caller checks the dimensions and image identity. */
+async function captureView(page: Page, path: string) {
+  const session = await page.context().newCDPSession(page);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const viewport = page.viewportSize()!;
+    const { data } = await Promise.race([
+      session.send('Page.captureScreenshot', {
+        format: 'png',
+        fromSurface: false,
+        captureBeyondViewport: false,
+        clip: { x: 0, y: 0, ...viewport, scale: 1 },
+      }),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error('Timed out reading the Chromium view')), 60000);
+      }),
+    ]);
+    await writeFile(path, Buffer.from(data, 'base64'));
+  } finally {
+    clearTimeout(timer);
+    await session.detach();
+  }
+}
+
+/** Read a dedicated virtual display without queuing another WebGL draw.
+ * Locate two inset targets on about:blank before opening the real game. */
 export async function motocrossScreenCapture(page: Page) {
-  if (process.env.APEX_BROWSER_BACKEND !== 'mesa')
+  if (process.env.APEX_MOTOCROSS_XVFB_CAPTURE !== '1') {
+    if (process.env.APEX_BROWSER_BACKEND === 'mesa')
+      return (path: string) => captureView(page, path);
     return async (path: string) => {
       await page.screenshot({ path, timeout: 60000 });
     };
-
+  }
   const viewport = page.viewportSize();
   if (!viewport) throw new Error('The motocross capture requires a fixed viewport');
   await page.bringToFront();
-  await page.setContent(
-    '<style>html{background:#d9198f}body:after{content:"";position:fixed;right:0;bottom:0;width:8px;height:8px;background:#1cd78b}</style>',
-  );
-  let crop = '';
-  await expect
-    .poll(
-      async () => {
-        const { stdout } = await run(
-          'import',
-          ['-silent', '-window', 'root', '-depth', '8', 'ppm:-'],
-          { encoding: 'buffer', timeout: 10000, maxBuffer: 64 * 1024 * 1024 },
-        );
-        const header = /^P6\s+(?:#[^\n]*\n\s*)*(\d+)\s+(\d+)\s+255\r?\n/.exec(
-          stdout.toString('ascii', 0, 1024),
-        );
-        if (!header) throw new Error('Cannot read the X11 display dimensions from its PPM header');
-        const screenWidth = Number(header[1]),
-          pixels = stdout.subarray(header[0].length),
-          start = pixels.indexOf(marker);
-        if (start < 0 || start % 3 !== 0) return false;
-        const x = (start / 3) % screenWidth,
-          y = Math.floor(start / 3 / screenWidth),
-          end = start + ((viewport.height - 1) * screenWidth + viewport.width - 1) * 3;
-        if (pixels[end] !== 28 || pixels[end + 1] !== 215 || pixels[end + 2] !== 139) return false;
-        crop = `${viewport.width}x${viewport.height}+${x}+${y}`;
-        return true;
+  const chrome = await page.context().newCDPSession(page);
+  try {
+    const { windowId } = await chrome.send('Browser.getWindowForTarget');
+    // Xvfb has no window manager. Leave room for Chromium's toolbar and
+    // native frame while Playwright keeps the game viewport at its set size.
+    await chrome.send('Browser.setWindowBounds', {
+      windowId,
+      bounds: {
+        left: 0,
+        top: 0,
+        width: viewport.width + 96,
+        height: viewport.height + 160,
       },
-      { timeout: 20000, message: 'locate both corners of the presented Chromium viewport' },
-    )
-    .toBe(true);
+    });
+  } finally {
+    await chrome.detach();
+  }
+  await page.setContent(`<style>
+    html { background:#182029 } i,b { position:fixed; width:${size}px; height:${size}px }
+    i { left:${inset}px; top:${inset}px; background:#d9198f }
+    b { right:${inset}px; bottom:${inset}px; background:#1cd78b }
+    </style><i></i><b></b>`);
+  let crop = '',
+    observed = '';
+  for (let attempt = 0; attempt < 3 && !crop; attempt++) {
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+        ),
+    );
+    const { stdout } = await run(
+      'import',
+      ['-silent', '-screen', '-window', 'root', '-depth', '8', 'ppm:-'],
+      { encoding: 'buffer', timeout: 10000, maxBuffer: 64 * 1024 * 1024 },
+    );
+    const header = /^P6\s+(?:#[^\n]*\n\s*)*(\d+)\s+(\d+)\s+255\r?\n/.exec(
+      stdout.toString('ascii', 0, 1024),
+    );
+    if (!header) throw new Error('Cannot read the X11 display dimensions from its PPM header');
+    const width = Number(header[1]),
+      height = Number(header[2]),
+      pixels = stdout.subarray(header[0].length);
+    const first = findMarker(pixels, width, height, false),
+      last = findMarker(pixels, width, height, true);
+    if (first && last) {
+      const x = first.x - inset,
+        y = first.y - inset;
+      if (
+        last.x - first.x === viewport.width - 2 * inset - size &&
+        last.y - first.y === viewport.height - 2 * inset - size &&
+        x >= 0 &&
+        y >= 0 &&
+        x + viewport.width <= width &&
+        y + viewport.height <= height
+      ) {
+        crop = `${viewport.width}x${viewport.height}+${x}+${y}`;
+        break;
+      }
+    }
+    const center = 3 * (Math.floor(height / 2) * width + Math.floor(width / 2));
+    observed = JSON.stringify({
+      screen: [width, height],
+      first,
+      last,
+      centerRGB: [...pixels.subarray(center, center + 3)],
+    });
+  }
+  if (!crop) {
+    console.info(`[MX journey] Reading the Chromium view. X11 targets: ${observed}`);
+    return (path: string) => captureView(page, path);
+  }
   console.info(`[MX journey] Capturing the presented X11 viewport at ${crop}`);
   return async (path: string) => {
     await run(
       'import',
-      ['-silent', '-window', 'root', '-crop', crop, '+repage', '-strip', `PNG24:${path}`],
+      [
+        '-silent',
+        '-screen',
+        '-window',
+        'root',
+        '-crop',
+        crop,
+        '+repage',
+        '-strip',
+        `PNG24:${path}`,
+      ],
       { timeout: 60000 },
     );
   };
