@@ -24,6 +24,7 @@ import { installSportHeadlights, roundRoadLamp } from '../src/rendering/road-bik
 import { gpRaceBodywork } from '../src/rendering/gp-race-bodywork.ts';
 import { roadTyreSection } from '../src/simulation/bike-tyre-profile.ts';
 import { RoadBikeInstruments } from '../src/rendering/road-bike-instruments.ts';
+import { addClassicInduction } from '../src/rendering/road-bike-classic-induction.ts';
 
 const catalogue = [
   ['sbk1000', 'superbike'],
@@ -52,6 +53,51 @@ beforeAll(() => {
 afterAll(() => vi.unstubAllGlobals());
 
 describe('road motorcycles in the GP selector', () => {
+  it.each(['high', 'mid', 'far'] as const)(
+    'keeps three genuinely open classic intake bells and clears the compressed rear tyre at %s',
+    (detail) => {
+      const body = new T.Group(),
+        materials = new BikeMaterials(0);
+      const b = VEHICLES.cr750.bike!;
+      try {
+        addClassicInduction(body, detail, materials);
+        body.updateMatrixWorld(true);
+        const bells = body.children.filter((o) => o.name === 'Rolled intake bell');
+        expect(bells.map((bell) => bell.position.x)).toEqual([-0.108, 0, 0.108]);
+        for (const bell of bells) {
+          const ray = new T.Raycaster(
+            new T.Vector3(bell.position.x, bell.position.y, -0.15),
+            new T.Vector3(0, 0, 1),
+          );
+          expect(ray.intersectObject(bell)).toHaveLength(0);
+          ray.ray.origin.y += 0.042;
+          expect(ray.intersectObject(bell).length).toBeGreaterThan(0);
+        }
+        const tank = body.getObjectByName('Pressed underseat oil reservoir') as T.Mesh;
+        const points = tank.geometry.getAttribute('position');
+        const [, py, pz] = ROAD_SWINGARM_PIVOT;
+        const restY = b.rearWheelRadius - b.cgHeight;
+        const arm = Math.hypot(restY - py, -b.cgToRear - pz);
+        for (const compression of [0, b.shockTravel / 2, b.shockTravel]) {
+          const hubY = restY + compression,
+            hubZ = pz - Math.sqrt(arm * arm - (hubY - py) ** 2);
+          for (let i = 0; i < points.count; i++)
+            expect(Math.hypot(points.getY(i) - hubY, points.getZ(i) - hubZ)).toBeGreaterThan(
+              b.rearWheelRadius + 0.03,
+            );
+        }
+        expect(body.children.filter((o) => o.name === 'Rear shock tower brace')).toHaveLength(2);
+        expect(body.children.filter((o) => o.name === 'Float bowl')).toHaveLength(
+          detail === 'far' ? 0 : 3,
+        );
+      } finally {
+        body.traverse((o) => {
+          if (o instanceof T.Mesh) o.geometry.dispose();
+        });
+        materials.dispose();
+      }
+    },
+  );
   it('keeps the classic rear brake rod at its assembled length as the wheel and pedal move', () => {
     const materials = new BikeMaterials(0),
       pivot = new T.Vector3(...ROAD_SWINGARM_PIVOT);

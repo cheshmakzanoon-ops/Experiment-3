@@ -1,5 +1,13 @@
 import * as T from 'three';
-import { add, addGpRigidFinish, exhaustGeometry, tube, type BikeMaterials } from './bike.ts';
+import {
+  add,
+  addGpRigidFinish,
+  exhaustGeometry,
+  superLoft,
+  tube,
+  type BikeMaterials,
+} from './bike.ts';
+import { addClassicInduction } from './road-bike-classic-induction.ts';
 import { gpSilencer } from './gp-appearance.ts';
 import { gpRadiator } from './gp-radiator.ts';
 import type { BikeSheet } from './bike-sheet.ts';
@@ -146,7 +154,37 @@ export function addRoadPowertrain(
   const width = classic ? 0.148 : naked ? 0.16 : 0.137;
   const sides = full ? 24 : near ? 14 : far ? 8 : 12;
   if (!far || exposed) {
-    add(body, caseCasting(width, full), m.dark).name = 'Split crankcase and transmission';
+    add(body, caseCasting(width, full), classic ? m.caliper : m.dark).name =
+      'Split crankcase and transmission';
+    if (classic && !far) {
+      // A horizontal joint joins the two sand-cast crankcase halves. The lip
+      // extends past the cast walls where the through-bolts clamp the joint.
+      const joint = superLoft(
+        [
+          { z: -0.177, y: -0.269, w: width * 0.92, top: 0.003, bottom: 0.003 },
+          { z: -0.14, y: -0.267, w: width + 0.016, top: 0.005, bottom: 0.004 },
+          { z: 0.16, y: -0.264, w: width + 0.016, top: 0.005, bottom: 0.004 },
+          { z: 0.218, y: -0.264, w: width * 0.93, top: 0.003, bottom: 0.003 },
+        ],
+        full ? 12 : 8,
+        3.2,
+      );
+      add(body, joint, m.steel).name = 'Crankcase joint flange';
+      for (const side of [-1, 1])
+        for (const z of [-0.117, 0.086, 0.151]) {
+          const x = side * (width + 0.002);
+          add(
+            body,
+            new T.CylinderGeometry(0.012, 0.014, 0.033, full ? 10 : 6),
+            m.caliper,
+            x,
+            -0.261,
+            z,
+          );
+          if (full)
+            add(body, new T.CylinderGeometry(0.009, 0.009, 0.006, 6), m.aluminium, x, -0.2415, z);
+        }
+    }
     for (const side of [-1, 1]) {
       const radius = side < 0 ? 0.105 : 0.083,
         z = side < 0 ? 0.024 : 0.102;
@@ -219,9 +257,61 @@ export function addRoadPowertrain(
           }
         }
         if (full) {
+          let leadStart: Point = [x, -0.034, headZ + 0.024];
+          if (classic) {
+            const baseY = -0.039,
+              baseZ = headZ + 0.014;
+            const alongHead = (height: number): Point => [
+              x,
+              baseY + height * Math.cos(tilt),
+              baseZ + height * Math.sin(tilt),
+            ];
+            const hex = add(
+              body,
+              new T.CylinderGeometry(0.012, 0.012, 0.012, 6),
+              m.steel,
+              ...alongHead(0.005),
+            );
+            hex.rotation.x = tilt;
+            const insulator = turned(
+              [
+                [0.007, 0.008],
+                [0.0065, 0.012],
+                [0.008, 0.015],
+                [0.0065, 0.017],
+                [0.008, 0.02],
+                [0.0065, 0.022],
+                [0.008, 0.025],
+                [0.006, 0.029],
+              ],
+              10,
+            );
+            const ceramic = add(body, insulator, m.reservoir, x, baseY, baseZ);
+            ceramic.rotation.x = tilt;
+            ceramic.name = 'Ribbed plug insulator';
+            const boot = add(
+              body,
+              turned(
+                [
+                  [0.009, 0.024],
+                  [0.01, 0.028],
+                  [0.009, 0.037],
+                  [0.005, 0.048],
+                ],
+                12,
+              ),
+              m.dark,
+              x,
+              baseY,
+              baseZ,
+            );
+            boot.rotation.x = tilt;
+            boot.name = 'Ignition lead boot';
+            leadStart = alongHead(0.046);
+          }
           const plug: Point[] = [
-            [x, -0.034, headZ + 0.024],
-            [x, 0.013, headZ + 0.028],
+            leadStart,
+            [x, classic ? 0.029 : 0.013, headZ + 0.028],
             [x * 0.84, 0.05, headZ - 0.025],
             [x * 0.66, 0.098, headZ - 0.09],
           ];
@@ -260,6 +350,7 @@ export function addRoadPowertrain(
       }
   }
   if (classic) {
+    addClassicInduction(body, detail, m);
     for (const [x, end, dz] of [
       [-0.108, -0.181, -0.02],
       [0, 0.124, 0.075],
