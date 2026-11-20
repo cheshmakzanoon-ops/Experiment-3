@@ -81,6 +81,23 @@ export function motocrossInspectionChassis(
   };
 }
 
+// In the fixed side camera the front axle is in the left half of the frame
+// and the rear axle is in the right. Independent hashes catch a swapped axle
+// even when both the rolling and the locked full-frame images look different.
+function sideWheelHashes(pixels: Uint8Array, width: number) {
+  const halves = [2166136261, 2166136261];
+  const halfRow = width * 2; // half a scanline of RGBA8
+  for (let row = 0; row < pixels.length; row += 2 * halfRow) {
+    for (const part of [0, 1]) {
+      const start = row + part * halfRow;
+      let hash = halves[part];
+      for (let i = start; i < start + halfRow; i++) hash = Math.imul(hash ^ pixels[i], 16777619);
+      halves[part] = hash >>> 0;
+    }
+  }
+  return { front: halves[0], rear: halves[1] };
+}
+
 /** Actual production DirtBikeModel in a controlled inspection scene. The
  * production geometry, materials, suspension and rider IK are unmodified. */
 export function captureMotocrossBike(
@@ -339,6 +356,9 @@ export function captureMotocrossBike(
         image: renderer.domElement.toDataURL('image/png'),
         instance: model.root.uuid,
         hash,
+        wheelPixels: view === 'side' && (sample.frontOmega !== undefined || sample.rearOmega !== undefined)
+          ? sideWheelHashes(pixels, renderer.domElement.width)
+          : null,
         triangles,
         submittedTriangles: renderer.info.render.triangles,
         finiteGeometry,

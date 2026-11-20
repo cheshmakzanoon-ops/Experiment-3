@@ -67,8 +67,8 @@ describe('road motorcycle spoke exposure', () => {
       }
     },
   );
-  it.each(['high', 'mid'] as const)('resolves the actual %s crossed MX shafts and nipples', (detail) => {
-    for (const [rim, halfWidth] of [[0.2667, 0.042], [0.2286, 0.06]]) {
+  it.each(['high', 'mid'] as const)('resolves the actual %s crossed shafts and nipples on dirt and 17-inch supermoto wheels', (detail) => {
+    for (const [rim, halfWidth] of [[0.2667, 0.042], [0.2286, 0.06], [0.2159, 0.06], [0.2159, 0.085]]) {
       const outer = rim - 0.001;
       const wires = motocrossWheelSpokes(rim, detail, halfWidth);
       const texture = spokeExposureAtlas(wires, outer);

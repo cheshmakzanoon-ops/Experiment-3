@@ -216,23 +216,50 @@ test('Motocross MX450: reversible mud on the same production instance', async ({
   expect(sequence[0].hash).toBe(sequence[3].hash);
 });
 
-test('Motocross wheel spokes hold and rewind independent shutter exposure during a brake lock', async ({ review }) => {
-  const moving = { frontOmega: 91, rearOmega: 94, frontRotation: 0.36, rearRotation: 0.61 };
-  const frontLocked = { ...moving, frontOmega: 0 };
-  const rearLocked = { ...moving, rearOmega: 0 };
-  const frames = await review.capture({
-    id: 'mx250', detail: 'high', view: 'side',
-    samples: [moving, frontLocked, { ...frontLocked, rearOmega: 0 }, rearLocked, rearLocked, moving],
+for (const [id, detail] of [
+  ['mx250', 'high'], ['mx450', 'high'], ['sm450', 'high'], ['sm450', 'mid'],
+] as const)
+  test(`Motocross wheel spokes hold and rewind independent shutter exposure during a brake lock (${id} ${detail})`, async ({ review }) => {
+    const moving = { frontOmega: 91, rearOmega: 94, frontRotation: 0.36, rearRotation: 0.61 };
+    const frontLocked = { ...moving, frontOmega: 0 };
+    const rearLocked = { ...moving, rearOmega: 0 };
+    const stopped = { ...frontLocked, rearOmega: 0 };
+    const reverse = { ...moving, frontOmega: -moving.frontOmega, rearOmega: -moving.rearOmega };
+    const frames = await review.capture({
+      id, detail, view: 'side',
+      samples: [moving, frontLocked, stopped, rearLocked, rearLocked, reverse, moving],
+    });
+    for (const [i, frame] of frames.entries()) {
+      await review.attach(`${id}-${detail}-spoke-exposure-${i}`, frame);
+      expect(frame.resources).toEqual(frames[0].resources);
+      expect(frame.instance).toBe(frames[0].instance);
+    }
+    const [rolling, front, parked, rear, held, backwards, rewind] = frames;
+    expect(rolling.wheelPixels!.front).not.toBe(parked.wheelPixels!.front);
+    expect(rolling.wheelPixels!.rear).not.toBe(parked.wheelPixels!.rear);
+    expect(front.wheelPixels).toEqual({
+      front: parked.wheelPixels!.front, rear: rolling.wheelPixels!.rear,
+    });
+    expect(rear.wheelPixels).toEqual({
+      front: rolling.wheelPixels!.front, rear: parked.wheelPixels!.rear,
+    });
+    expect(held.hash).toBe(rear.hash);
+    expect(backwards.hash).toBe(rolling.hash);
+    expect(rewind.hash).toBe(rolling.hash);
+    expect([rolling.calls, front.calls, rear.calls]).toEqual([
+      parked.calls + 2, parked.calls + 1, parked.calls + 1,
+    ]);
   });
-  for (const [i, frame] of frames.entries()) {
-    await review.attach(`mx250-independent-spoke-exposure-${i}`, frame);
-    expect(frame.resources).toEqual(frames[0].resources);
-    expect(frame.instance).toBe(frames[0].instance);
-  }
-  expect(new Set(frames.slice(0, 4).map((frame) => frame.hash)).size).toBe(4);
-  expect(frames[3].hash).toBe(frames[4].hash);
-  expect(frames[0].hash).toBe(frames[5].hash);
-  expect(frames[0].calls - frames[2].calls).toBe(2);
+
+test('SM450 distant wheel silhouette stays stable at racing speed', async ({ review }) => {
+  const stopped = { frontOmega: 0, rearOmega: 0, frontRotation: 0.36, rearRotation: 0.61 };
+  const [parked, moving] = await review.capture({
+    id: 'sm450', detail: 'far', view: 'side',
+    samples: [stopped, { ...stopped, frontOmega: 91, rearOmega: 94 }],
+  });
+  expect(moving.hash).toBe(parked.hash);
+  expect(moving.calls).toBe(parked.calls);
+  expect(moving.resources).toEqual(parked.resources);
 });
 
 for (const id of ['mx450', 'sm450'])
