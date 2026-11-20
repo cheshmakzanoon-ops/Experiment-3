@@ -15,11 +15,15 @@ export interface GpRiderPrints {
 
 /** The two close rider LODs use identical dye and helmet artwork. The
  * entrant owns one set so moving the camera never drops or reuploads it. */
-export function gpRiderPrints(colours: RiderColours, raceNumber: number): GpRiderPrints {
+export function gpRiderPrints(
+  colours: RiderColours,
+  raceNumber: number,
+  prototype = true,
+): GpRiderPrints {
   return {
     limb: riderPanelTexture(colours, false, true),
     torso: riderPanelTexture(colours, true, true, raceNumber),
-    helmet: gpHelmetLivery(colours, raceNumber),
+    helmet: prototype ? gpHelmetLivery(colours, raceNumber) : helmetLiveryTexture(colours),
   };
 }
 

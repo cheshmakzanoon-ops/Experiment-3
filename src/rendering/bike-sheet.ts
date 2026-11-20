@@ -71,6 +71,10 @@ export const SHELL_SCHEME: Readonly<Record<string, number>> = Object.freeze({
   ss600: 5,
   sbk1000: 4,
 });
+export function bikeEntrantScheme(machine: string, entrant: number) {
+  return entrant === 0 ? (SHELL_SCHEME[machine] ?? entrant) : entrant;
+}
+
 /** The sheet of a motorcycle definition: its own, or the original design
  * (stacked wings when the bike carries downforce). */
 export function bikeSheetFor(def: Pick<VehicleDefinition, 'id' | 'bike'>): BikeSheet {

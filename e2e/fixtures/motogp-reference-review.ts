@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { bikeEntrantScheme } from '../../src/rendering/bike-sheet.ts';
 import { inspectBikeCockpit } from './bike-cockpit-contract.ts';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import {
@@ -67,8 +68,9 @@ export function captureBikeSequence(
   sun.shadow.normalBias = 0.012;
   scene.add(sun, new T.HemisphereLight(0xc9e4ff, 0x514737, 1.3));
   const def = VEHICLES[id],
-    materials = new BikeMaterials(0);
-  const bike = new BikeModel(def, 0, detail, materials, true);
+    entrant = bikeEntrantScheme(id, 0),
+    materials = new BikeMaterials(entrant);
+  const bike = new BikeModel(def, entrant, detail, materials, true);
   const productionScreenThickness = materials.screen.thickness;
   const sag = staticSag(def);
   const pose: BikePoseValues = {

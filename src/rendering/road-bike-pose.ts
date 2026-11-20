@@ -88,7 +88,7 @@ function tyreSupport(
 }
 
 /** Drawn road hubs in the true sprung CG frame. A telescopic fork moves along
- * its steering axis; the GP rear axle follows the circle about its pivot.
+ * its steering axis; the rear axle follows the circle about its pivot.
  * Only their road-normal support is constrained, so the
  * tyre retains its authored crown, steer, rake and rolling silhouette. The
  * recorded gap preserves wheelies and flight instead of pinning wheels down.
@@ -162,7 +162,7 @@ export class RoadBikeWheelPose {
       );
       const distance = normal.dot(hub) + normal.dot(this.support) - normal.dot(contact.points[i]),
         correction = contact.gaps[i] * normal.y - distance;
-      if (i === 1 && definition.classId === 'gp-bike') {
+      if (i === 1) {
         // Intersect the axle's circle in the chassis YZ plane with the road
         // plane offset by the tyre support and recorded free-wheel gap. The
         // rearward intersection is continuous from droop through bump.
@@ -186,11 +186,7 @@ export class RoadBikeWheelPose {
         const cosine = normal.dot(this.axis),
           adjustment = Math.abs(cosine) > 0.1 ? correction / cosine : 0;
         hub.addScaledVector(this.axis, adjustment);
-        if (i === 0) this.forkY = -ROAD_FORK_LENGTH + adjustment;
-        else {
-          this.rearY = b.rearWheelRadius - b.cgHeight + adjustment;
-          this.rearZ = -b.cgToRear;
-        }
+        this.forkY = -ROAD_FORK_LENGTH + adjustment;
       }
       patch.copy(hub).add(this.support);
     }

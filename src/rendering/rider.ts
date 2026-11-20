@@ -511,7 +511,8 @@ export class Rider {
     const sides = detail === 'high' ? 20 : detail === 'mid' ? 12 : 6;
     const mx = kit === 'motocross';
     const gpSuit = gp && !mx && detail !== 'far';
-    const distantGp = gp && !mx && detail === 'far';
+    const distantRoad = !mx && detail === 'far';
+    const distantGp = gp && distantRoad;
     // Textile kit: matte woven fabric with a soft sheen, no lacquer.
     const leather = new T.MeshPhysicalMaterial(
       mx
@@ -794,7 +795,7 @@ export class Rider {
       helmet.map = sharedPrints?.helmet ?? (gp ? gpHelmetLivery(colours, raceNumber) : helmetLiveryTexture(colours));
       helmet.color.setHex(0xffffff);
     }
-    if (distantGp) {
+    if (distantRoad) {
       for (const material of [helmet, torsoLeather]) {
         material.color.setHex(0xffffff);
         material.vertexColors = true;
@@ -856,7 +857,7 @@ export class Rider {
         ? gpTorsoGeometry(detail)
         : bodyLoft(torsoSections, sides);
     if (gpSuit) shapeGpSuitGeometry(torsoGeometry, 'torso');
-    const torsoMesh = part(this.torso, distantGp ? paintDistantGpRider(torsoGeometry, colours, false) : torsoGeometry, torsoLeather);
+    const torsoMesh = part(this.torso, distantRoad ? paintDistantGpRider(torsoGeometry, colours, false) : torsoGeometry, torsoLeather);
     torsoMesh.name = mx ? 'Motocross sculpted textile torso' : 'Rider leather torso';
     this.motocrossSpine?.bind(torsoMesh);
     if (mx) {
@@ -993,17 +994,14 @@ export class Rider {
     this.head.position.set(0, RIDER.spine + (mx ? 0.078 : 0.04), 0.03);
     if (gpHelmet) this.head.position.copy(GP_NECK_BASE).addScaledVector(Y, GP_NECK_LENGTH);
     upperTorso.add(this.head);
-    const shell = part(
-      this.head,
-      gpHelmet
-        ? distantGp ? paintDistantGpRider(gpHelmetShell(detail), colours, true) : gpHelmetShell(detail)
-        : mx
-          ? motocrossHelmetShell(detail)
-          : detail === 'far'
-            ? new T.SphereGeometry(0.14, 8, 6)
-            : helmetShell(),
-      helmet,
-    );
+    let shellGeometry: T.BufferGeometry;
+    if (distantRoad) {
+      shellGeometry = paintDistantGpRider(gpHelmetShell('far'), colours, true);
+      if (!gpHelmet) shellGeometry.translate(0, -GP_HELMET_CENTRE[1], -GP_HELMET_CENTRE[2]);
+    } else {
+      shellGeometry = gpHelmet ? gpHelmetShell(detail) : mx ? motocrossHelmetShell(detail) : helmetShell();
+    }
+    const shell = part(this.head, shellGeometry, helmet);
     if (gpHelmet) shell.name = 'GP elongated race helmet shell';
     else shell.position.set(0, 0.15, 0.02);
     if (!mx) {

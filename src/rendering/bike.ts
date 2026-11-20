@@ -33,7 +33,7 @@ import { gpDiscGlow } from './gp-disc-glow.ts';
 import { GpSliderSparks, SLIDER_SPARKS } from './gp-slider-sparks.ts';
 import { gpForkCrowns, GP_FORK_TUBE_TOP } from './gp-fork-crown.ts';
 import { gpMainFrame } from './gp-main-frame.ts';
-import { gpForgedWheel, gpTyreCompoundMarkings, gpWheelMachinedLip } from './gp-forged-wheel.ts';
+import { motorcycleWheel, gpTyreCompoundMarkings, gpWheelMachinedLip } from './gp-forged-wheel.ts';
 import { GpRiderBody } from './gp-rider-dynamics.ts';
 import type { GpRiderBodyState } from './gp-rider-posture.ts';
 import { bindGpTyre, installGpTyreFinish, type GpTyreAppearance } from './gp-tyre-finish.ts';
@@ -87,7 +87,7 @@ import { liveryScheme } from './car-livery.ts';
 import { canvasTexture } from './geometry.ts';
 import { detailDistance } from './view-detail.ts';
 import { Rider, type RiderColours, type RiderDetail } from './rider.ts';
-import { bikeSheetFor, SHELL_SCHEME } from './bike-sheet.ts';
+import { bikeEntrantScheme, bikeSheetFor } from './bike-sheet.ts';
 import { isDirtBike } from '../simulation/offroad/dirt-bikes.ts';
 import { factoryBikeSag } from '../simulation/offroad/suspension-geometry.ts';
 import { DirtBikeModel } from './offroad/dirt-bike-model.ts';
@@ -355,14 +355,42 @@ function ventedRotor(sides: number) {
     shape.holes.push(hole);
   }
   const g = new T.ExtrudeGeometry(shape, {
-    depth: 0.022,
+    depth: 0.005,
     bevelEnabled: false,
     curveSegments: sides,
   });
-  g.translate(0, 0, -0.011);
+  g.translate(0, 0, -0.0025);
   g.rotateY(Math.PI / 2);
   return g;
 }
+// The stainless braking annulus mounts to a windowed carrier. Each bobbin
+// overlaps the outside land, and the inner land meets the cast or wire hub.
+function roadDiscCarrier(detail: Detail) {
+  const shape = new T.Shape(),
+    bore = new T.Path(),
+    tau = Math.PI * 2;
+  shape.absarc(0, 0, 0.119, 0, tau, false);
+  bore.absarc(0, 0, 0.022, 0, tau, true);
+  shape.holes.push(bore);
+  for (let i = 0; i < 6; i++) {
+    const centre = ((i + 0.5) * tau) / 6,
+      slot = new T.Path();
+    slot.absarc(0, 0, 0.105, centre + 0.31, centre - 0.31, true);
+    slot.absarc(0, 0, 0.054, centre - 0.4, centre + 0.19, false);
+    slot.closePath();
+    shape.holes.push(slot);
+  }
+  const carrier = new T.ExtrudeGeometry(shape, {
+    depth: 0.004,
+    bevelEnabled: false,
+    curveSegments: detail === 'high' ? 12 : detail === 'mid' ? 7 : 4,
+  });
+  carrier.translate(0, 0, -0.002);
+  carrier.rotateY(Math.PI / 2);
+  carrier.name = 'Six-window road brake carrier';
+  return carrier;
+}
+
 /** Rectangular-section beam swept along a curve (frame spars, swingarm). */
 export function beam(
   points: readonly [number, number, number][],
@@ -487,7 +515,7 @@ export function numberTexture(number: number, paint: string, ink: string) {
 /** Materials of one entrant (paint per livery; mechanical finishes shared in spirit). */
 export class BikeMaterials {
   readonly list: T.Material[] = [];
-  private readonly prints = new Map<number, GpRiderPrints>();
+  private readonly prints = new Map<string, GpRiderPrints>();
   readonly paint: T.MeshPhysicalMaterial;
   readonly secondary: T.MeshPhysicalMaterial;
   readonly accent: T.MeshPhysicalMaterial;
@@ -711,11 +739,12 @@ export class BikeMaterials {
     tagWeatherSurface(this.seat, 'leather', 0.7);
     tagWeatherSurface(this.reservoir, 'paint', 0.7);
   }
-  riderPrints(colours: RiderColours, number: number) {
-    let prints = this.prints.get(number);
+  riderPrints(colours: RiderColours, number: number, prototype: boolean) {
+    const key = (prototype ? 'gp' : 'road') + number;
+    let prints = this.prints.get(key);
     if (!prints) {
-      prints = gpRiderPrints(colours, number);
-      this.prints.set(number, prints);
+      prints = gpRiderPrints(colours, number, prototype);
+      this.prints.set(key, prints);
     }
     return prints;
   }
@@ -853,6 +882,12 @@ export class BikeModel {
       shell = gp || sport;
     calibrateGpMaterials(m, definition.id);
     const gpPrototype = authored || definition.id === 'gpr2';
+    if (!gpPrototype) {
+      m.disc.color.setHex(classic ? 0x898b8a : 0xa5aaaf);
+      m.disc.metalness = 0.82;
+      m.disc.roughness = classic ? 0.44 : 0.32;
+      m.disc.name = 'Brushed road brake rotor';
+    }
     this.sag = staticSag(definition);
     this.root.name = `${definition.name} ${id + 1} (${detail})`;
     this.root.add(this.sprung);
@@ -867,95 +902,30 @@ export class BikeModel {
       crown: number,
       front: boolean,
     ) => {
-      const distantGP = gpPrototype && detail === 'far';
+      const distant = detail === 'far';
       const tyre = tyreGeometry(
         radius,
         halfWidth,
         crown,
         rim + 0.004,
-        distantGP ? 20 : sides,
-        distantGP,
+        distant ? 20 : sides,
+        distant,
       );
       add(spin, tyre, m.rubber);
       if (detail !== 'far') {
-        // GP sidewall markings follow the actual tyre facets as thin paint.
-        const ring = add(
-          spin,
-          gpPrototype
-            ? gpTyreCompoundMarkings(tyre)
-            : ringGeometry(rim + 0.05, rim + 0.042, halfWidth * 1.66 + 0.004, sides),
-          m.band,
-          0,
-          0,
-          0,
-          false,
-        );
+        // The compound arcs follow the authored tyre facets as a layer of paint.
+        const ring = add(spin, gpTyreCompoundMarkings(tyre), m.band, 0, 0, 0, false);
         this.rings.push(ring);
-        if (gpPrototype) {
-          add(spin, gpForgedWheel(rim, halfWidth, detail), m.wheel);
-          // Same shadow flags as the disc carrier, so both join one batch.
-          add(spin, gpWheelMachinedLip(rim, halfWidth, detail), m.aluminium);
-        } else {
-          // Catalogue bikes retain their original cast or laced wheel identity.
-          add(
-            spin,
-            new T.CylinderGeometry(rim, rim, halfWidth * 1.5, sides, 1, true),
-            look.wheels === 'spoked' ? m.steel : m.wheel,
-          ).rotation.z = Math.PI / 2;
-          if (look.wheels === 'spoked')
-            for (let k = 0; k < (detail === 'high' ? 36 : 18); k++) {
-              const count = detail === 'high' ? 36 : 18,
-                a = (k / count) * Math.PI * 2,
-                lean = k % 2 ? 0.08 : -0.08;
-              const spoke = add(
-                spin,
-                new T.CylinderGeometry(0.0025, 0.0025, rim - 0.05, 4),
-                m.steel,
-              );
-              spoke.position.set(
-                lean * 0.3,
-                Math.cos(a) * (rim / 2 + 0.02),
-                Math.sin(a) * (rim / 2 + 0.02),
-              );
-              spoke.rotation.set(a, 0, lean);
-            }
-          else
-            for (let k = 0; k < 5; k++) {
-              const a = (k / 5) * Math.PI * 2;
-              const spoke = add(
-                spin,
-                detail === 'high'
-                  ? beam(
-                      [
-                        [0, 0.042, -0.005],
-                        [0, 0.095, 0.01],
-                        [0, 0.16, 0.02],
-                        [0, rim - 0.002, 0.012],
-                      ],
-                      0.018,
-                      0.025,
-                      7,
-                      2,
-                    )
-                  : new RoundedBoxGeometry(0.022, rim - 0.05, 0.029, 1, 0.005),
-                m.wheel,
-              );
-              if (detail !== 'high')
-                spoke.position.set(
-                  0,
-                  Math.cos(a) * (rim / 2 + 0.02),
-                  Math.sin(a) * (rim / 2 + 0.02),
-                );
-              spoke.rotation.x = a;
-            }
-          add(spin, new T.CylinderGeometry(0.05, 0.05, halfWidth * 1.4, 16), m.wheel).rotation.z =
-            Math.PI / 2;
-        }
-      } else if (gpPrototype) {
-        add(spin, gpForgedWheel(rim, halfWidth, detail), m.wheel);
-      } else
-        add(spin, new T.CylinderGeometry(rim, rim, halfWidth * 1.4, 10), m.wheel).rotation.z =
-          Math.PI / 2;
+      }
+      const design = gpPrototype
+        ? 'prototype'
+        : classic
+          ? 'wire'
+          : naked
+            ? 'roadster'
+            : definition.classId === 'supersport' ? 'supersport' : 'superbike';
+      add(spin, motorcycleWheel(rim, halfWidth, detail, design), classic ? m.steel : m.wheel);
+      if (!distant) add(spin, gpWheelMachinedLip(rim, halfWidth, detail), m.aluminium);
       if (front) {
         // GP carbon bands have a correctly scaled open carrier and floating
         // bobbins. All parts rotate with the wheel; calipers stay on the fork.
@@ -967,20 +937,17 @@ export class BikeModel {
             }
         } else
           for (const side of look.wheels === 'spoked' ? [1] : [1, -1]) {
-            add(
-              spin,
-              detail === 'high' ? ventedRotor(sides) : ringGeometry(0.17, 0.115, 0.022, sides),
-              m.disc,
-              side * 0.066,
-              0,
-              0,
-            );
+            add(spin, roadDiscCarrier(detail), m.wheel, side * 0.063);
+            const track = detail === 'high'
+              ? ventedRotor(sides)
+              : ringGeometry(0.17, 0.115, 0.005, distant ? 20 : sides);
+            add(spin, track, m.disc, side * 0.066);
             if (detail === 'high')
               for (let k = 0; k < 6; k++) {
                 const a = (k / 6) * Math.PI * 2;
                 add(
                   spin,
-                  new T.CylinderGeometry(0.008, 0.008, 0.026, 8),
+                  new T.CylinderGeometry(0.0065, 0.0065, 0.009, 8),
                   m.steel,
                   side * 0.066,
                   Math.cos(a) * 0.113,
@@ -1141,10 +1108,10 @@ export class BikeModel {
       );
       bar.rotation.z = Math.PI / 2 - side * 0.18;
       bar.rotation.y = side * 0.22;
-      const gpControls = gpPrototype && detail !== 'far';
+      const articulatedControls = detail !== 'far';
       const grip = add(
         this.steer,
-        gpControls ? gpGripGeometry(side, detail) : new T.CylinderGeometry(0.017, 0.017, 0.12, 12),
+        articulatedControls ? gpGripGeometry(side, detail) : new T.CylinderGeometry(0.017, 0.017, 0.12, 12),
         m.dark,
         side * (0.3 + barX),
         -0.06 + barY,
@@ -1157,24 +1124,25 @@ export class BikeModel {
       // Preserve the actual cylindrical grip axis before rigid batching.
       // Glove +X spans the knuckles; cylinder -Y points toward bike +X.
       this.gripAxisLocal[gripIndex].set(0, -1, 0).applyQuaternion(grip.quaternion);
-      if (gpControls && side < 0) {
+      if (articulatedControls && side < 0) {
         const mount = new T.Group();
         mount.position.copy(grip.position);
         mount.quaternion.copy(grip.quaternion);
         this.steer.add(mount);
         const sleeve = new T.Group();
-        sleeve.name = 'GP right throttle sleeve';
+        sleeve.name = gpPrototype ? 'GP right throttle sleeve' : 'Road right throttle sleeve';
         mount.add(sleeve);
         sleeve.add(grip);
         grip.position.set(0, 0, 0);
         grip.quaternion.identity();
         this.gpThrottleSleeve = sleeve;
-        add(this.steer, gpLeverGuard(detail), m.forkUpper).name = 'GP fixed brake lever guard';
+        if (gpPrototype)
+          add(this.steer, gpLeverGuard(detail), m.forkUpper).name = 'GP fixed brake lever guard';
       }
       if (detail === 'high') {
         const lever = add(
           this.steer,
-          gpPrototype && side < 0
+          side < 0
             ? gpFrontBrakeGeometry()
             : new RoundedBoxGeometry(0.15, 0.008, 0.016, 2, 0.003),
           m.aluminium,
@@ -1183,16 +1151,16 @@ export class BikeModel {
           0.05,
         );
         lever.rotation.y = side * 0.3;
-        if (gpPrototype && side < 0) {
+        if (side < 0) {
           // REF065/076: the swept blade and covered fingers share the actual
           // lever hinge. REF057/073 guide glove construction, not control motion.
           const pivot = new T.Group();
-          pivot.name = 'GP front-brake lever pivot';
-          pivot.position.set(-0.211, -0.034, 0.03);
+          pivot.name = gpPrototype ? 'GP front-brake lever pivot' : 'Road front-brake lever pivot';
+          pivot.position.set(-0.211 - barX, -0.034 + barY, 0.03);
           this.steer.add(pivot);
           lever.position.set(0, 0, 0);
           lever.rotation.set(0, 0, 0);
-          lever.name = 'GP articulated front-brake lever';
+          lever.name = gpPrototype ? 'GP articulated front-brake lever' : 'Road articulated front-brake lever';
           pivot.add(lever);
           this.gpFrontBrakeLever = pivot;
         }
@@ -2062,14 +2030,14 @@ export class BikeModel {
       secondary: new T.Color(scheme.secondary).getHex(),
       accent: new T.Color(scheme.accent).getHex(),
     };
-    const raceNumber = gpPrototype ? gpRaceNumber(id) : 2;
+    const raceNumber = gpPrototype ? gpRaceNumber(id) : (id % 98) + 2;
     this.rider = new Rider(
       colours,
       detail,
       'leathers',
       raceNumber,
       gpPrototype,
-      gpPrototype && detail !== 'far' ? m.riderPrints(colours, raceNumber) : undefined,
+      detail !== 'far' ? m.riderPrints(colours, raceNumber, gpPrototype) : undefined,
     );
     this.rider.seat.set(0, 0.3, -0.32);
     this.rider.pegs[0].set(0.17, -0.2, -0.3);
@@ -2195,8 +2163,7 @@ export class BikeModel {
     const dy = this.rearWheel.position.y - p.y,
       dz = this.rearWheel.position.z - p.z;
     this.swingarm.rotation.x = Math.atan2(dy, -dz);
-    this.swingarm.scale.z =
-      road && this.definition.classId === 'gp-bike' ? 1 : Math.hypot(dy, dz) / this.armLength;
+    this.swingarm.scale.z = road ? 1 : Math.hypot(dy, dz) / this.armLength;
     this.rearWheel.position.z -= v.rearWheelOut ?? 0;
     if (this.gpRearSuspension) {
       this.swingarm.updateMatrix();
@@ -2450,10 +2417,10 @@ export class BikeShells {
   private build(id: number, definition: VehicleDefinition, field: boolean): Entry {
     // The player's SS-600 and SBK-1000 wear their own team scheme (bike-sheet.ts
     // SHELL_SCHEME) on shell, paint and rider; every other entrant its team's.
-    const scheme = id === 0 ? (SHELL_SCHEME[definition.id] ?? id) : id;
+    const scheme = bikeEntrantScheme(definition.id, id);
     const materials = new BikeMaterials(scheme);
-    // Attach only drawn MX detail to the scene. Race preparation can build
-    // the other levels before the worker releases the starting gate.
+    // Only the drawn level enters the live scene. Dirt models build other
+    // levels during race preparation before the worker releases the gate.
     const dirtMud = isDirtBike(definition) ? mudUniforms() : undefined;
     const levels = dirtMud
       ? []
@@ -2462,8 +2429,7 @@ export class BikeShells {
         );
     const gp = definition.classId === 'gp-bike';
     for (const level of levels) {
-      if (gp && field) this.fieldGeometry.share(definition.id + '/' + level.detail, level.root);
-      if (!gp) this.root.add(level.root);
+      if (field) this.fieldGeometry.share(definition.id + '/' + level.detail, level.root);
       level.root.visible = false;
     }
     // One spring-damped rider body per GP entrant, shared by its LODs.
@@ -2531,7 +2497,6 @@ export class BikeShells {
   async warmFieldDetails<T>(compile: () => Promise<T>): Promise<T> {
     const active = new Set<string>(), parked = new Map<string, T.Object3D>();
     for (const entry of this.entries.values()) {
-      if (!entry.riderBody && !entry.dirtMud) continue;
       for (let i = 0; i < entry.levels.length; i++) {
         const root = entry.levels[i]?.root;
         if (!root) continue;
@@ -2702,12 +2667,9 @@ export class BikeShells {
         old.root.visible = false;
         // A separated rider can be parented to the world outside its LOD.
         old.rider.root.visible = false;
-        if (entry.riderBody || entry.dirtMud) {
-          // Keep inactive race rigs out of scene and compiler traversals.
-          // A fallen rider can live in world space independently of its bike.
-          if (old.rider.root.parent === this.root) old.root.add(old.rider.root);
-          old.root.removeFromParent();
-        }
+        // A fallen rider can live in world space independently of its bike.
+        if (old.rider.root.parent === this.root) old.root.add(old.rider.root);
+        old.root.removeFromParent();
       }
       entry.level = level;
       model.root.visible = model.rider.root.visible = true;

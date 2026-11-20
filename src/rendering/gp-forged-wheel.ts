@@ -7,6 +7,20 @@ import type { RiderDetail } from './rider.ts';
  * thickness; the five split spokes leave genuine openings in every LOD.
  * All parts share one existing wheel material and one owned geometry. */
 export function gpForgedWheel(rim: number, halfWidth: number, detail: RiderDetail) {
+  return motorcycleWheel(rim, halfWidth, detail, 'prototype');
+}
+
+export type RoadWheelDesign = 'superbike' | 'supersport' | 'roadster' | 'wire';
+
+/** All six road motorcycles carry open, load-bearing wheels down to their
+ * distant silhouette. The rolled rim belongs to the same tyre bead on each;
+ * the casting or lacing comes from the machine's own wheel design. */
+export function motorcycleWheel(
+  rim: number,
+  halfWidth: number,
+  detail: RiderDetail,
+  design: RoadWheelDesign | 'prototype',
+) {
   if (!Number.isFinite(rim) || rim < 0.15 || rim > 0.3)
     throw new RangeError('Invalid GP wheel rim radius');
   if (!Number.isFinite(halfWidth) || halfWidth < 0.04 || halfWidth > 0.12)
@@ -127,32 +141,109 @@ export function gpForgedWheel(rim: number, halfWidth: number, detail: RiderDetai
     g.rotateX(rotation);
     pieces.push(g);
   };
-  for (let i = 0; i < 5; i++) {
-    const angle = (i / 5) * Math.PI * 2,
-      dish = halfWidth * 0.14;
-    spoke(
-      [
-        [0.042, 0, 0, 0.023, 0.014],
-        [0.069, 0.003, dish * 0.4, 0.019, 0.012],
-        [0.107, 0.005, dish, 0.013, 0.01],
-      ],
-      angle,
-    );
-    for (const side of [-1, 1])
+  if (design === 'wire') {
+    const count = 36,
+      hubRadius = 0.058,
+      rimRadius = rim - 0.012;
+    for (const side of [-1, 1]) {
+      const x = side * hubWidth;
+      lathe(
+        [
+          [0.027, x - 0.002],
+          [hubRadius, x - 0.002],
+          [hubRadius, x + 0.002],
+          [0.027, x + 0.002],
+          [0.027, x - 0.002],
+        ],
+        close ? 32 : 18,
+      );
+    }
+    const axis = new T.Vector3(0, 1, 0),
+      end = new T.Vector3(),
+      start = new T.Vector3(),
+      shaft = new T.Vector3(),
+      orientation = new T.Quaternion();
+    for (let i = 0; i < count; i++) {
+      const side = i % 2 === 0 ? -1 : 1;
+      const rimAngle = (i / count) * Math.PI * 2;
+      // Leading and trailing spokes run from alternate hub flanges to
+      // rim nipples two holes around that flange's eighteen-hole circle.
+      const hubAngle = rimAngle + (Math.floor(i / 2) % 2 === 0 ? 1 : -1) * ((4 * Math.PI) / 18);
+      start.set(side * hubWidth, Math.cos(hubAngle) * hubRadius, Math.sin(hubAngle) * hubRadius);
+      end.set(side * width * 0.34, Math.cos(rimAngle) * rimRadius, Math.sin(rimAngle) * rimRadius);
+      shaft.subVectors(end, start);
+      const length = shaft.length();
+      shaft.multiplyScalar(1 / length);
+      orientation.setFromUnitVectors(axis, shaft);
+      const wire = new T.CylinderGeometry(
+        0.0022,
+        0.0022,
+        length,
+        close ? 6 : distant ? 3 : 4,
+        1,
+        true,
+      );
+      wire
+        .applyQuaternion(orientation)
+        .translate((end.x + start.x) / 2, (end.y + start.y) / 2, (end.z + start.z) / 2);
+      pieces.push(wire);
+      if (close) {
+        const nipple = new T.CylinderGeometry(0.004, 0.0033, 0.014, 6);
+        nipple
+          .applyQuaternion(orientation)
+          .translate(end.x - shaft.x * 0.006, end.y - shaft.y * 0.006, end.z - shaft.z * 0.006);
+        pieces.push(nipple);
+      }
+    }
+  } else if (design === 'roadster' || design === 'superbike') {
+    const blades = design === 'roadster' ? 5 : 7;
+    const sweep = design === 'roadster' ? -0.034 : 0.027;
+    const breadth = design === 'roadster' ? 0.015 : 0.009;
+    for (let i = 0; i < blades; i++) {
       spoke(
         [
-          [0.084, 0.004, dish * 0.6, 0.016, 0.01],
-          [0.126, 0.006 + side * 0.012, dish, 0.013, 0.007],
-          [rim - 0.05, 0.006 + side * 0.026, dish * 0.8, 0.011, 0.0055],
-          [rim - 0.014, side * 0.042, dish * 0.45, 0.016, 0.008],
+          [0.037, 0, 0, hubWidth * 0.8, breadth * 1.3],
+          [0.079, sweep * 0.15, halfWidth * 0.12, 0.018, breadth],
+          [rim * 0.69, sweep, halfWidth * 0.22, 0.012, breadth * 0.72],
+          [rim - 0.013, sweep * 0.85, halfWidth * 0.09, 0.015, breadth],
+        ],
+        (i / blades) * Math.PI * 2,
+      );
+    }
+  } else {
+    const splitSpokes = design === 'supersport' ? 6 : 5;
+    for (let i = 0; i < splitSpokes; i++) {
+      const angle = (i / splitSpokes) * Math.PI * 2,
+        dish = halfWidth * 0.14;
+      spoke(
+        [
+          [0.042, 0, 0, 0.023, 0.014],
+          [0.069, 0.003, dish * 0.4, 0.019, 0.012],
+          [0.107, 0.005, dish, 0.013, 0.01],
         ],
         angle,
       );
+      for (const side of [-1, 1])
+        spoke(
+          [
+            [0.084, 0.004, dish * 0.6, 0.016, 0.01],
+            [0.126, 0.006 + side * 0.012, dish, 0.013, 0.007],
+            [rim - 0.05, 0.006 + side * 0.026, dish * 0.8, 0.011, 0.0055],
+            [rim - 0.014, side * 0.042, dish * 0.45, 0.016, 0.008],
+          ],
+          angle,
+        );
+    }
   }
   const geometry = mergeGeometries(pieces, false);
   pieces.forEach((g) => g.dispose());
   if (!geometry) throw new Error('Could not merge GP forged wheel');
-  geometry.name = 'GP hollow forged split-spoke wheel';
+  geometry.name =
+    design === 'prototype'
+      ? 'GP hollow forged split-spoke wheel'
+      : design === 'wire'
+        ? 'Cross-laced classic wire wheel'
+        : design + ' cast road wheel';
   geometry.computeBoundingBox();
   geometry.computeBoundingSphere();
   return geometry;
