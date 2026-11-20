@@ -26,6 +26,7 @@ import { SURFACE_THERMAL, type SurfaceWeather } from './surface-thermal.ts';
 import { AUREL, STANDARD_PIT, type CircuitDefinition, type PitLaneDefinition } from './circuits.ts';
 import { RUNOFF } from './circuit-catalogue/venue-data.ts';
 import type { OffroadSurface } from './offroad/types.ts';
+import { MotocrossLaneIndex } from './offroad/motocross-lane-index.ts';
 export const TRACK_NAME = AUREL.name,
   CELL_ROWS = 512,
   CELL_COLS = 7;
@@ -127,6 +128,7 @@ export class Track {
   readonly substrateTemperature = new Float32Array(CELL_ROWS * CELL_COLS);
   readonly drainage = new Float32Array(CELL_ROWS * CELL_COLS);
   readonly hash = new Map<string, number[]>();
+  private readonly motocrossLanes: MotocrossLaneIndex | null;
   readonly length: number;
   /** Venue pit lane/grid data (WP10). */
   readonly pit: PitLaneDefinition;
@@ -207,6 +209,9 @@ export class Track {
     readonly circuit: CircuitDefinition = AUREL,
   ) {
     const DESIGN = circuit.design;
+    const kind = circuit.offroad?.kind;
+    this.motocrossLanes =
+      kind === 'motocross' || kind === 'supercross' ? new MotocrossLaneIndex(this.points) : null;
     this.pit = circuit.pit ?? STANDARD_PIT;
     this.weather = new WeatherTimeline(keyframes);
     this.weather.sample(0, this);
@@ -373,7 +378,9 @@ export class Track {
    * across or beneath a bridge keeps the road it is actually on. Without
    * stacked roads every candidate is in-layer and the result is unchanged. */
   nearest(x: number, z: number, out: TrackPoint, y?: number): number {
-    const candidates = this.hash.get(`${Math.floor(x / 32)},${Math.floor(z / 32)}`);
+    const coarse = this.hash.get(`${Math.floor(x / 32)},${Math.floor(z / 32)}`);
+    const candidates =
+      coarse && this.motocrossLanes ? this.motocrossLanes.candidates(x, z, coarse) : coarse;
     let best = Infinity,
       bestS = 0,
       other = Infinity,

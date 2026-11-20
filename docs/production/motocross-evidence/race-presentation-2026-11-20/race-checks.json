@@ -378,5 +378,110 @@
         "materials": 304
       }
     }
+  },
+  "motocrossLaneSearch": {
+    "node": "v24.22.3",
+    "reportedCpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+    "seed": 75243,
+    "fieldSize": 8,
+    "simulationHz": 120,
+    "publicationHz": 30,
+    "warmupTicks": 1200,
+    "measuredTicks": 3600,
+    "comparison": "Identical 40-second race inputs. Full snapshot stream and final terrain compared before and after. The separate search-only timing alternates baseline and indexed batches on the same recorded queries. Whole-step elapsed time varies with host scheduling.",
+    "results": [
+      {
+        "circuit": "valley-ridge-mx",
+        "machine": "mx450",
+        "snapshots": 1200,
+        "snapshotSha256": "de7037a831483a58867f8a5cd1e15f6968c52e2fc06a0dc13c5bead48757cb2f",
+        "terrainHash": "72e670cf",
+        "physicsTickMs": {
+          "medianMs": {
+            "before": 2.635,
+            "after": 1.529
+          },
+          "p95Ms": {
+            "before": 6.052,
+            "after": 7.921
+          },
+          "p99Ms": {
+            "before": 26.895,
+            "after": 18.322
+          },
+          "maxMs": {
+            "before": 125.598,
+            "after": 165.762
+          }
+        },
+        "fractionOverOneTick": {
+          "before": 0.0272,
+          "after": 0.0472
+        },
+        "recordedWheelAndCollisionQueries": 4480,
+        "candidateSegments": {
+          "before": 1149089,
+          "after": 95871
+        },
+        "batchesPerVersion": 204,
+        "queriesPerTimedBatch": 128,
+        "queryBatchMs": {
+          "medianMs": {
+            "before": 1.7743,
+            "after": 0.2444
+          },
+          "p95Ms": {
+            "before": 2.9813,
+            "after": 0.6012
+          }
+        }
+      },
+      {
+        "circuit": "arena-nord-sx",
+        "machine": "mx250",
+        "snapshots": 1200,
+        "snapshotSha256": "57dc2014c2054a0cf330c3c4e8e483b60883b2b2756e37217bab1010edd75254",
+        "terrainHash": "6f783314",
+        "physicsTickMs": {
+          "medianMs": {
+            "before": 2.892,
+            "after": 1.173
+          },
+          "p95Ms": {
+            "before": 7.87,
+            "after": 2.533
+          },
+          "p99Ms": {
+            "before": 33.11,
+            "after": 8.623
+          },
+          "maxMs": {
+            "before": 132.804,
+            "after": 92.735
+          }
+        },
+        "fractionOverOneTick": {
+          "before": 0.0433,
+          "after": 0.0106
+        },
+        "recordedWheelAndCollisionQueries": 4482,
+        "candidateSegments": {
+          "before": 2996789,
+          "after": 164797
+        },
+        "batchesPerVersion": 210,
+        "queriesPerTimedBatch": 128,
+        "queryBatchMs": {
+          "medianMs": {
+            "before": 2.5916,
+            "after": 0.2564
+          },
+          "p95Ms": {
+            "before": 4.4792,
+            "after": 0.5429
+          }
+        }
+      }
+    ]
   }
 }
