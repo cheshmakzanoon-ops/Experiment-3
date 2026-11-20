@@ -39,7 +39,7 @@ export function motocrossWheelHub(detail: RiderDetail) {
  * making all spokes on a flange sweep one way loses the crossed structure.
  * Rim seats alternate across the centreline and every nipple follows its
  * actual spoke axis, embedded in the rim instead of floating above it. */
-export function motocrossWheelSpokes(rim: number, detail: RiderDetail) {
+export function motocrossWheelSpokes(rim: number, detail: RiderDetail, exposureHalfWidth?: number) {
   const distant = detail === 'far';
   const count = detail === 'high' ? 36 : distant ? 12 : 20,
     flange = distant ? 0.033 : 0.047,
@@ -81,6 +81,14 @@ export function motocrossWheelSpokes(rim: number, detail: RiderDetail) {
   }
   const geometry = mergeGeometries(parts, false)!;
   for (const part of parts) part.dispose();
+  if (exposureHalfWidth !== undefined) {
+    // Both shafts and nipples contribute to photographed coverage. The
+    // separate hoop, hub, carrier, sprocket and tread keep their exact pose.
+    const count = geometry.getAttribute('position').count;
+    const mask = new T.Float32BufferAttribute(new Float32Array(count * 2), 2);
+    for (let i = 0; i < count; i++) mask.setXY(i, 1, exposureHalfWidth);
+    geometry.setAttribute('roadSpoke', mask);
+  }
   geometry.computeBoundingBox();
   geometry.computeBoundingSphere();
   return geometry;

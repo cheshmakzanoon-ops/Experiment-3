@@ -1,5 +1,6 @@
 import * as T from 'three';
 import { describe, expect, it } from 'vitest';
+import { motocrossWheelSpokes } from '../src/rendering/offroad/motocross-wheel-detail.ts';
 import { motorcycleWheel } from '../src/rendering/gp-forged-wheel.ts';
 import {
   RoadWheelExposure,
@@ -7,9 +8,9 @@ import {
   wheelExposureTurns,
 } from '../src/rendering/road-wheel-exposure.ts';
 
-function prefix(texture: T.DataTexture, turns: number, radius: number) {
+function prefix(texture: T.DataTexture, turns: number, radius: number, outer = 0.2039) {
   const { data, width, height } = texture.image,
-    row = ((radius - 0.035) / (0.2039 - 0.035)) * (height - 1);
+    row = ((radius - 0.035) / (outer - 0.035)) * (height - 1);
   const x = (turns - Math.floor(turns)) * (width - 1);
   const read = (u: number, v: number) => {
     const i = 4 * (v * width + u);
@@ -66,6 +67,36 @@ describe('road motorcycle spoke exposure', () => {
       }
     },
   );
+  it.each(['high', 'mid'] as const)('resolves the actual %s crossed MX shafts and nipples', (detail) => {
+    for (const [rim, halfWidth] of [[0.2667, 0.042], [0.2286, 0.06]]) {
+      const outer = rim - 0.001;
+      const wires = motocrossWheelSpokes(rim, detail, halfWidth);
+      const texture = spokeExposureAtlas(wires, outer);
+      const material = new T.MeshBasicMaterial({ side: T.DoubleSide });
+      const mesh = new T.Mesh(wires, material);
+      const ray = new T.Raycaster(), start = new T.Vector3(), axis = new T.Vector3(-1, 0, 0);
+      try {
+        for (const radius of [0.091, rim * 0.72, rim - 0.008]) {
+          for (const [lo, hi] of [[-0.071, 0.092], [0.941, 1.104], [0, 1]]) {
+            let hits = 0;
+            // A prime sample count avoids phase-locking to a 36-spoke wheel.
+            const samples = 797;
+            for (let i = 0; i < samples; i++) {
+              const a = T.MathUtils.lerp(lo, hi, (i + 0.5) / samples) * 2 * Math.PI;
+              ray.set(start.set(0.4, radius * Math.cos(a), radius * Math.sin(a)), axis);
+              if (ray.intersectObject(mesh, false).length) hits++;
+            }
+            const mean = (prefix(texture, hi, radius, outer) - prefix(texture, lo, radius, outer)) / (hi - lo);
+            expect(Math.abs(mean - hits / samples)).toBeLessThan(0.045);
+          }
+        }
+      } finally {
+        texture.dispose();
+        wires.dispose();
+        material.dispose();
+      }
+    }
+  });
   it('uses independent signed wheel telemetry and creates one shared atlas until its last owner releases it', () => {
     const wheel = motorcycleWheel(0.2159, 0.095, 'mid', 'prototype');
     const metal = new T.MeshStandardMaterial(),

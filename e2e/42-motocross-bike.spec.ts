@@ -216,6 +216,25 @@ test('Motocross MX450: reversible mud on the same production instance', async ({
   expect(sequence[0].hash).toBe(sequence[3].hash);
 });
 
+test('Motocross wheel spokes hold and rewind independent shutter exposure during a brake lock', async ({ review }) => {
+  const moving = { frontOmega: 91, rearOmega: 94, frontRotation: 0.36, rearRotation: 0.61 };
+  const frontLocked = { ...moving, frontOmega: 0 };
+  const rearLocked = { ...moving, rearOmega: 0 };
+  const frames = await review.capture({
+    id: 'mx250', detail: 'high', view: 'side',
+    samples: [moving, frontLocked, { ...frontLocked, rearOmega: 0 }, rearLocked, rearLocked, moving],
+  });
+  for (const [i, frame] of frames.entries()) {
+    await review.attach(`mx250-independent-spoke-exposure-${i}`, frame);
+    expect(frame.resources).toEqual(frames[0].resources);
+    expect(frame.instance).toBe(frames[0].instance);
+  }
+  expect(new Set(frames.slice(0, 4).map((frame) => frame.hash)).size).toBe(4);
+  expect(frames[3].hash).toBe(frames[4].hash);
+  expect(frames[0].hash).toBe(frames[5].hash);
+  expect(frames[0].calls - frames[2].calls).toBe(2);
+});
+
 for (const id of ['mx450', 'sm450'])
   test(`${id}: recorded tyre wear and wetness rewind without resource churn`, async ({
     review,

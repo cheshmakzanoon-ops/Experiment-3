@@ -134,6 +134,7 @@ export class DirtBikeModel {
   private readonly plastics: T.MeshStandardMaterial[] = [];
   private readonly chain?: MotocrossChainDrive;
   private readonly tyreFinish?: MotocrossTyreFinish;
+  private readonly movingSpokes: boolean;
   private disposed = false;
   constructor(
     readonly definition: VehicleDefinition,
@@ -289,6 +290,14 @@ export class DirtBikeModel {
       this.mud,
       supermoto ? 'road' : 'knobby',
     );
+    this.movingSpokes = !supermoto && detail !== 'far';
+    const spokeMetal = this.movingSpokes
+      ? new T.MeshStandardMaterial({
+          name: 'Motocross stainless spoke wire',
+          color: m.steel.color, metalness: m.steel.metalness, roughness: m.steel.roughness,
+        })
+      : m.steel;
+    if (this.movingSpokes) this.plastics.push(spokeMetal);
     const wheel = (
       spin: T.Group,
       radius: number,
@@ -347,8 +356,21 @@ export class DirtBikeModel {
         // merge with the hub and rim into their existing distant draw.
         add(spin, motocrossWheelSpokes(rim, detail), rimMaterial);
       } else add(spin, motocrossWheelHub(detail), rimMaterial);
-      if (detail !== 'far')
-        add(spin, motocrossWheelSpokes(rim, detail), this.m.steel, 0, 0, 0, false);
+      if (detail !== 'far') {
+        const wires = motocrossWheelSpokes(rim, detail, this.movingSpokes ? halfWidth : undefined);
+        add(spin, wires, spokeMetal, 0, 0, 0, false);
+        if (this.movingSpokes) {
+          const exposure = m.wheelExposure.layer(
+            wires, spokeMetal, 'cross-laced motocross', rim, halfWidth,
+            (this.axles.frontWidth + this.axles.rearWidth) / 2, front, detail, rim - 0.001,
+          )!;
+          // Batching the optical sheet with the mechanical wheel would lose
+          // its independent visibility and make it intercept inspection rays.
+          const optical = new T.Group();
+          optical.add(exposure);
+          spin.add(optical);
+        }
+      }
       add(
         spin,
         motocrossRotor(front ? frontDiscRadius : 0.117, detail, false, front ? 0.131 : 0.117),
@@ -1088,6 +1110,7 @@ export class DirtBikeModel {
     // Convert it to the raked telescope's stroke; steering around that axis
     // must not change its extension or produce another chassis displacement.
     this.forkLower.position.y = this.axles.lowerY(fork);
+    if (this.movingSpokes) this.m.wheelExposure.update(v.frontOmega, v.rearOmega);
     this.frontSpin.rotation.x = v.frontRotation;
     this.rearSpin.rotation.x = v.rearRotation;
     // Pit service wheel exchange (see BikeModel.pose).

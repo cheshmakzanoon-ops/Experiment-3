@@ -226,6 +226,7 @@ export class RoadWheelExposure {
     threshold: number,
     front: boolean,
     detail: RiderDetail,
+    outer = rim - 0.012,
   ) {
     if (detail === 'far') return;
     this.shutter.value.z = threshold;
@@ -233,9 +234,9 @@ export class RoadWheelExposure {
       installWheelMask(base, this.shutter);
       this.masks.add(base);
     }
-    const outer = rim - 0.012,
-      key = [design, rim, halfWidth, detail].join('/');
-    let surface = this.surfaces.get(key);
+    const key = [design, outer, halfWidth, detail].join('/');
+    const surfaceKey = key + (front ? '/front' : '/rear');
+    let surface = this.surfaces.get(surfaceKey);
     if (!surface) {
       const atlas = acquire(key, geometry, outer);
       surface = new T.MeshStandardMaterial({
@@ -299,7 +300,7 @@ export class RoadWheelExposure {
         );
       });
       surface.addEventListener('dispose', () => release(key));
-      this.surfaces.set(key, surface);
+      this.surfaces.set(surfaceKey, surface);
     }
     const mesh = new T.Mesh(exposureSurface(outer, halfWidth, detail), surface);
     mesh.name = 'Rotational exposure of ' + (front ? 'front' : 'rear') + ' spokes';

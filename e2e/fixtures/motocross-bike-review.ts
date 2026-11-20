@@ -32,6 +32,8 @@ export interface MotocrossPoseSample {
   speed?: number;
   frontRotation?: number;
   rearRotation?: number;
+  frontOmega?: number;
+  rearOmega?: number;
   frontWear?: number;
   rearWear?: number;
   frontWater?: number;
@@ -192,6 +194,8 @@ export function captureMotocrossBike(
         steer: sample.steer ?? 0,
         frontRotation: sample.frontRotation ?? 0,
         rearRotation: sample.rearRotation ?? 0,
+        frontOmega: sample.frontOmega,
+        rearOmega: sample.rearOmega,
         chassisLean: sample.lean ?? 0,
         riderOffset: 0,
         tuck: 0,
