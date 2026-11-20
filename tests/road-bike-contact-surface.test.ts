@@ -39,8 +39,10 @@ describe('road-bike continuous collision support', () => {
       p.y + p.bank * lateral,
     );
     d.speed = 15;
+    d.motoGP!.yawRate = 0.7;
     const support = vi.spyOn(bike.roadSuspension, 'step');
     let analyticMismatch = 0;
+    let yawHeightDifference = 0;
     const height = (x: number, z: number) => {
       sim.track.sample(x, z, analytic, p.y);
       origin.set(x, analytic.height + 1, z);
@@ -58,12 +60,21 @@ describe('road-bike continuous collision support', () => {
         frontZ = d.z + ch * bike.bikeSpec.cgToFront,
         rearX = d.x - sh * bike.bikeSpec.cgToRear,
         rearZ = d.z - ch * bike.bikeSpec.cgToRear,
+        nextHeading = d.heading + d.motoGP!.yawRate * DT,
+        dx = Math.sin(nextHeading),
+        dz = Math.cos(nextHeading),
+        nextX = d.x + vx * DT,
+        nextZ = d.z + vz * DT,
         expected = [
           height(frontX, frontZ),
           height(rearX, rearZ),
-          height(frontX + vx * DT, frontZ + vz * DT),
-          height(rearX + vx * DT, rearZ + vz * DT),
+          height(nextX + dx * bike.bikeSpec.cgToFront, nextZ + dz * bike.bikeSpec.cgToFront),
+          height(nextX - dx * bike.bikeSpec.cgToRear, nextZ - dz * bike.bikeSpec.cgToRear),
         ];
+      yawHeightDifference = Math.max(
+        yawHeightDifference,
+        Math.abs(expected[2] - height(frontX + vx * DT, frontZ + vz * DT)),
+      );
       bike.step(DT, sim.track);
       const q = support.mock.calls.at(-1)![0];
       for (const [index, actual] of [
@@ -82,6 +93,7 @@ describe('road-bike continuous collision support', () => {
     }
     // The fixture must exercise the original failure, rather than accidentally
     // traversing a flat region where either query would produce the same height.
+    expect(yawHeightDifference).toBeGreaterThan(1e-6);
     expect(analyticMismatch).toBeGreaterThan(0.002);
     support.mockRestore();
   });

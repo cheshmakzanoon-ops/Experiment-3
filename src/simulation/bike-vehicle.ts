@@ -544,8 +544,31 @@ export class BikeVehicle extends Vehicle {
       rearZ = d.z - ch * s.cgToRear;
     this.roadSurface(track, frontX, frontZ, this.contacts[0]);
     this.roadSurface(track, rearX, rearZ, this.contacts[2]);
-    this.roadSurface(track, frontX + vx * dt, frontZ + vz * dt, this.nextFrontSurface);
-    this.roadSurface(track, rearX + vx * dt, rearZ + vz * dt, this.nextRearSurface);
+    // A yawing motorcycle's two contact stations do not share the velocity
+    // of its CG. Rotate their arms about the predicted chassis centre before
+    // sampling the road. This matters on cambered and banked switchbacks.
+    if (d.motoGP) {
+      const nextHeading = d.heading + d.motoGP.yawRate * dt,
+        nextSh = Math.sin(nextHeading),
+        nextCh = Math.cos(nextHeading),
+        nextX = d.x + vx * dt,
+        nextZ = d.z + vz * dt;
+      this.roadSurface(
+        track,
+        nextX + nextSh * s.cgToFront,
+        nextZ + nextCh * s.cgToFront,
+        this.nextFrontSurface,
+      );
+      this.roadSurface(
+        track,
+        nextX - nextSh * s.cgToRear,
+        nextZ - nextCh * s.cgToRear,
+        this.nextRearSurface,
+      );
+    } else {
+      this.roadSurface(track, frontX + vx * dt, frontZ + vz * dt, this.nextFrontSurface);
+      this.roadSurface(track, rearX + vx * dt, rearZ + vz * dt, this.nextRearSurface);
+    }
     const roll = chassisLean(d.lean, s),
       rideHeight = s.crownRadius + (s.cgHeight - s.crownRadius) * Math.cos(roll),
       vertical = this.roadSuspension;
@@ -610,12 +633,26 @@ export class BikeVehicle extends Vehicle {
       // Both banking and the rake of the steered front axle change where the
       // tyre rolls on its crown. Use the actual surface under each contact.
       const steered = Math.sin(d.steer);
-      this.offset.set(Math.cos(d.steer), -Math.sin(GP_RAKE) * steered, -Math.cos(GP_RAKE) * steered);
+      this.offset.set(
+        Math.cos(d.steer),
+        -Math.sin(GP_RAKE) * steered,
+        -Math.cos(GP_RAKE) * steered,
+      );
       this.body.orientation.rotate(this.offset, this.scratch);
-      this.roadLoads.frontRadius = tyreRollingRadius(s.frontWheelRadius, s.crownRadius, this.frontShoulder, this.scratch.dot(this.contacts[0].normal));
+      this.roadLoads.frontRadius = tyreRollingRadius(
+        s.frontWheelRadius,
+        s.crownRadius,
+        this.frontShoulder,
+        this.scratch.dot(this.contacts[0].normal),
+      );
       this.offset.set(1, 0, 0);
       this.body.orientation.rotate(this.offset, this.scratch);
-      this.roadLoads.rearRadius = tyreRollingRadius(s.rearWheelRadius, Math.max(0.11, s.crownRadius), this.rearShoulder, this.scratch.dot(this.contacts[2].normal));
+      this.roadLoads.rearRadius = tyreRollingRadius(
+        s.rearWheelRadius,
+        Math.max(0.11, s.crownRadius),
+        this.rearShoulder,
+        this.scratch.dot(this.contacts[2].normal),
+      );
     }
     d.contactLoads = this.roadLoads;
     // The published wheelie/stoppie coordinate describes actual wheel lift;

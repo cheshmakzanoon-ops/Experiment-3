@@ -115,6 +115,31 @@ describe('GP rider follows its braking plan', () => {
     expect(driver.demand(-10)).toBe(1);
   });
 
+  it('budgets the downhill tangent change across either half of a sampling interval', () => {
+    const sim = new Simulation({
+      ...DEFAULT_OPTIONS,
+      mode: 'practice',
+      circuit: 'arroyo-oro',
+      ruleset: 'gp-motorcycle',
+      opponents: 0,
+      vehicles: ['gpr1'],
+    });
+    const bike = sim.cars[0] as BikeVehicle,
+      driver = new PlanProbe(bike, 0.96, 4417);
+    const plan = (station: number) => {
+      bike.place(sim.track, station);
+      bike.dynamics.speed = bike.speed = 25;
+      bike.dynamics.grip = bike.dynamics.frontGrip = bike.dynamics.rearGrip = 1;
+      return driver.plan(100, sim.track, sim.race);
+    };
+    const approach = plan(2530);
+    expect(approach).toBeGreaterThan(18);
+    for (const s of [2576, 2579, 2582, 2585, 2588, 2591])
+      expect(plan(s)).toBeLessThan(approach * 0.74);
+    expect(plan(2630)).toBeGreaterThan(approach);
+    expect(plan(2220)).toBeGreaterThan(35);
+  });
+
   it('brakes gently once the flag has fallen', () => {
     const sim = new Simulation({
       ...DEFAULT_OPTIONS,

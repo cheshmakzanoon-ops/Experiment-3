@@ -378,8 +378,45 @@ export class BikeAIDriver extends AIDriver {
       ? track.at(ahead, this.ahead).curvature
       : this.steeringLineCurvature(track, ahead);
     const feedForward = k / Math.max(0.5, 1 - k * (absolute ? this.steeringTarget : tactical));
-    this.steeringCorrection = correction * v * v;
-    return leanFromCurvature(c, feedForward + correction, steer);
+    const requested = feedForward + correction;
+    const curvature = d.motoGP && !absolute ? this.pavedEdgeIntent(track, requested) : requested;
+    this.steeringCorrection = (curvature - feedForward) * v * v;
+    return leanFromCurvature(c, curvature, steer);
+  }
+  /** A line crossing or a traffic lane change can carry momentum toward the
+   * edge even after the rider has requested a different lean. Project the
+   * actual road velocity through the lean response and bound the requested
+   * acceleration against the paved corridor ahead. The bike still has to
+   * generate that force at its tyres and can run wide or lose grip. */
+  private pavedEdgeIntent(track: Track, curvature: number) {
+    const c = this.bike,
+      d = c.dynamics,
+      gp = d.motoGP!;
+    const v = d.speed,
+      side = gp.lateralSpeed;
+    if (v < 12 || Math.abs(c.lateral) > c.trackPosition.width + 0.7) return curvature;
+    const sin = Math.sin(d.heading),
+      cos = Math.cos(d.heading);
+    const vx = v * sin + side * cos,
+      vz = v * cos - side * sin;
+    const along = vx * c.trackPosition.tx + vz * c.trackPosition.tz;
+    if (along < 0.75 * v) return curvature;
+    const horizon = BIKE_AI.edgePreview,
+      delay = BIKE_AI.preview;
+    const next = track.at(c.s + along * horizon, this.ahead);
+    const normal = cos * next.nx - sin * next.nz;
+    if (normal < 0.8) return curvature;
+    const gain = 0.5 * (horizon - delay) ** 2;
+    const lateral =
+      (d.x + vx * horizon - next.x) * next.nx + (d.z + vz * horizon - next.z) * next.nz;
+    const carried = (0.5 * horizon ** 2 - gain) * gp.lateralAcceleration;
+    const predicted = lateral + (carried + gain * curvature * v * v) * normal;
+    const reach = Math.max(1, next.width - BIKE_AI.edgeClearance);
+    const miss = clamp(predicted, -reach, reach) - predicted;
+    return (
+      curvature +
+      clamp(miss / (gain * normal), -G * BIKE_AI.correctionG, G * BIKE_AI.correctionG) / (v * v)
+    );
   }
   /** One current path-error law for steering and the brake/corner budget.
    * Returns curvature so the existing steering arithmetic is unchanged. */
@@ -521,6 +558,25 @@ export class BikeAIDriver extends AIDriver {
       this.approachCurvatures[i] = Math.abs(curvature);
       this.approachCorners[i] =
         envelopeCornerSpeed(curvature, grip, aero, env, recovery) * this.skill;
+      if (point.gradient < -BIKE_AI.downhillEntryGrade) {
+        // Brake to a speed at which the steering can reject the change in
+        // road tangent through a steep descent. Sample inside the whole
+        // interval; a sharp saddle can fit between two 12 m stations.
+        const roadK = Math.max(
+          Math.abs(point.curvature),
+          Math.abs(track.at(station + ENVELOPE_STEP / 2, this.approachPoint).curvature),
+          Math.abs(track.at(station - ENVELOPE_STEP / 2, this.approachPoint).curvature),
+        );
+        const descent = clamp(
+          (-this.approachGradients[i] - BIKE_AI.downhillEntryGrade) / BIKE_AI.downhillGradeBlend,
+          0,
+          1,
+        );
+        const speedReserve = 1 + BIKE_AI.downhillPaceReserve * descent;
+        const hold = Math.max(Math.abs(curvature), roadK * descent);
+        const steady = envelopeCornerSpeed(hold, grip, aero, env, recovery) * this.skill;
+        this.approachCorners[i] = Math.min(this.approachCorners[i], steady / speedReserve);
+      }
     }
     for (let i = 0; i < count - 1; i++)
       this.approachDistances[i] =
@@ -695,6 +751,15 @@ export const GP_AI_HANDS = Object.freeze({
 /** Bike path-tracking gains: preview (s), bandwidth (rad/s), damping ratio. */
 export const BIKE_AI = Object.freeze({
   preview: 0.3,
+  /** Seconds over which existing sideways momentum may take the tyres to the edge. */
+  edgePreview: 1.05,
+  /** Metres inside the road edge when predicting a lane crossing. */
+  edgeClearance: 1,
+  /** Grade dy/ds. Blend the steep-descent allowance from 6% to 14% grade. */
+  downhillEntryGrade: 0.06,
+  downhillGradeBlend: 0.08,
+  /** Rider reserve at full grade, applied to corner pace as 1/(1+reserve). */
+  downhillPaceReserve: 0.6,
   bandwidth: 1.2,
   damping: 0.9,
   /** Lateral acceleration a lane correction may use (g). */
