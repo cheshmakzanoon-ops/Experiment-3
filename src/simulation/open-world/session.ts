@@ -700,6 +700,10 @@ export class OpenWorldSimulation {
   }
   /** Remove rivals and return to free roam. */
   private endRun() {
+    // Continuing from an aborted race on its own grid returns driving input.
+    // Re-arm the start card when the car leaves the marker and comes back.
+    if (this.mode === 'finished' && this.run && isRace(this.run.event.spec.kind))
+      this.declined = this.run.event.spec.id;
     for (const car of this.cars) car.wake = car.slipstream = 0;
     this.run?.racecraft?.reset();
     if (this.run) this.cars = [this.player];

@@ -35,8 +35,10 @@ const BIKE_DOWN_RESET = 20;
  * motorcycle on public roads: junction corners are sharp and short. */
 const BIKE_WINDOW = Object.freeze([-6, -3, 3, 6]);
 const BIKE_CORNER_RESERVE = 0.88;
-/** Speed (m/s) above which the driver plans over twice the circuit AI's
- * 252 m look-ahead (see RouteDriver.update). */
+/** Long circuits can include a wet high-speed straight followed by one
+ * right-angle port junction. Bound route sampling to just over a kilometre. */
+const MAX_CAR_SAMPLES = ENVELOPE_SAMPLES * 4;
+/** Speed at which the motorcycle planner extends its preview. */
 export const LONG_LOOKAHEAD_SPEED = 55;
 /** Straight-line pace in the wet (see RouteDriver.update): the fraction of the
  * dry pace is WET_PACE_BASE + WET_PACE_PER_GRIP × grip (grip 0..1 of the dry
@@ -122,8 +124,8 @@ export class RouteDriver {
   private carTurn: -1 | 0 | 1 = 0;
   private readonly target = pathPoint();
   private readonly sample = pathPoint();
-  private readonly curvatures = new Float64Array(ENVELOPE_SAMPLES * 2);
-  private readonly corners = new Float64Array(ENVELOPE_SAMPLES * 2);
+  private readonly curvatures = new Float64Array(MAX_CAR_SAMPLES);
+  private readonly corners = new Float64Array(MAX_CAR_SAMPLES);
   private readonly delta = new Vec3();
   private readonly local = new Vec3();
   private readonly located = { lateral: 0, distance: 0 };
@@ -286,12 +288,20 @@ export class RouteDriver {
       (env.downforceReference * (0.45 + 0.55 * Math.min(c.frontHealth, c.floorHealth))) /
       (c.spec.dryMass + c.fuel);
     const laneGrip = grip * clamp(1 - Math.abs(this.tactical) * 0.03, 0.85, 1);
-    // The circuit AI looks 21 samples (252 m) ahead, enough to stop from
-    // 70 m/s. A hypercar flat out on a highway needs more (88 m/s at 1.4 g is
-    // 270 m): twice the look-ahead above LONG_LOOKAHEAD_SPEED, or it brakes at
-    // the limit of its horizon and runs wide at the T-junction at the end of
-    // the Coast Highway (festival QA, Grand Loop).
-    const samples = c.speed > LONG_LOOKAHEAD_SPEED ? ENVELOPE_SAMPLES * 2 : ENVELOPE_SAMPLES;
+    // Use the vehicle's actual low-aero wet braking distance. A binary
+    // 55 m/s threshold made the harbour pilot alternate between braking and
+    // accelerating every time it crossed that speed while a junction was
+    // still outside the short preview. Include pedal/tyre response time.
+    const braking = Math.max(1, env.brakingBase * env.brakingMargin * laneGrip);
+    const stoppingDistance = (c.speed * c.speed) / (2 * braking) + c.speed * 1.1 + 24;
+    const samples = bike
+      ? c.speed > 55
+        ? ENVELOPE_SAMPLES * 2
+        : ENVELOPE_SAMPLES
+      : clamp(Math.ceil(stoppingDistance / ENVELOPE_STEP) + 1, ENVELOPE_SAMPLES, MAX_CAR_SAMPLES);
+    let water = 0;
+    for (const contact of c.contacts) water = Math.max(water, contact.water);
+    const wetBraking = !bike ? clamp(water / 3, 0, 1) : 0;
     for (let i = 0; i < samples; i++) {
       const at = this.d + i * ENVELOPE_STEP;
       const curvatureAt = (x: number) =>
@@ -301,11 +311,12 @@ export class RouteDriver {
         this.corners[i] = env.topSpeed * this.skill;
         continue;
       }
+      const road = path.network.edges[path.edge[path.index(at)]];
       let k = curvatureAt(at);
-      // A motorcycle cannot brake hard while leaned: the sharpest point of
-      // each sample's window counts (a junction corner shorter than the
-      // sample spacing is not missed), with a lean reserve.
-      if (bike)
+      // A tight junction can fall between two velocity-profile stations.
+      // Cover the approach and apex for a wet urban car and for motorcycles.
+      const wetStreet = !bike && wetBraking > 0.05 && road.roadClass === 'town';
+      if (bike || wetStreet)
         for (const o of BIKE_WINDOW) {
           const w = curvatureAt(at + o);
           if (Math.abs(w) > Math.abs(k)) k = w;
@@ -315,9 +326,15 @@ export class RouteDriver {
       // flying a rolling road and landing off-line.
       const crest = -path.verticalCurvatureAt(at),
         crestSpeed = crest > 1e-4 ? Math.sqrt((0.55 * G) / crest) : Infinity,
-        loose = path.network.edges[path.edge[path.index(at)]].spec.surface !== 'asphalt';
+        loose = road.spec.surface !== 'asphalt';
       this.corners[i] = Math.min(
-        envelopeCornerSpeed(k, laneGrip, aero, env) * this.skill * (bike ? BIKE_CORNER_RESERVE : 1),
+        envelopeCornerSpeed(k, laneGrip, aero, env) *
+          this.skill *
+          (bike
+            ? BIKE_CORNER_RESERVE
+            : wetStreet && Math.abs(k) > 0.025
+              ? 1 - 0.14 * wetBraking
+              : 1),
         crestSpeed,
         loose ? LOOSE_ROAD_SPEED * this.skill : Infinity,
       );

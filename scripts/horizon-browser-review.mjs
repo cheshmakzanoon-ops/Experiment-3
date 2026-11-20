@@ -364,7 +364,12 @@ try {
   await page.locator('#festMenu [data-fest="cancel"]').click();
   await page.waitForFunction(() => window.horizonReview.state().status.mode === 'finished');
   await page.locator('#festMenu [data-fest="resume"]').click();
-  await page.waitForFunction(() => window.horizonReview.state().results.length === 2);
+  await page.waitForFunction(() => {
+    const state = window.horizonReview.state();
+    return state.results.length === 2 &&
+      state.status.mode === 'finished' &&
+      state.status.result?.runId === state.results[1].runId;
+  });
   await draw();
   const retried = (await state()).results[1];
   assert.notEqual(retried.runId, result.runId);
@@ -374,8 +379,9 @@ try {
     retryRunId: retried.runId,
     retryCompleted: retried.completed,
   });
-  await page.locator('#festResults [data-fest="continue"]').click();
-  await page.waitForFunction(() => window.horizonReview.state().status.mode === 'free');
+  phase = 'return to free roam';
+  await page.locator('#festResults [data-fest="continue"]').click({ timeout: 20000 });
+  await page.waitForFunction(() => window.horizonReview.state().status.mode === 'free', undefined, { timeout: 20000 });
   await draw();
   assert.equal(await page.locator('#festRivals').isVisible(), false, 'Free roam must hide rival gaps.');
   pass('results Continue returns to free roam', { rivalHudHidden: true });

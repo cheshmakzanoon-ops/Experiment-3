@@ -209,6 +209,17 @@ describe('festival free-roam session', () => {
     expect(zone.averageKmh!).toBeLessThanOrEqual((finish / zone.time!) * 3.6);
     expect(zone.averageKmh!).toBeCloseTo((zone.legalDistance / zone.time!) * 3.6, 0);
   });
+  it('stays in free roam when continuing an abandoned race at its own grid', () => {
+    const sim = new OpenWorldSimulation({ vehicle: 'tc1', traffic: false, tileBudget: 12 });
+    sim.command({ type: 'travel', event: 'harbour-welcome' });
+    sim.command({ type: 'start', event: 'harbour-welcome' });
+    for (let i = 0; i < 500; i++) sim.step(1 / 120);
+    sim.command({ type: 'cancel' });
+    expect(sim.status().result?.abandoned).toBe(true);
+    sim.command({ type: 'continue' });
+    for (let i = 0; i < 240; i++) sim.step(1 / 120);
+    expect(sim.status()).toMatchObject({ mode: 'free', event: null, card: null });
+  });
   it('opens a race card at its marker only when the player stops there', () => {
     const sim = new OpenWorldSimulation({ vehicle: 'tc1' });
     const event = sim.events.find((e) => e.spec.id === 'valley-sprint')!;

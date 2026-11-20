@@ -195,6 +195,32 @@ describe('festival rivals leave room for real cars', () => {
     expect(s.car.input.throttle).toBeLessThan(0.1);
   });
 
+  it('brakes for a wet Port Ilse junction on both sides of the old 55 m/s preview change', () => {
+    const sim = new OpenWorldSimulation({
+      vehicle: 'eh3',
+      weather: 'rain',
+      traffic: false,
+      tileBudget: 12,
+    });
+    const path = sim.events.find((e) => e.spec.id === 'port-ilse-loop')!.path;
+    const p = path.at(1680, pathPoint()),
+      car = sim.player;
+    sim.placeAt(car, p.x, p.z, Math.atan2(p.tx, p.tz), p.y + 0.5);
+    for (let i = 0; i < 120; i++) sim.step(1 / 120);
+    const targets = [54.8, 55.2].map((v) => {
+      car.speed = v;
+      car.localVelocity.set(0, 0, v);
+      car.body.velocity.set(p.tx * v, 0, p.tz * v);
+      for (const t of car.tires) t.omega = v / car.spec.wheelRadius;
+      const driver = new RouteDriver(car, path, 0.92);
+      driver.relocate(1680);
+      driver.update(1 / 120, [car]);
+      return car.aiTarget;
+    });
+    expect(Math.abs(targets[0] - targets[1])).toBeLessThan(1.8);
+    expect(Math.max(...targets)).toBeLessThan(52);
+  });
+
   it('holds a positive turning radius while facing backward, then accelerates once aligned', () => {
     const s = scenario();
     s.place(s.car, 220, 0, 4);
