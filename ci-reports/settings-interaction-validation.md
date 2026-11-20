@@ -1,9 +1,9 @@
 # Settings interaction validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44776360067
-- commit: `0aba092b45` · Warm the motocross race field with real bike materials, shadows and reflection subjects
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44780794152
+- commit: `8ff36cc21d` · Separate motocross venue reflection and shadow submissions and retain the live crowd in race views
 - event: push · status: completed · conclusion: **failure**
-- started: 2026-11-20T16:44:22Z · updated: 2026-11-20T17:07:07Z
+- started: 2026-11-20T17:11:01Z · updated: 2026-11-20T17:42:34Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
