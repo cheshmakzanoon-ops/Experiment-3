@@ -101,6 +101,58 @@ describe('GP cockpit real-camera contract', () => {
       shells.disposeAll();
     }
   });
+  it('tracks the drawn GP head, instruments and front axle and leaves the first camera pose intact', () => {
+    const sim = new Simulation({
+        ...DEFAULT_OPTIONS,
+        mode: 'practice',
+        opponents: 1,
+        vehicles: ['gpr1', 'gpr2'],
+      }),
+      frame = sim.makeFrame(),
+      shells = new BikeShells(),
+      camera = new T.PerspectiveCamera(55, 1.6, 0.03, 1000),
+      cars = [0, 1].map(() => ({ root: new T.Group() }));
+    try {
+      cars[0].root.position.set(5, 4, -2);
+      cars[0].root.rotation.set(-0.1, 0.9, 0.4);
+      shells.update(frame, frame, 1, cars, camera, 'high', 0, 0);
+      const bike = shells.gpPresentation(0)!;
+      const sample = () => [0, 1, 2, 3, 4, 5, 6].map((s) => bike.photoAnchor(s, new T.Vector3()));
+      const [whole, head, screen, hub, front, tail] = sample();
+      expect(head.distanceTo(bike.rider.helmetCentre(new T.Vector3()))).toBeLessThan(1e-7);
+      expect(
+        hub.distanceTo(
+          bike.root.getObjectByName('GP front wheel spin')!.getWorldPosition(new T.Vector3()),
+        ),
+      ).toBeLessThan(1e-7);
+      expect(
+        screen.distanceTo(
+          bike.root.getObjectByName('GP instrument display')!.getWorldPosition(new T.Vector3()),
+        ),
+      ).toBeLessThan(1e-6);
+      expect(front.distanceTo(tail)).toBeGreaterThan(1.4);
+      expect(whole.distanceTo(head)).toBeGreaterThan(0.3);
+      const paint = shells.gpProbePaint(0)!;
+      expect(paint.length).toBe(3);
+      const materials = new Set<T.Material>();
+      bike.root.traverse((part) => {
+        if (part instanceof T.Mesh)
+          for (const m of Array.isArray(part.material) ? part.material : [part.material])
+            materials.add(m);
+      });
+      for (const recipient of paint) expect(materials.has(recipient)).toBe(true);
+      const pose = vi.spyOn(bike, 'pose');
+      cars[0].root.visible = true;
+      shells.update(frame, frame, 1, cars, camera, 'high', 0, undefined, 0);
+      expect(pose).not.toHaveBeenCalled();
+      expect(cars[0].root.visible).toBe(false);
+      expect(shells.gpPresentation(0)).toBe(bike);
+      expect(sample().slice(0, 6)).toEqual([whole, head, screen, hub, front, tail]);
+      expect(shells.gpProbePaint(1)).not.toBe(paint);
+    } finally {
+      shells.disposeAll();
+    }
+  });
   it('pools immutable field geometry, warms missing camera detail and keeps live rigs independent', async () => {
     const sim = new Simulation({
       ...DEFAULT_OPTIONS,

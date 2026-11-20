@@ -43,6 +43,7 @@ export class PhotoStudio {
   readonly element = document.createElement('section');
   private settings: PhotoSettings = { ...DEFAULT_PHOTO };
   private cars = 1;
+  private gpEntrants: readonly boolean[] = [];
   private generation = 0;
   private saving = false;
   private decalEditor: DecalEditor | null = null;
@@ -77,8 +78,7 @@ export class PhotoStudio {
           this.settings.survey;
         const output = this.element.querySelector<HTMLOutputElement>(`output[for="${input.id}"]`);
         if (output) output.value = input.value;
-        this.element.querySelector<HTMLElement>('#photoLivery')!.hidden =
-          this.settings.target !== 0;
+        if (input.dataset.photo === 'target') this.showTargetControls();
       } else if (input.closest('#photoLivery') && !input.closest('#decalEditor'))
         this.callbacks.preview(this.readLivery());
     });
@@ -131,13 +131,14 @@ export class PhotoStudio {
         });
     });
   }
-  open(livery: Livery, cars: number) {
+  open(livery: Livery, cars: number, gpEntrants: readonly boolean[] = []) {
+    this.gpEntrants = gpEntrants;
     this.generation++;
     this.cars = Math.max(1, Math.min(12, cars));
     this.settings = { ...DEFAULT_PHOTO };
     this.element.classList.remove('clean-frame');
     this.decalEditor?.dispose();
-    this.element.innerHTML = `<header class="photo-title"><span class="eyebrow">MOTOBOUND / PHOTO STUDIO</span><h2>Camera and livery.</h2><p>SESSION PAUSED · FRAME YOUR SHOT</p></header><div class="photo-top-actions"><button data-photo-action="clean">CLEAN FRAME</button><button data-photo-action="close">RETURN / ESC</button></div><aside class="photo-drawer" aria-label="Photo studio controls"><h3>Compose</h3><label>CAMERA<select id="photo-view" data-photo="view"><option value="orbit">FREE ORBIT</option><option value="cockpit">DRIVER COCKPIT</option><option value="pod">POD CAMERA</option><option value="chase">CHASE CAMERA</option><option value="trackside">PHYSICAL TRACKSIDE CAMERA</option></select></label><p class="photo-help">Native views retain driving optics. Orbit, elevation and lens sliders apply to Free Orbit. Showrooms use Free Orbit.</p><label>FILTER<select id="photo-filter" data-photo="filter">${PHOTO_FILTERS.map((f) => `<option value="${f}">${FILTER_LABELS[f]}</option>`).join('')}</select></label><label>SETTING<select id="photoBackdrop" data-photo="backdrop"><option value="circuit">ON CIRCUIT</option><option value="studio">DARK SHOWROOM</option><option value="headquarters">TEAM WORKSHOP / ATRIUM</option></select></label><label>FRAME A DETAIL<select id="photo-focusSubject" data-photo="focusSubject"><option value="0">WHOLE CAR</option><option value="1">HELMET / DRIVER</option><option value="2">COCKPIT CONTROLS</option><option value="3">FRONT WHEEL / UPRIGHT</option><option value="4">FRONT AERO</option><option value="5">REAR AERO</option><option value="6">HQ EXTERIOR ARRIVAL</option></select></label><label>SUBJECT<select id="photoTarget" data-photo="target">${Array.from({ length: this.cars }, (_, id) => `<option value="${id}">${id === 0 ? 'YOUR CAR' : `CAR ${id + 1}`}</option>`).join('')}</select></label>${sliders.map(([key, title, min, max, step, unit]) => `<label for="photo-${key}">${title}<span><output for="photo-${key}">${this.settings[key]}</output>${unit}</span></label><input id="photo-${key}" data-photo="${key}" aria-label="${title}" type="range" min="${min}" max="${max}" step="${step}" value="${this.settings[key]}">`).join('')}<label class="check"><input data-photo="depthOfField" id="photo-depthOfField" type="checkbox">DEPTH OF FIELD</label><label>FOCUS<select data-photo="focusMode" id="photo-focusMode"><option value="subject">FOLLOW SUBJECT DEPTH</option><option value="manual">MANUAL DISTANCE</option></select></label><label>GEOMETRY SURVEY<select data-photo="survey" id="photo-survey"><option value="off">NORMAL RENDER</option><option value="split">POINTS / RENDER SPLIT</option><option value="points">POINT CLOUD ONLY</option></select></label><p class="photo-help">Focal length is measured on a 24 mm film gate. Survey view shows the circuit as a point cloud.</p><p id="photoReference" class="photo-help" hidden></p><button id="unlinkReference" data-photo-action="unlinkReference" hidden>UNLINK REFERENCE</button><div class="photo-buttons"><button data-photo-action="reset">RESET CAMERA</button><button class="primary" id="capturePhoto" data-photo-action="capture">DOWNLOAD PNG</button></div><form id="photoLivery"><h3>Livery</h3><label>STUDIO PRESET<select id="liveryPreset"><option value="">CUSTOM</option>${Object.keys(
+    this.element.innerHTML = `<header class="photo-title"><span class="eyebrow">MOTOBOUND / PHOTO STUDIO</span><h2>${this.gpEntrants[0] ? 'Race photography.' : 'Camera and livery.'}</h2><p>SESSION PAUSED · FRAME YOUR SHOT</p></header><div class="photo-top-actions"><button data-photo-action="clean">CLEAN FRAME</button><button data-photo-action="close">RETURN / ESC</button></div><aside class="photo-drawer" aria-label="Photo studio controls"><h3>Compose</h3><label>CAMERA<select id="photo-view" data-photo="view"><option value="orbit">FREE ORBIT</option><option value="cockpit">DRIVER COCKPIT</option><option value="pod">POD CAMERA</option><option value="chase">CHASE CAMERA</option><option value="trackside">PHYSICAL TRACKSIDE CAMERA</option></select></label><p class="photo-help">Native views retain driving optics. Orbit, elevation and lens sliders apply to Free Orbit. Showrooms use Free Orbit.</p><label>FILTER<select id="photo-filter" data-photo="filter">${PHOTO_FILTERS.map((f) => `<option value="${f}">${FILTER_LABELS[f]}</option>`).join('')}</select></label><label>SETTING<select id="photoBackdrop" data-photo="backdrop"><option value="circuit">ON CIRCUIT</option><option value="studio">DARK SHOWROOM</option><option value="headquarters">TEAM WORKSHOP / ATRIUM</option></select></label><label>FRAME A DETAIL<select id="photo-focusSubject" data-photo="focusSubject"></select></label><label>SUBJECT<select id="photoTarget" data-photo="target">${Array.from({ length: this.cars }, (_, id) => `<option value="${id}">${this.gpEntrants[id] ? (id === 0 ? 'YOUR MOTORCYCLE' : `RIDER ${id + 1}`) : id === 0 ? 'YOUR CAR' : `CAR ${id + 1}`}</option>`).join('')}</select></label>${sliders.map(([key, title, min, max, step, unit]) => `<label for="photo-${key}">${title}<span><output for="photo-${key}">${this.settings[key]}</output>${unit}</span></label><input id="photo-${key}" data-photo="${key}" aria-label="${title}" type="range" min="${min}" max="${max}" step="${step}" value="${this.settings[key]}">`).join('')}<label class="check"><input data-photo="depthOfField" id="photo-depthOfField" type="checkbox">DEPTH OF FIELD</label><label>FOCUS<select data-photo="focusMode" id="photo-focusMode"><option value="subject">FOLLOW SUBJECT DEPTH</option><option value="manual">MANUAL DISTANCE</option></select></label><label>GEOMETRY SURVEY<select data-photo="survey" id="photo-survey"><option value="off">NORMAL RENDER</option><option value="split">POINTS / RENDER SPLIT</option><option value="points">POINT CLOUD ONLY</option></select></label><p class="photo-help">Focal length is measured on a 24 mm film gate. Survey view shows the circuit as a point cloud.</p><p id="photoReference" class="photo-help" hidden></p><button id="unlinkReference" data-photo-action="unlinkReference" hidden>UNLINK REFERENCE</button><div class="photo-buttons"><button data-photo-action="reset">RESET CAMERA</button><button class="primary" id="capturePhoto" data-photo-action="capture">DOWNLOAD PNG</button></div><form id="photoLivery"><h3>Livery</h3><label>STUDIO PRESET<select id="liveryPreset"><option value="">CUSTOM</option>${Object.keys(
       LIVERY_PRESETS,
     )
       .map((key) => `<option value="${key}">${key.toUpperCase()}</option>`)
@@ -149,6 +150,7 @@ export class PhotoStudio {
       () => this.callbacks.preview(this.readLivery()),
     );
     this.fillLivery(livery);
+    this.showTargetControls();
     this.element.hidden = false;
     this.callbacks.change(this.settings);
     this.element.querySelector<HTMLButtonElement>('[data-photo-action="close"]')?.focus();
@@ -192,7 +194,44 @@ export class PhotoStudio {
     (this.element.querySelector('#photoTarget') as HTMLSelectElement).value = String(
       this.settings.target,
     );
-    this.element.querySelector<HTMLElement>('#photoLivery')!.hidden = this.settings.target !== 0;
+    this.showTargetControls();
+  }
+  private showTargetControls() {
+    const gp = !!this.gpEntrants[this.settings.target];
+    const focus = this.element.querySelector<HTMLSelectElement>('#photo-focusSubject')!;
+    const labels = gp
+      ? [
+          'WHOLE MOTORCYCLE',
+          'RIDER HELMET',
+          'DASHBOARD',
+          'FRONT WHEEL / FORK',
+          'FRONT FAIRING',
+          'TAIL UNIT',
+          'HQ EXTERIOR ARRIVAL',
+        ]
+      : [
+          'WHOLE CAR',
+          'HELMET / DRIVER',
+          'COCKPIT CONTROLS',
+          'FRONT WHEEL / UPRIGHT',
+          'FRONT AERO',
+          'REAR AERO',
+          'HQ EXTERIOR ARRIVAL',
+        ];
+    if (focus.dataset.machine !== (gp ? 'gp' : 'car')) {
+      focus.replaceChildren(...labels.map((label, index) => new Option(label, String(index))));
+      focus.dataset.machine = gp ? 'gp' : 'car';
+      const views = this.element.querySelector<HTMLSelectElement>('#photo-view')!;
+      views.querySelector<HTMLOptionElement>('[value=cockpit]')!.text = gp
+        ? 'RIDER ONBOARD'
+        : 'DRIVER COCKPIT';
+      views.querySelector<HTMLOptionElement>('[value=pod]')!.text = gp
+        ? 'TAIL CAMERA'
+        : 'POD CAMERA';
+    }
+    focus.value = String(this.settings.focusSubject);
+    this.element.querySelector<HTMLElement>('#photoLivery')!.hidden =
+      this.settings.target !== 0 || gp;
   }
   private fillLivery(value: Livery) {
     this.decalEditor?.load(value.decals);

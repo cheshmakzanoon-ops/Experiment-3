@@ -2069,7 +2069,11 @@ export class GameApp {
     this.post({ type: 'pause', value: true });
     if (document.pointerLockElement) document.exitPointerLock();
     this.ui.showMode('photo');
-    this.photoStudio.open(this.team.livery, this.frozenPhoto[H.CARS]);
+    const photoFrame = this.frozenPhoto;
+    const gpEntrants = Array.from({ length: photoFrame[H.CARS] }, (_, id) =>
+      vehicleAt(Math.round(photoFrame[carBase(id) + RACE_BASE + R.VEHICLE])).classId === 'gp-bike',
+    );
+    this.photoStudio.open(this.team.livery, photoFrame[H.CARS], gpEntrants);
     this.photoStudio.reference(this.inspectedReference);
   }
   private closePhoto() {

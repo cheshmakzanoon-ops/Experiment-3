@@ -142,7 +142,12 @@ export class GpRiderPosture {
     for (let i = 0; i < 2; i++) {
       const side = i === 0 ? 1 : -1,
         // Continuous inside/outside weights: no pole jump at zero hang-off.
-        inside = T.MathUtils.smoothstep(side * (hang + lean * 0.12), 0.03, 0.6),
+        // The hips move first when changing line. Opening the inside knee
+        // and elbow fully during that small upright movement made both limbs
+        // swing out on a straight. Deploy against the bank on that side.
+        setup = T.MathUtils.smoothstep(side * (hang + lean * 0.12), 0.03, 0.6),
+        deployment = 0.15 + 0.85 * T.MathUtils.smoothstep(side * lean, 0.12, 0.75),
+        inside = setup * deployment,
         outside = T.MathUtils.smoothstep(-side * (hang + lean * 0.12), 0.03, 0.6);
       this.inside[i] = inside;
       this.plant[i] = plant;

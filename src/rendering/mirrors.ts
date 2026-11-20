@@ -62,7 +62,7 @@ export class MirrorViews {
     });
     this.clock = Infinity;
   }
-  private unbind() {
+  unbind() {
     this.surfaces.forEach((s, i) => {
       s.material = this.originals[i];
     });

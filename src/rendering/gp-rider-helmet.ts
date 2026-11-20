@@ -1,5 +1,5 @@
 import * as T from 'three';
-import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { drawWordmark } from './studio/brand-atlas.ts';
 import { canvasTexture } from './geometry.ts';
 import { sampleProfile } from './profile-sampling.ts';
 import type { RiderColours, RiderDetail } from './rider.ts';
@@ -202,14 +202,21 @@ export function gpHelmetSpoiler(detail: RiderDetail) {
     lead = 0.128,
     trail = 0.07,
     lift = 0.019;
-  const sheet = (nu: number, nv: number, at: (u: number, v: number) => T.Vector3) => {
+  const sheet = (
+    nu: number,
+    nv: number,
+    at: (u: number, v: number) => T.Vector3,
+    azimuth: (u: number, v: number) => number,
+  ) => {
     for (const flip of [false, true]) {
       const base = positions.length / 3;
       for (let i = 0; i <= nv; i++)
         for (let j = 0; j <= nu; j++) {
           at(j / nu, i / nv);
           positions.push(p.x, p.y, p.z);
-          uvs.push(j / nu, i / nv);
+          // The spoiler is painted as a continuation of the shell. A full
+          // 0..1 UV square here printed the entire helmet on every face.
+          uvs.push(azimuth(j / nu, i / nv) / (2 * Math.PI), gpHelmetV(p.y - GP_HELMET_CENTRE[1]));
         }
       for (let i = 0; i < nv; i++)
         for (let j = 0; j < nu; j++) {
@@ -223,13 +230,15 @@ export function gpHelmetSpoiler(detail: RiderDetail) {
   // The lip sweeps back at its centre and the panel tapers toward the tips.
   const y = (u: number, v: number) => T.MathUtils.lerp(lead, trail + 0.012 * (2 * u - 1) ** 2, v),
     ramp = (u: number, v: number) => lift * v ** 1.25 * (1 - 0.45 * (2 * u - 1) ** 2);
-  sheet(columns, rows, (u, v) => gpHelmetPoint(y(u, v), rear - half + 2 * half * u, ramp(u, v), p));
-  sheet(columns, 1, (u, v) =>
-    gpHelmetPoint(y(u, 1), rear - half + 2 * half * u, ramp(u, 1) * (1 - v), p),
-  );
+  const phi = (u: number) => rear - half + 2 * half * u;
+  sheet(columns, rows, (u, v) => gpHelmetPoint(y(u, v), phi(u), ramp(u, v), p), phi);
+  sheet(columns, 1, (u, v) => gpHelmetPoint(y(u, 1), phi(u), ramp(u, 1) * (1 - v), p), phi);
   for (const u of [0, 1])
-    sheet(rows, 1, (s, v) =>
-      gpHelmetPoint(y(u, s), rear - half + 2 * half * u, ramp(u, s) * (1 - v), p),
+    sheet(
+      rows,
+      1,
+      (s, v) => gpHelmetPoint(y(u, s), phi(u), ramp(u, s) * (1 - v), p),
+      () => phi(u),
     );
   const g = new T.BufferGeometry();
   g.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
@@ -261,6 +270,47 @@ function onShell(mesh: T.Mesh, y: number, phi: number, lift: number) {
   return mesh;
 }
 
+const VENT_SEGMENTS = 20;
+
+/** Flush-moulded air extractor with a raised rounded lip and a recessed
+ * throat. Its local Y is the outward skin normal. Subtracting the recess
+ * from the lip leaves real depth even with a head-on reflection. */
+export function gpHelmetVent(width: number, length: number, lift: number) {
+  const points: number[] = [],
+    uv: number[] = [],
+    index: number[] = [];
+  const segments = VENT_SEGMENTS;
+  for (const [scale, height] of [
+    [1, -0.0005],
+    [0.92, lift * 0.8],
+    [0.77, lift],
+    [0.58, lift * 0.84],
+    [0.53, 0.00045],
+  ]) {
+    for (let j = 0; j < segments; j++) {
+      const a = (2 * Math.PI * j) / segments;
+      const cx = Math.cos(a),
+        cz = Math.sin(a);
+      const x = (Math.sign(cx) * Math.abs(cx) ** 0.55 * width * scale) / 2;
+      const z = (Math.sign(cz) * Math.abs(cz) ** 0.62 * length * scale) / 2;
+      points.push(x * (0.89 + (0.2 * z) / length), height, z);
+      uv.push(0.5 + x / width, 0.5 + z / length);
+    }
+  }
+  for (let r = 0; r < 4; r++)
+    for (let j = 0; j < segments; j++) {
+      const a = r * segments + j,
+        b = r * segments + ((j + 1) % segments);
+      index.push(a, a + segments, b, b, a + segments, b + segments);
+    }
+  const geometry = new T.BufferGeometry();
+  geometry.setAttribute('position', new T.Float32BufferAttribute(points, 3));
+  geometry.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
+  geometry.setIndex(index);
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
 /** Shell details on the existing helmet/visor/liner/trim materials: crown
  * intakes, chin vent, rear exhausts, visor pivot plates and the gasket. */
 export function addGpHelmetDetails(
@@ -275,6 +325,41 @@ export function addGpHelmetDetails(
     head.add(mesh);
     return mesh;
   };
+  const vent = (
+    width: number,
+    length: number,
+    lip: number,
+    material: T.Material,
+    name: string,
+    y: number,
+    phi: number,
+    lift: number,
+  ) => {
+    const rim = gpHelmetVent(width, length, lip);
+    const mesh = onShell(add(rim, material, name), y, phi, lift);
+    // Seat the dark duct behind the moulded lip. Reuse its inner outline
+    // so no lacquer shows through a vent on a light-coloured helmet.
+    const housing = rim.getAttribute('position');
+    const first = housing.count - VENT_SEGMENTS;
+    const points = [0, 0.0002, 0],
+      uv = [0.5, 0.5],
+      index: number[] = [];
+    for (let i = 0; i < VENT_SEGMENTS; i++) {
+      const x = housing.getX(first + i),
+        z = housing.getZ(first + i);
+      points.push(x, 0.0002, z);
+      uv.push(0.5 + x / width, 0.5 + z / length);
+      index.push(0, 1 + ((i + 1) % VENT_SEGMENTS), 1 + i);
+    }
+    const throat = new T.BufferGeometry();
+    throat.setAttribute('position', new T.Float32BufferAttribute(points, 3));
+    throat.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
+    throat.setIndex(index);
+    throat.computeVertexNormals();
+    const backing = add(throat, materials.liner, name + ' duct');
+    backing.position.copy(mesh.position);
+    backing.quaternion.copy(mesh.quaternion);
+  };
   add(gpVisorGeometry(detail), materials.visor, 'GP iridium race visor');
   add(gpHelmetSpoiler(detail), materials.shell, 'GP rear crown spoiler');
   if (detail !== 'high') return;
@@ -286,8 +371,12 @@ export function addGpHelmetDetails(
   for (const side of [-1, 1]) {
     // phi measured from bike right: left side is PI - phi.
     const sidePhi = (phi: number) => (side > 0 ? Math.PI - phi : phi);
-    onShell(
-      add(new RoundedBoxGeometry(0.026, 0.009, 0.04, 2, 0.004), materials.trim, 'GP crown intake'),
+    vent(
+      0.026,
+      0.04,
+      0.0055,
+      materials.trim,
+      'GP crown intake',
       0.118,
       sidePhi(Math.PI / 2 - 0.3),
       0.002,
@@ -298,23 +387,18 @@ export function addGpHelmetDetails(
       sidePhi(0.22),
       0.001,
     );
-    onShell(
-      add(
-        new RoundedBoxGeometry(0.03, 0.006, 0.011, 2, 0.0026),
-        materials.liner,
-        'GP rear exhaust',
-      ),
+    vent(
+      0.03,
+      0.011,
+      0.0036,
+      materials.liner,
+      'GP rear exhaust',
       0.062,
       Math.PI * 1.5 + side * 0.3,
       0.0015,
     );
   }
-  onShell(
-    add(new RoundedBoxGeometry(0.036, 0.007, 0.016, 2, 0.003), materials.liner, 'GP chin vent'),
-    -0.083,
-    Math.PI / 2,
-    0.0015,
-  );
+  vent(0.036, 0.016, 0.0042, materials.liner, 'GP chin vent', -0.083, Math.PI / 2, 0.0015);
 }
 
 /** Original paint for the GP shell's UVs (u wraps from bike right, 0.25 at
@@ -336,89 +420,116 @@ export function gpHelmetLivery(colours: RiderColours, raceNumber: number) {
       c.fillStyle = `rgba(0,0,0,${0.05 + band * 0.006})`;
       c.fillRect(0, py(y), W, H);
     }
-    for (const mirror of [1, -1]) {
-      const u = (value: number) => px(0.25 + mirror * value);
-      // Blade from the brow corner sweeping back and down to the nape.
-      const blade = (grow: number) => {
-        c.beginPath();
-        c.moveTo(u(0.07 - grow), py(0.092 + grow * 0.25));
-        c.bezierCurveTo(
-          u(0.2),
-          py(0.125 + grow * 0.3),
-          u(0.36),
-          py(0.105 + grow * 0.3),
-          u(0.5),
-          py(0.085 + grow * 0.3),
-        );
-        c.lineTo(u(0.5), py(0.035 - grow * 0.3));
-        c.bezierCurveTo(
-          u(0.38),
-          py(0.04 - grow * 0.3),
-          u(0.27),
-          py(0.0 - grow * 0.3),
-          u(0.2),
-          py(-0.05 - grow * 0.3),
-        );
-        c.bezierCurveTo(
-          u(0.15),
-          py(0.0),
-          u(0.11),
-          py(0.07),
-          u(0.07 - grow),
-          py(0.092 + grow * 0.25),
-        );
-        c.closePath();
-      };
-      blade(0.012);
-      c.fillStyle = css(colours.secondary);
-      c.fill();
-      blade(0);
-      c.fillStyle = '#eceeed';
-      c.fill();
-      // Halftone fade in the primary over the blade's trailing half.
+    // A jaw rail joins the chin vent and the nape. Carry polygons over the
+    // UV cut at the right cheek so the two sides of the shell match.
+    for (const shift of [0, W]) {
       c.save();
-      blade(0);
-      c.clip();
-      c.fillStyle = css(colours.primary);
-      for (let i = 0; i < 46; i++)
-        for (let j = 0; j < 22; j++) {
-          const fx = 0.2 + i * 0.0068 + (j % 2) * 0.0034,
-            fy = -0.06 + j * 0.0085,
-            r = 3.2 * T.MathUtils.smoothstep(fx, 0.24, 0.5);
-          if (r < 0.35) continue;
+      c.translate(shift, 0);
+      for (const mirror of [1, -1]) {
+        if (shift && mirror > 0) continue;
+        const u = (value: number) => px(0.25 + mirror * value);
+        // Blade from the brow corner sweeping back and down to the nape.
+        const blade = (grow: number) => {
           c.beginPath();
-          c.arc(u(fx), py(fy), r, 0, Math.PI * 2);
-          c.fill();
-        }
+          c.moveTo(u(0.07 - grow), py(0.092 + grow * 0.25));
+          c.bezierCurveTo(
+            u(0.2),
+            py(0.125 + grow * 0.3),
+            u(0.36),
+            py(0.105 + grow * 0.3),
+            u(0.5),
+            py(0.085 + grow * 0.3),
+          );
+          c.lineTo(u(0.5), py(0.035 - grow * 0.3));
+          c.bezierCurveTo(
+            u(0.38),
+            py(0.04 - grow * 0.3),
+            u(0.27),
+            py(0.0 - grow * 0.3),
+            u(0.2),
+            py(-0.05 - grow * 0.3),
+          );
+          c.bezierCurveTo(
+            u(0.15),
+            py(0.0),
+            u(0.11),
+            py(0.07),
+            u(0.07 - grow),
+            py(0.092 + grow * 0.25),
+          );
+          c.closePath();
+        };
+        blade(0.012);
+        c.fillStyle = css(colours.secondary);
+        c.fill();
+        blade(0);
+        c.fillStyle = '#eceeed';
+        c.fill();
+        // Halftone fade in the primary over the blade's trailing half.
+        c.save();
+        blade(0);
+        c.clip();
+        c.fillStyle = css(colours.primary);
+        for (let i = 0; i < 46; i++)
+          for (let j = 0; j < 22; j++) {
+            const fx = 0.2 + i * 0.0068 + (j % 2) * 0.0034,
+              fy = -0.06 + j * 0.0085,
+              r = 3.2 * T.MathUtils.smoothstep(fx, 0.24, 0.5);
+            if (r < 0.35) continue;
+            c.beginPath();
+            c.arc(u(fx), py(fy), r, 0, Math.PI * 2);
+            c.fill();
+          }
+        c.restore();
+        // Accent pinstripe just inside the upper edge.
+        c.strokeStyle = css(colours.accent);
+        c.lineWidth = 3;
+        c.beginPath();
+        c.moveTo(u(0.08), py(0.086));
+        c.bezierCurveTo(u(0.2), py(0.117), u(0.36), py(0.098), u(0.5), py(0.079));
+        c.stroke();
+      }
+      for (const side of [-1, 1]) {
+        if (shift && side > 0) continue;
+        const u = (at: number) => px(0.25 + side * at);
+        c.beginPath();
+        c.moveTo(u(0.015), py(-0.108));
+        c.bezierCurveTo(u(0.1), py(-0.112), u(0.29), py(-0.082), u(0.49), py(-0.034));
+        c.lineTo(u(0.49), py(-0.042));
+        c.bezierCurveTo(u(0.32), py(-0.092), u(0.11), py(-0.13), u(0.019), py(-0.124));
+        c.closePath();
+        c.fillStyle = css(colours.secondary);
+        c.fill();
+        c.beginPath();
+        c.moveTo(u(0.03), py(-0.104));
+        c.bezierCurveTo(u(0.16), py(-0.106), u(0.32), py(-0.076), u(0.46), py(-0.04));
+        c.strokeStyle = css(colours.accent);
+        c.lineWidth = 2.5;
+        c.stroke();
+      }
       c.restore();
-      // Accent pinstripe just inside the upper edge.
-      c.strokeStyle = css(colours.accent);
-      c.lineWidth = 3;
-      c.beginPath();
-      c.moveTo(u(0.08), py(0.086));
-      c.bezierCurveTo(u(0.2), py(0.117), u(0.36), py(0.098), u(0.5), py(0.079));
-      c.stroke();
     }
     // Brow strip above the eye port with a partner mark.
     c.fillStyle = '#121519';
     c.fillRect(px(0.135), py(0.084), px(0.23), py(0.058) - py(0.084));
-    c.fillStyle = '#eef0ef';
-    c.font = 'bold 20px sans-serif';
-    c.textAlign = 'center';
-    c.textBaseline = 'middle';
-    c.fillText('MERIDIAN OIL', px(0.25), (py(0.084) + py(0.058)) / 2 + 1);
-    // Chin-bar maker mark, nape number, cheek numbers and partner marks.
-    c.font = 'bold 24px sans-serif';
-    c.fillText('VANTA', px(0.25), py(-0.098));
-    c.font = 'italic bold 58px sans-serif';
-    c.fillText(String(raceNumber), px(0.75), py(0.01));
-    for (const u of [0.58, 0.92]) {
-      c.font = 'italic bold 30px sans-serif';
-      c.fillStyle = css(colours.secondary);
-      c.fillText(String(raceNumber), px(u), py(-0.045));
-      c.font = 'bold 13px sans-serif';
-      c.fillStyle = '#eef0ef';
-      c.fillText('AUREL BANK', px(u), py(-0.085));
+    c.strokeStyle = '#eef0ef';
+    drawWordmark(c, 'MERIDIAN OIL', px(0.25), (py(0.084) + py(0.058)) / 2, 13, {
+      weight: 0.18,
+      slant: 0.1,
+    });
+    drawWordmark(c, 'VANTA', px(0.25), py(-0.087), 16, { weight: 0.2, tracking: 0.08 });
+    const number = String(raceNumber).padStart(2, '0');
+    const raceMark = (u: number, y: number, h: number) => {
+      c.strokeStyle = '#1e252c';
+      drawWordmark(c, number, px(u), py(y), h, { weight: 0.35, width: 1.05, slant: 0.16 });
+      c.strokeStyle = '#f3f0df';
+      drawWordmark(c, number, px(u), py(y), h, { weight: 0.18, width: 1.05, slant: 0.16 });
+    };
+    raceMark(0.75, 0.016, 49);
+    for (const u of [0.548, 0.952]) {
+      raceMark(u, -0.012, 28);
+      c.strokeStyle = '#e3e5e3';
+      drawWordmark(c, 'AUREL', px(u), py(-0.047), 8, { weight: 0.2, tracking: 0.14 });
     }
   });
 }

@@ -17,7 +17,14 @@ import type { MxArenaGrid } from './offroad/mx-arena-lighting.ts';
 import type { MxDabSurface } from './offroad/motocross-dab.ts';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
-import { gpRaceBodywork, gpRaceNumber, gpSatinCarbon, gpSwingarmSpoon } from './gp-race-bodywork.ts';
+import {
+  gpLiveryMaterial,
+  gpRaceBodywork,
+  gpRaceNumber,
+  gpSatinCarbon,
+  gpSwingarmSpoon,
+  gpWingPaint,
+} from './gp-race-bodywork.ts';
 import { gpRadialBrakeCaliper } from './gp-radial-caliper.ts';
 import { GPFrontHydraulics } from './gp-front-hydraulics.ts';
 import { gpBrakeRotor, GP_FRONT_DISC } from './gp-brake-rotor.ts';
@@ -861,7 +868,14 @@ export class BikeModel {
       front: boolean,
     ) => {
       const distantGP = gpPrototype && detail === 'far';
-      const tyre = tyreGeometry(radius, halfWidth, crown, rim + 0.004, distantGP ? 20 : sides, distantGP);
+      const tyre = tyreGeometry(
+        radius,
+        halfWidth,
+        crown,
+        rim + 0.004,
+        distantGP ? 20 : sides,
+        distantGP,
+      );
       add(spin, tyre, m.rubber);
       if (detail !== 'far') {
         // GP sidewall markings follow the actual tyre facets as thin paint.
@@ -1695,7 +1709,9 @@ export class BikeModel {
       // beside the bar, below the established display-to-lens ray bundle.
       add(
         this.steer,
-        gpPrototype ? gpReservoirBody(detail, m.reservoir.color) : new T.CylinderGeometry(0.022, 0.019, 0.035, 16),
+        gpPrototype
+          ? gpReservoirBody(detail, m.reservoir.color)
+          : new T.CylinderGeometry(0.022, 0.019, 0.035, 16),
         m.reservoir,
         -0.207,
         0.003,
@@ -1712,18 +1728,24 @@ export class BikeModel {
       if (gpPrototype) {
         // Cast-in MAX/MIN witness marks on the near wall of the cup.
         for (const y of [-0.003, 0.014]) {
-          add(this.steer, new RoundedBoxGeometry(0.009, 0.0014, 0.0012, 1, 0.00035),
-            m.dark, -0.207, y, y > 0 ? 0.0434 : 0.0456);
+          add(
+            this.steer,
+            new RoundedBoxGeometry(0.009, 0.0014, 0.0012, 1, 0.00035),
+            m.dark,
+            -0.207,
+            y,
+            y > 0 ? 0.0434 : 0.0456,
+          );
         }
       } else {
         add(
-        this.steer,
-        new RoundedBoxGeometry(0.009, 0.019, 0.003, 1, 0.002),
-        m.forkUpper,
-        -0.207,
-        0.002,
-        0.044,
-      );
+          this.steer,
+          new RoundedBoxGeometry(0.009, 0.019, 0.003, 1, 0.002),
+          m.forkUpper,
+          -0.207,
+          0.002,
+          0.044,
+        );
       }
       add(
         this.steer,
@@ -1779,12 +1801,25 @@ export class BikeModel {
       const lampY = r2 ? 0.318 : 0.33;
       const nearRainLamp = gpPrototype && detail !== 'far';
       if (nearRainLamp) {
-        add(this.sprung, new RoundedBoxGeometry(0.077, 0.024, 0.008, 1, 0.003), m.dark, 0, lampY, -0.956);
+        add(
+          this.sprung,
+          new RoundedBoxGeometry(0.077, 0.024, 0.008, 1, 0.003),
+          m.dark,
+          0,
+          lampY,
+          -0.956,
+        );
       }
       const lamp = add(
         this.sprung,
-        nearRainLamp ? gpRainLenses(r2, detail) : new RoundedBoxGeometry(0.07, 0.022, 0.012, 2, 0.004),
-        m.lamp, 0, lampY, nearRainLamp ? -0.9565 : -0.955, false,
+        nearRainLamp
+          ? gpRainLenses(r2, detail)
+          : new RoundedBoxGeometry(0.07, 0.022, 0.012, 2, 0.004),
+        m.lamp,
+        0,
+        lampY,
+        nearRainLamp ? -0.9565 : -0.955,
+        false,
       );
       lamp.name = 'GP tail rain light';
     } else if (look.tail === 'race') {
@@ -1946,10 +1981,23 @@ export class BikeModel {
         const caliper = gpRearBrakeCaliper(detail, m);
         caliper.position.z = -arm;
         addGpRigidFinish(this.swingarm, caliper, [m.aluminium, m.caliper, m.dark, m.steel]);
-        add(this.swingarm, new T.CylinderGeometry(0.0105, 0.0105, 0.37, 10),
-          m.steel, 0, 0, -arm).rotation.z = Math.PI / 2;
+        add(
+          this.swingarm,
+          new T.CylinderGeometry(0.0105, 0.0105, 0.37, 10),
+          m.steel,
+          0,
+          0,
+          -arm,
+        ).rotation.z = Math.PI / 2;
       } else {
-        add(this.swingarm, new T.BoxGeometry(0.03, 0.06, 0.05), m.caliper, -0.09, 0.06, -arm + 0.07);
+        add(
+          this.swingarm,
+          new T.BoxGeometry(0.03, 0.06, 0.05),
+          m.caliper,
+          -0.09,
+          0.06,
+          -arm + 0.07,
+        );
       }
     }
     if (look.shocks === 'twin' && detail !== 'far')
@@ -1966,8 +2014,14 @@ export class BikeModel {
         shock.rotation.x = -0.35;
       }
     if (gp) {
-      add(this.swingarm, gpRearHugger(rearR, Math.max(b.crownRadius, 0.11), arm, detail),
-        gpSatinCarbon(m), 0, 0, -arm).name = 'Swingarm-mounted carbon tyre hugger';
+      add(
+        this.swingarm,
+        gpRearHugger(rearR, Math.max(b.crownRadius, 0.11), arm, detail),
+        gpSatinCarbon(m),
+        0,
+        0,
+        -arm,
+      ).name = 'Swingarm-mounted carbon tyre hugger';
     } else if (full && detail !== 'far') {
       const pos: number[] = [],
         uv: number[] = [],
@@ -2010,7 +2064,11 @@ export class BikeModel {
     };
     const raceNumber = gpPrototype ? gpRaceNumber(id) : 2;
     this.rider = new Rider(
-      colours, detail, 'leathers', raceNumber, gpPrototype,
+      colours,
+      detail,
+      'leathers',
+      raceNumber,
+      gpPrototype,
       gpPrototype && detail !== 'far' ? m.riderPrints(colours, raceNumber) : undefined,
     );
     this.rider.seat.set(0, 0.3, -0.32);
@@ -2057,6 +2115,33 @@ export class BikeModel {
       riding: true,
     });
     return voxelizeGpOcclusion(gpOcclusionSources(this.root, this.sprung, [this.rider.root]));
+  }
+  /** World-space subjects of the actually posed motorcycle. The head may
+   * be separated from the machine during a replay. All other subjects
+   * follow their own suspension or sprung frame. */
+  photoAnchor(subject: number, out: T.Vector3) {
+    switch (subject) {
+      case 1:
+        return this.rider.helmetCentre(out);
+      case 2:
+        return this.cockpit
+          ? this.cockpit.root.localToWorld(out.set(0, 0, -0.0115))
+          : this.steer.localToWorld(out.set(0, 0.026, 0));
+      case 3:
+        return this.frontSpin.getWorldPosition(out);
+      case 4:
+        return this.sprung.localToWorld(out.set(0, 0.14, 0.76));
+      case 5:
+        return this.sprung.localToWorld(
+          out.set(0, this.definition.id === 'gpr2' ? 0.318 : 0.33, -0.74),
+        );
+      case 6:
+        return this.root.localToWorld(out.set(0, 3.1, 8.5));
+      case 0:
+        return this.sprung.localToWorld(out.set(0, 0.06, -0.04));
+      default:
+        throw new RangeError('Invalid motorcycle photo subject');
+    }
   }
   /** Marked road snapshots carry a sprung CG pose. Unmarked standalone,
    * legacy and service callers retain the authored wheel-plane convention. */
@@ -2110,8 +2195,8 @@ export class BikeModel {
     const dy = this.rearWheel.position.y - p.y,
       dz = this.rearWheel.position.z - p.z;
     this.swingarm.rotation.x = Math.atan2(dy, -dz);
-    this.swingarm.scale.z = road && this.definition.classId === 'gp-bike'
-      ? 1 : Math.hypot(dy, dz) / this.armLength;
+    this.swingarm.scale.z =
+      road && this.definition.classId === 'gp-bike' ? 1 : Math.hypot(dy, dz) / this.armLength;
     this.rearWheel.position.z -= v.rearWheelOut ?? 0;
     if (this.gpRearSuspension) {
       this.swingarm.updateMatrix();
@@ -2128,7 +2213,9 @@ export class BikeModel {
     }
     this.m.lamp.emissiveIntensity = this.rider.gp
       ? 0.04 + 3.2 * T.MathUtils.smoothstep(v.rainVisibility ?? 0, 0, 1)
-      : v.brake > 0.05 || v.rearBrake > 0.05 ? 3 : 0.2;
+      : v.brake > 0.05 || v.rearBrake > 0.05
+        ? 3
+        : 0.2;
     for (const ring of this.rings)
       (ring.material as T.MeshStandardMaterial).color.setHex(v.compoundColour);
     if (v.riding) {
@@ -2255,6 +2342,8 @@ interface Entry {
   dirtMud?: MudUniforms;
   arenaLight?: MxArenaBikeLight;
   level: number;
+  /** Local reflection recipients shared by all of this prototype’s detail levels. */
+  probePaint?: T.MeshStandardMaterial[];
   /** Paddock stands and carried wheels, shown only during a pit service. */
   rig: BikeServiceRig;
   /** GP prototypes: the rider's spring-damped mass (gp-rider-dynamics). */
@@ -2385,7 +2474,24 @@ export class BikeShells {
     const rig = new BikeServiceRig(bikeServiceGeometry(definition));
     this.root.add(rig.root);
     this.install(rig.root);
-    return { definition, materials, levels, dirtMud, level: -1, rig, riderBody, occlusion };
+    const probePaint = gp
+      ? [
+          gpLiveryMaterial(materials, scheme, definition.id === 'gpr2' ? 'gpr2' : 'gpr1'),
+          gpWingPaint(materials, scheme),
+          materials.carbon,
+        ]
+      : undefined;
+    return {
+      definition,
+      materials,
+      levels,
+      dirtMud,
+      level: -1,
+      rig,
+      riderBody,
+      occlusion,
+      probePaint,
+    };
   }
   private buildDirtLevel(entry: Entry, id: number, level: number, shareGeometry: boolean) {
     const detail = BIKE_DETAILS[level];
@@ -2442,7 +2548,8 @@ export class BikeShells {
     try {
       return await compile();
     } finally {
-      for (const root of mounted) if (!root.visible && root.parent === this.root) this.root.remove(root);
+      for (const root of mounted)
+        if (!root.visible && root.parent === this.root) this.root.remove(root);
     }
   }
   /** GP: bake (or share) the definition's rest-pose occupancy from the high
@@ -2490,6 +2597,14 @@ export class BikeShells {
   drawnRoot(id: number): T.Object3D | null {
     return this.entries.get(id)?.levels.find((level) => level?.root.visible)?.root ?? null;
   }
+  gpPresentation(id: number) {
+    const entry = this.entries.get(id),
+      model = entry?.levels[entry.level];
+    return entry?.probePaint && model instanceof BikeModel && model.root.visible ? model : null;
+  }
+  gpProbePaint(id: number) {
+    return this.entries.get(id)?.probePaint;
+  }
   /** Shared service pose of a stopped bike from the discrete snapshot fields
    * the crew presentation reads (phase, service clock, stand lift); null when
    * the entrant is not in an active service. */
@@ -2522,9 +2637,17 @@ export class BikeShells {
     follow: number,
     // During race loading each entrant gets its own repaint opportunity.
     entrant?: number,
+    // The photo/reflection subject can already be posed for this exact frame.
+    posedEntrant?: number,
   ) {
     const end = entrant === undefined ? cars.length : entrant + 1;
     for (let id = entrant ?? 0; id < end; id++) {
+      if (id === posedEntrant) {
+        // The preceding catalogue-body pass may make the host visible.
+        // The motorcycle already owns this slot and its exact current pose.
+        cars[id].root.visible = false;
+        continue;
+      }
       let entry = this.entries.get(id);
       if (id >= b[H.CARS]) {
         if (entry) {
@@ -2600,8 +2723,10 @@ export class BikeShells {
       // recorded lift along its own up axis; the stands stay on the floor.
       if (service)
         model.root.position.add(this.lift.set(0, service.lift, 0).applyQuaternion(car.quaternion));
-      model.rider.ground.dirt = !service && definition.bike.offroad && source[o + OFFROAD_BASE + O.AIRBORNE] < 0.5
-        ? this.motocrossGround : undefined;
+      model.rider.ground.dirt =
+        !service && definition.bike.offroad && source[o + OFFROAD_BASE + O.AIRBORNE] < 0.5
+          ? this.motocrossGround
+          : undefined;
       this.values.roadContact =
         !service && !definition.bike.offroad ? this.roadContact.sample(a, b, o, t) : undefined;
       this.pose(model, a, b, t, id, entry.riderBody);

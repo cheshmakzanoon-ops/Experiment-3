@@ -250,7 +250,8 @@ export class ReflectionSystem {
   attachMirrors(surfaces: readonly T.Mesh[]) {
     for (const mirror of this.surfaces) mirror.visible = false;
     this.surfaces = [...surfaces];
-    this.views.bind(surfaces);
+    if (surfaces.length) this.views.bind(surfaces);
+    else this.views.unbind();
   }
   quality(value: 'low' | 'medium' | 'high') {
     this.views.quality(value);

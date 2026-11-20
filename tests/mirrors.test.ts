@@ -35,6 +35,18 @@ function rendererMock(render: () => void = () => undefined) {
   return { renderer, original };
 }
 describe('rear-view camera passes', () => {
+  it('releases both feeds for a race motorcycle and rebinds the same Formula mirrors', () => {
+    const { root, surfaces, mirrors } = fixture(),
+      { renderer } = rendererMock(),
+      gl = renderer as unknown as T.WebGLRenderer;
+    mirrors.unbind();
+    mirrors.render(gl, new T.Scene(), root, 1 / 60);
+    expect(renderer.render).not.toHaveBeenCalled();
+    mirrors.bind(surfaces);
+    mirrors.render(gl, new T.Scene(), root, 1 / 60);
+    expect(renderer.render).toHaveBeenCalledTimes(2);
+    mirrors.dispose();
+  });
   it('looks backward from both mirror surfaces after chassis translation and rotation', () => {
     const { root, surfaces, mirrors } = fixture();
     root.position.set(40, 2, -80);

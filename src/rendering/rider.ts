@@ -1366,6 +1366,9 @@ export class Rider {
     ])
       batchBikeRigidMeshes(group);
   }
+  helmetCentre(out: T.Vector3) {
+    return this.head.localToWorld(out.fromArray(GP_HELMET_CENTRE));
+  }
   /** Exclude the followed rider's own helmet from the first-person lens.
    * A stable MX eye needs its own arm presentation: sleeves enter from below
    * the camera, with the same wrists on the actual steered bar grips. */

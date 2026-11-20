@@ -14,6 +14,8 @@ import {
   GP_HELMET_CENTRE,
   gpHelmetShell,
   gpHelmetSpoiler,
+  gpHelmetVent,
+  gpHelmetV,
   gpVisorGeometry,
 } from '../src/rendering/gp-rider-helmet.ts';
 import { Rider, type RiderPose } from '../src/rendering/rider.ts';
@@ -99,6 +101,21 @@ describe('GP riding posture', () => {
       );
     } finally {
       rider.dispose();
+    }
+  });
+
+  it('prepositions the hips through shallow steering corrections and opens the knee as the bike banks', () => {
+    const pose = new GpRiderPosture(),
+      seat = new T.Vector3();
+    for (const sign of [-1, 1]) {
+      const inside = sign === 1 ? 0 : 1;
+      pose.solve({ ...riding, offset: sign * 0.115, lean: sign * 0.136 }, seat);
+      const shallow = Math.abs(pose.kneePoles[inside].x);
+      expect(pose.pelvis.x * sign).toBeGreaterThan(0.05);
+      expect(pose.inside[inside]).toBeLessThan(0.16);
+      pose.solve({ ...riding, offset: sign * 0.115, lean: sign * 0.8 }, seat);
+      expect(Math.abs(pose.kneePoles[inside].x)).toBeGreaterThan(shallow + 0.26);
+      expect(pose.inside[1 - inside]).toBe(0);
     }
   });
 
@@ -278,6 +295,22 @@ describe('GP race helmet', () => {
     }
     const spoiler = gpHelmetSpoiler('high'),
       visor = gpVisorGeometry('high');
+    const surface = spoiler.getAttribute('position'),
+      ink = spoiler.getAttribute('uv');
+    for (let i = 0; i < surface.count; i++) {
+      expect(ink.getX(i)).toBeGreaterThan(0.65);
+      expect(ink.getX(i)).toBeLessThan(0.85);
+      expect(ink.getY(i)).toBeCloseTo(gpHelmetV(surface.getY(i) - GP_HELMET_CENTRE[1]), 5);
+    }
+    const duct = gpHelmetVent(0.026, 0.04, 0.0055),
+      material = new T.MeshBasicMaterial(),
+      mouth = new T.Mesh(duct, material),
+      ray = new T.Raycaster(new T.Vector3(0, 0.02, 0), new T.Vector3(0, -1, 0));
+    expect(ray.intersectObject(mouth)).toHaveLength(0);
+    ray.ray.origin.x = 0.0105;
+    expect(ray.intersectObject(mouth).length).toBeGreaterThan(0);
+    duct.dispose();
+    material.dispose();
     expect(spoiler.boundingBox!.max.z).toBeLessThan(-0.03);
     expect(visor.boundingBox!.min.z).toBeGreaterThan(0.02);
     spoiler.dispose();

@@ -733,10 +733,10 @@ export class FormulaCar {
   ) {
     t = sampleChassisPose(a, b, o, t, this.root.position, this.root.quaternion);
     const source = snapshotSource(a, b, t);
-    // On dirt bikes the Formula slot supplies only this interpolated chassis
-    // transform. The active bike solves its own arms, wheels and suspension.
-    this.slotRoot.suspendWhenHidden =
-      vehicleAt(Math.round(source[o + RACE_BASE + R.VEHICLE])).classId === 'motocross';
+    // The race motorcycles pose their own limbs, wheels, dashboard and
+    // suspension. Their hidden Formula host supplies the interpolated anchor.
+    const vehicleClass = vehicleAt(Math.round(source[o + RACE_BASE + R.VEHICLE])).classId;
+    this.slotRoot.suspendWhenHidden = vehicleClass === 'motocross' || vehicleClass === 'gp-bike';
     if (this.slotRoot.suspendWhenHidden) return;
     time = sampleValue(a, b, H.TIME, t);
     if (this.suppliedPlayer) {
