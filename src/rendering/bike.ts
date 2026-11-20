@@ -2319,6 +2319,8 @@ export interface BikePoseValues extends GpTyreAppearance {
   standing?: number;
   dab?: number;
   body?: number;
+  /** Prepared dirt start posture. The race clock releases the rider from it. */
+  startBrace?: number;
   mud?: number;
   mudWet?: number;
   /** GP rider inputs: throttle 0..1, longitudinal g, chassis roll rate
@@ -2796,6 +2798,12 @@ export class BikeShells {
     v.standing = sampleOffroadField(a, b, o, O.STANDING, t);
     v.dab = sampleOffroadField(a, b, o, O.DAB, t);
     v.body = sampleOffroadField(a, b, o, O.BODY, t);
+    // Practice, a studio pose and older recordings have no assigned gate slot.
+    // The race clock stays at zero through the countdown and while paused.
+    v.startBrace =
+      model instanceof DirtBikeModel && source[o + OFFROAD_BASE + O.SLOT] > 0
+        ? 1 - T.MathUtils.smoothstep(sampleValue(a, b, H.RACE_TIME, t), 0, 0.85)
+        : 0;
     v.mud = sampleOffroadField(a, b, o, O.MUD, t);
     v.mudWet = sampleOffroadField(a, b, o, O.MOISTURE, t);
     // GP rider body language: presented controls, acceleration and roll rate,

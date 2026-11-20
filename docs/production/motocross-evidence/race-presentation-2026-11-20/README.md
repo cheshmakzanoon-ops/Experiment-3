@@ -16,6 +16,10 @@ On the MX450, the filmed goggle lens follows the helmet's curvature. Its two tea
 
 The MX450 and SM450 ran on Valley Ridge and the MX250 ran in Arena Nord. Each 40-second run reached full throttle, full braking and a standing posture. Across 720 sampled high-detail poses, 45 were in flight. The largest sole-to-peg gap was 1.48 mm across 1,406 planted-boot observations. The skinned wrists, ankles and calves stayed attached, including during touchdown. Seeking backwards to 129 recorded poses restored every element of the four hand and boot transforms exactly. [Motion measurements](race-checks.json)
 
+At an assigned gate each rider sets their hips forward and elbows up. Carriage and breathing vary by race number and follow the recorded simulation clock. The start posture blends out over the first 0.85 s after the gate drops. In these matched High captures the left rider is set for the start and the right has released the brace. The MX450’s hips move 18.5 mm while the hands remain on the bars. The change affected 32,678 pixels at 1280 × 800. Rewinding restored the first frame exactly. Both poses used 88 draws.
+
+![Side-by-side MX450 riding poses showing the hips, elbow and helmet before and after release](mx450-start-posture.webp)
+
 ## Wheel passage
 
 Each row shows the same camera and soil before and after a grounded wheel passes. Valley Ridge is above Arena Nord. The MX tread has 22 alternating centre-block pairs per revolution. Each impression follows the wheel rotation recorded by the solver, including reverse rotation and slides with a locked wheel. At 800 × 500, the passage changed 21,829 pixels across 300 outdoor segments and 24,451 pixels across 301 indoor segments. Each course added one draw call. Seeking back restored the original framebuffer byte-for-byte, and seeking forward restored the marked image.

@@ -263,6 +263,35 @@ test('Motocross MX250: articulated chest and corner gaze retain contact through 
   expect(sequence[0].hash).toBe(sequence[3].hash);
 });
 
+test('Motocross MX450: seated gate brace and release hold both controls on the production rig', async ({
+  review,
+}) => {
+  const held = { startBrace: 1, time: 2 };
+  const sequence = await review.capture({
+    id: 'mx450',
+    detail: 'high',
+    view: 'motion-side',
+    samples: [held, { startBrace: 0.5, time: 2 }, { startBrace: 0, time: 2 }, held],
+  });
+  for (const [i, sample] of sequence.entries()) {
+    await review.attach(`gate-posture-${i}`, sample);
+    expect(sample.instance).toBe(sequence[0].instance);
+    expect(sample.resources).toEqual(sequence[0].resources);
+    expect(sample.glError).toBe(0);
+    for (const contact of sample.contacts) {
+      expect(contact.handError).toBeLessThan(1e-6);
+      expect(contact.ankleJointError).toBeLessThan(1e-6);
+      expect(contact.soleContactFound).toBe(true);
+      // The sole reading is a ray to the moulded tread surface, in metres.
+      expect(contact.ankleError).toBeLessThan(0.0015);
+    }
+  }
+  expect(sequence[0].motion.pelvis[2]).toBeGreaterThan(sequence[2].motion.pelvis[2] + 0.012);
+  expect(new Set(sequence.slice(0, 3).map((sample) => sample.hash)).size).toBe(3);
+  expect(sequence[3].hash).toBe(sequence[0].hash);
+  expect(sequence[3].motion).toEqual(sequence[0].motion);
+});
+
 test('Motocross MX450: suspension absorption, gaze and lever are reversible on the production rig', async ({
   review,
 }) => {

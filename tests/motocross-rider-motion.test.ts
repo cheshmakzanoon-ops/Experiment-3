@@ -47,6 +47,36 @@ const joints = (rider: Rider) => {
 };
 
 describe('motocross suspension-driven rider motion', () => {
+  it('holds a distinct start posture per entrant through every camera detail and replay', () => {
+    const riders = [
+      new Rider(colours, 'high', 'motocross', 2),
+      new Rider(colours, 'mid', 'motocross', 2),
+      new Rider(colours, 'far', 'motocross', 2),
+      new Rider(colours, 'high', 'motocross', 4),
+    ];
+    const chest = (rider: Rider, startBrace: number, time: number) => {
+      rider.ride({ ...neutral, standing: 0, startBrace, time });
+      return rider.root.getObjectByName('Motocross upper chest')!.quaternion.clone();
+    };
+    try {
+      const [near, middle, distant, rival] = riders;
+      const held = chest(near, 1, 0);
+      expect(chest(middle, 1, 0).toArray()).toEqual(held.toArray());
+      expect(chest(distant, 1, 0).toArray()).toEqual(held.toArray());
+      expect(held.angleTo(chest(rival, 1, 0))).toBeGreaterThan(0.03);
+      const breath = held.angleTo(chest(near, 1, 1.7));
+      expect(breath).toBeGreaterThan(0.01);
+      expect(breath).toBeLessThan(0.025);
+      const released = chest(near, 0, 4);
+      expect(chest(near, 0, 80).toArray()).toEqual(released.toArray());
+      expect(chest(rival, 0, 8).toArray()).toEqual(released.toArray());
+      expect(held.angleTo(chest(near, 0.5, 0))).toBeCloseTo(held.angleTo(released) / 2, 6);
+      expect(chest(near, 1, 0).toArray()).toEqual(held.toArray());
+    } finally {
+      for (const rider of riders) rider.dispose();
+    }
+  });
+
   it('gathers cloth inside a bent elbow without deforming its cuff or uploading new vertices', () => {
     const root = new T.Group(),
       upper = new T.Group(),

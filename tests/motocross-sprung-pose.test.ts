@@ -410,8 +410,18 @@ it.each([
     const rewind: { a: Float32Array; b: Float32Array; matrices: number[] }[] = [];
     let flight = 0,
       onGround = 0,
-      planted = 0;
+      planted = 0,
+      held = 0,
+      launching = 0,
+      released = 0;
     try {
+      expect(previous[o + OFFROAD_BASE + O.SLOT]).toBeGreaterThan(0);
+      pose(previous, previous);
+      expect(calls.mock.calls.at(-1)![0].startBrace).toBe(1);
+      const unassigned = previous.slice();
+      unassigned[o + OFFROAD_BASE + O.SLOT] = 0;
+      pose(unassigned, unassigned);
+      expect(calls.mock.calls.at(-1)![0].startBrace).toBe(0);
       for (let tick = 1; tick <= 40 * 120; tick++) {
         sim.step(1 / 120);
         if (tick % 4) continue;
@@ -422,6 +432,13 @@ it.each([
         const model = pose(previous, current);
         const v = calls.mock.calls.at(-1)![0];
         if (!v.riding) continue;
+        if (current[H.RACE_TIME] === 0) {
+          expect(v.startBrace).toBe(1);
+          held++;
+        } else if (previous[H.RACE_TIME] >= 0.85) {
+          expect(v.startBrace).toBe(0);
+          released++;
+        } else if (v.startBrace! > 0 && v.startBrace! < 1) launching++;
         const airborne = current[o + OFFROAD_BASE + O.AIRBORNE] >= 0.5;
         if (airborne) flight++;
         else onGround++;
@@ -446,6 +463,9 @@ it.each([
       expect(flight).toBeGreaterThan(5);
       expect(onGround).toBeGreaterThan(100);
       expect(planted).toBeGreaterThan(400);
+      expect(held).toBeGreaterThan(5);
+      expect(launching).toBeGreaterThan(2);
+      expect(released).toBeGreaterThan(100);
       for (const sample of rewind.reverse()) {
         terrain.showAt(sample.b[H.TIME]);
         expect(attachmentMatrices(pose(sample.a, sample.b))).toEqual(sample.matrices);

@@ -1485,7 +1485,9 @@ export class Rider {
     // Off-road: up on the pegs (knees flexed) and fore/aft over the bike.
     const mx = this.kit === 'motocross';
     if (mx) this.motocrossThrottle = motocrossThrottleAngle(pose.throttle);
-    const motion = mx ? sampleMotocrossRiderMotion(pose, this.motocrossMotion) : null;
+    const motion = mx
+      ? sampleMotocrossRiderMotion(pose, this.motocrossMotion, this.raceNumber)
+      : null;
     // The original 30 cm rise exceeded a dirt rider's leg reach. Keep the
     // ankles planted on their pegs with flex left in the knees for a landing.
     pelvis.y += standing * (mx ? 0.17 : 0.3);

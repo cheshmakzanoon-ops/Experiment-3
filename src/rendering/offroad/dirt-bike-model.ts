@@ -1155,6 +1155,8 @@ export class DirtBikeModel {
         standing: v.standing ?? 0,
         dab: v.dab ?? 0,
         body: v.body ?? 0,
+        startBrace: v.startBrace,
+        time: v.time,
         chassisPitch,
         compression: (forkStroke + rearStroke) / 2,
         compressionBias: forkStroke - rearStroke,

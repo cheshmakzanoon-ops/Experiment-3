@@ -10,6 +10,10 @@ export interface MotocrossRiderMotionInput {
   /** Differential wheel stroke. Positive is a fork-first landing. */
   compressionBias?: number;
   chassisPitch?: number;
+  /** One at the assigned start slot, fading out through the launch. */
+  startBrace?: number;
+  /** Interpolated simulation seconds. Pausing or seeking holds this phase. */
+  time?: number;
 }
 
 export interface MotocrossRiderMotion {
@@ -30,6 +34,7 @@ const finite = (value: number | undefined) => (Number.isFinite(value) ? value! :
 export function sampleMotocrossRiderMotion(
   pose: MotocrossRiderMotionInput,
   out: MotocrossRiderMotion,
+  raceNumber = 2,
 ) {
   const standing = clamp(finite(pose.standing), 0, 1),
     stroke = smooth(0.04, 1, finite(pose.compression)),
@@ -50,5 +55,18 @@ export function sampleMotocrossRiderMotion(
   // The discrete airborne flag never changes the pose. The interpolated
   // suspension unloads naturally in flight, avoiding a take-off pose pop.
   out.gazePitch = -pitch * 0.78;
+  const ready = clamp(finite(pose.startBrace), 0, 1);
+  if (ready > 0) {
+    // Riders set their weight over the bars before the gate drops. The race
+    // number keeps each rider's elbow carriage and breathing phase the same
+    // in every LOD and on replay. The hands and boots still use their IK.
+    const phase = raceNumber * 2.39996323;
+    const carriage = 0.5 + 0.5 * Math.cos(phase);
+    const breath = Math.sin(finite(pose.time) * (1.35 + carriage * 0.26) + phase);
+    out.pelvisBack -= ready * (0.012 + 0.012 * carriage);
+    out.torsoPitch += ready * (0.09 + 0.11 * carriage + 0.012 * breath);
+    out.elbowLift += ready * (0.025 + 0.035 * carriage + 0.004 * breath);
+    out.gazePitch += ready * (0.018 + 0.025 * carriage);
+  }
   return out;
 }

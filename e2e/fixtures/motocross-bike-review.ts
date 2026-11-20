@@ -12,6 +12,8 @@ import { inspectMotocrossRiderContacts } from './motocross-rider-contact-contrac
 
 export interface MotocrossPoseSample {
   standing?: number;
+  startBrace?: number;
+  time?: number;
   dab?: number;
   body?: number;
   lean?: number;
@@ -200,6 +202,8 @@ export function captureMotocrossBike(
         compoundColour: 0xffffff,
         riding: true,
         standing: sample.standing ?? 0,
+        startBrace: sample.startBrace,
+        time: sample.time,
         dab: sample.dab ?? 0,
         body: sample.body ?? 0,
         mud: sample.mud ?? 0,
