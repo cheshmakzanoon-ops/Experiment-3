@@ -22,6 +22,7 @@ export interface MotocrossPoseSample {
   mud?: number;
   wet?: number;
   brake?: number;
+  throttle?: number;
   rearBrake?: number;
   forkOffset?: number;
   shockOffset?: number;
@@ -182,6 +183,7 @@ export function captureMotocrossBike(
         riderOffset: 0,
         tuck: 0,
         brake: sample.brake ?? 0,
+        throttle: sample.throttle ?? 0,
         rearBrake: sample.rearBrake ?? 0,
         discTemp: 0,
         compoundColour: 0xffffff,

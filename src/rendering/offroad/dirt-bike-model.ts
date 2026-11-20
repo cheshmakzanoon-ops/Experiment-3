@@ -3,7 +3,6 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import type { VehicleDefinition } from '../../simulation/vehicles.ts';
 import {
   add,
-  beam,
   exhaustGeometry,
   staticSag,
   tube,
@@ -30,6 +29,7 @@ import {
   addMotocrossPowertrain,
   motocrossAxleLug,
   motocrossExpansionChamber,
+  motocrossFrameSpar,
   motocrossSilencerOutlet,
   motocrossSumpGuard,
   motocrossSwingarmRail,
@@ -40,6 +40,12 @@ import {
   MotocrossRearShock,
 } from './motocross-mechanics.ts';
 import { MotocrossFootControls, MX_PEG } from './motocross-foot-controls.ts';
+import {
+  addMotocrossControlMounts,
+  motocrossGrip,
+  motocrossLeverBlade,
+} from './motocross-handlebar.ts';
+import { motocrossThrottleAngle } from './motocross-rider-contact.ts';
 import { mapMxKitPanel, mxKitTexture } from './motocross-graphics-kit.ts';
 import { mapUnprintedPlateBack } from './number-plate-uv.ts';
 import {
@@ -100,6 +106,7 @@ export class DirtBikeModel {
   private readonly frontRotor: T.MeshPhysicalMaterial;
   private readonly rearRotor: T.MeshPhysicalMaterial;
   private readonly frontBrakeLever = new T.Group();
+  private readonly throttleTube = new T.Group();
   private readonly forkLower = new T.Group();
   private readonly frontSpin = new T.Group();
   private readonly rearWheel = new T.Group();
@@ -451,23 +458,21 @@ export class DirtBikeModel {
     }
     mapMxKitPanel(pad, 'bar', () => true);
     add(this.steer, pad, shroudMaterial, 0, barY + 0.012, barZ + 0.03);
+    if (detail !== 'far') addMotocrossControlMounts(this.steer, detail, this.m, barY, barZ);
     for (const side of [1, -1]) {
-      add(
-        this.steer,
-        new T.CylinderGeometry(0.012, 0.012, 0.09, 8),
-        this.m.steel,
-        side * 0.07,
-        CLAMPS + 0.045,
-        barZ * 0.5,
-      );
-      add(
-        this.steer,
-        new T.CylinderGeometry(0.018, 0.018, 0.12, 12),
-        this.m.dark,
-        side * 0.36,
-        barY,
-        barZ,
-      ).rotation.z = Math.PI / 2;
+      if (detail === 'far') {
+        add(this.steer, new T.CylinderGeometry(0.012, 0.012, 0.048, 8),
+          this.m.steel, side * 0.07, CLAMPS + 0.024, barZ + 0.032);
+        add(this.steer, new T.CylinderGeometry(0.018, 0.018, 0.12, 10),
+          this.m.dark, side * 0.36, barY, barZ).rotation.z = Math.PI / 2;
+      } else if (side < 0) {
+        this.throttleTube.name = 'Motocross rotating throttle tube';
+        this.throttleTube.position.set(side * 0.36, barY, barZ);
+        this.steer.add(this.throttleTube);
+        add(this.throttleTube, motocrossGrip(detail, side), this.m.dark);
+      } else {
+        add(this.steer, motocrossGrip(detail, side), this.m.dark, side * 0.36, barY, barZ);
+      }
       this.gripLocal[side > 0 ? 0 : 1].set(side * 0.36, barY, barZ);
       controlSight(`Motocross ${side > 0 ? 'left' : 'right'} grip`, side * 0.36, barY, barZ);
       if (detail !== 'far') {
@@ -485,15 +490,17 @@ export class DirtBikeModel {
           this.frontBrakeLever.rotation.y = -0.25;
           this.steer.add(this.frontBrakeLever);
         }
-        const lever = add(
+        const blade = motocrossLeverBlade(side);
+        // The fixed clutch casting shares the corresponding reflected pivot.
+        if (side > 0) blade.rotateY(0.25);
+        add(
           leverParent,
-          new RoundedBoxGeometry(0.14, 0.008, 0.016, detail === 'high' ? 2 : 1, 0.004),
+          blade,
           this.m.aluminium,
-          side < 0 ? side * 0.07 : side * 0.3,
+          side < 0 ? 0 : 0.3 - Math.cos(0.25) * 0.07,
           side < 0 ? 0 : barY - 0.01,
-          side < 0 ? 0 : barZ + 0.07,
+          side < 0 ? 0 : barZ + 0.07 + Math.sin(0.25) * 0.07,
         );
-        lever.rotation.y = side < 0 ? 0 : side * 0.25;
         // Join the ball to the actual outer blade endpoint after its yaw.
         // An independent forward offset leaves a visible gap from the cockpit.
         add(
@@ -503,14 +510,6 @@ export class DirtBikeModel {
           side < 0 ? side * 0.14 : side * (0.3 + Math.cos(0.25) * 0.07),
           side < 0 ? 0 : barY - 0.01,
           side < 0 ? 0 : barZ + 0.07 - Math.sin(0.25) * 0.07,
-        );
-        add(
-          this.steer,
-          new RoundedBoxGeometry(0.037, 0.026, 0.046, 2, 0.006),
-          this.m.dark,
-          side * 0.247,
-          barY + 0.02,
-          barZ + 0.033,
         );
       }
     }
@@ -600,23 +599,6 @@ export class DirtBikeModel {
           back - 0.028,
         );
         bolt.rotation.x = Math.PI / 2;
-        // A raised inner hand stop and a closed replaceable bar end.
-        add(
-          this.steer,
-          new T.CylinderGeometry(0.027, 0.025, 0.005, 14),
-          this.m.dark,
-          side * 0.302,
-          barY,
-          barZ,
-        ).rotation.z = Math.PI / 2;
-        add(
-          this.steer,
-          new T.CylinderGeometry(0.016, 0.017, 0.006, 12),
-          this.m.dark,
-          side * 0.421,
-          barY,
-          barZ,
-        ).rotation.z = Math.PI / 2;
       }
     }
     // High front fender on the lower clamp: the wheel rises into the gap.
@@ -693,19 +675,7 @@ export class DirtBikeModel {
     for (const side of [1, -1]) {
       add(
         this.sprung,
-        beam(
-          [
-            [side * 0.03, head.y - 0.01, head.z - 0.03],
-            // Twin spars run straight from the head to the swingarm pivot,
-            // under the tank, rather than arching up through it.
-            [side * 0.112, head.y - 0.15, head.z - 0.2],
-            [side * 0.14, -0.07, -0.12],
-            [side * 0.115, -0.35, -0.16],
-          ],
-          lightFrame ? 0.027 : 0.038,
-          lightFrame ? 0.037 : 0.066,
-          detail === 'high' ? 20 : 8,
-        ),
+        motocrossFrameSpar(side, head, lightFrame, detail),
         lightFrame ? primary : brushedAlloy,
       );
       // Subframe to the rear fender.
@@ -1088,6 +1058,7 @@ export class DirtBikeModel {
     // This direct snapshot mapping also holds still on pause and rewinds
     // exactly without a presentation-only animation clock.
     this.footControls?.update(v.rearBrake);
+    this.throttleTube.rotation.x = motocrossThrottleAngle(v.throttle);
     this.frontBrakeLever.rotation.y = -0.25 - T.MathUtils.clamp(v.brake, 0, 1) * 0.2;
     // The off-road adapter records vertical wheel travel, not piston travel.
     // Convert it to the raked telescope's stroke; steering around that axis
@@ -1171,6 +1142,7 @@ export class DirtBikeModel {
         offset: v.riderOffset * 0.4,
         tuck: 0,
         braking: v.brake,
+        throttle: v.throttle,
         rearBraking: v.rearBrake,
         steer: v.steer,
         speed: v.speed,

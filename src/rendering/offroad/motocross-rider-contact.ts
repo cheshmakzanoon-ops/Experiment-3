@@ -13,6 +13,18 @@ export const MX_BOOT_PEG = Object.freeze([0, 0.031, 0.02] as const);
 export const MX_PEG_TOP = 0.0085;
 
 const bootEuler = new T.Euler();
+const gripAxis = new T.Vector3(1, 0, 0);
+const twist = new T.Quaternion();
+
+/** Opening the quick-turn throttle rolls the palm back toward the rider.
+ * Same twist for rubber and hand, around the steered grip's own X axis. */
+export function motocrossThrottleAngle(throttle = 0) {
+  return (Number.isFinite(throttle) ? T.MathUtils.clamp(throttle, 0, 1) : 0) * -0.72;
+}
+
+export function twistMotocrossGlove(frame: T.Quaternion, angle: number) {
+  return frame.multiply(twist.setFromAxisAngle(gripAxis, angle));
+}
 
 export function motocrossPedalAngle(input = 0) {
   return (Number.isFinite(input) ? T.MathUtils.clamp(input, 0, 1) : 0) * 0.16;

@@ -9,6 +9,7 @@ import {
 import { DirtBikeModel } from '../src/rendering/offroad/dirt-bike-model.ts';
 import { MxGeometryPool } from '../src/rendering/offroad/mx-geometry-pool.ts';
 import { mudUniforms } from '../src/rendering/offroad/mud.ts';
+import { MX_GLOVE_GRIP } from '../src/rendering/offroad/motocross-rider-contact.ts';
 import { VEHICLES, vehicleIndex } from '../src/simulation/vehicles.ts';
 import { H, F, R, RACE_BASE, HEADER, CAR_STRIDE, carBase } from '../src/simulation/protocol.ts';
 
@@ -277,24 +278,78 @@ it.each(['high', 'mid'] as const)(
       for (const onboard of [false, true]) {
         model.rider.setFirstPerson(onboard, true);
         for (const steer of [-0.35, 0, 0.35])
-          for (const brake of [0.12, 0.5, 1]) {
-            model.pose({ ...pose, steer, brake, standing: 0.8, speed: 16 });
-            model.root.updateMatrixWorld(true);
-            for (let finger = 0; finger < 2; finger++) {
-              const tip = fingers.skeleton.bones[finger * 5 + 4].localToWorld(
-                new T.Vector3(0, 0, finger === 0 ? 0.018 : 0.019),
-              );
-              const target = model.rider.root.localToWorld(
-                model.rider.brakeFingerTargets![finger].clone(),
-              );
-              expect(
-                tip.distanceTo(target),
-                [onboard, steer, brake, finger].join(' '),
-              ).toBeLessThan(0.0025);
+          for (const brake of [0.12, 0.5, 1])
+            for (const throttle of [0, 0.5, 1]) {
+              model.pose({ ...pose, steer, brake, throttle, standing: 0.8, speed: 16 });
+              model.root.updateMatrixWorld(true);
+              for (let finger = 0; finger < 2; finger++) {
+                const tip = fingers.skeleton.bones[finger * 5 + 4].localToWorld(
+                  new T.Vector3(0, 0, finger === 0 ? 0.018 : 0.019),
+                );
+                const target = model.rider.root.localToWorld(
+                  model.rider.brakeFingerTargets![finger].clone(),
+                );
+                expect(
+                  tip.distanceTo(target),
+                  [onboard, steer, brake, throttle, finger].join(' '),
+                ).toBeLessThan(0.0025);
+              }
             }
-          }
       }
       expect(positions.version).toBe(version);
+    } finally {
+      model.dispose();
+      materials.dispose();
+    }
+  },
+);
+
+it.each(['high', 'mid'] as const)(
+  'rolls the %s throttle and right palm together across camera cuts and seeks',
+  (detail) => {
+    const def = VEHICLES.mx250,
+      materials = new BikeMaterials(3);
+    const model = new DirtBikeModel(def, 3, detail, materials, mudUniforms());
+    const sag = staticSag(def);
+    const wrist = model.root.getObjectByName('Motocross right hand')!;
+    const clutch = model.root.getObjectByName('Motocross left hand')!;
+    const tube = model.root.getObjectByName('Motocross rotating throttle tube')!;
+    function at(throttle: number) {
+      model.pose({
+        ...sag,
+        steer: 0.27,
+        frontRotation: 0,
+        rearRotation: 0,
+        chassisLean: 0.32,
+        riderOffset: 0,
+        tuck: 0,
+        brake: 0,
+        rearBrake: 0,
+        discTemp: 28,
+        compoundColour: 0xffffff,
+        riding: true,
+        standing: 0.65,
+        speed: 17,
+        throttle,
+      });
+      model.root.updateMatrixWorld(true);
+      const palm = wrist.localToWorld(new T.Vector3(...MX_GLOVE_GRIP));
+      expect(palm.distanceTo(tube.getWorldPosition(new T.Vector3()))).toBeLessThan(1e-7);
+      return [wrist, tube, clutch].map((o) => o.getWorldQuaternion(new T.Quaternion()));
+    }
+    try {
+      model.root.rotation.set(0.2, -1.1, 0.36);
+      for (const onboard of [false, true, false]) {
+        model.rider.setFirstPerson(onboard, true);
+        const rest = at(0),
+          open = at(1);
+        const change = rest.map((q, i) => open[i].clone().multiply(q.clone().invert()));
+        expect(rest[0].angleTo(open[0])).toBeGreaterThan(0.5);
+        expect(change[0].angleTo(change[1])).toBeLessThan(1e-6);
+        expect(rest[2].angleTo(open[2])).toBeLessThan(1e-6);
+        const rewind = at(0);
+        rewind.forEach((q, i) => expect(q.angleTo(rest[i])).toBeLessThan(1e-6));
+      }
     } finally {
       model.dispose();
       materials.dispose();

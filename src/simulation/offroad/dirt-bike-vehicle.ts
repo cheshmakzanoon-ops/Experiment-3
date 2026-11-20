@@ -1204,8 +1204,12 @@ export class DirtBikeVehicle extends BikeVehicle {
         -((n.x * Math.cos(h) - n.z * Math.sin(h)) / Math.max(0.1, n.y)) * reach * this.airYawRate
       );
     };
-    const rateF = slope(0) * vh + yawSweep(0, fa) - vF,
-      rateR = slope(2) * vh + yawSweep(2, -ra) - vR;
+    // Suspension stroke is the rate at which the tyre closes on the local
+    // height field. A bike sliding diagonally up a berm compresses its
+    // dampers even when its forward path and CG height are level. Use the
+    // velocities after any hard-stop impulse for this compliant force.
+    const rateF = slope(0) * vh + crossSlope(0) * this.slide + yawSweep(0, fa) - vF,
+      rateR = slope(2) * vh + crossSlope(2) * this.slide + yawSweep(2, -ra) - vR;
     // A standing rider's legs soak part of every hit.
     const damping = 1 + 0.5 * this.standing;
     const end = (c: number, rate: number, front: boolean) => {

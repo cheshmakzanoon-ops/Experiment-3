@@ -156,7 +156,7 @@ for (const id of ['mx250', 'mx450'])
       view: 'onboard',
       samples: [
         { speed: 0 },
-        { standing: 1, body: 0.7, steer: 0.12, speed: 25 },
+        { standing: 1, body: 0.7, steer: 0.12, speed: 25, throttle: 0.9 },
         { standing: 1, body: -0.8, brake: 0.9, lean: 0.35, steer: -0.18, speed: 30 },
       ],
     });

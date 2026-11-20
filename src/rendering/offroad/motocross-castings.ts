@@ -4,6 +4,73 @@ import type { RiderDetail } from '../rider.ts';
 
 type Point = readonly [z: number, y: number];
 
+/** Box-section frame spar. Exact radial normals on the four rolled corners
+ * keep reflected streaks smooth with a few samples across each small bevel.
+ * U follows the extrusion so the brushed metal grain follows the member. */
+export function motocrossFrameSpar(side: number, head: T.Vector3, light: boolean, detail: RiderDetail) {
+  const sections = detail === 'high' ? 18 : detail === 'mid' ? 9 : 6;
+  const cornerSteps = detail === 'high' ? 3 : detail === 'mid' ? 2 : 1;
+  const w = light ? 0.0135 : 0.019, h = light ? 0.0185 : 0.033, r = w * 0.6;
+  const sweep = new T.CatmullRomCurve3([
+    new T.Vector3(side * 0.03, head.y - 0.01, head.z - 0.03),
+    new T.Vector3(side * 0.112, head.y - 0.15, head.z - 0.2),
+    new T.Vector3(side * 0.14, -0.07, -0.12),
+    new T.Vector3(side * 0.115, -0.35, -0.16),
+  ]);
+  const frames = sweep.computeFrenetFrames(sections, false);
+  const centres = sweep.getSpacedPoints(sections);
+  const profile: {x: number; y: number; nx: number; ny: number; distance: number}[] = [];
+  for (let corner = 0; corner < 4; corner++) {
+    const cx = (corner === 0 || corner === 3 ? 1 : -1) * (w - r);
+    const cy = (corner < 2 ? 1 : -1) * (h - r);
+    for (let i = 0; i <= cornerSteps; i++) {
+      const a = (corner + i / cornerSteps) * Math.PI / 2;
+      const nx = Math.cos(a), ny = Math.sin(a);
+      const x = cx + r * nx, y = cy + r * ny, last = profile.at(-1);
+      profile.push({x, y, nx, ny, distance: last ? last.distance + Math.hypot(x - last.x, y - last.y) : 0});
+    }
+  }
+  const first = profile[0], last = profile[profile.length - 1];
+  const perimeter = last.distance + Math.hypot(last.x - first.x, last.y - first.y);
+  profile.push({...first, distance: perimeter});
+  const positions: number[] = [], normals: number[] = [], uvs: number[] = [], indices: number[] = [];
+  const p = new T.Vector3(), n = new T.Vector3(), stride = profile.length;
+  for (let j = 0; j <= sections; j++) {
+    const lateral = frames.normals[j], up = frames.binormals[j];
+    for (const [i, v] of profile.entries()) {
+      p.copy(centres[j]).addScaledVector(lateral, v.x).addScaledVector(up, v.y);
+      n.copy(lateral).multiplyScalar(v.nx).addScaledVector(up, v.ny).normalize();
+      positions.push(p.x, p.y, p.z);
+      normals.push(n.x, n.y, n.z);
+      uvs.push(j / sections, v.distance / perimeter);
+      if (i && j) {
+        const c = j * stride + i, a = c - stride - 1;
+        indices.push(a, a + 1, c, a, c, c - 1);
+      }
+    }
+  }
+  for (const j of [0, sections]) {
+    const start = positions.length / 3;
+    n.copy(frames.tangents[j]).multiplyScalar(j ? 1 : -1);
+    for (let i = 0; i < stride - 1; i++) {
+      const at = (j * stride + i) * 3;
+      positions.push(positions[at], positions[at + 1], positions[at + 2]);
+      normals.push(n.x, n.y, n.z);
+      uvs.push(0.5 + profile[i].x / (2 * w), 0.5 + profile[i].y / (2 * h));
+      if (i >= 2) {
+        if (j) indices.push(start, start + i - 1, start + i);
+        else indices.push(start, start + i, start + i - 1);
+      }
+    }
+  }
+  const geometry = new T.BufferGeometry();
+  geometry.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('normal', new T.Float32BufferAttribute(normals, 3));
+  geometry.setAttribute('uv', new T.Float32BufferAttribute(uvs, 2));
+  geometry.setIndex(indices);
+  return geometry;
+}
+
 /** A softly broken casting perimeter in the bike's YZ plane. Extrusion is
  * centred across X, so two sides keep their real width without negative
  * object scales or mirrored triangle winding. All pieces enter the existing

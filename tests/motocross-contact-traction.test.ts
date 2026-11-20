@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { trackPoint } from '../src/simulation/track.ts';
 import { G } from '../src/core/math.ts';
 import { controls, DEFAULT_OPTIONS, DEFAULT_SETUP } from '../src/simulation/config.ts';
 import { MX_250, MX_450, SM_450 } from '../src/simulation/offroad/dirt-bikes.ts';
@@ -20,6 +21,41 @@ function flatBike(definition: VehicleDefinition, raw = false) {
 }
 
 describe('motocross suspension contact traction', () => {
+  it.each([MX_250, MX_450])('$id damps a sideways landing against the local cross slope', (def) => {
+    const track = rigTrack('valley-ridge-mx'), p = track.at(35, trackPoint());
+    const sample = track.sample.bind(track);
+    let grade = 0;
+    const surface = vi.spyOn(track, 'sample').mockImplementation((x, z, out, hint) => {
+      sample(x, z, out, hint);
+      out.height = p.y + grade * ((x - p.x) * p.nx + (z - p.z) * p.nz);
+      out.normal.set(-grade * p.nx, 1, -grade * p.nz).normalize();
+      return out;
+    });
+    function loads(cross: number, slide: number) {
+      grade = cross;
+      const bike = new DirtBikeVehicle(0, 'medium', DEFAULT_SETUP, 'raw', def);
+      bike.place(track, 35, 0);
+      bike.slide = slide;
+      // First contact with identical spring positions: isolate the velocity
+      // term before differences in heave and wheel travel accumulate.
+      bike.step(0.00001, track);
+      return [bike.forceFront, bike.forceRear];
+    }
+    try {
+      const level = loads(0, 2), reversed = loads(0, -2);
+      for (const bank of [-0.3, 0.3]) {
+        const uphill = loads(bank, Math.sign(bank) * 2);
+        const downhill = loads(bank, -Math.sign(bank) * 2);
+        for (const i of [0, 1]) {
+          expect(level[i]).toBeCloseTo(reversed[i], 3);
+          expect(uphill[i]).toBeGreaterThan(level[i] + 100);
+          expect(downhill[i]).toBeLessThan(level[i] - 100);
+        }
+      }
+    } finally {
+      surface.mockRestore();
+    }
+  });
   it.each([MX_250, MX_450])(
     '$id starts and replaces the machine on loaded static sag',
     (definition) => {

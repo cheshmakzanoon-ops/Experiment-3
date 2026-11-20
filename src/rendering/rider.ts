@@ -56,6 +56,8 @@ import {
   MX_GLOVE_GRIP,
   MX_GLOVE_WRIST,
   motocrossBootFrame,
+  motocrossThrottleAngle,
+  twistMotocrossGlove,
   motocrossSoleContact,
 } from './offroad/motocross-rider-contact.ts';
 import {
@@ -119,8 +121,8 @@ export interface RiderPose extends MotocrossRiderMotionInput {
   dab?: number;
   /** Body fore/aft over the bike: -1 back (throttle) .. +1 forward. */
   body?: number;
-  /** GP only: presented throttle 0..1, longitudinal acceleration (g, +
-   * forward) and chassis roll rate (rad/s, + left), all from the snapshot. */
+  /** Presented throttle 0..1, longitudinal acceleration (g, +forward) and
+   * chassis roll rate (rad/s, +left). */
   throttle?: number;
   gLong?: number;
   leanRate?: number;
@@ -440,6 +442,7 @@ export class Rider {
   private readonly motocrossGarments: MotocrossGarmentMesh[] = [];
   private readonly motocrossBoots: MotocrossBootSkin[] = [];
   private readonly motocrossContact = new T.Vector3();
+  private motocrossThrottle = 0;
   private readonly motocrossShoulders: T.Bone[] = [];
   private readonly motocrossMotion: MotocrossRiderMotion = {
     pelvisDrop: 0,
@@ -1385,15 +1388,17 @@ export class Rider {
       this.exteriorUpperArms[i].quaternion.copy(this.upperArms[i].group.quaternion);
     }
   }
-  private attachMotocrossHand(i: number) {
-    // This cylinder-frame math is also used by the GP rig; MX supplies its
-    // own actual bar axis and its own glove's wrist/grip landmarks.
+  private motocrossGripFrame(i: number) {
     gpGripFrame(this.gripAxes[i], this.q);
+    if (i === 1) twistMotocrossGlove(this.q, this.motocrossThrottle);
+    return this.q;
+  }
+  private attachMotocrossHand(i: number) {
     gpAttachAtJoint(
       this.hands[i],
       this.forearms[i].group.quaternion,
       RIDER.forearm,
-      this.q,
+      this.motocrossGripFrame(i),
       MX_GLOVE_WRIST,
     );
   }
@@ -1404,7 +1409,7 @@ export class Rider {
       // Preserve the authored forearm length and the exact hand contact. The
       // exterior standing elbow pole lies above this fixed bike-frame camera;
       // the first-person pole instead carries each sleeve out of the lower view.
-      gpGripFrame(this.gripAxes[i], this.q);
+      this.motocrossGripFrame(i);
       gpContactJoint(this.grips[i], this.q, MX_GLOVE_GRIP, MX_GLOVE_WRIST, wrist);
       offset.set(side * 0.09, -0.13, -0.23).normalize();
       elbow.copy(wrist).addScaledVector(offset, RIDER.forearm);
@@ -1445,6 +1450,7 @@ export class Rider {
     pelvis.y -= tuck * 0.03;
     // Off-road: up on the pegs (knees flexed) and fore/aft over the bike.
     const mx = this.kit === 'motocross';
+    if (mx) this.motocrossThrottle = motocrossThrottleAngle(pose.throttle);
     const motion = mx ? sampleMotocrossRiderMotion(pose, this.motocrossMotion) : null;
     // The original 30 cm rise exceeded a dirt rider's leg reach. Keep the
     // ankles planted on their pegs with flex left in the knees for a landing.
@@ -1510,7 +1516,7 @@ export class Rider {
           ),
         );
       if (mx) {
-        gpGripFrame(this.gripAxes[i], this.q);
+        this.motocrossGripFrame(i);
         gpContactJoint(this.grips[i], this.q, MX_GLOVE_GRIP, MX_GLOVE_WRIST, target);
         // A braking rider can protract the outside shoulder within the suit.
         // Preserve a little elbow flex at full hang-off rather than letting
