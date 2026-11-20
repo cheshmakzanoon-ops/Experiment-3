@@ -2,7 +2,11 @@ import * as T from 'three';
 import { describe, expect, it } from 'vitest';
 import { motocrossHandguard } from '../src/rendering/offroad/motocross-handguard.ts';
 import { mxCrossbarPad } from '../src/rendering/offroad/motocross-bar-pad.ts';
-import { mxNumberBoard } from '../src/rendering/offroad/motocross-number-board.ts';
+import {
+  mxNumberBoard,
+  mxSideNumberPlate,
+  mxSidePlateMounts,
+} from '../src/rendering/offroad/motocross-number-board.ts';
 import {
   motocrossFender,
   motocrossForkGuard,
@@ -93,6 +97,61 @@ describe('motocross formed bodywork', () => {
         } finally {
           foam.dispose();
           plate.dispose();
+        }
+      }
+    },
+  );
+
+  it.each(['high', 'mid', 'far'] as const)(
+    '%s tail fairings clear the exhaust envelope and print readable numbers only on the outside',
+    (detail) => {
+      for (const compact of [true, false]) {
+        for (const side of [-1, 1]) {
+          const geometry = mxSideNumberPlate(detail, side, compact),
+            view = inspect(geometry);
+          const inward = new T.Vector3(-side, 0, 0),
+            outward = inward.clone().negate();
+          try {
+            expect(closedShell(geometry)).toBeGreaterThan(0.00023);
+            const sample = (z: number, y: number, exterior: boolean) =>
+              view.cast(new T.Vector3(exterior ? side : 0, y, z), exterior ? inward : outward)[0];
+            const nose = sample(-0.41, -0.025, true),
+              tail = sample(-0.55, -0.025, true);
+            expect(Math.sign(nose.uv!.x - tail.uv!.x)).toBe(-side);
+            const back = sample(-0.41, -0.025, false);
+            expect((nose.point.x - back.point.x) * side).toBeCloseTo(0.0038, 5);
+            expect(back.uv!.x).toBeLessThanOrEqual(12 / 512);
+            expect(nose.face!.normal.x * side).toBeGreaterThan(0.7);
+            for (const mount of mxSidePlateMounts(side, compact)) {
+              const face = sample(mount.z, mount.y, true);
+              expect(Math.abs(face.point.x - mount.x)).toBeLessThan(
+                detail === 'far' ? 0.004 : 0.00001,
+              );
+            }
+            if (side > 0) {
+              expect(tail.point.x).toBeLessThan(0.2);
+              continue;
+            }
+            // Independent conservative envelope of the actual tilted can, including its
+            // two rolled retaining bands. Check between mesh stations and around the cap.
+            let minimum = Infinity,
+              covered = 0;
+            for (let z = -0.775; z <= -0.455; z += 0.004) {
+              for (let y = -0.075; y < 0.075; y += 0.004) {
+                const dy = (y + 0.005) * Math.cos(0.22) + (z + 0.615) * Math.sin(0.22);
+                if (Math.abs(dy) >= 0.053) continue;
+                const hit = sample(z, y, false);
+                if (!hit) continue;
+                const can = 0.177 + Math.sqrt(0.053 ** 2 - dy ** 2);
+                minimum = Math.min(minimum, -hit.point.x - can);
+                covered++;
+              }
+            }
+            expect(covered).toBeGreaterThan(1100);
+            expect(minimum).toBeGreaterThan(0.012);
+          } finally {
+            view.dispose();
+          }
         }
       }
     },

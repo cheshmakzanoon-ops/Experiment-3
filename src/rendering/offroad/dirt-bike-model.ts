@@ -48,7 +48,7 @@ import {
 import { addMotocrossHandguards } from './motocross-handguard.ts';
 import { applyMxAssemblyOcclusion } from './mx-assembly-occlusion.ts';
 import { mxCrossbarPad } from './motocross-bar-pad.ts';
-import { mxNumberBoard, mxNumberBoardBack } from './motocross-number-board.ts';
+import { mxNumberBoard, mxNumberBoardBack, mxSideNumberPlate, mxSidePlateMounts } from './motocross-number-board.ts';
 import { MotocrossFootControls, MX_PEG } from './motocross-foot-controls.ts';
 import {
   addMotocrossControlMounts,
@@ -70,7 +70,6 @@ import {
   MX_PRINT_SCALE,
   motocrossRadiatorShroud,
   motocrossRotor,
-  motocrossSidePanel,
   motocrossTread,
   motocrossFender,
   motocrossForkGuard,
@@ -858,25 +857,18 @@ export class DirtBikeModel {
         );
     // Side number boards and the long, upswept rear fender.
     for (const side of [1, -1]) {
-      const panel = add(
-        this.sprung,
-        motocrossSidePanel(
-          [
-            [-0.755, 0.047],
-            [-0.348, 0.077],
-            [-0.223, -0.031],
-            [-0.347, -0.196],
-            [-0.602, -0.093],
-          ],
-          side,
-        ),
-        board,
-        side * 0.151,
-        0,
-        0,
-      );
-      panel.rotation.y = -side * 0.045;
-      panel.name = 'Motocross tapered side number panel';
+      add(this.sprung, mxSideNumberPlate(detail, side, lightFrame), board).name =
+        'Motocross tapered side number panel';
+      if (detail !== 'far') {
+        for (const mount of mxSidePlateMounts(side, lightFrame)) {
+          const innerX = side * (mount.z < -0.5 ? 0.094 : 0.132);
+          const outerX = mount.x + side * 0.0024;
+          const stem = new T.CylinderGeometry(0.008, 0.005, Math.abs(outerX - innerX), 6);
+          stem.rotateZ(-side * Math.PI / 2);
+          add(this.sprung, stem, this.m.steel, (innerX + outerX) / 2, mount.y, mount.z).name =
+            'Motocross tail panel retaining stud';
+        }
+      }
     }
     add(this.sprung, kitFender(false), shroudMaterial);
     // MX250 carries a formed two-stroke expansion chamber. MX450 and SM450

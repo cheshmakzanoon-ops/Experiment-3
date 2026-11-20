@@ -38,8 +38,11 @@ export function mxCrossbarPad(detail: RiderDetail, compact: boolean) {
       const z = Math.sign(s) * Math.abs(s) ** shape * radius * (compact ? 0.0305 : 0.0365);
       pos.push(station * half, y, z);
       const end = i < 2 || i >= ring.length - 2;
-      // The end foam samples a clear strip on the same charcoal wrap.
-      uv.push(end ? 0.06 + u * 0.065 : u, end ? 0.2 + 0.05 * radius : (1 - station) / 2);
+      // Give the wordmark its printed aspect on the near crown. The unprinted
+      // return occupies the underside and still meets at the longitudinal seam.
+      const wrap =
+        u + 0.105 * Math.sin(2 * Math.PI * (u - 0.5)) + 0.035 * Math.sin(Math.PI * u) ** 2;
+      uv.push(end ? 0.06 + u * 0.065 : wrap, end ? 0.2 + 0.05 * radius : (1 - station) / 2);
       const value = end ? 0.52 : 0.98;
       colours.push(value, value, value);
       if (j === sides) continue;
