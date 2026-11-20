@@ -22,6 +22,22 @@ The outdoor and indoor layouts share five material batches for their equipment. 
 
 ![Six original course equipment models](trackside-models.webp)
 
+## Eight-rider races
+
+These chase views came from an eight-rider race through the normal game menus with fresh tyre tracks enabled, before the later helmet-camera and goggle refinements. Valley Ridge is on the left and Arena Nord is on the right. Both were captured at 1280 × 800 on the Low preset. The test used the player's throttle before handing over to the riding AI, observed a jump and touchdown, switched to the onboard camera and paused each race.
+
+![Eight riders racing at Valley Ridge and Arena Nord](live-races.webp)
+
+Six seeded race runs passed the repository's motocross, supercross and supermoto handling limits. Observed crash rates ranged from 0.00 to 0.13 per rider-lap. The longest continuous stop was under 15 seconds in each run. [Race results](race-checks.json)
+
+## Frame workload
+
+* In a CPU benchmark of eight ordinary Formula hosts with eight active motocross models, all 1,600 hidden Formula descendants were skipped. Across 400 samples the median field matrix update took 0.67 ms with the change and 1.30 ms before it. The active bike geometry and root transforms were the same.
+* The 720 Hz tyre integrator reuses each wheel's force record within a simulation tick. A comparison of 16,384 inputs produced identical numerical results for the previous and revised integrators, including braking, mixed grip, unloaded wheels and different timesteps.
+* The tyre renderer submits only unexpired quads. The index buffer spans a circular wrap in one draw, and a replay seek restores the visible range.
+
+These are CPU timings and functional tests on software WebGL2. A sustained target-hardware frame-time measurement is still needed for a competitive performance claim.
+
 ## Reproduce
 
 Run a production build, then run the model, venue, equipment and tyre-passage browser checks with Chromium installed.
@@ -31,4 +47,11 @@ npm run build
 npx playwright test --config playwright.motocross.config.ts \
   e2e/42-motocross-bike.spec.ts e2e/43-motocross-world.spec.ts \
   e2e/47-motocross-trackside-models.spec.ts e2e/56-motocross-tyre-traces.spec.ts
+```
+
+The full player journey can use the same preset and controls as the race captures.
+
+```sh
+APEX_MOTOCROSS_JOURNEY_QUALITY=low npx playwright test \
+  --config playwright.motocross.config.ts e2e/45-motocross-gameplay.spec.ts
 ```
