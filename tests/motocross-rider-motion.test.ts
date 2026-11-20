@@ -137,6 +137,29 @@ describe('motocross suspension-driven rider motion', () => {
     }
   });
 
+  it('takes a fork-first and rear-first landing differently at the same mean travel', () => {
+    const rider = new Rider(colours, 'high', 'motocross');
+    const torso = rider.root.getObjectByName('Rider torso')!;
+    const read = (bias: number) => {
+      rider.ride({ ...neutral, standing: 1, compression: 0.5, compressionBias: bias });
+      return torso.position.clone();
+    };
+    try {
+      const front = read(1),
+        both = read(0),
+        rear = read(-1);
+      expect(both.z - front.z).toBeGreaterThan(0.02);
+      expect(rear.z - both.z).toBeGreaterThan(0.02);
+      expect(front.y - rear.y).toBeGreaterThan(0.012);
+      expect(read(1).distanceTo(front)).toBeLessThan(1e-10);
+      rider.ride({ ...neutral, standing: 0, compression: 0.5, compressionBias: 1 });
+      const seated = torso.position.clone();
+      rider.ride({ ...neutral, standing: 0, compression: 0.5, compressionBias: -1 });
+      expect(seated.distanceTo(torso.position)).toBeLessThan(1e-10);
+    } finally {
+      rider.dispose();
+    }
+  });
   it('keeps the helmet looking ahead through a pitched bike without freezing it to the horizon', () => {
     const rider = new Rider(colours, 'mid', 'motocross'),
       helmet = rider.root.getObjectByName('Rider head and helmet')!,

@@ -1,5 +1,6 @@
 import * as T from 'three';
 import { mxAuthoredGeometry } from './authored-kit.ts';
+import { mxFootprintMatrix } from './mx-ground-pose.ts';
 import { mxPaddingMaterial } from './mx-padding.ts';
 import { mod } from '../../core/math.ts';
 import { TrackTerrainSurface } from '../../simulation/offroad/course-terrain.ts';
@@ -29,7 +30,6 @@ export function buildMotocrossBoundary(track: Track) {
   root.name = 'MX physical boundary padding';
   const p = trackPoint(),
     q = trackPoint(),
-    pose = new T.Object3D(),
     rows: T.Matrix4[][] = [[], []];
   let rejected = 0;
   const { width, height, length, spacing } = MX_BOUNDARY;
@@ -64,10 +64,11 @@ export function buildMotocrossBoundary(track: Track) {
         rejected++;
         continue;
       }
-      pose.position.set(x, surface.terrain.baseHeight(s, lateral) + height / 2, z);
-      pose.rotation.set(0, Math.atan2(p.tx, p.tz), 0);
-      pose.updateMatrix();
-      rows[Math.floor(s / (spacing * 3)) % 2].push(pose.matrix.clone());
+      // The canvas sits slightly into the soil along its surface normal.
+      // On a takeoff or berm all four corners follow the course grade.
+      rows[Math.floor(s / (spacing * 3)) % 2].push(
+        mxFootprintMatrix(track, x, z, Math.atan2(p.tx, p.tz), width, length, height / 2 - 0.012),
+      );
     }
   }
   // The authored canvas remains inside the unchanged physical pad envelope.

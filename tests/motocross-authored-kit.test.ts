@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import kit from '../src/rendering/assets/mx-authored-kit.mesh.json';
 import { mxAuthoredGeometry, type MxAuthoredPart } from '../src/rendering/offroad/authored-kit.ts';
 import { buildMotocrossBoundary, MX_BOUNDARY } from '../src/rendering/offroad/mx-boundary.ts';
+import { mxFurnitureGround } from '../src/rendering/offroad/mx-ground-pose.ts';
 import { Stadium } from '../src/rendering/offroad/stadium.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
 
@@ -95,12 +96,39 @@ describe('original Blender-authored motocross kit', () => {
   it.each(['arena-nord-sx', 'valley-ridge-mx'] as const)(
     'uses two shared pad batches with maps, not one draw per pad in %s',
     (circuit) => {
-      const root = buildMotocrossBoundary(rigTrack(circuit));
+      const track = rigTrack(circuit);
+      const root = buildMotocrossBoundary(track);
       expect(root.children.length).toBe(2);
       const [a, b] = root.children as T.InstancedMesh<T.BufferGeometry, T.MeshStandardMaterial>[];
       expect(a.geometry).toBe(b.geometry);
       expect(a.geometry.userData.authoring).toBe('authoring/motocross/build_kit.py');
       expect(a.count + b.count).toBeGreaterThan(100);
+      // Measure the clearance spread at the four actual pad corners. A
+      // level instance over an SX jump can leave half a metre of daylight.
+      const spreads: number[] = [],
+        matrix = new T.Matrix4(),
+        corner = new T.Vector3();
+      for (const mesh of [a, b])
+        for (let i = 0; i < mesh.count; i++) {
+          mesh.getMatrixAt(i, matrix);
+          const relativeHeights: number[] = [];
+          for (const side of [-1, 1])
+            for (const end of [-1, 1]) {
+              corner
+                .set(
+                  (side * MX_BOUNDARY.width) / 2,
+                  -MX_BOUNDARY.height / 2,
+                  (end * MX_BOUNDARY.length) / 2,
+                )
+                .applyMatrix4(matrix);
+              relativeHeights.push(corner.y - mxFurnitureGround(track, corner.x, corner.z));
+            }
+          spreads.push(Math.max(...relativeHeights) - Math.min(...relativeHeights));
+        }
+      spreads.sort((x, y) => x - y);
+      expect(spreads[Math.floor(spreads.length * 0.9)]).toBeLessThan(
+        circuit === 'arena-nord-sx' ? 0.1 : 0.025,
+      );
       for (const mesh of [a, b]) {
         expect(mesh.material.normalMap).toBeInstanceOf(T.Texture);
         expect(mesh.material.roughnessMap).toBeInstanceOf(T.Texture);

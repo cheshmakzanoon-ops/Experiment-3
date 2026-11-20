@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { disposeOffroadResources } from './owned-resources.ts';
-import { MxTracksideFurniture, mxFurnitureGround } from './mx-trackside-furniture.ts';
+import { MxTracksideFurniture } from './mx-trackside-furniture.ts';
+import { mxFootprintMatrix } from './mx-ground-pose.ts';
 import { mxAuthoredGeometry } from './authored-kit.ts';
 import { planMxCourseSites } from './mx-course-sites.ts';
 import { mxStrawBale } from './mx-straw-bale.ts';
@@ -209,7 +210,6 @@ export class MxCourseDressing {
     const staked: Record<'-1' | '1', number[]> = { '-1': [], '1': [] };
     const block = mxAuthoredGeometry('safety-pad', 'mid')
       .scale(0.55 / 0.68, 0.38 / 0.58, 1.6 / 2.1)
-      .rotateY(Math.PI / 2)
       .translate(0, 0.19, 0);
     for (let s = 4; s < track.length - 3; s += indoor ? 7 : 8) {
       track.at(s, this.point);
@@ -223,9 +223,8 @@ export class MxCourseDressing {
         if (!indoor) staked[String(side) as '-1' | '1'].push(s);
         if (indoor && Math.floor(s / 7) % 2 === 0) {
           this.pose(s, l + side * 0.54);
-          this.object.rotateY(Math.PI / 2);
-          this.object.updateMatrix();
-          blocks.push(this.object.matrix.clone());
+          const { x, z } = this.object.position;
+          blocks.push(mxFootprintMatrix(track, x, z, this.object.rotation.y, 0.55, 1.6, -0.012));
         }
       }
     }
@@ -552,11 +551,9 @@ export class MxCourseDressing {
         const x = this.object.position.x,
           z = this.object.position.z;
         if (!free(x, z, 1)) continue;
-        this.object.position.y += 0.6;
-        this.object.rotateZ(Math.PI / 2);
-        this.object.rotateX((random.next() - 0.5) * 0.3);
-        this.object.updateMatrix();
-        bales.push(this.object.matrix.clone());
+        const yaw = this.object.rotation.y + (random.next() - 0.5) * 0.3;
+        const base = mxFootprintMatrix(track, x, z, yaw, 1.05, 0.58, 0.603);
+        bales.push(base.multiply(new T.Matrix4().makeRotationZ(Math.PI / 2)));
       }
       s += 26;
     }
@@ -572,11 +569,8 @@ export class MxCourseDressing {
         const l = track.nearest(x, z, this.nearby);
         if (Math.abs(l) < course.legalWidth(this.nearby.width, this.nearby.s, l) + 6) continue;
         if (!free(x, z, 2.6) || inStandFootprint(track, x, z, 3)) continue;
-        this.object.position.set(x, mxFurnitureGround(track, x, z), z);
-        this.object.rotation.set(0, Math.atan2(near.tx, near.tz) + (along > 0 ? 0 : Math.PI), 0);
-        this.object.scale.set(1, 1, 1);
-        this.object.updateMatrix();
-        vans.push(this.object.matrix.clone());
+        const yaw = Math.atan2(near.tx, near.tz) + (along > 0 ? 0 : Math.PI);
+        vans.push(mxFootprintMatrix(track, x, z, yaw, 1.792, 3.36, -0.012));
         vanColours.push(
           new T.Color([0xe9ebe8, 0x2b3a46, 0xc9ccc7, 0x5d1f22, 0x1f2224][vans.length % 5]),
         );

@@ -1067,18 +1067,16 @@ export class DirtBikeModel {
       // Suspension travel separately drives the rider's compression response.
       this.scratch.set(0, 0, 1).applyQuaternion(this.root.quaternion);
       const chassisPitch = -Math.asin(T.MathUtils.clamp(this.scratch.y, -1, 1));
-      const compression =
-        (T.MathUtils.clamp(
-          (v.fork - this.sag.fork) / Math.max(0.01, b.forkTravel - this.sag.fork),
-          0,
-          1,
-        ) +
-          T.MathUtils.clamp(
-            (v.shock - this.sag.shock) / Math.max(0.01, b.shockTravel - this.sag.shock),
-            0,
-            1,
-          )) *
-        0.5;
+      const forkStroke = T.MathUtils.clamp(
+        (fork - this.sag.fork) / (b.forkTravel - this.sag.fork),
+        0,
+        1,
+      );
+      const rearStroke = T.MathUtils.clamp(
+        (shock - this.sag.shock) / (b.shockTravel - this.sag.shock),
+        0,
+        1,
+      );
       this.rider.ride({
         lean: v.chassisLean,
         offset: v.riderOffset * 0.4,
@@ -1091,7 +1089,8 @@ export class DirtBikeModel {
         dab: v.dab ?? 0,
         body: v.body ?? 0,
         chassisPitch,
-        compression,
+        compression: (forkStroke + rearStroke) / 2,
+        compressionBias: forkStroke - rearStroke,
       });
     }
   }
