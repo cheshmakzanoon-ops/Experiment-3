@@ -14,7 +14,7 @@ On the MX450, the filmed goggle lens follows the helmet's curvature. Its two tea
 
 ## Wheel passage
 
-Each row shows the same camera and soil before and after a grounded wheel passes. Valley Ridge is above Arena Nord. The WebGL test recorded 300 outdoor segments and 301 indoor segments. Both added one draw call and restored the original pixels on rewind.
+Each row shows the same camera and soil before and after a grounded wheel passes. Valley Ridge is above Arena Nord. The MX tread has 22 alternating centre-block pairs per revolution. Each impression follows the wheel rotation recorded by the solver, including reverse rotation and slides with a locked wheel. At 800 × 500, the passage changed 21,829 pixels across 300 outdoor segments and 24,451 pixels across 301 indoor segments. Each course added one draw call. Seeking back restored the original framebuffer byte-for-byte, and seeking forward restored the marked image.
 
 ![Valley Ridge and Arena Nord soil before and after a tyre passes](soil-passage.webp)
 
@@ -32,7 +32,15 @@ These chase views came from an eight-rider race through the normal game menus wi
 
 ![Eight riders racing at Valley Ridge and Arena Nord](live-races.webp)
 
-Six seeded race runs passed the repository's motocross, supercross and supermoto handling limits. Observed crash rates ranged from 0.00 to 0.13 per rider-lap. The longest continuous stop was under 15 seconds in each run. [Race results](race-checks.json)
+The High preset captures below are at the original 1280 × 800 resolution. The first shows the unobscured starting grid at Valley Ridge. The second shows the eight-rider field behind Arena Nord’s pre-race briefing. The game rendered both through the normal race menus.
+
+![Valley Ridge High preset live starting grid](high-valley-grid.webp)
+
+![Arena Nord High preset pre-race briefing with eight riders at the gate](high-arena-held.webp)
+
+Six seeded race runs passed the repository's motocross, supercross and supermoto handling limits. Observed crash rates ranged from 0.00 to 0.13 per rider-lap. The longest continuous stop was under 15 seconds in each run.
+
+Both eight-rider venues also ran for 24 seconds at 120 physics steps per second. With the same rider inputs, publishing at 30, 60 or 120 Hz produced identical bytes in all 720 shared snapshots on each course. The final rut depth and compaction hashes also matched. [Race, timing and tyre results](race-checks.json)
 
 ## Frame workload
 
@@ -59,4 +67,10 @@ The full player journey can use the same preset and controls as the race capture
 ```sh
 APEX_MOTOCROSS_JOURNEY_QUALITY=low npx playwright test \
   --config playwright.motocross.config.ts e2e/45-motocross-gameplay.spec.ts
+```
+
+To check that presentation sampling preserves the physics and terrain state, run the fixed-step snapshot comparison.
+
+```sh
+npx vitest run tests/motocross-snapshot-cadence.test.ts
 ```

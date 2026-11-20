@@ -204,5 +204,107 @@
       "longestStopSeconds": 10.66,
       "retired": []
     }
-  ]
+  ],
+  "snapshotCadence": {
+    "fixedStepHz": 120,
+    "raceSeconds": 24,
+    "seed": 75243,
+    "riders": 8,
+    "input": "Recorded throttle, brake, steering and rider lean; autopilot after tick 1500.",
+    "observations": [
+      {
+        "circuit": "valley-ridge-mx",
+        "publicationHz": [
+          30,
+          60,
+          120
+        ],
+        "snapshotsPublished": [
+          720,
+          1440,
+          2880
+        ],
+        "commonSnapshots": 720,
+        "commonSnapshotSHA256": "16996350ca470c1a12b6e9addc5d76acd5977fb92bb475929dd0c84d27e82f12",
+        "terrainHash": "7d0c7c70"
+      },
+      {
+        "circuit": "arena-nord-sx",
+        "publicationHz": [
+          30,
+          60,
+          120
+        ],
+        "snapshotsPublished": [
+          720,
+          1440,
+          2880
+        ],
+        "commonSnapshots": 720,
+        "commonSnapshotSHA256": "3d67aab3af43903e4e3d16e8a52f0b336c9b5dd5bfcc357465e23bb02832c0ea",
+        "terrainHash": "170966f5"
+      }
+    ]
+  },
+  "tyrePassage": {
+    "productionCommit": "7abcfc53309589991a1c08614a768e953379f93c",
+    "frames": [
+      "before",
+      "passage",
+      "rewind",
+      "restored"
+    ],
+    "captures": [
+      {
+        "circuit": "valley-ridge-mx",
+        "machine": "mx450",
+        "time": 10.808333396911621,
+        "segments": 300,
+        "changed": 21829,
+        "width": 800,
+        "height": 500,
+        "calls": [
+          4,
+          5
+        ],
+        "hashes": [
+          1337349729,
+          3173585390,
+          1337349729,
+          3173585390
+        ],
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "circuit": "arena-nord-sx",
+        "machine": "mx250",
+        "time": 11.175000190734863,
+        "segments": 301,
+        "changed": 24451,
+        "width": 800,
+        "height": 500,
+        "calls": [
+          4,
+          5
+        ],
+        "hashes": [
+          398837264,
+          2137544731,
+          398837264,
+          2137544731
+        ],
+        "errors": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ]
+  }
 }
