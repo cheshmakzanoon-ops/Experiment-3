@@ -1,20 +1,20 @@
 # Build and validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44721111549
-- commit: `9427bd3a03` · Share the GP lateral grip budget between passing and track-edge recovery
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44722323772
+- commit: `f8e820613f` · Defer unused Formula pit geometry scans for GP race entries
 - event: push · status: completed · conclusion: **cancelled**
-- started: 2026-11-20T10:39:41Z · updated: 2026-11-20T10:43:15Z
+- started: 2026-11-20T10:48:29Z · updated: 2026-11-20T10:49:52Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| offroad-scenarios | cancelled | 0 | Run actions/checkout@v4 |
-| unit-tests (3) | cancelled | 3 |  |
-| unit-tests (2) | cancelled | 3 |  |
-| unit-tests (4) | cancelled | 3 |  |
-| validate | cancelled | 3 |  |
-| scenarios | cancelled | 3 |  |
-| unit-tests (1) | cancelled | 3 |  |
-| browser | cancelled | 0 |  |
-| owner-qa | cancelled | 0 |  |
-| wet-presentation | cancelled | 0 |  |
+| offroad-scenarios | cancelled | 1 |  |
+| validate | cancelled | 1 |  |
+| scenarios | cancelled | 1 |  |
+| unit-tests (2) | cancelled | 1 |  |
+| unit-tests (4) | cancelled | 1 |  |
+| unit-tests (1) | cancelled | 1 |  |
+| unit-tests (3) | cancelled | 1 |  |
+| owner-qa | cancelled | -1 |  |
+| wet-presentation | cancelled | -1 |  |
+| browser | cancelled | -1 |  |
 | publish | cancelled | -1 |  |
