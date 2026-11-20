@@ -310,6 +310,15 @@ export function aquaplaning(
     smooth(24 * onset, 95 * onset, Math.abs(speed))
   );
 }
+const roadAsphalt = surfaceMaterial(SURFACE.ASPHALT);
+const roadPaint = surfaceMaterial(SURFACE.PAINT);
+
+function treadTexture(sample: SurfaceSample, pure: number) {
+  return sample.paintCoverage === undefined
+    ? pure
+    : lerp(roadAsphalt.textureMm, roadPaint.textureMm, sample.paintCoverage);
+}
+
 /** Peak friction coefficient μ (excluding camber, which needs the slip
  * direction). Load sensitivity, grip window, water film, aquaplaning, wear,
  * contamination, damage, pressure, rubber/marbles and the ground material. */
@@ -321,10 +330,32 @@ export function peakGrip(t: Tire, load: number, s: SurfaceSample, speed: number)
     wetRatio = s.water / (s.water + c.waterTolerance),
     wetPenalty =
       (t.compound === 'wet' ? 0.1 : t.compound === 'intermediate' ? 0.22 : 0.63) * wetRatio,
-    hydro = aquaplaning(t.compound, load, s.water, speed, t.wear, t.pressure, m.textureMm);
+    hydro = aquaplaning(
+      t.compound,
+      load,
+      s.water,
+      speed,
+      t.wear,
+      t.pressure,
+      treadTexture(s, m.textureMm),
+    );
   let ground = materialGrip(m, s.water, s.temp) / m.grip,
     surface = surfaceGrip(t, s),
     rubber = rubberGrip(m, s.rubber, s.water) - s.marbles * 0.14;
+  if (s.paintCoverage !== undefined) {
+    ground = lerp(
+      materialGrip(roadAsphalt, s.water, s.temp) / roadAsphalt.grip,
+      materialGrip(roadPaint, s.water, s.temp) / roadPaint.grip,
+      s.paintCoverage,
+    );
+    rubber =
+      lerp(
+        rubberGrip(roadAsphalt, s.rubber, s.water),
+        rubberGrip(roadPaint, s.rubber, s.water),
+        s.paintCoverage,
+      ) -
+      s.marbles * 0.14;
+  }
   // Snow or ice on the cell hides the road beneath it: its own friction
   // replaces the surface's (never above it) and the laid rubber and the wet
   // material factor no longer reach the tread. No cover leaves every term
@@ -510,7 +541,9 @@ export function solveTire(
     mu,
     carcassStiffness(k, t.pressure, t.wear, t.carcassTemp, ideal),
     material.stiffness,
-    material.falloff,
+    surface.paintCoverage === undefined
+      ? material.falloff
+      : lerp(roadAsphalt.falloff, roadPaint.falloff, surface.paintCoverage),
     SLIP,
     material.coupling,
   );
@@ -535,7 +568,7 @@ export function solveTire(
     planarSpeed,
     t.wear,
     t.pressure,
-    material.textureMm,
+    treadTexture(surface, material.textureMm),
   );
   t.patchLength = clamp(2 * Math.sqrt(2 * r * (Math.max(0, t.deflection) + t.sinkage)), 0.06, 0.4);
   t.sinkage = advanceSinkage(

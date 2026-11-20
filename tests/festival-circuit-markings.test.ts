@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import * as T from 'three';
+import { Vec3 } from '../src/core/math.ts';
 import { RoadMeshes } from '../src/rendering/open-world/roads.ts';
 import { OpenWorldTrack } from '../src/simulation/open-world/open-world-track.ts';
 import { openWorld } from '../src/simulation/open-world/world.ts';
@@ -22,7 +23,11 @@ beforeAll(() => {
   roads.root.traverse((object) => {
     if (!(object instanceof T.Mesh) || object instanceof T.InstancedMesh) return;
     if (object.material === roads.materials.apron) aprons.push(object);
-    if (object.material === roads.materials.apron || object.material === roads.materials.paint)
+    if (
+      object.material === roads.materials.apron ||
+      object.material === roads.materials.paint ||
+      object.material === roads.materials.yellow
+    )
       paint.push(object);
     if (object.name === 'Circuit start paint saltmarsh-club-race') grid = object;
   });
@@ -84,6 +89,76 @@ function triangleCentres(mesh: T.Mesh, visit: (point: T.Vector3, lateral: number
 }
 
 describe('Circuit paint agrees with rendered contact footprints', () => {
+  it('matches double yellows, lane dashes, runway keys and bare gaps to actual tyre grip', () => {
+    const motorway = network.edges.find((e) => e.spec.markings === 'motorway' && e.length > 400)!;
+    const country = network.edges.find(
+      (e) => e.spec.markings === 'centre' && e.roadClass === 'country' && e.length > 250,
+    )!;
+    const runway = network.edges.find((e) => e.spec.markings === 'runway' && e.length > 250)!;
+    const check = (road: typeof edge, station: number, lateral: number, painted: boolean) => {
+      const p = network.at(road.offset + station, trackPoint());
+      const point = new T.Vector3(
+        p.x + p.nx * lateral,
+        network.surfaceHeight(p, lateral, road.spec.halfWidth, road.spec.crown),
+        p.z + p.nz * lateral,
+      );
+      const label = `${road.id} station ${station} lateral ${lateral}`;
+      expect(visiblePaint(point), label).toBe(painted);
+      for (const track of [dry, rain])
+        expect(sample(point, track).surface, label).toBe(painted ? SURFACE.PAINT : SURFACE.ASPHALT);
+    };
+    for (const side of [-1, 1]) {
+      check(motorway, 122, side * 0.12, true);
+      check(motorway, 122, side * 0.24, false);
+      check(motorway, 124.25, side * 3.6, true);
+      check(motorway, 124.75, side * 3.6, false);
+      check(motorway, 122, side * (motorway.spec.halfWidth - 0.75), true);
+      check(runway, 24, side * 7.6, true);
+      check(runway, 24, side * 8.55, false);
+      check(runway, 44, side * 7.6, false);
+    }
+    check(motorway, 122, 0, false);
+    check(country, 92.7, 0, true);
+    check(country, 93.3, 0, false);
+    check(runway, 126, 0, true);
+    check(runway, 134, 0, false);
+  });
+
+  it('integrates the visible paint across the physical tread and preserves wet grip at a dash tip', () => {
+    const road = network.edges.find((e) => e.spec.markings === 'motorway' && e.length > 400)!;
+    const wheel = makeTire('wet'),
+      down = new Vec3(0, -1, 0);
+    const contact = (station: number, lateral: number, width: number, longitudinal = false) => {
+      const p = network.at(road.offset + station, trackPoint());
+      const y = network.surfaceHeight(p, lateral, road.spec.halfWidth, road.spec.crown);
+      const hub = new Vec3(p.x + lateral * p.nx, y + 0.7, p.z + lateral * p.nz);
+      const axle = longitudinal ? new Vec3(p.tx, 0, p.tz) : new Vec3(p.nx, 0, p.nz);
+      const out = surfaceSample();
+      expect(
+        Number.isFinite(rain.castTire(hub, down, 1.5, 0.32, width / 2, axle, out, new Vec3())),
+      ).toBe(true);
+      return out;
+    };
+    const pure = contact(122, 0.12, 0.05),
+      bare = contact(122, 2, 0.25);
+    const narrow = contact(122, 0.12, 0.3),
+      bridge = contact(122, 0, 0.4);
+    expect(pure.surface).toBe(SURFACE.PAINT);
+    expect(bare.surface).toBe(SURFACE.ASPHALT);
+    expect(narrow.paintCoverage).toBeCloseTo(0.12 / 0.3, 2);
+    expect(bridge.paintCoverage).toBeCloseTo(0.24 / 0.4, 2);
+    expect(narrow.grip).toBeCloseTo(bare.grip + (pure.grip - bare.grip) * narrow.paintCoverage!, 6);
+    const mu = (s: ReturnType<typeof contact>) => peakGrip(wheel, 3500, s, 23);
+    expect(mu(pure)).toBeLessThan(mu(bridge));
+    expect(mu(bridge)).toBeLessThan(mu(narrow));
+    expect(mu(narrow)).toBeLessThan(mu(bare));
+    // A wheel turned across the road straddles the longitudinal tip, too.
+    expect(contact(124.5, 3.6, 0.3, true).paintCoverage).toBeCloseTo(0.5, 1);
+    const p = network.at(road.offset + 122, trackPoint());
+    rain.sample(p.x, p.z, narrow, p.y + 0.5);
+    expect(narrow.paintCoverage).toBeUndefined();
+  });
+
   it('gives every rendered apron and start-grid triangle the paint material', () => {
     expect(aprons.length).toBeGreaterThan(0);
     expect(grid).toBeDefined();

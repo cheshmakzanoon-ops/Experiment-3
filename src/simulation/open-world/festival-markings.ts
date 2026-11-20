@@ -39,13 +39,130 @@ export interface FestivalCircuitGrid {
   readonly rectangles: readonly FestivalPaintRectangle[];
 }
 
-/** Both ends matter even when a closed course returns to the same node. */
-export function festivalCircuitLineVisible(network: RoadNetwork, edge: RoadEdge, station: number) {
-  const mouth = edge.spec.halfWidth + 9;
-  return (
-    (network.nodes[edge.from].edges.length < 3 || station >= mouth) &&
-    (network.nodes[edge.to].edges.length < 3 || edge.length - station >= mouth)
-  );
+/** Painted strip in road-local metres. Dash phase is measured from the
+ * edge origin, including when a junction clips the first painted span. */
+export interface FestivalPaintLine {
+  lateral: number;
+  width: number;
+  layer: 'paint' | 'yellow';
+  from: number;
+  to: number;
+  dash: number;
+  period: number;
+}
+
+function roadLines(network: RoadNetwork, edge: RoadEdge): FestivalPaintLine[] {
+  const lines: FestivalPaintLine[] = [];
+  const { halfWidth: half, markings } = edge.spec;
+  const mouth = half + 9;
+  const from = network.nodes[edge.from].edges.length >= 3 ? mouth : 0;
+  const to = edge.length - (network.nodes[edge.to].edges.length >= 3 ? mouth : 0);
+  const strip = (
+    lateral: number,
+    width: number,
+    dash = 0,
+    period = 0,
+    layer: FestivalPaintLine['layer'] = 'paint',
+    start = from,
+    end = to,
+  ) => {
+    if (end > start) lines.push({ lateral, width, dash, period, layer, from: start, to: end });
+  };
+  switch (markings) {
+    case 'centre':
+      for (const side of [-1, 1]) strip(side * (half - 0.27), 0.15);
+      if (edge.roadClass === 'mountain') strip(0, 0.13);
+      else strip(0, 0.13, 3, 9);
+      break;
+    case 'motorway':
+      for (const side of [-1, 1]) {
+        strip(side * (half - 0.75), 0.15);
+        strip(side * 0.12, 0.12, 0, 0, 'yellow');
+        strip(side * 3.6, 0.14, 4.5, 12);
+      }
+      break;
+    case 'runway':
+      strip(0, 0.9, 30, 50, 'paint', 0, edge.length);
+      for (const side of [-1, 1]) {
+        strip(side * (half - 1), 0.9);
+        for (const station of [12, edge.length - 42]) {
+          if (station < 0 || station + 30 > edge.length) continue;
+          for (let key = 1; key <= 6; key++)
+            strip(side * key * 1.9, 1.2, 0, 0, 'paint', station, station + 30);
+        }
+      }
+      break;
+    case 'edge':
+      for (const side of [-1, 1])
+        strip(side * (half - FESTIVAL_CIRCUIT_PAINT.edgeInset), FESTIVAL_CIRCUIT_PAINT.edgeWidth);
+      break;
+  }
+  return lines;
+}
+
+/** Iterate the exact painted intervals before the renderer subdivides them
+ * around the road's curves. The last part of a dash can be shorter than a
+ * mesh segment. No per-contact arrays or iterators are needed in physics. */
+export function forEachPaintSpan(
+  line: FestivalPaintLine,
+  visit: (from: number, to: number) => void,
+) {
+  if (!line.period) {
+    visit(line.from, line.to);
+    return;
+  }
+  for (
+    let start = Math.floor(line.from / line.period) * line.period;
+    start < line.to;
+    start += line.period
+  ) {
+    const a = Math.max(start, line.from),
+      b = Math.min(start + line.dash, line.to);
+    if (b > a) visit(a, b);
+  }
+}
+
+/** Fraction of a steered contact line crossing this strip. Coordinates
+ * along the tread run from -1 to +1. Dash tips clip the same interval as
+ * the stripe sides, including a nearly longitudinal or transverse wheel. */
+function treadOnLine(
+  line: FestivalPaintLine,
+  station: number,
+  lateral: number,
+  ds: number,
+  dl: number,
+) {
+  const offset = lateral - line.lateral;
+  const half = line.width * 0.5;
+  if (
+    Math.abs(offset) >= half + Math.abs(dl) ||
+    station + Math.abs(ds) < line.from ||
+    station - Math.abs(ds) > line.to
+  )
+    return 0;
+  let lo = -1,
+    hi = 1;
+  if (Math.abs(dl) > 1e-8) {
+    const a = (-half - offset) / dl,
+      b = (half - offset) / dl;
+    lo = Math.max(lo, Math.min(a, b));
+    hi = Math.min(hi, Math.max(a, b));
+  }
+  if (hi <= lo) return 0;
+  if (Math.abs(ds) < 1e-8)
+    return !line.period || station % line.period < line.dash ? (hi - lo) * 0.5 : 0;
+  const a = station + lo * ds,
+    b = station + hi * ds;
+  const from = Math.max(line.from, Math.min(a, b)),
+    to = Math.min(line.to, Math.max(a, b));
+  if (to <= from) return 0;
+  let length = to - from;
+  if (line.period) {
+    length = 0;
+    for (let next = Math.floor(from / line.period) * line.period; next < to; next += line.period)
+      length += Math.max(0, Math.min(next + line.dash, to) - Math.max(next, from));
+  }
+  return length / (2 * Math.abs(ds));
 }
 
 /** The flush apex apron occupies at most the outer half metre of asphalt. */
@@ -120,11 +237,13 @@ function contains(quad: PaintFootprint, x: number, z: number) {
  * or rendering dependency in the four-tyre sampling path. */
 export class FestivalMarkings {
   readonly grids: readonly FestivalCircuitGrid[];
+  readonly lines: readonly (readonly FestivalPaintLine[])[];
   private readonly apronEdges = new Map<number, readonly FestivalCircuitApron[]>();
   private readonly apronFootprints = new Map<number, PaintFootprint>();
   private readonly gridEdges = new Map<number, FestivalCircuitGrid[]>();
 
   constructor(private readonly network: RoadNetwork) {
+    this.lines = network.edges.map((edge) => roadLines(network, edge));
     for (const edge of network.edges) {
       if (edge.roadClass !== 'circuit') continue;
       const aprons: FestivalCircuitApron[] = [];
@@ -217,6 +336,15 @@ export class FestivalMarkings {
     return this.apronEdges.get(edge) ?? EMPTY_APRONS;
   }
 
+  /** Physical tread coverage of the public-road strips. Parallel lanes and
+   * runway keys have disjoint interiors; a wide tyre can bridge two yellows. */
+  roadPaintCoverage(edgeIndex: number, station: number, lateral: number, ds: number, dl: number) {
+    let fraction = 0;
+    const local = station - this.network.edges[edgeIndex].offset;
+    for (const line of this.lines[edgeIndex]) fraction += treadOnLine(line, local, lateral, ds, dl);
+    return clamp(fraction, 0, 1);
+  }
+
   /** Query in the road's forward station/lateral frame, regardless of the
    * race direction. Both red and white apron bands are the paint material. */
   isPaint(
@@ -231,19 +359,18 @@ export class FestivalMarkings {
       edge = network.edges[edgeIndex],
       half = edge.spec.halfWidth,
       absolute = Math.abs(lateral);
-    if (edge.roadClass !== 'circuit' || absolute > half) return false;
-    const local = station - edge.offset,
-      step = FESTIVAL_CIRCUIT_PAINT.lineStep,
-      lineStart = Math.floor(local / step) * step;
-    if (
-      edge.spec.markings === 'edge' &&
-      lineStart >= 0 &&
-      lineStart < edge.length - step &&
-      Math.abs(absolute - (half - FESTIVAL_CIRCUIT_PAINT.edgeInset)) <=
-        FESTIVAL_CIRCUIT_PAINT.edgeWidth / 2 &&
-      festivalCircuitLineVisible(network, edge, lineStart)
-    )
-      return true;
+    if (absolute > half) return false;
+    const local = station - edge.offset;
+    for (const line of this.lines[edgeIndex]) {
+      if (
+        Math.abs(lateral - line.lateral) <= line.width / 2 &&
+        local >= line.from &&
+        local <= line.to &&
+        (!line.period || local % line.period < line.dash)
+      )
+        return true;
+    }
+    if (edge.roadClass !== 'circuit') return false;
 
     if (absolute >= half - 0.51)
       // Include adjacent quads at a sample boundary: their offset edges

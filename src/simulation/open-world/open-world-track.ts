@@ -180,7 +180,7 @@ export class OpenWorldTrack {
   private lastSegment = 0;
   private lastLayer = true;
   private readonly point = trackPoint();
-  private readonly circuitMarkings: FestivalMarkings;
+  private readonly markings: FestivalMarkings;
   private readonly candidatePoint = trackPoint();
   private readonly candidates = roadCandidates();
   private readonly order = new Int32Array(MAX_ROAD_CANDIDATES);
@@ -212,7 +212,7 @@ export class OpenWorldTrack {
     tileBudget = 64,
   ) {
     this.network = world.network;
-    this.circuitMarkings = festivalMarkings(this.network);
+    this.markings = festivalMarkings(this.network);
     this.field = world.field;
     this.tiles = world.tileCache(tileBudget);
     this.length = world.network.totalStation;
@@ -220,16 +220,14 @@ export class OpenWorldTrack {
     this.weather.sample(0, this);
     // The wet presets (heavy rain, thunderstorm) open on a soaked road; fog on
     // a damp one. Clear, changeable and dust keep their original dry start.
-    this.wetness =
-      preset === 'rain' ? 0.9 : preset === 'storm' ? 1 : preset === 'fog' ? 0.03 : 0;
+    this.wetness = preset === 'rain' ? 0.9 : preset === 'storm' ? 1 : preset === 'fog' ? 0.03 : 0;
     this.#surfaceTemperature =
       preset === 'rain' || preset === 'storm'
         ? 22
         : this.ambient + 12 * (1 - groundCloud(this.cloud, this.fogCover));
     const start = weatherSurfaceStart(preset);
     this.cold =
-      keyframes.some((k) => k.ambientTempC < PRECIPITATION.rainAboveC) ||
-      (start.frozenMm ?? 0) > 0;
+      keyframes.some((k) => k.ambientTempC < PRECIPITATION.rainAboveC) || (start.frozenMm ?? 0) > 0;
     if (preset === 'snow') {
       this.#surfaceTemperature = start.tempC;
       this.#frozen = (start.frozenMm ?? 0) * 0.85;
@@ -324,21 +322,9 @@ export class OpenWorldTrack {
         ? WORLD_SURFACE.SHOULDER
         : WORLD_SURFACE.ASPHALT;
     if (spec.surface === 'dirt') return WORLD_SURFACE.DIRT_ROAD;
-    if (spec.markings === 'edge') {
-      // Edge lines, flush red/white aprons and the checker/grid outlines
-      // share their metre-scale footprint with the rendered course. Paint
-      // keeps its own wet-friction response; unpainted box centres do not.
-      return this.circuitMarkings.isPaint(edge, segment, station, lateral, x, z)
-        ? WORLD_SURFACE.MARKING
-        : WORLD_SURFACE.ASPHALT;
-    }
-    if (spec.markings !== 'none') {
-      // Edge lines, then the centre line (solid on mountain and town roads,
-      // dashed elsewhere; the solid width is the physical paint).
-      if (a > hw - 0.38 && a < hw - 0.16) return WORLD_SURFACE.MARKING;
-      if (spec.markings !== 'runway' && a < 0.09) return WORLD_SURFACE.MARKING;
-    }
-    return WORLD_SURFACE.ASPHALT;
+    return spec.markings !== 'none' && this.markings.isPaint(edge, segment, station, lateral, x, z)
+      ? WORLD_SURFACE.MARKING
+      : WORLD_SURFACE.ASPHALT;
   }
   /** Surface height and gradient of candidate `k` at (x, z): the cambered
    * carriageway, then the shoulder falling to the verge edge the renderer
@@ -414,6 +400,7 @@ export class OpenWorldTrack {
    * The class, grip and markings come from the road the point is on.
    */
   sample(x: number, z: number, out: SurfaceSample, y?: number): SurfaceSample {
+    out.paintCoverage = undefined;
     const net = this.network,
       p = this.point,
       c = this.candidates,
@@ -645,20 +632,46 @@ export class OpenWorldTrack {
   }
   /** Wheel-centre support on the same analytic road and terrain planes.
    * Keep the contact point on the ground while accounting for tyre radius
-   * along its normal, including when the suspension ray is tilted. */
+   * along its normal, including when the suspension ray is tilted. Across
+   * public-road lines the dry and wet response follows the fraction of the
+   * actual steered tread on each of the two surfaces. */
   castTire(
     origin: Vec3,
     down: Vec3,
     maximum: number,
     radius: number,
-    _halfWidth: number,
-    _axle: Vec3,
+    halfWidth: number,
+    axle: Vec3,
     out: SurfaceSample,
     point: Vec3,
   ) {
     const distance = this.cast(origin, down, maximum, out);
     if (!Number.isFinite(distance)) return Infinity;
     point.copy(origin).addScaled(down, distance);
+    const q = this.query,
+      edge = this.network.edges[q.edge];
+    if (
+      halfWidth > 0 &&
+      q.onRoad &&
+      edge.roadClass !== 'circuit' &&
+      edge.spec.markings !== 'none' &&
+      (q.surface === WORLD_SURFACE.ASPHALT || q.surface === WORLD_SURFACE.MARKING)
+    ) {
+      const segment = this.lastSegment,
+        net = this.network;
+      const span = net.s[segment + 1] - net.s[segment];
+      const t = span > 0 ? clamp((out.s - net.s[segment]) / span, 0, 1) : 0;
+      const tangent = net.pointOnSegment(segment, t, this.candidatePoint);
+      const ds = halfWidth * (axle.x * tangent.tx + axle.z * tangent.tz);
+      const dl = halfWidth * (axle.x * tangent.nx + axle.z * tangent.nz);
+      const fraction = this.markings.roadPaintCoverage(edge.index, out.s, out.lateral, ds, dl);
+      if (fraction > 0 && fraction < 1) {
+        out.paintCoverage = fraction;
+        const asphalt = SURFACE_PHYSICS[WORLD_SURFACE.ASPHALT].grip,
+          paint = SURFACE_PHYSICS[WORLD_SURFACE.MARKING].grip;
+        out.grip = (asphalt + (paint - asphalt) * fraction) * edge.spec.grip;
+      }
+    }
     return distance - radius / Math.max(0.15, -down.dot(out.normal));
   }
   /** Ground height only (spawning, recovery, scripts). */
@@ -702,10 +715,7 @@ export class OpenWorldTrack {
           cell = PHASE_CELL;
         cell.surface = this.#surfaceTemperature;
         cell.water = this.wetness;
-        cell.frozen = Math.min(
-          FROST.maxCoverMm,
-          this.#frozen + (this.rain / 3600) * snowy * step,
-        );
+        cell.frozen = Math.min(FROST.maxCoverMm, this.#frozen + (this.rain / 3600) * snowy * step);
         settlePhase(cell, SURFACE_THERMAL.surfaceCapacity);
         this.#surfaceTemperature = cell.surface;
         this.wetness = cell.water;

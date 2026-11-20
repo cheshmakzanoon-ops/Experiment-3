@@ -65,6 +65,9 @@ export interface SurfaceSample {
   resistance: number;
   cell: number;
   pit: boolean;
+  /** Fraction of a tyre contact line on paint when it straddles public-road
+   * asphalt and paint. Point queries and single-material contacts omit it. */
+  paintCoverage?: number;
   /** Snow or ice cover on the cell, mm water equivalent (weather.ts FROST).
    * Absent or 0 elsewhere and in every warm preset: the tyre model then
    * takes exactly its unfrozen path. */
@@ -495,6 +498,7 @@ export class Track {
     return this.isPitSection(s) && Math.abs(offset) > 3 && Math.abs(l - offset) < 3.6;
   }
   sample(x: number, z: number, out: SurfaceSample, y?: number): SurfaceSample {
+    out.paintCoverage = undefined;
     const p = this.queryPoint,
       l = this.nearest(x, z, p, y),
       a = Math.abs(l),

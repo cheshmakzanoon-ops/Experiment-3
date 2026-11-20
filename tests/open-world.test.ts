@@ -113,20 +113,17 @@ describe('festival road network', () => {
 });
 
 describe('festival world surface (physics adapter)', () => {
-  const track = new OpenWorldTrack(world);
+  // Keep the adapter's complete public Track contract in the project type check.
+  const track = new OpenWorldTrack(world) satisfies Record<keyof Track, unknown>;
   const s = surfaceSample();
   it('answers every public Track member (no missing method on the adapter)', () => {
     const missing = Object.getOwnPropertyNames(Track.prototype).filter(
       (name) => name !== 'constructor' && typeof (track as unknown as Record<string, unknown>)[name] !== 'function',
     );
     expect(missing).toEqual([]);
-    const circuit = new Track('clear', true);
-    const fields = Object.keys(circuit).filter((k) => !k.startsWith('contact') && k !== 'queryPoint');
-    const absent = fields.filter((k) => !(k in track));
-    expect(absent).toEqual([]);
   });
   it('reads the cambered road: asphalt and markings on highways, gravel on dirt tracks', () => {
-    const i = sampleOn('h1', (k) => !(net.flags[k] & ROAD_FLAG.BRIDGE));
+    const i = sampleOn('h1', (k) => !(net.flags[k] & ROAD_FLAG.BRIDGE) && net.s[k] - net.edges[net.edgeOf[k]].offset > 35);
     const p = trackPoint();
     net.pointOnSegment(i, 0, p);
     track.sample(p.x + p.nx * 2, p.z + p.nz * 2, s, p.y + 0.5);
@@ -135,6 +132,8 @@ describe('festival world surface (physics adapter)', () => {
     expect(s.grip).toBeGreaterThan(0.85);
     expect(Math.abs(s.height - net.surfaceHeight(p, 2, 7.6, 0.022))).toBeLessThan(0.02);
     track.sample(p.x, p.z, s, p.y + 0.5);
+    expect(s.surface).toBe(SURFACE.ASPHALT);
+    track.sample(p.x + p.nx * 0.12, p.z + p.nz * 0.12, s, p.y + 0.5);
     expect(track.query.surface).toBe(WORLD_SURFACE.MARKING);
     const d = sampleOn('thornwood');
     net.pointOnSegment(d, 0, p);
@@ -222,7 +221,11 @@ describe('festival world surface (physics adapter)', () => {
       const hub = new Vec3().copy(origin).addScaled(down, support);
       expect(hub.sub(point).dot(contact.normal)).toBeCloseTo(radius, 10);
       expect(contact.surface).toBe(material);
-      expect(contact.grip).toBeCloseTo(grip, 10);
+      if (material === SURFACE.PAINT) {
+        expect(contact.paintCoverage).toBeGreaterThan(0);
+        expect(contact.paintCoverage).toBeLessThan(1);
+        expect(contact.grip).toBeGreaterThan(grip);
+      } else expect(contact.grip).toBeCloseTo(grip, 10);
       expect(track.sample(point.x, point.z, surfaceSample(), point.y + 0.5).height)
         .toBeCloseTo(point.y, 3);
       point.set(91, 92, 93);

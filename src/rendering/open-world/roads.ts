@@ -15,7 +15,7 @@ import type { TrackPoint } from '../../simulation/track.ts';
 import type { TerrainField } from '../../simulation/open-world/terrain-field.ts';
 import {
   FESTIVAL_CIRCUIT_PAINT,
-  festivalCircuitLineVisible,
+  forEachPaintSpan,
   festivalMarkings,
 } from '../../simulation/open-world/festival-markings.ts';
 import { materials } from '../materials/index.ts';
@@ -726,145 +726,42 @@ export class RoadMeshes {
       spec = e.spec,
       hw = spec.halfWidth;
     if (spec.markings === 'none') return;
-    const lines: {
-      lateral: number;
-      width: number;
-      dash: number;
-      gap: number;
-      layer: Layer;
-      junction: boolean;
-    }[] = [];
-    const edgeLine = { width: 0.15, dash: 0, gap: 0, layer: 'paint' as Layer, junction: false };
-    if (spec.markings === 'motorway') {
-      lines.push({ ...edgeLine, lateral: -(hw - 0.75) }, { ...edgeLine, lateral: hw - 0.75 });
-      lines.push({
-        lateral: -0.12,
-        width: 0.12,
-        dash: 0,
-        gap: 0,
-        layer: 'yellow',
-        junction: false,
-      });
-      lines.push({ lateral: 0.12, width: 0.12, dash: 0, gap: 0, layer: 'yellow', junction: false });
-      lines.push({
-        lateral: -3.6,
-        width: 0.14,
-        dash: 4.5,
-        gap: 7.5,
-        layer: 'paint',
-        junction: false,
-      });
-      lines.push({
-        lateral: 3.6,
-        width: 0.14,
-        dash: 4.5,
-        gap: 7.5,
-        layer: 'paint',
-        junction: false,
-      });
-    } else if (spec.markings === 'edge') {
-      for (const side of [-1, 1])
-        lines.push({
-          ...edgeLine,
-          lateral: side * (hw - FESTIVAL_CIRCUIT_PAINT.edgeInset),
-          width: FESTIVAL_CIRCUIT_PAINT.edgeWidth,
-        });
-    } else if (spec.markings === 'centre') {
-      lines.push({ ...edgeLine, lateral: -(hw - 0.27) }, { ...edgeLine, lateral: hw - 0.27 });
-      const solid = e.roadClass === 'mountain';
-      lines.push({
-        lateral: 0,
-        width: 0.13,
-        dash: solid ? 0 : 3,
-        gap: solid ? 0 : 6,
-        layer: 'paint',
-        junction: false,
-      });
-    } else if (spec.markings === 'runway') {
-      lines.push({ lateral: 0, width: 0.9, dash: 30, gap: 20, layer: 'paint', junction: true });
-      lines.push(
-        { ...edgeLine, width: 0.9, lateral: -(hw - 1) },
-        { ...edgeLine, width: 0.9, lateral: hw - 1 },
-      );
-    }
     const p = roadPoint();
-    const step = e.roadClass === 'circuit' ? FESTIVAL_CIRCUIT_PAINT.lineStep : 2;
-    for (const line of lines) {
-      for (let s = 0; s < e.length - step; s += step) {
-        if (line.dash > 0 && s % (line.dash + line.gap) >= line.dash) continue;
-        net.at(e.offset + s, p);
-        // No lines through junction mouths.
-        if (
-          !line.junction &&
-          (e.roadClass === 'circuit'
-            ? !festivalCircuitLineVisible(net, e, s)
-            : this.inJunction(e, s))
-        )
-          continue;
-        const a = { ...p };
-        net.at(e.offset + Math.min(e.length, s + step), p);
-        const b = { ...p },
-          builderAt = builder((a.x + b.x) / 2, (a.z + b.z) / 2, line.layer);
-        const corner = (pt: TrackPoint, l: number, v: number) => {
-          const n = frame.normal(pt, l);
-          return builderAt.vertex(
-            pt.x + pt.nx * l,
-            net.surfaceHeight(pt, l, hw, spec.crown) + 0.012,
-            pt.z + pt.nz * l,
-            l,
-            v,
-            n.x,
-            n.y,
-            n.z,
-            undefined,
-            [l - line.lateral + line.width / 2, line.width],
-          );
-        };
-        const w = line.width / 2;
-        const a0 = corner(a, line.lateral - w, s),
-          a1 = corner(a, line.lateral + w, s),
-          b0 = corner(b, line.lateral - w, s + step),
-          b1 = corner(b, line.lateral + w, s + step);
-        builderAt.quad(a0, a1, b0, b1);
-      }
-    }
-    if (e.roadClass === 'circuit') this.cornerAprons(e, builder, frame);
-    // Runway thresholds: piano keys across both ends.
-    if (spec.markings === 'runway') {
-      for (const s of [12, e.length - 42]) {
-        if (s < 0 || s > e.length) continue;
-        net.at(e.offset + s, p);
-        const a = { ...p };
-        net.at(e.offset + s + 30, p);
-        const b = { ...p };
-        for (let k = -6; k <= 6; k++) {
-          if (k === 0) continue;
-          const l = k * 1.9,
-            bb = builder(a.x, a.z, 'paint');
-          const corner = (pt: TrackPoint, ll: number, v: number) => {
-            const n = frame.normal(pt, ll);
-            return bb.vertex(
-              pt.x + pt.nx * ll,
-              net.surfaceHeight(pt, ll, hw, spec.crown) + 0.012,
-              pt.z + pt.nz * ll,
-              ll,
+    const step = FESTIVAL_CIRCUIT_PAINT.lineStep;
+    for (const line of festivalMarkings(net).lines[e.index]) {
+      forEachPaintSpan(line, (from, to) => {
+        for (let s = from; s < to; s += step) {
+          const end = Math.min(to, s + step);
+          net.at(e.offset + s, p);
+          const a = { ...p };
+          net.at(e.offset + end, p);
+          const b = { ...p },
+            builderAt = builder((a.x + b.x) / 2, (a.z + b.z) / 2, line.layer);
+          const corner = (pt: TrackPoint, l: number, v: number) => {
+            const n = frame.normal(pt, l);
+            return builderAt.vertex(
+              pt.x + pt.nx * l,
+              net.surfaceHeight(pt, l, hw, spec.crown) + 0.012,
+              pt.z + pt.nz * l,
+              l,
               v,
               n.x,
               n.y,
               n.z,
               undefined,
-              [ll - l + 0.6, 1.2],
+              [l - line.lateral + line.width / 2, line.width],
             );
           };
-          bb.quad(
-            corner(a, l - 0.6, 0),
-            corner(a, l + 0.6, 0),
-            corner(b, l - 0.6, 30),
-            corner(b, l + 0.6, 30),
-          );
+          const w = line.width / 2;
+          const a0 = corner(a, line.lateral - w, s),
+            a1 = corner(a, line.lateral + w, s),
+            b0 = corner(b, line.lateral - w, end),
+            b1 = corner(b, line.lateral + w, end);
+          builderAt.quad(a0, a1, b0, b1);
         }
-      }
+      });
     }
+    if (e.roadClass === 'circuit') this.cornerAprons(e, builder, frame);
   }
   private inJunction(e: RoadEdge, s: number) {
     const net = this.network;
