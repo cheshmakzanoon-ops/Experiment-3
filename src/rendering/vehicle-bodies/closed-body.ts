@@ -63,6 +63,9 @@ export class ClosedBodyModel {
   private readonly floor: Track;
   private readonly belt: Track;
   private readonly taper: Track;
+  // Queries for lamps, panel lips and greenhouse fittings repeatedly evaluate
+  // identical cross-sections. Keep exact station keys separate at each LOD.
+  private readonly surfaceProfiles: Map<number, Pt[]>[] = [new Map(), new Map(), new Map()];
   private readonly arches: { z: number; hub: number; r: number; tub: number; flare: number }[];
   /** The wheel arches (car frame): axle station, hub height, arch radius, flare. */
   archList() {
@@ -296,6 +299,15 @@ export class ClosedBodyModel {
     if (this.s.bonnetPress) this.pressBonnet(half, z, detail);
     return { z, half };
   }
+  private surfaceProfile(z: number, detail: Detail) {
+    const cache = this.surfaceProfiles[detail],
+      hit = cache.get(z);
+    if (hit) return hit;
+    const half = this.ring(z, detail).half;
+    if (cache.size >= 128) cache.delete(cache.keys().next().value!);
+    cache.set(z, half);
+    return half;
+  }
   /** First sample of the deck-to-centreline segment (the top under the glass). */
   deckSample(detail: Detail) {
     return SEGMENTS[detail].slice(0, 7).reduce((a, b) => a + b, 0);
@@ -304,7 +316,7 @@ export class ClosedBodyModel {
    * inside the greenhouse sill (x, y). The near loft omits the deck faces
    * inside it; the cabin's door cards stand on it. */
   cabinEdge(z: number): Pt {
-    const half = this.ring(z, 0).half,
+    const half = this.surfaceProfile(z, 0),
       sill = this.halfWidth(z) * 0.8 - 0.01 + 0.02;
     for (let j = this.deckSample(0); j < half.length - 1; j++)
       if (half[j][0] <= sill) return half[j];
@@ -333,7 +345,7 @@ export class ClosedBodyModel {
   }
   /** Outer side x of the body at (z, height y) — for placing side furniture. */
   sideX(z: number, y: number, detail: Detail = 0) {
-    const half = this.ring(z, detail).half;
+    const half = this.surfaceProfile(z, detail);
     let best = 0;
     for (let i = 0; i < half.length - 1; i++) {
       const [x0, y0] = half[i],
@@ -345,7 +357,7 @@ export class ClosedBodyModel {
   }
   /** Upper surface y at (z, |x|). */
   surfaceY(z: number, x: number) {
-    const half = this.ring(z, 0).half;
+    const half = this.surfaceProfile(z, 0);
     let best = -Infinity;
     for (let i = 4; i < half.length - 1; i++) {
       const [x0, y0] = half[i],
