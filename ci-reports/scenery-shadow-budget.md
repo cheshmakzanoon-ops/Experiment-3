@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44728051539
-- commit: `d9ce9b8362` · Reuse exact cross-sections when building Festival body fittings
-- event: push · status: completed · conclusion: **failure**
-- started: 2026-11-20T11:29:42Z · updated: 2026-11-20T13:16:16Z
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44735932245
+- commit: `7c88d0feb6` · Match each road motorcycle’s tyre sections, drainage and sidewall motion to its recorded wheels
+- event: push · status: completed · conclusion: **success**
+- started: 2026-11-20T12:27:29Z · updated: 2026-11-20T14:33:55Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (sunset) | failure | 1 | Run node --experimental-transform-types scripts/source-stability.ts -- npm run build |
-| browser (night) | failure | 1 | Run node --experimental-transform-types scripts/source-stability.ts -- npm run build |
-| browser (day) | failure | 0 | Run node --experimental-transform-types scripts/source-stability.ts -- npm run build |
+| browser (night) | success | 7 |  |
+| browser (day) | success | 5 |  |
+| browser (sunset) | success | 5 |  |
