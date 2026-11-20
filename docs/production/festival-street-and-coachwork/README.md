@@ -36,6 +36,8 @@ The ten traffic bodies and four independently animated wheels per car share five
 
 The driver estimates lateral grip from all four contact patches, changes passing lanes at a bounded acceleration, and catches a rear slide using the car's measured direction of travel. The shorter steering lookahead on a slow, loose edge is blended using the local water film. A driver yields a pass from behind if the target moves into the remaining space beside a verge. Cars already alongside keep their side. The standard race QA drives through the same pedals, steering, contact model and opponents used by the Festival session.
 
+At 120 Hz, tyres spend many consecutive steps on the same short stretch of road. The contact query now keeps a bounded cache of candidate segments for 8 m squares. Each wheel still resolves its own road height, normal, distance and bridge layer. A comparison against the previous search returned identical values for all 16,447 candidates from 12,330 mixed-radius queries. In nine alternating batches of 43,200 queries each, median lookup time fell from 55.44 ms to 37.96 ms on the same CPU. Repeating all fourteen six-car races reproduced every recorded field except host elapsed time, including finishing order, progress, contact data, rewards and saves.
+
 The race checks can be repeated from the repository root.
 
 ```sh
@@ -47,7 +49,7 @@ node --experimental-transform-types scripts/studio/tools/festival-qa.ts \
   --events port-ilse-loop --vehicles rs5,rm8,rg63,rp6,rr4,lx12 --weathers clear --seed 77141
 ```
 
-Each run starts from its event card with five opponents. The ten dry runs completed with zero player or rival resets. Four rainy runs used the same routes, cars and seed as the baseline. Times are simulation seconds at player finish. Rival resets count interventions through that instant. Across 78.5 simulated minutes, all fourteen player runs stayed within the legal route tolerance. No player or rival required a reset. The [recorded checks](checks.json) list each seed, finishing position, speed, contact count and reset count.
+Each run starts from its event card with five opponents. The ten dry runs completed with zero player or rival resets. Four rainy runs used the same routes, cars and seed as the baseline. Times are simulation seconds at player finish. Rival resets count interventions through that instant. Across 78.5 simulated minutes, all fourteen player runs stayed within the legal route tolerance. No player or rival required a reset. The [recorded checks](checks.json) list each seed, finishing position, speed, player contact ticks and reset count. A contact tick is one 1/120 s step during which the player touches a rival.
 
 | Rain, seed 73021 | Previous time | Revised time | Player resets, previous → revised | Rival resets, previous → revised |
 | --- | ---: | ---: | ---: | ---: |
@@ -56,15 +58,23 @@ Each run starts from its event card with five opponents. The ten dry runs comple
 | EH-3, Port Ilse Street Loop | 564.97 s | 378.33 s | 2 → 0 | 4 → 0 |
 | EH-3, Coast to Summit | 398.87 s | 419.80 s | 0 → 0 | 3 → 0 |
 
+The isolated runway and skidpad calibration also exercised all ten road cars at 1/240 s and 1/120 s. All forty design targets passed at both steps. They cover 0–100 km/h, maximum speed, stopping distance from 100 km/h and steady lateral acceleration at 80 km/h. The electric hypercar reached 100 km/h in 2.44 s and stopped from 100 km/h in 29.45 m at both steps. These are measurements of the game's original vehicle definitions.
+
+```sh
+node --experimental-transform-types scripts/vehicle-calibration.ts \
+  --only=rh3,sc7,rg63,eh3,rm8,rs5,rp6,rr4,rd2,lx12 --strict
+```
+
+On this host, a separate timing sample measured 3,600 six-car physics steps after 240 warm-up steps. The rainy RH-3 hill climb took 1.52 ms at the median and 3.90 ms at the 95th percentile. The dry SC-7 street race took 1.92 ms and 9.58 ms respectively. In the street race, 268 steps exceeded the 8.33 ms simulation interval. These measurements cover the simulation worker and exclude the renderer. The recorded checks include 99th-percentile and maximum step times for both samples.
+
 ## Visible geometry
 
-These fixed-camera comparisons use the EH-3, clear daylight, the Low preset and a 960 × 540 WebGL2 viewport. They compare the original checkout (5359d2c) with the integrated street and terrain pass. The counts cover the complete frame, including the player car. Each camera completed with a clean WebGL error state.
+These fixed-camera comparisons use the EH-3, clear daylight, the Low preset and a 960 × 540 CSS viewport. The game renders a 720 × 405 WebGL2 buffer at this preset. The original checkout (5359d2c) and the finished car, street and traffic geometry (71225b1) use the same camera positions. Counts cover the complete frame, including the player car. All three cameras completed with a clean WebGL error state. The recorded checks also retain the intermediate street and terrain captures.
 
 | Camera | Original triangles | Revised triangles | Original / revised draws |
 | --- | ---: | ---: | ---: |
-| Harbour chase | 985,328 | 723,253 | 313 / 312 |
-| Quayside, near car | 648,478 | 630,193 | 193 / 192 |
-| Port Ilse street | 628,673 | 483,507 | 164 / 164 |
-| Street edge | 608,241 | 465,557 | 160 / 160 |
+| Harbour chase | 985,328 | 718,157 | 313 / 313 |
+| Port Ilse street | 628,673 | 414,877 | 164 / 162 |
+| Street edge | 608,241 | 396,927 | 160 / 158 |
 
 Software WebGL establishes what the game drew at each camera. Frame pacing and input latency on console-class hardware require a hardware run. The existing [GPU benchmark](../../studio/HARDWARE_BENCHMARK.md) can drive the Festival journey at 1920 × 1080 across all three quality presets.
