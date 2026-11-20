@@ -12,12 +12,14 @@ import {
   F,
   H,
   HEADER,
+  M,
   O,
   OFFROAD_BASE,
   R,
   RACE_BASE,
   W,
   WHEEL_BASE,
+  WHEEL_MOTION_BASE,
   WHEEL_STRIDE,
   carBase,
 } from '../src/simulation/protocol.ts';
@@ -80,6 +82,54 @@ function field() {
 }
 
 describe('fresh motocross tyre impressions', () => {
+  it('lays 22 pairs per physical revolution, including reverse, wheel lock and older frames', () => {
+    const h = field();
+    const tau = 2 * Math.PI,
+      wheel = h.o + WHEEL_BASE,
+      motion = h.o + WHEEL_MOTION_BASE,
+      geometry = h.marks.mesh.geometry;
+    const phases = (from: number, front: boolean) => {
+      const uv = geometry.getAttribute('uv'),
+        print = geometry.getAttribute('mxTrace');
+      const steps: number[] = [];
+      for (let i = from; i < h.marks.recordedSegments; i++)
+        if ((print.getW(i * 4) === 1) === front) steps.push(uv.getY(i * 4 + 2) - uv.getY(i * 4));
+      expect(steps.length).toBeGreaterThan(0);
+      return steps.reduce((total, delta) => total + delta, 0);
+    };
+    try {
+      h.frame[motion + M.VALID] = 5;
+      h.frame[wheel + W.ROTATION] = tau * 0.25;
+      h.frame[wheel + 2 * WHEEL_STRIDE + W.ROTATION] = tau * 0.75;
+      h.frame[wheel + W.OMEGA] = h.frame[wheel + 2 * WHEEL_STRIDE + W.OMEGA] = 0;
+      h.drive(60, 0);
+      h.frame[motion + M.TURNS_FR] = 1;
+      h.frame[wheel + 2 * WHEEL_STRIDE + W.ROTATION] = tau * 0.25;
+      h.drive(60.8, 0.05);
+      h.marks.show(h.frame[H.TIME], h.surface);
+      expect(phases(0, true)).toBeCloseTo(22, 4);
+      expect(phases(0, false)).toBeCloseTo(-11, 4);
+      expect(geometry.getAttribute('uv').getY(0)).toBeCloseTo(0.5, 4);
+      let previous = h.marks.recordedSegments;
+      h.drive(61.6, 0.1);
+      h.marks.show(h.frame[H.TIME], h.surface);
+      expect(phases(previous, true)).toBe(0);
+      expect(phases(previous, false)).toBe(0);
+      // Legacy snapshots have angular velocity without a measured winding.
+      previous = h.marks.recordedSegments;
+      h.frame[motion + M.VALID] = 0;
+      h.frame[wheel + W.OMEGA] = tau / 0.05;
+      h.drive(62.4, 0.15);
+      h.marks.show(h.frame[H.TIME], h.surface);
+      expect(phases(previous, true)).toBeCloseTo(11, 3);
+      previous = h.marks.recordedSegments;
+      h.drive(63.2, 0.2);
+      h.marks.show(h.frame[H.TIME], h.surface);
+      expect(phases(previous, true)).toBeCloseTo(22, 3);
+    } finally {
+      h.dispose();
+    }
+  });
   it('submits only unexpired quads in one indexed draw when their GPU slots wrap', () => {
     const h = field();
     const geometry = h.marks.mesh.geometry,

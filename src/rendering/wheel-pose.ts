@@ -1,4 +1,5 @@
-import { F, H, M, W, WHEEL_BASE, WHEEL_MOTION_BASE, WHEEL_STRIDE } from '../simulation/protocol.ts';
+import { F, H, W, WHEEL_BASE, WHEEL_STRIDE } from '../simulation/protocol.ts';
+import { recordedWheelTurns } from '../simulation/wheel-rotation.ts';
 import { lerp, TAU } from '../core/math.ts';
 import {
   hermite,
@@ -58,26 +59,9 @@ export function wheelPhase(
   // A discontinuity or tire replacement is a new baseline, never a spun-back tire.
   if (!(dt > 0) || tireAlpha(a, b, car, alpha) === 0) return start;
   const index = (wheel - car - WHEEL_BASE) / WHEEL_STRIDE,
-    motion = car + WHEEL_MOTION_BASE,
-    maskA = a[motion + M.VALID],
-    maskB = b[motion + M.VALID],
-    turnsA = a[motion + M.TURNS_FR + index],
-    turnsB = b[motion + M.TURNS_FR + index],
-    measured =
-      Number.isInteger(index) &&
-      index >= 0 &&
-      index < 4 &&
-      Number.isInteger(maskA) &&
-      Number.isInteger(maskB) &&
-      maskA >= 0 &&
-      maskA <= 15 &&
-      maskB >= 0 &&
-      maskB <= 15 &&
-      (maskA & maskB & (1 << index)) !== 0 &&
-      Number.isInteger(turnsA) &&
-      Number.isInteger(turnsB) &&
-      Math.abs(turnsA) <= 0xffffff &&
-      Math.abs(turnsB) <= 0xffffff;
+    turnsA = recordedWheelTurns(a, car, index),
+    turnsB = recordedWheelTurns(b, car, index),
+    measured = turnsA !== undefined && turnsB !== undefined;
   if (dt > 0.5 && !measured) return start;
   let tangentA = a[wheel + W.OMEGA] * dt,
     tangentB = b[wheel + W.OMEGA] * dt;

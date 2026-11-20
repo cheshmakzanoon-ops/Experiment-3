@@ -18,6 +18,26 @@ export function advanceWheelRotation(wheel: WheelRotation, radians: number) {
   wheel.turns += winding;
 }
 
+/** Signed whole turns from a recorded wheel, when that snapshot contains a winding. */
+export function recordedWheelTurns(frame: Float32Array, car: number, index: number) {
+  const base = car + WHEEL_MOTION_BASE;
+  const mask = frame[base + M.VALID];
+  const turns = frame[base + M.TURNS_FR + index];
+  if (
+    Number.isInteger(index) &&
+    index >= 0 &&
+    index < 4 &&
+    Number.isInteger(mask) &&
+    mask >= 0 &&
+    mask <= 15 &&
+    (mask & (1 << index)) !== 0 &&
+    Number.isInteger(turns) &&
+    Math.abs(turns) <= 0xffffff
+  )
+    return turns;
+  return undefined;
+}
+
 /** Float32 integers are exact up to 2^24. A session exceeding this very large
  * winding falls back to angular-speed inference instead of publishing a rounded
  * turn count as measured data. The bounded phase still retains its precision. */

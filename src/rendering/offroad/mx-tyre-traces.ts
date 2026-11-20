@@ -1,5 +1,5 @@
 import * as T from 'three';
-import { clamp, lerp, mod } from '../../core/math.ts';
+import { TAU, clamp, lerp, mod } from '../../core/math.ts';
 import {
   B,
   BIKE_BASE,
@@ -17,6 +17,7 @@ import {
 import { MATERIAL } from '../../simulation/surface-material.ts';
 import { trackPoint, type Track } from '../../simulation/track.ts';
 import { vehicleAt } from '../../simulation/vehicles.ts';
+import { recordedWheelTurns } from '../../simulation/wheel-rotation.ts';
 import { MotocrossAxles, MX_TREAD_PAIRS } from './motocross-axles.ts';
 import { mxWheelPatch, type Roost } from './roost.ts';
 import type { TerrainView } from './terrain-view.ts';
@@ -44,6 +45,8 @@ interface Sample {
   z: number;
   phase: number;
   omega: number;
+  rotation: number;
+  turns?: number;
 }
 type Surface = Pick<TerrainView, 'heightAt' | 'geometryRevision'> &
   Partial<Pick<TerrainView, 'heightCellAt' | 'heightRevisions'>>;
@@ -224,8 +227,10 @@ export class MxTyreTraces {
           ((this.side.x * this.road.tx + this.side.z * this.road.tz) * half) /
           Math.max(0.45, 1 - this.road.curvature * p.lateral);
         const across = (this.side.x * this.road.nx + this.side.z * this.road.nz) * half;
-        const omega = Math.abs(frame[w + W.OMEGA]);
-        let phase = 0;
+        const omega = frame[w + W.OMEGA],
+          rotation = frame[w + W.ROTATION],
+          turns = recordedWheelTurns(frame, o, tire * 2);
+        let phase = turns !== undefined ? mod((rotation / TAU) * MX_TREAD_PAIRS, 1) : 0;
         if (old) {
           const dt = time - old.time,
             distance = Math.hypot(p.position.x - old.x, p.position.z - old.z);
@@ -237,7 +242,13 @@ export class MxTyreTraces {
             distance <= Math.min(9, speed * dt * 1.8 + 0.6) &&
             Math.abs(ds) < distance * 3 + 1
           ) {
-            const spin = ((omega + old.omega) * dt * MX_TREAD_PAIRS) / (2 * Math.PI);
+            // One centre block per pair. Measured winding survives a lock,
+            // direction reversal or a full turn between two sparse contacts.
+            const revolutions =
+              turns !== undefined && old.turns !== undefined
+                ? turns - old.turns + (rotation - old.rotation) / TAU
+                : (0.5 * (omega + old.omega) * dt) / TAU;
+            const spin = revolutions * MX_TREAD_PAIRS;
             const roadTyre = def.tireFamily === 'supermoto';
             const slip = roadTyre
               ? 1
@@ -273,7 +284,7 @@ export class MxTyreTraces {
               this.end++;
               this.first = Math.max(this.first, this.end - ARCHIVE);
             }
-            phase = mod(old.phase + spin, 1);
+            if (turns === undefined) phase = mod(old.phase + spin, 1);
           }
         }
         // Reuse the per-wheel sample when advancing an established trail.
@@ -291,6 +302,8 @@ export class MxTyreTraces {
         next.sideL = across;
         next.phase = phase;
         next.omega = omega;
+        next.rotation = rotation;
+        next.turns = turns;
         this.previous[slot] = next;
       }
     }
