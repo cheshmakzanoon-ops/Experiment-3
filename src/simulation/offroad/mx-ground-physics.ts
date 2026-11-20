@@ -86,6 +86,7 @@ export function motocrossTyreShear(
   groundSpeed: number,
   out: MxContactForce = { ...EMPTY_FORCE },
   longitudinalStiffness = Infinity,
+  lateralStiffness = Infinity,
 ): MxContactForce {
   if (load <= 0 || mu <= 0) {
     out.fx = out.fy = out.slip = out.use = out.slipPower = 0;
@@ -102,13 +103,15 @@ export function motocrossTyreShear(
   const limit = Number.isFinite(longitudinalStiffness)
     ? Math.abs(longitudinalSlip) * longitudinalStiffness : Infinity;
   const fx = clamp(peak * sx * gain, -limit, limit);
-  const fy = peak * sy * gain;
+  const lateralSlip = Math.tan(slipAngle) * Math.max(1, Math.abs(groundSpeed));
+  const sideLimit = Number.isFinite(lateralStiffness) ? Math.abs(lateralSlip) * lateralStiffness : Infinity;
+  const fy = clamp(peak * sy * gain, -sideLimit, sideLimit);
   out.fx = fx;
   out.fy = fy;
   out.slip = longitudinalSlip / Math.max(3, Math.abs(groundSpeed));
   out.use = Math.hypot(fx, fy) / peak;
   out.slipPower = Math.max(0,
-    fx * longitudinalSlip + fy * Math.tan(slipAngle) * Math.max(1, Math.abs(groundSpeed)),
+    fx * longitudinalSlip + fy * lateralSlip,
   );
   return out;
 }
@@ -174,6 +177,14 @@ export function stepMotocrossGround(
     rearMobility = chassisMobility + p.rearRadius ** 2 / p.rearInertia,
     frontStiffness = 1 / (h * frontMobility),
     rearStiffness = 1 / (h * rearMobility),
+    // A sideways impulse changes translation and yaw. At two contacts the
+    // yaw arms oppose each other. Include the absolute coupling so both
+    // patches can settle together on a loaded, walking-speed landing.
+    lateralProjection = hasLean ? 1 : cs,
+    sideCoupling = frontPeak > 0 && rearPeak > 0
+      ? Math.abs(lateralProjection * (1 / p.mass - p.frontArm * p.rearArm / iz)) : 0,
+    frontSideStiffness = 1 / (h * (1 / p.mass + (p.frontArm * lateralProjection) ** 2 / iz + sideCoupling)),
+    rearSideStiffness = 1 / (h * (1 / p.mass + p.rearArm ** 2 / iz + sideCoupling)),
     rearFrictionShare = p.rearBrakeTorque > 0
       ? clamp(1 - (p.rearEngineBrakeTorque ?? 0) / p.rearBrakeTorque, 0, 1) : 0;
   for (let i = 0; i < n; i++) {
@@ -193,6 +204,7 @@ export function stepMotocrossGround(
       frontForward,
       front,
       frontStiffness,
+      frontSideStiffness,
     );
     motocrossTyreShear(
       rearOmega * p.rearRadius - speed,
@@ -202,6 +214,7 @@ export function stepMotocrossGround(
       speed,
       rear,
       rearStiffness,
+      rearSideStiffness,
     );
     const slipFSide = hasLean ? front.fy : front.fy * cs + front.fx * sn,
       slipFForward = hasLean ? front.fx : front.fx * cs - front.fy * sn,

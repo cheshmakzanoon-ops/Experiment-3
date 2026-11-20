@@ -113,6 +113,38 @@ describe('independent motocross wheel/soil/yaw dynamics', () => {
       }
     }
   });
+  it('dissipates a walking-speed lateral landing without tyre chatter on either axle', () => {
+    for (const front of [true, false]) {
+      for (const direction of [-1, 1]) {
+        for (const load of [3000, 9000, 16000]) {
+          const p = {
+            ...params(), lean: 0, frontMu: 1.12, rearMu: 1.12,
+            frontLoad: front ? load : 0, rearLoad: front ? 0 : load,
+          };
+          const yawInertia = 0.42 * p.mass * (p.frontArm ** 2 + p.rearArm ** 2);
+          const slip = (v: MxGroundState) =>
+            v.lateralSpeed + (front ? p.frontArm : -p.rearArm) * v.yawRate;
+          const energy = (v: MxGroundState) =>
+            (p.mass * (v.speed ** 2 + v.lateralSpeed ** 2) + yawInertia * v.yawRate ** 2 +
+              p.frontInertia * v.frontOmega ** 2 + p.rearInertia * v.rearOmega ** 2) / 2;
+          let s = {
+            ...state(), speed: 1, lateralSpeed: direction * 0.04,
+            frontOmega: 1 / p.frontRadius, rearOmega: 1 / p.rearRadius,
+          };
+          for (let i = 0; i < 120; i++) {
+            const next = stepMotocrossGround(s, p, 1 / 720);
+            expect(energy(next)).toBeLessThanOrEqual(energy(s) + 1e-9);
+            // The unloaded end can rotate past the chassis centre. Once the
+            // loaded patch has settled, residual sideslip stays under 0.2 mm/s.
+            expect(slip(next) * direction).toBeGreaterThanOrEqual(-0.0002);
+            expect(front ? next.rear.fy : next.front.fy).toBe(0);
+            s = next;
+          }
+          expect(Math.abs(slip(s))).toBeLessThan(0.0002);
+        }
+      }
+    }
+  });
   it('publishes exactly the substep impulses exchanged by chassis and rear wheel', () => {
     const initial = { ...state(), rearOmega: state().rearOmega + 30 };
     const p = params();
