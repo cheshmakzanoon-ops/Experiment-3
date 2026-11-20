@@ -145,8 +145,18 @@ const results = RACES.filter(
         `${label}: ${crashRate.toFixed(2)} crashes per rider per lap (bound ${race.crashesPerRiderLap})`,
       );
     // Nobody crashes on more than half the laps.
-    if (worst > Math.max(1, Math.ceil(laps / 2)))
-      failures.push(`${label}: one rider crashed ${worst} times in ${laps} laps`);
+    const riderLimit = Math.max(1, Math.ceil(laps / 2));
+    if (worst > riderLimit) {
+      const details = bikes
+        .filter((bike) => bike.dynamics.crashes > riderLimit)
+        .map((bike) => {
+          const events = bike.crashCauses.map(
+            (hit) => `${hit.cause} at ${hit.s.toFixed(1)} m (${hit.time.toFixed(1)} s)`,
+          );
+          return `rider ${bike.id}: ${events.join(', ')}`;
+        });
+      failures.push(`${label}: one rider crashed ${worst} times in ${laps} laps (${details.join(' | ')})`);
+    }
   }
   const terrain = session.terrain.stats();
   if (terrain.cells < 1000 || terrain.deepest < 0.01)
