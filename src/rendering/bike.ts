@@ -2243,6 +2243,7 @@ export class BikeShells {
   motocrossGround?: MxDabSurface;
   arenaGrid?: MxArenaGrid;
   private readonly roadContact = new RoadBikeContactPose();
+  private readonly helmetUp = new T.Vector3();
   private readonly dirtGeometry = new MxGeometryPool();
   readonly root = new T.Group();
   /** Renderer hook: install weather/atmosphere/IBL on newly built bikes. */
@@ -2602,6 +2603,8 @@ export class BikeShells {
     direction: T.Vector3,
     tail = false,
     definition?: VehicleDefinition,
+    up = this.helmetUp,
+    reducedMotion = false,
   ) {
     const mx = !!definition?.bike?.offroad,
       profile = mx
@@ -2612,7 +2615,25 @@ export class BikeShells {
       mount = tail ? BIKE_ONBOARD.tail : profile.eye,
       pitch = tail ? BIKE_ONBOARD.tailPitch : profile.pitch;
     eye.set(mount[0], mount[1], mount[2]).applyQuaternion(root.quaternion).add(root.position);
-    direction.set(0, Math.sin(pitch), Math.cos(pitch)).applyQuaternion(root.quaternion);
+    up.set(0, 1, 0).applyQuaternion(root.quaternion);
+    if (mx && !tail) {
+      // A helmet can counter-roll while the motorcycle banks beneath it. Resolve
+      // that roll around the actual longitudinal axis so a pitched bike still
+      // looks into the turn. At inversion or near vertical, world-up ceases to
+      // be a useful reference; the smooth fade keeps recovery cuts continuous.
+      direction.set(0, 0, 1).applyQuaternion(root.quaternion);
+      const horizon =
+        (1 - T.MathUtils.smoothstep(Math.abs(direction.y), 0.7, 0.97)) *
+        T.MathUtils.smoothstep(up.y, -0.35, 0.16);
+      const rollToLevel = Math.atan2(direction.z * up.x - direction.x * up.z, up.y);
+      up.applyAxisAngle(direction, rollToLevel * horizon * (reducedMotion ? 1 : 0.44));
+      const slope = Math.asin(T.MathUtils.clamp(direction.y, -1, 1));
+      const gaze =
+        pitch - horizon * T.MathUtils.clamp(slope * (reducedMotion ? 0.55 : 0.32), -0.11, 0.11);
+      direction.multiplyScalar(Math.cos(gaze)).addScaledVector(up, Math.sin(gaze));
+    } else {
+      direction.set(0, Math.sin(pitch), Math.cos(pitch)).applyQuaternion(root.quaternion);
+    }
   }
   /** Bikes currently drawn (diagnostics). */
   get count() {

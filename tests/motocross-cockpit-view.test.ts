@@ -21,6 +21,37 @@ beforeAll(() => {
 afterAll(() => vi.unstubAllGlobals());
 
 describe('Motocross production onboard visibility', () => {
+  it('keeps a readable helmet horizon through banks and landings and restores an exact frame on a seek', () => {
+    const shell = new BikeShells(),
+      root = new T.Object3D();
+    const eye = new T.Vector3(),
+      direction = new T.Vector3(),
+      up = new T.Vector3();
+    const sample = (roll: number, pitch: number, reduced = false, tail = false) => {
+      root.rotation.set(pitch, 0.72, roll, 'YXZ');
+      shell.onboard(root, eye, direction, tail, VEHICLES.mx450, up, reduced);
+      expect(Math.abs(direction.length() - 1)).toBeLessThan(1e-8);
+      expect(Math.abs(up.length() - 1)).toBeLessThan(1e-8);
+      return [...direction.toArray(), ...up.toArray(), ...eye.toArray()];
+    };
+    const original = sample(0.7, 0);
+    expect(Math.acos(up.y)).toBeCloseTo(0.7 * 0.56, 7);
+    sample(-0.7, 0);
+    expect(Math.acos(up.y)).toBeCloseTo(0.7 * 0.56, 7);
+    sample(0.7, 0, true);
+    expect(up.y).toBeCloseTo(1, 8);
+    sample(0, -0.23);
+    expect(Math.asin(direction.y)).toBeCloseTo(-0.4 + 0.23 * 0.68, 7);
+    sample(0.7, 0, true, true);
+    expect(Math.acos(up.y)).toBeCloseTo(0.7, 7);
+    for (const pitch of [-Math.PI / 2, Math.PI / 2]) {
+      const left = sample(Math.PI - 1e-6, pitch),
+        right = sample(-Math.PI + 1e-6, pitch);
+      expect(Math.max(...left.map((value, i) => Math.abs(value - right[i])))).toBeLessThan(0.00001);
+    }
+    expect(sample(0.7, 0)).toEqual(original);
+  });
+
   for (const id of ['mx250', 'mx450', 'sm450'])
     it(`${id}: clears the number plate and rider while keeping real controls in view`, () => {
       const definition = VEHICLES[id],
@@ -66,8 +97,7 @@ describe('Motocross production onboard visibility', () => {
             });
             model.root.position.set(17, 0.86, -11);
             model.root.rotation.set(0.06, 0.7, -pose.lean, 'YXZ');
-            shells.onboard(model.root, camera.position, direction, false, definition);
-            camera.up.set(0, 1, 0).applyQuaternion(model.root.quaternion);
+            shells.onboard(model.root, camera.position, direction, false, definition, camera.up);
             camera.lookAt(camera.position.clone().add(direction));
             camera.aspect = aspect;
             camera.fov = bikeOnboardFov(pose.speed, definition);
@@ -92,7 +122,7 @@ describe('Motocross production onboard visibility', () => {
         // The old GP socket is a negative control: these rays must detect
         // its opaque MX number-board obstruction, not merely camera state.
         if (id !== 'sm450') {
-          shells.onboard(model.root, camera.position, direction, false, VEHICLES.gpr1);
+          shells.onboard(model.root, camera.position, direction, false, VEHICLES.gpr1, camera.up);
           camera.lookAt(camera.position.clone().add(direction));
           expect(inspectMotocrossCockpit(model, camera).clearForwardSamples).toBeLessThan(15);
         }

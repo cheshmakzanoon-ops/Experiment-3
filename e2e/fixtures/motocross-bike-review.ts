@@ -218,9 +218,8 @@ export function captureMotocrossBike(
       model.rider.setFirstPerson(view === 'onboard', true);
       if (view === 'onboard') {
         const direction = new T.Vector3();
-        new BikeShells().onboard(model.root, camera.position, direction, false, def);
+        new BikeShells().onboard(model.root, camera.position, direction, false, def, camera.up);
         camera.fov = bikeOnboardFov(sample.speed ?? 0, def);
-        camera.up.set(0, 1, 0).applyQuaternion(model.root.quaternion);
         camera.lookAt(camera.position.clone().add(direction));
         camera.updateProjectionMatrix();
       }

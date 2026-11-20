@@ -389,6 +389,7 @@ export class RacingRenderer {
   private velocity = new T.Vector3();
   private gaze = new T.Vector3();
   private direction = new T.Vector3();
+  private bikeViewUp = new T.Vector3();
   private orbitTime = 0;
   /** The part of the canvas the paddock menu leaves free for the showroom machine (the interface
    * measures it from the real layout). Null keeps the authored composition. */
@@ -1501,6 +1502,7 @@ export class RacingRenderer {
     const car = this.cars[this.follow],
       speed = presented[o + F.SPEED];
     const bikeFollow = !!this.bikeShells && BikeShells.isBike(presented, this.follow);
+    if (bikeFollow) this.bikeViewUp.set(0, 1, 0).applyQuaternion(car.root.quaternion);
     const followedDefinition = vehicleAt(Math.round(presented[o + RACE_BASE + R.VEHICLE])),
       motocrossFollow =
         bikeFollow &&
@@ -1826,7 +1828,7 @@ export class RacingRenderer {
         else this.direction.set(0, cameraMode === 'pod' ? TCAM_PITCH : -0.035, 1);
         this.direction.applyQuaternion(orientation).normalize();
         this.gaze.copy(this.desired).addScaledVector(this.direction, 40);
-        // A bike's onboard cameras are mounted on the bike and roll with it.
+        // Resolve the instrument socket and helmet horizon from this presented bike.
         if (bikeFollow) {
           this.bikeShells.onboard(
             car.root,
@@ -1834,6 +1836,8 @@ export class RacingRenderer {
             this.direction,
             cameraMode === 'pod',
             followedDefinition,
+            this.bikeViewUp,
+            this.reducedMotion,
           );
           this.gaze.copy(this.desired).addScaledVector(this.direction, 40);
         }
@@ -2018,7 +2022,7 @@ export class RacingRenderer {
       this.camera.up.lerp(this.temporary, 0.2).normalize();
     }
     if (bikeFollow && (!menu || !!this.photo) && (!this.photo || this.photo.view !== 'orbit')) {
-      // Chase rolls partly with the bike's lean; onboard views roll fully.
+      // Chase and helmet mounts use their own roll response.
       this.temporary.set(0, 1, 0).applyQuaternion(car.root.quaternion);
       if (cameraMode === 'chase') {
         if (motocrossFollow && !pregame) this.camera.up.copy(this.motocrossCamera.up);
@@ -2030,7 +2034,7 @@ export class RacingRenderer {
             )
             .normalize();
       } else if (cameraMode === 'cockpit' || cameraMode === 'pod')
-        this.camera.up.copy(this.temporary);
+        this.camera.up.copy(this.bikeViewUp);
     }
     this.camera.lookAt(this.gaze);
     if (this.photo) this.camera.rotateZ((this.photo.roll * Math.PI) / 180);
