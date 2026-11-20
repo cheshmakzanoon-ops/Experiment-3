@@ -46,16 +46,18 @@ function trafficLampMaterial() {
   return material;
 }
 
+/** Version 2 contains the same first thirteen fields. Its wheel travel and
+ * poses can still be played after v3 added chassis movement. */
+function frameStride(block: Float32Array | null) {
+  return block?.[2] === TRAFFIC_VERSION ? TRAFFIC_STRIDE : block?.[2] === 2 ? 13 : 0;
+}
 /** Versioned auxiliary frames are independently validated: a stale worker or
  * truncated block must never become NaN transforms or be read at a new stride. */
 function blockCount(block: Float32Array | null) {
-  if (!block || block.length < TRAFFIC_HEADER || block[2] !== TRAFFIC_VERSION) return 0;
+  const stride = frameStride(block);
+  if (!stride || !block || block.length < TRAFFIC_HEADER) return 0;
   const count = block[0];
-  if (
-    !Number.isInteger(count) ||
-    count < 0 ||
-    block.length !== TRAFFIC_HEADER + count * TRAFFIC_STRIDE
-  )
+  if (!Number.isInteger(count) || count < 0 || block.length !== TRAFFIC_HEADER + count * stride)
     return 0;
   return Math.min(TRAFFIC_CAPACITY, count);
 }
@@ -79,6 +81,11 @@ export class TrafficCars {
   private readonly quaternion = new T.Quaternion();
   private readonly qa = new T.Quaternion();
   private readonly wheelQuaternion = new T.Quaternion();
+  private readonly sprungPosition = new T.Vector3();
+  private readonly pivotOffset = new T.Vector3();
+  private readonly sprungOrientation = new T.Quaternion();
+  private readonly localSpring = new T.Quaternion();
+  private readonly springEuler = new T.Euler(0, 0, 0, 'ZXY');
   private readonly steerQuaternion = new T.Quaternion();
   private readonly rollQuaternion = new T.Quaternion();
   private readonly scale = new T.Vector3(1, 1, 1);
@@ -170,37 +177,52 @@ export class TrafficCars {
       return;
     }
     const blend = Number.isFinite(alpha) ? T.MathUtils.clamp(alpha, 0, 1) : 1;
-    const previousCount = blockCount(a);
+    const previousCount = blockCount(a),
+      oldStride = frameStride(a),
+      stride = frameStride(b);
     const timeB = Number.isFinite(b[1]) ? b[1] : time;
     const signalTime =
       a && previousCount && Number.isFinite(a[1]) ? a[1] + (timeB - a[1]) * blend : timeB;
     this.index.clear();
     if (a)
       for (let k = 0; k < previousCount; k++)
-        this.index.set(a[TRAFFIC_HEADER + k * TRAFFIC_STRIDE + TF.ID], k);
+        this.index.set(a[TRAFFIC_HEADER + k * oldStride + TF.ID], k);
     for (let k = 0; k < n; k++) {
-      const o = TRAFFIC_HEADER + k * TRAFFIC_STRIDE,
+      const o = TRAFFIC_HEADER + k * stride,
         id = b[o + TF.ID],
         previous = this.index.get(id);
-      const p = previous === undefined || !a ? -1 : TRAFFIC_HEADER + previous * TRAFFIC_STRIDE;
+      const p = previous === undefined || !a ? -1 : TRAFFIC_HEADER + previous * oldStride;
       this.position.set(b[o + TF.X], b[o + TF.Y], b[o + TF.Z]);
       this.quaternion.set(b[o + TF.QX], b[o + TF.QY], b[o + TF.QZ], b[o + TF.QW]).normalize();
-      let distance = b[o + TF.DISTANCE],
-        curvature = 0;
+      let distance = b[o + TF.DISTANCE];
+      let curvature = stride === TRAFFIC_STRIDE ? b[o + TF.CURVATURE] : 0;
+      let pitch = stride === TRAFFIC_STRIDE ? b[o + TF.PITCH] : 0;
+      let roll = stride === TRAFFIC_STRIDE ? b[o + TF.ROLL] : 0;
       if (p >= 0 && a && a[p + TF.VEHICLE] === b[o + TF.VEHICLE]) {
         this.previous.set(a[p + TF.X], a[p + TF.Y], a[p + TF.Z]);
         this.qa.set(a[p + TF.QX], a[p + TF.QY], a[p + TF.QZ], a[p + TF.QW]).normalize();
         const travelled = distance - a[p + TF.DISTANCE];
         // Heading comes from each body's forward vector; bank and pitch do
         // not masquerade as steer, and atan2 wraps the +/-pi seam correctly.
-        const ax = 2 * (this.qa.x * this.qa.z + this.qa.w * this.qa.y);
-        const az = 1 - 2 * (this.qa.x * this.qa.x + this.qa.y * this.qa.y);
-        const bx =
-          2 * (this.quaternion.x * this.quaternion.z + this.quaternion.w * this.quaternion.y);
-        const bz =
-          1 - 2 * (this.quaternion.x * this.quaternion.x + this.quaternion.y * this.quaternion.y);
-        if (Math.abs(travelled) > 0.002)
-          curvature = Math.atan2(bx * az - bz * ax, ax * bx + az * bz) / travelled;
+        if (stride === TRAFFIC_STRIDE) {
+          const oldCurvature = oldStride === TRAFFIC_STRIDE ? a[p + TF.CURVATURE] : curvature;
+          curvature = T.MathUtils.lerp(oldCurvature, curvature, blend);
+          pitch = T.MathUtils.lerp(
+            oldStride === TRAFFIC_STRIDE ? a[p + TF.PITCH] : 0,
+            pitch,
+            blend,
+          );
+          roll = T.MathUtils.lerp(oldStride === TRAFFIC_STRIDE ? a[p + TF.ROLL] : 0, roll, blend);
+        } else {
+          const ax = 2 * (this.qa.x * this.qa.z + this.qa.w * this.qa.y);
+          const az = 1 - 2 * (this.qa.x * this.qa.x + this.qa.y * this.qa.y);
+          const bx =
+            2 * (this.quaternion.x * this.quaternion.z + this.quaternion.w * this.quaternion.y);
+          const bz =
+            1 - 2 * (this.quaternion.x * this.quaternion.x + this.quaternion.y * this.quaternion.y);
+          if (Math.abs(travelled) > 0.002)
+            curvature = Math.atan2(bx * az - bz * ax, ax * bx + az * bz) / travelled;
+        }
         distance = a[p + TF.DISTANCE] + travelled * blend;
         this.position.copy(this.previous.lerp(this.position, blend));
         this.quaternion.copy(this.qa.slerp(this.quaternion, blend));
@@ -234,7 +256,19 @@ export class TrafficCars {
         def.halfExtents[1] / profile.vehicle.halfExtents[1],
         def.halfExtents[2] / profile.vehicle.halfExtents[2],
       );
-      this.matrix.compose(this.position, this.quaternion, this.scale);
+      // Snapshots store the collision-box centre vertically over the road.
+      // The render origin uses the sheet's true half-height along the road
+      // normal. This also seats the low hypercars on their tyres on a bank.
+      const halfHeight = def.halfExtents[1];
+      const normalY = 1 - 2 * (this.quaternion.x ** 2 + this.quaternion.z ** 2);
+      this.position.y += halfHeight / Math.max(0.4, normalY) - Math.max(0.5, halfHeight);
+      const pivotY = def.spec.linkCentreHeight - halfHeight;
+      this.localSpring.setFromEuler(this.springEuler.set(pitch, 0, roll, 'ZXY'));
+      this.sprungOrientation.copy(this.quaternion).multiply(this.localSpring);
+      this.sprungPosition.set(0, pivotY, 0).applyQuaternion(this.quaternion).add(this.position);
+      this.pivotOffset.set(0, pivotY, 0).applyQuaternion(this.sprungOrientation);
+      this.sprungPosition.sub(this.pivotOffset);
+      this.matrix.compose(this.sprungPosition, this.sprungOrientation, this.scale);
       const weights = this.morph.morphTargetInfluences!;
       weights.fill(0);
       if (profileIndex > 0) weights[profileIndex - 1] = 1;

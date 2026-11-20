@@ -22,6 +22,35 @@ function fixture() {
 }
 
 describe('authoritative traffic wheel travel', () => {
+  it('settles from actual braking and turning with car-specific spring rates', () => {
+    const { traffic, player } = fixture();
+    const straight = openWorld().network.edges.find((edge) => edge.roadClass === 'runway')!;
+    const car = traffic.place(straight.index, 1, 200, 22, 'rp6');
+    car.accel = -5;
+    // Settle the chassis independently of the lower-frequency traffic planner.
+    for (let i = 0; i < 100; i++) {
+      const old = car.speed,
+        yaw = car.yaw;
+      car.speed -= 5 / 120;
+      car.yaw += 0.16 / 120;
+      car.settleChassis(old, yaw, 1 / 120);
+    }
+    expect(car.pitch.angle).toBeGreaterThan(0.003);
+    expect(car.roll.angle).toBeGreaterThan(0.002);
+    expect(car.curvature).toBeGreaterThan(0);
+    const frame = traffic.writeSnapshot(),
+      o = TRAFFIC_HEADER;
+    expect(frame[o + TF.PITCH]).toBeCloseTo(car.pitch.angle, 7);
+    expect(frame[o + TF.ROLL]).toBeCloseTo(car.roll.angle, 7);
+    expect(frame[o + TF.CURVATURE]).toBeCloseTo(car.curvature, 7);
+    const frozen = [car.pitch.angle, car.roll.angle];
+    traffic.step(0, player);
+    expect([car.pitch.angle, car.roll.angle]).toEqual(frozen);
+    const angle = car.pitch.angle;
+    for (let i = 0; i < 240; i++) car.settleChassis(car.speed, car.yaw, 1 / 120);
+    expect(Math.abs(car.pitch.angle)).toBeLessThan(angle * 0.1);
+  });
+
   it('records physical longitudinal travel in the versioned auxiliary snapshot', () => {
     const { traffic, edge, player } = fixture();
     const car = traffic.place(edge.index, 1, 200, 12, 'rh3');

@@ -1,3 +1,6 @@
+import { openWorld } from '../src/simulation/open-world/world.ts';
+import { OpenWorldTrack } from '../src/simulation/open-world/open-world-track.ts';
+import { surfaceSample } from '../src/simulation/track.ts';
 import * as T from 'three';
 import { describe, expect, it } from 'vitest';
 import { TrafficCars, TRAFFIC_CAPACITY } from '../src/rendering/traffic-cars.ts';
@@ -6,6 +9,7 @@ import {
   trafficBodyGeometry,
 } from '../src/rendering/traffic-car-geometry.ts';
 import {
+  AmbientTraffic,
   TF,
   TRAFFIC_FLAG,
   TRAFFIC_HEADER,
@@ -24,6 +28,9 @@ type Pose = {
   brake?: number;
   flags?: number;
   distance?: number;
+  curvature?: number;
+  pitch?: number;
+  roll?: number;
 };
 function block(poses: Pose[], time = 0) {
   const data = new Float32Array(TRAFFIC_HEADER + poses.length * TRAFFIC_STRIDE);
@@ -33,6 +40,9 @@ function block(poses: Pose[], time = 0) {
   for (let i = 0; i < poses.length; i++) {
     const p = poses[i],
       offset = TRAFFIC_HEADER + i * TRAFFIC_STRIDE;
+    data[offset + TF.CURVATURE] = p.curvature ?? 0;
+    data[offset + TF.PITCH] = p.pitch ?? 0;
+    data[offset + TF.ROLL] = p.roll ?? 0;
     data[offset + TF.ID] = p.id;
     data[offset + TF.VEHICLE] = vehicleIndex(p.machine.id);
     data[offset + TF.X] = p.x;
@@ -231,8 +241,14 @@ describe('festival traffic visual geometry', () => {
   it('derives Ackermann front steering from movement while rear axles stay straight', () => {
     const cars = new TrafficCars(),
       def = VEHICLES.rs5;
-    const a = block([{ id: 1, machine: def, x: 0, z: 0, yaw: 0, distance: 10 }], 1);
-    const b = block([{ id: 1, machine: def, x: 0.1, z: 2, yaw: 0.12, distance: 12 }], 1.2);
+    const a = block(
+      [{ id: 1, machine: def, x: 0, z: 0, yaw: 0, distance: 10, curvature: 0.06 }],
+      1,
+    );
+    const b = block(
+      [{ id: 1, machine: def, x: 0.1, z: 2, yaw: 0.12, distance: 12, curvature: 0.06 }],
+      1.2,
+    );
     cars.update(a, b, 1, 0, 1.2);
     const axis = new T.Vector3(1, 0, 0),
       q = new T.Quaternion(),
@@ -275,6 +291,64 @@ describe('festival traffic visual geometry', () => {
     expect(Array.from(replay.wheels.instanceMatrix.array.slice(0, 64))).toEqual(held);
     cars.dispose();
     replay.dispose();
+  });
+
+  it('preserves sprung body motion, tyre contact and recorded steering on a single held frame', () => {
+    const cars = new TrafficCars(),
+      def = VEHICLES.sc7;
+    const frame = block(
+      [{ id: 31, machine: def, x: 5, z: 7, curvature: 0.065, pitch: 0.026, roll: -0.04 }],
+      12,
+    );
+    const neutral = frame.slice();
+    neutral[TRAFFIC_HEADER + TF.PITCH] = neutral[TRAFFIC_HEADER + TF.ROLL] = 0;
+    cars.update(null, neutral, 1, 0, 0);
+    const wheels = Array.from({ length: 4 }, (_, wheel) => matrixAt(cars.wheels, wheel));
+    const ground = 3 - Math.max(0.5, def.halfExtents[1]);
+    for (const w of wheels) {
+      const v = new T.Vector3().setFromMatrixPosition(w);
+      expect(v.y - def.spec.wheelRadius).toBeCloseTo(ground, 5);
+    }
+    cars.update(null, frame, 1, 0, 999);
+    const bodyPose = matrixAt(cars.bodies, 0),
+      tilt = new T.Quaternion();
+    bodyPose.decompose(new T.Vector3(), tilt, new T.Vector3());
+    expect(
+      Math.abs(tilt.dot(new T.Quaternion().setFromEuler(new T.Euler(0.026, 0, -0.04, 'ZXY')))),
+    ).toBeCloseTo(1, 6);
+    for (let w = 0; w < 4; w++)
+      expect(matrixAt(cars.wheels, w).elements).toEqual(wheels[w].elements);
+    const frontForward = new T.Vector3(0, 0, 1).transformDirection(wheels[0]);
+    expect(frontForward.x).toBeGreaterThan(0.1);
+    cars.update(frame, frame, 0.2, 0, -4);
+    expect(matrixAt(cars.bodies, 0).elements).toEqual(bodyPose.elements);
+    // Version two stores the same identity, wheel phase and road pose without the sprung fields.
+    const v2 = frame.slice(0, TRAFFIC_HEADER + 13);
+    v2[2] = 2;
+    cars.update(null, v2, 1, 0, 0);
+    expect(cars.count).toBe(1);
+    expect(matrixAt(cars.bodies, 0).elements).toEqual(
+      new T.Matrix4().makeTranslation(5, ground + def.halfExtents[1], 7).elements.map(Math.fround),
+    );
+    cars.dispose();
+  });
+
+  it('places the tyres from real low-car traffic snapshots on the cambered carriageway', () => {
+    const world = openWorld(),
+      net = world.network;
+    const edge = net.edges.find((e) => e.roadClass === 'highway' && e.length > 800)!;
+    const road = new OpenWorldTrack(world),
+      traffic = new AmbientTraffic(net, 37, { maxCars: 0, perTile: 0 });
+    const entry = traffic.place(edge.index, 1, edge.length * 0.4, 0, 'sc7');
+    const cars = new TrafficCars(),
+      frame = traffic.writeSnapshot();
+    cars.update(null, frame, 1, 0, 0);
+    for (let i = 0; i < 4; i++) {
+      const bottom = new T.Vector3(0, -1, 0).applyMatrix4(matrixAt(cars.wheels, i));
+      const contact = road.sample(bottom.x, bottom.z, surfaceSample(), entry.position.y);
+      expect(Math.abs(bottom.y - contact.height), `wheel ${i}`).toBeLessThan(0.025);
+    }
+    cars.dispose();
   });
 
   it('keeps capacity, rejects old/truncated frames, clears absent traffic and disposes every owned asset once', () => {

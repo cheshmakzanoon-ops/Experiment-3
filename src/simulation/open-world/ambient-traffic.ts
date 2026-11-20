@@ -1,10 +1,11 @@
-import { clamp, mod, Vec3 } from '../../core/math.ts';
+import { clamp, G, mod, Vec3 } from '../../core/math.ts';
+import { DEFAULT_SETUP } from '../config.ts';
 import { bikeOrientation } from '../bike-vehicle.ts';
 import { BoxContact, ChassisBox } from '../obb.ts';
 import { RigidBody } from '../rigid.ts';
 import type { TrackPoint } from '../track.ts';
 import type { Vehicle } from '../vehicle.ts';
-import { vehicleIndex, type VehicleDefinition } from '../vehicles.ts';
+import { setupFor, vehicleIndex, type VehicleDefinition } from '../vehicles.ts';
 import { festivalCars } from './festival-machines.ts';
 import { SPEED_CLASS_KMH, type RoadClass } from './region-data.ts';
 import type { RoadEdge, RoadNetwork } from './road-network.ts';
@@ -50,11 +51,11 @@ export const TRAFFIC = Object.freeze({
   claimTimeout: 8,
 });
 /** Snapshot layout of the traffic block sent with each festival frame.
- * Header: count, simulation time, traffic schema version. Version 2 adds
- * authoritative wheel travel; renderers reject unversioned/stale blocks. */
-export const TRAFFIC_VERSION = 2;
+ * Header: count, simulation time, traffic schema version. Version 2 added wheel
+ * travel. Version 3 records rack curvature and sprung body pitch and roll. */
+export const TRAFFIC_VERSION = 3;
 export const TRAFFIC_HEADER = 3;
-export const TRAFFIC_STRIDE = 13;
+export const TRAFFIC_STRIDE = 16;
 export const TF = Object.freeze({
   ID: 0,
   VEHICLE: 1,
@@ -71,6 +72,9 @@ export const TF = Object.freeze({
   FLAGS: 11,
   /** Cumulative signed longitudinal travel (m), independent of edge changes. */
   DISTANCE: 12,
+  CURVATURE: 13,
+  PITCH: 14,
+  ROLL: 15,
 });
 export const TRAFFIC_FLAG = Object.freeze({ HAZARD: 1, WAITING: 2 });
 
@@ -87,6 +91,19 @@ function hash01(...values: number[]) {
 }
 const tileKey = (ix: number, iz: number) => (ix + 512) * 1024 + (iz + 512);
 
+interface SprungAngle {
+  angle: number;
+  rate: number;
+}
+/** Closed-form critical damping for a held target over one fixed step. */
+function settleAngle(s: SprungAngle, target: number, frequency: number, dt: number) {
+  const delta = s.angle - target;
+  const term = s.rate + frequency * delta;
+  const decay = Math.exp(-frequency * dt);
+  s.angle = target + (delta + term * dt) * decay;
+  s.rate = (s.rate - frequency * term * dt) * decay;
+}
+
 /** One kinematic ambient car: it follows its lane of a road-network edge,
  * picks its next edge at each junction, keeps its distance with a simple
  * car-following law and yields at junctions. It has a rigid-body pose (for
@@ -99,6 +116,15 @@ export class TrafficCar {
   /** Actual forward travel, including road slope and excluding lateral shove.
    * Rendered wheels use this authoritative phase during holds and replay. */
   distance = 0;
+  /** These sprung angles affect visible bodywork. Tyres and the kinematic
+   * collision box keep their road reference through braking and cornering. */
+  curvature = 0;
+  readonly pitch = { angle: 0, rate: 0 };
+  readonly roll = { angle: 0, rate: 0 };
+  private readonly pitchCompliance: number;
+  private readonly rollCompliance: number;
+  private readonly pitchFrequency: number;
+  private readonly rollFrequency: number;
   /** Distance travelled along the current edge in the travel direction (m). */
   s = 0;
   /** Lateral offset in the travel frame (m, positive left: right-hand lanes are negative). */
@@ -145,6 +171,35 @@ export class TrafficCar {
     this.box.half = this.half;
     this.body.mass = definition.spec.dryMass + 60;
     this.vehicleIndex = vehicleIndex(definition.id);
+    const setup = setupFor(definition, DEFAULT_SETUP, DEFAULT_SETUP);
+    const front = definition.wheelPositions[0],
+      rear = definition.wheelPositions[2];
+    const pitchStiffness =
+      2 * (setup.frontSpring * front[2] ** 2 + setup.rearSpring * rear[2] ** 2);
+    const rollStiffness =
+      (0.5 * setup.frontSpring + setup.frontARB) * (2 * front[0]) ** 2 +
+      (0.5 * setup.rearSpring + setup.rearARB) * (2 * rear[0]) ** 2;
+    const moment = this.body.mass * Math.max(0.1, hy - definition.spec.linkCentreHeight);
+    this.pitchCompliance = moment / pitchStiffness;
+    this.rollCompliance = moment / rollStiffness;
+    this.pitchFrequency = clamp(Math.sqrt(pitchStiffness / definition.spec.inertia[0]), 6, 16);
+    this.rollFrequency = clamp(Math.sqrt(rollStiffness / definition.spec.inertia[2]), 6, 16);
+  }
+  settleChassis(oldSpeed: number, oldYaw: number, dt: number) {
+    if (!(dt > 0)) return;
+    const yawRate = (this.yaw - oldYaw) / dt;
+    const speed = (this.speed + oldSpeed) * 0.5;
+    if (speed > 0.2) {
+      const lock = Math.tan(this.definition.spec.maxSteer) / this.definition.spec.wheelbase;
+      this.curvature = clamp(yawRate / speed, -lock, lock);
+    }
+    const q = this.body.orientation;
+    const forwardY = 2 * (q.y * q.z - q.w * q.x),
+      rightY = 2 * (q.x * q.y + q.w * q.z);
+    const longitudinal = clamp((this.speed - oldSpeed) / dt + G * forwardY, -12, 10);
+    const lateral = clamp(speed * yawRate + G * rightY, -12, 12);
+    settleAngle(this.pitch, -longitudinal * this.pitchCompliance, this.pitchFrequency, dt);
+    settleAngle(this.roll, lateral * this.rollCompliance, this.rollFrequency, dt);
   }
   get position() {
     return this.body.position;
@@ -261,6 +316,8 @@ export class AmbientTraffic {
     }
     for (let i = this.cars.length - 1; i >= 0; i--) {
       const c = this.cars[i];
+      const oldSpeed = c.speed,
+        oldYaw = c.yaw;
       const oldX = c.position.x,
         oldY = c.position.y,
         oldZ = c.position.z;
@@ -285,6 +342,7 @@ export class AmbientTraffic {
         continue;
       }
       this.pose(c, dt);
+      c.settleChassis(oldSpeed, oldYaw, dt);
       const q = c.body.orientation;
       const forwardX = oldForwardX + 2 * (q.x * q.z + q.w * q.y);
       const forwardY = oldForwardY + 2 * (q.y * q.z - q.w * q.x);
@@ -724,6 +782,9 @@ export class AmbientTraffic {
       out[o + TF.BRAKE] = c.brake;
       out[o + TF.FLAGS] = (c.stunned > 0 ? TRAFFIC_FLAG.HAZARD : 0) | (c.waiting ? TRAFFIC_FLAG.WAITING : 0);
       out[o + TF.DISTANCE] = c.distance;
+      out[o + TF.CURVATURE] = c.curvature;
+      out[o + TF.PITCH] = c.pitch.angle;
+      out[o + TF.ROLL] = c.roll.angle;
     });
     return out;
   }
