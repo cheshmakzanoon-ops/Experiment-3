@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test';
+import type { CDPSession, Page } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -30,8 +30,7 @@ function findMarker(pixels: Buffer, width: number, height: number, green: boolea
 
 /** Copy the visible Chromium view when the window system cannot supply a
  * calibrated crop. The caller checks the dimensions and image identity. */
-async function captureView(page: Page, path: string) {
-  const session = await page.context().newCDPSession(page);
+async function captureView(page: Page, session: CDPSession, path: string) {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     const viewport = page.viewportSize()!;
@@ -49,39 +48,38 @@ async function captureView(page: Page, path: string) {
     await writeFile(path, Buffer.from(data, 'base64'));
   } finally {
     clearTimeout(timer);
-    await session.detach();
   }
 }
 
 /** Read a dedicated virtual display without queuing another WebGL draw.
  * Locate two inset targets on about:blank before opening the real game. */
 export async function motocrossScreenCapture(page: Page) {
+  // One channel follows the tab across both venues. Per-image detach can
+  // stall after Chromium has already delivered a complete riding screenshot.
+  // The browser releases this session when the page target closes.
+  const chrome = await page.context().newCDPSession(page);
+  const readView = (path: string) => captureView(page, chrome, path);
   if (process.env.APEX_MOTOCROSS_XVFB_CAPTURE !== '1') {
     // A normal Playwright screenshot can request another compositor frame
     // while the ride is already GPU-bound. Read the last presented view on
     // either software backend; the caller verifies every capture's identity.
-    return (path: string) => captureView(page, path);
+    return readView;
   }
   const viewport = page.viewportSize();
   if (!viewport) throw new Error('The motocross capture requires a fixed viewport');
   await page.bringToFront();
-  const chrome = await page.context().newCDPSession(page);
-  try {
-    const { windowId } = await chrome.send('Browser.getWindowForTarget');
-    // Xvfb has no window manager. Leave room for Chromium's toolbar and
-    // native frame while Playwright keeps the game viewport at its set size.
-    await chrome.send('Browser.setWindowBounds', {
-      windowId,
-      bounds: {
-        left: 0,
-        top: 0,
-        width: viewport.width + 96,
-        height: viewport.height + 160,
-      },
-    });
-  } finally {
-    await chrome.detach();
-  }
+  const { windowId } = await chrome.send('Browser.getWindowForTarget');
+  // Xvfb has no window manager. Leave room for Chromium's toolbar and
+  // native frame while Playwright keeps the game viewport at its set size.
+  await chrome.send('Browser.setWindowBounds', {
+    windowId,
+    bounds: {
+      left: 0,
+      top: 0,
+      width: viewport.width + 96,
+      height: viewport.height + 160,
+    },
+  });
   await page.setContent(`<style>
     html { background:#182029 } i,b { position:fixed; width:${size}px; height:${size}px }
     i { left:${inset}px; top:${inset}px; background:#d9198f }
@@ -135,7 +133,7 @@ export async function motocrossScreenCapture(page: Page) {
   }
   if (!crop) {
     console.info(`[MX journey] Reading the Chromium view. X11 targets: ${observed}`);
-    return (path: string) => captureView(page, path);
+    return readView;
   }
   console.info(`[MX journey] Capturing the presented X11 viewport at ${crop}`);
   return async (path: string) => {
