@@ -553,7 +553,9 @@
     ]
   },
   "formulaHostSetup": {
-    "description": "The actual race renderer allocates eight motocross slots with the shipped Formula body and driver assets available. Dirt entrants leave the four-wheel materials, shadow casters, wheel fits and jack fits deferred. Changing the same eight slots to Formula cars installs the art once. No GPU frame timing is inferred.",
+    "description": "Eight dirt slots are constructed with the shipped Formula shells and driver available, then switched to cars twice. Canvas bytes are width × height × four RGBA channels for each original flank skin. Shadow buffer bytes are the actual geometry allocation.",
+    "previousDirtFlankCanvases": 16,
+    "previousDirtFlankRgbaBytes": 67108864,
     "measurements": {
       "riders": 8,
       "originalAssets": [
@@ -564,6 +566,8 @@
         "apx01-driver"
       ],
       "dirt": {
+        "flankCanvases": 0,
+        "flankRgbaBytes": 0,
         "shadowCasters": 0,
         "shadowBufferBytes": 0,
         "textureRegistrations": 0,
@@ -571,6 +575,8 @@
         "jackFits": 0
       },
       "fitted": {
+        "flankCanvases": 16,
+        "flankRgbaBytes": 67108864,
         "shadowCasters": 264,
         "shadowBufferBytes": 3267612,
         "textureRegistrations": 8,
@@ -578,6 +584,8 @@
         "jackFits": 8
       },
       "repeated": {
+        "flankCanvases": 16,
+        "flankRgbaBytes": 67108864,
         "shadowCasters": 264,
         "shadowBufferBytes": 3267612,
         "textureRegistrations": 8,

@@ -182,6 +182,10 @@ export function drawDecal(context: CanvasRenderingContext2D, decal: DecalSlot, s
   context.restore();
 }
 const sourceCanvases = new WeakMap<T.Texture, HTMLCanvasElement>();
+const pendingSkins = new WeakMap<
+  T.MeshPhysicalMaterial,
+  { side: number; id: number; livery?: Livery }
+>();
 
 /**
  * Sidepod skin frame. The A61 pod (shared, unmirrored geometry at x = +-0.53)
@@ -448,7 +452,12 @@ function drawFlank(context: CanvasRenderingContext2D, side: number, id: number, 
 }
 
 /** Original marks on a UV-conforming skin, never extracted reference artwork. */
-export function flankLivery(paint: T.MeshPhysicalMaterial, side: number, id: number) {
+export function flankLivery(
+  paint: T.MeshPhysicalMaterial,
+  side: number,
+  id: number,
+  deferTexture = false,
+) {
   const material = paint.clone();
   delete material.userData.aurelPaintFinish;
   installPaintFinish(material);
@@ -456,22 +465,40 @@ export function flankLivery(paint: T.MeshPhysicalMaterial, side: number, id: num
   installPaintFlakes(material, PAINT_FINISHES[finish].flake, PAINT_FINISHES[finish].peel);
   installGrazingCap(material);
   material.color.set(0xffffff);
+  material.map = null;
+  material.userData.liverySide = side;
+  material.name = 'Clear-coated UV-conforming original livery';
+  pendingSkins.set(material, { side, id });
+  if (!deferTexture) prepareFlankTexture(material);
+  return material;
+}
+
+/** A two-wheel entry shares the slot machinery with a car. Paint its Formula
+ * skins only if the slot later presents that body, before texture registration. */
+export function prepareFlankTexture(material: T.MeshPhysicalMaterial) {
+  const pending = pendingSkins.get(material);
+  if (!pending) return;
+  const { side, id, livery } = pending;
   // A CPU-backed skin. apexDiagnostics() reads a skin pixel back
   // (renderer.playerPaint) to prove a repaint reached the canvas; on an
   // accelerated canvas that getImageData waits for every GPU submission queued
   // ahead of it, so one diagnostics call during session loading on a software
   // rasterizer held the main thread (and the worker's first snapshot) ~30 s.
   // The skin is drawn once and on livery edits, then uploaded as a texture.
-  material.map = canvasTexture(1024, 1024, (context) => drawFlank(context, side, id), {
+  material.map = canvasTexture(1024, 1024, (context) => drawFlank(context, side, id, livery), {
     willReadFrequently: true,
   });
   sourceCanvases.set(material.map, material.map.image as HTMLCanvasElement);
-  material.userData.liverySide = side;
   material.map.name = `Original MOTOBOUND car ${id + 7} ${side > 0 ? 'left' : 'right'} skin`;
-  material.name = 'Clear-coated UV-conforming original livery';
-  return material;
+  material.needsUpdate = true;
+  pendingSkins.delete(material);
 }
 export function repaintFlank(material: T.MeshPhysicalMaterial, id: number, livery: Livery) {
+  const pending = pendingSkins.get(material);
+  if (pending) {
+    pending.livery = livery;
+    return;
+  }
   if (!material.map) return;
   const canvas = sourceCanvases.get(material.map);
   const context = canvas?.getContext('2d');

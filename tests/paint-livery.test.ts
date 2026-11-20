@@ -14,6 +14,7 @@ import {
   installTeamPaint,
   liveryScheme,
   playerSecondary,
+  prepareFlankTexture,
   repaintFlank,
   setLiveryPattern,
 } from '../src/rendering/car-livery.ts';
@@ -220,6 +221,34 @@ describe('D06 team liveries', () => {
     repaintFlank(flank, 0, { ...DEFAULT_LIVERY, primary: '#285c89', pattern: 'split' });
     expect(calls[calls.indexOf('fillRect:0,0,1024,1024') - 1]).toBe('fillStyle=#285c89');
   });
+  it.each([-1, 1])(
+    'draws the latest livery once when a dirt slot presents its Formula flank (%i)',
+    (side) => {
+      const calls = recordingCanvas();
+      const paint = installTeamPaint(new T.MeshPhysicalMaterial(), 0);
+      const flank = flankLivery(paint, side, 0, true);
+      const custom = { ...DEFAULT_LIVERY, primary: '#285c89', number: 29 };
+      repaintFlank(flank, 0, { ...DEFAULT_LIVERY, primary: '#ef563a' });
+      repaintFlank(flank, 0, custom);
+      expect(flank.map).toBeNull();
+      expect(calls).toHaveLength(0);
+
+      prepareFlankTexture(flank);
+      const painted = calls.splice(0);
+      const texture = flank.map!;
+      expect(texture.image).toMatchObject({ width: 1024, height: 1024 });
+      expect(texture.userData.cpuReadback).toBe(true);
+      prepareFlankTexture(flank);
+      expect(flank.map).toBe(texture);
+      expect(calls).toHaveLength(0);
+
+      const original = flankLivery(paint, side, 0);
+      calls.length = 0;
+      repaintFlank(original, 0, custom);
+      expect(painted).toEqual(calls);
+      expect(texture.name).toBe(original.map!.name);
+    },
+  );
   it('keeps flank skins CPU-backed so the diagnostics readback never waits on queued GPU work', () => {
     // apexDiagnostics() reads a flank pixel back on every call. On an
     // accelerated canvas that read waited ~30 s behind a software rasterizer's

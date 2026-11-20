@@ -185,6 +185,7 @@ import {
 } from './gp-photographic-camera.ts';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { FormulaCar } from './car.ts';
+import { prepareFlankTexture } from './car-livery.ts';
 import { carLod } from './lod.ts';
 import { attachDrawLedger, type DrawLedger } from './draw-ledger.ts';
 import { installSpecularAntialiasing } from './specular-aa.ts';
@@ -945,6 +946,7 @@ export class RacingRenderer {
     }
   }
   private installFormulaArt(car: FormulaCar) {
+    for (const material of car.reflectivePaint) prepareFlankTexture(material);
     reflectInWetRoad(car.root);
     this.textures.register(car.root);
     this.weatherPresentation.install(car.root);
@@ -958,21 +960,23 @@ export class RacingRenderer {
     // construction. The next real snapshot determines which body it needs.
     const unassignedDirtSlot = !frame && isMotocrossVenue(this.circuit.track);
     while (this.cars.length < n) {
+      const id = this.cars.length;
+      const definition = frame
+        ? vehicleAt(Math.round(frame[carBase(id) + RACE_BASE + R.VEHICLE]))
+        : undefined;
+      const deferFormulaArt = unassignedDirtSlot || definition?.dynamicsKind === 'bike';
       const car = new FormulaCar(
-        this.cars.length,
+        id,
         this.heroShells ?? undefined,
         this.driverAsset ?? undefined,
-        this.cars.length === 0 ? (this.suppliedPlayerAsset ?? undefined) : undefined,
+        id === 0 ? (this.suppliedPlayerAsset ?? undefined) : undefined,
         this.rivalLevels ?? undefined,
+        deferFormulaArt,
       );
       this.cars.push(car);
       this.pendingFormulaPitFits.add(car.id);
       this.scene.add(car.root);
-      const definition = frame
-        ? vehicleAt(Math.round(frame[carBase(car.id) + RACE_BASE + R.VEHICLE]))
-        : undefined;
-      if (unassignedDirtSlot || definition?.dynamicsKind === 'bike')
-        this.deferredFormulaArt.add(car.id);
+      if (deferFormulaArt) this.deferredFormulaArt.add(car.id);
       else this.installFormulaArt(car);
       this.reflectionMaterials.push([...car.reflectivePaint, this.circuit.roadMaterial]);
       if (car.id === 0) {

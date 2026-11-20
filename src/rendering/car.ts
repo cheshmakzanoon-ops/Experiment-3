@@ -177,6 +177,7 @@ export class FormulaCar {
     driverAsset?: DriverAsset,
     suppliedAsset?: SuppliedPlayerAsset,
     rivals?: RivalLevels,
+    deferFlankTextures = false,
   ) {
     // A61 bodywork dresses every car that is not the owner-supplied player: the
     // opponents, and (G15) the player's own APX-01 in a product build.
@@ -251,8 +252,8 @@ export class FormulaCar {
       box(s, dark, 0, -0.02, -0.6, 0.44, 0.45, 0.09);
     }
     const flankMaterials: [T.MeshPhysicalMaterial, T.MeshPhysicalMaterial] = [
-      flankLivery(this.paint, -1, id),
-      flankLivery(this.paint, 1, id),
+      flankLivery(this.paint, -1, id, deferFlankTextures),
+      flankLivery(this.paint, 1, id, deferFlankTextures),
     ];
     // Brake dust, rubber spray and a dirtier rear end on raced bodywork.
     for (const material of [this.paint, ...flankMaterials]) installRaceGrime(material);
