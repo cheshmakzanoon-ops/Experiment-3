@@ -17,6 +17,8 @@ export const PROBE_DETAIL_FACE_SIZE = 128;
  * These are capture-origin distances, not accumulated path length or heading:
  * a world-oriented cubemap remains valid when a stationary car turns. */
 export const PROBE_MOTION_REFRESH = Object.freeze({ distance: 12, minimumInterval: 0.5 });
+// Width of one texel at two metres from the centre of a 90-degree cube face.
+const STATIONARY_PROBE_DISTANCE = 4 / PROBE_FACE_SIZE;
 type ProbeRefreshReason = 'immediate' | 'motion' | 'scenery' | 'cadence';
 
 /** Coordinates recursive render passes. Mirrors render actual rear-facing camera feeds, and are hidden during other mirror/probe passes to prevent cycles. */
@@ -144,6 +146,8 @@ export class ReflectionSystem {
   private pendingStart = 0;
   private pendingSceneryRevision = 0;
   private pendingReason: ProbeRefreshReason = 'immediate';
+  private cadenceHolds = 0;
+  private deferredCadenceFaces = 0;
   /** Presentation time of the last refresh face. A paused or held frame does
    * no probe work: a refresh advances only as presentation time does. */
   private faceClock = NaN;
@@ -262,6 +266,7 @@ export class ReflectionSystem {
   invalidate() {
     this.lastProbe = -Infinity;
     this.pendingFace = -1;
+    this.cadenceHolds = 0;
     this.requestEpoch++;
     this.views.invalidate();
   }
@@ -287,6 +292,7 @@ export class ReflectionSystem {
       pendingFace: this.pendingFace,
       pendingReason: this.pendingFace >= 0 ? this.pendingReason : null,
       facesPerFrame: this.probeFacesPerFrame,
+      deferredCadenceFaces: this.deferredCadenceFaces,
       motionDistance: PROBE_MOTION_REFRESH.distance,
       minimumInterval: PROBE_MOTION_REFRESH.minimumInterval,
       // Initial/seek/subject/environment captures deliberately retain their
@@ -342,6 +348,7 @@ export class ReflectionSystem {
     high: boolean,
     intervalSeconds = 1.5,
     skyScale?: { value: number },
+    paceStaticRefresh = false,
   ) {
     if (this.activePass) return;
     if (!high) {
@@ -420,6 +427,19 @@ export class ReflectionSystem {
       starting = true;
       to = this.probeFacesPerFrame;
     }
+    // When full-size race frames are late, give two of every three visible
+    // frames to the rider before spending one on a stationary dry-venue face.
+    // The last complete cube remains bound. A move, scenery change or cut
+    // resumes capture immediately, and a stationary refresh still finishes.
+    const staticCadence = paceStaticRefresh && !immediate && this.pendingReason === 'cadence' &&
+      this.sceneryRevision === this.capturedSceneryRevision &&
+      this.currentEye.distanceToSquared(this.completedEye) < STATIONARY_PROBE_DISTANCE ** 2;
+    if (staticCadence && this.cadenceHolds < 2) {
+      this.cadenceHolds++;
+      this.deferredCadenceFaces++;
+      return;
+    }
+    this.cadenceHolds = 0;
     if (starting) {
       this.pendingStart = this.lastStart = this.clock;
       this.pendingSceneryRevision = this.sceneryRevision;

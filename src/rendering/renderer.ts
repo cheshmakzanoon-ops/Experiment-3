@@ -2460,6 +2460,8 @@ export class RacingRenderer {
         this.graphics.reflections === 'local' && !menu && !studio,
         wetReflection ? 0.55 : 1.5,
         this.sky.material.uniforms.probeSkyIntensity,
+        motocrossFollow && !menu && !this.photo && !replay && !wetReflection &&
+          this.gpuFrames.completionLatencyMs > 50,
       );
       if (pass === 'venue-probe') return;
       if (pass === 'venue-shadows') {

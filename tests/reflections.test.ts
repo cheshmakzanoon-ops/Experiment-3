@@ -557,6 +557,47 @@ it('keeps one reflection face per late live motocross frame and immediately reso
   }
 });
 
+it('paces stationary dry-race faces on a late GPU and keeps the complete reflection installed', () => {
+  const reflection = new ReflectionSystem(), { gl, faces } = slicedFixture();
+  const scene = new T.Scene(), bike = new T.Group(), metal = new T.MeshStandardMaterial();
+  reflection.probeFacesPerFrame = 1;
+  const present = (time: number, pace = true) => {
+    reflection.beginFrame(time, false, true);
+    reflection.updateProbe(gl, scene, bike, [metal], true, 1.5, undefined, pace);
+  };
+  try {
+    present(0);
+    const original = metal.envMap;
+    bike.position.y = 0.006;
+    for (let i = 0; i < 18; i++) {
+      const time = 2 + i / 10;
+      present(time);
+      present(time);
+      expect(faces).toHaveLength(6 + Math.floor((i + 1) / 3));
+      if (i < 17) expect(metal.envMap).toBe(original);
+    }
+    expect(metal.envMap).not.toBe(original);
+    expect(reflection.probeDiagnostics.deferredCadenceFaces).toBe(12);
+    bike.position.z = 0.1;
+    present(5.5);
+    expect(faces).toHaveLength(13);
+    reflection.invalidate();
+    present(5.6);
+    expect(faces).toHaveLength(19);
+    reflection.sceneryChanged();
+    present(6.2);
+    expect(faces).toHaveLength(20);
+    // All five remaining faces advance while the captured scenery is stale.
+    for (let i = 1; i <= 5; i++) present(6.2 + i / 10);
+    expect(faces).toHaveLength(25);
+    present(8.5, false);
+    expect(faces).toHaveLength(26);
+  } finally {
+    reflection.dispose();
+    metal.dispose();
+  }
+});
+
 it('drops a refresh in progress for a seek, subject or environment change and captures all six faces', () => {
   const reflection = new ReflectionSystem(),
     { gl, faces } = slicedFixture();

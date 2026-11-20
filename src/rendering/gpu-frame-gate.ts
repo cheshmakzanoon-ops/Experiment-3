@@ -38,6 +38,11 @@ export class GpuFrameGate {
       throw new Error('Invalid GPU frame polling limits');
   }
 
+  /** Smoothed wall time from a submission to an observed GPU completion. */
+  get completionLatencyMs() {
+    return this.latency;
+  }
+
   /** Refresh cadence only; this is never permission to discard unfinished work. */
   get waitBoundMs() {
     return Math.min(this.maxWaitMs, Math.max(this.minWaitMs, 4 * this.latency));
