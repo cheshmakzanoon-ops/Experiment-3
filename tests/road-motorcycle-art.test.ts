@@ -1,7 +1,13 @@
 import { MirrorViews } from '../src/rendering/mirrors.ts';
 import * as T from 'three';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { BIKE_ONBOARD, BikeMaterials, BikeModel, staticSag } from '../src/rendering/bike.ts';
+import {
+  bikeCockpitProfile,
+  bikeOnboardFov,
+  BikeMaterials,
+  BikeModel,
+  staticSag,
+} from '../src/rendering/bike.ts';
 import { GPRearSuspension } from '../src/rendering/gp-rear-chassis.ts';
 import { bikeEntrantScheme } from '../src/rendering/bike-sheet.ts';
 import { motorcycleWheel } from '../src/rendering/gp-forged-wheel.ts';
@@ -230,6 +236,51 @@ describe('road motorcycles in the GP selector', () => {
     },
   );
 
+  it.each(catalogue)('%s frames the actual controls from inside the helmet envelope', (id) => {
+    const def = VEHICLES[id],
+      materials = new BikeMaterials(0);
+    const model = new BikeModel(def, 0, 'high', materials, true);
+    try {
+      const profile = bikeCockpitProfile(def),
+        eye = new T.Vector3(...profile.eye);
+      const camera = new T.PerspectiveCamera(bikeOnboardFov(0, def), 1.6, 0.045, 500);
+      camera.position.copy(eye);
+      camera.lookAt(
+        eye.clone().add(new T.Vector3(0, Math.sin(profile.pitch), Math.cos(profile.pitch))),
+      );
+      camera.updateMatrixWorld(true);
+      const instruments =
+        model.root.getObjectByName('Steering-mounted road instruments') ??
+        model.root.getObjectByName('Snapshot-driven GP instruments')!;
+      for (const tuck of [0, 0.65, 1]) {
+        model.pose({
+          ...staticSag(def),
+          steer: 0,
+          frontRotation: 0,
+          rearRotation: 0,
+          chassisLean: 0,
+          riderOffset: 0,
+          tuck,
+          brake: 0,
+          rearBrake: 0,
+          discTemp: 100,
+          compoundColour: 0xffffff,
+          riding: true,
+          speed: 48,
+        });
+        model.root.updateMatrixWorld(true);
+        expect(eye.distanceTo(model.rider.helmetCentre(new T.Vector3()))).toBeLessThan(0.17);
+        const centre = instruments.getWorldPosition(new T.Vector3()).project(camera);
+        expect(Math.abs(centre.x)).toBeLessThan(0.1);
+        expect(centre.y).toBeGreaterThan(-0.82);
+        expect(centre.y).toBeLessThan(-0.24);
+      }
+    } finally {
+      model.dispose();
+      materials.dispose();
+    }
+  });
+
   it.each(['nr900', 'ss600'] as const)(
     '%s gives the onboard feeds real left and right glass on its own mounting frame',
     (id) => {
@@ -274,12 +325,33 @@ describe('road motorcycles in the GP selector', () => {
         }
         const original = model.rearViews[0].material;
         views.bind(model.rearViews);
-        const eye = new T.Vector3(...BIKE_ONBOARD.eye);
+        const eye = new T.Vector3(...bikeCockpitProfile(def).eye);
         const directions = () => {
           views.orient(model.root, eye);
           return views.cameras.map((camera) => camera.getWorldDirection(new T.Vector3()));
         };
         model.pose(pose);
+        for (const aspect of [4 / 3, 1.6, 16 / 9]) {
+          const camera = new T.PerspectiveCamera(
+            bikeOnboardFov(0, def, false, aspect),
+            aspect,
+            0.045,
+            300,
+          );
+          const pitch = bikeCockpitProfile(def).pitch;
+          camera.position.copy(eye);
+          camera.lookAt(eye.clone().add(new T.Vector3(0, Math.sin(pitch), Math.cos(pitch))));
+          camera.updateMatrixWorld(true);
+          for (const centre of straight) {
+            const screen = centre.clone().project(camera);
+            expect(screen.z).toBeGreaterThan(-1);
+            expect(screen.z).toBeLessThan(1);
+            expect(Math.abs(screen.x)).toBeGreaterThan(0.45);
+            expect(Math.abs(screen.x)).toBeLessThan(0.94);
+            // The live race HUD occupies the lower outer corners.
+            expect(Math.abs(screen.y)).toBeLessThan(0.42);
+          }
+        }
         const neutral = directions();
         for (let i = 0; i < 2; i++) {
           expect(neutral[i].z).toBeLessThan(-0.97);

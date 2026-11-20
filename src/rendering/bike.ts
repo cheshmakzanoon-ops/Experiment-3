@@ -1467,7 +1467,7 @@ export class BikeModel {
         m,
         new T.Vector3(0.23 + barX, -0.048 + barY, -0.03),
         this.steer,
-        BIKE_ONBOARD.eye,
+        bikeCockpitProfile(definition).eye,
       );
       this.steer.add(mirrors.root);
       this.rearViews.push(...mirrors.faces);
@@ -1675,7 +1675,7 @@ export class BikeModel {
         const foot = sportMirrorFoot(moulding.body, detail);
         if (foot) {
           const mirrors = buildRoadBikeMirrors(
-            'sport', detail, m, foot, this.sprung, BIKE_ONBOARD.eye,
+            'sport', detail, m, foot, this.sprung, bikeCockpitProfile(definition).eye,
           );
           this.sprung.add(mirrors.root);
           this.rearViews.push(...mirrors.faces);
@@ -2214,6 +2214,7 @@ export const BIKE_ONBOARD = Object.freeze({
   pitch: -0.14,
   tail: [0, 0.78, -0.95] as const,
   tailPitch: -0.12,
+  fovExtra: 0,
 });
 /** GP onboard socket (REF 017/074/088): inside the followed rider's hidden
  * helmet at the eye level of a full tuck (the helmet spans z 0.03-0.33 and
@@ -2237,15 +2238,48 @@ export const MOTOCROSS_ONBOARD = Object.freeze({
   fovExtra: 10,
 });
 /** GP and off-road controls have their own framing; other road/tail lenses stay unchanged. */
-export function bikeOnboardFov(speed: number, definition?: VehicleDefinition, tail = false) {
-  const extra = tail
-    ? 0
-    : definition?.bike?.offroad
-      ? MOTOCROSS_ONBOARD.fovExtra
-      : definition?.classId === 'gp-bike'
-        ? GP_ONBOARD.fovExtra
-        : 0;
-  return tcamFov(speed) + extra;
+// Eye sockets follow the helmet heights and handlebar reach of the seated
+// support-class models. A single low race bubble places the street lens
+// between the roadster gauges, behind its mirrors.
+const ROADSTER_ONBOARD = { eye: [0, 0.735, 0.04] as const, pitch: -0.25, fovExtra: 13 };
+const SPORT_ONBOARD = { eye: [0, 0.59, 0.115] as const, pitch: -0.165, fovExtra: 9 };
+const CLASSIC_ONBOARD = { eye: [0, 0.62, 0.14] as const, pitch: -0.18, fovExtra: 5 };
+export function bikeCockpitProfile(definition?: VehicleDefinition) {
+  if (definition?.bike?.offroad) return MOTOCROSS_ONBOARD;
+  switch (definition?.classId) {
+    case 'gp-bike':
+      return GP_ONBOARD;
+    case 'road-bike':
+      return ROADSTER_ONBOARD;
+    case 'supersport':
+    case 'superbike':
+      return SPORT_ONBOARD;
+    case 'classic-bike':
+      return CLASSIC_ONBOARD;
+    default:
+      return BIKE_ONBOARD;
+  }
+}
+export function bikeOnboardFov(
+  speed: number,
+  definition?: VehicleDefinition,
+  tail = false,
+  aspect = 1.6,
+) {
+  const base = tcamFov(speed);
+  if (tail) return base;
+  const vertical = base + bikeCockpitProfile(definition).fovExtra;
+  if (
+    (definition?.classId !== 'road-bike' && definition?.classId !== 'supersport') ||
+    !(aspect > 0 && aspect < 1.6)
+  )
+    return vertical;
+  // Hold the mirror centres in peripheral vision on narrower displays.
+  const half = T.MathUtils.degToRad(vertical) / 2;
+  return Math.min(
+    85,
+    T.MathUtils.radToDeg(2 * Math.atan((1.6 * Math.tan(half)) / Math.max(1, aspect))),
+  );
 }
 /** Per-entrant bike presentation over the snapshot pose (WP34). Formula and
  * touring representations are hidden for bike entrants; LODs follow lens-
@@ -2712,11 +2746,7 @@ export class BikeShells {
     reducedMotion = false,
   ) {
     const mx = !!definition?.bike?.offroad,
-      profile = mx
-        ? MOTOCROSS_ONBOARD
-        : definition?.classId === 'gp-bike'
-          ? GP_ONBOARD
-          : BIKE_ONBOARD,
+      profile = bikeCockpitProfile(definition),
       mount = tail ? BIKE_ONBOARD.tail : profile.eye,
       pitch = tail ? BIKE_ONBOARD.tailPitch : profile.pitch;
     eye.set(mount[0], mount[1], mount[2]).applyQuaternion(root.quaternion).add(root.position);

@@ -12,7 +12,7 @@ export function sportMirrorFoot(body: T.Mesh, detail: RiderDetail) {
   if (retained) return retained;
   body.updateWorldMatrix(true, false);
   const ray = new T.Raycaster();
-  for (const y of [0.18, 0.15, 0.12, 0.09])
+  for (const y of [0.27, 0.24, 0.21, 0.18, 0.15, 0.12, 0.09])
     for (const z of [0.48, 0.53, 0.43, 0.58]) {
       ray.set(new T.Vector3(0.6, y, z), new T.Vector3(-1, 0, 0));
       const hit = ray.intersectObject(body, false)[0];
@@ -123,8 +123,8 @@ export function buildRoadBikeMirrors(
     const elbow = start.clone().add(new T.Vector3(side * 0.047, 0.077, 0.008));
     const end =
       style === 'roadster'
-        ? new T.Vector3(side * 0.474, 0.272, 0.055)
-        : new T.Vector3(side * 0.355, start.y + 0.137, start.z + 0.024);
+        ? new T.Vector3(side * 0.474, 0.236, 0.275)
+        : new T.Vector3(side * 0.355, Math.max(0.475, start.y + 0.17), start.z + 0.079);
     const view = new T.Group();
     view.position.copy(end);
     const rear = new T.Vector3(side * 0.16, 0.015, -1).normalize().applyQuaternion(inverseMount);

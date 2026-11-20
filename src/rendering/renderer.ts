@@ -2061,7 +2061,9 @@ export class RacingRenderer {
       }
       this.camera.fov =
         bikeFollow && seated
-          ? bikeOnboardFov(speed, followedDefinition, cameraMode === 'pod')
+          ? bikeOnboardFov(
+              speed, followedDefinition, cameraMode === 'pod', this.camera.aspect,
+            )
           : cabin && seated
             ? cameraMode === 'cockpit'
               ? cabinFov(cabin, this.graphics.cockpitFov)
