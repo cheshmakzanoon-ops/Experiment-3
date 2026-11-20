@@ -12,7 +12,7 @@ import { MxGeometryPool } from '../src/rendering/offroad/mx-geometry-pool.ts';
 import { mudUniforms } from '../src/rendering/offroad/mud.ts';
 import { MX_GLOVE_GRIP } from '../src/rendering/offroad/motocross-rider-contact.ts';
 import { VEHICLES, vehicleIndex } from '../src/simulation/vehicles.ts';
-import { H, F, R, RACE_BASE, HEADER, CAR_STRIDE, carBase } from '../src/simulation/protocol.ts';
+import { H, F, R, O, OFFROAD_BASE, RACE_BASE, HEADER, CAR_STRIDE, carBase } from '../src/simulation/protocol.ts';
 
 beforeAll(() => {
   const context = new Proxy(
@@ -442,6 +442,37 @@ it('shows heat only on the independently recorded hot steel rotor and cools on r
     bike.dispose();
     materials.dispose();
   }
+});
+
+it('reads the visible soil for the extended MX boot only while the motorcycle is supported', () => {
+  const shells = new BikeShells();
+  const frame = new Float32Array(HEADER + CAR_STRIDE), o = carBase(0);
+  frame[H.CARS] = 1;
+  frame[o + F.QW] = 1;
+  frame[o + RACE_BASE + R.VEHICLE] = vehicleIndex('mx250');
+  frame[o + OFFROAD_BASE + O.DAB] = 1;
+  const reader = vi.fn((_point: T.Vector3, plane: T.Plane) => {
+    plane.set(new T.Vector3(0, 1, 0), 0); return true;
+  });
+  shells.motocrossGround = { planeAtWorld: reader };
+  const root = new T.Object3D(), camera = new T.PerspectiveCamera(55, 1.6);
+  root.position.y = 0.64;
+  camera.position.z = -4;
+  const present = () => shells.update(frame, frame, 1, [{ root }], camera, 'high', 0);
+  try {
+    present();
+    expect(reader).toHaveBeenCalledTimes(1);
+    frame[o + OFFROAD_BASE + O.AIRBORNE] = 1;
+    present();
+    expect(reader).toHaveBeenCalledTimes(1);
+    frame[o + OFFROAD_BASE + O.AIRBORNE] = 0;
+    frame[o + OFFROAD_BASE + O.DAB] = 0;
+    present();
+    expect(reader).toHaveBeenCalledTimes(1);
+    frame[o + OFFROAD_BASE + O.DAB] = -1;
+    present();
+    expect(reader).toHaveBeenCalledTimes(2);
+  } finally { shells.disposeAll(); }
 });
 
 it('loads only the requested motocross rig, reuses it across camera cuts and releases dormant levels', () => {

@@ -65,6 +65,10 @@ export class TerrainView {
   geometryRevision = 0;
   readonly material: T.MeshPhysicalMaterial;
   private readonly terrain: CourseTerrain;
+  private readonly footRoad = trackPoint();
+  private readonly triangleA = new T.Vector3();
+  private readonly triangleB = new T.Vector3();
+  private readonly triangleC = new T.Vector3();
   private readonly depth: Float32Array;
   private readonly compaction: Float32Array;
   private readonly chunks: Chunk[] = [];
@@ -446,7 +450,7 @@ export class TerrainView {
    * the latter lifts particles off a saddle or sinks them below a rut lip.
    * The short final row wraps at the true lap length. Outside the mesh band
    * the original course ground remains the receiver. No simulation writes. */
-  heightAt(s: number, lateral: number) {
+  heightAt(s: number, lateral: number, plane?: T.Plane) {
     const t = this.terrain,
       station = mod(s, this.track.length),
       across = COURSE_CELL.lateral * 2,
@@ -463,12 +467,30 @@ export class TerrainView {
       b = a + 1,
       d = a + t.renderColumns + 1,
       e = d + 1;
+    if (plane) {
+      const lower = x + z <= 1;
+      plane.setFromCoplanarPoints(
+        this.triangleA.fromBufferAttribute(positions, lower ? a : e),
+        this.triangleB.fromBufferAttribute(positions, lower ? d : b),
+        this.triangleC.fromBufferAttribute(positions, lower ? b : d),
+      );
+      if (plane.normal.y < 0) plane.negate();
+    }
     if (x + z <= 1) {
       const h = positions.getY(a);
       return h + (positions.getY(b) - h) * x + (positions.getY(d) - h) * z;
     }
     const h = positions.getY(e);
     return h + (positions.getY(d) - h) * (1 - x) + (positions.getY(b) - h) * (1 - z);
+  }
+  /** The same deformed face as heightAt, expressed as a world-space plane. */
+  planeAtWorld(point: T.Vector3, out: T.Plane) {
+    if (this.disposed) return false;
+    const lateral = this.track.nearest(point.x, point.z, this.footRoad, point.y);
+    const column = (lateral - this.terrain.lateralMin) / (COURSE_CELL.lateral * 2);
+    if (column < 0 || column > this.terrain.renderColumns) return false;
+    this.heightAt(this.footRoad.s, lateral, out);
+    return out.normal.y > 0.1;
   }
   /** Session soaking of the soil as currently shown, 0..1. */
   get soilWetness() {

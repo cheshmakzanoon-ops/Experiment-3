@@ -234,6 +234,22 @@ describe('reference-informed MX environments', () => {
       T.BoxGeometry,
       T.MeshPhysicalMaterial
     >;
+    const uv = pad.geometry.getAttribute('uv');
+    const positions = pad.geometry.getAttribute('position');
+    const normals = pad.geometry.getAttribute('normal');
+    const u: number[] = [],
+      v: number[] = [];
+    for (let i = 0; i < positions.count; i++) {
+      if (normals.getY(i) < 0.99) continue;
+      u.push(uv.getX(i));
+      v.push(uv.getY(i));
+    }
+    expect(Math.max(...u) - Math.min(...u)).toBeCloseTo(
+      (gate.panelCount + 1) * course.spec.gate!.spacing,
+      4,
+    );
+    expect(Math.max(...v) - Math.min(...v)).toBeCloseTo(2.6, 4);
+    expect(pad.geometry.getAttribute('uv1').array).toEqual(uv.array);
     const paint = shader(pad.material, 'physical');
     const laneLayout = paint.uniforms.mxPadLanes.value as T.Vector3;
     expect(laneLayout.toArray()).toEqual([
@@ -273,6 +289,41 @@ describe('reference-informed MX environments', () => {
 });
 
 describe('MX contact, dust and landing presentation', () => {
+  it('projects both gate tyres onto the concrete and starts throwing soil only past the slab', () => {
+    const track = rigTrack('valley-ridge-mx');
+    const course = (Track.offroadOf(track) as TrackTerrainSurface).course;
+    const gate = new StartGate(track, course),
+      roost = new Roost(track);
+    const gateS = course.spec.gate!.s;
+    roost.startPad = gate;
+    // A rut in the soil below the fixed slab must not sink the tyre shadow.
+    roost.groundHeight = () => gate.root.position.y - 0.09;
+    const frame = frameAt(gateS - 1.35),
+      o = carBase(0);
+    try {
+      const slab = gate.root.getObjectByName('MX numbered starter pad') as T.Mesh;
+      const datum = slab.localToWorld(new T.Vector3(0, 0.06, 0));
+      expect(gate.padHeightAt(datum.x, datum.z)).toBeCloseTo(datum.y, 6);
+      for (let i = 0; i < 12; i++) roost.update(frame, 1 / 60);
+      for (const front of [true, false]) {
+        const patch = roost.wheelPatch(0, front)!;
+        expect(patch.onStartPad).toBe(true);
+        expect(patch.position.y).toBeCloseTo(datum.y, 5);
+        expect(patch.normal.toArray()).toEqual([0, 1, 0]);
+      }
+      expect(roost.contactShadows!.count).toBe(2);
+      expect(roost.active).toBe(0);
+      const beyond = frameAt(gateS + 5);
+      for (let i = 0; i < 12; i++) roost.update(beyond, 1 / 60);
+      expect(gate.padHeightAt(beyond[o + F.X], beyond[o + F.Z])).toBe(-Infinity);
+      expect(roost.wheelPatch(0, false)!.onStartPad).toBe(false);
+      expect(roost.active).toBeGreaterThan(0);
+    } finally {
+      gate.dispose();
+      roost.dispose();
+    }
+  });
+
   it('clears particles and airborne edge history on a short reverse seek', () => {
     // Keep construction pending: this exercises the production snapshot
     // path and particle history without building unrelated course meshes.

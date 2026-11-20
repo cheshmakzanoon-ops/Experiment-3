@@ -153,6 +153,7 @@ export class StartGate {
   private hinge = new T.Group();
   private body = new T.Group();
   private slots = 0;
+  private readonly padForward = new T.Vector2();
   private disposed = false;
   private readonly ownedTextures = new Set<T.Texture>();
   private readonly steel = materials.metal({ kind: 'bare', metal: 'steel', roughness: 0.48 });
@@ -186,6 +187,7 @@ export class StartGate {
     this.root.position.set(p.x, p.y, p.z);
     // Local +Z along the lap, +X along the track normal (lateral).
     this.root.rotation.y = Math.atan2(p.tx, p.tz);
+    this.padForward.set(p.tx, p.tz).normalize();
     this.build(gate.slots);
   }
   /** Panels for `riders` slots (at least the venue's own), as the session lays them out. */
@@ -282,13 +284,27 @@ export class StartGate {
       this.body.add(mesh);
     }
     // Starter's pad (riders' side): concrete, flush with the dirt.
-    const slab = new T.Mesh(new T.BoxGeometry(span, 0.12, 2.6), this.pad);
+    // Concrete and its scanned normal/roughness are authored in metres.
+    // A unit UV square stretches a single patch across the whole starting field.
+    const slab = new T.Mesh(materials.boxProjectUv(new T.BoxGeometry(span, 0.12, 2.6)), this.pad);
     slab.name = 'MX numbered starter pad';
     slab.position.set(0, -0.05, -1.4);
     slab.receiveShadow = true;
     this.body.add(slab);
     this.root.add(this.body);
     this.root.updateMatrixWorld(true);
+  }
+  /** Top of the visible concrete, or no receiver outside the slab. */
+  padHeightAt(x: number, z: number) {
+    const dx = x - this.root.position.x,
+      dz = z - this.root.position.z;
+    const half = (this.slots + 1) * this.course.spec.gate!.spacing * 0.5;
+    if (Math.abs(dx) > half + 2.7 || Math.abs(dz) > half + 2.7) return -Infinity;
+    const along = dx * this.padForward.x + dz * this.padForward.y;
+    const across = dx * this.padForward.y - dz * this.padForward.x;
+    return along >= -2.7 && along <= -0.1 && Math.abs(across) <= half
+      ? this.root.position.y + 0.01
+      : -Infinity;
   }
   /** Panel count (the venue's slots, or the larger field it was widened for). */
   get panelCount() {

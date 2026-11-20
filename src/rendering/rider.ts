@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { MotocrossDab, type MxDabSurface } from './offroad/motocross-dab.ts';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { tagWeatherSurface } from './weather-presentation.ts';
 import { helmetLiveryTexture, riderPanelTexture } from './bike-livery.ts';
@@ -428,7 +429,12 @@ export class Rider {
   readonly pegs = [new T.Vector3(0.17, -0.2, -0.3), new T.Vector3(-0.17, -0.2, -0.3)];
   /** GP road plane: this frame's origin height above the road when upright,
    * and the tyre crown radius the chassis rolls on. Set from the machine. */
-  readonly ground = { height: 0.62, crown: 0.08, plane: undefined as T.Plane | undefined };
+  readonly ground = {
+    height: 0.62,
+    crown: 0.08,
+    plane: undefined as T.Plane | undefined,
+    dirt: undefined as MxDabSurface | undefined,
+  };
   private readonly torso = new T.Group();
   private readonly head = new T.Group();
   private readonly headShadow = new T.Group();
@@ -441,6 +447,7 @@ export class Rider {
   private readonly bootCuffs: (T.Object3D | undefined)[] = [];
   private readonly motocrossGarments: MotocrossGarmentMesh[] = [];
   private readonly motocrossBoots: MotocrossBootSkin[] = [];
+  private readonly motocrossDab = new MotocrossDab();
   private readonly motocrossContact = new T.Vector3();
   private motocrossThrottle = 0;
   private readonly motocrossShoulders: T.Bone[] = [];
@@ -1566,6 +1573,11 @@ export class Rider {
         // shin, including standing absorption and a continuous foot dab.
         motocrossSoleContact(this.pegs[i], side, dab, this.motocrossContact);
         motocrossBootFrame(this.q, down, side < 0 ? pose.rearBraking : 0);
+        if (down > 0 && this.ground.dirt)
+          this.motocrossDab.place(
+            this.ground.dirt, this.root, hip, RIDER.thigh + RIDER.shin - 0.008,
+            down, this.motocrossContact, this.q,
+          );
         gpContactJoint(this.motocrossContact, this.q, MX_BOOT_PEG, MX_BOOT_ANKLE, target);
         twoBone(this.thighs[i], this.shins[i], hip, target, pole, joint);
         gpAttachAtJoint(

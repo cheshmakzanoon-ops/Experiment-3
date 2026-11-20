@@ -2101,6 +2101,7 @@ export class RacingRenderer {
       this.mirrorsFromBody = !!bodyMirrors;
     }
     this.mirrorRoot = bodyMirrors?.root ?? car.root;
+    if (this.bikeShells) this.bikeShells.motocrossGround = this.circuit.offroad?.terrain ?? undefined;
     this.bikeShells?.update(a, b, alpha, this.cars, this.camera, this.quality, this.follow);
     this.bikeShells?.setFirstPerson(
       bikeFirstPersonView(cameraMode, menu, pregame, this.photo?.view) ? this.follow : -1,

@@ -81,6 +81,7 @@ export class OffroadScene {
       if (course.spec.gate)
         this.queue(construction, 'Off-road start gate', 1, () => {
           this.gate = new StartGate(track, course);
+          this.roost.startPad = this.gate;
           this.group.add(this.gate.root);
         });
       if (course.kind === 'supercross')

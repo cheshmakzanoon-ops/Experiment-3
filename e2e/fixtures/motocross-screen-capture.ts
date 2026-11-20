@@ -57,11 +57,10 @@ async function captureView(page: Page, path: string) {
  * Locate two inset targets on about:blank before opening the real game. */
 export async function motocrossScreenCapture(page: Page) {
   if (process.env.APEX_MOTOCROSS_XVFB_CAPTURE !== '1') {
-    if (process.env.APEX_BROWSER_BACKEND === 'mesa')
-      return (path: string) => captureView(page, path);
-    return async (path: string) => {
-      await page.screenshot({ path, timeout: 60000 });
-    };
+    // A normal Playwright screenshot can request another compositor frame
+    // while the ride is already GPU-bound. Read the last presented view on
+    // either software backend; the caller verifies every capture's identity.
+    return (path: string) => captureView(page, path);
   }
   const viewport = page.viewportSize();
   if (!viewport) throw new Error('The motocross capture requires a fixed viewport');

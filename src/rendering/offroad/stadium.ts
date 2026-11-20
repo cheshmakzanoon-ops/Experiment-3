@@ -390,6 +390,9 @@ export class Stadium {
         ).translate(lipX, floor + 10 * STADIUM.rise + 1.75, lipZ),
       );
     }
+    // Project after placing the pours: neighbouring deck sections share
+    // a metre of photographed aggregate on both horizontal and upright faces.
+    for (const pour of tiers) materials.boxProjectUv(pour);
     this.batch(tiers, concrete, 'Arena concrete seating decks');
     this.batch(soffits, deck, 'Arena service walls and acoustic cladding');
     // Reuse the original SDF-sculpted people kit already used by outdoor

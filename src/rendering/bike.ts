@@ -6,6 +6,7 @@ import {
   gpSilencer,
 } from './gp-appearance.ts';
 import * as T from 'three';
+import type { MxDabSurface } from './offroad/motocross-dab.ts';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
 import { gpRaceBodywork, gpSwingarmSpoon } from './gp-race-bodywork.ts';
@@ -56,6 +57,7 @@ import {
   H,
   O,
   R,
+  OFFROAD_BASE,
   RACE_BASE,
   W,
   WHEEL_BASE,
@@ -2235,6 +2237,7 @@ export function bikeOnboardFov(speed: number, definition?: VehicleDefinition, ta
  * touring representations are hidden for bike entrants; LODs follow lens-
  * corrected distance like the cars. */
 export class BikeShells {
+  motocrossGround?: MxDabSurface;
   private readonly roadContact = new RoadBikeContactPose();
   private readonly dirtGeometry = new MxGeometryPool();
   readonly root = new T.Group();
@@ -2475,6 +2478,8 @@ export class BikeShells {
       // recorded lift along its own up axis; the stands stay on the floor.
       if (service)
         model.root.position.add(this.lift.set(0, service.lift, 0).applyQuaternion(car.quaternion));
+      model.rider.ground.dirt = !service && definition.bike.offroad && source[o + OFFROAD_BASE + O.AIRBORNE] < 0.5
+        ? this.motocrossGround : undefined;
       this.values.roadContact =
         !service && !definition.bike.offroad ? this.roadContact.sample(a, b, o, t) : undefined;
       this.pose(model, a, b, t, id, entry.riderBody);

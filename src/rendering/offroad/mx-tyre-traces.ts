@@ -207,6 +207,10 @@ export class MxTyreTraces {
         }
         sampler.recordedWheel(frame, o, front, def, this.patch);
         const p = this.patch;
+        if (p.onStartPad) {
+          this.previous[slot] = undefined;
+          continue;
+        }
         this.track.at(p.station, this.road);
         const axles = MotocrossAxles.of(def);
         const half =

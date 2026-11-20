@@ -17,6 +17,7 @@ import {
   WHEEL_STRIDE,
 } from '../../simulation/protocol.ts';
 import { vehicleAt, type VehicleDefinition } from '../../simulation/vehicles.ts';
+import type { StartGate } from './start-gate.ts';
 import { MotocrossAxles } from './motocross-axles.ts';
 import { TrackTerrainSurface } from '../../simulation/offroad/course-terrain.ts';
 import { Track, trackPoint } from '../../simulation/track.ts';
@@ -30,6 +31,7 @@ export interface MxWheelPatch {
   forward: T.Vector3;
   station: number;
   lateral: number;
+  onStartPad: boolean;
 }
 
 export function mxWheelPatch(): MxWheelPatch {
@@ -37,6 +39,7 @@ export function mxWheelPatch(): MxWheelPatch {
     position: new T.Vector3(),
     normal: new T.Vector3(),
     forward: new T.Vector3(),
+    onStartPad: false,
     station: 0,
     lateral: 0,
   };
@@ -202,6 +205,7 @@ export class Roost {
   readonly clods: T.InstancedMesh | null;
   readonly contactShadows: T.InstancedMesh | null;
   /** Optional displayed terrain sampler, including live/replayed rut depth. */
+  startPad: Pick<StartGate, 'padHeightAt'> | null = null;
   groundHeight: ((s: number, lateral: number) => number) | null = null;
   private readonly positions = new Float32Array(ROOST_CAPACITY * 3);
   private readonly velocities = new Float32Array(ROOST_CAPACITY * 3);
@@ -446,6 +450,7 @@ export class Roost {
     def: VehicleDefinition,
     patch: MxWheelPatch,
   ) {
+    patch.onStartPad = false;
     const rut = frame[o + OFFROAD_BASE + (front ? O.RUT_FRONT : O.RUT_REAR)];
     const axles = def.bike?.offroad ? MotocrossAxles.of(def) : undefined;
     if (axles) {
@@ -483,6 +488,13 @@ export class Roost {
       patch.position.y = this.groundHeight
         ? this.groundHeight(this.point.s, lateral)
         : this.terrain.terrain.baseHeight(this.point.s, lateral) - clamp(rut, 0, 0.3);
+    }
+    const pad = this.startPad?.padHeightAt(patch.position.x, patch.position.z) ?? -Infinity;
+    if (pad >= patch.position.y - 0.001) {
+      patch.onStartPad = true;
+      patch.normal.set(0, 1, 0);
+      patch.forward.projectOnPlane(patch.normal).normalize();
+      patch.position.y = pad;
     }
   }
 
@@ -712,10 +724,10 @@ export class Roost {
       for (const wheel of wheels) {
         const p = o + WHEEL_BASE + wheel * WHEEL_STRIDE,
           slot = id * 4 + wheel;
-        const loose = LOOSE.has(Math.round(frame[p + W.SURFACE])),
-          load = frame[p + W.LOAD],
+        const load = frame[p + W.LOAD],
           slip = Math.abs(frame[p + W.SLIP]);
         const patch = this.motocross && bike ? this.wheelPatch(id, wheel === 0) : undefined;
+        const loose = !patch?.onStartPad && LOOSE.has(Math.round(frame[p + W.SURFACE]));
         let x: number, y: number, z: number;
         if (patch) {
           x = patch.position.x;
@@ -831,7 +843,7 @@ export class Roost {
     if (this.disposed) return;
     this.disposed = true;
     this.clear();
-    this.groundHeight = null;
+    this.groundHeight = this.startPad = null;
     disposeOffroadResources(
       [this.points, this.clods, this.contactShadows].filter((root) => root !== null),
     );
