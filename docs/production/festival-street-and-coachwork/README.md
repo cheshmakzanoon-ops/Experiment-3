@@ -83,4 +83,8 @@ These fixed-camera comparisons use the EH-3, clear daylight, the Low preset and 
 | Port Ilse street | 628,673 | 414,877 | 164 / 162 |
 | Street edge | 608,241 | 396,927 | 160 / 158 |
 
+The RH-3 harbour chase below was captured from the High preset in the complete Festival session at 640 × 360. This daylight frame submitted 1,373,616 triangles in 549 draws. The application completed its photographic sky, ground, vegetation, shadows and post-processing passes. The scene readback returned a clean WebGL error state, and the browser reported zero missing assets or script errors.
+
+![The actual RH-3 chase camera in Port Ilse on the High preset, in daylight](port-ilse-high.jpg)
+
 Software WebGL establishes what the game drew at each camera. Frame pacing and input latency on console-class hardware require a hardware run. The existing [GPU benchmark](../../studio/HARDWARE_BENCHMARK.md) can drive the Festival journey at 1920 × 1080 across all three quality presets.
