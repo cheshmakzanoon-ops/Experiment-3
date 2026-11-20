@@ -29,6 +29,27 @@ describe('independent motocross wheel/soil/yaw dynamics', () => {
     expect(result.dx).toBeCloseTo(0, 10);
     expect(result.dz).toBeCloseTo(16 / 120, 7);
   });
+  it('reports the whole tyre impulse to the chassis under steering, lockup and rest', () => {
+    for (const lean of [undefined, 0.4]) {
+      const p = { ...params(), steer: 0.22, lean, frontBrakeTorque: 740, rearBrakeTorque: 240 };
+      const start = { ...state(), lateralSpeed: 1.3, rearOmega: 0, yawRate: 0.3 };
+      const dt = 1 / 30;
+      const result = stepMotocrossGround(start, p, dt);
+      const across = lean === undefined
+        ? result.front.fy * Math.cos(p.steer) + result.front.fx * Math.sin(p.steer)
+        : result.front.fy;
+      expect(result.longitudinal * dt).toBeCloseTo(result.speed - start.speed, 11);
+      expect(result.lateralAcceleration * p.mass).toBeCloseTo(across + result.rear.fy, 10);
+      const first = stepMotocrossGround(start, p, dt / 2);
+      const second = stepMotocrossGround(first, p, dt / 2);
+      expect(result.endLateralAcceleration).toBeCloseTo(second.endLateralAcceleration, 12);
+      expect(result.lateralAcceleration).toBeCloseTo((first.lateralAcceleration + second.lateralAcceleration) / 2, 10);
+    }
+    const stopped = { ...state(), speed: 0.01, frontOmega: 0, rearOmega: 0 };
+    const result = stepMotocrossGround(stopped, { ...params(), drag: 1000 }, 0.04);
+    expect(result.speed).toBe(0);
+    expect(result.longitudinal).toBeCloseTo(-0.25, 10);
+  });
   it('saturates the combined grip circle for every slip direction and unloaded tyre', () => {
     for (const sx of [-100, -10, 0, 2, 50])
       for (const angle of [-1.2, -0.25, 0, 0.3, 1.2]) {

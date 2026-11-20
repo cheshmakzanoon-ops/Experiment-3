@@ -62,11 +62,15 @@ function land(definition: VehicleDefinition, assist: Assist, body: number, dt = 
     samples: { at: number; remaining: number; slope: number }[] = [];
   let incomingVy = 0,
     incomingPlanar = 0,
-    incomingPitch = 0;
+    incomingPitch = 0,
+    incomingSide = 0,
+    incomingHeading = 0;
   bike.input.riderLean = body;
   while (bike.airborne && bike.airTime < 3) {
     samples.push({ at: bike.airTime, remaining: bike.landingIn, slope: bike.landingTarget });
     incomingVy = bike.vy;
+    incomingSide = bike.slide;
+    incomingHeading = bike.dynamics.heading;
     incomingPitch = bike.pitch;
     incomingPlanar =
       bike.dynamics.speed -
@@ -75,7 +79,15 @@ function land(definition: VehicleDefinition, assist: Assist, body: number, dt = 
   }
   expect(bike.airborne).toBe(false);
   expect(bike.lastLanding!.airTime).toBeGreaterThan(0.8);
-  return { ...run, samples, incomingVy, incomingPlanar, incomingPitch };
+  return {
+    ...run,
+    samples,
+    incomingVy,
+    incomingPlanar,
+    incomingPitch,
+    incomingSide,
+    incomingHeading,
+  };
 }
 
 describe('motocross first-tyre landing prediction', () => {
@@ -120,10 +132,23 @@ describe('motocross first-tyre landing prediction', () => {
     '$id records incoming impact before a suspension impulse can soften the touchdown verdict',
     (definition) => {
       for (const dt of [1 / 120, 1 / 240, 1 / 480]) {
-        const { bike, incomingVy, incomingPlanar, incomingPitch } = land(definition, 'raw', 0, dt),
+        const { bike, incomingVy, incomingPlanar, incomingPitch, incomingSide, incomingHeading } =
+            land(definition, 'raw', 0, dt),
           landing = bike.lastLanding!,
-          expected =
-            incomingPlanar * Math.sin(landing.slope) - incomingVy * Math.cos(landing.slope);
+          cos = Math.cos(incomingHeading),
+          sin = Math.sin(incomingHeading);
+        const touching = [0, 2].filter(
+          (i) => (i === 0 ? bike.compressionFront : bike.compressionRear) > 0,
+        );
+        const cross =
+          touching.reduce((sum, i) => {
+            const n = bike.contacts[i].normal;
+            return sum - (n.x * cos - n.z * sin) / n.y;
+          }, 0) / touching.length;
+        const grade = Math.tan(landing.slope);
+        const expected =
+          (grade * incomingPlanar + cross * incomingSide - incomingVy) /
+          Math.hypot(1, grade, cross);
         expect(landing.normalSpeed).toBeCloseTo(expected, 8);
         expect(landing.pitchError + landing.slope).toBeCloseTo(incomingPitch, 8);
         expect(landing.normalSpeed).toBeGreaterThan(4);

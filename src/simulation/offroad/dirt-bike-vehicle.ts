@@ -12,7 +12,7 @@ import { TrackTerrainSurface } from './course-terrain.ts';
 import { offroadCourse } from './venues.ts';
 import type { OffroadBikeSpec } from './types.ts';
 import { LANDING_RULES } from './riding-feedback.ts';
-import { hardStopImpulse } from './contact-impulse.ts';
+import { hardStopImpulse, landingNormalSpeed } from './contact-impulse.ts';
 import { wheelPickupImpulse } from './wheel-pickup.ts';
 import { engineTorque } from '../vehicle.ts';
 import { stepMotocrossGround } from './mx-ground-physics.ts';
@@ -525,9 +525,12 @@ export class DirtBikeVehicle extends BikeVehicle {
           },
           dt,
         );
+        // The roll controller compares two endpoint forces. Mixing its
+        // geometric endpoint with an interval-mean tyre signal shifts the
+        // phase on a crest or while the front wheel is picking back up.
         const coreLateral = d.speed * d.speed * d.curvature;
         d.leanRate += clamp(
-          ((coreLateral - contact.lateralAcceleration) * Math.cos(d.lean) * dt) / spec.cgHeight,
+          ((coreLateral - contact.endLateralAcceleration) * Math.cos(d.lean) * dt) / spec.cgHeight,
           -0.3, 0.3,
         );
         // The toppling moment about the contact line is made by the load the
@@ -562,7 +565,7 @@ export class DirtBikeVehicle extends BikeVehicle {
         this.mxRearFx = contact.rear.fx;
         this.mxFrontFy = contact.front.fy;
         this.mxRearFy = contact.rear.fy;
-        this.mxLateralAcceleration = contact.lateralAcceleration;
+        this.mxLateralAcceleration = contact.endLateralAcceleration;
         this.mxFrontSlipPower = contact.front.slipPower;
         this.mxRearSlipPower = contact.rear.slipPower;
         this.mxFrontBrakePower = contact.frontBrakePower;
@@ -1148,10 +1151,16 @@ export class DirtBikeVehicle extends BikeVehicle {
       cR -= correction;
     }
     let vh = this.airborne ? this.flightSpeed : d.speed * Math.cos(this.roadPitch);
+    const incomingForward = vh, incomingLateral = this.slide, incomingVy = this.vy;
+    const headingSin = Math.sin(d.heading), headingCos = Math.cos(d.heading);
     const slope = (i: number) => {
-      const n = this.contacts[i].normal,
-        h = d.heading;
-      return -(n.x * Math.sin(h) + n.z * Math.cos(h)) / Math.max(0.1, n.y);
+      const n = this.contacts[i].normal;
+      return -(n.x * headingSin + n.z * headingCos) / Math.max(0.1, n.y);
+    };
+    const crossSlope = (i: number) => {
+      const n = this.contacts[i].normal;
+      return this.playerMotocross
+        ? -(n.x * headingCos - n.z * headingSin) / Math.max(0.1, n.y) : 0;
     };
     // A deep-overlap recovery removes only closing normal velocity. Exchange
     // forward, heave and pitch momentum together instead of injecting heave
@@ -1162,9 +1171,7 @@ export class DirtBikeVehicle extends BikeVehicle {
         [cR, spec.shockTravel, 2, -ra * cos + HR * sin],
       ]) {
         if (compression < travel) continue;
-        const grade = slope(i),
-          closing = grade * vh - this.vy - lever * this.pitchRate;
-        if (closing <= 0) continue;
+        const grade = slope(i), across = crossSlope(i);
         const impulse = hardStopImpulse(
           vh,
           this.vy,
@@ -1173,7 +1180,10 @@ export class DirtBikeVehicle extends BikeVehicle {
           lever,
           m,
           a.pitchInertia,
+          this.slide,
+          across,
         );
+        this.slide -= (across * impulse) / m;
         vh -= (grade * impulse) / m;
         this.vy += impulse / m;
         this.pitchRate += (lever * impulse) / a.pitchInertia;
@@ -1219,8 +1229,7 @@ export class DirtBikeVehicle extends BikeVehicle {
     // Start this flight's bottoming window before the first contact force
     // is evaluated: a hard first compression must survive into its record.
     if (this.airborne && this.playerMotocross) this.bottomPeak = 0;
-    const incomingVy = this.vy,
-      incomingPitch = this.pitch,
+    const incomingPitch = this.pitch,
       FF = end(cF, rateF, true),
       FR = end(cR, rateR, false);
     const contact = FF > 0 || FR > 0;
@@ -1295,9 +1304,10 @@ export class DirtBikeVehicle extends BikeVehicle {
         );
         const chassis =
           (this.playerMotocross ? incomingPitch : this.pitch) + this.automaticBody * 0.06;
-        const normal =
-          this.flightSpeed * Math.sin(slopeAt) -
-          (this.playerMotocross ? incomingVy : this.vy) * Math.cos(slopeAt);
+        const crossAt = cF > 0 && cR > 0 ? (crossSlope(0) + crossSlope(2)) / 2 : crossSlope(cF > 0 ? 0 : 2);
+        const normal = this.playerMotocross
+          ? landingNormalSpeed(incomingForward, incomingLateral, incomingVy, Math.tan(slopeAt), crossAt)
+          : this.flightSpeed * Math.sin(slopeAt) - this.vy * Math.cos(slopeAt);
         const along = this.flightSpeed * Math.cos(slopeAt) + this.vy * Math.sin(slopeAt);
         d.speed = Math.max(0, along);
         const yawError = this.airYaw;

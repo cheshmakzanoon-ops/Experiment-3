@@ -59,9 +59,11 @@ export interface MxGroundResult extends MxGroundState {
   /** Chassis centre displacement in world metres over dt. */
   dx: number;
   dz: number;
-  /** Acceleration in chassis coordinates (m/s²). */
+  /** Mean forward speed change and mean lateral tyre acceleration over dt (m/s²). */
   longitudinal: number;
   lateralAcceleration: number;
+  /** Instantaneous patch support at the presented endpoint (m/s²). */
+  endLateralAcceleration: number;
   /** Friction brake work / dt, from limited actuator torque and finite
    * rotor rotation. Engine-braking work is excluded (W). */
   frontBrakePower: number;
@@ -119,7 +121,8 @@ export function stepMotocrossGround(
   // Yaw inertia estimate for sprung rider + bike; the road/GP core never
   // reads this parameter. Wheelbase geometry gives the scale in kg m².
   const iz = Math.max(12, 0.42 * p.mass * (p.frontArm ** 2 + p.rearArm ** 2));
-  let speed = Math.max(0, state.speed),
+  const initialSpeed = Math.max(0, state.speed);
+  let speed = initialSpeed,
     lateralSpeed = state.lateralSpeed,
     yawRate = state.yawRate,
     heading = state.heading,
@@ -127,8 +130,7 @@ export function stepMotocrossGround(
     rearOmega = Math.max(0, state.rearOmega),
     dx = 0,
     dz = 0,
-    ax = 0,
-    ay = 0;
+    endLateralAcceleration = 0;
   let front: MxContactForce = { ...EMPTY_FORCE };
   let rear: MxContactForce = { ...EMPTY_FORCE };
   // Return forces averaged over the same microsteps that advanced momentum:
@@ -144,7 +146,6 @@ export function stepMotocrossGround(
     lean = p.lean ?? 0,
     wheelbase = Math.max(0.5, p.frontArm + p.rearArm),
     totalLoad = Math.max(1, p.frontLoad + p.rearLoad);
-  let totalLateralAccel = 0;
   for (let i = 0; i < n; i++) {
     // Tyre-frame velocity includes yaw sweep at each contact patch.
     // When coupled to a leaned chassis (hasLean), the kinematic bar angle
@@ -230,11 +231,11 @@ export function stepMotocrossGround(
       0,
       rearOmega + (drive - rBrake - rear.fx * p.rearRadius) * h / p.rearInertia,
     );
-    ax = netForward / p.mass - p.drag / p.mass - p.slope + yawRate * lateralSpeed;
-    ay = slipNetSide / p.mass - yawRate * speed;
+    const ax = netForward / p.mass - p.drag / p.mass - p.slope + yawRate * lateralSpeed;
+    const ay = slipNetSide / p.mass - yawRate * speed;
     const yawAcceleration = (p.frontArm * slipFSide - p.rearArm * slipRSide) / iz - 0.18 * yawRate;
     const camberYawRate = hasLean ? camberNetSide / (p.mass * Math.max(2, speed)) : 0;
-    totalLateralAccel = (slipNetSide + camberNetSide) / p.mass;
+    endLateralAcceleration = (slipNetSide + camberNetSide) / p.mass;
     speed = Math.max(0, speed + ax * h);
     lateralSpeed += ay * h;
     yawRate = clamp(yawRate + yawAcceleration * h, -5, 5);
@@ -244,7 +245,12 @@ export function stepMotocrossGround(
   }
   return {
     speed, lateralSpeed, yawRate, heading, frontOmega, rearOmega,
-    dx, dz, longitudinal: ax, lateralAcceleration: totalLateralAccel,
+    dx, dz,
+    // The chassis and the lean controller consume an outer tick. Use the
+    // same impulse that advanced it, including the forward stop constraint.
+    longitudinal: (speed - initialSpeed) / dt,
+    lateralAcceleration: ((hasLean ? ffy : ffy * cs + ffx * sn) + rfy) / (p.mass * dt),
+    endLateralAcceleration,
     frontBrakePower: frontBrakeWork / dt,
     rearBrakePower: rearBrakeWork / dt,
     front: {
