@@ -272,7 +272,10 @@ describe('RH3, SC7 and EH3 integrated front ends', () => {
         }
       }
     }
-    const other = build('rs5').model;
+    const roadSaloon = build('rs5').model;
+    expect(festivalLampPockets(roadSaloon)).toHaveLength(0);
+    expect(festivalNoseZ(roadSaloon, 0.8, roadSaloon.zFront)).toBeLessThan(roadSaloon.zFront);
+    const other = build('gt6r').model;
     expect(festivalLampPockets(other)).toHaveLength(0);
     expect(festivalNoseZ(other, 0.8, other.zFront)).toBe(other.zFront);
   });

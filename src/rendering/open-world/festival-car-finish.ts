@@ -99,6 +99,8 @@ interface FinishUniforms {
   /** Road height, front/rear axle stations, half body width, all car-local m. */
   festivalCarShape: T.IUniform<T.Vector4>;
   festivalWorldToCar: T.IUniform<T.Matrix4>;
+  festivalWipeShape: T.IUniform<T.Vector4>;
+  festivalWipeMotion: T.IUniform<T.Vector4>;
 }
 type FinishRole = 'paint' | 'glass';
 
@@ -107,6 +109,8 @@ varying vec3 vFestivalCarPosition;
 uniform vec4 festivalCarWeather;
 uniform vec2 festivalCarMotion;
 uniform vec4 festivalCarShape;
+uniform vec4 festivalWipeShape;
+uniform vec4 festivalWipeMotion;
 float festivalCarWater = 0.0;
 float festivalCarGrime = 0.0;
 float festivalCarRelief = 0.0;
@@ -146,6 +150,28 @@ function surfaceGlsl(glass: boolean) {
     (1.0 - smoothstep(0.34, 1.0, h + (breakup - 0.5) * 0.24));
   float contactReach = max(low, wake * 0.82);
   festivalCarWater = max(festivalCarWeather.x, festivalCarWeather.y * contactReach);
+  ${
+    glass
+      ? `// Opposed blades clear exactly the annuli they pass over. Elapsed time
+  // since the outward or return passage controls how quickly the pane rewets.
+  if (festivalWipeShape.w > 0.0 && festivalWipeMotion.z < 6.0) {
+    vec2 sweep = vec2(abs(p.x) - festivalWipeShape.x, (festivalWipeShape.y - p.z) / festivalWipeShape.z);
+    float ang = atan(sweep.y, sweep.x), r = length(sweep), radius = festivalWipeShape.w;
+    float edge = max(0.005, pixel);
+    float zone = smoothstep(radius*0.30-edge, radius*0.30+edge, r) *
+      (1.0-smoothstep(radius-edge,radius+edge,r)) *
+      smoothstep(festivalWipeMotion.x-0.018,festivalWipeMotion.x+0.018,ang) *
+      (1.0-smoothstep(festivalWipeMotion.y-0.018,festivalWipeMotion.y+0.018,ang));
+    float sweepFraction = clamp((ang-festivalWipeMotion.x)/max(0.01,festivalWipeMotion.y-festivalWipeMotion.x),0.0,1.0);
+    float outward = acos(1.0-2.0*sweepFraction)/6.2831853;
+    float t = festivalWipeMotion.z, returning = 1.0-outward;
+    float last = t>=returning ? returning : t>=outward ? outward : returning-festivalWipeMotion.w;
+    float age = max(0.0,t-last);
+    float clearFraction = exp(-age*mix(0.7,2.4,festivalCarWeather.x));
+    festivalCarWater *= 1.0 - zone * clearFraction * 0.94;
+  }`
+      : ''
+  }
   float grain = festivalFinishNoise(p.zy * vec2(36.0, 53.0));
   float deposit = low * (0.065 + 0.09 * breakup) + wake * (0.045 + 0.1 * grain);
   festivalCarGrime = min(0.26, festivalCarWeather.z * deposit);
@@ -202,7 +228,7 @@ function installFinish(
   role: FinishRole,
 ) {
   const glass = role === 'glass';
-  chainShaderHook(material, `festival-car-weather-${role}-v1`, (shader) => {
+  chainShaderHook(material, `festival-car-weather-${role}-${glass ? 'v2' : 'v1'}`, (shader) => {
     Object.assign(shader.uniforms, uniforms);
     injectDeclarations(
       shader,
@@ -269,11 +295,14 @@ export class FestivalCarFinish {
   private root: T.Object3D | null = null;
   private readonly clones = new Map<T.Material, T.MeshPhysicalMaterial>();
   private readonly replacements: Replacement[] = [];
+  private readonly parked = new T.Vector4();
   private readonly uniforms: FinishUniforms = {
     festivalCarWeather: { value: new T.Vector4() },
     festivalCarMotion: { value: new T.Vector2() },
     festivalCarShape: { value: new T.Vector4() },
     festivalWorldToCar: { value: new T.Matrix4() },
+    festivalWipeShape: { value: this.parked },
+    festivalWipeMotion: { value: this.parked },
   };
   private observation = festivalFinishObservation(new Float32Array());
   private paintCount = 0;
@@ -285,6 +314,9 @@ export class FestivalCarFinish {
     if (root === this.root) return false;
     this.clear();
     this.root = root;
+    const wipe = root.getObjectByName('Articulated windscreen wipers')?.userData.sweptGlass;
+    this.uniforms.festivalWipeShape.value = wipe?.footprint ?? this.parked;
+    this.uniforms.festivalWipeMotion.value = wipe?.motion ?? this.parked;
     const shape = bodyFrame(definition);
     this.uniforms.festivalCarShape.value.set(
       shape.ground,

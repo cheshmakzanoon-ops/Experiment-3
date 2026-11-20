@@ -414,6 +414,7 @@ export class VehicleBodies {
         ? [level, body.feedLevel]
         : [level]) {
         const lod = body.lods[shown];
+        lod.wipers?.update(lerp(a[H.TIME], b[H.TIME], t), lerp(a[H.RAIN], b[H.RAIN], t), id);
         for (const e of lod.front) e.visible = front;
         for (const e of lod.rear) e.visible = rear;
         body.wheels[shown].forEach((wheel, i) => {

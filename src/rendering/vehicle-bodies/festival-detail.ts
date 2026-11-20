@@ -1,3 +1,5 @@
+import { addFestivalFaceLamps, festivalFaceLamps } from './festival-face-lamps.ts';
+import { FestivalWipers } from './festival-wipers.ts';
 import * as T from 'three';
 import { addFestivalDoorHandles, addFestivalSills } from './festival-side.ts';
 import type { VehicleDefinition } from '../../simulation/vehicles.ts';
@@ -251,7 +253,11 @@ export function festivalFasciaOpenings(model: ClosedBodyModel, rear = false): Fa
     : Math.min(s.style === 'truck' ? 0.27 : 0.2, (top - bottom) * 0.5);
   const y = rear ? Math.min(f.y(s.tail) - 0.3, top - height * 0.8) : bottom + (top - bottom) * 0.49;
   const available = Math.min(model.sideX(z, y - height * 0.5), model.sideX(z, y + height * 0.5));
-  const width = available * (rear ? 1.62 : 1.55);
+  const lamps = rear ? [] : festivalFaceLamps(model);
+  const width = Math.min(
+    available * (rear ? 1.62 : 1.55),
+    ...lamps.map((p) => 2 * (Math.abs(p.x) - p.width / 2 - 0.035)),
+  );
   if (!(width > 0.14 && height > 0.025)) return [];
   const depth = rear ? 0.09 : s.style === 'truck' ? 0.15 : 0.11;
   const split = !rear && (s.style === 'supercar' || s.style === 'prototype');
@@ -302,6 +308,9 @@ export function festivalFasciaCap(model: ClosedBodyModel, detail: Detail, rear =
     const contour = roundedOutline(mouth.width, mouth.height, mouth.radius, detail === 0 ? 4 : 2);
     shape.holes.push(new T.Path(contour.map(([x, y]) => new T.Vector2(x + mouth.x, y + mouth.y))));
   }
+  if (!rear)
+    for (const lamp of festivalFaceLamps(model))
+      shape.holes.push(new T.Path(asVectors(lamp.outline)));
   if (rear) {
     for (const pocket of festivalTailPockets(model))
       shape.holes.push(new T.Path(asVectors(pocket.outline)));
@@ -475,9 +484,25 @@ function opticalPanel(width: number, depth: number, height: number, side: number
     steps: 1,
   }).rotateX(-Math.PI / 2);
 }
+export function addUprightFestivalLamps(
+  parts: Parts,
+  model: ClosedBodyModel,
+  mats: CarMaterials,
+  detail: Detail,
+) {
+  const lamps = festivalFaceLamps(model);
+  if (!lamps.length) return false;
+  addFestivalFaceLamps(parts, model, mats, detail, lamps, {
+    dark: darkOptics,
+    clear: opticalCover,
+    amber,
+  });
+  return true;
+}
 function addHeadlamps(parts: Parts, model: ClosedBodyModel, mats: CarMaterials, detail: Detail) {
+  if (addUprightFestivalLamps(parts, model, mats, detail)) return;
   const { s } = model;
-  if (s.frontSweep) {
+  if (s.bondedHeadlamps && s.frontSweep) {
     for (const pocket of festivalLampPockets(model)) {
       parts.add(festivalLampReveal(model, pocket), sharedMaterials.trim());
       parts.add(festivalLampReveal(model, pocket, true), darkOptics);
@@ -991,6 +1016,7 @@ function addVents(parts: Parts, model: ClosedBodyModel, mats: CarMaterials, deta
 
 function addHardware(
   parts: Parts,
+  lod: BuiltLod,
   model: ClosedBodyModel,
   mats: CarMaterials,
   greenhouse: Greenhouse | null,
@@ -1056,11 +1082,21 @@ function addHardware(
       return hit.point.addScaledVector(hit.normal ?? hit.face!.normal, offset);
     };
     const z = f.z(ws) - Math.max(0.055, (f.z(ws) - f.z(rf)) * 0.12);
-    for (const side of [-1, 1]) {
-      const start = glassPoint(side * 0.09, z, 0.006),
-        end = glassPoint(side * 0.48, z - 0.012, 0.006);
-      if (start && end) parts.add(rodGeometry(start, end, 0.0035, 5), sharedMaterials.trim());
+    if (s.bonnetPress) {
+      lod.wipers = FestivalWipers.fit(glazing, {
+        baseZ: greenhouse.zWs,
+        topZ: greenhouse.zRF,
+        rise: greenhouse.roofY - greenhouse.base(greenhouse.zWs),
+        halfWidth: model.halfWidth(z) * 0.8,
+      });
+      if (lod.wipers) lod.group.add(lod.wipers.mesh);
     }
+    if (!lod.wipers)
+      for (const side of [-1, 1]) {
+        const start = glassPoint(side * 0.09, z, 0.006),
+          end = glassPoint(side * 0.48, z - 0.012, 0.006);
+        if (start && end) parts.add(rodGeometry(start, end, 0.0035, 5), sharedMaterials.trim());
+      }
     // Rear-screen demister wires follow the glass crown. Their submillimetre
     // thickness keeps the cabin transparent and avoids a heavy painted grid.
     for (let row = 1; row <= 9; row++) {
@@ -1231,7 +1267,7 @@ export function buildFestivalDetail(
   addFestivalSills(parts, model, mats, detail);
   addExhausts(parts, model, detail);
   addVents(parts, model, mats, detail);
-  if (detail === 0) addHardware(parts, model, mats, greenhouse, glazing);
+  if (detail === 0) addHardware(parts, lod, model, mats, greenhouse, glazing);
   addAeroEdges(model, detail, lod);
   lod.group.userData.festivalBodyDetail = {
     revision: 1,

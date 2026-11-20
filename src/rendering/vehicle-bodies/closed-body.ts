@@ -1,3 +1,4 @@
+import { FestivalWipers } from './festival-wipers.ts';
 import * as T from 'three';
 import { clamp } from '../../core/math.ts';
 import type { ClosedSheet, WingSheet } from './body-sheet.ts';
@@ -18,6 +19,7 @@ import {
 import { sharedMaterials, type PanelGap } from './materials.ts';
 import { Parts, placed } from './parts.ts';
 import type { Detail } from './wheel.ts';
+import { addFestivalRegistration } from './festival-registration.ts';
 import { addPickupBed, pickupBedBounds } from './pickup-bed.ts';
 import { addRoadMirrors } from './road-mirrors.ts';
 import type { CarMaterials, BuiltLod } from './common.ts';
@@ -27,6 +29,7 @@ import type { VehicleDefinition } from '../../simulation/vehicles.ts';
 import {
   addFestivalGlazing,
   addFestivalWingHardware,
+  addUprightFestivalLamps,
   buildFestivalDetail,
   festivalDetailFor,
 } from './festival-detail.ts';
@@ -760,7 +763,8 @@ export function buildClosedBody(
   };
   const seg = detail === 0 ? 3 : 1;
   if (!detailedFestival) {
-    if (s.style === 'truck') {
+    const upright = addUprightFestivalLamps(parts, model, mats, detail);
+    if (!upright && s.style === 'truck') {
       // D11: a truck's headlamps sit IN its upright face, two round units in a trim ring at the
       // upper corners with a smaller driving lamp under each, not on the bonnet's top edge.
       const faceTop = model.topY(model.zFront - 0.001),
@@ -781,7 +785,7 @@ export function buildClosedBody(
           parts.add(lens, mats.head, placed(side * xFace, faceTop + dy, z + 0.012));
         }
       }
-    } else {
+    } else if (!upright) {
       const zHead = model.zFront - (s.lamps.front === 'pod' ? 0.3 : 0.22);
       for (const side of [-1, 1]) {
         const ax = hw(zHead) * (s.lamps.front === 'bar' ? 0.45 : 0.66),
@@ -1229,6 +1233,16 @@ export function buildClosedBody(
       glassMaterial,
       placed(0, yw + (racing ? 0.1 : 0.16), zw, racing ? -0.45 : -0.62),
     );
+    if (!racing && s.bonnetPress && detail === 0) {
+      const extent = 0.18 * Math.sin(0.62);
+      lod.wipers = FestivalWipers.fit(screen, {
+        baseZ: zw + extent,
+        topZ: zw - extent,
+        rise: 0.36 * Math.cos(0.62),
+        halfWidth: hw(zw) * 0.75,
+      });
+      if (lod.wipers) lod.group.add(lod.wipers.mesh);
+    }
     if (!racing)
       parts.add(
         roundedBox(hw(zw) * 1.52, 0.03, 0.03, 0.01, 1),
@@ -1255,6 +1269,7 @@ export function buildClosedBody(
   }
   extraFurniture(parts, model, mats, detail, lod);
   if (detailedFestival) buildFestivalDetail(parts, model, mats, detail, lod, gh, glazing);
+  if (cabin) addFestivalRegistration(parts, model, cabin.def.id, detail);
   // Interior (near LOD): the cabin shell merges into this LOD's draws; its
   // detail, helmet and turning wheel are groups of their own (interior.ts).
   if (detail === 0 && cabin && cell) {
@@ -1306,7 +1321,8 @@ export function buildClosedBody(
   if (s.frontSweep || s.rearSweep) {
     const transformed = new Set<T.BufferGeometry>();
     lod.group.traverse((node) => {
-      if (!(node instanceof T.Mesh) || transformed.has(node.geometry)) return;
+      if (!(node instanceof T.Mesh) || node === lod.wipers?.mesh || transformed.has(node.geometry))
+        return;
       transformed.add(node.geometry);
       warpFestivalNose(node.geometry, model, detail);
       warpFestivalRear(node.geometry, model, detail);

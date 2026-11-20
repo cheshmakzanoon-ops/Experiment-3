@@ -85,9 +85,11 @@ export interface ClosedSheet {
   mirrors: boolean;
   lamps: LampSheet;
   grille: number;
-  /** Optional original swept nose with bonded lamp pockets; maximum outer
-   * corner inset in metres. Applied beyond the front wheel arch only. */
+  /** Original nose sweep, applied beyond the front wheel arch. The body,
+   * bumper, grille and optical assemblies share the same deformation. */
   frontSweep?: number;
+  /** Bonded flush headlamp recesses on the three aero-front models. */
+  bondedHeadlamps?: boolean;
   /** Original rear shoulder sweep, applied only behind the rear tyre envelope.
    * Rear fascia, lamps and trim use the same curved surface. */
   rearSweep?: number;
@@ -612,6 +614,7 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     // pressed lower flank. The electric identity is the continuous cyan light
     // bar, lit arches and a pearl-over-carbon colourway (colourways.ts).
     frontSweep: 0.3,
+    bondedHeadlamps: true,
     rearSweep: 0.22,
     sideSculpt: 0.04,
     signature: 0x39d7ff,
@@ -659,6 +662,7 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     lamps: { front: 'slim', rear: 'strip' },
     grille: 0.3,
     frontSweep: 0.28,
+    bondedHeadlamps: true,
     rearSweep: 0.24,
     sideSculpt: 0.042,
     sideIntake: true,
@@ -1529,6 +1533,7 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     lamps: { front: 'slim', rear: 'bar' },
     grille: 0.9,
     frontSweep: 0.22,
+    bondedHeadlamps: true,
     rearSweep: 0.18,
     sideSculpt: 0.024,
     sideIntake: false,
@@ -1558,6 +1563,8 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     rearSweep: 0.18,
     tailHousing: 'bridge',
     mirrorForm: 'touring',
+    frontSweep: 0.195,
+    sideSculpt: 0.03,
     bonnetPress: [0.052, 0.68, 0.5],
     floor: 0.12,
     nose: 0.65,
@@ -1603,6 +1610,8 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     rearSweep: 0.19,
     tailHousing: 'triple',
     mirrorForm: 'sport',
+    frontSweep: 0.158,
+    sideSculpt: 0.041,
     bonnetPress: [0.092, 0.58, 0.43],
     floor: 0.12,
     nose: 0.68,
@@ -1648,6 +1657,8 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     rearSweep: 0.145,
     tailHousing: 'circle',
     mirrorForm: 'bullet',
+    frontSweep: 0.232,
+    sideSculpt: 0.021,
     bonnetPress: [0.079, 0.51, 0.39],
     floor: 0.13,
     nose: 0.53,
@@ -1691,6 +1702,8 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     width: 2.2,
     noseWidth: 0.9,
     mirrorForm: 'work',
+    frontSweep: 0.104,
+    sideSculpt: 0.027,
     bonnetPress: [0.084, 0.72, 0.63],
     floor: 0.3,
     loadFloor: 0.79,
@@ -1738,6 +1751,8 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     rearSweep: 0.15,
     tailHousing: 'split',
     mirrorForm: 'touring',
+    frontSweep: 0.142,
+    sideSculpt: 0.029,
     bonnetPress: [0.044, 0.71, 0.56],
     floor: 0.14,
     nose: 0.64,
@@ -1782,6 +1797,8 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     rearSweep: 0.23,
     tailHousing: 'blade',
     mirrorForm: 'sport',
+    frontSweep: 0.255,
+    sideSculpt: 0.037,
     bonnetPress: [0.063, 0.64, 0.47],
     floor: 0.12,
     nose: 0.58,
@@ -1827,6 +1844,8 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     rearSweep: 0.17,
     tailHousing: 'blade',
     mirrorForm: 'sport',
+    frontSweep: 0.217,
+    sideSculpt: 0.024,
     bonnetPress: [0.053, 0.58, 0.42],
     floor: 0.13,
     nose: 0.58,

@@ -66,15 +66,17 @@ function quadratic(points: Pt[], a: Pt, control: Pt, b: Pt, steps: number) {
   }
 }
 
-/** A complete rounded lower perimeter, with an arch-following RH3 rear
+/** A complete rounded lower perimeter, with an arch-following saloon rear
  * boundary. The SC7 door stops before the separate side-intake opening. */
 export function festivalDoorPaths(model: ClosedBodyModel, detail: Detail = 0): FestivalDoorPath[] {
   if (!model.s.sideSculpt) return [];
   const { f, s } = model,
-    [ws, rf, rr] = s.cabin,
+    [ws, rf, rr, rearGlass] = s.cabin,
     lower = f.y(s.floor + 0.14),
     frontTop = Math.min(f.z(ws) - 0.04, f.frontAxle - 0.18),
-    frontFoot = f.frontAxle - f.radius - 0.12,
+    // On a long bonnet the front door follows the cowl, with room for
+    // its hinge ahead of the sill. It never extends through the front arch.
+    frontFoot = Math.min(f.frontAxle - f.radius - 0.12, frontTop + 0.2),
     rounded = detail === 0 ? 6 : 4;
   const points: Pt[] = [
     [frontTop, model.topY(frontTop) + 0.015],
@@ -99,7 +101,9 @@ export function festivalDoorPaths(model: ClosedBodyModel, detail: Detail = 0): F
     const top = f.rearAxle + 0.035;
     points.push([top, model.topY(top) + 0.015]);
   } else {
-    const top = f.z(rr) - 0.025,
+    // A roadster has no roof rail. Its rear door edge meets the cockpit
+    // bulkhead behind the seats rather than a coincident roof station.
+    const top = f.z(s.style === 'roadster' ? rearGlass - 0.055 : rr) - 0.025,
       foot = top + 0.06;
     points.push([foot + 0.07, lower]);
     rearStart = points.length - 1;
@@ -408,8 +412,7 @@ export function addFestivalSills(
   }
 }
 
-/** Original handle meshes and mounting order are retained. Only the RH3 rear
- * assembly moves; its complete generated envelope must fit ahead of the joint. */
+/** The saloon rear handle and its recess must fit in front of the arch-following joint. */
 export function addFestivalDoorHandles(
   parts: Parts,
   model: ClosedBodyModel,
@@ -417,9 +420,12 @@ export function addFestivalDoorHandles(
   side: number,
 ) {
   const { f, s } = model,
-    [, rf, rr] = s.cabin,
+    [, rf, rr, rearGlass] = s.cabin,
     classic = s.lamps.front === 'round' && s.numbers === 'none',
-    stations = s.style === 'saloon' ? [(rf + rr) * 0.5 - 0.1, rr - 0.03] : [(rf + rr) * 0.5 + 0.06];
+    stations =
+      s.style === 'saloon'
+        ? [(rf + rr) * 0.5 - 0.1, rr - 0.03]
+        : [s.style === 'roadster' ? rearGlass - 0.14 : (rf + rr) * 0.5 + 0.06];
   for (let i = 0; i < stations.length; i++) {
     let z = f.z(stations[i]);
     const y = f.y(s.belt) + 0.04,

@@ -7,7 +7,7 @@ import type { Detail } from './wheel.ts';
 import { tessellateBodyCurve } from './body-curvature.ts';
 import { festivalSidePockets } from './festival-rear.ts';
 
-/** The two original road-car front ends share a smooth, monotone sweep. It
+/** Each original road-car front end has a smooth, monotone sweep. It
  * starts beyond the front wheel arch, so the axle, arch and collision envelope
  * remain fixed. Every exterior assembly uses the same map after construction. */
 function noseProjection(model: ClosedBodyModel, x: number, z: number) {
@@ -93,7 +93,7 @@ export interface FestivalLampPocket {
  * base is horizontal; each visible piece follows the evaluated bonnet height
  * independently, so a rigid plate cannot bridge the curved fender surface. */
 export function festivalBonnetPockets(model: ClosedBodyModel): FestivalLampPocket[] {
-  if (!model.s.frontSweep || !model.s.bonnetVents) return [];
+  if (!model.s.bondedHeadlamps || !model.s.frontSweep || !model.s.bonnetVents) return [];
   const z = model.f.frontAxle + Math.min(0.23, model.s.overhang[0] * 0.25),
     width = 0.235,
     depth = 0.28;
@@ -115,7 +115,7 @@ export function festivalBonnetPockets(model: ClosedBodyModel): FestivalLampPocke
 /** Original bonded lamp outlines, informed by the separate lamp housing and
  * white guide in references 091/099. Dimensions are authored, not measured. */
 export function festivalLampPockets(model: ClosedBodyModel): FestivalLampPocket[] {
-  if (!model.s.frontSweep) return [];
+  if (!model.s.bondedHeadlamps || !model.s.frontSweep) return [];
   const z = model.zFront - 0.18,
     half = model.halfWidth(z);
   const width = model.s.style === 'supercar' ? 0.4 : 0.37;

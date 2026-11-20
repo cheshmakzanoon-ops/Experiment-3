@@ -1,3 +1,4 @@
+import type { FestivalWipers } from './festival-wipers.ts';
 import * as T from 'three';
 import type { PaintFinish } from '../paint-finish.ts';
 import { revolveX, roundedBox, tubeGeometry, type Pt } from './loft.ts';
@@ -90,6 +91,7 @@ export interface BuiltLod {
   rear: T.Object3D[];
   /** The near cabin (LOD0 only): interior.ts. */
   cabin?: BuiltCabin;
+  wipers?: FestivalWipers;
 }
 export function emptyLod(name: string): BuiltLod {
   const group = new T.Group();
