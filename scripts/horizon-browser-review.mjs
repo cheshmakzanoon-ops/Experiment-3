@@ -35,6 +35,10 @@ page.on('pageerror', (error) => {
   errors.push(error.message);
   console.error('BROWSER ERROR', error.message);
 });
+page.on('crash', () => {
+  errors.push('Chromium renderer process crashed');
+  console.error('BROWSER CRASH', phase);
+});
 page.on('console', (message) => {
   if (message.type() === 'error') {
     errors.push(message.text());
@@ -406,7 +410,14 @@ try {
   assert.deepEqual(failedAssets, []);
   phase = 'complete';
 } catch (error) {
-  const observed = await state().catch(() => null);
+  console.error('FAILED', phase, error);
+  // A lost renderer sometimes leaves a pending evaluate after its UI wait has
+  // already failed. Keep the failure report and the completed driving steps.
+  let timeout;
+  const observed = await Promise.race([
+    state().catch(() => null),
+    new Promise((resolve) => { timeout = setTimeout(() => resolve(null), 3000); }),
+  ]).finally(() => clearTimeout(timeout));
   if (observed)
     failureState = {
       paused: observed.paused,
@@ -416,7 +427,6 @@ try {
       results: observed.results,
     };
   steps.push({ name: phase, passed: false, error: error.stack ?? String(error) });
-  console.error('FAILED', phase, error);
   process.exitCode = 1;
 } finally {
   await writeFile(
