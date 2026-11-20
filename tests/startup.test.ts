@@ -27,7 +27,7 @@ function fixture(vehicle = 'apx01', entrants = 3) {
     follow,
     quality: 'high',
     bikeShells: {
-      warmGpDetails: vi.fn((compile: () => Promise<void>) => compile()),
+      warmFieldDetails: vi.fn((compile: () => Promise<void>) => compile()),
       update: vi.fn(() => {
         calls.push('bike-materials');
       }),

@@ -2394,11 +2394,17 @@ export class BikeShells {
     if (shareGeometry) this.fieldGeometry.share(entry.definition.id + '/' + detail, model.root);
     model.root.visible = false;
     this.install(model.root);
+    // Compile parked arena levels with the same roof-light program their
+    // first live frame will use. Its uniforms still belong to this entrant.
+    if (this.arenaGrid) {
+      entry.arenaLight ??= new MxArenaBikeLight();
+      entry.arenaLight.bind(model.root);
+    }
     return model;
   }
   /** Construct the other race-camera levels while the worker is paused.
    * Prepare weather, material and texture registrations here too. Detached
-   * levels stay outside Three's shader traversal until a camera selects them. */
+   * levels stay outside the scene except for one representative per shader layout. */
   async prepareDirtField(cancelled: () => boolean, yieldFrame: () => Promise<void>) {
     for (const [id, entry] of this.entries) {
       if (!entry.dirtMud) continue;
@@ -2414,10 +2420,10 @@ export class BikeShells {
   /** Prepare each prototype/detail shader layout once. Every entrant keeps
    * its private uniforms and material registrations. Inactive duplicates
    * stay out of scene updates, shadow passes and compiler traversal. */
-  async warmGpDetails<T>(compile: () => Promise<T>): Promise<T> {
+  async warmFieldDetails<T>(compile: () => Promise<T>): Promise<T> {
     const active = new Set<string>(), parked = new Map<string, T.Object3D>();
     for (const entry of this.entries.values()) {
-      if (!entry.riderBody) continue;
+      if (!entry.riderBody && !entry.dirtMud) continue;
       for (let i = 0; i < entry.levels.length; i++) {
         const root = entry.levels[i]?.root;
         if (!root) continue;
@@ -2571,7 +2577,8 @@ export class BikeShells {
         old.root.visible = false;
         // A separated rider can be parented to the world outside its LOD.
         old.rider.root.visible = false;
-        if (entry.riderBody) {
+        if (entry.riderBody || entry.dirtMud) {
+          // Keep inactive race rigs out of scene and compiler traversals.
           // A fallen rider can live in world space independently of its bike.
           if (old.rider.root.parent === this.root) old.root.add(old.rider.root);
           old.root.removeFromParent();

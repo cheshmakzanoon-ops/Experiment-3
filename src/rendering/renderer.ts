@@ -1107,7 +1107,7 @@ export class RacingRenderer {
       progress('Compiling circuit and vehicle materials…');
       await yieldFrame();
       if (cancelled()) return false;
-      await this.bikeShells.warmGpDetails(() => compileSceneTarget(
+      await this.bikeShells.warmFieldDetails(() => compileSceneTarget(
         this.renderer,
         this.scene,
         this.camera,
@@ -1222,7 +1222,7 @@ export class RacingRenderer {
       this.circuit.photoPlanting?.update(this.camera, quality, this.graphics.vegetationDensity);
       await yieldControl();
       if (stopped()) return false;
-      await this.bikeShells.warmGpDetails(() => compileSceneTarget(
+      await this.bikeShells.warmFieldDetails(() => compileSceneTarget(
         this.renderer,
         this.scene,
         this.camera,

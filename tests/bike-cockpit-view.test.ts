@@ -148,7 +148,7 @@ describe('GP cockpit real-camera contract', () => {
       );
       expect(fingers[0].skeleton).not.toBe(fingers[1].skeleton);
       await expect(
-        shells.warmGpDetails(async () => {
+        shells.warmFieldDetails(async () => {
           expect(mounted()).toBe(7);
           throw new Error('cancelled');
         }),

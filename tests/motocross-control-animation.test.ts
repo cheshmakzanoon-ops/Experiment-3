@@ -12,7 +12,7 @@ import { MxGeometryPool } from '../src/rendering/offroad/mx-geometry-pool.ts';
 import { mudUniforms } from '../src/rendering/offroad/mud.ts';
 import { MX_GLOVE_GRIP } from '../src/rendering/offroad/motocross-rider-contact.ts';
 import { VEHICLES, vehicleIndex } from '../src/simulation/vehicles.ts';
-import { H, F, R, O, OFFROAD_BASE, RACE_BASE, HEADER, CAR_STRIDE, carBase } from '../src/simulation/protocol.ts';
+import { H, F, R, B, O, BIKE_BASE, OFFROAD_BASE, RACE_BASE, HEADER, CAR_STRIDE, carBase } from '../src/simulation/protocol.ts';
 
 beforeAll(() => {
   const context = new Proxy(
@@ -621,17 +621,35 @@ it('prepares camera cuts during loading, shares rigid vertex data and keeps susp
     expect(attached()).toHaveLength(2);
     // Two service stands and six rider models, including the four detached levels.
     expect(installs).toHaveBeenCalledTimes(8);
+    // The compiler sees both drawn riders and exactly one instance of each
+    // remaining detail. Even a rejected compile must put those rigs away.
+    await expect(
+      shells.warmFieldDetails(async () => {
+        expect(attached()).toHaveLength(4);
+        expect(
+          attached()
+            .filter((node) => !node.visible)
+            .map((node) => node.name.slice(-5))
+            .sort(),
+        ).toEqual(['(far)', '(mid)']);
+        throw new Error('interrupted');
+      }),
+    ).rejects.toThrow('interrupted');
+    expect(attached()).toHaveLength(2);
     const building = vi.spyOn(T.BufferGeometry.prototype, 'setAttribute');
     try {
-      for (const distance of [65, 250, 0]) {
+      cars[1].root.position.z = 65;
+      present();
+      const hidden = shells.drawnRoot(1)!;
+      for (const distance of [250, 0]) {
         cars[1].root.position.z = distance;
         present();
       }
       expect(building).not.toHaveBeenCalled();
       expect(installs).toHaveBeenCalledTimes(8);
-      expect(attached()).toHaveLength(4);
-      expect(attached().filter((node) => node.visible)).toHaveLength(2);
-      const hidden = attached().find((node) => !node.visible && node.name.endsWith('(mid)'))!;
+      expect(attached()).toHaveLength(2);
+      expect(attached().every((node) => node.visible)).toBe(true);
+      expect(hidden.parent).toBeNull();
       const visit = vi.spyOn(hidden.children[0], 'updateMatrixWorld');
       shells.root.updateMatrixWorld(true);
       expect(visit).not.toHaveBeenCalled();
@@ -641,6 +659,30 @@ it('prepares camera cuts during loading, shares rigid vertex data and keeps susp
       expect(shells.drawnRoot(1)).toBe(hidden);
       expect(visit).toHaveBeenCalled();
       expect(hidden.matrixWorld.elements[14]).toBe(65);
+      // A fallen rider belongs to world space. A cut must replace both the
+      // rig and its separated rider, and a rewind must reseat the same person.
+      const bike = carBase(1) + BIKE_BASE;
+      const seated = hidden.getObjectByName('Rider')!;
+      const seatedParent = seated.parent;
+      frame[bike + B.STATE] = 3;
+      frame[bike + B.RIDER_X] = 7;
+      frame[bike + B.RIDER_Y] = 2;
+      present();
+      expect(seated.parent).toBe(shells.root);
+      expect(seated.position.x).toBe(7);
+      cars[1].root.position.z = 250;
+      present();
+      expect(seated.parent).toBe(hidden);
+      expect(seated.visible).toBe(false);
+      const fallen = shells.root.children.filter((node) => node.name === 'Rider');
+      expect(fallen).toHaveLength(1);
+      expect(fallen[0].visible).toBe(true);
+      cars[1].root.position.z = 65;
+      frame[bike + B.STATE] = 0;
+      present();
+      expect(seated.parent).toBe(seatedParent);
+      expect(seated.visible).toBe(true);
+      expect(shells.root.children.some((node) => node.name === 'Rider')).toBe(false);
     } finally {
       building.mockRestore();
     }
