@@ -139,6 +139,9 @@ describe('Festival production frame pipeline', () => {
     expect(h.image.studioFrame.diagnostics().view).toContain(':hood:');
     expect(h.image.motion.diagnostics().camera).toBe('attached');
     expect(h.image.studioFrame.diagnostics().frameDt).toBe(0);
+    h.prepare(frame(10.08), false, false, false, 'cockpit');
+    expect(h.image.studioFrame.diagnostics().view).toContain(':cockpit:');
+    expect(h.image.motion.diagnostics().camera).toBe('attached');
     h.image.dispose();
     h.composer.dispose();
   });
@@ -224,6 +227,7 @@ describe('Festival production frame pipeline', () => {
       graphics: h.graphics,
       fxaa: { uniforms: { resolution: { value: new T.Vector2() } } },
       target: new T.Vector3(),
+      cars: { bodies: { cabinOf: vi.fn().mockReturnValue({}) } },
       audioView: { reset: vi.fn() },
       orbit: { enabled: false, target: new T.Vector3(), update: vi.fn() },
       photo: false,
@@ -232,10 +236,18 @@ describe('Festival production frame pipeline', () => {
     vi.stubGlobal('devicePixelRatio', 1);
     try {
       fixture.changeCamera('hood');
+      fixture.changeCamera();
+      expect(fixture.mode).toBe('cockpit');
+      fixture.changeCamera();
+      expect(fixture.mode).toBe('chase');
+      vi.mocked(fixture.cars.bodies.cabinOf).mockReturnValue(null);
+      fixture.changeCamera('hood');
+      fixture.changeCamera();
+      expect(fixture.mode).toBe('chase');
       fixture.setPhoto(true);
       fixture.setPhoto(false);
       fixture.resize();
-      expect(reset).toHaveBeenCalledTimes(4);
+      expect(reset).toHaveBeenCalledTimes(8);
       expect(h.image.motion.diagnostics()).toMatchObject({ width: 320, height: 180 });
     } finally {
       vi.unstubAllGlobals();

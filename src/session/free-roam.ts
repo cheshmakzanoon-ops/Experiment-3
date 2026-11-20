@@ -577,7 +577,7 @@ export class FestivalSession {
     this.controls?.syncInput();
     this.host.audio?.update(
       presented,
-      renderer.mode === 'hood',
+      renderer.mode === 'hood' || renderer.mode === 'cockpit',
       !this.isPaused && !document.hidden,
       renderer.audioView.value,
       false,

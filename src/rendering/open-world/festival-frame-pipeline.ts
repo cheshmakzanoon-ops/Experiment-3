@@ -74,7 +74,7 @@ export class FestivalFramePipeline {
       presented,
       this.camera,
       0,
-      photo ? 'still' : view === 'hood' ? 'cockpit' : 'chase',
+      photo ? 'still' : view === 'hood' || view === 'cockpit' ? 'cockpit' : 'chase',
     );
     this.renderer.toneMappingExposure = this.exposure.prepare(
       presented[H.TIME],

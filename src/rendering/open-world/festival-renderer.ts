@@ -106,8 +106,8 @@ import {
   festivalDiffuserEnabled,
 } from './festival-contacts.ts';
 
-export type FestivalCamera = 'chase' | 'far' | 'hood';
-const CAMERAS: readonly FestivalCamera[] = ['chase', 'far', 'hood'];
+export type FestivalCamera = 'chase' | 'far' | 'hood' | 'cockpit';
+const CAMERAS: readonly FestivalCamera[] = ['chase', 'far', 'hood', 'cockpit'];
 /** Chase rigs (m): distance behind, height, look-ahead, look lift, fov. */
 const RIGS = {
   chase: { distance: 5.8, height: 1.85, perMs: 0.018, lookAhead: 9, lift: 0.82, fov: 57 },
@@ -535,7 +535,8 @@ export class FestivalRenderer {
     this.imagePipeline.reset();
   }
   changeCamera(mode?: FestivalCamera) {
-    this.mode = mode ?? CAMERAS[(CAMERAS.indexOf(this.mode) + 1) % CAMERAS.length];
+    const next = mode ?? CAMERAS[(CAMERAS.indexOf(this.mode) + 1) % CAMERAS.length];
+    this.mode = next === 'cockpit' && !this.cars.bodies.cabinOf(0) ? 'chase' : next;
     this.initialized = false;
     this.audioView.reset();
     this.imagePipeline.reset();
@@ -626,6 +627,7 @@ export class FestivalRenderer {
     const presented = this.presented.sample(a, b, a === b ? 1 : clamp(alpha, 0, 1));
     const time = presented[H.TIME];
     const night = this.night;
+    const onboard = this.mode === 'hood' || this.mode === 'cockpit';
     this.cars.update(
       a,
       b,
@@ -634,7 +636,7 @@ export class FestivalRenderer {
       dt,
       night,
       this.camera,
-      this.mode === 'hood' && !this.photo,
+      onboard && !this.photo,
       detailTier(this.preset),
     );
     const o = carBase(0),
@@ -686,8 +688,10 @@ export class FestivalRenderer {
         this.groundHeight(this.camera.position.x, this.camera.position.z, this.target.y) + 0.45,
       );
       this.gaze.copy(this.orbit.target);
-    } else if (this.mode === 'hood' && subject) {
-      const mount = this.cars.bodies.cabinOf(0)?.layout.mount;
+    } else if (onboard && subject) {
+      const layout = this.cars.bodies.cabinOf(0)?.layout;
+      if (this.mode === 'cockpit' && !layout) this.changeCamera('hood');
+      const mount = this.mode === 'cockpit' ? layout?.cockpit : layout?.mount;
       if (mount) this.desired.fromArray(mount.eye);
       else this.desired.set(0, 1.18, 0.35);
       this.desired.applyQuaternion(subject.quaternion).add(this.target);
@@ -750,7 +754,7 @@ export class FestivalRenderer {
         }
       }
     }
-    if (!this.photo && this.mode !== 'hood') {
+    if (!this.photo && !onboard) {
       if (
         this.cameraClearance.constrain(
           this.cameraAnchor,
@@ -762,6 +766,9 @@ export class FestivalRenderer {
     }
     this.lastSubject.copy(this.target);
     this.initialized = true;
+    // The steering rim, dashboard and windscreen surround can sit closer
+    // than the outside camera's 30 cm clipping plane.
+    this.camera.near = this.mode === 'cockpit' && !this.photo ? 0.045 : 0.3;
     this.camera.up.set(0, 1, 0);
     this.camera.lookAt(this.gaze);
     this.camera.updateProjectionMatrix();
@@ -964,7 +971,7 @@ export class FestivalRenderer {
         wet > 0.15 ? 0.8 : 2,
         this.sky.material.uniforms.probeSkyIntensity,
       );
-    this.audioView.update(this.camera, time, 0, this.mode === 'hood', 0);
+    this.audioView.update(this.camera, time, 0, onboard, 0);
     postLensFrame(
       this.grade,
       this.bloom,
@@ -972,7 +979,7 @@ export class FestivalRenderer {
       mode,
       this.graphics.lensEffects && !this.photo,
       this.camera,
-      this.mode === 'hood' ? 'cockpit' : 'chase',
+      onboard ? 'cockpit' : 'chase',
       speed,
     );
     this.ultra.prepareFrame({
@@ -982,7 +989,7 @@ export class FestivalRenderer {
         { reflectivePaint: this.vehiclePaint },
       ],
       subject: this.target,
-      cameraMode: this.mode === 'hood' ? 'cockpit' : 'chase',
+      cameraMode: onboard ? 'cockpit' : 'chase',
       lighting: mode,
       studio: false,
       menu: false,
