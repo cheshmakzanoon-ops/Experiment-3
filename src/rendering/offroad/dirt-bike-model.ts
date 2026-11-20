@@ -39,6 +39,7 @@ import {
   MotocrossBrakeHose,
   MotocrossRearShock,
 } from './motocross-mechanics.ts';
+import { mapMxKitPanel, mxKitTexture } from './motocross-graphics-kit.ts';
 import { mapUnprintedPlateBack } from './number-plate-uv.ts';
 import {
   motocrossAirbox,
@@ -159,8 +160,7 @@ export class DirtBikeModel {
     tagMudExposure(board, 0.82);
     const shroudMaterial = primary.clone();
     shroudMaterial.color.setHex(0xffffff);
-    if (detail !== 'far') shroudMaterial.map = motocrossGraphics(colours, 'shroud', (id % 98) + 2);
-    else shroudMaterial.color.set(scheme.primary);
+    shroudMaterial.map = mxKitTexture(colours, definition.id, detail);
     shroudMaterial.name = 'Motocross layered factory plastics';
     const rimMaterial = new T.MeshPhysicalMaterial({
       color: id % 2 ? scheme.primary : 0x33383b,
@@ -272,7 +272,14 @@ export class DirtBikeModel {
       // When distant tread blocks disappear, their envelope stays in the
       // carcass so a LOD switch cannot make the wheel shrink off the ground.
       const knob = supermoto || detail === 'far' ? 0 : 0.016;
-      const carcass = tyreGeometry(radius - knob, halfWidth, halfWidth * 1.15, rim + 0.012, sides);
+      const wheelSides = detail === 'far' ? 24 : sides;
+      const carcass = tyreGeometry(
+        radius - knob,
+        halfWidth,
+        halfWidth * 1.15,
+        rim + 0.012,
+        wheelSides,
+      );
       add(spin, supermoto ? carcass : bindMotocrossTyre(carcass, front), tyreMaterial);
       if (knob > 0 && detail !== 'far')
         add(
@@ -290,16 +297,28 @@ export class DirtBikeModel {
           tyreMaterial,
         );
       // Rim hoop, hub and spokes.
-      const hoop = add(spin, new T.CylinderGeometry(rim, rim, 0.033, sides, 1, true), rimMaterial);
+      const hoop = add(
+        spin,
+        new T.CylinderGeometry(rim, rim, 0.033, wheelSides, 1, true),
+        rimMaterial,
+      );
       hoop.rotation.z = Math.PI / 2;
       for (const side of [-1, 1]) {
-        const lip = add(spin, new T.TorusGeometry(rim, 0.006, 6, sides), rimMaterial, side * 0.019);
+        const lip = add(
+          spin,
+          new T.TorusGeometry(rim, 0.006, 6, wheelSides),
+          rimMaterial,
+          side * 0.019,
+        );
         lip.rotation.y = Math.PI / 2;
       }
-      if (detail === 'far')
+      if (detail === 'far') {
         add(spin, new T.CylinderGeometry(0.034, 0.034, 0.092, 12), rimMaterial).rotation.z =
           Math.PI / 2;
-      else add(spin, motocrossWheelHub(detail), rimMaterial);
+        // Preserve the wheel's open construction. These coarse crossed spokes
+        // merge with the hub and rim into their existing distant draw.
+        add(spin, motocrossWheelSpokes(rim, detail), rimMaterial);
+      } else add(spin, motocrossWheelHub(detail), rimMaterial);
       if (detail !== 'far') {
         add(spin, motocrossWheelSpokes(rim, detail), this.m.steel, 0, 0, 0, false);
         add(
@@ -390,15 +409,31 @@ export class DirtBikeModel {
       ),
       this.m.aluminium,
     );
-    if (detail !== 'far')
-      add(
-        this.steer,
-        new RoundedBoxGeometry(0.22, 0.057, 0.065, 2, 0.014),
-        primary,
-        0,
-        barY + 0.012,
-        barZ + 0.03,
-      );
+    // A real crossbrace connects both bar rises and supports the foam pad.
+    add(
+      this.steer,
+      tube(
+        [
+          [-0.23, barY - 0.015, barZ + 0.023],
+          [-0.17, barY + 0.01, barZ + 0.028],
+          [0.17, barY + 0.01, barZ + 0.028],
+          [0.23, barY - 0.015, barZ + 0.023],
+        ],
+        0.007,
+        detail === 'far' ? 6 : 14,
+        6,
+      ),
+      this.m.aluminium,
+    );
+    const pad = new RoundedBoxGeometry(0.232, 0.06, 0.068, 1, 0.018);
+    const padPos = pad.getAttribute('position'),
+      padUv = pad.getAttribute('uv');
+    for (let i = 0; i < padPos.count; i++) {
+      // Orthographic wrap over the upper and rider-facing padded face.
+      padUv.setXY(i, 0.5 - 8 * (padPos.getY(i) + padPos.getZ(i)), 0.5 - padPos.getX(i) / 0.232);
+    }
+    mapMxKitPanel(pad, 'bar', () => true);
+    add(this.steer, pad, shroudMaterial, 0, barY + 0.012, barZ + 0.03);
     for (const side of [1, -1]) {
       add(
         this.steer,
@@ -504,8 +539,12 @@ export class DirtBikeModel {
     // moulding, not a mirrored duplicate of the graphics through the plate.
     mapUnprintedPlateBack(plate.geometry);
     // High front fender on the lower clamp: the wheel rises into the gap.
-    const fender = motocrossFender(true, detail);
-    add(this.steer, fender, primary, 0, -0.04, OFFSET);
+    const kitFender = (front: boolean) => {
+      const geometry = motocrossFender(front, detail);
+      const normal = geometry.getAttribute('normal');
+      return mapMxKitPanel(geometry, 'fender', (i) => normal.getY(i) > 0.5, !front);
+    };
+    add(this.steer, kitFender(true), shroudMaterial, 0, -0.04, OFFSET);
     // Lower legs (stanchions and axle lugs) slide with the recorded compression.
     this.steer.add(this.forkLower);
     this.forkLower.name = 'Motocross sliding fork lowers';
@@ -527,8 +566,10 @@ export class DirtBikeModel {
         OFFSET,
       );
       // Plastic fork guards over the stanchions.
-      if (detail !== 'far')
-        add(this.forkLower, motocrossForkGuard(detail), primary, side * 0.095, 0, OFFSET);
+      const guard = motocrossForkGuard(detail);
+      const outerCount = guard.getAttribute('position').count / 2;
+      mapMxKitPanel(guard, 'guard', (i) => i < outerCount);
+      add(this.forkLower, guard, shroudMaterial, side * 0.095, 0, OFFSET);
     }
     if (detail !== 'far')
       add(
@@ -656,14 +697,10 @@ export class DirtBikeModel {
     // Radiators either side of the frame, under the wing shrouds.
     addMotocrossRadiators(this.sprung, detail, this.m);
     for (const side of [1, -1]) {
-      const shroud = add(
-        this.sprung,
-        motocrossRadiatorShroud(side, detail),
-        shroudMaterial,
-        side * 0.184,
-        0,
-        0,
-      );
+      const duct = motocrossRadiatorShroud(side, detail);
+      const face = duct.getAttribute('normal');
+      mapMxKitPanel(duct, 'shroud', (i) => side * face.getX(i) > 0.4);
+      const shroud = add(this.sprung, duct, shroudMaterial, side * 0.184, 0, 0);
       shroud.rotation.y = side * 0.12;
       shroud.name = 'Motocross folded radiator shroud';
       if (detail === 'high')
@@ -752,7 +789,7 @@ export class DirtBikeModel {
       panel.rotation.y = -side * 0.045;
       panel.name = 'Motocross tapered side number panel';
     }
-    add(this.sprung, motocrossFender(false, detail), primary);
+    add(this.sprung, kitFender(false), shroudMaterial);
     // MX250 carries a formed two-stroke expansion chamber. MX450 and SM450
     // retain their four-stroke header.
     add(

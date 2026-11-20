@@ -744,9 +744,6 @@ export class Rider {
       installMotocrossFabricFinish(torsoLeather, 'jersey');
       installMotocrossFabricFinish(leather, 'limb');
       leather.map = panel.map = sleeve;
-      torsoLeather.map = motocrossGraphics(colours, 'jersey', raceNumber);
-      helmet.map = motocrossGraphics(colours, 'helmet', raceNumber);
-      helmet.color.setHex(0xffffff);
       Object.assign(mxGloveBack!, weave);
       mxGloveBack!.normalScale.set(0.18, 0.18);
       Object.assign(glove, bikeSurfaceMaps('seat'));
@@ -754,6 +751,19 @@ export class Rider {
       glove.roughness = 0.78;
       Object.assign(mxBoot!, bikeSurfaceMaps('paint'));
       mxBoot!.normalScale.set(0.15, 0.15);
+    }
+    if (mx) {
+      // Race number, upper chest, sleeve panels and helmet colour blocking
+      // remain identifiable when an opponent changes to the distant model.
+      const printScale = detail === 'far' ? 0.125 : detail === 'mid' ? 0.5 : 1;
+      torsoLeather.color.setHex(0xffffff);
+      torsoLeather.map = motocrossGraphics(colours, 'jersey', raceNumber, printScale);
+      helmet.color.setHex(0xffffff);
+      helmet.map = motocrossGraphics(colours, 'helmet', raceNumber, printScale);
+      if (detail === 'far') {
+        leather.color.setHex(0xffffff);
+        leather.map = motocrossGraphics(colours, 'sleeve', raceNumber, printScale);
+      }
     }
     if (!mx && detail !== 'far') {
       leather.map = riderPanelTexture(colours, false, gpSuit);

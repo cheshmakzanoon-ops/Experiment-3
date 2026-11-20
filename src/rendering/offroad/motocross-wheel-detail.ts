@@ -40,7 +40,9 @@ export function motocrossWheelHub(detail: RiderDetail) {
  * Rim seats alternate across the centreline and every nipple follows its
  * actual spoke axis, embedded in the rim instead of floating above it. */
 export function motocrossWheelSpokes(rim: number, detail: RiderDetail) {
-  const count = detail === 'high' ? 36 : 20,
+  const distant = detail === 'far';
+  const count = detail === 'high' ? 36 : distant ? 12 : 20,
+    flange = distant ? 0.033 : 0.047,
     perSide = count / 2,
     cross = detail === 'high' ? 2 : 1,
     parts: T.BufferGeometry[] = [],
@@ -54,8 +56,8 @@ export function motocrossWheelSpokes(rim: number, detail: RiderDetail) {
       // separation keeps the crossing shafts from occupying one plane.
       from = new T.Vector3(
         side * (direction > 0 ? 0.0455 : 0.0375),
-        Math.cos(angle) * 0.047,
-        Math.sin(angle) * 0.047,
+        Math.cos(angle) * flange,
+        Math.sin(angle) * flange,
       ),
       to = new T.Vector3(
         side * 0.008,
@@ -65,10 +67,12 @@ export function motocrossWheelSpokes(rim: number, detail: RiderDetail) {
       vector = to.clone().sub(from).normalize(),
       orientation = new T.Quaternion().setFromUnitVectors(axis, vector),
       centre = from.clone().add(to).multiplyScalar(0.5),
-      spoke = new T.CylinderGeometry(0.0019, 0.0019, from.distanceTo(to), 4, 1, true);
+      radius = distant ? 0.003 : 0.0019,
+      spoke = new T.CylinderGeometry(radius, radius, from.distanceTo(to), distant ? 3 : 4, 1, true);
     spoke.applyQuaternion(orientation);
     spoke.translate(centre.x, centre.y, centre.z);
     parts.push(spoke);
+    if (distant) continue;
     const nippleCentre = to.clone().addScaledVector(vector, -0.006),
       nipple = new T.CylinderGeometry(0.0031, 0.0027, 0.012, detail === 'high' ? 6 : 4);
     nipple.applyQuaternion(orientation);

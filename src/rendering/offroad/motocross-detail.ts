@@ -124,8 +124,8 @@ export function motocrossFender(front: boolean, detail: RiderDetail) {
  * exceeds the 30 mm outer tube even at full fork compression; no scaling or
  * extra animation is needed because the shell uses the actual lower group. */
 export function motocrossForkGuard(detail: RiderDetail) {
-  const rows = detail === 'high' ? 10 : 6,
-    columns = detail === 'high' ? 20 : 12,
+  const rows = detail === 'high' ? 10 : detail === 'mid' ? 6 : 2,
+    columns = detail === 'high' ? 20 : detail === 'mid' ? 12 : 6,
     stride = (rows + 1) * (columns + 1),
     positions: number[] = [],
     uvs: number[] = [],
@@ -419,15 +419,17 @@ float mxFabricLine(float d, float w) { return 1. - smoothstep(w * .5, w, abs(d))
  * the hierarchy and placement; no photographed manufacturer artwork is used. */
 export function motocrossGraphics(
   colours: RiderColours,
-  kind: 'shroud' | 'number' | 'jersey' | 'sleeve' | 'helmet',
+  kind: 'number' | 'jersey' | 'sleeve' | 'helmet',
   number = 2,
+  scale = 1,
 ) {
   const width = kind === 'jersey' ? 1024 : 512;
   const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
   const primary = hex(colours.primary),
     secondary = hex(colours.secondary),
     accent = hex(colours.accent);
-  const texture = canvasTexture(width, 512, (c) => {
+  const texture = canvasTexture(width * scale, 512 * scale, (c) => {
+    c.scale(scale, scale);
     c.fillStyle = kind === 'number' ? '#eeeae1' : primary;
     c.fillRect(0, 0, width, 512);
     const polygon = (points: number[][], colour: string) => {
@@ -548,24 +550,6 @@ export function motocrossGraphics(
         ],
         '#eeeae1',
       );
-      if (kind === 'shroud') {
-        c.save();
-        c.translate(246, 269);
-        c.rotate(-0.2);
-        c.textAlign = 'center';
-        c.fillStyle = '#f3f0e8';
-        c.font = 'italic 900 61px "Saira Variable", sans-serif';
-        c.fillText('MOTOBOUND', 0, 0, 422);
-        c.font = '800 28px "Saira Variable", sans-serif';
-        c.fillText('MX  /  FACTORY', 0, 43, 326);
-        c.restore();
-        c.fillStyle = '#eeeae1';
-        c.fillRect(345, 420, 116, 30);
-        c.fillStyle = '#22272a';
-        c.font = '800 22px "Saira Variable", sans-serif';
-        c.textAlign = 'center';
-        c.fillText('RACING', 403, 443, 107);
-      }
     }
   });
   texture.name = `Motocross original ${kind} graphics ${number}`;
