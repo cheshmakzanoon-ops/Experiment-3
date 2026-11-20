@@ -1,6 +1,6 @@
 import * as T from 'three';
 
-/** The first hidden GP chase pass needs the scene materials, vertex uploads
+/** The first hidden motorcycle chase pass needs the scene materials, vertex uploads
  * and multisampled attachments. A central tile exercises their fragment paths.
  * The following full cockpit image replaces it before the grid is revealed. */
 export function warmRoadGridColour(target: T.WebGLRenderTarget, draw: () => void) {

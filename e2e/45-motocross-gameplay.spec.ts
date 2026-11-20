@@ -163,6 +163,13 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
     expect(initialized.renderer?.presentationPurpose).toBe('circuit');
     expect(initialized.renderer?.construction.tasks).toBeGreaterThan(0);
     expect(initialized.renderer?.preparation?.status).toBe('complete');
+    const graphics = initialized.renderer!.graphics;
+    if (graphics.reflections === 'local' && graphics.shadowSize > 0) {
+      const tile = initialized.renderer!.warmupRoadColour;
+      expect(tile, `${circuit}: the hidden chase view used a bounded colour pass`).not.toBeNull();
+      expect(tile!.width).toBe(Math.min(320, tile!.targetWidth));
+      expect(tile!.height).toBe(Math.min(200, tile!.targetHeight));
+    }
     expect(initialized.renderer?.pitPersonnel.wheelGuns).toBeNull();
     expect(initialized.renderer?.pitPersonnel.pitJacks).toBeNull();
     expect(initialized.renderer?.trackInfrastructure.marshalPosts).toBeGreaterThan(0);

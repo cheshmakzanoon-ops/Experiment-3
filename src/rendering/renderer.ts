@@ -1238,7 +1238,10 @@ export class RacingRenderer {
             frame, frame, 1, 1 / 120, false, true, 1 / 120,
             splitShadows ? 'held-colour' : 'scene',
           );
-          if (roadField && splitShadows && mode === 'chase') {
+          // Both motorcycle grids already paid for their complete venue probe and
+          // shadow maps. A tile warms the hidden chase colour pass before the
+          // full cockpit image and the first visible race frame.
+          if (splitShadows && mode === 'chase') {
             this.warmupRoadColour = warmRoadGridColour(this.scenePass.target, drawGrid);
           } else {
             drawGrid();
