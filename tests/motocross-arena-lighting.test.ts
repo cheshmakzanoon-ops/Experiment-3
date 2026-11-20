@@ -123,6 +123,11 @@ describe('supercross roof floodlight grid', () => {
       expect(grid.rows).toBe(5);
       expect(grid.spanX).toBeGreaterThan(40);
       expect(grid.spanZ).toBeGreaterThan(20);
+      const lenses = stadium.root.getObjectByName('Merged arena round floodlight lenses') as T.Mesh<
+        T.BufferGeometry,
+        T.MeshStandardMaterial
+      >;
+      expect(lenses.material.emissive.getHex()).toBe(MX_ARENA_LIGHT.colour);
       // Hung from the roof's trusses (2 m under the deck) with the housing below.
       const box = new T.Box3().setFromObject(stadium.root);
       expect(grid.y).toBeLessThan(box.min.y + STADIUM.roof);
@@ -160,6 +165,28 @@ describe('supercross roof floodlight grid', () => {
     expect(MX_ARENA_LIGHT.reachCells).toBeLessThanOrEqual(2);
     expect((shader.uniforms.mxArenaGrid.value as T.Vector4).z).toBeCloseTo(10, 6);
     expect((shader.uniforms.mxArenaLamp.value as T.Vector4).toArray()).toEqual([8, 5, 30, 1]);
+    // The actual glass, photographed soil and race plastics use the same lamp white.
+    const floor = shader.uniforms.mxArenaColour.value as T.Vector4;
+    const lampWhite = new T.Color(
+      floor.x / MX_ARENA_LIGHT.intensity,
+      floor.y / MX_ARENA_LIGHT.intensity,
+      floor.z / MX_ARENA_LIGHT.intensity,
+    );
+    expect(lampWhite.getHex()).toBe(MX_ARENA_LIGHT.colour);
+    const plastic = new T.MeshPhysicalMaterial();
+    const sample = new T.Mesh(new T.BoxGeometry(), plastic);
+    new MxArenaBikeLight().bind(sample);
+    const bikeShader = {
+      vertexShader: source.vertexShader,
+      fragmentShader: source.fragmentShader,
+      uniforms: T.UniformsUtils.clone(source.uniforms),
+    } as StudioShader;
+    plastic.onBeforeCompile(bikeShader, {} as T.WebGLRenderer);
+    expect((bikeShader.uniforms.mxBikeRoofColour.value as T.Color).getHex()).toBe(
+      lampWhite.getHex(),
+    );
+    sample.geometry.dispose();
+    plastic.dispose();
     uniform!.value.w = 0;
     expect((shader.uniforms.mxArenaLamp.value as T.Vector4).w).toBe(0);
     view.dispose();

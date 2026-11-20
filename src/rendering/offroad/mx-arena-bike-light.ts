@@ -1,8 +1,6 @@
 import * as T from 'three';
 import { chainShaderHook, injectAfter, injectDeclarations } from '../studio/shader-hooks.ts';
-import { MX_ARENA_LIGHT, type MxArenaGrid } from './mx-arena-lighting.ts';
-
-const colour = new T.Color(MX_ARENA_LIGHT.colour).convertSRGBToLinear();
+import { MX_ARENA_LAMP_LINEAR, MX_ARENA_LIGHT, type MxArenaGrid } from './mx-arena-lighting.ts';
 
 /** The same roof lamps that light the dirt also illuminate the rider and its
  * moving hardware. A bike occupies only a small part of one pool. Evaluate
@@ -77,7 +75,7 @@ export class MxArenaBikeLight {
           shader.uniforms.mxBikeRoofPos = this.positive;
           shader.uniforms.mxBikeRoofNeg = this.negative;
           shader.uniforms.mxBikeRoofKey = this.key;
-          shader.uniforms.mxBikeRoofColour = { value: colour };
+          shader.uniforms.mxBikeRoofColour = { value: MX_ARENA_LAMP_LINEAR };
           injectDeclarations(
             shader,
             'common',

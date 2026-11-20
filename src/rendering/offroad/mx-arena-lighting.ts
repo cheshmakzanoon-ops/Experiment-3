@@ -33,6 +33,9 @@ export const MX_ARENA_LIGHT = Object.freeze({
   keyShare: 0.75,
 });
 
+// Three decodes an sRGB hex swatch into scene-linear RGB when constructing the Color.
+export const MX_ARENA_LAMP_LINEAR = new T.Color(MX_ARENA_LIGHT.colour);
+
 const DECLARATIONS = /* glsl */ `
 uniform vec4 mxArenaGrid;   // minX, minZ, cell X, cell Z (m)
 uniform vec4 mxArenaLamp;   // columns, rows, lamp height (m), strength
@@ -72,16 +75,15 @@ if ( mxArenaLamp.w > 0.0 ) {
 export function installMxArenaLighting(material: T.MeshPhysicalMaterial, grid: MxArenaGrid) {
   const cellX = grid.spanX / grid.columns,
     cellZ = grid.spanZ / grid.rows;
-  const colour = new T.Color(MX_ARENA_LIGHT.colour).convertSRGBToLinear();
   const lamp = { value: new T.Vector4(grid.columns, grid.rows, grid.y, 1) };
   const installed = chainShaderHook(material, MX_ARENA_LIGHT_HOOK, (shader) => {
     shader.uniforms.mxArenaGrid = { value: new T.Vector4(grid.minX, grid.minZ, cellX, cellZ) };
     shader.uniforms.mxArenaLamp = lamp;
     shader.uniforms.mxArenaColour = {
       value: new T.Vector4(
-        colour.r * MX_ARENA_LIGHT.intensity,
-        colour.g * MX_ARENA_LIGHT.intensity,
-        colour.b * MX_ARENA_LIGHT.intensity,
+        MX_ARENA_LAMP_LINEAR.r * MX_ARENA_LIGHT.intensity,
+        MX_ARENA_LAMP_LINEAR.g * MX_ARENA_LIGHT.intensity,
+        MX_ARENA_LAMP_LINEAR.b * MX_ARENA_LIGHT.intensity,
         MX_ARENA_LIGHT.keyShare,
       ),
     };

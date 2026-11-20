@@ -1,5 +1,6 @@
 import * as T from 'three';
 import { MxStadiumAudience } from './mx-stadium-audience.ts';
+import { MX_ARENA_LAMP_LINEAR } from './mx-arena-lighting.ts';
 import { mxFloodlightHead, mxFloodlightMount } from './mx-floodlight.ts';
 import { mxStadiumSeatGeometry } from './mx-stadium-seat.ts';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -142,7 +143,7 @@ export class Stadium {
     });
     const lamp = new T.MeshStandardMaterial({
       color: 0xadc8df,
-      emissive: 0xeaf4ff,
+      emissive: MX_ARENA_LAMP_LINEAR,
       emissiveIntensity: 18,
       name: 'Arena round floodlight lenses',
     });
