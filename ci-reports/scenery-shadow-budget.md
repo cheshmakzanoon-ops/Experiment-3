@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44823270263
-- commit: `31456578fe` · Put the SM450 on its two-wheel race grid
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44828850333
+- commit: `40cfaa4cef` · Warm the hidden motocross cockpit and reuse the completed starting gate
 - event: push · status: completed · conclusion: **failure**
-- started: 2026-11-20T21:46:28Z · updated: 2026-11-20T21:54:48Z
+- started: 2026-11-20T22:25:34Z · updated: 2026-11-20T22:37:29Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (night) | success | 7 |  |
-| browser (sunset) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
+| browser (night) | failure | 8 | First complete cockpit frame, all shadow submissions, unchanged budget |
+| browser (sunset) | success | 11 |  |
 | browser (day) | success | 6 |  |
