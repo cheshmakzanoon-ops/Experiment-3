@@ -1,285 +1,255 @@
-### browser (7) (job 136006890992)
+### browser (7) (job 136042572853)
 --- error digest (first 120 matching lines) ---
-620:browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T01:24:15.5054573Z   ✘   3 e2e/37-race-surface-atmosphere.spec.ts:44:3 › race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls (5.4m)
-624:browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T01:24:15.5065810Z Error: page.evaluate: Test timeout of 300000ms exceeded.
-650:browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T01:30:45.1508092Z   ✘   7 e2e/50-grid-presentation.spec.ts:7:1 › pre-race performance holds physics, seeks actual crew poses and hands control to the start (1.7m)
-652:browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T01:30:45.1509954Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
-658:browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T01:30:45.1511612Z - Timeout 60000ms exceeded while waiting on the predicate
-670:browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T01:35:17.8009938Z   ✘   8 e2e/53-a61-rival.spec.ts:31:3 › A61 full-grid rival presentation on aurel in clear/day (4.5m)
-672:browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T01:35:17.8011301Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
-678:browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T01:35:17.8012698Z - Timeout 240000ms exceeded while waiting on the predicate
-702:browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T01:44:31.2711144Z   ✘  10 e2e/56-track-infrastructure.spec.ts:12:3 › A01-A07 complete production sunset scene, visible assets and recorded start (7.5m)
-706:browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T01:44:31.2713620Z Error: page.evaluate: Test timeout of 420000ms exceeded.
-724:browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T01:49:08.0140025Z   ✘  14 e2e/a33-spare-wheel-set.spec.ts:11:1 › A33 ships in normal startup and survives entry, pause and garage registration (4.2m)
-726:browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T01:49:08.0149425Z Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoMatch^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
-732:browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T01:49:08.0151472Z - Timeout 240000ms exceeded while waiting on the predicate
-781:browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:09:53.0281122Z   ✘  17 e2e/aurel-quarry.spec.ts:11:3 › A55-A60 sunset full production landscape, cockpit and stable camera cycles (20.3m)
-785:browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:09:53.0284117Z Error: page.evaluate: Test timeout of 1200000ms exceeded.
-803:browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8302313Z   1) e2e/37-race-surface-atmosphere.spec.ts:44:3 › race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls 
-807:browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8303835Z     Error: page.evaluate: Test timeout of 300000ms exceeded.
-826:browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8312884Z   2) e2e/50-grid-presentation.spec.ts:7:1 › pre-race performance holds physics, seeks actual crew poses and hands control to the start › Expect "poll toBe" 
-828:browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8313927Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
-834:browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8315515Z     - Timeout 60000ms exceeded while waiting on the predicate
-853:browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8324739Z   3) e2e/53-a61-rival.spec.ts:31:3 › A61 full-grid rival presentation on aurel in clear/day › Expect "poll toBe" 
-855:browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8325704Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
-861:browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8327363Z     - Timeout 240000ms exceeded while waiting on the predicate
-886:browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8340112Z   4) e2e/56-track-infrastructure.spec.ts:12:3 › A01-A07 complete production sunset scene, visible assets and recorded start 
-890:browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8341299Z     Error: page.evaluate: Test timeout of 420000ms exceeded.
-909:browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8350234Z   5) e2e/a33-spare-wheel-set.spec.ts:11:1 › A33 ships in normal startup and survives entry, pause and garage registration › Expect "poll toMatch" 
-911:browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8351296Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoMatch^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
-917:browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8353010Z     - Timeout 240000ms exceeded while waiting on the predicate
-945:browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8366590Z   6) e2e/aurel-quarry.spec.ts:11:3 › A55-A60 sunset full production landscape, cockpit and stable camera cycles 
-949:browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8368422Z     Error: page.evaluate: Test timeout of 1200000ms exceeded.
-980:browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:50.3327052Z ##[error]Process completed with exit code 1.
+467:browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:47:02.5190340Z ##[error]The operation was canceled.
 
 --- last 250 lines ---
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8321864Z     test-results/50-grid-presentation-pre-r-927ab--hands-control-to-the-start/trace.zip
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8322366Z     Usage:
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8322500Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8322963Z         npx playwright show-trace test-results/50-grid-presentation-pre-r-927ab--hands-control-to-the-start/trace.zip
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8323433Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8323851Z     ────────────────────────────────────────────────────────────────────────────────────────────────
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8324168Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8324739Z   3) e2e/53-a61-rival.spec.ts:31:3 › A61 full-grid rival presentation on aurel in clear/day › Expect "poll toBe" 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8325196Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8325704Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoBe^[[2m(^[[22m^[[32mexpected^[[39m^[[2m) // Object.is equality^[[22m
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8326132Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8326317Z     Expected: ^[[32m"paused"^[[39m
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8326700Z     Received: ^[[31m"loading"^[[39m
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8326900Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8326998Z     Call Log:
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8327363Z     - Timeout 240000ms exceeded while waiting on the predicate
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8328023Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8328259Z       50 |     await page.locator('#opponents').selectOption('11');
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8328965Z       51 |     await page.getByRole('button', { name: 'PREPARE GRID START PAUSED', exact: true }).click();
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8329635Z     > 52 |     await expect.poll(async () => (await read()).state, { timeout: 240000 }).toBe('paused');
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8330053Z          |     ^
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8330294Z       53 |     await expect
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8330648Z       54 |       .poll(async () => (await read()).workerPause)
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8331126Z       55 |       .toMatchObject({ paused: true, pending: false });
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8331716Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/53-a61-rival.spec.ts:52:5
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8332104Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8332642Z     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8333461Z     test-results/53-a61-rival-A61-full-grid-95d43-ation-on-aurel-in-clear-day/test-failed-1.png
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8334225Z     ────────────────────────────────────────────────────────────────────────────────────────────────
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8334541Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8334976Z     Error Context: test-results/53-a61-rival-A61-full-grid-95d43-ation-on-aurel-in-clear-day/error-context.md
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8335427Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8335935Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8336628Z     test-results/53-a61-rival-A61-full-grid-95d43-ation-on-aurel-in-clear-day/trace.zip
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8337112Z     Usage:
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8337236Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8337912Z         npx playwright show-trace test-results/53-a61-rival-A61-full-grid-95d43-ation-on-aurel-in-clear-day/trace.zip
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8338586Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8339129Z     ────────────────────────────────────────────────────────────────────────────────────────────────
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8339495Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8340112Z   4) e2e/56-track-infrastructure.spec.ts:12:3 › A01-A07 complete production sunset scene, visible assets and recorded start 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8340656Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8340868Z     ^[[31mTest timeout of 420000ms exceeded.^[[39m
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8341104Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8341299Z     Error: page.evaluate: Test timeout of 420000ms exceeded.
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8341538Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8341803Z       45 |     await page.goto('/infrastructure-survey');
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8342288Z       46 |     await page.addScriptTag({ content: chunk.code });
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8342716Z     > 47 |     const report = await page.evaluate(
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8343069Z          |                               ^
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8343585Z       48 |       (lighting) =>
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8343892Z       49 |         (
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8344185Z       50 |           window as unknown as {
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8344766Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/56-track-infrastructure.spec.ts:47:31
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8345560Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8346065Z     attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8346838Z     test-results/56-track-infrastructure-A0-1cf04-e-assets-and-recorded-start/trace.zip
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8347370Z     Usage:
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8347496Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8348217Z         npx playwright show-trace test-results/56-track-infrastructure-A0-1cf04-e-assets-and-recorded-start/trace.zip
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8348779Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8349202Z     ────────────────────────────────────────────────────────────────────────────────────────────────
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8349539Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8350234Z   5) e2e/a33-spare-wheel-set.spec.ts:11:1 › A33 ships in normal startup and survives entry, pause and garage registration › Expect "poll toMatch" 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8350863Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8351296Z     Error: ^[[2mexpect(^[[22m^[[31mreceived^[[39m^[[2m).^[[22mtoMatch^[[2m(^[[22m^[[32mexpected^[[39m^[[2m)^[[22m
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8351709Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8351952Z     Expected pattern: ^[[32m/^(driving|briefing)$/^[[39m
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8352385Z     Received string:  ^[[31m"loading"^[[39m
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8352599Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8352696Z     Call Log:
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8353010Z     - Timeout 240000ms exceeded while waiting on the predicate
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8353258Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8353411Z        at race-entry.ts:6
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8353651Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8353993Z       4 |  * preferences, inject simulation data, or auto-dismiss the new pregame test. */
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8354579Z       5 | export async function finishRaceEntry(page: Page) {
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8354922Z     > 6 |   await expect
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8355533Z         |   ^
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8355940Z       7 |     .poll(
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8356291Z       8 |       async () => {
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8356810Z       9 |         const d = await page.evaluate(() => window.apexDiagnostics());
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8357508Z         at finishRaceEntry (/home/runner/work/Experiment-3/Experiment-3/e2e/race-entry.ts:6:3)
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8358462Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/a33-spare-wheel-set.spec.ts:32:3
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8358875Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8359512Z     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8360331Z     test-results/a33-spare-wheel-set-A33-sh-59c87-use-and-garage-registration/test-failed-1.png
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8361215Z     ────────────────────────────────────────────────────────────────────────────────────────────────
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8361534Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8361999Z     Error Context: test-results/a33-spare-wheel-set-A33-sh-59c87-use-and-garage-registration/error-context.md
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8362522Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8362962Z     attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8363708Z     test-results/a33-spare-wheel-set-A33-sh-59c87-use-and-garage-registration/trace.zip
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8364211Z     Usage:
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8364336Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8364812Z         npx playwright show-trace test-results/a33-spare-wheel-set-A33-sh-59c87-use-and-garage-registration/trace.zip
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8365284Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8365716Z     ────────────────────────────────────────────────────────────────────────────────────────────────
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8366073Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8366590Z   6) e2e/aurel-quarry.spec.ts:11:3 › A55-A60 sunset full production landscape, cockpit and stable camera cycles 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8367078Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8367290Z     ^[[31mTest timeout of 1200000ms exceeded.^[[39m
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8368012Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8368422Z     Error: page.evaluate: Test timeout of 1200000ms exceeded.
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8368717Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8368889Z       47 |     await page.goto('/quarry-survey');
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8369456Z       48 |     await page.addScriptTag({ content: chunk.code });
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8369888Z     > 49 |     const report = await page.evaluate(
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8370258Z          |                               ^
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8370565Z       50 |       (l) =>
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8370808Z       51 |         (
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8371087Z       52 |           window as unknown as {
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8371597Z         at /home/runner/work/Experiment-3/Experiment-3/e2e/aurel-quarry.spec.ts:49:31
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8371970Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8372475Z     attachment #1: trace (application/zip) ─────────────────────────────────────────────────────────
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8373205Z     test-results/aurel-quarry-A55-A60-sunse-6ed39-it-and-stable-camera-cycles/trace.zip
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8373725Z     Usage:
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8373842Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8374329Z         npx playwright show-trace test-results/aurel-quarry-A55-A60-sunse-6ed39-it-and-stable-camera-cycles/trace.zip
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8374826Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8375272Z     ────────────────────────────────────────────────────────────────────────────────────────────────
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8375627Z 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8375854Z   Slow test file: e2e/aurel-quarry.spec.ts (20.3m)
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8376300Z   Slow test file: e2e/56-track-infrastructure.spec.ts (7.5m)
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8376818Z   Slow test file: e2e/37-race-surface-atmosphere.spec.ts (5.4m)
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8377518Z   Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8378262Z   6 failed
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8379305Z     e2e/37-race-surface-atmosphere.spec.ts:44:3 › race surface and atmosphere: fullSceneFogGPU populated-grid preserves production resources and negative controls 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8380835Z     e2e/50-grid-presentation.spec.ts:7:1 › pre-race performance holds physics, seeks actual crew poses and hands control to the start 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8381860Z     e2e/53-a61-rival.spec.ts:31:3 › A61 full-grid rival presentation on aurel in clear/day ─────────
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8382884Z     e2e/56-track-infrastructure.spec.ts:12:3 › A01-A07 complete production sunset scene, visible assets and recorded start 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8383985Z     e2e/a33-spare-wheel-set.spec.ts:11:1 › A33 ships in normal startup and survives entry, pause and garage registration 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8384988Z     e2e/aurel-quarry.spec.ts:11:3 › A55-A60 sunset full production landscape, cockpit and stable camera cycles 
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:49.8385572Z   16 passed (53.5m)
-browser (7)	Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16	2026-11-20T02:11:50.3327052Z ##[error]Process completed with exit code 1.
-browser (7)	Browser screenshots and diagnostics	﻿2026-11-20T02:11:50.3379917Z ##[group]Run actions/upload-artifact@v4
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:50.3380167Z with:
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:50.3380351Z   name: browser-validation-7-of-16
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:50.3380787Z   path: test-results/
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:44.1493018Z Switching to root user to install dependencies...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:44.2301635Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [139 B]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:44.2772210Z Get:6 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:44.3575623Z Get:7 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [728 kB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:44.3715990Z Get:8 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [799 kB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:44.9099819Z Hit:2 https://archive.ubuntu.com/ubuntu noble InRelease
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:45.0774264Z Get:3 https://archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:45.6394632Z Get:4 https://archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:45.8975109Z Get:5 https://archive.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:45.9877694Z Get:9 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1475 kB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:46.0119726Z Get:10 https://archive.ubuntu.com/ubuntu noble-updates/main Translation-en [319 kB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:46.0236872Z Get:11 https://archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1716 kB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:46.0604753Z Get:12 https://archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [346 kB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:46.0835575Z Get:13 https://archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1922 kB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:46.1038325Z Get:14 https://archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [443 kB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:46.1208235Z Get:15 https://archive.ubuntu.com/ubuntu noble-updates/multiverse Translation-en [14.6 kB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:46.1358424Z Get:16 https://archive.ubuntu.com/ubuntu noble-security/main amd64 Packages [1198 kB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:46.1521566Z Get:17 https://archive.ubuntu.com/ubuntu noble-security/main Translation-en [239 kB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:46.1653053Z Get:18 https://archive.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1231 kB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:46.1811029Z Get:19 https://archive.ubuntu.com/ubuntu noble-security/universe Translation-en [248 kB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:46.2380720Z Get:20 https://archive.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1792 kB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:46.2590583Z Get:21 https://archive.ubuntu.com/ubuntu noble-security/restricted Translation-en [414 kB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:46.2743599Z Get:22 https://archive.ubuntu.com/ubuntu noble-security/multiverse Translation-en [12.7 kB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:49.6066113Z Fetched 13.3 MB in 3s (4670 kB/s)
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:50.8614892Z Reading package lists...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:50.8945658Z Reading package lists...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.1251692Z Building dependency tree...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.1258519Z Reading state information...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2728941Z libasound2t64 is already the newest version (1.2.11-1ubuntu0.3).
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2729815Z libasound2t64 set to manually installed.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2730916Z libatk-bridge2.0-0t64 is already the newest version (2.52.0-1build1).
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2731563Z libatk-bridge2.0-0t64 set to manually installed.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2732173Z libatk1.0-0t64 is already the newest version (2.52.0-1build1).
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2732720Z libatk1.0-0t64 set to manually installed.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2733657Z libatspi2.0-0t64 is already the newest version (2.52.0-1build1).
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2734313Z libatspi2.0-0t64 set to manually installed.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2734882Z libcairo2 is already the newest version (1.18.0-3build1).
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2735984Z libcairo2 set to manually installed.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2736543Z libcups2t64 is already the newest version (2.4.7-1.2ubuntu7.14).
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2737075Z libcups2t64 set to manually installed.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2737615Z libdbus-1-3 is already the newest version (1.14.10-4ubuntu4.1).
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2738217Z libdbus-1-3 set to manually installed.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2738771Z libdrm2 is already the newest version (2.4.125-1ubuntu0.1~24.04.2).
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2739553Z libdrm2 set to manually installed.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2740312Z libglib2.0-0t64 is already the newest version (2.80.0-6ubuntu3.10).
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2740849Z libglib2.0-0t64 set to manually installed.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2741346Z libnspr4 is already the newest version (2:4.35-1.1build1).
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2741810Z libnspr4 set to manually installed.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2742264Z libnss3 is already the newest version (2:3.98-1ubuntu0.3).
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2742920Z libnss3 set to manually installed.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2743420Z libpango-1.0-0 is already the newest version (1.52.1+ds-1build1).
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2743902Z libpango-1.0-0 set to manually installed.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2744391Z libx11-6 is already the newest version (2:1.8.7-1ubuntu0.1).
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2744835Z libx11-6 set to manually installed.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2745268Z libxcb1 is already the newest version (1.15-1ubuntu2).
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2745796Z libxcb1 set to manually installed.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2746276Z libxcomposite1 is already the newest version (1:0.4.5-1build3).
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2746760Z libxcomposite1 set to manually installed.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2747241Z libxdamage1 is already the newest version (1:1.1.6-1build1).
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2747916Z libxdamage1 set to manually installed.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2748676Z libxext6 is already the newest version (2:1.3.4-1build2).
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2749154Z libxext6 set to manually installed.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2749613Z libxfixes3 is already the newest version (1:6.0.0-2build1).
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2750224Z libxfixes3 set to manually installed.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2750839Z libxkbcommon0 is already the newest version (1.6.0-1build1).
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2751266Z libxkbcommon0 set to manually installed.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2751689Z libxrandr2 is already the newest version (2:1.5.2-2build1).
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2752086Z libxrandr2 set to manually installed.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2752490Z xvfb is already the newest version (2:21.1.12-1ubuntu1.9).
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2753200Z fonts-noto-color-emoji is already the newest version (2.047-0ubuntu0.24.04.1).
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2753799Z libfontconfig1 is already the newest version (2.15.0-1.1ubuntu2).
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2754258Z libfontconfig1 set to manually installed.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2754727Z libfreetype6 is already the newest version (2.13.2+dfsg-1ubuntu0.2).
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2755190Z libfreetype6 set to manually installed.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2755635Z fonts-liberation is already the newest version (1:2.1.5-3).
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2756071Z fonts-liberation set to manually installed.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2756596Z The following additional packages will be installed:
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2757133Z   libgl1-mesa-dri libglx-mesa0 mesa-libgallium xfonts-encodings xfonts-utils
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2757588Z Recommended packages:
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2757879Z   fonts-ipafont-mincho fonts-tlwg-loma
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2935059Z The following NEW packages will be installed:
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2935938Z   fonts-freefont-ttf fonts-ipafont-gothic fonts-tlwg-loma-otf fonts-unifont
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2941797Z   fonts-wqy-zenhei xfonts-cyrillic xfonts-encodings xfonts-scalable
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2942527Z   xfonts-utils
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2946113Z The following packages will be upgraded:
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.2951258Z   libgbm1 libgl1-mesa-dri libglx-mesa0 mesa-libgallium
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.3148248Z 4 upgraded, 9 newly installed, 0 to remove and 83 not upgraded.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.3148937Z Need to get 32.1 MB of archives.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.3149744Z After this operation, 79.7 MB of additional disk space will be used.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.3150669Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [139 B]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.5497915Z Get:2 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-ipafont-gothic all 00303-21ubuntu1 [3513 kB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.5986258Z Get:3 https://archive.ubuntu.com/ubuntu noble/main amd64 fonts-freefont-ttf all 20211204+svn4273-2 [5641 kB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.7713190Z Get:4 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-tlwg-loma-otf all 1:0.7.3-1 [107 kB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.7879970Z Get:5 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-unifont all 1:15.1.01-1build1 [2993 kB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.8199781Z Get:6 https://archive.ubuntu.com/ubuntu noble/universe amd64 fonts-wqy-zenhei all 0.9.45-8 [7472 kB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.8892815Z Get:7 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 libgl1-mesa-dri amd64 25.2.8-0ubuntu0.24.04.5 [38.0 kB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.9069161Z Get:8 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 libglx-mesa0 amd64 25.2.8-0ubuntu0.24.04.5 [110 kB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.9225391Z Get:9 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 libgbm1 amd64 25.2.8-0ubuntu0.24.04.5 [34.2 kB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:51.9354824Z Get:10 https://archive.ubuntu.com/ubuntu noble-updates/main amd64 mesa-libgallium amd64 25.2.8-0ubuntu0.24.04.5 [10.8 MB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:52.0365966Z Get:11 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2 [578 kB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:52.0639363Z Get:12 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3 [94.4 kB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:52.0833920Z Get:13 https://archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1 [384 kB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:52.1071587Z Get:14 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3 [304 kB]
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:52.4021562Z Fetched 32.1 MB in 1s (39.7 MB/s)
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:52.4261475Z Selecting previously unselected package fonts-ipafont-gothic.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:52.4541526Z (Reading database ... 
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:52.4542378Z (Reading database ... 5%
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:52.4543187Z (Reading database ... 10%
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:52.4543748Z (Reading database ... 15%
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:52.4544280Z (Reading database ... 20%
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:52.4544817Z (Reading database ... 25%
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:52.4545344Z (Reading database ... 30%
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:52.4545866Z (Reading database ... 35%
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:52.4546392Z (Reading database ... 40%
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:52.4546917Z (Reading database ... 45%
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:52.4547397Z (Reading database ... 50%
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:52.4585255Z (Reading database ... 55%
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:52.5823189Z (Reading database ... 60%
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:52.7712612Z (Reading database ... 65%
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:52.9202948Z (Reading database ... 70%
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:53.1189293Z (Reading database ... 75%
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:53.2294252Z (Reading database ... 80%
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:53.3647383Z (Reading database ... 85%
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:53.4832411Z (Reading database ... 90%
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:53.5474372Z (Reading database ... 95%
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:53.5474833Z (Reading database ... 100%
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:53.5475430Z (Reading database ... 216752 files and directories currently installed.)
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:53.5516875Z Preparing to unpack .../00-fonts-ipafont-gothic_00303-21ubuntu1_all.deb ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:53.5632956Z Unpacking fonts-ipafont-gothic (00303-21ubuntu1) ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:53.8021880Z Selecting previously unselected package fonts-freefont-ttf.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:53.8165280Z Preparing to unpack .../01-fonts-freefont-ttf_20211204+svn4273-2_all.deb ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:53.8174447Z Unpacking fonts-freefont-ttf (20211204+svn4273-2) ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:53.9111021Z Selecting previously unselected package fonts-tlwg-loma-otf.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:53.9252050Z Preparing to unpack .../02-fonts-tlwg-loma-otf_1%3a0.7.3-1_all.deb ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:53.9262273Z Unpacking fonts-tlwg-loma-otf (1:0.7.3-1) ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:53.9488121Z Selecting previously unselected package fonts-unifont.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:53.9628010Z Preparing to unpack .../03-fonts-unifont_1%3a15.1.01-1build1_all.deb ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:53.9635164Z Unpacking fonts-unifont (1:15.1.01-1build1) ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:54.0722692Z Selecting previously unselected package fonts-wqy-zenhei.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:54.0863523Z Preparing to unpack .../04-fonts-wqy-zenhei_0.9.45-8_all.deb ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:54.0972118Z Unpacking fonts-wqy-zenhei (0.9.45-8) ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:54.5914774Z Preparing to unpack .../05-libgl1-mesa-dri_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:54.6078540Z Unpacking libgl1-mesa-dri:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:54.6623956Z Preparing to unpack .../06-libglx-mesa0_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:54.6670231Z Unpacking libglx-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:54.7074693Z Preparing to unpack .../07-libgbm1_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:54.7100821Z Unpacking libgbm1:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:54.7511573Z Preparing to unpack .../08-mesa-libgallium_25.2.8-0ubuntu0.24.04.5_amd64.deb ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:54.7537027Z Unpacking mesa-libgallium:amd64 (25.2.8-0ubuntu0.24.04.5) over (25.2.8-0ubuntu0.24.04.4) ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:54.9357202Z Selecting previously unselected package xfonts-encodings.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:54.9498613Z Preparing to unpack .../09-xfonts-encodings_1%3a1.0.5-0ubuntu2_all.deb ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:54.9506858Z Unpacking xfonts-encodings (1:1.0.5-0ubuntu2) ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:54.9817984Z Selecting previously unselected package xfonts-utils.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:54.9959401Z Preparing to unpack .../10-xfonts-utils_1%3a7.7+6build3_amd64.deb ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:54.9968383Z Unpacking xfonts-utils (1:7.7+6build3) ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:55.0347574Z Selecting previously unselected package xfonts-cyrillic.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:55.0489485Z Preparing to unpack .../11-xfonts-cyrillic_1%3a1.0.5+nmu1_all.deb ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:55.0498283Z Unpacking xfonts-cyrillic (1:1.0.5+nmu1) ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:55.0868173Z Selecting previously unselected package xfonts-scalable.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:55.1010819Z Preparing to unpack .../12-xfonts-scalable_1%3a1.0.3-1.3_all.deb ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:55.1020390Z Unpacking xfonts-scalable (1:1.0.3-1.3) ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:55.1502487Z Setting up mesa-libgallium:amd64 (25.2.8-0ubuntu0.24.04.5) ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:55.1533220Z Setting up libgbm1:amd64 (25.2.8-0ubuntu0.24.04.5) ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:55.1556912Z Setting up libgl1-mesa-dri:amd64 (25.2.8-0ubuntu0.24.04.5) ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:55.1637786Z Setting up fonts-wqy-zenhei (0.9.45-8) ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:55.1762541Z Setting up fonts-freefont-ttf (20211204+svn4273-2) ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:55.1782795Z Setting up fonts-tlwg-loma-otf (1:0.7.3-1) ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:55.1804749Z Setting up xfonts-encodings (1:1.0.5-0ubuntu2) ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:55.1825542Z Setting up fonts-ipafont-gothic (00303-21ubuntu1) ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:55.1895279Z update-alternatives: using /usr/share/fonts/opentype/ipafont-gothic/ipag.ttf to provide /usr/share/fonts/truetype/fonts-japanese-gothic.ttf (fonts-japanese-gothic.ttf) in auto mode
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:55.1913905Z Setting up fonts-unifont (1:15.1.01-1build1) ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:55.1935606Z Setting up libglx-mesa0:amd64 (25.2.8-0ubuntu0.24.04.5) ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:55.1957274Z Setting up xfonts-utils (1:7.7+6build3) ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:55.2000363Z Setting up xfonts-cyrillic (1:1.0.5+nmu1) ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:55.2304004Z Setting up xfonts-scalable (1:1.0.3-1.3) ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:55.2588260Z Processing triggers for libc-bin (2.39-0ubuntu8.9) ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:55.2905299Z Processing triggers for man-db (2.12.0-4build2) ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:55.2928585Z Not building database; man-db/auto-update is not 'true'.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:55.2942580Z Processing triggers for fontconfig (2.15.0-1.1ubuntu2) ...
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:56.0512992Z 
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:56.0514045Z Running kernel seems to be up-to-date.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:56.0514478Z 
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:56.0514761Z No services need to be restarted.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:56.0515093Z 
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:56.0515359Z No containers need to be restarted.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:56.0515689Z 
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:56.0516023Z No user sessions are running outdated binaries.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:56.0516412Z 
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:56.0516934Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:57.1478416Z Downloading Chromium 140.0.7339.186 (playwright build v1193) from https://cdn.playwright.dev/dbazure/download/playwright/builds/chromium/1193/chromium-linux.zip
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:57.3221842Z |                                                                                |   0% of 173.8 MiB
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:57.6114171Z |■■■■■■■■                                                                        |  10% of 173.8 MiB
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:57.8338231Z |■■■■■■■■■■■■■■■■                                                                |  20% of 173.8 MiB
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:58.1581708Z |■■■■■■■■■■■■■■■■■■■■■■■■                                                        |  30% of 173.8 MiB
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:58.4446803Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                                |  40% of 173.8 MiB
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:58.8470380Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                        |  50% of 173.8 MiB
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:46:59.3777825Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                                |  60% of 173.8 MiB
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:47:00.0588065Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                        |  70% of 173.8 MiB
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:47:00.7224612Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■                |  80% of 173.8 MiB
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:47:01.3696991Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■        |  90% of 173.8 MiB
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:47:01.7710462Z |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 173.8 MiB
+browser (7)	Run npx playwright install --with-deps chromium	2026-11-20T02:47:02.5190340Z ##[error]The operation was canceled.
+browser (7)	Browser screenshots and diagnostics	﻿2026-11-20T02:47:02.5638488Z ##[group]Run actions/upload-artifact@v4
+browser (7)	Browser screenshots and diagnostics	2026-11-20T02:47:02.5639006Z with:
+browser (7)	Browser screenshots and diagnostics	2026-11-20T02:47:02.5639365Z   name: browser-validation-7-of-16
+browser (7)	Browser screenshots and diagnostics	2026-11-20T02:47:02.5640595Z   path: test-results/
 browser (7)	Browser screenshots and diagnostics	playwright-report/
 browser (7)	Browser screenshots and diagnostics	browser-shard-plan.json
 browser (7)	Browser screenshots and diagnostics	browser-backend.json
 browser (7)	Browser screenshots and diagnostics	browser-progress.json
 browser (7)	Browser screenshots and diagnostics	
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:50.3381223Z   retention-days: 7
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:50.3381410Z   if-no-files-found: warn
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:50.3381616Z   compression-level: 6
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:50.3381805Z   overwrite: false
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:50.3381986Z   include-hidden-files: false
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:50.3382188Z env:
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:50.3382358Z   APEX_BROWSER_BACKEND: mesa
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:50.3382555Z   LIBGL_ALWAYS_SOFTWARE: true
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:50.3382762Z   GALLIUM_DRIVER: llvmpipe
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:50.3382949Z ##[endgroup]
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:50.4603542Z (node:5349) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:50.4604165Z (Use `node --trace-deprecation ...` to show where the warning was created)
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:50.4790432Z Multiple search paths detected. Calculating the least common ancestor of all paths
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:50.4792437Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:50.4793259Z With the provided path, there will be 127 files uploaded
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:50.4796588Z Artifact name is valid!
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:50.4797000Z Root directory input is valid!
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:51.0761590Z Beginning upload of artifact content to blob storage
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:51.3018657Z (node:5349) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:52.4214930Z Uploaded bytes 8388608
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:52.6442388Z Uploaded bytes 16777216
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:52.7422728Z Uploaded bytes 25165824
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:52.8840799Z Uploaded bytes 33554432
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:52.9573677Z Uploaded bytes 41943040
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:53.0887031Z Uploaded bytes 50331648
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:53.1495200Z Uploaded bytes 58720256
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:53.2287347Z Uploaded bytes 67108864
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:53.5066775Z Uploaded bytes 75497472
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:53.7320237Z Uploaded bytes 83886080
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:53.8628663Z Uploaded bytes 92274688
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:54.1220013Z Uploaded bytes 100663296
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:54.3556746Z Uploaded bytes 109051904
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:54.5758618Z Uploaded bytes 117440512
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:54.6974030Z Uploaded bytes 125829120
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:54.9757896Z Uploaded bytes 134217728
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:55.2074686Z Uploaded bytes 142606336
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:55.3525163Z Uploaded bytes 150994944
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:55.5907252Z Uploaded bytes 159383552
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:55.8114160Z Uploaded bytes 167772160
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:56.0319156Z Uploaded bytes 176160768
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:56.2183099Z Uploaded bytes 184549376
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:56.5408276Z Uploaded bytes 192937984
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:56.6577986Z Uploaded bytes 201326592
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:56.9359897Z Uploaded bytes 209715200
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:57.1971984Z Uploaded bytes 218103808
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:57.3652298Z Uploaded bytes 226492416
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:57.5777258Z Uploaded bytes 234881024
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:57.8158771Z Uploaded bytes 243269632
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:58.0101815Z Uploaded bytes 251658240
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:58.2223664Z Uploaded bytes 260046848
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:58.5495910Z Uploaded bytes 268435456
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:58.6488931Z Uploaded bytes 276824064
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:58.9472670Z Uploaded bytes 285212672
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:59.1321586Z Uploaded bytes 293601280
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:59.3284303Z Uploaded bytes 301989888
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:59.5749488Z Uploaded bytes 310378496
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:11:59.8543793Z Uploaded bytes 318767104
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:00.0560914Z Uploaded bytes 327155712
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:00.2436788Z Uploaded bytes 335544320
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:00.4576617Z Uploaded bytes 343932928
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:00.6555514Z Uploaded bytes 352321536
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:00.9368869Z Uploaded bytes 360710144
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:01.1077119Z Uploaded bytes 369098752
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:01.4408929Z Uploaded bytes 377487360
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:01.5706997Z Uploaded bytes 385875968
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:01.7912319Z Uploaded bytes 394264576
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:01.9826203Z Uploaded bytes 402653184
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:02.2349618Z Uploaded bytes 411041792
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:02.4054298Z Uploaded bytes 419430400
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:02.6731883Z Uploaded bytes 427819008
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:02.8858203Z Uploaded bytes 436207616
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:03.1092740Z Uploaded bytes 444596224
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:03.3833592Z Uploaded bytes 452984832
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:03.5349950Z Uploaded bytes 461373440
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:03.7367896Z Uploaded bytes 469762048
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:04.1382477Z Uploaded bytes 478150656
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:04.1757925Z Uploaded bytes 486539264
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:04.6389201Z Uploaded bytes 494927872
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:04.8944595Z Uploaded bytes 503316480
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:05.0301091Z Uploaded bytes 511705088
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:05.3008617Z Uploaded bytes 520093696
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:05.6512218Z Uploaded bytes 528482304
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:06.2395518Z Uploaded bytes 536870912
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:07.0246496Z Uploaded bytes 540495998
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:07.1405946Z Finished uploading artifact content to blob storage!
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:07.1406734Z SHA256 digest of uploaded artifact zip is 59c277a9f2a1aa120be473d3dbbfb037490d76679edbba80ff000bf623fc4574
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:07.1408484Z Finalizing artifact upload
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:07.6466577Z Artifact browser-validation-7-of-16.zip successfully finalized. Artifact ID 14594038657
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:07.6467529Z Artifact browser-validation-7-of-16 has been successfully uploaded! Final size is 540495998 bytes. Artifact ID is 14594038657
-browser (7)	Browser screenshots and diagnostics	2026-11-20T02:12:07.6472723Z Artifact download URL: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44650977053/artifacts/14594038657
-browser (7)	Post Run actions/checkout@v4	﻿2026-11-20T02:12:07.6692524Z Post job cleanup.
-browser (7)	Post Run actions/checkout@v4	2026-11-20T02:12:07.7341434Z [command]/usr/bin/git version
-browser (7)	Post Run actions/checkout@v4	2026-11-20T02:12:07.7376414Z git version 2.56.1
-browser (7)	Post Run actions/checkout@v4	2026-11-20T02:12:07.7407094Z Temporarily overriding HOME='/home/runner/work/_temp/42716d67-5e63-460a-8622-af41dbe0185d' before making global git config changes
-browser (7)	Post Run actions/checkout@v4	2026-11-20T02:12:07.7408254Z Adding repository directory to the temporary git global config as a safe directory
-browser (7)	Post Run actions/checkout@v4	2026-11-20T02:12:07.7412026Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
-browser (7)	Post Run actions/checkout@v4	2026-11-20T02:12:07.7441628Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-browser (7)	Post Run actions/checkout@v4	2026-11-20T02:12:07.7465423Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-browser (7)	Post Run actions/checkout@v4	2026-11-20T02:12:07.7642450Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-browser (7)	Post Run actions/checkout@v4	2026-11-20T02:12:07.7662498Z http.https://github.com/.extraheader
-browser (7)	Post Run actions/checkout@v4	2026-11-20T02:12:07.7669646Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-browser (7)	Post Run actions/checkout@v4	2026-11-20T02:12:07.7691314Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-browser (7)	Post Run actions/checkout@v4	2026-11-20T02:12:07.7902950Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-browser (7)	Post Run actions/checkout@v4	2026-11-20T02:12:07.7930757Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-browser (7)	Complete job	﻿2026-11-20T02:12:07.8195228Z Cleaning up orphan processes
-browser (7)	Complete job	2026-11-20T02:12:07.8394208Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/download-artifact@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+browser (7)	Browser screenshots and diagnostics	2026-11-20T02:47:02.5641534Z   retention-days: 7
+browser (7)	Browser screenshots and diagnostics	2026-11-20T02:47:02.5641907Z   if-no-files-found: warn
+browser (7)	Browser screenshots and diagnostics	2026-11-20T02:47:02.5642311Z   compression-level: 6
+browser (7)	Browser screenshots and diagnostics	2026-11-20T02:47:02.5642687Z   overwrite: false
+browser (7)	Browser screenshots and diagnostics	2026-11-20T02:47:02.5643064Z   include-hidden-files: false
+browser (7)	Browser screenshots and diagnostics	2026-11-20T02:47:02.5643484Z env:
+browser (7)	Browser screenshots and diagnostics	2026-11-20T02:47:02.5643818Z   APEX_BROWSER_BACKEND: mesa
+browser (7)	Browser screenshots and diagnostics	2026-11-20T02:47:02.5644261Z   LIBGL_ALWAYS_SOFTWARE: true
+browser (7)	Browser screenshots and diagnostics	2026-11-20T02:47:02.5644675Z   GALLIUM_DRIVER: llvmpipe
+browser (7)	Browser screenshots and diagnostics	2026-11-20T02:47:02.5645068Z ##[endgroup]
+browser (7)	Browser screenshots and diagnostics	2026-11-20T02:47:02.8460886Z (node:3105) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+browser (7)	Browser screenshots and diagnostics	2026-11-20T02:47:02.8462259Z (Use `node --trace-deprecation ...` to show where the warning was created)
+browser (7)	Browser screenshots and diagnostics	2026-11-20T02:47:02.8566845Z Multiple search paths detected. Calculating the least common ancestor of all paths
+browser (7)	Browser screenshots and diagnostics	2026-11-20T02:47:02.8569871Z The least common ancestor is /home/runner/work/Experiment-3/Experiment-3. This will be the root directory of the artifact
+browser (7)	Browser screenshots and diagnostics	2026-11-20T02:47:02.8589259Z ##[warning]No files were found with the provided path: test-results/
+browser (7)	Browser screenshots and diagnostics	playwright-report/
+browser (7)	Browser screenshots and diagnostics	browser-shard-plan.json
+browser (7)	Browser screenshots and diagnostics	browser-backend.json
+browser (7)	Browser screenshots and diagnostics	browser-progress.json. No artifacts will be uploaded.
+browser (7)	Post Run actions/checkout@v4	﻿2026-11-20T02:47:02.8901580Z Post job cleanup.
+browser (7)	Post Run actions/checkout@v4	2026-11-20T02:47:03.0168494Z [command]/usr/bin/git version
+browser (7)	Post Run actions/checkout@v4	2026-11-20T02:47:03.0222367Z git version 2.56.1
+browser (7)	Post Run actions/checkout@v4	2026-11-20T02:47:03.0281566Z Temporarily overriding HOME='/home/runner/work/_temp/d41af4da-f6d4-4f10-9662-3588ac0c8500' before making global git config changes
+browser (7)	Post Run actions/checkout@v4	2026-11-20T02:47:03.0288851Z Adding repository directory to the temporary git global config as a safe directory
+browser (7)	Post Run actions/checkout@v4	2026-11-20T02:47:03.0292376Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Experiment-3/Experiment-3
+browser (7)	Post Run actions/checkout@v4	2026-11-20T02:47:03.0380846Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+browser (7)	Post Run actions/checkout@v4	2026-11-20T02:47:03.0449511Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+browser (7)	Post Run actions/checkout@v4	2026-11-20T02:47:03.0903405Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+browser (7)	Post Run actions/checkout@v4	2026-11-20T02:47:03.0963251Z http.https://github.com/.extraheader
+browser (7)	Post Run actions/checkout@v4	2026-11-20T02:47:03.0984789Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+browser (7)	Post Run actions/checkout@v4	2026-11-20T02:47:03.1045114Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+browser (7)	Post Run actions/checkout@v4	2026-11-20T02:47:03.1561464Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+browser (7)	Post Run actions/checkout@v4	2026-11-20T02:47:03.1595494Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+browser (7)	Complete job	﻿2026-11-20T02:47:03.2154928Z Cleaning up orphan processes
+browser (7)	Complete job	2026-11-20T02:47:03.2553368Z Terminate orphan process: pid (2447) (npm exec playwright install --with-deps chromium)
+browser (7)	Complete job	2026-11-20T02:47:03.2621738Z Terminate orphan process: pid (2459) (sh)
+browser (7)	Complete job	2026-11-20T02:47:03.2681964Z Terminate orphan process: pid (2460) (node)
+browser (7)	Complete job	2026-11-20T02:47:03.2736614Z Terminate orphan process: pid (3092) (node)
+browser (7)	Complete job	2026-11-20T02:47:03.2856791Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/download-artifact@v4, actions/setup-node@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
