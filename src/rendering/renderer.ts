@@ -474,6 +474,7 @@ export class RacingRenderer {
   // Requested mode changes on input; diagnostics describe a completed rendered
   // frame, so camera/listener data cannot claim two different views.
   private renderedMode: CameraMode | null = null;
+  private presentedBackdrop: 'studio' | 'circuit' | null = null;
   private frameSamples = new Float32Array(300);
   private sampleIndex = 0;
   private sampleCount = 0;
@@ -1544,8 +1545,14 @@ export class RacingRenderer {
     // Per-vehicle cabin (cars loose ends 1): a catalogue machine's own eye,
     // onboard mount and lenses; the Formula car keeps its supplied cockpit.
     const cabin = (this.cabin = bikeFollow ? null : cabinFor(followedDefinition));
+    // A returned dirt paddock retains its race renderer. Stage the selected
+    // motorcycle exactly as on cold entry while the circuit stays available.
+    const mxPaddock =
+      menu && !this.photo && motocrossFollow && isMotocrossVenue(this.circuit.track);
     const studio =
-      (menu && this.showroomOnly) || (!!this.photo && this.photo.backdrop !== 'circuit');
+      mxPaddock ||
+      (menu && this.showroomOnly) ||
+      (!!this.photo && this.photo.backdrop !== 'circuit');
     const illumination: LightingMode = studio ? 'day' : this.lighting;
     // W1: GP sessions get their own sky, air, key, display transform and grade
     // (gp-photographic-light.ts); every other session keeps the shared light.
@@ -2132,7 +2139,7 @@ export class RacingRenderer {
         !studio &&
         !menu,
     );
-    if (this.circuit.crowd.visible)
+    if (!mxPaddock && this.circuit.crowd.visible)
       for (const cluster of this.circuit.crowdClusters)
         cluster.update(
           presented[H.TIME],
@@ -2227,6 +2234,7 @@ export class RacingRenderer {
       // Include weather-driven environment captures in real GPU/draw metrics.
       this.drawLedger.mark('environment');
       if (
+        !mxPaddock &&
         this.circuit.construction.ready &&
         this.farShadowBaked !== `${illumination}${skySunKey()}`
       )
@@ -2405,6 +2413,7 @@ export class RacingRenderer {
     }
     this.gpuFrames.submittedFrame();
     this.renderedMode = cameraMode;
+    this.presentedBackdrop = studio ? 'studio' : 'circuit';
     this.lastRenderCPUms = performance.now() - start;
     this.renderMs = this.renderMs * 0.9 + this.lastRenderCPUms * 0.1;
   }
@@ -2706,6 +2715,7 @@ export class RacingRenderer {
     for (let i = sorted.length - slowCount; i < sorted.length; i++) slowTotal += sorted[i];
     return {
       presentationPurpose: this.showroomOnly ? 'showroom' : 'circuit',
+      presentedBackdrop: this.presentedBackdrop,
       authoredBodywork: this.heroShells?.diagnostics() ?? null,
       rivalBodywork: this.rivalLevels?.map((asset) => asset.diagnostics()) ?? null,
       rivalCars: this.cars.map((car) => ({
