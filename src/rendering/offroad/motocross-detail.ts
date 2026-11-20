@@ -528,6 +528,106 @@ export function motocrossGraphics(
       c.fillStyle = accent;
       c.fillRect(166, 273, 180, 6);
       c.fillRect(674, 425, 188, 6);
+    } else if (kind === 'helmet') {
+      // The shell unwraps with the eye port at U=.25 and the back at U=.75.
+      // Reflect each side around the port, repeating its outline across the seam.
+      const wings = (shape: readonly (readonly [number, number])[], colour: string) => {
+        for (const [centre, direction] of [
+          [128, 1],
+          [128, -1],
+          [640, -1],
+        ] as const) {
+          polygon(
+            shape.map(([distance, y]) => [centre + direction * distance, y]),
+            colour,
+          );
+        }
+      };
+      wings(
+        [
+          [0, 25],
+          [42, 17],
+          [151, 77],
+          [256, 90],
+          [256, 149],
+          [172, 136],
+          [58, 83],
+        ],
+        secondary,
+      );
+      wings(
+        [
+          [9, 34],
+          [49, 34],
+          [151, 95],
+          [233, 109],
+          [154, 102],
+          [54, 52],
+        ],
+        '#eeeae1',
+      );
+      wings(
+        [
+          [45, 66],
+          [67, 71],
+          [171, 121],
+          [256, 142],
+          [256, 150],
+          [161, 130],
+        ],
+        accent,
+      );
+      wings(
+        [
+          [5, 334],
+          [72, 307],
+          [145, 236],
+          [223, 214],
+          [256, 220],
+          [256, 245],
+          [175, 268],
+          [94, 349],
+          [0, 381],
+        ],
+        secondary,
+      );
+      wings(
+        [
+          [0, 383],
+          [93, 358],
+          [172, 279],
+          [208, 270],
+          [180, 290],
+          [100, 371],
+          [0, 400],
+        ],
+        '#eeeae1',
+      );
+      wings(
+        [
+          [0, 409],
+          [102, 379],
+          [143, 344],
+          [110, 391],
+          [0, 428],
+        ],
+        accent,
+      );
+      // A separate rear race mark stays on the crown above the goggle strap.
+      polygon(
+        [
+          [348, 93],
+          [419, 93],
+          [410, 133],
+          [355, 133],
+        ],
+        '#ece8df',
+      );
+      c.fillStyle = '#202328';
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      c.font = 'italic 900 35px "Saira Variable", sans-serif';
+      c.fillText(String(number), 383, 114, 54);
     } else {
       polygon(
         [
@@ -556,6 +656,48 @@ export function motocrossGraphics(
         ],
         '#eeeae1',
       );
+      // The wrist lies at the top of the print. A continuous cuff and two
+      // forearm panels remain visible from the rider's eye when hands turn.
+      c.fillStyle = '#24252a';
+      c.fillRect(0, 0, 512, 28);
+      c.fillStyle = accent;
+      c.fillRect(0, 23, 512, 4);
+      for (const centre of [0, 256, 512]) {
+        const panel = (points: number[][], colour: string) =>
+          polygon(
+            points.map(([x, y]) => [centre + x, y]),
+            colour,
+          );
+        panel(
+          [
+            [-103, 33],
+            [-68, 34],
+            [16, 104],
+            [88, 146],
+            [56, 141],
+            [-30, 96],
+          ],
+          secondary,
+        );
+        panel(
+          [
+            [-66, 33],
+            [-44, 34],
+            [26, 92],
+            [74, 122],
+            [43, 108],
+          ],
+          '#eeeae1',
+        );
+        panel(
+          [
+            [-41, 34],
+            [-29, 34],
+            [17, 73],
+          ],
+          accent,
+        );
+      }
     }
   });
   texture.name = `Motocross original ${kind} graphics ${number}`;
