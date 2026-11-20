@@ -26,6 +26,10 @@ The 2.5-second film follows one motorcycle in an eight-rider simulation using a 
 
 The production application entered Poggio Alto practice with the GP-R2 and three rivals at 960 × 600 on Chromium SwiftShader. The AI rider reached Poggiolo on lap two with the HUD showing 82 km/h. Immediately before the screenshot, the live renderer recorded 81.7 km/h and 33.1° of lean. This run used local reflections, 2,048-pixel shadows, 1,024-pixel textures and 4× MSAA. At that sample the complete scene submitted 3,737 draw calls and 3,091,658 triangles across its rendering passes. [See the same bike at the green flag](evidence/high-grid.webp).
 
+![The four-bike practice field running on High at 1280 × 800](evidence/high-corner-1280.webp)
+
+On the updated production build, four bikes also ran High-preset practice at **1280 × 800** on Chromium SwiftShader after resizing the live race from 960 × 600. A moving chase sample recorded 145.2 km/h, 32.8° of lean, 3,788 draw calls and 3,290,318 submitted triangles.
+
 ## Wheel motion and field cost
 
 ![Instantaneous spoke geometry, sixteen-sample reference and the real-time shutter](evidence/wheel-exposure.webp)
@@ -58,4 +62,8 @@ Run the reference race from the repository root. Supplying the recorded digest c
 node --experimental-transform-types scripts/gp-contact-replay.ts 24626b4f4884e574295e9a203af9a2dd1f273d55d9be1b270deba713fd47c2dd
 ```
 
-The contact update passed 967 tests across 78 files. The production build, content validation and both dry and wet browser drives passed again on that revision. The validation record includes the source fingerprint, replay digest, individual finishes and timings. [Contact update](https://github.com/cheshmakzanoon-ops/Experiment-3/commit/4b24ff0c7ee9aeda7306f2cc0a48b775b758efd5) · [Validation record](validation.json).
+The contact update passed 967 tests across 78 files. The production build, content validation and both dry and wet browser drives passed on that revision. The validation record includes the source fingerprint, replay digest, individual finishes and timings. [Contact update](https://github.com/cheshmakzanoon-ops/Experiment-3/commit/4b24ff0c7ee9aeda7306f2cc0a48b775b758efd5) · [Validation record](validation.json).
+
+A broader run found that grandstands on four GP circuits could lose access to the road geometry when using a shared track view. After correcting the lookup, all 280 additional tests in 41 files passed, including seat placement, crowd position and riding clearance at all four venues. Together the runs cover 119 distinct test files, including all 76 GP suites. [Grandstand fix](https://github.com/cheshmakzanoon-ops/Experiment-3/commit/717b2f836c6957f0bd004f55aa1a9e724bbb1b0b).
+
+After subsequent shared motorcycle renderer changes on main, the integrated game built again, passed 98 tests in eight affected files and reproduced the same 70,198-tick wet-race digest. [Integrated source](https://github.com/cheshmakzanoon-ops/Experiment-3/tree/717b2f836c6957f0bd004f55aa1a9e724bbb1b0b).

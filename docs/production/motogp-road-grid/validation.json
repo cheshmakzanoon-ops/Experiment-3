@@ -844,10 +844,15 @@
     "passed": true
   },
   "integratedMainBuild": {
-    "sourceCommit": "4b24ff0c7ee9aeda7306f2cc0a48b775b758efd5",
-    "sourceFingerprintSha256": "e9fde1a7aef65be15af1322a9b5cb47a9524c963559775e6038cecef8cae0bce",
+    "sourceCommit": "717b2f836c6957f0bd004f55aa1a9e724bbb1b0b",
+    "sourceFingerprintSha256": "9e3db80e7eedf4e3fcfae3a6a38296d68240d4167360a233aafbfe47196f1a61",
     "productionBuild": "passed",
-    "contentValidation": "passed"
+    "contentValidation": "passed",
+    "tests": 98,
+    "files": 8,
+    "referenceRaceDigest": "24626b4f4884e574295e9a203af9a2dd1f273d55d9be1b270deba713fd47c2dd",
+    "ticksCompared": 70198,
+    "classified": 8
   },
   "contactRelease": {
     "sourceCommit": "4b24ff0c7ee9aeda7306f2cc0a48b775b758efd5",
@@ -969,6 +974,123 @@
         "poggio-alto rain": 104534
       },
       "currentWetResult": "passed"
+    },
+    "venueViewRegression": {
+      "foundOn": "4b24ff0c7ee9aeda7306f2cc0a48b775b758efd5",
+      "fixedOn": "717b2f836c6957f0bd004f55aa1a9e724bbb1b0b",
+      "trackViews": [
+        "poggio-alto",
+        "cape-wrenna",
+        "haarveld",
+        "montejaral"
+      ],
+      "originalFailures": 4,
+      "targetedChecksPassed": 25,
+      "behaviour": "A GP grandstand and the generic stand can query the same inherited road ribbon. The seating positions, audience positions and riding clearance are preserved."
+    },
+    "additionalReview": {
+      "sourceCommit": "717b2f836c6957f0bd004f55aa1a9e724bbb1b0b",
+      "files": 41,
+      "tests": 280,
+      "passed": true,
+      "scope": "Remaining GP unit suites plus car racing lines, overpass routing, circuits, wheel mechanics and tyre heat. The four grandstand fallback comparisons were rerun after fixing centreline queries on inherited track views."
+    },
+    "combinedUnitCoverage": {
+      "files": 119,
+      "tests": 1247,
+      "gpFilesCovered": 76,
+      "passed": true
+    },
+    "highPractice": {
+      "state": "driving",
+      "vehicle": "gpr2",
+      "opponents": 3,
+      "track": "poggio-alto",
+      "weather": "clear",
+      "requestedPreset": "high",
+      "backend": "Chromium SwiftShader",
+      "viewport": [
+        1280,
+        800
+      ],
+      "sourceFingerprint": "9e3db80e7eedf4e3fcfae3a6a38296d68240d4167360a233aafbfe47196f1a61",
+      "camera": "chase",
+      "renderWidth": 1280,
+      "renderHeight": 800,
+      "drawCalls": 3788,
+      "submittedTriangles": 3290318,
+      "casterWarmup": {
+        "groups": 2281,
+        "availableTriangles": 1653547,
+        "submittedTriangles": 2281
+      },
+      "graphics": {
+        "resolutionScale": 1,
+        "textureSize": 1024,
+        "shadowSize": 2048,
+        "reflections": "local",
+        "mirrorQuality": "high",
+        "particleDensity": 1,
+        "vegetationDensity": 1,
+        "crowd": true,
+        "bloom": true,
+        "autoExposure": true,
+        "localFog": true,
+        "motionBlur": 0.5,
+        "antialias": true,
+        "anisotropy": 16,
+        "msaa": 4,
+        "ambientOcclusion": true,
+        "filmGrade": true,
+        "temporalAA": false,
+        "lensEffects": true,
+        "cockpitFov": 54,
+        "ssr": false,
+        "taaSharpen": 0,
+        "aoTemporal": false,
+        "toneMapper": "aces",
+        "physicalBloom": false,
+        "chromaticAberration": false,
+        "lightShafts": false,
+        "shadowCascades": 2,
+        "replayDof": false
+      },
+      "replaySamples": 2415,
+      "simulationSeconds": 167.1240997314453,
+      "speedMetresPerSecond": 40.340633392333984,
+      "leanRadians": 0.5721375346183777,
+      "adapter": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "entryRoute": "In-race resize from 960 \u00d7 600",
+      "sourceCommit": "717b2f836c6957f0bd004f55aa1a9e724bbb1b0b",
+      "entry": {
+        "state": "driving",
+        "renderSize": [
+          960,
+          600
+        ],
+        "sourceFingerprint": "9e3db80e7eedf4e3fcfae3a6a38296d68240d4167360a233aafbfe47196f1a61",
+        "vehicle": "gpr2",
+        "opponents": 3,
+        "camera": "chase",
+        "calls": 4810,
+        "triangles": 9636055
+      }
+    },
+    "high1280ColdEntry": {
+      "viewport": [
+        1280,
+        800
+      ],
+      "passed": false,
+      "result": "FAILED BOOT Error: The graphics context was lost. Reload to recover; reduce rendering quality if this repeats."
+    },
+    "fullHdPractice": {
+      "result": "Error: page.screenshot: Target crashed \nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\u001b[2m  - waiting for fonts to load...\u001b[22m\n\u001b[2m  - fonts loaded\u001b[22m\n",
+      "viewport": [
+        1920,
+        1080
+      ],
+      "route": "Resize during High practice"
     }
   }
 }
