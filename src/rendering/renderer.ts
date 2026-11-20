@@ -2131,6 +2131,7 @@ export class RacingRenderer {
     // Course officials read the worker state. Tyre shadows, dirt and gate
     // motion use the same continuous chassis time as the visible motorcycles.
     this.circuit.update(b, presented);
+    this.circuit.offroad?.stadium?.audience.update(this.camera);
     this.circuit.startFinish.update(presented, this.camera, this.night);
     this.atmosphere.update(presented, this.graphics.localFog && !studio);
     this.weatherPresentation.update(presented, !studio, this.circuit.meanFrozen);

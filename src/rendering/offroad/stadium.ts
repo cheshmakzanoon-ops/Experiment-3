@@ -1,4 +1,6 @@
 import * as T from 'three';
+import { MxStadiumAudience } from './mx-stadium-audience.ts';
+import { mxFloodlightHead, mxFloodlightMount } from './mx-floodlight.ts';
 import { mxStadiumSeatGeometry } from './mx-stadium-seat.ts';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Random } from '../../core/math.ts';
@@ -87,10 +89,11 @@ function hazeBeam(lamp: T.Vector3, target: T.Vector3) {
  * structure is merged by material; crowd occupancy never adds draw calls. */
 export class Stadium {
   readonly root = new T.Group();
-  /** Authoritative occupied-seat table. Near-cohort cards are shader-hidden
-   * and represented once by nearCrowd; count remains the bowl's occupancy. */
+  /** Authoritative occupied-seat table. Only the cards selected for a
+   * visible lower-row sculpt are hidden. Count is the entire occupancy. */
   readonly crowd: T.InstancedMesh;
   readonly nearCrowd: T.InstancedMesh;
+  readonly audience: MxStadiumAudience;
   /** The roof's regular floodlight grid (world metres): lamp (i, k) hangs at
    * (minX + (i + 0.5) * spanX / columns, y, minZ + (k + 0.5) * spanZ / rows). */
   readonly lampGrid = { minX: 0, minZ: 0, spanX: 1, spanZ: 1, y: 0, columns: 8, rows: 5 };
@@ -439,7 +442,12 @@ export class Stadium {
       name: 'Distant arena spectator fabric, skin and hair',
     });
     const crowdRange = new T.Vector2(0.2, 1);
-    installCrowdImpostorShader(distantClothing, crowdRange);
+    const sculptedSeats = new T.InstancedBufferAttribute(
+      Float32Array.from(closeSeats, (close) => (close ? 1 : 0)),
+      1,
+    );
+    distant.setAttribute('sculptedSeat', sculptedSeats);
+    installCrowdImpostorShader(distantClothing, crowdRange, true);
     this.crowd = new T.InstancedMesh(distant, distantClothing, seats.length);
     const seated = new T.Matrix4().makeRotationY(Math.PI / 2).setPosition(0, 0.485, 0.02);
     const standing = new T.Matrix4().makeRotationY(Math.PI / 2).setPosition(0, 0.3, 0.02);
@@ -470,6 +478,7 @@ export class Stadium {
       crowd.boundingSphere!.radius += 0.6;
       this.root.add(crowd);
     }
+    this.audience = new MxStadiumAudience(this.crowd, this.nearCrowd, sculptedSeats);
     // The same seat table, colours and skin carry into the low-cost cards.
     // The rank interval and mesh visibility change together, without
     // rebuilding instance buffers or leaving gaps in the front four rows.
@@ -528,6 +537,7 @@ export class Stadium {
     }
     // Five real open-web trusses: two chords, alternately sloped diagonals,
     // and distinct dark housings/round emitting lenses underneath.
+    const floodlight = mxFloodlightHead();
     for (let k = 0; k < 5; k++) {
       const z = min.z + ((k + 0.5) / 5) * span.z;
       const left = min.x - outer * 0.6,
@@ -547,23 +557,25 @@ export class Stadium {
       }
       for (let i = 0; i < 8; i++) {
         const x = min.x + ((i + 0.5) / 8) * span.x;
-        cases.push(new T.BoxGeometry(1.18, 0.3, 0.75).translate(x, y - 1.1, z));
-        // Alternate housings carry a visible shaft, aimed a little inboard.
-        if ((i + k) % 2 === 0) {
-          const lamp = new T.Vector3(x, y - 1.36, z);
-          const target = new T.Vector3(
-            x + ((min.x + max.x) / 2 - x) * 0.22,
-            floor + 0.5,
-            z + ((min.z + max.z) / 2 - z) * 0.22,
-          );
-          beams.push(hazeBeam(lamp, target));
+        const origin = new T.Vector3(x, y - 1.36, z);
+        const target = new T.Vector3(
+          x + ((min.x + max.x) / 2 - x) * 0.22,
+          floor + 0.5,
+          z + ((min.z + max.z) / 2 - z) * 0.22,
+        );
+        const mount = mxFloodlightMount(origin, target);
+        cases.push(floodlight.body.clone().applyMatrix4(mount));
+        rigging.push(floodlight.metal.clone().applyMatrix4(mount));
+        lights.push(floodlight.glass.clone().applyMatrix4(mount));
+        // A fixed two-ear yoke carries the aimed head from the bottom chord.
+        for (const side of [-1, 1]) {
+          const pin = new T.Vector3(side * 0.64, 0.188, 0).applyMatrix4(mount);
+          rigging.push(member(pin, new T.Vector3(pin.x, y - 0.8, z), 0.027));
         }
-        for (let lens = -1; lens <= 1; lens++)
-          lights.push(
-            new T.CylinderGeometry(0.13, 0.17, 0.07, 10).translate(x + lens * 0.34, y - 1.3, z),
-          );
+        if ((i + k) % 2 === 0) beams.push(hazeBeam(origin, target));
       }
     }
+    for (const part of Object.values(floodlight)) part.dispose();
     for (const side of [-1, 1]) {
       const x = side < 0 ? min.x - outer + 1 : max.x + outer - 1;
       for (let i = 0; i < 7; i++) {

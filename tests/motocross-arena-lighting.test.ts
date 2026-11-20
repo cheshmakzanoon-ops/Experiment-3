@@ -5,6 +5,7 @@ import {
   MX_ARENA_LIGHT,
   MX_ARENA_LIGHT_HOOK,
 } from '../src/rendering/offroad/mx-arena-lighting.ts';
+import { mxFloodlightHead, mxFloodlightMount } from '../src/rendering/offroad/mx-floodlight.ts';
 import { Stadium } from '../src/rendering/offroad/stadium.ts';
 import { STADIUM } from '../src/rendering/offroad/stadium-dimensions.ts';
 import { TerrainView } from '../src/rendering/offroad/terrain-view.ts';
@@ -16,6 +17,36 @@ const count = (text: string, token: string) => text.split(token).length - 1;
 afterEach(() => setMxQuality('high'));
 
 describe('supercross roof floodlight grid', () => {
+  it('aims the visible recessed glass into the same cone as each roof fixture', () => {
+    const head = mxFloodlightHead();
+    const origin = new T.Vector3(8, 23, -7);
+    const down = new T.Vector3(0, -1, 0);
+    for (const target of [
+      new T.Vector3(-5, 1, 6),
+      new T.Vector3(23, 1, -3),
+      new T.Vector3(8, 0, -7),
+    ]) {
+      const mount = mxFloodlightMount(origin, target);
+      const direction = target.clone().sub(origin).normalize();
+      expect(down.clone().transformDirection(mount).dot(direction)).toBeCloseTo(1, 6);
+      // A ray from inside the real light pool must hit the front of all
+      // three glass cells, and their normals must face away from the truss.
+      const mesh = new T.Mesh(head.glass, new T.MeshBasicMaterial());
+      mesh.applyMatrix4(mount);
+      mesh.updateMatrixWorld();
+      for (const cell of [-0.37, 0, 0.37]) {
+        const eye = new T.Vector3(cell + 0.02, -2, 0.011).applyMatrix4(mount);
+        const hit = new T.Raycaster(eye, direction.clone().negate()).intersectObject(mesh)[0];
+        expect(hit).toBeDefined();
+        expect(hit.face!.normal.clone().transformDirection(mount).dot(direction)).toBeGreaterThan(
+          0.9,
+        );
+      }
+      mesh.material.dispose();
+    }
+    for (const part of Object.values(head)) part.dispose();
+  });
+
   it('retains its single haze draw on Medium without enabling High surface detail', () => {
     setMxQuality('medium');
     const stadium = new Stadium(rigTrack('arena-nord-sx'));

@@ -230,6 +230,17 @@ describe('reference-informed MX environments', () => {
     expect(panel).toBeInstanceOf(T.InstancedMesh);
     expect(panel.count).toBe(gate.panelCount);
     expect(draws()).toBe(5);
+    const pad = gate.root.getObjectByName('MX numbered starter pad') as T.Mesh<
+      T.BoxGeometry,
+      T.MeshPhysicalMaterial
+    >;
+    const paint = shader(pad.material, 'physical');
+    const laneLayout = paint.uniforms.mxPadLanes.value as T.Vector3;
+    expect(laneLayout.toArray()).toEqual([
+      course.spec.gate!.spacing,
+      (-(gate.panelCount - 1) * course.spec.gate!.spacing) / 2,
+      gate.panelCount,
+    ]);
     const version = panel.instanceMatrix.version;
     expect(panel.geometry.index!.count).toBeGreaterThan(200);
     const ray = new T.Raycaster(new T.Vector3(0.065, 0.35, -1), new T.Vector3(0, 0, 1));
@@ -253,6 +264,8 @@ describe('reference-informed MX environments', () => {
     gate.update(frame);
     expect(disposed).toBe(1);
     expect(gate.panelCount).toBe(frame[H.CARS]);
+    expect(laneLayout.z).toBe(gate.panelCount);
+    expect(laneLayout.y).toBeCloseTo((-(gate.panelCount - 1) * laneLayout.x) / 2);
     expect(draws()).toBe(5);
     twoSided.dispose();
     gate.dispose();

@@ -21,8 +21,8 @@ const PANEL = Object.freeze({ height: 0.52, gap: 0.08 });
  * soil spray the rear tyres threw back at each drop. Coordinates are the
  * slab's own metres (x across the gate, z toward it); lane spacing/offset
  * follow the session's slots. Shading only: no geometry, textures or draws. */
-function installStartPadDirt(material: T.MeshPhysicalMaterial, lanes: T.IUniform<T.Vector2>) {
-  chainShaderHook(material, 'mx-start-pad-dirt-v1', (shader) => {
+function installStartPadDirt(material: T.MeshPhysicalMaterial, lanes: T.IUniform<T.Vector3>) {
+  chainShaderHook(material, 'mx-start-pad-dirt-and-stencils-v2', (shader) => {
     shader.uniforms.mxPadLanes = lanes;
     shader.uniforms.mxPadSoil = {
       value: new T.Color(MX_SOIL_COLOURS.hardpack),
@@ -34,9 +34,25 @@ function installStartPadDirt(material: T.MeshPhysicalMaterial, lanes: T.IUniform
       'common',
       `
 varying vec3 vMxPadPosition;
-uniform vec2 mxPadLanes;
+uniform vec3 mxPadLanes;
 uniform vec3 mxPadSoil;
 float mxPadDirt, mxPadHeight;
+// A painted block numeral cut from a reusable gate stencil. Glyphs are in
+// metres, with the top of each numeral facing the drop and the riding line.
+float mxPadDigit( vec2 p, int digit, float aa ) {
+  int bars = digit == 0 ? 63 : digit == 1 ? 6 : digit == 2 ? 91 : digit == 3 ? 79
+    : digit == 4 ? 102 : digit == 5 ? 109 : digit == 6 ? 125 : digit == 7 ? 7
+    : digit == 8 ? 127 : 111;
+  // Reflect into each quadrant. Only the nearest vertical and horizontal
+  // stroke can cover this point, even at the joins of a worn numeral.
+  vec2 q = abs( p );
+  int vertical = p.x > 0.0 ? (p.y > 0.0 ? 2 : 4) : (p.y > 0.0 ? 32 : 16);
+  int horizontal = q.y < 0.050 ? 64 : (p.y > 0.0 ? 1 : 8);
+  float dx = length( vec2( q.x - 0.047, max( abs( q.y - 0.050 ) - 0.031, 0.0 ) ) );
+  float dy = length( vec2( max( q.x - 0.031, 0.0 ), min( q.y, abs( q.y - 0.100 ) ) ) );
+  float d = min( (bars & vertical) != 0 ? dx : 1.0, (bars & horizontal) != 0 ? dy : 1.0 );
+  return 1.0 - smoothstep( 0.010 - aa, 0.010 + aa, d );
+}
 float mxPadHash( vec2 p ) {
   vec3 q = fract( vec3( p.xyx ) * 0.1031 );
   q += dot( q, q.yzx + 33.33 );
@@ -63,7 +79,9 @@ float mxPadNoise( vec2 p ) {
   // Toward the gate (z = +1.3): soil shed by front wheels and dropped panels.
   float gate = smoothstep( 0.1, 1.3, p.y );
   // Every slot's lane: tyres sat and spun here; the spray fans out behind.
-  float across = abs( fract( ( p.x - mxPadLanes.y ) / mxPadLanes.x + 0.5 ) - 0.5 ) * mxPadLanes.x;
+  float laneIndex = floor( ( p.x - mxPadLanes.y ) / mxPadLanes.x + 0.5 );
+  float localX = p.x - mxPadLanes.y - laneIndex * mxPadLanes.x;
+  float across = abs( localX );
   float behind = clamp( ( -0.35 - p.y ) / 0.95, 0.0, 1.0 );
   float lane = ( 1.0 - smoothstep( 0.04, 0.12, across ) ) * smoothstep( -0.6, -0.3, p.y )
     * ( 1.0 - smoothstep( 0.95, 1.25, p.y ) ) * ( 0.55 + 0.45 * patches );
@@ -77,6 +95,26 @@ float mxPadNoise( vec2 p ) {
   // Rubber and packed soil darken the worn lanes where the tyres sat.
   diffuseColor.rgb *= 1.0 - lane * 0.28;
   mxPadHeight = mxPadDirt * ( 0.0012 + 0.0016 * grit ) * fine;
+  float aa = max( 0.001, 0.55 * footprint );
+  float top = smoothstep( 0.052, 0.059, vMxPadPosition.y );
+  // Saw cuts split the poured pad every second slot. Dark soil remains
+  // in the cut; the joint also affects the existing surface normal.
+  float jointX = abs( fract( (p.x - mxPadLanes.y) / (2.0 * mxPadLanes.x) - 0.25 + 0.5 ) - 0.5 ) * (2.0 * mxPadLanes.x);
+  float joint = (1.0 - smoothstep( 0.004 - aa, 0.007 + aa, jointX )) * top
+    * (1.0 - smoothstep( 0.016, 0.045, footprint ));
+  diffuseColor.rgb *= 1.0 - 0.46 * joint;
+  mxPadHeight -= 0.0028 * joint;
+  float number = laneIndex + 1.0;
+  vec2 mark = vec2( -localX + 0.28, p.y + 0.88 );
+  if ( top > 0.0 && number >= 1.0 && number <= mxPadLanes.z && abs( mark.y ) < 0.15 && abs( mark.x ) < 0.18 ) {
+    int n = int( number );
+    float ink = n < 10 ? mxPadDigit( mark, n, aa ) : max(
+      mxPadDigit( mark + vec2( 0.066, 0.0 ), n / 10, aa ),
+      mxPadDigit( mark - vec2( 0.066, 0.0 ), n % 10, aa ) );
+    float wear = mix( 0.76, smoothstep( 0.17, 0.52, grit ), fine );
+    vec3 chalk = vec3( 0.72, 0.65, 0.48 );
+    diffuseColor.rgb = mix( diffuseColor.rgb, chalk, ink * wear * top * (1.0 - 0.76 * mxPadDirt) );
+  }
 }`,
       'fragment',
     );
@@ -126,7 +164,7 @@ export class StartGate {
     roughness: 0.62,
   });
   private readonly pad = materials.concrete({ variant: 'rough', horizontal: 1 });
-  private readonly lanes = { value: new T.Vector2(1, 0) };
+  private readonly lanes = { value: new T.Vector3(1, 0, 1) };
   constructor(
     private readonly track: Track,
     private readonly course: OffroadCourse,
@@ -165,7 +203,7 @@ export class StartGate {
     const { lateral } = gateSlots(this.track, this.course, riders);
     this.slots = lateral.length;
     // Equally spaced slot centres: the pad's lane pattern repeats with them.
-    this.lanes.value.set(gate.spacing, lateral[0] ?? 0);
+    this.lanes.value.set(gate.spacing, lateral[0] ?? 0, lateral.length);
     const panelWidth = gate.spacing - PANEL.gap;
     // Identical gate leaves share a shaft and release time. One rotating
     // parent keeps the hinge pin stationary without uploading instance data.
@@ -245,6 +283,7 @@ export class StartGate {
     }
     // Starter's pad (riders' side): concrete, flush with the dirt.
     const slab = new T.Mesh(new T.BoxGeometry(span, 0.12, 2.6), this.pad);
+    slab.name = 'MX numbered starter pad';
     slab.position.set(0, -0.05, -1.4);
     slab.receiveShadow = true;
     this.body.add(slab);

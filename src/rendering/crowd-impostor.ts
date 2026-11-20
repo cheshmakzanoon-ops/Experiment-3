@@ -13,16 +13,22 @@ export function spectatorImpostorGeometry() {
 /** A two-triangle, lit billboard. Colour and skin remain the same per-instance
  * data as the nearby mesh. It receives scene lighting/fog, but does not cast a
  * camera-facing shadow. Nearby geometric levels own real spectator shadows. */
-export function installCrowdImpostorShader(material: T.MeshStandardMaterial, range: T.Vector2) {
+export function installCrowdImpostorShader(
+  material: T.MeshStandardMaterial,
+  range: T.Vector2,
+  seatedSculpts = false,
+) {
   material.vertexColors = false;
   material.alphaTest = 0.5;
   material.alphaToCoverage = true;
   material.onBeforeCompile = (shader) => {
     shader.uniforms.crowdLodRange = { value: range };
     shader.vertexShader =
+      (seatedSculpts ? 'attribute float sculptedSeat; uniform vec2 crowdLodRange;\n' : '') +
       `attribute float spectatorPhase; attribute vec3 spectatorSkin; attribute vec4 spectatorStyle; varying vec4 vSpectatorStyle;
       varying float vCrowdRank; varying float vGarmentPhase; varying vec2 vPerson; varying vec3 vSkin;
-      ` + shader.vertexShader;
+      ` +
+      shader.vertexShader;
     shader.vertexShader = shader.vertexShader.replace(
       '#include <begin_vertex>',
       `
@@ -42,7 +48,8 @@ export function installCrowdImpostorShader(material: T.MeshStandardMaterial, ran
       vec2 crowdScale = vec2(length(crowdBasis[0].xyz), length(crowdBasis[1].xyz));
       vec4 mvPosition = viewMatrix * crowdBasis * vec4(0.,0.,0.,1.);
       mvPosition.xy += position.xy * crowdScale;
-      gl_Position = projectionMatrix * mvPosition;`,
+      gl_Position = projectionMatrix * mvPosition;
+      ${seatedSculpts ? 'if (crowdLodRange.x > 0. && sculptedSeat > .5) gl_Position = vec4(2.,2.,2.,1.);' : ''}`,
     );
     shader.vertexShader = shader.vertexShader.replace(
       '#include <worldpos_vertex>',
@@ -97,9 +104,10 @@ export function installCrowdImpostorShader(material: T.MeshStandardMaterial, ran
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <alphatest_fragment>',
       `
-      if (vCrowdRank < crowdLodRange.x || vCrowdRank >= crowdLodRange.y) discard;
+      if (${seatedSculpts ? '' : 'vCrowdRank < crowdLodRange.x ||'} vCrowdRank >= crowdLodRange.y) discard;
       #include <alphatest_fragment>`,
     );
   };
-  material.customProgramCacheKey = () => 'apex-procedural-impostor-v6-wardrobe';
+  material.customProgramCacheKey = () =>
+    seatedSculpts ? 'apex-arena-seat-masked-impostor-v1' : 'apex-procedural-impostor-v6-wardrobe';
 }

@@ -4,6 +4,7 @@ import { crowdGarmentColour } from '../src/rendering/crowd-wardrobe.ts';
 import { setMxQuality } from '../src/rendering/offroad/mx-quality.ts';
 import { Stadium } from '../src/rendering/offroad/stadium.ts';
 import type { StudioShader } from '../src/rendering/studio/shader-hooks.ts';
+import { trackPoint } from '../src/simulation/track.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
 
 function compile(material: T.Material) {
@@ -116,6 +117,80 @@ describe('motocross stadium audience', () => {
       }),
     );
     arena.dispose();
+  });
+
+  it('submits only the resolved sculpts and restores each original seat and garment across camera cuts', () => {
+    setMxQuality('high');
+    const track = rigTrack('arena-nord-sx');
+    const arena = new Stadium(track);
+    const camera = new T.PerspectiveCamera(55, 1.6, 0.08, 700);
+    const cards = arena.crowd,
+      people = arena.nearCrowd;
+    const occupancy = cards.count,
+      possible = people.count;
+    const mask = cards.geometry.getAttribute('sculptedSeat') as T.InstancedBufferAttribute;
+    const cardMatrix = new T.Matrix4(),
+      sculptMatrix = new T.Matrix4();
+    const cardColour = new T.Color(),
+      sculptColour = new T.Color();
+    const seatIds = () => Array.from(mask.array).flatMap((v, i) => (v === 1 ? [i] : []));
+    const verify = () => {
+      const seats = seatIds();
+      expect(seats).toHaveLength(people.count);
+      expect(cards.count).toBe(occupancy);
+      for (let i = 0; i < seats.length; i++) {
+        const row = seats[i];
+        cards.getMatrixAt(row, cardMatrix);
+        people.getMatrixAt(i, sculptMatrix);
+        expect(sculptMatrix.equals(cardMatrix)).toBe(true);
+        cards.getColorAt(row, cardColour);
+        people.getColorAt(i, sculptColour);
+        expect(sculptColour.equals(cardColour)).toBe(true);
+        for (const name of ['spectatorPhase', 'spectatorSkin', 'spectatorStyle']) {
+          const a = cards.geometry.getAttribute(name),
+            b = people.geometry.getAttribute(name);
+          for (let j = 0; j < a.itemSize; j++)
+            expect(b.array[i * b.itemSize + j]).toBe(a.array[row * a.itemSize + j]);
+        }
+      }
+      return seats;
+    };
+    try {
+      const gate = track.at(track.length - 8, trackPoint());
+      const eye = new T.Vector3(gate.x, gate.y + 2.5, gate.z);
+      camera.position.copy(eye);
+      arena.audience.update(camera);
+      const gateSeats = verify();
+      expect(gateSeats.length).toBeLessThan(possible * 0.45);
+      expect(gateSeats.length).toBeGreaterThan(0);
+      const unchanged = people.instanceMatrix.version;
+      arena.audience.update(camera);
+      expect(people.instanceMatrix.version).toBe(unchanged);
+      camera.position.set(1000, 1000, 1000);
+      arena.audience.update(camera);
+      expect(verify()).toHaveLength(0);
+      camera.position.copy(eye);
+      arena.audience.update(camera);
+      expect(verify()).toEqual(gateSeats);
+      camera.fov = 20;
+      camera.updateProjectionMatrix();
+      arena.audience.update(camera);
+      expect(people.count).toBeGreaterThan(gateSeats.length);
+      console.info(
+        JSON.stringify({
+          occupied: occupancy,
+          possibleSculpts: possible,
+          gateSculpts: gateSeats.length,
+          telephotoSculpts: people.count,
+          trianglesPerSculpt: people.geometry.index!.count / 3,
+        }),
+      );
+      const shader = compile(cards.material as T.Material);
+      expect(shader.vertexShader).toContain('sculptedSeat > .5');
+      expect(shader.fragmentShader).not.toContain('vCrowdRank < crowdLodRange.x');
+    } finally {
+      arena.dispose();
+    }
   });
 
   it('keeps mixed seated/standing figures and muted clothing without modifying the seat plan', () => {
