@@ -16,10 +16,8 @@ import { chainShaderHook, studioHookKeys } from '../../src/rendering/studio/shad
 /** Production terrain, gate, stadium, dressing, roost and bike rigs, driven
  * by an actual eight-rider simulation snapshot. This isolated component scene
  * deliberately does not stand in for the full application's lighting or FPS. */
-export async function captureMotocrossWorld(
-  circuit: 'valley-ridge-mx' | 'arena-nord-sx',
-  view: 'riding' | 'venue' = 'riding',
-) {
+export async function captureMotocrossWorld(circuit: 'valley-ridge-mx' | 'arena-nord-sx') {
+  console.info(`[MX world] Building ${circuit}`);
   const simulation = new Simulation(
     validateOptions({
       ...DEFAULT_OPTIONS,
@@ -90,34 +88,6 @@ export async function captureMotocrossWorld(
   floor.position.y = bounds.min.y - 0.2;
   floor.receiveShadow = true;
   scene.add(floor);
-  const camera = new T.PerspectiveCamera(view === 'venue' ? 47 : 52, 1.6, 0.1, 1600);
-  if (view === 'venue') {
-    const centre = bounds.getCenter(new T.Vector3()),
-      size = bounds.getSize(new T.Vector3());
-    if (night) {
-      // An indoor survey stays below the roof, inside the seating bowl.
-      // The old aerial position saw only the roof's exterior, so changing
-      // the hidden floor's moisture correctly could not alter its pixels.
-      camera.fov = 68;
-      camera.updateProjectionMatrix();
-      camera.position.set(centre.x + size.x * 0.45, bounds.min.y + 25.5, centre.z + size.z * 0.41);
-      camera.lookAt(centre.x, centre.y + 1, centre.z);
-    } else {
-      camera.position.set(
-        centre.x + size.x * 0.65,
-        centre.y + Math.max(55, size.z * 0.55),
-        centre.z + size.z * 0.55,
-      );
-      camera.lookAt(centre.x, centre.y, centre.z);
-    }
-  } else {
-    camera.position.set(
-      point.x - point.tx * 13 + point.nx * 6,
-      frame[o + F.Y] + 5.8,
-      point.z - point.tz * 13 + point.nz * 6,
-    );
-    camera.lookAt(point.x + point.tx * 10, frame[o + F.Y] + 0.5, point.z + point.tz * 10);
-  }
   const shells = new BikeShells();
   const cars = simulation.cars.map((_, id) => {
     const k = carBase(id),
@@ -127,7 +97,42 @@ export async function captureMotocrossWorld(
     return { root };
   });
   scene.add(shells.root);
-  shells.update(frame, frame, 1, cars, camera, 'high', 0);
+  const camera = new T.PerspectiveCamera(52, 1.6, 0.1, 1600);
+  const selectView = (view: 'riding' | 'venue') => {
+    camera.fov = view === 'venue' ? 47 : 52;
+    if (view === 'venue') {
+      const centre = bounds.getCenter(new T.Vector3()),
+        size = bounds.getSize(new T.Vector3());
+      if (night) {
+        // An indoor survey stays below the roof, inside the seating bowl.
+        // The old aerial position saw only the roof's exterior, so changing
+        // the hidden floor's moisture correctly could not alter its pixels.
+        camera.fov = 68;
+        camera.position.set(
+          centre.x + size.x * 0.45,
+          bounds.min.y + 25.5,
+          centre.z + size.z * 0.41,
+        );
+        camera.lookAt(centre.x, centre.y + 1, centre.z);
+      } else {
+        camera.position.set(
+          centre.x + size.x * 0.65,
+          centre.y + Math.max(55, size.z * 0.55),
+          centre.z + size.z * 0.55,
+        );
+        camera.lookAt(centre.x, centre.y, centre.z);
+      }
+    } else {
+      camera.position.set(
+        point.x - point.tx * 13 + point.nx * 6,
+        frame[o + F.Y] + 5.8,
+        point.z - point.tz * 13 + point.nz * 6,
+      );
+      camera.lookAt(point.x + point.tx * 10, frame[o + F.Y] + 0.5, point.z + point.tz * 10);
+    }
+    camera.updateProjectionMatrix();
+    shells.update(frame, frame, 1, cars, camera, 'high', 0);
+  };
   const strength = lightPoolUniforms.lightPoolStrength.value;
   const share = lightPoolUniforms.lightPoolKeyShare.value;
   lightPoolUniforms.lightPoolStrength.value = night ? 1 : 0;
@@ -158,19 +163,19 @@ export async function captureMotocrossWorld(
       shadowTriangles += renderer.info.render.triangles - triangles;
     }
   };
-  const capture = (label: string) => {
+  const pixels = new Uint8Array(1280 * 800 * 4);
+  const capture = (label: string, keepImage: boolean) => {
     scene.updateMatrixWorld(true);
     shadowCalls = 0;
     shadowTriangles = 0;
     renderer.render(scene, camera);
-    const gl = renderer.getContext(),
-      pixels = new Uint8Array(1280 * 800 * 4);
+    const gl = renderer.getContext();
     gl.readPixels(0, 0, 1280, 800, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
     let hash = 2166136261;
     for (const byte of pixels) hash = Math.imul(hash ^ byte, 16777619) >>> 0;
     return {
       label,
-      image: renderer.domElement.toDataURL('image/png'),
+      image: keepImage ? renderer.domElement.toDataURL('image/png') : undefined,
       hash,
       glError: gl.getError(),
       calls: renderer.info.render.calls,
@@ -215,23 +220,36 @@ export async function captureMotocrossWorld(
       );
     if (!('APEX_SCAN' in (soilMaterial.defines ?? {})))
       throw new Error('The production terrain did not enter its loaded-scan material path');
-    // Let Three finish its first shadow/environment material variants before
-    // comparing resources; no wet state has been applied during warmup.
-    renderer.render(scene, camera);
-    renderer.render(scene, camera);
-    const samples = [capture('prepared-soil')];
-    // Retain exactly the same scene and source snapshot. Only the exported
-    // surface presentation is wet, held and rewound, as a replay would be.
+    // Warm both actual camera/LOD selections before comparing GPU resources.
+    // All observations of the two camera views share this venue and snapshot.
+    const views = ['riding', 'venue'] as const;
+    for (const view of views) {
+      selectView(view);
+      renderer.render(scene, camera);
+      renderer.render(scene, camera);
+    }
+    const samples: Record<(typeof views)[number], ReturnType<typeof capture>[]> = {
+      riding: [],
+      venue: [],
+    };
+    const observe = (label: string, keepImage = false) => {
+      for (const view of views) {
+        console.info(`[MX world] ${circuit} ${view} ${label}`);
+        selectView(view);
+        samples[view].push(capture(label, keepImage));
+      }
+    };
+    observe('prepared-soil', true);
     world.record({ ...delta, wetness: 0.72 }, frame[H.TIME] + 8, true);
-    samples.push(capture('wet-soil'));
-    samples.push(capture('held-wet-soil'));
+    observe('wet-soil', true);
+    observe('held-wet-soil');
     world.showAt(frame[H.TIME]);
-    samples.push(capture('rewound-soil'));
+    observe('rewound-soil');
     const casters = world.terrain!.group.children.filter((child) => child.castShadow);
     for (const mesh of casters) mesh.castShadow = false;
-    samples.push(capture('same-scene-terrain-casters-off'));
+    observe('same-scene-terrain-casters-off', true);
     for (const mesh of casters) mesh.castShadow = true;
-    samples.push(capture('restored-terrain-casters'));
+    observe('restored-terrain-casters');
     return samples;
   } finally {
     lightPoolUniforms.lightPoolStrength.value = strength;
