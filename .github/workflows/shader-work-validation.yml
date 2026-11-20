@@ -1,0 +1,142 @@
+name: Inactive shader work validation
+
+on:
+  push:
+    branches: [ci/shader-work-20261119]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: shader-work-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  BASELINE_SHA: 54a09a088acc008b23bb2a576ad998da164e3128
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        source: [baseline, candidate]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.source == 'baseline' && env.BASELINE_SHA || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - name: Build the exact source
+        run: node --experimental-transform-types scripts/source-stability.ts -- npm run build
+      - name: Preserve source identity
+        run: git rev-parse HEAD > dist/SOURCE_COMMIT.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shader-work-build-${{ matrix.source }}
+          path: dist/
+          retention-days: 7
+          if-no-files-found: error
+
+  pixels:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        backend: [swiftshader, mesa]
+    env:
+      APEX_BROWSER_BACKEND: ${{ matrix.backend }}
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        with:
+          name: shader-work-build-candidate
+          path: dist/
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
+      - name: Original quadrature, particle path and differential shader proofs
+        run: >-
+          xvfb-run -a -s '-screen 0 1920x1080x24'
+          node --experimental-transform-types scripts/source-stability.ts --
+          npx playwright test e2e/shader-work-proof.spec.ts e2e/38-fog-quadrature.spec.ts
+          e2e/37-race-surface-atmosphere.spec.ts
+          --grep 'inactive shader work|vector fog quadrature|rainFogGPU'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shader-work-pixels-${{ matrix.backend }}
+          path: |
+            test-results/
+            playwright-report/
+            browser-backend.json
+            browser-progress.json
+          retention-days: 7
+
+  startup:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        source: [baseline, candidate]
+        journey: [low, high]
+    env:
+      APEX_BROWSER_BACKEND: mesa
+      LIBGL_ALWAYS_SOFTWARE: 'true'
+      GALLIUM_DRIVER: llvmpipe
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.source == 'baseline' && env.BASELINE_SHA || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        with:
+          name: shader-work-build-${{ matrix.source }}
+          path: dist/
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get install -y libgl1-mesa-dri libegl1 libglx-mesa0 mesa-utils xvfb
+      - name: Original Low paused-grid and settings cases
+        if: matrix.journey == 'low'
+        run: >-
+          xvfb-run -a -s '-screen 0 1920x1080x24'
+          node --experimental-transform-types scripts/source-stability.ts --
+          npx playwright test e2e/30-menu-access.spec.ts e2e/settings-transition.spec.ts
+      - name: Original High application case and deadlines
+        if: matrix.journey == 'high'
+        run: >-
+          xvfb-run -a -s '-screen 0 1920x1080x24'
+          node --experimental-transform-types scripts/source-stability.ts --
+          npx playwright test e2e/graphics-high-journey.spec.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shader-work-${{ matrix.source }}-${{ matrix.journey }}
+          path: |
+            test-results/
+            playwright-report/
+            browser-backend.json
+            browser-progress.json
+          retention-days: 7

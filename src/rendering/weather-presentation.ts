@@ -219,6 +219,10 @@ export class WeatherPresentation {
           // chained kerb/tyre assignments, which silently restored dry roughness.
           // Up-facing surfaces collect a film; verticals retain a subdued damp
           // response and downward-facing undersides remain dry. No roof-ray claim.
+          // Both inputs are uniforms: this branch is coherent across fragments,
+          // including the derivatives below. Exact zeros leave the dry finish
+          // untouched; even the faintest nonzero wetness or snow uses the full path.
+          if (aurelSurfaceWeather.x != 0.0 || aurelSnowCover != 0.0) {
           float weatherUp = vWeatherUp;
           #ifdef DOUBLE_SIDED
             weatherUp *= gl_FrontFacing ? 1. : -1.;
@@ -239,12 +243,13 @@ export class WeatherPresentation {
             (.92 + .08*weatherBroad*weatherResolved);
           diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.78,.82,.88), surfaceSnow);
           roughnessFactor = mix(roughnessFactor, .9, surfaceSnow);
+          }
           #include <lights_physical_fragment>`,
         );
       shader.uniforms.aurelSnowCover = sceneryCoverUniform;
     };
     material.customProgramCacheKey = () =>
-      `${key}|aurel-snapshot-dampness-v4:${role}:${exposure}:${mask}`;
+      `${key}|aurel-snapshot-dampness-v4:${role}:${exposure}:${mask}${mask === 'uniform' ? '|exact-zero-weather-v1' : ''}`;
     material.needsUpdate = true;
   }
   update(frame: Float32Array, enabled = true, meanFrozenMm = 0) {

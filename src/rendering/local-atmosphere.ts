@@ -98,6 +98,27 @@ const GAUSS = [
   [0.898333238707, 0.111190517227],
   [0.980144928249, 0.050614268145],
 ] as const;
+
+// A shared authored material can outlive the scene that first installed its
+// atmosphere hook. The most recent installer owns both its uniforms and its
+// configured shader variant; an inactive scene cannot change that variant.
+const materialAtmospheres = new WeakMap<T.Material, LocalAtmosphere>();
+const DISABLED_POCKETS = 'APEX_LOCAL_FOG_DISABLED';
+type DefinedMaterial = T.Material & { defines?: Record<string, unknown> };
+
+function configurePockets(material: T.Material, enabled: boolean) {
+  const defined = material as DefinedMaterial;
+  if (enabled) {
+    if (!defined.defines || !(DISABLED_POCKETS in defined.defines)) return;
+    delete defined.defines[DISABLED_POCKETS];
+  } else {
+    if (defined.defines?.[DISABLED_POCKETS] === 1) return;
+    (defined.defines ??= {})[DISABLED_POCKETS] = 1;
+  }
+  // Three includes defines in its native program key before onBeforeCompile.
+  // A later hook that snapshots customProgramCacheKey cannot freeze this choice.
+  material.needsUpdate = true;
+}
 /** CPU counterpart of the localized ray integral. Sampling the entire ray at
  * only three positions can miss a narrow pocket behind a long broadcast shot.
  * Restrict quadrature to each pocket's support instead; work remains bounded. */
@@ -147,6 +168,8 @@ export class LocalAtmosphere {
   private readonly heights: { value: T.Vector3 };
   private readonly floors: { value: T.Vector3 };
   private installed = new WeakSet<T.Material>();
+  private readonly materials = new Set<T.Material>();
+  private enabled = true;
   materialCount = 0;
   constructor(track: Track) {
     this.pockets = fogPockets(track);
@@ -164,7 +187,16 @@ export class LocalAtmosphere {
   }
   update(frame: Float32Array, enabled: boolean) {
     const density = atmosphereDensity(frame[H.CLOUD], frame[H.RAIN]);
-    this.sigma.value = enabled ? density : 0;
+    this.sigma.value = this.enabled && enabled ? density : 0;
+  }
+  /** Configure the local-fog quality setting before material preparation.
+   * Weather and photo-view changes still update uniforms without recompiling.
+   * The disabled variant keeps aerial perspective and cloud-shadow lighting. */
+  setEnabled(enabled: boolean) {
+    if (this.enabled === enabled) return;
+    this.enabled = enabled;
+    if (!enabled) this.sigma.value = 0;
+    for (const material of this.materials) configurePockets(material, enabled);
   }
   install(root: T.Object3D) {
     root.traverse((object) => {
@@ -185,6 +217,17 @@ export class LocalAtmosphere {
       )
     )
       return;
+    const owner = materialAtmospheres.get(material);
+    if (owner !== this) {
+      owner?.materials.delete(material);
+      materialAtmospheres.set(material, this);
+    }
+    this.materials.add(material);
+    configurePockets(material, this.enabled);
+    material.addEventListener('dispose', () => {
+      this.materials.delete(material);
+      if (materialAtmospheres.get(material) === this) materialAtmospheres.delete(material);
+    });
     installPointLightWork(material);
     const particle = material instanceof T.ShaderMaterial;
     const position = particle ? (material.userData.localWeatherPosition as string) : 'transformed';
@@ -246,7 +289,7 @@ export class LocalAtmosphere {
           varying vec3 vApexFogWorld;
         #endif
         ${AERIAL_PERSPECTIVE_PARS}
-        #ifdef USE_FOG
+        #if defined( USE_FOG ) && !defined( APEX_LOCAL_FOG_DISABLED )
           uniform float apexLocalSigma;
           uniform float apexLocalTailError;
           uniform vec4 apexFogVolumes[3];
@@ -301,7 +344,7 @@ export class LocalAtmosphere {
           '#include <fog_fragment>',
           `
           ${AERIAL_PERSPECTIVE_FRAGMENT}
-          #ifdef USE_FOG
+          #if defined( USE_FOG ) && !defined( APEX_LOCAL_FOG_DISABLED )
             if (apexLocalSigma > 0.) {
               vec3 apexRay = vApexFogWorld-cameraPosition;
               float apexLength = length(apexRay);

@@ -1253,6 +1253,7 @@ export class RacingRenderer {
     this.quality = q;
     this.graphics = this.ultra.deviceGraphics(validateGraphics(options, preset));
     const g = this.graphics;
+    this.atmosphere.setEnabled(g.localFog);
     this.reflection.quality(g.mirrorQuality);
     this.circuit.wetReflection.setQuality(g.reflections === 'local' ? q : 'low');
     this.environment.highDetail = g.reflections === 'local';
