@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44776360188
-- commit: `0aba092b45` · Warm the motocross race field with real bike materials, shadows and reflection subjects
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44776936914
+- commit: `0903d39d00` · Shape motocross tail number plates around the silencer and restore the cockpit decal aspect
 - event: push · status: completed · conclusion: **success**
-- started: 2026-11-20T16:44:22Z · updated: 2026-11-20T17:17:18Z
+- started: 2026-11-20T16:47:49Z · updated: 2026-11-20T17:23:10Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (day) | success | 6 |  |
 | browser (night) | success | 7 |  |
+| browser (day) | success | 6 |  |
 | browser (sunset) | success | 7 |  |
