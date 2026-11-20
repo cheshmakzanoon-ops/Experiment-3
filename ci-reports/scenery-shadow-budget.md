@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44700278886
-- commit: `c00e20e0de` · Fit the timing gantry feet with full-height webbed covers
-- event: push · status: completed · conclusion: **success**
-- started: 2026-11-20T08:09:13Z · updated: 2026-11-20T08:23:20Z
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44701909701
+- commit: `31725ac6d5` · Project motocross shadows and dirt from the articulated tread on the displayed frame
+- event: push · status: completed · conclusion: **failure**
+- started: 2026-11-20T08:21:41Z · updated: 2026-11-20T08:35:13Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (night) | success | 7 |  |
-| browser (sunset) | success | 7 |  |
-| browser (day) | success | 14 |  |
+| browser (sunset) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
+| browser (night) | failure | 8 | First complete cockpit frame, all shadow submissions, unchanged budget |
+| browser (day) | success | 7 |  |
