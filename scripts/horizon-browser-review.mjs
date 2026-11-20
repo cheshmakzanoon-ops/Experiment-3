@@ -38,6 +38,7 @@ page.on('pageerror', (error) => {
 page.on('crash', () => {
   errors.push('Chromium renderer process crashed');
   console.error('BROWSER CRASH', phase);
+  void page.close().catch(() => {});
 });
 page.on('console', (message) => {
   if (message.type() === 'error') {
@@ -221,7 +222,9 @@ try {
   });
 
   phase = 'garage round trip';
+  const garageResources = [];
   for (const vehicle of ['apx01', 'eh3', 'rh3', 'tc1']) {
+    console.log('GARAGE', vehicle);
     await page.keyboard.press('Escape');
     await page.locator(`[data-fest="vehicle"][data-value="${vehicle}"]`).click();
     await page.waitForFunction(
@@ -229,9 +232,11 @@ try {
       vehicle,
     );
     await draw();
-    assert.equal((await state()).paused, false);
+    const shown = await state();
+    assert.equal(shown.paused, false);
+    garageResources.push({ vehicle, geometries: shown.memory.geometries, textures: shown.memory.textures });
   }
-  pass('garage Formula to road-car round trip through real worker and renderer');
+  pass('garage Formula to road-car round trip through real worker and renderer', { garageResources });
 
   phase = 'travel and event entry';
   await page.keyboard.press('Escape');
