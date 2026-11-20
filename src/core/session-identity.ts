@@ -78,8 +78,10 @@ import {
  * catalogue suspension/intake/shift hardware response;
  * v27: post-integration road-profile continuity and contact-budget control
  * corrections. A v26 race or ghost cannot certify this corrected simulation;
- * prior records remain in their original physics category. */
-export const SIMULATION_VERSION = 27;
+ * prior records remain in their original physics category;
+ * v28: road motorcycle AI tracks the planner's narrowed wet racing line,
+ * changing wet race trajectories while retaining the dry full-width path. */
+export const SIMULATION_VERSION = 28;
 /** Fixed physics tick used by the worker and headless simulation. */
 export const SIMULATION_TICK_HZ = 120;
 

@@ -1,0 +1,173 @@
+name: Wet motorcycle path validation
+
+on:
+  push:
+    branches: [ci/wet-path-width-20261119]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wet-path-validation-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  BASELINE_SHA: f80309fce06e97ada17cde1ef330971d9af6ffd9
+
+jobs:
+  paired-validation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        source: [baseline, candidate]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.source == 'baseline' && env.BASELINE_SHA || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Record the exact source and runtime
+        id: provenance
+        env:
+          SOURCE_LABEL: ${{ matrix.source }}
+          EXPECTED_SHA: ${{ matrix.source == 'baseline' && env.BASELINE_SHA || github.sha }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { createHash } from 'node:crypto';
+          import { execFileSync } from 'node:child_process';
+          import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+          import { join } from 'node:path';
+          const directory = join(process.env.RUNNER_TEMP, 'wet-path-validation');
+          mkdirSync(directory, { recursive: true });
+          const git = (...args) => execFileSync('git', args, { encoding: 'utf8' }).trim();
+          const inputs = {};
+          for (const path of [
+            'package.json', 'package-lock.json', 'vitest.config.ts',
+            'scripts/source-stability.ts', 'src/core/session-identity.ts',
+            'src/simulation/ai.ts', 'src/simulation/bike-ai.ts',
+            'tests/gp-tyre-contact.test.ts', 'tests/bike-session.test.ts',
+            'tests/bike-scaled-path.test.ts', 'tests/session-identity.test.ts',
+          ]) {
+            inputs[path] = existsSync(path)
+              ? createHash('sha256').update(readFileSync(path)).digest('hex')
+              : null;
+          }
+          const source = {
+            recordedAt: new Date().toISOString(),
+            label: process.env.SOURCE_LABEL,
+            expectedCommit: process.env.EXPECTED_SHA,
+            checkoutCommit: git('rev-parse', 'HEAD'),
+            checkoutTree: git('rev-parse', 'HEAD^{tree}'),
+            simulationTree: git('rev-parse', 'HEAD:src/simulation'),
+            statusBefore: git('status', '--short'),
+            workflowCommit: process.env.GITHUB_SHA,
+            workflowRef: process.env.GITHUB_WORKFLOW_REF,
+            runId: process.env.GITHUB_RUN_ID,
+            runAttempt: process.env.GITHUB_RUN_ATTEMPT,
+            node: process.version,
+            runtimeVersions: process.versions,
+            npm: execFileSync('npm', ['--version'], { encoding: 'utf8' }).trim(),
+            platform: process.platform,
+            architecture: process.arch,
+            runnerImage: process.env.ImageOS,
+            runnerImageVersion: process.env.ImageVersion,
+            inputSHA256: inputs,
+          };
+          writeFileSync(join(directory, 'source-and-runtime.json'), JSON.stringify(source, null, 2) + '\n');
+          if (source.checkoutCommit !== source.expectedCommit) throw new Error('Unexpected checkout commit');
+          if (process.versions.node.split('.')[0] !== '22') throw new Error('Node 22 is required');
+          NODE
+      - name: Install locked dependencies without source changes
+        id: install
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --experimental-transform-types scripts/source-stability.ts -- npm ci --no-audit --no-fund \
+            2>&1 | tee "$RUNNER_TEMP/wet-path-validation/npm-ci.log"
+      - name: Both complete original race files and their original deadlines
+        id: original
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --experimental-transform-types scripts/source-stability.ts -- \
+            npx --no-install vitest run tests/gp-tyre-contact.test.ts tests/bike-session.test.ts \
+            --reporter=default --reporter=json \
+            --outputFile.json="$RUNNER_TEMP/wet-path-validation/original-races.json" \
+            2>&1 | tee "$RUNNER_TEMP/wet-path-validation/original-races.log"
+      - name: Candidate steering, path, braking and identity coverage
+        id: focused
+        if: ${{ always() && matrix.source == 'candidate' && steps.install.outcome == 'success' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --experimental-transform-types scripts/source-stability.ts -- \
+            npx --no-install vitest run \
+            tests/bike-scaled-path.test.ts tests/gp-control-preview.test.ts \
+            tests/motorcycle-path-distance.test.ts tests/motorcycle-recovery-budget.test.ts \
+            tests/gp-braking-approach.test.ts tests/gp-path-reaction.test.ts \
+            tests/gp-steering-inverse.test.ts tests/road-bike-braking-geometry.test.ts \
+            tests/gp-front-contact-steering.test.ts tests/session-identity.test.ts \
+            --reporter=default --reporter=json \
+            --outputFile.json="$RUNNER_TEMP/wet-path-validation/focused-and-identity.json" \
+            2>&1 | tee "$RUNNER_TEMP/wet-path-validation/focused-and-identity.log"
+      - name: Candidate scoped lint
+        id: lint
+        if: ${{ always() && matrix.source == 'candidate' && steps.install.outcome == 'success' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --experimental-transform-types scripts/source-stability.ts -- \
+            npx --no-install eslint src/core/session-identity.ts src/simulation/bike-ai.ts \
+            tests/session-identity.test.ts tests/bike-scaled-path.test.ts \
+            2>&1 | tee "$RUNNER_TEMP/wet-path-validation/lint.log"
+      - name: Candidate full typecheck
+        id: typecheck
+        if: ${{ always() && matrix.source == 'candidate' && steps.install.outcome == 'success' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --experimental-transform-types scripts/source-stability.ts -- npx --no-install tsc --noEmit \
+            2>&1 | tee "$RUNNER_TEMP/wet-path-validation/typecheck.log"
+      - name: Record final source status and step outcomes
+        if: ${{ always() && steps.provenance.outcome == 'success' }}
+        env:
+          INSTALL_OUTCOME: ${{ steps.install.outcome }}
+          ORIGINAL_OUTCOME: ${{ steps.original.outcome }}
+          FOCUSED_OUTCOME: ${{ steps.focused.outcome }}
+          LINT_OUTCOME: ${{ steps.lint.outcome }}
+          TYPECHECK_OUTCOME: ${{ steps.typecheck.outcome }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { execFileSync } from 'node:child_process';
+          import { writeFileSync } from 'node:fs';
+          import { join } from 'node:path';
+          const git = (...args) => execFileSync('git', args, { encoding: 'utf8' }).trim();
+          const result = {
+            recordedAt: new Date().toISOString(),
+            checkoutCommit: git('rev-parse', 'HEAD'),
+            statusAfter: git('status', '--short'),
+            outcomes: {
+              install: process.env.INSTALL_OUTCOME,
+              original: process.env.ORIGINAL_OUTCOME,
+              focused: process.env.FOCUSED_OUTCOME,
+              lint: process.env.LINT_OUTCOME,
+              typecheck: process.env.TYPECHECK_OUTCOME,
+            },
+          };
+          writeFileSync(join(process.env.RUNNER_TEMP, 'wet-path-validation', 'outcomes.json'), JSON.stringify(result, null, 2) + '\n');
+          NODE
+      - name: Preserve results even when an original assertion fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wet-path-validation-${{ matrix.source }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/wet-path-validation/
+          retention-days: 7
+          if-no-files-found: error

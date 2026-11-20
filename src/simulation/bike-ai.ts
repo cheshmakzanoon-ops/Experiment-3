@@ -31,6 +31,7 @@ export class BikeAIDriver extends AIDriver {
   private readonly savedPosition = new Vec3();
   private readonly preview = trackPoint();
   private readonly ahead = trackPoint();
+  private readonly steeringLinePoint = trackPoint();
   private pitCorridor = false;
   private passingScale = 1;
   private pitDeparture = false;
@@ -392,14 +393,29 @@ export class BikeAIDriver extends AIDriver {
       (correctionG * G) / (v * v),
     );
   }
-  /** The lane used by the lean tracker. Venue riders can choose a different
-   * path; its slope and feed-forward must agree with the path planner. The
-   * default preserves the road-bike racing line and its solved curvature. */
+  /** Use the same authored width as the shared planner. Treating a narrowed
+   * line as a constant offset from the full line agrees only at the lookahead
+   * point; its current position and slope disagree through a corner. */
+  private get steeringLineWidth() {
+    const c = this.bike,
+      wetness = clamp(c.contacts[0].water / 0.8, 0, 1);
+    return (1 - 0.45 * wetness) * (c.definition.ai.lineScale ?? 1);
+  }
+  /** The lane used by the lean tracker. Venue riders retain their own
+   * overrides; dry full-width road paths retain their solved data exactly. */
   protected steeringLineOffset(track: Track, s: number) {
-    return racingLineFor(track).offsetAt(s);
+    const offset = racingLineFor(track).offsetAt(s),
+      width = this.steeringLineWidth;
+    return width === 1 ? offset : offset * width;
   }
   protected steeringLineCurvature(track: Track, s: number) {
-    return racingLineFor(track).curvatureAt(s);
+    const curvature = racingLineFor(track).curvatureAt(s),
+      width = this.steeringLineWidth;
+    // Preserve the shared speed envelope's existing width blend. This does
+    // not introduce a new moving geometry stencil or change the dry solver.
+    return width < 1
+      ? curvature * width + track.at(s, this.steeringLinePoint).curvature * (1 - width)
+      : curvature;
   }
   /** A GP straight can require far more than the shared 240 m brake preview.
    * At 300+ km/h, waiting until a hairpin enters that fixed window leaves the
