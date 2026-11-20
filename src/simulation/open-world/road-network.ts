@@ -655,7 +655,17 @@ export class RoadNetwork {
       spec = line.spec,
       ground = new Float64Array(n);
     for (let i = 0; i < n; i++) ground[i] = this.terrain.height(line.xs[i], line.zs[i]);
-    // Moving average of the ground over the class window.
+    // Roads across the Port Ilse canal run from bank to bank. Filtering the
+    // excavated channel as ordinary ground made Harbour Front dive into the
+    // river and kick the tyres off the far lip at racing speed.
+    const formation = line.road.roadClass === 'town' ? ground.slice() : ground;
+    if (formation !== ground)
+      for (let i = 0; i < n; i++) {
+        const x = line.xs[i], z = line.zs[i];
+        if (this.terrain.valleyAt(x,z).distance < this.region.valley.channel * 1.8)
+          formation[i] = this.terrain.height(x, z, 0, true);
+      }
+    // Moving average of the formation over the class window.
     const half = Math.max(1, Math.round(spec.smoothing / 2 / spec.step)),
       target = new Float64Array(n);
     for (let i = 0; i < n; i++) {
@@ -667,7 +677,7 @@ export class RoadNetwork {
         else if (j < 0 || j >= n) continue;
         // Triangular weights keep vertical curves round.
         const w = half + 1 - Math.abs(k);
-        sum += ground[j] * w;
+        sum += formation[j] * w;
         count += w;
       }
       target[i] = sum / count;
@@ -1008,7 +1018,9 @@ export class RoadNetwork {
       const overWater =
         (valley.channel && this.ground[o] < valley.water && this.y[o] > valley.water + 1.5) ||
         (this.ground[o] < this.region.seaLevel - 0.3 && this.y[o] > this.region.seaLevel + 1.5);
-      bridge[c] = Number(clearance > 5.5 || overWater);
+      const canalBank = e.roadClass === 'town' && clearance > 0.35 &&
+        valley.distance < this.region.valley.channel * 1.6 && this.terrain.flatWeight('town', x, z) > 0.55;
+      bridge[c] = Number(clearance > 5.5 || overWater || canalBank);
     }
     // Over-road of an authored grade separation spans the under-road's cut.
     for (const pin of pins) {

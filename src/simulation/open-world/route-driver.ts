@@ -118,6 +118,8 @@ export class RouteDriver {
   private down = 0;
   /** A motorcycle turning round at walking pace (see BIKE_TURN_ROUND). */
   private turningRound = false;
+  /** Steering side held through the ambiguous, directly-behind case after a spin. */
+  private carTurn: -1 | 0 | 1 = 0;
   private readonly target = pathPoint();
   private readonly sample = pathPoint();
   private readonly curvatures = new Float64Array(ENVELOPE_SAMPLES * 2);
@@ -137,12 +139,14 @@ export class RouteDriver {
     readonly speedCap = Infinity,
   ) {
     this.d = path.locate(car.body.position.x, car.body.position.z, 0, path.length);
+    this.progressMark = this.d;
   }
   /** Re-locate after a teleport. */
   relocate(guess = this.d) {
     this.d = this.path.locate(this.car.body.position.x, this.car.body.position.z, guess, 120);
     this.stuck = 0;
     this.recovery = 0;
+    this.carTurn = 0;
     this.trouble = 0;
     this.progressMark = this.d;
     this.progressClock = 0;
@@ -352,6 +356,19 @@ export class RouteDriver {
     // A rider well off the line regains it before using the line's speed
     // (the lean controller's correction is bounded).
     if (bike && off > 2) desired = Math.min(desired, Math.max(6, 26 - 2.5 * off));
+    if (!bike && !finished) {
+      // Pure pursuit tends to zero lock as its target moves directly behind
+      // the car. After a wet-road spin that used to accelerate the car away
+      // from its route. Hold one turning side at walking pace until the
+      // target is in the forward field again, then resume ordinary pursuit.
+      const headingError = Math.atan2(this.local.x, this.local.z);
+      if (!this.carTurn && Math.abs(headingError) > 1.65) this.carTurn = headingError < 0 ? -1 : 1;
+      if (this.carTurn && Math.abs(headingError) < 0.72) this.carTurn = 0;
+      if (this.carTurn) {
+        desired = Math.min(desired, 3.4);
+        command.steer = this.carTurn;
+      }
+    } else this.carTurn = 0;
     c.aiTarget = desired;
     c.aiOffset = offset;
     const error = desired - c.speed;
@@ -364,7 +381,28 @@ export class RouteDriver {
     );
     const available = Math.sqrt(Math.max(0, 1 - lateralUsage * lateralUsage));
     command.throttle = Math.min(command.throttle, 0.2 + 0.8 * available);
-    const wheelspin = Math.max(c.tires[2].slip, c.tires[3].slip, c.tires[0].slip, c.tires[1].slip);
+    let wheelspin = 0;
+    for (let i = 0; i < 4; i++) {
+      const tire = c.tires[i];
+      if (
+        !bike &&
+        ((i < 2 && c.definition.drivetrain === 'rwd') ||
+          (i > 1 && c.definition.drivetrain === 'fwd') ||
+          tire.load < 50)
+      )
+        continue;
+      // At walking pace a ratio alone saturates with only a few rad/s of
+      // slip. Cutting 95% of the launch torque there strands a front-drive
+      // car on wet gradients. Regularise using actual tread excess in m/s.
+      let slip = tire.slip;
+      if (!bike && c.speed < 8) {
+        const excess = Math.max(0, tire.omega * c.definition.spec.wheelRadius - c.localVelocity.z);
+        const lowSpeedSlip = Math.min(slip, excess / 8);
+        const blend = clamp((c.speed - 4) / 4, 0, 1);
+        slip = lowSpeedSlip + (slip - lowSpeedSlip) * blend;
+      }
+      wheelspin = Math.max(wheelspin, slip);
+    }
     if (wheelspin > 0.08) command.throttle *= clamp(1 - (wheelspin - 0.08) * 5, 0.05, 1);
     command.brake = Math.min(command.brake, 0.3 + 0.7 * available);
     let lock = 0;
@@ -419,7 +457,12 @@ export class RouteDriver {
     // route for 12 s while it wants to go is trouble whatever recovery tried.
     this.progressClock += dt;
     if (this.progressClock >= 12) {
-      if (!finished && desired > 5 && Math.abs(this.d - this.progressMark) < 3) this.trouble += 5;
+      let forward = this.d - this.progressMark;
+      if (path.closed && forward < -path.length / 2) forward += path.length;
+      else if (path.closed && forward > path.length / 2) forward -= path.length;
+      // Reversing downhill cannot satisfy a forward progress check. Permit
+      // genuine traffic stops and the planned stop at a point-to-point finish.
+      if (!finished && desired > 1.5 && forward < 3) this.trouble += 5;
       this.progressMark = this.d;
       this.progressClock = 0;
     }

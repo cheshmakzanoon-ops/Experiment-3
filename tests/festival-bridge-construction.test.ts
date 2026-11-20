@@ -44,6 +44,28 @@ function roadSample(junction = false) {
   return net.pointOnSegment(best, 0.5, trackPoint());
 }
 describe('Festival bridge carriageway and substructure', () => {
+  it('carries all three Port Ilse streets level across the excavated canal with road and river on their own layers', () => {
+    const p = trackPoint();
+    for (const z of [-2600, -2400, -2200]) {
+      // Intersect the canal centreline from the region definition.
+      const [start, end] = world.region.valley.points.slice(-2);
+      const x = start[0] + ((end[0] - start[0]) * (z - start[1])) / (end[1] - start[1]);
+      net.nearest(x - 40, z, p);
+      const west = p.y;
+      net.nearest(x + 40, z, p);
+      const east = p.y;
+      for (const offset of [-7, 0, 7]) {
+        net.nearest(x + offset, z, p);
+        expect(net.flags[net.lastSegment] & ROAD_FLAG.BRIDGE).toBeTruthy();
+        expect(p.y).toBeCloseTo((east + west) / 2, 1);
+        expect(Math.abs(p.gradient)).toBeLessThan(0.015);
+        const roadHeight = track.groundHeight(x + offset, z, p.y + 0.65);
+        expect(roadHeight).toBeCloseTo(p.y, 1);
+        expect(roadHeight - world.field.height(x + offset, z)).toBeGreaterThan(1.2);
+      }
+    }
+  });
+
   it('supports both shoulders all the way to the rendered collision face', () => {
     const p = roadSample(),
       hw = edge.spec.halfWidth;

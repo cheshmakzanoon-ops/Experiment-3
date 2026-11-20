@@ -188,7 +188,7 @@ export class TerrainField {
   /** Natural terrain height (m). `minWavelength` drops noise octaves finer
    * than the caller's sample spacing (coarse LODs); physics and the nearest
    * render LOD pass 0. */
-  height(x: number, z: number, minWavelength = 0) {
+  height(x: number, z: number, minWavelength = 0, spanTownCanal = false) {
     const region = this.region;
     const d = this.coastDistance(x, z, minWavelength);
     let h = this.valleyPull(x, z, this.unflattened(x, z, minWavelength, d));
@@ -210,7 +210,9 @@ export class TerrainField {
     if (vDistance < width * 1.8) {
       const bank = 1 - smoothstep(width * 0.55, width * 1.8, vDistance);
       const bed = vFloor - region.valley.channelDepth;
-      h += (Math.min(h, bed) - h) * bank;
+      // Urban bridge formation follows the town plane as it crosses the
+      // excavation. The riverbed itself remains the normal terrain query.
+      h += (Math.min(h, bed) - h) * bank * (spanTownCanal ? 1 - townMask : 1);
     }
     if (minWavelength < 40) h += 0.9 * fbm(x / 34, z / 34, this.seeds.micro, 2) * (1 - townMask);
     // The sea: beaches, a quay along the town waterfront, then the shelf.

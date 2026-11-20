@@ -177,6 +177,59 @@ describe('festival rivals leave room for real cars', () => {
     expect(s.car.input.throttle).toBe(0);
   });
 
+  it('launches a loaded driven axle on a wet climb and still controls genuine wheelspin', () => {
+    const s = scenario();
+    s.place(s.car, 220, 0, 0.25);
+    s.driver.relocate(220);
+    for (const [index, tire] of s.car.tires.entries()) {
+      tire.load = 3000;
+      tire.slip = 0.7;
+      tire.omega = (index < 2 ? 0.95 : 15) / s.car.spec.wheelRadius;
+    }
+    s.driver.update(1 / 120, [s.car]);
+    expect(s.car.definition.drivetrain).toBe('fwd');
+    expect(s.car.aiTarget).toBeGreaterThan(5);
+    expect(s.car.input.throttle).toBeGreaterThan(0.85);
+    s.car.tires[0].omega = 15 / s.car.spec.wheelRadius;
+    s.driver.update(1 / 120, [s.car]);
+    expect(s.car.input.throttle).toBeLessThan(0.1);
+  });
+
+  it('holds a positive turning radius while facing backward, then accelerates once aligned', () => {
+    const s = scenario();
+    s.place(s.car, 220, 0, 4);
+    s.driver.relocate(220);
+    const backward = Math.atan2(s.car.forward.x, s.car.forward.z) + Math.PI;
+    s.car.body.orientation.yaw(backward - 0.01);
+    s.driver.update(1 / 120, [s.car]);
+    const firstLock = s.car.input.steer;
+    expect(Math.abs(firstLock)).toBe(1);
+    expect(s.car.aiTarget).toBeLessThan(4);
+    // Crossing the angular discontinuity must not send lock to the other end.
+    s.car.body.orientation.yaw(backward + 0.01);
+    s.driver.update(1 / 120, [s.car]);
+    expect(s.car.input.steer).toBe(firstLock);
+    s.place(s.car, 220, 0, 4);
+    s.driver.update(1 / 120, [s.car]);
+    expect(s.car.aiTarget).toBeGreaterThan(5);
+    expect(Math.abs(s.car.input.steer)).toBeLessThan(0.8);
+  });
+
+  it('recognises sustained rollback while allowing a genuine scheduled stop', () => {
+    const s = scenario();
+    s.place(s.car, 220, 0, 2);
+    s.driver.relocate(220);
+    const parked = new RouteDriver(s.car, s.path, 0.9, 0, 0);
+    parked.relocate(220);
+    for (let i = 0; i < 122; i++) {
+      s.place(s.car, 220 - i * 0.22, 0, 2);
+      s.driver.update(0.1, [s.car]);
+      parked.update(0.1, [s.car]);
+    }
+    expect(s.driver.wantsReset).toBe(true);
+    expect(parked.wantsReset).toBe(false);
+  });
+
   it('keeps free-roam cruise in its right-hand lane with overtaking disabled', () => {
     const s = scenario();
     s.place(s.car, 200, -1.9, 24);
