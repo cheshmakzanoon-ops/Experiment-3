@@ -631,6 +631,45 @@ function addTailLamps(parts: Parts, model: ClosedBodyModel, mats: CarMaterials, 
       }
     return;
   }
+  if (s.loadFloor !== undefined) {
+    // Outboard lamp stacks leave room for the full-width tailgate. Two
+    // reverse reflectors are unlit; the red optics use the live brake channel.
+    const height = 0.31,
+      width = half * 0.175;
+    const centreY = f.y(s.tail - 0.255);
+    for (const side of [-1, 1]) {
+      const x = side * model.sideX(z, centreY) * 0.85;
+      parts.add(
+        roundedBox(width + 0.02, height + 0.02, 0.027, 0.018, 2),
+        darkOptics,
+        placed(x, centreY, z + 0.004),
+      );
+      for (const row of [-1, 1]) {
+        const cy = centreY + row * 0.096;
+        parts.add(
+          roundedBox(width * 0.82, 0.024, 0.012, 0.009, 2),
+          mats.tail,
+          placed(x, cy, z - 0.017),
+        );
+        parts.add(
+          roundedBox(0.02, 0.057, 0.012, 0.006, 2),
+          mats.tail,
+          placed(x + side * width * 0.35, cy - row * 0.027, z - 0.017),
+        );
+      }
+      parts.add(
+        roundedBox(width * 0.61, 0.028, 0.012, 0.006, 2),
+        sharedMaterials.steel(),
+        placed(x, centreY, z - 0.015),
+      );
+      parts.add(
+        roundedBox(width, height, 0.009, 0.016, 2),
+        opticalCover,
+        placed(x, centreY, z - 0.027),
+      );
+    }
+    return;
+  }
   const pairs = s.lamps.rear === 'twin';
   const width = pairs ? 0.24 : half * (s.lamps.rear === 'strip' ? 1.8 : 1.7);
   const height = pairs ? 0.085 : s.lamps.rear === 'strip' ? 0.036 : 0.06;

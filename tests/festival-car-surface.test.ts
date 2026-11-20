@@ -21,6 +21,33 @@ function modelFor(id: string) {
 }
 
 describe('Festival car surface construction', () => {
+  it('opens the pickup load box down to the ribbed floor with wheel clearance at all distances', () => {
+    const model = modelFor('rp6');
+    const body = buildVehicleBody(0, VEHICLES.rp6, model.s);
+    const floor = model.f.y(model.s.loadFloor!);
+    for (const lod of body.lods) {
+      const top = (x: number, z: number) => {
+        const hit = new T.Raycaster(
+          new T.Vector3(x, model.f.y(2.8), z),
+          new T.Vector3(0, -1, 0),
+        ).intersectObject(lod.group, true)[0];
+        expect(hit).toBeDefined();
+        return hit.point.y;
+      };
+      const axle = model.f.rearAxle;
+      expect(top(0, axle)).toBeCloseTo(floor, 4);
+      for (const side of [-1, 1]) {
+        const tub = top(side * model.f.trackRear * 0.467, axle);
+        expect(tub).toBeGreaterThan(model.f.hubRear + model.f.radius + 0.08);
+        expect(top(side * (model.halfWidth(axle) * 0.92 - 0.03), axle)).toBeGreaterThan(
+          tub + 0.065,
+        );
+      }
+      expect(top(0, model.zRear + 0.06)).toBeGreaterThan(floor + 0.25);
+      expect(top(0, model.f.z(model.s.cabin[3]) - 0.07)).toBeGreaterThan(floor + 0.25);
+    }
+  });
+
   it('recesses SC7 bonnet outlets into real openings with closed floors and attached perimeters', () => {
     const model = modelFor('sc7'),
       body = buildVehicleBody(0, VEHICLES.sc7, model.s);

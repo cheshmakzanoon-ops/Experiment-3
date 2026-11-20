@@ -55,6 +55,8 @@ export interface ClosedSheet {
   noseWidth?: number;
   /** Section heights above the road (m). */
   floor: number;
+  /** Height of an open pickup load floor above the road, in metres. */
+  loadFloor?: number;
   nose: number;
   bonnet: number;
   cowl: number;
@@ -1663,6 +1665,7 @@ export const BODY_SHEETS: Readonly<Record<string, BodySheet>> = Object.freeze({
     width: 2.2,
     noseWidth: 0.9,
     floor: 0.3,
+    loadFloor: 0.79,
     nose: 0.98,
     bonnet: 1.32,
     cowl: 1.44,

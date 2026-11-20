@@ -18,6 +18,7 @@ import {
 import { sharedMaterials, type PanelGap } from './materials.ts';
 import { Parts, placed } from './parts.ts';
 import type { Detail } from './wheel.ts';
+import { addPickupBed, pickupBedBounds } from './pickup-bed.ts';
 import type { CarMaterials, BuiltLod } from './common.ts';
 import type { CabinLayout } from './cabin.ts';
 import { buildClosedCabin, type CabinOpening } from './interior.ts';
@@ -261,6 +262,18 @@ export class ClosedBodyModel {
     for (let i = 0; i <= n; i++) out.push(this.zRear + ((this.zFront - this.zRear) * i) / n);
     for (const a of this.arches)
       for (const e of [a.z - a.r, a.z + a.r]) out.push(e - 0.0015, e + 0.0015);
+    if (this.s.loadFloor !== undefined) {
+      const { rear, front } = pickupBedBounds(this);
+      // Preserve exact shared cut lines even when a uniform station falls
+      // within the ordinary duplicate tolerance.
+      return [
+        ...out.filter((z) => Math.abs(z - rear) > 0.001 && Math.abs(z - front) > 0.001),
+        rear,
+        front,
+      ]
+        .sort((p, q) => p - q)
+        .filter((z, i, all) => i === 0 || z - all[i - 1] > 0.0008);
+    }
     return out.sort((p, q) => p - q).filter((z, i, all) => i === 0 || z - all[i - 1] > 0.0008);
   }
   /** Outer side x of the body at (z, height y) — for placing side furniture. */
@@ -598,11 +611,13 @@ export function buildClosedBody(
     zLidFront = f.z(s.cabin[0]),
     zLidRear = f.z(s.cabin[3]);
   const cell = detail === 0 ? cabin?.layout.cell : null;
+  const loadBox = s.loadFloor === undefined ? null : pickupBedBounds(model);
   const lower = loftRings(rings, {
     capStart: !detailedFestival,
     capEnd: !detailedFestival,
     capMaterial: M.paint,
     material: (zMid, j, i) => {
+      if (loadBox && j >= deck && zMid > loadBox.rear && zMid < loadBox.front) return -1;
       if (cabin && j >= deck && zMid < zLidFront && zMid > zLidRear) {
         // The near cabin's opening (inside the greenhouse sill); elsewhere
         // under the glass a dark lid (parcel shelf, engine cover, tonneau).
@@ -631,6 +646,7 @@ export function buildClosedBody(
     ],
     'Body (lofted)',
   );
+  if (loadBox) addPickupBed(parts, model, rings, detail, mats);
   const glassMaterial =
     cabin && !cabin.layout.race ? sharedMaterials.roadGlass() : sharedMaterials.glass();
   const gh = openCockpit ? null : new Greenhouse(model);
