@@ -1,38 +1,38 @@
 # Build and validation
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44694735121
-- commit: `8f52ca191f` · Verify both dirt paddocks, cameras and all model reviews on the displayed game
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44698674592
+- commit: `a817331346` · Articulate motocross throttle and lever hardware and damp cross-slope landings
 - event: push · status: completed · conclusion: **cancelled**
-- started: 2026-11-20T07:24:27Z · updated: 2026-11-20T07:57:03Z
+- started: 2026-11-20T07:56:38Z · updated: 2026-11-20T08:03:59Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| scenarios | success | 13 |  |
-| validate | success | 2 |  |
-| unit-tests (4) | success | 13 |  |
-| offroad-scenarios | success | 11 |  |
-| unit-tests (1) | success | 8 |  |
-| unit-tests (2) | success | 18 |  |
-| unit-tests (3) | failure | 7 | Complete unit-suite partition without source changes |
-| owner-qa (4) | cancelled | 20 | Owner-only and review-tool specs, plus the owner half of the dual-mode specs |
-| wet-presentation | success | 8 |  |
-| owner-qa (1) | cancelled | 18 | Owner-only and review-tool specs, plus the owner half of the dual-mode specs |
-| owner-qa (2) | cancelled | 24 | Owner-only and review-tool specs, plus the owner half of the dual-mode specs |
-| owner-qa (3) | cancelled | 16 | Owner-only and review-tool specs, plus the owner half of the dual-mode specs |
-| browser (4) | cancelled | 8 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 4/16 |
-| browser (3) | cancelled | 16 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 3/16 |
-| browser (11) | cancelled | 16 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 11/16 |
-| browser (6) | cancelled | 27 |  |
-| browser (9) | cancelled | 10 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16 |
-| browser (14) | cancelled | 15 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 14/16 |
-| browser (2) | cancelled | 15 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16 |
-| browser (7) | cancelled | 27 |  |
-| browser (5) | cancelled | 27 |  |
-| browser (1) | cancelled | 9 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 1/16 |
-| browser (10) | cancelled | 11 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 10/16 |
-| browser (13) | cancelled | 27 |  |
-| browser (12) | cancelled | 9 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/16 |
-| browser (8) | cancelled | 11 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16 |
-| browser (15) | cancelled | 2 | Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 15/16 |
-| browser (16) | cancelled | 27 |  |
-| publish | cancelled | -1 |  |
+| validate | success | 3 |  |
+| unit-tests (2) | cancelled | 6 | Complete unit-suite partition without source changes |
+| unit-tests (4) | cancelled | 6 | Complete unit-suite partition without source changes |
+| unit-tests (1) | cancelled | 6 | Complete unit-suite partition without source changes |
+| scenarios | cancelled | 4 | Run npm run test:physics |
+| offroad-scenarios | cancelled | 5 | Full offroad calibrations and races without source changes |
+| unit-tests (3) | cancelled | 4 | Complete unit-suite partition without source changes |
+| wet-presentation | cancelled | 1 | Run npm run test:e2e -- e2e/00-wet-presentation.spec.ts e2e/weather.spec.ts e2e/42-full-scene-index-budget.spec.ts e2e/30-race-finish.spec.ts |
+| owner-qa (1) | cancelled | 2 |  |
+| owner-qa (2) | cancelled | 2 |  |
+| owner-qa (3) | cancelled | 0 | Set up job |
+| owner-qa (4) | cancelled | 2 |  |
+| browser (5) | cancelled | 2 |  |
+| browser (14) | cancelled | 2 |  |
+| browser (11) | cancelled | 2 |  |
+| browser (13) | cancelled | 2 |  |
+| browser (12) | cancelled | 2 |  |
+| browser (8) | cancelled | 2 |  |
+| browser (3) | cancelled | 2 |  |
+| browser (6) | cancelled | 2 |  |
+| browser (2) | cancelled | 2 |  |
+| browser (4) | cancelled | 2 |  |
+| browser (7) | cancelled | 2 |  |
+| browser (9) | cancelled | 2 |  |
+| browser (15) | cancelled | 2 |  |
+| browser (16) | cancelled | 1 | Run npx playwright install --with-deps chromium |
+| browser (10) | cancelled | 2 |  |
+| browser (1) | cancelled | 2 |  |
+| publish | cancelled | 0 |  |
