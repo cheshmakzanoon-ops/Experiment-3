@@ -3,7 +3,12 @@ import { Bike, NOVICE } from '../src/simulation/bike.ts';
 import { BikeVehicle } from '../src/simulation/bike-vehicle.ts';
 import { GP_R1, GP_R2 } from '../src/simulation/bike-definitions.ts';
 import { DEFAULT_SETUP } from '../src/simulation/config.ts';
-import { MotoGPChassis } from '../src/simulation/motogp-physics.ts';
+import {
+  ROAD_TYRE_HALF_WIDTH,
+  tyreShoulderSine,
+  tyreRollingRadius,
+} from '../src/simulation/bike-tyre-profile.ts';
+import { MotoGPChassis, gpGroundSteer } from '../src/simulation/motogp-physics.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
 
 const DT = 1 / 240;
@@ -94,6 +99,61 @@ describe('MotoGP-only single-track tyre/yaw dynamics', () => {
     expect(bike.lateralSpeed).toBe(0);
     bike.step({ ...contact, speed: 1.5, steer: 0.12, frontContact: 1 });
     expect(bike.yawRate).toBeGreaterThan(0);
+  });
+
+  it('keeps front-rim slip and heat in the actual steered contact frame', () => {
+    const gp = new MotoGPChassis(geometry);
+    gp.reset(30);
+    gp.yawRate = 0.35;
+    gp.lateralSpeed = 2.4;
+    const q = { ...contact, inertialContacts: true, steer: 0.14, frontFx: -420 };
+    gp.step(q);
+    const cs = Math.cos(gp.groundSteer),
+      sn = Math.sin(gp.groundSteer);
+    const side = gp.lateralSpeed + gp.yawRate * geometry.frontArm;
+    const along = gp.forwardSpeed * cs + side * sn;
+    const across = side * cs - gp.forwardSpeed * sn;
+    const rim = gp.frontOmega * geometry.frontRadius;
+    expect(gp.frontSlip).toBeCloseTo((rim - along) / along, 12);
+    expect(gp.frontSlidingPower).toBeCloseTo(
+      Math.max(0, q.frontFx * (rim - along) - gp.frontFy * across),
+      9,
+    );
+    gp.step({ ...q, speed: 1.6, steer: -0.19 });
+    expect(gp.groundSteer).toBeCloseTo(gpGroundSteer(-0.19, 0), 12);
+  });
+
+  it('rolls faster on the shoulder and keeps an unsupported wheel free', () => {
+    const b = GP_R1.bike!,
+      crown = b.crownRadius;
+    const shoulder = tyreShoulderSine(ROAD_TYRE_HALF_WIDTH.front, crown);
+    const frontRadius = tyreRollingRadius(geometry.frontRadius, crown, shoulder, 0.57);
+    expect(tyreRollingRadius(geometry.frontRadius, crown, shoulder, 0)).toBe(geometry.frontRadius);
+    expect(frontRadius).toBeLessThan(geometry.frontRadius - 0.005);
+    expect(tyreRollingRadius(geometry.frontRadius, crown, shoulder, -0.57)).toBe(frontRadius);
+    expect(tyreRollingRadius(geometry.frontRadius, crown, shoulder, 1)).toBe(
+      tyreRollingRadius(geometry.frontRadius, crown, shoulder, shoulder),
+    );
+    const gp = new MotoGPChassis(geometry);
+    gp.reset(30);
+    for (let tick = 0; tick < 240; tick++)
+      gp.step({ ...contact, inertialContacts: true, frontRadius });
+    expect(gp.frontOmega).toBeCloseTo(30 / frontRadius, 4);
+    expect(gp.rearOmega).toBeCloseTo(30 / geometry.rearRadius, 10);
+    const held = gp.frontOmega;
+    for (let tick = 0; tick < 15; tick++)
+      gp.step({ ...contact, speed: 31, inertialContacts: true, frontContact: 0, frontRadius });
+    expect(gp.frontOmega).toBe(held);
+    expect(gp.frontSlidingPower).toBe(0);
+    gp.step({
+      ...contact,
+      speed: 31,
+      inertialContacts: true,
+      frontContact: 0,
+      frontBrakeExcess: 100,
+      frontRadius,
+    });
+    expect(gp.frontOmega).toBeLessThan(held);
   });
 
   it('permits wheel lock and wheelspin only when the unassisted force is supplied', () => {

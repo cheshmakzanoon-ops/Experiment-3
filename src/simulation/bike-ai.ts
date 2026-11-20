@@ -2,7 +2,11 @@ import { clamp, G, lerp, mod, Quat, Vec3 } from '../core/math.ts';
 import { AIDriver, ENVELOPE_SAMPLES, ENVELOPE_STEP, envelopeCornerSpeed } from './ai.ts';
 import { GP_ASSIST, leanAuthority } from './bike.ts';
 import { BikeVehicle } from './bike-vehicle.ts';
-import { motorcycleApproachProfile, motorcyclePathMetric } from './motorcycle-braking-plan.ts';
+import {
+  motorcycleApproachProfile,
+  motorcycleBrakeCapacity,
+  motorcyclePathMetric,
+} from './motorcycle-braking-plan.ts';
 import type { RaceDirector } from './race.ts';
 import { pitPreparationDistance } from './pit-safety.ts';
 import { racingLineFor } from './racing-line.ts';
@@ -135,6 +139,8 @@ export class BikeAIDriver extends AIDriver {
           command.brake,
           GP_AI_HANDS.leverShare * this.leverAtLimit() * (this.heldBack ? this.trafficShare() : 1),
         );
+      if (command.brake > 0 && d.contactLoads && d.speed > 5)
+        command.brake = Math.min(command.brake, this.cornerLever());
       this.gpPedals(dt);
     } else if (d.contactLoads) this.roadPedals(track);
     c.aiControlled();
@@ -284,6 +290,28 @@ export class BikeAIDriver extends AIDriver {
     if (brake > 0.05) throttle = Math.min(throttle, 0.05);
     command.brake = this.lastBrake = brake;
     command.throttle = this.lastThrottle = throttle;
+  }
+  /** Spend the same rear-load reserve at the lever that the approach plan
+   * used to pick its braking point. Traffic and path feedback can demand
+   * more lever between samples, particularly as a rider tips into a turn. */
+  private cornerLever() {
+    const d = this.bike.dynamics,
+      p = d.p;
+    const lean = Math.max(Math.abs(d.lean), Math.abs(this.bike.input.steer) * d.leanLimit);
+    const lateral = Math.max(
+      G * Math.tan(Math.min(lean, 1.2)),
+      Math.abs(d.motoGP!.lateralAcceleration),
+    );
+    const capacity = motorcycleBrakeCapacity(
+      p,
+      d.mass,
+      d.rearGrip ?? d.grip,
+      d.speed,
+      lateral,
+      GP_ASSIST.recovery / GP_ASSIST.leanMargin,
+    );
+    const transferable = capacity * d.mass - p.drag * d.speed ** 2 - d.engineBrakeForce;
+    return clamp(transferable / (0.78 * p.frontBrake + 0.3 * p.rearBrake), 0, 1);
   }
   /** Reserve front load for a planned steering correction before opening
    * the throttle to its wheelie limit. This changes only the rider's input;

@@ -87,6 +87,17 @@ export function motorcycleContactSlipPower(
     sn = Math.sin(steer),
     along = forward * cs + lateral * sn,
     across = lateral * cs - forward * sn;
+  return motorcycleWheelSlipPower(fx, fy, along, across, rimSpeed);
+}
+
+/** Dissipated power when the contact velocity is already in the wheel frame. */
+export function motorcycleWheelSlipPower(
+  fx: number,
+  fy: number,
+  along: number,
+  across: number,
+  rimSpeed: number,
+) {
   return Math.max(0, fx * (rimSpeed - along) - fy * across);
 }
 

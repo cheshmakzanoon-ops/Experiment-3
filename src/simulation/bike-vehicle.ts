@@ -1,3 +1,5 @@
+import { ROAD_TYRE_HALF_WIDTH, tyreShoulderSine, tyreRollingRadius } from './bike-tyre-profile.ts';
+import { GP_RAKE } from './motogp-physics.ts';
 import { gpBrakeEfficiency } from './gp-brake-fade.ts';
 import { advanceWheelRotation } from './wheel-rotation.ts';
 import { OrientationKinematics } from './pose-kinematics.ts';
@@ -131,7 +133,9 @@ export class BikeVehicle extends Vehicle {
   private roadSuspensionLive = false;
   private roadRideHeight = 0;
   private roadRollVelocity = 0;
-  private readonly roadLoads = { front: 0, rear: 0, rearLiftForce: 0 };
+  private readonly roadLoads = { front: 0, rear: 0, rearLiftForce: 0, frontRadius: 0, rearRadius: 0 };
+  private readonly frontShoulder: number;
+  private readonly rearShoulder: number;
   private readonly nextFrontSurface = surfaceSample();
   private readonly nextRearSurface = surfaceSample();
   private readonly roadRayOrigin = new Vec3();
@@ -189,6 +193,8 @@ export class BikeVehicle extends Vehicle {
     this.gearing = this.setup.gearing;
     this.engineBrake =
       ENGINE_BRAKE_MAPS[Math.min(3, Math.max(0, Math.round(this.setup.engineBrakeMap)))];
+    this.frontShoulder = tyreShoulderSine(ROAD_TYRE_HALF_WIDTH.front, this.bikeSpec.crownRadius);
+    this.rearShoulder = tyreShoulderSine(ROAD_TYRE_HALF_WIDTH.rear, Math.max(0.11, this.bikeSpec.crownRadius));
     this.forkFirmness = dampingFirmness(this.setup.frontDamping);
     this.shockFirmness = dampingFirmness(this.setup.rearDamping);
     this.roadSuspension = new RoadBikeSuspension({
@@ -600,6 +606,17 @@ export class BikeVehicle extends Vehicle {
     this.roadLoads.front = vertical.frontLoad;
     this.roadLoads.rear = vertical.rearLoad;
     this.roadLoads.rearLiftForce = vertical.rearLiftForce;
+    if (d.motoGP) {
+      // Both banking and the rake of the steered front axle change where the
+      // tyre rolls on its crown. Use the actual surface under each contact.
+      const steered = Math.sin(d.steer);
+      this.offset.set(Math.cos(d.steer), -Math.sin(GP_RAKE) * steered, -Math.cos(GP_RAKE) * steered);
+      this.body.orientation.rotate(this.offset, this.scratch);
+      this.roadLoads.frontRadius = tyreRollingRadius(s.frontWheelRadius, s.crownRadius, this.frontShoulder, this.scratch.dot(this.contacts[0].normal));
+      this.offset.set(1, 0, 0);
+      this.body.orientation.rotate(this.offset, this.scratch);
+      this.roadLoads.rearRadius = tyreRollingRadius(s.rearWheelRadius, Math.max(0.11, s.crownRadius), this.rearShoulder, this.scratch.dot(this.contacts[2].normal));
+    }
     d.contactLoads = this.roadLoads;
     // The published wheelie/stoppie coordinate describes actual wheel lift;
     // spring dive/squat is already present in the authoritative orientation.

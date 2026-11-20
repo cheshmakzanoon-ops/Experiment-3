@@ -1,3 +1,8 @@
+import {
+  ROAD_TYRE_HALF_WIDTH,
+  tyreShoulderSine,
+  tyreRollingRadius,
+} from '../simulation/bike-tyre-profile.ts';
 import * as T from 'three';
 import {
   BC,
@@ -72,14 +77,14 @@ function tyreSupport(
 ) {
   const axial = axle.dot(normal),
     radial = Math.sqrt(Math.max(1e-12, 1 - axial * axial)),
-    reach = Math.min(1.25, Math.asin(Math.min(0.98, halfWidth / crown))),
-    angle = Math.min(reach, Math.atan2(Math.abs(axial), radial)),
-    height = (radius - crown + crown * Math.cos(angle)) / radial;
+    reach = tyreShoulderSine(halfWidth, crown),
+    sine = T.MathUtils.clamp(axial, -reach, reach),
+    height = tyreRollingRadius(radius, crown, reach, axial) / radial;
   return out
     .copy(normal)
     .addScaledVector(axle, -axial)
     .multiplyScalar(-height)
-    .addScaledVector(axle, -Math.sign(axial) * crown * Math.sin(angle));
+    .addScaledVector(axle, -crown * sine);
 }
 
 /** Drawn road hubs in the true sprung CG frame. A telescopic fork moves along
@@ -152,7 +157,7 @@ export class RoadBikeWheelPose {
         this.axle,
         i === 0 ? b.frontWheelRadius : b.rearWheelRadius,
         i === 0 ? b.crownRadius : Math.max(b.crownRadius, 0.11),
-        i === 0 ? 0.06 : 0.1,
+        i === 0 ? ROAD_TYRE_HALF_WIDTH.front : ROAD_TYRE_HALF_WIDTH.rear,
         this.support,
       );
       const distance = normal.dot(hub) + normal.dot(this.support) - normal.dot(contact.points[i]),

@@ -1,5 +1,5 @@
 import { clamp } from '../core/math.ts';
-import { motorcycleContactSlipPower } from './motorcycle-thermal.ts';
+import { motorcycleWheelSlipPower } from './motorcycle-thermal.ts';
 import {
   FORMULA_SLICK,
   camberShift,
@@ -49,6 +49,9 @@ export interface MotoGPContactStep {
    * resolve the steered front force, and rotate both body-frame velocity
    * components. The adapter consumes forwardSpeed as well as lateralSpeed. */
   inertialContacts?: boolean;
+  /** Rolling radii at the road support points, including camber and bank. */
+  frontRadius?: number;
+  rearRadius?: number;
 }
 
 export interface MotoGPGeometry {
@@ -224,6 +227,7 @@ export class MotoGPChassis {
     }
     this.lastSpeed = v;
     const contact = clamp(q.frontContact, 0, 1);
+    const steer = (this.groundSteer = gpGroundSteer(q.steer, q.lean));
     if ((contact <= 1e-6 && !q.inertialContacts) || v < 2.5) {
       // No fictitious front road steering while raised. Below walking speed
       // retain the geometric pit-box steering model instead of freezing turn.
@@ -233,13 +237,13 @@ export class MotoGPChassis {
           : 0;
       this.lateralSpeed = 0;
       this.frontFy = this.rearFy = this.lateralAcceleration = 0;
-      this.frontSlipAngle = this.rearSlipAngle = this.frontLoadUsed = 0;
+      this.frontSlipAngle = this.rearSlipAngle = this.frontLoadUsed = this.frontMuUsed = 0;
+      this.frontElasticStiffness = this.rearElasticStiffness = 0;
       this.stepWheels(q);
       return this;
     }
 
     // The tyre sees the ground-plane steer of the raked, leaned fork.
-    const steer = (this.groundSteer = gpGroundSteer(q.steer, q.lean));
     const frontFy = this.sideForce(
       this.front,
       q.frontLoad * contact,
@@ -457,23 +461,33 @@ export class MotoGPChassis {
   private stepWheels(q: MotoGPContactStep) {
     const g = this.geometry;
     const v = Math.max(0, q.speed);
+    const frontRadius = q.frontRadius ?? g.frontRadius;
+    const rearRadius = q.rearRadius ?? g.rearRadius;
+    const forward = q.inertialContacts ? this.forwardSpeed : v;
+    const frontSide = this.lateralSpeed + g.frontArm * this.yawRate;
+    const cs = Math.cos(this.groundSteer),
+      sn = Math.sin(this.groundSteer);
+    const frontAlong = forward * cs + frontSide * sn;
+    const frontAcross = frontSide * cs - forward * sn;
+    const frontScale = Math.max(2, Math.abs(frontAlong)),
+      rearScale = Math.max(2, forward);
     const frontPeak = Math.max(1, q.frontLoad * q.frontMu);
     const rearPeak = Math.max(1, q.rearLoad * q.rearMu);
     const targetFrontSlip = clamp(q.frontFx / frontPeak, -0.98, 0.98) * 0.065;
     const targetRearSlip = clamp(q.rearFx / rearPeak, -0.98, 0.98) * 0.065;
-    const targetFront = (v + targetFrontSlip * Math.max(2, v)) / g.frontRadius;
-    const targetRear = (v + targetRearSlip * Math.max(2, v)) / g.rearRadius;
+    const targetFront = (frontAlong + targetFrontSlip * frontScale) / frontRadius;
+    const targetRear = (forward + targetRearSlip * rearScale) / rearRadius;
     const frontTau = clamp(
-      (g.frontWheelInertia * Math.max(v, 4)) / (4000 * g.frontRadius ** 2),
+      (g.frontWheelInertia * Math.max(frontScale, 4)) / (4000 * frontRadius ** 2),
       0.012,
       0.09,
     );
     const rearTau = clamp(
-      (g.rearWheelInertia * Math.max(v, 4)) / (4000 * g.rearRadius ** 2),
+      (g.rearWheelInertia * Math.max(rearScale, 4)) / (4000 * rearRadius ** 2),
       0.012,
       0.09,
     );
-    if (!q.inertialContacts || q.frontLoad > 1e-6)
+    if (!q.inertialContacts || q.frontLoad * q.frontContact > 1e-6)
       this.frontOmega += (targetFront - this.frontOmega) * (1 - Math.exp(-q.dt / frontTau));
     if (!q.inertialContacts || q.rearLoad > 1e-6)
       this.rearOmega += (targetRear - this.rearOmega) * (1 - Math.exp(-q.dt / rearTau));
@@ -488,32 +502,23 @@ export class MotoGPChassis {
     );
     this.frontOmega = Math.min(500, this.frontOmega);
     this.rearOmega = Math.min(500, this.rearOmega);
-    this.frontSlip = clamp((this.frontOmega * g.frontRadius - v) / Math.max(2, v), -1, 6);
-    this.rearSlip = clamp((this.rearOmega * g.rearRadius - v) / Math.max(2, v), -1, 6);
-    // Forces are in each wheel's frame. Rotate the front contact velocity
-    // into that steered frame before measuring work: geometric turning at
-    // an aligned rolling wheel is not sliding heat. Use the same body frame
-    // for both velocity components after the inertial-contact yaw update.
-    const forward = q.inertialContacts ? this.forwardSpeed : v;
+    const frontRim = this.frontOmega * frontRadius,
+      rearRim = this.rearOmega * rearRadius;
+    this.frontSlip = clamp((frontRim - frontAlong) / frontScale, -1, 6);
+    this.rearSlip = clamp((rearRim - forward) / rearScale, -1, 6);
+    // Force, rim velocity and slip work must all refer to the same patch.
     this.frontSlidingPower =
       q.frontLoad * q.frontContact > 1e-6
-        ? motorcycleContactSlipPower(
-            q.frontFx,
-            this.frontFy,
-            forward,
-            this.lateralSpeed + g.frontArm * this.yawRate,
-            this.frontOmega * g.frontRadius,
-            this.groundSteer,
-          )
+        ? motorcycleWheelSlipPower(q.frontFx, this.frontFy, frontAlong, frontAcross, frontRim)
         : 0;
     this.rearSlidingPower =
       q.rearLoad > 1e-6
-        ? motorcycleContactSlipPower(
+        ? motorcycleWheelSlipPower(
             q.rearFx,
             this.rearFy,
             forward,
             this.lateralSpeed - g.rearArm * this.yawRate,
-            this.rearOmega * g.rearRadius,
+            rearRim,
           )
         : 0;
   }
