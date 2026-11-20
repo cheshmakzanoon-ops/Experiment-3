@@ -56,8 +56,11 @@ function launch(
   throw new Error('The production takeoff was not reached');
 }
 
-function land(definition: VehicleDefinition, assist: Assist, body: number, dt = DT, ai = false) {
-  const run = launch(definition, assist, dt, ai),
+function land(
+  definition: VehicleDefinition, assist: Assist, body: number, dt = DT, ai = false,
+  feature?: { name: string; extraSpeed: number },
+) {
+  const run = launch(definition, assist, dt, ai, feature),
     bike = run.bike,
     samples: { at: number; remaining: number; slope: number }[] = [];
   let incomingVy = 0,
@@ -178,14 +181,25 @@ describe('motocross first-tyre landing prediction', () => {
     expect(bike.airborne).toBe(false);
   });
 
-  it('preserves AI and supermoto predictions and landing trajectories', () => {
-    for (const [definition, ai] of [
-      [MX_450, true],
-      [SM_450, false],
-    ] as const) {
-      const reference = { ...definition, id: 'unchanged-landing-reference' },
+  it.each([MX_250, MX_450])('$id AI forecasts first tyre contact on the table and triple', (definition) => {
+    for (const name of ['RIDGE TABLE', 'SKY TRIPLE'])
+      for (const dt of [1 / 120, 1 / 240]) {
+        const { bike, samples } = land(definition, 'sport', 0, dt, true, { name, extraSpeed: 0 });
+        const landing = bike.lastLanding!;
+        const final = samples.filter((sample) => landing.airTime - sample.at < 0.2);
+        expect(final.length).toBeGreaterThan(18);
+        for (const sample of final)
+          expect(Math.abs(sample.remaining - (landing.airTime - sample.at))).toBeLessThan(0.04);
+        expect(samples.at(-1)!.remaining).toBeLessThan(0.03);
+        expect(bike.dynamics.crashes).toBe(0);
+      }
+  });
+
+  it('retains the supermoto contact forecast for both a rider and an AI opponent', () => {
+    for (const ai of [true, false]) {
+      const reference = { ...SM_450, id: 'unchanged-landing-reference' },
         before = land(reference, 'sport', 0, DT, ai),
-        after = land(definition, 'sport', 0, DT, ai);
+        after = land(SM_450, 'sport', 0, DT, ai);
       expect(after.samples).toEqual(before.samples);
       expect(after.bike.lastLanding).toEqual(before.bike.lastLanding);
       expect(after.bike.body.position).toEqual(before.bike.body.position);

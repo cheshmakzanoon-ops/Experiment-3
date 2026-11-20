@@ -377,13 +377,13 @@ export class DirtBikeVehicle extends BikeVehicle {
     this.throttle = throttle;
     this.brake = brake;
     this.rearBrake = rear;
-    const course = offroadCourse(track.circuit);
+    const course = offroadCourse(track.circuit),
+      motocross = course?.kind === 'motocross' || course?.kind === 'supercross';
     this.pickupFrontForce = this.pickupRearForce = 0;
     this.mxFrontBrakePower = this.mxRearBrakePower = undefined;
     this.playerMotocross =
       !ai &&
-      (course?.kind === 'motocross' || course?.kind === 'supercross') &&
-      (this.definition.id === 'mx250' || this.definition.id === 'mx450');
+      motocross && (this.definition.id === 'mx250' || this.definition.id === 'mx450');
     // Sport may share a front-lever stroke across both tyres, but the
     // player's rear pedal is a rear-only correction on a jump approach or
     // while covering a wheelie. AI keeps its surveyed linked-brake map.
@@ -453,7 +453,7 @@ export class DirtBikeVehicle extends BikeVehicle {
       this.crashReason = 'contact';
       d.fall(Math.abs(this.slide) > 6 || d.speed > 30 ? 'highside' : 'lowside');
     }
-    if (this.airborne && d.state === 'riding') this.flight(dt, throttle, rear, brake, ai);
+    if (this.airborne && d.state === 'riding') this.flight(dt, throttle, rear, brake, ai, motocross);
     else if (this.airborne) this.coast(dt);
     else {
       const x0 = d.x,
@@ -691,17 +691,23 @@ export class DirtBikeVehicle extends BikeVehicle {
   }
   /** Ballistic flight: plan-view travel at the take-off speed less drag,
    * rear-wheel spin dynamics and the pitch torques they and the rider make. */
-  private flight(dt: number, throttle: number, rear: number, brake: number, ai: boolean) {
+  private flight(
+    dt: number, throttle: number, rear: number, brake: number, ai: boolean, motocross: boolean,
+  ) {
     const d = this.dynamics,
       a = this.air,
-      spec = this.spec;
-    if (this.playerMotocross) {
+      spec = this.spec,
+      tyreForecast = this.playerMotocross || (ai && motocross && this.definition.tireFamily === 'knobby');
+    this.predictClock -= dt;
+    if (tyreForecast) {
       // Predict from one coherent beginning-of-step pose. Horizontal travel
       // happens below and vertical travel in vertical(); mixing the new X/Z
       // with the old Y shifts a near-contact forecast by a physics tick.
-      this.predictClock -= dt;
       if (this.predictClock <= 0) {
-        this.predictPlayerLanding();
+        // A distant opponent flight uses the chassis-centre forecast. Inside
+        // 400 ms either tyre can meet a different side of a crest first.
+        if (this.playerMotocross || this.landingIn <= 0.4) this.predictTyreLanding();
+        else this.predictLanding();
         this.predictClock = this.landingIn < 0.3 ? 0.05 : 0.1;
       }
       // Terrain look-ahead is sampled, but time still passes between those
@@ -719,12 +725,9 @@ export class DirtBikeVehicle extends BikeVehicle {
     d.z += Math.cos(d.heading) * this.flightSpeed * dt;
     // Assisted pitch control (AI always; the player's Sport rider aid uses the
     // body only): aim the chassis at the predicted landing slope.
-    if (!this.playerMotocross) {
-      this.predictClock -= dt;
-      if (this.predictClock <= 0) {
-        this.predictClock = 0.1;
-        this.predictLanding();
-      }
+    if (!tyreForecast && this.predictClock <= 0) {
+      this.predictClock = 0.1;
+      this.predictLanding();
     }
     // Riders land rear wheel first: aim a little nose-up of the slope.
     const chassis = this.pitch + this.automaticBody * 0.06,
@@ -928,7 +931,7 @@ export class DirtBikeVehicle extends BikeVehicle {
    * unknown and are incorporated on the next sample. Horizontal quadratic
    * drag is integrated analytically and the contact crossing is refined so
    * a 40 ms sampling bin cannot become a late whip or body correction. */
-  private predictPlayerLanding() {
+  private predictTyreLanding() {
     const d = this.dynamics,
       spec = this.bikeSpec,
       track = this.lastTrack!,
