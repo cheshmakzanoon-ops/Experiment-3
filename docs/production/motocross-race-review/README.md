@@ -4,9 +4,11 @@ Valley Ridge and Arena Nord use the same articulated MX250 and MX450 models in r
 
 ## MX250 and MX450 race refinement
 
-The image below shows the full Valley Ridge grid on High at 800 × 500. The player entered through the paddock and released the start using the normal race controls. High, Low and the studio inspection frames in this section were rendered by Chromium WebGL2 with SwiftShader.
+Both starting grids below were captured at 800 × 500 on High. The player selected each class and venue through the paddock and released the eight-rider gate through the normal race controls. Chromium used the SwiftShader WebGL2 software renderer.
 
-![MX450 on the inside of the eight-rider starting grid at Valley Ridge on High](valley-ridge-mx450-high-grid.webp)
+| Valley Ridge · MX450 | Arena Nord · MX250 |
+| --- | --- |
+| ![MX450 on the inside of the outdoor starting grid](valley-ridge-mx450-high-grid.webp) | ![MX250 on the floodlit starting grid at Arena Nord](arena-nord-mx250-high-grid.webp) |
 
 The MX450 cockpit and tail below are photographed from the same cameras on main at `e5a863d` and `0903d39`. The handguards have open vents, mounts and throttle clearance. The front number board curves around the cables and the bar pad has an open bore. The tail panels turn in around the silencer and its retaining bands. In the closest detail level the MX250 and MX450 contain 139,930 and 136,830 triangles respectively, including the rider.
 
@@ -30,7 +32,7 @@ The starting gate now follows the measured green instant between snapshots. In a
 
 The pad survey samples the hems between the corners as well as the corners themselves. Each venue still draws the pads in two batches. The stadium test covered 18 trackside, gate and telephoto views. Every spectator within those camera frames retained the same seat, model and clothing.
 
-While the starting grid is held on High, the renderer finishes the local reflection and near shadow maps separately before shading the riders. In the 1280 × 800 WebGL inspection, moving the MX450 and returning it to its earlier pose produced identical pixels with separate and combined shadow rendering.
+While the starting grid is held on High, the renderer finishes the local reflection and near shadow maps separately before shading the riders. In the 1280 × 800 WebGL inspection, moving the MX450 and returning it to its earlier pose produced identical pixels with separate and combined shadow rendering. In a live race, a long frame also keeps the existing reflection while the next six faces are built one at a time. Six successive ten-second gaps previously forced 36 face renders. The regression now records six and verifies that the previous complete map stays visible until its replacement is ready. Replay seeks, vehicle changes and lighting changes still trigger immediate captures.
 
 The Arena Nord pad photographed below had the largest original gap. Both frames use its actual placement, the same surveyed ground, material, camera and lighting. The visible gap under this pad fell from 17.30 cm to 0.95 cm.
 

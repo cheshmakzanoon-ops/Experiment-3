@@ -2357,6 +2357,7 @@ export class RacingRenderer {
         (!this.photo || this.photo.view === 'cockpit') &&
         (!menu || !!this.photo) &&
         cameraMode === 'cockpit',
+      motocrossFollow && !menu && !this.photo && !replay,
     );
     this.scene.updateMatrixWorld(true);
     this.camera.updateMatrixWorld(true);

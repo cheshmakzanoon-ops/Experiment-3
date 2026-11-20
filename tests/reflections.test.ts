@@ -524,6 +524,39 @@ it('spreads a periodic refresh over frames from one eye and publishes it only wh
   expect(faces[6].x).toBe(20);
   reflection.dispose();
 });
+it('keeps one reflection face per late live motocross frame and immediately resolves a replay cut', () => {
+  const reflection = new ReflectionSystem();
+  const { gl, faces } = slicedFixture();
+  const scene = new T.Scene(), rider = new T.Group();
+  const metal = new T.MeshStandardMaterial();
+  reflection.probeFacesPerFrame = 1;
+  const present = (seconds: number, live: boolean) => {
+    reflection.beginFrame(seconds, false, live);
+    reflection.updateProbe(gl, scene, rider, [metal], true);
+  };
+  try {
+    present(0, true);
+    const gateMap = metal.envMap;
+    expect(faces).toHaveLength(6);
+    for (let face = 0; face < 6; face++) {
+      rider.position.z = 15 + face;
+      present((face + 1) * 10, true);
+      expect(faces).toHaveLength(7 + face);
+      expect(faces.at(-1)!.face).toBe(face);
+      if (face < 5) expect(metal.envMap).toBe(gateMap);
+    }
+    expect(metal.envMap).not.toBe(gateMap);
+    expect(reflection.probeDiagnostics.starts.immediate).toBe(1);
+    present(95, false);
+    expect(faces).toHaveLength(18);
+    present(30, true);
+    expect(faces).toHaveLength(24);
+  } finally {
+    reflection.dispose();
+    metal.dispose();
+  }
+});
+
 it('drops a refresh in progress for a seek, subject or environment change and captures all six faces', () => {
   const reflection = new ReflectionSystem(),
     { gl, faces } = slicedFixture();
