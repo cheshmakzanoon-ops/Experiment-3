@@ -807,6 +807,12 @@
     "availableTriangles": 1653547,
     "submittedTriangles": 2281
   },
+  "focusedReview": {
+    "sourceCommit": "3963037a674b356eecb2ff45e4ff3fa32449431b",
+    "suites": 66,
+    "tests": 838,
+    "passed": true
+  },
   "productionBuild": {
     "passed": true,
     "command": "npm run build",
@@ -824,8 +830,145 @@
         600
       ],
       "entryRoute": "Cold circuit entry",
-      "result": "Validated a moving on-track High frame",
-      "lastCircuitStage": "Waiting for completed cockpit GPU work\u2026"
+      "result": "Validated a moving on-track High frame"
     }
-  ]
+  ],
+  "motorcycleHardwareReview": {
+    "files": 6,
+    "tests": 56,
+    "passed": true
+  },
+  "authoredSourceLint": {
+    "command": "ESLint",
+    "files": 69,
+    "passed": true
+  },
+  "integratedMainBuild": {
+    "sourceCommit": "4b24ff0c7ee9aeda7306f2cc0a48b775b758efd5",
+    "sourceFingerprintSha256": "e9fde1a7aef65be15af1322a9b5cb47a9524c963559775e6038cecef8cae0bce",
+    "productionBuild": "passed",
+    "contentValidation": "passed"
+  },
+  "contactRelease": {
+    "sourceCommit": "4b24ff0c7ee9aeda7306f2cc0a48b775b758efd5",
+    "referenceCommit": "3963037a674b356eecb2ff45e4ff3fa32449431b",
+    "physicsVersion": 32,
+    "focusedReview": {
+      "files": 78,
+      "tests": 967,
+      "passed": true,
+      "includes": "77 unit files from the committed archive and the 22-case tyre contact suite on the identical simulation source."
+    },
+    "authoredSourceLint": {
+      "files": 80,
+      "passed": true
+    },
+    "product": {
+      "sourceFingerprintSha256": "e9fde1a7aef65be15af1322a9b5cb47a9524c963559775e6038cecef8cae0bce",
+      "typecheck": "passed",
+      "build": "passed",
+      "contentValidation": "passed",
+      "edition": "full",
+      "variant": "product"
+    },
+    "browserPractice": {
+      "image": "evidence/on-track.webp",
+      "passed": 2,
+      "entrants": 4,
+      "viewport": [
+        1280,
+        800
+      ],
+      "preset": "Low",
+      "wetParticleDensity": 1,
+      "adapter": "Chromium Mesa llvmpipe",
+      "commands": [
+        "e2e/motogp-riding-flow.spec.ts",
+        "e2e/motogp-wet-riding.spec.ts"
+      ],
+      "localTestTimeoutSeconds": 540
+    },
+    "roadMeshRegression": {
+      "cases": 74,
+      "files": 7,
+      "passed": true,
+      "covers": [
+        "banked and overlapping road geometry",
+        "steering force inversion",
+        "changing weather beneath a stationary tyre",
+        "finite-width support",
+        "motocross centreline ownership",
+        "combined tyre forces"
+      ]
+    },
+    "raceComparison": {
+      "circuit": "poggio-alto",
+      "weather": "rain",
+      "seed": 30101,
+      "laps": 2,
+      "riders": 8,
+      "ticks": 70198,
+      "blockTicks": 360,
+      "benchIncludes": "simulation, snapshot export, SHA-256 and six surface arrays per block; process CPU time with alternating block order",
+      "blockHashes": [
+        "24626b4f4884e574295e9a203af9a2dd1f273d55d9be1b270deba713fd47c2dd",
+        "24626b4f4884e574295e9a203af9a2dd1f273d55d9be1b270deba713fd47c2dd"
+      ],
+      "cpuSeconds": [
+        139.788,
+        93.587
+      ],
+      "finishTimes": [
+        534.0850043810208,
+        513.4946120869548,
+        528.182536317919,
+        569.3792360121341,
+        546.2074268843144,
+        578.6136377911557,
+        566.6819468294095,
+        573.4091505577486
+      ],
+      "runtime": {
+        "node": "24.22.3",
+        "v8": "13.6.233.17-node.63",
+        "architecture": "x64",
+        "platform": "linux"
+      },
+      "method": "SHA-256 of every complete Float32 race snapshot at 120 Hz. At each block boundary include water, rubber, temperature, substrate temperature, marbles and frozen cover. Alternate the order of the reference and updated simulations every 360 ticks in the same Node process.",
+      "sourceOrder": [
+        "3963037a674b356eecb2ff45e4ff3fa32449431b",
+        "4b24ff0c7ee9aeda7306f2cc0a48b775b758efd5"
+      ],
+      "repeatedFromCommittedArchive": true,
+      "replayDigest": "24626b4f4884e574295e9a203af9a2dd1f273d55d9be1b270deba713fd47c2dd",
+      "falls": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "classified": 8
+    },
+    "contactTest": {
+      "file": "tests/gp-tyre-contact.test.ts",
+      "passed": 22,
+      "perCaseDeadlineMilliseconds": 120000,
+      "previousWallMilliseconds": {
+        "aurel clear": 72847,
+        "poggio-alto clear": 85721,
+        "poggio-alto rain": 159443
+      },
+      "previousWetResult": "timed out",
+      "currentWallMilliseconds": {
+        "aurel clear": 38257,
+        "poggio-alto clear": 55057,
+        "poggio-alto rain": 104534
+      },
+      "currentWetResult": "passed"
+    }
+  }
 }

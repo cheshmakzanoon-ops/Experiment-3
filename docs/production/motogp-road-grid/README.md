@@ -18,13 +18,13 @@ Tyre width, crown and rolling radius follow the machine. The fixed-step simulati
 
 [Watch a GP-R2 turn in at Poggio Alto](evidence/poggio-corner.mp4) · [See the live race number, position and lap on the pit wall](evidence/pit-wall.webp)
 
-The 2.5-second film follows one motorcycle in an eight-rider simulation using a controlled trailing camera and lighting. Each of its 60 frames advances the production simulation by five ticks at 120 Hz. The dry and wet chase and cockpit stills above come from four-rider practice in the production application at 1280 × 800. Both runs started from the Low preset. The wet run set particle density to 100% in the garage to exercise spray from both tyres.
+The 2.5-second film follows one motorcycle in an eight-rider simulation using a controlled trailing camera and lighting. Each of its 60 frames advances the production simulation by five ticks at 120 Hz. The dry and wet chase and cockpit stills above come from four-rider practice in the production application at 1280 × 800 on commit `4b24ff0`. Both runs started from the Low preset. The wet run set particle density to 100% in the garage to exercise spray from both tyres.
 
 ### High-preset practice
 
 ![GP-R2 banking into Poggiolo in four-rider High-preset practice](evidence/high-practice.webp)
 
-The production application entered Poggio Alto practice with the GP-R2 and three rivals at 960 × 600 on Chromium SwiftShader. The AI rider reached Poggiolo on lap two with the HUD showing 82 km/h. Immediately before the screenshot, the live renderer recorded 81.7 km/h and 33.1° of lean. This run used local reflections, 2,048-pixel shadows, 1,024-pixel textures and 4× MSAA. [See the same bike at the green flag](evidence/high-grid.webp).
+The production application entered Poggio Alto practice with the GP-R2 and three rivals at 960 × 600 on Chromium SwiftShader. The AI rider reached Poggiolo on lap two with the HUD showing 82 km/h. Immediately before the screenshot, the live renderer recorded 81.7 km/h and 33.1° of lean. This run used local reflections, 2,048-pixel shadows, 1,024-pixel textures and 4× MSAA. At that sample the complete scene submitted 3,737 draw calls and 3,091,658 triangles across its rendering passes. [See the same bike at the green flag](evidence/high-grid.webp).
 
 ## Wheel motion and field cost
 
@@ -44,6 +44,18 @@ Eight seeded three-lap races covered Poggio Alto, Montejaral, Cape Wrenna and Ha
 
 A separate two-lap Aurel regression previously lost a prototype under braking at tick 2,365. After the yaw correction, all eight riders finished that race without a fall, collision or penalty. Two further Poggio Alto runs met the same checks in dry and wet conditions. One 24-second sequence of recorded steering, braking and throttle produced byte-identical wheel, rider and race snapshots at all 2,880 physics ticks when driven by 30 Hz, 60 Hz, 144 Hz and irregular frame clocks.
 
-Two independent production builds produced the same SHA-256 source fingerprint, recorded in the validation file. Four-rider dry and wet browser journeys passed against the build from the reviewed commit. The dry journey exercised manual control, cockpit, pause and recorded replay. The wet journey verified live tyre spray, moving chase and cockpit views, and a stationary simulation clock during pause.
+Two independent production builds produced the same SHA-256 source fingerprint, recorded in the validation file. All 838 tests in the 66-file MotoGP review passed on that source. Four-rider dry and wet browser journeys passed against the build from the reviewed commit. The dry journey exercised manual control, cockpit, pause and recorded replay. The wet journey verified live tyre spray, moving chase and cockpit views, and a stationary simulation clock during pause.
 
 The studio images and circuit film used Chromium and Mesa software rendering. A separate four-bike High-preset run at 1120 × 700 reached the cockpit warmup and then lost its WebGL context on Mesa llvmpipe. Native console frame pacing, controller-to-display latency and sustained performance on physical target GPUs still need [hardware measurements](../../PERFORMANCE_VALIDATION.md).
+
+## Full wet-race replay
+
+The eight prototypes completed two wet laps of Poggio Alto in 70,198 physics ticks. Replaying the same inputs against the earlier and updated contact code produced the same bytes for every race snapshot, the same sampled track state and the same eight finishing times. The comparison included each wheel and rider at 120 Hz and six surface-state arrays every three simulated seconds. CPU time for the simulation, recording and hashing fell from 139.8 to 93.6 seconds (33.1%) in one interleaved comparison on this machine. The wet race also passed its original two-minute unit-test deadline in 104.5 seconds.
+
+Run the reference race from the repository root. Supplying the recorded digest checks the full race against this physics version.
+
+```sh
+node --experimental-transform-types scripts/gp-contact-replay.ts 24626b4f4884e574295e9a203af9a2dd1f273d55d9be1b270deba713fd47c2dd
+```
+
+The contact update passed 967 tests across 78 files. The production build, content validation and both dry and wet browser drives passed again on that revision. The validation record includes the source fingerprint, replay digest, individual finishes and timings. [Contact update](https://github.com/cheshmakzanoon-ops/Experiment-3/commit/4b24ff0c7ee9aeda7306f2cc0a48b775b758efd5) · [Validation record](validation.json).
