@@ -12,6 +12,9 @@ import {
   RoadBikeWheelPose,
 } from '../src/rendering/road-bike-pose.ts';
 import { VEHICLES } from '../src/simulation/vehicles.ts';
+import { ClassicRearBrake, classicDrum } from '../src/rendering/road-bike-drum.ts';
+import { installSportHeadlights, roundRoadLamp } from '../src/rendering/road-bike-optics.ts';
+import { gpRaceBodywork } from '../src/rendering/gp-race-bodywork.ts';
 import { roadTyreSection } from '../src/simulation/bike-tyre-profile.ts';
 import { RoadBikeInstruments } from '../src/rendering/road-bike-instruments.ts';
 
@@ -42,6 +45,85 @@ beforeAll(() => {
 afterAll(() => vi.unstubAllGlobals());
 
 describe('road motorcycles in the GP selector', () => {
+  it('keeps the classic rear brake rod at its assembled length as the wheel and pedal move', () => {
+    const materials = new BikeMaterials(0),
+      pivot = new T.Vector3(...ROAD_SWINGARM_PIVOT);
+    const angle = -0.346,
+      brake = new ClassicRearBrake(0.56, angle, pivot, 'high', materials);
+    const frame = new T.Matrix4(),
+      arm = new T.Matrix4(),
+      q = new T.Quaternion();
+    const x = new T.Vector3(1, 0, 0),
+      scale = new T.Vector3(1, 1, 1);
+    const pose = (travel: number, input: number) => {
+      arm.compose(pivot, q.setFromAxisAngle(x, angle + travel), scale);
+      brake.update(frame, arm, input);
+      expect(brake.front.distanceTo(brake.back)).toBeCloseTo(brake.rodLength, 9);
+      const cam = brake.lever.localToWorld(new T.Vector3(-0.04, -0.064, 0));
+      expect(cam.distanceTo(brake.back)).toBeLessThan(1e-8);
+      return brake.lever.rotation.x;
+    };
+    const mesh = classicDrum('mid');
+    try {
+      mesh.computeBoundingBox();
+      expect(mesh.boundingBox!.max.y).toBeCloseTo(0.095, 4);
+      const neutral = pose(0, 0),
+        pressed = pose(0, 1);
+      expect(Math.abs(pressed - neutral)).toBeGreaterThan(0.035);
+      for (const t of [-0.12, -0.035, 0, 0.07, 0.18])
+        for (const input of [1, 0.3, 0]) pose(t, input);
+      expect(pose(0, 1)).toBe(pressed);
+    } finally {
+      mesh.dispose();
+      brake.root.traverse((o) => {
+        if (o instanceof T.Mesh) o.geometry.dispose();
+      });
+      materials.dispose();
+    }
+  });
+  it.each(['high', 'mid', 'far'] as const)(
+    'seats the %s blade optics on the moulding and puts the reflector behind forward-facing glass',
+    (detail) => {
+      const m = new BikeMaterials(0),
+        lamp = roundRoadLamp(m, detail, true),
+        body = gpRaceBodywork(m, detail, 'sport', 0);
+      const blades = new T.Group();
+      try {
+        installSportHeadlights(blades, body.body, m, detail);
+        const strips = blades.children.filter(
+          (o) => o instanceof T.Mesh && o.material === m.roadLampEmitter(),
+        ) as T.Mesh[];
+        expect(strips).toHaveLength(2);
+        for (const strip of strips) {
+          const p = strip.geometry.getAttribute('position');
+          expect(p.count).toBeGreaterThanOrEqual(8);
+          for (let i = 0; i < p.count; i++) {
+            const ray = new T.Raycaster(
+              new T.Vector3(p.getX(i), p.getY(i), 1.4),
+              new T.Vector3(0, 0, -1),
+            );
+            const hit = ray.intersectObject(body.body, false)[0];
+            expect(hit).toBeDefined();
+            expect(p.getZ(i) - hit.point.z).toBeGreaterThan(0);
+            expect(p.getZ(i) - hit.point.z).toBeLessThan(0.016);
+          }
+        }
+        lamp.updateMatrixWorld(true);
+        const hits = new T.Raycaster(
+          new T.Vector3(0.037, 0, 0.2),
+          new T.Vector3(0, 0, -1),
+        ).intersectObject(lamp, true);
+        expect((hits[0].object as T.Mesh).material).toBe(m.screenLight);
+        expect(hits.some((h) => (h.object as T.Mesh).material === m.steel)).toBe(true);
+      } finally {
+        for (const root of [body.root, blades, lamp])
+          root.traverse((o) => {
+            if (o instanceof T.Mesh) o.geometry.dispose();
+          });
+        m.dispose();
+      }
+    },
+  );
   it.each(['road-mono', 'road-twin'] as const)(
     '%s shock eyes follow their separate chassis and arm mounts',
     (layout) => {

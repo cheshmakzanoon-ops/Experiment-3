@@ -3,6 +3,8 @@ import { gpRiderPrints, type GpRiderPrints } from './bike-livery.ts';
 import { gpGripGeometry, gpLeverGuard } from './gp-handlebar-controls.ts';
 import { gpThrottleAngle } from './gp-rider-contact.ts';
 import { frameLiquidRain } from '../simulation/weather.ts';
+import { ClassicRearBrake, classicDrum } from './road-bike-drum.ts';
+import { installRoadsterLamp, installSportHeadlights, roundRoadLamp } from './road-bike-optics.ts';
 import { roadTyreSection, tyreShoulderSine } from '../simulation/bike-tyre-profile.ts';
 import {
   bindGpBareMetal,
@@ -516,6 +518,7 @@ export function numberTexture(number: number, paint: string, ink: string) {
 export class BikeMaterials {
   readonly list: T.Material[] = [];
   private readonly prints = new Map<string, GpRiderPrints>();
+  private headlight?: T.MeshStandardMaterial;
   readonly paint: T.MeshPhysicalMaterial;
   readonly secondary: T.MeshPhysicalMaterial;
   readonly accent: T.MeshPhysicalMaterial;
@@ -739,6 +742,14 @@ export class BikeMaterials {
     tagWeatherSurface(this.seat, 'leather', 0.7);
     tagWeatherSurface(this.reservoir, 'paint', 0.7);
   }
+  roadLampEmitter() {
+    if (!this.headlight) {
+      this.headlight = new T.MeshStandardMaterial({color:0xfff5dc, emissive:0xffe9c9, emissiveIntensity:1.05,
+        roughness:.32, name:'Road headlight source'});
+      this.list.push(this.headlight);
+    }
+    return this.headlight;
+  }
   riderPrints(colours: RiderColours, number: number, prototype: boolean) {
     const key = (prototype ? 'gp' : 'road') + number;
     let prints = this.prints.get(key);
@@ -842,7 +853,8 @@ export class BikeModel {
   private readonly rings: T.Mesh[] = [];
   private readonly gpChain?: GPChainDrive;
   private readonly rearDamper?: GPRearSuspension;
-  private readonly gpRearsets?: GPRearsets;
+  private readonly gpRearsets: GPRearsets;
+  private readonly classicBrake?: ClassicRearBrake;
   /** GP prototypes, near detail: the knee sliders' sparks at full lean (gp-slider-sparks.ts). */
   private readonly sliderSparks?: GpSliderSparks;
   private readonly sparkOrigins: [T.Vector3, T.Vector3] = [new T.Vector3(), new T.Vector3()];
@@ -959,6 +971,8 @@ export class BikeModel {
           }
       } else if (gpPrototype) {
         add(spin, gpRearRotor(detail), m.steel, GP_REAR_DISC.x);
+      } else if (classic) {
+        add(spin, classicDrum(detail), m.aluminium).name = 'Finned rear brake drum';
       } else add(spin, ringGeometry(0.11, 0.07, 0.006, sides), m.steel, -0.085, 0, 0);
     };
     // ---- Steering: mount on the steering axis, local Y up the fork.
@@ -1222,7 +1236,7 @@ export class BikeModel {
         0.0,
         FORK_OFFSET,
       );
-      if (detail !== 'far') {
+      if (detail !== 'far' && (!classic || side > 0)) {
         if (detail === 'high' && (authored || definition.id === 'gpr2')) {
           // The four-piston forged monobloc moves with the fork lower; the
           // carbon rotor remains free to spin inside its open jaw.
@@ -1400,25 +1414,10 @@ export class BikeModel {
         ),
         m.paint,
       );
+      const lamp = roundRoadLamp(m, detail, true);
+      lamp.position.set(0, 0.142, 0.96);
+      addGpRigidFinish(this.sprung, lamp, [m.steel, m.aluminium, m.roadLampEmitter()]);
       if (detail !== 'far') {
-        add(
-          this.sprung,
-          new T.SphereGeometry(
-            0.058,
-            sides,
-            Math.max(6, sides / 2),
-            0,
-            Math.PI * 2,
-            0,
-            Math.PI / 2,
-          ),
-          m.screenLight,
-          0,
-          0.142,
-          0.918,
-          false,
-        ).rotation.x = Math.PI / 2;
-        add(this.sprung, new T.TorusGeometry(0.064, 0.009, 8, 28), m.aluminium, 0, 0.142, 0.92);
         add(this.sprung, new RoundedBoxGeometry(0.1, 0.04, 0.2, 2, 0.012), m.dark, 0, 0.055, 0.66);
         const plate = add(
           this.sprung,
@@ -1432,37 +1431,7 @@ export class BikeModel {
         plate.rotation.x = -1.2;
       }
     }
-    if (look.headlamp === 'round') {
-      add(
-        this.steer,
-        new T.CylinderGeometry(0.085, 0.09, 0.12, sides / 2),
-        m.dark,
-        0,
-        -0.22,
-        FORK_OFFSET + 0.12,
-      ).rotation.x = Math.PI / 2;
-      add(
-        this.steer,
-        new T.CircleGeometry(0.075, sides),
-        m.screenLight,
-        0,
-        -0.22,
-        FORK_OFFSET + 0.181,
-        false,
-      );
-    } else if (look.headlamp === 'twin-slit' && detail !== 'far')
-      for (const side of [1, -1]) {
-        const lamp = add(
-          this.sprung,
-          new T.BoxGeometry(0.07, 0.02, 0.04),
-          m.screenLight,
-          side * 0.08,
-          0.13,
-          0.88,
-          false,
-        );
-        lamp.rotation.set(-0.9, side * 0.3, 0);
-      }
+    if (look.headlamp === 'round') installRoadsterLamp(this.steer, m, detail, RAKE, FORK_OFFSET);
     // Box wing (biplane with joined end plates) low on the fairing flanks.
     if (look.wings === 'box' && detail !== 'far' && !gp)
       for (const side of [1, -1]) {
@@ -1661,6 +1630,7 @@ export class BikeModel {
         { screen: sport ? look.screen : 1 },
       );
       this.sprung.add(moulding.root);
+      if (look.headlamp === 'twin-slit') installSportHeadlights(this.sprung, moulding.body, m, detail);
       const r2 = definition.id === 'gpr2';
       const lampY = r2 ? 0.318 : 0.33;
       const nearRainLamp = gpPrototype && detail !== 'far';
@@ -1812,6 +1782,10 @@ export class BikeModel {
           0,
           -arm,
         ).rotation.z = Math.PI / 2;
+      } else if (classic) {
+        const angle = Math.atan2(this.rearAxle.y - this.pivot.y, this.pivot.z - this.rearAxle.z);
+        this.classicBrake = new ClassicRearBrake(arm, angle, this.pivot, detail, m);
+        this.swingarm.add(this.classicBrake.root);
       } else {
         add(
           this.swingarm,
@@ -1977,7 +1951,7 @@ export class BikeModel {
       L = this.definition.spec.wheelbase;
     this.cockpit?.update(v);
     this.roadClocks?.update(v);
-    this.gpRearsets?.update(v.rearBrake);
+    this.gpRearsets.update(v.rearBrake);
     const road = v.roadContact?.valid
       ? this.roadWheels.solve(
           this.definition,
@@ -2027,6 +2001,7 @@ export class BikeModel {
     if (this.rearDamper) {
       this.swingarm.updateMatrix();
       this.rearDamper.update(this.sprung.matrix, this.swingarm.matrix);
+      this.classicBrake?.update(this.sprung.matrix, this.swingarm.matrix, v.rearBrake);
     }
     if (this.definition.id === 'gpr1' || this.definition.id === 'gpr2') {
       // Carbon-carbon rotors dark at moderate temperatures; only extreme heat
