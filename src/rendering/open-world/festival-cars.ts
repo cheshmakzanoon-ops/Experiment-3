@@ -1,7 +1,7 @@
 import * as T from 'three';
 import { F, H, R, RACE_BASE, carBase } from '../../simulation/protocol.ts';
 import { vehicleAt } from '../../simulation/vehicles.ts';
-import { bodyFrame } from '../vehicle-bodies/frame.ts';
+import { FestivalHeadlamps } from './festival-headlamps.ts';
 import { bodySheetFor } from '../vehicle-bodies/body-sheet.ts';
 import { FormulaCar } from '../car.ts';
 import { carLod } from '../lod.ts';
@@ -52,22 +52,15 @@ export class FestivalCars {
   private readonly holders: { root: T.Object3D; lodLevel: number }[] = [];
   private readonly formula = new Map<number, FormulaCar>();
   private readonly releaseFormula = new Map<number, () => void>();
-  // The festival uses a low night exposure, not the circuit's floodlights.
-  // An inverse-square dipped beam keeps nearby paint out of the broad white
-  // clipping produced by the old 2600 / distance^1.6 spotlight.
-  private readonly headlight = new T.SpotLight(0xfff2dc, 0, 85, 0.36, 0.72, 2);
+  private readonly lights = new FestivalHeadlamps();
   readonly reflectivePaint: T.Material[] = [];
   private readonly paintSet = new Set<T.Material>();
   paintVersion = 0;
-  private headlightVehicle = -1;
-  private lamp = { front: 0, y: 0, ground: 0 };
   constructor() {
     this.root.name = 'Festival cars';
     this.root.add(this.bodies.root);
     this.bodies.onBuild = () => this.refreshPaint();
-    this.headlight.name = 'Followed car headlights';
-    this.headlight.castShadow = false;
-    this.root.add(this.headlight, this.headlight.target);
+    this.root.add(this.lights.root);
   }
   /** Rebuild on body identity, including equal-sized garage replacements.
    * Removed car materials must not stay owned by the reflection probe. */
@@ -155,6 +148,10 @@ export class FestivalCars {
     // entrants keep their own representation. Entrants beyond the current
     // field read as Formula (no vehicle slot in the snapshot), which hides
     // any body left over from a finished event.
+    const lightLevel = Math.max(
+      night,
+      T.MathUtils.smoothstep(presented[H.RAIN] || 0, 1.5, 12) * 0.55,
+    );
     this.bodies.update(
       a,
       b,
@@ -162,7 +159,7 @@ export class FestivalCars {
       // Every definition follows its current holder. A cached Formula root
       // stops being posed when this entrant changes to a road car.
       this.holders,
-      night > 0.05,
+      lightLevel > 0.05,
       { follow: 0, cockpit, camera: camera?.position ?? null },
     );
     const followed = vehicleAt(Math.round(presented[carBase(0) + RACE_BASE + R.VEHICLE]));
@@ -188,32 +185,7 @@ export class FestivalCars {
       if (formula) formula.root.visible = isFormula;
       this.holders[id].root.visible = false;
     }
-    // Headlights at night on the followed car.
-    const lead = this.holders[0]?.root;
-    this.headlight.intensity = night > 0.05 ? 140 * night : 0;
-    if (lead) {
-      const vehicle = Math.round(presented[carBase(0) + RACE_BASE + R.VEHICLE]);
-      if (vehicle !== this.headlightVehicle) {
-        const definition = vehicleAt(vehicle),
-          frame = bodyFrame(definition),
-          sheet = bodySheetFor(definition);
-        this.lamp = {
-          front: frame.frontAxle + (sheet?.kind === 'closed' ? sheet.overhang[0] : 0.45),
-          y: frame.y(0.66),
-          ground: frame.ground,
-        };
-        this.headlightVehicle = vehicle;
-      }
-      this.headlight.position
-        .set(0, this.lamp.y, this.lamp.front + 0.05)
-        .applyQuaternion(lead.quaternion)
-        .add(lead.position);
-      this.headlight.target.position
-        .set(0, this.lamp.ground, this.lamp.front + 26)
-        .applyQuaternion(lead.quaternion)
-        .add(lead.position);
-      this.headlight.target.updateMatrixWorld();
-    }
+    this.lights.update(cars > 0 ? this.holders[0].root : null, followed, lightLevel);
   }
   /** Clear all entrants; repeated garage swaps reuse bounded Formula entries,
    * while a session exit releases every resource owned by those entries. */
@@ -225,13 +197,13 @@ export class FestivalCars {
     this.formula.clear();
     for (const holder of this.holders) holder.root.removeFromParent();
     this.holders.length = 0;
-    this.headlight.intensity = 0;
-    this.headlightVehicle = -1;
+    this.lights.clear();
     this.paintSet.clear();
     this.reflectivePaint.length = 0;
     this.paintVersion++;
   }
   dispose() {
     this.clear();
+    this.lights.dispose();
   }
 }
