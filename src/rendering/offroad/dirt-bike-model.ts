@@ -47,6 +47,8 @@ import {
 } from './motocross-mechanics.ts';
 import { addMotocrossHandguards } from './motocross-handguard.ts';
 import { applyMxAssemblyOcclusion } from './mx-assembly-occlusion.ts';
+import { mxCrossbarPad } from './motocross-bar-pad.ts';
+import { mxNumberBoard, mxNumberBoardBack } from './motocross-number-board.ts';
 import { MotocrossFootControls, MX_PEG } from './motocross-foot-controls.ts';
 import {
   addMotocrossControlMounts,
@@ -447,15 +449,20 @@ export class DirtBikeModel {
       ),
       this.m.aluminium,
     );
-    const pad = new RoundedBoxGeometry(0.232, 0.06, 0.068, 1, 0.018);
-    const padPos = pad.getAttribute('position'),
-      padUv = pad.getAttribute('uv');
-    for (let i = 0; i < padPos.count; i++) {
-      // Orthographic wrap over the upper and rider-facing padded face.
-      padUv.setXY(i, 0.5 - 8 * (padPos.getY(i) + padPos.getZ(i)), 0.5 - padPos.getX(i) / 0.232);
+    const compact = definition.id === 'mx250';
+    if (supermoto) {
+      const pad = new RoundedBoxGeometry(0.232, 0.06, 0.068, 1, 0.018);
+      const p = pad.getAttribute('position'), uv = pad.getAttribute('uv');
+      for (let i = 0; i < p.count; i++)
+        uv.setXY(i, 0.5 - 8 * (p.getY(i) + p.getZ(i)), 0.5 - p.getX(i) / 0.232);
+      add(this.steer, mapMxKitPanel(pad, 'bar', () => true), shroudMaterial, 0, barY + 0.012, barZ + 0.03);
+    } else {
+      const vinyl = new T.MeshPhysicalMaterial({ name: 'MX stitched crossbar pad cover',
+        map: shroudMaterial.map, roughness: 0.66, clearcoat: 0.12, clearcoatRoughness: 0.48, vertexColors: true });
+      this.plastics.push(vinyl);
+      tagMudExposure(vinyl, 0.54);
+      add(this.steer, mxCrossbarPad(detail, compact), vinyl, 0, barY + 0.012, barZ + 0.03);
     }
-    mapMxKitPanel(pad, 'bar', () => true);
-    add(this.steer, pad, shroudMaterial, 0, barY + 0.012, barZ + 0.03);
     if (detail !== 'far') addMotocrossControlMounts(this.steer, detail, this.m, barY, barZ);
     for (const side of [1, -1]) {
       if (detail === 'far') {
@@ -540,12 +547,12 @@ export class DirtBikeModel {
           this.m.dark,
         );
     if (!supermoto)
-      addMotocrossHandguards(this.steer, detail, definition.id === 'mx250', barY, barZ,
+      addMotocrossHandguards(this.steer, detail, compact, barY, barZ,
         shroudMaterial, dark, this.m.aluminium);
     // Front number plate below the bar.
     const plate = add(
       this.steer,
-      mouldedPanel(
+      supermoto ? mouldedPanel(
         [
           [-0.138, 0.143],
           [0.138, 0.143],
@@ -556,7 +563,7 @@ export class DirtBikeModel {
         ],
         0.008,
         0.005,
-      ),
+      ) : mxNumberBoard(detail, compact),
       board,
       0,
       CLAMPS - 0.088,
@@ -566,12 +573,12 @@ export class DirtBikeModel {
     plate.name = 'Motocross sculpted front number plate';
     // Race numbers are printed on the front. The cockpit sees the unprinted
     // moulding, not a mirrored duplicate of the graphics through the plate.
-    mapUnprintedPlateBack(plate.geometry);
+    if (supermoto) mapUnprintedPlateBack(plate.geometry);
     if (detail !== 'far') {
       // Moulded ribs bridge the flexible number board to its rubber fork
       // straps. The cockpit sees this hardware from behind the board.
       const faceY = plate.position.y,
-        back = plate.position.z - 0.011;
+        back = plate.position.z + (supermoto ? -0.011 : mxNumberBoardBack(0.092, 0.059, compact) - 0.003);
       for (const side of [-1, 1]) {
         const rib = add(
           this.steer,
@@ -1183,9 +1190,9 @@ export class DirtBikeModel {
       if (o instanceof T.InstancedMesh) o.dispose();
       if (o instanceof T.Mesh) o.geometry.dispose();
     });
-    for (const m of this.plastics) {
-      m.map?.dispose();
-      m.dispose();
-    }
+    // Pad vinyl and plastics use the same entrant decal sheet.
+    const maps = new Set(this.plastics.map((material) => material.map));
+    for (const map of maps) map?.dispose();
+    for (const material of this.plastics) material.dispose();
   }
 }

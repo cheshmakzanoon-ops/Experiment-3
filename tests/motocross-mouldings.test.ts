@@ -1,6 +1,8 @@
 import * as T from 'three';
 import { describe, expect, it } from 'vitest';
 import { motocrossHandguard } from '../src/rendering/offroad/motocross-handguard.ts';
+import { mxCrossbarPad } from '../src/rendering/offroad/motocross-bar-pad.ts';
+import { mxNumberBoard } from '../src/rendering/offroad/motocross-number-board.ts';
 import {
   motocrossFender,
   motocrossForkGuard,
@@ -65,6 +67,37 @@ function inspect(geometry: T.BufferGeometry) {
 }
 
 describe('motocross formed bodywork', () => {
+  it.each(['high', 'mid', 'far'] as const)(
+    '%s control padding has a through bore and number board has a curved, unprinted back',
+    (detail) => {
+      for (const compact of [false, true]) {
+        const pad = mxCrossbarPad(detail, compact),
+          board = mxNumberBoard(detail, compact);
+        const foam = inspect(pad),
+          plate = inspect(board);
+        try {
+          expect(closedShell(pad)).toBeGreaterThan(0.0004);
+          expect(closedShell(board)).toBeGreaterThan(0.00018);
+          const across = new T.Vector3(-1, 0, 0),
+            front = new T.Vector3(0, 0, -1);
+          expect(foam.cast(new T.Vector3(1, 0, 0), across)).toHaveLength(0);
+          expect(foam.cast(new T.Vector3(1, 0.019, 0), across).length).toBeGreaterThan(0);
+          const centre = plate.cast(new T.Vector3(0.002, 0, 1), front)[0];
+          const wing = plate.cast(new T.Vector3(0.125, 0, 1), front)[0];
+          expect(centre.point.z - wing.point.z).toBeGreaterThan(0.017);
+          expect(centre.uv!.x).toBeCloseTo(0.5, 1);
+          const reverse = plate.cast(new T.Vector3(0.002, 0, -1), front.clone().negate())[0];
+          expect(centre.point.z - reverse.point.z).toBeCloseTo(0.0038, 5);
+          expect(reverse.uv!.x).toBeLessThan(12 / 512);
+          expect(reverse.face!.normal.z).toBeLessThan(-0.9);
+        } finally {
+          foam.dispose();
+          plate.dispose();
+        }
+      }
+    },
+  );
+
   it.each(['high', 'mid', 'far'] as const)(
     '%s handguards have closed skins on both bars and preserve the sightline through the cockpit',
     (detail) => {
