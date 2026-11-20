@@ -12,6 +12,12 @@ The windshield, its black ceramic border, pillars, roof and scuttle meet at the 
 
 The cockpit has formed front wheelhouses and a floor around the pedals. At steering lock, one hand retains the wheel while the other releases and takes a new grip. The RG-63 has a wood rim and drilled spokes. The performance cars use shaped grips and moulded controls. A wheel occupies one draw at either level of detail. The active camera's projection and viewport determine when its switches and fasteners are large enough to show.
 
+During a drive, press **C** to cycle through chase, far chase, bonnet and driver’s seat. The fourth view uses the selected car’s modeled eye position, pitch and lens. It clips at 4.5 cm so the steering rim, glove cuffs and windscreen frame remain visible at close range. Vehicles without a modeled cabin cycle back to chase after their onboard mount.
+
+These two SC-7 captures use the live driving camera and keyboard steering at Saltmarsh. The car reached 29.66 km/h and braked to 0.76 km/h before cycling to the seat. At this camera the complete Low-preset scene submitted 443,750 triangles in 200 draws.
+
+![The SC-7 driver’s view over the wheel, before and after applying left steering on the actual circuit](sc7-driver-view.jpg)
+
 Tyre markings use the model's section width, sidewall height and rim diameter. Their position follows the same recorded phase as the rim across a complete turn. The tread and machined brake slots filter across the camera shutter using each tyre's measured angular speed. A locked wheel stays sharp while an adjacent wheel can continue rotating. The brake caliper, pad retainers and spring remain fixed to the upright, and the swept rotor face responds to the recorded disc temperature. The two wheel views below hold the rim at the same phase to isolate the change in shutter exposure.
 
 ![The SC-7, RG-63 and RP-6 cockpits and the stationary and rolling finish on the SC-7 wheel](cockpit-and-running-gear.jpg)
@@ -86,5 +92,9 @@ These fixed-camera comparisons use the EH-3, clear daylight, the Low preset and 
 The RH-3 harbour chase below was captured from the High preset in the complete Festival session at 640 × 360. This daylight frame submitted 1,373,616 triangles in 549 draws. The application completed its photographic sky, ground, vegetation, shadows and post-processing passes. The scene readback returned a clean WebGL error state, and the browser reported zero missing assets or script errors.
 
 ![The actual RH-3 chase camera in Port Ilse on the High preset, in daylight](port-ilse-high.jpg)
+
+The same chase camera at sunset during a thunderstorm shows the rear lamp signatures, street lighting, darkened shop fronts and wet road. This High-preset frame used a 512 × 288 buffer and submitted 1,480,617 triangles in 508 draws. The recorded checks include its clean frame readback and source identity.
+
+![The RH-3 on the High preset during a sunset thunderstorm in Port Ilse](port-ilse-storm.jpg)
 
 Software WebGL establishes what the game drew at each camera. Frame pacing and input latency on console-class hardware require a hardware run. The existing [GPU benchmark](../../studio/HARDWARE_BENCHMARK.md) can drive the Festival journey at 1920 × 1080 across all three quality presets.
