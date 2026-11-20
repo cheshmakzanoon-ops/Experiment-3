@@ -352,7 +352,10 @@ export class MxShoulderView {
     }
     view.visible = view.count > 0;
     view.matrix.copy(source.matrix);
-    view.matrixWorldNeedsUpdate = true;
+    // The production frame freezes world-matrix updates before the shadow
+    // and colour passes. This sibling joins after that traversal.
+    view.matrixWorld.copy(source.matrixWorld);
+    view.matrixWorldNeedsUpdate = false;
     view.layers.mask = source.layers.mask;
     view.material = source.material;
     view.renderOrder = source.renderOrder;

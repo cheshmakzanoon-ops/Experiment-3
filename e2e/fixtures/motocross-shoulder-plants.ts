@@ -103,12 +103,14 @@ export async function captureMotocrossShoulderPlants() {
           mesh.instanceMatrix.array.byteLength + (mesh.instanceColor?.array.byteLength ?? 0),
       };
     });
-  const capture = (label: string, time: number, view: 'review' | 'full' | 'culled' = 'review') => {
+  const capture = (
+    label: string, time: number, view: 'review' | 'full' | 'culled' = 'review',
+    pixels = new Uint8Array(WIDTH * HEIGHT * 4),
+  ) => {
     dressing.update(time);
     if (view === 'culled') dressing.inCameraView(camera, () => renderer.render(scene, camera));
     else renderer.render(scene, camera);
-    const gl = renderer.getContext(),
-      pixels = new Uint8Array(WIDTH * HEIGHT * 4);
+    const gl = renderer.getContext();
     gl.readPixels(0, 0, WIDTH, HEIGHT, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
     let hash = 2166136261;
     for (const byte of pixels) hash = Math.imul(hash ^ byte, 16777619) >>> 0;
@@ -150,13 +152,29 @@ export async function captureMotocrossShoulderPlants() {
       capture('wind-10-seek', 10),
     ];
     scene.add(dressing.turf);
-    const full = capture('all-plants', 10, 'full');
-    const compact = capture('all-camera-plants', 10, 'culled');
+    scene.updateMatrixWorld(true);
+    scene.matrixWorldAutoUpdate = false;
+    const comparePlants = () => {
+      const original = new Uint32Array(WIDTH * HEIGHT), compact = new Uint32Array(original.length);
+      const measure = (view: 'full' | 'culled', rgba: Uint32Array<ArrayBuffer>) => {
+        const { hash, triangles, calls, glError } = capture('all-plants', 10, view, new Uint8Array(rgba.buffer));
+        return { hash, triangles, calls, error: glError };
+      };
+      const full = measure('full', original), culled = measure('culled', compact);
+      let changedPixels = 0;
+      for (let i = 0; i < original.length; i++) if (original[i] !== compact[i]) changedPixels++;
+      return { full, culled, comparedPixels: original.length, changedPixels };
+    };
+    const cameraPlants = comparePlants();
+    // Retain a nonidentity venue transform in the same frozen-matrix render
+    // order as the live game. An identity camera batch produces different pixels.
+    dressing.root.position.set(0.45, 0.12, -0.25);
+    dressing.turf.position.copy(dressing.root.position);
+    scene.updateMatrixWorld(true);
+    const movedPlants = comparePlants();
     return {
-      cameraPlants: {
-        full: { hash: full.hash, triangles: full.triangles, calls: full.calls, error: full.glError },
-        culled: { hash: compact.hash, triangles: compact.triangles, calls: compact.calls, error: compact.glError },
-      },
+      cameraPlants,
+      movedPlants,
       scope:
         'Isolated production TerrainView and MxCourseDressing; fixed component-review lighting.',
       circuit: 'valley-ridge-mx',

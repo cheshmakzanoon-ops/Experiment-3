@@ -249,6 +249,43 @@ describe('formed, rooted motocross shoulder vegetation', () => {
     }
   });
 
+  it('keeps the venue world transform when the colour pass borrows plants after scene updates', () => {
+    const scene = new T.Scene(), parent = new T.Group();
+    const geometry = mxShoulderPlantGeometry('tuft'), material = new T.MeshStandardMaterial();
+    const plants = new T.InstancedMesh(geometry, material, 1);
+    plants.setMatrixAt(0, new T.Matrix4());
+    plants.setColorAt(0, new T.Color(0x67a044));
+    plants.computeBoundingSphere();
+    plants.position.set(-2, 0.2, 4);
+    plants.rotation.y = 0.28;
+    parent.position.set(32, 3, -18);
+    parent.rotation.set(0.08, -0.4, 0.03);
+    parent.scale.set(0.9, 1.1, 1.2);
+    parent.add(plants);
+    scene.add(parent);
+    scene.matrixWorldAutoUpdate = false;
+    const family = new MxShoulderView(plants), camera = new T.PerspectiveCamera(65, 1.6, 0.1, 100);
+    try {
+      for (const x of [32, 43, 32]) {
+        parent.position.x = x;
+        scene.updateMatrixWorld(true);
+        camera.position.set(0, 2, 7).applyMatrix4(plants.matrixWorld);
+        camera.lookAt(new T.Vector3().setFromMatrixPosition(plants.matrixWorld));
+        camera.updateMatrixWorld(true);
+        family.begin(camera);
+        const batch = parent.getObjectByName(plants.name + ' in camera') as T.InstancedMesh;
+        expect(batch.count).toBe(1);
+        expect(batch.matrixWorld.equals(plants.matrixWorld)).toBe(true);
+        family.end();
+      }
+    } finally {
+      family.dispose();
+      plants.dispose();
+      geometry.dispose();
+      material.dispose();
+    }
+  });
+
   it('retains every in-frame wind envelope and tint across camera cuts and density changes', () => {
     const track = rigTrack('valley-ridge-mx'), dressing = new MxCourseDressing(track);
     const sources = [...dressing.root.children, ...dressing.turf.children].filter(
