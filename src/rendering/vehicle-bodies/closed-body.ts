@@ -22,7 +22,12 @@ import { Parts, placed } from './parts.ts';
 import type { Detail } from './wheel.ts';
 import { addFestivalRegistration } from './festival-registration.ts';
 import { addPickupBed, pickupBedBounds } from './pickup-bed.ts';
-import { fitRoadDeck, roadWindowMaterial, roadWindowRings, windscreenBow } from './road-greenhouse.ts';
+import {
+  fitRoadDeck,
+  roadWindowMaterial,
+  roadWindowRings,
+  windscreenBow,
+} from './road-greenhouse.ts';
 import { addRoadMirrors } from './road-mirrors.ts';
 import type { CarMaterials, BuiltLod } from './common.ts';
 import type { CabinLayout } from './cabin.ts';
@@ -36,6 +41,7 @@ import {
   festivalDetailFor,
 } from './festival-detail.ts';
 import { cutFestivalBodyPockets, warpFestivalNose } from './festival-nose.ts';
+import { roadSplitter, addRoadUndertray } from './road-underbody.ts';
 import { warpFestivalRear } from './festival-rear.ts';
 import { cutFestivalDoorJoints, shapeFestivalSide } from './festival-side.ts';
 
@@ -341,7 +347,11 @@ export class ClosedBodyModel {
     const fixed: number[] = [];
     if (this.s.windowForm) {
       const front = this.f.z(this.s.cabin[0]);
-      fixed.push(front, front - windscreenBow(this.s.windowForm) - 0.065, this.f.z(this.s.cabin[3]));
+      fixed.push(
+        front,
+        front - windscreenBow(this.s.windowForm) - 0.065,
+        this.f.z(this.s.cabin[3]),
+      );
     }
     if (this.s.loadFloor !== undefined) {
       const { rear, front } = pickupBedBounds(this);
@@ -732,7 +742,8 @@ export function buildClosedBody(
         // under the glass a dark lid (parcel shelf, engine cover, tonneau).
         // The dark scuttle closes the foot of the swept screen over the
         // dashboard. Its front edge is the same curve as the painted bonnet.
-        if (s.windowForm && zMid >= zLidFront - windscreenBow(s.windowForm) - 0.065) return M.interior;
+        if (s.windowForm && zMid >= zLidFront - windscreenBow(s.windowForm) - 0.065)
+          return M.interior;
         if (cell && zMid > cell.rear) {
           const sill = model.halfWidth(zMid) * 0.8 - 0.01 + 0.02;
           if (Math.max(rings[i].half[j][0], rings[i + 1].half[j][0]) <= sill) return -1;
@@ -887,43 +898,50 @@ export function buildClosedBody(
       placed(0, f.y(s.nose * 0.55 + s.floor * 0.45), model.zFront - 0.035),
     );
   }
-  if (s.splitter > 0 && detail < 2) {
-    const sp = roundedBox(hw(model.zFront - 0.25) * 2 * 0.94, 0.014, 0.5, 0.006, 1);
-    lod.front.push(
-      ...addDetachable(
-        lod,
-        sp,
-        carbon,
-        placed(0, f.y(s.floor + 0.02), model.zFront + s.splitter * 0.5 - 0.25),
-      ),
-    );
-  }
-  if (detail < 2) {
-    // Lower rear valance across the tail, and the diffuser ramp behind it.
-    const zv = model.zRear - 0.004,
-      half = hw(model.zRear) * 0.8;
-    parts.add(
-      roundedBox(half * 1.9, 0.1, 0.03, 0.012, 1),
-      sharedMaterials.plastic(),
-      placed(0, f.y(s.floor) + 0.17, zv + 0.01),
-    );
-    if (s.diffuser > 0) {
-      const ramp = roundedBox(half * 1.6, 0.012, 0.6, 0.004, 1);
-      parts.add(
-        ramp,
-        sharedMaterials.carbonSatin(),
-        placed(0, f.y(s.floor) + 0.07, model.zRear + 0.3, 0.2),
+  if (s.frontSweep) {
+    if (s.splitter > 0 && (detail < 2 || s.splitter >= 0.07)) {
+      lod.front.push(...addDetachable(lod, roadSplitter(model, detail), carbon, new T.Matrix4()));
+    }
+    if (detail < 2) addRoadUndertray(parts, model, detail);
+  } else {
+    if (s.splitter > 0 && detail < 2) {
+      const sp = roundedBox(hw(model.zFront - 0.25) * 2 * 0.94, 0.014, 0.5, 0.006, 1);
+      lod.front.push(
+        ...addDetachable(
+          lod,
+          sp,
+          carbon,
+          placed(0, f.y(s.floor + 0.02), model.zFront + s.splitter * 0.5 - 0.25),
+        ),
       );
     }
-  }
-  if (s.diffuser > 0 && detail < 2) {
-    const h = 0.04 + s.diffuser * 0.45;
-    for (let k = -2; k <= 2; k++)
+    if (detail < 2) {
+      // Lower rear valance across the tail, and the diffuser ramp behind it.
+      const zv = model.zRear - 0.004,
+        half = hw(model.zRear) * 0.8;
       parts.add(
-        roundedBox(0.012, h, 0.42, 0.004, 1),
-        carbon,
-        placed(k * hw(model.zRear) * 0.3, f.y(s.floor) + h * 0.5 + 0.03, model.zRear + 0.2, 0.25),
+        roundedBox(half * 1.9, 0.1, 0.03, 0.012, 1),
+        sharedMaterials.plastic(),
+        placed(0, f.y(s.floor) + 0.17, zv + 0.01),
       );
+      if (s.diffuser > 0) {
+        const ramp = roundedBox(half * 1.6, 0.012, 0.6, 0.004, 1);
+        parts.add(
+          ramp,
+          sharedMaterials.carbonSatin(),
+          placed(0, f.y(s.floor) + 0.07, model.zRear + 0.3, 0.2),
+        );
+      }
+    }
+    if (s.diffuser > 0 && detail < 2) {
+      const h = 0.04 + s.diffuser * 0.45;
+      for (let k = -2; k <= 2; k++)
+        parts.add(
+          roundedBox(0.012, h, 0.42, 0.004, 1),
+          carbon,
+          placed(k * hw(model.zRear) * 0.3, f.y(s.floor) + h * 0.5 + 0.03, model.zRear + 0.2, 0.25),
+        );
+    }
   }
   if (s.sideIntake && detail < 2 && !detailedFestival)
     for (const side of [-1, 1]) {

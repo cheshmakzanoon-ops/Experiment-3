@@ -1,3 +1,4 @@
+import { roadSplitterStation } from './road-underbody.ts';
 import { windscreenBow } from './road-greenhouse.ts';
 import { addFestivalFaceLamps, festivalFaceLamps } from './festival-face-lamps.ts';
 import { FestivalWipers } from './festival-wipers.ts';
@@ -1174,18 +1175,19 @@ function addHardware(
 }
 
 function addAeroEdges(model: ClosedBodyModel, detail: Detail, lod: BuiltLod) {
-  const { f, s } = model;
+  const { s } = model;
   if (s.splitter < 0.07 || detail > 0) return;
   const parts = new Parts();
   for (const side of [-1, 1]) {
-    const x = side * model.halfWidth(model.zFront - 0.25) * 0.94;
-    const z = model.zFront - 0.09,
-      y = f.y(s.floor + 0.055);
+    const station = roadSplitterStation(model, side * 0.96);
+    const x = station.x,
+      z = station.lip - 0.16,
+      y = station.y + 0.012;
     const shape = new T.Shape([
-      new T.Vector2(-0.19, 0),
+      new T.Vector2(-0.147, 0),
       new T.Vector2(0.17, 0),
       new T.Vector2(0.13, 0.072),
-      new T.Vector2(-0.16, 0.1),
+      new T.Vector2(-0.133, 0.055),
     ]);
     const g = new T.ExtrudeGeometry(shape, {
       depth: 0.006,
@@ -1197,7 +1199,7 @@ function addAeroEdges(model: ClosedBodyModel, detail: Detail, lod: BuiltLod) {
     parts.add(g, sharedMaterials.carbonSatin(), placed(x, y, z));
     parts.add(
       rodGeometry(
-        new T.Vector3(x * 0.88, y - 0.027, z + 0.12),
+        new T.Vector3(x * 0.91, y + 0.003, z + 0.125),
         new T.Vector3(x * 0.83, y + 0.16, z - 0.06),
         0.0038,
         5,
