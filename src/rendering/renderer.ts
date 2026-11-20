@@ -2102,7 +2102,9 @@ export class RacingRenderer {
     this.circuit.staff.update(
       presented,
       this.camera.position,
-      this.circuit.crowd.visible && !studio && !menu,
+      (this.circuit.staff.placement === 'individual' || this.circuit.crowd.visible) &&
+        !studio &&
+        !menu,
     );
     if (this.circuit.crowd.visible)
       for (const cluster of this.circuit.crowdClusters)

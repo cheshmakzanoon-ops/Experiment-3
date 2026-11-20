@@ -13,6 +13,10 @@ export function mudUniforms(): MudUniforms {
   return { offroadMud: { value: 0 }, offroadMudWet: { value: 0 } };
 }
 const exposure = new WeakMap<T.Material, number>();
+// A shared bike palette can acquire a weather wrapper between its near and far
+// rig builds. The wrapper preserves the mud shader but owns a different hook
+// function. Track the material itself as well as copied studio hook chains.
+const coated = new WeakSet<T.Material>();
 /** Authored roost exposure: helmet/eye protection stays cleaner than boots.
  * This is a presentation response to the recorded coat, not extra dirt state. */
 export function tagMudExposure(material: T.Material, amount: number) {
@@ -118,7 +122,7 @@ metalnessFactor *= 1.0 - offroadMudMask;`;
 /** Install the coat on one material (idempotent per material). Materials
  * shared between entrants share the first installer's amount. */
 export function installMud(material: T.Material, uniforms: MudUniforms) {
-  if (!(material instanceof T.MeshStandardMaterial)) return false;
+  if (!(material instanceof T.MeshStandardMaterial) || coated.has(material)) return false;
   const installed = chainShaderHook(material, 'offroad-mud-v2', (shader) => {
     Object.assign(shader.uniforms, uniforms);
     shader.uniforms.offroadMudExposure = { value: exposure.get(material) ?? 1 };
@@ -131,7 +135,7 @@ export function installMud(material: T.Material, uniforms: MudUniforms) {
     injectAfter(shader, 'metalnessmap_fragment', METAL, 'fragment');
     injectAfter(shader, 'lights_physical_fragment', COAT, 'fragment');
   });
-  if (installed) material.needsUpdate = true;
+  coated.add(material);
   return installed;
 }
 /** Install on every mesh material under `root`. */

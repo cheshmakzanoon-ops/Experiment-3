@@ -5,6 +5,7 @@ import { mxFurnitureGround } from './mx-ground-pose.ts';
 export { mxFurnitureGround } from './mx-ground-pose.ts';
 import { TrackTerrainSurface } from '../../simulation/offroad/course-terrain.ts';
 import { Track, trackPoint } from '../../simulation/track.ts';
+import type { MarshalLocation } from '../marshal-staff.ts';
 import { inStandFootprint } from '../grandstand.ts';
 import { tracksideRigs } from '../trackside.ts';
 import { STADIUM } from './stadium-dimensions.ts';
@@ -61,6 +62,46 @@ function groundPose(track: Track, x: number, z: number, yaw: number) {
     gz,
     y,
   };
+}
+
+/** Each marshal stands beside their own platform, beyond its short end.
+ * The entire stance is inside the reserved service footprint and faces
+ * the nearest racing lane. Feet follow the same soil as the platform. */
+export function mxMarshalLocations(track: Track, sites: readonly MxFurnitureSite[]) {
+  const locations: MarshalLocation[] = [];
+  const at = trackPoint(),
+    nearest = trackPoint();
+  for (const site of sites) {
+    if (site.type !== 'marshal') continue;
+    track.at(site.station, at);
+    const x = site.x + at.tx * 1.28,
+      z = site.z + at.tz * 1.28;
+    const lateral = track.nearest(x, z, nearest);
+    const y = mxFurnitureGround(track, x, z),
+      yaw = Math.atan2(nearest.x - x, nearest.z - z);
+    const foot = (side: number) => {
+      const dx = side * 0.14,
+        dz = 0.055;
+      const floor = mxFurnitureGround(
+        track,
+        x + dx * Math.cos(yaw) + dz * Math.sin(yaw),
+        z - dx * Math.sin(yaw) + dz * Math.cos(yaw),
+      );
+      return new T.Vector3(dx, floor - y + 0.055, dz);
+    };
+    locations.push({
+      kind: 'marshal',
+      lateral,
+      s: nearest.s,
+      side: lateral < 0 ? -1 : 1,
+      x,
+      y,
+      z,
+      yaw,
+      feet: [foot(-1), foot(1)],
+    });
+  }
+  return locations;
 }
 
 /** Conservative circular envelopes are tested against EVERY centreline

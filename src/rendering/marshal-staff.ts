@@ -6,6 +6,11 @@ import { CrewPose, installCrewSkin } from './crew-pose.ts';
 import { marshalAction } from './start-finish-assets.ts';
 import type { TrackDetailSite } from './track-infrastructure.ts';
 
+export type MarshalLocation = TrackDetailSite & {
+  /** Individual, soil-supported ankle targets in the post's local frame. */
+  feet?: readonly [T.Vector3, T.Vector3];
+};
+
 /** A post relays the recorded local flag of the nearest car within 45 metres.
  * This is an explicitly bounded presentation witness, not a second race-control
  * simulation or the player's yellow copied to every post around the circuit. */
@@ -76,8 +81,14 @@ export class MarshalStaffView {
   active = 0;
   maxGripError = 0;
   unreachable = 0;
-  constructor(readonly posts: readonly TrackDetailSite[]) {
-    const count = Math.max(1, posts.length * 2);
+  /** MX footings arrive with the venue's queued furniture. Reserve the known
+   * post budget once, then draw one official at each supplied ground pose. */
+  constructor(
+    readonly posts: readonly MarshalLocation[],
+    readonly placement: 'shelter' | 'individual' = 'shelter',
+    capacity = posts.length,
+  ) {
+    const count = Math.max(1, capacity * (placement === 'individual' ? 1 : 2));
     this.boneData = new Float32Array(count * 15 * 16);
     this.bones = new T.DataTexture(this.boneData, 60, count, T.RGBAFormat, T.FloatType);
     this.bones.minFilter = this.bones.magFilter = T.NearestFilter;
@@ -169,7 +180,10 @@ export class MarshalStaffView {
       Math.max(1, posts.length),
     );
     this.root.add(this.bodies, this.heads, this.flags, this.poles, ...this.gloves);
-    this.root.name = 'A45 recorded-signal articulated marshal staff';
+    this.root.name =
+      placement === 'individual'
+        ? 'MX race-control marshals'
+        : 'A45 recorded-signal articulated marshal staff';
     for (const batch of this.root.children as T.InstancedMesh[]) {
       batch.count = 0;
       batch.frustumCulled = false;
@@ -187,15 +201,16 @@ export class MarshalStaffView {
     for (const [index, site] of this.posts.entries()) {
       if (Math.hypot(camera.x - site.x, camera.z - site.z) > 160) continue;
       const signal = postSignal(frame, site.s);
-      this.origin.position.set(site.x, site.y + 0.18, site.z);
-      this.origin.rotation.set(0, site.yaw - (site.side * Math.PI) / 2, 0);
+      const onGround = this.placement === 'individual';
+      this.origin.position.set(site.x, onGround ? site.y : site.y + 0.18, site.z);
+      this.origin.rotation.set(0, onGround ? site.yaw : site.yaw - (site.side * Math.PI) / 2, 0);
       this.origin.updateMatrix();
-      for (let person = 0; person < 2; person++) {
+      for (let person = 0; person < (onGround ? 1 : 2); person++) {
         const slot = this.active,
           waving = person === 0 && signal !== FLAG.GREEN;
         marshalAction(frame[H.TIME] + index * 0.37 + person * 0.8, waving, this.action);
-        this.actor.position.set((person - 0.5) * 1.05, 0, 0.18);
-        this.actor.rotation.set(0, person ? -0.1 : 0.03, 0);
+        this.actor.position.set(onGround ? 0 : (person - 0.5) * 1.05, 0, onGround ? 0 : 0.18);
+        this.actor.rotation.set(0, onGround ? 0 : person ? -0.1 : 0.03, 0);
         this.actor.scale.setScalar(1);
         this.actor.updateMatrix();
         this.flag.position.set(-0.19, 1.12, 0.28);
@@ -215,7 +230,7 @@ export class MarshalStaffView {
           this.handMatrices[hand].copy(this.transform.matrix).premultiply(this.actor.matrix);
           this.wrists[hand].copy(this.cuff).applyMatrix4(this.handMatrices[hand]);
         }
-        this.pose.set(this.actor.matrix, 0.86, 0.025, this.wrists, 0.02);
+        this.pose.set(this.actor.matrix, 0.86, 0.025, this.wrists, 0.02, site.feet);
         this.pose.rotations[2].setFromAxisAngle(this.actor.up, this.action.x);
         this.pose.write(this.boneData, slot);
         this.unreachable += Number(!this.pose.reachable[0]) + Number(!this.pose.reachable[1]);

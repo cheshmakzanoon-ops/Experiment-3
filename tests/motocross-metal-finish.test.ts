@@ -21,6 +21,32 @@ function compile(material: T.MeshStandardMaterial) {
 }
 
 describe('motocross cast metal finish', () => {
+  it('installs the shared bike coat once when a later detail rig sees the weather-wrapped palette', () => {
+    const frame = new T.MeshPhysicalMaterial(),
+      seat = new T.MeshStandardMaterial();
+    const weather = new WeatherPresentation(),
+      mud = mudUniforms();
+    for (const material of [frame, seat]) {
+      tagWeatherSurface(material, material === frame ? 'metal' : 'leather');
+      expect(installMud(material, mud)).toBe(true);
+      weather.installMaterial(material);
+      const key = material.customProgramCacheKey(),
+        version = material.version;
+      expect(installMud(material, mudUniforms())).toBe(false);
+      expect(material.customProgramCacheKey()).toBe(key);
+      expect(material.version).toBe(version);
+      const shader = compile(material);
+      expect(shader.vertexShader.match(/varying vec3 vOffroadMudPos;/g)).toHaveLength(1);
+      expect(shader.fragmentShader.match(/float offroadMudNoise\(/g)).toHaveLength(1);
+      expect(shader.uniforms.offroadMud).toBe(mud.offroadMud);
+      expect(shader.uniforms.aurelSurfaceWeather).toBe(weather.surface);
+      const clone = material.clone();
+      expect(installMud(clone, mudUniforms())).toBe(true);
+      clone.dispose();
+      material.dispose();
+    }
+  });
+
   it.each(['finish-mud-weather', 'mud-finish-weather', 'weather-mud-finish'] as const)(
     'preserves the deposited mud and snapshot weather layers in %s order',
     (order) => {

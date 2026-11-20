@@ -19,6 +19,8 @@ import { installMxArenaLighting } from './mx-arena-lighting.ts';
 import { MxLooseSoil } from './mx-loose-soil.ts';
 import { MxMeadow } from './mx-meadow.ts';
 import { MxSpectators } from './mx-spectators.ts';
+import { mxMarshalLocations } from './mx-trackside-furniture.ts';
+import type { MarshalLocation } from '../marshal-staff.ts';
 
 export { installMud, installMudOn, mudUniforms, type MudUniforms } from './mud.ts';
 export { DirtBikeModel } from './dirt-bike-model.ts';
@@ -40,6 +42,7 @@ export class OffroadScene {
   spectators: MxSpectators | null = null;
   meadow: MxMeadow | null = null;
   readonly roost: Roost;
+  readonly marshalLocations: MarshalLocation[] = [];
   private lastTime = NaN;
   private disposed = false;
   private readonly pending: {
@@ -83,6 +86,9 @@ export class OffroadScene {
       if (course.kind === 'motocross' || course.kind === 'supercross') {
         this.queue(construction, 'MX course furniture and shoulders', 3, () => {
           this.dressing = new MxCourseDressing(track);
+          this.marshalLocations.push(
+            ...mxMarshalLocations(track, this.dressing.trackside.plan.sites),
+          );
           this.group.add(this.dressing.root, this.dressing.turf);
         });
         this.queue(construction, 'MX loose soil', 1, () => {
@@ -180,6 +186,7 @@ export class OffroadScene {
     this.looseSoil?.dispose();
     this.spectators?.dispose();
     this.meadow?.dispose();
+    this.marshalLocations.length = 0;
     this.roost.dispose();
     this.group.clear();
   }

@@ -88,6 +88,7 @@ import { isGpCourse } from '../simulation/gp-corner-shape.ts';
 import { batchScene, box, canvasTexture, label, mesh, unprintedBack } from './geometry.ts';
 import { offroadSceneFor, type OffroadScene } from './offroad/index.ts';
 import { isMotocrossVenue } from './offroad/mx-boundary.ts';
+import { MX_FURNITURE_LIMITS } from './offroad/mx-trackside-furniture.ts';
 /** Lit start lamp emission (D28: bright enough to bloom at night and in daylight). */
 export const START_LAMP_EMISSIVE = 25;
 /** Same pit-lane membership as TrackContactMesh and Track.sample, including
@@ -188,7 +189,6 @@ export class CircuitScene {
     this.trackInfrastructure = makeTrackInfrastructurePlan(track);
     this.startFinish = new StartFinishVenue(track);
     this.secondaryStands = new SecondaryGrandstands(track);
-    this.staff = new MarshalStaffView(this.trackInfrastructure.marshalPosts);
     this.serviceSites = serviceSitePlan(track);
     this.districts = districtPlan(track, this.serviceSites);
     this.venueKit = venueKitFor(track);
@@ -197,6 +197,20 @@ export class CircuitScene {
     // A terrain venue's course is soil, not a paved ribbon with kerbs.
     this.offroad = offroadSceneFor(track, this.construction);
     const paved = !this.offroad;
+    const mx = isMotocrossVenue(track);
+    if (mx && this.offroad) {
+      // The dirt venues supply their own platforms and safe, ground-level
+      // footings during course construction. The same officials relay the
+      // recorded local flags when the camera is in range.
+      this.trackInfrastructure.marshalPosts = [];
+      this.staff = new MarshalStaffView(
+        this.offroad.marshalLocations,
+        'individual',
+        MX_FURNITURE_LIMITS.marshalPosts,
+      );
+    } else {
+      this.staff = new MarshalStaffView(this.trackInfrastructure.marshalPosts);
+    }
     if (this.offroad) this.group.add(this.offroad.group);
     this.surfaces.name = 'Immutable circuit surfaces and barriers';
     this.vegetationGroup.name = 'Planting, groves and treelines';
@@ -206,7 +220,9 @@ export class CircuitScene {
     // scene through the same cooperative construction queue as every other
     // circuit mesh. This keeps a deferred CircuitScene genuinely empty until
     // construction starts while preserving identical final synchronous output.
-    this.construction.add('Trackside marshal staff', 1, () => this.crowd.add(this.staff.root));
+    this.construction.add('Trackside marshal staff', 1, () =>
+      (mx ? this.props : this.crowd).add(this.staff.root),
+    );
     this.stateTexture = new T.DataTexture(this.stateBytes, CELL_COLS, CELL_ROWS, T.RGBAFormat);
     this.stateTexture.magFilter = T.LinearFilter;
     this.stateTexture.minFilter = T.LinearFilter;

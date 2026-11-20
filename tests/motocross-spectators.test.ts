@@ -1,5 +1,15 @@
 import * as T from 'three';
 import { afterEach, describe, expect, it } from 'vitest';
+import { MarshalStaffView, type MarshalLocation } from '../src/rendering/marshal-staff.ts';
+import {
+  mxMarshalLocations,
+  mxFurnitureGround,
+  planMxTracksideFurniture,
+  MX_FURNITURE_LIMITS,
+} from '../src/rendering/offroad/mx-trackside-furniture.ts';
+import { disposeOffroadResources } from '../src/rendering/offroad/owned-resources.ts';
+import { FLAG } from '../src/simulation/marshal.ts';
+import { CAR_STRIDE, HEADER, H, F, carBase } from '../src/simulation/protocol.ts';
 import { MxCourseDressing } from '../src/rendering/offroad/mx-course-dressing.ts';
 import { setMxQuality } from '../src/rendering/offroad/mx-quality.ts';
 import {
@@ -59,7 +69,7 @@ describe('MX spectators and flag marshals', () => {
     none.dispose();
   });
 
-  it('builds standing instanced crowds per stretch of course and one flag draw, thinned on Low and Medium', () => {
+  it('thins the standing public independently of race officials on Low and Medium', () => {
     const track = rigTrack('valley-ridge-mx'),
       dressing = new MxCourseDressing(track),
       crowd = new MxSpectators(track, dressing.trackside.plan.sites);
@@ -71,7 +81,8 @@ describe('MX spectators and flag marshals', () => {
       expect(people.length).toBe(crowd.stats.draws);
       expect(people.length).toBeLessThan(16);
       const total = people.reduce((n, m) => n + m.count, 0);
-      expect(total).toBe(crowd.stats.spectators + crowd.stats.marshals);
+      expect(total).toBe(crowd.stats.spectators);
+      expect(crowd.stats.marshals).toBe(dressing.trackside.stats['marshal-post']);
       for (const mesh of people) {
         const style = mesh.geometry.getAttribute('spectatorStyle') as T.InstancedBufferAttribute;
         // Everyone stands (style z), nobody floats in a seated pose.
@@ -79,7 +90,6 @@ describe('MX spectators and flag marshals', () => {
         expect(mesh.customDepthMaterial).toBeDefined();
         expect(mesh.instanceColor).not.toBeNull();
       }
-      expect(crowd.root.getObjectByName('MX marshal signal flags and poles')).toBeDefined();
       const drawn = () => people.reduce((n, m) => n + m.count, 0);
       setMxQuality('medium');
       expect(drawn()).toBeLessThan(total * 0.5);
@@ -95,4 +105,78 @@ describe('MX spectators and flag marshals', () => {
       dressing.dispose();
     }
   });
+  it.each(['valley-ridge-mx', 'arena-nord-sx'] as const)(
+    'keeps each official grounded beside their %s post and relays local race control through holds and seeks',
+    (venue) => {
+      const track = rigTrack(venue),
+        course = (Track.offroadOf(track) as TrackTerrainSurface).course;
+      const sites = planMxTracksideFurniture(track).sites;
+      const locations: MarshalLocation[] = [];
+      const staff = new MarshalStaffView(locations, 'individual', MX_FURNITURE_LIMITS.marshalPosts);
+      const frame = new Float32Array(HEADER + CAR_STRIDE),
+        rider = carBase(0);
+      frame[H.CARS] = 1;
+      frame[H.LENGTH] = track.length;
+      const camera = new T.Vector3(),
+        point = trackPoint(),
+        pose = new T.Matrix4(),
+        origin = new T.Vector3();
+      try {
+        // Mirrors deferred venue construction: the actor buffers exist before the approved post sites.
+        staff.update(frame, camera);
+        expect(staff.active).toBe(0);
+        locations.push(...mxMarshalLocations(track, sites));
+        expect(locations.length).toBe(sites.filter((s) => s.type === 'marshal').length);
+        expect(locations.length).toBeGreaterThan(0);
+        for (const site of locations) {
+          const lateral = track.nearest(site.x, site.z, point);
+          expect(Math.abs(lateral)).toBeGreaterThan(
+            course.legalWidth(point.width, point.s, lateral) + 0.8,
+          );
+          expect(site.y).toBeCloseTo(mxFurnitureGround(track, site.x, site.z), 6);
+          const footing = new T.Matrix4()
+            .makeRotationY(site.yaw)
+            .setPosition(site.x, site.y, site.z);
+          for (const ankle of site.feet!) {
+            const boot = ankle.clone().applyMatrix4(footing);
+            expect(boot.y - 0.055).toBeCloseTo(mxFurnitureGround(track, boot.x, boot.z), 6);
+          }
+          frame[rider + F.S] = site.s;
+          camera.set(site.x, site.y + 1.5, site.z);
+          for (const signal of [FLAG.GREEN, FLAG.YELLOW, FLAG.DOUBLE_YELLOW, FLAG.BLUE]) {
+            frame[rider + F.LOCAL_FLAG] = signal;
+            frame[H.TIME] = 2.3;
+            staff.update(frame, camera);
+            expect(staff.unreachable).toBe(0);
+            expect(staff.maxGripError).toBeLessThan(1e-5);
+            expect(staff.poles.count).toBe(staff.flags.count);
+            expect(staff.flags.count > 0).toBe(signal !== FLAG.GREEN);
+            // The post being inspected owns a body with its feet at this exact world-space footing.
+            const near = Array.from({ length: staff.bodies.count }, (_, i) => {
+              staff.bodies.getMatrixAt(i, pose);
+              return origin
+                .setFromMatrixPosition(pose)
+                .distanceTo(new T.Vector3(site.x, site.y, site.z));
+            });
+            expect(Math.min(...near)).toBeLessThan(1e-4);
+            if (signal === FLAG.GREEN) continue;
+            const held = staff.flags.instanceMatrix.array.slice();
+            frame[H.TIME] = 5.4;
+            staff.update(frame, camera);
+            frame[H.TIME] = 2.3;
+            staff.update(frame, camera);
+            expect(staff.flags.instanceMatrix.array).toEqual(held);
+          }
+          setMxQuality('low');
+          frame[rider + F.LOCAL_FLAG] = FLAG.YELLOW;
+          staff.update(frame, camera);
+          expect(staff.flags.count).toBeGreaterThan(0);
+        }
+        staff.update(frame, camera.set(100000, 1, 100000));
+        expect(staff.active).toBe(0);
+      } finally {
+        disposeOffroadResources([staff.root]);
+      }
+    },
+  );
 });
