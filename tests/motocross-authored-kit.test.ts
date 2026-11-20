@@ -192,7 +192,7 @@ describe('original Blender-authored motocross kit', () => {
         circuit === 'arena-nord-sx' ? 0.012 : 0,
       );
       expect(peaks[peaks.length - 1]).toBeLessThan(circuit === 'arena-nord-sx' ? 0.04 : 0.008);
-      for (const morph of a.geometry.morphAttributes.position)
+      for (const morph of a.geometry.morphAttributes.position!)
         for (const i of crown) expect(Math.abs(morph.getY(i))).toBe(0);
       for (const mesh of [a, b]) {
         expect(mesh.material.normalMap).toBeInstanceOf(T.Texture);

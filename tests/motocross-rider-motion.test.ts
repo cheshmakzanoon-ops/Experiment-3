@@ -63,6 +63,7 @@ describe('motocross suspension-driven rider motion', () => {
         riderOffset: 0,
         tuck: 0,
         brake: 0,
+        rearBrake: 0,
         discTemp: 20,
         compoundColour: 0xffffff,
         riding: true,
