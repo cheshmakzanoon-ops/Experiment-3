@@ -17,6 +17,7 @@ import {
 } from '../simulation/protocol.ts';
 import { WHEEL_POSITIONS } from '../simulation/vehicle.ts';
 import { vehicleAt } from '../simulation/vehicles.ts';
+import type { Track } from '../simulation/track.ts';
 import { CREW_BONES } from './people-asset.ts';
 import { CrewPose, installCrewSkin } from './crew-pose.ts';
 import { crewTeamColour } from './crew-geometry.ts';
@@ -273,10 +274,10 @@ export class GridPresentationView {
     this.reset();
     this.parked = true;
   }
-  update(frame: Float32Array, camera: T.Vector3, time: number | null) {
+  update(frame: Float32Array, camera: T.Vector3, time: number | null, track?: Track) {
     if (time === null && this.parked) return;
     this.parked = false;
-    this.cast.update(frame, camera, time);
+    this.cast.update(frame, camera, time, track);
     for (const mesh of this.batches()) {
       mesh.count = 0;
       mesh.frustumCulled = false;

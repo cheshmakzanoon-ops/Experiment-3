@@ -4,6 +4,7 @@ import { GridPreparationView } from '../src/rendering/grid-preparation.ts';
 import { GridPresentationView } from '../src/rendering/grid-presentation-view.ts';
 import { DEFAULT_OPTIONS } from '../src/simulation/config.ts';
 import { F, H, carBase } from '../src/simulation/protocol.ts';
+import { surfaceSample } from '../src/simulation/track.ts';
 import { Simulation } from '../src/simulation/world.ts';
 
 const heldGrid = (machine: 'mx250' | 'mx450' | 'apx01') =>
@@ -26,6 +27,119 @@ function dispose(root: T.Object3D) {
 }
 
 describe('motocross gates keep staff without Formula tyre blankets', () => {
+  it.each(['valley-ridge-mx', 'arena-nord-sx'] as const)(
+    'plants eight teams on %s behind their own rear wheels',
+    (circuit) => {
+      const sim = new Simulation({
+        ...DEFAULT_OPTIONS,
+        circuit,
+        mode: 'race',
+        ruleset: 'motocross-moto',
+        opponents: 7,
+        vehicles: Array(8).fill('mx450'),
+      });
+      const frame = sim.makeFrame(),
+        view = new GridPreparationView(),
+        foot = new T.Vector3(),
+        m = new T.Matrix4(),
+        soil = surfaceSample();
+      const camera = new T.Vector3().fromArray(frame, carBase(0) + F.X);
+      try {
+        view.update(frame, camera, true, sim.track);
+        const bodies = view.root.getObjectByName(
+          'Grid preparation staff bodies',
+        ) as T.InstancedMesh;
+        expect(bodies.count).toBe(16);
+        for (let i = 0; i < bodies.count; i++) {
+          bodies.getMatrixAt(i, m);
+          foot.setFromMatrixPosition(m);
+          sim.track.sample(foot.x, foot.z, soil);
+          expect(Math.abs(foot.y - soil.height)).toBeLessThan(0.035);
+          const o = carBase(Math.floor(i / 2)),
+            bike = new T.Vector3().fromArray(frame, o + F.X);
+          const heading = new T.Vector3(0, 0, 1).applyQuaternion(
+            new T.Quaternion().fromArray(frame, o + F.QX),
+          );
+          heading.y = 0;
+          heading.normalize();
+          const offset = foot.clone().sub(bike);
+          expect(offset.dot(heading)).toBeLessThan(-1.3);
+          expect(Math.abs(offset.x * heading.z - offset.z * heading.x)).toBeLessThan(0.31);
+          expect(new T.Vector3(0, 1, 0).transformDirection(m).y).toBeCloseTo(1, 6);
+        }
+      } finally {
+        dispose(view.root);
+      }
+    },
+  );
+  it.each(['valley-ridge-mx', 'arena-nord-sx'] as const)(
+    'keeps the radio crew on their gate apron at %s through walk-off and replay',
+    (circuit) => {
+      const sim = new Simulation({
+        ...DEFAULT_OPTIONS,
+        circuit,
+        mode: 'race',
+        ruleset: 'motocross-moto',
+        opponents: 7,
+        vehicles: Array(8).fill('mx250'),
+      });
+      const view = new GridPresentationView(),
+        frame = sim.makeFrame(),
+        camera = new T.Vector3().fromArray(frame, carBase(0) + F.X),
+        matrix = new T.Matrix4(),
+        point = new T.Vector3(),
+        soil = surfaceSample();
+      const bikes = Array.from({ length: 8 }, (_, i) => {
+        const base = carBase(i),
+          origin = new T.Vector3().fromArray(frame, base + F.X);
+        const forward = new T.Vector3(0, 0, 1).applyQuaternion(
+          new T.Quaternion().fromArray(frame, base + F.QX),
+        );
+        forward.y = 0;
+        return { origin, forward: forward.normalize() };
+      });
+      const radios = view.root.getObjectByName('Motocross gate crew radios') as T.InstancedMesh;
+      try {
+        let held: number[][] = [];
+        for (const t of [0, 26, 0]) {
+          view.update(frame, camera, t, sim.track);
+          expect(view.diagnostics().cast).toEqual({ actors: 16, umbrellas: 0, tablets: 8 });
+          expect(radios.count).toBe(8);
+          const poses: number[][] = [];
+          for (let batch = 0; batch < 4; batch++) {
+            const bodies = view.root.getObjectByName(
+              `Grid presentation staff bodies ${batch}`,
+            ) as T.InstancedMesh;
+            for (let i = 0; i < bodies.count; i++) {
+              bodies.getMatrixAt(i, matrix);
+              point.setFromMatrixPosition(matrix);
+              sim.track.sample(point.x, point.z, soil);
+              expect(Math.abs(point.y - soil.height)).toBeLessThan(0.01);
+              expect(new T.Vector3(0, 1, 0).transformDirection(matrix).y).toBeCloseTo(1, 6);
+              const inOwnSlot = bikes.some(({ origin, forward }) => {
+                const dx = point.x - origin.x,
+                  dz = point.z - origin.z;
+                return (
+                  Math.abs(dx * forward.z - dz * forward.x) < 0.3 &&
+                  dx * forward.x + dz * forward.z < (t ? -3 : -1.3)
+                );
+              });
+              expect(inOwnSlot).toBe(true);
+              poses.push([...matrix.elements]);
+            }
+          }
+          if (!held.length) held = poses;
+          else if (t === 0) expect(poses).toEqual(held);
+        }
+        view.update(frame, camera, null, sim.track);
+        expect(radios.count).toBe(0);
+      } finally {
+        view.dispose();
+        dispose(view.root);
+      }
+    },
+  );
+
   it('clears blankets and straps on both real MX grids and restores Formula on the same view', () => {
     const formula = heldGrid('apx01'),
       mx250 = heldGrid('mx250'),

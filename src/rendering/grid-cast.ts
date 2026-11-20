@@ -1,7 +1,10 @@
 import * as T from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { GRID_PRESENTATION_SECONDS } from '../core/grid-presentation.ts';
-import { F, H, carBase } from '../simulation/protocol.ts';
+import { F, H, R, RACE_BASE, carBase } from '../simulation/protocol.ts';
+import { vehicleAt } from '../simulation/vehicles.ts';
+import type { Track } from '../simulation/track.ts';
+import { MX_GRID_MARKS, MxGridGround } from './offroad/mx-grid-staff.ts';
 import { crewTeamColour } from './crew-geometry.ts';
 import { CrewPerformanceSampler, relaxedWrist } from './crew-performance.ts';
 import { CrewPose, installCrewSkin } from './crew-pose.ts';
@@ -117,6 +120,8 @@ export class GridCastView {
   private readonly canopy: T.InstancedMesh[];
   private readonly frame: T.InstancedMesh;
   private readonly tablets: T.InstancedMesh;
+  private readonly radios: T.InstancedMesh;
+  private readonly gate = new MxGridGround();
   private readonly pose = new CrewPose();
   private readonly sampler = new CrewPerformanceSampler();
   private readonly car = new T.Object3D();
@@ -147,6 +152,7 @@ export class GridCastView {
       material.userData.weatherSurface = 'fabric';
       installCrewSkin(material, this.bones, CAPACITY, true, 'polo');
       const mesh = new T.InstancedMesh(g, material, CAPACITY);
+      mesh.name = `Grid presentation staff bodies ${batch}`;
       mesh.instanceColor = new T.InstancedBufferAttribute(
         new Float32Array(CAPACITY * 3).fill(1),
         3,
@@ -191,8 +197,30 @@ export class GridCastView {
       new T.MeshStandardMaterial({ color: 0x15181c, roughness: 0.25, metalness: 0.3 }),
       GRID_CAST_CARS,
     );
+    // The start marshal's radio sits in one fist next to the headset. All
+    // handsets share a batch, including the aerial, PTT switch and grille.
+    const radioParts = [
+      new T.BoxGeometry(0.054, 0.105, 0.036),
+      new T.CylinderGeometry(0.003, 0.005, 0.083, 7).translate(-0.018, 0.091, 0),
+      new T.BoxGeometry(0.007, 0.035, 0.017).translate(0.028, 0.013, 0),
+      ...[-1, 0, 1].map((row) =>
+        new T.BoxGeometry(0.034, 0.003, 0.002).translate(0, 0.028 + row * 0.007, 0.019),
+      ),
+    ];
+    this.radios = new T.InstancedMesh(
+      mergeGeometries(radioParts, false)!,
+      new T.MeshStandardMaterial({ color: 0x242a2c, roughness: 0.7 }),
+      GRID_CAST_CARS,
+    );
+    for (const part of radioParts) part.dispose();
+    this.radios.name = 'Motocross gate crew radios';
     for (const mesh of this.meshes()) {
-      if (mesh.instanceColor === null && mesh !== this.frame && mesh !== this.tablets)
+      if (
+        mesh.instanceColor === null &&
+        mesh !== this.frame &&
+        mesh !== this.tablets &&
+        mesh !== this.radios
+      )
         mesh.instanceColor = new T.InstancedBufferAttribute(
           new Float32Array(mesh.instanceMatrix.count * 3).fill(1),
           3,
@@ -212,6 +240,7 @@ export class GridCastView {
       ...this.canopy,
       this.frame,
       this.tablets,
+      this.radios,
     ];
   }
   private put(mesh: T.InstancedMesh, local: T.Matrix4, colour?: T.Color) {
@@ -220,7 +249,7 @@ export class GridCastView {
     mesh.setMatrixAt(mesh.count++, this.world);
   }
   /** `time` is presentation time; null hides the cast. */
-  update(frame: Float32Array, camera: T.Vector3, time: number | null) {
+  update(frame: Float32Array, camera: T.Vector3, time: number | null, track?: Track) {
     for (const mesh of this.meshes()) mesh.count = 0;
     this.heads.reset();
     this.actors = 0;
@@ -231,9 +260,14 @@ export class GridCastView {
         this.car.position.fromArray(frame, base + F.X);
         if (this.car.position.distanceToSquared(camera) > 110 ** 2) continue;
         this.car.quaternion.fromArray(frame, base + F.QX);
+        const definition = vehicleAt(Math.round(frame[base + RACE_BASE + R.VEHICLE]));
+        const gateHeight =
+          definition.classId === 'motocross' ? definition.bike!.cgHeight : undefined;
+        if (gateHeight !== undefined) this.gate.level(this.car);
         this.car.updateMatrix();
         const exit = (Math.sign(frame[base + F.LATERAL]) || -1) * 10 - frame[base + F.LATERAL];
-        for (let role = 0; role < ROLES; role++) this.person(id, role, time, exit);
+        for (let role = 0; role < ROLES; role++)
+          this.person(id, role, time, exit, gateHeight, track);
       }
     for (const mesh of this.meshes()) {
       mesh.instanceMatrix.needsUpdate = true;
@@ -243,8 +277,17 @@ export class GridCastView {
     this.heads.finish();
     this.bones.needsUpdate = true;
   }
-  private person(id: number, role: number, time: number, exitX: number) {
+  private person(
+    id: number,
+    role: number,
+    time: number,
+    exitX: number,
+    gateHeight?: number,
+    track?: Track,
+  ) {
     const mark = GRID_CAST_MARKS[role];
+    const mx = gateHeight !== undefined;
+    const start = mx ? MX_GRID_MARKS[role] : mark;
     const person = 200 + id * ROLES + role;
     // Staggered departures: nobody leaves in lockstep.
     const leave = GRID_CAST_LEAVE + ((id * 0.37 + role * 0.61) % 1) * 2.2;
@@ -252,21 +295,20 @@ export class GridCastView {
     // Each walks off on their own side of the car (never through it).
     const side = Math.sign(mark.x);
     const distance = Math.max(0, time - leave - 0.6) * WALK_SPEED;
-    const route = Math.max(9, Math.abs(exitX - mark.x));
+    const route = mx ? 8 : Math.max(9, Math.abs(exitX - mark.x));
     if (distance >= route || time > GRID_PRESENTATION_SECONDS + 1) return;
     const walking = distance > 0;
     // Walk out sideways, past the car's flank, towards the pit wall side.
     // Face along the walked path (sideways, drifting rear/forward early on).
     const u = Math.min(1, distance / 3);
     const drift = (role ? 0.4 : -1.9) * ((6 * u * (1 - u)) / 3);
-    const awayYaw = Math.atan2(side, drift);
+    const awayYaw = mx ? Math.PI : Math.atan2(side, drift);
     const yaw =
-      mark.yaw + Math.atan2(Math.sin(awayYaw - mark.yaw), Math.cos(awayYaw - mark.yaw)) * turn;
-    this.actor.position.set(
-      mark.x + side * distance,
-      FLOOR,
-      mark.z + (role ? 0.4 : -1.9) * smooth(distance / 3),
-    );
+      start.yaw + Math.atan2(Math.sin(awayYaw - start.yaw), Math.cos(awayYaw - start.yaw)) * turn;
+    const x = mx ? start.x : mark.x + side * distance;
+    const z = mx ? start.z - distance : mark.z + (role ? 0.4 : -1.9) * smooth(distance / 3);
+    const floor = mx ? this.gate.floor(this.car, x, z, gateHeight, track) : FLOOR;
+    this.actor.position.set(x, floor, z);
     this.actor.rotation.set(0, yaw, 0);
     this.actor.updateMatrix();
     // Idle weight shift or a walking cycle (distance-locked, no foot skating).
@@ -277,7 +319,10 @@ export class GridCastView {
       this.feet[h].copy(s.joints[h ? 14 : 11]).applyMatrix4(this.actor.matrix);
     }
     const breathe = Math.sin(time * 1.6 + person) * 0.004;
-    if (mark.role === 'umbrella') {
+    if (mx && role === 0) {
+      relaxedWrist(s.joints, 0, this.wrists[0]);
+      this.wrists[1].set(0.12, 1.44 + breathe, 0.1);
+    } else if (mark.role === 'umbrella') {
       // Both hands on the pole in front of the chest, umbrella over the cockpit.
       this.wrists[0].set(0.02, 1.07 + breathe, 0.2);
       this.wrists[1].set(0.05, 1.27 + breathe, walking ? 0.22 : 0.27);
@@ -343,7 +388,12 @@ export class GridCastView {
       this.matrix.multiplyMatrices(this.actor.matrix, this.part.matrix);
       this.put(this.hands[h], this.matrix, this.tone);
     }
-    if (mark.role === 'umbrella') {
+    if (mx && role === 0) {
+      this.part.position.copy(this.grips[1]);
+      this.part.rotation.set(-0.16, -0.2, 0.13);
+      this.part.updateMatrix();
+      this.put(this.radios, this.matrix.multiplyMatrices(this.actor.matrix, this.part.matrix));
+    } else if (mark.role === 'umbrella') {
       // The pole runs through both fists' grip sockets (lower fist at the
       // grip), so its lean towards the cockpit comes from the hands.
       this.axis.subVectors(this.grips[1], this.grips[0]).normalize();

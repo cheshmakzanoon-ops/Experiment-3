@@ -2120,11 +2120,13 @@ export class RacingRenderer {
       presented,
       this.camera.position,
       (!menu || !!this.photo) && !studio && !pregame && !this.gridPrepared,
+      this.circuit.track,
     );
     this.gridPerformance?.update(
       presented,
       this.camera.position,
       pregame ? this.gridPresentationTime : null,
+      this.circuit.track,
     );
     this.guide.update(presented, !menu && !this.photo && !pregame, this.colorblind);
     this.replayView = replay;

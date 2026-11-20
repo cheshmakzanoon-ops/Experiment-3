@@ -5,6 +5,8 @@ import { CrewPose, installCrewSkin } from './crew-pose.ts';
 import { CUFF } from './pit-crew.ts';
 import * as T from 'three';
 import { clamp } from '../core/math.ts';
+import type { Track } from '../simulation/track.ts';
+import { MX_GRID_MARKS, MxGridGround } from './offroad/mx-grid-staff.ts';
 import {
   F,
   H,
@@ -140,6 +142,7 @@ export class GridPreparationView {
   private readonly palm = new T.Vector3();
   private readonly side = new T.Vector3();
   private readonly rotation = new T.Quaternion();
+  private readonly gate = new MxGridGround();
   private readonly head = new T.Quaternion();
   private readonly offset = new T.Vector3();
   private readonly teamColour = new T.Color();
@@ -170,6 +173,7 @@ export class GridPreparationView {
     kit.userData.weatherSurface = 'fabric';
     installCrewSkin(kit, this.bones, STAFF, true, 'polo');
     this.bodies = new T.InstancedMesh(body, kit, STAFF);
+    this.bodies.name = 'Grid preparation staff bodies';
     // Allocated up front so the instancing-colour shader variant never changes.
     this.bodies.instanceColor = new T.InstancedBufferAttribute(
       new Float32Array(STAFF * 3).fill(1),
@@ -222,10 +226,17 @@ export class GridPreparationView {
     mesh.setMatrixAt(mesh.count++, this.matrix);
   }
   /** One staff member beside the cockpit, at car-local `x`, facing the car. */
-  private person(person: number, x: number, yaw: number, time: number) {
+  private person(
+    person: number,
+    x: number,
+    yaw: number,
+    time: number,
+    floor = CREW_FLOOR,
+    z = 0.4,
+  ) {
     const idle = gridStaffPose(person, time, this.idle);
     const slot = this.bodies.count;
-    this.actor.position.set(x, CREW_FLOOR, 0.4);
+    this.actor.position.set(x, floor, z);
     this.actor.rotation.set(0, yaw, 0);
     this.actor.updateMatrix();
     this.actor.position.add(
@@ -276,7 +287,7 @@ export class GridPreparationView {
       );
     }
   }
-  update(frame: Float32Array, camera: T.Vector3, enabled = true) {
+  update(frame: Float32Array, camera: T.Vector3, enabled = true, track?: Track) {
     const meshes = [this.blankets, this.straps, this.bodies, ...this.gloves];
     this.heads.reset();
     for (const mesh of meshes) mesh.count = 0;
@@ -287,12 +298,11 @@ export class GridPreparationView {
       this.car.position.fromArray(frame, o + F.X);
       if (this.car.position.distanceToSquared(camera) > 120 ** 2) continue;
       this.car.quaternion.fromArray(frame, o + F.QX);
+      const definition = vehicleAt(Math.round(frame[o + RACE_BASE + R.VEHICLE]));
+      const dirt = definition.classId === 'motocross';
+      if (dirt) this.gate.level(this.car);
       this.car.updateMatrix();
-      // Motocross keeps its gate crew, without the four Formula tyre warmers.
-      if (
-        state.blankets &&
-        vehicleAt(Math.round(frame[o + RACE_BASE + R.VEHICLE])).classId !== 'motocross'
-      )
+      if (state.blankets && !dirt)
         WHEEL_POSITIONS.forEach(([x, y, z], wheel) => {
           const shift = Math.sign(x) * state.withdrawal * 0.5;
           const hubY = y - (frame[o + WHEEL_BASE + wheel * WHEEL_STRIDE + W.LENGTH] || 0.25);
@@ -307,12 +317,24 @@ export class GridPreparationView {
           // facing the car and stepping back as the blankets come off.
           const person = id * 2 + (side + 1) / 2;
           this.bodies.setColorAt(this.bodies.count, crewTeamColour(id));
-          this.person(
-            person,
-            side * (1.8 + state.withdrawal * 1.8),
-            -side * Math.PI * 0.5,
-            frame[H.TIME],
-          );
+          if (dirt) {
+            const mark = MX_GRID_MARKS[side < 0 ? 0 : 1];
+            const floor = this.gate.floor(
+              this.car,
+              mark.x,
+              mark.z,
+              definition.bike!.cgHeight,
+              track,
+            );
+            this.person(person, mark.x, mark.yaw, frame[H.TIME], floor, mark.z);
+          } else {
+            this.person(
+              person,
+              side * (1.8 + state.withdrawal * 1.8),
+              -side * Math.PI * 0.5,
+              frame[H.TIME],
+            );
+          }
         }
     }
     for (const mesh of meshes) mesh.instanceMatrix.needsUpdate = true;
