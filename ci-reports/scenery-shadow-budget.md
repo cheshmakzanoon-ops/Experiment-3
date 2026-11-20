@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44780794421
-- commit: `8ff36cc21d` · Separate motocross venue reflection and shadow submissions and retain the live crowd in race views
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44782456655
+- commit: `ccbcb0693a` · Articulate the free motocross boot, replay the surveyed stride and bound fitted pad silhouettes
 - event: push · status: completed · conclusion: **failure**
-- started: 2026-11-20T17:11:01Z · updated: 2026-11-20T17:31:04Z
+- started: 2026-11-20T17:21:08Z · updated: 2026-11-20T17:47:21Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (day) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
-| browser (sunset) | success | 8 |  |
-| browser (night) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
+| browser (sunset) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
+| browser (night) | success | 7 |  |
+| browser (day) | success | 8 |  |
