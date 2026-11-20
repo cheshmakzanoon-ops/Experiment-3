@@ -379,7 +379,14 @@ export class BikeAIDriver extends AIDriver {
       : this.steeringLineCurvature(track, ahead);
     const feedForward = k / Math.max(0.5, 1 - k * (absolute ? this.steeringTarget : tactical));
     const requested = feedForward + correction;
-    const curvature = d.motoGP && !absolute ? this.pavedEdgeIntent(track, requested) : requested;
+    let curvature = requested;
+    if (d.motoGP && !absolute) {
+      // Tracking an overtaking line and avoiding the verge spend the same
+      // tyre force. Cap their combined correction about the planned curve.
+      const limit = this.correctionAllowance(v);
+      curvature =
+        feedForward + clamp(this.pavedEdgeIntent(track, requested) - feedForward, -limit, limit);
+    }
     this.steeringCorrection = (curvature - feedForward) * v * v;
     return leanFromCurvature(c, curvature, steer);
   }
@@ -446,17 +453,21 @@ export class BikeAIDriver extends AIDriver {
     const w = BIKE_AI.bandwidth;
     // Corrections are gentle: their lateral acceleration is bounded, so a
     // lane error never asks for a full-lean swerve on a straight.
-    // Wet contact needs gentler recovery than the calibrated dry line follower:
-    // a dry-sized correction consumes the slick's remaining lateral grip and
-    // sends the next correction to the opposite steering stop.
-    const wetContact = Math.max(c.contacts[0].water, c.contacts[2].water) > 0.01;
-    const correctionG =
-      d.motoGP && wetContact ? BIKE_AI.correctionG * clamp(d.grip, 0.15, 1) : BIKE_AI.correctionG;
+    const limit = this.correctionAllowance(v);
     return clamp(
       (w * w * error) / (v * v) + (2 * BIKE_AI.damping * w * headingError) / v,
-      (-correctionG * G) / (v * v),
-      (correctionG * G) / (v * v),
+      -limit,
+      limit,
     );
+  }
+  private correctionAllowance(speed: number) {
+    const c = this.bike,
+      d = c.dynamics;
+    // Wet contact needs gentler recovery than the dry line follower. The
+    // edge controller observes the same bound as the lane-change controller.
+    const wet = Math.max(c.contacts[0].water, c.contacts[2].water) > 0.01;
+    const g = BIKE_AI.correctionG * (d.motoGP && wet ? clamp(d.grip, 0.15, 1) : 1);
+    return (G * g) / (speed * speed);
   }
   /** Use the same authored width as the shared planner. Treating a narrowed
    * line as a constant offset from the full line agrees only at the lookahead
