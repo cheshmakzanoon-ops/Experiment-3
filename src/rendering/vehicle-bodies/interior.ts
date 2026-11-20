@@ -2,8 +2,9 @@ import * as T from 'three';
 import type { VehicleDefinition } from '../../simulation/vehicles.ts';
 import type { CabinLayout } from './cabin.ts';
 import { CabinDisplay, type DisplayKind } from './cabin-display.ts';
-import type { Greenhouse } from './closed-body.ts';
+import type { ClosedBodyModel, Greenhouse } from './closed-body.ts';
 import { addDriver, type BuiltLod, type CarMaterials, type DriverArmAnchor } from './common.ts';
+import { roadSteeringWheel } from './road-steering.ts';
 import { DriverArms } from './driver-arms.ts';
 import {
   insetProfile,
@@ -90,6 +91,83 @@ function wallStrip(op: CabinOpening, side: 1 | -1, z0: number, z1: number, n = 8
   const g = new T.BufferGeometry();
   g.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
   g.setIndex(index);
+  g.computeVertexNormals();
+  return g;
+}
+/** A single moulded carpet pan with upturned edges. Its opening follows the
+ * door card on both sides; the toe board and the two front kick panels share
+ * vertices so a forward cockpit ray cannot escape through a wheel housing. */
+function carpetedFootwell(
+  op: CabinOpening,
+  dashBottom: number,
+  model: ClosedBodyModel,
+  lock: number,
+) {
+  const positions: number[] = [],
+    indices: number[] = [];
+  const hinge = op.doorFront!,
+    f = model.f,
+    tyreHalf = model.s.wheels.width[0] / 2;
+  // An inclined front tyre sweeps much farther into the footwell than its
+  // straight sidewall. Fit the liner around both steering locks and jounce.
+  const r = Math.hypot(f.radius, tyreHalf) + 0.055;
+  const stations = Array.from({ length: 29 }, (_, i) => op.rear + ((op.front - op.rear) * i) / 28);
+  stations.push(hinge);
+  stations.sort((a, b) => a - b);
+  for (const z of stations) {
+    const [edge, sill] = op.edge(Math.min(z, hinge)),
+      low = op.floor;
+    const dz = Math.abs(z - f.frontAxle),
+      outer = edge - 0.009;
+    const t = Math.max(0, Math.min(1, (r + 0.08 - dz) / 0.11)),
+      blend = t * t * (3 - 2 * t);
+    const inner =
+      f.trackFront / 2 - tyreHalf / Math.cos(lock) - Math.min(dz, r) * Math.tan(lock) - 0.032;
+    const w = outer - Math.max(0, outer - inner) * blend;
+    const rise = Math.max(0, Math.min(1, (z - hinge + 0.16) / 0.16));
+    const toe = low + 0.06 + (dashBottom + 0.03 - low - 0.06) * rise * rise * (3 - 2 * rise);
+    const arch = f.hubFront + Math.sqrt(Math.max(0, r * r - dz * dz)) + 0.055;
+    const top = Math.min(sill - 0.018, Math.max(toe, low + 0.06 + (arch - low - 0.06) * blend));
+    for (const [x, y] of [
+      [-outer, top],
+      [-w, top - 0.006],
+      [-w + 0.004, low + 0.035],
+      [-w + 0.036, low],
+      [w - 0.036, low],
+      [w - 0.004, low + 0.035],
+      [w, top - 0.006],
+      [outer, top],
+    ])
+      positions.push(x, y, z);
+  }
+  const stride = 8;
+  for (let j = 0; j < stations.length - 1; j++)
+    for (let i = 0; i < stride - 1; i++) {
+      const a = j * stride + i;
+      indices.push(a, a + stride, a + 1, a + 1, a + stride, a + stride + 1);
+    }
+  const start = (stations.length - 1) * stride,
+    last = positions.length / 3;
+  const w = positions[(start + 7) * 3],
+    top = positions[start * 3 + 1];
+  positions.push(
+    -w,
+    top,
+    op.front,
+    w,
+    top,
+    op.front,
+    w,
+    op.floor - 0.016,
+    op.front,
+    -w,
+    op.floor - 0.016,
+    op.front,
+  );
+  indices.push(last, last + 1, last + 2, last, last + 2, last + 3);
+  const g = new T.BufferGeometry();
+  g.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
+  g.setIndex(indices);
   g.computeVertexNormals();
   return g;
 }
@@ -246,7 +324,12 @@ function addBelts(parts: Parts, layout: CabinLayout, x: number, anchor: T.Vector
 }
 /** The turning steering wheel: a tilt pivot at the rim centre holding the
  * steer pivot; the rim lies in the pivot's XY plane facing the driver. */
-function buildSteering(layout: CabinLayout, detail: T.Object3D[], display: CabinDisplay | null) {
+function buildSteering(
+  layout: CabinLayout,
+  detail: T.Object3D[],
+  display: CabinDisplay | null,
+  road = false,
+) {
   const w = layout.wheel,
     tilt = new T.Group(),
     steer = new T.Group();
@@ -255,6 +338,10 @@ function buildSteering(layout: CabinLayout, detail: T.Object3D[], display: Cabin
   tilt.position.set(...w.centre);
   tilt.rotation.x = w.tilt;
   tilt.add(steer);
+  if (road) {
+    steer.add(roadSteeringWheel(layout));
+    return tilt;
+  }
   const parts = new Parts(),
     r = w.radius,
     grip = layout.race ? sharedMaterials.interior() : sharedMaterials.leather();
@@ -339,6 +426,7 @@ function addInstruments(
   group: T.Group,
   dashRear: number,
   dashTop: number,
+  roadHousing = false,
 ) {
   const [x] = layout.seat,
     eye = layout.eye,
@@ -346,18 +434,39 @@ function addInstruments(
   const w = road ? 0.3 : 0.2,
     h = road ? 0.15 : 0.1;
   const y = Math.min(eye[1] - 0.17, dashTop - h / 2 - 0.015),
-    z = dashRear - 0.006;
+    zFace = dashRear - 0.006;
   // Face the eye: pitch the screen back toward the driver.
-  const pitch = Math.atan2(eye[1] - y, z - eye[2]) * 0.8;
+  const pitch = Math.atan2(eye[1] - y, zFace - eye[2]) * 0.8;
+  const tilt = roadHousing ? pitch : -pitch;
+  const z = roadHousing ? zFace - h * 0.5 * Math.sin(pitch) - 0.004 : zFace;
   if (display) {
     const screen = new T.Mesh(new T.PlaneGeometry(w, h).rotateY(Math.PI), display.material);
     screen.name = road ? 'Instrument binnacle display' : 'Race dash display';
     screen.position.set(x, y, z);
-    screen.rotation.x = -pitch;
+    screen.rotation.x = tilt;
     group.add(screen);
   }
-  // Surround: a carbon bezel (race) or a hooded binnacle (road).
-  if (road)
+  // Seat the road binnacle in the same inclined frame as its instruments.
+  // A horizontal lip can obscure the upper sweep of a pickup's steep cluster.
+  if (road && roadHousing) {
+    const mounting = placed(x, y, z, tilt);
+    const surround = (
+      width: number,
+      height: number,
+      depth: number,
+      lx: number,
+      ly: number,
+      lz: number,
+    ) => {
+      detail.add(
+        roundedBox(width, height, depth, 0.009, 2),
+        sharedMaterials.plastic(),
+        mounting.clone().multiply(placed(lx, ly, lz)),
+      );
+    };
+    surround(w + 0.054, 0.028, 0.09, 0, h / 2 + 0.017, 0.016);
+    for (const side of [-1, 1]) surround(0.024, h + 0.01, 0.055, side * (w / 2 + 0.015), 0, 0.018);
+  } else if (road)
     detail.add(
       roundedBox(w + 0.06, 0.04, 0.14, 0.018, 2),
       sharedMaterials.plastic(),
@@ -367,7 +476,7 @@ function addInstruments(
     detail.add(
       roundedBox(w + 0.03, h + 0.03, 0.012, 0.004, 1),
       sharedMaterials.carbon(),
-      placed(x, y, z + 0.004, -pitch),
+      placed(x, y, z + (roadHousing ? 0.011 : 0.004), tilt),
     );
 }
 /** Closed bodies (roofed and open cockpits): the cell, dash, seats, driver,
@@ -379,6 +488,7 @@ export function buildClosedCabin(input: {
   shell: Parts;
   lod: BuiltLod;
   opening: CabinOpening;
+  model: ClosedBodyModel;
   greenhouse: Greenhouse | null;
   mirrorAt: readonly (readonly [number, number, number])[];
 }) {
@@ -400,7 +510,10 @@ export function buildClosedCabin(input: {
   const xr = op.edge(op.rear)[0],
     xf = op.edge(Math.min(op.front, dash.rear))[0];
   const half = Math.min(xr, xf) - 0.006;
-  shell.add(slab(-half, half, op.floor - 0.03, op.floor, op.rear, op.front), interior);
+  const dashBottom = dash.top - 0.26;
+  if (op.doorFront !== undefined)
+    shell.add(carpetedFootwell(op, dashBottom, input.model, input.def.spec.maxSteer), interior);
+  else shell.add(slab(-half, half, op.floor - 0.03, op.floor, op.rear, op.front), interior);
   for (const side of [-1, 1] as const)
     shell.add(
       wallStrip(op, side, op.rear - 0.01, op.doorFront ?? op.front, 10),
@@ -408,11 +521,11 @@ export function buildClosedCabin(input: {
     );
   const [, rearTop] = op.edge(op.rear + 0.01);
   shell.add(slab(-xr, xr, op.floor - 0.03, rearTop, op.rear - 0.025, op.rear), interior);
-  const dashBottom = dash.top - 0.26;
-  shell.add(
-    slab(-xf, xf, op.floor - 0.02, dashBottom + 0.02, cell.front - 0.02, cell.front),
-    plastic,
-  );
+  if (op.doorFront === undefined)
+    shell.add(
+      slab(-xf, xf, op.floor - 0.02, dashBottom + 0.02, cell.front - 0.02, cell.front),
+      plastic,
+    );
   // Dashboard: a wedge from under the cowl to its rear face, its top rising to
   // the windscreen base so no slit opens under the glass.
   const base = gh ? gh.base(gh.zWs) : dash.top + 0.02;
@@ -476,8 +589,16 @@ export function buildClosedCabin(input: {
   shell.add(rodGeometry(new T.Vector3(...w.centre), columnEnd, 0.028, 10), trim);
   // Instruments and the display.
   const display = new CabinDisplay(layout.race ? 'race' : 'road', input.def.spec);
-  addInstruments(detailParts, layout, display, detail, dash.rear, dash.top);
-  const steering = buildSteering(layout, wheelDetail, display);
+  addInstruments(
+    detailParts,
+    layout,
+    display,
+    detail,
+    dash.rear,
+    dash.top,
+    input.def.classId === 'road',
+  );
+  const steering = buildSteering(layout, wheelDetail, display, input.def.classId === 'road');
   input.lod.group.add(steering);
   const arms = new DriverArms(anchors, steering, mats, input.def.classId === 'road');
   input.lod.group.add(arms.group);

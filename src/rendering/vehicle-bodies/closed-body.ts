@@ -1335,6 +1335,7 @@ export function buildClosedBody(
       shell: parts,
       lod,
       opening,
+      model,
       greenhouse: gh,
       mirrorAt: s.mirrors
         ? [-1, 1].map((side) => [side * (hw(zm) * 0.8 + 0.08), ym, zm - 0.049] as const)

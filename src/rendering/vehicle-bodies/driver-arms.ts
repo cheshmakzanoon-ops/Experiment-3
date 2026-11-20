@@ -35,6 +35,7 @@ export class DriverArms {
   readonly group = new T.Group();
   private readonly arms: Arm[] = [];
   private readonly wrist = new T.Quaternion();
+  private readonly cuff = new T.Vector3();
   private readonly elbow = new T.Vector3();
   private readonly hand = new T.Vector3();
   private readonly direction = new T.Vector3();
@@ -133,7 +134,12 @@ export class DriverArms {
       arm.elbowMesh.position.copy(this.elbow);
       arm.elbowMesh.scale.setScalar(arm.thickness * 1.02);
       this.bone(arm.upperMesh, arm.shoulder, this.elbow, arm.thickness);
-      this.bone(arm.foreMesh, this.elbow, this.hand, arm.thickness);
+      const end = this.roadGrip
+        ? this.cuff
+            .copy(this.hand)
+            .lerp(this.elbow, Math.min(0.4, (arm.thickness * 1.18) / arm.fore))
+        : this.hand;
+      this.bone(arm.foreMesh, this.elbow, end, arm.thickness);
     }
   }
   /** Two-bone solve (law of cosines): elbow in `this.elbow`; the hand is pulled

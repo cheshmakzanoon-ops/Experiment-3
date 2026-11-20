@@ -38,21 +38,22 @@ export function steeringGlove(side: -1 | 1) {
   }
   padAt(0.32, 0, -0.48, 0.68, 1, 0.45, fabric);
   padAt(0.39, -0.09, -0.76, 0.5, 0.78, 0.22, pad);
-  // A bound leather cuff follows the wrist into the forearm.
-  add(
-    new T.CylinderGeometry(0.68, 0.75, 0.63, 16)
-      .rotateX(Math.PI / 2)
-      .scale(0.88, 1.12, 1)
-      .translate(0.19, -0.1 * side, -0.95),
-    fabric,
-  );
-  add(
-    new T.CylinderGeometry(0.75, 0.75, 0.07, 16)
-      .rotateX(Math.PI / 2)
-      .scale(0.88, 1.12, 1)
-      .translate(0.19, -0.1 * side, -1.21),
-    binding,
-  );
+  // The open cuff narrows into the moving sleeve. An open, raked cuff
+  // prevents a solid cylinder cap facing the driver's eye and hiding the palm.
+  const cuff = new T.CylinderGeometry(0.63, 0.55, 0.62, 16, 1, true)
+    .rotateX(Math.PI * 0.35)
+    .scale(0.88, 1.04, 1)
+    .translate(0.05, -0.33 * side, -0.84);
+  add(cuff, fabric);
+  for (const y of [-0.46, -0.07, 0.31]) {
+    const path = new T.CatmullRomCurve3([
+      new T.Vector3(-0.08, side * y, -0.88),
+      new T.Vector3(0.18, side * (y + 0.05), -0.98),
+      new T.Vector3(0.43, side * (y + 0.1), -0.96),
+      new T.Vector3(0.66, side * (y + 0.13), -0.87),
+    ]);
+    add(new T.TubeGeometry(path, 6, 0.034, 5, false), binding);
+  }
   for (let i = 0; i < 4; i++) {
     const y = (0.65 - i * 0.405) * side;
     const size = i === 3 ? 0.165 : 0.205;
