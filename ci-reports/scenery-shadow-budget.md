@@ -1,12 +1,12 @@
 # Scenery shadow budget
 
-- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44821580206
-- commit: `db37c43394` · Give completed slow motocross frames time to reach the screen
-- event: push · status: completed · conclusion: **success**
-- started: 2026-11-20T21:34:49Z · updated: 2026-11-20T21:42:35Z
+- run: https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/44822710418
+- commit: `dab87fcda5` · Preserve the course transform in the motocross foliage colour pass
+- event: push · status: completed · conclusion: **failure**
+- started: 2026-11-20T21:42:37Z · updated: 2026-11-20T21:51:15Z
 
 | job | conclusion | minutes | failed steps |
 | --- | --- | ---: | --- |
-| browser (night) | success | 7 |  |
-| browser (sunset) | success | 7 |  |
+| browser (sunset) | failure | 7 | First complete cockpit frame, all shadow submissions, unchanged budget |
+| browser (night) | success | 6 |  |
 | browser (day) | success | 6 |  |
