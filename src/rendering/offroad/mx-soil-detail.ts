@@ -107,6 +107,8 @@ MxLane mxLaneAt( float y, float lane, float spacing, float corner ) {
 vec4 mxWheelPassL( MxLane lane, vec2 p, float spacing, vec2 fp ) {
   float width = lane.width;
   float d = abs( p.x - lane.centre );
+  // Beyond the outer smoothstep edge every component has zero support.
+  if ( d >= spacing * 0.82 ) return vec4( 0.0 );
   float edge = max( fp.x, 0.001 ) + 0.1 * fp.y;
   float resolved = 1.0 - smoothstep( width * 0.7, width * 3.5, edge );
   float core = ( 1.0 - smoothstep( width * 0.20, width + edge, d ) ) * resolved;
@@ -156,6 +158,7 @@ vec2 mxTrafficPos( vec2 p, vec2 fp, MxFrame f ) {
   // Torn soil edges are millimetres/centimetres, subordinate to the tyre
   // width. Fade this breakup before its frequency becomes sub-pixel.
   float tearFade = 1.0 - smoothstep( 0.025, 0.12, length( fp ) );
+  if ( tearFade == 0.0 ) return traffic;
   float tearAcross = floor( p.x * 5.0 );
   float tearBlend = fract( p.x * 5.0 );
   tearBlend = tearBlend * tearBlend * ( 3.0 - 2.0 * tearBlend );
@@ -178,6 +181,8 @@ vec4 mxPassesTraffic( vec2 p, vec2 traffic, vec2 fp, MxFrame f, MxLane a, MxLane
 }
 vec4 mxPassesAt( vec2 p, vec2 fp ) {
   MxFrame f = mxFrameAt();
+  // Grass beyond the course has no contribution from these three passages.
+  if ( mxShoulder( p, f ) == 0.0 ) return vec4( 0.0 );
   vec2 traffic = mxTrafficPos( p, fp, f );
   float lane = floor( traffic.x / f.spacing + 0.5 );
   return mxPassesTraffic( p, traffic, fp, f,

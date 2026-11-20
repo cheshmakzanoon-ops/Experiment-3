@@ -13,6 +13,80 @@ interface SoilCaptureOptions {
   /** A bounded local software-renderer capture; normal browser CI keeps
    * the original full-size viewport and shadow coverage. */
   compact?: boolean;
+  compareEvaluation?: boolean;
+}
+
+// Remove only the zero-contribution exits from the assembled production shader.
+// Both programs still execute the same relief, scan, light and shadow equations.
+const zeroSoilExits = [
+  'if ( d >= spacing * 0.82 ) return vec4( 0.0 );',
+  'if ( tearFade == 0.0 ) return traffic;',
+  'if ( mxShoulder( p, f ) == 0.0 ) return vec4( 0.0 );',
+  'if ( amount == 0.0 || footprint >= 0.65 ) return vec2( 0.0 );',
+];
+
+function compareSoilPixels(
+  renderer: T.WebGLRenderer,
+  scene: T.Scene,
+  camera: T.Camera,
+  material: T.MeshPhysicalMaterial,
+  exhaustiveFirst: boolean,
+) {
+  const gl = renderer.getContext();
+  const width = gl.drawingBufferWidth, height = gl.drawingBufferHeight;
+  const compile = material.onBeforeCompile;
+  const cacheKey = material.customProgramCacheKey;
+  const referenceKey = cacheKey.call(material) + '-exhaustive-soil-review';
+  const compileReference: typeof compile = (shader, context) => {
+    compile.call(material, shader, context);
+    for (const exit of zeroSoilExits) {
+      if (!shader.fragmentShader.includes(exit))
+        throw new Error('Missing soil comparison exit: ' + exit);
+      shader.fragmentShader = shader.fragmentShader.replace(exit, '');
+    }
+  };
+  const draw = (exhaustive: boolean) => {
+    material.onBeforeCompile = exhaustive ? compileReference : compile;
+    material.customProgramCacheKey = exhaustive ? () => referenceKey : cacheKey;
+    material.needsUpdate = true;
+    // Compile and complete a warm frame before timing the same view on this driver.
+    renderer.render(scene, camera);
+    gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(4));
+    const pixels = new Uint8Array(width * height * 4);
+    const start = performance.now();
+    renderer.render(scene, camera);
+    gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+    const elapsedMs = performance.now() - start;
+    const stats = {
+      calls: renderer.info.render.calls,
+      triangles: renderer.info.render.triangles,
+      error: gl.getError(),
+    };
+    return { pixels, stats, elapsedMs };
+  };
+  try {
+    const first = draw(exhaustiveFirst), second = draw(!exhaustiveFirst);
+    const optimized = exhaustiveFirst ? second : first;
+    const exhaustive = exhaustiveFirst ? first : second;
+    const a = optimized.pixels, b = exhaustive.pixels;
+    let changedPixels = 0, variedPixels = 0;
+    for (let i = 0; i < a.length; i += 4) {
+      if (
+        a[i] !== b[i] || a[i + 1] !== b[i + 1] ||
+        a[i + 2] !== b[i + 2] || a[i + 3] !== b[i + 3]
+      ) changedPixels++;
+      if (b[i] !== b[0] || b[i + 1] !== b[1] || b[i + 2] !== b[2]) variedPixels++;
+    }
+    return {
+      width, height, changedPixels, variedPixels,
+      optimized: optimized.stats, exhaustive: exhaustive.stats,
+      optimizedMs: optimized.elapsedMs, exhaustiveMs: exhaustive.elapsedMs,
+    };
+  } finally {
+    material.onBeforeCompile = compile;
+    material.customProgramCacheKey = cacheKey;
+    material.needsUpdate = true;
+  }
 }
 
 /** The production terrain alone, photographed from a normal approach and an
@@ -132,9 +206,17 @@ export async function captureMotocrossWorkedSoil(
         `Worked-soil scans unavailable: ${JSON.stringify(scannedGround.diagnostics())}`,
       );
     const results = [];
+    const comparisons = [];
     for (const angle of ['approach', 'berm', 'jump'] as const) {
       const cameraPose = position(angle);
-      view.record({ reset: true, wetness: 0, blocks: new Float32Array() }, 0, true);
+      const wetness = options.compareEvaluation && angle === 'berm' ? 0.72 : 0;
+      view.record({ reset: true, wetness, blocks: new Float32Array() }, 0, true);
+      if (options.compareEvaluation) {
+        const exhaustiveFirst = circuit === 'valley-ridge-mx' ? angle === 'berm' : angle !== 'berm';
+        const comparison = compareSoilPixels(renderer, scene, camera, view.material, exhaustiveFirst);
+        comparisons.push({ angle, wetness, ...comparison });
+        continue;
+      }
       const prepared = capture(`${angle}-prepared`);
       view.record({ reset: false, wetness: 0.72, blocks: new Float32Array() }, 8, true);
       const wet = capture(`${angle}-wet`),
@@ -167,6 +249,7 @@ export async function captureMotocrossWorkedSoil(
       circuit,
       capture: { width, height, shadowMapSize: key.shadow.mapSize.x },
       results,
+      comparisons,
       sourceUnchanged: sourceHash === terrain.hash(),
       geometry: {
         meshes: meshes.length,

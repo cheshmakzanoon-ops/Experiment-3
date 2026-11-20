@@ -15,7 +15,10 @@ float mxMorphReservoir = 0.0;
 // A compacted fragment has a broad angular top and a rounded crumbly edge.
 // Jittered centres and unequal axes avoid a cobblestone/checkerboard grid.
 // The support ends inside its cell; adjacent cells never make a height seam.
-vec2 mxSoilFragment( vec2 p, float frequency ) {
+vec2 mxSoilFragment( vec2 p, float frequency, float amount ) {
+  // Use the unshifted footprint. The caller still evaluates all screen derivatives.
+  float footprint = max( length( mxFp ) * frequency * 1.3, 0.001 );
+  if ( amount == 0.0 || footprint >= 0.65 ) return vec2( 0.0 );
   vec2 q = p * frequency;
   // Untouched cell supports exposed a square lattice across broad shoulders.
   // Warp the distribution before choosing cells so coarse crumbs form an
@@ -34,9 +37,6 @@ vec2 mxSoilFragment( vec2 p, float frequency ) {
   float d = mix( length( local ),
     max( abs( local.x ) + abs( local.y ) * 0.28,
          abs( local.y ) + abs( local.x ) * 0.28 ), 0.7 );
-  // Footprint of the unshifted coordinates (mxFp), widened for the warp above:
-  // a derivative of q itself would spike where the relief march moves its hit.
-  float footprint = max( length( mxFp ) * frequency * 1.3, 0.001 );
   float edge = 0.035 + footprint * 0.65;
   float top = 1.0 - smoothstep( radius * 0.38, radius + edge, d );
   float skirt = 1.0 - smoothstep( edge, edge + 0.045, abs( d - radius ) );
@@ -57,14 +57,14 @@ const COLOUR = /* glsl */ `{
   // in loam and softer ridges in sand/mud. Only shading relief changes.
   mxPreparedRelief *= 1.0 - onSoil +
     dot( soil, vec4( 0.48, 1.0, 0.74, 0.8 ) ) + gravel * 0.52;
-  vec2 clod = mxSoilFragment( p, 6.2 );
-  vec2 chips = mxSoilFragment( p + vec2( 0.19, 0.73 ), 14.0 );
 
   // 044/054/058: worked loam breaks into angular crumbs; the swept hardpack
   // between passages exposes smaller chips. Sand has granular softness,
   // while wet mud carries rounded clod shoulders, not dry rake ridges.
   float clodAmount = soil.y * ( 0.48 + broad * 0.52 ) + soil.w * 0.72;
   float chipAmount = soil.x * dry * 0.75 + gravel * 0.9;
+  vec2 clod = mxSoilFragment( p, 6.2, clodAmount );
+  vec2 chips = mxSoilFragment( p + vec2( 0.19, 0.73 ), 14.0, chipAmount );
   float crumb = clod.x * clodAmount * loose;
   float chip = chips.x * chipAmount * ( 0.3 + loose * 0.7 );
   float pore = clod.y * clodAmount * loose + chips.y * chipAmount * 0.45;

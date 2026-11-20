@@ -1,17 +1,13 @@
-import { expect, test } from '@playwright/test';
+import { expect, test as base } from '@playwright/test';
 import { resolve } from 'node:path';
 import { build } from 'vite';
 import type { captureMotocrossWorkedSoil } from './fixtures/motocross-worked-soil.ts';
 import { fixtureDefine } from './fixtures/owner-build.ts';
 
-test('MX and SX prepared traffic remains visible and reversible with resident production soil', async ({
-  page,
-}, info) => {
-  const errors: string[] = [];
-  page.on('pageerror', (error) => errors.push(error.message));
-  page.on('console', (message) => {
-    if (message.type() === 'error') errors.push(message.text());
-  });
+type SoilCapture = typeof captureMotocrossWorkedSoil;
+let bundle: Promise<string> | undefined;
+
+async function compileSoilReview() {
   const built = await build({
     configFile: false,
     define: fixtureDefine(),
@@ -29,26 +25,43 @@ test('MX and SX prepared traffic remains visible and reversible with resident pr
   if (!('output' in output)) throw new Error('Missing worked-soil fixture output');
   const script = output.output.find((item) => item.type === 'chunk');
   if (!script || script.type !== 'chunk') throw new Error('Missing worked-soil fixture script');
-  await page.route('**/motocross-worked-soil.html', (route) =>
-    route.fulfill({
-      contentType: 'text/html',
-      body: '<!doctype html><title>Production motocross worked soil</title>',
-    }),
-  );
-  await page.goto('/motocross-worked-soil.html');
-  await page.addScriptTag({ content: script.code });
-  for (const circuit of ['valley-ridge-mx', 'arena-nord-sx'] as const) {
-    const result = await page.evaluate(
-      ({ circuit, compact }) =>
-        (
-          window as unknown as {
-            MotocrossWorkedSoil: {
-              captureMotocrossWorkedSoil: typeof captureMotocrossWorkedSoil;
-            };
-          }
-        ).MotocrossWorkedSoil.captureMotocrossWorkedSoil(circuit, { compact }),
-      { circuit, compact: process.env.APEX_MX_SOIL_COMPACT === '1' },
+  return script.code;
+}
+
+const test = base.extend<{ capture: SoilCapture }>({
+  capture: async ({ page }, use) => {
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    page.on('console', (message) => {
+      if (message.type() === 'error') errors.push(message.text());
+    });
+    bundle ??= compileSoilReview();
+    await page.route('**/motocross-worked-soil.html', (route) =>
+      route.fulfill({
+        contentType: 'text/html',
+        body: '<!doctype html><title>Production motocross worked soil</title>',
+      }),
     );
+    await page.goto('/motocross-worked-soil.html');
+    await page.addScriptTag({ content: await bundle });
+    const capture: SoilCapture = (circuit, options) =>
+      page.evaluate(
+        ({ circuit, options }) =>
+          (window as unknown as {
+            MotocrossWorkedSoil: { captureMotocrossWorkedSoil: SoilCapture };
+          }).MotocrossWorkedSoil.captureMotocrossWorkedSoil(circuit, options),
+        { circuit, options },
+      );
+    await use(capture);
+    expect(errors).toEqual([]);
+  },
+});
+
+test('MX and SX prepared traffic remains visible and reversible with resident production soil', async ({
+  capture,
+}, info) => {
+  for (const circuit of ['valley-ridge-mx', 'arena-nord-sx'] as const) {
+    const result = await capture(circuit, { compact: process.env.APEX_MX_SOIL_COMPACT === '1' });
     expect(result.sourceUnchanged).toBe(true);
     expect(result.geometry.courseWidthBytes).toBe(result.geometry.vertices * 4);
     expect(result.geometry.courseWearBytes).toBe(result.geometry.vertices * 16);
@@ -79,5 +92,28 @@ test('MX and SX prepared traffic remains visible and reversible with resident pr
       contentType: 'application/json',
     });
   }
-  expect(errors).toEqual([]);
+});
+
+test('skipping zero soil contributions matches the exhaustive shader on both courses', async ({
+  capture,
+}, info) => {
+  for (const circuit of ['valley-ridge-mx', 'arena-nord-sx'] as const) {
+    const result = await capture(circuit, { compact: true, compareEvaluation: true });
+    expect(result.sourceUnchanged).toBe(true);
+    expect(result.scans.failed).toEqual([]);
+    expect(result.comparisons.map((shot) => shot.angle)).toEqual(['approach', 'berm', 'jump']);
+    for (const shot of result.comparisons) {
+      expect([shot.width, shot.height]).toEqual([640, 400]);
+      expect(shot.variedPixels).toBeGreaterThan(1000);
+      expect(shot.optimized.error).toBe(0);
+      expect(shot.exhaustive).toEqual(shot.optimized);
+      expect(shot.optimized.triangles).toBeGreaterThan(0);
+      expect(shot.changedPixels, circuit + ' ' + shot.angle).toBe(0);
+    }
+    console.info('MX_SOIL_EVALUATION', circuit, JSON.stringify(result.comparisons));
+    await info.attach(circuit + '-soil-evaluation.json', {
+      body: JSON.stringify(result.comparisons, null, 2),
+      contentType: 'application/json',
+    });
+  }
 });
