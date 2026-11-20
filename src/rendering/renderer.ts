@@ -287,6 +287,7 @@ export class RacingRenderer {
   readonly camera = new T.PerspectiveCamera(58, 1, 0.045, 7000);
   readonly circuit: CircuitScene;
   readonly cars: FormulaCar[] = [];
+  private readonly pendingFormulaPitFits = new Set<number>();
   readonly audioView = new AudioViewTracker();
   readonly effects = new Effects();
   readonly presented = new PresentedFrame();
@@ -940,7 +941,7 @@ export class RacingRenderer {
       this.textures.register(this.safetyCar.root);
     }
   }
-  setCars(n: number) {
+  setCars(n: number, frame?: Float32Array) {
     while (this.cars.length < n) {
       const car = new FormulaCar(
         this.cars.length,
@@ -950,8 +951,7 @@ export class RacingRenderer {
         this.rivalLevels ?? undefined,
       );
       this.cars.push(car);
-      this.pitCrew.setWheelGunFits(car.id, measureWheelGunFits(car));
-      if (this.pitCrew.pitJacks) this.pitCrew.setPitJackFits(car.id, measurePitJackFits(car));
+      this.pendingFormulaPitFits.add(car.id);
       this.scene.add(car.root);
       reflectInWetRoad(car.root);
       this.textures.register(car.root);
@@ -968,7 +968,21 @@ export class RacingRenderer {
         this.reflectionFollow = 0;
       }
     }
-    this.cars.forEach((c, i) => (c.root.visible = i < n));
+    this.cars.forEach((car, id) => {
+      car.root.visible = id < n;
+      if (!car.root.visible || !this.pendingFormulaPitFits.has(id)) return;
+      // GP prototypes own their stands and axles. Scanning the four hidden
+      // Formula wheels and jack points is required only if this slot later
+      // represents a car. Complete it before that car's first service pose.
+      if (
+        frame &&
+        vehicleAt(Math.round(frame[carBase(id) + RACE_BASE + R.VEHICLE])).classId === 'gp-bike'
+      )
+        return;
+      this.pitCrew.setWheelGunFits(id, measureWheelGunFits(car));
+      if (this.pitCrew.pitJacks) this.pitCrew.setPitJackFits(id, measurePitJackFits(car));
+      this.pendingFormulaPitFits.delete(id);
+    });
   }
   readonly preparation = new PreparationTrace();
   warmupFrames = 0;
@@ -1023,11 +1037,11 @@ export class RacingRenderer {
       for (let n = this.cars.length + 1; n <= total; n++) {
         if (cancelled()) return false;
         progress(`Building original Formula car ${n} / ${total}…`);
-        this.setCars(n);
+        this.setCars(n, frame);
         await yieldFrame();
       }
       if (cancelled()) return false;
-      this.setCars(total);
+      this.setCars(total, frame);
       for (let i = 0; i < total; i++)
         this.cars[i].update(frame, frame, carBase(i), 1, 1 / 120, frame[H.TIME], false);
       const gpGrid = gpGridForFrame(frame);
@@ -1109,17 +1123,19 @@ export class RacingRenderer {
       progress('Compiling circuit and vehicle materials…');
       await yieldFrame();
       if (cancelled()) return false;
-      await this.bikeShells.warmFieldDetails(() => compileSceneTarget(
-        this.renderer,
-        this.scene,
-        this.camera,
-        this.composer.readBuffer,
-        hiddenHosts,
-        {
-          cancelled: () => this.disposed || cancelled(),
-          beforeMetadata: () => progress('Preparing circuit and vehicle materials…'),
-        },
-      ));
+      await this.bikeShells.warmFieldDetails(() =>
+        compileSceneTarget(
+          this.renderer,
+          this.scene,
+          this.camera,
+          this.composer.readBuffer,
+          hiddenHosts,
+          {
+            cancelled: () => this.disposed || cancelled(),
+            beforeMetadata: () => progress('Preparing circuit and vehicle materials…'),
+          },
+        ),
+      );
       if (cancelled()) return false;
       progress('Compiling shadow casters around the circuit…');
       await yieldFrame();
@@ -1224,14 +1240,16 @@ export class RacingRenderer {
       this.circuit.photoPlanting?.update(this.camera, quality, this.graphics.vegetationDensity);
       await yieldControl();
       if (stopped()) return false;
-      await this.bikeShells.warmFieldDetails(() => compileSceneTarget(
-        this.renderer,
-        this.scene,
-        this.camera,
-        this.composer.readBuffer,
-        undefined,
-        { cancelled: stopped },
-      ));
+      await this.bikeShells.warmFieldDetails(() =>
+        compileSceneTarget(
+          this.renderer,
+          this.scene,
+          this.camera,
+          this.composer.readBuffer,
+          undefined,
+          { cancelled: stopped },
+        ),
+      );
       complete = !stopped();
       return complete;
     } catch (error) {
@@ -1488,9 +1506,9 @@ export class RacingRenderer {
     this.fps = 1000 / this.frameMs;
     this.frameSamples[this.sampleIndex++ % 300] = wallDelta * 1000;
     this.sampleCount = Math.min(300, this.sampleCount + 1);
-    this.setCars(b[H.CARS]);
-    this.orbitTime += dt;
     const presented = this.presented.sample(a, b, alpha);
+    this.setCars(b[H.CARS], presented);
+    this.orbitTime += dt;
     const cameraDt = this.cameraClock.step(presented[H.TIME], menu && !this.photo);
     if (this.cameraClock.discontinuous) {
       // Exposure owns its own simulation clock and camera-cut generation.

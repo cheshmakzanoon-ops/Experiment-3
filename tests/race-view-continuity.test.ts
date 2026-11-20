@@ -184,6 +184,7 @@ describe('current-view detail and deterministic presentation', () => {
           night: false,
           lighting: 'day',
           reflectionFollow: follow,
+          mirrorSurfaces: cars[follow].mirrors,
           reflectionMaterials: [[], []],
           reflection: { setSkyIntensity: vi.fn() },
           venueLighting: { update: vi.fn() },

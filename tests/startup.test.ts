@@ -622,3 +622,34 @@ it('does not apply graphics or compile when preparation fails', async () => {
   ).rejects.toThrow('GPU preparation did not complete');
   expect(target.setQuality).not.toHaveBeenCalled();
 });
+
+it('defers Formula pit measurements for GP slots until each slot represents a car', () => {
+  const cars = [0, 1].map((id) => {
+    const root = new T.Group();
+    const wheelSpins = Array.from({ length: 4 }, () => new T.Group());
+    root.add(...wheelSpins);
+    return { id, root, wheelSpins };
+  });
+  const setWheelGunFits = vi.fn();
+  const target = {
+    cars,
+    pendingFormulaPitFits: new Set([0, 1]),
+    pitCrew: { setWheelGunFits, pitJacks: null },
+  };
+  const renderer = target as unknown as RacingRenderer;
+  const frame = new Float32Array(HEADER + 2 * CAR_STRIDE);
+  const slot = (id: number) => carBase(id) + RACE_BASE + R.VEHICLE;
+  frame[slot(0)] = vehicleIndex('gpr1');
+  frame[slot(1)] = vehicleIndex('gpr2');
+  RacingRenderer.prototype.setCars.call(renderer, 2, frame);
+  expect(setWheelGunFits).not.toHaveBeenCalled();
+  frame[slot(1)] = vehicleIndex('apx01');
+  RacingRenderer.prototype.setCars.call(renderer, 2, frame);
+  RacingRenderer.prototype.setCars.call(renderer, 2, frame);
+  expect(setWheelGunFits).toHaveBeenCalledTimes(1);
+  expect(setWheelGunFits.mock.calls[0][0]).toBe(1);
+  expect(setWheelGunFits.mock.calls[0][1]).toHaveLength(4);
+  RacingRenderer.prototype.setCars.call(renderer, 2);
+  expect(setWheelGunFits).toHaveBeenCalledTimes(2);
+  expect(setWheelGunFits.mock.calls[1][0]).toBe(0);
+});
