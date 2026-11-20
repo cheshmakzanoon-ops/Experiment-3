@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import type { BikeMaterials } from './bike.ts';
+import { gpReservoirBody, gpReservoirCap } from './gp-brake-reservoir.ts';
 import { GP_CALIPER_HOSE_PROFILE } from './gp-radial-caliper.ts';
 
 type Materials = Record<
@@ -104,14 +105,14 @@ export class GPFrontHydraulics {
     if (detail === 'mid') {
       add(
         steering,
-        new T.CylinderGeometry(0.022, 0.019, 0.035, 10),
+        gpReservoirBody(detail, materials.reservoir.color),
         materials.reservoir,
         'GP brake-fluid reservoir',
         [-0.207, 0.003, 0.065],
       );
       add(
         steering,
-        new T.CylinderGeometry(0.024, 0.024, 0.009, 10),
+        gpReservoirCap(detail),
         materials.dark,
         'GP reservoir cap',
         [-0.207, 0.025, 0.065],

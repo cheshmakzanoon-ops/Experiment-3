@@ -1,5 +1,6 @@
+import { gpReservoirBody, gpReservoirCap } from './gp-brake-reservoir.ts';
 import { gpRiderPrints, type GpRiderPrints } from './bike-livery.ts';
-import { gpGripGeometry, gpGripRubber, gpLeverGuard } from './gp-handlebar-controls.ts';
+import { gpGripGeometry, gpLeverGuard } from './gp-handlebar-controls.ts';
 import { gpThrottleAngle } from './gp-rider-contact.ts';
 import { frameLiquidRain } from '../simulation/weather.ts';
 import { ROAD_TYRE_HALF_WIDTH, tyreShoulderSine } from '../simulation/bike-tyre-profile.ts';
@@ -16,7 +17,7 @@ import type { MxArenaGrid } from './offroad/mx-arena-lighting.ts';
 import type { MxDabSurface } from './offroad/motocross-dab.ts';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
-import { gpRaceBodywork, gpRaceNumber, gpSwingarmSpoon } from './gp-race-bodywork.ts';
+import { gpRaceBodywork, gpRaceNumber, gpSatinCarbon, gpSwingarmSpoon } from './gp-race-bodywork.ts';
 import { gpRadialBrakeCaliper } from './gp-radial-caliper.ts';
 import { GPFrontHydraulics } from './gp-front-hydraulics.ts';
 import { gpBrakeRotor, GP_FRONT_DISC } from './gp-brake-rotor.ts';
@@ -1130,7 +1131,7 @@ export class BikeModel {
       const grip = add(
         this.steer,
         gpControls ? gpGripGeometry(side, detail) : new T.CylinderGeometry(0.017, 0.017, 0.12, 12),
-        gpControls ? gpGripRubber(m) : m.dark,
+        m.dark,
         side * (0.3 + barX),
         -0.06 + barY,
         -0.05,
@@ -1154,7 +1155,7 @@ export class BikeModel {
         grip.position.set(0, 0, 0);
         grip.quaternion.identity();
         this.gpThrottleSleeve = sleeve;
-        add(this.steer, gpLeverGuard(detail), m.carbon).name = 'GP fixed brake lever guard';
+        add(this.steer, gpLeverGuard(detail), m.forkUpper).name = 'GP fixed brake lever guard';
       }
       if (detail === 'high') {
         const lever = add(
@@ -1694,7 +1695,7 @@ export class BikeModel {
       // beside the bar, below the established display-to-lens ray bundle.
       add(
         this.steer,
-        new T.CylinderGeometry(0.022, 0.019, 0.035, 16),
+        gpPrototype ? gpReservoirBody(detail, m.reservoir.color) : new T.CylinderGeometry(0.022, 0.019, 0.035, 16),
         m.reservoir,
         -0.207,
         0.003,
@@ -1702,13 +1703,20 @@ export class BikeModel {
       );
       add(
         this.steer,
-        new T.CylinderGeometry(0.024, 0.024, 0.009, 16),
+        gpPrototype ? gpReservoirCap(detail) : new T.CylinderGeometry(0.024, 0.024, 0.009, 16),
         gpPrototype ? m.forkUpper : m.dark,
         -0.207,
         0.025,
         0.065,
       );
-      add(
+      if (gpPrototype) {
+        // Cast-in MAX/MIN witness marks on the near wall of the cup.
+        for (const y of [-0.003, 0.014]) {
+          add(this.steer, new RoundedBoxGeometry(0.009, 0.0014, 0.0012, 1, 0.00035),
+            m.dark, -0.207, y, y > 0 ? 0.0434 : 0.0456);
+        }
+      } else {
+        add(
         this.steer,
         new RoundedBoxGeometry(0.009, 0.019, 0.003, 1, 0.002),
         m.forkUpper,
@@ -1716,6 +1724,7 @@ export class BikeModel {
         0.002,
         0.044,
       );
+      }
       add(
         this.steer,
         tube(
@@ -1958,7 +1967,7 @@ export class BikeModel {
       }
     if (gp) {
       add(this.swingarm, gpRearHugger(rearR, Math.max(b.crownRadius, 0.11), arm, detail),
-        m.carbon, 0, 0, -arm).name = 'Swingarm-mounted carbon tyre hugger';
+        gpSatinCarbon(m), 0, 0, -arm).name = 'Swingarm-mounted carbon tyre hugger';
     } else if (full && detail !== 'far') {
       const pos: number[] = [],
         uv: number[] = [],

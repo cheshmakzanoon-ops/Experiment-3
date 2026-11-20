@@ -2,6 +2,7 @@ import * as T from 'three';
 import type { BikeMaterials } from './bike.ts';
 import type { RiderDetail } from './rider.ts';
 import { batchBikeRigidMeshes } from './bike-rigid-batch.ts';
+import { GP_TAIL_LED } from './gp-appearance.ts';
 import { sampleProfile } from './profile-sampling.ts';
 
 /** Original GP rear structure, in the existing pivot/axle frame. REF 018
@@ -203,6 +204,8 @@ export function gpRainLenses(r2: boolean, detail: RiderDetail) {
       (cell - (count - 1) / 2) * (r2 ? 0.0095 : 0.009) + (r2 ? Math.sign(cell - 2.5) * 0.002 : 0);
     const y = r2 ? Math.abs(x) * 0.08 : 0;
     const start = position.length / 3;
+    const atlasU = (cell + 0.5) / GP_TAIL_LED.columns,
+      atlasV = 0.5 / GP_TAIL_LED.rows;
     for (const [r, z] of [
       [1, -0.004],
       [0.88, -0.0056],
@@ -211,12 +214,15 @@ export function gpRainLenses(r2: boolean, detail: RiderDetail) {
       for (let j = 0; j < sides; j++) {
         const a = (j * 2 * Math.PI) / sides;
         position.push(x + Math.cos(a) * r * 0.0042, y + Math.sin(a) * r * 0.0068, z);
-        uv.push(0.5 + 0.5 * Math.cos(a) * r, 0.5 + 0.5 * Math.sin(a) * r);
+        uv.push(
+          atlasU + (0.46 * Math.cos(a) * r) / GP_TAIL_LED.columns,
+          atlasV + (0.46 * Math.sin(a) * r) / GP_TAIL_LED.rows,
+        );
       }
     }
     const cap = position.length / 3;
     position.push(x, y, -0.0069);
-    uv.push(0.5, 0.5);
+    uv.push(atlasU, atlasV);
     for (let j = 0; j < sides; j++) {
       const n = (j + 1) % sides;
       for (let ring = 0; ring < 2; ring++) {

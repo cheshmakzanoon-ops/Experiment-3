@@ -749,7 +749,13 @@ function boxWings(variant: GpShellVariant, detail: RiderDetail): T.BufferGeometr
         [0.179, 0.029, z - 0.058],
       ];
   const far = detail === 'far';
-  const wing = sweptFoil(loop, r2 ? 0.15 : 0.135, 0.12, high ? 28 : far ? 7 : 12, high ? 10 : far ? 4 : 6);
+  const wing = sweptFoil(
+    loop,
+    r2 ? 0.15 : 0.135,
+    0.12,
+    high ? 28 : far ? 7 : 12,
+    high ? 10 : far ? 4 : 6,
+  );
   if (far) return pair(wing);
   // Inner slat: a short third element between the blades (REF 056, 060).
   const slat = sweptFoil(
@@ -1032,6 +1038,123 @@ function drawLivery(p: LiveryPen, entrant: number, variant: GpShellVariant) {
     0.012,
     accent,
   );
+  if (variant !== 'sport') {
+    // Both works keep the entrant's colours and sponsors. The graphic cut is
+    // particular to the chassis and is registered in metres across panels.
+    const shade = '#' + base.clone().lerp(new T.Color(keel), 0.72).getHexString();
+    const pearl = lum > 0.56 ? '#343e4a' : '#e1e6dc';
+    if (r2) {
+      // A swept light saddle runs forward under the tank and breaks into
+      // parallel flashes across the wider R2 shoulder. Keep the number bay bare.
+      p.poly(
+        [
+          [-0.21, 0.23],
+          [0.13, 0.3],
+          [0.45, 0.192],
+          [0.63, 0.143],
+          [0.56, 0.087],
+          [0.34, 0.123],
+          [0.075, 0.213],
+          [-0.21, 0.169],
+        ],
+        pearl,
+        'satin',
+      );
+      p.line(
+        [
+          [-0.18, 0.162],
+          [0.077, 0.207],
+          [0.333, 0.115],
+          [0.558, 0.079],
+        ],
+        0.008,
+        accent,
+      );
+      p.poly(
+        [
+          [-0.9, 0.337],
+          [-0.64, 0.35],
+          [-0.43, 0.293],
+          [-0.235, 0.209],
+          [-0.25, 0.185],
+          [-0.5, 0.247],
+          [-0.73, 0.3],
+          [-0.9, 0.31],
+        ],
+        pearl,
+        'satin',
+      );
+      p.poly(
+        [
+          [0.455, -0.18],
+          [0.398, -0.214],
+          [0.292, -0.384],
+          [0.155, -0.484],
+          [0.222, -0.467],
+          [0.345, -0.392],
+        ],
+        shade,
+      );
+      p.line(
+        [
+          [0.475, -0.177],
+          [0.418, -0.211],
+          [0.31, -0.389],
+          [0.211, -0.461],
+        ],
+        0.012,
+        accent,
+      );
+    } else {
+      // Slim foil on the nose and a darker sweep continuous through the
+      // mid-fairing. A fine highlight at the leading edge reveals its rake.
+      p.poly(
+        [
+          [0.604, 0.149],
+          [0.533, 0.125],
+          [0.352, -0.024],
+          [0.182, -0.112],
+          [-0.115, -0.192],
+          [-0.184, -0.265],
+          [0.166, -0.164],
+          [0.41, -0.044],
+        ],
+        shade,
+      );
+      p.line(
+        [
+          [0.582, 0.144],
+          [0.528, 0.121],
+          [0.346, -0.032],
+          [0.185, -0.119],
+          [-0.13, -0.204],
+        ],
+        0.0095,
+        pearl,
+      );
+      p.poly(
+        [
+          [-0.91, 0.33],
+          [-0.698, 0.318],
+          [-0.369, 0.195],
+          [-0.18, 0.15],
+          [-0.323, 0.142],
+          [-0.685, 0.254],
+          [-0.912, 0.293],
+        ],
+        shade,
+      );
+      p.line(
+        [
+          [-0.858, 0.328],
+          [-0.697, 0.319],
+          [-0.369, 0.199],
+        ],
+        0.0065,
+        accent,
+      );
+    }
+  }
   // Nose duct: the matte recess under the cheek fold that carries the wings.
   p.poly(
     r2
@@ -1566,7 +1689,10 @@ export function gpRaceBodywork(
       }),
     ),
   );
-  const outlet = variant !== 'sport' && !far ? gpFairingOutlet(bodyGeometry, variant === 'gpr2', high) : undefined;
+  const outlet =
+    variant !== 'sport' && !far
+      ? gpFairingOutlet(bodyGeometry, variant === 'gpr2', high)
+      : undefined;
   const body = mesh(outlet?.skin ?? bodyGeometry, paint, 'GP race shell / flank and nose');
   const tank = mesh(tankGeometry, paint, 'GP race shell / tank');
   const tail = mesh(tailGeometry, paint, 'GP race shell / tail');
@@ -1586,7 +1712,12 @@ export function gpRaceBodywork(
       );
     }
     const mouth = intakeMouth(variant, detail);
-    mesh(outlet ? painted([mouth, outlet.liner]) : mouth, materials.dark, 'GP race shell / ram-air mouth', false);
+    mesh(
+      outlet ? painted([mouth, outlet.liner]) : mouth,
+      materials.dark,
+      'GP race shell / ram-air mouth',
+      false,
+    );
     mesh(
       shellPanelGeometry({ name: 'GP seat', net: seatNet(), rows, cols }),
       materials.seat,

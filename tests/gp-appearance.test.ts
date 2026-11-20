@@ -20,6 +20,8 @@ import {
   installGpTitaniumOxideGloss,
   setGpMetalAnisotropy,
 } from '../src/rendering/gp-appearance.ts';
+import { gpRainLenses } from '../src/rendering/gp-rear-chassis.ts';
+import { gpReservoirBody, gpReservoirCap } from '../src/rendering/gp-brake-reservoir.ts';
 import { studioHookKeys } from '../src/rendering/studio/shader-hooks.ts';
 import { SSR_MASK_HOOK, ssrMaskUniforms } from '../src/rendering/ultra/ssr-mask.ts';
 import { gpLiveryMaterial, gpWingPaint } from '../src/rendering/gp-race-bodywork.ts';
@@ -77,6 +79,92 @@ describe('GP refined surface and mechanical contracts', () => {
       m.dispose();
     }
   });
+  it.each([false, true])('registers one emitting texel region to each rain lens (R2=%s)', (r2) => {
+    const materials = new BikeMaterials(0);
+    calibrateGpMaterials(materials, r2 ? 'gpr2' : 'gpr1');
+    const geometry = gpRainLenses(r2, 'high'),
+      mesh = new T.Mesh(geometry, materials.lamp);
+    try {
+      const position = geometry.getAttribute('position'),
+        normals = geometry.getAttribute('normal'),
+        uv = geometry.getAttribute('uv'),
+        map = materials.lamp.emissiveMap!.image as {
+          data: Uint8Array;
+          width: number;
+          height: number;
+        };
+      const count = r2 ? 6 : 7,
+        stride = position.count / count;
+      const seen = new Set<number>();
+      for (let i = 0; i < count; i++) {
+        const cap = (i + 1) * stride - 1,
+          u = uv.getX(cap),
+          v = uv.getY(cap);
+        expect(normals.getZ(cap)).toBeLessThan(-0.99);
+        expect(u * GP_TAIL_LED.columns).toBeCloseTo(i + 0.5);
+        seen.add(Math.floor(u * GP_TAIL_LED.columns));
+        const px = Math.floor(u * map.width),
+          py = Math.floor(v * map.height);
+        expect(map.data[4 * (px + py * map.width)]).toBe(255);
+        for (let vertex = i * stride; vertex <= cap; vertex++) {
+          expect(Math.floor(uv.getX(vertex) * GP_TAIL_LED.columns)).toBe(i);
+          expect(Math.floor(uv.getY(vertex) * GP_TAIL_LED.rows)).toBe(0);
+        }
+        const at = new T.Vector3(position.getX(cap), position.getY(cap), -0.05),
+          ray = new T.Raycaster(at, new T.Vector3(0, 0, 1));
+        expect(ray.intersectObject(mesh).length).toBeGreaterThan(0);
+        if (i + 1 < count) {
+          const next = cap + stride;
+          ray.ray.origin.x = (at.x + position.getX(next)) / 2;
+          expect(ray.intersectObject(mesh)).toHaveLength(0);
+        }
+      }
+      expect(seen.size).toBe(count);
+    } finally {
+      geometry.dispose();
+      materials.dispose();
+    }
+  });
+  it.each(['high', 'mid'] as const)(
+    '%s reservoir retains a fluid line and a sixteen-flute cap',
+    (detail) => {
+      const base = new T.Color(0x4a3a24),
+        body = gpReservoirBody(detail, base),
+        cap = gpReservoirCap(detail);
+      try {
+        const pos = body.getAttribute('position'),
+          col = body.getAttribute('color');
+        const bands = new Map<number, T.Color>();
+        for (let i = 0; i < pos.count; i++)
+          bands.set(
+            Math.round(pos.getY(i) * 10000),
+            new T.Color(col.getX(i), col.getY(i), col.getZ(i)).multiply(base),
+          );
+        expect(bands.get(50)!.getHex()).toBe(0x4e351f);
+        expect(bands.get(59)!.getHex()).toBe(0x95815c);
+        const wall = cap.getAttribute('position'),
+          middle: number[] = [];
+        for (let i = 0; i < wall.count; i++) {
+          if (Math.abs(wall.getY(i) + 0.0035) < 1e-6)
+            middle.push(Math.hypot(wall.getX(i), wall.getZ(i)));
+        }
+        middle.pop(); // Duplicated vertex on the closed UV seam.
+        expect(
+          middle.filter(
+            (r, i) =>
+              r > middle[(i + 1) % middle.length] &&
+              r > middle[(i + middle.length - 1) % middle.length],
+          ),
+        ).toHaveLength(16);
+        expect(Math.min(...middle)).toBeGreaterThan(0.021);
+        expect(Math.max(...middle)).toBeCloseTo(0.0241, 4);
+        expect(wall.getY(wall.count - 1)).toBeLessThan(0.0045);
+      } finally {
+        body.dispose();
+        cap.dispose();
+      }
+    },
+  );
   it.each(['mx250', 'mx450', 'sbk1000', 'road600'])(
     'leaves the %s material values untouched',
     (id) => {

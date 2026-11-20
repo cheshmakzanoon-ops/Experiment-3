@@ -1,25 +1,5 @@
 import * as T from 'three';
-import type { BikeMaterials } from './bike.ts';
 import type { RiderDetail } from './rider.ts';
-
-const finishes = new WeakMap<BikeMaterials, T.MeshStandardMaterial>();
-
-/** One moulded rubber finish per entrant for both hands and all close LODs. */
-export function gpGripRubber(materials: BikeMaterials) {
-  let finish = finishes.get(materials);
-  if (!finish) {
-    finish = new T.MeshStandardMaterial({
-      name: 'GP moulded control rubber',
-      color: 0xffffff,
-      vertexColors: true,
-      roughness: 0.79,
-      metalness: 0,
-    });
-    finishes.set(materials, finish);
-    materials.list.push(finish);
-  }
-  return finish;
-}
 
 /** Cylindrical axis is local Y, matching the bar. The inboard flange, twin
  * retaining grooves, fine diamonds and an off-centre mould mark share a draw. */
@@ -48,30 +28,20 @@ export function gpGripGeometry(side: number, detail: RiderDetail) {
     rows.map(([y, r]) => new T.Vector2(r, y)),
     count,
   );
-  const pos = geom.getAttribute('position'),
-    paint = new Float32Array(pos.count * 3);
-  const rubber = new T.Color(0x272a2b),
-    groove = new T.Color(0x151819),
-    index = new T.Color(0xbbbfac);
+  const pos = geom.getAttribute('position');
   for (let i = 0; i < pos.count; i++) {
     const row = i % rows.length,
       column = Math.floor(i / rows.length);
     const [y, radius] = rows[row];
     const knurled = row >= 6 && row < 6 + knurls && (row + column) % 2 === 0;
-    const scale = knurled ? (radius + 0.00072) / radius : 1;
+    const mark = side < 0 && y >= 0.053 && column === count / 2;
+    const relief = (knurled ? 0.00072 : 0) + (mark ? 0.0013 : 0);
+    const scale = 1 + relief / radius;
     pos.setXYZ(i, pos.getX(i) * scale, y, pos.getZ(i) * scale);
-    const colour =
-      side < 0 && y >= 0.053 && column >= count / 2 && column <= count / 2 + 1
-        ? index
-        : radius < 0.0162
-          ? groove
-          : rubber;
-    colour.toArray(paint, i * 3);
   }
   geom.computeVertexNormals();
   // Keep the axis/winding right handed when mirroring the inboard flange.
   if (side < 0) geom.rotateZ(Math.PI);
-  geom.setAttribute('color', new T.BufferAttribute(paint, 3));
   return geom;
 }
 

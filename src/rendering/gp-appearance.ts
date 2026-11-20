@@ -66,6 +66,7 @@ export function calibrateGpMaterials(materials: BikeMaterials, vehicle: string):
   // Brake fluid pot: smoked amber nylon with dark fluid, not a white cup.
   materials.reservoir.color.setHex(0x4a3a24);
   materials.reservoir.roughness = 0.32;
+  materials.reservoir.vertexColors = true;
   // R6 bubble: lightly smoked polycarbonate as premultiplied Fresnel glass.
   // Nearly clear through the rider's sightline, reflective at grazing angles
   // (REF 017, 028, 047), without three.js's extra opaque transmission pass,
@@ -82,9 +83,8 @@ export function calibrateGpMaterials(materials: BikeMaterials, vehicle: string):
   materials.screen.depthWrite = false;
   materials.screen.roughness = 0.03;
   installGlassFresnel(materials.screen);
-  // Tail rain light: a smoked-red lens over a two-row LED array, not a flat
-  // red slab. The emissive map makes only the diodes glow (rain and braking);
-  // between them the lens stays dark.
+  // The rain optic uses bright diode centres and a smoked surround. Each
+  // close-up lens samples one emitter, the distant strip the entire array.
   materials.lamp.color.setHex(0x1c0404);
   materials.lamp.roughness = 0.22;
   materials.lamp.emissiveMap = gpTailLampMap();

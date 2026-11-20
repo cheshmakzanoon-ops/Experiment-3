@@ -122,6 +122,29 @@ describe('GP fork crowns above the real opaque fork tubes', () => {
     materials.dispose();
   });
 
+  it.each(['gpr1', 'gpr2'])(
+    '%s rain light follows weather through braking, holds and rewinds',
+    (id) => {
+      const materials = new BikeMaterials(0),
+        bike = new BikeModel(VEHICLES[id], 0, 'mid', materials, true);
+      try {
+        const sample = (wet: number, brake: number) => {
+          bike.pose(pose(id, { rainVisibility: wet, brake, rearBrake: brake }));
+          return materials.lamp.emissiveIntensity;
+        };
+        const dry = sample(0, 0),
+          wet = sample(1, 0);
+        expect(wet).toBeGreaterThan(dry + 2);
+        expect(sample(1, 1)).toBe(wet);
+        expect(sample(1, 1)).toBe(wet);
+        expect(sample(0.5, 0)).toBeCloseTo((dry + wet) / 2);
+        expect(sample(0, 1)).toBe(dry);
+      } finally {
+        bike.dispose();
+        materials.dispose();
+      }
+    },
+  );
   it.each(
     ['gpr1', 'gpr2'].flatMap((id) => (['high', 'mid'] as const).map((detail) => ({ id, detail }))),
   )(
@@ -233,12 +256,22 @@ describe('GP fork crowns above the real opaque fork tubes', () => {
         expect(normals.usage).toBe(T.DynamicDrawUsage);
         const reservoirs = meshes.filter((mesh) => mesh.material === materials.reservoir);
         expect(reservoirs).toHaveLength(1);
-        expect(reservoirs[0].parent?.name).toBe('Batched rigid motorcycle detail');
-        expect(reservoirs[0].parent?.parent).toBe(steering);
+        const mount = reservoirs[0].parent!;
+        expect(
+          mount === steering ||
+            (mount.name === 'Batched rigid motorcycle detail' && mount.parent === steering),
+        ).toBe(true);
+        const throttle = steering.getObjectByName('GP right throttle sleeve')!;
+        const movingGrip: T.Mesh[] = [];
+        throttle.traverse((part) => {
+          if (part instanceof T.Mesh) movingGrip.push(part);
+        });
+        expect(movingGrip).toHaveLength(1);
+        expect(movingGrip[0].material).toBe(materials.dark);
         // High already included its fluid pot in the original 21; Mid's new
         // reservoir is the sole additional rigid-material batch.
         const hydraulicAddition = 1 + (detail === 'mid' ? reservoirs.length : 0);
-        expect(meshes.length - wheelMeshes.length - hydraulicAddition).toBe(
+        expect(meshes.length - wheelMeshes.length - hydraulicAddition - movingGrip.length).toBe(
           detail === 'high' ? 21 : 9,
         );
         if (id === 'gpr1' && detail === 'high') {
