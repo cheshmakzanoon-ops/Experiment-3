@@ -15,6 +15,7 @@ import { gpRaceBodywork, gpSwingarmSpoon } from './gp-race-bodywork.ts';
 import { gpRadialBrakeCaliper } from './gp-radial-caliper.ts';
 import { GPFrontHydraulics } from './gp-front-hydraulics.ts';
 import { gpBrakeRotor, GP_FRONT_DISC } from './gp-brake-rotor.ts';
+import { gpRearBrakeCaliper, gpRearRotor, GP_REAR_DISC } from './gp-rear-brake.ts';
 import { gpDiscGlow } from './gp-disc-glow.ts';
 import { GpSliderSparks, SLIDER_SPARKS } from './gp-slider-sparks.ts';
 import { gpForkCrowns, GP_FORK_TUBE_TOP } from './gp-fork-crown.ts';
@@ -25,7 +26,7 @@ import type { GpRiderBodyState } from './gp-rider-posture.ts';
 import { bindGpTyre, installGpTyreFinish, type GpTyreAppearance } from './gp-tyre-finish.ts';
 import { gpRadiator } from './gp-radiator.ts';
 import { GPChainDrive } from './gp-chain-drive.ts';
-import { GPRearSuspension, gpRearBody, gpRearSwingarm } from './gp-rear-chassis.ts';
+import { GPRearSuspension, gpRearBody, gpRearHugger, gpRearSwingarm } from './gp-rear-chassis.ts';
 import { GPRearsets } from './gp-rearsets.ts';
 import {
   gpFrontBrakeAngle,
@@ -94,6 +95,7 @@ import {
   ROAD_BIKE_RAKE,
   ROAD_FORK_LENGTH,
   ROAD_FORK_OFFSET,
+  ROAD_SWINGARM_PIVOT,
 } from './road-bike-pose.ts';
 import {
   presentationAlpha,
@@ -243,6 +245,7 @@ export function tyreGeometry(
   crown: number,
   rim: number,
   sides: number,
+  distant = false,
 ) {
   const points: T.Vector2[] = [];
   const reach = Math.min(1.25, Math.asin(Math.min(0.98, halfWidth / crown)));
@@ -253,12 +256,13 @@ export function tyreGeometry(
       T.MathUtils.lerp(rim, centre + crown * Math.cos(reach), t) + Math.sin(t * Math.PI) * 0.012,
       sign * (halfWidth * (0.82 + 0.18 * Math.sin(t * Math.PI * 0.5)) - (1 - t) * 0.012),
     );
-  for (let i = 0; i <= 4; i++) points.push(wall(i / 4, -1));
-  for (let i = 1; i < 12; i++) {
-    const a = -reach + (i / 12) * 2 * reach;
+  const wallRows = distant ? 2 : 4, treadRows = distant ? 6 : 12;
+  for (let i = 0; i <= wallRows; i++) points.push(wall(i / wallRows, -1));
+  for (let i = 1; i < treadRows; i++) {
+    const a = -reach + (i / treadRows) * 2 * reach;
     points.push(new T.Vector2(centre + crown * Math.cos(a), crown * Math.sin(a)));
   }
-  for (let i = 4; i >= 0; i--) points.push(wall(i / 4, 1));
+  for (let i = wallRows; i >= 0; i--) points.push(wall(i / wallRows, 1));
   const g = new T.LatheGeometry(points, sides);
   g.rotateZ(Math.PI / 2);
   return bindGpTyre(g, halfWidth);
@@ -838,7 +842,8 @@ export class BikeModel {
       crown: number,
       front: boolean,
     ) => {
-      const tyre = tyreGeometry(radius, halfWidth, crown, rim + 0.004, sides);
+      const distantGP = gpPrototype && detail === 'far';
+      const tyre = tyreGeometry(radius, halfWidth, crown, rim + 0.004, distantGP ? 20 : sides, distantGP);
       add(spin, tyre, m.rubber);
       if (detail !== 'far') {
         // GP sidewall markings follow the actual tyre facets as thin paint.
@@ -914,6 +919,8 @@ export class BikeModel {
           add(spin, new T.CylinderGeometry(0.05, 0.05, halfWidth * 1.4, 16), m.wheel).rotation.z =
             Math.PI / 2;
         }
+      } else if (gpPrototype) {
+        add(spin, gpForgedWheel(rim, halfWidth, detail), m.wheel);
       } else
         add(spin, new T.CylinderGeometry(rim, rim, halfWidth * 1.4, 10), m.wheel).rotation.z =
           Math.PI / 2;
@@ -949,6 +956,8 @@ export class BikeModel {
                 ).rotation.z = Math.PI / 2;
               }
           }
+      } else if (gpPrototype) {
+        add(spin, gpRearRotor(detail), m.steel, GP_REAR_DISC.x);
       } else add(spin, ringGeometry(0.11, 0.07, 0.006, sides), m.steel, -0.085, 0, 0);
     };
     // ---- Steering: mount on the steering axis, local Y up the fork.
@@ -1834,7 +1843,7 @@ export class BikeModel {
       this.sprung.add(this.spring);
     }
     // ---- Swingarm (root frame: it pivots to keep the rear tyre on the road).
-    this.pivot = new T.Vector3(0, -0.13, -0.2);
+    this.pivot = new T.Vector3(...ROAD_SWINGARM_PIVOT);
     this.rearAxle = new T.Vector3(0, rearR - h, -b.cgToRear);
     const arm = (this.armLength = this.rearAxle.clone().sub(this.pivot).length());
     if (gp) {
@@ -1890,7 +1899,15 @@ export class BikeModel {
       }
       // Chain guard (carbon) and rear caliper hanger on the right.
       add(this.swingarm, new T.BoxGeometry(0.004, 0.05, 0.22), m.carbon, 0.13, 0.07, -arm * 0.75);
-      add(this.swingarm, new T.BoxGeometry(0.03, 0.06, 0.05), m.caliper, -0.09, 0.06, -arm + 0.07);
+      if (gp) {
+        const caliper = gpRearBrakeCaliper(detail, m);
+        caliper.position.z = -arm;
+        addGpRigidFinish(this.swingarm, caliper, [m.aluminium, m.caliper, m.dark, m.steel]);
+        add(this.swingarm, new T.CylinderGeometry(0.0105, 0.0105, 0.37, 10),
+          m.steel, 0, 0, -arm).rotation.z = Math.PI / 2;
+      } else {
+        add(this.swingarm, new T.BoxGeometry(0.03, 0.06, 0.05), m.caliper, -0.09, 0.06, -arm + 0.07);
+      }
     }
     if (look.shocks === 'twin' && detail !== 'far')
       // Twin shocks from the swingarm ends up to the subframe.
@@ -1905,7 +1922,10 @@ export class BikeModel {
         );
         shock.rotation.x = -0.35;
       }
-    if (full && detail !== 'far') {
+    if (gp) {
+      add(this.swingarm, gpRearHugger(rearR, Math.max(b.crownRadius, 0.11), arm, detail),
+        m.carbon, 0, 0, -arm).name = 'Swingarm-mounted carbon tyre hugger';
+    } else if (full && detail !== 'far') {
       const pos: number[] = [],
         uv: number[] = [],
         ix: number[] = [];
@@ -2032,8 +2052,7 @@ export class BikeModel {
     // Pit service: the rear wheel rolls back out of the swingarm and the
     // front drops out of the fork while the axles are drawn (bike-pit-service).
     this.rearWheel.position.copy(this.rearAxle);
-    if (road) this.rearWheel.position.y = road.rearY;
-    this.rearWheel.position.z -= v.rearWheelOut ?? 0;
+    if (road) this.rearWheel.position.set(0, road.rearY, road.rearZ);
     forkLocalOffset(
       this.scratch.set(0, -(v.frontWheelDrop ?? 0), 0),
       RAKE,
@@ -2046,9 +2065,11 @@ export class BikeModel {
     const p = this.scratch.copy(this.pivot).applyMatrix4(this.sprung.matrix);
     this.swingarm.position.copy(p);
     const dy = this.rearWheel.position.y - p.y,
-      dz = this.rearAxle.z - p.z;
+      dz = this.rearWheel.position.z - p.z;
     this.swingarm.rotation.x = Math.atan2(dy, -dz);
-    this.swingarm.scale.z = Math.hypot(dy, dz) / this.armLength;
+    this.swingarm.scale.z = road && this.definition.classId === 'gp-bike'
+      ? 1 : Math.hypot(dy, dz) / this.armLength;
+    this.rearWheel.position.z -= v.rearWheelOut ?? 0;
     if (this.gpRearSuspension) {
       this.swingarm.updateMatrix();
       this.gpRearSuspension.update(this.sprung.matrix, this.swingarm.matrix);

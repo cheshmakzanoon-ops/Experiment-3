@@ -4,7 +4,7 @@ import { gpForgedWheel, gpTyreCompoundMarkings } from '../src/rendering/gp-forge
 import { tyreGeometry } from '../src/rendering/bike.ts';
 
 describe('GP forged wheels and painted compound arcs', () => {
-  it.each(['high', 'mid'] as const)(
+  it.each(['high', 'mid', 'far'] as const)(
     '%s keeps open spoke windows and axle bore inside the existing tyre bead',
     (detail) => {
       for (const halfWidth of [0.06, 0.1]) {
@@ -36,7 +36,7 @@ describe('GP forged wheels and painted compound arcs', () => {
             expect(hit(0.205, angle)).toBeGreaterThan(0);
             expect(hit(0.035, angle)).toBeGreaterThan(0);
           }
-          expect(geometry.index!.count / 3).toBeLessThan(detail === 'high' ? 3700 : 2400);
+          expect(geometry.index!.count / 3).toBeLessThan({ high: 3700, mid: 2400, far: 700 }[detail]);
           expect(geometry.groups).toHaveLength(0);
         } finally {
           geometry.dispose();

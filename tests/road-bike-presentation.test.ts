@@ -345,6 +345,16 @@ function checkContacts(frame: Float32Array, model: Posed, tolerance = 0.004) {
     front = new T.Vector4(),
     rear = new T.Vector4(),
     shape = new T.Vector4();
+  if (model.definition.classId === 'gp-bike') {
+    const arm = model.root.getObjectByName('GP tapered carbon rear swingarm')!,
+      spec = model.definition.bike!,
+      length = Math.hypot(spec.rearWheelRadius - spec.cgHeight + 0.13, spec.cgToRear - 0.2),
+      end = new T.Vector3(0, 0, -length).applyMatrix4(arm.matrixWorld),
+      axle = model.rearSpin.getWorldPosition(new T.Vector3());
+    expect(axle.distanceTo(arm.getWorldPosition(new T.Vector3()))).toBeCloseTo(length, 8);
+    expect(axle.distanceTo(end)).toBeLessThan(1e-7);
+    expect(arm.scale.toArray()).toEqual([1, 1, 1]);
+  }
   projector.project(
     frame,
     o,

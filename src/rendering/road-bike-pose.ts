@@ -12,6 +12,8 @@ import { presentationAlpha, sampleValue, snapshotSource } from './snapshot-inter
 export const ROAD_BIKE_RAKE = 0.42,
   ROAD_FORK_OFFSET = 0.03,
   ROAD_FORK_LENGTH = 0.7;
+/** Swingarm pivot in the sprung chassis frame (metres). */
+export const ROAD_SWINGARM_PIVOT = [0, -0.13, -0.2] as const;
 
 /** Two measured world planes and vertical free-wheel gaps. No simulation,
  * render clock, force-derived displacement or retained animation history. */
@@ -81,14 +83,15 @@ function tyreSupport(
 }
 
 /** Drawn road hubs in the true sprung CG frame. A telescopic fork moves along
- * its steering axis; the rear axle moves vertically before the swingarm and
- * linkage are rebuilt. Only their road-normal support is constrained, so the
+ * its steering axis; the GP rear axle follows the circle about its pivot.
+ * Only their road-normal support is constrained, so the
  * tyre retains its authored crown, steer, rake and rolling silhouette. The
  * recorded gap preserves wheelies and flight instead of pinning wheels down.
  * Shared by BikeModel and grounding: mesh and contact shadow use one geometry. */
 export class RoadBikeWheelPose {
   forkY = -ROAD_FORK_LENGTH;
   rearY = 0;
+  rearZ = 0;
   readonly hubs = [new T.Vector3(), new T.Vector3()];
   readonly patches = [new T.Vector3(), new T.Vector3()];
   readonly localGround = new T.Plane();
@@ -99,6 +102,7 @@ export class RoadBikeWheelPose {
   private readonly head = new T.Vector3();
   private readonly rotation = new T.Quaternion();
   private readonly inverse = new T.Quaternion();
+  private readonly localNormal = new T.Vector3();
   private readonly rake = new T.Quaternion().setFromAxisAngle(
     new T.Vector3(1, 0, 0),
     -ROAD_BIKE_RAKE,
@@ -151,12 +155,38 @@ export class RoadBikeWheelPose {
         i === 0 ? 0.06 : 0.1,
         this.support,
       );
-      const cosine = normal.dot(this.axis),
-        distance = normal.dot(hub) + normal.dot(this.support) - normal.dot(contact.points[i]),
-        adjustment = Math.abs(cosine) > 0.1 ? (contact.gaps[i] * normal.y - distance) / cosine : 0;
-      hub.addScaledVector(this.axis, adjustment);
-      if (i === 0) this.forkY = -ROAD_FORK_LENGTH + adjustment;
-      else this.rearY = b.rearWheelRadius - b.cgHeight + adjustment;
+      const distance = normal.dot(hub) + normal.dot(this.support) - normal.dot(contact.points[i]),
+        correction = contact.gaps[i] * normal.y - distance;
+      if (i === 1 && definition.classId === 'gp-bike') {
+        // Intersect the axle's circle in the chassis YZ plane with the road
+        // plane offset by the tyre support and recorded free-wheel gap. The
+        // rearward intersection is continuous from droop through bump.
+        const n = this.localNormal.copy(normal).applyQuaternion(this.inverse),
+          [, py, pz] = ROAD_SWINGARM_PIVOT,
+          dy = this.local.y - py,
+          dz = this.local.z - pz,
+          radius = Math.hypot(dy, dz),
+          length = Math.hypot(n.y, n.z);
+        if (length > 1e-6) {
+          const ny = n.y / length,
+            nz = n.z / length,
+            along = T.MathUtils.clamp((dy * n.y + dz * n.z + correction) / length, -radius, radius),
+            back = Math.sqrt(Math.max(0, radius * radius - along * along));
+          this.local.set(0, py + ny * along + nz * back, pz + nz * along - ny * back);
+        }
+        this.rearY = this.local.y;
+        this.rearZ = this.local.z;
+        hub.copy(this.local).applyQuaternion(orientation).add(position);
+      } else {
+        const cosine = normal.dot(this.axis),
+          adjustment = Math.abs(cosine) > 0.1 ? correction / cosine : 0;
+        hub.addScaledVector(this.axis, adjustment);
+        if (i === 0) this.forkY = -ROAD_FORK_LENGTH + adjustment;
+        else {
+          this.rearY = b.rearWheelRadius - b.cgHeight + adjustment;
+          this.rearZ = -b.cgToRear;
+        }
+      }
       patch.copy(hub).add(this.support);
     }
     // The rider uses the mean sampled road plane in the same physical CG

@@ -165,33 +165,9 @@ export function gpRearSwingarm(arm: number, detail: RiderDetail, materials: Mate
   return root;
 }
 
-/** A 2 mm formed tray with returned edges, fitted below the existing tail.
- * The rear tyre and its hugger retain daylight below the tray throughout
- * the suspension envelope. No transparent occlusion cards are used. */
-export function gpUndertray(detail: RiderDetail) {
-  const z = [-0.81, -0.68, -0.5, -0.33, -0.17],
-    y = [0.252, 0.19, 0.12, 0.038, 0.094],
-    w = [0.027, 0.061, 0.101, 0.118, 0.121],
-    lip = [0.013, 0.025, 0.055, 0.075, 0.065],
-    rows = detail === 'high' ? 20 : detail === 'mid' ? 12 : 6,
-    cols = detail === 'far' ? 2 : 4,
-    count = (rows + 1) * (cols + 1),
-    p: number[] = [],
-    uv: number[] = [],
-    index: number[] = [];
-  for (let inner = 0; inner < 2; inner++)
-    for (let i = 0; i <= rows; i++) {
-      const at = T.MathUtils.lerp(z[0], z[z.length - 1], i / rows);
-      for (let j = 0; j <= cols; j++) {
-        const u = (j / cols) * 2 - 1;
-        p.push(
-          u * sampleProfile(z, w, at),
-          sampleProfile(z, y, at) + Math.abs(u) ** 3 * sampleProfile(z, lip, at) - inner * 0.002,
-          at,
-        );
-        uv.push(j / cols, i / rows);
-      }
-    }
+function closedSkinIndices(rows: number, cols: number) {
+  const index: number[] = [],
+    count = (rows + 1) * (cols + 1);
   for (let i = 0; i < rows; i++)
     for (let j = 0; j < cols; j++) {
       const a = i * (cols + 1) + j,
@@ -210,7 +186,102 @@ export function gpUndertray(detail: RiderDetail) {
       b = boundary[(i + 1) % boundary.length];
     index.push(a, b, a + count, b, b + count, a + count);
   }
+  return index;
+}
+
+/** The swingarm carries a moulded carbon cover clear of the rear slick. The
+ * section follows the rounded tyre shoulders. The leading edge wraps further
+ * down the flanks and the trailing tongue tapers away above the wheel. */
+export function gpRearHugger(radius: number, crown: number, arm: number, detail: RiderDetail) {
+  const rows = detail === 'high' ? 22 : detail === 'mid' ? 12 : 6,
+    cols = detail === 'high' ? 10 : detail === 'mid' ? 6 : 4,
+    p: number[] = [],
+    uv: number[] = [];
+  const point = new T.Vector3();
+  const skin = (t: number, u: number, inner: number) => {
+    const width = 0.068 + 0.032 * Math.sin(Math.PI * t) + 0.006 * t,
+      edge = u * u,
+      x = u * width,
+      angle = T.MathUtils.lerp(2.54 - 0.18 * edge, 0.73 - 0.2 * edge, t),
+      shoulder = crown - Math.sqrt(Math.max(0, crown * crown - x * x)),
+      ridge = 0.003 * (1 - edge) * Math.sin(Math.PI * t),
+      r = radius + 0.021 - shoulder + ridge - inner * 0.0024;
+    return point.set(x, Math.sin(angle) * r, Math.cos(angle) * r);
+  };
+  for (let inner = 0; inner < 2; inner++) {
+    for (let i = 0; i <= rows; i++) {
+      const t = i / rows;
+      for (let j = 0; j <= cols; j++) {
+        skin(t, (2 * j) / cols - 1, inner);
+        p.push(point.x, point.y, point.z);
+        uv.push(j / cols, t);
+      }
+    }
+  }
+  const index = closedSkinIndices(rows, cols);
+  // Two flared stays land on the real spars. Their knees pass outboard
+  // before descending past the tyre shoulder and the upper chain run.
+  for (const side of [-1, 1]) {
+    const offset = p.length / 3,
+      steps = detail === 'high' ? 8 : 4;
+    for (let inner = 0; inner < 2; inner++)
+      for (let i = 0; i <= steps; i++)
+        for (let j = 0; j <= 2; j++) {
+          const v = i / steps,
+            u = j / 2;
+          skin(0.72 + u * 0.2, side * 0.985, 1);
+          const lowerZ = arm * (0.32 + u * 0.09),
+            station = 1 - lowerZ / arm,
+            x = T.MathUtils.lerp(
+              Math.abs(point.x),
+              sampleProfile(STATIONS, ARM_X, station),
+              1 - (1 - v) ** 3,
+            ),
+            y = T.MathUtils.lerp(point.y, sampleProfile(STATIONS, ARM_Y, station) + 0.015, v),
+            z = T.MathUtils.lerp(point.z, lowerZ, v);
+          p.push(side * (x - inner * 0.003), y, z);
+          uv.push(u, v);
+        }
+    const faces = closedSkinIndices(steps, 2);
+    for (let k = 0; k < faces.length; k += 3) {
+      const a = offset + faces[k],
+        b = offset + faces[k + 1],
+        c = offset + faces[k + 2];
+      if (side > 0) index.push(a, c, b);
+      else index.push(a, b, c);
+    }
+  }
   const geometry = finish(p, uv, index);
+  geometry.name = 'GP crowned carbon rear tyre hugger';
+  return geometry;
+}
+
+/** A 2 mm formed tray with returned edges, fitted below the existing tail.
+ * The rear tyre and its hugger retain daylight below the tray throughout
+ * the suspension envelope. No transparent occlusion cards are used. */
+export function gpUndertray(detail: RiderDetail) {
+  const z = [-0.81, -0.68, -0.5, -0.33, -0.17],
+    y = [0.252, 0.19, 0.12, 0.038, 0.094],
+    w = [0.027, 0.061, 0.101, 0.118, 0.121],
+    lip = [0.013, 0.025, 0.055, 0.075, 0.065],
+    rows = detail === 'high' ? 20 : detail === 'mid' ? 12 : 6,
+    cols = detail === 'far' ? 2 : 4,
+    p: number[] = [],
+    uv: number[] = [];
+  for (let inner = 0; inner < 2; inner++)
+    for (let i = 0; i <= rows; i++) {
+      const at = T.MathUtils.lerp(z[0], z[z.length - 1], i / rows);
+      for (let j = 0; j <= cols; j++) {
+        const u = (j / cols) * 2 - 1;
+        p.push(
+          u * sampleProfile(z, w, at),
+          sampleProfile(z, y, at) + Math.abs(u) ** 3 * sampleProfile(z, lip, at) - inner * 0.002,
+          at,
+        );
+        uv.push(j / cols, i / rows);
+      }
+    }
+  const geometry = finish(p, uv, closedSkinIndices(rows, cols));
   geometry.userData.gpRearStructure = 'undertray';
   return geometry;
 }

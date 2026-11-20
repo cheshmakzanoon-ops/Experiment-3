@@ -12,7 +12,8 @@ export function gpForgedWheel(rim: number, halfWidth: number, detail: RiderDetai
   if (!Number.isFinite(halfWidth) || halfWidth < 0.04 || halfWidth > 0.12)
     throw new RangeError('Invalid GP wheel half-width');
   const close = detail === 'high',
-    segments = close ? 48 : 28,
+    distant = detail === 'far',
+    segments = close ? 48 : distant ? 20 : 28,
     width = halfWidth * 0.76;
   const pieces: T.BufferGeometry[] = [];
   const lathe = (profile: readonly (readonly [number, number])[], sides = segments) => {
@@ -34,27 +35,45 @@ export function gpForgedWheel(rim: number, halfWidth: number, detail: RiderDetai
     [rim - 0.015, -width + 0.022],
     [rim - 0.021, -width * 0.4],
   ];
-  lathe([
-    ...outer,
-    ...[...outer].reverse().map(([r, x]) => [r, -x] as const),
-    [rim - 0.026, width * 0.4],
-    [rim - 0.026, -width * 0.4],
-    outer[0],
-  ]);
+  lathe(
+    distant
+      ? [
+          [rim - 0.025, -width],
+          [rim + 0.001, -width],
+          [rim + 0.001, width],
+          [rim - 0.025, width],
+          [rim - 0.025, -width],
+        ]
+      : [
+          ...outer,
+          ...[...outer].reverse().map(([r, x]) => [r, -x] as const),
+          [rim - 0.026, width * 0.4],
+          [rim - 0.026, -width * 0.4],
+          outer[0],
+        ],
+  );
   const hubWidth = halfWidth * 0.61;
   lathe(
-    [
-      [0.014, -hubWidth],
-      [0.031, -hubWidth],
-      [0.043, -hubWidth + 0.01],
-      [0.048, -0.015],
-      [0.048, 0.015],
-      [0.043, hubWidth - 0.01],
-      [0.031, hubWidth],
-      [0.014, hubWidth],
-      [0.014, -hubWidth],
-    ],
-    close ? 32 : 20,
+    distant
+      ? [
+          [0.014, -hubWidth],
+          [0.044, -hubWidth],
+          [0.044, hubWidth],
+          [0.014, hubWidth],
+          [0.014, -hubWidth],
+        ]
+      : [
+          [0.014, -hubWidth],
+          [0.031, -hubWidth],
+          [0.043, -hubWidth + 0.01],
+          [0.048, -0.015],
+          [0.048, 0.015],
+          [0.043, hubWidth - 0.01],
+          [0.031, hubWidth],
+          [0.014, hubWidth],
+          [0.014, -hubWidth],
+        ],
+    close ? 32 : distant ? 10 : 20,
   );
 
   // Each ring is a chamfered rectangular forging. The crown and gradual
@@ -64,16 +83,23 @@ export function gpForgedWheel(rim: number, halfWidth: number, detail: RiderDetai
     const p: number[] = [],
       uv: number[] = [],
       index: number[] = [];
-    const section = [
-      [1, 0.6],
-      [0.65, 1],
-      [-0.65, 1],
-      [-1, 0.6],
-      [-1, -0.6],
-      [-0.65, -1],
-      [0.65, -1],
-      [1, -0.6],
-    ];
+    const section = distant
+      ? [
+          [1, 1],
+          [-1, 1],
+          [-1, -1],
+          [1, -1],
+        ]
+      : [
+          [1, 0.6],
+          [0.65, 1],
+          [-0.65, 1],
+          [-1, 0.6],
+          [-1, -0.6],
+          [-0.65, -1],
+          [0.65, -1],
+          [1, -0.6],
+        ];
     for (const [i, [r, sweep, dish, depth, breadth]] of stations.entries())
       for (const [j, [x, z]] of section.entries()) {
         p.push(dish + x * depth, r, sweep + z * breadth);
