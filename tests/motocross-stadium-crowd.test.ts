@@ -33,6 +33,15 @@ describe('motocross stadium audience', () => {
         expect(arena.crowd.visible).toBe(true);
         expect(range.y).toBe(1);
       }
+      // The paint probe hides the sculpt batch and renders every occupied seat
+      // through its original card. The next player-camera draw restores the split.
+      const beforeDraw = arena.crowd.onBeforeRender.bind(arena.crowd) as () => void;
+      arena.nearCrowd.visible = false;
+      beforeDraw();
+      expect(range.x).toBe(0);
+      arena.nearCrowd.visible = true;
+      beforeDraw();
+      expect(range.x).toBe(0.2);
       expect(arena.nearCrowd.instanceMatrix.version).toBe(version);
     } finally {
       setMxQuality('high');

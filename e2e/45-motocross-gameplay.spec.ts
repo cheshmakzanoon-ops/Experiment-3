@@ -131,7 +131,18 @@ test('real motocross player entry, eight-rider gate, riding, cameras, pause and 
     // The normal loader prepares every chase/shadow/reflection pass. Keep
     // those production checks intact while allowing software compilation its
     // own bounded readiness interval; this is not a load-time benchmark.
-    await expect(page.locator('#raceBriefing')).toBeVisible({ timeout: 300000 });
+    const briefing = page.locator('#raceBriefing');
+    const failure = page.locator('#errorMessage:visible').filter({ hasText: /\S/ });
+    await expect(briefing.or(failure).first()).toBeVisible({ timeout: 300000 });
+    if (await failure.isVisible()) {
+      const renderer = (await diag()).renderer;
+      throw new Error(`${await failure.textContent()}\n${JSON.stringify({
+        preparation: renderer?.preparation,
+        queue: renderer?.gpuFrameQueue,
+        draws: renderer?.drawBreakdown,
+      })}`);
+    }
+    await expect(briefing).toBeVisible();
     console.info(`[MX journey] ${circuit} is prepared at the held eight-rider gate`);
     const initialized = await diag();
     expect(initialized.renderer?.presentationPurpose).toBe('circuit');

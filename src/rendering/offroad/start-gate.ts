@@ -307,6 +307,10 @@ export class StartGate {
       : -Infinity;
   }
   /** Panel count (the venue's slots, or the larger field it was widened for). */
+  /** Only the leaves rotate when the gate drops. The slab and anchors stay in the static shadow map. */
+  get movingLeaves() {
+    return this.hinge;
+  }
   get panelCount() {
     return this.slots;
   }

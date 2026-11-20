@@ -1194,8 +1194,9 @@ export class RacingRenderer {
       progress('Compiling shadow casters around the circuit…');
       await yieldFrame();
       if (cancelled()) return false;
-      const shadowPass = this.warmShadowCasters(roadField);
-      if ((roadField || this.circuit.offroad) && shadowPass) {
+      const boundedDepth = roadField || isMotocrossVenue(this.circuit.track);
+      const shadowPass = this.warmShadowCasters(boundedDepth);
+      if (boundedDepth && shadowPass) {
         // The whole-circuit map exists only to link depth variants. Let its
         // submission retire before the first real shadows and reflections.
         this.gpuFrames.submittedFrame();
@@ -1213,6 +1214,16 @@ export class RacingRenderer {
           await yieldFrame();
           if (cancelled()) return false;
           this.changeCamera(mode);
+          if (mode === 'chase' && isMotocrossVenue(this.circuit.track) &&
+              this.graphics?.reflections === 'local') {
+            // The held starting grid needs one complete cubemap. Retire its six
+            // scenery views before submitting near shadows and the colour image.
+            progress('Capturing motocross venue reflections…');
+            this.draw(frame, frame, 1, 1 / 120, false, true, 1 / 120, 'venue-probe');
+            this.gpuFrames.submittedFrame();
+            await this.waitForPreparedFrame(cancelled, yieldFrame);
+            if (cancelled()) return false;
+          }
           this.draw(frame, frame, 1, 1 / 120, false, true);
           this.warmupFrames++;
           if (mode === 'chase' && pitService) {
@@ -1554,6 +1565,7 @@ export class RacingRenderer {
     menu = false,
     replay = false,
     wallDelta = dt,
+    pass: 'scene' | 'venue-probe' = 'scene',
   ) {
     const pregame = this.gridPresentationTime !== null && this.gridPresentationTime !== undefined;
     const cameraMode: CameraMode = pregame
@@ -2316,7 +2328,8 @@ export class RacingRenderer {
     this.engineeringView.update(this.engineering, b[H.TIME], this.debug, replay);
     this.reflection.beginFrame(
       menu ? this.orbitTime : presented[H.TIME],
-      (!this.photo || this.photo.view === 'cockpit') &&
+      (!motocrossFollow || surfaces.length > 0) &&
+        (!this.photo || this.photo.view === 'cockpit') &&
         (!menu || !!this.photo) &&
         cameraMode === 'cockpit',
     );
@@ -2401,6 +2414,7 @@ export class RacingRenderer {
         wetReflection ? 0.55 : 1.5,
         this.sky.material.uniforms.probeSkyIntensity,
       );
+      if (pass === 'venue-probe') return;
       this.drawLedger.mark('mirrors');
       this.reflection.renderMirrors(
         this.renderer,
@@ -2583,14 +2597,14 @@ export class RacingRenderer {
   }
   /** Compile every shadow caster's depth program while loading (see
    * FarShadow.warmCasters). */
-  private warmShadowCasters(roadField: boolean) {
+  private warmShadowCasters(boundedDepth: boolean) {
     return this.farShadow.warmCasters(
       this.renderer,
       this.scene,
       this.sun,
       lightingDirection(this.lighting),
       this.farShadowBounds,
-      roadField || isMotocrossVenue(this.circuit.track),
+      boundedDepth,
     );
   }
   /** Bake the static far sun shadow for this lighting: no cars, people,
@@ -2618,10 +2632,16 @@ export class RacingRenderer {
       )
         farCasters.push(object);
     });
+    const movingMx: T.Object3D[] = [];
+    if (this.circuit.offroad && isMotocrossVenue(this.circuit.track)) {
+      if (this.bikeShells) movingMx.push(this.bikeShells.root);
+      this.circuit.offroad.appendCaptureExclusions(movingMx, 'static-shadow');
+    }
     this.farShadow.bake(this.renderer, this.scene, {
       direction: lightingDirection(illumination),
       bounds: this.farShadowBounds,
       hidden: [
+        ...movingMx,
         ...this.cars.map((car) => car.root),
         this.ghost?.root,
         this.pitCrew.root,
@@ -2710,8 +2730,7 @@ export class RacingRenderer {
     // at 128 px) keeps static scenery only. The subject car is hidden by the probe itself.
     probe.push(this.effects.group);
     if (motorcycleSubject) probe.push(this.bikeShells.root);
-    const arena = this.circuit.offroad?.stadium;
-    if (arena) probe.push(arena.crowd, arena.nearCrowd);
+    this.circuit.offroad?.appendCaptureExclusions(probe, 'probe');
     for (const other of this.cars) if (other !== subject) probe.push(other.root);
     if (this.ghost) {
       probe.push(this.ghost.root);

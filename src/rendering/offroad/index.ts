@@ -52,6 +52,25 @@ export class OffroadScene {
     time: number;
     live: boolean;
   }[] = [];
+  /** The 128 px paint probe keeps the venue silhouette, track, earth colour and
+   * crowd cards. Individual grass blades, scattered pebbles, tread marks and
+   * airborne roost belong to the riding camera. A static sun bake must also
+   * leave moving gate leaves and people out of the ground's lasting shadow. */
+  appendCaptureExclusions(roots: T.Object3D[], pass: 'probe' | 'static-shadow') {
+    if (!this.gate) return;
+    for (const object of [this.roost.points, this.roost.clods, this.roost.contactShadows,
+      this.tyreTraces?.mesh, this.stadium?.nearCrowd]) {
+      if (object) roots.push(object);
+    }
+    if (pass === 'probe') {
+      for (const object of [this.meadow?.root, this.dressing?.turf, this.looseSoil?.root])
+        if (object) roots.push(object);
+    } else {
+      roots.push(this.gate.movingLeaves);
+      if (this.spectators) roots.push(this.spectators.root);
+      if (this.stadium) roots.push(this.stadium.crowd);
+    }
+  }
   constructor(
     readonly track: Track,
     construction: BuildQueue,

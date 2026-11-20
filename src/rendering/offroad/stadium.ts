@@ -484,6 +484,9 @@ export class Stadium {
       this.root.add(crowd);
     }
     this.audience = new MxStadiumAudience(this.crowd, this.nearCrowd, sculptedSeats);
+    // A venue reflection omits the close sculpts. Their original seat cards
+    // fill the same places for that pass, then yield to the main camera again.
+    this.crowd.onBeforeRender = () => { crowdRange.x = this.nearCrowd.visible ? 0.2 : 0; };
     // The same seat table, colours and skin carry into the low-cost cards.
     // The rank interval and mesh visibility change together, without
     // rebuilding instance buffers or leaving gaps in the front four rows.

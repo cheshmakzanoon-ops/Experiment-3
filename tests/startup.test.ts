@@ -33,6 +33,7 @@ function fixture(vehicle = 'apx01', entrants = 3) {
       }),
     },
     circuit: {
+      track: { circuit: {} },
       setGrandPrixGrid: vi.fn(),
       setMotorcyclePresentation: vi.fn((enabled: boolean) => {
         calls.push(`motorcycle-surface:${enabled}`);
@@ -112,12 +113,14 @@ function fixture(vehicle = 'apx01', entrants = 3) {
         _dt: number,
         menu: boolean,
         replay: boolean,
+        _wallDelta?: number,
+        pass?: 'scene' | 'venue-probe',
       ) => {
         expect(a).toBe(sample);
         expect(b[H.TIME]).toBe(0);
         expect(menu).toBe(false);
         expect(replay).toBe(true);
-        calls.push('draw');
+        calls.push(pass === 'venue-probe' ? 'venue-probe' : 'draw');
       },
     ),
   };
@@ -542,7 +545,7 @@ it.each([false, true])(
 );
 it('retires the MX venue depth pass before submitting the real chase and cockpit', async () => {
   const { calls, sample, target, typed } = fixture('mx250');
-  Object.assign(target.circuit, { offroad: {} });
+  Object.assign(target.circuit, { offroad: {}, track: { circuit: { offroad: { kind: 'motocross' } } } });
   Object.assign(target.bikeShells, { prepareDirtField: vi.fn(async () => true) });
   for (let i = 0; i < sample[H.CARS]; i++)
     sample[carBase(i) + RACE_BASE + R.VEHICLE] = vehicleIndex('mx250');
@@ -554,6 +557,26 @@ it('retires the MX venue depth pass before submitting the real chase and cockpit
   expect(calls.slice(calls.indexOf('shadow-casters') + 1, calls.indexOf('draw'))).toEqual([
     'shadow-fence', 'gpu-ready', 'chase',
   ]);
+});
+it.each([false, true])('keeps the opening MX cubemap on its own GPU fence, cancellation %s', async (stop) => {
+  const { calls, sample, target, typed } = fixture('mx450');
+  Object.assign(target.circuit, { offroad: {}, track: { circuit: { offroad: { kind: 'motocross' } } } });
+  Object.assign(target, { graphics: { reflections: 'local' } });
+  Object.assign(target.bikeShells, { prepareDirtField: vi.fn(async () => true) });
+  for (let i = 0; i < sample[H.CARS]; i++)
+    sample[carBase(i) + RACE_BASE + R.VEHICLE] = vehicleIndex('mx450');
+  let cancelled = false;
+  target.waitForPreparedFrame.mockImplementation(async () => {
+    calls.push('gpu-ready');
+    if (stop && calls.includes('venue-probe')) cancelled = true;
+  });
+  expect(await RacingRenderer.prototype.prepare.call(
+    typed, sample, vi.fn(), () => cancelled, async () => {}, false,
+  )).toBe(!stop);
+  const passes = calls.filter((name) => ['venue-probe', 'shadow-fence', 'gpu-ready', 'draw'].includes(name));
+  expect(passes).toEqual(stop ? ['venue-probe', 'shadow-fence', 'gpu-ready'] :
+    ['venue-probe', 'shadow-fence', 'gpu-ready', 'draw', 'gpu-ready', 'draw', 'gpu-ready']);
+  expect(target.warmupFrames).toBe(stop ? 0 : 2);
 });
 it('stops cancelled construction before touching any further GPU resources', async () => {
   const { target, typed, sample } = fixture();

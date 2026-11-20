@@ -324,6 +324,26 @@ describe('MX contact, dust and landing presentation', () => {
     }
   });
 
+  it('keeps fixed track geometry in the static sunlight and camera-only detail out of the paint probe', () => {
+    const track = rigTrack('valley-ridge-mx'), queue = new BuildQueue();
+    const world = new OffroadScene(track, queue);
+    try {
+      queue.runSynchronously();
+      const sun: T.Object3D[] = [], probe: T.Object3D[] = [];
+      world.appendCaptureExclusions(sun, 'static-shadow');
+      world.appendCaptureExclusions(probe, 'probe');
+      expect(sun).toContain(world.gate!.movingLeaves);
+      expect(sun).not.toContain(world.gate!.root);
+      expect(sun).not.toContain(world.terrain!.group);
+      expect(probe).not.toContain(world.gate!.movingLeaves);
+      expect(probe).toContain(world.dressing!.turf);
+      expect(probe).toContain(world.looseSoil!.root);
+      expect(probe).not.toContain(world.dressing!.root);
+      expect(probe).not.toContain(world.terrain!.group);
+      expect(world.gate!.root.visible && world.gate!.movingLeaves.visible).toBe(true);
+    } finally { world.dispose(); }
+  });
+
   it('clears particles and airborne edge history on a short reverse seek', () => {
     // Keep construction pending: this exercises the production snapshot
     // path and particle history without building unrelated course meshes.
