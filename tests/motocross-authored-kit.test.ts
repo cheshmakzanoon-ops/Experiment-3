@@ -161,6 +161,39 @@ describe('original Blender-authored motocross kit', () => {
       expect(spreads[Math.floor(spreads.length * 0.9)]).toBeLessThan(
         circuit === 'arena-nord-sx' ? 0.1 : 0.025,
       );
+      // Inspect the submitted vertices of each individual instance. A flat
+      // transform alone cannot close daylight at the edge of a jump crest.
+      const peaks: number[] = [];
+      const pos = a.geometry.getAttribute('position');
+      const hem: number[] = [],
+        crown: number[] = [];
+      for (let i = 0; i < pos.count; i++) {
+        if (pos.getY(i) < -0.27 && Math.abs(pos.getX(i)) > 0.318 && Math.abs(pos.getX(i)) < 0.337)
+          hem.push(i);
+        if (pos.getY(i) > 0.2) crown.push(i);
+      }
+      expect(hem.length).toBeGreaterThan(12);
+      expect(crown.length).toBeGreaterThan(12);
+      const proxy = new T.Mesh(a.geometry, a.material);
+      for (const mesh of [a, b]) {
+        expect(mesh.morphTexture).toBeInstanceOf(T.DataTexture);
+        for (let i = 0; i < mesh.count; i++) {
+          mesh.getMatrixAt(i, matrix);
+          mesh.getMorphAt(i, proxy);
+          const gaps = hem.map((j) => {
+            proxy.getVertexPosition(j, corner).applyMatrix4(matrix);
+            return corner.y - mxFurnitureGround(track, corner.x, corner.z);
+          });
+          peaks.push(Math.max(...gaps));
+        }
+      }
+      peaks.sort((x, y) => x - y);
+      expect(peaks[Math.floor(peaks.length * 0.95)]).toBeLessThan(
+        circuit === 'arena-nord-sx' ? 0.012 : 0,
+      );
+      expect(peaks[peaks.length - 1]).toBeLessThan(circuit === 'arena-nord-sx' ? 0.04 : 0.008);
+      for (const morph of a.geometry.morphAttributes.position)
+        for (const i of crown) expect(Math.abs(morph.getY(i))).toBe(0);
       for (const mesh of [a, b]) {
         expect(mesh.material.normalMap).toBeInstanceOf(T.Texture);
         expect(mesh.material.roughnessMap).toBeInstanceOf(T.Texture);

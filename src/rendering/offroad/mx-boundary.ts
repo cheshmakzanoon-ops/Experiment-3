@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { mxFootprintMatrix } from './mx-ground-pose.ts';
 import { mxPaddingGeometry, mxPaddingMaterial } from './mx-padding.ts';
+import { fitMxPadContact, prepareMxPadContact } from './mx-pad-contact.ts';
 import { mod } from '../../core/math.ts';
 import { TrackTerrainSurface } from '../../simulation/offroad/course-terrain.ts';
 import { Track, trackPoint } from '../../simulation/track.ts';
@@ -73,12 +74,13 @@ export function buildMotocrossBoundary(track: Track) {
   // The authored canvas remains inside the unchanged physical pad envelope.
   // Mid detail is 256 triangles, shared by every instance in both batches.
   const geometry = mxPaddingGeometry();
+  prepareMxPadContact(geometry);
   for (let index = 0; index < rows.length; index++) {
     if (!rows[index].length) continue;
     const material = mxPaddingMaterial(index === 1);
     const mesh = new T.InstancedMesh(geometry, material, rows[index].length);
     mesh.name = `MX boundary pads ${index ? 'pale' : 'dark'}`;
-    rows[index].forEach((matrix, i) => mesh.setMatrixAt(i, matrix));
+    fitMxPadContact(track, mesh, rows[index]);
     mesh.castShadow = mesh.receiveShadow = true;
     mesh.computeBoundingSphere();
     root.add(mesh);
