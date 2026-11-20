@@ -26,6 +26,8 @@ The four frames below come from eight-rider races entered through the production
 | Near-detail stadium spectators submitted at the starting gate | 581 | 225 |
 | Marshal restarts over eight solo Valley Ridge AI laps, four per class | 7 | 0 |
 
+The starting gate now follows the measured green instant between snapshots. In an eight-rider replay recorded at 20 Hz on each venue, the 52 cm gate tip previously jumped 25.3 cm in one display frame. At 120 Hz its largest step fell to 5.32 cm. At 240 Hz it fell to 2.68 cm. At all five tested display rates from 30 to 240 Hz the tip stayed within 0.003 mm of its timed path. The gate remains upright until green when a snapshot pair spans the release.
+
 The pad survey samples the hems between the corners as well as the corners themselves. Each venue still draws the pads in two batches. The stadium test covered 18 trackside, gate and telephoto views. Every spectator within those camera frames retained the same seat, model and clothing.
 
 While the starting grid is held on High, the renderer finishes the local reflection and near shadow maps separately before shading the riders. In the 1280 × 800 WebGL inspection, moving the MX450 and returning it to its earlier pose produced identical pixels with separate and combined shadow rendering.

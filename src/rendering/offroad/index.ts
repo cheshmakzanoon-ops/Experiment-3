@@ -182,9 +182,9 @@ export class OffroadScene {
     if (time === null) this.terrain?.showLive();
     else this.terrain?.showAt(time);
   }
-  update(frame: Float32Array) {
+  update(frame: Float32Array, measured = frame) {
     if (this.disposed) return;
-    this.gate?.update(frame);
+    this.gate?.update(frame, measured);
     this.stadium?.update(frame[H.TIME]);
     const time = frame[H.TIME],
       dt = Number.isFinite(this.lastTime) ? clamp(time - this.lastTime, 0, 0.1) : 0;

@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { describe, expect, it } from 'vitest';
 import { BuildQueue } from '../src/rendering/build-queue.ts';
+import { PresentedFrame } from '../src/rendering/frame-state.ts';
 import { OffroadScene } from '../src/rendering/offroad/index.ts';
 import { MxCourseDressing } from '../src/rendering/offroad/mx-course-dressing.ts';
 import { MX_SOIL_COLOURS, MX_SOIL_DETAIL_HOOK } from '../src/rendering/offroad/mx-soil-detail.ts';
@@ -14,6 +15,7 @@ import { studioHookKeys, type StudioShader } from '../src/rendering/studio/shade
 import { SOIL_KINDS } from '../src/simulation/offroad/course.ts';
 import { TrackTerrainSurface } from '../src/simulation/offroad/course-terrain.ts';
 import { rigTrack } from '../src/simulation/offroad/jump-rig.ts';
+import { GATE_DROP_SECONDS } from '../src/simulation/offroad/session.ts';
 import {
   CAR_STRIDE,
   F,
@@ -211,6 +213,41 @@ describe('reference-informed MX environments', () => {
     expect(lights).toHaveLength(0);
     arena.dispose();
     expect(arena.root.children).toHaveLength(0);
+  });
+
+  it('drops the gate between recorded snapshots and holds it upright until green', () => {
+    const track = rigTrack('valley-ridge-mx');
+    const course = (Track.offroadOf(track) as TrackTerrainSurface).course;
+    const gate = new StartGate(track, course);
+    const presentation = new PresentedFrame();
+    const a = frameAt(), b = a.slice();
+    const green = 6.03125;
+    const render = (alpha: number) => {
+      const displayed = presentation.sample(a, b, alpha);
+      gate.update(displayed, b);
+      const elapsed = T.MathUtils.clamp((displayed[H.TIME] - green) / GATE_DROP_SECONDS, 0, 1);
+      expect(gate.movingLeaves.rotation.x).toBeCloseTo(elapsed * elapsed * Math.PI / 2, 6);
+      return gate.movingLeaves.rotation.x;
+    };
+    try {
+      a[H.PHASE] = PHASE.LIGHTS;
+      b[H.PHASE] = PHASE.RACING;
+      a[H.TIME] = 6;
+      b[H.TIME] = 6.05;
+      b[H.RACE_TIME] = b[H.TIME] - green;
+      expect(render(0.5)).toBe(0);
+      expect(render(0.8)).toBeGreaterThan(0);
+      a[H.PHASE] = PHASE.RACING;
+      a[H.TIME] = green + 0.15;
+      b[H.TIME] = green + 0.20;
+      a[H.RACE_TIME] = a[H.TIME] - green;
+      b[H.RACE_TIME] = b[H.TIME] - green;
+      const held = render(0.25);
+      expect(render(0.75)).toBeGreaterThan(held);
+      expect(render(0.25)).toBe(held);
+    } finally {
+      gate.dispose();
+    }
   });
 
   it('opens the welded gate on the same snapshot release without filling its aperture', () => {

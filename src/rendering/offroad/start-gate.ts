@@ -306,22 +306,25 @@ export class StartGate {
       ? this.root.position.y + 0.01
       : -Infinity;
   }
-  /** Panel count (the venue's slots, or the larger field it was widened for). */
   /** Only the leaves rotate when the gate drops. The slab and anchors stay in the static shadow map. */
   get movingLeaves() {
     return this.hinge;
   }
+  /** Panel count (the venue's slots, or the larger field it was widened for). */
   get panelCount() {
     return this.slots;
   }
-  /** Panel angle from the snapshot: standing until the release, then falling. */
-  update(frame: Float32Array) {
+  /** Evaluate the shared hinge at the displayed instant, including during replay. */
+  update(frame: Float32Array, measured = frame) {
     if (this.disposed) return;
     const riders = Math.round(frame[H.CARS]);
     if (riders > this.slots) this.build(riders);
-    const phase = frame[H.PHASE],
-      t = frame[H.RACE_TIME];
-    const drop = phase < PHASE.RACING ? 0 : clamp(t / GATE_DROP_SECONDS, 0, 1);
+    // The measured race and session clocks share the same green instant.
+    // Only the session clock is interpolated for presentation. Reconstructing
+    // elapsed time from both clocks also holds the leaves up before green
+    // when the two recorded snapshots straddle the release.
+    const elapsed = measured[H.RACE_TIME] - (measured[H.TIME] - frame[H.TIME]);
+    const drop = measured[H.PHASE] < PHASE.RACING ? 0 : clamp(elapsed / GATE_DROP_SECONDS, 0, 1);
     // Falls forward (away from the riders) onto the track.
     const angle = (Math.PI / 2) * drop * drop;
     this.hinge.rotation.x = angle;
