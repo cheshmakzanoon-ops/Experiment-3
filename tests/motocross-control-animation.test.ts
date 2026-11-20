@@ -631,6 +631,16 @@ it('prepares camera cuts during loading, shares rigid vertex data and keeps susp
       expect(installs).toHaveBeenCalledTimes(8);
       expect(attached()).toHaveLength(4);
       expect(attached().filter((node) => node.visible)).toHaveLength(2);
+      const hidden = attached().find((node) => !node.visible && node.name.endsWith('(mid)'))!;
+      const visit = vi.spyOn(hidden.children[0], 'updateMatrixWorld');
+      shells.root.updateMatrixWorld(true);
+      expect(visit).not.toHaveBeenCalled();
+      cars[1].root.position.z = 65;
+      present();
+      shells.root.updateMatrixWorld(true);
+      expect(shells.drawnRoot(1)).toBe(hidden);
+      expect(visit).toHaveBeenCalled();
+      expect(hidden.matrixWorld.elements[14]).toBe(65);
     } finally {
       building.mockRestore();
     }

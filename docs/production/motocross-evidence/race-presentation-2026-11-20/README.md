@@ -8,6 +8,10 @@ The eight-by-five lamp grid lights the jersey, shell plastics and metalwork acco
 
 ![MX250 and rider under the venue lamp field](mx250-roof-light.webp)
 
+On the MX450, the filmed goggle lens follows the helmet's curvature. Its two tear-off edges, posts and folded tab catch the light at different angles. The brake fingers and throttle hand follow their respective controls.
+
+![MX450 helmet, tear-off lens and handlebar controls from the WebGL model inspection](mx450-helmet-and-controls.webp)
+
 ## Wheel passage
 
 Each row shows the same camera and soil before and after a grounded wheel passes. Valley Ridge is above Arena Nord. The WebGL test recorded 300 outdoor segments and 301 indoor segments. Both added one draw call and restored the original pixels on rewind.
@@ -33,6 +37,7 @@ Six seeded race runs passed the repository's motocross, supercross and supermoto
 ## Frame workload
 
 * In a CPU benchmark of eight ordinary Formula hosts with eight active motocross models, all 1,600 hidden Formula descendants were skipped. Across 400 samples the median field matrix update took 0.67 ms with the change and 1.30 ms before it. The active bike geometry and root transforms were the same.
+* After close, medium and wide camera cuts, the eight riders retained 22 loaded bike models. Skipping the 1,995 descendants of the fourteen inactive models reduced the median matrix update from 1.189 to 0.504 ms in a separate 400-sample run. The 95th percentile fell from 2.745 to 1.690 ms. The camera-cut test also checks that each returning model immediately restores its current world transform.
 * The 720 Hz tyre integrator reuses each wheel's force record within a simulation tick. A comparison of 16,384 inputs produced identical numerical results for the previous and revised integrators, including braking, mixed grip, unloaded wheels and different timesteps.
 * The tyre renderer submits only unexpired quads. The index buffer spans a circular wrap in one draw, and a replay seek restores the visible range.
 

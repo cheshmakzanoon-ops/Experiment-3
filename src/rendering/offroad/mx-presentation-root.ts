@@ -1,8 +1,7 @@
 import { Group, type Object3D } from 'three';
 
-/** The unused Formula host behind a dirt bike still provides an
- * addressable world-space anchor. The scene's forced matrix update can stop
- * at that anchor until its own geometry is presented again. */
+/** A dirt bike's inactive detail model or underlying vehicle slot still has a
+ * world-space anchor. A scene update can stop there until the rig is shown. */
 export class MxPresentationRoot extends Group {
   private descendantsStale = false;
 

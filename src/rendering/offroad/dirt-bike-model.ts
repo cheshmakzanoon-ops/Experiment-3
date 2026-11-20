@@ -13,6 +13,7 @@ import { liveryScheme } from '../car-livery.ts';
 import { tagWeatherSurface } from '../weather-presentation.ts';
 import { Rider, type RiderDetail } from '../rider.ts';
 import { installMudOn, tagMudExposure, type MudUniforms } from './mud.ts';
+import { MxPresentationRoot } from './mx-presentation-root.ts';
 import {
   MotocrossAxles,
   MX_AXLE_OFFSET as OFFSET,
@@ -96,7 +97,7 @@ const CLAMPS = 0.2;
  * bike; a mud coat follows the entrant's O.MUD.
  */
 export class DirtBikeModel {
-  readonly root = new T.Group();
+  readonly root: T.Group = new MxPresentationRoot(true);
   readonly sprung = new T.Group();
   readonly rider: Rider;
   /** Sight points on the authored control geometry, following steering. */
